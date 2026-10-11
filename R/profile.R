@@ -101,6 +101,8 @@
 #' @param workers Requested profile or bootstrap workers. If `NULL` and
 #'   `parallel = "multicore"`, `drmTMB` uses about half the detected CPU cores.
 #'   Multicore execution is capped at the number of jobs and at 10 workers.
+#'   Keep BLAS and OpenMP threads at one while workers run; see
+#'   [drmTMB-parallel].
 #' @param refit_control Optional [drm_control()] object used for bootstrap
 #'   refits. The default skips `TMB::sdreport()` and drops the TMB object because
 #'   bootstrap intervals use refit point estimates.
@@ -760,6 +762,17 @@ profile_targets <- function(object, ready_only = FALSE) {
 #' @param first_pass_ystep,first_pass_ytol Coarse [TMB::tmbprofile()] controls
 #'   used only when `compare = TRUE`. The dense pass uses `profile_precision`,
 #'   `profile_maxit`, and `...`.
+#' @param parallel Parallel backend for profiling several targets. `"none"`
+#'   (the default) profiles targets one after another. `"multicore"` profiles
+#'   independent targets in forked worker processes with
+#'   [parallel::mclapply()]; it is available on Unix-alikes only, and the
+#'   returned curves are identical to the serial result because every target
+#'   starts from the same pinned optimum. A single target is always profiled
+#'   serially. Keep `TMB::openmp()` and BLAS threads at one when using
+#'   `"multicore"`; see [drmTMB-parallel].
+#' @param workers Optional positive whole number of worker processes for
+#'   `parallel = "multicore"`. `NULL` uses half the detected physical cores,
+#'   capped at 10 and at the number of targets.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()]. `drmTMB`
 #'   supplies the profiled `obj`, `name`, `lincomb`, and `trace` arguments
 #'   internally; set the profile target with `parm`.
@@ -789,8 +802,14 @@ profile.drmTMB <- function(
   compare = FALSE,
   first_pass_ystep = 0.5,
   first_pass_ytol = 2,
+  parallel = c("none", "multicore"),
+  workers = NULL,
   ...
 ) {
+  parallel <- resolve_bootstrap_parallel(
+    parallel,
+    missing_arg = missing(parallel)
+  )
   drm_abort_mspl_inference(fitted, "profile")
   if (identical(fitted$model$model_type, "biv_student")) {
     cli::cli_abort(
@@ -838,7 +857,12 @@ profile.drmTMB <- function(
       i = "Use {.fn confint} with {.code method = \"profile\"} and {.code profile_engine = \"auto\"} for the constrained interval."
     ))
   }
-  rows <- lapply(seq_len(nrow(targets)), function(i) {
+  plan <- profile_parallel_plan(
+    nrow(targets),
+    parallel = parallel,
+    workers = workers
+  )
+  rows <- profile_lapply(seq_len(nrow(targets)), function(i) {
     target <- targets[i, , drop = FALSE]
     if (isTRUE(compare)) {
       return(rbind(
@@ -886,7 +910,7 @@ profile.drmTMB <- function(
         profile_args
       )
     )
-  })
+  }, plan)
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   attr(out, "level") <- level
@@ -2911,7 +2935,24 @@ profile_lapply <- function(indices, worker, plan) {
   if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
     return(lapply(indices, worker))
   }
-  parallel::mclapply(indices, worker, mc.cores = plan$workers)
+  drm_mclapply_stop_on_error(
+    parallel::mclapply(indices, worker, mc.cores = plan$workers)
+  )
+}
+
+# parallel::mclapply() turns a worker error into a "try-error" element and only
+# warns.  The serial lapply() path aborts on the same error, so re-raise the
+# first worker error to keep both paths failing the same way.
+drm_mclapply_stop_on_error <- function(results) {
+  failed <- vapply(results, inherits, logical(1L), what = "try-error")
+  if (any(failed)) {
+    err <- attr(results[[which(failed)[[1L]]]], "condition")
+    if (inherits(err, "condition")) {
+      stop(err)
+    }
+    stop(as.character(results[[which(failed)[[1L]]]]), call. = FALSE)
+  }
+  results
 }
 
 bootstrap_lapply <- function(indices, worker, plan) {

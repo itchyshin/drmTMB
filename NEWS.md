@@ -20,9 +20,27 @@
   6.5 MB to 51 KB with identical curves and clamp status. Set
   `options(drmTMB.profile_trace_par = TRUE)` to keep the full trail for
   debugging (#1387).
+* Multicore profile workers that error now abort `confint()` and `profile()`
+  with the worker's error, as the serial path does, instead of returning a
+  `try-error` element.
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
+
+## New features
+
+* `profile()` gains `parallel = c("none", "multicore")` and `workers`, the
+  same contract `confint()` already had. Multicore profiles of several
+  targets return the same curves as the serial run apart from the `elapsed`
+  column; four targets on four workers ran 2.4 times faster (9.5 s to 4.0 s)
+  in a local check (#1247).
+* New help topic `?drmTMB-parallel` states the package's thread policy: one
+  fit uses one core (the compiled objective has no OpenMP, so
+  `TMB::openmp()` does not speed it up), parallelism is across independent
+  profile and bootstrap jobs, inner BLAS/OpenMP threads should stay at one
+  when outer workers run, and Windows has no cluster backend because fitted
+  TMB objects cannot be copied between R processes (#1232, #1237, #1249,
+  #1254, #1236).
 
 # drmTMB 0.7.1
 
