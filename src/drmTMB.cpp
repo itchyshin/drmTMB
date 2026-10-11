@@ -74,6 +74,88 @@ Type drm_log_sech(Type eta) {
   return log(Type(2.0)) - abs_eta - log(Type(1.0) + exp(Type(-2.0) * abs_eta));
 }
 
+// Weight times a log-density. A weight-0 row must contribute 0 even when
+// log_dens is -Inf (0 * Inf is NaN). #1459: the continuous mi() prior is
+// still unweighted; use this helper only on the response term.
+template<class Type>
+Type drm_weight_times_logdens(Type w, Type log_dens) {
+  return CppAD::CondExpGt(w, Type(0.0), w * log_dens, Type(0.0));
+}
+
+template<class Type>
+Type drm_logspace_sum(const vector<Type>& log_terms) {
+  Type out = log_terms(0);
+  for (int i = 1; i < log_terms.size(); ++i) {
+    out = logspace_add(out, log_terms(i));
+  }
+  return out;
+}
+
+// Gamma(mean = mu, CV = sigma) node from a standard-normal Gauss-Hermite
+// abscissa, using a mean/CV-matched lognormal proposal (#1477). Reuses
+// drm_log1p_nonnegative so tiny CV keeps a finite Hessian.
+template<class Type>
+void drm_gamma_mi_is_node(
+    Type mu,
+    Type sigma,
+    Type z,
+    Type w,
+    Type& x_q,
+    Type& log_prior)
+{
+  Type cv2 = sigma * sigma;
+  Type log_1pcv2 = drm_log1p_nonnegative(cv2);
+  Type s = sqrt(log_1pcv2);
+  Type s_floor = Type(1e-8);
+  s = CppAD::CondExpLt(s, s_floor, s_floor, s);
+  Type m = log(mu) - Type(0.5) * log_1pcv2;
+  Type log_x = m + s * z;
+  x_q = exp(log_x);
+  Type shape = Type(1.0) / cv2;
+  Type scale = mu * cv2;
+  Type log_gamma =
+    (shape - Type(1.0)) * log_x -
+    x_q / scale -
+    lgamma(shape) -
+    shape * log(scale);
+  Type log_prop = dnorm(log_x, m, s, true) - log_x;
+  log_prior = log(w) + log_gamma - log_prop;
+}
+
+// Beta(mu, phi = 1/sigma^2) node from a standard-normal Gauss-Hermite
+// abscissa, using a logit-normal proposal matched by the delta method
+// (#1476). log(x) and log(1-x) stay on the log scale via drm_log_inv_logit.
+template<class Type>
+void drm_beta_mi_is_node(
+    Type mu,
+    Type phi,
+    Type alpha,
+    Type beta_shape,
+    Type z,
+    Type w,
+    Type& x_q,
+    Type& log_prior)
+{
+  Type var = mu * (Type(1.0) - mu) / (phi + Type(1.0));
+  Type mu_om = mu * (Type(1.0) - mu);
+  Type s = sqrt(var) / mu_om;
+  Type s_floor = Type(1e-8);
+  s = CppAD::CondExpLt(s, s_floor, s_floor, s);
+  Type logit_mu = log(mu) - log(Type(1.0) - mu);
+  Type eta_q = logit_mu + s * z;
+  Type log_x = drm_log_inv_logit(eta_q);
+  Type log_1mx = drm_log1m_inv_logit(eta_q);
+  x_q = exp(log_x);
+  Type log_beta =
+    lgamma(alpha + beta_shape) -
+    lgamma(alpha) -
+    lgamma(beta_shape) +
+    (alpha - Type(1.0)) * log_x +
+    (beta_shape - Type(1.0)) * log_1mx;
+  Type log_prop = dnorm(eta_q, logit_mu, s, true) - log_x - log_1mx;
+  log_prior = log(w) + log_beta - log_prop;
+}
+
 // Paper-sign negative Huber function D(x): zero at the origin, quadratic in
 // [-1, 1], and linear in the tails. MSPL adds D to the maximized criterion.
 template<class Type>
@@ -723,7 +805,10 @@ Type objective_function<Type>::operator()()
       vector<Type> sigma = exp(log_sigma);
       vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
       for (int i = 0; i < y.size(); ++i) {
-        nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
+          nll -= drm_weight_times_logdens(
+            weights(i),
+            dnorm(y(i), mu(i), obs_sigma(i), true)
+          );
       }
       REPORT(mu);
       REPORT(log_sigma);
@@ -1545,34 +1630,37 @@ Type objective_function<Type>::operator()()
           nll -= weights(i) * log_density;
           mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
         } else if (observed_y(i) == 1) {
+          vector<Type> log_prior(mi_quad_nodes.size());
+          vector<Type> x_nodes(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            drm_beta_mi_is_node(
+              mi_mean(i),
+              phi_beta_mi,
+              alpha_i,
+              beta_i,
+              mi_quad_nodes(q),
+              mi_quad_weights(q),
+              x_nodes(q),
+              log_prior(q)
+            );
+          }
+          Type log_mass = drm_logspace_sum(log_prior);
           vector<Type> log_terms(mi_quad_nodes.size());
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type x_q = mi_quad_nodes(q);
-            Type log_density =
-              lgamma(alpha_i + beta_i) -
-              lgamma(alpha_i) -
-              lgamma(beta_i) +
-              (alpha_i - Type(1.0)) * log(x_q) +
-              (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
             Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+              beta_mu(mi_col) * (x_nodes(q) - X_mu(i, mi_col));
             Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
-            log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
+            log_terms(q) = log_prior(q) - log_mass + log_y;
           }
-          Type log_denom = log_terms(0);
-          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
-            log_denom = logspace_add(log_denom, log_terms(q));
-          }
-          nll -= weights(i) * log_denom;
+          Type log_denom = drm_logspace_sum(log_terms);
+          nll -= drm_weight_times_logdens(weights(i), log_denom);
           Type conditional_mean = Type(0.0);
           Type expected_mu = Type(0.0);
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
             Type posterior = exp(log_terms(q) - log_denom);
-            Type x_q = mi_quad_nodes(q);
             Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            conditional_mean += x_q * posterior;
+              beta_mu(mi_col) * (x_nodes(q) - X_mu(i, mi_col));
+            conditional_mean += x_nodes(q) * posterior;
             expected_mu += mu_q * posterior;
           }
           mi_x_full(i) = conditional_mean;
@@ -1581,14 +1669,19 @@ Type objective_function<Type>::operator()()
           Type prior_norm = Type(0.0);
           Type prior_mean = Type(0.0);
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type x_q = mi_quad_nodes(q);
-            Type log_density =
-              lgamma(alpha_i + beta_i) -
-              lgamma(alpha_i) -
-              lgamma(beta_i) +
-              (alpha_i - Type(1.0)) * log(x_q) +
-              (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
-            Type term = mi_quad_weights(q) * exp(log_density);
+            Type x_q;
+            Type log_prior;
+            drm_beta_mi_is_node(
+              mi_mean(i),
+              phi_beta_mi,
+              alpha_i,
+              beta_i,
+              mi_quad_nodes(q),
+              mi_quad_weights(q),
+              x_q,
+              log_prior
+            );
+            Type term = exp(log_prior);
             prior_norm += term;
             prior_mean += x_q * term;
           }
@@ -1679,42 +1772,49 @@ Type objective_function<Type>::operator()()
           nll -= weights(i) * log_density;
           mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
         } else if (observed_y(i) == 1) {
-          vector<Type> log_terms(mi_quad_nodes.size());
-          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type x_q = mi_quad_nodes(q);
-            Type log_density;
-            if (asDouble(x_q) <= 0.0) {
-              log_density = log_zoi_mi + log_one_minus_coi_mi;
-            } else if (asDouble(x_q) >= 1.0) {
-              log_density = log_zoi_mi + log_coi_mi;
-            } else {
-              log_density =
-                log_one_minus_zoi_mi +
-                lgamma(alpha_i + beta_i) -
-                lgamma(alpha_i) -
-                lgamma(beta_i) +
-                (alpha_i - Type(1.0)) * log(x_q) +
-                (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
-            }
+          int nq = mi_quad_nodes.size();
+          vector<Type> log_prior_int(nq);
+          vector<Type> x_nodes(nq);
+          for (int q = 0; q < nq; ++q) {
+            drm_beta_mi_is_node(
+              mi_mean(i),
+              phi_zob_mi,
+              alpha_i,
+              beta_i,
+              mi_quad_nodes(q),
+              mi_quad_weights(q),
+              x_nodes(q),
+              log_prior_int(q)
+            );
+          }
+          Type log_mass = drm_logspace_sum(log_prior_int);
+          vector<Type> log_terms(nq + 2);
+          Type mu0 = mu(i) + beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type mu1 = mu(i) + beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type log_y0 = drm_response_log_density(model_type, y(i), mu0, log_sigma(i), V_known(i), Type(0.0), 0);
+          Type log_y1 = drm_response_log_density(model_type, y(i), mu1, log_sigma(i), V_known(i), Type(0.0), 0);
+          log_terms(0) = log_zoi_mi + log_one_minus_coi_mi + log_y0;
+          log_terms(nq + 1) = log_zoi_mi + log_coi_mi + log_y1;
+          for (int q = 0; q < nq; ++q) {
             Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+              beta_mu(mi_col) * (x_nodes(q) - X_mu(i, mi_col));
             Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
-            log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
+            log_terms(q + 1) =
+              log_one_minus_zoi_mi + log_prior_int(q) - log_mass + log_y;
           }
-          Type log_denom = log_terms(0);
-          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
-            log_denom = logspace_add(log_denom, log_terms(q));
-          }
-          nll -= weights(i) * log_denom;
+          Type log_denom = drm_logspace_sum(log_terms);
+          nll -= drm_weight_times_logdens(weights(i), log_denom);
           Type conditional_mean = Type(0.0);
           Type expected_mu = Type(0.0);
-          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type posterior = exp(log_terms(q) - log_denom);
-            Type x_q = mi_quad_nodes(q);
+          Type post0 = exp(log_terms(0) - log_denom);
+          Type post1 = exp(log_terms(nq + 1) - log_denom);
+          conditional_mean += Type(0.0) * post0 + Type(1.0) * post1;
+          expected_mu += mu0 * post0 + mu1 * post1;
+          for (int q = 0; q < nq; ++q) {
+            Type posterior = exp(log_terms(q + 1) - log_denom);
             Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            conditional_mean += x_q * posterior;
+              beta_mu(mi_col) * (x_nodes(q) - X_mu(i, mi_col));
+            conditional_mean += x_nodes(q) * posterior;
             expected_mu += mu_q * posterior;
           }
           mi_x_full(i) = conditional_mean;
@@ -1722,23 +1822,24 @@ Type objective_function<Type>::operator()()
         } else {
           Type prior_norm = Type(0.0);
           Type prior_mean = Type(0.0);
+          Type atom0 = exp(log_zoi_mi + log_one_minus_coi_mi);
+          Type atom1 = exp(log_zoi_mi + log_coi_mi);
+          prior_norm += atom0 + atom1;
+          prior_mean += atom1;
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type x_q = mi_quad_nodes(q);
-            Type log_density;
-            if (asDouble(x_q) <= 0.0) {
-              log_density = log_zoi_mi + log_one_minus_coi_mi;
-            } else if (asDouble(x_q) >= 1.0) {
-              log_density = log_zoi_mi + log_coi_mi;
-            } else {
-              log_density =
-                log_one_minus_zoi_mi +
-                lgamma(alpha_i + beta_i) -
-                lgamma(alpha_i) -
-                lgamma(beta_i) +
-                (alpha_i - Type(1.0)) * log(x_q) +
-                (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
-            }
-            Type term = mi_quad_weights(q) * exp(log_density);
+            Type x_q;
+            Type log_prior;
+            drm_beta_mi_is_node(
+              mi_mean(i),
+              phi_zob_mi,
+              alpha_i,
+              beta_i,
+              mi_quad_nodes(q),
+              mi_quad_weights(q),
+              x_q,
+              log_prior
+            );
+            Type term = exp(log_one_minus_zoi_mi + log_prior);
             prior_norm += term;
             prior_mean += x_q * term;
           }
@@ -2265,33 +2366,35 @@ Type objective_function<Type>::operator()()
           nll -= weights(i) * log_density;
           mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
         } else if (observed_y(i) == 1) {
+          vector<Type> log_prior(mi_quad_nodes.size());
+          vector<Type> x_nodes(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            drm_gamma_mi_is_node(
+              mi_mean(i),
+              sigma_gamma_mi,
+              mi_quad_nodes(q),
+              mi_quad_weights(q),
+              x_nodes(q),
+              log_prior(q)
+            );
+          }
+          Type log_mass = drm_logspace_sum(log_prior);
           vector<Type> log_terms(mi_quad_nodes.size());
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type t_q = mi_quad_nodes(q);
-            Type x_q = scale_i * t_q;
-            Type log_prior =
-              log(mi_quad_weights(q)) +
-              (shape_gamma_mi - Type(1.0)) * log(t_q) -
-              lgamma(shape_gamma_mi);
             Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+              beta_mu(mi_col) * (x_nodes(q) - X_mu(i, mi_col));
             Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
-            log_terms(q) = log_prior + log_y;
+            log_terms(q) = log_prior(q) - log_mass + log_y;
           }
-          Type log_denom = log_terms(0);
-          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
-            log_denom = logspace_add(log_denom, log_terms(q));
-          }
-          nll -= weights(i) * log_denom;
+          Type log_denom = drm_logspace_sum(log_terms);
+          nll -= drm_weight_times_logdens(weights(i), log_denom);
           Type conditional_mean = Type(0.0);
           Type expected_mu = Type(0.0);
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
             Type posterior = exp(log_terms(q) - log_denom);
-            Type x_q = scale_i * mi_quad_nodes(q);
             Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            conditional_mean += x_q * posterior;
+              beta_mu(mi_col) * (x_nodes(q) - X_mu(i, mi_col));
+            conditional_mean += x_nodes(q) * posterior;
             expected_mu += mu_q * posterior;
           }
           mi_x_full(i) = conditional_mean;
@@ -2300,14 +2403,17 @@ Type objective_function<Type>::operator()()
           Type prior_norm = Type(0.0);
           Type prior_mean = Type(0.0);
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type t_q = mi_quad_nodes(q);
-            Type x_q = scale_i * t_q;
-            Type term =
-              mi_quad_weights(q) *
-              exp(
-                (shape_gamma_mi - Type(1.0)) * log(t_q) -
-                lgamma(shape_gamma_mi)
-              );
+            Type x_q;
+            Type log_prior_q;
+            drm_gamma_mi_is_node(
+              mi_mean(i),
+              sigma_gamma_mi,
+              mi_quad_nodes(q),
+              mi_quad_weights(q),
+              x_q,
+              log_prior_q
+            );
+            Type term = exp(log_prior_q);
             prior_norm += term;
             prior_mean += x_q * term;
           }
@@ -2457,7 +2563,10 @@ Type objective_function<Type>::operator()()
           observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)
         ) {
-          nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
+          nll -= drm_weight_times_logdens(
+            weights(i),
+            dnorm(y(i), mu(i), obs_sigma(i), true)
+          );
         }
       }
     }

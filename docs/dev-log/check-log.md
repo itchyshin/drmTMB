@@ -1,3 +1,11 @@
+# 2026-10-11: mi() quadrature (#1477, #1476) and #1459 gates
+
+`cursor/triage-i-mi` from `af2ee2501` (#1504). Gamma `mi()` uses a 31-node Gauss-Hermite lognormal proposal with `drm_log1p_nonnegative(CV^2)` and renormalised mass (#1477). Beta / zero-one-Beta interior uses a 31-node logit-normal Gauss-Hermite rule, also renormalised (#1476). Headers `src/drm_numeric.h` and `src/drm_response_kernels.h` were not edited. Continuous `mi()` prior stays unweighted (#1459); `drm_weight_times_logdens` guards `0 * (-Inf)` on the Gaussian response term. Julia `mi()` plus non-unit weights is a classed refusal. `R/methods.R` gained the predict/simulate `weights=` refuse; C17 pending if that edit stays through the full suite.
+
+Refs #1477
+Refs #1476
+Refs #1459
+
 # 2026-10-11: mi() weights gates (#1459) and Julia refusal
 
 R-only first slice on `cursor/triage-i-mi`. `engine = "julia"` plus `mi()` plus non-unit weights is a classed refusal (`drmTMB_julia_mi_weights_unsupported`) before any Julia process starts. Unit weights are treated as omitted. Native TMB emits a classed warning that the imputation prior ignores weights; the prior itself is unchanged. Weight 0 or NA on a missing `mi()` covariate is `drmTMB_mi_zero_weight_missing`. `predict()` / `simulate()` refuse an explicit `weights` argument on an `mi()` fit.

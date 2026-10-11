@@ -504,45 +504,16 @@ test_that("prior_norm floor: REPORT(mi_x_full) stays finite and continuous as pr
       optimizer = list(eval.max = 1, iter.max = 1)
     )
   ))
-  mp <- fit$model$missing_predictor
-  nodes <- mp$quad_nodes
-  weights <- mp$quad_weights
   target_row <- both_missing[[1]]
-  z_row <- dat$z[[target_row]]
-
   par0 <- fit$obj$par
-  beta_mi_idx <- which(names(par0) == "beta_mi")
   log_sigma_mi_idx <- which(names(par0) == "log_sigma_mi")
-  b0 <- unname(par0[beta_mi_idx[[1]]])
-  bz <- unname(par0[beta_mi_idx[[2]]])
 
-  # Mirror of the C++ prior_norm computation (src/drmTMB.cpp:1419-1432),
-  # used only to LOCATE the crossing coefficient; the actual continuity
-  # assertion below reads TMB's own REPORT(mi_x_full), not this mirror.
-  prior_norm_r <- function(log_sigma_mi) {
-    eta <- b0 + bz * z_row
-    eps <- 1e-12
-    mu <- eps + (1 - 2 * eps) * stats::plogis(eta)
-    phi <- 1 / exp(log_sigma_mi)^2
-    floor_ <- 1e-8
-    alpha <- pmax(mu * phi, floor_)
-    beta_ <- pmax((1 - mu) * phi, floor_)
-    log_dens <- lgamma(alpha + beta_) - lgamma(alpha) - lgamma(beta_) +
-      (alpha - 1) * log(nodes) + (beta_ - 1) * log(1 - nodes)
-    sum(weights * exp(log_dens))
-  }
-  root_fn <- function(ls) log(prior_norm_r(ls) + 1e-320) - log(1e-300)
-  target <- stats::uniroot(root_fn, c(-20, 5), tol = 1e-10)$root
-
-  # This region is hyper-exponentially steep in log_sigma_mi (the underlying
-  # beta density concentrates), so a coarse fixed-width grid can straddle the
-  # whole 0 -> nonzero transition inside a single step and look like a jump
-  # when it is not one. Zoom to a window narrow enough to resolve it: a real
-  # discontinuity stays a hard 2-level step no matter how much the grid is
-  # refined, whereas a steep-but-smooth transition resolves into a continuum
-  # of intermediate values.
-  win <- 0.035
-  grid <- seq(target - win, target + win, length.out = 41)
+  # After #1476 the Beta mi() prior is a logit-normal importance rule whose
+  # nodes follow the current phi, so prior_norm stays near 1 and the old
+  # 1e-300 crossing no longer exists. Sweep a wide log_sigma_mi window and
+  # read TMB's REPORT(mi_x_full): the plug-in mean must stay finite and
+  # change smoothly, not jump between two values.
+  grid <- seq(-8, 2, length.out = 41)
   reported <- vapply(grid, function(ls) {
     par <- par0
     par[log_sigma_mi_idx] <- ls
