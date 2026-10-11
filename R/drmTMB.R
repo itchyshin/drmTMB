@@ -8142,7 +8142,14 @@ drm_build_poisson_spec <- function(
   )
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
-  validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry))
+  validate_poisson_mu_random_terms(
+    mu_re$terms,
+    has_zi = !is.null(zi_entry),
+    zi_is_intercept_only = !is.null(zi_entry) &&
+      identical(deparse1(zi_entry$rhs), "1"),
+    has_structured = !is.null(mu_structured_term) ||
+      !is.null(zi_spatial$term)
+  )
   if (include_missing_response) {
     has_ordinary_correlated <- any(vapply(
       mu_re$terms,
@@ -8411,10 +8418,13 @@ drm_build_poisson_spec <- function(
       X_mu[observed_y, , drop = FALSE],
       X_zi[observed_y, , drop = FALSE],
       if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu,
-      phylo_mu = phylo_mu
+      phylo_mu = phylo_mu,
+      re_mu = re_mu
     )
   } else if (has_zi) {
-    zi_poisson_start(y, X_mu, X_zi, offset_mu, phylo_mu = phylo_mu)
+    zi_poisson_start(
+      y, X_mu, X_zi, offset_mu, phylo_mu = phylo_mu, re_mu = re_mu
+    )
   } else if (include_missing_response) {
     poisson_start(
       y[observed_y],
@@ -8491,7 +8501,7 @@ drm_build_poisson_spec <- function(
     dpars = if (has_zi) c("mu", "zi") else "mu",
     start = start,
     map = if (has_zi) {
-      zi_poisson_map(phylo_mu)
+      zi_poisson_map(phylo_mu, re_mu = re_mu)
     } else {
       poisson_map(re_mu, phylo_mu)
     },
@@ -8675,7 +8685,12 @@ drm_build_nbinom2_spec <- function(
     mu_re$terms,
     has_zi = !is.null(zi_entry),
     family_label = "NB2",
-    inflated_label = "Zero-inflated NB2"
+    inflated_label = "Zero-inflated NB2",
+    zi_is_intercept_only = !is.null(zi_entry) &&
+      identical(deparse1(zi_entry$rhs), "1"),
+    has_structured = !is.null(mu_structured_term) ||
+      !is.null(sigma_structured_term) ||
+      formula_contains_call(sigma_entry$rhs, "|")
   )
   if (include_missing_response) {
     has_ordinary_correlated <- any(vapply(
@@ -9019,12 +9034,13 @@ drm_build_nbinom2_spec <- function(
           offset_mu
         },
         phylo_mu,
-        re_sigma = re_sigma
+        re_sigma = re_sigma,
+        re_mu = re_mu
       )
     } else if (has_zi) {
       zi_nbinom2_start(
         y, X_mu, X_sigma, X_zi, offset_mu, phylo_mu,
-        re_sigma = re_sigma
+        re_sigma = re_sigma, re_mu = re_mu
       )
     } else if (include_missing_response) {
       nbinom2_start(
@@ -9052,7 +9068,7 @@ drm_build_nbinom2_spec <- function(
       )
     },
     map = if (has_zi) {
-      zi_nbinom2_map(phylo_mu, re_sigma = re_sigma)
+      zi_nbinom2_map(phylo_mu, re_sigma = re_sigma, re_mu = re_mu)
     } else {
       nbinom2_map(re_mu, phylo_mu, re_sigma)
     },
@@ -9218,19 +9234,15 @@ drm_build_truncated_nbinom2_spec <- function(
     validate_truncated_nbinom2_relmat_hu_structured_term(hu_relmat$term)
   }
 
-  if (!is.null(hu_entry) && formula_contains_call(mu_entry$rhs, "|")) {
-    cli::cli_abort(c(
-      "Hurdle {.fn truncated_nbinom2} random effects are not implemented.",
-      "x" = "The {.code mu} formula contains a random-effect bar term while {.code hu} is present.",
-      "i" = "Keep hurdle NB2 models fixed-effect for now, such as {.code bf(count ~ x, sigma ~ z, hu ~ w)}.",
-      "i" = "Hurdle-side and positive-count random effects need likelihood, extractor, interval, and recovery-test support before they can be fitted together."
-    ))
-  }
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_truncated_nbinom2_mu_random_terms(
     mu_re$terms,
-    has_hu = !is.null(hu_entry)
+    has_hu = !is.null(hu_entry),
+    hu_is_intercept_only = !is.null(hu_entry) &&
+      identical(deparse1(hu_entry$rhs), "1"),
+    has_structured = !is.null(hu_relmat$term) ||
+      formula_contains_call(sigma_entry$rhs, "|")
   )
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
@@ -9367,10 +9379,13 @@ drm_build_truncated_nbinom2_spec <- function(
       X_mu[observed_y, , drop = FALSE],
       X_sigma[observed_y, , drop = FALSE],
       X_hu[observed_y, , drop = FALSE],
-      phylo_mu = phylo_mu
+      phylo_mu = phylo_mu,
+      re_mu = re_mu
     )
   } else if (has_hu) {
-    hurdle_nbinom2_start(y, X_mu, X_sigma, X_hu, phylo_mu = phylo_mu)
+    hurdle_nbinom2_start(
+      y, X_mu, X_sigma, X_hu, phylo_mu = phylo_mu, re_mu = re_mu
+    )
   } else if (include_missing_response) {
     truncated_nbinom2_start(
       y[observed_y],
@@ -9444,7 +9459,7 @@ drm_build_truncated_nbinom2_spec <- function(
     dpars = if (has_hu) c("mu", "sigma", "hu") else c("mu", "sigma"),
     start = start,
     map = if (has_hu) {
-      hurdle_nbinom2_map(phylo_mu = phylo_mu)
+      hurdle_nbinom2_map(phylo_mu = phylo_mu, re_mu = re_mu)
     } else {
       truncated_nbinom2_map(re_mu)
     },
@@ -10675,7 +10690,9 @@ validate_poisson_mu_random_terms <- function(
   terms,
   has_zi = FALSE,
   family_label = "Poisson",
-  inflated_label = "Zero-inflated Poisson"
+  inflated_label = "Zero-inflated Poisson",
+  zi_is_intercept_only = FALSE,
+  has_structured = FALSE
 ) {
   if (length(terms) == 0L) {
     return(invisible(terms))
@@ -10683,11 +10700,14 @@ validate_poisson_mu_random_terms <- function(
   family_label <- as.character(family_label)[[1L]]
   inflated_label <- as.character(inflated_label)[[1L]]
   if (isTRUE(has_zi)) {
-    cli::cli_abort(c(
-      "{family_label} {.code mu} random intercepts and slopes are implemented only for ordinary {family_label} models.",
-      "x" = "{inflated_label} random effects are planned but not implemented.",
-      "i" = "Fit {.code y ~ x + (1 | id) + (0 + x | id)} without a {.code zi} formula, or use a fixed-effect {.code zi ~ predictors} model."
-    ))
+    validate_zero_inflated_mu_random_intercept(
+      terms,
+      inflated_label = inflated_label,
+      zero_dpar = "zi",
+      zero_is_intercept_only = zi_is_intercept_only,
+      has_structured = has_structured
+    )
+    return(invisible(terms))
   }
   has_correlated_block <- vapply(
     terms,
@@ -11116,19 +11136,82 @@ validate_nbinom2_sigma_random_terms <- function(
   invisible(terms)
 }
 
+# Owner decision 1(a), issue #1451: the first zero-inflated / hurdle count
+# random-effect slice admits exactly ONE unlabelled Gaussian `(1 | g)`
+# intercept on `mu`, with an intercept-only `zi ~ 1` or `hu ~ 1` part, complete
+# data, and no structured or scale random effects. Everything else stays
+# rejected until it has its own recovery and comparator evidence.
+validate_zero_inflated_mu_random_intercept <- function(
+  terms,
+  inflated_label,
+  zero_dpar = c("zi", "hu"),
+  zero_is_intercept_only = FALSE,
+  has_structured = FALSE
+) {
+  zero_dpar <- match.arg(zero_dpar)
+  inflated_label <- as.character(inflated_label)[[1L]]
+  example <- if (identical(zero_dpar, "hu")) {
+    "bf(count ~ x + (1 | site), sigma ~ 1, hu ~ 1)"
+  } else {
+    "bf(count ~ x + (1 | site), zi ~ 1)"
+  }
+  is_intercept <- vapply(
+    terms,
+    function(term) {
+      identical(term$type, "intercept") && is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (!all(is_intercept)) {
+    labels <- vapply(terms[!is_intercept], `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "{inflated_label} random effects currently support one {.code (1 | group)} random intercept on {.code mu}.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use {.code {example}}; random slopes, correlated blocks, and labelled covariance remain planned for zero-inflated and hurdle counts."
+    ))
+  }
+  if (length(terms) > 1L) {
+    labels <- vapply(terms, `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "{inflated_label} models currently support only one {.code mu} random intercept.",
+      "x" = "Requested random-effect terms: {.code {labels}}.",
+      "i" = "Keep one grouping factor, such as {.code {example}}."
+    ))
+  }
+  if (!isTRUE(zero_is_intercept_only)) {
+    cli::cli_abort(c(
+      "{inflated_label} {.code mu} random intercepts require an intercept-only {.code {zero_dpar}} formula.",
+      "x" = "Predictors on {.code {zero_dpar}} are not yet validated together with a {.code mu} random intercept.",
+      "i" = "Use {.code {zero_dpar} ~ 1}, as in {.code {example}}, or drop the {.code mu} random intercept."
+    ))
+  }
+  if (isTRUE(has_structured)) {
+    cli::cli_abort(c(
+      "{inflated_label} {.code mu} random intercepts cannot be combined with structured or scale random effects yet.",
+      "i" = "Fit {.code {example}} without {.fn phylo}, {.fn spatial}, {.fn animal}, {.fn relmat}, or {.code sigma} random effects."
+    ))
+  }
+  invisible(terms)
+}
+
 validate_truncated_nbinom2_mu_random_terms <- function(
   terms,
-  has_hu = FALSE
+  has_hu = FALSE,
+  hu_is_intercept_only = FALSE,
+  has_structured = FALSE
 ) {
   if (length(terms) == 0L) {
     return(invisible(terms))
   }
   if (isTRUE(has_hu)) {
-    cli::cli_abort(c(
-      "{.fn truncated_nbinom2} {.code mu} random intercepts are implemented only for ordinary zero-truncated NB2 models.",
-      "x" = "Hurdle NB2 random effects are planned but not implemented.",
-      "i" = "Fit {.code bf(count ~ x + (1 | id), sigma ~ z)} without a {.code hu} formula, or keep the hurdle model fixed-effect."
-    ))
+    validate_zero_inflated_mu_random_intercept(
+      terms,
+      inflated_label = "Hurdle NB2",
+      zero_dpar = "hu",
+      zero_is_intercept_only = hu_is_intercept_only,
+      has_structured = has_structured
+    )
+    return(invisible(terms))
   }
   unsupported <- vapply(
     terms,
@@ -19223,9 +19306,12 @@ zi_poisson_start <- function(
   X_mu,
   X_zi,
   offset_mu = rep(0, length(y)),
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  re_mu = empty_random_mu_structure(length(y))
 ) {
-  poisson <- poisson_start(y, X_mu, offset_mu, phylo_mu = phylo_mu)
+  poisson <- poisson_start(
+    y, X_mu, offset_mu, re_mu = re_mu, phylo_mu = phylo_mu
+  )
   beta_mu <- poisson$beta_mu
   mu <- exp(offset_mu + as.vector(X_mu %*% beta_mu))
   observed_zero <- mean(y == 0)
@@ -19250,9 +19336,9 @@ zi_poisson_start <- function(
       beta_nu = 0,
       theta_ord = 0,
       beta_sd_mu = 0,
-      u_mu = 0,
-      log_sd_mu = 0,
-      eta_cor_mu = 0,
+      u_mu = poisson$u_mu,
+      log_sd_mu = poisson$log_sd_mu,
+      eta_cor_mu = poisson$eta_cor_mu,
       eta_cor_mu_sigma = 0,
       eta_cor_sigma = 0,
       u_sigma = 0,
@@ -19269,8 +19355,11 @@ zi_poisson_start <- function(
   )
 }
 
-zi_poisson_map <- function(phylo_mu = empty_phylo_mu_structure()) {
-  out <- poisson_map(phylo_mu = phylo_mu)
+zi_poisson_map <- function(
+  phylo_mu = empty_phylo_mu_structure(),
+  re_mu = empty_random_mu_structure(1L)
+) {
+  out <- poisson_map(re_mu = re_mu, phylo_mu = phylo_mu)
   out$beta_zi <- NULL
   out
 }
@@ -19398,12 +19487,14 @@ hurdle_nbinom2_start <- function(
   X_mu,
   X_sigma,
   X_hu,
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  re_mu = empty_random_mu_structure(length(y))
 ) {
   nb <- truncated_nbinom2_start(
     y[y > 0],
     X_mu[y > 0, , drop = FALSE],
-    X_sigma[y > 0, , drop = FALSE]
+    X_sigma[y > 0, , drop = FALSE],
+    re_mu = re_mu
   )
   phylo_start <- gaussian_phylo_start(as.numeric(y == 0), phylo_mu)
   hu0 <- min(max(mean(y == 0), 0.02), 0.8)
@@ -19416,9 +19507,10 @@ hurdle_nbinom2_start <- function(
 }
 
 hurdle_nbinom2_map <- function(
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  re_mu = empty_random_mu_structure(1L)
 ) {
-  out <- nbinom2_map(phylo_mu = phylo_mu)
+  out <- nbinom2_map(re_mu = re_mu, phylo_mu = phylo_mu)
   out$beta_zi <- NULL
   out
 }
@@ -19430,11 +19522,12 @@ zi_nbinom2_start <- function(
   X_zi,
   offset_mu = rep(0, length(y)),
   phylo_mu = empty_phylo_mu_structure(),
-  re_sigma = empty_random_sigma_structure(length(y))
+  re_sigma = empty_random_sigma_structure(length(y)),
+  re_mu = empty_random_mu_structure(length(y))
 ) {
   nb <- nbinom2_start(
     y, X_mu, X_sigma, offset_mu,
-    re_sigma = re_sigma, phylo_mu = phylo_mu
+    re_mu = re_mu, re_sigma = re_sigma, phylo_mu = phylo_mu
   )
   beta_mu <- nb$beta_mu
   beta_sigma <- nb$beta_sigma
@@ -19456,9 +19549,10 @@ zi_nbinom2_start <- function(
 
 zi_nbinom2_map <- function(
   phylo_mu = empty_phylo_mu_structure(),
-  re_sigma = empty_random_sigma_structure(1L)
+  re_sigma = empty_random_sigma_structure(1L),
+  re_mu = empty_random_mu_structure(1L)
 ) {
-  out <- nbinom2_map(phylo_mu = phylo_mu, re_sigma = re_sigma)
+  out <- nbinom2_map(re_mu = re_mu, phylo_mu = phylo_mu, re_sigma = re_sigma)
   out$beta_zi <- NULL
   out
 }
@@ -21622,16 +21716,16 @@ make_tmb_data_core <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
+      n_mu_re_terms = spec$random$mu$n_terms,
       n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      mu_re_index = spec$random$mu$index0,
+      mu_re_value = spec$random$mu$value,
+      mu_re_term = spec$random$mu$term_id0,
+      mu_re_dpar = spec$random$mu$dpar_id0,
+      mu_re_pos = spec$random$mu$re_pos0,
+      mu_re_cor_id = spec$random$mu$re_cor_id0,
+      mu_re_pair_index = spec$random$mu$re_pair_index0,
+      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -21827,16 +21921,16 @@ make_tmb_data_core <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
+      n_mu_re_terms = spec$random$mu$n_terms,
       n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      mu_re_index = spec$random$mu$index0,
+      mu_re_value = spec$random$mu$value,
+      mu_re_term = spec$random$mu$term_id0,
+      mu_re_dpar = spec$random$mu$dpar_id0,
+      mu_re_pos = spec$random$mu$re_pos0,
+      mu_re_cor_id = spec$random$mu$re_cor_id0,
+      mu_re_pair_index = spec$random$mu$re_pair_index0,
+      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -21899,16 +21993,16 @@ make_tmb_data_core <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
+      n_mu_re_terms = spec$random$mu$n_terms,
       n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      mu_re_index = spec$random$mu$index0,
+      mu_re_value = spec$random$mu$value,
+      mu_re_term = spec$random$mu$term_id0,
+      mu_re_dpar = spec$random$mu$dpar_id0,
+      mu_re_pos = spec$random$mu$re_pos0,
+      mu_re_cor_id = spec$random$mu$re_cor_id0,
+      mu_re_pair_index = spec$random$mu$re_pair_index0,
+      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
       n_sigma_re_terms = re_sigma$n_terms,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,

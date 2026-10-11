@@ -753,11 +753,11 @@ test_that("nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + (1 | id), sigma ~ 1, zi ~ 1),
+      bf(y ~ x + (1 | id), sigma ~ 1, zi ~ x),
       family = nbinom2(),
       data = dat
     ),
-    "Zero-inflated NB2 random effects"
+    "Zero-inflated NB2 .*intercept-only"
   )
   expect_error(
     drmTMB(
