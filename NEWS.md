@@ -1,5 +1,16 @@
 # drmTMB (development)
 
+## New features
+
+* `cumulative_logit()` gains a fixed-effect discrimination formula,
+  `bf(score ~ x, disc ~ z)`, with
+  `Pr(y <= k) = logit^-1(disc * (theta_k - mu))` and `log(disc) = z' gamma`.
+  The `disc` intercept is fixed at 0 because the latent scale is not
+  identifiable alongside free cutpoints; this matches the `scale` formula of
+  `ordinal::clm()`, whose coefficients equal `-gamma`. `disc ~ 1` reproduces
+  the location-only fit exactly, and `sigma()` returns the latent scale
+  `1 / disc` (#966).
+
 ## Documentation fixes
 
 * `?phylo` now correctly describes the existing unit-height convention:

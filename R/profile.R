@@ -4838,6 +4838,10 @@ profile_fixef_internal <- function(dpar, object = NULL) {
   if (identical(dpar, "hu")) {
     return("beta_zi")
   }
+  if (identical(dpar, "disc")) {
+    # cumulative_logit() discrimination rides the beta_sigma slot (#966).
+    return("beta_sigma")
+  }
   if (startsWith(dpar, "corpair(")) {
     return("beta_cor_mu")
   }

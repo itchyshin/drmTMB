@@ -762,8 +762,10 @@ drm_family_dpq_binomial <- function() {
 # columns `CP1`..`CP(K-1)` inside [fitted_distribution_params()] (the
 # CP1-sanctioned column-attachment pattern, same shape as binomial `trials`).
 # Matches the compiled density exactly (src/drmTMB.cpp,
-# model_type == 13): `logit(P(Y <= k)) = cutpoints[k] - mu`, i.e.
-# `F(k) = plogis(cutpoints[k] - mu)` for `k = 1..K-1`, `F(K) = 1`, `F(0) = 0`;
+# model_type == 13): `logit(P(Y <= k)) = disc * (cutpoints[k] - mu)`, i.e.
+# `F(k) = plogis(disc * (cutpoints[k] - mu))` for `k = 1..K-1`, `F(K) = 1`,
+# `F(0) = 0`, where `disc = 1` unless the fit has a `disc ~ z` formula (#966)
+# and then rides in an extra `disc` params column;
 # `d(k) = F(k) - F(k - 1)`. `drm_cumulative_logit_cutpoints()` reads the CPk
 # columns back out of `params` (rather than needing the fitted `object`, kept
 # out of the frozen `(y_or_u, params)` closure signature) so the same
@@ -785,8 +787,17 @@ drm_cumulative_logit_p <- function(y, params) {
   ifelse(
     k <= 0,
     0,
-    ifelse(k >= n_categories, 1, stats::plogis(cp_at_k - params$mu))
+    ifelse(
+      k >= n_categories,
+      1,
+      stats::plogis(drm_cumulative_logit_disc(params) * (cp_at_k - params$mu))
+    )
   )
+}
+
+# Discrimination (#966): `disc` column when the fit has `disc ~ z`, else 1.
+drm_cumulative_logit_disc <- function(params) {
+  if (is.null(params$disc)) 1 else params$disc
 }
 
 # Right-inverse quantile: the smallest category k in 1:n_categories with
@@ -798,7 +809,9 @@ drm_cumulative_logit_q <- function(u, params) {
   u <- rep(u, length.out = n)
   cdf <- matrix(1, nrow = n, ncol = n_categories)
   if (ncol(cp) > 0L) {
-    cdf[, seq_len(ncol(cp))] <- stats::plogis(cp - params$mu)
+    cdf[, seq_len(ncol(cp))] <- stats::plogis(
+      drm_cumulative_logit_disc(params) * (cp - params$mu)
+    )
   }
   vapply(seq_len(n), function(i) which(cdf[i, ] >= u[i])[1], integer(1))
 }
@@ -1311,6 +1324,9 @@ fitted_distribution_params <- function(object, newdata, dpars, response = NULL) 
     cutpoints <- unname(object$ordinal$cutpoints)
     for (j in seq_along(cutpoints)) {
       params[[paste0("CP", j)]] <- rep(cutpoints[[j]], nrow(params))
+    }
+    if ("disc" %in% names(object$coefficients)) {
+      params$disc <- predict(object, newdata = newdata, dpar = "disc")
     }
   }
   params
