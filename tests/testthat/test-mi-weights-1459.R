@@ -19,6 +19,13 @@ test_that("mi() plus non-unit weights emits the classed #1459 warning helper", {
     drmTMB:::drm_warn_mi_prior_ignores_weights(rep(2, 4), TRUE),
     class = "drmTMB_mi_weights_prior_unweighted"
   )
+  expect_true(drmTMB:::drm_mi_prior_path_unweighted(list(enabled = TRUE, family = "gaussian")))
+  expect_true(drmTMB:::drm_mi_prior_path_unweighted(
+    list(enabled = TRUE, family = "beta"),
+    list(enabled = TRUE)
+  ))
+  expect_false(drmTMB:::drm_mi_prior_path_unweighted(list(enabled = TRUE, family = "beta")))
+  expect_false(drmTMB:::drm_mi_prior_path_unweighted(list(enabled = TRUE, family = "gamma")))
 })
 
 test_that("weight 0 or NA on a missing mi() covariate is a named error", {
@@ -59,6 +66,8 @@ test_that("predict/simulate refuse an explicit weights argument on an mi() fit",
     list(missing_data = list(predictors = list())),
     list(weights = 1)
   ))
+  expect_false(drmTMB:::drm_abort_mi_weights_predict(object, list(weights = 1)))
+  expect_false(drmTMB:::drm_abort_mi_weights_predict(object, list(weights = rep(1, 3))))
   expect_error(
     drmTMB:::drm_abort_mi_weights_predict(object, list(weights = rep(2, 3))),
     class = "drmTMB_mi_weights_predict_unsupported"
@@ -132,7 +141,7 @@ test_that("weights = 1 with mi() matches the unweighted fit exactly (#1459)", {
   )
 })
 
-test_that("weight-2 matches a duplicated row in the response only (#1459 pending)", {
+test_that("Gaussian weight-2 matches a duplicated row in the response only (#1459 pending)", {
   dat <- mi_weights_1459_data()
   w <- rep(1, nrow(dat))
   w[[2L]] <- 2
@@ -177,27 +186,40 @@ test_that("weight 0 or NA on a missing mi() covariate is a named error at fit ti
   )
 })
 
-test_that("weight 0 multiplies the response once and never yields 0 * Inf", {
+test_that("weight 0 keeps a -Inf Gaussian density off the tape (#1459)", {
   dat <- mi_weights_1459_data()
   w <- rep(1, nrow(dat))
   w[[4L]] <- 0
+  dat$y[[4L]] <- 1e200
   cap0 <- mi_weight_warnings(fit_mi_weights_1459(dat, weights = w))
   expect_true(has_warning_class(cap0$warnings, "drmTMB_mi_weights_prior_unweighted"))
   fit0 <- cap0$value
-  expect_true(is.finite(as.numeric(fit0$obj$fn(fit0$opt$par))))
-  dat_y <- dat
-  dat_y$y[[4L]] <- dat_y$y[[4L]] + 50
-  cap_y <- mi_weight_warnings(fit_mi_weights_1459(dat_y, weights = w))
-  expect_true(has_warning_class(cap_y$warnings, "drmTMB_mi_weights_prior_unweighted"))
-  fit_y <- cap_y$value
-  # Row 4 is observed x; changing y with weight 0 must not move the nll
-  # at a shared parameter (response ignored). The prior is still present.
   p <- fit0$opt$par
-  expect_equal(
-    as.numeric(fit0$obj$fn(p)),
-    as.numeric(fit_y$obj$fn(p)),
-    tolerance = 1e-8
-  )
+  fn <- as.numeric(fit0$obj$fn(p))
+  gr <- as.numeric(fit0$obj$gr(p))
+  expect_true(is.finite(fn))
+  expect_true(length(gr) > 0L)
+  expect_true(all(is.finite(gr)))
+})
+
+test_that("Beta mi() plus non-unit weights does not emit the Gaussian-prior warning", {
+  n <- 36
+  z <- seq(-1.2, 1.2, length.out = n)
+  cover <- stats::plogis(-0.2 + 0.8 * z)
+  y <- 0.4 + 1.1 * cover - 0.2 * z
+  dat <- data.frame(y = y, z = z, cover = cover)
+  dat$cover[c(6, 18, 30)] <- NA_real_
+  w <- rep(2, n)
+  cap <- mi_weight_warnings(drmTMB(
+    bf(y ~ z + mi(cover), sigma ~ 1),
+    data = dat,
+    impute = list(cover = impute_model(cover ~ z, family = beta_family())),
+    missing = miss_control(predictor = "model"),
+    control = drm_control(se = FALSE),
+    weights = w
+  ))
+  expect_false(has_warning_class(cap$warnings, "drmTMB_mi_weights_prior_unweighted"))
+  expect_equal(cap$value$opt$convergence, 0L)
 })
 
 test_that("predict and simulate honour a weighted mi() fit via fitted coefficients", {
@@ -212,6 +234,8 @@ test_that("predict and simulate honour a weighted mi() fit via fitted coefficien
   expect_equal(length(pred), nrow(dat))
   sims <- simulate(fit, nsim = 1, seed = 1, re.form = NA)
   expect_true(all(is.finite(as.matrix(sims))))
+  pred1 <- predict(fit, dpar = "mu", weights = 1)
+  expect_equal(as.numeric(pred1), as.numeric(pred), tolerance = 1e-12)
   expect_error(
     predict(fit, dpar = "mu", weights = w),
     class = "drmTMB_mi_weights_predict_unsupported"

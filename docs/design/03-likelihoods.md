@@ -1155,18 +1155,25 @@ Known sampling variances or sampling covariance still belong in
 covariance matrix, `weights =` is rejected for now because the likelihood is a
 joint multivariate block rather than a sum of independent row contributions.
 
-Until #1459 is decided, a row weight on an `mi()` model multiplies the
-response term only. The imputation prior stays unweighted. `weights = 1`
-matches the omitted-weights fit. Weight 2 therefore matches a duplicated
-row in the response term only; the prior differs by exactly one unweighted
-copy of that row. Native TMB emits the classed warning
-`drmTMB_mi_weights_prior_unweighted`. It does not change the prior.
-`engine = "julia"` refuses `mi()` plus non-unit weights with
+Until #1459 is decided, the Gaussian `mi()` prior stays unweighted. That
+is the three C++ paths that do `nll -= dnorm(...)` with no `weights(i)`:
+location-scale Gaussian at `src/drmTMB.cpp:1301`, the second Gaussian
+predictor at `:1342`, and the nbinom2-response copy of the same Gaussian
+prior at `:4556`. Every other `mi()` family block from `:1357` multiplies
+the prior by `weights(i)` (Dinnage M1). Native TMB emits the classed
+warning `drmTMB_mi_weights_prior_unweighted` only on those unweighted
+Gaussian paths. `weights = 1` matches the omitted-weights fit. A Gaussian
+weight-2 row matches a duplicated row in the response term only; the prior
+differs by exactly one unweighted copy of that row. `engine = "julia"`
+refuses `mi()` plus non-unit weights for every family, with
 `drmTMB_julia_mi_weights_unsupported`, because DRModels.jl ignores
-weights on both terms. Weight 0 or `NA` on a row whose `mi()` covariate is
-missing is the named error `drmTMB_mi_zero_weight_missing`, not a silent
-drop. `predict()` and `simulate()` use the fitted coefficients and refuse
-an explicit `weights` argument on an `mi()` fit with
+weights on both terms. The weights check runs before the Julia family
+check. Weight 0 or `NA` on a row whose `mi()` covariate is missing is the
+named error `drmTMB_mi_zero_weight_missing`, not a silent drop. A weight-0
+observed-x Gaussian row is skipped with a data-level
+`if (asDouble(weights(i)) > 0)` so `y = 1e200` keeps `fn` and `gr`
+finite. `predict()` and `simulate()` use the fitted coefficients, allow
+`weights = 1`, and refuse non-unit `weights` on an `mi()` fit with
 `drmTMB_mi_weights_predict_unsupported`.
 
 ## Implemented Gaussian Location-Scale

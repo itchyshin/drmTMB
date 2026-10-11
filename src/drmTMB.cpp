@@ -74,13 +74,11 @@ Type drm_log_sech(Type eta) {
   return log(Type(2.0)) - abs_eta - log(Type(1.0) + exp(Type(-2.0) * abs_eta));
 }
 
-// Weight times a log-density. A weight-0 row must contribute 0 even when
-// log_dens is -Inf (0 * Inf is NaN). #1459: the continuous mi() prior is
-// still unweighted; use this helper only on the response term.
-template<class Type>
-Type drm_weight_times_logdens(Type w, Type log_dens) {
-  return CppAD::CondExpGt(w, Type(0.0), w * log_dens, Type(0.0));
-}
+// Weight-0 rows must keep the log-density off the AD tape. CondExpGt still
+// evaluates both branches, so 0 * (-Inf) and an infinite local partial
+// (d log dnorm / d mu at y = 1e200) become NaN / -Inf in reverse mode.
+// weights is DATA, so a data-level `if (asDouble(weights(i)) > 0)` at each
+// call site skips the term. #1459: the Gaussian mi() prior stays unweighted.
 
 template<class Type>
 Type drm_logspace_sum(const vector<Type>& log_terms) {
@@ -805,10 +803,9 @@ Type objective_function<Type>::operator()()
       vector<Type> sigma = exp(log_sigma);
       vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
       for (int i = 0; i < y.size(); ++i) {
-          nll -= drm_weight_times_logdens(
-            weights(i),
-            dnorm(y(i), mu(i), obs_sigma(i), true)
-          );
+        if (asDouble(weights(i)) > 0.0) {
+          nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
+        }
       }
       REPORT(mu);
       REPORT(log_sigma);
@@ -1653,7 +1650,9 @@ Type objective_function<Type>::operator()()
             log_terms(q) = log_prior(q) - log_mass + log_y;
           }
           Type log_denom = drm_logspace_sum(log_terms);
-          nll -= drm_weight_times_logdens(weights(i), log_denom);
+          if (asDouble(weights(i)) > 0.0) {
+            nll -= weights(i) * log_denom;
+          }
           Type conditional_mean = Type(0.0);
           Type expected_mu = Type(0.0);
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
@@ -1803,7 +1802,9 @@ Type objective_function<Type>::operator()()
               log_one_minus_zoi_mi + log_prior_int(q) - log_mass + log_y;
           }
           Type log_denom = drm_logspace_sum(log_terms);
-          nll -= drm_weight_times_logdens(weights(i), log_denom);
+          if (asDouble(weights(i)) > 0.0) {
+            nll -= weights(i) * log_denom;
+          }
           Type conditional_mean = Type(0.0);
           Type expected_mu = Type(0.0);
           Type post0 = exp(log_terms(0) - log_denom);
@@ -2387,7 +2388,9 @@ Type objective_function<Type>::operator()()
             log_terms(q) = log_prior(q) - log_mass + log_y;
           }
           Type log_denom = drm_logspace_sum(log_terms);
-          nll -= drm_weight_times_logdens(weights(i), log_denom);
+          if (asDouble(weights(i)) > 0.0) {
+            nll -= weights(i) * log_denom;
+          }
           Type conditional_mean = Type(0.0);
           Type expected_mu = Type(0.0);
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
@@ -2561,12 +2564,10 @@ Type objective_function<Type>::operator()()
       for (int i = 0; i < y.size(); ++i) {
         if (
           observed_y(i) == 1 &&
-          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0) &&
+          asDouble(weights(i)) > 0.0
         ) {
-          nll -= drm_weight_times_logdens(
-            weights(i),
-            dnorm(y(i), mu(i), obs_sigma(i), true)
-          );
+          nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
         }
       }
     }

@@ -1,0 +1,4 @@
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/dirty-state.txt
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/provenance.tsv
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/raw-attempts.tsv
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/summary.tsv

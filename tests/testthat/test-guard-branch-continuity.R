@@ -239,12 +239,12 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # the Stirling branch, the switch, and the kernel cap). Value continuity
   # across nu = 1e4 is test-student-large-nu.R. n_response is therefore 8L.
   #
-  # #1459 / #1476 / #1477 add three drmTMB.cpp CondExp sites: one in
-  # drm_weight_times_logdens so weight 0 never yields 0*(-Inf), and one
-  # s_floor each in drm_gamma_mi_is_node and drm_beta_mi_is_node. The
-  # weight-0 contract is test-mi-weights-1459.R. The s_floor contract is
-  # the paired test below. n_cpp is therefore 33L.
-  expect_equal(n_cpp, 33L)
+  # #1476 / #1477 add two drmTMB.cpp CondExp sites: one s_floor each in
+  # drm_gamma_mi_is_node and drm_beta_mi_is_node. Weight 0 now uses a
+  # data-level `if (asDouble(weights(i)) > 0)` so it is not a CondExp.
+  # The weight-0 contract is test-mi-weights-1459.R. The s_floor contract
+  # is the paired test below. n_cpp is therefore 32L.
+  expect_equal(n_cpp, 32L)
   expect_equal(n_numeric, 9L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)

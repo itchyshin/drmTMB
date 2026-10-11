@@ -26,14 +26,19 @@
   exact atoms (Refs #1476).
 
 * `engine = "julia"` now refuses `mi()` plus non-unit observation weights
-  with class `drmTMB_julia_mi_weights_unsupported`. DRModels.jl ignores
-  weights on both the response and the imputation prior. Unit weights
-  (`weights = 1`) are treated as omitted. Native `engine = "tmb"` still
-  fits; a classed warning (`drmTMB_mi_weights_prior_unweighted`) records
-  that the imputation prior ignores the weight until #1459 is decided.
-  Weight 0 or `NA` on a row whose `mi()` predictor is missing is a named
-  error (`drmTMB_mi_zero_weight_missing`). `predict()` and `simulate()`
-  refuse an explicit `weights` argument on an `mi()` fit
+  for every family, with class `drmTMB_julia_mi_weights_unsupported`,
+  before the Julia family check. DRModels.jl ignores weights on both the
+  response and the imputation prior. Unit weights (`weights = 1`) are
+  treated as omitted. Native `engine = "tmb"` still fits. The classed
+  warning `drmTMB_mi_weights_prior_unweighted` fires only on the
+  unweighted Gaussian prior paths (`src/drmTMB.cpp:1301`, `:1342`, and
+  the nbinom2 x Gaussian copy at `:4556`). Beta, Gamma, and the other
+  M1 families already weight the prior and do not warn. Weight 0 or
+  `NA` on a row whose `mi()` predictor is missing is a named error
+  (`drmTMB_mi_zero_weight_missing`). A weight-0 observed Gaussian row
+  is skipped with `if (asDouble(weights(i)) > 0)` so `y = 1e200` keeps
+  `fn` and `gr` finite. `predict()` and `simulate()` allow `weights = 1`
+  and refuse non-unit `weights` on an `mi()` fit
   (`drmTMB_mi_weights_predict_unsupported`) (Refs #1459).
 
 * Profile confidence intervals now explicitly average parameter coordinates
