@@ -1,3 +1,13 @@
+# 2026-10-11: rebase #1511 onto #1508; keep both large-data edits
+
+Rebased `claude/lane-g-docs-reference` onto `790d70a4c` (#1508). Hand-kept
+#1506's Windows multicore-abort / serial example and #1511's OpenMP/BLAS
+paragraph in `vignettes/large-data.Rmd` on top of main's `parallel =
+"cluster"` sentence. C17: `python3 tools/recertify-c17.py --label pr-1511
+--tolerance 1e-10`, |change| 0. `rmarkdown::render("vignettes/large-data.Rmd")`
+OK (chunks `eval = FALSE`). Reader-contracts OK; `test-release-identity.R`
+20 pass; `test-reader-vignette-contracts.R` 35 pass.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
