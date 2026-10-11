@@ -287,9 +287,14 @@ drmTMB <- function(
       "{.arg formula} must be created with {.fn drm_formula} or {.fn bf}."
     )
   }
-  dots <- list(...)
-  if (length(dots) > 0L) {
-    cli::cli_abort("{.fn drmTMB} does not use arguments in {.arg ...} yet.")
+  # Inspect `...` without forcing it: `subset = cyl == 4` must not fail with
+  # "object 'cyl' not found" before this guard can name the argument (#1486).
+  if (...length() > 0L) {
+    drm_abort_unused_dots(
+      names(match.call(expand.dots = FALSE)$...),
+      n_dots = ...length(),
+      call = environment()
+    )
   }
   if (!is.data.frame(data)) {
     cli::cli_abort("{.arg data} must be a data frame.")
@@ -12220,6 +12225,59 @@ validate_beta_binomial_sigma_random_terms <- function(terms) {
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
     "i" = "This slice adds only ordinary {.fn beta_binomial} {.code mu} random intercepts on the logit success-probability predictor; count-level overdispersion random effects need their own likelihood and recovery tests."
   ))
+}
+
+# Name the arguments that reached `drmTMB(...)` instead of evaluating them
+# (#1486). `subset` and `na.action` are common lm()/glm() habits, so they get a
+# concrete next step; misspelt formals (`weigths =`) are visible by name.
+drm_abort_unused_dots <- function(
+  dot_names,
+  n_dots = length(dot_names),
+  call = parent.frame()
+) {
+  if (is.null(dot_names)) {
+    dot_names <- rep("", n_dots)
+  }
+  named <- dot_names[nzchar(dot_names)]
+  n_unnamed <- sum(!nzchar(dot_names))
+  bullets <- c(
+    "{.fn drmTMB} does not use extra arguments in {.arg ...}."
+  )
+  if (length(named) > 0L) {
+    bullets <- c(
+      bullets,
+      "x" = "Unused argument{?s}: {.arg {named}}."
+    )
+  }
+  if (n_unnamed > 0L) {
+    bullets <- c(
+      bullets,
+      "x" = paste0(
+        n_unnamed,
+        " unnamed extra argument", if (n_unnamed > 1L) "s" else "",
+        "; name every argument after {.arg data}."
+      )
+    )
+  }
+  if ("subset" %in% named) {
+    bullets <- c(
+      bullets,
+      "i" = "Subset {.arg data} before fitting, for example {.code data = subset(d, cyl == 4)}."
+    )
+  }
+  if ("na.action" %in% named) {
+    bullets <- c(
+      bullets,
+      "i" = "Use {.arg missing} with {.fn miss_control} to choose how missing values are handled."
+    )
+  }
+  if (length(named) > 0L && !all(named %in% c("subset", "na.action"))) {
+    bullets <- c(
+      bullets,
+      "i" = "Check the spelling against the arguments of {.fn drmTMB}."
+    )
+  }
+  cli::cli_abort(bullets, class = "drmTMB_unused_dots_error", call = call)
 }
 
 # Drop unused levels only from factor columns that appear in plain fixed-effect
