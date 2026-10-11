@@ -357,6 +357,37 @@ coverage of a profile interval built on them, so treat the endpoints as a
 computed profile rather than calibrated inference.
 }
 
+\section{REML fits}{
+
+With \code{REML = TRUE}, the mean (\code{mu}) coefficients are integrated out of the
+likelihood as TMB random effects. \code{method = "wald"} reads their standard
+errors from the full REML \code{\link[TMB:sdreport]{TMB::sdreport()}} covariance, the same source as
+\code{\link[=vcov]{vcov()}} and \code{\link[=summary]{summary()}}, so a Wald interval is returned wherever a
+standard error is printed. \code{method = "profile"} cannot hold an integrated
+coefficient fixed and stops with a message naming the alternatives:
+\code{method = "wald"}, \code{method = "bootstrap"}, or a refit with \code{REML = FALSE}.
+Scale, random-effect SD, and other non-integrated targets profile as usual.
+}
+
+\section{Bootstrap intervals on biased targets}{
+
+\code{method = "bootstrap"} is a parametric \emph{percentile} bootstrap: it simulates
+from the fitted model and refits with the same maximum likelihood estimator.
+When that estimator is biased, each refit adds the bias again, so the
+percentile interval is centred near twice the bias away from the truth
+instead of near the estimate. An independent evaluation (Dinnage, issue
+#1315) measured this on a Gaussian \code{sigma} intercept at \code{n = 100} and
+\code{R = 199}: the bootstrap midpoint sat 2.35 times the ML bias below the
+estimate, and coverage was 0.852 against 0.896 for Wald and 0.912 for
+profile at a nominal 0.95, with almost every miss on the high side. An
+unbiased mean slope showed no such gap. Those figures are transcribed from
+the issue, not re-derived here; the mechanism and options are in
+\code{docs/design/274-bootstrap-interval-bias.md}. For scale intercepts and
+random-effect SDs at small \code{n} or few groups, prefer \code{method = "wald"} or
+\code{method = "profile"}; use the bootstrap where the estimator is close to
+unbiased, such as mean coefficients.
+}
+
 \section{Ordinal cutpoints}{
 
 For a \code{cumulative_logit()} fit, the public ordinal targets are the ordered

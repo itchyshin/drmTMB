@@ -1,0 +1,3 @@
+| Date | Slice | Evidence | Boundary |
+| --- | --- | --- | --- |
+| 2026-10-11 | Lane C convergence and inference reporting (#1469, #1317, #1336, #1315, #1387) | `test-lane-c-convergence-inference.R` 39 pass / 0 fail and `test-arc-d-profile-trace.R` 28 pass / 0 fail on an installed branch build, R 4.3.3; the new expectations fail on main. Twenty related files (skew-normal, clamp, check_drm, convergence warning, start contract, REML, bootstrap) 0 fail. | #1452, #1458, #1470, #1478, #1496, #1251 left to open PRs #1501/#1503/#1505. Bootstrap interval-shape options (B)/(C) of doc 274 not implemented. Julia-engine fits unchanged. |

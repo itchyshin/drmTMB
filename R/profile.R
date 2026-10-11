@@ -300,6 +300,33 @@
 #' coverage of a profile interval built on them, so treat the endpoints as a
 #' computed profile rather than calibrated inference.
 #'
+#' @section REML fits:
+#' With `REML = TRUE`, the mean (`mu`) coefficients are integrated out of the
+#' likelihood as TMB random effects. `method = "wald"` reads their standard
+#' errors from the full REML [TMB::sdreport()] covariance, the same source as
+#' [vcov()] and [summary()], so a Wald interval is returned wherever a
+#' standard error is printed. `method = "profile"` cannot hold an integrated
+#' coefficient fixed and stops with a message naming the alternatives:
+#' `method = "wald"`, `method = "bootstrap"`, or a refit with `REML = FALSE`.
+#' Scale, random-effect SD, and other non-integrated targets profile as usual.
+#'
+#' @section Bootstrap intervals on biased targets:
+#' `method = "bootstrap"` is a parametric *percentile* bootstrap: it simulates
+#' from the fitted model and refits with the same maximum likelihood estimator.
+#' When that estimator is biased, each refit adds the bias again, so the
+#' percentile interval is centred near twice the bias away from the truth
+#' instead of near the estimate. An independent evaluation (Dinnage, issue
+#' #1315) measured this on a Gaussian `sigma` intercept at `n = 100` and
+#' `R = 199`: the bootstrap midpoint sat 2.35 times the ML bias below the
+#' estimate, and coverage was 0.852 against 0.896 for Wald and 0.912 for
+#' profile at a nominal 0.95, with almost every miss on the high side. An
+#' unbiased mean slope showed no such gap. Those figures are transcribed from
+#' the issue, not re-derived here; the mechanism and options are in
+#' `docs/design/274-bootstrap-interval-bias.md`. For scale intercepts and
+#' random-effect SDs at small `n` or few groups, prefer `method = "wald"` or
+#' `method = "profile"`; use the bootstrap where the estimator is close to
+#' unbiased, such as mean coefficients.
+#'
 #' @section Ordinal cutpoints:
 #' For a `cumulative_logit()` fit, the public ordinal targets are the ordered
 #' latent-logistic cutpoints `"ordinal:cutpoint:<label>"`, not the internal
@@ -1096,7 +1123,8 @@ drm_profile_curve <- function(
   if (!isTRUE(target$profile_ready)) {
     cli::cli_abort(c(
       "Profile target {.val {target$parm}} is not ready for direct profiling.",
-      i = "Inventory note: {.val {target$profile_note}}."
+      i = "Inventory note: {.val {target$profile_note}}.",
+      profile_reml_integrated_hint(object, target)
     ))
   }
   if (!target$target_class %in% implemented_classes) {
@@ -2237,6 +2265,7 @@ drm_wald_confint <- function(
     variances[in_covariance] <- cov_fixed[
       cbind(positions[in_covariance], positions[in_covariance])
     ]
+    variances <- wald_reml_integrated_variances(object, targets, variances)
   } else if (is.null(object$sdr)) {
     drm_sdreport_cov_fixed(object)
   }
@@ -3329,6 +3358,60 @@ profile_target_opt_positions <- function(object, targets) {
   )
 }
 
+# Under `REML = TRUE` the mean coefficients are integrated out as TMB random
+# effects, so they are absent from `sdr$cov.fixed` and the position lookup
+# above leaves them NA. `vcov()` and `summary()` read the same coefficients
+# from the full REML sdreport covariance (`drm_sdreport_cov_coefficients()`,
+# keyed by `names(sdr$value)`); use that source here too so a Wald interval is
+# available exactly where a standard error is printed (#1317).
+wald_reml_integrated_variances <- function(object, targets, variances) {
+  if (!isTRUE(object$REML)) {
+    return(variances)
+  }
+  missing <- which(
+    is.na(variances) &
+      targets$target_class == "fixed-effect" &
+      !is.na(targets$index)
+  )
+  cov_full <- object$sdr$cov
+  value_names <- names(object$sdr$value)
+  if (
+    !length(missing) ||
+      !is.matrix(cov_full) ||
+      is.null(value_names) ||
+      length(value_names) != nrow(cov_full)
+  ) {
+    return(variances)
+  }
+  for (row in missing) {
+    hits <- which(value_names == targets$tmb_parameter[[row]])
+    index <- targets$index[[row]]
+    if (index >= 1L && index <= length(hits)) {
+      variances[[row]] <- cov_full[hits[[index]], hits[[index]]]
+    }
+  }
+  variances
+}
+
+# REML integrates the mean coefficients out of the likelihood, so there is no
+# fixed parameter to hold while re-optimizing; name the working alternatives.
+profile_reml_integrated_hint <- function(object, target) {
+  if (
+    !isTRUE(object$REML) ||
+      !identical(target$profile_note, "missing_tmb_parameter") ||
+      !identical(target$target_class, "fixed-effect")
+  ) {
+    return(NULL)
+  }
+  c(i = paste(
+    "With {.code REML = TRUE} the mean coefficients are integrated out of the",
+    "likelihood, so they cannot be profiled. Use {.code method = \"wald\"}",
+    "(the REML standard error also shown by {.fn summary}) or",
+    "{.code method = \"bootstrap\"}, or refit with {.code REML = FALSE} to",
+    "profile them."
+  ))
+}
+
 profile_wald_standard_errors <- function(variances) {
   se <- rep(NA_real_, length(variances))
   ok <- is.finite(variances) & variances >= -sqrt(.Machine$double.eps)
@@ -3463,7 +3546,8 @@ drm_profile_target_confint <- function(
   if (!isTRUE(target$profile_ready)) {
     cli::cli_abort(c(
       "Profile target {.val {target$parm}} is not ready for direct profiling.",
-      i = "Inventory note: {.val {target$profile_note}}."
+      i = "Inventory note: {.val {target$profile_note}}.",
+      profile_reml_integrated_hint(object, target)
     ))
   }
   if (!target$target_class %in% implemented_classes) {

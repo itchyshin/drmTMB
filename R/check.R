@@ -279,6 +279,17 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' plain logical: it is `TRUE` for `"converged"` and `"boundary"`, and
 #' `FALSE` for `"degenerate"`.
 #'
+#' One degenerate case is a Gaussian, lognormal, Student, skew-normal, or
+#' Gamma scale predictor that drives some observations to the lower
+#' `log(sigma)` clamp (see [drm_control()]) while others keep an ordinary
+#' scale (fitted `sigma` spanning more than four orders of magnitude), in a
+#' model without [meta_V()]. The scale then shrinks to zero at observations
+#' the location predictor fits exactly, so the likelihood
+#' has no finite maximum and the estimates depend on the clamp band and on the
+#' units of the response. A meta-analysis whose heterogeneity `sigma` reaches
+#' zero is not affected, because the known sampling variance keeps its
+#' likelihood bounded.
+#'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future options.
 #'
@@ -317,7 +328,8 @@ convergence_status.drmTMB <- function(object, ...) {
   if (
     drm_inference_degenerate(object) ||
       drm_fixed_effect_rank_deficient(object) ||
-      drm_standard_errors_pathological(object)
+      drm_standard_errors_pathological(object) ||
+      drm_scale_clamp_unbounded(object)
   ) {
     return("degenerate")
   }
@@ -359,6 +371,33 @@ drm_inference_degenerate <- function(object) {
   non_negative <- is.finite(variances) & variances >= 0
   standard_errors[non_negative] <- sqrt(variances[non_negative])
   !all(is.finite(standard_errors))
+}
+
+# A continuous-family scale that ran to the lower log(sigma) clamp without a
+# known sampling variance means the likelihood has no finite maximum (#1469);
+# see drm_lower_clamp_unbounded(). The report is evaluated at the stored
+# pre-sdreport optimum so the check does not mutate the fit.
+drm_scale_clamp_unbounded <- function(object) {
+  spec <- object$model
+  if (
+    !isTRUE(spec$model_type %in% drm_unbounded_scale_families()) ||
+      isTRUE(spec$has_known_v) ||
+      is.null(object$obj) ||
+      is.null(object$tmb_state$last.par.best)
+  ) {
+    return(FALSE)
+  }
+  report <- tryCatch(
+    object$obj$report(object$tmb_state$last.par.best),
+    error = function(e) NULL
+  )
+  if (is.null(report)) {
+    return(FALSE)
+  }
+  drm_lower_clamp_unbounded(
+    drm_logsigma_clamp_active(report, spec$tmb_data),
+    spec
+  )
 }
 
 drm_standard_errors_pathological <- function(object) {
@@ -444,6 +483,7 @@ check_drm.drmTMB <- function(
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
     check_skew_normal_nu(object),
+    check_skew_normal_nu_wald(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
     check_gaussian_aggregation(object),
@@ -787,6 +827,27 @@ check_logsigma_clamp_active <- function(object) {
   # scale is genuinely zero (for example a meta-analysis at tau = 0), but the
   # same arm also fires when the response sits on a very small numeric scale
   # and the scale coefficients are badly wrong, so it must not be silent.
+  if (drm_lower_clamp_unbounded(info, spec)) {
+    return(check_row(
+      "logsigma_clamp_active",
+      "warning",
+      format_check_number(info$value),
+      sprintf(
+        paste(
+          "The fitted log(sigma) reached %.2f, below the clamp band lower bound %g,",
+          "while other observations keep an ordinary scale (fitted sigma spans more",
+          "than four orders of magnitude). Without a known sampling variance, a scale",
+          "shrinking to zero at some observations means the likelihood has no finite",
+          "maximum: the estimates",
+          "depend on the clamp band and on the units of the response, so",
+          "convergence_status() is \"degenerate\". Simplify the scale formula or",
+          "collect more observations per scale parameter."
+        ),
+        info$value,
+        info$lo
+      )
+    ))
+  }
   if (identical(info$arm, "lower")) {
     return(check_row(
       "logsigma_clamp_active",
@@ -2004,6 +2065,56 @@ check_skew_normal_nu <- function(object) {
     "ok",
     value,
     "All fitted skew-normal nu values are finite."
+  )
+}
+
+# The skew-normal information matrix is singular at nu = 0 (the Gaussian
+# null), where the slant enters the likelihood only at third order (Azzalini
+# 1985). Wald standard errors for the nu submodel are therefore unreliable
+# whenever fitted nu values sit near or cross zero: an independent evaluation
+# measured a Wald type-I error of 0.236 at nominal 0.05 for `nu ~ x` on
+# Gaussian data (Dinnage, #1336), and the profile interval only partly
+# repaired it (0.093). At the null the slant estimate is widely spread, so a
+# sign change across rows is flagged as well as |nu| < 2; that neighbourhood is
+# a design assumption, not a calibrated threshold.
+check_skew_normal_nu_wald <- function(object) {
+  if (!identical(object$model$model_type, "skew_normal")) {
+    return(NULL)
+  }
+  nu <- tryCatch(predict(object, dpar = "nu"), error = function(e) NULL)
+  if (is.null(nu) || !length(nu) || !all(is.finite(nu))) {
+    # check_skew_normal_nu() already reports unusable nu values.
+    return(NULL)
+  }
+  min_abs <- min(abs(nu))
+  crosses_zero <- min(nu) < 0 && max(nu) > 0
+  value <- paste0(
+    "min_abs=",
+    format_check_number(min_abs),
+    "; crosses_zero=",
+    crosses_zero
+  )
+  if (min_abs < 2 || crosses_zero) {
+    return(check_row(
+      "skew_normal_nu_wald",
+      "note",
+      value,
+      paste(
+        "Fitted skew-normal nu values are near or cross 0, the Gaussian null",
+        "where the skew-normal information matrix is singular. Wald standard",
+        "errors, z tests, and Wald intervals for the nu coefficients are not",
+        "reliable there (measured type-I error 0.236 at nominal 0.05 for",
+        "nu ~ x on Gaussian data), and profile intervals only partly repair",
+        "this. Compare logLik() or AIC() against a gaussian() fit with the",
+        "same mu and sigma formulas before reporting skewness or its predictors."
+      )
+    ))
+  }
+  check_row(
+    "skew_normal_nu_wald",
+    "ok",
+    value,
+    "Fitted skew-normal nu values stay away from the singular Gaussian null at nu = 0."
   )
 }
 
