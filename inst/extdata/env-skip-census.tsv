@@ -264,8 +264,9 @@ test-profile-targets-julia.R	suggests-package	environment	runs	4
 test-profile-targets.R	cran-lane	environment	runs	1
 test-profile-targets.R	os	environment	runs	4
 test-profile-targets.R	suggests-package	environment	runs	1
-test-provenance.R	build-premise	build	skips	2
+test-provenance.R	build-premise	build	skips	3
 test-provenance.R	external-tool	environment	runs	2
+test-provenance.R	runtime-conditional	runtime	depends	1
 test-reader-journeys.R	build-premise	build	skips	2
 test-reader-journeys.R	suggests-package	environment	runs	1
 test-reader-vignette-contracts.R	build-premise	build	skips	1

@@ -23,6 +23,11 @@
 * Multicore profile workers that error now abort `confint()` and `profile()`
   with the worker's error, as the serial path does, instead of returning a
   `try-error` element.
+* `configure.win` is now a POSIX shell script that runs `./configure`.
+  R CMD INSTALL runs `configure.win` with the Rtools `sh`, so the previous
+  cmd batch file failed at `@echo: command not found` and stopped every
+  Windows source install and Windows CI build. Build provenance and the
+  never-fatal fallbacks are unchanged.
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
