@@ -14,40 +14,62 @@ parallelism are available.
 
 A single \code{\link[=drmTMB]{drmTMB()}} fit runs on one core. The package's compiled objective
 is built without OpenMP, so \code{TMB::openmp()}, \code{TMB_NTHREADS}, and
-\code{OMP_NUM_THREADS} do not speed up the optimizer for one fit, and
-\code{\link[=drm_control]{drm_control()}} has no thread argument. \code{drm_control(multi_start = k)} also
-runs its \code{k} starts one after another: the starts share one TMB object
-whose inner random-effect solve is warm-started from the previous start, so
-running them in separate processes would not reproduce the serial result
-exactly.
+\code{OMP_NUM_THREADS} do not speed up the optimizer for one fit. Fit-level
+threading is deferred.
 }
 
-\section{Parallel jobs after the fit}{
+\section{Backends}{
 
-Parallelism in \code{drmTMB} is across independent jobs. On Unix-alikes,
-\code{parallel = "multicore"} forks worker processes with
-\code{\link[parallel:mclapply]{parallel::mclapply()}} for:
+Parallelism in \code{drmTMB} is across independent jobs, selected with
+\code{parallel} and \code{workers}:
 \itemize{
-\item profile-likelihood intervals for several targets or \code{newdata} rows, and
-the two endpoint arms of a single scalar target, in \code{\link[=confint.drmTMB]{confint.drmTMB()}};
-\item parametric-bootstrap refits in \code{confint(method = "bootstrap")};
-\item profile curves for several targets in \code{\link[=profile.drmTMB]{profile.drmTMB()}}.
+\item \code{"none"} (the default) runs the jobs one after another.
+\item \code{"multicore"} forks worker processes with \code{\link[parallel:mclapply]{parallel::mclapply()}}. It is
+cheap to start but available on Unix-alikes only.
+\item \code{"cluster"} starts socket (PSOCK) workers with
+\code{\link[parallel:makeCluster]{parallel::makePSOCKcluster()}} and works on every platform, including
+Windows. Each worker loads the same installed \code{drmTMB} build. A fitted
+TMB object reaches the worker with a dead external pointer, and TMB
+rebuilds it from the stored data and parameters on first use, so no
+refit is needed. Starting the workers costs about a second, so
+\code{"cluster"} pays off only when each job takes longer than that.
 }
 
-Every worker starts from the same fitted optimum, so the multicore result
-equals the serial result apart from elapsed-time columns. \code{workers = NULL}
-uses about half the detected cores, capped at the number of jobs and at 10.
+\code{workers = NULL} uses about half the detected cores, capped at the number
+of jobs and at 10.
+}
 
-\code{\link[=simulate.drmTMB]{simulate.drmTMB()}} stays serial: it draws from the fitted distribution
-without refitting, so it is fast, and one random-number stream keeps
-\code{set.seed()} reproducibility simple.
+\section{What can run in parallel}{
+
+\itemize{
+\item Profile-likelihood intervals for several targets or \code{newdata} rows, and
+the two endpoint arms of a single scalar target, in \code{\link[=confint.drmTMB]{confint.drmTMB()}}.
+\item Parametric-bootstrap refits in \code{confint(method = "bootstrap")}. The
+replicate data are drawn once, before the workers start.
+\item Profile curves for several targets in \code{\link[=profile.drmTMB]{profile.drmTMB()}}.
+\item The starts of \code{drm_control(multi_start = k, parallel = ...)}.
+}
+
+Profile and bootstrap jobs all start from the same fitted optimum, so every
+backend returns the serial result apart from elapsed-time columns. Parallel
+multi-start is the one exception. A serial multi-start warm-starts each
+start's inner random-effect solve from the previous start, but parallel
+starts all begin from the same initial state. With random effects the
+estimates therefore agree with the serial run to the inner solver's
+tolerance (about \code{1e-7} in local checks); fixed-effect fits are identical.
+
+\code{\link[=simulate.drmTMB]{simulate.drmTMB()}} stays serial. In a local check with 10,000 rows and 500
+marginal draws, forked per-draw workers were slower than the vectorised
+serial draw (0.89 s against 1.20 s serial, and 0.70 s for serial per-draw
+calls). One random-number stream also keeps \code{set.seed()} reproducibility
+simple.
 }
 
 \section{Do not nest parallel layers}{
 
 Use either outer jobs or inner threads, not both. When you run
-\code{parallel = "multicore"}, or run many fits at once from a cluster array or
-\code{mclapply()} loop, keep every inner layer at one thread so the worker count
+\code{parallel = "multicore"} or \code{"cluster"}, or run many fits at once from a
+cluster array or \code{mclapply()} loop, keep every inner layer at one thread so the worker count
 does not multiply:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{Sys.setenv(
@@ -66,11 +88,8 @@ when you parallelise across jobs.
 \section{Windows}{
 
 \code{parallel = "multicore"} is not available on Windows because it relies on
-process forking. There is no socket-cluster (PSOCK) backend: a fitted TMB
-object holds external pointers that do not survive being copied to another
-R process, so a cluster worker would have to rebuild and refit the model.
-On Windows, run independent jobs (for example separate bootstrap shards
-with distinct seeds) in separate R sessions instead.
+process forking; use \code{parallel = "cluster"} instead. Bootstrap refits never
+start their own multi-start workers inside parallel bootstrap workers.
 }
 
 \seealso{

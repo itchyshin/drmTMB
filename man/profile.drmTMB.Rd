@@ -14,7 +14,7 @@
   compare = FALSE,
   first_pass_ystep = 0.5,
   first_pass_ytol = 2,
-  parallel = c("none", "multicore"),
+  parallel = c("none", "multicore", "cluster"),
   workers = NULL,
   ...
 )
@@ -51,9 +51,9 @@ used only when \code{compare = TRUE}. The dense pass uses \code{profile_precisio
 \item{parallel}{Parallel backend for profiling several targets. \code{"none"}
 (the default) profiles targets one after another. \code{"multicore"} profiles
 independent targets in forked worker processes with
-\code{\link[parallel:mclapply]{parallel::mclapply()}}; it is available on Unix-alikes only, and the
-returned curves are identical to the serial result because every target
-starts from the same pinned optimum. A single target is always profiled
+\code{\link[parallel:mclapply]{parallel::mclapply()}} on Unix-alikes; \code{"cluster"} uses socket (PSOCK)
+workers on any platform. The returned curves are identical to the serial
+result because every target starts from the same pinned optimum. A single target is always profiled
 serially. Keep \code{TMB::openmp()} and BLAS threads at one when using
 \code{"multicore"}; see \link{drmTMB-parallel}.}
 
