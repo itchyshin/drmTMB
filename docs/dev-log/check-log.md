@@ -1,3 +1,13 @@
+# 2026-10-11: dead forked worker is a classed error or recorded failure
+
+`mclapply()` NULL children no longer vanish in `rbind()`. Profile paths
+abort with `drmTMB_parallel_worker_died`; bootstrap records `worker_died`
+so `bootstrap.n + bootstrap.failed` still equals `R`. Follow-up to merged
+#1510. `test-profile-parallel.R` 12 tests / 0 fail. C17 not recertified
+(`R/drmTMB.R` and `R/methods.R` untouched). `R/julia-bridge.R` untouched.
+
+Report: `docs/dev-log/after-task/2026-10-11-dead-forked-worker.md`.
+
 # 2026-10-11: parallel lane follow-up (PSOCK cluster, parallel multi-start, bootstrap shards)
 
 Owner decisions 18 and 19 implemented on `claude/drm-parallel-perf-2`,
