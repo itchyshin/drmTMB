@@ -4310,6 +4310,26 @@ drm_julia_check_manifest_runtime <- function(path, evaluate = JuliaCall::julia_e
   invisible(info)
 }
 
+# Setup-time Julia command, run without echoing its value (#1157).
+# `JuliaCall::julia_command()` prints the value of a command that does not end
+# in `;`, so every helper definition below used to print a line such as
+# `drmTMB_drm_bridge (generic function with 1 method)` on the first
+# `engine = "julia"` call. A first-time user cannot tell that wall of internals
+# from a failure, so the friendly "Starting Julia" notice should be the only
+# output of a healthy boot. Errors still propagate: `;` suppresses only the
+# display of a successful value.
+drm_julia_quiet_command <- function(code) {
+  code <- sub("[[:space:]]+$", "", paste(code, collapse = "\n"))
+  if (!endsWith(code, ";")) {
+    code <- paste0(code, ";")
+  }
+  code
+}
+
+drm_julia_setup_command <- function(code) {
+  JuliaCall::julia_command(drm_julia_quiet_command(code))
+}
+
 drm_julia_setup <- function(path = drm_julia_path()) {
   # Hard stop on the CRAN / win-builder lane. Suggests JuliaCall + host Julia is
   # not enough to justify entering julia_setup(): Ligges R-release hung for
@@ -4358,14 +4378,14 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   JuliaCall::julia_setup(installJulia = FALSE)
   drm_julia_setup_state$ready <- FALSE
   drm_julia_check_manifest_runtime(normalized_path)
-  JuliaCall::julia_command(paste0(
+  drm_julia_setup_command(paste0(
     "import Pkg; Pkg.activate(", drm_julia_quote(normalized_path), ")"
   ))
   drm_julia_setup_state$module <- drm_julia_load_module(normalized_path)
   # Random is Julia's own stdlib (not a DRM.jl addition); the fixed-effect
   # inference wrapper below seeds `bootstrap_result()`'s RNG with it.
-  JuliaCall::julia_command("using Random")
-  JuliaCall::julia_command(
+  drm_julia_setup_command("using Random")
+  drm_julia_setup_command(
     paste(
       "drmTMB_drm_bridge(formula, family, data, tree, options) =",
       "drmTMB_backend.drm_bridge(formula = formula, family = family, data = data, tree = tree, options = options)"
@@ -4374,14 +4394,14 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   # The bounded ordinary Gaussian stored-prediction route reuses DRM.jl's
   # existing fit and `ranef()` machinery. Its versioned typed payload is built
   # separately so pure R tests can guard level maps and component shapes.
-  JuliaCall::julia_command(drm_julia_conditional_gaussian_components_source())
-  JuliaCall::julia_command(
+  drm_julia_setup_command(drm_julia_conditional_gaussian_components_source())
+  drm_julia_setup_command(
     paste(
       "drmTMB_drm_bridge_q2_phylo(Y, X, species, tree, options) =",
       "drmTMB_backend.drm_bridge_q2_phylo(Y = Y, X = X, species = species, tree = tree, options = options)"
     )
   )
-  JuliaCall::julia_command(
+  drm_julia_setup_command(
     paste(
       "drmTMB_drm_bridge_inference(formula, family, data, tree, options, method, level, B, seed, threads, parm) =",
       "drmTMB_backend.drm_bridge_inference(formula = formula, family = family, data = data, tree = tree, options = options, method = method, level = level, B = B, seed = seed, threads = threads, parm = parm)"
@@ -4399,7 +4419,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   # block, picking out the one (dpar, coef) row asked for. No DRM.jl source
   # changes; every number is produced by DRM.jl's own existing, tested
   # profile_result / bootstrap_result.
-  JuliaCall::julia_command(
+  drm_julia_setup_command(
     paste(
       sep = "\n",
       "function drmTMB_drm_bridge_fixef_inference(formula, family, data, tree, K, A, coords, options, method, level, B, seed, threads, dpar, coefname)",
@@ -4455,7 +4475,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   # crosses as a Julia array (or `nothing`) and is forwarded to DRM.drm_bridge.
   # Gaussian spatial coords are converted to native drmTMB's fixed-range K target
   # before crossing, then reconstructed under the user's spatial() label.
-  JuliaCall::julia_command(
+  drm_julia_setup_command(
     paste(
       "drmTMB_drm_bridge_structured(formula, family, data, K, A, coords, options) =",
       "drmTMB_backend.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options)"
@@ -4469,7 +4489,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   # this file used to define here (the underscore-prefixed formula/data/
   # marker/design/species-index internals DRM.jl's own bridge marshalling
   # uses); asserted return contract `"bridge_objective_at_v1"`.
-  JuliaCall::julia_command(drm_julia_xfam_helper_source())
+  drm_julia_setup_command(drm_julia_xfam_helper_source())
   drm_julia_setup_state$ready <- TRUE
   drm_julia_setup_state$path <- normalized_path
   invisible(TRUE)
