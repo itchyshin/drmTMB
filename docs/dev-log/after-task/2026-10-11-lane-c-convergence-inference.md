@@ -105,9 +105,20 @@ intervals stay inside (-1, 1). BCa is not implemented because it needs n
 jackknife refits per target. Passing the argument with another method
 aborts.
 
- at the coordinator's request after it was already
-implemented here: the performance lane owns it. The tested patch was handed
-to that lane and removed from this branch.
+**#1387** was dropped from this branch at the coordinator's request after it
+was already implemented here: the performance lane owns it, and it shipped
+in #1510. The rebase onto current `main` keeps that merged profile-trace
+API rather than replaying the older per-evaluation rewrite.
+
+## Rebase onto current main (2026-10-11)
+
+The five feature commits were replayed onto `6beb1f2a0`. `R/julia-bridge.R`
+is unchanged versus `main`. `Rscript tools/write-env-skip-census.R` rewrote
+`inst/extdata/env-skip-census.tsv` (873 skip call sites) and the artefact is
+byte-identical to `main`. C17 was recertified as `pr-1509-rebase`
+(`--tolerance 1e-10`, `|change| 0.000e+00` on mc-0568/0569/0576). The PR
+Refs lines are trimmed to `#1317`, `#1336`, `#1315`, `#802`, and `#710`;
+`#1469` stays implemented on the branch and is left for Shinichi.
 
 ## Files Changed
 
@@ -120,11 +131,12 @@ to avoid roxygen-version churn, which lane G owns.
 
 ## Checks Run
 
-`test-lane-c-convergence-inference.R` passes (77 expectations) on the
-branch build, and its new expectations fail on main. Twenty-eight related
-files (skew-normal, clamp, check_drm, convergence warning, start contract,
-REML, bootstrap, corpairs, meta-analysis known V, profile trace) pass with 0
-failures. Full-suite totals are in the PR comment.
+`test-lane-c-convergence-inference.R` passes (17 tests / 81 expectations)
+on `pkgload::load_all()` under R 4.3.3. After the rebase, `test-env-skip-census.R`
+(3 tests), `test-check-conditioning.R` (10 tests, 2 platform skips), and
+`test-arc-d-profile-trace.R` (6 tests / 31 expectations, `export_all = TRUE`)
+pass. One `test-dinnage-audit-wave1.R` error is the existing R 4.3.3 `%||%`
+gap on `main`, not this branch.
 
 ## What Did Not Go Smoothly
 
@@ -146,4 +158,6 @@ the REML Wald note, and the bootstrap bias caveat;
 
 ## GitHub Issue Maintenance
 
-Issues stay open for the owner. The PR uses `Refs #N`.
+Issues stay open for the owner. The PR Refs lines are exactly `#1317`,
+`#1336`, `#1315`, `#802`, and `#710`. `#1469` remains implemented and is
+not listed in Refs.
