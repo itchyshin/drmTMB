@@ -282,26 +282,15 @@ ci_profile_parallel <- confint(
 )
 ```
 
-### Where the parallel work happens
-
 Parallel work in drmTMB comes from running separate profile searches or
-bootstrap refits at the same time, not from threading inside one fit. The
-package's TMB code is built without OpenMP, so `TMB::openmp(DLL = "drmTMB")`
-reports one thread and raising `TMB_NTHREADS` or `OMP_NUM_THREADS` does not
-speed up a single native fit. Use this policy:
-
-- For one fit, leave the thread settings alone. A multithreaded BLAS may help
-  only the dense matrix steps that run in R.
-- For profile or bootstrap intervals on Linux or macOS, use
-  `parallel = "multicore"` and keep the BLAS library at one thread, for example
-  by starting R with `OPENBLAS_NUM_THREADS=1` (or `MKL_NUM_THREADS=1`). Forked
-  workers that each start several BLAS threads compete for the same cores.
-- On Windows, `parallel = "multicore"` is unavailable, so profile and bootstrap
-  work runs with `parallel = "none"`.
-- With `engine = "julia"`, parallel refits use Julia threads instead: set
-  `JULIA_NUM_THREADS` before Julia starts and pass `threads = TRUE`, as the
-  [Julia engine guide](julia-engine.html) explains. Do not also run R-side
-  multicore workers around those calls.
+bootstrap refits at the same time, not from threading inside one fit: the
+package's TMB code is built without OpenMP, so raising `TMB_NTHREADS` or
+`OMP_NUM_THREADS` does not speed up a single native fit. When
+`parallel = "multicore"` workers run, keep the BLAS library at one thread (for
+example by starting R with `OPENBLAS_NUM_THREADS=1`) so the workers do not
+compete for the same cores. The help page `?drmTMB-parallel` states the full
+thread policy, including Windows; the
+[Julia engine guide](julia-engine.html) covers Julia threads.
 
 Bootstrap intervals repeatedly simulate and refit the model, so they take more
 time and require the fitted model data. Do not combine them with
