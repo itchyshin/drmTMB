@@ -2,7 +2,9 @@
 
 `weights = 1` with `mi()` matches the unweighted fit (coef, logLik, nll to 1e-10) and does not emit `drmTMB_mi_weights_prior_unweighted`. Weight 2 matches a duplicated row in the response term only; `nll_dup - nll_w2 = -prior_row2`. Weight 0 or `NA` on a missing `mi()` covariate is `drmTMB_mi_zero_weight_missing` before the generic NA-weight abort (named error, not a drop). `predict()` / `simulate()` honour fitted coefficients and refuse `weights=` with `drmTMB_mi_weights_predict_unsupported`. Renormalised Beta/Gamma quadrature mass is 1. CondExp anchor in `drmTMB.cpp` is 33L (weight-0 helper + two IS `s_floor`s).
 
-Focused local: `test-mi-weights-1459.R` 0 fail / 44 pass; `test-julia-mi-weights.R` 0 fail / 7 pass; `test-mi-quadrature-1476-1477.R` 0 fail / 41 pass; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-guard-branch-continuity.R` 0 fail / 66 pass. Full suite and C17 next (`R/drmTMB.R` and `R/methods.R` changed).
+Focused local: `test-mi-weights-1459.R` 0 fail / 44 pass; `test-julia-mi-weights.R` 0 fail / 7 pass; `test-mi-quadrature-1476-1477.R` 0 fail / 41 pass; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-guard-branch-continuity.R` 0 fail / 66 pass.
+
+C17 recertified at `9ed39d074` (`python3 tools/recertify-c17.py --label triage-i-mi --tolerance 1e-10`). Worst `|change|` in mean tau relative error was `0.000e+00` on mc-0568 / mc-0569 / mc-0576. Receipt `docs/dev-log/implementation-recovery/2026-10-11-triage-i-mi-c17c2-c14-final-source-compatibility`. The `mi()` quadrature and weight gates sit outside the authenticated model-15 anchors. Full suite next.
 
 Refs #1459
 Refs #1477
