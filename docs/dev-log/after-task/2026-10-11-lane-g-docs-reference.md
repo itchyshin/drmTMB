@@ -86,7 +86,20 @@ regeneration reproduces the committed pages.
 
 ## Checks Run
 
-FILL
+- `roxygen2::roxygenise(".", roclets = "rd")` (7.3.1) after the port: the only
+  Rd changes outside the intended pages (`spatial`, `zero_one_beta`,
+  `beta_family`, `confint.drmTMB_julia`) are link-target noise, which was not
+  committed.
+- All 11 changed vignettes knit with `rmarkdown::render()`.
+- `tools/check-reader-contracts.R` is clean under `C.UTF-8`; spelling adds only
+  "OpenMP" (now in `inst/WORDLIST`); `tools/capability_ledger.py --check` OK.
+- C17 receipt: `tools/recertify-c17.py --label lane-g --tolerance 2e-11`. The
+  worst drift was 1.322e-11, and a `--dry-run` on a clean main worktree in the
+  same container gave the same three numbers, so the drift is environmental.
+- Full suite, installed build, R 4.3.3: 15 failed, 134 errors, 111 skipped,
+  47,326 passed. Unmodified main gave the same totals and the same 147 failing
+  tests (`%||%` on R < 4.4, no Julia, missing Suggests, non-UTF-8 locale).
+- CI run 38112355789 on `fa20d1a1`: all six checks green.
 
 ## What Did Not Go Smoothly
 
