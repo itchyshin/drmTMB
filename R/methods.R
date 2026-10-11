@@ -2750,17 +2750,32 @@ BIC.drmTMB <- function(object, ...) {
   drm_information_criterion(fits, function(o) log(drm_ic_nobs(o)), "BIC")
 }
 
-#' Likelihood comparison guard for drmTMB fits
+#' Likelihood-ratio comparison of nested drmTMB fits
 #'
-#' Experimental MSPL fits do not expose likelihood-ratio comparisons. Ordinary
-#' drmTMB fits likewise have no package-level `anova()` comparison contract;
-#' compare explicitly supported likelihood quantities instead.
+#' `anova(reduced, full)` compares nested ML fits fitted to the same
+#' observations with a likelihood-ratio test. With more than two fits the
+#' comparisons are sequential (fit 1 vs fit 2, fit 2 vs fit 3, ...), so list
+#' fits from the smallest to the largest model. The test is [drm_lrtest()]'s,
+#' with the same guards: REML fits are comparable only when their mean
+#' structures match, penalized (MAP) fits are refused, and `full` must have more
+#' parameters than `reduced`.
 #'
-#' @param object A `drmTMB` fit.
-#' @param ... Additional fitted objects.
-#' @param test Requested test label; currently unsupported.
+#' When the larger model adds one or two random-effect SDs (and nothing else),
+#' the null sits on the boundary of the parameter space and the ordinary
+#' \eqn{\chi^2} p-value is conservative. `anova()` then reports the
+#' chi-bar-square p-value from [lrt_boundary()] and warns
+#' (`drmTMB_anova_boundary_warning`) that it did so. Other boundary cases, such
+#' as a random slope with a correlation, keep the \eqn{\chi^2} p-value and the
+#' conservative-p-value warning from [drm_lrtest()].
 #'
-#' @return This method always errors.
+#' @param object A `drmTMB` fit (the smaller model).
+#' @param ... One or more larger `drmTMB` fits.
+#' @param test `NULL`, `"Chisq"` or `"LRT"`; all request the likelihood-ratio
+#'   test. Other values abort.
+#'
+#' @return An object of class `c("anova", "data.frame")` with one row per fit
+#'   and columns `Df` (number of parameters), `logLik`, `Chi Df`, `Chisq` and
+#'   `Pr(>Chisq)` (`NA` in the first row). Experimental MSPL fits abort.
 #' @export
 anova.drmTMB <- function(object, ..., test = NULL) {
   fits <- c(list(object), list(...))
@@ -2768,9 +2783,83 @@ anova.drmTMB <- function(object, ..., test = NULL) {
   if (any(mspl)) {
     drm_abort_mspl_inference(fits[[which(mspl)[[1L]]]], "anova")
   }
-  cli::cli_abort(
-    "{.fn anova} likelihood-ratio comparisons are not implemented for {.cls drmTMB} fits."
+  if (!is.null(test) && !(is.character(test) && length(test) == 1L &&
+    test %in% c("Chisq", "LRT"))) {
+    cli::cli_abort(
+      "{.arg test} must be {.val Chisq} or {.val LRT}; {.fn anova} for {.cls drmTMB} fits supports only the likelihood-ratio test."
+    )
+  }
+  if (length(fits) < 2L) {
+    cli::cli_abort(c(
+      "{.fn anova} needs at least two nested {.cls drmTMB} fits.",
+      "i" = "Call {.code anova(reduced, full)}, listing the smaller model first."
+    ))
+  }
+  is_drm <- vapply(fits, inherits, logical(1L), what = "drmTMB")
+  if (!all(is_drm)) {
+    cli::cli_abort("{.fn anova} compares {.cls drmTMB} fits only.")
+  }
+  k <- length(fits)
+  stat <- chi_df <- p <- rep(NA_real_, k)
+  for (i in seq_len(k - 1L)) {
+    res <- drm_anova_pair(fits[[i]], fits[[i + 1L]])
+    stat[i + 1L] <- res$statistic
+    chi_df[i + 1L] <- res$df
+    p[i + 1L] <- res$p.value
+  }
+  ll <- lapply(fits, stats::logLik)
+  out <- data.frame(
+    Df = vapply(ll, function(l) as.numeric(attr(l, "df")), numeric(1L)),
+    logLik = vapply(ll, as.numeric, numeric(1L)),
+    `Chi Df` = chi_df,
+    Chisq = stat,
+    `Pr(>Chisq)` = p,
+    check.names = FALSE
   )
+  rownames(out) <- paste0("fit", seq_len(k))
+  heading <- "Likelihood-ratio tests of nested drmTMB fits (listed smallest to largest)\n"
+  structure(out, heading = heading, class = c("anova", "data.frame"))
+}
+
+# One reduced-vs-full comparison for `anova.drmTMB()`: `drm_lrtest()` supplies
+# the guards and the chi-square test; when the extra parameters are exactly one
+# or two random-effect SDs the boundary-correct chi-bar-square p-value from
+# `lrt_boundary()` replaces the chi-square one.
+drm_anova_pair <- function(reduced, full) {
+  res <- withCallingHandlers(
+    drm_lrtest(reduced, full),
+    drmTMB_lrtest_boundary_warning = function(w) {
+      invokeRestart("muffleWarning")
+    }
+  )
+  added <- setdiff(drm_lrtest_vc_labels(full), drm_lrtest_vc_labels(reduced))
+  if (length(added) == 0L) {
+    return(res)
+  }
+  q <- length(added)
+  only_sds <- all(added %in% drm_lrtest_sd_labels(full))
+  if (q %in% c(1L, 2L) && only_sds && isTRUE(res$df == q)) {
+    bres <- lrt_boundary(full, reduced, q = q)
+    cli::cli_warn(
+      c(
+        "{.fn anova}: {.val {added}} {?is a/are} variance component{?s} tested against 0, a boundary null.",
+        "i" = "Reporting the chi-bar-square p-value ({format.pval(bres$pvalue, digits = 4)}) instead of the conservative chi-square({q}) value ({format.pval(bres$pvalue_naive, digits = 4)})."
+      ),
+      class = "drmTMB_anova_boundary_warning"
+    )
+    res$p.value <- bres$pvalue
+  } else {
+    drm_lrtest_boundary_warn(reduced, full, res$df)
+  }
+  res
+}
+
+drm_lrtest_sd_labels <- function(object) {
+  block <- object$sdpars
+  as.character(unlist(
+    lapply(names(block), function(d) paste0(d, ":", names(block[[d]]))),
+    use.names = FALSE
+  ))
 }
 
 #' @rdname model-fit-extractors

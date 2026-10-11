@@ -2,22 +2,38 @@
 % Please edit documentation in R/methods.R
 \name{anova.drmTMB}
 \alias{anova.drmTMB}
-\title{Likelihood comparison guard for drmTMB fits}
+\title{Likelihood-ratio comparison of nested drmTMB fits}
 \usage{
 \method{anova}{drmTMB}(object, ..., test = NULL)
 }
 \arguments{
-\item{object}{A \code{drmTMB} fit.}
+\item{object}{A \code{drmTMB} fit (the smaller model).}
 
-\item{...}{Additional fitted objects.}
+\item{...}{One or more larger \code{drmTMB} fits.}
 
-\item{test}{Requested test label; currently unsupported.}
+\item{test}{\code{NULL}, \code{"Chisq"} or \code{"LRT"}; all request the likelihood-ratio
+test. Other values abort.}
 }
 \value{
-This method always errors.
+An object of class \code{c("anova", "data.frame")} with one row per fit
+and columns \code{Df} (number of parameters), \code{logLik}, \verb{Chi Df}, \code{Chisq} and
+\code{Pr(>Chisq)} (\code{NA} in the first row). Experimental MSPL fits abort.
 }
 \description{
-Experimental MSPL fits do not expose likelihood-ratio comparisons. Ordinary
-drmTMB fits likewise have no package-level \code{anova()} comparison contract;
-compare explicitly supported likelihood quantities instead.
+\code{anova(reduced, full)} compares nested ML fits fitted to the same
+observations with a likelihood-ratio test. With more than two fits the
+comparisons are sequential (fit 1 vs fit 2, fit 2 vs fit 3, ...), so list
+fits from the smallest to the largest model. The test is \code{\link[=drm_lrtest]{drm_lrtest()}}'s,
+with the same guards: REML fits are comparable only when their mean
+structures match, penalized (MAP) fits are refused, and \code{full} must have more
+parameters than \code{reduced}.
+}
+\details{
+When the larger model adds one or two random-effect SDs (and nothing else),
+the null sits on the boundary of the parameter space and the ordinary
+\eqn{\chi^2} p-value is conservative. \code{anova()} then reports the
+chi-bar-square p-value from \code{\link[=lrt_boundary]{lrt_boundary()}} and warns
+(\code{drmTMB_anova_boundary_warning}) that it did so. Other boundary cases, such
+as a random slope with a correlation, keep the \eqn{\chi^2} p-value and the
+conservative-p-value warning from \code{\link[=drm_lrtest]{drm_lrtest()}}.
 }

@@ -216,17 +216,11 @@ drm_mc_stub_julia <- function(nobs = 7L) {
   structure(list(nobs = nobs, df = 3L), class = "drmTMB_julia")
 }
 
-test_that("anova() refuses an engine = 'julia' fit with drmTMB's own message", {
+test_that("anova() still refuses an engine = 'julia' fit", {
   stub <- drm_mc_stub_julia()
   expect_error(
     stats::anova(stub),
     "not implemented for <drmTMB_julia> fits"
-  )
-  # The native engine's refusal is unchanged, so the message is engine-shaped
-  # but the behaviour is not: neither engine offers an anova LRT.
-  expect_error(
-    stats::anova(drm_mc_fit(bf(y ~ x, sigma ~ 1), drm_mc_fixture_2())),
-    "not implemented for <drmTMB> fits"
   )
 })
 
