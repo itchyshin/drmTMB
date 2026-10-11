@@ -3755,12 +3755,59 @@ drm_logsigma_clamp_active <- function(report, tmb_data) {
   if (!hit_hi && !hit_lo) {
     return(NULL)
   }
+  # Spread of log(sigma) within each response whose scale reached the lower
+  # arm; drm_lower_clamp_unbounded() reads it to separate a diverging scale
+  # predictor from a scale that is merely small everywhere.
+  lower_spread <- vapply(fields, function(field) {
+    field <- field[is.finite(field)]
+    if (!length(field) || !any(field < lo)) {
+      return(NA_real_)
+    }
+    max(field) - min(field)
+  }, numeric(1L))
   list(
     value = if (hit_hi) max(values) else min(values),
     arm = if (hit_hi) "upper" else "lower",
     lo = lo,
-    hi = hi
+    hi = hi,
+    lower_spread = suppressWarnings(max(lower_spread, na.rm = TRUE))
   )
+}
+
+# Continuous families whose density at an observation grows without bound as
+# its scale goes to zero. For these, a scale predictor that drives the scale of
+# some observations to the LOWER clamp while others stay ordinary is not a
+# variance-zero boundary: the location predictor can pass through one
+# observation exactly while the scale predictor shrinks the scale there, so the
+# likelihood has no finite maximum and the reported optimum is a property of
+# the clamp band, not of the data (#1469; a Gaussian `sigma ~ x` fit at n = 8
+# reached different log-likelihoods on y and y/sd(y), with fitted log(sigma)
+# spanning 18-20 units). The signature used here is a lower-clamp hit plus a
+# within-response log(sigma) spread above log(1e4); the spread is unit-free, so
+# a response on a tiny numeric scale (sigma small everywhere) or a user-narrowed
+# band is not flagged. A known sampling variance (`meta_V()`) keeps the
+# likelihood bounded, so a meta-analysis at tau = 0 stays the legitimate
+# boundary case. Count and proportion families are excluded: their sigma -> 0
+# arm is a finite limit (Poisson, binomial) rather than a spike.
+drm_unbounded_scale_families <- function() {
+  c(
+    "gaussian",
+    "biv_gaussian",
+    "lognormal",
+    "biv_lognormal",
+    "student",
+    "biv_student",
+    "skew_normal",
+    "gamma"
+  )
+}
+
+drm_lower_clamp_unbounded <- function(info, spec) {
+  !is.null(info) &&
+    identical(info$arm, "lower") &&
+    isTRUE(info$lower_spread > log(1e4)) &&
+    isTRUE(spec$model_type %in% drm_unbounded_scale_families()) &&
+    !isTRUE(spec$has_known_v)
 }
 
 # Warn at fit time when the log(sigma) clamp is active at the optimum. The clamp
@@ -3783,6 +3830,17 @@ drm_warn_if_clamp_active <- function(obj, spec) {
   # tau = 0); it is surfaced by check_drm() (as a note, not a warning) rather
   # than raised as a fit-time cli warning here, to avoid warning on every
   # variance-zero boundary fit. Only the upper (runaway-scale) arm warns.
+  if (drm_lower_clamp_unbounded(info, spec)) {
+    cli::cli_warn(
+      c(
+        "{.fn drmTMB}: the {.code log(sigma)} clamp is active at the optimum (the fitted {.code log(sigma)} reached {.val {round(info$value, 1)}}, below the band lower bound {.val {info$lo}}).",
+        "i" = "The fitted scale spans more than four orders of magnitude, so the scale predictor is shrinking the scale to zero at some observations. Without a known sampling variance the likelihood then has no finite maximum: the estimates depend on the clamp band and on the units of the response, and {.fn convergence_status} returns {.val degenerate}.",
+        "i" = "Simplify the scale formula (for example {.code sigma ~ 1}), collect more observations per scale parameter, or check whether the response is on a very small numeric scale."
+      ),
+      class = "drmTMB_clamp_active_warning"
+    )
+    return(invisible(TRUE))
+  }
   if (is.null(info) || !identical(info$arm, "upper")) {
     return(invisible(FALSE))
   }

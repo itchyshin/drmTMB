@@ -31,6 +31,18 @@ parameters near an interpretability boundary. \code{\link[=is_converged]{is_conv
 plain logical: it is \code{TRUE} for \code{"converged"} and \code{"boundary"}, and
 \code{FALSE} for \code{"degenerate"}.
 }
+\details{
+One degenerate case is a Gaussian, lognormal, Student, skew-normal, or
+Gamma scale predictor that drives some observations to the lower
+\code{log(sigma)} clamp (see \code{\link[=drm_control]{drm_control()}}) while others keep an ordinary
+scale (fitted \code{sigma} spanning more than four orders of magnitude), in a
+model without \code{\link[=meta_V]{meta_V()}}. The scale then shrinks to zero at observations
+the location predictor fits exactly, so the likelihood
+has no finite maximum and the estimates depend on the clamp band and on the
+units of the response. A meta-analysis whose heterogeneity \code{sigma} reaches
+zero is not affected, because the known sampling variance keeps its
+likelihood bounded.
+}
 \examples{
 set.seed(20260916)
 dat <- data.frame(y = rnorm(40), x = rnorm(40))

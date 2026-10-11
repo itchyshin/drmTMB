@@ -153,6 +153,11 @@ which is also why the structured-RE bias correction in
 separate, opt-in, Wald-only mechanism rather than a blanket default change.
 This agrees with Russell's own "document, or add a variant" framing.
 
+**Status (2026-10-11).** Option (A) is shipped as the "Bootstrap intervals
+on biased targets" section of `?confint.drmTMB` (lane C convergence and
+inference branch). Options (B) and (C) add a public `confint()` argument and
+remain an owner decision; the default is unchanged.
+
 ## 7. D-139 pre-run specification for a default change (E)
 
 **Estimands.** Per target: coverage of the nominal 95% interval; one-sided
