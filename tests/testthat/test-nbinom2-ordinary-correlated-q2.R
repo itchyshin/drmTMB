@@ -150,7 +150,7 @@ test_that("NB2 q2 rejection matrix stays closed", {
       family = nbinom2(),
       data = sim$data
     ),
-    "ordinary NB2 models"
+    "Zero-inflated NB2 random effects currently support one"
   )
 
   expect_error(
