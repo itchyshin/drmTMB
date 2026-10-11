@@ -49,16 +49,21 @@ nonzero only in three `*-bootstrap-smoke-contract.tsv` files at `R = 2`
 
 ## The contract
 
-`simulate.drmTMB()` takes **`re.form`**. The argument name comes from lme4,
-but the explicit values mean the **opposite** of `lme4::simulate.merMod()`
-(where `NULL` conditions on the fitted random effects and `NA` draws new ones);
-only the default behaviour, fresh draws, agrees (#1487):
+`simulate.drmTMB()` takes **`re.form`** with the `lme4::simulate.merMod()`
+meanings (owner decision on #1487, 2026-10-11):
 
 | Value | Behaviour |
 | --- | --- |
-| `NULL` (**default**) | **Marginal.** Random effects are redrawn fresh for every replicate. |
-| `NA` | **Conditional.** Random effects held at the fitted MAP `û` — the pre-0.7 behaviour. |
+| `NA` (**default**) or `~0` | **Marginal.** Random effects are redrawn fresh for every replicate. |
+| `NULL` | **Conditional.** Random effects held at the fitted MAP `û`. |
 | anything else | error |
+
+Before #1487 the explicit values were the reverse (`NULL` marginal and the
+default, `NA` conditional). The default output did not change, but an explicit
+value now runs the other simulation, so the first explicit `re.form` in a
+session prints a one-time message (`drmTMB_re_form_semantics_message`). The
+rest of this document was written before #1487: where it says `re.form = NULL`
+it means marginal, and `re.form = NA` means conditional.
 
 `confint()` exposes the same choice for the parametric bootstrap as
 `bootstrap_re_form`, defaulting to marginal.

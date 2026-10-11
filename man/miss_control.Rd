@@ -17,7 +17,7 @@ response missing is omitted. \code{"include"} keeps rows with supported missing
 responses and masks their response likelihood contribution.}
 
 \item{predictor}{Predictor missingness policy. \code{"fail"} errors on missing
-predictors when you pass \code{missing =} with \code{predictor = "fail"} or with no
+predictors when you pass \verb{missing =} with \code{predictor = "fail"} or with no
 arguments (\code{miss_control()}), whether written in the call or stored in an
 object. Leaving \code{missing} out of the \code{\link[=drmTMB]{drmTMB()}} call, or setting only
 \code{response}, keeps complete-case row dropping. \code{"model"} enables the current \code{mi()} predictor-model routes when
