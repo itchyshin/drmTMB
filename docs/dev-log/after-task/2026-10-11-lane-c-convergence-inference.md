@@ -8,7 +8,9 @@ test-sweep findings about whether `convergence_status()`, `is_converged()`,
 `check_drm()`, and `confint()` tell users the truth about a fit. Six of them
 (#1452, #1458, #1470, #1478, #1496, #1251) were already targeted by open
 Cursor pull requests #1501, #1503, and #1505, so this lane did not duplicate
-them. This branch fixes the other five.
+them. This branch fixes four of the remaining five (#1387 moved to another lane)
+and two items the coordinator added: #802 and a `check_known_v()` tolerance
+bug found under #710.
 
 ## Implemented
 
@@ -51,29 +53,41 @@ advice to use a likelihood-ratio test via `anova()` was replaced with
 biased targets" section of `?confint.drmTMB`. No code change; options (B)
 and (C) add a public argument and are left for the owner.
 
-**#1387, profile trace memory.** `drm_profile_trace_object()` stored the full
-parameter vector for every objective evaluation. Entries now hold the
-objective, any error, and a precomputed direct-SD `clamp_contact` flag; the
-lowest-objective parameter vector is kept once as `best`, and the old trail is
-available through `keep_par = TRUE`. `drm_profile_direct_sd_clamp_trace()`
-reads the flag and falls back to `par` for hand-built traces.
+**#802, `corpairs()` silently ignored `newdata`.** On main a `rho12 ~ x`
+fit reports `conf.status = "derived_interval_unavailable"` and a supplied
+`newdata` falls through `...` unused, while
+`confint(fit, parm = "rho12", newdata = grid, method = "profile")` already
+returns row-specific profile intervals. `corpairs()` now aborts
+(`drmTMB_corpairs_newdata_unsupported`) and names that route and
+`predict_parameters()`; `?corpairs` says the same. Expanding `corpairs()`
+itself over `newdata` would be an API change and is left to the owner.
+
+**#710 follow-up, `check_known_v()` rank tolerance.** Lane B found that the
+tolerance `sqrt(eps) * max(abs(eig), 1)` had an absolute floor, so a
+well-conditioned known `V` on a small numeric scale was reported as
+singular. The floor is removed; the tolerance is now relative to the largest
+eigenvalue.
+
+**#1387 was dropped** at the coordinator's request after it was already
+implemented here: the performance lane owns it. The tested patch was handed
+to that lane and removed from this branch.
 
 ## Files Changed
 
 `R/check.R`, `R/drmTMB.R` (clamp helpers and fit-time warning only),
-`R/profile.R`, `R/family.R` (skew-normal roxygen paragraph), the matching
+`R/profile.R`, `R/methods.R` (`corpairs.drmTMB()` and its roxygen only), `R/family.R` (skew-normal roxygen paragraph), the matching
 hand-edited `man/convergence_status.Rd`, `man/confint.drmTMB.Rd`, and
-`man/skew_normal.Rd`, design notes 174 and 274, the new
-`tests/testthat/test-lane-c-convergence-inference.R`, and updated
-`tests/testthat/test-arc-d-profile-trace.R`. The Rd files were edited by hand
+`man/skew_normal.Rd`, and `man/corpairs.Rd`, design notes 174 and 274, and the new
+`tests/testthat/test-lane-c-convergence-inference.R`. The Rd files were edited by hand
 to avoid roxygen-version churn, which lane G owns.
 
 ## Checks Run
 
-The new and updated test files pass (39 and 28 expectations) on the branch
-build and fail on main where they test changed behaviour. Twenty related files
-(skew-normal, clamp, check_drm, convergence warning, start contract, REML,
-bootstrap) pass with 0 failures. Full-suite totals are in the PR comment.
+`test-lane-c-convergence-inference.R` passes (47 expectations) on the
+branch build, and its new expectations fail on main. Twenty-eight related
+files (skew-normal, clamp, check_drm, convergence warning, start contract,
+REML, bootstrap, corpairs, meta-analysis known V, profile trace) pass with 0
+failures. Full-suite totals are in the PR comment.
 
 ## What Did Not Go Smoothly
 

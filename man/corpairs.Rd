@@ -62,7 +62,11 @@ A data frame with one row per fitted correlation pair or pair
 summary. Predictor-dependent \code{rho12} is summarized by its mean, minimum,
 and maximum over the fitted rows. Rows include \code{conf.status} and
 \code{interval_source} so point-only and interval-aware pair tables use the same
-provenance vocabulary as prediction tables.
+provenance vocabulary as prediction tables. Its interval is
+\code{"derived_interval_unavailable"}; \code{corpairs()} does not take \code{newdata},
+so ask for row-specific intervals with
+\code{confint(fit, parm = "rho12", newdata = grid, method = "profile")} or
+\code{predict_parameters(fit, newdata = grid, dpar = "rho12", conf.int = TRUE)}.
 }
 \description{
 \code{corpairs()} returns a long table of fitted correlation pairs from a

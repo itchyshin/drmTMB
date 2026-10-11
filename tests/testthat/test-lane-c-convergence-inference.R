@@ -171,3 +171,61 @@ test_that("?confint.drmTMB documents percentile-bootstrap bias doubling (#1315)"
   expect_match(rd, "prefer \\code{method = \"wald\"}", fixed = TRUE)
   expect_match(rd, "section{REML fits}", fixed = TRUE)
 })
+
+test_that("check_known_v() rank test does not depend on the units of V (#710)", {
+  set.seed(710)
+  A <- matrix(stats::rnorm(36), 6)
+  V <- crossprod(A) + diag(6)
+  row_at <- function(scale) {
+    object <- list(model = list(
+      has_known_v = TRUE,
+      V_known_type = "matrix",
+      V_known = V * scale
+    ))
+    drmTMB:::check_known_v(object)
+  }
+  unit <- row_at(1)
+  tiny <- row_at(1e-10)
+  expect_identical(tiny$status, unit$status)
+  expect_false(identical(tiny$status, "warning"))
+  expect_match(tiny$value, "rank=6", fixed = TRUE)
+
+  # A genuinely singular V is still caught at every scale.
+  V_singular <- V
+  V_singular[, 6] <- V_singular[, 5]
+  V_singular[6, ] <- V_singular[5, ]
+  singular <- drmTMB:::check_known_v(list(model = list(
+    has_known_v = TRUE,
+    V_known_type = "matrix",
+    V_known = V_singular * 1e-10
+  )))
+  expect_identical(singular$status, "warning")
+})
+
+test_that("corpairs() refuses newdata instead of silently ignoring it (#802)", {
+  set.seed(802)
+  n <- 200
+  x <- stats::rnorm(n)
+  r <- tanh(0.3 + 0.4 * x)
+  e1 <- stats::rnorm(n)
+  e2 <- r * e1 + sqrt(1 - r^2) * stats::rnorm(n)
+  dat <- data.frame(y1 = 1 + 0.5 * x + e1, y2 = -1 + 0.2 * x + e2, x = x)
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~x),
+    family = biv_gaussian(),
+    data = dat
+  )
+  expect_error(
+    corpairs(fit, conf.int = TRUE, newdata = data.frame(x = 0)),
+    class = "drmTMB_corpairs_newdata_unsupported"
+  )
+  expect_error(
+    corpairs(fit, conf.int = TRUE, newdata = data.frame(x = 0)),
+    "parm = \"rho12\"",
+    fixed = TRUE
+  )
+  # The documented route returns a row-specific profile interval.
+  ci <- confint(fit, parm = "rho12", newdata = data.frame(x = 0), method = "profile")
+  expect_identical(ci$conf.status, "profile")
+  expect_true(is.finite(ci$lower) && is.finite(ci$upper))
+})
