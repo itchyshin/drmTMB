@@ -2760,27 +2760,70 @@ BIC.drmTMB <- function(object, ...) {
   drm_information_criterion(fits, function(o) log(drm_ic_nobs(o)), "BIC")
 }
 
-#' Likelihood comparison guard for drmTMB fits
+#' Likelihood-ratio comparison of drmTMB fits
 #'
-#' Experimental MSPL fits do not expose likelihood-ratio comparisons. Ordinary
-#' drmTMB fits likewise have no package-level `anova()` comparison contract;
-#' compare explicitly supported likelihood quantities instead.
+#' `anova(m0, m1, ...)` tests nested [drmTMB()] fits with a likelihood-ratio
+#' test. The fits are ordered by their number of parameters and each model is
+#' tested against the one before it, as in `lme4` and `glmmTMB`. The statistic
+#' is \eqn{2 (\ell_{\mathrm{full}} - \ell_{\mathrm{reduced}})} with
+#' `df(full) - df(reduced)` degrees of freedom, and the table has columns
+#' `npar`, `logLik`, `deviance`, `Chisq`, `Df` and `Pr(>Chisq)`.
+#'
+#' Guards, all of which abort with a message saying what to do next:
+#' * the fits must be on the same observations;
+#' * ML and REML fits are never mixed, and REML fits must share their
+#'   fixed-effect (mean) structure, because restricted likelihoods are
+#'   comparable only across variance structures;
+#' * penalized (MAP) fits abort, as their variance components are shrunk by
+#'   the prior;
+#' * experimental MSPL fits abort, as for every likelihood method;
+#' * `engine = "julia"` fits are not supported, and neither are models with
+#'   the same number of parameters (compare those with [AIC()]).
+#'
+#' **Boundary tests.** When the larger model adds a random-effect standard
+#' deviation, the null value 0 sits on the edge of the parameter space and the
+#' usual chi-square reference is conservative. A
+#' `drmTMB_anova_boundary_warning` is signalled for such a pair. If exactly one
+#' or two standard deviations are added and nothing else, `Pr(>Chisq)` is the
+#' chi-bar-square mixture from [lrt_boundary()]; the attribute `"p.method"`
+#' records `"chibar"` or `"chisq"` per row. Otherwise the naive chi-square
+#' p-value is reported and the warning says it is conservative.
+#'
+#' A negative statistic (the smaller model fitted better) is reported as is
+#' and gives a p-value of 1 (or the boundary value); it signals non-nested
+#' models or a fit that did not converge.
 #'
 #' @param object A `drmTMB` fit.
-#' @param ... Additional fitted objects.
-#' @param test Requested test label; currently unsupported.
+#' @param ... Further `drmTMB` fits to compare with `object`.
+#' @param test `NULL` (the default), `"Chisq"` or `"LRT"`; only the
+#'   likelihood-ratio test is offered.
 #'
-#' @return This method always errors.
+#' @return An object of class `c("anova", "data.frame")` with one row per
+#'   fit, in order of increasing number of parameters.
+#' @seealso [lrt_boundary()], [AIC()], [model-comparison]
+#' @examples
+#' \donttest{
+#' set.seed(1)
+#' n <- 80
+#' dat <- data.frame(x = rnorm(n))
+#' dat$y <- 0.2 + 0.6 * dat$x + rnorm(n)
+#' m0 <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
+#' m1 <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+#' anova(m0, m1)
+#' }
 #' @export
 anova.drmTMB <- function(object, ..., test = NULL) {
-  fits <- c(list(object), list(...))
-  mspl <- vapply(fits, drm_is_mspl, logical(1L))
-  if (any(mspl)) {
-    drm_abort_mspl_inference(fits[[which(mspl)[[1L]]]], "anova")
-  }
-  cli::cli_abort(
-    "{.fn anova} likelihood-ratio comparisons are not implemented for {.cls drmTMB} fits."
+  dots <- list(...)
+  dot_exprs <- as.list(substitute(list(...)))[-1L]
+  labels <- c(
+    paste(deparse(substitute(object)), collapse = ""),
+    vapply(dot_exprs, function(e) paste(deparse(e), collapse = ""), character(1L))
   )
+  given <- names(dots)
+  if (!is.null(given)) {
+    labels[-1L][nzchar(given)] <- given[nzchar(given)]
+  }
+  drm_anova_lrt(c(list(object), dots), labels, test = test)
 }
 
 #' @rdname model-fit-extractors
