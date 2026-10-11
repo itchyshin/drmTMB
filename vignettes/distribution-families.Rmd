@@ -567,8 +567,10 @@ estimates a rate per trap night while the expected count remains proportional
 to sampling effort.
 Use this path as a baseline count model and as a comparator for later
 overdispersed count families. Biological count data with extra-Poisson
-variation will usually need `nbinom2()`; COM-Poisson remains a later route for
-underdispersion or dispersion patterns that NB2 does not describe well.
+variation will usually need `nbinom2()`. drmTMB has no underdispersed count
+family; for counts whose variance is below the mean, use `glmmTMB` with its
+`compois()` (Conway-Maxwell-Poisson) or `genpois()` (generalized Poisson)
+family.
 
 Zero-inflated Poisson models are implemented by adding a `zi` formula:
 

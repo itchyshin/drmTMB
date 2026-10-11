@@ -464,4 +464,6 @@ and independent slopes when there is no `hu` formula; an active hurdle formula
 does not allow those mean random effects. Known sampling covariance via
 `meta_V(V = V)`, bivariate or mixed-response count models, and COM-Poisson
 underdispersion models are unavailable. If your design needs one of these,
-choose a model that supports it before interpreting results.
+choose a model that supports it before interpreting results. For underdispersed
+counts (variance below the mean), `glmmTMB` offers the Conway-Maxwell-Poisson
+`compois()` and generalized Poisson `genpois()` families.
