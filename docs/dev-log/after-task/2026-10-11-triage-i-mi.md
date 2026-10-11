@@ -45,10 +45,17 @@ fitted coefficients.
   guard-branch manuals
 - `docs/design/03-likelihoods.md`, `NEWS.md`, this report
 
+R reviewer acceptance is pinned: `weights = 1` matches the
+unweighted fit; weight 2 matches a duplicated row in the response only
+(`nll` gap = one unweighted prior copy); weight 0 or `NA` on a missing
+`mi()` covariate is `drmTMB_mi_zero_weight_missing`, not a drop;
+`predict()` / `simulate()` honour fitted coefficients and refuse
+`weights=`.
+
 ## Left
 
-Full local `testthat` suite and C17 (`R/methods.R` changed). Draft PR
-must land after #1504. Do not merge.
+Full local `testthat` suite and C17 (`R/drmTMB.R` and `R/methods.R`
+changed). Draft PR must land after #1504. Do not merge.
 
 Refs #1477
 Refs #1476

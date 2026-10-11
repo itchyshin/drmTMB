@@ -238,10 +238,36 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # #1462 adds four clamps in drm_student_log_density() (the lgamma branch,
   # the Stirling branch, the switch, and the kernel cap). Value continuity
   # across nu = 1e4 is test-student-large-nu.R. n_response is therefore 8L.
-  expect_equal(n_cpp, 30L)
+  #
+  # #1459 / #1476 / #1477 add three drmTMB.cpp CondExp sites: one in
+  # drm_weight_times_logdens so weight 0 never yields 0*(-Inf), and one
+  # s_floor each in drm_gamma_mi_is_node and drm_beta_mi_is_node. The
+  # weight-0 contract is test-mi-weights-1459.R. The s_floor contract is
+  # the paired test below. n_cpp is therefore 33L.
+  expect_equal(n_cpp, 33L)
   expect_equal(n_numeric, 9L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)
+})
+
+# ---------------------------------------------------------------------------
+# Site: drm_gamma_mi_is_node / drm_beta_mi_is_node s_floor = 1e-8.
+# Class: C0 floor. Tiny CV (Gamma) or tiny Beta variance would send the
+# proposal SD to 0 and make dnorm(log_x, m, s) undefined. The floor keeps
+# the selected branch finite. The R helpers use the same 1e-8 pmax.
+# ---------------------------------------------------------------------------
+test_that("mi() IS proposal SD floors keep nodes and prior finite at 1e-8", {
+  z <- 0
+  w <- 1
+  gamma_tiny <- drmTMB:::drm_gamma_mi_is_nodes(z, w, mu = 10, sigma = 1e-12)
+  expect_true(is.finite(gamma_tiny$x))
+  expect_true(is.finite(gamma_tiny$log_prior))
+  expect_gt(gamma_tiny$x, 0)
+  beta_tiny <- drmTMB:::drm_beta_mi_is_nodes(z, w, mu = 0.5, sigma = 1e-12)
+  expect_true(is.finite(beta_tiny$x))
+  expect_true(is.finite(beta_tiny$log_prior))
+  expect_gt(beta_tiny$x, 0)
+  expect_lt(beta_tiny$x, 1)
 })
 
 # ---------------------------------------------------------------------------

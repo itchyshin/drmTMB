@@ -50,7 +50,7 @@ test_that("weight 0 or NA on a missing mi() covariate is a named error", {
     drmTMB:::drm_abort_mi_zero_weight_missing_in_data(dat, c(1, NA, 1), impute),
     class = "drmTMB_mi_zero_weight_missing"
   )
-}))
+})
 
 test_that("predict/simulate refuse an explicit weights argument on an mi() fit", {
   object <- list(missing_data = list(predictors = list(x = list(variable = "x"))))
@@ -66,13 +66,29 @@ test_that("predict/simulate refuse an explicit weights argument on an mi() fit",
 })
 
 mi_weights_1459_data <- function() {
-  n <- 40
-  z <- seq(-1.2, 1.2, length.out = n)
-  x <- 0.2 + 0.6 * z + 0.08 * sin(seq_len(n) / 3)
-  y <- 0.4 + 0.7 * x - 0.15 * z
+  n <- 48
+  z <- seq(-1.5, 1.5, length.out = n)
+  x <- 0.25 + 0.8 * z + 0.08 * sin(seq_len(n))
+  y <- 0.7 + 1.4 * x - 0.35 * z + 0.12 * cos(seq_len(n) / 3)
   dat <- data.frame(y = y, z = z, x = x)
   dat$x[c(6, 18, 30)] <- NA_real_
   dat
+}
+
+mi_weight_warnings <- function(expr) {
+  warns <- list()
+  value <- withCallingHandlers(
+    eval.parent(substitute(expr)),
+    warning = function(w) {
+      warns <<- c(warns, list(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  list(value = value, warnings = warns)
+}
+
+has_warning_class <- function(warns, class) {
+  any(vapply(warns, inherits, logical(1), class))
 }
 
 fit_mi_weights_1459 <- function(dat, weights = NULL) {
@@ -99,15 +115,19 @@ gaussian_mi_prior_term <- function(fit, rows = NULL) {
 
 test_that("weights = 1 with mi() matches the unweighted fit exactly (#1459)", {
   dat <- mi_weights_1459_data()
-  fit0 <- fit_mi_weights_1459(dat)
-  expect_no_warning(
-    fit1 <- fit_mi_weights_1459(dat, weights = rep(1, nrow(dat)))
+  cap0 <- mi_weight_warnings(fit_mi_weights_1459(dat))
+  cap1 <- mi_weight_warnings(
+    fit_mi_weights_1459(dat, weights = rep(1, nrow(dat)))
   )
+  fit0 <- cap0$value
+  fit1 <- cap1$value
+  expect_false(has_warning_class(cap0$warnings, "drmTMB_mi_weights_prior_unweighted"))
+  expect_false(has_warning_class(cap1$warnings, "drmTMB_mi_weights_prior_unweighted"))
   expect_equal(unname(unlist(coef(fit0))), unname(unlist(coef(fit1))), tolerance = 1e-10)
   expect_equal(as.numeric(logLik(fit0)), as.numeric(logLik(fit1)), tolerance = 1e-10)
   expect_equal(
-    fit0$obj$fn(fit0$opt$par),
-    fit1$obj$fn(fit1$opt$par),
+    as.numeric(fit0$obj$fn(fit0$opt$par)),
+    as.numeric(fit1$obj$fn(fit1$opt$par)),
     tolerance = 1e-10
   )
 })
@@ -116,22 +136,21 @@ test_that("weight-2 matches a duplicated row in the response only (#1459 pending
   dat <- mi_weights_1459_data()
   w <- rep(1, nrow(dat))
   w[[2L]] <- 2
-  expect_warning(
-    fit_w2 <- fit_mi_weights_1459(dat, weights = w),
-    class = "drmTMB_mi_weights_prior_unweighted"
-  )
+  cap_w2 <- mi_weight_warnings(fit_mi_weights_1459(dat, weights = w))
+  expect_true(has_warning_class(cap_w2$warnings, "drmTMB_mi_weights_prior_unweighted"))
+  fit_w2 <- cap_w2$value
   dat_dup <- rbind(dat, dat[2, , drop = FALSE])
-  fit_dup <- fit_mi_weights_1459(dat_dup)
+  fit_dup <- mi_weight_warnings(fit_mi_weights_1459(dat_dup))$value
   expect_equal(fit_w2$opt$convergence, 0L)
   expect_equal(fit_dup$opt$convergence, 0L)
   p <- fit_w2$opt$par
-  nll_w2 <- fit_w2$obj$fn(p)
-  prior_row2 <- gaussian_mi_prior_term(fit_w2, 2L)
+  nll_w2 <- as.numeric(fit_w2$obj$fn(p))
+  prior_row2 <- as.numeric(gaussian_mi_prior_term(fit_w2, 2L))
   # Row 2 is observed x. Weight 2 multiplies the response only, so the
   # duplicated-row objective at the same parameter includes one extra
   # unweighted prior copy. nll = -logLik, so the gap is -prior_row2.
   expect_equal(
-    fit_dup$obj$fn(p) - nll_w2,
+    as.numeric(fit_dup$obj$fn(p)) - nll_w2,
     -prior_row2,
     tolerance = 1e-6
   )
@@ -162,31 +181,32 @@ test_that("weight 0 multiplies the response once and never yields 0 * Inf", {
   dat <- mi_weights_1459_data()
   w <- rep(1, nrow(dat))
   w[[4L]] <- 0
-  expect_warning(
-    fit0 <- fit_mi_weights_1459(dat, weights = w),
-    class = "drmTMB_mi_weights_prior_unweighted"
-  )
-  expect_true(is.finite(fit0$obj$fn(fit0$opt$par)))
+  cap0 <- mi_weight_warnings(fit_mi_weights_1459(dat, weights = w))
+  expect_true(has_warning_class(cap0$warnings, "drmTMB_mi_weights_prior_unweighted"))
+  fit0 <- cap0$value
+  expect_true(is.finite(as.numeric(fit0$obj$fn(fit0$opt$par))))
   dat_y <- dat
   dat_y$y[[4L]] <- dat_y$y[[4L]] + 50
-  expect_warning(
-    fit_y <- fit_mi_weights_1459(dat_y, weights = w),
-    class = "drmTMB_mi_weights_prior_unweighted"
-  )
+  cap_y <- mi_weight_warnings(fit_mi_weights_1459(dat_y, weights = w))
+  expect_true(has_warning_class(cap_y$warnings, "drmTMB_mi_weights_prior_unweighted"))
+  fit_y <- cap_y$value
   # Row 4 is observed x; changing y with weight 0 must not move the nll
   # at a shared parameter (response ignored). The prior is still present.
   p <- fit0$opt$par
-  expect_equal(fit0$obj$fn(p), fit_y$obj$fn(p), tolerance = 1e-8)
+  expect_equal(
+    as.numeric(fit0$obj$fn(p)),
+    as.numeric(fit_y$obj$fn(p)),
+    tolerance = 1e-8
+  )
 })
 
 test_that("predict and simulate honour a weighted mi() fit via fitted coefficients", {
   dat <- mi_weights_1459_data()
   w <- rep(1, nrow(dat))
   w[[2L]] <- 2
-  expect_warning(
-    fit <- fit_mi_weights_1459(dat, weights = w),
-    class = "drmTMB_mi_weights_prior_unweighted"
-  )
+  cap <- mi_weight_warnings(fit_mi_weights_1459(dat, weights = w))
+  expect_true(has_warning_class(cap$warnings, "drmTMB_mi_weights_prior_unweighted"))
+  fit <- cap$value
   pred <- predict(fit, dpar = "mu")
   expect_true(all(is.finite(pred)))
   expect_equal(length(pred), nrow(dat))

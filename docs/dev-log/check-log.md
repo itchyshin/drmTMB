@@ -1,3 +1,13 @@
+# 2026-10-11: R reviewer #1459 acceptance
+
+`weights = 1` with `mi()` matches the unweighted fit (coef, logLik, nll to 1e-10) and does not emit `drmTMB_mi_weights_prior_unweighted`. Weight 2 matches a duplicated row in the response term only; `nll_dup - nll_w2 = -prior_row2`. Weight 0 or `NA` on a missing `mi()` covariate is `drmTMB_mi_zero_weight_missing` before the generic NA-weight abort (named error, not a drop). `predict()` / `simulate()` honour fitted coefficients and refuse `weights=` with `drmTMB_mi_weights_predict_unsupported`. Renormalised Beta/Gamma quadrature mass is 1. CondExp anchor in `drmTMB.cpp` is 33L (weight-0 helper + two IS `s_floor`s).
+
+Focused local: `test-mi-weights-1459.R` 0 fail / 44 pass; `test-julia-mi-weights.R` 0 fail / 7 pass; `test-mi-quadrature-1476-1477.R` 0 fail / 41 pass; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-guard-branch-continuity.R` 0 fail / 66 pass. Full suite and C17 next (`R/drmTMB.R` and `R/methods.R` changed).
+
+Refs #1459
+Refs #1477
+Refs #1476
+
 # 2026-10-11: mi() quadrature (#1477, #1476) and #1459 gates
 
 `cursor/triage-i-mi` from `af2ee2501` (#1504). Gamma `mi()` uses a 31-node Gauss-Hermite lognormal proposal with `drm_log1p_nonnegative(CV^2)` and renormalised mass (#1477). Beta / zero-one-Beta interior uses a 31-node logit-normal Gauss-Hermite rule, also renormalised (#1476). Headers `src/drm_numeric.h` and `src/drm_response_kernels.h` were not edited. Continuous `mi()` prior stays unweighted (#1459); `drm_weight_times_logdens` guards `0 * (-Inf)` on the Gaussian response term. Julia `mi()` plus non-unit weights is a classed refusal. `R/methods.R` gained the predict/simulate `weights=` refuse; C17 pending if that edit stays through the full suite.

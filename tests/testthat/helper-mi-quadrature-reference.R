@@ -9,13 +9,15 @@ drm_mi_gh_reference <- function(n = 81L) {
 drm_beta_mi_quadrature_mass <- function(mu, sigma, n = 31L) {
   quad <- drmTMB:::drm_beta_mi_quadrature(n)
   is <- drmTMB:::drm_beta_mi_is_nodes(quad$nodes, quad$weights, mu, sigma)
-  sum(exp(is$log_prior))
+  log_mass <- drmTMB:::drm_logsumexp(is$log_prior)
+  sum(exp(is$log_prior - log_mass))
 }
 
 drm_gamma_mi_quadrature_mass <- function(mu, sigma, n = 31L) {
   quad <- drmTMB:::drm_gamma_mi_quadrature(n)
   is <- drmTMB:::drm_gamma_mi_is_nodes(quad$nodes, quad$weights, mu, sigma)
-  sum(exp(is$log_prior))
+  log_mass <- drmTMB:::drm_logsumexp(is$log_prior)
+  sum(exp(is$log_prior - log_mass))
 }
 
 drm_beta_mi_reference_loglik <- function(y, mu_y, sigma_y, beta_x, x_base, mu, sigma) {

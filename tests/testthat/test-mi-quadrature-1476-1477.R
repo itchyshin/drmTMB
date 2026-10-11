@@ -1,7 +1,7 @@
 # #1476 / #1477: Beta prior mass and Gamma CV recovery after the
 # parameter-centered Gauss-Hermite importance rules.
 
-test_that("Beta mi() quadrature mass is 1 within 1e-10 (#1476)", {
+test_that("renormalised Beta mi() quadrature mass is 1 within 1e-10 (#1476)", {
   mus <- c(0.50, 0.10, 0.02)
   sigs <- c(1, 0.5, 0.2, 0.1, 0.05)
   for (mu in mus) {
