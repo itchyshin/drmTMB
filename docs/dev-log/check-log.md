@@ -1,3 +1,12 @@
+# 2026-10-11: rebase #1508 onto main after #1507/#1527
+
+Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
+receipt commits were skipped and recertified once at the end:
+`python3 tools/recertify-c17.py --label pr-1508 --tolerance 1e-10`,
+|change| 0 on mc-0568/0569/0576. Touched tests: unused-dots + miss-control +
+predict-character + relmat-numeric 51 pass; `test-simulate-re-form.R` 22 pass
+via pkgload.
+
 # 2026-10-11: parallel lane follow-up (PSOCK cluster, parallel multi-start, bootstrap shards)
 
 Owner decisions 18 and 19 implemented on `claude/drm-parallel-perf-2`,

@@ -145,3 +145,13 @@ The whole-file C17 receipt and the main-only tip-identity receipt hash the
 edited R files. The C17 receipt is regenerated on this branch and may need
 regenerating again at merge time. The tip-identity receipt needs Julia and
 can only be refreshed on main.
+
+## Rebase onto main (cleanup run)
+
+Rebased onto `origin/main` at `6beb1f2a0` (after #1507 and #1527). Merge
+commits and intermediate C17 receipt commits were dropped; the eight
+code/docs commits replayed. Recertified once:
+`python3 tools/recertify-c17.py --label pr-1508 --tolerance 1e-10`,
+|change| 0. Local checks on R 4.3.3 + TMB 1.9.25: unused-dots,
+miss-control, predict-character and relmat-numeric 51 pass;
+`test-simulate-re-form.R` 22 pass.
