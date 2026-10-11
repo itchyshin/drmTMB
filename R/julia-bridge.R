@@ -6389,6 +6389,14 @@ logLik.drmTMB_julia <- function(object, ...) {
   out <- object$logLik
   attr(out, "df") <- object$df
   attr(out, "nobs") <- object$nobs
+  # Same estimator attributes as logLik.drmTMB(), so code reading the logLik
+  # alone can tell a restricted likelihood from a full one (#1498).
+  if (!is.null(object$estimator)) {
+    attr(out, "estimator") <- object$estimator
+  }
+  if (isTRUE(object$REML)) {
+    attr(out, "REML") <- TRUE
+  }
   class(out) <- "logLik"
   out
 }

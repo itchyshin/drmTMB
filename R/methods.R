@@ -2661,8 +2661,16 @@ drm_ic_fixed_effect_signature <- function(object) {
   )
 }
 
+# Fits whose estimator the information-criterion guard can read: native fits
+# and `engine = "julia"` bridge fits (#1498), which record `estimator` and
+# `REML` the same way but do not inherit "drmTMB".
+drm_ic_guarded_fit <- function(o) {
+  inherits(o, c("drmTMB", "drmTMB_julia"))
+}
+
 drm_warn_information_criterion <- function(fits, what) {
-  drm_fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
+  fits <- fits[vapply(fits, drm_ic_guarded_fit, logical(1L))]
+  drm_fits <- fits
   estimators <- vapply(
     fits,
     function(o) if (is.null(o$estimator)) "ML" else o$estimator,
@@ -2719,10 +2727,7 @@ drm_information_criterion <- function(fits, penalty, what) {
   if (length(mspl)) {
     drm_abort_mspl_inference(fits[[mspl[[1L]]]], what)
   }
-  drm_warn_information_criterion(
-    fits[vapply(fits, inherits, logical(1L), what = "drmTMB")],
-    what
-  )
+  drm_warn_information_criterion(fits, what)
   computed <- lapply(fits, function(o) {
     ll_df <- drm_ic_loglik_df(o)
     list(value = -2 * ll_df$value + penalty(o) * ll_df$df, df = ll_df$df)

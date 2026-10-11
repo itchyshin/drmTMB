@@ -330,3 +330,77 @@ test_that("aicc() reaches an engine = 'julia' fit and matches tmb and DRM.jl", {
     abs(aicc(fj_full) - aicc(ft_full)), abs(aicc(fj_full) - native$aicc_full)
   ))
 })
+
+# ---- #1498: AIC/BIC/aicc on engine = "julia" REML fits run the REML guard ---
+#
+# A bridge fit has class "drmTMB_julia" only, so before #1498 AIC()/BIC() went
+# to stats::AIC.default()/BIC.default() and aicc() to aicc.default(): none ran
+# drm_warn_information_criterion(), although the julia route fits REML and
+# records estimator = "REML". These stubs carry exactly the fields a bridge fit
+# records (julia-bridge.R new_drmTMB_julia()), so no Julia is needed.
+drm_mc_stub_julia_fit <- function(estimator = "ML", mu = c("(Intercept)", "x"),
+                                  loglik = -100, df = 3L, nobs = 50L) {
+  structure(
+    list(
+      logLik = loglik,
+      df = df,
+      nobs = nobs,
+      estimator = estimator,
+      REML = identical(estimator, "REML"),
+      coefficients = list(
+        mu = stats::setNames(rep(0.1, length(mu)), mu),
+        sigma = c("(Intercept)" = 0)
+      )
+    ),
+    class = "drmTMB_julia"
+  )
+}
+
+test_that("logLik() of an engine = 'julia' REML fit carries the estimator attributes", {
+  ll <- stats::logLik(drm_mc_stub_julia_fit("REML"))
+  expect_identical(attr(ll, "estimator"), "REML")
+  expect_true(attr(ll, "REML"))
+  ll_ml <- stats::logLik(drm_mc_stub_julia_fit("ML"))
+  expect_identical(attr(ll_ml, "estimator"), "ML")
+  expect_null(attr(ll_ml, "REML"))
+})
+
+test_that("AIC/BIC/aicc warn on engine = 'julia' REML fits like the native engine (#1498)", {
+  reml_full <- drm_mc_stub_julia_fit("REML", mu = c("(Intercept)", "x"))
+  reml_null <- drm_mc_stub_julia_fit("REML", mu = "(Intercept)", df = 2L)
+  ml_full <- drm_mc_stub_julia_fit("ML", mu = c("(Intercept)", "x"))
+
+  # A single REML fit: the value alone invites cross-model comparison.
+  expect_warning(stats::AIC(reml_full), class = "drmTMB_ic_reml_warning")
+  expect_warning(stats::BIC(reml_full), class = "drmTMB_ic_reml_warning")
+  expect_warning(aicc(reml_full), class = "drmTMB_ic_reml_warning", regexp = "AICc")
+  # Different mean structures under REML, and REML against ML.
+  expect_warning(stats::AIC(reml_full, reml_null), class = "drmTMB_ic_reml_warning")
+  expect_warning(stats::BIC(reml_full, ml_full), class = "drmTMB_ic_reml_warning")
+
+  # Identical fixed effects under REML (variance-structure comparison) and ML
+  # fits stay silent, as on the native engine.
+  reml_same <- drm_mc_stub_julia_fit("REML", mu = c("(Intercept)", "x"), loglik = -99)
+  expect_no_warning(stats::AIC(reml_full, reml_same))
+  expect_no_warning(stats::AIC(ml_full))
+  expect_no_warning(aicc(ml_full))
+
+  # Values are unchanged: the guard only warns, and the stats defaults keep the
+  # caller's object names as row names.
+  tab <- suppressWarnings(stats::AIC(reml_full, reml_null))
+  expect_identical(rownames(tab), c("reml_full", "reml_null"))
+  expect_equal(tab$AIC, c(-2 * -100 + 2 * 3, -2 * -100 + 2 * 2))
+  expect_equal(
+    suppressWarnings(aicc(reml_full)),
+    drm_aicc_from_loglik(-100, 3, 50)
+  )
+  expect_equal(stats::BIC(ml_full), 200 + log(50) * 3)
+})
+
+test_that("a native REML fit compared with a julia ML fit warns from either side (#1498)", {
+  dat <- drm_mc_fixture_1()
+  tmb_reml <- drm_mc_fit(bf(y ~ x, sigma ~ z), dat, REML = TRUE)
+  julia_ml <- drm_mc_stub_julia_fit("ML", nobs = nrow(dat))
+  expect_warning(stats::AIC(tmb_reml, julia_ml), class = "drmTMB_ic_reml_warning")
+  expect_warning(stats::AIC(julia_ml, tmb_reml), class = "drmTMB_ic_reml_warning")
+})
