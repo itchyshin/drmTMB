@@ -49,7 +49,10 @@ nonzero only in three `*-bootstrap-smoke-contract.tsv` files at `R = 2`
 
 ## The contract
 
-`simulate.drmTMB()` takes **`re.form`**, following the lme4/glmmTMB convention:
+`simulate.drmTMB()` takes **`re.form`**. The argument name comes from lme4,
+but the explicit values mean the **opposite** of `lme4::simulate.merMod()`
+(where `NULL` conditions on the fitted random effects and `NA` draws new ones);
+only the default behaviour, fresh draws, agrees (#1487):
 
 | Value | Behaviour |
 | --- | --- |

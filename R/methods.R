@@ -3075,10 +3075,9 @@ predict.drmTMB <- function(
 #' By default (`re.form = NULL`), models with ordinary grouped random effects
 #' draw a **fresh** random-effect realization for every replicate, so
 #' replicate-to-replicate variability reflects both the between-group and the
-#' residual sources of variance (matching the lme4/glmmTMB `re.form`
-#' convention). Pass `re.form = NA` to simulate conditionally on the fitted
-#' random effects instead (holding every random effect fixed at its
-#' conditional-mode estimate, the behaviour this function had before
+#' residual sources of variance. Pass `re.form = NA` to simulate conditionally
+#' on the fitted random effects instead (holding every random effect fixed at
+#' its conditional-mode estimate, the behaviour this function had before
 #' `re.form` was added). Marginal simulation also redraws a single-endpoint
 #' (`q == 1`) phylogenetic, spatial, relatedness-matrix (`relmat`),
 #' animal-model, or `phylo_interaction` structured `mu` random effect from its
@@ -3092,6 +3091,15 @@ predict.drmTMB <- function(
 #' user to `re.form = NA`. Models without random effects are unaffected by
 #' `re.form`.
 #'
+#' The explicit values have the **opposite** meaning to
+#' `lme4::simulate.merMod()`, where `re.form = NULL` conditions on the fitted
+#' random effects and `re.form = NA` draws new ones. The defaults agree (both
+#' draw new random effects), but code ported from lme4 that passes
+#' `re.form = NA` to get unconditional draws, or `re.form = NULL` to get
+#' conditional ones, runs the other simulation here. Leave `re.form` unset
+#' for fresh random effects and pass `re.form = NA` only when you want the
+#' fitted random effects held fixed.
+#'
 #' For a fit made with `missing = miss_control(response = "include")`,
 #' `simulate()` returns `NA` at masked rows for every family, matching
 #' `residuals()`, so posterior-predictive tools such as
@@ -3103,7 +3111,8 @@ predict.drmTMB <- function(
 #'   is restored after simulation.
 #' @param re.form `NULL` (the default) draws fresh random effects for every
 #'   replicate (marginal simulation). `NA` holds every random effect fixed at
-#'   its fitted conditional-mode estimate (conditional simulation).
+#'   its fitted conditional-mode estimate (conditional simulation). These
+#'   meanings are the reverse of `lme4::simulate.merMod()`; see Details.
 #' @param ... Reserved for future simulation options.
 #'
 #' @return A data frame. Univariate models return one column per simulation.
