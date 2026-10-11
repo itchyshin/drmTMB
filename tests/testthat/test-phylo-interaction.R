@@ -840,7 +840,7 @@ test_that("zero-inflated NB2 sigma admits only the IID q1 control with a full or
   )
   expect_error(
     drmTMB(bf(count ~ x + (1 | pair), sigma ~ 1 + (1 | pair), zi ~ 1), family = nbinom2(), data = dat),
-    "implemented only for ordinary NB2 models"
+    "cannot be combined with structured or scale random effects"
   )
   expect_error(
     drmTMB(bf(count ~ x, sigma ~ 1 + (1 | pair), zi ~ x), family = nbinom2(), data = dat),

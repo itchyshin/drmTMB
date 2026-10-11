@@ -187,7 +187,7 @@ test_that("Phase 18 truncated NB2 mu random-intercept lane rejects neighbouring 
   )
   expect_error(
     drmTMB(
-      bf(count ~ x + (1 | id), sigma ~ z, hu ~ 1),
+      bf(count ~ x + (1 | id), sigma ~ z, hu ~ x),
       family = truncated_nbinom2(),
       data = transform(dat, count = c(0L, 2L, 1L, 3L, 2L, 4L))
     ),
