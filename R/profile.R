@@ -313,13 +313,14 @@
 #'
 #' @section REML fits:
 #' With `REML = TRUE`, the mean (`mu`) coefficients are integrated out of the
-#' likelihood as TMB random effects. `method = "wald"` reads their standard
+#' likelihood as TMB random effects, and so are the `sigma` coefficients when
+#' `sigma` has random effects. `method = "wald"` reads their standard
 #' errors from the full REML [TMB::sdreport()] covariance, the same source as
 #' [vcov()] and [summary()], so a Wald interval is returned wherever a
 #' standard error is printed. `method = "profile"` cannot hold an integrated
 #' coefficient fixed and stops with a message naming the alternatives:
 #' `method = "wald"`, `method = "bootstrap"`, or a refit with `REML = FALSE`.
-#' Scale, random-effect SD, and other non-integrated targets profile as usual.
+#' Random-effect SD and other non-integrated targets profile as usual.
 #'
 #' @section Bootstrap intervals on biased targets:
 #' `method = "bootstrap"` is a parametric *percentile* bootstrap: it simulates
@@ -3499,11 +3500,12 @@ profile_reml_integrated_hint <- function(object, target) {
     return(NULL)
   }
   c(i = paste(
-    "With {.code REML = TRUE} the mean coefficients are integrated out of the",
-    "likelihood, so they cannot be profiled. Use {.code method = \"wald\"}",
-    "(the REML standard error also shown by {.fn summary}) or",
-    "{.code method = \"bootstrap\"}, or refit with {.code REML = FALSE} to",
-    "profile them."
+    "With {.code REML = TRUE} this coefficient is integrated out of the",
+    "likelihood (mean coefficients always, {.code sigma} coefficients when",
+    "{.code sigma} has random effects), so it cannot be profiled. Use",
+    "{.code method = \"wald\"} (the REML standard error also shown by",
+    "{.fn summary}) or {.code method = \"bootstrap\"}, or refit with",
+    "{.code REML = FALSE} to profile it."
   ))
 }
 

@@ -68,7 +68,7 @@ well-conditioned known `V` on a small numeric scale was reported as
 singular. The floor is removed; the tolerance is now relative to the largest
 eigenvalue.
 
-**Owner decision 4 (#1469, #1273): flag-only `check_drm()` rows.** Three
+**Owner decision 4 (#1469, #1273): flag-only `check_drm()` rows.** Two
 rows were added to `R/check.R`. Each appears only when it fires, as a note,
 and none changes an estimate:
 - `beta_binomial_sigma_boundary` fires when the extra-binomial variance,
@@ -77,13 +77,24 @@ and none changes an estimate:
   likelihood.
 - `direct_sd_clamp_active` fires when a group-level log-SD from an
   `sd(group)` formula is outside the clamp band at the optimum.
-- `residual_outliers` fires when more quantile residuals exceed 3 in absolute
-  value than the 0.999 quantile of Binomial(n, 0.0027). It uses a fixed seed
-  and leaves the global RNG untouched. Infinite residuals count as outliers.
 
-The decision also asked for a tighter `is_converged()` (a Newton step in
-standard-error units). Open PR #1503 already implements that for #1452 in the
-same functions, so it was not duplicated here.
+The decision also asked for a residual-outlier row and a tighter
+`is_converged()` (a Newton step in standard-error units). The outlier row is
+#1335, which the convergence lane implements as
+`check_response_residual_outliers()`; a version written here was removed to
+avoid a duplicate row. Open PR #1503 already implements the gradient rule for
+#1452 in the same functions, so it was not duplicated either.
+
+**Review follow-up.** An independent review of this PR found two should-fix
+items, both addressed. The #1469 verdict is now computed once at fit time and
+stored as `fit$scale_clamp_unbounded`, so `convergence_status()` agrees with
+the fit-time warning when `keep_tmb_object = FALSE`. `?drmTMB` no longer says
+REML Wald rows are `NA`. The review also showed that the clamp-hit condition
+depended on the units of `y`: a well-posed heteroscedastic fit rescaled by
+1e-3 was flagged. The verdict now also requires the smallest-scale
+observation to be fitted exactly (standardized residual below 1e-3). On the
+#1469 fits that residual was 1e-5 to 1e-7; on the reviewer's well-posed
+example it was about 0.2 on both unit scales.
 
 **Owner decision 17 (#1315): opt-in basic and bias-corrected bootstrap.**
 `confint(..., method = "bootstrap", bootstrap_interval = c("percentile",

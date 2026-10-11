@@ -159,12 +159,14 @@ Under native \code{REML = TRUE}, admitted mean fixed-effect coefficients are
 marginalised in the TMB objective rather than estimated as ordinary fixed
 parameters. \code{\link[=summary.drmTMB]{summary.drmTMB()}} and \code{\link[=vcov.drmTMB]{vcov.drmTMB()}} can still report finite
 Wald standard errors for those coefficients from the full \code{sdreport}
-covariance, but \code{\link[=confint.drmTMB]{confint.drmTMB()}} does not currently form Wald or profile
-intervals for REML-integrated mean coefficients. Wald rows return \code{NA}
-bounds with \code{conf.status = "wald_unavailable"}, and profiling such a mean
-coefficient can fail because the coefficient is not a top-level TMB
-parameter. Use \code{confint(..., method = "bootstrap")} when an interval for a
-REML mean coefficient is needed.}
+covariance, and \code{\link[=confint.drmTMB]{confint.drmTMB()}} forms its Wald intervals from the same
+covariance, so \code{method = "wald"} returns finite bounds with
+\code{conf.status = "wald"} (earlier versions returned \code{NA} with
+\code{conf.status = "wald_unavailable"}). When \code{sigma} has random effects, its
+coefficients are integrated too. Profiling an integrated coefficient is not
+possible because it is not a top-level TMB parameter; use
+\code{method = "wald"}, \code{confint(..., method = "bootstrap")}, or a refit with
+\code{REML = FALSE} when such an interval is needed.}
 
 \item{penalty}{Optional penalty / prior built by \code{\link[=drm_phylo_penalty]{drm_phylo_penalty()}}, or
 \code{NULL} (default) for plain maximum likelihood. A non-\code{NULL} penalty

@@ -73,10 +73,10 @@ a generic default, validation, docs, and a row in the catalog below.
   `beta_binomial_sigma_boundary` (extra-binomial variance below 0.1% of the
   binomial variance on some rows; #1273), `direct_sd_clamp_active` (a
   group-level log-SD from an `sd(group)` formula outside the clamp band at
-  the optimum), and `residual_outliers` (more `|quantile residual| > 3` than
-  the 0.999 quantile of Binomial(n, 0.0027)). Each row appears only when it
-  fires, as a note, and none changes estimates. The tighter `is_converged()`
-  rule from the same decision (Newton step in standard-error units) is in
+  the optimum). Each row appears only when it fires, as a note, and none
+  changes estimates. The residual-outlier row from the same decision belongs
+  to #1335 (`check_response_residual_outliers()`, convergence lane), and the
+  tighter `is_converged()` rule (Newton step in standard-error units) is in
   PR #1503.
 
 ## Interval methods — when to use which (findings)

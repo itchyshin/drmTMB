@@ -27,9 +27,8 @@
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks
 #' and a Wald caveat near `nu = 0`, a beta-binomial `sigma` at the binomial
-#' limit, a direct-SD `sd(group)` formula at the log-SD clamp, more
-#' `|quantile residual| > 3` than a correct model would give (these last three
-#' rows appear only when they fire, as notes),
+#' limit and a direct-SD `sd(group)` formula at the log-SD clamp (these last
+#' two rows appear only when they fire, as notes),
 #' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
@@ -287,12 +286,17 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' Gamma scale predictor that drives some observations to the lower
 #' `log(sigma)` clamp (see [drm_control()]) while others keep an ordinary
 #' scale (fitted `sigma` spanning more than four orders of magnitude), in a
-#' model without [meta_V()]. The scale then shrinks to zero at observations
-#' the location predictor fits exactly, so the likelihood
-#' has no finite maximum and the estimates depend on the clamp band and on the
-#' units of the response. A meta-analysis whose heterogeneity `sigma` reaches
-#' zero is not affected, because the known sampling variance keeps its
-#' likelihood bounded.
+#' model without [meta_V()], where the observation with the smallest fitted
+#' scale is fitted exactly (standardized residual below 1e-3). The scale then
+#' shrinks to zero at a point the location predictor passes through, so the
+#' likelihood has no finite maximum and the estimates depend on the clamp band
+#' and on the units of the response. A well-posed fit whose response merely
+#' sits on a small numeric scale is not flagged (its smallest-scale residual is
+#' an ordinary draw); `check_drm()` notes the clamp contact instead. A
+#' meta-analysis whose heterogeneity `sigma` reaches zero is not affected,
+#' because the known sampling variance keeps its likelihood bounded. The
+#' verdict is stored on the fit, so it is reported even with
+#' `drm_control(keep_tmb_object = FALSE)`.
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future options.
@@ -377,31 +381,20 @@ drm_inference_degenerate <- function(object) {
   !all(is.finite(standard_errors))
 }
 
-# A continuous-family scale that ran to the lower log(sigma) clamp without a
-# known sampling variance means the likelihood has no finite maximum (#1469);
-# see drm_lower_clamp_unbounded(). The report is evaluated at the stored
-# pre-sdreport optimum so the check does not mutate the fit.
+# A continuous-family scale predictor that drives an exactly fitted
+# observation to the lower log(sigma) clamp means the likelihood has no finite
+# maximum (#1469); see drm_scale_clamp_unbounded_verdict(). The verdict is
+# stored on the fit at fit time so it survives `keep_tmb_object = FALSE`;
+# objects created before it existed are recomputed when the TMB object is
+# available.
 drm_scale_clamp_unbounded <- function(object) {
-  spec <- object$model
-  if (
-    !isTRUE(spec$model_type %in% drm_unbounded_scale_families()) ||
-      isTRUE(spec$has_known_v) ||
-      is.null(object$obj) ||
-      is.null(object$tmb_state$last.par.best)
-  ) {
-    return(FALSE)
+  if (!is.null(object$scale_clamp_unbounded)) {
+    return(isTRUE(object$scale_clamp_unbounded))
   }
-  report <- tryCatch(
-    object$obj$report(object$tmb_state$last.par.best),
-    error = function(e) NULL
-  )
-  if (is.null(report)) {
-    return(FALSE)
-  }
-  drm_lower_clamp_unbounded(
-    drm_logsigma_clamp_active(report, spec$tmb_data),
-    spec
-  )
+  isTRUE(tryCatch(
+    drm_scale_clamp_unbounded_verdict(object),
+    error = function(e) FALSE
+  ))
 }
 
 drm_standard_errors_pathological <- function(object) {
@@ -490,7 +483,6 @@ check_drm.drmTMB <- function(
     check_skew_normal_nu_wald(object),
     check_beta_binomial_sigma_boundary(object),
     check_direct_sd_clamp_active(object),
-    check_residual_outliers(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
     check_gaussian_aggregation(object),
@@ -843,11 +835,13 @@ check_logsigma_clamp_active <- function(object) {
   }
   # Both clamp arms are reported (Dinnage audit C1). The upper arm keeps
   # warning strength: a scale running to +Inf is artificial convergence. The
-  # lower arm is a note: sigma -> 0 is a legitimate result when the residual
-  # scale is genuinely zero (for example a meta-analysis at tau = 0), but the
-  # same arm also fires when the response sits on a very small numeric scale
-  # and the scale coefficients are badly wrong, so it must not be silent.
-  if (drm_lower_clamp_unbounded(info, spec)) {
+  # lower arm is a warning only in the unbounded-likelihood case of #1469 (see
+  # drm_scale_clamp_unbounded()); otherwise it is a note: sigma -> 0 is a
+  # legitimate result when the residual scale is genuinely zero (for example a
+  # meta-analysis at tau = 0), but the same arm also fires when the response
+  # sits on a very small numeric scale and the scale coefficients are badly
+  # wrong, so it must not be silent.
+  if (identical(info$arm, "lower") && drm_scale_clamp_unbounded(object)) {
     return(check_row(
       "logsigma_clamp_active",
       "warning",
@@ -855,10 +849,10 @@ check_logsigma_clamp_active <- function(object) {
       sprintf(
         paste(
           "The fitted log(sigma) reached %.2f, below the clamp band lower bound %g,",
-          "while other observations keep an ordinary scale (fitted sigma spans more",
-          "than four orders of magnitude). Without a known sampling variance, a scale",
-          "shrinking to zero at some observations means the likelihood has no finite",
-          "maximum: the estimates",
+          "at an observation the location predictor fits exactly, while other",
+          "observations keep an ordinary scale (fitted sigma spans more than four",
+          "orders of magnitude). Without a known sampling variance, the likelihood",
+          "then has no finite maximum: the estimates",
           "depend on the clamp band and on the units of the response, so",
           "convergence_status() is \"degenerate\". Simplify the scale formula or",
           "collect more observations per scale parameter."
@@ -2264,54 +2258,6 @@ check_direct_sd_clamp_active <- function(object) {
       "affected SDs and their standard errors reflect the band, and profile",
       "intervals for them return conf.status = \"clamp_limited\". Simplify the",
       "sd(group) formula or add replication within groups."
-    )
-  )
-}
-
-# Under a correct model, randomized quantile residuals are standard normal, so
-# P(|r| > 3) = 0.0027. The row fires when the count of |r| > 3 exceeds the
-# 0.999 quantile of Binomial(n, 0.0027) (and at least two such rows), i.e. more
-# outliers than a correctly specified model would plausibly give. A fixed seed
-# makes the discrete-family randomization reproducible; the global RNG state
-# is restored by drm_dunn_smyth_u().
-check_residual_outliers <- function(object) {
-  r <- tryCatch(
-    suppressWarnings(drm_quantile_residuals(object, seed = 20261011L)),
-    error = function(e) NULL
-  )
-  r <- as.numeric(r)
-  # An infinite residual (an observation the fitted distribution puts beyond
-  # double precision) is an outlier, not missing.
-  r <- r[!is.na(r)]
-  n <- length(r)
-  if (n < 10L) {
-    return(NULL)
-  }
-  p_tail <- 2 * stats::pnorm(-3)
-  n_out <- sum(abs(r) > 3)
-  limit <- stats::qbinom(0.999, n, p_tail)
-  if (n_out < 2L || n_out <= limit) {
-    return(NULL)
-  }
-  check_row(
-    "residual_outliers",
-    "note",
-    paste0(
-      "n_abs_gt_3=",
-      n_out,
-      "/",
-      n,
-      "; expected=",
-      format_check_number(n * p_tail),
-      "; limit_p999=",
-      limit
-    ),
-    paste(
-      "More randomized quantile residuals exceed 3 in absolute value than a",
-      "correctly specified model would plausibly give (0.27% expected).",
-      "Inspect residuals(fit, type = \"quantile\"), consider a heavier-tailed",
-      "family such as student(), or model the scale with predictors before",
-      "trusting tail-sensitive summaries."
     )
   )
 }
