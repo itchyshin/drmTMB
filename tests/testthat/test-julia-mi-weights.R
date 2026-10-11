@@ -73,3 +73,43 @@ test_that("Julia mi() unit weights are not refused by the classed mi() gate", {
     class = "drmTMB_julia_mi_weights_unsupported"
   )
 })
+
+test_that("joint prepare classes weights before the family check", {
+  dat <- data.frame(
+    y = c(0.20, 0.35, 0.50, 0.62, 0.74, 0.85),
+    x = c(0.18, NA_real_, 0.42, 0.55, 0.67, 0.80),
+    z = c(-1.0, -0.6, -0.2, 0.2, 0.6, 1.0)
+  )
+  expect_error(
+    drmTMB:::drm_julia_joint_prepare(
+      bf(y ~ z + mi(x), sigma ~ 1),
+      family = beta_family(),
+      data = dat,
+      env = environment(),
+      weights_missing = FALSE,
+      control = drm_control(),
+      impute = list(x = impute_model(x ~ z, family = beta_family())),
+      missing = miss_control(predictor = "model")
+    ),
+    class = "drmTMB_julia_mi_weights_unsupported"
+  )
+})
+
+test_that("engine='julia' Beta mi() plus weights = 2 is still a classed refusal", {
+  dat <- data.frame(
+    y = c(0.20, 0.35, 0.50, 0.62, 0.74, 0.85),
+    x = c(0.18, NA_real_, 0.42, 0.55, 0.67, 0.80),
+    z = c(-1.0, -0.6, -0.2, 0.2, 0.6, 1.0)
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ z + mi(x), sigma ~ 1),
+      data = dat,
+      impute = list(x = impute_model(x ~ z, family = beta_family())),
+      missing = miss_control(predictor = "model"),
+      engine = "julia",
+      weights = 2
+    ),
+    class = "drmTMB_julia_mi_weights_unsupported"
+  )
+})
