@@ -256,7 +256,8 @@ constant q=4 phylogenetic location-scale covariance block. The coordinate-based
 q=2 `mu1`/`mu2` spatial covariance, and the constant q=4 location-scale block
 when matching labelled spatial terms appear in all four endpoints. The q1
 spatial `sigma` one-slope route also has point-fit/extractor evidence, but its
-intervals remain unsuitable for reporting. Mesh/SPDE spatial fields, spatial direct-SD
+intervals remain unsuitable for reporting. Mesh/SPDE spatial fields beyond the
+fixed-kappa Gaussian `mu` intercept with `sigma ~ 1`, spatial direct-SD
 models, multiple or labelled spatial slopes, slope correlations,
 non-Gaussian spatial effects outside the exact ordinary Poisson/NB2 q1 spatial
 `mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t
