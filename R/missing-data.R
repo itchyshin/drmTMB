@@ -30,7 +30,10 @@
 #'   response missing is omitted. `"include"` keeps rows with supported missing
 #'   responses and masks their response likelihood contribution.
 #' @param predictor Predictor missingness policy. `"fail"` errors on missing
-#'   predictors. `"model"` enables the current `mi()` predictor-model routes when
+#'   predictors when you pass `missing =` with `predictor = "fail"` or with no
+#'   arguments (`miss_control()`), whether written in the call or stored in an
+#'   object. Leaving `missing` out of the [drmTMB()] call, or setting only
+#'   `response`, keeps complete-case row dropping. `"model"` enables the current `mi()` predictor-model routes when
 #'   paired with a matching `impute` formula or [impute_model()] in [drmTMB()].
 #' @param engine Missing-data engine. Only `"laplace"` is implemented in this
 #'   slice.
@@ -47,6 +50,9 @@ miss_control <- function(
   predictor = c("fail", "model"),
   engine = "laplace"
 ) {
+  omitted_response <- missing(response)
+  omitted_predictor <- missing(predictor)
+  omitted_engine <- missing(engine)
   response <- match.arg(response)
   predictor <- match.arg(predictor)
 
@@ -72,33 +78,42 @@ miss_control <- function(
       predictor = predictor,
       engine = engine
     ),
+    # Which arguments the caller supplied; drmTMB() reads this so a stored
+    # control behaves like the literal call that created it (#1484).
+    explicit = c(
+      response = !omitted_response,
+      predictor = !omitted_predictor,
+      engine = !omitted_engine
+    ),
     class = "drm_missing_control"
   )
 }
 
-#' Whether `missing =` explicitly requested predictor fail (A-2)
+#' Whether `missing =` explicitly requested predictor fail (A-2, #1484)
 #'
-#' The formal default `missing = miss_control()` makes `base::missing(missing)`
-#' unusable, so A-2 enforcement keys off the **call**, not the parsed control
-#' alone. Only `miss_control()` with no arguments or an explicit
-#' `predictor = "fail"` triggers early validation; `miss_control(response =
-#' "include")` keeps the existing complete-case row drop for predictors.
+#' The formal default `missing = miss_control()` makes the parsed control alone
+#' ambiguous: `miss_control(response = "include")` also carries the default
+#' `predictor = "fail"` but keeps the complete-case row drop for predictors.
+#' [miss_control()] therefore records which arguments were supplied, and the
+#' check reads that record from the evaluated object. Early validation runs
+#' when `predictor = "fail"` was supplied explicitly, or when no argument was
+#' supplied at all (`miss_control()`). A stored control (`missing = ctl`) or a
+#' value held in a variable (`predictor = pf`) behaves exactly like the literal
+#' call that created it. Anything that is not a `drm_missing_control` object,
+#' such as a plain list, never triggers the early check.
 #'
-#' @param missing_call The unevaluated `missing =` argument as a call object.
+#' @param missing The evaluated `missing =` argument.
 #' @noRd
-drm_missing_explicit_predictor_fail <- function(missing_call) {
-  if (!is.call(missing_call) || !identical(missing_call[[1L]], quote(miss_control))) {
+drm_missing_explicit_predictor_fail <- function(missing) {
+  if (!inherits(missing, "drm_missing_control") ||
+    !identical(missing$predictor, "fail")) {
     return(FALSE)
   }
-  if (length(missing_call) == 1L) {
+  explicit <- attr(missing, "explicit", exact = TRUE)
+  if (is.null(explicit)) {
     return(TRUE)
   }
-  arg_names <- names(missing_call)[-1L]
-  if (is.null(arg_names)) {
-    return(length(missing_call) >= 3L)
-  }
-  "predictor" %in% arg_names &&
-    identical(as.character(missing_call[["predictor"]]), "fail")
+  isTRUE(explicit[["predictor"]]) || !any(explicit)
 }
 
 #' Fail early when predictor missingness is disallowed

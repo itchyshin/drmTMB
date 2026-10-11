@@ -348,12 +348,14 @@ drmTMB <- function(
   }
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
-  # A-2 (#1332): fail on NA predictors only when the caller explicitly passes
-  # `miss_control()` or `miss_control(predictor = "fail")`, not when they only
-  # set `response = "include"` (row drop for incomplete predictors stays).
+  # A-2 (#1332, #1484): fail on NA predictors only when the caller supplies
+  # `missing =` with a control built as `miss_control()` or
+  # `miss_control(predictor = "fail")`, not when they only set
+  # `response = "include"` (row drop for incomplete predictors stays). The
+  # evaluated control decides, so `missing = ctl` behaves like its literal call.
   if (
     "missing" %in% names(as.list(fit_call))[-1L] &&
-      drm_missing_explicit_predictor_fail(fit_call$missing)
+      drm_missing_explicit_predictor_fail(missing)
   ) {
     drm_validate_complete_predictors(formula, data)
   }
