@@ -305,7 +305,7 @@ test_that("aicc() reaches an engine = 'julia' fit and matches tmb and DRM.jl", {
   ft_full <- drm_mc_fit(full, dat, engine = "tmb")
   ft_red <- drm_mc_fit(red, dat, engine = "tmb")
 
-  # aicc() has no drmTMB_julia method: it reaches the bridge object through
+  # aicc.drmTMB_julia() runs the REML/MAP guard (#1498) and then defers to
   # aicc.default(), which needs logLik() to report df and nobs. It does.
   ll <- stats::logLik(fj_full)
   expect_false(is.null(attr(ll, "df")))
