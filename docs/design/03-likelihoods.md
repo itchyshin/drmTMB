@@ -7,7 +7,10 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
 - Positive parameters use log links.
 - Unit-interval parameters use logit links.
 - Residual correlations use a Fisher-z-like linear predictor and a guarded
-  `0.999999 * tanh()` response transform.
+  `0.999999 * tanh()` response transform. Random-effect correlations
+  (`rho_mu_re`, `rho_sigma_re`, `rho_mu_sigma_re`, `rho_mu_group`) use the
+  tighter guard `0.99999999 * tanh()`; phylogenetic and pair-association
+  correlations keep `0.999999 * tanh()`.
 - Shape parameters use family-specific stable links.
 
 ## Variability Orientation
@@ -51,6 +54,17 @@ describe the model as the standard transform `rho = tanh(eta)`, then note that
 the implementation multiplies by `0.999999` so covariance matrices stay
 strictly positive definite in floating-point arithmetic near `rho = -1` or
 `rho = 1`.
+
+**Random-effect correlation guard (#1190).** Random-effect correlations were
+bounded at `0.999999`. When the maximum-likelihood estimate sits on the
+boundary (`corr = +1`, which `lme4` reports as a singular fit), that cap held
+the reported log-likelihood below the exact marginal ML by an amount
+proportional to `1 - guard`: `6.75e-5` on `nlme::Soybean` and `2.3e-6` on
+`nlme::Loblolly`. The guard is now `0.99999999` (`DRM_RE_CORR_GUARD` in R,
+`Type(0.99999999)` in `src/drmTMB.cpp`), which leaves `6.8e-7` and `2.6e-8`
+against the exact values `-949.534104140` and `-207.487513730`. The residual
+`rho12` guard stays `0.999999` by owner decision; the Julia bridge back-transform
+now uses that same guard.
 
 ## Notation
 
@@ -1224,7 +1238,7 @@ Sigma_g =
 u_g ~ Normal([0, 0]', I)
 b_0,g = sd0 * u_0,g
 b_1,g = sd1 * (rho_re * u_0,g + sqrt(1 - rho_re^2) * u_1,g)
-rho_re = 0.999999 * tanh(eta_cor)
+rho_re = 0.99999999 * tanh(eta_cor)
 ```
 
 Matching R syntax:
@@ -2867,7 +2881,7 @@ group-level covariance block:
 L_group =
   [1,          0;
    rho_group, sqrt(1 - rho_group^2)]
-rho_group = 0.999999 * tanh(eta_cor_mu)
+rho_group = 0.99999999 * tanh(eta_cor_mu)
 ```
 
 With matching `phylo(1 | species, tree = tree)` terms in `mu1` and `mu2`,

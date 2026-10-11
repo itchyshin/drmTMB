@@ -47,7 +47,9 @@
 #' @details
 #' On a REML fit the same caveat as [AIC()] applies and the same warning is
 #' emitted: the restricted likelihood is comparable only across models with
-#' identical fixed effects. Experimental MSPL fits do not expose a likelihood
+#' identical fixed effects. This holds for both engines: `engine = "julia"`
+#' fits have their own `aicc()`, [AIC()] and [BIC()] methods that run the same
+#' REML guard before computing the value. Experimental MSPL fits do not expose a likelihood
 #' and error, as they do for [AIC()].
 #'
 #' @seealso [AIC()], [BIC()], [logLik()]
@@ -85,6 +87,13 @@ aicc.drmTMB <- function(object, ...) {
   drm_abort_mspl_inference(object, "aicc")
   drm_warn_information_criterion(list(object), "AICc")
   drm_aicc_from_loglik(object$logLik, object$df, object$nobs, what = "drmTMB")
+}
+
+#' @rdname model-comparison
+#' @export
+aicc.drmTMB_julia <- function(object, ...) {
+  drm_warn_information_criterion(list(object), "AICc")
+  NextMethod()
 }
 
 # AICc from its three ingredients. DRM.jl comparison.jl:209-215:
@@ -238,7 +247,8 @@ drm_lrtest_boundary_warn <- function(reduced, full, df) {
 #                because `logLik.drmTMB_julia()` reports both `df` and `nobs`.
 #                It equals DRM.jl's own `aicc(fit)` on the same payload to
 #                0.000e+00 (856.6308350330), and `aicc(tmb_fit)` to 1.9e-11.
-#                No method is needed here; the default is correct.
+#                The value is the default's; `aicc.drmTMB_julia()` (above)
+#                only adds the REML/MAP guard first (#1498).
 #   * `lrtest`   `drm_lrtest()` likewise runs on two `drmTMB_julia` fits and
 #                reproduces DRM.jl's `lrtest(reduced, full)` exactly
 #                (statistic 277.6900074326, df 1, p 2.393265e-62). It stays
@@ -260,6 +270,29 @@ anova.drmTMB_julia <- function(object, ..., test = NULL) {
   cli::cli_abort(
     "{.fn anova} likelihood-ratio comparisons are not implemented for {.cls drmTMB_julia} fits."
   )
+}
+
+# AIC()/BIC() for engine = "julia" fits (#1498). A bridge fit does not inherit
+# "drmTMB", so without these methods AIC()/BIC() fell through to
+# stats::AIC.default()/BIC.default() and skipped the REML/MAP guard that
+# AIC.drmTMB()/BIC.drmTMB() run, although the julia route fits REML and records
+# `estimator = "REML"`. The guard runs first; NextMethod() then computes the
+# values with the stats defaults, which keep the caller's object names as row
+# names. Native fits mixed into `...` are read through their logLik() method.
+
+#' @rdname model-comparison
+#' @param k Penalty per parameter, as in [stats::AIC()].
+#' @export
+AIC.drmTMB_julia <- function(object, ..., k = 2) {
+  drm_warn_information_criterion(c(list(object), list(...)), "AIC")
+  NextMethod()
+}
+
+#' @rdname model-comparison
+#' @export
+BIC.drmTMB_julia <- function(object, ...) {
+  drm_warn_information_criterion(c(list(object), list(...)), "BIC")
+  NextMethod()
 }
 
 #' Prior weights of an `engine = "julia"` fit

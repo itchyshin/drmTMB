@@ -927,7 +927,7 @@ Type objective_function<Type>::operator()()
         }
         vector<Type> rho_mu_re(n_mu_re_cors);
         for (int j = 0; j < n_mu_re_cors; ++j) {
-          rho_mu_re(j) = Type(0.999999) * tanh(eta_cor_mu(j));
+          rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
         }
         for (int i = 0; i < y.size(); ++i) {
           for (int j = 0; j < n_mu_re_terms; ++j) {
@@ -958,11 +958,11 @@ Type objective_function<Type>::operator()()
       // such as `sigma ~ x + (1 + x | id)`. Mirrors the bivariate loop's ordering.
       vector<Type> rho_sigma_re(n_sigma_re_cors);
       for (int j = 0; j < n_sigma_re_cors; ++j) {
-        rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+        rho_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_sigma(j));
       }
       vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
       for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
-        rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
+        rho_mu_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_mu_sigma(j));
       }
       for (int i = 0; i < y.size(); ++i) {
         for (int j = 0; j < n_sigma_re_terms; ++j) {
@@ -2466,7 +2466,7 @@ Type objective_function<Type>::operator()()
       }
       vector<Type> rho_mu_re(n_mu_re_cors);
       for (int j = 0; j < n_mu_re_cors; ++j) {
-        rho_mu_re(j) = Type(0.999999) * tanh(eta_cor_mu(j));
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
       }
       REPORT(u_mu);
       REPORT(log_sd_mu);
@@ -2498,7 +2498,7 @@ Type objective_function<Type>::operator()()
       if (n_sigma_re_cors > 0) {
         vector<Type> rho_sigma_re(n_sigma_re_cors);
         for (int j = 0; j < n_sigma_re_cors; ++j) {
-          rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+          rho_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_sigma(j));
         }
         REPORT(eta_cor_sigma);
         REPORT(rho_sigma_re);
@@ -2508,7 +2508,7 @@ Type objective_function<Type>::operator()()
       if (n_mu_sigma_re_cors > 0) {
         vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
         for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
-          rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
+          rho_mu_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_mu_sigma(j));
         }
         REPORT(eta_cor_mu_sigma);
         REPORT(rho_mu_sigma_re);
@@ -2724,7 +2724,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_nu);
   } else if (model_type == 4) {
     // Lognormal log-location. Ordinary correlated (1 + x | g) reuses the
-    // design-17 map already used by Poisson/NB2 (rho = 0.999999 tanh(eta);
+    // design-17 map already used by Poisson/NB2 (rho = 0.99999999 tanh(eta);
     // u_cond,slope = rho u_int + sqrt(1-rho^2) u_slope). Report symbols are
     // eta_cor_mu / rho_mu_re; do not inherit the binomial log-sech factorisation.
     vector<Type> mu = offset_mu + X_mu * beta_mu;
@@ -2746,7 +2746,7 @@ Type objective_function<Type>::operator()()
       }
       vector<Type> rho_mu_re(n_mu_re_cors);
       for (int j = 0; j < n_mu_re_cors; ++j) {
-        rho_mu_re(j) = Type(0.999999) * tanh(eta_cor_mu(j));
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
       }
       for (int i = 0; i < y.size(); ++i) {
         for (int j = 0; j < n_mu_re_terms; ++j) {
@@ -3928,7 +3928,7 @@ Type objective_function<Type>::operator()()
       }
       vector<Type> rho_mu_re(n_mu_re_cors);
       for (int j = 0; j < n_mu_re_cors; ++j) {
-        rho_mu_re(j) = Type(0.999999) * tanh(eta_cor_mu(j));
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
       }
       for (int i = 0; i < y.size(); ++i) {
         for (int j = 0; j < n_mu_re_terms; ++j) {
@@ -4248,7 +4248,7 @@ Type objective_function<Type>::operator()()
       }
       vector<Type> rho_mu_re(n_mu_re_cors);
       for (int j = 0; j < n_mu_re_cors; ++j) {
-        rho_mu_re(j) = Type(0.999999) * tanh(eta_cor_mu(j));
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
       }
       for (int i = 0; i < y.size(); ++i) {
         for (int j = 0; j < n_mu_re_terms; ++j) {
@@ -4976,7 +4976,7 @@ Type objective_function<Type>::operator()()
       }
       vector<Type> rho_mu_re(n_mu_re_cors);
       for (int j = 0; j < n_mu_re_cors; ++j) {
-        rho_mu_re(j) = Type(0.999999) * tanh(eta_cor_mu(j));
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
       }
       vector<Type> rho_mu_group(X_cor_mu.rows());
       if (has_cor_mu_model == 1) {
@@ -4985,7 +4985,7 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_cor_mu.cols(); ++k) {
             eta_cor += X_cor_mu(g, k) * beta_cor_mu(k);
           }
-          rho_mu_group(g) = Type(0.999999) * tanh(eta_cor);
+          rho_mu_group(g) = Type(0.99999999) * tanh(eta_cor);
         }
       }
       for (int i = 0; i < y1.size(); ++i) {
@@ -5023,11 +5023,11 @@ Type objective_function<Type>::operator()()
       vector<Type> sd_sigma_re = exp(log_sd_sigma);
       vector<Type> rho_sigma_re(n_sigma_re_cors);
       for (int j = 0; j < n_sigma_re_cors; ++j) {
-        rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+        rho_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_sigma(j));
       }
       vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
       for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
-        rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
+        rho_mu_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_mu_sigma(j));
       }
       for (int i = 0; i < y1.size(); ++i) {
         for (int j = 0; j < n_sigma_re_terms; ++j) {
@@ -5479,7 +5479,7 @@ Type objective_function<Type>::operator()()
       }
       vector<Type> rho_mu_re(n_mu_re_cors);
       for (int j = 0; j < n_mu_re_cors; ++j) {
-        rho_mu_re(j) = Type(0.999999) * tanh(eta_cor_mu(j));
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
       }
       vector<Type> rho_mu_group(X_cor_mu.rows());
       if (has_cor_mu_model == 1) {
@@ -5488,7 +5488,7 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_cor_mu.cols(); ++k) {
             eta_cor += X_cor_mu(g, k) * beta_cor_mu(k);
           }
-          rho_mu_group(g) = Type(0.999999) * tanh(eta_cor);
+          rho_mu_group(g) = Type(0.99999999) * tanh(eta_cor);
         }
       }
       REPORT(u_mu);
@@ -5527,7 +5527,7 @@ Type objective_function<Type>::operator()()
       if (n_sigma_re_cors > 0) {
         vector<Type> rho_sigma_re(n_sigma_re_cors);
         for (int j = 0; j < n_sigma_re_cors; ++j) {
-          rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+          rho_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_sigma(j));
         }
         REPORT(eta_cor_sigma);
         REPORT(rho_sigma_re);
@@ -5537,7 +5537,7 @@ Type objective_function<Type>::operator()()
       if (n_mu_sigma_re_cors > 0) {
         vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
         for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
-          rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
+          rho_mu_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_mu_sigma(j));
         }
         REPORT(eta_cor_mu_sigma);
         REPORT(rho_mu_sigma_re);

@@ -1948,7 +1948,7 @@ drm_resolve_public_start_target <- function(spec, parsed, value, label) {
     }
     if (q <= 2L) {
       # Exactly one pair, a single scalar `eta_cor_phylo` on the SAME bounded
-      # tanh scale as the ordinary `cor:` family (0.999999 * tanh(eta); see
+      # tanh scale as the ordinary `cor:` family (now 0.99999999 * tanh(eta), #1190; see
       # `split_tmb_corpars()`).
       drm_check_phylo_cor_start_value(value, label, "a q = 2 phylogenetic block")
       return(list(
@@ -22568,7 +22568,7 @@ split_tmb_corpars <- function(par, spec) {
       rho_mu <- if (identical(spec$model_type, "binomial")) {
         tanh(eta_mu)
       } else {
-        0.999999 * tanh(eta_mu)
+        DRM_RE_CORR_GUARD * tanh(eta_mu)
       }
       names(rho_mu) <- spec$random$mu$cor_labels
     }
@@ -22580,13 +22580,13 @@ split_tmb_corpars <- function(par, spec) {
     re_mu_sigma <- empty_mu_sigma_random_covariance(spec$random$sigma$n_re)
   }
   if (re_mu_sigma$n_cors > 0L) {
-    rho_mu_sigma <- 0.999999 *
+    rho_mu_sigma <- DRM_RE_CORR_GUARD *
       tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
     names(rho_mu_sigma) <- re_mu_sigma$cor_labels
     out$mu_sigma <- rho_mu_sigma
   }
   if (spec$random$sigma$n_cors > 0L) {
-    rho_sigma <- 0.999999 *
+    rho_sigma <- DRM_RE_CORR_GUARD *
       tanh(unname(par$eta_cor_sigma[seq_len(spec$random$sigma$n_cors)]))
     names(rho_sigma) <- spec$random$sigma$cor_labels
     out$sigma <- rho_sigma
@@ -22662,7 +22662,10 @@ modelled_corpair_values <- function(par, spec) {
     return(numeric())
   }
   eta <- as.vector(model$X %*% unname(par$beta_cor_mu[seq_len(ncol(model$X))]))
-  0.999999 * tanh(eta)
+  # Group correlations use rho_mu_group (random-effect guard); the modelled
+  # phylogenetic correlation keeps rho_node's 0.999999 (#1190).
+  guard <- if (corpair_model_is_phylogenetic(model)) 0.999999 else DRM_RE_CORR_GUARD
+  guard * tanh(eta)
 }
 
 # Per-level labels for a modelled group mu correlation. Each fitted correlation
@@ -23068,7 +23071,7 @@ transform_mu_random_effects <- function(
   sd_by_index <- mu_sd_by_random_effect(par, re_mu, sd_mu, tmb_data)
   rho <- if (re_mu$n_cors > 0L) {
     eta <- unname(par$eta_cor_mu[seq_len(re_mu$n_cors)])
-    if (isTRUE(binomial_q2)) tanh(eta) else 0.999999 * tanh(eta)
+    if (isTRUE(binomial_q2)) tanh(eta) else DRM_RE_CORR_GUARD * tanh(eta)
   } else {
     numeric()
   }
@@ -23234,7 +23237,7 @@ transform_sigma_random_effects <- function(
 ) {
   sd_by_term <- exp(unname(par$log_sd_sigma[seq_len(re_sigma$n_terms)]))
   rho_mu_sigma <- if (re_mu_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
   } else {
     numeric()
   }
@@ -23263,12 +23266,12 @@ transform_biv_sigma_random_effects <- function(
 ) {
   sd_by_term <- exp(unname(par$log_sd_sigma[seq_len(re_sigma$n_terms)]))
   rho_sigma <- if (re_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_sigma[seq_len(re_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_sigma[seq_len(re_sigma$n_cors)]))
   } else {
     numeric()
   }
   rho_mu_sigma <- if (re_mu_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
   } else {
     numeric()
   }

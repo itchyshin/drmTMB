@@ -196,9 +196,11 @@ returns the prior per-observation weights, not Akaike model weights -- DRM.jl's
 rather than an R-side gap.
 
 BRIDGE AXIS for this suite (leaf `uncited-accessors`, 2026-09-05), measured
-against DRM.jl `aee371cc9`. `aicc()` reaches an `engine = "julia"` fit even
-though it has no `drmTMB_julia` method: it dispatches through `aicc.default()`,
-which works because `logLik.drmTMB_julia()` reports both `df` and `nobs`. On
+against DRM.jl `aee371cc9`. `aicc()` reaches an `engine = "julia"` fit: its
+value comes from `aicc.default()`, which works because `logLik.drmTMB_julia()`
+reports both `df` and `nobs`. Since #1498, `aicc()`, `AIC()` and `BIC()` have
+`drmTMB_julia` methods that first run the same REML/MAP information-criterion
+warning the native engine runs, then defer to those defaults. On
 the Gaussian random-intercept fixture it equals DRM.jl's own `aicc(fit)` to
 `0.000e+00` and `aicc(tmb_fit)` to `1.899e-11`. `drm_lrtest()` likewise runs on
 two bridge fits and reproduces DRM.jl's `lrtest` exactly. Two bridge-side

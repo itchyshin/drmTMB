@@ -2649,9 +2649,14 @@ logLik.drmTMB <- function(object, ...) {
 # and ignore the estimator, so the guard lives in the drmTMB methods below.
 drm_ic_fixed_effect_signature <- function(object) {
   blocks <- coef(object)
+  # Sort the block names: native fits list dpar blocks in model order (mu1, mu2,
+  # sigma1, sigma2, rho12) while engine = "julia" fits come out of split() in
+  # alphabetical order, so list order alone made identical bivariate fixed
+  # effects look different across engines.
+  block_names <- sort(names(blocks), method = "radix")
   paste(
     vapply(
-      names(blocks),
+      block_names,
       function(nm) {
         paste0(nm, ":", paste(names(blocks[[nm]]), collapse = ","))
       },
@@ -2661,8 +2666,16 @@ drm_ic_fixed_effect_signature <- function(object) {
   )
 }
 
+# Fits whose estimator the information-criterion guard can read: native fits
+# and `engine = "julia"` bridge fits (#1498), which record `estimator` and
+# `REML` the same way but do not inherit "drmTMB".
+drm_ic_guarded_fit <- function(o) {
+  inherits(o, c("drmTMB", "drmTMB_julia"))
+}
+
 drm_warn_information_criterion <- function(fits, what) {
-  drm_fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
+  fits <- fits[vapply(fits, drm_ic_guarded_fit, logical(1L))]
+  drm_fits <- fits
   estimators <- vapply(
     fits,
     function(o) if (is.null(o$estimator)) "ML" else o$estimator,
@@ -2719,10 +2732,7 @@ drm_information_criterion <- function(fits, penalty, what) {
   if (length(mspl)) {
     drm_abort_mspl_inference(fits[[mspl[[1L]]]], what)
   }
-  drm_warn_information_criterion(
-    fits[vapply(fits, inherits, logical(1L), what = "drmTMB")],
-    what
-  )
+  drm_warn_information_criterion(fits, what)
   computed <- lapply(fits, function(o) {
     ll_df <- drm_ic_loglik_df(o)
     list(value = -2 * ll_df$value + penalty(o) * ll_df$df, df = ll_df$df)
@@ -5315,7 +5325,7 @@ summary_parameter_delta_derivative <- function(target) {
     linear_predictor = 1,
     exp = exp(eta),
     plogis = stats::plogis(eta) * stats::plogis(-eta),
-    tanh = 0.999999 * (1 - tanh(eta)^2),
+    tanh = profile_correlation_guard(target$tmb_parameter) * (1 - tanh(eta)^2),
     rho12_tanh = 0.999999 * (1 - tanh(eta)^2),
     NA_real_
   )
@@ -6452,7 +6462,8 @@ drm_inverse_link <- function(object, dpar, eta) {
     logm2 = 2 + exp(eta),
     logit12 = 1 + stats::plogis(eta),
     atanh_guarded = rho_response(eta),
-    atanh_re_guarded = rho_response(eta, guard = 0.999999),
+    atanh_re_guarded = rho_response(eta, guard = DRM_RE_CORR_GUARD),
+    atanh_phylo_guarded = rho_response(eta, guard = 0.999999),
     cli::cli_abort("Internal error: unknown inverse link {.val {link}}.")
   )
 }
@@ -6471,6 +6482,11 @@ drm_dpar_link <- function(object, dpar) {
   # refactored: unifying the two would require every model_type to carry a
   # drm_family object and is deferred to avoid destabilizing link resolution.
   if (startsWith(dpar, "corpair(")) {
+    # A modelled phylogenetic correlation keeps TMB's 0.999999 guard (rho_node);
+    # a modelled group correlation uses the random-effect guard (#1190).
+    if (isTRUE(has_modelled_phylo_correlation(object$model))) {
+      return("atanh_phylo_guarded")
+    }
     return("atanh_re_guarded")
   }
   links <- switch(
@@ -6533,6 +6549,13 @@ drm_dpar_link <- function(object, dpar) {
   }
   unname(links[[dpar]])
 }
+
+# Guard for random-effect correlations, rho = DRM_RE_CORR_GUARD * tanh(eta).
+# Must equal the Type(0.99999999) at the rho_mu_re / rho_sigma_re /
+# rho_mu_sigma_re / rho_mu_group sites in src/drmTMB.cpp, so the R-side
+# response scale reproduces TMB's reported correlation (#1190). The residual
+# rho12 and phylogenetic correlations keep 0.999999.
+DRM_RE_CORR_GUARD <- 0.99999999
 
 rho_response <- function(eta, guard = 0.999999) {
   guard * tanh(eta)
