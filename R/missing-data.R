@@ -4029,6 +4029,14 @@ drm_tmb_missing_predictor_data <- function(spec) {
   } else {
     drm_empty_missing_predictor_model()
   }
+  if (isTRUE(model$enabled)) {
+    drm_warn_mi_prior_ignores_weights(spec$weights, TRUE)
+    drm_abort_mi_zero_weight_missing(
+      spec$weights,
+      model$observed,
+      model$variable
+    )
+  }
   dummy_sparse <- Matrix::sparseMatrix(
     i = integer(0),
     j = integer(0),

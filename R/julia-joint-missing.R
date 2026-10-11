@@ -214,7 +214,12 @@ drm_julia_joint_prepare <- function(
   }
   if (!isTRUE(weights_missing)) {
     cli::cli_abort(
-      "The Julia joint missing-predictor adapter does not support likelihood weights."
+      c(
+        "The Julia joint missing-predictor adapter does not support likelihood weights.",
+        x = "DRModels.jl ignores weights on the response term and on the imputation prior.",
+        i = "Use {.code engine = \"tmb\"} for a weighted {.fn mi} fit, or omit {.arg weights}."
+      ),
+      class = "drmTMB_julia_mi_weights_unsupported"
     )
   }
   if (!isFALSE(REML)) {

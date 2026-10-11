@@ -1,3 +1,11 @@
+# 2026-10-11: mi() weights gates (#1459) and Julia refusal
+
+R-only first slice on `cursor/triage-i-mi`. `engine = "julia"` plus `mi()` plus non-unit weights is a classed refusal (`drmTMB_julia_mi_weights_unsupported`) before any Julia process starts. Unit weights are treated as omitted. Native TMB emits a classed warning that the imputation prior ignores weights; the prior itself is unchanged. Weight 0 or NA on a missing `mi()` covariate is `drmTMB_mi_zero_weight_missing`. `predict()` / `simulate()` refuse an explicit `weights` argument on an `mi()` fit.
+
+`R/drmTMB.R` was not edited. `R/methods.R` gained the predict/simulate `weights=` refuse only. C17 is pending the next compile slice if the methods.R edit stays.
+
+Refs #1459, #1477, #1476.
+
 # 2026-10-09: character predictors use the full-frame reference level
 
 `model.frame()` leaves a character or logical predictor as character or logical. The reference-level guard only inspected factors, so `g = c("a", "a", "b", "b", "c", "c")` with the `"a"` rows dropped by the other response rebuilt treatment columns against baseline `b` and kept `gc`. `drm_julia_xfam_design_from_frame()` now calls `factor()` on those columns using the full frame, then applies the same reference check. The response column is left unchanged. `R/drmTMB.R` and `R/methods.R` were not edited, so C17 was not recertified.

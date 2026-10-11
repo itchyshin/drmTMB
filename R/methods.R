@@ -2903,6 +2903,7 @@ predict.drmTMB <- function(
   prob = c(0.025, 0.5, 0.975),
   ...
 ) {
+  drm_abort_mi_weights_predict(object, list(...))
   if (is.null(dpar)) {
     dpar <- object$model$dpars[[1L]]
   }
@@ -3063,6 +3064,7 @@ predict.drmTMB <- function(
 #' simulate(fit, nsim = 2, seed = 1)
 #' @export
 simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) {
+  drm_abort_mi_weights_predict(object, list(...))
   if (!is.null(re.form) && !identical(re.form, NA)) {
     cli::cli_abort(c(
       "{.arg re.form} must be {.code NULL} or {.code NA}.",
