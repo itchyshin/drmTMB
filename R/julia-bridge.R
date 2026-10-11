@@ -714,6 +714,7 @@ drmTMB_julia_bridge <- function(
   drm_julia_refuse_fe_only_random_effects(formula, family_type)
   drm_julia_refuse_biv_student_beyond_native(formula, family_type)
   drm_julia_refuse_unadmitted_predictor_dpars(formula, family_type)
+  drm_julia_refuse_cumulative_logit_disc(formula, family_type)
   # REML forwards to DRM.jl's `drm(...; method = :REML)` for univariate
   # Gaussian cells: the fixed-effect location-scale model, Gaussian
   # location-scale models with a phylo term on sigma (with or without a matching

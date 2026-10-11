@@ -384,7 +384,8 @@ drm_known_dpars <- function() {
     "zoi",
     "coi",
     "hu",
-    "rho12"
+    "rho12",
+    "disc"
   )
 }
 

@@ -173,11 +173,10 @@ test_that("disc ~ z methods use the discrimination in every probability", {
                tolerance = 1e-10)
 
   # The distributional-output closures read the same discrimination.
-  expect_equal(
-    predict(fit, type = "cdf", newdata = transform(newdata, score = 2L)),
-    cum_new[, 2L],
-    tolerance = 1e-10
-  )
+  fd <- fitted_distribution(fit, newdata = newdata)
+  expect_equal(fd$p(rep(2, 3)), cum_new[, 2L], tolerance = 1e-10)
+  expect_equal(fd$d(rep(1, 3)), cum_new[, 1L], tolerance = 1e-10)
+  expect_equal(fd$q(cum_new[, 2L] - 1e-8), rep(2L, 3))
 
   sims <- simulate(fit, nsim = 2, seed = 20261015)
   expect_true(is.ordered(sims$sim_1))
@@ -226,5 +225,14 @@ test_that("disc formulas are validated with an explicit identifiability contract
     drmTMB(bf(y ~ x, disc ~ z), family = gaussian(),
            data = transform(dat, y = x)),
     "disc"
+  )
+})
+
+test_that("engine = 'julia' refuses disc formulas before Julia starts", {
+  dat <- new_ordinal_disc_data(n = 60, seed = 20261018)$data
+  expect_error(
+    drmTMB(bf(score ~ x, disc ~ z), family = cumulative_logit(),
+           data = dat, engine = "julia"),
+    "does not yet fit"
   )
 })
