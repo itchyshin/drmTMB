@@ -3072,14 +3072,14 @@ predict.drmTMB <- function(
 #' chi-squared scale-mixture draw per response pair together with the fitted
 #' shared `nu`; independent marginal t draws would be a different model.
 #'
-#' By default (`re.form = NULL`), models with ordinary grouped random effects
-#' draw a **fresh** random-effect realization for every replicate, so
-#' replicate-to-replicate variability reflects both the between-group and the
-#' residual sources of variance (matching the lme4/glmmTMB `re.form`
-#' convention). Pass `re.form = NA` to simulate conditionally on the fitted
-#' random effects instead (holding every random effect fixed at its
-#' conditional-mode estimate, the behaviour this function had before
-#' `re.form` was added). Marginal simulation also redraws a single-endpoint
+#' `re.form` follows the `lme4::simulate.merMod()` convention. By default
+#' (`re.form = NA`, or equivalently `re.form = ~0`), models with ordinary
+#' grouped random effects draw a **fresh** random-effect realization for every
+#' replicate, so replicate-to-replicate variability reflects both the
+#' between-group and the residual sources of variance. Pass `re.form = NULL`
+#' to simulate conditionally on the fitted random effects instead (holding
+#' every random effect fixed at its conditional-mode estimate). Marginal
+#' simulation also redraws a single-endpoint
 #' (`q == 1`) phylogenetic, spatial, relatedness-matrix (`relmat`),
 #' animal-model, or `phylo_interaction` structured `mu` random effect from its
 #' fitted covariance `sd^2 * Q^-1`. It does not yet support a structured mu
@@ -3089,8 +3089,14 @@ predict.drmTMB <- function(
 #' random-effect correlation (`corpair`) regression, or a modelled
 #' (heteroscedastic) random-effect scale; `simulate()` throws an informative
 #' error naming the unsupported structure for those models and directs the
-#' user to `re.form = NA`. Models without random effects are unaffected by
+#' user to `re.form = NULL`. Models without random effects are unaffected by
 #' `re.form`.
+#'
+#' Earlier versions of drmTMB gave the explicit values the reverse meaning
+#' (`NULL` drew fresh random effects and `NA` held them fixed; #1487). The default output is
+#' unchanged, but code that passed `re.form` explicitly now runs the other
+#' simulation, so the first explicit `re.form` in a session prints a one-time
+#' message (class `drmTMB_re_form_semantics_message`).
 #'
 #' For a fit made with `missing = miss_control(response = "include")`,
 #' `simulate()` returns `NA` at masked rows for every family, matching
@@ -3101,9 +3107,11 @@ predict.drmTMB <- function(
 #' @param nsim Number of simulated data sets.
 #' @param seed Optional random-number seed. The previous `.Random.seed` state
 #'   is restored after simulation.
-#' @param re.form `NULL` (the default) draws fresh random effects for every
-#'   replicate (marginal simulation). `NA` holds every random effect fixed at
-#'   its fitted conditional-mode estimate (conditional simulation).
+#' @param re.form `NA` (the default) or `~0` draws fresh random effects for
+#'   every replicate (marginal simulation). `NULL` holds every random effect
+#'   fixed at its fitted conditional-mode estimate (conditional simulation).
+#'   These meanings match `lme4::simulate.merMod()`; earlier drmTMB versions
+#'   reversed them (see Details).
 #' @param ... Reserved for future simulation options.
 #'
 #' @return A data frame. Univariate models return one column per simulation.
@@ -3115,21 +3123,17 @@ predict.drmTMB <- function(
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' simulate(fit, nsim = 2, seed = 1)
 #' @export
-simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) {
-  if (!is.null(re.form) && !identical(re.form, NA)) {
-    cli::cli_abort(c(
-      "{.arg re.form} must be {.code NULL} or {.code NA}.",
-      "i" = "{.code NULL} (the default) draws fresh random effects for every replicate (marginal simulation).",
-      "i" = "{.code NA} holds every random effect fixed at its fitted conditional-mode estimate (conditional simulation)."
-    ))
+simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NA, ...) {
+  if (!base::missing(re.form)) {
+    drm_simulate_re_form_semantics_message()
   }
-  marginal <- is.null(re.form)
+  marginal <- drm_simulate_re_form_marginal(re.form)
   if (marginal) {
     unsupported <- drm_simulate_marginal_unsupported(object)
     if (!is.null(unsupported)) {
       cli::cli_abort(c(
-        "Marginal simulation ({.code re.form = NULL}) does not yet support {unsupported}.",
-        "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+        "Marginal simulation ({.code re.form = NA}, the default) does not yet support {unsupported}.",
+        "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
       ))
     }
   }
@@ -6039,8 +6043,17 @@ drm_prepare_model_matrix_newdata <- function(newdata, dpar, terms, template) {
       ))
     }
   }
+  bare_only <- drm_bare_only_term_variables(terms)
   for (name in intersect(intersect(names(newdata), names(template)), needed)) {
     source <- template[[name]]
+    if (is.character(source) && name %in% bare_only) {
+      # model.matrix() builds levels from the rows it is given, so a character
+      # training column used as a bare term must be rebuilt with the fitted
+      # levels before a partial prediction grid reaches it (#1497). A column
+      # that also appears inside a transform (as.numeric(x), I(x * z), mi(x))
+      # is left alone: the transform must see the raw values.
+      source <- factor(source)
+    }
     if (!is.factor(source)) {
       next
     }
@@ -6060,6 +6073,19 @@ drm_prepare_model_matrix_newdata <- function(newdata, dpar, terms, template) {
     )
   }
   newdata
+}
+
+# Variables that enter the right-hand side only as bare names, never inside a
+# transform or marker call (#1497 review).
+drm_bare_only_term_variables <- function(terms) {
+  vars <- as.list(attr(stats::delete.response(terms), "variables"))[-1L]
+  if (length(vars) == 0L) {
+    return(character())
+  }
+  bare <- vapply(vars, is.name, logical(1L))
+  bare_names <- vapply(vars[bare], as.character, character(1L))
+  inside <- unique(unlist(lapply(vars[!bare], all.vars), use.names = FALSE))
+  setdiff(bare_names, inside)
 }
 
 drm_prepare_random_scale_newdata <- function(sd_target, newdata, dpar) {
@@ -6878,9 +6904,49 @@ covariance_block_random_effect_contribution <- function(object, dpar) {
   rowSums(block_re$contribution[, cols, drop = FALSE])
 }
 
-# ---- Marginal (re.form = NULL) random-effect redraw helpers ---------------
+# `re.form` follows lme4 (#1487): NA or ~0 = marginal (fresh random effects),
+# NULL = conditional on the fitted random effects. Returns TRUE for marginal.
+drm_simulate_re_form_marginal <- function(re.form) {
+  if (is.null(re.form)) {
+    return(FALSE)
+  }
+  if (identical(re.form, NA) || drm_is_zero_re_formula(re.form)) {
+    return(TRUE)
+  }
+  cli::cli_abort(c(
+    "{.arg re.form} must be {.code NA}, {.code ~0}, or {.code NULL}.",
+    "i" = "{.code NA} (the default) or {.code ~0} draws fresh random effects for every replicate (marginal simulation).",
+    "i" = "{.code NULL} holds every random effect fixed at its fitted conditional-mode estimate (conditional simulation)."
+  ))
+}
+
+drm_is_zero_re_formula <- function(x) {
+  if (!inherits(x, "formula") || length(x) != 2L) {
+    return(FALSE)
+  }
+  rhs <- x[[2L]]
+  is.numeric(rhs) && length(rhs) == 1L && identical(as.numeric(rhs), 0)
+}
+
+# The explicit values swapped meaning in #1487; say so once per session to
+# anyone who passes `re.form` explicitly.
+drm_simulate_re_form_semantics_message <- function() {
+  cli::cli_inform(
+    c(
+      "{.fn simulate} now follows the lme4 {.arg re.form} convention.",
+      "*" = "{.code re.form = NA} (the default) or {.code ~0} draws fresh random effects.",
+      "*" = "{.code re.form = NULL} holds the fitted random effects fixed.",
+      "i" = "Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them."
+    ),
+    class = "drmTMB_re_form_semantics_message",
+    .frequency = "once",
+    .frequency_id = "drmTMB_simulate_re_form_semantics"
+  )
+}
+
+# ---- Marginal (re.form = NA) random-effect redraw helpers -----------------
 #
-# `simulate.drmTMB(..., re.form = NULL)` draws a FRESH random-effect
+# `simulate.drmTMB(..., re.form = NA)` draws a FRESH random-effect
 # realization for every replicate instead of reusing the fitted conditional-
 # mode random effects that `mu_random_effect_contribution()` /
 # `sigma_random_effect_contribution()` add to `predict()` when `newdata` is
@@ -6949,7 +7015,7 @@ drm_fresh_ordinary_random_effect_values <- function(
     cli::cli_abort(c(
       "Marginal simulation could not find a fitted random-effect SD for every {.field {re$labels}} term.",
       "i" = "This usually means the random-effect scale is itself modelled (heteroscedastic).",
-      "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+      "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
     ))
   }
   rho <- rep(NA_real_, re$n_cors)
@@ -6959,7 +7025,7 @@ drm_fresh_ordinary_random_effect_values <- function(
   if (re$n_cors > 0L && anyNA(rho)) {
     cli::cli_abort(c(
       "Marginal simulation could not find a fitted correlation for every {.field {re$cor_labels}} random-effect block.",
-      "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+      "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
     ))
   }
   has_cross <- !is.null(cross_re) && isTRUE(cross_re$n_cors > 0L)
@@ -6993,7 +7059,7 @@ drm_fresh_ordinary_random_effect_values <- function(
         if (is.null(rho_i) || is.na(rho_i)) {
           cli::cli_abort(c(
             "Marginal simulation could not find a fitted mu/sigma cross-correlation for {.field {cross_label}}.",
-            "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+            "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
           ))
         }
         mu_idx <- cross_re$sigma_cross_mu_index0[[idx]] + 1L
@@ -7083,7 +7149,7 @@ drm_structured_mu_random_effect_draws <- function(object) {
     cli::cli_abort(c(
       "Marginal simulation could not find a fitted structured-effect SD for {.field {label}}.",
       "i" = "This usually means the structured random-effect scale is itself modelled (heteroscedastic).",
-      "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+      "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
     ))
   }
   key <- structured_mu_random_effect_key(phylo_mu, model_type)

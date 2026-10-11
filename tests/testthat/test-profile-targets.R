@@ -1345,7 +1345,7 @@ test_that("confint bootstrap refits structured location-scale dependencies", {
 
   for (case_name in names(cases)) {
     case <- cases[[case_name]]
-    # bootstrap_re_form = NA requests CONDITIONAL simulation: these fits have
+    # bootstrap_re_form = NULL requests CONDITIONAL simulation: these fits have
     # a structured RE on BOTH mu and sigma (q > 1), which marginal simulation
     # does not yet support, so the default would abort. Conditional bootstrap
     # intervals are ANTICONSERVATIVE (between-group variability is not
@@ -1359,7 +1359,7 @@ test_that("confint bootstrap refits structured location-scale dependencies", {
       method = "bootstrap",
       R = 2,
       seed = 20260670,
-      bootstrap_re_form = NA,
+      bootstrap_re_form = NULL,
       refit_control = drm_control(
         se = FALSE,
         optimizer = list(eval.max = 500, iter.max = 500)
@@ -1400,7 +1400,7 @@ test_that("confint bootstrap refits bivariate phylogenetic q2 targets", {
     data = sim$data
   )
 
-  # bootstrap_re_form = NA requests CONDITIONAL simulation: this fit shares one
+  # bootstrap_re_form = NULL requests CONDITIONAL simulation: this fit shares one
   # phylo random effect across mu1 and mu2 (q = 2), which marginal simulation
   # does not yet support, so the default would abort. Conditional bootstrap
   # intervals are ANTICONSERVATIVE (between-group variability is not
@@ -1413,7 +1413,7 @@ test_that("confint bootstrap refits bivariate phylogenetic q2 targets", {
     method = "bootstrap",
     R = 2,
     seed = 20260663,
-    bootstrap_re_form = NA
+    bootstrap_re_form = NULL
   )
 
   expect_equal(

@@ -162,14 +162,16 @@
 #'   push them further conservative) and plain labelled covariance blocks (whose
 #'   correction magnitude is not yet simulation-calibrated).
 #' @param bootstrap_re_form `re.form` passed through to [stats::simulate()]
-#'   when `method = "bootstrap"`. The default, `NULL`, redraws random effects
-#'   for every replicate (marginal simulation), matching what a parametric
-#'   bootstrap of the fitted data-generating process requires. Passing `NA`
-#'   instead holds random effects fixed at their conditional-mode estimate;
-#'   this is a documented escape hatch for random-effect structures whose
-#'   marginal draw is not yet implemented, and it makes the resulting
-#'   intervals **anticonservative** because between-group variability is
-#'   never resampled -- it is not a neutral alternative to the default.
+#'   when `method = "bootstrap"`, with the same lme4 meanings as
+#'   [simulate.drmTMB()]. The default, `NA`, redraws random effects for every
+#'   replicate (marginal simulation), matching what a parametric bootstrap of
+#'   the fitted data-generating process requires. Passing `NULL` instead holds
+#'   random effects fixed at their conditional-mode estimate; this is a
+#'   documented escape hatch for random-effect structures whose marginal draw
+#'   is not yet implemented, and it makes the resulting intervals
+#'   **anticonservative** because between-group variability is never
+#'   resampled -- it is not a neutral alternative to the default. Earlier
+#'   drmTMB versions gave `NULL` and `NA` the reverse meaning (#1487).
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"` and the `tmbprofile` profile engine is used.
 #'   `drmTMB` supplies the profiled `obj`, `name`, `lincomb`, and `trace`
@@ -432,7 +434,7 @@ confint.drmTMB <- function(
   rho_boundary = 0.98,
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
-  bootstrap_re_form = NULL,
+  bootstrap_re_form = NA,
   ...
 ) {
   drm_abort_mspl_inference(object, "confint")
@@ -2681,7 +2683,7 @@ drm_bootstrap_confint <- function(
   parallel,
   workers,
   refit_control,
-  re_form = NULL,
+  re_form = NA,
   sd_boundary = 1e-4,
   rho_boundary = 0.98
 ) {
@@ -2712,18 +2714,19 @@ drm_bootstrap_confint <- function(
   }
 
   # Parametric bootstrap resamples the DATA-GENERATING process, so random
-  # effects must be redrawn per replicate (`re.form = NULL`, the simulate()
-  # default). Holding them at the fitted MAP would leave between-group
-  # variability unresampled and the resulting intervals anticonservative --
-  # which is precisely the defect this argument exists to avoid. `re_form = NA`
-  # is offered as a documented escape hatch for structures whose marginal draw
-  # is not yet implemented; it is NOT a neutral choice.
-  simulations <- stats::simulate(
-    object,
-    nsim = R,
-    seed = seed,
-    re.form = re_form
-  )
+  # effects must be redrawn per replicate (`re.form = NA`, the simulate()
+  # default, lme4 meaning since #1487). Holding them at the fitted MAP would
+  # leave between-group variability unresampled and the resulting intervals
+  # anticonservative -- which is precisely the defect this argument exists to
+  # avoid. `re_form = NULL` is offered as a documented escape hatch for
+  # structures whose marginal draw is not yet implemented; it is NOT a neutral
+  # choice. The default is not passed on, so simulate() does not print its
+  # one-time re.form message for a caller who never set it.
+  simulations <- if (identical(re_form, NA)) {
+    stats::simulate(object, nsim = R, seed = seed)
+  } else {
+    stats::simulate(object, nsim = R, seed = seed, re.form = re_form)
+  }
   target_names <- targets$parm
   worker <- function(index) {
     bootstrap_refit_one(

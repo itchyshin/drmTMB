@@ -1265,13 +1265,13 @@ test_that("bivariate Gaussian supports matching mu1/mu2 intercept-slope q4 block
   )
 
   # This fit has correlated covariance-block random effects (q4), which
-  # marginal simulation does not yet support; re.form = NA keeps this test's
+  # marginal simulation does not yet support; re.form = NULL keeps this test's
   # structural intent (dims, names, finiteness, reproducibility).
-  sims <- simulate(fit, nsim = 2, seed = 2026060202, re.form = NA)
+  sims <- simulate(fit, nsim = 2, seed = 2026060202, re.form = NULL)
   expect_named(sims, c("sim_1_y1", "sim_1_y2", "sim_2_y1", "sim_2_y2"))
   expect_equal(nrow(sims), nrow(sim$data))
   expect_true(all(is.finite(as.matrix(sims))))
-  expect_equal(sims, simulate(fit, nsim = 2, seed = 2026060202, re.form = NA))
+  expect_equal(sims, simulate(fit, nsim = 2, seed = 2026060202, re.form = NULL))
 })
 
 test_that("bivariate Gaussian supports matching mu1/mu2 q6 location blocks", {
@@ -1382,13 +1382,13 @@ test_that("bivariate Gaussian supports matching mu1/mu2 q6 location blocks", {
   )
 
   # This fit has correlated covariance-block random effects (q6), which
-  # marginal simulation does not yet support; re.form = NA keeps this test's
+  # marginal simulation does not yet support; re.form = NULL keeps this test's
   # structural intent (dims, names, finiteness, reproducibility).
-  sims <- simulate(fit, nsim = 1, seed = 2026060204, re.form = NA)
+  sims <- simulate(fit, nsim = 1, seed = 2026060204, re.form = NULL)
   expect_named(sims, c("sim_1_y1", "sim_1_y2"))
   expect_equal(nrow(sims), nrow(sim$data))
   expect_true(all(is.finite(as.matrix(sims))))
-  expect_equal(sims, simulate(fit, nsim = 1, seed = 2026060204, re.form = NA))
+  expect_equal(sims, simulate(fit, nsim = 1, seed = 2026060204, re.form = NULL))
 })
 
 test_that("bivariate Gaussian fits ordinary q2 corpair regression for mu1/mu2 blocks", {
@@ -1680,15 +1680,15 @@ test_that("bivariate Gaussian supports full q4 labelled location-scale covarianc
   expect_equal(nrow(summary(fit)$covariance), 6L)
 
   # This fit has correlated covariance-block random effects (q4 mu/sigma
-  # cross), which marginal simulation does not yet support; re.form = NA
+  # cross), which marginal simulation does not yet support; re.form = NULL
   # keeps this test's structural intent (dims, names, finiteness,
   # reproducibility).
-  sims <- simulate(fit, nsim = 2, seed = 20260630, re.form = NA)
+  sims <- simulate(fit, nsim = 2, seed = 20260630, re.form = NULL)
   expect_named(sims, c("sim_1_y1", "sim_1_y2", "sim_2_y1", "sim_2_y2"))
   expect_equal(nrow(sims), nrow(sim$data))
   expect_true(all(vapply(sims, is.numeric, logical(1L))))
   expect_true(all(is.finite(as.matrix(sims))))
-  expect_equal(sims, simulate(fit, nsim = 2, seed = 20260630, re.form = NA))
+  expect_equal(sims, simulate(fit, nsim = 2, seed = 20260630, re.form = NULL))
 })
 
 test_that("bivariate Gaussian supports q8 all-endpoint location-scale slope blocks", {
@@ -1814,9 +1814,9 @@ test_that("bivariate Gaussian supports q8 all-endpoint location-scale slope bloc
   expect_true(all(abs(unname(fit$corpars$re_cov)) < 1))
 
   # This fit has correlated covariance-block random effects (q8 all-endpoint),
-  # which marginal simulation does not yet support; re.form = NA keeps this
+  # which marginal simulation does not yet support; re.form = NULL keeps this
   # test's structural intent (dims, names, finiteness).
-  sims <- simulate(fit, nsim = 1, seed = 2026060702, re.form = NA)
+  sims <- simulate(fit, nsim = 1, seed = 2026060702, re.form = NULL)
   expect_named(sims, c("sim_1_y1", "sim_1_y2"))
   expect_equal(nrow(sims), nrow(sim$data))
   expect_true(all(is.finite(as.matrix(sims))))
