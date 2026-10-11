@@ -4,7 +4,9 @@
 
 Focused local: `test-mi-weights-1459.R` 0 fail / 44 pass; `test-julia-mi-weights.R` 0 fail / 7 pass; `test-mi-quadrature-1476-1477.R` 0 fail / 41 pass; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-guard-branch-continuity.R` 0 fail / 66 pass.
 
-C17 recertified at `9ed39d074` (`python3 tools/recertify-c17.py --label triage-i-mi --tolerance 1e-10`). Worst `|change|` in mean tau relative error was `0.000e+00` on mc-0568 / mc-0569 / mc-0576. Receipt `docs/dev-log/implementation-recovery/2026-10-11-triage-i-mi-c17c2-c14-final-source-compatibility`. The `mi()` quadrature and weight gates sit outside the authenticated model-15 anchors. Full suite next.
+C17 recertified at `9ed39d074` (`python3 tools/recertify-c17.py --label triage-i-mi --tolerance 1e-10`). Worst `|change|` in mean tau relative error was `0.000e+00` on mc-0568 / mc-0569 / mc-0576. Receipt `docs/dev-log/implementation-recovery/2026-10-11-triage-i-mi-c17c2-c14-final-source-compatibility`. The `mi()` quadrature and weight gates sit outside the authenticated model-15 anchors.
+
+Local `testthat::test_dir()` under `pkgload::load_all()` (R 4.3.3, TMB 1.9.25): the reporter stopped at its 10-failure cap. Failures that belong to this VM, not the `mi()` edit: three `test-julia-fe-only-fence.R` rows that expect a DRM.jl checkout message and instead see missing `{JuliaCall}`; `test-julia-joint-call.R` and `fixef()` on a Julia mock that need `{JuliaCall}`; `test-missing-predictor-prediction.R` sparse `crossprod` (same VM defect as 2026-10-09). One in-PR failure was `test-env-skip-census.R` because `test-mi-quadrature-1476-1477.R` added `skip_on_cran()`; `Rscript tools/write-env-skip-census.R` added that one cran-lane row. Focused files after load_all: adequacy 21 pass; Gamma/Beta/ZOB manuals pass; #1459 / Julia-weight / quadrature / guard-branch pass. Live Julia: 0 ran, 69 skipped (`DRMODELS_JL_PATH` unset).
 
 Refs #1459
 Refs #1477
