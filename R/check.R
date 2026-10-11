@@ -2132,7 +2132,10 @@ check_known_v <- function(object) {
       symmetric = TRUE,
       only.values = TRUE
     )$values
-    tol <- sqrt(.Machine$double.eps) * max(abs(eig), 1)
+    # Relative to the largest eigenvalue only: an absolute floor of 1 made the
+    # rank test unit-dependent, so a well-conditioned V on a small numeric
+    # scale (sampling variances ~1e-10) was reported as singular (#710).
+    tol <- sqrt(.Machine$double.eps) * max(abs(eig))
     rank <- sum(eig > tol)
     positive_eig <- eig[eig > tol]
     condition <- if (length(positive_eig) == 0L) {
