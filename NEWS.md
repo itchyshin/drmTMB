@@ -23,6 +23,12 @@
 * Multicore profile workers that error now abort `confint()` and `profile()`
   with the worker's error, as the serial path does, instead of returning a
   `try-error` element.
+* A forked worker that dies and returns `NULL` (for example after `quit()`)
+  no longer vanishes inside `rbind()`. `profile()` and
+  `confint(method = "profile")` abort with class
+  `drmTMB_parallel_worker_died`. `confint(method = "bootstrap")` records the
+  missing replicate as a failed refit so `bootstrap.n + bootstrap.failed`
+  still equals the requested `R` (#1232, #1254, #1236).
 * `configure.win` is now a POSIX shell script that runs `./configure`.
   R CMD INSTALL runs `configure.win` with the Rtools `sh`, so the previous
   cmd batch file failed at `@echo: command not found` and stopped every

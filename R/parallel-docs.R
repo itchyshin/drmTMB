@@ -71,6 +71,14 @@
 #' [TMB::sdreport()] and in large fixed-effect designs; it is the layer to pin
 #' when you parallelise across jobs.
 #'
+#' @section Dead forked workers:
+#' [parallel::mclapply()] returns `NULL` for a child that exits without a
+#' value, for example after `quit()` or a crash. `rbind()` would then drop
+#' that element. [profile.drmTMB()] and `confint(method = "profile")` abort
+#' with class `drmTMB_parallel_worker_died` instead. `confint(method =
+#' "bootstrap")` records the missing replicate as a failed refit, so
+#' `bootstrap.n + bootstrap.failed` still equals the requested `R`.
+#'
 #' @section Windows:
 #' `parallel = "multicore"` is not available on Windows because it relies on
 #' process forking; use `parallel = "cluster"` instead. Bootstrap refits never
