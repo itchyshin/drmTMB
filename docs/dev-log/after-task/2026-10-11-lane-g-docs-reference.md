@@ -113,3 +113,19 @@ look of the PDF; it needs a rebuild on the maintainer's machine.
 A hand edit to a generated file is a debt that the next routine
 `document()` collects. Edit the roxygen block, regenerate, and keep only the
 hunks for the block you changed.
+
+## Rebase onto #1508 (cleanup run)
+
+Rebased onto `claude/lane-d-formula-methods` at `790d70a4c` (itself on
+`main` `6beb1f2a0`). `R/profile.R` and `?confint.drmTMB` keep the
+cluster-aware workers sentence and the OpenMP/BLAS facts. Intermediate C17
+receipt commits were skipped and recertified once:
+`python3 tools/recertify-c17.py --label pr-1511 --tolerance 1e-10`,
+|change| 0.
+
+`vignettes/large-data.Rmd` now carries all three Windows/parallel notes:
+main's `parallel = "cluster"` sentence (#1523), #1506's multicore-abort /
+serial example, and this lane's OpenMP/BLAS paragraph. The vignette knits
+with `rmarkdown::render()` (chunks stay `eval = FALSE`). Reader-contracts
+OK; `test-release-identity.R` 20 pass; `test-reader-vignette-contracts.R`
+35 pass.
