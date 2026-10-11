@@ -282,7 +282,8 @@ ci_profile_parallel <- confint(
 )
 ```
 
-`parallel = "multicore"` uses process forking, which Windows does not provide.
+`parallel = "multicore"` uses process forking, which Windows does not provide
+(see `?drmTMB-parallel` for the full parallel-execution guide).
 On Windows, `confint()` stops with an error saying that
 `parallel = "multicore"` is not available on Windows; it does not fall back to
 another backend. Windows users should keep the default
