@@ -187,10 +187,11 @@ docs/dev-log/evidence/julia-r-parity/uncited-accessors/).
 `R/model-comparison.R` ports DRM.jl's `src/comparison.jl`, and `aicc()` is
 exported with `default` and `drmTMB` methods. The word is `scope-limited` rather
 than `implemented` because the rest of the named suite is deliberately absent:
-`drm_lrtest()` is implemented but neither exported nor wired in, and
-`anova.drmTMB()` (`R/methods.R`, which predates the port) still aborts with
-"`anova()` likelihood-ratio comparisons are not implemented for `drmTMB` fits";
-there is no `update.drmTMB()` method in `NAMESPACE`; and `weights.drmTMB()`
+`drm_lrtest()` is implemented but not exported; `anova.drmTMB()` (`R/methods.R`)
+now returns a likelihood-ratio table built on it (#1240), with the REML/MAP
+guards, a boundary warning, and `lrt_boundary()`'s chi-bar-square p-value when
+exactly one or two random-effect SDs are added, while `anova()` on an
+`engine = "julia"` fit still refuses; there is no `update.drmTMB()` method in `NAMESPACE`; and `weights.drmTMB()`
 returns the prior per-observation weights, not Akaike model weights -- DRM.jl's
 `weights(fit)` returns `ones(nobs(fit))`, so this is a shared naming boundary
 rather than an R-side gap.

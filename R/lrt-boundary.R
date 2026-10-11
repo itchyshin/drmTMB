@@ -21,10 +21,10 @@
 #'   `p = 0.5 * P(chisq_1 > stat) + 0.25 * P(chisq_2 > stat)`. At `stat = 0`
 #'   this is `0.75`.
 #'
-#' `drmTMB`'s `anova()` deliberately implements no likelihood-ratio
-#' comparison, and `confint(method = "wald")` only *flags* a variance
-#' component at its boundary (`conf.status = "wald_at_boundary"`); this pair
-#' is the first drmTMB tool that computes a p-value that is correct there.
+#' `confint(method = "wald")` only *flags* a variance component at its
+#' boundary (`conf.status = "wald_at_boundary"`); this pair computes a p-value
+#' that is correct there. [anova.drmTMB()] uses `lrt_boundary()`'s p-value
+#' automatically when exactly one or two standard deviations are added.
 #'
 #' @section Assumptions:
 #' * The `q` parameters dropped between `full` and `reduced` are variances
