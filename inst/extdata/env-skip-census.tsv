@@ -258,7 +258,7 @@ test-positive-continuous-structured-mu.R	build-premise	build	skips	1
 test-positive-continuous-structured-mu.R	suggests-package	environment	runs	4
 test-profile-parallel.R	build-premise	build	skips	1
 test-profile-parallel.R	cran-lane	environment	runs	2
-test-profile-parallel.R	os	environment	runs	4
+test-profile-parallel.R	os	environment	runs	5
 test-profile-parallel.R	runtime-conditional	runtime	depends	1
 test-profile-plots.R	suggests-package	environment	runs	3
 test-profile-shape-boundary.R	build-premise	build	skips	1
