@@ -69,9 +69,8 @@ positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
 Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks
 and a Wald caveat near \code{nu = 0}, a beta-binomial \code{sigma} at the binomial
-limit, a direct-SD \code{sd(group)} formula at the log-SD clamp, more
-\code{|quantile residual| > 3} than a correct model would give (these last three
-rows appear only when they fire, as notes),
+limit and a direct-SD \code{sd(group)} formula at the log-SD clamp (these last
+two rows appear only when they fire, as notes),
 known sampling covariance summaries,
 dense known-covariance storage scale, dense fixed-effect design size and
 density, random-effect replication, and random-slope design variation. If a

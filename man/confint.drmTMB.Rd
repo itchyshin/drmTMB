@@ -371,13 +371,14 @@ computed profile rather than calibrated inference.
 \section{REML fits}{
 
 With \code{REML = TRUE}, the mean (\code{mu}) coefficients are integrated out of the
-likelihood as TMB random effects. \code{method = "wald"} reads their standard
+likelihood as TMB random effects, and so are the \code{sigma} coefficients when
+\code{sigma} has random effects. \code{method = "wald"} reads their standard
 errors from the full REML \code{\link[TMB:sdreport]{TMB::sdreport()}} covariance, the same source as
 \code{\link[=vcov]{vcov()}} and \code{\link[=summary]{summary()}}, so a Wald interval is returned wherever a
 standard error is printed. \code{method = "profile"} cannot hold an integrated
 coefficient fixed and stops with a message naming the alternatives:
 \code{method = "wald"}, \code{method = "bootstrap"}, or a refit with \code{REML = FALSE}.
-Scale, random-effect SD, and other non-integrated targets profile as usual.
+Random-effect SD and other non-integrated targets profile as usual.
 }
 
 \section{Bootstrap intervals on biased targets}{

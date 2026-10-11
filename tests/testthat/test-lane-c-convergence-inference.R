@@ -33,6 +33,42 @@ test_that("a diverging scale predictor at the lower clamp is degenerate (#1469)"
   }
 })
 
+test_that("the #1469 verdict survives keep_tmb_object = FALSE", {
+  dat <- lane_c_edge_cell13(29L)
+  expect_warning(
+    fit <- drmTMB(
+      drm_formula(y ~ x, sigma ~ x),
+      family = gaussian(),
+      data = dat,
+      control = drm_control(keep_tmb_object = FALSE)
+    ),
+    class = "drmTMB_clamp_active_warning"
+  )
+  expect_null(fit$obj)
+  expect_true(fit$scale_clamp_unbounded)
+  expect_identical(convergence_status(fit), "degenerate")
+  expect_false(is_converged(fit))
+})
+
+test_that("a well-posed fit rescaled into the clamp band is not called degenerate (#1469 review)", {
+  # Genuine heteroscedasticity spanning ~4.5 orders of magnitude; on y * 1e-3
+  # the soft-clamped log(sigma) reaches the lower band, but no observation is
+  # fitted exactly, so the likelihood is bounded.
+  set.seed(1)
+  n <- 4000
+  x <- stats::runif(n, -3.5, 3.5)
+  y <- x + exp(-2 + 1.5 * x) * stats::rnorm(n)
+  for (scale in c(1, 1e-3)) {
+    fit <- suppressWarnings(drmTMB(
+      bf(y ~ x, sigma ~ x),
+      family = gaussian(),
+      data = data.frame(y = y * scale, x = x)
+    ))
+    expect_false(fit$scale_clamp_unbounded)
+    expect_false(identical(convergence_status(fit), "degenerate"))
+  }
+})
+
 test_that("an ordinary small-n location-scale fit stays converged (#1469)", {
   dat <- lane_c_edge_cell13(1L)
   expect_no_warning(
@@ -285,36 +321,6 @@ test_that("a direct-SD formula at the log-SD clamp gets a note", {
   # Without a direct-SD formula the row never appears.
   plain <- drmTMB(bf(y ~ x + (1 | ID), sigma ~ 1), family = gaussian(), data = dat)
   expect_false("direct_sd_clamp_active" %in% check_drm(plain)$check)
-})
-
-test_that("excess |quantile residual| > 3 gets a note; Gaussian data does not", {
-  set.seed(1469)
-  n <- 400
-  x <- stats::rnorm(n)
-  # 5% gross outliers 10 units above an otherwise Gaussian response.
-  contaminated <- stats::rnorm(n) + ifelse(seq_len(n) %% 20L == 0L, 10, 0)
-  heavy <- data.frame(y = 1 + 0.5 * x + contaminated, x = x)
-  fit_heavy <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = heavy)
-  row <- check_drm(fit_heavy)
-  row <- row[row$check == "residual_outliers", ]
-  expect_identical(nrow(row), 1L)
-  expect_identical(row$status, "note")
-  expect_match(row$message, "student()", fixed = TRUE)
-
-  clean <- data.frame(y = 1 + 0.5 * x + stats::rnorm(n), x = x)
-  fit_clean <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = clean)
-  expect_false("residual_outliers" %in% check_drm(fit_clean)$check)
-})
-
-test_that("the residual-outlier row leaves the global RNG stream untouched", {
-  set.seed(7)
-  dat <- data.frame(y = stats::rnorm(50), x = stats::rnorm(50))
-  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
-  set.seed(99)
-  before <- stats::runif(1)
-  set.seed(99)
-  invisible(check_drm(fit))
-  expect_identical(stats::runif(1), before)
 })
 
 # Owner decision 17 (#1315): opt-in basic and bias-corrected bootstrap shapes.
