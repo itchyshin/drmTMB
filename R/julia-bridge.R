@@ -7904,6 +7904,16 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
       "{.code engine = \"julia\"} requires finite values in the {.fn {type}} {.arg {slot}} matrix."
     )
   }
+  if (kwarg %in% c("K", "A")) {
+    matrix <- drm_julia_align_labelled_matrix(
+      matrix,
+      dimnames_in = dimnames(value),
+      group_values = data[[term$group]],
+      type = type,
+      slot = slot,
+      group = term$group
+    )
+  }
   if (identical(kwarg, "coords")) {
     if (ncol(matrix) < 1L) {
       cli::cli_abort(
@@ -7917,6 +7927,40 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
     ))
   }
   list(matrix = matrix, kwarg = kwarg)
+}
+
+# DRModels.jl pairs row i of K/A with the i-th group in first-appearance order
+# and never sees dimnames (#1512), whereas the native engine matches by name.
+# Reorder a labelled matrix to first-appearance order here so both engines fit
+# the same model. An unlabelled matrix cannot be checked and passes through.
+drm_julia_align_labelled_matrix <- function(
+  matrix,
+  dimnames_in,
+  group_values,
+  type,
+  slot,
+  group
+) {
+  rn <- dimnames_in[[1L]]
+  cn <- dimnames_in[[2L]]
+  if (is.null(rn) || is.null(cn) || nrow(matrix) != ncol(matrix)) {
+    return(matrix)
+  }
+  if (is.null(group_values)) {
+    return(matrix)
+  }
+  lev <- as.character(unique(group_values[!is.na(group_values)]))
+  ri <- match(lev, rn)
+  ci <- match(lev, cn)
+  if (anyNA(ri) || anyNA(ci)) {
+    missing_lev <- lev[is.na(ri) | is.na(ci)]
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} {.fn {type}} {.arg {slot}} matrix is missing rows or columns for grouping levels of {.field {group}}.",
+      x = "Not found in the matrix dimnames: {.val {utils::head(missing_lev, 5L)}}.",
+      i = "Label rows and columns with the levels of {.field {group}} (as character)."
+    ))
+  }
+  matrix[ri, ci, drop = FALSE]
 }
 
 drm_julia_structured_reject_slot <- function(type, slot, expected, kind) {
