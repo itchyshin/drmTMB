@@ -45,6 +45,29 @@ Local R 4.3.3, drmTMB installed to `/workspace/.Rlib`. Final green union of the 
 `R/drmTMB.R`, `R/methods.R`, and `src/drmTMB.cpp` were not edited, so C14/C17 was not recertified. `lss-tip-identity` hashes every `R/*.R`; `R/julia-bridge.R`, `R/julia-diagnostics.R`, and `R/zzz.R` will make that receipt stale on the next push to `main`. It was not rewritten here. Receipt staleness does not run on pull requests.
 
 Report: `docs/dev-log/after-task/2026-10-08-triage-e-numeric.md`.
+# 2026-10-11: parallel lane follow-up (PSOCK cluster, parallel multi-start, bootstrap shards)
+
+Owner decisions 18 and 19 implemented on `claude/drm-parallel-perf-2`,
+stacked on #1510: `parallel = "cluster"` for `confint()`/`profile()`
+(identical to serial; 1.70x on four profile targets);
+`drm_control(parallel, workers)` for multi-start (2.47x multicore, 1.48x
+cluster on a hard RE fit; RE agreement 6.8e-8); internal bootstrap shards
+with a fail-closed reducer. `simulate()` stays serial after a benchmark.
+
+Report: `docs/dev-log/after-task/2026-10-11-parallel-perf-lane-2.md`.
+
+# 2026-10-11: parallel and performance lane (#1387, #1247; plans for #1248, #914, #1250, #1254, #861)
+
+`drm_profile_trace_object()` no longer stores `par` per objective evaluation
+(6.5 MB to 51 KB on a 3,020-evaluation profile; identical curves and clamp
+status). `profile()` gains `parallel`/`workers` (2.40x on four targets,
+identical apart from `elapsed`). Multicore worker errors now abort. New
+`?drmTMB-parallel` thread-policy topic. Measured, not adopted: relaxed
+`inner.control` (no gain, estimates bitwise equal) and forked multi_start
+(2.7x, needs a TMB-environment handoff design).
+
+Report: `docs/dev-log/after-task/2026-10-11-parallel-perf-lane.md`.
+Branch: `claude/drm-parallel-perf`.
 
 # 2026-10-04: phylogenetic tree-height documentation correction
 

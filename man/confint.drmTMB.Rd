@@ -17,7 +17,7 @@
   profile_endpoint_max_eval = NULL,
   R = 199L,
   seed = NULL,
-  parallel = c("none", "multicore"),
+  parallel = c("none", "multicore", "cluster"),
   workers = NULL,
   refit_control = NULL,
   sd_boundary = 1e-04,
@@ -81,13 +81,18 @@ endpoints.}
 
 \item{seed}{Optional seed for bootstrap simulation.}
 
-\item{parallel}{Profile or bootstrap backend: \code{"none"} or Unix
-\code{"multicore"}. For profile intervals, targets or \code{newdata} rows are split
-across workers. For bootstrap intervals, refits are split across workers.}
+\item{parallel}{Profile or bootstrap backend: \code{"none"}, Unix
+\code{"multicore"}, or socket \code{"cluster"} (PSOCK, any platform including
+Windows). For profile intervals, targets or \code{newdata} rows are split
+across workers. For bootstrap intervals, refits are split across workers.
+Every backend returns the serial result; see \link{drmTMB-parallel}.}
 
 \item{workers}{Requested profile or bootstrap workers. If \code{NULL} and
-\code{parallel = "multicore"}, \code{drmTMB} uses about half the detected CPU cores.
-Multicore execution is capped at the number of jobs and at 10 workers.}
+\code{parallel} is not \code{"none"}, \code{drmTMB} uses about half the detected CPU
+cores. Parallel execution is capped at the number of jobs and at 10
+workers.
+Keep BLAS and OpenMP threads at one while workers run; see
+\link{drmTMB-parallel}.}
 
 \item{refit_control}{Optional \code{\link[=drm_control]{drm_control()}} object used for bootstrap
 refits. The default skips \code{TMB::sdreport()} and drops the TMB object because
