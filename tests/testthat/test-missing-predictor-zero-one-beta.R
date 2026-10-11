@@ -38,8 +38,6 @@ manual_zero_one_beta_mi_loglik <- function(fit) {
   mu_observed <- as.vector(fit$model$X$mu %*% beta_mu)
   eta_mi <- as.vector(model$X %*% beta_mi)
   mu_mi <- drmTMB:::drm_beta_missing_predictor_inverse_link(eta_mi)
-  nodes <- model$quad_nodes
-  weights <- model$quad_weights
   x <- dat$cover
   out <- numeric(nrow(dat))
 
@@ -65,19 +63,27 @@ manual_zero_one_beta_mi_loglik <- function(fit) {
     if (!observed_y[[row]]) {
       next
     }
-    log_terms <- log(weights) +
-      drmTMB:::drm_zero_one_beta_missing_predictor_log_density(
-        nodes,
-        mu = mu_mi[[row]],
-        sigma = sigma_mi,
-        zoi = zoi_mi,
-        coi = coi_mi
-      )
-    mu_node <- mu_observed[[row]] + beta_cover * (nodes - x_base[[row]])
-    log_terms <- log_terms +
-      stats::dnorm(dat$y[[row]], mu_node, sigma, log = TRUE)
-    max_log <- max(log_terms)
-    out[[row]] <- max_log + log(sum(exp(log_terms - max_log)))
+    # Exact atoms at 0 and 1 plus an independent integrate() oracle for the
+    # continuous Beta part (#1476).
+    phi <- 1 / sigma_mi^2
+    mean_at <- function(xx) mu_observed[[row]] + beta_cover * (xx - x_base[[row]])
+    log_cont <- log1p(-zoi_mi) + mi_reference_log_marginal(
+      function(xx) {
+        stats::dbeta(xx, mu_mi[[row]] * phi, (1 - mu_mi[[row]]) * phi, log = TRUE) +
+          stats::dnorm(dat$y[[row]], mean_at(xx), sigma, log = TRUE)
+      },
+      0,
+      1
+    )
+    log_parts <- c(
+      log(zoi_mi) + log1p(-coi_mi) +
+        stats::dnorm(dat$y[[row]], mean_at(0), sigma, log = TRUE),
+      log(zoi_mi) + log(coi_mi) +
+        stats::dnorm(dat$y[[row]], mean_at(1), sigma, log = TRUE),
+      log_cont
+    )
+    max_log <- max(log_parts)
+    out[[row]] <- max_log + log(sum(exp(log_parts - max_log)))
   }
   sum(out)
 }

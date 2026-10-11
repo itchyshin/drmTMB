@@ -37,6 +37,21 @@ drmTMB_julia_joint_bridge <- function(
   formula, family, data, env, weights_missing, control, impute, missing,
   REML = FALSE, call
 ) {
+  # Refuse before preparation so the classed condition is not wrapped by the
+  # generic "Could not prepare" abort below. DRModels' joint missing-predictor
+  # bridge (src/joint_missing_bridge.jl, drm_bridge_joint docstring) admits no
+  # weighting, so a weighted mi() fit would silently drop the weights from
+  # both the response and the mi() prior.
+  if (!isTRUE(weights_missing)) {
+    cli::cli_abort(
+      c(
+        "{.code engine = \"julia\"} cannot fit a weighted {.fn mi} model.",
+        "x" = "DRModels' joint missing-predictor route has no case-weight slot, so it would ignore {.arg weights}.",
+        "i" = "Use {.code engine = \"tmb\"}, which multiplies each row's response and {.fn mi} prior terms by its weight."
+      ),
+      class = "drmTMB_julia_mi_weights_unsupported"
+    )
+  }
   prepared <- tryCatch(drm_julia_joint_prepare(
     formula = formula, family = family, data = data, env = env,
     weights_missing = weights_missing, control = control, impute = impute,

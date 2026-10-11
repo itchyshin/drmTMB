@@ -14,6 +14,7 @@
 #include <TMB.hpp>
 #include "drm_count_kernels.h"
 #include "drm_response_kernels.h"
+#include "drm_mi_quadrature.h"
 
 // Smooth clamp of a log-sigma linear predictor. EXACTLY identity inside the band
 // [lo, hi] (so a well-posed fit, whose log-sigma lies in the band, is unchanged
@@ -1172,6 +1173,19 @@ Type objective_function<Type>::operator()()
       ADREPORT(sd_mesh_spatial);
     }
 
+    // Gaussian mi() pieces kept for the case-weight marginal correction in
+    // the response loop below (#1459).
+    vector<Type> gaussian_mi_eta(y.size());
+    vector<Type> gaussian_mi_x_full(y.size());
+    vector<Type> gaussian_mi_eta2(y.size());
+    vector<Type> gaussian_mi_x_full2(y.size());
+    gaussian_mi_eta.setZero();
+    gaussian_mi_x_full.setZero();
+    gaussian_mi_eta2.setZero();
+    gaussian_mi_x_full2.setZero();
+    Type gaussian_sigma_mi = Type(1.0);
+    Type gaussian_sigma_mi2 = Type(1.0);
+
     if (has_mi == 1 && mi_family == 0) {
       vector<Type> mi_eta = X_mi * beta_mi;
       Type sigma_mi = exp(log_sigma_mi(0));
@@ -1212,12 +1226,24 @@ Type objective_function<Type>::operator()()
         int row = mi_missing_index(j);
         mi_x_full(row) = x_miss(j);
       }
+      // Case weights (#1459, Dinnage audit M1): an observed predictor's prior
+      // term is a plain row term and takes weights(i). A missing predictor's
+      // latent x_miss keeps the UNWEIGHTED joint here (and in the response
+      // loop below); the row weight is applied afterwards as
+      // (weights(i) - 1) * log m_i with the analytic marginal m_i (see the
+      // response loop). An integer weight then equals duplicating the row
+      // exactly, a zero weight drops it, and the Laplace curvature of x_miss
+      // stays that of one observation.
       for (int i = 0; i < mi_x_full.size(); ++i) {
-        nll -= dnorm(mi_x_full(i), mi_eta(i), sigma_mi, true);
+        Type prior_weight = mi_observed(i) == 1 ? weights(i) : Type(1.0);
+        nll -= prior_weight * dnorm(mi_x_full(i), mi_eta(i), sigma_mi, true);
       }
       for (int i = 0; i < y.size(); ++i) {
         mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
       }
+      gaussian_mi_eta = mi_eta;
+      gaussian_mi_x_full = mi_x_full;
+      gaussian_sigma_mi = sigma_mi;
       REPORT(mi_x_full);
       REPORT(beta_mi);
       REPORT(log_sigma_mi);
@@ -1253,12 +1279,17 @@ Type objective_function<Type>::operator()()
         int row = mi_missing_index2(j);
         mi_x_full2(row) = x_miss2(j);
       }
+      // Case weights as for the first mi() predictor (#1459).
       for (int i = 0; i < mi_x_full2.size(); ++i) {
-        nll -= dnorm(mi_x_full2(i), mi_eta2(i), sigma_mi2, true);
+        Type prior_weight = mi_observed2(i) == 1 ? weights(i) : Type(1.0);
+        nll -= prior_weight * dnorm(mi_x_full2(i), mi_eta2(i), sigma_mi2, true);
       }
       for (int i = 0; i < y.size(); ++i) {
         mu(i) += beta_mu(mi_col2) * (mi_x_full2(i) - X_mu(i, mi_col2));
       }
+      gaussian_mi_eta2 = mi_eta2;
+      gaussian_mi_x_full2 = mi_x_full2;
+      gaussian_sigma_mi2 = sigma_mi2;
       REPORT(mi_x_full2);
       REPORT(beta_mi2);
       REPORT(log_sigma_mi2);
@@ -1542,63 +1573,39 @@ Type objective_function<Type>::operator()()
           // contribution; apply it to the imputation-prior term here and
           // move it OUTSIDE the mixture/quadrature sum below (log_denom),
           // not to each leaf before logspace_add() combines them.
-          nll -= weights(i) * log_density;
+          if (asDouble(weights(i)) != 0.0) {
+            nll -= weights(i) * log_density;
+          }
           mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
         } else if (observed_y(i) == 1) {
+          // Posterior-centred Gauss-Hermite marginal on logit(x) (#1476);
+          // see src/drm_mi_quadrature.h. weights(i) multiplies the whole row
+          // marginal once (Dinnage audit M1).
+          vector<Type> x_q(mi_quad_nodes.size());
           vector<Type> log_terms(mi_quad_nodes.size());
-          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type x_q = mi_quad_nodes(q);
-            Type log_density =
-              lgamma(alpha_i + beta_i) -
-              lgamma(alpha_i) -
-              lgamma(beta_i) +
-              (alpha_i - Type(1.0)) * log(x_q) +
-              (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
-            Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
-            log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
+          Type sd_y = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+          Type r0 = y(i) - mu(i) + beta_mu(mi_col) * X_mu(i, mi_col);
+          Type log_denom = drm_mi_beta_marginal(
+            alpha_i, beta_i, r0, beta_mu(mi_col), sd_y,
+            mi_quad_nodes, mi_quad_weights, x_q, log_terms);
+          if (asDouble(weights(i)) != 0.0) {
+            nll -= weights(i) * log_denom;
           }
-          Type log_denom = log_terms(0);
-          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
-            log_denom = logspace_add(log_denom, log_terms(q));
-          }
-          nll -= weights(i) * log_denom;
           Type conditional_mean = Type(0.0);
           Type expected_mu = Type(0.0);
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
             Type posterior = exp(log_terms(q) - log_denom);
-            Type x_q = mi_quad_nodes(q);
             Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            conditional_mean += x_q * posterior;
+              beta_mu(mi_col) * (x_q(q) - X_mu(i, mi_col));
+            conditional_mean += x_q(q) * posterior;
             expected_mu += mu_q * posterior;
           }
           mi_x_full(i) = conditional_mean;
           mu(i) = expected_mu;
         } else {
-          Type prior_norm = Type(0.0);
-          Type prior_mean = Type(0.0);
-          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type x_q = mi_quad_nodes(q);
-            Type log_density =
-              lgamma(alpha_i + beta_i) -
-              lgamma(alpha_i) -
-              lgamma(beta_i) +
-              (alpha_i - Type(1.0)) * log(x_q) +
-              (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
-            Type term = mi_quad_weights(q) * exp(log_density);
-            prior_norm += term;
-            prior_mean += x_q * term;
-          }
-          // Guard the prior-mean plug-in against a zero normalizer: for extreme
-          // eta every quadrature term can underflow, leaving prior_norm == 0 and
-          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
-          // non-negligible, as in every well-posed fit). See design doc 176.
-          Type prior_norm_safe = CppAD::CondExpGt(
-            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
-          mi_x_full(i) = prior_mean / prior_norm_safe;
+          // Response and predictor both missing: the plug-in is the exact
+          // prior mean alpha / (alpha + beta) (no quadrature needed).
+          mi_x_full(i) = alpha_i / (alpha_i + beta_i);
           mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         }
       }
@@ -1676,79 +1683,47 @@ Type objective_function<Type>::operator()()
           // contribution; apply it to the imputation-prior term here and
           // move it OUTSIDE the mixture/quadrature sum below (log_denom),
           // not to each leaf before logspace_add() combines them.
-          nll -= weights(i) * log_density;
+          if (asDouble(weights(i)) != 0.0) {
+            nll -= weights(i) * log_density;
+          }
           mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
         } else if (observed_y(i) == 1) {
+          // Mixture marginal (#1476): exact atoms at 0 and 1 plus the
+          // continuous Beta part from the posterior-centred Gauss-Hermite
+          // rule in src/drm_mi_quadrature.h. weights(i) multiplies the
+          // combined row marginal once (Dinnage audit M1).
+          vector<Type> x_q(mi_quad_nodes.size());
           vector<Type> log_terms(mi_quad_nodes.size());
+          Type sd_y = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+          Type r0 = y(i) - mu(i) + beta_mu(mi_col) * X_mu(i, mi_col);
+          Type log_beta_part = drm_mi_beta_marginal(
+            alpha_i, beta_i, r0, beta_mu(mi_col), sd_y,
+            mi_quad_nodes, mi_quad_weights, x_q, log_terms);
+          Type log_zero = log_zoi_mi + log_one_minus_coi_mi +
+            dnorm(r0, Type(0.0), sd_y, true);
+          Type log_one = log_zoi_mi + log_coi_mi +
+            dnorm(r0 - beta_mu(mi_col), Type(0.0), sd_y, true);
+          Type log_cont = log_one_minus_zoi_mi + log_beta_part;
+          Type log_denom =
+            logspace_add(logspace_add(log_zero, log_one), log_cont);
+          if (asDouble(weights(i)) != 0.0) {
+            nll -= weights(i) * log_denom;
+          }
+          Type post_one = exp(log_one - log_denom);
+          Type post_cont = exp(log_cont - log_denom);
+          Type cont_mean = Type(0.0);
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type x_q = mi_quad_nodes(q);
-            Type log_density;
-            if (asDouble(x_q) <= 0.0) {
-              log_density = log_zoi_mi + log_one_minus_coi_mi;
-            } else if (asDouble(x_q) >= 1.0) {
-              log_density = log_zoi_mi + log_coi_mi;
-            } else {
-              log_density =
-                log_one_minus_zoi_mi +
-                lgamma(alpha_i + beta_i) -
-                lgamma(alpha_i) -
-                lgamma(beta_i) +
-                (alpha_i - Type(1.0)) * log(x_q) +
-                (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
-            }
-            Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
-            log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
+            cont_mean += x_q(q) * exp(log_terms(q) - log_beta_part);
           }
-          Type log_denom = log_terms(0);
-          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
-            log_denom = logspace_add(log_denom, log_terms(q));
-          }
-          nll -= weights(i) * log_denom;
-          Type conditional_mean = Type(0.0);
-          Type expected_mu = Type(0.0);
-          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type posterior = exp(log_terms(q) - log_denom);
-            Type x_q = mi_quad_nodes(q);
-            Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            conditional_mean += x_q * posterior;
-            expected_mu += mu_q * posterior;
-          }
-          mi_x_full(i) = conditional_mean;
-          mu(i) = expected_mu;
+          mi_x_full(i) = post_one + post_cont * cont_mean;
+          // mu is linear in x, so the posterior-expected mean is mu at the
+          // conditional mean of x.
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         } else {
-          Type prior_norm = Type(0.0);
-          Type prior_mean = Type(0.0);
-          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type x_q = mi_quad_nodes(q);
-            Type log_density;
-            if (asDouble(x_q) <= 0.0) {
-              log_density = log_zoi_mi + log_one_minus_coi_mi;
-            } else if (asDouble(x_q) >= 1.0) {
-              log_density = log_zoi_mi + log_coi_mi;
-            } else {
-              log_density =
-                log_one_minus_zoi_mi +
-                lgamma(alpha_i + beta_i) -
-                lgamma(alpha_i) -
-                lgamma(beta_i) +
-                (alpha_i - Type(1.0)) * log(x_q) +
-                (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
-            }
-            Type term = mi_quad_weights(q) * exp(log_density);
-            prior_norm += term;
-            prior_mean += x_q * term;
-          }
-          // Guard the prior-mean plug-in against a zero normalizer: for extreme
-          // eta every quadrature term can underflow, leaving prior_norm == 0 and
-          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
-          // non-negligible, as in every well-posed fit). See design doc 176.
-          Type prior_norm_safe = CppAD::CondExpGt(
-            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
-          mi_x_full(i) = prior_mean / prior_norm_safe;
+          // Response and predictor both missing: exact prior mean
+          // zoi * coi + (1 - zoi) * alpha / (alpha + beta).
+          mi_x_full(i) = zoi_mi * coi_mi +
+            (Type(1.0) - zoi_mi) * alpha_i / (alpha_i + beta_i);
           mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         }
       }
@@ -2262,62 +2237,34 @@ Type objective_function<Type>::operator()()
           // contribution; apply it to the imputation-prior term here and
           // move it OUTSIDE the mixture/quadrature sum below (log_denom),
           // not to each leaf before logspace_add() combines them.
-          nll -= weights(i) * log_density;
+          if (asDouble(weights(i)) != 0.0) {
+            nll -= weights(i) * log_density;
+          }
           mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
         } else if (observed_y(i) == 1) {
+          // Posterior-centred Gauss-Hermite marginal on log(x) with the
+          // closed-form posterior mode (#1477); replaces the fixed 20-node
+          // Gauss-Laguerre rule whose mass collapsed for shape > ~40.
+          // weights(i) multiplies the whole row marginal once (M1).
+          vector<Type> x_q(mi_quad_nodes.size());
           vector<Type> log_terms(mi_quad_nodes.size());
-          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type t_q = mi_quad_nodes(q);
-            Type x_q = scale_i * t_q;
-            Type log_prior =
-              log(mi_quad_weights(q)) +
-              (shape_gamma_mi - Type(1.0)) * log(t_q) -
-              lgamma(shape_gamma_mi);
-            Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
-            log_terms(q) = log_prior + log_y;
+          Type sd_y = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+          Type r0 = y(i) - mu(i) + beta_mu(mi_col) * X_mu(i, mi_col);
+          Type log_denom = drm_mi_gamma_marginal(
+            shape_gamma_mi, scale_i, r0, beta_mu(mi_col), sd_y,
+            mi_quad_nodes, mi_quad_weights, x_q, log_terms);
+          if (asDouble(weights(i)) != 0.0) {
+            nll -= weights(i) * log_denom;
           }
-          Type log_denom = log_terms(0);
-          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
-            log_denom = logspace_add(log_denom, log_terms(q));
-          }
-          nll -= weights(i) * log_denom;
           Type conditional_mean = Type(0.0);
-          Type expected_mu = Type(0.0);
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type posterior = exp(log_terms(q) - log_denom);
-            Type x_q = scale_i * mi_quad_nodes(q);
-            Type mu_q = mu(i) +
-              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
-            conditional_mean += x_q * posterior;
-            expected_mu += mu_q * posterior;
+            conditional_mean += x_q(q) * exp(log_terms(q) - log_denom);
           }
           mi_x_full(i) = conditional_mean;
-          mu(i) = expected_mu;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         } else {
-          Type prior_norm = Type(0.0);
-          Type prior_mean = Type(0.0);
-          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
-            Type t_q = mi_quad_nodes(q);
-            Type x_q = scale_i * t_q;
-            Type term =
-              mi_quad_weights(q) *
-              exp(
-                (shape_gamma_mi - Type(1.0)) * log(t_q) -
-                lgamma(shape_gamma_mi)
-              );
-            prior_norm += term;
-            prior_mean += x_q * term;
-          }
-          // Guard the prior-mean plug-in against a zero normalizer: for extreme
-          // eta every quadrature term can underflow, leaving prior_norm == 0 and
-          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
-          // non-negligible, as in every well-posed fit). See design doc 176.
-          Type prior_norm_safe = CppAD::CondExpGt(
-            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
-          mi_x_full(i) = prior_mean / prior_norm_safe;
+          // Response and predictor both missing: exact prior mean.
+          mi_x_full(i) = mi_mean(i);
           mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         }
       }
@@ -2457,7 +2404,39 @@ Type objective_function<Type>::operator()()
           observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)
         ) {
-          nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
+          bool gaussian_mi_missing =
+            has_mi == 1 && mi_family == 0 &&
+            (mi_observed(i) == 0 || (has_mi2 == 1 && mi_observed2(i) == 0));
+          if (!gaussian_mi_missing) {
+            nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
+          } else {
+            // Case weights for a row whose Gaussian mi() predictor is latent
+            // (#1459). The joint term stays unweighted so x_miss integrates
+            // to the row marginal m_i exactly (Gaussian prior and Gaussian
+            // response, so the Laplace step is exact). Adding
+            // (weights(i) - 1) * log m_i then makes the row contribute
+            // weights(i) * log m_i: weight 2 equals two copies of the row,
+            // weight 0 removes it, and no 0 * Inf can arise.
+            nll -= dnorm(y(i), mu(i), obs_sigma(i), true);
+            if (asDouble(weights(i)) != 1.0) {
+              Type mean_i = mu(i);
+              Type var_i = obs_sigma(i) * obs_sigma(i);
+              if (mi_observed(i) == 0) {
+                mean_i += beta_mu(mi_col) *
+                  (gaussian_mi_eta(i) - gaussian_mi_x_full(i));
+                var_i += beta_mu(mi_col) * beta_mu(mi_col) *
+                  gaussian_sigma_mi * gaussian_sigma_mi;
+              }
+              if (has_mi2 == 1 && mi_observed2(i) == 0) {
+                mean_i += beta_mu(mi_col2) *
+                  (gaussian_mi_eta2(i) - gaussian_mi_x_full2(i));
+                var_i += beta_mu(mi_col2) * beta_mu(mi_col2) *
+                  gaussian_sigma_mi2 * gaussian_sigma_mi2;
+              }
+              nll -= (weights(i) - Type(1.0)) *
+                dnorm(y(i), mean_i, sqrt(var_i), true);
+            }
+          }
         }
       }
     }
@@ -4432,6 +4411,11 @@ Type objective_function<Type>::operator()()
     // Missing-predictor mi() Gaussian predictor: latent x_miss (Laplace),
     // then the shared nbinom2 leaf on the updated log-mean. No group/struct
     // on this first nbinom2 x gaussian slice (R aborts those).
+    Type nbinom2_sigma_mi = Type(1.0);
+    vector<Type> nbinom2_mi_eta(y.size());
+    vector<Type> nbinom2_mi_x_full(y.size());
+    nbinom2_mi_eta.setZero();
+    nbinom2_mi_x_full.setZero();
     if (has_mi == 1 && mi_family == 0) {
       vector<Type> mi_eta = X_mi * beta_mi;
       Type sigma_mi = exp(log_sigma_mi(0));
@@ -4443,12 +4427,26 @@ Type objective_function<Type>::operator()()
         int row = mi_missing_index(j);
         mi_x_full(row) = x_miss(j);
       }
+      // Case weights (#1459, Dinnage audit M1). An observed predictor's prior
+      // term takes weights(i), like the nbinom2 response term below. A latent
+      // predictor keeps the UNWEIGHTED joint (prior here, response below), so
+      // x_miss integrates to the row marginal with the inner mode and
+      // curvature of one observation, whatever the weight. The weight enters
+      // afterwards as (weights(i) - 1) * log m_hat_i in the response loop,
+      // with m_hat_i the Laplace marginal computed from the fixed parameters
+      // only (see the Newton steps there), so an integer weight equals
+      // duplicating the row, w = 0 removes it, and the correction never
+      // feeds back into the latent problem.
       for (int i = 0; i < mi_x_full.size(); ++i) {
-        nll -= dnorm(mi_x_full(i), mi_eta(i), sigma_mi, true);
+        Type prior_weight = mi_observed(i) == 1 ? weights(i) : Type(1.0);
+        nll -= prior_weight * dnorm(mi_x_full(i), mi_eta(i), sigma_mi, true);
       }
       for (int i = 0; i < y.size(); ++i) {
         eta_mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
       }
+      nbinom2_sigma_mi = sigma_mi;
+      nbinom2_mi_eta = mi_eta;
+      nbinom2_mi_x_full = mi_x_full;
       REPORT(mi_x_full);
       REPORT(beta_mi);
       REPORT(log_sigma_mi);
@@ -4518,11 +4516,86 @@ Type objective_function<Type>::operator()()
       // rows for non-Gaussian predictors, whose likelihood is already added
       // by the mi() 2-point sum above. mi_family == 0 (Gaussian) keeps the
       // nbinom2 leaf: missing x is a latent x_miss, not a finite-state sum.
+      bool latent_gaussian_row =
+        has_mi == 1 && mi_family == 0 && mi_observed(i) == 0;
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         Type log_density =
           drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
-        nll -= weights(i) * log_density;
+        // A latent Gaussian predictor row stays unweighted here; its weight
+        // enters through the (w - 1) * log m_hat_i correction below.
+        Type row_weight = latent_gaussian_row ? Type(1.0) : weights(i);
+        nll -= row_weight * log_density;
+        if (latent_gaussian_row && asDouble(weights(i)) != 1.0) {
+          // Laplace marginal m_hat_i of the row over x, from FIXED parameters:
+          // l(x) = log f(y | eta0 + beta (x - x0)) + log N(x; mu_x, s_x),
+          // concave in x. A plain capped Newton iteration can 2-cycle (second
+          // adversarial review: y = 5, beta = -3, alpha = 0.108 never reached
+          // the mode), so each step is back-tracked on the x-dependent part of
+          // l (halved until l does not decrease). Started at the prior mean,
+          // 20 steps match the exact-mode Laplace value to ~1e-7 on random
+          // draws including alpha down to 1e-10 and y up to 200. Nothing here
+          // depends on x_miss, so the latent problem is unchanged by the
+          // weight.
+          Type beta_x = beta_mu(mi_col);
+          Type x0 = X_mu(i, mi_col);
+          Type eta0 = eta_mu(i) - beta_x * (nbinom2_mi_x_full(i) - x0);
+          Type s2 = nbinom2_sigma_mi * nbinom2_sigma_mi;
+          Type alpha_i = exp(Type(2.0) * log_sigma(i)) + Type(1e-300);
+          Type log_alpha_i = log(alpha_i);
+          Type y_i = y(i);
+          Type x_hat = nbinom2_mi_eta(i);
+          Type curv = Type(1.0) / s2;
+          Type step_cap = Type(2.0) * nbinom2_sigma_mi + Type(1.0);
+          for (int it = 0; it < 20; ++it) {
+            Type eta_x = eta0 + beta_x * (x_hat - x0);
+            eta_x = CppAD::CondExpGt(eta_x, Type(700.0), Type(700.0), eta_x);
+            eta_x = CppAD::CondExpLt(eta_x, Type(-700.0), Type(-700.0), eta_x);
+            Type m_x = exp(eta_x);
+            Type denom_x = Type(1.0) + alpha_i * m_x;
+            Type score_eta = (y_i - m_x) / denom_x;
+            Type info_eta = (Type(1.0) + alpha_i * y_i) * m_x /
+              (denom_x * denom_x);
+            Type grad_x = beta_x * score_eta -
+              (x_hat - nbinom2_mi_eta(i)) / s2;
+            curv = beta_x * beta_x * info_eta + Type(1.0) / s2;
+            Type step = grad_x / curv;
+            step = CppAD::CondExpGt(step, step_cap, step_cap, step);
+            step = CppAD::CondExpLt(step, -step_cap, -step_cap, step);
+            Type eta_old = eta_x;
+            Type l_old = y_i * eta_old -
+              (y_i + Type(1.0) / alpha_i) *
+                drm_log1p_exp_stable(log_alpha_i + eta_old) -
+              Type(0.5) * (x_hat - nbinom2_mi_eta(i)) *
+                (x_hat - nbinom2_mi_eta(i)) / s2;
+            Type t_step = Type(1.0);
+            for (int k = 0; k < 8; ++k) {
+              Type x_try = x_hat + t_step * step;
+              Type eta_try = eta0 + beta_x * (x_try - x0);
+              eta_try = CppAD::CondExpGt(eta_try, Type(700.0), Type(700.0), eta_try);
+              eta_try = CppAD::CondExpLt(eta_try, Type(-700.0), Type(-700.0), eta_try);
+              Type l_try = y_i * eta_try -
+                (y_i + Type(1.0) / alpha_i) *
+                  drm_log1p_exp_stable(log_alpha_i + eta_try) -
+                Type(0.5) * (x_try - nbinom2_mi_eta(i)) *
+                  (x_try - nbinom2_mi_eta(i)) / s2;
+              t_step = CppAD::CondExpGt(l_try, l_old, t_step, t_step * Type(0.5));
+            }
+            x_hat = x_hat + t_step * step;
+          }
+          Type eta_hat = eta0 + beta_x * (x_hat - x0);
+          eta_hat = CppAD::CondExpGt(eta_hat, Type(700.0), Type(700.0), eta_hat);
+          eta_hat = CppAD::CondExpLt(eta_hat, Type(-700.0), Type(-700.0), eta_hat);
+          Type m_hat = exp(eta_hat);
+          Type denom_hat = Type(1.0) + alpha_i * m_hat;
+          curv = beta_x * beta_x * (Type(1.0) + alpha_i * y_i) * m_hat /
+            (denom_hat * denom_hat) + Type(1.0) / s2;
+          Type log_m_hat =
+            drm_nbinom2_log_density(y_i, eta_hat, log_sigma(i)) +
+            dnorm(x_hat, nbinom2_mi_eta(i), nbinom2_sigma_mi, true) +
+            Type(0.5) * log(Type(2.0) * M_PI) - Type(0.5) * log(curv);
+          nll -= (weights(i) - Type(1.0)) * log_m_hat;
+        }
       }
     }
     REPORT(eta_mu);
