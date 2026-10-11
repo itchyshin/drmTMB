@@ -361,6 +361,20 @@ drm_phylo_augmented_precision <- function(
   out
 }
 
+# Character labels for relmat()/animal() ids. as.character(100000) is
+# "1e+05", which never matches matrix or pedigree labels written "100000", while
+# the same ids stored as integer give "100000" (#1485). Whole-number doubles are
+# therefore written as plain digits; every other value keeps as.character().
+drm_id_labels <- function(x) {
+  if (is.factor(x) || !is.double(x)) {
+    return(as.character(x))
+  }
+  out <- as.character(x)
+  whole <- is.finite(x) & x == trunc(x) & abs(x) < 2^53
+  out[whole] <- formatC(x[whole], format = "f", digits = 0L)
+  out
+}
+
 drm_known_relatedness_precision <- function(
   matrix,
   group,
@@ -375,7 +389,7 @@ drm_known_relatedness_precision <- function(
   if (is.null(reported_matrix_type)) {
     reported_matrix_type <- matrix_type
   }
-  group <- as.character(group)
+  group <- drm_id_labels(group)
   if (length(group) == 0L || anyNA(group) || any(!nzchar(group))) {
     cli::cli_abort(
       "{.fn {marker}} grouping variable {.field {group_name}} must contain non-missing labels."
@@ -801,9 +815,9 @@ drm_standardize_pedigree <- function(pedigree, object = "pedigree") {
   }
 
   ped <- data.frame(
-    id = as.character(pedigree$id),
-    dam = as.character(pedigree$dam),
-    sire = as.character(pedigree$sire),
+    id = drm_id_labels(pedigree$id),
+    dam = drm_id_labels(pedigree$dam),
+    sire = drm_id_labels(pedigree$sire),
     stringsAsFactors = FALSE
   )
   ped$dam <- drm_normalize_pedigree_parent(ped$dam)

@@ -14628,7 +14628,7 @@ build_known_precision_mu_structure <- function(term, data, env) {
       "x" = "Use syntax like {.code {marker}(1 | id, Q = Q)} where {.field id} is a column in {.arg data}."
     ))
   }
-  group_values <- as.character(data[[group]])
+  group_values <- drm_id_labels(data[[group]])
   if (length(unique(group_values)) < 2L) {
     cli::cli_abort(c(
       "{.fn {marker}} grouping variable {.field {group}} has fewer than two observed levels.",
