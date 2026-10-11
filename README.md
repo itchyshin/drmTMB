@@ -27,49 +27,53 @@ before reporting a result.
 
 A Gaussian **location-scale** model gives the response two formulas: one for
 its location `mu` (here, the expected response) and one for its scale `sigma`
-(here, the residual standard deviation, SD):
+(here, the residual standard deviation, SD). In this example, habitat and
+temperature change mean growth, and habitat also changes the residual SD:
 
 ```text
-y_i ~ Normal(mu_i, sigma_i^2)
-mu_i         = beta_0  + beta_1  x1_i
-log(sigma_i) = gamma_0 + gamma_1 x1_i
+growth_i ~ Normal(mu_i, sigma_i^2)
+mu_i         = beta_0  + beta_1 grassland_i + beta_2 temperature_i
+log(sigma_i) = gamma_0 + gamma_1 grassland_i
 ```
 
-`i` indexes observations, the `beta` coefficients belong to the `mu` formula
-`y ~ x1`, and the `gamma` coefficients belong to the `sigma` formula
-`sigma ~ x1`. The simulation below sets `beta = (0.2, 0.4)` and
-`gamma = (-0.4, 0.5)`:
+`i` indexes observations, `grassland_i` is 1 for grassland and 0 for forest,
+the `beta` coefficients belong to the `mu` formula, and the `gamma`
+coefficients belong to the `sigma` formula. The simulation below sets
+`beta = (1, 0.6, 0.4)` and `gamma = (-0.5, 0.45)`:
 
 ```r
 library(drmTMB)
 
 set.seed(1)
-dat <- data.frame(x1 = rnorm(80))
-dat$y <- rnorm(
-  80,
-  mean = 0.2 + 0.4 * dat$x1,
-  sd = exp(-0.4 + 0.5 * dat$x1)
+n <- 120
+dat <- data.frame(
+  habitat = factor(rep(c("forest", "grassland"), each = n / 2)),
+  temperature = rnorm(n)
 )
+mu <- 1 + 0.6 * (dat$habitat == "grassland") + 0.4 * dat$temperature
+sigma <- exp(-0.5 + 0.45 * (dat$habitat == "grassland"))
+dat$growth <- rnorm(n, mean = mu, sd = sigma)
 
 fit <- drmTMB(
-  drm_formula(y ~ x1, sigma ~ x1),
+  drm_formula(growth ~ habitat + temperature, sigma ~ habitat),
   family = gaussian(),
   data = dat
 )
 
 check_drm(fit)
-#> <drm_check: 15 checks>
-#> ok: 15; notes: 0; warnings: 0; errors: 0
+#> <drm_check: 16 checks>
+#> ok: 16; notes: 0; warnings: 0; errors: 0
 #> ... (one row per check, omitted here)
 
 summary(fit)
 #> <summary.drmTMB>
 #> estimator: ML
-#>                     estimate  std_error
-#> mu:(Intercept)     0.1177344 0.07444611
-#> mu:x1              0.2770564 0.06319075
-#> sigma:(Intercept) -0.5073711 0.07947806
-#> sigma:x1           0.5241616 0.07697847
+#>                          estimate  std_error
+#> mu:(Intercept)          0.9703459 0.07991617
+#> mu:habitatgrassland     0.5467444 0.15077857
+#> mu:temperature          0.4134070 0.07810551
+#> sigma:(Intercept)      -0.4851669 0.09128765
+#> sigma:habitatgrassland  0.4776546 0.12910105
 #> ... (fitted-sigma range, logLik, and convergence code omitted here)
 ```
 
@@ -78,19 +82,19 @@ errors, dropped rows, and fitted scales. A clean fit reports zero notes,
 warnings, and errors, as above; resolve any warning or error before reading
 estimates. In `summary(fit)`, `mu:` rows are the `beta` coefficients on the
 response scale and `sigma:` rows are the `gamma` coefficients on the log-SD
-scale. Each estimate here is within about two standard errors of the simulated
-value (80 observations). A positive `sigma:x1` means residual variation
-increases with `x1`; exponentiate it to report an SD ratio:
+scale. Each estimate here is within one standard error of its simulated value.
+A positive `sigma:habitatgrassland` means grassland growth is more variable
+than forest growth; exponentiate it to report an SD ratio:
 
 ```r
-sigma_x1 <- coef(fit, "sigma")["x1"]
-exp(sigma_x1)      # residual SD ratio per one-unit increase in x1: 1.69
-exp(2 * sigma_x1)  # residual variance ratio: 2.85
-head(sigma(fit))   # fitted residual SD for each observation
+sigma_habitat <- coef(fit, "sigma")["habitatgrassland"]
+exp(sigma_habitat)      # grassland / forest residual SD ratio: 1.61
+exp(2 * sigma_habitat)  # residual variance ratio: 2.60
+head(sigma(fit))        # fitted residual SD for each observation
 ```
 
 The [getting-started article](https://itchyshin.github.io/drmTMB/articles/drmTMB.html)
-walks through a larger example and the full `summary()` output.
+fits the same example and walks through the full `summary()` output.
 
 ## Parameter names
 

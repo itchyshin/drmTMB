@@ -17,7 +17,10 @@ DRModels.jl companion pages.
 
 `README.md` now opens with the pitch, then one runnable location-scale example
 with its equation, named symbols, and trimmed real output from `check_drm()`
-and `summary()`. The duplicated "Tiny example" block is gone. A five-row
+and `summary()`. By Shinichi's decision on the twin first examples, that
+example is the habitat-growth simulation (n = 120, `set.seed(1)`) used by the
+getting-started vignette, so both pages fit the same data; DRModels.jl is to
+align to it. The duplicated "Tiny example" block is gone. A five-row
 parameter-name table (formula name, plain-English name, meaning), an
 "If you already use lme4 or glmmTMB" section mapping `dispformula` to
 `sigma ~`, and a link to the comparison article follow. The install section
@@ -111,6 +114,7 @@ README (pkgdown home page) and the articles listed above.
 
 ## Known Limitations and Next Actions
 
-Aligning the first examples of `drmTMB` and DRModels.jl on identical data, and
-adding sleepstudy-style classic twins for Orthodont, Rail, Dyestuff, Pastes,
+DRModels.jl still needs to switch its first example to the habitat-growth data
+(n = 120, seed 1; cross-language RNGs differ, so the data must be shipped as a
+table). Adding sleepstudy-style classic twins for Orthodont, Rail, Dyestuff, Pastes,
 and grouseticks, are left for an owner decision.
