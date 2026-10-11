@@ -83,7 +83,13 @@
 #' @param weights Optional non-negative likelihood weights. These are row
 #'   log-likelihood multipliers, not known sampling variances. For
 #'   meta-analytic sampling variance or covariance, use [meta_V()] in the model
-#'   formula instead.
+#'   formula instead. With a missing-predictor model (`mi()` plus `impute`),
+#'   a row's weight multiplies its response term and its `mi()` prior term
+#'   once each, so an integer weight gives the same fit as duplicating the
+#'   row. A zero-weight row is dropped from both terms; when its predictor is
+#'   missing, that predictor is integrated out and the row contributes
+#'   nothing. Missing or non-finite weights are an error of class
+#'   `drmTMB_weights_invalid`. `engine = "julia"` refuses weights.
 #' @param control Optional list passed to [stats::nlminb()], or a
 #'   [drm_control()] object when optimizer settings and fitted-object storage
 #'   choices should be supplied together.
@@ -17927,16 +17933,23 @@ subset_likelihood_weights <- function(weights, keep, n_data, n_model) {
   out <- weights[keep]
   bad <- !is.finite(out) | is.na(out)
   if (any(bad)) {
-    cli::cli_abort(c(
-      "{.arg weights} must be finite and non-missing for all modelled rows.",
-      "x" = "After model-row filtering, {sum(bad)} weight value{?s} {?is/are} missing or non-finite."
-    ))
+    cli::cli_abort(
+      c(
+        "{.arg weights} must be finite and non-missing for all modelled rows.",
+        "x" = "After model-row filtering, {sum(bad)} weight value{?s} {?is/are} missing or non-finite.",
+        "i" = "Rows kept for a {.fn mi} predictor model count as modelled rows; drop a row from {.arg data} to leave it out, or give it weight 0."
+      ),
+      class = "drmTMB_weights_invalid"
+    )
   }
   if (any(out < 0)) {
-    cli::cli_abort(c(
-      "{.arg weights} must be non-negative.",
-      "x" = "After model-row filtering, {sum(out < 0)} weight value{?s} are negative."
-    ))
+    cli::cli_abort(
+      c(
+        "{.arg weights} must be non-negative.",
+        "x" = "After model-row filtering, {sum(out < 0)} weight value{?s} {?is/are} negative."
+      ),
+      class = "drmTMB_weights_invalid"
+    )
   }
   if (!any(out > 0)) {
     cli::cli_abort(c(

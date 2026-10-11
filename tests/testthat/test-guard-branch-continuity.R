@@ -205,6 +205,7 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   n_numeric <- sum(grepl("CppAD::CondExp", read_src("drm_numeric.h")))
   n_count <- sum(grepl("CppAD::CondExp", read_src("drm_count_kernels.h")))
   n_response <- sum(grepl("CppAD::CondExp", read_src("drm_response_kernels.h")))
+  n_mi_quad <- sum(grepl("CppAD::CondExp", read_src("drm_mi_quadrature.h")))
 
   # Arc D Design 1 adds three overflow-only direct-SD guards: two CondExpGt
   # calls in the shared helper and one CondExpGt fail-closed objective gate.
@@ -238,10 +239,82 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # #1462 adds four clamps in drm_student_log_density() (the lgamma branch,
   # the Stirling branch, the switch, and the kernel cap). Value continuity
   # across nu = 1e4 is test-student-large-nu.R. n_response is therefore 8L.
-  expect_equal(n_cpp, 30L)
+  # The mi() prior quadrature rewrite (#1476, #1477) removed the three
+  # prior_norm floors of the Beta, zero-one-Beta and Gamma branches from
+  # drmTMB.cpp (both-missing rows now use the exact prior mean; the paired
+  # test is "Beta mi() both-missing rows report the exact prior mean ..."
+  # below), so n_cpp = 27L. It adds five sites in drm_mi_quadrature.h: two
+  # bisection selects for the Beta posterior mode (the bracket only places
+  # the nodes; two Newton steps after it carry the derivative), one curvature
+  # floor at 1e-300 (active only at a degenerate posterior), and two selects
+  # for the cancellation-free Gamma mode root, whose branches are the same
+  # root written two ways (paired test: "Gamma mi() closed-form mode is
+  # smooth across the B = 0 branch switch" below).
+  # The nbinom2 x Gaussian mi() case-weight correction (#1459) adds two
+  # step caps (CondExpGt/CondExpLt) to its fixed-parameter Newton iteration;
+  # they only bound the step, leave the selected value unchanged inside the
+  # cap, and the fixed point is the analytic mode, so n_cpp = 29L.
+  expect_equal(n_cpp, 29L)
   expect_equal(n_numeric, 9L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)
+  expect_equal(n_mi_quad, 5L)
+})
+
+# ---------------------------------------------------------------------------
+# Site: Gamma mi() posterior-mode root (src/drm_mi_quadrature.h,
+# drm_mi_gamma_marginal). The mode x_hat is the positive root of
+# A x^2 + B x - k; it is written 2k / (B + D) for B >= 0 and
+# (D - B) / (2A) for B < 0, the same number in exact arithmetic. Class:
+# C-infinity by algebraic identity. Tested through the fitted TMB objective:
+# move the mi() slope beta_mu[x] across the value where B = 0 for one
+# missing-x row and require the objective and its gradient to be continuous.
+# ---------------------------------------------------------------------------
+test_that("Gamma mi() closed-form mode is smooth across the B = 0 branch switch", {
+  n <- 60
+  z <- seq(-1.5, 1.5, length.out = n)
+  mean_x <- exp(0.4 + 0.3 * z)
+  x <- mean_x * (1 + 0.2 * sin(seq_len(n)))
+  y <- 0.5 + 0.8 * x + 0.1 * cos(seq_len(n) / 3)
+  dat <- data.frame(y = y, z = z, x = x)
+  dat$x[c(7, 22, 41)] <- NA_real_
+  fit <- allow_nonconvergence(drmTMB(
+    bf(y ~ mi(x), sigma ~ 1),
+    data = dat,
+    impute = list(x = impute_model(x ~ z, family = Gamma(link = "log"))),
+    missing = miss_control(predictor = "model"),
+    control = drm_control(se = FALSE)
+  ))
+  par0 <- fit$obj$env$last.par.best
+  model <- fit$model$missing_predictor
+  row <- 7L
+  mu_idx <- which(names(par0) == "beta_mu")
+  slope_idx <- mu_idx[[model$mu_col]]
+  par_list <- fit$obj$env$parList(par0)
+  k <- exp(-2 * par_list$log_sigma_mi[[1L]])
+  theta <- exp(sum(model$X[row, ] * par_list$beta_mi)) / k
+  sd_y <- exp(par_list$beta_sigma[[1L]])
+  intercept <- par_list$beta_mu[[1L]]
+  # With mu = b0 + b1 * x and x0 the placeholder, r0 = y - b0, so
+  # B(b1) = 1/theta - b1 * (y - b0) / sd_y^2 crosses zero at b1 = sd_y^2 / (theta * (y - b0)).
+  b_cross <- sd_y^2 / (theta * (dat$y[[row]] - intercept))
+  expect_true(is.finite(b_cross))
+  at <- function(b1) {
+    par <- par0
+    par[slope_idx] <- b1
+    list(f = fit$obj$fn(par), g = as.numeric(fit$obj$gr(par)))
+  }
+  for (h in c(1e-4, 1e-6)) {
+    # A jump at the switch would make the step ACROSS b_cross much larger
+    # than an equal step on one side of it; for a smooth objective the two
+    # are about the same size.
+    p_m <- at(b_cross - h)
+    p_p <- at(b_cross + h)
+    p_pp <- at(b_cross + 3 * h)
+    expect_true(all(is.finite(c(p_m$f, p_p$f, p_pp$f, p_m$g, p_p$g, p_pp$g))))
+    expect_lt(abs(p_p$f - p_m$f), 2 * abs(p_pp$f - p_p$f) + 1e-9)
+    expect_lt(max(abs(p_p$g - p_m$g)), 2 * max(abs(p_pp$g - p_p$g)) + 1e-7)
+  }
 })
 
 # ---------------------------------------------------------------------------
@@ -472,18 +545,16 @@ test_that("beta_shape_floor: REPORT(alpha) is continuous at alpha_raw = 1e-8 fro
 })
 
 # ---------------------------------------------------------------------------
-# Site: prior_norm floor (src/drmTMB.cpp:1437-1438, byte-identical at
-# 1583-1584, 1764-1765, 1850-1851, 1955-1956, 2031-2032, 2119-2120,
-# 2213-2214 -- eight occurrences, all `CondExpGt(prior_norm, 1e-300,
-# prior_norm, 1e-300)`, verified identical via grep). Class: C0 only. As
-# above, both branches equal the constant exactly at the switch, so value
-# continuity holds by construction; a derivative jump to zero on the floored
-# side is expected and not asserted. Tested here through the actual
-# mi()-quadrature branch that computes prior_norm (both predictor and
-# response missing on the same row), reading the downstream REPORT(mi_x_full)
-# imputed value, which is what a user-facing bug would actually corrupt.
+# Site: both-missing rows of the Beta mi() branch. This used to be the
+# prior_norm floor (`CondExpGt(prior_norm, 1e-300, prior_norm, 1e-300)`): the
+# plug-in was a 15-node quadrature mean that underflowed for concentrated
+# priors. Since #1476 the Beta, zero-one-Beta and Gamma branches use the exact
+# prior mean for rows whose predictor and response are both missing, so the
+# reported value is alpha / (alpha + beta) for every log_sigma_mi, including
+# the steep region where the old normaliser crossed the floor. (The remaining
+# prior_norm floors in the other quadrature families are unchanged.)
 # ---------------------------------------------------------------------------
-test_that("prior_norm floor: REPORT(mi_x_full) stays finite and continuous as prior_norm crosses 1e-300", {
+test_that("Beta mi() both-missing rows report the exact prior mean across the old prior_norm floor", {
   set.seed(1)
   n <- 40
   z <- seq(-1.5, 1.5, length.out = n)
@@ -504,54 +575,29 @@ test_that("prior_norm floor: REPORT(mi_x_full) stays finite and continuous as pr
       optimizer = list(eval.max = 1, iter.max = 1)
     )
   ))
-  mp <- fit$model$missing_predictor
-  nodes <- mp$quad_nodes
-  weights <- mp$quad_weights
   target_row <- both_missing[[1]]
   z_row <- dat$z[[target_row]]
-
   par0 <- fit$obj$par
   beta_mi_idx <- which(names(par0) == "beta_mi")
   log_sigma_mi_idx <- which(names(par0) == "log_sigma_mi")
-  b0 <- unname(par0[beta_mi_idx[[1]]])
-  bz <- unname(par0[beta_mi_idx[[2]]])
+  eta <- par0[[beta_mi_idx[[1]]]] + par0[[beta_mi_idx[[2]]]] * z_row
+  eps <- 1e-12
+  mu <- eps + (1 - 2 * eps) * stats::plogis(eta)
 
-  # Mirror of the C++ prior_norm computation (src/drmTMB.cpp:1419-1432),
-  # used only to LOCATE the crossing coefficient; the actual continuity
-  # assertion below reads TMB's own REPORT(mi_x_full), not this mirror.
-  prior_norm_r <- function(log_sigma_mi) {
-    eta <- b0 + bz * z_row
-    eps <- 1e-12
-    mu <- eps + (1 - 2 * eps) * stats::plogis(eta)
-    phi <- 1 / exp(log_sigma_mi)^2
-    floor_ <- 1e-8
-    alpha <- pmax(mu * phi, floor_)
-    beta_ <- pmax((1 - mu) * phi, floor_)
-    log_dens <- lgamma(alpha + beta_) - lgamma(alpha) - lgamma(beta_) +
-      (alpha - 1) * log(nodes) + (beta_ - 1) * log(1 - nodes)
-    sum(weights * exp(log_dens))
-  }
-  root_fn <- function(ls) log(prior_norm_r(ls) + 1e-320) - log(1e-300)
-  target <- stats::uniroot(root_fn, c(-20, 5), tol = 1e-10)$root
-
-  # This region is hyper-exponentially steep in log_sigma_mi (the underlying
-  # beta density concentrates), so a coarse fixed-width grid can straddle the
-  # whole 0 -> nonzero transition inside a single step and look like a jump
-  # when it is not one. Zoom to a window narrow enough to resolve it: a real
-  # discontinuity stays a hard 2-level step no matter how much the grid is
-  # refined, whereas a steep-but-smooth transition resolves into a continuum
-  # of intermediate values.
-  win <- 0.035
-  grid <- seq(target - win, target + win, length.out = 41)
+  grid <- seq(-20, 5, length.out = 101)
   reported <- vapply(grid, function(ls) {
     par <- par0
     par[log_sigma_mi_idx] <- ls
     fit$obj$report(par)$mi_x_full[[target_row]]
   }, numeric(1))
+  expected <- vapply(grid, function(ls) {
+    phi <- exp(-2 * ls)
+    alpha <- max(mu * phi, 1e-8)
+    beta_ <- max((1 - mu) * phi, 1e-8)
+    alpha / (alpha + beta_)
+  }, numeric(1))
   expect_true(all(is.finite(reported)))
-  expect_true(all(diff(reported) >= -1e-12)) # monotone in this window, no oscillation
-  n_interior <- sum(reported > min(reported) + 1e-15 & reported < max(reported) - 1e-15)
-  expect_gt(n_interior, 10) # a real continuum of intermediate values, not a 2-level step
+  expect_equal(reported, expected, tolerance = 1e-12)
 })
 
 # ---------------------------------------------------------------------------

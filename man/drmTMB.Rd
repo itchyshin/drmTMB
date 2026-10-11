@@ -42,7 +42,13 @@ bivariate Gaussian engine also accepts
 \item{weights}{Optional non-negative likelihood weights. These are row
 log-likelihood multipliers, not known sampling variances. For
 meta-analytic sampling variance or covariance, use \code{\link[=meta_V]{meta_V()}} in the model
-formula instead.}
+formula instead. With a missing-predictor model (\code{mi()} plus \code{impute}),
+a row's weight multiplies its response term and its \code{mi()} prior term
+once each, so an integer weight gives the same fit as duplicating the
+row. A zero-weight row is dropped from both terms; when its predictor is
+missing, that predictor is integrated out and the row contributes
+nothing. Missing or non-finite weights are an error of class
+\code{drmTMB_weights_invalid}. \code{engine = "julia"} refuses weights.}
 
 \item{control}{Optional list passed to \code{\link[stats:nlminb]{stats::nlminb()}}, or a
 \code{\link[=drm_control]{drm_control()}} object when optimizer settings and fitted-object storage

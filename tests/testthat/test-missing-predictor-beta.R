@@ -34,8 +34,6 @@ manual_beta_mi_loglik <- function(fit) {
   mu_observed <- as.vector(fit$model$X$mu %*% beta_mu)
   eta_mi <- as.vector(model$X %*% beta_mi)
   mu_mi <- drmTMB:::drm_beta_missing_predictor_inverse_link(eta_mi)
-  nodes <- model$quad_nodes
-  weights <- model$quad_weights
   x <- dat$cover
   out <- numeric(nrow(dat))
 
@@ -60,18 +58,23 @@ manual_beta_mi_loglik <- function(fit) {
     if (!observed_y[[row]]) {
       next
     }
-    log_terms <- log(weights) +
-      stats::dbeta(
-        nodes,
-        shape1 = mu_mi[[row]] / sigma_mi^2,
-        shape2 = (1 - mu_mi[[row]]) / sigma_mi^2,
-        log = TRUE
-      )
-    mu_node <- mu_observed[[row]] + beta_cover * (nodes - x_base[[row]])
-    log_terms <- log_terms +
-      stats::dnorm(dat$y[[row]], mu_node, sigma, log = TRUE)
-    max_log <- max(log_terms)
-    out[[row]] <- max_log + log(sum(exp(log_terms - max_log)))
+    # Independent integrate() oracle for the row marginal (#1476); the TMB
+    # rule is a posterior-centred Gauss-Hermite rule on logit(x).
+    shape1 <- mu_mi[[row]] / sigma_mi^2
+    shape2 <- (1 - mu_mi[[row]]) / sigma_mi^2
+    out[[row]] <- mi_reference_log_marginal(
+      function(xx) {
+        stats::dbeta(xx, shape1 = shape1, shape2 = shape2, log = TRUE) +
+          stats::dnorm(
+            dat$y[[row]],
+            mu_observed[[row]] + beta_cover * (xx - x_base[[row]]),
+            sigma,
+            log = TRUE
+          )
+      },
+      0,
+      1
+    )
   }
   sum(out)
 }

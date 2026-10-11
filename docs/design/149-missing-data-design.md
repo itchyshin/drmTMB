@@ -534,6 +534,112 @@ separate MD7b, MD7c, and MD7e routes.
 | MR-T6 count-mixture response masks | Implemented: fixed-effect ZIP, ZINB2, and hurdle NB2 each skip the complete zero-or-positive mixture contribution for a missing response. Separate missing-zero and missing-positive parity checks, zero-versus-positive sentinel retapes, and exact fixed-seed 25% MCAR recovery cover every fitted mixture dpar without inheriting evidence from a base family. | These are fixed-effect masking slices only. Do not inherit evidence to random or structured mixture routes, REML, response plus `mi()`, intervals, or coverage. |
 | MD11 `imputed()` route-conditional standard errors | Implemented: every MD6a–MD8c non-Gaussian route already stores a normalized posterior probability vector or matrix over its finite-state or quadrature grid, and `predictor$value` at the missing rows is already the posterior mean of that grid. `drm_imputed_route_conditional_sd()` (`R/missing-data.R`) computes the posterior standard deviation `sqrt(sum(p * (x - mean)^2))` directly from that stored grid, with no new TMB computation, and `imputed()` reports it as `std_error`. This corrects an earlier read that beta-binomial's denominator was not persisted: `drm_missing_predictor_metadata()` already stores the full per-row `trials` vector, so beta-binomial's `success_support` counts rescale to the reported proportion. Only unordered `categorical()` values stay `NA`: the reported value is a mode over unordered nominal codes with no metrically meaningful variance. `imputed()`'s `uncertainty_status` column gained one value, `"route_conditional_se_unavailable"`, computed by a new wrapper `drm_imputed_uncertainty_status()` that leaves `drm_standard_error_status()` (the fixed-effect coefficient table's status function, `R/methods.R`) untouched. Precedence: the fit-level status wins outright when it is not `"ok"` (this also withholds `std_error`, since the route-conditional computation does not itself require `sdreport()` and must not disagree with a status that says standard errors were skipped); when the fit-level status is `"ok"`, a missing row without a finite `std_error` is relabelled `"route_conditional_se_unavailable"` instead of `"ok"`. | Grouped and structured non-Gaussian predictor models, multiple missing predictors, and simulation-based imputation summaries remain outside this slice; it only changes what `imputed()` reports for already-fitted routes. |
 
+## Continuous mi() Prior Quadrature and Case Weights
+
+Reader: a developer changing the `mi()` branches of `src/drmTMB.cpp` or the
+post-fit summaries in `R/missing-data.R`. Issues: #1459, #1476, #1477.
+
+### Quadrature for Beta, zero-one Beta and Gamma predictors
+
+A row with a missing predictor `x` and an observed Gaussian response
+contributes the marginal
+
+`m_i = integral p(x) N(y_i | mu_i + beta (x - x0_i), sd_i) dx`.
+
+The original rules were fixed: 15-node Gauss-Legendre on (0, 1) for Beta and
+zero-one Beta, 20-node Gauss-Laguerre in `t = x / scale` for Gamma. Neither
+adapted to the prior. The Beta prior mass `sum(w_q p(x_q))` ranged from 0.125
+to 1.62 (#1476); the Gamma mass collapsed to 5e-4 at shape 100 and to 1e-167
+at shape 400, so a CV of 10% gave a row log-likelihood error of -12.8 and the
+optimiser pushed `sigma_mi` towards CV ~0.125 (#1477).
+
+Both are now integrated on a transformed scale `z` (`logit x` for Beta, `log x`
+for Gamma) with a 40-node Gauss-Hermite rule centred at the mode of the row's
+posterior `p(x | y_i)` and scaled by its curvature:
+
+`log m_i = logsumexp_q [log w_q + log sqrt(pi) + h_q^2 + log(sqrt(2) s) + log p_z(z_hat + sqrt(2) s h_q) + log f(y_i | x_q)]`.
+
+This is an exact change of variables, so any centre and scale give a
+consistent rule; the mode and curvature only control accuracy. The Gamma mode
+is the positive root of a quadratic (curvature `k + lambda beta^2 x^2`), so the
+rule is exact-centred. The Beta mode is bracketed by bisection on the score
+(the bracket is analytic and always contains a sign change) and polished by two
+Newton steps so its derivative is carried by AD. All operations are elementary;
+`qbeta()`/`qgamma()` were rejected because TMB's atomic derivatives for them
+were wrong or NaN at the edges in a probe on TMB 1.9.10.
+
+Measured accuracy against an `integrate()` oracle (log-marginal error, nats,
+40 nodes): Gamma <= 1e-10 for shape >= 0.5 and <= 1e-6 down to shape 0.11
+(CV 3); Beta <= 2e-6 when both shapes are >= 2, <= 5e-4 when both are >= 1
+and <= 3e-3 when both are >= 0.5 (the `(1 - x)^(b - 1)` boundary behaviour for
+shapes between 1 and 2 limits a Gaussian-type rule). J- or
+U-shaped Beta priors (a shape well below 1) have a heavy tail on the logit
+scale that a Gaussian-centred rule under-covers. On a grid of 195 cells
+(mean 0.02 to 0.9, prior SD multiplier 0.01 to 3, response SD 0.01 to 0.5;
+33 more extreme cells were dropped because the `integrate()` reference itself
+failed), cells with a shape below 1 had median error 1e-9, 90th percentile
+0.16 and worst 1.8 nats. Across all 195 cells the new rule was less accurate
+than the old fixed rule in 2 cells, by at most 0.0024 nats. This is a known
+limit, not a silent one: it is recorded here and in `src/drm_mi_quadrature.h`.
+
+Rows whose predictor and response are both missing use the exact prior mean
+(`alpha / (alpha + beta)`, `zoi coi + (1 - zoi) alpha / (alpha + beta)`, or the
+Gamma mean) instead of a quadrature mean, which removes the old `prior_norm`
+underflow floor for these three families. The post-fit summaries report
+self-normalised prior-rule probabilities for those rows; their weights sum to
+one exactly and every log-weight is finite, including shapes below one.
+
+### Case weights
+
+A row weight `w_i` means the row stands for `w_i` copies. It multiplies the
+row's response term and its `mi()` prior term once each, so an integer weight
+gives the same fit as duplicating the row, and a zero weight removes the row.
+
+- Quadrature and finite-state families (all `mi_family != 0`): `w_i` multiplies
+  the combined log marginal (`logsumexp` over nodes or states), never the
+  leaves. Observed-predictor rows multiply the prior log-density by `w_i`.
+- Gaussian predictor with a Gaussian response (`mi_family == 0`, latent
+  `x_miss` integrated by the Laplace approximation): an observed predictor's
+  prior term takes `w_i`. A missing predictor keeps the unweighted joint
+  `log f(y_i | x) + log p(x)` and the row adds `(w_i - 1) log m_i`, where `m_i`
+  is the analytic Gaussian marginal (mean with `x` replaced by its prior mean,
+  variance `sd_i^2 + beta^2 sigma_mi^2`, both missing predictors when two are
+  latent). The Laplace step is exact for this Gaussian joint, so the row
+  contributes exactly `w_i log m_i`; the latent curvature stays that of one
+  observation, so `imputed()` standard errors are those of one copy; `w_i = 0`
+  needs no special case. Weighting the joint by `w_i` instead (the first idea)
+  would give `-0.5 log(w_i H_i)` in place of `-(w_i / 2) log H_i` and move the
+  MLE.
+- Gaussian predictor with an nbinom2 response (`model_type == 7`): `m_i` has
+  no closed form, so the row uses the same device as the Gaussian route: the
+  latent joint (prior and response) stays UNWEIGHTED, and the row adds
+  `(w_i - 1) * log m_hat_i`, where `m_hat_i` is the Laplace marginal computed
+  from fixed parameters only: 12 damped Newton steps on the concave
+  `l(x) = log f(y | eta0 + beta (x - x0)) + log N(x; mu_x, s_x)` from the prior
+  mean, then `l(x_hat) + 0.5 log 2 pi - 0.5 log H(x_hat)`. Nothing in the
+  correction depends on `x_miss`, so the inner mode, curvature and `imputed()`
+  standard errors are those of one copy for every weight (an earlier version
+  put `0.5 (1 - w)(log H(x) - log 2 pi) + 0.5 log w` inside the latent
+  problem; its x-dependent term dominated for `w < 1`, giving slope 0.05
+  instead of 1.17 at weight 1e-6 on 14 rows, and was removed). The inner
+  Laplace equals `log m_hat_i` at the mode, so the row contributes
+  `w_i * log m_hat_i`: an integer weight matches duplication to the Laplace
+  tolerance, `w = 0` drops the row, a constant weight leaves the MLE
+  unchanged, and the cost is 12 extra evaluations per weighted latent row.
+- Missing or non-finite weights on any modelled row (rows kept for `mi()`
+  included) are an error of class `drmTMB_weights_invalid`.
+- The post-fit posterior of a missing predictor does not depend on the weight:
+  each copy has the same posterior. `R/missing-data.R` previously multiplied
+  the likelihood by the weight inside these posteriors; that disagreed with
+  TMB and was removed for every family.
+- `predict()` uses the conditional predictor values, which do not depend on
+  the weight, and `simulate()` draws one value per row from the row's
+  distribution, which is the same for every copy; both honour the weights.
+- `engine = "julia"` refuses a weighted `mi()` fit with class
+  `drmTMB_julia_mi_weights_unsupported`, before any Julia call, because
+  DRModels' joint missing-predictor bridge has no weights slot
+  (`src/joint_missing_bridge.jl`).
+
 ## Testing Requirements
 
 Every implementation slice needs tests before it can be called fitted support.
@@ -600,8 +706,9 @@ states. It includes rows where the response is also missing and boundary tests
 for zero, negative, non-numeric, and grouped predictor models.
 
 MD8b has the same independent likelihood check for positive continuous Gamma
-predictors, using deterministic Gauss-Laguerre quadrature under the fitted
-Gamma mean-CV predictor model. It includes rows where the response is also
+predictors, using deterministic quadrature under the fitted Gamma mean-CV
+predictor model (a posterior-centred Gauss-Hermite rule on log x since #1477;
+originally a fixed Gauss-Laguerre rule). It includes rows where the response is also
 missing and boundary tests for zero, non-numeric, non-log-link, and grouped
 predictor models.
 
