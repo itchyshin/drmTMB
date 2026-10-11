@@ -222,11 +222,11 @@ test_that("anova() refuses an engine = 'julia' fit with drmTMB's own message", {
     stats::anova(stub),
     "not implemented for <drmTMB_julia> fits"
   )
-  # The native engine's refusal is unchanged, so the message is engine-shaped
-  # but the behaviour is not: neither engine offers an anova LRT.
+  # The native engine offers an LRT table (#1240); a single fit has nothing to
+  # compare it with, so it asks for a second one.
   expect_error(
     stats::anova(drm_mc_fit(bf(y ~ x, sigma ~ 1), drm_mc_fixture_2())),
-    "not implemented for <drmTMB> fits"
+    "at least two nested"
   )
 })
 
