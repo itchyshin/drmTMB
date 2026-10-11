@@ -23,7 +23,7 @@ mi() Prior Quadrature and Case Weights".
   curvature (hence `imputed()` standard errors) stays that of one copy.
 - Gaussian `mi()` predictor, nbinom2 response (model_type 7): the latent
   joint stays unweighted and the row adds `(w - 1) * log m_hat` with `m_hat`
-  the Laplace marginal from fixed parameters (damped Newton in-template). An
+  the Laplace marginal from fixed parameters (20-step backtracking Newton in-template). An
   adversarial review of the first version (a curvature term inside the latent
   problem) showed it biased the slope towards 0 for weights below 1; that
   version was replaced.
@@ -67,8 +67,8 @@ tail. On a 195-cell grid, cells with a shape below 1 had median error 1e-9,
 90th percentile 0.16 and worst 1.8 nats. The new rule was less accurate than
 the old fixed rule in 2 of the 195 cells, by at most 0.0024 nats. Shapes
 between 1 and 2 are accurate to about 5e-4. The nbinom2 weighted route matches
-duplication to the Laplace tolerance of the fit, not exactly, and costs 12
-extra evaluations per weighted latent row.
+duplication to the Laplace tolerance of the fit, not exactly, and costs a
+20-step Newton per weighted latent row.
 
 ## 4. Files Touched
 

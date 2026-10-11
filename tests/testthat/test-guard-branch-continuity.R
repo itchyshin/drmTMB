@@ -251,10 +251,12 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # root written two ways (paired test: "Gamma mi() closed-form mode is
   # smooth across the B = 0 branch switch" below).
   # The nbinom2 x Gaussian mi() case-weight correction (#1459) adds two
-  # step caps (CondExpGt/CondExpLt) to its fixed-parameter Newton iteration;
-  # they only bound the step, leave the selected value unchanged inside the
-  # cap, and the fixed point is the analytic mode, so n_cpp = 29L.
-  expect_equal(n_cpp, 29L)
+  # step cap, backtracking acceptance (CondExpGt on l(x)) and eta clamp
+  # (CondExpGt/CondExpLt) to its fixed-parameter backtracking Newton
+  # iteration; they only bound or accept the step, leave the selected value
+  # unchanged away from the cap, and the fixed point is the analytic mode, so
+  # n_cpp = 36L.
+  expect_equal(n_cpp, 36L)
   expect_equal(n_numeric, 9L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)
