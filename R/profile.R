@@ -95,12 +95,15 @@
 #' @param R Number of parametric-bootstrap refits when
 #'   `method = "bootstrap"`.
 #' @param seed Optional seed for bootstrap simulation.
-#' @param parallel Profile or bootstrap backend: `"none"` or Unix
-#'   `"multicore"`. For profile intervals, targets or `newdata` rows are split
+#' @param parallel Profile or bootstrap backend: `"none"`, Unix
+#'   `"multicore"`, or socket `"cluster"` (PSOCK, any platform including
+#'   Windows). For profile intervals, targets or `newdata` rows are split
 #'   across workers. For bootstrap intervals, refits are split across workers.
+#'   Every backend returns the serial result; see [drmTMB-parallel].
 #' @param workers Requested profile or bootstrap workers. If `NULL` and
-#'   `parallel = "multicore"`, `drmTMB` uses about half the detected CPU cores.
-#'   Multicore execution is capped at the number of jobs and at 10 workers.
+#'   `parallel` is not `"none"`, `drmTMB` uses about half the detected CPU
+#'   cores. Parallel execution is capped at the number of jobs and at 10
+#'   workers.
 #'   Keep BLAS and OpenMP threads at one while workers run; see
 #'   [drmTMB-parallel].
 #' @param refit_control Optional [drm_control()] object used for bootstrap
@@ -765,9 +768,9 @@ profile_targets <- function(object, ready_only = FALSE) {
 #' @param parallel Parallel backend for profiling several targets. `"none"`
 #'   (the default) profiles targets one after another. `"multicore"` profiles
 #'   independent targets in forked worker processes with
-#'   [parallel::mclapply()]; it is available on Unix-alikes only, and the
-#'   returned curves are identical to the serial result because every target
-#'   starts from the same pinned optimum. A single target is always profiled
+#'   [parallel::mclapply()] on Unix-alikes; `"cluster"` uses socket (PSOCK)
+#'   workers on any platform. The returned curves are identical to the serial
+#'   result because every target starts from the same pinned optimum. A single target is always profiled
 #'   serially. Keep `TMB::openmp()` and BLAS threads at one when using
 #'   `"multicore"`; see [drmTMB-parallel].
 #' @param workers Optional positive whole number of worker processes for

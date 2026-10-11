@@ -271,9 +271,8 @@ drm_control <- function(
     cli::cli_abort("{.arg multi_start} must be a single whole number >= 1.")
   }
   multi_start <- as.integer(multi_start)
-  if (!identical(parallel, "none")) {
-    workers <- resolve_parallel_workers(workers, parallel)
-  } else if (!is.null(workers)) {
+  if (!is.null(workers)) {
+    # Validate now; NULL stays NULL and is resolved when the starts run.
     workers <- resolve_parallel_workers(workers, "multicore")
   }
   if (!is.null(fallback_optimizer)) {

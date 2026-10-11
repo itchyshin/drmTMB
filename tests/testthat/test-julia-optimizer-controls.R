@@ -207,7 +207,9 @@ julia_control_nondefault_probes <- function() {
     newton_polish = drm_control(newton_polish = FALSE),
     multi_start = drm_control(multi_start = 5L),
     fallback_optimizer = drm_control(fallback_optimizer = "BFGS"),
-    start = drm_control(start = list(`fixef:mu:(Intercept)` = 0.5))
+    start = drm_control(start = list(`fixef:mu:(Intercept)` = 0.5)),
+    parallel = drm_control(parallel = "cluster"),
+    workers = drm_control(workers = 2L)
   )
 }
 
