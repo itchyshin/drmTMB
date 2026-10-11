@@ -133,7 +133,9 @@ objective result is kept. Opt-in robustness for weakly identified models;
 with both scale and zero-inflation predictors (for example \code{sigma ~ ...}
 together with \code{zi ~ ...} on Poisson or \code{nbinom2()} families) can admit
 multiple local optima; when a fit looks unstable or convergence
-checks flag a boundary, try \code{multi_start > 1} before changing the model.}
+checks flag a boundary, try \code{multi_start > 1} before changing the model.
+The starts run one after another on one core; see \link{drmTMB-parallel} for
+the package's thread and parallel-job policy.}
 
 \item{fallback_optimizer}{\code{NULL} (default) or one \code{\link[stats:optim]{stats::optim()}} method
 (\code{"BFGS"}, \code{"L-BFGS-B"}, \code{"Nelder-Mead"}, \code{"CG"}). When set, and no

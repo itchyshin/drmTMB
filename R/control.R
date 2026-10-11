@@ -133,6 +133,8 @@
 #'   together with `zi ~ ...` on Poisson or `nbinom2()` families) can admit
 #'   multiple local optima; when a fit looks unstable or convergence
 #'   checks flag a boundary, try `multi_start > 1` before changing the model.
+#'   The starts run one after another on one core; see [drmTMB-parallel] for
+#'   the package's thread and parallel-job policy.
 #' @param fallback_optimizer `NULL` (default) or one [stats::optim()] method
 #'   (`"BFGS"`, `"L-BFGS-B"`, `"Nelder-Mead"`, `"CG"`). When set, and no
 #'   `nlminb()` preset converges, `drmTMB()` tries this optimizer as a final
