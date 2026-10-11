@@ -1241,6 +1241,9 @@ profile_controls_label <- function(args) {
 # atanh round-trips stay finite. This must match the guard used by rho_response()
 # and guarded_correlation_link() (methods.R) so the forward link and its inverse
 # agree; the DRM.jl twin must mirror the same value (issue #713.6).
+# Random-effect correlation targets use DRM_RE_CORR_GUARD (methods.R, 0.99999999,
+# raised with src/drmTMB.cpp in #1190); DRM_CORR_GUARD is the residual/phylo
+# guard.
 DRM_CORR_GUARD <- 0.999999
 
 profile_transform_values <- function(values, target) {
@@ -1250,7 +1253,7 @@ profile_transform_values <- function(values, target) {
     ordered_cutpoint = values,
     exp = exp(values),
     plogis = stats::plogis(values),
-    tanh = DRM_CORR_GUARD * tanh(values),
+    tanh = DRM_RE_CORR_GUARD * tanh(values),
     rho12_tanh = rho_response(values),
     values
   )
@@ -1784,7 +1787,7 @@ drm_profile_targets <- function(object) {
         } else {
           guarded_correlation_link(
             unname(values[[i]]),
-            guard = DRM_CORR_GUARD
+            guard = DRM_RE_CORR_GUARD
           )
         },
         scale = "response",
@@ -4675,7 +4678,7 @@ profile_transform_interval <- function(interval, target) {
     linear_predictor = interval,
     exp = exp(interval),
     plogis = stats::plogis(interval),
-    tanh = DRM_CORR_GUARD * tanh(interval),
+    tanh = DRM_RE_CORR_GUARD * tanh(interval),
     rho12_tanh = rho_response(interval),
     interval
   )
@@ -4687,7 +4690,7 @@ profile_transform_newdata_interval <- function(interval, object, dpar, offset) {
     drm_dpar_link(object, dpar),
     log = exp(eta_interval),
     atanh_guarded = rho_response(eta_interval),
-    atanh_re_guarded = rho_response(eta_interval, guard = DRM_CORR_GUARD),
+    atanh_re_guarded = rho_response(eta_interval, guard = DRM_RE_CORR_GUARD),
     cli::cli_abort(
       "Internal error: no response-scale profile transformation for {.val {dpar}}."
     )
@@ -4759,7 +4762,7 @@ profile_registry_cor_targets <- function(object) {
       link_estimate = if (is_unstructured_corr) {
         NA_real_
       } else {
-        guarded_correlation_link(estimate, guard = DRM_CORR_GUARD)
+        guarded_correlation_link(estimate, guard = DRM_RE_CORR_GUARD)
       },
       scale = "response",
       transformation = if (is_unstructured_corr) {

@@ -404,3 +404,42 @@ test_that("a native REML fit compared with a julia ML fit warns from either side
   expect_warning(stats::AIC(tmb_reml, julia_ml), class = "drmTMB_ic_reml_warning")
   expect_warning(stats::AIC(julia_ml, tmb_reml), class = "drmTMB_ic_reml_warning")
 })
+
+test_that("a native ML fit compared with a julia REML fit warns in both orders (#1498 review)", {
+  # Pins the native-first filter in drm_warn_information_criterion(): the guard
+  # must read julia fits that arrive through a native AIC.drmTMB()/BIC.drmTMB()
+  # call, otherwise the native ML fit alone hides the REML fit from the guard.
+  dat <- drm_mc_fixture_1()
+  tmb_ml <- drm_mc_fit(bf(y ~ x, sigma ~ z), dat)
+  julia_reml <- drm_mc_stub_julia_fit("REML", nobs = nrow(dat))
+  expect_warning(stats::AIC(tmb_ml, julia_reml), class = "drmTMB_ic_reml_warning")
+  expect_warning(stats::BIC(tmb_ml, julia_reml), class = "drmTMB_ic_reml_warning")
+  expect_warning(stats::AIC(julia_reml, tmb_ml), class = "drmTMB_ic_reml_warning")
+})
+
+test_that("the REML fixed-effect signature ignores the engines' dpar block order (#1498 review)", {
+  # Native fits list bivariate blocks as mu1, mu2, sigma1, sigma2, rho12;
+  # engine = "julia" fits come out of split() alphabetically.
+  mk <- function(order) {
+    blocks <- list(
+      mu1 = c("(Intercept)" = 0, x = 0), mu2 = c("(Intercept)" = 0, x = 0),
+      sigma1 = c("(Intercept)" = 0), sigma2 = c("(Intercept)" = 0),
+      rho12 = c("(Intercept)" = 0)
+    )[order]
+    fit <- drm_mc_stub_julia_fit("REML")
+    fit$coefficients <- blocks
+    fit
+  }
+  native_order <- mk(c("mu1", "mu2", "sigma1", "sigma2", "rho12"))
+  julia_order <- mk(c("mu1", "mu2", "rho12", "sigma1", "sigma2"))
+  expect_identical(
+    drmTMB:::drm_ic_fixed_effect_signature(native_order),
+    drmTMB:::drm_ic_fixed_effect_signature(julia_order)
+  )
+  # Identical fixed effects under REML stay silent whatever the block order ...
+  expect_no_warning(stats::AIC(native_order, julia_order))
+  # ... and a genuinely different mean structure still warns.
+  smaller <- mk(c("mu1", "mu2", "rho12", "sigma1", "sigma2"))
+  smaller$coefficients$mu2 <- c("(Intercept)" = 0)
+  expect_warning(stats::AIC(native_order, smaller), class = "drmTMB_ic_reml_warning")
+})

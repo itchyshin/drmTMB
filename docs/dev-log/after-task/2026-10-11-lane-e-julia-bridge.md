@@ -60,6 +60,80 @@ long as that refusal keys on the same flag.
 cross-family staggered NAs, structured `response = "drop"`, q2 refusal of
 incomplete rows, and a recorded complete-case count for `check_drm()`.
 
+## Added after owner decisions and review (2026-10-11, later)
+
+**#1190, settled by the owner.** The residual `rho12` guard in `src/drmTMB.cpp`
+stays `0.999999`. The Julia bridge back-transform is aligned to it:
+`drm_julia_residual_rho12_corpair()` now uses
+`guarded_correlation_link(rho, guard = 0.999999)`, where it used `atanh(rho)`
+with a `1 - 1e-12` clamp. The random-effect correlation guards are raised from
+`0.999999` to `0.99999999` at the four families `rho_mu_re`, `rho_sigma_re`,
+`rho_mu_sigma_re`, and `rho_mu_group` (17 sites in `src/drmTMB.cpp`).
+Phylogenetic guards (`rho_phylo`, `rho_node`, `rho_block`, `rho_phylo_group`)
+and the unguarded covariance-block partial correlations are unchanged.
+
+R sites changed to the new `DRM_RE_CORR_GUARD <- 0.99999999` (defined in
+`R/methods.R`), so R and TMB report the same response-scale correlation:
+`rho_response()` callers for `atanh_re_guarded` and the `tanh` delta-method
+derivative (`R/methods.R`), the `atanh_re_guarded` inverse-link derivative
+(`R/predict-parameters.R`), five `DRM_CORR_GUARD` uses in `R/profile.R`
+(all random-effect targets; the lane-C owner approved this minimal edit), and
+the random-effect correlation reconstruction in `R/drmTMB.R`
+(`split_tmb_corpars()`, `modelled_corpair_values()`,
+`transform_mu_random_effects()` and the two sigma/mu-sigma transforms). The
+test `test-re-correlation-guard.R` checks that R's `rho_response()` and
+`split_tmb_corpars()` equal TMB's reported `rho_mu_re` at `eta` from -30 to 30.
+
+Evidence on `nlme::Soybean` and `nlme::Loblolly` (the issue's boundary fits;
+exact ML from `lme4` and DRModels.jl is `-949.534104140` and `-207.487513730`):
+
+| fit | `main` logLik | this branch | gap before | gap after |
+| --- | --- | --- | --- | --- |
+| Soybean | -949.534171655 | -949.534104819 | 6.75e-5 | 6.8e-7 |
+| Loblolly | -207.487516019 | -207.487513756 | 2.29e-6 | 2.6e-8 |
+
+The branch reaches `1e-8` on Loblolly but not on Soybean. The shortfall is
+proportional to `1 - guard`, so `0.99999999` leaves `6.8e-7`; a `1e-8` match on
+Soybean needs a guard near `1 - 1e-10`. That is the owner's call and is listed
+in the PR body. The likelihood-evidence question (boundary fits below `lme4`)
+otherwise stays a separate follow-up.
+
+**Review items on #1507.** The stale `parity-matrix.md` line citations are
+regenerated with `tools/write-parity-matrix.R` at the pinned DRModels.jl commit
+`da8b3f87` (it needs a UTF-8 locale); `test-parity-matrix.R` now runs its
+"regenerates byte-identically" test instead of skipping it, and it passes. The
+native-first `AIC()`/`BIC()` order is pinned by a test that fails if the
+pre-filter in `drm_information_criterion()` is restored (checked by mutation).
+`drm_ic_fixed_effect_signature()` now sorts dpar block names, so identical
+bivariate fixed effects no longer trigger a false REML warning across engines
+(native lists `mu1, mu2, sigma1, sigma2, rho12`; the bridge sorts alphabetically).
+
+**#1521 item 1 (Windows `objective_at()` gap), analysis only, no code change.**
+Not reproduced on Linux: `objective_at()` and `-logLik()` agree to `3e-9`. The
+`phylo_penalty` is `0` here, so the penalty is not the cause. The inner Laplace
+objective is start-independent to `6e-9` (cold start, warm start, and a start
+shifted by 0.5 on all 126 random effects), so warm-start sensitivity is not the
+cause on Linux either. The Windows numbers in #1521 are informative:
+`objective_at()` gave `123.649519`, within `4e-6` of this machine's `123.649523`,
+while Windows' stored `-logLik` is `123.649469`, `5.4e-5` lower than both. So on
+Windows the stored `opt$objective` is not reproducible by re-evaluating
+`fn(opt$par)`, which points at how the optimizer path (multistart selection or
+the Newton polish in `drm_newton_polish()`) pairs `par` with `objective`, not at
+`objective_at()` itself. One Windows run discriminates: print `fit$opt$objective`,
+`fn(fit$opt$par)` after `drm_pin_tmb_object_to_optimum()`, the same call from a
+cold inner start, `max(abs(gr(fit$opt$par)))`, and `fit$optimizer_attempts`. If
+`fn(opt$par)` from the pinned state equals `123.649519`, a fix that re-anchors
+`opt$objective <- fn(opt$par)` after the polish makes the stored `logLik`
+re-evaluable by construction. It would shift stored logLik values by about `1e-9`
+on Linux and touches the fit core in `R/drmTMB.R`, so it needs a Windows
+confirmation first. The tolerance is not loosened.
+
+**Not done here.** DRModels.jl #1057 matches the animal-model `A` by labels. The
+bridge sends `A` with `dimnames` removed (`R/julia-bridge.R`, structured route),
+so bridged animal fits will log the one-time "unlabelled A" warning. Sending the
+`dimnames` as `ids =` needs the keyword name from DRModels.jl #1057, which is not
+on its `main` yet, so it is a follow-up.
+
 ## Needs an owner decision
 
 **#1190 (rho12 guard constants 0.999999, 0.99999999, 1 - 1e-12).** The issue
