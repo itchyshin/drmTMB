@@ -34,6 +34,29 @@
 
 ## New features
 
+* `confint()` and `profile()` accept `parallel = "cluster"`, a socket
+  (PSOCK) backend that works on every platform, including Windows. Workers
+  load the same installed `drmTMB` build, and TMB re-tapes the shipped fit on
+  first use, so results equal the serial run apart from elapsed time. Four
+  profile targets on four workers took 6.5 s against 11.1 s serially; the
+  backend costs about a second to start (#1236).
+* `drm_control()` gains `parallel` and `workers` for the starts of
+  `multi_start` only; a single fit still runs on one core (#1248, #1254). On
+  a Gaussian location-scale fit with random effects in both parts, four
+  starts took 1.95 s with `"multicore"` and 3.24 s with `"cluster"`, against
+  4.80 s serially. Parallel starts all begin from the same initial TMB
+  state, so random-effect estimates agree with the serial run to about
+  `1e-7`; fixed-effect fits are identical. Bootstrap refits never start
+  their own parallel multi-start inside parallel bootstrap workers.
+* `simulate()` stays serial after a benchmark: per-draw workers were slower
+  than the vectorised draw even at 10,000 rows and 500 draws (#1247).
+* Internal retained-bootstrap shards (`drm_bootstrap_shard()`,
+  `drm_bootstrap_combine()`, `drm_bootstrap_ledger()`) keep every attempted
+  refit with its replicate seed and status, draw each replicate from its own
+  L'Ecuyer-CMRG stream, and join only compatible, non-overlapping shards.
+  They are not exported and do not change `confint(method = "bootstrap")`
+  (#861).
+
 * `profile()` gains `parallel = c("none", "multicore")` and `workers`, the
   same contract `confint()` already had. Multicore profiles of several
   targets return the same curves as the serial run apart from the `elapsed`
