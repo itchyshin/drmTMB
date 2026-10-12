@@ -13,11 +13,11 @@
 ## Bug fixes
 
 * Gamma `mi()` missing-x rows use a 51-node posterior-mode Gauss-Hermite
-  rule on `u = log(x)`. Fifteen Newton steps start at the log prior mean
-  (Gaussian paths blend toward the implied `x`) and use each response
-  family's own log-density gradient and Hessian. A non-negative Hessian
-  skips the step and falls back to the prior mode. Nodes sit at the mode
-  scaled by `1/sqrt(-H)`. The log-sum is the unnormalised marginal (no
+  rule on `u = log(x)`. Exactly five Newton steps start at the log prior
+  mean and use each response family's own log-density gradient and
+  Hessian (Poisson adds `(y - mu) eta'(x)` and the matching curvature).
+  There is no data-dependent stop. Nodes sit at the mode scaled by
+  `1/sqrt(-H)`. The log-sum is the unnormalised marginal (no
   `log_mass`). A NaN or `-Inf` row stops the fit with class
   `drmTMB_mi_quadrature_nonfinite`, including on a live `drmTMB()` call
   (start and fitted `fn`/`gr` probes, and the C++ tape token through

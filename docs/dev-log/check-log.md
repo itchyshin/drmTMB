@@ -1,3 +1,19 @@
+# 2026-10-12: #1513 five fixed family-correct Newton steps
+
+Newton is exactly five steps from `log(mu)` with each family's own
+`g`/`H` (Poisson adds `(y - mu) eta'(x)` and the matching curvature).
+No data-dependent stop. `n_cpp = 35L`.
+
+- Poisson × Gamma CV 1: `5.18e-5` (before `5.4e-4`).
+- Poisson × Gamma CV 2 `y = 0`: finite, vs `integrate()` `8.3e-2`.
+- Poisson × Gamma CV 2 `y = 30`: finite, vs `integrate()` `4.6e2`.
+- Gamma tail `y = 12`: CV 0.05 / 0.5 / 1 all `< 1e-4`.
+- Gamma pole `y = 2.05` CV 0.05: `< 1e-4`. Pole CV 0.5 / 1: `4.0e-3` / `0.28` (not asserted).
+
+Refs #1477
+Refs #1476
+Refs #1459
+
 # 2026-10-12: #1513 Round 4 family-correct Newton and live abort
 
 Newton uses each family's own log-density `g`/`H` wrt `x` (analytic Gaussian and Poisson; otherwise FD of `drm_response_log_density`). A non-negative Hessian skips the step and falls back to the prior mode. Gamma production is 51-node posterior-mode GH. `drm_fit_spec()` rethrows the C++ tape token through `drm_rethrow_mi_quadrature_error` and probes start/fitted `fn`/`gr` for Gamma/Beta/ZOB `mi()` only. `n_cpp = 40L`. Headers and unweighted Gaussian priors unchanged.
