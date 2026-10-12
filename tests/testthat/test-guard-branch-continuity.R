@@ -239,35 +239,30 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # the Stirling branch, the switch, and the kernel cap). Value continuity
   # across nu = 1e4 is test-student-large-nu.R. n_response is therefore 8L.
   #
-  # #1476 / #1477 add two drmTMB.cpp CondExp sites: one s_floor each in
-  # drm_gamma_mi_is_node and drm_beta_mi_is_node. Weight 0 now uses a
-  # data-level `if (asDouble(weights(i)) > 0)` so it is not a CondExp.
-  # The weight-0 contract is test-mi-weights-1459.R. The s_floor contract
-  # is the paired test below. n_cpp is therefore 32L.
-  expect_equal(n_cpp, 32L)
+  # #1476 / #1477 drop the two IS s_floor CondExps and add Newton clamps
+  # in drm_gamma_mi_adaptive_quadrature (mu floor, Hessian floor, two
+  # step clamps, and -H floor). Weight 0 stays a data-level
+  # `if (asDouble(weights(i)) > 0)`. Recount after the rewrite.
+  expect_equal(n_cpp, 35L)
   expect_equal(n_numeric, 9L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)
 })
 
 # ---------------------------------------------------------------------------
-# Site: drm_gamma_mi_is_node / drm_beta_mi_is_node s_floor = 1e-8.
-# Class: C0 floor. Tiny CV (Gamma) or tiny Beta variance would send the
-# proposal SD to 0 and make dnorm(log_x, m, s) undefined. The floor keeps
-# the selected branch finite. The R helpers use the same 1e-8 pmax.
+# Site: drm_gamma_mi_adaptive_quadrature Newton clamps.
+# Class: C0 floor. Tiny CV would send the posterior Hessian toward 0.
+# Five Newton steps stay on the tape; CondExp clamps the step and -H.
 # ---------------------------------------------------------------------------
-test_that("mi() IS proposal SD floors keep nodes and prior finite at 1e-8", {
+test_that("Gamma adaptive GH Newton clamps keep nodes finite at tiny CV", {
   z <- 0
   w <- 1
-  gamma_tiny <- drmTMB:::drm_gamma_mi_is_nodes(z, w, mu = 10, sigma = 1e-12)
+  gamma_tiny <- drmTMB:::drm_gamma_mi_adaptive_nodes(
+    z, w, mu = 10, sigma = 1e-12, response = "none"
+  )
   expect_true(is.finite(gamma_tiny$x))
-  expect_true(is.finite(gamma_tiny$log_prior))
+  expect_true(all(is.finite(gamma_tiny$log_terms)))
   expect_gt(gamma_tiny$x, 0)
-  beta_tiny <- drmTMB:::drm_beta_mi_is_nodes(z, w, mu = 0.5, sigma = 1e-12)
-  expect_true(is.finite(beta_tiny$x))
-  expect_true(is.finite(beta_tiny$log_prior))
-  expect_gt(beta_tiny$x, 0)
-  expect_lt(beta_tiny$x, 1)
 })
 
 # ---------------------------------------------------------------------------
@@ -534,11 +529,9 @@ test_that("prior_norm floor: REPORT(mi_x_full) stays finite and continuous as pr
   par0 <- fit$obj$par
   log_sigma_mi_idx <- which(names(par0) == "log_sigma_mi")
 
-  # After #1476 the Beta mi() prior is a logit-normal importance rule whose
-  # nodes follow the current phi, so prior_norm stays near 1 and the old
-  # 1e-300 crossing no longer exists. Sweep a wide log_sigma_mi window and
-  # read TMB's REPORT(mi_x_full): the plug-in mean must stay finite and
-  # change smoothly, not jump between two values.
+  # Restored 15-node Gauss-Legendre: sweep log_sigma_mi and read
+  # REPORT(mi_x_full). The plug-in mean must stay finite and must not
+  # jump between two values when the 1e-300 prior_norm floor engages.
   grid <- seq(-8, 2, length.out = 41)
   reported <- vapply(grid, function(ls) {
     par <- par0
@@ -546,9 +539,15 @@ test_that("prior_norm floor: REPORT(mi_x_full) stays finite and continuous as pr
     fit$obj$report(par)$mi_x_full[[target_row]]
   }, numeric(1))
   expect_true(all(is.finite(reported)))
-  expect_true(all(diff(reported) >= -1e-12)) # monotone in this window, no oscillation
+  # Tiny sigma underflows every 15-node term, so the 1e-300 floor
+  # returns 0. After the floor releases, the plug-in mean is a
+  # continuum in (0, 1), not a two-level step.
+  released <- reported[reported > 0]
+  expect_true(all(released > 0 & released < 1))
+  expect_gt(length(released), 20)
+  expect_lt(max(abs(diff(released))), 0.05)
   n_interior <- sum(reported > min(reported) + 1e-15 & reported < max(reported) - 1e-15)
-  expect_gt(n_interior, 10) # a real continuum of intermediate values, not a 2-level step
+  expect_gt(n_interior, 10)
 })
 
 # ---------------------------------------------------------------------------

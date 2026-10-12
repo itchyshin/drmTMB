@@ -154,7 +154,10 @@ revisit condition.
   `miss_control(predictor = "model")` fits one explicit `mi()` missing
   predictor at a time in univariate Gaussian location models, with fixed-effect
   family-aware predictor models plus the grouped and structured Gaussian
-  covariate routes. Poisson, binomial, NB2, and beta response models separately
+  covariate routes. Beta and zero-one-Beta `mi()` use the frozen 15-node
+  Gauss-Legendre rule; U-shaped Beta (`mu` 0.02 or 0.10 with `sigma = 1`)
+  still has an `integrate()` logLik error of about `1.64e-2` (refs #1476).
+  Gamma `mi()` uses posterior-mode Gauss-Hermite on `log(x)` at every CV. Poisson, binomial, NB2, and beta response models separately
   support one fixed-effect binary `mi()` predictor when the response is
   complete. Beta-binomial masking requires a complete success/failure pair per
   observed row; cumulative-logit masking requires an ordered factor and every

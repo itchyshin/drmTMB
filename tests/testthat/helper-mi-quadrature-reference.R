@@ -1,23 +1,24 @@
-# High-node Gauss-Hermite / integrate() references for mi() prior accuracy.
-# Used by #1476 / #1477 tests. Production fits use 31 nodes; these helpers
-# use 81 nodes or stats::integrate() as an independent check.
+# Unnormalised quadrature mass and integrate() references for #1476 / #1477.
+# Production Beta uses the frozen 15-node Gauss-Legendre rule. Production
+# Gamma uses posterior-mode Gauss-Hermite. These helpers do not renormalise.
 
-drm_mi_gh_reference <- function(n = 81L) {
-  drmTMB:::drm_standard_normal_mi_quadrature(n)
-}
-
-drm_beta_mi_quadrature_mass <- function(mu, sigma, n = 31L) {
-  quad <- drmTMB:::drm_beta_mi_quadrature(n)
-  is <- drmTMB:::drm_beta_mi_is_nodes(quad$nodes, quad$weights, mu, sigma)
-  log_mass <- drmTMB:::drm_logsumexp(is$log_prior)
-  sum(exp(is$log_prior - log_mass))
+drm_beta_mi_quadrature_mass <- function(mu, sigma) {
+  quad <- drmTMB:::drm_beta_mi_quadrature()
+  sum(quad$weights * exp(
+    drmTMB:::drm_beta_missing_predictor_log_density(quad$nodes, mu, sigma)
+  ))
 }
 
 drm_gamma_mi_quadrature_mass <- function(mu, sigma, n = 31L) {
   quad <- drmTMB:::drm_gamma_mi_quadrature(n)
-  is <- drmTMB:::drm_gamma_mi_is_nodes(quad$nodes, quad$weights, mu, sigma)
-  log_mass <- drmTMB:::drm_logsumexp(is$log_prior)
-  sum(exp(is$log_prior - log_mass))
+  is <- drmTMB:::drm_gamma_mi_adaptive_nodes(
+    quad$nodes,
+    quad$weights,
+    mu,
+    sigma,
+    response = "none"
+  )
+  sum(exp(is$log_terms))
 }
 
 drm_beta_mi_reference_loglik <- function(y, mu_y, sigma_y, beta_x, x_base, mu, sigma) {
@@ -32,10 +33,67 @@ drm_beta_mi_reference_loglik <- function(y, mu_y, sigma_y, beta_x, x_base, mu, s
   stats::integrate(integrand, lower = 0, upper = 1, rel.tol = 1e-10)$value
 }
 
-drm_gamma_mi_reference_loglik <- function(y, mu_y, sigma_y, beta_x, x_base, mu, sigma) {
-  integrand <- function(x) {
-    stats::dgamma(x, shape = 1 / sigma^2, scale = mu * sigma^2) *
-      stats::dnorm(y, mu_y + beta_x * (x - x_base), sigma_y)
+drm_beta_mi_quad_loglik <- function(y, mu_y, sigma_y, beta_x, x_base, mu, sigma) {
+  quad <- drmTMB:::drm_beta_mi_quadrature()
+  log_terms <- log(quad$weights) +
+    drmTMB:::drm_beta_missing_predictor_log_density(quad$nodes, mu, sigma) +
+    stats::dnorm(y, mu_y + beta_x * (quad$nodes - x_base), sigma_y, log = TRUE)
+  drmTMB:::drm_logsumexp(log_terms)
+}
+
+drm_gamma_mi_reference_loglik <- function(
+  y,
+  mu_y,
+  sigma_y,
+  beta_x,
+  x_base,
+  mu,
+  sigma,
+  response = "gaussian"
+) {
+  # Integrate on u = log(x) so a tight response (sd_y = 0.1) does not
+  # miss the posterior the way stats::integrate(0, Inf) can.
+  integrand <- function(u) {
+    x <- exp(u)
+    prior <- stats::dgamma(x, shape = 1 / sigma^2, scale = mu * sigma^2)
+    mu_q <- mu_y + beta_x * (x - x_base)
+    lik <- if (identical(response, "poisson")) {
+      stats::dpois(y, exp(mu_q))
+    } else {
+      stats::dnorm(y, mu_q, sigma_y)
+    }
+    prior * lik * x
   }
-  stats::integrate(integrand, lower = 0, upper = Inf, rel.tol = 1e-8)$value
+  stats::integrate(
+    integrand,
+    lower = log(mu) - 10,
+    upper = log(mu) + 10,
+    rel.tol = 1e-10
+  )$value
+}
+
+drm_gamma_mi_quad_loglik <- function(
+  y,
+  mu_y,
+  sigma_y,
+  beta_x,
+  x_base,
+  mu,
+  sigma,
+  response = "gaussian"
+) {
+  quad <- drmTMB:::drm_gamma_mi_quadrature(31L)
+  is <- drmTMB:::drm_gamma_mi_adaptive_nodes(
+    quad$nodes,
+    quad$weights,
+    mu,
+    sigma,
+    y = y,
+    mu_y = mu_y,
+    sigma_y = sigma_y,
+    beta_x = beta_x,
+    x_base = x_base,
+    response = response
+  )
+  drmTMB:::drm_logsumexp(is$log_terms)
 }

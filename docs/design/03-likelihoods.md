@@ -614,16 +614,15 @@ x_i ~ Beta(m_i phi, (1 - m_i) phi)
 For observed `cover_i`, the row contributes the beta predictor-model
 likelihood and, when the response is observed, the Gaussian response density.
 For missing `cover_i`, TMB integrates over the possible proportion values with
-a 31-node Gauss-Hermite rule on the logit scale. Nodes follow a logit-normal
-proposal matched to the current Beta mean and variance; each node is
-reweighted by the Beta / logit-normal density ratio and the prior mass is
-renormalised to 1 (#1476):
+the frozen 15-node Gauss-Legendre rule on `(0, 1)`. The log-sum is the
+unnormalised marginal (no `log_mass`). Mid-range Beta logLik error versus
+`integrate()` is about `2.6e-5`. U-shaped Beta (`mu` 0.02 or 0.10 with
+`sigma = 1`) is a known leftover that refs #1476:
 
 ```text
-x_q = expit(logit(m_i) + s_i z_q)
+x_q = (z_q + 1) / 2
 log L_i = log sum_q
-  (w_q p_beta(x_q | m_i, sigma_mi) / p_logitnorm(x_q))
-  / mass
+  w_q p_beta(x_q | m_i, sigma_mi)
   p(y_i | mu_i(x_q), sigma_i) ^ observed_y_i
 ```
 
@@ -686,9 +685,9 @@ log L_i = log sum_q w_q
   p(y_i | mu_i(x_q), sigma_i)
 ```
 
-The zero and one nodes are exact point masses. Interior nodes use the same
-logit-normal Gauss-Hermite rule as the strict beta route, renormalised so the
-interior prior mass is 1. When both the response and the boundary-proportion
+The zero and one nodes are exact point masses with weights 1. Interior nodes
+are the same frozen 15-node Gauss-Legendre rule as the strict beta route.
+When both the response and the boundary-proportion
 predictor are missing, the row is retained for accounting but contributes no
 direct
 likelihood. `imputed()` reports the fitted conditional quadrature mean for
@@ -995,21 +994,25 @@ log L_i =
 ```
 
 For missing `biomass_i`, TMB integrates over positive predictor states by a
-31-node Gauss-Hermite rule on a mean/CV-matched lognormal proposal. That keeps
-nodes on the Gamma mass when the CV is small (shape 100 at CV 10%), which a
-fixed 20-node Gauss-Laguerre rule missed (#1477). Each node is reweighted by
-the Gamma / lognormal density ratio and the prior mass is renormalised to 1.
-`drm_log1p_nonnegative()` is used for `log(1 + CV^2)` so a tiny CV stays
-finite on the TMB tape:
+31-node posterior-mode Gauss-Hermite rule on `u = log(x)`. Five Newton steps
+start at `log(mu_xi)` and use the log Gamma prior plus
+`drm_response_log_density` (Gaussian location-scale on this path). Nodes are
+`mode + z_q / sqrt(-H)` with the `dx/du` Jacobian. The log-sum is the
+unnormalised marginal. A NaN or `-Inf` row is
+`drmTMB_mi_quadrature_nonfinite`. There is no CV branch: the same adaptive
+rule runs at every CV (#1477):
 
 ```text
-x_q = exp(log(mu_xi) - s^2/2 + s z_q),   s^2 = log(1 + sigma_x^2)
+u = log(x)
+u_q = mode + sigma_u z_q,   sigma_u = 1 / sqrt(-H)
+x_q = exp(u_q)
 
 log L_i =
   log sum_q
-    (w_q p_gamma(x_q | shape_x, scale_xi) / p_lognormal(x_q))
-    / mass
+    w_q p_gamma(x_q | shape_x, scale_xi)
     p(y_i | mu_i(x_q), sigma_i) ^ observed_y_i
+    x_q
+    sigma_u / phi(z_q)
 ```
 
 When both the response and the positive predictor are missing, the row is

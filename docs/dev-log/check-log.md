@@ -1,3 +1,23 @@
+# 2026-10-12: #1513 quadrature restore + adaptive Gamma
+
+Beta / zero-one-Beta `mi()` restored to the frozen 15-node Gauss-Legendre rule, ZOB atoms `c(0, nodes, 1)`. Gamma `mi()` is posterior-mode GH on `u = log(x)` (5 Newton steps from `log(mu)`, analytic Gaussian score/Hessian, CondExp step clamp, unnormalised log-sum, no CV branch). `drmTMB_mi_quadrature_nonfinite` aborts a NaN/`-Inf` marginal. Headers `src/drm_numeric.h` and `src/drm_response_kernels.h` were not edited. Unweighted Gaussian priors stay `:1301`, `:1342`, `:4556`. `n_cpp = 35L` (drop two IS `s_floor`s, add five Newton clamps). C17 not recertified (`R/drmTMB.R` and `R/methods.R` unchanged).
+
+Acceptance (R 4.3.3, TMB 1.9.25):
+- Beta mid-range `mu=0.5`, `sigma=0.5`, `sd_y=0.1`: `integrate()` abs logLik error `9.87e-7` (tolerance `2.6e-5`).
+- Beta mid-range `mu=0.10`, `sigma=0.2`, `sd_y=0.1`: `9.10e-6`.
+- U-shaped Beta `mu=0.02` / `0.10`, `sigma=1`, `y=1`, `sd_y=0.1`, `beta_x=2`: `1.638e-2` / `1.659e-2` (follow-up, refs #1476; GitHub issue create returned 403).
+- Gamma vs log-x `integrate()`, `sd_y=0.1`: CV 0.05 `3.8e-15`; 0.10 `2.2e-15`; 0.50 `1.6e-15`; 1 `5.8e-15`; 2 `1.3e-15` (all `< 1e-4`; CV>1 passed, no skip).
+- Poisson response × Gamma `mi()` helper: `2.87e-13`.
+- `obj$gr` vs FD `h=1e-5` at CV 0.05, 1, 2: all `< 1e-5` after analytic Newton.
+- Classed abort: `drmTMB_mi_quadrature_nonfinite` from the R helper (NaN `y`) and `cli_abort` probe.
+- Weight-0 `y=1e200` pin still passes.
+
+Focused local: `test-mi-quadrature-1476-1477.R` 0 fail; `test-guard-branch-continuity.R` 0 fail (`n_cpp = 35L`); `test-missing-predictor-{beta,gamma,zero-one-beta}.R` 0 fail; `test-mi-weights-1459.R` 0 fail; Dinnage M1 0 fail.
+
+Refs #1477
+Refs #1476
+Refs #1459
+
 # 2026-10-11: STEP 2 #1459 gates (no quadrature rewrite)
 
 Warning `drmTMB_mi_weights_prior_unweighted` now fires only on the unweighted Gaussian prior paths: `src/drmTMB.cpp:1301`, `:1342`, and the nbinom2 x Gaussian copy at `:4556`. Beta `mi()` plus `weights = 2` does not warn. Weight 0 uses `if (asDouble(weights(i)) > 0)`; the pin is a weight-0 Gaussian row at `y = 1e200` with finite `fn` and `gr`. M1 helper re-polishes weight-2 from the unit-weight MLE and restores the dup-vs-w2 coefficient compare; any leftover gap is Gamma-only. `predict()` / `simulate()` allow `weights = 1`. Julia refuses non-unit weights for every family, including Beta `mi()` with `weights = 2`, before the family check. `.Rlib/` gitignored. Tracked C17 run-1 folder restored. C17 `--label triage-i-mi-r2 --tolerance 1e-10`: `|change| 0.000e+00` on mc-0568 / 0569 / 0576 at `8f6165344`. No quadrature code in this slice.

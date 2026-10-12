@@ -2233,38 +2233,137 @@ drm_standard_normal_mi_quadrature <- function(n = 31L) {
   )
 }
 
-drm_beta_mi_quadrature <- function(n = 31L) {
-  drm_standard_normal_mi_quadrature(n)
+drm_beta_mi_quadrature <- function(n = 15L) {
+  # Frozen 15-node Gauss-Legendre on (0, 1). The n argument is ignored so
+  # callers that still pass n = 15L keep working; do not raise the node
+  # count here (Refs #1476).
+  nodes <- c(
+    -0.9879925180204854,
+    -0.937273392400706,
+    -0.8482065834104272,
+    -0.72441773136017,
+    -0.5709721726085388,
+    -0.3941513470775634,
+    -0.2011940939974345,
+    0,
+    0.2011940939974345,
+    0.3941513470775634,
+    0.5709721726085388,
+    0.72441773136017,
+    0.8482065834104272,
+    0.937273392400706,
+    0.9879925180204854
+  )
+  weights <- c(
+    0.03075324199611727,
+    0.07036604748810812,
+    0.1071592204671719,
+    0.1395706779261543,
+    0.1662692058169939,
+    0.1861610000155622,
+    0.1984314853271116,
+    0.2025782419255613,
+    0.1984314853271116,
+    0.1861610000155622,
+    0.1662692058169939,
+    0.1395706779261543,
+    0.1071592204671719,
+    0.07036604748810812,
+    0.03075324199611727
+  )
+  list(nodes = (nodes + 1) / 2, weights = weights / 2)
 }
 
-drm_beta_mi_is_nodes <- function(z, w, mu, sigma) {
-  phi <- 1 / sigma^2
-  alpha <- pmax(mu * phi, 1e-8)
-  beta <- pmax((1 - mu) * phi, 1e-8)
-  var <- mu * (1 - mu) / (phi + 1)
-  mu_om <- mu * (1 - mu)
-  s <- pmax(sqrt(var) / mu_om, 1e-8)
-  logit_mu <- stats::qlogis(mu)
-  eta_q <- logit_mu + s * z
-  log_x <- stats::plogis(eta_q, log.p = TRUE)
-  log_1mx <- stats::plogis(-eta_q, log.p = TRUE)
-  x <- exp(log_x)
-  log_beta <- lgamma(alpha + beta) - lgamma(alpha) - lgamma(beta) +
-    (alpha - 1) * log_x + (beta - 1) * log_1mx
-  log_prop <- stats::dnorm(eta_q, logit_mu, s, log = TRUE) - log_x - log_1mx
-  list(x = x, log_prior = log(w) + log_beta - log_prop)
+drm_gamma_mi_log_integrand <- function(
+  u,
+  mu,
+  sigma,
+  y = NULL,
+  mu_y = 0,
+  sigma_y = 1,
+  beta_x = 0,
+  x_base = 0,
+  response = "none"
+) {
+  x <- exp(u)
+  log_gamma <- stats::dgamma(
+    x,
+    shape = 1 / sigma^2,
+    scale = mu * sigma^2,
+    log = TRUE
+  )
+  log_y <- 0
+  if (!identical(response, "none") && !is.null(y)) {
+    mu_q <- mu_y + beta_x * (x - x_base)
+    log_y <- switch(
+      response,
+      gaussian = stats::dnorm(y, mu_q, sigma_y, log = TRUE),
+      poisson = stats::dpois(y, exp(mu_q), log = TRUE),
+      0
+    )
+  }
+  log_gamma + log_y + u
 }
 
-drm_gamma_mi_is_nodes <- function(z, w, mu, sigma) {
-  cv2 <- sigma^2
-  log_1pcv2 <- log1p(cv2)
-  s <- pmax(sqrt(log_1pcv2), 1e-8)
-  m <- log(mu) - 0.5 * log_1pcv2
-  log_x <- m + s * z
-  x <- exp(log_x)
-  log_gamma <- stats::dgamma(x, shape = 1 / cv2, scale = mu * cv2, log = TRUE)
-  log_prop <- stats::dnorm(log_x, m, s, log = TRUE) - log_x
-  list(x = x, log_prior = log(w) + log_gamma - log_prop)
+drm_gamma_mi_adaptive_nodes <- function(
+  z,
+  w,
+  mu,
+  sigma,
+  y = NULL,
+  mu_y = 0,
+  sigma_y = 1,
+  beta_x = 0,
+  x_base = 0,
+  response = c("gaussian", "poisson", "none")
+) {
+  response <- match.arg(response)
+  if (is.null(y)) {
+    response <- "none"
+  }
+  f <- function(u) {
+    drm_gamma_mi_log_integrand(
+      u, mu, sigma, y, mu_y, sigma_y, beta_x, x_base, response
+    )
+  }
+  shape <- 1 / sigma^2
+  scale <- mu * sigma^2
+  grad_hess <- function(u) {
+    x <- exp(u)
+    g <- shape - x / scale
+    H <- -x / scale
+    if (identical(response, "gaussian") && !is.null(y)) {
+      mu_q <- mu_y + beta_x * (x - x_base)
+      inv_s2 <- 1 / sigma_y^2
+      dmu_du <- beta_x * x
+      g <- g + (y - mu_q) * inv_s2 * dmu_du
+      H <- H - dmu_du^2 * inv_s2 + (y - mu_q) * inv_s2 * dmu_du
+    } else if (identical(response, "poisson") && !is.null(y)) {
+      h <- 1e-4
+      fp <- f(u + h)
+      fm <- f(u - h)
+      f0 <- f(u)
+      g <- (fp - fm) / (2 * h)
+      H <- (fp - 2 * f0 + fm) / (h * h)
+    }
+    list(g = g, H = H)
+  }
+  u <- log(max(mu, 1e-300))
+  for (k in seq_len(5L)) {
+    gh <- grad_hess(u)
+    H_safe <- min(gh$H, -1e-8)
+    step <- max(min(gh$g / H_safe, 2), -2)
+    u <- u - step
+  }
+  H <- grad_hess(u)$H
+  sigma_u <- 1 / sqrt(max(-H, 1e-8))
+  u_q <- u + sigma_u * z
+  x <- exp(u_q)
+  log_terms <- log(w) + f(u_q) + log(sigma_u) - stats::dnorm(z, 0, 1, log = TRUE)
+  if (!all(is.finite(log_terms))) {
+    drm_abort_mi_quadrature_nonfinite()
+  }
+  list(x = x, log_terms = log_terms, mode = u, sigma_u = sigma_u)
 }
 
 drm_logsumexp <- function(log_terms) {
@@ -2445,8 +2544,9 @@ drm_zero_one_beta_missing_predictor_response <- function(x, variable) {
   x
 }
 
-drm_zero_one_beta_mi_quadrature <- function(n = 31L) {
-  drm_beta_mi_quadrature(n)
+drm_zero_one_beta_mi_quadrature <- function(n = 15L) {
+  beta <- drm_beta_mi_quadrature()
+  list(nodes = c(0, beta$nodes, 1), weights = c(1, beta$weights, 1))
 }
 
 drm_zero_one_beta_missing_predictor_log_density <- function(
@@ -4544,13 +4644,14 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
       observed_y <- as.logical(missing_data$observed_y)
       for (row_i in seq_along(missing_index)) {
         row <- missing_index[[row_i]]
-        quad <- drm_beta_mi_is_nodes(nodes, weights, mu_x[[row]], sigma_x)
-        x_nodes <- quad$x
-        log_prior <- quad$log_prior
-        log_mass <- drm_logsumexp(log_prior)
-        log_terms <- log_prior - log_mass
+        log_terms <- log(weights) +
+          drm_beta_missing_predictor_log_density(
+            nodes,
+            mu = mu_x[[row]],
+            sigma = sigma_x
+          )
         if (observed_y[[row]]) {
-          mu_node <- mu_base[[row]] + beta_x * (x_nodes - x_base[[row]])
+          mu_node <- mu_base[[row]] + beta_x * (nodes - x_base[[row]])
           log_terms <- log_terms +
             spec$weights[[row]] *
               stats::dnorm(
@@ -4560,11 +4661,14 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
                 log = TRUE
               )
         }
+        if (!all(is.finite(log_terms))) {
+          drm_abort_mi_quadrature_nonfinite()
+        }
         max_log <- max(log_terms)
         normalized <- exp(log_terms - max_log)
         normalized <- normalized / sum(normalized)
         probability[row_i, ] <- normalized
-        conditional_mean[[row_i]] <- sum(x_nodes * normalized)
+        conditional_mean[[row_i]] <- sum(nodes * normalized)
       }
       value[missing_index] <- conditional_mean
       missing_data$predictors[[variable]]$conditional_mean <-
@@ -4594,33 +4698,26 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
       sigma <- sqrt(spec$V_known_diag + exp(2 * log_sigma))
       beta_x <- beta_mu[[model$mu_col]]
       x_base <- spec$X$mu[, model$mu_col]
-      nq <- length(nodes)
       probability <- matrix(
         NA_real_,
         nrow = length(missing_index),
-        ncol = nq + 2L,
-        dimnames = list(NULL, c("0", format(nodes, digits = 4), "1"))
-      )
-      quadrature_values <- matrix(
-        NA_real_,
-        nrow = length(missing_index),
-        ncol = nq + 2L,
-        dimnames = list(NULL, c("0", format(nodes, digits = 4), "1"))
+        ncol = length(nodes),
+        dimnames = list(NULL, format(nodes, digits = 4))
       )
       conditional_mean <- numeric(length(missing_index))
       observed_y <- as.logical(missing_data$observed_y)
       for (row_i in seq_along(missing_index)) {
         row <- missing_index[[row_i]]
-        quad <- drm_beta_mi_is_nodes(nodes, weights, mu_x[[row]], sigma_x)
-        x_nodes <- quad$x
-        log_mass <- drm_logsumexp(quad$log_prior)
-        log_atom0 <- log(zoi_x) + log(1 - coi_x)
-        log_atom1 <- log(zoi_x) + log(coi_x)
-        log_int <- log(1 - zoi_x) + quad$log_prior - log_mass
-        x_all <- c(0, x_nodes, 1)
-        log_terms <- c(log_atom0, log_int, log_atom1)
+        log_terms <- log(weights) +
+          drm_zero_one_beta_missing_predictor_log_density(
+            nodes,
+            mu = mu_x[[row]],
+            sigma = sigma_x,
+            zoi = zoi_x,
+            coi = coi_x
+          )
         if (observed_y[[row]]) {
-          mu_node <- mu_base[[row]] + beta_x * (x_all - x_base[[row]])
+          mu_node <- mu_base[[row]] + beta_x * (nodes - x_base[[row]])
           log_terms <- log_terms +
             spec$weights[[row]] *
               stats::dnorm(
@@ -4630,18 +4727,25 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
                 log = TRUE
               )
         }
+        if (!all(is.finite(log_terms))) {
+          drm_abort_mi_quadrature_nonfinite()
+        }
         max_log <- max(log_terms)
         normalized <- exp(log_terms - max_log)
         normalized <- normalized / sum(normalized)
         probability[row_i, ] <- normalized
-        quadrature_values[row_i, ] <- x_all
-        conditional_mean[[row_i]] <- sum(x_all * normalized)
+        conditional_mean[[row_i]] <- sum(nodes * normalized)
       }
       value[missing_index] <- conditional_mean
       missing_data$predictors[[variable]]$conditional_mean <-
         conditional_mean
       missing_data$predictors[[variable]]$quadrature_values <-
-        quadrature_values
+        matrix(
+          rep(nodes, each = length(missing_index)),
+          nrow = length(missing_index),
+          ncol = length(nodes),
+          dimnames = list(NULL, format(nodes, digits = 4))
+        )
       missing_data$predictors[[variable]]$quadrature_probabilities <-
         probability
       missing_data$predictors[[variable]]$zoi <- zoi_x
@@ -4989,20 +5093,31 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
       observed_y <- as.logical(missing_data$observed_y)
       for (row_i in seq_along(missing_index)) {
         row <- missing_index[[row_i]]
-        quad <- drm_gamma_mi_is_nodes(nodes, weights, mu_x[[row]], sigma_x)
+        resp <- if (observed_y[[row]]) "gaussian" else "none"
+        quad <- drm_gamma_mi_adaptive_nodes(
+          nodes,
+          weights,
+          mu_x[[row]],
+          sigma_x,
+          y = spec$y[[row]],
+          mu_y = mu_base[[row]],
+          sigma_y = sigma[[row]],
+          beta_x = beta_x,
+          x_base = x_base[[row]],
+          response = resp
+        )
         x_nodes <- quad$x
-        log_mass <- drm_logsumexp(quad$log_prior)
-        log_terms <- quad$log_prior - log_mass
-        if (observed_y[[row]]) {
+        log_terms <- quad$log_terms
+        if (observed_y[[row]] && !isTRUE(all.equal(spec$weights[[row]], 1))) {
           mu_node <- mu_base[[row]] + beta_x * (x_nodes - x_base[[row]])
-          log_terms <- log_terms +
-            spec$weights[[row]] *
-              stats::dnorm(
-                spec$y[[row]],
-                mean = mu_node,
-                sd = sigma[[row]],
-                log = TRUE
-              )
+          log_y_unit <- stats::dnorm(
+            spec$y[[row]],
+            mean = mu_node,
+            sd = sigma[[row]],
+            log = TRUE
+          )
+          log_terms <- log_terms - log_y_unit +
+            spec$weights[[row]] * log_y_unit
         }
         max_log <- max(log_terms)
         normalized <- exp(log_terms - max_log)
