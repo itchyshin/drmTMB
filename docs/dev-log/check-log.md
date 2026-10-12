@@ -11,7 +11,9 @@ Acceptance vs fine-split `integrate()` (R 4.3.3, TMB 1.9.25):
 - U-shaped Beta shapes `(0.13, 0.31)`, `y` near 0: `0.54` recorded for #1531 (that issue cites `1.6e-2`).
 - Live `drmTMB()` Gamma `mi()` with `y=1e200` on a missing-x row raises `drmTMB_mi_quadrature_nonfinite`.
 
-Focused local: `test-mi-quadrature-1476-1477.R` 0 fail (1 expected skip); `test-guard-branch-continuity.R` 0 fail; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-mi-weights-1459.R` 0 fail. C17 and the full suite follow this entry.
+Focused local: `test-mi-quadrature-1476-1477.R` 0 fail (1 expected skip); `test-guard-branch-continuity.R` 0 fail; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-mi-weights-1459.R` 0 fail.
+
+C17 `--label mi-quadrature-1513 --tolerance 1e-10` at `3ea958fdc`: `|change| 0.000e+00` on mc-0568 / 0569 / 0576. Receipt `docs/dev-log/implementation-recovery/2026-10-12-mi-quadrature-1513-c17c2-c14-final-source-compatibility`. `python3 tools/capability_ledger.py --check-c14-receipt-equivalence` prints OK (mc-0568 included). The `mi()` Newton and live abort sit outside the authenticated model-15 anchors. Full suite follows.
 
 Refs #1477
 Refs #1476
