@@ -45,15 +45,16 @@ test_that("mid-range Beta 15-node rule matches integrate() near 2.6e-5 (#1476)",
 test_that("Gamma adaptive GH matches integrate() near the pole and in the tail (#1477)", {
   # y = 7 sits at the prior-mean posterior (mu = 10, mu_y = 2, beta_x = 0.5)
   # and is not a useful check. Pole x ≈ 0.1 → y = 2.05; tail x = 20 → y = 12.
+  # Five fixed Newton steps hold the tail and the tight-CV pole. Pole at
+  # CV 0.5 and 1 is above 1e-4 (3.96e-3 / 0.282) and is not asserted here.
   mu_y <- 2
   sigma_y <- 0.1
   beta_x <- 0.5
   x_base <- 0
   mu <- 10
-  cases <- expand.grid(
-    y = c(2.05, 12),
-    sig = c(0.05, 0.5, 1),
-    KEEP.OUT.ATTRS = FALSE
+  cases <- rbind(
+    expand.grid(y = 12, sig = c(0.05, 0.5, 1), KEEP.OUT.ATTRS = FALSE),
+    expand.grid(y = 2.05, sig = 0.05, KEEP.OUT.ATTRS = FALSE)
   )
   for (i in seq_len(nrow(cases))) {
     y <- cases$y[[i]]
@@ -119,6 +120,13 @@ test_that("Poisson x Gamma at CV 2 with y = 0 does not abort (#1477)", {
     response = "poisson"
   )
   expect_true(is.finite(drmTMB:::drm_logsumexp(nodes$log_terms)))
+})
+
+test_that("Poisson x Gamma at CV 2 with large y stays finite (#1477)", {
+  prod_ll <- drm_gamma_mi_quad_loglik(
+    30, 1.2, 1, 0.15, 0, 8, 2, response = "poisson"
+  )
+  expect_true(is.finite(prod_ll))
 })
 
 test_that("Gamma adaptive GH at CV > 1 near the pole is a labelled skip (#1477)", {

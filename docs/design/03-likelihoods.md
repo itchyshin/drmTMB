@@ -994,12 +994,11 @@ log L_i =
 ```
 
 For missing `biomass_i`, TMB integrates over positive predictor states by a
-51-node posterior-mode Gauss-Hermite rule on `u = log(x)`. Fifteen Newton steps
-start at `log(mu_xi)` and use the log Gamma prior plus each response
-family's own log-density gradient and Hessian with respect to `x`
-(analytic Gaussian and Poisson; otherwise a finite difference of
-`drm_response_log_density`). A non-negative Hessian skips the step and
-falls back to the prior mode with prior curvature. Nodes are
+51-node posterior-mode Gauss-Hermite rule on `u = log(x)`. Exactly five
+Newton steps start at `log(mu_xi)` and use the log Gamma prior plus each
+response family's own log-density gradient and Hessian with respect to
+`x` (analytic Gaussian and Poisson; Poisson adds `(y - mu) eta'(x)` and
+the matching curvature). There is no data-dependent stop. Nodes are
 `mode + z_q / sqrt(-H)` with the `dx/du` Jacobian. The log-sum is the
 unnormalised marginal. A NaN or `-Inf` row is
 `drmTMB_mi_quadrature_nonfinite`, raised from the C++ tape token through

@@ -2349,28 +2349,14 @@ drm_gamma_mi_adaptive_nodes <- function(
     }
     list(g = g, H = H)
   }
-  u0 <- log(max(mu, 1e-300))
-  u <- u0
-  if (!is.null(y) && identical(response, "gaussian") && is.finite(beta_x) &&
-      abs(beta_x) > 1e-12) {
-    x_lik <- x_base + (y - mu_y) / beta_x
-    if (is.finite(x_lik) && x_lik > 0) {
-      u <- 0.5 * u0 + 0.5 * log(x_lik)
-    }
-  }
-  step_max <- min(2, max(0.25, 3 * sigma))
-  for (k in seq_len(15L)) {
+  u <- log(max(mu, 1e-300))
+  for (k in seq_len(5L)) {
     gh <- grad_hess(u)
-    if (is.finite(gh$H) && gh$H < -1e-8 && is.finite(gh$g)) {
-      step <- max(min(gh$g / gh$H, step_max), -step_max)
-      u <- u - step
-    }
+    H_safe <- min(gh$H, -1e-8)
+    step <- max(min(gh$g / H_safe, 2), -2)
+    u <- u - step
   }
   H <- grad_hess(u)$H
-  if (!is.finite(H) || H >= -1e-8) {
-    u <- u0
-    H <- -shape
-  }
   sigma_u <- 1 / sqrt(max(-H, 1e-8))
   u_q <- u + sigma_u * z
   x <- exp(u_q)
