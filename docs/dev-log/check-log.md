@@ -14,6 +14,8 @@ Acceptance (R 4.3.3, TMB 1.9.25):
 
 Focused local: `test-mi-quadrature-1476-1477.R` 0 fail; `test-guard-branch-continuity.R` 0 fail (`n_cpp = 35L`); `test-missing-predictor-{beta,gamma,zero-one-beta}.R` 0 fail; `test-mi-weights-1459.R` 0 fail; Dinnage M1 0 fail.
 
+Full `testthat::test_dir()` at `d8d9a41b2` then census refresh: progress-char parse PASS 47785, WARN 58, SKIP 122. Reporter listed 9 failures; `Rscript tools/write-env-skip-census.R` fixed the two in-PR `test-env-skip-census.R` rows (cran-lane 1→2 plus the CV>1 runtime skip site). The other seven are this VM, not the quadrature edit: three `test-julia-fe-only-fence.R` rows that expect a DRM.jl checkout message and see missing `{JuliaCall}`; `test-julia-bridge.R` `fixef()` and `test-julia-joint-call.R` need `{JuliaCall}`; `test-missing-predictor-prediction.R` sparse `crossprod` (same VM defect as 2026-10-09); `test-reml-phylo-location.R` non-convergence. Live Julia: 0 ran, 69 skipped (`DRMODELS_JL_PATH` unset). `test-env-skip-census.R` 0 fail after the refresh.
+
 Refs #1477
 Refs #1476
 Refs #1459

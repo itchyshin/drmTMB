@@ -75,7 +75,16 @@ Focused `testthat::test_dir()` after `pkgbuild::compile_dll()`
 `test-mi-weights-1459.R` (including the `y = 1e200` pin),
 and `test-dinnage-audit-m1-families.R` all reported 0 failures.
 
-Full `testthat::test_dir()` runs after this note.
+Full `testthat::test_dir()` at `d8d9a41b2`: progress-char parse
+PASS 47785, WARN 58, SKIP 122. The reporter listed 9 failures. Two
+were the in-PR env-skip census (this rewrite added a second
+`skip_on_cran()` and a CV>1 runtime skip site).
+`Rscript tools/write-env-skip-census.R` refreshed
+`inst/extdata/env-skip-census.tsv`; `test-env-skip-census.R` then
+passed. The other seven are this VM: missing `{JuliaCall}` on the
+Julia fence/bridge/joint tests, the sparse `crossprod` in
+`test-missing-predictor-prediction.R`, and a REML phylo
+non-convergence. Live Julia: 0 ran, 69 skipped.
 
 Stale-wording scan:
 
