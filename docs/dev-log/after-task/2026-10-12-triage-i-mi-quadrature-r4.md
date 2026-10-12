@@ -70,8 +70,10 @@ expected CV `> 1` pole skip), `test-guard-branch-continuity.R`
 (`n_cpp = 40L`), `test-missing-predictor-{gamma,beta,zero-one-beta}.R`,
 and `test-mi-weights-1459.R` reported 0 failures.
 
-C17 and the full suite are recorded in `docs/dev-log/check-log.md`
-after those steps finish.
+C17 `--label mi-quadrature-1513 --tolerance 1e-10` at `3ea958fdc`:
+`|change| 0.000e+00` on mc-0568 / 0569 / 0576.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK. The full suite is recorded in `docs/dev-log/check-log.md`.
 
 ## GitHub issues
 
