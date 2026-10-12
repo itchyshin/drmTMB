@@ -60,10 +60,14 @@ manual_beta_mi_loglik <- function(fit) {
     if (!observed_y[[row]]) {
       next
     }
-    quad <- drmTMB:::drm_beta_mi_is_nodes(nodes, weights, mu_mi[[row]], sigma_mi)
-    log_mass <- drmTMB:::drm_logsumexp(quad$log_prior)
-    mu_node <- mu_observed[[row]] + beta_cover * (quad$x - x_base[[row]])
-    log_terms <- quad$log_prior - log_mass +
+    log_terms <- log(weights) +
+      drmTMB:::drm_beta_missing_predictor_log_density(
+        nodes,
+        mu = mu_mi[[row]],
+        sigma = sigma_mi
+      )
+    mu_node <- mu_observed[[row]] + beta_cover * (nodes - x_base[[row]])
+    log_terms <- log_terms +
       stats::dnorm(dat$y[[row]], mu_node, sigma, log = TRUE)
     out[[row]] <- drmTMB:::drm_logsumexp(log_terms)
   }

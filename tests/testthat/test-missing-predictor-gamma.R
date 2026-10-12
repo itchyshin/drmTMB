@@ -60,12 +60,19 @@ manual_gamma_mi_loglik <- function(fit) {
     if (!observed_y[[row]]) {
       next
     }
-    quad <- drmTMB:::drm_gamma_mi_is_nodes(nodes, weights, mean_mi[[row]], sigma_mi)
-    log_mass <- drmTMB:::drm_logsumexp(quad$log_prior)
-    mu_node <- mu_observed[[row]] + beta_biomass * (quad$x - x_base[[row]])
-    log_terms <- quad$log_prior - log_mass +
-      stats::dnorm(dat$y[[row]], mu_node, sigma, log = TRUE)
-    out[[row]] <- drmTMB:::drm_logsumexp(log_terms)
+    quad <- drmTMB:::drm_gamma_mi_adaptive_nodes(
+      nodes,
+      weights,
+      mean_mi[[row]],
+      sigma_mi,
+      y = dat$y[[row]],
+      mu_y = mu_observed[[row]],
+      sigma_y = sigma,
+      beta_x = beta_biomass,
+      x_base = x_base[[row]],
+      response = "gaussian"
+    )
+    out[[row]] <- drmTMB:::drm_logsumexp(quad$log_terms)
   }
   sum(out)
 }

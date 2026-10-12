@@ -117,6 +117,31 @@ drm_abort_julia_mi_nonunit_weights <- function(weights) {
   )
 }
 
+drm_abort_mi_quadrature_nonfinite <- function(detail = NULL) {
+  extra <- if (length(detail) == 1L && nzchar(detail)) {
+    c(x = detail)
+  } else {
+    character()
+  }
+  cli::cli_abort(
+    c(
+      "The {.fn mi} quadrature marginal is not finite.",
+      extra,
+      x = "A missing-predictor row produced a NaN or -Inf log-likelihood contribution.",
+      i = "Check the predictor family, the response scale, and extreme missing-x rows. This is a named error, not a silent drop."
+    ),
+    class = "drmTMB_mi_quadrature_nonfinite"
+  )
+}
+
+drm_rethrow_mi_quadrature_error <- function(e) {
+  msg <- conditionMessage(e)
+  if (grepl("drmTMB_mi_quadrature_nonfinite", msg, fixed = TRUE)) {
+    drm_abort_mi_quadrature_nonfinite(msg)
+  }
+  stop(e)
+}
+
 drm_abort_mi_weights_predict <- function(object, dots = list()) {
   has_mi <- is.list(object$missing_data$predictors) &&
     length(object$missing_data$predictors) > 0L
