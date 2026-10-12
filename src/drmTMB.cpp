@@ -123,9 +123,11 @@ Type drm_gamma_mi_log_integrand(
 }
 
 // Analytic score and Hessian of the Gamma mi() log integrand on u = log(x).
-// Prior + Jacobian are exact. The Gaussian response term (the only C++
-// Gamma-mi path) uses dnorm derivatives; the function value still comes
-// from drm_response_log_density so the leaf stays shared.
+// Prior + Jacobian are exact. The response term uses each family's own
+// log-density derivatives with respect to eta, then the chain rule through
+// eta = mu_base + beta_x * (x - x_base). Gaussian and Poisson are analytic;
+// any other leaf falls back to a centred finite difference of
+// drm_response_log_density so the shared density stays the source of truth.
 template<class Type>
 void drm_gamma_mi_newton_grad_hess(
     Type u,
@@ -134,6 +136,7 @@ void drm_gamma_mi_newton_grad_hess(
     Type mu_base,
     Type beta_x,
     Type x_base,
+    int model_type,
     Type y,
     Type log_sigma,
     Type V_known,
@@ -146,18 +149,39 @@ void drm_gamma_mi_newton_grad_hess(
   H = -x / scale;
   if (include_y == 1) {
     Type mu_q = mu_base + beta_x * (x - x_base);
-    Type sigma_i = sqrt(V_known + exp(Type(2.0) * log_sigma));
-    Type inv_s2 = Type(1.0) / (sigma_i * sigma_i);
     Type dmu_du = beta_x * x;
-    g += (y - mu_q) * inv_s2 * dmu_du;
-    H += -dmu_du * dmu_du * inv_s2 + (y - mu_q) * inv_s2 * dmu_du;
+    Type d1 = Type(0.0);
+    Type d2 = Type(0.0);
+    if (model_type == 1) {
+      Type sigma_i = sqrt(V_known + exp(Type(2.0) * log_sigma));
+      Type inv_s2 = Type(1.0) / (sigma_i * sigma_i);
+      d1 = (y - mu_q) * inv_s2;
+      d2 = -inv_s2;
+    } else if (model_type == 6) {
+      Type lambda = exp(mu_q);
+      d1 = y - lambda;
+      d2 = -lambda;
+    } else {
+      Type h = Type(1e-5);
+      Type fp = drm_response_log_density(
+        model_type, y, mu_q + h, log_sigma, V_known, Type(0.0), 0);
+      Type fm = drm_response_log_density(
+        model_type, y, mu_q - h, log_sigma, V_known, Type(0.0), 0);
+      Type f0 = drm_response_log_density(
+        model_type, y, mu_q, log_sigma, V_known, Type(0.0), 0);
+      d1 = (fp - fm) / (Type(2.0) * h);
+      d2 = (fp - Type(2.0) * f0 + fm) / (h * h);
+    }
+    g += d1 * dmu_du;
+    H += d2 * dmu_du * dmu_du + d1 * dmu_du;
   }
 }
 
 // Posterior-mode Gauss-Hermite for Gamma(mean = mu, CV = sigma) on the
 // log-x scale (#1477). Five Newton steps from log(prior mean); CondExp
-// clamps the step. Nodes are mode + z / sqrt(-H). The log-sum is the
-// unnormalised marginal (no log_mass).
+// clamps the step and skips (then snaps to the prior mode) when H is
+// not strictly concave. Nodes are mode + z / sqrt(-H). The log-sum is
+// the unnormalised marginal (no log_mass).
 template<class Type>
 void drm_gamma_mi_adaptive_quadrature(
     Type mu,
@@ -180,24 +204,43 @@ void drm_gamma_mi_adaptive_quadrature(
   Type scale = mu * cv2;
   Type mu_floor = Type(1e-300);
   Type mu_safe = CppAD::CondExpGt(mu, mu_floor, mu, mu_floor);
-  Type u = log(mu_safe);
-  Type step_max = Type(2.0);
+  Type u0 = log(mu_safe);
+  Type u = u0;
+  if (include_y == 1 && model_type == 1) {
+    Type beta_floor = Type(1e-12);
+    Type beta_safe = CppAD::CondExpGt(
+      beta_x * beta_x, beta_floor * beta_floor, beta_x, Type(1.0));
+    Type x_lik = x_base + (y - mu_base) / beta_safe;
+    Type x_lik_floor = Type(1e-300);
+    Type x_lik_safe = CppAD::CondExpGt(x_lik, x_lik_floor, x_lik, x_lik_floor);
+    Type use_lik = CppAD::CondExpGt(x_lik, x_lik_floor, Type(1.0), Type(0.0));
+    Type u_blend = Type(0.5) * u0 + Type(0.5) * log(x_lik_safe);
+    u = use_lik * u_blend + (Type(1.0) - use_lik) * u0;
+  }
+  Type step_max = Type(0.5);
   Type hess_floor = Type(-1e-8);
   Type g = Type(0.0);
   Type H = Type(0.0);
-  for (int k = 0; k < 5; ++k) {
+  for (int k = 0; k < 15; ++k) {
     drm_gamma_mi_newton_grad_hess(
       u, shape, scale, mu_base, beta_x, x_base,
-      y, log_sigma, V_known, include_y, g, H);
-    Type H_safe = CppAD::CondExpLt(H, hess_floor, H, hess_floor);
-    Type step = g / H_safe;
+      model_type, y, log_sigma, V_known, include_y, g, H);
+    // Skip the step when H is not strictly concave. Flooring a non-negative
+    // Hessian to -1e-8 explodes the Newton step and can NaN a legitimate row
+    // (Poisson y = 0 at CV 2).
+    Type good = CppAD::CondExpLt(H, hess_floor, Type(1.0), Type(0.0));
+    Type H_step = CppAD::CondExpLt(H, hess_floor, H, Type(-1.0));
+    Type step = g / H_step;
     step = CppAD::CondExpGt(step, step_max, step_max, step);
     step = CppAD::CondExpLt(step, -step_max, -step_max, step);
-    u = u - step;
+    u = u - good * step;
   }
   drm_gamma_mi_newton_grad_hess(
     u, shape, scale, mu_base, beta_x, x_base,
-    y, log_sigma, V_known, include_y, g, H);
+    model_type, y, log_sigma, V_known, include_y, g, H);
+  Type good_final = CppAD::CondExpLt(H, hess_floor, Type(1.0), Type(0.0));
+  u = good_final * u + (Type(1.0) - good_final) * u0;
+  H = good_final * H + (Type(1.0) - good_final) * (-shape);
   Type negH = -H;
   Type negH_floor = Type(1e-8);
   negH = CppAD::CondExpGt(negH, negH_floor, negH, negH_floor);

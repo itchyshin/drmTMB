@@ -52,7 +52,8 @@ drm_gamma_mi_reference_loglik <- function(
   response = "gaussian"
 ) {
   # Integrate on u = log(x) so a tight response (sd_y = 0.1) does not
-  # miss the posterior the way stats::integrate(0, Inf) can.
+  # miss the posterior the way stats::integrate(0, Inf) can. Split at
+  # the prior mean and the implied x so a pole or tail spike is hit.
   integrand <- function(u) {
     x <- exp(u)
     prior <- stats::dgamma(x, shape = 1 / sigma^2, scale = mu * sigma^2)
@@ -64,12 +65,27 @@ drm_gamma_mi_reference_loglik <- function(
     }
     prior * lik * x
   }
-  stats::integrate(
-    integrand,
-    lower = log(mu) - 10,
-    upper = log(mu) + 10,
-    rel.tol = 1e-10
-  )$value
+  u_lo <- log(mu) - 12
+  u_hi <- log(mu) + 12
+  breaks <- seq(u_lo, u_hi, by = 0.25)
+  if (is.finite(beta_x) && abs(beta_x) > 1e-12) {
+    x_star <- x_base + (y - mu_y) / beta_x
+    if (is.finite(x_star) && x_star > 0) {
+      breaks <- c(breaks, log(x_star))
+    }
+  }
+  breaks <- sort(unique(breaks[is.finite(breaks)]))
+  total <- 0
+  for (i in seq_len(length(breaks) - 1L)) {
+    total <- total + stats::integrate(
+      integrand,
+      lower = breaks[[i]],
+      upper = breaks[[i + 1L]],
+      rel.tol = 1e-10,
+      subdivisions = 200L
+    )$value
+  }
+  total
 }
 
 drm_gamma_mi_quad_loglik <- function(
@@ -82,7 +98,7 @@ drm_gamma_mi_quad_loglik <- function(
   sigma,
   response = "gaussian"
 ) {
-  quad <- drmTMB:::drm_gamma_mi_quadrature(31L)
+  quad <- drmTMB:::drm_gamma_mi_quadrature()
   is <- drmTMB:::drm_gamma_mi_adaptive_nodes(
     quad$nodes,
     quad$weights,

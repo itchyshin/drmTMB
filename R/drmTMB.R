@@ -684,14 +684,26 @@ drm_fit_spec <- function(
   spec <- drm_apply_start_override(spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
-  obj <- TMB::MakeADFun(
-    data = spec$tmb_data,
-    parameters = spec$start,
-    map = spec$map,
-    random = spec$tmb_random_names,
-    DLL = "drmTMB",
-    silent = TRUE
+  mi_quad_abort <- drm_spec_uses_mi_quadrature_abort(spec)
+  obj <- tryCatch(
+    TMB::MakeADFun(
+      data = spec$tmb_data,
+      parameters = spec$start,
+      map = spec$map,
+      random = spec$tmb_random_names,
+      DLL = "drmTMB",
+      silent = TRUE
+    ),
+    error = function(e) {
+      if (isTRUE(mi_quad_abort)) {
+        drm_rethrow_mi_quadrature_error(e)
+      }
+      stop(e)
+    }
   )
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, obj$par, "starting")
+  }
 
   optimizer <- drm_optimize_with_preset_retry(obj, control)
   opt <- optimizer$opt
@@ -701,6 +713,9 @@ drm_fit_spec <- function(
     optimizer$selected$objective <- opt$objective
     optimizer$selected$convergence <- opt$convergence
     optimizer$selected$message <- opt$message
+  }
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, opt$par, "fitted")
   }
   drm_warn_if_not_converged(opt)
   drm_warn_if_nonfinite_objective(opt)

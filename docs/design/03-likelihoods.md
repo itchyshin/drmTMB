@@ -980,12 +980,17 @@ log L_i =
 ```
 
 For missing `biomass_i`, TMB integrates over positive predictor states by a
-31-node posterior-mode Gauss-Hermite rule on `u = log(x)`. Five Newton steps
-start at `log(mu_xi)` and use the log Gamma prior plus
-`drm_response_log_density` (Gaussian location-scale on this path). Nodes are
+51-node posterior-mode Gauss-Hermite rule on `u = log(x)`. Fifteen Newton steps
+start at `log(mu_xi)` and use the log Gamma prior plus each response
+family's own log-density gradient and Hessian with respect to `x`
+(analytic Gaussian and Poisson; otherwise a finite difference of
+`drm_response_log_density`). A non-negative Hessian skips the step and
+falls back to the prior mode with prior curvature. Nodes are
 `mode + z_q / sqrt(-H)` with the `dx/du` Jacobian. The log-sum is the
 unnormalised marginal. A NaN or `-Inf` row is
-`drmTMB_mi_quadrature_nonfinite`. There is no CV branch: the same adaptive
+`drmTMB_mi_quadrature_nonfinite`, raised from the C++ tape token through
+`drm_rethrow_mi_quadrature_error` and from non-finite `fn`/`gr` at the
+start and the fitted parameter. There is no CV branch: the same adaptive
 rule runs at every CV (#1477):
 
 ```text
