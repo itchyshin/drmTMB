@@ -2332,35 +2332,51 @@ drm_gamma_mi_adaptive_nodes <- function(
     x <- exp(u)
     g <- shape - x / scale
     H <- -x / scale
-    if (identical(response, "gaussian") && !is.null(y)) {
+    if (!is.null(y) && !identical(response, "none")) {
       mu_q <- mu_y + beta_x * (x - x_base)
-      inv_s2 <- 1 / sigma_y^2
       dmu_du <- beta_x * x
-      g <- g + (y - mu_q) * inv_s2 * dmu_du
-      H <- H - dmu_du^2 * inv_s2 + (y - mu_q) * inv_s2 * dmu_du
-    } else if (identical(response, "poisson") && !is.null(y)) {
-      h <- 1e-4
-      fp <- f(u + h)
-      fm <- f(u - h)
-      f0 <- f(u)
-      g <- (fp - fm) / (2 * h)
-      H <- (fp - 2 * f0 + fm) / (h * h)
+      if (identical(response, "gaussian")) {
+        inv_s2 <- 1 / sigma_y^2
+        d1 <- (y - mu_q) * inv_s2
+        d2 <- -inv_s2
+      } else {
+        lambda <- exp(mu_q)
+        d1 <- y - lambda
+        d2 <- -lambda
+      }
+      g <- g + d1 * dmu_du
+      H <- H + d2 * dmu_du * dmu_du + d1 * dmu_du
     }
     list(g = g, H = H)
   }
-  u <- log(max(mu, 1e-300))
-  for (k in seq_len(5L)) {
+  u0 <- log(max(mu, 1e-300))
+  u <- u0
+  if (!is.null(y) && identical(response, "gaussian") && is.finite(beta_x) &&
+      abs(beta_x) > 1e-12) {
+    x_lik <- x_base + (y - mu_y) / beta_x
+    if (is.finite(x_lik) && x_lik > 0) {
+      u <- 0.5 * u0 + 0.5 * log(x_lik)
+    }
+  }
+  step_max <- min(2, max(0.25, 3 * sigma))
+  for (k in seq_len(15L)) {
     gh <- grad_hess(u)
-    H_safe <- min(gh$H, -1e-8)
-    step <- max(min(gh$g / H_safe, 2), -2)
-    u <- u - step
+    if (is.finite(gh$H) && gh$H < -1e-8 && is.finite(gh$g)) {
+      step <- max(min(gh$g / gh$H, step_max), -step_max)
+      u <- u - step
+    }
   }
   H <- grad_hess(u)$H
+  if (!is.finite(H) || H >= -1e-8) {
+    u <- u0
+    H <- -shape
+  }
   sigma_u <- 1 / sqrt(max(-H, 1e-8))
   u_q <- u + sigma_u * z
   x <- exp(u_q)
   log_terms <- log(w) + f(u_q) + log(sigma_u) - stats::dnorm(z, 0, 1, log = TRUE)
-  if (!all(is.finite(log_terms))) {
+  log_ll <- drm_logsumexp(log_terms)
+  if (!is.finite(log_ll)) {
     drm_abort_mi_quadrature_nonfinite()
   }
   list(x = x, log_terms = log_terms, mode = u, sigma_u = sigma_u)
@@ -3665,7 +3681,7 @@ drm_gamma_missing_predictor_response <- function(x, variable) {
   x
 }
 
-drm_gamma_mi_quadrature <- function(n = 31L) {
+drm_gamma_mi_quadrature <- function(n = 51L) {
   drm_standard_normal_mi_quadrature(n)
 }
 

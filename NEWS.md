@@ -12,21 +12,29 @@
 
 ## Bug fixes
 
-* Gamma `mi()` missing-x rows use a 31-node posterior-mode Gauss-Hermite
-  rule on `u = log(x)`. Five Newton steps start at the log prior mean;
-  nodes sit at the mode scaled by `1/sqrt(-H)`. The log-sum is the
-  unnormalised marginal (no `log_mass`). A NaN or `-Inf` row stops the
-  fit with class `drmTMB_mi_quadrature_nonfinite`. Against
-  `stats::integrate()` on the log-x scale the per-row logLik error is
-  below `1e-4` at CV 0.05 (with `sd_y = 0.1`), 0.1, 0.5, 1, and 2, and
-  for a Poisson response times a Gamma `mi()` covariate on the R helper.
+* Gamma `mi()` missing-x rows use a 51-node posterior-mode Gauss-Hermite
+  rule on `u = log(x)`. Fifteen Newton steps start at the log prior mean
+  (Gaussian paths blend toward the implied `x`) and use each response
+  family's own log-density gradient and Hessian. A non-negative Hessian
+  skips the step and falls back to the prior mode. Nodes sit at the mode
+  scaled by `1/sqrt(-H)`. The log-sum is the unnormalised marginal (no
+  `log_mass`). A NaN or `-Inf` row stops the fit with class
+  `drmTMB_mi_quadrature_nonfinite`, including on a live `drmTMB()` call
+  (start and fitted `fn`/`gr` probes, and the C++ tape token through
+  `drm_rethrow_mi_quadrature_error`). Against `stats::integrate()` on
+  the log-x scale the per-row logLik error is below `1e-4` near the pole
+  and in the tail at CV 0.05, 0.5, and 1, and for Poisson times Gamma at
+  CV 1. Poisson times Gamma at CV 2 with `y = 0` stays finite. CV `> 1`
+  near the pole remains a follow-up (Refs #1477).
   `obj$gr()` matches a finite-difference gradient to `1e-5` at CV 0.05,
   1, and 2 (Refs #1477).
 
 * Beta and zero-one-Beta `mi()` keep the frozen 15-node Gauss-Legendre
   rule on `(0, 1)`, with zero-one-Beta atoms at 0 and 1. Mid-range Beta
   logLik error versus `integrate()` is about `2.6e-5`. U-shaped Beta
-  (`mu` 0.02 and 0.10, `sigma = 1`) stays a follow-up that refs #1476.
+  (`mu` 0.02 and 0.10, `sigma = 1`) is about `1.64e-2`. The worse
+  U-shaped case with shapes `(0.13, 0.31)` and `y` near the 0 pole
+  is about `0.54` and is recorded for #1531 (Refs #1476).
   Weight 0 on a missing row still uses `if (asDouble(weights(i)) > 0)`
   (Refs #1476).
 

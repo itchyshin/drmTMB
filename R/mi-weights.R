@@ -135,11 +135,80 @@ drm_abort_mi_quadrature_nonfinite <- function(detail = NULL) {
 }
 
 drm_rethrow_mi_quadrature_error <- function(e) {
+  if (inherits(e, "drmTMB_mi_quadrature_nonfinite")) {
+    stop(e)
+  }
   msg <- conditionMessage(e)
   if (grepl("drmTMB_mi_quadrature_nonfinite", msg, fixed = TRUE)) {
     drm_abort_mi_quadrature_nonfinite(msg)
   }
   stop(e)
+}
+
+drm_mi_quadrature_abort_families <- function() {
+  c("gamma", "beta", "zero_one_beta")
+}
+
+drm_spec_uses_mi_quadrature_abort <- function(spec) {
+  mp <- spec[["missing_predictor"]]
+  is.list(mp) &&
+    isTRUE(mp$enabled) &&
+    is.character(mp$family) &&
+    length(mp$family) == 1L &&
+    mp$family %in% drm_mi_quadrature_abort_families()
+}
+
+drm_wrap_mi_quadrature_objective <- function(fn) {
+  function(...) {
+    err <- NULL
+    val <- tryCatch(
+      fn(...),
+      error = function(e) {
+        err <<- e
+        NULL
+      }
+    )
+    if (!is.null(err)) {
+      drm_rethrow_mi_quadrature_error(err)
+    }
+    val
+  }
+}
+
+drm_probe_mi_quadrature_objective <- function(obj, par, stage) {
+  err <- NULL
+  nll <- tryCatch(
+    obj$fn(par),
+    error = function(e) {
+      err <<- e
+      NULL
+    }
+  )
+  if (!is.null(err)) {
+    drm_rethrow_mi_quadrature_error(err)
+  }
+  if (!is.finite(nll)) {
+    drm_abort_mi_quadrature_nonfinite(
+      sprintf("The %s objective is not finite.", stage)
+    )
+  }
+  err <- NULL
+  gr <- tryCatch(
+    obj$gr(par),
+    error = function(e) {
+      err <<- e
+      NULL
+    }
+  )
+  if (!is.null(err)) {
+    drm_rethrow_mi_quadrature_error(err)
+  }
+  if (!all(is.finite(gr))) {
+    drm_abort_mi_quadrature_nonfinite(
+      sprintf("The %s gradient is not finite.", stage)
+    )
+  }
+  invisible(nll)
 }
 
 drm_abort_mi_weights_predict <- function(object, dots = list()) {

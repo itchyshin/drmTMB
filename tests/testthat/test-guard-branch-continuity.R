@@ -240,10 +240,11 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # across nu = 1e4 is test-student-large-nu.R. n_response is therefore 8L.
   #
   # #1476 / #1477 drop the two IS s_floor CondExps and add Newton clamps
-  # in drm_gamma_mi_adaptive_quadrature (mu floor, Hessian floor, two
-  # step clamps, and -H floor). Weight 0 stays a data-level
-  # `if (asDouble(weights(i)) > 0)`. Recount after the rewrite.
-  expect_equal(n_cpp, 35L)
+  # in drm_gamma_mi_adaptive_quadrature. Round 4: skip a non-concave
+  # Hessian (good, H_step), snap to the prior mode (good_final), and
+  # blend the Gaussian start toward the implied x (beta_safe, x_lik_safe,
+  # use_lik). Weight 0 stays a data-level `if (asDouble(weights(i)) > 0)`.
+  expect_equal(n_cpp, 40L)
   expect_equal(n_numeric, 9L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)

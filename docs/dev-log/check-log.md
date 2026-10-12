@@ -1,3 +1,23 @@
+# 2026-10-12: #1513 Round 4 family-correct Newton and live abort
+
+Newton uses each family's own log-density `g`/`H` wrt `x` (analytic Gaussian and Poisson; otherwise FD of `drm_response_log_density`). A non-negative Hessian skips the step and falls back to the prior mode. Gamma production is 51-node posterior-mode GH. `drm_fit_spec()` rethrows the C++ tape token through `drm_rethrow_mi_quadrature_error` and probes start/fitted `fn`/`gr` for Gamma/Beta/ZOB `mi()` only. `n_cpp = 40L`. Headers and unweighted Gaussian priors unchanged.
+
+Acceptance vs fine-split `integrate()` (R 4.3.3, TMB 1.9.25):
+- Gamma pole `y=2.05`: CV 0.05 `5.7e-14`; 0.5 `1.3e-8`; 1 `2.7e-5` (before: y=7 easy `1e-15`; pole was untested).
+- Gamma tail `y=12`: CV 0.05 `4.1e-12`; 0.5 `2.0e-14`; 1 `2.8e-14`.
+- Poisson × Gamma CV 1: `5.17e-5` (before `5.4e-4`).
+- Poisson × Gamma CV 2 `y=0`: finite (before classed abort).
+- Gamma pole CV 2: `9.51e-2` (labelled skip; issue draft `docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md`, refs #1477).
+- U-shaped Beta shapes `(0.13, 0.31)`, `y` near 0: `0.54` recorded for #1531 (that issue cites `1.6e-2`).
+- Live `drmTMB()` Gamma `mi()` with `y=1e200` on a missing-x row raises `drmTMB_mi_quadrature_nonfinite`.
+
+Focused local: `test-mi-quadrature-1476-1477.R` 0 fail (1 expected skip); `test-guard-branch-continuity.R` 0 fail; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-mi-weights-1459.R` 0 fail. C17 and the full suite follow this entry.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+
 # 2026-10-12: #1513 quadrature restore + adaptive Gamma
 
 Beta / zero-one-Beta `mi()` restored to the frozen 15-node Gauss-Legendre rule, ZOB atoms `c(0, nodes, 1)`. Gamma `mi()` is posterior-mode GH on `u = log(x)` (5 Newton steps from `log(mu)`, analytic Gaussian score/Hessian, CondExp step clamp, unnormalised log-sum, no CV branch). `drmTMB_mi_quadrature_nonfinite` aborts a NaN/`-Inf` marginal. Headers `src/drm_numeric.h` and `src/drm_response_kernels.h` were not edited. Unweighted Gaussian priors stay `:1301`, `:1342`, `:4556`. `n_cpp = 35L` (drop two IS `s_floor`s, add five Newton clamps). C17 not recertified (`R/drmTMB.R` and `R/methods.R` unchanged).

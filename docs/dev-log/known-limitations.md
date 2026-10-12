@@ -157,7 +157,11 @@ revisit condition.
   covariate routes. Beta and zero-one-Beta `mi()` use the frozen 15-node
   Gauss-Legendre rule; U-shaped Beta (`mu` 0.02 or 0.10 with `sigma = 1`)
   still has an `integrate()` logLik error of about `1.64e-2` (refs #1476).
-  Gamma `mi()` uses posterior-mode Gauss-Hermite on `log(x)` at every CV. Poisson, binomial, NB2, and beta response models separately
+  The worse U-shaped case with Beta shapes `(0.13, 0.31)` and `y` near
+  the 0 pole is about `0.54` log units (#1531 cites `1.6e-2`, which
+  understates that pole case). Gamma `mi()` uses posterior-mode
+  Gauss-Hermite on `log(x)` at every CV; near the pole at CV `> 1`
+  the per-row logLik error is about `9.5e-2` (follow-up, refs #1477). Poisson, binomial, NB2, and beta response models separately
   support one fixed-effect binary `mi()` predictor when the response is
   complete. Beta-binomial masking requires a complete success/failure pair per
   observed row; cumulative-logit masking requires an ordered factor and every

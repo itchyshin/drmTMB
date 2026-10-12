@@ -42,25 +42,32 @@ test_that("mid-range Beta 15-node rule matches integrate() near 2.6e-5 (#1476)",
   expect_equal(prod_pin, log(ref_pin), tolerance = 2.6e-5)
 })
 
-test_that("Gamma adaptive GH matches integrate() below 1e-4 per missing row (#1477)", {
-  y <- 7
+test_that("Gamma adaptive GH matches integrate() near the pole and in the tail (#1477)", {
+  # y = 7 sits at the prior-mean posterior (mu = 10, mu_y = 2, beta_x = 0.5)
+  # and is not a useful check. Pole x ≈ 0.1 → y = 2.05; tail x = 20 → y = 12.
   mu_y <- 2
   sigma_y <- 0.1
   beta_x <- 0.5
   x_base <- 0
   mu <- 10
-  for (sig in c(0.05, 0.1, 0.5, 1)) {
+  cases <- expand.grid(
+    y = c(2.05, 12),
+    sig = c(0.05, 0.5, 1),
+    KEEP.OUT.ATTRS = FALSE
+  )
+  for (i in seq_len(nrow(cases))) {
+    y <- cases$y[[i]]
+    sig <- cases$sig[[i]]
     prod_ll <- drm_gamma_mi_quad_loglik(
       y, mu_y, sigma_y, beta_x, x_base, mu, sig
     )
     ref <- drm_gamma_mi_reference_loglik(
       y, mu_y, sigma_y, beta_x, x_base, mu, sig
     )
-    expect_equal(
-      prod_ll,
-      log(ref),
-      tolerance = 1e-4,
-      info = sprintf("CV=%.2f", sig)
+    expect_lt(
+      abs(prod_ll - log(ref)),
+      1e-4,
+      label = sprintf("y=%.2f CV=%.2f", y, sig)
     )
   }
 })
@@ -78,11 +85,44 @@ test_that("Poisson response x Gamma mi() helper matches integrate() (#1477)", {
   ref <- drm_gamma_mi_reference_loglik(
     y, mu_y, 1, beta_x, x_base, mu, sig, response = "poisson"
   )
-  expect_equal(prod_ll, log(ref), tolerance = 1e-4)
+  expect_lt(abs(prod_ll - log(ref)), 1e-4)
 })
 
-test_that("Gamma adaptive GH at CV > 1 matches integrate() or is a labelled skip (#1477)", {
-  y <- 7
+test_that("Poisson response x Gamma mi() at CV 1 is inside 1e-4 (#1477)", {
+  y <- 4
+  mu_y <- 1.2
+  beta_x <- 0.15
+  x_base <- 0
+  mu <- 8
+  sig <- 1
+  prod_ll <- drm_gamma_mi_quad_loglik(
+    y, mu_y, 1, beta_x, x_base, mu, sig, response = "poisson"
+  )
+  ref <- drm_gamma_mi_reference_loglik(
+    y, mu_y, 1, beta_x, x_base, mu, sig, response = "poisson"
+  )
+  expect_lt(abs(prod_ll - log(ref)), 1e-4)
+})
+
+test_that("Poisson x Gamma at CV 2 with y = 0 does not abort (#1477)", {
+  quad <- drmTMB:::drm_gamma_mi_quadrature()
+  nodes <- drmTMB:::drm_gamma_mi_adaptive_nodes(
+    quad$nodes,
+    quad$weights,
+    mu = 8,
+    sigma = 2,
+    y = 0,
+    mu_y = 1.2,
+    sigma_y = 1,
+    beta_x = 0.15,
+    x_base = 0,
+    response = "poisson"
+  )
+  expect_true(is.finite(drmTMB:::drm_logsumexp(nodes$log_terms)))
+})
+
+test_that("Gamma adaptive GH at CV > 1 near the pole is a labelled skip (#1477)", {
+  y <- 2.05
   mu_y <- 2
   sigma_y <- 0.1
   beta_x <- 0.5
@@ -96,7 +136,7 @@ test_that("Gamma adaptive GH at CV > 1 matches integrate() or is a labelled skip
   )
   if (inherits(err, "error") || !is.finite(err) || err > 1e-4) {
     skip(sprintf(
-      "Gamma CV>1 adaptive GH is not yet inside 1e-4 (error=%s). Follow-up refs #1477.",
+      "Gamma CV>1 near-pole adaptive GH is not yet inside 1e-4 (error=%s). Follow-up issue: Gamma mi() adaptive GH misses the pole at CV > 1 (refs #1477).",
       if (inherits(err, "error")) conditionMessage(err) else format(err, digits = 4)
     ))
   }
@@ -121,6 +161,29 @@ test_that("NaN or -Inf Gamma marginal is a classed abort", {
       x_base = 0,
       response = "gaussian"
     ),
+    class = "drmTMB_mi_quadrature_nonfinite"
+  )
+})
+
+test_that("a live drmTMB() Gamma mi() fit raises drmTMB_mi_quadrature_nonfinite", {
+  skip_on_cran()
+  set.seed(15134)
+  n <- 20
+  d <- data.frame(
+    y = 1 + 0.4 * seq_len(n) + stats::rnorm(n, 0, 0.2),
+    x = stats::rgamma(n, shape = 4, scale = 2),
+    z = stats::rnorm(n)
+  )
+  d$x[[1L]] <- NA_real_
+  d$y[[1L]] <- 1e200
+  expect_error(
+    suppressWarnings(drmTMB(
+      bf(y ~ mi(x), sigma ~ 1),
+      data = d,
+      impute = list(x = impute_model(x ~ z, family = Gamma(link = "log"))),
+      missing = miss_control(predictor = "model"),
+      control = drm_control(se = FALSE)
+    )),
     class = "drmTMB_mi_quadrature_nonfinite"
   )
 })
