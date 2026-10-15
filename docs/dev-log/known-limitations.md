@@ -159,9 +159,15 @@ revisit condition.
   still has an `integrate()` logLik error of about `1.64e-2` (refs #1476).
   The worse U-shaped case with Beta shapes `(0.13, 0.31)` and `y` near
   the 0 pole is about `0.54` log units (#1531 cites `1.6e-2`, which
-  understates that pole case). Gamma `mi()` uses posterior-mode
-  Gauss-Hermite on `log(x)` at every CV; near the pole at CV `> 1`
-  the per-row logLik error is about `9.5e-2` (follow-up, refs #1477). Poisson, binomial, NB2, and beta response models separately
+  understates that pole case). Gamma `mi()` uses a posterior-mode
+  sinh-mapped trapezoid rule on `log(x)` at every CV. Against a log-space
+  `integrate()` reference the per-row logLik error is under `1e-4` for
+  Gaussian responses at CV 0.05 to 2 (worst `2.5e-5`, near the mode at
+  CV 2) and for Poisson responses at CV 0.2 to 2 with `y` = 0, 1, 4, 30.
+  Still open (refs #1477): CV `>= 3` (a quarter of scan rows exceed `1e-4`),
+  and a Poisson response whose mean at the prior mean is far above `y`
+  (`exp(eta)` at `x = mu` of about `1e3` or more), where five Newton steps
+  stop short of the mode; twelve steps recover the moderate cases. Poisson, binomial, NB2, and beta response models separately
   support one fixed-effect binary `mi()` predictor when the response is
   complete. Beta-binomial masking requires a complete success/failure pair per
   observed row; cumulative-logit masking requires an ordered factor and every

@@ -243,7 +243,16 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # in drm_gamma_mi_adaptive_quadrature (mu floor, Hessian floor, two
   # step clamps, and -H floor). Five steps, no data-dependent stop.
   # Weight 0 stays a data-level `if (asDouble(weights(i)) > 0)`.
-  expect_equal(n_cpp, 35L)
+  #
+  # #1477 (round 5) replaces the Gauss-Hermite node rule with a sinh-mapped
+  # trapezoid and makes each of the five Newton steps a safeguarded choice
+  # between the clamped log-x step and a Newton step on G(x) = g / x. That
+  # adds ten CondExp sites to drm_gamma_mi_adaptive_quadrature: the (H - g)
+  # floor, the ratio floor, two log-step clamps, two validity selects, two
+  # non-finite-loses floors on the candidate log integrands, the candidate
+  # select, and the node clamp u_q <= 500. n_cpp is therefore 45L. The paired
+  # checks are the next two tests: a step-B fallback row and an overflow row.
+  expect_equal(n_cpp, 45L)
   expect_equal(n_numeric, 9L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)
@@ -263,6 +272,41 @@ test_that("Gamma adaptive GH Newton clamps keep nodes finite at tiny CV", {
   expect_true(is.finite(gamma_tiny$x))
   expect_true(all(is.finite(gamma_tiny$log_terms)))
   expect_gt(gamma_tiny$x, 0)
+})
+
+# ---------------------------------------------------------------------------
+# Site: drm_gamma_mi_adaptive_quadrature step B (Newton on G(x) = g / x).
+# Class: C0 selection. When H - g >= 0 or the ratio is not positive, step B
+# is invalid and step A is used; when both are valid the better log integrand
+# wins. Poisson with beta_x < 0 and a response that wants x < 0 sends the
+# ratio negative on the first steps, so the fallback runs on the tape.
+# ---------------------------------------------------------------------------
+test_that("Gamma Newton step B falls back to step A when its ratio is invalid (#1477)", {
+  quad <- drmTMB:::drm_gamma_mi_quadrature()
+  nodes <- drmTMB:::drm_gamma_mi_adaptive_nodes(
+    quad$nodes, quad$weights, mu = 100, sigma = 0.5,
+    y = 10, mu_y = 1.2, sigma_y = 1, beta_x = -0.05, x_base = 0,
+    response = "poisson"
+  )
+  expect_true(is.finite(drmTMB:::drm_logsumexp(nodes$log_terms)))
+  ref <- drm_gamma_mi_reference_loglik(
+    10, 1.2, 1, -0.05, 0, 100, 0.5, response = "poisson"
+  )
+  expect_lt(
+    abs(drmTMB:::drm_logsumexp(nodes$log_terms) - log(ref)),
+    1e-4
+  )
+})
+
+# Site: u_q clamp at 500 in the node placement. Class: C0 floor. A huge prior
+# mean with a flat curvature floor (-H -> 1e-8) would send exp(u_q) to Inf.
+test_that("Gamma node clamp keeps x finite at a huge prior mean (#1477)", {
+  quad <- drmTMB:::drm_gamma_mi_quadrature()
+  nodes <- drmTMB:::drm_gamma_mi_adaptive_nodes(
+    quad$nodes, quad$weights, mu = 1e200, sigma = 2, response = "none"
+  )
+  expect_true(all(is.finite(nodes$x)))
+  expect_true(all(is.finite(nodes$log_terms)))
 })
 
 # ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 # Unnormalised quadrature mass and integrate() references for #1476 / #1477.
 # Production Beta uses the frozen 15-node Gauss-Legendre rule. Production
-# Gamma uses posterior-mode Gauss-Hermite. These helpers do not renormalise.
+# Gamma uses a posterior-mode sinh-mapped trapezoid rule. These helpers do not renormalise.
 
 drm_beta_mi_quadrature_mass <- function(mu, sigma) {
   quad <- drmTMB:::drm_beta_mi_quadrature()
@@ -51,23 +51,29 @@ drm_gamma_mi_reference_loglik <- function(
   sigma,
   response = "gaussian"
 ) {
-  # Integrate on u = log(x) so a tight response (sd_y = 0.1) does not
-  # miss the posterior the way stats::integrate(0, Inf) can. Split at
-  # the prior mean and the implied x so a pole or tail spike is hit.
-  integrand <- function(u) {
+  # Reference log marginal, log \int Gamma(x) f(y | x) dx, via stats::integrate()
+  # on u = log(x) with the Jacobian. The integrand is evaluated in log space
+  # and scaled by its maximum, over u in [-60, u_hi] in 0.5-wide pieces (plus
+  # the split at the implied pole x*), so neither a tight response (sd_y = 0.1)
+  # nor the exp(shape * u) left tail at CV >= 1 is truncated. The mass left of
+  # u = -60 is added analytically (the integrand is C * exp(shape * u) there).
+  # A reference that stops at log(mu) - 12 loses about 5% of the mass at
+  # CV = 2 (shape = 0.25), which is not a quadrature error.
+  shape <- 1 / sigma^2
+  scale <- mu * sigma^2
+  log_f <- function(u) {
     x <- exp(u)
-    prior <- stats::dgamma(x, shape = 1 / sigma^2, scale = mu * sigma^2)
     mu_q <- mu_y + beta_x * (x - x_base)
-    lik <- if (identical(response, "poisson")) {
-      stats::dpois(y, exp(mu_q))
+    log_lik <- if (identical(response, "poisson")) {
+      stats::dpois(y, exp(mu_q), log = TRUE)
     } else {
-      stats::dnorm(y, mu_q, sigma_y)
+      stats::dnorm(y, mu_q, sigma_y, log = TRUE)
     }
-    prior * lik * x
+    stats::dgamma(x, shape = shape, scale = scale, log = TRUE) + log_lik + u
   }
-  u_lo <- log(mu) - 12
-  u_hi <- log(mu) + 12
-  breaks <- seq(u_lo, u_hi, by = 0.25)
+  u_lo <- -60
+  u_hi <- max(log(mu) + 10, log(40 * scale))
+  breaks <- seq(u_lo, u_hi, by = 0.5)
   if (is.finite(beta_x) && abs(beta_x) > 1e-12) {
     x_star <- x_base + (y - mu_y) / beta_x
     if (is.finite(x_star) && x_star > 0) {
@@ -75,17 +81,20 @@ drm_gamma_mi_reference_loglik <- function(
     }
   }
   breaks <- sort(unique(breaks[is.finite(breaks)]))
+  scale_ref <- max(log_f(seq(u_lo, u_hi, length.out = 4001L)))
   total <- 0
   for (i in seq_len(length(breaks) - 1L)) {
     total <- total + stats::integrate(
-      integrand,
+      function(u) exp(log_f(u) - scale_ref),
       lower = breaks[[i]],
       upper = breaks[[i + 1L]],
-      rel.tol = 1e-10,
-      subdivisions = 200L
+      rel.tol = 1e-12,
+      abs.tol = 0,
+      subdivisions = 400L
     )$value
   }
-  total
+  total <- total + exp(log_f(u_lo) - scale_ref) / shape
+  total * exp(scale_ref)
 }
 
 drm_gamma_mi_quad_loglik <- function(

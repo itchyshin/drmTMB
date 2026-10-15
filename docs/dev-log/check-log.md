@@ -1,3 +1,47 @@
+# 2026-10-15: #1513 round 5 Gamma mi() pole fix (sinh-mapped trapezoid)
+
+Cause of the CV 0.5 (`4.0e-3`) and CV 1 (`0.28`) pole errors: the five
+clamped log-`x` Newton steps had not reached the mode (score about
+`-15` after step 5 at the pole rows; each step moves `x` by a factor of
+`exp(-0.5)` against a response sd of 0.2 in `x`), and at CV 1 and above
+the Gauss-Hermite nodes could not reach the `exp(shape * u)` left tail.
+The Gaussian-only-derivative suspicion was already fixed at `3ea958fdc`:
+the C++ and R mirror use each family's own `g`/`H`, and
+`drm_gamma_mi_grad_hess()` is now checked against central differences of
+the Jacobian-carrying log integrand for Gaussian and Poisson.
+
+Now: still exactly five steps, each the better (by log integrand) of the
+clamped log-`x` step and a Newton step on `G(x) = g / x` written with the
+log-`x` derivatives; nodes `mode + sigma_u sinh(t)` on 51 equally spaced
+`t` in `[-5, 4]`, weight `h cosh(t) sigma_u`, placed after step 5. `n_cpp`
+is `45L` (ten new CondExp sites, two paired guard tests). The reference
+`integrate()` was also wrong at CV 2: it stopped at `log(mu) - 12` and
+lost about 5% of the mass; the old "`8.3e-2`" and "`4.6e2`" were mostly
+that, plus real failure at `y = 30`.
+
+Per-row `|log marginal - log integrate()|`, R mirror and compiled TMB
+agree to `4e-13`:
+
+| Gaussian y (x*) | CV 0.5 | CV 1 | CV 2 |
+| --- | --- | --- | --- |
+| 2.05 (pole, 0.1) | 1.05e-8 | 1.82e-7 | 9.02e-7 |
+| 2.20 | 4.98e-9 | 8.82e-9 | 2.48e-5 |
+| 2.50 | 9.04e-10 | 1.81e-9 | 5.31e-7 |
+| 3.50 | 7.02e-11 | 7.32e-11 | 7.39e-11 |
+| 12.0 (tail) | 3.8e-12 | 3.8e-12 | 3.8e-12 |
+
+| Poisson y | CV 0.2 | CV 1 | CV 2 |
+| --- | --- | --- | --- |
+| 0 | 7.2e-10 | 1.50e-6 | 2.12e-5 |
+| 1 | 8.7e-10 | 9.02e-7 | 1.26e-5 |
+| 4 | 1.31e-9 | 1.75e-6 | 1.13e-5 |
+| 30 | 2.2e-10 | 6.3e-10 | 6.1e-10 |
+
+Open: CV `>= 3`; Poisson with `exp(eta)` at the prior mean of about `1e3`
+or more (five steps stop short; twelve recover the moderate cases). Julia
+refusals for Beta/Gamma `mi()` and `drmTMB_julia_mi_weights_unsupported`
+are unchanged and tested. C17 and the full suite are not re-run (session 2).
+
 # 2026-10-12: #1513 five fixed family-correct Newton steps
 
 Newton is exactly five steps from `log(mu)` with each family's own

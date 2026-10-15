@@ -2290,6 +2290,45 @@ drm_gamma_mi_log_integrand <- function(
   log_gamma + log_y + u
 }
 
+# Analytic score and Hessian of drm_gamma_mi_log_integrand() on u = log(x),
+# mirroring drm_gamma_mi_newton_grad_hess() in src/drmTMB.cpp. Prior and
+# Jacobian are exact; the response term uses each family's own log-density
+# derivatives in eta, then the chain rule through eta = mu_y + beta_x * (x -
+# x_base).
+drm_gamma_mi_grad_hess <- function(
+  u,
+  mu,
+  sigma,
+  y = NULL,
+  mu_y = 0,
+  sigma_y = 1,
+  beta_x = 0,
+  x_base = 0,
+  response = "none"
+) {
+  shape <- 1 / sigma^2
+  scale <- mu * sigma^2
+  x <- exp(u)
+  g <- shape - x / scale
+  H <- -x / scale
+  if (!is.null(y) && !identical(response, "none")) {
+    mu_q <- mu_y + beta_x * (x - x_base)
+    dmu_du <- beta_x * x
+    if (identical(response, "gaussian")) {
+      inv_s2 <- 1 / sigma_y^2
+      d1 <- (y - mu_q) * inv_s2
+      d2 <- -inv_s2
+    } else {
+      lambda <- exp(mu_q)
+      d1 <- y - lambda
+      d2 <- -lambda
+    }
+    g <- g + d1 * dmu_du
+    H <- H + d2 * dmu_du * dmu_du + d1 * dmu_du
+  }
+  list(g = g, H = H)
+}
+
 drm_gamma_mi_adaptive_nodes <- function(
   z,
   w,
@@ -2311,46 +2350,48 @@ drm_gamma_mi_adaptive_nodes <- function(
       u, mu, sigma, y, mu_y, sigma_y, beta_x, x_base, response
     )
   }
-  shape <- 1 / sigma^2
-  scale <- mu * sigma^2
   grad_hess <- function(u) {
-    x <- exp(u)
-    g <- shape - x / scale
-    H <- -x / scale
-    if (!is.null(y) && !identical(response, "none")) {
-      mu_q <- mu_y + beta_x * (x - x_base)
-      dmu_du <- beta_x * x
-      if (identical(response, "gaussian")) {
-        inv_s2 <- 1 / sigma_y^2
-        d1 <- (y - mu_q) * inv_s2
-        d2 <- -inv_s2
-      } else {
-        lambda <- exp(mu_q)
-        d1 <- y - lambda
-        d2 <- -lambda
-      }
-      g <- g + d1 * dmu_du
-      H <- H + d2 * dmu_du * dmu_du + d1 * dmu_du
-    }
-    list(g = g, H = H)
+    drm_gamma_mi_grad_hess(
+      u, mu, sigma, y, mu_y, sigma_y, beta_x, x_base, response
+    )
+  }
+  # Five safeguarded Newton steps on u = log(x), as in
+  # drm_gamma_mi_adaptive_quadrature() in src/drmTMB.cpp: keep the better
+  # (by log integrand) of (A) the clamped log-x Newton step and (B) a Newton
+  # step on G(x) = g / x, x_new / x = (H - 2g) / (H - g). No data-dependent
+  # stop; nodes are placed once, after step 5.
+  safe_f <- function(u) {
+    v <- f(u)
+    if (is.finite(v)) v else -1e300
   }
   u <- log(max(mu, 1e-300))
   for (k in seq_len(5L)) {
     gh <- grad_hess(u)
     H_safe <- min(gh$H, -1e-8)
-    step <- max(min(gh$g / H_safe, 2), -2)
-    u <- u - step
+    u_a <- u - max(min(gh$g / H_safe, 2), -2)
+    Hg <- gh$H - gh$g
+    ratio <- (gh$H - 2 * gh$g) / min(Hg, -1e-12)
+    step_b <- max(min(log(max(ratio, 1e-300)), 2), -8)
+    u_b <- if (isTRUE(Hg < 0 && ratio > 0)) u + step_b else u_a
+    u <- if (safe_f(u_b) > safe_f(u_a)) u_b else u_a
   }
   H <- grad_hess(u)$H
   sigma_u <- 1 / sqrt(max(-H, 1e-8))
-  u_q <- u + sigma_u * z
+  # Sinh-mapped trapezoid: z are abscissae t, w the trapezoid step.
+  u_q <- pmin(u + sigma_u * sinh(z), 500)
   x <- exp(u_q)
-  log_terms <- log(w) + f(u_q) + log(sigma_u) - stats::dnorm(z, 0, 1, log = TRUE)
+  log_terms <- log(w) + f(u_q) + log(sigma_u) + log(cosh(z))
   log_ll <- drm_logsumexp(log_terms)
   if (!is.finite(log_ll)) {
     drm_abort_mi_quadrature_nonfinite()
   }
-  list(x = x, log_terms = log_terms, mode = u, sigma_u = sigma_u)
+  list(
+    x = x,
+    log_terms = log_terms,
+    mode = u,
+    sigma_u = sigma_u,
+    mode_grad = grad_hess(u)$g
+  )
 }
 
 drm_logsumexp <- function(log_terms) {
@@ -3653,7 +3694,16 @@ drm_gamma_missing_predictor_response <- function(x, variable) {
 }
 
 drm_gamma_mi_quadrature <- function(n = 51L) {
-  drm_standard_normal_mi_quadrature(n)
+  # Equally spaced abscissae t on [-5, 4] with trapezoid weight h. Production
+  # places u = mode + sigma_u * sinh(t); see drm_gamma_mi_adaptive_nodes().
+  # The wide left span reaches the exp(shape * u) tail at CV >= 1 that a
+  # Gauss-Hermite rule cannot (Refs #1477).
+  n <- as.integer(n)
+  if (length(n) != 1L || is.na(n) || n < 2L) {
+    cli::cli_abort("{.fn drm_gamma_mi_quadrature} requires n >= 2.")
+  }
+  nodes <- seq(-5, 4, length.out = n)
+  list(nodes = nodes, weights = rep(nodes[[2L]] - nodes[[1L]], n))
 }
 
 drm_gamma_missing_predictor_log_density <- function(x, mu, sigma) {
