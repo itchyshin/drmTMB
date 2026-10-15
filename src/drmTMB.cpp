@@ -177,10 +177,25 @@ void drm_gamma_mi_newton_grad_hess(
   }
 }
 
-// Posterior-mode Gauss-Hermite for Gamma(mean = mu, CV = sigma) on the
-// log-x scale (#1477). Exactly five Newton steps from log(prior mean);
-// CondExp clamps the step. There is no data-dependent stop. Nodes are
-// mode + z / sqrt(-H). The log-sum is the unnormalised marginal (no
+// Posterior-mode sinh-mapped trapezoid rule for Gamma(mean = mu, CV = sigma)
+// on the log-x scale (#1477). Integrand, gradient and Hessian are all on
+// u = log(x) and include the Jacobian (+u). Exactly five safeguarded Newton
+// steps from log(prior mean), then nodes are placed once, from the
+// post-step-5 mode and curvature. There is no data-dependent stop.
+//
+// Each step proposes two points and keeps the one with the larger log
+// integrand: (A) the log-x Newton step, clamped to +/-2; (B) a Newton step
+// on G(x) = g / x written with the log-x derivatives (x_new / x =
+// (H - 2g) / (H - g)), which is exact for a Gaussian response and so crosses
+// decades of x in one step where (A) moves a fixed 0.5. B is used only when
+// H - g < 0 and the ratio is positive, and its log-step is clamped to
+// [-8, 2]. The log-x integrand is unimodal at CV <= 1.
+//
+// Node abscissae z are DATA, equally spaced trapezoid abscissae t with weight
+// w = step. Nodes are u_q = mode + s * sinh(t_q), s = 1 / sqrt(-H), with
+// du/dt = s * cosh(t). The sinh map is wide where the integrand has the
+// exponential left tail exp(shape * u) (shape = 1 / CV^2), which a Gaussian
+// node rule cannot reach. The log-sum is the unnormalised marginal (no
 // log_mass).
 template<class Type>
 void drm_gamma_mi_adaptive_quadrature(
@@ -207,17 +222,47 @@ void drm_gamma_mi_adaptive_quadrature(
   Type u = log(mu_safe);
   Type step_max = Type(2.0);
   Type hess_floor = Type(-1e-8);
+  Type hg_floor = Type(-1e-12);
+  Type log_ratio_min = Type(-8.0);
+  Type log_ratio_max = Type(2.0);
+  Type f_floor = Type(-1e300);
+  Type u_max = Type(500.0);
   Type g = Type(0.0);
   Type H = Type(0.0);
   for (int k = 0; k < 5; ++k) {
     drm_gamma_mi_newton_grad_hess(
       u, shape, scale, mu_base, beta_x, x_base,
       model_type, y, log_sigma, V_known, include_y, g, H);
+    // (A) log-x Newton step.
     Type H_safe = CppAD::CondExpLt(H, hess_floor, H, hess_floor);
-    Type step = g / H_safe;
-    step = CppAD::CondExpGt(step, step_max, step_max, step);
-    step = CppAD::CondExpLt(step, -step_max, -step_max, step);
-    u = u - step;
+    Type step_a = g / H_safe;
+    step_a = CppAD::CondExpGt(step_a, step_max, step_max, step_a);
+    step_a = CppAD::CondExpLt(step_a, -step_max, -step_max, step_a);
+    Type u_a = u - step_a;
+    // (B) Newton step on G(x) = g / x, via the log-x derivatives.
+    Type Hg = H - g;
+    Type Hg_safe = CppAD::CondExpLt(Hg, hg_floor, Hg, hg_floor);
+    Type ratio = (H - Type(2.0) * g) / Hg_safe;
+    Type log_ratio_arg = CppAD::CondExpGt(
+      ratio, Type(1e-300), ratio, Type(1e-300));
+    Type step_b = log(log_ratio_arg);
+    step_b = CppAD::CondExpGt(step_b, log_ratio_max, log_ratio_max, step_b);
+    step_b = CppAD::CondExpLt(step_b, log_ratio_min, log_ratio_min, step_b);
+    Type u_b = u + step_b;
+    u_b = CppAD::CondExpLt(
+      Hg, Type(0.0),
+      CppAD::CondExpGt(ratio, Type(0.0), u_b, u_a),
+      u_a);
+    Type f_a = drm_gamma_mi_log_integrand(
+      u_a, shape, scale, mu_base, beta_x, x_base,
+      model_type, y, log_sigma, V_known, include_y);
+    Type f_b = drm_gamma_mi_log_integrand(
+      u_b, shape, scale, mu_base, beta_x, x_base,
+      model_type, y, log_sigma, V_known, include_y);
+    // A non-finite value must lose: NaN fails every CondExp comparison.
+    f_a = CppAD::CondExpGt(f_a, f_floor, f_a, f_floor);
+    f_b = CppAD::CondExpGt(f_b, f_floor, f_b, f_floor);
+    u = CppAD::CondExpGt(f_b, f_a, u_b, u_a);
   }
   drm_gamma_mi_newton_grad_hess(
     u, shape, scale, mu_base, beta_x, x_base,
@@ -228,14 +273,13 @@ void drm_gamma_mi_adaptive_quadrature(
   Type sigma_u = Type(1.0) / sqrt(negH);
   Type log_sigma_u = log(sigma_u);
   for (int q = 0; q < z.size(); ++q) {
-    Type u_q = u + sigma_u * z(q);
+    Type u_q = u + sigma_u * sinh(z(q));
+    u_q = CppAD::CondExpGt(u_q, u_max, u_max, u_q);
     x_nodes(q) = exp(u_q);
     Type f_q = drm_gamma_mi_log_integrand(
       u_q, shape, scale, mu_base, beta_x, x_base,
       model_type, y, log_sigma, V_known, include_y);
-    log_terms(q) =
-      log(w(q)) + f_q + log_sigma_u -
-      dnorm(z(q), Type(0.0), Type(1.0), true);
+    log_terms(q) = log(w(q)) + f_q + log_sigma_u + log(cosh(z(q)));
   }
 }
 

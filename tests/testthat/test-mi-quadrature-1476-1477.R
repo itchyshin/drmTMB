@@ -1,4 +1,5 @@
-# #1476 / #1477: restored 15-node Beta rule and adaptive Gamma GH.
+# #1476 / #1477: restored 15-node Beta rule and adaptive Gamma quadrature
+# (posterior-mode sinh-mapped trapezoid).
 # Mass tests use the raw (unnormalised) quadrature. Never loosen a tolerance.
 
 test_that("raw Beta mi() quadrature mass is finite and unnormalised (#1476)", {
@@ -42,113 +43,164 @@ test_that("mid-range Beta 15-node rule matches integrate() near 2.6e-5 (#1476)",
   expect_equal(prod_pin, log(ref_pin), tolerance = 2.6e-5)
 })
 
-test_that("Gamma adaptive GH matches integrate() near the pole and in the tail (#1477)", {
-  # y = 7 sits at the prior-mean posterior (mu = 10, mu_y = 2, beta_x = 0.5)
-  # and is not a useful check. Pole x ≈ 0.1 → y = 2.05; tail x = 20 → y = 12.
-  # Five fixed Newton steps hold the tail and the tight-CV pole. Pole at
-  # CV 0.5 and 1 is above 1e-4 (3.96e-3 / 0.282) and is not asserted here.
-  mu_y <- 2
-  sigma_y <- 0.1
-  beta_x <- 0.5
-  x_base <- 0
-  mu <- 10
-  cases <- rbind(
-    expand.grid(y = 12, sig = c(0.05, 0.5, 1), KEEP.OUT.ATTRS = FALSE),
-    expand.grid(y = 2.05, sig = 0.05, KEEP.OUT.ATTRS = FALSE)
+# Pole geometry for the Gaussian-response rows: mu = 10, mu_y = 2, sd_y = 0.1,
+# beta_x = 0.5, so y = 2.05 puts the response pole at x = 0.1 and the prior mean
+# (x = 10) sits at y = 7. The rows below walk from the pole (y = 2.05) through
+# the posterior mode (y = 2.2, 2.5, 3.5) to the tail (y = 12, x = 20). Each row
+# is checked on its own against a log-space integrate() reference; the bar is
+# 1e-4 on |log marginal error| per row and is never loosened (#1477).
+gamma_mi_gaussian_rows <- function() {
+  rbind(
+    expand.grid(
+      cv = c(0.5, 1, 2),
+      y = c(2.05, 2.2, 2.5, 3.5, 12),
+      KEEP.OUT.ATTRS = FALSE
+    ),
+    data.frame(cv = 0.05, y = c(2.05, 12))
   )
-  for (i in seq_len(nrow(cases))) {
-    y <- cases$y[[i]]
-    sig <- cases$sig[[i]]
+}
+
+test_that("Gamma quadrature matches integrate() per row at the pole, near the mode and in the tail (#1477)", {
+  rows <- gamma_mi_gaussian_rows()
+  for (i in seq_len(nrow(rows))) {
+    cv <- rows$cv[[i]]
+    y <- rows$y[[i]]
+    prod_ll <- drm_gamma_mi_quad_loglik(y, 2, 0.1, 0.5, 0, 10, cv)
+    ref <- drm_gamma_mi_reference_loglik(y, 2, 0.1, 0.5, 0, 10, cv)
+    expect_lt(
+      abs(prod_ll - log(ref)),
+      1e-4,
+      label = sprintf("Gaussian y=%.2f CV=%.2f", y, cv)
+    )
+  }
+})
+
+test_that("five Newton steps land near the posterior mode at the pole (#1477)", {
+  # The mode residual after step 5. With the old clamped log-x Newton step the
+  # score at the pole rows was about -15 (CV 0.5, 1, 2): the iterate had not
+  # reached the mode and the nodes were centred on the wrong point.
+  quad <- drmTMB:::drm_gamma_mi_quadrature()
+  for (cv in c(0.5, 1, 2)) {
+    nodes <- drmTMB:::drm_gamma_mi_adaptive_nodes(
+      quad$nodes, quad$weights, mu = 10, sigma = cv,
+      y = 2.05, mu_y = 2, sigma_y = 0.1, beta_x = 0.5, x_base = 0,
+      response = "gaussian"
+    )
+    expect_lt(abs(nodes$mode_grad), 0.1, label = sprintf("CV=%.1f", cv))
+  }
+})
+
+test_that("Gamma mi() score and Hessian are the derivatives of the log-x integrand with Jacobian (#1477)", {
+  # Central differences of drm_gamma_mi_log_integrand() (which carries the +u
+  # Jacobian) must reproduce the analytic score and Hessian that Newton uses,
+  # for the Gaussian and the Poisson response leaf.
+  for (resp in c("gaussian", "poisson")) {
+    y <- if (identical(resp, "poisson")) 4 else 2.2
+    sigma_y <- if (identical(resp, "poisson")) 1 else 0.1
+    mu_y <- if (identical(resp, "poisson")) 1.2 else 2
+    beta_x <- if (identical(resp, "poisson")) 0.15 else 0.5
+    for (cv in c(0.5, 1, 2)) {
+      f <- function(u) {
+        drmTMB:::drm_gamma_mi_log_integrand(
+          u, 10, cv, y, mu_y, sigma_y, beta_x, 0, resp
+        )
+      }
+      for (u in c(-1, 0, 1.5)) {
+        h <- 1e-4
+        g_fd <- (f(u + h) - f(u - h)) / (2 * h)
+        H_fd <- (f(u + h) - 2 * f(u) + f(u - h)) / h^2
+        gh <- drmTMB:::drm_gamma_mi_grad_hess(
+          u, 10, cv, y, mu_y, sigma_y, beta_x, 0, resp
+        )
+        expect_equal(gh$g, g_fd, tolerance = 1e-5, info = sprintf("%s CV=%.1f u=%.1f score", resp, cv, u))
+        expect_equal(gh$H, H_fd, tolerance = 1e-4, info = sprintf("%s CV=%.1f u=%.1f hessian", resp, cv, u))
+      }
+    }
+  }
+})
+
+test_that("compiled Gamma mi() quadrature matches integrate() per row, and the R mirror (#1477)", {
+  skip_on_cran()
+  # The marginal for one missing-x row is read off the live objective as
+  # nll(data with the row) - nll(data without it), at fixed parameters, so the
+  # compiled quadrature (not the R mirror) is what is compared with integrate().
+  make_obj <- function(y_pole, drop_pole) {
+    d <- data.frame(
+      y = c(y_pole, 3, 2.6, 3.4, 2.9, 3.1, 3.3, 2.7),
+      x = c(NA, NA, 9, 11, 10, 8, 12, 10)
+    )
+    if (drop_pole) {
+      d <- d[-1L, ]
+    }
+    suppressWarnings(drmTMB(
+      bf(y ~ mi(x), sigma ~ 1),
+      data = d,
+      impute = list(x = impute_model(x ~ 1, family = Gamma(link = "log"))),
+      missing = miss_control(predictor = "model"),
+      control = drm_control(se = FALSE)
+    ))
+  }
+  set_par <- function(obj, cv) {
+    p <- obj$par
+    nm <- names(p)
+    p[nm == "beta_mu"] <- c(2, 0.5)
+    p[nm == "beta_sigma"] <- log(0.1)
+    p[nm == "beta_mi"] <- log(10)
+    p[nm == "log_sigma_mi"] <- log(cv)
+    p
+  }
+  for (cv in c(0.5, 1, 2)) {
+    for (y in c(2.05, 2.2, 2.5, 3.5, 12)) {
+      fa <- make_obj(y, FALSE)
+      fb <- make_obj(y, TRUE)
+      cpp_ll <- -(fa$obj$fn(set_par(fa$obj, cv)) - fb$obj$fn(set_par(fb$obj, cv)))
+      ref <- log(drm_gamma_mi_reference_loglik(y, 2, 0.1, 0.5, 0, 10, cv))
+      mirror <- drm_gamma_mi_quad_loglik(y, 2, 0.1, 0.5, 0, 10, cv)
+      lab <- sprintf("compiled y=%.2f CV=%.1f", y, cv)
+      expect_lt(abs(cpp_ll - ref), 1e-4, label = lab)
+      expect_lt(abs(cpp_ll - mirror), 1e-8, label = paste(lab, "vs R mirror"))
+    }
+  }
+})
+
+test_that("Poisson response x Gamma mi() matches integrate() per row at CV 0.2, 1 and 2 (#1477)", {
+  # y = 0 is the hard row at CV 2 (the prior's exp(0.25 u) left tail meets a
+  # likelihood that is flat in x); y = 30 is the large-y row. Reference is the
+  # same log-space integrate() as the Gaussian rows; the old reference stopped
+  # at log(mu) - 12 and lost about 5% of the mass at CV 2.
+  rows <- expand.grid(
+    cv = c(0.2, 1, 2),
+    y = c(0, 1, 4, 30),
+    KEEP.OUT.ATTRS = FALSE
+  )
+  for (i in seq_len(nrow(rows))) {
+    cv <- rows$cv[[i]]
+    y <- rows$y[[i]]
     prod_ll <- drm_gamma_mi_quad_loglik(
-      y, mu_y, sigma_y, beta_x, x_base, mu, sig
+      y, 1.2, 1, 0.15, 0, 8, cv, response = "poisson"
     )
     ref <- drm_gamma_mi_reference_loglik(
-      y, mu_y, sigma_y, beta_x, x_base, mu, sig
+      y, 1.2, 1, 0.15, 0, 8, cv, response = "poisson"
     )
     expect_lt(
       abs(prod_ll - log(ref)),
       1e-4,
-      label = sprintf("y=%.2f CV=%.2f", y, sig)
+      label = sprintf("Poisson y=%g CV=%.1f", y, cv)
     )
   }
 })
 
-test_that("Poisson response x Gamma mi() helper matches integrate() (#1477)", {
-  y <- 4
-  mu_y <- 1.2
-  beta_x <- 0.15
-  x_base <- 0
-  mu <- 8
-  sig <- 0.2
-  prod_ll <- drm_gamma_mi_quad_loglik(
-    y, mu_y, 1, beta_x, x_base, mu, sig, response = "poisson"
-  )
-  ref <- drm_gamma_mi_reference_loglik(
-    y, mu_y, 1, beta_x, x_base, mu, sig, response = "poisson"
-  )
-  expect_lt(abs(prod_ll - log(ref)), 1e-4)
-})
-
-test_that("Poisson response x Gamma mi() at CV 1 is inside 1e-4 (#1477)", {
-  y <- 4
-  mu_y <- 1.2
-  beta_x <- 0.15
-  x_base <- 0
-  mu <- 8
-  sig <- 1
-  prod_ll <- drm_gamma_mi_quad_loglik(
-    y, mu_y, 1, beta_x, x_base, mu, sig, response = "poisson"
-  )
-  ref <- drm_gamma_mi_reference_loglik(
-    y, mu_y, 1, beta_x, x_base, mu, sig, response = "poisson"
-  )
-  expect_lt(abs(prod_ll - log(ref)), 1e-4)
-})
-
-test_that("Poisson x Gamma at CV 2 with y = 0 does not abort (#1477)", {
-  quad <- drmTMB:::drm_gamma_mi_quadrature()
-  nodes <- drmTMB:::drm_gamma_mi_adaptive_nodes(
-    quad$nodes,
-    quad$weights,
-    mu = 8,
-    sigma = 2,
-    y = 0,
-    mu_y = 1.2,
-    sigma_y = 1,
-    beta_x = 0.15,
-    x_base = 0,
-    response = "poisson"
-  )
-  expect_true(is.finite(drmTMB:::drm_logsumexp(nodes$log_terms)))
-})
-
-test_that("Poisson x Gamma at CV 2 with large y stays finite (#1477)", {
-  prod_ll <- drm_gamma_mi_quad_loglik(
-    30, 1.2, 1, 0.15, 0, 8, 2, response = "poisson"
-  )
-  expect_true(is.finite(prod_ll))
-})
-
-test_that("Gamma adaptive GH at CV > 1 near the pole is a labelled skip (#1477)", {
-  y <- 2.05
-  mu_y <- 2
-  sigma_y <- 0.1
-  beta_x <- 0.5
-  err <- tryCatch(
-    {
-      prod_ll <- drm_gamma_mi_quad_loglik(y, mu_y, sigma_y, beta_x, 0, 10, 2)
-      ref <- drm_gamma_mi_reference_loglik(y, mu_y, sigma_y, beta_x, 0, 10, 2)
-      abs(prod_ll - log(ref))
-    },
-    error = function(e) e
-  )
-  if (inherits(err, "error") || !is.finite(err) || err > 1e-4) {
-    skip(sprintf(
-      "Gamma CV>1 near-pole adaptive GH is not yet inside 1e-4 (error=%s). Follow-up issue: Gamma mi() adaptive GH misses the pole at CV > 1 (refs #1477).",
-      if (inherits(err, "error")) conditionMessage(err) else format(err, digits = 4)
-    ))
+test_that("Poisson x Gamma at CV 2 with y = 0 or large y is finite and accurate (#1477)", {
+  for (y in c(0, 30)) {
+    prod_ll <- drm_gamma_mi_quad_loglik(
+      y, 1.2, 1, 0.15, 0, 8, 2, response = "poisson"
+    )
+    ref <- drm_gamma_mi_reference_loglik(
+      y, 1.2, 1, 0.15, 0, 8, 2, response = "poisson"
+    )
+    expect_true(is.finite(prod_ll))
+    expect_lt(abs(prod_ll - log(ref)), 1e-4, label = sprintf("y=%g", y))
   }
-  expect_lt(err, 1e-4)
 })
 
 test_that("NaN or -Inf Gamma marginal is a classed abort", {
