@@ -532,12 +532,11 @@ test_that("labelled K / A is reordered to first-appearance group order", {
 test_that("unalignable labelled K / A is refused; unlabelled warns", {
   dat <- data.frame(id = c("a", "b", "c"), x = 1:3, y = c(0.1, 0.2, 0.3))
   term <- function(f) drmTMB:::drm_julia_collect_structured_terms(f)[[1L]]
-  env <- environment()
   call_matrix <- function(K) {
     drmTMB:::drm_julia_structured_matrix(
       term(bf(y ~ x + relmat(1 | id, K = K))),
       "gaussian",
-      env,
+      environment(),
       dat
     )
   }
