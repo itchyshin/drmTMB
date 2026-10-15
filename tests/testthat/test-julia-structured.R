@@ -107,7 +107,8 @@ test_that("marker-kwarg strip removes the matrix arg for every structured marker
 test_that("matrix resolution routes relmat->K, animal->A, spatial->coords", {
   env <- environment()
   K <- diag(3)
-  A <- diag(3)
+  dimnames(K) <- list(c("a", "b", "c"), c("a", "b", "c"))
+  A <- K
   co <- cbind(c(0, 1, 2), c(0, 1, 2))
   dat <- data.frame(
     id = c("a", "b", "c"),
@@ -473,4 +474,93 @@ test_that("Poisson relmat fit via engine = 'julia' is finite and sane", {
   expect_true(is.finite(res$sd))
   expect_gt(res$sd, 0)
   expect_true(isTRUE(res$converged))
+})
+
+# drmTMB#1512: DRModels.jl never sees dimnames, so the bridge must align a
+# labelled K / A to the first-appearance order of the grouping variable itself.
+test_that("labelled K / A is reordered to first-appearance group order", {
+  dat <- data.frame(
+    id = c("c", "a", "b", "a", "c"),
+    x = stats::rnorm(5),
+    y = stats::rnorm(5)
+  )
+  ids <- c("a", "b", "c")
+  K <- matrix(
+    c(1, 0.1, 0.2, 0.1, 1, 0.3, 0.2, 0.3, 1),
+    3L,
+    3L,
+    dimnames = list(ids, ids)
+  )
+  term <- function(f) drmTMB:::drm_julia_collect_structured_terms(f)[[1L]]
+  env <- environment()
+  want <- K[c("c", "a", "b"), c("c", "a", "b")]
+  dimnames(want) <- NULL
+
+  res <- drmTMB:::drm_julia_structured_matrix(
+    term(bf(y ~ x + relmat(1 | id, K = K))),
+    "gaussian",
+    env,
+    dat
+  )
+  expect_equal(res$matrix, want)
+
+  # Any row order of the same labelled matrix gives the same aligned matrix.
+  K <- K[c("b", "c", "a"), c("b", "c", "a")]
+  res_shuffled <- drmTMB:::drm_julia_structured_matrix(
+    term(bf(y ~ x + relmat(1 | id, K = K))),
+    "gaussian",
+    env,
+    dat
+  )
+  expect_equal(res_shuffled$matrix, want)
+
+  # animal(A) takes the same route; a numeric id column matches by character.
+  datn <- dat
+  datn$id <- c(3, 1, 2, 1, 3)
+  A <- K
+  dimnames(A) <- list(c("2", "3", "1"), c("2", "3", "1"))
+  res_a <- drmTMB:::drm_julia_structured_matrix(
+    term(bf(y ~ x + animal(1 | id, A = A))),
+    "gaussian",
+    env,
+    datn
+  )
+  expect_equal(unname(diag(res_a$matrix)), rep(1, 3))
+  expect_equal(res_a$matrix[1L, 2L], A["3", "1"])
+})
+
+test_that("unalignable labelled K / A is refused; unlabelled warns", {
+  dat <- data.frame(id = c("a", "b", "c"), x = 1:3, y = c(0.1, 0.2, 0.3))
+  term <- function(f) drmTMB:::drm_julia_collect_structured_terms(f)[[1L]]
+  env <- environment()
+  call_matrix <- function(K) {
+    drmTMB:::drm_julia_structured_matrix(
+      term(bf(y ~ x + relmat(1 | id, K = K))),
+      "gaussian",
+      env,
+      dat
+    )
+  }
+  lab <- function(ids) {
+    m <- diag(3)
+    dimnames(m) <- list(ids, ids)
+    m
+  }
+
+  expect_error(
+    call_matrix(lab(c("a", "b", "z"))),
+    class = "drmTMB_julia_structured_labels"
+  )
+  expect_error(
+    call_matrix(lab(c("a", "b", "b"))),
+    class = "drmTMB_julia_structured_labels"
+  )
+  K_half <- diag(3)
+  rownames(K_half) <- c("a", "b", "c")
+  expect_error(call_matrix(K_half), class = "drmTMB_julia_structured_labels")
+  expect_warning(
+    res <- call_matrix(diag(3)),
+    class = "drmTMB_julia_unlabelled_structured_matrix"
+  )
+  expect_equal(res$matrix, diag(3))
 })

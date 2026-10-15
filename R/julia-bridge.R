@@ -7936,6 +7936,17 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
       "{.code engine = \"julia\"} requires finite values in the {.fn {type}} {.arg {slot}} matrix."
     )
   }
+  if (!identical(kwarg, "coords") && nrow(matrix) == ncol(matrix)) {
+    # DRModels.jl pairs row i of K / A with the i-th group in first-appearance
+    # order and never sees names, so align by name here (drmTMB#1512).
+    matrix <- drm_julia_align_structured_matrix(
+      matrix = matrix,
+      dimnames = dimnames(as.matrix(value)),
+      group = data[[term$group]],
+      type = type,
+      slot = slot
+    )
+  }
   if (identical(kwarg, "coords")) {
     if (ncol(matrix) < 1L) {
       cli::cli_abort(
@@ -7949,6 +7960,68 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
     ))
   }
   list(matrix = matrix, kwarg = kwarg)
+}
+
+# Reorder a labelled square K / A matrix to the first-appearance order of the
+# grouping variable, the order DRModels.jl assumes. Names are matched as
+# character, so numeric and factor ids behave like the native engine.
+# - labelled, alignable: rows and columns reordered (extra labels are dropped);
+# - labelled but not alignable (duplicated, row/column names disagree, or a
+#   group level missing): classed error `drmTMB_julia_structured_labels`;
+# - unlabelled: unchanged, with the classed warning
+#   `drmTMB_julia_unlabelled_structured_matrix`, because the order cannot be
+#   checked.
+drm_julia_align_structured_matrix <- function(
+  matrix,
+  dimnames,
+  group,
+  type,
+  slot
+) {
+  rn <- dimnames[[1L]]
+  cn <- dimnames[[2L]]
+  levels_in_data <- unique(as.character(group[!is.na(group)]))
+  if (is.null(rn) && is.null(cn)) {
+    cli::cli_warn(
+      c(
+        "{.code engine = \"julia\"} cannot check the order of the unlabelled {.fn {type}} {.arg {slot}} matrix.",
+        i = "Rows are paired with the grouping levels in order of first appearance in {.arg data}. Give {.arg {slot}} row and column names to match by name."
+      ),
+      class = "drmTMB_julia_unlabelled_structured_matrix"
+    )
+    return(matrix)
+  }
+  if (is.null(rn) || is.null(cn) || !identical(rn, cn)) {
+    cli::cli_abort(
+      c(
+        "{.code engine = \"julia\"} requires the {.fn {type}} {.arg {slot}} matrix to have identical row and column names.",
+        i = "Set {.code rownames({slot}) <- colnames({slot})}, or drop both to use first-appearance order."
+      ),
+      class = "drmTMB_julia_structured_labels"
+    )
+  }
+  if (anyDuplicated(rn) > 0L) {
+    dup <- unique(rn[duplicated(rn)])
+    cli::cli_abort(
+      c(
+        "{.fn {type}} {.arg {slot}} matrix has duplicated names: {.val {utils::head(dup, 5L)}}.",
+        i = "Row and column names must identify each individual once."
+      ),
+      class = "drmTMB_julia_structured_labels"
+    )
+  }
+  absent <- setdiff(levels_in_data, rn)
+  if (length(absent) > 0L) {
+    cli::cli_abort(
+      c(
+        "{.fn {type}} {.arg {slot}} matrix has no row for {length(absent)} grouping level{?s}: {.val {utils::head(absent, 5L)}}.",
+        i = "Every level of the grouping variable must appear in the matrix names."
+      ),
+      class = "drmTMB_julia_structured_labels"
+    )
+  }
+  idx <- match(levels_in_data, rn)
+  matrix[idx, idx, drop = FALSE]
 }
 
 drm_julia_structured_reject_slot <- function(type, slot, expected, kind) {
