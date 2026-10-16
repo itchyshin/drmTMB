@@ -1,0 +1,93 @@
+"family","re","dpar","syntax","engine","status","intercept_base","intercept_shift","intercept_delta","expected","abs_err","slope_max_diff","loglik_base","loglik_shift","loglik_delta","sigma_intercept_delta","has_offset_coef","elapsed_s","note"
+"poisson","fe","mu","formula","tmb","PASS",0.182617643172353,-0.510529537389307,0.693147180561661,0.693147180559945,1.71540559534833e-12,9.93705118190746e-13,-353.797802222692,-353.797802222692,-1.13686837721616e-13,NA,FALSE,1.264,"coefs=(Intercept)|x"
+"poisson","fe","mu","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,1.103,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"poisson","fe","sigma","formula","tmb","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,1.121,"! in callr subprocess.
+Caused by error in `drm_build_poisson_spec(formula, data, env = formula_env, weights = weights_full, …`:
+! Poisson models only support `mu` and optional `zi`.
+✖ Unsupported parameter: ""sigma"".
+ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`."
+"poisson","fe","sigma","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,1.071,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"poisson","re","mu","formula","tmb","PASS",0.117515297473161,-0.575631883086784,0.693147180559945,0.693147180559945,0,0,-337.03416176851,-337.03416176851,-5.6843418860808e-14,NA,FALSE,1.15,"coefs=(Intercept)|x"
+"poisson","re","mu","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,0.952,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"poisson","re","sigma","formula","tmb","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,0.958,"! in callr subprocess.
+Caused by error in `drm_build_poisson_spec(formula, data, env = formula_env, weights = weights_full, …`:
+! Poisson models only support `mu` and optional `zi`.
+✖ Unsupported parameter: ""sigma"".
+ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`."
+"poisson","re","sigma","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,0.932,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","fe","mu","formula","tmb","PASS",0.360813681861883,-0.332333498698062,0.693147180559945,0.693147180559945,1.11022302462516e-16,5.55111512312578e-17,-374.906942690139,-374.906942690139,0,-2.22044604925031e-16,FALSE,0.978000000000002,"coefs=(Intercept)|x"
+"nbinom2","fe","mu","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,1.028,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","fe","sigma","formula","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,0.952,"! in callr subprocess.
+Caused by error in `drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, …`:
+! This formula contains unsupported model terms.
+✖ The `sigma` formula contains unsupported term: ""offset""."
+"nbinom2","fe","sigma","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,0.92,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","re","mu","formula","tmb","PASS",0.329868630975362,-0.363278549584583,0.693147180559945,0.693147180559945,1.11022302462516e-16,1.11022302462516e-16,-373.743606106813,-373.743606106812,-6.25277607468888e-13,-1.88737914186277e-15,FALSE,1.137,"coefs=(Intercept)|x"
+"nbinom2","re","mu","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,0.937000000000001,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","re","sigma","formula","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,0.991,"! in callr subprocess.
+Caused by error in `drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, …`:
+! This formula contains unsupported model terms.
+✖ The `sigma` formula contains unsupported term: ""offset""."
+"nbinom2","re","sigma","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,0.977,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","fe","mu","formula","tmb","PASS",0.369153036304681,-0.323994144255093,0.693147180559775,0.693147180559945,1.70641278884887e-13,2.70339306496226e-14,-268.40201864818,-268.40201864818,-6.82121026329696e-13,7.63722418639645e-13,FALSE,0.979000000000003,"coefs=(Intercept)|x"
+"gamma","fe","mu","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,1.01,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","fe","sigma","formula","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,1.101,"! in callr subprocess.
+Caused by error in `drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, …`:
+! This formula contains unsupported model terms.
+✖ The `sigma` formula contains unsupported term: ""offset""."
+"gamma","fe","sigma","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,1.116,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","re","mu","formula","tmb","PASS",0.313574869368615,-0.379572311191404,0.693147180560019,0.693147180559945,7.38298311375729e-14,8.1601392309949e-14,-239.624139185792,-239.624139185789,-2.8421709430404e-12,6.41042774418565e-13,FALSE,1.282,"coefs=(Intercept)|x"
+"gamma","re","mu","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,1.187,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","re","sigma","formula","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,1.094,"! in callr subprocess.
+Caused by error in `drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, …`:
+! This formula contains unsupported model terms.
+✖ The `sigma` formula contains unsupported term: ""offset""."
+"gamma","re","sigma","offset_arg","tmb","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,NA,1.079,"! in callr subprocess.
+Caused by error in `drmTMB(form, family = fam, data = dat, engine = engine, offset = dat$off)`:
+! `drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."

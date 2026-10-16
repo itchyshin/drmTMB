@@ -1,0 +1,75 @@
+"family","re","dpar","syntax","engine","status","intercept_base","intercept_shift","intercept_delta","expected","abs_err","slope_max_diff","loglik_base","loglik_shift","loglik_delta","has_offset_coef","elapsed_s","note"
+"poisson","fe","mu","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,4.334,"Error happens when you try to execute command ENV[""R_HOME""] = ""/usr/lib/R"";Base.include(Main,""/home/ubuntu/R/library/JuliaCall/julia/setup.jl"") in Julia.
+                        To have more helpful error messages,
+                        you could considering running the command in Julia directly"
+"poisson","fe","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.125,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"poisson","fe","sigma","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0570000000000004,"`engine = ""julia""` does not support a `sigma` formula for a ""poisson""
+model.
+ℹ ""poisson"" has no dispersion parameter to fit -- drop the `sigma` formula; the
+  native `engine = ""tmb""` path refuses the same formula for the same reason."
+"poisson","fe","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0299999999999994,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"poisson","re","mu","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,2.427,"Error happens when you try to execute command ENV[""R_HOME""] = ""/usr/lib/R"";Base.include(Main,""/home/ubuntu/R/library/JuliaCall/julia/setup.jl"") in Julia.
+                        To have more helpful error messages,
+                        you could considering running the command in Julia directly"
+"poisson","re","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0269999999999992,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"poisson","re","sigma","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0289999999999999,"`engine = ""julia""` does not support a `sigma` formula for a ""poisson""
+model.
+ℹ ""poisson"" has no dispersion parameter to fit -- drop the `sigma` formula; the
+  native `engine = ""tmb""` path refuses the same formula for the same reason."
+"poisson","re","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0280000000000005,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","fe","mu","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,2.155,"Error happens when you try to execute command ENV[""R_HOME""] = ""/usr/lib/R"";Base.include(Main,""/home/ubuntu/R/library/JuliaCall/julia/setup.jl"") in Julia.
+                        To have more helpful error messages,
+                        you could considering running the command in Julia directly"
+"nbinom2","fe","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0259999999999998,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","fe","sigma","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,2.074,"Error happens when you try to execute command ENV[""R_HOME""] = ""/usr/lib/R"";Base.include(Main,""/home/ubuntu/R/library/JuliaCall/julia/setup.jl"") in Julia.
+                        To have more helpful error messages,
+                        you could considering running the command in Julia directly"
+"nbinom2","fe","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0250000000000004,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","re","mu","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,2.035,"Error happens when you try to execute command ENV[""R_HOME""] = ""/usr/lib/R"";Base.include(Main,""/home/ubuntu/R/library/JuliaCall/julia/setup.jl"") in Julia.
+                        To have more helpful error messages,
+                        you could considering running the command in Julia directly"
+"nbinom2","re","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0289999999999999,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","re","sigma","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,2.076,"Error happens when you try to execute command ENV[""R_HOME""] = ""/usr/lib/R"";Base.include(Main,""/home/ubuntu/R/library/JuliaCall/julia/setup.jl"") in Julia.
+                        To have more helpful error messages,
+                        you could considering running the command in Julia directly"
+"nbinom2","re","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0409999999999968,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","fe","mu","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,2.031,"Error happens when you try to execute command ENV[""R_HOME""] = ""/usr/lib/R"";Base.include(Main,""/home/ubuntu/R/library/JuliaCall/julia/setup.jl"") in Julia.
+                        To have more helpful error messages,
+                        you could considering running the command in Julia directly"
+"gamma","fe","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0309999999999988,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","fe","sigma","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,2.358,"Error happens when you try to execute command ENV[""R_HOME""] = ""/usr/lib/R"";Base.include(Main,""/home/ubuntu/R/library/JuliaCall/julia/setup.jl"") in Julia.
+                        To have more helpful error messages,
+                        you could considering running the command in Julia directly"
+"gamma","fe","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0350000000000001,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","re","mu","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,2.049,"Error happens when you try to execute command ENV[""R_HOME""] = ""/usr/lib/R"";Base.include(Main,""/home/ubuntu/R/library/JuliaCall/julia/setup.jl"") in Julia.
+                        To have more helpful error messages,
+                        you could considering running the command in Julia directly"
+"gamma","re","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0289999999999999,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","re","sigma","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,2.163,"Error happens when you try to execute command ENV[""R_HOME""] = ""/usr/lib/R"";Base.include(Main,""/home/ubuntu/R/library/JuliaCall/julia/setup.jl"") in Julia.
+                        To have more helpful error messages,
+                        you could considering running the command in Julia directly"
+"gamma","re","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0450000000000017,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."

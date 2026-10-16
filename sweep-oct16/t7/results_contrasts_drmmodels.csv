@@ -1,0 +1,9 @@
+family,coding,engine,status,max_fitted_invariance,elapsed_s,note
+gaussian,treatment_default,drmmodels,PASS_TREATMENT_ONLY,,24.561987161636353,"native StatsModels dummy coding; coefs= theta=1.0947073906763487|0.5750773425770113|0.4562703869036943|-0.2955703050501686|0.6613951311744988|-1.061809857135214"
+poisson,treatment_default,drmmodels,PASS_TREATMENT_ONLY,,6.24518895149231,"native StatsModels dummy coding; coefs= theta=0.07398711469729141|0.3624251402259787|0.4471909772321911|-0.41958911792839587|0.7036472606044982"
+gaussian,sum,drmmodels,REFUSED,,0,"no contrasts= / C() API at f71b292; StatsModels dummy coding only"
+gaussian,helmert,drmmodels,REFUSED,,0,"no contrasts= / C() API at f71b292; StatsModels dummy coding only"
+gaussian,poly,drmmodels,REFUSED,,0,"no contrasts= / C() API at f71b292; StatsModels dummy coding only"
+poisson,sum,drmmodels,REFUSED,,0,"no contrasts= / C() API at f71b292; StatsModels dummy coding only"
+poisson,helmert,drmmodels,REFUSED,,0,"no contrasts= / C() API at f71b292; StatsModels dummy coding only"
+poisson,poly,drmmodels,REFUSED,,0,"no contrasts= / C() API at f71b292; StatsModels dummy coding only"
