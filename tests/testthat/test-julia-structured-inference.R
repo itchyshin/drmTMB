@@ -162,3 +162,56 @@ test_that("generated bootstrap refits retain every structured provider", {
     2L
   )
 })
+
+# drmTMB#1512: the K / A matrix must be aligned to the rows the bridge actually
+# sends. Row 1 has y = NA and its id appears only once, so dropping it removes
+# the level "a" altogether: the matrix must shrink to the remaining levels and
+# be ordered by THEIR first appearance, with labels and grouping column sent so
+# DRModels.jl can refuse a mismatch.
+test_that("structured K / A is aligned to the complete-case rows that are sent", {
+  dat <- data.frame(
+    id = c("a", "c", "b", "c", "b"),
+    x = c(-1, 0, 1, -1, 0),
+    y = c(NA, 0.5, 1.1, 0.4, 0.8)
+  )
+  ids <- c("b", "a", "c") # labelled, deliberately not in any data order
+  K <- matrix(
+    c(1, 0.1, 0.2, 0.1, 1, 0.3, 0.2, 0.3, 1),
+    3L,
+    3L,
+    dimnames = list(ids, ids)
+  )
+  A <- K
+  for (provider in c("relmat", "animal")) {
+    form <- if (identical(provider, "relmat")) {
+      drmTMB::bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1)
+    } else {
+      drmTMB::bf(y ~ x + animal(1 | id, A = A), sigma ~ 1)
+    }
+    captured <- NULL
+    testthat::local_mocked_bindings(
+      drm_julia_call_structured = function(...) {
+        captured <<- list(...)
+        drm_julia_structured_inference_result(4L)
+      },
+      .package = "drmTMB"
+    )
+    drmTMB:::drmTMB_julia_structured_bridge(
+      formula = form,
+      family = stats::gaussian(),
+      data = dat,
+      env = environment(),
+      weights_missing = TRUE,
+      control = NULL,
+      impute = NULL,
+      missing = list(),
+      call = quote(drmTMB(form, data = dat, engine = "julia"))
+    )
+    # Remaining rows: c, b, c, b -> levels c, b (level "a" left with row 1).
+    expect_identical(nrow(as.data.frame(captured$data)), 4L)
+    expect_identical(captured$matrix_labels, c("c", "b"))
+    expect_identical(captured$structured_group, "id")
+    expect_equal(captured$matrix, unname(K[c("c", "b"), c("c", "b")]))
+    expect_identical(captured$kwarg, if (provider == "relmat") "K" else "A")
+  }
+})
