@@ -200,9 +200,10 @@ test_that("joint Julia print() and summary() flag a non-converged fit with its m
     fixed = TRUE
   )
   summary_fit <- drmTMB:::summary.drmTMB_julia_joint(fit)
+  expect_identical(summary_fit$convergence, 1L)
   expect_identical(summary_fit$convergence_message, fit$opt$message)
   printed <- printed_text(summary_fit)
-  expect_match(printed, "convergence: not converged (see `check_drm()`)", fixed = TRUE)
+  expect_match(printed, "convergence: 1 (not converged; see `check_drm()`)", fixed = TRUE)
   expect_match(printed, "Optimiser iterations: 7.", fixed = TRUE)
 })
 

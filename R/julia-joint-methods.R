@@ -650,6 +650,7 @@ summary.drmTMB_julia_joint <- function(
     bic = object$bic,
     df = object$df,
     nobs = nobs(object),
+    convergence = object$opt$convergence,
     converged = isTRUE(object$opt$convergence == 0L),
     convergence_message = object$opt$message,
     uncertainty = object$uncertainty

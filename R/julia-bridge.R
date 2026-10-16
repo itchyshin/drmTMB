@@ -6334,6 +6334,7 @@ summary.drmTMB_julia <- function(
     bic = object$bic,
     df = object$df,
     nobs = object$nobs,
+    convergence = object$opt$convergence,
     converged = isTRUE(object$opt$convergence == 0L),
     convergence_message = object$opt$message,
     uncertainty = object$uncertainty
@@ -6441,8 +6442,12 @@ print.summary.drmTMB_julia <- function(x, ...) {
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
   if (isTRUE(x$converged)) {
     cli::cli_text("  convergence: converged")
+  } else if (!is.null(drm_convergence_label(x$convergence, x$convergence_message))) {
+    # The same two lines as print() and the native summary (#1545).
+    drm_cli_convergence(x$convergence, x$convergence_message)
   } else {
-    # Same wording and message line as print.summary.drmTMB() (#1545).
+    # No interpretable code, e.g. a summary saved before #1545 or a fit
+    # without an opt slot: keep the word form, still pointing to check_drm().
     cli::cli_text("  convergence: not converged (see {.fn check_drm})")
     drm_cli_convergence_message(x$convergence_message)
   }
@@ -9152,6 +9157,7 @@ summary.drmTMB_julia_xfam <- function(object, conf.int = FALSE, ...) {
     bic = object$bic,
     df = object$df,
     nobs = object$nobs,
+    convergence = object$opt$convergence,
     converged = isTRUE(object$opt$convergence == 0L),
     convergence_message = object$opt$message,
     uncertainty = object$uncertainty

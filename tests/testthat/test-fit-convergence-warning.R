@@ -191,17 +191,36 @@ test_that("Julia-engine print() and summary() flag a non-converged fit with its 
 
   smry <- summary(fit)
   expect_false(smry$converged)
+  # An exact element, so `$convergence` is the code and never partial-matches
+  # `convergence_message`.
+  expect_identical(smry$convergence, 1L)
   expect_identical(smry$convergence_message, opt$message)
   printed <- convergence_printed(smry)
-  expect_match(printed, "convergence: not converged (see `check_drm()`)", fixed = TRUE)
-  expect_match(printed, "Optimiser iterations: 37.", fixed = TRUE)
+  expect_match(printed, "convergence: 1 (not converged; see `check_drm()`)", fixed = TRUE)
+  expect_match(printed, paste("convergence message:", opt$message), fixed = TRUE)
 
-  # A converged Julia fit keeps its one-word status and no message line.
+  # A converged Julia fit keeps its bare code in print(), its one-word status
+  # in summary(), and no message line in either.
   fit$opt <- drm_julia_opt_slot(list(converged = TRUE, iterations = 12L))
-  printed <- convergence_printed(summary(fit))
+  smry <- summary(fit)
+  expect_identical(smry$convergence, 0L)
+  printed <- convergence_printed(smry)
   expect_match(printed, "convergence: converged", fixed = TRUE)
   expect_no_match(printed, "convergence message:", fixed = TRUE)
-  expect_no_match(convergence_printed(fit), "not converged", fixed = TRUE)
+  printed_fit <- convergence_printed(fit)
+  expect_match(printed_fit, "convergence: 0", fixed = TRUE)
+  expect_no_match(printed_fit, "not converged", fixed = TRUE)
+  expect_no_match(printed_fit, "convergence message:", fixed = TRUE)
+})
+
+test_that("a Julia summary without an interpretable code still says not converged", {
+  # e.g. a summary saved before #1545, or a fit object without an opt slot.
+  smry <- summary(structure(list(nobs = 12L, logLik = -20.5), class = "drmTMB_julia"))
+  expect_false(smry$converged)
+  expect_null(smry$convergence)
+  printed <- convergence_printed(smry)
+  expect_match(printed, "convergence: not converged (see `check_drm()`)", fixed = TRUE)
+  expect_no_match(printed, "convergence message:", fixed = TRUE)
 })
 
 test_that("cross-family Julia print() and summary() carry the convergence message (#1545)", {
@@ -220,8 +239,14 @@ test_that("cross-family Julia print() and summary() carry the convergence messag
     fixed = TRUE
   )
   smry <- summary(xfam)
+  expect_identical(smry$convergence, 1L)
   expect_identical(smry$convergence_message, opt$message)
   printed <- convergence_printed(smry)
-  expect_match(printed, "convergence: not converged (see `check_drm()`)", fixed = TRUE)
+  expect_match(printed, "convergence: 1 (not converged; see `check_drm()`)", fixed = TRUE)
   expect_match(printed, "were not recorded by this route", fixed = TRUE)
+
+  xfam$opt <- drm_julia_opt_slot(list(converged = TRUE, iterations = 5L))
+  printed <- convergence_printed(xfam)
+  expect_match(printed, "convergence: 0", fixed = TRUE)
+  expect_no_match(printed, "not converged", fixed = TRUE)
 })

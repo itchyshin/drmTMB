@@ -157,6 +157,9 @@ test_that("A-3: convergence_status and multi_start cannot clear a degenerate fit
   expect_equal(nrow(status_row), 1L)
   expect_equal(status_row$status, "note")
   expect_match(status_row$value, "degenerate")
+  # This fixture's optimizer returns code 0, so the row must keep the
+  # "reported success" explanation; #1545 changed only the failed-optimizer text.
+  expect_match(status_row$message, "reported success", fixed = TRUE)
 })
 
 test_that("Md-J: bias-corrected Wald intervals record wald_bias_corrected (Dinnage audit)", {

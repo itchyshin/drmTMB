@@ -88,14 +88,15 @@ print.drmTMB <- function(x, ...) {
   invisible(x)
 }
 
-# One display rule for the convergence line of `print()` and `summary()`, on
-# native and Julia-engine fits (#1545). Before it, `print()` said "not
-# converged" while `summary()` printed only the bare code, so a reader of
-# `summary()` alone could take a failed fit for a good one. A converged code
-# prints bare, exactly as before. A non-zero code says "not converged", points
-# to `check_drm()`, and prints the optimizer's message on its own line.
-# Interpretation stays in `drm_convergence_label()` (R/drmTMB.R), so the line
-# is flagged exactly when the fit-time convergence warning fires.
+# One display rule for a non-converged fit (#1545), used by `print()` on
+# native and Julia-engine fits and by both engines' printed summaries. Before
+# it, `print()` said "not converged" while `summary()` printed only the bare
+# code, so a reader of `summary()` alone could take a failed fit for a good one.
+# A non-zero code says "not converged", points to `check_drm()`, and prints the
+# optimizer's message on its own line. A converged code prints bare, exactly as
+# before (the Julia summary keeps its word "converged"). Interpretation stays
+# in `drm_convergence_label()` (R/drmTMB.R), so a native fit's line is flagged
+# exactly when the fit-time convergence warning fires.
 drm_cli_convergence <- function(convergence, message = NULL) {
   if (is.null(drm_convergence_label(convergence, message))) {
     cli::cli_text("convergence: {convergence}")
