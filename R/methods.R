@@ -2781,10 +2781,12 @@ BIC.drmTMB <- function(object, ...) {
 #'   the same number of parameters (compare those with [AIC()]).
 #'
 #' **Boundary tests.** When the larger model adds a random-effect standard
-#' deviation, the null value 0 sits on the edge of the parameter space and the
-#' usual chi-square reference is conservative. A
+#' deviation, or when it is `nbinom2()` and the smaller model is `poisson()`
+#' (the extra `sigma` tested at 0), the null sits on the edge of the
+#' parameter space and the usual chi-square reference is conservative. A
 #' `drmTMB_anova_boundary_warning` is signalled for such a pair. If exactly one
-#' or two standard deviations are added and nothing else, `Pr(>Chisq)` is the
+#' or two standard deviations are added and nothing else, or if the Poisson
+#' vs NB2 pair adds only the `sigma` intercept, `Pr(>Chisq)` is the
 #' chi-bar-square mixture from [lrt_boundary()]; the attribute `"p.method"`
 #' records `"chibar"` or `"chisq"` per row. Otherwise the naive chi-square
 #' p-value is reported and the warning says it is conservative.

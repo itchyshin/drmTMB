@@ -135,3 +135,97 @@ test_that("anova() on an engine = 'julia' fit still refuses (#1240)", {
   stub <- structure(list(nobs = 7L, df = 3L), class = "drmTMB_julia")
   expect_error(stats::anova(stub), "not implemented for <drmTMB_julia> fits")
 })
+
+# ---------------------------------------------------------------------------
+# Family-dispersion boundary: Poisson ⊂ NB2 tests sigma at 0 (#1557).
+# The extra NB2 scale is not an RE SD, so the #1240 detector missed it and
+# anova() reported a naive chi-square with no warning. This is the t10
+# red-proof: it fails on ca3ddef (p.method = "chisq", no warning) and passes
+# once anova() applies the same chi-bar path it already uses for (1 | g).
+# ---------------------------------------------------------------------------
+
+anova_nb2_null_data <- function() {
+  # Official campaign seed 20261017000 overflows set.seed; same map as #1557.
+  set.seed(as.integer(20261017000 - 1.9e10))
+  n <- 80L
+  d <- data.frame(x = stats::rnorm(n))
+  d$y <- stats::rpois(n, lambda = exp(0.4 + 0.3 * d$x))
+  d
+}
+
+test_that("anova() uses chi-bar for Poisson vs NB2 and warns (#1557)", {
+  d <- anova_nb2_null_data()
+  ctrl <- drm_control(se = FALSE)
+  pois <- drmTMB(bf(y ~ x), family = stats::poisson(), data = d, control = ctrl)
+  nb <- drmTMB(bf(y ~ x, sigma ~ 1), family = nbinom2(), data = d, control = ctrl)
+  expect_warning(
+    a <- anova(pois, nb),
+    class = "drmTMB_anova_boundary_warning"
+  )
+  lb <- lrt_boundary(nb, pois, q = 1)
+  expect_equal(a$`Pr(>Chisq)`[[2L]], lb$pvalue, tolerance = 1e-12)
+  expect_equal(a$`Pr(>Chisq)`[[2L]], 0.5 * lb$pvalue_naive, tolerance = 1e-12)
+  expect_identical(attr(a, "p.method"), c(NA_character_, "chibar"))
+  w <- testthat::capture_warnings(anova(pois, nb))
+  expect_length(w, 1L)
+  expect_match(w, "sigma")
+  expect_match(w, "chi-bar-square")
+})
+
+test_that("drm_lrtest() warns on Poisson vs NB2 but keeps the naive p (#1557)", {
+  d <- anova_nb2_null_data()
+  ctrl <- drm_control(se = FALSE)
+  pois <- drmTMB(bf(y ~ x), family = stats::poisson(), data = d, control = ctrl)
+  nb <- drmTMB(bf(y ~ x, sigma ~ 1), family = nbinom2(), data = d, control = ctrl)
+  expect_warning(
+    t <- drmTMB:::drm_lrtest(pois, nb),
+    class = "drmTMB_lrtest_boundary_warning"
+  )
+  lb <- lrt_boundary(nb, pois, q = 1)
+  expect_equal(t$p.value, lb$pvalue_naive, tolerance = 1e-12)
+  expect_gt(t$p.value, lb$pvalue)
+})
+
+test_that("anova() keeps naive chi-square when Poisson vs NB2 adds more than sigma (#1557)", {
+  d <- anova_nb2_null_data()
+  ctrl <- drm_control(se = FALSE)
+  pois <- drmTMB(bf(y ~ 1), family = stats::poisson(), data = d, control = ctrl)
+  # Extra sigma plus an extra mean coefficient: df = 2 != q = 1.
+  nb <- drmTMB(bf(y ~ x, sigma ~ 1), family = nbinom2(), data = d, control = ctrl)
+  expect_warning(
+    a <- anova(pois, nb),
+    regexp = "does not apply",
+    class = "drmTMB_anova_boundary_warning"
+  )
+  expect_identical(attr(a, "p.method"), c(NA_character_, "chisq"))
+  expect_equal(
+    a$`Pr(>Chisq)`[[2L]],
+    stats::pchisq(a$Chisq[[2L]], a$Df[[2L]], lower.tail = FALSE),
+    tolerance = 1e-12
+  )
+})
+
+test_that("family-boundary detector is Poisson to NB2 only; siblings stay off (#1557)", {
+  stub <- function(type, df) {
+    structure(
+      list(
+        model = list(model_type = type),
+        df = df,
+        sdpars = NULL,
+        corpars = NULL
+      ),
+      class = "drmTMB"
+    )
+  }
+  pois <- stub("poisson", 2)
+  nb <- stub("nbinom2", 3)
+  zip <- stub("zi_poisson", 3)
+  bb <- stub("beta_binomial", 3)
+  bin <- stub("binomial", 2)
+  fam <- drmTMB:::drm_anova_family_boundary(pois, nb)
+  expect_identical(fam$added_dpar, "sigma")
+  expect_true(fam$applies)
+  expect_false(drmTMB:::drm_anova_family_boundary(pois, zip)$applies)
+  expect_false(drmTMB:::drm_anova_family_boundary(bin, bb)$applies)
+  expect_false(drmTMB:::drm_anova_family_boundary(nb, pois)$applies)
+})

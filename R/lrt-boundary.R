@@ -24,7 +24,9 @@
 #' `confint(method = "wald")` only *flags* a variance component at its
 #' boundary (`conf.status = "wald_at_boundary"`); this pair computes a p-value
 #' that is correct there. [anova.drmTMB()] uses `lrt_boundary()`'s p-value
-#' automatically when exactly one or two standard deviations are added.
+#' automatically when exactly one or two standard deviations are added, and
+#' when a Poisson fit is compared with a nested NB2 fit that adds only the
+#' `sigma` intercept (#1557).
 #'
 #' @section Assumptions:
 #' * The `q` parameters dropped between `full` and `reduced` are variances
