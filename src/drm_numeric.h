@@ -64,6 +64,120 @@ Type drm_log1mexp(Type log_p)
   return CppAD::CondExpLt(u, u_cut, series, direct);
 }
 
+// ---------------------------------------------------------------------------
+// Large-argument building blocks for the Student, Gamma and Beta kernels
+// (#1504). The textbook forms subtract lgamma() values of size x log(x); the
+// rounding in that subtraction is about eps * x log(x), which reaches 1e-6 per
+// row at x = 1e9 and order 1 by x = 1e16. The helpers below return the small
+// remainder directly, so no x log(x) term is ever formed.
+// ---------------------------------------------------------------------------
+
+// exp(w) - 1 - w. The direct difference keeps only about eps * w / (w^2 / 2)
+// relative accuracy for small w, so for |w| < 0.5 a 16-term Taylor series is
+// used (relative truncation error below 1e-18 at the switch). With
+// u = exp(w) - 1 this equals u - log1p(u), the kernel of the Gamma and Beta
+// log-densities in their standardised-residual form. The conditional records
+// both branches, so each one sees w clamped into the region where it is
+// finite and differentiable.
+template<class Type>
+Type drm_expm1_minus_x(Type w)
+{
+  Type cut = Type(0.5);
+  Type inside = w * w;
+  Type ws = CppAD::CondExpLt(inside, cut * cut, w, cut);
+  // w^2/2 * (1 + w/3 * (1 + w/4 * (1 + ... (1 + w/16)))) = sum_{k>=2} w^k/k!
+  Type acc = Type(0.0);
+  for (int j = 16; j >= 3; --j) {
+    acc = Type(1.0) + acc * ws / Type(j);
+  }
+  Type series = ws * ws * acc / Type(2.0);
+  Type wd = CppAD::CondExpLt(inside, cut * cut, cut, w);
+  Type direct = exp(wd) - Type(1.0) - wd;
+  return CppAD::CondExpLt(inside, cut * cut, series, direct);
+}
+
+// x - log(1 + x) for x > -1. Same idea as drm_expm1_minus_x() but for the
+// relative residual u itself: for |x| < 0.1 a 21-term alternating series
+// (truncation below 1e-22 relative to x^2/2) replaces the direct difference,
+// which would keep only about eps / x of relative accuracy. Above the switch
+// log(1 + x) is within eps of its true value, which is below 2e-14 relative
+// to x - log(1 + x) >= 0.0047. Each branch sees x clamped into its region.
+template<class Type>
+Type drm_x_minus_log1p(Type x)
+{
+  Type cut = Type(0.1);
+  Type inside = x * x;
+  Type xs = CppAD::CondExpLt(inside, cut * cut, x, cut);
+  // x^2 * (1/2 - x * (1/3 - x * (1/4 - ... - x/22)))
+  Type acc = Type(1.0) / Type(22.0);
+  for (int k = 21; k >= 2; --k) {
+    acc = Type(1.0) / Type(k) - xs * acc;
+  }
+  Type series = xs * xs * acc;
+  Type xd = CppAD::CondExpLt(inside, cut * cut, cut, x);
+  Type direct = xd - log(Type(1.0) + xd);
+  return CppAD::CondExpLt(inside, cut * cut, series, direct);
+}
+
+// Exact rounding error of the double product: x * y = prod + err with
+// prod = fl(x * y) (Dekker's TwoProduct with Veltkamp splitting; no fma on
+// the AD scalar). Valid for |x|, |y| below about 1e290. The AD derivative of
+// err is zero up to rounding because the split parts sum back to x and y.
+template<class Type>
+Type drm_two_prod_err(Type x, Type y, Type prod)
+{
+  Type split = Type(134217729.0);
+  Type cx = split * x;
+  Type x_hi = cx - (cx - x);
+  Type x_lo = x - x_hi;
+  Type cy = split * y;
+  Type y_hi = cy - (cy - y);
+  Type y_lo = y - y_hi;
+  return ((x_hi * y_hi - prod) + x_hi * y_lo + x_lo * y_hi) + x_lo * y_lo;
+}
+
+// log(1 + x) for x >= 0. TMB's CppAD has no log1p, and log(1 + x) keeps only
+// eps / x relative accuracy. For x < 0.01 a nine-term series (truncation
+// below 1e-21) is used; above, logspace_add(0, log(x)), which TMB computes
+// with log1p and exact derivatives. Each branch sees x clamped into the
+// region where it is finite.
+template<class Type>
+Type drm_log1p_pos(Type x)
+{
+  Type cut = Type(0.01);
+  Type xs = CppAD::CondExpLt(x, cut, x, cut);
+  // x * (1 - x * (1/2 - x * (1/3 - ... (1/8 - x/9))))
+  Type acc = Type(1.0) / Type(9.0);
+  for (int k = 8; k >= 1; --k) {
+    acc = Type(1.0) / Type(k) - xs * acc;
+  }
+  Type series = xs * acc;
+  Type xd = CppAD::CondExpLt(x, cut, cut, x);
+  Type direct = logspace_add(Type(0.0), log(xd));
+  return CppAD::CondExpLt(x, cut, series, direct);
+}
+
+// Stirling remainder B(x) = lgamma(x) - [(x - 1/2) log(x) - x + log(2 pi)/2]
+// for x > 0. For x >= 30 the five-term series
+//   1/(12x) - 1/(360 x^3) + 1/(1260 x^5) - 1/(1680 x^7) + 1/(1188 x^9)
+// is used (truncation error below 1e-19 at the switch). Below 30 the
+// definition is evaluated directly, where its rounding is about 1e-14.
+template<class Type>
+Type drm_stirling_remainder(Type x)
+{
+  Type cut = Type(30.0);
+  Type xs = CppAD::CondExpLt(x, cut, cut, x);
+  Type ix = Type(1.0) / xs;
+  Type ix2 = ix * ix;
+  Type series = ix * (Type(1.0) / Type(12.0) - ix2 * (Type(1.0) / Type(360.0) -
+    ix2 * (Type(1.0) / Type(1260.0) - ix2 * (Type(1.0) / Type(1680.0) -
+    ix2 / Type(1188.0)))));
+  Type xd = CppAD::CondExpLt(x, cut, x, cut);
+  Type direct = lgamma(xd) - (xd - Type(0.5)) * log(xd) + xd -
+    Type(0.5) * log(Type(2.0) * M_PI);
+  return CppAD::CondExpLt(x, cut, direct, series);
+}
+
 template<class Type>
 Type drm_log_inv_logit(Type eta)
 {
