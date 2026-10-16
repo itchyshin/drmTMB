@@ -9,7 +9,7 @@ Independent cloud-agent run. Never pushed to main, never merged, no PR (spec: is
 | itchyshin/drmTMB | `ca3ddefa5ea11bbfd3b765615dfbb89305d2485a` |
 | itchyshin/DRModels.jl | `f71b2923360e9e5d4591e0d6e15a9ef9db0356d7` |
 
-This receipt branch: `sweep-oct16/t4` (HEAD recorded after the commit that adds this file).
+This receipt branch: `sweep-oct16/t4` at `3c7fd74403e0929de5d5e608fa0022afc2ec578b` (first receipt commit; any follow-up is listed by `git log`).
 
 ## Environment
 
