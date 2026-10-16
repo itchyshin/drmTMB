@@ -3072,14 +3072,10 @@ Type objective_function<Type>::operator()()
     for (int i = 0; i < y.size(); ++i) {
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
-        Type variance_multiplier = sigma(i) * sigma(i);
-        Type shape = Type(1.0) / variance_multiplier;
-        Type scale = mu(i) * variance_multiplier;
+        // Large-shape-stable form (#1504); same density as
+        // dgamma(y, shape = 1/sigma^2, scale = mu * sigma^2).
         Type log_density =
-          (shape - Type(1.0)) * log(y(i)) -
-          y(i) / scale -
-          lgamma(shape) -
-          shape * log(scale);
+          drm_gamma_log_density(y(i), eta_mu(i), log_sigma(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -3336,11 +3332,7 @@ Type objective_function<Type>::operator()()
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         Type log_density =
-          lgamma(alpha(i) + beta_shape(i)) -
-          lgamma(alpha(i)) -
-          lgamma(beta_shape(i)) +
-          (alpha(i) - Type(1.0)) * log(y(i)) +
-          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+          drm_beta_log_density(y(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -3527,11 +3519,7 @@ Type objective_function<Type>::operator()()
         }
         Type log_density =
           log_one_minus_zoi +
-          lgamma(alpha(i) + beta_shape(i)) -
-          lgamma(alpha(i)) -
-          lgamma(beta_shape(i)) +
-          (alpha(i) - Type(1.0)) * log(y(i)) +
-          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+          drm_beta_log_density(y(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -5327,7 +5315,7 @@ Type objective_function<Type>::operator()()
           log_sigma2(i) -
           Type(0.5) * log(one_minus_rho2) -
           ((nu(i) + Type(2.0)) / Type(2.0)) *
-            drm_log1p_nonnegative(q / nu(i));
+            drm_log1p_pos(q / nu(i));
         nll -= weights(i) * log_density;
       }
     } else if (V_known_type == 2) {
