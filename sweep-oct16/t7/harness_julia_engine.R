@@ -3,15 +3,23 @@
 # runs once. Whole-script hard timeout is applied by `timeout(1)`.
 
 suppressPackageStartupMessages(library(drmTMB))
+# Follow-up host contract: DRMODELS_JL_PATH only; do not set JULIA_PROJECT.
+Sys.unsetenv("JULIA_PROJECT")
+Sys.unsetenv("DRM_JL_PATH")
 Sys.setenv(
   DRMODELS_JL_PATH = "/home/ubuntu/DRModels.jl",
-  DRM_JL_PATH = "/home/ubuntu/DRModels.jl",
   DRMTMB_JULIA_TESTS = "true",
   NOT_CRAN = "true"
 )
 options(drmTMB.DRModels.jl.path = "/home/ubuntu/DRModels.jl")
+options(drmTMB.DRM.jl.path = NULL)
 
 root <- "sweep-oct16/t7"
+suffix <- if (length(commandArgs(trailingOnly = TRUE)) >= 1L) {
+  paste0("_", commandArgs(trailingOnly = TRUE)[[1L]])
+} else {
+  ""
+}
 log2 <- log(2)
 pass_bar <- 1e-8
 per_fit_s <- 90
@@ -39,7 +47,7 @@ classify_err <- function(msg) {
 }
 
 # ---- offset ----
-off_csv <- file.path(root, "results_offset_julia.csv")
+off_csv <- file.path(root, sprintf("results_offset_julia%s.csv", suffix))
 if (file.exists(off_csv)) file.remove(off_csv)
 write_off <- function(row) {
   df <- as.data.frame(row, stringsAsFactors = FALSE)
@@ -145,7 +153,7 @@ for (fam in c("poisson", "nbinom2", "gamma")) {
 }
 
 # ---- contrasts ----
-con_csv <- file.path(root, "results_contrasts_julia.csv")
+con_csv <- file.path(root, sprintf("results_contrasts_julia%s.csv", suffix))
 if (file.exists(con_csv)) file.remove(con_csv)
 write_con <- function(row) {
   df <- as.data.frame(row, stringsAsFactors = FALSE)

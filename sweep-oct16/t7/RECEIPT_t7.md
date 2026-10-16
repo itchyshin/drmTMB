@@ -130,3 +130,53 @@ Did not re-file #1097, #938, #1495, #1027. Did not open #1501/#1096. Used "Refs"
 ## PR head SHA
 
 None. No PR opened.
+
+---
+
+## Follow-up — PR #1565 (`b0cf1d8a`) engine="julia" rerun
+
+The ca3ddef crash (R exit 139) is **gone** on drmTMB PR #1565 head `b0cf1d8a7bdc365d17c4c626e71c970543efa77a` (`cursor/julia-setup-segfault-4acf`). Installed that tree with `R CMD INSTALL` into `/home/ubuntu/R/library/drmTMB` (0.7.1, Built 2026-10-16 23:17:36 UTC). DRModels.jl stayed at `f71b2923360e9e5d4591e0d6e15a9ef9db0356d7`.
+
+Host contract for this rerun: `DRMODELS_JL_PATH=/home/ubuntu/DRModels.jl` only. `JULIA_PROJECT` unset. `DRM_JL_PATH` unset. `options(drmTMB.DRModels.jl.path)` set to the same checkout; `options(drmTMB.DRM.jl.path) = NULL`. Did **not** set `JULIA_PROJECT`.
+
+```sh
+unset JULIA_PROJECT
+unset DRM_JL_PATH
+export DRMODELS_JL_PATH=/home/ubuntu/DRModels.jl DRMTMB_JULIA_TESTS=true NOT_CRAN=true R_LIBS_USER=/home/ubuntu/R/library
+timeout --signal=KILL 2400 Rscript sweep-oct16/t7/harness_julia_engine.R 1565
+```
+
+Harness writes `results_offset_julia_1565.csv` / `results_contrasts_julia_1565.csv` so the original crash CSVs stay as 139 evidence. Whole harness **R exit 0** in 62.4 s (first cell 58 s JuliaCall + `Pkg.activate` at `~/DRModels.jl`; later cells 0.01–1.0 s). `setTimeLimit` 90 s per fit. Julia 1.12.6, JuliaCall 0.17.6, R 4.6.1.
+
+Smoke control (no offset): `drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = d, engine = "julia")` **FIT OK**, logLik −57.026.
+
+### Offset (`results_offset_julia_1565.csv`) — 24/24 completed, 0 CRASH
+
+| family | re | dpar | syntax | status | substance |
+|---|---|---|---|---|---|
+| poisson/nbinom2/gamma | fe/re | mu | formula | REFUSED | Julia `ArgumentError`: R `offset(...)` unsupported via `engine="julia"` (`_BRIDGE_REJECT_CALLS[:offset]`, DRModels.jl `src/bridge.jl:921` thrown at `:1571`) |
+| poisson/nbinom2/gamma | fe/re | sigma | formula | REFUSED (poisson tagged ERROR) | same `offset(...)` reject for nbinom2/gamma; poisson has no `sigma` dpar (loud R error before / instead of offset; harness regex missed it so status=ERROR) |
+| * | * | * | offset_arg | REFUSED | unused argument `offset` (never reaches Julia; same as TMB) |
+
+No cell reached a Julia *fit*, so the log-2 identity was **not scored** on the bridge. Native TMB on the same tables still PASSES all six mu-`offset()` cells. Native `drm()` still PASSES Poisson FE and FAILs NB2/Gamma (#1097). The bridge refuse is loud and names the construct — not a silent wrong answer — but it is a **parity gap**: `bf(y ~ x + offset(off))` works on `engine="tmb"` and is inexpressible on `engine="julia"`.
+
+### Contrasts (`results_contrasts_julia_1565.csv`) — 8/8 REFUSED, 0 CRASH
+
+Same as ca3ddef: every Gaussian/Poisson × treatment/sum/helmert/poly cell is refused in R before Julia because `g` is ordered (`contr.poly`). Requested `contr.treatment` is also refused. Composition of #1495. Not re-filed.
+
+### New findings this follow-up
+
+1. **Segfault fixed** on PR #1565 / `b0cf1d8a` with `DRMODELS_JL_PATH` only and `JULIA_PROJECT` unset. Do not file the 139 draft. Comment intended for PR #1565: `issues/COMMENT_drmTMB_1565.md`.
+2. **NEW — bridge offset refuse.** `engine="julia"` + formula `offset()` is a named Julia `ArgumentError` at this DRModels pin. Hidden by the 139 on ca3ddef. Draft: `issues/NEW_drmTMB_julia_offset_bridge.md`. Refs #1565, Refs #1097, Refs #467, Refs #727. Not a re-file of #1097 (that is native `drm()` silently estimating offset).
+3. Contrasts unchanged (#1495). `offset=` unchanged. Poisson `sigma ~` loud refuse (harness ERROR is taxonomy only).
+
+### Issues filed this follow-up
+
+**None landed on GitHub.** `issue_write` (create) and `add_issue_comment` on PR #1565 both returned **403 Resource not accessible by personal access token**. Drafts (ready to paste):
+
+| intended action | URL | one line |
+|---|---|---|
+| new | drmTMB (draft `issues/NEW_drmTMB_julia_offset_bridge.md`) | `engine="julia"` refuses formula `offset()`; log-2 unscored on the bridge |
+| comment | https://github.com/itchyshin/drmTMB/pull/1565 | t7 rerun: segfault gone, R exit 0, FIT OK smoke |
+
+Do not file `issues/NEW_drmTMB_julia_segfault.md` (superseded by #1565). Did not re-file #1097, #938, #1495, #1027, #467, #727. Used "Refs", never "Closes". Did not push `main`, did not merge, did not open a PR.

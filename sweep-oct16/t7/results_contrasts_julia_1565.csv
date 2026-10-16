@@ -1,0 +1,73 @@
+"family","coding","engine","status","names_match","max_coef_diff","max_fitted_vs_oracle","coef_names_drm","coef_names_oracle","elapsed_s","note"
+"gaussian","treatment","julia","REFUSED",NA,NA,NA,"","",0.0529999999999973,"`engine = ""julia""` fits every factor with treatment contrasts
+(`contr.treatment()`: dummy columns against the first level), but R would code
+the `mu` formula's design differently:
+• g: an ordered factor (R codes it with contr.poly)
+✖ The two engines would then return different coefficients under identical
+  names.
+ℹ Refit with plain treatment-coded factors (`factor(x, levels = ...)` with
+  `ordered = FALSE`, no `contrasts` attribute, default `options(""contrasts"")`),
+  or use `engine = ""tmb""`."
+"gaussian","sum","julia","REFUSED",NA,NA,NA,"","",0.0429999999999993,"`engine = ""julia""` fits every factor with treatment contrasts
+(`contr.treatment()`: dummy columns against the first level), but R would code
+the `mu` formula's design differently:
+• g: an ordered factor (R codes it with contr.poly)
+✖ The two engines would then return different coefficients under identical
+  names.
+ℹ Refit with plain treatment-coded factors (`factor(x, levels = ...)` with
+  `ordered = FALSE`, no `contrasts` attribute, default `options(""contrasts"")`),
+  or use `engine = ""tmb""`."
+"gaussian","helmert","julia","REFUSED",NA,NA,NA,"","",0.0569999999999951,"`engine = ""julia""` fits every factor with treatment contrasts
+(`contr.treatment()`: dummy columns against the first level), but R would code
+the `mu` formula's design differently:
+• g: an ordered factor (R codes it with contr.poly)
+✖ The two engines would then return different coefficients under identical
+  names.
+ℹ Refit with plain treatment-coded factors (`factor(x, levels = ...)` with
+  `ordered = FALSE`, no `contrasts` attribute, default `options(""contrasts"")`),
+  or use `engine = ""tmb""`."
+"gaussian","poly","julia","REFUSED",NA,NA,NA,"","",0.0439999999999969,"`engine = ""julia""` fits every factor with treatment contrasts
+(`contr.treatment()`: dummy columns against the first level), but R would code
+the `mu` formula's design differently:
+• g: an ordered factor (R codes it with contr.poly)
+✖ The two engines would then return different coefficients under identical
+  names.
+ℹ Refit with plain treatment-coded factors (`factor(x, levels = ...)` with
+  `ordered = FALSE`, no `contrasts` attribute, default `options(""contrasts"")`),
+  or use `engine = ""tmb""`."
+"poisson","treatment","julia","REFUSED",NA,NA,NA,"","",0.0470000000000041,"`engine = ""julia""` fits every factor with treatment contrasts
+(`contr.treatment()`: dummy columns against the first level), but R would code
+the `mu` formula's design differently:
+• g: an ordered factor (R codes it with contr.poly)
+✖ The two engines would then return different coefficients under identical
+  names.
+ℹ Refit with plain treatment-coded factors (`factor(x, levels = ...)` with
+  `ordered = FALSE`, no `contrasts` attribute, default `options(""contrasts"")`),
+  or use `engine = ""tmb""`."
+"poisson","sum","julia","REFUSED",NA,NA,NA,"","",0.0420000000000016,"`engine = ""julia""` fits every factor with treatment contrasts
+(`contr.treatment()`: dummy columns against the first level), but R would code
+the `mu` formula's design differently:
+• g: an ordered factor (R codes it with contr.poly)
+✖ The two engines would then return different coefficients under identical
+  names.
+ℹ Refit with plain treatment-coded factors (`factor(x, levels = ...)` with
+  `ordered = FALSE`, no `contrasts` attribute, default `options(""contrasts"")`),
+  or use `engine = ""tmb""`."
+"poisson","helmert","julia","REFUSED",NA,NA,NA,"","",0.0409999999999968,"`engine = ""julia""` fits every factor with treatment contrasts
+(`contr.treatment()`: dummy columns against the first level), but R would code
+the `mu` formula's design differently:
+• g: an ordered factor (R codes it with contr.poly)
+✖ The two engines would then return different coefficients under identical
+  names.
+ℹ Refit with plain treatment-coded factors (`factor(x, levels = ...)` with
+  `ordered = FALSE`, no `contrasts` attribute, default `options(""contrasts"")`),
+  or use `engine = ""tmb""`."
+"poisson","poly","julia","REFUSED",NA,NA,NA,"","",0.046999999999997,"`engine = ""julia""` fits every factor with treatment contrasts
+(`contr.treatment()`: dummy columns against the first level), but R would code
+the `mu` formula's design differently:
+• g: an ordered factor (R codes it with contr.poly)
+✖ The two engines would then return different coefficients under identical
+  names.
+ℹ Refit with plain treatment-coded factors (`factor(x, levels = ...)` with
+  `ordered = FALSE`, no `contrasts` attribute, default `options(""contrasts"")`),
+  or use `engine = ""tmb""`."

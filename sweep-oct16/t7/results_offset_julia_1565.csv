@@ -1,0 +1,479 @@
+"family","re","dpar","syntax","engine","status","intercept_base","intercept_shift","intercept_delta","expected","abs_err","slope_max_diff","loglik_base","loglik_shift","loglik_delta","has_offset_coef","elapsed_s","note"
+"poisson","fe","mu","formula","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,58.084,"Error happens in Julia.
+ArgumentError: drmTMB(engine=""julia""): R's `offset(...)` is unsupported via engine=""julia""; it needs a fixed (non-estimated) coefficient that formula translation cannot express here.
+Stacktrace:
+  [1] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1571
+  [2] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [3] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [4] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [5] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+  [6] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [7] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [8] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [9] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+ [10] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+ [11] _bridge_formula_from_expr(expr::Expr, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1619
+ [12] _bridge_parse_formula_part(part::String, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1608
+ [13] #2245
+    @ ~/DRModels.jl/src/bridge.jl:726 [inlined]
+ [14] iterate
+    @ ./generator.jl:48 [inlined]
+ [15] _collect(c::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, ::Base.EltypeUnknown, isz::Base.HasShape{1})
+    @ Base ./array.jl:810
+ [16] collect_similar(cont::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}})
+    @ Base ./array.jl:732
+ [17] map(f::Function, A::Vector{String})
+    @ Base ./abstractarray.jl:3372
+ [18] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}, off::Vector{Float64}}; labels::Bool)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:726
+ [19] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ DRModels ~/DRModels.jl/src/bridge.jl:55
+ [20] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ Main ./none:1
+ [21] docall(call1::Ptr{Nothing})
+    @ Main.JuliaCall ~/R/library/JuliaCall/julia/setup.jl:176"
+"poisson","fe","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0900000000000034,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"poisson","fe","sigma","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0379999999999967,"`engine = ""julia""` does not support a `sigma` formula for a ""poisson""
+model.
+ℹ ""poisson"" has no dispersion parameter to fit -- drop the `sigma` formula; the
+  native `engine = ""tmb""` path refuses the same formula for the same reason."
+"poisson","fe","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0250000000000057,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"poisson","re","mu","formula","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.265000000000001,"Error happens in Julia.
+ArgumentError: drmTMB(engine=""julia""): R's `offset(...)` is unsupported via engine=""julia""; it needs a fixed (non-estimated) coefficient that formula translation cannot express here.
+Stacktrace:
+  [1] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1571
+  [2] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [3] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [4] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [5] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+  [6] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [7] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [8] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [9] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+ [10] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+ [11] _bridge_formula_from_expr(expr::Expr, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1619
+ [12] _bridge_parse_formula_part(part::String, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1608
+ [13] #2245
+    @ ~/DRModels.jl/src/bridge.jl:726 [inlined]
+ [14] iterate
+    @ ./generator.jl:48 [inlined]
+ [15] _collect(c::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, ::Base.EltypeUnknown, isz::Base.HasShape{1})
+    @ Base ./array.jl:810
+ [16] collect_similar(cont::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}})
+    @ Base ./array.jl:732
+ [17] map(f::Function, A::Vector{String})
+    @ Base ./abstractarray.jl:3372
+ [18] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}, off::Vector{Float64}, g::CategoricalArrays.CategoricalVector{String, UInt32, String, CategoricalArrays.CategoricalValue{String, UInt32}, Union{}}}; labels::Bool)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:726
+ [19] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ DRModels ~/DRModels.jl/src/bridge.jl:55
+ [20] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ Main ./none:1
+ [21] docall(call1::Ptr{Nothing})
+    @ Main.JuliaCall ~/R/library/JuliaCall/julia/setup.jl:176"
+"poisson","re","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0230000000000032,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"poisson","re","sigma","formula","julia","ERROR",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0250000000000057,"`engine = ""julia""` does not support a `sigma` formula for a ""poisson""
+model.
+ℹ ""poisson"" has no dispersion parameter to fit -- drop the `sigma` formula; the
+  native `engine = ""tmb""` path refuses the same formula for the same reason."
+"poisson","re","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0240000000000009,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","fe","mu","formula","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0129999999999981,"Error happens in Julia.
+ArgumentError: drmTMB(engine=""julia""): R's `offset(...)` is unsupported via engine=""julia""; it needs a fixed (non-estimated) coefficient that formula translation cannot express here.
+Stacktrace:
+  [1] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1571
+  [2] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [3] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [4] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [5] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+  [6] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [7] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [8] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [9] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+ [10] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+ [11] _bridge_formula_from_expr(expr::Expr, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1619
+ [12] _bridge_parse_formula_part(part::String, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1608
+ [13] #2245
+    @ ~/DRModels.jl/src/bridge.jl:726 [inlined]
+ [14] iterate
+    @ ./generator.jl:48 [inlined]
+ [15] _collect(c::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, ::Base.EltypeUnknown, isz::Base.HasShape{1})
+    @ Base ./array.jl:810
+ [16] collect_similar(cont::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}})
+    @ Base ./array.jl:732
+ [17] map(f::Function, A::Vector{String})
+    @ Base ./abstractarray.jl:3372
+ [18] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}, off::Vector{Float64}}; labels::Bool)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:726
+ [19] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ DRModels ~/DRModels.jl/src/bridge.jl:55
+ [20] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ Main ./none:1
+ [21] docall(call1::Ptr{Nothing})
+    @ Main.JuliaCall ~/R/library/JuliaCall/julia/setup.jl:176"
+"nbinom2","fe","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0210000000000008,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","fe","sigma","formula","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.311999999999998,"Error happens in Julia.
+ArgumentError: drmTMB(engine=""julia""): R's `offset(...)` is unsupported via engine=""julia""; it needs a fixed (non-estimated) coefficient that formula translation cannot express here.
+Stacktrace:
+  [1] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1571
+  [2] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [3] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [4] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [5] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+  [6] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [7] _bridge_formula_from_expr(expr::Expr, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1619
+  [8] _bridge_parse_formula_part(part::String, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1608
+  [9] #2245
+    @ ~/DRModels.jl/src/bridge.jl:726 [inlined]
+ [10] iterate
+    @ ./generator.jl:48 [inlined]
+ [11] collect_to!(dest::Vector{Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, StatsModels.Term}, Dict{String, String}}}}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, offs::Int64, st::Int64)
+    @ Base ./array.jl:848
+ [12] collect_to_with_first!(dest::Vector{Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, StatsModels.Term}, Dict{String, String}}}}, v1::Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, StatsModels.Term}, Dict{String, String}}}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, st::Int64)
+    @ Base ./array.jl:826
+ [13] _collect(c::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, ::Base.EltypeUnknown, isz::Base.HasShape{1})
+    @ Base ./array.jl:820
+ [14] collect_similar(cont::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}})
+    @ Base ./array.jl:732
+ [15] map(f::Function, A::Vector{String})
+    @ Base ./abstractarray.jl:3372
+ [16] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}, off::Vector{Float64}}; labels::Bool)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:726
+ [17] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ DRModels ~/DRModels.jl/src/bridge.jl:55
+ [18] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ Main ./none:1
+ [19] docall(call1::Ptr{Nothing})
+    @ Main.JuliaCall ~/R/library/JuliaCall/julia/setup.jl:176"
+"nbinom2","fe","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.036999999999999,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","re","mu","formula","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0180000000000007,"Error happens in Julia.
+ArgumentError: drmTMB(engine=""julia""): R's `offset(...)` is unsupported via engine=""julia""; it needs a fixed (non-estimated) coefficient that formula translation cannot express here.
+Stacktrace:
+  [1] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1571
+  [2] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [3] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [4] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [5] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+  [6] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [7] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [8] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [9] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+ [10] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+ [11] _bridge_formula_from_expr(expr::Expr, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1619
+ [12] _bridge_parse_formula_part(part::String, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1608
+ [13] #2245
+    @ ~/DRModels.jl/src/bridge.jl:726 [inlined]
+ [14] iterate
+    @ ./generator.jl:48 [inlined]
+ [15] _collect(c::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, ::Base.EltypeUnknown, isz::Base.HasShape{1})
+    @ Base ./array.jl:810
+ [16] collect_similar(cont::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}})
+    @ Base ./array.jl:732
+ [17] map(f::Function, A::Vector{String})
+    @ Base ./abstractarray.jl:3372
+ [18] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}, off::Vector{Float64}, g::CategoricalArrays.CategoricalVector{String, UInt32, String, CategoricalArrays.CategoricalValue{String, UInt32}, Union{}}}; labels::Bool)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:726
+ [19] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ DRModels ~/DRModels.jl/src/bridge.jl:55
+ [20] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ Main ./none:1
+ [21] docall(call1::Ptr{Nothing})
+    @ Main.JuliaCall ~/R/library/JuliaCall/julia/setup.jl:176"
+"nbinom2","re","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0350000000000037,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"nbinom2","re","sigma","formula","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,1.037,"Error happens in Julia.
+ArgumentError: drmTMB(engine=""julia""): R's `offset(...)` is unsupported via engine=""julia""; it needs a fixed (non-estimated) coefficient that formula translation cannot express here.
+Stacktrace:
+  [1] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1571
+  [2] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [3] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [4] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [5] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+  [6] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [7] _bridge_formula_from_expr(expr::Expr, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1619
+  [8] _bridge_parse_formula_part(part::String, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1608
+  [9] #2245
+    @ ~/DRModels.jl/src/bridge.jl:726 [inlined]
+ [10] iterate
+    @ ./generator.jl:48 [inlined]
+ [11] collect_to!(dest::Vector{Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, Tuple{StatsModels.Term, StatsModels.FunctionTerm{typeof(|), Vector{StatsModels.AbstractTerm}}}}, Dict{String, String}}}}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, offs::Int64, st::Int64)
+    @ Base ./array.jl:848
+ [12] collect_to_with_first!(dest::Vector{Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, Tuple{StatsModels.Term, StatsModels.FunctionTerm{typeof(|), Vector{StatsModels.AbstractTerm}}}}, Dict{String, String}}}}, v1::Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, Tuple{StatsModels.Term, StatsModels.FunctionTerm{typeof(|), Vector{StatsModels.AbstractTerm}}}}, Dict{String, String}}}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, st::Int64)
+    @ Base ./array.jl:826
+ [13] _collect(c::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, ::Base.EltypeUnknown, isz::Base.HasShape{1})
+    @ Base ./array.jl:820
+ [14] collect_similar(cont::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}})
+    @ Base ./array.jl:732
+ [15] map(f::Function, A::Vector{String})
+    @ Base ./abstractarray.jl:3372
+ [16] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}, g::CategoricalArrays.CategoricalVector{String, UInt32, String, CategoricalArrays.CategoricalValue{String, UInt32}, Union{}}, off::Vector{Float64}}; labels::Bool)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:726
+ [17] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ DRModels ~/DRModels.jl/src/bridge.jl:55
+ [18] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ Main ./none:1
+ [19] docall(call1::Ptr{Nothing})
+    @ Main.JuliaCall ~/R/library/JuliaCall/julia/setup.jl:176"
+"nbinom2","re","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0300000000000011,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","fe","mu","formula","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.164000000000001,"Error happens in Julia.
+ArgumentError: drmTMB(engine=""julia""): R's `offset(...)` is unsupported via engine=""julia""; it needs a fixed (non-estimated) coefficient that formula translation cannot express here.
+Stacktrace:
+  [1] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1571
+  [2] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [3] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [4] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [5] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+  [6] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [7] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [8] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [9] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+ [10] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+ [11] _bridge_formula_from_expr(expr::Expr, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1619
+ [12] _bridge_parse_formula_part(part::String, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1608
+ [13] #2245
+    @ ~/DRModels.jl/src/bridge.jl:726 [inlined]
+ [14] iterate
+    @ ./generator.jl:48 [inlined]
+ [15] _collect(c::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, ::Base.EltypeUnknown, isz::Base.HasShape{1})
+    @ Base ./array.jl:810
+ [16] collect_similar(cont::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}})
+    @ Base ./array.jl:732
+ [17] map(f::Function, A::Vector{String})
+    @ Base ./abstractarray.jl:3372
+ [18] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y::Vector{Float64}, x::Vector{Float64}, off::Vector{Float64}}; labels::Bool)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:726
+ [19] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ DRModels ~/DRModels.jl/src/bridge.jl:55
+ [20] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ Main ./none:1
+ [21] docall(call1::Ptr{Nothing})
+    @ Main.JuliaCall ~/R/library/JuliaCall/julia/setup.jl:176"
+"gamma","fe","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0290000000000035,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","fe","sigma","formula","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.019999999999996,"Error happens in Julia.
+ArgumentError: drmTMB(engine=""julia""): R's `offset(...)` is unsupported via engine=""julia""; it needs a fixed (non-estimated) coefficient that formula translation cannot express here.
+Stacktrace:
+  [1] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1571
+  [2] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [3] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [4] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [5] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+  [6] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [7] _bridge_formula_from_expr(expr::Expr, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1619
+  [8] _bridge_parse_formula_part(part::String, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1608
+  [9] #2245
+    @ ~/DRModels.jl/src/bridge.jl:726 [inlined]
+ [10] iterate
+    @ ./generator.jl:48 [inlined]
+ [11] collect_to!(dest::Vector{Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, StatsModels.Term}, Dict{String, String}}}}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, offs::Int64, st::Int64)
+    @ Base ./array.jl:848
+ [12] collect_to_with_first!(dest::Vector{Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, StatsModels.Term}, Dict{String, String}}}}, v1::Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, StatsModels.Term}, Dict{String, String}}}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, st::Int64)
+    @ Base ./array.jl:826
+ [13] _collect(c::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, ::Base.EltypeUnknown, isz::Base.HasShape{1})
+    @ Base ./array.jl:820
+ [14] collect_similar(cont::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}})
+    @ Base ./array.jl:732
+ [15] map(f::Function, A::Vector{String})
+    @ Base ./abstractarray.jl:3372
+ [16] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y::Vector{Float64}, x::Vector{Float64}, off::Vector{Float64}}; labels::Bool)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:726
+ [17] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ DRModels ~/DRModels.jl/src/bridge.jl:55
+ [18] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ Main ./none:1
+ [19] docall(call1::Ptr{Nothing})
+    @ Main.JuliaCall ~/R/library/JuliaCall/julia/setup.jl:176"
+"gamma","fe","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0280000000000058,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","re","mu","formula","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.161000000000001,"Error happens in Julia.
+ArgumentError: drmTMB(engine=""julia""): R's `offset(...)` is unsupported via engine=""julia""; it needs a fixed (non-estimated) coefficient that formula translation cannot express here.
+Stacktrace:
+  [1] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1571
+  [2] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [3] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [4] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [5] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+  [6] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [7] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [8] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [9] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+ [10] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+ [11] _bridge_formula_from_expr(expr::Expr, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1619
+ [12] _bridge_parse_formula_part(part::String, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1608
+ [13] #2245
+    @ ~/DRModels.jl/src/bridge.jl:726 [inlined]
+ [14] iterate
+    @ ./generator.jl:48 [inlined]
+ [15] _collect(c::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, ::Base.EltypeUnknown, isz::Base.HasShape{1})
+    @ Base ./array.jl:810
+ [16] collect_similar(cont::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}})
+    @ Base ./array.jl:732
+ [17] map(f::Function, A::Vector{String})
+    @ Base ./abstractarray.jl:3372
+ [18] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y::Vector{Float64}, x::Vector{Float64}, off::Vector{Float64}, g::CategoricalArrays.CategoricalVector{String, UInt32, String, CategoricalArrays.CategoricalValue{String, UInt32}, Union{}}}; labels::Bool)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:726
+ [19] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ DRModels ~/DRModels.jl/src/bridge.jl:55
+ [20] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ Main ./none:1
+ [21] docall(call1::Ptr{Nothing})
+    @ Main.JuliaCall ~/R/library/JuliaCall/julia/setup.jl:176"
+"gamma","re","mu","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.029999999999994,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."
+"gamma","re","sigma","formula","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.168999999999997,"Error happens in Julia.
+ArgumentError: drmTMB(engine=""julia""): R's `offset(...)` is unsupported via engine=""julia""; it needs a fixed (non-estimated) coefficient that formula translation cannot express here.
+Stacktrace:
+  [1] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1571
+  [2] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [3] (::DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool})(a::Expr)
+    @ DRModels ./none:-1
+  [4] iterate(g::Base.Generator{Vector{Any}, DRModels.var""#2287#2288""{DRModels._BridgeXlateCtx, Nothing, Bool}}, s::Int64)
+    @ Base ./generator.jl:48
+  [5] _bridge_xlate(e::Expr, ctx::DRModels._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1589
+  [6] _bridge_xlate
+    @ ~/DRModels.jl/src/bridge.jl:1433 [inlined]
+  [7] _bridge_formula_from_expr(expr::Expr, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1619
+  [8] _bridge_parse_formula_part(part::String, ctx::DRModels._BridgeXlateCtx)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:1608
+  [9] #2245
+    @ ~/DRModels.jl/src/bridge.jl:726 [inlined]
+ [10] iterate
+    @ ./generator.jl:48 [inlined]
+ [11] collect_to!(dest::Vector{Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, Tuple{StatsModels.Term, StatsModels.FunctionTerm{typeof(|), Vector{StatsModels.AbstractTerm}}}}, Dict{String, String}}}}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, offs::Int64, st::Int64)
+    @ Base ./array.jl:848
+ [12] collect_to_with_first!(dest::Vector{Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, Tuple{StatsModels.Term, StatsModels.FunctionTerm{typeof(|), Vector{StatsModels.AbstractTerm}}}}, Dict{String, String}}}}, v1::Pair{Symbol, Tuple{StatsModels.FormulaTerm{StatsModels.Term, Tuple{StatsModels.Term, StatsModels.FunctionTerm{typeof(|), Vector{StatsModels.AbstractTerm}}}}, Dict{String, String}}}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, st::Int64)
+    @ Base ./array.jl:826
+ [13] _collect(c::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}}, ::Base.EltypeUnknown, isz::Base.HasShape{1})
+    @ Base ./array.jl:820
+ [14] collect_similar(cont::Vector{String}, itr::Base.Generator{Vector{String}, DRModels.var""#2245#2246""{DRModels._BridgeXlateCtx}})
+    @ Base ./array.jl:732
+ [15] map(f::Function, A::Vector{String})
+    @ Base ./abstractarray.jl:3372
+ [16] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y::Vector{Float64}, x::Vector{Float64}, g::CategoricalArrays.CategoricalVector{String, UInt32, String, CategoricalArrays.CategoricalValue{String, UInt32}, Union{}}, off::Vector{Float64}}; labels::Bool)
+    @ DRModels ~/DRModels.jl/src/bridge.jl:726
+ [17] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ DRModels ~/DRModels.jl/src/bridge.jl:55
+ [18] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+    @ Main ./none:1
+ [19] docall(call1::Ptr{Nothing})
+    @ Main.JuliaCall ~/R/library/JuliaCall/julia/setup.jl:176"
+"gamma","re","sigma","offset_arg","julia","REFUSED",NA,NA,NA,0.693147180559945,NA,NA,NA,NA,NA,NA,0.0309999999999988,"`drmTMB()` does not use extra arguments in `...`.
+✖ Unused argument: `offset`.
+ℹ Check the spelling against the arguments of `drmTMB()`."

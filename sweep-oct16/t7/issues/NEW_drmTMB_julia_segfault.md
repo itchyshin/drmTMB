@@ -1,3 +1,9 @@
+# SUPERSEDED — do not file
+
+Confirmed **fixed** on drmTMB PR #1565 head `b0cf1d8a7bdc365d17c4c626e71c970543efa77a` (t7 follow-up, 16 Oct 2026). Same host, `DRMODELS_JL_PATH` only, `JULIA_PROJECT` unset: harness R exit 0, Gaussian `engine="julia"` FIT OK. Paste-ready comment: `COMMENT_drmTMB_1565.md`. Keep this file as the original 139 evidence, not as an issue to open.
+
+---
+
 # New issue intended for itchyshin/drmTMB (not a duplicate of #1157)
 
 GitHub write from this cloud task returned 403. Paste this if posting by hand.
