@@ -575,12 +575,18 @@ format_drm_check_rows <- function(x, width = 80L) {
   status_w <- max(nchar(x$status), 6L)
   lead <- sprintf("%-*s  %-*s  ", check_w, x$check, status_w, x$status)
   blocks <- lapply(seq_len(nrow(x)), function(i) {
-    pad <- strrep(" ", nchar(lead[[i]]))
-    value <- strwrap(x$value[[i]], width = max(width - nchar(lead[[i]]), 20L))
-    if (length(value) == 0L) {
-      value <- ""
+    if (nchar(lead[[i]]) > width %/% 2L) {
+      # Narrow console: put the value on its own indented lines.
+      value <- strwrap(x$value[[i]], width = width, indent = 4L, exdent = 4L)
+      first <- c(sub("\\s+$", "", lead[[i]]), value)
+    } else {
+      pad <- strrep(" ", nchar(lead[[i]]))
+      value <- strwrap(x$value[[i]], width = width - nchar(lead[[i]]))
+      if (length(value) == 0L) {
+        value <- ""
+      }
+      first <- paste0(c(lead[[i]], rep(pad, length(value) - 1L)), value)
     }
-    first <- paste0(c(lead[[i]], rep(pad, length(value) - 1L)), value)
     msg <- x$message[[i]]
     if (is.na(msg) || !nzchar(msg)) {
       return(first)
