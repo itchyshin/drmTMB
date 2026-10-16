@@ -10,7 +10,7 @@ No PR. Branch `sweep-oct16/t8` only. Never pushed to `main`. Never merged.
 |---|---|---|
 | drmTMB pin (also this branch's merge-base) | `ca3ddefa5ea11bbfd3b765615dfbb89305d2485a` | `git rev-parse HEAD` at checkout |
 | DRModels.jl pin | `f71b2923360e9e5d4591e0d6e15a9ef9db0356d7` | cloned to `/tmp/DRModels.jl`; `git rev-parse HEAD` |
-| this receipt branch | recorded after `git push` as the tip of `sweep-oct16/t8` | evidence + harness + this file |
+| this receipt branch | `dab1ada6d09a15504ef90b6a5ce12bd2ab5072d3` | evidence + harness + this file; `git push -u origin sweep-oct16/t8` |
 
 drmTMB 0.7.1. DRModels.jl 0.7.2.
 
