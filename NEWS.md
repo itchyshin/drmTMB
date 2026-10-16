@@ -12,6 +12,16 @@
 
 ## Bug fixes
 
+* `student()`, `Gamma()` and `beta_family()` log-likelihoods are now accurate
+  at large `nu`, small coefficient of variation and large `phi`. The old
+  `lgamma()`-difference forms lost about `eps * x log(x)` per row, so the
+  Student objective could exceed its own Gaussian limit and fits could report
+  false convergence. Each density now agrees with `dt()` (Student) and with an
+  exact reference (Gamma, Beta) to within 1e-12 per observation at `nu`,
+  shape or `phi` of 1e2 to 1e8, and tends to the Gaussian log-density in the
+  limit. The bivariate Student kernel uses the same stable `log(1 + x)`
+  (#1462, #1504).
+
 * `family = student()` no longer reports a log-likelihood above the Gaussian
   maximum when `nu` is huge. The compiled density evaluates
   `lgamma((nu+1)/2) - lgamma(nu/2)` with a Stirling series for `nu >= 1e4`,
