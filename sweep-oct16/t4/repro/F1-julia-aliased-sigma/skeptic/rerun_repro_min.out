@@ -1,0 +1,107 @@
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates = Int64[]
+│   rcond = 5.3383746752291775e-17
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Info: check_drm
+│   converged = true
+│   max_abs_grad = 5.507043709940262e-10
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = false
+│   min_eigval = -1.0119109616643945e-18
+│   cond = Inf
+│   penalized_map = false
+└   ok = false
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates = Int64[]
+│   rcond = 2.2868829249352636e-17
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+Julia Version 1.12.7
+Commit 6d172b025e4 (2026-08-15 08:05 UTC)
+Build Info:
+  https://github.com/conda-forge/julia-feedstock
+
+    Note: This is an unofficial build, please report bugs to the project
+    responsible for this build and not to the Julia project unless you can
+    reproduce the issue using official builds available at https://julialang.org
+
+Platform Info:
+  OS: Linux (x86_64-conda-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor @ 2.10GHz
+  WORD_SIZE: 64
+  LLVM: libLLVM-18.1.7 (ORCJIT, sapphirerapids)
+  GC: Built with stock GC
+Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_DEPOT_PATH = /home/user/.julia
+  JULIA_PKG_SERVER = 
+DRModels 0.7.2 at /home/user/DRModels.jl/src/DRModels.jl
+DRModels git HEAD: f71b2923360e9e5d4591e0d6e15a9ef9db0356d7
+
+n = 100; max |z - (2x + 1)| = 1.0658141036401503e-14
+rank([1 x z]) = 3 of 3 columns; svdvals = [25.53446823610362, 10.087569150364079, 1.757853152315707e-14]
+
+=== FULL fit: sigma ~ 1 + x + z (aliased) ===
+fit.converged = true   is_converged(fit) = true
+logLik = -103.87966342610245
+─────────────────────────────────────────────────────────────────────────────────
+                      Estimate  Std.Error      z  Pr(>|z|)   Lower 95%  Upper 95%
+─────────────────────────────────────────────────────────────────────────────────
+mu: (Intercept)      0.957884   0.0717707  13.35    <1e-39   0.817216    1.09855
+mu: x                0.506012   0.0615264   8.22    <1e-15   0.385423    0.626602
+sigma: (Intercept)  -0.449168   0.0643443  -6.98    <1e-11  -0.57528    -0.323056
+sigma: x             0.0925481  0.0349171   2.65    0.0080   0.0241118   0.160984
+sigma: z             0.0685283  0.0282531   2.43    0.0153   0.0131532   0.123903
+─────────────────────────────────────────────────────────────────────────────────
+check_drm(full):
+  ok = false  vcov_posdef = false  min_eigval = -1.0119109616643945e-18  cond = Inf  max_abs_grad = 5.507043709940262e-10
+
+=== REDUCED fit: sigma ~ 1 + x (the identified model) ===
+is_converged = true   logLik = -103.87966342610247
+────────────────────────────────────────────────────────────────────────────────
+                     Estimate  Std.Error      z  Pr(>|z|)   Lower 95%  Upper 95%
+────────────────────────────────────────────────────────────────────────────────
+mu: (Intercept)      0.957884  0.0717707  13.35    <1e-39   0.817216    1.09855
+mu: x                0.506012  0.0615264   8.22    <1e-15   0.385423    0.626602
+sigma: (Intercept)  -0.38064   0.0707109  -5.38    <1e-07  -0.51923    -0.242049
+sigma: x             0.229605  0.077117    2.98    0.0029   0.0784582   0.380751
+────────────────────────────────────────────────────────────────────────────────
+
+Identified combinations from the FULL fit vs the REDUCED fit:
+  a + c : full -0.38063970 (SE 0.070711)   reduced sigma:(Intercept) -0.38063970 (SE 0.070711)
+  b + 2c: full 0.22960475 (SE 0.077117)   reduced sigma:x           0.22960475 (SE 0.077117)
+  logLik difference full - reduced = 1.421e-14
+
+logLik along the null direction theta + t * (0,0,-1,-2,1):
+  t =  -1000.0   sigma:z =  -999.9315   logLik = -103.8796634261
+  t =    -10.0   sigma:z =    -9.9315   logLik = -103.8796634261
+  t =     -1.0   sigma:z =    -0.9315   logLik = -103.8796634261
+  t =      0.0   sigma:z =     0.0685   logLik = -103.8796634261
+  t =      1.0   sigma:z =     1.0685   logLik = -103.8796634261
+  t =     10.0   sigma:z =    10.0685   logLik = -103.8796634261
+  t =   1000.0   sigma:z =  1000.0685   logLik = -103.8796634261
+
+Hessian at the optimum: diag = [240.6975752436032, 332.3235143702944, 199.99999999889857, 171.20700175131105, 886.5624745067614]
+eigenvalues = [-1.4210854773947197e-14, 151.58054488528313, 194.08559759207657, 414.89013446978316, 1070.2342889237248]
+eigenvector of the smallest |eigenvalue| (normalised to sigma:z = 1): [5.264001473285812e-16, -5.816605358155044e-16, -0.9999999999999996, -2.0, 1.0]
+vcov_guard flat_coordinates rule: diag(H) <= 3e-8 * max(diag(H)) -> Int64[] (empty: no single coordinate is flat)
+
+=== Re-expressed alias sigma ~ 1 + x + z2, z2 = 4x + 2 ===
+is_converged = true   logLik = -103.87966342610245   max |sigma_full - sigma_alt| = 2.914113395036111e-12
+──────────────────────────────────────────────────────────────────────────────────
+                      Estimate  Std.Error      z  Pr(>|z|)    Lower 95%  Upper 95%
+──────────────────────────────────────────────────────────────────────────────────
+mu: (Intercept)      0.957884   0.0717707  13.35    <1e-39   0.817216     1.09855
+mu: x                0.506012   0.0615264   8.22    <1e-15   0.385423     0.626602
+sigma: (Intercept)  -0.458958   0.0644025  -7.13    <1e-11  -0.585184    -0.332731
+sigma: x             0.0729686  0.0326359   2.24    0.0254   0.00900346   0.136934
+sigma: z2            0.039159   0.0161446   2.43    0.0153   0.00751612   0.070802
+──────────────────────────────────────────────────────────────────────────────────

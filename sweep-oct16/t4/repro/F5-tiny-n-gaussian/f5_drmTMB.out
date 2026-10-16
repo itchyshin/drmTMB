@@ -1,0 +1,145 @@
+drmTMB 0.7.1 | TMB 1.9.10 
+drmTMB checkout HEAD (R/ and src/ identical to ca3ddefa5ea11bbfd3b765615dfbb89305d2485a): 8ea96a9c27bd3623230b1bc53cd9aa166b8c2085 
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+
+locale:
+[1] C
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] drmTMB_0.7.1
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-19   multcomp_1.4-25    Matrix_1.6-5       lattice_0.22-5    
+ [5] TH.data_1.1-2      coda_0.19-4.1      splines_4.3.3      estimability_1.4.1
+ [9] emmeans_1.10.0     zoo_1.8-12         parallel_4.3.3     lifecycle_1.0.4   
+[13] mvtnorm_1.2-4      TMB_1.9.10         cli_3.6.2          xtable_1.8-4      
+[17] grid_4.3.3         sandwich_3.1-0     compiler_4.3.3     nlme_3.1-164      
+[21] survival_3.5-8     rlang_1.1.3        MASS_7.3-60.0.1   
+
+=== gauss_n8_r05 (R seed 933663572) ===
+  default                    logLik   -3.81769 | exact ll at coefficients   -3.81769 | best  -1.44733 | conv TRUE  status converged  | max|grad| 1.7e-13 | Newton step/SE 4.9e-14 | raw log sigma [-2.15, 0.77] | fitted (clamped) log sigma [-2.15, 0.77] | Pearson(min-scale obs) -6.9e-01 | #1509 trigger FALSE
+    check_drm: observations_per_parameter=note 
+  multi_start = 10           logLik   -1.44733 | exact ll at coefficients   -1.44733 | best  -1.44733 | conv TRUE  status converged  | max|grad| 6.6e-11 | Newton step/SE 2.2e-14 | raw log sigma [-6.25, 2.30] | fitted (clamped) log sigma [-6.25, 2.30] | Pearson(min-scale obs) 1.4e-04 | #1509 trigger FALSE
+    check_drm: observations_per_parameter=note 
+  logsigma_clamp = NULL      logLik   -3.81769 | exact ll at coefficients   -3.81769 | best  -1.44733 | conv TRUE  status converged  | max|grad| 1.7e-13 | Newton step/SE 4.9e-14 | raw log sigma [-2.15, 0.77] | fitted (clamped) log sigma [-2.15, 0.77] | Pearson(min-scale obs) -6.9e-01 | #1509 trigger n/a (clamp off)
+    check_drm: observations_per_parameter=note 
+  clamp NULL + multi_start 10 logLik   -1.44733 | exact ll at coefficients   -1.44733 | best  -1.44733 | conv TRUE  status converged  | max|grad| 6.6e-11 | Newton step/SE 2.2e-14 | raw log sigma [-6.25, 2.30] | fitted (clamped) log sigma [-6.25, 2.30] | Pearson(min-scale obs) 1.4e-04 | #1509 trigger n/a (clamp off)
+    check_drm: observations_per_parameter=note 
+
+=== gauss_n8_r09 (R seed 933663576) ===
+  default                    logLik   -4.69828 | exact ll at coefficients   -4.69828 | best  -3.14993 | conv TRUE  status converged  | max|grad| 1.1e-13 | Newton step/SE 2.6e-14 | raw log sigma [-1.16, -0.26] | fitted (clamped) log sigma [-1.16, -0.26] | Pearson(min-scale obs) -8.1e-02 | #1509 trigger FALSE
+    check_drm: observations_per_parameter=note 
+  multi_start = 10           logLik   -4.69828 | exact ll at coefficients   -4.69828 | best  -3.14993 | conv TRUE  status converged  | max|grad| 1.1e-13 | Newton step/SE 2.6e-14 | raw log sigma [-1.16, -0.26] | fitted (clamped) log sigma [-1.16, -0.26] | Pearson(min-scale obs) -8.1e-02 | #1509 trigger FALSE
+    check_drm: observations_per_parameter=note 
+  logsigma_clamp = NULL      logLik   -4.69828 | exact ll at coefficients   -4.69828 | best  -3.14993 | conv TRUE  status converged  | max|grad| 1.1e-13 | Newton step/SE 2.6e-14 | raw log sigma [-1.16, -0.26] | fitted (clamped) log sigma [-1.16, -0.26] | Pearson(min-scale obs) -8.1e-02 | #1509 trigger n/a (clamp off)
+    check_drm: observations_per_parameter=note 
+  clamp NULL + multi_start 10 logLik   -4.69828 | exact ll at coefficients   -4.69828 | best  -3.14993 | conv TRUE  status converged  | max|grad| 1.1e-13 | Newton step/SE 2.6e-14 | raw log sigma [-1.16, -0.26] | fitted (clamped) log sigma [-1.16, -0.26] | Pearson(min-scale obs) -8.1e-02 | #1509 trigger n/a (clamp off)
+    check_drm: observations_per_parameter=note 
+
+=== gauss_n8_r28 (R seed 933663595) ===
+  default                    logLik   -0.39611 | exact ll at coefficients   -0.39611 | best   0.27724 | conv TRUE  status converged  | max|grad| 8.9e-14 | Newton step/SE 2.1e-14 | raw log sigma [-2.07, -0.19] | fitted (clamped) log sigma [-2.07, -0.19] | Pearson(min-scale obs) -7.7e-01 | #1509 trigger FALSE
+    check_drm: observations_per_parameter=note 
+  multi_start = 10           logLik   -0.39611 | exact ll at coefficients   -0.39611 | best   0.27724 | conv TRUE  status converged  | max|grad| 2.0e-14 | Newton step/SE 2.1e-15 | raw log sigma [-2.07, -0.19] | fitted (clamped) log sigma [-2.07, -0.19] | Pearson(min-scale obs) -7.7e-01 | #1509 trigger FALSE
+    check_drm: observations_per_parameter=note 
+  logsigma_clamp = NULL      logLik   -0.39611 | exact ll at coefficients   -0.39611 | best   0.27724 | conv TRUE  status converged  | max|grad| 8.9e-14 | Newton step/SE 2.1e-14 | raw log sigma [-2.07, -0.19] | fitted (clamped) log sigma [-2.07, -0.19] | Pearson(min-scale obs) -7.7e-01 | #1509 trigger n/a (clamp off)
+    check_drm: observations_per_parameter=note 
+  clamp NULL + multi_start 10 logLik   -0.39611 | exact ll at coefficients   -0.39611 | best   0.27724 | conv TRUE  status converged  | max|grad| 2.0e-14 | Newton step/SE 2.1e-15 | raw log sigma [-2.07, -0.19] | fitted (clamped) log sigma [-2.07, -0.19] | Pearson(min-scale obs) -7.7e-01 | #1509 trigger n/a (clamp off)
+    check_drm: observations_per_parameter=note 
+
+=== gauss_n8_r04 (R seed 933663571) ===
+  default                    logLik    6.15620 | exact ll at coefficients    6.36220 | best   6.72474 | conv TRUE  status converged  | max|grad| 2.6e-05 | Newton step/SE 1.2e-14 | raw log sigma [-13.86, 2.43] | fitted (clamped) log sigma [-13.65, 2.43] | Pearson(min-scale obs) -1.4e-05 | #1509 trigger TRUE
+    check_drm: logsigma_clamp_active=note; hessian_conditioning=note; observations_per_parameter=note 
+  multi_start = 10           logLik    6.15620 | exact ll at coefficients    6.36220 | best   6.72474 | conv TRUE  status converged  | max|grad| 2.6e-05 | Newton step/SE 1.2e-14 | raw log sigma [-13.86, 2.43] | fitted (clamped) log sigma [-13.65, 2.43] | Pearson(min-scale obs) -1.4e-05 | #1509 trigger TRUE
+    check_drm: logsigma_clamp_active=note; hessian_conditioning=note; observations_per_parameter=note 
+  logsigma_clamp = NULL      logLik    6.72474 | exact ll at coefficients    6.72474 | best   6.72474 | conv TRUE  status converged  | max|grad| 3.0e-03 | Newton step/SE 1.7e-14 | raw log sigma [-16.45, 3.36] | fitted (clamped) log sigma [-16.45, 3.36] | Pearson(min-scale obs) -1.2e-06 | #1509 trigger n/a (clamp off)
+    check_drm: fixed_gradient=warning; hessian_conditioning=note; observations_per_parameter=note 
+  clamp NULL + multi_start 10 logLik    6.72474 | exact ll at coefficients    6.72474 | best   6.72474 | conv TRUE  status converged  | max|grad| 3.0e-03 | Newton step/SE 1.7e-14 | raw log sigma [-16.45, 3.36] | fitted (clamped) log sigma [-16.45, 3.36] | Pearson(min-scale obs) -1.2e-06 | #1509 trigger n/a (clamp off)
+    check_drm: fixed_gradient=warning; hessian_conditioning=note; observations_per_parameter=note 
+
+=== gauss_n8_r29 (R seed 933663596) ===
+  default                    logLik    7.13937 | exact ll at coefficients    7.13937 | best   7.13937 | conv TRUE  status converged  | max|grad| 8.3e-07 | Newton step/SE 6.1e-14 | raw log sigma [-11.05, 1.70] | fitted (clamped) log sigma [-11.05, 1.70] | Pearson(min-scale obs) 9.8e-04 | #1509 trigger FALSE
+    check_drm: hessian_conditioning=note; observations_per_parameter=note 
+  multi_start = 10           logLik    7.13937 | exact ll at coefficients    7.13937 | best   7.13937 | conv TRUE  status converged  | max|grad| 8.3e-07 | Newton step/SE 6.1e-14 | raw log sigma [-11.05, 1.70] | fitted (clamped) log sigma [-11.05, 1.70] | Pearson(min-scale obs) 9.8e-04 | #1509 trigger FALSE
+    check_drm: hessian_conditioning=note; observations_per_parameter=note 
+  logsigma_clamp = NULL      logLik    7.13937 | exact ll at coefficients    7.13937 | best   7.13937 | conv TRUE  status converged  | max|grad| 8.3e-07 | Newton step/SE 6.1e-14 | raw log sigma [-11.05, 1.70] | fitted (clamped) log sigma [-11.05, 1.70] | Pearson(min-scale obs) 9.8e-04 | #1509 trigger n/a (clamp off)
+    check_drm: hessian_conditioning=note; observations_per_parameter=note 
+  clamp NULL + multi_start 10 logLik    7.13937 | exact ll at coefficients    7.13937 | best   7.13937 | conv TRUE  status converged  | max|grad| 8.3e-07 | Newton step/SE 6.1e-14 | raw log sigma [-11.05, 1.70] | fitted (clamped) log sigma [-11.05, 1.70] | Pearson(min-scale obs) 9.8e-04 | #1509 trigger n/a (clamp off)
+    check_drm: hessian_conditioning=note; observations_per_parameter=note 
+
+=== gauss_n8_r30 (R seed 933663597) ===
+  default                    logLik    7.33543 | exact ll at coefficients    7.81931 | best  16.42992 | conv TRUE  status converged  | max|grad| 6.7e-05 | Newton step/SE 3.0e-13 | raw log sigma [-14.56, 6.01] | fitted (clamped) log sigma [-14.08, 6.01] | Pearson(min-scale obs) -1.3e-05 | #1509 trigger TRUE
+    check_drm: logsigma_clamp_active=note; hessian_conditioning=note; observations_per_parameter=note 
+  multi_start = 10           logLik    7.33543 | exact ll at coefficients    7.81931 | best  16.42992 | conv TRUE  status converged  | max|grad| 6.7e-05 | Newton step/SE 3.0e-13 | raw log sigma [-14.56, 6.01] | fitted (clamped) log sigma [-14.08, 6.01] | Pearson(min-scale obs) -1.3e-05 | #1509 trigger TRUE
+    check_drm: logsigma_clamp_active=note; hessian_conditioning=note; observations_per_parameter=note 
+  logsigma_clamp = NULL      logLik   11.32196 | exact ll at coefficients   11.32196 | best  16.42992 | conv FALSE status degenerate | max|grad| 8.4e+05 | Newton step/SE NaN | raw log sigma [-24.93, 12.19] | fitted (clamped) log sigma [-24.93, 12.19] | Pearson(min-scale obs) 1.5e-05 | #1509 trigger n/a (clamp off)
+    warnings: `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)). i Treat the estimates and standard errors with caution. The optimizer escalates   its preset ladder automatically, so inspect `fit$optimizer_attempts` and run   `check_drm()` to diagnose; consider rescaling the data, within-group   replication, or a penalized/MAP fit. 
+    check_drm: optimizer_convergence=warning; convergence_status=note; fixed_gradient=warning; hessian_positive_definite=warning; hessian_conditioning=note; standard_errors_finite=warning; observations_per_parameter=note 
+  clamp NULL + multi_start 10 logLik   12.54140 | exact ll at coefficients   12.54140 | best  16.42992 | conv FALSE status degenerate | max|grad| 5.4e+05 | Newton step/SE NaN | raw log sigma [-26.76, 13.25] | fitted (clamped) log sigma [-26.76, 13.25] | Pearson(min-scale obs) 0.0e+00 | #1509 trigger n/a (clamp off)
+    warnings: `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)). i Treat the estimates and standard errors with caution. The optimizer escalates   its preset ladder automatically, so inspect `fit$optimizer_attempts` and run   `check_drm()` to diagnose; consider rescaling the data, within-group   replication, or a penalized/MAP fit. 
+    check_drm: optimizer_convergence=warning; convergence_status=note; fixed_gradient=warning; hessian_positive_definite=warning; hessian_conditioning=note; standard_errors_finite=warning; observations_per_parameter=note 
+
+=== gauss_n8_r31 (R seed 933663598) ===
+  default                    logLik   -5.10350 | exact ll at coefficients   -5.05159 | best  -4.40636 | conv TRUE  status converged  | max|grad| 4.7e-05 | Newton step/SE 8.4e-15 | raw log sigma [-13.14, 6.29] | fitted (clamped) log sigma [-13.09, 6.29] | Pearson(min-scale obs) 1.1e-06 | #1509 trigger TRUE
+    check_drm: logsigma_clamp_active=note; hessian_conditioning=note; observations_per_parameter=note 
+  multi_start = 10           logLik   -5.10350 | exact ll at coefficients   -5.05159 | best  -4.40636 | conv TRUE  status converged  | max|grad| 4.7e-05 | Newton step/SE 8.4e-15 | raw log sigma [-13.14, 6.29] | fitted (clamped) log sigma [-13.09, 6.29] | Pearson(min-scale obs) 1.1e-06 | #1509 trigger TRUE
+    check_drm: logsigma_clamp_active=note; hessian_conditioning=note; observations_per_parameter=note 
+  logsigma_clamp = NULL      logLik   -4.40636 | exact ll at coefficients   -4.40636 | best  -4.40636 | conv FALSE status degenerate | max|grad| 1.6e+03 | Newton step/SE NaN | raw log sigma [-21.30, 10.81] | fitted (clamped) log sigma [-21.30, 10.81] | Pearson(min-scale obs) -4.0e-07 | #1509 trigger n/a (clamp off)
+    warnings: `drmTMB()` escalated `stats::nlminb()` to the "careful" optimizer preset to reach convergence. i An earlier preset errored or did not converge; inspect   `fit$optimizer_attempts`. 
+    check_drm: convergence_status=note; fixed_gradient=warning; hessian_conditioning=note; standard_errors_finite=warning; observations_per_parameter=note 
+  clamp NULL + multi_start 10 logLik   -4.40636 | exact ll at coefficients   -4.40636 | best  -4.40636 | conv FALSE status degenerate | max|grad| 8.4e+00 | Newton step/SE NaN | raw log sigma [-21.30, 10.81] | fitted (clamped) log sigma [-21.30, 10.81] | Pearson(min-scale obs) 0.0e+00 | #1509 trigger n/a (clamp off)
+    warnings: `drmTMB()` escalated `stats::nlminb()` to the "careful" optimizer preset to reach convergence. i An earlier preset errored or did not converge; inspect   `fit$optimizer_attempts`. 
+    check_drm: convergence_status=note; fixed_gradient=warning; hessian_conditioning=note; standard_errors_finite=warning; observations_per_parameter=note 
+
+=== gauss_n8_r06 (R seed 933663573) ===
+  default                    logLik   16.37641 | exact ll at coefficients   29.47118 | best        NA | conv TRUE  status converged  | max|grad| 1.7e-03 | Newton step/SE 2.7e-10 | raw log sigma [-26.57, 1.62] | fitted (clamped) log sigma [-15.00, 1.62] | Pearson(min-scale obs) -2.7e-06 | #1509 trigger TRUE
+    warnings: `drmTMB()` escalated `stats::nlminb()` to the "careful" optimizer preset to reach convergence. i An earlier preset errored or did not converge; inspect   `fit$optimizer_attempts`. 
+    check_drm: logsigma_clamp_active=note; fixed_gradient=warning; hessian_conditioning=note; observations_per_parameter=note 
+  multi_start = 10           logLik   16.37641 | exact ll at coefficients   29.47118 | best        NA | conv TRUE  status converged  | max|grad| 2.6e-03 | Newton step/SE 3.0e-10 | raw log sigma [-26.57, 1.62] | fitted (clamped) log sigma [-15.00, 1.62] | Pearson(min-scale obs) -2.7e-06 | #1509 trigger TRUE
+    check_drm: logsigma_clamp_active=note; fixed_gradient=warning; hessian_conditioning=note; observations_per_parameter=note 
+  logsigma_clamp = NULL      logLik   28.07594 | exact ll at coefficients   28.07594 | best        NA | conv FALSE status degenerate | max|grad| 2.3e+06 | Newton step/SE NaN | raw log sigma [-25.68, 1.44] | fitted (clamped) log sigma [-25.68, 1.44] | Pearson(min-scale obs) 0.0e+00 | #1509 trigger n/a (clamp off)
+    warnings: `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)). i Treat the estimates and standard errors with caution. The optimizer escalates   its preset ladder automatically, so inspect `fit$optimizer_attempts` and run   `check_drm()` to diagnose; consider rescaling the data, within-group   replication, or a penalized/MAP fit. 
+    check_drm: optimizer_convergence=warning; convergence_status=note; fixed_gradient=warning; hessian_positive_definite=warning; hessian_conditioning=note; standard_errors_finite=warning; observations_per_parameter=note 
+  clamp NULL + multi_start 10 logLik   32.26161 | exact ll at coefficients   32.26161 | best        NA | conv FALSE status degenerate | max|grad| 3.8e+12 | Newton step/SE NaN | raw log sigma [-28.78, 1.52] | fitted (clamped) log sigma [-28.78, 1.52] | Pearson(min-scale obs) 5.8e-01 | #1509 trigger n/a (clamp off)
+    warnings: `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)). i Treat the estimates and standard errors with caution. The optimizer escalates   its preset ladder automatically, so inspect `fit$optimizer_attempts` and run   `check_drm()` to diagnose; consider rescaling the data, within-group   replication, or a penalized/MAP fit. 
+    check_drm: optimizer_convergence=warning; convergence_status=note; fixed_gradient=warning; hessian_positive_definite=warning; hessian_conditioning=note; standard_errors_finite=warning; observations_per_parameter=note 
+
+=== gauss_n8_r19 (R seed 933663586) ===
+  default                    logLik    6.15698 | exact ll at coefficients    7.43701 | best        NA | conv TRUE  status converged  | max|grad| 1.4e-03 | Newton step/SE 1.2e-14 | raw log sigma [-15.85, 2.56] | fitted (clamped) log sigma [-14.57, 2.56] | Pearson(min-scale obs) -9.4e-07 | #1509 trigger TRUE
+    check_drm: logsigma_clamp_active=note; fixed_gradient=warning; hessian_conditioning=note; observations_per_parameter=note 
+  multi_start = 10           logLik    6.15698 | exact ll at coefficients    7.43701 | best        NA | conv TRUE  status converged  | max|grad| 1.4e-03 | Newton step/SE 1.2e-14 | raw log sigma [-15.85, 2.56] | fitted (clamped) log sigma [-14.57, 2.56] | Pearson(min-scale obs) -9.4e-07 | #1509 trigger TRUE
+    check_drm: logsigma_clamp_active=note; fixed_gradient=warning; hessian_conditioning=note; observations_per_parameter=note 
+  logsigma_clamp = NULL      logLik   15.46476 | exact ll at coefficients   15.46532 | best        NA | conv FALSE status degenerate | max|grad| 4.0e+12 | Newton step/SE NaN | raw log sigma [-28.35, 5.41] | fitted (clamped) log sigma [-28.35, 5.41] | Pearson(min-scale obs) -1.2e+00 | #1509 trigger n/a (clamp off)
+    warnings: `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)). i Treat the estimates and standard errors with caution. The optimizer escalates   its preset ladder automatically, so inspect `fit$optimizer_attempts` and run   `check_drm()` to diagnose; consider rescaling the data, within-group   replication, or a penalized/MAP fit. 
+    check_drm: optimizer_convergence=warning; convergence_status=note; fixed_gradient=warning; hessian_positive_definite=warning; hessian_conditioning=note; standard_errors_finite=warning; observations_per_parameter=note 
+  clamp NULL + multi_start 10 logLik   21.01407 | exact ll at coefficients   19.36802 | best        NA | conv FALSE status degenerate | max|grad| 7.8e+15 | Newton step/SE NaN | raw log sigma [-36.09, 7.49] | fitted (clamped) log sigma [-36.09, 7.49] | Pearson(min-scale obs) -1.0e+00 | #1509 trigger n/a (clamp off)
+    warnings: `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)). i Treat the estimates and standard errors with caution. The optimizer escalates   its preset ladder automatically, so inspect `fit$optimizer_attempts` and run   `check_drm()` to diagnose; consider rescaling the data, within-group   replication, or a penalized/MAP fit. 
+    check_drm: optimizer_convergence=warning; convergence_status=note; fixed_gradient=warning; hessian_positive_definite=warning; hessian_conditioning=note; standard_errors_finite=warning; observations_per_parameter=note 
+
+=== gauss_n8_r49 (R seed 933663616) ===
+  default                    logLik   -4.00279 | exact ll at coefficients   -3.96901 | best  -3.49812 | conv TRUE  status converged  | max|grad| 1.0e-05 | Newton step/SE 4.3e-16 | raw log sigma [-12.98, 4.53] | fitted (clamped) log sigma [-12.95, 4.53] | Pearson(min-scale obs) 2.1e-07 | #1509 trigger TRUE
+    check_drm: logsigma_clamp_active=note; hessian_conditioning=note; observations_per_parameter=note 
+  multi_start = 10           logLik   -4.00279 | exact ll at coefficients   -3.96901 | best  -3.49812 | conv TRUE  status converged  | max|grad| 1.0e-05 | Newton step/SE 4.3e-16 | raw log sigma [-12.98, 4.53] | fitted (clamped) log sigma [-12.95, 4.53] | Pearson(min-scale obs) 2.1e-07 | #1509 trigger TRUE
+    check_drm: logsigma_clamp_active=note; hessian_conditioning=note; observations_per_parameter=note 
+  logsigma_clamp = NULL      logLik   -3.49812 | exact ll at coefficients   -3.49812 | best  -3.49812 | conv FALSE status degenerate | max|grad| 3.2e+05 | Newton step/SE NaN | raw log sigma [-23.68, 9.27] | fitted (clamped) log sigma [-23.68, 9.27] | Pearson(min-scale obs) 8.5e-06 | #1509 trigger n/a (clamp off)
+    warnings: `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)). i Treat the estimates and standard errors with caution. The optimizer escalates   its preset ladder automatically, so inspect `fit$optimizer_attempts` and run   `check_drm()` to diagnose; consider rescaling the data, within-group   replication, or a penalized/MAP fit. 
+    check_drm: optimizer_convergence=warning; convergence_status=note; fixed_gradient=warning; hessian_positive_definite=warning; hessian_conditioning=note; standard_errors_finite=warning; observations_per_parameter=note 
+  clamp NULL + multi_start 10 logLik   -3.49812 | exact ll at coefficients   -3.49812 | best  -3.49812 | conv FALSE status degenerate | max|grad| 1.7e-01 | Newton step/SE NaN | raw log sigma [-23.68, 9.27] | fitted (clamped) log sigma [-23.68, 9.27] | Pearson(min-scale obs) 0.0e+00 | #1509 trigger n/a (clamp off)
+    warnings: `drmTMB()` escalated `stats::nlminb()` to the "careful" optimizer preset to reach convergence. i An earlier preset errored or did not converge; inspect   `fit$optimizer_attempts`. 
+    check_drm: convergence_status=note; fixed_gradient=warning; hessian_positive_definite=warning; hessian_conditioning=note; standard_errors_finite=warning; observations_per_parameter=note 
+
+=== default vs multi_start = 10 on all 50 gauss_n8 datasets ===
+r05 default -3.81769 (conv TRUE) -> multi_start -1.44733 (conv TRUE, status converged); gain 2.3704
+(reps not listed: multi_start = 10 returned the default logLik to 1e-6)
+EXIT 0

@@ -1,0 +1,12 @@
+R version 4.3.3 (2024-02-29) | drmTMB 0.7.1 
+r04 drmTMB default logLik 6.156202 (converged TRUE) | clamped-objective max (300 starts) 6.156202 | unclamped finite max 6.724738
+r30 drmTMB default logLik 7.335428 (converged TRUE) | clamped-objective max (300 starts) 7.335428 | unclamped finite max 16.429921
+r31 drmTMB default logLik -5.103498 (converged TRUE) | clamped-objective max (300 starts) -5.103498 | unclamped finite max -4.406358
+r49 drmTMB default logLik -4.002790 (converged TRUE) | clamped-objective max (300 starts) -4.002790 | unclamped finite max -3.498117
+r06 drmTMB default logLik 16.376415 (converged TRUE) | clamped-objective max (300 starts) 16.376415 | unclamped finite max none (unbounded)
+r19 drmTMB default logLik 6.156978 (converged TRUE) | clamped-objective max (300 starts) 6.156978 | unclamped finite max none (unbounded)
+Warning message:
+`drmTMB()` escalated `stats::nlminb()` to the "careful" optimizer preset to
+reach convergence.
+i An earlier preset errored or did not converge; inspect
+  `fit$optimizer_attempts`. 

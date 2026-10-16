@@ -1,0 +1,71 @@
+drmTMB 0.7.1 built: R 4.3.3; x86_64-pc-linux-gnu; 2026-10-16 19:25:18 UTC; unix 
+  is_converged.drmTMB                identical to ca3ddefa:R/check.R: TRUE
+  convergence_status.drmTMB          identical to ca3ddefa:R/check.R: TRUE
+  drm_inference_degenerate           identical to ca3ddefa:R/check.R: TRUE
+  drm_fixed_effect_rank_deficient    identical to ca3ddefa:R/check.R: TRUE
+  drm_standard_errors_pathological   identical to ca3ddefa:R/check.R: TRUE
+  drm_inference_at_boundary          identical to ca3ddefa:R/check.R: TRUE
+
+fits: 700  errors: 0 
+
+is_converged() (T/F) and the first predicate that decides it, per cell
+(F:optimizer = code != 0 or non-finite objective; F:deg_hessian_or_SE = pdHess FALSE or a non-finite SE;
+ F:deg_rank = design rank deficient; F:deg_inflated_SE = weakly identified, SE >= 50 and >= 1000 x median):
+                   F:deg_hessian_or_SE F:deg_inflated_SE F:optimizer T:boundary
+gauss_n8                             0                 0           0          0
+gauss_n12                            0                 0           0          0
+gauss_n20                            0                 0           0          0
+pois_n8                              0                 0           0          0
+pois_n12                             0                 0           0          0
+pois_n20                             0                 0           0          0
+bin_complete                         0                 0           0          0
+bin_quasi                            0                50           0          0
+nb2_poisdata                         0                33           0          0
+beta_phi1e4                          0                 0           3          0
+student_gaussdata                    6                 1          23          0
+re_sd1e-4                            0                 0           0         29
+collin_sigma_exact                  50                 0           0          0
+collin_sigma_near                    0                50           0          0
+                   T:converged
+gauss_n8                    50
+gauss_n12                   50
+gauss_n20                   50
+pois_n8                     50
+pois_n12                    50
+pois_n20                    50
+bin_complete                50
+bin_quasi                    0
+nb2_poisdata                17
+beta_phi1e4                 47
+student_gaussdata           20
+re_sd1e-4                   21
+collin_sigma_exact           0
+collin_sigma_near            0
+
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+
+locale:
+[1] C
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] drmTMB_0.7.1
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-19   multcomp_1.4-25    Matrix_1.6-5       lattice_0.22-5    
+ [5] TH.data_1.1-2      coda_0.19-4.1      splines_4.3.3      estimability_1.4.1
+ [9] emmeans_1.10.0     zoo_1.8-12         parallel_4.3.3     lifecycle_1.0.4   
+[13] mvtnorm_1.2-4      TMB_1.9.10         cli_3.6.2          xtable_1.8-4      
+[17] grid_4.3.3         sandwich_3.1-0     compiler_4.3.3     nlme_3.1-164      
+[21] survival_3.5-8     rlang_1.1.3        MASS_7.3-60.0.1   

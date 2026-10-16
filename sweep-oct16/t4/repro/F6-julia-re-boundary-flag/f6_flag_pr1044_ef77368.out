@@ -1,0 +1,7 @@
+Precompiling packages...
+  11006.1 ms  ✓ DRModels
+  1 dependency successfully precompiled in 11 seconds. 100 already precompiled.
+DRModels 0.7.2 at /tmp/claude-0/-home-user/ed2098f2-a8dc-5fee-9d90-16689cc12c90/scratchpad/drm_pr1044/src/DRModels.jl
+git HEAD ef773687ce91739671b7496d2e23a7feefdc4b05  Julia 1.12.7
+boundary datasets: 29, is_converged = true on 29;  interior datasets: 21, is_converged = true on 21
+boundary reps with is_converged = false: Int64[]

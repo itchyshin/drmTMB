@@ -1,0 +1,90 @@
+drmTMB 0.7.1 (installed from itchyshin/drmTMB ca3ddefa5ea11bbfd3b765615dfbb89305d2485a)
+
+f7_bin_quasi_r01.csv     identical to lane CSV ../../data/bin_quasi_r01.csv: TRUE
+f7_nb2_poisdata_r01.csv  identical to lane CSV ../../data/nb2_poisdata_r01.csv: TRUE
+f7_collin_sigma_near_r01.csv identical to lane CSV ../../data/collin_sigma_near_r01.csv: TRUE
+
+==== bin_quasi_r01 ====
+opt$convergence = 0 (converged (Newton polish; max |gradient| = 6.62e-09)); logLik = -3.2508297405
+is_converged() = FALSE; convergence_status() = "degenerate"; pdHess = TRUE
+                estimate          se
+mu.(Intercept)  -2.19722 1.05409e+00
+mu.x           907.36396 6.70567e+05
+                            check  status
+1              convergence_status    note
+2            hessian_conditioning    note
+3        standard_errors_inflated    note
+4 weakly_identified_fixed_effects warning
+                                                               value
+1                                                         degenerate
+2                      min_eig=0.000000000002224; cond=404693991968.
+3 n_inflated=1; max_se=670567.; reference_median=1.054; example=mu:x
+4 n_inflated=1; max_se=670567.; reference_median=1.054; example=mu:x
+
+==== nb2_poisdata_r01 ====
+opt$convergence = 0 (converged (Newton polish; max |gradient| = 7.16e-09)); logLik = -192.7357893861
+is_converged() = FALSE; convergence_status() = "degenerate"; pdHess = TRUE
+                    estimate          se
+mu.(Intercept)      1.018642 6.28497e-02
+mu.x                0.493187 5.26349e-02
+sigma.(Intercept) -11.361324 1.66224e+04
+                            check  status
+1              convergence_status    note
+2            hessian_conditioning    note
+3        standard_errors_inflated    note
+4 weakly_identified_fixed_effects warning
+                                                                             value
+1                                                                       degenerate
+2                                       min_eig=0.000000003619; cond=153658336226.
+3 n_inflated=1; max_se=16622.; reference_median=0.05774; example=sigma:(Intercept)
+4 n_inflated=1; max_se=16622.; reference_median=0.05774; example=sigma:(Intercept)
+
+==== collin_sigma_near_r01 ====
+opt$convergence = 0 (relative convergence (4)); logLik = -104.7262516860
+is_converged() = FALSE; convergence_status() = "degenerate"; pdHess = TRUE
+                      estimate          se
+mu.(Intercept)     1.11488e+00 7.23887e-02
+mu.x               4.97732e-01 8.20225e-02
+sigma.(Intercept) -3.72699e-01 7.09261e-02
+sigma.x            5.83783e+04 6.91457e+04
+sigma.z           -5.83781e+04 6.91458e+04
+                            check  status
+1              convergence_status    note
+2            hessian_conditioning    note
+3        standard_errors_inflated    note
+4 weakly_identified_fixed_effects warning
+5       fixed_effect_collinearity    note
+                                                                   value
+1                                                             degenerate
+2                           min_eig=0.0000000001046; cond=3240384060303.
+3 n_inflated=2; max_se=69146.; reference_median=0.07239; example=sigma:x
+4 n_inflated=2; max_se=69146.; reference_median=0.07239; example=sigma:x
+5                                              max_abs_r=1.000; pair=x~z
+
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+
+locale:
+[1] C
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] drmTMB_0.7.1
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-19   multcomp_1.4-25    Matrix_1.6-5       lattice_0.22-5    
+ [5] TH.data_1.1-2      coda_0.19-4.1      splines_4.3.3      estimability_1.4.1
+ [9] emmeans_1.10.0     zoo_1.8-12         parallel_4.3.3     lifecycle_1.0.4   
+[13] mvtnorm_1.2-4      TMB_1.9.10         cli_3.6.2          xtable_1.8-4      
+[17] grid_4.3.3         sandwich_3.1-0     compiler_4.3.3     tools_4.3.3       
+[21] nlme_3.1-164       survival_3.5-8     rlang_1.1.3        MASS_7.3-60.0.1   

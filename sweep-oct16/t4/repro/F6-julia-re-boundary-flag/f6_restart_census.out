@@ -1,0 +1,62 @@
+DRModels 0.7.2 git HEAD f71b2923360e9e5d4591e0d6e15a9ef9db0356d7  Julia 1.12.7  Optim 1.13.3
+rep bnd | primary: lsd     g_conv f_conv |g|     | restart: lsd     g_conv |g|     | dnll(r-p)  near_tie returned | fit.converged  rule#1044
+  1 B  |  -17.825 false  true   4.4e-07 |  -22.092 true   4.7e-09 | -2.8e-14  true     primary  | false         true  
+  2 B  |  -18.347 true   false  6.2e-09 |  -21.594 true   9.6e-09 | -2.8e-14  true     primary  | true          true  
+  3 B  |  -20.569 false  true   3.4e-08 |  -22.521 true   4.5e-09 | +2.8e-14  true     primary  | false         true  
+  4 B  |  -16.599 true   false  9.9e-09 |  -18.879 false  4.1e-07 | -1.1e-13  true     primary  | true          true  
+  5    |   -3.685 true   false  1.2e-10 | (no restart: trigger false)                           primary  | true          true  
+  6    |   -1.854 true   false  8.7e-11 | (no restart: trigger false)                           primary  | true          true  
+  7 B  |  -18.071 false  true   2.5e-07 |  -19.796 false  8.3e-08 | +0.0e+00  true     primary  | false         true  
+  8    |   -1.406 true   true   2.8e-12 | (no restart: trigger false)                           primary  | true          true  
+  9    |   -0.786 true   false  5.3e-09 | (no restart: trigger false)                           primary  | true          true  
+ 10    |   -2.059 true   true   9.2e-10 | (no restart: trigger false)                           primary  | true          true  
+ 11    |   -2.736 true   false  6.7e-09 | (no restart: trigger false)                           primary  | true          true  
+ 12    |   -1.420 true   false  2.1e-09 | (no restart: trigger false)                           primary  | true          true  
+ 13 B  |  -17.593 false  true   3.7e-07 |  -21.423 true   9.9e-09 | -2.8e-14  true     primary  | false         true  
+ 14    |   -2.873 true   false  4.8e-09 | (no restart: trigger false)                           primary  | true          true  
+ 15 B  |  -16.959 false  true   3.6e-07 |  -19.933 false  1.1e-08 | +0.0e+00  true     primary  | false         true  
+ 16 B  |  -18.145 false  true   3.7e-07 |  -18.071 false  3.4e-07 | -2.8e-14  true     restart  | false         true  
+ 17 B  |  -18.350 false  true   1.5e-07 |  -21.003 true   9.0e-09 | +2.8e-14  true     primary  | false         true  
+ 18 B  |  -20.203 false  true   1.8e-08 |  -20.000 true   8.3e-09 | +0.0e+00  true     restart  | true          true  
+ 19 B  |  -19.465 false  true   4.4e-08 |  -17.787 false  2.3e-07 | +0.0e+00  true     restart  | false         true  
+ 20 B  |  -19.134 false  true   1.6e-07 |  -19.399 false  8.6e-08 | +0.0e+00  true     primary  | false         true  
+ 21 B  |  -19.637 false  true   4.8e-07 |  -22.207 true   6.1e-09 | -5.7e-14  true     primary  | false         true  
+ 22    |   -2.557 true   false  4.4e-11 | (no restart: trigger false)                           primary  | true          true  
+ 23 B  |  -18.427 false  true   3.0e-07 |  -18.576 false  2.4e-07 | +0.0e+00  true     primary  | false         true  
+ 24 B  |  -19.555 false  true   3.9e-08 |  -21.261 true   8.4e-09 | -2.8e-14  true     primary  | false         true  
+ 25 B  |  -21.259 true   false  4.6e-12 |  -18.281 false  3.7e-07 | +0.0e+00  true     restart  | false         true  
+ 26    |   -1.049 true   true   3.1e-10 | (no restart: trigger false)                           primary  | true          true  
+ 27 B  |  -20.330 true   true   3.5e-12 |  -18.135 false  4.5e-07 | +0.0e+00  true     restart  | false         true  
+ 28 B  |  -21.246 true   false  6.4e-09 |  -17.839 false  3.7e-07 | +0.0e+00  true     restart  | false         true  
+ 29 B  |  -17.630 true   true   8.0e-11 |  -18.488 false  1.8e-07 | +0.0e+00  true     primary  | true          true  
+ 30 B  |  -21.767 true   false  6.7e-09 |  -18.372 false  1.8e-07 | +0.0e+00  true     restart  | false         true  
+ 31    |   -1.597 true   false  1.5e-10 | (no restart: trigger false)                           primary  | true          true  
+ 32    |   -1.984 true   true   5.9e-09 | (no restart: trigger false)                           primary  | true          true  
+ 33    |   -1.124 true   false  4.5e-10 | (no restart: trigger false)                           primary  | true          true  
+ 34 B  |  -18.695 false  true   4.6e-07 |  -19.500 false  1.4e-07 | +0.0e+00  true     primary  | false         true  
+ 35    |   -2.718 true   true   1.9e-10 | (no restart: trigger false)                           primary  | true          true  
+ 36    |   -1.679 true   false  8.7e-10 | (no restart: trigger false)                           primary  | true          true  
+ 37 B  |  -18.153 false  true   4.7e-07 |  -21.987 true   5.1e-09 | -2.8e-14  true     primary  | false         true  
+ 38 B  |  -16.724 true   false  4.5e-10 |  -21.884 false  1.4e-08 | -5.7e-14  true     primary  | true          true  
+ 39    |   -1.848 true   false  3.5e-10 | (no restart: trigger false)                           primary  | true          true  
+ 40    |   -0.932 true   false  1.0e-09 | (no restart: trigger false)                           primary  | true          true  
+ 41 B  |  -16.992 true   false  6.5e-09 |  -20.261 false  7.0e-08 | -2.8e-14  true     primary  | true          true  
+ 42    |   -1.362 true   false  3.3e-11 | (no restart: trigger false)                           primary  | true          true  
+ 43 B  |  -21.989 false  true   1.7e-08 |  -18.361 false  2.2e-07 | +0.0e+00  true     restart  | false         true  
+ 44 B  |  -15.972 false  true   5.6e-07 |  -19.479 false  3.2e-08 | -2.8e-14  true     primary  | false         true  
+ 45    |   -1.679 true   true   1.3e-11 | (no restart: trigger false)                           primary  | true          true  
+ 46    |   -1.389 true   false  1.2e-11 | (no restart: trigger false)                           primary  | true          true  
+ 47 B  |  -19.109 true   false  3.3e-10 |  -18.756 false  2.5e-07 | +0.0e+00  true     restart  | false         true  
+ 48 B  |  -21.216 true   true   9.0e-09 |  -20.240 false  3.1e-08 | +0.0e+00  true     restart  | false         true  
+ 49    |   -1.949 true   false  1.0e-12 | (no restart: trigger false)                           primary  | true          true  
+ 50 B  |  -20.770 true   false  5.6e-09 |  -20.328 true   2.4e-11 | +0.0e+00  true     restart  | true          true  
+
+bnd                                     29
+bnd_false                               22
+bnd_false_neither_run_gconv             9
+bnd_false_other_run_gconv_discarded     13
+bnd_false_primary_gconv_replaced_by_restart6
+bnd_rule1044_true                       29
+bnd_true                                7
+int_rule1044_true                       21
+int_true                                21

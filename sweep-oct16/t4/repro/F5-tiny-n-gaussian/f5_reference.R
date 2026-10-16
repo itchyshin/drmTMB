@@ -116,11 +116,13 @@ scan_maxima <- function(y, x, lim = c(-100, 60), h = 0.5) {
   for (ab in loc) {
     a <- ab[1]; b <- ab[2]; edge <- a %in% c(1, m) || b %in% c(1, m)
     g0 <- gpar(c(grid[a], grid[b]), x)
-    f <- function(g) { v <- -prof(g, y, x); if (is.finite(v)) v else 1e300 }
+    ## polish inside |g| <= 5000; on an unbounded likelihood the polish runs to that cap
+    f <- function(g) { if (max(abs(g)) > 5000) return(1e300); v <- -prof(g, y, x); if (is.finite(v)) v else 1e300 }
     o <- optim(g0, f, method = "Nelder-Mead", control = list(maxit = 5000, reltol = 1e-14))
     o2 <- tryCatch(optim(o$par, f, method = "BFGS", control = list(maxit = 2000, reltol = 1e-15)),
                    error = function(e) o)
     if (o2$value <= o$value) o <- o2
+    edge <- edge || max(abs(o$par)) > 1000            # polish ran away: no finite maximum there
     out[[length(out) + 1]] <- c(ll = -o$value, g0 = o$par[1], g1 = o$par[2], grid_edge = edge)
   }
   res <- as.data.frame(do.call(rbind, out))
@@ -140,7 +142,8 @@ pdiag <- function(g, y, x, h = 1e-4) {
   c(max_abs_grad = max(abs(gr)), max_eig = max(eigen(H, symmetric = TRUE)$values))
 }
 cat("\n== 3. all local maxima of the exact likelihood (gauss_n8; grid scan + polish) ==\n")
-cat("columns: ll, g0, g1 = the polished maximum; grid_edge = 1 if the scan max sat on the box edge;\n",
+cat("columns: ll, g0, g1 = the polished maximum; grid_edge = 1 if the scan max sat on the box edge\n",
+    "or the polish ran beyond |g| = 1000 (no finite maximum in that direction);\n",
     "max_abs_grad / max_eig = gradient and largest Hessian eigenvalue of P there (local max: ~0 and < 0);\n",
     "min_ls / max_ls = fitted log sigma range; b0, b1 = the mean line at that maximum.\n")
 allmax <- list()
@@ -175,10 +178,15 @@ if (dir.exists(run1)) {
     f <- sprintf("gauss_n8_r%02d.csv", r); d <- rd("gauss_n8", r)
     for (eng in c("drmTMB", "DRModels.jl")) {
       row <- if (eng == "drmTMB") R[R$file == f, ] else J[J$file == f, ]
-      th <- pc_(row$coef)
-      cat(sprintf("r%02d %-11s converged=%-5s reported ll %.7f | exact ll at its estimate %.7f | log sigma range [%.2f, %.2f] | best max %.7f\n",
-                  r, eng, row$converged, row$logLik, ll_direct(th, d$y, d$x),
-                  min(th[3] + th[4] * d$x), max(th[3] + th[4] * d$x), max(A$ll[A$rep == r])))
+      th <- pc_(row$coef); lsr <- range(th[3] + th[4] * d$x)
+      ## the run-1 CSVs store coefficients to 10 significant digits: below log sigma ~ -20 that
+      ## rounding alone moves the exact ll, so the column is shown only where it is meaningful
+      ## (the engine scripts f5_drmTMB.R / f5_DRModels.jl evaluate it at full precision)
+      ex <- if (lsr[1] > -20) sprintf("%.7f", ll_direct(th, d$y, d$x)) else "n/a (rounded coefs)"
+      best_fin <- max(A$ll[A$rep == r & A$grid_edge == 0], -Inf)
+      cat(sprintf("r%02d %-11s converged=%-5s reported ll %.7f | exact ll at its estimate %s | log sigma range [%.2f, %.2f] | best finite max %.7f%s\n",
+                  r, eng, row$converged, row$logLik, ex, lsr[1], lsr[2], best_fin,
+                  if (any(A$grid_edge[A$rep == r] == 1)) " (likelihood unbounded)" else ""))
     }
   }
 }

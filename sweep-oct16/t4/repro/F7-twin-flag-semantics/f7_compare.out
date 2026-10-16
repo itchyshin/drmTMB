@@ -1,0 +1,41 @@
+Twin is_converged() per cell (t4 grid cells 1-14, 50 datasets each; drmTMB ca3ddefa vs DRModels.jl f71b292)
+disagree = R is_converged != J is_converged; R_reason = drmTMB predicate that set its flag on the disagreeing fits;
+ J_raw_T / J_warned / J_check_ok = among disagreeing fits, Julia raw optimiser flag TRUE / any fit-time @warn / check_drm().ok;
+ max_abs_dLL = max |logLik_R - logLik_J| over disagreeing fits;
+ agree_J_Rsem = agreement if drmTMB's degenerate rule is applied to the Julia fit; agree_rawR_J = drmTMB raw optimiser gate vs Julia flag;
+ agree_R_Jcheck = drmTMB is_converged vs Julia check_drm().ok
+
+               cell  n conv_R conv_J disagree R_F_J_T R_T_J_F                                R_reason J_raw_T J_warned J_check_ok max_abs_dLL agree_J_Rsem agree_rawR_J agree_R_Jcheck
+           gauss_n8 50     50     43        7       0       7                                    ok 7       0        0          0     1.6e+01           43           43             43
+          gauss_n12 50     50     50        0       0       0                                               0        0          0          NA           50           50             50
+          gauss_n20 50     50     50        0       0       0                                               0        0          0          NA           50           50             50
+            pois_n8 50     50     50        0       0       0                                               0        0          0          NA           50           50             50
+           pois_n12 50     50     50        0       0       0                                               0        0          0          NA           50           50             50
+           pois_n20 50     50     50        0       0       0                                               0        0          0          NA           50           50             50
+       bin_complete 50     50     50        0       0       0                                               0        0          0          NA            0           50              0
+          bin_quasi 50      0     50       50      50       0                           inflatedSE 50      50        0          0     2.5e-07           50           50             50
+       nb2_poisdata 50     17     49       32      32       0                           inflatedSE 32      32        0          3     4.9e-08           50           49             47
+        beta_phi1e4 50     47     50        3       3       0                             optimizer 3       3        0          3     5.6e-08           47           47             47
+  student_gaussdata 50     20     42       22      22       0 inflatedSE 1, optimizer 15, pdHess/SE 6      22        0          6     1.0e+40           39           35             39
+          re_sd1e-4 50     50     28       22       0      22                             boundary 22       0        0          0     4.6e-08           25           28             25
+ collin_sigma_exact 50      0     50       50      50       0                            pdHess/SE 50      50        0         22     5.0e-08           50           50             28
+  collin_sigma_near 50      0     50       50      50       0                           inflatedSE 50      50        0         50     5.0e-08           50           50              0
+
+TOTAL: disagree 236 of 700 (R FALSE / J TRUE 207; R TRUE / J FALSE 29)
+agreement R is_converged vs J is_converged: 464/700; vs J with drmTMB's degenerate rule: 604/700;  raw R gate vs J is_converged: 652/700; R is_converged vs J check_drm().ok: 529/700
+
+Residual disagreement with drmTMB semantics applied to Julia (cell: rep [R reason, J raw flag]):
+  gauss_n8            7: r19[ok,Jraw=FALSE] r29[ok,Jraw=FALSE] r30[ok,Jraw=FALSE] r31[ok,Jraw=FALSE] r04[ok,Jraw=FALSE] r49[ok,Jraw=FALSE] r06[ok,Jraw=FALSE]
+  bin_complete       50: r01[ok,Jraw=TRUE] r10[ok,Jraw=TRUE] r11[ok,Jraw=TRUE] r12[ok,Jraw=TRUE] r13[ok,Jraw=TRUE] r14[ok,Jraw=TRUE] r15[ok,Jraw=TRUE] r16[ok,Jraw=TRUE] r17[ok,Jraw=TRUE] r18[ok,Jraw=TRUE] r19[ok,Jraw=TRUE] r02[ok,Jraw=TRUE] r20[ok,Jraw=TRUE] r21[ok,Jraw=TRUE] r22[ok,Jraw=TRUE] r23[ok,Jraw=TRUE] r24[ok,Jraw=TRUE] r25[ok,Jraw=TRUE] r26[ok,Jraw=TRUE] r27[ok,Jraw=TRUE] r28[ok,Jraw=TRUE] r29[ok,Jraw=TRUE] r03[ok,Jraw=TRUE] r30[ok,Jraw=TRUE] r31[ok,Jraw=TRUE] r32[ok,Jraw=TRUE] r33[ok,Jraw=TRUE] r34[ok,Jraw=TRUE] r35[ok,Jraw=TRUE] r36[ok,Jraw=TRUE] r37[ok,Jraw=TRUE] r38[ok,Jraw=TRUE] r39[ok,Jraw=TRUE] r04[ok,Jraw=TRUE] r40[ok,Jraw=TRUE] r41[ok,Jraw=TRUE] r42[ok,Jraw=TRUE] r43[ok,Jraw=TRUE] r44[ok,Jraw=TRUE] r45[ok,Jraw=TRUE] r46[ok,Jraw=TRUE] r47[ok,Jraw=TRUE] r48[ok,Jraw=TRUE] r49[ok,Jraw=TRUE] r05[ok,Jraw=TRUE] r50[ok,Jraw=TRUE] r06[ok,Jraw=TRUE] r07[ok,Jraw=TRUE] r08[ok,Jraw=TRUE] r09[ok,Jraw=TRUE]
+  beta_phi1e4         3: r15[optimizer,Jraw=TRUE] r48[optimizer,Jraw=TRUE] r50[optimizer,Jraw=TRUE]
+  student_gaussdata  11: r10[optimizer,Jraw=TRUE] r15[pdHess/SE,Jraw=TRUE] r17[ok,Jraw=TRUE] r19[ok,Jraw=TRUE] r23[optimizer,Jraw=TRUE] r26[pdHess/SE,Jraw=TRUE] r30[pdHess/SE,Jraw=TRUE] r04[ok,Jraw=TRUE] r44[optimizer,Jraw=TRUE] r46[ok,Jraw=TRUE] r07[ok,Jraw=TRUE]
+  re_sd1e-4          25: r01[boundary,Jraw=FALSE] r13[boundary,Jraw=FALSE] r15[boundary,Jraw=FALSE] r16[boundary,Jraw=FALSE] r17[boundary,Jraw=FALSE] r18[boundary,Jraw=TRUE] r19[boundary,Jraw=FALSE] r20[boundary,Jraw=FALSE] r21[boundary,Jraw=FALSE] r23[boundary,Jraw=FALSE] r24[boundary,Jraw=FALSE] r25[boundary,Jraw=FALSE] r27[boundary,Jraw=FALSE] r28[boundary,Jraw=FALSE] r29[boundary,Jraw=TRUE] r03[boundary,Jraw=FALSE] r30[boundary,Jraw=FALSE] r34[boundary,Jraw=FALSE] r37[boundary,Jraw=FALSE] r43[boundary,Jraw=FALSE] r44[boundary,Jraw=FALSE] r47[boundary,Jraw=FALSE] r48[boundary,Jraw=FALSE] r50[boundary,Jraw=TRUE] r07[boundary,Jraw=FALSE]
+
+Residual disagreement with Julia semantics applied to drmTMB (raw optimiser gate):
+  gauss_n8            7: r19[Ropt=0,Jraw=FALSE] r29[Ropt=0,Jraw=FALSE] r30[Ropt=0,Jraw=FALSE] r31[Ropt=0,Jraw=FALSE] r04[Ropt=0,Jraw=FALSE] r49[Ropt=0,Jraw=FALSE] r06[Ropt=0,Jraw=FALSE]
+  nb2_poisdata        1: r48[Ropt=0,Jraw=FALSE]
+  beta_phi1e4         3: r15[Ropt=1,Jraw=TRUE] r48[Ropt=1,Jraw=TRUE] r50[Ropt=1,Jraw=TRUE]
+  student_gaussdata  15: r10[Ropt=1,Jraw=TRUE] r12[Ropt=1,Jraw=TRUE] r14[Ropt=1,Jraw=TRUE] r22[Ropt=1,Jraw=TRUE] r23[Ropt=1,Jraw=TRUE] r24[Ropt=1,Jraw=TRUE] r03[Ropt=1,Jraw=TRUE] r36[Ropt=1,Jraw=TRUE] r39[Ropt=1,Jraw=TRUE] r40[Ropt=1,Jraw=TRUE] r44[Ropt=1,Jraw=TRUE] r45[Ropt=1,Jraw=TRUE] r48[Ropt=1,Jraw=TRUE] r50[Ropt=1,Jraw=TRUE] r06[Ropt=1,Jraw=TRUE]
+  re_sd1e-4          22: r01[Ropt=0,Jraw=FALSE] r13[Ropt=0,Jraw=FALSE] r15[Ropt=0,Jraw=FALSE] r16[Ropt=0,Jraw=FALSE] r17[Ropt=0,Jraw=FALSE] r19[Ropt=0,Jraw=FALSE] r20[Ropt=0,Jraw=FALSE] r21[Ropt=0,Jraw=FALSE] r23[Ropt=0,Jraw=FALSE] r24[Ropt=0,Jraw=FALSE] r25[Ropt=0,Jraw=FALSE] r27[Ropt=0,Jraw=FALSE] r28[Ropt=0,Jraw=FALSE] r03[Ropt=0,Jraw=FALSE] r30[Ropt=0,Jraw=FALSE] r34[Ropt=0,Jraw=FALSE] r37[Ropt=0,Jraw=FALSE] r43[Ropt=0,Jraw=FALSE] r44[Ropt=0,Jraw=FALSE] r47[Ropt=0,Jraw=FALSE] r48[Ropt=0,Jraw=FALSE] r07[Ropt=0,Jraw=FALSE]
+
+Cross-check vs lane run1 cross_engine.csv: 700 rows matched; R flag identical 700, J flag identical 700

@@ -12,8 +12,9 @@ ddir <- "../../data"
 rd <- function(r) read.csv(file.path(ddir, sprintf("gauss_n8_r%02d.csv", r)))
 ll_exact <- function(th, d) sum(dnorm(d$y, th[1] + th[2] * d$x, exp(th[3] + th[4] * d$x), log = TRUE))
 
-## best value of the exact likelihood found by the engine-independent scan (f5_reference.R);
-## for r06 / r19 / r49 the likelihood is unbounded, so "best" is the best finite local max
+## best FINITE local maximum of the exact likelihood from the engine-independent scan
+## (f5_reference.R). r06 / r19: unbounded, no finite maximum (NA). r49: unbounded only below
+## log sigma ~ -3,900, so "best" is its finite local maximum.
 best <- if (file.exists("f5_reference_maxima.csv")) {
   A <- read.csv("f5_reference_maxima.csv"); A <- A[A$grid_edge == 0, ]
   tapply(A$ll, A$rep, max)
@@ -37,15 +38,20 @@ summ <- function(lab, r, d, o) {
     V <- f$sdr$cov.fixed; g <- as.numeric(f$gradient)
     max(abs(V %*% g) / sqrt(diag(V)))
   }, error = function(e) NA_real_)
-  ## pieces of the #1509 trigger (draft PR, not on the pin): lower clamp hit, log-sigma spread
-  ## > log(1e4), smallest-scale observation fitted exactly (|Pearson residual| < 1e-3)
-  imin <- which.min(ls); pear <- (d$y[imin] - th[1] - th[2] * d$x[imin]) / exp(ls[imin])
-  cat(sprintf(paste0("  %-26s logLik %10.5f | exact ll at estimate %10.5f | best %s | conv %-5s status %-10s",
-                     " | max|grad| %.1e | Newton step/SE %.1e | log sigma [%.2f, %.2f] spread %.1f | Pearson(min-scale obs) %.1e\n"),
+  ## pieces of the #1509 trigger as that draft PR describes it (re-implemented here from the PR
+  ## text, NOT run: #1509 is not on the pin): lower clamp hit, spread of the fitted (soft-clamped)
+  ## log sigma > log(1e4), smallest-scale observation fitted exactly (|Pearson residual| < 1e-3).
+  ## sigma() returns the fitted, soft-clamped scale (drmTMB#1308); the raw linear predictor is ls.
+  lsc <- log(as.numeric(sigma(f))); imin <- which.min(lsc)
+  pear <- (d$y[imin] - th[1] - th[2] * d$x[imin]) / exp(lsc[imin])
+  fire <- if (grepl("NULL", lab)) "n/a (clamp off)" else min(ls) < -12 && diff(range(lsc)) > log(1e4) && abs(pear) < 1e-3
+  cat(sprintf(paste0("  %-26s logLik %10.5f | exact ll at coefficients %10.5f | best %s | conv %-5s status %-10s",
+                     " | max|grad| %.1e | Newton step/SE %.1e | raw log sigma [%.2f, %.2f] | fitted (clamped) log sigma",
+                     " [%.2f, %.2f] | Pearson(min-scale obs) %.1e | #1509 trigger %s\n"),
               lab, as.numeric(logLik(f)), ll_exact(th, d),
               if (is.null(best)) "NA" else sprintf("%9.5f", best[as.character(r)]),
               is_converged(f), convergence_status(f), max(abs(f$gradient)), nstep,
-              min(ls), max(ls), diff(range(ls)), pear))
+              min(ls), max(ls), min(lsc), max(lsc), pear, fire))
   if (length(o$warn)) cat("    warnings:", paste(gsub("\n", " ", unique(o$warn)), collapse = " || "), "\n")
   chk <- tryCatch(check_drm(f), error = function(e) NULL)
   if (!is.null(chk)) {

@@ -1,0 +1,210 @@
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+
+locale:
+[1] C
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] drmTMB_0.7.1
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-19   multcomp_1.4-25    Matrix_1.6-5       lattice_0.22-5    
+ [5] TH.data_1.1-2      coda_0.19-4.1      splines_4.3.3      estimability_1.4.1
+ [9] emmeans_1.10.0     zoo_1.8-12         parallel_4.3.3     lifecycle_1.0.4   
+[13] mvtnorm_1.2-4      TMB_1.9.10         cli_3.6.2          xtable_1.8-4      
+[17] grid_4.3.3         sandwich_3.1-0     compiler_4.3.3     nlme_3.1-164      
+[21] survival_3.5-8     rlang_1.1.3        MASS_7.3-60.0.1   
+drmTMB 0.7.1  RemoteSha: 
+drmTMB checkout HEAD: 8ea96a9c27bd3623230b1bc53cd9aa166b8c2085 
+pin ca3ddefa5ea11bbfd3b765615dfbb89305d2485a; files changed in R/ src/ DESCRIPTION since the pin: 0 
+
+   rep boundary ll_minus_lm is_converged    status  max_grad
+1    1     TRUE  -2.560e-09         TRUE  boundary 7.369e-09
+2    2     TRUE  -1.538e-09         TRUE  boundary 4.211e-09
+3    3     TRUE  -2.171e-09         TRUE  boundary 4.342e-09
+4    4     TRUE  -2.129e-09         TRUE  boundary 4.259e-09
+5    5    FALSE   6.261e-05         TRUE converged 4.942e-13
+6    6    FALSE   6.157e-02         TRUE converged 5.599e-13
+7    7     TRUE  -7.625e-10         TRUE  boundary 4.973e-09
+8    8    FALSE   3.305e-01         TRUE converged 9.717e-12
+9    9    FALSE   2.958e+00         TRUE converged 9.641e-11
+10  10    FALSE   3.023e-02         TRUE converged 6.705e-12
+11  11    FALSE   1.940e-03         TRUE converged 8.301e-12
+12  12    FALSE   2.655e-01         TRUE converged 1.214e-12
+13  13     TRUE  -2.197e-09         TRUE  boundary 5.499e-09
+14  14    FALSE   1.882e-03         TRUE converged 7.515e-12
+15  15     TRUE  -8.917e-10         TRUE  boundary 4.639e-08
+16  16     TRUE  -4.986e-09         TRUE  boundary 9.973e-09
+17  17     TRUE  -5.359e-10         TRUE  boundary 1.313e-08
+18  18     TRUE  -8.259e-10         TRUE  boundary 9.919e-08
+19  19     TRUE  -1.016e-09         TRUE  boundary 1.526e-08
+20  20     TRUE  -4.262e-09         TRUE  boundary 8.523e-09
+21  21     TRUE  -2.071e-09         TRUE  boundary 4.140e-09
+22  22    FALSE   4.694e-03         TRUE converged 4.209e-10
+23  23     TRUE  -2.020e-09         TRUE  boundary 4.039e-09
+24  24     TRUE  -2.154e-09         TRUE  boundary 4.308e-09
+25  25     TRUE  -6.773e-10         TRUE  boundary 4.504e-09
+26  26    FALSE   8.132e-01         TRUE converged 5.187e-13
+27  27     TRUE  -8.896e-10         TRUE  boundary 1.047e-08
+28  28     TRUE  -7.394e-10         TRUE  boundary 6.884e-09
+29  29     TRUE  -8.562e-10         TRUE  boundary 7.866e-09
+30  30     TRUE  -1.414e-09         TRUE  boundary 6.906e-09
+31  31    FALSE   1.975e-01         TRUE converged 2.820e-12
+32  32    FALSE   2.384e-02         TRUE converged 9.265e-11
+33  33    FALSE   9.837e-01         TRUE converged 8.031e-13
+34  34     TRUE  -4.597e-09         TRUE  boundary 9.195e-09
+35  35    FALSE   2.071e-03         TRUE converged 1.278e-11
+36  36    FALSE   8.108e-02         TRUE converged 4.240e-14
+37  37     TRUE  -2.113e-09         TRUE  boundary 6.428e-09
+38  38     TRUE  -2.349e-09         TRUE  boundary 4.698e-09
+39  39    FALSE   7.437e-02         TRUE converged 5.146e-12
+40  40    FALSE   2.074e+00         TRUE converged 9.398e-12
+41  41     TRUE  -4.683e-09         TRUE  boundary 9.367e-09
+42  42    FALSE   3.052e-01         TRUE converged 2.991e-11
+43  43     TRUE  -4.949e-09         TRUE  boundary 9.897e-09
+44  44     TRUE  -1.033e-09         TRUE  boundary 1.808e-07
+45  45    FALSE   1.717e-01         TRUE converged 1.477e-12
+46  46    FALSE   4.526e-01         TRUE converged 8.868e-11
+47  47     TRUE  -2.698e-09         TRUE  boundary 5.395e-09
+48  48     TRUE  -2.581e-09         TRUE  boundary 5.162e-09
+49  49    FALSE   4.394e-02         TRUE converged 1.991e-11
+50  50     TRUE  -4.957e-10         TRUE  boundary 8.344e-08
+                          check_warn
+1  random_effect_sd_boundary=warning
+2  random_effect_sd_boundary=warning
+3  random_effect_sd_boundary=warning
+4  random_effect_sd_boundary=warning
+5                                  =
+6                                  =
+7  random_effect_sd_boundary=warning
+8                                  =
+9                                  =
+10                                 =
+11                                 =
+12                                 =
+13 random_effect_sd_boundary=warning
+14                                 =
+15 random_effect_sd_boundary=warning
+16 random_effect_sd_boundary=warning
+17 random_effect_sd_boundary=warning
+18 random_effect_sd_boundary=warning
+19 random_effect_sd_boundary=warning
+20 random_effect_sd_boundary=warning
+21 random_effect_sd_boundary=warning
+22                                 =
+23 random_effect_sd_boundary=warning
+24 random_effect_sd_boundary=warning
+25 random_effect_sd_boundary=warning
+26                                 =
+27 random_effect_sd_boundary=warning
+28 random_effect_sd_boundary=warning
+29 random_effect_sd_boundary=warning
+30 random_effect_sd_boundary=warning
+31                                 =
+32                                 =
+33                                 =
+34 random_effect_sd_boundary=warning
+35                                 =
+36                                 =
+37 random_effect_sd_boundary=warning
+38 random_effect_sd_boundary=warning
+39                                 =
+40                                 =
+41 random_effect_sd_boundary=warning
+42                                 =
+43 random_effect_sd_boundary=warning
+44 random_effect_sd_boundary=warning
+45                                 =
+46                                 =
+47 random_effect_sd_boundary=warning
+48 random_effect_sd_boundary=warning
+49                                 =
+50 random_effect_sd_boundary=warning
+
+boundary datasets: 29 ; is_converged TRUE among them: 29 ; status table:
+        status
+boundary boundary converged
+   FALSE        0        21
+   TRUE        29         0
+
+== rep 1 in full ==
+logLik -143.288332236   lm logLik -143.288332234 
+is_converged TRUE   convergence_status boundary 
+$mu
+(Intercept)           x 
+  0.9571944   0.4849873 
+
+$sigma
+(Intercept) 
+ 0.01394479 
+
+<drm_check: 18 checks>
+ok: 14; notes: 3; warnings: 1; errors: 0
+                        check  status
+        optimizer_convergence      ok
+           convergence_status    note
+             optimizer_budget      ok
+             finite_objective      ok
+        logsigma_clamp_active      ok
+               fixed_gradient      ok
+              sdreport_status      ok
+    hessian_positive_definite      ok
+         hessian_conditioning    note
+       standard_errors_finite      ok
+     standard_errors_inflated      ok
+   observations_per_parameter      ok
+                 dropped_rows      ok
+               positive_scale      ok
+    random_effect_sd_boundary warning
+   interval_reliability_scope    note
+     fixed_effect_design_size      ok
+ mu_random_effect_replication      ok
+                                                                                 value
+                                                                                     0
+                                                                              boundary
+                                               iterations=42; function=47; gradient=43
+                                                                                 143.3
+                                                                                  <NA>
+                                              max=0.000000007369; component=beta_sigma
+                                                                                    ok
+                                                                                  TRUE
+                                              min_eig=0.00000001024; cond=19531413603.
+                                                                range=[0.07071,0.1031]
+                                  n_inflated=0; max_se=0.1031; reference_median=0.1014
+                                                       n_obs=100; n_par=4; ratio=25.00
+                                                                   nobs=100; dropped=0
+                                                                             min=1.014
+                                   min=0.00001346; boundary=0.0001000; term=mu.(1 | g)
+                                                         sd_targets=1; assessed_here=0
+ total_mb=0.01595; max_cols=2; largest=mu; largest_class=matrix; largest_density=1.000
+                                                                             (1 | g)=5
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                message
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          nlminb convergence code is 0.
+                                                                                                                                                                                                                                                                                                                                                                       The fit converged but variance-component or residual-correlation parameters are near an interpretability boundary; read convergence_status() and boundary rows before inference.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Optimizer evaluation counts recorded; no eval.max or iter.max control was supplied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               Objective and log-likelihood are finite.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     The log(sigma) clamp is not active at the optimum.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                          Maximum absolute fixed gradient is <= 0.001; largest component is beta_sigma.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                TMB::sdreport() completed successfully.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          sdreport reports a positive-definite Hessian.
+ Minimum eigenvalue and condition number of TMB's sdreport() fixed-effect covariance (sdr$cov.fixed), inverted. These are a genuinely different read of the fit's conditioning than TMB's internal pdHess flag -- comparable across fits, not claimed to be numerically identical to any raw TMB gradient or Hessian quantity. The condition number exceeds 1e+08, signalling a near-flat, weakly identified direction; a clean pdHess is necessary, not sufficient. Treat standard errors and correlations among the affected parameters with caution.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           All fixed-effect standard errors are finite.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     No fixed-effect standard error is inflated relative to the others.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                              Observations per estimated parameter are at or above the small-samplenote threshold (10).
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     No rows were dropped by model-frame or known-covariance filtering.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       All fitted scale values are finite and positive.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                               At least one fitted random-effect standard deviation is near the lower boundary at zero.
+                                                                                                                                                                                                                This fit has 1 random-effect standard-deviation target. `check_drm()` assesses the fit, not interval reliability: a target can pass every check above and still return an interval that `confint()` warns about at a variance boundary. Before reporting an interval, call `confint()` and read `conf.status` and any boundary warning.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Dense fixed-effect design matrices are modest for this fit.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Every random-effect level has at least two fitted observations.
