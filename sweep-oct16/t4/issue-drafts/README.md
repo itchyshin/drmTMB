@@ -1,0 +1,1 @@
+Issue drafts for lane t4. GitHub MCP `issue_write` / `add_issue_comment` returned **403 Resource not accessible by personal access token** from this cloud agent, so nothing was posted. Paste these onto the matching issues (do not re-file the known list: #1469, #1470, #1496, #1535, #983, #1069, #1072, #1088).

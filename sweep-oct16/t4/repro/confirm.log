@@ -1,0 +1,76 @@
+=== REPRO A: bin_complete r01 ===
+                     ll                    conv                  status 
+"-1.28761470616503e-08"                  "TRUE"             "converged" 
+                     ok                   maxse 
+                 "TRUE"      "172144.728459705" 
+$mu
+(Intercept)           x 
+  -16.50075   367.57779 
+
+NULL
+
+=== REPRO B: pois_n8_lowmean r03 all-zero ===
+[1] 0 0 0 0 0 0 0 0
+                     ll                    conv                  status 
+"-2.23157447370805e-10"                  "TRUE"             "converged" 
+                     ok 
+                 "TRUE" 
+                  est       se
+beta_mu -2.430259e+01 73957.70
+beta_mu  9.441088e-11 74320.47
+
+=== REPRO C: student r15 insane logLik ===
+Warning message:
+In sqrt(diag(cov)) : NaNs produced
+gauss ll -145.2645 student ll 1.020847e+40 conv FALSE status degenerate nu eta 120.7589 
+
+=== REPRO D: gauss_n8 r06 unbounded? ===
+Warning message:
+`drmTMB()` escalated `stats::nlminb()` to the "careful" optimizer preset to
+reach convergence.
+ℹ An earlier preset errored or did not converge; inspect
+  `fit$optimizer_attempts`. 
+R ll 16.37641 conv TRUE status converged ok FALSE 
+            y          x
+1 -0.44187177 -2.1003205
+2  1.26378781  1.3662255
+3  1.03038787  1.5311307
+4 -0.01536258  1.5041764
+5  2.49644235  1.6602156
+6  1.66733975  1.6408504
+7  0.62908953 -0.7192402
+8  1.99163949  1.3423478
+
+=== REPRO E: collin exact r01 ===
+Warning message:
+In sqrt(diag(cov)) : NaNs produced
+conv FALSE status degenerate ll -103.8797 
+Error in drm_sdreport_cov_coefficients(object) : 
+  Fixed-effect covariance is unavailable because TMB::sdreport() did not
+report a positive-definite Hessian.
+ℹ Refit with `control = drm_control(se = TRUE)` for `vcov()`, Wald standard
+  errors, or Wald confidence intervals.
+[1] "Error in drm_sdreport_cov_coefficients(object) : \n  Fixed-effect covariance is unavailable because TMB::sdreport() did not\nreport a positive-definite Hessian.\nℹ Refit with `control = drm_control(se = TRUE)` for `vcov()`, Wald standard\n  errors, or Wald confidence intervals.\n"
+attr(,"class")
+[1] "try-error"
+attr(,"condition")
+<error/rlang_error>
+Error in `drm_sdreport_cov_coefficients()`:
+! Fixed-effect covariance is unavailable because TMB::sdreport() did not
+  report a positive-definite Hessian.
+ℹ Refit with `control = drm_control(se = TRUE)` for `vcov()`, Wald standard
+  errors, or Wald confidence intervals.
+---
+Backtrace:
+    ▆
+ 1. ├─base::print(try(vcov(f)))
+ 2. ├─base::try(vcov(f))
+ 3. │ └─base::tryCatch(...)
+ 4. │   └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 5. │     └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 6. │       └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 7. ├─stats::vcov(f)
+ 8. └─drmTMB:::vcov.drmTMB(f)
+ 9.   └─drmTMB:::drm_sdreport_cov_coefficients(object)
+
+DONE
