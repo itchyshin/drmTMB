@@ -84,8 +84,12 @@ the same file after the change (`pkgload::load_all`,
 Sibling paths after the fix: `test-model-comparison.R` 68 pass / 0 fail /
 2 Julia-bridge skips; `test-lrt-boundary.R` 62 pass / 0 fail / 2 skips.
 
-C17 is recertified because `R/methods.R` changed (roxygen only). The PR
-body records the receipt.
+C17 recertified after the `R/methods.R` roxygen edit:
+`python3 tools/recertify-c17.py --label fx6-1557 --tolerance 1e-10`.
+`mean_tau_relative_error` was bit-identical (|change| 0.000e+00) on
+mc-0568, mc-0569, and mc-0576. Receipt:
+`docs/dev-log/implementation-recovery/2026-10-16-fx6-1557-c17c2-c14-final-source-compatibility`.
+Source sha `3180adfd5`.
 
 Julia on pin `f71b292`: `test/test_family_boundary_lrt.jl` 11 pass;
 `test/test_comparison.jl` 12 pass.
