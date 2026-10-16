@@ -1,0 +1,197 @@
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.12.7 at location /opt/julia/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+[gaussian_y00_x00] J0_omitted      ok    
+[gaussian_y00_x00] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x00] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x00] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x00] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x00] J6_misscontrol  ok    
+[gaussian_y00_x00] J7_dup          ok    
+[gaussian_y00_x05] J0_omitted      ok    
+[gaussian_y00_x05] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x05] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x05] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x05] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x05] J6_misscontrol  ok    
+[gaussian_y00_x05] J7_dup          ok    
+[gaussian_y00_x20] J0_omitted      ok    
+[gaussian_y00_x20] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x20] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x20] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x20] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y00_x20] J6_misscontrol  ok    
+[gaussian_y00_x20] J7_dup          ok    
+[gaussian_y05_x00] J0_omitted      ok    
+[gaussian_y05_x00] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x00] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x00] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x00] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x00] J6_misscontrol  ok    
+[gaussian_y05_x00] J7_dup          ok    
+[gaussian_y05_x05] J0_omitted      ok    
+[gaussian_y05_x05] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x05] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x05] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x05] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x05] J6_misscontrol  ok    
+[gaussian_y05_x05] J7_dup          ok    
+[gaussian_y05_x20] J0_omitted      ok    
+[gaussian_y05_x20] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x20] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x20] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x20] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y05_x20] J6_misscontrol  ok    
+[gaussian_y05_x20] J7_dup          ok    
+[gaussian_y20_x00] J0_omitted      ok    
+[gaussian_y20_x00] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x00] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x00] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x00] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x00] J6_misscontrol  ok    
+[gaussian_y20_x00] J7_dup          ok    
+[gaussian_y20_x05] J0_omitted      ok    
+[gaussian_y20_x05] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x05] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x05] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x05] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x05] J6_misscontrol  ok    
+[gaussian_y20_x05] J7_dup          ok    
+[gaussian_y20_x20] J0_omitted      ok    
+[gaussian_y20_x20] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x20] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x20] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x20] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gaussian_y20_x20] J6_misscontrol  ok    
+[gaussian_y20_x20] J7_dup          ok    
+[poisson_y00_x00] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y00_x00] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x00] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x00] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x00] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x00] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y00_x00] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y00_x05] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y00_x05] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x05] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x05] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x05] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x05] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y00_x05] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y00_x20] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y00_x20] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x20] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x20] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x20] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y00_x20] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y00_x20] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y05_x00] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y05_x00] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x00] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x00] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x00] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x00] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y05_x00] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y05_x05] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y05_x05] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x05] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x05] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x05] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x05] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y05_x05] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y05_x20] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y05_x20] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x20] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x20] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x20] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y05_x20] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y05_x20] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y20_x00] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y20_x00] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x00] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x00] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x00] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x00] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y20_x00] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y20_x05] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y20_x05] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x05] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x05] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x05] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x05] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y20_x05] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y20_x20] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y20_x20] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x20] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x20] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x20] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[poisson_y20_x20] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[poisson_y20_x20] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y00_x00] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y00_x00] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x00] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x00] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x00] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x00] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y00_x00] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y00_x05] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y00_x05] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x05] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x05] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x05] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x05] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y00_x05] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y00_x20] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y00_x20] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x20] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x20] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x20] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y00_x20] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y00_x20] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y05_x00] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y05_x00] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x00] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x00] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x00] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x00] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y05_x00] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y05_x05] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y05_x05] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x05] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x05] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x05] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x05] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y05_x05] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y05_x20] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y05_x20] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x20] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x20] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x20] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y05_x20] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y05_x20] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y20_x00] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y20_x00] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x00] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x00] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x00] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x00] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y20_x00] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y20_x05] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y20_x05] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x05] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x05] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x05] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x05] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y20_x05] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y20_x20] J0_omitted      error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y20_x20] J1_null         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x20] J2_ones         error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x20] J3_int          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x20] J4_pos          error `engine = "julia"` does not support `weights` yet. | ℹ Use native `engine = "tmb"` for weighted fits until the bridge ha
+[gamma_y20_x20] J6_misscontrol  error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+[gamma_y20_x20] J7_dup          error Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia nam
+wrote sweep-oct16/t5/results/bridge_pr1565.csv 
+Julia exit.
+[32m[1m  Activating[22m[39m project at `/tmp/DRModels.jl`

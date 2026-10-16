@@ -1,3 +1,13 @@
+# 2026-10-16: t5 engine=julia re-run on PR #1565 (`b0cf1d8a7`)
+
+Installed drmTMB from #1565; `JULIA_PROJECT` unset;
+`DRMODELS_JL_PATH` = DRModels.jl `f71b2923`. Setup SIGSEGV gone.
+Gaussian `(1 | g)` 9/9 match native (max |ΔlogLik| 2.0e-12). Poisson/Gamma
+`resd` #1551 54/54; weights fence #1450 108/108; `miss_control` Julia
+fits instead of fail-closed #1454 6/6. No new issues (GitHub 403).
+Appended `sweep-oct16/t5/RECEIPT_t5.md`; results
+`results/bridge_pr1565.csv`.
+
 # 2026-10-16: Engine A DRM lane t5 (missing data and weights)
 
 Sweep on pins drmTMB `ca3ddefa` and DRModels.jl `f71b292`. Native

@@ -230,3 +230,114 @@ in `confirm_new.jl` and did not open duplicates.
 
 Harness, CSVs, logs, `results/`, and this file live only on that branch.
 `.Rbuildignore` contains `^sweep-oct16$` so the lane is not a CRAN file.
+
+---
+
+# Follow-up: `engine = "julia"` re-run on PR #1565 (`b0cf1d8a7`)
+
+Reader: the same t5 scorer. Purpose: the original grid died in JuliaCall
+setup (exit 139). PR #1565 claims that is fixed. This follow-up installs
+that head, leaves `JULIA_PROJECT` unset, points `DRMODELS_JL_PATH` at
+the same `f71b2923` checkout, and reruns every `engine = "julia"` cell.
+
+## Pins for this re-run
+
+| repo | what | SHA |
+|---|---|---|
+| itchyshin/drmTMB | installed from PR #1565 head (worktree `/tmp/drmTMB-1565`; sweep branch stayed on `sweep-oct16/t5`) | `b0cf1d8a7bdc365d17c4c626e71c970543efa77a` |
+| itchyshin/DRModels.jl | `DRMODELS_JL_PATH=/tmp/DRModels.jl` | `f71b2923360e9e5d4591e0d6e15a9ef9db0356d7` |
+
+`JULIA_PROJECT` was unset (empty). Julia 1.12.7 official, JuliaCall 0.17.6,
+R 4.3.3. The harness still shims `%||%` (#1550 is not in #1565).
+`drm_julia_prepare_host` exists in the installed namespace. No PR was
+opened from this follow-up. Nothing was pushed to `main`.
+
+## Commands
+
+```sh
+unset JULIA_PROJECT
+export DRMODELS_JL_PATH=/tmp/DRModels.jl
+export FIT_TIMEOUT=180
+export LD_LIBRARY_PATH=/usr/lib/R/lib:${LD_LIBRARY_PATH}
+export JULIA_NUM_THREADS=1
+
+git fetch origin cursor/julia-setup-segfault-4acf
+git worktree add /tmp/drmTMB-1565 b0cf1d8a7
+sudo R CMD INSTALL --no-docs --no-multiarch /tmp/drmTMB-1565
+
+# smoke: gaussian_y00_x00 engine=julia -> logLik -294.0617 nobs 200 (49.6 s first call)
+timeout 1200 Rscript sweep-oct16/t5/R/run_bridge.R \
+  sweep-oct16/t5/data \
+  sweep-oct16/t5/results/bridge_pr1565.csv \
+  > sweep-oct16/t5/results/bridge_pr1565.log 2>&1
+# EXIT:0; 189 rows; 27 ok / 162 error
+
+mkdir -p /tmp/t5_pr1565
+cp sweep-oct16/t5/results/native.csv \
+   sweep-oct16/t5/results/native_fixedp.csv \
+   sweep-oct16/t5/results/julia_direct.csv \
+   /tmp/t5_pr1565/
+cp sweep-oct16/t5/results/bridge_pr1565.csv /tmp/t5_pr1565/bridge.csv
+Rscript sweep-oct16/t5/R/compare.R /tmp/t5_pr1565 \
+  > sweep-oct16/t5/results/summary_pr1565.md
+```
+
+Original `results/bridge.csv` (all 189 SIGSEGV/fence) is unchanged.
+
+## Results vs the t5 pass bar (bridge cells only)
+
+189 cells, no timeouts, no exit 139. 27 `ok` (all Gaussian unweighted:
+`J0_omitted`, `J6_misscontrol`, `J7_dup` × 9 datasets). 162 error.
+
+| Bar | Value | Verdict |
+|---|---|---|
+| SIGSEGV / JuliaCall setup 139 | 0 / 189 | **fixed** by #1565 |
+| nobs: bridge = native | Gaussian 9/9 match (200…128 complete cases) | **PASS** |
+| `engine = "julia"` = native, Gaussian | max \|ΔlogLik\| 1.98952e-12 / \|Δcoef\| 1.75821e-10 | **PASS** (bar 1e-8) |
+| Julia duplicated rows = native integer weights, Gaussian | max \|ΔlogLik\| vs N3 ≤ 1.023e-12; nobs = native D3 | **PASS** |
+| `engine = "julia"` = native, Poisson/Gamma | 0 / 18 fits | **FAIL** (#1551 `resd` / `resd_g`) |
+| `engine = "julia"` with any `weights` (incl. `NULL`) | 0 / 108 | fenced (#1450) |
+| `miss_control()` with NA in `x`, Gaussian | Julia fits 6/6 instead of failing; nobs and logLik identical to default-drop `J0` (Δ = 0) | **FAIL** (#1454) |
+
+Smoke on `gaussian_y00_x00`: logLik −294.0617, nobs 200, matching native
+`N0_omitted` and the original concrete-eltype Julia fit.
+
+Finding 1 in the original receipt (JuliaCall SIGSEGV) is **resolved** by
+#1565 on this host. Finding 2 (direct-Julia duplication 3.04e-08 on
+`gamma_y00_x00`) was not re-measured; that leg was not part of this
+follow-up.
+
+## Issues
+
+GitHub writes still 403 (`Resource not accessible by personal access
+token`). No new issue was opened. No comments were posted. The three
+bridge failures that become visible once setup works all match existing
+tickets:
+
+| URL | This re-run |
+|---|---|
+| https://github.com/itchyshin/drmTMB/pull/1565 | **confirmed**: setup SIGSEGV gone; Gaussian `(1\|g)` fits |
+| https://github.com/itchyshin/drmTMB/issues/1551 | **reproduced**: 54/54 Poisson/Gamma unweighted cells abort at `coef_labels` / `resd` |
+| https://github.com/itchyshin/drmTMB/issues/1454 | **reproduced**: 6/6 Gaussian `miss_control()` cells with `na_x > 0` fit instead of fail-closed |
+| https://github.com/itchyshin/drmTMB/issues/1450 | **reproduced**: 108/108 weighted cells still fenced, including `weights = NULL` |
+
+No new drmTMB or DRModels.jl bug was found beyond those three. Paste-ready
+comments (use `Refs`, never `Closes`):
+
+**#1551.** After #1565 (`b0cf1d8a7`) the `resd` abort is reachable.
+54/54 unweighted Poisson/Gamma `(1 | g)` cells run the Julia fit then
+abort: `drm_bridge: coef_labels is missing an entry for dpar "resd"
+(1 fixed-effect columns; Julia names: ["resd_g"])`. Gaussian on the same
+grid returns. Data: `sweep-oct16/t5/data/poisson_y00_x00.csv`. Results:
+`sweep-oct16/t5/results/bridge_pr1565.csv`. Refs #1565.
+
+**#1454.** Gaussian `(1 | g)`, 6/6 cells with `na_x > 0`: native
+`miss_control()` errors; Julia returns nobs = complete cases and logLik
+identical to `J0_omitted`. Example `gaussian_y00_x05`: native N6 error,
+Julia J6 ok nobs = 190. Poisson/Gamma `miss_control` hits #1551 first.
+Refs #1551.
+
+**#1450.** 108/108 still `engine = "julia" does not support weights yet`,
+including `weights = NULL`. Unweighted Gaussian in the same session
+matches native. Refs #1565.
+
