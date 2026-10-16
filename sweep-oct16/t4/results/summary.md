@@ -4,7 +4,7 @@ Tolerances: material logLik deficit > 0.0001 nats vs the engine-independent refe
 
 | cell | regimes (reference) | drmTMB verdicts | DRModels.jl verdicts | converged R/J | flag agree | signal agree | max abs dlogLik R-J |
 |---|---|---|---|---|---|---|---|
-| gauss_n8 | interior 50 | PASS 41, SILENT_WRONG 8, WARNED_WRONG 1 | FALSE_ALARM 4, PASS 39, PASS_flagged 3, PASS_warned 1, SILENT_WRONG 3 | 50 / 43 | 43/50 | 43/50 | 16.4 |
+| gauss_n8 | interior 47, nonexistent 3 | PASS 41, PASS_flagged 1, SILENT_NONEXIST 1, SILENT_NONEXIST_diag_only 1, SILENT_WRONG 6 | FALSE_ALARM 3, PASS 39, PASS_flagged 4, PASS_warned 1, SILENT_WRONG 3 | 50 / 43 | 43/50 | 43/50 | 16.4 |
 | gauss_n12 | interior 50 | PASS 50 | PASS 50 | 50 / 50 | 50/50 | 50/50 | 4.84e-09 |
 | gauss_n20 | interior 50 | PASS 50 | PASS 50 | 50 / 50 | 50/50 | 50/50 | 4.92e-09 |
 | pois_n8 | interior 50 | PASS 50 | PASS 50 | 50 / 50 | 50/50 | 50/50 | 4.72e-09 |
@@ -18,3 +18,4 @@ Tolerances: material logLik deficit > 0.0001 nats vs the engine-independent refe
 | re_sd1e-4 | boundary 29, interior 21 | PASS 21, PASS_boundary_diag_only 29 | FALSE_ALARM 22, PASS 21, PASS_boundary_warned 7 | 50 / 28 | 28/50 | 21/50 | 4.94e-08 |
 | collin_sigma_exact | aliased 50 | PASS_flagged 50 | CONV_WARNED_alias 50 | 0 / 50 | 0/50 | 50/50 | 4.96e-08 |
 | collin_sigma_near | interior 50 | FALSE_ALARM 50 | PASS_warned 50 | 0 / 50 | 0/50 | 50/50 | 5e-08 |
+| pois_n8_lowmean | interior 36, nonexistent 14 | PASS 36, PASS_flagged 1, SILENT_NONEXIST 13 | PASS 36, PASS_flagged 5, SILENT_NONEXIST 9 | 49 / 50 | 49/50 | 46/50 | 6.82e-10 |
