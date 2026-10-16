@@ -1285,6 +1285,43 @@ class CapabilityLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "retired predicate"):
             ledger.validate_retired_predicates(self.cells, evidence)
 
+    def test_check_path_fails_when_live_prose_names_a_newly_retired_phrase(self):
+        # --check, --write, and --summary all read through load_sources(). Retiring
+        # the current policy name, as a future v3 would, must stop all three
+        # until every row that still names it is rewritten.
+        original = ledger.RETIRED_PREDICATES
+        with tempfile.TemporaryDirectory() as temporary:
+            sidecar = Path(temporary) / "retired-predicates.tsv"
+            sidecar.write_text(
+                original.read_text(encoding="utf-8")
+                + "mr-g5-calibration-v2\tdeadbeef\tmr-g5-calibration-v3\tissue 1011\n",
+                encoding="utf-8",
+            )
+            try:
+                ledger.RETIRED_PREDICATES = sidecar
+                with self.assertRaisesRegex(
+                    SystemExit, r"cells:mr-beta\.claim_boundary: retired predicate"
+                ):
+                    ledger.load_sources()
+            finally:
+                ledger.RETIRED_PREDICATES = original
+
+    def test_retired_predicate_sidecar_rejects_duplicate_phrases(self):
+        original = ledger.RETIRED_PREDICATES
+        with tempfile.TemporaryDirectory() as temporary:
+            sidecar = Path(temporary) / "retired-predicates.tsv"
+            sidecar.write_text(
+                original.read_text(encoding="utf-8")
+                + "ALL-1200  Interval-Usability rule\tdeadbeef\tnone\tissue 1011\n",
+                encoding="utf-8",
+            )
+            try:
+                ledger.RETIRED_PREDICATES = sidecar
+                with self.assertRaisesRegex(SystemExit, "duplicate phrase"):
+                    ledger.retired_predicate_phrases()
+            finally:
+                ledger.RETIRED_PREDICATES = original
+
     def test_live_prose_contract_excludes_historical_phrases(self):
         with tempfile.TemporaryDirectory() as temporary:
             historical = Path(temporary) / "2025-old-panel.md"
