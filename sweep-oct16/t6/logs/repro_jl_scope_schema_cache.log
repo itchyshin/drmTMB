@@ -1,0 +1,199 @@
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates = Int64[]
+│   rcond = 1.1121595774974727e-16
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+beta_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+beta_binomial_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+binomial_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+cumulative_logit_fixed: cached schema keys = Symbol[]
+    reference predict(fit, nd_main) ERROR ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c].
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [x, f: b, f: c]. A fac
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [x, f: b, f: c].
+    P5 String fit, nd_main categorical[a,b,c]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c].
+    P5 String fit, Int x (2x)                    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c].
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: a, f: b].
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [x, f: a, f: b].
+gamma_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+gaussian_fixed: cached schema keys = [:mu, :sigma]
+    P3 nd_subset String                          OK (matches ref)
+    P3 nd_subset categorical(levels=[b])         OK (matches ref)
+    P3 nd_subset categorical(levels=[a,b,c])     OK (matches ref)
+    P3 predict_parameters(nd_subset)[:mu]        OK (matches ref)
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: `newdata` column `f` contains level(s) d not seen when the model was fitted (parameter `mu`; fitted levels: a, b, c). Refit in
+    P5 String fit, nd_main categorical[c,a,b]    OK (matches ref)
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              OK (matches ref)
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+lognormal_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+nbinom2_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+poisson_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+skew_normal_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+student_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+truncated_nbinom2_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+tweedie_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+zero_one_beta_fixed: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+poisson_ri: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+gamma_ri: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+lognormal_ri: cached schema keys = Symbol[]
+    P3 nd_subset String                          ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[b])         ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 nd_subset categorical(levels=[a,b,c])     ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P3 predict_parameters(nd_subset)[:mu]        ERROR  ArgumentError: only one level found: b (need at least two to compute contrasts).
+    P4 nd_unseen_f (f = d)                       ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b,
+    P5 String fit, nd_main categorical[c,a,b]    ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x,
+    P5 String fit, nd_main categorical[a,b,c]    OK (matches ref)
+    P5 String fit, Int x (2x)                    OK (matches ref)
+    P5 fit f[c,a,b], String nd_main              ERROR  ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x,
+    P5 fit f[c,a,b], categorical[c,a,b] nd_main  OK (matches ref)
+formula reuse: fresh fit on B coefnames ["(Intercept)", "x", "f: c"] logLik -191.66264255054767
+formula reuse: refit on B coefnames ["(Intercept)", "x", "f: b", "f: c"] logLik -191.66264255054767  max|predict diff on nd_main rows f != a| = 1.2345013900016966e-11
+formula reuse: refit on f[c,a,b] coefnames ["(Intercept)", "x", "f: b", "f: c"] (fresh fit would be [(Intercept), x, f: a, f: b])

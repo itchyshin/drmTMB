@@ -1,0 +1,12 @@
+  se.fit interval     typo 
+    TRUE     TRUE     TRUE 
+[1] "numeric"
+[1] 3
+[1] 240
+[1] TRUE
+Error in predict_parameters(fit, newdata = nd, dpar = "mu", se.fit = TRUE) : 
+  `...` is reserved for future options.
+   estimate  std.error  conf.low conf.high conf.status
+1 0.5768749 0.09757003 0.4163865 0.7373633        wald
+2 1.3080895 0.08876710 1.1620807 1.4540984        wald
+3 1.1677388 0.15322538 0.9157055 1.4197721        wald

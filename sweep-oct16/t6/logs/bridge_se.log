@@ -1,0 +1,22 @@
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.12.7 at location /opt/julia-env/bin will be used.
+Warning in JuliaCall::julia_setup(installJulia = FALSE) :
+  Julia libunwind not found in /opt/julia-env/bin/../lib/julia
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+{
+  "predict_formals": ["object", "newdata", "dpar", "type", "prob", "..."],
+  "se_fit_TRUE": {
+    "class": "numeric",
+    "identical_to_plain": true,
+    "is_list": false
+  },
+  "typo_type": "'arg' should be one of \"response\", \"link\", \"quantile\"",
+  "unknown_args_interval_level": {
+    "identical_to_plain": true
+  },
+  "predict_parameters": "no applicable method for 'predict_parameters' applied to an object of class \"drmTMB_julia\"",
+  "native_predict_parameters_has_se": true,
+  "bridge_vcov_names": ["mu_(Intercept)", "mu_x", "mu_fb", "mu_fc", "sigma_(Intercept)", "sigma_x"]
+} 
+  Activating project at `/home/user/DRModels.jl`

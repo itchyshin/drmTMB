@@ -1,0 +1,207 @@
+{
+  "P10": {
+    "details": {
+      "R_converged": true,
+      "R_marginal": "none (fixed effects)",
+      "R_max_abs_gradient": 1.85e-10,
+      "R_opt_message": "converged (Newton polish; max |gradient| = 1.85e-10)",
+      "R_pdHess": true,
+      "aux_hand_XbetaJ_vs_R_link_NOT_engine": {
+        "mu": 1.9927504091299397e-11
+      },
+      "coef": {
+        "cutpoints_natural": {
+          "R": [
+            -0.823499692542075,
+            0.649141183128191,
+            1.88377516137307
+          ],
+          "diff": [
+            -1.2523315717771766e-13,
+            1.906919067096169e-12,
+            6.2452265581214306e-12
+          ],
+          "julia": [
+            -0.8234996925419498,
+            0.6491411831262841,
+            1.8837751613668248
+          ]
+        },
+        "mu": {
+          "R": [
+            0.420934639657746,
+            0.426840526581559,
+            -0.198663200657403
+          ],
+          "diff": [
+            5.656863866221329e-12,
+            3.009759108607568e-12,
+            1.1441209091245241e-11
+          ],
+          "diff_over_R_se": [
+            4.287256036679161e-11,
+            1.0177823684436092e-11,
+            3.8747187145324725e-11
+          ],
+          "julia": [
+            0.42093463965208916,
+            0.42684052657854926,
+            -0.19866320066884421
+          ],
+          "names": [
+            "x",
+            "f: b",
+            "f: c"
+          ],
+          "se_R": [
+            0.13194602369964925,
+            0.2957173558832706,
+            0.29527844300888173
+          ],
+          "se_julia": [
+            0.13194601839352313,
+            0.2957173505441648,
+            0.29527843710117646
+          ],
+          "se_maxrel": 4.02143692779733e-8
+        }
+      },
+      "julia_converged": true,
+      "julia_fit_used": "julia default marginal=:LA (cumulative_logit_fixed.jls)",
+      "julia_grad_at_R_theta": {
+        "ad": [
+          9.88303883175945e-12,
+          -5.421546545036904e-11,
+          1.399862448181466e-10,
+          -6.537614893886712e-11,
+          -1.8509416221945685e-10,
+          1.2525647186123479e-10
+        ],
+        "ad_maxabs": 1.8509416221945685e-10,
+        "fd": [
+          -1.1368683772161601e-8,
+          8.526512829121202e-9,
+          1.1368683772161601e-8,
+          0.0,
+          0.0,
+          -2.8421709430404003e-9
+        ],
+        "fd_maxabs": 1.1368683772161601e-8,
+        "maxabs": 1.8509416221945685e-10,
+        "source": "ForwardDiff"
+      },
+      "julia_grad_at_julia_theta": {
+        "ad": [
+          -2.852999503311082e-10,
+          -6.95106194825712e-11,
+          -1.2014095274182068e-10,
+          1.8995638395580272e-10,
+          -1.0485856627440171e-10,
+          -3.531519521260407e-11
+        ],
+        "ad_maxabs": 2.852999503311082e-10,
+        "fd": [
+          0.0,
+          5.684341886080801e-9,
+          0.0,
+          0.0,
+          0.0,
+          -2.8421709430404003e-9
+        ],
+        "fd_maxabs": 5.684341886080801e-9,
+        "maxabs": 2.852999503311082e-10,
+        "source": "ForwardDiff"
+      },
+      "julia_marginal": "LA",
+      "julia_nll_at_R_theta": 314.67459295077236,
+      "julia_nll_at_R_theta_minus_at_J_theta": -5.684341886080802e-14,
+      "julia_nll_at_R_theta_plus_llR": 1.3642420526593924e-12,
+      "loglik_R": -314.674592950771,
+      "loglik_julia": -314.6745929507724,
+      "loglik_julia_minus_R": -1.4210854715202004e-12,
+      "max_coef_absdiff": 1.1441209091245241e-11,
+      "max_coef_diff_over_R_se": 4.287256036679161e-11,
+      "predict_parameters_error": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards)."
+    },
+    "metric": "max abs diff Julia own fit vs R own fit, nd_main",
+    "notes": "Julia predict_parameters refuses nd_main (same root cause as P9): ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows c; coefficient-level parity: max|coef diff| 1.14e-11, logLik diff -1.42e-12; hand X beta_J vs R link mu=1.99e-11 (NOT an engine evaluation)",
+    "status": "ERROR",
+    "value": null
+  },
+  "P9": {
+    "details": {
+      "R_link_vs_hand_XbetaR": {
+        "mu": 1.9984014443252818e-15
+      },
+      "aux_hand_XbetaR_vs_R_link_NOT_engine": {
+        "mu": 1.9984014443252818e-15
+      },
+      "cutpoints_roundtrip_maxabs": 0.0,
+      "mapping": {
+        "cutpoints": {
+          "R_names": [
+            "1|2",
+            "2|3",
+            "3|4"
+          ],
+          "R_natural": [
+            -0.823499692542075,
+            0.649141183128191,
+            1.88377516137307
+          ],
+          "julia_increments": [
+            -0.823499692542075,
+            0.387057303050791,
+            0.2107745522617332
+          ],
+          "julia_names": [
+            "theta1",
+            "theta2",
+            "theta3"
+          ],
+          "mapping": "positional after count+order check; delta1 = c1, deltak = log(ck - ck-1)"
+        },
+        "mu": {
+          "R_in_julia_order": [
+            "x",
+            "fb",
+            "fc"
+          ],
+          "identity_order": true,
+          "julia": [
+            "x",
+            "f: b",
+            "f: c"
+          ]
+        }
+      },
+      "predict_error": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "predict_parameters_error": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "theta_injected": [
+        0.420934639657746,
+        0.426840526581559,
+        -0.198663200657403,
+        -0.823499692542075,
+        0.387057303050791,
+        0.2107745522617332
+      ],
+      "vcov_injected_blocks": [
+        "mu"
+      ]
+    },
+    "metric": "max abs diff Julia(R theta) vs R, nd_main",
+    "notes": "Julia predict/predict_parameters REFUSE nd_main while drmTMB predicts it: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+    "status": "FAIL",
+    "value": null
+  },
+  "cell": "cumulative_logit_fixed",
+  "family": "cumulative_logit",
+  "nd": "data/nd_main.csv (18 rows)",
+  "pins": {
+    "DRModels.jl": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+    "drmTMB": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a"
+  },
+  "re": "fixed",
+  "seconds": 4.936651945114136,
+  "tol": 1.0e-8
+}

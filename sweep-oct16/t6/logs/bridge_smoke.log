@@ -1,0 +1,26 @@
+21:22:58 drmTMB 0.7.1; R R version 4.3.3 (2024-02-29); drmTMB pin ca3ddefa5ea11bbfd3b765615dfbb89305d2485a; DRModels.jl pin f71b2923360e9e5d4591e0d6e15a9ef9db0356d7; %||% shim applied: TRUE 
+21:22:58 cells: 2 
+21:22:58 registry fe: gaussian,biv_gaussian,student,lognormal,poisson,nbinom2,gamma,beta,binomial,truncated_nbinom2,zero_one_beta,tweedie,beta_binomial,cumulative_logit,biv_student,skew_normal,biv_lognormal 
+21:22:58 registry fe-only RE fence: student,lognormal,truncated_nbinom2,zero_one_beta,tweedie,beta_binomial,cumulative_logit,biv_student,skew_normal,biv_lognormal 
+21:22:59 ==== [gaussian_fixed] ==== 
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.12.7 at location /opt/julia-env/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+21:25:31 [gaussian_fixed] admission: TRUE (consistent with vignette) 
+21:25:31 Julia: using DRModels -> ok; same module as drmTMB_backend: TRUE; pathof = /home/user/DRModels.jl/src/DRModels.jl; VERSION = 1.12.7; nthreads = 1 
+21:25:31 [gaussian_fixed] bridge fit ok: conv=TRUE ll=-301.64463468 marginal=LA dpars=mu,sigma (151.6s) 
+21:25:35 [gaussian_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 5.55e-17; response same-semantics max|d| = 0; response semantic differences on: none 
+21:25:35 [gaussian_fixed] bridge vs TMB: coef max 1.117051e-12, logLik d 8.526513e-13, predict max 1.757927e-12 
+21:25:35 [gaussian_fixed] P2 PASS value=0 
+21:25:35 [gaussian_fixed] P3 PASS value=0 
+21:25:35 [gaussian_fixed] P4 PASS mu message: factor f has new levels d 
+21:25:40 [gaussian_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:25:40 [gaussian_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:25:41 [gaussian_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 7.359668e-13 
+21:25:41 ==== [gaussian_ri] ==== 
+21:25:53 [gaussian_ri] bridge REFUSED: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly. 
+21:25:57 [gaussian_ri] bridge fallback sigma ~ 1: REFUSED: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly. 
+21:25:57 [gaussian_ri] admission: FALSE (CANDIDATE: refused although the vignette says it is available | differs from registry expectation) 
+21:25:57 done 
+  Activating project at `/home/user/DRModels.jl`

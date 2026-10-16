@@ -1,0 +1,475 @@
+{
+ "findings": [
+  {
+   "key": "jl-response-inverse-link-table-student-nu-skewnormal-nu-zob-mu",
+   "title": "DRModels.jl predict()/predict_parameters(type = :response) use the wrong inverse link for Student nu (exp, not 2 + exp), SkewNormal nu (exp, not identity) and ZeroOneBeta mu (identity, not logistic); the response-scale SEs are wrong the same way",
+   "repo": "itchyshin/DRModels.jl",
+   "severity": "silent-wrong-answer",
+   "cells": [
+    "student_fixed",
+    "student_ri (default and marginal = :Laplace)",
+    "skew_normal_fixed",
+    "zero_one_beta_fixed",
+    "zero_one_beta_ri"
+   ],
+   "tests": [
+    "P1",
+    "P2",
+    "P7",
+    "P9",
+    "P11"
+   ],
+   "observed": "On nd_main row 1, with the link value matching drmTMB to 4e-15, three response values are wrong. Student: predict_parameters(fit, nd)[:nu] = 3.969416919592438 = exp(1.3786192122732193), while fit.scales[:nu] = 5.9694 and drmTMB returns 5.9694169198641. SkewNormal: [:nu] = 7.048392360788938 = exp(1.9527995568898402), with response SE 3.332, while fit.scales[:nu] = 1.95280 and drmTMB returns 1.95279955678383 with SE 0.47274. ZeroOneBeta: predict(fit, nd) and predict_parameters(...)[:mu] both return -0.5491058432101608, identical to the link, and the in-sample minimum is -1.60 for a [0,1] response. drmTMB returns 0.366071885069022. The response SE equals the link SE (relative error 4.63 for fixed, 4.05 for ri).",
+   "expected": "Each family's documented link and the value it stores in fit.scales. Student: nu = 2 + exp(eta) (src/student.jl:3,34,42; stored at :146 and src/ordinary_laplace.jl:584). SkewNormal: identity slant (src/skewnormal.jl:3,19-22; stored at :108). ZeroOneBeta: logit mu (src/zeroonebeta.jl:11,18-23). The predict_parameters docstring promises that the :response values reproduce fit.scales in-sample, and the predict docstring says :response applies the family inverse link.",
+   "evidence": "Triage re-check by hand arithmetic on results/jl_*_pred.csv and r_*_pred.csv. 2 + exp(1.3786192122732193) = 5.96941691959, equal to R's value to 3e-10 (coefficient tolerance), while Julia returns exactly exp. exp(1.9527995568898402) = 7.048392360788938, exactly Julia's value. plogis(-0.5491058432101608) = 0.36607188506917, equal to R's 0.366071885069022. Source at f71b292: src/gaussian_core.jl:1866-1876 (_mean_response has no ZeroOneBeta branch, so it falls through to `return \u03b7`); :1900 (`p === :nu` -> `fam isa Tweedie ? _logit12.(\u03b7) : exp.(\u03b7)` for every other family); :1915-1937 (_link_deriv mirrors both errors: derivative 1 for ZeroOneBeta mu, exp(eta) for SkewNormal nu). Student nu response SE is correct (2.0334 in both engines), because d(2 + exp)/deta = exp. Confirmed by 4 independent agents: Julia-native, parity with R coefficients injected, bridge D4 and verify_candidates_jl V1-V3. The bridge itself is unaffected, because R applies drm_inverse_link. Untested but likely affected by the same table: bivariate Student nu (src/bivariate_student.jl:235 stores 2 .+ exp) and CategoricalLogit (falls through to identity).",
+   "repro": "# DRModels.jl f71b2923360e9e5d4591e0d6e15a9ef9db0356d7, Julia 1.12.7; data seeds 20261016602 / 20261016604 / 20261016612 (data/cells.csv)\nusing DRModels, CSV, DataFrames\nD = \"/home/user/drmTMB/sweep-oct16/t6/data\"\nrd(f) = (df = CSV.read(joinpath(D, f), DataFrame); NamedTuple{Tuple(Symbol.(names(df)))}(Tuple(eltype(c) <: AbstractString ? String.(c) : Float64.(c) for c in eachcol(df))))\nnd = rd(\"nd_main.csv\")\nfs = drm(bf(@formula(y ~ x + f), @formula(sigma ~ x), @formula(nu ~ 1)), Student(); data = rd(\"student_fixed.csv\"))\npredict_parameters(fs, nd)[:nu][1], fs.scales[:nu][1]          # 3.9694 vs 5.9694 (= 2 + exp(eta))\nfk = drm(bf(@formula(y ~ x + f), @formula(sigma ~ x), @formula(nu ~ 1)), SkewNormal(); data = rd(\"skew_normal_fixed.csv\"))\npredict_parameters(fk, nd; se = true)[:nu]                      # value 7.048 = exp(1.953), se 3.33; fk.scales[:nu][1] = 1.953\nfz = drm(bf(@formula(y ~ x + f), @formula(sigma ~ x), @formula(zoi ~ 1), @formula(coi ~ 1)), ZeroOneBeta(); data = rd(\"zero_one_beta_fixed.csv\"))\npredict(fz, nd)[1:3] == predict(fz, nd; type = :link)[1:3]       # true: -0.549, -0.042, 0.719 (logit scale)\n# drmTMB ca3ddefa: predict(fit, newdata = nd, dpar = \"nu\", type = \"response\")[1] -> 5.969417 (student), 1.952800 (skew_normal); zero_one_beta dpar = \"mu\" -> 0.3661",
+   "disposition": "new",
+   "existing_issues": "No match. Related, closed: DRModels.jl #675 (Student nu link docs; it fixed the docs but did not touch _param_response) and #552 (docs taught exp(coef(:nu))). Searched open and closed issues for nu, \u03bd, ZeroOneBeta, inverse link, predict_parameters.",
+   "merged_from": [
+    "jl-zeroonebeta-predict-response-is-link",
+    "jl-student-predict-parameters-nu-drops-2",
+    "jl-skewnormal-predict-parameters-nu-exp",
+    "jl-predict-parameters-nu-response-hardcoded-exp",
+    "jl-zero-one-beta-mu-response-no-inverse-link",
+    "jl-predict-parameters-response-wrong-inverse-link-nu-zob"
+   ],
+   "source_ref": "DRModels.jl src/gaussian_core.jl:1866-1876, :1892-1906 (line 1900), :1915-1937; src/student.jl:30-42,146; src/ordinary_laplace.jl:584; src/skewnormal.jl:1-4,17-34,108; src/zeroonebeta.jl:11,17-23,148-150"
+  },
+  {
+   "key": "bridge-fitted-ships-drmodels-fitted-not-drmtmb-contract",
+   "title": "engine = \"julia\": fitted()/residuals() silently return DRModels.jl's fitted values, which are not drmTMB's documented fitted() for lognormal (median, not the mean), truncated_nbinom2 (untruncated, not the truncated mean) or Gaussian (1 | g) (population level, not conditional)",
+   "repo": "both",
+   "severity": "silent-wrong-answer",
+   "cells": [
+    "lognormal_fixed",
+    "truncated_nbinom2_fixed",
+    "gaussian_ri (numeric-only formula bf(y ~ x + (1 | g), sigma ~ x); the SPEC formula is refused, see the separate finding)"
+   ],
+   "tests": [
+    "P1 (fitted)",
+    "P11"
+   ],
+   "observed": "Coefficients agree between bridge and TMB to 1.9e-11 (lognormal) and 8.8e-11 (truncated_nbinom2), but fitted() does not. lognormal: fitted(bridge) = exp(mu) to 8.9e-16; max|fitted(bridge) - fitted(tmb)| = 5.916; mean fitted 3.016 vs 3.635 (mean y 3.530). truncated_nbinom2: fitted(bridge) = exp(eta) to 2.2e-16; max|d| = 7.051; mean fitted 2.682 vs 3.636 (mean y 3.629). Gaussian (1 | g): fitted(bridge) is X*beta, while the bridge's own in-sample predict(dpar = \"mu\") is conditional (it matches TMB to 2.8e-11); max|fitted(bridge) - fitted(tmb)| = 0.977. residuals() differ by the same amounts. No warning is given.",
+   "expected": "fitted.drmTMB_julia should return what ?fitted.drmTMB documents and what engine = \"tmb\" returns. lognormal: exp(mu + sigma^2/2) (R/methods.R:2298-2299). truncated_nbinom2: mu/(1 - P_NB2(0)) (R/methods.R:6477-6480). Fitted rows with an ordinary (1 | g): include the fitted modes. Otherwise the difference must be documented on the drmTMB side.",
+   "evidence": "Triage re-check of results/bridge_diag.json. D3 lognormal: bridge_fitted_vs_exp_eta 8.9e-16, tmb_fitted_vs_documented_mean 6.9e-10, bridge_vs_tmb_fitted_maxabs 5.916. D3 truncated_nbinom2: 2.2e-16, 1.1e-10, 7.051. D1a: fitted_bridge_vs_conditional_mu 0.977, tmb_fitted_vs_conditional_mu 0, tmb_vs_bridge_insample_mu 2.8e-11. Source: R/julia-bridge.R:6440-6441 (`fitted.drmTMB_julia <- function(object, ...) object$fitted`), filled at :4674 from DRModels' payload. DRModels src/bridge.jl:2525-2584: _bridge_fitted_marginal already replaces DRModels' fitted with drmTMB's mean for zero-inflated fits ('the same converged model reported two different means across the two engines, silently'), but it repairs only `haskey(fit.scales, :zi)`. The RE population-vs-conditional gap is acknowledged only in a DRModels source docstring (bridge.jl:2532-2537, 1664-1670). The lognormal and truncated_nbinom2 gaps are acknowledged nowhere. The other 12 fixed families agree to <= 1.9e-9, so the harness is sound. The DRModels-native root (fitted = median / untruncated mu) is a separate wrong-docs finding.",
+   "repro": "# drmTMB ca3ddefa5ea11bbfd3b765615dfbb89305d2485a + DRModels.jl f71b2923360e9e5d4591e0d6e15a9ef9db0356d7, R 4.3.3, Julia 1.12.7; data seed 20261016606 (R 261016606)\nSys.setenv(JULIA_DEPOT_PATH = '/opt/julia-depot', DRMODELS_JL_PATH = '/home/user/DRModels.jl', NOT_CRAN = 'true', JULIA_HOME = '/opt/julia-env/bin')\nlibrary(drmTMB)\nif (!exists('%||%', baseenv())) assign('%||%', function(x, y) if (is.null(x)) y else x, envir = globalenv())  # drmTMB #1550 shim (R < 4.4)\nd <- read.csv('/home/user/drmTMB/sweep-oct16/t6/data/lognormal_fixed.csv')\nf <- bf(y ~ x + f, sigma ~ x)\nfj <- drmTMB(f, family = lognormal(), data = d, engine = 'julia'); ft <- drmTMB(f, family = lognormal(), data = d)\neta <- predict(fj, dpar = 'mu', type = 'link'); s <- predict(fj, dpar = 'sigma')\nmax(abs(fitted(fj) - exp(eta)))           # ~1e-15 (median)\nmax(abs(fitted(ft) - exp(eta + s^2/2)))   # ~7e-10 (documented mean)\nmax(abs(fitted(fj) - fitted(ft)))         # 5.916\n# truncated_nbinom2: data/truncated_nbinom2_fixed.csv (seed 20261016622), family = truncated_nbinom2() -> 7.051\n# Gaussian RE: d <- read.csv('.../gaussian_ri.csv'); f <- bf(y ~ x + (1 | g), sigma ~ x); max(abs(fitted(fj) - fitted(ft))) -> 0.977",
+   "disposition": "new. File one drmTMB issue, because the user-facing contract is fitted.drmTMB_julia. Name the DRModels.jl fix site, src/bridge.jl _bridge_fitted_marginal, which already applies this repair for zi; a linked DRModels.jl issue is optional.",
+   "existing_issues": "No match. Related: drmTMB #1320 (open; predict(type = 'response') is not E[Y] for lognormal etc. That is predict, not fitted). DRModels.jl #1104 (open; fitted docstring drift on phylo routes). Searched for fitted, bridge fitted, unconditional, median, truncated.",
+   "merged_from": [
+    "bridge-fitted-lognormal-truncnb2-not-documented-mean",
+    "bridge-fitted-gaussian-ri-population-not-conditional"
+   ],
+   "source_ref": "drmTMB R/julia-bridge.R:4674, :6440-6441; R/methods.R:2298-2299, :6477-6480. DRModels.jl src/bridge.jl:1664-1670, :2525-2584"
+  },
+  {
+   "key": "jl-cumulativelogit-predict-rebuilds-dropped-intercept",
+   "title": "DRModels.jl CumulativeLogit: predict() and predict_parameters() throw on every newdata, the training data included, because the fitter drops the mu intercept but _predict_design rebuilds it; the error misdiagnoses the cause as factor levels",
+   "repo": "itchyshin/DRModels.jl",
+   "severity": "crash",
+   "cells": [
+    "cumulative_logit_fixed",
+    "cumulative_logit_ri"
+   ],
+   "tests": [
+    "P1",
+    "P2",
+    "P3",
+    "P5",
+    "P7",
+    "P9",
+    "P10",
+    "P11"
+   ],
+   "observed": "predict(fit, d), predict(fit, nd_main; type = :link), predict_parameters(fit, nd_main) and all se = true variants throw: \"ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level ...\". fitted() and simulate() work.",
+   "expected": "predict and predict_parameters drop the location intercept as the fitter does and return X*beta, the location linear predictor that drmTMB documents and returns (R/methods.R:2916-2917). The predict docstring promises 'In-sample, predict(fit, data) \u2248 fitted(fit)'. At R's coefficients, the intercept-free design reproduces drmTMB's link to 2.0e-15 (fixed) and 4.9e-15 (ri).",
+   "evidence": "Triage re-check at f71b292: src/cumulative.jl:160-165 removes \"(Intercept)\" from X\u03bc/nm\u03bc after _design. predict (src/gaussian_core.jl:1760-1779) and predict_parameters (:2008-2045) call _predict_design (:1821-1834). That re-runs _design, which adds StatsModels' implicit intercept (gaussian_core.jl:395-397), so the name guard at :1824-1830 throws. The guard was meant for #1000 level mismatches, hence the misleading message. Reproduced by the Julia-native, parity and bridge agents, and on the training data itself (V4; logs/repro_jl_p9_response_semantics.log). Coefficient parity is otherwise exact: max|dcoef| 1.1e-11 including natural cutpoints; logLik diff -1.4e-12. drmTMB #1195 fixed the same defect on the R bridge's predict only.",
+   "repro": "# DRModels.jl f71b2923360e9e5d4591e0d6e15a9ef9db0356d7, Julia 1.12.7; data seed 20261016626\nusing DRModels, CSV, DataFrames\nD = \"/home/user/drmTMB/sweep-oct16/t6/data\"\nrd(f) = (df = CSV.read(joinpath(D, f), DataFrame); NamedTuple{Tuple(Symbol.(names(df)))}(Tuple(eltype(c) <: AbstractString ? String.(c) : Float64.(c) for c in eachcol(df))))\nd = rd(\"cumulative_logit_fixed.csv\")\nfit = drm(bf(@formula(y ~ x + f)), CumulativeLogit(); data = d)\nfit.coefnames          # :mu => [\"x\", \"f: b\", \"f: c\"], :cutpoints => [...]\npredict(fit, d)        # ArgumentError: ... columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]\npredict_parameters(fit, rd(\"nd_main.csv\"))   # same error\n# drmTMB ca3ddefa: predict(fit, newdata = nd_main, dpar = 'mu', type = 'link')[1:3] -> -0.4209346, 0, 0.6314020",
+   "disposition": "new",
+   "existing_issues": "No DRModels.jl match. drmTMB #1195 (closed) fixed the R bridge's predict for cumulative_logit; drmTMB #1198 (closed) covers bridge quantile. DRModels.jl #738, #953, #939 concern CumulativeLogit fitting, not predict.",
+   "merged_from": [
+    "jl-cumulative-predict-errors",
+    "jl-cumulative-logit-predict-refuses-intercept-dropped",
+    "jl-cumulative-logit-predict-refuses-intercept-design"
+   ],
+   "source_ref": "DRModels.jl src/cumulative.jl:160-165; src/gaussian_core.jl:395-397, :1760-1779, :1821-1834, :2008-2045"
+  },
+  {
+   "key": "drmtmb-1536-predict-simulate-unused-dots",
+   "title": "KNOWN #1536, now confirmed by execution: predict.drmTMB silently ignores se.fit/interval/level, simulate(newdata =) returns training-row draws, and predict.drmTMB_julia drops unused ... the same way",
+   "repo": "itchyshin/drmTMB",
+   "severity": "silent-wrong-answer",
+   "cells": [
+    "all 28 native cells (predict ...)",
+    "gaussian_fixed (simulate newdata)",
+    "gaussian_fixed bridge (predict.drmTMB_julia)"
+   ],
+   "tests": [
+    "P7",
+    "P8"
+   ],
+   "observed": "In all 28 cells, predict(fit, se.fit = TRUE) is identical() to predict(fit), and predict(fit, newdata = nd_main, interval = 'confidence', level = 0.9) is identical() to the plain call. simulate(fit, nsim = 1, seed = 1, newdata = nd_main) returns 240 rows; nd_main has 18 rows, and the result is identical() to the call without newdata. On a drmTMB_julia fit, predict(fj, newdata = nd, dpar = 'mu', se.fit = TRUE) is identical() to the plain call. None of these warn.",
+   "expected": "Unknown arguments are refused, as predict_parameters() does ('`...` is reserved for future options'), or newdata-aware simulation / se.fit is offered. The supported SE route, predict_parameters(newdata =, conf.int = TRUE), matches an independent delta method to <= 3.5e-16 relative in all 28 cells.",
+   "evidence": "Source at ca3ddefa: R/methods.R:2951-2958 (predict.drmTMB with ... never inspected); R/methods.R:3126 (simulate.drmTMB has no newdata formal); R/julia-bridge.R:7312-7319 (predict.drmTMB_julia, ... documented as 'Reserved' but not checked). #1536's own repro says 'code read only (not run)'. This lane ran it: logs/repro_known_1536.log, results/r_gaussian_fixed.json tests.P8.details.known_1536_newdata, results/bridge_se.json.",
+   "repro": "# Rscript /home/user/drmTMB/sweep-oct16/t6/R/repro/r_known_1536.R  (drmTMB ca3ddefa5ea11bbfd3b765615dfbb89305d2485a, R 4.3.3; data seed 261016600)\nsuppressPackageStartupMessages(library(drmTMB))\nd <- read.csv('/home/user/drmTMB/sweep-oct16/t6/data/gaussian_fixed.csv', stringsAsFactors = FALSE)\nnd <- read.csv('/home/user/drmTMB/sweep-oct16/t6/data/nd_main.csv', stringsAsFactors = FALSE)\nfit <- drmTMB(bf(y ~ x + f, sigma ~ x), family = gaussian(), data = d)\nidentical(predict(fit, se.fit = TRUE), predict(fit))                                          # TRUE\nidentical(predict(fit, newdata = nd, interval = 'confidence'), predict(fit, newdata = nd))  # TRUE\ns <- simulate(fit, nsim = 1, seed = 1, newdata = nd); nrow(s)                             # 240, not 18\n# bridge: fj <- drmTMB(bf(y ~ x + f, sigma ~ x), gaussian(), d, engine = 'julia')  (needs the #1550 %||% shim)\n# identical(predict(fj, newdata = nd, dpar = 'mu', se.fit = TRUE), predict(fj, newdata = nd, dpar = 'mu'))  # TRUE",
+   "disposition": "comment-on-existing:itchyshin/drmTMB#1536 (add the executed confirmation at ca3ddefa across all 28 cells, and the extension to predict.drmTMB_julia at R/julia-bridge.R:7312)",
+   "existing_issues": "drmTMB #1536 (open): exact match for native predict/simulate. The drmTMB_julia predict method is not mentioned there.",
+   "merged_from": [
+    "r-predict-se-fit-interval-silently-ignored",
+    "r-simulate-newdata-returns-training-rows",
+    "bridge-predict-silently-drops-se-fit"
+   ],
+   "source_ref": "drmTMB R/methods.R:2951-2958, :3126; R/julia-bridge.R:7300-7319"
+  },
+  {
+   "key": "bridge-gaussian-ri-factor-fixed-effect-label-contract",
+   "title": "engine = \"julia\" refuses every Gaussian (1 | g) model that has a factor fixed effect: the conditional-components bridge entry skips the coefficient-label contract that the main entry applies",
+   "repo": "itchyshin/drmTMB",
+   "severity": "refusal/gap",
+   "cells": [
+    "gaussian_ri"
+   ],
+   "tests": [
+    "P11",
+    "admission"
+   ],
+   "observed": "drmTMB(bf(y ~ x + f + (1 | g), sigma ~ x), gaussian(), d, engine = 'julia') aborts after the Julia fit: \"DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c).\" The same happens with f as factor and with sigma ~ 1. The numeric-only bf(y ~ x + (1 | g), sigma ~ x) is admitted and matches native DRModels exactly (coef 0, logLik 0).",
+   "expected": "Admitted. julia-engine.Rmd:357 lists a Gaussian 'ordinary random-effect' route, and engine = 'tmb' and native DRModels.jl both fit this model. A factor fixed effect is the common case.",
+   "evidence": "Triage re-check. drmTMB routes ordinary Gaussian mu RE to drmTMB_drm_bridge_conditional_gaussian_components (R/julia-bridge.R:778-790). That Julia source calls `_bridge_formula(formula, family, dat)` without `labels = true` (R/julia-bridge.R:4180) and `_bridge_flatten(fit; family = ...)` without labels or coef_labels (:4240). The main entry, DRModels src/bridge.jl:51-62, passes both. The R payload still carries coef_labels, so drm_julia_bridge_check_coef_labels (R/julia-coefficient-labels.R:73) aborts on the raw 'f: b' spelling. bridge_diag.json D1c: the conditional entry returns mu_f: b / mu_f: c with coef_label_contract absent. Routing the same payload through the main entry instead aborts with 'coef_labels is missing an entry for dpar \"resd\"', the #1551 defect. A fix therefore needs both the labels on the conditional entry and a resd label.",
+   "repro": "# drmTMB ca3ddefa5ea11bbfd3b765615dfbb89305d2485a + DRModels.jl f71b2923360e9e5d4591e0d6e15a9ef9db0356d7, R 4.3.3, Julia 1.12.7; data seed 20261016601 (R 261016601)\nSys.setenv(JULIA_DEPOT_PATH = '/opt/julia-depot', DRMODELS_JL_PATH = '/home/user/DRModels.jl', NOT_CRAN = 'true', JULIA_HOME = '/opt/julia-env/bin')\nlibrary(drmTMB)\nif (!exists('%||%', baseenv())) assign('%||%', function(x, y) if (is.null(x)) y else x, envir = globalenv())  # #1550\nd <- read.csv('/home/user/drmTMB/sweep-oct16/t6/data/gaussian_ri.csv')\ntry(drmTMB(bf(y ~ x + f + (1 | g), sigma ~ x), family = gaussian(), data = d, engine = 'julia'))  # refused: expects fb, fc; DRM.jl returned f: b, f: c\nfit_ok <- drmTMB(bf(y ~ x + (1 | g), sigma ~ x), family = gaussian(), data = d, engine = 'julia')  # admitted\nfit_tmb <- drmTMB(bf(y ~ x + f + (1 | g), sigma ~ x), family = gaussian(), data = d)                # native fits",
+   "disposition": "new",
+   "existing_issues": "No match. Related: drmTMB #1551 (open; missing resd coef label for ordinary mu (1 | g), non-Gaussian) and #1550 (%||% shim needed to run the repro). Searched for label, model.matrix, spelling, conditional, Gaussian RE julia.",
+   "merged_from": [
+    "bridge-gaussian-ri-factor-predictor-refused-label-contract"
+   ],
+   "source_ref": "drmTMB R/julia-bridge.R:778-790, :4174-4182, :4236-4240; R/julia-coefficient-labels.R:60-90; vignettes/julia-engine.Rmd:357. DRModels.jl src/bridge.jl:51-62"
+  },
+  {
+   "key": "bridge-nongaussian-ordinary-ri-postfit-resd-abort",
+   "title": "KNOWN #1551, extended: engine = \"julia\" also admits nbinom2, beta_family and binomial with an ordinary (1 | g), runs the full Julia fit, then aborts with a raw Julia stack trace (missing 'resd' coef label)",
+   "repo": "itchyshin/drmTMB",
+   "severity": "refusal/gap",
+   "cells": [
+    "poisson_ri",
+    "gamma_ri",
+    "nbinom2_ri",
+    "beta_ri",
+    "binomial_ri"
+   ],
+   "tests": [
+    "P11",
+    "admission"
+   ],
+   "observed": "Each call takes 14-34 s in DRM.jl, then fails: \"Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar \\\"resd\\\" (1 fixed-effect columns; Julia names: [\\\"resd_g\\\"]) ... Stacktrace\". The R payload's coef_labels holds only mu (poisson) or mu and sigma (nbinom2). These families are not in drm_julia_fe_only_fence_families(). The same payload without coef_labels fits in DRM.jl (poisson logLik -454.5173, nbinom2 -562.3570, marginal LA), against TMB's Laplace values -454.5374 and -562.3827.",
+   "expected": "Either a drmTMB-worded refusal before Julia starts, as the fe-only fence gives for student, lognormal and others, or admission with a resd label and marginal = :Laplace.",
+   "evidence": "results/bridge_diag.json D2: in_fe_only_fence FALSE, payload_coef_label_dpars mu / mu+sigma, seconds_to_refusal 24.2 / 31.1. Source: R/julia-bridge.R:1431-1461 (fence excludes rows with phylo/structured columns), :2174-2540 (resd label added only for structured terms and non-mu ordinary RE, at :2351-2360, :2495, :2534); DRModels src/bridge.jl:1880-1883 (echo abort). #1551 already diagnoses poisson and Gamma(log) from lane t5 with the same root cause. This lane adds nbinom2, beta_family and binomial.",
+   "repro": "Sys.setenv(JULIA_DEPOT_PATH = '/opt/julia-depot', DRMODELS_JL_PATH = '/home/user/DRModels.jl', NOT_CRAN = 'true', JULIA_HOME = '/opt/julia-env/bin')\nlibrary(drmTMB)   # ca3ddefa; DRModels.jl f71b292\nif (!exists('%||%', baseenv())) assign('%||%', function(x, y) if (is.null(x)) y else x, envir = globalenv())\nd <- read.csv('/home/user/drmTMB/sweep-oct16/t6/data/nbinom2_ri.csv')   # seed 20261016621\ntry(drmTMB(bf(y ~ x + f + (1 | g), sigma ~ x), family = nbinom2(), data = d, engine = 'julia'))  # Julia stack trace after full fit\n'nbinom2' %in% drmTMB:::drm_julia_fe_only_fence_families()   # FALSE\n# same for beta_ri.csv (beta_family(), seed 20261016611) and binomial_ri.csv (cbind(successes, failures) ~ x + f + (1 | g), binomial(), seed 20261016617)",
+   "disposition": "comment-on-existing:itchyshin/drmTMB#1551 (add nbinom2, beta_family and binomial to its poisson/Gamma scope, with times-to-refusal and the GHQ-vs-Laplace logLik gaps)",
+   "existing_issues": "drmTMB #1551 (open, lane t5): same root cause; title names Poisson / Gamma(log) only.",
+   "merged_from": [
+    "bridge-nongaussian-ordinary-ri-postfit-julia-abort"
+   ],
+   "source_ref": "drmTMB R/julia-bridge.R:1431-1461, :2174-2540; DRModels.jl src/bridge.jl:1880-1883"
+  },
+  {
+   "key": "jl-nongaussian-fitters-no-training-schema-cache",
+   "title": "DRModels.jl non-Gaussian univariate fitters never fill the training-schema cache (#609), so predict refuses a level-subset newdata with a raw StatsModels error, and a fit on a releveled categorical cannot predict on String newdata (or the reverse)",
+   "repo": "itchyshin/DRModels.jl",
+   "severity": "refusal/gap",
+   "cells": [
+    "student_fixed",
+    "student_ri",
+    "skew_normal_fixed",
+    "lognormal_fixed",
+    "lognormal_ri",
+    "gamma_fixed",
+    "gamma_ri",
+    "beta_fixed",
+    "beta_ri",
+    "zero_one_beta_fixed",
+    "zero_one_beta_ri",
+    "beta_binomial_fixed",
+    "beta_binomial_ri",
+    "binomial_fixed",
+    "binomial_ri",
+    "poisson_fixed",
+    "poisson_ri",
+    "nbinom2_fixed",
+    "nbinom2_ri",
+    "truncated_nbinom2_fixed",
+    "tweedie_fixed",
+    "tweedie_ri"
+   ],
+   "tests": [
+    "P3",
+    "P4",
+    "P5"
+   ],
+   "observed": "predict(fit, nd_subset), where every row has f = 'b', throws 'ArgumentError: only one level found: b (need at least two to compute contrasts).' This holds for Vector{String}, categorical(levels = [b]) and categorical(levels = [a,b,c]), and the message names neither `f` nor the remedy. Poisson fitted on categorical(levels = [c,a,b]) cannot predict on String nd_main. A String fit cannot predict on categorical(levels = [c,a,b]) newdata. Both hit the #1000 column guard. P4 (f = 'd') is refused through the #1000 guard, not the #1015 unseen-level message. No silent wrong values were seen.",
+   "expected": "The Gaussian behaviour, which passes P3/P4/P5: nd_subset rows equal nd_main rows 4-6 and 13-15 to 5.6e-17, and cross-type newdata agrees exactly. drmTMB passes P3/P5 in all of these cells. The #609 cache is documented in source as the mechanism that makes subset and reordered newdata safe.",
+   "evidence": "Triage re-check at f71b292: only the Gaussian fitter passes schema_cache to _design (src/gaussian_core.jl:621-626); grep finds no other fitter doing so (the one other hit is heritability.jl:520). Without a cache, _design builds the schema from newdata (:407-413) and skips the #1015 newdata checks (:418). results/jl_poisson_fixed.json P3/P5 record the messages; jl_gaussian_fixed.json P3/P5 pass with categorical [a,b,c], [b], String, and Int x. DRModels.jl #1000 assumes the cache is 'univariate-only', meaning univariate is covered, but only univariate Gaussian is. No docs page states that non-Gaussian predict needs every fitted level.",
+   "repro": "# DRModels.jl f71b2923360e9e5d4591e0d6e15a9ef9db0356d7, Julia 1.12.7; data seeds 20261016618 (poisson_fixed), 20261016600 (gaussian_fixed)\nusing DRModels, CSV, DataFrames, CategoricalArrays\nD = \"/home/user/drmTMB/sweep-oct16/t6/data\"\nrd(f) = (df = CSV.read(joinpath(D, f), DataFrame); NamedTuple{Tuple(Symbol.(names(df)))}(Tuple(eltype(c) <: AbstractString ? String.(c) : Float64.(c) for c in eachcol(df))))\nnds = rd(\"nd_subset.csv\"); nd = rd(\"nd_main.csv\"); dp = rd(\"poisson_fixed.csv\"); dg = rd(\"gaussian_fixed.csv\")\nfp = drm(bf(@formula(y ~ x + f)), Poisson(); data = dp)\nfg = drm(bf(@formula(y ~ x + f), @formula(sigma ~ x)), Gaussian(); data = dg)\npredict(fg, nds)     # works\npredict(fp, nds)     # ArgumentError: only one level found: b (need at least two to compute contrasts).\nkeys(fp.formula.schema_cache[]), keys(fg.formula.schema_cache[])   # () vs (:mu, :sigma)\nfpr = drm(bf(@formula(y ~ x + f)), Poisson(); data = merge(dp, (f = categorical(dp.f; levels = [\"c\", \"a\", \"b\"]),)))\npredict(fpr, nd)     # ArgumentError (#1000 guard); the Gaussian analogue predicts",
+   "disposition": "new",
+   "existing_issues": "No match. Related, open: DRModels.jl #609 (S10 follow-ups: 'prediction parity fails for factor predictors'; the cache was introduced for it) and #1000 (bivariate predict lacks the cache). Closed: #1015 (newdata error messages). None of their titles or bodies cover univariate non-Gaussian fitters.",
+   "merged_from": [
+    "jl-nongaussian-no-training-schema"
+   ],
+   "source_ref": "DRModels.jl src/gaussian_core.jl:388-418, :621-626, :1821-1834; src/negbinomial.jl:113-114 and the other family fitters' _design calls (no schema_cache)"
+  },
+  {
+   "key": "jl-lognormal-truncnb2-fitted-predict-not-mean",
+   "title": "DRModels.jl LogNormal and TruncatedNegBinomial2: fitted() and predict(type = :response) return the median exp(meanlog) and the untruncated NB mean, while the fitted/predict docstrings call them the (response-scale) mean; drmTMB's fitted() returns E[y] and its lognormal predict(mu, response) returns meanlog",
+   "repo": "itchyshin/DRModels.jl",
+   "severity": "wrong-docs",
+   "cells": [
+    "lognormal_fixed",
+    "lognormal_ri",
+    "truncated_nbinom2_fixed"
+   ],
+   "tests": [
+    "P1",
+    "P9",
+    "P10"
+   ],
+   "observed": "lognormal_fixed row 1: fitted = predict(:response) = exp(eta) = 2.17350. E[y] = exp(mu + sigma^2/2) = 2.31513, and the engine's own 20000 simulate() draws average 2.32438 (MC SE 0.006). mean(fitted) = 3.016 vs mean(y) 3.530. On nd_main, Julia mu response = 1.6119 = exp(0.4774), while drmTMB returns 0.4774 (meanlog, identity link); max|diff| is 5.88 (fixed) and 5.33 (ri). truncated_nbinom2_fixed row 1: fitted = 3.74035 (untruncated mu), against E[y] = mu/(1-p0) = 4.55623; the engine's draws average 4.584 (MC SE 0.027). mean(fitted) 2.682 vs mean(y) 3.629.",
+   "expected": "Docs and values agree within DRModels. The fitted docstring (src/gaussian_core.jl:1585) says 'Fitted mean(s)'. The predict docstring (:1743-1746) says ':response returns the response-scale mean \u2014 the family inverse link applied to X\u03b2\u0302'. The LogNormal docstring (src/lognormal.jl:14-16) gives mu an identity link and calls exp(mu) the median. Either fitted returns E[y] (drmTMB R/methods.R:2298-2299, :6477-6480) or both docstrings name the median / untruncated-mean exceptions. The twin divergence should also be stated where users compare engines.",
+   "evidence": "Triage re-check. src/lognormal.jl:144, :182, :210 store means = exp.(X\u03bc\u03b2), with the comment 'response-scale median'. src/negbinomial.jl:560 stores exp.(X\u03bc\u03b2), commented 'untruncated NB mean \u03bc\u0302'. The code is therefore intentional and the docstrings are wrong. P8 passes for both families, so the samplers are right. P9 is judged on the link (4.7e-15). This finding is the native root of the bridge fitted() finding above. The SPEC's moment formulas were checked by hand (truncated E[y^2] = (mu + sigma^2 mu^2 + mu^2)/(1-p0)), so this is not a harness artifact.",
+   "repro": "# DRModels.jl f71b2923360e9e5d4591e0d6e15a9ef9db0356d7; data seeds 20261016606 / 20261016622\nusing DRModels, CSV, DataFrames, Random, Statistics\nD = \"/home/user/drmTMB/sweep-oct16/t6/data\"\nrd(f) = (df = CSV.read(joinpath(D, f), DataFrame); NamedTuple{Tuple(Symbol.(names(df)))}(Tuple(eltype(c) <: AbstractString ? String.(c) : Float64.(c) for c in eachcol(df))))\nd = rd(\"lognormal_fixed.csv\")\nfit = drm(bf(@formula(y ~ x + f), @formula(sigma ~ x)), LogNormal(); data = d)\n\u03b7 = predict(fit, d; type = :link); s = sigma(fit)\nfitted(fit)[1], exp(\u03b7[1]), exp(\u03b7[1] + s[1]^2 / 2)                    # 2.1735, 2.1735, 2.3151\nmean(simulate(fit; nsim = 20000, rng = Xoshiro(2))[1, :])            # 2.324\nt = drm(bf(@formula(y ~ x + f), @formula(sigma ~ x)), TruncatedNegBinomial2(); data = rd(\"truncated_nbinom2_fixed.csv\"))\n\u03bc = fitted(t); k = 1 ./ sigma(t) .^ 2; p0 = (k ./ (k .+ \u03bc)) .^ k\n\u03bc[1], \u03bc[1] / (1 - p0[1])                                              # 3.740 vs 4.556",
+   "disposition": "new (DRModels.jl docs plus twin-semantics note; the drmTMB side is internally documented, see drmTMB #1320)",
+   "existing_issues": "No DRModels.jl match. Related: drmTMB #1320 (open; drmTMB predict(type = 'response') not documented as E[Y] for lognormal and others); DRModels.jl #1092 (predict docstring RE wording) and #1104 (fitted docstring drift on phylo routes).",
+   "merged_from": [
+    "jl-lognormal-response-is-median",
+    "jl-truncnb2-fitted-untruncated",
+    "twin-lognormal-mu-response-semantics-differ"
+   ],
+   "source_ref": "DRModels.jl src/gaussian_core.jl:1585-1588, :1743-1746, :1866-1870; src/lognormal.jl:14-16, :144, :182, :210; src/negbinomial.jl:560. drmTMB R/family.R:216, R/methods.R:2298-2299, :2911-2917, :6477-6480"
+  },
+  {
+   "key": "drmtmb-quantile-exceedance-insample-conditional-docs-population",
+   "title": "drmTMB predict(type = \"quantile\") and exceedance() on the fitted rows of a (1 | g) fit are conditional on the random-effect modes, but ?predict, ?exceedance and fitted_distribution's notes say 'fixed-effect, population-level' estimates",
+   "repo": "itchyshin/drmTMB",
+   "severity": "wrong-docs",
+   "cells": [
+    "gaussian_ri",
+    "student_ri",
+    "skew_normal_ri",
+    "lognormal_ri",
+    "gamma_ri",
+    "beta_ri",
+    "zero_one_beta_ri",
+    "beta_binomial_ri",
+    "binomial_ri",
+    "poisson_ri",
+    "nbinom2_ri",
+    "truncated_nbinom2_ri",
+    "cumulative_logit_ri"
+   ],
+   "tests": [
+    "P6"
+   ],
+   "observed": "With newdata = NULL, predict(fit, type = 'quantile') equals the family q-function at eta = X*beta + b-hat[g]. The max difference is <= 1.2e-12 in every ri cell (0 in most). Against population X*beta parameters, the max difference is 1.04 (gaussian = max|b-hat|), 48.3 (lognormal), 34.1 (gamma), 51 (nbinom2) and 1 category (cumulative_logit). For gaussian_ri, exceedance(fit, 1) differs from the population value by up to 0.480 and from the conditional value by 0. With newdata supplied, both functions are population-level as documented.",
+   "expected": "The docs match the code. ?predict.drmTMB (R/methods.R:2867-2871; man/predict.drmTMB.Rd:64-68) says type = 'quantile' is evaluated 'at predict_parameters()'s fixed-effect, population-level parameter estimates'. ?exceedance (R/distributional-outputs.R:124-126) and the file header (:8-11) say the same. Either state that fitted-row quantiles and exceedances are conditional on the fitted modes, as ?predict's own fitted-row paragraph (R/methods.R:2860-2865) says for type = 'response'/'link', or drop b-hat.",
+   "evidence": "Triage re-check at ca3ddefa. fitted_distribution_params (R/family-dpq.R:1274-1281) calls predict_parameters(newdata = NULL, type = 'response'). That calls predict() per dpar (R/predict-parameters.R:147), which adds mu_random_effect_contribution when newdata is NULL (R/methods.R:2975-2983). results/r_gaussian_ri.json P6: insample_vs_predicted_params 0, insample_vs_population_params 1.0399. r_poisson_ri.json: 0 vs 4/6/7. The SPEC P6 pass (1e-8 vs the q-function at predict()'s own parameters) is real. The candidate is the docs contradiction, confirmed by reading both sources. Tweedie ri is NA because the 'tweedie' package is absent. DRModels.jl #1101 documents the same conditional-code / fixed-effect-docs split for residuals(type = 'quantile') on phylo fits; same fitted_distribution root, different consumer.",
+   "repro": "# Rscript /home/user/drmTMB/sweep-oct16/t6/R/repro/r_p6_insample_quantile_conditional.R (drmTMB ca3ddefa5ea11bbfd3b765615dfbb89305d2485a, R 4.3.3; data seed 261016601)\nsuppressPackageStartupMessages(library(drmTMB))\nd <- read.csv('/home/user/drmTMB/sweep-oct16/t6/data/gaussian_ri.csv', stringsAsFactors = FALSE)\nfit <- drmTMB(bf(y ~ x + f + (1 | g), sigma ~ x), family = gaussian(), data = d)\nq <- predict(fit, type = 'quantile', prob = 0.5)[, 1]\nb <- fit$coefficients$mu\neta_pop <- b[['(Intercept)']] + b[['x']] * d$x + b[['fb']] * (d$f == 'b') + b[['fc']] * (d$f == 'c')\nbhat <- fit$random_effects$mu$values[paste0('(1 | g):', d$g)]\nmax(abs(q - eta_pop))           # 1.039906 (= max |bhat|)\nmax(abs(q - (eta_pop + bhat)))  # 0\ns <- exp(fit$coefficients$sigma[[1]] + fit$coefficients$sigma[[2]] * d$x)\nmax(abs(exceedance(fit, threshold = 1) - (1 - pnorm(1, eta_pop, s))))          # 0.480\nmax(abs(exceedance(fit, threshold = 1) - (1 - pnorm(1, eta_pop + bhat, s))))   # 0",
+   "disposition": "new (cross-reference DRModels.jl#1101: one owner decision on the fitted_distribution() in-sample convention should cover quantile, exceedance and quantile residuals)",
+   "existing_issues": "No drmTMB match. Related: DRModels.jl #1101 (open, twin track; drmTMB quantile residuals on structured-mean fits are conditional in code but fixed-effect-only in docs); drmTMB #748 (closed, introduced distributional outputs).",
+   "merged_from": [
+    "r-quantile-exceedance-insample-conditional-docs-population"
+   ],
+   "source_ref": "drmTMB R/family-dpq.R:1140-1150, :1274-1281; R/predict-parameters.R:10-11, :147; R/methods.R:2860-2871, :2975-2983; R/distributional-outputs.R:8-11, :124-126; man/predict.drmTMB.Rd:64-68"
+  },
+  {
+   "key": "drmtmb-julia-engine-family-admission-docs",
+   "title": "drmTMB docs disagree with the Julia-engine admission they describe: skew_normal() fixed is admitted but julia-engine.Rmd says unavailable; plain binomial() is admitted but two vignettes say engine = \"julia\" is unsupported; the engine roxygen omits skew_normal and cumulative_logit",
+   "repo": "itchyshin/drmTMB",
+   "severity": "wrong-docs",
+   "cells": [
+    "skew_normal_fixed",
+    "binomial_fixed",
+    "cumulative_logit_fixed"
+   ],
+   "tests": [
+    "admission"
+   ],
+   "observed": "skew_normal() fixed is admitted. Bridge vs native Julia coefficients differ by 0; bridge vs TMB: coef 1.06e-10, logLik 3.4e-13. binomial() fixed is admitted (vs TMB coef 1.2e-13). cumulative_logit() fixed is admitted (vs TMB coef 1.1e-11).",
+   "expected": "One statement of admission across all docs. vignettes/julia-engine.Rmd:363 says '`skew_normal()` or another family | not currently available through the Julia engine'. vignettes/distribution-families.Rmd:806 and vignettes/proportion-beta-binomial.Rmd:170 say plain binomial with engine = 'julia' remains unsupported, contradicting julia-engine.Rmd:360. The @param engine text (R/drmTMB.R:144-157) lists neither skew_normal nor cumulative_logit, while R/julia-family-registry.R:146 and :168 admit both.",
+   "evidence": "Triage re-check: lines read at ca3ddefa as cited. results/bridge_skew_normal_fixed.json, bridge_binomial_fixed.json, bridge_cumulative_logit_fixed.json: admission TRUE, P11 coef max|d| 0, P2-P5 PASS.",
+   "repro": "Sys.setenv(JULIA_DEPOT_PATH = '/opt/julia-depot', DRMODELS_JL_PATH = '/home/user/DRModels.jl', NOT_CRAN = 'true', JULIA_HOME = '/opt/julia-env/bin')\nlibrary(drmTMB)   # ca3ddefa; DRModels.jl f71b292\nif (!exists('%||%', baseenv())) assign('%||%', function(x, y) if (is.null(x)) y else x, envir = globalenv())  # #1550\nd <- read.csv('/home/user/drmTMB/sweep-oct16/t6/data/skew_normal_fixed.csv')   # seed 20261016604\nfj <- drmTMB(bf(y ~ x + f, sigma ~ x, nu ~ 1), family = skew_normal(), data = d, engine = 'julia')   # fits, contrary to julia-engine.Rmd:363\nd2 <- read.csv('/home/user/drmTMB/sweep-oct16/t6/data/binomial_fixed.csv')       # seed 20261016616\ndrmTMB(bf(cbind(successes, failures) ~ x + f), family = binomial(), data = d2, engine = 'julia')     # fits, contrary to distribution-families.Rmd:806",
+   "disposition": "new",
+   "existing_issues": "No match. Related julia-engine.Rmd docs issues, all open with different topics: drmTMB #1453 (gamma() spelling in the family table), #1475 (cheatsheet says Julia is deferred), #1479 (hurdle spelling).",
+   "merged_from": [
+    "docs-julia-engine-family-admission-inconsistent"
+   ],
+   "source_ref": "drmTMB vignettes/julia-engine.Rmd:355-363; vignettes/distribution-families.Rmd:800-806; vignettes/proportion-beta-binomial.Rmd:165-170; R/drmTMB.R:144-157; R/julia-family-registry.R:139-168"
+  },
+  {
+   "key": "bridge-no-simulate-predict-parameters-methods",
+   "title": "drmTMB_julia fits have no simulate() or predict_parameters() method: both fail with a generic 'no applicable method' error instead of a drmTMB-worded refusal",
+   "repo": "itchyshin/drmTMB",
+   "severity": "refusal/gap",
+   "cells": [
+    "all 14 admitted *_fixed bridge cells"
+   ],
+   "tests": [
+    "P8",
+    "P7"
+   ],
+   "observed": "simulate(fj, nsim = 1000, seed = 261016700) fails with \"no applicable method for 'simulate' applied to an object of class \\\"drmTMB_julia\\\"\", and predict_parameters(fj, newdata = nd) fails the same way. class(fj) is only 'drmTMB_julia'. methods(class = 'drmTMB_julia') has fitted, predict, confint, vcov and others, but no simulate or predict_parameters.",
+   "expected": "Either a method (native drmTMB and native DRModels.jl both simulate these families, and DRModels' simulate is reachable from the bridge), or a refusal that names engine = 'tmb', as heritability/icc/repeatability.drmTMB_julia now give (capability ledger, R/julia-bridge.R:517). The vignette lists only summary/coef/vcov/logLik/predict/confint, so this is a gap, not a docs contradiction.",
+   "evidence": "logs/bridge.log P8 lines: identical error in all 14 cells. R/julia-bridge.R:4737 sets class(out) <- 'drmTMB_julia' with no 'drmTMB' inheritance. NAMESPACE has no S3method(simulate, drmTMB_julia). Diag D5, a diagnostic only: appending class 'drmTMB' by hand makes simulate.drmTMB fail on design alignment. This leaves predict(se.fit) ignored (#1536) and predict_parameters missing, so bridge fits have no SE route at all.",
+   "repro": "Sys.setenv(JULIA_DEPOT_PATH = '/opt/julia-depot', DRMODELS_JL_PATH = '/home/user/DRModels.jl', NOT_CRAN = 'true', JULIA_HOME = '/opt/julia-env/bin')\nlibrary(drmTMB)   # ca3ddefa; DRModels.jl f71b292\nif (!exists('%||%', baseenv())) assign('%||%', function(x, y) if (is.null(x)) y else x, envir = globalenv())  # #1550\nd <- read.csv('/home/user/drmTMB/sweep-oct16/t6/data/gaussian_fixed.csv')   # seed 261016600\nnd <- read.csv('/home/user/drmTMB/sweep-oct16/t6/data/nd_main.csv')\nfj <- drmTMB(bf(y ~ x + f, sigma ~ x), family = gaussian(), data = d, engine = 'julia')\ntry(simulate(fj, nsim = 1000, seed = 261016700))\ntry(predict_parameters(fj, newdata = nd))\nmethods(class = 'drmTMB_julia')",
+   "disposition": "new",
+   "existing_issues": "No match. Related: drmTMB #1328 (open; public-status decision for the bridge NAMESPACE footprint) and #806 (closed; xfam extractors returning NULL). Searched for drmTMB_julia, no applicable method, simulate, predict_parameters.",
+   "merged_from": [
+    "bridge-no-simulate-or-predict-parameters-method"
+   ],
+   "source_ref": "drmTMB R/julia-bridge.R:4737; NAMESPACE (no S3method(simulate, drmTMB_julia) or predict_parameters method)"
+  },
+  {
+   "key": "jl-skewnormal-truncnb2-ri-twin-gap",
+   "title": "Twin track: DRModels.jl SkewNormal() and TruncatedNegBinomial2() refuse an ordinary (1 | g) on mu that drmTMB skew_normal() and truncated_nbinom2() fit",
+   "repo": "itchyshin/DRModels.jl",
+   "severity": "refusal/gap",
+   "cells": [
+    "skew_normal_ri",
+    "truncated_nbinom2_ri"
+   ],
+   "tests": [
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "P5",
+    "P7",
+    "P8",
+    "P9",
+    "P10"
+   ],
+   "observed": "drm(... + (1 | g) ..., SkewNormal()) throws 'SkewNormal() supports fixed effects only (no random effect on the mean)'. TruncatedNegBinomial2() throws 'TruncatedNegBinomial2() currently supports fixed effects only'. The sigma ~ 1 fallback is refused identically, and marginal = :Laplace gives a MethodError. drmTMB fits both cells (logLik -290.763 and -498.565, pdHess TRUE).",
+   "expected": "Twin capability parity, or an explicit twin-track gap entry. drmTMB admits independent mu random intercepts for both families (R/drmTMB.R:11119 validate_truncated_nbinom2_mu_random_terms; :11291 validate_skew_normal_mu_random_terms).",
+   "evidence": "Triage: the refusal is a documented boundary, not a bug. docs/src/capabilities.md:34 and :36 list both families as fixed-effects only, and src/skewnormal.jl:51-52 and src/negbinomial.jl:498-503 refuse explicitly. This is a twin capability gap in the repo's 'Twin track' pattern (cf. #1278-#1281). Side note found during triage: capabilities.md:43 lists ZeroOneBeta mean-axis random effects as '\u2014', yet the ZeroOneBeta docstring (src/zeroonebeta.jl:25-28) and this lane's zero_one_beta_ri fit admit (1 | g). That is a small docs inconsistency.",
+   "repro": "# DRModels.jl f71b2923360e9e5d4591e0d6e15a9ef9db0356d7; data seeds 20261016605 / 20261016623\nusing DRModels, CSV, DataFrames\nD = \"/home/user/drmTMB/sweep-oct16/t6/data\"\nrd(f) = (df = CSV.read(joinpath(D, f), DataFrame); NamedTuple{Tuple(Symbol.(names(df)))}(Tuple(eltype(c) <: AbstractString ? String.(c) : Float64.(c) for c in eachcol(df))))\ntry drm(bf(@formula(y ~ x + f + (1 | g)), @formula(sigma ~ x), @formula(nu ~ 1)), SkewNormal(); data = rd(\"skew_normal_ri.csv\")) catch e; println(e) end\ntry drm(bf(@formula(y ~ x + f + (1 | g)), @formula(sigma ~ x)), TruncatedNegBinomial2(); data = rd(\"truncated_nbinom2_ri.csv\")) catch e; println(e) end\n# drmTMB ca3ddefa: drmTMB(bf(y ~ x + f + (1 | g), sigma ~ x, nu ~ 1), family = skew_normal(), data = ...) converges, logLik -290.763",
+   "disposition": "new (twin-track [gap]; documented boundary in capabilities.md, so not a bug; split into one issue per family if the ledger prefers)",
+   "existing_issues": "No match for either family's RE gap. Related: DRModels.jl #1060 (SkewNormal nu SE warning); drmTMB #1230 (docs on skew-normal/Tweedie REs). Twin-track precedents: drmTMB #1278-#1281, DRModels.jl #723, #736, #738.",
+   "merged_from": [
+    "jl-skewnormal-ri-refused",
+    "jl-truncnb2-ri-refused"
+   ],
+   "source_ref": "DRModels.jl src/skewnormal.jl:51-52; src/negbinomial.jl:498-503; docs/src/capabilities.md:34,36,43. drmTMB R/drmTMB.R:11119-11144, :11291-11306"
+  },
+  {
+   "key": "jl-laplace-marginal-keyword-coverage",
+   "title": "DRModels.jl marginal = :Laplace (TMB convention) is accepted for only 3 of 12 fittable ordinary-(1 | g) cells; six families answer with a bare MethodError on the keyword instead of an explained refusal",
+   "repo": "itchyshin/DRModels.jl",
+   "severity": "refusal/gap",
+   "cells": [
+    "gamma_ri",
+    "beta_ri",
+    "nbinom2_ri",
+    "beta_binomial_ri",
+    "zero_one_beta_ri",
+    "tweedie_ri",
+    "cumulative_logit_ri",
+    "lognormal_ri",
+    "gaussian_ri"
+   ],
+   "tests": [
+    "P10 prerequisite"
+   ],
+   "observed": "Laplace is accepted for student, binomial and poisson; Student's Laplace logLik -353.302663 equals drmTMB's. Gaussian (mean RE) and BetaBinomial get explained ArgumentErrors. Gamma, Beta and NB2 get explained ArgumentErrors because sigma ~ x is non-constant. LogNormal, ZeroOneBeta, Tweedie, CumulativeLogit, SkewNormal and TruncatedNegBinomial2 get 'MethodError: no method matching drm(...; data, marginal::Symbol) ... got unsupported keyword argument \"marginal\"'.",
+   "expected": "An explained refusal for every family (the binomial.jl:142-147 design rule), and ideally the TMB Laplace route for the ri families where parity needs it (ZeroOneBeta, Tweedie, CumulativeLogit, BetaBinomial, and sigma ~ x for Gamma/Beta/NB2).",
+   "evidence": "Results jl_*_ri.json 'laplace' records. Impact on this lane: P10 for gamma, beta, zero_one_beta, beta_binomial, nbinom2, tweedie and cumulative_logit ri compares GHQ against TMB Laplace. Those gaps (link 7.7e-5 to 1.2e-3, logLik 0.017 to 0.12) decompose fully into coefficient differences (residual after X*dbeta <= 7.1e-15), so they are not predict defects. Gaussian and LogNormal default routes are exact, so nothing is lost there. SkewNormal and TruncatedNegBinomial2 have no RE route at all.",
+   "repro": "# DRModels.jl f71b2923360e9e5d4591e0d6e15a9ef9db0356d7; data seeds 20261016625 / 20261016609\nusing DRModels, CSV, DataFrames\nD = \"/home/user/drmTMB/sweep-oct16/t6/data\"\nrd(f) = (df = CSV.read(joinpath(D, f), DataFrame); NamedTuple{Tuple(Symbol.(names(df)))}(Tuple(eltype(c) <: AbstractString ? String.(c) : Float64.(c) for c in eachcol(df))))\ndrm(bf(@formula(y ~ x + f + (1 | g)), @formula(sigma ~ x), @formula(nu ~ 1)), Tweedie(); data = rd(\"tweedie_ri.csv\"), marginal = :Laplace)   # MethodError: unsupported keyword argument \"marginal\"\ndrm(bf(@formula(y ~ x + f + (1 | g)), @formula(sigma ~ x)), Gamma(); data = rd(\"gamma_ri.csv\"), marginal = :Laplace)                         # ArgumentError (non-constant sigma), explained",
+   "disposition": "comment-on-existing:itchyshin/DRModels.jl#943 (extend its Gamma/Beta/NB2 sigma ~ x scope with ZeroOneBeta, Tweedie, CumulativeLogit and BetaBinomial (1 | g) and the bare-MethodError keyword handling)",
+   "existing_issues": "DRModels.jl #943 (open; no TMB-convention Laplace for NB2/Gamma/Beta with sigma ~ x + (1 | g)): close match. Related, open: #1071 (name the marginal approximation; GHQ vs Laplace logLik), #951 (bridge forwards unsupported keywords, raw MethodError), #994 and #974 (other bare-MethodError keyword gaps).",
+   "merged_from": [
+    "jl-laplace-marginal-coverage"
+   ],
+   "source_ref": "DRModels.jl src/ordinary_laplace.jl:29-35, :45-51; src/binomial.jl:142-147; src/tweedie.jl:125; src/lognormal.jl:58; src/zeroonebeta.jl:49; src/cumulative.jl:136; src/skewnormal.jl:45; src/negbinomial.jl:491"
+  },
+  {
+   "key": "jl-simulate-b0-and-fitted-marginal-wording",
+   "title": "DRModels.jl simulate() on (1 | g) fits draws at b = 0 (documented), unlike drmTMB's default fresh-b marginal draws; and the fitted() docstring calls invlink(X*beta) the 'population/marginal mean', which is wrong under a non-identity link",
+   "repo": "itchyshin/DRModels.jl",
+   "severity": "wrong-docs",
+   "cells": [
+    "gaussian_ri",
+    "student_ri",
+    "lognormal_ri",
+    "gamma_ri",
+    "beta_ri",
+    "zero_one_beta_ri",
+    "beta_binomial_ri",
+    "binomial_ri",
+    "poisson_ri",
+    "nbinom2_ri",
+    "tweedie_ri",
+    "cumulative_logit_ri"
+   ],
+   "tests": [
+    "P8",
+    "P1"
+   ],
+   "observed": "In all 12 fitted ri cells, the draws match the b = 0 moments (|z| < 2). Against the marginal-over-b moments (64-node Gauss-Hermite), z_var ranges from -21.7 to -257.9. For poisson_ri, the between-group variance of standardized group means over draws is 0.101 (no group effect), against 0.610 in the data. fit.means[:mu] equals the hand b = 0 value exactly. fitted() is documented as the 'population/marginal mean X\u03b2\u0302', but for poisson_ri the marginal mean is about exp(eta + sd^2/2), with sd = 0.376.",
+   "expected": "The sampler matches its own docstring (src/gaussian_core.jl:2157-2165: 'conditional on the random effects being zero'), so it is not a defect. The fitted() docstring (src/gaussian_core.jl:1584-1586) should say 'at b = 0', not 'marginal', mirroring #1092's fix for predict. The twin difference from drmTMB's simulate default (re.form = NA: fresh b per draw, which the R lane verified passes in all ri cells) should be stated for users building parametric bootstraps or PPCs.",
+   "evidence": "Triage: the simulate docstring was re-read at f71b292. results/jl_*_ri.json P8 b0 vs marginal blocks; logs/verify_candidates_jl.log V9. A marginal simulator already exists internally for the bootstrap (src/inference.jl:2049 _marginal_simulator_build; #462 closed). The capability is therefore present but not exposed through simulate(). This is not a harness artifact: P8 status was judged against the documented b = 0 moments and passed.",
+   "repro": "# DRModels.jl f71b2923360e9e5d4591e0d6e15a9ef9db0356d7; data seed 20261016619; simulate seed 20261016719\nusing DRModels, CSV, DataFrames, Random, Statistics\nD = \"/home/user/drmTMB/sweep-oct16/t6/data\"\nrd(f) = (df = CSV.read(joinpath(D, f), DataFrame); NamedTuple{Tuple(Symbol.(names(df)))}(Tuple(eltype(c) <: AbstractString ? String.(c) : Float64.(c) for c in eachcol(df))))\nd = rd(\"poisson_ri.csv\")\nfit = drm(bf(@formula(y ~ x + f + (1 | g))), Poisson(); data = d)\nY = simulate(fit; nsim = 1000, rng = Xoshiro(20261016719))\nmean(Y) - mean(fitted(fit))   # ~0: centred on exp(X*beta), b = 0\nre_sd(fit)                    # 0.376: group variance absent from the draws",
+   "disposition": "comment-on-existing:itchyshin/DRModels.jl#1092 (same 'integrated out / marginal' versus b = 0 wording problem; extend it to the fitted() docstring and note the simulate() twin default). The sampler itself is likely-not-a-defect, because it is documented.",
+   "existing_issues": "DRModels.jl #1092 (open; predict docstring says REs 'integrated out' but returns invlink(X\u03b2)): same wording root. Related: #1104 (open; fitted docstring drift on phylo routes), #997 (open; marginal simulator fallback), #462 (closed; bootstrap conditional simulator). drmTMB #1487 (closed; re.form semantics).",
+   "merged_from": [
+    "jl-simulate-ri-at-b0-only"
+   ],
+   "source_ref": "DRModels.jl src/gaussian_core.jl:1584-1588, :2157-2187, :2210-2334; src/inference.jl:2049"
+  },
+  {
+   "key": "jl-no-quantile-prediction-api",
+   "title": "DRModels.jl has no quantile-prediction API equivalent to drmTMB predict(type = \"quantile\")",
+   "repo": "itchyshin/DRModels.jl",
+   "severity": "refusal/gap",
+   "cells": [
+    "all 26 fitted Julia cells"
+   ],
+   "tests": [
+    "P6"
+   ],
+   "observed": "No exported name contains 'quantile', 'exceedance' or 'fitted_distribution'. predict(fit, nd; type = :quantile) throws 'predict: `type` must be :response or :link'.",
+   "expected": "SPEC P6 only asks to record whether an equivalent exists. No DRModels.jl doc claims one.",
+   "evidence": "Triage: grep of src/ and docs/src for exceedance, fitted_distribution, centile and quantile prediction finds only bridge comments. The bridge ships parameters so that drmTMB evaluates q() on the R side (src/bridge.jl:49, :2473; drmTMB #1198 / #1204 closed). src/gaussian_core.jl:1763 type check.",
+   "repro": "using DRModels; filter(n -> occursin(\"quantile\", lowercase(String(n))), names(DRModels))   # empty at f71b292",
+   "disposition": "likely-not-a-defect: an undocumented feature gap, not a contradiction. drmTMB computes quantiles R-side for engine = 'julia' fits. File only as an optional [gap] if the twin-parity ledger wants it.",
+   "existing_issues": "No DRModels.jl match. drmTMB #1198 (closed; bridge quantile predict), #748 (closed; distributional outputs).",
+   "merged_from": [
+    "jl-no-quantile-predict"
+   ],
+   "source_ref": "DRModels.jl src/gaussian_core.jl:1763; src/bridge.jl:49, :2473"
+  },
+  {
+   "key": "cross-engine-se-gap-tmb-fd-hessian",
+   "title": "Cross-engine Wald SEs agree only to about 1e-6 relative when coefficients agree to 1e-11, because drmTMB's vcov comes from TMB::sdreport's finite-difference Hessian and DRModels.jl's from the exact ForwardDiff Hessian",
+   "repo": "both",
+   "severity": "cosmetic",
+   "cells": [
+    "all fixed cells",
+    "gaussian_ri",
+    "lognormal_ri",
+    "student_ri",
+    "binomial_ri",
+    "poisson_ri"
+   ],
+   "tests": [
+    "P10",
+    "P7"
+   ],
+   "observed": "P10 own-fit prediction SEs differ by a relative 4.6e-8 to 9.2e-7, and coefficient SEs by up to 1.25e-6, while max|dcoef| is <= 1.1e-10. With R's vcov injected into the Julia fit (P9), SEs agree to <= 1.5e-14.",
+   "expected": "No defect: the delta-method layers are identical. Cross-engine SE bars need about 1e-5 relative tolerance, not 1e-8.",
+   "evidence": "Inverting a central difference of the exact gradient with step 1e-3 reproduces R's SEs to 1e-15 to 3e-10 (julia/21_vcov_check.jl; results/parity_vcov_check.csv). drmTMB R/drmTMB.R:3410-3416 calls TMB::sdreport, and R/drmTMB.R:737-741 itself notes sdreport's finite-difference stencil (1e-3). DRModels src/gaussian_core.jl:1227 uses ForwardDiff.hessian. Existing parity tooling already uses a 1e-3 SE bar (drmTMB capability ledger, tools/parity_se.R).",
+   "repro": "# see julia/21_vcov_check.jl in the lane dir (needs results/r_gaussian_fixed.json and results/jl_fits/gaussian_fixed.jls)",
+   "disposition": "likely-not-a-defect: known TMB::sdreport FD-Hessian behaviour, already reflected in the repos' 1e-3 SE parity bar; record as a precision note in the receipt",
+   "existing_issues": "None needed. Related: DRModels.jl #1073 (SE gap on NB2 crossed, a different cause).",
+   "merged_from": [
+    "cross-engine-se-gap-tmb-sdreport-fd-hessian"
+   ],
+   "source_ref": "drmTMB R/drmTMB.R:737-741, :3410-3416; DRModels.jl src/gaussian_core.jl:1227"
+  }
+ ],
+ "coverage_gaps": "Tests and cells that no agent actually ran, or ran only partly. None of these are recorded as PASS.\n\n1. P6 (quantile):\n   - R tweedie_fixed and tweedie_ri are NA: the Suggests package 'tweedie' is not installed and CRAN is unreachable.\n   - Julia is NA in every cell because there is no API, only a record of that fact.\n   - Nobody tested P6 through the bridge: predict(type = 'quantile') on drmTMB_julia fits (the #1198/#1204 route).\n2. P8 (simulate):\n   - The bridge is NA in all 14 admitted cells, because there is no simulate method for drmTMB_julia.\n   - Julia has no conditional (b-hat) simulate mode, so nothing is comparable to the R re.form = NULL run.\n   - The simulate(newdata) behaviour (known #1536) was checked only in gaussian_fixed.\n3. Julia skew_normal_ri and truncated_nbinom2_ri: P1-P8 are NA and P9/P10 are NA, because the engine refuses the fit (a documented boundary). The sigma ~ 1 fallback was refused too.\n4. Julia cumulative_logit_fixed and _ri:\n   - P1 (the predict part), P2, P3, P5 and P7 error.\n   - P9/P10 are coefficient-level only. Their hand X*beta numbers are not engine evaluations.\n5. P10 at the same integrator was possible only for student_ri, binomial_ri and poisson_ri (Julia marginal = :Laplace), plus gaussian_ri and lognormal_ri, where the default is exact.\n   - gamma, beta, zero_one_beta, beta_binomial, nbinom2, tweedie and cumulative_logit ri compare GHQ against TMB Laplace (known #1071/#943). For those cells the 1e-8 bar was not assessable as a predict test.\n   - The *_laplace_sigma1 Julia fits use sigma ~ 1, not the SPEC model, and were not used.\n   - poisson_ri misses the bar at 1.45e-8 because the Julia Laplace optimizer stops at |grad| 3e-6. This is optimizer tolerance, not a predict defect.\n6. P11 (bridge same-fit parity) was not run on these cells:\n   - All 14 ri cells, which the bridge refuses.\n   - cumulative_logit_fixed, because native predict errors. Its bridge_summary.csv P11_link_maxabs = 0 is a harness artifact; the real check is bridge vs hand X*theta.\n   - gaussian_ri was measured only on the reduced numeric-only formula bf(y ~ x + (1 | g), sigma ~ x), not on the SPEC formula.\n   - Bridge P2-P5 were run only on the fixed cells.\n7. P1 Julia: the conditional (X*beta + Zb) in-sample comparison was possible only for gaussian_ri, because ranef() is unavailable for non-Gaussian GLMM fits.\n8. P7:\n   - Bridge SEs could not be compared: predict ignores se.fit, and predict_parameters has no method.\n   - emmeans SE cross-checks covered only fixed gaussian, student, gamma, beta, beta_binomial, poisson and nbinom2. emmeans refused the rest.\n9. Log-sigma soft clamp: no dataset made the clamp bind, so neither native nor bridge clamp behaviour in predict() was exercised. The bridge's predict() does not apply the clamp; that is latent and untested.\n10. The bridge used only one dataset per cell, n = 240. Unlike R/Julia P8, no multi-seed replication was done.\n11. Not run here (not in the SPEC): bivariate Student nu and CategoricalLogit, which likely share the inverse-link-table defect.\n12. Issue search:\n    - Complete title lists were pulled for both repos by manual REST pagination: 430 DRModels.jl issues and 350 drmTMB issues, open and closed. They were grepped for every theme.\n    - Semantic search_issues was rate-limited after about 8 queries.\n    - Bodies were read for drmTMB #1551, #1536 and #1320, and for DRModels.jl #609, #943, #1092, #1104, #675 and #1101.\n    - Matches were judged on titles and those bodies. Other issue bodies were not read.\n13. RECEIPT_t6.md does not exist yet in sweep-oct16/t6/. Writing it is outside this triage step."
+}

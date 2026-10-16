@@ -1,0 +1,82 @@
+{
+  "family": "lognormal",
+  "re": "ri",
+  "engine": "bridge",
+  "cell_k": 7,
+  "seed": "20261016607",
+  "seed_r": "261016607",
+  "sim_seed_r": 261016707,
+  "formula": "bf(y ~ x + f + (1 | g), sigma ~x)",
+  "family_call": "lognormal()",
+  "fallback": "",
+  "fit_ok": false,
+  "fit_error": "`engine = \"julia\"` admits \"lognormal\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"lognormal\" random-effect models.",
+  "converged": null,
+  "loglik": null,
+  "coef": [],
+  "tests": {
+    "P2": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"lognormal\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"lognormal\" random-effect models.",
+      "details": null
+    },
+    "P3": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"lognormal\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"lognormal\" random-effect models.",
+      "details": null
+    },
+    "P4": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"lognormal\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"lognormal\" random-effect models.",
+      "details": null
+    },
+    "P5": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"lognormal\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"lognormal\" random-effect models.",
+      "details": null
+    },
+    "P8": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"lognormal\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"lognormal\" random-effect models.",
+      "details": null
+    },
+    "P11": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"lognormal\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"lognormal\" random-effect models.",
+      "details": null
+    }
+  },
+  "admission": {
+    "first_try": {
+      "formula": "bf(y ~ x + f + (1 | g), sigma ~x)",
+      "admitted": false,
+      "message": "`engine = \"julia\"` admits \"lognormal\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"lognormal\" random-effect models.",
+      "warnings": []
+    },
+    "fallback_try": {
+      "formula": "bf(y ~ x + f + (1 | g), sigma ~1)",
+      "admitted": false,
+      "message": "`engine = \"julia\"` admits \"lognormal\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"lognormal\" random-effect models.",
+      "warnings": []
+    },
+    "doc_vignette_expects_admitted": false,
+    "doc_vignette_text": "fixed effects only",
+    "doc_roxygen_lists_family_fixed": true,
+    "registry_expects_admitted": false,
+    "admitted": false,
+    "verdict": "consistent with vignette"
+  },
+  "elapsed_s": 0.270554304122925
+}

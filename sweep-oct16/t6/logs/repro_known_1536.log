@@ -1,0 +1,3 @@
+predict(se.fit = TRUE): class numeric length 240 identical to predict(fit): TRUE 
+predict(interval = 'confidence'): identical to plain: TRUE 
+simulate(newdata = nd_main [18 rows]): nrow = 240 ; identical to no-newdata call: TRUE 

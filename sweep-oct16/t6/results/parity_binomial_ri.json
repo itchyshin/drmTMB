@@ -1,0 +1,221 @@
+{
+  "P10": {
+    "details": {
+      "R_converged": true,
+      "R_marginal": "TMB Laplace",
+      "R_max_abs_gradient": 2.3e-9,
+      "R_opt_message": "converged (Newton polish; max |gradient| = 2.3e-09)",
+      "R_pdHess": true,
+      "bar_1e8_met": true,
+      "coef": {
+        "mu": {
+          "R": [
+            -0.0195957592851033,
+            0.584186958771786,
+            0.460672618032054,
+            -0.500615000102713
+          ],
+          "diff": [
+            -3.303925882880421e-11,
+            1.660527271241108e-11,
+            5.766243038607399e-11,
+            3.621292155031597e-11
+          ],
+          "diff_over_R_se": [
+            -3.047582638383473e-10,
+            3.6847644566501634e-10,
+            5.600521898019043e-10,
+            3.65025131530603e-10
+          ],
+          "julia": [
+            -0.01959575925206404,
+            0.5841869587551807,
+            0.4606726179743916,
+            -0.5006150001389259
+          ],
+          "names": [
+            "(Intercept)",
+            "x",
+            "f: b",
+            "f: c"
+          ],
+          "se_R": [
+            0.10841136319876528,
+            0.045064678917107796,
+            0.10295903031192456,
+            0.0992066529733719
+          ],
+          "se_julia": [
+            0.10841130419336782,
+            0.04506467645230098,
+            0.10295898574426228,
+            0.09920661929937859
+          ],
+          "se_maxrel": 5.442731805592601e-7
+        },
+        "sd_g": {
+          "R": 0.400715666167445,
+          "diff": -2.2865875859423568e-11,
+          "julia": 0.40071566619031085,
+          "rel": -5.7062595226483415e-11
+        }
+      },
+      "explanation": "1e-8 met",
+      "julia_converged": true,
+      "julia_fit_used": "julia marginal=:Laplace (binomial_ri_laplace.jls)",
+      "julia_grad_at_R_theta": {
+        "ad_error": "MethodError: no method matching Float64(::ForwardDiff.Dual{ForwardDiff.Tag{DRModels.var\"#nll#2153\"{DRModels.var\"#eval_laplace#2152\"{DRModels.var\"#2172#2173\"{Matrix{Float64}, Vector{Int64}, Val{:binomi",
+        "fd": [
+          8.526512829121202e-9,
+          -5.684341886080801e-9,
+          5.684341886080801e-9,
+          3.694822225952521e-8,
+          8.526512829121202e-9
+        ],
+        "fd_maxabs": 3.694822225952521e-8,
+        "maxabs": 2.3015962608008422e-9,
+        "nllgrad": [
+          -2.3015962608008422e-9,
+          -1.3963631015356803e-9,
+          -3.1170994257978535e-10,
+          -4.937072556332467e-10,
+          -1.9198386214114294e-9
+        ],
+        "nllgrad_maxabs": 2.3015962608008422e-9,
+        "source": "nllgrad"
+      },
+      "julia_grad_at_julia_theta": {
+        "ad_error": "MethodError: no method matching Float64(::ForwardDiff.Dual{ForwardDiff.Tag{DRModels.var\"#nll#2153\"{DRModels.var\"#eval_laplace#2152\"{DRModels.var\"#2172#2173\"{Matrix{Float64}, Vector{Int64}, Val{:binomi",
+        "fd": [
+          1.7053025658242404e-8,
+          -8.526512829121202e-9,
+          8.526512829121202e-9,
+          -1.7053025658242404e-8,
+          8.526512829121202e-9
+        ],
+        "fd_maxabs": 1.7053025658242404e-8,
+        "maxabs": 9.680941569223389e-9,
+        "nllgrad": [
+          -2.149789513072875e-9,
+          -9.680941569223389e-9,
+          -4.967329408911425e-9,
+          -2.131829435203514e-9,
+          2.2957716283578122e-10
+        ],
+        "nllgrad_maxabs": 9.680941569223389e-9,
+        "source": "nllgrad"
+      },
+      "julia_marginal": "Laplace",
+      "julia_nll_at_R_theta": 471.676677814905,
+      "julia_nll_at_R_theta_minus_at_J_theta": 2.8421709430404007e-13,
+      "julia_nll_at_R_theta_plus_llR": -2.9558577807620168e-12,
+      "loglik_R": -471.676677814908,
+      "loglik_julia": -471.67667781490474,
+      "loglik_julia_minus_R": 3.240074875066057e-12,
+      "max_coef_absdiff": 5.766243038607399e-11,
+      "max_coef_diff_over_R_se": 5.600521898019043e-10,
+      "per_dpar": {
+        "mu": {
+          "link_maxabs": 4.964428867992865e-11,
+          "link_maxrel_mixed": 4.964428867992865e-11,
+          "resid_after_Xdbeta": 2.130240428499519e-15,
+          "response_maxabs_aligned": 1.1344980510585856e-11,
+          "response_maxabs_raw": 1.1344980510585856e-11,
+          "response_maxrel_aligned": 1.1344980510585856e-11,
+          "response_maxrel_raw": 1.1344980510585856e-11,
+          "se_link_maxrel": 5.442731779990524e-7,
+          "se_response_maxrel_aligned": 5.442728572787304e-7,
+          "se_response_maxrel_raw": 5.442728572787304e-7
+        }
+      },
+      "predict_defect": false,
+      "recomputed_vs_harness_pred_csv_maxabs": 0.0,
+      "worst_link_maxabs": 4.964428867992865e-11,
+      "worst_link_maxrel": 4.964428867992865e-11,
+      "worst_resid_after_Xdbeta": 2.130240428499519e-15,
+      "worst_response_aligned_maxabs": 1.1344980510585856e-11,
+      "worst_se_rel": 5.442731779990524e-7
+    },
+    "metric": "max abs link diff, own fits, nd_main (1e-8 bar)",
+    "notes": "max|link diff| 4.96e-11 (rel 4.96e-11), aligned response 1.13e-11; max|coef diff| 5.77e-11 (max 5.6e-10 R-SE); logLik J-R 3.24e-12; grad J 9.68e-9 (nllgrad), R 2.3e-9; SE max rel 5.44e-7; resid after X dbeta 2.13e-15; 1e-8 met",
+    "status": "PASS",
+    "value": 4.964428867992865e-11
+  },
+  "P9": {
+    "details": {
+      "R_link_vs_hand_XbetaR": {
+        "mu": 1.9984014443252818e-15
+      },
+      "laplace_object_same_injection_maxabs": 0.0,
+      "link_pass": true,
+      "mapping": {
+        "mu": {
+          "R_in_julia_order": [
+            "(Intercept)",
+            "x",
+            "fb",
+            "fc"
+          ],
+          "identity_order": true,
+          "julia": [
+            "(Intercept)",
+            "x",
+            "f: b",
+            "f: c"
+          ]
+        },
+        "resd": {
+          "R_sd_g": 0.400715666167445,
+          "julia_log_sd": -0.9145031651054415
+        }
+      },
+      "per_dpar": {
+        "mu": {
+          "R_response_is": "logistic(link)",
+          "by_design": false,
+          "julia_response_is": "logistic(link)",
+          "link_maxabs": 1.9984014443252818e-15,
+          "response_maxabs": 3.885780586188048e-16,
+          "response_maxrel_mixed": 3.885780586188048e-16,
+          "se_link_maxrel": 4.752311982955799e-15,
+          "se_response_maxrel": 2.6469985945732397e-15
+        },
+        "predict()_mu": {
+          "link_maxabs": 1.9984014443252818e-15,
+          "response_maxabs": 3.885780586188048e-16,
+          "se_link_maxrel": 4.752311982955799e-15,
+          "se_response_maxrel": 2.6469985945732397e-15
+        }
+      },
+      "response_pass": true,
+      "se_pass": true,
+      "theta_injected": [
+        -0.0195957592851033,
+        0.584186958771786,
+        0.460672618032054,
+        -0.500615000102713,
+        -0.9145031651054415
+      ],
+      "vcov_injected_blocks": [
+        "mu"
+      ],
+      "worst_link": 1.9984014443252818e-15,
+      "worst_response_same_semantics": 3.885780586188048e-16,
+      "worst_se_rel": 4.752311982955799e-15
+    },
+    "metric": "max abs diff Julia predict(R theta) vs R predict, nd_main (tol 1e-8)",
+    "notes": "link max|diff| 2.0e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 3.89e-16; SE at injected R vcov: max rel 4.75e-15 PASS",
+    "status": "PASS",
+    "value": 1.9984014443252818e-15
+  },
+  "cell": "binomial_ri",
+  "family": "binomial",
+  "nd": "data/nd_main.csv (18 rows)",
+  "pins": {
+    "DRModels.jl": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+    "drmTMB": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a"
+  },
+  "re": "ri",
+  "seconds": 7.6614720821380615,
+  "tol": 1.0e-8
+}

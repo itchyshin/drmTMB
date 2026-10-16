@@ -1,0 +1,3 @@
+SkewNormal + (1 | g):            SkewNormal() supports fixed effects only (no random effect on the mean)
+TruncatedNegBinomial2 + (1 | g): TruncatedNegBinomial2() currently supports fixed effects only
+ZeroOneBeta + (1 | g):           fits, logLik = -13.087880642714005

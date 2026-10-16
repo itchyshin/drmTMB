@@ -1,0 +1,341 @@
+{
+  "P10": {
+    "details": {
+      "R_converged": true,
+      "R_marginal": "none (fixed effects)",
+      "R_max_abs_gradient": 1.38e-9,
+      "R_opt_message": "converged (Newton polish; max |gradient| = 1.38e-09)",
+      "R_pdHess": true,
+      "bar_1e8_met": true,
+      "coef": {
+        "mu": {
+          "R": [
+            0.990614478573601,
+            0.548092208741222,
+            0.3811828667717,
+            -0.183681561035731
+          ],
+          "diff": [
+            -1.8245405186689823e-12,
+            8.503198145604074e-13,
+            3.0728752875575083e-12,
+            2.694344747311561e-12
+          ],
+          "diff_over_R_se": [
+            -1.907196548518276e-11,
+            1.8128221313109052e-11,
+            2.3243424027681836e-11,
+            2.1547698536626658e-11
+          ],
+          "julia": [
+            0.9906144785754255,
+            0.5480922087403717,
+            0.3811828667686271,
+            -0.18368156103842534
+          ],
+          "names": [
+            "(Intercept)",
+            "x",
+            "f: b",
+            "f: c"
+          ],
+          "se_R": [
+            0.09566609797435349,
+            0.046905860198513574,
+            0.13220407130626954,
+            0.12504095241223692
+          ],
+          "se_julia": [
+            0.09566608880048279,
+            0.04690580681306105,
+            0.13220406050338576,
+            0.12504095124292644
+          ],
+          "se_maxrel": 1.1381403581127778e-6
+        },
+        "nu": {
+          "R": [
+            1.37861921234166
+          ],
+          "diff": [
+            6.84408085760424e-11
+          ],
+          "diff_over_R_se": [
+            1.3360094439450786e-10
+          ],
+          "julia": [
+            1.3786192122732193
+          ],
+          "names": [
+            "(Intercept)"
+          ],
+          "se_R": [
+            0.5122778801169605
+          ],
+          "se_julia": [
+            0.512277623507522
+          ],
+          "se_maxrel": 5.009184437503983e-7
+        },
+        "sigma": {
+          "R": [
+            -0.327256531973054,
+            0.307334007634914
+          ],
+          "diff": [
+            2.6735280655998395e-12,
+            -4.749256543590263e-12
+          ],
+          "diff_over_R_se": [
+            3.6243576880622314e-11,
+            -8.788139160551707e-11
+          ],
+          "julia": [
+            -0.3272565319757275,
+            0.30733400763966323
+          ],
+          "names": [
+            "(Intercept)",
+            "x"
+          ],
+          "se_R": [
+            0.07376556884564132,
+            0.054041662937118436
+          ],
+          "se_julia": [
+            0.07376554198786194,
+            0.054041678619263046
+          ],
+          "se_maxrel": 3.640964180128408e-7
+        }
+      },
+      "explanation": "1e-8 met",
+      "julia_converged": true,
+      "julia_fit_used": "julia default marginal=:LA (student_fixed.jls)",
+      "julia_grad_at_R_theta": {
+        "ad": [
+          1.4107492951609402e-11,
+          3.008945315130518e-10,
+          -9.184097926606682e-12,
+          2.962496914449275e-11,
+          -1.2192057363691333e-9,
+          -1.3838289403267368e-9,
+          3.5893998884262146e-10
+        ],
+        "ad_maxabs": 1.3838289403267368e-9,
+        "fd": [
+          -5.684341886080801e-9,
+          8.526512829121202e-9,
+          -2.8421709430404003e-9,
+          -5.684341886080801e-9,
+          -2.8421709430404003e-9,
+          2.8421709430404003e-9,
+          -2.0616069452657762e-9
+        ],
+        "fd_maxabs": 8.526512829121202e-9,
+        "maxabs": 1.3838289403267368e-9,
+        "source": "ForwardDiff"
+      },
+      "julia_grad_at_julia_theta": {
+        "ad": [
+          6.008837871718242e-11,
+          -2.4604984716347644e-11,
+          6.721734280290548e-12,
+          1.3238543594695784e-10,
+          1.9321899635826867e-10,
+          2.962361467240271e-10,
+          -1.8391212164292625e-11
+        ],
+        "ad_maxabs": 2.962361467240271e-10,
+        "fd": [
+          2.8421709430404003e-9,
+          5.684341886080801e-9,
+          -2.8421709430404003e-9,
+          1.1368683772161601e-8,
+          5.684341886080801e-9,
+          -1.4210854715202002e-8,
+          6.184820836104371e-9
+        ],
+        "fd_maxabs": 1.4210854715202002e-8,
+        "maxabs": 2.962361467240271e-10,
+        "source": "ForwardDiff"
+      },
+      "julia_marginal": "LA",
+      "julia_nll_at_R_theta": 314.9012847054858,
+      "julia_nll_at_R_theta_minus_at_J_theta": -1.1368683772161603e-13,
+      "julia_nll_at_R_theta_plus_llR": 3.808509063674137e-12,
+      "loglik_R": -314.901284705482,
+      "loglik_julia": -314.9012847054859,
+      "loglik_julia_minus_R": -3.922195901395753e-12,
+      "max_coef_absdiff": 6.84408085760424e-11,
+      "max_coef_diff_over_R_se": 1.3360094439450786e-10,
+      "per_dpar": {
+        "mu": {
+          "link_maxabs": 2.6748048220781584e-12,
+          "link_maxrel_mixed": 2.6748048220781584e-12,
+          "resid_after_Xdbeta": 4.052314039881821e-15,
+          "response_maxabs_aligned": 2.6748048220781584e-12,
+          "response_maxabs_raw": 2.6748048220781584e-12,
+          "response_maxrel_aligned": 2.6748048220781584e-12,
+          "response_maxrel_raw": 2.6748048220781584e-12,
+          "se_link_maxrel": 5.973543899086577e-7,
+          "se_response_maxrel_aligned": 5.973543899086577e-7,
+          "se_response_maxrel_raw": 5.973543899086577e-7
+        },
+        "nu": {
+          "link_maxabs": 6.84408085760424e-11,
+          "link_maxrel_mixed": 4.9644461620255494e-11,
+          "resid_after_Xdbeta": 0.0,
+          "response_maxabs_aligned": 2.716618041631591e-10,
+          "response_maxabs_raw": 2.0000000002716622,
+          "response_maxrel_aligned": 4.550893459278494e-11,
+          "response_maxrel_raw": 0.33504109817097416,
+          "se_link_maxrel": 5.009184426667848e-7,
+          "se_response_maxrel_aligned": 5.009868795948815e-7,
+          "se_response_maxrel_raw": 5.009868795948815e-7
+        },
+        "sigma": {
+          "link_maxabs": 7.421840919619171e-12,
+          "link_maxrel_mixed": 7.421840919619171e-12,
+          "resid_after_Xdbeta": 9.43689570931383e-16,
+          "response_maxabs_aligned": 5.083933274363517e-12,
+          "response_maxabs_raw": 5.083933274363517e-12,
+          "response_maxrel_aligned": 4.4474938116213874e-12,
+          "response_maxrel_raw": 4.4474938116213874e-12,
+          "se_link_maxrel": 3.6409641895350887e-7,
+          "se_response_maxrel_aligned": 3.640990911817823e-7,
+          "se_response_maxrel_raw": 3.640990911817823e-7
+        }
+      },
+      "predict_defect": false,
+      "recomputed_vs_harness_pred_csv_maxabs": 0.0,
+      "worst_link_maxabs": 6.84408085760424e-11,
+      "worst_link_maxrel": 4.9644461620255494e-11,
+      "worst_resid_after_Xdbeta": 4.052314039881821e-15,
+      "worst_response_aligned_maxabs": 2.716618041631591e-10,
+      "worst_se_rel": 5.973543899086577e-7
+    },
+    "metric": "max abs link diff, own fits, nd_main (1e-8 bar)",
+    "notes": "max|link diff| 6.84e-11 (rel 4.96e-11), aligned response 2.72e-10; max|coef diff| 6.84e-11 (max 1.34e-10 R-SE); logLik J-R -3.92e-12; grad J 2.96e-10 (ForwardDiff), R 1.38e-9; SE max rel 5.97e-7; resid after X dbeta 4.05e-15; 1e-8 met",
+    "status": "PASS",
+    "value": 6.84408085760424e-11
+  },
+  "P9": {
+    "details": {
+      "R_link_vs_hand_XbetaR": {
+        "mu": 3.9968028886505635e-15,
+        "nu": 0.0,
+        "sigma": 9.992007221626409e-16
+      },
+      "link_pass": true,
+      "mapping": {
+        "mu": {
+          "R_in_julia_order": [
+            "(Intercept)",
+            "x",
+            "fb",
+            "fc"
+          ],
+          "identity_order": true,
+          "julia": [
+            "(Intercept)",
+            "x",
+            "f: b",
+            "f: c"
+          ]
+        },
+        "nu": {
+          "R_in_julia_order": [
+            "(Intercept)"
+          ],
+          "identity_order": true,
+          "julia": [
+            "(Intercept)"
+          ]
+        },
+        "sigma": {
+          "R_in_julia_order": [
+            "(Intercept)",
+            "x"
+          ],
+          "identity_order": true,
+          "julia": [
+            "(Intercept)",
+            "x"
+          ]
+        }
+      },
+      "per_dpar": {
+        "mu": {
+          "R_response_is": "identity(link)",
+          "by_design": false,
+          "julia_response_is": "identity(link)",
+          "link_maxabs": 3.9968028886505635e-15,
+          "response_maxabs": 3.9968028886505635e-15,
+          "response_maxrel_mixed": 2.0823348340927957e-15,
+          "se_link_maxrel": 3.2502511955405406e-15,
+          "se_response_maxrel": 3.2502511955405406e-15
+        },
+        "nu": {
+          "R_response_is": "2+exp(link)",
+          "by_design": false,
+          "julia_response_is": "exp(link)",
+          "link_maxabs": 0.0,
+          "response_maxabs": 1.9999999999999925,
+          "response_maxrel_mixed": 0.3350410981254639,
+          "se_link_maxrel": 1.0836140576396522e-15,
+          "se_response_maxrel": 4.804637003237963e-15
+        },
+        "predict()_mu": {
+          "link_maxabs": 3.9968028886505635e-15,
+          "response_maxabs": 3.9968028886505635e-15,
+          "se_link_maxrel": 3.2502511955405406e-15,
+          "se_response_maxrel": 3.2502511955405406e-15
+        },
+        "sigma": {
+          "R_response_is": "exp(link)",
+          "by_design": false,
+          "julia_response_is": "exp(link)",
+          "link_maxabs": 9.992007221626409e-16,
+          "response_maxabs": 3.3306690738754696e-15,
+          "response_maxrel_mixed": 2.913714499227848e-15,
+          "se_link_maxrel": 9.406683921095023e-16,
+          "se_response_maxrel": 1.3522634173105578e-15
+        }
+      },
+      "response_pass": false,
+      "se_pass": true,
+      "theta_injected": [
+        0.990614478573601,
+        0.548092208741222,
+        0.3811828667717,
+        -0.183681561035731,
+        -0.327256531973054,
+        0.307334007634914,
+        1.37861921234166
+      ],
+      "vcov_injected_blocks": [
+        "mu",
+        "sigma",
+        "nu"
+      ],
+      "worst_link": 3.9968028886505635e-15,
+      "worst_response_same_semantics": 1.9999999999999925,
+      "worst_se_rel": 4.804637003237963e-15
+    },
+    "metric": "max abs diff Julia predict(R theta) vs R predict, nd_main (tol 1e-8)",
+    "notes": "link max|diff| 4.0e-15 (<= 1e-8); RESPONSE FAIL: nu: Julia exp(eta) vs R 2+exp(eta), max|diff| 2.0; SE at injected R vcov: max rel 4.8e-15 PASS",
+    "status": "FAIL",
+    "value": 3.9968028886505635e-15
+  },
+  "cell": "student_fixed",
+  "family": "student",
+  "nd": "data/nd_main.csv (18 rows)",
+  "pins": {
+    "DRModels.jl": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+    "drmTMB": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a"
+  },
+  "re": "fixed",
+  "seconds": 7.86053991317749,
+  "tol": 1.0e-8
+}

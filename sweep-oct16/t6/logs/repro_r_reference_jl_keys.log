@@ -1,0 +1,13 @@
+drmTMB 0.7.1 
+student_fixed nu response nd[1] = 5.9694169198641 
+skew_normal_fixed nu response nd[1] = 1.95279955678383 
+zero_one_beta_fixed mu response nd[1] = 0.366071885069022  fitted(z)[1:3] = 0.4842932458 0.5594569885 0.5669921654 
+cumulative_logit_fixed mu link nd[1:3] = -0.4209346397  0.0000000000  0.6314019595 
+lognormal_fixed fitted[1] = 2.315132722  predict(mu, response)[1] = 0.776340975 
+truncated_nbinom2_fixed fitted[1] = 4.55623346  predict(mu, response)[1] = 3.740346659 
+skew_normal_ri: logLik = -290.7630118  pdHess = TRUE 
+truncated_nbinom2_ri: logLik = -498.5651762  pdHess = TRUE 
+student_ri (TMB Laplace) logLik = -353.302663472
+poisson_ri (TMB Laplace) logLik = -454.537425219
+poisson_ri drmTMB simulate default: mean = 3.212537  var of group means: data 2.277373  draws (avg over 1000) 2.281556 
+binomial_ri (TMB Laplace) logLik = -471.676677815

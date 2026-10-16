@@ -1,0 +1,4 @@
+tweedie_fixed insample nu=1.5111 | max rel param gap 0.00e+00 | max|Q - qtweedie| = 0.000e+00 (rel 0.000e+00) -> PASS | atom cells 44, max Q there 0.0e+00, Q==0 but p>P0: 0 | max|F(Q)-p| off-atom 3.42e-13
+tweedie_fixed nd_main  nu=1.5111 | max rel param gap 0.00e+00 | max|Q - qtweedie| = 0.000e+00 (rel 0.000e+00) -> PASS | atom cells 2, max Q there 0.0e+00, Q==0 but p>P0: 0 | max|F(Q)-p| off-atom 1.37e-14
+tweedie_ri    insample nu=1.4349 | max rel param gap 0.00e+00 | max|Q - qtweedie| = 0.000e+00 (rel 0.000e+00) -> PASS | atom cells 29, max Q there 0.0e+00, Q==0 but p>P0: 0 | max|F(Q)-p| off-atom 1.65e-13
+tweedie_ri    nd_main  nu=1.4349 | max rel param gap 0.00e+00 | max|Q - qtweedie| = 0.000e+00 (rel 0.000e+00) -> PASS | atom cells 4, max Q there 0.0e+00, Q==0 but p>P0: 0 | max|F(Q)-p| off-atom 2.46e-14

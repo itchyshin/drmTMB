@@ -1,0 +1,15 @@
+gaussian sigma ~ x                ArgumentError: ArgumentError: marginal = :Laplace is not available for Gaussian() with a random effect on the mean. On the Gaussian family this route cover
+student sigma ~ x                 accepted, fit.marginal = Laplace, logLik = -353.302663
+lognormal sigma ~ x               MethodError: MethodError: no method matching drm(::DrmFormula, ::LogNormal; data::@NamedTuple{x::Vector{Float64}, f::Vector{String}, g::Vector{String}, y
+gamma sigma ~ x                   ArgumentError: ArgumentError: marginal = :Laplace is not available for Gamma() with a non-constant `sigma` formula. This route covers exactly one ordinary 
+gamma sigma ~ 1                   accepted, fit.marginal = Laplace, logLik = -452.598596
+beta sigma ~ x                    ArgumentError: ArgumentError: marginal = :Laplace is not available for Beta() with a non-constant `sigma` formula. This route covers exactly one ordinary r
+zero_one_beta sigma ~ 1           MethodError: MethodError: no method matching drm(::DrmFormula, ::ZeroOneBeta; data::@NamedTuple{x::Vector{Float64}, f::Vector{String}, g::Vector{String},
+beta_binomial sigma ~ 1           ArgumentError: ArgumentError: marginal = :Laplace is not available on this route. `:Laplace` forces the Laplace approximation that drmTMB uses and is imple
+binomial sigma ~ 1                accepted, fit.marginal = Laplace, logLik = -471.676678
+poisson sigma ~ 1                 accepted, fit.marginal = Laplace, logLik = -454.537425
+nbinom2 sigma ~ x                 ArgumentError: ArgumentError: marginal = :Laplace is not available for NegBinomial2() with a non-constant `sigma` formula. This route covers exactly one or
+tweedie sigma ~ 1                 MethodError: MethodError: no method matching drm(::DrmFormula, ::Tweedie; data::@NamedTuple{x::Vector{Float64}, f::Vector{String}, g::Vector{String}, y::
+cumulative_logit sigma ~ 1        MethodError: MethodError: no method matching drm(::DrmFormula, ::CumulativeLogit; data::@NamedTuple{x::Vector{Float64}, f::Vector{String}, g::Vector{Stri
+skew_normal sigma ~ x             MethodError: MethodError: no method matching drm(::DrmFormula, ::SkewNormal; data::@NamedTuple{x::Vector{Float64}, f::Vector{String}, g::Vector{String}, 
+truncated_nbinom2 sigma ~ x       MethodError: MethodError: no method matching drm(::DrmFormula, ::TruncatedNegBinomial2; data::@NamedTuple{x::Vector{Float64}, f::Vector{String}, g::Vecto

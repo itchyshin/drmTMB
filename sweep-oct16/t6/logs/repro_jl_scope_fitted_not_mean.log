@@ -1,0 +1,7 @@
+fixed  y ~ x + f:  fitted[1] = 4.47156  eta[1] = 1.49774  exp(eta[1]) = 4.47156  predict(:response)[1] = 4.47156  E[y|b=0] = 6.47828  mean(simulate)[1] = 6.29777  schema keys = Symbol[]
+      mean(residuals(fit)) = 1.0555652266795172   mean(simulate) overall = 4.498846003344443  mean(y) = 4.206836109417122
+(1|g)  y ~ x + f + (1 | g):  fitted[1] = 4.19209  eta[1] = 1.4332  exp(eta[1]) = 4.19209  predict(:response)[1] = 4.19209  E[y|b=0] = 5.08686  mean(simulate)[1] = 4.98279  schema keys = Symbol[]
+      mean(residuals(fit)) = 1.117440753291333   mean(simulate) overall = 3.710144678823823  mean(y) = 4.206836109417122
+crossed y ~ x + (1 | g) + (1 | f):  fitted[1] = 1.37351  eta[1] = 1.37351  exp(eta[1]) = 3.94917  predict(:response)[1] = 3.94917  E[y|b=0] = 4.5506  mean(simulate)[1] = 1.5549  schema keys = [:mu, :sigma]
+      mean(residuals(fit)) = 3.2528116077323737   mean(simulate) overall = 1.101998192542949  mean(y) = 4.206836109417122
+bivariate LogNormal: fitted(fb)[:mu1][1] = 0.47668953903240224  link mu1[1] = 0.47668953903240224  predict_parameters(:response)[:mu1][1] = 1.610733296602322  predict(fb, db)[:mu1][1] = 1.610733296602322

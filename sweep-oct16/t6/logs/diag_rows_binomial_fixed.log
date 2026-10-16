@@ -1,0 +1,9 @@
+          x f   g successes failures trials        E        V
+110 -0.6509 b g11         3        3      6 2.969099 1.499841
+129  0.4927 c g13         4        7     11 5.081817 2.734102
+seed+0: z at rows 110,129 = 3.04, 4.25 | all-row n|z|>3 = 2
+seed+1: z at rows 110,129 = -1.29, -1.47 | all-row n|z|>3 = 0
+seed+2: z at rows 110,129 = -1.73, -0.84 | all-row n|z|>3 = 0
+seed+3: z at rows 110,129 = -0.13, 0.58 | all-row n|z|>3 = 2
+seed+4: z at rows 110,129 = -0.21, 0.54 | all-row n|z|>3 = 1
+seed+5: z at rows 110,129 = -0.08, -0.51 | all-row n|z|>3 = 1

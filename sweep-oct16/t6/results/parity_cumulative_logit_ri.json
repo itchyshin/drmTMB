@@ -1,0 +1,222 @@
+{
+  "P10": {
+    "details": {
+      "R_converged": true,
+      "R_marginal": "TMB Laplace",
+      "R_max_abs_gradient": 8.5e-12,
+      "R_opt_message": "converged (Newton polish; max |gradient| = 8.5e-12)",
+      "R_pdHess": true,
+      "aux_hand_XbetaJ_vs_R_link_NOT_engine": {
+        "mu": 0.002318735831251084
+      },
+      "coef": {
+        "cutpoints_natural": {
+          "R": [
+            -1.04104695458723,
+            0.653364126491018,
+            2.06110522049392
+          ],
+          "diff": [
+            -0.0004712350951427968,
+            -0.0009387972506494924,
+            -0.0019005486811445316
+          ],
+          "julia": [
+            -1.0405757194920873,
+            0.6543029237416675,
+            2.0630057691750645
+          ]
+        },
+        "mu": {
+          "R": [
+            0.703266792129769,
+            -0.0385587725509168,
+            -0.533424262620446
+          ],
+          "diff": [
+            -0.0008975040351213437,
+            -0.0009724797785725173,
+            -5.686114852432311e-5
+          ],
+          "diff_over_R_se": [
+            -0.006141525654833595,
+            -0.003202832248231151,
+            -0.00018305479108975627
+          ],
+          "julia": [
+            0.7041642961648903,
+            -0.037586292772344286,
+            -0.5333674014719216
+          ],
+          "names": [
+            "x",
+            "f: b",
+            "f: c"
+          ],
+          "se_R": [
+            0.1461369837989648,
+            0.30363119364418634,
+            0.31062365636987177
+          ],
+          "se_julia": [
+            0.14610991163921874,
+            0.30366255834786665,
+            0.31064951478396574
+          ],
+          "se_maxrel": 0.00018525193994224447
+        },
+        "sd_g": {
+          "R": 0.756223221914326,
+          "diff": -0.007138412009964457,
+          "julia": 0.7633616339242905,
+          "rel": -0.009439556738146797
+        }
+      },
+      "julia_converged": true,
+      "julia_fit_used": "julia default marginal=:LA (cumulative_logit_ri.jls); marginal=:Laplace refused for this cell: MethodError: no method matching drm(::DrmFormula, ::CumulativeLogit; data::@NamedTuple{x::...",
+      "julia_grad_at_R_theta": {
+        "ad": [
+          0.008315101293781435,
+          0.0005058171588172566,
+          -8.507179867223158e-6,
+          -0.0027117721229854563,
+          0.06673910001675265,
+          0.013999777230464083,
+          -0.1571522821873954
+        ],
+        "ad_maxabs": 0.1571522821873954,
+        "fd": [
+          0.008315100785694085,
+          0.000505815478391014,
+          -8.50661763251992e-6,
+          -0.0027117729037556037,
+          0.06673910490917478,
+          0.01399977520577522,
+          -0.15715228300905437
+        ],
+        "fd_maxabs": 0.15715228300905437,
+        "maxabs": 0.1571522821873954,
+        "source": "ForwardDiff"
+      },
+      "julia_grad_at_julia_theta": {
+        "ad": [
+          2.713611557680906e-10,
+          -3.3805325205804593e-10,
+          -2.6245843276484493e-9,
+          -2.8114397476741715e-9,
+          4.2042868075853335e-9,
+          2.8777438210170203e-9,
+          -4.888669635771947e-9
+        ],
+        "ad_maxabs": 4.888669635771947e-9,
+        "fd": [
+          -2.8421709430404003e-9,
+          0.0,
+          -2.8421709430404003e-9,
+          0.0,
+          5.684341886080801e-9,
+          8.526512829121202e-9,
+          -5.684341886080801e-9
+        ],
+        "fd_maxabs": 8.526512829121202e-9,
+        "maxabs": 4.888669635771947e-9,
+        "source": "ForwardDiff"
+      },
+      "julia_marginal": "LA",
+      "julia_nll_at_R_theta": 300.87798834316936,
+      "julia_nll_at_R_theta_minus_at_J_theta": 0.0007222502273975806,
+      "julia_nll_at_R_theta_plus_llR": -0.10001443785864694,
+      "loglik_R": -300.978002781028,
+      "loglik_julia": -300.87726609294197,
+      "loglik_julia_minus_R": 0.10073668808604452,
+      "max_coef_absdiff": 0.0019005486811445316,
+      "max_coef_diff_over_R_se": 0.006141525654833595,
+      "predict_parameters_error": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards)."
+    },
+    "metric": "max abs diff Julia own fit vs R own fit, nd_main",
+    "notes": "Julia predict_parameters refuses nd_main (same root cause as P9): ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows c; coefficient-level parity: max|coef diff| 0.0019, logLik diff 0.101; hand X beta_J vs R link mu=0.00232 (NOT an engine evaluation)",
+    "status": "ERROR",
+    "value": null
+  },
+  "P9": {
+    "details": {
+      "R_link_vs_hand_XbetaR": {
+        "mu": 4.884981308350689e-15
+      },
+      "aux_hand_XbetaR_vs_R_link_NOT_engine": {
+        "mu": 4.884981308350689e-15
+      },
+      "cutpoints_roundtrip_maxabs": 4.440892098500626e-16,
+      "mapping": {
+        "cutpoints": {
+          "R_names": [
+            "1|2",
+            "2|3",
+            "3|4"
+          ],
+          "R_natural": [
+            -1.04104695458723,
+            0.653364126491018,
+            2.06110522049392
+          ],
+          "julia_increments": [
+            -1.04104695458723,
+            0.5273352356678934,
+            0.34198635872725286
+          ],
+          "julia_names": [
+            "theta1",
+            "theta2",
+            "theta3"
+          ],
+          "mapping": "positional after count+order check; delta1 = c1, deltak = log(ck - ck-1)"
+        },
+        "mu": {
+          "R_in_julia_order": [
+            "x",
+            "fb",
+            "fc"
+          ],
+          "identity_order": true,
+          "julia": [
+            "x",
+            "f: b",
+            "f: c"
+          ]
+        },
+        "resd": {
+          "R_sd_g": 0.756223221914326,
+          "julia_log_sd": -0.2794186793029084
+        }
+      },
+      "predict_error": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "predict_parameters_error": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "theta_injected": [
+        0.703266792129769,
+        -0.0385587725509168,
+        -0.533424262620446,
+        -1.04104695458723,
+        0.5273352356678934,
+        0.34198635872725286,
+        -0.2794186793029084
+      ],
+      "vcov_injected_blocks": [
+        "mu"
+      ]
+    },
+    "metric": "max abs diff Julia(R theta) vs R, nd_main",
+    "notes": "Julia predict/predict_parameters REFUSE nd_main while drmTMB predicts it: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+    "status": "FAIL",
+    "value": null
+  },
+  "cell": "cumulative_logit_ri",
+  "family": "cumulative_logit",
+  "nd": "data/nd_main.csv (18 rows)",
+  "pins": {
+    "DRModels.jl": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+    "drmTMB": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a"
+  },
+  "re": "ri",
+  "seconds": 4.28153395652771,
+  "tol": 1.0e-8
+}

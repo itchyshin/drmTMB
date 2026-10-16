@@ -1,0 +1,4 @@
+┌ Warning: drm: 1 of 240 rows have a missing/NaN response and were dropped (observed-rows fit, like glmmTMB's default na.action). Use `drm_listwise` to preprocess explicitly, or supply complete responses, to silence this.
+└ @ DRModels /home/user/DRModels.jl/src/gaussian_core.jl:1326
+missing-response Student: fit.scales[:nu][1] = 3.9586101381542194  exp(eta) = 3.9586101381542194  2 + exp(eta) = 5.958610138154219
+complete-data Student:     fit.scales[:nu][1] = 5.9694169195924385  2 + exp(eta) = 5.9694169195924385

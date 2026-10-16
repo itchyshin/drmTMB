@@ -1,0 +1,257 @@
+{
+  "family": "cumulative_logit",
+  "re": "fixed",
+  "engine": "bridge",
+  "cell_k": 26,
+  "seed": "20261016626",
+  "seed_r": "261016626",
+  "sim_seed_r": 261016726,
+  "formula": "bf(y ~ x + f)",
+  "family_call": "cumulative_logit()",
+  "fallback": "",
+  "fit_ok": true,
+  "fit_error": "",
+  "converged": true,
+  "loglik": -314.674592950772,
+  "coef": {
+    "mu": {
+      "names": ["x", "fb", "fc"],
+      "values": [0.420934639652089, 0.426840526578549, -0.198663200668844]
+    }
+  },
+  "tests": {
+    "P11": {
+      "status": "NA",
+      "metric": "max abs diff bridge vs native Julia (link)",
+      "value": 0,
+      "notes": "coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 0; response same-semantics max|d| = 0; response semantic differences on: none; native predict_parameters refused: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "details": {
+        "coef_len": [6, 6],
+        "coef_max_abs_diff": 0,
+        "loglik_diff": 0,
+        "coef_names_bridge": ["mu_x", "mu_fb", "mu_fc", "cutpoints_1|2", "cutpoints_2|3", "cutpoints_3|4"],
+        "coef_names_native": ["mu::x", "mu::f: b", "mu::f: c", "cutpoints::theta1", "cutpoints::theta2", "cutpoints::theta3"],
+        "native_errors": {
+          "predict_parameters_link": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "predict_parameters_response": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "predict_link": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "predict_response": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "insample_link": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "insample_response": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards)."
+        },
+        "mu": {
+          "nd_link": "native unavailable",
+          "nd_response_vs_predict_parameters": "native unavailable",
+          "nd_link_vs_predict": "native unavailable",
+          "nd_response_vs_predict": "native unavailable",
+          "insample_link": "native unavailable",
+          "insample_response": "native unavailable",
+          "nd_link_vs_hand_X_theta_native": 0
+        },
+        "worst_link": 0,
+        "worst_response_same_semantics": 0,
+        "response_semantic_differences": []
+      }
+    },
+    "P2": {
+      "status": "PASS",
+      "metric": "max mixed abs/rel diff",
+      "value": 0,
+      "notes": "nd_main (g01 seen, gNEW unseen) vs population X_new beta (bridge coefficients, documented links); seen==unseen; g removed",
+      "details": {
+        "mu": {
+          "link_vs_pop_Xb": 0,
+          "response_vs_invlink_pop": 0,
+          "seen_vs_unseen_g_link": 0,
+          "seen_vs_unseen_g_response": 0,
+          "g_removed_vs_with_g": 0
+        }
+      }
+    },
+    "P3": {
+      "status": "PASS",
+      "metric": "max mixed diff vs nd_main f=b rows",
+      "value": 0,
+      "notes": "encodings: character, factor(levels='b'), factor(levels=a,b,c); no refusals",
+      "details": {
+        "character:mu:link": 0,
+        "character:mu:response": 0,
+        "factor_b:mu:link": 0,
+        "factor_b:mu:response": 0,
+        "factor_abc:mu:link": 0,
+        "factor_abc:mu:response": 0
+      }
+    },
+    "P4": {
+      "status": "PASS",
+      "metric": "mu refusal names factor/level",
+      "value": 1,
+      "notes": "mu message: factor f has new levels d",
+      "details": {
+        "mu": "REFUSED: factor f has new levels d"
+      }
+    },
+    "P5": {
+      "status": "PASS",
+      "metric": "char/factor/relevel agreement",
+      "value": 0,
+      "notes": "coef char==factor; predictions agree across fit/newdata encodings",
+      "details": {
+        "coef_char_vs_factor": {
+          "names_identical": true,
+          "max_abs": 0
+        },
+        "rel_coef_names": {
+          "mu": ["x", "fa", "fb"]
+        },
+        "loglik": {
+          "char": -314.674592950772,
+          "factor": -314.674592950772,
+          "relevel": -314.674592950772
+        },
+        "mu:link": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char_expected_score": {
+            "diff": 5.76683896724993e-12,
+            "rel": 5.76683896724993e-12,
+            "ok": true
+          }
+        },
+        "mu:response": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char_expected_score": {
+            "diff": 5.76683896724993e-12,
+            "rel": 5.76683896724993e-12,
+            "ok": true
+          }
+        },
+        "loglik_relevel_minus_char": 5.6843418860808e-14
+      }
+    },
+    "P8": {
+      "status": "NA",
+      "metric": "simulate method exists",
+      "value": 0,
+      "notes": "no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class \"drmTMB_julia\"",
+      "details": {
+        "methods_drmTMB_julia": ["AIC", "BIC", "aicc", "anova", "check_drm", "coef", "confint", "corpairs", "deviance", "df.residual", "fitted", "fixef", "heritability", "icc", "is_converged", "logLik", "nobs", "predict", "print", "repeatability", "residuals", "rho12", "sigma", "summary", "vcov", "weights"],
+        "has_simulate_method": false,
+        "simulate_result_class": null,
+        "simulate_error": "no applicable method for 'simulate' applied to an object of class \"drmTMB_julia\"",
+        "simulate_warnings": [],
+        "getS3method": false
+      }
+    }
+  },
+  "admission": {
+    "first_try": {
+      "formula": "bf(y ~ x + f)",
+      "admitted": true,
+      "message": null,
+      "warnings": []
+    },
+    "doc_vignette_expects_admitted": true,
+    "doc_vignette_text": "fixed effects only (not named in the drmTMB() @param engine roxygen list)",
+    "doc_roxygen_lists_family_fixed": false,
+    "registry_expects_admitted": true,
+    "admitted": true,
+    "verdict": "consistent with vignette"
+  },
+  "fit_warnings": [],
+  "class": "drmTMB_julia",
+  "bridge_marginal": "LA",
+  "bridge_iterations": 10,
+  "bridge_raw_coef": {
+    "names": ["mu_x", "mu_fb", "mu_fc", "cutpoints_1|2", "cutpoints_2|3", "cutpoints_3|4"],
+    "values": [0.420934639652089, 0.426840526578549, -0.198663200668844, -0.82349969254195, 0.387057303049411, 0.210774552258219]
+  },
+  "cutpoints": {
+    "values": [-0.82349969254195, 0.649141183126284, 1.88377516136682],
+    "names": ["1|2", "2|3", "3|4"]
+  },
+  "native_julia": {
+    "call": "drm(bf(@formula(y ~ x + f)), CumulativeLogit(); data = t6_nt)",
+    "columns": ["y", "x", "f"],
+    "error": "",
+    "seconds": 0.00366044044494629,
+    "loglik": -314.674592950772,
+    "converged": true,
+    "marginal": "LA",
+    "theta": [0.420934639652089, 0.426840526578549, -0.198663200668844, -0.82349969254195, 0.387057303049411, 0.210774552258219],
+    "coefnames": ["mu::x", "mu::f: b", "mu::f: c", "cutpoints::theta1", "cutpoints::theta2", "cutpoints::theta3"],
+    "blocks": ["mu=1:3", "cutpoints=4:6"]
+  },
+  "bridge_vs_tmb": {
+    "tmb_loglik": -314.674592950771,
+    "loglik_diff": -1.64845914696343e-12,
+    "tmb_converged": true,
+    "coef_max_abs_diff": {
+      "mu": 1.14414866470014e-11,
+      "cutpoints": 6.24233997825741e-12
+    },
+    "coef_max_overall": 1.14414866470014e-11,
+    "predict_nd_main": {
+      "mu:link": {
+        "max_abs": 1.99275040912994e-11,
+        "max_rel": 4.48355591470252e-10
+      },
+      "mu:response": {
+        "max_abs": 1.99275040912994e-11,
+        "max_rel": 4.48355591470252e-10
+      }
+    },
+    "predict_max_abs": 1.99275040912994e-11,
+    "receipt_bar_1e4": {
+      "coef_ok": true,
+      "loglik_ok": true
+    }
+  },
+  "fitted": {
+    "bridge_fitted_class": "numeric",
+    "bridge_fitted_length": 240,
+    "bridge_fitted_vs_documented_mean_popXb": 2.169486673809e-16,
+    "bridge_fitted_vs_invlink_mu_popXb": 2.66162999018308,
+    "bridge_fitted_vs_eta": 2.66162999018308,
+    "bridge_fitted_vs_native_julia_fitted": 0,
+    "tmb_fitted_vs_bridge_fitted": {
+      "max_abs": 1.09086073507569e-11,
+      "max_rel": 4.39347785979826e-12,
+      "mean_bridge": 2.22489867772138,
+      "mean_tmb": 2.22489867772301
+    },
+    "tmb_fitted_vs_documented_mean_popXb_bridgecoef": 4.39347785981756e-12,
+    "mean_observed_y": 2.22083333333333,
+    "semantics": "documented mean at population X b"
+  },
+  "elapsed_s": 11.9882888793945
+}

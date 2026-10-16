@@ -1,0 +1,7 @@
+┌ Warning: drm: 1 of 240 rows have a missing/NaN response and were dropped (observed-rows fit, like glmmTMB's default na.action). Use `drm_listwise` to preprocess explicitly, or supply complete responses, to silence this.
+└ @ DRModels /home/user/DRModels.jl/src/gaussian_core.jl:1326
+A Student missing-y: fit.scales[:nu][1] = 3.9586101381542194  2+exp(coef nu) = 5.958610138154219
+A SkewNormal missing-y: ArgumentError: matrix contains Infs or NaNs
+B CumulativeLogit predict(fit, training data): ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).
+C Poisson predict(nd_subset): ArgumentError: only one level found: b (need at least two to compute contrasts).
+C unique f in nd_subset: ["b"]

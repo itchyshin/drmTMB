@@ -1,0 +1,37 @@
+student_fixed: coef nu = 1.37861921234 ; 2 + exp(coef) = 5.96941691986 
+  nu    link[1:3] = 1.37861921234, 1.37861921234, 1.37861921234 | response[1:3] = 5.96941691986, 5.96941691986, 5.96941691986
+skew_normal_fixed: coef nu = 1.95279955678 
+  nu    link[1:3] = 1.95279955678, 1.95279955678, 1.95279955678 | response[1:3] = 1.95279955678, 1.95279955678, 1.95279955678
+zero_one_beta_fixed:
+  mu    link[1:3] = -0.5491058432108, -0.0418005438287,  0.7191574052446 | response[1:3] = 0.366071885069, 0.489551385391, 0.672421444980
+lognormal_fixed:
+  mu    link[1:3] = 0.477413631592, 0.971950408379, 1.713755573560 | response[1:3] = 0.477413631592, 0.971950408379, 1.713755573560
+cumulative_logit_fixed: cutpoints = -0.823499692542  0.649141183128  1.883775161373 
+  mu    link[1:3] = -0.420934639658,  0.000000000000,  0.631401959487 | response[1:3] = -0.420934639658,  0.000000000000,  0.631401959487
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+
+locale:
+[1] C
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] drmTMB_0.7.1
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-19   multcomp_1.4-25    Matrix_1.6-5       lattice_0.22-5    
+ [5] TH.data_1.1-2      coda_0.19-4.1      splines_4.3.3      estimability_1.4.1
+ [9] emmeans_1.10.0     zoo_1.8-12         parallel_4.3.3     lifecycle_1.0.4   
+[13] mvtnorm_1.2-4      TMB_1.9.10         cli_3.6.2          xtable_1.8-4      
+[17] grid_4.3.3         sandwich_3.1-0     compiler_4.3.3     nlme_3.1-164      
+[21] survival_3.5-8     rlang_1.1.3        MASS_7.3-60.0.1   

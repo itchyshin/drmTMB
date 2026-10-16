@@ -1,0 +1,375 @@
+R: R version 4.3.3 (2024-02-29) | drmTMB 0.7.1 | build SHA ca3ddefa5ea11bbfd3b765615dfbb89305d2485a 
+
+
+######## br_methods.R | start 22:20:11 ########
+> Sys.setenv(JULIA_DEPOT_PATH = "/opt/julia-depot", 
++     DRMODELS_JL_PATH = "/home/user/DRModels.jl", NOT_CRAN = "true", 
++     JULIA_HOME = "/opt/julia-env/bin")
+> library(drmTMB)
+> if (!exists("%||%", baseenv())) assign("%||%", function(x, 
++     y) if (is.null(x)) y else x, envir = globalenv())
+> d <- read.csv("/home/user/drmTMB/sweep-oct16/t6/data/gaussian_fixed.csv")
+> nd <- read.csv("/home/user/drmTMB/sweep-oct16/t6/data/nd_main.csv")
+> fj <- drmTMB(bf(y ~ x + f, sigma ~ x), family = gaussian(), 
++     data = d, engine = "julia")
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.12.7 at location /opt/julia-env/bin will be used.
+Warning in JuliaCall::julia_setup(installJulia = FALSE) :
+  Julia libunwind not found in /opt/julia-env/bin/../lib/julia
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+> class(fj)
+[1] "drmTMB_julia"
+> try(simulate(fj, nsim = 10, seed = 261016700))
+Error in UseMethod("simulate") : 
+  no applicable method for 'simulate' applied to an object of class "drmTMB_julia"
+> try(predict_parameters(fj, newdata = nd))
+Error in UseMethod("predict_parameters") : 
+  no applicable method for 'predict_parameters' applied to an object of class "drmTMB_julia"
+> try(heritability(fj))
+Error in drm_variance_ratio_julia_fence("heritability") : 
+  `heritability()` is not available for an `engine = "julia"` fit.
+x It is a delta-method ratio of working-scale (log-SD) variance components, and a <drmTMB_julia> fit exposes neither the working-scale parameter vector (`fit$opt$par`) nor the covariance of its
+  structured SDs (`fit$vcov` keeps fixed-effect coefficients only).
+i Refit the same model with `engine = "tmb"` and call `heritability()` on that fit; the two engines agree on the underlying variance components (measured to 4e-12 on a Gaussian `(1 | g)` fixture,
+  DRM.jl aee371cc9).
+i For the among-axis structure of a q = 4 bivariate location-scale fit, `coevolution_vc()` and `coevolution_summary()` DO read an `engine = "julia"` fit.
+> grep("simulate|predict_parameters", as.character(methods(class = "drmTMB_julia")), 
++     value = TRUE)
+character(0)
+> ft <- drmTMB(bf(y ~ x + f, sigma ~ x), family = gaussian(), 
++     data = d)
+> dim(simulate(ft, nsim = 10, seed = 261016700))
+[1] 240  10
+> dim(predict_parameters(ft, newdata = nd))
+[1] 36 12
+########  br_methods.R | done in 151.5 s ########
+
+
+######## br_fitted.R | start 22:22:42 ########
+> Sys.setenv(JULIA_DEPOT_PATH = "/opt/julia-depot", 
++     DRMODELS_JL_PATH = "/home/user/DRModels.jl", NOT_CRAN = "true", 
++     JULIA_HOME = "/opt/julia-env/bin")
+> library(drmTMB)
+> if (!exists("%||%", baseenv())) assign("%||%", function(x, 
++     y) if (is.null(x)) y else x, envir = globalenv())
+> D <- "/home/user/drmTMB/sweep-oct16/t6/data"
+> same_fit <- function(a, b) {
++     ca <- unlist(coef(a))
++     cb <- unlist(coef(b))
++     c(coef = max(abs(ca - cb[names(ca)])), logLik = as.numeric(logLik(a) - 
++         logLik(b)))
++ }
+> d <- read.csv(file.path(D, "lognormal_fixed.csv"))
+> f <- bf(y ~ x + f, sigma ~ x)
+> fj <- drmTMB(f, family = lognormal(), data = d, engine = "julia")
+> ft <- drmTMB(f, family = lognormal(), data = d)
+> same_fit(fj, ft)
+         coef        logLik 
+ 1.881406e-11 -1.705303e-12 
+> m <- predict(fj, dpar = "mu", type = "link")
+> s <- predict(fj, dpar = "sigma")
+> max(abs(fitted(fj) - exp(m)))
+[1] 8.881784e-16
+> max(abs(fitted(ft) - exp(m + s^2/2)))
+[1] 6.94989e-10
+> max(abs(fitted(fj) - fitted(ft)))
+[1] 5.91592
+> c(bridge = mean(fitted(fj)), tmb = mean(fitted(ft)), 
++     y = mean(d$y))
+  bridge      tmb        y 
+3.015918 3.634637 3.530199 
+> d <- read.csv(file.path(D, "truncated_nbinom2_fixed.csv"))
+> fj <- drmTMB(f, family = truncated_nbinom2(), data = d, 
++     engine = "julia")
+> ft <- drmTMB(f, family = truncated_nbinom2(), data = d)
+> same_fit(fj, ft)
+         coef        logLik 
+ 8.827994e-11 -3.012701e-12 
+> m <- predict(fj, dpar = "mu")
+> s <- predict(fj, dpar = "sigma")
+> max(abs(fitted(fj) - m))
+[1] 2.220446e-16
+> max(abs(fitted(ft) - m/(1 - dnbinom(0, size = 1/s^2, 
++     mu = m))))
+[1] 1.123563e-10
+> max(abs(fitted(fj) - fitted(ft)))
+[1] 7.051131
+> c(bridge = mean(fitted(fj)), tmb = mean(fitted(ft)), 
++     y = mean(d$y))
+  bridge      tmb        y 
+2.681536 3.635783 3.629167 
+> d <- read.csv(file.path(D, "gaussian_ri.csv"))
+> f <- bf(y ~ x + (1 | g), sigma ~ x)
+> fj <- drmTMB(f, family = gaussian(), data = d, engine = "julia")
+> ft <- drmTMB(f, family = gaussian(), data = d)
+> same_fit(fj, ft)
+        coef       logLik 
+1.284725e-11 9.663381e-13 
+> max(abs(predict(fj, dpar = "mu") - fitted(ft)))
+[1] 2.803224e-11
+> max(abs(fitted(fj) - drop(model.matrix(~x, d) %*% 
++     coef(fj, "mu"))))
+[1] 0
+> max(abs(fitted(fj) - fitted(ft)))
+[1] 0.9773013
+> max(abs(residuals(fj) - residuals(ft)))
+[1] 0.9773013
+########  Error in cat("######## ", f, "| done in", round(as.numeric(difftime(Sys.time(),  : 
+  argument 2 (type 'list') cannot be handled by 'cat'
+Execution halted
+  Activating project at `/home/user/DRModels.jl`
+
+
+======== RUN 2 (runner fixed: loop variable no longer clobbered by sourced scripts; br_methods.R and br_fitted.R completed above) ========
+R: R version 4.3.3 (2024-02-29) | drmTMB 0.7.1 | build SHA ca3ddefa5ea11bbfd3b765615dfbb89305d2485a 
+
+
+######## br_ri_label.R | start 22:35:26 ########
+> Sys.setenv(JULIA_DEPOT_PATH = "/opt/julia-depot", 
++     DRMODELS_JL_PATH = "/home/user/DRModels.jl", NOT_CRAN = "true", 
++     JULIA_HOME = "/opt/julia-env/bin")
+> library(drmTMB)
+> if (!exists("%||%", baseenv())) assign("%||%", function(x, 
++     y) if (is.null(x)) y else x, envir = globalenv())
+> d <- read.csv("/home/user/drmTMB/sweep-oct16/t6/data/gaussian_ri.csv")
+> ft <- drmTMB(bf(y ~ x + f + (1 | g), sigma ~ x), family = gaussian(), 
++     data = d)
+> logLik(ft)
+'log Lik.' -295.0052 (df=7)
+> system.time(e1 <- try(drmTMB(bf(y ~ x + f + (1 | g), 
++     sigma ~ x), family = gaussian(), data = d, engine = "julia")))
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.12.7 at location /opt/julia-env/bin will be used.
+Warning in JuliaCall::julia_setup(installJulia = FALSE) :
+  Julia libunwind not found in /opt/julia-env/bin/../lib/julia
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+Error in drm_julia_bridge_check_coef_labels(coef_names = coef_names, bridge_payload = bridge_payload) : 
+  DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling.
+x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c).
+i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.
+   user  system elapsed 
+ 92.537   2.314  96.250 
+> d$f <- factor(d$f)
+> e2 <- try(drmTMB(bf(y ~ x + f + (1 | g), sigma ~ 1), 
++     family = gaussian(), data = d, engine = "julia"))
+Error in drm_julia_bridge_check_coef_labels(coef_names = coef_names, bridge_payload = bridge_payload) : 
+  DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling.
+x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c).
+i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.
+> e3 <- try(drmTMB(bf(y ~ x + f), family = gaussian(), 
++     data = d, engine = "julia"))
+> class(e3)
+[1] "drmTMB_julia"
+> fj <- drmTMB(bf(y ~ x + (1 | g), sigma ~ x), family = gaussian(), 
++     data = d, engine = "julia")
+> class(fj)
+[1] "drmTMB_julia"
+> as.numeric(logLik(fj) - logLik(drmTMB(bf(y ~ x + (1 | 
++     g), sigma ~ x), family = gaussian(), data = d)))
+[1] 9.663381e-13
+########  br_ri_label.R | done in 174.1 s ########
+
+
+######## br_docs.R | start 22:38:20 ########
+> Sys.setenv(JULIA_DEPOT_PATH = "/opt/julia-depot", 
++     DRMODELS_JL_PATH = "/home/user/DRModels.jl", NOT_CRAN = "true", 
++     JULIA_HOME = "/opt/julia-env/bin")
+> library(drmTMB)
+> if (!exists("%||%", baseenv())) assign("%||%", function(x, 
++     y) if (is.null(x)) y else x, envir = globalenv())
+> D <- "/home/user/drmTMB/sweep-oct16/t6/data"
+> both <- function(f, fam, d) {
++     fj <- drmTMB(f, family = fam, data = d, engine = "julia")
++     ft <- drmTMB(f, family = fam, data = d)
++     cj <- unlist(coef(fj))
++     ct <- unlist(coef(ft))
++     c(class = class(fj)[1], coef_maxabs = signif(max(abs(cj - 
++         ct[names(cj)])), 3), logLik_diff = signif(as.numeric(logLik(fj) - 
++         logLik(ft)), 3))
++ }
+> both(bf(y ~ x + f, sigma ~ x, nu ~ 1), skew_normal(), 
++     read.csv(file.path(D, "skew_normal_fixed.csv")))
+         class    coef_maxabs    logLik_diff 
+"drmTMB_julia"     "1.06e-10"     "3.41e-13" 
+> both(bf(cbind(successes, failures) ~ x + f), binomial(), 
++     read.csv(file.path(D, "binomial_fixed.csv")))
+         class    coef_maxabs    logLik_diff 
+"drmTMB_julia"     "1.23e-13"     "3.41e-13" 
+> d <- read.csv(file.path(D, "cumulative_logit_fixed.csv"))
+> d$y <- ordered(d$y)
+> both(bf(y ~ x + f), cumulative_logit(), d)
+         class    coef_maxabs    logLik_diff 
+"drmTMB_julia"     "1.14e-11"    "-1.65e-12" 
+########  br_docs.R | done in 41.5 s ########
+
+
+######## br_1551ext.R | start 22:39:01 ########
+> Sys.setenv(JULIA_DEPOT_PATH = "/opt/julia-depot", 
++     DRMODELS_JL_PATH = "/home/user/DRModels.jl", NOT_CRAN = "true", 
++     JULIA_HOME = "/opt/julia-env/bin")
+> library(drmTMB)
+> if (!exists("%||%", baseenv())) assign("%||%", function(x, 
++     y) if (is.null(x)) y else x, envir = globalenv())
+> D <- "/home/user/drmTMB/sweep-oct16/t6/data"
+> drmTMB:::drm_julia_fe_only_fence_families()
+ [1] "student"           "lognormal"         "truncated_nbinom2" "zero_one_beta"     "tweedie"           "beta_binomial"     "cumulative_logit"  "biv_student"       "skew_normal"      
+[10] "biv_lognormal"    
+> cells <- list(nbinom2 = list(file = "nbinom2_ri.csv", 
++     seed = 20261016621, fam = nbinom2(), f = bf(y ~ x + f + (1 | 
++         g), sigma ~ x)), beta = list(file = "beta_ri.csv", seed = 20261016611, 
++     fam = beta_family(), f = bf(y ~ x + f + (1 | g), sigma ~ 
++         x)), binomial = list(file = "binomial_ri.csv", seed = 20261016617, 
++     fam = binomial(), f = bf(cbind(successes, failures) ~ x + 
++         f + (1 | g))))
+> for (nm in names(cells)) {
++     cl <- cells[[nm]]
++     d <- read.csv(file.path(D, cl$file))
++     ft <- drmTMB(cl$f, family = cl$fam, data = d)
++     t0 <- Sys.time()
++     r <- tryCatch(drmTMB(cl$f, family = cl$fam, data = d, engine = "julia"), 
++         error = function(e) e)
++     secs <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
++     msg <- if (inherits(r, "error")) 
++         strsplit(conditionMessage(r), "\n")[[1]]
++     else "ADMITTED"
++     cat(sprintf("%-8s seed %.0f | tmb logLik %.4f | julia: %.1f s to failure\n  %s\n  %s\n", 
++         nm, cl$seed, as.numeric(logLik(ft)), secs, msg[1], if (length(msg) > 
++             1) 
++             msg[2]
++         else ""))
++ }
+nbinom2  seed 20261016621 | tmb logLik -562.3827 | julia: 34.0 s to failure
+  Error happens in Julia.
+  drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"]); the R side must supply names for every dpar when sending coef_labels
+Warning: `beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+i The deprecated feature was likely used in the drmTMB package.
+  Please report the issue at <https://github.com/itchyshin/drmTMB/issues>.
+beta     seed 20261016611 | tmb logLik 149.2217 | julia: 38.0 s to failure
+  Error happens in Julia.
+  drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"]); the R side must supply names for every dpar when sending coef_labels
+binomial seed 20261016617 | tmb logLik -471.6767 | julia: 16.6 s to failure
+  Error happens in Julia.
+  drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"]); the R side must supply names for every dpar when sending coef_labels
+########  br_1551ext.R | done in 90.4 s ########
+
+
+######## br_p6_quantile.R | start 22:40:32 ########
+> Sys.setenv(JULIA_DEPOT_PATH = "/opt/julia-depot", 
++     DRMODELS_JL_PATH = "/home/user/DRModels.jl", NOT_CRAN = "true", 
++     JULIA_HOME = "/opt/julia-env/bin")
+> library(drmTMB)
+> if (!exists("%||%", baseenv())) assign("%||%", function(x, 
++     y) if (is.null(x)) y else x, envir = globalenv())
+> D <- "/home/user/drmTMB/sweep-oct16/t6/data"
+> nd <- read.csv(file.path(D, "nd_main.csv"))
+> cells <- read.csv(file.path(D, "cells.csv"), colClasses = c(seed = "character"))
+> cells <- cells[cells$re == "fixed", ]
+> spec <- list(gaussian = list(gaussian(), bf(y ~ x + 
++     f, sigma ~ x)), student = list(student(), bf(y ~ x + f, sigma ~ 
++     x, nu ~ 1)), skew_normal = list(skew_normal(), bf(y ~ x + 
++     f, sigma ~ x, nu ~ 1)), lognormal = list(lognormal(), bf(y ~ 
++     x + f, sigma ~ x)), gamma = list(Gamma(link = "log"), bf(y ~ 
++     x + f, sigma ~ x)), beta = list(beta_family(), bf(y ~ x + 
++     f, sigma ~ x)), zero_one_beta = list(zero_one_beta(), bf(y ~ 
++     x + f, sigma ~ x, zoi ~ 1, coi ~ 1)), beta_binomial = list(beta_binomial(), 
++     bf(cbind(successes, failures) ~ x + f, sigma ~ x)), binomial = list(binomial(), 
++     bf(cbind(successes, failures) ~ x + f)), poisson = list(poisson(), 
++     bf(y ~ x + f)), nbinom2 = list(nbinom2(), bf(y ~ x + f, sigma ~ 
++     x)), truncated_nbinom2 = list(truncated_nbinom2(), bf(y ~ 
++     x + f, sigma ~ x)), tweedie = list(tweedie(), bf(y ~ x + 
++     f, sigma ~ x, nu ~ 1)), cumulative_logit = list(cumulative_logit(), 
++     bf(y ~ x + f)))
+> P <- c(0.025, 0.5, 0.975)
+> qd <- function(a, b) if (inherits(a, "error") || inherits(b, 
++     "error")) NA else max(abs(unclass(a) - unclass(b)))
+> msg1 <- function(e) if (inherits(e, "error")) gsub("\\s+", 
++     " ", strsplit(conditionMessage(e), "\n")[[1]][1]) else ""
+> rows <- list()
+> for (i in seq_len(nrow(cells))) {
++     fam <- cells$family[i]
++     s <- spec[[fam]]
++     d <- read.csv(file.path(D, cells$file[i]))
++     if (fam == "cumulative_logit") 
++         d$y <- ordered(d$y)
++     fj <- tryCatch(drmTMB(s[[2]], family = s[[1]], data = d, 
++         engine = "julia"), error = function(e) e)
++     ft <- drmTMB(s[[2]], family = s[[1]], data = d)
++     if (inherits(fj, "error")) {
++         rows[[fam]] <- data.frame(cell = cells$file[i], seed = cells$seed[i], 
++             coef = NA, q_in = NA, q_nd = NA, note = paste("fit refused:", 
++                 msg1(fj)))
++         next
++     }
++     cj <- unlist(coef(fj))
++     ct <- unlist(coef(ft))
++     par_gap <- max(vapply(names(coef(ft)), function(dp) {
++         a <- tryCatch(predict(fj, dpar = dp), error = function(e) NA)
++         b <- predict(ft, dpar = dp)
++         max(abs(a - b))
++     }, numeric(1)))
++     qj_in <- tryCatch(predict(fj, type = "quantile", prob = P), 
++         error = function(e) e)
++     qt_in <- tryCatch(predict(ft, type = "quantile", prob = P), 
++         error = function(e) e)
++     qj_nd <- tryCatch(predict(fj, newdata = nd, type = "quantile", 
++         prob = P), error = function(e) e)
++     qt_nd <- tryCatch(predict(ft, newdata = nd, type = "quantile", 
++         prob = P), error = function(e) e)
++     note <- paste(c(if (inherits(qj_in, "error")) paste("julia in-sample:", 
++         msg1(qj_in)), if (inherits(qt_in, "error")) paste("tmb in-sample:", 
++         msg1(qt_in)), if (inherits(qj_nd, "error")) paste("julia nd_main:", 
++         msg1(qj_nd)), if (inherits(qt_nd, "error")) paste("tmb nd_main:", 
++         msg1(qt_nd)), if (!inherits(qj_in, "error") && !inherits(qt_in, 
++         "error") && !identical(dim(qj_in), dim(qt_in))) "dim mismatch in-sample", 
++         if (!inherits(qj_in, "error") && !inherits(qt_in, "error") && 
++             !identical(attributes(qj_in)$calibrated, attributes(qt_in)$calibrated)) "calibrated attr differs"), 
++         collapse = "; ")
++     rows[[fam]] <- data.frame(cell = sub(".csv", "", cells$file[i], 
++         fixed = TRUE), seed = cells$seed[i], coef = signif(max(abs(cj - 
++         ct[names(cj)])), 2), par = signif(par_gap, 2), q_in = signif(qd(qj_in, 
++         qt_in), 2), q_nd = signif(qd(qj_nd, qt_nd), 2), note = note)
++     cat(sprintf("%-24s coef %.1e par %.1e q_in %.2e q_nd %.2e %s\n", 
++         fam, rows[[fam]]$coef, rows[[fam]]$par, rows[[fam]]$q_in, 
++         rows[[fam]]$q_nd, note))
++     flush.console()
++ }
+gaussian                 coef 1.1e-12 par 3.4e-12 q_in 7.30e-12 q_nd 4.10e-12 
+student                  coef 6.8e-11 par 2.7e-10 q_in 1.40e-10 q_nd 4.60e-11 
+skew_normal              coef 1.1e-10 par 1.1e-10 q_in 2.40e-09 q_nd 1.50e-09 
+lognormal                coef 1.9e-11 par 3.7e-11 q_in 5.30e-09 q_nd 1.50e-09 
+gamma                    coef 2.4e-12 par 4.1e-11 q_in 1.00e-10 q_nd 1.80e-11 
+beta                     coef 1.5e-11 par 6.1e-12 q_in 5.10e-12 q_nd 5.00e-12 
+zero_one_beta            coef 1.5e-12 par 2.9e-12 q_in 7.00e-13 q_nd 4.20e-13 
+beta_binomial            coef 4.0e-11 par 5.3e-11 q_in 0.00e+00 q_nd 0.00e+00 
+binomial                 coef 1.2e-13 par 6.6e-14 q_in 0.00e+00 q_nd 0.00e+00 
+poisson                  coef 5.5e-13 par 4.4e-12 q_in 0.00e+00 q_nd 0.00e+00 
+nbinom2                  coef 8.7e-11 par 1.9e-09 q_in 0.00e+00 q_nd 0.00e+00 
+truncated_nbinom2        coef 8.8e-11 par 1.8e-10 q_in 0.00e+00 q_nd 0.00e+00 
+tweedie                  coef 2.4e-11 par 2.5e-10 q_in 4.50e-10 q_nd 7.30e-11 
+cumulative_logit         coef 1.1e-11 par 2.2e-11 q_in 0.00e+00 q_nd 0.00e+00 
+> tab <- do.call(rbind, rows)
+> rownames(tab) <- NULL
+> print(tab, right = FALSE)
+   cell                    seed        coef    par     q_in    q_nd    note
+1  gaussian_fixed          20261016600 1.1e-12 3.4e-12 7.3e-12 4.1e-12     
+2  student_fixed           20261016602 6.8e-11 2.7e-10 1.4e-10 4.6e-11     
+3  skew_normal_fixed       20261016604 1.1e-10 1.1e-10 2.4e-09 1.5e-09     
+4  lognormal_fixed         20261016606 1.9e-11 3.7e-11 5.3e-09 1.5e-09     
+5  gamma_fixed             20261016608 2.4e-12 4.1e-11 1.0e-10 1.8e-11     
+6  beta_fixed              20261016610 1.5e-11 6.1e-12 5.1e-12 5.0e-12     
+7  zero_one_beta_fixed     20261016612 1.5e-12 2.9e-12 7.0e-13 4.2e-13     
+8  beta_binomial_fixed     20261016614 4.0e-11 5.3e-11 0.0e+00 0.0e+00     
+9  binomial_fixed          20261016616 1.2e-13 6.6e-14 0.0e+00 0.0e+00     
+10 poisson_fixed           20261016618 5.5e-13 4.4e-12 0.0e+00 0.0e+00     
+11 nbinom2_fixed           20261016620 8.7e-11 1.9e-09 0.0e+00 0.0e+00     
+12 truncated_nbinom2_fixed 20261016622 8.8e-11 1.8e-10 0.0e+00 0.0e+00     
+13 tweedie_fixed           20261016624 2.4e-11 2.5e-10 4.5e-10 7.3e-11     
+14 cumulative_logit_fixed  20261016626 1.1e-11 2.2e-11 0.0e+00 0.0e+00     
+> write.csv(tab, "/home/user/drmTMB/sweep-oct16/t6/results/bridge_p6_quantile_vs_tmb.csv", 
++     row.names = FALSE)
+########  br_p6_quantile.R | done in 180.7 s ########
+Julia 1.12.7 | DRModels at /home/user/DRModels.jl/src/DRModels.jl 
+  Activating project at `/home/user/DRModels.jl`

@@ -1,0 +1,532 @@
+{
+  "blocks": [
+    "\"mu\" => [1, 4]",
+    "\"sigma\" => [5, 6]",
+    "\"resd\" => [7, 7]"
+  ],
+  "coef": {
+    "mu": {
+      "names": [
+        "(Intercept)",
+        "x",
+        "f: b",
+        "f: c"
+      ],
+      "se": [
+        0.1450047778654378,
+        0.07048240536874052,
+        0.1515341093756171,
+        0.1583164800753268
+      ],
+      "values": [
+        0.03258441813239349,
+        0.48700644272118193,
+        0.29326440343462695,
+        -0.2581697558447134
+      ]
+    },
+    "resd": {
+      "names": [
+        "g"
+      ],
+      "se": [
+        0.20387998064019663
+      ],
+      "values": [
+        -0.7009782515668768
+      ]
+    },
+    "sigma": {
+      "names": [
+        "(Intercept)",
+        "x"
+      ],
+      "se": [
+        0.0810079865452374,
+        0.08517642498631578
+      ],
+      "values": [
+        -0.9676578938522818,
+        0.16345188721521078
+      ]
+    }
+  },
+  "converged": true,
+  "engine": "julia",
+  "engine_commit": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "fallback": null,
+  "family": "beta_binomial",
+  "fit_error": null,
+  "fit_ok": true,
+  "fit_seconds": 27.773489952087402,
+  "fit_warnings": "",
+  "formula": "bf(cbind(successes, failures) ~ x + f + (1 | g), sigma ~ x)",
+  "julia_version": "1.12.7",
+  "laplace": {
+    "error": "ArgumentError: marginal = :Laplace is not available on this route. `:Laplace` forces the Laplace approximation that drmTMB uses and is implemented for an ordinary random intercept `(1 | g)` on Poisson/Binomial/NegBinomial2/Gamma/Beta (routed by `drm` to the ordinary-Laplace front end, `_drm_ordinary_laplace`) and for a Gaussian random intercept on `sigma`, `sigma ~ 1 + (1 | g)`. Here use :LA (the default integrator for the route; on a single random intercept `(1 | g)` that is 32-node Gauss–Hermite quadrature, not Laplace), :VA (variational, #136), or :AGHQ (1-D Liu–Pierce, Poisson (1|g) only, #448).",
+    "fit_ok": false,
+    "formula": "bf(cbind(successes, failures) ~ x + f + (1 | g), sigma ~ x)",
+    "seconds": 0.06068587303161621,
+    "warnings": ""
+  },
+  "loglik": -552.8332520499661,
+  "marginal": "LA",
+  "niterations": 13,
+  "nobs": 240,
+  "pred_csv_note": "",
+  "re": "ri",
+  "re_sd": {
+    "g": 0.49609975597256634
+  },
+  "seed": 20261016615,
+  "serialize_roundtrip_ok": true,
+  "serialized": "/home/user/drmTMB/sweep-oct16/t6/results/jl_fits/beta_binomial_ri.jls",
+  "sim_seed": 20261016715,
+  "tests": {
+    "P1": {
+      "details": {
+        "checks": [
+          {
+            "check": "pp_link_vs_Xb[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_docinvlink[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_invlink_of_pp_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_link_vs_Xb[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_docinvlink[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_invlink_of_pp_link[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_marginal_parameters[mu] (docstring: in-sample reproduces)",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_marginal_parameters[sigma] (docstring: in-sample reproduces)",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_link_vs_Xb[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_resp_vs_docinvlink[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_resp_vs_fitted (docstring: in-sample predict ~ fitted)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "fit.means[:mu]_vs_hand_b0",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "fitted_vs_E[y]_at_b0 (fitted docstring: 'Fitted mean(s)')",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          }
+        ],
+        "means_mu_vs_b0_maxrel": 0.0,
+        "ranef_available": false,
+        "ranef_error": "ArgumentError: ranef: this fit has a random-effect block but no stored conditional modes -- the non-Gaussian GLMM marginal route (Gauss-Hermite quadrature / Laplace) integrates the random effect out of the likelihood and never computes a posterior mode. Use `re_sd(fit)` / `vc(fit)` for the fitted variance components."
+      },
+      "metric": "max abs/rel deviation (tol 1e-10; fitted/means 1e-8)",
+      "notes": "all 13 checks pass | ri fit: fit.means[:mu] equals the hand b = 0 value to 0.0; ranef() unavailable (ArgumentError: ranef: this fit has a random-effect block but no stored conditional modes -- the non-Gaussian GLMM margin)",
+      "status": "PASS",
+      "value": 0.0
+    },
+    "P10": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    },
+    "P11": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    },
+    "P2": {
+      "details": {
+        "checks": [
+          {
+            "check": "link_vs_Xnew_b[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "resp_vs_docinvlink[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "seen_vs_unseen_g_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "seen_vs_unseen_g_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "g_column_removed_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "g_column_removed_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "link_vs_Xnew_b[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "resp_vs_docinvlink[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "seen_vs_unseen_g_link[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "seen_vs_unseen_g_resp[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "g_column_removed_link[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "g_column_removed_resp[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_vs_pp_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_vs_pp_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_g_removed_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          }
+        ]
+      },
+      "metric": "max abs deviation vs hand X_new*beta / invlink (tol 1e-10)",
+      "notes": "all 15 checks pass",
+      "status": "PASS",
+      "value": 0.0
+    },
+    "P3": {
+      "details": {
+        "CategoricalArray levels=[a,b,c]": {
+          "message": "ArgumentError: only one level found: b (need at least two to compute contrasts).",
+          "outcome": "refused"
+        },
+        "CategoricalArray levels=[b]": {
+          "message": "ArgumentError: only one level found: b (need at least two to compute contrasts).",
+          "outcome": "refused"
+        },
+        "Vector{String}": {
+          "message": "ArgumentError: only one level found: b (need at least two to compute contrasts).",
+          "outcome": "refused"
+        }
+      },
+      "metric": "max abs deviation vs nd_main f=b rows (tol 1e-10)",
+      "notes": "Vector{String} refused with unclear message; CategoricalArray levels=[b] refused with unclear message; CategoricalArray levels=[a,b,c] refused with unclear message",
+      "status": "FAIL",
+      "value": 0.0
+    },
+    "P4": {
+      "details": {
+        "predict / CategoricalArray": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict / Vector{String}": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict_parameters / CategoricalArray": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict_parameters / Vector{String}": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        }
+      },
+      "metric": "refusal naming factor/level",
+      "notes": "refused, message: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "status": "PASS",
+      "value": null
+    },
+    "P5": {
+      "details": {
+        "Int x vs Float64 x": 0.0,
+        "catfit x String vs charfit x String": 0.0,
+        "catfit x catnewdata vs charfit x String": 0.0,
+        "charfit x catnewdata(c,a,b) vs charfit x String": "ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+        "charfit x catnewdata(default) vs charfit x String": 0.0,
+        "coef_char_vs_cat_maxabs": 0.0,
+        "coefnames_cat": [
+          ":mu => [\"(Intercept)\", \"x\", \"f: b\", \"f: c\"]",
+          ":sigma => [\"(Intercept)\", \"x\"]",
+          ":resd => [\"g\"]"
+        ],
+        "coefnames_relevel": [
+          ":mu => [\"(Intercept)\", \"x\", \"f: a\", \"f: b\"]",
+          ":sigma => [\"(Intercept)\", \"x\"]",
+          ":resd => [\"g\"]"
+        ],
+        "fit_cat_error": null,
+        "fit_cat_seconds": 0.4188079833984375,
+        "fit_relevel_error": null,
+        "fit_relevel_seconds": 0.3254730701446533,
+        "loglik_char_minus_cat": 0.0,
+        "loglik_char_minus_relevel": 0.0,
+        "relevelfit x String vs charfit x String (rel)": "ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x, f: a, f: b]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+        "relevelfit x catnewdata(default) vs charfit x String (rel)": "ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x, f: a, f: b]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards)."
+      },
+      "metric": "coef/prediction agreement across predictor types",
+      "notes": "charfit x catnewdata(c,a,b) vs charfit x String errored; relevelfit x String vs charfit x String (rel) errored; relevelfit x catnewdata(default) vs charfit x String (rel) errored",
+      "status": "FAIL",
+      "value": null
+    },
+    "P6": {
+      "details": null,
+      "metric": "quantile prediction available",
+      "notes": "no quantile-prediction API in DRModels.jl exports (exported names containing 'quantile': none); predict(fit, nd_main; type = :quantile) -> predict: `type` must be :response or :link",
+      "status": "NA",
+      "value": null
+    },
+    "P7": {
+      "details": {
+        "checks": [
+          {
+            "check": "pp_se[mu,link] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "pp_value[mu,link] == se=false value",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "pp_se[sigma,link] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "pp_value[sigma,link] == se=false value",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "predict_se[mu,link] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "predict_prediction[mu,link] == se=false",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "pp_se[mu,response] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "pp_value[mu,response] == se=false value",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "pp_se[sigma,response] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "pp_value[sigma,response] == se=false value",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "predict_se[mu,response] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "predict_prediction[mu,response] == se=false",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          }
+        ]
+      },
+      "metric": "max relative SE deviation vs independent delta method (tol 1e-8)",
+      "notes": "all 12 checks pass",
+      "status": "PASS",
+      "value": 0.0
+    },
+    "P8": {
+      "details": {
+        "b0": {
+          "mean_expected": 6.402976465027928,
+          "mean_sim": 6.403275000000001,
+          "reg_flag_gt4": false,
+          "reg_max_abs_t": 0.9542437832730938,
+          "reg_t_fb": 0.27227508137980405,
+          "reg_t_fc": 0.9542437832730938,
+          "reg_t_intercept": -0.523091920572309,
+          "reg_t_x": 0.6394527059621258,
+          "row_max_abs_z": 3.3522799033606634,
+          "row_n_abs_z_gt3": 1,
+          "row_n_expected_gt3": 0.648,
+          "row_n_zero_sd": 0,
+          "var_expected": 7.8475149973057965,
+          "var_sim_batchmean": 7.861698611111111,
+          "z_mean": 0.053613628035181715,
+          "z_var": 0.5864715245647257
+        },
+        "binomial_scale": "counts (successes)",
+        "class": "Matrix{Float64}",
+        "colnames": "none (plain Matrix)",
+        "default_rng_reproducible_after_seed!": true,
+        "draws_match": "b = 0 (docstring)",
+        "explicit_rng_leaves_global_rng_untouched": true,
+        "fitted_scale": "probability (fitted(fit) = mu)",
+        "marginal": {
+          "mean_expected": 6.393651999566857,
+          "mean_sim": 6.403275000000001,
+          "reg_flag_gt4": true,
+          "reg_max_abs_t": 11.18318487071003,
+          "reg_t_fb": 3.109974043441692,
+          "reg_t_fc": -1.1538317576121073,
+          "reg_t_intercept": -0.16066982221190856,
+          "reg_t_x": 11.18318487071003,
+          "row_max_abs_z": 4.3230130021727184,
+          "row_n_abs_z_gt3": 7,
+          "row_n_expected_gt3": 0.648,
+          "row_n_zero_sd": 0,
+          "var_expected": 9.635038649297003,
+          "var_sim_batchmean": 7.861698611111111,
+          "z_mean": 1.7281860219686196,
+          "z_var": -73.32499672099692
+        },
+        "nsim1_class": "Vector{Float64}",
+        "nsim1_equals_first_column": true,
+        "nsim1_is_vector_len_n": true,
+        "rng_reproducible": true,
+        "sd_g": 0.49609975597256634,
+        "shape_ok_n_x_nsim": true,
+        "size": [
+          240,
+          1000
+        ]
+      },
+      "metric": "z (global mean, batch-means variance) vs b=0 moments; |z|<3",
+      "notes": "ri: b=0 z_mean=0.05 z_var=0.59; marginal z_mean=1.73 z_var=-73.32; draws match: b = 0 (docstring) | rows |z|>3: 1 (expected 0.65), max|z_i| 3.35",
+      "status": "PASS",
+      "value": [
+        0.053613628035181715,
+        0.5864715245647257
+      ]
+    },
+    "P9": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "predict_formals": ["object", "newdata", "dpar", "type", "prob", "..."],
+  "se_fit_TRUE": {
+    "class": "numeric",
+    "identical_to_plain": true,
+    "is_list": false
+  },
+  "typo_type": "'arg' should be one of \"response\", \"link\", \"quantile\"",
+  "unknown_args_interval_level": {
+    "identical_to_plain": true
+  },
+  "predict_parameters": "no applicable method for 'predict_parameters' applied to an object of class \"drmTMB_julia\"",
+  "native_predict_parameters_has_se": true,
+  "bridge_vcov_names": ["mu_(Intercept)", "mu_x", "mu_fb", "mu_fc", "sigma_(Intercept)", "sigma_x"]
+}
