@@ -344,6 +344,32 @@ end: `python3 tools/recertify-c17.py --label pr-1504 --tolerance 1e-10`,
 also carries the #1495 contrast fix (ordered factors, stored contrast names,
 and a `drmTMB_contrasts_dropped` warning).
 
+# 2026-10-16 — FX3: fail-closed MLE existence (#1553, #1270, #1469)
+
+**Lane:** Cursor · branch `cursor/fx3-silent-mle-b05e` (DRAFT PR).
+
+**Change:** `R/mle-existence.R` screens fixed-effect binomial separation,
+Poisson / NB2 rays with no finite MLE, and unbounded continuous
+location-scale (lower `log(sigma)` clamp + exact Pearson residual +
+spread > log(1e4)). `convergence_status()` returns `"degenerate"` and
+`check_drm()` adds a warning `mle_existence` row. No change to
+`R/drmTMB.R`, `R/methods.R`, `R/mi-weights.R`, or `src/`; C17 was not
+recertified. The 238/750 twin-flag contract (#1554) is not decided here.
+
+**Evidence:** `test-mle-existence.R` failed on installed pin `ca3ddefa`
+(bin_complete / pois_n8_lowmean r03 / gauss_n8 r06 all `is_converged`
+TRUE) and passed after `pkgload::load_all` (39 pass / 0 fail). Sibling
+files: `test-check-drm.R` 263 pass, `test-fit-convergence-warning.R` 16
+pass, `test-binomial-response.R` 60 pass, `test-poisson-mean.R` 138 pass,
+`test-gaussian-location-scale.R` 79 pass / 1 skip, `test-nbinom2-location-scale.R`
+157 pass.
+
+**Non-claims:** no Firth/MSPL default; no Inf-SE masking in `vcov()`;
+random-effect routes not screened; shared R/Julia `is_converged` rule
+left to #1554.
+
+---
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
