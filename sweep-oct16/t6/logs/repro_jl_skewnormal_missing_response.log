@@ -1,0 +1,3 @@
+SkewNormal: ArgumentError: ArgumentError: matrix contains Infs or NaNs
+Student: fits, nobs = 239, loglik = -314.36730714029153
+drmTMB skew_normal with NA y: nobs = 239  logLik = -290.8874 
