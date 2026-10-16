@@ -14,16 +14,16 @@
 - Docs contradictions: 2. drmTMB#1568 and drmTMB#1569.
 - Twin capability gaps: 1. DRModels.jl#1122.
 
-**Added evidence to 7 existing issues** (comment on a matching issue first): drmTMB#1536, drmTMB#1551, DRModels.jl#1000, #1102, #943, #1092, #1104. The #1102 comment carries a new silent wrong answer: crossed-route LogNormal `simulate()`.
+**Added evidence to 7 existing issues** (comment on a matching issue first): drmTMB#1536, drmTMB#1551, DRModels.jl#1000, DRModels.jl#1102, DRModels.jl#943, DRModels.jl#1092, DRModels.jl#1104. The DRModels.jl#1102 comment carries a new silent wrong answer: crossed-route LogNormal `simulate()`.
 
 **drmTMB native (`engine = "tmb"`) passes every SPEC test in all 28 cells**, including P6 Tweedie once the `tweedie` package was installed. Its open items are documentation and argument checking: #1568, and #1536 (now executed).
 
 **The SPEC's 1e-8 R-vs-Julia bar:**
 - Met on the link scale in every comparable cell: ≤ 8.9e-15 at shared coefficients (P9).
 - Met by the bridge: ≤ 2.2e-16 (P11).
-- Fails on the response scale where DRModels.jl applies the wrong inverse link (#1120).
-- Not evaluable for CumulativeLogit (#1121).
-- Fit-vs-fit (P10) meets it for all 13 evaluable fixed-effect cells (≤ 1.2e-10) but not for most `(1 | g)` cells. There the gap comes entirely from GHQ vs Laplace coefficients (#943, #1071), not from the predict code.
+- Fails on the response scale where DRModels.jl applies the wrong inverse link (DRModels.jl#1120).
+- Not evaluable for CumulativeLogit (DRModels.jl#1121).
+- Fit-vs-fit (P10) meets it for all 13 evaluable fixed-effect cells (≤ 1.2e-10) but not for most `(1 | g)` cells. There the gap comes entirely from GHQ vs Laplace coefficients (DRModels.jl#943, DRModels.jl#1071), not from the predict code.
 
 ## Scope, interpretation and deviations (read before the numbers)
 
@@ -102,17 +102,17 @@ Built by `R/90_receipt_matrix.R` from `results/*_summary.csv` and `results/parit
 
 | test | drmTMB native | DRModels.jl native | notes |
 |---|---|---|---|
-| P1 in-sample predict / fitted | 28/28 | 16/26 fitted cells | fails: Student/SkewNormal ν and ZOB μ (#1120); LogNormal and TruncNB2 `fitted()` is not E[y] (#1104 comment); CumulativeLogit errors (#1121) |
-| P2 unseen group levels | 28/28 | 19/26 | the failures are the #1120 and #1121 cells; unseen `g` itself works everywhere (population level, as documented) |
-| P3 level subset | 28/28 | 2/26 (Gaussian only) | 22 refused with a raw StatsModels message (#1000 comment); no silent wrong value |
-| P4 unseen fixed-effect level | 28/28 | 26/26 | all refuse; non-Gaussian refusals come from the #1000 guard, not the #1015 message |
-| P5 character vs factor | 28/28 | 2/26 | cross-type newdata refused for non-Gaussian (#1000 comment) |
+| P1 in-sample predict / fitted | 28/28 | 16/26 fitted cells | fails: Student/SkewNormal ν and ZOB μ (DRModels.jl#1120); LogNormal and TruncNB2 `fitted()` is not E[y] (DRModels.jl#1104 comment); CumulativeLogit errors (DRModels.jl#1121) |
+| P2 unseen group levels | 28/28 | 19/26 | the failures are the DRModels.jl#1120 and DRModels.jl#1121 cells; unseen `g` itself works everywhere (population level, as documented) |
+| P3 level subset | 28/28 | 2/26 (Gaussian only) | 22 refused with a raw StatsModels message (DRModels.jl#1000 comment); no silent wrong value |
+| P4 unseen fixed-effect level | 28/28 | 26/26 | all refuse; non-Gaussian refusals come from the DRModels.jl#1000 guard, not the DRModels.jl#1015 message |
+| P5 character vs factor | 28/28 | 2/26 | cross-type newdata refused for non-Gaussian (DRModels.jl#1000 comment) |
 | P6 quantile | 28/28 (Tweedie via verifier) | no API | in-sample R quantiles are conditional on b̂, but the docs say population (#1568) |
-| P7 SEs | 28/28 via `predict_parameters(conf.int = TRUE)`, delta-method agreement ≤ 3.5e-16; `predict(se.fit = TRUE)` silently ignored (#1536) | 21/26 | SkewNormal ν and ZOB μ response SEs are wrong (#1120); CumulativeLogit errors |
-| P8 simulate, 1000 draws, 3 MC SE | 28/28 default (marginal) + 14/14 `re.form = NULL` | 26/26 against the documented b = 0 moments | DRModels.jl draws at b = 0, which drmTMB has no mode for (#1092 comment); missing-response Student draws use the wrong ν (#1120); crossed LogNormal draws are wrong (#1102 comment); `simulate(newdata =)` is ignored (#1536) |
-| P9 shared θ, 1e-8 | — | link ≤ 8.9e-15 in all 24 evaluable cells | response fails in 5 cells (#1120); lognormal μ response differs by design (R meanlog, Julia exp); CumulativeLogit errors (#1121) |
+| P7 SEs | 28/28 via `predict_parameters(conf.int = TRUE)`, delta-method agreement ≤ 3.5e-16; `predict(se.fit = TRUE)` silently ignored (#1536) | 21/26 | SkewNormal ν and ZOB μ response SEs are wrong (DRModels.jl#1120); CumulativeLogit errors |
+| P8 simulate, 1000 draws, 3 MC SE | 28/28 default (marginal) + 14/14 `re.form = NULL` | 26/26 against the documented b = 0 moments | DRModels.jl draws at b = 0, which drmTMB has no mode for (DRModels.jl#1092 comment); missing-response Student draws use the wrong ν (DRModels.jl#1120); crossed LogNormal draws are wrong (DRModels.jl#1102 comment); `simulate(newdata =)` is ignored (#1536) |
+| P9 shared θ, 1e-8 | — | link ≤ 8.9e-15 in all 24 evaluable cells | response fails in 5 cells (DRModels.jl#1120); lognormal μ response differs by design (R meanlog, Julia exp); CumulativeLogit errors (DRModels.jl#1121) |
 | P10 own fits, 1e-8 | — | all 13 evaluable fixed cells ≤ 1.2e-10; `ri`: 4 pass, poisson_ri 1.45e-8 (Julia Laplace stops at \|∇\| 3e-6), 6 GHQ-vs-Laplace cells at 7.7e-5–1.2e-3 (cumulative_logit_ri: coefficient level only, max \|Δβ\| 1.9e-3) | every evaluated P10 gap decomposes into X·Δβ (residual ≤ 7.1e-15), so it is not a predict defect |
-| P11 bridge same fit | — | 13/13 admitted fixed cells, link ≤ 2.2e-16 | all 14 `ri` cells refused: Gaussian on factor labels (#1567); 5 non-Gaussian after the full fit (#1551 comment); the rest fenced by design. Bridge `fitted()` contract: #1566. No `simulate`/`predict_parameters`: #1570. Bridge P6 quantiles match native to ≤ 5.3e-9 in all 14 fixed cells |
+| P11 bridge same fit | — | 13/13 admitted fixed cells, link ≤ 2.2e-16 | all 14 `ri` cells refused: Gaussian on factor labels (#1567); 5 non-Gaussian after the full fit (drmTMB#1551 comment); the rest fenced by design. Bridge `fitted()` contract: #1566. No `simulate`/`predict_parameters`: #1570. Bridge P6 quantiles match native to ≤ 5.3e-9 in all 14 fixed cells |
 
 ## Issues filed
 
@@ -139,11 +139,11 @@ Every issue carries:
 
 - [drmTMB#1536](https://github.com/itchyshin/drmTMB/issues/1536#issuecomment-6226367619): executed confirmation (the issue said "not run"). Also extends it to `predict.drmTMB_julia`, names the working SE route, and adjusts the severity.
 - [drmTMB#1551](https://github.com/itchyshin/drmTMB/issues/1551#issuecomment-6226370695): nbinom2, beta_family and binomial also abort after the full fit. The "send Laplace" option cannot work with `sigma ~ x`. Also notes an incidental `beta()` deprecation warning from the bridge path (source not traced).
-- [DRModels.jl#1000](https://github.com/itchyshin/DRModels.jl/issues/1000#issuecomment-6226375700): the training-schema cache is Gaussian-only. Non-Gaussian level-subset and cross-type newdata are refused with a raw message, and there are no silent wrong values. PR #1086 defers this.
+- [DRModels.jl#1000](https://github.com/itchyshin/DRModels.jl/issues/1000#issuecomment-6226375700): the training-schema cache is Gaussian-only. Non-Gaussian level-subset and cross-type newdata are refused with a raw message, and there are no silent wrong values. DRModels.jl PR #1086 defers this.
 - [DRModels.jl#1102](https://github.com/itchyshin/DRModels.jl/issues/1102#issuecomment-6226378443): **new silent wrong answer, same root.** On the crossed LogNormal route `fitted()` returns meanlog, and `simulate()` draws `exp(log(meanlog) + σz)`: mean 1.10 against 3.36 expected. Only the issue's first proposed fix cures it.
 - [DRModels.jl#943](https://github.com/itchyshin/DRModels.jl/issues/943#issuecomment-6226381849): no TMB-convention Laplace for ZOB, Tweedie, CumulativeLogit or BetaBinomial `(1 | g)`. Measures the GHQ-vs-Laplace gaps and attributes them fully to coefficients.
 - [DRModels.jl#1092](https://github.com/itchyshin/DRModels.jl/issues/1092#issuecomment-6226384174): `simulate()` b = 0 versus drmTMB's marginal default, a mode drmTMB lacks. Edited once to correct my own misstatement about `re.form = ~0`.
-- [DRModels.jl#1104](https://github.com/itchyshin/DRModels.jl/issues/1104#issuecomment-6226392101): TruncNB2 `fitted()` is the untruncated mean, which PR #1100's rewrite does not cover, plus the LogNormal twin numbers.
+- [DRModels.jl#1104](https://github.com/itchyshin/DRModels.jl/issues/1104#issuecomment-6226392101): TruncNB2 `fitted()` is the untruncated mean, which DRModels.jl PR #1100's rewrite does not cover, plus the LogNormal twin numbers.
 
 ## Considered and not filed
 
@@ -154,8 +154,8 @@ Every issue carries:
 
 ## Coverage gaps (not recorded as PASS)
 
-- **Julia, cells not run:** `skew_normal_ri` and `truncated_nbinom2_ri` (refused, #1122).
-- **Julia, CumulativeLogit:** P1–P3, P5, P7 and P9/P10 are not evaluable (#1121). Its parity is coefficient-level only (1.1e-11).
+- **Julia, cells not run:** `skew_normal_ri` and `truncated_nbinom2_ri` (refused, DRModels.jl#1122).
+- **Julia, CumulativeLogit:** P1–P3, P5, P7 and P9/P10 are not evaluable (DRModels.jl#1121). Its parity is coefficient-level only (1.1e-11).
 - **P10 at a shared integrator:** possible only for gaussian, lognormal, student, binomial and poisson `ri`. The other 7 `ri` cells compare GHQ with Laplace.
 - **Bridge:** no `ri` cell was admitted. The Gaussian `(1 | g)` bridge parity was measured only on a numeric-only formula (exact: coefficients 0, logLik 0). Bridge P8 is impossible (#1570).
 - **Not in scope:** bivariate families, `zi`/`hu` routes, offsets and structured (phylo/spatial) effects. The log-σ soft clamp never bound in these data, so clamp behaviour in `predict()` is untested.
