@@ -64,12 +64,14 @@ test_that("drm_warn_if_nonfinite_objective is silent on a finite objective and w
 })
 
 # --- #1545: summary() must flag a non-converged fit as clearly as print() ----
-# Everything cli prints goes to the message stream; tables go to stdout.
+# Everything cli prints goes to the message stream; tables go to stdout. cli
+# wraps a long message at the console width, so whitespace is squashed before
+# matching.
 convergence_printed <- function(x) {
   out <- utils::capture.output(
     msgs <- utils::capture.output(print(x), type = "message")
   )
-  paste(c(msgs, out), collapse = "\n")
+  gsub("\\s+", " ", paste(c(msgs, out), collapse = "\n"))
 }
 
 convergence_fixture_fit <- function() {
@@ -118,6 +120,22 @@ test_that("a summary object without a stored message still says not converged", 
   printed <- convergence_printed(smry)
   expect_match(printed, "convergence: 1 (not converged; see `check_drm()`)", fixed = TRUE)
   expect_no_match(printed, "convergence message:", fixed = TRUE)
+})
+
+test_that("check_drm()'s convergence_status row does not call a failed optimizer a success (#1545)", {
+  fit <- convergence_fixture_fit()
+  fit$opt$convergence <- 1L
+  fit$opt$message <- "false convergence (8)"
+  chk <- check_drm(fit)
+  row <- chk[chk$check == "convergence_status", ]
+  # Value and status are unchanged; only the explanation was wrong.
+  expect_identical(row$value, "degenerate")
+  expect_identical(row$status, "note")
+  expect_no_match(row$message, "reported success", fixed = TRUE)
+  expect_match(row$message, "did not reach a converged, finite optimum", fixed = TRUE)
+  optimizer_row <- chk[chk$check == "optimizer_convergence", ]
+  expect_identical(optimizer_row$status, "warning")
+  expect_match(optimizer_row$message, "false convergence (8)", fixed = TRUE)
 })
 
 test_that("an optimizer-starved Student t fit is flagged by summary(), not only at fit time", {

@@ -21,7 +21,10 @@
   `convergence_message`. Julia-engine fits (`engine = "julia"`, including
   cross-family and joint `mi()` fits) follow the same rule: `print()` no
   longer shows a bare code, and the printed summary adds the message and
-  points to `check_drm()`. Converged fits print exactly as before (#1545).
+  points to `check_drm()`. Converged fits print exactly as before. In
+  `check_drm()`, the `convergence_status` row of such a fit no longer says
+  "the optimizer reported success"; its value (`degenerate`) and status
+  (`note`) are unchanged (#1545).
 * Gamma `mi()` missing-x rows use a 51-node posterior-mode Gauss-Hermite
   rule on `u = log(x)`. Exactly five Newton steps start at the log prior
   mean and use each response family's own log-density gradient and

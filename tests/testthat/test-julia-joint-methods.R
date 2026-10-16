@@ -186,7 +186,7 @@ test_that("joint Julia print() and summary() flag a non-converged fit with its m
     out <- utils::capture.output(
       msgs <- utils::capture.output(print(x), type = "message")
     )
-    paste(c(msgs, out), collapse = "\n")
+    gsub("\\s+", " ", paste(c(msgs, out), collapse = "\n"))
   }
   expect_match(
     printed_text(fit),

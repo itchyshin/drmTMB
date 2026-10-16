@@ -1424,12 +1424,23 @@ check_convergence_status <- function(object) {
         "parameters are near an interpretability boundary; read",
         "convergence_status() and boundary rows before inference."
       ),
-      degenerate = paste(
-        "The optimizer reported success but the likelihood geometry or",
-        "uncertainty is degenerate (no reliable maximum or non-finite",
-        "standard errors). multi_start cannot clear this state;",
-        "is_converged() is FALSE."
-      ),
+      # convergence_status() also returns "degenerate" when the optimizer
+      # itself failed, so this row must not claim success for those fits
+      # (#1545: a false-convergence (8) Student t fit read "reported success").
+      degenerate = if (drm_optimizer_converged(object)) {
+        paste(
+          "The optimizer reported success but the likelihood geometry or",
+          "uncertainty is degenerate (no reliable maximum or non-finite",
+          "standard errors). multi_start cannot clear this state;",
+          "is_converged() is FALSE."
+        )
+      } else {
+        paste(
+          "The optimizer did not reach a converged, finite optimum (see the",
+          "optimizer_convergence and finite_objective rows), so there is no",
+          "reliable maximum; is_converged() is FALSE."
+        )
+      },
       "Convergence status could not be classified."
     )
   )
