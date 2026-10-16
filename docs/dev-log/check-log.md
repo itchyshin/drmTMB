@@ -1,3 +1,14 @@
+# 2026-10-16: Engine A DRM lane t5 (missing data and weights)
+
+Sweep on pins drmTMB `ca3ddefa` and DRModels.jl `f71b292`. Native
+integer-weights vs duplication PASS (max |ΔlogLik| 1.74e-10, |Δcoef|
+1.52e-10). Direct Julia complete-case / Laplace PASS vs native;
+`drm_listwise` nobs 27/27. FAIL: raw missing `x` KeyError (#1089);
+`weights=` MethodError (#931); duplicated-row coef 3.04e-08 on
+`gamma_y00_x00`; `engine = "julia"` JuliaCall SIGSEGV 139 on official
+Julia 1.12.7. Receipt: `sweep-oct16/t5/RECEIPT_t5.md` on branch
+`sweep-oct16/t5`. GitHub writes 403; no PR, no merge.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17

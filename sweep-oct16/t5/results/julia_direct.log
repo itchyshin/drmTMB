@@ -1,0 +1,190 @@
+[32m[1mPrecompiling[22m[39m packages...
+    604.2 ms[32m  ✓ [39mInverseFunctionsTestExt[90m (serial)[39m
+  1 dependency successfully precompiled in 1 seconds
+[32m[1mPrecompiling[22m[39m packages...
+    602.3 ms[32m  ✓ [39mTestExt[90m (serial)[39m
+  1 dependency successfully precompiled in 1 seconds
+[32m[1mPrecompiling[22m[39m packages...
+   1115.0 ms[32m  ✓ [39mDistributionsTestExt[90m (serial)[39m
+  1 dependency successfully precompiled in 1 seconds
+[gaussian_y00_x00] JD_raw      ok    
+[gaussian_y00_x00] JD_nan      ok    
+[gaussian_y00_x00] JD_listwise ok    
+[gaussian_y00_x00] JD_cc       ok    
+[gaussian_y00_x00] JD_dup      ok    
+[gaussian_y00_x00] JD_weights  error MethodError
+[gaussian_y00_x05] JD_raw      error KeyError
+[gaussian_y00_x05] JD_nan      error ArgumentError
+[gaussian_y00_x05] JD_listwise ok    
+[gaussian_y00_x05] JD_cc       ok    
+[gaussian_y00_x05] JD_dup      ok    
+[gaussian_y00_x05] JD_weights  error MethodError
+[gaussian_y00_x20] JD_raw      error KeyError
+[gaussian_y00_x20] JD_nan      error ArgumentError
+[gaussian_y00_x20] JD_listwise ok    
+[gaussian_y00_x20] JD_cc       ok    
+[gaussian_y00_x20] JD_dup      ok    
+[gaussian_y00_x20] JD_weights  error MethodError
+[gaussian_y05_x00] JD_raw      error ArgumentError
+[gaussian_y05_x00] JD_nan      error ArgumentError
+[gaussian_y05_x00] JD_listwise ok    
+[gaussian_y05_x00] JD_cc       ok    
+[gaussian_y05_x00] JD_dup      ok    
+[gaussian_y05_x00] JD_weights  error MethodError
+[gaussian_y05_x05] JD_raw      error KeyError
+[gaussian_y05_x05] JD_nan      error ArgumentError
+[gaussian_y05_x05] JD_listwise ok    
+[gaussian_y05_x05] JD_cc       ok    
+[gaussian_y05_x05] JD_dup      ok    
+[gaussian_y05_x05] JD_weights  error MethodError
+[gaussian_y05_x20] JD_raw      error KeyError
+[gaussian_y05_x20] JD_nan      error ArgumentError
+[gaussian_y05_x20] JD_listwise ok    
+[gaussian_y05_x20] JD_cc       ok    
+[gaussian_y05_x20] JD_dup      ok    
+[gaussian_y05_x20] JD_weights  error MethodError
+[gaussian_y20_x00] JD_raw      error ArgumentError
+[gaussian_y20_x00] JD_nan      error ArgumentError
+[gaussian_y20_x00] JD_listwise ok    
+[gaussian_y20_x00] JD_cc       ok    
+[gaussian_y20_x00] JD_dup      ok    
+[gaussian_y20_x00] JD_weights  error MethodError
+[gaussian_y20_x05] JD_raw      error KeyError
+[gaussian_y20_x05] JD_nan      error ArgumentError
+[gaussian_y20_x05] JD_listwise ok    
+[gaussian_y20_x05] JD_cc       ok    
+[gaussian_y20_x05] JD_dup      ok    
+[gaussian_y20_x05] JD_weights  error MethodError
+[gaussian_y20_x20] JD_raw      error KeyError
+[gaussian_y20_x20] JD_nan      error ArgumentError
+[gaussian_y20_x20] JD_listwise ok    
+[gaussian_y20_x20] JD_cc       ok    
+[gaussian_y20_x20] JD_dup      ok    
+[gaussian_y20_x20] JD_weights  error MethodError
+[poisson_y00_x00] JD_raw      ok    
+[poisson_y00_x00] JD_nan      ok    
+[poisson_y00_x00] JD_listwise ok    
+[poisson_y00_x00] JD_cc       ok    
+[poisson_y00_x00] JD_dup      ok    
+[poisson_y00_x00] JD_weights  error MethodError
+[poisson_y00_x00] JD_cc_lap   ok    
+[poisson_y00_x05] JD_raw      error KeyError
+[poisson_y00_x05] JD_nan      ok    
+[poisson_y00_x05] JD_listwise ok    
+[poisson_y00_x05] JD_cc       ok    
+[poisson_y00_x05] JD_dup      ok    
+[poisson_y00_x05] JD_weights  error MethodError
+[poisson_y00_x05] JD_cc_lap   ok    
+[poisson_y00_x20] JD_raw      error KeyError
+[poisson_y00_x20] JD_nan      ok    
+[poisson_y00_x20] JD_listwise ok    
+[poisson_y00_x20] JD_cc       ok    
+[poisson_y00_x20] JD_dup      ok    
+[poisson_y00_x20] JD_weights  error MethodError
+[poisson_y00_x20] JD_cc_lap   ok    
+[poisson_y05_x00] JD_raw      ok    
+[poisson_y05_x00] JD_nan      ok    
+[poisson_y05_x00] JD_listwise ok    
+[poisson_y05_x00] JD_cc       ok    
+[poisson_y05_x00] JD_dup      ok    
+[poisson_y05_x00] JD_weights  error MethodError
+[poisson_y05_x00] JD_cc_lap   ok    
+[poisson_y05_x05] JD_raw      error KeyError
+[poisson_y05_x05] JD_nan      ok    
+[poisson_y05_x05] JD_listwise ok    
+[poisson_y05_x05] JD_cc       ok    
+[poisson_y05_x05] JD_dup      ok    
+[poisson_y05_x05] JD_weights  error MethodError
+[poisson_y05_x05] JD_cc_lap   ok    
+[poisson_y05_x20] JD_raw      error KeyError
+[poisson_y05_x20] JD_nan      ok    
+[poisson_y05_x20] JD_listwise ok    
+[poisson_y05_x20] JD_cc       ok    
+[poisson_y05_x20] JD_dup      ok    
+[poisson_y05_x20] JD_weights  error MethodError
+[poisson_y05_x20] JD_cc_lap   ok    
+[poisson_y20_x00] JD_raw      ok    
+[poisson_y20_x00] JD_nan      ok    
+[poisson_y20_x00] JD_listwise ok    
+[poisson_y20_x00] JD_cc       ok    
+[poisson_y20_x00] JD_dup      ok    
+[poisson_y20_x00] JD_weights  error MethodError
+[poisson_y20_x00] JD_cc_lap   ok    
+[poisson_y20_x05] JD_raw      error KeyError
+[poisson_y20_x05] JD_nan      ok    
+[poisson_y20_x05] JD_listwise ok    
+[poisson_y20_x05] JD_cc       ok    
+[poisson_y20_x05] JD_dup      ok    
+[poisson_y20_x05] JD_weights  error MethodError
+[poisson_y20_x05] JD_cc_lap   ok    
+[poisson_y20_x20] JD_raw      error KeyError
+[poisson_y20_x20] JD_nan      ok    
+[poisson_y20_x20] JD_listwise ok    
+[poisson_y20_x20] JD_cc       ok    
+[poisson_y20_x20] JD_dup      ok    
+[poisson_y20_x20] JD_weights  error MethodError
+[poisson_y20_x20] JD_cc_lap   ok    
+[gamma_y00_x00] JD_raw      ok    
+[gamma_y00_x00] JD_nan      ok    
+[gamma_y00_x00] JD_listwise ok    
+[gamma_y00_x00] JD_cc       ok    
+[gamma_y00_x00] JD_dup      ok    
+[gamma_y00_x00] JD_weights  error MethodError
+[gamma_y00_x00] JD_cc_lap   ok    
+[gamma_y00_x05] JD_raw      error KeyError
+[gamma_y00_x05] JD_nan      error DomainError
+[gamma_y00_x05] JD_listwise ok    
+[gamma_y00_x05] JD_cc       ok    
+[gamma_y00_x05] JD_dup      ok    
+[gamma_y00_x05] JD_weights  error MethodError
+[gamma_y00_x05] JD_cc_lap   ok    
+[gamma_y00_x20] JD_raw      error KeyError
+[gamma_y00_x20] JD_nan      error DomainError
+[gamma_y00_x20] JD_listwise ok    
+[gamma_y00_x20] JD_cc       ok    
+[gamma_y00_x20] JD_dup      ok    
+[gamma_y00_x20] JD_weights  error MethodError
+[gamma_y00_x20] JD_cc_lap   ok    
+[gamma_y05_x00] JD_raw      ok    
+[gamma_y05_x00] JD_nan      ok    
+[gamma_y05_x00] JD_listwise ok    
+[gamma_y05_x00] JD_cc       ok    
+[gamma_y05_x00] JD_dup      ok    
+[gamma_y05_x00] JD_weights  error MethodError
+[gamma_y05_x00] JD_cc_lap   ok    
+[gamma_y05_x05] JD_raw      error KeyError
+[gamma_y05_x05] JD_nan      error DomainError
+[gamma_y05_x05] JD_listwise ok    
+[gamma_y05_x05] JD_cc       ok    
+[gamma_y05_x05] JD_dup      ok    
+[gamma_y05_x05] JD_weights  error MethodError
+[gamma_y05_x05] JD_cc_lap   ok    
+[gamma_y05_x20] JD_raw      error KeyError
+[gamma_y05_x20] JD_nan      error DomainError
+[gamma_y05_x20] JD_listwise ok    
+[gamma_y05_x20] JD_cc       ok    
+[gamma_y05_x20] JD_dup      ok    
+[gamma_y05_x20] JD_weights  error MethodError
+[gamma_y05_x20] JD_cc_lap   ok    
+[gamma_y20_x00] JD_raw      ok    
+[gamma_y20_x00] JD_nan      ok    
+[gamma_y20_x00] JD_listwise ok    
+[gamma_y20_x00] JD_cc       ok    
+[gamma_y20_x00] JD_dup      ok    
+[gamma_y20_x00] JD_weights  error MethodError
+[gamma_y20_x00] JD_cc_lap   ok    
+[gamma_y20_x05] JD_raw      error KeyError
+[gamma_y20_x05] JD_nan      error DomainError
+[gamma_y20_x05] JD_listwise ok    
+[gamma_y20_x05] JD_cc       ok    
+[gamma_y20_x05] JD_dup      ok    
+[gamma_y20_x05] JD_weights  error MethodError
+[gamma_y20_x05] JD_cc_lap   ok    
+[gamma_y20_x20] JD_raw      error KeyError
+[gamma_y20_x20] JD_nan      error DomainError
+[gamma_y20_x20] JD_listwise ok    
+[gamma_y20_x20] JD_cc       ok    
+[gamma_y20_x20] JD_dup      ok    
+[gamma_y20_x20] JD_weights  error MethodError
+[gamma_y20_x20] JD_cc_lap   ok    
+wrote sweep-oct16/t5/results/julia_direct.csv

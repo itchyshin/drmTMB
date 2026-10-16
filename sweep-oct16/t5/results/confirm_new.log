@@ -1,0 +1,9 @@
+KeyError_missing_x ERROR KeyError :: KeyError: key missing not found secs=17.9
+weights_kwarg ERROR MethodError :: MethodError: no method matching _drm_gaussian_fit(::DrmFormula, ::Gaussian; data::@NamedTuple{y::Vector{Float64}, x::Vector{Float64}, g::Vector{String}}, weights::Vector{Float64}) secs=0.4
+union_eltype_complete_x OK nobs=200 ncoef_mu=200 loglik=6847.01725 n_groups=? conv=false secs=32.0
+concrete_eltype_complete_x OK nobs=200 ncoef_mu=2 loglik=-294.0617208 n_groups=? conv=true secs=2.4
+g_missing OK nobs=200 ncoef_mu=2 loglik=-295.3706635 n_groups=? conv=true secs=1.2
+g_dropped OK nobs=190 ncoef_mu=2 loglik=-282.9513345 n_groups=? conv=true secs=0.2
+poisson_nan_x OK nobs=200 ncoef_mu=2 loglik=-1e+18 n_groups=? conv=false secs=9.6
+poisson_cc_laplace OK nobs=190 ncoef_mu=2 loglik=-331.0224734 n_groups=? conv=true secs=0.3
+done
