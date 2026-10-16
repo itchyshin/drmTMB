@@ -83,3 +83,22 @@ for (i in seq_len(nrow(cells))) {
 }
 writeLines(md, file.path(res_dir, "summary.md"))
 cat(md, sep = "\n")
+
+## pass-bar table: per cell and engine
+pb <- function(v) {
+  silent <- sum(startsWith(v, "SILENT_")); fa <- sum(v == "FALSE_ALARM"); al <- sum(v == "CONV_WARNED_alias")
+  ww <- sum(v == "WARNED_WRONG"); er <- sum(v == "ERROR"); la <- sum(v == "LL_ABOVE_SUP_flagged")
+  verdict <- if (silent > 0) "FAIL (silent wrong)" else if (fa + al + la > 0) "flag/answer wrong but signalled" else "pass"
+  c(silent = silent, false_alarm = fa, conv_alias = al, ll_above_flagged = la, warned_wrong = ww, error = er, verdict = verdict)
+}
+md2 <- c("", "## Pass bar per cell and engine", "",
+         "| cell | engine | silent wrong / nonexistent / boundary-unflagged | false alarm (correct answer, converged = FALSE) | other (converged + misleading warning; logLik above sup but flagged; warned wrong) | verdict | flags agree R/J |",
+         "|---|---|---|---|---|---|---|")
+for (i in seq_len(nrow(cells))) for (eng in c("drmTMB", "DRModels.jl")) {
+  cc <- cells$cell[i]; v <- cls$verdict[cls$cell == cc & cls$engine == eng]; p <- pb(v)
+  md2 <- c(md2, sprintf("| %s | %s | %s | %s | %d | %s | %s |", cc, eng, p[["silent"]], p[["false_alarm"]],
+    as.integer(p[["conv_alias"]]) + as.integer(p[["ll_above_flagged"]]) + as.integer(p[["warned_wrong"]]), p[["verdict"]],
+    if (eng == "drmTMB") sprintf("%d/50", sum(x$flag_agree[x$cell == cc])) else ""))
+}
+cat(md2, sep = "\n", file = file.path(res_dir, "summary.md"), append = TRUE)
+cat(md2, sep = "\n")
