@@ -60,6 +60,16 @@ startup and compilation, so compare later fits when timing a repeated
 workflow. Record the checkout revision with an analysis that needs to be
 reproduced.
 
+Point `DRMODELS_JL_PATH` at the checkout. The bridge activates that project
+after JuliaCall starts. Setting `JULIA_PROJECT` to the same directory makes
+JuliaCall's first-time helper `install_dependency.jl` add RCall there, and on
+Ubuntu the apt R wrapper can make official Julia 1.12.x load the system
+`libunwind` and kill R with exit 139 (JuliaCall#238). drmTMB clears
+`JULIA_PROJECT` and preloads Julia's bundled `libunwind` before starting
+JuliaCall. If setup still reports a host library crash, start R with
+`LD_PRELOAD` pointing at Julia's `lib/julia/libunwind.so.8`, or use a
+conda-forge Julia that shares libraries with R.
+
 ## Start with an ordinary regression
 
 These data are generated in R and use the same formula for both backends:

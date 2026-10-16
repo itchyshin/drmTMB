@@ -1,0 +1,3 @@
+| Date | Slice | Evidence | Boundary |
+| --- | --- | --- | --- |
+| 2026-10-16 | FX1 JuliaCall setup SIGSEGV 139 | `test-julia-host-prepare.R` red on pin `ca3ddef` (FAIL 7 / PASS 1: `julia_setup` still saw `JULIA_PROJECT=/tmp/DRModels.jl-pin`); green after `drm_julia_prepare_host()` (FAIL 0 / PASS 13). Sibling module-compat / batch-startup / home-path / cran-lane pass. | Host-library fence only. No C17 recertify (`R/drmTMB.R`, `R/methods.R`, `R/mi-weights.R`, `src/` untouched). Live official 1.12.7: `install_dependency.jl` exit 139 without preload; `julia_setup` after `drm_julia_prepare_host()` returns `1+1=2`. |

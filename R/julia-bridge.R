@@ -4330,6 +4330,118 @@ drm_julia_setup_command <- function(code) {
   JuliaCall::julia_command(drm_julia_quiet_command(code))
 }
 
+# Locate the directory that contains the `julia` binary. JuliaCall's
+# JULIA_HOME is this directory (typically <prefix>/bin), not the prefix.
+drm_julia_bindir <- function() {
+  home <- Sys.getenv("JULIA_HOME", unset = "")
+  if (nzchar(home)) {
+    if (file.exists(file.path(home, "julia"))) {
+      return(normalizePath(home, winslash = "/", mustWork = FALSE))
+    }
+    nested <- file.path(home, "bin")
+    if (file.exists(file.path(nested, "julia"))) {
+      return(normalizePath(nested, winslash = "/", mustWork = FALSE))
+    }
+  }
+  julia <- Sys.which("julia")
+  if (nzchar(julia)) {
+    return(dirname(normalizePath(julia, winslash = "/", mustWork = FALSE)))
+  }
+  ""
+}
+
+# Official Julia Linux tarballs ship libunwind under <prefix>/lib/julia.
+# Prefer the SONAME symlink (libunwind.so.8) so LD_PRELOAD stays stable.
+drm_julia_libunwind_path <- function(bindir = drm_julia_bindir()) {
+  if (!nzchar(bindir)) {
+    return("")
+  }
+  hits <- Sys.glob(file.path(dirname(bindir), "lib", "julia", "libunwind.so*"))
+  hits <- hits[file.exists(hits)]
+  if (!length(hits)) {
+    return("")
+  }
+  hits <- normalizePath(hits, winslash = "/", mustWork = FALSE)
+  soname <- hits[grepl("libunwind\\.so\\.[0-9]+$", hits)]
+  if (length(soname)) {
+    return(soname[[1L]])
+  }
+  hits[[1L]]
+}
+
+# JuliaCall 0.17.6 (CRAN; sweep-oct16/t5 and t7) does not yet carry
+# JuliaCall#238. On Ubuntu the apt R wrapper puts /usr/lib/x86_64-linux-gnu
+# on LD_LIBRARY_PATH, official Julia then loads system libunwind 1.6.2, and
+# the child `install_dependency.jl` process SIGSEGVs (exit 139). Master
+# JuliaCall preloads Julia's bundled libunwind and LD_PRELOADs it for
+# children; do the same here before julia_setup() so 0.17.6 hosts do not
+# crash. Also drop JULIA_PROJECT: install_dependency.jl runs Pkg.add("RCall")
+# in the active project, and the t5 harness pointed that at the DRModels.jl
+# checkout. Do not override JULIA_NUM_THREADS when the user already set it
+# (needed before the first Julia call for later threaded refits).
+drm_julia_prepare_host <- function() {
+  project <- Sys.getenv("JULIA_PROJECT", unset = "")
+  if (nzchar(project)) {
+    Sys.unsetenv("JULIA_PROJECT")
+    cli::cli_inform(c(
+      i = "Unsetting {.envvar JULIA_PROJECT} ({.path {project}}) before JuliaCall setup.",
+      i = "JuliaCall's {.file install_dependency.jl} would otherwise add RCall to that project. Point {.envvar DRMODELS_JL_PATH} at the checkout instead; drmTMB activates it after Julia starts."
+    ))
+  }
+  if (!nzchar(Sys.getenv("JULIA_NUM_THREADS", unset = ""))) {
+    Sys.setenv(JULIA_NUM_THREADS = "1")
+  }
+  bindir <- drm_julia_bindir()
+  libunwind <- drm_julia_libunwind_path(bindir)
+  preloaded <- FALSE
+  if (nzchar(libunwind)) {
+    existing <- Sys.getenv("LD_PRELOAD", unset = "")
+    parts <- unlist(strsplit(existing, "[[:space:]]+", perl = TRUE), use.names = FALSE)
+    if (!libunwind %in% parts) {
+      Sys.setenv(LD_PRELOAD = paste(c(libunwind, parts[nzchar(parts)]), collapse = " "))
+    }
+    preloaded <- isTRUE(tryCatch(
+      {
+        dyn.load(libunwind, local = FALSE, now = TRUE)
+        TRUE
+      },
+      error = function(e) FALSE
+    ))
+  }
+  invisible(list(
+    bindir = bindir,
+    libunwind = libunwind,
+    project_cleared = nzchar(project),
+    preloaded = preloaded
+  ))
+}
+
+# Turn the catchable JuliaCall wrapper around a 139 / install_dependency
+# crash into a named next-step error. An in-process SIGSEGV still cannot be
+# caught; drm_julia_prepare_host() is what prevents that one.
+drm_julia_setup_failed <- function(e) {
+  msg <- conditionMessage(e)
+  host_crash <- grepl(
+    "status 139|install_dependency\\.jl|Segmentation fault|segfault",
+    msg,
+    ignore.case = TRUE
+  )
+  if (!isTRUE(host_crash)) {
+    stop(e)
+  }
+  cli::cli_abort(
+    c(
+      "JuliaCall failed to start Julia in this R session (often a host library crash, exit 139).",
+      x = msg,
+      i = "On Ubuntu, the apt R wrapper puts system libunwind on {.envvar LD_LIBRARY_PATH}; official Julia then segfaults in {.file install_dependency.jl} (JuliaCall#238).",
+      i = "drmTMB preloads Julia's bundled libunwind and clears {.envvar JULIA_PROJECT} before setup. If this still fails, start R with {.code LD_PRELOAD} pointing at Julia's {.file lib/julia/libunwind.so.8}, or use a conda-forge Julia that shares libraries with R.",
+      i = "Do not set {.envvar JULIA_PROJECT} to the DRModels.jl checkout; set {.envvar DRMODELS_JL_PATH} instead."
+    ),
+    class = "drmTMB_julia_host_setup_error",
+    parent = e
+  )
+}
+
 drm_julia_setup <- function(path = drm_julia_path()) {
   # Hard stop on the CRAN / win-builder lane. Suggests JuliaCall + host Julia is
   # not enough to justify entering julia_setup(): Ligges R-release hung for
@@ -4375,7 +4487,11 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   cli::cli_inform(c(
     i = "Starting Julia (first call in a session takes ~30-60 s; later calls are fast)..."
   ))
-  JuliaCall::julia_setup(installJulia = FALSE)
+  drm_julia_prepare_host()
+  tryCatch(
+    JuliaCall::julia_setup(installJulia = FALSE),
+    error = drm_julia_setup_failed
+  )
   drm_julia_setup_state$ready <- FALSE
   drm_julia_check_manifest_runtime(normalized_path)
   drm_julia_setup_command(paste0(
