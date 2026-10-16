@@ -1,0 +1,143 @@
+t6 parity (P9/P10)  DRModels.jl pin = f71b2923360e9e5d4591e0d6e15a9ef9db0356d7  drmTMB pin = ca3ddefa5ea11bbfd3b765615dfbb89305d2485a  Julia 1.12.7  threads=1  Fri Oct 16 21:38:30 2026
+
+=== gaussian_fixed ===
+  P9: PASS  link max|diff| 4.0e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 4.0e-15; SE at injected R vcov: max rel 5.59e-15 PASS
+  P10 [julia default marginal=:LA (gaussian_fixed.jls)]: PASS  max|link diff| 1.29e-12 (rel 1.29e-12), aligned response 1.76e-12; max|coef diff| 1.12e-12 (max 2.43e-11 R-SE); logLik J-R 1.25e-12; grad J 5.42e-10 (ForwardDiff), R 2.48e-14; SE max rel 7.26e-7; resid after X dbeta 3.97e-15; 1e-8 met
+
+=== gaussian_ri ===
+  P9: PASS  link max|diff| 4.44e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 4.44e-15; SE at injected R vcov: max rel 5.05e-15 PASS
+  P10 [julia default marginal=:LA (gaussian_ri.jls); marginal=:Laplace refused for this cell: ArgumentError: marginal = :Laplace is not available for Gaussian() with a random effect on...]: PASS  max|link diff| 2.43e-11 (rel 2.31e-11), aligned response 2.43e-11; max|coef diff| 1.94e-11 (max 1.72e-10 R-SE); logLik J-R 1.31e-12; grad J 1.41e-10 (ForwardDiff), R 3.54e-9; SE max rel 7.27e-7; resid after X dbeta 4.22e-15; 1e-8 met
+
+=== student_fixed ===
+  P9: FAIL  link max|diff| 4.0e-15 (<= 1e-8); RESPONSE FAIL: nu: Julia exp(eta) vs R 2+exp(eta), max|diff| 2.0; SE at injected R vcov: max rel 4.8e-15 PASS
+  P10 [julia default marginal=:LA (student_fixed.jls)]: PASS  max|link diff| 6.84e-11 (rel 4.96e-11), aligned response 2.72e-10; max|coef diff| 6.84e-11 (max 1.34e-10 R-SE); logLik J-R -3.92e-12; grad J 2.96e-10 (ForwardDiff), R 1.38e-9; SE max rel 5.97e-7; resid after X dbeta 4.05e-15; 1e-8 met
+
+=== student_ri ===
+  P9: FAIL  link max|diff| 3.11e-15 (<= 1e-8); RESPONSE FAIL: nu: Julia exp(eta) vs R 2+exp(eta), max|diff| 2.0; SE at injected R vcov: max rel 4.49e-15 PASS
+  P10 [julia marginal=:Laplace (student_ri_laplace.jls)]: PASS  max|link diff| 7.16e-11 (rel 4.33e-11), aligned response 3.75e-10; max|coef diff| 7.16e-11 (max 1.71e-10 R-SE); logLik J-R 9.66e-12; grad J 2.15e-9 (ForwardDiff), R 3.18e-9; SE max rel 7.93e-7; resid after X dbeta 3.0e-15; 1e-8 met
+
+=== skew_normal_fixed ===
+  P9: FAIL  link max|diff| 4.88e-15 (<= 1e-8); RESPONSE FAIL: nu: Julia exp(eta) vs R identity(eta), max|diff| 5.1; SE at injected R vcov: FAIL nu response SE rel 6.05
+  P10 [julia default marginal=:LA (skew_normal_fixed.jls)]: PASS  max|link diff| 1.06e-10 (rel 5.43e-11), aligned response 1.06e-10; max|coef diff| 1.06e-10 (max 4.87e-10 R-SE); logLik J-R 7.39e-13; grad J 1.13e-9 (ForwardDiff), R 8.02e-9; SE max rel 6.97e-7; resid after X dbeta 4.91e-15; 1e-8 met
+
+=== skew_normal_ri ===
+  NA: DRModels.jl refused the fit (no serialized fit; see jl_skew_normal_ri.json): SkewNormal() supports fixed effects only (no random effect on the mean)
+
+=== lognormal_fixed ===
+  P9: PASS  link max|diff| 4.66e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 2.78e-16; by-design response difference: mu: Julia exp(eta) vs R identity(eta), max|diff| 5.88 (by design); SE at injected R vcov: max rel 2.23e-15 PASS
+  P10 [julia default marginal=:LA (lognormal_fixed.jls)]: PASS  max|link diff| 2.97e-11 (rel 2.97e-11), aligned response 2.27e-11; max|coef diff| 1.88e-11 (max 4.12e-10 R-SE); logLik J-R -1.48e-12; grad J 3.44e-11 (ForwardDiff), R 8.93e-9; SE max rel 7.94e-7; resid after X dbeta 4.75e-15; 1e-8 met
+
+=== lognormal_ri ===
+  P9: PASS  link max|diff| 4.0e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 5.55e-16; by-design response difference: mu: Julia exp(eta) vs R identity(eta), max|diff| 5.33 (by design); SE at injected R vcov: max rel 3.9e-15 PASS
+  P10 [julia default marginal=:LA (lognormal_ri.jls); marginal=:Laplace refused for this cell: MethodError: no method matching drm(::DrmFormula, ::LogNormal; data::@NamedTuple{x::Vector...]: PASS  max|link diff| 1.65e-12 (rel 1.65e-12), aligned response 1.15e-12; max|coef diff| 1.07e-12 (max 2.04e-11 R-SE); logLik J-R -2.61e-12; grad J 4.55e-10 (ForwardDiff), R 3.14e-14; SE max rel 5.03e-7; resid after X dbeta 3.86e-15; 1e-8 met
+
+=== gamma_fixed ===
+  P9: PASS  link max|diff| 8.44e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 2.49e-14; SE at injected R vcov: max rel 5.77e-15 PASS
+  P10 [julia default marginal=:LA (gamma_fixed.jls)]: PASS  max|link diff| 2.54e-12 (rel 2.44e-12), aligned response 1.44e-11; max|coef diff| 2.36e-12 (max 5.4e-11 R-SE); logLik J-R 6.82e-13; grad J 1.14e-9 (ForwardDiff), R 4.01e-10; SE max rel 7.7e-7; resid after X dbeta 8.41e-15; 1e-8 met
+
+=== gamma_ri ===
+  P9: PASS  link max|diff| 6.44e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 2.66e-14; SE at injected R vcov: max rel 5.21e-15 PASS
+  P10 [julia default marginal=:LA (gamma_ri.jls); marginal=:Laplace refused for this cell: ArgumentError: marginal = :Laplace is not available for Gamma() with a non-constant `sigma...]: FAIL  max|link diff| 7.68e-5 (rel 7.68e-5), aligned response 8.55e-5; max|coef diff| 5.39e-5 (max 0.00116 R-SE); logLik J-R 0.0281; grad J 2.53e-10 (ForwardDiff), R 2.44e-10; SE max rel 0.000575; resid after X dbeta 6.3e-15; marginal approximation: Julia LA (GHQ/exact route) vs TMB Laplace; Julia nll(theta_R) + llR = -0.0281 (DRModels.jl #1071, not new); predictions differ only through X(betaR-betaJ); not a predict defect
+
+=== beta_fixed ===
+  P9: PASS  link max|diff| 4.22e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 5.55e-16; SE at injected R vcov: max rel 4.05e-15 PASS
+  P10 [julia default marginal=:LA (beta_fixed.jls)]: PASS  max|link diff| 2.44e-11 (rel 1.65e-11), aligned response 5.56e-12; max|coef diff| 1.49e-11 (max 3.41e-10 R-SE); logLik J-R 1.99e-13; grad J 4.34e-10 (ForwardDiff), R 7.72e-9; SE max rel 7.58e-7; resid after X dbeta 4.05e-15; 1e-8 met
+
+=== beta_ri ===
+  P9: PASS  link max|diff| 4.22e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 5.55e-16; SE at injected R vcov: max rel 3.32e-15 PASS
+  P10 [julia default marginal=:LA (beta_ri.jls); marginal=:Laplace refused for this cell: ArgumentError: marginal = :Laplace is not available for Beta() with a non-constant `sigma`...]: FAIL  max|link diff| 0.000402 (rel 0.000252), aligned response 7.73e-5; max|coef diff| 0.000246 (max 0.00528 R-SE); logLik J-R 0.0996; grad J 7.54e-11 (ForwardDiff), R 1.13e-9; SE max rel 0.000926; resid after X dbeta 4.16e-15; marginal approximation: Julia LA (GHQ/exact route) vs TMB Laplace; Julia nll(theta_R) + llR = -0.0995 (DRModels.jl #1071, not new); predictions differ only through X(betaR-betaJ); not a predict defect
+
+=== zero_one_beta_fixed ===
+  P9: FAIL  link max|diff| 4.0e-15 (<= 1e-8); RESPONSE FAIL: mu: Julia identity(eta) vs R logistic(eta), max|diff| 1.12; predict() mu response max|diff| 1.12; SE at injected R vcov: FAIL mu response SE rel 4.63
+  P10 [julia default marginal=:LA (zero_one_beta_fixed.jls)]: PASS  max|link diff| 2.18e-12 (rel 1.59e-12), aligned response 7.51e-13; max|coef diff| 1.47e-12 (max 3.2e-11 R-SE); logLik J-R 2.61e-11; grad J 5.06e-10 (ForwardDiff), R 2.94e-10; SE max rel 7.75e-7; resid after X dbeta 4.05e-15; 1e-8 met
+
+=== zero_one_beta_ri ===
+  P9: FAIL  link max|diff| 6.0e-15 (<= 1e-8); RESPONSE FAIL: mu: Julia identity(eta) vs R logistic(eta), max|diff| 1.14; predict() mu response max|diff| 1.14; SE at injected R vcov: FAIL mu response SE rel 4.05
+  P10 [julia default marginal=:LA (zero_one_beta_ri.jls); marginal=:Laplace refused for this cell: MethodError: no method matching drm(::DrmFormula, ::ZeroOneBeta; data::@NamedTuple{x::Vect...]: FAIL  max|link diff| 0.00027 (rel 0.00027), aligned response 5.84e-5; max|coef diff| 0.000154 (max 0.00183 R-SE); logLik J-R 0.072; grad J 2.89e-11 (ForwardDiff), R 5.44e-11; SE max rel 0.00144; resid after X dbeta 6.11e-15; marginal approximation: Julia LA (GHQ/exact route) vs TMB Laplace; Julia nll(theta_R) + llR = -0.0719 (DRModels.jl #1071, not new); predictions differ only through X(betaR-betaJ); not a predict defect
+
+=== beta_binomial_fixed ===
+  P9: PASS  link max|diff| 2.0e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 4.44e-16; SE at injected R vcov: max rel 6.0e-15 PASS
+  P10 [julia default marginal=:LA (beta_binomial_fixed.jls)]: PASS  max|link diff| 3.48e-11 (rel 3.48e-11), aligned response 1.51e-11; max|coef diff| 3.96e-11 (max 3.05e-10 R-SE); logLik J-R -1.24e-11; grad J 3.34e-9 (ForwardDiff), R 1.15e-9; SE max rel 3.55e-7; resid after X dbeta 1.94e-15; 1e-8 met
+
+=== beta_binomial_ri ===
+  P9: PASS  link max|diff| 4.0e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 7.22e-16; SE at injected R vcov: max rel 2.5e-15 PASS
+  P10 [julia default marginal=:LA (beta_binomial_ri.jls); marginal=:Laplace refused for this cell: ArgumentError: marginal = :Laplace is not available on this route. `:Laplace` forces the L...]: FAIL  max|link diff| 0.000328 (rel 0.000311), aligned response 0.000107; max|coef diff| 0.000487 (max 0.00321 R-SE); logLik J-R 0.123; grad J 1.18e-11 (ForwardDiff), R 9.52e-9; SE max rel 0.00276; resid after X dbeta 4.08e-15; marginal approximation: Julia LA (GHQ/exact route) vs TMB Laplace; Julia nll(theta_R) + llR = -0.123 (DRModels.jl #1071, not new); predictions differ only through X(betaR-betaJ); not a predict defect
+
+=== binomial_fixed ===
+  P9: PASS  link max|diff| 3.33e-16 (<= 1e-8); response (same-semantics dpars) max|diff| 4.44e-16; SE at injected R vcov: max rel 3.01e-15 PASS
+  P10 [julia default marginal=:LA (binomial_fixed.jls)]: PASS  max|link diff| 2.24e-13 (rel 2.24e-13), aligned response 4.97e-14; max|coef diff| 1.23e-13 (max 3.14e-12 R-SE); logLik J-R 6.25e-13; grad J 6.68e-12 (ForwardDiff), R NaN; SE max rel 4.58e-8; resid after X dbeta 3.68e-16; 1e-8 met
+
+=== binomial_ri ===
+  P9: PASS  link max|diff| 2.0e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 3.89e-16; SE at injected R vcov: max rel 4.75e-15 PASS
+  P10 [julia marginal=:Laplace (binomial_ri_laplace.jls)]: PASS  max|link diff| 4.96e-11 (rel 4.96e-11), aligned response 1.13e-11; max|coef diff| 5.77e-11 (max 5.6e-10 R-SE); logLik J-R 3.24e-12; grad J 9.68e-9 (nllgrad), R 2.3e-9; SE max rel 5.44e-7; resid after X dbeta 2.13e-15; 1e-8 met
+
+=== poisson_fixed ===
+  P9: PASS  link max|diff| 3.11e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 8.88e-15; SE at injected R vcov: max rel 3.34e-15 PASS
+  P10 [julia default marginal=:LA (poisson_fixed.jls)]: PASS  max|link diff| 8.0e-13 (rel 7.48e-13), aligned response 3.06e-12; max|coef diff| 5.47e-13 (max 5.41e-12 R-SE); logLik J-R -1.65e-12; grad J 1.51e-10 (ForwardDiff), R NaN; SE max rel 1.45e-7; resid after X dbeta 3.16e-15; 1e-8 met
+
+=== poisson_ri ===
+  P9: PASS  link max|diff| 4.0e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 4.44e-15; SE at injected R vcov: max rel 3.89e-15 PASS
+  P10 [julia marginal=:Laplace (poisson_ri_laplace.jls)]: FAIL  max|link diff| 1.45e-8 (rel 1.04e-8), aligned response 9.57e-8; max|coef diff| 5.62e-9 (max 1.04e-7 R-SE); logLik J-R 4.82e-11; grad J 3.0e-6 (nllgrad), R 5.57e-9; SE max rel 9.87e-8; resid after X dbeta 4.16e-15; optimizer tolerance: same objective (Julia nll(theta_R) + llR = -4.77e-11), Julia nll(theta_R) - nll(theta_J) = 4.55e-13, logLik diff 4.82e-11, max|dbeta|/SE_R = 1.04e-7; not a predict defect
+
+=== nbinom2_fixed ===
+  P9: PASS  link max|diff| 2.89e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 5.33e-15; SE at injected R vcov: max rel 5.53e-15 PASS
+  P10 [julia default marginal=:LA (nbinom2_fixed.jls)]: PASS  max|link diff| 1.08e-10 (rel 6.2e-11), aligned response 9.94e-10; max|coef diff| 8.71e-11 (max 5.42e-10 R-SE); logLik J-R -2.44e-12; grad J 5.7e-10 (ForwardDiff), R 8.19e-9; SE max rel 1.27e-7; resid after X dbeta 3.16e-15; 1e-8 met
+
+=== nbinom2_ri ===
+  P9: PASS  link max|diff| 5.33e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 1.07e-14; SE at injected R vcov: max rel 4.81e-15 PASS
+  P10 [julia default marginal=:LA (nbinom2_ri.jls); marginal=:Laplace refused for this cell: ArgumentError: marginal = :Laplace is not available for NegBinomial2() with a non-constant...]: FAIL  max|link diff| 0.0012 (rel 0.0012), aligned response 0.00109; max|coef diff| 0.000662 (max 0.00615 R-SE); logLik J-R 0.0257; grad J 8.93e-11 (ForwardDiff), R 9.68e-9; SE max rel 0.000731; resid after X dbeta 5.44e-15; marginal approximation: Julia LA (GHQ/exact route) vs TMB Laplace; Julia nll(theta_R) + llR = -0.0256 (DRModels.jl #1071, not new); predictions differ only through X(betaR-betaJ); not a predict defect
+
+=== truncated_nbinom2_fixed ===
+  P9: PASS  link max|diff| 4.88e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 4.0e-15; SE at injected R vcov: max rel 7.43e-15 PASS
+  P10 [julia default marginal=:LA (truncated_nbinom2_fixed.jls)]: PASS  max|link diff| 1.23e-10 (rel 1.23e-10), aligned response 1.6e-10; max|coef diff| 8.83e-11 (max 4.93e-10 R-SE); logLik J-R -2.56e-12; grad J 6.97e-11 (ForwardDiff), R 2.79e-9; SE max rel 5.62e-7; resid after X dbeta 4.87e-15; 1e-8 met
+
+=== truncated_nbinom2_ri ===
+  NA: DRModels.jl refused the fit (no serialized fit; see jl_truncated_nbinom2_ri.json): TruncatedNegBinomial2() currently supports fixed effects only
+
+=== tweedie_fixed ===
+  P9: PASS  link max|diff| 8.88e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 3.55e-14; SE at injected R vcov: max rel 1.17e-14 PASS
+  P10 [julia default marginal=:LA (tweedie_fixed.jls)]: PASS  max|link diff| 2.39e-11 (rel 2.39e-11), aligned response 6.71e-11; max|coef diff| 2.39e-11 (max 2.35e-10 R-SE); logLik J-R -3.41e-13; grad J 2.6e-9 (ForwardDiff), R 3.38e-9; SE max rel 9.17e-7; resid after X dbeta 8.99e-15; 1e-8 met
+
+=== tweedie_ri ===
+  P9: PASS  link max|diff| 7.11e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 1.6e-14; SE at injected R vcov: max rel 3.59e-15 PASS
+  P10 [julia default marginal=:LA (tweedie_ri.jls); marginal=:Laplace refused for this cell: MethodError: no method matching drm(::DrmFormula, ::Tweedie; data::@NamedTuple{x::Vector{F...]: FAIL  max|link diff| 0.00101 (rel 0.00101), aligned response 0.000248; max|coef diff| 0.00101 (max 0.00301 R-SE); logLik J-R -0.017; grad J 6.24e-10 (ForwardDiff), R 4.07e-11; SE max rel 0.0012; resid after X dbeta 7.11e-15; marginal approximation: Julia LA (GHQ/exact route) vs TMB Laplace; Julia nll(theta_R) + llR = 0.0171 (DRModels.jl #1071, not new); predictions differ only through X(betaR-betaJ); not a predict defect
+
+=== cumulative_logit_fixed ===
+  P9: FAIL  Julia predict/predict_parameters REFUSE nd_main while drmTMB predicts it: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).
+  P10 [julia default marginal=:LA (cumulative_logit_fixed.jls)]: ERROR  Julia predict_parameters refuses nd_main (same root cause as P9): ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows c; coefficient-level parity: max|coef diff| 1.14e-11, logLik diff -1.42e-12; hand X beta_J vs R link mu=1.99e-11 (NOT an engine evaluation)
+
+=== cumulative_logit_ri ===
+  P9: FAIL  Julia predict/predict_parameters REFUSE nd_main while drmTMB predicts it: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).
+  P10 [julia default marginal=:LA (cumulative_logit_ri.jls); marginal=:Laplace refused for this cell: MethodError: no method matching drm(::DrmFormula, ::CumulativeLogit; data::@NamedTuple{x::...]: ERROR  Julia predict_parameters refuses nd_main (same root cause as P9): ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows c; coefficient-level parity: max|coef diff| 0.0019, logLik diff 0.101; hand X beta_J vs R link mu=0.00232 (NOT an engine evaluation)
+
+Summary
+gaussian_fixed             P9=PASS   P10=PASS
+gaussian_ri                P9=PASS   P10=PASS
+student_fixed              P9=FAIL   P10=PASS
+student_ri                 P9=FAIL   P10=PASS
+skew_normal_fixed          P9=FAIL   P10=PASS
+skew_normal_ri             P9=NA     P10=NA
+lognormal_fixed            P9=PASS   P10=PASS
+lognormal_ri               P9=PASS   P10=PASS
+gamma_fixed                P9=PASS   P10=PASS
+gamma_ri                   P9=PASS   P10=FAIL
+beta_fixed                 P9=PASS   P10=PASS
+beta_ri                    P9=PASS   P10=FAIL
+zero_one_beta_fixed        P9=FAIL   P10=PASS
+zero_one_beta_ri           P9=FAIL   P10=FAIL
+beta_binomial_fixed        P9=PASS   P10=PASS
+beta_binomial_ri           P9=PASS   P10=FAIL
+binomial_fixed             P9=PASS   P10=PASS
+binomial_ri                P9=PASS   P10=PASS
+poisson_fixed              P9=PASS   P10=PASS
+poisson_ri                 P9=PASS   P10=FAIL
+nbinom2_fixed              P9=PASS   P10=PASS
+nbinom2_ri                 P9=PASS   P10=FAIL
+truncated_nbinom2_fixed    P9=PASS   P10=PASS
+truncated_nbinom2_ri       P9=NA     P10=NA
+tweedie_fixed              P9=PASS   P10=PASS
+tweedie_ri                 P9=PASS   P10=FAIL
+cumulative_logit_fixed     P9=FAIL   P10=ERROR
+cumulative_logit_ri        P9=FAIL   P10=ERROR
+
+Done Fri Oct 16 21:41:21 2026

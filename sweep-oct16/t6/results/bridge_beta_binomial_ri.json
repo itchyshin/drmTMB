@@ -1,0 +1,82 @@
+{
+  "family": "beta_binomial",
+  "re": "ri",
+  "engine": "bridge",
+  "cell_k": 15,
+  "seed": "20261016615",
+  "seed_r": "261016615",
+  "sim_seed_r": 261016715,
+  "formula": "bf(cbind(successes, failures) ~ x + f + (1 | g), sigma ~x)",
+  "family_call": "beta_binomial()",
+  "fallback": "",
+  "fit_ok": false,
+  "fit_error": "`engine = \"julia\"` admits \"beta_binomial\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"beta_binomial\" random-effect models.",
+  "converged": null,
+  "loglik": null,
+  "coef": [],
+  "tests": {
+    "P2": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"beta_binomial\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"beta_binomial\" random-effect models.",
+      "details": null
+    },
+    "P3": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"beta_binomial\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"beta_binomial\" random-effect models.",
+      "details": null
+    },
+    "P4": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"beta_binomial\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"beta_binomial\" random-effect models.",
+      "details": null
+    },
+    "P5": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"beta_binomial\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"beta_binomial\" random-effect models.",
+      "details": null
+    },
+    "P8": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"beta_binomial\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"beta_binomial\" random-effect models.",
+      "details": null
+    },
+    "P11": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: `engine = \"julia\"` admits \"beta_binomial\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"beta_binomial\" random-effect models.",
+      "details": null
+    }
+  },
+  "admission": {
+    "first_try": {
+      "formula": "bf(cbind(successes, failures) ~ x + f + (1 | g), sigma ~x)",
+      "admitted": false,
+      "message": "`engine = \"julia\"` admits \"beta_binomial\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"beta_binomial\" random-effect models.",
+      "warnings": []
+    },
+    "fallback_try": {
+      "formula": "bf(cbind(successes, failures) ~ x + f + (1 | g), sigma ~1)",
+      "admitted": false,
+      "message": "`engine = \"julia\"` admits \"beta_binomial\" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = \"tmb\"` for \"beta_binomial\" random-effect models.",
+      "warnings": []
+    },
+    "doc_vignette_expects_admitted": false,
+    "doc_vignette_text": "fixed effects only (proportion-beta-binomial.Rmd: random intercept 'not admitted through engine = \"julia\" yet')",
+    "doc_roxygen_lists_family_fixed": true,
+    "registry_expects_admitted": false,
+    "admitted": false,
+    "verdict": "consistent with vignette"
+  },
+  "elapsed_s": 0.267249345779419
+}

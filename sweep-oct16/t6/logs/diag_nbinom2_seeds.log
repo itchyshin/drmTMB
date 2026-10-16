@@ -1,0 +1,12 @@
+drmTMB seed+0                nsim= 1000 global z= -2.02  mean(z_row)*sqrt(n)= -3.14  sd(z_row)=1.063  n|z_row|>3=4
+drmTMB seed+1                nsim= 1000 global z= -0.56  mean(z_row)*sqrt(n)=  1.01  sd(z_row)=1.008  n|z_row|>3=1
+drmTMB seed+2                nsim= 1000 global z=  0.91  mean(z_row)*sqrt(n)=  0.03  sd(z_row)=1.060  n|z_row|>3=2
+drmTMB seed+3                nsim= 1000 global z= -0.87  mean(z_row)*sqrt(n)= -0.47  sd(z_row)=0.948  n|z_row|>3=0
+drmTMB seed+4                nsim= 1000 global z= -0.43  mean(z_row)*sqrt(n)= -0.26  sd(z_row)=1.043  n|z_row|>3=0
+drmTMB seed+5                nsim= 1000 global z=  0.17  mean(z_row)*sqrt(n)=  1.25  sd(z_row)=0.990  n|z_row|>3=0
+drmTMB seed+6                nsim= 1000 global z=  0.79  mean(z_row)*sqrt(n)=  0.65  sd(z_row)=1.015  n|z_row|>3=1
+drmTMB nsim=20000            nsim=20000 global z= -0.56  mean(z_row)*sqrt(n)= -1.26  sd(z_row)=0.960  n|z_row|>3=0
+base rnbinom seed 0          nsim= 1000 global z=  0.11  mean(z_row)*sqrt(n)= -0.61  sd(z_row)=0.979  n|z_row|>3=1
+base rnbinom seed 1          nsim= 1000 global z= -0.22  mean(z_row)*sqrt(n)= -0.61  sd(z_row)=0.979  n|z_row|>3=0
+base rnbinom seed 2          nsim= 1000 global z= -0.29  mean(z_row)*sqrt(n)= -0.91  sd(z_row)=1.014  n|z_row|>3=0
+base rnbinom seed 3          nsim= 1000 global z= -1.48  mean(z_row)*sqrt(n)= -0.37  sd(z_row)=1.054  n|z_row|>3=0

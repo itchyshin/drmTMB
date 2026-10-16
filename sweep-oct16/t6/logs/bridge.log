@@ -1,0 +1,218 @@
+21:26:32 drmTMB 0.7.1; R R version 4.3.3 (2024-02-29); drmTMB pin ca3ddefa5ea11bbfd3b765615dfbb89305d2485a; DRModels.jl pin f71b2923360e9e5d4591e0d6e15a9ef9db0356d7; %||% shim applied: TRUE 
+21:26:32 cells: 28 
+21:26:32 registry fe: gaussian,biv_gaussian,student,lognormal,poisson,nbinom2,gamma,beta,binomial,truncated_nbinom2,zero_one_beta,tweedie,beta_binomial,cumulative_logit,biv_student,skew_normal,biv_lognormal 
+21:26:32 registry fe-only RE fence: student,lognormal,truncated_nbinom2,zero_one_beta,tweedie,beta_binomial,cumulative_logit,biv_student,skew_normal,biv_lognormal 
+21:26:33 ==== [gaussian_fixed] ==== 
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.12.7 at location /opt/julia-env/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+21:29:08 [gaussian_fixed] admission: TRUE (consistent with vignette) 
+21:29:08 Julia: using DRModels -> ok; same module as drmTMB_backend: TRUE; pathof = /home/user/DRModels.jl/src/DRModels.jl; VERSION = 1.12.7; nthreads = 1 
+21:29:08 [gaussian_fixed] bridge fit ok: conv=TRUE ll=-301.64463468 marginal=LA dpars=mu,sigma (155.0s) 
+21:29:12 [gaussian_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 5.55e-17; response same-semantics max|d| = 0; response semantic differences on: none 
+21:29:12 [gaussian_fixed] bridge vs TMB: coef max 1.117051e-12, logLik d 8.526513e-13, predict max 1.757927e-12 
+21:29:12 [gaussian_fixed] P2 PASS value=0 
+21:29:12 [gaussian_fixed] P3 PASS value=0 
+21:29:12 [gaussian_fixed] P4 PASS mu message: factor f has new levels d 
+21:29:18 [gaussian_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:29:18 [gaussian_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:29:18 [gaussian_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 7.359668e-13 
+21:29:18 ==== [gaussian_ri] ==== 
+21:29:33 [gaussian_ri] bridge REFUSED: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly. 
+21:29:37 [gaussian_ri] bridge fallback sigma ~ 1: REFUSED: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly. 
+21:29:37 [gaussian_ri] admission: FALSE (CANDIDATE: refused although the vignette says it is available | differs from registry expectation) 
+21:29:37 ==== [student_fixed] ==== 
+21:29:51 [student_fixed] admission: TRUE (consistent with vignette) 
+21:29:51 [student_fixed] bridge fit ok: conv=TRUE ll=-314.90128471 marginal=LA dpars=mu,nu,sigma (14.2s) 
+21:29:53 [student_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 0; response same-semantics max|d| = 0; response semantic differences on: nu (2) 
+21:29:53 [student_fixed] bridge vs TMB: coef max 6.843837e-11, logLik d -3.524292e-12, predict max 2.7166e-10 
+21:29:53 [student_fixed] P2 PASS value=0 
+21:29:53 [student_fixed] P3 PASS value=0 
+21:29:53 [student_fixed] P4 PASS mu message: factor f has new levels d 
+21:29:56 [student_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:29:56 [student_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:29:56 [student_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 4.217293e-12 
+21:29:56 ==== [student_ri] ==== 
+21:29:56 [student_ri] bridge REFUSED: `engine = "julia"` admits "student" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "student" random-effect models. 
+21:29:56 [student_ri] bridge fallback sigma ~ 1: REFUSED: `engine = "julia"` admits "student" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "student" random-effect models. 
+21:29:56 [student_ri] admission: FALSE (consistent with vignette) 
+21:29:56 ==== [skew_normal_fixed] ==== 
+21:30:05 [skew_normal_fixed] admission: TRUE (CANDIDATE: admitted although the vignette says it is not available) 
+21:30:05 [skew_normal_fixed] bridge fit ok: conv=TRUE ll=-291.90531831 marginal=LA dpars=mu,nu,sigma (8.9s) 
+21:30:07 [skew_normal_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 5.55e-17; response same-semantics max|d| = 2.22e-16; response semantic differences on: nu (5.1) 
+21:30:07 [skew_normal_fixed] bridge vs TMB: coef max 1.060143e-10, logLik d 3.410605e-13, predict max 1.060143e-10 
+21:30:07 [skew_normal_fixed] P2 PASS value=0 
+21:30:07 [skew_normal_fixed] P3 PASS value=0 
+21:30:07 [skew_normal_fixed] P4 PASS mu message: factor f has new levels d 
+21:30:08 [skew_normal_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:30:08 [skew_normal_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:30:08 [skew_normal_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 5.373368e-11 
+21:30:08 ==== [skew_normal_ri] ==== 
+21:30:08 [skew_normal_ri] bridge REFUSED: `engine = "julia"` admits "skew_normal" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "skew_normal" random-effect models. 
+21:30:08 [skew_normal_ri] bridge fallback sigma ~ 1: REFUSED: `engine = "julia"` admits "skew_normal" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "skew_normal" random-effect models. 
+21:30:08 [skew_normal_ri] admission: FALSE (consistent with vignette) 
+21:30:08 ==== [lognormal_fixed] ==== 
+21:30:17 [lognormal_fixed] admission: TRUE (consistent with vignette) 
+21:30:17 [lognormal_fixed] bridge fit ok: conv=TRUE ll=-395.74635307 marginal=LA dpars=mu,sigma (8.9s) 
+21:30:18 [lognormal_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 2.22e-16; response same-semantics max|d| = 0; response semantic differences on: mu (5.88) 
+21:30:18 [lognormal_fixed] bridge vs TMB: coef max 1.881406e-11, logLik d -1.705303e-12, predict max 2.966632e-11 
+21:30:18 [lognormal_fixed] P2 PASS value=0 
+21:30:18 [lognormal_fixed] P3 PASS value=0 
+21:30:18 [lognormal_fixed] P4 PASS mu message: factor f has new levels d 
+21:30:19 [lognormal_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:30:19 [lognormal_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:30:19 [lognormal_fixed] fitted(): other; vs TMB fitted max abs 5.91592 
+21:30:19 ==== [lognormal_ri] ==== 
+21:30:19 [lognormal_ri] bridge REFUSED: `engine = "julia"` admits "lognormal" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "lognormal" random-effect models. 
+21:30:19 [lognormal_ri] bridge fallback sigma ~ 1: REFUSED: `engine = "julia"` admits "lognormal" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "lognormal" random-effect models. 
+21:30:19 [lognormal_ri] admission: FALSE (consistent with vignette) 
+21:30:20 ==== [gamma_fixed] ==== 
+21:30:36 [gamma_fixed] admission: TRUE (consistent with vignette) 
+21:30:36 [gamma_fixed] bridge fit ok: conv=TRUE ll=-388.91249428 marginal=LA dpars=mu,sigma (16.5s) 
+21:30:37 [gamma_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 2.78e-17; response same-semantics max|d| = 0; response semantic differences on: none 
+21:30:37 [gamma_fixed] bridge vs TMB: coef max 2.357559e-12, logLik d 4.547474e-13, predict max 1.441336e-11 
+21:30:37 [gamma_fixed] P2 PASS value=0 
+21:30:37 [gamma_fixed] P3 PASS value=0 
+21:30:37 [gamma_fixed] P4 PASS mu message: factor f has new levels d 
+21:30:39 [gamma_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:30:39 [gamma_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:30:39 [gamma_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 4.069278e-11 
+21:30:39 ==== [gamma_ri] ==== 
+21:31:13 [gamma_ri] bridge REFUSED: Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"]); the R side must supply names for every dpar when sending coef_labels | Stacktrace: | [1] error(s::String) | @ Base ./error.jl:44 | [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1880 | [3] _bridge_coef_vector(fit::DrmFit{Gamma}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1797 | [4] _bridge_coef_vector | @ /home/user/DRModels.jl/src/bridge.jl:1769 [inlined] | [5] _bridge_flatten(fit::DrmFit{Gamma}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1625 | [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:61 | [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ Main ./none:1 | [8] docall(call1::Ptr{Nothing}) | @ Main.JuliaCall /usr/local/lib/R/site-library/JuliaCall/julia/setup.jl:176 
+21:31:30 [gamma_ri] bridge fallback sigma ~ 1: REFUSED: Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"]); the R side must supply names for every dpar when sending coef_labels | Stacktrace: | [1] error(s::String) | @ Base ./error.jl:44 | [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1880 | [3] _bridge_coef_vector(fit::DrmFit{Gamma}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1797 | [4] _bridge_coef_vector | @ /home/user/DRModels.jl/src/bridge.jl:1769 [inlined] | [5] _bridge_flatten(fit::DrmFit{Gamma}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1625 | [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:61 | [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ Main ./none:1 | [8] docall(call1::Ptr{Nothing}) | @ Main.JuliaCall /usr/local/lib/R/site-library/JuliaCall/julia/setup.jl:176 
+21:31:30 [gamma_ri] admission: FALSE (refused; vignette silent on this route | differs from registry expectation) 
+21:31:30 ==== [beta_fixed] ==== 
+21:31:42 [beta_fixed] admission: TRUE (consistent with vignette) 
+21:31:42 [beta_fixed] bridge fit ok: conv=TRUE ll=144.50629330 marginal=LA dpars=mu,sigma (11.5s) 
+21:31:43 [beta_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 0; response same-semantics max|d| = 0; response semantic differences on: none 
+21:31:43 [beta_fixed] bridge vs TMB: coef max 1.486788e-11, logLik d 3.410605e-13, predict max 2.437606e-11 
+21:31:43 [beta_fixed] P2 PASS value=0 
+21:31:43 [beta_fixed] P3 PASS value=0 
+21:31:43 [beta_fixed] P4 PASS mu message: factor f has new levels d 
+21:31:45 [beta_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:31:45 [beta_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:31:45 [beta_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 1.205591e-12 
+21:31:45 ==== [beta_ri] ==== 
+21:32:13 [beta_ri] bridge REFUSED: Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"]); the R side must supply names for every dpar when sending coef_labels | Stacktrace: | [1] error(s::String) | @ Base ./error.jl:44 | [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1880 | [3] _bridge_coef_vector(fit::DrmFit{Beta}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1797 | [4] _bridge_coef_vector | @ /home/user/DRModels.jl/src/bridge.jl:1769 [inlined] | [5] _bridge_flatten(fit::DrmFit{Beta}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1625 | [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:61 | [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ Main ./none:1 | [8] docall(call1::Ptr{Nothing}) | @ Main.JuliaCall /usr/local/lib/R/site-library/JuliaCall/julia/setup.jl:176 
+21:32:35 [beta_ri] bridge fallback sigma ~ 1: REFUSED: Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"]); the R side must supply names for every dpar when sending coef_labels | Stacktrace: | [1] error(s::String) | @ Base ./error.jl:44 | [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1880 | [3] _bridge_coef_vector(fit::DrmFit{Beta}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1797 | [4] _bridge_coef_vector | @ /home/user/DRModels.jl/src/bridge.jl:1769 [inlined] | [5] _bridge_flatten(fit::DrmFit{Beta}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1625 | [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:61 | [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ Main ./none:1 | [8] docall(call1::Ptr{Nothing}) | @ Main.JuliaCall /usr/local/lib/R/site-library/JuliaCall/julia/setup.jl:176 
+21:32:35 [beta_ri] admission: FALSE (refused; vignette silent on this route | differs from registry expectation) 
+21:32:35 ==== [zero_one_beta_fixed] ==== 
+21:32:46 [zero_one_beta_fixed] admission: TRUE (consistent with vignette) 
+21:32:46 [zero_one_beta_fixed] bridge fit ok: conv=TRUE ll=20.87523131 marginal=LA dpars=coi,mu,sigma,zoi (10.5s) 
+21:32:47 [zero_one_beta_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 0; response same-semantics max|d| = 0; response semantic differences on: mu (1.12) 
+21:32:47 [zero_one_beta_fixed] bridge vs TMB: coef max 1.46605e-12, logLik d 2.610179e-11, predict max 2.172929e-12 
+21:32:47 [zero_one_beta_fixed] P2 PASS value=0 
+21:32:47 [zero_one_beta_fixed] P3 PASS value=0 
+21:32:47 [zero_one_beta_fixed] P4 PASS mu message: factor f has new levels d 
+21:32:48 [zero_one_beta_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:32:48 [zero_one_beta_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:32:48 [zero_one_beta_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 3.267664e-13 
+21:32:48 ==== [zero_one_beta_ri] ==== 
+21:32:48 [zero_one_beta_ri] bridge REFUSED: `engine = "julia"` admits "zero_one_beta" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "zero_one_beta" random-effect models. 
+21:32:48 [zero_one_beta_ri] bridge fallback sigma ~ 1: REFUSED: `engine = "julia"` admits "zero_one_beta" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "zero_one_beta" random-effect models. 
+21:32:48 [zero_one_beta_ri] admission: FALSE (consistent with vignette) 
+21:32:48 ==== [beta_binomial_fixed] ==== 
+21:33:01 [beta_binomial_fixed] admission: TRUE (consistent with vignette) 
+21:33:01 [beta_binomial_fixed] bridge fit ok: conv=TRUE ll=-551.32392711 marginal=LA dpars=mu,sigma (12.1s) 
+21:33:04 [beta_binomial_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 0; response same-semantics max|d| = 0; response semantic differences on: none 
+21:33:04 [beta_binomial_fixed] bridge vs TMB: coef max 3.95714e-11, logLik d -1.193712e-11, predict max 3.480216e-11 
+21:33:04 [beta_binomial_fixed] P2 PASS value=0 
+21:33:04 [beta_binomial_fixed] P3 PASS value=0 
+21:33:04 [beta_binomial_fixed] P4 PASS mu message: factor f has new levels d 
+21:33:08 [beta_binomial_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:33:08 [beta_binomial_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:33:08 [beta_binomial_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 7.868484e-12 
+21:33:08 ==== [beta_binomial_ri] ==== 
+21:33:08 [beta_binomial_ri] bridge REFUSED: `engine = "julia"` admits "beta_binomial" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "beta_binomial" random-effect models. 
+21:33:08 [beta_binomial_ri] bridge fallback sigma ~ 1: REFUSED: `engine = "julia"` admits "beta_binomial" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "beta_binomial" random-effect models. 
+21:33:08 [beta_binomial_ri] admission: FALSE (consistent with vignette) 
+21:33:08 ==== [binomial_fixed] ==== 
+21:33:25 [binomial_fixed] admission: TRUE (consistent with vignette) 
+21:33:25 [binomial_fixed] bridge fit ok: conv=TRUE ll=-442.79241860 marginal=LA dpars=mu (17.1s) 
+21:33:26 [binomial_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 0; response same-semantics max|d| = 0; response semantic differences on: none 
+21:33:26 [binomial_fixed] bridge vs TMB: coef max 1.231237e-13, logLik d 3.410605e-13, predict max 2.24154e-13 
+21:33:26 [binomial_fixed] P2 PASS value=0 
+21:33:26 [binomial_fixed] P3 PASS value=0 
+21:33:26 [binomial_fixed] P4 PASS mu message: factor f has new levels d 
+21:33:28 [binomial_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:33:28 [binomial_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:33:28 [binomial_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 6.628031e-14 
+21:33:28 ==== [binomial_ri] ==== 
+21:33:45 [binomial_ri] bridge REFUSED: Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"]); the R side must supply names for every dpar when sending coef_labels | Stacktrace: | [1] error(s::String) | @ Base ./error.jl:44 | [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1880 | [3] _bridge_coef_vector(fit::DrmFit{Binomial}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1797 | [4] _bridge_coef_vector | @ /home/user/DRModels.jl/src/bridge.jl:1769 [inlined] | [5] _bridge_flatten(fit::DrmFit{Binomial}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1625 | [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:61 | [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ Main ./none:1 | [8] docall(call1::Ptr{Nothing}) | @ Main.JuliaCall /usr/local/lib/R/site-library/JuliaCall/julia/setup.jl:176 
+21:33:45 [binomial_ri] admission: FALSE (refused; vignette silent on this route | differs from registry expectation) 
+21:33:45 ==== [poisson_fixed] ==== 
+21:34:00 [poisson_fixed] admission: TRUE (consistent with vignette) 
+21:34:00 [poisson_fixed] bridge fit ok: conv=TRUE ll=-441.45183576 marginal=LA dpars=mu (15.0s) 
+21:34:01 [poisson_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 0; response same-semantics max|d| = 0; response semantic differences on: none 
+21:34:01 [poisson_fixed] bridge vs TMB: coef max 5.471179e-13, logLik d -1.705303e-12, predict max 3.060663e-12 
+21:34:01 [poisson_fixed] P2 PASS value=0 
+21:34:01 [poisson_fixed] P3 PASS value=0 
+21:34:01 [poisson_fixed] P4 PASS mu message: factor f has new levels d 
+21:34:05 [poisson_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:34:05 [poisson_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:34:05 [poisson_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 4.401812e-12 
+21:34:05 ==== [poisson_ri] ==== 
+21:34:19 [poisson_ri] bridge REFUSED: Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"]); the R side must supply names for every dpar when sending coef_labels | Stacktrace: | [1] error(s::String) | @ Base ./error.jl:44 | [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1880 | [3] _bridge_coef_vector(fit::DrmFit{Poisson}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1797 | [4] _bridge_coef_vector | @ /home/user/DRModels.jl/src/bridge.jl:1769 [inlined] | [5] _bridge_flatten(fit::DrmFit{Poisson}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1625 | [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:61 | [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ Main ./none:1 | [8] docall(call1::Ptr{Nothing}) | @ Main.JuliaCall /usr/local/lib/R/site-library/JuliaCall/julia/setup.jl:176 
+21:34:19 [poisson_ri] admission: FALSE (refused; vignette silent on this route | differs from registry expectation) 
+21:34:19 ==== [nbinom2_fixed] ==== 
+21:34:34 [nbinom2_fixed] admission: TRUE (consistent with vignette) 
+21:34:34 [nbinom2_fixed] bridge fit ok: conv=TRUE ll=-491.69506371 marginal=LA dpars=mu,sigma (14.2s) 
+21:34:35 [nbinom2_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 2.22e-16; response same-semantics max|d| = 8.88e-16; response semantic differences on: none 
+21:34:35 [nbinom2_fixed] bridge vs TMB: coef max 8.710294e-11, logLik d -2.842171e-12, predict max 9.943104e-10 
+21:34:35 [nbinom2_fixed] P2 PASS value=0 
+21:34:35 [nbinom2_fixed] P3 PASS value=0 
+21:34:35 [nbinom2_fixed] P4 PASS mu message: factor f has new levels d 
+21:34:37 [nbinom2_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:34:37 [nbinom2_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:34:37 [nbinom2_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 1.883215e-09 
+21:34:37 ==== [nbinom2_ri] ==== 
+21:35:00 [nbinom2_ri] bridge REFUSED: Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"]); the R side must supply names for every dpar when sending coef_labels | Stacktrace: | [1] error(s::String) | @ Base ./error.jl:44 | [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1880 | [3] _bridge_coef_vector(fit::DrmFit{NegBinomial2}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1797 | [4] _bridge_coef_vector | @ /home/user/DRModels.jl/src/bridge.jl:1769 [inlined] | [5] _bridge_flatten(fit::DrmFit{NegBinomial2}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1625 | [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:61 | [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ Main ./none:1 | [8] docall(call1::Ptr{Nothing}) | @ Main.JuliaCall /usr/local/lib/R/site-library/JuliaCall/julia/setup.jl:176 
+21:35:16 [nbinom2_ri] bridge fallback sigma ~ 1: REFUSED: Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"]); the R side must supply names for every dpar when sending coef_labels | Stacktrace: | [1] error(s::String) | @ Base ./error.jl:44 | [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1880 | [3] _bridge_coef_vector(fit::DrmFit{NegBinomial2}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1797 | [4] _bridge_coef_vector | @ /home/user/DRModels.jl/src/bridge.jl:1769 [inlined] | [5] _bridge_flatten(fit::DrmFit{NegBinomial2}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1625 | [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:61 | [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ Main ./none:1 | [8] docall(call1::Ptr{Nothing}) | @ Main.JuliaCall /usr/local/lib/R/site-library/JuliaCall/julia/setup.jl:176 
+21:35:16 [nbinom2_ri] admission: FALSE (refused; vignette silent on this route | differs from registry expectation) 
+21:35:16 ==== [truncated_nbinom2_fixed] ==== 
+21:35:24 [truncated_nbinom2_fixed] admission: TRUE (consistent with vignette) 
+21:35:24 [truncated_nbinom2_fixed] bridge fit ok: conv=TRUE ll=-469.56161870 marginal=LA dpars=mu,sigma (8.1s) 
+21:35:25 [truncated_nbinom2_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 5.55e-17; response same-semantics max|d| = 0; response semantic differences on: none 
+21:35:25 [truncated_nbinom2_fixed] bridge vs TMB: coef max 8.827994e-11, logLik d -3.012701e-12, predict max 1.598011e-10 
+21:35:25 [truncated_nbinom2_fixed] P2 PASS value=0 
+21:35:25 [truncated_nbinom2_fixed] P3 PASS value=0 
+21:35:25 [truncated_nbinom2_fixed] P4 PASS mu message: factor f has new levels d 
+21:35:26 [truncated_nbinom2_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:35:26 [truncated_nbinom2_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:35:26 [truncated_nbinom2_fixed] fitted(): inverse-link mu at population X b (not the documented mean); vs TMB fitted max abs 7.051131 
+21:35:26 ==== [truncated_nbinom2_ri] ==== 
+21:35:26 [truncated_nbinom2_ri] bridge REFUSED: `engine = "julia"` admits "truncated_nbinom2" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "truncated_nbinom2" random-effect models. 
+21:35:26 [truncated_nbinom2_ri] bridge fallback sigma ~ 1: REFUSED: `engine = "julia"` admits "truncated_nbinom2" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "truncated_nbinom2" random-effect models. 
+21:35:26 [truncated_nbinom2_ri] admission: FALSE (consistent with vignette) 
+21:35:26 ==== [tweedie_fixed] ==== 
+21:35:44 [tweedie_fixed] admission: TRUE (consistent with vignette) 
+21:35:44 [tweedie_fixed] bridge fit ok: conv=TRUE ll=-450.60204989 marginal=LA dpars=mu,nu,sigma (17.8s) 
+21:35:51 [tweedie_fixed] P11 PASS coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 2.78e-17; response same-semantics max|d| = 0; response semantic differences on: none 
+21:35:51 [tweedie_fixed] bridge vs TMB: coef max 2.393834e-11, logLik d -1.705303e-13, predict max 6.713208e-11 
+21:35:51 [tweedie_fixed] P2 PASS value=0 
+21:35:52 [tweedie_fixed] P3 PASS value=0 
+21:35:52 [tweedie_fixed] P4 PASS mu message: factor f has new levels d 
+21:36:04 [tweedie_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:36:04 [tweedie_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:36:04 [tweedie_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 2.451124e-10 
+21:36:04 ==== [tweedie_ri] ==== 
+21:36:05 [tweedie_ri] bridge REFUSED: `engine = "julia"` admits "tweedie" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "tweedie" random-effect models. 
+21:36:05 [tweedie_ri] bridge fallback sigma ~ 1: REFUSED: `engine = "julia"` admits "tweedie" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "tweedie" random-effect models. 
+21:36:05 [tweedie_ri] admission: FALSE (consistent with vignette) 
+21:36:05 ==== [cumulative_logit_fixed] ==== 
+21:36:15 [cumulative_logit_fixed] admission: TRUE (consistent with vignette) 
+21:36:15 [cumulative_logit_fixed] bridge fit ok: conv=TRUE ll=-314.67459295 marginal=LA dpars=mu (9.9s) 
+21:36:16 [cumulative_logit_fixed] P11 NA coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 0; response same-semantics max|d| = 0; response semantic differences on: none; native predict_parameters refused: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards). 
+21:36:16 [cumulative_logit_fixed] bridge vs TMB: coef max 1.144149e-11, logLik d -1.648459e-12, predict max 1.99275e-11 
+21:36:16 [cumulative_logit_fixed] P2 PASS value=0 
+21:36:16 [cumulative_logit_fixed] P3 PASS value=0 
+21:36:16 [cumulative_logit_fixed] P4 PASS mu message: factor f has new levels d 
+21:36:17 [cumulative_logit_fixed] P5 PASS coef char==factor; predictions agree across fit/newdata encodings 
+21:36:17 [cumulative_logit_fixed] P8(simulate) NA no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:36:17 [cumulative_logit_fixed] fitted(): documented mean at population X b; vs TMB fitted max abs 1.090861e-11 
+21:36:17 ==== [cumulative_logit_ri] ==== 
+21:36:17 [cumulative_logit_ri] bridge REFUSED: `engine = "julia"` admits "cumulative_logit" only on the `fe` (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet. | x Found a random-effect bar term in the `mu` formula. | i Use native `engine = "tmb"` for "cumulative_logit" random-effect models. 
+21:36:17 [cumulative_logit_ri] admission: FALSE (consistent with vignette) 
+21:36:17 done 
+  Activating project at `/home/user/DRModels.jl`

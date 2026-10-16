@@ -1,0 +1,294 @@
+{
+  "P10": {
+    "details": {
+      "R_converged": true,
+      "R_marginal": "TMB Laplace",
+      "R_max_abs_gradient": 3.54e-9,
+      "R_opt_message": "converged (Newton polish; max |gradient| = 3.54e-09)",
+      "R_pdHess": true,
+      "bar_1e8_met": true,
+      "coef": {
+        "mu": {
+          "R": [
+            1.07225505311553,
+            0.49970740630312,
+            0.378337413336416,
+            -0.340909087423822
+          ],
+          "diff": [
+            1.9412471630175787e-11,
+            8.102407633714392e-13,
+            1.919242542669508e-12,
+            3.679723192817619e-12
+          ],
+          "diff_over_R_se": [
+            1.6220118592391468e-10,
+            1.776896230315459e-11,
+            1.6756092686394778e-11,
+            2.9256312246543025e-11
+          ],
+          "julia": [
+            1.0722550530961175,
+            0.49970740630230975,
+            0.3783374133344968,
+            -0.3409090874275017
+          ],
+          "names": [
+            "(Intercept)",
+            "x",
+            "f: b",
+            "f: c"
+          ],
+          "se_R": [
+            0.11968144079588781,
+            0.04559865396459275,
+            0.11453998128262026,
+            0.12577535958081734
+          ],
+          "se_julia": [
+            0.11968144085707534,
+            0.045598653546583136,
+            0.11453998135882838,
+            0.1257753596135018
+          ],
+          "se_maxrel": 9.167148077642896e-9
+        },
+        "sd_g": {
+          "R": 0.413261472204523,
+          "diff": -6.116718243021069e-12,
+          "julia": 0.4132614722106397,
+          "rel": -1.4801085158971476e-11
+        },
+        "sigma": {
+          "R": [
+            -0.26949463961723,
+            0.274707767083181
+          ],
+          "diff": [
+            -8.349321234391027e-12,
+            3.725131314524788e-12
+          ],
+          "diff_over_R_se": [
+            -1.7234574988477446e-10,
+            7.938716968776733e-11
+          ],
+          "julia": [
+            -0.2694946396088807,
+            0.2747077670794559
+          ],
+          "names": [
+            "(Intercept)",
+            "x"
+          ],
+          "se_R": [
+            0.04844518208295331,
+            0.046923593940631295
+          ],
+          "se_julia": [
+            0.048445197105853634,
+            0.04692362920020857
+          ],
+          "se_maxrel": 7.51425334626876e-7
+        }
+      },
+      "explanation": "1e-8 met",
+      "julia_converged": true,
+      "julia_fit_used": "julia default marginal=:LA (gaussian_ri.jls); marginal=:Laplace refused for this cell: ArgumentError: marginal = :Laplace is not available for Gaussian() with a random effect on...",
+      "julia_grad_at_R_theta": {
+        "ad": [
+          2.2324827542163916e-9,
+          -1.0518860227293203e-9,
+          9.032220527060986e-10,
+          8.112861493714263e-10,
+          -3.5397533793002367e-9,
+          1.498076329653486e-9,
+          -5.30807398035904e-10
+        ],
+        "ad_maxabs": 3.5397533793002367e-9,
+        "fd": [
+          -5.301296430885966e-9,
+          -2.8421709430404003e-9,
+          -2.8421709430404003e-9,
+          0.0,
+          -1.7053025658242404e-8,
+          -8.526512829121202e-9,
+          2.8421709430404003e-9
+        ],
+        "fd_maxabs": 1.7053025658242404e-8,
+        "maxabs": 3.5397533793002367e-9,
+        "source": "ForwardDiff"
+      },
+      "julia_grad_at_julia_theta": {
+        "ad": [
+          -2.242385443995687e-11,
+          -8.72382999173027e-11,
+          2.9654029232162316e-11,
+          -4.189446012325959e-11,
+          5.951505954726599e-11,
+          -1.4087930821915506e-10,
+          2.675193400136777e-12
+        ],
+        "ad_maxabs": 1.4087930821915506e-10,
+        "fd": [
+          2.650648215490971e-9,
+          -2.8421709430404003e-9,
+          0.0,
+          2.8421709430404003e-9,
+          -1.1368683772161601e-8,
+          -1.4210854715202002e-8,
+          0.0
+        ],
+        "fd_maxabs": 1.4210854715202002e-8,
+        "maxabs": 1.4087930821915506e-10,
+        "source": "ForwardDiff"
+      },
+      "julia_marginal": "LA",
+      "julia_nll_at_R_theta": 295.00520627823374,
+      "julia_nll_at_R_theta_minus_at_J_theta": 5.684341886080802e-14,
+      "julia_nll_at_R_theta_plus_llR": -1.2505552149377763e-12,
+      "loglik_R": -295.005206278235,
+      "loglik_julia": -295.0052062782337,
+      "loglik_julia_minus_R": 1.3073986337985843e-12,
+      "max_coef_absdiff": 1.9412471630175787e-11,
+      "max_coef_diff_over_R_se": 1.7234574988477446e-10,
+      "per_dpar": {
+        "mu": {
+          "link_maxabs": 2.4309665391797353e-11,
+          "link_maxrel_mixed": 2.309419322443773e-11,
+          "resid_after_Xdbeta": 4.218847493575595e-15,
+          "response_maxabs_aligned": 2.4309665391797353e-11,
+          "response_maxabs_raw": 2.4309665391797353e-11,
+          "response_maxrel_aligned": 2.309419322443773e-11,
+          "response_maxrel_raw": 2.309419322443773e-11,
+          "se_link_maxrel": 3.76441403168513e-9,
+          "se_response_maxrel_aligned": 3.76441403168513e-9,
+          "se_response_maxrel_raw": 3.76441403168513e-9
+        },
+        "sigma": {
+          "link_maxabs": 1.2075340727335515e-11,
+          "link_maxrel_mixed": 1.2075340727335515e-11,
+          "resid_after_Xdbeta": 8.881784197001252e-16,
+          "response_maxabs_aligned": 7.0067285307118254e-12,
+          "response_maxabs_raw": 7.0067285307118254e-12,
+          "response_maxrel_aligned": 7.0067285307118254e-12,
+          "response_maxrel_raw": 7.0067285307118254e-12,
+          "se_link_maxrel": 7.265949877549169e-7,
+          "se_response_maxrel_aligned": 7.265977492848988e-7,
+          "se_response_maxrel_raw": 7.265977492848988e-7
+        }
+      },
+      "predict_defect": false,
+      "recomputed_vs_harness_pred_csv_maxabs": 0.0,
+      "worst_link_maxabs": 2.4309665391797353e-11,
+      "worst_link_maxrel": 2.309419322443773e-11,
+      "worst_resid_after_Xdbeta": 4.218847493575595e-15,
+      "worst_response_aligned_maxabs": 2.4309665391797353e-11,
+      "worst_se_rel": 7.265977492848988e-7
+    },
+    "metric": "max abs link diff, own fits, nd_main (1e-8 bar)",
+    "notes": "max|link diff| 2.43e-11 (rel 2.31e-11), aligned response 2.43e-11; max|coef diff| 1.94e-11 (max 1.72e-10 R-SE); logLik J-R 1.31e-12; grad J 1.41e-10 (ForwardDiff), R 3.54e-9; SE max rel 7.27e-7; resid after X dbeta 4.22e-15; 1e-8 met",
+    "status": "PASS",
+    "value": 2.4309665391797353e-11
+  },
+  "P9": {
+    "details": {
+      "R_link_vs_hand_XbetaR": {
+        "mu": 4.440892098500626e-15,
+        "sigma": 9.992007221626409e-16
+      },
+      "link_pass": true,
+      "mapping": {
+        "mu": {
+          "R_in_julia_order": [
+            "(Intercept)",
+            "x",
+            "fb",
+            "fc"
+          ],
+          "identity_order": true,
+          "julia": [
+            "(Intercept)",
+            "x",
+            "f: b",
+            "f: c"
+          ]
+        },
+        "resd": {
+          "R_sd_g": 0.413261472204523,
+          "julia_log_sd": -0.8836747817358459
+        },
+        "sigma": {
+          "R_in_julia_order": [
+            "(Intercept)",
+            "x"
+          ],
+          "identity_order": true,
+          "julia": [
+            "(Intercept)",
+            "x"
+          ]
+        }
+      },
+      "per_dpar": {
+        "mu": {
+          "R_response_is": "identity(link)",
+          "by_design": false,
+          "julia_response_is": "identity(link)",
+          "link_maxabs": 4.440892098500626e-15,
+          "response_maxabs": 4.440892098500626e-15,
+          "response_maxrel_mixed": 2.9083616461173326e-15,
+          "se_link_maxrel": 5.045474233636487e-15,
+          "se_response_maxrel": 5.045474233636487e-15
+        },
+        "predict()_mu": {
+          "link_maxabs": 4.440892098500626e-15,
+          "response_maxabs": 4.440892098500626e-15,
+          "se_link_maxrel": 5.045474233636487e-15,
+          "se_response_maxrel": 5.045474233636487e-15
+        },
+        "sigma": {
+          "R_response_is": "exp(link)",
+          "by_design": false,
+          "julia_response_is": "exp(link)",
+          "link_maxabs": 9.992007221626409e-16,
+          "response_maxabs": 4.440892098500626e-15,
+          "response_maxrel_mixed": 3.850828301244019e-15,
+          "se_link_maxrel": 7.807882711598513e-16,
+          "se_response_maxrel": 1.5136654759339833e-15
+        }
+      },
+      "response_pass": true,
+      "se_pass": true,
+      "theta_injected": [
+        1.07225505311553,
+        0.49970740630312,
+        0.378337413336416,
+        -0.340909087423822,
+        -0.26949463961723,
+        0.274707767083181,
+        -0.8836747817358459
+      ],
+      "vcov_injected_blocks": [
+        "mu",
+        "sigma"
+      ],
+      "worst_link": 4.440892098500626e-15,
+      "worst_response_same_semantics": 4.440892098500626e-15,
+      "worst_se_rel": 5.045474233636487e-15
+    },
+    "metric": "max abs diff Julia predict(R theta) vs R predict, nd_main (tol 1e-8)",
+    "notes": "link max|diff| 4.44e-15 (<= 1e-8); response (same-semantics dpars) max|diff| 4.44e-15; SE at injected R vcov: max rel 5.05e-15 PASS",
+    "status": "PASS",
+    "value": 4.440892098500626e-15
+  },
+  "cell": "gaussian_ri",
+  "family": "gaussian",
+  "nd": "data/nd_main.csv (18 rows)",
+  "pins": {
+    "DRModels.jl": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+    "drmTMB": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a"
+  },
+  "re": "ri",
+  "seconds": 1.457089900970459,
+  "tol": 1.0e-8
+}

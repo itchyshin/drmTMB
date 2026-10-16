@@ -1,0 +1,175 @@
+{
+  "D1b": {
+    "formula": "bf(y ~ x + f + (1 | g), sigma ~x)",
+    "character_f": "DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.",
+    "factor_f": "DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly."
+  },
+  "D1a": {
+    "formula": "bf(y ~ x + (1 | g), sigma ~ x)",
+    "bridge": "ok",
+    "coef_names": ["mu_(Intercept)", "mu_x", "sigma_(Intercept)", "sigma_x", "resd_g"],
+    "coef_max_abs": 0,
+    "loglik_bridge": -310.542126944354,
+    "loglik_native": -310.542126944354,
+    "insample_mu_link_vs_native_Xb_plus_ranef": 0,
+    "insample_mu_link_vs_native_Xb_only": 0.977301294355788,
+    "insample_sigma_link": 0,
+    "nd_main_mu_link": 0,
+    "nd_main_mu_response": 0,
+    "nd_main_sigma_link": 2.77555756156289e-17,
+    "nd_main_sigma_response": 0,
+    "fitted_bridge_vs_native_fitted": 0,
+    "fitted_bridge_vs_conditional_mu": 0.977301294355788,
+    "tmb_fitted_vs_conditional_mu": 0,
+    "tmb_vs_bridge_coef_mu": 1.03470565449015e-11,
+    "tmb_vs_bridge_coef_sigma": 1.28472510407818e-11,
+    "tmb_vs_bridge_loglik": -9.66338120633736e-13,
+    "tmb_vs_bridge_insample_mu": 2.80322431933655e-11,
+    "tmb_vs_bridge_fitted": 0.977301294369117
+  },
+  "D1c": {
+    "main_entry": {
+      "error": "Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar \"resd\" (1 fixed-effect columns; Julia names: [\"resd_g\"]); the R side must supply names for every dpar when sending coef_labels | Stacktrace: | [1] error(s::String) | @ Base ./error.jl:44 | [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1880 | [3] _bridge_coef_vector(fit::DrmFit{Gaussian}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1797 | [4] _bridge_coef_vector | @ /home/user/DRModels.jl/src/bridge.jl:1769 [inlined] | [5] _bridge_flatten(fit::DrmFit{Gaussian}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1625 | [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:61 | [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ Main ./none:1 | [8] docall(call1::Ptr{Nothing}) | @ Main.JuliaCall /usr/local/lib/R/site-library/JuliaCall/julia/setup.jl:176"
+    },
+    "conditional_entry": {
+      "coef_names": ["mu_(Intercept)", "mu_x", "mu_f: b", "mu_f: c", "sigma_(Intercept)", "sigma_x", "resd_g"],
+      "coef_label_contract": "(absent)",
+      "raw_coef_names": null,
+      "has_conditional_re": true,
+      "loglik": -295.005206278234
+    }
+  },
+  "D2": {
+    "poisson": {
+      "formula": "bf(y ~ x + f + (1 | g))",
+      "bridge": "Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar \"resd\" (1 fixed-effect columns; Julia names: [\"resd_g\"]); the R side must supply names for every dpar when sending coef_labels | Stacktrace: | [1] error(s::String) | @ Base ./error.jl:44 | [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1880 | [3] _bridge_coef_vector(fit::DrmFit{Poisson}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1797 | [4] _bridge_coef_vector | @ /home/user/DRModels.jl/src/bridge.jl:1769 [inlined] | [5] _bridge_flatten(fit::DrmFit{Poisson}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1625 | [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:61 | [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ Main ./none:1 | [8] docall(call1::Ptr{Nothing}) | @ Main.JuliaCall /usr/local/lib/R/site-library/JuliaCall/julia/setup.jl:176",
+      "seconds_to_refusal": 24.1641988754272,
+      "in_fe_only_fence": false,
+      "payload_coef_label_dpars": "mu",
+      "main_entry_without_coef_labels": {
+        "coef_names": ["mu_(Intercept)", "mu_x", "mu_fb", "mu_fc", "resd_g"],
+        "loglik": -454.517336286793,
+        "marginal": "LA",
+        "converged": true
+      },
+      "native_drmodels": {
+        "loglik": -454.517336286793,
+        "marginal": "LA",
+        "coefnames": ["mu::(Intercept)", "mu::x", "mu::f: b", "mu::f: c", "resd::g"]
+      },
+      "native_tmb": {
+        "loglik": -454.537425218979,
+        "converged": true
+      }
+    },
+    "nbinom2": {
+      "formula": "bf(y ~ x + f + (1 | g), sigma ~x)",
+      "bridge": "Error happens in Julia. | drm_bridge: coef_labels is missing an entry for dpar \"resd\" (1 fixed-effect columns; Julia names: [\"resd_g\"]); the R side must supply names for every dpar when sending coef_labels | Stacktrace: | [1] error(s::String) | @ Base ./error.jl:44 | [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1880 | [3] _bridge_coef_vector(fit::DrmFit{NegBinomial2}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1797 | [4] _bridge_coef_vector | @ /home/user/DRModels.jl/src/bridge.jl:1769 [inlined] | [5] _bridge_flatten(fit::DrmFit{NegBinomial2}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:1625 | [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ DRModels /home/user/DRModels.jl/src/bridge.jl:61 | [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) | @ Main ./none:1 | [8] docall(call1::Ptr{Nothing}) | @ Main.JuliaCall /usr/local/lib/R/site-library/JuliaCall/julia/setup.jl:176",
+      "seconds_to_refusal": 31.0509996414185,
+      "in_fe_only_fence": false,
+      "payload_coef_label_dpars": ["mu", "sigma"],
+      "main_entry_without_coef_labels": {
+        "coef_names": ["mu_(Intercept)", "mu_x", "mu_fb", "mu_fc", "sigma_(Intercept)", "sigma_x", "resd_g"],
+        "loglik": -562.357023606477,
+        "marginal": "LA",
+        "converged": true
+      },
+      "native_drmodels": {
+        "loglik": -562.357023606477,
+        "marginal": "LA",
+        "coefnames": ["mu::(Intercept)", "mu::x", "mu::f: b", "mu::f: c", "sigma::(Intercept)", "sigma::x", "resd::g"]
+      },
+      "native_tmb": {
+        "loglik": -562.382693247634,
+        "converged": true
+      }
+    }
+  },
+  "D3": {
+    "lognormal": {
+      "rows_1_3": {
+        "bridge_fitted": [2.17350478949725, 3.90446116220452, 2.47313027375667],
+        "tmb_fitted": [2.31513272169886, 4.43007528538334, 2.76797334668075],
+        "hand_documented_mean": [2.31513272168248, 4.43007528538157, 2.76797334669959],
+        "hand_exp_eta": [2.17350478949725, 3.90446116220452, 2.47313027375667],
+        "y": [2.8679676025702, 3.35352375037261, 2.73859233611696]
+      },
+      "bridge_fitted_vs_exp_eta": 8.88178419700125e-16,
+      "tmb_fitted_vs_documented_mean": 6.94988955274312e-10,
+      "bridge_vs_tmb_fitted_maxabs": 5.91591973479247,
+      "bridge_vs_tmb_residuals_maxabs": 5.91591973479247,
+      "mean_y": 3.53019948251843,
+      "mean_bridge_fitted": 3.0159183370419,
+      "mean_tmb_fitted": 3.63463729650797,
+      "mean_bridge_resid": 0.514281145476525,
+      "mean_tmb_resid": -0.104437813989542,
+      "bridge_coef_vs_tmb": 1.88140614199028e-11
+    },
+    "truncated_nbinom2": {
+      "rows_1_3": {
+        "bridge_fitted": [3.74034665917529, 3.24816268093886, 1.7136951428134],
+        "tmb_fitted": [4.55623345976685, 4.02299342551123, 2.18392631940287],
+        "hand_documented_mean": [4.55623345974945, 4.02299342554641, 2.18392631938513],
+        "hand_exp_eta": [3.74034665917529, 3.24816268093886, 1.7136951428134],
+        "y": [3, 2, 2]
+      },
+      "bridge_fitted_vs_exp_eta": 2.22044604925031e-16,
+      "tmb_fitted_vs_documented_mean": 1.12356346448905e-10,
+      "bridge_vs_tmb_fitted_maxabs": 7.05113050356389,
+      "bridge_vs_tmb_residuals_maxabs": 7.05113050356389,
+      "mean_y": 3.62916666666667,
+      "mean_bridge_fitted": 2.68153641764557,
+      "mean_tmb_fitted": 3.63578258642998,
+      "mean_bridge_resid": 0.9476302490211,
+      "mean_tmb_resid": -0.00661591976330873,
+      "bridge_coef_vs_tmb": 8.82799389145816e-11
+    }
+  },
+  "D4": {
+    "student": {
+      "dpar": "nu",
+      "eta1": 1.37861921227322,
+      "response1": 3.96941691959244,
+      "response_minus_eta": 2.59079770731922,
+      "response_minus_exp_eta": 0,
+      "response_minus_2_plus_exp_eta": 2,
+      "response_minus_plogis_eta": 3.17064777145705,
+      "stored_fit_scale_row1": 5.96941691959244
+    },
+    "skew_normal": {
+      "dpar": "nu",
+      "eta1": 1.95279955688984,
+      "response1": 7.04839236078894,
+      "response_minus_eta": 5.0955928038991,
+      "response_minus_exp_eta": 0,
+      "response_minus_2_plus_exp_eta": 2,
+      "response_minus_plogis_eta": 6.17264077651876,
+      "stored_fit_scale_row1": 1.95279955688984
+    },
+    "zero_one_beta": {
+      "dpar": "mu",
+      "eta1": -0.549105843210161,
+      "response1": -0.549105843210161,
+      "response_minus_eta": 0,
+      "response_minus_exp_eta": 2.12344280962561,
+      "response_minus_2_plus_exp_eta": 4.12344280962561,
+      "response_minus_plogis_eta": 1.11902711486776,
+      "stored_fit_scale_row1": null
+    },
+    "lognormal": {
+      "dpar": "mu",
+      "eta1": 0.477413631592252,
+      "response1": 1.61190003896205,
+      "response_minus_eta": 5.88021625745995,
+      "response_minus_exp_eta": 0,
+      "response_minus_2_plus_exp_eta": 2,
+      "response_minus_plogis_eta": 7.06555904106353,
+      "stored_fit_scale_row1": null
+    }
+  },
+  "D5": {
+    "methods": ["AIC", "BIC", "aicc", "anova", "check_drm", "coef", "confint", "corpairs", "deviance", "df.residual", "fitted", "fixef", "heritability", "icc", "is_converged", "logLik", "nobs", "predict", "print", "repeatability", "residuals", "rho12", "sigma", "summary", "vcov", "weights"],
+    "simulate": "no applicable method for 'simulate' applied to an object of class \"drmTMB_julia\"",
+    "simulate_with_drmTMB_class_appended": "Could not align the \"mu\" design matrix with fitted coefficients. | i Check that factor levels and predictor columns match the fitted model."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "P10": {
+    "details": null,
+    "metric": "",
+    "notes": "not evaluable: DRModels.jl refused the fit (no serialized fit; see jl_truncated_nbinom2_ri.json): TruncatedNegBinomial2() currently supports fixed effects only",
+    "status": "NA",
+    "value": null
+  },
+  "P9": {
+    "details": null,
+    "metric": "",
+    "notes": "not evaluable: DRModels.jl refused the fit (no serialized fit; see jl_truncated_nbinom2_ri.json): TruncatedNegBinomial2() currently supports fixed effects only",
+    "status": "NA",
+    "value": null
+  },
+  "cell": "truncated_nbinom2_ri",
+  "family": "truncated_nbinom2",
+  "nd": "data/nd_main.csv (18 rows)",
+  "pins": {
+    "DRModels.jl": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+    "drmTMB": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a"
+  },
+  "re": "ri",
+  "tol": 1.0e-8
+}

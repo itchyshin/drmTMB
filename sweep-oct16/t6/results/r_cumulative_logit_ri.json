@@ -1,0 +1,382 @@
+{
+  "family": "cumulative_logit",
+  "re": "ri",
+  "engine": "r_tmb",
+  "cell_k": 27,
+  "seed": "20261016627",
+  "seed_r": "261016627",
+  "sim_seed_r": 261016727,
+  "formula": "bf(y ~ x + f + (1 | g))",
+  "family_call": "cumulative_logit()",
+  "fallback": "",
+  "fit_ok": true,
+  "fit_error": "",
+  "converged": true,
+  "loglik": -300.978002781028,
+  "coef": {
+    "mu": {
+      "names": ["x", "fb", "fc"],
+      "values": [0.703266792129769, -0.0385587725509168, -0.533424262620446]
+    }
+  },
+  "tests": {
+    "P1": {
+      "status": "PASS",
+      "metric": "max mixed abs/rel diff",
+      "value": 3.92124740894375e-16,
+      "notes": "link vs hand X beta + b-hat[g] (mu); response vs documented invlink; fitted vs documented mean",
+      "details": {
+        "mu": {
+          "link_vs_Xb_plus_Zb": 0,
+          "response_vs_invlink_of_engine_link": 0,
+          "response_vs_hand": 0,
+          "default_type_vs_response": 0,
+          "n_sigma_rows_clamped": null,
+          "includes_bhat": true,
+          "link": "identity"
+        },
+        "fitted": {
+          "max_mixdiff": 3.92124740894375e-16,
+          "documented": "documented response mean at conditional (b-hat) parameters",
+          "length": 240,
+          "class": "numeric"
+        },
+        "mu_link_vs_population_Xb_only": 1.35448071169488
+      }
+    },
+    "P2": {
+      "status": "PASS",
+      "metric": "max mixed abs/rel diff",
+      "value": 0,
+      "notes": "nd_main (g01 seen, gNEW unseen) vs population X_new beta; seen==unseen rows; g column removed",
+      "details": {
+        "mu": {
+          "link_vs_pop_Xb": 0,
+          "response_vs_invlink_pop": 0,
+          "seen_vs_unseen_g_link": 0,
+          "seen_vs_unseen_g_response": 0,
+          "g_removed_vs_with_g": 0
+        }
+      }
+    },
+    "P3": {
+      "status": "PASS",
+      "metric": "max mixed diff vs nd_main f=b rows",
+      "value": 0,
+      "notes": "encodings: character, factor(levels='b'), factor(levels=a,b,c); no refusals",
+      "details": {
+        "character:mu:link": 0,
+        "character:mu:response": 0,
+        "factor_b:mu:link": 0,
+        "factor_b:mu:response": 0,
+        "factor_abc:mu:link": 0,
+        "factor_abc:mu:response": 0
+      }
+    },
+    "P4": {
+      "status": "PASS",
+      "metric": "mu refusal names factor/level",
+      "value": 1,
+      "notes": "mu message: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\".",
+      "details": {
+        "mu": "REFUSED: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\".",
+        "quantile": "REFUSED: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\".",
+        "predict_parameters": "REFUSED: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\"."
+      }
+    },
+    "P5": {
+      "status": "PASS",
+      "metric": "n failing comparisons",
+      "value": 0,
+      "notes": "char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel",
+      "details": {
+        "coef_char_vs_factor": {
+          "names_identical": true,
+          "max_abs": 0
+        },
+        "cutpoints_char_vs_factor": 0,
+        "rel_coef_names": {
+          "mu": ["x", "fa", "fb"]
+        },
+        "loglik": {
+          "char": -300.978002781028,
+          "factor": -300.978002781028,
+          "relevel": -300.978002781028
+        },
+        "loglik_relevel_minus_char": -6.25277607468888e-13,
+        "sd_g": {
+          "char": 0.756223221914326,
+          "factor": 0.756223221914326,
+          "relevel": 0.756223221939591
+        },
+        "mu:link": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char_expected_score": {
+            "diff": 2.49254094327631e-11,
+            "rel": 2.49254094327631e-11,
+            "ok": true
+          },
+          "relevelfit_link_shift_range": 5.89085447089133e-11,
+          "relevelfit_vs_hand_design": {
+            "diff": 0,
+            "ok": true
+          }
+        },
+        "mu:response": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char_expected_score": {
+            "diff": 2.49254094327631e-11,
+            "rel": 2.49254094327631e-11,
+            "ok": true
+          },
+          "relevelfit_link_shift_range": 5.89085447089133e-11
+        }
+      }
+    },
+    "P6": {
+      "status": "PASS",
+      "metric": "max abs diff",
+      "value": 0,
+      "notes": "in-sample vs family q-function at predict() in-sample parameters; nd_main vs q at population parameters; ri in-sample max diff vs POPULATION-level params = 1 (docs say fixed-effect population-level)",
+      "details": {
+        "shape": {
+          "class": ["matrix", "array"],
+          "dim": [240, 3],
+          "colnames": ["2.5%", "50%", "97.5%"],
+          "calibrated": false
+        },
+        "p0.025": {
+          "insample_vs_predicted_params": 0,
+          "newdata_vs_predicted_params": 0,
+          "insample_vs_population_params": 0
+        },
+        "p0.500": {
+          "insample_vs_predicted_params": 0,
+          "newdata_vs_predicted_params": 0,
+          "insample_vs_population_params": 1
+        },
+        "p0.975": {
+          "insample_vs_predicted_params": 0,
+          "newdata_vs_predicted_params": 0,
+          "insample_vs_population_params": 1
+        }
+      }
+    },
+    "P7": {
+      "status": "PASS",
+      "metric": "max rel SE diff vs delta method",
+      "value": 0,
+      "notes": "predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused",
+      "details": {
+        "predict_formals": ["object", "newdata", "dpar", "type", "prob", "..."],
+        "se_fit_formal": false,
+        "predict_se_fit_TRUE": {
+          "class": "numeric",
+          "is_list": false,
+          "length": 240,
+          "identical_to_plain_predict": true
+        },
+        "predict_interval_confidence": {
+          "class": "numeric",
+          "identical_to_plain": true
+        },
+        "predict_parameters_formals": ["object", "newdata", "dpar", "type", "include_newdata", "conf.int", "conf.level", "..."],
+        "predict_parameters_se_fit": "REFUSED: `...` is reserved for future options.",
+        "predict_parameters_insample_conf_status": {
+          "newdata_required": 240
+        },
+        "pp_mu": {
+          "se_link_rel": 0,
+          "se_response_rel": 0,
+          "ci_link": 0,
+          "ci_response": 0,
+          "estimate_vs_predict": 0,
+          "status": "wald"
+        },
+        "emmeans": "REFUSED: The first emmeans basis preflight is not implemented for \"cumulative_logit\" fits. | i Supported model types: \"gaussian\", \"student\", \"gamma\", \"beta\", \"beta_binomial\", \"poisson\", and \"nbinom2\". | i Use `prediction_grid()` and `predict_parameters()` for explicit prediction tables.",
+        "worst_ci": 0,
+        "worst_estimate": 0
+      }
+    },
+    "P8": {
+      "status": "PASS",
+      "metric": "max |z| (mean/var, all modes)",
+      "value": 0.614366446838809,
+      "notes": "default: zmean=0.34 zvar=-0.61; re.form=NULL: zmean=0.34 zvar=-0.11",
+      "details": {
+        "elapsed_default_s": 4.13814616203308,
+        "shape": {
+          "class": "data.frame",
+          "dim": [240, 1000],
+          "names_head": ["sim_1", "sim_2", "sim_3"],
+          "names_tail": "sim_1000",
+          "col_class": ["ordered", "factor"],
+          "col_levels": ["1", "2", "3", "4"]
+        },
+        "seed_reproduces": true,
+        "default_reNA": {
+          "z_mean": 0.336561338730291,
+          "z_var": -0.614366446838809,
+          "mean_sim": 2.15725,
+          "mean_expected": 2.15625200270849,
+          "var_sim_batchmean": 0.935186458333333,
+          "var_expected": 0.936868552958874,
+          "sd_G": 0.0937702634461011,
+          "sd_Vb": 0.0173162134228107,
+          "max_abs_zi": 3.21900117745818,
+          "n_abs_zi_gt3": 1,
+          "n_zi_na": 0,
+          "expected_n_gt3": 0.648,
+          "reg_t": {
+            "(Intercept)": -0.181221616336488,
+            "x": 1.08913225710898,
+            "fb": 0.384365451920808,
+            "fc": 0.539050982916958
+          },
+          "reg_max_abs_t_slopes": 1.08913225710898,
+          "reg_flag": false,
+          "pass_mean": true,
+          "pass_var": true,
+          "against_conditional_moments": {
+            "z_mean": 3.50922325001869,
+            "z_var": 39.6170014842542,
+            "max_abs_zi": 24.1056388104361
+          }
+        },
+        "reNULL_conditional": {
+          "z_mean": 0.342305034679905,
+          "z_var": -0.113482339444018,
+          "mean_sim": 2.14747916666667,
+          "mean_expected": 2.14684418419229,
+          "var_sim_batchmean": 0.826447916666667,
+          "var_expected": 0.826717733161897,
+          "sd_G": 0.0586608635538645,
+          "sd_Vb": 0.0150373120503548,
+          "max_abs_zi": 2.84690997848148,
+          "n_abs_zi_gt3": 0,
+          "n_zi_na": 0,
+          "expected_n_gt3": 0.648,
+          "reg_t": {
+            "(Intercept)": -0.427902756167815,
+            "x": 0.197623513593919,
+            "fb": 0.662607950005367,
+            "fc": 0.643150238427752
+          },
+          "reg_max_abs_t_slopes": 0.662607950005367,
+          "reg_flag": false,
+          "pass_mean": true,
+          "pass_var": true,
+          "against_marginal_moments": {
+            "z_mean": -4.72924224954559,
+            "z_var": -46.4419053350942,
+            "max_abs_zi": 27.521404662123
+          }
+        },
+        "reform_tilde0_equals_NA": true,
+        "rng_restored_after_seeded_call": true,
+        "rng_absent_stays_absent": true,
+        "rng_advances_without_seed": true,
+        "messages": [],
+        "skip_var": false
+      }
+    },
+    "P9": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "not in scope of the R-engine harness (cross-engine / bridge tests run separately)",
+      "details": null
+    },
+    "P10": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "not in scope of the R-engine harness (cross-engine / bridge tests run separately)",
+      "details": null
+    },
+    "P11": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "not in scope of the R-engine harness (cross-engine / bridge tests run separately)",
+      "details": null
+    }
+  },
+  "convergence": {
+    "opt_convergence": 0,
+    "opt_message": "converged (Newton polish; max |gradient| = 8.5e-12)",
+    "gradient_max_component": "log_sd_mu",
+    "pdHess": true,
+    "optimizer_used": {
+      "optimizer": "nlminb",
+      "optimizer_preset": "default",
+      "attempt": 1,
+      "retried": false,
+      "convergence": 0,
+      "message": "converged (Newton polish; max |gradient| = 8.5e-12)",
+      "objective": 300.978002781028,
+      "control": []
+    },
+    "df": 7,
+    "nobs": 240
+  },
+  "vcov": {
+    "mu": {
+      "names": ["mu:x", "mu:fb", "mu:fc"],
+      "matrix": [
+        [0.0213560180338589, 0.00406247954662923, -0.000638675810902706],
+        [0.00406247954662923, 0.0921919017537934, 0.0460239890286172],
+        [-0.000638675810902706, 0.0460239890286172, 0.0964870558965882]
+      ]
+    }
+  },
+  "cutpoints": {
+    "names": ["1|2", "2|3", "3|4"],
+    "values": [-1.04104695458723, 0.653364126491018, 2.06110522049392],
+    "levels": ["1", "2", "3", "4"]
+  },
+  "ranef": {
+    "sd_g": 0.756223221914326,
+    "groups": ["g01", "g02", "g03", "g04", "g05", "g06", "g07", "g08", "g09", "g10", "g11", "g12", "g13", "g14", "g15", "g16", "g17", "g18", "g19", "g20", "g21", "g22", "g23", "g24"],
+    "bhat": [-0.559047447966145, 0.213539476092477, 0.271486996392394, -0.895869418380519, 1.35448071169488, 0.183168061735562, 0.486030309975578, -0.0410319717874879, -0.0567971123370145, -0.0404927796545211, 0.603958493064678, -0.768362629390344, -0.369000338392882, 0.695413111646788, 0.387473917732483, -0.592953382374013, 1.03816367677855, -0.693504817107355, -0.412939266953845, -0.942803106795325, 0.17543543746607, -0.284304400692966, -0.229900688565196, 0.588722039196656]
+  },
+  "elapsed_s": 13.4669120311737
+}

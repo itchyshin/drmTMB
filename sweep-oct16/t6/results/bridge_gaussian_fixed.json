@@ -1,0 +1,337 @@
+{
+  "family": "gaussian",
+  "re": "fixed",
+  "engine": "bridge",
+  "cell_k": 0,
+  "seed": "20261016600",
+  "seed_r": "261016600",
+  "sim_seed_r": 261016700,
+  "formula": "bf(y ~ x + f, sigma ~x)",
+  "family_call": "gaussian()",
+  "fallback": "",
+  "fit_ok": true,
+  "fit_error": "",
+  "converged": true,
+  "loglik": -301.644634680805,
+  "coef": {
+    "mu": {
+      "names": ["(Intercept)", "x", "fb", "fc"],
+      "values": [0.96696834439932, 0.390093427198973, 0.341121193952688, -0.384369659645923]
+    },
+    "sigma": {
+      "names": ["(Intercept)", "x"],
+      "values": [-0.199611695068412, 0.341154032257542]
+    }
+  },
+  "tests": {
+    "P11": {
+      "status": "PASS",
+      "metric": "max abs diff bridge vs native Julia (link)",
+      "value": 5.55111512312578e-17,
+      "notes": "coef max|d| = 0, logLik d = 0; link max|d| (nd_main + in-sample) = 5.55e-17; response same-semantics max|d| = 0; response semantic differences on: none",
+      "details": {
+        "coef_len": [6, 6],
+        "coef_max_abs_diff": 0,
+        "loglik_diff": 0,
+        "coef_names_bridge": ["mu_(Intercept)", "mu_x", "mu_fb", "mu_fc", "sigma_(Intercept)", "sigma_x"],
+        "coef_names_native": ["mu::(Intercept)", "mu::x", "mu::f: b", "mu::f: c", "sigma::(Intercept)", "sigma::x"],
+        "native_errors": {
+          "predict_parameters_link": "",
+          "predict_parameters_response": "",
+          "predict_link": "",
+          "predict_response": "",
+          "insample_link": "",
+          "insample_response": ""
+        },
+        "mu": {
+          "nd_link": 0,
+          "nd_response_vs_predict_parameters": 0,
+          "nd_link_vs_predict": 0,
+          "nd_response_vs_predict": 0,
+          "native_predict_response_minus_exp_link": 4.74755199885301,
+          "native_predict_response_minus_plogis_link": 1.02410634100809,
+          "insample_link": 0,
+          "insample_response": 0,
+          "nd_link_vs_hand_X_theta_native": 0
+        },
+        "sigma": {
+          "nd_link": 5.55111512312578e-17,
+          "nd_response_vs_predict_parameters": 0,
+          "insample_link": 0,
+          "insample_response": 1.11022302462516e-16,
+          "nd_link_vs_hand_X_theta_native": 0
+        },
+        "worst_link": 5.55111512312578e-17,
+        "worst_response_same_semantics": 0,
+        "response_semantic_differences": []
+      }
+    },
+    "P2": {
+      "status": "PASS",
+      "metric": "max mixed abs/rel diff",
+      "value": 0,
+      "notes": "nd_main (g01 seen, gNEW unseen) vs population X_new beta (bridge coefficients, documented links); seen==unseen; g removed",
+      "details": {
+        "mu": {
+          "link_vs_pop_Xb": 0,
+          "response_vs_invlink_pop": 0,
+          "seen_vs_unseen_g_link": 0,
+          "seen_vs_unseen_g_response": 0,
+          "g_removed_vs_with_g": 0
+        },
+        "sigma": {
+          "link_vs_pop_Xb": 0,
+          "response_vs_invlink_pop": 0,
+          "seen_vs_unseen_g_link": 0,
+          "seen_vs_unseen_g_response": 0,
+          "g_removed_vs_with_g": 0
+        }
+      }
+    },
+    "P3": {
+      "status": "PASS",
+      "metric": "max mixed diff vs nd_main f=b rows",
+      "value": 0,
+      "notes": "encodings: character, factor(levels='b'), factor(levels=a,b,c); no refusals",
+      "details": {
+        "character:mu:link": 0,
+        "character:mu:response": 0,
+        "character:sigma:link": 0,
+        "character:sigma:response": 0,
+        "factor_b:mu:link": 0,
+        "factor_b:mu:response": 0,
+        "factor_b:sigma:link": 0,
+        "factor_b:sigma:response": 0,
+        "factor_abc:mu:link": 0,
+        "factor_abc:mu:response": 0,
+        "factor_abc:sigma:link": 0,
+        "factor_abc:sigma:response": 0
+      }
+    },
+    "P4": {
+      "status": "PASS",
+      "metric": "mu refusal names factor/level",
+      "value": 1,
+      "notes": "mu message: factor f has new levels d",
+      "details": {
+        "mu": "REFUSED: factor f has new levels d",
+        "sigma": {
+          "values": [0.819048731999441, 1.15204927775649],
+          "note": "returned values"
+        }
+      }
+    },
+    "P5": {
+      "status": "PASS",
+      "metric": "char/factor/relevel agreement",
+      "value": 0,
+      "notes": "coef char==factor; predictions agree across fit/newdata encodings",
+      "details": {
+        "coef_char_vs_factor": {
+          "names_identical": true,
+          "max_abs": 0
+        },
+        "rel_coef_names": {
+          "mu": ["(Intercept)", "x", "fa", "fb"],
+          "sigma": ["(Intercept)", "x"]
+        },
+        "loglik": {
+          "char": -301.644634680805,
+          "factor": -301.644634680805,
+          "relevel": -301.644634680805
+        },
+        "mu:link": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 3.12949666181339e-12,
+            "rel": 1.62566815138992e-11,
+            "ok": true
+          }
+        },
+        "mu:response": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 3.12949666181339e-12,
+            "rel": 1.62566815138992e-11,
+            "ok": true
+          }
+        },
+        "sigma:link": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 2.89179791224115e-12,
+            "rel": 1.08368326837678e-11,
+            "ok": true
+          }
+        },
+        "sigma:response": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 1.77180492499929e-12,
+            "rel": 2.89175495193938e-12,
+            "ok": true
+          }
+        },
+        "loglik_relevel_minus_char": 0
+      }
+    },
+    "P8": {
+      "status": "NA",
+      "metric": "simulate method exists",
+      "value": 0,
+      "notes": "no simulate method for class drmTMB_julia; simulate(fit, nsim = 1000, seed =) -> no applicable method for 'simulate' applied to an object of class \"drmTMB_julia\"",
+      "details": {
+        "methods_drmTMB_julia": ["AIC", "BIC", "aicc", "anova", "check_drm", "coef", "confint", "corpairs", "deviance", "df.residual", "fitted", "fixef", "heritability", "icc", "is_converged", "logLik", "nobs", "predict", "print", "repeatability", "residuals", "rho12", "sigma", "summary", "vcov", "weights"],
+        "has_simulate_method": false,
+        "simulate_result_class": null,
+        "simulate_error": "no applicable method for 'simulate' applied to an object of class \"drmTMB_julia\"",
+        "simulate_warnings": [],
+        "getS3method": false
+      }
+    }
+  },
+  "admission": {
+    "first_try": {
+      "formula": "bf(y ~ x + f, sigma ~x)",
+      "admitted": true,
+      "message": null,
+      "warnings": "Julia libunwind not found in /opt/julia-env/bin/../lib/julia"
+    },
+    "doc_vignette_expects_admitted": true,
+    "doc_vignette_text": "fixed effects; selected phylo(), ordinary random-effect, relmat(), spatial(), animal() routes",
+    "doc_roxygen_lists_family_fixed": true,
+    "registry_expects_admitted": true,
+    "admitted": true,
+    "verdict": "consistent with vignette"
+  },
+  "fit_warnings": "Julia libunwind not found in /opt/julia-env/bin/../lib/julia",
+  "class": "drmTMB_julia",
+  "bridge_marginal": "LA",
+  "bridge_iterations": 12,
+  "bridge_raw_coef": {
+    "names": ["mu_(Intercept)", "mu_x", "mu_fb", "mu_fc", "sigma_(Intercept)", "sigma_x"],
+    "values": [0.96696834439932, 0.390093427198973, 0.341121193952688, -0.384369659645923, -0.199611695068412, 0.341154032257542]
+  },
+  "native_julia": {
+    "call": "drm(bf(@formula(y ~ x + f), @formula(sigma ~ x)), Gaussian(); data = t6_nt)",
+    "columns": ["y", "x", "f"],
+    "error": "",
+    "seconds": 0.011918306350708,
+    "loglik": -301.644634680805,
+    "converged": true,
+    "marginal": "LA",
+    "theta": [0.96696834439932, 0.390093427198973, 0.341121193952688, -0.384369659645923, -0.199611695068412, 0.341154032257542],
+    "coefnames": ["mu::(Intercept)", "mu::x", "mu::f: b", "mu::f: c", "sigma::(Intercept)", "sigma::x"],
+    "blocks": ["mu=1:4", "sigma=5:6"]
+  },
+  "bridge_vs_tmb": {
+    "tmb_loglik": -301.644634680806,
+    "loglik_diff": 8.5265128291212e-13,
+    "tmb_converged": true,
+    "coef_max_abs_diff": {
+      "mu": 1.05088160395894e-12,
+      "sigma": 1.1170508962266e-12
+    },
+    "coef_max_overall": 1.1170508962266e-12,
+    "predict_nd_main": {
+      "mu:link": {
+        "max_abs": 7.23421322845752e-13,
+        "max_rel": 1.62088134648572e-12
+      },
+      "mu:response": {
+        "max_abs": 7.23421322845752e-13,
+        "max_rel": 1.62088134648572e-12
+      },
+      "sigma:link": {
+        "max_abs": 1.28658195208686e-12,
+        "max_rel": 5.59611948507078e-12
+      },
+      "sigma:response": {
+        "max_abs": 1.75792713719147e-12,
+        "max_rel": 1.28661662127005e-12
+      }
+    },
+    "predict_max_abs": 1.75792713719147e-12,
+    "receipt_bar_1e4": {
+      "coef_ok": true,
+      "loglik_ok": true
+    }
+  },
+  "fitted": {
+    "bridge_fitted_class": "numeric",
+    "bridge_fitted_length": 240,
+    "bridge_fitted_vs_documented_mean_popXb": 0,
+    "bridge_fitted_vs_invlink_mu_popXb": 0,
+    "bridge_fitted_vs_native_julia_fitted": 0,
+    "tmb_fitted_vs_bridge_fitted": {
+      "max_abs": 7.35966843024016e-13,
+      "max_rel": 1.3437497252979e-11,
+      "mean_bridge": 1.02000459818277,
+      "mean_tmb": 1.02000459818299
+    },
+    "tmb_fitted_vs_documented_mean_popXb_bridgecoef": 7.35966843024016e-13,
+    "mean_observed_y": 1.04844561636105,
+    "semantics": "documented mean at population X b"
+  },
+  "elapsed_s": 164.876924037933
+}

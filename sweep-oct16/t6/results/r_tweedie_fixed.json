@@ -1,0 +1,515 @@
+{
+  "family": "tweedie",
+  "re": "fixed",
+  "engine": "r_tmb",
+  "cell_k": 24,
+  "seed": "20261016624",
+  "seed_r": "261016624",
+  "sim_seed_r": 261016724,
+  "formula": "bf(y ~ x + f, sigma ~x, nu ~1)",
+  "family_call": "tweedie()",
+  "fallback": "",
+  "fit_ok": true,
+  "fit_error": "",
+  "converged": true,
+  "loglik": -450.602049887568,
+  "coef": {
+    "mu": {
+      "names": ["(Intercept)", "x", "fb", "fc"],
+      "values": [1.09053602494116, 0.507578434144434, 0.231244650444728, -0.554032574897556]
+    },
+    "sigma": {
+      "names": ["(Intercept)", "x"],
+      "values": [-0.227141940253672, 0.252619138661946]
+    },
+    "nu": {
+      "names": "(Intercept)",
+      "values": 0.0445986782118446
+    }
+  },
+  "tests": {
+    "P1": {
+      "status": "PASS",
+      "metric": "max mixed abs/rel diff",
+      "value": 0,
+      "notes": "link vs hand X beta; response vs documented invlink; fitted vs documented mean",
+      "details": {
+        "mu": {
+          "link_vs_Xb_plus_Zb": 0,
+          "response_vs_invlink_of_engine_link": 0,
+          "response_vs_hand": 0,
+          "default_type_vs_response": 0,
+          "n_sigma_rows_clamped": null,
+          "includes_bhat": false,
+          "link": "log"
+        },
+        "sigma": {
+          "link_vs_Xb_plus_Zb": 0,
+          "response_vs_invlink_of_engine_link": 0,
+          "response_vs_hand": 0,
+          "default_type_vs_response": 0,
+          "n_sigma_rows_clamped": 0,
+          "includes_bhat": false,
+          "link": "log"
+        },
+        "nu": {
+          "link_vs_Xb_plus_Zb": 0,
+          "response_vs_invlink_of_engine_link": 0,
+          "response_vs_hand": 0,
+          "default_type_vs_response": 0,
+          "n_sigma_rows_clamped": null,
+          "includes_bhat": false,
+          "link": "logit12"
+        },
+        "fitted": {
+          "max_mixdiff": 0,
+          "documented": "documented response mean at conditional (b-hat) parameters",
+          "length": 240,
+          "class": "numeric"
+        }
+      }
+    },
+    "P2": {
+      "status": "PASS",
+      "metric": "max mixed abs/rel diff",
+      "value": 0,
+      "notes": "nd_main (g01 seen, gNEW unseen) vs population X_new beta; seen==unseen rows; g column removed",
+      "details": {
+        "mu": {
+          "link_vs_pop_Xb": 0,
+          "response_vs_invlink_pop": 0,
+          "seen_vs_unseen_g_link": 0,
+          "seen_vs_unseen_g_response": 0,
+          "g_removed_vs_with_g": 0
+        },
+        "sigma": {
+          "link_vs_pop_Xb": 0,
+          "response_vs_invlink_pop": 0,
+          "seen_vs_unseen_g_link": 0,
+          "seen_vs_unseen_g_response": 0,
+          "g_removed_vs_with_g": 0
+        },
+        "nu": {
+          "link_vs_pop_Xb": 0,
+          "response_vs_invlink_pop": 0,
+          "seen_vs_unseen_g_link": 0,
+          "seen_vs_unseen_g_response": 0,
+          "g_removed_vs_with_g": 0
+        }
+      }
+    },
+    "P3": {
+      "status": "PASS",
+      "metric": "max mixed diff vs nd_main f=b rows",
+      "value": 0,
+      "notes": "encodings: character, factor(levels='b'), factor(levels=a,b,c); no refusals",
+      "details": {
+        "character:mu:link": 0,
+        "character:mu:response": 0,
+        "character:sigma:link": 0,
+        "character:sigma:response": 0,
+        "character:nu:link": 0,
+        "character:nu:response": 0,
+        "factor_b:mu:link": 0,
+        "factor_b:mu:response": 0,
+        "factor_b:sigma:link": 0,
+        "factor_b:sigma:response": 0,
+        "factor_b:nu:link": 0,
+        "factor_b:nu:response": 0,
+        "factor_abc:mu:link": 0,
+        "factor_abc:mu:response": 0,
+        "factor_abc:sigma:link": 0,
+        "factor_abc:sigma:response": 0,
+        "factor_abc:nu:link": 0,
+        "factor_abc:nu:response": 0
+      }
+    },
+    "P4": {
+      "status": "PASS",
+      "metric": "mu refusal names factor/level",
+      "value": 1,
+      "notes": "mu message: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\".",
+      "details": {
+        "mu": "REFUSED: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\".",
+        "sigma": {
+          "values": [0.79680767517956, 1.02580451602801],
+          "note": "returned values (f not in this dpar's formula?)"
+        },
+        "nu": {
+          "values": [1.51114782182364, 1.51114782182364],
+          "note": "returned values (f not in this dpar's formula?)"
+        },
+        "quantile": "REFUSED: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\".",
+        "predict_parameters": "REFUSED: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\"."
+      }
+    },
+    "P5": {
+      "status": "PASS",
+      "metric": "n failing comparisons",
+      "value": 0,
+      "notes": "char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel",
+      "details": {
+        "coef_char_vs_factor": {
+          "names_identical": true,
+          "max_abs": 0
+        },
+        "rel_coef_names": {
+          "mu": ["(Intercept)", "x", "fa", "fb"],
+          "sigma": ["(Intercept)", "x"],
+          "nu": "(Intercept)"
+        },
+        "loglik": {
+          "char": -450.602049887568,
+          "factor": -450.602049887568,
+          "relevel": -450.602049887568
+        },
+        "loglik_relevel_minus_char": 1.70530256582424e-13,
+        "mu:link": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 2.64732680221869e-12,
+            "rel": 1.37909391005453e-11,
+            "ok": true
+          },
+          "relevelfit_vs_hand_design": {
+            "diff": 0,
+            "ok": true
+          }
+        },
+        "mu:response": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 2.96205549257811e-12,
+            "rel": 2.96205549257811e-12,
+            "ok": true
+          }
+        },
+        "sigma:link": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 1.06251119014189e-11,
+            "rel": 2.92923650701971e-11,
+            "ok": true
+          },
+          "relevelfit_vs_hand_design": {
+            "diff": 0,
+            "ok": true
+          }
+        },
+        "sigma:response": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 6.57618404176219e-12,
+            "rel": 1.06250638389463e-11,
+            "ok": true
+          }
+        },
+        "nu:link": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 2.40245254246041e-11,
+            "rel": 5.38682454006532e-10,
+            "ok": true
+          },
+          "relevelfit_vs_hand_design": {
+            "diff": 0,
+            "ok": true
+          }
+        },
+        "nu:response": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 3.97260800833405e-12,
+            "rel": 3.97260800833405e-12,
+            "ok": true
+          }
+        }
+      }
+    },
+    "P6": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "harness environment: Suggests package 'tweedie' not installed (CRAN unreachable); drmTMB refuses with: The tweedie package is required for Tweedie `d()`/`p()`/`q()` evaluation. | i Install it with `install.packages(\"tweedie\")`.",
+      "details": null
+    },
+    "P7": {
+      "status": "PASS",
+      "metric": "max rel SE diff vs delta method",
+      "value": 0,
+      "notes": "predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused",
+      "details": {
+        "predict_formals": ["object", "newdata", "dpar", "type", "prob", "..."],
+        "se_fit_formal": false,
+        "predict_se_fit_TRUE": {
+          "class": "numeric",
+          "is_list": false,
+          "length": 240,
+          "identical_to_plain_predict": true
+        },
+        "predict_interval_confidence": {
+          "class": "numeric",
+          "identical_to_plain": true
+        },
+        "predict_parameters_formals": ["object", "newdata", "dpar", "type", "include_newdata", "conf.int", "conf.level", "..."],
+        "predict_parameters_se_fit": "REFUSED: `...` is reserved for future options.",
+        "predict_parameters_insample_conf_status": {
+          "newdata_required": 720
+        },
+        "pp_mu": {
+          "se_link_rel": 0,
+          "se_response_rel": 0,
+          "ci_link": 0,
+          "ci_response": 0,
+          "estimate_vs_predict": 0,
+          "status": "wald"
+        },
+        "pp_sigma": {
+          "se_link_rel": 0,
+          "se_response_rel": 0,
+          "ci_link": 0,
+          "ci_response": 0,
+          "estimate_vs_predict": 0,
+          "status": "wald"
+        },
+        "pp_nu": {
+          "se_link_rel": 0,
+          "se_response_rel": 0,
+          "ci_link": 0,
+          "ci_response": 0,
+          "estimate_vs_predict": 0,
+          "status": "wald"
+        },
+        "emmeans": "REFUSED: The first emmeans basis preflight is not implemented for \"tweedie\" fits. | i Supported model types: \"gaussian\", \"student\", \"gamma\", \"beta\", \"beta_binomial\", \"poisson\", and \"nbinom2\". | i Use `prediction_grid()` and `predict_parameters()` for explicit prediction tables.",
+        "worst_ci": 0,
+        "worst_estimate": 0
+      }
+    },
+    "P8": {
+      "status": "PASS",
+      "metric": "max |z| (mean/var, all modes)",
+      "value": 2.70196218479072,
+      "notes": "default: zmean=2.70 zvar=2.17",
+      "details": {
+        "elapsed_default_s": 0.239366054534912,
+        "shape": {
+          "class": "data.frame",
+          "dim": [240, 1000],
+          "names_head": ["sim_1", "sim_2", "sim_3"],
+          "names_tail": "sim_1000",
+          "col_class": "numeric",
+          "col_levels": null
+        },
+        "seed_reproduces": true,
+        "default_reNA": {
+          "z_mean": 2.70196218479072,
+          "z_var": 2.17160314462751,
+          "mean_sim": 3.30318673079659,
+          "mean_expected": 3.28746441145967,
+          "var_sim_batchmean": 8.02158758801013,
+          "var_expected": 7.81931383581672,
+          "sd_G": 0.184008271785005,
+          "sd_Vb": 0.589100056685864,
+          "max_abs_zi": 2.89724575873371,
+          "n_abs_zi_gt3": 0,
+          "n_zi_na": 0,
+          "expected_n_gt3": 0.648,
+          "reg_t": {
+            "(Intercept)": 1.19941460526498,
+            "x": 2.7942916770937,
+            "fb": 0.425158568638206,
+            "fc": -0.201201033820688
+          },
+          "reg_max_abs_t_slopes": 2.7942916770937,
+          "reg_flag": false,
+          "pass_mean": true,
+          "pass_var": true
+        },
+        "fixed_reNULL_equals_default": true,
+        "rng_restored_after_seeded_call": true,
+        "rng_absent_stays_absent": true,
+        "rng_advances_without_seed": true,
+        "messages": [],
+        "skip_var": false
+      }
+    },
+    "P9": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "not in scope of the R-engine harness (cross-engine / bridge tests run separately)",
+      "details": null
+    },
+    "P10": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "not in scope of the R-engine harness (cross-engine / bridge tests run separately)",
+      "details": null
+    },
+    "P11": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "not in scope of the R-engine harness (cross-engine / bridge tests run separately)",
+      "details": null
+    }
+  },
+  "convergence": {
+    "opt_convergence": 0,
+    "opt_message": "converged (Newton polish; max |gradient| = 3.38e-09)",
+    "gradient_max_component": "beta_sigma[2]",
+    "pdHess": true,
+    "optimizer_used": {
+      "optimizer": "nlminb",
+      "optimizer_preset": "default",
+      "attempt": 1,
+      "retried": false,
+      "convergence": 0,
+      "message": "converged (Newton polish; max |gradient| = 3.38e-09)",
+      "objective": 450.602049887568,
+      "control": []
+    },
+    "df": 7,
+    "nobs": 240
+  },
+  "vcov": {
+    "mu": {
+      "names": ["mu:(Intercept)", "mu:x", "mu:fb", "mu:fc"],
+      "matrix": [
+        [0.00497138767676088, 0.000258642267959278, -0.00489336673126719, -0.00494715026783],
+        [0.000258642267959278, 0.00135110059090539, 0.000127154003371821, 5.81653974559664e-05],
+        [-0.00489336673126719, 0.000127154003371821, 0.00889310281300297, 0.0049537885401665],
+        [-0.00494715026783, 5.81653974559664e-05, 0.00495378854016651, 0.0107440000154365]
+      ]
+    },
+    "sigma": {
+      "names": ["sigma:(Intercept)", "sigma:x"],
+      "matrix": [
+        [0.00212452757206588, 4.34280882733693e-05],
+        [4.34280882733693e-05, 0.00144636266507028]
+      ]
+    },
+    "nu": {
+      "names": "nu:(Intercept)",
+      "matrix": [
+        [0.0918592191517379]
+      ]
+    }
+  },
+  "elapsed_s": 1.95737266540527
+}

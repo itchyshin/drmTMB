@@ -1,0 +1,30 @@
+21:37:50 drmTMB 0.7.1, R R version 4.3.3 (2024-02-29) 
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.12.7 at location /opt/julia-env/bin will be used.
+Warning in JuliaCall::julia_setup(installJulia = FALSE) :
+  Julia libunwind not found in /opt/julia-env/bin/../lib/julia
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+21:39:25 D1 SPEC formula bf(y ~ x + f + (1 | g), sigma ~x), f character: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly. 
+21:39:30 D1 SPEC formula, f factor: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly. 
+21:39:35 D1 numeric-only formula bf(y ~ x + (1 | g), sigma ~ x): ok 
+NULL
+NULL
+NULL
+21:39:38 D1(a) parity: coef_names=mu_(Intercept)   ,mu_x             ,sigma_(Intercept),sigma_x          ,resd_g           ; coef_max_abs=0; loglik_bridge=-310.5421; loglik_native=-310.5421; insample_mu_link_vs_native_Xb_plus_ranef=0; insample_mu_link_vs_native_Xb_only=0.9773013; insample_sigma_link=0; nd_main_mu_link=0; nd_main_mu_response=0; nd_main_sigma_link=2.775558e-17; nd_main_sigma_response=0; fitted_bridge_vs_native_fitted=0; fitted_bridge_vs_conditional_mu=0.9773013; tmb_fitted_vs_conditional_mu=0; tmb_vs_bridge_coef_mu=1.034706e-11; tmb_vs_bridge_coef_sigma=1.284725e-11; tmb_vs_bridge_loglik=-9.663381e-13; tmb_vs_bridge_insample_mu=2.803224e-11; tmb_vs_bridge_fitted=0.9773013 
+21:39:38 D1(c) payload: ok; coef_labels: mu=(Intercept),x,fb,fc ; sigma=(Intercept),x 
+21:40:35  
+21:40:35 D1(c) conditional entry coef_names: mu_(Intercept),mu_x,mu_f: b,mu_f: c,sigma_(Intercept),sigma_x,resd_g | contract: (absent) 
+21:41:01 D2 poisson: refused after 24.2s; fence=FALSE; payload label dpars=mu; no-label bridge: fits, names mu_(Intercept),mu_x,mu_fb,mu_fc,resd_g ll -454.5173; native DRModels: fits ll -454.5173 marginal LA; TMB: fits ll -454.5374 
+21:41:34 D2 nbinom2: refused after 31.1s; fence=FALSE; payload label dpars=mu,sigma; no-label bridge: fits, names mu_(Intercept),mu_x,mu_fb,mu_fc,sigma_(Intercept),sigma_x,resd_g ll -562.357; native DRModels: fits ll -562.357 marginal LA; TMB: fits ll -562.3827 
+21:41:46 D3 lognormal: bridge fitted == exp(eta) to 8.88e-16; TMB fitted == documented mean to 6.95e-10; bridge vs TMB fitted max 5.916, residuals max 5.916; mean y 3.5302, bridge fitted 3.0159, TMB fitted 3.6346 
+21:41:58 D3 truncated_nbinom2: bridge fitted == exp(eta) to 2.22e-16; TMB fitted == documented mean to 1.12e-10; bridge vs TMB fitted max 7.051, residuals max 7.051; mean y 3.6292, bridge fitted 2.6815, TMB fitted 3.6358 
+21:42:07 D4 student nu: eta[1]=1.378619 native response[1]=3.969417; |r-eta|=2.59 |r-exp|=0 |r-(2+exp)|=2 |r-plogis|=3.17; fit.scales[:nu][1]=5.969417 
+21:42:12 D4 skew_normal nu: eta[1]=1.952800 native response[1]=7.048392; |r-eta|=5.1 |r-exp|=0 |r-(2+exp)|=2 |r-plogis|=6.17; fit.scales[:nu][1]=1.9528 
+21:42:20 D4 zero_one_beta mu: eta[1]=-0.549106 native response[1]=-0.549106; |r-eta|=0 |r-exp|=2.12 |r-(2+exp)|=4.12 |r-plogis|=1.12; fit.scales[:nu][1]=NA 
+21:42:20 D4 lognormal mu: eta[1]=0.477414 native response[1]=1.611900; |r-eta|=5.88 |r-exp|=0 |r-(2+exp)|=2 |r-plogis|=7.07; fit.scales[:nu][1]=NA 
+21:42:25 D5 methods(class='drmTMB_julia'): AIC BIC aicc anova check_drm coef confint corpairs deviance df.residual fitted fixef heritability icc is_converged logLik nobs predict print repeatability residuals rho12 sigma summary vcov weights 
+21:42:25 D5 simulate(bridge fit): no applicable method for 'simulate' applied to an object of class "drmTMB_julia" 
+21:42:25 D5 simulate after appending class 'drmTMB' (diagnostic only): Could not align the "mu" design matrix with fitted coefficients. | i Check that factor levels and predictor columns match the fitted model. 
+21:42:25 done 
+  Activating project at `/home/user/DRModels.jl`

@@ -1,0 +1,283 @@
+20:26:30 drmTMB 0.7.1; R R version 4.3.3 (2024-02-29); pin ca3ddefa5ea11bbfd3b765615dfbb89305d2485a 
+20:26:30 cells: 28 
+20:26:31 ==== cell gaussian_fixed (k=0, seed_r=261016600) ==== 
+20:26:32 [gaussian_fixed] fit ok: conv=TRUE ll=-301.644635 dpars=mu,sigma sd_g=NA (0.2s) 
+20:26:32 [gaussian_fixed] P1 PASS value=0 
+20:26:32 [gaussian_fixed] P2 PASS value=0 
+20:26:32 [gaussian_fixed] P3 PASS value=0 
+20:26:32 [gaussian_fixed] P4 PASS 
+20:26:32 [gaussian_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:26:32 [gaussian_fixed] P6 PASS value=0 
+20:26:33 [gaussian_fixed] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans SE validated 
+20:26:33 [gaussian_fixed] P8 PASS default: zmean=0.69 zvar=0.34 
+20:26:33 ==== cell gaussian_ri (k=1, seed_r=261016601) ==== 
+20:26:34 [gaussian_ri] fit ok: conv=TRUE ll=-295.005206 dpars=mu,sigma sd_g=0.4132615 (0.3s) 
+20:26:34 [gaussian_ri] P1 PASS value=0 
+20:26:34 [gaussian_ri] P2 PASS value=0 
+20:26:34 [gaussian_ri] P3 PASS value=0 
+20:26:34 [gaussian_ri] P4 PASS 
+20:26:35 [gaussian_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:26:35 [gaussian_ri] P6 PASS value=0 
+20:26:35 [gaussian_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:26:36 [gaussian_ri] P8 PASS default: zmean=-0.44 zvar=-0.60; re.form=NULL: zmean=0.07 zvar=-0.14 
+20:26:36 ==== cell student_fixed (k=2, seed_r=261016602) ==== 
+20:26:36 [student_fixed] fit ok: conv=TRUE ll=-314.901285 dpars=mu,sigma,nu sd_g=NA (0.1s) 
+20:26:36 [student_fixed] P1 PASS value=0 
+20:26:36 [student_fixed] P2 PASS value=0 
+20:26:36 [student_fixed] P3 PASS value=0 
+20:26:36 [student_fixed] P4 PASS 
+20:26:37 [student_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:26:37 [student_fixed] P6 PASS value=0 
+20:26:37 [student_fixed] P7 PASS value=1.788517e-16 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans SE validated 
+20:26:38 [student_fixed] P8 PASS default: zmean=-1.25 zvar=-0.08 
+20:26:38 ==== cell student_ri (k=3, seed_r=261016603) ==== 
+20:26:38 [student_ri] fit ok: conv=TRUE ll=-353.302663 dpars=mu,sigma,nu sd_g=0.537923 (0.5s) 
+20:26:38 [student_ri] P1 PASS value=0 
+20:26:38 [student_ri] P2 PASS value=0 
+20:26:38 [student_ri] P3 PASS value=0 
+20:26:38 [student_ri] P4 PASS 
+20:26:40 [student_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:26:40 [student_ri] P6 PASS value=0 
+20:26:40 [student_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:26:41 [student_ri] P8 PASS default: zmean=-0.62 zvar=-0.69; re.form=NULL: zmean=-1.00 zvar=1.03 
+20:26:41 ==== cell skew_normal_fixed (k=4, seed_r=261016604) ==== 
+20:26:41 [skew_normal_fixed] fit ok: conv=TRUE ll=-291.905318 dpars=mu,sigma,nu sd_g=NA (0.1s) 
+20:26:41 [skew_normal_fixed] P1 PASS value=0 
+20:26:41 [skew_normal_fixed] P2 PASS value=0 
+20:26:41 [skew_normal_fixed] P3 PASS value=0 
+20:26:42 [skew_normal_fixed] P4 PASS 
+20:26:42 [skew_normal_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:26:44 [skew_normal_fixed] P6 PASS value=2.463003e-09 
+20:26:45 [skew_normal_fixed] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:26:45 [skew_normal_fixed] P8 PASS default: zmean=0.02 zvar=-2.16 
+20:26:45 ==== cell skew_normal_ri (k=5, seed_r=261016605) ==== 
+20:26:46 [skew_normal_ri] fit ok: conv=TRUE ll=-290.763012 dpars=mu,sigma,nu sd_g=0.3432882 (0.6s) 
+20:26:46 [skew_normal_ri] P1 PASS value=0 
+20:26:46 [skew_normal_ri] P2 PASS value=0 
+20:26:46 [skew_normal_ri] P3 PASS value=0 
+20:26:46 [skew_normal_ri] P4 PASS 
+20:26:47 [skew_normal_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:26:50 [skew_normal_ri] P6 PASS value=1.231015e-12 
+20:26:50 [skew_normal_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:26:51 [skew_normal_ri] P8 PASS default: zmean=0.95 zvar=-0.77; re.form=NULL: zmean=0.13 zvar=0.79 
+20:26:51 ==== cell lognormal_fixed (k=6, seed_r=261016606) ==== 
+20:26:51 [lognormal_fixed] fit ok: conv=TRUE ll=-395.746353 dpars=mu,sigma sd_g=NA (0.1s) 
+20:26:51 [lognormal_fixed] P1 PASS value=0 
+20:26:52 [lognormal_fixed] P2 PASS value=0 
+20:26:52 [lognormal_fixed] P3 PASS value=0 
+20:26:52 [lognormal_fixed] P4 PASS 
+20:26:52 [lognormal_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:26:52 [lognormal_fixed] P6 PASS value=0 
+20:26:52 [lognormal_fixed] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:26:53 [lognormal_fixed] P8 PASS default: zmean=0.22 zvar=-2.89 
+20:26:53 ==== cell lognormal_ri (k=7, seed_r=261016607) ==== 
+20:26:53 [lognormal_ri] fit ok: conv=TRUE ll=-441.218135 dpars=mu,sigma sd_g=0.5554357 (0.3s) 
+20:26:53 [lognormal_ri] P1 PASS value=0 
+20:26:53 [lognormal_ri] P2 PASS value=0 
+20:26:53 [lognormal_ri] P3 PASS value=0 
+20:26:53 [lognormal_ri] P4 PASS 
+20:26:54 [lognormal_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:26:54 [lognormal_ri] P6 PASS value=0 
+20:26:54 [lognormal_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:26:55 [lognormal_ri] P8 PASS default: zmean=-0.04 zvar=-0.39; re.form=NULL: zmean=1.60 zvar=0.76 
+20:26:55 ==== cell gamma_fixed (k=8, seed_r=261016608) ==== 
+20:26:55 [gamma_fixed] fit ok: conv=TRUE ll=-388.912494 dpars=mu,sigma sd_g=NA (0.1s) 
+20:26:55 [gamma_fixed] P1 PASS value=0 
+20:26:55 [gamma_fixed] P2 PASS value=0 
+20:26:55 [gamma_fixed] P3 PASS value=0 
+20:26:56 [gamma_fixed] P4 PASS 
+20:26:56 [gamma_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:26:56 [gamma_fixed] P6 PASS value=0 
+20:26:56 [gamma_fixed] P7 PASS value=1.407531e-16 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans SE validated 
+20:26:57 [gamma_fixed] P8 PASS default: zmean=-0.93 zvar=0.32 
+20:26:57 ==== cell gamma_ri (k=9, seed_r=261016609) ==== 
+20:26:57 [gamma_ri] fit ok: conv=TRUE ll=-434.566077 dpars=mu,sigma sd_g=0.4625556 (0.5s) 
+20:26:57 [gamma_ri] P1 PASS value=0 
+20:26:57 [gamma_ri] P2 PASS value=0 
+20:26:57 [gamma_ri] P3 PASS value=0 
+20:26:58 [gamma_ri] P4 PASS 
+20:26:58 [gamma_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:26:59 [gamma_ri] P6 PASS value=0 
+20:26:59 [gamma_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:00 [gamma_ri] P8 PASS default: zmean=0.13 zvar=-0.07; re.form=NULL: zmean=-1.18 zvar=-0.06 
+20:27:00 ==== cell beta_fixed (k=10, seed_r=261016610) ==== 
+20:27:00 [beta_fixed] fit ok: conv=TRUE ll=144.506293 dpars=mu,sigma sd_g=NA (0.1s) 
+20:27:00 [beta_fixed] P1 PASS value=0 
+20:27:00 [beta_fixed] P2 PASS value=0 
+20:27:00 [beta_fixed] P3 PASS value=0 
+20:27:00 [beta_fixed] P4 PASS 
+20:27:00 [beta_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:00 [beta_fixed] P6 PASS value=3.885781e-16 
+20:27:00 [beta_fixed] P7 PASS value=3.457287e-16 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans SE validated 
+20:27:01 [beta_fixed] P8 PASS default: zmean=0.84 zvar=0.02 
+20:27:01 ==== cell beta_ri (k=11, seed_r=261016611) ==== 
+20:27:02 [beta_ri] fit ok: conv=TRUE ll=149.221663 dpars=mu,sigma sd_g=0.6244679 (0.9s) 
+20:27:02 [beta_ri] P1 PASS value=0 
+20:27:02 [beta_ri] P2 PASS value=0 
+20:27:02 [beta_ri] P3 PASS value=0 
+20:27:02 [beta_ri] P4 PASS 
+20:27:04 [beta_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:04 [beta_ri] P6 PASS value=4.440892e-16 
+20:27:04 [beta_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:05 [beta_ri] P8 PASS default: zmean=-0.58 zvar=-0.28; re.form=NULL: zmean=1.09 zvar=0.92 
+20:27:05 ==== cell zero_one_beta_fixed (k=12, seed_r=261016612) ==== 
+20:27:05 [zero_one_beta_fixed] fit ok: conv=TRUE ll=20.875231 dpars=mu,sigma,zoi,coi sd_g=NA (0.2s) 
+20:27:05 [zero_one_beta_fixed] P1 PASS value=0 
+20:27:05 [zero_one_beta_fixed] P2 PASS value=0 
+20:27:06 [zero_one_beta_fixed] P3 PASS value=0 
+20:27:06 [zero_one_beta_fixed] P4 PASS 
+20:27:06 [zero_one_beta_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:06 [zero_one_beta_fixed] P6 PASS value=4.996004e-16 
+20:27:06 [zero_one_beta_fixed] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:07 [zero_one_beta_fixed] P8 PASS default: zmean=-1.51 zvar=1.22 
+20:27:07 ==== cell zero_one_beta_ri (k=13, seed_r=261016613) ==== 
+20:27:08 [zero_one_beta_ri] fit ok: conv=TRUE ll=-13.159897 dpars=mu,sigma,zoi,coi sd_g=0.3296187 (1.1s) 
+20:27:08 [zero_one_beta_ri] P1 PASS value=0 
+20:27:08 [zero_one_beta_ri] P2 PASS value=0 
+20:27:08 [zero_one_beta_ri] P3 PASS value=0 
+20:27:08 [zero_one_beta_ri] P4 PASS 
+20:27:11 [zero_one_beta_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:11 [zero_one_beta_ri] P6 PASS value=3.330669e-16 
+20:27:11 [zero_one_beta_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:12 [zero_one_beta_ri] P8 PASS default: zmean=-0.54 zvar=0.18; re.form=NULL: zmean=0.11 zvar=-0.57 
+20:27:12 ==== cell beta_binomial_fixed (k=14, seed_r=261016614) ==== 
+20:27:12 [beta_binomial_fixed] fit ok: conv=TRUE ll=-551.323927 dpars=mu,sigma sd_g=NA (0.1s) 
+20:27:12 [beta_binomial_fixed] P1 PASS value=0 
+20:27:12 [beta_binomial_fixed] P2 PASS value=0 
+20:27:12 [beta_binomial_fixed] P3 PASS value=0 
+20:27:13 [beta_binomial_fixed] P4 PASS 
+20:27:13 [beta_binomial_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:13 [beta_binomial_fixed] P6 PASS value=0 
+20:27:13 [beta_binomial_fixed] P7 PASS value=2.576853e-16 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans SE validated 
+20:27:14 [beta_binomial_fixed] P8 PASS default: zmean=-0.50 zvar=0.22 
+20:27:14 ==== cell beta_binomial_ri (k=15, seed_r=261016615) ==== 
+20:27:15 [beta_binomial_ri] fit ok: conv=TRUE ll=-552.956283 dpars=mu,sigma sd_g=0.4933768 (1.3s) 
+20:27:15 [beta_binomial_ri] P1 PASS value=0 
+20:27:15 [beta_binomial_ri] P2 PASS value=0 
+20:27:15 [beta_binomial_ri] P3 PASS value=0 
+20:27:15 [beta_binomial_ri] P4 PASS 
+20:27:18 [beta_binomial_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:18 [beta_binomial_ri] P6 PASS value=0 
+20:27:18 [beta_binomial_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:19 [beta_binomial_ri] P8 PASS default: zmean=0.23 zvar=1.81; re.form=NULL: zmean=1.85 zvar=-0.82 
+20:27:19 ==== cell binomial_fixed (k=16, seed_r=261016616) ==== 
+20:27:19 [binomial_fixed] fit ok: conv=TRUE ll=-442.792419 dpars=mu sd_g=NA (0.1s) 
+20:27:19 [binomial_fixed] P1 PASS value=0 
+20:27:19 [binomial_fixed] P2 PASS value=0 
+20:27:19 [binomial_fixed] P3 PASS value=0 
+20:27:19 [binomial_fixed] P4 PASS 
+20:27:20 [binomial_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:20 [binomial_fixed] P6 PASS value=0 
+20:27:20 [binomial_fixed] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:20 [binomial_fixed] P8 PASS default: zmean=0.92 zvar=-0.46 
+20:27:20 ==== cell binomial_ri (k=17, seed_r=261016617) ==== 
+20:27:21 [binomial_ri] fit ok: conv=TRUE ll=-471.676678 dpars=mu sd_g=0.4007157 (0.4s) 
+20:27:21 [binomial_ri] P1 PASS value=0 
+20:27:21 [binomial_ri] P2 PASS value=0 
+20:27:21 [binomial_ri] P3 PASS value=0 
+20:27:21 [binomial_ri] P4 PASS 
+20:27:22 [binomial_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:22 [binomial_ri] P6 PASS value=0 
+20:27:22 [binomial_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:23 [binomial_ri] P8 PASS default: zmean=0.81 zvar=0.68; re.form=NULL: zmean=-0.18 zvar=0.58 
+20:27:23 ==== cell poisson_fixed (k=18, seed_r=261016618) ==== 
+20:27:23 [poisson_fixed] fit ok: conv=TRUE ll=-441.451836 dpars=mu sd_g=NA (0.0s) 
+20:27:23 [poisson_fixed] P1 PASS value=0 
+20:27:23 [poisson_fixed] P2 PASS value=0 
+20:27:23 [poisson_fixed] P3 PASS value=0 
+20:27:23 [poisson_fixed] P4 PASS 
+20:27:23 [poisson_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:23 [poisson_fixed] P6 PASS value=0 
+20:27:24 [poisson_fixed] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans SE validated 
+20:27:24 [poisson_fixed] P8 PASS default: zmean=0.55 zvar=-0.16 
+20:27:24 ==== cell poisson_ri (k=19, seed_r=261016619) ==== 
+20:27:24 [poisson_ri] fit ok: conv=TRUE ll=-454.537425 dpars=mu sd_g=0.3751181 (0.1s) 
+20:27:24 [poisson_ri] P1 PASS value=0 
+20:27:24 [poisson_ri] P2 PASS value=0 
+20:27:24 [poisson_ri] P3 PASS value=0 
+20:27:24 [poisson_ri] P4 PASS 
+20:27:25 [poisson_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:25 [poisson_ri] P6 PASS value=0 
+20:27:25 [poisson_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:26 [poisson_ri] P8 PASS default: zmean=0.06 zvar=-1.26; re.form=NULL: zmean=0.69 zvar=0.39 
+20:27:26 ==== cell nbinom2_fixed (k=20, seed_r=261016620) ==== 
+20:27:26 [nbinom2_fixed] fit ok: conv=TRUE ll=-491.695064 dpars=mu,sigma sd_g=NA (0.1s) 
+20:27:26 [nbinom2_fixed] P1 PASS value=0 
+20:27:26 [nbinom2_fixed] P2 PASS value=0 
+20:27:26 [nbinom2_fixed] P3 PASS value=0 
+20:27:26 [nbinom2_fixed] P4 PASS 
+20:27:26 [nbinom2_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:26 [nbinom2_fixed] P6 PASS value=0 
+20:27:27 [nbinom2_fixed] P7 PASS value=2.153641e-16 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans SE validated 
+20:27:27 [nbinom2_fixed] P8 PASS default: zmean=-2.02 zvar=-2.12 
+20:27:27 ==== cell nbinom2_ri (k=21, seed_r=261016621) ==== 
+20:27:28 [nbinom2_ri] fit ok: conv=TRUE ll=-562.382693 dpars=mu,sigma sd_g=0.4850124 (0.6s) 
+20:27:28 [nbinom2_ri] P1 PASS value=0 
+20:27:28 [nbinom2_ri] P2 PASS value=0 
+20:27:28 [nbinom2_ri] P3 PASS value=0 
+20:27:28 [nbinom2_ri] P4 PASS 
+20:27:29 [nbinom2_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:29 [nbinom2_ri] P6 PASS value=0 
+20:27:29 [nbinom2_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:31 [nbinom2_ri] P8 PASS default: zmean=-0.06 zvar=-0.94; re.form=NULL: zmean=1.33 zvar=0.55 
+20:27:31 ==== cell truncated_nbinom2_fixed (k=22, seed_r=261016622) ==== 
+20:27:31 [truncated_nbinom2_fixed] fit ok: conv=TRUE ll=-469.561619 dpars=mu,sigma sd_g=NA (0.1s) 
+20:27:31 [truncated_nbinom2_fixed] P1 PASS value=2.035445e-15 
+20:27:31 [truncated_nbinom2_fixed] P2 PASS value=0 
+20:27:31 [truncated_nbinom2_fixed] P3 PASS value=0 
+20:27:31 [truncated_nbinom2_fixed] P4 PASS 
+20:27:31 [truncated_nbinom2_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:31 [truncated_nbinom2_fixed] P6 PASS value=0 
+20:27:31 [truncated_nbinom2_fixed] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:33 [truncated_nbinom2_fixed] P8 PASS default: zmean=0.64 zvar=0.96 
+20:27:33 ==== cell truncated_nbinom2_ri (k=23, seed_r=261016623) ==== 
+20:27:34 [truncated_nbinom2_ri] fit ok: conv=TRUE ll=-498.565176 dpars=mu,sigma sd_g=0.5060422 (0.8s) 
+20:27:34 [truncated_nbinom2_ri] P1 PASS value=5.083215e-15 
+20:27:34 [truncated_nbinom2_ri] P2 PASS value=0 
+20:27:34 [truncated_nbinom2_ri] P3 PASS value=0 
+20:27:34 [truncated_nbinom2_ri] P4 PASS 
+20:27:36 [truncated_nbinom2_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:36 [truncated_nbinom2_ri] P6 PASS value=0 
+20:27:36 [truncated_nbinom2_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:38 [truncated_nbinom2_ri] P8 PASS default: zmean=0.89 zvar=-1.49; re.form=NULL: zmean=-0.13 zvar=0.14 
+20:27:38 ==== cell tweedie_fixed (k=24, seed_r=261016624) ==== 
+20:27:38 [tweedie_fixed] fit ok: conv=TRUE ll=-450.602050 dpars=mu,sigma,nu sd_g=NA (0.2s) 
+20:27:38 [tweedie_fixed] P1 PASS value=0 
+20:27:38 [tweedie_fixed] P2 PASS value=0 
+20:27:39 [tweedie_fixed] P3 PASS value=0 
+20:27:39 [tweedie_fixed] P4 PASS 
+20:27:39 [tweedie_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:39 [tweedie_fixed] P6 NA value=NA 
+20:27:40 [tweedie_fixed] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:40 [tweedie_fixed] P8 PASS default: zmean=2.70 zvar=2.17 
+20:27:40 ==== cell tweedie_ri (k=25, seed_r=261016625) ==== 
+20:27:43 [tweedie_ri] fit ok: conv=TRUE ll=-469.590820 dpars=mu,sigma,nu sd_g=0.6074461 (3.1s) 
+20:27:43 [tweedie_ri] P1 PASS value=0 
+20:27:43 [tweedie_ri] P2 PASS value=0 
+20:27:43 [tweedie_ri] P3 PASS value=0 
+20:27:44 [tweedie_ri] P4 PASS 
+20:27:50 [tweedie_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:50 [tweedie_ri] P6 NA value=NA 
+20:27:50 [tweedie_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:51 [tweedie_ri] P8 PASS default: zmean=-0.18 zvar=-0.49; re.form=NULL: zmean=-0.98 zvar=-0.55 
+20:27:51 ==== cell cumulative_logit_fixed (k=26, seed_r=261016626) ==== 
+20:27:51 [cumulative_logit_fixed] fit ok: conv=TRUE ll=-314.674593 dpars=mu sd_g=NA (0.1s) 
+20:27:51 [cumulative_logit_fixed] P1 PASS value=3.89978e-16 
+20:27:51 [cumulative_logit_fixed] P2 PASS value=0 
+20:27:51 [cumulative_logit_fixed] P3 PASS value=0 
+20:27:52 [cumulative_logit_fixed] P4 PASS 
+20:27:52 [cumulative_logit_fixed] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:27:52 [cumulative_logit_fixed] P6 PASS value=0 
+20:27:52 [cumulative_logit_fixed] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:27:59 [cumulative_logit_fixed] P8 PASS default: zmean=0.20 zvar=1.06 
+20:28:00 ==== cell cumulative_logit_ri (k=27, seed_r=261016627) ==== 
+20:28:00 [cumulative_logit_ri] fit ok: conv=TRUE ll=-300.978003 dpars=mu sd_g=0.7562232 (0.4s) 
+20:28:00 [cumulative_logit_ri] P1 PASS value=3.921247e-16 
+20:28:00 [cumulative_logit_ri] P2 PASS value=0 
+20:28:00 [cumulative_logit_ri] P3 PASS value=0 
+20:28:00 [cumulative_logit_ri] P4 PASS 
+20:28:01 [cumulative_logit_ri] P5 PASS value=0 char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel 
+20:28:01 [cumulative_logit_ri] P6 PASS value=0 
+20:28:01 [cumulative_logit_ri] P7 PASS value=0 predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused 
+20:28:13 [cumulative_logit_ri] P8 PASS default: zmean=0.34 zvar=-0.61; re.form=NULL: zmean=0.34 zvar=-0.11 
+20:28:13 done 

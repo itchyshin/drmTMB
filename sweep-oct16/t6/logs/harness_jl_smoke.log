@@ -1,0 +1,43 @@
+t6 Julia harness  DRModels.jl pin = f71b2923360e9e5d4591e0d6e15a9ef9db0356d7  Julia 1.12.7  Fri Oct 16 20:28:37 2026
+
+=== cell 0: gaussian_fixed  seed=20261016600  file=gaussian_fixed.csv ===
+  fit default: ok (16.6s)
+    P1: PASS  all 13 checks pass  [2.9s]
+    P2: PASS  all 15 checks pass  [2.3s]
+    P3: PASS  all variants equal nd_main rows  [3.4s]
+    P4: PASS  refused, message: ArgumentError: predict: `newdata` column `f` contains level(s) d not seen when the model was fitted (parameter `mu`; fitted levels: a, b, c). Refit including that level, or drop the offending rows from `newdata`.  [0.5s]
+    P5: PASS  char == categorical (coef & preds), relevel within 1e-6 rel, cross-type newdata and Int x agree  [6.0s]
+    P6: NA  no quantile-prediction API in DRModels.jl exports (exported names containing 'quantile': none); predict(fit, nd_main; type = :quantile) -> predict: `type` must be :response or :link  [0.1s]
+    P7: PASS  all 12 checks pass  [2.1s]
+    P8: PASS  z_mean=-0.21 z_var=1.44 | rows |z|>3: 1 (expected 0.65), max|z_i| 3.92  [16.8s]
+
+=== cell 1: gaussian_ri  seed=20261016601  file=gaussian_ri.csv ===
+  fit default: ok (6.5s)
+    P1: PASS  all 13 checks pass | ri fit: fit.means[:mu] equals the hand b = 0 value to 0.0; vs conditional X*b + bhat: 1.04  [0.1s]
+    P2: PASS  all 15 checks pass  [0.0s]
+    P3: PASS  all variants equal nd_main rows  [0.0s]
+    P4: PASS  refused, message: ArgumentError: predict: `newdata` column `f` contains level(s) d not seen when the model was fitted (parameter `mu`; fitted levels: a, b, c). Refit including that level, or drop the offending rows from `newdata`.  [0.0s]
+    P5: PASS  char == categorical (coef & preds), relevel within 1e-6 rel, cross-type newdata and Int x agree  [0.0s]
+    P6: NA  no quantile-prediction API in DRModels.jl exports (exported names containing 'quantile': none); predict(fit, nd_main; type = :quantile) -> predict: `type` must be :response or :link  [0.0s]
+    P7: PASS  all 12 checks pass  [0.0s]
+    P8: PASS  ri: b=0 z_mean=-0.12 z_var=1.04; marginal z_mean=-0.12 z_var=-71.23; draws match: b = 0 (docstring) | rows |z|>3: 1 (expected 0.65), max|z_i| 3.02  [0.1s]
+  fit marginal=:Laplace: REFUSED/ERROR: ArgumentError: marginal = :Laplace is not available for Gaussian() with a random effect on the mean. On the Gaussian family this route covers exactly one random intercept `(1 | g)` on `sigma` (fixed-effect mean, fixed-effect `sigma` predictors alongside it), fitted by maximum likelihood. Omit `marginal` (the default `:LA`) for other models.
+
+=== cell 19: poisson_ri  seed=20261016619  file=poisson_ri.csv ===
+  fit default: ok (14.2s)
+    P1: PASS  all 9 checks pass | ri fit: fit.means[:mu] equals the hand b = 0 value to 0.0; ranef() unavailable (ArgumentError: ranef: this fit has a random-effect block but no stored conditional modes -- the non-Gaussian GLMM margin)  [0.8s]
+    P2: PASS  all 9 checks pass  [0.8s]
+    P3: PASS  all variants equal nd_main rows; refused clearly: Vector{String}, CategoricalArray levels=[b], CategoricalArray levels=[a,b,c]  [0.6s]
+    P4: FAIL  predict / Vector{String} refused without naming f or level d; predict_parameters / Vector{String} refused without naming f or level d; predict / CategoricalArray refused without naming f or level d; predict_parameters / CategoricalArray refused without naming f or level d  [1.2s]
+    P5: FAIL  charfit x catnewdata(c,a,b) vs charfit x String errored; relevelfit x String vs charfit x String (rel) errored; relevelfit x catnewdata(default) vs charfit x String (rel) errored  [2.9s]
+    P6: NA  no quantile-prediction API in DRModels.jl exports (exported names containing 'quantile': none); predict(fit, nd_main; type = :quantile) -> predict: `type` must be :response or :link  [0.0s]
+    P7: PASS  all 8 checks pass  [1.2s]
+    P8: PASS  ri: b=0 z_mean=-0.7 z_var=-1.04; marginal z_mean=-65.01 z_var=-223.42; draws match: b = 0 (docstring) | rows |z|>3: 1 (expected 0.65), max|z_i| 3.25  [1.8s]
+  fit marginal=:Laplace: ok (7.7s)
+  -- secondary tests on the :Laplace fit
+    P1: PASS  all 9 checks pass | ri fit: fit.means[:mu] equals the hand b = 0 value to 0.0; ranef() unavailable (ArgumentError: ranef: this fit has a random-effect block but no stored conditional modes -- the non-Gaussian GLMM margin)  [0.0s]
+    P2: PASS  all 9 checks pass  [0.0s]
+    P7: PASS  all 8 checks pass  [0.0s]
+    P8: PASS  ri: b=0 z_mean=-0.79 z_var=-1.02; marginal z_mean=-64.56 z_var=-223.43; draws match: b = 0 (docstring) | rows |z|>3: 1 (expected 0.65), max|z_i| 3.15  [0.0s]
+
+Done Fri Oct 16 20:31:04 2026

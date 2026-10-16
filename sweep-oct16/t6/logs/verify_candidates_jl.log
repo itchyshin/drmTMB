@@ -1,0 +1,63 @@
+DRModels pin: f71b2923360e9e5d4591e0d6e15a9ef9db0356d7  Julia 1.12.7
+
+[V1] ZeroOneBeta: predict(:response) vs logistic(intercept) at x=0,f=a
+  coef(fit,:mu)[1] (logit mu at x=0,f=a) = -0.04180054382865288
+  predict(fit, nd_main)[2]                = -0.04180054382865288
+  logistic(b0)  (documented logit link)    = 0.4895513853912359
+  predict_parameters(fit, nd_main)[:mu][2]= -0.04180054382865288
+  predict(nd_main; se=true) row 2         = (-0.04180054382865288, 0.06802724880595663)  logit-scale se = 0.06802724880595663
+  in-sample predict(fit,d)[1:3]           = [-0.014659710311742204, 0.3319614790796913, 0.36747285003639685]  fitted(fit)[1:3] = [0.4842932457986229, 0.5594569884590305, 0.5669921654268127]
+  minimum(predict(fit, d)) = -1.600659161006783 (a [0,1] response mean cannot be negative)
+  mean(simulate)[1:3] = [0.47631655671136214, 0.5542813889311549, 0.5663832492282129]
+
+[V2] Student: predict_parameters(:nu) vs 2 + exp(coef nu) (docstring) and fit.scales[:nu]
+  coef(fit,:nu) = 1.3786192122732193  2 + exp = 5.9694169195924385  exp = 3.969416919592438
+  predict_parameters(fit, nd_main)[:nu][2] = 3.969416919592438
+  fit.scales[:nu][1] (used by simulate) = 5.9694169195924385
+  marginal_parameters(fit)[:nu][1] = 5.9694169195924385
+
+[V3] SkewNormal: predict_parameters(:nu) vs identity-link slant (docstring) and fit.scales[:nu]
+  coef(fit,:nu) = 1.9527995568898402 (docstring: 'coef(fit, :nu)[1] # estimated slant alpha (identity)')
+  predict_parameters(fit, nd_main)[:nu][2] = 7.048392360788938  exp(coef) = 7.048392360788938
+  fit.scales[:nu][1] = 1.9527995568898402
+  predict_parameters(nd_main; se=true)[:nu] row 2 = (7.048392360788938, 3.3320288729248375)  sqrt(vcov[nu,nu]) = 0.4727360087757484
+
+[V4] CumulativeLogit: predict on the training data and on nd_main
+  coefnames = [:mu => ["x", "f: b", "f: c"], :cutpoints => ["theta1", "theta2", "theta3"]]
+  predict(fit, d)            -> ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).
+  predict_parameters(fit, nd)-> ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).
+  predict(fit, d; type=:link)-> ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).
+  fitted(fit)[1:3] = [1.7689683138669228, 1.7149146400365658, 2.6024370209437615]
+
+[V5] Training-schema cache: Gaussian vs Poisson on a level-subset newdata (f = b only)
+  Gaussian predict(nd_subset) -> [0.9179961111530341, 1.308089538352007, 1.8932296791504664, 0.9179961111530341, 1.308089538352007, 1.8932296791504664]
+  Poisson  predict(nd_subset) -> ERROR: ArgumentError: only one level found: b (need at least two to compute contrasts).
+  Poisson  predict(nd_main)[4:6] (same rows) = [2.1502556769971624, 3.615707356933972, 7.8840256373436635]
+  Poisson  schema cache keys: Symbol[]   Gaussian: [:mu, :sigma]
+  Poisson  fit f=categorical(levels c,a,b), predict with String nd_main -> ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x, f: a, f: b]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).
+  Gaussian fit f=categorical(levels c,a,b), predict with String nd_main -> [0.5768749171981301, 0.96696834439647, 1.5521084851939797]
+  beta_fixed.csv: predict(nd_subset) -> ERROR: ArgumentError: only one level found: b (need at least two to compute contrasts).
+  gamma_fixed.csv: predict(nd_subset) -> ERROR: ArgumentError: only one level found: b (need at least two to compute contrasts).
+  nbinom2_fixed.csv: predict(nd_subset) -> ERROR: ArgumentError: only one level found: b (need at least two to compute contrasts).
+  lognormal_fixed.csv: predict(nd_subset) -> ERROR: ArgumentError: only one level found: b (need at least two to compute contrasts).
+
+[V6] LogNormal: fitted()/predict(:response) vs the mean of the engine's own simulate() draws
+  row 1: fitted = 2.1735047894972532  predict(:response) = 2.1735047894972532  exp(eta) = 2.1735047894972532  exp(eta + sigma^2/2) = 2.3151327216824833  mean of 20000 simulate draws = 2.3243775413125434 (MC SE 0.005996662994766217)
+  over rows: mean(fitted) = 3.0159183370419047  mean(rowmeans(simulate)) = 3.6347431135596255  mean(observed y) = 3.530199482518429
+
+[V7] TruncatedNegBinomial2: fitted() vs mean of the engine's own simulate() draws
+  min(simulate) = 1.0  row 1: fitted = 3.740346659175293  mu/(1-p0) = 4.556233459749454  mean of draws = 4.5841 (MC SE 0.027085845780630193)
+  mean(fitted) = 2.6815364176455665  mean(simulate) = 3.6366829166666665  mean(observed y) = 3.629166666666667
+
+[V8] (1 | g) refusals: SkewNormal and TruncatedNegBinomial2
+  SkewNormal ri -> ERROR: SkewNormal() supports fixed effects only (no random effect on the mean)
+  TruncNB2 ri   -> ERROR: TruncatedNegBinomial2() currently supports fixed effects only
+
+[V9] simulate() on a (1 | g) fit: per-draw group means carry no group-level variance
+  re_sd(fit) = Dict(:g => 0.3757316210895076)  mean over groups of var_s(group-mean std. residual) = 0.10082681688776586  (1/10 = 0.1 expected if b = 0)
+  observed data: var over groups of group-mean std residual = 0.6095758394062039
+
+[V10] beta_fixed P8 diagnostic (3 rows with |z_i| > 3 at nsim = 1000): rerun at nsim = 20000, new stream
+  rows |z_i| > 3: 0 (expected 0.65), max |z_i| = 2.6959214825124;  rows |z_i| > 3 with the SAME seed+100 stream at nsim=1000 (theoretical SE): 3
+
+Done

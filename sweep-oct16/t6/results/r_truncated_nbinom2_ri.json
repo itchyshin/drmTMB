@@ -1,0 +1,479 @@
+{
+  "family": "truncated_nbinom2",
+  "re": "ri",
+  "engine": "r_tmb",
+  "cell_k": 23,
+  "seed": "20261016623",
+  "seed_r": "261016623",
+  "sim_seed_r": 261016723,
+  "formula": "bf(y ~ x + f + (1 | g), sigma ~x)",
+  "family_call": "truncated_nbinom2()",
+  "fallback": "",
+  "fit_ok": true,
+  "fit_error": "",
+  "converged": true,
+  "loglik": -498.565176240609,
+  "coef": {
+    "mu": {
+      "names": ["(Intercept)", "x", "fb", "fc"],
+      "values": [1.06405020205155, 0.455342225924306, -0.0188094274765605, -0.522025494546451]
+    },
+    "sigma": {
+      "names": ["(Intercept)", "x"],
+      "values": [-0.421010228694391, 0.442633316064358]
+    }
+  },
+  "tests": {
+    "P1": {
+      "status": "PASS",
+      "metric": "max mixed abs/rel diff",
+      "value": 5.08321544653149e-15,
+      "notes": "link vs hand X beta + b-hat[g] (mu); response vs documented invlink; fitted vs documented mean",
+      "details": {
+        "mu": {
+          "link_vs_Xb_plus_Zb": 0,
+          "response_vs_invlink_of_engine_link": 0,
+          "response_vs_hand": 0,
+          "default_type_vs_response": 0,
+          "n_sigma_rows_clamped": null,
+          "includes_bhat": true,
+          "link": "log"
+        },
+        "sigma": {
+          "link_vs_Xb_plus_Zb": 0,
+          "response_vs_invlink_of_engine_link": 0,
+          "response_vs_hand": 0,
+          "default_type_vs_response": 0,
+          "n_sigma_rows_clamped": 0,
+          "includes_bhat": false,
+          "link": "log"
+        },
+        "fitted": {
+          "max_mixdiff": 5.08321544653149e-15,
+          "documented": "documented response mean at conditional (b-hat) parameters",
+          "length": 240,
+          "class": "numeric"
+        },
+        "mu_link_vs_population_Xb_only": 0.899246715545515
+      }
+    },
+    "P2": {
+      "status": "PASS",
+      "metric": "max mixed abs/rel diff",
+      "value": 0,
+      "notes": "nd_main (g01 seen, gNEW unseen) vs population X_new beta; seen==unseen rows; g column removed",
+      "details": {
+        "mu": {
+          "link_vs_pop_Xb": 0,
+          "response_vs_invlink_pop": 0,
+          "seen_vs_unseen_g_link": 0,
+          "seen_vs_unseen_g_response": 0,
+          "g_removed_vs_with_g": 0
+        },
+        "sigma": {
+          "link_vs_pop_Xb": 0,
+          "response_vs_invlink_pop": 0,
+          "seen_vs_unseen_g_link": 0,
+          "seen_vs_unseen_g_response": 0,
+          "g_removed_vs_with_g": 0
+        }
+      }
+    },
+    "P3": {
+      "status": "PASS",
+      "metric": "max mixed diff vs nd_main f=b rows",
+      "value": 0,
+      "notes": "encodings: character, factor(levels='b'), factor(levels=a,b,c); no refusals",
+      "details": {
+        "character:mu:link": 0,
+        "character:mu:response": 0,
+        "character:sigma:link": 0,
+        "character:sigma:response": 0,
+        "factor_b:mu:link": 0,
+        "factor_b:mu:response": 0,
+        "factor_b:sigma:link": 0,
+        "factor_b:sigma:response": 0,
+        "factor_abc:mu:link": 0,
+        "factor_abc:mu:response": 0,
+        "factor_abc:sigma:link": 0,
+        "factor_abc:sigma:response": 0
+      }
+    },
+    "P4": {
+      "status": "PASS",
+      "metric": "mu refusal names factor/level",
+      "value": 1,
+      "notes": "mu message: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\".",
+      "details": {
+        "mu": "REFUSED: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\".",
+        "sigma": {
+          "values": [0.656383387429761, 1.02185856047955],
+          "note": "returned values (f not in this dpar's formula?)"
+        },
+        "quantile": "REFUSED: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\".",
+        "predict_parameters": "REFUSED: New prediction data contains unknown factor level for `f`. | i Unknown level: \"d\". | i Fitted levels: \"a\", \"b\", and \"c\"."
+      }
+    },
+    "P5": {
+      "status": "PASS",
+      "metric": "n failing comparisons",
+      "value": 0,
+      "notes": "char==factor coefs (1e-10); cross-type newdata exact; releveled fit 1e-6 rel",
+      "details": {
+        "coef_char_vs_factor": {
+          "names_identical": true,
+          "max_abs": 0
+        },
+        "rel_coef_names": {
+          "mu": ["(Intercept)", "x", "fa", "fb"],
+          "sigma": ["(Intercept)", "x"]
+        },
+        "loglik": {
+          "char": -498.565176240609,
+          "factor": -498.565176240609,
+          "relevel": -498.565176240603
+        },
+        "loglik_relevel_minus_char": 5.11590769747272e-12,
+        "sd_g": {
+          "char": 0.506042226584824,
+          "factor": 0.506042226584824,
+          "relevel": 0.506042226550837
+        },
+        "mu:link": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 4.77331507653389e-11,
+            "rel": 5.5066663868923e-10,
+            "ok": true
+          },
+          "relevelfit_vs_hand_design": {
+            "diff": 0,
+            "ok": true
+          }
+        },
+        "mu:response": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 4.77330081693486e-11,
+            "rel": 4.77330081693486e-11,
+            "ok": true
+          }
+        },
+        "sigma:link": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 1.18176801677805e-10,
+            "rel": 3.81815850574249e-10,
+            "ok": true
+          },
+          "relevelfit_vs_hand_design": {
+            "diff": 0,
+            "ok": true
+          }
+        },
+        "sigma:response": {
+          "factorfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_factornd": {
+            "diff": 0,
+            "ok": true
+          },
+          "charfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "factorfit_relevelnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_factornd_vs_relevelfit_chrnd": {
+            "diff": 0,
+            "ok": true
+          },
+          "relevelfit_vs_char": {
+            "diff": 9.27582936797235e-11,
+            "rel": 1.18176719488532e-10,
+            "ok": true
+          }
+        }
+      }
+    },
+    "P6": {
+      "status": "PASS",
+      "metric": "max abs diff",
+      "value": 0,
+      "notes": "in-sample vs family q-function at predict() in-sample parameters; nd_main vs q at population parameters; ri in-sample max diff vs POPULATION-level params = 45 (docs say fixed-effect population-level)",
+      "details": {
+        "shape": {
+          "class": ["matrix", "array"],
+          "dim": [240, 3],
+          "colnames": ["2.5%", "50%", "97.5%"],
+          "calibrated": false
+        },
+        "p0.025": {
+          "insample_vs_predicted_params": 0,
+          "newdata_vs_predicted_params": 0,
+          "insample_vs_population_params": 0
+        },
+        "p0.500": {
+          "insample_vs_predicted_params": 0,
+          "newdata_vs_predicted_params": 0,
+          "insample_vs_population_params": 5
+        },
+        "p0.975": {
+          "insample_vs_predicted_params": 0,
+          "newdata_vs_predicted_params": 0,
+          "insample_vs_population_params": 45
+        }
+      }
+    },
+    "P7": {
+      "status": "PASS",
+      "metric": "max rel SE diff vs delta method",
+      "value": 0,
+      "notes": "predict() has no se.fit formal; se.fit=TRUE silently ignored (known drmTMB #1536); predict_parameters(conf.int=TRUE) Wald SE vs delta method; emmeans refused",
+      "details": {
+        "predict_formals": ["object", "newdata", "dpar", "type", "prob", "..."],
+        "se_fit_formal": false,
+        "predict_se_fit_TRUE": {
+          "class": "numeric",
+          "is_list": false,
+          "length": 240,
+          "identical_to_plain_predict": true
+        },
+        "predict_interval_confidence": {
+          "class": "numeric",
+          "identical_to_plain": true
+        },
+        "predict_parameters_formals": ["object", "newdata", "dpar", "type", "include_newdata", "conf.int", "conf.level", "..."],
+        "predict_parameters_se_fit": "REFUSED: `...` is reserved for future options.",
+        "predict_parameters_insample_conf_status": {
+          "newdata_required": 480
+        },
+        "pp_mu": {
+          "se_link_rel": 0,
+          "se_response_rel": 0,
+          "ci_link": 0,
+          "ci_response": 0,
+          "estimate_vs_predict": 0,
+          "status": "wald"
+        },
+        "pp_sigma": {
+          "se_link_rel": 0,
+          "se_response_rel": 0,
+          "ci_link": 0,
+          "ci_response": 0,
+          "estimate_vs_predict": 0,
+          "status": "wald"
+        },
+        "emmeans": "REFUSED: The first emmeans basis preflight is not implemented for \"truncated_nbinom2\" fits. | i Supported model types: \"gaussian\", \"student\", \"gamma\", \"beta\", \"beta_binomial\", \"poisson\", and \"nbinom2\". | i Use `prediction_grid()` and `predict_parameters()` for explicit prediction tables.",
+        "worst_ci": 0,
+        "worst_estimate": 0
+      }
+    },
+    "P8": {
+      "status": "PASS",
+      "metric": "max |z| (mean/var, all modes)",
+      "value": 1.49058860929766,
+      "notes": "default: zmean=0.89 zvar=-1.49; re.form=NULL: zmean=-0.13 zvar=0.14",
+      "details": {
+        "elapsed_default_s": 0.793899059295654,
+        "shape": {
+          "class": "data.frame",
+          "dim": [240, 1000],
+          "names_head": ["sim_1", "sim_2", "sim_3"],
+          "names_tail": "sim_1000",
+          "col_class": "numeric",
+          "col_levels": null
+        },
+        "seed_reproduces": true,
+        "default_reNA": {
+          "z_mean": 0.889263833013763,
+          "z_var": -1.49058860929766,
+          "mean_sim": 4.16525,
+          "mean_expected": 4.15176276767231,
+          "var_sim_batchmean": 30.9451444444444,
+          "var_expected": 31.8770795193862,
+          "sd_G": 0.47961439455824,
+          "sd_Vb": 3.95419292732177,
+          "max_abs_zi": 2.86429567917629,
+          "n_abs_zi_gt3": 0,
+          "n_zi_na": 0,
+          "expected_n_gt3": 0.648,
+          "reg_t": {
+            "(Intercept)": 0.236817487345641,
+            "x": 0.814385903649135,
+            "fb": 0.618372291630129,
+            "fc": 0.0864629188628802
+          },
+          "reg_max_abs_t_slopes": 0.814385903649135,
+          "reg_flag": false,
+          "pass_mean": true,
+          "pass_var": true,
+          "against_conditional_moments": {
+            "z_mean": 3.74047488402576,
+            "z_var": 10.205865603948,
+            "max_abs_zi": 38.7735287221562
+          }
+        },
+        "reNULL_conditional": {
+          "z_mean": -0.12600018979122,
+          "z_var": 0.137187722155497,
+          "mean_sim": 4.10725,
+          "mean_expected": 4.10851919424378,
+          "var_sim_batchmean": 24.6238597222222,
+          "var_expected": 24.5643066551753,
+          "sd_G": 0.318534806192494,
+          "sd_Vb": 2.74548378758616,
+          "max_abs_zi": 4.00707654486126,
+          "n_abs_zi_gt3": 1,
+          "n_zi_na": 0,
+          "expected_n_gt3": 0.648,
+          "reg_t": {
+            "(Intercept)": -0.211065148612762,
+            "x": -0.759032031851461,
+            "fb": 0.385621903173776,
+            "fc": -0.0979424212841251
+          },
+          "reg_max_abs_t_slopes": 0.759032031851461,
+          "reg_flag": false,
+          "pass_mean": true,
+          "pass_var": true,
+          "against_marginal_moments": {
+            "z_mean": -4.41903767079573,
+            "z_var": -16.7086726445605,
+            "max_abs_zi": 37.596082413144
+          }
+        },
+        "reform_tilde0_equals_NA": true,
+        "rng_restored_after_seeded_call": true,
+        "rng_absent_stays_absent": true,
+        "rng_advances_without_seed": true,
+        "messages": [],
+        "skip_var": false
+      }
+    },
+    "P9": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "not in scope of the R-engine harness (cross-engine / bridge tests run separately)",
+      "details": null
+    },
+    "P10": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "not in scope of the R-engine harness (cross-engine / bridge tests run separately)",
+      "details": null
+    },
+    "P11": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "not in scope of the R-engine harness (cross-engine / bridge tests run separately)",
+      "details": null
+    }
+  },
+  "convergence": {
+    "opt_convergence": 0,
+    "opt_message": "converged (Newton polish; max |gradient| = 4.67e-09)",
+    "gradient_max_component": "beta_mu[1]",
+    "pdHess": true,
+    "optimizer_used": {
+      "optimizer": "nlminb",
+      "optimizer_preset": "default",
+      "attempt": 1,
+      "retried": false,
+      "convergence": 0,
+      "message": "converged (Newton polish; max |gradient| = 4.67e-09)",
+      "objective": 498.565176240609,
+      "control": []
+    },
+    "df": 7,
+    "nobs": 240
+  },
+  "vcov": {
+    "mu": {
+      "names": ["mu:(Intercept)", "mu:x", "mu:fb", "mu:fc"],
+      "matrix": [
+        [0.026245472682717, 0.00202525933034485, -0.0137706741091241, -0.0142131427240608],
+        [0.00202525933034485, 0.00917878394796083, -0.00131539262192554, -0.00208466652023334],
+        [-0.0137706741091241, -0.00131539262192554, 0.0269151363388551, 0.0147533189817864],
+        [-0.0142131427240608, -0.00208466652023334, 0.0147533189817864, 0.03581975817496]
+      ]
+    },
+    "sigma": {
+      "names": ["sigma:(Intercept)", "sigma:x"],
+      "matrix": [
+        [0.0286039678869436, -0.0153323034673498],
+        [-0.0153323034673498, 0.0275529596862828]
+      ]
+    }
+  },
+  "ranef": {
+    "sd_g": 0.506042226584824,
+    "groups": ["g01", "g02", "g03", "g04", "g05", "g06", "g07", "g08", "g09", "g10", "g11", "g12", "g13", "g14", "g15", "g16", "g17", "g18", "g19", "g20", "g21", "g22", "g23", "g24"],
+    "bhat": [0.899246715545515, -0.108283532561471, -0.00210252876000719, 0.101104079093741, 0.187077759492386, -0.200961520999341, 0.172124506069579, -0.610017511460582, -0.342174551218738, -0.467429685924113, -0.490638915005033, -0.334669612201835, 0.322959638396477, 0.19638923322013, -0.0718708624429117, 0.00917262265047227, -0.643571111694173, -0.0984995371655389, 0.887926870119893, 0.0985634924053632, 0.778380369451384, -0.170221874999569, 0.218680860077165, -0.254646115295425]
+  },
+  "elapsed_s": 5.25825786590576
+}

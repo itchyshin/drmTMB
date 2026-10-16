@@ -1,0 +1,82 @@
+{
+  "family": "gaussian",
+  "re": "ri",
+  "engine": "bridge",
+  "cell_k": 1,
+  "seed": "20261016601",
+  "seed_r": "261016601",
+  "sim_seed_r": 261016701,
+  "formula": "bf(y ~ x + f + (1 | g), sigma ~x)",
+  "family_call": "gaussian()",
+  "fallback": "",
+  "fit_ok": false,
+  "fit_error": "DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.",
+  "converged": null,
+  "loglik": null,
+  "coef": [],
+  "tests": {
+    "P2": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.",
+      "details": null
+    },
+    "P3": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.",
+      "details": null
+    },
+    "P4": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.",
+      "details": null
+    },
+    "P5": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.",
+      "details": null
+    },
+    "P8": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.",
+      "details": null
+    },
+    "P11": {
+      "status": "NA",
+      "metric": null,
+      "value": null,
+      "notes": "bridge refused the cell: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.",
+      "details": null
+    }
+  },
+  "admission": {
+    "first_try": {
+      "formula": "bf(y ~ x + f + (1 | g), sigma ~x)",
+      "admitted": false,
+      "message": "DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.",
+      "warnings": []
+    },
+    "fallback_try": {
+      "formula": "bf(y ~ x + f + (1 | g), sigma ~1)",
+      "admitted": false,
+      "message": "DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling. | x mu: drmTMB expects ((Intercept), x, fb, fc); DRM.jl returned ((Intercept), x, f: b, f: c). | i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.",
+      "warnings": []
+    },
+    "doc_vignette_expects_admitted": true,
+    "doc_vignette_text": "fixed effects; selected phylo(), ordinary random-effect, relmat(), spatial(), animal() routes",
+    "doc_roxygen_lists_family_fixed": true,
+    "registry_expects_admitted": true,
+    "admitted": false,
+    "verdict": "CANDIDATE: refused although the vignette says it is available | differs from registry expectation"
+  },
+  "elapsed_s": 18.790376663208
+}

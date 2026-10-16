@@ -1,0 +1,484 @@
+{
+  "blocks": [
+    "\"mu\" => [1, 4]",
+    "\"sigma\" => [5, 6]"
+  ],
+  "coef": {
+    "mu": {
+      "names": [
+        "(Intercept)",
+        "x",
+        "f: b",
+        "f: c"
+      ],
+      "se": [
+        0.08841348908428355,
+        0.0657630983452313,
+        0.12084887026778937,
+        0.1265053346341777
+      ],
+      "values": [
+        0.9669683443993196,
+        0.39009342719897294,
+        0.34112119395268753,
+        -0.3843696596459232
+      ]
+    },
+    "sigma": {
+      "names": [
+        "(Intercept)",
+        "x"
+      ],
+      "se": [
+        0.046023943883367974,
+        0.05368425494858059
+      ],
+      "values": [
+        -0.19961169506841236,
+        0.3411540322575418
+      ]
+    }
+  },
+  "converged": true,
+  "engine": "julia",
+  "engine_commit": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "fallback": null,
+  "family": "gaussian",
+  "fit_error": null,
+  "fit_ok": true,
+  "fit_seconds": 15.696375131607056,
+  "fit_warnings": "",
+  "formula": "bf(y ~ x + f, sigma ~ x)",
+  "julia_version": "1.12.7",
+  "loglik": -301.64463468080476,
+  "marginal": "LA",
+  "niterations": 12,
+  "nobs": 240,
+  "pred_csv_note": "",
+  "re": "fixed",
+  "re_sd": {},
+  "seed": 20261016600,
+  "serialize_roundtrip_ok": true,
+  "serialized": "/home/user/drmTMB/sweep-oct16/t6/results/jl_fits/gaussian_fixed.jls",
+  "sim_seed": 20261016700,
+  "tests": {
+    "P1": {
+      "details": {
+        "checks": [
+          {
+            "check": "pp_link_vs_Xb[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_docinvlink[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_invlink_of_pp_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_link_vs_Xb[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_docinvlink[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_invlink_of_pp_link[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_marginal_parameters[mu] (docstring: in-sample reproduces)",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_marginal_parameters[sigma] (docstring: in-sample reproduces)",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_link_vs_Xb[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_resp_vs_docinvlink[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_resp_vs_fitted (docstring: in-sample predict ~ fitted)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "fit.means[:mu]_vs_hand_b0",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "fitted_vs_E[y]_at_b0 (fitted docstring: 'Fitted mean(s)')",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          }
+        ]
+      },
+      "metric": "max abs/rel deviation (tol 1e-10; fitted/means 1e-8)",
+      "notes": "all 13 checks pass",
+      "status": "PASS",
+      "value": 0.0
+    },
+    "P10": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    },
+    "P11": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    },
+    "P2": {
+      "details": {
+        "checks": [
+          {
+            "check": "link_vs_Xnew_b[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "resp_vs_docinvlink[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "seen_vs_unseen_g_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "seen_vs_unseen_g_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "g_column_removed_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "g_column_removed_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "link_vs_Xnew_b[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "resp_vs_docinvlink[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "seen_vs_unseen_g_link[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 5.551115123125783e-17
+          },
+          {
+            "check": "seen_vs_unseen_g_resp[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "g_column_removed_link[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "g_column_removed_resp[sigma]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_vs_pp_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_vs_pp_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_g_removed_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          }
+        ]
+      },
+      "metric": "max abs deviation vs hand X_new*beta / invlink (tol 1e-10)",
+      "notes": "all 15 checks pass",
+      "status": "PASS",
+      "value": 5.551115123125783e-17
+    },
+    "P3": {
+      "details": {
+        "CategoricalArray levels=[a,b,c]": {
+          "max_abs_dev_vs_nd_main_rows": 5.551115123125783e-17,
+          "outcome": "values"
+        },
+        "CategoricalArray levels=[b]": {
+          "max_abs_dev_vs_nd_main_rows": 5.551115123125783e-17,
+          "outcome": "values"
+        },
+        "Vector{String}": {
+          "max_abs_dev_vs_nd_main_rows": 5.551115123125783e-17,
+          "outcome": "values"
+        }
+      },
+      "metric": "max abs deviation vs nd_main f=b rows (tol 1e-10)",
+      "notes": "all variants equal nd_main rows",
+      "status": "PASS",
+      "value": 5.551115123125783e-17
+    },
+    "P4": {
+      "details": {
+        "predict / CategoricalArray": {
+          "message": "ArgumentError: predict: `newdata` column `f` contains level(s) d not seen when the model was fitted (parameter `mu`; fitted levels: a, b, c). Refit including that level, or drop the offending rows from `newdata`.",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict / Vector{String}": {
+          "message": "ArgumentError: predict: `newdata` column `f` contains level(s) d not seen when the model was fitted (parameter `mu`; fitted levels: a, b, c). Refit including that level, or drop the offending rows from `newdata`.",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict_parameters / CategoricalArray": {
+          "message": "ArgumentError: predict: `newdata` column `f` contains level(s) d not seen when the model was fitted (parameter `mu`; fitted levels: a, b, c). Refit including that level, or drop the offending rows from `newdata`.",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict_parameters / Vector{String}": {
+          "message": "ArgumentError: predict: `newdata` column `f` contains level(s) d not seen when the model was fitted (parameter `mu`; fitted levels: a, b, c). Refit including that level, or drop the offending rows from `newdata`.",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        }
+      },
+      "metric": "refusal naming factor/level",
+      "notes": "refused, message: ArgumentError: predict: `newdata` column `f` contains level(s) d not seen when the model was fitted (parameter `mu`; fitted levels: a, b, c). Refit including that level, or drop the offending rows from `newdata`.",
+      "status": "PASS",
+      "value": null
+    },
+    "P5": {
+      "details": {
+        "Int x vs Float64 x": 0.0,
+        "catfit x String vs charfit x String": 0.0,
+        "catfit x catnewdata vs charfit x String": 0.0,
+        "charfit x catnewdata(c,a,b) vs charfit x String": 0.0,
+        "charfit x catnewdata(default) vs charfit x String": 0.0,
+        "coef_char_vs_cat_maxabs": 0.0,
+        "coefnames_cat": [
+          ":mu => [\"(Intercept)\", \"x\", \"f: b\", \"f: c\"]",
+          ":sigma => [\"(Intercept)\", \"x\"]"
+        ],
+        "coefnames_relevel": [
+          ":mu => [\"(Intercept)\", \"x\", \"f: a\", \"f: b\"]",
+          ":sigma => [\"(Intercept)\", \"x\"]"
+        ],
+        "fit_cat_error": null,
+        "fit_cat_seconds": 2.6135621070861816,
+        "fit_relevel_error": null,
+        "fit_relevel_seconds": 0.0017409324645996094,
+        "loglik_char_minus_cat": 0.0,
+        "loglik_char_minus_relevel": 0.0,
+        "relevelfit x String vs charfit x String (rel)": 3.1294966618133913e-12,
+        "relevelfit x catnewdata(default) vs charfit x String (rel)": 3.1294966618133913e-12
+      },
+      "metric": "coef/prediction agreement across predictor types",
+      "notes": "char == categorical (coef & preds), relevel within 1e-6 rel, cross-type newdata and Int x agree",
+      "status": "PASS",
+      "value": null
+    },
+    "P6": {
+      "details": null,
+      "metric": "quantile prediction available",
+      "notes": "no quantile-prediction API in DRModels.jl exports (exported names containing 'quantile': none); predict(fit, nd_main; type = :quantile) -> predict: `type` must be :response or :link",
+      "status": "NA",
+      "value": null
+    },
+    "P7": {
+      "details": {
+        "checks": [
+          {
+            "check": "pp_se[mu,link] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "pp_value[mu,link] == se=false value",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "pp_se[sigma,link] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "pp_value[sigma,link] == se=false value",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "predict_se[mu,link] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "predict_prediction[mu,link] == se=false",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "pp_se[mu,response] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "pp_value[mu,response] == se=false value",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "pp_se[sigma,response] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "pp_value[sigma,response] == se=false value",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "predict_se[mu,response] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "predict_prediction[mu,response] == se=false",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          }
+        ]
+      },
+      "metric": "max relative SE deviation vs independent delta method (tol 1e-8)",
+      "notes": "all 12 checks pass",
+      "status": "PASS",
+      "value": 0.0
+    },
+    "P8": {
+      "details": {
+        "b0": {
+          "mean_expected": 1.0200045981827681,
+          "mean_sim": 1.0196143790087355,
+          "reg_flag_gt4": false,
+          "reg_max_abs_t": 0.8872617496946954,
+          "reg_t_fb": 0.8872617496946954,
+          "reg_t_fc": 0.1997073566605021,
+          "reg_t_intercept": -0.5931683046729913,
+          "reg_t_x": -0.7438689035208955,
+          "row_max_abs_z": 3.923059159775905,
+          "row_n_abs_z_gt3": 1,
+          "row_n_expected_gt3": 0.648,
+          "row_n_zero_sd": 0,
+          "var_expected": 0.8764189124706531,
+          "var_sim_batchmean": 0.8807995389980414,
+          "z_mean": -0.20774336218670086,
+          "z_var": 1.4401975919649026
+        },
+        "class": "Matrix{Float64}",
+        "colnames": "none (plain Matrix)",
+        "default_rng_reproducible_after_seed!": true,
+        "explicit_rng_leaves_global_rng_untouched": true,
+        "nsim1_class": "Vector{Float64}",
+        "nsim1_equals_first_column": true,
+        "nsim1_is_vector_len_n": true,
+        "rng_reproducible": true,
+        "shape_ok_n_x_nsim": true,
+        "size": [
+          240,
+          1000
+        ]
+      },
+      "metric": "z (global mean, batch-means variance) vs b=0 moments; |z|<3",
+      "notes": "z_mean=-0.21 z_var=1.44 | rows |z|>3: 1 (expected 0.65), max|z_i| 3.92",
+      "status": "PASS",
+      "value": [
+        -0.20774336218670086,
+        1.4401975919649026
+      ]
+    },
+    "P9": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    }
+  }
+}

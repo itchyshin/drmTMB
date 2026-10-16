@@ -1,0 +1,403 @@
+{
+  "P10": {
+    "details": {
+      "R_converged": true,
+      "R_marginal": "none (fixed effects)",
+      "R_max_abs_gradient": 2.94e-10,
+      "R_opt_message": "converged (Newton polish; max |gradient| = 2.94e-10)",
+      "R_pdHess": true,
+      "bar_1e8_met": true,
+      "coef": {
+        "coi": {
+          "R": [
+            -0.405465108108165
+          ],
+          "diff": [
+            -7.216449660063518e-16
+          ],
+          "diff_over_R_se": [
+            -1.9363765685321566e-15
+          ],
+          "julia": [
+            -0.4054651081081643
+          ],
+          "names": [
+            "(Intercept)"
+          ],
+          "se_R": [
+            0.37267800991487143
+          ],
+          "se_julia": [
+            0.37267799624996484
+          ],
+          "se_maxrel": 3.666679071909291e-8
+        },
+        "mu": {
+          "R": [
+            -0.041800543828665,
+            0.507305299382165,
+            0.482274626446438,
+            -0.262338463549727
+          ],
+          "diff": [
+            -1.2122247650125928e-14,
+            6.570299859731676e-13,
+            3.892441924335799e-13,
+            -9.166556402817605e-13
+          ],
+          "diff_over_R_se": [
+            -1.78196924094415e-13,
+            1.6938012700626523e-11,
+            4.30588990061797e-12,
+            -9.324926318874696e-12
+          ],
+          "julia": [
+            -0.04180054382865288,
+            0.5073052993815079,
+            0.48227462644604874,
+            -0.26233846354881035
+          ],
+          "names": [
+            "(Intercept)",
+            "x",
+            "f: b",
+            "f: c"
+          ],
+          "se_R": [
+            0.06802725530606317,
+            0.03879026409921541,
+            0.09039808295556201,
+            0.09830164967913438
+          ],
+          "se_julia": [
+            0.06802724880595663,
+            0.03879025633054748,
+            0.09039807472708317,
+            0.09830164075049366
+          ],
+          "se_maxrel": 2.0027365401028695e-7
+        },
+        "sigma": {
+          "R": [
+            -1.20881496188282,
+            0.348239777351976
+          ],
+          "diff": [
+            -7.072120666862247e-13,
+            1.4658829705638254e-12
+          ],
+          "diff_over_R_se": [
+            -1.5001976135850373e-11,
+            3.196223315216024e-11
+          ],
+          "julia": [
+            -1.2088149618821127,
+            0.3482397773505101
+          ],
+          "names": [
+            "(Intercept)",
+            "x"
+          ],
+          "se_R": [
+            0.04714126061007343,
+            0.04586297095028701
+          ],
+          "se_julia": [
+            0.04714127336152937,
+            0.04586301359023021
+          ],
+          "se_maxrel": 9.297248372227176e-7
+        },
+        "zoi": {
+          "R": [
+            -1.94591014905531
+          ],
+          "diff": [
+            3.552713678800501e-15
+          ],
+          "diff_over_R_se": [
+            1.8202241597523246e-14
+          ],
+          "julia": [
+            -1.9459101490553135
+          ],
+          "names": [
+            "(Intercept)"
+          ],
+          "se_R": [
+            0.19518000899866716
+          ],
+          "se_julia": [
+            0.19518001458970666
+          ],
+          "se_maxrel": 2.8645554025617576e-8
+        }
+      },
+      "explanation": "1e-8 met",
+      "julia_converged": true,
+      "julia_fit_used": "julia default marginal=:LA (zero_one_beta_fixed.jls)",
+      "julia_grad_at_R_theta": {
+        "ad": [
+          -1.9412427221254802e-10,
+          8.703270326648749e-10,
+          7.669020973821716e-11,
+          -2.2180479675171227e-10,
+          -1.631610402341721e-10,
+          1.4578382945273916e-10,
+          9.992007221626409e-14,
+          -3.552713678800501e-15
+        ],
+        "ad_maxabs": 8.703270326648749e-10,
+        "fd": [
+          1.9539925233402755e-9,
+          -1.3500311979441902e-8,
+          7.105427357601001e-10,
+          1.9539925233402755e-9,
+          -2.1013888481209905e-8,
+          -7.105427357601001e-9,
+          3.012460556242367e-9,
+          -8.881784197001251e-10
+        ],
+        "fd_maxabs": 2.1013888481209905e-8,
+        "maxabs": 8.703270326648749e-10,
+        "source": "ForwardDiff"
+      },
+      "julia_grad_at_julia_theta": {
+        "ad": [
+          3.144084992356966e-11,
+          3.349678867614614e-10,
+          1.205862076858466e-10,
+          -2.2773560814925986e-11,
+          -7.2235550874211185e-12,
+          -5.063909291891378e-10,
+          -1.9984014443252818e-15,
+          -6.661338147750939e-16
+        ],
+        "ad_maxabs": 5.063909291891378e-10,
+        "fd": [
+          3.5527136788005004e-10,
+          -1.3145040611561852e-8,
+          -3.5527136788005004e-10,
+          1.4210854715202002e-9,
+          -1.880963444473036e-8,
+          -9.237055564881302e-9,
+          4.016614074989815e-9,
+          2.1316282072803006e-9
+        ],
+        "fd_maxabs": 1.880963444473036e-8,
+        "maxabs": 5.063909291891378e-10,
+        "source": "ForwardDiff"
+      },
+      "julia_marginal": "LA",
+      "julia_nll_at_R_theta": -20.87523131205303,
+      "julia_nll_at_R_theta_minus_at_J_theta": 2.3803181647963356e-13,
+      "julia_nll_at_R_theta_plus_llR": -2.5831781158558442e-11,
+      "loglik_R": 20.8752313120272,
+      "loglik_julia": 20.87523131205327,
+      "loglik_julia_minus_R": 2.6069812975038076e-11,
+      "max_coef_absdiff": 1.4658829705638254e-12,
+      "max_coef_diff_over_R_se": 3.196223315216024e-11,
+      "per_dpar": {
+        "coi": {
+          "link_maxabs": 7.216449660063518e-16,
+          "link_maxrel_mixed": 7.216449660063518e-16,
+          "resid_after_Xdbeta": 0.0,
+          "response_maxabs_aligned": 0.0,
+          "response_maxabs_raw": 0.0,
+          "response_maxrel_aligned": 0.0,
+          "response_maxrel_raw": 0.0,
+          "se_link_maxrel": 3.66667895274766e-8,
+          "se_response_maxrel_aligned": 3.666679024120512e-8,
+          "se_response_maxrel_raw": 3.666679024120512e-8
+        },
+        "mu": {
+          "link_maxabs": 1.5858425683745736e-12,
+          "link_maxrel_mixed": 1.5858425683745736e-12,
+          "resid_after_Xdbeta": 5.759281940243e-16,
+          "response_maxabs_aligned": 3.381739333008227e-13,
+          "response_maxabs_raw": 1.1190271148674211,
+          "response_maxrel_aligned": 3.381739333008227e-13,
+          "response_maxrel_raw": 1.1190271148674211,
+          "se_link_maxrel": 1.4471045799967212e-7,
+          "se_response_maxrel_aligned": 1.447104485741228e-7,
+          "se_response_maxrel_raw": 4.625637327347738
+        },
+        "sigma": {
+          "link_maxabs": 2.177147351289932e-12,
+          "link_maxrel_mixed": 1.4925838343060605e-12,
+          "resid_after_Xdbeta": 4.052314039881821e-15,
+          "response_maxabs_aligned": 7.513989430663059e-13,
+          "response_maxabs_raw": 7.513989430663059e-13,
+          "response_maxrel_aligned": 7.513989430663059e-13,
+          "response_maxrel_raw": 7.513989430663059e-13,
+          "se_link_maxrel": 7.753205281969714e-7,
+          "se_response_maxrel_aligned": 7.753190351876572e-7,
+          "se_response_maxrel_raw": 7.753190351876572e-7
+        },
+        "zoi": {
+          "link_maxabs": 3.552713678800501e-15,
+          "link_maxrel_mixed": 1.8257336704499196e-15,
+          "resid_after_Xdbeta": 0.0,
+          "response_maxabs_aligned": 0.0,
+          "response_maxabs_raw": 0.0,
+          "response_maxrel_aligned": 0.0,
+          "response_maxrel_raw": 0.0,
+          "se_link_maxrel": 2.8645554878847674e-8,
+          "se_response_maxrel_aligned": 2.8645555061682697e-8,
+          "se_response_maxrel_raw": 2.8645555061682697e-8
+        }
+      },
+      "predict_defect": false,
+      "recomputed_vs_harness_pred_csv_maxabs": 0.0,
+      "worst_link_maxabs": 2.177147351289932e-12,
+      "worst_link_maxrel": 1.5858425683745736e-12,
+      "worst_resid_after_Xdbeta": 4.052314039881821e-15,
+      "worst_response_aligned_maxabs": 7.513989430663059e-13,
+      "worst_se_rel": 7.753205281969714e-7
+    },
+    "metric": "max abs link diff, own fits, nd_main (1e-8 bar)",
+    "notes": "max|link diff| 2.18e-12 (rel 1.59e-12), aligned response 7.51e-13; max|coef diff| 1.47e-12 (max 3.2e-11 R-SE); logLik J-R 2.61e-11; grad J 5.06e-10 (ForwardDiff), R 2.94e-10; SE max rel 7.75e-7; resid after X dbeta 4.05e-15; 1e-8 met",
+    "status": "PASS",
+    "value": 2.177147351289932e-12
+  },
+  "P9": {
+    "details": {
+      "R_link_vs_hand_XbetaR": {
+        "coi": 0.0,
+        "mu": 6.661338147750939e-16,
+        "sigma": 3.9968028886505635e-15,
+        "zoi": 0.0
+      },
+      "link_pass": true,
+      "mapping": {
+        "coi": {
+          "R_in_julia_order": [
+            "(Intercept)"
+          ],
+          "identity_order": true,
+          "julia": [
+            "(Intercept)"
+          ]
+        },
+        "mu": {
+          "R_in_julia_order": [
+            "(Intercept)",
+            "x",
+            "fb",
+            "fc"
+          ],
+          "identity_order": true,
+          "julia": [
+            "(Intercept)",
+            "x",
+            "f: b",
+            "f: c"
+          ]
+        },
+        "sigma": {
+          "R_in_julia_order": [
+            "(Intercept)",
+            "x"
+          ],
+          "identity_order": true,
+          "julia": [
+            "(Intercept)",
+            "x"
+          ]
+        },
+        "zoi": {
+          "R_in_julia_order": [
+            "(Intercept)"
+          ],
+          "identity_order": true,
+          "julia": [
+            "(Intercept)"
+          ]
+        }
+      },
+      "per_dpar": {
+        "coi": {
+          "R_response_is": "logistic(link)",
+          "by_design": false,
+          "julia_response_is": "logistic(link)",
+          "link_maxabs": 0.0,
+          "response_maxabs": 1.6653345369377348e-16,
+          "response_maxrel_mixed": 1.6653345369377348e-16,
+          "se_link_maxrel": 1.1916163498659438e-15,
+          "se_response_maxrel": 1.5515837888879466e-16
+        },
+        "mu": {
+          "R_response_is": "logistic(link)",
+          "by_design": false,
+          "julia_response_is": "identity(link)",
+          "link_maxabs": 6.661338147750939e-16,
+          "response_maxabs": 1.119027114869007,
+          "response_maxrel_mixed": 1.119027114869007,
+          "se_link_maxrel": 3.2358065737591043e-15,
+          "se_response_maxrel": 4.625638042259754
+        },
+        "predict()_mu": {
+          "link_maxabs": 6.661338147750939e-16,
+          "response_maxabs": 1.119027114869007,
+          "se_link_maxrel": 3.2358065737591043e-15,
+          "se_response_maxrel": 4.625638042259754
+        },
+        "sigma": {
+          "R_response_is": "exp(link)",
+          "by_design": false,
+          "julia_response_is": "exp(link)",
+          "link_maxabs": 3.9968028886505635e-15,
+          "response_maxabs": 5.551115123125783e-16,
+          "response_maxrel_mixed": 5.551115123125783e-16,
+          "se_link_maxrel": 7.804008948367592e-16,
+          "se_response_maxrel": 2.834905376376529e-15
+        },
+        "zoi": {
+          "R_response_is": "logistic(link)",
+          "by_design": false,
+          "julia_response_is": "logistic(link)",
+          "link_maxabs": 0.0,
+          "response_maxabs": 3.885780586188048e-16,
+          "response_maxrel_mixed": 3.885780586188048e-16,
+          "se_link_maxrel": 8.532300748839029e-16,
+          "se_response_maxrel": 3.575440313799213e-15
+        }
+      },
+      "response_pass": false,
+      "se_pass": false,
+      "theta_injected": [
+        -0.041800543828665,
+        0.507305299382165,
+        0.482274626446438,
+        -0.262338463549727,
+        -1.20881496188282,
+        0.348239777351976,
+        -1.94591014905531,
+        -0.405465108108165
+      ],
+      "vcov_injected_blocks": [
+        "mu",
+        "sigma",
+        "zoi",
+        "coi"
+      ],
+      "worst_link": 3.9968028886505635e-15,
+      "worst_response_same_semantics": 1.119027114869007,
+      "worst_se_rel": 4.625638042259754
+    },
+    "metric": "max abs diff Julia predict(R theta) vs R predict, nd_main (tol 1e-8)",
+    "notes": "link max|diff| 4.0e-15 (<= 1e-8); RESPONSE FAIL: mu: Julia identity(eta) vs R logistic(eta), max|diff| 1.12; predict() mu response max|diff| 1.12; SE at injected R vcov: FAIL mu response SE rel 4.63",
+    "status": "FAIL",
+    "value": 3.9968028886505635e-15
+  },
+  "cell": "zero_one_beta_fixed",
+  "family": "zero_one_beta",
+  "nd": "data/nd_main.csv (18 rows)",
+  "pins": {
+    "DRModels.jl": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+    "drmTMB": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a"
+  },
+  "re": "fixed",
+  "seconds": 5.077775001525879,
+  "tol": 1.0e-8
+}

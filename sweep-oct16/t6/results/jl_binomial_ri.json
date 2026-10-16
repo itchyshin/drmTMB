@@ -1,0 +1,736 @@
+{
+  "blocks": [
+    "\"mu\" => [1, 4]",
+    "\"resd\" => [5, 5]"
+  ],
+  "coef": {
+    "mu": {
+      "names": [
+        "(Intercept)",
+        "x",
+        "f: b",
+        "f: c"
+      ],
+      "se": [
+        0.10845490724947432,
+        0.045064601905536204,
+        0.10295823791966983,
+        0.0992069545985763
+      ],
+      "values": [
+        -0.019613679386130643,
+        0.5841746719939528,
+        0.46069005942824853,
+        -0.5005904575540402
+      ]
+    },
+    "resd": {
+      "names": [
+        "g"
+      ],
+      "se": [
+        0.1787300874354061
+      ],
+      "values": [
+        -0.9137960907646409
+      ]
+    }
+  },
+  "converged": true,
+  "engine": "julia",
+  "engine_commit": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "fallback": null,
+  "family": "binomial",
+  "fit_error": null,
+  "fit_ok": true,
+  "fit_seconds": 11.34163498878479,
+  "fit_warnings": "",
+  "formula": "bf(cbind(successes, failures) ~ x + f + (1 | g))",
+  "julia_version": "1.12.7",
+  "laplace": {
+    "blocks": [
+      "\"mu\" => [1, 4]",
+      "\"resd\" => [5, 5]"
+    ],
+    "coef": {
+      "mu": {
+        "names": [
+          "(Intercept)",
+          "x",
+          "f: b",
+          "f: c"
+        ],
+        "se": [
+          0.10841130419336782,
+          0.04506467645230098,
+          0.10295898574426228,
+          0.09920661929937859
+        ],
+        "values": [
+          -0.01959575925206404,
+          0.5841869587551807,
+          0.4606726179743916,
+          -0.5006150001389259
+        ]
+      },
+      "resd": {
+        "names": [
+          "g"
+        ],
+        "se": [
+          0.17874507551203728
+        ],
+        "values": [
+          -0.9145031650483789
+        ]
+      }
+    },
+    "coef_maxabs_vs_default": 0.0007070742837380628,
+    "converged": true,
+    "error": null,
+    "fit_ok": true,
+    "formula": "bf(cbind(successes, failures) ~ x + f + (1 | g))",
+    "loglik": -471.67667781490474,
+    "loglik_minus_default": -0.028376591086725966,
+    "marginal": "Laplace",
+    "niterations": -1,
+    "nobs": 240,
+    "pred_csv_note": "",
+    "re_sd": {
+      "g": 0.40071566619031085
+    },
+    "seconds": 2.9381439685821533,
+    "serialize_roundtrip_ok": true,
+    "serialized": "/home/user/drmTMB/sweep-oct16/t6/results/jl_fits/binomial_ri_laplace.jls",
+    "tests": {
+      "P1": {
+        "details": {
+          "checks": [
+            {
+              "check": "pp_link_vs_Xb[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "pp_resp_vs_docinvlink[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "pp_resp_vs_invlink_of_pp_link[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "pp_resp_vs_marginal_parameters[mu] (docstring: in-sample reproduces)",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 1.1102230246251565e-16
+            },
+            {
+              "check": "predict_link_vs_Xb[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "predict_resp_vs_docinvlink[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "predict_resp_vs_fitted (docstring: in-sample predict ~ fitted)",
+              "pass": true,
+              "tol": 1.0e-8,
+              "value": 1.1102230246251565e-16
+            },
+            {
+              "check": "fit.means[:mu]_vs_hand_b0",
+              "pass": true,
+              "tol": 1.0e-8,
+              "value": 1.1102230246251565e-16
+            },
+            {
+              "check": "fitted_vs_E[y]_at_b0 (fitted docstring: 'Fitted mean(s)')",
+              "pass": true,
+              "tol": 1.0e-8,
+              "value": 1.1102230246251565e-16
+            }
+          ],
+          "means_mu_vs_b0_maxrel": 1.1102230246251565e-16,
+          "ranef_available": false,
+          "ranef_error": "ArgumentError: ranef: this fit has a random-effect block but no stored conditional modes -- the non-Gaussian GLMM marginal route (Gauss-Hermite quadrature / Laplace) integrates the random effect out of the likelihood and never computes a posterior mode. Use `re_sd(fit)` / `vc(fit)` for the fitted variance components."
+        },
+        "metric": "max abs/rel deviation (tol 1e-10; fitted/means 1e-8)",
+        "notes": "all 9 checks pass | ri fit: fit.means[:mu] equals the hand b = 0 value to 1.11e-16; ranef() unavailable (ArgumentError: ranef: this fit has a random-effect block but no stored conditional modes -- the non-Gaussian GLMM margin)",
+        "status": "PASS",
+        "value": 1.1102230246251565e-16
+      },
+      "P2": {
+        "details": {
+          "checks": [
+            {
+              "check": "link_vs_Xnew_b[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "resp_vs_docinvlink[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "seen_vs_unseen_g_link[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "seen_vs_unseen_g_resp[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "g_column_removed_link[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "g_column_removed_resp[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "predict_vs_pp_link[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "predict_vs_pp_resp[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            },
+            {
+              "check": "predict_g_removed_resp[mu]",
+              "pass": true,
+              "tol": 1.0e-10,
+              "value": 0.0
+            }
+          ]
+        },
+        "metric": "max abs deviation vs hand X_new*beta / invlink (tol 1e-10)",
+        "notes": "all 9 checks pass",
+        "status": "PASS",
+        "value": 0.0
+      },
+      "P7": {
+        "details": {
+          "checks": [
+            {
+              "check": "pp_se[mu,link] vs delta(doc link)",
+              "pass": true,
+              "tol": 1.0e-8,
+              "value": 0.0
+            },
+            {
+              "check": "pp_value[mu,link] == se=false value",
+              "pass": true,
+              "tol": 0.0,
+              "value": 0.0
+            },
+            {
+              "check": "predict_se[mu,link] vs delta(doc link)",
+              "pass": true,
+              "tol": 1.0e-8,
+              "value": 0.0
+            },
+            {
+              "check": "predict_prediction[mu,link] == se=false",
+              "pass": true,
+              "tol": 0.0,
+              "value": 0.0
+            },
+            {
+              "check": "pp_se[mu,response] vs delta(doc link)",
+              "pass": true,
+              "tol": 1.0e-8,
+              "value": 0.0
+            },
+            {
+              "check": "pp_value[mu,response] == se=false value",
+              "pass": true,
+              "tol": 0.0,
+              "value": 0.0
+            },
+            {
+              "check": "predict_se[mu,response] vs delta(doc link)",
+              "pass": true,
+              "tol": 1.0e-8,
+              "value": 0.0
+            },
+            {
+              "check": "predict_prediction[mu,response] == se=false",
+              "pass": true,
+              "tol": 0.0,
+              "value": 0.0
+            }
+          ]
+        },
+        "metric": "max relative SE deviation vs independent delta method (tol 1e-8)",
+        "notes": "all 8 checks pass",
+        "status": "PASS",
+        "value": 0.0
+      },
+      "P8": {
+        "details": {
+          "b0": {
+            "mean_expected": 6.188829528132303,
+            "mean_sim": 6.182016666666666,
+            "reg_flag_gt4": false,
+            "reg_max_abs_t": 1.0154589077064526,
+            "reg_t_fb": -0.931862649890087,
+            "reg_t_fc": -1.0154589077064526,
+            "reg_t_intercept": -0.129175106435989,
+            "reg_t_x": 0.22788601857031043,
+            "row_max_abs_z": 3.016701454373958,
+            "row_n_abs_z_gt3": 1,
+            "row_n_expected_gt3": 0.648,
+            "row_n_zero_sd": 0,
+            "var_expected": 2.864430045723185,
+            "var_sim_batchmean": 2.866239583333333,
+            "z_mean": -2.088840156634131,
+            "z_var": 0.20314173100205643
+          },
+          "binomial_scale": "counts (successes)",
+          "class": "Matrix{Float64}",
+          "colnames": "none (plain Matrix)",
+          "default_rng_reproducible_after_seed!": true,
+          "draws_match": "b = 0 (docstring)",
+          "explicit_rng_leaves_global_rng_untouched": true,
+          "fitted_scale": "probability (fitted(fit) = mu)",
+          "marginal": {
+            "mean_expected": 6.191944574851763,
+            "mean_sim": 6.182016666666666,
+            "reg_flag_gt4": true,
+            "reg_max_abs_t": 11.258384794469773,
+            "reg_t_fb": 2.6281874453789875,
+            "reg_t_fc": -5.460105462515988,
+            "reg_t_intercept": 0.11440178435339332,
+            "reg_t_x": 11.258384794469773,
+            "row_max_abs_z": 4.574619855105963,
+            "row_n_abs_z_gt3": 13,
+            "row_n_expected_gt3": 0.648,
+            "row_n_zero_sd": 0,
+            "var_expected": 4.217133831479936,
+            "var_sim_batchmean": 2.866239583333333,
+            "z_mean": -3.043921176586994,
+            "z_var": -151.6536569509371
+          },
+          "nsim1_class": "Vector{Float64}",
+          "nsim1_equals_first_column": true,
+          "nsim1_is_vector_len_n": true,
+          "rng_reproducible": true,
+          "sd_g": 0.40071566619031085,
+          "shape_ok_n_x_nsim": true,
+          "size": [
+            240,
+            1000
+          ]
+        },
+        "metric": "z (global mean, batch-means variance) vs b=0 moments; |z|<3",
+        "notes": "ri: b=0 z_mean=-2.09 z_var=0.2; marginal z_mean=-3.04 z_var=-151.65; draws match: b = 0 (docstring) | rows |z|>3: 1 (expected 0.65), max|z_i| 3.02",
+        "status": "PASS",
+        "value": [
+          -2.088840156634131,
+          0.20314173100205643
+        ]
+      }
+    },
+    "warnings": ""
+  },
+  "loglik": -471.648301223818,
+  "marginal": "LA",
+  "niterations": 11,
+  "nobs": 240,
+  "pred_csv_note": "",
+  "re": "ri",
+  "re_sd": {
+    "g": 0.4009991021262869
+  },
+  "seed": 20261016617,
+  "serialize_roundtrip_ok": true,
+  "serialized": "/home/user/drmTMB/sweep-oct16/t6/results/jl_fits/binomial_ri.jls",
+  "sim_seed": 20261016717,
+  "tests": {
+    "P1": {
+      "details": {
+        "checks": [
+          {
+            "check": "pp_link_vs_Xb[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_docinvlink[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_invlink_of_pp_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "pp_resp_vs_marginal_parameters[mu] (docstring: in-sample reproduces)",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_link_vs_Xb[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_resp_vs_docinvlink[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_resp_vs_fitted (docstring: in-sample predict ~ fitted)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "fit.means[:mu]_vs_hand_b0",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "fitted_vs_E[y]_at_b0 (fitted docstring: 'Fitted mean(s)')",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          }
+        ],
+        "means_mu_vs_b0_maxrel": 0.0,
+        "ranef_available": false,
+        "ranef_error": "ArgumentError: ranef: this fit has a random-effect block but no stored conditional modes -- the non-Gaussian GLMM marginal route (Gauss-Hermite quadrature / Laplace) integrates the random effect out of the likelihood and never computes a posterior mode. Use `re_sd(fit)` / `vc(fit)` for the fitted variance components."
+      },
+      "metric": "max abs/rel deviation (tol 1e-10; fitted/means 1e-8)",
+      "notes": "all 9 checks pass | ri fit: fit.means[:mu] equals the hand b = 0 value to 0.0; ranef() unavailable (ArgumentError: ranef: this fit has a random-effect block but no stored conditional modes -- the non-Gaussian GLMM margin)",
+      "status": "PASS",
+      "value": 0.0
+    },
+    "P10": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    },
+    "P11": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    },
+    "P2": {
+      "details": {
+        "checks": [
+          {
+            "check": "link_vs_Xnew_b[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "resp_vs_docinvlink[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "seen_vs_unseen_g_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 1.1102230246251565e-16
+          },
+          {
+            "check": "seen_vs_unseen_g_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "g_column_removed_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "g_column_removed_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_vs_pp_link[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_vs_pp_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          },
+          {
+            "check": "predict_g_removed_resp[mu]",
+            "pass": true,
+            "tol": 1.0e-10,
+            "value": 0.0
+          }
+        ]
+      },
+      "metric": "max abs deviation vs hand X_new*beta / invlink (tol 1e-10)",
+      "notes": "all 9 checks pass",
+      "status": "PASS",
+      "value": 1.1102230246251565e-16
+    },
+    "P3": {
+      "details": {
+        "CategoricalArray levels=[a,b,c]": {
+          "message": "ArgumentError: only one level found: b (need at least two to compute contrasts).",
+          "outcome": "refused"
+        },
+        "CategoricalArray levels=[b]": {
+          "message": "ArgumentError: only one level found: b (need at least two to compute contrasts).",
+          "outcome": "refused"
+        },
+        "Vector{String}": {
+          "message": "ArgumentError: only one level found: b (need at least two to compute contrasts).",
+          "outcome": "refused"
+        }
+      },
+      "metric": "max abs deviation vs nd_main f=b rows (tol 1e-10)",
+      "notes": "Vector{String} refused with unclear message; CategoricalArray levels=[b] refused with unclear message; CategoricalArray levels=[a,b,c] refused with unclear message",
+      "status": "FAIL",
+      "value": 0.0
+    },
+    "P4": {
+      "details": {
+        "predict / CategoricalArray": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict / Vector{String}": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict_parameters / CategoricalArray": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict_parameters / Vector{String}": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        }
+      },
+      "metric": "refusal naming factor/level",
+      "notes": "refused, message: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "status": "PASS",
+      "value": null
+    },
+    "P5": {
+      "details": {
+        "Int x vs Float64 x": 0.0,
+        "catfit x String vs charfit x String": 0.0,
+        "catfit x catnewdata vs charfit x String": 0.0,
+        "charfit x catnewdata(c,a,b) vs charfit x String": "ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: a, f: b] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+        "charfit x catnewdata(default) vs charfit x String": 0.0,
+        "coef_char_vs_cat_maxabs": 0.0,
+        "coefnames_cat": [
+          ":mu => [\"(Intercept)\", \"x\", \"f: b\", \"f: c\"]",
+          ":resd => [\"g\"]"
+        ],
+        "coefnames_relevel": [
+          ":mu => [\"(Intercept)\", \"x\", \"f: a\", \"f: b\"]",
+          ":resd => [\"g\"]"
+        ],
+        "fit_cat_error": null,
+        "fit_cat_seconds": 0.028657913208007812,
+        "fit_relevel_error": null,
+        "fit_relevel_seconds": 0.029134035110473633,
+        "loglik_char_minus_cat": 0.0,
+        "loglik_char_minus_relevel": 1.1368683772161603e-13,
+        "relevelfit x String vs charfit x String (rel)": "ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x, f: a, f: b]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+        "relevelfit x catnewdata(default) vs charfit x String (rel)": "ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x, f: a, f: b]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards)."
+      },
+      "metric": "coef/prediction agreement across predictor types",
+      "notes": "charfit x catnewdata(c,a,b) vs charfit x String errored; relevelfit x String vs charfit x String (rel) errored; relevelfit x catnewdata(default) vs charfit x String (rel) errored",
+      "status": "FAIL",
+      "value": null
+    },
+    "P6": {
+      "details": null,
+      "metric": "quantile prediction available",
+      "notes": "no quantile-prediction API in DRModels.jl exports (exported names containing 'quantile': none); predict(fit, nd_main; type = :quantile) -> predict: `type` must be :response or :link",
+      "status": "NA",
+      "value": null
+    },
+    "P7": {
+      "details": {
+        "checks": [
+          {
+            "check": "pp_se[mu,link] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "pp_value[mu,link] == se=false value",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "predict_se[mu,link] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "predict_prediction[mu,link] == se=false",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "pp_se[mu,response] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "pp_value[mu,response] == se=false value",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          },
+          {
+            "check": "predict_se[mu,response] vs delta(doc link)",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "predict_prediction[mu,response] == se=false",
+            "pass": true,
+            "tol": 0.0,
+            "value": 0.0
+          }
+        ]
+      },
+      "metric": "max relative SE deviation vs independent delta method (tol 1e-8)",
+      "notes": "all 8 checks pass",
+      "status": "PASS",
+      "value": 0.0
+    },
+    "P8": {
+      "details": {
+        "b0": {
+          "mean_expected": 6.18881796503557,
+          "mean_sim": 6.183341666666666,
+          "reg_flag_gt4": false,
+          "reg_max_abs_t": 0.4169245078441572,
+          "reg_t_fb": -0.4169245078441572,
+          "reg_t_fc": -0.13894235840099273,
+          "reg_t_intercept": -0.5922390211771343,
+          "reg_t_x": 0.2207818820347637,
+          "row_max_abs_z": 3.1321714462367587,
+          "row_n_abs_z_gt3": 1,
+          "row_n_expected_gt3": 0.648,
+          "row_n_zero_sd": 0,
+          "var_expected": 2.86443805408644,
+          "var_sim_batchmean": 2.8676513888888886,
+          "z_mean": -1.6600656038210242,
+          "z_var": 0.3530861448839528
+        },
+        "binomial_scale": "counts (successes)",
+        "class": "Matrix{Float64}",
+        "colnames": "none (plain Matrix)",
+        "default_rng_reproducible_after_seed!": true,
+        "draws_match": "b = 0 (docstring)",
+        "explicit_rng_leaves_global_rng_untouched": true,
+        "fitted_scale": "probability (fitted(fit) = mu)",
+        "marginal": {
+          "mean_expected": 6.1919376631522445,
+          "mean_sim": 6.183341666666666,
+          "reg_flag_gt4": true,
+          "reg_max_abs_t": 11.429377101781347,
+          "reg_t_fb": 3.144781961832424,
+          "reg_t_fc": -4.740185223438892,
+          "reg_t_intercept": -0.30785159635416315,
+          "reg_t_x": 11.429377101781347,
+          "row_max_abs_z": 4.2949257234495475,
+          "row_n_abs_z_gt3": 9,
+          "row_n_expected_gt3": 0.648,
+          "row_n_zero_sd": 0,
+          "var_expected": 4.218958338622617,
+          "var_sim_batchmean": 2.8676513888888886,
+          "z_mean": -2.605759791560015,
+          "z_var": -148.48367529981738
+        },
+        "nsim1_class": "Vector{Float64}",
+        "nsim1_equals_first_column": true,
+        "nsim1_is_vector_len_n": true,
+        "rng_reproducible": true,
+        "sd_g": 0.4009991021262869,
+        "shape_ok_n_x_nsim": true,
+        "size": [
+          240,
+          1000
+        ]
+      },
+      "metric": "z (global mean, batch-means variance) vs b=0 moments; |z|<3",
+      "notes": "ri: b=0 z_mean=-1.66 z_var=0.35; marginal z_mean=-2.61 z_var=-148.48; draws match: b = 0 (docstring) | rows |z|>3: 1 (expected 0.65), max|z_i| 3.13",
+      "status": "PASS",
+      "value": [
+        -1.6600656038210242,
+        0.3530861448839528
+      ]
+    },
+    "P9": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    }
+  }
+}

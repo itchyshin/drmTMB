@@ -1,0 +1,7 @@
+max |q50 - population mu|   = 1.039906 
+max |q50 - (mu + bhat[g])|  = 0 
+max |bhat|                  = 1.039906 
+max |exceedance - (1 - pnorm(1, mu_pop, s))|        = 0.4803532 
+max |exceedance - (1 - pnorm(1, mu_pop + bhat, s))| = 0 
+drmTMB 0.7.1 
+[1] "R version 4.3.3 (2024-02-29)"

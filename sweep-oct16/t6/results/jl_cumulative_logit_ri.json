@@ -1,0 +1,282 @@
+{
+  "blocks": [
+    "\"mu\" => [1, 3]",
+    "\"cutpoints\" => [4, 6]",
+    "\"resd\" => [7, 7]"
+  ],
+  "coef": {
+    "cutpoints": {
+      "names": [
+        "theta1",
+        "theta2",
+        "theta3"
+      ],
+      "se": [
+        0.28124575611134184,
+        0.10128240061981576,
+        0.1341848462555603
+      ],
+      "values": [
+        -1.0405757194920873,
+        0.5276111413569933,
+        0.3426693131822737
+      ]
+    },
+    "mu": {
+      "names": [
+        "x",
+        "f: b",
+        "f: c"
+      ],
+      "se": [
+        0.14610991163921874,
+        0.30366255834786665,
+        0.31064951478396574
+      ],
+      "values": [
+        0.7041642961648903,
+        -0.037586292772344286,
+        -0.5333674014719216
+      ]
+    },
+    "resd": {
+      "names": [
+        "g"
+      ],
+      "se": [
+        0.2513658210068545
+      ],
+      "values": [
+        -0.27002339677923515
+      ]
+    }
+  },
+  "converged": true,
+  "engine": "julia",
+  "engine_commit": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "fallback": null,
+  "family": "cumulative_logit",
+  "fit_error": null,
+  "fit_ok": true,
+  "fit_seconds": 20.770390033721924,
+  "fit_warnings": "",
+  "formula": "bf(y ~ x + f + (1 | g))",
+  "julia_version": "1.12.7",
+  "laplace": {
+    "error": "MethodError: no method matching drm(::DrmFormula, ::CumulativeLogit; data::@NamedTuple{x::Vector{Float64}, f::Vector{String}, g::Vector{String}, y::Vector{Float64}}, marginal::Symbol)\nThis method does not support all of the given keyword arguments (and may not support any).\n\nClosest candidates are:\n  drm(::DrmFormula, ::CumulativeLogit; data, tree, g_tol, se) got unsupported keyword argument \"marginal\"\n   @ DRModels /home/user/DRModels.jl/src/cumulative.jl:136\n  drm(::DrmFormula, !Matched::Gaussian; kwargs...)\n   @ DRModels /home/user/DRModels.jl/src/gaussian_core.jl:572\n  drm(::DrmFormula, !Matched::NegBinomial2; data, tree, K, A, coords, g_tol, se, marginal, method)\n   @ DRModels /home/user/DRModels.jl/src/negbinomial.jl:80\n  ...\n",
+    "fit_ok": false,
+    "formula": "bf(y ~ x + f + (1 | g))",
+    "seconds": 0.07147407531738281,
+    "warnings": ""
+  },
+  "loglik": -300.87726609294197,
+  "marginal": "LA",
+  "niterations": 12,
+  "nobs": 240,
+  "pred_csv_note": "se=true error (link): ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).; se=false error (link): ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).; se=true error (response): ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).; se=false error (response): ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).; ",
+  "re": "ri",
+  "re_sd": {
+    "g": 0.7633616339242905
+  },
+  "seed": 20261016627,
+  "serialize_roundtrip_ok": true,
+  "serialized": "/home/user/drmTMB/sweep-oct16/t6/results/jl_fits/cumulative_logit_ri.jls",
+  "sim_seed": 20261016727,
+  "tests": {
+    "P1": {
+      "details": {
+        "checks": [
+          {
+            "check": "predict(fit, data) errors",
+            "pass": false,
+            "tol": 0.0,
+            "value": "Inf"
+          },
+          {
+            "check": "fit.means[:mu]_vs_hand_b0",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          },
+          {
+            "check": "fitted_vs_E[y]_at_b0 (fitted docstring: 'Fitted mean(s)')",
+            "pass": true,
+            "tol": 1.0e-8,
+            "value": 0.0
+          }
+        ],
+        "means_mu_vs_b0_maxrel": 0.0,
+        "ranef_available": false,
+        "ranef_error": "ArgumentError: ranef: this fit has a random-effect block but no stored conditional modes -- the non-Gaussian GLMM marginal route (Gauss-Hermite quadrature / Laplace) integrates the random effect out of the likelihood and never computes a posterior mode. Use `re_sd(fit)` / `vc(fit)` for the fitted variance components."
+      },
+      "metric": "max abs/rel deviation (tol 1e-10; fitted/means 1e-8)",
+      "notes": "failing: predict(fit, data) errors (Inf > 0.0) | predict_parameters(fit, data) ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards). | predict(fit, data) ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards). | ri fit: fit.means[:mu] equals the hand b = 0 value to 0.0; ranef() unavailable (ArgumentError: ranef: this fit has a random-effect block but no stored conditional modes -- the non-Gaussian GLMM margin)",
+      "status": "FAIL",
+      "value": "Inf"
+    },
+    "P10": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    },
+    "P11": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    },
+    "P2": {
+      "details": {
+        "checks": [
+          {
+            "check": "predict on nd_main errors",
+            "pass": false,
+            "tol": 0.0,
+            "value": "Inf"
+          }
+        ]
+      },
+      "metric": "max abs deviation vs hand X_new*beta / invlink (tol 1e-10)",
+      "notes": "failing: predict on nd_main errors (Inf > 0.0) | ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "status": "FAIL",
+      "value": "Inf"
+    },
+    "P3": {
+      "details": null,
+      "metric": "",
+      "notes": "nd_main prediction itself errors, P3 cannot be evaluated: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "status": "ERROR",
+      "value": null
+    },
+    "P4": {
+      "details": {
+        "predict / CategoricalArray": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict / Vector{String}": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict_parameters / CategoricalArray": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        },
+        "predict_parameters / Vector{String}": {
+          "message": "ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+          "names_factor_or_level": true,
+          "outcome": "refused"
+        }
+      },
+      "metric": "refusal naming factor/level",
+      "notes": "refused, message: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: d] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "status": "PASS",
+      "value": null
+    },
+    "P5": {
+      "details": null,
+      "metric": "",
+      "notes": "nd_main prediction errors on the base fit: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "status": "ERROR",
+      "value": null
+    },
+    "P6": {
+      "details": null,
+      "metric": "quantile prediction available",
+      "notes": "no quantile-prediction API in DRModels.jl exports (exported names containing 'quantile': none); predict(fit, nd_main; type = :quantile) -> predict: `type` must be :response or :link",
+      "status": "NA",
+      "value": null
+    },
+    "P7": {
+      "details": {
+        "checks": [
+          {
+            "check": "se=true prediction errors",
+            "pass": false,
+            "tol": 0.0,
+            "value": "Inf"
+          }
+        ]
+      },
+      "metric": "max relative SE deviation vs independent delta method (tol 1e-8)",
+      "notes": "failing: se=true prediction errors (Inf > 0.0) | ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",
+      "status": "FAIL",
+      "value": "Inf"
+    },
+    "P8": {
+      "details": {
+        "b0": {
+          "mean_expected": 2.138974954472486,
+          "mean_sim": 2.139091666666667,
+          "reg_flag_gt4": false,
+          "reg_max_abs_t": 0.6853919022402895,
+          "reg_t_fb": -0.6853919022402895,
+          "reg_t_fc": -0.5108769232821486,
+          "reg_t_intercept": 0.6226015045664093,
+          "reg_t_x": -0.5387010759308385,
+          "row_max_abs_z": 2.954483440991469,
+          "row_n_abs_z_gt3": 0,
+          "row_n_expected_gt3": 0.648,
+          "row_n_zero_sd": 0,
+          "var_expected": 0.8463864348419603,
+          "var_sim_batchmean": 0.8483649305555556,
+          "z_mean": 0.06004548732497985,
+          "z_var": 0.9637873857071937
+        },
+        "class": "Matrix{Float64}",
+        "colnames": "none (plain Matrix)",
+        "default_rng_reproducible_after_seed!": true,
+        "draws_match": "b = 0 (docstring)",
+        "explicit_rng_leaves_global_rng_untouched": true,
+        "marginal": {
+          "mean_expected": 2.1563311991527483,
+          "mean_sim": 2.139091666666667,
+          "reg_flag_gt4": true,
+          "reg_max_abs_t": 6.612219398712321,
+          "reg_t_fb": -0.9759092059585792,
+          "reg_t_fc": -2.859324766113097,
+          "reg_t_intercept": -3.6253794031698274,
+          "reg_t_x": 6.612219398712321,
+          "row_max_abs_z": 3.967599269822769,
+          "row_n_abs_z_gt3": 7,
+          "row_n_expected_gt3": 0.648,
+          "row_n_zero_sd": 0,
+          "var_expected": 0.9379200310472148,
+          "var_sim_batchmean": 0.8483649305555556,
+          "z_mean": -8.869305702354392,
+          "z_var": -43.62510142756643
+        },
+        "nsim1_class": "Vector{Float64}",
+        "nsim1_equals_first_column": true,
+        "nsim1_is_vector_len_n": true,
+        "rng_reproducible": true,
+        "sd_g": 0.7633616339242905,
+        "shape_ok_n_x_nsim": true,
+        "size": [
+          240,
+          1000
+        ]
+      },
+      "metric": "z (global mean, batch-means variance) vs b=0 moments; |z|<3",
+      "notes": "ri: b=0 z_mean=0.06 z_var=0.96; marginal z_mean=-8.87 z_var=-43.63; draws match: b = 0 (docstring) | rows |z|>3: 0 (expected 0.65), max|z_i| 2.95",
+      "status": "PASS",
+      "value": [
+        0.06004548732497985,
+        0.9637873857071937
+      ]
+    },
+    "P9": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    }
+  }
+}

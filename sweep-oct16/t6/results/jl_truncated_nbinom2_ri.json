@@ -1,0 +1,107 @@
+{
+  "engine": "julia",
+  "engine_commit": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "fallback": {
+    "error": "TruncatedNegBinomial2() currently supports fixed effects only\n    first frames:\n      error(s::String) at error.jl:44\n      drm(f::DrmFormula, fam::TruncatedNegBinomial2; data::@NamedTuple{x::Vector{Float64}, f::Vector{String}, g::Vector{String}, y::Vector{Float64}}, g_tol::Float64) at negbinomial.jl:501\n      drm at negbinomial.jl:491 [inlined]\n      #5 at lib_t6.jl:98 [inlined]",
+    "fit_ok": false,
+    "formula": "bf(y ~ x + f + (1 | g), sigma ~ 1)",
+    "seconds": 0.012113094329833984
+  },
+  "family": "truncated_nbinom2",
+  "fit_error": "TruncatedNegBinomial2() currently supports fixed effects only",
+  "fit_error_first": "TruncatedNegBinomial2() currently supports fixed effects only\n    first frames:\n      error(s::String) at error.jl:44\n      drm(f::DrmFormula, fam::TruncatedNegBinomial2; data::@NamedTuple{x::Vector{Float64}, f::Vector{String}, g::Vector{String}, y::Vector{Float64}}, g_tol::Float64) at negbinomial.jl:501\n      drm at negbinomial.jl:491 [inlined]\n      #5 at lib_t6.jl:98 [inlined]",
+  "fit_ok": false,
+  "fit_seconds": 0.01413106918334961,
+  "fit_warnings": "",
+  "formula": "bf(y ~ x + f + (1 | g), sigma ~ x)",
+  "julia_version": "1.12.7",
+  "laplace": {
+    "error": "MethodError: no method matching drm(::DrmFormula, ::TruncatedNegBinomial2; data::@NamedTuple{x::Vector{Float64}, f::Vector{String}, g::Vector{String}, y::Vector{Float64}}, marginal::Symbol)\nThis method does not support all of the given keyword arguments (and may not support any).\n\nClosest candidates are:\n  drm(::DrmFormula, ::TruncatedNegBinomial2; data, g_tol) got unsupported keyword argument \"marginal\"\n   @ DRModels /home/user/DRModels.jl/src/negbinomial.jl:491\n  drm(::DrmFormula, !Matched::Gaussian; kwargs...)\n   @ DRModels /home/user/DRModels.jl/src/gaussian_core.jl:572\n  drm(::DrmFormula, !Matched::NegBinomial2; data, tree, K, A, coords, g_tol, se, marginal, method)\n   @ DRModels /home/user/DRModels.jl/src/negbinomial.jl:80\n  ...\n",
+    "fit_ok": false,
+    "formula": "bf(y ~ x + f + (1 | g), sigma ~ x)",
+    "seconds": 0.07425689697265625,
+    "warnings": ""
+  },
+  "re": "ri",
+  "seed": 20261016623,
+  "sim_seed": 20261016723,
+  "tests": {
+    "P1": {
+      "details": null,
+      "metric": "",
+      "notes": "fit refused by engine: TruncatedNegBinomial2() currently supports fixed effects only",
+      "status": "NA",
+      "value": null
+    },
+    "P10": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    },
+    "P11": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    },
+    "P2": {
+      "details": null,
+      "metric": "",
+      "notes": "fit refused by engine: TruncatedNegBinomial2() currently supports fixed effects only",
+      "status": "NA",
+      "value": null
+    },
+    "P3": {
+      "details": null,
+      "metric": "",
+      "notes": "fit refused by engine: TruncatedNegBinomial2() currently supports fixed effects only",
+      "status": "NA",
+      "value": null
+    },
+    "P4": {
+      "details": null,
+      "metric": "",
+      "notes": "fit refused by engine: TruncatedNegBinomial2() currently supports fixed effects only",
+      "status": "NA",
+      "value": null
+    },
+    "P5": {
+      "details": null,
+      "metric": "",
+      "notes": "fit refused by engine: TruncatedNegBinomial2() currently supports fixed effects only",
+      "status": "NA",
+      "value": null
+    },
+    "P6": {
+      "details": null,
+      "metric": "",
+      "notes": "fit refused by engine: TruncatedNegBinomial2() currently supports fixed effects only",
+      "status": "NA",
+      "value": null
+    },
+    "P7": {
+      "details": null,
+      "metric": "",
+      "notes": "fit refused by engine: TruncatedNegBinomial2() currently supports fixed effects only",
+      "status": "NA",
+      "value": null
+    },
+    "P8": {
+      "details": null,
+      "metric": "",
+      "notes": "fit refused by engine: TruncatedNegBinomial2() currently supports fixed effects only",
+      "status": "NA",
+      "value": null
+    },
+    "P9": {
+      "details": null,
+      "metric": "",
+      "notes": "not run by the Julia-native harness (parity/bridge agents own P9-P11)",
+      "status": "NA",
+      "value": null
+    }
+  }
+}
