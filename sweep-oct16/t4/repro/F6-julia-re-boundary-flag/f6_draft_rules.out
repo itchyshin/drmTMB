@@ -1,0 +1,25 @@
+DRModels 0.7.2 git HEAD f71b2923360e9e5d4591e0d6e15a9ef9db0356d7  Julia 1.12.7
+rep  min eig(H)   chol_ok  0.5g'H^-1g   nd_small(#1107)
+  1  +1.86e-14   true     3.65e-15     true
+  3  +1.35e-16   true     2.26e-17     true
+  7  +8.87e-15   true     1.62e-15     true
+ 13  +2.97e-14   true     5.22e-15     true
+ 15  +1.21e-14   true     2.25e-15     true
+ 16  +1.59e-14   true     2.54e-15     true
+ 17  +2.04e-15   true     3.22e-16     true
+ 19  +7.07e-15   true     1.01e-15     true
+ 20  +2.23e-15   true     4.66e-16     true
+ 21  +7.87e-16   true     2.38e-15     true
+ 23  +1.08e-14   true     1.92e-15     true
+ 24  +6.44e-16   true     9.17e-17     true
+ 25  +4.66e-15   true     9.40e-16     true
+ 27  +4.73e-15   true     1.09e-15     true
+ 28  +1.09e-14   true     1.76e-15     true
+ 30  +5.44e-15   true     9.21e-16     true
+ 34  +7.59e-15   true     1.74e-15     true
+ 37  +9.65e-15   true     2.17e-15     true
+ 43  +1.15e-14   true     1.67e-15     true
+ 44  +2.72e-14   true     4.44e-15     true
+ 47  +3.80e-15   true     8.45e-16     true
+ 48  +1.79e-16   true     2.82e-17     true
+boundary fits with converged = false on main: 22; Cholesky of H succeeds: 22; Newton-decrement branch passes: 22

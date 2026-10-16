@@ -1,0 +1,41 @@
+Julia Version 1.12.7
+Commit 6d172b025e4 (2026-08-15 08:05 UTC)
+Build Info:
+  https://github.com/conda-forge/julia-feedstock
+
+    Note: This is an unofficial build, please report bugs to the project
+    responsible for this build and not to the Julia project unless you can
+    reproduce the issue using official builds available at https://julialang.org
+
+Platform Info:
+  OS: Linux (x86_64-conda-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor @ 2.10GHz
+  WORD_SIZE: 64
+  LLVM: libLLVM-18.1.7 (ORCJIT, sapphirerapids)
+  GC: Built with stock GC
+Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_DEPOT_PATH = /home/user/.julia
+  JULIA_PKG_SERVER = 
+DRModels 0.7.2 f71b2923360e9e5d4591e0d6e15a9ef9db0356d7
+
+[1] cell 13: does check_drm ok track the SIGN of min_eigval(V)?
+is_converged: 50/50; ok: 22/50
+(min_eigval > 0, ok) counts: Pair{Tuple{Bool, Bool}, Int64}[(0, 0) => 13, (0, 1) => 15, (1, 0) => 15, (1, 1) => 7]
+cond when ok = true: ["1.1e+17", "Inf", "2.8e+16", "Inf", "Inf", "Inf", "Inf", "Inf"]
+
+[2] mu alias y ~ 1 + x + z, sigma ~ 1 + x: raw converged vs huge coefs vs logLik above reduced
+huge coefs: 46; huge AND is_converged: 0; is_converged: 4; logLik > reduced + 1e-6: 21  reps=[1, 4, 6, 9, 10, 11, 15, 19, 23, 24, 25, 26, 31, 33, 37, 39, 41, 42, 43, 45, 47]
+
+[3] REML, xdup in sigma (rep 1)
+ERROR: DomainError with -1.0:
+log was called with a negative real argument but will only return a complex result if called with a complex argument. Try log(Complex(x)).
+ERROR (z alias): ArgumentError: matrix contains Infs or NaNs
+  top DRModels frames: ["/home/user/DRModels.jl/src/gaussian_core.jl:1484", "/home/user/DRModels.jl/src/gaussian_core.jl:1491", "/home/user/DRModels.jl/src/gaussian_core.jl:1504"]
+
+[4] exact alias built in Julia (no CSV rounding): z = 2x .+ 1, rep 1 y/x
+svdvals [1 x z] = [25.53446823610362, 10.08756915036408, 3.3121507437355304e-15]; rank (default) = 2
+is_converged = true; SE = [0.0718, 0.0615, 0.0643, 0.0349, 0.0283]
+
+[5] scaled duplicate xdup = 1000x: individual SE changes with an arbitrary rescale of the aliased column
+is_converged = true; coef sigma = [-0.3806397014099521, 2.296045182220714e-7, 0.000229604518172724]; SE = [0.07071087578708969, 7.711695045436472e-8, 7.711695082367427e-5]

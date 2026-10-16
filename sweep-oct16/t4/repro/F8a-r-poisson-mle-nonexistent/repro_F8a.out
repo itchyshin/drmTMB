@@ -1,0 +1,156 @@
+drmTMB 0.7.1  lpSolve 5.6.20 
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+
+locale:
+[1] C
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] lpSolve_5.6.20 drmTMB_0.7.1  
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-19   multcomp_1.4-25    Matrix_1.6-5       lattice_0.22-5     TH.data_1.1-2      coda_0.19-4.1      splines_4.3.3      estimability_1.4.1 emmeans_1.10.0     zoo_1.8-12        
+[11] parallel_4.3.3     lifecycle_1.0.4    mvtnorm_1.2-4      TMB_1.9.10         cli_3.6.2          xtable_1.8-4       grid_4.3.3         sandwich_3.1-0     compiler_4.3.3     nlme_3.1-164      
+[21] survival_3.5-8     rlang_1.1.3        MASS_7.3-60.0.1   
+
+== Existence (LP check) and drmTMB convergence flags ==
+     group rep n_pos     y_pos lp_nonexistent is_conv is_conv_hess     status opt_code opt_iter                                         opt_msg pdHess fit_warnings check_ok       check_warn
+  all_zero   3     0                     TRUE    TRUE         TRUE  converged        0        1                               X-convergence (3)   TRUE            0     TRUE                 
+  all_zero   4     0                     TRUE    TRUE         TRUE  converged        0        1                               X-convergence (3)   TRUE            0     TRUE                 
+  all_zero   6     0                     TRUE    TRUE         TRUE  converged        0        1                               X-convergence (3)   TRUE            0     TRUE                 
+  all_zero  11     0                     TRUE    TRUE         TRUE  converged        0        1                               X-convergence (3)   TRUE            0     TRUE                 
+  all_zero  21     0                     TRUE    TRUE         TRUE  converged        0        1                               X-convergence (3)   TRUE            0     TRUE                 
+  all_zero  22     0                     TRUE    TRUE         TRUE  converged        0        1                               X-convergence (3)   TRUE            0     TRUE                 
+  all_zero  32     0                     TRUE    TRUE         TRUE  converged        0        1                               X-convergence (3)   TRUE            0     TRUE                 
+  all_zero  39     0                     TRUE    TRUE         TRUE  converged        0        1                               X-convergence (3)   TRUE            0     TRUE                 
+  all_zero  48     0                     TRUE    TRUE         TRUE  converged        0        1                               X-convergence (3)   TRUE            0     TRUE                 
+ extreme_x  25     1         1           TRUE    TRUE         TRUE  converged        0        2 both X-convergence and relative convergence (5)   TRUE            0     TRUE                 
+ extreme_x  27     1         2           TRUE    TRUE         TRUE  converged        0        1 both X-convergence and relative convergence (5)   TRUE            0     TRUE                 
+ extreme_x  33     1         2           TRUE    TRUE         TRUE  converged        0        1 both X-convergence and relative convergence (5)   TRUE            0     TRUE                 
+ extreme_x  38     1         1           TRUE    TRUE         TRUE  converged        0        1 both X-convergence and relative convergence (5)   TRUE            0     TRUE                 
+ extreme_x  47     1         2           TRUE   FALSE        FALSE degenerate        0        1 both X-convergence and relative convergence (5)   TRUE           10    FALSE finite_objective
+   control   1     5 1,1,1,1,1          FALSE    TRUE         TRUE  converged        0        1 both X-convergence and relative convergence (5)   TRUE            0     TRUE                 
+   control   2     1         1          FALSE    TRUE         TRUE  converged        0        2 both X-convergence and relative convergence (5)   TRUE            0     TRUE                 
+
+== drmTMB estimates vs. its start values (start = drmTMB:::poisson_start(), i.e. glm.fit) ==
+     group rep        start_b0         start_b1          drm_b0           drm_b1       drm_se_b0       drm_se_b1       drm_logLik
+  all_zero   3  -24.3025850930  1.910081022e-15  -24.3025850932  9.441088420e-11 7.395769734e+04 7.432047469e+04 -2.231574474e-10
+  all_zero   4  -24.3025850930 -2.516993285e-15  -24.3025850932  3.848536830e-11 6.849927869e+04 8.422474466e+04 -2.231574474e-10
+  all_zero   6  -24.3025850930 -3.948322792e-15  -24.3025850932  1.058598434e-10 7.047203243e+04 4.643112871e+04 -2.231574474e-10
+  all_zero  11  -24.3025850930 -5.858939379e-15  -24.3025850932  2.657450935e-11 6.783142008e+04 9.195406642e+04 -2.231574474e-10
+  all_zero  21  -24.3025850930 -1.280300420e-14  -24.3025850932  4.481551422e-11 6.931123054e+04 8.945345846e+04 -2.231574474e-10
+  all_zero  22  -24.3025850930 -4.631422289e-15  -24.3025850932  5.291013941e-12 6.705004430e+04 1.608401415e+05 -2.231574474e-10
+  all_zero  32  -24.3025850930  1.576134132e-14  -24.3025850932 -2.296285784e-11 6.734218025e+04 7.125168532e+04 -2.231574474e-10
+  all_zero  39  -24.3025850930  3.487334335e-16  -24.3025850932  1.080001519e-10 7.323142472e+04 6.135487845e+04 -2.231574474e-10
+  all_zero  48  -24.3025850930  7.997257379e-15  -24.3025850932 -5.882947028e-11 8.213033970e+04 1.804761616e+05 -2.231574474e-10
+ extreme_x  25  -29.7999507040  3.778945072e+01  -29.7999507042  3.778945072e+01 1.084967342e+05 1.375851980e+05 -1.000000000e+00
+ extreme_x  27  -51.5588804584  2.623725501e+01  -51.5588804584  2.623725501e+01 1.608604453e+05 8.077266418e+04 -1.306852820e+00
+ extreme_x  33  -31.0885821650  1.403456535e+01  -31.0885821650  1.403456535e+01 8.957769488e+04 3.955680218e+04 -1.306852820e+00
+ extreme_x  38  -54.9344089718  2.386611673e+01  -54.9344089718  2.386611673e+01 2.067658088e+05 8.982885688e+04 -1.000000000e+00
+ extreme_x  47 -665.8253895771  4.674939618e+02 -665.8253895771  4.674939618e+02 6.812776370e+05 4.778459063e+05             -Inf
+   control   1   -0.8594372757  1.188894758e+00   -0.8594372757  1.188894758e+00 6.438875512e-01 8.077640043e-01 -5.888124428e+00
+   control   2   -2.1350492219  1.277661709e-01   -2.1350492219  1.277661709e-01 1.082459212e+00 7.572852412e-01 -3.065135199e+00
+
+log(0.1) - 22 = -24.302585093  (glm.fit IRLS starts at mustart = y + 0.1 and takes unit Newton steps on all-zero data)
+
+== check_drm rows that should catch this ==
+     group rep                                                 se_inflated weakly_id                                             hess_cond
+  all_zero   3   ok [n_inflated=0; max_se=74320.; reference_median=73958.]  <absent>              ok [min_eig=0.0000000001277; cond=2.479]
+  all_zero   4   ok [n_inflated=0; max_se=84225.; reference_median=68499.]  <absent>              ok [min_eig=0.0000000001315; cond=1.821]
+  all_zero   6   ok [n_inflated=0; max_se=70472.; reference_median=46431.]  <absent>              ok [min_eig=0.0000000001887; cond=2.907]
+  all_zero  11   ok [n_inflated=0; max_se=91954.; reference_median=67831.]  <absent>              ok [min_eig=0.0000000001149; cond=1.999]
+  all_zero  21   ok [n_inflated=0; max_se=89453.; reference_median=69311.]  <absent>              ok [min_eig=0.0000000001153; cond=2.096]
+  all_zero  22  ok [n_inflated=0; max_se=160840.; reference_median=67050.]  <absent>             ok [min_eig=0.00000000003863; cond=5.781]
+  all_zero  32   ok [n_inflated=0; max_se=71252.; reference_median=67342.]  <absent>              ok [min_eig=0.0000000001854; cond=1.279]
+  all_zero  39   ok [n_inflated=0; max_se=73231.; reference_median=61355.]  <absent>              ok [min_eig=0.0000000001526; cond=2.546]
+  all_zero  48  ok [n_inflated=0; max_se=180476.; reference_median=82130.]  <absent>             ok [min_eig=0.00000000002844; cond=8.473]
+ extreme_x  25 ok [n_inflated=0; max_se=137585.; reference_median=108497.]  <absent>    note [min_eig=0.00000000003257; cond=49792926386.]
+ extreme_x  27  ok [n_inflated=0; max_se=160860.; reference_median=80773.]  <absent>   note [min_eig=0.00000000003086; cond=321807502015.]
+ extreme_x  33   ok [n_inflated=0; max_se=89578.; reference_median=39557.]  <absent>    note [min_eig=0.0000000001043; cond=117523854626.]
+ extreme_x  38  ok [n_inflated=0; max_se=206766.; reference_median=89829.]  <absent>   note [min_eig=0.00000000001968; cond=320079403021.]
+ extreme_x  47 ok [n_inflated=0; max_se=681278.; reference_median=477846.]  <absent> note [min_eig=0.000000000001444; cond=4200490788091.]
+   control   1   ok [n_inflated=0; max_se=0.8078; reference_median=0.7258]  <absent>                        ok [min_eig=1.080; cond=6.573]
+   control   2    ok [n_inflated=0; max_se=1.082; reference_median=0.9199]  <absent>                       ok [min_eig=0.7656; cond=2.975]
+
+== base R glm() on the same data (default glm.control) ==
+     group rep      glm_b0       glm_b1   glm_se_b0   glm_se_b1 glm_converged glm_iter                                                                       glm_warnings
+  all_zero   3  -24.302585  1.91008e-15 4.48576e+04 4.50777e+04          TRUE       22                                                                                   
+  all_zero   4  -24.302585 -2.51699e-15 4.15469e+04 5.10849e+04          TRUE       22                                                                                   
+  all_zero   6  -24.302585 -3.94832e-15 4.27435e+04 2.81619e+04          TRUE       22                                                                                   
+  all_zero  11  -24.302585 -5.85894e-15 4.11418e+04 5.57730e+04          TRUE       22                                                                                   
+  all_zero  21  -24.302585 -1.28030e-14 4.20394e+04 5.42563e+04          TRUE       22                                                                                   
+  all_zero  22  -24.302585 -4.63142e-15 4.06679e+04 9.75545e+04          TRUE       22                                                                                   
+  all_zero  32  -24.302585  1.57613e-14 4.08451e+04 4.32163e+04          TRUE       22                                                                                   
+  all_zero  39  -24.302585  3.48733e-16 4.44171e+04 3.72136e+04          TRUE       22                                                                                   
+  all_zero  48  -24.302585  7.99726e-15 4.98146e+04 1.09464e+05          TRUE       22                                                                                   
+ extreme_x  25  -29.799951  3.77895e+01 6.58049e+04 8.34475e+04          TRUE       24                                       glm.fit: fitted rates numerically 0 occurred
+ extreme_x  27  -51.558880  2.62373e+01 9.73996e+04 4.89071e+04          TRUE       24                                       glm.fit: fitted rates numerically 0 occurred
+ extreme_x  33  -31.088582  1.40346e+01 5.42772e+04 2.39684e+04          TRUE       23                                       glm.fit: fitted rates numerically 0 occurred
+ extreme_x  38  -54.934409  2.38661e+01 1.25065e+05 5.43342e+04          TRUE       24                                       glm.fit: fitted rates numerically 0 occurred
+ extreme_x  47 -665.825390  4.67494e+02 4.11825e+05 2.88853e+05         FALSE       25 glm.fit: algorithm did not converge | glm.fit: fitted rates numerically 0 occurred
+   control   1   -0.859437  1.18889e+00 6.43888e-01 8.07764e-01          TRUE        5                                                                                   
+   control   2   -2.135049  1.27766e-01 1.08246e+00 7.57285e-01          TRUE        6                                                                                   
+
+LP-nonexistent reps in the 50-rep cell: 3 4 6 11 21 22 25 27 32 33 38 39 47 48 
+
+max(SE)/min(SE) per nonexistent rep (must reach 1000 to be flagged):
+ rep    min_se    max_se    ratio
+   3  73957.70  74320.47 1.004905
+   4  68499.28  84224.74 1.229571
+   6  46431.13  70472.03 1.517776
+  11  67831.42  91954.07 1.355626
+  21  69311.23  89453.46 1.290606
+  22  67050.04 160840.14 2.398807
+  32  67342.18  71251.69 1.058054
+  39  61354.88  73231.42 1.193571
+  48  82130.34 180476.16 2.197436
+  25 108496.73 137585.20 1.268105
+  27  80772.66 160860.45 1.991521
+  33  39556.80  89577.69 2.264533
+  38  89828.86 206765.81 2.301775
+  47 477845.91 681277.64 1.425727
+
+min fitted eta (X %*% beta) per rep:
+ rep     group     min_eta
+   3  all_zero  -24.302585
+   4  all_zero  -24.302585
+   6  all_zero  -24.302585
+  11  all_zero  -24.302585
+  21  all_zero  -24.302585
+  22  all_zero  -24.302585
+  32  all_zero  -24.302585
+  39  all_zero  -24.302585
+  48  all_zero  -24.302585
+  25 extreme_x  -84.446813
+  27 extreme_x  -98.996440
+  33 extreme_x  -57.561350
+  38 extreme_x  -78.191289
+  47 extreme_x -959.482883
+   1   control   -2.082659
+   2   control   -2.392491
+
+== Start dependence (same data, different user starts; compare estimates and flags) ==
+rep  3 start (  0.0,   0.0): est ( -711.092,    0.698)  SE (      NaN,       NaN)  logLik -1.06726e-308  is_converged FALSE  status degenerate  check ok FALSE  iter 1135  warnings: NA/NaN function evaluation | `drmTMB()` escalated `stats::nlminb()` to the "robust" optim
+rep  3 start ( -5.0,   0.0): est ( -958.282,  273.161)  SE (      NaN,       NaN)  logLik -2.92292e-308  is_converged FALSE  status degenerate  check ok FALSE  iter 1090  warnings: NA/NaN function evaluation | `drmTMB()` escalated `stats::nlminb()` to the "robust" optim
+rep  3 start (-40.0,   0.0): est (  -40.000,    0.000)  SE (  1.9e+08,   1.9e+08)  logLik -3.39868e-17  is_converged TRUE  status converged  check ok TRUE  iter 1  warnings: none
+rep  3 start (-10.0,  10.0): est (-1492.371, -376.793)  SE (       NA,        NA)  logLik -2.93673e-309  is_converged FALSE  status degenerate  check ok FALSE  iter 1065  warnings: NA/NaN function evaluation | `drmTMB()` escalated `stats::nlminb()` to the "robust" optim
+rep 25 start (  0.0,   0.0): est (  -30.129,   38.207)  SE ( 1.23e+05,  1.57e+05)  logLik -1  is_converged TRUE  status converged  check ok TRUE  iter 39  warnings: none
+rep 25 start ( -5.0,   0.0): est (  -30.286,   38.405)  SE ( 1.31e+05,  1.66e+05)  logLik -1  is_converged TRUE  status converged  check ok TRUE  iter 39  warnings: none
+rep 25 start (-40.0,   0.0): est (  -19.138,   24.270)  SE ( 1.64e+03,  2.08e+03)  logLik -1  is_converged TRUE  status converged  check ok TRUE  iter 11  warnings: none
+rep 25 start (-10.0,  10.0): est (  -33.985,   43.097)  SE ( 5.61e+05,  7.12e+05)  logLik -1  is_converged TRUE  status converged  check ok TRUE  iter 38  warnings: none
+
+== Scope probes ==
+poisson  y ~ 1, rep 3        est (-24.303)  SE (66900)  is_converged TRUE  status converged  check ok TRUE  warnings 0
+nbinom2  y ~ x, rep 3        est (-24.303, 9.4411e-11, -2.9957)  SE (NA)  is_converged FALSE  status degenerate  check ok FALSE  warnings 1
+nbinom2  y ~ x, rep 25       est (-29.8, 37.789, -11.236)  SE (108000, 138000, 53600)  is_converged TRUE  status converged  check ok TRUE  warnings 0

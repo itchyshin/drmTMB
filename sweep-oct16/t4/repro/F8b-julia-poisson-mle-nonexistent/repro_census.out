@@ -1,0 +1,99 @@
+Julia Version 1.12.7
+Commit 6d172b025e4 (2026-08-15 08:05 UTC)
+Build Info:
+  https://github.com/conda-forge/julia-feedstock
+
+    Note: This is an unofficial build, please report bugs to the project
+    responsible for this build and not to the Julia project unless you can
+    reproduce the issue using official builds available at https://julialang.org
+
+Platform Info:
+  OS: Linux (x86_64-conda-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor @ 2.10GHz
+  WORD_SIZE: 64
+  LLVM: libLLVM-18.1.7 (ORCJIT, sapphirerapids)
+  GC: Built with stock GC
+Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_DEPOT_PATH = /home/user/.julia
+  JULIA_PKG_SERVER = 
+DRModels 0.7.2 at /home/user/DRModels.jl/src/DRModels.jl
+DRModels git HEAD: f71b2923360e9e5d4591e0d6e15a9ef9db0356d7
+
+=== (a)+(b) cell pois_n8_lowmean, 50 reps
+ rep data         exists isconv niter    logLik                   coef                     SE nwarn chk_ok Poisson-mapped screen       
+   1 interior       true   true     7    -5.888       [-0.8594, 1.189]         [0.644, 0.808]     0   true sep=false flag=Int64[] concl=true
+   2 interior       true   true     5    -3.065       [-2.135, 0.1278]          [1.08, 0.757]     0   true sep=false flag=Int64[] concl=true
+   3 all-zero      false   true     0 -1.776e-15          [-36.04, 0.0]       [2.62e7, 2.63e7]     0   true sep=true flag=[1, 2] concl=true
+   4 all-zero      false   true     0 -1.776e-15          [-36.04, 0.0]       [2.43e7, 2.99e7]     0   true sep=true flag=[1, 2] concl=true
+   5 interior       true   true     5    -5.655      [-0.8208, 0.4765]          [0.584, 0.64]     0   true sep=false flag=Int64[] concl=true
+   6 all-zero      false   true     0 -1.776e-15          [-36.04, 0.0]        [2.5e7, 1.65e7]     0   true sep=true flag=[1, 2] concl=true
+   7 interior       true   true     6    -6.391       [-1.304, 0.4782]         [0.867, 0.763]     0   true sep=false flag=Int64[] concl=true
+   8 interior       true   true     7     -6.16       [-1.318, 0.5322]         [0.762, 0.534]     0   true sep=false flag=Int64[] concl=true
+   9 interior       true   true     4    -5.888      [-0.9824, 0.1972]         [0.581, 0.602]     0   true sep=false flag=Int64[] concl=true
+  10 interior       true   true     6    -6.275      [-0.7699, 0.8129]         [0.576, 0.452]     0   true sep=false flag=Int64[] concl=true
+  11 all-zero      false   true     0 -1.776e-15          [-36.04, 0.0]        [2.4e7, 3.26e7]     0   true sep=true flag=[1, 2] concl=true
+  12 interior       true   true    10    -2.655         [-6.577, 5.65]           [5.26, 4.26]     0   true sep=false flag=Int64[] concl=true
+  13 interior       true   true     6    -2.859       [-2.256, -1.034]           [1.26, 1.99]     0   true sep=false flag=Int64[] concl=true
+  14 interior       true   true     6    -8.013      [-0.4417, 0.8816]          [0.48, 0.548]     0   true sep=false flag=Int64[] concl=true
+  15 interior       true   true     8    -4.933        [-2.278, 0.939]          [1.45, 0.762]     0   true sep=false flag=Int64[] concl=true
+  16 interior       true   true     4    -3.077     [-2.059, -0.06222]          [1.04, 0.917]     0   true sep=false flag=Int64[] concl=true
+  17 interior       true   true     9    -4.854        [-2.711, 1.686]          [1.46, 0.785]     0   true sep=false flag=Int64[] concl=true
+  18 interior       true   true     6    -2.685        [-2.112, 1.043]            [1.11, 1.2]     0   true sep=false flag=Int64[] concl=true
+  19 interior       true   true     9    -2.993        [-3.236, 1.664]          [1.84, 0.837]     0   true sep=false flag=Int64[] concl=true
+  20 interior       true   true     4    -6.617     [-0.9583, -0.1036]         [0.584, 0.546]     0   true sep=false flag=Int64[] concl=true
+  21 all-zero      false   true     0 -1.776e-15          [-36.04, 0.0]       [2.46e7, 3.17e7]     0   true sep=true flag=[1, 2] concl=true
+  22 all-zero      false   true     0 -1.776e-15          [-36.04, 0.0]        [2.38e7, 5.7e7]     0   true sep=true flag=[1, 2] concl=true
+  23 interior       true   true     9    -4.612       [-2.353, 0.9655]           [1.5, 0.652]     0   true sep=false flag=Int64[] concl=true
+  24 interior       true   true     3    -4.772       [-1.38, 0.02487]         [0.725, 0.645]     0   true sep=false flag=Int64[] concl=true
+  25 pos@extreme   false   true    38        -1         [-47.3, 59.98]         [0.617, 0.486]     1  false sep=true flag=[1, 2] concl=true
+  26 interior       true   true     5    -6.715     [-0.7931, -0.2887]         [0.605, 0.858]     0   true sep=false flag=Int64[] concl=true
+  27 pos@extreme   false   true    11    -1.307        [-111.0, 56.06]         [0.142, 0.284]     1  false sep=true flag=[1, 2] concl=true
+  28 interior       true   true     7     -4.02        [-1.928, 1.389]           [1.32, 1.68]     0   true sep=false flag=Int64[] concl=true
+  29 interior       true   true     6     -6.28       [-1.168, 0.7391]         [0.692, 0.919]     0   true sep=false flag=Int64[] concl=true
+  30 interior       true   true     7    -3.115        [-2.336, 2.124]            [1.5, 1.58]     0   true sep=false flag=Int64[] concl=true
+  31 interior       true   true     5    -7.243      [-0.466, -0.2747]          [0.449, 0.62]     0   true sep=false flag=Int64[] concl=true
+  32 all-zero      false   true     0 -1.776e-15          [-36.04, 0.0]       [2.39e7, 2.53e7]     0   true sep=true flag=[1, 2] concl=true
+  33 pos@extreme   false   true    44    -1.307        [-51.47, 23.03]         [0.115, 0.261]     1  false sep=true flag=[1, 2] concl=true
+  34 interior       true   true     5    -3.012       [-1.947, 0.6622]           [1.02, 1.92]     0   true sep=false flag=Int64[] concl=true
+  35 interior       true   true     6    -5.882      [-1.231, -0.3501]          [0.976, 1.02]     0   true sep=false flag=Int64[] concl=true
+  36 interior       true   true     5    -2.847       [-1.829, 0.5432]           [1.0, 0.873]     0   true sep=false flag=Int64[] concl=true
+  37 interior       true   true     6     -2.95      [-2.362, -0.5996]           [1.27, 1.14]     0   true sep=false flag=Int64[] concl=true
+  38 pos@extreme   false   true    41        -1        [-111.6, 48.48]         [0.159, 0.365]     1  false sep=true flag=[1, 2] concl=true
+  39 all-zero      false   true     0 -1.776e-15          [-36.04, 0.0]        [2.6e7, 2.17e7]     0   true sep=true flag=[1, 2] concl=true
+  40 interior       true   true     5    -4.637       [-1.266, 0.4205]          [0.715, 0.83]     0   true sep=false flag=Int64[] concl=true
+  41 interior       true   true     5     -9.06     [-0.2814, -0.2187]         [0.408, 0.678]     0   true sep=false flag=Int64[] concl=true
+  42 interior       true   true     5    -7.802      [-0.6736, 0.4693]         [0.508, 0.587]     0   true sep=false flag=Int64[] concl=true
+  43 interior       true   true    10    -2.954        [-4.154, -3.24]           [4.18, 3.63]     0   true sep=false flag=Int64[] concl=true
+  44 interior       true   true     6    -4.451       [-1.508, 0.3596]         [0.785, 0.436]     0   true sep=false flag=Int64[] concl=true
+  45 interior       true   true     7    -4.391       [-2.284, -1.087]           [1.55, 1.37]     0   true sep=false flag=Int64[] concl=true
+  46 interior       true   true     5    -2.863       [-2.143, -1.118]           [1.13, 2.07]     0   true sep=false flag=Int64[] concl=true
+  47 pos@extreme   false   true    23    -1.307       [-1297.0, 909.9]         [0.233, 0.332]     1  false sep=true flag=[1, 2] concl=true
+  48 all-zero      false   true     0 -1.776e-15          [-36.04, 0.0]        [2.91e7, 6.4e7]     0   true sep=true flag=[1, 2] concl=true
+  49 interior       true   true     8    -3.756       [-2.256, 0.9766]          [1.23, 0.715]     0   true sep=false flag=Int64[] concl=true
+  50 interior       true   true     5    -2.712       [-2.038, 0.6282]          [1.08, 0.761]     0   true sep=false flag=Int64[] concl=true
+
+counts by (MLE exists, screen says separated, drm() silent):
+  (false, true, false) => 5
+  (false, true, true) => 9
+  (true, false, true) => 36
+
+=== (b') negatives: Poisson-mapped screen on cells pois_n8 / pois_n12 / pois_n20 (150 reps)
+  pois_n8: MLE exists in 50/50; screen flags 0/50
+  pois_n12: MLE exists in 50/50; screen flags 0/50
+  pois_n20: MLE exists in 50/50; screen flags 0/50
+
+=== (c) y ~ f with level "c" all zero (n = 60, StableRNG-free: MersenneTwister(20261016))
+is_converged = true  niter = 44  logLik = -72.38182795
+coef = [0.832909, -0.0909718, -43.0073]
+SE   = [0.147442, 0.213421, Inf]
+check_drm ok = false; warnings: 1
+  Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors for the flagged coor Dict{Symbol, Any}(:context => "", :flat_coordinates => [3], :rcond => 8.556712864038724e-20)
+Poisson-mapped screen: (separated = true, flagged = [3], conclusive = true)
+
+=== (d) scope probes on rep 3 (all y = 0)
+  y ~ 1 + x + (1 | g)                  is_converged=true niter=0 logLik=-7.496e-13 coef=[-36.044, 0.0, -0.69315] SE=[Inf, Inf, Inf] nwarn=1
+      warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion
+  y ~ 1 + x + offset(lt), lt = 0       is_converged=true niter=0 logLik=-1.776e-15 coef=[-36.044, 0.0] SE=[2.62e7, 2.63e7] nwarn=0
+  NegBinomial2 y ~ 1 + x, sigma ~ 1    is_converged=true niter=0 logLik=-8.211e-10 coef=[-36.044, 0.0, 0.34657] SE=[Inf, Inf, Inf] nwarn=1
+      warn: Hessian is not positive definite at the optimum. Wald standard errors are withheld. A negative eigenvalue mean

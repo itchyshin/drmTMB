@@ -1,0 +1,5 @@
+# Generated datasets: regenerate byte-identically with t4_gen_data.R (md5 manifest in data_md5.txt).
+# Only the datasets cited in issues are committed (force-added under data/).
+data/*
+!data/index.csv
+logs/*.log

@@ -1,0 +1,53 @@
+drmTMB 0.7.1 
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+
+locale:
+[1] C
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] drmTMB_0.7.1
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-19   multcomp_1.4-25    Matrix_1.6-5       lattice_0.22-5    
+ [5] TH.data_1.1-2      coda_0.19-4.1      splines_4.3.3      estimability_1.4.1
+ [9] emmeans_1.10.0     zoo_1.8-12         parallel_4.3.3     lifecycle_1.0.4   
+[13] mvtnorm_1.2-4      TMB_1.9.10         cli_3.6.2          xtable_1.8-4      
+[17] grid_4.3.3         sandwich_3.1-0     compiler_4.3.3     nlme_3.1-164      
+[21] survival_3.5-8     rlang_1.1.3        MASS_7.3-60.0.1   
+             estimate       se
+beta_mu -2.430259e+01 73957.70
+beta_mu  9.441088e-11 74320.47
+logLik -2.231574e-10 | opt code 0 X-convergence (3) | is_converged TRUE | status converged | check_drm ok TRUE 
+                    check status
+     hessian_conditioning     ok
+ standard_errors_inflated     ok
+                                                value
+                  min_eig=0.0000000001277; cond=2.479
+ n_inflated=0; max_se=74320.; reference_median=73958.
+         estimate       se
+beta_mu -29.79995 108496.7
+beta_mu  37.78945 137585.2
+logLik -1 | opt code 0 both X-convergence and relative convergence (5) | is_converged TRUE | status converged | check_drm ok TRUE 
+                    check status
+     hessian_conditioning   note
+ standard_errors_inflated     ok
+                                                  value
+            min_eig=0.00000000003257; cond=49792926386.
+ n_inflated=0; max_se=137585.; reference_median=108497.
+start 0 0 -> slope 38.207 SE 157000 is_converged TRUE 
+start -40 0 -> slope 24.27 SE 2080 is_converged TRUE 
+start -10 10 -> slope 43.097 SE 712000 is_converged TRUE 
+glm rep 3: converged TRUE iter 22 coef -24.3026 1.91008e-15 
+glm rep 25 warning: glm.fit: fitted rates numerically 0 occurred 

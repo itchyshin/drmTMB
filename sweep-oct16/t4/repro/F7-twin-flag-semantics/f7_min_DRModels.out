@@ -1,0 +1,50 @@
+Julia Version 1.12.7
+Commit 6d172b025e4 (2026-08-15 08:05 UTC)
+Build Info:
+  https://github.com/conda-forge/julia-feedstock
+
+    Note: This is an unofficial build, please report bugs to the project
+    responsible for this build and not to the Julia project unless you can
+    reproduce the issue using official builds available at https://julialang.org
+
+Platform Info:
+  OS: Linux (x86_64-conda-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor @ 2.10GHz
+  WORD_SIZE: 64
+  LLVM: libLLVM-18.1.7 (ORCJIT, sapphirerapids)
+  GC: Built with stock GC
+Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_DEPOT_PATH = /home/user/.julia
+  JULIA_PKG_SERVER = 
+DRModels 0.7.2 git HEAD f71b2923360e9e5d4591e0d6e15a9ef9db0356d7
+
+==== bin_quasi_r01 ====
+fit.converged (raw) = true; is_converged = true; check_drm(fit).ok = false (vcov_posdef = false)
+logLik = -3.2508297339   (drmTMB: -3.2508297405; diff 6.59e-09)
+  theta[1] = -2.19722  SE = 1.05409
+  theta[2] =  4904.2  SE = Inf
+fit-time @warn records: 2
+  - Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors for the flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)` or the bootstrap entry points for those targets. 
+  - Binomial fixed-effect fit shows (quasi-)complete separation. The maximum-likelihood estimate does not exist (or is not finite): the affected coefficients can grow without bound at little or no cost in likelihood, and their reported estimates are an arbitrary stopping point of the optimiser. Their st
+
+==== nb2_poisdata_r01 ====
+fit.converged (raw) = true; is_converged = true; check_drm(fit).ok = false (vcov_posdef = false)
+logLik = -192.7357893852   (drmTMB: -192.7357893861; diff 9.40e-10)
+  theta[1] =  1.01864  SE = 0.0628497
+  theta[2] =  0.493187  SE = 0.052635
+  theta[3] = -27.9361  SE = Inf
+fit-time @warn records: 1
+  - Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors for the flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)` or the bootstrap entry points for those targets. 
+
+==== collin_sigma_near_r01 ====
+fit.converged (raw) = true; is_converged = true; check_drm(fit).ok = true (vcov_posdef = true)
+logLik = -104.7262516828   (drmTMB: -104.7262516860; diff 3.18e-09)
+  theta[1] =  1.11488  SE = 0.0723885
+  theta[2] =  0.497732  SE = 0.0820097
+  theta[3] = -0.372699  SE = 0.0709244
+  theta[4] =  58378.6  SE = 68876
+  theta[5] = -58378.3  SE = 68876
+fit-time @warn records: 1
+  - Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors for the flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)` or the bootstrap entry points for those targets. 
+

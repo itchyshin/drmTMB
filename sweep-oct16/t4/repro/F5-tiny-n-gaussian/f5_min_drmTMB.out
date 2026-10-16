@@ -1,0 +1,10 @@
+R version 4.3.3 (2024-02-29) | drmTMB 0.7.1 | TMB 1.9.10 
+r05 default logLik -3.81769, is_converged TRUE, status converged, max|grad| 1.7e-13 | multi_start=10 -1.44733 (converged) | exact ll at the other maximum -1.44733
+r09 default logLik -4.69828, is_converged TRUE, status converged, max|grad| 1.1e-13 | multi_start=10 -4.69828 (converged) | exact ll at the other maximum -3.14993
+r28 default logLik -0.39611, is_converged TRUE, status converged, max|grad| 9.6e-14 | multi_start=10 -0.39611 (converged) | exact ll at the other maximum 0.27724
+r04 default logLik 6.15620 (is_converged TRUE, status converged; min raw log sigma -13.86) | clamp = NULL: logLik 6.72474, is_converged TRUE, min log sigma -16.45
+    default check_drm rows not ok: logsigma_clamp_active=note hessian_conditioning=note observations_per_parameter=note 
+r31 default logLik -5.10350 (is_converged TRUE, status converged; min raw log sigma -13.14) | clamp = NULL: logLik -4.40636, is_converged FALSE, min log sigma -21.30
+    default check_drm rows not ok: logsigma_clamp_active=note hessian_conditioning=note observations_per_parameter=note 
+r06 default logLik 16.37641, is_converged TRUE, status converged
+r19 default logLik 6.15698, is_converged TRUE, status converged

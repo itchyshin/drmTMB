@@ -1,0 +1,53 @@
+┌ Info: check_drm
+│   converged = true
+│   max_abs_grad = 2.937369458777539e-9
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 4.565139447835195e-6
+│   cond = 1095.1336842790472
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   converged = true
+│   max_abs_grad = 4.965855282534903e-9
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 4.278687992291367e-6
+│   cond = 1168.467498779569
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   converged = true
+│   max_abs_grad = 1.7553247744217515e-9
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 4.55004420570289e-6
+│   cond = 1098.7745970644692
+│   penalized_map = false
+└   ok = true
+rep 15: converged=true  is_converged=true  logLik=383.0398778184  coef=[0.00200069, 0.49832405, -4.520785373]  max|grad|=2.94e-09
+rep 48: converged=true  is_converged=true  logLik=389.4624746155  coef=[-0.001190213, 0.501259495, -4.594035389]  max|grad|=4.97e-09
+rep 50: converged=true  is_converged=true  logLik=386.0001621382  coef=[-0.00029614, 0.496581191, -4.560681139]  max|grad|=1.76e-09
+Julia Version 1.12.7
+Commit 6d172b025e4 (2026-08-15 08:05 UTC)
+Build Info:
+  https://github.com/conda-forge/julia-feedstock
+
+    Note: This is an unofficial build, please report bugs to the project
+    responsible for this build and not to the Julia project unless you can
+    reproduce the issue using official builds available at https://julialang.org
+
+Platform Info:
+  OS: Linux (x86_64-conda-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor @ 2.10GHz
+  WORD_SIZE: 64
+  LLVM: libLLVM-18.1.7 (ORCJIT, sapphirerapids)
+  GC: Built with stock GC
+Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_DEPOT_PATH = /home/user/.julia
+  JULIA_PKG_SERVER = 
+DRModels 0.7.2 git HEAD f71b2923360e9e5d4591e0d6e15a9ef9db0356d7

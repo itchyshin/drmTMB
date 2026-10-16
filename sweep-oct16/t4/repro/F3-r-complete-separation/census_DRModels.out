@@ -1,0 +1,32 @@
+Julia Version 1.12.7
+Commit 6d172b025e4 (2026-08-15 08:05 UTC)
+Build Info:
+  https://github.com/conda-forge/julia-feedstock
+
+    Note: This is an unofficial build, please report bugs to the project
+    responsible for this build and not to the Julia project unless you can
+    reproduce the issue using official builds available at https://julialang.org
+
+Platform Info:
+  OS: Linux (x86_64-conda-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor @ 2.10GHz
+  WORD_SIZE: 64
+  LLVM: libLLVM-18.1.7 (ORCJIT, sapphirerapids)
+  GC: Built with stock GC
+Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_DEPOT_PATH = /home/user/.julia
+  JULIA_PKG_SERVER = 
+DRModels 0.7.2
+
+== bin_complete (50 seeds) ==
+separation warning: 50 ; flagged sets: Dict("(Intercept)+x" => 50)
+fit.converged true: 50 ; is_converged(fit) true: 50
+non-finite SEs per fit: Dict(2 => 50)
+logLik range: (-0.0, -0.0) ; slope range: (11464.095048250696, 1.4416229335911504e6)
+
+== bin_quasi (50 seeds) ==
+separation warning: 50 ; flagged sets: Dict("x" => 50)
+fit.converged true: 50 ; is_converged(fit) true: 50
+non-finite SEs per fit: Dict(1 => 50)
+logLik range: (-6.931471805599454, -3.2508297339144825) ; slope range: (371.83536956959625, 1.08000977111802e17)

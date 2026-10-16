@@ -1,0 +1,41 @@
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 9.298589886239508e-17
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Warning: Structured SD at its lower boundary for g: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels /home/user/DRModels.jl/src/boundary_diagnostics.jl:218
+Julia Version 1.12.7
+Commit 6d172b025e4 (2026-08-15 08:05 UTC)
+Build Info:
+  https://github.com/conda-forge/julia-feedstock
+
+    Note: This is an unofficial build, please report bugs to the project
+    responsible for this build and not to the Julia project unless you can
+    reproduce the issue using official builds available at https://julialang.org
+
+Platform Info:
+  OS: Linux (x86_64-conda-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor @ 2.10GHz
+  WORD_SIZE: 64
+  LLVM: libLLVM-18.1.7 (ORCJIT, sapphirerapids)
+  GC: Built with stock GC
+Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_DEPOT_PATH = /home/user/.julia
+  JULIA_PKG_SERVER = 
+DRModels 0.7.2 git HEAD f71b2923360e9e5d4591e0d6e15a9ef9db0356d7  Optim 1.13.3
+
+loglik(fit) - lm logLik = 0.0
+fit.converged = false   is_converged(fit) = false
+log sd_g = -17.82543262088136   gradient at theta-hat = [-4.3596537091517007e-7, 2.650576531593174e-7, 3.596277053929953e-8, 9.298589882895451e-15]
+stderror(fit) = [0.10143014310066456, 0.10313157933837368, 0.07071067813136954, 1.3219666753944538e-17]
+
+g_tol = 1e-6: is_converged = true   loglik change = 0.0
+primary: nll = 143.28833223372374  log sd_g = -17.825  f_converged = true  g_converged = false  |g|inf = 4.3596537091517007e-7  returned by drm: true
+restart: nll = 143.2883322337237  log sd_g = -22.092  f_converged = false  g_converged = true  |g|inf = 4.7466082175873225e-9  returned by drm: false

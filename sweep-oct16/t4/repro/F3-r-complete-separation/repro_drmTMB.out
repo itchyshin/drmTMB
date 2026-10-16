@@ -1,0 +1,87 @@
+drmTMB 0.7.1 
+R R version 4.3.3 (2024-02-29) 
+
+R seed: 933664168 ; regenerated data equal to CSV: TRUE 
+n = 50 ; successes = 28 ; max x among failures = -0.006618144 ; min x among successes = 0.09601856 
+
+fit-time warnings: 0 
+coef(mu):
+(Intercept)           x 
+  -16.50075   367.57779 
+SE:
+mu:(Intercept)           mu:x 
+      12114.04      172144.73 
+logLik: -1.28761e-08 (supremum is 0; MLE does not exist)
+opt$convergence: 0 ; opt$message: both X-convergence and relative convergence (5) 
+sdr$pdHess: TRUE 
+is_converged(): TRUE 
+is_converged(include_hessian = TRUE): TRUE 
+convergence_status(): converged 
+
+check_drm() ok attr: TRUE 
+check_drm() rows not 'ok': 0 
+   check                    status
+2  convergence_status       ok    
+9  hessian_conditioning     ok    
+10 standard_errors_finite   ok    
+11 standard_errors_inflated ok    
+   value                                                
+2  converged                                            
+9  min_eig=0.00000000003367; cond=383.4                 
+10 range=[12114.,172145.]                               
+11 n_inflated=0; max_se=172145.; reference_median=12114.
+
+-- why the SE-inflation guard stays silent (R/check.R:1340-1350) --
+all finite SEs >= floor 50, so the reference falls back to min(SE) = 12114.04 ; flag needs SE >= 1000 * min(SE) = 12114035 ; max(SE)/min(SE) = 14.21035 
+
+-- base R glm() on the same data, for contrast --
+glm WARNING: glm.fit: algorithm did not converge 
+glm WARNING: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+             Estimate Std. Error      z value  Pr(>|z|)
+(Intercept) -16.50075   7347.814 -0.002245667 0.9982082
+x           367.57779 104410.760  0.003520497 0.9971911
+
+-- contrast: quasi-complete cell bin_quasi (k = 8), rep 1 --
+regenerated equal to CSV: TRUE 
+mu:(Intercept)           mu:x 
+  1.054093e+00   6.705669e+05 
+is_converged(): FALSE ; convergence_status(): degenerate 
+   check                           status 
+2  convergence_status              note   
+9  hessian_conditioning            note   
+11 standard_errors_inflated        note   
+12 weakly_identified_fixed_effects warning
+   value                                                             
+2  degenerate                                                        
+9  min_eig=0.000000000002224; cond=404693991968.                     
+11 n_inflated=1; max_se=670567.; reference_median=1.054; example=mu:x
+12 n_inflated=1; max_se=670567.; reference_median=1.054; example=mu:x
+(caught only because the intercept SE < 50 gives a small reference scale)
+
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+
+locale:
+[1] C
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] drmTMB_0.7.1
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-19   multcomp_1.4-25    Matrix_1.6-5       lattice_0.22-5    
+ [5] TH.data_1.1-2      coda_0.19-4.1      splines_4.3.3      estimability_1.4.1
+ [9] emmeans_1.10.0     zoo_1.8-12         parallel_4.3.3     lifecycle_1.0.4   
+[13] mvtnorm_1.2-4      TMB_1.9.10         cli_3.6.2          xtable_1.8-4      
+[17] grid_4.3.3         sandwich_3.1-0     compiler_4.3.3     nlme_3.1-164      
+[21] survival_3.5-8     rlang_1.1.3        MASS_7.3-60.0.1   

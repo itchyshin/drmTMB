@@ -1,0 +1,197 @@
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     3
+│     4
+│   rcond = 4.0715755158386594e-16
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     3
+│     4
+│   rcond = 3.179400756221049e-11
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     3
+│     4
+│   rcond = 4.043296800573888e-31
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     3
+│     4
+│   rcond = 3.1048190923600828e-19
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     3
+│     4
+│   rcond = 2.312366704556895e-28
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     3
+│     4
+│   rcond = 1.878491759982134e-32
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     3
+│     4
+│   rcond = 4.1802203883747066e-23
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+Julia Version 1.12.7
+Commit 6d172b025e4 (2026-08-15 08:05 UTC)
+Build Info:
+  https://github.com/conda-forge/julia-feedstock
+
+    Note: This is an unofficial build, please report bugs to the project
+    responsible for this build and not to the Julia project unless you can
+    reproduce the issue using official builds available at https://julialang.org
+
+Platform Info:
+  OS: Linux (x86_64-conda-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor @ 2.10GHz
+  WORD_SIZE: 64
+  LLVM: libLLVM-18.1.7 (ORCJIT, sapphirerapids)
+  GC: Built with stock GC
+Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_DEPOT_PATH = /home/user/.julia
+  JULIA_PKG_SERVER = 
+DRModels 0.7.2 at /home/user/DRModels.jl/src/DRModels.jl
+DRModels git HEAD: f71b2923360e9e5d4591e0d6e15a9ef9db0356d7
+
+=== gauss_n8_r05 ===
+  loglik -3.8176918 | best finite local max (exact, f5_reference) -1.4473346
+  fit.converged true | is_converged true | iterations 17
+  theta = [0.865898, 0.207084, -0.867658, 1.03894]
+  max|grad| 7.293e-11 (absolute g_tol 1e-8) | Newton step / SE 7.963e-12 | Hessian finite true, min eig 8.828e+00, cond 3.71e+01
+  log sigma range [-2.15, 0.77], spread 2.92 (draft PR #1066 rule: spread > log(1e4) = 9.21)
+  Optim replay: same minimizer true | converged true g_converged true f_converged true x_converged false | iterations 17 (limit reached false) | g_residual 7.293e-11
+  -nll at the reference maximum -1.4473346 | restart from it: -nll -1.4473346, max|grad| 6.67e-11
+  harness multi-start (20 starts, sd 2): best -1.44733, distinct values (rounded 1e-3): -1.447, -3.818
+
+=== gauss_n8_r09 ===
+  loglik -4.6982845 | best finite local max (exact, f5_reference) -3.1499292
+  fit.converged true | is_converged true | iterations 11
+  theta = [0.845517, 0.514521, -0.790651, -0.277315]
+  max|grad| 3.485e-09 (absolute g_tol 1e-8) | Newton step / SE 8.754e-10 | Hessian finite true, min eig 3.653e+00, cond 1.85e+01
+  log sigma range [-1.16, -0.26], spread 0.90 (draft PR #1066 rule: spread > log(1e4) = 9.21)
+  Optim replay: same minimizer true | converged true g_converged true f_converged false x_converged false | iterations 11 (limit reached false) | g_residual 3.485e-09
+  -nll at the reference maximum -3.1499292 | restart from it: -nll -3.1499292, max|grad| 3.68e-12
+  harness multi-start (20 starts, sd 2): best -3.14993, distinct values (rounded 1e-3): -3.15, -4.698
+
+=== gauss_n8_r28 ===
+  loglik -0.3961064 | best finite local max (exact, f5_reference) 0.2772361
+  fit.converged true | is_converged true | iterations 13
+  theta = [1.45971, 0.854219, -1.11163, 0.454111]
+  max|grad| 5.580e-11 (absolute g_tol 1e-8) | Newton step / SE 4.660e-12 | Hessian finite true, min eig 8.884e+00, cond 8.03e+01
+  log sigma range [-2.07, -0.19], spread 1.88 (draft PR #1066 rule: spread > log(1e4) = 9.21)
+  Optim replay: same minimizer true | converged true g_converged true f_converged false x_converged false | iterations 13 (limit reached false) | g_residual 5.580e-11
+  -nll at the reference maximum 0.2772361 | restart from it: -nll 0.2772361, max|grad| 3.30e-09
+  harness multi-start (20 starts, sd 2): best 0.27724, distinct values (rounded 1e-3): 0.277, -0.396
+
+=== gauss_n8_r04 ===
+  loglik 6.7247381 | best finite local max (exact, f5_reference) 6.7247381
+  fit.converged false | is_converged false | iterations 68
+  theta = [0.900049, -0.0314225, -6.00832, 10.0806]
+  max|grad| 8.539e-03 (absolute g_tol 1e-8) | Newton step / SE 8.268e-11 | Hessian finite true, min eig 1.745e-01, cond 2.56e+15
+  log sigma range [-16.45, 3.36], spread 19.81 (draft PR #1066 rule: spread > log(1e4) = 9.21)
+  Optim replay: same minimizer true | converged false g_converged false f_converged false x_converged false | iterations 68 (limit reached false) | g_residual 8.539e-03
+  -nll at the reference maximum 6.7247381 | restart from it: -nll 6.7247381, max|grad| 8.54e-03
+  harness multi-start (20 starts, sd 2): best 6.72474, distinct values (rounded 1e-3): 6.725
+
+=== gauss_n8_r29 ===
+  loglik 7.1393693 | best finite local max (exact, f5_reference) 7.1393693
+  fit.converged false | is_converged false | iterations 65
+  theta = [1.52947, 1.02666, -2.98072, 4.42334]
+  max|grad| 1.162e-06 (absolute g_tol 1e-8) | Newton step / SE 5.144e-13 | Hessian finite true, min eig 5.423e-01, cond 3.15e+10
+  log sigma range [-11.05, 1.70], spread 12.75 (draft PR #1066 rule: spread > log(1e4) = 9.21)
+  Optim replay: same minimizer true | converged false g_converged false f_converged false x_converged false | iterations 65 (limit reached false) | g_residual 4.348e-07
+  -nll at the reference maximum 7.1393693 | restart from it: -nll 7.1393693, max|grad| 1.91e-07
+  harness multi-start (20 starts, sd 2): best 7.13937, distinct values (rounded 1e-3): 7.139
+
+=== gauss_n8_r30 ===
+  loglik 14.7478177 | best finite local max (exact, f5_reference) 16.4299206
+  fit.converged false | is_converged false | iterations 63
+  theta = [1.44076, 1.23935, -18.1678, -21.0695]
+  max|grad| 1.957e+07 (absolute g_tol 1e-8) | Newton step / SE 3.623e-09 | Hessian finite true, min eig -2.576e+15, cond 1.07e+32
+  log sigma range [-35.69, 19.21], spread 54.90 (draft PR #1066 rule: spread > log(1e4) = 9.21)
+  Optim replay: same minimizer true | converged false g_converged false f_converged false x_converged false | iterations 63 (limit reached false) | g_residual 6.880e+23
+  -nll at the reference maximum -21089195208960513650196480.0000000 | restart from it: -nll -5272298802240128412549120.0000000, max|grad| 2.72e+12
+  harness multi-start (20 starts, sd 2): best 15.07831, distinct values (rounded 1e-3): 15.078, 14.432, 14.31, 14.153, 14.026, 13.546
+
+=== gauss_n8_r31 ===
+  loglik -4.4063581 | best finite local max (exact, f5_reference) -4.4063581
+  fit.converged false | is_converged false | iterations 67
+  theta = [2.16059, -0.796795, 6.98164, -12.0898]
+  max|grad| 8.367e+02 (absolute g_tol 1e-8) | Newton step / SE 1.114e-07 | Hessian finite true, min eig -8.385e+02, cond 3.76e+20
+  log sigma range [-21.30, 10.81], spread 32.12 (draft PR #1066 rule: spread > log(1e4) = 9.21)
+  Optim replay: same minimizer true | converged false g_converged false f_converged false x_converged false | iterations 67 (limit reached false) | g_residual 8.198e+02
+  -nll at the reference maximum -4.4063581 | restart from it: -nll -4.4063581, max|grad| 8.20e+02
+  harness multi-start (20 starts, sd 2): best -4.40636, distinct values (rounded 1e-3): -4.406
+
+=== gauss_n8_r06 ===
+  loglik 32.8036609 | best finite local max (exact, f5_reference) NA
+  fit.converged false | is_converged false | iterations 78
+  theta = [1.18683, 0.775452, -12.2298, 9.20127]
+  max|grad| 6.675e+06 (absolute g_tol 1e-8) | Newton step / SE 4.355e-02 | Hessian finite true, min eig -1.758e+12, cond 4.36e+30
+  log sigma range [-31.56, 3.05], spread 34.60 (draft PR #1066 rule: spread > log(1e4) = 9.21)
+  Optim replay: same minimizer true | converged false g_converged false f_converged false x_converged false | iterations 78 (limit reached false) | g_residual 6.675e+06
+  harness multi-start (20 starts, sd 2): best 43.18434, distinct values (rounded 1e-3): 43.184, 38.714, 34.042, 32.116, 30.447, 29.913
+
+=== gauss_n8_r19 ===
+  loglik 17.2880060 | best finite local max (exact, f5_reference) NA
+  fit.converged false | is_converged false | iterations 64
+  theta = [1.05644, 1.04537, -5.28764, -18.8311]
+  max|grad| 2.711e+03 (absolute g_tol 1e-8) | Newton step / SE 6.289e-13 | Hessian finite true, min eig -3.419e+14, cond 3.94e+32
+  log sigma range [-35.04, 8.29], spread 43.33 (draft PR #1066 rule: spread > log(1e4) = 9.21)
+  Optim replay: same minimizer true | converged false g_converged false f_converged false x_converged false | iterations 64 (limit reached false) | g_residual 5.580e+19
+  harness multi-start (20 starts, sd 2): best 19.22684, distinct values (rounded 1e-3): 19.227, 18.158, 17.134, 16.984, 16.368, 14.233
+
+=== gauss_n8_r49 ===
+  loglik -3.4981175 | best finite local max (exact, f5_reference) -3.4981175
+  fit.converged false | is_converged false | iterations 63
+  theta = [0.807385, 1.00921, -1.60463, -11.1302]
+  max|grad| 1.725e-01 (absolute g_tol 1e-8) | Newton step / SE 4.530e-12 | Hessian finite true, min eig -4.624e+04, cond 7.06e+22
+  log sigma range [-23.68, 9.27], spread 32.94 (draft PR #1066 rule: spread > log(1e4) = 9.21)
+  Optim replay: same minimizer true | converged false g_converged false f_converged false x_converged false | iterations 63 (limit reached false) | g_residual 1.725e-01
+  -nll at the reference maximum -3.4981175 | restart from it: -nll -3.4981175, max|grad| 1.72e-01
+  harness multi-start (20 starts, sd 2): best -3.49812, distinct values (rounded 1e-3): -3.498
+EXIT 0

@@ -1,0 +1,5 @@
+Julia 1.12.7 | DRModels 0.7.2 | HEAD f71b2923360e9e5d4591e0d6e15a9ef9db0356d7
+r05 loglik -3.81769  converged true  is_converged true | -nll at the other maximum -1.44733
+r09 loglik -4.69828  converged true  is_converged true | -nll at the other maximum -3.14993
+r28 loglik -0.39611  converged true  is_converged true | -nll at the other maximum 0.27724
+r04 loglik 6.7247381 (engine-independent maximum 6.7247381)  converged false | max|grad| 8.54e-03 | min log sigma -16.45

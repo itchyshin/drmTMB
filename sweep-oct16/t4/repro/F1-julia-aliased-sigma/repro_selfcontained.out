@@ -1,0 +1,38 @@
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates = Int64[]
+│   rcond = 6.854876627057048e-17
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Info: check_drm
+│   converged = true
+│   max_abs_grad = 2.9578728355517114e-10
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = false
+│   min_eigval = 7.637752169352557e-19
+│   cond = 1.186414164095307e16
+│   penalized_map = false
+└   ok = false
+DRModels 0.7.2 f71b2923360e9e5d4591e0d6e15a9ef9db0356d7; Julia 1.12.7
+is_converged(fit) = true   logLik full / reduced = -99.90098583120535 / -99.90098583120535
+────────────────────────────────────────────────────────────────────────────────
+                     Estimate  Std.Error      z  Pr(>|z|)   Lower 95%  Upper 95%
+────────────────────────────────────────────────────────────────────────────────
+mu: (Intercept)      0.882099  0.0775677  11.37    <1e-29   0.730069    1.03413
+mu: x                0.493235  0.0672203   7.34    <1e-12   0.361485    0.624984
+sigma: (Intercept)  -0.366724  0.0722346  -5.08    <1e-06  -0.508301   -0.225147
+sigma: x             0.144005  0.0399483   3.60    0.0003   0.0657074   0.222302
+sigma: xdup          0.144005  0.0399483   3.60    0.0003   0.0657074   0.222302
+────────────────────────────────────────────────────────────────────────────────
+───────────────────────────────────────────────────────────────────────────────
+                     Estimate  Std.Error      z  Pr(>|z|)  Lower 95%  Upper 95%
+───────────────────────────────────────────────────────────────────────────────
+mu: (Intercept)      0.882099  0.0775677  11.37    <1e-29   0.730069   1.03413
+mu: x                0.493235  0.0672203   7.34    <1e-12   0.361485   0.624984
+sigma: (Intercept)  -0.366724  0.0722346  -5.08    <1e-06  -0.508301  -0.225147
+sigma: x             0.288009  0.0798967   3.60    0.0003   0.131415   0.444604
+───────────────────────────────────────────────────────────────────────────────
+check_drm: ok = false, vcov_posdef = false, min_eigval = 7.637752169352557e-19

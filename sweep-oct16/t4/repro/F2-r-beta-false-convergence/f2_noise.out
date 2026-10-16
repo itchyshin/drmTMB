@@ -1,0 +1,59 @@
+drmTMB 0.7.1 from /usr/local/lib/R/site-library/drmTMB  TMB 1.9.10  Rmpfr 0.9.5 
+WARNING: `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+i Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit. 
+
+At the returned optimum:
+  obj$fn    = -383.039877830539808
+  exact     = -383.039877818330638
+  dbeta()   = -383.039877818330581
+  obj$fn - exact = -1.221e-08 ; dbeta - exact = 5.684e-14
+
+1. obj$fn - exact on 41-point lines p0 + t*e_j, |t| <= 1e-6 (absolute units)
+  coord 1 (beta_mu): TMB err mean -9.03e-09 sd 3.02e-09 range [-1.60e-08, -2.02e-09] | dbeta err sd 7.46e-14 max|.| 2.27e-13
+  coord 2 (beta_mu): TMB err mean -8.65e-09 sd 3.47e-09 range [-1.65e-08, 4.80e-10] | dbeta err sd 6.37e-14 max|.| 2.27e-13
+  coord 3 (beta_sigma): TMB err mean -8.49e-11 sd 8.31e-09 range [-1.60e-08, 1.63e-08] | dbeta err sd 6.63e-14 max|.| 1.71e-13
+
+2. per-observation error of the lgamma-difference form (double, R's lgamma) at phi = 8447.0:
+   max|err| 1.78e-11, sd 5.81e-12, sum 2.75e-10; typical term size |lgamma(a+b)| = 67924
+
+3. nlminb rel.tol * |f| = 1e-10 * 383.0 = 3.83e-08
+
+4. central second difference f(p+h)-2f(p)+f(p-h) along beta_sigma, TMB vs exact (true value ~ H*h^2, H ~ 200)
+   h = 1e-04 : TMB 2.028e-06  exact 2.000e-06
+   h = 1e-05 : TMB 2.015e-08  exact 2.000e-08
+   h = 1e-06 : TMB 2.720e-08  exact 2.000e-10
+   h = 1e-07 : TMB 1.240e-08  exact 1.933e-12
+   h = 1e-08 : TMB 4.997e-08  exact 0.000e+00
+   h = 1e-09 : TMB 2.312e-08  exact 0.000e+00
+
+sessionInfo():
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+
+locale:
+[1] C
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] Rmpfr_0.9-5  gmp_0.7-4    drmTMB_0.7.1
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-19   multcomp_1.4-25    Matrix_1.6-5       lattice_0.22-5    
+ [5] TH.data_1.1-2      coda_0.19-4.1      splines_4.3.3      estimability_1.4.1
+ [9] emmeans_1.10.0     zoo_1.8-12         parallel_4.3.3     lifecycle_1.0.4   
+[13] mvtnorm_1.2-4      TMB_1.9.10         cli_3.6.2          xtable_1.8-4      
+[17] grid_4.3.3         sandwich_3.1-0     compiler_4.3.3     nlme_3.1-164      
+[21] survival_3.5-8     rlang_1.1.3        MASS_7.3-60.0.1   

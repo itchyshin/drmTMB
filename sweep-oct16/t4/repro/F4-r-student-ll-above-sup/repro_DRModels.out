@@ -1,0 +1,84 @@
+DRModels 0.7.2 at /home/user/DRModels.jl/src/DRModels.jl
+DRModels git HEAD: f71b2923360e9e5d4591e0d6e15a9ef9db0356d7
+
+ rep     eta_nu                 logLik            Gaussian ML         diff  converged  nwarn first warning (truncated)
+   1     3.0358      -144.320486735789      -144.497222055922   +1.767e-01       true      0 
+   2     4.6234      -150.359186181388      -150.367031001346   +7.845e-03       true      0 
+   3    40.6354      -133.408659296521      -133.408659296521   +2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+   4    42.4329      -140.067890495140      -140.067890495140   +2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+   5    36.7971      -133.339026799338      -133.339026799338   +0.000e+00      false      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+   6    41.4058      -133.522185509769      -133.522185509769   +2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+   7    31.9608      -145.387845630447      -145.387845630447   -8.527e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+   8     2.2441      -143.847953437250      -144.193498572311   +3.455e-01       true      0 
+   9     4.7869      -139.806274047375      -139.809882419710   +3.608e-03       true      0 
+  10    43.3884      -146.819329403445      -146.819329403445   -2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  11    43.3790      -136.335866592956      -136.335866592956   +5.684e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  12    44.0822      -133.726780976014      -133.726780976014   +2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  13     2.7258      -144.199237699899      -144.517149816699   +3.179e-01       true      0 
+  14    44.3774      -126.391411789051      -126.391411789051   +2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  15    40.8838      -145.264524829749      -145.264524829749   +2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  16     2.0256      -141.935867721713      -142.815484587708   +8.796e-01       true      0 
+  17    41.2381      -140.727382356240      -140.727382356240   -5.684e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  18    37.6297      -136.548645694881      -136.548645694881   +0.000e+00      false      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  19    42.0216      -134.241535170486      -134.241535170485   -5.684e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  20    42.9394      -137.362431076155      -137.362431076155   +8.527e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  21    39.3253      -142.263056906916      -142.263056906916   +5.684e-14      false      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  22    43.6379      -136.392343720427      -136.392343720427   -8.527e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  23    42.9742      -145.975305013007      -145.975305013007   +0.000e+00       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  24    44.2398      -136.926760994204      -136.926760994204   +0.000e+00       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  25    38.2050      -153.888386113559      -153.888386113559   +2.842e-14      false      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  26    42.8305      -138.603944372706      -138.603944372706   +0.000e+00       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  27    42.2829      -131.569512731540      -131.569512731540   +2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  28     1.7541      -148.079824762153      -149.529163578251   +1.449e+00       true      0 
+  29     4.3773      -144.098177874514      -144.111018050231   +1.284e-02       true      0 
+  30    43.0471      -138.158915091360      -138.158915091359   -2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  31     3.2208      -134.438950081356      -134.516241568430   +7.729e-02       true      0 
+  32    37.4392      -140.480745521975      -140.480745521975   +5.684e-14      false      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  33    37.8939      -133.277971893451      -133.277971893451   -2.842e-14      false      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  34     3.4245      -131.436538996882      -131.486254588185   +4.972e-02       true      0 
+  35    43.8255      -144.406027801688      -144.406027801688   +2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  36    44.2290      -141.342521375803      -141.342521375803   +0.000e+00       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  37     1.3063      -134.364398278087      -136.206626324419   +1.842e+00       true      0 
+  38    32.4199      -142.653228129734      -142.653228129734   -2.842e-14      false      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  39    43.0223      -153.581310275441      -153.581310275441   +5.684e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  40    42.0640      -145.458980084338      -145.458980084338   +5.684e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  41     0.8621      -140.283077773779      -142.642809772876   +2.360e+00       true      0 
+  42     4.6813      -141.049160418166      -141.052406368011   +3.246e-03       true      0 
+  43    35.1590      -149.220774493712      -149.220774493712   +0.000e+00      false      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  44    44.2976      -143.278547141709      -143.278547141709   +2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  45    41.8775      -138.965100776891      -138.965100776891   -2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  46    41.4507      -147.490099620436      -147.490099620436   +8.527e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  47    42.6610      -141.150338510727      -141.150338510727   +5.684e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  48    42.9215      -147.154317830054      -147.154317830054   -2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+  49     3.5863      -128.980545432198      -129.033930003596   +5.338e-02       true      0 
+  50    42.5998      -145.031025125909      -145.031025125909   +2.842e-14       true      1 Hessian is numerically singular at the optimum — using a pseudo-invers
+
+reps whose DRModels Student logLik is within 1e-6 of the Gaussian ML (boundary): 36
+max (logLik - Gaussian ML) over those: +8.527e-14   min: -8.527e-14
+
+DRModels' stable Student kernel evaluated at drmTMB's own estimates (same CSV):
+rep  4: eta_nu=  15.3731  ll_DRModels_kernel(theta_drmTMB) - Gaussian ML = -2.098e-06
+rep 17: eta_nu=  14.2131  ll_DRModels_kernel(theta_drmTMB) - Gaussian ML = -9.420e-07
+rep 20: eta_nu=  14.7822  ll_DRModels_kernel(theta_drmTMB) - Gaussian ML = -2.766e-06
+rep 46: eta_nu=  14.8127  ll_DRModels_kernel(theta_drmTMB) - Gaussian ML = -2.579e-06
+rep 15: eta_nu= 120.7589  ll_DRModels_kernel(theta_drmTMB) - Gaussian ML = -6.764e+00
+
+Julia Version 1.12.7
+Commit 6d172b025e4 (2026-08-15 08:05 UTC)
+Build Info:
+  https://github.com/conda-forge/julia-feedstock
+
+    Note: This is an unofficial build, please report bugs to the project
+    responsible for this build and not to the Julia project unless you can
+    reproduce the issue using official builds available at https://julialang.org
+
+Platform Info:
+  OS: Linux (x86_64-conda-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor @ 2.10GHz
+  WORD_SIZE: 64
+  LLVM: libLLVM-18.1.7 (ORCJIT, sapphirerapids)
+  GC: Built with stock GC
+Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_DEPOT_PATH = /home/user/.julia
+  JULIA_PKG_SERVER = 

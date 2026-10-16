@@ -1,0 +1,176 @@
+R: R version 4.3.3 (2024-02-29) 
+check P vs direct WLS at g = (-0.3, 0.2): -19.855147586697 vs -19.855147586697
+check P vs direct WLS at g = (-2, 1.5): -439.706378727940 vs -439.706378727940
+check P vs direct WLS at g = (0.5, -1): -30.979138935477 vs -30.979138935477
+
+== 1. existence criterion over all 150 Gaussian datasets ==
+           unbounded
+cell        FALSE TRUE
+  gauss_n12    50    0
+  gauss_n20    50    0
+  gauss_n8     47    3
+datasets with slope > -0.05 (unbounded, or bounded with a near-flat ridge):
+     cell rep        slope k j
+ gauss_n8   6  1.311016990 1 7
+ gauss_n8  19  0.661923757 8 7
+ gauss_n8  30 -0.007364120 3 6
+ gauss_n8  49  0.000231901 2 7
+
+== 2. profile with log sigma at the spike observation fixed at -c ==
+
+r06  analytic slope 1.31102 (k = 1, j = 7)
+      c            P_c     dP_dc
+      5     -3.5263790        NA
+     10      4.2346243 1.5522007
+     20     19.6691880 1.5434564
+     40     48.8955057 1.4613159
+     80    103.7415259 1.3711505
+    160    211.4819636 1.3467555
+    320    424.2001924 1.3294889
+   1000   1316.3322111 1.3119589
+  10000  13115.4851808 1.3110170
+ 100000 131107.0143116 1.3110170
+
+r19  analytic slope 0.661924 (k = 8, j = 7)
+      c           P_c      dP_dc
+      5    -1.3644053         NA
+     10     2.9991684 0.87271474
+     20    10.4443874 0.74452189
+     40    24.2583385 0.69069756
+     80    50.8936632 0.66588312
+    160   103.8551332 0.66201838
+    320   209.7629522 0.66192387
+   1000   659.8711069 0.66192376
+  10000  6617.1849198 0.66192376
+ 100000 66190.3230481 0.66192376
+
+r49  analytic slope 0.000231901 (k = 2, j = 7)
+      c        P_c          dP_dc
+      5 -5.0643512             NA
+     10 -4.3148143  0.14990737229
+     20 -3.5409574  0.07738569109
+     40 -3.8012594 -0.01301509893
+     80 -4.2770374 -0.01189445069
+    160 -4.3545646 -0.00096909028
+    320 -4.3197305  0.00021771348
+   1000 -4.1620392  0.00023189890
+  10000 -2.0749335  0.00023190063
+ 100000 18.7961235  0.00023190063
+
+r30  analytic slope -0.00736412 (k = 3, j = 6)
+      c          P_c         dP_dc
+      5    2.1481406            NA
+     10    5.4706838  0.6645086552
+     20   10.2458766  0.4775192792
+     40   15.5411291  0.2647626217
+     80   16.3632018  0.0205518192
+    160   15.7815147 -0.0072710896
+    320   14.6032557 -0.0073641184
+   1000    9.5956542 -0.0073641199
+  10000  -56.6814249 -0.0073641199
+ 100000 -719.4522158 -0.0073641199
+
+r04  analytic slope -0.288056 (k = 4, j = 8)
+      c            P_c       dP_dc
+      5 -2.4551584e+00          NA
+     10  4.0187473e+00  1.29478114
+     20  6.3037720e+00  0.22850247
+     40  7.7102528e-01 -0.27663734
+     80 -1.0751125e+01 -0.28805375
+    160 -3.3795633e+01 -0.28805635
+    320 -7.9884648e+01 -0.28805635
+   1000 -2.7576296e+02 -0.28805635
+  10000 -2.8682701e+03 -0.28805635
+ 100000 -2.8793341e+04 -0.28805635
+
+r31  analytic slope -0.674982 (k = 3, j = 6)
+      c            P_c       dP_dc
+      5     -6.4119966          NA
+     10     -5.4979294  0.18281345
+     20     -4.4283152  0.10696142
+     40    -10.7507988 -0.31612418
+     80    -37.4432671 -0.66731171
+    160    -91.4417963 -0.67498161
+    320   -199.4389680 -0.67498232
+   1000   -658.4269479 -0.67498232
+  10000  -6733.2678578 -0.67498232
+ 100000 -67481.6769568 -0.67498232
+
+r29  analytic slope -0.426161 (k = 5, j = 4)
+      c            P_c       dP_dc
+      5  1.8933883e+00          NA
+     10  7.0450268e+00  1.03032772
+     20  5.4505017e+00 -0.15945252
+     40  9.7231924e-04 -0.27247647
+     80 -1.4924479e+01 -0.37313629
+    160 -4.8774913e+01 -0.42313042
+    320 -1.1695915e+02 -0.42615145
+   1000 -4.0674862e+02 -0.42616099
+  10000 -4.2421975e+03 -0.42616099
+ 100000 -4.2596687e+04 -0.42616099
+
+== 3. all local maxima of the exact likelihood (gauss_n8; grid scan + polish) ==
+columns: ll, g0, g1 = the polished maximum; grid_edge = 1 if the scan max sat on the box edge
+ or the polish ran beyond |g| = 1000 (no finite maximum in that direction);
+ max_abs_grad / max_eig = gradient and largest Hessian eigenvalue of P there (local max: ~0 and < 0);
+ min_ls / max_ls = fitted log sigma range; b0, b1 = the mean line at that maximum.
+scan time 251 s
+number of distinct maxima found per dataset (interior + edge):
+nmax
+ 1  2 
+44  6 
+
+datasets with more than one maximum or an edge maximum:
+ rep rank            ll            g0            g1 grid_edge max_abs_grad
+   5    1    -1.4473346    -1.4548979    -3.0420365         0 1.322542e-07
+   5    2    -3.8176918    -0.8676579     1.0389394         0 3.296141e-07
+   6    1 16812.1562806 -5000.0000000  3723.1546631         1 3.163202e+00
+   9    1    -3.1499292    -1.3209085     2.0000361         0 2.166711e-07
+   9    2    -4.6982845    -0.7906511    -0.2773150         0 2.997691e-07
+  19    1  6107.9310218 -1330.4302961 -5000.0000000         1 1.221833e+00
+  21    1    -5.7916723    -0.5537474    -2.1952083         0 1.602052e-07
+  21    2   -10.0134373    -0.1876586     0.3170776         0 2.446932e-07
+  28    1     0.2772361    -3.0166713    -2.7533529         0 7.969181e-08
+  28    2    -0.3961064    -1.1116266     0.4541108         0 3.482103e-07
+  30    1    16.4299206   -31.4809208   -39.2945049         0 7.869261e-08
+  30    2    -4.1760756     0.1306733     1.4416872         0 2.105516e-07
+  37    1    -0.9335120    -2.5409418    -1.7629311         0 4.407141e-08
+  37    2    -4.5309117    -0.5604028     0.4158246         0 2.545608e-07
+       max_eig        min_ls       max_ls         b0          b1
+ -9.533720e-01 -6.251403e+00    2.2955543 0.62897981  1.85913573
+ -1.059698e+01 -2.148541e+00    0.7704809 0.86589768  0.20708367
+ -3.428569e-05 -1.281982e+04 1181.2396362 1.18682566  0.77545186
+ -1.495905e+00 -5.119221e+00    1.3633050 0.57975945  0.01155896
+ -4.722554e+00 -1.162831e+00   -0.2639960 0.84551693  0.51452136
+ -2.745205e-05 -9.230667e+03 2273.4165579 1.05646476  1.04535028
+ -2.826697e+00 -4.705388e+00    1.8636123 0.28888352  1.85902331
+ -2.203869e+00 -5.368239e-01    0.4120077 1.04378617  0.39531607
+ -5.566579e-01 -8.599715e+00    2.8007028 1.55547165  0.42682448
+ -9.206063e+00 -2.071087e+00   -0.1908145 1.45970711  0.85421938
+ -1.483897e-03 -6.415933e+01   38.2205825 1.44075622  1.23935208
+ -1.977194e+00 -2.426625e+00    1.3296208 0.09144296 -0.22216842
+ -1.329893e+00 -5.791801e+00    1.0774197 1.05134504  0.85062656
+ -3.056045e+00 -1.413870e+00    0.2063811 0.77488361  0.34001655
+
+== 4. engine estimates (sweep run 1) on the exact likelihood, and nearest reference maximum ==
+r04 drmTMB      converged=TRUE  reported ll 6.1562015 | exact ll at its estimate 6.3621961 | log sigma range [-13.86, 2.43] | best finite max 6.7247381
+r04 DRModels.jl converged=false reported ll 6.7247381 | exact ll at its estimate 6.7247380 | log sigma range [-16.45, 3.36] | best finite max 6.7247381
+r05 drmTMB      converged=TRUE  reported ll -3.8176918 | exact ll at its estimate -3.8176918 | log sigma range [-2.15, 0.77] | best finite max -1.4473346
+r05 DRModels.jl converged=true  reported ll -3.8176918 | exact ll at its estimate -3.8176918 | log sigma range [-2.15, 0.77] | best finite max -1.4473346
+r06 drmTMB      converged=TRUE  reported ll 16.3764148 | exact ll at its estimate n/a (rounded coefs) | log sigma range [-26.57, 1.62] | best finite max -Inf (likelihood unbounded)
+r06 DRModels.jl converged=false reported ll 32.8036609 | exact ll at its estimate n/a (rounded coefs) | log sigma range [-31.56, 3.05] | best finite max -Inf (likelihood unbounded)
+r09 drmTMB      converged=TRUE  reported ll -4.6982845 | exact ll at its estimate -4.6982845 | log sigma range [-1.16, -0.26] | best finite max -3.1499292
+r09 DRModels.jl converged=true  reported ll -4.6982845 | exact ll at its estimate -4.6982845 | log sigma range [-1.16, -0.26] | best finite max -3.1499292
+r19 drmTMB      converged=TRUE  reported ll 6.1569780 | exact ll at its estimate 7.4370015 | log sigma range [-15.85, 2.56] | best finite max -Inf (likelihood unbounded)
+r19 DRModels.jl converged=false reported ll 17.2880060 | exact ll at its estimate n/a (rounded coefs) | log sigma range [-35.04, 8.29] | best finite max -Inf (likelihood unbounded)
+r28 drmTMB      converged=TRUE  reported ll -0.3961064 | exact ll at its estimate -0.3961064 | log sigma range [-2.07, -0.19] | best finite max 0.2772361
+r28 DRModels.jl converged=true  reported ll -0.3961064 | exact ll at its estimate -0.3961064 | log sigma range [-2.07, -0.19] | best finite max 0.2772361
+r29 drmTMB      converged=TRUE  reported ll 7.1393693 | exact ll at its estimate 7.1393693 | log sigma range [-11.05, 1.70] | best finite max 7.1393693
+r29 DRModels.jl converged=false reported ll 7.1393693 | exact ll at its estimate 7.1393693 | log sigma range [-11.05, 1.70] | best finite max 7.1393693
+r30 drmTMB      converged=TRUE  reported ll 7.3354283 | exact ll at its estimate 7.8193144 | log sigma range [-14.56, 6.01] | best finite max 16.4299206
+r30 DRModels.jl converged=false reported ll 14.7478177 | exact ll at its estimate n/a (rounded coefs) | log sigma range [-35.69, 19.21] | best finite max 16.4299206
+r31 drmTMB      converged=TRUE  reported ll -5.1034978 | exact ll at its estimate -5.0515901 | log sigma range [-13.14, 6.29] | best finite max -4.4063581
+r31 DRModels.jl converged=false reported ll -4.4063581 | exact ll at its estimate n/a (rounded coefs) | log sigma range [-21.30, 10.81] | best finite max -4.4063581
+r49 drmTMB      converged=TRUE  reported ll -4.0027898 | exact ll at its estimate -3.9690094 | log sigma range [-12.98, 4.53] | best finite max -3.4981175
+r49 DRModels.jl converged=false reported ll -3.4981175 | exact ll at its estimate n/a (rounded coefs) | log sigma range [-23.68, 9.27] | best finite max -3.4981175
+EXIT 0

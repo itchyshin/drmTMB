@@ -1,0 +1,99 @@
+is_converged.drmTMB                installed == pin: TRUE
+convergence_status.drmTMB          installed == pin: TRUE
+drm_optimizer_converged            installed == pin: TRUE
+drm_inference_degenerate           installed == pin: TRUE
+drm_standard_errors_pathological   installed == pin: TRUE
+drm_fixed_effect_rank_deficient    installed == pin: TRUE
+drm_inference_at_boundary          installed == pin: TRUE
+check_standard_errors_inflated     installed == pin: TRUE
+convergence_status.drmTMB_julia exists: FALSE 
+is_converged.drmTMB_julia: function (object, include_hessian = FALSE, ...)  {     isTRUE(object$opt$convergence == 0L) } 
+
+               cell  n R_T J_T disagree
+        beta_phi1e4 50  47  50        3
+       bin_complete 50  50  50        0
+          bin_quasi 50   0  50       50
+ collin_sigma_exact 50   0  50       50
+  collin_sigma_near 50   0  50       50
+          gauss_n12 50  50  50        0
+          gauss_n20 50  50  50        0
+           gauss_n8 50  50  43        7
+       nb2_poisdata 50  17  49       32
+           pois_n12 50  50  50        0
+           pois_n20 50  50  50        0
+            pois_n8 50  50  50        0
+          re_sd1e-4 50  50  28       22
+  student_gaussdata 50  20  42       22
+total disagree: 236 of 700 
+
+ rep opt_code     status pdHess se_pathological        logLik    loglik
+  11        0 degenerate  FALSE           FALSE -1.363359e+02 -136.3359
+  15        0 degenerate  FALSE           FALSE  1.020847e+40 -145.2645
+  26        0 degenerate  FALSE           FALSE -1.386039e+02 -138.6039
+  27        0 degenerate  FALSE           FALSE -1.315695e+02 -131.5695
+  30        0 degenerate  FALSE           FALSE -1.381588e+02 -138.1589
+  35        0 degenerate  FALSE           FALSE -1.444060e+02 -144.4060
+  47        0 degenerate   TRUE            TRUE -1.411503e+02 -141.1503
+   3        1 degenerate   TRUE           FALSE -1.334087e+02 -133.4087
+   6        1 degenerate   TRUE           FALSE -1.335222e+02 -133.5222
+  10        1 degenerate  FALSE           FALSE -1.468193e+02 -146.8193
+  12        1 degenerate  FALSE           FALSE -1.337268e+02 -133.7268
+  14        1 degenerate  FALSE           FALSE -1.263899e+02 -126.3914
+  22        1 degenerate  FALSE           FALSE -1.363923e+02 -136.3923
+  23        1 degenerate   TRUE            TRUE -1.459753e+02 -145.9753
+  24        1 degenerate  FALSE           FALSE -1.369268e+02 -136.9268
+  36        1 degenerate   TRUE           FALSE -1.413425e+02 -141.3425
+  39        1 degenerate   TRUE           FALSE -1.535813e+02 -153.5813
+  40        1 degenerate  FALSE           FALSE -1.454590e+02 -145.4590
+  44        1 degenerate  FALSE           FALSE -1.432760e+02 -143.2785
+  45        1 degenerate   TRUE           FALSE -1.389651e+02 -138.9651
+  48        1 degenerate  FALSE           FALSE -1.471542e+02 -147.1543
+  50        1 degenerate   TRUE           FALSE -1.450310e+02 -145.0310
+           dLL
+  6.232136e-06
+  1.020847e+40
+  3.518211e-06
+  1.092340e-07
+  1.262998e-04
+  2.329663e-05
+  2.240024e-06
+  4.595310e-06
+  1.512100e-08
+  6.600135e-05
+ -1.146841e-06
+  1.505870e-03
+  1.567609e-05
+ -2.058543e-06
+  1.876198e-06
+  2.355124e-06
+  3.794052e-06
+  1.468673e-05
+  2.517513e-03
+  1.330426e-05
+  8.356948e-05
+ -6.039960e-07
+
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+
+locale:
+[1] C
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-19   multcomp_1.4-25    Matrix_1.6-5       lattice_0.22-5    
+ [5] drmTMB_0.7.1       TH.data_1.1-2      coda_0.19-4.1      splines_4.3.3     
+ [9] estimability_1.4.1 emmeans_1.10.0     zoo_1.8-12         parallel_4.3.3    
+[13] lifecycle_1.0.4    mvtnorm_1.2-4      TMB_1.9.10         cli_3.6.2         
+[17] xtable_1.8-4       grid_4.3.3         sandwich_3.1-0     compiler_4.3.3    
+[21] nlme_3.1-164       survival_3.5-8     rlang_1.1.3        MASS_7.3-60.0.1   
