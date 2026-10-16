@@ -1,0 +1,11 @@
+engine,cell,family,re,check,status,pass,detail,time_s
+DRModels,poisson_re,poisson,true,fit,ok,true,"converged=true loglik=-125.41950237712696 iter=-1",19.172736167907715
+DRModels,poisson_re,poisson,true,predict_response_mu,ok,true,"n=3 range=(1.5304139205979832, 2.0662926125392898)",0.769212007522583
+DRModels,poisson_re,poisson,true,predict_link_mu,ok,true,"n=3 range=(0.4255382351545388, 0.725755993068956)",0.00022077560424804688
+DRModels,poisson_re,poisson,true,predict_parameters,ok,true,"keys=mu missing=",0.15840482711791992
+DRModels,poisson_re,poisson,true,newdata_unseen_level,error_ok,true,"ArgumentError: only one level found: z (need at least two to compute contrasts).",0.004168987274169922
+DRModels,poisson_re,poisson,true,char_vs_factor,error,false,"ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: c] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",0.409987211227417
+DRModels,poisson_re,poisson,true,se.fit_predict,ok,true,"se range=(0.2310838664897196, 0.3097501422119198)",0.35224413871765137
+DRModels,poisson_re,poisson,true,simulate_mean_vs_fitted,ok,true,"max_z=2.1700713611864852 n=80",1.122737169265747
+DRModels,poisson_re,poisson,true,simulate_var_vs_fitted,ok,true,"max_z=2.2553103279619537",0
+DRModels,poisson_re,poisson,true,simulate_newdata,no_formal,false,"simulate(fit; nsim, rng) has no newdata; draws are training rows",0

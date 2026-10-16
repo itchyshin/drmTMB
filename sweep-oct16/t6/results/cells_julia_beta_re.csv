@@ -1,0 +1,11 @@
+engine,cell,family,re,check,status,pass,detail,time_s
+DRModels,beta_re,beta,true,fit,ok,true,"converged=true loglik=52.72502901091981 iter=-1",20.496920108795166
+DRModels,beta_re,beta,true,predict_response_mu,ok,true,"n=3 range=(0.5130445754166951, 0.6184345424098388)",0.6634049415588379
+DRModels,beta_re,beta,true,predict_link_mu,ok,true,"n=3 range=(0.0521901447827445, 0.482908937891393)",0.0002200603485107422
+DRModels,beta_re,beta,true,predict_parameters,ok,true,"keys=mu/sigma missing=",0.471937894821167
+DRModels,beta_re,beta,true,newdata_unseen_level,error_ok,true,"ArgumentError: only one level found: z (need at least two to compute contrasts).",0.004506111145019531
+DRModels,beta_re,beta,true,char_vs_factor,error,false,"ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: c] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",0.4716808795928955
+DRModels,beta_re,beta,true,se.fit_predict,ok,true,"se range=(0.03379845770743651, 0.03679170950703523)",0.48499608039855957
+DRModels,beta_re,beta,true,simulate_mean_vs_fitted,ok,true,"max_z=2.536430254620494 n=80",1.0893969535827637
+DRModels,beta_re,beta,true,simulate_var_vs_fitted,ok,true,"max_z=2.466988467019122",0
+DRModels,beta_re,beta,true,simulate_newdata,no_formal,false,"simulate(fit; nsim, rng) has no newdata; draws are training rows",0

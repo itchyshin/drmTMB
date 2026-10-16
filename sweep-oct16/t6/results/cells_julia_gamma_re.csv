@@ -1,0 +1,11 @@
+engine,cell,family,re,check,status,pass,detail,time_s
+DRModels,gamma_re,gamma,true,fit,ok,true,"converged=true loglik=-71.18378318882526 iter=-1",23.985217094421387
+DRModels,gamma_re,gamma,true,predict_response_mu,ok,true,"n=3 range=(1.385608717530274, 1.9611483087180908)",0.6413547992706299
+DRModels,gamma_re,gamma,true,predict_link_mu,ok,true,"n=3 range=(0.3261395503263591, 0.6735301734814934)",0.0002281665802001953
+DRModels,gamma_re,gamma,true,predict_parameters,ok,true,"keys=mu/sigma missing=",0.43325304985046387
+DRModels,gamma_re,gamma,true,newdata_unseen_level,error_ok,true,"ArgumentError: only one level found: z (need at least two to compute contrasts).",0.00422215461730957
+DRModels,gamma_re,gamma,true,char_vs_factor,error,false,"ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: c] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",0.4831690788269043
+DRModels,gamma_re,gamma,true,se.fit_predict,ok,true,"se range=(0.10066238479345527, 0.1487733223545266)",0.353046178817749
+DRModels,gamma_re,gamma,true,simulate_mean_vs_fitted,ok,true,"max_z=2.6954588074675083 n=80",0.9855029582977295
+DRModels,gamma_re,gamma,true,simulate_var_vs_fitted,ok,true,"max_z=2.7423413481474626",0
+DRModels,gamma_re,gamma,true,simulate_newdata,no_formal,false,"simulate(fit; nsim, rng) has no newdata; draws are training rows",0

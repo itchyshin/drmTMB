@@ -1,0 +1,11 @@
+engine,cell,family,re,check,status,pass,detail,time_s
+DRModels,gaussian_re,gaussian,true,fit,ok,true,"converged=true loglik=-61.9679272247164 iter=-1",22.56272006034851
+DRModels,gaussian_re,gaussian,true,predict_response_mu,ok,true,"n=3 range=(-0.09531457789219513, 0.595111050732044)",0.7058811187744141
+DRModels,gaussian_re,gaussian,true,predict_link_mu,ok,true,"n=3 range=(-0.09531457789219513, 0.595111050732044)",0.0001800060272216797
+DRModels,gaussian_re,gaussian,true,predict_parameters,ok,true,"keys=mu/sigma missing=",0.4353830814361572
+DRModels,gaussian_re,gaussian,true,newdata_unseen_level,error_ok,true,"ArgumentError: predict: `newdata` column `f` contains level(s) z not seen when the model was fitted (parameter `mu`; fitted levels: a, b, c). Refit including that level, or drop the offending rows from `newdata`.",0.05570220947265625
+DRModels,gaussian_re,gaussian,true,char_vs_factor,ok,true,"max_abs_diff=0.0 (Julia strings; R char-vs-factor is the real cell)",0.0015108585357666016
+DRModels,gaussian_re,gaussian,true,se.fit_predict,ok,true,"se range=(0.10170824615873542, 0.10599064858479547)",0.2983119487762451
+DRModels,gaussian_re,gaussian,true,simulate_mean_vs_fitted,ok,true,"max_z=2.5860210499660847 n=80",1.3132729530334473
+DRModels,gaussian_re,gaussian,true,simulate_var_vs_fitted,ok,true,"max_z=2.34186826830751",0
+DRModels,gaussian_re,gaussian,true,simulate_newdata,no_formal,false,"simulate(fit; nsim, rng) has no newdata; draws are training rows",0

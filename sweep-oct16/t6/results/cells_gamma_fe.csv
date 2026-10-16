@@ -1,0 +1,13 @@
+"engine","cell","family","re","check","status","pass","detail","time_s","seed","seed_r"
+"drmTMB","gamma_fe","gamma",FALSE,"fit","ok",TRUE,"converged=TRUE status=converged warns=",0.078,20261016630,933663798
+"drmTMB","gamma_fe","gamma",FALSE,"predict_response_mu","ok",TRUE,"n=80 finite=80 range=[0.692989,2.76517]",0.00099999999999989,20261016630,933663798
+"drmTMB","gamma_fe","gamma",FALSE,"predict_link_mu","ok",TRUE,"n=80 finite=80 range=[-0.366741,1.0171]",0.00100000000000011,20261016630,933663798
+"drmTMB","gamma_fe","gamma",FALSE,"predict_response_sigma","ok",TRUE,"n=80 finite=80 range=[0.393232,0.393232]",0,20261016630,933663798
+"drmTMB","gamma_fe","gamma",FALSE,"predict_link_sigma","ok",TRUE,"n=80 finite=80 range=[-0.933355,-0.933355]",0,20261016630,933663798
+"drmTMB","gamma_fe","gamma",FALSE,"newdata_unseen_level","error_ok",TRUE,"New prediction data contains unknown factor level for `f`. ℹ Unknown level: ""z"". ℹ Fitted levels: ""a"", ""b"", and ""c"".",0.0539999999999998,20261016630,933663798
+"drmTMB","gamma_fe","gamma",FALSE,"char_vs_factor","ok",TRUE,"max_abs_diff=0",0.002,20261016630,933663798
+"drmTMB","gamma_fe","gamma",FALSE,"se.fit_predict","ignored",FALSE,"predict(se.fit=TRUE) ignored se.fit and returned a numeric vector",0.00100000000000011,20261016630,933663798
+"drmTMB","gamma_fe","gamma",FALSE,"se.fit_predict_parameters","ok",TRUE,"cols=row/row_label/dpar/component/type/estimate/std.error/conf.low/conf.high/conf.level/conf.status/interval_source/x/f/g/trials",0.00800000000000001,20261016630,933663798
+"drmTMB","gamma_fe","gamma",FALSE,"simulate_mean_vs_fitted","ok",TRUE,"max_z=2.282 n_ok=80/80",0.0349999999999999,20261016630,933663798
+"drmTMB","gamma_fe","gamma",FALSE,"simulate_var_vs_fitted","ok",TRUE,"max_z=2.885 n_ok=80/80",0,20261016630,933663798
+"drmTMB","gamma_fe","gamma",FALSE,"simulate_newdata","ignored",FALSE,"nrow(sim)=80 nrow(newdata)=2 nrow(train)=80",0.00099999999999989,20261016630,933663798

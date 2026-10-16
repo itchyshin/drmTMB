@@ -1,0 +1,13 @@
+"engine","cell","family","re","check","status","pass","detail","time_s","seed","seed_r"
+"drmTMB","lognormal_fe","lognormal",FALSE,"fit","ok",TRUE,"converged=TRUE status=converged warns=",0.073,20261016620,933663788
+"drmTMB","lognormal_fe","lognormal",FALSE,"predict_response_mu","ok",TRUE,"n=80 finite=80 range=[-0.256189,0.639421]",0.00099999999999989,20261016620,933663788
+"drmTMB","lognormal_fe","lognormal",FALSE,"predict_link_mu","ok",TRUE,"n=80 finite=80 range=[-0.256189,0.639421]",0.00100000000000011,20261016620,933663788
+"drmTMB","lognormal_fe","lognormal",FALSE,"predict_response_sigma","ok",TRUE,"n=80 finite=80 range=[0.361097,0.361097]",0,20261016620,933663788
+"drmTMB","lognormal_fe","lognormal",FALSE,"predict_link_sigma","ok",TRUE,"n=80 finite=80 range=[-1.01861,-1.01861]",0,20261016620,933663788
+"drmTMB","lognormal_fe","lognormal",FALSE,"newdata_unseen_level","error_ok",TRUE,"New prediction data contains unknown factor level for `f`. ℹ Unknown level: ""z"". ℹ Fitted levels: ""a"", ""b"", and ""c"".",0.052,20261016620,933663788
+"drmTMB","lognormal_fe","lognormal",FALSE,"char_vs_factor","ok",TRUE,"max_abs_diff=0",0.00300000000000011,20261016620,933663788
+"drmTMB","lognormal_fe","lognormal",FALSE,"se.fit_predict","ignored",FALSE,"predict(se.fit=TRUE) ignored se.fit and returned a numeric vector",0,20261016620,933663788
+"drmTMB","lognormal_fe","lognormal",FALSE,"se.fit_predict_parameters","ok",TRUE,"cols=row/row_label/dpar/component/type/estimate/std.error/conf.low/conf.high/conf.level/conf.status/interval_source/x/f/g/trials",0.0089999999999999,20261016620,933663788
+"drmTMB","lognormal_fe","lognormal",FALSE,"simulate_mean_vs_fitted","ok",TRUE,"max_z=2.304 n_ok=80/80",0.032,20261016620,933663788
+"drmTMB","lognormal_fe","lognormal",FALSE,"simulate_var_vs_fitted","fail",FALSE,"max_z=4.413 n_ok=80/80",0,20261016620,933663788
+"drmTMB","lognormal_fe","lognormal",FALSE,"simulate_newdata","ignored",FALSE,"nrow(sim)=80 nrow(newdata)=2 nrow(train)=80",0.00100000000000011,20261016620,933663788

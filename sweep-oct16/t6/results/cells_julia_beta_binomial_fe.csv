@@ -1,0 +1,11 @@
+engine,cell,family,re,check,status,pass,detail,time_s
+DRModels,beta_binomial_fe,beta_binomial,false,fit,ok,true,"converged=true loglik=-179.4580524634792 iter=11",15.716371059417725
+DRModels,beta_binomial_fe,beta_binomial,false,predict_response_mu,ok,true,"n=3 range=(0.47968104197395184, 0.6636849051545876)",0.5945601463317871
+DRModels,beta_binomial_fe,beta_binomial,false,predict_link_mu,ok,true,"n=3 range=(-0.08132061721458012, 0.6797589936185229)",0.0002110004425048828
+DRModels,beta_binomial_fe,beta_binomial,false,predict_parameters,ok,true,"keys=mu/sigma missing=",0.4742741584777832
+DRModels,beta_binomial_fe,beta_binomial,false,newdata_unseen_level,error_ok,true,"ArgumentError: only one level found: z (need at least two to compute contrasts).",0.004197835922241211
+DRModels,beta_binomial_fe,beta_binomial,false,char_vs_factor,error,false,"ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: c] but the fitted coefficients are [(Intercept), x, f: b, f: c]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).",0.4030308723449707
+DRModels,beta_binomial_fe,beta_binomial,false,se.fit_predict,ok,true,"se range=(0.03688425508966794, 0.03992819843299505)",0.33965611457824707
+DRModels,beta_binomial_fe,beta_binomial,false,simulate_mean_vs_fitted,fail,false,"max_z=NaN n=0",1.1124169826507568
+DRModels,beta_binomial_fe,beta_binomial,false,simulate_var_vs_fitted,skip,false,"no closed-form variance",0
+DRModels,beta_binomial_fe,beta_binomial,false,simulate_newdata,no_formal,false,"simulate(fit; nsim, rng) has no newdata; draws are training rows",0
