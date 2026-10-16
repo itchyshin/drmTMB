@@ -1,7 +1,7 @@
 ## F2: how often does drmTMB's beta_family() fit report nlminb false convergence at large phi?
 ## Usage (from this directory):
 ##   Rscript f2_rate.R main   > f2_rate_main.out   2>&1   # installed drmTMB (pin ca3ddefa)
-##   Rscript f2_rate.R <lib>  > f2_rate_pr1547.out 2>&1   # a library holding another build
+##   Rscript f2_rate.R <lib> pr1547 > f2_rate_pr1547.out 2>&1   # a library holding the PR #1547 build (head 569bd918)
 ## DGP = t4 cell beta_phi1e4 (t4_gen_data.R): x ~ N(0,1), mu = plogis(0.5 x), y ~ Beta(mu phi, (1-mu) phi), n = 100.
 ## Seeds (R seed = nominal %% 2^31, Mersenne-Twister/Inversion/Rejection):
 ##   phi = 1e4: the 50 grid CSVs (nominal 20261017300..20261017349), then nominal 20261017350..20261017399
@@ -48,7 +48,7 @@ res <- do.call(rbind, lapply(seq_len(nrow(plan)), function(i) {
   d <- if (plan$src[i] == "grid_csv") read.csv(sprintf("../../data/beta_phi1e4_r%02d.csv", i)) else gen(plan$nominal[i], plan$phi[i])
   cbind(plan[i, ], one(d))
 }))
-lab <- if (is.null(lib)) "main" else "altlib"
+lab <- if (length(args) >= 2) args[2] else if (is.null(lib)) "main" else "altlib"
 write.csv(res, sprintf("f2_rate_%s.csv", lab), row.names = FALSE)
 for (ph in c(1e3, 1e4, 1e5)) {
   r <- res[res$phi == ph, ]

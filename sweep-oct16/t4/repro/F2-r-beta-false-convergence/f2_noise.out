@@ -1,4 +1,4 @@
-drmTMB 0.7.1  TMB 1.9.10  Rmpfr 0.9.5 
+drmTMB 0.7.1 from /usr/local/lib/R/site-library/drmTMB  TMB 1.9.10  Rmpfr 0.9.5 
 WARNING: `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
 i Treat the estimates and standard errors with caution. The optimizer escalates
   its preset ladder automatically, so inspect `fit$optimizer_attempts` and run

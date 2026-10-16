@@ -1,0 +1,25 @@
+Precompiling packages...
+  10725.3 ms  ✓ DRModels
+  1 dependency successfully precompiled in 11 seconds. 100 already precompiled.
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ A combination of parameters is not identified (the Hessian is singular after
+│ rescaling every coordinate to unit curvature), so standard errors for the
+│ coordinates in that direction are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates = Int64[]
+│   null_direction_coordinates = 3-element Vector{Int64}: …
+│   rcond = 0.0
+└ @ DRModels /tmp/claude-0/-home-user/ed2098f2-a8dc-5fee-9d90-16689cc12c90/scratchpad/f1/pr1106/src/vcov_guard.jl:271
+DRModels 0.7.2 at /tmp/claude-0/-home-user/ed2098f2-a8dc-5fee-9d90-16689cc12c90/scratchpad/f1/pr1106/src/DRModels.jl  (PR #1106 head ecb2dd8)
+is_converged = true
+──────────────────────────────────────────────────────────────────────────────────
+                      Estimate  Std.Error       z  Pr(>|z|)   Lower 95%  Upper 95%
+──────────────────────────────────────────────────────────────────────────────────
+mu: (Intercept)      0.957884   0.0717707   13.35    <1e-39   0.817216    1.09855
+mu: x                0.506012   0.0615264    8.22    <1e-15   0.385423    0.626602
+sigma: (Intercept)  -0.449168   0.0232979  -19.28    <1e-82  -0.494831   -0.403505
+sigma: x             0.0925481  0.116919     0.79    0.4286  -0.136609    0.321705
+sigma: z             0.0685283  0.0483443    1.42    0.1563  -0.0262248   0.163281
+──────────────────────────────────────────────────────────────────────────────────
+check_drm ok over 50 reps: 24

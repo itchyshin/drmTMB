@@ -1,0 +1,34 @@
+┌ Info: check_drm
+│   converged = true
+│   max_abs_grad = 1.776356839400255e-15
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 3.969416365128559e14
+│   cond = 2.4792184856322446
+│   penalized_map = false
+└   ok = true
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates = Int64[]
+│   rcond = 0.0
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Info: check_drm
+│   converged = true
+│   max_abs_grad = 2.335909247562984e-13
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = false
+│   min_eigval = -3.469446951953614e-18
+│   cond = Inf
+│   penalized_map = false
+└   ok = false
+DRModels 0.7.2 f71b2923360e9e5d4591e0d6e15a9ef9db0356d7; Julia 1.12.7
+rep 3 : is_converged=true niter=0 coef=[-36.04365338911715, 0.0] SE=[2.6213438950730663e7, 2.6342025317901433e7] check_drm ok=true
+        log(eps()) = -36.04365338911715
+rep 27: is_converged=true niter=11 coef=[-110.95351761325409, 56.061020929393926] SE=[0.1423852084368339, 0.28356304209953326] check_drm ok=false
+screen rep 3 : (separated = true, flagged = [1, 2], conclusive = true)
+screen rep 27: (separated = true, flagged = [1, 2], conclusive = true)

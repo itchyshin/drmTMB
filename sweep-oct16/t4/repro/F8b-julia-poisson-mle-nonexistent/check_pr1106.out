@@ -1,0 +1,32 @@
+Precompiling packages...
+  11382.7 ms  ✓ DRModels
+  1 dependency successfully precompiled in 12 seconds. 100 already precompiled.
+DRModels 0.7.2 at /tmp/claude-0/-home-user/ed2098f2-a8dc-5fee-9d90-16689cc12c90/scratchpad/pr1106/src/DRModels.jl  (PR #1106 head ecb2dd8); Julia 1.12.7
+rep  3  is_converged=true niter= 0 logLik=-1.77636e-15 coef=[-36.044, 0.0] SE=[5.38e-12, 2.38e7] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors   Dict{Symbol, Any}(:null_direction_coordinates => Int64[], :context => "", :flat_coordinates => [1], :rcond => 1.0)
+rep  4  is_converged=true niter= 0 logLik=-1.77636e-15 coef=[-36.044, 0.0] SE=[2.68e-12, 2.92e7] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors   Dict{Symbol, Any}(:null_direction_coordinates => Int64[], :context => "", :flat_coordinates => [1], :rcond => 1.0)
+rep  6  is_converged=true niter= 0 logLik=-1.77636e-15 coef=[-36.044, 0.0] SE=[3.95e-12, 1.56e7] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors   Dict{Symbol, Any}(:null_direction_coordinates => Int64[], :context => "", :flat_coordinates => [1], :rcond => 1.0)
+rep 11  is_converged=true niter= 0 logLik=-1.77636e-15 coef=[-36.044, 0.0] SE=[2.04e-12, 3.22e7] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors   Dict{Symbol, Any}(:null_direction_coordinates => Int64[], :context => "", :flat_coordinates => [1], :rcond => 1.0)
+rep 21  is_converged=true niter= 0 logLik=-1.77636e-15 coef=[-36.044, 0.0] SE=[3.28e-12, 3.06e7] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors   Dict{Symbol, Any}(:null_direction_coordinates => Int64[], :context => "", :flat_coordinates => [1], :rcond => 1.0)
+rep 22  is_converged=true niter= 0 logLik=-1.77636e-15 coef=[-36.044, 0.0] SE=[7.2e-13, 5.69e7] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors   Dict{Symbol, Any}(:null_direction_coordinates => Int64[], :context => "", :flat_coordinates => [1], :rcond => 1.0)
+rep 32  is_converged=true niter= 0 logLik=-1.77636e-15 coef=[-36.044, 0.0] SE=[1.38e-12, 2.51e7] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors   Dict{Symbol, Any}(:null_direction_coordinates => Int64[], :context => "", :flat_coordinates => [1], :rcond => 1.0)
+rep 39  is_converged=true niter= 0 logLik=-1.77636e-15 coef=[-36.044, 0.0] SE=[5.13e-12, 1.99e7] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors   Dict{Symbol, Any}(:null_direction_coordinates => Int64[], :context => "", :flat_coordinates => [1], :rcond => 1.0)
+rep 48  is_converged=true niter= 0 logLik=-1.77636e-15 coef=[-36.044, 0.0] SE=[7.33e-12, 5.21e7] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors   Dict{Symbol, Any}(:null_direction_coordinates => Int64[], :context => "", :flat_coordinates => [1], :rcond => 1.0)
+rep 25  is_converged=true niter=38 logLik=-1 coef=[-47.295, 59.975] SE=[0.0003, 1.27] chk_ok=true nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. A combination of parameters is not identified (the Hessian is sin  Dict{Symbol, Any}(:null_direction_coordinates => [1, 2], :context => "", :flat_coordinates => Int64[], :rcond => 1.1102230246251565e-16)
+rep 27  is_converged=true niter=11 logLik=-1.30685 coef=[-110.95, 56.061] SE=[0.000424, 0.355] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. A combination of parameters is not identified (the Hessian is sin  Dict{Symbol, Any}(:null_direction_coordinates => [1, 2], :context => "", :flat_coordinates => Int64[], :rcond => 5.551115123125783e-17)
+rep 33  is_converged=true niter=44 logLik=-1.30685 coef=[-51.469, 23.034] SE=[0.000424, 0.312] chk_ok=true nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. A combination of parameters is not identified (the Hessian is sin  Dict{Symbol, Any}(:null_direction_coordinates => [1, 2], :context => "", :flat_coordinates => Int64[], :rcond => 2.7755575615628914e-17)
+rep 38  is_converged=true niter=41 logLik=-1 coef=[-111.59, 48.479] SE=[0.0003, 0.434] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. A combination of parameters is not identified (the Hessian is sin  Dict{Symbol, Any}(:null_direction_coordinates => [1, 2], :context => "", :flat_coordinates => Int64[], :rcond => 2.7755575615628914e-17)
+rep 47  is_converged=true niter=23 logLik=-1.30685 coef=[-1296.5, 909.86] SE=[0.000424, 0.496] chk_ok=false nwarn=1
+     warn: Hessian is numerically singular at the optimum — using a pseudo-inverse. A combination of parameters is not identified (the Hessian is sin  Dict{Symbol, Any}(:null_direction_coordinates => [1, 2], :context => "", :flat_coordinates => Int64[], :rcond => 0.0)

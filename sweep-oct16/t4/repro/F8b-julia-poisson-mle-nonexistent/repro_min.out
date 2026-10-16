@@ -1,0 +1,80 @@
+Julia Version 1.12.7
+Commit 6d172b025e4 (2026-08-15 08:05 UTC)
+Build Info:
+  https://github.com/conda-forge/julia-feedstock
+
+    Note: This is an unofficial build, please report bugs to the project
+    responsible for this build and not to the Julia project unless you can
+    reproduce the issue using official builds available at https://julialang.org
+
+Platform Info:
+  OS: Linux (x86_64-conda-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor @ 2.10GHz
+  WORD_SIZE: 64
+  LLVM: libLLVM-18.1.7 (ORCJIT, sapphirerapids)
+  GC: Built with stock GC
+Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_DEPOT_PATH = /home/user/.julia
+  JULIA_PKG_SERVER = 
+DRModels 0.7.2 at /home/user/DRModels.jl/src/DRModels.jl
+DRModels git HEAD: f71b2923360e9e5d4591e0d6e15a9ef9db0356d7
+
+=== (A) rep 3: y = [0, 0, 0, 0, 0, 0, 0, 0]
+
+--- drm(bf(@formula(y ~ 1 + x)), Poisson())
+converged (raw) = true   is_converged = true   niterations = 0   logLik = -1.7763568394e-15
+coef = [-36.043653, 0.0]
+SE   = [2.62134e7, 2.6342e7]
+check_drm: ok = true, max_abs_grad = 1.776356839400255e-15, vcov_posdef = true, min_eigval = 3.969416365128559e14
+warnings emitted by drm(): 0
+start value theta0 = [-36.04365338911715, 0.0]   (log(eps()) = -36.04365338911715)
+estimate == start value exactly: true
+analytic nll gradient at the start = [1.776356839400255e-15, -7.515054003452603e-16]  (g_tol default 1e-8)
+recession direction d = (-1, 0): logLik(theta_hat + t d) for t = 0, 1, 10, 100:
+   t =     0  logLik = -1.776357e-15
+   t =     1  logLik = -6.534852e-16
+   t =    10  logLik = -8.064648e-20
+   t =   100  logLik = -6.608182e-59
+sup logLik = 0 (all-zero Poisson); the reported intercept is log(eps()) only because the start is.
+
+=== (B) rep 27: y = [0, 0, 0, 2, 0, 0, 0, 0]; positive rows = [4]; argmax(x) = 4 (x = 1.99152036375555)
+
+--- drm(bf(@formula(y ~ 1 + x)), Poisson())
+converged (raw) = true   is_converged = true   niterations = 11   logLik = -1.30685281944
+coef = [-110.95352, 56.061021]
+SE   = [0.142385, 0.283563]
+check_drm: ok = false, max_abs_grad = 2.335909247562984e-13, vcov_posdef = false, min_eigval = -3.469446951953614e-18
+warnings emitted by drm(): 1
+  [Warn] Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors for the flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)` or the bootstrap entry points for those targets. 
+     kwargs: Dict{Symbol, Any}(:context => "", :flat_coordinates => Int64[], :rcond => 0.0)
+recession direction d = (-x_max, 1): logLik(theta_hat + t d) for t = 0, 10, 100:
+   t =     0  logLik = -1.306852819440  coef = [-110.954, 56.061]
+   t =    10  logLik = -1.306852819440  coef = [-130.869, 66.061]
+   t =   100  logLik = -1.306852819440  coef = [-310.106, 156.061]
+sup logLik = y_k log y_k - y_k - log y_k! = -1.306852819440
+Wald 95% CI implied by the reported SEs: slope 56.061 +/- 0.556; intercept -110.954 +/- 0.279
+
+=== (C) the same two designs on the Binomial (Bernoulli) route, which runs the separation screen
+
+--- Binomial, rep 3 (all zero)
+converged (raw) = true   is_converged = true   niterations = 1   logLik = -0
+coef = [-3131.9068, 1322.0623]
+SE   = [Inf, Inf]
+check_drm: ok = false, max_abs_grad = 0.0, vcov_posdef = false, min_eigval = NaN
+warnings emitted by drm(): 2
+  [Warn] Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors for the flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)` or the bootstrap entry points for those targets. 
+     kwargs: Dict{Symbol, Any}(:context => "", :flat_coordinates => [1, 2], :rcond => 0.0)
+  [Warn] Binomial fixed-effect fit shows (quasi-)complete separation. The maximum-likelihood estimate does not exist (or is not finite): the affected coefficients can grow without bound at little or no cost in likelihood, and their reported estimates are an arbitrary stopping point of the optimiser. Their standard errors are reported as Inf and their Wald intervals as (-Inf, Inf). Consider removing or collapsing the offending predictor, or a penalised fit (Firth / MSPL). 
+     kwargs: Dict{Symbol, Any}(:flagged_coefficients => ["(Intercept)", "x"], :separation => :complete_or_quasi)
+
+--- Binomial, rep 27 (1{y > 0})
+converged (raw) = true   is_converged = true   niterations = 2   logLik = -0
+coef = [-6340.9683, 4455.419]
+SE   = [Inf, Inf]
+check_drm: ok = false, max_abs_grad = 0.0, vcov_posdef = false, min_eigval = NaN
+warnings emitted by drm(): 2
+  [Warn] Hessian is numerically singular at the optimum — using a pseudo-inverse. The fit is at a variance/dispersion boundary, so standard errors for the flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)` or the bootstrap entry points for those targets. 
+     kwargs: Dict{Symbol, Any}(:context => "", :flat_coordinates => [1, 2], :rcond => 0.0)
+  [Warn] Binomial fixed-effect fit shows (quasi-)complete separation. The maximum-likelihood estimate does not exist (or is not finite): the affected coefficients can grow without bound at little or no cost in likelihood, and their reported estimates are an arbitrary stopping point of the optimiser. Their standard errors are reported as Inf and their Wald intervals as (-Inf, Inf). Consider removing or collapsing the offending predictor, or a penalised fit (Firth / MSPL). 
+     kwargs: Dict{Symbol, Any}(:flagged_coefficients => ["(Intercept)", "x"], :separation => :complete_or_quasi)

@@ -1,9 +1,11 @@
 ## F2: objective noise of the drmTMB beta_family() objective at phi ~ 1e4.
 ## Data: sweep-oct16/t4 cell beta_phi1e4 (k = 10), rep 15, nominal seed 20261017314
 ## (R seed 20261017314 %% 2^31 = 933664482); see t4_gen_data.R.
-## Run from this directory:  Rscript f2_noise.R > f2_noise.out 2>&1
-suppressPackageStartupMessages({ library(drmTMB); library(Rmpfr) })
-cat("drmTMB", as.character(packageVersion("drmTMB")), " TMB", as.character(packageVersion("TMB")),
+## Run from this directory:  Rscript f2_noise.R > f2_noise.out 2>&1            (installed drmTMB, pin ca3ddefa)
+##                           Rscript f2_noise.R <lib> > f2_noise_pr1547.out 2>&1 (library holding the PR #1547 build)
+args <- commandArgs(trailingOnly = TRUE); lib <- if (length(args)) args[1] else NULL
+suppressPackageStartupMessages({ library(drmTMB, lib.loc = lib); library(Rmpfr) })
+cat("drmTMB", as.character(packageVersion("drmTMB", lib.loc = lib)), "from", find.package("drmTMB"), " TMB", as.character(packageVersion("TMB")),
     " Rmpfr", as.character(packageVersion("Rmpfr")), "\n")
 d <- read.csv("../../data/beta_phi1e4_r15.csv")
 fit <- withCallingHandlers(drmTMB(bf(y ~ x, sigma ~ 1), family = beta_family(), data = d),
