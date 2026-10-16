@@ -32,7 +32,6 @@ gz <- gzfile(file.path(outdir, "t2_fits_long.csv.gz"), "w")
 utils::write.csv(fits, gz, row.names = FALSE)
 close(gz)
 
-REPS <- 500L
 # ---- convergence: one row per engine x cell x rep ------------------------------
 per_rep <- unique(fits[, c("engine", "cell", "cell_order", "n", "re", "G", "rep",
                            "converged", "conv_status", "loglik", "time_s")])
@@ -43,7 +42,7 @@ conv <- do.call(rbind, lapply(split(per_rep, list(per_rep$engine, per_rep$cell),
                n = d$n[1], re = d$re[1], reps_run = nrow(d),
                errors = sum(d$conv_status == "error", na.rm = TRUE),
                converged = sum(d$converged %in% TRUE),
-               conv_rate = sum(d$converged %in% TRUE) / REPS,
+               conv_rate = sum(d$converged %in% TRUE) / nrow(d),
                statuses = paste(names(table(d$conv_status)), table(d$conv_status),
                                 sep = ":", collapse = " "),
                median_time_s = stats::median(d$time_s),
@@ -93,13 +92,24 @@ w <- reshape(per_rep[, c("engine", "cell", "rep", "converged", "loglik")],
 pe <- reshape(fits[!is.na(fits$param), c("engine", "cell", "rep", "param", "est_link", "se_link")],
               idvar = c("cell", "rep", "param"), timevar = "engine", direction = "wide")
 both <- w[w$converged.drmTMB %in% TRUE & w$converged.DRModels %in% TRUE, ]
+# A rep whose sd(g) estimate sits on the zero boundary (either engine below
+# 1e-4) has a flat log-sd direction: the engines stop at different points on
+# that ridge with the same logLik, so those reps are counted, not compared.
+sdg <- fits[fits$param %in% "sd_g", c("engine", "cell", "rep", "est")]
+bnd <- unique(sdg[sdg$est < 1e-4, c("cell", "rep")])
+bnd$boundary <- TRUE
 pe <- merge(pe, both[, c("cell", "rep")], by = c("cell", "rep"))
+pe <- merge(pe, bnd, by = c("cell", "rep"), all.x = TRUE)
+pe$boundary[is.na(pe$boundary)] <- FALSE
+pe_all <- pe
+pe <- pe[!pe$boundary, ]
 paired <- do.call(rbind, lapply(split(both, both$cell), function(d) {
   p <- pe[pe$cell == d$cell[1], ]
+  n_bnd <- length(unique(pe_all$rep[pe_all$cell == d$cell[1] & pe_all$boundary]))
   dl <- d$loglik.DRModels - d$loglik.drmTMB
   sr <- p$se_link.DRModels / p$se_link.drmTMB
   data.frame(
-    cell = d$cell[1], both_converged = nrow(d),
+    cell = d$cell[1], both_converged = nrow(d), sd_boundary_reps = n_bnd,
     only_drmTMB = sum(w$cell == d$cell[1] & w$converged.drmTMB %in% TRUE & !(w$converged.DRModels %in% TRUE)),
     only_DRModels = sum(w$cell == d$cell[1] & !(w$converged.drmTMB %in% TRUE) & w$converged.DRModels %in% TRUE),
     max_abs_dloglik = max(abs(dl)),
@@ -119,12 +129,12 @@ utils::write.csv(paired, file.path(outdir, "t2_paired.csv"), row.names = FALSE)
 pct <- function(x, d = 1) ifelse(is.na(x), "NA", sprintf(paste0("%.", d, "f%%"), 100 * x))
 md <- character()
 md <- c(md, "### Convergence (pass bar: converged rate >= 99%)", "",
-        "| engine | cell | converged / 500 | rate | errors | status counts | median fit s | pass |",
+        "| engine | cell | converged / reps | rate | errors | status counts | median fit s | pass |",
         "|---|---|---:|---:|---:|---|---:|:---:|")
 for (i in seq_len(nrow(conv))) {
   r <- conv[i, ]
-  md <- c(md, sprintf("| %s | %s | %d | %s | %d | %s | %.3f | %s |", r$engine, r$cell,
-                      r$converged, pct(r$conv_rate), r$errors, r$statuses,
+  md <- c(md, sprintf("| %s | %s | %d / %d | %s | %d | %s | %.3f | %s |", r$engine, r$cell,
+                      r$converged, r$reps_run, pct(r$conv_rate), r$errors, r$statuses,
                       r$median_time_s, if (r$pass_conv) "PASS" else "**FAIL**"))
 }
 md <- c(md, "", "### Bias and Wald coverage (converged fits)", "",
@@ -145,12 +155,14 @@ for (i in seq_len(nrow(summ))) {
                       pct(r$miss_high), fb, fc))
 }
 md <- c(md, "", "### Cross-engine agreement on identical datasets", "",
-        "| cell | both converged | only drmTMB | only DRModels | max abs dlogLik | reps with abs dlogLik > 1e-4 (DRModels higher / drmTMB higher) | max abs d(link est) | SE ratio range |",
-        "|---|---:|---:|---:|---:|---|---:|---|")
+        "Estimates and SEs are compared on reps where both engines converged, excluding",
+        "reps where either engine puts sd(g) below 1e-4 (a flat log-sd direction; counted, not compared).", "",
+        "| cell | both converged | of which sd(g) < 1e-4 (excluded) | only drmTMB | only DRModels | max abs dlogLik | reps with abs dlogLik > 1e-4 (DRModels higher / drmTMB higher) | max abs d(link est) | SE ratio range |",
+        "|---|---:|---:|---:|---:|---:|---|---:|---|")
 for (i in seq_len(nrow(paired))) {
   r <- paired[i, ]
-  md <- c(md, sprintf("| %s | %d | %d | %d | %.2e | %d (%d / %d) | %.2e | %.4f - %.4f |",
-                      r$cell, r$both_converged, r$only_drmTMB, r$only_DRModels,
+  md <- c(md, sprintf("| %s | %d | %d | %d | %d | %.2e | %d (%d / %d) | %.2e | %.4f - %.4f |",
+                      r$cell, r$both_converged, r$sd_boundary_reps, r$only_drmTMB, r$only_DRModels,
                       r$max_abs_dloglik, r$n_dloglik_gt_1e4, r$n_DRModels_higher_1e4,
                       r$n_drmTMB_higher_1e4, r$max_abs_dest_link, r$se_ratio_min,
                       r$se_ratio_max))

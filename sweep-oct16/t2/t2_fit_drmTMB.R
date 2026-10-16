@@ -62,9 +62,9 @@ one_fit <- function(r) {
                  est_link = NA_real_, se_link = NA_real_, lower = NA_real_,
                  upper = NA_real_, conf_status = NA_character_,
                  converged = FALSE, conv_status = "error", opt_code = NA_integer_,
-                 opt_message = conditionMessage(fit), pdHess = NA,
+                 opt_message = gsub("[\r\n]+", " ", conditionMessage(fit)), pdHess = NA,
                  max_grad = NA_real_, loglik = NA_real_,
-                 warnings = paste(warns, collapse = " | "),
+                 warnings = gsub("[\r\n]+", " ", paste(warns, collapse = " | ")),
                  stringsAsFactors = FALSE))
   }
   ci_warns <- character()
@@ -107,7 +107,7 @@ one_fit <- function(r) {
         opt_message = as.character(fit$opt$message),
         pdHess = isTRUE(fit$sdr$pdHess), max_grad = grad,
         loglik = as.numeric(logLik(fit)),
-        warnings = paste(c(warns, ci_warns), collapse = " | "),
+        warnings = gsub("[\r\n]+", " ", paste(c(warns, ci_warns), collapse = " | ")),
         stringsAsFactors = FALSE)
 }
 

@@ -2,7 +2,8 @@
 # convergence diagnostics, in the same long format as t2_fit_drmTMB.R.
 #
 # Usage: julia --project=<env with DRModels dev'd> t2_fit_DRModels.jl \
-#            <datadir> <outdir> <cell> [rep_from rep_to]
+#            <datadir> <outdir> <cell[,cell2,...]> [rep_from rep_to]
+# Several comma-separated cells share one Julia process (one JIT warm-up).
 # The datasets are the R-generated CSVs (t2_gen_data.R), so both engines fit
 # byte-identical data.
 
@@ -32,7 +33,12 @@ end
 csvq(s) = "\"" * replace(string(s), "\"" => "'", "\n" => " ") * "\""
 
 function main(args)
-    datadir, outdir, cell = args[1], args[2], args[3]
+    for cell in split(args[3], ",")
+        run_cell(args[1], args[2], String(cell), args)
+    end
+end
+
+function run_cell(datadir, outdir, cell, args)
     G = endswith(cell, "_none") ? 0 : parse(Int, match(r"_G(\d+)$", cell).captures[1])
     n = parse(Int, match(r"^n(\d+)_", cell).captures[1])
     re = endswith(cell, "_none") ? "none" : "G$G"
