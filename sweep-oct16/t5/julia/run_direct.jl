@@ -1,13 +1,16 @@
 # sweep-oct16 / t5 -- direct DRModels.jl leg (no R in the loop).
 # Reads the same CSVs as the R legs and records, per dataset:
-#   JD_raw        drm() on the raw columns (y, x as Union{Missing,Float64})
+#   JD_raw        drm() on the raw columns, typed as CSV.jl would type them
+#                 (Union{Missing,Float64} only for a column that holds a missing)
 #   JD_nan        drm() with missing cells coded as NaN (plain Float64)
 #   JD_listwise   drm() on drm_listwise(formula, raw)
 #   JD_cc         drm() on concrete Float64 complete cases (default marginal)
 #   JD_cc_lap     as JD_cc with marginal = :Laplace (Poisson / Gamma only)
-#   JD_cc_union   complete cases, x stored as Union{Missing,Float64} with no missing
 #   JD_dup        complete cases duplicated by w_int (Laplace for Poisson / Gamma)
 #   JD_weights    drm(...; weights = w_int) on complete cases
+# The Union{Missing,Float64}-without-missing hazard is probed separately
+# (probe_union.jl, one process per cell under a timeout) because those fits
+# are pathological and can run for many minutes.
 # Usage: julia --project=<DRModels.jl> run_direct.jl <datadir> <outfile>
 using DRModels
 using Logging, Test, Printf
@@ -24,8 +27,9 @@ function read_cell(path)
         end
     end
     num(v) = v == "NA" ? missing : parse(Float64, v)
-    (y = Vector{Union{Missing,Float64}}(num.(cols["y"])),
-     x = Vector{Union{Missing,Float64}}(num.(cols["x"])),
+    csvtype(v) = any(ismissing, v) ? Vector{Union{Missing,Float64}}(v) : Float64.(v)
+    (y = csvtype(num.(cols["y"])),
+     x = csvtype(num.(cols["x"])),
      g = String.(cols["g"]),
      w_int = parse.(Int, cols["w_int"]))
 end
@@ -86,7 +90,6 @@ open(outfile, "w") do io
         cc = (y = Float64.(d.y[keep]), x = Float64.(d.x[keep]), g = d.g[keep], w_int = d.w_int[keep])
         nanv = v -> Float64[ismissing(a) ? NaN : a for a in v]
         dnan = (y = nanv(d.y), x = nanv(d.x), g = d.g, w_int = d.w_int)
-        ccu = (y = cc.y, x = Vector{Union{Missing,Float64}}(cc.x), g = cc.g)
         idx = reduce(vcat, [fill(i, cc.w_int[i]) for i in eachindex(cc.y)])
         dup = (y = cc.y[idx], x = cc.x[idx], g = cc.g[idx])
         cells = [
@@ -94,7 +97,6 @@ open(outfile, "w") do io
             "JD_nan"      => () -> drm(F(), fm; data = (y = dnan.y, x = dnan.x, g = dnan.g)),
             "JD_listwise" => () -> (f = F(); drm(f, fm; data = drm_listwise(f, (y = d.y, x = d.x, g = d.g)))),
             "JD_cc"       => () -> drm(F(), fm; data = (y = cc.y, x = cc.x, g = cc.g)),
-            "JD_cc_union" => () -> drm(F(), fm; data = ccu),
             "JD_dup"      => () -> drm(F(), fm; data = dup, lapkw...),
             "JD_weights"  => () -> drm(F(), fm; data = (y = cc.y, x = cc.x, g = cc.g), weights = Float64.(cc.w_int)),
         ]
