@@ -82,7 +82,9 @@ pc <- function(y, x, k, cval) {
   f <- function(L) { g1 <- (L + cval) / (xo - x[k]); prof(c(-cval - g1 * x[k], g1), y, x) }
   ## search a wide bracket around the asymptotic choice s = (c + K) / D
   D <- sort(abs(x - x[k]))[3]; L0 <- -cval + (cval + 5) / D * abs(xo - x[k])
-  o <- optimize(f, c(-cval, L0 + 50 + 2 * abs(L0)), maximum = TRUE, tol = 1e-10)
+  ## (optimize() warns "NA/Inf replaced by maximum positive value" when a bracket end overflows
+  ##  to P = -Inf; the maximum is interior, so those warnings are muffled)
+  o <- suppressWarnings(optimize(f, c(-cval, L0 + 50 + 2 * abs(L0)), maximum = TRUE, tol = 1e-10))
   c(ll = o$objective, L = o$maximum)
 }
 cat("\n== 2. profile with log sigma at the spike observation fixed at -c ==\n")
@@ -96,27 +98,29 @@ for (r in c(6, 19, 49, 30, 4, 31, 29)) {
 }
 
 ## ---- 3. every local maximum: dense 2-D grid scan of P + local polish ---------------------
-## Grid on (L1, L2) = (log sigma at min x, log sigma at max x) in [-60, 40]^2, step 0.5.
+## Grid on (L1, L2) = (log sigma at min x, log sigma at max x) in [-100, 60]^2, step 0.5.
 ## Grid cells that beat all 8 neighbours are polished with Nelder-Mead + BFGS on P;
 ## polished points within 1e-6 in P and 1e-3 in parameters are merged. A maximum on the
 ## grid boundary is reported as "edge" (P still rising: unbounded direction or out of box).
 gpar <- function(L, x) { g1 <- (L[2] - L[1]) / (max(x) - min(x)); c(L[1] - g1 * min(x), g1) }
-scan_maxima <- function(y, x, lim = c(-60, 40), h = 0.5) {
+scan_maxima <- function(y, x, lim = c(-100, 60), h = 0.5) {
   grid <- seq(lim[1], lim[2], by = h); m <- length(grid)
   Z <- matrix(NA_real_, m, m)
   for (a in seq_len(m)) for (b in seq_len(m)) Z[a, b] <- prof(gpar(c(grid[a], grid[b]), x), y, x)
   loc <- list()
   for (a in seq_len(m)) for (b in seq_len(m)) {
     nb <- Z[max(1, a - 1):min(m, a + 1), max(1, b - 1):min(m, b + 1)]
-    if (Z[a, b] >= max(nb)) loc[[length(loc) + 1]] <- c(a, b)
+    if (is.finite(Z[a, b]) && Z[a, b] >= max(nb[is.finite(nb)])) loc[[length(loc) + 1]] <- c(a, b)
   }
   out <- list()
   for (ab in loc) {
     a <- ab[1]; b <- ab[2]; edge <- a %in% c(1, m) || b %in% c(1, m)
     g0 <- gpar(c(grid[a], grid[b]), x)
-    f <- function(g) -prof(g, y, x)
+    f <- function(g) { v <- -prof(g, y, x); if (is.finite(v)) v else 1e300 }
     o <- optim(g0, f, method = "Nelder-Mead", control = list(maxit = 5000, reltol = 1e-14))
-    o <- optim(o$par, f, method = "BFGS", control = list(maxit = 2000, reltol = 1e-15))
+    o2 <- tryCatch(optim(o$par, f, method = "BFGS", control = list(maxit = 2000, reltol = 1e-15)),
+                   error = function(e) o)
+    if (o2$value <= o$value) o <- o2
     out[[length(out) + 1]] <- c(ll = -o$value, g0 = o$par[1], g1 = o$par[2], grid_edge = edge)
   }
   res <- as.data.frame(do.call(rbind, out))
