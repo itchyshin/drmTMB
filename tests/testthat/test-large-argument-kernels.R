@@ -217,6 +217,34 @@ test_that("beta kernel agrees with stats::dbeta() at large phi", {
   }
 })
 
+test_that("beta kernel is finite and exact for y very close to 0 or 1 (sigma random-slope fits)", {
+  # Regression for the C17 model-15 cells: y * p / a rounds to 1 for tiny y, so
+  # log(1 + u) must come from log(y) + log(p) - log(a), not from 1 + u.
+  mu <- 0.3
+  phi <- 2
+  eta <- stats::qlogis(mu)
+  mm <- 1e-12 + (1 - 2e-12) * mu
+  for (y in c(1e-300, 1e-200, 1e-30, 1e-8, 1 - 1e-8, 1 - 1e-15)) {
+    got <- ll_row(
+      beta_family(), bf(y ~ 1, sigma ~ 1), y,
+      beta_mu = eta, beta_sigma = -0.5 * log(phi)
+    )
+    ref <- stats::dbeta(y, mm * phi, (1 - mm) * phi, log = TRUE)
+    expect_true(is.finite(got), label = paste("finite at y =", y))
+    expect_lt(abs(got - ref), 1e-10 * max(1, abs(ref)), label = paste("y =", y))
+  }
+  fit <- suppressWarnings(drmTMB(
+    bf(y ~ 1, sigma ~ 1), family = beta_family(),
+    data = data.frame(y = rep(c(1e-200, 0.4, 1 - 1e-15), 2L)),
+    control = drm_control(se = FALSE)
+  ))
+  par <- fit$obj$par
+  par[names(par) == "beta_mu"] <- eta
+  par[names(par) == "beta_sigma"] <- -0.5 * log(phi)
+  expect_true(all(is.finite(fit$obj$gr(par))))
+  expect_true(all(is.finite(fit$obj$he(par))))
+})
+
 # ---- NB2 (drm_count_kernels.h; reported, not changed in this lane) ---------
 
 test_that("nbinom2 matches the exact density at size 1e4, 1e6, 1e8 when alpha * y < 1e-2", {
