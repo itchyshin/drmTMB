@@ -1,0 +1,4 @@
+"cell","n_r","n_jl","n_paired","typeI_r_anova","typeI_r_chibar","typeI_r_naive","typeI_jl_lrtest","typeI_jl_chibar","max_abs_dLRT","frac_dLRT_gt_1e6","aic_full_wins_r","p_method_r"
+"gauss",500,500,500,0.058,0.108,0.058,0.058,0.108,6.25277607468888e-12,0,0.182,"chisq"
+"nb2",500,500,500,0.018,0.03,0.018,0.018,0.03,9.99250460154144e-09,0,0.054,"chisq"
+"re",500,500,500,0.034,0.034,0.012,0.012,0.034,9.71760982793057e-09,0,0.048,"chibar"

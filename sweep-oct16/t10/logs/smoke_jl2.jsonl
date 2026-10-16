@@ -1,0 +1,15 @@
+{"case":"A_reduced","status":"OK","error":null}
+{"case":"A_full","status":"OK","error":null}
+{"case":"A_lrtest","status":"OK","statistic":4.683720487719256e-5,"dof":1,"pvalue":0.9945395032103572,"aic_reduced":559.4750505161724,"aic_full":561.4750036789675,"aicc_reduced":559.5974994957642,"aicc_full":561.6801318840957,"loglik_reduced":-276.7375252580862,"loglik_full":-276.73750183948374,"anova_equals_lrtest":true}
+{"case":"B_poisson","status":"OK","error":null}
+{"case":"B_nbinom2","status":"OK","error":null}
+{"case":"B_lrtest","status":"OK","statistic":0.2096306832091841,"dof":1,"pvalue":0.6470570247893837,"aic_reduced":767.7462087671141,"aic_full":769.5365780839049,"loglik_reduced":-381.87310438355706,"loglik_full":-381.76828904195247,"dof_reduced":2,"dof_full":3,"lrtest_warning":"","lrt_boundary_ok":true,"lrt_boundary_p":0.3235285123946918,"lrt_boundary_stat":0.2096306832091841,"lrt_boundary_err":null}
+{"case":"C_reduced","status":"OK","error":null}
+{"case":"C_full_laplace","status":"ERROR","error":"ArgumentError: marginal = :Laplace is not available for Gaussian() with a random effect on the mean. On the Gaussian family this route covers exactly one random intercept `(1 | g)` on `sigma` (fixed-effect mean, fixed-effect `sigma` predictors alongside it), fitted by maximum likelihood. Omit `marginal` (the default `:LA`) for other models.","marginal":null}
+{"case":"C_full_LA","status":"OK","error":null,"marginal":"LA"}
+{"case":"mix_VA_re_reduced","status":"OK","error":null}
+{"case":"mix_VA_re_full","status":"OK","error":null}
+{"case":"mix_Laplace_re_full","status":"OK","error":null}
+{"case":"mix_VA_vs_VA_lrtest","status":"NO_ERROR","error":null,"statistic":6.774750725001468,"pvalue":0.009245640295946293}
+{"case":"mix_VA_aic","status":"ERROR_AS_REQUIRED","error":"ArgumentError: aic on a VA fit is undefined: `loglik` carries an ELBO (a lower bound), not a Laplace/GHQ marginal log-likelihood (#136). Do not mix VA and LA information criteria. Compare ELBOs directly, or refit with `marginal = :LA`."}
+{"case":"mix_VA_vs_Laplace_lrtest","status":"ERROR_AS_REQUIRED","error":"ArgumentError: lrtest: cannot compare fits with different marginal approximations (`:VA` vs `:Laplace`): the VA objective is an ELBO, not a log-likelihood (#136). Refit both with the same `marginal`."}
