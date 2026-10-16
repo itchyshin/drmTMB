@@ -1,0 +1,7 @@
+when	action	repo	number	url	one_liner
+2026-10-16T21:45:00Z	filed	itchyshin/DRModels.jl	1117	https://github.com/itchyshin/DRModels.jl/issues/1117	ordinary (1|g) profile CI for sd_g at G=10, sd_g=0.1: confint throws or returns (-Inf, Inf)
+2026-10-16T22:02:00Z	filed	itchyshin/DRModels.jl	1119	https://github.com/itchyshin/DRModels.jl/issues/1119	percentile bootstrap under-covers the sigma intercept (83–90% in 4 cells; one-sided)
+2026-10-16T22:02:00Z	comment_blocked	itchyshin/DRModels.jl	1117	https://github.com/itchyshin/DRModels.jl/issues/1117	token cannot comment; G=10/30 sd_g=0.1 profile coverage 0.003 and 0.027 recorded in receipt
+2026-10-16T22:02:00Z	known_ref	itchyshin/drmTMB	1315	https://github.com/itchyshin/drmTMB/issues/1315	bootstrap sigma-intercept undercover (comment blocked; twin of DRModels.jl#1119)
+2026-10-16T22:02:00Z	known_ref	itchyshin/drmTMB	1558	https://github.com/itchyshin/drmTMB/issues/1558	Wald ordinary (1|g) SD undercover (comment blocked)
+2026-10-16T22:21:43Z	filed	itchyshin/drmTMB	1562	https://github.com/itchyshin/drmTMB/issues/1562	profile coverage: sigma slope 90.3% at G=30 sd_g=0.5; sd_g overcovers at sd_g=0.1; no silent NaN

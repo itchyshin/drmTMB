@@ -1,0 +1,37 @@
+cell	G	sd_g	method	parm	n	n_fin	n_cov	n_nan	n_inf	n_boundary	cov	cov_fin	mcse	profile_pass
+1	10	0.1	bootstrap	fixef:sigma:(Intercept)	100	100	87	0	0	0	0.87	0.87	0.0336	NA
+1	10	0.1	bootstrap	fixef:sigma:x	100	100	97	0	0	0	0.97	0.97	0.0171	NA
+1	10	0.1	bootstrap	sd:mu:(1 | g)	100	100	100	0	0	100	1	1	0	NA
+1	10	0.1	profile	fixef:sigma:(Intercept)	300	300	282	0	0	0	0.94	0.94	0.0137	TRUE
+1	10	0.1	profile	fixef:sigma:x	300	300	284	0	0	0	0.9467	0.9467	0.013	TRUE
+1	10	0.1	profile	sd:mu:(1 | g)	300	300	292	0	0	287	0.9733	0.9733	0.0093	FALSE
+1	10	0.1	wald	fixef:sigma:(Intercept)	300	300	276	0	0	0	0.92	0.92	0.0157	NA
+1	10	0.1	wald	fixef:sigma:x	300	300	284	0	0	0	0.9467	0.9467	0.013	NA
+1	10	0.1	wald	sd:mu:(1 | g)	300	141	108	0	159	157	0.36	0.766	0.0277	NA
+2	10	0.5	bootstrap	fixef:sigma:(Intercept)	100	100	91	0	0	0	0.91	0.91	0.0286	NA
+2	10	0.5	bootstrap	fixef:sigma:x	100	100	95	0	0	0	0.95	0.95	0.0218	NA
+2	10	0.5	bootstrap	sd:mu:(1 | g)	100	100	79	0	0	43	0.79	0.79	0.0407	NA
+2	10	0.5	profile	fixef:sigma:(Intercept)	300	300	284	0	0	0	0.9467	0.9467	0.013	TRUE
+2	10	0.5	profile	fixef:sigma:x	300	300	284	0	0	0	0.9467	0.9467	0.013	TRUE
+2	10	0.5	profile	sd:mu:(1 | g)	300	300	278	0	0	78	0.9267	0.9267	0.0151	FALSE
+2	10	0.5	wald	fixef:sigma:(Intercept)	300	300	282	0	0	0	0.94	0.94	0.0137	NA
+2	10	0.5	wald	fixef:sigma:x	300	300	284	0	0	0	0.9467	0.9467	0.013	NA
+2	10	0.5	wald	sd:mu:(1 | g)	300	293	291	0	7	7	0.97	0.9932	0.0098	NA
+3	30	0.1	bootstrap	fixef:sigma:(Intercept)	100	100	88	0	0	0	0.88	0.88	0.0325	NA
+3	30	0.1	bootstrap	fixef:sigma:x	100	100	93	0	0	0	0.93	0.93	0.0255	NA
+3	30	0.1	bootstrap	sd:mu:(1 | g)	100	100	99	0	0	95	0.99	0.99	0.0099	NA
+3	30	0.1	profile	fixef:sigma:(Intercept)	300	300	282	0	0	0	0.94	0.94	0.0137	TRUE
+3	30	0.1	profile	fixef:sigma:x	300	300	278	0	0	0	0.9267	0.9267	0.0151	FALSE
+3	30	0.1	profile	sd:mu:(1 | g)	300	300	295	0	0	282	0.9833	0.9833	0.0074	FALSE
+3	30	0.1	wald	fixef:sigma:(Intercept)	300	300	281	0	0	0	0.9367	0.9367	0.0141	NA
+3	30	0.1	wald	fixef:sigma:x	300	300	279	0	0	0	0.93	0.93	0.0147	NA
+3	30	0.1	wald	sd:mu:(1 | g)	300	153	125	0	147	146	0.4167	0.817	0.0285	NA
+4	30	0.5	bootstrap	fixef:sigma:(Intercept)	100	100	97	0	0	0	0.97	0.97	0.0171	NA
+4	30	0.5	bootstrap	fixef:sigma:x	100	100	90	0	0	0	0.9	0.9	0.03	NA
+4	30	0.5	bootstrap	sd:mu:(1 | g)	100	100	91	0	0	0	0.91	0.91	0.0286	NA
+4	30	0.5	profile	fixef:sigma:(Intercept)	300	300	279	0	0	0	0.93	0.93	0.0147	TRUE
+4	30	0.5	profile	fixef:sigma:x	300	300	271	0	0	0	0.9033	0.9033	0.0171	FALSE
+4	30	0.5	profile	sd:mu:(1 | g)	300	300	287	0	0	2	0.9567	0.9567	0.0118	TRUE
+4	30	0.5	wald	fixef:sigma:(Intercept)	300	300	277	0	0	0	0.9233	0.9233	0.0154	NA
+4	30	0.5	wald	fixef:sigma:x	300	300	271	0	0	0	0.9033	0.9033	0.0171	NA
+4	30	0.5	wald	sd:mu:(1 | g)	300	300	294	0	0	0	0.98	0.98	0.0081	NA
