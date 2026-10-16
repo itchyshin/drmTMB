@@ -1,0 +1,28 @@
+Julia Version 1.12.7
+Commit 6d172b025e4 (2026-08-15 08:05 UTC)
+Build Info:
+  https://github.com/conda-forge/julia-feedstock
+
+    Note: This is an unofficial build, please report bugs to the project
+    responsible for this build and not to the Julia project unless you can
+    reproduce the issue using official builds available at https://julialang.org
+
+Platform Info:
+  OS: Linux (x86_64-conda-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor @ 2.80GHz
+  WORD_SIZE: 64
+  LLVM: libLLVM-18.1.7 (ORCJIT, cascadelake)
+  GC: Built with stock GC
+Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_PKG_USE_CLI_GIT = true
+  JULIA_DEPOT_PATH = /opt/jldepot
+  JULIA_PKG_SERVER = 
+  JULIA_NUM_THREADS = 1
+
+Status `/opt/jlsim/Project.toml`
+  [6c755ef2] DRModels v0.7.2 `/home/user/DRModels.jl`
+  [8bb1440f] DelimitedFiles v1.9.1
+  [3eaba693] StatsModels v0.7.10
+  [bd369af6] Tables v1.14.0
+DRModels.jl git: f71b2923360e9e5d4591e0d6e15a9ef9db0356d7 dirty=false
