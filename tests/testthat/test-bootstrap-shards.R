@@ -105,3 +105,36 @@ test_that("multicore shards equal serial shards", {
   )
   expect_identical(forked$attempts, serial$attempts)
 })
+
+test_that("a dead forked worker is a worker_died attempt, not a dropped replicate (#1537)", {
+  testthat::skip_on_os("windows")
+  fit <- new_shard_fit()
+  # Replicate 2's child exits without a value, as an OOM-killed worker would.
+  testthat::local_mocked_bindings(
+    drm_bootstrap_replicate_simulation = function(object, seed, index, re_form) {
+      if (index == 2L) quit("no", status = 1L, runLast = FALSE)
+      stats::simulate(object, nsim = 1L, re.form = re_form)
+    }
+  )
+  shard <- suppressWarnings(drm_bootstrap_shard(
+    fit,
+    parm = "fixef:mu:x",
+    indices = 1:3,
+    seed = 4,
+    parallel = "multicore",
+    workers = 2
+  ))
+  expect_identical(nrow(shard$attempts), 3L)
+  expect_identical(shard$attempts$bootstrap, 1:3)
+  expect_identical(shard$attempts$refit_status[[2L]], "worker_died")
+  expect_false(shard$attempts$refit_ok[[2L]])
+  expect_true(all(shard$attempts$replicate_seed == 4L))
+  ledger <- drm_bootstrap_ledger(shard)
+  expect_identical(ledger$attempted, 3L)
+  expect_identical(ledger$worker_died, 1L)
+  expect_identical(
+    ledger$usable + ledger$refit_error + ledger$refit_nonconverged +
+      ledger$target_missing + ledger$worker_died,
+    3L
+  )
+})
