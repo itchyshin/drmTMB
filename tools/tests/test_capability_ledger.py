@@ -1268,6 +1268,23 @@ class CapabilityLedgerTests(unittest.TestCase):
         finally:
             ledger.MISSING_G5_ROUTE_SUMMARIES["beta"] = original
 
+    def test_retired_predicate_scan_covers_uncontracted_rows(self):
+        ledger.validate_retired_predicates(self.cells, self.evidence)
+        contracted = {"mr-beta", "mr-tweedie", "mr-skew-normal"}
+        cells = copy.deepcopy(self.cells)
+        row = next(r for r in cells if r["cell_id"] not in contracted)
+        row["next_gate"] += " Blocked by the all-1200 interval-usability rule."
+        with self.assertRaisesRegex(SystemExit, "retired predicate"):
+            ledger.validate_retired_predicates(cells, self.evidence)
+        # The keyed contracts alone cannot see this row (issue 1011).
+        ledger.validate_live_prose_contracts(cells, self.evidence)
+
+    def test_retired_predicate_scan_covers_evidence_prose(self):
+        evidence = copy.deepcopy(self.evidence)
+        evidence[0]["claim_boundary"] += " Under the ALL-1200 interval-usability rule."
+        with self.assertRaisesRegex(SystemExit, "retired predicate"):
+            ledger.validate_retired_predicates(self.cells, evidence)
+
     def test_live_prose_contract_excludes_historical_phrases(self):
         with tempfile.TemporaryDirectory() as temporary:
             historical = Path(temporary) / "2025-old-panel.md"
