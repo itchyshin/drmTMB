@@ -1,3 +1,28 @@
+# 2026-10-16: summary() flags non-converged fits (#1545), stacked on #1513
+
+Branch `claude/inspiring-mendel-xrmnl7` on #1513 head `dd5c1543`; code-final
+`858e8be9` (later commits are `docs/` only). No `src/` file touched.
+
+- **What changed.** `summary()` stored no optimizer message and printed a
+  bare `convergence: 1` for a non-converged fit. It now prints
+  `convergence: 1 (not converged; see check_drm())` and a
+  `convergence message:` line before its first table, through the helper
+  `drm_cli_convergence()`, which is shared with `print()` and the Julia
+  print and summary methods. `check_drm()`'s `convergence_status` row no
+  longer says "the optimizer reported success" for a failed optimizer.
+- **Full suite** (4 shards, `NOT_CRAN=true`, R 4.3.3; this container): 441
+  files, 3,255 tests, 48,728 expectations passed, 110 skipped, 15 failing
+  tests. The same 15 fail identically on a #1513-head build without #1545.
+  All are environment failures: `{JuliaCall}` and `{tweedie}` missing,
+  glmmTMB 1.1.8 comparators, `LC_CTYPE = C`, sparse `crossprod`, REML phylo
+  convergence, a snapshot call frame, and a checkout path.
+- **C17.** `tools/recertify-c17.py --label pr-1545-on-1513` at exact
+  tolerance: mc-0568/0569/0576 `|change| 0.000e+00`; ledger check OK.
+
+Report: `docs/dev-log/after-task/2026-10-16-summary-nonconverged-1545.md`.
+
+Refs #1545
+
 # 2026-10-15: #1513 round 5 Gamma mi() pole fix (sinh-mapped trapezoid)
 
 Cause of the CV 0.5 (`4.0e-3`) and CV 1 (`0.28`) pole errors: the five
