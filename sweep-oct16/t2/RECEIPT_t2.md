@@ -15,13 +15,13 @@
 
 ## Verdict
 
-**By the letter of the pass bar (primary 500 reps): FAIL.** The failures are in Wald coverage in 4 of the 28 gate rows (n ≥ 200) and in the converged rate of the two n = 50 random-effect cells. Relative bias passes everywhere it is gated.
+**By the letter of the pass bar (primary 500 reps): FAIL.** The failures are in Wald coverage in 5 of the 28 gate rows (n ≥ 200) and in the converged rate of the two n = 50 random-effect cells. Relative bias passes everywhere it is gated.
 
 **What the failures mean.** No gate-cell failure is an engine defect. On every shared dataset the two engines fit the same likelihood to the same optimum:
 - |ΔlogLik| ≤ 2e-11 and |Δ estimate| ≤ 4e-10 on all 15,000 shared datasets at n ≥ 200 (3,000 primary + 12,000 confirmatory);
 - standard errors equal to within 3e-6 relative.
 
-Every n ≥ 200 verdict is therefore identical for drmTMB and DRModels.jl, and a gate failure describes ML Wald inference on this design, not either package. The confirmatory 2,000 reps sort the four primary coverage failures:
+Every n ≥ 200 verdict is therefore identical for drmTMB and DRModels.jl, and a gate failure describes ML Wald inference on this design, not either package. The confirmatory 2,000 reps sort the five primary coverage failures, and expose one primary PASS that is weaker than it looked:
 
 | primary failure (both engines) | reps 1-500 | pooled 2,500 (MCSE) | reading |
 |---|---:|---:|---|
@@ -29,19 +29,22 @@ Every n ≥ 200 verdict is therefore identical for drmTMB and DRModels.jl, and a
 | `sigma_intercept`, n = 1000, G = 20 | 97.6% | 95.24% (0.43) | Monte Carlo noise. This cell shares x, z and ε with the row above by design, so it is the same draw |
 | `mu_intercept`, n = 1000, G = 20 | 92.6% | 92.56% (0.52) | **Replicates.** z-Wald under-coverage with 20 groups; t(G − 1) raises it to 94.1%, still about 2 SE short of 95% |
 | `sd_g`, n = 1000, G = 20 | 92.6% | 92.40% (0.53) | **Replicates.** Same cause; t(G − 1) plus the log(G/(G − 1)) shift gives 95.2%, and a χ²₁₉ limit predicts the observed 92.4% almost exactly (92.41%) |
-| `mu_intercept`, n = 200, no RE | 92.0% | 92.96% (0.51) | **Borderline.** On the 93% line, but 4 MCSE below nominal 95%. Mild under-coverage of ML Wald with an estimated variance function at n = 200 (SE/SD = 0.92 on reps 1-500 and 0.97 on reps 501-2500) |
+| `mu_intercept`, n = 200, no RE | 92.0% | 92.96% (0.51) | **Real, small.** Still FAIL pooled (by 0.04 pp) and about 4 MCSE below nominal 95%; at n = 1000 the same parameter covers 94.88%. Mild finite-sample under-coverage of the ML Wald interval with an estimated variance function (pooled SE/SD = 0.96) |
+| `mu_intercept`, n = 200, G = 20 (primary **PASS**) | 94.0% | 93.12% (0.51) | **Weaker than the primary PASS suggests.** Reps 501-2500 alone give 92.90% (a FAIL). Pooled it passes by 0.12 pp. Same G = 20 mechanism as the n = 1000 row |
+
+**The pooled 2,500-rep verdicts are the substantive ones for every cell.** On them, coverage fails in 3 gate rows: n = 200 no-RE mean intercept 92.96%, n = 1000 G = 20 mean intercept 92.56%, and n = 1000 G = 20 sd(g) 92.40%. A fourth row, the n = 200 G = 20 mean intercept at 93.12%, passes by 0.12 pp.
 
 The convergence failures are all at n = 50:
-- **n = 50, G = 20, DRModels.jl 493/500.** All 7 misses are sd(g) = 0 boundary MLEs. drmTMB labels them `boundary` and counts them as converged; DRModels.jl's absolute 1e-8 gradient test labels them not converged (finding A2, [DRModels.jl#1050](https://github.com/itchyshin/DRModels.jl/issues/1050#issuecomment-6225239469)).
+- **n = 50, G = 20, DRModels.jl 493/500.** All 7 misses are sd(g) = 0 boundary MLEs at the same optimum as drmTMB. This is a DRModels.jl classification defect (finding A2, [DRModels.jl#1050](https://github.com/itchyshin/DRModels.jl/issues/1050#issuecomment-6225239469)): of its 14 near-zero sd(g) fits it calls 7 converged and 7 not, with no consistent rule. There is also a policy difference: drmTMB counts `boundary` as converged. Under a consistent "boundary = not converged" rule DRModels.jl would score 486/500 (97.2%); under drmTMB's rule, 500/500.
 - **n = 50, G = 50, one row per group.** drmTMB refuses all 500 datasets by design ("only singleton groups"). DRModels.jl fits them: 306 converged, 190 not converged, and 4 crashes (finding B, [DRModels.jl#1114](https://github.com/itchyshin/DRModels.jl/issues/1114)).
 
-The model in this cell identifies sd(g) and σ(z) only through the functional form of `sigma ~ z`.
+The model in this cell identifies sd(g) and σ(z) only through the functional form of `sigma ~ z`, so the cell tests refusal and failure handling, not recovery.
 
-**Bias.** All 28 gate rows pass. The closest is sd(g) at n = 200, G = 20: −4.98% (MCSE 0.80) on 500 reps. On 2,500 reps it is −4.35% (0.36), and −4.18% (0.32) at n = 1000. That is the expected downward ML bias of a variance component estimated from 20 groups: it does not shrink with n at fixed G, and it is −2.1% / −1.7% at G = 50.
+**Bias.** All 28 gate rows pass. The closest is sd(g) at n = 200, G = 20: −4.98% (MCSE 0.80) on 500 reps. On 2,500 reps it is −4.35% (0.36), and −4.18% (0.32) at n = 1000. That is the expected downward ML bias of a variance component estimated from 20 groups: it does not shrink with n at fixed G, and it is −2.1% / −1.7% at G = 50. The σ intercept also shows a small but real ML bias: +2.0% pooled at n = 200 (MCSE 0.20), meaning σ is underestimated by about 1% (0.01 on the log scale). It is inside the bar.
 
 ## Findings filed
 
-All defects are in DRModels.jl and confined to the n = 50 cells. The drmTMB item is a calibration gap, not a defect.
+The DRModels.jl defects (A1, A2, B, C) are confined to the n = 50 cells. The drmTMB items are a calibration gap at n ≥ 200 (D) and a unit-dependent boundary label (E). E was added as evidence to the open twin-contract issue rather than filed separately.
 
 | # | repo | what | where filed |
 |---|---|---|---|
@@ -50,6 +53,7 @@ All defects are in DRModels.jl and confined to the n = 50 cells. The drmTMB item
 | B | DRModels.jl | A bare `ArgumentError: matrix contains Infs or NaNs` on 4 of 500 all-singleton datasets. `gaussian_ranef.jl:612` and six other sites were not moved to `_vcov_from_hessian_checked` by the #968 fix | [DRModels.jl#1114 (new)](https://github.com/itchyshin/DRModels.jl/issues/1114) |
 | C | DRModels.jl | On all-singleton groups, 14 of the 306 fits reported `is_converged = true` have a collapsed residual scale (fitted σ down to 1e-44). The likelihood is bounded here. Rep 72 sits on a supremum that is never attained (its SEs should be infinite; reported 0.11 and 0.26). Rep 77 is a genuine but degenerate interior MLE whose SEs are understated about 10^7-fold (4.8e-6 against about 112 from the profile curvature) | [DRModels.jl#1059 (comment)](https://github.com/itchyshin/DRModels.jl/issues/1059#issuecomment-6225170717) |
 | D | drmTMB (both engines identical) | z-Wald under-coverage of an ordinary `(1 \| g)` SD and the mean intercept at G = 20. `small_sample_df` / `bias_correct` do not reach ordinary `(1 \| g)` SDs; a post-hoc t(G − 1) restores nominal coverage | [drmTMB#1558 (new)](https://github.com/itchyshin/drmTMB/issues/1558) |
+| E | drmTMB | The sd(g) boundary label uses an absolute `sd < 1e-4` rule, and the optimiser's stopping point on the flat ridge depends on scale. The same boundary MLE is therefore `boundary`/TRUE, `converged` (rep 445, sd 1.5e-4, log-SE 3e4) or `degenerate`/FALSE depending on the units of y | [drmTMB#1554 (comment)](https://github.com/itchyshin/drmTMB/issues/1554#issuecomment-6225328561) |
 
 **How the findings were verified.** Before anything was posted, each finding went to an independent adversarial verifier. The verifier re-derived every number from the raw fits and the source code and tried to refute the claim. F2 (A2) was checked twice. All five survived as "partially confirmed": the core defect was real, and some numbers or wording needed correcting. Every correction was applied before posting. The main ones:
 - **A1:** the residue is positive in exact arithmetic, so removing rounding noise cannot fix it. The profile-interval failure was added after I reproduced it myself.
@@ -57,6 +61,13 @@ All defects are in DRModels.jl and confined to the n = 50 cells. The drmTMB item
 - **B:** #1054 also patched three Student-t sites, and about 70 unchecked calls remain.
 - **C:** the ridge (rep 72) and degenerate-maximum (rep 77) cases were separated. I re-derived rep 77's SE independently from an exact-likelihood profile in R.
 - **D:** the MCSEs and the χ²-limit theory were added; I re-computed the theory values myself.
+
+A separate completeness critic then recomputed every summary number from the raw per-rep CSVs. All of them matched exactly, with a maximum |difference| of 4.4e-15. The critic also challenged the classifications. Its corrections are all incorporated here:
+- the fifth primary coverage FAIL;
+- pooled verdicts for every cell, rather than only for primary FAILs;
+- one-sided miss rates;
+- finding E;
+- the design disclosures listed under "Deviations".
 
 Each posted body was then read back through the GitHub API and diffed against the local file; the data, code and numbers were byte-identical. The one difference: GitHub strips the trailing attribution footer from issue bodies, but not from comments.
 
@@ -162,7 +173,7 @@ All six gate cells also converge 2,000/2,000 in both engines on the confirmatory
 
 ### n = 50 cells (reported, not gated)
 
-At n = 50 the σ coefficients carry the classical small-sample ML bias. A +7.2% relative bias on the log-σ intercept (truth −0.5) is −0.036 on the log scale, so σ is underestimated by about 3.5%. Wald coverage for that intercept is 90.4%. In the G = 20 cell the engines' converged sets differ only by the 7 boundary fits of finding A2. The near-nominal sd(g) coverage there (98–99%) is not evidence of calibration: it counts the boundary fits whose Wald interval is (0, Inf). In the G = 50 cell, DRModels.jl's summaries are dominated by the weakly identified fits of findings A1 and C, and drmTMB has no fits.
+At n = 50 the σ coefficients carry the classical small-sample ML bias. A +7.2% relative bias on the log-σ intercept (truth −0.5) is −0.036 on the log scale, so σ is underestimated by about 3.5%. Wald coverage for that intercept is 90.4%. The two engines' n = 50 rows are not directly comparable. In the G = 20 cell they average over different rep sets (500 for drmTMB, 493 for DRModels.jl); the sets differ only by the 7 boundary fits of finding A2. The near-nominal sd(g) coverage there (98–99%) is not evidence of calibration: it counts the boundary fits whose Wald interval is (0, Inf). **The G = 50 rows for DRModels.jl are not meaningful recovery results.** Its 306 "converged" fits include collapsed-scale and boundary fits (findings A1 and C), which produce the +349% and +170% σ biases and the 73.2% sd(g) coverage. drmTMB has no fits in this cell.
 
 | cell | parameter | engine | converged fits | rel. bias (MCSE) | median rel. bias | coverage (MCSE) |
 |---|---|---|---:|---:|---:|---:|
@@ -228,25 +239,44 @@ Coverage is recomputed from each engine's stored link-scale estimate and SE, poo
 
 ## How to read the coverage verdicts
 
-At 500 reps the Monte Carlo SE of a coverage proportion near 95% is 0.97 pp. The [93%, 97%] band is therefore only ±2.06 MCSE wide, and a perfectly calibrated interval falls outside it about 4% of the time. With 28 gated coverage rows, about one chance failure is expected even if every interval were exact. The σ rows are also correlated across the three RE settings at each n by the common-random-numbers design. The two σ-intercept failures at n = 1000 are one such correlated event, and the confirmatory reps remove them. The G = 20 failures are different: they replicate with 2,000 fresh reps and have a mechanism. A z quantile ignores that a between-group quantity is estimated from 20 groups, and the ML SE of log sd(g) is 6–13% smaller than its sampling SD (SE/SD = 0.87–0.94).
+At 500 reps the Monte Carlo SE of a coverage proportion near 95% is 0.97 pp, so the [93%, 97%] band is only ±2.06 MCSE wide. By exact binomial calculation:
+- an exactly calibrated interval fails the band with probability 3.0%;
+- across 28 gated rows that is 0.85 expected chance failures, and P(at least one) = 58%;
+- the bar also has little power. An interval with true coverage of 92.5% passes it with probability 37.5%, and one at 93% with probability 54%.
+
+A single 500-rep PASS is therefore weak evidence of calibration. The σ rows are also correlated across the three RE settings at each n by the common-random-numbers design. The two σ-intercept failures at n = 1000 are one such correlated event, and the confirmatory reps remove them. The G = 20 failures are different: they replicate with 2,000 fresh reps and have a mechanism. A z quantile ignores that a between-group quantity is estimated from 20 groups, and the ML SE of log sd(g) is 6–13% smaller than its sampling SD (SE/SD = 0.87–0.94).
+
+**The two-sided bar hides one-sided misses.** For sd(g) the truth lies above the interval far more often than below:
+- 7.12% against 0.48% at n = 1000, G = 20, and 5.76% against 0.68% at n = 200, G = 20;
+- still lopsided at G = 50 (4.88% against 1.28% at n = 1000).
+
+The σ intercept misses mostly above too, at every n ≥ 200 (about 2.7–4.2% above against 1.2–1.7% below). Both patterns are ML's downward bias in scale and SD estimates. One-sided bounds for sd(g) are therefore less well calibrated than the two-sided coverage suggests. The full table is `summary/t2_onesided_drmTMB.md`; DRModels.jl's is identical.
 
 ## Deviations from the lane spec, and limitations
 
-1. **Seeds.** The nominal seed 20261016100 + rep cannot be passed to R's `set.seed()`. R is seeded with `(20261016100 + rep) %% 2^31`, which is injective over all 2,500 reps used. `seeds.csv`, written by the generator, lists both values.
+1. **Seeds.** The nominal seed 20261016100 + rep cannot be passed to R's `set.seed()`. R is seeded with `(20261016100 + rep) %% 2^31`, which is 933663268 + rep and injective over all 2,500 reps used. `seeds.csv`, written by the generator, lists both values. The nominal seed alone therefore does not define the data: regenerating "seed 20261016101" in another language gives different numbers. The R generator, or the committed SHA-256 sums, define them.
 2. **Choices the spec left open.**
-   - Covariates are x, z ~ N(0, 1), independent and redrawn every rep.
-   - The groups are balanced and deterministic, `rep_len(1:G, n)`.
+   - Covariates are x, z ~ N(0, 1), independent and redrawn every rep, so coverage is averaged over random designs, not conditional on one design.
+   - The groups are balanced and interleaved, `rep_len(1:G, n)`; unbalanced groups are not tested.
+   - Group size m = n/G varies with n at fixed G, so G effects and m effects are confounded.
+   - There is a single true-parameter point: sd(g) = 0.5, ICC about 0.4, moderate heteroscedasticity. Nothing here speaks to small sd(g) or values near the boundary.
    - The random effect is a mean intercept only.
-   - Within a rep, cells share x, z and ε (common random numbers), and the G = 20 and G = 50 cells also share their first 20 group effects.
-   - Wald intervals are each package's default `confint` Wald output.
-3. **Convergence definitions differ by engine.** drmTMB's `is_converged()` counts `boundary` as converged; DRModels.jl's does not have that status. The bar's ≥ 99% rule is applied literally, including at n = 50, where the G = 50 cell is weakly identified and drmTMB refuses it by design.
-4. **Toolchain.** The session's network policy blocks CRAN and julialang.org.
+3. **Common random numbers.**
+   - Within a rep, the `none`, `G20` and `G50` cells at the same n share x, z and ε, and G20's group effects are the first 20 of G50's. Estimates of the shared parameters (`mu_x`, `sigma_intercept`, `sigma_z`) correlate 0.76–0.99 across those cells (0.89–0.99 between `none` and `G20`), so agreement across RE settings is not independent evidence.
+   - Across different n the RNG stream is reused in shifted order (for example, n = 200's x is the first 200 of n = 1000's x). The estimates correlate only about 0.02–0.05 there.
+4. **The pass bar.**
+   - It is two-sided and has low power (see "How to read the coverage verdicts").
+   - Relative bias is measured on the SD scale for sd(g) but on the link scale for the σ coefficients, where it is relative to an arbitrary intercept of −0.5.
+   - The formal verdict uses reps 1-500 as specified. The pooled 2,500-rep verdicts, reported for every cell, are the substantive ones.
+5. **Convergence definitions differ by engine.** drmTMB's `is_converged()` counts `boundary` as converged; DRModels.jl has no boundary status, and its verdict at the boundary is inconsistent (finding A2). The bar's ≥ 99% rule is applied literally, including at n = 50, where the G = 50 cell is weakly identified and drmTMB refuses it by design.
+6. **Toolchain.** The session's network policy blocks CRAN and julialang.org.
    - R 4.3.3 packages came from Ubuntu 24.04 apt: TMB 1.9.10, Matrix 1.6-5 and RcppEigen 0.3.4.0.0, older than current CRAN.
    - Julia 1.12.7 is the conda-forge build (unofficial). Packages were resolved from the General registry on GitHub; Optim 1.13.3, ForwardDiff 1.4.6 and LineSearches 7.5.1 are pinned in `env/Manifest_julia.toml`.
-   - Everything ran on one platform (Linux x86-64).
-   - The engines agree to 1e-10 on these builds, but no claim is made about other BLAS/LAPACK builds or OSes.
-5. **Confirmatory replicate.** Reps 501-2500 use the same seed scheme and were added to separate Monte Carlo noise from real failures. They do not change the formal 500-rep verdict.
-6. **Wald only.** Profile and bootstrap intervals were not run. The lane asks for Wald.
+   - DRModels.jl was `Pkg.develop`ed by path, so the manifest records a path. The SHA (`f71b292`, clean) is recorded in `env/versioninfo_julia.txt`.
+   - drmTMB's link-scale SEs were read through internal helpers (`drm_profile_targets`, `drm_sdreport_cov_fixed`). The intervals came from the public `confint()`.
+   - Everything ran on one platform (Linux x86-64). The engines agree to 1e-10 on these builds, but no claim is made about other BLAS/LAPACK builds or OSes.
+7. **Timings are incidental.** Several fitters shared four loaded vCPUs, each Julia process charges JIT compilation to its first rep, and the timers cover the fit call only, not `confint()`.
+8. **Wald only.** Profile and bootstrap intervals were not swept; the lane asks for Wald. Profile intervals appear only in the finding A1 repro.
 
 ## Reproduce
 
@@ -266,6 +296,8 @@ Rscript t2_analyse.R results_confirm summary_confirm
 Rscript t2_compare.R summary summary_confirm summary
 Rscript t2_posthoc_t.R summary drmTMB results results_confirm
 Rscript t2_posthoc_t.R summary DRModels results results_confirm
+Rscript t2_onesided.R drmTMB summary results results_confirm
+Rscript t2_onesided.R DRModels summary results results_confirm
 Rscript t2_receipt_tables.R
 ```
 
@@ -278,9 +310,9 @@ The regenerated `data/SHA256SUMS` must equal `env/data_SHA256SUMS`; this was che
 | `t2_config.R` | truth, cells, seed mapping, data-generating function |
 | `t2_gen_data.R` | dataset generator (CSV at 17 significant digits, round-trip checked, SHA-256 sums) |
 | `t2_fit_drmTMB.R`, `t2_fit_DRModels.jl` | per-engine fitters (long format, one row per rep × parameter) |
-| `t2_analyse.R`, `t2_compare.R`, `t2_posthoc_t.R`, `t2_receipt_tables.R` | analysis |
+| `t2_analyse.R`, `t2_compare.R`, `t2_posthoc_t.R`, `t2_onesided.R`, `t2_receipt_tables.R` | analysis |
 | `summary/`, `summary_confirm/` | per-fit evidence (`t2_fits_long.csv.gz`), summaries, paired agreement, tables |
 | `env/` | `sessionInfo()`, `versioninfo()`, the Julia project and manifest, data checksums |
-| `repro/` | minimal repro data, scripts and outputs for findings A1, A2, B and C |
+| `repro/` | minimal repro data, scripts and outputs for findings A1, A2, B, C and E |
 
 Raw datasets (`data/`, about 155 MB for reps 1-500) and the per-chunk raw fit files (`results*/`) are not committed; they regenerate from the scripts.
