@@ -1,0 +1,11 @@
+gaussian  g with 10 missing                  loglik=   -295.370664  nobs=200  n_mu_coef=2  converged=true
+gaussian  g with literal "__NA__" level      loglik=   -295.370664  nobs=200  n_mu_coef=2  converged=true
+gaussian  those 10 rows dropped              loglik=   -282.951334  nobs=190  n_mu_coef=2  converged=true
+gaussian  length(ranef(fit)[:g]) = 26  (data has 25 non-missing groups)
+poisson  g with 10 missing                   loglik=   -310.084193  nobs=200  n_mu_coef=2  converged=true
+poisson  g with literal "__NA__" level       loglik=   -310.084193  nobs=200  n_mu_coef=2  converged=true
+poisson  those 10 rows dropped               loglik=   -298.224342  nobs=190  n_mu_coef=2  converged=true
+gamma  g with 10 missing                     loglik=   -344.672805  nobs=200  n_mu_coef=2  converged=true
+gamma  g with literal "__NA__" level         loglik=   -344.672805  nobs=200  n_mu_coef=2  converged=true
+gamma  those 10 rows dropped                 loglik=   -319.508722  nobs=190  n_mu_coef=2  converged=true
+exit 0
