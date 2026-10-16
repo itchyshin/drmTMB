@@ -16,7 +16,7 @@ Remove the `eps * x log(x)` rounding from three response log-densities, so the c
 
 ## Not changed, and why
 
-- Beta-binomial: #1514 already ships `drm_beta_binomial_log_density`. Measured against the exact `sum log(alpha + j)` it is within 1.1e-13 at phi 1e2 to 1e8. The 1e-12 ship test belongs with #1514.
+- Beta-binomial: now covered here too (tracking issue #1548 asks for every copy). `drm_beta_binomial_log_density` and its helpers are byte-identical to #1514's, so the two PRs merge cleanly in either order; this PR also swaps the `mi()` leaf, the main loop and the two `mi()` beta-binomial prior copies (`src/drmTMB.cpp` about 1801 and 1825) that #1514 left. Measured against the exact `sum log(alpha + j)` it is within 1.1e-13 at phi 1e2 to 1e8; the 1e-12 ship test is in `test-large-argument-kernels.R`.
 - NB2 (`src/drm_count_kernels.h`): per the C++ TMB reviewer, no code change. `log1p` is correct, but the `lgamma(y + 1/alpha) - lgamma(1/alpha)` branch (used when `alpha y >= 1e-2`) has the same pattern: 2.1e-9 at size 1e6 with mean 2e4 and 4.7e-8 at size 1e8 with mean 2e6. The series branch is 1.9e-12 at size 1e4, y = 99. Proposed fix: `drm_lgamma_ratio(1/alpha, y)` from #1514. R's `dnbinom()` is itself 2e-9 off at size 1e8, so NB2 tests must use an exact reference.
 - `mi()` priors in `src/drmTMB.cpp` (Beta 1536-1735, beta-binomial 1801-1833, Gamma 2259-2309) and the `log_choose` terms for trials above about 1e5: same pattern, follow-up after #1513 round 5.
 
