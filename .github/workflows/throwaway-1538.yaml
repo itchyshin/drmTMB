@@ -1,0 +1,10 @@
+name: throwaway-1538
+on:
+  push:
+    branches: ["throwaway/1538-base-forcing"]
+jobs:
+  forcing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m unittest tools/tests/test_ci_wires_c14_receipt_equivalence.py
