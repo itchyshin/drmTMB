@@ -351,8 +351,10 @@ warns and keeps naive χ². Red-proof: `test-anova-lrt.R` #1557 tests failed
 on `ca3ddef` (silent `p.method = "chisq"`, p = 1 vs chi-bar 0.5) and pass
 after the detector. Sibling suites: `test-model-comparison.R` 68 pass,
 `test-lrt-boundary.R` 62 pass. Type-I issues #1559 / #1560 are not closed
-(chi-bar 3.0% / 3.4% on the t10 500-rep grids). C17 recertified because
-`R/methods.R` roxygen changed. Report:
+(chi-bar 3.0% / 3.4% on the t10 500-rep grids). C17 recertified (`python3 tools/recertify-c17.py --label fx6-1557
+--tolerance 1e-10`): |change| 0.000e+00 on mc-0568/0569/0576, receipt
+`docs/dev-log/implementation-recovery/2026-10-16-fx6-1557-c17c2-c14-final-source-compatibility`,
+source sha `3180adfd5`. Report:
 `docs/dev-log/after-task/2026-10-16-fx6-poisson-nb2-boundary-lrt.md`.
 
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
