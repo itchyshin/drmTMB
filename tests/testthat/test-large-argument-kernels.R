@@ -245,6 +245,36 @@ test_that("beta kernel is finite and exact for y very close to 0 or 1 (sigma ran
   expect_true(all(is.finite(fit$obj$he(par))))
 })
 
+# ---- Beta-binomial (main loop and mi() leaf share drm_beta_binomial_log_density)
+
+bb_exact <- function(k, n, a, b) {
+  # exact reference: lchoose + sum of logs, no lgamma difference
+  s <- function(x, m) if (m > 0) sum(log(x + seq_len(m) - 1)) else 0
+  lchoose(n, k) + s(a, k) + s(b, n - k) - s(a + b, n)
+}
+
+test_that("beta-binomial matches the exact density to 1e-12 at phi 1e4, 1e6, 1e8", {
+  n <- 20L
+  for (phi in c(1e4, 1e6, 1e8)) {
+    for (m in c(0.3, 0.5)) {
+      mm <- 1e-12 + (1 - 2e-12) * stats::plogis(stats::qlogis(m))
+      err <- vapply(c(0L, 1L, 4L, 6L, 10L, 15L, 20L), function(k) {
+        dat <- data.frame(success = rep(k, 3L), failure = rep(n - k, 3L))
+        fit <- suppressWarnings(drmTMB(
+          bf(cbind(success, failure) ~ 1, sigma ~ 1),
+          family = beta_binomial(), data = dat,
+          control = drm_control(se = FALSE)
+        ))
+        par <- fit$obj$par
+        par[names(par) == "beta_mu"] <- stats::qlogis(m)
+        par[names(par) == "beta_sigma"] <- -0.5 * log(phi)
+        abs(-fit$obj$fn(par) / 3 - bb_exact(k, n, mm * phi, (1 - mm) * phi))
+      }, numeric(1))
+      expect_lt(max(err), 1e-12, label = paste("phi =", phi, "mu =", m))
+    }
+  }
+})
+
 # ---- NB2 (drm_count_kernels.h; reported, not changed in this lane) ---------
 
 test_that("nbinom2 matches the exact density at size 1e4, 1e6, 1e8 when alpha * y < 1e-2", {
@@ -335,3 +365,20 @@ test_that("beta gradient and Hessian are correct at the Stirling and series swit
     }
   }
 })
+
+test_that("beta-binomial gradient and Hessian are correct at the drm_lgamma_ratio switch", {
+  dat <- data.frame(success = c(3, 7, 11), failure = c(17, 13, 9))
+  fit <- suppressWarnings(drmTMB(
+    bf(cbind(success, failure) ~ 1, sigma ~ 1),
+    family = beta_binomial(), data = dat, control = drm_control(se = FALSE)
+  ))
+  # alpha = mu * phi = 100 at phi = 100 / 0.3; beta = 100 at phi = 100 / 0.7
+  for (phi in c(100 / 0.3, 100 / 0.7)) {
+    for (d in c(-1e-8, 0, 1e-8)) {
+      grad_check(fit, set_par(
+        fit, beta_mu = stats::qlogis(0.3), beta_sigma = -0.5 * log(phi * (1 + d))
+      ))
+    }
+  }
+})
+
