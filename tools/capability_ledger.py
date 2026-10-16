@@ -3494,12 +3494,12 @@ def normalised_prose(text: str) -> str:
     return " ".join(text.split()).casefold()
 
 
-def retired_predicate_phrases() -> list[str]:
-    """Return the retired gate phrases listed in ``retired-predicates.tsv``."""
+def retired_predicate_phrases() -> list[tuple[str, str]]:
+    """Return ``(phrase, replacement)`` pairs from ``retired-predicates.tsv``."""
     rows = read_tsv(RETIRED_PREDICATES)
     if not rows or tuple(rows[0]) != RETIRED_PREDICATE_FIELDS:
         raise SystemExit("retired-predicates.tsv has the wrong schema")
-    phrases: list[str] = []
+    phrases: list[tuple[str, str]] = []
     seen: set[str] = set()
     for line, row in enumerate(rows, start=2):
         if None in row or any(not (row[field] or "").strip() for field in RETIRED_PREDICATE_FIELDS):
@@ -3508,7 +3508,7 @@ def retired_predicate_phrases() -> list[str]:
         if phrase in seen:
             raise SystemExit(f"retired-predicates.tsv line {line}: duplicate phrase {row['phrase']!r}")
         seen.add(phrase)
-        phrases.append(row["phrase"])
+        phrases.append((row["phrase"], row["replacement"]))
     return phrases
 
 
@@ -3522,17 +3522,20 @@ def validate_retired_predicates(
     no contract named, so this scan reads every row. ``transitions.tsv`` and
     ``notes`` are history, not live claims, and are deliberately not scanned.
     """
-    phrases = [(phrase, normalised_prose(phrase)) for phrase in retired_predicate_phrases()]
+    phrases = [
+        (phrase, replacement, normalised_prose(phrase))
+        for phrase, replacement in retired_predicate_phrases()
+    ]
     scanned = [
         (f"cells:{row['cell_id']}", row, ("claim_boundary", "next_gate")) for row in cells
     ] + [
         (f"evidence:{row['evidence_id']}", row, ("claim_boundary",)) for row in evidence
     ]
     hits = [
-        f"{label}.{field}: retired predicate {phrase!r}"
+        f"{label}.{field}: retired predicate {phrase!r}; replaced by {replacement}"
         for label, row, fields in scanned
         for field in fields
-        for phrase, needle in phrases
+        for phrase, replacement, needle in phrases
         if needle in normalised_prose(row[field])
     ]
     if hits:

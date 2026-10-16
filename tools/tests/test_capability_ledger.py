@@ -1287,24 +1287,57 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_check_path_fails_when_live_prose_names_a_newly_retired_phrase(self):
         # --check, --write, and --summary all read through load_sources(). Retiring
-        # the current policy name, as a future v3 would, must stop all three
-        # until every row that still names it is rewritten.
+        # the current policy name, as the next policy bump would, must stop all
+        # three until every row that still names it is rewritten. The
+        # g5_policy_not_grounded contract requires mr-beta's claim_boundary to
+        # name the active policy, so that row must be among the hits.
+        policy = ledger.active_g5_policy_version()
         original = ledger.RETIRED_PREDICATES
         with tempfile.TemporaryDirectory() as temporary:
             sidecar = Path(temporary) / "retired-predicates.tsv"
             sidecar.write_text(
                 original.read_text(encoding="utf-8")
-                + "mr-g5-calibration-v2\tdeadbeef\tmr-g5-calibration-v3\tissue 1011\n",
+                + f"{policy}\tdeadbeef\ta later policy\tissue 1011\n",
                 encoding="utf-8",
             )
             try:
                 ledger.RETIRED_PREDICATES = sidecar
                 with self.assertRaisesRegex(
                     SystemExit, r"cells:mr-beta\.claim_boundary: retired predicate"
-                ):
+                ) as raised:
                     ledger.load_sources()
             finally:
                 ledger.RETIRED_PREDICATES = original
+        # The notes column also names the policy, but it is history, not a claim.
+        self.assertNotIn(".notes:", str(raised.exception))
+
+    def test_retired_predicate_scan_folds_case_and_spacing(self):
+        cells = copy.deepcopy(self.cells)
+        cells[0]["claim_boundary"] += " Under the All-1200\tinterval-usability  RULE."
+        with self.assertRaisesRegex(SystemExit, "retired predicate"):
+            ledger.validate_retired_predicates(cells, self.evidence)
+
+    def test_retired_predicate_sidecar_rejects_rows_without_provenance(self):
+        original = ledger.RETIRED_PREDICATES
+        valid = original.read_text(encoding="utf-8")
+        cases = {
+            "blank field": valid + "old gate rule\tdeadbeef\t\tissue 1011\n",
+            "short row": valid + "old gate rule\tdeadbeef\n",
+            "extra column": valid + "old gate rule\tdeadbeef\tnew rule\tissue 1011\textra\n",
+        }
+        try:
+            with tempfile.TemporaryDirectory() as temporary:
+                for name, text in cases.items():
+                    with self.subTest(name):
+                        sidecar = Path(temporary) / f"{name.replace(' ', '-')}.tsv"
+                        sidecar.write_text(text, encoding="utf-8")
+                        ledger.RETIRED_PREDICATES = sidecar
+                        with self.assertRaisesRegex(
+                            SystemExit, r"line \d+: every field needs a value"
+                        ):
+                            ledger.retired_predicate_phrases()
+        finally:
+            ledger.RETIRED_PREDICATES = original
 
     def test_retired_predicate_sidecar_rejects_duplicate_phrases(self):
         original = ledger.RETIRED_PREDICATES

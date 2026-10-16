@@ -45,11 +45,13 @@ effects, intervals, or missing-predictor support.
   reason, actor, commit, and date.
 - `schema.json` defines fields, enums, denominators, and the verified-tick gate.
 - `retired-predicates.tsv` lists gate phrases that a policy change retired,
-  with the commit that retired each one and its replacement. `--check` fails
-  if a listed phrase, ignoring case and spacing, appears in any cell's
-  `claim_boundary` or `next_gate` or any evidence row's `claim_boundary`.
-  `transitions.tsv` and `notes` are history and are not scanned. When a gate
-  predicate is deleted, add its phrase here in the same change.
+  with the commit that retired each one and its replacement. `--check`,
+  `--write`, and `--summary` fail if a listed phrase, ignoring case and runs
+  of whitespace, appears in any cell's `claim_boundary` or `next_gate` or any
+  evidence row's `claim_boundary`; each failure names the row, the field, and
+  the replacement. `transitions.tsv` and `notes` are history and are not
+  scanned. When a gate predicate is deleted, add its phrase here in the same
+  change.
 - `tranches/` contains generated tranche summaries.
 
 ## Missing-response gates
