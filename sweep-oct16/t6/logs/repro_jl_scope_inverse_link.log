@@ -1,0 +1,48 @@
+cell                    dpar    max|resp - doc_invlink(link)|   max|se_resp - |doc'|*se_link|/se   in-sample |resp - stored|
+beta_fixed              mu      0.000e+00                       0.000e+00                             0.000e+00
+beta_fixed              sigma   0.000e+00                       0.000e+00                             0.000e+00
+beta_binomial_fixed     mu      0.000e+00                       0.000e+00                             0.000e+00
+beta_binomial_fixed     sigma   0.000e+00                       0.000e+00                             0.000e+00
+binomial_fixed          mu      0.000e+00                       0.000e+00                             0.000e+00
+cumulative_logit_fixed  predict_parameters ERROR: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor 
+gamma_fixed             mu      0.000e+00                       0.000e+00                             0.000e+00
+gamma_fixed             sigma   0.000e+00                       0.000e+00                             0.000e+00
+gaussian_fixed          mu      0.000e+00                       0.000e+00                             0.000e+00
+gaussian_fixed          sigma   0.000e+00                       0.000e+00                             0.000e+00
+lognormal_fixed         mu      5.880e+00                       6.954e+00                             0.000e+00   <-- MISMATCH vs documented link
+lognormal_fixed         sigma   0.000e+00                       0.000e+00                             0.000e+00
+nbinom2_fixed           mu      0.000e+00                       0.000e+00                             0.000e+00
+nbinom2_fixed           sigma   0.000e+00                       0.000e+00                             0.000e+00
+poisson_fixed           mu      0.000e+00                       0.000e+00                             0.000e+00
+skew_normal_fixed       mu      0.000e+00                       0.000e+00                             0.000e+00
+skew_normal_fixed       nu      5.096e+00                       6.048e+00                             5.096e+00   <-- MISMATCH vs documented link
+skew_normal_fixed       sigma   0.000e+00                       0.000e+00                             0.000e+00
+student_fixed           mu      0.000e+00                       0.000e+00                             0.000e+00
+student_fixed           nu      2.000e+00                       0.000e+00                             2.000e+00   <-- MISMATCH vs documented link
+student_fixed           sigma   0.000e+00                       0.000e+00                             0.000e+00
+student_ri              mu      0.000e+00                       0.000e+00                             0.000e+00
+student_ri              nu      2.000e+00                       0.000e+00                             2.000e+00   <-- MISMATCH vs documented link
+student_ri              sigma   0.000e+00                       0.000e+00                             0.000e+00
+truncated_nbinom2_fixed mu      0.000e+00                       0.000e+00                             0.000e+00
+truncated_nbinom2_fixed sigma   0.000e+00                       0.000e+00                             0.000e+00
+tweedie_fixed           mu      0.000e+00                       0.000e+00                             0.000e+00
+tweedie_fixed           nu      0.000e+00                       0.000e+00                             0.000e+00
+tweedie_fixed           sigma   0.000e+00                       0.000e+00                             0.000e+00
+tweedie_ri              mu      0.000e+00                       0.000e+00                             0.000e+00
+tweedie_ri              nu      0.000e+00                       0.000e+00                             0.000e+00
+tweedie_ri              sigma   0.000e+00                       0.000e+00                             0.000e+00
+zero_one_beta_fixed     coi     0.000e+00                       0.000e+00                             0.000e+00
+zero_one_beta_fixed     mu      1.119e+00                       4.626e+00                             1.798e+00   <-- MISMATCH vs documented link
+zero_one_beta_fixed     sigma   0.000e+00                       0.000e+00                             0.000e+00
+zero_one_beta_fixed     zoi     0.000e+00                       0.000e+00                             0.000e+00
+zero_one_beta_ri        coi     0.000e+00                       0.000e+00                             0.000e+00
+zero_one_beta_ri        mu      1.143e+00                       4.052e+00                             1.977e+00   <-- MISMATCH vs documented link
+zero_one_beta_ri        sigma   0.000e+00                       0.000e+00                             0.000e+00
+zero_one_beta_ri        zoi     0.000e+00                       0.000e+00                             0.000e+00
+ZOB fixed: max|predict(fz, dz) - fitted(fz)| = 1.7975624806690818; first 3 predict = [-0.014659710311742204, 0.3319614790796913, 0.36747285003639685] fitted = [0.4842932457986229, 0.5594569884590305, 0.5669921654268127]
+Bivariate Student nu: response = 4.427453535344884  fit.scales[:nu] = 6.427453535344884  2+exp(link) = 6.427453535344884  se_resp = 1.9797070775344876  exp(link)*se_link = 1.9797070775344876
+  bivariate Student mu1: max|in-sample response - stored| = 0.0
+  bivariate Student mu2: max|in-sample response - stored| = 0.0
+  bivariate Student rho12: max|in-sample response - stored| = 0.0
+  bivariate Student sigma1: max|in-sample response - stored| = 0.0
+  bivariate Student sigma2: max|in-sample response - stored| = 0.0

@@ -1,0 +1,3 @@
+LogNormal row 1: fitted = 2.1735047894972532  predict(:response) = 2.1735047894972532  exp(eta) = 2.1735047894972532  E[y] = exp(eta + sigma^2/2) = 2.3151327216824833  mean of 20000 simulate() draws = 2.30561622228044 (MC se 0.0059631707189217445)
+LogNormal mean(fitted) = 3.0159183370419047  mean(E[y]) = 3.6346372965455247  mean(y) = 3.530199482518429
+TruncNB2 row 1: fitted = 3.740346659175293  E[y] = mu/(1 - p0) = 4.556233459749454  mean of 20000 simulate() draws = 4.58705 (MC se 0.02712808344724293);  mean(fitted) = 2.6815364176455665  mean(E[y]) = 3.6357825864296007  mean(y) = 3.629166666666667

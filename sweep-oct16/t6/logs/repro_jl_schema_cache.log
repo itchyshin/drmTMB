@@ -1,0 +1,6 @@
+cached schema keys: Gaussian [:mu, :sigma], Poisson Symbol[]
+Gaussian predict(nd_subset) == predict(nd_main)[[4:6;13:15]]: true
+Poisson  predict(nd_subset): ArgumentError: only one level found: b (need at least two to compute contrasts).
+Poisson  predict(nd_main)[[4:6;13:15]] (what the subset should return): [2.1502556769971624, 3.615707356933972, 7.8840256373436635, 2.1502556769971624, 3.615707356933972, 7.8840256373436635]
+Gaussian fit on f levels [c,a,b], String nd_main: max|diff vs String fit| = 3.799183190267286e-12
+Poisson  fit on f levels [c,a,b], String nd_main: ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [(Intercept), x, f: a, f: b]. A factor in `newdata` probably has a different set or order of levels than the data the model was fitted to; supply every fitted level (unused rows can be dropped from the result afterwards).

@@ -1,0 +1,15 @@
+x only, y ~ x: coefnames[:mu] = ["x"]
+   predict(fit, nd; type = :link)          -> ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x] but the fitted coefficients are [x]. A factor in `newdata` probably has a differ
+   predict(fit, nd; se = true)              -> ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x] but the fitted coefficients are [x]. A factor in `newdata` probably has a differ
+   predict_parameters(fit, nd; se = true)   -> ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x] but the fitted coefficients are [x]. A factor in `newdata` probably has a differ
+   fitted(fit)[1:3] = [1.9113530222074089, 1.8536968048469356, 2.4013455341743226]  simulate ok: (240, 2)
+explicit 0 +, y ~ 0 + x: coefnames[:mu] = ["x"]
+   predict(fit, nd; type = :link)          -> [-0.41074574408632747, 0.0, 0.6161186161294911]
+   predict(fit, nd; se = true)              -> [0.13132581473528201, 0.0, 0.19698872210292304]
+   predict_parameters(fit, nd; se = true)   -> [-0.41074574408632747, 0.0, 0.6161186161294911]
+   fitted(fit)[1:3] = [1.9113530222074089, 1.8536968048469356, 2.4013455341743226]  simulate ok: (240, 2)
+ri, y ~ x + f + (1 | g): coefnames[:mu] = ["x", "f: b", "f: c"]
+   predict(fit, nd; type = :link)          -> ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdat
+   predict(fit, nd; se = true)              -> ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdat
+   predict_parameters(fit, nd; se = true)   -> ArgumentError: predict: the `mu` design built from `newdata` has columns [(Intercept), x, f: b, f: c] but the fitted coefficients are [x, f: b, f: c]. A factor in `newdat
+   fitted(fit)[1:3] = [1.9185943658858253, 2.44823202722135, 1.6966891874989887]  simulate ok: (240, 2)
