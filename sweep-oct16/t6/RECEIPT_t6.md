@@ -171,7 +171,7 @@ Not filed (see `repro/ISSUES_TO_FILE.md`): MCSE near-misses; Student-t variance 
 | --- | --- |
 | drmTMB pin (this checkout) | `ca3ddefa5ea11bbfd3b765615dfbb89305d2485a` |
 | DRModels.jl pin | `f71b2923360e9e5d4591e0d6e15a9ef9db0356d7` |
-| Receipt branch | `sweep-oct16/t6` (this commit; no PR) |
+| Receipt branch | `sweep-oct16/t6` @ `9ab840c2f51f6dc7b79f77c23d76f0868d460c87` (no PR) |
 | PR head | none (spec does not ask for a PR) |
 
 Session: R 4.6.1, TMB 1.9.25, Matrix 1.7-6, drmTMB 0.7.1; Julia 1.11.6, DRModels 0.7.2.
