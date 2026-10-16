@@ -96,14 +96,18 @@ Type drm_expm1_minus_x(Type w)
   return CppAD::CondExpLt(inside, cut * cut, series, direct);
 }
 
-// x - log(1 + x) for x > -1. Same idea as drm_expm1_minus_x() but for the
-// relative residual u itself: for |x| < 0.1 a 21-term alternating series
-// (truncation below 1e-22 relative to x^2/2) replaces the direct difference,
-// which would keep only about eps / x of relative accuracy. Above the switch
-// log(1 + x) is within eps of its true value, which is below 2e-14 relative
-// to x - log(1 + x) >= 0.0047. Each branch sees x clamped into its region.
+// x - log(1 + x) for x > -1, where the caller also supplies log(1 + x) as
+// log1p_x computed from logarithms it already holds. For |x| < 0.1 a 21-term
+// alternating series (truncation below 1e-22 relative to x^2 / 2) replaces the
+// direct difference, which would keep only about eps / x of relative
+// accuracy. For |x| >= 0.1 the difference x - log1p_x is at least 4.7e-3, so
+// the roughly 1e-15 absolute error of log1p_x is below 2e-12 relative. Using
+// the caller's logarithm there, rather than log(1 + x), keeps the value
+// finite as x -> -1: 1 + x underflows to 0 once y * p / a rounds to 1, while
+// log(y) + log(p) - log(a) stays exact. Each branch sees x clamped into its
+// region.
 template<class Type>
-Type drm_x_minus_log1p(Type x)
+Type drm_x_minus_log1p(Type x, Type log1p_x)
 {
   Type cut = Type(0.1);
   Type inside = x * x;
@@ -114,9 +118,7 @@ Type drm_x_minus_log1p(Type x)
     acc = Type(1.0) / Type(k) - xs * acc;
   }
   Type series = xs * xs * acc;
-  Type xd = CppAD::CondExpLt(inside, cut * cut, cut, x);
-  Type direct = xd - log(Type(1.0) + xd);
-  return CppAD::CondExpLt(inside, cut * cut, series, direct);
+  return CppAD::CondExpLt(inside, cut * cut, series, x - log1p_x);
 }
 
 // Exact rounding error of the double product: x * y = prod + err with

@@ -110,8 +110,10 @@ Type drm_beta_log_density(Type y, Type alpha, Type beta_shape)
   Type u_a = ((yp - alpha) + drm_two_prod_err(y, p, yp)) / alpha;
   Type u_b = ((bp - beta_shape) + drm_two_prod_err(one_my, p, bp) +
     one_my_err * p) / beta_shape;
-  return -alpha * drm_x_minus_log1p(u_a) -
-    beta_shape * drm_x_minus_log1p(u_b) -
+  // log(1 + u) from logarithms: finite as u -> -1 (tiny y or 1 - y), where
+  // 1 + u itself would underflow to 0.
+  return -alpha * drm_x_minus_log1p(u_a, log_y + log_p - log_a) -
+    beta_shape * drm_x_minus_log1p(u_b, log_1my + log_p - log_b) -
     log_y - log_1my +
     Type(0.5) * (log_a + log_b - log_p) -
     Type(0.5) * log(Type(2.0) * M_PI) +
