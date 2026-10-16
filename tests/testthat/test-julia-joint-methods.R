@@ -173,6 +173,33 @@ test_that("joint Julia result preserves explicit blocks and transforms Gaussian 
   expect_equal(subset$lower, c(ci$lower[ci_sd], ci$lower[ci$tmb_parameter=='mu:(Intercept)']))
 })
 
+test_that("joint Julia print() and summary() flag a non-converged fit with its message (#1545)", {
+  fixture <- joint_methods_prepared()
+  result <- joint_methods_result(fixture$prepared)
+  result$converged <- FALSE
+  fit <- drmTMB:::drm_julia_joint_result(
+    result, fixture$prepared, quote(joint_fit),
+    bf(y ~ mi(x_var) + habitat_type, sigma ~ z_score), gaussian()
+  )
+  expect_false(is_converged(fit))
+  printed_text <- function(x) {
+    out <- utils::capture.output(
+      msgs <- utils::capture.output(print(x), type = "message")
+    )
+    paste(c(msgs, out), collapse = "\n")
+  }
+  expect_match(
+    printed_text(fit),
+    "convergence: 1 (not converged; see `check_drm()`)",
+    fixed = TRUE
+  )
+  summary_fit <- drmTMB:::summary.drmTMB_julia_joint(fit)
+  expect_identical(summary_fit$convergence_message, fit$opt$message)
+  printed <- printed_text(summary_fit)
+  expect_match(printed, "convergence: not converged (see `check_drm()`)", fixed = TRUE)
+  expect_match(printed, "Optimiser iterations: 7.", fixed = TRUE)
+})
+
 test_that("joint Julia imputed returns the native eight-column contract", {
   fixture <- joint_methods_prepared()
   fit <- drmTMB:::drm_julia_joint_result(

@@ -12,6 +12,16 @@
 
 ## Bug fixes
 
+* `summary()` now flags a fit whose optimizer did not converge. It used to
+  print only `convergence: 1`, while `print()` said "not converged", so a
+  reader of `summary()` alone could take a failed fit for a good one. Both now
+  print `convergence: 1 (not converged; see check_drm())` and a
+  `convergence message:` line with the optimizer's message, for example
+  `false convergence (8)`. The summary object stores that message as
+  `convergence_message`. Julia-engine fits (`engine = "julia"`, including
+  cross-family and joint `mi()` fits) follow the same rule: `print()` no
+  longer shows a bare code, and the printed summary adds the message and
+  points to `check_drm()`. Converged fits print exactly as before (#1545).
 * Gamma `mi()` missing-x rows use a 51-node posterior-mode Gauss-Hermite
   rule on `u = log(x)`. Exactly five Newton steps start at the log prior
   mean and use each response family's own log-density gradient and

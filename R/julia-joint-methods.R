@@ -651,6 +651,7 @@ summary.drmTMB_julia_joint <- function(
     df = object$df,
     nobs = nobs(object),
     converged = isTRUE(object$opt$convergence == 0L),
+    convergence_message = object$opt$message,
     uncertainty = object$uncertainty
   )
   class(out) <- c("summary.drmTMB_julia_joint", "summary.drmTMB_julia")

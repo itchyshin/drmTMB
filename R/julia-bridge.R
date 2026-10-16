@@ -5288,7 +5288,7 @@ print.drmTMB_julia <- function(x, ...) {
     cli::cli_text("  estimator: {x$estimator}")
   }
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
-  cli::cli_text("  convergence: {x$opt$convergence}")
+  drm_cli_convergence(x$opt$convergence, x$opt$message)
   invisible(x)
 }
 
@@ -6335,6 +6335,7 @@ summary.drmTMB_julia <- function(
     df = object$df,
     nobs = object$nobs,
     converged = isTRUE(object$opt$convergence == 0L),
+    convergence_message = object$opt$message,
     uncertainty = object$uncertainty
   )
   class(out) <- "summary.drmTMB_julia"
@@ -6438,9 +6439,13 @@ print.summary.drmTMB_julia <- function(x, ...) {
   cli::cli_text("<drmTMB Julia-engine fit summary>")
   cli::cli_text("  observations: {x$nobs}")
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
-  cli::cli_text(
-    "  convergence: {if (isTRUE(x$converged)) 'converged' else 'not converged'}"
-  )
+  if (isTRUE(x$converged)) {
+    cli::cli_text("  convergence: converged")
+  } else {
+    # Same wording and message line as print.summary.drmTMB() (#1545).
+    cli::cli_text("  convergence: not converged (see {.fn check_drm})")
+    drm_cli_convergence_message(x$convergence_message)
+  }
   if (!is.null(x$uncertainty) && !is.null(x$uncertainty$status)) {
     cli::cli_text("  uncertainty: {x$uncertainty$status}")
   }
@@ -9034,7 +9039,7 @@ print.drmTMB_julia_xfam <- function(x, ...) {
   cli::cli_text(
     "  latent rho: {format(x$rho_latent, digits = 4)}"
   )
-  cli::cli_text("  convergence: {x$opt$convergence}")
+  drm_cli_convergence(x$opt$convergence, x$opt$message)
   invisible(x)
 }
 
@@ -9148,6 +9153,7 @@ summary.drmTMB_julia_xfam <- function(object, conf.int = FALSE, ...) {
     df = object$df,
     nobs = object$nobs,
     converged = isTRUE(object$opt$convergence == 0L),
+    convergence_message = object$opt$message,
     uncertainty = object$uncertainty
   )
   class(out) <- "summary.drmTMB_julia"

@@ -73,13 +73,7 @@ print.drmTMB <- function(x, ...) {
   } else {
     cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
   }
-  if (is.null(drm_convergence_label(x$opt$convergence, x$opt$message))) {
-    cli::cli_text("  convergence: {x$opt$convergence}")
-  } else {
-    cli::cli_text(
-      "  convergence: {x$opt$convergence} (not converged; see {.fn check_drm})"
-    )
-  }
+  drm_cli_convergence(x$opt$convergence, x$opt$message)
   blocks <- coef(x)
   if (length(blocks)) {
     cli::cli_text("  fixed effects:")
@@ -92,6 +86,31 @@ print.drmTMB <- function(x, ...) {
     }
   }
   invisible(x)
+}
+
+# One display rule for the convergence line of `print()` and `summary()`, on
+# native and Julia-engine fits (#1545). Before it, `print()` said "not
+# converged" while `summary()` printed only the bare code, so a reader of
+# `summary()` alone could take a failed fit for a good one. A converged code
+# prints bare, exactly as before. A non-zero code says "not converged", points
+# to `check_drm()`, and prints the optimizer's message on its own line.
+# Interpretation stays in `drm_convergence_label()` (R/drmTMB.R), so the line
+# is flagged exactly when the fit-time convergence warning fires.
+drm_cli_convergence <- function(convergence, message = NULL) {
+  if (is.null(drm_convergence_label(convergence, message))) {
+    cli::cli_text("convergence: {convergence}")
+    return(invisible(FALSE))
+  }
+  cli::cli_text("convergence: {convergence} (not converged; see {.fn check_drm})")
+  drm_cli_convergence_message(message)
+  invisible(TRUE)
+}
+
+drm_cli_convergence_message <- function(message) {
+  if (length(message) == 1L && !is.na(message) && nzchar(message)) {
+    cli::cli_text("convergence message: {message}")
+  }
+  invisible(NULL)
 }
 
 #' Extract fixed-effect coefficients
@@ -4303,7 +4322,11 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `conf.int = TRUE` and `method = "profile"`.
 #'
-#' @return An object of class `summary.drmTMB`.
+#' @return An object of class `summary.drmTMB`. Its `convergence` and
+#'   `convergence_message` elements hold the optimizer code and message.
+#'   When the code is non-zero, the printed summary says `not converged`,
+#'   points to [check_drm()], and prints the optimizer message on its own
+#'   line, as `print()` does for the fit.
 #'
 #' @seealso The tier definitions and per-cell evidence behind these interval
 #'   targets, including random-effect standard-deviation rows, are curated in
@@ -4475,6 +4498,7 @@ summary.drmTMB <- function(
     estimator = object$estimator,
     estimator_exact = object$estimator_exact,
     convergence = object$opt$convergence,
+    convergence_message = object$opt$message,
     conf.int = conf.int,
     conf.level = if (conf.int) level else NA_real_,
     conf.method = if (conf.int) method else NA_character_,
@@ -4591,7 +4615,7 @@ print.summary.drmTMB <- function(x, ...) {
   } else {
     cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
   }
-  cli::cli_text("convergence: {x$convergence}")
+  drm_cli_convergence(x$convergence, x$convergence_message)
   invisible(x)
 }
 
