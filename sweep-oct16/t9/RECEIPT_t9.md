@@ -8,7 +8,7 @@ Gaussian location-scale with `(1|g)`. Pins checked out exactly. Never pushed to 
 
 - drmTMB: `ca3ddefa5ea11bbfd3b765615dfbb89305d2485a`
 - DRModels.jl: `f71b2923360e9e5d4591e0d6e15a9ef9db0356d7`
-- Branch: `sweep-oct16/t9` (receipt commit SHA is this branch HEAD after push)
+- Branch: `sweep-oct16/t9` (receipt commit `f575ea079dcd29fed2b320e1a4cb8a320ed6f2a9`)
 - PR head SHA: none (spec forbids a PR)
 
 ## Design
