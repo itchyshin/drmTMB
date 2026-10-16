@@ -13,10 +13,13 @@ recertified. The 238/750 twin-flag contract (#1554) is not decided here.
 **Evidence:** `test-mle-existence.R` failed on installed pin `ca3ddefa`
 (bin_complete / pois_n8_lowmean r03 / gauss_n8 r06 all `is_converged`
 TRUE) and passed after `pkgload::load_all` (39 pass / 0 fail). Sibling
-files: `test-check-drm.R` 263 pass, `test-fit-convergence-warning.R` 16
+files: `test-check-drm.R` 263 pass / 1 skip, `test-fit-convergence-warning.R` 16
 pass, `test-binomial-response.R` 60 pass, `test-poisson-mean.R` 138 pass,
 `test-gaussian-location-scale.R` 79 pass / 1 skip, `test-nbinom2-location-scale.R`
-157 pass.
+157 pass. Julia `test/test_poisson_mle_existence.jl` at pin `f71b292`:
+all-zero Poisson `is_converged=true`, SE ≈ 2.62e7, `check_drm.ok=true`;
+after the guard, 17 pass / 0 fail (warn + Inf SE; `is_converged` stays
+true). Sibling `test_binomial_separation.jl` 86 pass.
 
 **Non-claims:** no Firth/MSPL default; no Inf-SE masking in `vcov()`;
 random-effect routes not screened; shared R/Julia `is_converged` rule

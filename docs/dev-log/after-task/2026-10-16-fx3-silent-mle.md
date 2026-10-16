@@ -96,8 +96,12 @@ closeout suite in this session. Targeted red-proof and sibling
 files are `test-mle-existence.R`, `test-check-drm.R`,
 `test-fit-convergence-warning.R`, `test-binomial-response.R`,
 `test-poisson-mean.R`, `test-gaussian-location-scale.R`, and
-`test-nbinom2-location-scale.R`. Julia tests were not run here:
-this environment has R 4.3.3 and no Julia binary.
+`test-nbinom2-location-scale.R`. Julia 1.11.6 was installed for this
+closeout. `test/test_poisson_mle_existence.jl` passed 17/17 after the
+guard; on the pin the all-zero Poisson fit was `is_converged=true`
+with SE ≈ 2.62e7 and `check_drm.ok=true`. Sibling
+`test_binomial_separation.jl` passed 86/86. The full Julia package
+suite was not run.
 
 ## Tests Of The Tests
 
