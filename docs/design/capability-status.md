@@ -190,7 +190,9 @@ than `implemented` because the rest of the named suite is deliberately absent:
 `drm_lrtest()` is implemented but not exported; `anova.drmTMB()` (`R/methods.R`)
 now returns a likelihood-ratio table built on it (#1240), with the REML/MAP
 guards, a boundary warning, and `lrt_boundary()`'s chi-bar-square p-value when
-exactly one or two random-effect SDs are added, while `anova()` on an
+exactly one or two random-effect SDs are added or when a Poisson fit is
+compared with a nested NB2 fit that adds only the `sigma` intercept (#1557),
+while `anova()` on an
 `engine = "julia"` fit still refuses; there is no `update.drmTMB()` method in `NAMESPACE`; and `weights.drmTMB()`
 returns the prior per-observation weights, not Akaike model weights -- DRM.jl's
 `weights(fit)` returns `ones(nobs(fit))`, so this is a shared naming boundary

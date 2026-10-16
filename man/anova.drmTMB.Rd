@@ -41,10 +41,12 @@ the same number of parameters (compare those with \code{\link[=AIC]{AIC()}}).
 }
 
 \strong{Boundary tests.} When the larger model adds a random-effect standard
-deviation, the null value 0 sits on the edge of the parameter space and the
-usual chi-square reference is conservative. A
+deviation, or when it is \code{nbinom2()} and the smaller model is \code{poisson()}
+(the extra \code{sigma} tested at 0), the null sits on the edge of the
+parameter space and the usual chi-square reference is conservative. A
 \code{drmTMB_anova_boundary_warning} is signalled for such a pair. If exactly one
-or two standard deviations are added and nothing else, \verb{Pr(>Chisq)} is the
+or two standard deviations are added and nothing else, or if the Poisson
+vs NB2 pair adds only the \code{sigma} intercept, \verb{Pr(>Chisq)} is the
 chi-bar-square mixture from \code{\link[=lrt_boundary]{lrt_boundary()}}; the attribute \code{"p.method"}
 records \code{"chibar"} or \code{"chisq"} per row. Otherwise the naive chi-square
 p-value is reported and the warning says it is conservative.

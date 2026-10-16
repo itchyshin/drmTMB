@@ -1,3 +1,15 @@
+# 2026-10-16: FX6 Poisson vs NB2 boundary LRT (#1557)
+
+`anova(poisson, nbinom2)` now warns and reports `lrt_boundary(..., q = 1)`
+when the only extra parameter is the NB2 `sigma` intercept. `drm_lrtest()`
+warns and keeps naive χ². Red-proof: `test-anova-lrt.R` #1557 tests failed
+on `ca3ddef` (silent `p.method = "chisq"`, p = 1 vs chi-bar 0.5) and pass
+after the detector. Sibling suites: `test-model-comparison.R` 68 pass,
+`test-lrt-boundary.R` 62 pass. Type-I issues #1559 / #1560 are not closed
+(chi-bar 3.0% / 3.4% on the t10 500-rep grids). C17 recertified because
+`R/methods.R` roxygen changed. Report:
+`docs/dev-log/after-task/2026-10-16-fx6-poisson-nb2-boundary-lrt.md`.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17

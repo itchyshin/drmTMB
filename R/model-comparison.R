@@ -220,16 +220,34 @@ drm_lrtest_vc_labels <- function(object) {
 # adds a variance component `reduced` lacks, the null (variance = 0) sits on the
 # boundary of the parameter space and the chi-square(df) reference is invalid
 # (the p-value is conservative). Warn; do not silently swap the reference.
+# Family-dispersion nests (Poisson ⊂ NB2, #1557) use the same warning: the extra
+# `sigma` is tested at 0. The pairwise helper still reports the naive p-value;
+# `anova.drmTMB()` swaps in the chi-bar mixture when the nest is clean.
 drm_lrtest_boundary_warn <- function(reduced, full, df) {
   dropped <- setdiff(drm_lrtest_vc_labels(full), drm_lrtest_vc_labels(reduced))
-  if (length(dropped) == 0L) {
+  if (length(dropped) > 0L) {
+    cli::cli_warn(
+      c(
+        "{.fn lrtest}: {.arg full} adds variance component{?s} {.val {dropped}} that {.arg reduced} lacks, so this tests a variance against 0: a boundary null.",
+        "!" = "The chi-square({df}) p-value is conservative there (too large; the test loses power); the correct reference is a chi-bar-square mixture.",
+        "i" = "Use {.fn lrt_boundary} or a parametric bootstrap for a valid p-value."
+      ),
+      class = "drmTMB_lrtest_boundary_warning"
+    )
+    return(invisible(NULL))
+  }
+  nest <- drm_family_boundary_nest(
+    drm_anova_family_type(reduced),
+    drm_anova_family_type(full)
+  )
+  if (is.null(nest)) {
     return(invisible(NULL))
   }
   cli::cli_warn(
     c(
-      "{.fn lrtest}: {.arg full} adds variance component{?s} {.val {dropped}} that {.arg reduced} lacks, so this tests a variance against 0: a boundary null.",
+      "{.fn lrtest}: {.arg full} is {.val {drm_anova_family_type(full)}} and {.arg reduced} is {.val {drm_anova_family_type(reduced)}}, so this tests the extra {.val {nest$added}} at 0: a boundary null.",
       "!" = "The chi-square({df}) p-value is conservative there (too large; the test loses power); the correct reference is a chi-bar-square mixture.",
-      "i" = "Use a boundary-corrected test or a parametric bootstrap for a valid p-value."
+      "i" = "Use {.fn lrt_boundary} (q = {nest$q}) or a parametric bootstrap for a valid p-value."
     ),
     class = "drmTMB_lrtest_boundary_warning"
   )
@@ -245,10 +263,12 @@ drm_lrtest_boundary_warn <- function(reduced, full, df) {
 # helper does not make:
 #   * ML and REML fits are never mixed (as `lrt_boundary()`);
 #   * when `full` adds one or two variance components (random-effect SDs) and
-#     nothing else, the reported p-value is the chi-bar-square mixture from
-#     `lrt_boundary()`, because the null sits on the boundary; any other
-#     boundary case keeps the naive chi-square p-value and says it is
-#     conservative. A boundary warning is always signalled.
+#     nothing else, OR when `full` is nbinom2 and `reduced` is poisson with
+#     only the extra `sigma` intercept (#1557), the reported p-value is the
+#     chi-bar-square mixture from `lrt_boundary()`, because the null sits on
+#     the boundary; any other boundary case keeps the naive chi-square
+#     p-value and says it is conservative. A boundary warning is always
+#     signalled.
 
 drm_anova_vc_labels <- function(object, slot) {
   block <- object[[slot]]
@@ -256,6 +276,63 @@ drm_anova_vc_labels <- function(object, slot) {
     lapply(names(block), function(d) paste0(d, ":", names(block[[d]]))),
     use.names = FALSE
   ))
+}
+
+drm_anova_family_type <- function(object) {
+  mt <- object$model$model_type
+  if (is.null(mt) || length(mt) == 0L) {
+    return(NA_character_)
+  }
+  as.character(mt[[1L]])
+}
+
+# Nested family pairs whose extra distributional parameter is tested at 0.
+# Only the filed t10 pair is wired: poisson ⊂ nbinom2 (sigma → 0, size → ∞).
+# Sibling nests (poisson ⊂ zi_poisson, binomial ⊂ beta_binomial, nbinom2 ⊂
+# zi_nbinom2) stay on the naive chi-square path; see the FX6 methods note.
+drm_family_boundary_nest <- function(reduced_type, full_type) {
+  if (identical(reduced_type, "poisson") && identical(full_type, "nbinom2")) {
+    return(list(added = "sigma", q = 1L))
+  }
+  NULL
+}
+
+# Family-dispersion analogue of `drm_anova_boundary()`: chi-bar applies when
+# the pair is a wired nest, no RE SD/correlation changed, and the extra
+# parameter count equals q (so the only new term is the boundary dpar).
+drm_anova_family_boundary <- function(reduced, full) {
+  nest <- drm_family_boundary_nest(
+    drm_anova_family_type(reduced),
+    drm_anova_family_type(full)
+  )
+  added_sd <- setdiff(
+    drm_anova_vc_labels(full, "sdpars"),
+    drm_anova_vc_labels(reduced, "sdpars")
+  )
+  removed_sd <- setdiff(
+    drm_anova_vc_labels(reduced, "sdpars"),
+    drm_anova_vc_labels(full, "sdpars")
+  )
+  changed_cor <- c(
+    setdiff(
+      drm_anova_vc_labels(full, "corpars"),
+      drm_anova_vc_labels(reduced, "corpars")
+    ),
+    setdiff(
+      drm_anova_vc_labels(reduced, "corpars"),
+      drm_anova_vc_labels(full, "corpars")
+    )
+  )
+  df <- as.numeric(full$df) - as.numeric(reduced$df)
+  list(
+    added_dpar = if (is.null(nest)) character() else nest$added,
+    q = if (is.null(nest)) 0L else nest$q,
+    applies = !is.null(nest) &&
+      length(added_sd) == 0L &&
+      length(removed_sd) == 0L &&
+      length(changed_cor) == 0L &&
+      isTRUE(df == nest$q)
+  )
 }
 
 # Which p-value applies to the comparison `reduced` -> `full`: the chi-bar
@@ -358,6 +435,7 @@ drm_anova_lrt <- function(fits, labels, test = NULL) {
     p[[i]] <- res$p.value
     p_method[[i]] <- "chisq"
     bd <- drm_anova_boundary(reduced, full)
+    fam <- drm_anova_family_boundary(reduced, full)
     if (length(bd$added_sd) > 0L) {
       pair <- paste0(labels[[i - 1L]], " -> ", labels[[i]])
       if (bd$applies) {
@@ -376,6 +454,28 @@ drm_anova_lrt <- function(fits, labels, test = NULL) {
           c(
             "{pair}: {.val {labels[[i]]}} adds variance component{?s} {.val {bd$added_sd}}, a boundary test, but the chi-bar-square mixture does not apply to this pair.",
             "x" = "It needs exactly one or two added standard deviations and no other new parameters (here {res$df} extra parameter{?s}).",
+            "i" = "The reported chi-square p-value is conservative (too large). Use a parametric bootstrap for a valid p-value."
+          ),
+          class = "drmTMB_anova_boundary_warning"
+        )
+      }
+    } else if (length(fam$added_dpar) > 0L) {
+      pair <- paste0(labels[[i - 1L]], " -> ", labels[[i]])
+      if (fam$applies) {
+        p[[i]] <- lrt_boundary(full, reduced, q = fam$q)$pvalue
+        p_method[[i]] <- "chibar"
+        cli::cli_warn(
+          c(
+            "{pair}: {.val {labels[[i]]}} is {.val {drm_anova_family_type(full)}} and {.val {labels[[i - 1L]]}} is {.val {drm_anova_family_type(reduced)}}, so the test puts {.val {fam$added_dpar}} on the boundary at 0.",
+            "i" = "The reported p-value is the chi-bar-square mixture from {.fn lrt_boundary}; the naive chi-square p-value would be too large."
+          ),
+          class = "drmTMB_anova_boundary_warning"
+        )
+      } else {
+        cli::cli_warn(
+          c(
+            "{pair}: {.val {labels[[i]]}} adds distributional parameter{?s} {.val {fam$added_dpar}} on the boundary at 0, but the chi-bar-square mixture does not apply to this pair.",
+            "x" = "It needs exactly {fam$q} extra parameter{?s} and no new random-effect terms (here {res$df} extra parameter{?s}).",
             "i" = "The reported chi-square p-value is conservative (too large). Use a parametric bootstrap for a valid p-value."
           ),
           class = "drmTMB_anova_boundary_warning"
