@@ -23,6 +23,11 @@ for file in ["n0050_G20_rep121.csv", "n0050_G20_rep143.csv",
             "  vcov[k,k] = ", fit.vcov[k, k],
             "  stderror = ", stderror(fit)[k],
             "  Wald sd(g) = [", exp(row.lower), ", ", exp(row.upper), "]")
+    # Profile interval (the route the boundary warning recommends). Its initial
+    # bracket step is the SE above when that is finite and positive.
+    pr = profile_result(fit; parm = :resd)
+    println(" "^25, "profile_result sd(g) = (", exp(pr.ci[1].lower), ", ", exp(pr.ci[1].upper),
+            ")  failed arms = ", pr.failed)
 end
 
 println("\n== all-singleton groups, n = 50, G = 50 ==")

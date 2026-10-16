@@ -1,8 +1,12 @@
 == sd(g) boundary, n = 50, G = 20 (2-3 rows per group) ==
 n0050_G20_rep121.csv     loglik = -56.858854  is_converged = false  log sd(g) = -18.399  vcov[k,k] = -7.380085638258922e-33  stderror = Inf  Wald sd(g) = [0.0, Inf]
+                         profile_result sd(g) = (0.0, 0.3868647271260742)  failed arms = 1
 n0050_G20_rep143.csv     loglik = -52.138689  is_converged = true  log sd(g) = -20.886  vcov[k,k] = 6.446541345645685e-35  stderror = 8.029035649220699e-18  Wald sd(g) = [8.501867428710059e-10, 8.501867428710059e-10]
+                         profile_result sd(g) = (0.0, Inf)  failed arms = 0
 n0050_G20_rep175.csv     loglik = -52.144067  is_converged = true  log sd(g) = -20.147  vcov[k,k] = -1.5433321683405897e-36  stderror = Inf  Wald sd(g) = [0.0, Inf]
+                         profile_result sd(g) = (0.0, 0.3917824338449146)  failed arms = 1
 n0050_G20_rep253.csv     loglik = -44.635508  is_converged = false  log sd(g) = -16.324  vcov[k,k] = 4.7189035374579e-30  stderror = 2.172303739686948e-15  Wald sd(g) = [8.137630098981502e-8, 8.13763009898156e-8]
+                         profile_result sd(g) = (0.0, Inf)  failed arms = 0
 
 == all-singleton groups, n = 50, G = 50 ==
 n0050_G50_rep068.csv     ERROR: ArgumentError: matrix contains Infs or NaNs

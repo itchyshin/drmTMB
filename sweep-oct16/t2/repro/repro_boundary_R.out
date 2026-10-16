@@ -1,8 +1,12 @@
 == sd(g) boundary, n = 50, G = 20 ==
 n0050_G20_rep121.csv   logLik = -56.858854  is_converged = TRUE  status = boundary  sd(g) = 8.99e-06  Wald = [0, Inf] (wald_at_boundary)
+                       profile sd(g) = [0, 0.386871] (profile, boundary = TRUE)
 n0050_G20_rep143.csv   logLik = -52.138689  is_converged = TRUE  status = boundary  sd(g) = 9.64e-06  Wald = [0, Inf] (wald_at_boundary)
+                       profile sd(g) = [0, 0.517539] (profile, boundary = TRUE)
 n0050_G20_rep175.csv   logLik = -52.144067  is_converged = TRUE  status = boundary  sd(g) = 8.13e-06  Wald = [0, Inf] (wald_at_boundary)
+                       profile sd(g) = [0, 0.391782] (profile, boundary = TRUE)
 n0050_G20_rep253.csv   logLik = -44.635508  is_converged = TRUE  status = boundary  sd(g) = 3.96e-05  Wald = [0, Inf] (wald_at_boundary)
+                       profile sd(g) = [0, 0.430858] (profile, boundary = TRUE)
 
 == all-singleton groups, n = 50, G = 50 ==
 n0050_G50_rep068.csv   refused: Random-effect grouping variable g has only singleton groups. x At least one group must have repeated observations in this initial random-effect implementation.

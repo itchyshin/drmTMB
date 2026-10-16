@@ -14,6 +14,9 @@ for (file in c("n0050_G20_rep121.csv", "n0050_G20_rep143.csv",
               file, as.numeric(logLik(fit)), is_converged(fit),
               convergence_status(fit), fit$sdpars$mu[[1]], r$lower, r$upper,
               r$conf.status))
+  pr <- suppressWarnings(confint(fit, parm = "sd:mu:(1 | g)", method = "profile"))
+  cat(sprintf("%-22s profile sd(g) = [%g, %g] (%s, boundary = %s)\n", "", pr$lower, pr$upper,
+              pr$conf.status, pr$profile.boundary))
 }
 cat("\n== all-singleton groups, n = 50, G = 50 ==\n")
 for (file in c("n0050_G50_rep068.csv", "n0050_G50_rep072.csv", "n0050_G50_rep077.csv")) {

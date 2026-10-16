@@ -1,3 +1,16 @@
+# 2026-10-16: sweep-oct16 lane t2, Gaussian location-scale simulation recovery (receipt)
+
+Lane t2 of the 2026-10-16 sweep. drmTMB `ca3ddef` and DRModels.jl `f71b292` were each fitted to the same 9 cells × 500 reps, plus 2,000 confirmatory reps for every n ≥ 200 cell, on identical R-generated data. The run used a cloud session, not the shared box.
+
+The two engines agree to ≤ 2e-11 in logLik and ≤ 4e-10 in estimates on all 15,000 shared datasets at n ≥ 200. The formal verdict is FAIL:
+- Coverage fails in 4 of 28 gate rows. The two σ-intercept rows at n = 1000 are Monte Carlo noise. The two G = 20 rows, sd(g) and the mean intercept at about 92.5%, are real z-Wald under-coverage.
+- Convergence fails only in the two n = 50 cells.
+- Bias passes everywhere.
+
+Filed: drmTMB#1558; DRModels.jl#1114; comments on DRModels.jl#969, #1050 and #1059. No package code changed; `.Rbuildignore` gains `^sweep-oct16$`.
+
+Receipt: `sweep-oct16/t2/RECEIPT_t2.md`. Report: `docs/dev-log/after-task/2026-10-16-sweep-oct16-t2-gaussian-ls-recovery.md`.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
