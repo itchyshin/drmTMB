@@ -15,7 +15,7 @@ Of the 15 cells (50 datasets each, 750 datasets per engine), both engines pass t
 |---|---|---|
 | Complete binomial separation | 50/50 | 0 |
 | Low-mean Poisson n = 8 (all-zero y, or positives only at an extreme x) | 13/14 | 9/14 |
-| Gaussian location-scale n = 8 (local maximum, ridge stop, or unbounded likelihood) | 8/50 | 3/50 |
+| Gaussian location-scale n = 8 (lower local maximum; default log-sigma clamp; no finite MLE) | 8/50 | 3/50 |
 | Student on Gaussian data (logLik above the Gaussian supremum; boundary unflagged) | 6/50 | 0 |
 
 **False alarms (correct answer reported as `converged = FALSE`):**
@@ -31,9 +31,9 @@ Of the 15 cells (50 datasets each, 750 datasets per engine), both engines pass t
 
 **Misleading but signalled:** DRModels.jl reports the exactly aliased sigma design as converged on all 50 datasets. It gives finite pseudo-inverse SEs for the unidentified coefficients, and its warning blames a "variance/dispersion boundary".
 
-**Twin flag agreement (`is_converged`, R vs Julia):** 513 of 750 datasets agree; 237 disagree. The per-cell breakdown is in §4.
+**Twin flag agreement (`is_converged`, R vs Julia):** 513 of 750 datasets agree; 237 disagree. Of those, 236 are in cells 1–14, and 182 of the 236 sit at the same optimum, so the twins differ only in what the flag means. The per-cell breakdown is in §4.
 
-Issues filed and comments posted are listed in §5.
+**Filed:** 4 new issues (drmTMB #1553 and #1554; DRModels.jl #1109 and #1110) and 9 evidence comments on existing issues. All are listed in §5.
 
 ## 2. Environment
 
@@ -78,7 +78,7 @@ The network policy blocked CRAN, r-universe, julialang.org and the Julia package
 - R's `set.seed()` rejects values above `.Machine$integer.max`, so R is seeded with `seed %% 2^31`. This is the same convention as lane t2 (PR #1549) and is injective here. RNG: Mersenne-Twister / Inversion / Rejection.
 - Data are generated once in R (`t4_gen_data.R`) and written with `write.csv`. Both engines read the same CSVs.
 - `data_md5.txt` holds the md5 of every one of the 750 CSVs. Regeneration was checked to be byte-identical.
-- Only datasets cited in issues are committed: cells 7, 8, 10 and 15 so far, plus any added later.
+- Only datasets cited in issues are committed: cells 1, 7–15. The others (gauss_n12, gauss_n20, pois_n8/12/20) regenerate byte-identically from the seeds.
 
 ### Engine-independent reference (`t4_reference.R`, base R only)
 
@@ -139,10 +139,15 @@ S = silent wrong, FA = false alarm. Full tables, including the reference regimes
 
 ### Notes on reading the table
 
-- **gauss_n8 (both engines).** The 9 drmTMB deficits fall into three mechanisms:
-  - Unbounded likelihood (r06, r19, r49). drmTMB reports converged; DRModels.jl flags all three.
-  - A genuine second mode (r05, r09, r28). Both engines converge to the same local maximum, 0.67–2.37 nats below the global one.
-  - Ridge stops (r04, r30, r31). drmTMB stops 0.57–8.2 nats short with converged = TRUE. DRModels.jl reaches the maximum on r04 and r31 but calls it not converged (also on r29).
+- **gauss_n8 (both engines).** These conclusions were corrected by verification (F5). The 9 drmTMB deficits have three causes:
+  - **No finite MLE** (r06, r19). drmTMB reports converged; on r06 the only warning is a preset escalation. DRModels.jl flags both.
+  - **A genuine second mode** (r05, r09, r28). Both engines converge to the same local maximum, 0.67–2.37 nats below the global one, and report converged. `drm_control(multi_start = 10)` rescues only r05.
+  - **The default `logsigma_clamp = c(-12, 12)`** (r04, r30, r31, r49). These are not early stops. drmTMB's fit is the exact global maximum of its soft-clamped objective; the unclamped MLE interpolates one observation with log σ between −16.5 and −64.
+    - The flag reads TRUE, and the only signal is a `logsigma_clamp_active` note.
+    - DRModels.jl reaches the unclamped MLE on r04 and r31 (and r29) but calls it not converged, because of its absolute `g_tol` (#983).
+  - **The reference is too low on two datasets.**
+    - r30: the reference value 15.517 is not the maximum. The true MLE is 16.4299 at log σ ≈ −64, which neither a multi-start BFGS nor either engine can represent.
+    - r49: technically unbounded (slope 2.3e-4), but its finite local maximum (−3.49812) is beaten only below log σ ≈ −3,900, so in practice it behaves as bounded.
   - n = 12 and n = 20 are clean in both engines.
 - **student_gaussdata.** 27 of 50 drmTMB logLiks exceed the exact Gaussian supremum, by up to 1.02e40; four of these fits are `converged` with no warning. DRModels.jl reaches the Gaussian limit exactly. Its SE for ν at that limit is about 1e-19, not Inf (known #969).
 - **re_sd1e-4.** drmTMB flags all 29 boundary fits through `convergence_status() = "boundary"`, with converged = TRUE. DRModels.jl reports converged = FALSE on 22 of the 29 because its absolute gradient tolerance (1e-8) is missed by 3e-8 to 4e-7. It gives a pseudo-inverse SE of about 1e-17 for log SD_g.
@@ -160,20 +165,22 @@ Each finding was reproduced minimally from the CSVs at both pins, then checked b
 | F8b | DRModels.jl Poisson: no existence screen; all-zero y returns the start value `log(eps())` after 0 iterations as converged | **new issue** | [itchyshin/DRModels.jl#1109](https://github.com/itchyshin/DRModels.jl/issues/1109) |
 | F2 | drmTMB Beta φ = 1e4: false convergence on 3/50 grid fits and 29/500 extra fits. lgamma cancellation, amplified ~30× by CppAD tape optimisation; fixed by draft #1547 | comment | [itchyshin/drmTMB#1548 (comment)](https://github.com/itchyshin/drmTMB/issues/1548#issuecomment-6224309858) |
 | F3 | drmTMB complete separation silent 50/50 at ca3ddef (`min(SE)` fallback blind spot); #1442 fixes the R side; Julia `is_converged` stays true | comment | [itchyshin/drmTMB#1270 (comment)](https://github.com/itchyshin/drmTMB/issues/1270#issuecomment-6224317984) |
-| F1 | DRModels.jl aliased sigma design | _pending_ | |
-| F4 | drmTMB Student logLik above the Gaussian supremum | _pending_ | |
-| F5 | tiny-n Gaussian (both engines) | _pending_ | |
-| F6 | DRModels.jl random-effect boundary flag and SE | _pending_ | |
-| F7 | twin `is_converged` semantics | _pending_ | |
+| F1 | DRModels.jl aliased fixed-effect design: converged, finite pseudo-inverse SEs (significant p in 46/50) for unidentified coefficients, a warning that blames a variance boundary, and `check_drm.ok` decided by rounding (22/50) | **new issue** | [itchyshin/DRModels.jl#1110](https://github.com/itchyshin/DRModels.jl/issues/1110) |
+| F7 | Twin contract: what `is_converged()` asserts. 236/700 disagreements, 182 at the same optimum; each twin's docs describe the other twin's semantics | **new issue** | [itchyshin/drmTMB#1554](https://github.com/itchyshin/drmTMB/issues/1554), with a cross-link on [DRModels.jl#1059](https://github.com/itchyshin/DRModels.jl/issues/1059#issuecomment-6225125124) |
+| F4 | drmTMB Student on Gaussian data: logLik above the Gaussian supremum in 27/36 boundary fits (max +1.02e40), 4 of them silently converged; draft #1547 clears all 27 | comment (known #1462) | [itchyshin/drmTMB#1462 (comment)](https://github.com/itchyshin/drmTMB/issues/1462#issuecomment-6225085797) |
+| F5 | Tiny-n Gaussian: no MLE (r06, r19); default log-sigma clamp (r04, r30, r31, r49); genuine second mode (r05, r09, r28) | comments (#1469 known) | [itchyshin/drmTMB#1469 (comment)](https://github.com/itchyshin/drmTMB/issues/1469#issuecomment-6225094326); Julia multi-start evidence on [DRModels.jl#994](https://github.com/itchyshin/DRModels.jl/issues/994#issuecomment-6225096948) |
+| F6 | DRModels.jl `(1\|g)` at the zero-variance boundary: converged = false on 22/29 (absolute `g_tol` plus a restart tie-break that ignores `g_converged`); pseudo-inverse SE of log SD_g ≈ 1e-17 (26/29) or ≈ 2e6 (3/29), decided by the `pinv` cutoff | comments | [itchyshin/DRModels.jl#1050 (comment)](https://github.com/itchyshin/DRModels.jl/issues/1050#issuecomment-6225104939); [itchyshin/DRModels.jl#969 (comment)](https://github.com/itchyshin/DRModels.jl/issues/969#issuecomment-6225108660) |
+| — | drmTMB #1470 status at ca3ddef: now `degenerate` in 50/50, but still no fit-time warning or alias handling, and the `vcov()` advice is misleading | comment (known) | [itchyshin/drmTMB#1470 (comment)](https://github.com/itchyshin/drmTMB/issues/1470#issuecomment-6225128432) |
 
-Known issues not re-filed, with the grid evidence that bears on each:
+**Known issues not re-filed.**
+- **drmTMB #1535 and DRModels.jl #1072** (NB2 at the Poisson limit). Grid false alarms: 33/50 (R) and 1/50 (J). Not commented on: the grid adds only a rate.
+- **drmTMB #1496.** Not exercised beyond #1535.
+- **DRModels.jl #983.** The r04, r29 and r31 false alarms at n = 8 are this mechanism; this is mentioned in the #994 and #1469 comments.
+- **DRModels.jl #1069 and #1088.** Not exercised by these cells, which have no NB2 random effect.
 
-- drmTMB #1535 (NB2 Poisson limit, false alarm 33/50).
-- DRModels.jl #1072 (1/50).
-- drmTMB #1470 (at ca3ddef the exactly aliased sigma design is now `degenerate` in 50/50, so not converged; there is still no fit-time warning and no alias handling).
-- drmTMB #1469 (tiny n; see F5).
-- drmTMB #1496.
-- DRModels.jl #983, #1069 and #1088 (not exercised by this grid's cells).
+**Not filed (judged design choices or out of scope).**
+- **collin_sigma_near.** drmTMB reports `degenerate` at the true MLE, while DRModels.jl reports converged and warns. This is a pure semantics difference, raised as an undecided row in #1554.
+- **drmTMB `objective_at()` / `drm_control(start =)`.** These cannot address an intercept-only `sigma`/`nu` coefficient by name. The API-mapping agent noticed this incidentally. It was not verified in this lane and is out of scope (fit interface, not edge-case behaviour).
 
 ## 6. Limitations
 
@@ -182,7 +189,11 @@ Known issues not re-filed, with the grid evidence that bears on each:
 - **Toolchain.** R 4.3.3 / TMB 1.9.10 rather than the box toolchain. Behaviour driven by numerical noise (Beta, Student) may differ in rate on TMB 1.9.25.
 - **"Signal" is narrow.** It counts only fit-time warnings and the convergence flag. drmTMB's `check_drm()` / `convergence_status()` information appears only when the user asks for it; it is reported as "diag only" in `results/classified.csv`.
 - **Julia `check_drm` and boundaries.** Julia's `check_drm()` emits `@info` on every call and may `@warn`. It was captured separately and was not counted as a fit-time signal.
-- **The reference is a multi-start optimiser,** not a certificate. On interior cells it was never beaten by either engine by more than 1e-6.
+- **The reference is a multi-start optimiser,** not a certificate. On interior cells neither engine beat it by more than 5e-8.
+  - It can fall short where the MLE lies at log σ far below double-precision reach. On gauss_n8 r30 the true MLE is 16.4299 at log σ ≈ −64, against a reference value of 15.517; F5 verified this with an exact profile scan.
+  - The verdicts are unchanged, but the r30 deficits are 9.09 (R) and 1.68 (J), not 8.18 and 0.77.
+- **Verification method.** Every finding was reproduced at both pins by a dedicated verifier, which tried to refute it, traced the root cause and searched for duplicates. Each new issue was then checked by an independent skeptic. The skeptics' factual corrections were applied before filing; for example, the `check_drm.ok` rounding claim in #1110 and the pdHess statement in #1553 were corrected.
+- **Draft PR checks.** Some verifiers built draft PRs (#1442, #1547, #1106, #1044) into scratch libraries or worktrees to test whether they fix a finding. These are off-pin observations, labelled as such in the issues and comments.
 
 ## 7. Files
 
