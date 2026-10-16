@@ -1,0 +1,33 @@
+{
+  "engine": "drmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": -304.019929161195,
+  "converged": true,
+  "nobs": 72,
+  "coef": {
+    "mu:(Intercept)": 81.9,
+    "mu:nitro": 75.3333333333333,
+    "mu:genMarvellous": 8.51666666666666,
+    "mu:genVictory": -8.6,
+    "mu:nitro:genMarvellous": -10.75,
+    "mu:nitro:genVictory": 5.75,
+    "sigma:(Intercept)": 2.70469152907355,
+    "sigma:genMarvellous": -0.0123350142966993,
+    "sigma:genVictory": -0.000602172192125196
+  },
+  "se": {
+    "mu:(Intercept)": 7.72069801505143,
+    "mu:nitro": 13.6471505739433,
+    "mu:genMarvellous": 7.1772653698407,
+    "mu:genVictory": 7.21922002526047,
+    "mu:nitro:genMarvellous": 19.1820485628073,
+    "mu:nitro:genVictory": 19.2941770959078,
+    "sigma:(Intercept)": 0.159082948548341,
+    "sigma:genMarvellous": 0.267934636684619,
+    "sigma:genVictory": 0.228512401462822
+  },
+  "elapsed_s": 0.12,
+  "opt_convergence": 0,
+  "opt_message": "converged (Newton polish; max |gradient| = 6.27e-11)"
+}

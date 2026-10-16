@@ -1,0 +1,165 @@
+{
+  "id": "Orthodont",
+  "source": "nlme::Orthodont",
+  "family": "gaussian",
+  "n": 108,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -204.67617548048,
+    "converged": true,
+    "elapsed_s": 0.14099999999999999,
+    "error": {},
+    "n_coef": 6
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -204.67617548048028,
+    "converged": true,
+    "elapsed_s": 23.550662994384766,
+    "error": {},
+    "n_coef": 7
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": -204.676175480485,
+    "converged": true,
+    "elapsed_s": 1.05,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 2.8421709430404007e-13,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 5.0022208597511053e-12,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 4.7180037654470652e-12,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 6,
+    "n_pass": 6,
+    "max_rel": 1.3391706314201355e-11,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 17.3727272727395,
+        "b": 17.372727272727285,
+        "rel": 7.0306920933952272e-13,
+        "abs": 1.2214229627716122e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:age",
+        "name_b": "mu: age",
+        "a": 0.47954545454534803,
+        "b": 0.47954545454542663,
+        "rel": 1.6391311688684783e-13,
+        "abs": 7.8603790143461083e-14,
+        "pass": true
+      },
+      {
+        "name_a": "mu:SexMale",
+        "name_b": "mu: Sex: Male",
+        "a": -1.03210227274109,
+        "b": -1.0321022727272684,
+        "rel": 1.3391706314201355e-11,
+        "abs": 1.3821610522768424e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:age:SexMale",
+        "name_b": "mu: age & Sex: Male",
+        "a": 0.30482954545424601,
+        "b": 0.30482954545459406,
+        "rel": 1.141801782044881e-12,
+        "abs": 3.4805491821998658e-13,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": -0.26211526498137699,
+        "b": -0.26211526498075016,
+        "rel": 2.3914361483216137e-12,
+        "abs": 6.2683191970336338e-13,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:SexMale",
+        "name_b": "sigma: Sex: Male",
+        "a": 0.76400645423846103,
+        "b": 0.76400645423833091,
+        "rel": 1.7031026081548781e-13,
+        "abs": 1.3011813848606835e-13,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 6,
+    "n_pass": 6,
+    "max_abs": 5.3517944159642283e-08,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 0.790290703577881,
+        "b": 0.79029070357979525,
+        "abs": 1.9142465390586949e-12,
+        "rel": 2.4222055635827361e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:age",
+        "name_b": "mu: age",
+        "a": 0.051874442983433203,
+        "b": 0.051874442983472657,
+        "abs": 3.9454550737616501e-14,
+        "rel": 7.6057781960544292e-13,
+        "pass": true
+      },
+      {
+        "name_a": "mu:SexMale",
+        "name_b": "mu: Sex: Male",
+        "a": 1.37666962737067,
+        "b": 1.3766696273725822,
+        "abs": 1.9122481376143696e-12,
+        "rel": 1.3890392433978194e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:age:SexMale",
+        "name_b": "mu: age & Sex: Male",
+        "a": 0.10591401842014,
+        "b": 0.10591401842016789,
+        "abs": 2.7880475705899244e-14,
+        "rel": 2.6323687951575553e-13,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.123489245958327,
+        "b": 0.12348928719796165,
+        "abs": 4.1239634651635271e-08,
+        "rel": 3.3395313542886807e-07,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:SexMale",
+        "name_b": "sigma: Sex: Male",
+        "a": 0.159288183246207,
+        "b": 0.15928823676415116,
+        "abs": 5.3517944159642283e-08,
+        "rel": 3.3598177270857227e-07,
+        "pass": true
+      }
+    ]
+  }
+}

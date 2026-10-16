@@ -1,0 +1,93 @@
+{
+  "id": "Pastes",
+  "source": "lme4::Pastes",
+  "family": "gaussian",
+  "n": 60,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -123.99723293121301,
+    "converged": true,
+    "elapsed_s": 0.11,
+    "error": {},
+    "n_coef": 2
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -123.99723293121249,
+    "converged": true,
+    "elapsed_s": 23.702404975891113,
+    "error": {},
+    "n_coef": 4
+  },
+  "ref": {
+    "engine": "lme4",
+    "ok": true,
+    "logLik": -123.997232931448,
+    "converged": true,
+    "elapsed_s": 0.083000000000000199,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 5.1159076974727213e-13,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 2.3499069357058033e-10,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 2.3550228434032761e-10,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 2,
+    "n_pass": 2,
+    "max_rel": 9.7668333686961231e-11,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 60.053333333333299,
+        "b": 60.053333333333327,
+        "rel": 4.7327446875672749e-16,
+        "abs": 2.8421709430404007e-14,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": -0.19430399552094599,
+        "b": -0.19430399550196864,
+        "rel": 9.7668333686961231e-11,
+        "abs": 1.8977347471249573e-11,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 2,
+    "n_pass": 2,
+    "max_abs": 4.3073567573825855e-08,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 0.64213532668532503,
+        "b": 0.64213532665200712,
+        "abs": 3.331790399130341e-11,
+        "rel": 5.1886109682345311e-11,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.12909940180285401,
+        "b": 0.12909944487642158,
+        "abs": 4.3073567573825855e-08,
+        "rel": 3.3364641974299232e-07,
+        "pass": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "source": "lme4::cbpp",
+  "source_version": "2.0.6",
+  "family_r": "beta_binomial",
+  "family_jl": "BetaBinomial",
+  "mu_r": "cbind(incidence, fail) ~ period + (1 | herd)",
+  "sigma_r": "~ 1",
+  "mu_jl": "cbind(incidence, fail) ~ 1 + period + (1 | herd)",
+  "sigma_jl": "sigma ~ 1",
+  "has_re": true,
+  "cbind_success": "incidence",
+  "cbind_fail": "fail",
+  "ref": "glmmTMB",
+  "ref_call": "glmmTMB(cbind(incidence, fail) ~ period + (1 | herd), dispformula = ~ 1, family = glmmTMB::betabinomial(), data = d)",
+  "id": "cbpp",
+  "n": 56,
+  "csv": "/workspace/sweep-oct16/t8/data/cbpp.csv",
+  "prepare": "data(cbpp, package = \"lme4\")\nd <- lme4::cbpp\nd$herd <- chr_factor(d$herd)\nd$period <- chr_factor(d$period)\nd$fail <- d$size - d$incidence",
+  "drmTMB_sha": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+  "DRModels_sha": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "drmTMB_version": "0.7.1"
+}

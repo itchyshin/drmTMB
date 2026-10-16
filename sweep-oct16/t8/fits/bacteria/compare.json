@@ -1,0 +1,129 @@
+{
+  "id": "bacteria",
+  "source": "MASS::bacteria",
+  "family": "binomial",
+  "n": 220,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -98.885393092714096,
+    "converged": true,
+    "elapsed_s": 0.14499999999999999,
+    "error": {},
+    "n_coef": 4
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -98.885393092713826,
+    "converged": true,
+    "elapsed_s": 17.587686777114868,
+    "error": {},
+    "n_coef": 5
+  },
+  "ref": {
+    "engine": "lme4",
+    "ok": true,
+    "logLik": -98.885417192156694,
+    "converged": true,
+    "elapsed_s": 0.42999999999999999,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 2.7000623958883807e-13,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 2.4099442597957932e-05,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 2.4099442867964171e-05,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 4,
+    "n_pass": 4,
+    "max_rel": 5.8516635869373165e-10,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 1.8238312272941,
+        "b": 1.8238312274976982,
+        "rel": 1.1163217643236744e-10,
+        "abs": 2.0359824937088433e-10,
+        "pass": true
+      },
+      {
+        "name_a": "mu:week",
+        "name_b": "mu: week",
+        "a": -0.14369283256773599,
+        "b": -0.14369283257223864,
+        "rel": 3.1335232061639443e-11,
+        "abs": 4.5026482542454005e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:trtdrug+",
+        "name_b": "mu: trt: drug+",
+        "a": 0.52470369367429304,
+        "b": 0.52470369336725409,
+        "rel": 5.8516635869373165e-10,
+        "abs": 3.0703894982053725e-10,
+        "pass": true
+      },
+      {
+        "name_a": "mu:trtplacebo",
+        "name_b": "mu: trt: placebo",
+        "a": 1.3201809230172901,
+        "b": 1.3201809228059624,
+        "rel": 1.6007474307789022e-10,
+        "abs": 2.1132762206832467e-10,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 4,
+    "n_pass": 4,
+    "max_abs": 4.0924691568910987e-07,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 0.55347291917965202,
+        "b": 0.55347250993273633,
+        "abs": 4.0924691568910987e-07,
+        "rel": 7.3941633186983848e-07,
+        "pass": true
+      },
+      {
+        "name_a": "mu:week",
+        "name_b": "mu: week",
+        "a": 0.0509986556816963,
+        "b": 0.050998548664587612,
+        "abs": 1.0701710868865622e-07,
+        "rel": 2.098429993068724e-06,
+        "pass": true
+      },
+      {
+        "name_a": "mu:trtdrug+",
+        "name_b": "mu: trt: drug+",
+        "a": 0.65234784474572005,
+        "b": 0.65234794308496402,
+        "abs": 9.8339243970180235e-08,
+        "rel": 1.5074661461356398e-07,
+        "pass": true
+      },
+      {
+        "name_a": "mu:trtplacebo",
+        "name_b": "mu: trt: placebo",
+        "a": 0.64249705744800101,
+        "b": 0.6424970261995846,
+        "abs": 3.1248416410001312e-08,
+        "rel": 4.8635890309163523e-08,
+        "pass": true
+      }
+    ]
+  }
+}

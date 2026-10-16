@@ -1,0 +1,8 @@
+{
+  "elapsed_s": 14.015,
+  "engine": "DRModels.jl-zi-re-probe-default-integrator",
+  "error": "NegBinomial2() random effects cannot be combined with `zi`/`hu` yet",
+  "logLik": null,
+  "ok": false,
+  "note": "Retried without marginal=:Laplace. The Laplace probe refused because of zi, not because of (1|Nest). Default integrator gives the true ZI+RE gap message."
+}

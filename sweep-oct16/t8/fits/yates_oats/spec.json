@@ -1,0 +1,22 @@
+{
+  "source": "agridat::yates.oats",
+  "source_version": "1.26",
+  "family_r": "gaussian",
+  "family_jl": "Gaussian",
+  "mu_r": "yield ~ nitro * gen + (1 | block)",
+  "sigma_r": "~ gen",
+  "mu_jl": "yield ~ 1 + nitro * gen + (1 | block)",
+  "sigma_jl": "sigma ~ 1 + gen",
+  "has_re": true,
+  "cbind_success": {},
+  "cbind_fail": {},
+  "ref": "glmmTMB",
+  "ref_call": "glmmTMB(yield ~ nitro * gen + (1 | block), dispformula = ~ gen, family = gaussian(), data = d, REML = FALSE)",
+  "id": "yates_oats",
+  "n": 72,
+  "csv": "/workspace/sweep-oct16/t8/data/yates_oats.csv",
+  "prepare": "data(yates.oats, package = \"agridat\")\nd <- agridat::yates.oats\nd$gen <- chr_factor(d$gen)\nd$block <- chr_factor(d$block)",
+  "drmTMB_sha": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+  "DRModels_sha": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "drmTMB_version": "0.7.1"
+}

@@ -1,0 +1,165 @@
+{
+  "id": "epil",
+  "source": "MASS::epil",
+  "family": "nbinom2",
+  "n": 236,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -626.32660552733796,
+    "converged": true,
+    "elapsed_s": 0.30199999999999999,
+    "error": {},
+    "n_coef": 6
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -626.32660552730385,
+    "converged": true,
+    "elapsed_s": 20.066570997238159,
+    "error": {},
+    "n_coef": 7
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": -626.32660553014102,
+    "converged": true,
+    "elapsed_s": 1.115,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 3.4106051316484809e-11,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 2.8030626708641648e-09,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 2.8371687221806496e-09,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 6,
+    "n_pass": 6,
+    "max_rel": 3.6910855163015375e-07,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 1.83921619436668,
+        "b": 1.8392161958194531,
+        "rel": 7.8988702704010629e-10,
+        "abs": 1.4527730129998417e-09,
+        "pass": true
+      },
+      {
+        "name_a": "mu:lbase",
+        "name_b": "mu: lbase",
+        "a": 1.0273394583597699,
+        "b": 1.0273394583349529,
+        "rel": 2.415660871594813e-11,
+        "abs": 2.4817037314051049e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:trtprogabide",
+        "name_b": "mu: trt: progabide",
+        "a": -0.31564593537556501,
+        "b": -0.31564593048322526,
+        "rel": 1.5499454316478205e-08,
+        "abs": 4.8923397555356019e-09,
+        "pass": true
+      },
+      {
+        "name_a": "mu:lage",
+        "name_b": "mu: lage",
+        "a": 0.33077325094976601,
+        "b": 0.33077337304104665,
+        "rel": 3.6910855163015375e-07,
+        "abs": 1.2209128064100128e-07,
+        "pass": true
+      },
+      {
+        "name_a": "mu:V4",
+        "name_b": "mu: V4",
+        "a": -0.11738274678092001,
+        "b": -0.11738275030596255,
+        "rel": 3.0030328479572396e-08,
+        "abs": 3.5250425495236826e-09,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": -1.0022365505303199,
+        "b": -1.0022365671429956,
+        "rel": 1.6575603229979777e-08,
+        "abs": 1.6612675679539279e-08,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 6,
+    "n_pass": 6,
+    "max_abs": 4.7162892879981655e-07,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 0.109186327226825,
+        "b": 0.10918628359263961,
+        "abs": 4.3634185389884728e-08,
+        "rel": 3.9963048944066541e-07,
+        "pass": true
+      },
+      {
+        "name_a": "mu:lbase",
+        "name_b": "mu: lbase",
+        "a": 0.100920558684662,
+        "b": 0.10092055566768673,
+        "abs": 3.0169752668340877e-09,
+        "rel": 2.9894555739242159e-08,
+        "pass": true
+      },
+      {
+        "name_a": "mu:trtprogabide",
+        "name_b": "mu: trt: progabide",
+        "a": 0.150429103101997,
+        "b": 0.15042898957619916,
+        "abs": 1.1352579784573713e-07,
+        "rel": 7.5467974949476409e-07,
+        "pass": true
+      },
+      {
+        "name_a": "mu:lage",
+        "name_b": "mu: lage",
+        "a": 0.34242027639184502,
+        "b": 0.34241980476291622,
+        "abs": 4.7162892879981655e-07,
+        "rel": 1.3773393730344197e-06,
+        "pass": true
+      },
+      {
+        "name_a": "mu:V4",
+        "name_b": "mu: V4",
+        "a": 0.087137157251501507,
+        "b": 0.087137141189470552,
+        "abs": 1.6062030955277251e-08,
+        "rel": 1.8433044480574304e-07,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.118352923744067,
+        "b": 0.11835290565428913,
+        "abs": 1.8089777870100576e-08,
+        "rel": 1.5284605819471706e-07,
+        "pass": true
+      }
+    ]
+  }
+}

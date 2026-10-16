@@ -1,3 +1,9 @@
+# 2026-10-16: sweep-oct16 t8 real-data parity (15 unused datasets)
+
+Pins drmTMB `ca3ddefa` / DRModels.jl `f71b292`. 15 datasets not in #1463. 13/15 PASS the 1e-4 logLik / 1e-4 rel coef / 1e-3 SE bar. FAIL_BAR: Owls (Julia `offset(logBroodSize)` free coef 0.755, ΔlogLik 1.426; #1097) and GasolineYield (Julia 0.017 nats short, both not converged; drmTMB Hessian not PD). GitHub writes 403; postable bodies in `sweep-oct16/t8/issues/`. Receipt: `sweep-oct16/t8/RECEIPT_t8.md` on branch `sweep-oct16/t8`. No PR.
+
+Report: `docs/dev-log/after-task/2026-10-16-sweep-oct16-t8-real-data-parity.md`.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17

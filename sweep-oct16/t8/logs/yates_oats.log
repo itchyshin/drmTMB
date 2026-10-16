@@ -1,0 +1,21 @@
+===== yates_oats  timeout=180s  2026-10-16T22:03:22Z =====
+--- R drmTMB + ref ---
+[yates_oats] drmTMB ok=TRUE logLik=-304.019929161195 elapsed=0.1s error=NULL
+[yates_oats] ref(glmmTMB) ok=TRUE logLik=-304.019929161205 elapsed=1.0s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[yates_oats] DRModels.jl ok=false logLik=NA elapsed=8.4s error=ArgumentError: marginal = :Laplace is not available for Gaussian() with a random effect on the mean. On the Gaussian family this route covers exactly one random intercept `(1 | g)` on `sigma` (fixed-effect mean, fixed-effect `sigma` predictors alongside it), fitted by maximum likelihood. Omit `marginal` (the default `:LA`) for other models.
+JL_EXIT=0
+[yates_oats] verdict=JL_FAIL dLL(R-J)=NA coef 0/0 se 0/0
+  DRModels.jl error: ArgumentError: marginal = :Laplace is not available for Gaussian() with a random effect on the mean. On the Gaussian family this route covers exactly one random intercept `(1 | g)` on `sigma` (fixed-effect mean, fixed-effect `sigma` predictors alongside it), fitted by maximum likelihood. Omit `marginal` (the default `:LA`) for other models.
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0
+===== yates_oats  timeout=180s  2026-10-16T22:06:56Z =====
+--- R drmTMB + ref ---
+[yates_oats] drmTMB ok=TRUE logLik=-304.019929161195 elapsed=0.1s error=NULL
+[yates_oats] ref(glmmTMB) ok=TRUE logLik=-304.019929161205 elapsed=1.0s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[yates_oats] DRModels.jl ok=true logLik=-304.01992916119406 elapsed=24.5s error=NULL
+JL_EXIT=0
+[yates_oats] verdict=PASS dLL(R-J)=9.6633812e-13 coef 9/9 se 9/9
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0

@@ -1,0 +1,21 @@
+{
+  "engine": "glmmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": -53.7667633648698,
+  "converged": true,
+  "coef": {
+    "cond:(Intercept)": -0.444559983582396,
+    "cond:genO75": -0.0973906012973867,
+    "cond:extractcucumber": 0.522143512205271,
+    "cond:genO75:extractcucumber": 0.797924801893694,
+    "disp:(Intercept)": 4.38077993973253
+  },
+  "se": {
+    "cond:(Intercept)": 0.218255656583782,
+    "cond:genO75": 0.273668613608202,
+    "cond:extractcucumber": 0.296822733412411,
+    "cond:genO75:extractcucumber": 0.377954847162487
+  },
+  "elapsed_s": 0.792
+}

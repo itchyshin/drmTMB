@@ -1,0 +1,48 @@
+===== Owls  timeout=180s  2026-10-16T22:04:11Z =====
+--- R drmTMB + ref ---
+[Owls] drmTMB ok=TRUE logLik=-1699.24301683246 elapsed=0.1s error=NULL
+[Owls] ZI+RE probe ok=FALSE error=Error in validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry),  : 
+  NB2 `mu` random intercepts and slopes are implemented only for ordinary
+NB2 models.
+✖ Zero-inflated NB2 random effects are planned but not implemented.
+ℹ Fit `y ~ x + (1 | id) + (0 + x | id)` without a `zi` formula, or use a
+  fixed-effect `zi ~ predictors` model.
+
+[Owls] ref(glmmTMB) ok=TRUE logLik=-1699.24301683248 elapsed=0.1s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[Owls] DRModels.jl ok=true logLik=-1697.8170177558927 elapsed=20.6s error=NULL
+[Owls] ZI+RE probe ok=false error=ArgumentError: marginal = :Laplace is not available for NegBinomial2() with a `zi` formula. This route covers exactly one ordinary random intercept `(1 | g)` on the mean for Poisson, Binomial, NegBinomial2, Gamma and Beta (`sigma ~ 1` for the three scale families), fitted by maximum likelihood. Omit `marginal` (the default `:LA`) for other models.
+JL_EXIT=0
+[Owls] verdict=FAIL_BAR dLL(R-J)=1.4259991 coef 0/6 se 5/6
+  logLik |R-J|=1.426 > 1e-4
+  coef relative: 0/6 matched names pass 1e-4 (max rel=0.1487)
+  SE abs: 5/6 matched names pass 1e-3 (max abs=0.0218804)
+  failing coefs:
+                                name_a
+1                       mu:(Intercept)
+2             mu:FoodTreatmentSatiated
+3                       mu:ArrivalTime
+4 mu:FoodTreatmentSatiated:ArrivalTime
+5                    sigma:(Intercept)
+6          sigma:FoodTreatmentSatiated
+                                     name_b           a           b         rel
+1                           mu: (Intercept)  4.05984359  4.36374434 0.069642199
+2               mu: FoodTreatment: Satiated -1.79853640 -1.60265601 0.108910997
+3                           mu: ArrivalTime -0.13879648 -0.13691469 0.013557873
+4 mu: FoodTreatment: Satiated & ArrivalTime  0.05200092  0.04426837 0.148700167
+5                        sigma: (Intercept) -0.22726006 -0.23177825 0.019493607
+6            sigma: FoodTreatment: Satiated  0.66693945  0.66993951 0.004478108
+          abs  pass
+1 0.303900754 FALSE
+2 0.195880394 FALSE
+3 0.001881785 FALSE
+4 0.007732545 FALSE
+5 0.004518194 FALSE
+6 0.003000061 FALSE
+  failing SEs:
+          name_a          name_b         a         b        abs        rel
+1 mu:(Intercept) mu: (Intercept) 0.6135021 0.6353826 0.02188041 0.03443659
+   pass
+1 FALSE
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0

@@ -1,0 +1,165 @@
+{
+  "id": "ReadingSkills",
+  "source": "betareg::ReadingSkills",
+  "family": "beta",
+  "n": 44,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": 62.626688031046299,
+    "converged": true,
+    "elapsed_s": 0.060999999999999902,
+    "error": {},
+    "n_coef": 6
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": 62.626688031051422,
+    "converged": true,
+    "elapsed_s": 14.953281879425049,
+    "error": {},
+    "n_coef": 6
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": 62.626688031042299,
+    "converged": true,
+    "elapsed_s": 0.80800000000000005,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 5.1230131248303223e-12,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 4.000355602329364e-12,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 9.1233687271596864e-12,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 6,
+    "n_pass": 6,
+    "max_rel": 3.6339321642531246e-11,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 2.0536090333268202,
+        "b": 2.0536090333285921,
+        "rel": 8.6283022646707974e-13,
+        "abs": 1.7719159473017498e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:dyslexiayes",
+        "name_b": "mu: dyslexia: yes",
+        "a": -1.66467393982817,
+        "b": -1.6646739398263042,
+        "rel": 1.1208446113943688e-12,
+        "abs": 1.8658408151850381e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:iq",
+        "name_b": "mu: iq",
+        "a": 0.32882832288990099,
+        "b": 0.32882832287880687,
+        "rel": 3.3738351735249888e-11,
+        "abs": 1.1094125618171802e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:dyslexiayes:iq",
+        "name_b": "mu: dyslexia: yes & iq",
+        "a": -0.39155645169498099,
+        "b": -0.39155645168075209,
+        "rel": 3.6339321642531246e-11,
+        "abs": 1.4228895839352163e-11,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": -0.90995110766521903,
+        "b": -0.90995110766905396,
+        "rel": 4.2144378300542354e-12,
+        "abs": 3.8349323716602157e-12,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:dyslexiayes",
+        "name_b": "sigma: dyslexia: yes",
+        "a": -1.1721903805609899,
+        "b": -1.172190380554037,
+        "rel": 5.9315302610570618e-12,
+        "abs": 6.9528827140175054e-12,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 6,
+    "n_pass": 6,
+    "max_abs": 6.0061111584186477e-08,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 0.26058325363700702,
+        "b": 0.26058325107372504,
+        "abs": 2.5632819755649905e-09,
+        "rel": 9.8367103019430681e-09,
+        "pass": true
+      },
+      {
+        "name_a": "mu:dyslexiayes",
+        "name_b": "mu: dyslexia: yes",
+        "a": 0.270890495134193,
+        "b": 0.27089049026752554,
+        "abs": 4.8666674579145308e-09,
+        "rel": 1.7965441923326598e-08,
+        "pass": true
+      },
+      {
+        "name_a": "mu:iq",
+        "name_b": "mu: iq",
+        "a": 0.22084632844126201,
+        "b": 0.2208463519740913,
+        "abs": 2.3532829296346591e-08,
+        "rel": 1.065574734922828e-07,
+        "pass": true
+      },
+      {
+        "name_a": "mu:dyslexiayes:iq",
+        "name_b": "mu: dyslexia: yes & iq",
+        "a": 0.23203384211900899,
+        "b": 0.23203385961941217,
+        "abs": 1.7500403182157953e-08,
+        "rel": 7.5421764784081766e-08,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.157152295137298,
+        "b": 0.15715232753142344,
+        "abs": 3.2394125437651411e-08,
+        "rel": 2.0613201182893098e-07,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:dyslexiayes",
+        "name_b": "sigma: dyslexia: yes",
+        "a": 0.22499696653656101,
+        "b": 0.22499702659767259,
+        "abs": 6.0061111584186477e-08,
+        "rel": 2.6694180137582211e-07,
+        "pass": true
+      }
+    ]
+  }
+}

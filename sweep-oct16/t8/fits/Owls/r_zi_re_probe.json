@@ -1,0 +1,11 @@
+{
+  "engine": "drmTMB-zi-re-probe",
+  "ok": false,
+  "error": "Error in validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry),  : \n  NB2 `mu` random intercepts and slopes are implemented only for ordinary\nNB2 models.\n✖ Zero-inflated NB2 random effects are planned but not implemented.\nℹ Fit `y ~ x + (1 | id) + (0 + x | id)` without a `zi` formula, or use a\n  fixed-effect `zi ~ predictors` model.\n",
+  "logLik": null,
+  "converged": false,
+  "nobs": null,
+  "coef": [],
+  "se": [],
+  "elapsed_s": 0.0649999999999999
+}

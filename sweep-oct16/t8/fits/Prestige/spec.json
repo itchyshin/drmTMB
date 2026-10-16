@@ -1,0 +1,23 @@
+{
+  "source": "carData::Prestige",
+  "source_version": "3.0.6",
+  "family_r": "gaussian",
+  "family_jl": "Gaussian",
+  "mu_r": "prestige ~ education + log(income) + type",
+  "sigma_r": "~ type",
+  "mu_jl": "prestige ~ 1 + education + logincome + type",
+  "sigma_jl": "sigma ~ 1 + type",
+  "has_re": false,
+  "cbind_success": {},
+  "cbind_fail": {},
+  "ref": "glmmTMB",
+  "ref_call": "glmmTMB(prestige ~ education + log(income) + type, dispformula = ~ type, family = gaussian(), data = d, REML = FALSE)",
+  "extra_cols": "logincome = log(income) written for Julia",
+  "id": "Prestige",
+  "n": 98,
+  "csv": "/workspace/sweep-oct16/t8/data/Prestige.csv",
+  "prepare": "data(Prestige, package = \"carData\")\nd <- subset(carData::Prestige, !is.na(type))\nd$type <- factor(as.character(d$type), levels = sort(unique(as.character(d$type))))\nrownames(d) <- NULL",
+  "drmTMB_sha": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+  "DRModels_sha": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "drmTMB_version": "0.7.1"
+}

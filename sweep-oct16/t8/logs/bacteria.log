@@ -1,0 +1,31 @@
+===== bacteria  timeout=180s  2026-10-16T22:04:01Z =====
+--- R drmTMB + ref ---
+[bacteria] drmTMB ok=TRUE logLik=-98.8853930927141 elapsed=0.1s error=NULL
+[bacteria] ref(lme4) ok=TRUE logLik=-98.8854171921567 elapsed=0.4s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+ERROR: LoadError: MethodError: no method matching parse_formula(::JSON.Object{String, Any})
+The function `parse_formula` exists, but no method is defined for this combination of argument types.
+
+Closest candidates are:
+  parse_formula(!Matched::AbstractString)
+   @ Main /workspace/sweep-oct16/t8/fit_jl.jl:35
+
+Stacktrace:
+ [1] top-level scope
+   @ /workspace/sweep-oct16/t8/fit_jl.jl:47
+in expression starting at /workspace/sweep-oct16/t8/fit_jl.jl:44
+JL_EXIT=1
+[bacteria] verdict=JL_FAIL dLL(R-J)=NA coef 0/0 se 0/0
+  DRModels.jl error: ?
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=1
+===== bacteria  timeout=180s  2026-10-16T22:05:51Z =====
+--- R drmTMB + ref ---
+[bacteria] drmTMB ok=TRUE logLik=-98.8853930927141 elapsed=0.1s error=NULL
+[bacteria] ref(lme4) ok=TRUE logLik=-98.8854171921567 elapsed=0.4s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[bacteria] DRModels.jl ok=true logLik=-98.88539309271383 elapsed=17.6s error=NULL
+JL_EXIT=0
+[bacteria] verdict=PASS dLL(R-J)=2.7000624e-13 coef 4/4 se 4/4
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0

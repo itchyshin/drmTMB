@@ -1,0 +1,30 @@
+{
+  "engine": "glmmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": -544.824815216905,
+  "converged": true,
+  "coef": {
+    "cond:(Intercept)": 2.82388606888256,
+    "cond:EthN": -0.541942302089888,
+    "cond:SexM": 0.0515175912225672,
+    "cond:AgeF1": -0.354188341039551,
+    "cond:AgeF2": 0.228411967982668,
+    "cond:AgeF3": 0.369109294625216,
+    "cond:LrnSL": 0.294665311682608,
+    "disp:(Intercept)": 0.506308313766354,
+    "disp:EthN": -0.507519673244606
+  },
+  "se": {
+    "cond:(Intercept)": 0.220205961012502,
+    "cond:EthN": 0.158446307577476,
+    "cond:SexM": 0.16353972135103,
+    "cond:AgeF1": 0.241760521460634,
+    "cond:AgeF2": 0.249084000928086,
+    "cond:AgeF3": 0.241253855349831,
+    "cond:LrnSL": 0.182389140869928,
+    "disp:disp~(Intercept)": 0.18441158203173,
+    "disp:disp~EthN": 0.269319739785279
+  },
+  "elapsed_s": 0.9
+}

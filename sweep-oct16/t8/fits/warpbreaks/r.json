@@ -1,0 +1,31 @@
+{
+  "engine": "drmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": -200.084290620729,
+  "converged": true,
+  "nobs": 54,
+  "coef": {
+    "mu:(Intercept)": 24.5555555555556,
+    "mu:woolB": -5.77777777777778,
+    "mu:tensionL": 20,
+    "mu:tensionM": -0.555555555555555,
+    "mu:woolB:tensionL": -10.5555555555556,
+    "mu:woolB:tensionM": 10.5555555555556,
+    "sigma:(Intercept)": 2.50709773930195,
+    "sigma:woolB": -0.441543262764206
+  },
+  "se": {
+    "mu:(Intercept)": 4.08975657281523,
+    "mu:woolB": 4.86234846098296,
+    "mu:tensionL": 5.78378921208169,
+    "mu:tensionM": 5.7837892120803,
+    "mu:woolB:tensionL": 6.87639913850664,
+    "mu:woolB:tensionM": 6.87639913850665,
+    "sigma:(Intercept)": 0.136082718127029,
+    "sigma:woolB": 0.192450025579836
+  },
+  "elapsed_s": 0.0660000000000001,
+  "opt_convergence": 0,
+  "opt_message": "converged (Newton polish; max |gradient| = 9.61e-12)"
+}

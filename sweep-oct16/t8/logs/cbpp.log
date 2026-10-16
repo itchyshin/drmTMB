@@ -1,0 +1,31 @@
+===== cbpp  timeout=180s  2026-10-16T22:02:14Z =====
+--- R drmTMB + ref ---
+[cbpp] drmTMB ok=TRUE logLik=-88.0416468156531 elapsed=0.3s error=NULL
+[cbpp] ref(glmmTMB) ok=TRUE logLik=-88.0416468266861 elapsed=0.9s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[cbpp] DRModels.jl ok=false logLik=NA elapsed=4.8s error=ArgumentError: marginal = :Laplace is not available on this route. `:Laplace` forces the Laplace approximation that drmTMB uses and is implemented for an ordinary random intercept `(1 | g)` on Poisson/Binomial/NegBinomial2/Gamma/Beta (routed by `drm` to the ordinary-Laplace front end, `_drm_ordinary_laplace`) and for a Gaussian random intercept on `sigma`, `sigma ~ 1 + (1 | g)`. Here use :LA (the default integrator for the route; on a single random intercept `(1 | g)` that is 32-node Gauss–Hermite quadrature, not Laplace), :VA (variational, #136), or :AGHQ (1-D Liu–Pierce, Poisson (1|g) only, #448).
+JL_EXIT=0
+[cbpp] verdict=JL_FAIL dLL(R-J)=NA coef 0/0 se 0/0
+  DRModels.jl error: ArgumentError: marginal = :Laplace is not available on this route. `:Laplace` forces the Laplace approximation that drmTMB uses and is implemented for an ordinary random intercept `(1 | g)` on Poisson/Binomial/NegBinomial2/Gamma/Beta (routed by `drm` to the ordinary-Laplace front end, `_drm_ordinary_laplace`) and for a Gaussian random intercept on `sigma`, `sigma ~ 1 + (1 | g)`. Here use :LA (the default integrator for the route; on a single random intercept `(1 | g)` that is 32-node Gauss–Hermite quadrature, not Laplace), :VA (variational, #136), or :AGHQ (1-D Liu–Pierce, Poisson (1|g) only, #448).
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0
+===== cbpp  timeout=180s  2026-10-16T22:08:07Z =====
+--- R drmTMB + ref ---
+[cbpp] drmTMB ok=TRUE logLik=-88.0416468156531 elapsed=0.3s error=NULL
+[cbpp] ref(glmmTMB) ok=TRUE logLik=-88.0416468266861 elapsed=0.9s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     6
+│   rcond = 2.4025337425041035e-17
+└ @ DRModels /tmp/DRModels.jl/src/vcov_guard.jl:101
+[cbpp] DRModels.jl ok=true logLik=-88.04164681520592 elapsed=29.0s error=NULL
+JL_EXIT=0
+[cbpp] verdict=PASS dLL(R-J)=4.4717297e-10 coef 5/5 se 5/5
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0

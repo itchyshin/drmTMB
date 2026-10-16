@@ -1,0 +1,19 @@
+{
+  "engine": "drmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": -123.997232931213,
+  "converged": true,
+  "nobs": 60,
+  "coef": {
+    "mu:(Intercept)": 60.0533333333333,
+    "sigma:(Intercept)": -0.194303995520946
+  },
+  "se": {
+    "mu:(Intercept)": 0.642135326685325,
+    "sigma:(Intercept)": 0.129099401802854
+  },
+  "elapsed_s": 0.11,
+  "opt_convergence": 0,
+  "opt_message": "converged (Newton polish; max |gradient| = 4.51e-12)"
+}

@@ -1,0 +1,22 @@
+{
+  "source": "datasets::ToothGrowth",
+  "source_version": "4.3.3",
+  "family_r": "gaussian",
+  "family_jl": "Gaussian",
+  "mu_r": "len ~ dose * supp",
+  "sigma_r": "~ supp",
+  "mu_jl": "len ~ 1 + dose * supp",
+  "sigma_jl": "sigma ~ 1 + supp",
+  "has_re": false,
+  "cbind_success": {},
+  "cbind_fail": {},
+  "ref": "glmmTMB",
+  "ref_call": "glmmTMB(len ~ dose * supp, dispformula = ~ supp, family = gaussian(), data = d, REML = FALSE)",
+  "id": "ToothGrowth",
+  "n": 60,
+  "csv": "/workspace/sweep-oct16/t8/data/ToothGrowth.csv",
+  "prepare": "data(ToothGrowth, package = \"datasets\")\nd <- ToothGrowth\nd$supp <- factor(as.character(d$supp), levels = sort(unique(as.character(d$supp))))",
+  "drmTMB_sha": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+  "DRModels_sha": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "drmTMB_version": "0.7.1"
+}

@@ -1,0 +1,147 @@
+{
+  "id": "cbpp",
+  "source": "lme4::cbpp",
+  "family": "beta_binomial",
+  "n": 56,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -88.041646815653095,
+    "converged": true,
+    "elapsed_s": 0.25700000000000001,
+    "error": {},
+    "n_coef": 5
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -88.041646815205922,
+    "converged": true,
+    "elapsed_s": 28.961972951889038,
+    "error": {},
+    "n_coef": 6
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": -88.041646826686105,
+    "converged": true,
+    "elapsed_s": 0.93300000000000005,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 4.4717296532326145e-10,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 1.1033009172933816e-08,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 1.1480182138257078e-08,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 5,
+    "n_pass": 5,
+    "max_rel": 9.3689988291193365e-10,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": -1.31877315662473,
+        "b": -1.3187731561082099,
+        "rel": 3.9166717746863325e-10,
+        "abs": 5.1652015997660783e-10,
+        "pass": true
+      },
+      {
+        "name_a": "mu:periodg2",
+        "name_b": "mu: period: g2",
+        "a": -0.96888531923816501,
+        "b": -0.96888532014591355,
+        "rel": 9.3689988291193365e-10,
+        "abs": 9.0774854299979779e-10,
+        "pass": true
+      },
+      {
+        "name_a": "mu:periodg3",
+        "name_b": "mu: period: g3",
+        "a": -1.2509292478979099,
+        "b": -1.2509292481780558,
+        "rel": 2.2395024089552982e-10,
+        "abs": 2.8014590647273963e-10,
+        "pass": true
+      },
+      {
+        "name_a": "mu:periodg4",
+        "name_b": "mu: period: g4",
+        "a": -1.4725206607171499,
+        "b": -1.4725206601581706,
+        "rel": 3.7960710650642563e-10,
+        "abs": 5.5897930728576739e-10,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": -1.19174412161162,
+        "b": -1.1917441213003139,
+        "rel": 2.6121890292582139e-10,
+        "abs": 3.1130609201568404e-10,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 5,
+    "n_pass": 5,
+    "max_abs": 4.027731001499113e-08,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 0.23261236339153199,
+        "b": 0.23261235844297018,
+        "abs": 4.9485618103251028e-09,
+        "rel": 2.1273855517282663e-08,
+        "pass": true
+      },
+      {
+        "name_a": "mu:periodg2",
+        "name_b": "mu: period: g2",
+        "a": 0.406448092611986,
+        "b": 0.40644810222334044,
+        "abs": 9.6113544345577395e-09,
+        "rel": 2.3647187382551406e-08,
+        "pass": true
+      },
+      {
+        "name_a": "mu:periodg3",
+        "name_b": "mu: period: g3",
+        "a": 0.45683202035194598,
+        "b": 0.45683203981693521,
+        "abs": 1.9464989231554597e-08,
+        "rel": 4.2608634104023743e-08,
+        "pass": true
+      },
+      {
+        "name_a": "mu:periodg4",
+        "name_b": "mu: period: g4",
+        "a": 0.51086110618630098,
+        "b": 0.51086112775816683,
+        "abs": 2.1571865849168148e-08,
+        "rel": 4.2226477367406808e-08,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.20296172252858499,
+        "b": 0.20296168225127498,
+        "abs": 4.027731001499113e-08,
+        "rel": 1.9844781327828207e-07,
+        "pass": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "source": "nlme::Orthodont",
+  "source_version": "3.1.164",
+  "family_r": "gaussian",
+  "family_jl": "Gaussian",
+  "mu_r": "distance ~ age * Sex + (1 | Subject)",
+  "sigma_r": "~ Sex",
+  "mu_jl": "distance ~ 1 + age * Sex + (1 | Subject)",
+  "sigma_jl": "sigma ~ 1 + Sex",
+  "has_re": true,
+  "cbind_success": {},
+  "cbind_fail": {},
+  "ref": "glmmTMB",
+  "ref_call": "glmmTMB(distance ~ age * Sex + (1 | Subject), dispformula = ~ Sex, family = gaussian(), data = d, REML = FALSE)",
+  "id": "Orthodont",
+  "n": 108,
+  "csv": "/workspace/sweep-oct16/t8/data/Orthodont.csv",
+  "prepare": "data(Orthodont, package = \"nlme\")\nd <- as.data.frame(nlme::Orthodont)\nd$Subject <- chr_factor(d$Subject)\nd$Sex <- chr_factor(d$Sex)",
+  "drmTMB_sha": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+  "DRModels_sha": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "drmTMB_version": "0.7.1"
+}

@@ -1,0 +1,170 @@
+{
+  "pins": {
+    "drmTMB": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+    "DRModels.jl": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7"
+  },
+  "pass_bar": {
+    "logLik_abs": 1e-4,
+    "coef_rel": 1e-4,
+    "se_abs": 1e-3
+  },
+  "skipped_from_oct_sweeps": [
+    "lme4::sleepstudy (df2-p01 in #1463)",
+    "glmmTMB::Salamanders (df2-c01 mined+spp in #1463)",
+    "datasets::InsectSprays (df2b-c07)",
+    "datasets::ChickWeight (df2b-e07)"
+  ],
+  "cases": [
+    {
+      "id": "warpbreaks",
+      "source": "datasets::warpbreaks",
+      "why_unused": "not in #1463 22-dataset catalogue",
+      "family_r": "gaussian",
+      "family_jl": "Gaussian",
+      "has_re": false,
+      "timeout_s": 120,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "ToothGrowth",
+      "source": "datasets::ToothGrowth",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "gaussian",
+      "family_jl": "Gaussian",
+      "has_re": false,
+      "timeout_s": 120,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "Prestige",
+      "source": "carData::Prestige",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "gaussian",
+      "family_jl": "Gaussian",
+      "has_re": false,
+      "timeout_s": 120,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "GasolineYield",
+      "source": "betareg::GasolineYield",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "beta",
+      "family_jl": "Beta",
+      "has_re": false,
+      "timeout_s": 120,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "ReadingSkills",
+      "source": "betareg::ReadingSkills",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "beta",
+      "family_jl": "Beta",
+      "has_re": false,
+      "timeout_s": 120,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "quine",
+      "source": "MASS::quine",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "nbinom2",
+      "family_jl": "NegBinomial2",
+      "has_re": false,
+      "timeout_s": 180,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "cbpp",
+      "source": "lme4::cbpp",
+      "why_unused": "not in #1463 data-fitter catalogue (docs vignette used it; Oct sweep pass-list did not)",
+      "family_r": "beta_binomial",
+      "family_jl": "BetaBinomial",
+      "has_re": true,
+      "timeout_s": 180,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "epil",
+      "source": "MASS::epil",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "nbinom2",
+      "family_jl": "NegBinomial2",
+      "has_re": true,
+      "timeout_s": 180,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "Orthodont",
+      "source": "nlme::Orthodont",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "gaussian",
+      "family_jl": "Gaussian",
+      "has_re": true,
+      "timeout_s": 180,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "yates_oats",
+      "source": "agridat::yates.oats",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "gaussian",
+      "family_jl": "Gaussian",
+      "has_re": true,
+      "timeout_s": 180,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "Pastes",
+      "source": "lme4::Pastes",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "gaussian",
+      "family_jl": "Gaussian",
+      "has_re": true,
+      "timeout_s": 180,
+      "ref": "lme4"
+    },
+    {
+      "id": "bacteria",
+      "source": "MASS::bacteria",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "binomial",
+      "family_jl": "Binomial",
+      "has_re": true,
+      "timeout_s": 180,
+      "ref": "lme4"
+    },
+    {
+      "id": "crowder_seeds",
+      "source": "agridat::crowder.seeds",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "beta_binomial",
+      "family_jl": "BetaBinomial",
+      "has_re": false,
+      "timeout_s": 120,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "beall_webworms",
+      "source": "agridat::beall.webworms",
+      "why_unused": "not in #1463 catalogue",
+      "family_r": "nbinom2",
+      "family_jl": "NegBinomial2",
+      "has_re": false,
+      "timeout_s": 180,
+      "ref": "glmmTMB"
+    },
+    {
+      "id": "Owls",
+      "source": "glmmTMB::Owls",
+      "why_unused": "not in #1463 catalogue (Salamanders was; Owls was not)",
+      "family_r": "nbinom2",
+      "family_jl": "NegBinomial2",
+      "has_re": false,
+      "timeout_s": 180,
+      "ref": "glmmTMB",
+      "note": "Natural ZI+RE is refused (#1451). Primary fitted model is nbinom2 location-scale with offset, no RE. ZI+RE probe recorded separately."
+    }
+  ]
+}

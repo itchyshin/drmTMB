@@ -1,0 +1,22 @@
+{
+  "source": "lme4::Pastes",
+  "source_version": "2.0.6",
+  "family_r": "gaussian",
+  "family_jl": "Gaussian",
+  "mu_r": "strength ~ 1 + (1 | batch) + (1 | sample)",
+  "sigma_r": "~ 1",
+  "mu_jl": "strength ~ 1 + (1 | batch) + (1 | sample)",
+  "sigma_jl": "sigma ~ 1",
+  "has_re": true,
+  "cbind_success": {},
+  "cbind_fail": {},
+  "ref": "lme4",
+  "ref_call": "lme4::lmer(strength ~ 1 + (1 | batch) + (1 | sample), data = d, REML = FALSE)",
+  "id": "Pastes",
+  "n": 60,
+  "csv": "/workspace/sweep-oct16/t8/data/Pastes.csv",
+  "prepare": "data(Pastes, package = \"lme4\")\nd <- lme4::Pastes\nd$batch <- chr_factor(d$batch)\nd$cask <- chr_factor(d$cask)\nd$sample <- chr_factor(d$sample)",
+  "drmTMB_sha": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+  "DRModels_sha": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "drmTMB_version": "0.7.1"
+}

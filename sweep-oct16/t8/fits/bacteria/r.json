@@ -1,0 +1,23 @@
+{
+  "engine": "drmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": -98.8853930927141,
+  "converged": true,
+  "nobs": 220,
+  "coef": {
+    "mu:(Intercept)": 1.8238312272941,
+    "mu:week": -0.143692832567736,
+    "mu:trtdrug+": 0.524703693674293,
+    "mu:trtplacebo": 1.32018092301729
+  },
+  "se": {
+    "mu:(Intercept)": 0.553472919179652,
+    "mu:week": 0.0509986556816963,
+    "mu:trtdrug+": 0.65234784474572,
+    "mu:trtplacebo": 0.642497057448001
+  },
+  "elapsed_s": 0.145,
+  "opt_convergence": 0,
+  "opt_message": "converged (Newton polish; max |gradient| = 4.27e-10)"
+}

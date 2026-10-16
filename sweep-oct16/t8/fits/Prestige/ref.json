@@ -1,0 +1,28 @@
+{
+  "engine": "glmmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": -321.561161050317,
+  "converged": true,
+  "coef": {
+    "cond:(Intercept)": -84.3233875305396,
+    "cond:education": 3.1578946676631,
+    "cond:log(income)": 10.9784928042741,
+    "cond:typeprof": 7.15873437536118,
+    "cond:typewc": -1.07479790776613,
+    "disp:(Intercept)": 1.79778120194239,
+    "disp:typeprof": 0.0775581873677334,
+    "disp:typewc": 0.170358372627248
+  },
+  "se": {
+    "cond:(Intercept)": 14.3546144039818,
+    "cond:education": 0.602298745153029,
+    "cond:log(income)": 1.81299032466372,
+    "cond:typeprof": 3.52594248044896,
+    "cond:typewc": 2.39994031795659,
+    "disp:disp~(Intercept)": 0.111932683703804,
+    "disp:disp~typeprof": 0.179434888484997,
+    "disp:disp~typewc": 0.191649251255759
+  },
+  "elapsed_s": 1
+}

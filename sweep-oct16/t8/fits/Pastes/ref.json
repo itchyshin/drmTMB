@@ -1,0 +1,14 @@
+{
+  "engine": "lme4",
+  "ok": true,
+  "error": {},
+  "logLik": -123.997232931448,
+  "converged": true,
+  "coef": {
+    "mu:(Intercept)": 60.0533333333338
+  },
+  "se": {
+    "mu:(Intercept)": 0.64213589384493
+  },
+  "elapsed_s": 0.0830000000000002
+}

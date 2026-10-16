@@ -1,0 +1,38 @@
+{
+  "coef": {
+    "mu: (Intercept)": 4.363744341878433,
+    "mu: ArrivalTime": -0.13691469335148343,
+    "mu: FoodTreatment: Satiated": -1.6026560108953396,
+    "mu: FoodTreatment: Satiated & ArrivalTime": 0.04426837312752759,
+    "mu: offset(logBroodSize)": 0.7553831788766235,
+    "sigma: (Intercept)": -0.23177825159782317,
+    "sigma: FoodTreatment: Satiated": 0.6699395136717515
+  },
+  "converged": true,
+  "elapsed_s": 20.57158088684082,
+  "engine": "DRModels.jl",
+  "error": null,
+  "logLik": -1697.8170177558927,
+  "marginal": null,
+  "nobs": 599,
+  "ok": true,
+  "re_sd": {},
+  "se": {
+    "mu: (Intercept)": 0.6353825541140714,
+    "mu: ArrivalTime": 0.024549820242245612,
+    "mu: FoodTreatment: Satiated": 1.3832684990390793,
+    "mu: FoodTreatment: Satiated & ArrivalTime": 0.05591816248123542,
+    "mu: offset(logBroodSize)": 0.14555666206949805,
+    "sigma: (Intercept)": 0.053817401357158734,
+    "sigma: FoodTreatment: Satiated": 0.07684580555679178
+  },
+  "theta": [
+    4.363744341878433,
+    -1.6026560108953396,
+    -0.13691469335148343,
+    0.7553831788766235,
+    0.04426837312752759,
+    -0.23177825159782317,
+    0.6699395136717515
+  ]
+}

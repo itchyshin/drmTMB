@@ -1,0 +1,245 @@
+{
+  "id": "GasolineYield",
+  "source": "betareg::GasolineYield",
+  "family": "beta",
+  "n": 32,
+  "verdict": "FAIL_BAR",
+  "overall_pass": false,
+  "fail_reasons": ["drmTMB not converged", "DRModels.jl not converged", "logLik |R-J|=0.0167955 > 1e-4", "coef relative: 0/21 matched names pass 1e-4 (max rel=0.196384)", "SE abs: 0/0 matched names pass 1e-3 (max abs=NA)"],
+  "drmTMB": {
+    "ok": true,
+    "logLik": 92.059621847701806,
+    "converged": false,
+    "elapsed_s": 0.072000000000000106,
+    "error": {},
+    "n_coef": 21
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": 92.042826369180446,
+    "converged": false,
+    "elapsed_s": 18.869226932525635,
+    "error": {},
+    "n_coef": 21
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": 92.059621847414604,
+    "converged": true,
+    "elapsed_s": 0.96799999999999997,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 0.016795478521359541,
+    "pass_RJ": false,
+    "abs_R_minus_ref": 2.872013737942325e-10,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 0.016795478234158168,
+    "pass_Jref": false
+  },
+  "coef": {
+    "n_matched": 21,
+    "n_pass": 0,
+    "max_rel": 0.19638424238474658,
+    "pass": false,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": -4.5000442587829603,
+        "b": -4.5036634831380677,
+        "rel": 0.00080361784770508935,
+        "abs": 0.0036192243551074199,
+        "pass": false
+      },
+      {
+        "name_a": "mu:temp",
+        "name_b": "mu: temp",
+        "a": 0.0111810945591176,
+        "b": 0.011187930673696053,
+        "rel": 0.00061102582576102907,
+        "abs": 6.8361145784522764e-06,
+        "pass": false
+      },
+      {
+        "name_a": "mu:batchg10",
+        "name_b": "mu: batch: g10",
+        "a": -1.73985094476038,
+        "b": -1.7372526786836922,
+        "rel": 0.0014933842950815184,
+        "abs": 0.002598266076687894,
+        "pass": false
+      },
+      {
+        "name_a": "mu:batchg2",
+        "name_b": "mu: batch: g2",
+        "a": -0.40695919219087501,
+        "b": -0.40534329879635711,
+        "rel": 0.0039706521575755428,
+        "abs": 0.0016158933945178977,
+        "pass": false
+      },
+      {
+        "name_a": "mu:batchg3",
+        "name_b": "mu: batch: g3",
+        "a": -0.14960375306346699,
+        "b": -0.14810352236424368,
+        "rel": 0.010028028498635731,
+        "abs": 0.0015002306992233094,
+        "pass": false
+      },
+      {
+        "name_a": "mu:batchg4",
+        "name_b": "mu: batch: g4",
+        "a": -0.678483972141673,
+        "b": -0.67786675508352279,
+        "rel": 0.00090970027810963552,
+        "abs": 0.00061721705815021011,
+        "pass": false
+      },
+      {
+        "name_a": "mu:batchg5",
+        "name_b": "mu: batch: g5",
+        "a": -0.60530280699234196,
+        "b": -0.60459824128800665,
+        "rel": 0.0011639888270734825,
+        "abs": 0.00070456570433530263,
+        "pass": false
+      },
+      {
+        "name_a": "mu:batchg6",
+        "name_b": "mu: batch: g6",
+        "a": -0.69993553469909298,
+        "b": -0.6987185687297951,
+        "rel": 0.0017386829343091724,
+        "abs": 0.0012169659692978785,
+        "pass": false
+      },
+      {
+        "name_a": "mu:batchg7",
+        "name_b": "mu: batch: g7",
+        "a": -1.19005561797938,
+        "b": -1.1873670084412458,
+        "rel": 0.002259230154889112,
+        "abs": 0.0026886095381342123,
+        "pass": false
+      },
+      {
+        "name_a": "mu:batchg8",
+        "name_b": "mu: batch: g8",
+        "a": -1.2434078944703899,
+        "b": -1.2430360501488211,
+        "rel": 0.00029905256611480896,
+        "abs": 0.00037184432156878167,
+        "pass": false
+      },
+      {
+        "name_a": "mu:batchg9",
+        "name_b": "mu: batch: g9",
+        "a": -1.36110392673202,
+        "b": -1.3589238243353978,
+        "rel": 0.0016017163376029031,
+        "abs": 0.0021801023966221411,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": -2.5874922276585401,
+        "b": -2.6060780001582482,
+        "rel": 0.0071317023122790162,
+        "abs": 0.018585772499708053,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:batchg10",
+        "name_b": "sigma: batch: g10",
+        "a": -0.203112442021254,
+        "b": -0.16322435897599427,
+        "rel": 0.19638424238474658,
+        "abs": 0.039888083045259731,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:batchg2",
+        "name_b": "sigma: batch: g2",
+        "a": -2.1168992894141501,
+        "b": -2.0831930280366082,
+        "rel": 0.015922468086268772,
+        "abs": 0.033706261377541846,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:batchg3",
+        "name_b": "sigma: batch: g3",
+        "a": -0.48143740698391402,
+        "b": -0.4768537409576214,
+        "rel": 0.0095207932740585168,
+        "abs": 0.004583666026292621,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:batchg4",
+        "name_b": "sigma: batch: g4",
+        "a": -0.89955094726020302,
+        "b": -0.8818956441674376,
+        "rel": 0.019626796177069077,
+        "abs": 0.017655303092765418,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:batchg5",
+        "name_b": "sigma: batch: g5",
+        "a": -0.95359408477151397,
+        "b": -0.97006253532434916,
+        "rel": 0.016976689597984335,
+        "abs": 0.01646845055283519,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:batchg6",
+        "name_b": "sigma: batch: g6",
+        "a": -1.16109283081799,
+        "b": -1.1189918525692237,
+        "rel": 0.036259786583219274,
+        "abs": 0.042100978248766241,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:batchg7",
+        "name_b": "sigma: batch: g7",
+        "a": -0.38460140497387701,
+        "b": -0.34679011339020238,
+        "rel": 0.09831293150435283,
+        "abs": 0.037811291583674633,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:batchg8",
+        "name_b": "sigma: batch: g8",
+        "a": -0.213375727080791,
+        "b": -0.21331270699086094,
+        "rel": 0.00029534797979246678,
+        "abs": 6.3020089930060363e-05,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:batchg9",
+        "name_b": "sigma: batch: g9",
+        "a": -0.70849757791328605,
+        "b": -0.63945333999694476,
+        "rel": 0.097451621669187555,
+        "abs": 0.069044237916341289,
+        "pass": false
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 0,
+    "n_pass": 0,
+    "max_abs": null,
+    "pass": false,
+    "pairs": []
+  }
+}

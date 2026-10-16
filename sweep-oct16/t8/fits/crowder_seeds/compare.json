@@ -1,0 +1,147 @@
+{
+  "id": "crowder_seeds",
+  "source": "agridat::crowder.seeds",
+  "family": "beta_binomial",
+  "n": 21,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -53.766763364862499,
+    "converged": true,
+    "elapsed_s": 0.045999999999999902,
+    "error": {},
+    "n_coef": 5
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -53.76676336486797,
+    "converged": true,
+    "elapsed_s": 14.669514894485474,
+    "error": {},
+    "n_coef": 5
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": -53.766763364869803,
+    "converged": true,
+    "elapsed_s": 0.79200000000000004,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 5.4711790653527714e-12,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 7.3043793236138299e-12,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 1.8332002582610585e-12,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 5,
+    "n_pass": 5,
+    "max_rel": 1.6636376400853548e-10,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": -0.44455998052141599,
+        "b": -0.44455998052686763,
+        "rel": 1.2263000222508538e-11,
+        "abs": 5.4516391401193687e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:genO75",
+        "name_b": "mu: gen: O75",
+        "a": -0.097390569701469795,
+        "b": -0.097390569685267533,
+        "rel": 1.6636376400853548e-10,
+        "abs": 1.6202261754472147e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:extractcucumber",
+        "name_b": "mu: extract: cucumber",
+        "a": 0.52214354922179895,
+        "b": 0.52214354921230122,
+        "rel": 1.8189894225866976e-11,
+        "abs": 9.4977359310632892e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:genO75:extractcucumber",
+        "name_b": "mu: gen: O75 & extract: cucumber",
+        "a": 0.79792471238541995,
+        "b": 0.79792471237665852,
+        "rel": 1.0980279072870557e-11,
+        "abs": 8.7614360211318854e-12,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": -2.19038996616329,
+        "b": -2.1903899660824675,
+        "rel": 3.6898662377202844e-11,
+        "abs": 8.0822459835871996e-11,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 5,
+    "n_pass": 5,
+    "max_abs": 5.970624161744098e-08,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 0.21825565599205601,
+        "b": 0.21825564334680822,
+        "abs": 1.2645247793319214e-08,
+        "rel": 5.7937778225456256e-08,
+        "pass": true
+      },
+      {
+        "name_a": "mu:genO75",
+        "name_b": "mu: gen: O75",
+        "a": 0.27366861360890399,
+        "b": 0.27366859635607305,
+        "abs": 1.7252830941671959e-08,
+        "rel": 6.3042782707730379e-08,
+        "pass": true
+      },
+      {
+        "name_a": "mu:extractcucumber",
+        "name_b": "mu: extract: cucumber",
+        "a": 0.29682273297713102,
+        "b": 0.29682271300513507,
+        "abs": 1.9971995945944343e-08,
+        "rel": 6.7285937790631095e-08,
+        "pass": true
+      },
+      {
+        "name_a": "mu:genO75:extractcucumber",
+        "name_b": "mu: gen: O75 & extract: cucumber",
+        "a": 0.37795484541567098,
+        "b": 0.37795482130380892,
+        "abs": 2.4111862062525802e-08,
+        "rel": 6.3795615679983721e-08,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.46489753164115699,
+        "b": 0.46489759134739861,
+        "abs": 5.970624161744098e-08,
+        "rel": 1.2842880395313769e-07,
+        "pass": true
+      }
+    ]
+  }
+}

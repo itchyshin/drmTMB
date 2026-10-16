@@ -1,0 +1,22 @@
+{
+  "source": "agridat::crowder.seeds",
+  "source_version": "1.26",
+  "family_r": "beta_binomial",
+  "family_jl": "BetaBinomial",
+  "mu_r": "cbind(germ, fail) ~ gen * extract",
+  "sigma_r": "~ 1",
+  "mu_jl": "cbind(germ, fail) ~ 1 + gen * extract",
+  "sigma_jl": "sigma ~ 1",
+  "has_re": false,
+  "cbind_success": "germ",
+  "cbind_fail": "fail",
+  "ref": "glmmTMB",
+  "ref_call": "glmmTMB(cbind(germ, fail) ~ gen * extract, family = glmmTMB::betabinomial(), data = d)",
+  "id": "crowder_seeds",
+  "n": 21,
+  "csv": "/workspace/sweep-oct16/t8/data/crowder_seeds.csv",
+  "prepare": "data(crowder.seeds, package = \"agridat\")\nd <- agridat::crowder.seeds\nd$gen <- factor(as.character(d$gen), levels = sort(unique(as.character(d$gen))))\nd$extract <- factor(as.character(d$extract), levels = sort(unique(as.character(d$extract))))\nd$fail <- d$n - d$germ",
+  "drmTMB_sha": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+  "DRModels_sha": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "drmTMB_version": "0.7.1"
+}

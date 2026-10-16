@@ -1,0 +1,165 @@
+{
+  "id": "beall_webworms",
+  "source": "agridat::beall.webworms",
+  "family": "nbinom2",
+  "n": 1300,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -1521.47829369787,
+    "converged": true,
+    "elapsed_s": 0.090000000000000094,
+    "error": {},
+    "n_coef": 6
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -1521.478293697915,
+    "converged": true,
+    "elapsed_s": 17.768089056015015,
+    "error": {},
+    "n_coef": 6
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": -1521.4782937326599,
+    "converged": true,
+    "elapsed_s": 0.84199999999999997,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 4.5019987737759948e-11,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 3.4789991332218051e-08,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 3.4744971344480291e-08,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 6,
+    "n_pass": 6,
+    "max_rel": 6.4453441060969244e-10,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 0.33647223660944298,
+        "b": 0.33647223662117559,
+        "rel": 3.4869488779970701e-11,
+        "abs": 1.1732614879633729e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:sprayY",
+        "name_b": "mu: spray: Y",
+        "a": -1.02043099112053,
+        "b": -1.0204309911268725,
+        "rel": 6.2154934044824782e-12,
+        "abs": 6.3424820950785943e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:leadY",
+        "name_b": "mu: lead: Y",
+        "a": -0.49627991276308497,
+        "b": -0.49627991276357653,
+        "rel": 9.9047177109293732e-13,
+        "abs": 4.9155124415278806e-13,
+        "pass": true
+      },
+      {
+        "name_a": "mu:sprayY:leadY",
+        "name_b": "mu: spray: Y & lead: Y",
+        "a": 0.29425328489235703,
+        "b": 0.29425328489042957,
+        "rel": 6.5503370463878833e-12,
+        "abs": 1.9274581930517343e-12,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": -0.343096804893679,
+        "b": -0.34309680494472738,
+        "rel": 1.4878712655862807e-10,
+        "abs": 5.1048387739172085e-11,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:sprayY",
+        "name_b": "sigma: spray: Y",
+        "a": -0.022728336611467299,
+        "b": -0.022728336626116494,
+        "rel": 6.4453441060969244e-10,
+        "abs": 1.4649195051452679e-11,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 6,
+    "n_pass": 6,
+    "max_abs": 1.2713632571714761e-07,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 0.061212736435747997,
+        "b": 0.061212734113201134,
+        "abs": 2.3225468631649093e-09,
+        "rel": 3.7942215924340727e-08,
+        "pass": true
+      },
+      {
+        "name_a": "mu:sprayY",
+        "name_b": "mu: spray: Y",
+        "a": 0.10641856925307699,
+        "b": 0.10641856825354594,
+        "abs": 9.9953105514583029e-10,
+        "rel": 9.3924496651408406e-09,
+        "pass": true
+      },
+      {
+        "name_a": "mu:leadY",
+        "name_b": "mu: lead: Y",
+        "a": 0.094373217860299702,
+        "b": 0.094373215165500041,
+        "abs": 2.6947996611959013e-09,
+        "rel": 2.8554707811118644e-08,
+        "pass": true
+      },
+      {
+        "name_a": "mu:sprayY:leadY",
+        "name_b": "mu: spray: Y & lead: Y",
+        "a": 0.159459258800869,
+        "b": 0.1594592582300251,
+        "abs": 5.7084389992745344e-10,
+        "rel": 3.5798730297644062e-09,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.0903239053001611,
+        "b": 0.090323925725207824,
+        "abs": 2.0425046723393514e-08,
+        "rel": 2.2613107833169878e-07,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:sprayY",
+        "name_b": "sigma: spray: Y",
+        "a": 0.206244236198772,
+        "b": 0.20624436333509771,
+        "abs": 1.2713632571714761e-07,
+        "rel": 6.1643539566985166e-07,
+        "pass": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "engine": "glmmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": -626.326605530141,
+  "converged": true,
+  "coef": {
+    "cond:(Intercept)": 1.83921717559003,
+    "cond:lbase": 1.02733724162464,
+    "cond:trtprogabide": -0.315652567275872,
+    "cond:lage": 0.330781995620411,
+    "cond:V4": -0.11738410037962,
+    "disp:(Intercept)": 2.00447576759309
+  },
+  "se": {
+    "cond:(Intercept)": 0.10918635876017,
+    "cond:lbase": 0.10092059816954,
+    "cond:trtprogabide": 0.150429257283795,
+    "cond:lage": 0.342420365268649,
+    "cond:V4": 0.0871370974798832
+  },
+  "elapsed_s": 1.115
+}

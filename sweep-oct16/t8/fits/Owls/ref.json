@@ -1,0 +1,24 @@
+{
+  "engine": "glmmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": -1699.24301683248,
+  "converged": true,
+  "coef": {
+    "cond:(Intercept)": 4.05984348998781,
+    "cond:FoodTreatmentSatiated": -1.79853775804829,
+    "cond:ArrivalTime": -0.13879647630837,
+    "cond:FoodTreatmentSatiated:ArrivalTime": 0.0520009779250909,
+    "disp:(Intercept)": 0.454520091457263,
+    "disp:FoodTreatmentSatiated": -1.33387900147644
+  },
+  "se": {
+    "cond:(Intercept)": 0.613502141260614,
+    "cond:FoodTreatmentSatiated": 1.38263827934614,
+    "cond:ArrivalTime": 0.0247263681033971,
+    "cond:FoodTreatmentSatiated:ArrivalTime": 0.0559069739246165,
+    "disp:disp~(Intercept)": 0.10735079330346,
+    "disp:disp~FoodTreatmentSatiated": 0.153478317248422
+  },
+  "elapsed_s": 0.0820000000000003
+}

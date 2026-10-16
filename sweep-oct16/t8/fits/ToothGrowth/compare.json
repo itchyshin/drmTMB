@@ -1,0 +1,165 @@
+{
+  "id": "ToothGrowth",
+  "source": "datasets::ToothGrowth",
+  "family": "gaussian",
+  "n": 60,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -166.95235733436499,
+    "converged": true,
+    "elapsed_s": 0.064999999999999905,
+    "error": {},
+    "n_coef": 6
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -166.95235733436502,
+    "converged": true,
+    "elapsed_s": 19.708501815795898,
+    "error": {},
+    "n_coef": 6
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": -166.95235733438901,
+    "converged": true,
+    "elapsed_s": 0.94499999999999995,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 2.8421709430404007e-14,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 2.4016344468691386e-11,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 2.3987922759260982e-11,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 6,
+    "n_pass": 6,
+    "max_rel": 1.4746514371816445e-13,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 11.550000000000001,
+        "b": 11.550000000000004,
+        "rel": 3.0759425790480516e-16,
+        "abs": 3.5527136788005009e-15,
+        "pass": true
+      },
+      {
+        "name_a": "mu:dose",
+        "name_b": "mu: dose",
+        "a": 7.8114285714285696,
+        "b": 7.8114285714285723,
+        "rel": 3.4110729359368374e-16,
+        "abs": 2.6645352591003757e-15,
+        "pass": true
+      },
+      {
+        "name_a": "mu:suppVC",
+        "name_b": "mu: supp: VC",
+        "a": -8.2550000000000008,
+        "b": -8.2550000000000026,
+        "rel": 2.1518556503940036e-16,
+        "abs": 1.7763568394002505e-15,
+        "pass": true
+      },
+      {
+        "name_a": "mu:dose:suppVC",
+        "name_b": "mu: dose & supp: VC",
+        "a": 3.9042857142857099,
+        "b": 3.9042857142857135,
+        "rel": 9.0995227777546698e-16,
+        "abs": 3.5527136788005009e-15,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 1.4575214740689599,
+        "b": 1.4575214740690481,
+        "rel": 6.0480555328724694e-14,
+        "abs": 8.8151708155237429e-14,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:suppVC",
+        "name_b": "sigma: supp: VC",
+        "a": -0.18784143673530099,
+        "b": -0.18784143673527329,
+        "rel": 1.4746514371816445e-13,
+        "abs": 2.7700064464397656e-14,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 6,
+    "n_pass": 6,
+    "max_abs": 6.085806236733049e-08,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 1.66356265715439,
+        "b": 1.6635626571565372,
+        "abs": 2.1471713296250527e-12,
+        "rel": 1.2907066171436723e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:dose",
+        "name_b": "mu: dose",
+        "a": 1.2575351660585601,
+        "b": 1.2575351660600027,
+        "abs": 1.4426237981979284e-12,
+        "rel": 1.147183663036501e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:suppVC",
+        "name_b": "mu: supp: VC",
+        "a": 2.1605958999423902,
+        "b": 2.1605958999445396,
+        "abs": 2.1493917756743031e-12,
+        "rel": 9.9481433604936306e-13,
+        "pass": true
+      },
+      {
+        "name_a": "mu:dose:suppVC",
+        "name_b": "mu: dose & supp: VC",
+        "a": 1.6332569814156499,
+        "b": 1.6332569814168716,
+        "abs": 1.2216894162975223e-12,
+        "rel": 7.480080784578621e-13,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.129099401840433,
+        "b": 0.12909944487358055,
+        "abs": 4.3033147545390449e-08,
+        "rel": 3.3333332755636759e-07,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:suppVC",
+        "name_b": "sigma: supp: VC",
+        "a": 0.18257412497699299,
+        "b": 0.18257418583505536,
+        "abs": 6.085806236733049e-08,
+        "rel": 3.3333333564643163e-07,
+        "pass": true
+      }
+    ]
+  }
+}

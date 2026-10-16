@@ -1,0 +1,31 @@
+{
+  "engine": "drmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": -321.561161049582,
+  "converged": true,
+  "nobs": 98,
+  "coef": {
+    "mu:(Intercept)": -84.3236625345778,
+    "mu:education": 3.15789652302125,
+    "mu:log(income)": 10.9785218486349,
+    "mu:typeprof": 7.15874874384959,
+    "mu:typewc": -1.0747869118792,
+    "sigma:(Intercept)": 1.79778079946201,
+    "sigma:typeprof": 0.0775608604630455,
+    "sigma:typewc": 0.170359990168542
+  },
+  "se": {
+    "mu:(Intercept)": 14.3546241611788,
+    "mu:education": 0.602299361527042,
+    "mu:log(income)": 1.81299181180967,
+    "mu:typeprof": 3.52594513919172,
+    "mu:typewc": 2.39994228785114,
+    "sigma:(Intercept)": 0.1119326543014,
+    "sigma:typeprof": 0.179435056902464,
+    "sigma:typewc": 0.191649403818524
+  },
+  "elapsed_s": 0.069,
+  "opt_convergence": 0,
+  "opt_message": "converged (Newton polish; max |gradient| = 3.13e-11)"
+}

@@ -1,0 +1,23 @@
+{
+  "source": "glmmTMB::Owls",
+  "source_version": "1.1.15.2",
+  "family_r": "nbinom2",
+  "family_jl": "NegBinomial2",
+  "mu_r": "NCalls ~ FoodTreatment * ArrivalTime + offset(logBroodSize)",
+  "sigma_r": "~ FoodTreatment",
+  "mu_jl": "NCalls ~ 1 + FoodTreatment * ArrivalTime + offset(logBroodSize)",
+  "sigma_jl": "sigma ~ 1 + FoodTreatment",
+  "has_re": false,
+  "cbind_success": {},
+  "cbind_fail": {},
+  "ref": "glmmTMB",
+  "ref_call": "glmmTMB(NCalls ~ FoodTreatment * ArrivalTime + offset(logBroodSize), dispformula = ~ FoodTreatment, family = glmmTMB::nbinom2(), data = d)",
+  "zi_re_probe_r": "bf(mu = NCalls ~ FoodTreatment * ArrivalTime + offset(logBroodSize) + (1 | Nest), zi = ~ FoodTreatment), family = nbinom2()",
+  "id": "Owls",
+  "n": 599,
+  "csv": "/workspace/sweep-oct16/t8/data/Owls.csv",
+  "prepare": "data(Owls, package = \"glmmTMB\")\nd <- glmmTMB::Owls\nd$FoodTreatment <- chr_factor(d$FoodTreatment)\nd$SexParent <- chr_factor(d$SexParent)\nd$Nest <- chr_factor(d$Nest)\nd$NCalls <- d$SiblingNegotiation",
+  "drmTMB_sha": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+  "DRModels_sha": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "drmTMB_version": "0.7.1"
+}

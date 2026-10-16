@@ -1,0 +1,201 @@
+{
+  "id": "warpbreaks",
+  "source": "datasets::warpbreaks",
+  "family": "gaussian",
+  "n": 54,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -200.08429062072901,
+    "converged": true,
+    "elapsed_s": 0.0660000000000001,
+    "error": {},
+    "n_coef": 8
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -200.08429062072875,
+    "converged": true,
+    "elapsed_s": 20.709208965301514,
+    "error": {},
+    "n_coef": 8
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": -200.08429062073199,
+    "converged": true,
+    "elapsed_s": 0.94099999999999995,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 2.5579538487363607e-13,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 2.9842794901924208e-12,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 3.2400748750660568e-12,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 8,
+    "n_pass": 8,
+    "max_rel": 4.123728684517114e-11,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 24.5555555555556,
+        "b": 24.55555555555555,
+        "rel": 2.0255290657414584e-15,
+        "abs": 4.9737991503207013e-14,
+        "pass": true
+      },
+      {
+        "name_a": "mu:woolB",
+        "name_b": "mu: wool: B",
+        "a": -5.7777777777777803,
+        "b": -5.777777777777775,
+        "rel": 9.2233912815012973e-16,
+        "abs": 5.3290705182007514e-15,
+        "pass": true
+      },
+      {
+        "name_a": "mu:tensionL",
+        "name_b": "mu: tension: L",
+        "a": 20,
+        "b": 20.000000000000004,
+        "rel": 1.7763568394002501e-16,
+        "abs": 3.5527136788005009e-15,
+        "pass": true
+      },
+      {
+        "name_a": "mu:tensionM",
+        "name_b": "mu: tension: M",
+        "a": -0.55555555555555503,
+        "b": -0.55555555555555214,
+        "rel": 5.1958437552457378e-15,
+        "abs": 2.886579864025407e-15,
+        "pass": true
+      },
+      {
+        "name_a": "mu:woolB:tensionL",
+        "name_b": "mu: wool: B & tension: L",
+        "a": -10.5555555555556,
+        "b": -10.555555555555557,
+        "rel": 4.0388744980047634e-15,
+        "abs": 4.2632564145606011e-14,
+        "pass": true
+      },
+      {
+        "name_a": "mu:woolB:tensionM",
+        "name_b": "mu: wool: B & tension: M",
+        "a": 10.5555555555556,
+        "b": 10.555555555555548,
+        "rel": 4.8803066850890888e-15,
+        "abs": 5.1514348342607263e-14,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 2.5070977393019498,
+        "b": 2.5070977392958862,
+        "rel": 2.4185710737312694e-12,
+        "abs": 6.063594071292755e-12,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:woolB",
+        "name_b": "sigma: wool: B",
+        "a": -0.44154326276420602,
+        "b": -0.44154326278241407,
+        "rel": 4.123728684517114e-11,
+        "abs": 1.8208046181911186e-11,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 8,
+    "n_pass": 8,
+    "max_abs": 6.4147103490119761e-08,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 4.0897565728152303,
+        "b": 4.0897565727882501,
+        "abs": 2.6980195855230704e-11,
+        "rel": 6.5970175424545084e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:woolB",
+        "name_b": "mu: wool: B",
+        "a": 4.8623484609829601,
+        "b": 4.8623484609258432,
+        "abs": 5.7116977814075653e-11,
+        "rel": 1.1746788259294981e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:tensionL",
+        "name_b": "mu: tension: L",
+        "a": 5.7837892120816896,
+        "b": 5.7837892120416416,
+        "abs": 4.0047964944278647e-11,
+        "rel": 6.9241743562547057e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:tensionM",
+        "name_b": "mu: tension: M",
+        "a": 5.7837892120802996,
+        "b": 5.7837892120416416,
+        "abs": 3.8657965717447951e-11,
+        "rel": 6.6838476126870372e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:woolB:tensionL",
+        "name_b": "mu: wool: B & tension: L",
+        "a": 6.8763991385066401,
+        "b": 6.8763991384252643,
+        "abs": 8.1375794991345174e-11,
+        "rel": 1.1834070907207068e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:woolB:tensionM",
+        "name_b": "mu: wool: B & tension: M",
+        "a": 6.8763991385066499,
+        "b": 6.8763991384252652,
+        "abs": 8.1384676775542175e-11,
+        "rel": 1.1835362540228652e-11,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.13608271812702899,
+        "b": 0.13608276348710138,
+        "abs": 4.5360072392641726e-08,
+        "rel": 3.333270961751242e-07,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:woolB",
+        "name_b": "sigma: wool: B",
+        "a": 0.19245002557983601,
+        "b": 0.1924500897269395,
+        "abs": 6.4147103490119761e-08,
+        "rel": 3.3331812721488348e-07,
+        "pass": true
+      }
+    ]
+  }
+}

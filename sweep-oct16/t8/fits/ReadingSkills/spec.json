@@ -1,0 +1,22 @@
+{
+  "source": "betareg::ReadingSkills",
+  "source_version": "3.2.6",
+  "family_r": "beta",
+  "family_jl": "Beta",
+  "mu_r": "accuracy ~ dyslexia * iq",
+  "sigma_r": "~ dyslexia",
+  "mu_jl": "accuracy ~ 1 + dyslexia * iq",
+  "sigma_jl": "sigma ~ 1 + dyslexia",
+  "has_re": false,
+  "cbind_success": {},
+  "cbind_fail": {},
+  "ref": "glmmTMB",
+  "ref_call": "glmmTMB(accuracy ~ dyslexia * iq, dispformula = ~ dyslexia, family = glmmTMB::beta_family(), data = d)",
+  "id": "ReadingSkills",
+  "n": 44,
+  "csv": "/workspace/sweep-oct16/t8/data/ReadingSkills.csv",
+  "prepare": "data(ReadingSkills, package = \"betareg\")\nd <- ReadingSkills\nd$dyslexia <- factor(as.character(d$dyslexia), levels = sort(unique(as.character(d$dyslexia))))",
+  "drmTMB_sha": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+  "DRModels_sha": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "drmTMB_version": "0.7.1"
+}

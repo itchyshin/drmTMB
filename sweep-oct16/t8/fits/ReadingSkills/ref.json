@@ -1,0 +1,24 @@
+{
+  "engine": "glmmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": 62.6266880310423,
+  "converged": true,
+  "coef": {
+    "cond:(Intercept)": 2.05360846053943,
+    "cond:dyslexiayes": -1.66467318424065,
+    "cond:iq": 0.328828087570731,
+    "cond:dyslexiayes:iq": -0.39155605546192,
+    "disp:(Intercept)": 1.81990146062695,
+    "disp:dyslexiayes": 2.34438132421689
+  },
+  "se": {
+    "cond:(Intercept)": 0.260583332643297,
+    "cond:dyslexiayes": 0.270890573451755,
+    "cond:iq": 0.22084632784484,
+    "cond:dyslexiayes:iq": 0.232033844211691,
+    "disp:disp~(Intercept)": 0.314304797787295,
+    "disp:disp~dyslexiayes": 0.449994155833121
+  },
+  "elapsed_s": 0.808
+}

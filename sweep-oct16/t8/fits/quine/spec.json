@@ -1,0 +1,22 @@
+{
+  "source": "MASS::quine",
+  "source_version": "7.3.60.0.1",
+  "family_r": "nbinom2",
+  "family_jl": "NegBinomial2",
+  "mu_r": "Days ~ Eth + Sex + Age + Lrn",
+  "sigma_r": "~ Eth",
+  "mu_jl": "Days ~ 1 + Eth + Sex + Age + Lrn",
+  "sigma_jl": "sigma ~ 1 + Eth",
+  "has_re": false,
+  "cbind_success": {},
+  "cbind_fail": {},
+  "ref": "glmmTMB",
+  "ref_call": "glmmTMB(Days ~ Eth + Sex + Age + Lrn, dispformula = ~ Eth, family = glmmTMB::nbinom2(), data = d)",
+  "id": "quine",
+  "n": 146,
+  "csv": "/workspace/sweep-oct16/t8/data/quine.csv",
+  "prepare": "data(quine, package = \"MASS\")\nd <- MASS::quine\nfor (nm in c(\"Eth\",\"Sex\",\"Age\",\"Lrn\")) d[[nm]] <- factor(as.character(d[[nm]]), levels = sort(unique(as.character(d[[nm]]))))",
+  "drmTMB_sha": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+  "DRModels_sha": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "drmTMB_version": "0.7.1"
+}

@@ -1,0 +1,20 @@
+{
+  "engine": "lme4",
+  "ok": true,
+  "error": {},
+  "logLik": -98.8854171921567,
+  "converged": true,
+  "coef": {
+    "mu:(Intercept)": 1.82378191694576,
+    "mu:week": -0.143689105465785,
+    "mu:trtdrug+": 0.524697153663713,
+    "mu:trtplacebo": 1.32013550803252
+  },
+  "se": {
+    "mu:(Intercept)": 0.553375087219036,
+    "mu:week": 0.0509932426409705,
+    "mu:trtdrug+": 0.652303271385807,
+    "mu:trtplacebo": 0.642399718241716
+  },
+  "elapsed_s": 0.43
+}

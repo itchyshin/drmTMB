@@ -1,0 +1,40 @@
+===== ReadingSkills  timeout=180s  2026-10-16T21:58:13Z =====
+--- R drmTMB + ref ---
+Error: 'ReadingSkills' is not an exported object from 'namespace:betareg'
+Execution halted
+R_EXIT=1
+--- Julia DRModels.jl ---
+ERROR: LoadError: SystemError: opening file "/workspace/sweep-oct16/t8/fits/ReadingSkills/spec.json": No such file or directory
+Stacktrace:
+ [1] systemerror(p::String, errno::Int32; extrainfo::Nothing)
+   @ Base ./error.jl:176
+ [2] systemerror
+   @ ./error.jl:175 [inlined]
+ [3] open(fname::String; lock::Bool, read::Nothing, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing)
+   @ Base ./iostream.jl:295
+ [4] open
+   @ ./iostream.jl:277 [inlined]
+ [5] open(f::JSON.var"#45#46"{Nothing, @Kwargs{}, String}, args::String; kwargs::@Kwargs{})
+   @ Base ./io.jl:408
+ [6] open
+   @ ./io.jl:407 [inlined]
+ [7] parsefile(file::String)
+   @ JSON ~/.julia/packages/JSON/ydhdG/src/parse.jl:376
+ [8] top-level scope
+   @ /workspace/sweep-oct16/t8/fit_jl.jl:12
+in expression starting at /workspace/sweep-oct16/t8/fit_jl.jl:12
+JL_EXIT=1
+[ReadingSkills] verdict=BOTH_FAIL dLL(R-J)=NA coef 0/0 se 0/0
+  drmTMB error: ?
+  DRModels.jl error: ?
+COMPARE_EXIT=0 R_EXIT=1 JL_EXIT=1
+===== ReadingSkills  timeout=180s  2026-10-16T22:00:22Z =====
+--- R drmTMB + ref ---
+[ReadingSkills] drmTMB ok=TRUE logLik=62.6266880310463 elapsed=0.1s error=NULL
+[ReadingSkills] ref(glmmTMB) ok=TRUE logLik=62.6266880310423 elapsed=0.8s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[ReadingSkills] DRModels.jl ok=true logLik=62.62668803105142 elapsed=15.0s error=NULL
+JL_EXIT=0
+[ReadingSkills] verdict=PASS dLL(R-J)=5.1230131e-12 coef 6/6 se 6/6
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0

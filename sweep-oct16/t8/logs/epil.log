@@ -1,0 +1,10 @@
+===== epil  timeout=180s  2026-10-16T22:02:30Z =====
+--- R drmTMB + ref ---
+[epil] drmTMB ok=TRUE logLik=-626.326605527338 elapsed=0.3s error=NULL
+[epil] ref(glmmTMB) ok=TRUE logLik=-626.326605530141 elapsed=1.1s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[epil] DRModels.jl ok=true logLik=-626.3266055273039 elapsed=20.1s error=NULL
+JL_EXIT=0
+[epil] verdict=PASS dLL(R-J)=3.4106051e-11 coef 6/6 se 6/6
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0

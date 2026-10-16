@@ -1,0 +1,32 @@
+{
+  "coef": {
+    "mu: (Intercept)": -0.4445599805268676,
+    "mu: extract: cucumber": 0.5221435492123012,
+    "mu: gen: O75": -0.09739056968526753,
+    "mu: gen: O75 & extract: cucumber": 0.7979247123766585,
+    "sigma: (Intercept)": -2.1903899660824675
+  },
+  "converged": true,
+  "elapsed_s": 14.669514894485474,
+  "engine": "DRModels.jl",
+  "error": null,
+  "logLik": -53.76676336486797,
+  "marginal": null,
+  "nobs": 21,
+  "ok": true,
+  "re_sd": {},
+  "se": {
+    "mu: (Intercept)": 0.21825564334680822,
+    "mu: extract: cucumber": 0.2968227130051351,
+    "mu: gen: O75": 0.27366859635607305,
+    "mu: gen: O75 & extract: cucumber": 0.3779548213038089,
+    "sigma: (Intercept)": 0.4648975913473986
+  },
+  "theta": [
+    -0.4445599805268676,
+    -0.09739056968526753,
+    0.5221435492123012,
+    0.7979247123766585,
+    -2.1903899660824675
+  ]
+}

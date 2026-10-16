@@ -1,0 +1,49 @@
+{
+  "coef": {
+    "mu: (Intercept)": 81.89999999999998,
+    "mu: gen: Marvellous": 8.516666666666683,
+    "mu: gen: Victory": -8.599999999999984,
+    "mu: nitro": 75.33333333333336,
+    "mu: nitro & gen: Marvellous": -10.750000000000023,
+    "mu: nitro & gen: Victory": 5.749999999999974,
+    "resd: block": 2.6521733350266623,
+    "sigma: (Intercept)": 2.704691528998293,
+    "sigma: gen: Marvellous": -0.012335014285729272,
+    "sigma: gen: Victory": -0.0006021718928234825
+  },
+  "converged": true,
+  "elapsed_s": 24.468751192092896,
+  "engine": "DRModels.jl",
+  "error": null,
+  "logLik": -304.01992916119406,
+  "marginal": "default",
+  "nobs": 72,
+  "ok": true,
+  "re_sd": {
+    "block": 14.18483356504996
+  },
+  "se": {
+    "mu: (Intercept)": 7.720698014924356,
+    "mu: gen: Marvellous": 7.1772653693412165,
+    "mu: gen: Victory": 7.219220025797688,
+    "mu: nitro": 13.647150572894496,
+    "mu: nitro & gen: Marvellous": 19.18204856145172,
+    "mu: nitro & gen: Victory": 19.294177097337354,
+    "resd: block": 0.32002412033639127,
+    "sigma: (Intercept)": 0.15908298951315267,
+    "sigma: gen: Marvellous": 0.267934632684383,
+    "sigma: gen: Victory": 0.22851241578308915
+  },
+  "theta": [
+    81.89999999999998,
+    75.33333333333336,
+    8.516666666666683,
+    -8.599999999999984,
+    -10.750000000000023,
+    5.749999999999974,
+    2.704691528998293,
+    -0.012335014285729272,
+    -0.0006021718928234825,
+    2.6521733350266623
+  ]
+}

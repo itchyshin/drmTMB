@@ -1,0 +1,24 @@
+{
+  "engine": "glmmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": -204.676175480485,
+  "converged": true,
+  "coef": {
+    "cond:(Intercept)": 17.3727289598447,
+    "cond:age": 0.479545382895099,
+    "cond:SexMale": -1.03210342293225,
+    "cond:age:SexMale": 0.304829561219969,
+    "disp:(Intercept)": -0.262115369028075,
+    "disp:SexMale": 0.764006694168534
+  },
+  "se": {
+    "cond:(Intercept)": 0.790290732953421,
+    "cond:age": 0.0518744375860281,
+    "cond:SexMale": 1.37666977949717,
+    "cond:age:SexMale": 0.105914026716559,
+    "disp:disp~(Intercept)": 0.123489232532946,
+    "disp:disp~SexMale": 0.159288181136004
+  },
+  "elapsed_s": 1.05
+}

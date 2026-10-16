@@ -1,0 +1,37 @@
+{
+  "engine": "drmTMB",
+  "ok": true,
+  "error": {},
+  "logLik": 92.0596218477018,
+  "converged": false,
+  "nobs": 32,
+  "coef": {
+    "mu:(Intercept)": -4.50004425878296,
+    "mu:temp": 0.0111810945591176,
+    "mu:batchg10": -1.73985094476038,
+    "mu:batchg2": -0.406959192190875,
+    "mu:batchg3": -0.149603753063467,
+    "mu:batchg4": -0.678483972141673,
+    "mu:batchg5": -0.605302806992342,
+    "mu:batchg6": -0.699935534699093,
+    "mu:batchg7": -1.19005561797938,
+    "mu:batchg8": -1.24340789447039,
+    "mu:batchg9": -1.36110392673202,
+    "sigma:(Intercept)": -2.58749222765854,
+    "sigma:batchg10": -0.203112442021254,
+    "sigma:batchg2": -2.11689928941415,
+    "sigma:batchg3": -0.481437406983914,
+    "sigma:batchg4": -0.899550947260203,
+    "sigma:batchg5": -0.953594084771514,
+    "sigma:batchg6": -1.16109283081799,
+    "sigma:batchg7": -0.384601404973877,
+    "sigma:batchg8": -0.213375727080791,
+    "sigma:batchg9": -0.708497577913286
+  },
+  "se": {
+    ".error": "Fixed-effect covariance is unavailable because TMB::sdreport() did not\nreport a positive-definite Hessian.\nℹ Refit with `control = drm_control(se = TRUE)` for `vcov()`, Wald standard\n  errors, or Wald confidence intervals."
+  },
+  "elapsed_s": 0.0720000000000001,
+  "opt_convergence": 0,
+  "opt_message": "relative convergence (4)"
+}

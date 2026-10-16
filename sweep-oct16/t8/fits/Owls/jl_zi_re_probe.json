@@ -1,0 +1,7 @@
+{
+  "elapsed_s": 0.22854399681091309,
+  "engine": "DRModels.jl-zi-re-probe",
+  "error": "ArgumentError: marginal = :Laplace is not available for NegBinomial2() with a `zi` formula. This route covers exactly one ordinary random intercept `(1 | g)` on the mean for Poisson, Binomial, NegBinomial2, Gamma and Beta (`sigma ~ 1` for the three scale families), fitted by maximum likelihood. Omit `marginal` (the default `:LA`) for other models.",
+  "logLik": null,
+  "ok": false
+}

@@ -1,0 +1,201 @@
+{
+  "id": "Prestige",
+  "source": "carData::Prestige",
+  "family": "gaussian",
+  "n": 98,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -321.56116104958198,
+    "converged": true,
+    "elapsed_s": 0.069000000000000006,
+    "error": {},
+    "n_coef": 8
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -321.56116104958096,
+    "converged": true,
+    "elapsed_s": 19.247009992599487,
+    "error": {},
+    "n_coef": 8
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": -321.56116105031703,
+    "converged": true,
+    "elapsed_s": 1,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 1.0231815394945443e-12,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 7.3504224928910844e-10,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 7.3606543082860298e-10,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 8,
+    "n_pass": 8,
+    "max_rel": 1.3733131821661511e-10,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": -84.323662534577807,
+        "b": -84.323662534097394,
+        "rel": 5.6972401347619463e-12,
+        "abs": 4.8041215450211894e-10,
+        "pass": true
+      },
+      {
+        "name_a": "mu:education",
+        "name_b": "mu: education",
+        "a": 3.1578965230212499,
+        "b": 3.1578965229790321,
+        "rel": 1.3368957632346703e-11,
+        "abs": 4.2217784823606053e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:log(income)",
+        "name_b": "mu: logincome",
+        "a": 10.9785218486349,
+        "b": 10.978521848621215,
+        "rel": 1.2465296584932485e-12,
+        "abs": 1.368505309073953e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:typeprof",
+        "name_b": "mu: type: prof",
+        "a": 7.15874874384959,
+        "b": 7.1587487439921667,
+        "rel": 1.9916415881875519e-11,
+        "abs": 1.42576617179202e-10,
+        "pass": true
+      },
+      {
+        "name_a": "mu:typewc",
+        "name_b": "mu: type: wc",
+        "a": -1.0747869118791999,
+        "b": -1.074786911874303,
+        "rel": 4.556225669379041e-12,
+        "abs": 4.8969717170166405e-12,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 1.7977807994620101,
+        "b": 1.7977807994581856,
+        "rel": 2.1273429310031726e-12,
+        "abs": 3.8244962752287393e-12,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:typeprof",
+        "name_b": "sigma: type: prof",
+        "a": 0.0775608604630455,
+        "b": 0.077560860452393965,
+        "rel": 1.3733131821661511e-10,
+        "abs": 1.0651535209404983e-11,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:typewc",
+        "name_b": "sigma: type: wc",
+        "a": 0.170359990168542,
+        "b": 0.17035999018959522,
+        "rel": 1.2358074629898578e-10,
+        "abs": 2.1053214727118075e-11,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 8,
+    "n_pass": 8,
+    "max_abs": 6.3884415951731555e-08,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 14.354624161178799,
+        "b": 14.354624160860451,
+        "abs": 3.1834801461627649e-10,
+        "rel": 2.217738416845696e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:education",
+        "name_b": "mu: education",
+        "a": 0.602299361527042,
+        "b": 0.60229936152263819,
+        "abs": 4.4038106494781459e-12,
+        "rel": 7.3116641503868244e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:log(income)",
+        "name_b": "mu: logincome",
+        "a": 1.81299181180967,
+        "b": 1.8129918117714288,
+        "abs": 3.8241187994003667e-11,
+        "rel": 2.1092863048196861e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:typeprof",
+        "name_b": "mu: type: prof",
+        "a": 3.52594513919172,
+        "b": 3.5259451391620362,
+        "abs": 2.9683810964797885e-11,
+        "rel": 8.4186820250988184e-12,
+        "pass": true
+      },
+      {
+        "name_a": "mu:typewc",
+        "name_b": "mu: type: wc",
+        "a": 2.3999422878511401,
+        "b": 2.3999422878546071,
+        "abs": 3.4670044612994388e-12,
+        "rel": 1.4446199305895461e-12,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.11193265430139999,
+        "b": 0.11193269161179943,
+        "abs": 3.7310399436663033e-08,
+        "rel": 3.3332888631018983e-07,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:typeprof",
+        "name_b": "sigma: type: prof",
+        "a": 0.179435056902464,
+        "b": 0.17943511671262199,
+        "abs": 5.9810157992945534e-08,
+        "rel": 3.3332470861172465e-07,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:typewc",
+        "name_b": "sigma: type: wc",
+        "a": 0.19164940381852399,
+        "b": 0.19164946770293995,
+        "abs": 6.3884415951731555e-08,
+        "rel": 3.3333990810114603e-07,
+        "pass": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+Julia Version 1.11.6
+Commit 9615af0f269 (2025-07-09 12:58 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 4 × Intel(R) Xeon(R) Processor
+  WORD_SIZE: 64
+  LLVM: libLLVM-16.0.6 (ORCJIT, sapphirerapids)
+Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)
+
+DRModels HEAD=f71b2923360e9e5d4591e0d6e15a9ef9db0356d7
+pkgversion=0.7.2

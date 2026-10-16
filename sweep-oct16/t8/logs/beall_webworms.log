@@ -1,0 +1,10 @@
+===== beall_webworms  timeout=180s  2026-10-16T21:59:14Z =====
+--- R drmTMB + ref ---
+[beall_webworms] drmTMB ok=TRUE logLik=-1521.47829369787 elapsed=0.1s error=NULL
+[beall_webworms] ref(glmmTMB) ok=TRUE logLik=-1521.47829373266 elapsed=0.8s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[beall_webworms] DRModels.jl ok=true logLik=-1521.478293697915 elapsed=17.8s error=NULL
+JL_EXIT=0
+[beall_webworms] verdict=PASS dLL(R-J)=4.5019988e-11 coef 6/6 se 6/6
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0

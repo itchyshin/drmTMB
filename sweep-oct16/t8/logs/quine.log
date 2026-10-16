@@ -1,0 +1,10 @@
+===== quine  timeout=180s  2026-10-16T21:58:19Z =====
+--- R drmTMB + ref ---
+[quine] drmTMB ok=TRUE logLik=-544.824815191272 elapsed=0.1s error=NULL
+[quine] ref(glmmTMB) ok=TRUE logLik=-544.824815216905 elapsed=0.9s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[quine] DRModels.jl ok=true logLik=-544.8248151912721 elapsed=18.0s error=NULL
+JL_EXIT=0
+[quine] verdict=PASS dLL(R-J)=1.1368684e-13 coef 9/9 se 9/9
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0

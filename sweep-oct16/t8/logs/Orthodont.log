@@ -1,0 +1,21 @@
+===== Orthodont  timeout=180s  2026-10-16T22:03:03Z =====
+--- R drmTMB + ref ---
+[Orthodont] drmTMB ok=TRUE logLik=-204.67617548048 elapsed=0.1s error=NULL
+[Orthodont] ref(glmmTMB) ok=TRUE logLik=-204.676175480485 elapsed=1.0s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[Orthodont] DRModels.jl ok=false logLik=NA elapsed=8.3s error=ArgumentError: marginal = :Laplace is not available for Gaussian() with a random effect on the mean. On the Gaussian family this route covers exactly one random intercept `(1 | g)` on `sigma` (fixed-effect mean, fixed-effect `sigma` predictors alongside it), fitted by maximum likelihood. Omit `marginal` (the default `:LA`) for other models.
+JL_EXIT=0
+[Orthodont] verdict=JL_FAIL dLL(R-J)=NA coef 0/0 se 0/0
+  DRModels.jl error: ArgumentError: marginal = :Laplace is not available for Gaussian() with a random effect on the mean. On the Gaussian family this route covers exactly one random intercept `(1 | g)` on `sigma` (fixed-effect mean, fixed-effect `sigma` predictors alongside it), fitted by maximum likelihood. Omit `marginal` (the default `:LA`) for other models.
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0
+===== Orthodont  timeout=180s  2026-10-16T22:06:20Z =====
+--- R drmTMB + ref ---
+[Orthodont] drmTMB ok=TRUE logLik=-204.67617548048 elapsed=0.1s error=NULL
+[Orthodont] ref(glmmTMB) ok=TRUE logLik=-204.676175480485 elapsed=1.1s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[Orthodont] DRModels.jl ok=true logLik=-204.67617548048028 elapsed=23.6s error=NULL
+JL_EXIT=0
+[Orthodont] verdict=PASS dLL(R-J)=2.8421709e-13 coef 6/6 se 6/6
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0

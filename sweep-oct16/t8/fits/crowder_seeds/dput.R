@@ -1,0 +1,16 @@
+structure(list(plate = structure(c(1L, 12L, 15L, 16L, 17L, 18L, 
+19L, 20L, 21L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 13L, 
+14L), levels = c("P1", "P10", "P11", "P12", "P13", "P14", "P15", 
+"P16", "P17", "P18", "P19", "P2", "P20", "P21", "P3", "P4", "P5", 
+"P6", "P7", "P8", "P9"), class = "factor"), gen = structure(c(2L, 
+2L, 2L, 2L, 2L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 2L, 2L, 1L, 
+1L, 1L, 1L, 1L), levels = c("O73", "O75"), class = "factor"), 
+    extract = structure(c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L), levels = c("bean", 
+    "cucumber"), class = "factor"), germ = c(10L, 23L, 23L, 26L, 
+    17L, 8L, 10L, 8L, 23L, 0L, 5L, 53L, 55L, 32L, 46L, 10L, 3L, 
+    22L, 15L, 32L, 3L), n = c(39L, 62L, 81L, 51L, 39L, 16L, 30L, 
+    28L, 45L, 4L, 6L, 74L, 72L, 51L, 79L, 13L, 12L, 41L, 30L, 
+    51L, 7L), fail = c(29L, 39L, 58L, 25L, 22L, 8L, 20L, 20L, 
+    22L, 4L, 1L, 21L, 17L, 19L, 33L, 3L, 9L, 19L, 15L, 19L, 4L
+    )), row.names = c(NA, -21L), class = "data.frame")

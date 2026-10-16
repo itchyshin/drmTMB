@@ -1,0 +1,165 @@
+{
+  "id": "Owls",
+  "source": "glmmTMB::Owls",
+  "family": "nbinom2",
+  "n": 599,
+  "verdict": "FAIL_BAR",
+  "overall_pass": false,
+  "fail_reasons": ["logLik |R-J|=1.426 > 1e-4", "coef relative: 0/6 matched names pass 1e-4 (max rel=0.1487)", "SE abs: 5/6 matched names pass 1e-3 (max abs=0.0218804)"],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -1699.2430168324599,
+    "converged": true,
+    "elapsed_s": 0.11899999999999999,
+    "error": {},
+    "n_coef": 6
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -1697.8170177558927,
+    "converged": true,
+    "elapsed_s": 20.57158088684082,
+    "error": {},
+    "n_coef": 7
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": -1699.24301683248,
+    "converged": true,
+    "elapsed_s": 0.082000000000000295,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 1.4259990765672228,
+    "pass_RJ": false,
+    "abs_R_minus_ref": 2.0008883439004421e-11,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 1.4259990765872317,
+    "pass_Jref": false
+  },
+  "coef": {
+    "n_matched": 6,
+    "n_pass": 0,
+    "max_rel": 0.14870016655799531,
+    "pass": false,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 4.0598435881333197,
+        "b": 4.3637443418784327,
+        "rel": 0.069642199436068447,
+        "abs": 0.30390075374511305,
+        "pass": false
+      },
+      {
+        "name_a": "mu:FoodTreatmentSatiated",
+        "name_b": "mu: FoodTreatment: Satiated",
+        "a": -1.7985364046482299,
+        "b": -1.6026560108953396,
+        "rel": 0.10891099743471802,
+        "abs": 0.19588039375289035,
+        "pass": false
+      },
+      {
+        "name_a": "mu:ArrivalTime",
+        "name_b": "mu: ArrivalTime",
+        "a": -0.13879647842885201,
+        "b": -0.13691469335148343,
+        "rel": 0.013557873360116959,
+        "abs": 0.0018817850773685807,
+        "pass": false
+      },
+      {
+        "name_a": "mu:FoodTreatmentSatiated:ArrivalTime",
+        "name_b": "mu: FoodTreatment: Satiated & ArrivalTime",
+        "a": 0.052000918346876902,
+        "b": 0.044268373127527592,
+        "rel": 0.14870016655799531,
+        "abs": 0.0077325452193493099,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": -0.22726005744927499,
+        "b": -0.23177825159782317,
+        "rel": 0.019493607003249182,
+        "abs": 0.0045181941485481769,
+        "pass": false
+      },
+      {
+        "name_a": "sigma:FoodTreatmentSatiated",
+        "name_b": "sigma: FoodTreatment: Satiated",
+        "a": 0.666939452448437,
+        "b": 0.66993951367175153,
+        "rel": 0.0044781075934333739,
+        "abs": 0.0030000612233145318,
+        "pass": false
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 6,
+    "n_pass": 5,
+    "max_abs": 0.021880410099552439,
+    "pass": false,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 0.61350214401451897,
+        "b": 0.63538255411407141,
+        "abs": 0.021880410099552439,
+        "rel": 0.034436592503017019,
+        "pass": false
+      },
+      {
+        "name_a": "mu:FoodTreatmentSatiated",
+        "name_b": "mu: FoodTreatment: Satiated",
+        "a": 1.38263817752898,
+        "b": 1.3832684990390793,
+        "abs": 0.0006303215100993409,
+        "rel": 0.0004556754603587148,
+        "pass": true
+      },
+      {
+        "name_a": "mu:ArrivalTime",
+        "name_b": "mu: ArrivalTime",
+        "a": 0.024726368203962699,
+        "b": 0.024549820242245612,
+        "abs": 0.00017654796171708703,
+        "rel": 0.0071400684589333699,
+        "pass": true
+      },
+      {
+        "name_a": "mu:FoodTreatmentSatiated:ArrivalTime",
+        "name_b": "mu: FoodTreatment: Satiated & ArrivalTime",
+        "a": 0.055906969466164601,
+        "b": 0.05591816248123542,
+        "abs": 1.1193015070819212e-05,
+        "rel": 0.0002001677911818951,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.0536754024539376,
+        "b": 0.053817401357158734,
+        "abs": 0.00014199890322113412,
+        "rel": 0.0026385313976563006,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:FoodTreatmentSatiated",
+        "name_b": "sigma: FoodTreatment: Satiated",
+        "a": 0.076739164370521806,
+        "b": 0.076845805556791782,
+        "abs": 0.00010664118626997621,
+        "rel": 0.0013877294342521348,
+        "pass": true
+      }
+    ]
+  }
+}

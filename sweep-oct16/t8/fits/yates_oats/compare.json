@@ -1,0 +1,219 @@
+{
+  "id": "yates_oats",
+  "source": "agridat::yates.oats",
+  "family": "gaussian",
+  "n": 72,
+  "verdict": "PASS",
+  "overall_pass": true,
+  "fail_reasons": [],
+  "drmTMB": {
+    "ok": true,
+    "logLik": -304.01992916119502,
+    "converged": true,
+    "elapsed_s": 0.12,
+    "error": {},
+    "n_coef": 9
+  },
+  "DRModels": {
+    "ok": true,
+    "logLik": -304.01992916119406,
+    "converged": true,
+    "elapsed_s": 24.468751192092896,
+    "error": {},
+    "n_coef": 10
+  },
+  "ref": {
+    "engine": "glmmTMB",
+    "ok": true,
+    "logLik": -304.01992916120503,
+    "converged": true,
+    "elapsed_s": 1.024,
+    "error": {}
+  },
+  "logLik": {
+    "abs_R_minus_J": 9.6633812063373625e-13,
+    "pass_RJ": true,
+    "abs_R_minus_ref": 1.0004441719502211e-11,
+    "pass_Rref": true,
+    "abs_J_minus_ref": 1.0970779840135947e-11,
+    "pass_Jref": true
+  },
+  "coef": {
+    "n_matched": 9,
+    "n_pass": 9,
+    "max_rel": 4.9703675679283586e-07,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 81.900000000000006,
+        "b": 81.899999999999977,
+        "rel": 3.4702941917465211e-16,
+        "abs": 2.8421709430404007e-14,
+        "pass": true
+      },
+      {
+        "name_a": "mu:nitro",
+        "name_b": "mu: nitro",
+        "a": 75.3333333333333,
+        "b": 75.333333333333357,
+        "rel": 7.5455865744435397e-16,
+        "abs": 5.6843418860808015e-14,
+        "pass": true
+      },
+      {
+        "name_a": "mu:genMarvellous",
+        "name_b": "mu: gen: Marvellous",
+        "a": 8.5166666666666604,
+        "b": 8.5166666666666835,
+        "rel": 2.7114644515307097e-15,
+        "abs": 2.3092638912203256e-14,
+        "pass": true
+      },
+      {
+        "name_a": "mu:genVictory",
+        "name_b": "mu: gen: Victory",
+        "a": -8.5999999999999996,
+        "b": -8.5999999999999837,
+        "rel": 1.8589780877444483e-15,
+        "abs": 1.5987211554602254e-14,
+        "pass": true
+      },
+      {
+        "name_a": "mu:nitro:genMarvellous",
+        "name_b": "mu: nitro & gen: Marvellous",
+        "a": -10.75,
+        "b": -10.750000000000023,
+        "rel": 2.1481524569491356e-15,
+        "abs": 2.3092638912203256e-14,
+        "pass": true
+      },
+      {
+        "name_a": "mu:nitro:genVictory",
+        "name_b": "mu: nitro & gen: Victory",
+        "a": 5.75,
+        "b": 5.7499999999999742,
+        "rel": 4.4795085515310666e-15,
+        "abs": 2.5757174171303632e-14,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 2.7046915290735498,
+        "b": 2.7046915289982931,
+        "rel": 2.7824500117615694e-11,
+        "abs": 7.5256689768821161e-11,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:genMarvellous",
+        "name_b": "sigma: gen: Marvellous",
+        "a": -0.012335014296699301,
+        "b": -0.012335014285729272,
+        "rel": 8.8934057480632954e-10,
+        "abs": 1.0970028704870849e-11,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:genVictory",
+        "name_b": "sigma: gen: Victory",
+        "a": -0.00060217219212519595,
+        "b": -0.00060217189282348255,
+        "rel": 4.9703675679283586e-07,
+        "abs": 2.9930171340473988e-10,
+        "pass": true
+      }
+    ]
+  },
+  "se": {
+    "n_matched": 9,
+    "n_pass": 9,
+    "max_abs": 4.0964811653942945e-08,
+    "pass": true,
+    "pairs": [
+      {
+        "name_a": "mu:(Intercept)",
+        "name_b": "mu: (Intercept)",
+        "a": 7.7206980150514299,
+        "b": 7.7206980149243556,
+        "abs": 1.2707435104175602e-10,
+        "rel": 1.6458920008790103e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:nitro",
+        "name_b": "mu: nitro",
+        "a": 13.6471505739433,
+        "b": 13.647150572894496,
+        "abs": 1.0488037105460535e-09,
+        "rel": 7.6851479351927823e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:genMarvellous",
+        "name_b": "mu: gen: Marvellous",
+        "a": 7.1772653698406996,
+        "b": 7.1772653693412165,
+        "abs": 4.9948312152992003e-10,
+        "rel": 6.95923998614818e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:genVictory",
+        "name_b": "mu: gen: Victory",
+        "a": 7.2192200252604701,
+        "b": 7.2192200257976884,
+        "abs": 5.3721826986929955e-10,
+        "rel": 7.4415001613687419e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:nitro:genMarvellous",
+        "name_b": "mu: nitro & gen: Marvellous",
+        "a": 19.182048562807299,
+        "b": 19.182048561451719,
+        "abs": 1.3555805367104767e-09,
+        "rel": 7.0669226609031532e-11,
+        "pass": true
+      },
+      {
+        "name_a": "mu:nitro:genVictory",
+        "name_b": "mu: nitro & gen: Victory",
+        "a": 19.294177095907799,
+        "b": 19.294177097337354,
+        "abs": 1.4295551409304608e-09,
+        "rel": 7.4092568639672283e-11,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:(Intercept)",
+        "name_b": "sigma: (Intercept)",
+        "a": 0.15908294854834101,
+        "b": 0.15908298951315267,
+        "abs": 4.0964811653942945e-08,
+        "rel": 2.5750592052179189e-07,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:genMarvellous",
+        "name_b": "sigma: gen: Marvellous",
+        "a": 0.26793463668461898,
+        "b": 0.267934632684383,
+        "abs": 4.0002359757984607e-09,
+        "rel": 1.4929894937424854e-08,
+        "pass": true
+      },
+      {
+        "name_a": "sigma:genVictory",
+        "name_b": "sigma: gen: Victory",
+        "a": 0.22851240146282201,
+        "b": 0.22851241578308915,
+        "abs": 1.4320267138767662e-08,
+        "rel": 6.2667348247549448e-08,
+        "pass": true
+      }
+    ]
+  }
+}

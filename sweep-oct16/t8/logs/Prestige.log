@@ -1,0 +1,10 @@
+===== Prestige  timeout=120s  2026-10-16T21:57:36Z =====
+--- R drmTMB + ref ---
+[Prestige] drmTMB ok=TRUE logLik=-321.561161049582 elapsed=0.1s error=NULL
+[Prestige] ref(glmmTMB) ok=TRUE logLik=-321.561161050317 elapsed=1.0s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[Prestige] DRModels.jl ok=true logLik=-321.56116104958096 elapsed=19.2s error=NULL
+JL_EXIT=0
+[Prestige] verdict=PASS dLL(R-J)=1.0231815e-12 coef 8/8 se 8/8
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0

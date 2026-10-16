@@ -1,0 +1,10 @@
+===== ToothGrowth  timeout=120s  2026-10-16T21:57:05Z =====
+--- R drmTMB + ref ---
+[ToothGrowth] drmTMB ok=TRUE logLik=-166.952357334365 elapsed=0.1s error=NULL
+[ToothGrowth] ref(glmmTMB) ok=TRUE logLik=-166.952357334389 elapsed=0.9s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[ToothGrowth] DRModels.jl ok=true logLik=-166.95235733436502 elapsed=19.7s error=NULL
+JL_EXIT=0
+[ToothGrowth] verdict=PASS dLL(R-J)=2.8421709e-14 coef 6/6 se 6/6
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0

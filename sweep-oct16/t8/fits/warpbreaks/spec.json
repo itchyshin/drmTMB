@@ -1,0 +1,22 @@
+{
+  "source": "datasets::warpbreaks",
+  "source_version": "4.3.3",
+  "family_r": "gaussian",
+  "family_jl": "Gaussian",
+  "mu_r": "breaks ~ wool * tension",
+  "sigma_r": "~ wool",
+  "mu_jl": "breaks ~ 1 + wool * tension",
+  "sigma_jl": "sigma ~ 1 + wool",
+  "has_re": false,
+  "cbind_success": {},
+  "cbind_fail": {},
+  "ref": "glmmTMB",
+  "ref_call": "glmmTMB(breaks ~ wool * tension, dispformula = ~ wool, family = gaussian(), data = d, REML = FALSE)",
+  "id": "warpbreaks",
+  "n": 54,
+  "csv": "/workspace/sweep-oct16/t8/data/warpbreaks.csv",
+  "prepare": "data(warpbreaks, package = \"datasets\")\nd <- warpbreaks\nd$wool <- factor(as.character(d$wool), levels = sort(unique(as.character(d$wool))))\nd$tension <- factor(as.character(d$tension), levels = sort(unique(as.character(d$tension))))",
+  "drmTMB_sha": "ca3ddefa5ea11bbfd3b765615dfbb89305d2485a",
+  "DRModels_sha": "f71b2923360e9e5d4591e0d6e15a9ef9db0356d7",
+  "drmTMB_version": "0.7.1"
+}

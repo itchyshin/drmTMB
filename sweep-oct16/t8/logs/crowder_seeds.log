@@ -1,0 +1,10 @@
+===== crowder_seeds  timeout=180s  2026-10-16T21:58:48Z =====
+--- R drmTMB + ref ---
+[crowder_seeds] drmTMB ok=TRUE logLik=-53.7667633648625 elapsed=0.0s error=NULL
+[crowder_seeds] ref(glmmTMB) ok=TRUE logLik=-53.7667633648698 elapsed=0.8s error=NULL
+R_EXIT=0
+--- Julia DRModels.jl ---
+[crowder_seeds] DRModels.jl ok=true logLik=-53.76676336486797 elapsed=14.7s error=NULL
+JL_EXIT=0
+[crowder_seeds] verdict=PASS dLL(R-J)=5.4711791e-12 coef 5/5 se 5/5
+COMPARE_EXIT=0 R_EXIT=0 JL_EXIT=0
