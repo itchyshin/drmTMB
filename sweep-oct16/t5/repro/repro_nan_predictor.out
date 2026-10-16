@@ -1,0 +1,5 @@
+poisson  x with 10 NaN                       loglik=          -Inf  nobs=200  n_mu_coef=2  converged=false
+poisson  coef = [0.7490548124982414, 0.0, -0.6931471805599453]   stderror = [0.1402, 0.066, 0.2297]   log(mean(y)) = 0.7490548124982414
+gaussian  x with 10 NaN                      ERROR ArgumentError: ArgumentError: matrix contains Infs or NaNs
+gamma  x with 10 NaN                         ERROR DomainError: DomainError with Dual{ForwardDiff.Tag{DRModels.var"#nll#1389"{Vector{Float64}, Matrix{Float64}, Matrix{Float64}, Matrix{Float64}, Matrix{Float64}, DRModels._AGHQRule, Vector{Vector{Int64}}, Int64, Int64}, Float64}}(NaN,NaN,NaN,NaN,NaN):
+exit 0

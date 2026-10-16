@@ -1,0 +1,4 @@
+"family","na_w_dropped_maxdiff","na_w_dropped_error","na_w_kept_result","zero_w_vs_drop_maxdiff","zero_w_nobs","drop_nobs","double_w_vs_stack_maxdiff","double_w_nobs","stack_nobs"
+"gaussian",0,NA,"`weights` must be finite and non-missing for all modelled rows. | x After model-row filtering, 1 weight value is missing or non-finite.",3.14795967071291e-11,128,118,4.32578417530749e-11,128,256
+"poisson",0,NA,"`weights` must be finite and non-missing for all modelled rows. | x After model-row filtering, 1 weight value is missing or non-finite.",1.7544299346639e-13,128,118,1.13686837721616e-13,128,256
+"gamma",0,NA,"`weights` must be finite and non-missing for all modelled rows. | x After model-row filtering, 1 weight value is missing or non-finite.",1.87583282240666e-12,133,123,3.63598040564739e-13,133,266

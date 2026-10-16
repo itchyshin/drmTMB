@@ -1,0 +1,60 @@
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     201
+│     202
+│   rcond = 8.899599455458274e-34
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     201
+│     202
+│   rcond = 8.899599455458274e-34
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    3-element Vector{Int64}:
+│     1
+│     ⋮
+│   rcond = 4.043588044244619e-18
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    3-element Vector{Int64}:
+│     1
+│     ⋮
+│   rcond = 4.043588044244619e-18
+└ @ DRModels /home/user/DRModels.jl/src/vcov_guard.jl:101
+gaussian  x::Vector{Float64}                 loglik=   -294.061721  nobs=200  n_mu_coef=2  converged=true
+gaussian  x::Vector{Union{Missing,Float64}}  loglik=   6847.017250  nobs=200  n_mu_coef=200  converged=false
+gaussian  drm_listwise(Union columns)        loglik=   6847.017250  nobs=200  n_mu_coef=200  converged=false
+gaussian  round(x)::Vector{Float64}          loglik=   -295.414532  nobs=200  n_mu_coef=2  converged=true
+gaussian  round(x)::Union{Missing,Float64}   loglik=   -293.726608  nobs=200  n_mu_coef=6  converged=true
+poisson  x::Vector{Float64}                  loglik=   -311.431124  nobs=200  n_mu_coef=2  converged=true
+poisson  x::Vector{Union{Missing,Float64}}   ERROR ArgumentError: ArgumentError: matrix contains Infs or NaNs
+poisson  drm_listwise(Union columns)         ERROR ArgumentError: ArgumentError: matrix contains Infs or NaNs
+poisson  round(x)::Vector{Float64}           loglik=   -310.686469  nobs=200  n_mu_coef=2  converged=true
+poisson  round(x)::Union{Missing,Float64}    loglik=   -310.066304  nobs=200  n_mu_coef=9  converged=true
+gamma  x::Vector{Float64}                    loglik=   -339.007885  nobs=200  n_mu_coef=2  converged=true
+gamma  x::Vector{Union{Missing,Float64}}     loglik=   2197.814949  nobs=200  n_mu_coef=200  converged=true
+gamma  drm_listwise(Union columns)           loglik=   2197.814949  nobs=200  n_mu_coef=200  converged=true
+gamma  round(x)::Vector{Float64}             loglik=   -340.708994  nobs=200  n_mu_coef=2  converged=true
+gamma  round(x)::Union{Missing,Float64}      loglik=   -339.253269  nobs=200  n_mu_coef=7  converged=true
+exit 0
