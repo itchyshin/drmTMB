@@ -210,7 +210,13 @@ test_that("gamma kernel matches dgamma() away from dgamma()'s own precision limi
   manual_re <- mapply(function(eta, ls, yv, cpp) {
     mu <- exp(eta); sigma <- exp(ls)
     shape <- 1 / sigma^2; scale <- mu * sigma^2
-    manual <- (shape - 1) * log(yv) - yv / scale - lgamma(shape) - shape * log(scale)
+    # The textbook (shape - 1) log y - y / scale - lgamma(shape) - shape log(scale)
+    # carries eps * shape * log(shape) rounding at these shapes (#1504), so it is
+    # no longer an independent reference. Use the Stirling form in plain R:
+    # log f = log(s)/2 - log(2 pi)/2 - 1/(12 s) - s (exp(w) - 1 - w) - log(y).
+    w <- log(yv) - eta
+    manual <- 0.5 * log(shape) - 0.5 * log(2 * pi) - 1 / (12 * shape) -
+      shape * (expm1(w) - w) - log(yv)
     rel_err(cpp, manual)
   }, excl$eta, excl$log_sigma, excl$y, excl$cpp)
   expect_true(all(manual_re[is.finite(manual_re)] <= 1e-6))
