@@ -9,7 +9,7 @@ This receipt is for Shinichi and the next agent on the oct-16 DRM campaign. It r
 | itchyshin/drmTMB | `ca3ddefa5ea11bbfd3b765615dfbb89305d2485a` | 0.7.1 |
 | itchyshin/DRModels.jl | `f71b2923360e9e5d4591e0d6e15a9ef9db0356d7` | 0.7.2 |
 
-No PR was opened. This branch is `sweep-oct16/t10` only. Receipt commit SHA is this branch's HEAD after the push.
+No PR was opened. This branch is `sweep-oct16/t10` only. Receipt commit: `65496b92162640a727eb3526deb4834451288fe1`.
 
 Host: Ubuntu 24.04.5, 4 CPUs. R 4.3.3 (`Angel Food Cake`), TMB 1.9.10, Matrix 1.6-5. Julia 1.12.6 (official tarball). drmTMB installed from the pin into `/tmp/t10-lib`. DRModels developed from `/tmp/DRModels.jl` into `/tmp/t10-jl`.
 
