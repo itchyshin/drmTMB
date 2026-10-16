@@ -64,7 +64,9 @@ only when \code{sdr$cov.fixed} itself is absent or incomplete (for example
 \code{drm_control(se = FALSE)}, or a failed \code{sdreport()}), finite fixed-effect standard errors, standard errors that
 are finite but inflated relative to the others despite a positive-definite
 Hessian (a weakly identified, near-flat direction such as a boundary
-correlation), dropped rows,
+correlation), whether a fixed-effect binomial, Poisson, or NB2 MLE exists
+and whether a continuous location-scale likelihood is unbounded
+(\code{mle_existence}), dropped rows,
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
 Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks,

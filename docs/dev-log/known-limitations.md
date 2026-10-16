@@ -849,3 +849,16 @@ revisit condition.
   repeated Gaussian rows, and repeated large phylogenetic benchmark runs beyond
   the initial optional harness in
   `bench/large-phylo-location.R`.
+- Fixed-effect binomial, Poisson, and NB2 fits, and continuous
+  location-scale fits whose scale predictor drives an exactly fitted
+  observation onto the lower `log(sigma)` clamp, now return
+  `convergence_status() = "degenerate"` and a warning-level
+  `check_drm()` `mle_existence` row when the screened geometry has no
+  finite maximum-likelihood estimate (Albert and Anderson 1984; Konis
+  2007; Haberman 1974; Santos Silva and Tenreyro 2010). The screen does
+  not change point estimates or `vcov()`. Random-effect, phylogenetic,
+  `mi()` predictor, and MSPL routes are not screened. Zero-inflated
+  Poisson is not screened, because a zero can come from the inflation
+  process rather than the count cone. The twins still disagree on what
+  `is_converged()` asserts; that shared-flag contract is the open
+  methods choice in #1554.

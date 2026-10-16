@@ -25,7 +25,10 @@ One of \code{"converged"}, \code{"boundary"}, or \code{"degenerate"}.
 workflows that need more detail than \code{\link[=is_converged]{is_converged()}}. A fit can report
 optimizer code \code{0} while the likelihood geometry is degenerate (no proper
 maximum or non-finite uncertainty); such fits return \code{"degenerate"} even
-when \code{multi_start} selected among several starts. \code{"boundary"} marks an
+when \code{multi_start} selected among several starts. Fixed-effect binomial
+separation, Poisson / NB2 rays with no finite MLE, and an unbounded
+continuous location-scale likelihood are included in that geometry.
+\code{"boundary"} marks an
 optimizer-converged fit with variance-component or residual-correlation
 parameters near an interpretability boundary. \code{\link[=is_converged]{is_converged()}} stays a
 plain logical: it is \code{TRUE} for \code{"converged"} and \code{"boundary"}, and

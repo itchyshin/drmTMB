@@ -22,7 +22,9 @@
 #' `drm_control(se = FALSE)`, or a failed `sdreport()`), finite fixed-effect standard errors, standard errors that
 #' are finite but inflated relative to the others despite a positive-definite
 #' Hessian (a weakly identified, near-flat direction such as a boundary
-#' correlation), dropped rows,
+#' correlation), whether a fixed-effect binomial, Poisson, or NB2 MLE exists
+#' and whether a continuous location-scale likelihood is unbounded
+#' (`mle_existence`), dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
@@ -273,7 +275,10 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' workflows that need more detail than [is_converged()]. A fit can report
 #' optimizer code `0` while the likelihood geometry is degenerate (no proper
 #' maximum or non-finite uncertainty); such fits return `"degenerate"` even
-#' when `multi_start` selected among several starts. `"boundary"` marks an
+#' when `multi_start` selected among several starts. Fixed-effect binomial
+#' separation, Poisson / NB2 rays with no finite MLE, and an unbounded
+#' continuous location-scale likelihood are included in that geometry.
+#' `"boundary"` marks an
 #' optimizer-converged fit with variance-component or residual-correlation
 #' parameters near an interpretability boundary. [is_converged()] stays a
 #' plain logical: it is `TRUE` for `"converged"` and `"boundary"`, and
@@ -317,7 +322,8 @@ convergence_status.drmTMB <- function(object, ...) {
   if (
     drm_inference_degenerate(object) ||
       drm_fixed_effect_rank_deficient(object) ||
-      drm_standard_errors_pathological(object)
+      drm_standard_errors_pathological(object) ||
+      drm_mle_nonexistent_is_true(object)
   ) {
     return("degenerate")
   }
@@ -434,6 +440,7 @@ check_drm.drmTMB <- function(
     check_standard_errors_finite(object),
     check_standard_errors_inflated(object),
     check_weakly_identified_fixed_effects(object),
+    check_mle_existence(object),
     check_observations_per_parameter(object),
     check_fixed_effect_design_collinearity(object),
     check_fixed_effect_rank_deficiency(object),

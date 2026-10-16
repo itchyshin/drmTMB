@@ -55,9 +55,15 @@ a generic default, validation, docs, and a row in the catalog below.
   surface is nearly flat in at least one direction; it is a **Wald-inference
   warning, never an automatic discard** of the point estimate.
 - `check_drm()` — the diagnostic table (convergence, budget, gradient, Hessian,
-  finite SEs, boundary SDs/correlations, structured-effect and penalized-fit
-  notes). A warning is a prompt to decide: unfinished optimization vs weak
-  identifiability vs an unnecessary component.
+  finite SEs, MLE existence, boundary SDs/correlations, structured-effect and
+  penalized-fit notes). A warning is a prompt to decide: unfinished
+  optimization vs weak identifiability vs an unnecessary component.
+- `mle_existence` — a warning-level `check_drm()` row, and a
+  `convergence_status() = "degenerate"` / `is_converged() = FALSE` verdict,
+  when a screened fixed-effect binomial, Poisson, or NB2 MLE does not exist
+  or a continuous location-scale likelihood is unbounded. The screen does
+  not change estimates. Random-effect, phylogenetic, `mi()` predictor, and
+  MSPL routes are not screened.
 
 ## Interval methods — when to use which (findings)
 
