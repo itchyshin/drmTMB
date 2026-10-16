@@ -4324,9 +4324,9 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #'
 #' @return An object of class `summary.drmTMB`. Its `convergence` and
 #'   `convergence_message` elements hold the optimizer code and message.
-#'   When the code is non-zero, the printed summary says `not converged`,
-#'   points to [check_drm()], and prints the optimizer message on its own
-#'   line, as `print()` does for the fit.
+#'   When the code is non-zero, the printed summary says `not converged`
+#'   before its first table, points to [check_drm()], and prints the optimizer
+#'   message on its own line, as `print()` does for the fit.
 #'
 #' @seealso The tier definitions and per-cell evidence behind these interval
 #'   targets, including random-effect standard-deviation rows, are curated in
@@ -4551,6 +4551,14 @@ print.summary.drmTMB <- function(x, ...) {
       )
     }
   }
+  # A non-converged fit is flagged in this header, before any table, like the
+  # unavailable-SE line above; a converged fit keeps its last-line code (#1545).
+  not_converged <- !is.null(
+    drm_convergence_label(x$convergence, x$convergence_message)
+  )
+  if (not_converged) {
+    drm_cli_convergence(x$convergence, x$convergence_message)
+  }
   print(x$coefficients)
   if (nrow(x$parameters) > 0L) {
     cli::cli_text(
@@ -4615,7 +4623,9 @@ print.summary.drmTMB <- function(x, ...) {
   } else {
     cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
   }
-  drm_cli_convergence(x$convergence, x$convergence_message)
+  if (!not_converged) {
+    drm_cli_convergence(x$convergence, x$convergence_message)
+  }
   invisible(x)
 }
 

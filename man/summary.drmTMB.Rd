@@ -50,9 +50,9 @@ caller supplies those controls in \code{...}.}
 \value{
 An object of class \code{summary.drmTMB}. Its \code{convergence} and
 \code{convergence_message} elements hold the optimizer code and message.
-When the code is non-zero, the printed summary says \verb{not converged},
-points to \code{\link[=check_drm]{check_drm()}}, and prints the optimizer message on its own
-line, as \code{print()} does for the fit.
+When the code is non-zero, the printed summary says \verb{not converged}
+before its first table, points to \code{\link[=check_drm]{check_drm()}}, and prints the optimizer
+message on its own line, as \code{print()} does for the fit.
 }
 \description{
 \code{summary()} returns a compact summary of fixed-effect estimates,

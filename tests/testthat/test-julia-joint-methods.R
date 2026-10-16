@@ -183,10 +183,16 @@ test_that("joint Julia print() and summary() flag a non-converged fit with its m
   )
   expect_false(is_converged(fit))
   printed_text <- function(x) {
-    out <- utils::capture.output(
-      msgs <- utils::capture.output(print(x), type = "message")
-    )
-    gsub("\\s+", " ", paste(c(msgs, out), collapse = "\n"))
+    lines <- character()
+    con <- textConnection("lines", "w", local = TRUE)
+    sink(con)
+    sink(con, type = "message")
+    tryCatch(print(x), finally = {
+      sink(type = "message")
+      sink()
+      close(con)
+    })
+    gsub("\\s+", " ", paste(lines, collapse = "\n"))
   }
   expect_match(
     printed_text(fit),

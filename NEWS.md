@@ -17,7 +17,7 @@
   reader of `summary()` alone could take a failed fit for a good one. Both now
   print `convergence: 1 (not converged; see check_drm())` and a
   `convergence message:` line with the optimizer's message, for example
-  `false convergence (8)`. The summary object stores that message as
+  `false convergence (8)`; `summary()` prints them before its first table. The summary object stores that message as
   `convergence_message`. Julia-engine fits (`engine = "julia"`, including
   cross-family and joint `mi()` fits) follow the same rule: `print()` no
   longer shows a bare code, and the printed summary adds the message and

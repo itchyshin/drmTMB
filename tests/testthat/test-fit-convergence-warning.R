@@ -64,14 +64,20 @@ test_that("drm_warn_if_nonfinite_objective is silent on a finite objective and w
 })
 
 # --- #1545: summary() must flag a non-converged fit as clearly as print() ----
-# Everything cli prints goes to the message stream; tables go to stdout. cli
-# wraps a long message at the console width, so whitespace is squashed before
-# matching.
+# cli prints to the message stream and tables go to stdout; both are sunk into
+# one connection so the captured text keeps their real order. cli wraps a long
+# message at the console width, so whitespace is squashed before matching.
 convergence_printed <- function(x) {
-  out <- utils::capture.output(
-    msgs <- utils::capture.output(print(x), type = "message")
-  )
-  gsub("\\s+", " ", paste(c(msgs, out), collapse = "\n"))
+  lines <- character()
+  con <- textConnection("lines", "w", local = TRUE)
+  sink(con)
+  sink(con, type = "message")
+  tryCatch(print(x), finally = {
+    sink(type = "message")
+    sink()
+    close(con)
+  })
+  gsub("\\s+", " ", paste(lines, collapse = "\n"))
 }
 
 convergence_fixture_fit <- function() {
@@ -94,6 +100,11 @@ test_that("summary() of a non-converged fit says so and prints the optimizer mes
   printed <- convergence_printed(smry)
   expect_match(printed, "convergence: 1 (not converged; see `check_drm()`)", fixed = TRUE)
   expect_match(printed, "convergence message: false convergence (8)", fixed = TRUE)
+  # Flagged once, in the header before the coefficient table, not after it.
+  flag_at <- regexpr("not converged", printed, fixed = TRUE)
+  table_at <- regexpr("mu:(Intercept)", printed, fixed = TRUE)
+  expect_true(flag_at > 0L && table_at > 0L && flag_at < table_at)
+  expect_length(gregexpr("convergence: 1", printed, fixed = TRUE)[[1L]], 1L)
 
   # print() and summary() share one display rule, message line included.
   printed_fit <- convergence_printed(fit)
@@ -109,6 +120,9 @@ test_that("a converged fit's print() and summary() keep the bare code and no mes
     expect_no_match(printed, "not converged", fixed = TRUE)
     expect_no_match(printed, "convergence message:", fixed = TRUE)
   }
+  # The converged summary keeps its code as the last line, as before #1545.
+  printed <- convergence_printed(summary(fit))
+  expect_match(printed, "convergence: 0$")
 })
 
 test_that("a summary object without a stored message still says not converged", {
