@@ -97,7 +97,7 @@ both <- w[w$converged.drmTMB %in% TRUE & w$converged.DRModels %in% TRUE, ]
 # that ridge with the same logLik, so those reps are counted, not compared.
 sdg <- fits[fits$param %in% "sd_g", c("engine", "cell", "rep", "est")]
 bnd <- unique(sdg[sdg$est < 1e-4, c("cell", "rep")])
-bnd$boundary <- TRUE
+bnd$boundary <- rep(TRUE, nrow(bnd))
 pe <- merge(pe, both[, c("cell", "rep")], by = c("cell", "rep"))
 pe <- merge(pe, bnd, by = c("cell", "rep"), all.x = TRUE)
 pe$boundary[is.na(pe$boundary)] <- FALSE
