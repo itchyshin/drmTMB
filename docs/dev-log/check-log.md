@@ -8,7 +8,12 @@ lower bound; t10 3.0% / 3.4% recorded as expected. Red-proof: on
 `132a0490` `test = "bootstrap"` aborted; after the change
 `test-anova-lrt.R` is 85 pass (`NOT_CRAN=true`). Sibling:
 `test-model-comparison.R` 68 pass, `test-lrt-boundary.R` 66 pass.
-C17 recertified after the `R/methods.R` `anova()` edit. Julia twin
+C17 recertified after the `R/methods.R` `anova()` edit
+(`python3 tools/recertify-c17.py --label fx6b-bootstrap --tolerance 1e-10`):
+`|change| 0.000e+00` on mc-0568 / mc-0569 / mc-0576, receipt
+`docs/dev-log/implementation-recovery/2026-10-17-fx6b-bootstrap-c17c2-c14-final-source-compatibility`,
+source sha `28474c624`. FX6b lands on PR #1563
+(`cursor/fx6-boundary-lrt-3f95`), not a stacked draft. Julia twin
 push 403; patch
 `docs/dev-log/after-task/2026-10-16-fx6b-DRModels.jl.patch`.
 Report: `docs/dev-log/after-task/2026-10-16-fx6b-bootstrap-null.md`.

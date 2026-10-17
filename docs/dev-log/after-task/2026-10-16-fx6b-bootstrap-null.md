@@ -6,9 +6,9 @@ Give an applied ecology user a finite-sample p-value for a boundary
 likelihood-ratio test without replacing the packaged default. On 16 Oct
 2026 at 5:23 PM MT Shinichi chose to keep the Self–Liang / Stram–Lee
 50:50 chi-bar mixture as the default and add a parametric bootstrap
-under the null as an option. This stacked draft sits on FX6 (#1563) and
-answers the type-I calibration filed as #1559, #1560, and the Julia
-twins #1116 and #1118.
+under the null as an option. That work lands on PR #1563
+(`cursor/fx6-boundary-lrt-3f95`) and answers the type-I calibration
+filed as #1559, #1560, and the Julia twins #1116 and #1118.
 
 ## Implemented
 
@@ -53,7 +53,11 @@ roxygen), `R/lrt-boundary.R` (conservatism note), matching `man/` pages,
 
 `R/drmTMB.R`, `R/mi-weights.R`, and `src/` were not edited.
 `R/methods.R` changed in the `anova()` method and its roxygen, so C17
-was recertified.
+was recertified (`python3 tools/recertify-c17.py --label fx6b-bootstrap
+--tolerance 1e-10`): `|change| 0.000e+00` on mc-0568 / mc-0569 / mc-0576,
+receipt
+`docs/dev-log/implementation-recovery/2026-10-17-fx6b-bootstrap-c17c2-c14-final-source-compatibility`,
+source sha `28474c624`.
 
 DRModels.jl (pin `f71b292`, local branch `cursor/fx6b-bootstrap-null-8e8d`
 at `047c12f7f`): `src/comparison.jl`, `test/test_bootstrap_lrt.jl`,
@@ -109,10 +113,12 @@ stays the public scale name.
 
 ## GitHub Issue Maintenance
 
-Refs #1559 #1560 #1116 #1118 (and the already-open FX6 pair #1557 /
-#1115). Draft PRs say "Refs", never Closes or Fixes. The default
-chi-bar p-value is unchanged; the issues are addressed by documenting
-the expected type-I and offering the bootstrap option.
+PR #1563 will say Closes #1557 (the Poisson ⊂ NB2 detector) and, once
+the t10 bootstrap type-I bar is in, Closes #1559 #1560. Julia twins
+#1115 #1116 #1118 stay Refs because `git push` to DRModels.jl returned
+403. The default chi-bar p-value is unchanged; those issues are
+addressed by documenting the expected type-I and offering the
+bootstrap option.
 
 ## What Did Not Go Smoothly
 
@@ -144,6 +150,6 @@ original `data` table because a `DrmFit` does not retain it.
 
 ## Next Actions
 
-Merge FX6 (#1563) first, then this stacked draft. A user who wants the
+Land FX6b on PR #1563 and wait for that CI. A user who wants the
 asymptotic boundary p-value should keep the default `anova()`. A user
 who wants a finite-sample null should pass `test = "bootstrap"`.
