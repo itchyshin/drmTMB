@@ -76,13 +76,34 @@ build_fits <- function(formula, family, y_grid, weights = NULL) {
   out
 }
 
+# The kept (non-excluded) rows where the kernel or reference is non-finite,
+# or the comparison itself is undefined (NA rel_err). Pulled out of
+# run_oracle() so its counting logic (#1324) can be unit-tested directly.
+oracle_kept_nonfinite <- function(kept) {
+  kept[
+    !is.finite(kept$cpp) | !is.finite(kept$ref) | is.na(kept$rel_err),
+    ,
+    drop = FALSE
+  ]
+}
+
 # Sweeps eta x log_sigma (or just eta when has_ls = FALSE) x names(fits_by_y)
 # and returns a data.frame with one row per grid point. `exclude` optionally
 # marks known reference-or-kernel precision-limit points (see per-family
 # comments) that are checked separately with a looser tolerance instead of
 # folding into the main `tol` assertion.
+#
+# `max_nonfinite` fails closed (default 0L): a family whose grid drops any
+# point as non-finite/NA must say so explicitly by passing the observed
+# count, with a comment explaining why (mirroring the `beta_binomial` cell
+# below, #1324's own case). The oracle used to default to `Inf` here, so a
+# family could silently drop points -- for `beta_binomial` that hid the very
+# guard gap (Md-H) the oracle was meant to catch (50 of 140 points, 51% of
+# the grid actually asserted) -- and the disagreement was invisible by
+# construction because the reference shared the compiled kernel's
+# cancellation. `Inf` remains available as an explicit, visible opt-out.
 run_oracle <- function(fits_by_y, eval_fn, tol, has_ls = TRUE, exclude = NULL,
-                       max_nonfinite = Inf) {
+                       max_nonfinite = 0L) {
   for (f in fits_by_y) assert_clean_fixture(f)
   ls_use <- if (has_ls) ls_grid else NA_real_
   results <- data.frame()
@@ -106,17 +127,82 @@ run_oracle <- function(fits_by_y, eval_fn, tol, has_ls = TRUE, exclude = NULL,
     mapply(exclude, results$eta, results$log_sigma, results$y)
   }
   kept <- results[!results$excluded, ]
-  kept_nonfinite <- kept[
-    !is.finite(kept$cpp) | !is.finite(kept$ref) | is.na(kept$rel_err),
-    ,
-    drop = FALSE
-  ]
+  kept_nonfinite <- oracle_kept_nonfinite(kept)
   expect_lte(nrow(kept_nonfinite), max_nonfinite)
   kept_finite <- kept$rel_err[!is.na(kept$rel_err)]
   expect_true(length(kept_finite) > 0)
   expect_true(max(kept_finite) <= tol)
   invisible(results)
 }
+
+# Direct regression test for #1324 (Md-G): `run_oracle()` itself used to
+# silently drop every non-finite grid point (no count, no assertion), which
+# is exactly what let the beta_binomial guard gap (Md-H) hide behind a grid
+# that was only 51% actually asserted. `oracle_kept_nonfinite()` is the exact
+# counting logic `run_oracle()` now asserts against
+# (`expect_lte(nrow(oracle_kept_nonfinite(kept)), max_nonfinite)`); this
+# tests it directly and deterministically, independent of any real TMB fit
+# or family, so it does not depend on which families happen to hit
+# non-finite kernel values today (the family-level calls below exercise the
+# real assertion end-to-end).
+test_that("oracle_kept_nonfinite() counts every non-finite or undefined comparison (#1324)", {
+  kept <- data.frame(
+    cpp = c(-1, NA, Inf, -3, 0),
+    ref = c(-1, -2, -3, NaN, 0)
+  )
+  kept$rel_err <- mapply(rel_err, kept$cpp, kept$ref)
+
+  # 945da24f-behaviour: these 3 rows (NA cpp, Inf cpp, NaN ref) used to be
+  # dropped from `kept_finite` with no count and no assertion at all -- a
+  # `run_oracle()` default of `max_nonfinite = Inf` would let any number of
+  # them through silently.
+  nonfinite <- oracle_kept_nonfinite(kept)
+  expect_equal(nrow(nonfinite), 3L)
+  expect_equal(nonfinite$cpp, c(NA, Inf, -3))
+
+  # A clean grid (no non-finite points) counts zero -- the default of
+  # `max_nonfinite = 0L` accepts it.
+  clean <- data.frame(cpp = c(-1, -2), ref = c(-1, -2))
+  clean$rel_err <- mapply(rel_err, clean$cpp, clean$ref)
+  expect_equal(nrow(oracle_kept_nonfinite(clean)), 0L)
+})
+
+# The fail-closed default is itself a contract (#1324): nine cells (gaussian,
+# student, skew_normal, lognormal, poisson, the nbinom2 robust transcription,
+# zi_poisson, beta, zero_one_beta) rely on it, so reverting it to `Inf` would
+# leave every one of them silently dropping non-finite points. Pin the formal,
+# and prove end to end that a grid with a planted NaN reference is rejected.
+test_that("run_oracle() fails closed by default on a non-finite grid point (#1324)", {
+  expect_identical(formals(run_oracle)$max_nonfinite, 0L)
+
+  fits <- build_fits(bf(y ~ 1, sigma ~ 1), gaussian(), 0)
+  planted <- function(fit, eta, ls, yv) {
+    par <- set_named(set_named(fit$obj$par, "beta_mu", eta), "beta_sigma", ls)
+    ref <- stats::dnorm(yv, eta, exp(ls), log = TRUE)
+    # One planted undefined reference value in an otherwise exact grid.
+    if (eta == 0 && ls == 0) ref <- NaN
+    c(cpp = -fit$obj$fn(par), ref = ref)
+  }
+  # Count the expectation failures run_oracle() raises (expect_failure() only
+  # inspects the first expectation, which is a passing fixture check).
+  count_failures <- function(code) {
+    n <- 0L
+    withCallingHandlers(
+      code,
+      expectation_failure = function(e) {
+        n <<- n + 1L
+        invokeRestart("continue_test")
+      }
+    )
+    n
+  }
+  expect_gt(count_failures(run_oracle(fits, planted, tol = 1e-8)), 0L)
+  # The explicit opt-out still works and is counted, not silent.
+  expect_identical(
+    count_failures(run_oracle(fits, planted, tol = 1e-8, max_nonfinite = 1L)),
+    0L
+  )
+})
 
 # ---- gaussian (model_type 1; src/drmTMB.cpp:686-780ish) --------------------
 test_that("gaussian kernel matches dnorm() on the extreme grid", {
@@ -200,7 +286,14 @@ test_that("gamma kernel matches dgamma() away from dgamma()'s own precision limi
     c(cpp = -fit$obj$fn(par), ref = ref)
   }
   huge_shape <- function(eta, ls, yv) (1 / exp(ls)^2) >= 1e10
-  res <- run_oracle(fits, eval_gamma, tol = 1e-8, exclude = huge_shape)
+  # 8 points at the eta = +-700 boundary drive the kernel and dgamma() to
+  # agree on -Inf (verified: both sides return -Inf, not a real
+  # disagreement); rel_err() cannot compare two infinities, so it returns NA
+  # and these are counted explicitly here rather than silently vanishing
+  # (#1324).
+  res <- run_oracle(
+    fits, eval_gamma, tol = 1e-8, exclude = huge_shape, max_nonfinite = 8L
+  )
 
   # Independent elementary-function reference at the excluded (huge-shape)
   # points, matching the C++ kernel far tighter than dgamma() does there.
@@ -249,7 +342,13 @@ test_that("nbinom2 kernel matches a from-scratch stable NB2 formula", {
     par <- set_named(par, "beta_sigma", ls)
     c(cpp = -fit$obj$fn(par), ref = nb2_manual_stable(eta, ls, yv))
   }
-  run_oracle(fits, eval_nb2, tol = 1e-8)
+  # 8 points at eta = 700 overflow `mu <- exp(eta)` to Inf inside
+  # nb2_manual_stable()'s own log1p_mu_over_k algebra (Inf - Inf = NaN),
+  # while the compiled kernel stays finite -- a reference-side overflow, not
+  # a kernel bug (the same reference-vs-kernel asymmetry the huge_shape note
+  # above documents for gamma). Counted explicitly rather than silently
+  # vanishing (#1324).
+  run_oracle(fits, eval_nb2, tol = 1e-8, max_nonfinite = 8L)
 })
 
 # TMB::dnbinom_robust(log_mu, log_var_minus_mu) (installed TMB header,
@@ -312,7 +411,10 @@ test_that("zi_nbinom2 kernel matches an independent zero-inflated mixture", {
     ref <- if (yv == 0) log(zi + (1 - zi) * exp(nb_ll)) else log1p(-zi) + nb_ll
     c(cpp = -fit$obj$fn(par), ref = ref)
   }
-  run_oracle(fits, eval_zinb, tol = 1e-8)
+  # 6 points: same eta = 700 overflow in nb2_manual_stable() as the plain
+  # nbinom2 test above, propagated through the zero-inflated mixture.
+  # Counted explicitly rather than silently vanishing (#1324).
+  run_oracle(fits, eval_zinb, tol = 1e-8, max_nonfinite = 6L)
 })
 
 # ---- truncated_nbinom2 (model_type 11; src/drmTMB.cpp:3670-3718) -----------
@@ -344,7 +446,12 @@ test_that("truncated_nbinom2 kernel matches a Machler-stable truncation formula"
     c(cpp = -fit$obj$fn(par), ref = trnb_ref(eta, ls, yv))
   }
   subnormal_corner <- function(eta, ls, yv) eta == -700 && ls == -15
-  res <- run_oracle(fits, eval_trnb, tol = 1e-6, exclude = subnormal_corner)
+  # 6 points: the same eta = 700 log1p_mu_over_k overflow underlying
+  # trnb_dens_logp0() as the plain nbinom2 test above. Counted explicitly
+  # rather than silently vanishing (#1324).
+  res <- run_oracle(
+    fits, eval_trnb, tol = 1e-6, exclude = subnormal_corner, max_nonfinite = 6L
+  )
   excl <- res[mapply(subnormal_corner, res$eta, res$log_sigma, res$y), ]
   expect_true(nrow(excl) > 0)
   expect_true(all(excl$rel_err[is.finite(excl$rel_err)] <= 1e-6))
@@ -370,7 +477,12 @@ test_that("hurdle_nbinom2 kernel matches an independent hurdle mixture", {
     c(cpp = -fit$obj$fn(par), ref = ref)
   }
   subnormal_corner <- function(eta, ls, yv) eta == -700 && ls == -15
-  res <- run_oracle(fits, eval_hnb, tol = 1e-6, exclude = subnormal_corner)
+  # 6 points: the same eta = 700 overflow (via trnb_ref()) as the
+  # truncated_nbinom2 test above. Counted explicitly rather than silently
+  # vanishing (#1324).
+  res <- run_oracle(
+    fits, eval_hnb, tol = 1e-6, exclude = subnormal_corner, max_nonfinite = 6L
+  )
   excl <- res[mapply(subnormal_corner, res$eta, res$log_sigma, res$y), ]
   expect_true(nrow(excl) > 0)
   expect_true(all(excl$rel_err[is.finite(excl$rel_err)] <= 1e-6))
@@ -453,19 +565,20 @@ test_that("zero_one_beta kernel matches a floor-matched atom/dbeta() mixture", {
   expect_true(all(excl$rel_err[is.finite(excl$rel_err)] <= 0.01))
 })
 
-# ---- beta_binomial (model_type 14; src/drmTMB.cpp:3030-3088) --------------
-# Same lgamma-cancellation limitation as beta_family() above, but sharper: with
-# trials = 1000 and log_sigma = -15 (phi ~ 1e13), lgamma(phi) - lgamma(trials
-# + phi) alone subtracts two ~1.3e14-magnitude values to recover an O(10)
-# answer. The compiled kernel, dbinom-style direct lgamma differences in R,
-# and an lbeta()-based / extraDistr::dbbinom() reformulation all disagree
-# with each other at up to ~2.6e-2 relative log-density at log_sigma = -15
-# (worst observed point: eta = -5, y = 1 -> cpp = -4.9375 vs an
-# lbeta()-based / extraDistr agreement at -4.8076; verified in the dev-log
-# companion note). This is the single largest confirmed precision gap found
-# in this audit; log_sigma = -15 is excluded from the strict check and held
-# to a loose sanity bound only.
-test_that("beta_binomial kernel matches an lbeta()-based reference away from huge phi", {
+# ---- beta_binomial (model_type 14; src/drm_numeric.h drm_beta_binomial_log_density)
+# The kernel used to be the plain lgamma sum
+#   lchoose(n, y) + lgamma(phi) - lgamma(n + phi) + lgamma(y + a) - lgamma(a)
+#     + lgamma(n - y + b) - lgamma(b),
+# which subtracts values of size phi log(phi) (about 4e14 at log_sigma = -15)
+# to recover an O(10) answer. This oracle's reference was the same lgamma sum,
+# so it shared the cancellation and log_sigma = -15 had to be excluded with a
+# 0.07 sanity bound (#1324: a reference must be independent of the kernel at
+# the boundary). The kernel now differences the Stirling series analytically
+# (#1467), and the reference below is the exact finite product
+#   lgamma(x + m) - lgamma(x) = sum_{k = 0}^{m - 1} log(x + k),
+# which has no lgamma call and no cancellation at any phi. Every grid point is
+# now asserted at one tolerance, including log_sigma = -15.
+test_that("beta_binomial kernel matches an exact product-form reference on the whole grid", {
   build_bb_fits <- function(y_grid, trials = 1000) {
     out <- list()
     for (yv in y_grid) {
@@ -478,6 +591,7 @@ test_that("beta_binomial kernel matches an lbeta()-based reference away from hug
     }
     out
   }
+  log_rising <- function(x, m) if (m == 0) 0 else sum(log(x + seq_len(m) - 1))
   trials <- 1000
   fits <- build_bb_fits(c(0, 1, 500, 999, 1000), trials = trials)
   eval_bb <- function(fit, eta, ls, yv) {
@@ -490,19 +604,16 @@ test_that("beta_binomial kernel matches an lbeta()-based reference away from hug
     phi <- 1 / exp(ls)^2
     a <- max(mu * phi, shape_floor)
     b <- max((1 - mu) * phi, shape_floor)
-    phi_shape <- a + b
-    failures <- trials - yv
     ref <- lchoose(trials, yv) +
-      lgamma(phi_shape) - lgamma(trials + phi_shape) +
-      lgamma(yv + a) - lgamma(a) +
-      lgamma(failures + b) - lgamma(b)
+      log_rising(a, yv) + log_rising(b, trials - yv) -
+      log_rising(a + b, trials)
     c(cpp = -fit$obj$fn(par), ref = ref)
   }
-  huge_phi <- function(eta, ls, yv) (1 / exp(ls)^2) >= 1e10
-  res <- run_oracle(fits, eval_bb, tol = 1e-6, exclude = huge_phi, max_nonfinite = 0L)
-  excl <- res[mapply(huge_phi, res$eta, res$log_sigma, res$y), ]
-  expect_true(nrow(excl) > 0)
-  expect_true(all(excl$rel_err[is.finite(excl$rel_err)] <= 0.07))
+  # 1e-7: the largest remaining gap (1.1e-8 relative, y = 1000 at
+  # log_sigma = 15) is at tiny shapes (a = b = 1e-8 after the floor), where the
+  # direct lgamma branch differences values near lgamma(1000) = 5905 and
+  # TMB's lgamma() rounding shows; the huge-phi end now agrees to 1e-12.
+  run_oracle(fits, eval_bb, tol = 1e-7, max_nonfinite = 0L)
 })
 
 # ---- binomial (model_type 18; src/drmTMB.cpp:3088-3173) --------------------
@@ -527,7 +638,12 @@ test_that("binomial kernel matches dbinom()", {
     ref <- dbinom(yv, trials, plogis(eta), log = TRUE)
     c(cpp = -fit$obj$fn(par), ref = ref)
   }
-  run_oracle(fits, eval_bin, tol = 1e-9, has_ls = FALSE)
+  # 8 points at eta = +-40 and +-700: plogis(eta) rounds to exactly 0 or 1 in
+  # double precision, so dbinom()'s probability-scale reference goes to -Inf
+  # for any y off that boundary, while the kernel (computed on the logit
+  # scale) stays finite -- a reference-side breakdown, not a kernel bug.
+  # Counted explicitly rather than silently vanishing (#1324).
+  run_oracle(fits, eval_bin, tol = 1e-9, has_ls = FALSE, max_nonfinite = 8L)
 })
 
 # ---- tweedie (model_type 16; src/drmTMB.cpp:2692-2739) ---------------------
@@ -577,6 +693,18 @@ test_that("tweedie kernel matches tweedie::dtweedie() away from TMB's own dtweed
     }
   }
   results$rel_err <- mapply(rel_err, results$cpp, results$ref)
+
+  # This block predates run_oracle() and keeps its own narrower log_sigma grid,
+  # so it used to drop every non-finite point without counting it (#1324,
+  # #1440). Count them through the shared helper. #1440 measured 86 of these
+  # 126 points (68%): tweedie::dtweedie() underflows to exactly 0 (log() =
+  # -Inf) at the extreme eta corners (mu = exp(eta) up to ~1e304 / down to
+  # ~1e-305), which is a reference-side breakdown, not a kernel one. The kernel
+  # side is asserted finite at every point, so only the reference may drop
+  # out, and only up to that measured count.
+  expect_true(all(is.finite(results$cpp)))
+  nonfinite <- oracle_kept_nonfinite(results)
+  expect_lte(nrow(nonfinite), 86L)
   finite_re <- results$rel_err[!is.na(results$rel_err)]
   expect_true(length(finite_re) > 0)
   expect_true(max(finite_re) <= 1e-6)
