@@ -68,6 +68,11 @@ the mocked `julia_setup()` call.
 
 After the helpers: the same file FAIL 0 / PASS 13.
 
+CI shard 3/4 on run 38978913492 failed because the new
+`skip_if_not_installed("JuliaCall")` was not in
+`inst/extdata/env-skip-census.tsv`. Regenerated with
+`Rscript tools/write-env-skip-census.R`; `test-env-skip-census.R` 5 pass.
+
 Sibling setup paths, same load_all:
 
 - `test-julia-module-compat.R` — all mock-driven assertions pass; live
