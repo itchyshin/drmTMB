@@ -71,7 +71,10 @@ drmTMB, branch `cursor/fx3b-convergence-status-1f29` from FX3 head
 `R/drmTMB.R`, `R/mi-weights.R`, and `src/` were not edited. `R/methods.R`
 changed, so C17 was recertified.
 
-DRModels.jl, same branch name from pin `f71b292`:
+DRModels.jl, same branch name from pin `f71b292` (GitHub push
+returned 403; the side is saved as
+`docs/dev-log/patches/2026-10-16-fx3b-DRModels.jl.patch`, SHA
+`ea40557ad1f63ebad3aac8a63167817555479213`):
 
 - `src/convergence_status.jl` (new)
 - `src/separation.jl`, `src/poisson.jl`, `src/negbinomial.jl`
