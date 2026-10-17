@@ -134,7 +134,11 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           python3 tools/capability_ledger.py --check
+          # --check does not detect a stale C14/C17 receipt against current
+          # source; this does (#1538).
+          python3 tools/capability_ledger.py --check-c14-receipt-equivalence
           python3 -m unittest tools/tests/test_capability_ledger.py
+          python3 -m unittest tools/tests/test_ci_wires_c14_receipt_equivalence.py
           python3 -m unittest tools/tests/test_arc1_profile_reconcilers.py
           python3 -m unittest tools/tests/test_b3_q6_target_promotion.py
           python3 -m unittest tools/tests/test_b4_ci_guard.py
