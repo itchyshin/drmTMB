@@ -364,13 +364,16 @@ mc-0568/0569/0576 `|change| 0.000e+00`; receipt
 
 **Evidence:** red-proof `test-convergence-status-twin.R` 32 pass
 (FX3 semantics TRUE on mutated RE-SD `1e-8`; after FALSE).
-`test-mle-existence.R` 39 pass; `test-check-drm.R` 263 pass / 1 skip;
-`test-fit-convergence-warning.R` 16 pass. Julia: constants + Gaussian +
-all-zero Poisson 28 pass; `test_poisson_mle_existence.jl` 5 pass;
-`test_check_drm.jl` 82 pass; binomial separation 86 pass; API freeze
-198 pass. t4 rescore 750/750: boolean agree 716/750 (was 512/750);
-status agree 689/750; 61 remaining listed in
-`docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`.
+`test-mle-existence.R` 39 pass; `test-summary.R` 14 pass;
+`test-dinnage-audit-wave4b1.R` 6 pass; `test-julia-diagnostics.R`
+20 pass / 2 skip. Full `NOT_CRAN=true` `tests/testthat.R`:
+FAIL 175 | WARN 71 | SKIP 322 | PASS 45953 (48.5 min); the two FX3b
+schema failures in that run were re-run green after the test patch.
+Julia: constants + Gaussian + all-zero Poisson 28 pass;
+`test_poisson_mle_existence.jl` 5 pass; `test_check_drm.jl` 82 pass;
+binomial separation 86 pass; API freeze 198 pass. t4 rescore 750/750:
+boolean agree 716/750 (was 512/750); status agree 689/750; 61 remaining
+listed in `docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`.
 
 DRModels.jl push returned 403; patch saved as
 `docs/dev-log/patches/2026-10-16-fx3b-DRModels.jl.patch` (SHA
