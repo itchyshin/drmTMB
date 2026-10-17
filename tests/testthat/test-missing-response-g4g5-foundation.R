@@ -616,6 +616,45 @@ test_that("route runner retains one failure record per frozen target", {
   expect_true(all(!out$g4_feasible))
 })
 
+test_that("G4 campaign binds routes whose mask receipts differ in shape (#970)", {
+  # The mask receipt is route-dependent: `biv_gaussian` carries paired-mask fields
+  # that every other route lacks. A bare rbind() aborted the campaign with
+  # "numbers of columns of arguments do not match" as soon as a registry spanned
+  # both shapes. The runner and validator are stubbed so the test exercises only
+  # the combining step, with no model fits.
+  source_missing_response_g4g5()
+
+  routes <- mr_g4g5_route_manifest()$route_id
+  target_manifests <- setNames(lapply(routes, function(route) {
+    data.frame(route_id = route, parm = "fixef:mu:x", truth = 0.2,
+      target_class = "fixed-effect", dpar = "mu", scale = "link",
+      profile_ready = TRUE, interval_method = "profile", conf.level = 0.95)
+  }), routes)
+  registry <- mr_g4g5_task_registry(target_manifests)
+
+  mr_g4_run_route <- function(route_id, information_multiplier, seed, replicate,
+                              trace, target_manifest) {
+    record <- data.frame(route_id = route_id, parm = target_manifest$parm,
+      information_rung = paste0(information_multiplier, "x"),
+      mask_any_response_rows = 0L, stringsAsFactors = FALSE)
+    if (identical(route_id, "biv_gaussian")) {
+      record$mask_complete_pairs <- 10L
+      record$mask_both_missing <- 0L
+    }
+    record
+  }
+  mr_g4_validate_campaign <- function(records, registry) invisible(records)
+
+  records <- mr_g4_run_campaign(target_manifests, registry = registry, trace = FALSE)
+
+  expect_equal(nrow(records), nrow(registry$cells))
+  expect_true(all(c("mask_complete_pairs", "mask_both_missing") %in% names(records)))
+  biv <- records$route_id == "biv_gaussian"
+  expect_true(any(biv))
+  expect_false(anyNA(records$mask_complete_pairs[biv]))
+  expect_true(all(is.na(records$mask_complete_pairs[!biv])))
+})
+
 test_that("G4 task registry requires all routes and fixes the three information rungs", {
   source_missing_response_g4g5()
   routes <- mr_g4g5_route_manifest()$route_id
