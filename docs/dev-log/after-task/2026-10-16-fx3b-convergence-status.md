@@ -100,7 +100,10 @@ status agreement **689/750**. Evidence:
 `docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`.
 
 C17 recertified because `R/methods.R` changed (print/summary show
-the status).
+the status): `python3 tools/recertify-c17.py --label fx3b --tolerance 1e-10`,
+`|change| 0` on mc-0568/0569/0576, receipt
+`docs/dev-log/implementation-recovery/2026-10-17-fx3b-c17c2-c14-final-source-compatibility`,
+`current_source_sha=2b547487f`.
 
 ## Tests Of The Tests
 
