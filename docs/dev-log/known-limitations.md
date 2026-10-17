@@ -839,6 +839,16 @@ revisit condition.
   coverage (DG4/DG5), uncertainty beyond `theta_hat`, random-effect/
   structured residual adequacy, and bivariate joint (non-marginal) outputs
   are separately authorized future work.
+- `engine = "julia"` on Ubuntu with official Julia 1.12.x and CRAN
+  JuliaCall 0.17.6 can SIGSEGV during `install_dependency.jl` (exit 139)
+  when the apt R wrapper prefers system libunwind over Julia's
+  (JuliaCall#238; sweep-oct16/t5, t7). drmTMB now unsets `JULIA_PROJECT`
+  and preloads Julia's bundled `libunwind` before `julia_setup()`. A
+  remaining crash is a classed `drmTMB_julia_host_setup_error`, not a
+  silent host death, when the subprocess failure is catchable. In-process
+  SIGSEGV still cannot be caught; start R with `LD_PRELOAD` on Julia's
+  `libunwind.so.8` or use conda-forge Julia if the preload is not enough.
+  This is a host-library fence, not a model-route fence.
 - The first large-data storage controls are implemented through
   `drm_control(keep_data = FALSE, keep_model_frame = FALSE, keep_tmb_object = FALSE)`,
   including nested model-frame caches for direct-SD and fitted q=2

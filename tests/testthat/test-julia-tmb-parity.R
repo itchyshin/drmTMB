@@ -50,7 +50,8 @@ drm_parity_environment_absent_patterns <- c(
   "sysimage at path: .* is not found",                    # JuliaCall::julia_setup()
   "needs a local DRModels\\.jl.*checkout, and none was found",  # drm_julia_setup()
   "DRM\\.jl path .* does not exist",                       # drm_julia_setup(): bad DRM_JL_PATH
-  "does not look like a DRM\\.jl checkout"                 # drm_julia_setup(): no Project.toml
+  "does not look like a DRM\\.jl checkout",               # drm_julia_setup(): no Project.toml
+  "host library crash, exit 139"                          # drm_julia_setup_failed(): JuliaCall#238
 )
 
 drm_parity_is_environment_absent <- function(e) {

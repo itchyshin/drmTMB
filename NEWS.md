@@ -12,6 +12,15 @@
 
 ## Bug fixes
 
+* `engine = "julia"` no longer hands JuliaCall a `JULIA_PROJECT` pointed at
+  the DRModels.jl checkout, and on Linux it preloads Julia's bundled
+  `libunwind` (and sets `LD_PRELOAD`) before `JuliaCall::julia_setup()`.
+  Official Julia 1.12.x on Ubuntu otherwise SIGSEGVs in
+  `install_dependency.jl` (exit 139) because the apt R wrapper prefers
+  system libunwind 1.6.2 (JuliaCall#238; sweep-oct16/t5 and t7). A remaining
+  139 becomes a classed `drmTMB_julia_host_setup_error` with the next step
+  instead of the raw JuliaCall wrapper. Set `DRMODELS_JL_PATH`, not
+  `JULIA_PROJECT`, at the checkout. Does not change TMB fitting.
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value

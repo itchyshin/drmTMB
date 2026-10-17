@@ -1,3 +1,31 @@
+# 2026-10-17: FX1 CI — env-skip census for test-julia-host-prepare.R
+
+Ubuntu release shard 3/4 on run 38978913492 failed because
+`test-julia-host-prepare.R` added `skip_if_not_installed("JuliaCall")`
+without regenerating `inst/extdata/env-skip-census.tsv`. Regenerated
+with `Rscript tools/write-env-skip-census.R` (one new row:
+`suggests-package / environment / runs / 1`). `test-env-skip-census.R`
+5 pass; `test-julia-host-prepare.R` 13 pass. No C17: `R/drmTMB.R`,
+`R/methods.R`, `R/mi-weights.R`, and `src/` untouched.
+
+# 2026-10-16: FX1 JuliaCall setup SIGSEGV (exit 139) on official Julia 1.12.x
+
+`drm_julia_setup()` now calls `drm_julia_prepare_host()` before
+`JuliaCall::julia_setup()`: unsets `JULIA_PROJECT` (t5 harness pointed it at
+the DRModels.jl checkout, so `install_dependency.jl` ran `Pkg.add("RCall")`
+there), defaults `JULIA_NUM_THREADS=1` when unset, and on Linux preloads
+Julia's bundled `libunwind` plus `LD_PRELOAD` (JuliaCall#238; CRAN JuliaCall
+0.17.6 lacks the master workaround). A remaining 139 becomes
+`drmTMB_julia_host_setup_error`. Red-proof `test-julia-host-prepare.R`:
+before, `julia_setup` still saw `JULIA_PROJECT=/tmp/DRModels.jl-pin` and
+empty threads (FAIL 7 / PASS 1); after, FAIL 0 / PASS 13. Live official
+1.12.7 on this host: `install_dependency.jl` exit 139 without Julia
+libunwind `LD_PRELOAD`; `drm_julia_prepare_host()` then
+`JuliaCall::julia_setup()` yields `1+1=2`. Sibling module-compat,
+batch-startup, home-path, and cran-lane tests pass. No C17 recertify:
+`R/drmTMB.R`, `R/methods.R`, `R/mi-weights.R`, and `src/` untouched.
+Report: `docs/dev-log/after-task/2026-10-16-fx1-julia-setup-segfault.md`.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17

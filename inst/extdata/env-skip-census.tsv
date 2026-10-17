@@ -132,6 +132,7 @@ test-julia-formula-constructs.R	engine-drm-jl	environment	skips	4
 test-julia-formula-constructs.R	locale	environment	depends	4
 test-julia-formula-constructs.R	suggests-package	environment	runs	3
 test-julia-gate-vs-engine.R	build-premise	build	skips	1
+test-julia-host-prepare.R	suggests-package	environment	runs	1
 test-julia-inference.R	engine-drm-jl	environment	skips	7
 test-julia-inference.R	suggests-package	environment	runs	30
 test-julia-missing.R	engine-drm-jl	environment	skips	8
