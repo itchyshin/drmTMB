@@ -1,3 +1,13 @@
+# 2026-10-17: FX1 CI — env-skip census for test-julia-host-prepare.R
+
+Ubuntu release shard 3/4 on run 38978913492 failed because
+`test-julia-host-prepare.R` added `skip_if_not_installed("JuliaCall")`
+without regenerating `inst/extdata/env-skip-census.tsv`. Regenerated
+with `Rscript tools/write-env-skip-census.R` (one new row:
+`suggests-package / environment / runs / 1`). `test-env-skip-census.R`
+5 pass; `test-julia-host-prepare.R` 13 pass. No C17: `R/drmTMB.R`,
+`R/methods.R`, `R/mi-weights.R`, and `src/` untouched.
+
 # 2026-10-16: FX1 JuliaCall setup SIGSEGV (exit 139) on official Julia 1.12.x
 
 `drm_julia_setup()` now calls `drm_julia_prepare_host()` before
