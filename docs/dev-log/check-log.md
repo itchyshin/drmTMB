@@ -366,7 +366,10 @@ HTTP 410. Fresh main [run 39056559935](https://github.com/itchyshin/drmTMB/actio
 is running (source-tree job passed); this PR-specific fix must not be presented
 as a fix to main's code. Automatic approval review denied the new-branch push
 as external publication requiring explicit user authorization. It did not
-execute and was not retried; remote patch verification awaits that approval.
+execute and was not retried while pending. The owner subsequently explicitly
+approved publication, remote checks, and integration of the narrow repair.
+The repair PR targets `cursor/fx6-boundary-lrt-3f95`, not main; the broader
+statistical feature remains outside this authorization.
 
 # 2026-10-16: FX6b parametric bootstrap LRT (#1559, #1560)
 
