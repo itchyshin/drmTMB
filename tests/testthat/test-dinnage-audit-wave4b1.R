@@ -155,7 +155,7 @@ test_that("A-3: convergence_status and multi_start cannot clear a degenerate fit
   chk_many <- check_drm(fit_many)
   status_row <- chk_many[chk_many$check == "convergence_status", ]
   expect_equal(nrow(status_row), 1L)
-  expect_equal(status_row$status, "note")
+  expect_equal(status_row$status, "warning")
   expect_match(status_row$value, "degenerate")
 })
 
