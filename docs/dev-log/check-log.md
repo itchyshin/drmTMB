@@ -372,6 +372,10 @@ all-zero Poisson 28 pass; `test_poisson_mle_existence.jl` 5 pass;
 status agree 689/750; 61 remaining listed in
 `docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`.
 
+DRModels.jl push returned 403; patch saved as
+`docs/dev-log/patches/2026-10-16-fx3b-DRModels.jl.patch` (SHA
+`ea40557ad`).
+
 **Non-claims:** no Firth/MSPL default; no Inf-SE masking in `vcov()`;
 shape-at-limit stays degenerate via inflated SE (#1535); does not
 close #1554.
