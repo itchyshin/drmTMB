@@ -1,3 +1,26 @@
+## 2026-10-17: general SD universe and calibration launch checkpoint
+
+The finite required universe now contains19,118 rows. Independent reconciliation
+preserves all earlier row keys and adds the missing Julia probit/cloglog union
+obligations. The ordinary base-route source audit classifies224 rows: native52
+admitted/60blocked, Julia16admitted/96blocked. These are base-source classifications,
+not direct-SD support. Provider and methods reviews leave G0/G1open. The current
+inventory/universe suite passed19 tests in48.331s.
+
+The final sealed calibration harness passed pure controls and15-process qualification
+timing, with15healthy profiles and five valid non-inferential summaries. First-look
+production started onTotoro under registryd2e1080d...,16workers,120s case cap and3600s
+campaign cap, estimate45-60min. All3000 attempts must be retained. No production
+inference result exists at this checkpoint. Native source/library matches the
+original Bernoulli capsule; current Poisson code is a separate build. The staged
+decision rule, seed separation, failure evidence and external seals are retained.
+
+One intentionally retained blank line at EOF in frozen staged-decision.R is flagged
+by diff whitespace checking; changing it would alter the sealed harness. It is not
+an executable-code error. The exact47262cd45 limited package check passed exit0with
+two explicit omitted-vignette warnings; tests/examples/vignettes/manual were skipped.
+This is not fullG7. No push, merge, release or external message.
+
 ## 2026-10-17: native discrete SD selectors and Poisson checkpoint
 
 Fresh source capsule `eaf3198f9a703c4d88e21b106dc0c9dbe16fa8adef1235be83da33aa7167c417`

@@ -20,7 +20,8 @@ for substantive simulation and NotebookLM for the reviewed methods synthesis.
 - No push, merge, release, email or public capability claim without its named gate.
 - No production campaign estimated above three hours before a timed pre-run and
   Shinichi's approval. Local CPU about four cores; Totoro at most 150 cores.
-- No credential or permission changes. NotebookLM currently needs reconnection.
+- No credential or permission changes. NotebookLM personal browser session is
+  connected; only reviewed primary-source claims may support the contract.
 
 ## Where truth lives
 
