@@ -87,9 +87,25 @@ returned 403; the side is saved as
 
 Red-proof: FX3 semantics on a mutated RE-SD of `1e-8` give
 `is_converged = TRUE`; after this change `FALSE` /
-`status = "boundary"`. `test-convergence-status-twin.R` 32 pass;
-`test-mle-existence.R` 39 pass; `test-check-drm.R` 263 pass / 1 skip;
-`test-fit-convergence-warning.R` 16 pass.
+`status = "boundary"`. `test-convergence-status-twin.R` 3 tests pass;
+`test-mle-existence.R` 9 tests pass; `test-summary.R` 14 pass; `test-dinnage-audit-wave4b1.R` 6 pass
+after the degenerate `check_drm` row moved from `note` to `warning`;
+`test-julia-diagnostics.R` 20 pass / 2 skip (live Julia) after the
+schema lists and printed banner include `convergence_status`.
+`test-check-drm.R` 28 pass / 1 error on the unexported
+`random_effect_covariance_near_boundary` helper (`export_all=FALSE`;
+pre-existing).
+
+Full `NOT_CRAN=true Rscript tests/testthat.R` against the installed
+package: **FAIL 175 | WARN 71 | SKIP 322 | PASS 45953** in 48.5 min.
+The two FX3b schema failures in that run (`test-dinnage-audit-wave4b1`
+line 158; `test-julia-diagnostics` setequal / banner) are the ones
+fixed above and re-run green. The other failures are the environment
+and pre-existing set: no `JuliaCall` (67 live Julia tests skipped;
+mock `new_drmTMB_julia()` looks up `%||%` outside the package
+namespace), no `ggplot2` on one profile plot, `ape` missing at suite
+start, MSPL / gradient-conformance / coefficient-label / numeric-oracle
+files, and one REML phylo `opt$convergence == 1`.
 
 Julia 1.11.6: `test_convergence_status.jl` 28 pass (constants, Gaussian
 print/`check_drm`, all-zero Poisson #1109 red-proof, ordinary Poisson);
