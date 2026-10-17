@@ -12,6 +12,19 @@
 
 ## Bug fixes
 
+* `anova(poisson, nbinom2)` now treats the extra NB2 `sigma` as a boundary
+  test: it warns and reports the Self–Liang / Stram–Lee 50:50 chi-bar
+  p-value from `lrt_boundary()`, the same path `anova()` already uses for an
+  added `(1 | g)` SD. The unexported `drm_lrtest()` warns and keeps the
+  naive chi-square p-value. Other family nests (Poisson vs zero-inflated
+  Poisson, binomial vs beta-binomial) are unchanged (#1557).
+* `anova(..., test = "bootstrap")` and `drm_lrtest(..., test = "bootstrap")`
+  add a parametric bootstrap null: they simulate from the reduced fit,
+  refit both models, and return the p-value with `nsim`, `seed`, and the
+  number of failed refits. The default remains the 50:50 chi-bar mixture.
+  That default is conservative with few groups: type-I at alpha = 0.05
+  is at most 5% with no lower bound. The t10 500-rep rates 3.0% (NB2 vs
+  Poisson) and 3.4% (`(1 | g)`) are expected (#1559, #1560).
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value

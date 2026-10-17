@@ -1,3 +1,41 @@
+# 2026-10-16: FX6b parametric bootstrap LRT (#1559, #1560)
+
+`anova(..., test = "bootstrap")` and `drm_lrtest(..., test = "bootstrap")`
+simulate from the reduced fit, refit both models, and return the p-value
+with `nsim`, `seed`, and failed refits. Default remains 50:50 chi-bar.
+That default is conservative with few groups: type-I at most 5%, no
+lower bound; t10 3.0% / 3.4% recorded as expected. Red-proof: on
+`132a0490` `test = "bootstrap"` aborted; after the change
+`test-anova-lrt.R` is 85 pass (`NOT_CRAN=true`). Sibling:
+`test-model-comparison.R` 68 pass, `test-lrt-boundary.R` 66 pass.
+C17 recertified after the `R/methods.R` `anova()` edit
+(`python3 tools/recertify-c17.py --label fx6b-bootstrap --tolerance 1e-10`):
+`|change| 0.000e+00` on mc-0568 / mc-0569 / mc-0576, receipt
+`docs/dev-log/implementation-recovery/2026-10-17-fx6b-bootstrap-c17c2-c14-final-source-compatibility`,
+source sha `28474c624`. FX6b lands on PR #1563
+(`cursor/fx6-boundary-lrt-3f95`), not a stacked draft. Julia twin
+push 403; patch
+`docs/dev-log/after-task/2026-10-16-fx6b-DRModels.jl.patch`.
+t10 bootstrap (`nsim = 99`, 500 official seeds): NB2 type-I
+`p < 0.05` 3.8% (19/500), `p <= 0.05` 4.8% (24/500); RE `p < 0.05`
+3.0% (15/500). Chi-bar still 3.0% / 3.4%. Receipt:
+`docs/dev-log/after-task/fx6b-t10-logs/RECEIPT_fx6b_t10.md`.
+Report: `docs/dev-log/after-task/2026-10-16-fx6b-bootstrap-null.md`.
+
+# 2026-10-16: FX6 Poisson vs NB2 boundary LRT (#1557)
+
+`anova(poisson, nbinom2)` now warns and reports `lrt_boundary(..., q = 1)`
+when the only extra parameter is the NB2 `sigma` intercept. `drm_lrtest()`
+warns and keeps naive χ². Red-proof: `test-anova-lrt.R` #1557 tests failed
+on `ca3ddef` (silent `p.method = "chisq"`, p = 1 vs chi-bar 0.5) and pass
+after the detector. Sibling suites: `test-model-comparison.R` 68 pass,
+`test-lrt-boundary.R` 62 pass. Type-I issues #1559 / #1560 are not closed
+(chi-bar 3.0% / 3.4% on the t10 500-rep grids). C17 recertified (`python3 tools/recertify-c17.py --label fx6-1557
+--tolerance 1e-10`): |change| 0.000e+00 on mc-0568/0569/0576, receipt
+`docs/dev-log/implementation-recovery/2026-10-16-fx6-1557-c17c2-c14-final-source-compatibility`,
+source sha `3180adfd5`. Report:
+`docs/dev-log/after-task/2026-10-16-fx6-poisson-nb2-boundary-lrt.md`.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
