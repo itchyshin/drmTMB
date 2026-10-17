@@ -113,12 +113,12 @@ stays the public scale name.
 
 ## GitHub Issue Maintenance
 
-PR #1563 will say Closes #1557 (the Poisson ⊂ NB2 detector) and, once
-the t10 bootstrap type-I bar is in, Closes #1559 #1560. Julia twins
-#1115 #1116 #1118 stay Refs because `git push` to DRModels.jl returned
-403. The default chi-bar p-value is unchanged; those issues are
-addressed by documenting the expected type-I and offering the
-bootstrap option.
+PR #1563 says Closes #1557 (the Poisson ⊂ NB2 detector). #1559 and
+#1560 stay Refs: at `nsim = 99` the bootstrap `p < 0.05` rates were
+3.8% (NB2, one shy of 4.0%) and 3.0% (`(1 | g)`), so the campaign
+`[4%, 6%]` bar is not met on both cells. Julia twins #1115 #1116
+#1118 stay Refs because `git push` to DRModels.jl returned 403. The
+default chi-bar p-value is unchanged; 3.0% and 3.4% remain expected.
 
 ## What Did Not Go Smoothly
 
@@ -141,15 +141,19 @@ bootstrap option.
 
 ## Known Limitations
 
-The unit tests do not claim a 5% type-I rate. That claim is the t10
-receipt (`nsim = 99`, 500 official seeds, cells `nb2` and `re`).
-`test = "bootstrap"` is slower than chi-bar (about 5 s per NB2 draw and
-11 s per RE draw at `nsim = 99` on this host). Julia still reports
-naive χ² unless `test = :bootstrap` is passed, and that path needs the
-original `data` table because a `DrmFit` does not retain it.
+The unit tests do not claim a 5% type-I rate. The t10 receipt
+(`docs/dev-log/after-task/fx6b-t10-logs/RECEIPT_fx6b_t10.md`,
+`nsim = 99`, 500 official seeds) recorded bootstrap `p < 0.05` of
+3.8% (NB2) and 3.0% (`(1 | g)`). `test = "bootstrap"` is slower than
+chi-bar (4.7 s per NB2 draw and 10.5 s per RE draw at `nsim = 99` on
+this host). Julia still reports naive χ² unless `test = :bootstrap` is
+passed, and that path needs the original `data` table because a
+`DrmFit` does not retain it.
 
 ## Next Actions
 
-Land FX6b on PR #1563 and wait for that CI. A user who wants the
+Wait for PR #1563 CI after this receipt push. A user who wants the
 asymptotic boundary p-value should keep the default `anova()`. A user
-who wants a finite-sample null should pass `test = "bootstrap"`.
+who wants a finite-sample null should pass `test = "bootstrap"`. A
+`[4%, 6%]` `p < 0.05` bar on `(1 | g)` with G = 25 needs a larger
+`nsim` than 99; the function default is 199.

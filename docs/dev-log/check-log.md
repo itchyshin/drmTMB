@@ -16,6 +16,10 @@ source sha `28474c624`. FX6b lands on PR #1563
 (`cursor/fx6-boundary-lrt-3f95`), not a stacked draft. Julia twin
 push 403; patch
 `docs/dev-log/after-task/2026-10-16-fx6b-DRModels.jl.patch`.
+t10 bootstrap (`nsim = 99`, 500 official seeds): NB2 type-I
+`p < 0.05` 3.8% (19/500), `p <= 0.05` 4.8% (24/500); RE `p < 0.05`
+3.0% (15/500). Chi-bar still 3.0% / 3.4%. Receipt:
+`docs/dev-log/after-task/fx6b-t10-logs/RECEIPT_fx6b_t10.md`.
 Report: `docs/dev-log/after-task/2026-10-16-fx6b-bootstrap-null.md`.
 
 # 2026-10-16: FX6 Poisson vs NB2 boundary LRT (#1557)
