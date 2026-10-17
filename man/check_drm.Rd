@@ -47,7 +47,9 @@ fits with random effects, known sampling covariance, phylogenetic location
 effects, or bivariate residual correlation \code{rho12}.
 }
 \details{
-The current checks cover optimizer convergence, finite objective values,
+The current checks cover the three-valued \code{convergence_status}
+(\code{ok} / \code{note} / \code{warning} for \code{"converged"} / \code{"boundary"} /
+\code{"degenerate"}), optimizer convergence, finite objective values,
 optimizer evaluation counts, fixed-parameter gradients including the largest
 gradient component label, whether
 \code{\link[TMB:sdreport]{TMB::sdreport()}} was computed, skipped, or failed, Hessian status from

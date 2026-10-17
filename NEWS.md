@@ -77,6 +77,14 @@
   while avoiding a spurious "collapsing to unique 'x' values" warning from
   the implicit interpolation default (#1521).
 
+* `is_converged()` and the new alias `converged()` are `TRUE` only when
+  `convergence_status()` is `"converged"`. `"boundary"` (random-effect
+  SD `< 1e-4` or `|rho12| > 0.98`) and `"degenerate"` both return
+  `FALSE`. Print, `summary()`, and `check_drm()` show the three-valued
+  status. The numeric cuts (rank tolerance `1e-8`, inflated SE `>= 50`
+  and `>= 1000 ×` the sub-50 median, with a min-SE fallback) are the
+  same in DRModels.jl (`docs/design/278-twin-convergence-status.md`;
+  #1554, #1333).
 * Fixed-effect binomial, Poisson, and NB2 fits, and continuous
   location-scale fits whose scale predictor drives an exactly fitted
   observation onto the lower `log(sigma)` clamp, no longer report

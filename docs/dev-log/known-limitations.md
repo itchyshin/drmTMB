@@ -878,6 +878,13 @@ revisit condition.
   not change point estimates or `vcov()`. Random-effect, phylogenetic,
   `mi()` predictor, and MSPL routes are not screened. Zero-inflated
   Poisson is not screened, because a zero can come from the inflation
-  process rather than the count cone. The twins still disagree on what
-  `is_converged()` asserts; that shared-flag contract is the open
-  methods choice in #1554.
+  process rather than the count cone. Both engines now expose
+  `convergence_status()` ∈ {converged, boundary, degenerate} with the
+  numeric cuts in `docs/design/278-twin-convergence-status.md`.
+  `is_converged()` / `converged()` are `TRUE` only for `"converged"`.
+  On the 750-fit t4 grid the engines now agree on the boolean in 716/750
+  fits (was 512/750 on pin `ca3ddefa` / `f71b292`) and on the
+  three-valued status in 689/750. The remaining 61 status disagreements
+  are Julia `g_tol` / pseudo-inverse SEs versus R `nlminb` / Hessian
+  screens (`docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`;
+  #1554).
