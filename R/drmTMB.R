@@ -8225,7 +8225,11 @@ drm_build_poisson_spec <- function(
   )
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
-  validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry))
+  validate_poisson_mu_random_terms(
+    mu_re$terms, has_zi = !is.null(zi_entry),
+    allow_labelled_intercepts = is.null(mu_structured_term) &&
+      !include_missing_response
+  )
   if (include_missing_response) {
     has_ordinary_correlated <- any(vapply(
       mu_re$terms,
@@ -10799,7 +10803,8 @@ validate_poisson_mu_random_terms <- function(
   terms,
   has_zi = FALSE,
   family_label = "Poisson",
-  inflated_label = "Zero-inflated Poisson"
+  inflated_label = "Zero-inflated Poisson",
+  allow_labelled_intercepts = FALSE
 ) {
   if (length(terms) == 0L) {
     return(invisible(terms))
@@ -10839,7 +10844,10 @@ validate_poisson_mu_random_terms <- function(
     terms,
     function(term) {
       !(term$type %in% c("intercept", "slope")) ||
-        !is.null(term$covariance_label)
+        (!is.null(term$covariance_label) &&
+           !(isTRUE(allow_labelled_intercepts) &&
+             identical(family_label, "Poisson") &&
+             identical(term$type, "intercept")))
     },
     logical(1L)
   )
@@ -10849,7 +10857,7 @@ validate_poisson_mu_random_terms <- function(
       "Only independent {family_label} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use syntax like {.code count ~ x + (1 | id)} or {.code count ~ x + (0 + x | id)}.",
-      "i" = "Ordinary Poisson and ordinary NB2 also admit one complete-data unlabelled {.code (1 + x | id)} block; labelled covariance blocks remain planned."
+      "i" = "Ordinary Poisson and ordinary NB2 also admit one complete-data unlabelled {.code (1 + x | id)} block; unique labelled scalar Poisson intercepts require the complete-data ordinary route. Labelled ordinary NB2 intercepts and labelled ordinary count slopes remain planned."
     ))
   }
   invisible(terms)

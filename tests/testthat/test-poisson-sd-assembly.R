@@ -61,14 +61,50 @@ test_that("Poisson parameter split retains selected SD coefficient slices", {
   }
 })
 
+test_that("Poisson scalar block labels select the existing latent coefficient", {
+  dat <- poisson_sd_fixture(groups = 12L, repeats = 4L)$data
+  key <- 'sd(id, dpar = "mu", coef = "(Intercept)", block = "p")'
+  labelled <- drm_build_poisson_spec(bf(
+    y ~ x + (1 | p | id),
+    sd(id, dpar = "mu", coef = "(Intercept)", block = "p") ~ w
+  ), dat)
+  plain <- drm_build_poisson_spec(bf(y ~ x + (1 | id), sd(id) ~ w), dat)
+  expect_identical(labelled$random_scale$mu$target_identity[[key]]$block, "p")
+  shorthand <- drm_build_poisson_spec(bf(y ~ x + (1 | p | id), sd(id) ~ w), dat)
+  expect_identical(shorthand$random_scale$mu$target_identity[["sd(id)"]]$block,
+                   "p")
+  expect_identical(labelled$random$mu$n_cors, 0L)
+  expect_equal(labelled$tmb_data$X_sd_mu, plain$tmb_data$X_sd_mu,
+               ignore_attr = TRUE)
+  expect_identical(labelled$random_scale$mu$re_sd_row0,
+                   plain$random_scale$mu$re_sd_row0)
+  expect_error(drm_build_poisson_spec(bf(
+    y ~ x + (1 | p | id), sd(id, block = "q") ~ w
+  ), dat), "No ordinary random-effect SD target.*matches")
+  expect_error(drm_build_poisson_spec(bf(
+    y ~ x + (1 | p | id) + (1 | q | id), sd(id, block = "p") ~ w
+  ), dat), "Overlapping random-effect terms")
+  labelled_terms <- extract_random_mu_terms(quote(x + (1 | p | id)), "mu")$terms
+  expect_error(validate_poisson_mu_random_terms(labelled_terms,
+                                                family_label = "NB2"),
+               "Unsupported random-effect term")
+  expect_error(drm_build_poisson_spec(bf(
+    y ~ x + (1 + x | p | id), sd(id, block = "p") ~ w
+  ), dat), "labelled covariance blocks")
+  coords <- cbind(seq_len(nlevels(dat$id)), rep(0, nlevels(dat$id)))
+  rownames(coords) <- levels(dat$id)
+  expect_error(drm_build_poisson_spec(bf(
+    y ~ x + (1 | p | id) + spatial(1 | p | id, coords = coords)
+  ), dat), "Unsupported random-effect term")
+  expect_error(drm_build_poisson_spec(bf(y ~ x + (1 | p | id)), dat,
+    missing = miss_control(response = "include")),
+    "Unsupported random-effect term")
+})
+
 test_that("Poisson SD keeps zi, slopes, structure, and mi fences", {
   dat <- poisson_sd_fixture(groups = 12L, repeats = 4L)$data
   expect_error(drm_build_poisson_spec(bf(y ~ x, sd(id) ~ w), dat),
                "No random-effect term")
-  expect_error(drm_build_poisson_spec(bf(
-    y ~ x + (1 | p | id),
-    sd(id, dpar = "mu", coef = "(Intercept)", block = "p") ~ w
-  ), dat), "labelled covariance blocks remain planned")
   expect_error(drm_build_poisson_spec(bf(y ~ x + (0 + x | id),
                                        sd(id, coef = "x") ~ w), dat),
                "intercept|slope")

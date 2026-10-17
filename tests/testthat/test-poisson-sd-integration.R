@@ -105,3 +105,47 @@ test_that("Poisson SD bootstrap refits retain the selected parameter", {
   expect_equal(nrow(diagnostics), 2L)
   expect_true(any(diagnostics$refit_status == "ok"))
 })
+
+test_that("a scalar Poisson label preserves fitting and public target identity", {
+  dat <- poisson_sd_fixture(groups = 50L, repeats = 12L,
+                             seed = 2026101727L)$data
+  key <- 'sd(id, dpar = "mu", coef = "(Intercept)", block = "p")'
+  plain <- drmTMB(bf(y ~ x + (1 | id), sd(id) ~ w), poisson(), dat)
+  labelled <- drmTMB(bf(
+    y ~ x + (1 | p | id),
+    sd(id, dpar = "mu", coef = "(Intercept)", block = "p") ~ w
+  ), poisson(), dat)
+  expect_equal(labelled$opt$convergence, 0L)
+  expect_true(labelled$sdr$pdHess)
+  expect_lt(max(abs(labelled$obj$gr(labelled$opt$par))), 1e-3)
+  expect_equal(as.numeric(logLik(labelled)), as.numeric(logLik(plain)),
+               tolerance = 1e-7)
+  expect_equal(coef(labelled, "mu"), coef(plain, "mu"), tolerance = 1e-6)
+  expect_equal(coef(labelled, key), coef(plain, "sd(id)"), tolerance = 1e-6)
+  expect_equal(unname(predict(labelled, dpar = key)),
+               unname(predict(plain, dpar = "sd(id)")), tolerance = 1e-6)
+  expect_identical(labelled$model$random$mu$n_cors, 0L)
+  row <- profile_targets(labelled)
+  row <- row[row$parm == paste0("fixef:", key, ":w"), , drop = FALSE]
+  expect_equal(row$tmb_parameter, "beta_sd_mu")
+  expect_equal(row$index, 2L)
+  tab <- predict_parameters(labelled, dpar = key, include_newdata = FALSE)
+  expect_identical(tab$row_label, levels(dat$id))
+  set.seed(2026101728L)
+  draw_labelled <- drm_ordinary_random_effect_draws(labelled)$mu
+  set.seed(2026101728L)
+  draw_plain <- drm_ordinary_random_effect_draws(plain)$mu
+  expect_equal(draw_labelled, draw_plain, tolerance = 1e-6)
+  stored_path <- tempfile(fileext = ".rds")
+  saveRDS(labelled, stored_path)
+  expect_equal(predict(readRDS(stored_path), dpar = key),
+               predict(labelled, dpar = key))
+  ordinary <- drmTMB(bf(y ~ x + (1 | p | id)), poisson(), dat)
+  constant <- drmTMB(bf(y ~ x + (1 | p | id), sd(id, block = "p") ~ 1),
+                     poisson(), dat)
+  expect_equal(as.numeric(logLik(constant)), as.numeric(logLik(ordinary)),
+               tolerance = 1e-5)
+  expect_equal(unname(predict(constant, dpar = 'sd(id, block = "p")')),
+               rep(unname(ordinary$sdpars$mu[[1L]]), nlevels(dat$id)),
+               tolerance = 1e-4)
+})

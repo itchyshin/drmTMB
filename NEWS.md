@@ -3,7 +3,8 @@
 ## Documentation fixes
 
 * Native non-zero-inflated `poisson()` models now accept `sd(group) ~ predictors`
-  for ordinary scalar location intercepts, including explicit target selectors.
+  for ordinary scalar location intercepts, including a unique labelled
+  `(1 | p | id)` term and explicit target selectors.
   Independent likelihood and workflow checks pass; interval calibration and
   Julia public integration remain open.
 

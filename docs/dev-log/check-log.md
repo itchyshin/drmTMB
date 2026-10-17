@@ -1,3 +1,20 @@
+## 2026-10-17: scalar Poisson labels and executed synthetic guide
+
+Corrected capsule6ad295b3... passed154 compiled expectations in60s onTotoro:
+Poisson43, binomialselectors22, Gaussian89. Final source39 expectations pass and
+the leaf ledger reverified all3 gates. The independent negative control proves
+the two new combination guards fail against the earlier label admission. Exact
+source/binary hashes, old failure and repaired logs are retained under
+`general-sd-regression/evidence/poisson-label-20261017/`.
+
+The new Bernoulli/Poisson synthetic guide executed both fits and group predictions
+under a60s cap, rendered locally, and passed visual inspection of equations,
+compact diagnostics and fixed-seed SD-ratio comparisons. Exact-draft assessments
+are retained. The Beta q1 wording audit corrects stale blanket deferrals against
+ratifiedmc-0017evidence with its exact regime, seedreuse and coverage caveats.
+No new Beta fit, broad interval claim, fullsitecheck or external action occurred.
+Report: after-task/2026-10-17-general-sd-label-and-guide-checkpoint.md.
+
 ## 2026-10-17: general SD universe and calibration launch checkpoint
 
 The finite required universe now contains19,118 rows. Independent reconciliation

@@ -1,0 +1,21 @@
+poisson-sd-assembly: ...................1.........
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-poisson-sd-assembly.R:67:3'): Poisson scalar block labels sel
+Error in `validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry))`: Only independent Poisson `mu` random intercepts and slopes are implemented in this slice.
+x Unsupported random-effect term: `(1 | p | id)`.
+i Use syntax like `count ~ x + (1 | id)` or `count ~ x + (0 + x | id)`.
+i Ordinary Poisson and ordinary NB2 also admit one complete-data unlabelled `(1 + x | id)` block; labelled covariance blocks remain planned.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_poisson_spec(...) at test-poisson-sd-assembly.R:67:3
+ 2.   └─drmTMB:::validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry))
+ 3.     └─cli::cli_abort(...)
+ 4.       └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+No one gets it right on their first try
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

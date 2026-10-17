@@ -114,11 +114,13 @@ revisit condition.
   the ordinary-group routes above: `sd(spp_id, level =
   "phylogenetic") ~ x_tau` models the latent phylogenetic location SD `tau` in
   `y ~ x_mu + phylo(1 | spp_id, tree = tree)`, not family `sigma` or Beta
-  precision `phi = sigma^-2`. Its recovery evidence is restricted to the
-  prospectively frozen interior-output DGP and the two `g = 1024, m = 4` arms.
-  Hierarchical/random RHS effects in `sd()`, family-`sigma` phylogeny, q>1,
-  labels/slopes, REML, missing routes, intervals, and coverage remain outside
-  this route.
+  precision `phi = sigma^-2`. Ratified cell `mc-0017` has profile-interval
+  coverage evidence under the prospectively frozen interior-output DGP for
+  the two `g = 1024, m = 4` arms, with mild anti-conservatism in the worst arm.
+  This does not establish nominal coverage or extend to other designs.
+  Hierarchical/random RHS effects in `sd()`, family-`sigma` phylogeny,
+  phylogenetic random-effect slopes (q>1), labels, REML, and missing routes
+  remain outside this route.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
   implemented. Full-matrix `meta_V(V = V)` currently stores the retained
   covariance as a dense R matrix, with deprecated `meta_known_V(V = V)` retained
@@ -667,8 +669,11 @@ revisit condition.
   now error in non-Gaussian models with a structured non-Gaussian boundary.
   The Beta exception is not a universal `g >= 1024` threshold: `g = 256` and
   `g = 512` recovery gates held, family `sigma` stays fixed-effect-only, and
-  Beta phylogenetic slopes, labels/q2+, direct latent-`sd()` regression,
-  intervals, and coverage remain deferred.
+  Beta phylogenetic random-effect slopes, labels/q2+, direct latent-`sd()` regression beyond
+  the exact q1 phylogenetic location-SD route, and other untested Beta SD forms
+  remain deferred. The q1 exception has profile-interval coverage evidence at
+  `g = 1024, m = 4` with mild anti-conservatism in the worst arm; it does not
+  establish nominal coverage or generalize to other designs.
   The exact Poisson labelled-scalar spatial count route
   `mu ~ spatial(1 | p | site, coords = coords)` also fits locally, but it is
   not q2/q4 covariance support. Beyond the exact exceptions above, pure,
