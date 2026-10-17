@@ -363,7 +363,10 @@ census check (873 sites). Its README badge uses the default-branch workflow
 result, which remained the failed September 6 run `34054841475` because
 push-to-main checks were deliberately removed. Logs for that old run return
 HTTP 410. Fresh main [run 39056559935](https://github.com/itchyshin/drmTMB/actions/runs/39056559935)
-is pending; this PR-specific fix must not be presented as a fix to main's code.
+is running (source-tree job passed); this PR-specific fix must not be presented
+as a fix to main's code. Automatic approval review denied the new-branch push
+as external publication requiring explicit user authorization. It did not
+execute and was not retried; remote patch verification awaits that approval.
 
 # 2026-10-16: FX6b parametric bootstrap LRT (#1559, #1560)
 
