@@ -65,7 +65,13 @@ boundary (\code{conf.status = "wald_at_boundary"}); this pair computes a p-value
 that is correct there. \code{\link[=anova.drmTMB]{anova.drmTMB()}} uses \code{lrt_boundary()}'s p-value
 automatically when exactly one or two standard deviations are added, and
 when a Poisson fit is compared with a nested NB2 fit that adds only the
-\code{sigma} intercept (#1557).
+\code{sigma} intercept (#1557). That 50:50 mixture is conservative when there
+are few groups: type-I error at \eqn{\alpha = 0.05} is at most 5\% and has
+no lower bound. On the t10 500-rep grids the recorded rates were 3.0\%
+(NB2 vs Poisson, n = 250) and 3.4\% (\code{(1 | g)}, G = 25, m = 12); those
+values are expected. \code{anova(..., test = "bootstrap")} and
+\code{drm_lrtest(..., test = "bootstrap")} replace the mixture with a
+parametric null simulated from the reduced fit.
 }
 \section{Assumptions}{
 

@@ -2787,9 +2787,23 @@ BIC.drmTMB <- function(object, ...) {
 #' `drmTMB_anova_boundary_warning` is signalled for such a pair. If exactly one
 #' or two standard deviations are added and nothing else, or if the Poisson
 #' vs NB2 pair adds only the `sigma` intercept, `Pr(>Chisq)` is the
-#' chi-bar-square mixture from [lrt_boundary()]; the attribute `"p.method"`
-#' records `"chibar"` or `"chisq"` per row. Otherwise the naive chi-square
-#' p-value is reported and the warning says it is conservative.
+#' 50:50 chi-bar-square mixture from [lrt_boundary()]; the attribute
+#' `"p.method"` records `"chibar"` or `"chisq"` per row. Otherwise the naive
+#' chi-square p-value is reported and the warning says it is conservative.
+#'
+#' That 50:50 default is an asymptotic boundary null. It is conservative
+#' when there are few groups: type-I error at \eqn{\alpha = 0.05} is at most
+#' 5% and has no lower bound. On the t10 500-rep grids the recorded rates
+#' were 3.0% (NB2 vs Poisson, n = 250) and 3.4% (`(1 | g)`, G = 25, m = 12).
+#' Those values are expected for this default, not a packaging error.
+#'
+#' **Parametric bootstrap.** `test = "bootstrap"` simulates new responses
+#' from the reduced (null) fit, refits both models, and reports the
+#' Davison–Hinkley p-value \eqn{(1 + \#\{T^* \ge T_{\mathrm{obs}}\}) / (1 + n_{\mathrm{ok}})}.
+#' The table then carries `"p.method" = "bootstrap"` plus
+#' `"bootstrap.nsim"`, `"bootstrap.seed"`, and `"bootstrap.failed"` (the
+#' number of draws where either refit failed). The unexported
+#' `drm_lrtest()` accepts the same `test`, `nsim`, and `seed` arguments.
 #'
 #' A negative statistic (the smaller model fitted better) is reported as is
 #' and gives a p-value of 1 (or the boundary value); it signals non-nested
@@ -2797,8 +2811,13 @@ BIC.drmTMB <- function(object, ...) {
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Further `drmTMB` fits to compare with `object`.
-#' @param test `NULL` (the default), `"Chisq"` or `"LRT"`; only the
-#'   likelihood-ratio test is offered.
+#' @param test `NULL` (the default), `"Chisq"` or `"LRT"` for the usual
+#'   likelihood-ratio reference (chi-bar on a clean boundary nest), or
+#'   `"bootstrap"` for a parametric null from the reduced fit.
+#' @param nsim Number of parametric-bootstrap draws when
+#'   `test = "bootstrap"`. Ignored otherwise.
+#' @param seed Optional seed passed to [stats::simulate()] on the reduced
+#'   fit when `test = "bootstrap"`.
 #'
 #' @return An object of class `c("anova", "data.frame")` with one row per
 #'   fit, in order of increasing number of parameters.
@@ -2814,7 +2833,7 @@ BIC.drmTMB <- function(object, ...) {
 #' anova(m0, m1)
 #' }
 #' @export
-anova.drmTMB <- function(object, ..., test = NULL) {
+anova.drmTMB <- function(object, ..., test = NULL, nsim = 199L, seed = NULL) {
   dots <- list(...)
   dot_exprs <- as.list(substitute(list(...)))[-1L]
   labels <- c(
@@ -2825,7 +2844,13 @@ anova.drmTMB <- function(object, ..., test = NULL) {
   if (!is.null(given)) {
     labels[-1L][nzchar(given)] <- given[nzchar(given)]
   }
-  drm_anova_lrt(c(list(object), dots), labels, test = test)
+  drm_anova_lrt(
+    c(list(object), dots),
+    labels,
+    test = test,
+    nsim = nsim,
+    seed = seed
+  )
 }
 
 #' @rdname model-fit-extractors

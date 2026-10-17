@@ -1,3 +1,18 @@
+# 2026-10-16: FX6b parametric bootstrap LRT (#1559, #1560)
+
+`anova(..., test = "bootstrap")` and `drm_lrtest(..., test = "bootstrap")`
+simulate from the reduced fit, refit both models, and return the p-value
+with `nsim`, `seed`, and failed refits. Default remains 50:50 chi-bar.
+That default is conservative with few groups: type-I at most 5%, no
+lower bound; t10 3.0% / 3.4% recorded as expected. Red-proof: on
+`132a0490` `test = "bootstrap"` aborted; after the change
+`test-anova-lrt.R` is 85 pass (`NOT_CRAN=true`). Sibling:
+`test-model-comparison.R` 68 pass, `test-lrt-boundary.R` 66 pass.
+C17 recertified after the `R/methods.R` `anova()` edit. Julia twin
+push 403; patch
+`docs/dev-log/after-task/2026-10-16-fx6b-DRModels.jl.patch`.
+Report: `docs/dev-log/after-task/2026-10-16-fx6b-bootstrap-null.md`.
+
 # 2026-10-16: FX6 Poisson vs NB2 boundary LRT (#1557)
 
 `anova(poisson, nbinom2)` now warns and reports `lrt_boundary(..., q = 1)`
