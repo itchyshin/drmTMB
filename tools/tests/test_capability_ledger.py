@@ -1268,6 +1268,93 @@ class CapabilityLedgerTests(unittest.TestCase):
         finally:
             ledger.MISSING_G5_ROUTE_SUMMARIES["beta"] = original
 
+    def test_retired_predicate_scan_covers_uncontracted_rows(self):
+        ledger.validate_retired_predicates(self.cells, self.evidence)
+        contracted = {"mr-beta", "mr-tweedie", "mr-skew-normal"}
+        cells = copy.deepcopy(self.cells)
+        row = next(r for r in cells if r["cell_id"] not in contracted)
+        row["next_gate"] += " Blocked by the all-1200 interval-usability rule."
+        with self.assertRaisesRegex(SystemExit, "retired predicate"):
+            ledger.validate_retired_predicates(cells, self.evidence)
+        # The keyed contracts alone cannot see this row (issue 1011).
+        ledger.validate_live_prose_contracts(cells, self.evidence)
+
+    def test_retired_predicate_scan_covers_evidence_prose(self):
+        evidence = copy.deepcopy(self.evidence)
+        evidence[0]["claim_boundary"] += " Under the ALL-1200 interval-usability rule."
+        with self.assertRaisesRegex(SystemExit, "retired predicate"):
+            ledger.validate_retired_predicates(self.cells, evidence)
+
+    def test_check_path_fails_when_live_prose_names_a_newly_retired_phrase(self):
+        # --check, --write, and --summary all read through load_sources(). Retiring
+        # the current policy name, as the next policy bump would, must stop all
+        # three until every row that still names it is rewritten. The
+        # g5_policy_not_grounded contract requires mr-beta's claim_boundary to
+        # name the active policy, so that row must be among the hits.
+        policy = ledger.active_g5_policy_version()
+        original = ledger.RETIRED_PREDICATES
+        with tempfile.TemporaryDirectory() as temporary:
+            sidecar = Path(temporary) / "retired-predicates.tsv"
+            sidecar.write_text(
+                original.read_text(encoding="utf-8")
+                + f"{policy}\tdeadbeef\ta later policy\tissue 1011\n",
+                encoding="utf-8",
+            )
+            try:
+                ledger.RETIRED_PREDICATES = sidecar
+                with self.assertRaisesRegex(
+                    SystemExit, r"cells:mr-beta\.claim_boundary: retired predicate"
+                ) as raised:
+                    ledger.load_sources()
+            finally:
+                ledger.RETIRED_PREDICATES = original
+        # The notes column also names the policy, but it is history, not a claim.
+        self.assertNotIn(".notes:", str(raised.exception))
+
+    def test_retired_predicate_scan_folds_case_and_spacing(self):
+        cells = copy.deepcopy(self.cells)
+        cells[0]["claim_boundary"] += " Under the All-1200\tinterval-usability  RULE."
+        with self.assertRaisesRegex(SystemExit, "retired predicate"):
+            ledger.validate_retired_predicates(cells, self.evidence)
+
+    def test_retired_predicate_sidecar_rejects_rows_without_provenance(self):
+        original = ledger.RETIRED_PREDICATES
+        valid = original.read_text(encoding="utf-8")
+        cases = {
+            "blank field": valid + "old gate rule\tdeadbeef\t\tissue 1011\n",
+            "short row": valid + "old gate rule\tdeadbeef\n",
+            "extra column": valid + "old gate rule\tdeadbeef\tnew rule\tissue 1011\textra\n",
+        }
+        try:
+            with tempfile.TemporaryDirectory() as temporary:
+                for name, text in cases.items():
+                    with self.subTest(name):
+                        sidecar = Path(temporary) / f"{name.replace(' ', '-')}.tsv"
+                        sidecar.write_text(text, encoding="utf-8")
+                        ledger.RETIRED_PREDICATES = sidecar
+                        with self.assertRaisesRegex(
+                            SystemExit, r"line \d+: every field needs a value"
+                        ):
+                            ledger.retired_predicate_phrases()
+        finally:
+            ledger.RETIRED_PREDICATES = original
+
+    def test_retired_predicate_sidecar_rejects_duplicate_phrases(self):
+        original = ledger.RETIRED_PREDICATES
+        with tempfile.TemporaryDirectory() as temporary:
+            sidecar = Path(temporary) / "retired-predicates.tsv"
+            sidecar.write_text(
+                original.read_text(encoding="utf-8")
+                + "ALL-1200  Interval-Usability rule\tdeadbeef\tnone\tissue 1011\n",
+                encoding="utf-8",
+            )
+            try:
+                ledger.RETIRED_PREDICATES = sidecar
+                with self.assertRaisesRegex(SystemExit, "duplicate phrase"):
+                    ledger.retired_predicate_phrases()
+            finally:
+                ledger.RETIRED_PREDICATES = original
+
     def test_live_prose_contract_excludes_historical_phrases(self):
         with tempfile.TemporaryDirectory() as temporary:
             historical = Path(temporary) / "2025-old-panel.md"

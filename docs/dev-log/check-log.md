@@ -1,3 +1,18 @@
+# 2026-10-16: lane f8 — retired gate predicates scanned in every ledger row (#1011, #1007)
+
+`validate_retired_predicates()` now fails `--check` when a phrase in the new
+`capability-ledger/retired-predicates.tsv` appears in any cell's
+`claim_boundary` or `next_gate` or any evidence `claim_boundary`, not only in
+the three keyed G5 rows. Seeded with the all-1200 interval-usability rule
+(retired by `19e4a1d03`). Forcing tests fail at `368eff52` (2 AttributeError)
+and pass after; `python3 -m unittest tools/tests/test_capability_ledger.py`
+86 OK; `capability_ledger.py --check` OK (31 outputs); the rest of the CI
+ledger step passes locally. #1007 needs no code. `devtools::document()` was
+run but not committed: its 40-file `man/` diff reverts #1400 and adds
+roxygen2 7.3.1 link drift; nothing in it comes from this branch.
+
+Report: `docs/dev-log/after-task/2026-10-16-lane-f8-ledger-retired-predicates.md`.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
