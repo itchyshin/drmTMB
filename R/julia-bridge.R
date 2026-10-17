@@ -5237,6 +5237,7 @@ print.drmTMB_julia <- function(x, ...) {
     cli::cli_text("  estimator: {x$estimator}")
   }
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
+  cli::cli_text("  convergence_status: {convergence_status(x)}")
   cli::cli_text("  convergence: {x$opt$convergence}")
   invisible(x)
 }
@@ -6283,7 +6284,8 @@ summary.drmTMB_julia <- function(
     bic = object$bic,
     df = object$df,
     nobs = object$nobs,
-    converged = isTRUE(object$opt$convergence == 0L),
+    convergence_status = convergence_status(object),
+    converged = identical(convergence_status(object), "converged"),
     uncertainty = object$uncertainty
   )
   class(out) <- "summary.drmTMB_julia"
@@ -6387,6 +6389,9 @@ print.summary.drmTMB_julia <- function(x, ...) {
   cli::cli_text("<drmTMB Julia-engine fit summary>")
   cli::cli_text("  observations: {x$nobs}")
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
+  if (!is.null(x$convergence_status)) {
+    cli::cli_text("  convergence_status: {x$convergence_status}")
+  }
   cli::cli_text(
     "  convergence: {if (isTRUE(x$converged)) 'converged' else 'not converged'}"
   )
@@ -6732,7 +6737,28 @@ rho12.drmTMB_julia <- function(object, ...) {
 
 #' @export
 is_converged.drmTMB_julia <- function(object, include_hessian = FALSE, ...) {
-  isTRUE(object$opt$convergence == 0L)
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort(
+      "{.arg ...} is reserved for future {.fn is_converged} options."
+    )
+  }
+  if (
+    !is.logical(include_hessian) ||
+      length(include_hessian) != 1L ||
+      is.na(include_hessian)
+  ) {
+    cli::cli_abort("{.arg include_hessian} must be `TRUE` or `FALSE`.")
+  }
+  status <- convergence_status(object)
+  if (!identical(status, "converged")) {
+    return(FALSE)
+  }
+  if (!include_hessian) {
+    return(TRUE)
+  }
+  identical(object$uncertainty$status, "ok") &&
+    drm_twin_vcov_positive_definite(object$vcov)
 }
 
 # Locate the formula entry that supplies a retained fixed-effect distributional
@@ -8546,6 +8572,7 @@ print.drmTMB_julia_xfam <- function(x, ...) {
   cli::cli_text(
     "  latent rho: {format(x$rho_latent, digits = 4)}"
   )
+  cli::cli_text("  convergence_status: {convergence_status(x)}")
   cli::cli_text("  convergence: {x$opt$convergence}")
   invisible(x)
 }
@@ -8659,7 +8686,8 @@ summary.drmTMB_julia_xfam <- function(object, conf.int = FALSE, ...) {
     bic = object$bic,
     df = object$df,
     nobs = object$nobs,
-    converged = isTRUE(object$opt$convergence == 0L),
+    convergence_status = convergence_status(object),
+    converged = identical(convergence_status(object), "converged"),
     uncertainty = object$uncertainty
   )
   class(out) <- "summary.drmTMB_julia"
@@ -8712,7 +8740,7 @@ is_converged.drmTMB_julia_xfam <- function(
   include_hessian = FALSE,
   ...
 ) {
-  isTRUE(object$opt$convergence == 0L)
+  is_converged.drmTMB_julia(object, include_hessian = include_hessian, ...)
 }
 
 #' Extract a latent-scale correlation from a cross-family Julia fit

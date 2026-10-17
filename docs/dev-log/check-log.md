@@ -1,3 +1,33 @@
+# 2026-10-16 — FX3b: shared three-valued convergence_status (#1554, #1333, #731, #1109)
+
+**Lane:** Cursor · branch `cursor/fx3b-convergence-status-1f29` stacked on FX3 #1564 (DRAFT PR).
+
+**Change:** `convergence_status()` is `"converged"` / `"boundary"` /
+`"degenerate"` with identical numeric cuts in drmTMB `R/check.R` and
+DRModels.jl `src/convergence_status.jl` (rank `1e-8`, inflated SE
+`>= 50` and `>= 1000 ×` sub-50 median, RE SD `< 1e-4`, `|rho12| > 0.98`,
+sentinel logLik `-1e15`). `is_converged()` and `converged()` are
+`TRUE` only for `"converged"`. Print, summary, and `check_drm()` show
+the status. Julia also keeps the FX3 Poisson/NB2 cone guard.
+`R/methods.R` changed (print/summary), so C17 was recertified.
+`R/drmTMB.R`, `R/mi-weights.R`, and `src/` were not edited.
+
+**Evidence:** red-proof `test-convergence-status-twin.R` 32 pass
+(FX3 semantics TRUE on mutated RE-SD `1e-8`; after FALSE).
+`test-mle-existence.R` 39 pass; `test-check-drm.R` 263 pass / 1 skip;
+`test-fit-convergence-warning.R` 16 pass. Julia: constants + Gaussian +
+all-zero Poisson 28 pass; `test_poisson_mle_existence.jl` 5 pass;
+`test_check_drm.jl` 82 pass; binomial separation 86 pass; API freeze
+198 pass. t4 rescore 750/750: boolean agree 716/750 (was 512/750);
+status agree 689/750; 61 remaining listed in
+`docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`.
+
+**Non-claims:** no Firth/MSPL default; no Inf-SE masking in `vcov()`;
+shape-at-limit stays degenerate via inflated SE (#1535); does not
+close #1554.
+
+---
+
 # 2026-10-16 — FX3: fail-closed MLE existence (#1553, #1270, #1469)
 
 **Lane:** Cursor · branch `cursor/fx3-silent-mle-b05e` (DRAFT PR).
