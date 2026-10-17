@@ -1,3 +1,14 @@
+## 2026-10-17: internal ordinary SD member resolver
+
+`R/random-effect-targets.R` constructs ordinary latent-member descriptors from
+actual univariate and bivariate registries, including endpoint, coefficient,
+block and global latent/group-index identity. The source-only suite passes
+56 assertions. Corrupted equal-level pairs fail on group, block and correlation
+metadata. Independent review passes this internal role. The two leaf gates
+pass, with the runnable check re-executed and receipt retained beside native
+checkpoint evidence. No builder calls this module yet; fitting admission and
+all programme breadth/calibration gates remain open.
+
 ## 2026-10-17: general SD regression, first native checkpoint
 
 Isolated branch `codex/general-sd-regression` from native main
