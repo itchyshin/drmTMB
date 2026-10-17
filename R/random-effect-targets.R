@@ -176,3 +176,55 @@ drm_resolve_sd_target <- function(target, members) {
     "i" = "Supply {.arg dpar}, {.arg coef}, or {.arg block} to select one; add unique block labels for otherwise indistinguishable terms."
   ))
 }
+
+# Native binomial admission for the ordinary scalar mu-intercept slice. Keep
+# identity resolution separate from the family-specific shape fence.
+drm_binomial_sd_mu_targets <- function(entries, terms, re) {
+  if (length(entries) == 0L) return(list())
+  members <- drm_ordinary_sd_target_members(terms, re, "mu")
+  if (length(members) == 0L) {
+    cli::cli_abort(c(
+      "No random-effect term matches the binomial {.code sd()} formula.",
+      "i" = "Add an ordinary {.code (1 | group)} term to {.code mu} or remove the SD formula."
+    ))
+  }
+  targets <- lapply(entries, function(entry) {
+    parsed <- parse_sd_lhs(entry$lhs)
+    member <- drm_resolve_sd_target(parsed, members)
+    term <- terms[[member$target_term]]
+    if (!identical(term$type, "intercept") ||
+        !identical(member$coef, "(Intercept)")) {
+      cli::cli_abort(c(
+        "Binomial random-effect SD regression currently supports scalar {.code mu} intercept targets only.",
+        "x" = "Selected {.code {entry$dpar}} targets coefficient {.val {member$coef}}.",
+        "i" = "Random-slope and correlated-block SD regression require separate likelihood checks."
+      ))
+    }
+    same_group <- Filter(function(x) identical(x$group, member$group), members)
+    if (length(same_group) != 1L) {
+      cli::cli_abort(c(
+        "Binomial scalar SD regression cannot yet combine another random-effect coefficient on the same group.",
+        "x" = "Selected {.code {entry$dpar}} but group {.field {member$group}} has more than one coefficient.",
+        "i" = "Fit a single intercept for this group until mixed intercept/slope SD models have been checked."
+      ))
+    }
+    list(
+      dpar = entry$dpar,
+      group = member$group,
+      target_term = member$target_term,
+      target_coef = member$target_coef,
+      label = member$label,
+      identity = member
+    )
+  })
+  dpars <- vapply(targets, `[[`, character(1L), "dpar")
+  if (anyDuplicated(dpars)) {
+    cli::cli_abort("Duplicate random-effect scale formula {.code {dpars[duplicated(dpars)][[1L]]}}.")
+  }
+  coefficients <- vapply(targets, `[[`, integer(1L), "target_coef")
+  if (anyDuplicated(coefficients)) {
+    duplicate <- dpars[duplicated(coefficients)][[1L]]
+    cli::cli_abort("Duplicate random-effect scale target {.code {duplicate}}: each latent coefficient can have only one SD formula.")
+  }
+  targets
+}

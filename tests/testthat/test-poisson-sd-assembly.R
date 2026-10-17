@@ -1,0 +1,105 @@
+test_that("Poisson ordinary scalar SD uses group rows and no free sigma", {
+  sim <- poisson_sd_fixture(groups = 12L, repeats = 4L)
+  spec <- drm_build_poisson_spec(bf(y ~ x + (1 | id), sd(id) ~ w), sim$data)
+  expect_identical(spec$model_type, "poisson")
+  expect_identical(spec$dpars, c("mu", "sd(id)"))
+  expect_identical(spec$random_scale$mu$n_models, 1L)
+  expect_equal(unname(spec$random_scale$mu$X_list[["sd(id)"]][, "w"]),
+               sim$w_group)
+  expect_identical(spec$random_scale$mu$re_sd_row0,
+                   seq_len(nlevels(sim$data$id)) - 1L)
+  expect_identical(spec$tmb_data$has_sd_mu_model, 1L)
+  expect_equal(spec$tmb_data$X_sd_mu, spec$random_scale$mu$X,
+               ignore_attr = TRUE)
+  expect_length(spec$start$beta_sd_mu, 2L)
+  expect_true(all(is.na(spec$map$log_sd_mu)))
+  expect_true(all(is.na(spec$map$beta_sigma)))
+})
+
+test_that("Poisson scalar selectors and two independent groups retain identity", {
+  sim <- poisson_sd_fixture(groups = 12L, repeats = 4L)
+  dat <- sim$data
+  dat$site <- factor(rep(seq_len(6L), length.out = nrow(dat)))
+  dat$v <- seq(-1, 1, length.out = 6L)[as.integer(dat$site)]
+  key <- 'sd(id, dpar = "mu", coef = "(Intercept)")'
+  spec <- drm_build_poisson_spec(bf(
+    y ~ x + (1 | id) + (1 | site),
+    sd(id, dpar = "mu", coef = "(Intercept)") ~ w,
+    sd(site) ~ v
+  ), dat)
+  expect_identical(spec$random_scale$mu$dpars, c(key, "sd(site)"))
+  expect_identical(spec$random_scale$mu$target_identity[[key]]$dpar, "mu")
+  expect_identical(spec$random_scale$mu$target_identity[["sd(site)"]]$group,
+                   "site")
+  expect_identical(spec$random_scale$mu$re_sd_row0,
+                   seq_len(spec$random$mu$n_re) - 1L)
+})
+
+test_that("Poisson parameter split retains selected SD coefficient slices", {
+  dat <- poisson_sd_fixture(groups = 12L, repeats = 4L)$data
+  dat$site <- factor(rep(seq_len(6L), length.out = nrow(dat)))
+  dat$v <- seq(-1, 1, length.out = 6L)[as.integer(dat$site)]
+  key <- 'sd(id, dpar = "mu", coef = "(Intercept)")'
+  spec <- drm_build_poisson_spec(bf(
+    y ~ x + (1 | id) + (1 | site),
+    sd(id, dpar = "mu", coef = "(Intercept)") ~ w,
+    sd(site) ~ v
+  ), dat)
+  sd_mu <- spec$random_scale$mu
+  expect_identical(sd_mu$dpars, c(key, "sd(site)"))
+  expect_false(identical(sd_mu$coef_index[[key]],
+                         sd_mu$coef_index[["sd(site)"]]))
+  beta_sd_mu <- seq_len(ncol(sd_mu$X)) / 10
+  par <- list(beta_mu = seq_len(ncol(spec$X$mu)) / 20,
+              beta_sd_mu = beta_sd_mu)
+  split <- split_tmb_parameters(par, spec)
+  expect_identical(names(split), c("mu", key, "sd(site)"))
+  for (target in sd_mu$dpars) {
+    expected <- beta_sd_mu[sd_mu$coef_index[[target]]]
+    names(expected) <- sd_mu$coef_names_list[[target]]
+    expect_identical(split[[target]], expected)
+  }
+})
+
+test_that("Poisson SD keeps zi, slopes, structure, and mi fences", {
+  dat <- poisson_sd_fixture(groups = 12L, repeats = 4L)$data
+  expect_error(drm_build_poisson_spec(bf(y ~ x, sd(id) ~ w), dat),
+               "No random-effect term")
+  expect_error(drm_build_poisson_spec(bf(
+    y ~ x + (1 | p | id),
+    sd(id, dpar = "mu", coef = "(Intercept)", block = "p") ~ w
+  ), dat), "labelled covariance blocks remain planned")
+  expect_error(drm_build_poisson_spec(bf(y ~ x + (0 + x | id),
+                                       sd(id, coef = "x") ~ w), dat),
+               "intercept|slope")
+  dat$site <- factor(rep(seq_len(6L), length.out = nrow(dat)))
+  expect_error(drm_build_poisson_spec(bf(
+    y ~ x + (1 | id) + (0 + x | site), sd(id) ~ w
+  ), dat), "random slopes")
+  expect_error(drm_build_poisson_spec(bf(y ~ x + (1 | id),
+                                       zi ~ 1, sd(id) ~ w), dat),
+               "zero-inflated|zi")
+  expect_error(drm_build_poisson_spec(
+    bf(y ~ x + (1 | id), sd(id) ~ w), dat,
+    missing = miss_control(response = "include")
+  ), "complete data")
+  dat$w[1L] <- dat$w[1L] + 0.2
+  expect_error(drm_build_poisson_spec(bf(y ~ x + (1 | id), sd(id) ~ w), dat),
+               "constant within")
+})
+
+test_that("independent Poisson scalar integral preserves probability and mean", {
+  eta <- -0.2; tau <- 0.4
+  logp <- vapply(0:18, function(y) {
+    poisson_sd_scalar_log_marginal(y, eta, tau, "adaptive")
+  }, numeric(1L))
+  probabilities <- exp(logp)
+  expect_equal(sum(probabilities), 1, tolerance = 1e-6)
+  expect_equal(sum((0:18) * probabilities), exp(eta + tau^2 / 2),
+               tolerance = 1e-5)
+  expect_equal(poisson_sd_scalar_log_marginal(c(1, 0), c(0.2, -0.3),
+                                              tau, "adaptive"),
+               poisson_sd_scalar_log_marginal(c(0, 1), c(-0.3, 0.2),
+                                              tau, "adaptive"),
+               tolerance = 1e-9)
+})

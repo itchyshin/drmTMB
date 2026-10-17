@@ -1,5 +1,14 @@
 # Known Limitations
 
+# Native discrete-family SD regression
+
+Native ordinary scalar location-intercept SD formulas are point-checked for
+Bernoulli/binomial and non-zero-inflated Poisson, with selector-aware outputs
+and refitting checks. Interval calibration, Julia public dispatch and the
+remaining family/effect/provider combinations are still required by the active
+general SD-regression programme. See `general-sd-regression/` for exact evidence.
+
+
 Read this ledger together with
 `docs/design/168-r-julia-finish-capability-matrix.md`; when a status boundary
 differs, the stricter fitted, planned, or unsupported row governs public claims.
@@ -85,7 +94,10 @@ revisit condition.
   constant within the named grouping variable after missing-row filtering.
   The native ordinary Bernoulli/binomial intercept route also admits
   `sd(group) ~ predictors`, with independent point-recovery, constant-SD,
-  prediction and workflow checks. Its interval calibration and Julia
+  prediction and workflow checks. Explicit `dpar = "mu"`,
+  `coef = "(Intercept)"`, and matching `block` selectors work for unique
+  ordinary scalar targets, including a labelled `(1 | p | id)`. Slopes and
+  duplicate same-group intercepts remain outside this slice. Its interval calibration and Julia
   integration remain open under the general SD-regression programme.
   These direct-SD formulae target location random effects only. Names such as
   `sd_sigma1()` and `sd_sigma2()` are rejected because residual scale should be

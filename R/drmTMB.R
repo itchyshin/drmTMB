@@ -7654,7 +7654,11 @@ drm_build_binomial_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_binomial_mu_random_terms(mu_re$terms)
-  sd_mu_targets <- parse_sd_mu_entries(sd_mu_entries, mu_re$terms)
+  # The ordinary member registry needs the built latent index. Parse only
+  # grouping names here for row filtering; resolve the target after building it.
+  sd_mu_groups <- vapply(sd_mu_entries, function(entry) {
+    parse_sd_lhs(entry$lhs)$group
+  }, character(1L))
   # First binomial structured slice (#1048): one unlabelled q1 phylo() intercept
   # on mu. Phylogenetic logistic regression -- a binary trait on a tree -- is the
   # canonical comparative-methods use of a binary response, and binomial was the
@@ -7711,7 +7715,7 @@ drm_build_binomial_spec <- function(
     structured_mu_vars(binomial_structured_term),
     random_effect_vars(mu_re$terms),
     unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
-    vapply(sd_mu_targets, `[[`, character(1), "group")
+    sd_mu_groups
   ))
   # response = "include": keep missing-response rows (exclude the response from
   # the complete-case rule). predictor = "model": keep missing-predictor rows
@@ -7820,6 +7824,9 @@ drm_build_binomial_spec <- function(
   }
 
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  sd_mu_targets <- drm_binomial_sd_mu_targets(
+    sd_mu_entries, mu_re$terms, re_mu
+  )
   sd_mu <- build_sd_mu_structure(
     sd_mu_entries, sd_mu_targets, re_mu, data_model
   )
@@ -8144,12 +8151,7 @@ drm_build_poisson_spec <- function(
       "i" = drm_unsupported_dpar_hint()
     ))
   }
-  if (any(is_sd_dpar)) {
-    cli::cli_abort(c(
-      "Random-effect scale formulae are not implemented for Poisson models.",
-      "i" = "Poisson models currently have no fitted {.code sigma} parameter."
-    ))
-  }
+  sd_mu_entries <- entries[is_sd_dpar]
   if (sum(dpars == "mu") != 1L) {
     cli::cli_abort("A Poisson model requires exactly one location formula.")
   }
@@ -8164,6 +8166,9 @@ drm_build_poisson_spec <- function(
     entries[[which(dpars == "zi")]]
   } else {
     NULL
+  }
+  if (length(sd_mu_entries) > 0L && !is.null(zi_entry)) {
+    cli::cli_abort("Poisson ordinary {.code sd()} regression is not yet admitted with zero-inflated {.code zi} models.")
   }
   if (is.na(mu_entry$response)) {
     cli::cli_abort(
@@ -8260,6 +8265,11 @@ drm_build_poisson_spec <- function(
   )
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (length(sd_mu_entries) > 0L &&
+      (include_missing_response || include_missing_predictor ||
+       !is.null(mu_structured_term))) {
+    cli::cli_abort("Poisson ordinary {.code sd()} regression currently requires complete data and no structured random effect or {.fn mi} predictor.")
+  }
   if (include_missing_response && include_missing_predictor) {
     cli::cli_abort(c(
       "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a Poisson response yet.",
@@ -8313,8 +8323,15 @@ drm_build_poisson_spec <- function(
   if (!is.null(zi_entry)) {
     drm_reject_phase1_terms(zi_entry$rhs, zi_entry$dpar)
   }
+  for (sd_mu_entry in sd_mu_entries) {
+    drm_reject_phase1_terms(sd_mu_entry$rhs, sd_mu_entry$dpar)
+  }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  f_sd_mu <- lapply(sd_mu_entries, drm_entry_formula, response = FALSE)
+  sd_mu_groups <- vapply(sd_mu_entries, function(entry) {
+    parse_sd_lhs(entry$lhs)$group
+  }, character(1L))
   f_zi <- if (!is.null(zi_entry)) {
     drm_entry_formula(zi_entry, response = FALSE)
   } else {
@@ -8345,7 +8362,9 @@ drm_build_poisson_spec <- function(
     impute_vars,
     structured_mu_vars(mu_structured_term),
     structured_mu_vars(zi_spatial$term),
-    random_effect_vars(mu_re$terms)
+    random_effect_vars(mu_re$terms),
+    unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
+    sd_mu_groups
   ))
   # response = "include": keep missing-response rows, so exclude the response
   # from the complete-case rule (predictors are still required complete).
@@ -8472,7 +8491,9 @@ drm_build_poisson_spec <- function(
   }
   has_zi <- !is.null(X_zi)
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
-  sd_mu <- empty_sd_mu_structure(re_mu$n_re)
+  sd_mu_targets <- drm_poisson_sd_mu_targets(sd_mu_entries, mu_re$terms, re_mu)
+  sd_mu <- build_sd_mu_structure(sd_mu_entries, sd_mu_targets, re_mu,
+                                data_model)
   poisson_structured_term <- if (!is.null(zi_spatial$term)) {
     zi_spatial$term
   } else {
@@ -8499,10 +8520,12 @@ drm_build_poisson_spec <- function(
       X_mu[observed_y, , drop = FALSE],
       if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu,
       re_mu = re_mu,
+      sd_mu = sd_mu,
       phylo_mu = phylo_mu
     )
   } else {
-    poisson_start(y, X_mu, offset_mu, re_mu = re_mu, phylo_mu = phylo_mu)
+    poisson_start(y, X_mu, offset_mu, re_mu = re_mu, sd_mu = sd_mu,
+                  phylo_mu = phylo_mu)
   }
   if (include_missing_predictor) {
     start$beta_mi <- missing_predictor$beta_start
@@ -8541,20 +8564,21 @@ drm_build_poisson_spec <- function(
     V_known_type = "none",
     has_known_v = FALSE,
     offset = list(mu = offset_mu),
-    X = if (has_zi) list(mu = X_mu, zi = X_zi) else list(mu = X_mu),
-    terms = if (has_zi) {
+    X = c(if (has_zi) list(mu = X_mu, zi = X_zi) else list(mu = X_mu),
+          sd_mu$X_list),
+    terms = c(if (has_zi) {
       list(
         mu = stats::delete.response(stats::terms(mf_mu)),
         zi = stats::terms(mf_zi)
       )
     } else {
       list(mu = stats::delete.response(stats::terms(mf_mu)))
-    },
-    model_frame = if (has_zi) {
+    }, sd_mu$terms_list),
+    model_frame = c(if (has_zi) {
       list(mu = mf_mu, zi = mf_zi)
     } else {
       list(mu = mf_mu)
-    },
+    }, sd_mu$model_frame_list),
     random = list(
       mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
@@ -8566,12 +8590,12 @@ drm_build_poisson_spec <- function(
     data = data_model,
     variables = vars,
     keep = keep,
-    dpars = if (has_zi) c("mu", "zi") else "mu",
+    dpars = c(if (has_zi) c("mu", "zi") else "mu", sd_mu$dpars),
     start = start,
     map = if (has_zi) {
       zi_poisson_map(phylo_mu)
     } else {
-      poisson_map(re_mu, phylo_mu)
+      poisson_map(re_mu, phylo_mu, sd_mu)
     },
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
@@ -8588,6 +8612,28 @@ drm_build_poisson_spec <- function(
     length(spec$y)
   }
   spec
+}
+
+drm_poisson_sd_mu_targets <- function(entries, terms, re_mu) {
+  if (length(entries) == 0L) return(list())
+  if (any(vapply(terms, function(term) !identical(term$type, "intercept"),
+                 logical(1L)))) {
+    cli::cli_abort("Poisson ordinary {.code sd()} regression is currently limited to scalar random intercepts; random slopes and correlated blocks need separate validation.")
+  }
+  for (entry in entries) {
+    group <- parse_sd_lhs(entry$lhs)$group
+    matching <- Filter(function(term) identical(term$group, group), terms)
+    if (length(matching) > 0L &&
+        (length(matching) != 1L ||
+         !identical(matching[[1L]]$type, "intercept"))) {
+      cli::cli_abort(c(
+        "Poisson ordinary {.code sd()} regression currently targets one scalar random intercept per group.",
+        "x" = "Group {.field {group}} has a slope or multiple random-effect coefficients.",
+        "i" = "Remove the slope or use an unmodelled constant SD until that combination is validated."
+      ))
+    }
+  }
+  drm_binomial_sd_mu_targets(entries, terms, re_mu)
 }
 
 drm_build_nbinom2_spec <- function(
@@ -11800,7 +11846,7 @@ validate_binomial_mu_random_terms <- function(terms) {
     terms,
     function(term) {
       !(term$type %in% c("intercept", "slope")) ||
-        !is.null(term$covariance_label)
+        (!is.null(term$covariance_label) && !identical(term$type, "intercept"))
     },
     logical(1L)
   )
@@ -11810,7 +11856,7 @@ validate_binomial_mu_random_terms <- function(terms) {
       "Binomial {.code mu} supports independent random intercepts/slopes and one exact complete-data unlabelled correlated intercept-slope block.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use {.code bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id))}.",
-      "i" = "Use the exact complete-data unlabelled (1 + x | id) binomial block for the experimental q = 2 route; additional correlated blocks, labels, and structured effects remain unsupported."
+      "i" = "Labelled scalar intercepts are supported, as is the exact unlabelled q = 2 intercept-slope route; labelled slopes and labelled correlated blocks remain unsupported."
     ))
   }
   invisible(terms)
@@ -15389,6 +15435,7 @@ empty_sd_mu_structure <- function(n_re = 1L) {
     target_term = NA_integer_,
     target_coef = NA_integer_,
     target_label = NA_character_,
+    target_identity = list(),
     X = matrix(0, nrow = 1L, ncol = 1L),
     X_list = list(),
     coef_index = list(),
@@ -17409,6 +17456,9 @@ build_sd_mu_structure <- function(entries, targets, re_mu, data) {
     vapply(targets, `[[`, character(1), "label"),
     dpars
   )
+  target_identity <- stats::setNames(
+    lapply(targets, function(target) target$identity), dpars
+  )
 
   structure(
     list(
@@ -17419,6 +17469,7 @@ build_sd_mu_structure <- function(entries, targets, re_mu, data) {
       target_term = target_term,
       target_coef = target_coef,
       target_label = target_label,
+      target_identity = target_identity,
       X = X,
       X_list = X_list,
       coef_index = coef_index,
@@ -19240,6 +19291,7 @@ poisson_start <- function(
   X_mu,
   offset_mu = rep(0, length(y)),
   re_mu = empty_random_mu_structure(length(y)),
+  sd_mu = empty_sd_mu_structure(re_mu$n_re),
   phylo_mu = empty_phylo_mu_structure()
 ) {
   beta_mu <- tryCatch(
@@ -19259,6 +19311,11 @@ poisson_start <- function(
   }
   mu_re_start <- poisson_mu_re_start(re_mu)
   phylo_start <- gaussian_phylo_start(y, phylo_mu)
+  beta_sd_mu <- if (sd_mu$n_models > 0L) {
+    gaussian_sd_mu_start(mu_re_start, sd_mu)
+  } else {
+    0
+  }
   c(
     list(beta_mu = beta_mu),
     list(
@@ -19266,7 +19323,7 @@ poisson_start <- function(
       beta_nu = 0,
       beta_zi = 0,
       theta_ord = 0,
-      beta_sd_mu = 0,
+      beta_sd_mu = beta_sd_mu,
       u_mu = mu_re_start$u_mu,
       log_sd_mu = mu_re_start$log_sd_mu,
       eta_cor_mu = mu_re_start$eta_cor_mu,
@@ -19299,9 +19356,11 @@ poisson_mu_re_start <- function(re_mu) {
 
 poisson_map <- function(
   re_mu = empty_random_mu_structure(1L),
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  sd_mu = empty_sd_mu_structure(re_mu$n_re)
 ) {
-  out <- gaussian_ls_map(re_mu = re_mu, phylo_mu = phylo_mu)
+  out <- gaussian_ls_map(re_mu = re_mu, sd_mu = sd_mu,
+                         phylo_mu = phylo_mu)
   out$beta_sigma <- factor(NA)
   out
 }
@@ -21628,7 +21687,7 @@ make_tmb_data_core <- function(spec) {
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,
       X_sd_mu = spec$random_scale$mu$X,
-      has_sd_mu_model = 0L,
+      has_sd_mu_model = as.integer(spec$random_scale$mu$n_models > 0L),
       X_sd_phylo = dummy_matrix,
       report_group_sd = 0L,
       has_sd_phylo_model = 0L,
@@ -22155,11 +22214,24 @@ make_tmb_data <- function(spec) {
   out
 }
 
+split_tmb_mu_random_scale_parameters <- function(out, par, spec) {
+  sd_mu <- spec$random_scale$mu
+  if (sd_mu$n_models > 0L) {
+    beta_sd_mu <- unname(par$beta_sd_mu[seq_len(ncol(sd_mu$X))])
+    for (dpar in sd_mu$dpars) {
+      coef <- beta_sd_mu[sd_mu$coef_index[[dpar]]]
+      names(coef) <- sd_mu$coef_names_list[[dpar]]
+      out[[dpar]] <- coef
+    }
+  }
+  out
+}
+
 split_tmb_parameters <- function(par, spec) {
   if (identical(spec$model_type, "poisson")) {
     beta_mu <- unname(par$beta_mu)
     names(beta_mu) <- colnames(spec$X$mu)
-    out <- list(mu = beta_mu)
+    out <- split_tmb_mu_random_scale_parameters(list(mu = beta_mu), par, spec)
     if (
       is.list(spec$missing_predictor) &&
         isTRUE(spec$missing_predictor$enabled)
@@ -22173,16 +22245,7 @@ split_tmb_parameters <- function(par, spec) {
   if (identical(spec$model_type, "binomial")) {
     beta_mu <- unname(par$beta_mu)
     names(beta_mu) <- colnames(spec$X$mu)
-    out <- list(mu = beta_mu)
-    if (spec$random_scale$mu$n_models > 0L) {
-      sd_mu <- spec$random_scale$mu
-      beta_sd_mu <- unname(par$beta_sd_mu[seq_len(ncol(sd_mu$X))])
-      for (dpar in sd_mu$dpars) {
-        coef <- beta_sd_mu[sd_mu$coef_index[[dpar]]]
-        names(coef) <- sd_mu$coef_names_list[[dpar]]
-        out[[dpar]] <- coef
-      }
-    }
+    out <- split_tmb_mu_random_scale_parameters(list(mu = beta_mu), par, spec)
     if (
       is.list(spec$missing_predictor) &&
         isTRUE(spec$missing_predictor$enabled)

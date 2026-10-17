@@ -444,6 +444,6 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
       family = stats::poisson(),
       data = dat
     ),
-    "Random-effect scale"
+    "non-negative integer count response"
   )
 })

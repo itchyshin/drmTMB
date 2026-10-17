@@ -6985,7 +6985,7 @@ drm_simulate_marginal_unsupported <- function(object) {
   }
   if (
     isTRUE(object$model$random_scale$mu$n_models > 0L) &&
-      !identical(object$model$model_type, "binomial")
+      !object$model$model_type %in% c("binomial", "poisson")
   ) {
     return("modelled (heteroscedastic) random-effect scale")
   }
@@ -7095,10 +7095,10 @@ drm_fresh_ordinary_random_effect_values <- function(
   list(latent = latent, values = values)
 }
 
-# Returns a per-coefficient SD override for fitted ordinary binomial SD models.
+# Returns a per-coefficient SD override for fitted ordinary location SD models.
 # The stored registry's zero-based row map aligns each random coefficient with
 # the group-level scale prediction; NA entries leave unrelated terms unchanged.
-drm_binomial_sd_effect_override <- function(object, re) {
+drm_ordinary_sd_effect_override <- function(object, re) {
   sd_model <- object$model$random_scale$mu
   if (!is.list(sd_model) || !isTRUE(sd_model$n_models > 0L)) {
     return(NULL)
@@ -7106,7 +7106,7 @@ drm_binomial_sd_effect_override <- function(object, re) {
   row_map <- sd_model$re_sd_row0
   if (length(row_map) != re$n_re) {
     cli::cli_abort(
-      "Internal error: binomial SD rows do not align with ordinary random effects."
+      "Internal error: ordinary SD rows do not align with random effects."
     )
   }
   target <- which(row_map >= 0L)
@@ -7119,7 +7119,7 @@ drm_binomial_sd_effect_override <- function(object, re) {
     values <- predict_random_scale_dpar(object, dpar, type = "response")
     if (length(rows) != length(values)) {
       cli::cli_abort(
-        "Internal error: binomial SD predictions do not align with scale rows."
+        "Internal error: ordinary SD predictions do not align with scale rows."
       )
     }
     group_sd[rows] <- unname(values)
@@ -7130,13 +7130,16 @@ drm_binomial_sd_effect_override <- function(object, re) {
       anyNA(group_sd[group_row])
   ) {
     cli::cli_abort(
-      "Internal error: binomial SD target map points to an unavailable group scale."
+      "Internal error: ordinary SD target map points to an unavailable group scale."
     )
   }
   out <- rep(NA_real_, re$n_re)
   out[target] <- group_sd[group_row]
   out
 }
+
+# Retain the tested internal spelling for existing binomial callers.
+drm_binomial_sd_effect_override <- drm_ordinary_sd_effect_override
 
 # Reduces a flat vector of fresh random-effect values (in the same layout as
 # `re$index`/`re$value`) to a per-observation contribution for one dpar,
@@ -7270,9 +7273,9 @@ drm_ordinary_random_effect_draws <- function(object) {
       object$corpars$mu,
       eta_lookup = eta_mu,
       sd_by_effect_override = if (
-        identical(object$model$model_type, "binomial")
+        object$model$model_type %in% c("binomial", "poisson")
       ) {
-        drm_binomial_sd_effect_override(object, re_mu)
+        drm_ordinary_sd_effect_override(object, re_mu)
       } else {
         NULL
       }

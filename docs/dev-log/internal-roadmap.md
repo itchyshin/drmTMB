@@ -1,5 +1,14 @@
 # drmTMB Roadmap
 
+## Current SD-regression execution
+
+Native ordinary scalar location-intercept SD formulas are point-checked for
+Bernoulli/binomial and non-zero-inflated Poisson, with selector-aware outputs
+and refitting checks. Interval calibration, Julia public dispatch and the
+remaining family/effect/provider combinations are still required by the active
+general SD-regression programme. See `general-sd-regression/` for exact evidence.
+
+
 `drmTMB` is a focused R package for fast univariate and bivariate
 distributional regression models using TMB.
 
@@ -301,7 +310,8 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
   `sd(site) ~ site_type`.
   The general SD-regression programme adds a native Bernoulli/binomial
-  ordinary-intercept slice with point and workflow checks. Both-engine
+  ordinary-intercept slice with point and workflow checks, including explicit
+  scalar target selectors and unique labelled intercepts. Both-engine
   integration, calibrated uncertainty and all other frozen family/effect
   combinations remain open; see `general-sd-regression/native-bernoulli-status.md`.
   The bivariate Gaussian path now fits matched labelled `mu1`/`mu2`,

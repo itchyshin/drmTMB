@@ -182,6 +182,22 @@ top-level `weights` remain likelihood weights, not denominators. Extra-binomial
 variation remains the job of `beta_binomial()`, while continuous proportions
 belong to `beta_family()` or `zero_one_beta()`.
 
+### Predictor-dependent Poisson random-intercept SD
+
+The native non-zero-inflated Poisson route accepts unlabelled ordinary scalar
+location targets, including explicit `dpar` and `coef` selectors. Its labelled
+base route remains fenced and required by the wider programme. It uses
+`log(s_g) = W_g alpha`, `u_g ~ Normal(0, 1)`,
+`eta_i = X_mu[i, ] beta_mu + s_g u_g`, and
+`Y_i | u_g ~ Poisson(exp(eta_i))`. This SD is on the log-mean scale and is
+separate from response dispersion. TMB integrates the latent effects by
+Laplace approximation. Focused checks cover an independent scalar Laplace
+calculation, a reversed-group-predictor negative control, constant-SD
+equivalence, target extraction, prediction, storage, marginal simulation and
+two bootstrap refits. These checks do not establish calibrated intervals.
+Poisson SD regression with slopes, structured effects, zero inflation or
+missing-data combinations remains outside this first slice.
+
 ### Predictor-dependent Bernoulli/binomial random-intercept SD
 
 The native ordinary-intercept slice additionally accepts
@@ -207,8 +223,12 @@ An independent scalar Laplace calculation checks the native objective.
 This verifies its implementation, not the accuracy of Laplace integration
 against the exact marginal likelihood. Profile target mapping and marginal
 simulation/bootstrap refits are separate plumbing checks. Interval coverage,
-structured SD targets, slopes, explicit selectors and Julia integration remain
-programme work. See `docs/dev-log/general-sd-regression/native-bernoulli-status.md`
+structured SD targets, slopes and Julia integration remain programme work.
+Native scalar-intercept targets accept `dpar = "mu"`, `coef = "(Intercept)"`
+and a matching `block` label; their full canonical identity is retained in
+coefficients, prediction, save/reload, profiles and bootstrap refits. A unique
+labelled `(1 | p | id)` intercept has the same likelihood as its unlabelled
+counterpart. Labels do not admit duplicate intercepts with the same group. See `docs/dev-log/general-sd-regression/native-bernoulli-status.md`
 for the current evidence boundary.
 
 ## Gaussian Aggregation Branch

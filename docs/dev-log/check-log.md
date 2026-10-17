@@ -1,3 +1,29 @@
+## 2026-10-17: native discrete SD selectors and Poisson checkpoint
+
+Fresh source capsule `eaf3198f9a703c4d88e21b106dc0c9dbe16fa8adef1235be83da33aa7167c417`
+was compiled into a new Totoro library. All 305 assertions passed: Poisson28,
+prediction labels11, selector workflows12, selector integration22, original
+Bernoulli117, Gaussian89 and clamp26; one deliberate clamp warning remains.
+The final source-only suite passes120 assertions across23 tests. The initial
+Poisson coefficient-extraction failure and obsolete Gaussian test expectation
+are retained with repaired-run logs. Public group labels now follow registered
+SD targets; direct prediction and parameter-table values agree for a fitted model.
+
+Rd validation, HTML conversion and pkgdown configuration checks pass. Exact
+bounded evidence is under `general-sd-regression/evidence/poisson-20261017/`.
+DRAC job65660299 passed its one-seed feasibility check in two minutes, with
+fit/profile13.715s and Laplace-oracle difference7.5e-9. This is not calibration.
+The separate three-case qualification completed all workers but exposed a
+subset-manifest summary bug; the repair passed pure review, and newly sealed live qualification is pending. Production is unlaunched.
+All programme G0-G8 gates remain open. No full R/Julia check or external action.
+
+Status-inventory query: `rg -n 'Poisson.*SD|SD.*Poisson|Bernoulli.*SD|binomial.*SD'
+R/random-effect-scale-formulas.R docs/design/01-formula-grammar.md
+ docs/design/03-likelihoods.md NEWS.md docs/dev-log/known-limitations.md
+ docs/dev-log/internal-roadmap.md vignettes/formula-grammar.Rmd`.
+The narrower Beta phylogenetic evidence remains separate. No navigation change
+was needed. Report: `after-task/2026-10-17-general-sd-discrete-checkpoint.md`.
+
 ## 2026-10-17: internal ordinary SD member resolver
 
 `R/random-effect-targets.R` constructs ordinary latent-member descriptors from

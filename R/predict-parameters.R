@@ -157,7 +157,9 @@ predict_parameters.drmTMB <- function(
     )
     out <- data.frame(
       row = seq_len(n),
-      row_label = predict_parameters_row_labels(newdata, n),
+      row_label = predict_parameters_row_labels(
+        newdata, n, object = object, dpar = one_dpar
+      ),
       dpar = one_dpar,
       component = drm_dpar_component(one_dpar),
       type = type,
@@ -488,8 +490,14 @@ predict_parameters_order_columns <- function(data) {
   ]
 }
 
-predict_parameters_row_labels <- function(newdata, n) {
+predict_parameters_row_labels <- function(newdata, n, object = NULL, dpar = NULL) {
   if (is.null(newdata)) {
+    group_labels <- predict_parameters_random_scale_group_labels(
+      object, dpar, n
+    )
+    if (!is.null(group_labels)) {
+      return(group_labels)
+    }
     return(as.character(seq_len(n)))
   }
   labels <- row.names(newdata)
@@ -497,6 +505,42 @@ predict_parameters_row_labels <- function(newdata, n) {
     return(as.character(seq_len(n)))
   }
   labels
+}
+
+predict_parameters_random_scale_group_labels <- function(object, dpar, n) {
+  if (is.null(object) || is.null(dpar) || length(dpar) != 1L ||
+      is.na(dpar)) {
+    return(NULL)
+  }
+  random_scale <- object$model$random_scale
+  if (!is.list(random_scale)) {
+    return(NULL)
+  }
+  candidates <- random_scale[c("mu", "phylo")]
+  matches <- which(vapply(candidates, function(candidate) {
+    is.list(candidate) && dpar %in% candidate$dpars
+  }, logical(1L)))
+  if (length(matches) == 0L) {
+    return(NULL)
+  }
+  if (length(matches) != 1L) {
+    cli::cli_abort(
+      "Internal error: random-scale parameter {.val {dpar}} has multiple group-label registries."
+    )
+  }
+  group_levels_list <- candidates[[matches[[1L]]]]$group_levels_list
+  labels <- if (is.list(group_levels_list)) {
+    group_levels_list[[dpar]]
+  } else {
+    NULL
+  }
+  if (is.null(labels) || length(labels) != n || anyNA(labels)) {
+    cli::cli_abort(c(
+      "Internal error: registered group labels for {.val {dpar}} do not match the prediction length.",
+      "i" = "The scale registry must provide exactly one non-missing group label per prediction row."
+    ))
+  }
+  as.character(labels)
 }
 
 predict_parameters_newdata_columns <- function(newdata, n_dpar) {

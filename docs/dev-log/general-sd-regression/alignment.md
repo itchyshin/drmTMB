@@ -22,3 +22,16 @@ preserve positive definiteness for positive tau and an admitted base covariance.
 All coefficient/prediction and interval checks use the same target/coding map.
 Unknown newdata levels and within-group-varying SD predictors do not silently
 change that map. Existing clamping and boundary diagnostics remain visible.
+
+## Next ordinary-family slice: Poisson
+
+For a location random intercept, use
+`Y[i] | u ~ Poisson(exp(X[i,] beta + exp(W[g[i],] alpha) u[g[i]]))`,
+with independent `u[g] ~ N(0,1)`. The syntax remains
+`bf(y ~ x + (1 | id), sd(id) ~ w)` with `poisson()`.
+The SD is on the log-mean link scale, and a unit change in `w` multiplies that
+latent SD by `exp(alpha[w])`. No free Poisson residual scale is introduced.
+The generator must use a distinct group-level `w_group` and observation-to-group
+index; constant-SD equivalence and independent scalar integration remain
+separate likelihood checks. This is the next implementation contract, not a
+claim that Poisson SD fitting or inference already passes.

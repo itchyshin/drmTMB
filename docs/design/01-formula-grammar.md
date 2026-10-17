@@ -774,8 +774,10 @@ or are planned). Those levels should land only with a fitted variance model,
 parser tests, examples, reference-index discoverability, and a clear migration
 note, mirroring the phylogenetic route.
 
-Reserved explicit random-effect scale targets use `dpar`, `coef`, and optional
-`block` arguments:
+Explicit random-effect scale targets use `dpar`, `coef`, and optional
+`block` arguments. The native Bernoulli/binomial scalar-intercept route admits
+`dpar = "mu"`, `coef = "(Intercept)"`, and a matching block label. The slope
+example below remains reserved:
 
 ```r
 bf(
@@ -786,11 +788,15 @@ bf(
 )
 ```
 
-`drm_formula()` parses this grammar so future examples have one spelling, but
-`drmTMB()` rejects it until random-slope SD regression has a fitted covariance
-model and simulation tests. The implemented shorthand `sd(id) ~ x_group`
-remains limited to the unambiguous case with exactly one unlabelled Gaussian
-`mu` random intercept for `id`.
+`drm_formula()` parses this grammar so future examples have one spelling.
+The complete slope example above is rejected until its covariance model and
+recovery tests exist. Native Bernoulli/binomial scalar targets can use
+`sd(id, dpar = "mu", coef = "(Intercept)", block = "p") ~ x_group`
+with `(1 | p | id)`. The shorthand `sd(id) ~ x_group` selects a unique
+ordinary native binomial intercept or an existing unlabelled Gaussian
+intercept. Two distinct grouping variables may each have an SD formula.
+Duplicate intercepts on the same group remain rejected; labels alone cannot
+identify separate constant variance components with the same latent design.
 
 Future correlated multi-slope syntax should allow larger model-matrix terms
 such as:
@@ -1089,7 +1095,7 @@ Not every parameter should accept random effects at the same development stage.
 |---|---|
 | `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. For non-zero-inflated Poisson and NB2 models, ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)` are implemented on the log-mean scale, one q=1 structured `mu` intercept may use `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, and one unlabelled intercept-plus-one-slope term may use `phylo()`, `spatial()`, `animal()`, or `relmat()`. Ordinary Poisson additionally admits one complete-data unlabelled `(1 + x | id)` ML-Laplace route at `point_fit_recovery` (`mc-0718`) and the exact labelled q2 intercept--slope forms for `phylo()`, `spatial()`, `animal()`, and `relmat()`; ordinary NB2 admits the matching unlabelled ordinary `(1 + x | id)` route at `point_fit_recovery` (`mc-0719`); ordinary lognormal admits the matching unlabelled ordinary `(1 + x | id)` route at `point_fit_recovery` (`mc-0720`) and the exact phylo labelled q2 form only. These count-q2 targets are point-fit-only and not profile-ready. Row-specific zero-inflated gates also accept an intercept-only spatial `mu` field for fixed-`zi` Poisson and fixed-`zi` NB2 at diagnostic-only grade. Ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, beta-binomial, and binomial models also support unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)`. Binomial additionally admits one experimental complete-data unlabelled `(1 + x | id)` point-fit route. Beta additionally admits exactly one unlabelled intercept-only `phylo(1 | species, tree = tree)` term in `mu` at `point_fit_recovery` for the exact tested `g = 1024, m = 4` regime; family `sigma` remains fixed-effect-only, and slopes, labels/q2+, direct latent-`sd()` regression, intervals, and coverage remain deferred. Correlated non-Gaussian slopes outside the exact binomial, ordinary Poisson, and ordinary NB2 q2 point-fit routes, covariance labels outside the exact count-q2 forms, pure or multiple structured count slopes, zero-inflated structured count effects outside exact local-fit gates, bounded-response exact-boundary random effects, and richer or labelled NB2 structured `sigma` effects beyond the exact q1 recovery-grade routes remain planned. For bivariate Gaussian models, matching labelled random intercepts in `mu1` and `mu2`, such as `(1 | p | id)` in both formulas, matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)`, matching same-response slope-only `mu1`/`sigma1` or `mu2`/`sigma2` blocks, matching one-slope q=4 location blocks such as `(1 + x | p | id)`, matching q=6 location blocks such as `(1 + x + z | p | id)`, and the first all-four q8 endpoint block with matching `(1 + x | p | id)` terms in `mu1`, `mu2`, `sigma1`, and `sigma2` are implemented. Bivariate residual-scale slope-only `sigma1`/`sigma2` blocks are listed under `sigma`; formal simulation recovery for q > 2 bivariate location and q8 blocks is later. |
 | `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts, independent numeric random slopes, and unlabelled ordinary correlated intercept-slope or multi-slope blocks. Separate terms such as `sigma ~ x + (1 | id) + (0 + w | id)` are independent; one term such as `sigma ~ x + (1 + w | id)` estimates within-block correlations. Labelled residual-scale blocks and cross-formula `mu`-`sigma` slope covariance remain planned. Univariate Gaussian `sigma` also has first sigma-only structured one-slope cells for `phylo(1 + x | species, tree = tree)`, fixed-covariance `spatial(1 + x | site, coords = coords)`, A-matrix `animal(1 + x | id, A = A)`, and K/Q `relmat(1 + x | id, K/Q = ...)`; matching unlabelled `mu` and `sigma` one-slope structured terms fit the same four endpoint members as native point-fit/extractor cells. Matching labelled `mu` and `sigma` intercepts such as `(1 | p | id)` fit mean-scale covariance blocks, with one row per independent matched label/group pair. For bivariate Gaussian models, matching labelled random intercepts in `sigma1` and `sigma2` are implemented as a scale-scale block, matching slope-only labels such as `(0 + x | p | id)` in both `sigma1` and `sigma2` fit the first scale-slope block, and matching same-response `mu1`/`sigma1` or `mu2`/`sigma2` slope-only labels fit the first mean-scale-slope block. Ordinary non-zero-inflated NB2, lognormal, and Gamma also support a first independent `sigma ~ z + (1 | id)` random-intercept gate; exact q1 NB2 structured `sigma` intercept-plus-one-slope routes for `phylo()`, `spatial()`, `animal()`, and `relmat()` are fitted at recovery grade. ZINB2 additionally has one complete-response, ML, point-fit-only IID control: fixed-effect `mu`, `zi ~ 1`, and `sigma ~ 1 + (1 | group)`; every other ZINB2 sigma RE form remains later. Student-t, beta, beta-binomial, truncated NB2, and hurdle NB2 `sigma` formulas remain fixed-effect only; NB2/lognormal/Gamma `sigma` slopes, labelled or combined non-Gaussian `sigma` covariance, richer or labelled structured non-Gaussian `sigma`, structured bridge/interval/coverage promotion, and all-four bivariate scale endpoints are later. |
-| `sd(group)` | Implemented for one or more distinct unlabelled univariate Gaussian `mu` random intercepts, and point-checked for ordinary Bernoulli/binomial `mu` intercepts on the native engine, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`; predictors must be constant within group after missing-row filtering. One exact non-Gaussian exception is the Beta q1 phylogenetic location form `sd(spp_id, level = "phylogenetic") ~ x_tau`; it targets latent `tau`, not family `sigma`. Labelled scale targets, slopes, random RHS effects, `sigma` random-effect scales, bivariate models beyond existing routes, and remaining non-Gaussian direct-SD models are later. Bernoulli/binomial interval calibration and Julia integration remain open. |
+| `sd(group)` | Implemented for one or more distinct unlabelled univariate Gaussian `mu` random intercepts, and point-checked for ordinary Bernoulli/binomial and non-zero-inflated Poisson `mu` intercepts on the native engine, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`; predictors must be constant within group after missing-row filtering. One exact non-Gaussian exception is the Beta q1 phylogenetic location form `sd(spp_id, level = "phylogenetic") ~ x_tau`; it targets latent `tau`, not family `sigma`. Labelled Gaussian scale targets, slopes, random RHS effects, `sigma` random-effect scales, bivariate models beyond existing routes, and remaining non-Gaussian direct-SD models are later. Native discrete-family interval calibration and Julia integration remain open. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
 | `nu`; future `tau` | Fixed effects first, with one exact diagnostic-only Student-t q1 `nu ~ phylo(1 | id, tree = tree)` intercept backed by a single local smoke and no recovery denominator. Other Student-t `nu` random effects, future `nu`/`tau` routes, and ID-level skewness such as `skew(id) ~ x` need their own recovery evidence. `tau` is reserved for a possible second shape parameter and is not current syntax. |
 | `zi`, `hu`, `zoi`, `coi` | Fixed effects first, with exact diagnostic-only q1 intercept exceptions for Poisson `zi ~ spatial()` and truncated-NB2 `hu ~ relmat(K/Q)`. A fixed-`zi` Poisson model admits an intercept-only `mu ~ spatial()` gate at diagnostic-only grade, while the corresponding fixed-`zi` NB2 gate is diagnostic-only. Poisson ordinary `mu` random intercepts/slopes require no `zi` formula. An active `hu` formula blocks ordinary count-side `mu` random effects. For percentage data, fixed-effect `zoi` and `coi` are implemented in `zero_one_beta()`; separately, the exact ordinary q1 `zoi ~ 1 + (1 | id)` route and same-raw-symbol slope `zoi ~ x + (0 + x | id)` are point-fit-only, with visible targets unavailable to profiling. `coi` random effects, other atom slopes, joint atom effects, and covariance remain planned. |
@@ -1164,8 +1170,10 @@ Not every parameter should accept random effects at the same development stage.
 - Random-effect scale formulae are currently implemented as
   `sd(group) ~ x_group` for one or more distinct unlabelled univariate Gaussian
   `mu` random intercepts. A native ordinary Bernoulli/binomial intercept slice
-  also passes point-fit, prediction, simulation and profile plumbing checks;
-  its repeated-sampling interval calibration and Julia integration remain open.
+  also passes point-fit, prediction, simulation and profile plumbing checks.
+  Explicit `dpar = "mu"`, `coef = "(Intercept)"`, and matching `block` selectors
+  work for ordinary scalar native binomial intercepts, including unique labelled
+  terms. Its repeated-sampling interval calibration and Julia integration remain open.
 - Animal-model, phylogenetic, spatial, and lower-level known-relatedness terms
   are structured random effects. Teach them in that reader order: `animal()`
   for pedigree or additive relatedness, `phylo()` for macroevolutionary

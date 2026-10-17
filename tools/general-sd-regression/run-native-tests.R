@@ -13,6 +13,10 @@ cat("Compiled package: ", expected, "\n", sep = "")
 test_env <- new.env(parent = asNamespace("drmTMB"))
 sys.source("tests/testthat/helper-binomial-sd-regression.R", envir = test_env)
 sys.source("tests/testthat/helper-gaussian-random-effect-scale.R", envir = test_env)
+sys.source("tests/testthat/helper-convergence-warning.R", envir = test_env)
+if (file.exists("tests/testthat/helper-poisson-sd-regression.R")) {
+  sys.source("tests/testthat/helper-poisson-sd-regression.R", envir = test_env)
+}
 paths <- commandArgs(trailingOnly = TRUE)
 if (!length(paths)) {
   paths <- file.path("tests", "testthat", c(

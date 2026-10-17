@@ -2,6 +2,11 @@
 
 ## Documentation fixes
 
+* Native non-zero-inflated `poisson()` models now accept `sd(group) ~ predictors`
+  for ordinary scalar location intercepts, including explicit target selectors.
+  Independent likelihood and workflow checks pass; interval calibration and
+  Julia public integration remain open.
+
 * `?phylo` now correctly describes the existing unit-height convention:
   drmTMB divides the Brownian covariance by tree height, so multiplying all
   branch lengths by the same positive constant leaves the normalized
@@ -44,7 +49,9 @@
   constant-SD equivalence, prediction, marginal simulation and profile target
   checks accompany this first slice. Interval calibration, Julia integration
   and broader random-effect targets remain open; no residual Bernoulli
-  `sigma` is estimated.
+  `sigma` is estimated. Explicit `dpar`, `coef` and `block` selectors resolve
+  native scalar-intercept targets, including unique labelled terms. Full
+  target identities survive storage, profiles and bootstrap refits.
 
 * `confint()` and `profile()` accept `parallel = "cluster"`, a socket
   (PSOCK) backend that works on every platform, including Windows. Workers
