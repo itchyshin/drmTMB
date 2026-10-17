@@ -252,7 +252,8 @@ variance over the TOTAL variance, i.e. every mu random-effect variance plus
 the residual variance) and shows both the random-effect variance and the
 residual variance used in that ratio. This is a different denominator from
 the `icc()`/`repeatability()` accessors, which divide by that component's
-variance plus the residual only.
+variance plus the residual only. Those accessors, and `heritability()`, accept
+Gaussian fits only.
 
 Once you have more than one candidate model fitted to the same data — for
 example this random-intercept model against a simpler fixed-effect version —

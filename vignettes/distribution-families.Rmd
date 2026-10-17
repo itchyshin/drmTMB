@@ -532,6 +532,13 @@ coverage, joint atom effects, transformed or mismatched atom slopes, structured
 effects, known covariance, denominator syntax, and bivariate bounded-response
 models remain unavailable.
 
+The `coi` probability is identified only when the data contain both exact
+zeroes and exact ones. With only one kind of boundary value, `coi` runs to its
+boundary, `check_drm()` reports the fit as degenerate, and `is_converged()`
+returns `FALSE`. For such data, fit `beta_family()` to the interior values and
+`stats::binomial(link = "logit")` to the exact-boundary indicator; the two parts
+give the same `mu`, `sigma`, and `zoi` estimates (see `?zero_one_beta`).
+
 Poisson mean models are implemented for count responses:
 
 \[
@@ -560,8 +567,10 @@ estimates a rate per trap night while the expected count remains proportional
 to sampling effort.
 Use this path as a baseline count model and as a comparator for later
 overdispersed count families. Biological count data with extra-Poisson
-variation will usually need `nbinom2()`; COM-Poisson remains a later route for
-underdispersion or dispersion patterns that NB2 does not describe well.
+variation will usually need `nbinom2()`. drmTMB has no underdispersed count
+family; for counts whose variance is below the mean, use `glmmTMB` with its
+`compois()` (Conway-Maxwell-Poisson) or `genpois()` (generalized Poisson)
+family.
 
 Zero-inflated Poisson models are implemented by adding a `zi` formula:
 
