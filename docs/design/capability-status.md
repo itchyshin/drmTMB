@@ -195,7 +195,9 @@ compared with a nested NB2 fit that adds only the `sigma` intercept (#1557).
 That 50:50 default is conservative with few groups (type-I at most 5%, no
 lower bound; t10 recorded 3.0% and 3.4%). `test = "bootstrap"` on
 `anova()` and `drm_lrtest()` simulates from the reduced fit and returns
-`nsim`, `seed`, and the number of failed refits (#1559, #1560). `anova()` on an
+  `nsim`, `seed`, and the number of failed refits (#1559, #1560). On the
+t10 500-rep grids with `nsim = 99`, bootstrap type-I at `p < 0.05` was
+3.8% (NB2) and 3.0% (`(1 | g)`). `anova()` on an
 `engine = "julia"` fit still refuses; there is no `update.drmTMB()` method in `NAMESPACE`; and `weights.drmTMB()`
 returns the prior per-observation weights, not Akaike model weights -- DRM.jl's
 `weights(fit)` returns `ones(nobs(fit))`, so this is a shared naming boundary

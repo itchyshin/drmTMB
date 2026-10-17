@@ -878,6 +878,9 @@ revisit condition.
   expected for the default. `anova(..., test = "bootstrap")` and
   `drm_lrtest(..., test = "bootstrap")` simulate from the reduced fit and
   return a finite-sample p-value with `nsim`, `seed`, and the number of
-  failed refits. Julia `lrtest` still reports naive χ² unless
+  failed refits. On the same t10 500-rep grids with `nsim = 99`,
+  bootstrap type-I at `p < 0.05` was 3.8% (NB2) and 3.0% (`(1 | g)`);
+  the Davison–Hinkley 5% reading `p <= 0.05` was 4.8% on NB2 and 3.0%
+  on RE. Julia `lrtest` still reports naive χ² unless
   `test = :bootstrap` is passed; call `lrt_boundary(..., q = 1)` for the
   chi-bar p-value (#1557, #1559, #1560, DRModels.jl #1115, #1116, #1118).
