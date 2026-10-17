@@ -1,3 +1,21 @@
+# 2026-10-16: FX7 Julia resd label (#1551) and miss_control fail-closed (#1454)
+
+Stacked on #1565 (`b0cf1d8a`). Poisson/Gamma ordinary `(1 | g)` now send
+`coef_labels$resd = <group>` and `options$marginal = "Laplace"` so the
+bridge matches TMB Laplace instead of aborting at `resd_g` or silently
+taking AGHQ-5. `miss_control()` / `predictor = "fail"` with NA in `x`
+runs the A-2 complete-predictor check before the Julia early return.
+Red-proof on `b0cf1d8a`: `test-julia-ordinary-mu-resd.R` FAIL 2 (resd
+NULL) then PASS 12; `test-julia-miss-control-predictor.R` reached
+`drmTMB_julia_bridge()` (R/drmTMB.R:336) then PASS 6. Live Julia 1.12.7
+/ DRModels.jl `f71b2923`, `JULIA_PROJECT` unset: Poisson logLik delta
+`3.933e-09`, Gamma `8.137e-10`; `miss_control()` names `"x"`;
+`weights = NULL` still fences (#1450). Sibling Gaussian `(1 | g)` still
+has no `resd` label; nbinom2/beta/binomial stay unlabelled (loud echo,
+not silent AGHQ). Offset-as-free-coefficient untouched. C17 recertified
+because `R/drmTMB.R` moved. Report:
+`docs/dev-log/after-task/2026-10-16-fx7-julia-resd-misscontrol.md`.
+
 # 2026-10-16: FX1 JuliaCall setup SIGSEGV (exit 139) on official Julia 1.12.x
 
 `drm_julia_setup()` now calls `drm_julia_prepare_host()` before

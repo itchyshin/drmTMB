@@ -21,6 +21,19 @@
   139 becomes a classed `drmTMB_julia_host_setup_error` with the next step
   instead of the raw JuliaCall wrapper. Set `DRMODELS_JL_PATH`, not
   `JULIA_PROJECT`, at the checkout. Does not change TMB fitting.
+* `engine = "julia"` Poisson and Gamma models with an ordinary mean
+  `(1 | g)` now send a `resd` coefficient label (`resd_g`) and request
+  `marginal = "Laplace"`, matching the native TMB objective. The route
+  previously completed the Julia fit and then aborted at DRModels' label
+  echo. Sending the label without Laplace would have fitted AGHQ-5 and
+  silently mismatched TMB by about 1e-2 to 1e-3 log-likelihood units
+  (#1551; sweep-oct16/t5).
+* `missing = miss_control()` and `miss_control(predictor = "fail")` now
+  fail closed on `engine = "julia"` when a predictor such as `x` holds
+  `NA`, using the same A-2 complete-predictor check as `engine = "tmb"`.
+  The Julia early return previously skipped that check and listwise-deleted
+  (#1454; t5 J6, 6 of 6 Gaussian cells). Omitted `missing` still drops
+  incomplete rows. The `#1450` weights fence is unchanged.
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value

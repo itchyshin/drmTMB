@@ -2535,6 +2535,18 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
   if (length(ordinary_resd) > 0L) {
     labels[["resd"]] <- names(ordinary_resd)[[1L]]
   }
+  # #1551: Poisson / Gamma ordinary mean `(1 | g)` reports a bare `resd_<group>`
+  # block (Julia names: ["resd_g"]). Structured, phylo, and sigma-side ordinary
+  # bars already label `resd` above. Gaussian `(1 | g)` uses the
+  # conditional-components route and must not send `resd` (an unknown dpar
+  # there). nbinom2 / beta / binomial keep the loud echo until those routes
+  # can send Laplace; labelling them alone would silently take AGHQ-5.
+  if (
+    isTRUE(drm_julia_poisson_gamma_ordinary_ri(formula, family_type)) &&
+      is.null(labels[["resd"]])
+  ) {
+    labels[["resd"]] <- drm_julia_ordinary_mu_ri_group(formula)
+  }
   if (!is.null(family_type)) {
     labels <- drm_julia_bridge_default_dpar_labels(labels, formula, family_type)
   }
@@ -2558,6 +2570,36 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
 # (`R/drmTMB.R`), the SAME name the native TMB engine's `sdpars$sigma` uses
 # for this construct, so a Julia fit's `sdpars` names the same random-effect
 # term identically to a TMB fit of the same formula.
+# Ordinary mean `(1 | g)` group, or NULL. Used by the #1551 resd label and
+# the Laplace override. Structured / phylo markers live in `entry$structured`
+# and are excluded; random slopes and multiple bars are a different shape.
+drm_julia_ordinary_mu_ri_group <- function(formula) {
+  mu_entries <- Filter(function(entry) identical(entry$dpar, "mu"), formula$entries)
+  if (length(mu_entries) != 1L) {
+    return(NULL)
+  }
+  entry <- mu_entries[[1L]]
+  if (length(entry$structured) > 0L) {
+    return(NULL)
+  }
+  bars <- Filter(is_random_bar_call, flatten_plus_terms(entry$rhs))
+  if (length(bars) != 1L) {
+    return(NULL)
+  }
+  bar <- strip_parens(bars[[1L]])
+  lhs <- strip_parens(bar[[2L]])
+  group <- strip_parens(bar[[3L]])
+  if (!identical(lhs, 1) || !is.name(group)) {
+    return(NULL)
+  }
+  as.character(group)
+}
+
+drm_julia_poisson_gamma_ordinary_ri <- function(formula, family_type) {
+  family_type %in% c("poisson", "gamma") &&
+    !is.null(drm_julia_ordinary_mu_ri_group(formula))
+}
+
 drm_julia_ordinary_nonmu_resd_map <- function(formula) {
   ordinary_nonmu_dpar_names <- c(sigma = "logsigma")
   map <- list()
@@ -2874,6 +2916,16 @@ drm_julia_bridge_payload <- function(
     # The R-side copy (`coef_labels` below) stays a plain character vector per
     # dpar -- that is the contract form the fail-closed comparison reads.
     options$coef_labels <- lapply(coef_labels, as.list)
+  }
+  # Native TMB uses Laplace for Poisson / Gamma `(1 | g)`. DRM.jl's default
+  # for that shape is `marginal = :LA` (5-node AGHQ). Sending the #1551 `resd`
+  # label without this override would turn a loud echo abort into a silent
+  # 1e-2..1e-3 logLik mismatch. Not a user-facing `drm_control()` key.
+  if (
+    isTRUE(drm_julia_poisson_gamma_ordinary_ri(formula, family_type)) &&
+      is.null(options$marginal)
+  ) {
+    options$marginal <- "Laplace"
   }
   list(
     formula = formula_spec,

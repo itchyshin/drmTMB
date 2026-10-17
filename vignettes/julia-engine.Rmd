@@ -178,6 +178,10 @@ for generating this small example, not a recipe for simulating very large trees.
 
 ## Missing responses
 
+`missing = miss_control()` and `miss_control(predictor = "fail")` fail
+closed on `engine = "julia"` when a predictor holds `NA`, the same A-2
+rule as `engine = "tmb"`. Omitted `missing` still drops incomplete rows.
+
 For supported Gaussian routes, `response = "include"` retains the full tree and
 group design while conditioning the likelihood on observed responses. This is
 not predictor imputation. Proper tree pruning can preserve covariances between

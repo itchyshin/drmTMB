@@ -322,6 +322,19 @@ drmTMB <- function(
   drm_reject_smooth_terms(formula)
   formula <- drm_desugar_double_bars(formula, data)
   formula_env <- drm_formula_env(formula, parent.frame())
+  # A-2 (#1332, #1484, #1454): fail on NA predictors only when the caller
+  # supplies `missing =` with a control built as `miss_control()` or
+  # `miss_control(predictor = "fail")`, not when they only set
+  # `response = "include"` (row drop for incomplete predictors stays). The
+  # evaluated control decides, so `missing = ctl` behaves like its literal
+  # call. This check must run before the Julia early return: otherwise the
+  # bridge drops incomplete rows and fits (t5 J6, 6/6 Gaussian cells).
+  if (
+    "missing" %in% names(as.list(fit_call))[-1L] &&
+      drm_missing_explicit_predictor_fail(missing)
+  ) {
+    drm_validate_complete_predictors(formula, data)
+  }
   if (identical(engine, "julia")) {
     if (drm_is_mspl(estimator)) {
       cli::cli_abort(
@@ -348,17 +361,6 @@ drmTMB <- function(
   }
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
-  # A-2 (#1332, #1484): fail on NA predictors only when the caller supplies
-  # `missing =` with a control built as `miss_control()` or
-  # `miss_control(predictor = "fail")`, not when they only set
-  # `response = "include"` (row drop for incomplete predictors stays). The
-  # evaluated control decides, so `missing = ctl` behaves like its literal call.
-  if (
-    "missing" %in% names(as.list(fit_call))[-1L] &&
-      drm_missing_explicit_predictor_fail(missing)
-  ) {
-    drm_validate_complete_predictors(formula, data)
-  }
   REML <- drm_control_flag(REML, "REML")
   penalty <- drm_parse_phylo_penalty(penalty)
 
