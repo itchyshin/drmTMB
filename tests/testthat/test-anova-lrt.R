@@ -205,6 +205,87 @@ test_that("anova() keeps naive chi-square when Poisson vs NB2 adds more than sig
   )
 })
 
+# ---------------------------------------------------------------------------
+# Parametric bootstrap null (FX6b / #1559 / #1560).
+# Red-proof: on the FX6 tree (132a0490) `test = "bootstrap"` aborted with
+# `test` must be "Chisq", "LRT", or NULL, and drm_lrtest() rejected the extra
+# argument. After this change both verbs simulate from the reduced fit.
+# The unit test stays small and skip_on_cran; the t10 500-rep type-I grid
+# lives in the FX6b receipt, not here.
+# ---------------------------------------------------------------------------
+
+test_that("anova() and drm_lrtest() accept a parametric bootstrap null (#1559 #1560)", {
+  skip_on_cran()
+  d <- anova_fixed_data()
+  ctrl <- drm_control(se = FALSE)
+  m0 <- anova_fit(bf(y ~ 1, sigma ~ 1), d, control = ctrl)
+  m1 <- anova_fit(bf(y ~ x, sigma ~ 1), d, control = ctrl)
+  a <- anova(m0, m1, test = "bootstrap", nsim = 19L, seed = 20261016)
+  expect_identical(attr(a, "p.method"), c(NA_character_, "bootstrap"))
+  expect_identical(attr(a, "bootstrap.nsim"), c(NA_integer_, 19L))
+  expect_identical(attr(a, "bootstrap.seed"), c(NA_character_, "20261016"))
+  expect_true(is.integer(attr(a, "bootstrap.failed")[[2L]]))
+  expect_gte(attr(a, "bootstrap.failed")[[2L]], 0L)
+  expect_lte(attr(a, "bootstrap.failed")[[2L]], 19L)
+  expect_gte(a$`Pr(>Chisq)`[[2L]], 0)
+  expect_lte(a$`Pr(>Chisq)`[[2L]], 1)
+  t <- drmTMB:::drm_lrtest(m0, m1, test = "bootstrap", nsim = 19L, seed = 20261016)
+  expect_equal(t$p.value, a$`Pr(>Chisq)`[[2L]], tolerance = 1e-12)
+  expect_identical(t$nsim, 19L)
+  expect_identical(t$seed, 20261016)
+  expect_identical(t$failed, attr(a, "bootstrap.failed")[[2L]])
+  expect_equal(t$statistic, a$Chisq[[2L]], tolerance = 1e-12)
+  expect_error(anova(m0, m1, test = "bootstrap", nsim = 0), "nsim")
+})
+
+test_that("anova() bootstrap null works on the (1 | g) boundary (#1560)", {
+  skip_on_cran()
+  d <- anova_ri_data()
+  ctrl <- drm_control(se = FALSE)
+  r0 <- anova_fit(bf(y ~ x, sigma ~ 1), d, control = ctrl)
+  r1 <- anova_fit(bf(y ~ x + (1 | g), sigma ~ 1), d, control = ctrl)
+  expect_warning(
+    a <- anova(r0, r1, test = "bootstrap", nsim = 19L, seed = 11),
+    class = "drmTMB_anova_boundary_warning"
+  )
+  expect_identical(attr(a, "p.method"), c(NA_character_, "bootstrap"))
+  expect_identical(attr(a, "bootstrap.nsim")[[2L]], 19L)
+  t <- suppressWarnings(
+    drmTMB:::drm_lrtest(r0, r1, test = "bootstrap", nsim = 19L, seed = 11)
+  )
+  expect_equal(t$p.value, a$`Pr(>Chisq)`[[2L]], tolerance = 1e-12)
+  expect_identical(t$nsim, 19L)
+  expect_identical(t$seed, 11)
+  expect_true(is.integer(t$failed))
+})
+
+test_that("anova() bootstrap null works on the Poisson vs NB2 boundary (#1559)", {
+  skip_on_cran()
+  d <- anova_nb2_null_data()
+  ctrl <- drm_control(se = FALSE)
+  pois <- drmTMB(bf(y ~ x), family = stats::poisson(), data = d, control = ctrl)
+  nb <- drmTMB(bf(y ~ x, sigma ~ 1), family = nbinom2(), data = d, control = ctrl)
+  expect_warning(
+    a <- anova(pois, nb, test = "bootstrap", nsim = 19L, seed = 7),
+    class = "drmTMB_anova_boundary_warning"
+  )
+  expect_identical(attr(a, "p.method"), c(NA_character_, "bootstrap"))
+  expect_identical(attr(a, "bootstrap.nsim")[[2L]], 19L)
+  expect_match(
+    testthat::capture_warnings(
+      anova(pois, nb, test = "bootstrap", nsim = 19L, seed = 7)
+    ),
+    "bootstrap"
+  )
+  t <- suppressWarnings(
+    drmTMB:::drm_lrtest(pois, nb, test = "bootstrap", nsim = 19L, seed = 7)
+  )
+  expect_equal(t$p.value, a$`Pr(>Chisq)`[[2L]], tolerance = 1e-12)
+  expect_identical(t$nsim, 19L)
+  expect_identical(t$seed, 7)
+  expect_true(is.integer(t$failed))
+})
+
 test_that("family-boundary detector is Poisson to NB2 only; siblings stay off (#1557)", {
   stub <- function(type, df) {
     structure(

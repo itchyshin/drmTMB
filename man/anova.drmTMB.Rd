@@ -4,15 +4,22 @@
 \alias{anova.drmTMB}
 \title{Likelihood-ratio comparison of drmTMB fits}
 \usage{
-\method{anova}{drmTMB}(object, ..., test = NULL)
+\method{anova}{drmTMB}(object, ..., test = NULL, nsim = 199L, seed = NULL)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
 
 \item{...}{Further \code{drmTMB} fits to compare with \code{object}.}
 
-\item{test}{\code{NULL} (the default), \code{"Chisq"} or \code{"LRT"}; only the
-likelihood-ratio test is offered.}
+\item{test}{\code{NULL} (the default), \code{"Chisq"} or \code{"LRT"} for the usual
+likelihood-ratio reference (chi-bar on a clean boundary nest), or
+\code{"bootstrap"} for a parametric null from the reduced fit.}
+
+\item{nsim}{Number of parametric-bootstrap draws when
+\code{test = "bootstrap"}. Ignored otherwise.}
+
+\item{seed}{Optional seed passed to \code{\link[stats:simulate]{stats::simulate()}} on the reduced
+fit when \code{test = "bootstrap"}.}
 }
 \value{
 An object of class \code{c("anova", "data.frame")} with one row per
@@ -47,9 +54,23 @@ parameter space and the usual chi-square reference is conservative. A
 \code{drmTMB_anova_boundary_warning} is signalled for such a pair. If exactly one
 or two standard deviations are added and nothing else, or if the Poisson
 vs NB2 pair adds only the \code{sigma} intercept, \verb{Pr(>Chisq)} is the
-chi-bar-square mixture from \code{\link[=lrt_boundary]{lrt_boundary()}}; the attribute \code{"p.method"}
-records \code{"chibar"} or \code{"chisq"} per row. Otherwise the naive chi-square
-p-value is reported and the warning says it is conservative.
+50:50 chi-bar-square mixture from \code{\link[=lrt_boundary]{lrt_boundary()}}; the attribute
+\code{"p.method"} records \code{"chibar"} or \code{"chisq"} per row. Otherwise the naive
+chi-square p-value is reported and the warning says it is conservative.
+
+That 50:50 default is an asymptotic boundary null. It is conservative
+when there are few groups: type-I error at \eqn{\alpha = 0.05} is at most
+5\% and has no lower bound. On the t10 500-rep grids the recorded rates
+were 3.0\% (NB2 vs Poisson, n = 250) and 3.4\% (\code{(1 | g)}, G = 25, m = 12).
+Those values are expected for this default, not a packaging error.
+
+\strong{Parametric bootstrap.} \code{test = "bootstrap"} simulates new responses
+from the reduced (null) fit, refits both models, and reports the
+Davison–Hinkley p-value \eqn{(1 + \#\{T^* \ge T_{\mathrm{obs}}\}) / (1 + n_{\mathrm{ok}})}.
+The table then carries \code{"p.method" = "bootstrap"} plus
+\code{"bootstrap.nsim"}, \code{"bootstrap.seed"}, and \code{"bootstrap.failed"} (the
+number of draws where either refit failed). The unexported
+\code{drm_lrtest()} accepts the same \code{test}, \code{nsim}, and \code{seed} arguments.
 
 A negative statistic (the smaller model fitted better) is reported as is
 and gives a p-value of 1 (or the boundary value); it signals non-nested

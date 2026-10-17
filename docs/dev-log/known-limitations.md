@@ -870,11 +870,14 @@ revisit condition.
   `bench/large-phylo-location.R`.
 - `anova()` on a Poisson fit versus a nested NB2 fit, and on a model that
   adds one random-effect SD, reports the Self–Liang / Stram–Lee 50:50
-  chi-bar p-value. That is the packaged asymptotic boundary null, not a
-  finite-sample 5% test. On the t10 500-rep grids chi-bar type-I was 3.0%
-  (NB2 vs Poisson, n = 250) and 3.4% (`(1 | g)`, G = 25, m = 12), because
-  55–59% of likelihood-ratio statistics sat on the χ²₀ atom. Julia
-  `lrtest` warns on the same pairs and still reports naive χ²; call
-  `lrt_boundary(..., q = 1)` for the chi-bar p-value. Changing mixture
-  weights or adding a parametric bootstrap needs an owner methods
-  decision (#1557, #1559, #1560, DRModels.jl #1115, #1116, #1118).
+  chi-bar p-value by default. That mixture is conservative when there are
+  few groups: type-I at α = 0.05 is at most 5% and has no lower bound. On
+  the t10 500-rep grids the recorded chi-bar rates were 3.0% (NB2 vs
+  Poisson, n = 250) and 3.4% (`(1 | g)`, G = 25, m = 12), because 55–59%
+  of likelihood-ratio statistics sat on the χ²₀ atom. Those rates are
+  expected for the default. `anova(..., test = "bootstrap")` and
+  `drm_lrtest(..., test = "bootstrap")` simulate from the reduced fit and
+  return a finite-sample p-value with `nsim`, `seed`, and the number of
+  failed refits. Julia `lrtest` still reports naive χ² unless
+  `test = :bootstrap` is passed; call `lrt_boundary(..., q = 1)` for the
+  chi-bar p-value (#1557, #1559, #1560, DRModels.jl #1115, #1116, #1118).

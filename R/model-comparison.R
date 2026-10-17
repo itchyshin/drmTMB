@@ -124,9 +124,12 @@ drm_aicc_from_loglik <- function(loglik, k, n, what = "object") {
 # Returns list(statistic, df, p.value) -- DRM.jl's (statistic, dof, pvalue).
 # A negative statistic (the reduced fit is better: not nested, or one fit did
 # not converge) is returned as-is; only the p-value clamps it at zero.
-drm_lrtest <- function(reduced, full) {
+# test = "bootstrap" (FX6b / #1559 / #1560) replaces the reference p-value
+# with a parametric bootstrap from the reduced (null) fit.
+drm_lrtest <- function(reduced, full, test = NULL, nsim = 199L, seed = NULL) {
   drm_abort_mspl_inference(reduced, "lrtest")
   drm_abort_mspl_inference(full, "lrtest")
+  kind <- drm_lrt_test_kind(test)
   ll_reduced <- stats::logLik(reduced)
   ll_full <- stats::logLik(full)
   n_reduced <- attr(ll_reduced, "nobs")
@@ -149,8 +152,160 @@ drm_lrtest <- function(reduced, full) {
   }
   drm_lrtest_boundary_warn(reduced, full, df)
   statistic <- 2 * (as.numeric(ll_full) - as.numeric(ll_reduced))
+  if (identical(kind, "bootstrap")) {
+    boot <- drm_lrt_bootstrap(
+      reduced,
+      full,
+      statistic = statistic,
+      nsim = nsim,
+      seed = seed
+    )
+    return(list(
+      statistic = statistic,
+      df = df,
+      p.value = boot$p.value,
+      nsim = boot$nsim,
+      seed = boot$seed,
+      failed = boot$failed
+    ))
+  }
   p.value <- stats::pchisq(max(statistic, 0), df = df, lower.tail = FALSE)
   list(statistic = statistic, df = df, p.value = p.value)
+}
+
+# Parse the LRT reference: default chi-square (anova may then swap in chi-bar)
+# or a parametric bootstrap from the reduced fit.
+drm_lrt_test_kind <- function(test) {
+  if (is.null(test)) {
+    return("default")
+  }
+  if (!(is.character(test) && length(test) == 1L && !is.na(test))) {
+    cli::cli_abort(c(
+      "{.arg test} must be {.val Chisq}, {.val LRT}, {.val bootstrap}, or {.code NULL}.",
+      "i" = "The default is the usual likelihood-ratio reference; {.code test = \"bootstrap\"} simulates from the reduced (null) fit."
+    ))
+  }
+  key <- tolower(test)
+  if (key %in% c("chisq", "lrt", "chi-square", "chi-squared")) {
+    return("default")
+  }
+  if (key %in% c("bootstrap", "parametric", "parametric_bootstrap")) {
+    return("bootstrap")
+  }
+  cli::cli_abort(c(
+    "{.arg test} must be {.val Chisq}, {.val LRT}, {.val bootstrap}, or {.code NULL}.",
+    "i" = "The default is the usual likelihood-ratio reference; {.code test = \"bootstrap\"} simulates from the reduced (null) fit."
+  ))
+}
+
+drm_validate_lrt_nsim <- function(nsim) {
+  if (
+    !is.numeric(nsim) ||
+      length(nsim) != 1L ||
+      is.na(nsim) ||
+      !is.finite(nsim) ||
+      nsim < 1L ||
+      nsim != as.integer(nsim)
+  ) {
+    cli::cli_abort("{.arg nsim} must be a positive whole number.")
+  }
+  as.integer(nsim)
+}
+
+# Refit one model on a bootstrap data set. Mirrors bootstrap_refit_one() but
+# returns the fit (or an error) so the likelihood-ratio can be recomputed.
+drm_lrt_bootstrap_refit <- function(object, data, refit_control) {
+  tryCatch(
+    {
+      arguments <- list(
+        formula = object$formula,
+        family = object$family,
+        data = data,
+        control = refit_control,
+        REML = isTRUE(object$REML)
+      )
+      if (!identical(object$model$model_type, "biv_lognormal") &&
+          !identical(object$model$model_type, "biv_student")) {
+        arguments$weights <- object$model$weights
+      }
+      refit_missing <- bootstrap_refit_missing_control(object)
+      if (!is.null(refit_missing)) {
+        arguments$missing <- refit_missing
+      }
+      do.call(drmTMB, arguments)
+    },
+    error = function(err) err
+  )
+}
+
+drm_lrt_bootstrap_fit_ok <- function(fit) {
+  !inherits(fit, "error") &&
+    isTRUE(tryCatch(is_converged(fit), error = function(e) {
+      isTRUE(fit$opt$convergence == 0L)
+    }))
+}
+
+# Parametric bootstrap under the reduced (null) fit: simulate new responses,
+# refit both models, and return the Davison–Hinkley p-value
+#   (1 + #{T* >= T_obs}) / (1 + n_ok)
+# plus nsim, the caller seed, and the number of failed refits.
+drm_lrt_bootstrap <- function(
+  reduced,
+  full,
+  statistic,
+  nsim = 199L,
+  seed = NULL,
+  refit_control = NULL
+) {
+  nsim <- drm_validate_lrt_nsim(nsim)
+  if (is.null(reduced$data)) {
+    cli::cli_abort(c(
+      "Parametric bootstrap LRT requires the fitted model data on the reduced (null) fit.",
+      "i" = "Refit the reduced model with {.code drm_control(keep_data = TRUE)}."
+    ))
+  }
+  if (is.null(full$data)) {
+    cli::cli_abort(c(
+      "Parametric bootstrap LRT requires the fitted model data on the full fit.",
+      "i" = "Refit the full model with {.code drm_control(keep_data = TRUE)}."
+    ))
+  }
+  refit_control <- bootstrap_refit_control(refit_control)
+  simulations <- stats::simulate(reduced, nsim = nsim, seed = seed)
+  stats_star <- rep(NA_real_, nsim)
+  ok <- logical(nsim)
+  for (i in seq_len(nsim)) {
+    data_reduced <- bootstrap_response_data(reduced, simulations, i)
+    data_full <- bootstrap_response_data(full, simulations, i)
+    fit_reduced <- drm_lrt_bootstrap_refit(reduced, data_reduced, refit_control)
+    fit_full <- drm_lrt_bootstrap_refit(full, data_full, refit_control)
+    if (!drm_lrt_bootstrap_fit_ok(fit_reduced) ||
+        !drm_lrt_bootstrap_fit_ok(fit_full)) {
+      next
+    }
+    ll_r <- tryCatch(as.numeric(stats::logLik(fit_reduced)), error = function(e) NA_real_)
+    ll_f <- tryCatch(as.numeric(stats::logLik(fit_full)), error = function(e) NA_real_)
+    if (!is.finite(ll_r) || !is.finite(ll_f)) {
+      next
+    }
+    stats_star[[i]] <- 2 * (ll_f - ll_r)
+    ok[[i]] <- TRUE
+  }
+  n_ok <- sum(ok)
+  failed <- nsim - n_ok
+  if (n_ok < 1L) {
+    cli::cli_abort(c(
+      "Parametric bootstrap LRT: every one of {nsim} refit pair{?s} failed.",
+      "i" = "Inspect the original fits with {.fn check_drm}, or try a larger {.arg nsim}."
+    ))
+  }
+  list(
+    p.value = (1 + sum(stats_star[ok] >= statistic)) / (1 + n_ok),
+    nsim = nsim,
+    seed = seed,
+    failed = as.integer(failed),
+    n_ok = as.integer(n_ok)
+  )
 }
 
 # "ML" when the fit records no estimator (TMB fits always do; keep the same
@@ -269,6 +424,10 @@ drm_lrtest_boundary_warn <- function(reduced, full, df) {
 #     the boundary; any other boundary case keeps the naive chi-square
 #     p-value and says it is conservative. A boundary warning is always
 #     signalled.
+# The 50:50 chi-bar default is conservative with few groups: type-I at
+# α = 0.05 is at most 5% and has no lower bound. t10 recorded 3.0% (NB2 vs
+# Poisson) and 3.4% ((1 | g)). Those rates are expected. `test = "bootstrap"`
+# (FX6b) replaces the reference with a parametric null from the reduced fit.
 
 drm_anova_vc_labels <- function(object, slot) {
   block <- object[[slot]]
@@ -369,18 +528,12 @@ drm_anova_boundary <- function(reduced, full) {
   )
 }
 
-drm_anova_lrt <- function(fits, labels, test = NULL) {
+drm_anova_lrt <- function(fits, labels, test = NULL, nsim = 199L, seed = NULL) {
   mspl <- vapply(fits, drm_is_mspl, logical(1L))
   if (any(mspl)) {
     drm_abort_mspl_inference(fits[[which(mspl)[[1L]]]], "anova")
   }
-  if (!is.null(test) &&
-      !(is.character(test) && length(test) == 1L && tolower(test) %in% c("chisq", "lrt"))) {
-    cli::cli_abort(c(
-      "{.arg test} must be {.val Chisq}, {.val LRT}, or {.code NULL}.",
-      "i" = "{.fn anova} on {.cls drmTMB} fits only offers the likelihood-ratio test."
-    ))
-  }
+  kind <- drm_lrt_test_kind(test)
   native <- vapply(fits, inherits, logical(1L), what = "drmTMB")
   if (!all(native)) {
     cli::cli_abort(c(
@@ -423,29 +576,45 @@ drm_anova_lrt <- function(fits, labels, test = NULL) {
   loglik <- vapply(fits, function(f) as.numeric(stats::logLik(f)), numeric(1L))
   chisq <- df <- p <- rep(NA_real_, k)
   p_method <- rep(NA_character_, k)
+  boot_nsim <- boot_failed <- rep(NA_integer_, k)
+  boot_seed <- rep(NA_character_, k)
   for (i in seq.int(2L, k)) {
     reduced <- fits[[i - 1L]]
     full <- fits[[i]]
     res <- withCallingHandlers(
-      drm_lrtest(reduced, full),
+      drm_lrtest(reduced, full, test = test, nsim = nsim, seed = seed),
       drmTMB_lrtest_boundary_warning = function(w) invokeRestart("muffleWarning")
     )
     chisq[[i]] <- res$statistic
     df[[i]] <- res$df
     p[[i]] <- res$p.value
-    p_method[[i]] <- "chisq"
+    p_method[[i]] <- if (identical(kind, "bootstrap")) "bootstrap" else "chisq"
+    if (identical(kind, "bootstrap")) {
+      boot_nsim[[i]] <- as.integer(res$nsim)
+      boot_seed[[i]] <- bootstrap_seed_label(res$seed)
+      boot_failed[[i]] <- as.integer(res$failed)
+    }
     bd <- drm_anova_boundary(reduced, full)
     fam <- drm_anova_family_boundary(reduced, full)
     if (length(bd$added_sd) > 0L) {
       pair <- paste0(labels[[i - 1L]], " -> ", labels[[i]])
-      if (bd$applies) {
+      if (identical(kind, "bootstrap")) {
+        cli::cli_warn(
+          c(
+            "{pair}: {.val {labels[[i]]}} adds variance component{?s} {.val {bd$added_sd}}, so the test puts {?a variance/variances} on the boundary at 0.",
+            "i" = "The reported p-value is the parametric bootstrap under the reduced (null) fit ({res$nsim} draw{?s}; {res$failed} failed refit{?s})."
+          ),
+          class = "drmTMB_anova_boundary_warning"
+        )
+      } else if (bd$applies) {
         p[[i]] <- lrt_boundary(full, reduced, q = bd$q)$pvalue
         p_method[[i]] <- "chibar"
         cli::cli_warn(
           c(
             "{pair}: {.val {labels[[i]]}} adds variance component{?s} {.val {bd$added_sd}}, so the test puts {?a variance/variances} on the boundary at 0.",
-            "i" = "The reported p-value is the chi-bar-square mixture from {.fn lrt_boundary}; the naive chi-square p-value would be too large.",
-            "i" = if (bd$q == 2L) "For two added components it assumes they are independent; confirm with a parametric bootstrap if in doubt."
+            "i" = "The reported p-value is the 50:50 chi-bar-square mixture from {.fn lrt_boundary}. That default is conservative with few groups: type-I at 5% is at most 5% with no lower bound (t10 recorded 3.0% and 3.4%).",
+            "i" = "Use {.code test = \"bootstrap\"} to simulate from the reduced fit.",
+            "i" = if (bd$q == 2L) "For two added components the mixture assumes they are independent; confirm with {.code test = \"bootstrap\"} if in doubt."
           ),
           class = "drmTMB_anova_boundary_warning"
         )
@@ -454,20 +623,29 @@ drm_anova_lrt <- function(fits, labels, test = NULL) {
           c(
             "{pair}: {.val {labels[[i]]}} adds variance component{?s} {.val {bd$added_sd}}, a boundary test, but the chi-bar-square mixture does not apply to this pair.",
             "x" = "It needs exactly one or two added standard deviations and no other new parameters (here {res$df} extra parameter{?s}).",
-            "i" = "The reported chi-square p-value is conservative (too large). Use a parametric bootstrap for a valid p-value."
+            "i" = "The reported chi-square p-value is conservative (too large). Use {.code test = \"bootstrap\"} for a parametric null."
           ),
           class = "drmTMB_anova_boundary_warning"
         )
       }
     } else if (length(fam$added_dpar) > 0L) {
       pair <- paste0(labels[[i - 1L]], " -> ", labels[[i]])
-      if (fam$applies) {
+      if (identical(kind, "bootstrap")) {
+        cli::cli_warn(
+          c(
+            "{pair}: {.val {labels[[i]]}} is {.val {drm_anova_family_type(full)}} and {.val {labels[[i - 1L]]}} is {.val {drm_anova_family_type(reduced)}}, so the test puts {.val {fam$added_dpar}} on the boundary at 0.",
+            "i" = "The reported p-value is the parametric bootstrap under the reduced (null) fit ({res$nsim} draw{?s}; {res$failed} failed refit{?s})."
+          ),
+          class = "drmTMB_anova_boundary_warning"
+        )
+      } else if (fam$applies) {
         p[[i]] <- lrt_boundary(full, reduced, q = fam$q)$pvalue
         p_method[[i]] <- "chibar"
         cli::cli_warn(
           c(
             "{pair}: {.val {labels[[i]]}} is {.val {drm_anova_family_type(full)}} and {.val {labels[[i - 1L]]}} is {.val {drm_anova_family_type(reduced)}}, so the test puts {.val {fam$added_dpar}} on the boundary at 0.",
-            "i" = "The reported p-value is the chi-bar-square mixture from {.fn lrt_boundary}; the naive chi-square p-value would be too large."
+            "i" = "The reported p-value is the 50:50 chi-bar-square mixture from {.fn lrt_boundary}. That default is conservative with few groups: type-I at 5% is at most 5% with no lower bound (t10 recorded 3.0% and 3.4%).",
+            "i" = "Use {.code test = \"bootstrap\"} to simulate from the reduced fit."
           ),
           class = "drmTMB_anova_boundary_warning"
         )
@@ -476,7 +654,7 @@ drm_anova_lrt <- function(fits, labels, test = NULL) {
           c(
             "{pair}: {.val {labels[[i]]}} adds distributional parameter{?s} {.val {fam$added_dpar}} on the boundary at 0, but the chi-bar-square mixture does not apply to this pair.",
             "x" = "It needs exactly {fam$q} extra parameter{?s} and no new random-effect terms (here {res$df} extra parameter{?s}).",
-            "i" = "The reported chi-square p-value is conservative (too large). Use a parametric bootstrap for a valid p-value."
+            "i" = "The reported chi-square p-value is conservative (too large). Use {.code test = \"bootstrap\"} for a parametric null."
           ),
           class = "drmTMB_anova_boundary_warning"
         )
@@ -494,19 +672,34 @@ drm_anova_lrt <- function(fits, labels, test = NULL) {
     row.names = labels,
     check.names = FALSE
   )
-  structure(
-    out,
-    heading = c(
-      sprintf(
-        "Likelihood-ratio comparison of %d drmTMB fits (%s)",
-        k, estimators[[1L]]
-      ),
-      "Each model is tested against the one before it, ordered by number of parameters."
+  heading <- c(
+    sprintf(
+      "Likelihood-ratio comparison of %d drmTMB fits (%s)",
+      k, estimators[[1L]]
     ),
+    "Each model is tested against the one before it, ordered by number of parameters."
+  )
+  if (identical(kind, "bootstrap")) {
+    heading <- c(
+      heading,
+      sprintf(
+        "P-values use a parametric bootstrap from the reduced fit (nsim = %d).",
+        as.integer(nsim)
+      )
+    )
+  }
+  attrs <- list(
+    heading = heading,
     p.method = p_method,
     estimator = estimators[[1L]],
     class = c("anova", "data.frame")
   )
+  if (identical(kind, "bootstrap")) {
+    attrs$bootstrap.nsim <- boot_nsim
+    attrs$bootstrap.seed <- boot_seed
+    attrs$bootstrap.failed <- boot_failed
+  }
+  do.call(structure, c(list(out), attrs))
 }
 
 # ---------------------------------------------------------------------------
