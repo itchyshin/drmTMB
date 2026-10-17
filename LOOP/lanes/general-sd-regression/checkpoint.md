@@ -151,3 +151,23 @@ before implementation; independent scalar reference24expectations pass. New asse
 tests are RED at the current slope-admission fence, log/private/tmp/drmtmb-poisson-slope-red.log.
 No slope admission code has been written yet. Commit verified foundation andlabel/guide
 checkpoint before changing shared target admission. BroaderprogrammeG0-G8allremainopen.
+
+## Poisson slope checkpoint, 2026-10-17 22:44 UTC
+
+Local commitsad50858dc andb68417773 retain the programme foundation andlabel/guide
+checkpoints. Native Poisson unique independent numeric slope SD now passes18source
+and24independent-reference expectations. The fresh capsule6adcfc2451dc79367c60d3383fea673617480b5a88c6147ae0dc90d2a1376794
+built successfully; corrected compiled/regression suite235expectations passes.
+Initial profile assertion failure is retained, with test-only source reconciliation
+and unchanged R/C++ runtime. Scope excludes mixed/crossed slopes, correlated blocks,
+labels, structured/mi partners and other families. No slope calibration claim.
+Evidence and reviewed after-task report: poisson-slope-20261017.
+
+Production first-look supervisor2920795/session65519 remains active near its
+45-60min estimate. Read operational counts only until terminal summary. Stage-two
+execution design exists, with replica1001:4000 mapping and historical seed-label
+preserved; no adapter or second-look launch. A qualified measured<=3h stage-two
+run is covered by existing approval when the frozen first-look rule requires it.
+Next: collect/authenticate first-look outputs; independently review stageddecision.
+Native next leaf islognormal ordinary intercept SD; independent exact marginal
+reference exists and source assembly RED tests are being prepared.

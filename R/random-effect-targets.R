@@ -180,11 +180,18 @@ drm_resolve_sd_target <- function(target, members) {
 # Native binomial admission for the ordinary scalar mu-intercept slice. Keep
 # identity resolution separate from the family-specific shape fence.
 drm_binomial_sd_mu_targets <- function(entries, terms, re) {
+  drm_scalar_sd_mu_targets(entries, terms, re, family_label = "Binomial")
+}
+
+# Family adapters opt into independently checked scalar coefficient shapes.
+# Identity resolution does not itself admit a correlated or mixed block.
+drm_scalar_sd_mu_targets <- function(entries, terms, re, family_label,
+                                     allow_slopes = FALSE) {
   if (length(entries) == 0L) return(list())
   members <- drm_ordinary_sd_target_members(terms, re, "mu")
   if (length(members) == 0L) {
     cli::cli_abort(c(
-      "No random-effect term matches the binomial {.code sd()} formula.",
+      "No random-effect term matches the {family_label} {.code sd()} formula.",
       "i" = "Add an ordinary {.code (1 | group)} term to {.code mu} or remove the SD formula."
     ))
   }
@@ -192,10 +199,15 @@ drm_binomial_sd_mu_targets <- function(entries, terms, re) {
     parsed <- parse_sd_lhs(entry$lhs)
     member <- drm_resolve_sd_target(parsed, members)
     term <- terms[[member$target_term]]
-    if (!identical(term$type, "intercept") ||
-        !identical(member$coef, "(Intercept)")) {
+    allowed <- if (isTRUE(allow_slopes)) c("intercept", "slope") else "intercept"
+    scope <- if (isTRUE(allow_slopes)) "intercept or independent slope" else "intercept"
+    if (!term$type %in% allowed || length(term$coef_names) != 1L ||
+        (identical(term$type, "intercept") &&
+           !identical(member$coef, "(Intercept)")) ||
+        (identical(term$type, "slope") &&
+           identical(member$coef, "(Intercept)"))) {
       cli::cli_abort(c(
-        "Binomial random-effect SD regression currently supports scalar {.code mu} intercept targets only.",
+        "{family_label} random-effect SD regression currently supports scalar {.code mu} {scope} targets only.",
         "x" = "Selected {.code {entry$dpar}} targets coefficient {.val {member$coef}}.",
         "i" = "Random-slope and correlated-block SD regression require separate likelihood checks."
       ))
@@ -203,9 +215,9 @@ drm_binomial_sd_mu_targets <- function(entries, terms, re) {
     same_group <- Filter(function(x) identical(x$group, member$group), members)
     if (length(same_group) != 1L) {
       cli::cli_abort(c(
-        "Binomial scalar SD regression cannot yet combine another random-effect coefficient on the same group.",
+        "{family_label} scalar SD regression cannot yet combine another random-effect coefficient on the same group.",
         "x" = "Selected {.code {entry$dpar}} but group {.field {member$group}} has more than one coefficient.",
-        "i" = "Fit a single intercept for this group until mixed intercept/slope SD models have been checked."
+        "i" = "Fit one q1 coefficient for this group until mixed intercept/slope SD models have been checked."
       ))
     }
     list(

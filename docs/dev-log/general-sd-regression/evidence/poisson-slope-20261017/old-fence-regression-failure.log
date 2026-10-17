@@ -1,0 +1,17 @@
+poisson-slope-sd-assembly: ..............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+SOURCE_ASSEMBLY_PASS
+poisson-sd-assembly: ...............................1.......
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-poisson-sd-assembly.R:108:3'): Poisson SD keeps zi, slopes,
+Expected `drm_build_poisson_spec(...)` to throw a error.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+No one gets it right on their first try
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

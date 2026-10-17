@@ -1,3 +1,19 @@
+## 2026-10-17: native Poisson independent-slope SD checkpoint
+
+A unique ordinary numeric slope now admits `sd(id, coef = "x") ~ w` in complete-data
+Poisson models. Source checks pass18 new slope,39 Poisson,24 binomial-selector and56
+target-descriptor expectations. The independent scalar reference passes24. Fresh
+Totoro capsule6adcfc2451dc79367c60d3383fea673617480b5a88c6147ae0dc90d2a1376794
+built successfully; corrected integration/regression tests pass235 expectations,
+including24 pure reference expectations. Two later test-only edits are reconciled
+against identical R/C++ hashes. Initial failed assertion and older rejection fence
+are preserved. Independent review and exact-draft assessed report are retained in
+`general-sd-regression/evidence/poisson-slope-20261017/` and
+`after-task/2026-10-17-general-sd-poisson-slope-checkpoint.md`.
+This supports the declared native slope-only workflows, with no calibration claim.
+The separate3000-attempt Bernoulli calibration remains running on Totoro; all
+programme gates G0-G8 remain open. No push, merge, release or external message.
+
 ## 2026-10-17: scalar Poisson labels and executed synthetic guide
 
 Corrected capsule6ad295b3... passed154 compiled expectations in60s onTotoro:

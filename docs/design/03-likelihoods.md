@@ -182,7 +182,7 @@ top-level `weights` remain likelihood weights, not denominators. Extra-binomial
 variation remains the job of `beta_binomial()`, while continuous proportions
 belong to `beta_family()` or `zero_one_beta()`.
 
-### Predictor-dependent Poisson random-intercept SD
+### Predictor-dependent Poisson random-effect SD
 
 The native non-zero-inflated Poisson route accepts ordinary scalar location
 intercepts, including one labelled `(1 | p | id)` term per group and explicit
@@ -196,8 +196,17 @@ Laplace approximation. Focused checks cover an independent scalar Laplace
 calculation, a reversed-group-predictor negative control, constant-SD
 equivalence, target extraction, prediction, storage, marginal simulation and
 two bootstrap refits. These checks do not establish calibrated intervals.
-Poisson SD regression with slopes, structured effects, zero inflation or
-missing-data combinations remains outside this first slice.
+A separate checked slope-only route uses
+`bf(y ~ x + (0 + x | id), sd(id, coef = "x") ~ w)`. Here the random contribution
+is `x_i s_g u_g`, so its latent-predictor variance is `x_i^2 s_g^2`.
+The SD output describes the slope coefficient per unit of `x`; it does not
+include the random-regression value `x_i`. The independent numerical reference
+uses this coefficient-weighted likelihood and checks its reduction to the
+intercept reference when `x_i = 1`. One synthetic fitted check, profile and
+bootstrap refits establish implementation and workflow behavior only.
+Mixed or crossed slope layouts, labelled slopes, correlated-block SD targets,
+structured effects, zero inflation and missing-data combinations remain
+outside these checked Poisson slices.
 
 ### Predictor-dependent Bernoulli/binomial random-intercept SD
 

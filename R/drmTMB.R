@@ -8620,24 +8620,20 @@ drm_build_poisson_spec <- function(
 
 drm_poisson_sd_mu_targets <- function(entries, terms, re_mu) {
   if (length(entries) == 0L) return(list())
-  if (any(vapply(terms, function(term) !identical(term$type, "intercept"),
+  if (any(vapply(terms, function(term) !term$type %in% c("intercept", "slope"),
                  logical(1L)))) {
-    cli::cli_abort("Poisson ordinary {.code sd()} regression is currently limited to scalar random intercepts; random slopes and correlated blocks need separate validation.")
+    cli::cli_abort("Poisson ordinary {.code sd()} regression currently supports independent scalar intercepts or a single independent numeric slope; correlated blocks need separate validation.")
   }
-  for (entry in entries) {
-    group <- parse_sd_lhs(entry$lhs)$group
-    matching <- Filter(function(term) identical(term$group, group), terms)
-    if (length(matching) > 0L &&
-        (length(matching) != 1L ||
-         !identical(matching[[1L]]$type, "intercept"))) {
-      cli::cli_abort(c(
-        "Poisson ordinary {.code sd()} regression currently targets one scalar random intercept per group.",
-        "x" = "Group {.field {group}} has a slope or multiple random-effect coefficients.",
-        "i" = "Remove the slope or use an unmodelled constant SD until that combination is validated."
-      ))
-    }
+  targets <- drm_scalar_sd_mu_targets(entries, terms, re_mu,
+    family_label = "Poisson", allow_slopes = TRUE)
+  if (length(terms) != 1L && any(vapply(terms,
+      function(term) identical(term$type, "slope"), logical(1L)))) {
+    cli::cli_abort(c(
+      "Poisson {.code sd()} regression with random slopes currently requires one independent slope-only term.",
+      "i" = "Mixed intercept/slope and crossed slope layouts need separate likelihood and recovery checks."
+    ))
   }
-  drm_binomial_sd_mu_targets(entries, terms, re_mu)
+  targets
 }
 
 drm_build_nbinom2_spec <- function(

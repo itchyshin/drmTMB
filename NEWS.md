@@ -1,12 +1,16 @@
 # drmTMB (development)
 
-## Documentation fixes
+## Random-effect SD regression
 
 * Native non-zero-inflated `poisson()` models now accept `sd(group) ~ predictors`
   for ordinary scalar location intercepts, including a unique labelled
-  `(1 | p | id)` term and explicit target selectors.
+  `(1 | p | id)` term and explicit target selectors. A separate slope-only
+  route accepts `bf(y ~ x + (0 + x | id), sd(id, coef = "x") ~ w)`;
+  its SD is the latent slope SD per unit of `x`.
   Independent likelihood and workflow checks pass; interval calibration and
   Julia public integration remain open.
+
+## Documentation fixes
 
 * `?phylo` now correctly describes the existing unit-height convention:
   drmTMB divides the Brownian covariance by tree height, so multiplying all

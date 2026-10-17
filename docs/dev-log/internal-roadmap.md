@@ -4,7 +4,9 @@
 
 Native ordinary scalar location-intercept SD formulas are point-checked for
 Bernoulli/binomial and non-zero-inflated Poisson, with selector-aware outputs
-and refitting checks. Interval calibration, Julia public dispatch and the
+and refitting checks. Native Poisson also has focused checks for one independent
+unlabelled numeric slope SD, whose output is per unit of its covariate. Mixed
+and crossed slope layouts remain required. Interval calibration, Julia public dispatch and the
 remaining family/effect/provider combinations are still required by the active
 general SD-regression programme. See `general-sd-regression/` for exact evidence.
 

@@ -101,13 +101,13 @@ test_that("Poisson scalar block labels select the existing latent coefficient", 
     "Unsupported random-effect term")
 })
 
-test_that("Poisson SD keeps zi, slopes, structure, and mi fences", {
+test_that("Poisson SD keeps zi, correlated-block, structure, and mi fences", {
   dat <- poisson_sd_fixture(groups = 12L, repeats = 4L)$data
   expect_error(drm_build_poisson_spec(bf(y ~ x, sd(id) ~ w), dat),
                "No random-effect term")
-  expect_error(drm_build_poisson_spec(bf(y ~ x + (0 + x | id),
+  expect_error(drm_build_poisson_spec(bf(y ~ x + (1 + x | id),
                                        sd(id, coef = "x") ~ w), dat),
-               "intercept|slope")
+               "correlated")
   dat$site <- factor(rep(seq_len(6L), length.out = nrow(dat)))
   expect_error(drm_build_poisson_spec(bf(
     y ~ x + (1 | id) + (0 + x | site), sd(id) ~ w
