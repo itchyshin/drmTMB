@@ -115,7 +115,21 @@ Worst drift is inside `--tolerance 1e-10`. `current_source_sha=e65be4b17`.
 outside the authenticated model-15 anchors. Receipt:
 `docs/dev-log/implementation-recovery/2026-10-17-fx7-julia-resd-misscontrol-c17c2-c14-final-source-compatibility`.
 
-The full `testthat` suite is recorded in the check-log / PR receipt.
+Full `testthat` on this R 4.3.3 host (`pkgload::load_all()`, `%||%`
+shimmed into `imports:drmTMB`, `DRMODELS_JL_PATH=/tmp/DRModels.jl` at
+`f71b2923`, `JULIA_PROJECT` unset, 66 min):
+`[ FAIL 97 | WARN 29 | SKIP 48 | PASS 48882 ]`.
+FX7 files: `test-julia-ordinary-mu-resd.R` 12 pass,
+`test-julia-miss-control-predictor.R` 6 pass,
+`test-miss-control-evaluated.R` 11 pass,
+`test-missing-data-control.R` 15 pass,
+`test-coefficient-labels.R` 135 pass (5 live Julia).
+The 97 failures are not this change: most live Julia / `callr`
+subprocesses miss `%||%` (#1550 on R < 4.4); `env-skip-census` is stale
+for #1565's `test-julia-host-prepare.R`; plus one native relmat logLik
+(`-75.9816` vs `-75.9871`), one `missing-predictor-prediction`
+`crossprod`, one nbinom2 sigma-structured recovery, and a Julia
+`@formula` Main import in `reml-biv-animal`.
 
 ## Tests Of The Tests
 

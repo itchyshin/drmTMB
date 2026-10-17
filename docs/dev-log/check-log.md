@@ -14,7 +14,10 @@ NULL) then PASS 12; `test-julia-miss-control-predictor.R` reached
 has no `resd` label; nbinom2/beta/binomial stay unlabelled (loud echo,
 not silent AGHQ). Offset-as-free-coefficient untouched. C17 recertified
 (`fx7-julia-resd-misscontrol`, worst `|change| 1.264e-12` on mc-0568;
-`current_source_sha=e65be4b17`; fingerprint unchanged). Report:
+`current_source_sha=e65be4b17`; fingerprint unchanged). Full suite on
+R 4.3.3: FAIL 97 / PASS 48882; FX7 files all green; remainder is
+#1550 `callr` `%||%`, #1565 env-skip census, and unrelated native
+cells. Report:
 `docs/dev-log/after-task/2026-10-16-fx7-julia-resd-misscontrol.md`.
 
 # 2026-10-16: FX1 JuliaCall setup SIGSEGV (exit 139) on official Julia 1.12.x
