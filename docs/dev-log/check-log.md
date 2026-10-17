@@ -1,3 +1,20 @@
+## 2026-10-17: general SD regression, first native checkpoint
+
+Isolated branch `codex/general-sd-regression` from native main
+`d89db50975d96d9c2bcb13046453ae34c7fcf49b`. Native Bernoulli/binomial
+ordinary-intercept SD regression passes 117 compiled assertions plus existing
+binomial, Gaussian SD and clamp regression checks. Legacy simulation tests pass
+under pkgload, with the failed standalone mock context retained. Rd validation,
+HTML conversion and `pkgdown::check_pkgdown()` pass. No full R/Julia check ran.
+
+The six-seed feasibility pilot retained seven attempts, including one original
+300-second interruption and its successful 78.54-second retry. Six completed
+fits have valid recorded profile intervals and scalar Laplace-oracle differences
+below 1e-6. These are not coverage results. Evidence and exact source/binary
+hashes: `docs/dev-log/general-sd-regression/evidence/native-checkpoint-20261017/`.
+B1/B2/B3 pass; independent documentation review B4 passes. All programme G0-G8 gates remain open.
+See `docs/dev-log/after-task/2026-10-17-general-sd-native-checkpoint.md`.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17

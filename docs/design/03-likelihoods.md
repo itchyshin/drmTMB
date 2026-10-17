@@ -152,7 +152,7 @@ drmTMB(bf(y01 ~ x), family = stats::binomial(), data = dat)
 drmTMB(bf(cbind(successes, failures) ~ x), family = stats::binomial(), data = dat)
 ```
 
-The first TMB branch is a fixed-effect `mu` model only:
+The initial fixed-effect TMB branch uses:
 
 ```text
 Y_i ~ Binomial(n_i, mu_i)
@@ -181,6 +181,35 @@ no non-logit link, and no `engine = "julia"` claim. Proportions plus
 top-level `weights` remain likelihood weights, not denominators. Extra-binomial
 variation remains the job of `beta_binomial()`, while continuous proportions
 belong to `beta_family()` or `zero_one_beta()`.
+
+### Predictor-dependent Bernoulli/binomial random-intercept SD
+
+The native ordinary-intercept slice additionally accepts
+`bf(y ~ x + (1 | id), sd(id) ~ w)` with `binomial()` and the corresponding
+count response. For latent group SD `s_g`, its non-centred construction is
+
+```text
+log(s_g) = W_g alpha
+u_g ~ Normal(0, 1)
+eta_i = X_mu[i, ] beta_mu + s_g u_g
+Y_i | u_g ~ Binomial(n_i, inverse_link(eta_i))
+```
+
+The SD design uses ordinary fixed-effect model-matrix coding and must be
+constant within each retained group. Group-specific scales replace the
+matching constant-SD parameter; unrelated random effects retain their own
+scales. The scalar latent effects are integrated by TMB's Laplace
+approximation. Logit, probit and complementary log-log response links pass
+constant-SD equivalence and prediction checks; the SD link is always log.
+No free Bernoulli residual `sigma` is introduced.
+
+An independent scalar Laplace calculation checks the native objective.
+This verifies its implementation, not the accuracy of Laplace integration
+against the exact marginal likelihood. Profile target mapping and marginal
+simulation/bootstrap refits are separate plumbing checks. Interval coverage,
+structured SD targets, slopes, explicit selectors and Julia integration remain
+programme work. See `docs/dev-log/general-sd-regression/native-bernoulli-status.md`
+for the current evidence boundary.
 
 ## Gaussian Aggregation Branch
 

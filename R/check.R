@@ -744,12 +744,13 @@ check_finite_objective <- function(object) {
 # converged artificially on the flat saturated tail.
 check_logsigma_clamp_active <- function(object) {
   spec <- object$model
-  if (!isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
+  fields <- drm_active_logsigma_clamp_fields(spec)
+  if (length(fields) == 0L) {
     return(check_row(
       "logsigma_clamp_active",
       "ok",
       NA,
-      "The log(sigma) clamp does not apply to this family."
+      "The log-scale clamp does not apply to this model."
     ))
   }
   # This runs post-hoc on a stored fit, whose `obj$env$last.par` was left a
@@ -772,13 +773,35 @@ check_logsigma_clamp_active <- function(object) {
       "Cannot check the log(sigma) clamp without the TMB object (keep_tmb_object = FALSE)."
     ))
   }
-  info <- drm_logsigma_clamp_active(report, spec$tmb_data)
+  info <- drm_logsigma_clamp_active(report, spec$tmb_data, fields = fields)
   if (is.null(info)) {
     return(check_row(
       "logsigma_clamp_active",
       "ok",
       NA,
-      "The log(sigma) clamp is not active at the optimum."
+      "The log-scale clamp is not active at the optimum."
+    ))
+  }
+  if (identical(info$kind, "latent random-effect SD")) {
+    if (identical(info$arm, "lower")) {
+      return(check_row(
+        "logsigma_clamp_active",
+        "note",
+        format_check_number(info$value),
+        sprintf(
+          "The fitted latent random-effect SD log predictor reached %.2f, below the clamp band lower bound %g; the SD may be near zero or weakly identified. Inspect the group-level design, replication, and SD profile before interpreting the scale contrast.",
+          info$value, info$lo
+        )
+      ))
+    }
+    return(check_row(
+      "logsigma_clamp_active",
+      "warning",
+      format_check_number(info$value),
+      sprintf(
+        "The fitted latent random-effect SD log predictor reached %.2f, above the clamp band upper bound %g; the scale fit may have converged artificially and estimates and SEs near the clamp are unreliable.",
+        info$value, info$hi
+      )
     ))
   }
   # Both clamp arms are reported (Dinnage audit C1). The upper arm keeps

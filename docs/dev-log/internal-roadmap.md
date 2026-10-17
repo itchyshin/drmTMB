@@ -300,6 +300,10 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   Random-effect scale formulae are implemented for one or more distinct
   unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
   `sd(site) ~ site_type`.
+  The general SD-regression programme adds a native Bernoulli/binomial
+  ordinary-intercept slice with point and workflow checks. Both-engine
+  integration, calibrated uncertainty and all other frozen family/effect
+  combinations remain open; see `general-sd-regression/native-bernoulli-status.md`.
   The bivariate Gaussian path now fits matched labelled `mu1`/`mu2`,
   `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` random-intercept
   covariance blocks, matching slope-only `mu1`/`mu2` blocks, and

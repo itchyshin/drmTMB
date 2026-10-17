@@ -83,6 +83,10 @@ revisit condition.
   `sd(site) ~ site_type`, and for bivariate Gaussian location random
   intercepts as `sd1(id) ~ x_group` and `sd2(id) ~ x_group`; predictors must be
   constant within the named grouping variable after missing-row filtering.
+  The native ordinary Bernoulli/binomial intercept route also admits
+  `sd(group) ~ predictors`, with independent point-recovery, constant-SD,
+  prediction and workflow checks. Its interval calibration and Julia
+  integration remain open under the general SD-regression programme.
   These direct-SD formulae target location random effects only. Names such as
   `sd_sigma1()` and `sd_sigma2()` are rejected because residual scale should be
   modelled through `sigma1` / `sigma2` formulas or through Family A scale
@@ -95,7 +99,7 @@ revisit condition.
   but rejected by `drmTMB()` until random-slope SD regression has a covariance
   model and tests.
 - The narrow Beta q1 phylogenetic direct-SD route is an explicit exception to
-  the Gaussian-only generalization above: `sd(spp_id, level =
+  the ordinary-group routes above: `sd(spp_id, level =
   "phylogenetic") ~ x_tau` models the latent phylogenetic location SD `tau` in
   `y ~ x_mu + phylo(1 | spp_id, tree = tree)`, not family `sigma` or Beta
   precision `phi = sigma^-2`. Its recovery evidence is restricted to the

@@ -12,6 +12,10 @@
 
 ## Bug fixes
 
+* Fit warnings and `check_drm()` now report active direct latent-SD clamps
+  separately from residual-scale clamps. Start checks include direct SD
+  regression coefficients. Residual-scale accessors keep their existing scope.
+
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value
@@ -33,6 +37,14 @@
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
 
 ## New features
+
+* The native Bernoulli/binomial ordinary-intercept route accepts
+  `sd(group) ~ predictors` to model latent random-intercept SDs on the log
+  scale. Group-constant fixed predictors use standard R coding. Point recovery,
+  constant-SD equivalence, prediction, marginal simulation and profile target
+  checks accompany this first slice. Interval calibration, Julia integration
+  and broader random-effect targets remain open; no residual Bernoulli
+  `sigma` is estimated.
 
 * `confint()` and `profile()` accept `parallel = "cluster"`, a socket
   (PSOCK) backend that works on every platform, including Windows. Workers

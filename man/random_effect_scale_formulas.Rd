@@ -22,7 +22,8 @@ particular, \code{sd(group) ~ predictors} does not replace \code{stats::sd()}.
 The currently documented syntax is:
 \itemize{
 \item \code{sd(group) ~ predictors} for univariate Gaussian location random-effect
-scale models;
+scale models and a native Bernoulli/binomial ordinary random-intercept
+slice; predictors must be constant within each retained group;
 \item \code{sd1(group) ~ predictors} and \code{sd2(group) ~ predictors} for bivariate
 Gaussian location random-effect scale models targeting \code{mu1} and \code{mu2};
 \item \code{sd(group, level = "phylogenetic") ~ predictors} for univariate Gaussian
@@ -38,15 +39,22 @@ generic spelling for these targets. The historical spellings
 \code{sd_phylo(species) ~ predictors}, \code{sd_phylo1(species) ~ predictors}, and
 \code{sd_phylo2(species) ~ predictors} are \strong{deprecated (soft)}: they still
 parse and fit identically, but emit a one-time deprecation warning per
-session and should not be used in new formulas. Spatial, animal-model, and
-user-supplied relatedness direct-SD routes are not currently supported.
+session and should not be used in new formulas. Future spatial,
+animal-model, and user-supplied relatedness direct-SD routes are planned
+to use the same \verb{level = } grammar, such as \code{sd(group, level = "spatial")}
+or \code{sd1(group, level = "animal")}, rather than adding parallel
+\verb{sd_spatial*()}, \verb{sd_animal*()}, and \verb{sd_relmat*()} families.
 
 These formulas model the standard deviation of a latent random-effect block.
 They are distinct from residual scale formulas such as \code{sigma ~ predictors}
-and from latent correlation formulas such as \code{\link[=corpair]{corpair()}}. Non-Gaussian
-random-effect scale formulas, spatial/animal/relmat direct-SD formulas, and
+and from latent correlation formulas such as \code{\link[=corpair]{corpair()}}. Bernoulli/binomial
+SDs are on the response link scale; they do not introduce residual \code{sigma}.
+The native intercept slice has point-fit and workflow checks; interval
+calibration and Julia integration remain open. A separate narrow beta
+phylogenetic direct-SD route also exists. Remaining non-Gaussian direct-SD
+formulas, spatial/animal/relmat direct-SD formulas, and
 explicit coefficient-specific targets such as
-\code{sd(group, dpar = "mu", coef = "slope") ~ predictors} are not supported.
+\code{sd(group, dpar = "mu", coef = "slope") ~ predictors} remain planned.
 }
 \examples{
 bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ habitat)

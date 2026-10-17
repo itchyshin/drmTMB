@@ -3682,6 +3682,21 @@ Type objective_function<Type>::operator()()
     vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     if (n_mu_re_terms > 0) {
       vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = eta_sd;
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            drm_softclamp_log_sd(
+              eta_sd, use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
       // The admitted binomial q = 2 block is one unlabelled `(1 + x | group)`
       // term.  Its unconstrained theta is (log_sd1, log_sd2, eta), with
       // rho = tanh(eta) and L = [[exp(theta1), 0],
@@ -3697,6 +3712,9 @@ Type objective_function<Type>::operator()()
         for (int j = 0; j < n_mu_re_terms; ++j) {
           int idx = mu_re_index(i, j);
           int cor_id = mu_re_cor_id(idx);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd = sd_row >= 0 ? sd_mu_group(sd_row) :
+            sd_mu_re(mu_re_term(idx));
           Type contribution;
           if (cor_id >= 0 && mu_re_pos(idx) == 1) {
             int pair_idx = mu_re_pair_index(idx);
@@ -3704,7 +3722,7 @@ Type objective_function<Type>::operator()()
             Type l22 = exp(log_sd_mu(mu_re_term(idx)) + logsech_mu_re(cor_id));
             contribution = l21 * u_mu(pair_idx) + l22 * u_mu(idx);
           } else {
-            contribution = sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+            contribution = sd * u_mu(idx);
           }
           eta_mu(i) += mu_re_value(i, j) * contribution;
         }
@@ -3715,6 +3733,16 @@ Type objective_function<Type>::operator()()
       REPORT(u_mu);
       REPORT(log_sd_mu);
       REPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_mu_group);
+          ADREPORT(sd_mu_group);
+        }
+      }
       if (n_mu_re_cors > 0) {
         REPORT(eta_cor_mu);
         REPORT(rho_mu_re);

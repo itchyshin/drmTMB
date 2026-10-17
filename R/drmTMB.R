@@ -1617,8 +1617,11 @@ drm_translate_public_start_override <- function(spec, start) {
 # an unexplained non-convergent-looking "success". This never edits the
 # user's start value -- only reports the condition, per the public start
 # contract's invariant that a start changes only where the optimizer begins.
+# Direct random-effect SD starts use the same raw group-level predictors as the
+# profile diagnostic; they are distinct from residual sigma starts.
 drm_warn_if_start_saturates_logsigma_clamp <- function(spec, override) {
-  if (!isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
+  fields <- drm_active_logsigma_clamp_fields(spec)
+  if (length(fields) == 0L) {
     return(invisible(FALSE))
   }
   if (!identical(as.integer(spec$tmb_data$use_logsigma_clamp), 1L)) {
@@ -1655,6 +1658,29 @@ drm_warn_if_start_saturates_logsigma_clamp <- function(spec, override) {
       ),
       class = "drmTMB_start_clamp_saturated_warning"
     )
+  }
+  if (
+    "beta_sd_mu" %in% names(override) &&
+      any(fields %in% c("log_sd_mu_group", "log_sd_phylo_group"))
+  ) {
+    par <- utils::modifyList(spec$start, override)
+    direct_values <- drm_direct_sd_logscale_values(par, spec)
+    for (target in names(direct_values)) {
+      eta <- unname(direct_values[[target]])
+      eta <- eta[is.finite(eta)]
+      if (length(eta) == 0L || !any(eta > hi | eta < lo)) {
+        next
+      }
+      clamped <- pmin(pmax(eta, lo), hi)
+      extreme <- eta[[which.max(abs(eta - clamped))]]
+      cli::cli_warn(
+        c(
+          "{.arg start} places latent random-effect {.code log(SD)} for {.val {target}} outside the configured clamp band [{.val {lo}}, {.val {hi}}] (reaches {.val {round(extreme, 1)}}).",
+          "i" = "The optimizer may see a locally flat objective at this start and report spurious convergence. Choose a latent SD start inside the band, or widen it with {.code drm_control(logsigma_clamp = )}."
+        ),
+        class = "drmTMB_start_clamp_saturated_warning"
+      )
+    }
   }
   invisible(TRUE)
 }
@@ -3586,12 +3612,10 @@ drm_warn_if_nonfinite_objective <- function(opt) {
   invisible(TRUE)
 }
 
-# Detect whether the log(sigma) soft-clamp is active at the optimum, i.e. the
-# fitted log_sigma reached or passed the identity band [lo, hi] and the clamp
-# bent it. Returns NULL when the clamp is disabled or the scale is well inside
-# the band, otherwise a list with the extreme |log_sigma| and the band. Reads
-# every reported `log_sigma*` field so univariate and bivariate scales are
-# covered.
+# Detect whether a selected log-scale soft-clamp is active at the optimum.
+# The default selects residual log(sigma) only: residual-sigma accessors also
+# call this predicate and must not treat latent random-effect SD as residual
+# sigma. Fit/check diagnostics pass the fields selected by the model registry.
 # Model types whose main-likelihood scale is wrapped by the log(sigma) soft-clamp
 # (Wave 2). Count families without a scale (poisson, zi_poisson, cumulative_logit)
 # are excluded. Keep in sync with the clamp call sites in src/drmTMB.cpp.
@@ -3616,7 +3640,35 @@ drm_clamped_scale_families <- function() {
   )
 }
 
-drm_logsigma_clamp_active <- function(report, tmb_data) {
+drm_active_logsigma_clamp_fields <- function(spec) {
+  fields <- if (isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
+    c("log_sigma", "log_sigma1", "log_sigma2")
+  } else {
+    character()
+  }
+  random_scale <- spec$random_scale
+  if (is.list(random_scale)) {
+    if (
+      is.list(random_scale$mu) &&
+        isTRUE(random_scale$mu$n_models > 0L)
+    ) {
+      fields <- c(fields, "log_sd_mu_group")
+    }
+    if (
+      is.list(random_scale$phylo) &&
+        isTRUE(random_scale$phylo$n_models > 0L)
+    ) {
+      fields <- c(fields, "log_sd_phylo_group")
+    }
+  }
+  unique(fields)
+}
+
+drm_logsigma_clamp_active <- function(
+  report,
+  tmb_data,
+  fields = c("log_sigma", "log_sigma1", "log_sigma2")
+) {
   enabled <- tmb_data$use_logsigma_clamp
   if (length(enabled) != 1L || !identical(as.integer(enabled), 1L)) {
     return(NULL)
@@ -3627,14 +3679,16 @@ drm_logsigma_clamp_active <- function(report, tmb_data) {
   }
   lo <- band[[1L]]
   hi <- band[[2L]]
-  # Only the main-likelihood scales are soft-clamped; match their exact REPORT
-  # names so the unclamped missing-predictor imputation scales (log_sigma_*_mi)
-  # never trip the detector.
-  fields <- report[
-    names(report) %in% c("log_sigma", "log_sigma1", "log_sigma2")
-  ]
-  values <- unlist(fields, use.names = FALSE)
-  values <- values[is.finite(values)]
+  # Match exact REPORT names; imputation fields are deliberately not selected.
+  selected <- intersect(fields, names(report))
+  if (!length(selected)) {
+    return(NULL)
+  }
+  values <- unlist(report[selected], use.names = FALSE)
+  value_fields <- rep.int(selected, lengths(report[selected]))
+  finite <- is.finite(values)
+  values <- values[finite]
+  value_fields <- value_fields[finite]
   # Both bounds are reported. The UPPER arm stays a warning-strength signal: it
   # flags artificial convergence from a runaway scale (sigma -> Inf / overflow).
   # The LOWER arm (sigma -> 0) is often a legitimate result (e.g. meta-analysis
@@ -3650,9 +3704,17 @@ drm_logsigma_clamp_active <- function(report, tmb_data) {
   if (!hit_hi && !hit_lo) {
     return(NULL)
   }
+  chosen <- if (hit_hi) which.max(values) else which.min(values)
+  field <- value_fields[[chosen]]
   list(
-    value = if (hit_hi) max(values) else min(values),
+    value = values[[chosen]],
     arm = if (hit_hi) "upper" else "lower",
+    field = field,
+    kind = if (field %in% c("log_sd_mu_group", "log_sd_phylo_group")) {
+      "latent random-effect SD"
+    } else {
+      "residual sigma"
+    },
     lo = lo,
     hi = hi
   )
@@ -3662,24 +3724,31 @@ drm_logsigma_clamp_active <- function(report, tmb_data) {
 # keeps a runaway scale finite, but a fit that settles on it may have converged
 # artificially (flat saturated tail), so estimates and SEs there are unreliable.
 drm_warn_if_clamp_active <- function(obj, spec) {
-  # The clamp is applied in C++ for every scale-bearing family (Wave 2); gate on
-  # those model types because use_logsigma_clamp is a data default on every model
-  # (including count families without a scale), so checking it alone would flag
-  # models where the clamp is never applied.
-  if (!isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
+  fields <- drm_active_logsigma_clamp_fields(spec)
+  if (length(fields) == 0L) {
     return(invisible(FALSE))
   }
   report <- tryCatch(obj$report(), error = function(e) NULL)
   if (is.null(report)) {
     return(invisible(FALSE))
   }
-  info <- drm_logsigma_clamp_active(report, spec$tmb_data)
+  info <- drm_logsigma_clamp_active(report, spec$tmb_data, fields = fields)
   # The lower arm (sigma -> 0) is often a legitimate result (e.g. meta-analysis
   # tau = 0); it is surfaced by check_drm() (as a note, not a warning) rather
   # than raised as a fit-time cli warning here, to avoid warning on every
   # variance-zero boundary fit. Only the upper (runaway-scale) arm warns.
   if (is.null(info) || !identical(info$arm, "upper")) {
     return(invisible(FALSE))
+  }
+  if (identical(info$kind, "latent random-effect SD")) {
+    cli::cli_warn(
+      c(
+        "{.fn drmTMB}: the latent random-effect {.code log(SD)} clamp is active at the optimum (the fitted log(SD) reached {.val {round(info$value, 1)}}, above the band upper bound {.val {info$hi}}).",
+        "i" = "The group-level SD predictor may be in the saturated tail, so its estimates and standard errors can be unreliable. Check the group-level design and replication, inspect the SD profile, or widen the band with {.code drm_control(logsigma_clamp = )}; {.fn check_drm} reports the fit state."
+      ),
+      class = "drmTMB_clamp_active_warning"
+    )
+    return(invisible(TRUE))
   }
   cli::cli_warn(
     c(
@@ -7555,12 +7624,7 @@ drm_build_binomial_spec <- function(
       "i" = "Use {.fn beta_binomial} for overdispersed success counts with a fitted {.code sigma} parameter."
     ))
   }
-  if (any(is_sd_dpar)) {
-    cli::cli_abort(c(
-      "Random-effect scale formulae are not implemented for binomial models.",
-      "i" = "The first binomial-response slice is fixed-effect {.code mu} only."
-    ))
-  }
+  sd_mu_entries <- entries[is_sd_dpar]
   if (sum(dpars == "mu") != 1L) {
     cli::cli_abort("A binomial model requires exactly one location formula.")
   }
@@ -7590,6 +7654,7 @@ drm_build_binomial_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_binomial_mu_random_terms(mu_re$terms)
+  sd_mu_targets <- parse_sd_mu_entries(sd_mu_entries, mu_re$terms)
   # First binomial structured slice (#1048): one unlabelled q1 phylo() intercept
   # on mu. Phylogenetic logistic regression -- a binary trait on a tree -- is the
   # canonical comparative-methods use of a binary response, and binomial was the
@@ -7629,8 +7694,12 @@ drm_build_binomial_spec <- function(
     ))
   }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
+  for (sd_mu_entry in sd_mu_entries) {
+    drm_reject_phase1_terms(sd_mu_entry$rhs, sd_mu_entry$dpar)
+  }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  f_sd_mu <- lapply(sd_mu_entries, drm_entry_formula, response = FALSE)
   impute_vars <- if (include_missing_predictor) {
     all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
   } else {
@@ -7640,7 +7709,9 @@ drm_build_binomial_spec <- function(
     all.vars(f_mu),
     impute_vars,
     structured_mu_vars(binomial_structured_term),
-    random_effect_vars(mu_re$terms)
+    random_effect_vars(mu_re$terms),
+    unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
+    vapply(sd_mu_targets, `[[`, character(1), "group")
   ))
   # response = "include": keep missing-response rows (exclude the response from
   # the complete-case rule). predictor = "model": keep missing-predictor rows
@@ -7749,6 +7820,9 @@ drm_build_binomial_spec <- function(
   }
 
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  sd_mu <- build_sd_mu_structure(
+    sd_mu_entries, sd_mu_targets, re_mu, data_model
+  )
   phylo_mu <- build_structured_mu_structure(
     binomial_structured_term,
     data_model,
@@ -7767,15 +7841,18 @@ drm_build_binomial_spec <- function(
     V_known_type = "none",
     has_known_v = FALSE,
     offset = list(mu = offset_mu),
-    X = list(mu = X_mu),
-    terms = list(mu = stats::delete.response(stats::terms(mf_mu))),
-    model_frame = list(mu = mf_mu),
+    X = c(list(mu = X_mu), sd_mu$X_list),
+    terms = c(
+      list(mu = stats::delete.response(stats::terms(mf_mu))),
+      sd_mu$terms_list
+    ),
+    model_frame = c(list(mu = mf_mu), sd_mu$model_frame_list),
     random = list(
       mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
     random_scale = list(
-      mu = empty_sd_mu_structure(re_mu$n_re),
+      mu = sd_mu,
       phylo = empty_sd_phylo_structure()
     ),
     structured = list(phylo_mu = phylo_mu),
@@ -7786,18 +7863,19 @@ drm_build_binomial_spec <- function(
     data = data_model,
     variables = vars,
     keep = keep,
-    dpars = "mu",
+    dpars = c("mu", sd_mu$dpars),
     start = binomial_start(
       response$successes,
       response$failures,
       X_mu,
       offset_mu,
       re_mu = re_mu,
+      sd_mu = sd_mu,
       observed_y = observed_y,
       link = link,
       phylo_mu = phylo_mu
     ),
-    map = binomial_map(re_mu, phylo_mu),
+    map = binomial_map(re_mu, phylo_mu, sd_mu),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (isTRUE(phylo_mu$has)) "u_phylo"
@@ -14951,7 +15029,7 @@ parse_sd_mu_entry <- function(entry, mu_terms) {
     cli::cli_abort(c(
       "Explicit random-effect scale targets are reserved but not implemented yet.",
       "x" = "{.code {entry$dpar}} names a target distributional parameter, coefficient, or block.",
-      "i" = "This implementation supports implicit {.code sd(group)} targets only when there is exactly one unlabelled Gaussian {.code mu} random intercept for the group."
+      "i" = "This implementation supports implicit {.code sd(group)} targets only when there is exactly one unlabelled ordinary {.code mu} random intercept for the group in a family that admits SD regression."
     ))
   }
   target_group <- target$group
@@ -18918,6 +18996,7 @@ binomial_start <- function(
   X_mu,
   offset_mu = rep(0, length(successes)),
   re_mu = empty_random_mu_structure(length(successes)),
+  sd_mu = empty_sd_mu_structure(re_mu$n_re),
   observed_y = rep(TRUE, length(successes)),
   link = "logit",
   phylo_mu = empty_phylo_mu_structure()
@@ -18980,6 +19059,11 @@ binomial_start <- function(
     observed_y = observed_y
   )
   phylo_start <- gaussian_phylo_start(resid, phylo_mu)
+  beta_sd_mu <- if (sd_mu$n_models > 0L) {
+    gaussian_sd_mu_start(mu_re_start, sd_mu)
+  } else {
+    0
+  }
   c(
     list(beta_mu = beta_mu),
     list(
@@ -18987,7 +19071,7 @@ binomial_start <- function(
       beta_nu = 0,
       beta_zi = 0,
       theta_ord = 0,
-      beta_sd_mu = 0,
+      beta_sd_mu = beta_sd_mu,
       u_mu = mu_re_start$u_mu,
       log_sd_mu = mu_re_start$log_sd_mu,
       eta_cor_mu = mu_re_start$eta_cor_mu,
@@ -19009,12 +19093,16 @@ binomial_start <- function(
 
 binomial_map <- function(
   re_mu = empty_random_mu_structure(1L),
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  sd_mu = empty_sd_mu_structure(re_mu$n_re)
 ) {
-  poisson_map(
+  out <- gaussian_ls_map(
     re_mu = re_mu,
+    sd_mu = sd_mu,
     phylo_mu = phylo_mu
   )
+  out$beta_sigma <- factor(NA)
+  out
 }
 
 zero_one_beta_start <- function(
@@ -21375,6 +21463,7 @@ make_tmb_data_core <- function(spec) {
   }
   if (identical(spec$model_type, "binomial")) {
     phylo_mu <- spec$structured$phylo_mu
+    sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 18L,
       link_code = drm_binomial_link_code(if (is.null(spec$link)) "logit" else spec$link),
@@ -21391,8 +21480,8 @@ make_tmb_data_core <- function(spec) {
       X_sigma = dummy_matrix,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,
-      X_sd_mu = dummy_matrix,
-      has_sd_mu_model = 0L,
+      X_sd_mu = sd_mu$X,
+      has_sd_mu_model = as.integer(sd_mu$n_models > 0L),
       X_sd_phylo = dummy_matrix,
       report_group_sd = 0L,
       has_sd_phylo_model = 0L,
@@ -21413,7 +21502,7 @@ make_tmb_data_core <- function(spec) {
       mu_re_pos = spec$random$mu$re_pos0,
       mu_re_cor_id = spec$random$mu$re_cor_id0,
       mu_re_pair_index = spec$random$mu$re_pair_index0,
-      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
+      mu_re_sd_row = sd_mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -22085,6 +22174,15 @@ split_tmb_parameters <- function(par, spec) {
     beta_mu <- unname(par$beta_mu)
     names(beta_mu) <- colnames(spec$X$mu)
     out <- list(mu = beta_mu)
+    if (spec$random_scale$mu$n_models > 0L) {
+      sd_mu <- spec$random_scale$mu
+      beta_sd_mu <- unname(par$beta_sd_mu[seq_len(ncol(sd_mu$X))])
+      for (dpar in sd_mu$dpars) {
+        coef <- beta_sd_mu[sd_mu$coef_index[[dpar]]]
+        names(coef) <- sd_mu$coef_names_list[[dpar]]
+        out[[dpar]] <- coef
+      }
+    }
     if (
       is.list(spec$missing_predictor) &&
         isTRUE(spec$missing_predictor$enabled)

@@ -8,7 +8,8 @@
 #' The currently documented syntax is:
 #'
 #' * `sd(group) ~ predictors` for univariate Gaussian location random-effect
-#'   scale models;
+#'   scale models and a native Bernoulli/binomial ordinary random-intercept
+#'   slice; predictors must be constant within each retained group;
 #' * `sd1(group) ~ predictors` and `sd2(group) ~ predictors` for bivariate
 #'   Gaussian location random-effect scale models targeting `mu1` and `mu2`;
 #' * `sd(group, level = "phylogenetic") ~ predictors` for univariate Gaussian
@@ -31,8 +32,12 @@
 #'
 #' These formulas model the standard deviation of a latent random-effect block.
 #' They are distinct from residual scale formulas such as `sigma ~ predictors`
-#' and from latent correlation formulas such as [corpair()]. Non-Gaussian
-#' random-effect scale formulas, spatial/animal/relmat direct-SD formulas, and
+#' and from latent correlation formulas such as [corpair()]. Bernoulli/binomial
+#' SDs are on the response link scale; they do not introduce residual `sigma`.
+#' The native intercept slice has point-fit and workflow checks; interval
+#' calibration and Julia integration remain open. A separate narrow beta
+#' phylogenetic direct-SD route also exists. Remaining non-Gaussian direct-SD
+#' formulas, spatial/animal/relmat direct-SD formulas, and
 #' explicit coefficient-specific targets such as
 #' `sd(group, dpar = "mu", coef = "slope") ~ predictors` remain planned.
 #'

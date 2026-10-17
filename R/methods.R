@@ -6550,6 +6550,9 @@ drm_dpar_link <- function(object, dpar) {
   # constructor metadata and the runtime table stay consistent. Documented, not
   # refactored: unifying the two would require every model_type to carry a
   # drm_family object and is deferred to avoid destabilizing link resolution.
+  if (is_random_scale_dpar(object, dpar)) {
+    return("log")
+  }
   if (startsWith(dpar, "corpair(")) {
     # A modelled phylogenetic correlation keeps TMB's 0.999999 guard (rho_node);
     # a modelled group correlation uses the random-effect guard (#1190).
@@ -6752,18 +6755,18 @@ mu_random_effect_dpars <- function(object) {
 }
 
 is_random_scale_dpar <- function(object, dpar) {
-  if (!object$model$model_type %in% c("gaussian", "biv_gaussian", "beta")) {
-    return(FALSE)
-  }
+  # The fitted target registry, rather than the response family, determines
+  # whether this is a latent-SD submodel. Family builders own admission.
+  ordinary <- object$model$random_scale$mu
   if (
-    object$model$random_scale$mu$n_models > 0L &&
-      dpar %in% object$model$random_scale$mu$dpars
+    is.list(ordinary) && isTRUE(ordinary$n_models > 0L) &&
+      dpar %in% ordinary$dpars
   ) {
     return(TRUE)
   }
-  is.list(object$model$random_scale$phylo) &&
-    object$model$random_scale$phylo$n_models > 0L &&
-    dpar %in% object$model$random_scale$phylo$dpars
+  structured <- object$model$random_scale$phylo
+  is.list(structured) && isTRUE(structured$n_models > 0L) &&
+    dpar %in% structured$dpars
 }
 
 predict_random_scale_dpar <- function(
@@ -6975,11 +6978,14 @@ drm_simulate_marginal_unsupported <- function(object) {
     return("predictor-dependent random-effect correlation (corpair) regression")
   }
   if (
-    isTRUE(object$model$random_scale$mu$n_models > 0L) ||
-      (
-        is.list(object$model$random_scale$phylo) &&
-          isTRUE(object$model$random_scale$phylo$n_models > 0L)
-      )
+    is.list(object$model$random_scale$phylo) &&
+      isTRUE(object$model$random_scale$phylo$n_models > 0L)
+  ) {
+    return("modelled (heteroscedastic) random-effect scale")
+  }
+  if (
+    isTRUE(object$model$random_scale$mu$n_models > 0L) &&
+      !identical(object$model$model_type, "binomial")
   ) {
     return("modelled (heteroscedastic) random-effect scale")
   }
@@ -6994,6 +7000,8 @@ drm_simulate_marginal_unsupported <- function(object) {
 # `cross_re` carry a fresh mu latent draw plus `object$corpars$mu_sigma` and
 # `object$model$random$mu_sigma` into the sigma draw, for labelled
 # `(1 | p | id)` mu/sigma cross-correlated random effects.
+# `sd_by_effect_override` supplies fitted group-specific scales for explicitly
+# supported direct-SD routes.
 drm_fresh_ordinary_random_effect_values <- function(
   re,
   sd_lookup,
@@ -7001,7 +7009,8 @@ drm_fresh_ordinary_random_effect_values <- function(
   eta_lookup = NULL,
   cross_latent = NULL,
   cross_rho_lookup = NULL,
-  cross_re = NULL
+  cross_re = NULL,
+  sd_by_effect_override = NULL
 ) {
   if (re$n_re == 0L) {
     return(list(latent = numeric(0), values = numeric(0)))
@@ -7011,7 +7020,22 @@ drm_fresh_ordinary_random_effect_values <- function(
   } else {
     unname(sd_lookup[re$labels])
   }
-  if (anyNA(sd_by_term)) {
+  sd_by_effect <- sd_by_term[re$term_id0 + 1L]
+  if (!is.null(sd_by_effect_override)) {
+    if (
+      !is.numeric(sd_by_effect_override) ||
+        length(sd_by_effect_override) != re$n_re ||
+        any(!is.na(sd_by_effect_override) &
+          (!is.finite(sd_by_effect_override) | sd_by_effect_override <= 0))
+    ) {
+      cli::cli_abort(
+        "Internal error: marginal random-effect SD overrides must be positive and match the random-effect vector."
+      )
+    }
+    has_override <- !is.na(sd_by_effect_override)
+    sd_by_effect[has_override] <- sd_by_effect_override[has_override]
+  }
+  if (anyNA(sd_by_effect)) {
     cli::cli_abort(c(
       "Marginal simulation could not find a fitted random-effect SD for every {.field {re$labels}} term.",
       "i" = "This usually means the random-effect scale is itself modelled (heteroscedastic).",
@@ -7066,9 +7090,52 @@ drm_fresh_ordinary_random_effect_values <- function(
         u <- rho_i * cross_latent[[mu_idx]] + sqrt(1 - rho_i^2) * u
       }
     }
-    values[[idx]] <- sd_by_term[[term]] * u
+    values[[idx]] <- sd_by_effect[[idx]] * u
   }
   list(latent = latent, values = values)
+}
+
+# Returns a per-coefficient SD override for fitted ordinary binomial SD models.
+# The stored registry's zero-based row map aligns each random coefficient with
+# the group-level scale prediction; NA entries leave unrelated terms unchanged.
+drm_binomial_sd_effect_override <- function(object, re) {
+  sd_model <- object$model$random_scale$mu
+  if (!is.list(sd_model) || !isTRUE(sd_model$n_models > 0L)) {
+    return(NULL)
+  }
+  row_map <- sd_model$re_sd_row0
+  if (length(row_map) != re$n_re) {
+    cli::cli_abort(
+      "Internal error: binomial SD rows do not align with ordinary random effects."
+    )
+  }
+  target <- which(row_map >= 0L)
+  if (length(target) == 0L) {
+    return(NULL)
+  }
+  group_sd <- rep(NA_real_, nrow(sd_model$X))
+  for (dpar in sd_model$dpars) {
+    rows <- sd_model$row_index[[dpar]]
+    values <- predict_random_scale_dpar(object, dpar, type = "response")
+    if (length(rows) != length(values)) {
+      cli::cli_abort(
+        "Internal error: binomial SD predictions do not align with scale rows."
+      )
+    }
+    group_sd[rows] <- unname(values)
+  }
+  group_row <- row_map[target] + 1L
+  if (
+    anyNA(group_row) || any(group_row < 1L | group_row > length(group_sd)) ||
+      anyNA(group_sd[group_row])
+  ) {
+    cli::cli_abort(
+      "Internal error: binomial SD target map points to an unavailable group scale."
+    )
+  }
+  out <- rep(NA_real_, re$n_re)
+  out[target] <- group_sd[group_row]
+  out
 }
 
 # Reduces a flat vector of fresh random-effect values (in the same layout as
@@ -7201,7 +7268,14 @@ drm_ordinary_random_effect_draws <- function(object) {
       re_mu,
       object$sdpars$mu,
       object$corpars$mu,
-      eta_lookup = eta_mu
+      eta_lookup = eta_mu,
+      sd_by_effect_override = if (
+        identical(object$model$model_type, "binomial")
+      ) {
+        drm_binomial_sd_effect_override(object, re_mu)
+      } else {
+        NULL
+      }
     )
     mu_latent <- draw$latent
     for (dpar in unique(re_mu$dpars)) {
