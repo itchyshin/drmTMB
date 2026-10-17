@@ -13,7 +13,8 @@ NULL) then PASS 12; `test-julia-miss-control-predictor.R` reached
 `weights = NULL` still fences (#1450). Sibling Gaussian `(1 | g)` still
 has no `resd` label; nbinom2/beta/binomial stay unlabelled (loud echo,
 not silent AGHQ). Offset-as-free-coefficient untouched. C17 recertified
-because `R/drmTMB.R` moved. Report:
+(`fx7-julia-resd-misscontrol`, worst `|change| 1.264e-12` on mc-0568;
+`current_source_sha=e65be4b17`; fingerprint unchanged). Report:
 `docs/dev-log/after-task/2026-10-16-fx7-julia-resd-misscontrol.md`.
 
 # 2026-10-16: FX1 JuliaCall setup SIGSEGV (exit 139) on official Julia 1.12.x

@@ -100,10 +100,20 @@ package imports env for R 4.3.3 / #1550):
 - `#1450` `weights = NULL` still fences:
   `engine = "julia" does not support weights yet`.
 
-C17 is recertified because `R/drmTMB.R` changed. The A-2 move sits
-outside the authenticated model-15 anchors (zero-one-beta sigma/zoi
-routes). Numbers are recorded in the check-log after
-`python3 tools/recertify-c17.py --label fx7-julia-resd-misscontrol --tolerance 1e-10`.
+C17 recertified after `R/drmTMB.R` changed
+(`python3 tools/recertify-c17.py --label fx7-julia-resd-misscontrol --tolerance 1e-10`).
+The leftover hardcoded runner directory
+`2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1` was moved aside
+first. mean_tau_relative_error vs the #1508 receipt:
+
+- mc-0568 `0.0990031773614127` `|change| 1.264e-12`
+- mc-0569 `0.166077467303381` `|change| 1.570e-13`
+- mc-0576 `0.061304935160951` `|change| 2.050e-14`
+
+Worst drift is inside `--tolerance 1e-10`. `current_source_sha=e65be4b17`.
+`source_fingerprint` unchanged (`6ac6cd2141dd…`): the A-2 move sits
+outside the authenticated model-15 anchors. Receipt:
+`docs/dev-log/implementation-recovery/2026-10-17-fx7-julia-resd-misscontrol-c17c2-c14-final-source-compatibility`.
 
 The full `testthat` suite is recorded in the check-log / PR receipt.
 
