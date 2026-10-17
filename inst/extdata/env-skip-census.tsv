@@ -6,6 +6,7 @@ test-adequacy.R	suggests-package	environment	runs	4
 test-aghq-coxreid.R	cran-lane	environment	runs	1
 test-aghq-coxreid.R	suggests-package	environment	runs	2
 test-animal-relmat-gaussian.R	cran-lane	environment	runs	2
+test-anova-lrt.R	cran-lane	environment	runs	3
 test-arc-c-clamp-hardening.R	cran-lane	environment	runs	1
 test-arc1b-s2r-relmat-q2-recovery-runner.R	build-premise	build	skips	1
 test-arc1b-s2r-relmat-q2-recovery-runner.R	cran-lane	environment	runs	1

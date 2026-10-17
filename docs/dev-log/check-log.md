@@ -1,3 +1,24 @@
+# 2026-10-17: repair PR #1563 environment-skip census
+
+PR #1563 head `75a2a870a6ea769d986eb6cc6b74e07a0818f750` failed
+[run 38991160731](https://github.com/itchyshin/drmTMB/actions/runs/38991160731)
+because three `skip_on_cran()` sites in `test-anova-lrt.R` were absent from
+`inst/extdata/env-skip-census.tsv`. Regeneration adds exactly one aggregate row;
+no skip sites or model code changed. The existing guard reproduced both CI
+failures before regeneration and passed afterward (9 assertions, including
+4 new fixture assertions). `Rscript tools/write-env-skip-census.R --check`
+passes with 876 sites. Independent patch review found no correctness issues.
+Local tests used prebuilt R 4.6.0 and `pkgload::load_all(compile = FALSE)`;
+the missing-DLL warning means this is pure-logic evidence only. Xcode's
+pending license was neither accepted nor bypassed.
+
+Current main `d89db50975d96d9c2bcb13046453ae34c7fcf49b` already passes the
+census check (873 sites). Its README badge uses the default-branch workflow
+result, which remained the failed September 6 run `34054841475` because
+push-to-main checks were deliberately removed. Logs for that old run return
+HTTP 410. Fresh main [run 39056559935](https://github.com/itchyshin/drmTMB/actions/runs/39056559935)
+is pending; this PR-specific fix must not be presented as a fix to main's code.
+
 # 2026-10-16: FX6b parametric bootstrap LRT (#1559, #1560)
 
 `anova(..., test = "bootstrap")` and `drm_lrtest(..., test = "bootstrap")`
