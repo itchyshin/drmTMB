@@ -355,8 +355,12 @@ DRModels.jl `src/convergence_status.jl` (rank `1e-8`, inflated SE
 sentinel logLik `-1e15`). `is_converged()` and `converged()` are
 `TRUE` only for `"converged"`. Print, summary, and `check_drm()` show
 the status. Julia also keeps the FX3 Poisson/NB2 cone guard.
-`R/methods.R` changed (print/summary), so C17 was recertified.
-`R/drmTMB.R`, `R/mi-weights.R`, and `src/` were not edited.
+`R/methods.R` changed (print/summary), so C17 was recertified
+(`python3 tools/recertify-c17.py --label fx3b --tolerance 1e-10`;
+mc-0568/0569/0576 `|change| 0.000e+00`; receipt
+`docs/dev-log/implementation-recovery/2026-10-17-fx3b-c17c2-c14-final-source-compatibility`;
+`current_source_sha=2b547487f`). `R/drmTMB.R`, `R/mi-weights.R`, and
+`src/` were not edited.
 
 **Evidence:** red-proof `test-convergence-status-twin.R` 32 pass
 (FX3 semantics TRUE on mutated RE-SD `1e-8`; after FALSE).
