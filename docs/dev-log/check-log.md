@@ -1,3 +1,73 @@
+# 2026-10-16 — FX3b: shared three-valued convergence_status (#1554, #1333, #731, #1109)
+
+**Lane:** Cursor · branch `cursor/fx3b-convergence-status-1f29` stacked on FX3 #1564 (DRAFT PR).
+
+**Change:** `convergence_status()` is `"converged"` / `"boundary"` /
+`"degenerate"` with identical numeric cuts in drmTMB `R/check.R` and
+DRModels.jl `src/convergence_status.jl` (rank `1e-8`, inflated SE
+`>= 50` and `>= 1000 ×` sub-50 median, RE SD `< 1e-4`, `|rho12| > 0.98`,
+sentinel logLik `-1e15`). `is_converged()` and `converged()` are
+`TRUE` only for `"converged"`. Print, summary, and `check_drm()` show
+the status. Julia also keeps the FX3 Poisson/NB2 cone guard.
+`R/methods.R` changed (print/summary), so C17 was recertified
+(`python3 tools/recertify-c17.py --label fx3b --tolerance 1e-10`;
+mc-0568/0569/0576 `|change| 0.000e+00`; receipt
+`docs/dev-log/implementation-recovery/2026-10-17-fx3b-c17c2-c14-final-source-compatibility`;
+`current_source_sha=2b547487f`). `R/drmTMB.R`, `R/mi-weights.R`, and
+`src/` were not edited.
+
+**Evidence:** red-proof `test-convergence-status-twin.R` 32 pass
+(FX3 semantics TRUE on mutated RE-SD `1e-8`; after FALSE).
+`test-mle-existence.R` 39 pass; `test-summary.R` 14 pass;
+`test-dinnage-audit-wave4b1.R` 6 pass; `test-julia-diagnostics.R`
+20 pass / 2 skip. Full `NOT_CRAN=true` `tests/testthat.R`:
+FAIL 175 | WARN 71 | SKIP 322 | PASS 45953 (48.5 min); the two FX3b
+schema failures in that run were re-run green after the test patch.
+Julia: constants + Gaussian + all-zero Poisson 28 pass;
+`test_poisson_mle_existence.jl` 5 pass; `test_check_drm.jl` 82 pass;
+binomial separation 86 pass; API freeze 198 pass. t4 rescore 750/750:
+boolean agree 716/750 (was 512/750); status agree 689/750; 61 remaining
+listed in `docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`.
+
+DRModels.jl push returned 403; patch saved as
+`docs/dev-log/patches/2026-10-16-fx3b-DRModels.jl.patch` (SHA
+`ea40557ad`).
+
+**Non-claims:** no Firth/MSPL default; no Inf-SE masking in `vcov()`;
+shape-at-limit stays degenerate via inflated SE (#1535); does not
+close #1554.
+
+---
+
+# 2026-10-16 — FX3: fail-closed MLE existence (#1553, #1270, #1469)
+
+**Lane:** Cursor · branch `cursor/fx3-silent-mle-b05e` (DRAFT PR).
+
+**Change:** `R/mle-existence.R` screens fixed-effect binomial separation,
+Poisson / NB2 rays with no finite MLE, and unbounded continuous
+location-scale (lower `log(sigma)` clamp + exact Pearson residual +
+spread > log(1e4)). `convergence_status()` returns `"degenerate"` and
+`check_drm()` adds a warning `mle_existence` row. No change to
+`R/drmTMB.R`, `R/methods.R`, `R/mi-weights.R`, or `src/`; C17 was not
+recertified. The 238/750 twin-flag contract (#1554) is not decided here.
+
+**Evidence:** `test-mle-existence.R` failed on installed pin `ca3ddefa`
+(bin_complete / pois_n8_lowmean r03 / gauss_n8 r06 all `is_converged`
+TRUE) and passed after `pkgload::load_all` (39 pass / 0 fail). Sibling
+files: `test-check-drm.R` 263 pass / 1 skip, `test-fit-convergence-warning.R` 16
+pass, `test-binomial-response.R` 60 pass, `test-poisson-mean.R` 138 pass,
+`test-gaussian-location-scale.R` 79 pass / 1 skip, `test-nbinom2-location-scale.R`
+157 pass. Julia `test/test_poisson_mle_existence.jl` at pin `f71b292`:
+all-zero Poisson `is_converged=true`, SE ≈ 2.62e7, `check_drm.ok=true`;
+after the guard, 17 pass / 0 fail (warn + Inf SE; `is_converged` stays
+true). Sibling `test_binomial_separation.jl` 86 pass.
+
+**Non-claims:** no Firth/MSPL default; no Inf-SE masking in `vcov()`;
+random-effect routes not screened; shared R/Julia `is_converged` rule
+left to #1554.
+
+---
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
