@@ -34,6 +34,13 @@
 
 ## New features
 
+* `drm_control(optimizer_method = "BFGS")` selects BFGS directly, even when
+  `nlminb()` would converge. `"L-BFGS-B"`, `"Nelder-Mead"`, and `"CG"` are
+  also selectable. Pass method-specific settings such as `maxit` through
+  `optimizer = list(...)`. The default remains `"nlminb"`; its presets and
+  fallback behavior are unchanged. Diagnostics and attempt records name the
+  method used. Profile endpoint refits retain their own `nlminb()` controls.
+
 * `confint()` and `profile()` accept `parallel = "cluster"`, a socket
   (PSOCK) backend that works on every platform, including Windows. Workers
   load the same installed `drmTMB` build, and TMB re-tapes the shipped fit on

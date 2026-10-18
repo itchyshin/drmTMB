@@ -1,0 +1,27 @@
+optimizer-selection-downstream: ...........................................................................123
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-optimizer-selection-downstream.R:141:3'): legacy preset-onl
+Expected `check_optimizer_name(object)` to equal "nlminb".
+Differences:
+`actual`:   "careful"
+`expected`: "nlminb" 
+
+
+── 2. Failure ('test-optimizer-selection-downstream.R:142:3'): legacy preset-onl
+Expected `check_optimizer_convergence(object)$message` to match string "nlminb".
+Actual text:
+x | careful convergence code is 0.
+
+── 3. Failure ('test-optimizer-selection-downstream.R:143:3'): legacy preset-onl
+Expected `check_optimizer_budget(object)$status` to equal "ok".
+Differences:
+`actual`:   "note"
+`expected`: "ok"  
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

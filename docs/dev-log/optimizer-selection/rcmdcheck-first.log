@@ -1,0 +1,225 @@
+── R CMD build ─────────────────────────────────────────────────────────────────
+* checking for file ‘.../DESCRIPTION’ ... OK
+* preparing ‘drmTMB’:
+* checking DESCRIPTION meta-information ... OK
+* cleaning src
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+* building ‘drmTMB_0.7.1.tar.gz’
+
+── R CMD check ─────────────────────────────────────────────────────────────────
+* using log directory ‘/private/tmp/drmtmb-direct-optimizer-check/drmTMB.Rcheck’
+* using R version 4.6.0 (2026-04-24)
+* using platform: aarch64-apple-darwin23
+* R was compiled by
+    Apple clang version 17.0.0 (clang-1700.3.19.1)
+    GNU Fortran (GCC) 14.2.0
+* running under: macOS Tahoe 26.7.1
+* using session charset: UTF-8
+* current time: 2026-10-18 14:39:16 UTC
+* using options ‘--no-manual --ignore-vignettes’
+* checking for file ‘drmTMB/DESCRIPTION’ ... OK
+* this is package ‘drmTMB’ version ‘0.7.1’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘drmTMB’ can be installed ... OK
+* used C compiler: ‘Apple clang version 21.0.0 (clang-2100.3.34.2)’
+* used C++ compiler: ‘Apple clang version 21.0.0 (clang-2100.3.34.2)’
+* used SDK: ‘MacOSX27.0.sdk’
+* checking installed package size ... INFO
+  installed size is 20.4Mb
+  sub-directories of 1Mb or more:
+    libs  13.8Mb
+    R      3.0Mb
+    sim    1.9Mb
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking whether startup messages can be suppressed ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... OK
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking line endings in shell scripts ... OK
+* checking line endings in C/C++/Fortran sources/headers ... OK
+* checking compiled code ... OK
+* checking files in ‘vignettes’ ... SKIPPED
+* checking examples ... OK
+* checking for unstated dependencies in ‘tests’ ... OK
+* checking tests ...
+  Running ‘spelling.R’
+  Running ‘testthat.R’
+ ERROR
+Running the tests in ‘tests/testthat.R’ failed.
+Last 13 lines of output:
+  Expected `budget$message` to match regexp "evaluation or iteration limit".
+  Actual text:
+  x | Optimizer evaluation counts recorded; no eval.max or iter.max control was supplied.
+  ── Failure ('test-check-drm.R:1239:3'): check_drm() reports mutated diagnostic failure branches ──
+  Expected `budget_note$status` to equal "note".
+  Differences:
+  `actual`:   "ok"  
+  `expected`: "note"
+  
+  
+  [ FAIL 3 | WARN 17 | SKIP 32 | PASS 3495 ]
+  Error:
+  ! Test failures.
+  Julia bridge: 0 live tests ran, 2 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+  Execution halted
+* DONE
+
+Status: 1 ERROR
+See
+  ‘/private/tmp/drmtmb-direct-optimizer-check/drmTMB.Rcheck/00check.log’
+for details.
+
+── R CMD check results ─────────────────────────────────────── drmTMB 0.7.1 ────
+Duration: 3m 18.7s
+
+❯ checking tests ...
+  See below...
+
+── Test failures ───────────────────────────────────────────────── testthat ────
+
+> library(testthat)
+> library(drmTMB)
+> 
+> # The complete suite is an evidence programme as well as a package test suite:
+> # it includes simulation, recovery, coverage, numerical-oracle, comparator,
+> # generated-contract, and reader-render audits. Keep all of it in repository CI,
+> # but run a bounded installed-package smoke lane during routine CRAN checks.
+> #
+> # Candidate 6b45164b took 14 minutes in the Windows test stage even after the
+> # existing validation-suite exclusions. An explicit allowlist is fail-closed:
+> # a new evidence suite runs in full CI by default and enters the CRAN lane only
+> # after its runtime and purpose are reviewed.
+> #
+> # The retained contexts cover release identity, formula parsing, ordinary
+> # families, representative structured/missing/meta routes, public methods,
+> # MSPL, and reader/S3 compatibility. Nothing is deleted or weakened. Julia
+> # remains defense-in-depth blocked in the CRAN lane by drm_julia_setup() unless
+> # DRMTMB_JULIA_TESTS=true; its live suite remains repository-CI-only.
+> # Repository CI shards the full suite across parallel jobs via DRMTMB_TEST_SHARD
+> # ("k/N"); unset means run everything, so a local devtools::test() is unchanged.
+> # The helper lives under testthat/ so R CMD check does not execute it as a test
+> # file in its own right, and is sourced here the same way helper-cran-lane.R is
+> # below -- it is needed BEFORE test_check(), to build the filter argument.
+> # The CRAN lane is deliberately never sharded: it is already a bounded allowlist.
+> source(file.path("testthat", "helper-shard-util.R"), local = TRUE)
+> drm_shard <- drm_shard_filter()
+> 
+> not_cran <- isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false")))
+> if (not_cran) {
++   if (is.null(drm_shard)) {
++     test_check("drmTMB")
++   } else {
++     test_check("drmTMB", filter = drm_shard)
++   }
++ } else {
++   source(file.path("testthat", "helper-cran-lane.R"), local = TRUE)
++   test_check(
++     "drmTMB",
++     filter = drm_cran_test_filter()
++   )
++ }
+Saving _problems/test-check-drm-1231.R
+Saving _problems/test-check-drm-1233.R
+Saving _problems/test-check-drm-1239.R
+`simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+<drmTMB Binomial event-probability (logit link) fit>
+observations: 168
+estimator: MSPL
+mu random-effect terms: 2
+standard errors: fixed-effect Wald SEs available via `vcov()` and `summary()`;
+confidence intervals are not implemented for MSPL fits.
+penalized objective: 212.5
+likelihood inference: unavailable for experimental MSPL
+convergence: 0
+fixed effects:
+mu: (Intercept) = -0.1227, x = 0.6597
+[ FAIL 3 | WARN 17 | SKIP 32 | PASS 3495 ]
+
+══ Skipped tests (32) ══════════════════════════════════════════════════════════
+• docs/ is not present in this check tree (excluded via .Rbuildignore) (1):
+  'test-profile-shape-boundary.R:142:3'
+• DRModels.jl / DRM.jl engine not available (set DRMODELS_JL_PATH or
+  DRM_JL_PATH) (1): 'test-cran-lane-filter.R:73:3'
+• On CRAN (24): 'test-binomial-links.R:425:3',
+  'test-boundary-surfacing.R:35:3', 'test-boundary-surfacing.R:54:3',
+  'test-boundary-surfacing.R:67:3', 'test-boundary-surfacing.R:87:3',
+  'test-boundary-surfacing.R:110:3', 'test-boundary-surfacing.R:127:3',
+  'test-check-drm.R:907:3', 'test-control.R:568:3', 'test-control.R:628:3',
+  'test-control.R:672:3', 'test-control.R:743:3',
+  'test-formula-double-bar.R:130:3', 'test-formula-double-bar.R:155:3',
+  'test-formula-grouping-guard.R:79:3', 'test-formula-smooth-terms.R:83:3',
+  'test-gaussian-location-scale.R:15:1', 'test-offset-families.R:44:3',
+  'test-offset-families.R:117:3', 'test-offset-families.R:136:3',
+  'test-offset-families.R:157:3', 'test-optimizer-contract.R:41:1',
+  'test-optimizer-contract.R:83:1', 'test-optimizer-contract.R:108:1'
+• source-only development article layout is unavailable (1):
+  'test-release-identity.R:81:3'
+• source-only public release surfaces are unavailable (1):
+  'test-release-identity.R:17:3'
+• The development audit script is not installed with drmTMB (3):
+  'test-reader-journeys.R:26:3', 'test-reader-journeys.R:48:3',
+  'test-reader-journeys.R:153:3'
+• Vignette sources are not installed with drmTMB (1):
+  'test-reader-journeys.R:173:3'
+
+══ Failed tests ════════════════════════════════════════════════════════════════
+── Failure ('test-check-drm.R:1231:3'): check_drm() reports mutated diagnostic failure branches ──
+Expected `budget$status` to equal "warning".
+Differences:
+`actual`:   "ok"     
+`expected`: "warning"
+
+── Failure ('test-check-drm.R:1233:3'): check_drm() reports mutated diagnostic failure branches ──
+Expected `budget$message` to match regexp "evaluation or iteration limit".
+Actual text:
+x | Optimizer evaluation counts recorded; no eval.max or iter.max control was supplied.
+── Failure ('test-check-drm.R:1239:3'): check_drm() reports mutated diagnostic failure branches ──
+Expected `budget_note$status` to equal "note".
+Differences:
+`actual`:   "ok"  
+`expected`: "note"
+
+
+[ FAIL 3 | WARN 17 | SKIP 32 | PASS 3495 ]
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 2 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted
+
+1 error ✖ | 0 warnings ✔ | 0 notes ✔
