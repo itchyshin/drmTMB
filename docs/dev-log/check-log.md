@@ -1,3 +1,9 @@
+# 2026-10-18 — rebase #1525 onto main `d89db5097`
+
+Rebased `claude/lane-n2-ordinal-disc` onto current main. Conflicts were
+check-log and a stale C17 TSV (skipped). `src/drmTMB.cpp` changed (`disc`
+uses the unused `X_sigma` slot of model type 13).
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
