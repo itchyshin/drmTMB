@@ -1,7 +1,9 @@
 # 2026-10-18 — rebase #1524 onto main `d89db5097`
 
 Rebased `claude/lane-n1-zi-hurdle-re` onto current main. Stale C17 receipt
-commit skipped. `src/drmTMB.cpp` changed (ZI/hurdle mu random intercept).
+commit skipped. `src/drmTMB.cpp` changed (ZI/hurdle mu random intercept;
++60, C++ TMB reviewer). Full `testthat::test_dir()` on `a21ecf343`:
+passed=44951 failed=81 error=215 skipped=243 warning=20.
 
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
