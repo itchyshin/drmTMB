@@ -4,7 +4,9 @@ Rebased `claude/optimistic-euler-un5qle` onto current main, including the
 stacked #1504 commits (the #1504 branch itself was not rebased). Merge
 commits were linearized. Stale C17 receipt commits skipped.
 `src/drmTMB.cpp`, `src/drm_mi_quadrature.h`, `src/drm_numeric.h`, and
-`src/drm_response_kernels.h` changed.
+`src/drm_response_kernels.h` changed (+485/−173 across those four files;
+C++ TMB reviewer). Full `testthat::test_dir()` on `5edd6dcbc`:
+passed=45574 failed=81 error=220 skipped=241 warning=20.
 
 # 2026-10-18: #1504 reviewer fixes
 
