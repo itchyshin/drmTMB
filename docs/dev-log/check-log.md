@@ -1,3 +1,8 @@
+# 2026-10-18 — rebase #1524 onto main `d89db5097`
+
+Rebased `claude/lane-n1-zi-hurdle-re` onto current main. Stale C17 receipt
+commit skipped. `src/drmTMB.cpp` changed (ZI/hurdle mu random intercept).
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
