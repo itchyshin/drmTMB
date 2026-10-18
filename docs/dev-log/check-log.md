@@ -1,3 +1,10 @@
+# 2026-10-18 — rebase #1503 onto main `d89db5097`
+
+Rebased `cursor/triage-d-silent-inputs` onto current main. Conflicts were
+NEWS, check-log, and a stale C17 TSV. Intermediate C17 receipt commits
+were skipped and recertified once as `2026-10-18-pr1503-rebase`
+(`--tolerance 1e-10`; worst `|change|` 1.264e-12).
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
