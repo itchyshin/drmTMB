@@ -166,6 +166,120 @@ drm_spec_uses_mi_quadrature_abort <- function(spec) {
     drm_mi_term_uses_quadrature_abort(spec[["missing_predictor2"]])
 }
 
+# Post-fit accuracy guard for the frozen 15-node Beta / zero-one-Beta rule and
+# for Gamma mi() at high CV. Thresholds are the measured leftover vs
+# integrate(), not a new quadrature rule:
+#   Beta/ZOB missing-row prior mean at or inside 0.10 of 0 or 1, because
+#   |logLik - log integrate()| is 4.65e-3 at mu = 0.10, sigma = 1 and
+#   4.81e-3 at mu = 0.02, sigma = 1 on the 15-node Gauss-Legendre rule.
+#   Mid-range mu = 0.50, sigma = 0.5 stays near 2.6e-5; a pinched
+#   mu = 0.10, sigma = 0.2 case is also inside 2.6e-5, so a mu-only
+#   threshold is conservative at that pin.
+#   Gamma CV >= 3: 12% of an 80-row (mu, y) scan exceed 1e-4, worst 1.47.
+drm_mi_quadrature_inaccurate_beta_mu_boundary <- function() 0.10
+drm_mi_quadrature_inaccurate_gamma_cv <- function() 3
+
+drm_mi_quadrature_slot_names <- function(slot) {
+  if (identical(as.integer(slot), 2L)) {
+    list(beta = "beta_mi2", log_sigma = "log_sigma_mi2")
+  } else {
+    list(beta = "beta_mi", log_sigma = "log_sigma_mi")
+  }
+}
+
+drm_mi_quadrature_inaccurate_hits <- function(mp, par_list, slot) {
+  if (!is.list(mp) || !isTRUE(mp$enabled)) {
+    return(character())
+  }
+  family <- mp$family
+  if (!is.character(family) || length(family) != 1L) {
+    return(character())
+  }
+  variable <- mp$variable
+  if (!is.character(variable) || length(variable) != 1L || !nzchar(variable)) {
+    variable <- sprintf("mi() slot %s", slot)
+  }
+  names <- drm_mi_quadrature_slot_names(slot)
+  if (family %in% c("beta", "zero_one_beta")) {
+    beta <- as.numeric(par_list[[names$beta]])
+    X <- mp$X
+    if (!is.matrix(X) || !length(beta) || length(beta) != ncol(X)) {
+      return(character())
+    }
+    eta <- as.vector(X %*% beta)
+    mu <- drm_beta_missing_predictor_inverse_link(eta)
+    idx <- as.integer(mp$missing_index)
+    if (length(idx) > 0L) {
+      idx <- idx[idx >= 1L & idx <= length(mu)]
+      if (length(idx) > 0L) {
+        mu <- mu[idx]
+      }
+    }
+    mu <- mu[is.finite(mu)]
+    boundary <- drm_mi_quadrature_inaccurate_beta_mu_boundary()
+    bad <- mu <= boundary | mu >= (1 - boundary)
+    if (!length(mu) || !any(bad)) {
+      return(character())
+    }
+    mu_hit <- mu[bad][[1L]]
+    sprintf(
+      "Beta/zero-one-Beta prior for %s has a missing-row mean of %.3g (threshold %.2f from 0 or 1).",
+      variable,
+      mu_hit,
+      boundary
+    )
+  } else if (identical(family, "gamma")) {
+    log_sigma <- as.numeric(par_list[[names$log_sigma]])
+    if (!length(log_sigma) || !is.finite(log_sigma[[1L]])) {
+      return(character())
+    }
+    cv <- exp(log_sigma[[1L]])
+    threshold <- drm_mi_quadrature_inaccurate_gamma_cv()
+    if (!is.finite(cv) || cv < threshold) {
+      return(character())
+    }
+    sprintf(
+      "Gamma prior for %s has CV %.3g (threshold %s).",
+      variable,
+      cv,
+      threshold
+    )
+  } else {
+    character()
+  }
+}
+
+drm_warn_mi_quadrature_inaccurate <- function(spec, par_list) {
+  if (!is.list(spec) || !is.list(par_list)) {
+    return(invisible(FALSE))
+  }
+  hits <- c(
+    drm_mi_quadrature_inaccurate_hits(
+      spec[["missing_predictor"]],
+      par_list,
+      slot = 1L
+    ),
+    drm_mi_quadrature_inaccurate_hits(
+      spec[["missing_predictor2"]],
+      par_list,
+      slot = 2L
+    )
+  )
+  if (!length(hits)) {
+    return(invisible(FALSE))
+  }
+  extra <- stats::setNames(hits, rep("x", length(hits)))
+  cli::cli_warn(
+    c(
+      "The {.fn mi} quadrature marginal is inaccurate at the fitted prior.",
+      extra,
+      i = "The fit is returned. Missing-x rows used the frozen 15-node Gauss-Legendre rule (Beta / zero-one-Beta) or the 51-node log-x rule (Gamma). Move the Beta prior mean away from 0 and 1, or bring Gamma CV below 3, if you need the documented 1e-4 logLik accuracy (refs #1476 / #1477 / #1531)."
+    ),
+    class = "drmTMB_mi_quadrature_inaccurate"
+  )
+  invisible(TRUE)
+}
+
 drm_probe_mi_quadrature_objective <- function(obj, par, stage) {
   err <- NULL
   nll <- tryCatch(

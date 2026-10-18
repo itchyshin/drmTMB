@@ -732,6 +732,7 @@ drm_fit_spec <- function(
   if (isTRUE(mi_quad_abort)) {
     drm_probe_mi_quadrature_objective(obj, opt$par, "fitted")
   }
+  drm_warn_mi_quadrature_inaccurate(spec, obj$env$parList())
   drm_warn_if_not_converged(opt)
   drm_warn_if_nonfinite_objective(opt)
   drm_pin_tmb_object_to_optimum(obj, opt)

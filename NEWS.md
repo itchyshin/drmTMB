@@ -30,7 +30,9 @@
   `y = 0` stays finite. CV `> 1` near the pole remains a follow-up
   (Refs #1477). `obj$gr()` matches a finite-difference gradient to
   `1e-5` at CV 0.05, 1, and 2, and at the pole geometry where Newton
-  branch B wins (Refs #1477).
+  branch B wins (Refs #1477). A fitted Gamma `mi()` with CV at least 3
+  also raises `drmTMB_mi_quadrature_inaccurate` (see the Beta `mi()`
+  note below).
 
 * Beta and zero-one-Beta `mi()` keep the frozen 15-node Gauss-Legendre
   rule on `(0, 1)`, with zero-one-Beta atoms at 0 and 1. Mid-range Beta
@@ -39,7 +41,14 @@
   U-shaped case with shapes `(0.13, 0.31)` and `y` near the 0 pole
   is about `0.54` and is recorded for #1531 (Refs #1476).
   Weight 0 on a missing row still uses `if (asDouble(weights(i)) > 0)`
-  (Refs #1476).
+  (Refs #1476). After a successful TMB fit, class
+  `drmTMB_mi_quadrature_inaccurate` warns when any `mi()` term's
+  estimated missing-row Beta / zero-one-Beta prior mean is within
+  `0.10` of 0 or 1 (the 15-node rule is `4.65e-3` at `mu = 0.10`,
+  `sigma = 1` and `4.81e-3` at `mu = 0.02`, `sigma = 1`) or when a
+  Gamma `mi()` CV is at least 3. The check is R-only, loops both
+  `mi()` slots, and does not run on the Julia route, which already
+  refuses Beta and Gamma `mi()`.
 
 * `engine = "julia"` now refuses `mi()` plus non-unit observation weights
   for every family, with class `drmTMB_julia_mi_weights_unsupported`,

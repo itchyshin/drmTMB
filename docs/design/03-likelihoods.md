@@ -617,7 +617,17 @@ For missing `cover_i`, TMB integrates over the possible proportion values with
 the frozen 15-node Gauss-Legendre rule on `(0, 1)`. The log-sum is the
 unnormalised marginal (no `log_mass`). Mid-range Beta logLik error versus
 `integrate()` is about `2.6e-5`. U-shaped Beta (`mu` 0.02 or 0.10 with
-`sigma = 1`) is a known leftover that refs #1476:
+`sigma = 1`) is a known leftover that refs #1476. After the TMB fit,
+class `drmTMB_mi_quadrature_inaccurate` warns when any enabled `mi()`
+term has an estimated missing-row Beta or zero-one-Beta prior mean at
+or inside `0.10` of 0 or 1. That boundary is the measured 15-node
+failure: `|logLik - log integrate()|` is `4.65e-3` at `mu = 0.10`,
+`sigma = 1` and `4.81e-3` at `mu = 0.02`, `sigma = 1`. The pinched
+`mu = 0.10`, `sigma = 0.2` case stays inside `2.6e-5`, so a mu-only
+threshold is conservative there. The check is R-only on the fitted
+`mu`, loops both `mi()` slots, and is not applied before the Julia
+branch (Julia already refuses Beta/Gamma `mi()`). The missing-row
+marginal is still
 
 ```text
 x_q = (z_q + 1) / 2
@@ -1012,6 +1022,10 @@ so the cap is not a quadrature mass. A NaN or `-Inf` row is
 `drm_rethrow_mi_quadrature_error` and from non-finite `fn`/`gr` at the start
 and the fitted parameter. The abort watches every `mi()` term (both
 `missing_predictor` slots), not only the first. There is no CV branch (#1477).
+After a successful fit, class `drmTMB_mi_quadrature_inaccurate` warns
+when the estimated Gamma `mi()` CV is at least 3 (12% of an 80-row
+`(mu, y)` scan exceed `1e-4`, worst `1.47`). The same helper also
+warns for Beta / zero-one-Beta missing-row means near 0 or 1.
 
 The rule is a sinh map rather than Gauss-Hermite because the log-`x` integrand
 has the exponential left tail `exp(shape * u)`, `shape = 1 / CV^2`. A Gaussian

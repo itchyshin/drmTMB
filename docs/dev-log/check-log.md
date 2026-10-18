@@ -1,3 +1,48 @@
+# 2026-10-18: #1513 runtime guard drmTMB_mi_quadrature_inaccurate
+
+R-only post-fit warning `drmTMB_mi_quadrature_inaccurate` in
+`drm_fit_spec()` after the fitted `fn`/`gr` probe
+(`R/drmTMB.R:727`). Nothing in `src/`. The helper loops
+`missing_predictor` and `missing_predictor2`.
+
+Thresholds, documented against the measured 15-node leftover:
+- Beta / zero-one-Beta missing-row prior mean at or inside `0.10` of
+  0 or 1 (`4.65e-3` at `mu = 0.10`, `sigma = 1`; `4.81e-3` at
+  `mu = 0.02`, `sigma = 1`). Mid-range `mu = 0.50`, `sigma = 0.5` and
+  the pinched `mu = 0.10`, `sigma = 0.2` case stay inside `2.6e-5`, so
+  the mu-only cut is conservative at that pin.
+- Gamma CV `>= 3` (12% of an 80-row scan exceed `1e-4`, worst `1.47`).
+
+15-node Beta rule and labelled skips kept. No check before the Julia
+branch (Julia already refuses Beta/Gamma `mi()`).
+
+Tests: helper with two `mi()` terms, bad one second (Gaussian first +
+Gamma/Beta second); live two-Gaussian `drmTMB()` then second slot
+relabelled Gamma at CV 3.5; live Beta `mu ~ 0.04` warns; live Gamma
+CV 3 warns; healthy Gamma CV 0.10 does not warn.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail / 175 pass / 2
+labelled skips; `test-env-skip-census.R` 0 fail / 5 pass (cran-lane
+5→9). Unweighted cites stay `:1434`, `:1475`, `:4678`. `n_cpp` untouched.
+
+Full `testthat::test_dir()` (R 4.3.3, `NOT_CRAN=true`): the Summary
+reporter still prints only the first 10 failures, all this VM's missing
+Suggests (`ape`, `emmeans`, `mvtnorm`), the same class as Engine A.
+`test-mi-quadrature-1476-1477.R` in that run: 175 pass / 2 labelled
+skips / 0 fail. Touched mi() files had 0 fail.
+
+C17 `--label mi-quadrature-1513-guard --tolerance 1e-10`: `|change|
+0.000e+00` on mc-0568 / 0569 / 0576. Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-guard-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK. Tracked run-1 moved aside, then restored.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
 # 2026-10-18: #1513 Engine A (merge main, abort every mi() term, C++ notes)
 
 Merged `origin/main` (`d89db5097`) into `cursor/triage-i-mi` as a normal

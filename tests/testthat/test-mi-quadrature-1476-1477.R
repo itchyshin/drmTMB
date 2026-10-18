@@ -448,3 +448,197 @@ test_that("Gamma mi() obj$gr matches FD where Newton branch B wins (#1477)", {
   expect_true(all(is.finite(cmp$fd)))
   expect_lt(cmp$max_abs, 1e-5)
 })
+
+mi_enabled_term <- function(family, variable, mu, cv = 0.2, n = 6L, missing = 1L) {
+  if (family %in% c("beta", "zero_one_beta")) {
+    eta <- qlogis(min(max(mu, 1e-6), 1 - 1e-6))
+  } else {
+    eta <- log(max(mu, 1e-8))
+  }
+  list(
+    enabled = TRUE,
+    family = family,
+    variable = variable,
+    X = matrix(1, nrow = n, ncol = 1L),
+    missing_index = as.integer(missing),
+    beta_start = eta,
+    log_sigma_start = log(cv)
+  )
+}
+
+mi_inaccurate_spec <- function(first, second = NULL) {
+  list(missing_predictor = first, missing_predictor2 = second)
+}
+
+mi_inaccurate_par <- function(first, second = NULL) {
+  par <- list(
+    beta_mi = first$beta_start,
+    log_sigma_mi = first$log_sigma_start
+  )
+  if (is.list(second) && isTRUE(second$enabled)) {
+    par$beta_mi2 <- second$beta_start
+    par$log_sigma_mi2 <- second$log_sigma_start
+  }
+  par
+}
+
+caught_mi_inaccurate <- function(expr) {
+  hit <- FALSE
+  withCallingHandlers(
+    expr,
+    warning = function(e) {
+      if (inherits(e, "drmTMB_mi_quadrature_inaccurate")) {
+        hit <<- TRUE
+      }
+      invokeRestart("muffleWarning")
+    }
+  )
+  hit
+}
+
+keep_mi_inaccurate_warning <- function(expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(e) {
+      if (!inherits(e, "drmTMB_mi_quadrature_inaccurate")) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+}
+
+test_that("quadrature inaccuracy warning watches the second mi() term", {
+  # Live two-mi fits are Gaussian+Gaussian only, so mixed families cannot
+  # reach drmTMB(). The helper still loops both slots: Gaussian first,
+  # Gamma second at CV >= 3 must warn.
+  first <- mi_enabled_term("gaussian", "x1", mu = 0, cv = 0.4)
+  second <- mi_enabled_term("gamma", "x2", mu = 10, cv = 3.5)
+  expect_warning(
+    drmTMB:::drm_warn_mi_quadrature_inaccurate(
+      mi_inaccurate_spec(first, second),
+      mi_inaccurate_par(first, second)
+    ),
+    class = "drmTMB_mi_quadrature_inaccurate"
+  )
+  second_beta <- mi_enabled_term("beta", "x2", mu = 0.02, cv = 1)
+  expect_warning(
+    drmTMB:::drm_warn_mi_quadrature_inaccurate(
+      mi_inaccurate_spec(first, second_beta),
+      mi_inaccurate_par(first, second_beta)
+    ),
+    class = "drmTMB_mi_quadrature_inaccurate"
+  )
+  expect_false(drmTMB:::drm_warn_mi_quadrature_inaccurate(
+    mi_inaccurate_spec(first, mi_enabled_term("gamma", "x2", mu = 10, cv = 0.5)),
+    mi_inaccurate_par(first, mi_enabled_term("gamma", "x2", mu = 10, cv = 0.5))
+  ))
+})
+
+test_that("a live drmTMB() two-mi fit warns when the second term is inaccurate", {
+  skip_on_cran()
+  # Two live mi() terms are Gaussian+Gaussian. Relabel the fitted second
+  # slot as Gamma at CV >= 3 so the helper must fire on slot 2 while slot 1
+  # stays a healthy Gaussian prior.
+  set.seed(15135)
+  n <- 48
+  x <- stats::rnorm(n)
+  m1 <- 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.35)
+  m2 <- -0.1 + 0.4 * x + stats::rnorm(n, sd = 0.30)
+  y <- 0.3 + 0.7 * m1 + 0.5 * m2 + 0.2 * x + stats::rnorm(n, sd = 0.4)
+  d <- data.frame(y, m1, m2, x)
+  d$m1[seq_len(n) %% 5L == 0L] <- NA_real_
+  d$m2[seq_len(n) %% 6L == 0L] <- NA_real_
+  fit <- suppressWarnings(drmTMB(
+    bf(y ~ mi(m1) + mi(m2) + x, sigma ~ 1),
+    data = d,
+    impute = list(
+      m1 = impute_model(m1 ~ x, family = gaussian()),
+      m2 = impute_model(m2 ~ x, family = gaussian())
+    ),
+    missing = miss_control(predictor = "model"),
+    control = drm_control(se = FALSE)
+  ))
+  expect_false(caught_mi_inaccurate({
+    drmTMB:::drm_warn_mi_quadrature_inaccurate(
+      fit$model,
+      fit$obj$env$parList()
+    )
+  }))
+  spec <- fit$model
+  spec$missing_predictor2$family <- "gamma"
+  par_list <- fit$obj$env$parList()
+  par_list$log_sigma_mi2 <- log(3.5)
+  expect_warning(
+    drmTMB:::drm_warn_mi_quadrature_inaccurate(spec, par_list),
+    class = "drmTMB_mi_quadrature_inaccurate"
+  )
+})
+
+test_that("a live Beta mi() fit warns when missing-row mu is near 0", {
+  skip_on_cran()
+  set.seed(15131)
+  n <- 80
+  mu_x <- 0.04
+  sigma_x <- 0.20
+  x <- stats::rbeta(n, mu_x / sigma_x^2, (1 - mu_x) / sigma_x^2)
+  y <- 0.5 + 2 * x + stats::rnorm(n, 0, 0.15)
+  d <- data.frame(y, x)
+  d$x[seq_len(12)] <- NA_real_
+  expect_warning(
+    keep_mi_inaccurate_warning(drmTMB(
+      bf(y ~ mi(x), sigma ~ 1),
+      data = d,
+      impute = list(x = impute_model(x ~ 1, family = beta_family())),
+      missing = miss_control(predictor = "model"),
+      control = drm_control(se = FALSE)
+    )),
+    class = "drmTMB_mi_quadrature_inaccurate"
+  )
+})
+
+test_that("a live Gamma mi() fit warns when CV >= 3", {
+  skip_on_cran()
+  set.seed(15132)
+  n <- 80
+  cv <- 3
+  z <- stats::rnorm(n)
+  mu <- exp(1.5 + 0.15 * z)
+  x <- stats::rgamma(n, shape = 1 / cv^2, scale = mu * cv^2)
+  y <- 1 + 0.2 * x + stats::rnorm(n, 0, 0.5)
+  d <- data.frame(y, x, z)
+  d$x[seq_len(10)] <- NA_real_
+  expect_warning(
+    keep_mi_inaccurate_warning(drmTMB(
+      bf(y ~ mi(x), sigma ~ 1),
+      data = d,
+      impute = list(x = impute_model(x ~ z, family = Gamma(link = "log"))),
+      missing = miss_control(predictor = "model"),
+      control = drm_control(se = FALSE)
+    )),
+    class = "drmTMB_mi_quadrature_inaccurate"
+  )
+})
+
+test_that("a healthy Gamma mi() fit does not warn drmTMB_mi_quadrature_inaccurate", {
+  skip_on_cran()
+  set.seed(1477)
+  n <- 80
+  nmiss <- 20
+  cv <- 0.10
+  z <- stats::rnorm(n)
+  mu <- exp(2 + 0.2 * z)
+  x <- stats::rgamma(n, shape = 1 / cv^2, scale = mu * cv^2)
+  y <- 1 + 0.5 * x + stats::rnorm(n, 0, 0.5)
+  d <- data.frame(y, x, z)
+  d$x[sample(n, nmiss)] <- NA
+  expect_false(caught_mi_inaccurate({
+    drmTMB(
+      bf(y ~ mi(x), sigma ~ 1),
+      data = d,
+      impute = list(x = impute_model(x ~ z, family = Gamma(link = "log"))),
+      missing = miss_control(predictor = "model"),
+      control = drm_control(se = FALSE)
+    )
+  }))
+})
+
