@@ -6,6 +6,9 @@ This rebase keeps that implementation (fits ordered by parameter count;
 parallel #1528 implementation and its `test-anova-drmtmb.R` (which expected
 `Chi Df` and argument-order refusal) were not replayed. NEWS now records the
 landed #1240 behaviour. `test-anova-lrt.R` on main remains the test file.
+Full `testthat::test_dir()` on `753b44ddc`: passed=44941 failed=81
+error=213 skipped=241 warning=20. Diff vs main is NEWS + this check-log
+only. Addresses #1240 (already landed via #1527).
 
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
