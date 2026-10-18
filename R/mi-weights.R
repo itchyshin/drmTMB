@@ -153,13 +153,17 @@ drm_mi_quadrature_abort_families <- function() {
   c("gamma", "beta", "zero_one_beta")
 }
 
-drm_spec_uses_mi_quadrature_abort <- function(spec) {
-  mp <- spec[["missing_predictor"]]
+drm_mi_term_uses_quadrature_abort <- function(mp) {
   is.list(mp) &&
     isTRUE(mp$enabled) &&
     is.character(mp$family) &&
     length(mp$family) == 1L &&
     mp$family %in% drm_mi_quadrature_abort_families()
+}
+
+drm_spec_uses_mi_quadrature_abort <- function(spec) {
+  drm_mi_term_uses_quadrature_abort(spec[["missing_predictor"]]) ||
+    drm_mi_term_uses_quadrature_abort(spec[["missing_predictor2"]])
 }
 
 drm_probe_mi_quadrature_objective <- function(obj, par, stage) {

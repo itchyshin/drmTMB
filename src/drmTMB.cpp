@@ -273,13 +273,16 @@ void drm_gamma_mi_adaptive_quadrature(
   Type sigma_u = Type(1.0) / sqrt(negH);
   Type log_sigma_u = log(sigma_u);
   for (int q = 0; q < z.size(); ++q) {
-    Type u_q = u + sigma_u * sinh(z(q));
-    u_q = CppAD::CondExpGt(u_q, u_max, u_max, u_q);
+    Type u_raw = u + sigma_u * sinh(z(q));
+    // Report a finite x at the cap, but drop the term: the full w*cosh
+    // weight does not belong at a node that is no longer on the integrand.
+    Type u_q = CppAD::CondExpGt(u_raw, u_max, u_max, u_raw);
     x_nodes(q) = exp(u_q);
     Type f_q = drm_gamma_mi_log_integrand(
       u_q, shape, scale, mu_base, beta_x, x_base,
       model_type, y, log_sigma, V_known, include_y);
-    log_terms(q) = log(w(q)) + f_q + log_sigma_u + log(cosh(z(q)));
+    Type log_term = log(w(q)) + f_q + log_sigma_u + log(cosh(z(q)));
+    log_terms(q) = CppAD::CondExpGt(u_raw, u_max, f_floor, log_term);
   }
 }
 
