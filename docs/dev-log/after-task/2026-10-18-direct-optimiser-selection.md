@@ -21,7 +21,7 @@ Assumptions made without asking: the request to make the alternatives selectable
 - R/control.R and R/drmTMB.R: selection, normalization, metadata and staged diagnostics.
 - R/check.R, R/profile.R and R/bootstrap-shards.R: downstream diagnostics, endpoint controls and provenance.
 - tests/testthat/test-optimizer-selection.R and test-optimizer-selection-downstream.R: pure and compiled integration tests.
-- tests/testthat/test-julia-control-refusal-names.R: new-field refusal probe.
+- tests/testthat/test-julia-control-refusal-names.R and test-julia-optimizer-controls.R: new-field refusal probes.
 - tests/testthat/test-check-drm.R: update the synthetic selected-budget record.
 - man/drm_control.Rd, NEWS.md, vignettes/convergence.Rmd and docs/design/35-optimizer-start-map-multistart.md: public and design documentation.
 - docs/dev-log/optimizer-selection/: plan, check log and retained receipts.
@@ -38,7 +38,7 @@ pkgdown::check_pkgdown(), the control reference build and convergence article bu
 
 ## 6. Tests of the Tests
 
-Dispatch tests first failed on the missing argument and missing metadata. Downstream tests first failed on hardcoded optimizer diagnostics and profile-control forwarding. Separate red/green tests exposed duplicate fnscale handling, staged metrics, selected-attempt attribution and legacy R partial matching. Installed-layout testing proves the pure fixture works when package R sources are absent.
+Dispatch tests first failed on the missing argument and missing metadata. Downstream tests first failed on hardcoded optimizer diagnostics and profile-control forwarding. Separate red/green tests exposed duplicate fnscale handling, staged metrics, selected-attempt attribution and legacy R partial matching. Installed-layout testing proves the pure fixture works when package R sources are absent. The second CI run exposed another Julia-refusal probe table; its two failures were reproduced locally before adding the missing probe. The resulting control/selection suite passed 45 tests and 487 assertions.
 
 Integration tests compare estimates with lm and the Gaussian ML residual scale, exercise all four algorithms with Newton polishing disabled, and combine BFGS with profiling, public starts and random effects. This checks likelihood behavior as well as dispatch instrumentation.
 
@@ -68,7 +68,7 @@ This is numerical-method selection, not calibration evidence. No Ayumi real-data
 
 ## 11. Team Learning
 
-A new optimizer changes more than dispatch: inspect diagnostics, constrained profile controls, staged reports, selected-result metadata and bootstrap compatibility. Use exact list indexing for newly interpreted legacy metadata fields to avoid R partial matching.
+A new optimizer changes more than dispatch: inspect diagnostics, constrained profile controls, staged reports, selected-result metadata and bootstrap compatibility. Use exact list indexing for newly interpreted legacy metadata fields to avoid R partial matching. When a constructor gains a field, search every derived field registry before CI; both Julia refusal registries required probes here.
 
 Memory receipt: the lane preflight, route manifest and project contract were applied; no Codex memory was modified. Golden Set: no capability claim was promoted. The existing three model-15 compatibility cells were rechecked, 12/12 attempts passed, and their source receipt was refreshed with the authenticated surface fingerprint unchanged. The focused regression suite supplies interface and small-likelihood evidence only.
 
