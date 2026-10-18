@@ -19,9 +19,10 @@ mode and tail; worst `2.5e-5`) and for a Poisson response at CV 0.2 to 2 at
 
 Still open:
 
-1. CV `>= 3`. In a random scan (Gaussian response, `mu` in 1..30, CV 3) a
-   quarter of the rows exceed `1e-4` (worst `7.8e-3`). Shape is `1/9`, so
-   the left tail `exp(u / 9)` needs a wider `t` span than `[-5, 4]`.
+1. CV `>= 3`. In an 80-row random scan (Gaussian response, `mu` in 1..30,
+   `y` in 0.5..20, CV 3, seed 1477) 12% of the rows exceed `1e-4` (worst
+   `1.47` at `mu = 23.28`, `y = 1.67`). Shape is `1/9`, so the left tail
+   `exp(u / 9)` needs a wider `t` span than `[-5, 4]`.
 2. Poisson response with `exp(eta)` at the prior mean of about `1e3` or
    more (for example `mu = 10`, `beta_x = 1`, `mu_y = -1`, `y = 0`, CV 0.5:
    `4.5e-2`; CV 1.5: `1.5`). Five Newton steps stop short of the mode.
