@@ -149,6 +149,16 @@ Reader: someone who passes a character grouping column, not a factor, into a cro
 
 `model.frame()` on this R keeps that column as character. The reference guard skipped it, subset the rows, and let `model.matrix()` build a new factor from what remained. With `g = c("a", "a", "b", "b", "c", "c")` and the `"a"` rows removed because `y1` is `NA`, the rebuilt column was `gc` and the baseline had moved from `a` to `b`. The same function now converts character and logical predictors with `factor()` on the full frame before the row subset, then runs the existing reference check. The response column is not converted. The character case errors and names level `"a"`.
 
+## Contrast helper: remaining drops (2026-10-18, lane a-L4)
+
+Reader: someone who sets contrasts on a factor that also has an unused level, then fits with `engine = "tmb"`.
+
+`drm_droplevels_keep_contrasts_factor()` still called bare `droplevels()` in two cases, and that call drops the contrasts. First, an ordered factor with a stored matrix such as `contr.treatment(4)` and one unused level went back to `contr.poly`. Second, a contrast name stored as a string (`contrasts(f) <- "contr.helmert"`) became treatment coding. Ordered factors now go through the same row subset as unordered ones. A stored name is written back as it is, so it is rebuilt on the levels that remain. A matrix whose remaining rows are not a contrast basis (`contr.sum(4)` on three levels) used to fall back to treatment coding with no message. It now gives the default coding plus a warning of class `drmTMB_contrasts_dropped`. `model.frame()` does the same when `lm()` drops a level. The cross-family route still refuses that case before this helper runs.
+
+`tests/testthat/test-factor-contrasts.R` has the #1495 reproduction (`set.seed(1)`, 30 rows, `contr.sum(3)`), which checks columns `g1`, `g2` and the estimates against `lm()` to 1e-6. It also tests the ordered matrix, the stored name, the warning, and a `drmTMB()` fit where `"contr.sum"` is set and one level is unused. Before the fix, 8 expectations failed. With the fix, all 17 pass. The change is in `R/julia-bridge.R` only. `R/drmTMB.R`, `R/methods.R`, `R/mi-weights.R` and `src/` were not edited, so C17 was not recertified.
+
+`devtools::document()` rewrote 38 `man/*.Rd` files back to their text from before #1400. That PR edited the `.Rd` files directly and did not change the roxygen sources (for example `R/formula-markers.R:137`). `origin/main` has the same drift. Those rewrites were not committed, because they would undo #1400. The roxygen sources need a separate fix.
+
 ## Known limitations
 
 Beta and NB2 lgamma ratios at extreme dispersion are still the expressions named above. Cross-family Julia fits do not keep a response that is missing on a row the other response observed. Both axes lose that row. A user who wants a per-axis missingness model, rather than one shared complete case, still needs `engine = "tmb"`. The univariate Julia bridge still refuses an ordered factor and an explicit `contr.sum` before DRM.jl starts, because that route lets DRM.jl rebuild the factor. The cross-family route sends the numeric design from R, so those columns are kept there.

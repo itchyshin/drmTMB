@@ -8510,10 +8510,13 @@ drm_contrast_subset <- function(col, levels_keep) {
 
 # `droplevels.factor()` calls `factor()`, which drops a contrasts attribute.
 # `contrasts(f) <- contr.sum(3)` then becomes treatment columns `fb`, `fc`
-# even when every level is still present. Ordered factors keep `contr.poly`
-# only because that coding is the ordered default, not a stored matrix.
-# This helper drops unused levels and writes the stored contrasts back.
-drm_droplevels_keep_contrasts_factor <- function(col) {
+# even when every level is still present (#1495). This helper drops unused
+# levels and writes the stored contrasts back, for ordered factors too. A
+# contrast function name (`contrasts(f) <- "contr.sum"`) is kept as is. A
+# matrix keeps its rows for the levels that remain. When those rows are not a
+# contrast basis (`contr.sum(4)` on three levels), the default coding is used
+# with a warning, as `model.frame()` does.
+drm_droplevels_keep_contrasts_factor <- function(col, name = NULL) {
   if (!is.factor(col)) {
     return(col)
   }
@@ -8521,14 +8524,30 @@ drm_droplevels_keep_contrasts_factor <- function(col) {
   if (length(used) == nlevels(col)) {
     return(col)
   }
-  if (is.ordered(col) || is.null(attr(col, "contrasts"))) {
-    return(droplevels(col))
+  ctr <- attr(col, "contrasts")
+  new <- droplevels(col)
+  if (is.null(ctr) || nlevels(new) < 2L) {
+    return(new)
+  }
+  if (is.character(ctr)) {
+    stats::contrasts(new) <- ctr
+    return(new)
   }
   sub <- drm_contrast_subset(col, used)
-  new <- droplevels(col)
   if (!is.null(sub)) {
     stats::contrasts(new) <- sub
+    return(new)
   }
+  lost <- setdiff(levels(col), used)
+  target <- if (is.null(name)) "a fixed-effect factor" else paste0("factor `", name, "`")
+  cli::cli_warn(
+    c(
+      "The contrasts set on {target} could not be kept after dropping {cli::qty(length(lost))}unused level{?s} {.val {lost}}.",
+      x = "Their rows for the {length(used)} levels that remain are not a contrast basis, so the default coding is used and the coefficients change meaning.",
+      i = "Drop the unused levels first ({.code droplevels()}), then set the contrasts on the levels that remain."
+    ),
+    class = "drmTMB_contrasts_dropped"
+  )
   new
 }
 
@@ -8538,7 +8557,7 @@ drm_droplevels_keep_contrasts <- function(data) {
   }
   for (nm in names(data)) {
     if (is.factor(data[[nm]])) {
-      data[[nm]] <- drm_droplevels_keep_contrasts_factor(data[[nm]])
+      data[[nm]] <- drm_droplevels_keep_contrasts_factor(data[[nm]], name = nm)
     }
   }
   data

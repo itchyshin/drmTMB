@@ -66,8 +66,13 @@
   factor, so `contrasts(f) <- contr.sum(3)` still yields columns `f1` and
   `f2` when every level remains. The same helper now drops unused levels
   on the TMB engine, which had been recoding those columns as treatment
-  contrasts (`fb`, `fc`). A non-reference treatment level that the drop
-  empties is still removed. Removing the reference level stops the fit
+  contrasts (`fb`, `fc`) (#1495). When `drmTMB()` drops an unused level,
+  a stored contrast matrix keeps its rows for the levels that remain, on
+  ordered factors too, and a contrast name such as `"contr.sum"` is kept
+  as is. If those rows are not a contrast basis (`contr.sum(4)` on three
+  levels), the fit uses the default coding and warns
+  (`drmTMB_contrasts_dropped`), as `lm()` does. A non-reference treatment
+  level that the drop empties is still removed. Removing the reference level stops the fit
   and names that level, instead of keeping a column such as `gc` and
   silently changing its baseline. A character or logical predictor is
   factored from the full frame before that check. `g = c("a", "a", "b",
