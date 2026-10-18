@@ -41,7 +41,7 @@ Cross-family Julia axes each record the original rows their own `model.frame()` 
 - `tests/testthat/test-guard-branch-continuity.R`, `test-julia-diagnostics.R`
 - `docs/design/03-likelihoods.md`, `NEWS.md`, this report, `docs/dev-log/check-log.md`
 
-`src/drmTMB.cpp` and `R/methods.R` were not edited. The first two rounds did not edit `R/drmTMB.R`. The contrast round does, so C17 is recertified for that edit. The header edits are outside the C17 hash.
+`src/drmTMB.cpp` and `R/methods.R` were not edited. The first two rounds did not edit `R/drmTMB.R`. The contrast round does, so C17 was recertified with `--tolerance 1e-10`: worst `|change|` `1.322e-11` (mc-0569) on the original branch, and `|change|` 0 on all three cells after the 2026-10-18 rebase onto `main` (`--label pr-1504`). The header edits are outside the C17 hash.
 
 ## Checks
 

@@ -1,3 +1,13 @@
+# 2026-10-18: rebase #1504 onto main after #1579
+
+Rebased `cursor/triage-e-numeric` onto `95e81e911` (50 commits). `NEWS.md`
+and this log had additive conflicts and keep both sides. The intermediate C17
+receipt commit was skipped, as for #1508, and C17 was recertified once at the
+end: `python3 tools/recertify-c17.py --label pr-1504 --tolerance 1e-10`,
+`|change|` 0 on mc-0568/0569/0576, source fingerprint unchanged. The branch
+also carries the #1495 contrast fix (ordered factors, stored contrast names,
+and a `drmTMB_contrasts_dropped` warning).
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
@@ -45,7 +55,7 @@ Removing the treatment reference level on a cross-family axis now errors and nam
 
 The rank check in `drm_julia_xfam_design_from_frame()` calls `drm_aliased_columns(X, tol = 1e-10)`. A design with predictor noise of `1e-8` still builds. An exact copy of a column errors with class `drmTMB_rank_deficient_design`. `qr()`'s default tolerance is `1e-7`.
 
-`R/drmTMB.R` changed, so C17 is recertified in this round. `R/methods.R` and `src/drmTMB.cpp` did not change. `lss-tip-identity` hashes every `R/*.R` and will be regenerated once on `main`. It was not rewritten here.
+`R/drmTMB.R` changed, so C17 was recertified (`--tolerance 1e-10`). On the original branch the worst `|change|` was `1.322e-11` (mc-0569). After the rebase onto `main` it was recertified once more (`--label pr-1504`), with `|change|` 0 on all three cells. `R/methods.R` and `src/drmTMB.cpp` did not change. `lss-tip-identity` hashes every `R/*.R` and will be regenerated once on `main`. It was not rewritten here.
 
 Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 70 expectations. Related files re-run with no failures: coefficient labels, xfam bridge, formula constructs, dinnage wave 1, julia diagnostics, julia bridge, julia structured, julia missing. Full `testthat::test_dir()`: PASS 45044, FAIL 5, WARN 77, SKIP 446. The five failures are this VM, not the contrast change: two B1 adapter errors because `{ape}` is absent, one Julia fence that stops on missing `{JuliaCall}` before the DRM.jl path message, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. Live Julia tests skipped: Julia is not installed on this VM, and `DRMODELS_JL_PATH` / `DRM_JL_PATH` is unset, so the live engine did not start. The column checks call `drm_julia_xfam_axes()` and `drm_julia_xfam_design_from_frame()` in R, which is the design the Julia fit sends.
 
