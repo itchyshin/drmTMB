@@ -4,7 +4,7 @@
 \alias{simulate.drmTMB}
 \title{Simulate from a fitted model}
 \usage{
-\method{simulate}{drmTMB}(object, nsim = 1, seed = NULL, re.form = NA, ...)
+\method{simulate}{drmTMB}(object, nsim = 1, seed = NULL, re.form = NA, newdata = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -20,7 +20,13 @@ fixed at its fitted conditional-mode estimate (conditional simulation).
 These meanings match \code{lme4::simulate.merMod()}; earlier drmTMB versions
 reversed them (see Details).}
 
-\item{...}{Reserved for future simulation options.}
+\item{newdata}{Must be \code{NULL}. \code{simulate()} always draws for the training
+rows; drawing for new rows is not implemented, and a non-\code{NULL} value is an
+error rather than being silently ignored. For new rows, use
+\code{\link[=predict_parameters]{predict_parameters()}} to get the distributional parameters and draw from
+the family's \verb{r*()} function.}
+
+\item{...}{Reserved for future simulation options; any value is an error.}
 }
 \value{
 A data frame. Univariate models return one column per simulation.

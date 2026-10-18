@@ -7388,6 +7388,9 @@ predict.drmTMB_julia <- function(
   prob = c(0.025, 0.5, 0.975),
   ...
 ) {
+  if (length(list(...)) > 0L) {
+    cli::cli_abort("{.arg ...} is reserved for future options.")
+  }
   type <- match.arg(type)
   object <- drm_julia_predict_model_object(object)
   if (is.null(dpar)) {
