@@ -10,6 +10,7 @@
   dpar = NULL,
   type = c("response", "link", "quantile"),
   prob = c(0.025, 0.5, 0.975),
+  re.form = NULL,
   ...
 )
 }
@@ -32,6 +33,10 @@ marginal quantile to compute (see Details).}
 
 \item{prob}{Numeric vector of probabilities in (0, 1), used only when
 \code{type = "quantile"}.}
+
+\item{re.form}{Must be \code{NULL} (the default), which is the only behaviour:
+training rows are predicted conditionally on the fitted random effects and
+\code{newdata} rows at the population level. Any other value is an error.}
 
 \item{...}{Reserved for future prediction options; any value is an error
 (for example \code{se.fit}, which \code{predict()} does not compute; use

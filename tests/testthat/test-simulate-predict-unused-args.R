@@ -49,3 +49,12 @@ test_that("predict() on a Julia-bridge fit refuses unused arguments in ...", {
     "reserved for future"
   )
 })
+
+test_that("predict() accepts re.form = NULL and refuses other values", {
+  z <- new_unused_args_fit()
+  expect_equal(
+    predict(z$fit, dpar = "mu", re.form = NULL),
+    predict(z$fit, dpar = "mu")
+  )
+  expect_error(predict(z$fit, dpar = "mu", re.form = NA), "re.form")
+})

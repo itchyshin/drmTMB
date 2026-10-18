@@ -2895,6 +2895,9 @@ deviance.drmTMB <- function(object, ...) {
 #' @param type Prediction scale: `"response"`, `"link"`, or `"quantile"`.
 #' @param prob Numeric vector of probabilities in (0, 1), used only when
 #'   `type = "quantile"`.
+#' @param re.form Must be `NULL` (the default), which is the only behaviour:
+#'   training rows are predicted conditionally on the fitted random effects and
+#'   `newdata` rows at the population level. Any other value is an error.
 #' @param ... Reserved for future prediction options; any value is an error
 #'   (for example `se.fit`, which `predict()` does not compute; use
 #'   [predict_parameters()] with `conf.int = TRUE` for standard errors).
@@ -2956,8 +2959,15 @@ predict.drmTMB <- function(
   dpar = NULL,
   type = c("response", "link", "quantile"),
   prob = c(0.025, 0.5, 0.975),
+  re.form = NULL,
   ...
 ) {
+  if (!is.null(re.form)) {
+    cli::cli_abort(c(
+      "{.fn predict} supports only {.code re.form = NULL}.",
+      "i" = "Training rows are predicted conditionally on the fitted random effects; {.arg newdata} rows are predicted at the population level."
+    ))
+  }
   dots <- list(...)
   drm_abort_mi_weights_predict(object, dots)
   if (drm_weights_are_unit(dots[["weights"]])) {
