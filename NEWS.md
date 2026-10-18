@@ -12,6 +12,11 @@
 
 ## Bug fixes
 
+* Profile confidence intervals now explicitly average parameter coordinates
+  at tied objective values. This preserves the existing interpolation result
+  while avoiding a spurious "collapsing to unique 'x' values" warning from
+  the implicit interpolation default (#1521).
+
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value

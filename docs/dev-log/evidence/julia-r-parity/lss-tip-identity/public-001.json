@@ -50,7 +50,7 @@
     "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
     "R/predict-parameters.R": "e9df0ff4fc086b93ab67546e158e91920cb3af5f71bb0d0606371f4c01b4eab2",
     "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
-    "R/profile.R": "e1cfa108a684aad874096a93185e9d511142220afaca2fa33e7f45af3c41347e",
+    "R/profile.R": "a03ccdf253c19d787b6b5646ab86b93cbabde82a9140f70b30d203c19a028ec8",
     "R/provenance.R": "4fd84081607f8873f92f0b9a714f532a4c79c638370f22e7533f2b7b76aa747a",
     "R/random-effect-scale-formulas.R": "4fa4a0ad558fac45e294a4c1a20da87eb523c1f2de7e2a2741993750d0d53c8c",
     "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
@@ -691,8 +691,8 @@
       "drmjl_ref": "da8b3f8711beb5ef3186b890544c2e7850c7f194",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpLNZnpp/pkgload51772572291b/drmTMB.so",
-          "sha256": "2b629eb187376a019837e94608d33bb3ef14f117751dd33409073131a2bf1e4f"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpGLb36g/pkgload12dc55eb7b8be/drmTMB.so",
+          "sha256": "29ddaddd3f3b806824d15f605865c99de2b7b9455f885e353cbf9bd316a274d8"
         }
       }
     },
@@ -765,7 +765,7 @@
     "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
     "R/predict-parameters.R": "e9df0ff4fc086b93ab67546e158e91920cb3af5f71bb0d0606371f4c01b4eab2",
     "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
-    "R/profile.R": "e1cfa108a684aad874096a93185e9d511142220afaca2fa33e7f45af3c41347e",
+    "R/profile.R": "a03ccdf253c19d787b6b5646ab86b93cbabde82a9140f70b30d203c19a028ec8",
     "R/provenance.R": "4fd84081607f8873f92f0b9a714f532a4c79c638370f22e7533f2b7b76aa747a",
     "R/random-effect-scale-formulas.R": "4fa4a0ad558fac45e294a4c1a20da87eb523c1f2de7e2a2741993750d0d53c8c",
     "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
@@ -868,6 +868,6 @@
     "/private/tmp/drmtmb-parity-drmodels-da8b3f871/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 98.531000000000006,
+  "elapsed": 51.75,
   "status": "PASS"
 }
