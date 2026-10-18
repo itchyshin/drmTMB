@@ -1,3 +1,12 @@
+# 2026-10-18 — #1505 CI fix after rebase onto main `d89db5097`
+
+CI run 39102666708 failed shard 1/4 on
+`tests/testthat/test-predict-character-predictors.R`: `y ~ chr + nchar(chr)`
+is rank-deficient because `nchar(chr)` is constant per level of `chr`, so
+`drm_abort_rank_deficient_designs()` now refuses the fit. The test now uses
+`y ~ chr + I(x * nchar(chr))` so the character column is still used both
+bare and inside a transform. Narrow file: 13 pass, 0 fail.
+
 # 2026-10-18 — rebase #1505 onto main `d89db5097`
 
 Rebased `cursor/triage-f-convergence` onto current main, including the
