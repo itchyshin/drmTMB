@@ -5,7 +5,7 @@ optimizer-selection-downstream: ................................................
 Expected `check_optimizer_name(object)` to equal "nlminb".
 Differences:
 `actual`:   "careful"
-`expected`: "nlminb" 
+`expected`: "nlminb"
 
 
 ── 2. Failure ('test-optimizer-selection-downstream.R:142:3'): legacy preset-onl
@@ -17,7 +17,7 @@ x | careful convergence code is 0.
 Expected `check_optimizer_budget(object)$status` to equal "ok".
 Differences:
 `actual`:   "note"
-`expected`: "ok"  
+`expected`: "ok"
 
 
 ══ DONE ════════════════════════════════════════════════════════════════════════

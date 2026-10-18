@@ -11,7 +11,7 @@ Differences:
 ── 2. Failure ('test-optimizer-selection.R:20:3'): optimizer selection preserves
 Expected `tail(names(formals(optimizer_selection$drm_control)), 1L)` to be identical to "optimizer_method".
 Differences:
-`actual`:   "workers"         
+`actual`:   "workers"
 `expected`: "optimizer_method"
 
 
@@ -27,21 +27,21 @@ Error in `optimizer_selection$drm_control(optimizer_method = method, newton_poli
 ── 6. Error ('test-optimizer-selection.R:112:3'): direct methods reuse multistar
 Error in `optimizer_selection$drm_control(optimizer_method = "BFGS", multi_start = 3L)`: unused argument (optimizer_method = "BFGS")
 
-── 7. Failure ('test-optimizer-selection.R:135:3'): fallback metadata names the 
+── 7. Failure ('test-optimizer-selection.R:135:3'): fallback metadata names the
 Expected `result$selected$optimizer` to be identical to "BFGS".
 Differences:
 `actual`:   "nlminb"
-`expected`: "BFGS"  
+`expected`: "BFGS"
 
 
-── 8. Failure ('test-optimizer-selection.R:136:3'): fallback metadata names the 
+── 8. Failure ('test-optimizer-selection.R:136:3'): fallback metadata names the
 Expected `tail(result$attempts$optimizer, 1L)` to be identical to "BFGS".
 Differences:
 `actual`:   "nlminb"
-`expected`: "BFGS"  
+`expected`: "BFGS"
 
 
-── 9. Failure ('test-optimizer-selection.R:137:3'): fallback metadata names the 
+── 9. Failure ('test-optimizer-selection.R:137:3'): fallback metadata names the
 Expected `result$opt$evaluations` to have names `c("function", "gradient")`.
 Differences:
 `actual` is NULL

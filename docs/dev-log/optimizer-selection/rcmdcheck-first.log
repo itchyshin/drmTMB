@@ -85,10 +85,10 @@ Last 13 lines of output:
   ── Failure ('test-check-drm.R:1239:3'): check_drm() reports mutated diagnostic failure branches ──
   Expected `budget_note$status` to equal "note".
   Differences:
-  `actual`:   "ok"  
+  `actual`:   "ok"
   `expected`: "note"
-  
-  
+
+
   [ FAIL 3 | WARN 17 | SKIP 32 | PASS 3495 ]
   Error:
   ! Test failures.
@@ -111,7 +111,7 @@ Duration: 3m 18.7s
 
 > library(testthat)
 > library(drmTMB)
-> 
+>
 > # The complete suite is an evidence programme as well as a package test suite:
 > # it includes simulation, recovery, coverage, numerical-oracle, comparator,
 > # generated-contract, and reader-render audits. Keep all of it in repository CI,
@@ -135,7 +135,7 @@ Duration: 3m 18.7s
 > # The CRAN lane is deliberately never sharded: it is already a bounded allowlist.
 > source(file.path("testthat", "helper-shard-util.R"), local = TRUE)
 > drm_shard <- drm_shard_filter()
-> 
+>
 > not_cran <- isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false")))
 > if (not_cran) {
 +   if (is.null(drm_shard)) {
@@ -202,7 +202,7 @@ mu: (Intercept) = -0.1227, x = 0.6597
 ── Failure ('test-check-drm.R:1231:3'): check_drm() reports mutated diagnostic failure branches ──
 Expected `budget$status` to equal "warning".
 Differences:
-`actual`:   "ok"     
+`actual`:   "ok"
 `expected`: "warning"
 
 ── Failure ('test-check-drm.R:1233:3'): check_drm() reports mutated diagnostic failure branches ──
@@ -212,7 +212,7 @@ x | Optimizer evaluation counts recorded; no eval.max or iter.max control was su
 ── Failure ('test-check-drm.R:1239:3'): check_drm() reports mutated diagnostic failure branches ──
 Expected `budget_note$status` to equal "note".
 Differences:
-`actual`:   "ok"  
+`actual`:   "ok"
 `expected`: "note"
 
 

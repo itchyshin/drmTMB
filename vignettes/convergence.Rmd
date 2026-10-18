@@ -354,7 +354,6 @@ fit_bfgs <- drmTMB(
 logLik(fit_nlminb)
 logLik(fit_bfgs)
 check_drm(fit_bfgs)
-fit_bfgs$optimizer_attempts
 ```
 
 `optimizer_method` also accepts `"L-BFGS-B"`, `"Nelder-Mead"`, and `"CG"`.
@@ -366,9 +365,8 @@ transformed parameters.
 
 Direct methods require the default `optimizer_preset` and no
 `fallback_optimizer`. They reuse `multi_start` and its parallel settings.
-Newton polishing remains enabled by default. `fit$optimizer_used$optimizer`
-and `fit$optimizer_attempts$optimizer` record the actual method. Profile
-endpoint refits still use `nlminb()` with separate controls; choosing BFGS for
+Newton polishing remains enabled by default. `check_drm()` names the method
+that ran and reports convergence and budget status. Profile endpoint refits still use `nlminb()` with separate controls; choosing BFGS for
 the fit does not change that solver. These native choices are rejected by the
 Julia engine, whose supported controls are documented in `?drm_control`.
 

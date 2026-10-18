@@ -25,6 +25,7 @@ Assumptions made without asking: the request to make the alternatives selectable
 - tests/testthat/test-check-drm.R: update the synthetic selected-budget record.
 - man/drm_control.Rd, NEWS.md, vignettes/convergence.Rmd and docs/design/35-optimizer-start-map-multistart.md: public and design documentation.
 - docs/dev-log/optimizer-selection/: plan, check log and retained receipts.
+- docs/dev-log/dashboard/capability-ledger/2026-08-08-c17c2-c14-final-source-compatibility.tsv and a new dated implementation-recovery folder: required unchanged-surface compatibility receipt.
 - This after-task report.
 
 ## 5. Checks Run
@@ -33,7 +34,7 @@ The unchanged C++ backend compiled and installed into a temporary library. Pure 
 
 All four direct methods recover a small Gaussian likelihood against independent lm coefficients and ML residual scale, with finite covariance and positive Hessians. BFGS also passes a replicated phylogenetic location-scale model comparison, labelled public starts, multistart, profile intervals, polishing metadata and memory-light storage checks.
 
-pkgdown::check_pkgdown(), the control reference build and convergence article build completed. Package check status is recorded in the adjacent check log. Independent architecture review found no remaining blocking concern after fixes. git diff --check passed.
+pkgdown::check_pkgdown(), the control reference build and convergence article build completed. Final-source R CMD check with --no-manual --ignore-vignettes passed with zero errors, warnings or notes. Independent architecture review found no remaining blocking concern after fixes. git diff --check passed.
 
 ## 6. Tests of the Tests
 
@@ -63,13 +64,13 @@ Early integration fixtures assumed an arbitrary remote start would find a good o
 
 ## 10. Known Residuals
 
-This is numerical-method selection, not calibration evidence. No Ayumi real-data fit, full Bayesian family-level refit, performance campaign, new uncertainty guarantee or CRAN release was run. Optimizer agreement alone cannot establish identifiability. The Julia engine continues to reject unsupported native settings. Profile endpoint solvers remain nlminb. Full CI and remote delivery status belong in the check log and PR readback.
+This is numerical-method selection, not calibration evidence. No Ayumi real-data fit, full Bayesian family-level refit, performance campaign, new uncertainty guarantee or CRAN release was run. Optimizer agreement alone cannot establish identifiability. The Julia engine continues to reject unsupported native settings. Profile endpoint solvers remain nlminb. Initial CI required a fresh existing compatibility receipt; it has been refreshed. Full exact-head CI and remote delivery status belong in the check log and PR readback.
 
 ## 11. Team Learning
 
 A new optimizer changes more than dispatch: inspect diagnostics, constrained profile controls, staged reports, selected-result metadata and bootstrap compatibility. Use exact list indexing for newly interpreted legacy metadata fields to avoid R partial matching.
 
-Memory receipt: the lane preflight, route manifest and project contract were applied; no Codex memory was modified. Golden Set: no scientific benchmark or capability ledger was promoted by this task. The focused regression suite supplies interface and small-likelihood evidence only.
+Memory receipt: the lane preflight, route manifest and project contract were applied; no Codex memory was modified. Golden Set: no capability claim was promoted. The existing three model-15 compatibility cells were rechecked, 12/12 attempts passed, and their source receipt was refreshed with the authenticated surface fingerprint unchanged. The focused regression suite supplies interface and small-likelihood evidence only.
 
 ## 12. Cross-Product Coverage
 

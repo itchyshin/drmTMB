@@ -18,7 +18,7 @@ Differences:
 ── 3. Failure ('test-optimizer-selection.R:249:5'): staged-fit metrics report di
 Expected `metrics$optimizer_selected_attempt` to be identical to `method`.
 Differences:
-`actual`:   NA    
+`actual`:   NA
 `expected`: "BFGS"
 
 
@@ -26,7 +26,7 @@ Differences:
 Expected `metrics$budget_status` to be identical to "iteration_budget_reached".
 Differences:
 `actual`:   "nonconverged_before_budget_or_unknown"
-`expected`: "iteration_budget_reached"             
+`expected`: "iteration_budget_reached"
 
 
 ── 5. Failure ('test-optimizer-selection.R:247:5'): staged-fit metrics report di
@@ -46,7 +46,7 @@ Differences:
 ── 7. Failure ('test-optimizer-selection.R:249:5'): staged-fit metrics report di
 Expected `metrics$optimizer_selected_attempt` to be identical to `method`.
 Differences:
-`actual`:   NA        
+`actual`:   NA
 `expected`: "L-BFGS-B"
 
 
@@ -54,7 +54,7 @@ Differences:
 Expected `metrics$budget_status` to be identical to "iteration_budget_reached".
 Differences:
 `actual`:   "nonconverged_before_budget_or_unknown"
-`expected`: "iteration_budget_reached"             
+`expected`: "iteration_budget_reached"
 
 
 ── 9. Failure ('test-optimizer-selection.R:247:5'): staged-fit metrics report di
