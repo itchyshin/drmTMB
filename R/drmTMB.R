@@ -287,9 +287,14 @@ drmTMB <- function(
       "{.arg formula} must be created with {.fn drm_formula} or {.fn bf}."
     )
   }
-  dots <- list(...)
-  if (length(dots) > 0L) {
-    cli::cli_abort("{.fn drmTMB} does not use arguments in {.arg ...} yet.")
+  # Inspect `...` without forcing it: `subset = cyl == 4` must not fail with
+  # "object 'cyl' not found" before this guard can name the argument (#1486).
+  if (...length() > 0L) {
+    drm_abort_unused_dots(
+      names(match.call(expand.dots = FALSE)$...),
+      n_dots = ...length(),
+      call = environment()
+    )
   }
   if (!is.data.frame(data)) {
     cli::cli_abort("{.arg data} must be a data frame.")
@@ -346,12 +351,14 @@ drmTMB <- function(
   }
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
-  # A-2 (#1332): fail on NA predictors only when the caller explicitly passes
-  # `miss_control()` or `miss_control(predictor = "fail")`, not when they only
-  # set `response = "include"` (row drop for incomplete predictors stays).
+  # A-2 (#1332, #1484): fail on NA predictors only when the caller supplies
+  # `missing =` with a control built as `miss_control()` or
+  # `miss_control(predictor = "fail")`, not when they only set
+  # `response = "include"` (row drop for incomplete predictors stays). The
+  # evaluated control decides, so `missing = ctl` behaves like its literal call.
   if (
     "missing" %in% names(as.list(fit_call))[-1L] &&
-      drm_missing_explicit_predictor_fail(fit_call$missing)
+      drm_missing_explicit_predictor_fail(missing)
   ) {
     drm_validate_complete_predictors(formula, data)
   }
@@ -875,12 +882,16 @@ drm_perturbed_starts <- function(par, n_start) {
 # result with the lowest finite objective. With n_start == 1 this is exactly the
 # single-start call, so the default fit is unchanged. If every start errors, the
 # last error is re-raised for the caller's tryCatch to record.
-drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
+drm_optimize_multistart <- function(
+  obj,
+  optimizer,
+  control_opt,
+  n_start,
+  plan = NULL
+) {
   starts <- drm_perturbed_starts(obj$par, n_start)
-  best <- NULL
-  last_error <- NULL
-  for (start in starts) {
-    res <- tryCatch(
+  run_start <- function(start) {
+    tryCatch(
       optimizer(
         start = start,
         objective = obj$fn,
@@ -889,6 +900,19 @@ drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
       ),
       error = function(e) e
     )
+  }
+  parallel_starts <- n_start > 1L && is.list(plan) &&
+    !identical(plan$backend, "none") && isTRUE(plan$workers > 1L)
+  results <- if (parallel_starts) {
+    # Every worker begins from the parent's untouched TMB state (issue #1248).
+    drm_parallel_lapply(starts, run_start, plan)
+  } else {
+    NULL
+  }
+  best <- NULL
+  last_error <- NULL
+  for (k in seq_along(starts)) {
+    res <- if (parallel_starts) results[[k]] else run_start(starts[[k]])
     if (inherits(res, "error")) {
       last_error <- res
       next
@@ -905,7 +929,22 @@ drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
   if (is.null(best)) {
     stop(last_error)
   }
+  if (parallel_starts && length(best$opt$par) == length(obj$par)) {
+    # Workers cannot update the parent's TMB environment, so evaluate the
+    # winning start here: last.par and last.par.best then hold its optimum
+    # (and inner random-effect mode) as they would after a serial run.
+    obj$fn(best$opt$par)
+    obj$gr(best$opt$par)
+  }
   best$opt
+}
+
+drm_multistart_plan <- function(control, n_start) {
+  parallel <- control$parallel
+  if (is.null(parallel) || identical(parallel, "none") || n_start <= 1L) {
+    return(list(backend = "none", workers = 1L))
+  }
+  bootstrap_parallel_plan(n_start, parallel = parallel, workers = control$workers)
 }
 
 drm_optimize_with_preset_retry <- function(
@@ -917,6 +956,7 @@ drm_optimize_with_preset_retry <- function(
 ) {
   attempt_specs <- drm_optimizer_attempt_specs(control)
   n_start <- if (is.null(control$multi_start)) 1L else control$multi_start
+  multistart_plan <- drm_multistart_plan(control, n_start)
   rows <- vector("list", length(attempt_specs))
   opts <- vector("list", length(attempt_specs))
   last_error <- NULL
@@ -931,7 +971,8 @@ drm_optimize_with_preset_retry <- function(
           obj,
           optimizer,
           spec$control,
-          n_start
+          n_start,
+          plan = multistart_plan
         )
       ),
       error = function(e) list(ok = FALSE, value = e)
@@ -1924,7 +1965,7 @@ drm_resolve_public_start_target <- function(spec, parsed, value, label) {
     }
     if (q <= 2L) {
       # Exactly one pair, a single scalar `eta_cor_phylo` on the SAME bounded
-      # tanh scale as the ordinary `cor:` family (0.999999 * tanh(eta); see
+      # tanh scale as the ordinary `cor:` family (now 0.99999999 * tanh(eta), #1190; see
       # `split_tmb_corpars()`).
       drm_check_phylo_cor_start_value(value, label, "a q = 2 phylogenetic block")
       return(list(
@@ -12207,6 +12248,59 @@ validate_beta_binomial_sigma_random_terms <- function(terms) {
   ))
 }
 
+# Name the arguments that reached `drmTMB(...)` instead of evaluating them
+# (#1486). `subset` and `na.action` are common lm()/glm() habits, so they get a
+# concrete next step; misspelt formals (`weigths =`) are visible by name.
+drm_abort_unused_dots <- function(
+  dot_names,
+  n_dots = length(dot_names),
+  call = parent.frame()
+) {
+  if (is.null(dot_names)) {
+    dot_names <- rep("", n_dots)
+  }
+  named <- dot_names[nzchar(dot_names)]
+  n_unnamed <- sum(!nzchar(dot_names))
+  bullets <- c(
+    "{.fn drmTMB} does not use extra arguments in {.arg ...}."
+  )
+  if (length(named) > 0L) {
+    bullets <- c(
+      bullets,
+      "x" = "Unused argument{?s}: {.arg {named}}."
+    )
+  }
+  if (n_unnamed > 0L) {
+    bullets <- c(
+      bullets,
+      "x" = paste0(
+        n_unnamed,
+        " unnamed extra argument", if (n_unnamed > 1L) "s" else "",
+        "; name every argument after {.arg data}."
+      )
+    )
+  }
+  if ("subset" %in% named) {
+    bullets <- c(
+      bullets,
+      "i" = "Subset {.arg data} before fitting, for example {.code data = subset(d, cyl == 4)}."
+    )
+  }
+  if ("na.action" %in% named) {
+    bullets <- c(
+      bullets,
+      "i" = "Use {.arg missing} with {.fn miss_control} to choose how missing values are handled."
+    )
+  }
+  if (length(named) > 0L && !all(named %in% c("subset", "na.action"))) {
+    bullets <- c(
+      bullets,
+      "i" = "Check the spelling against the arguments of {.fn drmTMB}."
+    )
+  }
+  cli::cli_abort(bullets, class = "drmTMB_unused_dots_error", call = call)
+}
+
 # Drop unused levels only from factor columns that appear in plain fixed-effect
 # terms of some distributional-parameter formula (Dinnage audit Md-E). A column
 # is protected -- its levels are left alone -- when it is a response (`lhs` of
@@ -14555,7 +14649,7 @@ build_known_precision_mu_structure <- function(term, data, env) {
       "x" = "Use syntax like {.code {marker}(1 | id, Q = Q)} where {.field id} is a column in {.arg data}."
     ))
   }
-  group_values <- as.character(data[[group]])
+  group_values <- drm_id_labels(data[[group]])
   if (length(unique(group_values)) < 2L) {
     cli::cli_abort(c(
       "{.fn {marker}} grouping variable {.field {group}} has fewer than two observed levels.",
@@ -22537,7 +22631,7 @@ split_tmb_corpars <- function(par, spec) {
       rho_mu <- if (identical(spec$model_type, "binomial")) {
         tanh(eta_mu)
       } else {
-        0.999999 * tanh(eta_mu)
+        DRM_RE_CORR_GUARD * tanh(eta_mu)
       }
       names(rho_mu) <- spec$random$mu$cor_labels
     }
@@ -22549,13 +22643,13 @@ split_tmb_corpars <- function(par, spec) {
     re_mu_sigma <- empty_mu_sigma_random_covariance(spec$random$sigma$n_re)
   }
   if (re_mu_sigma$n_cors > 0L) {
-    rho_mu_sigma <- 0.999999 *
+    rho_mu_sigma <- DRM_RE_CORR_GUARD *
       tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
     names(rho_mu_sigma) <- re_mu_sigma$cor_labels
     out$mu_sigma <- rho_mu_sigma
   }
   if (spec$random$sigma$n_cors > 0L) {
-    rho_sigma <- 0.999999 *
+    rho_sigma <- DRM_RE_CORR_GUARD *
       tanh(unname(par$eta_cor_sigma[seq_len(spec$random$sigma$n_cors)]))
     names(rho_sigma) <- spec$random$sigma$cor_labels
     out$sigma <- rho_sigma
@@ -22631,7 +22725,10 @@ modelled_corpair_values <- function(par, spec) {
     return(numeric())
   }
   eta <- as.vector(model$X %*% unname(par$beta_cor_mu[seq_len(ncol(model$X))]))
-  0.999999 * tanh(eta)
+  # Group correlations use rho_mu_group (random-effect guard); the modelled
+  # phylogenetic correlation keeps rho_node's 0.999999 (#1190).
+  guard <- if (corpair_model_is_phylogenetic(model)) 0.999999 else DRM_RE_CORR_GUARD
+  guard * tanh(eta)
 }
 
 # Per-level labels for a modelled group mu correlation. Each fitted correlation
@@ -23037,7 +23134,7 @@ transform_mu_random_effects <- function(
   sd_by_index <- mu_sd_by_random_effect(par, re_mu, sd_mu, tmb_data)
   rho <- if (re_mu$n_cors > 0L) {
     eta <- unname(par$eta_cor_mu[seq_len(re_mu$n_cors)])
-    if (isTRUE(binomial_q2)) tanh(eta) else 0.999999 * tanh(eta)
+    if (isTRUE(binomial_q2)) tanh(eta) else DRM_RE_CORR_GUARD * tanh(eta)
   } else {
     numeric()
   }
@@ -23203,7 +23300,7 @@ transform_sigma_random_effects <- function(
 ) {
   sd_by_term <- exp(unname(par$log_sd_sigma[seq_len(re_sigma$n_terms)]))
   rho_mu_sigma <- if (re_mu_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
   } else {
     numeric()
   }
@@ -23232,12 +23329,12 @@ transform_biv_sigma_random_effects <- function(
 ) {
   sd_by_term <- exp(unname(par$log_sd_sigma[seq_len(re_sigma$n_terms)]))
   rho_sigma <- if (re_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_sigma[seq_len(re_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_sigma[seq_len(re_sigma$n_cors)]))
   } else {
     numeric()
   }
   rho_mu_sigma <- if (re_mu_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
   } else {
     numeric()
   }

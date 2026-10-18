@@ -133,6 +133,16 @@
 #'   together with `zi ~ ...` on Poisson or `nbinom2()` families) can admit
 #'   multiple local optima; when a fit looks unstable or convergence
 #'   checks flag a boundary, try `multi_start > 1` before changing the model.
+#'   The starts run one after another unless `parallel` is set.
+#' @param parallel,workers Backend and worker count for the `multi_start`
+#'   starts only: `"none"` (default) runs them one after another,
+#'   `"multicore"` forks Unix workers, and `"cluster"` uses socket (PSOCK)
+#'   workers on any platform. A single fit, and `multi_start = 1`, always run
+#'   on one core. Parallel starts each begin from the same initial TMB state,
+#'   so with random effects they can differ from the serial run at the inner
+#'   solver's tolerance; fixed-effect fits are identical. `workers = NULL` uses
+#'   about half the detected cores, capped at `multi_start` and at 10. See
+#'   [drmTMB-parallel].
 #' @param fallback_optimizer `NULL` (default) or one [stats::optim()] method
 #'   (`"BFGS"`, `"L-BFGS-B"`, `"Nelder-Mead"`, `"CG"`). When set, and no
 #'   `nlminb()` preset converges, `drmTMB()` tries this optimizer as a final
@@ -185,8 +195,11 @@ drm_control <- function(
   newton_polish = TRUE,
   multi_start = 1L,
   fallback_optimizer = NULL,
-  start = NULL
+  start = NULL,
+  parallel = c("none", "multicore", "cluster"),
+  workers = NULL
 ) {
+  parallel <- match.arg(parallel)
   optimizer_preset <- match.arg(optimizer_preset)
   newton_polish <- drm_control_flag(newton_polish, "newton_polish")
   if (
@@ -258,6 +271,10 @@ drm_control <- function(
     cli::cli_abort("{.arg multi_start} must be a single whole number >= 1.")
   }
   multi_start <- as.integer(multi_start)
+  if (!is.null(workers)) {
+    # Validate now; NULL stays NULL and is resolved when the starts run.
+    workers <- resolve_parallel_workers(workers, "multicore")
+  }
   if (!is.null(fallback_optimizer)) {
     valid_fallback <- c("BFGS", "L-BFGS-B", "Nelder-Mead", "CG")
     if (
@@ -290,7 +307,9 @@ drm_control <- function(
       newton_polish = newton_polish,
       multi_start = multi_start,
       fallback_optimizer = fallback_optimizer,
-      start = start
+      start = start,
+      parallel = parallel,
+      workers = workers
     ),
     class = "drm_control"
   )

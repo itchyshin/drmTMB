@@ -5,7 +5,10 @@
 \alias{aicc}
 \alias{aicc.default}
 \alias{aicc.drmTMB}
+\alias{aicc.drmTMB_julia}
 \alias{anova.drmTMB_julia}
+\alias{AIC.drmTMB_julia}
+\alias{BIC.drmTMB_julia}
 \title{Corrected Akaike information criterion (AICc)}
 \usage{
 aicc(object, ...)
@@ -14,7 +17,13 @@ aicc(object, ...)
 
 \method{aicc}{drmTMB}(object, ...)
 
+\method{aicc}{drmTMB_julia}(object, ...)
+
 \method{anova}{drmTMB_julia}(object, ..., test = NULL)
+
+\method{AIC}{drmTMB_julia}(object, ..., k = 2)
+
+\method{BIC}{drmTMB_julia}(object, ...)
 }
 \arguments{
 \item{object}{A fitted \code{drmTMB} model (either engine), or any object whose
@@ -24,6 +33,8 @@ aicc(object, ...)
 
 \item{test}{Present only so \code{anova.drmTMB_julia()} matches the signature of
 \code{\link[stats:anova]{stats::anova()}}; it is never consulted, because that method refuses.}
+
+\item{k}{Penalty per parameter, as in \code{\link[stats:AIC]{stats::AIC()}}.}
 }
 \value{
 A single number. When \eqn{n - k - 1 \le 0} (too few observations
@@ -48,7 +59,9 @@ agree to \code{1e-8} on the same fit.
 
 On a REML fit the same caveat as \code{\link[=AIC]{AIC()}} applies and the same warning is
 emitted: the restricted likelihood is comparable only across models with
-identical fixed effects. Experimental MSPL fits do not expose a likelihood
+identical fixed effects. This holds for both engines: \code{engine = "julia"}
+fits have their own \code{aicc()}, \code{\link[=AIC]{AIC()}} and \code{\link[=BIC]{BIC()}} methods that run the same
+REML guard before computing the value. Experimental MSPL fits do not expose a likelihood
 and error, as they do for \code{\link[=AIC]{AIC()}}.
 }
 \examples{

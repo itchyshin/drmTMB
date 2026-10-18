@@ -21,7 +21,9 @@ drm_control(
   newton_polish = TRUE,
   multi_start = 1L,
   fallback_optimizer = NULL,
-  start = NULL
+  start = NULL,
+  parallel = c("none", "multicore", "cluster"),
+  workers = NULL
 )
 }
 \arguments{
@@ -133,7 +135,8 @@ objective result is kept. Opt-in robustness for weakly identified models;
 with both scale and zero-inflation predictors (for example \code{sigma ~ ...}
 together with \code{zi ~ ...} on Poisson or \code{nbinom2()} families) can admit
 multiple local optima; when a fit looks unstable or convergence
-checks flag a boundary, try \code{multi_start > 1} before changing the model.}
+checks flag a boundary, try \code{multi_start > 1} before changing the model.
+The starts run one after another unless \code{parallel} is set.}
 
 \item{fallback_optimizer}{\code{NULL} (default) or one \code{\link[stats:optim]{stats::optim()}} method
 (\code{"BFGS"}, \code{"L-BFGS-B"}, \code{"Nelder-Mead"}, \code{"CG"}). When set, and no
@@ -154,6 +157,16 @@ error before optimization starts. A start only changes where the
 optimizer begins, never what is reported: unnamed components keep the
 ordinary family-builder default. Latent random-effect values (\code{u}) are
 not addressable through this contract.}
+
+\item{parallel, workers}{Backend and worker count for the \code{multi_start}
+starts only: \code{"none"} (default) runs them one after another,
+\code{"multicore"} forks Unix workers, and \code{"cluster"} uses socket (PSOCK)
+workers on any platform. A single fit, and \code{multi_start = 1}, always run
+on one core. Parallel starts each begin from the same initial TMB state,
+so with random effects they can differ from the serial run at the inner
+solver's tolerance; fixed-effect fits are identical. \code{workers = NULL} uses
+about half the detected cores, capped at \code{multi_start} and at 10. See
+\link{drmTMB-parallel}.}
 }
 \value{
 A \code{drm_control} object.
