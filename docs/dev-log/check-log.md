@@ -344,6 +344,14 @@ end: `python3 tools/recertify-c17.py --label pr-1504 --tolerance 1e-10`,
 also carries the #1495 contrast fix (ordered factors, stored contrast names,
 and a `drmTMB_contrasts_dropped` warning).
 
+# 2026-10-18 — rebase #1509 onto main `d89db5097`
+
+Rebased `claude/lane-c-convergence-inference` onto current main. Real
+conflict in `R/profile.R` and `man/confint.drmTMB.Rd`: kept main's
+`bootstrap_re_form = NA` (redraw) meaning from #1487 and added
+`bootstrap_interval`. No `src/` C++ files changed. Intermediate C17
+receipt commits were skipped.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
