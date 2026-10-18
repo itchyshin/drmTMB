@@ -704,6 +704,14 @@ drm_fit_spec <- function(
     optimizer$selected$objective <- opt$objective
     optimizer$selected$convergence <- opt$convergence
     optimizer$selected$message <- opt$message
+    selected_attempt <- which(optimizer$attempts$selected)
+    optimizer$attempts$objective[selected_attempt] <- opt$objective
+    optimizer$attempts$convergence[selected_attempt] <- opt$convergence
+    optimizer$attempts$message[selected_attempt] <- if (is.null(opt$message)) {
+      NA_character_
+    } else {
+      opt$message
+    }
   }
   drm_warn_if_not_converged(opt)
   drm_warn_if_nonfinite_objective(opt)
@@ -928,6 +936,28 @@ drm_multistart_plan <- function(control, n_start) {
   bootstrap_parallel_plan(n_start, parallel = parallel, workers = control$workers)
 }
 
+# Adapt optim's interface and result names to the nlminb-shaped fit contract.
+drm_optim_adapter <- function(method, optim_fn = stats::optim) {
+  force(method)
+  force(optim_fn)
+  function(start, objective, gradient, control) {
+    result <- optim_fn(
+      par = start,
+      fn = objective,
+      gr = if (identical(method, "Nelder-Mead")) NULL else gradient,
+      method = method,
+      control = control
+    )
+    list(
+      par = result$par,
+      objective = result$value,
+      convergence = result$convergence,
+      message = if (is.null(result$message)) NA_character_ else result$message,
+      evaluations = result$counts
+    )
+  }
+}
+
 drm_optimize_with_preset_retry <- function(
   obj,
   control,
@@ -935,9 +965,34 @@ drm_optimize_with_preset_retry <- function(
   fallback_fn = stats::optim,
   warn = TRUE
 ) {
-  attempt_specs <- drm_optimizer_attempt_specs(control)
   n_start <- if (is.null(control$multi_start)) 1L else control$multi_start
   multistart_plan <- drm_multistart_plan(control, n_start)
+  method <- control$optimizer_method
+  if (!is.null(method) && !identical(method, "nlminb")) {
+    elapsed_start <- proc.time()[["elapsed"]]
+    opt <- drm_optimize_multistart(
+      obj, drm_optim_adapter(method, fallback_fn), control$optimizer,
+      n_start, plan = multistart_plan
+    )
+    row <- drm_optimizer_attempt_row(
+      attempt = 1L,
+      preset = NA_character_,
+      control = control$optimizer,
+      status = "ok",
+      convergence = opt$convergence,
+      message = opt$message,
+      objective = opt$objective,
+      elapsed_sec = proc.time()[["elapsed"]] - elapsed_start,
+      selected = TRUE,
+      optimizer = method
+    )
+    return(list(
+      opt = opt,
+      selected = drm_optimizer_selected_record(row),
+      attempts = row
+    ))
+  }
+  attempt_specs <- drm_optimizer_attempt_specs(control)
   rows <- vector("list", length(attempt_specs))
   opts <- vector("list", length(attempt_specs))
   last_error <- NULL
@@ -1017,11 +1072,10 @@ drm_optimize_with_preset_retry <- function(
     fb_control <- list(maxit = 1000L)
     fb_start <- proc.time()[["elapsed"]]
     fb_res <- tryCatch(
-      fallback_fn(
-        par = obj$par,
-        fn = obj$fn,
-        gr = obj$gr,
-        method = fallback,
+      drm_optim_adapter(fallback, fallback_fn)(
+        start = obj$par,
+        objective = obj$fn,
+        gradient = obj$gr,
         control = fb_control
       ),
       error = function(e) e
@@ -1038,20 +1092,12 @@ drm_optimize_with_preset_retry <- function(
         message = conditionMessage(fb_res),
         objective = NA_real_,
         elapsed_sec = fb_elapsed,
-        selected = FALSE
+        selected = FALSE,
+        optimizer = fallback
       )
     } else {
-      fb_message <- if (is.null(fb_res$message)) {
-        NA_character_
-      } else {
-        fb_res$message
-      }
-      fb_opt <- list(
-        par = fb_res$par,
-        objective = fb_res$value,
-        convergence = fb_res$convergence,
-        message = fb_message
-      )
+      fb_message <- fb_res$message
+      fb_opt <- fb_res
       opts[[fb_attempt]] <- fb_opt
       fb_converged <- identical(as.integer(fb_opt$convergence), 0L) &&
         length(fb_opt$objective) == 1L &&
@@ -1065,7 +1111,8 @@ drm_optimize_with_preset_retry <- function(
         message = fb_message,
         objective = fb_opt$objective,
         elapsed_sec = fb_elapsed,
-        selected = fb_converged
+        selected = fb_converged,
+        optimizer = fallback
       )
       if (fb_converged) {
         attempts <- drm_optimizer_attempts_frame(rows)
@@ -1248,11 +1295,12 @@ drm_optimizer_attempt_row <- function(
   message,
   objective,
   elapsed_sec,
-  selected
+  selected,
+  optimizer = "nlminb"
 ) {
   data.frame(
     attempt = as.integer(attempt),
-    optimizer = "nlminb",
+    optimizer = optimizer,
     optimizer_preset = as.character(preset),
     status = as.character(status),
     convergence = as.integer(convergence),
@@ -2188,6 +2236,7 @@ drm_qgt2_staged_fit_metrics <- function(
   logLik <- NA_real_
   df <- NA_real_
   nobs <- NA_real_
+  optimizer_method <- NA_character_
   optimizer_preset <- NA_character_
   optimizer_attempt_count <- NA_integer_
   optimizer_selected_attempt <- NA_character_
@@ -2200,6 +2249,7 @@ drm_qgt2_staged_fit_metrics <- function(
   gradient_evaluations <- NA_real_
   iter_max <- NA_real_
   eval_max <- NA_real_
+  maxit <- NA_real_
   budget_status <- NA_character_
   sdreport_status <- NA_character_
   sdreport_message <- NA_character_
@@ -2235,6 +2285,11 @@ drm_qgt2_staged_fit_metrics <- function(
       optimizer_preset <- as.character(fit$optimizer_used$optimizer_preset)
     }
     attempts <- drm_qgt2_optimizer_attempts(fit)
+    optimizer_method <- attempts$optimizer
+    if (is.na(optimizer_method)) {
+      optimizer_method <- drm_qgt2_scalar_character(fit$control$optimizer_method)
+    }
+    if (is.na(optimizer_method)) optimizer_method <- "nlminb"
     optimizer_attempt_count <- attempts$count
     optimizer_selected_attempt <- attempts$selected
     optimizer_retried <- isTRUE(attempts$count > 1L)
@@ -2256,8 +2311,11 @@ drm_qgt2_staged_fit_metrics <- function(
     if (is.na(gradient_evaluations)) {
       gradient_evaluations <- drm_qgt2_named_numeric(fit$opt$counts, "gradient")
     }
-    iter_max <- drm_qgt2_named_numeric(fit$control$optimizer, "iter.max")
-    eval_max <- drm_qgt2_named_numeric(fit$control$optimizer, "eval.max")
+    optimizer_control <- fit$optimizer_used$control
+    if (is.null(optimizer_control)) optimizer_control <- fit$control$optimizer
+    iter_max <- drm_qgt2_named_numeric(optimizer_control, "iter.max")
+    eval_max <- drm_qgt2_named_numeric(optimizer_control, "eval.max")
+    maxit <- drm_qgt2_named_numeric(optimizer_control, "maxit")
     se_requested <- if (!is.null(fit$control$se)) {
       isTRUE(fit$control$se)
     } else {
@@ -2305,7 +2363,9 @@ drm_qgt2_staged_fit_metrics <- function(
       iterations = iterations,
       function_evaluations = function_evaluations,
       iter_max = iter_max,
-      eval_max = eval_max
+      eval_max = eval_max,
+      optimizer_method = optimizer_method,
+      maxit = maxit
     )
     failure <- drm_qgt2_failure_status(
       convergence = convergence,
@@ -2328,6 +2388,7 @@ drm_qgt2_staged_fit_metrics <- function(
     df = df,
     nobs = nobs,
     elapsed_sec = as.numeric(elapsed),
+    optimizer_method = optimizer_method,
     optimizer_preset = optimizer_preset,
     optimizer_attempt_count = optimizer_attempt_count,
     optimizer_selected_attempt = optimizer_selected_attempt,
@@ -2340,6 +2401,7 @@ drm_qgt2_staged_fit_metrics <- function(
     gradient_evaluations = gradient_evaluations,
     iter_max = iter_max,
     eval_max = eval_max,
+    maxit = maxit,
     budget_status = budget_status,
     sdreport_status = sdreport_status,
     sdreport_message = sdreport_message,
@@ -2358,8 +2420,31 @@ drm_qgt2_staged_fit_metrics <- function(
 }
 
 drm_qgt2_optimizer_attempts <- function(fit) {
+  used <- fit$optimizer_used
+  method <- drm_qgt2_scalar_character(used[["optimizer"]])
+  selected <- drm_qgt2_scalar_character(used$optimizer_preset)
+  if (is.na(selected)) selected <- method
   attempts <- fit$optimizer_attempts
   if (is.data.frame(attempts) && nrow(attempts) > 0L) {
+    selected_index <- if ("selected" %in% names(attempts)) {
+      which(attempts$selected %in% TRUE)
+    } else {
+      integer()
+    }
+    if (length(selected_index) != 1L &&
+        "attempt" %in% names(attempts) && length(used$attempt) == 1L) {
+      selected_index <- which(attempts$attempt %in% used$attempt)
+    }
+    if (length(selected_index) != 1L && nrow(attempts) == 1L) {
+      selected_index <- 1L
+    }
+    if (length(selected_index) == 1L) {
+      row <- attempts[selected_index, , drop = FALSE]
+      row_method <- drm_qgt2_scalar_character(row[["optimizer"]])
+      if (!is.na(row_method)) method <- row_method
+      selected <- drm_qgt2_scalar_character(row$optimizer_preset)
+      if (is.na(selected)) selected <- method
+    }
     presets <- if ("optimizer_preset" %in% names(attempts)) {
       paste(attempts$optimizer_preset, collapse = " | ")
     } else {
@@ -2373,21 +2458,14 @@ drm_qgt2_optimizer_attempts <- function(fit) {
       NA_character_
     }
     return(list(
-      count = nrow(attempts),
-      selected = if ("optimizer_preset" %in% names(attempts)) {
-        as.character(utils::tail(attempts$optimizer_preset, 1L))
-      } else {
-        NA_character_
-      },
-      presets = presets,
-      statuses = statuses
+      count = nrow(attempts), selected = selected, presets = presets,
+      statuses = statuses, optimizer = method
     ))
   }
   list(
-    count = 1L,
-    selected = drm_qgt2_scalar_character(fit$optimizer_used$optimizer_preset),
-    presets = drm_qgt2_scalar_character(fit$optimizer_used$optimizer_preset),
-    statuses = NA_character_
+    count = 1L, selected = selected,
+    presets = drm_qgt2_scalar_character(used$optimizer_preset),
+    statuses = NA_character_, optimizer = method
   )
 }
 
@@ -2417,10 +2495,17 @@ drm_qgt2_budget_status <- function(
   iterations,
   function_evaluations,
   iter_max,
-  eval_max
+  eval_max,
+  optimizer_method = "nlminb",
+  maxit = NA_real_
 ) {
   if (identical(convergence, 0L)) {
     return("converged")
+  }
+  if (!identical(optimizer_method, "nlminb")) {
+    # optim reports maxit exhaustion with code 1, but returns no iteration count.
+    if (identical(convergence, 1L)) return("iteration_budget_reached")
+    return("nonconverged_before_budget_or_unknown")
   }
   if (
     is.finite(iterations) &&
@@ -3559,7 +3644,7 @@ drm_warn_if_not_converged <- function(opt) {
   cli::cli_warn(
     c(
       "{.fn drmTMB}: {label}.",
-      "i" = "Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect {.code fit$optimizer_attempts} and run {.fn check_drm} to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit."
+      "i" = "Treat the estimates and standard errors with caution. Inspect {.code fit$optimizer_attempts} and run {.fn check_drm} to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit."
     ),
     class = "drmTMB_convergence_warning"
   )
@@ -3569,8 +3654,8 @@ drm_warn_if_not_converged <- function(opt) {
 # Warn at fit time when the optimized objective is not finite. TMB normally
 # returns a finite objective at the reported optimum, so this is a defensive
 # guard: a non-finite objective means the fit never reached a usable optimum and
-# its log-likelihood, estimates, and SEs are meaningless, but nlminb may not have
-# thrown an error.
+# its log-likelihood, estimates, and SEs are meaningless, but the optimizer may
+# not have thrown an error.
 drm_warn_if_nonfinite_objective <- function(opt) {
   objective <- opt$objective
   if (length(objective) == 1L && is.finite(objective)) {
@@ -3579,7 +3664,7 @@ drm_warn_if_nonfinite_objective <- function(opt) {
   cli::cli_warn(
     c(
       "{.fn drmTMB}: the optimized objective is not finite.",
-      "i" = "The fit did not reach a usable optimum; its log-likelihood, estimates, and standard errors are unreliable. Inspect with {.fn check_drm}, rescale or simplify the model, or refit with {.code control = drm_control(optimizer_preset = \"robust\")}."
+      "i" = "The fit did not reach a usable optimum; its log-likelihood, estimates, and standard errors are unreliable. Inspect {.code fit$optimizer_attempts} and run {.fn check_drm}; rescale or simplify the model before refitting."
     ),
     class = "drmTMB_nonfinite_objective_warning"
   )
