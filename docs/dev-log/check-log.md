@@ -350,7 +350,9 @@ Rebased `claude/lane-c-convergence-inference` onto current main. Real
 conflict in `R/profile.R` and `man/confint.drmTMB.Rd`: kept main's
 `bootstrap_re_form = NA` (redraw) meaning from #1487 and added
 `bootstrap_interval`. No `src/` C++ files changed. Intermediate C17
-receipt commits were skipped.
+receipt commits were skipped. Full `testthat::test_dir()` on `627a5a3cc`:
+passed=45022 failed=81 error=213 skipped=241 warning=20. No `src/` C++
+diff vs `origin/main` — C++ TMB reviewer: nothing to review on this PR.
 
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
