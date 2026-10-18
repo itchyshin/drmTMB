@@ -26,6 +26,7 @@ Assumptions made without asking: the request to make the alternatives selectable
 - man/drm_control.Rd, NEWS.md, vignettes/convergence.Rmd and docs/design/35-optimizer-start-map-multistart.md: public and design documentation.
 - docs/dev-log/optimizer-selection/: plan, check log and retained receipts.
 - docs/dev-log/dashboard/capability-ledger/2026-08-08-c17c2-c14-final-source-compatibility.tsv and a new dated implementation-recovery folder: required unchanged-surface compatibility receipt.
+- inst/extdata/env-skip-census.tsv: register the new ape-optional test call site.
 - This after-task report.
 
 ## 5. Checks Run
@@ -38,7 +39,7 @@ pkgdown::check_pkgdown(), the control reference build and convergence article bu
 
 ## 6. Tests of the Tests
 
-Dispatch tests first failed on the missing argument and missing metadata. Downstream tests first failed on hardcoded optimizer diagnostics and profile-control forwarding. Separate red/green tests exposed duplicate fnscale handling, staged metrics, selected-attempt attribution and legacy R partial matching. Installed-layout testing proves the pure fixture works when package R sources are absent. The second CI run exposed another Julia-refusal probe table; its two failures were reproduced locally before adding the missing probe. The resulting control/selection suite passed 45 tests and 487 assertions.
+Dispatch tests first failed on the missing argument and missing metadata. Downstream tests first failed on hardcoded optimizer diagnostics and profile-control forwarding. Separate red/green tests exposed duplicate fnscale handling, staged metrics, selected-attempt attribution and legacy R partial matching. Installed-layout testing proves the pure fixture works when package R sources are absent. The second CI run exposed another Julia-refusal probe table; its two failures were reproduced locally before adding the missing probe. The resulting control/selection suite passed 45 tests and 487 assertions. The remaining CI shard required the new optional-test skip site in its generated census; regeneration adds one row. The combined registry/control/selection rerun passed 48 tests and 492 assertions.
 
 Integration tests compare estimates with lm and the Gaussian ML residual scale, exercise all four algorithms with Newton polishing disabled, and combine BFGS with profiling, public starts and random effects. This checks likelihood behavior as well as dispatch instrumentation.
 
@@ -68,7 +69,7 @@ This is numerical-method selection, not calibration evidence. No Ayumi real-data
 
 ## 11. Team Learning
 
-A new optimizer changes more than dispatch: inspect diagnostics, constrained profile controls, staged reports, selected-result metadata and bootstrap compatibility. Use exact list indexing for newly interpreted legacy metadata fields to avoid R partial matching. When a constructor gains a field, search every derived field registry before CI; both Julia refusal registries required probes here.
+A new optimizer changes more than dispatch: inspect diagnostics, constrained profile controls, staged reports, selected-result metadata and bootstrap compatibility. Use exact list indexing for newly interpreted legacy metadata fields to avoid R partial matching. When a constructor gains a field, search every derived field registry before CI; both Julia refusal registries required probes here. A new skip call also requires regenerating inst/extdata/env-skip-census.tsv before CI.
 
 Memory receipt: the lane preflight, route manifest and project contract were applied; no Codex memory was modified. Golden Set: no capability claim was promoted. The existing three model-15 compatibility cells were rechecked, 12/12 attempts passed, and their source receipt was refreshed with the authenticated surface fingerprint unchanged. The focused regression suite supplies interface and small-likelihood evidence only.
 
