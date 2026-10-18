@@ -1,3 +1,11 @@
+# 2026-10-18 — rebase #1529 onto main `d89db5097`
+
+Rebased `claude/optimistic-euler-un5qle` onto current main, including the
+stacked #1504 commits (the #1504 branch itself was not rebased). Merge
+commits were linearized. Stale C17 receipt commits skipped.
+`src/drmTMB.cpp`, `src/drm_mi_quadrature.h`, `src/drm_numeric.h`, and
+`src/drm_response_kernels.h` changed.
+
 # 2026-10-18: #1504 reviewer fixes
 
 `skip_on_cran()` now opens the eight fitted test blocks in
