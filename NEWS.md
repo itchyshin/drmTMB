@@ -44,8 +44,8 @@
   response and the imputation prior. Unit weights (`weights = 1`) are
   treated as omitted. Native `engine = "tmb"` still fits. The classed
   warning `drmTMB_mi_weights_prior_unweighted` fires only on the
-  unweighted Gaussian prior paths (`src/drmTMB.cpp:1301`, `:1342`, and
-  the nbinom2 x Gaussian copy at `:4556`). Beta, Gamma, and the other
+  unweighted Gaussian prior paths (`src/drmTMB.cpp:1434`, `:1475`, and
+  the nbinom2 x Gaussian copy at `:4678`). Beta, Gamma, and the other
   M1 families already weight the prior and do not warn. Weight 0 or
   `NA` on a row whose `mi()` predictor is missing is a named error
   (`drmTMB_mi_zero_weight_missing`). A weight-0 observed Gaussian row

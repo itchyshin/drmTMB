@@ -1162,9 +1162,9 @@ joint multivariate block rather than a sum of independent row contributions.
 
 Until #1459 is decided, the Gaussian `mi()` prior stays unweighted. That
 is the three C++ paths that do `nll -= dnorm(...)` with no `weights(i)`:
-location-scale Gaussian at `src/drmTMB.cpp:1301`, the second Gaussian
-predictor at `:1342`, and the nbinom2-response copy of the same Gaussian
-prior at `:4556`. Every other `mi()` family block from `:1357` multiplies
+location-scale Gaussian at `src/drmTMB.cpp:1434`, the second Gaussian
+predictor at `:1475`, and the nbinom2-response copy of the same Gaussian
+prior at `:4678`. Every other `mi()` family block multiplies
 the prior by `weights(i)` (Dinnage M1). Native TMB emits the classed
 warning `drmTMB_mi_weights_prior_unweighted` only on those unweighted
 Gaussian paths. `weights = 1` matches the omitted-weights fit. A Gaussian

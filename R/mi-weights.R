@@ -2,10 +2,10 @@
 #
 # Until Shinichi decides #1459, the Gaussian imputation prior is unweighted.
 # Audited C++ paths that do `nll -= dnorm(...)` with no weights(i):
-#   mi_family == 0 gaussian LS          src/drmTMB.cpp:1301
-#   has_mi2 == 1 second Gaussian        src/drmTMB.cpp:1342
-#   mi_family == 0 nbinom2 x Gaussian   src/drmTMB.cpp:4556
-# Every other family block from :1357 multiplies the prior by weights(i)
+#   mi_family == 0 gaussian LS          src/drmTMB.cpp:1434
+#   has_mi2 == 1 second Gaussian        src/drmTMB.cpp:1475
+#   mi_family == 0 nbinom2 x Gaussian   src/drmTMB.cpp:4678
+# Every other family block multiplies the prior by weights(i)
 # (Dinnage M1). The nbinom2 x Gaussian copy is the same Gaussian prior
 # (family "gaussian") on the nbinom2 response model_type, not a separate
 # R family name. These helpers warn only on those unweighted paths.
@@ -47,7 +47,11 @@ drm_mi_prior_path_unweighted <- function(missing_predictor,
       identical(missing_predictor$family, "gaussian")
   )
   second <- is.list(missing_predictor2) && isTRUE(missing_predictor2$enabled)
-  isTRUE(first_gaussian) || isTRUE(second)
+  second_gaussian <- second && (
+    is.null(missing_predictor2$family) ||
+      identical(missing_predictor2$family, "gaussian")
+  )
+  isTRUE(first_gaussian) || isTRUE(second_gaussian)
 }
 
 drm_warn_mi_prior_ignores_weights <- function(weights, unweighted_prior) {
@@ -57,7 +61,7 @@ drm_warn_mi_prior_ignores_weights <- function(weights, unweighted_prior) {
   cli::cli_warn(
     c(
       "The Gaussian {.fn mi} imputation prior ignores observation weights.",
-      i = "A row weight multiplies the response term only on the unweighted Gaussian prior paths (src/drmTMB.cpp:1301, :1342, and the nbinom2 x Gaussian copy at :4556). Weight 2 is not the same as a duplicated row until a decision on #1459.",
+      i = "A row weight multiplies the response term only on the unweighted Gaussian prior paths (src/drmTMB.cpp:1434, :1475, and the nbinom2 x Gaussian copy at :4678). Weight 2 is not the same as a duplicated row until a decision on #1459.",
       i = "Beta, Gamma, and the other M1 families already multiply the prior by the row weight. Use {.code weights = NULL} or {.code weights = 1} when you want the Gaussian prior and the response to use the same multiplier."
     ),
     class = "drmTMB_mi_weights_prior_unweighted"
@@ -156,23 +160,6 @@ drm_spec_uses_mi_quadrature_abort <- function(spec) {
     is.character(mp$family) &&
     length(mp$family) == 1L &&
     mp$family %in% drm_mi_quadrature_abort_families()
-}
-
-drm_wrap_mi_quadrature_objective <- function(fn) {
-  function(...) {
-    err <- NULL
-    val <- tryCatch(
-      fn(...),
-      error = function(e) {
-        err <<- e
-        NULL
-      }
-    )
-    if (!is.null(err)) {
-      drm_rethrow_mi_quadrature_error(err)
-    }
-    val
-  }
 }
 
 drm_probe_mi_quadrature_objective <- function(obj, par, stage) {

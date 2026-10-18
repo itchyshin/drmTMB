@@ -214,6 +214,26 @@ test_that("weight 0 keeps a -Inf Gaussian density off the tape (#1459)", {
   expect_true(all(is.finite(gr)))
 })
 
+test_that("Gamma mi() plus non-unit weights does not emit the Gaussian-prior warning", {
+  n <- 48
+  z <- seq(-1.5, 1.5, length.out = n)
+  x <- exp(0.4 + 0.25 * z)
+  y <- 0.35 + 0.4 * x - 0.15 * z
+  dat <- data.frame(y = y, z = z, x = x)
+  dat$x[c(8, 20, 32)] <- NA_real_
+  w <- rep(2, n)
+  cap <- mi_weight_warnings(drmTMB(
+    bf(y ~ z + mi(x), sigma ~ 1),
+    data = dat,
+    impute = list(x = impute_model(x ~ z, family = Gamma(link = "log"))),
+    missing = miss_control(predictor = "model"),
+    control = drm_control(se = FALSE),
+    weights = w
+  ))
+  expect_false(has_warning_class(cap$warnings, "drmTMB_mi_weights_prior_unweighted"))
+  expect_true(is.finite(as.numeric(cap$value$obj$fn(cap$value$opt$par))))
+})
+
 test_that("Beta mi() plus non-unit weights does not emit the Gaussian-prior warning", {
   n <- 48
   z <- seq(-1.5, 1.5, length.out = n)
