@@ -308,6 +308,9 @@ drmTMB <- function(
   # grouping variables keep their declared level sets: an ordinal response or
   # an imputed ordinal predictor with an empty category must still reach its
   # own "empty category" refusal rather than be silently re-levelled.
+  # `droplevels()` itself rebuilds the factor and drops a contrasts
+  # attribute, so `contrasts(f) <- contr.sum(3)` became treatment columns.
+  # The helper drops unused levels and puts that attribute back (#1495).
   data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
@@ -368,6 +371,7 @@ drmTMB <- function(
     data = data,
     env = parent.frame()
   )
+  drm_abort_mi_zero_weight_missing_in_data(data, weights_full, impute)
 
   family_type <- drm_family_type(family)
   drm_validate_mspl_request(
@@ -687,14 +691,26 @@ drm_fit_spec <- function(
   spec <- drm_apply_start_override(spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
-  obj <- TMB::MakeADFun(
-    data = spec$tmb_data,
-    parameters = spec$start,
-    map = spec$map,
-    random = spec$tmb_random_names,
-    DLL = "drmTMB",
-    silent = TRUE
+  mi_quad_abort <- drm_spec_uses_mi_quadrature_abort(spec)
+  obj <- tryCatch(
+    TMB::MakeADFun(
+      data = spec$tmb_data,
+      parameters = spec$start,
+      map = spec$map,
+      random = spec$tmb_random_names,
+      DLL = "drmTMB",
+      silent = TRUE
+    ),
+    error = function(e) {
+      if (isTRUE(mi_quad_abort)) {
+        drm_rethrow_mi_quadrature_error(e)
+      }
+      stop(e)
+    }
   )
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, obj$par, "starting")
+  }
 
   optimizer <- drm_optimize_with_preset_retry(obj, control)
   opt <- optimizer$opt
@@ -704,6 +720,9 @@ drm_fit_spec <- function(
     optimizer$selected$objective <- opt$objective
     optimizer$selected$convergence <- opt$convergence
     optimizer$selected$message <- opt$message
+  }
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, opt$par, "fitted")
   }
   drm_warn_if_not_converged(opt)
   drm_warn_if_nonfinite_objective(opt)
@@ -12316,7 +12335,7 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
   cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
   for (col in cols) {
     if (is.factor(data[[col]])) {
-      data[[col]] <- droplevels(data[[col]])
+      data[[col]] <- drm_droplevels_keep_contrasts_factor(data[[col]])
     }
   }
   data

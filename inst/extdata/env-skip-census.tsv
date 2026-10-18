@@ -188,6 +188,9 @@ test-mesh-contract.R	suggests-package	environment	runs	8
 test-mesh-helpers.R	suggests-package	environment	runs	5
 test-mesh-recovery-v3-contract.R	build-premise	build	skips	1
 test-meta-v-lss-comparator.R	suggests-package	environment	runs	1
+test-mi-quadrature-1476-1477.R	cran-lane	environment	runs	5
+test-mi-quadrature-1476-1477.R	runtime-conditional	runtime	depends	2
+test-mi-weights-1459.R	cran-lane	environment	runs	1
 test-missing-predictor-beta-binomial.R	cran-lane	environment	runs	3
 test-missing-predictor-prediction.R	build-premise	build	skips	1
 test-missing-response-g4g5-foundation.R	cran-lane	environment	runs	1

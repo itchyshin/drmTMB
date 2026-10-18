@@ -12,6 +12,106 @@
 
 ## Bug fixes
 
+* Gamma `mi()` missing-x rows use a 51-node posterior-mode Gauss-Hermite
+  rule on `u = log(x)`. Exactly five Newton steps start at the log prior
+  mean and use each response family's own log-density gradient and
+  Hessian (Poisson adds `(y - mu) eta'(x)` and the matching curvature).
+  There is no data-dependent stop. Nodes sit at the mode scaled by
+  `1/sqrt(-H)`. The log-sum is the unnormalised marginal (no
+  `log_mass`). A NaN or `-Inf` row stops the fit with class
+  `drmTMB_mi_quadrature_nonfinite`, including on a live `drmTMB()` call
+  (start and fitted `fn`/`gr` probes, and the C++ tape token through
+  `drm_rethrow_mi_quadrature_error`). The abort watches every `mi()`
+  term, not only the first slot. A node that hits `u_max = 500` keeps a
+  finite `x` and drops its `w cosh(t)` weight. Against
+  `stats::integrate()` on the log-x scale the per-row logLik error is
+  below `1e-4` near the pole and in the tail at CV 0.05, 0.5, and 1, and
+  for Poisson times Gamma at CV 1. Poisson times Gamma at CV 2 with
+  `y = 0` stays finite. CV `> 1` near the pole remains a follow-up
+  (Refs #1477). `obj$gr()` matches a finite-difference gradient to
+  `1e-5` at CV 0.05, 1, and 2, and at the pole geometry where Newton
+  branch B wins (Refs #1477).
+
+* Beta and zero-one-Beta `mi()` keep the frozen 15-node Gauss-Legendre
+  rule on `(0, 1)`, with zero-one-Beta atoms at 0 and 1. Mid-range Beta
+  logLik error versus `integrate()` is about `2.6e-5`. U-shaped Beta
+  (`mu` 0.02 and 0.10, `sigma = 1`) is about `1.64e-2`. The worse
+  U-shaped case with shapes `(0.13, 0.31)` and `y` near the 0 pole
+  is about `0.54` and is recorded for #1531 (Refs #1476).
+  Weight 0 on a missing row still uses `if (asDouble(weights(i)) > 0)`
+  (Refs #1476).
+
+* `engine = "julia"` now refuses `mi()` plus non-unit observation weights
+  for every family, with class `drmTMB_julia_mi_weights_unsupported`,
+  before the Julia family check. DRModels.jl ignores weights on both the
+  response and the imputation prior. Unit weights (`weights = 1`) are
+  treated as omitted. Native `engine = "tmb"` still fits. The classed
+  warning `drmTMB_mi_weights_prior_unweighted` fires only on the
+  unweighted Gaussian prior paths (`src/drmTMB.cpp:1434`, `:1475`, and
+  the nbinom2 x Gaussian copy at `:4678`). Beta, Gamma, and the other
+  M1 families already weight the prior and do not warn. Weight 0 or
+  `NA` on a row whose `mi()` predictor is missing is a named error
+  (`drmTMB_mi_zero_weight_missing`). A weight-0 observed Gaussian row
+  is skipped with `if (asDouble(weights(i)) > 0)` so `y = 1e200` keeps
+  `fn` and `gr` finite. `predict()` and `simulate()` allow `weights = 1`
+  and refuse non-unit `weights` on an `mi()` fit
+  (`drmTMB_mi_weights_predict_unsupported`) (Refs #1459).
+
+* `family = student()` no longer reports a log-likelihood above the Gaussian
+  maximum when `nu` is huge. The compiled density evaluates
+  `lgamma((nu+1)/2) - lgamma(nu/2)` with a Stirling series for `nu >= 1e4`,
+  and uses `log1p` for `z^2/nu` (#1462). Moderate `nu` is unchanged. A fit
+  that previously stopped at `nu` around `1e6` or larger can move, because
+  the old objective was rounding noise. `logLik()` reads that objective.
+  `fitted_distribution()` already used `stats::dt()`.
+
+* Binomial cloglog and zero-truncated or hurdle NB2 Hessians stay finite when
+  a success probability or a truncated mean is far below `1e-16` (#1472).
+  The log-likelihood value at those points is unchanged. `drm_log1p_nonnegative()`
+  got the same treatment for a huge argument, which is the kernel used by
+  bivariate Student-t.
+
+* The Julia bridge defines `%||%` itself when the running R does not
+  already provide it. Base R added that operator in 4.4.0, and
+  `DESCRIPTION` allows R >= 4.1, so formula marshalling, bridge
+  diagnostics, and the MSPL link code errored on older R with
+  "could not find function `%||%`". The definition matches base: the
+  right-hand side only when the left-hand side is `NULL`. A second copy
+  from a rebase does not replace it.
+
+* `engine = "julia"` cross-family fits now drop one shared complete case.
+  A length check used to pair row 3 of one response with a different row of
+  the other when the `NA`s were staggered (#1454). An `NA` in `y1` on row 3
+  and an `NA` in `y2` on row 7 now drops both rows from both axes, and a
+  missing sigma covariate drops that row from the location axes too.
+  Each design is rebuilt on those shared rows. Assigned contrasts are
+  kept, including `contr.sum` and the polynomial contrasts of an ordered
+  factor, so `contrasts(f) <- contr.sum(3)` still yields columns `f1` and
+  `f2` when every level remains. The same helper now drops unused levels
+  on the TMB engine, which had been recoding those columns as treatment
+  contrasts (`fb`, `fc`). A non-reference treatment level that the drop
+  empties is still removed. Removing the reference level stops the fit
+  and names that level, instead of keeping a column such as `gc` and
+  silently changing its baseline. A character or logical predictor is
+  factored from the full frame before that check. `g = c("a", "a", "b",
+  "b", "c", "c")` with the `"a"` rows removed by the other response stops
+  the fit and names `"a"`, instead of keeping `gc` against a new baseline
+  `b`. Fewer than two observed levels, a
+  contrast coding that cannot be kept, or any other aliased column
+  (tolerance 1e-10) also stops the fit.
+  `fitted()` and `residuals()` are the length of the original data, with
+  `NA` on dropped rows, and the kept positions are stored in `kept_rows`.
+  `cbind(successes, failures)` is refused on a cross-family axis, with or
+  without missing values: flattening that response and keeping the first
+  `n` entries dropped the failures. A single 0/1 column is unchanged.
+  `offset()` on a location or sigma formula is refused, because
+  `model.matrix()` would have ignored it. Structured `response = "drop"`
+  fits drop incomplete rows, and error if that would remove a whole
+  grouping level from the covariance. Bivariate q2 structured fits error
+  when a modelled column contains `NA` instead of sending it to Julia.
+  The main bridge records how many rows it dropped, and `check_drm()`
+  reports that count. `response = "include"` is unchanged.
+
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value
