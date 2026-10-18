@@ -31,6 +31,13 @@ test_that("raw Gamma mi() prior mass stays near 1 at ordinary CV (#1477)", {
   }
 })
 
+test_that("Beta mi() at mu = 0.02 matches integrate() to 1e-4 per row (#1476)", {
+  # Frozen 15-node Gauss-Legendre. Measured |logLik - log integrate()|
+  # at y = 1, sd_y = 0.1, beta_x = 2 is 4.81e-3 (U-shaped Beta, #1531).
+  # Raising the node count does not reach 1e-4 (101 GL nodes still 3.0e-4).
+  skip("Beta mi() at mu = 0.02 is 4.81e-3 vs 1e-4 on the frozen 15-node Gauss-Legendre rule (refs #1476 / #1531). See docs/dev-log/known-limitations.md.")
+})
+
 test_that("mid-range Beta 15-node rule matches integrate() near 2.6e-5 (#1476)", {
   # Mid-range Beta, sd_y = 0.1. The restored 15-node Gauss-Legendre rule
   # is within the historical 2.6e-5 logLik error; do not loosen.
@@ -228,6 +235,19 @@ test_that("NaN or -Inf Gamma marginal is a classed abort", {
       x_base = 0,
       response = "gaussian"
     ),
+    class = "drmTMB_mi_quadrature_nonfinite"
+  )
+})
+
+test_that("drm_rethrow_mi_quadrature_error classifies a C++ tape abort", {
+  # Live MakeADFun/fn errors arrive as a plain error whose message carries
+  # the C++ token. drm_fit_spec() calls this helper (R/drmTMB.R) so the
+  # classed abort is what the user sees.
+  e <- simpleError(
+    "drmTMB_mi_quadrature_nonfinite: mi() quadrature produced a non-finite marginal."
+  )
+  expect_error(
+    drmTMB:::drm_rethrow_mi_quadrature_error(e),
     class = "drmTMB_mi_quadrature_nonfinite"
   )
 })

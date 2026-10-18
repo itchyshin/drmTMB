@@ -1,3 +1,29 @@
+# 2026-10-18: #1513 Code Reviewer blockers (live abort, rethrow, 1459, Beta 0.02)
+
+1. Live `drmTMB()` Gamma `mi()` with `y = 1e200` on a missing-x row raises
+   classed `drmTMB_mi_quadrature_nonfinite` (confirmed; test in
+   `test-mi-quadrature-1476-1477.R`).
+2. `drm_rethrow_mi_quadrature_error` is live: `drm_fit_spec()` calls it
+   on MakeADFun errors and `drm_probe_mi_quadrature_objective` calls it
+   on start/fitted `fn`/`gr`. Dead `drm_wrap_mi_quadrature_objective`
+   (C-stack overflow) was removed. New test classifies a C++ tape token.
+3. Beta `mu = 0.02` vs `integrate()` is `4.81e-3` on the frozen 15-node
+   Gauss-Legendre rule (101 GL nodes still `3.0e-4`). Labelled skip,
+   refs #1476 / #1531. Not a Gamma-rule change.
+4. `#1459` warning cites the actual unweighted sites `:1434`, `:1475`,
+   `:4678`. Gamma and Beta `mi()` plus `weights = 2` do not warn.
+   `drm_mi_prior_path_unweighted()` requires a Gaussian family on both
+   slots.
+5. C17 recertify already ran on the final cpp (`--label
+   mi-quadrature-1513-r5`, `|change| 0.000e+00`). This slice does not
+   edit `src/drmTMB.cpp`. Equivalence rechecked.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
 # 2026-10-18: #1513 round 5 closeout (C17 + labelled CV >= 3 skip)
 
 Remeasured the Round 5 tables at `3b4ac1054` (R 4.3.3, TMB 1.9.25). The
