@@ -21,13 +21,16 @@
   `log_mass`). A NaN or `-Inf` row stops the fit with class
   `drmTMB_mi_quadrature_nonfinite`, including on a live `drmTMB()` call
   (start and fitted `fn`/`gr` probes, and the C++ tape token through
-  `drm_rethrow_mi_quadrature_error`). Against `stats::integrate()` on
-  the log-x scale the per-row logLik error is below `1e-4` near the pole
-  and in the tail at CV 0.05, 0.5, and 1, and for Poisson times Gamma at
-  CV 1. Poisson times Gamma at CV 2 with `y = 0` stays finite. CV `> 1`
-  near the pole remains a follow-up (Refs #1477).
-  `obj$gr()` matches a finite-difference gradient to `1e-5` at CV 0.05,
-  1, and 2 (Refs #1477).
+  `drm_rethrow_mi_quadrature_error`). The abort watches every `mi()`
+  term, not only the first slot. A node that hits `u_max = 500` keeps a
+  finite `x` and drops its `w cosh(t)` weight. Against
+  `stats::integrate()` on the log-x scale the per-row logLik error is
+  below `1e-4` near the pole and in the tail at CV 0.05, 0.5, and 1, and
+  for Poisson times Gamma at CV 1. Poisson times Gamma at CV 2 with
+  `y = 0` stays finite. CV `> 1` near the pole remains a follow-up
+  (Refs #1477). `obj$gr()` matches a finite-difference gradient to
+  `1e-5` at CV 0.05, 1, and 2, and at the pole geometry where Newton
+  branch B wins (Refs #1477).
 
 * Beta and zero-one-Beta `mi()` keep the frozen 15-node Gauss-Legendre
   rule on `(0, 1)`, with zero-one-Beta atoms at 0 and 1. Mid-range Beta

@@ -239,6 +239,38 @@ test_that("NaN or -Inf Gamma marginal is a classed abort", {
   )
 })
 
+test_that("quadrature abort watches every mi() term, not only the first", {
+  abort_on <- function(family) {
+    list(enabled = TRUE, family = family)
+  }
+  expect_false(drmTMB:::drm_spec_uses_mi_quadrature_abort(list(
+    missing_predictor = abort_on("gaussian")
+  )))
+  expect_true(drmTMB:::drm_spec_uses_mi_quadrature_abort(list(
+    missing_predictor = abort_on("gamma")
+  )))
+  expect_true(drmTMB:::drm_spec_uses_mi_quadrature_abort(list(
+    missing_predictor = abort_on("gaussian"),
+    missing_predictor2 = abort_on("gamma")
+  )))
+  expect_true(drmTMB:::drm_spec_uses_mi_quadrature_abort(list(
+    missing_predictor = abort_on("beta"),
+    missing_predictor2 = abort_on("gaussian")
+  )))
+  expect_true(drmTMB:::drm_spec_uses_mi_quadrature_abort(list(
+    missing_predictor = abort_on("gaussian"),
+    missing_predictor2 = abort_on("zero_one_beta")
+  )))
+  expect_false(drmTMB:::drm_spec_uses_mi_quadrature_abort(list(
+    missing_predictor = abort_on("gaussian"),
+    missing_predictor2 = abort_on("gaussian")
+  )))
+  expect_false(drmTMB:::drm_spec_uses_mi_quadrature_abort(list(
+    missing_predictor = list(enabled = FALSE, family = "gamma"),
+    missing_predictor2 = abort_on("gaussian")
+  )))
+})
+
 test_that("drm_rethrow_mi_quadrature_error classifies a C++ tape abort", {
   # Live MakeADFun/fn errors arrive as a plain error whose message carries
   # the C++ token. drm_fit_spec() calls this helper (R/drmTMB.R) so the
@@ -342,4 +374,77 @@ test_that("Gamma mi() obj$gr matches finite difference to 1e-5 at CV 0.05, 1, 2"
     expect_true(all(is.finite(cmp$fd)), info = sprintf("CV=%.2f fd finite", cv))
     expect_lt(cmp$max_abs, 1e-5)
   }
+})
+
+gamma_mi_newton_b_wins <- function(
+  mu,
+  sigma,
+  y,
+  mu_y,
+  sigma_y,
+  beta_x,
+  x_base = 0,
+  response = "gaussian"
+) {
+  f <- function(u) {
+    drmTMB:::drm_gamma_mi_log_integrand(
+      u, mu, sigma, y, mu_y, sigma_y, beta_x, x_base, response
+    )
+  }
+  safe_f <- function(u) {
+    v <- f(u)
+    if (is.finite(v)) v else -1e300
+  }
+  u <- log(max(mu, 1e-300))
+  n_b <- 0L
+  for (k in seq_len(5L)) {
+    gh <- drmTMB:::drm_gamma_mi_grad_hess(
+      u, mu, sigma, y, mu_y, sigma_y, beta_x, x_base, response
+    )
+    H_safe <- min(gh$H, -1e-8)
+    u_a <- u - max(min(gh$g / H_safe, 2), -2)
+    Hg <- gh$H - gh$g
+    ratio <- (gh$H - 2 * gh$g) / min(Hg, -1e-12)
+    step_b <- max(min(log(max(ratio, 1e-300)), 2), -8)
+    u_b <- if (isTRUE(Hg < 0 && ratio > 0)) u + step_b else u_a
+    chose_b <- isTRUE(safe_f(u_b) > safe_f(u_a))
+    if (chose_b) {
+      n_b <- n_b + 1L
+    }
+    u <- if (chose_b) u_b else u_a
+  }
+  n_b
+}
+
+test_that("Gamma mi() obj$gr matches FD where Newton branch B wins (#1477)", {
+  skip_on_cran()
+  # Pole geometry: response wants x = 0.1, prior mean is x = 10, so the
+  # iterate starts far from the mode and branch B (Newton on G(x) = g / x)
+  # wins on the tape.
+  n_b <- gamma_mi_newton_b_wins(
+    mu = 10, sigma = 0.5, y = 2.05, mu_y = 2, sigma_y = 0.1,
+    beta_x = 0.5, x_base = 0, response = "gaussian"
+  )
+  expect_gt(n_b, 0L)
+  d <- data.frame(
+    y = c(2.05, 3, 2.6, 3.4, 2.9, 3.1, 3.3, 2.7),
+    x = c(NA_real_, NA_real_, 9, 11, 10, 8, 12, 10)
+  )
+  fit <- suppressWarnings(drmTMB(
+    bf(y ~ mi(x), sigma ~ 1),
+    data = d,
+    impute = list(x = impute_model(x ~ 1, family = Gamma(link = "log"))),
+    missing = miss_control(predictor = "model"),
+    control = drm_control(se = FALSE)
+  ))
+  p <- fit$obj$par
+  nm <- names(p)
+  p[nm == "beta_mu"] <- c(2, 0.5)
+  p[nm == "beta_sigma"] <- log(0.1)
+  p[nm == "beta_mi"] <- log(10)
+  p[nm == "log_sigma_mi"] <- log(0.5)
+  expect_true(all(is.finite(fit$obj$gr(p))))
+  cmp <- gamma_mi_fd_max_err(fit$obj, p)
+  expect_true(all(is.finite(cmp$fd)))
+  expect_lt(cmp$max_abs, 1e-5)
 })

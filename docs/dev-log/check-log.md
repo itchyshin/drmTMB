@@ -1,3 +1,48 @@
+# 2026-10-18: #1513 Engine A (merge main, abort every mi() term, C++ notes)
+
+Merged `origin/main` (`d89db5097`) into `cursor/triage-i-mi` as a normal
+merge commit (`5525f0e99`). No force-push. Conflicts were NEWS,
+`R/methods.R` (`simulate()` keeps the `mi()` weights abort and takes
+main's lme4 `re.form` meanings), check-log, and the C17 TSV.
+
+Engine A items:
+1. Merge: done.
+2. `drm_spec_uses_mi_quadrature_abort()` now checks
+   `missing_predictor` and `missing_predictor2`, not only the first
+   slot. Unit test covers Gaussian-first + Gamma-second.
+3. `skip_on_cran()` on the Gamma `weights = 2` fit in
+   `test-mi-weights-1459.R`. Census cran-lane 4→5 on the quadrature
+   file; new cran-lane 1 on the weights file.
+4. Unweighted Gaussian prior sites stay `:1434`, `:1475`, `:4678`.
+5. C++ notes kept: a node with `u_raw > 500` drops its `w cosh(t)`
+   weight (`n_cpp = 46L`, paired huge-mu test expects a floor term);
+   AD vs FD at the pole where Newton branch B wins (`< 1e-5`).
+   Beta low-mu runtime guard was not built.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail / 167 pass / 2 labelled
+skips; `test-guard-branch-continuity.R` 0 fail / 69 pass (`n_cpp = 46L`);
+`test-mi-weights-1459.R` 0 fail / 55 pass.
+
+Full `testthat::test_dir()`: FAIL 67 / WARN 26 / SKIP 343 / PASS 46170.
+All 67 failures are this VM's missing Suggests (`ape`, `emmeans`,
+`mvtnorm`, `tweedie`, `JuliaCall`), the same class as the 2026-10-12
+closeout (julia-fe-only-fence expects a DRM.jl checkout message;
+tweedie oracle needs `{tweedie}`; phylo tests need `{ape}`). Touched
+mi() files had 0 fail.
+
+C17 `--label mi-quadrature-1513-r5-main --tolerance 1e-10` after the
+merge and the cpp edit: `|change| 0.000e+00` on mc-0568 / 0569 / 0576.
+Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-r5-main-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK. Tracked run-1 was moved aside, then restored.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
 # 2026-10-18: #1513 Code Reviewer blockers (live abort, rethrow, 1459, Beta 0.02)
 
 1. Live `drmTMB()` Gamma `mi()` with `y = 1e200` on a missing-x row raises

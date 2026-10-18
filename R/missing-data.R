@@ -2393,9 +2393,13 @@ drm_gamma_mi_adaptive_nodes <- function(
   H <- grad_hess(u)$H
   sigma_u <- 1 / sqrt(max(-H, 1e-8))
   # Sinh-mapped trapezoid: z are abscissae t, w the trapezoid step.
-  u_q <- pmin(u + sigma_u * sinh(z), 500)
+  # A node that hits u_max = 500 keeps a finite x for reporting, but the
+  # term is dropped so the full w*cosh weight is not used at the cap.
+  u_raw <- u + sigma_u * sinh(z)
+  u_q <- pmin(u_raw, 500)
   x <- exp(u_q)
   log_terms <- log(w) + f(u_q) + log(sigma_u) + log(cosh(z))
+  log_terms[u_raw > 500] <- -1e300
   log_ll <- drm_logsumexp(log_terms)
   if (!is.finite(log_ll)) {
     drm_abort_mi_quadrature_nonfinite()

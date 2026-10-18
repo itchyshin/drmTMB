@@ -250,9 +250,11 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # adds ten CondExp sites to drm_gamma_mi_adaptive_quadrature: the (H - g)
   # floor, the ratio floor, two log-step clamps, two validity selects, two
   # non-finite-loses floors on the candidate log integrands, the candidate
-  # select, and the node clamp u_q <= 500. n_cpp is therefore 45L. The paired
-  # checks are the next two tests: a step-B fallback row and an overflow row.
-  expect_equal(n_cpp, 45L)
+  # select, and the node clamp u_q <= 500. Dropping the w*cosh weight on a
+  # capped node adds one more CondExp, so n_cpp is 46L. The paired checks
+  # are the next two tests: a step-B fallback row and an overflow row that
+  # also asserts the capped terms are zeroed.
+  expect_equal(n_cpp, 46L)
   expect_equal(n_numeric, 9L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)
@@ -300,6 +302,8 @@ test_that("Gamma Newton step B falls back to step A when its ratio is invalid (#
 
 # Site: u_q clamp at 500 in the node placement. Class: C0 floor. A huge prior
 # mean with a flat curvature floor (-H -> 1e-8) would send exp(u_q) to Inf.
+# The clamped node keeps a finite x; the log-term is dropped so the full
+# w*cosh weight is not used at the cap.
 test_that("Gamma node clamp keeps x finite at a huge prior mean (#1477)", {
   quad <- drmTMB:::drm_gamma_mi_quadrature()
   nodes <- drmTMB:::drm_gamma_mi_adaptive_nodes(
@@ -307,6 +311,7 @@ test_that("Gamma node clamp keeps x finite at a huge prior mean (#1477)", {
   )
   expect_true(all(is.finite(nodes$x)))
   expect_true(all(is.finite(nodes$log_terms)))
+  expect_true(any(nodes$log_terms <= -1e299))
 })
 
 # ---------------------------------------------------------------------------

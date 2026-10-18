@@ -1005,10 +1005,13 @@ integrand. B crosses decades of `x` in one step where A moves a fixed 0.5 in
 pole rows. The derivatives use the log Gamma prior plus each response
 family's own log-density gradient and Hessian (analytic Gaussian and Poisson;
 Poisson adds `(y - mu) eta'(x)` and the matching curvature). There is no
-data-dependent stop, and nodes are placed only after step 5. A NaN or `-Inf`
-row is `drmTMB_mi_quadrature_nonfinite`, raised from the C++ tape token
-through `drm_rethrow_mi_quadrature_error` and from non-finite `fn`/`gr` at the
-start and the fitted parameter. There is no CV branch (#1477).
+data-dependent stop, and nodes are placed only after step 5. A node with
+`u_q > 500` keeps a finite `x` for reporting and drops its `w cosh(t)` weight
+so the cap is not a quadrature mass. A NaN or `-Inf` row is
+`drmTMB_mi_quadrature_nonfinite`, raised from the C++ tape token through
+`drm_rethrow_mi_quadrature_error` and from non-finite `fn`/`gr` at the start
+and the fitted parameter. The abort watches every `mi()` term (both
+`missing_predictor` slots), not only the first. There is no CV branch (#1477).
 
 The rule is a sinh map rather than Gauss-Hermite because the log-`x` integrand
 has the exponential left tail `exp(shape * u)`, `shape = 1 / CV^2`. A Gaussian
@@ -1022,6 +1025,7 @@ u = log(x)
 t_q equally spaced on [-5, 4], 51 nodes, step h
 u_q = mode + sigma_u sinh(t_q),   sigma_u = 1 / sqrt(-H)
 x_q = exp(min(u_q, 500))
+# if u_q > 500 the term is dropped (log weight -> -1e300)
 
 log L_i =
   log sum_q

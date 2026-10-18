@@ -215,6 +215,7 @@ test_that("weight 0 keeps a -Inf Gaussian density off the tape (#1459)", {
 })
 
 test_that("Gamma mi() plus non-unit weights does not emit the Gaussian-prior warning", {
+  skip_on_cran()
   n <- 48
   z <- seq(-1.5, 1.5, length.out = n)
   x <- exp(0.4 + 0.25 * z)
