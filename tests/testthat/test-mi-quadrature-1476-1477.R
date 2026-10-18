@@ -203,6 +203,13 @@ test_that("Poisson x Gamma at CV 2 with y = 0 or large y is finite and accurate 
   }
 })
 
+test_that("Gamma adaptive quadrature at CV >= 3 near the pole is a labelled skip (#1477)", {
+  # CV 0.5, 1, and 2 at the asserted rows meet 1e-4. CV >= 3 still misses
+  # the exp(shape * u) left tail on a fraction of the (mu, y) plane
+  # (docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md).
+  skip("Gamma mi() quadrature: CV >= 3 and strong prior/likelihood conflict (refs #1477). See docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md.")
+})
+
 test_that("NaN or -Inf Gamma marginal is a classed abort", {
   expect_error(
     drmTMB:::drm_abort_mi_quadrature_nonfinite("probe"),
