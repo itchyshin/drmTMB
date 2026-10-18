@@ -1,3 +1,35 @@
+# 2026-10-18: #1513 round 5 closeout (C17 + labelled CV >= 3 skip)
+
+Remeasured the Round 5 tables at `3b4ac1054` (R 4.3.3, TMB 1.9.25). The
+blockers are inside `1e-4`: Gamma pole CV 0.5 `1.05e-8` (was `4.0e-3`),
+CV 1 `1.82e-7` (was `0.28`); Poisson CV 2 `y = 0` `2.12e-5`. Worst
+asserted row remains Gaussian CV 2 `y = 2.2` at `2.48e-5`. Mode residual
+after step 5 at `y = 2.05`: CV 0.5 `1.83e-3`, CV 1 `4.47e-7`, CV 2
+`-3.9e-13`. Integrand, score and Hessian are on `u = log(x)` with
+Jacobian `+u`; nodes sit after the five Newton steps.
+
+Labelled skip for CV `>= 3` names
+`docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md` (refs
+#1477). An 80-row random scan at CV 3 fails 12% (worst `1.47`). Census
+gained one `runtime-conditional` site on `test-mi-quadrature-1476-1477.R`.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail (1 labelled skip);
+`test-guard-branch-continuity.R` 0 fail (`n_cpp = 45L`). Compiled
+per-row vs `integrate()` ran with `NOT_CRAN=true`.
+
+C17 `--label mi-quadrature-1513-r5 --tolerance 1e-10` at `3b4ac1054`:
+`|change| 0.000e+00` on mc-0568 / 0569 / 0576. Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-r5-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK (mc-0568 included). Tracked run-1 was moved aside, then
+restored. The `mi()` sinh map sits outside the authenticated model-15
+anchors. Full suite follows.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1532
+
 # 2026-10-15: #1513 round 5 Gamma mi() pole fix (sinh-mapped trapezoid)
 
 Cause of the CV 0.5 (`4.0e-3`) and CV 1 (`0.28`) pole errors: the five

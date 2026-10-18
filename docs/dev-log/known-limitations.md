@@ -164,7 +164,8 @@ revisit condition.
   `integrate()` reference the per-row logLik error is under `1e-4` for
   Gaussian responses at CV 0.05 to 2 (worst `2.5e-5`, near the mode at
   CV 2) and for Poisson responses at CV 0.2 to 2 with `y` = 0, 1, 4, 30.
-  Still open (refs #1477): CV `>= 3` (a quarter of scan rows exceed `1e-4`),
+  Still open (refs #1477): CV `>= 3` (12% of an 80-row random `(mu, y)`
+  scan exceed `1e-4`, worst `1.47`),
   and a Poisson response whose mean at the prior mean is far above `y`
   (`exp(eta)` at `x = mu` of about `1e3` or more), where five Newton steps
   stop short of the mode; twelve steps recover the moderate cases. Poisson, binomial, NB2, and beta response models separately
