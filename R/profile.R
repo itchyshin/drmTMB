@@ -4631,7 +4631,26 @@ drm_profile_direct_sd_clamp_trace <- function(object, profile) {
 
 drm_tmbprofile_confint <- function(profile, target_name, level) {
   tryCatch(
-    stats::confint(profile, level = level),
+    {
+      if (!inherits(profile, "tmbprofile")) {
+        return(stats::confint(profile, level = level))
+      }
+      # Invert each side of the profile separately. Equal objective values
+      # have the same mean aggregation used by TMB's confint method; naming
+      # ties explicitly prevents approx() from warning about that choice.
+      # Preserve TMB's first-minimum split: only the left side includes it.
+      minimum <- which.min(profile$value)
+      cutoff <- profile$value[[minimum]] + stats::qchisq(level, df = 1) / 2
+      rows <- seq_len(nrow(profile))
+      sides <- list(lower = rows[rows <= minimum], upper = rows[rows > minimum])
+      endpoints <- vapply(sides, function(index) {
+        stats::approx(
+          x = profile$value[index], y = profile[[1L]][index],
+          xout = cutoff, ties = mean
+        )$y
+      }, numeric(1))
+      matrix(endpoints, nrow = 1L, dimnames = list(names(profile)[[1L]], names(sides)))
+    },
     error = function(err) {
       cli::cli_abort(
         c(
