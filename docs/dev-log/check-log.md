@@ -1,3 +1,28 @@
+# 2026-10-18 — rebase #1500 onto main `d89db5097`
+
+Rebased `cursor/triage-pilot-quick` onto current main. Conflicts in NEWS,
+capability-status, parity-matrix, check-log, and miss-control docs/code.
+Kept main's `explicit`-attribute `#1484` path. Recertified C17 as
+`2026-10-18-pr1500-rebase` (`--tolerance 1e-10`; worst `|change|` 1.264e-12).
+
+# 2026-10-07 — PR #1500 rebase: unnamed update() extras; keep main #1484 path
+
+`update.drmTMB()` now errors on unnamed `...` arguments. The original
+review reverted an earlier #1484 evaluated-control change; current main
+already has the `explicit`-attribute path, so this rebase keeps that
+implementation and does not claim `Fixes #1484` or `Closes #1484`.
+
+# 2026-10-07 — triage pilot: close verdicts + update/level fixes
+
+Pilot on `itchyshin/drmTMB`, rebased onto current main. Close-candidate
+verdicts are in `triage/pilot_close_verdicts.md` (recommendations only).
+Quick fixes on `cursor/triage-pilot-quick`: `update.drmTMB()` (#1241) and
+`validate_profile_level()` in `heritability()`/`icc()`/`repeatability()`
+(#1480). Main already carries the evaluated `miss_control()` `explicit`
+attribute for #1484; this rebase does not change that path. Original
+focused tests on R 4.3.3: `test-update-drmTMB.R` 1/1; heritability `#1480`
+level block 9/9.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17

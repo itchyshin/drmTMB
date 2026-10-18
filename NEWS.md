@@ -1,5 +1,18 @@
 # drmTMB (development)
 
+## New features
+
+* `update()` now has an `update.drmTMB()` method. It refits from the stored
+  call with a new `bf()` / `drm_formula()` object, or with named arguments
+  such as `data` or `family`, and reuses the original defaults. An unnamed
+  argument in `...` now errors instead of being silently ignored (#1241).
+
+## Bug fixes
+
+* `heritability()`, `icc()`, and `repeatability()` now reject a `level`
+  that is not one number strictly between 0 and 1, matching `confint()`
+  instead of returning `NaN` or inverted bounds (#1480).
+
 ## Documentation fixes
 
 * `?phylo` now correctly describes the existing unit-height convention:
