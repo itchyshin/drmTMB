@@ -92,8 +92,8 @@ The diagnostic table separates several questions that are easy to confuse:
 
 | Diagnostic | What it asks | First response when it warns |
 | --- | --- | --- |
-| `optimizer_convergence` | Did `nlminb()` return convergence code 0? | Inspect the optimizer message, gradient, and budget rows. |
-| `optimizer_budget` | Did the fit hit supplied `iter.max` or `eval.max` limits? | Increase limits if the model is still moving and the structure is defensible. |
+| `optimizer_convergence` | Did the selected optimizer return convergence code 0? | Inspect the optimizer message, gradient, and budget rows. |
+| `optimizer_budget` | Did the fit exhaust its optimizer budget? | `nlminb()` uses `iter.max`/`eval.max`; `optim()` uses `maxit` and reports evaluation counts without iteration counts. |
 | `fixed_gradient` | Is the fixed-parameter gradient small at the selected optimum, and which component is largest? | Treat large gradients as an optimization problem before using Wald inference. |
 | `hessian_positive_definite` | Did `TMB::sdreport()` report a positive-definite Hessian? | Look for boundary SDs, correlations, shape, dispersion, or inflation parameters. |
 | `standard_errors_finite` | Are fixed-effect standard errors finite? | If not, do not use Wald intervals until the Hessian problem is understood. |
@@ -326,6 +326,54 @@ ggplot2::ggplot(
   ) +
   theme_convergence()
 ```
+
+## Choose an optimizer directly
+
+To check whether a difficult fit depends on the optimizer, fit the same
+model with `nlminb()` and BFGS. Use identical public starting values for this
+comparison and turn off Newton polishing to compare the optimizers' own
+results. This example reuses `dat` from above:
+
+```{r, purl=FALSE}
+comparison_model <- bf(y ~ x + (1 | id), sigma ~ z)
+comparison_start <- list(`fixef:mu:(Intercept)` = 0)
+fit_nlminb <- drmTMB(
+  comparison_model, data = dat, family = gaussian(),
+  control = drm_control(
+    start = comparison_start, newton_polish = FALSE,
+    optimizer = list(iter.max = 2000, eval.max = 4000)
+  )
+)
+fit_bfgs <- drmTMB(
+  comparison_model, data = dat, family = gaussian(),
+  control = drm_control(
+    optimizer_method = "BFGS", optimizer = list(maxit = 2000),
+    start = comparison_start, newton_polish = FALSE
+  )
+)
+logLik(fit_nlminb)
+logLik(fit_bfgs)
+check_drm(fit_bfgs)
+```
+
+`optimizer_method` also accepts `"L-BFGS-B"`, `"Nelder-Mead"`, and `"CG"`.
+These methods run directly and use `maxit = 1000` unless overridden.
+`L-BFGS-B` uses `factr` and `pgtol` for tolerances; the other methods accept
+`reltol` and `abstol`. See `?drm_control` for the control contract. There is no
+public box-bound setting. Each method optimizes the model's internally
+transformed parameters.
+
+Direct methods require the default `optimizer_preset` and no
+`fallback_optimizer`. They reuse `multi_start` and its parallel settings.
+Newton polishing remains enabled by default. `check_drm()` names the method
+that ran and reports convergence and budget status. Profile endpoint refits still use `nlminb()` with separate controls; choosing BFGS for
+the fit does not change that solver. These native choices are rejected by the
+Julia engine, whose supported controls are documented in `?drm_control`.
+
+Compare objective values, fixed-parameter gradients, Hessians, and boundary
+checks together. Agreement between optimizers helps diagnose a missed
+optimum; it does not establish that variance components are identifiable or
+that standard errors are calibrated.
 
 ## Use `drm_control()` for optimizer limits
 
@@ -564,12 +612,13 @@ covariance. More rows alone do not guarantee a better fit if the extra rows
 carry nearly the same paired response signal and leave residual `rho12` and
 structured covariance competing for it.
 
-`drmTMB` does not yet expose public `start_from`, raw starts, raw TMB maps,
-fallback optimizers, or stochastic multi-start controls. The reserved control
-names are deliberate: future start or optimizer comparison tools must record
-which parameters were copied, which targets were skipped or jittered, which
-optimizer result was selected, and whether inference is tied to that selected
-optimum.
+`drm_control(start = list(...))` accepts public parameter labels, and
+`multi_start` adds reproducible perturbed starts. `fallback_optimizer` can run
+an `optim()` method after unsuccessful `nlminb()` attempts; `optimizer_method`
+selects one directly. Copying a simpler fit through `start_from` and supplying
+raw TMB maps remain unsupported. Use the documented public labels when
+constructing starts and inspect the selected fit's diagnostics before using
+its intervals.
 
 ## Penalized / MAP estimation for weakly-identified phylogenetic components
 

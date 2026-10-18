@@ -23,6 +23,11 @@
 
 ## Bug fixes
 
+* Profile confidence intervals now explicitly average parameter coordinates
+  at tied objective values. This preserves the existing interpolation result
+  while avoiding a spurious "collapsing to unique 'x' values" warning from
+  the implicit interpolation default (#1521).
+
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value
@@ -44,6 +49,13 @@
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
 
 ## New features
+
+* `drm_control(optimizer_method = "BFGS")` selects BFGS directly, even when
+  `nlminb()` would converge. `"L-BFGS-B"`, `"Nelder-Mead"`, and `"CG"` are
+  also selectable. Pass method-specific settings such as `maxit` through
+  `optimizer = list(...)`. The default remains `"nlminb"`; its presets and
+  fallback behavior are unchanged. Diagnostics and attempt records name the
+  method used. Profile endpoint refits retain their own `nlminb()` controls.
 
 * `confint()` and `profile()` accept `parallel = "cluster"`, a socket
   (PSOCK) backend that works on every platform, including Windows. Workers

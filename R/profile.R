@@ -3781,12 +3781,7 @@ drm_profile_endpoint_result <- function(
   nll_hat <- unname(object$opt$objective)
   cutoff <- stats::qchisq(level, df = 1) / 2
   curvature_se <- profile_endpoint_curvature_se(object, position)
-  control <- if (is.list(object$control) && is.list(object$control$optimizer)) {
-    object$control$optimizer
-  } else {
-    list()
-  }
-  control <- profile_endpoint_inner_control(control)
+  control <- profile_endpoint_inner_control(profile_fit_nlminb_control(object))
 
   endpoint_worker <- function(direction) {
     evaluator <- profile_endpoint_evaluator(
@@ -3971,8 +3966,7 @@ drm_profile_ordinal_cutpoint_confint <- function(object, target, level) {
     ))
   }
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
-  control <- if (is.list(object$control) && is.list(object$control$optimizer)) object$control$optimizer else list()
-  control <- profile_endpoint_inner_control(control)
+  control <- profile_endpoint_inner_control(profile_fit_nlminb_control(object))
   evaluator <- ordinal_cutpoint_profile_evaluator(object, target, control)
   cutoff <- stats::qchisq(level, df = 1) / 2
   nll_hat <- unname(object$opt$objective)
@@ -4078,6 +4072,21 @@ PROFILE_ENDPOINT_GRADIENT_TOL <- 1e-3
 # caller's (possibly speed-tuned) iteration budget: keep any tolerances but use a
 # generous iteration/evaluation budget so profile-CI reliability does not depend
 # on the original fit's iter.max / eval.max choice (issue #710.5).
+# Constrained profile solves use nlminb independently of the outer fit's
+# method. An optim control list cannot be forwarded to those solves. Legacy
+# fitted objects without optimizer_method retain their nlminb controls.
+profile_fit_nlminb_control <- function(object) {
+  control <- object$control
+  if (!is.list(control) || !is.list(control$optimizer)) {
+    return(list())
+  }
+  method <- control$optimizer_method
+  if (!is.null(method) && !identical(method, "nlminb")) {
+    return(list())
+  }
+  control$optimizer
+}
+
 profile_endpoint_inner_control <- function(control) {
   if (!is.list(control)) {
     control <- list()
@@ -4622,7 +4631,26 @@ drm_profile_direct_sd_clamp_trace <- function(object, profile) {
 
 drm_tmbprofile_confint <- function(profile, target_name, level) {
   tryCatch(
-    stats::confint(profile, level = level),
+    {
+      if (!inherits(profile, "tmbprofile")) {
+        return(stats::confint(profile, level = level))
+      }
+      # Invert each side of the profile separately. Equal objective values
+      # have the same mean aggregation used by TMB's confint method; naming
+      # ties explicitly prevents approx() from warning about that choice.
+      # Preserve TMB's first-minimum split: only the left side includes it.
+      minimum <- which.min(profile$value)
+      cutoff <- profile$value[[minimum]] + stats::qchisq(level, df = 1) / 2
+      rows <- seq_len(nrow(profile))
+      sides <- list(lower = rows[rows <= minimum], upper = rows[rows > minimum])
+      endpoints <- vapply(sides, function(index) {
+        stats::approx(
+          x = profile$value[index], y = profile[[1L]][index],
+          xout = cutoff, ties = mean
+        )$y
+      }, numeric(1))
+      matrix(endpoints, nrow = 1L, dimnames = list(names(profile)[[1L]], names(sides)))
+    },
     error = function(err) {
       cli::cli_abort(
         c(
