@@ -1,3 +1,10 @@
+# 2026-10-18 — rebase #1500 onto main `d89db5097`
+
+Rebased `cursor/triage-pilot-quick` onto current main. Conflicts in NEWS,
+capability-status, parity-matrix, check-log, and miss-control docs/code.
+Kept main's `explicit`-attribute `#1484` path. Recertified C17 as
+`2026-10-18-pr1500-rebase` (`--tolerance 1e-10`; worst `|change|` 1.264e-12).
+
 # 2026-10-07 — PR #1500 rebase: unnamed update() extras; keep main #1484 path
 
 `update.drmTMB()` now errors on unnamed `...` arguments. The original
