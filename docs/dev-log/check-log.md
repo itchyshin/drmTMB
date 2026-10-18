@@ -2,7 +2,9 @@
 
 Rebased `claude/lane-n2-ordinal-disc` onto current main. Conflicts were
 check-log and a stale C17 TSV (skipped). `src/drmTMB.cpp` changed (`disc`
-uses the unused `X_sigma` slot of model type 13).
+uses the unused `X_sigma` slot of model type 13; +16/−4, C++ TMB
+reviewer). Full `testthat::test_dir()` on `ff1eda1b2`: passed=45004
+failed=81 error=213 skipped=240 warning=20.
 
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
