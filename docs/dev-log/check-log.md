@@ -1,3 +1,8 @@
+# 2026-10-18 — rebase #1502 onto main `d89db5097`
+
+Rebased `cursor/triage-c-bridge-inputs` onto current main. NEWS conflict
+only on the first commit. Recertified C17 as `2026-10-18-pr1502-rebase`.
+
 # 2026-10-08: Review repair for Julia weights evaluation and covariance checks
 
 Code review blocked draft PR #1502 on the weights gate. `weights = w` is now
