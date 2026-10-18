@@ -30,3 +30,15 @@ where other packages pass extra arguments, so tightening them needs its own
 review. `predict.drmTMB_julia()` now refuses unused `...` too. This PR is limited to the
 methods in the issue title and the Julia predict method. The issue therefore stays partly open for
 those methods; see the PR description.
+
+## Capability-ledger receipt refresh
+
+Editing `R/methods.R` changed the blob hash that the C14/C17 model-15
+receipt pins, so `capability_ledger.py --check-c14-receipt-equivalence` failed
+in CI as a stale receipt. No model-15 code path changed. I reran the committed
+runner (`tools/run-lane-c-c17c1-c14-model15-compatibility.R`) on the committed
+head: 12/12 attempts pass, and the cell means agree with the previous receipt
+to about 1e-11. The ledger rows now point at
+`docs/dev-log/implementation-recovery/2026-10-18-simulate-predict-unused-args-c14-compatibility/`
+with `current_source_sha` set to the run head; `source_fingerprint` is
+unchanged.
