@@ -2,7 +2,8 @@
 
 Rebased `cursor/dead-forked-worker-7717` onto current main. Conflict was
 check-log only. `R/drmTMB.R` and `R/methods.R` were not touched, so C17
-was not recertified.
+was not recertified. Full `testthat::test_dir()` on `a59a66be8`:
+passed=44952 failed=81 error=213 skipped=241 warning=20.
 
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
