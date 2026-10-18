@@ -2,7 +2,9 @@
 
 Rebased `claude/lane-f-docs-tutorials` onto current main. Conflict was
 check-log only. Docs-only; C17 not recertified. `capability_ledger.py --check`
-passed after rebase.
+passed after rebase. Full `testthat::test_dir()` on `40f1243cd`: passed=46028
+failed=82 error=224 skipped=105 warning=30 (same env-only Julia/Suggests
+band as the other 2026-10-18 rebases).
 
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
