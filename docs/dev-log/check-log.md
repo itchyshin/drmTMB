@@ -17,6 +17,12 @@ Gaussian identity-link check; the error names `Gamma(link = "log")` as
 well as `lognormal()`. C17 model-15 receipts were recertified after
 `R/drmTMB.R` / `R/methods.R` moved.
 
+# 2026-10-18 — rebase #1501 onto main `d89db5097`
+
+Rebased `cursor/triage-pilot-inputs` onto current main. Conflicts were
+NEWS and check-log only. Recertified C17 as `2026-10-18-pr1501-rebase`
+(`--tolerance 1e-10`; worst `|change|` 1.264e-12).
+
 # 2026-10-07: triage pilot — silent input drops (#1495, #1482, #1458)
 
 Stopped three silent input-drop bugs on `cursor/triage-pilot-inputs`.
