@@ -1,3 +1,11 @@
+# 2026-10-18 — rebase #1505 onto main `d89db5097`
+
+Rebased `cursor/triage-f-convergence` onto current main, including the
+stacked #1504 commits (the #1504 branch itself was not rebased). NEWS and
+check-log conflicts; stale C17 receipt commits skipped. Recertified C17 as
+`2026-10-18-pr1505-rebase`. `src/drm_numeric.h` and `src/drm_response_kernels.h`
+come from the stacked #1504 Student/log1mexp work.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
