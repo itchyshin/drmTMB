@@ -5,7 +5,11 @@ CI run 39102666708 failed shard 1/4 on
 is rank-deficient because `nchar(chr)` is constant per level of `chr`, so
 `drm_abort_rank_deficient_designs()` now refuses the fit. The test now uses
 `y ~ chr + I(x * nchar(chr))` so the character column is still used both
-bare and inside a transform. Narrow file: 13 pass, 0 fail.
+bare and inside a transform. Narrow file: 13 pass, 0 fail. Full
+`testthat::test_dir()` after the fix: passed=45165 failed=81 error=214
+skipped=241 warning=20. The previous rebase run on the same branch was
+passed=46251 failed=82 error=226 skipped=105 warning=30; the rank-abort
+file now prints 13 dots.
 
 # 2026-10-18 — rebase #1505 onto main `d89db5097`
 
