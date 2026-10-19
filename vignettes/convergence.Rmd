@@ -267,11 +267,13 @@ budget_rows <- lapply(names(budget_fits), function(label) {
   fit <- budget_fits[[label]]
   checks <- as.data.frame(check_drm(fit))
   gradient <- checks[checks$check == "fixed_gradient", ]
+  budget <- checks$value[checks$check == "optimizer_budget"]
+  convergence <- checks$value[checks$check == "optimizer_convergence"]
   data.frame(
     Fit = label,
-    `Function evaluations` = unname(fit$opt$evaluations["function"]),
+    `Function evaluations` = as.numeric(sub(".*function=([^;]+).*", "\\1", budget)),
     `Maximum absolute gradient` = sub(";.*", "", sub("^max=", "", gradient$value)),
-    `Convergence code` = fit$opt$convergence,
+    `Convergence code` = as.integer(convergence),
     `Gradient check` = gradient$status,
     check.names = FALSE
   )

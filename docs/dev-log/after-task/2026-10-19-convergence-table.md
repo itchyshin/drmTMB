@@ -25,7 +25,7 @@ Owner-requested documentation correction. Existing optimizer feature and collabo
 Scanned vignettes, README.md and _pkgdown.yml for convergence-gradient-budget and the old plot title; no remaining reader source reference. The guide retains direct optimizer examples and diagnostic limitations. No product behavior changed, so no family, grammar, roadmap or release update is needed. Memory receipt: prior publication practice informed the route; current source, CI and live files are the evidence. Golden Set: outside scope.
 
 ## 9. What Did Not Go Smoothly
-The first fixture was rescued by polishing. A browser preview initially produced a blank image; HTML checks passed, but that image is not visual evidence. Final visual and deployment evidence will be retained separately.
+The first fixture was rescued by polishing. CI caught internal fit-field access; the table now reads all diagnostics through public check_drm() output. Browser captures initially produced blank images; Chrome print rendering was inspected successfully and showed readable columns without clipping. Final visual and deployment evidence will be retained separately.
 
 ## 10. Known Residuals
 Counts are for the selected attempt, not total retry cost. A small gradient does not establish a global optimum or reliable uncertainty. Local numerical checks use the existing selector installation; source CI and deployed-page checks remain separate.
