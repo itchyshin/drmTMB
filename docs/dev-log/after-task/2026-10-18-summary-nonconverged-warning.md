@@ -63,3 +63,17 @@ Checks, all on this Mac at 63532a35a:
 - `devtools::document()`: the same 39 #1571 `man/` rewrites and nothing else; not committed.
 
 Julia fits (`engine = "julia"`) still print a clean summary without the warning until the #1129/#1564 pair lands; that is out of scope here.
+
+## 9. Rebase onto main 5aa693bab (#1590)
+
+The five branch commits rebased onto 5aa693bab without conflicts. #1590 changed only lss-tip-identity evidence files.
+
+- lss-tip-identity receipt: `tools/ci-receipt-staleness.sh` named one stale hash, `R/methods.R`, which this branch changes. I regenerated `public-001.json` with the unchanged runner `tools/run-julia-phylo-labels-public.R`, Julia 1.13.0 and DRModels.jl `da8b3f871` (the #1590 pin; 95 of 95 Julia source hashes match), with one thread. PASS in 69.9 s, 8 of 8 checks. Every native, bridge and direct coefficient and log-likelihood is bit-identical to the #1590 receipt, and the checker log (`--current --self-test`) is byte-identical. The prior receipt is kept under `historical-pre-1545-2026-10-19/`.
+- C17: `python3 tools/recertify-c17.py --label rebase-1545 --tolerance 1e-10`, with the 2d2db519f folder moved aside and restored byte-identical. |change| is 0 on all three cells. The manifest changes only the receipt paths and `current_source_sha`, which now names a4ce4172f instead of the pre-rebase 8bf475680. `dirty-state.txt` also lists one untracked agent-wiring file (`.claude/skills/graft/SKILL.md`).
+
+Checks on this Mac at cf9652919:
+
+- Full testthat suite (NOT_CRAN=true), 4 shards in isolated worktrees: 454 of 456 files ran, 3,330 tests, 0 errors, 2 failing tests. They are the two failures in section 6, with the same numbers. Main's `R/`, `src/`, `tests/` and `inst/` are identical at 46f914c11 and 5aa693bab, so the earlier A/B against main still applies. `numeric-kernel-oracle` was excluded up front (TMB is still 1.9.21) and `julia-tmb-parity` skips. New tests: 6/6 and 5/5.
+- Every command of the CI "Validate generated capability ledger" step passes.
+- `tools/ci-receipt-staleness.sh`: exit 0, 57 of 57 R/ hashes match; with `DRM_JL_PATH` set, 95 of 95 Julia hashes match.
+- `devtools::document()`: the same 39 #1571 `man/` rewrites and nothing else; not committed.
