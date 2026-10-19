@@ -12,6 +12,60 @@
 
 ## Bug fixes
 
+* Gamma `mi()` missing-x rows use a 51-node posterior-mode Gauss-Hermite
+  rule on `u = log(x)`. Exactly five Newton steps start at the log prior
+  mean and use each response family's own log-density gradient and
+  Hessian (Poisson adds `(y - mu) eta'(x)` and the matching curvature).
+  There is no data-dependent stop. Nodes sit at the mode scaled by
+  `1/sqrt(-H)`. The log-sum is the unnormalised marginal (no
+  `log_mass`). A NaN or `-Inf` row stops the fit with class
+  `drmTMB_mi_quadrature_nonfinite`, including on a live `drmTMB()` call
+  (start and fitted `fn`/`gr` probes, and the C++ tape token through
+  `drm_rethrow_mi_quadrature_error`). The abort watches every `mi()`
+  term, not only the first slot. A node that hits `u_max = 500` keeps a
+  finite `x` and drops its `w cosh(t)` weight. Against
+  `stats::integrate()` on the log-x scale the per-row logLik error is
+  below `1e-4` near the pole and in the tail at CV 0.05, 0.5, and 1, and
+  for Poisson times Gamma at CV 1. Poisson times Gamma at CV 2 with
+  `y = 0` stays finite. CV `> 1` near the pole remains a follow-up
+  (Refs #1477). `obj$gr()` matches a finite-difference gradient to
+  `1e-5` at CV 0.05, 1, and 2, and at the pole geometry where Newton
+  branch B wins (Refs #1477). A fitted Gamma `mi()` with CV at least 3
+  also raises `drmTMB_mi_quadrature_inaccurate` (see the Beta `mi()`
+  note below).
+
+* Beta and zero-one-Beta `mi()` keep the frozen 15-node Gauss-Legendre
+  rule on `(0, 1)`, with zero-one-Beta atoms at 0 and 1. Mid-range Beta
+  logLik error versus `integrate()` is about `2.6e-5`. U-shaped Beta
+  (`mu` 0.02 and 0.10, `sigma = 1`) is about `1.64e-2`. The worse
+  U-shaped case with shapes `(0.13, 0.31)` and `y` near the 0 pole
+  is about `0.54` and is recorded for #1531 (Refs #1476).
+  Weight 0 on a missing row still uses `if (asDouble(weights(i)) > 0)`
+  (Refs #1476). After a successful TMB fit, class
+  `drmTMB_mi_quadrature_inaccurate` warns when any `mi()` term's
+  estimated missing-row Beta / zero-one-Beta prior mean is within
+  `0.10` of 0 or 1 (the 15-node rule is `4.65e-3` at `mu = 0.10`,
+  `sigma = 1` and `4.81e-3` at `mu = 0.02`, `sigma = 1`) or when a
+  Gamma `mi()` CV is at least 3. The check is R-only, loops both
+  `mi()` slots, and does not run on the Julia route, which already
+  refuses Beta and Gamma `mi()`.
+
+* `engine = "julia"` now refuses `mi()` plus non-unit observation weights
+  for every family, with class `drmTMB_julia_mi_weights_unsupported`,
+  before the Julia family check. DRModels.jl ignores weights on both the
+  response and the imputation prior. Unit weights (`weights = 1`) are
+  treated as omitted. Native `engine = "tmb"` still fits. The classed
+  warning `drmTMB_mi_weights_prior_unweighted` fires only on the
+  unweighted Gaussian prior paths (`src/drmTMB.cpp:1434`, `:1475`, and
+  the nbinom2 x Gaussian copy at `:4678`). Beta, Gamma, and the other
+  M1 families already weight the prior and do not warn. Weight 0 or
+  `NA` on a row whose `mi()` predictor is missing is a named error
+  (`drmTMB_mi_zero_weight_missing`). A weight-0 observed Gaussian row
+  is skipped with `if (asDouble(weights(i)) > 0)` so `y = 1e200` keeps
+  `fn` and `gr` finite. `predict()` and `simulate()` allow `weights = 1`
+  and refuse non-unit `weights` on an `mi()` fit
+  (`drmTMB_mi_weights_predict_unsupported`) (Refs #1459).
+
 * Profile confidence intervals now explicitly average parameter coordinates
   at tied objective values. This preserves the existing interpolation result
   while avoiding a spurious "collapsing to unique 'x' values" warning from
