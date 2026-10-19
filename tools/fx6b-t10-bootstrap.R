@@ -1,5 +1,7 @@
 # FX6b t10-grid parametric bootstrap type-I (16 Oct 2026).
 # Usage: T10_CELL=nb2|re T10_NREP=500 T10_NSIM=99 Rscript tools/fx6b-t10-bootstrap.R
+# Optional sharding: T10_FIRST (first i, default 0) and T10_CSV (output path)
+# let several processes run disjoint seed blocks into separate CSVs.
 #
 # Same DGPs and official seeds as sweep-oct16/t10. Each outer draw fits the
 # reduced/full pair, then anova(..., test = "bootstrap"). Pass bar: type-I at
@@ -15,10 +17,11 @@ if (requireNamespace("pkgload", quietly = TRUE)) {
 cell <- Sys.getenv("T10_CELL", "nb2")
 nrep <- as.integer(Sys.getenv("T10_NREP", "500"))
 nsim <- as.integer(Sys.getenv("T10_NSIM", "99"))
+first <- as.integer(Sys.getenv("T10_FIRST", "0"))
 seed0 <- 20261017000
 log_dir <- Sys.getenv("FX6B_LOG", "/workspace/docs/dev-log/after-task/fx6b-t10-logs")
 dir.create(log_dir, recursive = TRUE, showWarnings = FALSE)
-csv_path <- file.path(log_dir, sprintf("r_%s_bootstrap.csv", cell))
+csv_path <- Sys.getenv("T10_CSV", file.path(log_dir, sprintf("r_%s_bootstrap.csv", cell)))
 ctrl <- drm_control(se = FALSE, keep_tmb_object = FALSE, keep_model_frame = FALSE)
 
 header <- paste(
@@ -79,7 +82,7 @@ fit_pair <- function(dat) {
   }
 }
 
-for (i in seq_len(nrep) - 1L) {
+for (i in first + seq_len(nrep) - 1L) {
   official <- seed0 + i
   if (official %in% done) {
     next

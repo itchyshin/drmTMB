@@ -197,7 +197,8 @@ lower bound; t10 recorded 3.0% and 3.4%). `test = "bootstrap"` on
 `anova()` and `drm_lrtest()` simulates from the reduced fit and returns
   `nsim`, `seed`, and the number of failed refits (#1559, #1560). On the
 t10 500-rep grids with `nsim = 99`, bootstrap type-I at `p < 0.05` was
-3.8% (NB2) and 3.0% (`(1 | g)`). `anova()` on an
+3.8% (NB2) and 3.0% (`(1 | g)`); at the default `nsim = 199` it was 4.2%
+on both (21/500 each). `anova()` on an
 `engine = "julia"` fit still refuses; there is no `update.drmTMB()` method in `NAMESPACE`; and `weights.drmTMB()`
 returns the prior per-observation weights, not Akaike model weights -- DRM.jl's
 `weights(fit)` returns `ones(nobs(fit))`, so this is a shared naming boundary

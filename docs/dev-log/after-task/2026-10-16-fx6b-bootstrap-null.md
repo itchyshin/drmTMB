@@ -120,6 +120,11 @@ PR #1563 says Closes #1557 (the Poisson ⊂ NB2 detector). #1559 and
 #1118 stay Refs because `git push` to DRModels.jl returned 403. The
 default chi-bar p-value is unchanged; 3.0% and 3.4% remain expected.
 
+The 18 Oct 2026 rerun at the default `nsim = 199` (same draws) put
+bootstrap `p < 0.05` at 4.2% on both cells, inside the bar. #1559 and
+#1560 still stay Refs: whether a passing bootstrap option closes issues
+filed against the chi-bar default is Shinichi's call.
+
 ## What Did Not Go Smoothly
 
 `git push` to `itchyshin/DRModels.jl` returned 403
@@ -144,7 +149,9 @@ bootstrap option.
 The unit tests do not claim a 5% type-I rate. The t10 receipt
 (`docs/dev-log/after-task/fx6b-t10-logs/RECEIPT_fx6b_t10.md`,
 `nsim = 99`, 500 official seeds) recorded bootstrap `p < 0.05` of
-3.8% (NB2) and 3.0% (`(1 | g)`). `test = "bootstrap"` is slower than
+3.8% (NB2) and 3.0% (`(1 | g)`). The 18 Oct rerun at the default
+`nsim = 199` recorded 4.2% on both (21/500 each; 95% CI [2.6%, 6.3%]).
+`test = "bootstrap"` is slower than
 chi-bar (4.7 s per NB2 draw and 10.5 s per RE draw at `nsim = 99` on
 this host). Julia still reports naive χ² unless `test = :bootstrap` is
 passed, and that path needs the original `data` table because a
@@ -156,4 +163,6 @@ Wait for PR #1563 CI after this receipt push. A user who wants the
 asymptotic boundary p-value should keep the default `anova()`. A user
 who wants a finite-sample null should pass `test = "bootstrap"`. A
 `[4%, 6%]` `p < 0.05` bar on `(1 | g)` with G = 25 needs a larger
-`nsim` than 99; the function default is 199.
+`nsim` than 99; the function default is 199. The 18 Oct rerun at
+`nsim = 199` reached 4.2% on both cells (receipt section "nsim = 199
+rerun").

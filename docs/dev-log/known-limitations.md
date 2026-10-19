@@ -881,6 +881,7 @@ revisit condition.
   failed refits. On the same t10 500-rep grids with `nsim = 99`,
   bootstrap type-I at `p < 0.05` was 3.8% (NB2) and 3.0% (`(1 | g)`);
   the Davison–Hinkley 5% reading `p <= 0.05` was 4.8% on NB2 and 3.0%
-  on RE. Julia `lrtest` still reports naive χ² unless
+  on RE. At the default `nsim = 199` (same draws, 18 Oct 2026 rerun),
+  `p < 0.05` was 4.2% on both cells (21/500 each). Julia `lrtest` still reports naive χ² unless
   `test = :bootstrap` is passed; call `lrt_boundary(..., q = 1)` for the
   chi-bar p-value (#1557, #1559, #1560, DRModels.jl #1115, #1116, #1118).
