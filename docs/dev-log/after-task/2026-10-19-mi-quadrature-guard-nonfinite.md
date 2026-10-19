@@ -37,7 +37,11 @@ a NaN or `-Inf` log-likelihood row, which is a different failure.
 `test_that()` blocks), `tests/testthat/test-mi-weights-1459.R` (one
 `skip_on_cran()`), `inst/extdata/env-skip-census.tsv` (one count, re-derived
 by `tools/write-env-skip-census.R`), `NEWS.md`, `docs/design/03-likelihoods.md`
-(one sentence in each of the Beta and Gamma guard passages), and this report.
+(one sentence in each of the Beta and Gamma guard passages), this report, and
+the C17 record (the manifest
+`docs/dev-log/dashboard/capability-ledger/2026-08-08-c17c2-c14-final-source-compatibility.tsv`
+and the receipt
+`docs/dev-log/implementation-recovery/2026-10-19-mi-nonfinite-c17c2-c14-final-source-compatibility/`).
 No C++, no C17 pinned file, and no generated documentation changed.
 
 ## 5. Checks Run
@@ -52,7 +56,14 @@ No C++, no C17 pinned file, and no generated documentation changed.
 - `python3 tools/capability_ledger.py --check-c14-receipt-equivalence`: OK
   (3 eligible, 7 source-different retained receipts; C17 current-source
   compatibility PASS).
-- C17 recertification: see section 9. Not rewired.
+- C17 recertification: refused on the first base (Linux receipt, section 9).
+  After rebasing onto main 4f151444f, whose #1581 receipt was made on this
+  Mac, `tools/recertify-c17.py --label mi-nonfinite` reproduced all three
+  cells exactly (|change| 0.000e+00) and rewired the manifest to source
+  d7cd03bab. `--check`, `--check-c14-receipt-equivalence` and
+  `tools/tests/test_capability_ledger.py` pass afterwards. The
+  `claim_boundary` note for this recertification was appended by hand, as the
+  tool asks.
 - Full local suite on this Mac, in two passes because the first one hung
   (section 9). Pass 1, `devtools::test()` at 27f36e9de: the 269 files before
   `numeric-kernel-oracle` ran, with five numbered failures. Two were
@@ -65,7 +76,13 @@ No C++, no C17 pinned file, and no generated documentation changed.
   Those three fail identically on unchanged `origin/main` on this Mac; the
   nbinom2 test is skipped on CI by `skip_fragile_recovery()`. Pass 2, the
   remaining 185 files (`objective-at` to `zi-poisson`): 34,759 expectations,
-  0 failed, 0 errors, 14 skips, 39 warnings, 113.2 minutes.
+  0 failed, 0 errors, 14 skips, 39 warnings, 113.2 minutes. Both passes ran
+  on the pre-rebase base 5aa693bab. After rebasing onto 4f151444f (#1581,
+  `summary()` convergence warning), the four touched or affected files were
+  rerun with `NOT_CRAN=true`: `test-mi-quadrature-1476-1477.R` 185
+  expectations, `test-mi-weights-1459.R` 55, `test-env-skip-census.R` 5,
+  `test-summary.R` 200, all 0 failed and 0 errors. With `NOT_CRAN=false` the
+  Beta and Gamma weights fits in `test-mi-weights-1459.R` both skip.
 
 ## 6. Tests of the Tests
 
@@ -101,8 +118,13 @@ same runner on unchanged `origin/main` (5aa693bab) on this Mac gave the same
 three values bit for bit (0.0990031773657071, 0.166077467316444,
 0.0613049351662347), and all five pinned blobs match. So the gap comes
 from Linux-versus-macOS arithmetic, and this change plays no part. The
-tolerance was not raised and the manifest was not rewired. `R/mi-weights.R` is not a C17 pinned file,
-so both ledger checks pass without a new receipt.
+tolerance was not raised and the manifest was not rewired then.
+
+Before pushing, main gained #1581, which changed `R/methods.R` (a pinned
+file) and replaced the receipt with one made on this Mac. The branch was
+rebased (one `NEWS.md` conflict, both bullets kept) and the tool rerun. It now
+reproduced the receipt exactly and rewired the manifest. The tracked `run-1`
+folder was again moved to `/tmp` and restored, and `git diff` on it is empty.
 
 The first full-suite pass hung in `test-numeric-kernel-oracle.R` after 365
 expectations. Two stack samples showed a single direct `obj$fn()` call inside
@@ -116,8 +138,8 @@ trigger depends on the platform. The file was excluded from pass 2.
 
 ## 10. Known Residuals
 
-C17 stays certified by the existing Linux receipt. An exact recertification
-needs the Linux host that produced it. `test-numeric-kernel-oracle.R` was not
+The full local suite was not repeated after the rebase; CI runs it on the
+PR. `test-numeric-kernel-oracle.R` was not
 run to completion on this Mac, on main or on the branch. The three Mac-only
 failures in two files above are pre-existing. `devtools::document()` (roxygen2 8.0.0)
 rewrote 39 `man/*.Rd` files from roxygen text already on main; none come from
