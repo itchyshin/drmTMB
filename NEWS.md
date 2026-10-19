@@ -12,6 +12,13 @@
 
 ## Bug fixes
 
+* `engine = "julia"` now refuses `offset()` in any `bf()` formula in R, before
+  Julia starts, with a classed `drmTMB_julia_offset_unsupported` error that
+  points to `engine = "tmb"`. Before, the refusal came from DRM.jl as a bare
+  Julia `ArgumentError`. A native log-2 identity test now pins the offset
+  shift on `engine = "tmb"` (#1572; the bridge still cannot pass a fixed
+  coefficient, so offsets are refused rather than fitted).
+
 * Profile confidence intervals now explicitly average parameter coordinates
   at tied objective values. This preserves the existing interpolation result
   while avoiding a spurious "collapsing to unique 'x' values" warning from
