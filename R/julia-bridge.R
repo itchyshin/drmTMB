@@ -617,6 +617,7 @@ drmTMB_julia_bridge <- function(
   call
 ) {
   REML <- drm_control_flag(REML, "REML")
+  drm_julia_refuse_offset_unsupported(formula)
   drm_julia_refuse_marker_slope_unsupported(formula)
   if (drm_julia_joint_requested(formula, impute, missing)) {
     return(drmTMB_julia_joint_bridge(
@@ -1461,7 +1462,10 @@ drm_julia_fe_only_fence_families <- function() {
 # `stats::terms()` reports an intercept, no term labels, and no offset. A
 # literal `~ 1` and a redundantly parenthesised `~ (1)` are both intercept-only,
 # while `~ 0 + z` is not -- which the naive `drm_julia_is_intercept_rhs()`
-# (an `identical(rhs, quote(1))` test) gets wrong in both directions.
+# (an `identical(rhs, quote(1))` test) gets wrong in both directions. Shared by
+# the dpar-scope fence and the biv_student constant-dpar check, which both match
+# `drm_build_biv_student_spec()` (measured: `sigma1 = ~ (1)` fits identically on
+# both engines, logLik -466.44449865).
 drm_julia_rhs_is_intercept_only <- function(rhs) {
   tt <- tryCatch(
     stats::terms(stats::as.formula(call("~", rhs), env = baseenv())),
@@ -1675,25 +1679,6 @@ drm_julia_refuse_fe_only_random_effects <- function(formula, family_type) {
 # those would move messages this file's siblings pin by name.
 drm_julia_biv_student_constant_dpars <- function() {
   c("sigma1", "sigma2", "nu", "rho12")
-}
-
-# Intercept-only in the SAME sense `drm_build_biv_student_spec()` means it:
-# `stats::terms()` reports an intercept, no term labels, and no offset. A literal
-# `~ 1` and a redundantly parenthesised `~ (1)` are both intercept-only (measured:
-# `sigma1 = ~ (1)` fits identically on both engines, logLik -466.44449865), while
-# `~ 0 + z` is not -- which a bare `identical(rhs, quote(1))` test would get wrong
-# in both directions.
-drm_julia_rhs_is_intercept_only <- function(rhs) {
-  tt <- tryCatch(
-    stats::terms(stats::as.formula(call("~", rhs), env = baseenv())),
-    error = function(e) NULL
-  )
-  if (is.null(tt)) {
-    return(drm_julia_is_intercept_rhs(rhs))
-  }
-  identical(attr(tt, "intercept"), 1L) &&
-    length(attr(tt, "term.labels")) == 0L &&
-    length(attr(tt, "offset")) == 0L
 }
 
 drm_julia_refuse_biv_student_beyond_native <- function(formula, family_type) {
@@ -3324,6 +3309,34 @@ drm_julia_collect_marker_slope_terms <- function(formula) {
       )
     }),
     recursive = FALSE
+  )
+}
+
+# R's `offset()` needs a fixed (non-estimated) coefficient, which the formula
+# translation to DRM.jl cannot express; DRM.jl rejects it from Julia with an
+# error that does not name the drmTMB alternative (#1572). Refuse in R, before
+# Julia starts, for every dpar and every bridge route.
+drm_julia_refuse_offset_unsupported <- function(formula) {
+  entries <- formula$entries
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(invisible(FALSE))
+  }
+  hit <- vapply(
+    entries,
+    function(entry) formula_contains_call(entry$rhs, "offset"),
+    logical(1L)
+  )
+  if (!any(hit)) {
+    return(invisible(FALSE))
+  }
+  dpars <- vapply(entries[hit], `[[`, character(1L), "dpar")
+  cli::cli_abort(
+    c(
+      "{.code engine = \"julia\"} does not support {.fn offset} in the {.field {dpars}} formula{?s}.",
+      x = "{.fn offset} fixes a coefficient at 1, and the R to Julia bridge cannot pass a fixed (non-estimated) coefficient to DRM.jl.",
+      i = "Use native {.code engine = \"tmb\"}, which supports {.fn offset} on the location formula and shifts the log-link intercept by exactly the offset."
+    ),
+    class = "drmTMB_julia_offset_unsupported"
   )
 }
 

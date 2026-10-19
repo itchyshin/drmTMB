@@ -134,13 +134,13 @@ gr <- function(group, cov) {
 #' @param term Structured random-effect term, such as `1 | id` or
 #'   `1 + x | id`.
 #' @param pedigree Pedigree data frame with columns `id`, `dam`, and `sire`.
-#'   Unknown parents can be `NA`, `""`, or `"0"`. When a pedigree is supplied,
-#'   drmTMB builds
+#' Unknown parents can be `NA`, `""`, or `"0"`. When a pedigree is supplied,
+#' drmTMB builds
 #'   a dense additive relationship matrix for Gaussian `mu` animal effects.
 #' @param A Additive relatedness or covariance matrix for the supported
 #'   univariate Gaussian `mu` path.
 #' @param Ainv Sparse or dense inverse additive relatedness matrix for the supported
-#'   univariate Gaussian `mu` path.
+#' univariate Gaussian `mu` path.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -392,10 +392,10 @@ relmat <- function(term, K = NULL, Q = NULL) {
 #' @param block Optional covariance-block label, such as `"p"`.
 #' @param class Optional latent correlation class: `"location-location"`,
 #'   `"location-scale"`, or `"scale-scale"`. This is an extraction-oriented
-#'   shorthand and does not select a q=4 correlation-regression model.
+#' shorthand and does not select a q=4 correlation-regression model.
 #' @param from,to Optional endpoint-specific distributional parameters, such as
-#'   `"mu1"` and `"mu2"` for the supported q=2 targets. Other endpoint
-#'   combinations are not supported.
+#' `"mu1"` and `"mu2"` for the supported q=2 targets. Other endpoint
+#' combinations are not supported.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export

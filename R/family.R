@@ -266,7 +266,7 @@ tweedie <- function() {
 #' the mean, not more precision.
 #' Ordinary unlabelled random intercepts and independent numeric slopes such as
 #' `(1 | id)` and `(0 + x | id)` may enter the logit-`mu` predictor; `sigma`
-#' must remain fixed-effect.
+#' remains fixed-effect in this first slice.
 #'
 #' @return A `drm_family` object.
 #' @export

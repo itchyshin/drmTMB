@@ -13,7 +13,7 @@
 #' coverage has not. "Experimental" means that the route is usable only within
 #' its stated limits and may not provide standard errors or intervals.
 #' "Unsupported" syntax should not be used for analysis. See
-#' \code{vignette("capability-and-limits", package = "drmTMB")} for the evidence
+#' `vignette("capability-and-limits", package = "drmTMB")` for the evidence
 #' available for specific model and parameter combinations.
 #'
 #' @keywords internal

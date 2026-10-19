@@ -63,7 +63,7 @@
 #'   one.
 #' @param level Confidence level for the Wald interval. Default `0.95`.
 #' @param method Either `"delta"` (default) or `"profile"`. `"profile"` is
-#'   not implemented and always aborts.
+#' not implemented and always aborts.
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A one-row data frame (class `drm_heritability`) with columns
