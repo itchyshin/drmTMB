@@ -36,7 +36,7 @@
     "R/marginal-parameters.R": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea",
     "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
     "R/meta-vcov.R": "48cbbcd5ad03689404beda6129e13bac2e80ab5394364b9aca5c982f4a5fb29a",
-    "R/methods.R": "d2e471b8ff1c1ade9bc9fb7200e13504f6acc17fcbb12f2b599cf1d7b06f3784",
+    "R/methods.R": "9c09f27e9f565cbd4d6e9c8e50fdc01a05869523518985cebc513bd0f097f904",
     "R/mi-weights.R": "fb5e5e6fb1ef3c927187f6d2d97b9df1d53b24f9eb4eb97c7c1034b9bc8671cf",
     "R/missing-data.R": "12ca0b3ade3a057dbd51fef2e701726bbf1f15ff9b71f18d0a30dfebe7a7022b",
     "R/model-comparison.R": "e610916641f3b3b28fc99bcd807b02d81544fb9d6dd7fc70aa44c29adbed03db",
@@ -692,8 +692,8 @@
       "drmjl_ref": "da8b3f8711beb5ef3186b890544c2e7850c7f194",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpDhSQXY/pkgload1153a2fb4ecf6/drmTMB.so",
-          "sha256": "fc523b19ae9c9840254fd867dbd29f0f4e6df7083e79c788ac184fba6b6b222a"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpIaQh3k/pkgload139056633ea26/drmTMB.so",
+          "sha256": "be76db1bf75ea47006588ba1c3451956e56899d9c91a67b401e2824fcd9ba767"
         }
       }
     },
@@ -752,7 +752,7 @@
     "R/marginal-parameters.R": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea",
     "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
     "R/meta-vcov.R": "48cbbcd5ad03689404beda6129e13bac2e80ab5394364b9aca5c982f4a5fb29a",
-    "R/methods.R": "d2e471b8ff1c1ade9bc9fb7200e13504f6acc17fcbb12f2b599cf1d7b06f3784",
+    "R/methods.R": "9c09f27e9f565cbd4d6e9c8e50fdc01a05869523518985cebc513bd0f097f904",
     "R/mi-weights.R": "fb5e5e6fb1ef3c927187f6d2d97b9df1d53b24f9eb4eb97c7c1034b9bc8671cf",
     "R/missing-data.R": "12ca0b3ade3a057dbd51fef2e701726bbf1f15ff9b71f18d0a30dfebe7a7022b",
     "R/model-comparison.R": "e610916641f3b3b28fc99bcd807b02d81544fb9d6dd7fc70aa44c29adbed03db",
@@ -870,6 +870,6 @@
     "/private/tmp/drmtmb-parity-drmodels-da8b3f871/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 62.309000000000005,
+  "elapsed": 69.908000000000001,
   "status": "PASS"
 }
