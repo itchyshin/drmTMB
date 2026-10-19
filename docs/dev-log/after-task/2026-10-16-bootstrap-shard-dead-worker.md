@@ -21,7 +21,11 @@ records a `refit_status = "worker_died"` attempt for it, and
 `test-bootstrap-shards.R`), this report, and a check-log fragment. On
 2026-10-19 the lss-tip-identity receipt
 (`docs/dev-log/evidence/julia-r-parity/lss-tip-identity/`) was refreshed,
-because it hashes `R/profile.R` and `R/bootstrap-shards.R`.
+because it hashes `R/profile.R` and `R/bootstrap-shards.R`. After the
+rebase onto `4f151444f` it was refreshed again and the C17 model-15
+manifest
+(`docs/dev-log/dashboard/capability-ledger/2026-08-08-c17c2-c14-final-source-compatibility.tsv`)
+was recertified.
 
 ## Relation to #1530
 
@@ -139,3 +143,55 @@ does not change `R/drmTMB.R`, `R/methods.R` or `src/`.
 Checks: `devtools::document()` rewrote the same 39 Rd files as on `main`,
 with identical text; nothing was kept. Full suite results are in the
 check-log fragment.
+
+### Rebase onto `main` `4f151444f` (2026-10-19, third)
+
+`main` moved to `4f151444f` (#1581), which changed `R/methods.R`,
+refreshed the lss-tip-identity receipt and recertified C17. The three code
+and test commits and the previous docs commit were replayed onto it
+without conflicts, and the PR diff for `R/`, tests, `NEWS.md`, the census
+and these notes is byte-identical to the pre-rebase diff. The previous
+receipt commit (`754b8b80a`) was dropped and regenerated, not merged by
+hand: its `historical-pre-1537-2026-10-19/` archive held the #1590
+receipt, which `main` already keeps as `historical-pre-1545-2026-10-19/`.
+
+- **lss-tip-identity receipt.** Before the refresh,
+  `tools/ci-receipt-staleness.sh` found 55 of 57 `R/` hashes matching
+  (`R/bootstrap-shards.R` and `R/profile.R`). The receipt was regenerated
+  with the unchanged runner, Julia 1.13.0 and DRModels.jl `da8b3f871`, one
+  thread. `JULIA_HOME` must point at the 1.13.0 install: juliaup's default
+  channel here is 1.10.0, and the first attempt failed on the format-2.1
+  Manifest, as the 2026-10-18 `setup-failure-julia110` evidence records.
+  With 1.13.0 it passed 8 of 8 checks in 124.2 s. Every coefficient and
+  log-likelihood is bit-identical to the #1581 receipt; the manifest
+  differs only at the two `R/` files, plus the native DLL path and hash
+  from a fresh compile. The checker log (`--current --self-test`, 12
+  mutations rejected) is byte-identical. With `DRM_JL_PATH` set, the
+  staleness script finds 57 of 57 `R/` files, the runner and 95 of 95
+  DRM.jl entries matching. The #1581 receipt is kept under
+  `historical-pre-1537-2026-10-19/`.
+- **C17 recertified.** This PR changes none of the five C17-pinned files,
+  so C14 equivalence already passed. The manifest's `current_source_sha`
+  named `a4ce4172f`, a #1581 branch commit that the squash merge does not
+  put on `main`. `python3 tools/recertify-c17.py --label rebase-1537
+  --tolerance 1e-10` reproduced model 15 exactly (|change| 0 on mc-0568,
+  mc-0569 and mc-0576; 4 of 4 attempts in each cell) and repointed the
+  manifest at `2026-10-19-rebase-1537-c17c2-c14-final-source-compatibility/`
+  with `current_source_sha` `54fc3cc2e`, the receipt commit. Only the
+  receipt paths and that SHA changed; `source_fingerprint`,
+  `runner_sha256` and `claim_boundary` did not. The committed
+  `2026-08-01-...-run-1/` folder (`2d2db519f`) was moved aside for the run
+  and restored byte-identical.
+
+Checks: `capability_ledger.py --check`, `--check-c14-receipt-equivalence`,
+`tools/tests/test_capability_ledger.py` (80 tests), env-skip census
+`--check` (905 sites) and `tools/run-source-tree-tests.R --check`: all OK.
+Nine targeted test files (`test-bootstrap-shards.R`,
+`test-profile-parallel.R`, `test-bootstrap-cbind.R`,
+`test-bootstrap-response-mask.R`, `test-optimizer-selection.R`,
+`test-optimizer-selection-downstream.R`, `test-profile-targets.R`,
+`test-profile-interpolation-ties.R`, `test-summary-nonconverged.R`): 130
+tests, 1,427 expectations, 0 failures, 0 errors, 3 skips (the
+installed-build tests in `test-profile-parallel.R`). The full suite and
+`devtools::document()` were not rerun locally for this rebase; CI runs the
+full suite.
