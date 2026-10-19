@@ -4,13 +4,13 @@
 Replace the confusing budget figure with a readable table and publish the revised guide for applied drmTMB users.
 
 ## 2. Implemented
-A generated table compares the same Gaussian model and data under default and low budgets, with identical starts and Newton polishing disabled. It shows function evaluations, maximum absolute gradient, convergence code and gradient status. The explanation separates counts from gradient size and states what a small gradient cannot establish. The preceding status map uses neutral labels.
+A generated table compares the same Gaussian model and data under default and low budgets, with identical starts and Newton polishing disabled. It shows function evaluations, maximum absolute gradient, convergence code and gradient status. The explanation separates counts from gradient size and states what a small gradient cannot establish. The preceding status map uses neutral labels. Linux checks and website jobs select the known passing Ubuntu 24.04 image explicitly; matrix check names, commands and coverage are unchanged.
 
 ## 3a. Decisions and Rejected Alternatives
 Use a table rather than another plot. Generate values from actual fits; do not hard-code outcomes or change fitting defaults. Keep the optimizer-selection section intact.
 
 ## 4. Files Touched
-vignettes/convergence.Rmd and this task's check-log and after-task fragments.
+vignettes/convergence.Rmd, the R check and pkgdown workflows, and this task's check-log and after-task fragments.
 
 ## 5. Checks Run
 The extracted table chunk passed finite-value, threshold, status and convergence-code checks against the existing isolated selector installation. Local HTML rendering passed. Final CI, deployment and live verification remain pending and will be recorded in the external closeout receipt.
