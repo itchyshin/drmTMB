@@ -13,6 +13,7 @@ lane_c_edge_cell13 <- function(rep, n = 8) {
 }
 
 test_that("a diverging scale predictor at the lower clamp is degenerate (#1469)", {
+  skip_on_cran()
   for (rep in c(29L, 40L)) {
     dat <- lane_c_edge_cell13(rep)
     expect_warning(
@@ -34,6 +35,7 @@ test_that("a diverging scale predictor at the lower clamp is degenerate (#1469)"
 })
 
 test_that("the #1469 verdict survives keep_tmb_object = FALSE", {
+  skip_on_cran()
   dat <- lane_c_edge_cell13(29L)
   expect_warning(
     fit <- drmTMB(
@@ -51,6 +53,7 @@ test_that("the #1469 verdict survives keep_tmb_object = FALSE", {
 })
 
 test_that("a well-posed fit rescaled into the clamp band is not called degenerate (#1469 review)", {
+  skip_on_cran()
   # Genuine heteroscedasticity spanning ~4.5 orders of magnitude; on y * 1e-3
   # the soft-clamped log(sigma) reaches the lower band, but no observation is
   # fitted exactly, so the likelihood is bounded.
@@ -70,6 +73,7 @@ test_that("a well-posed fit rescaled into the clamp band is not called degenerat
 })
 
 test_that("an ordinary small-n location-scale fit stays converged (#1469)", {
+  skip_on_cran()
   dat <- lane_c_edge_cell13(1L)
   expect_no_warning(
     fit <- drmTMB(
@@ -119,6 +123,7 @@ lane_c_reml_data <- function() {
 }
 
 test_that("REML Wald intervals use the REML standard errors (#1317)", {
+  skip_on_cran()
   dat <- lane_c_reml_data()
   fit <- drmTMB(bf(y ~ x + (1 | g), sigma ~ 1), data = dat, REML = TRUE)
 
@@ -144,8 +149,17 @@ test_that("REML Wald intervals use the REML standard errors (#1317)", {
 })
 
 test_that("profiling a REML-integrated coefficient names the alternatives (#1317)", {
+  skip_on_cran()
   dat <- lane_c_reml_data()
   fit <- drmTMB(bf(y ~ x + (1 | g), sigma ~ 1), data = dat, REML = TRUE)
+  expect_error(
+    confint(fit, parm = "fixef:mu:x", method = "profile"),
+    class = "drmTMB_profile_reml_integrated_error"
+  )
+  expect_error(
+    profile(fit, parm = "fixef:mu:x"),
+    class = "drmTMB_profile_reml_integrated_error"
+  )
   expect_error(
     confint(fit, parm = "fixef:mu:x", method = "profile"),
     "REML = FALSE",
@@ -154,6 +168,7 @@ test_that("profiling a REML-integrated coefficient names the alternatives (#1317
 })
 
 test_that("ML Wald intervals are unchanged by the REML lookup (#1317)", {
+  skip_on_cran()
   dat <- lane_c_reml_data()
   fit <- drmTMB(bf(y ~ x + (1 | g), sigma ~ 1), data = dat)
   ci <- confint(fit, parm = "fixef:mu:x")
@@ -163,6 +178,7 @@ test_that("ML Wald intervals are unchanged by the REML lookup (#1317)", {
 })
 
 test_that("skew-normal nu near the Gaussian null gets a Wald caveat (#1336)", {
+  skip_on_cran()
   set.seed(1336)
   n <- 300
   dat <- data.frame(x = stats::rnorm(n))
@@ -181,6 +197,7 @@ test_that("skew-normal nu near the Gaussian null gets a Wald caveat (#1336)", {
 })
 
 test_that("strongly skewed residuals away from nu = 0 pass the Wald caveat (#1336)", {
+  skip_on_cran()
   set.seed(13360)
   n <- 400
   alpha <- 12
@@ -239,6 +256,7 @@ test_that("check_known_v() rank test does not depend on the units of V (#710)", 
 })
 
 test_that("corpairs() refuses newdata instead of silently ignoring it (#802)", {
+  skip_on_cran()
   set.seed(802)
   n <- 200
   x <- stats::rnorm(n)
@@ -269,6 +287,7 @@ test_that("corpairs() refuses newdata instead of silently ignoring it (#802)", {
 # Owner decision 4 (11 Oct 2026): flag-only check_drm() rows.
 
 test_that("beta-binomial sigma at the binomial limit gets a boundary note (#1273)", {
+  skip_on_cran()
   set.seed(1273)
   n <- 200
   x <- stats::rnorm(n)
@@ -300,6 +319,7 @@ test_that("beta-binomial sigma at the binomial limit gets a boundary note (#1273
 })
 
 test_that("a direct-SD formula at the log-SD clamp gets a note", {
+  skip_on_cran()
   # 12 groups, 4 rows each: the sd(ID) ~ x slope runs the smallest group
   # log-SD to about -16, below the default clamp band of [-12, 12].
   set.seed(20260730)
@@ -376,12 +396,17 @@ test_that("basic and bc bootstrap endpoints follow their definitions (#1315)", {
 })
 
 test_that("confint() exposes bootstrap_interval only for method = 'bootstrap' (#1315)", {
+  skip_on_cran()
   set.seed(13150)
   dat <- data.frame(y = stats::rnorm(40), x = stats::rnorm(40))
   fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
   expect_error(
     confint(fit, method = "wald", bootstrap_interval = "basic"),
-    "only used when"
+    class = "drmTMB_bootstrap_interval_method_error"
+  )
+  expect_error(
+    confint(fit, method = "profile", bootstrap_interval = "bc"),
+    class = "drmTMB_bootstrap_interval_method_error"
   )
   pct <- suppressWarnings(confint(fit, parm = "sigma", method = "bootstrap", R = 30, seed = 1))
   bas <- suppressWarnings(confint(

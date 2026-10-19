@@ -506,7 +506,8 @@ confint.drmTMB <- function(
       !identical(method, "bootstrap")
   ) {
     cli::cli_abort(
-      "{.arg bootstrap_interval} is only used when {.code method = \"bootstrap\"}."
+      "{.arg bootstrap_interval} is only used when {.code method = \"bootstrap\"}.",
+      class = "drmTMB_bootstrap_interval_method_error"
     )
   }
   validate_profile_level(level)
@@ -1149,11 +1150,15 @@ drm_profile_curve <- function(
     "residual-correlation"
   )
   if (!isTRUE(target$profile_ready)) {
-    cli::cli_abort(c(
-      "Profile target {.val {target$parm}} is not ready for direct profiling.",
-      i = "Inventory note: {.val {target$profile_note}}.",
-      profile_reml_integrated_hint(object, target)
-    ))
+    reml_hint <- profile_reml_integrated_hint(object, target)
+    cli::cli_abort(
+      c(
+        "Profile target {.val {target$parm}} is not ready for direct profiling.",
+        i = "Inventory note: {.val {target$profile_note}}.",
+        reml_hint
+      ),
+      class = if (!is.null(reml_hint)) "drmTMB_profile_reml_integrated_error"
+    )
   }
   if (!target$target_class %in% implemented_classes) {
     cli::cli_abort(c(
@@ -3641,11 +3646,15 @@ drm_profile_target_confint <- function(
   }
 
   if (!isTRUE(target$profile_ready)) {
-    cli::cli_abort(c(
-      "Profile target {.val {target$parm}} is not ready for direct profiling.",
-      i = "Inventory note: {.val {target$profile_note}}.",
-      profile_reml_integrated_hint(object, target)
-    ))
+    reml_hint <- profile_reml_integrated_hint(object, target)
+    cli::cli_abort(
+      c(
+        "Profile target {.val {target$parm}} is not ready for direct profiling.",
+        i = "Inventory note: {.val {target$profile_note}}.",
+        reml_hint
+      ),
+      class = if (!is.null(reml_hint)) "drmTMB_profile_reml_integrated_error"
+    )
   }
   if (!target$target_class %in% implemented_classes) {
     cli::cli_abort(c(
