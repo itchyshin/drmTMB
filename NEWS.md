@@ -12,6 +12,12 @@
 
 ## Bug fixes
 
+* `summary()` now flags a non-converged fit as `print()` does. The printed
+  summary says "not converged" with the optimizer message, and printing it
+  raises a warning of class `drmTMB_convergence_warning`, the same class as
+  the fit-time warning. `summary()` also stores the optimizer message as
+  `convergence_message` (#1545).
+
 * Gamma `mi()` missing-x rows use a 51-node posterior-mode Gauss-Hermite
   rule on `u = log(x)`. Exactly five Newton steps start at the log prior
   mean and use each response family's own log-density gradient and

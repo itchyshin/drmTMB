@@ -4660,7 +4660,8 @@ print.summary.drmTMB <- function(x, ...) {
       "convergence: {x$convergence} (not converged; {convergence_label}; see {.fn check_drm})"
     )
     cli::cli_warn(
-      "The fit did not converge: {convergence_label}. Treat estimates and standard errors with caution."
+      "The fit did not converge: {convergence_label}. Treat estimates and standard errors with caution.",
+      class = "drmTMB_convergence_warning"
     )
   }
   invisible(x)
