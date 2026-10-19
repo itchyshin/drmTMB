@@ -376,6 +376,7 @@ alignment_sum_names <- function(data) {
 }
 
 test_that("contr.sum columns stay f1, f2 on a cross-family design and on engine = tmb", {
+  skip_on_cran()
   hit <- FALSE
   ns <- asNamespace("drmTMB")
   orig <- get("drm_julia_xfam_design_from_frame", envir = ns)
@@ -406,6 +407,7 @@ test_that("contr.sum columns stay f1, f2 on a cross-family design and on engine 
 })
 
 test_that("an ordered factor keeps contr.poly columns through the cross-family rebuild", {
+  skip_on_cran()
   o <- ordered(rep(c("a", "b", "c"), each = 8))
   d <- data.frame(y1 = stats::rnorm(24), y2 = stats::rpois(24, 2), o = o)
   ax <- drmTMB:::drm_julia_xfam_axes(

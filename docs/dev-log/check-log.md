@@ -1,3 +1,21 @@
+# 2026-10-18: #1504 reviewer fixes
+
+`skip_on_cran()` now opens the eight fitted test blocks in
+`test-factor-contrasts.R`, `test-log1mexp-ad.R`, `test-student-large-nu.R`
+and `test-julia-missing-alignment.R`. `R/julia-bridge.R` loses the stale
+"delete these three" comment and the dead
+`exists("drm_abort_rank_deficient_designs")` branch. C17 does not pin that
+file: `capability_ledger.py --check` OK, and
+`recertify-c17.py --label pr-1504 --tolerance 1e-10 --dry-run` gave `|change|`
+0 on all three cells, so the receipt was not rewritten. Full suite on Totoro
+(R 4.6.1, nine processes): 49,146 pass, 4 fail, 0 error, 104 skip. Two fails
+were the env-skip census, regenerated with `tools/write-env-skip-census.R`
+(rerun 5/5). Two are `skip_fragile_recovery()` tests that fail the same way on
+`9c61c8246`: Arc 1a REML spatial one-slope (reference optimiser code 52) and
+the NB2 sigma mis-wire guard. `test-numeric-kernel-oracle.R` passed on Totoro
+(392 expectations). `devtools::document()` produced only the known #1400 `.Rd`
+drift, which was not committed.
+
 # 2026-10-18: rebase #1504 onto main after #1579
 
 Rebased `cursor/triage-e-numeric` onto `95e81e911` (50 commits). `NEWS.md`

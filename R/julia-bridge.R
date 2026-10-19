@@ -8563,10 +8563,7 @@ drm_droplevels_keep_contrasts <- function(data) {
   data
 }
 
-# Rank check used by the cross-family design. The canonical copies live in
-# R/drmTMB.R on the convergence branch. Delete these three once that branch
-# is rebased here: drmTMB.R is collated first, and a second copy in this file
-# would replace it.
+# Rank check used by the cross-family design.
 drm_complete_case_design <- function(X) {
     if (!anyNA(X)) {
       return(X)
@@ -8739,12 +8736,6 @@ drm_julia_xfam_design_from_frame <- function(mf, pos, dpar) {
     aliased <- if (is.null(colnames(X))) "column_1" else colnames(X)
   }
   if (length(aliased) > 0L) {
-    if (
-      ncol(X) >= 2L &&
-        exists("drm_abort_rank_deficient_designs", mode = "function")
-    ) {
-      drm_abort_rank_deficient_designs(stats::setNames(list(X), dpar))
-    }
     cli::cli_abort(
       c(
         "{.code engine = \"julia\"} cross-family alignment made the {.code {dpar}} design rank deficient.",

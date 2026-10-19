@@ -4,6 +4,7 @@
 # `contrasts` attribute, so `contr.sum` silently became treatment coding.
 
 test_that("#1495 repro: contr.sum columns and estimates match lm()", {
+  skip_on_cran()
   set.seed(1)
   d <- data.frame(y = stats::rnorm(30), g = factor(rep(c("a", "b", "c"), 10)))
   stats::contrasts(d$g) <- stats::contr.sum(3)
@@ -62,6 +63,7 @@ test_that("a contrast matrix that cannot be kept warns instead of switching sile
 })
 
 test_that("drmTMB() keeps a contrast function name on a factor with an unused level", {
+  skip_on_cran()
   # A stored name ("contr.sum") is rebuilt on the levels that remain, so the
   # unused level d does not turn g1, g2 into treatment columns gb, gc.
   set.seed(1)

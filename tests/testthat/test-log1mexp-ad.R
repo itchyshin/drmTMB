@@ -4,6 +4,7 @@
 # NB2 log(1 - p0) term. Both are checked through the compiled objective. No Julia.
 
 test_that("cloglog success at eta <= -40 has a finite gradient and Hessian (#1472)", {
+  skip_on_cran()
   dat <- data.frame(y = rep(1, 5))
   fit <- drmTMB(
     bf(y ~ 1),
@@ -39,6 +40,7 @@ test_that("cloglog success at eta <= -40 has a finite gradient and Hessian (#147
 })
 
 test_that("zero-truncated NB2 at eta_mu <= -38 has a finite Hessian (#1472)", {
+  skip_on_cran()
   dat <- data.frame(y = c(1, 2, 4))
   fit <- drmTMB(
     bf(y ~ 1, sigma ~ 1),
