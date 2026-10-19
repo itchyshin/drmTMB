@@ -6,7 +6,7 @@ Close #1545: `summary()` printed only `convergence: 1` for a non-converged fit, 
 
 ## 2. Implemented
 
-`summary.drmTMB()` now stores `convergence_message`. `print.summary.drmTMB()` reuses `drm_convergence_label()` to print "not converged" with the optimizer message and emits a warning, matching `print()`.
+`summary.drmTMB()` now stores `convergence_message`. `print.summary.drmTMB()` reuses `drm_convergence_label()` to print "not converged" with the optimizer message and emits a warning of class `drmTMB_convergence_warning` (the fit-time warning's class), matching `print()`.
 
 ## 3a. Decisions and Rejected Alternatives
 
@@ -46,3 +46,20 @@ None of these paths reaches `summary()` or `print.summary.drmTMB()`.
 ## 7. What This Does Not Cover
 
 The Julia-bridge `summary()` methods still do not warn. The three Mac-only failures above are not fixed here.
+
+## 8. Review Round (R reviewer blockers)
+
+Changes in 8bf475680:
+
+- The `summary()` warning now has class `drmTMB_convergence_warning`, and both tests assert it with `expect_warning(class = ...)`. Removing the class makes each test fail exactly that expectation.
+- `skip_on_cran()` guards both live fits. `inst/extdata/env-skip-census.tsv` gains one `cran-lane` row, regenerated with `tools/write-env-skip-census.R` (`--check` passes).
+- A second test fits a real Student t model with a capped nlminb budget (`eval.max = 4`), so the warning is checked against a genuine optimizer message, not a mocked one. The #1545 false-convergence fits themselves no longer reproduce after #1504: 0 of 300 local `student()` fits (nu 30 to 1e6 and Gaussian data, n 50 to 1000) failed to converge, and the original data files sit on the sweep box.
+- NEWS.md entry under Bug fixes.
+
+Checks, all on this Mac at 63532a35a:
+
+- C17 re-certified against 8bf475680 (record committed in 63532a35a): |change| 0.000e+00 on all three cells against the previous receipt, so it passes at exact tolerance too. Every command of the CI ledger step passes.
+- Full testthat suite, 4 isolated shards: 454 of 456 files ran, 3,330 tests, 0 errors, 2 failing tests. They are the same two Mac-only failures listed in section 6, which fail identically on main. `numeric-kernel-oracle` was excluded up front because of the TMB 1.9.21 stall shown there; `julia-tmb-parity` skips. New tests: 6/6 and 5/5.
+- `devtools::document()`: the same 39 #1571 `man/` rewrites and nothing else; not committed.
+
+Julia fits (`engine = "julia"`) still print a clean summary without the warning until the #1129/#1564 pair lands; that is out of scope here.
