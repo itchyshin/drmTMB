@@ -34,8 +34,6 @@ manual_gamma_mi_loglik <- function(fit) {
   mu_observed <- as.vector(fit$model$X$mu %*% beta_mu)
   eta_mi <- as.vector(model$X %*% beta_mi)
   mean_mi <- exp(eta_mi)
-  nodes <- model$quad_nodes
-  weights <- model$quad_weights
   x <- dat$biomass
   out <- numeric(nrow(dat))
 
@@ -60,15 +58,22 @@ manual_gamma_mi_loglik <- function(fit) {
     if (!observed_y[[row]]) {
       next
     }
+    # Independent integrate() oracle for the row marginal (#1477); the TMB
+    # rule is a posterior-centred Gauss-Hermite rule on log(x).
     scale <- mean_mi[[row]] * sigma_mi^2
-    x_nodes <- scale * nodes
-    mu_node <- mu_observed[[row]] + beta_biomass * (x_nodes - x_base[[row]])
-    log_terms <- log(weights) +
-      (shape_mi - 1) * log(nodes) -
-      lgamma(shape_mi) +
-      stats::dnorm(dat$y[[row]], mu_node, sigma, log = TRUE)
-    max_log <- max(log_terms)
-    out[[row]] <- max_log + log(sum(exp(log_terms - max_log)))
+    out[[row]] <- mi_reference_log_marginal(
+      function(xx) {
+        stats::dgamma(xx, shape = shape_mi, scale = scale, log = TRUE) +
+          stats::dnorm(
+            dat$y[[row]],
+            mu_observed[[row]] + beta_biomass * (xx - x_base[[row]]),
+            sigma,
+            log = TRUE
+          )
+      },
+      0,
+      Inf
+    )
   }
   sum(out)
 }

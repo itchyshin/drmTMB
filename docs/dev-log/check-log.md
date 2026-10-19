@@ -1,3 +1,35 @@
+# 2026-10-18: rebase #1529 onto main after #1504 merged
+
+Rebased `claude/optimistic-euler-un5qle` onto `e17921e9b` (#1504
+squash-merged). Dropped the five copied #1504 commits (`d44efcdb0` to
+`f4b66268a`); the five #1529 commits were replayed in order. The two code
+commits applied unchanged; this log and the C17 TSV had additive conflicts.
+Base was already `main`, so no retarget. `git diff origin/main -- src/`
+touches only `src/drmTMB.cpp` and the new `src/drm_mi_quadrature.h`, both
+byte-identical to the previous head `ce83aae94`; `src/drm_numeric.h` and
+`src/drm_response_kernels.h` match main.
+
+C17: `python3 tools/recertify-c17.py --label 1529-rebase --tolerance 1e-10`
+on Totoro (R 4.6.1), worst `|change|` 1.264e-12 on mc-0568 / 0569 / 0576,
+source fingerprint unchanged; `--check-c14-receipt-equivalence` OK. Full suite
+on Totoro (12 `devtools::test()` shards): 49,721 pass, 2 fail, 0 error, 104
+skip. Both fails reproduce on `e17921e9b` in the same environment: Arc 1a REML
+spatial one-slope (reference optimiser code 52) and the NB2 sigma mis-wire
+guard (logLik gap 14.5). `devtools::document()` changed exactly the same lines
+as on `main` (the known #1400 `.Rd` drift plus a RoxygenNote bump), so the
+hand-edited `weights` entry in `man/drmTMB.Rd` already matches roxygen and
+nothing was committed.
+
+# 2026-10-18 — rebase #1529 onto main `d89db5097`
+
+Rebased `claude/optimistic-euler-un5qle` onto current main, including the
+stacked #1504 commits (the #1504 branch itself was not rebased). Merge
+commits were linearized. Stale C17 receipt commits skipped.
+`src/drmTMB.cpp`, `src/drm_mi_quadrature.h`, `src/drm_numeric.h`, and
+`src/drm_response_kernels.h` changed (+485/−173 across those four files;
+C++ TMB reviewer). Full `testthat::test_dir()` on `5edd6dcbc`:
+passed=45574 failed=81 error=220 skipped=241 warning=20.
+
 # 2026-10-18: #1504 reviewer fixes
 
 `skip_on_cran()` now opens the eight fitted test blocks in
