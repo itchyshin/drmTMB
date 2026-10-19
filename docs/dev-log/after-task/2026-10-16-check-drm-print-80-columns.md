@@ -30,3 +30,30 @@ It fails on the base commit (no wrapping) and passes with the fix.
 Messages are shown for every row, not only for non-ok rows, because the lane
 brief asks to keep all information. A `verbose = FALSE` mode that hides ok
 messages, as the issue suggests as an alternative, is a possible follow-up.
+
+## Rebase onto the rewritten #1509 (2026-10-19)
+
+#1509 is still open, so this branch was rebased onto its rewritten head
+(`claude/lane-c-convergence-inference` at 78a65181d), not onto `main`. Only
+this PR's three commits were replayed; `git range-diff` shows each patch
+unchanged, and there were no textual conflicts. `R/check.R` and
+`tests/testthat/test-check-drm.R` are identical on the old and new base.
+
+`devtools::document()` (roxygen2 8.0.0) rewrote 39 `man/*.Rd` files. None
+of them comes from this PR, which changes no roxygen lines. They are older
+wording from roxygen sources that `main` itself never regenerated (for
+example `R/formula-markers.R` still says "The first fitted route builds"
+while `man/animal.Rd` on `main` says "When a pedigree is supplied"). They
+were not committed.
+
+Full local suite on the rebased head (macOS arm64, `-O2` build, four
+shards): 3 failed, 0 errors, 48,635 passed, 93 skipped.
+`test-check-drm.R` passes 319 (283 on the base plus 36 from the new test).
+The three failures reproduce with identical values on the base head:
+`test-nbinom2-sigma-structured-recovery.R:52-53` (log-likelihood gap 9.0,
+thresholds 15 and 10) and `test-associate-pairs-bernoulli-bernoulli.R:40`
+(0.551583976 against 0.551583956). The two Tweedie blocks of
+`test-numeric-kernel-oracle.R` do not finish on this machine: the one-row
+fit drives sigma towards zero and TMB's `tweedie_logW` series loop stops
+moving, which is #1585. The rest of that file passes (17 tests, 373
+expectations).
