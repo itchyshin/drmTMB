@@ -46,8 +46,8 @@ test_that("native offset() shifts the log-link intercept by log(2) exactly", {
   d2 <- d
   d2$off <- d2$off + log(2)
   f1 <- drmTMB(bf(y ~ x + offset(off)), family = poisson(link = "log"), data = d2)
-  b0 <- coef(f0)
-  b1 <- coef(f1)
+  b0 <- coef(f0, dpar = "mu")
+  b1 <- coef(f1, dpar = "mu")
   expect_equal(unname(b1[1L]), unname(b0[1L]) - log(2), tolerance = 1e-6)
   expect_equal(unname(b1[-1L]), unname(b0[-1L]), tolerance = 1e-6)
   expect_equal(as.numeric(logLik(f1)), as.numeric(logLik(f0)), tolerance = 1e-6)
