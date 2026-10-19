@@ -8,7 +8,11 @@
 # Where the exact value is not available from base R to the required accuracy
 # (R's dgamma(), dbeta() and dnbinom() lose 1e-11 to 1e-9 themselves at shape
 # 1e8, because they round the scale or the mean first), the reference is an
-# mpmath value at 60 digits, pinned below as literals.
+# mpmath value at 60 digits, pinned below as literals. The bars sit near the
+# libm rounding floor, which differs between platforms, and the file fits many
+# small models, so it is skipped on CRAN.
+
+skip_on_cran()
 
 ll_row <- function(family, formula, y, ...) {
   dat <- data.frame(y = rep(y, 3L))
@@ -98,15 +102,19 @@ test_that("student objective closes monotonically on the Gaussian logLik from et
 })
 
 # Reference values: mpmath at 60 digits, evaluated at the exact doubles below.
+# The Gamma eta is log(2.5) written as a hex double. R without long double
+# (arm64 macOS) parses the decimal 0.9162907318741551 one ulp high, and at
+# shape 1e8 the density moves by shape * |u| * 1.1e-16 = 4.4e-12 per ulp.
+gamma_eta <- 0x1.d5240f0e0e078p-1
 
 gamma_cases <- list(
-  list(s = 10000.0, eta = 0.9162907318741551, ls = -4.605170185988092,
+  list(s = 10000.0, eta = gamma_eta, ls = -4.605170185988092,
     y = c(2.425, 2.4699999999999998, 2.49, 2.5, 2.5075, 2.525, 2.5625, 2.6),
     ref = c(-1.7916830520248554, 2.0561928261178135, 2.6937266335852903, 2.7699325875759335, 2.722026876580926, 2.263290788403601, -0.3286341212994202, -5.0621565927643895)),
-  list(s = 1000000.0, eta = 0.9162907318741551, ls = -6.907755278982137,
+  list(s = 1000000.0, eta = gamma_eta, ls = -6.907755278982137,
     y = c(2.4925, 2.497, 2.499, 2.5, 2.50075, 2.5024999999999995, 2.5062499999999996, 2.51),
     ref = c(0.5665101408685314, 4.353150132248229, 4.992904670855935, 5.0725259305699755, 5.027234973536473, 4.5718595137703, 1.9502276375708283, -2.9101965532460534)),
-  list(s = 100000000.0, eta = 0.9162907318741551, ls = -9.210340371976184,
+  list(s = 100000000.0, eta = gamma_eta, ls = -9.210340371976184,
     y = c(2.49925, 2.4997, 2.4999, 2.5, 2.500075, 2.50025, 2.5006250000000003, 2.501),
     ref = c(2.874510948522821, 6.655173508078695, 7.295148973466205, 7.375111106064023, 7.330082006494098, 6.87504444189819, 4.250381873003259, -0.6231561204158353))
 )
@@ -157,7 +165,8 @@ test_that("gamma kernel matches the exact density at shape 1e4, 1e6, 1e8", {
     }, numeric(1))
     # 1e-12 ship bar; shape 1e8 sits on the conditioning floor
     # shape * |u| * eps = 1e8 * 4e-4 * 1.1e-16 = 4.4e-12 for a 4-sd row, and
-    # the measured worst row is 9.1e-13, so allow 1.5e-12 there.
+    # the measured worst row is 9.1e-13 on Linux and macOS, so allow 1.5e-12
+    # there.
     bar <- if (cs$s >= 1e8) 1.5e-12 else 1e-12
     expect_lt(max(err), bar, label = paste("gamma shape =", cs$s))
   }
