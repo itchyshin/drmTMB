@@ -1459,7 +1459,10 @@ drm_julia_fe_only_fence_families <- function() {
 # `stats::terms()` reports an intercept, no term labels, and no offset. A
 # literal `~ 1` and a redundantly parenthesised `~ (1)` are both intercept-only,
 # while `~ 0 + z` is not -- which the naive `drm_julia_is_intercept_rhs()`
-# (an `identical(rhs, quote(1))` test) gets wrong in both directions.
+# (an `identical(rhs, quote(1))` test) gets wrong in both directions. Shared by
+# the dpar-scope fence and the biv_student constant-dpar check, which both match
+# `drm_build_biv_student_spec()` (measured: `sigma1 = ~ (1)` fits identically on
+# both engines, logLik -466.44449865).
 drm_julia_rhs_is_intercept_only <- function(rhs) {
   tt <- tryCatch(
     stats::terms(stats::as.formula(call("~", rhs), env = baseenv())),
@@ -1673,25 +1676,6 @@ drm_julia_refuse_fe_only_random_effects <- function(formula, family_type) {
 # those would move messages this file's siblings pin by name.
 drm_julia_biv_student_constant_dpars <- function() {
   c("sigma1", "sigma2", "nu", "rho12")
-}
-
-# Intercept-only in the SAME sense `drm_build_biv_student_spec()` means it:
-# `stats::terms()` reports an intercept, no term labels, and no offset. A literal
-# `~ 1` and a redundantly parenthesised `~ (1)` are both intercept-only (measured:
-# `sigma1 = ~ (1)` fits identically on both engines, logLik -466.44449865), while
-# `~ 0 + z` is not -- which a bare `identical(rhs, quote(1))` test would get wrong
-# in both directions.
-drm_julia_rhs_is_intercept_only <- function(rhs) {
-  tt <- tryCatch(
-    stats::terms(stats::as.formula(call("~", rhs), env = baseenv())),
-    error = function(e) NULL
-  )
-  if (is.null(tt)) {
-    return(drm_julia_is_intercept_rhs(rhs))
-  }
-  identical(attr(tt, "intercept"), 1L) &&
-    length(attr(tt, "term.labels")) == 0L &&
-    length(attr(tt, "offset")) == 0L
 }
 
 drm_julia_refuse_biv_student_beyond_native <- function(formula, family_type) {
