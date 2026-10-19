@@ -18,7 +18,10 @@ records a `refit_status = "worker_died"` attempt for it, and
 `R/profile.R`, `R/bootstrap-shards.R`,
 `tests/testthat/test-bootstrap-shards.R`, `inst/extdata/env-skip-census.tsv`
 (five `skip_on_os` and five `skip_on_cran` sites in
-`test-bootstrap-shards.R`), this report, and a check-log fragment.
+`test-bootstrap-shards.R`), this report, and a check-log fragment. On
+2026-10-19 the lss-tip-identity receipt
+(`docs/dev-log/evidence/julia-r-parity/lss-tip-identity/`) was refreshed,
+because it hashes `R/profile.R` and `R/bootstrap-shards.R`.
 
 ## Relation to #1530
 
@@ -114,3 +117,25 @@ fragment.
 Checks: `devtools::document()` again rewrote only the 39 pre-existing Rd
 drifts, which were reverted. Full suite results are in the check-log
 fragment.
+
+### Rebase onto `main` `5aa693bab` (2026-10-19)
+
+The branch was rebased onto `main` `5aa693bab` (#1590, which refreshed the
+lss-tip-identity receipt after #1504 and #1513). There were no conflicts,
+and the PR diff is byte-identical before and after the rebase. That receipt
+records a SHA-256 for every file under `R/`. This PR changes
+`R/bootstrap-shards.R` and `R/profile.R`, so `tools/ci-receipt-staleness.sh`
+found 55 of 57 recorded `R/` files matching. The receipt was regenerated
+with the unchanged runner `tools/run-julia-phylo-labels-public.R` (Julia
+1.13.0, DRModels.jl `da8b3f871`, one thread). It passed 8 of 8 checks. The
+native/direct coefficient difference was 7.736e-12 and the log-likelihood
+difference 7.105e-14; bridge/direct was 0. These are the same values as
+#1590. The checker passes with `--current --self-test`. The staleness
+script now finds all 57 `R/` files, the runner and all 95 DRM.jl-side
+entries matching. The prior receipt is kept verbatim under
+`historical-pre-1537-2026-10-19/`. C17 was not recertified, because this PR
+does not change `R/drmTMB.R`, `R/methods.R` or `src/`.
+
+Checks: `devtools::document()` rewrote the same 39 Rd files as on `main`,
+with identical text; nothing was kept. Full suite results are in the
+check-log fragment.
