@@ -344,6 +344,35 @@ end: `python3 tools/recertify-c17.py --label pr-1504 --tolerance 1e-10`,
 also carries the #1495 contrast fix (ordered factors, stored contrast names,
 and a `drmTMB_contrasts_dropped` warning).
 
+# 2026-10-18: FX3b pairing, Julia-engine status reads the bridge (#1564 with DRModels.jl #1129)
+
+**Lane:** Claude Code · branch `cursor/fx3-silent-mle-b05e` (PR #1564), paired with DRModels.jl `cursor/fx3-drm` (PR #1129).
+
+**Change:** `convergence_status.drmTMB_julia()` passes
+`drm_julia_bridge_degenerate()` (bridge `convergence_status == "degenerate"`)
+as `mle_nonexistent` instead of `FALSE`. DRModels.jl 493c639 sends the bridge
+`converged` key only when `fit.geometry === :ok`. New
+`test-julia-convergence-status-parity.R`: a bridge-stub unit test (red on
+3fd68189e), an all-zero Poisson test, and a three-fit parity test (rho12
+boundary, inflated SE, all-zero Poisson) against DRModels.jl itself.
+
+**Evidence:** full `NOT_CRAN=true` suite in two parts (files 1 to 266: FAIL 5,
+of which env-skip-census 2 fixed by the census rows and 3 pre-existing on
+3fd68189e; files 268 to 448: FAIL 0, PASS 34354). `test-numeric-kernel-oracle.R`
+hangs in TMB `tweedie_logW` on this head and on 3fd68189e. Live Julia from R:
+81 files; every failure matches 3fd68189e except the binomial phylo floor in
+`test-julia-phylo-nongaussian.R`, now `"degenerate"` on both engines and
+updated (35/35). DRModels.jl 493c639 on Totoro: Julia 1.12.6 15,884 passed,
+1 failed (known `test_reml_q4_missing_response.jl:210`), shard-12 tail 83
+passed; Julia 1.10.10 15,949 passed, 0 failed.
+
+**Non-claims:** step 2 for Julia fits cannot separate the count cone from the
+Gaussian collapse or from Julia's covariance steps; R still does not skip
+steps 3 to 5 when the bridge withholds the covariance (q4 phylo route).
+After-task: `docs/dev-log/after-task/2026-10-18-fx3b-bridge-convergence-status.md`.
+
+---
+
 # 2026-10-16 — FX3b: shared three-valued convergence_status (#1554, #1333, #731, #1109)
 
 **Lane:** Cursor · branch `cursor/fx3b-convergence-status-1f29` stacked on FX3 #1564 (DRAFT PR).

@@ -5194,8 +5194,9 @@ drm_julia_vcov <- function(x, coef_names) {
 # with no message and no iteration count, so `summary()` and any user asking
 # "why is convergence 1?" had nothing to read (DRM.jl #646, drmTMB A8c).
 #
-# DRM.jl sends a `converged` Bool (its `is_converged()`: the raw optimiser flag
-# AND a non-degenerate optimum) and an `iterations` Int whose -1 means "this
+# DRM.jl sends a `converged` Bool (the raw optimiser flag AND a non-degenerate
+# optimum AND no geometry-screen hit, DRModels.jl #1129; a `:boundary` fit
+# still sends true) and an `iterations` Int whose -1 means "this
 # route does not record it" -- NOT zero. There is no Optim.jl message string on
 # the wire, so `message` is composed here from the two facts that did cross, and
 # says so; it is never presented as a verbatim optimiser message.

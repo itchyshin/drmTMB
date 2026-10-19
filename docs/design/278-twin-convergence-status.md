@@ -51,6 +51,18 @@ finite log-likelihood is `"converged"` unless a geometry screen already
 fired. `is_converged(fit, include_hessian = TRUE)` still requires a
 positive-definite Hessian.
 
+For an `engine = "julia"` fit, R applies the same table to what crosses
+the bridge. Step 1 reads the bridge `converged` key, which DRModels.jl
+sets from `fit.converged`, its non-degeneracy test, and
+`fit.geometry === :ok` (DRModels.jl #1129); a `:boundary` fit still sends
+`true`. Step 2 reads the bridge `convergence_status` key: the bridge does
+not ship `fit.geometry` on its own, so a Julia `"degenerate"` fills the
+geometry slot. That string also reflects Julia's steps 3 to 5 on the full
+bridge covariance, which includes variance-component coordinates (for
+example a log phylogenetic SD) that the R object's fixed-effect `vcov`
+drops. Step 6 is not applied. A DRModels.jl without the key leaves step 2
+empty, as before drmTMB #1564.
+
 Dispersion or shape parameters that run to a limit (NB2 Poisson limit,
 Student `ν → ∞`) are classified by steps 3–5, not by a separate shape
 boundary. That is the present shared rule; #1535 remains a follow-up if

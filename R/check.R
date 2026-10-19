@@ -356,7 +356,7 @@ convergence_status.drmTMB_julia <- function(object, ...) {
     loglik = object$logLik,
     vcov = object$vcov,
     design_rank_deficient = FALSE,
-    mle_nonexistent = FALSE,
+    mle_nonexistent = drm_julia_bridge_degenerate(object),
     re_sd_values = unlist(object$sdpars, use.names = TRUE),
     rho12_values = tryCatch(
       as.numeric(drm_julia_rho12_values(object)),
@@ -378,6 +378,17 @@ drm_twin_sentinel_loglik <- -1e15
 drm_julia_optimizer_ok <- function(object) {
   identical(as.integer(object$opt$convergence), 0L) &&
     isTRUE(is.finite(object$logLik))
+}
+
+# Step 2 for Julia-engine fits. The bridge does not ship `DrmFit.geometry`
+# itself; its `convergence_status` string (DRModels.jl #1129) is the only wire
+# signal for the Julia geometry screen (Poisson / NB2 cone, Gaussian all-sigma
+# collapse), so a Julia "degenerate" fills the geometry slot. The string also
+# carries Julia's covariance steps on the full bridge covariance, including
+# variance-component coordinates that `object$vcov` drops. A bridge without
+# the key (an older DRModels.jl) leaves the slot FALSE.
+drm_julia_bridge_degenerate <- function(object) {
+  identical(as.character(object$bridge[["convergence_status"]]), "degenerate")
 }
 
 drm_standard_errors_from_vcov <- function(vcov) {
