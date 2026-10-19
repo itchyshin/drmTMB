@@ -10,7 +10,7 @@
     "R/associate-pairs-sandwich.R": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c",
     "R/associate-pairs.R": "6bca237180ad59297343db612b260b5f3b461efa0f54485b359cede58fd3f732",
     "R/bf.R": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd",
-    "R/bootstrap-shards.R": "25d6dd5da40e5191ce977a19feb2bcd40f1f2c4901e7615b34156c23e7d72062",
+    "R/bootstrap-shards.R": "4df1c49ff6f99ae70e773c1e4c929c13807762535ece09eef1716ac30a75adca",
     "R/check.R": "174bcaf8bcdb923f11f70005c927b105f08e72d5320bb9614b9c29198e76e758",
     "R/coevolution-accessors.R": "2d0c55c4babb77188329dbfa8b936519a698317ea2c891d3a709255412e44c54",
     "R/control.R": "30cb3ed5cbee4f534ef2fa328b6face378a26e0b6780d170f4eda4d99b638fdb",
@@ -51,7 +51,7 @@
     "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
     "R/predict-parameters.R": "e9df0ff4fc086b93ab67546e158e91920cb3af5f71bb0d0606371f4c01b4eab2",
     "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
-    "R/profile.R": "a03ccdf253c19d787b6b5646ab86b93cbabde82a9140f70b30d203c19a028ec8",
+    "R/profile.R": "d291810c66f4148c18a8cd40bbdc93c3fcaf30dd19f3092ae8154bf886608495",
     "R/provenance.R": "4fd84081607f8873f92f0b9a714f532a4c79c638370f22e7533f2b7b76aa747a",
     "R/random-effect-scale-formulas.R": "4fa4a0ad558fac45e294a4c1a20da87eb523c1f2de7e2a2741993750d0d53c8c",
     "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
@@ -692,8 +692,8 @@
       "drmjl_ref": "da8b3f8711beb5ef3186b890544c2e7850c7f194",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpIaQh3k/pkgload139056633ea26/drmTMB.so",
-          "sha256": "be76db1bf75ea47006588ba1c3451956e56899d9c91a67b401e2824fcd9ba767"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpTdHWHB/pkgloadda5c450b75ac/drmTMB.so",
+          "sha256": "182ee0ec56037793164b5d21b6c8dba5a990929eb671b96dd02a0911e6d38045"
         }
       }
     },
@@ -726,7 +726,7 @@
     "R/associate-pairs-sandwich.R": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c",
     "R/associate-pairs.R": "6bca237180ad59297343db612b260b5f3b461efa0f54485b359cede58fd3f732",
     "R/bf.R": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd",
-    "R/bootstrap-shards.R": "25d6dd5da40e5191ce977a19feb2bcd40f1f2c4901e7615b34156c23e7d72062",
+    "R/bootstrap-shards.R": "4df1c49ff6f99ae70e773c1e4c929c13807762535ece09eef1716ac30a75adca",
     "R/check.R": "174bcaf8bcdb923f11f70005c927b105f08e72d5320bb9614b9c29198e76e758",
     "R/coevolution-accessors.R": "2d0c55c4babb77188329dbfa8b936519a698317ea2c891d3a709255412e44c54",
     "R/control.R": "30cb3ed5cbee4f534ef2fa328b6face378a26e0b6780d170f4eda4d99b638fdb",
@@ -767,7 +767,7 @@
     "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
     "R/predict-parameters.R": "e9df0ff4fc086b93ab67546e158e91920cb3af5f71bb0d0606371f4c01b4eab2",
     "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
-    "R/profile.R": "a03ccdf253c19d787b6b5646ab86b93cbabde82a9140f70b30d203c19a028ec8",
+    "R/profile.R": "d291810c66f4148c18a8cd40bbdc93c3fcaf30dd19f3092ae8154bf886608495",
     "R/provenance.R": "4fd84081607f8873f92f0b9a714f532a4c79c638370f22e7533f2b7b76aa747a",
     "R/random-effect-scale-formulas.R": "4fa4a0ad558fac45e294a4c1a20da87eb523c1f2de7e2a2741993750d0d53c8c",
     "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
@@ -870,6 +870,6 @@
     "/private/tmp/drmtmb-parity-drmodels-da8b3f871/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 69.908000000000001,
+  "elapsed": 124.15100000000001,
   "status": "PASS"
 }
