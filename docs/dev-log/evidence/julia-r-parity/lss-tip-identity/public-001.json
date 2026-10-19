@@ -16,7 +16,7 @@
     "R/control.R": "30cb3ed5cbee4f534ef2fa328b6face378a26e0b6780d170f4eda4d99b638fdb",
     "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
     "R/drmTMB-package.R": "80ef3b42460050466b12c3bb50c97e6b5e6cd32a28b29021e2c5585cc1a37dc3",
-    "R/drmTMB.R": "1730fdaf8d5ab95b34b15d38379ab4c623fb031cb1d26547f3141f64d8cd9e8b",
+    "R/drmTMB.R": "98ae0ab46b24b568bbdc50e74f31834aa8db9a0bf58be3c3680de3edfc2734e8",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "07b105d7f508cd6e024a71904674ee7cb4dbc7d862ae87d58803388d086063aa",
     "R/family.R": "9784beb7357b0a4c236772ae0bba9ac38a73a118586136f7fc2300c34357c17c",
@@ -692,8 +692,8 @@
       "drmjl_ref": "da8b3f8711beb5ef3186b890544c2e7850c7f194",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpIaQh3k/pkgload139056633ea26/drmTMB.so",
-          "sha256": "be76db1bf75ea47006588ba1c3451956e56899d9c91a67b401e2824fcd9ba767"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpIWbGdL/pkgload44e71366bea5/drmTMB.so",
+          "sha256": "2b9b7e93ca0ab29b44c49a068bad112df39b67229607ea56009c349d38b4eb74"
         }
       }
     },
@@ -732,7 +732,7 @@
     "R/control.R": "30cb3ed5cbee4f534ef2fa328b6face378a26e0b6780d170f4eda4d99b638fdb",
     "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
     "R/drmTMB-package.R": "80ef3b42460050466b12c3bb50c97e6b5e6cd32a28b29021e2c5585cc1a37dc3",
-    "R/drmTMB.R": "1730fdaf8d5ab95b34b15d38379ab4c623fb031cb1d26547f3141f64d8cd9e8b",
+    "R/drmTMB.R": "98ae0ab46b24b568bbdc50e74f31834aa8db9a0bf58be3c3680de3edfc2734e8",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "07b105d7f508cd6e024a71904674ee7cb4dbc7d862ae87d58803388d086063aa",
     "R/family.R": "9784beb7357b0a4c236772ae0bba9ac38a73a118586136f7fc2300c34357c17c",
@@ -870,6 +870,6 @@
     "/private/tmp/drmtmb-parity-drmodels-da8b3f871/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 69.908000000000001,
+  "elapsed": 85.207000000000008,
   "status": "PASS"
 }
