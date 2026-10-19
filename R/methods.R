@@ -2869,7 +2869,7 @@ deviance.drmTMB <- function(object, ...) {
 #' CDF evaluation via [fitted_distribution()]`$q()` at [predict_parameters()]'s
 #' fixed-effect, population-level parameter estimates -- see
 #' [fitted_distribution()] for the fixed-effect-only scope and the
-#' `"spike"`/`"unimplemented"` status gate this inherits (a `"spike"`-status
+#' `"spike"`/`"unimplemented"` status rules this inherits (a `"spike"`-status
 #' family emits a one-time warning; an unregistered `model_type` raises a
 #' clear error). For bivariate `biv_gaussian` fits, `dpar` selects which
 #' response's MARGINAL quantile to return (`"mu1"`/`"sigma1"` for response 1,
@@ -3817,15 +3817,15 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #'
 #' `type = "quantile"` returns Dunn-Smyth randomized quantile residuals from
 #' [drm_quantile_residuals()]: `qnorm(F(y; theta_hat))` at the fitted,
-#' fixed-effect distributional parameters. As of DO-T3 batch D, all 18 fitted
-#' `model_type` values have a promoted entry in [drm_family_dpq()], so
+#' fixed-effect distributional parameters. All 18 currently fitted
+#' `model_type` values have `status = "reference"` in [drm_family_dpq()], so
 #' `type = "quantile"` is available for every family, including bivariate
 #' `biv_gaussian` (where `response` -- `1` or `2` -- is REQUIRED and selects
 #' which response's MARGINAL residuals to compute; omitting it errors
 #' clearly, as does supplying it for a univariate fit; see
-#' [fitted_distribution()]). Spike-status families (feasibility-only, not yet
-#' DG2/DG3-verified) emit a one-time warning that the residual is
-#' exploratory, not DG-verified; none currently have this status. See
+#' [fitted_distribution()]). Families whose distributional
+#' diagnostics have not been evaluated by simulation emit a one-time warning
+#' that the residual is exploratory; none currently have this status. See
 #' [drm_quantile_residuals()] for the fixed-effect-only adequacy caveat: for
 #' random-effect or structured fits, these residuals are conditional on the
 #' fixed-effect prediction, not marginal, so a departure (or its absence) is
@@ -3833,19 +3833,17 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' claim. Pass `seed`, `nsim`, and/or `response` through `...` to
 #' [drm_quantile_residuals()].
 #'
-#' **What this detects -- and does not.** Evidence: a 400-seed gated
-#' simulation campaign across all 18 fitted families (tweedie: 99 of 400
-#' seeds locally, 66/99 dispersion-arm non-convergence, full run deferred to
-#' Totoro)
-#' (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`).
-#' Under a correctly specified fixed-effect model, type-I error stays at or
+#' **What this detects -- and does not.** The evidence used 400 seeds across
+#' 18 fitted families. Tweedie evidence is incomplete: 99 of 400 intended seeds
+#' were run, and 66 of the 99 dispersion-arm fits did not converge. For the
+#' completed family scenarios, type-I error stays at or
 #' below the nominal rate (0.0025-0.025 at alpha = 0.05 across families); the
 #' underlying KS+PIT statistic is conservative, so power is understated, not
 #' overstated. `type = "quantile"` **detects** distributional shape and atom
 #' mis-specification that a family cannot reabsorb through its own free
 #' parameters -- heavy tails fit as Gaussian, overdispersion or
 #' zero-inflation ignored by a family with no free dispersion parameter,
-#' truncation ignored, a missing zero/one atom -- with gated power >= 0.8 at
+#' truncation ignored, a missing zero/one atom -- with power >= 0.8 at
 #' n = 300-400 per arm (commonly 0.9-1.0). It has a genuine **structural
 #' blind spot**, not a bug: a mis-specification that a fitted family's own
 #' free nuisance/dispersion/inflation parameter absorbs leaves the
@@ -3868,9 +3866,9 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' wrong-family detection is sample-size limited rather than structurally
 #' blind: power rises from about 0.19 at n = 300 to 0.79 at n = 1000 and 1.0
 #' at n = 3000, so that specific mis-specification needs n well above 1000 to
-#' be reliably caught. A distributional-output/adequacy tick on a family
-#' never changes or implies anything about that family's own inference-tier
-#' status; see `tests/testthat/test-dg-firewall.R`.
+#' be reliably caught. A distributional-output/adequacy result for a family
+#' does not establish interval coverage or other inferential performance for
+#' that family.
 #'
 #' @param object A `drmTMB` fit.
 #' @param type Residual type: `"response"`, `"pearson"`, or `"quantile"`.
@@ -4284,8 +4282,7 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' ingredients are unambiguous. Both divide by the TOTAL variance (every mu
 #' random-effect variance plus the residual variance), which is a different
 #' denominator from the `icc()`/`repeatability()` accessors (focal component
-#' variance over that component plus the residual only); see
-#' `?heritability` and `docs/design/259-heritability-icc-repeatability.md`
+#' variance over that component plus the residual only); see `?heritability`
 #' for the distinction. Both rows are computed only for Gaussian fits with an
 #' identity-link mean, where the latent, expected-data, and observed-data
 #' scales of de Villemereuil, Schielzeth, Nakagawa & Morrissey (2016,
@@ -4306,8 +4303,7 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' closed-form marginal residual variance here and is
 #' refused (a `residual_variance.message` attribute on the empty result names
 #' the reason, and is also shown under the (empty) derived table when
-#' printed); see
-#' `docs/design/275-repeatability-scale-and-residual-variance.md`. Derived
+#' printed). Derived
 #' confidence intervals are marked as unavailable until a nonlinear interval
 #' method is implemented.
 #' The derived table's `residual_sd` column is `sqrt(residual_variance)` --
@@ -4362,11 +4358,11 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #'
 #' @return An object of class `summary.drmTMB`.
 #'
-#' @seealso The tier definitions and per-cell evidence behind these interval
-#'   targets, including random-effect standard-deviation rows, are curated in
-#'   \code{vignette("capability-and-limits", package = "drmTMB")}: `summary()`
-#'   computes intervals generically for any target, and the tier a given cell
-#'   belongs to is a documentation-level curation, not a runtime guard.
+#' @seealso The model-specific evidence behind these interval targets, including
+#'   random-effect standard-deviation rows, is summarized in
+#'   \code{vignette("capability-and-limits", package = "drmTMB")}. `summary()`
+#'   can compute intervals for targets whose coverage has not been measured, so a
+#'   successful computation is not by itself evidence of calibrated coverage.
 #'   The optional \pkg{emmeans} package can compute estimated marginal means
 #'   from supported fixed-effect `drmTMB` fits using the package registration
 #'   installed at load time.
