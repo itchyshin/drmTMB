@@ -40,7 +40,6 @@ test_that("engine = 'julia' refuses offset() in R before Julia starts", {
 })
 
 test_that("native offset() shifts the log-link intercept by log(2) exactly", {
-  skip_if_not_installed("TMB")
   d <- offset_test_data()
   f0 <- drmTMB(bf(y ~ x + offset(off)), family = poisson(link = "log"), data = d)
   d2 <- d
