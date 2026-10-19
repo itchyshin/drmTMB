@@ -1,3 +1,27 @@
+# 2026-10-19: rebase #1575 onto #1563 head f0771de99
+
+Rebased `codex/fix-pr1563-skip-census` onto `f0771de99`, the #1563 head after
+its own rebase onto main. The six pre-rebase #1563 commits (`3180adfd5` to
+`75a2a870a`) were dropped and #1575's three commits replayed. This log had an
+additive conflict and keeps both sides. `git diff f0771de99` touches only the
+`test-anova-lrt.R` census row, `test-env-skip-census.R`, this log and the
+after-task note. `Rscript tools/write-env-skip-census.R --check` passes with
+897 sites. #1563's run
+[39217446206](https://github.com/itchyshin/drmTMB/actions/runs/39217446206)
+at `f0771de99` fails only `test-env-skip-census.R:48,50` on Linux shard 3/4,
+which is the mismatch this branch repairs.
+
+Full local `devtools::test()` (R 4.6.0, TMB 1.9.21, macOS arm64, compiled,
+`NOT_CRAN=true`): 454 of 455 files completed, 49,131 passed, 3 failed, 96
+skipped. `test-env-skip-census.R` passes (9). The failures are outside this
+branch's files: `test-associate-pairs-bernoulli-bernoulli.R:40` (symmetric
+`eta` differs by 2e-8) and `test-nbinom2-sigma-structured-recovery.R:52-53`
+(log-likelihood gain 9.0; CI skips it through `skip_fragile_recovery()`).
+`test-numeric-kernel-oracle.R:551` did not finish (#1585). A stack sample
+placed it in TMB's `tweedie_logW` upper-bound loop (`tweedie.cpp:46`); it was
+stopped after about 50 minutes and again under a 10-minute isolated cap, and
+the remaining 185 files were run separately.
+
 # 2026-10-18: rebase #1513 onto main after #1504 merged
 
 Rebased `cursor/triage-i-mi` onto `e17921e9b` (#1504 squash-merged). Dropped
