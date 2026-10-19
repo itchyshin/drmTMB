@@ -43,3 +43,13 @@ the installed roxygen2 differs from `Config/roxygen2/version`.
 ## 7a. Issue Ledger
 
 Closes #1571.
+
+## 8. Follow-up: C14 receipt refresh
+
+The roxygen edits change the git blob of `R/drmTMB.R`, which the model-15 C14
+receipt pins, so CI's capability-ledger step reported the receipt stale. The
+committed runner `tools/run-lane-c-c17c1-c14-model15-compatibility.R` was
+re-run on the clean merged tree (12 of 12 attempts pass, all three cells
+`PASS_CURRENT_SOURCE_COMPATIBILITY`) and the three ledger rows were repointed
+to `docs/dev-log/implementation-recovery/2026-10-19-man-roxygen-c14-compatibility/`.
+`source_fingerprint` was left unchanged.
