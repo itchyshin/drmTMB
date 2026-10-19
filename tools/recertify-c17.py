@@ -107,12 +107,30 @@ def main() -> int:
     for c in CELLS:
         print(f"    {c}  mean_tau_relative_error {before[c]!r}")
 
-    if RUNNER_OUT.exists():
-        print(f"\nrefusing to run: {RUNNER_OUT.relative_to(ROOT)} already exists.\n"
-              "The runner hardcodes that directory; move or remove it first.",
+    # The runner hardcodes RUNNER_OUT, which is also the committed receipt, so
+    # park the committed folder beside it for the run and always put it back
+    # (issue #1591: refusing here made the tool unusable on every branch).
+    aside = RUNNER_OUT.with_name(RUNNER_OUT.name + ".pre-recertify")
+    if aside.exists():
+        print(f"\nrefusing to run: {aside.relative_to(ROOT)} already exists "
+              "(a previous run was interrupted).\n"
+              "Restore it over the run folder, or remove it, first.",
               file=sys.stderr)
         return 2
+    parked = RUNNER_OUT.exists()
+    if parked:
+        RUNNER_OUT.rename(aside)
+    try:
+        return _run_and_rewire(args, rows, before)
+    finally:
+        if RUNNER_OUT.exists():  # partial output from a crashed runner
+            shutil.rmtree(RUNNER_OUT)
+        if parked:
+            aside.rename(RUNNER_OUT)
 
+
+def _run_and_rewire(args: argparse.Namespace, rows: list[dict],
+                    before: dict[str, float]) -> int:
     print(f"\nrunning {RUNNER} (~80 s) ...")
     subprocess.run(
         ["Rscript", "--no-init-file", RUNNER],
@@ -131,12 +149,14 @@ def main() -> int:
 
     worst = max(drift.values())
     if worst > args.tolerance:
+        rejected = RUNNER_OUT.with_name(f"{RUNNER_OUT.name}.rejected-{args.label}")
+        shutil.move(str(RUNNER_OUT), str(rejected))
         print(
             "\nREFUSING TO REWIRE: the measured behaviour moved.\n"
             f"  worst |change| {worst:.3e} exceeds tolerance {args.tolerance:.3e}\n"
             "  This is the signal the guard exists for. Do NOT raise the tolerance to\n"
             "  make it pass -- investigate what changed model-15 behaviour. The new\n"
-            f"  receipt is left in place at {RUNNER_OUT.relative_to(ROOT)} for inspection.",
+            f"  receipt is left at {rejected.relative_to(ROOT)} for inspection.",
             file=sys.stderr,
         )
         return 1
@@ -144,7 +164,8 @@ def main() -> int:
     print(f"\nbehaviour reproduced within tolerance ({worst:.3e} <= {args.tolerance:.3e}).")
 
     if args.dry_run:
-        print(f"--dry-run: leaving {RUNNER_OUT.relative_to(ROOT)} in place, manifest untouched.")
+        shutil.rmtree(RUNNER_OUT)
+        print("--dry-run: fresh run folder discarded, committed receipt and manifest untouched.")
         return 0
 
     stamp = _dt.date.today().isoformat()
