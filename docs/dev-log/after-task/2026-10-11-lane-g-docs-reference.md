@@ -101,6 +101,52 @@ regeneration reproduces the committed pages.
   tests (`%||%` on R < 4.4, no Julia, missing Suggests, non-UTF-8 locale).
 - CI run 38112355789 on `fa20d1a1`: all six checks green.
 
+## Rebase onto main (2026-10-18)
+
+The branch was rebased onto `origin/main` to clear merge conflicts, first
+onto `95e81e911` (#1579) and then, because #1504 merged during testing and
+changed `R/drmTMB.R` and the C17 receipt, onto `e17921e9b` (#1504). The five
+content commits were replayed; the three "Merge origin/main" commits and the
+C17 recertify that followed them were dropped, because a linear history has
+no merge for that receipt to certify.
+
+- Conflicts (first pass): the `@param workers` block in `R/profile.R` and
+  its `man/confint.drmTMB.Rd` hunk, in two commits. This branch had added a
+  thread note there and then removed it in favour of `?drmTMB-parallel`
+  (`fa20d1a1`). Main now carries the #1510 text, which already points to
+  `[drmTMB-parallel]`, so main's text was kept. The receipt TSV conflict took
+  main's copy and was regenerated at the end. The second pass replayed
+  without conflicts.
+- The net diff against main is line-for-line the same as before the rebase
+  in all 42 shared files. R changes are still roxygen-only (the
+  `git diff -U0` check above returns nothing).
+- `devtools::document()` under roxygen2 7.3.2 (matching `RoxygenNote`): the
+  only changes were 23 link-target lines resolved from the local help index
+  and the duplicate `Authors:` block. Clean `origin/main` produces the same
+  lines, so they were not committed.
+- C17 receipt: `tools/recertify-c17.py --label lane-g-rebase` at the
+  default zero tolerance. `mean_tau_relative_error` is bit-identical on all
+  three cells, as was a `--dry-run` on clean `origin/main` on the same
+  machine. `source_fingerprint` is unchanged.
+- File-only CI guards, run locally: `capability_ledger.py --check` and
+  `--check-c14-receipt-equivalence`, the seven `tools/tests` unittest files,
+  `emit-profile-truth-manifest.R --check`, `check-evidence-citations.R`,
+  `run-source-tree-tests.R --check` and the reader-contract linter all pass.
+  Spelling adds no unknown word relative to main.
+- Full suite on the rebased head, source tree, `NOT_CRAN=true`, 12 shards on
+  Totoro (R 4.6.1): 452 test files, 49,147 passed, 2 failed, 0 errors,
+  104 skipped. `test-julia-tmb-parity.R` skips at file level without Julia.
+  Both failures (`nbinom2-sigma-structured-recovery` log-likelihood gain
+  14.5 >= 3; `reml-structured-location` reference `optim` convergence 52 for
+  spatial `one_slope`) reproduce with the same values on `origin/main`
+  `95e81e911` on Totoro. On the Mac, `associate-pairs-bernoulli-bernoulli`
+  misses its 1e-8 symmetry tolerance by about 2e-8 on both main and this
+  branch, and passes on Totoro.
+- `rcmdcheck(args = c("--no-manual", "--as-cran", "--no-tests"))` on the
+  rebased head on the Mac (R 4.6.0), tests omitted because the full suite ran
+  above: 0 errors, 0 notes, 1 warning. The warning is the missing local
+  `checkbashisms` script. Vignettes built and re-built OK.
+
 ## What Did Not Go Smoothly
 
 The cheat-sheet PDFs in `pkgdown/assets/cheatsheets/` still carry the old
