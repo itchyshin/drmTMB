@@ -1,3 +1,27 @@
+# 2026-10-18: rebase #1513 onto main after #1504 merged
+
+Rebased `cursor/triage-i-mi` onto `e17921e9b` (#1504 squash-merged). Dropped
+the six copied #1504 commits (`37a90043f` to `af2ee2501`, including the
+`46d125a50` C17 receipt) and both merges of main; the 27 #1513 commits were
+replayed in order. `NEWS.md` and this log had additive conflicts and keep both
+sides; `simulate()` keeps main's lme4 `re.form` default plus the `mi()`
+weights abort; intermediate C17 TSV conflicts took the #1513 side. `git diff
+origin/main -- src/` touches only `src/drmTMB.cpp`, and every hunk is #1513's
+`mi()` work: the Gamma adaptive quadrature helpers and call sites, the
+`drm_abort_mi_quadrature_nonfinite()` abort, and the #1459 weight-0 skip
+(`if (asDouble(weights(i)) > 0.0)`). `src/drm_numeric.h` and
+`src/drm_response_kernels.h` match main.
+
+C17: `python3 tools/recertify-c17.py --label 1513-rebase --tolerance 1e-10`
+on Totoro (R 4.6.1), worst `|change|` 1.264e-12 on mc-0568 / 0569 / 0576,
+source fingerprint unchanged; `--check-c14-receipt-equivalence` OK. Full suite
+on Totoro (12 `devtools::test()` shards): 49,423 pass, 2 fail, 0 error, 106
+skip. Both fails reproduce on `e17921e9b` in the same environment: Arc 1a REML
+spatial one-slope (reference optimiser code 52) and the NB2 sigma mis-wire
+guard (logLik gap 14.5). `devtools::document()` produced only the known #1400
+`.Rd` drift plus a RoxygenNote bump; #1513 changes no roxygen lines, so
+nothing was committed.
+
 # 2026-10-18: #1513 runtime guard drmTMB_mi_quadrature_inaccurate
 
 R-only post-fit warning `drmTMB_mi_quadrature_inaccurate` in
