@@ -617,6 +617,7 @@ drmTMB_julia_bridge <- function(
   call
 ) {
   REML <- drm_control_flag(REML, "REML")
+  drm_julia_refuse_offset_unsupported(formula)
   drm_julia_refuse_marker_slope_unsupported(formula)
   if (drm_julia_joint_requested(formula, impute, missing)) {
     return(drmTMB_julia_joint_bridge(
@@ -3308,6 +3309,34 @@ drm_julia_collect_marker_slope_terms <- function(formula) {
       )
     }),
     recursive = FALSE
+  )
+}
+
+# R's `offset()` needs a fixed (non-estimated) coefficient, which the formula
+# translation to DRM.jl cannot express; DRM.jl rejects it from Julia with an
+# error that does not name the drmTMB alternative (#1572). Refuse in R, before
+# Julia starts, for every dpar and every bridge route.
+drm_julia_refuse_offset_unsupported <- function(formula) {
+  entries <- formula$entries
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(invisible(FALSE))
+  }
+  hit <- vapply(
+    entries,
+    function(entry) formula_contains_call(entry$rhs, "offset"),
+    logical(1L)
+  )
+  if (!any(hit)) {
+    return(invisible(FALSE))
+  }
+  dpars <- vapply(entries[hit], `[[`, character(1L), "dpar")
+  cli::cli_abort(
+    c(
+      "{.code engine = \"julia\"} does not support {.fn offset} in the {.field {dpars}} formula{?s}.",
+      x = "{.fn offset} fixes a coefficient at 1, and the R to Julia bridge cannot pass a fixed (non-estimated) coefficient to DRM.jl.",
+      i = "Use native {.code engine = \"tmb\"}, which supports {.fn offset} on the location formula and shifts the log-link intercept by exactly the offset."
+    ),
+    class = "drmTMB_julia_offset_unsupported"
   )
 }
 
