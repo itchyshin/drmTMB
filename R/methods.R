@@ -4532,6 +4532,7 @@ summary.drmTMB <- function(
     estimator = object$estimator,
     estimator_exact = object$estimator_exact,
     convergence = object$opt$convergence,
+    convergence_message = object$opt$message,
     conf.int = conf.int,
     conf.level = if (conf.int) level else NA_real_,
     conf.method = if (conf.int) method else NA_character_,
@@ -4648,7 +4649,21 @@ print.summary.drmTMB <- function(x, ...) {
   } else {
     cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
   }
-  cli::cli_text("convergence: {x$convergence}")
+  convergence_label <- drm_convergence_label(
+    x$convergence,
+    x$convergence_message
+  )
+  if (is.null(convergence_label)) {
+    cli::cli_text("convergence: {x$convergence}")
+  } else {
+    cli::cli_text(
+      "convergence: {x$convergence} (not converged; {convergence_label}; see {.fn check_drm})"
+    )
+    cli::cli_warn(
+      "The fit did not converge: {convergence_label}. Treat estimates and standard errors with caution.",
+      class = "drmTMB_convergence_warning"
+    )
+  }
   invisible(x)
 }
 
