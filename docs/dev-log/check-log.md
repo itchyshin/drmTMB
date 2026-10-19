@@ -354,6 +354,25 @@ receipt commits were skipped. Full `testthat::test_dir()` on `627a5a3cc`:
 passed=45022 failed=81 error=213 skipped=241 warning=20. No `src/` C++
 diff vs `origin/main` — C++ TMB reviewer: nothing to review on this PR.
 
+# 2026-10-19: #1509 R-reviewer round and rebase onto main `4f151444f`
+
+Rebased `claude/lane-c-convergence-inference` onto `4f151444f` (#1581). The
+only conflict was the C17 ledger TSV in an intermediate recertification
+commit. The review round adds `skip_on_cran()` to the 13 lane C tests that fit
+a model (one new `cran-lane` census row) and error classes
+`drmTMB_bootstrap_interval_method_error` and
+`drmTMB_profile_reml_integrated_error`, tested with
+`expect_error(class = )`. The lss-tip-identity receipt was regenerated
+(five stale R/ hashes, every result field unchanged), and C17 was recertified
+as `pr1509-rebase-4f15144` (`--tolerance 1e-10`, `|change|` 0). Full
+`testthat` suite on `de082bee0`, four shards, R 4.6.0, TMB 1.9.21: 455 of 457
+files completed, passed=49175 failed=3 error=0 skipped=95. The two failing
+tests fail the same way on unmodified main. `test-julia-tmb-parity.R` skips at
+file level and `test-numeric-kernel-oracle.R` stalled in its tweedie tests
+after 365 passes, as on #1581. `devtools::document()` produced only the known
+#1571 `man/` drift plus one `\verb{}`/`\code{}` span in
+`confint.drmTMB.Rd`, not committed.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
