@@ -17,7 +17,8 @@ records a `refit_status = "worker_died"` attempt for it, and
 
 `R/profile.R`, `R/bootstrap-shards.R`,
 `tests/testthat/test-bootstrap-shards.R`, `inst/extdata/env-skip-census.tsv`
-(one new `skip_on_os` site), this report, and a check-log fragment.
+(five `skip_on_os` and five `skip_on_cran` sites in
+`test-bootstrap-shards.R`), this report, and a check-log fragment.
 
 ## Relation to #1530
 
@@ -87,4 +88,29 @@ committed text already differed from their roxygen sources on the base commit
 (`ca3ddefa5`); none of that is this PR's, so it was reverted and no `man/` or
 `NAMESPACE` change is committed. `test-bootstrap-shards.R`: 9 tests,
 49 expectations, 0 failures. The full-suite tally is in the check-log
+fragment.
+
+### Review follow-up 2 (2026-10-18)
+
+1. **`skip_on_cran()` on the forked live-fit tests.** The five tests that fit
+   models in forked `mclapply()` children (the multicore-equals-serial test
+   and the four #1537 dead-worker tests) now call `testthat::skip_on_cran()`
+   before `skip_on_os("windows")`, as `test-profile-parallel.R` does. They
+   still run under `devtools::test()` and on CI, which sets `NOT_CRAN: true`
+   in `.github/workflows/R-CMD-check.yaml`. The env-skip census was
+   regenerated: one new `cran-lane` row for `test-bootstrap-shards.R` with
+   five sites.
+2. **"No error" versus "aborts".** The PR body said that on `main` a dead
+   worker made the replicate vanish "with no error"; #1537 says the shard
+   aborts. Both are true of different code. A probe with base `ca3ddefa5`'s
+   `drm_parallel_lapply()` and a `SIGKILL`ed child gave one warning ("did not
+   deliver a result") and a shard with the replicate dropped, because
+   `drm_mclapply_stop_on_error()` stops only on `try-error` results. With
+   #1530's `drm_parallel_lapply()`, whose default is `on_dead = "error"`, the
+   same `NULL` aborts with `drmTMB_parallel_worker_died`. The PR body now says
+   the shard aborts under #1530, as #1537 reports, and keeps the measured
+   behaviour on `main`.
+
+Checks: `devtools::document()` again rewrote only the 39 pre-existing Rd
+drifts, which were reverted. Full suite results are in the check-log
 fragment.

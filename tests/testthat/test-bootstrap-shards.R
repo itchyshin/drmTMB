@@ -99,6 +99,7 @@ test_that("failed refits stay in the ledger with explicit denominators", {
 })
 
 test_that("multicore shards equal serial shards", {
+  testthat::skip_on_cran()
   testthat::skip_on_os("windows")
   fit <- new_shard_fit()
   serial <- drm_bootstrap_shard(fit, parm = "fixef:mu:x", indices = 1:4, seed = 8)
@@ -114,6 +115,7 @@ test_that("multicore shards equal serial shards", {
 })
 
 test_that("a dead forked worker is a worker_died attempt, not a dropped replicate (#1537)", {
+  testthat::skip_on_cran()
   testthat::skip_on_os("windows")
   fit <- new_shard_fit()
   # Replicate 2's child exits without a value, as an OOM-killed worker would.
@@ -149,6 +151,7 @@ test_that("a dead forked worker is a worker_died attempt, not a dropped replicat
 })
 
 test_that("replicates queued on a dead forked worker are also worker_died (#1537)", {
+  testthat::skip_on_cran()
   testthat::skip_on_os("windows")
   fit <- new_shard_fit()
   serial <- drm_bootstrap_shard(fit, parm = "fixef:mu:x", indices = 1:4, seed = 4)
@@ -183,6 +186,7 @@ test_that("replicates queued on a dead forked worker are also worker_died (#1537
 })
 
 test_that("combined shards count a dead worker as failed, so usable + failed equals R (#1537)", {
+  testthat::skip_on_cran()
   testthat::skip_on_os("windows")
   fit <- new_shard_fit()
   whole <- drm_bootstrap_shard(fit, parm = "fixef:mu:x", indices = 1:4, seed = 4)
@@ -219,6 +223,7 @@ test_that("combined shards count a dead worker as failed, so usable + failed equ
 })
 
 test_that("confint(method = \"bootstrap\") counts a dead forked worker in bootstrap.failed (#1537)", {
+  testthat::skip_on_cran()
   testthat::skip_on_os("windows")
   fit <- new_shard_fit()
   refit_one <- bootstrap_refit_one
