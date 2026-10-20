@@ -803,7 +803,8 @@ independent slopes cover only specific simulation designs; consult
 [Can I fit and report this model?](capability-and-limits.html) before reporting
 an interval. Correlated or labelled slopes remain unsupported. Factor
 responses, proportions with trial weights, structured effects, bivariate
-responses, and `engine = "julia"` remain unsupported.
+responses remain unsupported. `engine = "julia"` fits plain binomial
+fixed-effect models only.
 
 Use `beta_binomial()` when the response is still counted successes out of known
 trials but the data show extra-binomial variation. It uses the same

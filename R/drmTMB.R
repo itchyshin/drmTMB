@@ -146,8 +146,9 @@
 #'   bridge: Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson,
 #'   NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
 #'   an additional large-p `phylo()` or coupled location-scale phylo route),
-#'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, and
-#'   `beta_binomial()` on the fixed-effect route only. Each admitted family
+#'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`,
+#'   `beta_binomial()`, `skew_normal()`, `cumulative_logit()`,
+#'   `biv_student()`, and `biv_lognormal()` on the fixed-effect route only. Each admitted family
 #' has been compared with `engine = "tmb"` on the same fitted target
 #'   (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
 #'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for

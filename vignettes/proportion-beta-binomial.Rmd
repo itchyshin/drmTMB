@@ -167,7 +167,8 @@ The original plain-binomial slice was fixed-effect only. The current R engine
 also fits ordinary unlabelled `mu` random intercepts and independent numeric
 slopes (point estimate only). It still rejects non-logit links, factor responses,
 proportions with trial weights, correlated or labelled slopes, structured
-effects, bivariate or mixed responses, and `engine = "julia"`.
+effects, or bivariate or mixed responses. `engine = "julia"` fits plain binomial
+fixed-effect models only.
 
 ## Beta-Binomial Equation And Syntax
 
