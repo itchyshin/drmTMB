@@ -107,7 +107,7 @@ test_that("R prediction matches the shared fixed-coefficient literal fixture", {
   fit$terminal_constraint <- list(phi = .75)
   fit$convergence <- 0L
   fit$gradient_norm <- 0
-  fixture <- read.csv(testthat::test_path("..", "..", "docs", "dev-log", "cmr", "fixtures", "prediction-m2.csv"), stringsAsFactors = FALSE)
+  fixture <- read.csv(testthat::test_path("fixtures", "prediction-m2.csv"), stringsAsFactors = FALSE)
   phi <- fixture[fixture$process == "phi", c("id", "interval_start", "interval_end", "interval_length", "x", "group", "off")]
   phi$group <- factor(phi$group, levels = c("A", "B"))
   p <- fixture[fixture$process == "p", c("id", "occasion", "x", "group", "off")]
@@ -221,4 +221,58 @@ test_that("CJS Wald and profile diagnostics agree with their likelihood calculat
                    tolerance = 2e-3)
     }
   }
+})
+
+test_that("CJS profile Newton continuation recovers a matrix-gradient stationary point", {
+  target <- c(0.5, -1.25)
+  curvature <- c(2, 4)
+  fn <- function(par) sum(0.5 * curvature * (par - target)^2)
+  gr <- function(par) matrix(curvature * (par - target), nrow = 1L)
+  he <- function(par) diag(curvature)
+  start <- target + c(1e-3, -2e-3)
+
+  result <- drmTMB:::.cmr_cjs_profile_newton_continuation(
+    fn, gr, he, start, fn(start)
+  )
+
+  expect_true(result$usable)
+  expect_lte(result$gradient_norm, 1e-4)
+  expect_lte(result$value, fn(start))
+  expect_equal(result$par, target, tolerance = 1e-10)
+  expect_equal(result$iterations, 1L)
+})
+
+test_that("CJS profile Newton continuation refuses invalid curvature and failed decrease", {
+  start <- c(0.1, 0.1)
+  indefinite <- drmTMB:::.cmr_cjs_profile_newton_continuation(
+    function(par) sum(par^2),
+    function(par) matrix(c(0.1, 0.2), nrow = 1L),
+    function(par) diag(c(1, -1)), start, 0.02
+  )
+  expect_false(indefinite$usable)
+  expect_identical(indefinite$reason, "nonpositive_curvature")
+
+  asymmetric <- drmTMB:::.cmr_cjs_profile_newton_continuation(
+    function(par) sum(par^2),
+    function(par) matrix(c(0.1, 0.2), nrow = 1L),
+    function(par) matrix(c(1, 0.1, 0.2, 1), nrow = 2L), start, 0.02
+  )
+  expect_false(asymmetric$usable)
+  expect_identical(asymmetric$reason, "asymmetric_hessian")
+
+  nonfinite <- drmTMB:::.cmr_cjs_profile_newton_continuation(
+    function(par) sum(par^2),
+    function(par) matrix(0.1, nrow = 1L),
+    function(par) matrix(NA_real_), 0.1, 0.02
+  )
+  expect_false(nonfinite$usable)
+  expect_identical(nonfinite$reason, "invalid_hessian")
+
+  no_decrease <- drmTMB:::.cmr_cjs_profile_newton_continuation(
+    function(par) 1,
+    function(par) matrix(1e-2, nrow = 1L),
+    function(par) matrix(1), 0, 1
+  )
+  expect_false(no_decrease$usable)
+  expect_identical(no_decrease$reason, "armijo_failed")
 })

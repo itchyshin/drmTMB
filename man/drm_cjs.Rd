@@ -2,7 +2,7 @@
 % Please edit documentation in R/cjs.R
 \name{drm_cjs}
 \alias{drm_cjs}
-\title{Fit a fixed-effects first-capture-conditional CJS model}
+\title{Fit a first-capture-conditional CJS model}
 \usage{
 drm_cjs(
   data,
@@ -15,26 +15,31 @@ drm_cjs(
   sd_p = NULL,
   terminal_constraint = NULL,
   control = list(),
-  contrasts = list(phi = NULL, p = NULL)
+  contrasts = list(phi = NULL, p = NULL),
+  engine = c("tmb", "julia")
 )
 }
 \arguments{
 \item{data}{A \code{cmr_data} object.}
 
-\item{phi}{Survival formula, with logit unit-time apparent survival.}
+\item{phi}{Survival formula, with logit unit-time apparent survival. M3
+accepts at most one shared random intercept, such as \code{(1 | site)}.}
 
-\item{p}{Detection formula, with logit detection conditional on alive.}
+\item{p}{Detection formula, with logit detection conditional on alive. M3
+accepts at most one shared random intercept, such as \code{(1 | site)}.}
 
 \item{phi_data}{Optional interval predictor table keyed by \code{id},
 \code{interval_start}, and \code{interval_end}.}
 
 \item{p_data}{Optional detection predictor table keyed by \code{id} and \code{occasion}.}
 
-\item{selection}{Reserved for the later reference-selection stage; currently
-must be \code{NULL}.}
+\item{selection}{Optional \code{list(eligibility = occasion_indices, assumption = "alive_available")}. Conditions each individual's likelihood
+on first capture at the realized occasion under an alive-and-available
+reference cohort. Shared-effect selection is unsupported.}
 
-\item{sd_phi, sd_p}{Reserved for later random-effect SD models; currently must
-be \code{NULL}.}
+\item{sd_phi, sd_p}{Optional one-sided formulas for log SD of the persistent
+individual survival or detection effect. Predictors must be constant
+within individual.}
 
 \item{terminal_constraint}{Optional named list fixing exactly one common
 final-process probability, for example \code{list(phi = 0.8)} (unit-time
@@ -44,13 +49,21 @@ or occasion, not at each individual's administrative endpoint.}
 
 \item{control}{Options passed to \code{\link[stats:nlminb]{stats::nlminb()}}.}
 
-\item{contrasts}{Optional named list with process-specific factor contrasts
-for \code{phi} and \code{p}. The fitted coding is retained for prediction
-and bootstrap refits.}
+\item{contrasts}{Optional named list of process-specific contrast specifications,
+\code{list(phi = ..., p = ...)}. The fitted coding is retained for prediction and
+bootstrap refits.}
+
+\item{engine}{Computational engine: native TMB or native DRModels.jl. The
+Julia bridge currently admits fixed-effects CJS only.}
 }
 \value{
 A \code{drm_cjs} fit containing the optimizer and TMB objective.
+Individual-effect fits also report quadrature refinement status and an
+\code{order_timings} table with setup/optimization time, optimizer status,
+iterations, and function and gradient evaluation counts. These timings
+describe the fit that ran; they do not establish parameter recovery or
+inference calibration.
 }
 \description{
-Fit a fixed-effects first-capture-conditional CJS model
+Fit a first-capture-conditional CJS model
 }

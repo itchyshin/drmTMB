@@ -4,10 +4,14 @@
 \alias{coef.drm_cjs}
 \title{Coefficients from a conditional CJS fit}
 \usage{
-\method{coef}{drm_cjs}(object, ...)
+\method{coef}{drm_cjs}(object, process = c("mean", "phi", "p", "sd_phi", "sd_p", "all"), ...)
 }
 \arguments{
 \item{object}{A \code{drm_cjs} fit.}
+
+\item{process}{Mean-process coefficients by default; \code{phi}, \code{p}, \code{sd_phi},
+\code{sd_p}, or \code{all} selects explicit parameter blocks. SD coefficients
+describe log random-effect standard deviation.}
 
 \item{...}{Unused.}
 }

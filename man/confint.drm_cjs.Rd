@@ -18,7 +18,9 @@
 \arguments{
 \item{object}{A \code{drm_cjs} fit.}
 
-\item{parm}{Optional coefficient names or indices.}
+\item{parm}{Optional coefficient names or indices. For constant individual or shared
+SD profiles, use \code{"sd:phi"} or \code{"sd:p"}. For an individual or shared SD
+formula, use a fitted coefficient name such as \code{"sd_phi:z"} or \code{"sd_p:z"}.}
 
 \item{level}{Confidence level.}
 
@@ -33,7 +35,37 @@
 \item{...}{Unused.}
 }
 \value{
-A coefficient-scale interval matrix with method diagnostics in attributes.
+An interval matrix with method diagnostics in
+attributes. The bootstrap \code{attempts} attribute retains convergence,
+quadrature, curvature, and numerical zero-SD diagnostics separately.
+Profile and parametric-bootstrap intervals are available for
+native integrated individual-effect fits. Wald intervals additionally
+require nonsingular interior curvature. Bootstrap eligibility is recorded
+separately from Wald curvature and requires finite converged estimates
+with accepted quadrature refinement for integrated fits. Bootstrap
+intervals require at least \code{min_usable} refits; availability does not
+establish calibration. Constant shared SD limits exponentiate finite interior
+log-SD profile endpoints and do not evaluate an exact-zero model. Shared-effect
+fixed-coefficient and SD-formula
+profile intervals require a stationary positive-curvature latent mode;
+shared-effect Wald and bootstrap intervals remain unavailable.
+Fixed-effect rows are on the
+coefficient scale. Ordinary individual coefficient profiles require refined
+fitted integration, rebuild and refine each constrained point over the saved
+quadrature ladder, and withhold limits when the refitted center disagrees
+with or improves on the fitted likelihood, any constrained point improves
+on the fitted likelihood, or an endpoint fails its numerical check. If any
+constrained point improves on the fit, both endpoint limits are withheld.
+Availability does not establish calibration.
+Individual \code{sd:phi} and \code{sd:p} profile rows are on the
+SD scale. Their exact-zero endpoint is
+evaluated with the selected effect removed and the remaining CJS model
+reoptimized. A constrained endpoint is withheld when its optimizer fails
+or quadrature does not refine. SD-formula coefficients can also be profiled
+by their \verb{sd_phi:<column>} or \verb{sd_p:<column>} names for individual or
+shared effects; shared profile points re-solve the latent mode. Those
+limits use the log-SD coefficient scale. Profile availability does not
+establish calibration.
 }
 \description{
 Wald, profile, or parametric-bootstrap intervals for a conditional CJS fit

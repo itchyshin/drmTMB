@@ -75,7 +75,14 @@ test_that("invalid design numerics, aliases, and random terms are explicit error
 
   d <- cmr_data(rbind(c(1, 0, 1, 0), c(1, 1, 0, 0), c(1, 0, 0, 1), c(1, 1, 1, 0)),
                 id = letters[1:4])
-  random_result <- tryCatch(drm_cjs(d, phi = ~(1 | id), p = ~1), error = identity)
+  # Persistent individual intercepts are an admitted native route. This
+  # contract test guards the unsupported random-slope syntax instead.
+  random_result <- tryCatch(drm_cjs(d, phi = ~(1 + x | id), p = ~1,
+                                    phi_data = data.frame(
+                                      id = rep(letters[1:4], each = 3),
+                                      interval_start = rep(1:3, 4),
+                                      interval_end = rep(2:4, 4),
+                                      x = rep(0:2, 4))), error = identity)
   expect_s3_class(random_result, "error")
   expect_match(if (inherits(random_result, "error")) conditionMessage(random_result) else "",
                "random|unsupported|not supported")

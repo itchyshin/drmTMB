@@ -12,7 +12,10 @@
 \item{...}{Unused.}
 }
 \value{
-The inverse observed negative-log-likelihood Hessian.
+The fixed-coefficient block of the inverse observed negative-log-
+likelihood Hessian. Wald covariance requires converged fits with finite,
+nonsingular interior curvature. Individual-effect fits at variance
+boundaries and shared-effect fits are not eligible.
 }
 \description{
 Covariance matrix for a conditional CJS fit

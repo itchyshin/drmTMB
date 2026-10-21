@@ -1,5 +1,5 @@
 test_that("CJS kernel matches the frozen independent probability fixture", {
-  fixture <- read.delim(test_path("../../docs/dev-log/cmr/fixtures/exact.tsv"))
+  fixture <- read.delim(test_path("fixtures/cmr-exact.tsv"))
   expect_true(file.exists(system.file("include", "TMB.hpp", package = "TMB")))
   expect_true("terminal_constraint" %in% names(formals(drm_cjs)))
   expect_equal(nrow(fixture), 719L)
