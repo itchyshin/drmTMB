@@ -10,20 +10,20 @@ plain-vector helpers used by `predict_parameters()` and
 
 - `tests/testthat/test-predict-marginal-parameter-validators.R` adds the
   characterization tests. This file is unchanged by the documentation follow-up.
-- `docs/dev-log/check-log.md` records the focused test result.
+- `docs/dev-log/check-log.d/2026-10-22-predict-marginal-validator-tests.md`
+  records the focused result without adding another row to the shared log.
 - This after-task report records scope, evidence, and remaining limits.
 
 ## Checks run and exact outcomes
 
-- `Rscript -e 'devtools::load_all(); testthat::test_file("tests/testthat/test-predict-marginal-parameter-validators.R")'`
-  on merge commit `2afdfc0eb4298056dafb57472f4ed48d95d17a46` (PR source
-  `5254d9f56bca18527f86b1f105a1f17958ed7f8b` plus current `main`
-  `7820315cc904358edbf3635515ebd3a73dbb7f31`): **FAIL 0, WARN 0, SKIP 0,
+- `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::load_all(); testthat::test_file("tests/testthat/test-predict-marginal-parameter-validators.R")'`
+  on the rebased local tree based on current main
+  `f9bff01b5f3bbbc424402b73d67084dd446d9ff8`: **FAIL 0, WARN 0, SKIP 0,
   PASS 114**. `devtools::load_all()` rebuilt the debug library and clang emitted
   12 compiler warnings; testthat reported no warnings.
 - The six CI checks reported on the original PR head `5254d9f56bca18527f86b1f105a1f17958ed7f8b`
   were all successful (`os-matrix`, `source-tree tests (blind spot)`, and
-  Ubuntu release shards 1–4). They predate the merge with current `main`; the
+  Ubuntu release shards 1–4). They predate the rebase onto current `main`; the
   updated branch needs fresh exact-head CI after it is pushed.
 - Full `devtools::test()`, `R CMD check`, and helpers requiring a fitted model
   were not run.
@@ -40,7 +40,7 @@ design docs, and pkgdown navigation do not need updates.
 
 ## Tests of the tests
 
-The focused run exercised all 114 expectations and reported no failures,
+The focused run after rebasing onto current main exercised all 114 expectations and reported no failures,
 warnings, or skips. The tests assert returned values and error messages as well
 as helper output shape. `predict_parameters_clamp_bent()` uses a minimal
 stand-in object; no model fit is constructed. The tests do not claim coverage
@@ -49,8 +49,9 @@ of helpers that require fitted objects.
 ## What did not go smoothly
 
 The focused run rebuilt the debug library and emitted 12 compiler warnings
-from existing C++ dependencies/source; none became testthat warnings. Merging
-current `main` into the PR branch completed without conflicts.
+from existing C++ dependencies/source; none became testthat warnings. Rebasing
+onto current `main` had one expected conflict in the shared check log. I kept
+the main-branch content and moved this PR's evidence to its per-slice record.
 
 ## Team learning and process improvements
 
@@ -76,5 +77,5 @@ was left unchanged.
 ## Known limitations and next actions
 
 The full test suite and `R CMD check` remain unrun, and fit-requiring helpers
-remain uncovered here. Push this synchronized documentation-only update and
-check the new exact-head CI before promoting the PR from draft or merging it.
+remain uncovered here. Push this synchronized update and check the new
+exact-head CI before promoting the PR from draft or merging it.

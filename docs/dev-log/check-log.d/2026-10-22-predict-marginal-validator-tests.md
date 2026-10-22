@@ -1,0 +1,3 @@
+| Date | Slice | Focused evidence | Boundary | Status |
+|---|---|---|---|---|
+| 2026-10-22 | Fit-free `predict_parameters()` / `marginal_parameters()` validator tests (#1606) | Rebased local candidate on current `main` `f9bff01b5f3bbbc424402b73d67084dd446d9ff8`; `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::load_all(); testthat::test_file("tests/testthat/test-predict-marginal-parameter-validators.R")'`: PASS 114, FAIL 0, WARN 0, SKIP 0. Debug compilation emitted 12 compiler warnings. | Local focused run only; full suite, `R CMD check`, and fitted-model helper paths not run. Exact rebased PR-head CI must run after push. | PASS focused; CI pending |
