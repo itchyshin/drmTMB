@@ -38,7 +38,7 @@ The tool continues to preserve the existing manifest, source fingerprint, and th
 
 ## GitHub Issue Maintenance
 
-The existing PR addresses issue #1591. No issue comment or new issue was created. The PR remains a draft until current-head CI and review are complete.
+The existing PR addresses issue #1591. No issue comment or new issue was created. The PR is ready for review; current-head CI and review are still pending.
 
 ## What Did Not Go Smoothly
 
