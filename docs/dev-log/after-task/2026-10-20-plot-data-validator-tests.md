@@ -29,12 +29,15 @@ The remote branch remains at the PR head until the refreshed branch is pushed.
 
 ## 5. Checks Run
 
-After the local rebase, `Rscript -e 'devtools::test(filter="plot-data-validators", reporter="summary")'`
-and `Rscript -e 'devtools::test(filter="env-skip-census", reporter="summary")'`
-will be recorded here with their exact results. `git diff --check`, the report
-structure check, and prose check will also be recorded after conflict
-resolution. The full test suite, `R CMD check`, and live Julia engine are not
-part of this focused validation.
+On the local rebased tree at `245bb04cabc1fa16948c07e5dab3355e775aa6f3`,
+`Rscript -e 'devtools::test(filter="plot-data-validators", reporter="summary")'`
+completed with 124 expectations and no failures, warnings, or skips.
+`Rscript -e 'devtools::test(filter="env-skip-census", reporter="summary")'`
+completed with five expectations and no failures. These runs are local combined
+tree evidence, not remote exact-head CI. `git diff --check` passed. I manually
+checked the after-task sections against the repository protocol; no automated
+report-structure checker is present in this clone. The prose check found no
+issues. The full test suite, `R CMD check`, and live Julia engine were not run.
 
 ## 6. Tests of the Tests
 
