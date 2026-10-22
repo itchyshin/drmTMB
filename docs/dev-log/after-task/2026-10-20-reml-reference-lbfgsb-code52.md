@@ -88,11 +88,11 @@ receipts, not independent statistical validation.
 Compared the task report with current repository instructions and the merged PR
 metadata. The report distinguishes the independent reference optimizer from the
 drmTMB fit, keeps test evidence attributed to its recorded environment, and
-does not claim that the pending post-merge workflow passed. No README, NEWS,
-vignette, generated site, model contract, or package behavior changed, so no
-user-facing documentation or capability inventory update applies. The design
-record itself is updated by this supplement and the check-log record; pkgdown
-navigation and content do not need updating.
+records that post-merge receipt-staleness run 39817151100 completed successfully
+on the merge commit. No README, NEWS, vignette, generated site, model contract,
+or package behavior changed, so no user-facing documentation or capability
+inventory update applies. The design record itself is updated by this supplement
+and the check-log record; pkgdown navigation and content do not need updating.
 
 ### What Did Not Go Smoothly
 
