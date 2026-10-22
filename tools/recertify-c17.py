@@ -42,6 +42,7 @@ from __future__ import annotations
 import argparse
 import csv
 import datetime as _dt
+import re
 import shutil
 import subprocess
 import sys
@@ -107,6 +108,11 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true",
                     help="run and verify, but do not rename or rewire")
     args = ap.parse_args()
+
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", args.label):
+        print("label must be a 1-64 character slug using letters, digits, '.', '_' or '-' "
+              "and starting with a letter or digit", file=sys.stderr)
+        return 2
 
     if not MANIFEST.is_file():
         print(f"manifest not found: {MANIFEST}", file=sys.stderr)

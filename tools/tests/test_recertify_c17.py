@@ -86,6 +86,36 @@ class RecertifyDryRunTest(unittest.TestCase):
         self.assertFalse(
             rc.RUNNER_OUT.with_name(rc.RUNNER_OUT.name + ".pre-recertify").exists())
 
+    def test_invalid_labels_refuse_before_moving_receipt_or_running_runner(self):
+        before_receipt = self._snapshot()
+        before_manifest = self.manifest.read_bytes()
+
+        def fake_run(*_a, **_k):
+            rc.RUNNER_OUT.mkdir()
+            (rc.RUNNER_OUT / "summary.tsv").write_text(
+                "cell_id\tmean_tau_relative_error\n"
+                "mc-0568\t0.1\nmc-0569\t0.2\nmc-0576\t0.3\n",
+                encoding="utf-8",
+            )
+
+        for label in ("../escape", "bad label"):
+            with self.subTest(label=label):
+                out, err = io.StringIO(), io.StringIO()
+                with mock.patch.object(rc.subprocess, "run", side_effect=fake_run) as runner, \
+                        mock.patch.object(rc.sys, "argv", [
+                            "recertify-c17.py", "--label", label,
+                        ]), \
+                        contextlib.redirect_stdout(out), \
+                        contextlib.redirect_stderr(err):
+                    code = rc.main()
+
+                self.assertEqual(code, 2, out.getvalue() + err.getvalue())
+                runner.assert_not_called()
+                self.assertEqual(self._snapshot(), before_receipt)
+                self.assertEqual(self.manifest.read_bytes(), before_manifest)
+                self.assertFalse(rc.RUNNER_OUT.with_name(
+                    rc.RUNNER_OUT.name + ".pre-recertify").exists())
+
     def test_runner_failure_restores_receipt(self):
         before = self._snapshot()
         code, _ = self._run(runner_ok=False)
