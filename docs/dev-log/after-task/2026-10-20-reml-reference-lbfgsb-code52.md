@@ -53,12 +53,12 @@ Complete the repository closeout record for merged PR #1604 and issue #1592.
 
 ### Implemented
 
-Added the missing append-only check-log entry and this supplement. No package
-source or test code changed in this follow-up.
+Added the missing append-only check-log record under `docs/dev-log/check-log.d/`
+and this supplement. No package source or test code changed in this follow-up.
 
 ### Files Changed
 
-- `docs/dev-log/check-log.md`
+- `docs/dev-log/check-log.d/2026-10-22-pr1604-closeout.md`
 - `docs/dev-log/after-task/2026-10-20-reml-reference-lbfgsb-code52.md`
 
 ### Checks Run
@@ -91,13 +91,13 @@ drmTMB fit, keeps test evidence attributed to its recorded environment, and
 does not claim that the pending post-merge workflow passed. No README, NEWS,
 vignette, generated site, model contract, or package behavior changed, so no
 user-facing documentation or capability inventory update applies. The design
-record itself is updated by this supplement and the check-log entry; pkgdown
+record itself is updated by this supplement and the check-log record; pkgdown
 navigation and content do not need updating.
 
 ### What Did Not Go Smoothly
 
-The original PR was merged without the required `docs/dev-log/check-log.md`
-entry, and its after-task report did not cover the complete closeout checklist.
+The original PR was merged without the required per-slice check-log record,
+and its after-task report did not cover the complete closeout checklist.
 This follow-up repairs the record after merge.
 
 ### Team Learning
