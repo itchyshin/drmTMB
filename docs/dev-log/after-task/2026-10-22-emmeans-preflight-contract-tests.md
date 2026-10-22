@@ -8,7 +8,7 @@ Add direct contract tests for the internal emmeans preflight guards, then sync t
 
 The original test file exercises each targeted helper, supported and unsupported model families, malformed distributional-parameter labels, transformed responses, missing coefficients, and real Gaussian fits where the guard can be reached through a fitted object. The environment-skip census includes six call sites in each of the CRAN-lane and suggested-package categories. The package code and public API are unchanged.
 
-The PR branch was merged with current main at `f9bff01b5f3bbbc424402b73d67084dd446d9ff8` in a disposable clone. Git reported no conflict. The three PR files were retained. The merge commit is `1287e5c6d5332998a73114f9497e48c3a1bdee72`.
+The PR branch was merged with current main at `f9bff01b5f3bbbc424402b73d67084dd446d9ff8` in a disposable clone. Git reported no conflict. The test and census files from the original PR were retained unchanged. The original dated after-task note was replaced by this expanded closeout report, and the one-row check-log entry was added. The merge commit is `1287e5c6d5332998a73114f9497e48c3a1bdee72`.
 
 ## Mathematical Contract
 
