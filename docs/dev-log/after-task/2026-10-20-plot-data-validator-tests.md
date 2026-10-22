@@ -25,7 +25,8 @@ adds the test file, which is unchanged by this closeout. The current PR head
 (`7294ed7fa3dead693a8f03de3e21b6dbadec3bf8`) was rebased locally onto current
 `main` (`f9bff01b5f3bbbc424402b73d67084dd446d9ff8`). Focused test results below
 are from that local combined tree; they are not remote exact-head CI evidence.
-The remote branch remains at the PR head until the refreshed branch is pushed.
+At the time this report was written, the remote branch still pointed to the PR
+head; the refreshed branch had not yet been pushed.
 
 ## 5. Checks Run
 

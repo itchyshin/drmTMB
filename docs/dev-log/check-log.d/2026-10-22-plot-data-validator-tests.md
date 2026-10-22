@@ -4,9 +4,8 @@ The exact remote PR head inspected before rebase was
 `7294ed7fa3dead693a8f03de3e21b6dbadec3bf8`; GitHub `main` was
 `f9bff01b5f3bbbc424402b73d67084dd446d9ff8`. The PR was rebased locally; both
 focused tests ran on local commit `245bb04cabc1fa16948c07e5dab3355e775aa6f3`.
-They are evidence for that local combined tree, not remote exact-head CI. The
-remote branch remains at the original PR head until the refreshed branch is
-pushed.
+They are evidence for that local combined tree, not remote exact-head CI. At the time this record was written, the remote branch still pointed to the
+original PR head; the refreshed branch had not yet been pushed.
 
 The fit-free test file SHA-256 remains
 `da2a0b562c846510ef1679f4c3e3252c0deafba3a2bd3a169c9534a8ec46ad68`.
