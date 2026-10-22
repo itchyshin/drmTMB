@@ -1,46 +1,83 @@
-# Fit-free tests for the plot data validators
+# After Task: Fit-free plot data validator tests
 
 ## 1. Goal
 
-Characterise the input validators and data helpers behind `plot_corpairs()` and
-`plot_parameter_surface()` with hand-built tables, no fits and no drawing.
+Characterise the input validators and data helpers used by `plot_corpairs()` and
+`plot_parameter_surface()` without fitting a model or drawing a plot.
 
 ## 2. Implemented
 
-New `tests/testthat/test-plot-data-validators.R` (124 expectations). It calls
-`drmTMB:::` helpers in `R/plot-corpairs.R` and `R/plot-parameter-surface.R`:
-the `validate_*_data/_column/_flag/_interval_style` validators,
-`filter_plot_parameter_surface_data()`, the y-label and ribbon helpers, the
-`add_*_columns()` helpers, `plot_corpairs_labels()` and the interval and eye
-data helpers.
+The PR adds 124 expectations in one test file. The tests call internal helpers
+with hand-built data frames and check both valid inputs and rejection paths.
+The test file is unchanged by this closeout. A prior review corrected one test
+title to match its actual assertions; it did not change an assertion or the
+test-file hash.
 
 ## 3a. Decisions and Rejected Alternatives
 
-The `*_mapping()` helpers call `ggplot2::aes()`, so testing them needs
-`skip_if_not_installed("ggplot2")`. A new file with a skip would add a row to
-`inst/extdata/env-skip-census.tsv`, which this lane must not edit, so those
-assertions were left to the existing plot test files.
+No statistical model, likelihood, parameterisation, or public behaviour is
+changed. The tests describe data-validation and plot-data helper behaviour only.
 
 ## 4. Files Touched
 
-The new test file and this note. No `R/`, NEWS, DESCRIPTION or census change.
+This closeout updates this report and the per-slice check-log record. The PR
+adds the test file, which is unchanged by this closeout. The current PR head
+(`7294ed7fa3dead693a8f03de3e21b6dbadec3bf8`) was rebased locally onto current
+`main` (`f9bff01b5f3bbbc424402b73d67084dd446d9ff8`). Focused test results below
+are from that local combined tree; they are not remote exact-head CI evidence.
+The remote branch remains at the PR head until the refreshed branch is pushed.
 
 ## 5. Checks Run
 
-The new file: 0 failures, 0 skips, 124 passes. `test-env-skip-census.R`: 5 passes.
+After the local rebase, `Rscript -e 'devtools::test(filter="plot-data-validators", reporter="summary")'`
+and `Rscript -e 'devtools::test(filter="env-skip-census", reporter="summary")'`
+will be recorded here with their exact results. `git diff --check`, the report
+structure check, and prose check will also be recorded after conflict
+resolution. The full test suite, `R CMD check`, and live Julia engine are not
+part of this focused validation.
 
 ## 6. Tests of the Tests
 
-Characterisation only: the tests pass on main by design. No current behaviour
-looked like a bug.
+The tests cover malformed inputs and boundary cases. Results from the local
+combined tree are behaviour-characterisation evidence, not parameter-recovery
+or model-validation evidence. They do not establish remote exact-head CI.
 
-## 7. Post-review title correction (2026-10-22)
+## 7a. Issue Ledger
 
-The original `plot_corpairs_eye_data()` test title claimed symmetry in `z`, but
-the assertions checked empty input, row count, ordered bounds, requested eye
-height, group and colour. The title now describes those checks; no assertion or
-scientific scope changed. After this correction,
-`Rscript -e 'devtools::test(filter="plot-data-validators", reporter="summary")'`
-completed successfully on R 4.6.0. The focused run did not exercise the live
-Julia engine. Current test-file SHA-256:
-`da2a0b562c846510ef1679f4c3e3252c0deafba3a2bd3a169c9534a8ec46ad68`.
+No matching open issue was found for the plot-data validator tests. No issue
+comment, issue creation, or issue closure was needed.
+
+## 8. Consistency Audit
+
+No production code, NEWS, package metadata, or skip-census entry changed. The
+per-slice `.d` record and this report describe the same local combined source
+and test results. The conflicting root `docs/dev-log/check-log.md` append was
+removed; the `.d` record is retained as the per-slice evidence. No model or
+documentation claim needs a status-inventory update.
+
+## 9. What Did Not Go Smoothly
+
+The closeout initially appended to the high-collision root check log. Rebasing
+onto current main exposed the conflict; the root append was removed and its
+per-slice `.d` record retained. The earlier local test snapshot used an older
+main commit, so the focused tests are rerun on the current local combined tree.
+
+## 10. Known Residuals
+
+The `*_mapping()` helpers remain covered by existing plot tests. The focused
+tests do not validate rendered plots, fitted-model behaviour, or the live
+Julia bridge. The PR remains a test-only contribution. Full suite, `R CMD
+check`, and remote PR branch synchronization remain open.
+
+## 11. Team Learning
+
+Keep closeout evidence in the per-slice `.d` record. Avoid appending to the
+high-collision root chronological log when the repository's generated `.d`
+records already provide the required history.
+
+## 12. Cross-Product Coverage
+
+This test-only task does NOT cover a model engine, R-to-Julia bridge behaviour,
+rendered plot appearance, package-wide testing, or documentation-site output.
+No Julia changes were made, and the live Julia engine was not exercised. No
+design doc, NEWS, pkgdown page, or public API changed.
