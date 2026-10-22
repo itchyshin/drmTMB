@@ -85,6 +85,17 @@ def summary_by_cell(path: Path) -> dict[str, float]:
     }
 
 
+def preserved_output_path(kind: str, label: str) -> Path:
+    """Return an unused sibling path without nesting or overwriting a run."""
+    base = RUNNER_OUT.with_name(f"{RUNNER_OUT.name}.{kind}-{label}")
+    candidate = base
+    suffix = 2
+    while candidate.exists():
+        candidate = base.with_name(f"{base.name}-{suffix}")
+        suffix += 1
+    return candidate
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -123,8 +134,11 @@ def main() -> int:
     try:
         return _run_and_rewire(args, rows, before)
     finally:
-        if RUNNER_OUT.exists():  # partial output from a crashed runner
-            shutil.rmtree(RUNNER_OUT)
+        if RUNNER_OUT.exists():  # preserve partial output from a failed or interrupted run
+            failed = preserved_output_path("failed", args.label)
+            RUNNER_OUT.rename(failed)
+            print(f"partial runner output preserved at {failed.relative_to(ROOT)}",
+                  file=sys.stderr)
         if parked:
             aside.rename(RUNNER_OUT)
 
@@ -149,8 +163,8 @@ def _run_and_rewire(args: argparse.Namespace, rows: list[dict],
 
     worst = max(drift.values())
     if worst > args.tolerance:
-        rejected = RUNNER_OUT.with_name(f"{RUNNER_OUT.name}.rejected-{args.label}")
-        shutil.move(str(RUNNER_OUT), str(rejected))
+        rejected = preserved_output_path("rejected", args.label)
+        RUNNER_OUT.rename(rejected)
         print(
             "\nREFUSING TO REWIRE: the measured behaviour moved.\n"
             f"  worst |change| {worst:.3e} exceeds tolerance {args.tolerance:.3e}\n"
@@ -171,7 +185,11 @@ def _run_and_rewire(args: argparse.Namespace, rows: list[dict],
     stamp = _dt.date.today().isoformat()
     dest = RUNNER_OUT.parent / f"{stamp}-{args.label}-c17c2-c14-final-source-compatibility"
     if dest.exists():
-        print(f"destination already exists: {dest.relative_to(ROOT)}", file=sys.stderr)
+        collision = preserved_output_path("collision", args.label)
+        RUNNER_OUT.rename(collision)
+        print(f"destination already exists: {dest.relative_to(ROOT)}; "
+              f"new runner output preserved at {collision.relative_to(ROOT)}",
+              file=sys.stderr)
         return 2
     shutil.move(str(RUNNER_OUT), str(dest))
     rel = dest.relative_to(ROOT).as_posix()

@@ -1,3 +1,15 @@
+# 2026-10-22: retain output from failed or colliding C17 recertification runs (#1591)
+
+`tools/recertify-c17.py` previously deleted partial output in `finally` and
+could lose a complete run when the dated destination already existed. The
+runner now preserves failed, rejected, and colliding output in unique sibling
+directories while restoring the committed receipt. Four focused Python tests
+pass, including three output-retention regressions and the existing dry-run
+check. The local 12-fit dry-run reproduced all three receipt values exactly
+(`0.000e+00` change) and left the manifest unchanged. Full package tests were
+not run. The exact-head CI and review remain pending; see
+`docs/dev-log/after-task/2026-10-22-recertify-c17-output-retention.md`.
+
 # 2026-10-22: fit-free tests for phylogenetic penalty helpers (#1601)
 
 Synced PR head `6af76a98a86c6db7c757e256147548a4c82cf77f` with live `main`
