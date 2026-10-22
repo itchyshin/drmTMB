@@ -68,8 +68,8 @@ source or test code changed in this follow-up.
   #1592 through GitHub metadata.
 - Verified exact-head run 39356960210 completed successfully: OS matrix,
   source-tree blind-spot job, and Ubuntu release shards 1/4 through 4/4.
-- Verified post-merge `receipt-staleness` run 39817151100 was pending at the
-  time of this check.
+- Verified post-merge `receipt-staleness` run 39817151100 later completed
+  successfully on merge commit `7820315cc904358edbf3635515ebd3a73dbb7f31`.
 - `git diff --check` passed. The current clone has no after-task report
   checker, so the required sections were checked manually against
   `docs/design/10-after-task-protocol.md`. No package tests were rerun here;
@@ -119,11 +119,9 @@ record-only follow-up.
 
 ### Known Limitations
 
-The post-merge receipt-staleness workflow was pending when checked. This
-follow-up changes documentation only and provides no new package test,
+This follow-up changes documentation only and provides no new package test,
 recovery, interval, or release evidence.
 
 ### Next Actions
 
-Check run 39817151100 on `main` before treating the post-merge receipt gate as
-settled. Issue #1592 is already closed by #1604; no issue edit is needed.
+No further action remains for issue #1592 or the post-merge receipt gate.

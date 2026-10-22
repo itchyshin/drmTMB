@@ -10,8 +10,8 @@ full file passing under `NOT_CRAN=true` on R 4.3.3; those are historical
 reported results, not reruns for this documentation follow-up.
 
 No R package code changed in #1604 or in this closeout. The post-merge
-`receipt-staleness` workflow (run 39817151100 on the merge commit) was still
-pending when this entry was prepared; its result must be checked separately.
+`receipt-staleness` workflow (run 39817151100 on the merge commit) subsequently
+completed successfully.
 See `docs/dev-log/after-task/2026-10-20-reml-reference-lbfgsb-code52.md` for
 the original report and its supplemental closeout below.
 
