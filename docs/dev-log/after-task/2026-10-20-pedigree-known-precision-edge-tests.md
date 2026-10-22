@@ -42,9 +42,10 @@ agree.
 The file checks boundary and malformed-input paths, including self-parenting,
 cycles, unknown parents, duplicate IDs, malformed matrix names, non-finite
 values, singular covariance, and non-positive-definite covariance and precision
-matrices. The Quaas result is checked against an independently formed dense
-relationship matrix and `solve(A)`, rather than another copy of the sparse
-algorithm. The non-positive-definite precision path emits a CHOLMOD warning;
+matrices. The Quaas result is checked against the dense inverse obtained by
+`solve(A)` from the helper-generated relationship matrix. This independently
+checks the inverse calculation, not the relationship-matrix construction. The
+non-positive-definite precision path emits a CHOLMOD warning;
 the test suppresses that expected warning while asserting the helper's error.
 
 ## 8. Consistency Audit
@@ -68,8 +69,12 @@ The isolated clone fetched the exact live PR head
 `f9bff01b5f3bbbc424402b73d67084dd446d9ff8`. The focused test passed after the
 test-only change was replayed onto current main. Main already had its own recent
 append in `docs/dev-log/check-log.md`, so that file was preserved and this
-change records its result under `docs/dev-log/check-log.d/`. The refreshed
-candidate remains local; no push or exact-head CI run occurred.
+change records its result under `docs/dev-log/check-log.d/`. The rebased
+candidate was pushed to the existing PR branch at
+`6a218c143bc9b1c462af92e854e5664085d70d56` after verifying the expected old
+head. GitHub now reports the candidate as the exact PR head; fresh CI is
+queued. The focused test passed locally with 66 expectations and no failures,
+warnings, or skips. No draft-state or merge change was made.
 
 ## 10. Known Residuals
 
@@ -92,9 +97,6 @@ cross-cutting flags and makes no cross-product parity claim.
 
 ## Next Actions
 
-The local candidate is based on current main
-`f9bff01b5f3bbbc424402b73d67084dd446d9ff8`. Before updating the PR branch,
-verify that its remote head is still
-`4629c116ada05a9af7f8f8df0473d181606fb491`; then use an expected-head update
-and wait for checks on the exact new head. Do not mark ready or merge as part
-of this closeout.
+The rebased PR is based on current main
+`f9bff01b5f3bbbc424402b73d67084dd446d9ff8`. Wait for checks on the exact new
+head and complete review before changing the draft state or merging.
