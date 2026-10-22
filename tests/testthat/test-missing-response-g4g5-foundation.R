@@ -639,6 +639,8 @@ test_that("G4 campaign binds routes whose mask receipts differ in shape (#970)",
       mask_any_response_rows = 0L, stringsAsFactors = FALSE)
     if (identical(route_id, "biv_gaussian")) {
       record$mask_complete_pairs <- 10L
+      record$mask_y1_only_missing <- 1L
+      record$mask_y2_only_missing <- 2L
       record$mask_both_missing <- 0L
     }
     record
@@ -648,11 +650,15 @@ test_that("G4 campaign binds routes whose mask receipts differ in shape (#970)",
   records <- mr_g4_run_campaign(target_manifests, registry = registry, trace = FALSE)
 
   expect_equal(nrow(records), nrow(registry$cells))
-  expect_true(all(c("mask_complete_pairs", "mask_both_missing") %in% names(records)))
+  paired_mask_fields <- c("mask_complete_pairs", "mask_y1_only_missing",
+    "mask_y2_only_missing", "mask_both_missing")
+  expect_true(all(paired_mask_fields %in% names(records)))
   biv <- records$route_id == "biv_gaussian"
   expect_true(any(biv))
-  expect_false(anyNA(records$mask_complete_pairs[biv]))
-  expect_true(all(is.na(records$mask_complete_pairs[!biv])))
+  for (field in paired_mask_fields) {
+    expect_false(anyNA(records[[field]][biv]))
+    expect_true(all(is.na(records[[field]][!biv])))
+  }
 })
 
 test_that("G4 task registry requires all routes and fixes the three information rungs", {

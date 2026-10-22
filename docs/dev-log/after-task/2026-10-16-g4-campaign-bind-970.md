@@ -120,10 +120,10 @@ that same environment, so `mr_g4_run_campaign()` finds the stubs by lexical
 scope and no model is fitted. The red run shows the stub reaches the combining
 step: the error comes from `rbind(records, next_record)`, not from a fit. The
 assertions check one record per registry cell (54 = 18 routes x 3 rungs), that
-two of the paired-mask fields (`mask_complete_pairs`, `mask_both_missing`)
-exist, and that `mask_complete_pairs` is filled for `biv_gaussian` and `NA`
-elsewhere. In registry order `gaussian` precedes `biv_gaussian`, so both bind
-directions run: a wider record joining narrower ones, and the reverse.
+all four paired-mask fields exist, and that each is filled for `biv_gaussian`
+and `NA` elsewhere. In registry order `gaussian` precedes `biv_gaussian`, so
+both bind directions run: a wider record joining narrower ones, and the
+reverse.
 
 Because the validator is stubbed, the test does not show that padded records
 pass `mr_g4_validate_campaign()`. Reading the validator, it requires only
@@ -190,3 +190,21 @@ of shared ledger files.
    `R/mspl-estimator.R` call `%||%`, but the package neither defines nor
    imports it, while `DESCRIPTION` declares `Depends: R (>= 4.1.0)`. Those
    paths fail on R 4.1 to 4.3 (seen in the local shard run above).
+
+## 2026-10-22 current-main refresh
+
+Rebased the three PR commits onto current `main` at
+`f9bff01b5f3bbbc424402b73d67084dd446d9ff8`. The rebase completed without
+conflict. The separate `claude/mi-response-leaves` lane also edits this source
+file, but its change is in the G5 section; that branch was not combined or
+modified. The G4 fix and its test remain the only functional changes here.
+
+Expanded the forcing test to check all four paired-mask columns, including
+their values on `biv_gaussian` rows and `NA` padding on the other routes.
+On R 4.6.0 / macOS ARM64, `NOT_CRAN=true Rscript -e
+'devtools::test(filter = "missing-response-g4g5-foundation", reporter =
+"summary")'` completed successfully with no failures, warnings, or skips.
+`git diff --check` passed. The exact-head `source-tree tests (blind spot)` and
+`os-matrix` checks were queued after the refresh; their results and an
+independent review remain separate merge gates. No full package test or
+simulation campaign was run.
