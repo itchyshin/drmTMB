@@ -1,3 +1,20 @@
+# 2026-10-22: closeout record for #1604 / issue #1592
+
+PR #1604 (`d4885b8ad50f4847c8f3970b7fbad37235f1ab8f`) was squash-merged as
+`7820315cc904358edbf3635515ebd3a73dbb7f31`; GitHub records issue #1592 as
+closed by that merge. Its exact-head R-CMD-check run 39356960210 completed
+with all six checks successful: the OS matrix, source-tree blind-spot test,
+and four Ubuntu release shards. The retained PR report records the targeted
+`test-reml-structured-location.R` test passing with 12 expectations and the
+full file passing under `NOT_CRAN=true` on R 4.3.3; those are historical
+reported results, not reruns for this documentation follow-up.
+
+No R package code changed in #1604 or in this closeout. The post-merge
+`receipt-staleness` workflow (run 39817151100 on the merge commit) was still
+pending when this entry was prepared; its result must be checked separately.
+See `docs/dev-log/after-task/2026-10-20-reml-reference-lbfgsb-code52.md` for
+the original report and its supplemental closeout below.
+
 # 2026-10-18: rebase #1513 onto main after #1504 merged
 
 Rebased `cursor/triage-i-mi` onto `e17921e9b` (#1504 squash-merged). Dropped
