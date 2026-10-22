@@ -54,4 +54,4 @@ The dry-run confirms deterministic reproduction on this Mac, not cross-platform 
 
 ## Next Actions
 
-Push the fix, inspect its exact-head CI, obtain the repository review, and merge only after all required checks pass.
+Inspect exact-head CI, obtain the repository review, and merge only after all required checks pass.
