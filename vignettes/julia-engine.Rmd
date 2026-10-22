@@ -356,22 +356,22 @@ an interval.
 | `gaussian()` | fixed effects; selected `phylo()`, ordinary random-effect, `relmat()`, `spatial()`, and `animal()` routes |
 | `biv_gaussian()` | fixed effects with residual `rho12`; selected coupled phylogenetic route |
 | `student()` or `lognormal()` | fixed effects only |
-| `poisson()` or `nbinom2()` | fixed effects; selected large-phylogeny routes; fixed-effect `zi` terms; `nbinom2()` also has the Julia hurdle spelling below |
-| `gamma()` or `beta_family()` | fixed effects; selected large-phylogeny routes |
+| `poisson()` or `nbinom2()` | fixed effects; selected large-phylogeny routes; fixed-effect `zi` terms |
+| `Gamma(link = "log")` or `beta_family()` | fixed effects; selected large-phylogeny routes |
 | `stats::binomial(link = "logit")` | fixed effects; selected large-phylogeny mean route |
-| `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, `beta_binomial()`, `cumulative_logit()`, or `skew_normal()` | fixed effects only |
+| `truncated_nbinom2()` | fixed effects only, including the hurdle model with a fixed-effect `hu ~ ...` formula |
+| `zero_one_beta()`, `tweedie()`, `beta_binomial()`, `cumulative_logit()`, or `skew_normal()` | fixed effects only |
 | `biv_student()` or `biv_lognormal()` | fixed effects only (bivariate residual route) |
 | Any other family | not currently available through the Julia engine |
 
-The `zi` and `hu` dpars are not separate families: they are formula terms
-(`bf(y ~ x, zi ~ x)` or `bf(y ~ x, hu ~ x)`) added to `poisson()` or
-`nbinom2()`, and the bridge admits them through those families' fixed-effect
-route rather than through a family-specific ledger row. `hu` has a spelling
-mismatch between engines today: native `engine = "tmb"` fits the hurdle model
-as `truncated_nbinom2()` with `hu ~ ...`, while `engine = "julia"` fits it as
-`nbinom2()` with `hu ~ ...` (DRModels.jl reads `hu` on `nbinom2()` as the hurdle
-model). The same call does not fit on both engines yet. Use the TMB spelling
-when you need a model that can move between both engines.
+The `zi` and `hu` dpars are formula terms rather than separate families.
+Write zero inflation as `bf(y ~ x, zi ~ x)` with `poisson()` or `nbinom2()`.
+Write the hurdle negative-binomial model as
+`bf(y ~ x, sigma ~ 1, hu ~ x)` with `family = truncated_nbinom2()`; that call
+fits with both `engine = "tmb"` and `engine = "julia"`. There is no separate
+`hurdle_nbinom2()` constructor. The Julia bridge also accepts an older Julia-only
+spelling, `nbinom2()` with `hu ~ ...`, but the native TMB engine refuses it, so
+use `truncated_nbinom2()` when you need the model to move between engines.
 
 ### Controls
 
