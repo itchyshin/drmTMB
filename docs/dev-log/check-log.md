@@ -1,3 +1,22 @@
+# 2026-10-22: fit-free tests for phylogenetic penalty helpers (#1601)
+
+Synced PR head `6af76a98a86c6db7c757e256147548a4c82cf77f` with live `main`
+`7820315cc904358edbf3635515ebd3a73dbb7f31` in an isolated clone. The merge
+completed without conflict; the test file remained unchanged (Git blob
+`a2a8f08ad5c8309da60fce6406940121f9eb9236`, SHA-256
+`f514b2031745d15392082fc6b08751c2fe8cb79b99f309567f5f674369238e71`).
+
+Focused fit-free check on the synced source: `Rscript -e
+'devtools::test(filter = "phylo-penalty-spec", reporter = "summary")'`
+under R 4.6.0 / macOS Tahoe 26.7.1 / ARM64 completed with 63 successful
+expectations and no failures. No fits were run. The PR's earlier 75-pass
+`filter = "penalty"` result was not rerun and remains historical. Full package
+tests and `R CMD check` were not run. No package code changed.
+
+The PR's original after-task note was expanded to include the source sync,
+checks, test limitations, issue search, consistency audit, and next action.
+No matching open issue was found; the issue tracker was left unchanged.
+
 # 2026-10-18: rebase #1513 onto main after #1504 merged
 
 Rebased `cursor/triage-i-mi` onto `e17921e9b` (#1504 squash-merged). Dropped
