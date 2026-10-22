@@ -187,6 +187,10 @@ test-logsigma-clamp.R	cran-lane	environment	runs	2
 test-logsigma-clamp.R	suggests-package	environment	runs	2
 test-lrt-boundary.R	cran-lane	environment	runs	1
 test-lrt-boundary.R	engine-drm-jl	environment	skips	2
+test-man-roxygen-sync.R	build-premise	build	skips	1
+test-man-roxygen-sync.R	cran-lane	environment	runs	1
+test-man-roxygen-sync.R	runtime-conditional	runtime	depends	1
+test-man-roxygen-sync.R	suggests-package	environment	runs	2
 test-mesh-contract.R	suggests-package	environment	runs	8
 test-mesh-helpers.R	suggests-package	environment	runs	5
 test-mesh-recovery-v3-contract.R	build-premise	build	skips	1

@@ -33,7 +33,7 @@ jobs:
   # on demand via workflow_dispatch -- e.g. before a CRAN submission, or to
   # exercise cross-OS portability of compiled TMB code on a specific branch.
   os-matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -56,7 +56,8 @@ jobs:
 
   R-CMD-check:
     needs: os-matrix
-    runs-on: ${{ matrix.config.os }}
+    # Keep public check names stable while selecting the known passing Linux image.
+    runs-on: ${{ matrix.config.os == 'ubuntu-latest' && 'ubuntu-24.04' || matrix.config.os }}
     # Measured, not guessed. Six completed ubuntu jobs on 2026-08-04 ran
     # 43m35s / 43m51s / 44m34s / 44m36s / 45m49s / 46m34s -- a ~44-47 min suite.
     # The former 45 was INSIDE that band, so runs were a coin flip: main itself was
@@ -270,7 +271,7 @@ jobs:
   # premise cannot quietly join the blind spot, and an existing one cannot
   # quietly leave the lane.
   source-tree-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: source-tree tests (blind spot)
     timeout-minutes: 45
 
