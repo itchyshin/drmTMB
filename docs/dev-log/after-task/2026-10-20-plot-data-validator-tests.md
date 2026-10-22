@@ -33,3 +33,14 @@ The new file: 0 failures, 0 skips, 124 passes. `test-env-skip-census.R`: 5 passe
 
 Characterisation only: the tests pass on main by design. No current behaviour
 looked like a bug.
+
+## 7. Post-review title correction (2026-10-22)
+
+The original `plot_corpairs_eye_data()` test title claimed symmetry in `z`, but
+the assertions checked empty input, row count, ordered bounds, requested eye
+height, group and colour. The title now describes those checks; no assertion or
+scientific scope changed. After this correction,
+`Rscript -e 'devtools::test(filter="plot-data-validators", reporter="summary")'`
+completed successfully on R 4.6.0. The focused run did not exercise the live
+Julia engine. Current test-file SHA-256:
+`da2a0b562c846510ef1679f4c3e3252c0deafba3a2bd3a169c9534a8ec46ad68`.

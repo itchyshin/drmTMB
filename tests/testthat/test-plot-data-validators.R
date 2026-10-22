@@ -224,7 +224,7 @@ test_that("plot_corpairs interval helpers keep only available finite rows", {
   expect_identical(nrow(drmTMB:::plot_corpairs_interval_data(no_interval)), 0L)
 })
 
-test_that("plot_corpairs_eye_data() is empty for no rows and symmetric in z", {
+test_that("plot_corpairs_eye_data() handles empty input and returns bounded rows with group and colour", {
   data <- drmTMB:::add_plot_corpairs_columns(
     new_validator_corpairs_table(),
     colour = "level",
