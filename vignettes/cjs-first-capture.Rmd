@@ -119,7 +119,7 @@ site_fit <- drm_cjs(
   phi_data = phi_data, p_data = p_data,
   terminal_constraint = list(phi = 0.82)
 )
-site_fit$random_effects$route
+coef(site_fit, process = "sd_phi")
 site_profile <- confint(
   site_fit, method = "profile", parm = c("phi:(Intercept)", "sd:phi")
 )
@@ -173,8 +173,7 @@ individual_profile <- confint(
 )
 attr(individual_profile, "target_status")
 c(convergence = individual_fit$convergence,
-  gradient_norm = individual_fit$gradient_norm,
-  integration_status = individual_fit$random_effects$integration$status)
+  gradient_norm = individual_fit$gradient_norm)
 pred_individual <- predict(individual_fit, target = "integrated")
 head(pred_individual$phi[c("id", "interval_start", "phi_unit", "phi_interval")])
 sim_individual <- simulate(individual_fit, nsim = 1L, seed = 8103)[[1L]]
@@ -343,7 +342,6 @@ selected_profile <- confint(
   parm = c("phi:(Intercept)", "sd_phi:(Intercept)", "sd_p:(Intercept)")
 )
 attr(selected_profile, "target_status")
-selected_fit$random_effects$integration$status
 attr(pred_selected, "prediction")$target
 head(pred_selected$p[c("id", "occasion", "p")])
 sim_selected <- simulate(selected_fit, nsim = 1L, seed = 8105L)[[1L]]
