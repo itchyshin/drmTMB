@@ -1,3 +1,22 @@
+# 2026-10-22: fit-free tests for phylogenetic penalty helpers (#1601)
+
+Synced PR head `6af76a98a86c6db7c757e256147548a4c82cf77f` with live `main`
+`7820315cc904358edbf3635515ebd3a73dbb7f31` in an isolated clone. The merge
+completed without conflict; the test file remained unchanged (Git blob
+`a2a8f08ad5c8309da60fce6406940121f9eb9236`, SHA-256
+`f514b2031745d15392082fc6b08751c2fe8cb79b99f309567f5f674369238e71`).
+
+Focused fit-free check on the synced source: `Rscript -e
+'devtools::test(filter = "phylo-penalty-spec", reporter = "summary")'`
+under R 4.6.0 / macOS Tahoe 26.7.1 / ARM64 completed with 63 successful
+expectations and no failures. No fits were run. The PR's earlier 75-pass
+`filter = "penalty"` result was not rerun and remains historical. Full package
+tests and `R CMD check` were not run. No package code changed.
+
+The PR's original after-task note was expanded to include the source sync,
+checks, test limitations, issue search, consistency audit, and next action.
+No matching open issue was found; the issue tracker was left unchanged.
+
 # 2026-10-22: closeout record for #1604 / issue #1592
 
 PR #1604 (`d4885b8ad50f4847c8f3970b7fbad37235f1ab8f`) was squash-merged as
@@ -95253,3 +95272,5 @@ Closeout report:
 | 2026-09-24 | Sparse Quaas A-inverse for `animal()` pedigrees (#740) | `test-pedigree-sparse-ainv.R` 6 pass/0 fail; `test-animal-relmat-gaussian.R` 479 pass/0 fail; identity vs `chol2inv(chol(A))` < 1e-6 at n in {250,500,1000,2000,4000}; stored nonzeros 16,000,000 -> 27,830 at n=4000 | PASS; no fit-level wall-time claim made (needs a large-n animal cell) | Cursor / Shannon |
 
 | 2026-10-19 | man/*.Rd vs roxygen sync (#1571) | `document()` rewrote 39 Rd files before, 0 after; `test-man-roxygen-sync.R` fails pre-fix, passes post-fix | PASS | Claude |
+
+| 2026-10-22 | Direct Gaussian aggregation helper tests (#1598) | `devtools::test(filter = "gaussian-aggregation")`: PASS 136, FAIL 0, WARN 0, SKIP 0; PR test source SHA-256 unchanged | Focused tests PASS; full package and Julia engine checks not run | Codex |
