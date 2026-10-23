@@ -24,7 +24,7 @@
 #' response-scale value for each supplied row. Row-specific `rho12` profile
 #' intervals from a regression `rho12` formula are computable this way, but no
 #' simulation has measured their coverage; treat them as interval-feasible,
-#' not as a calibrated `level` interval (tracked as issue #802).
+#' not as calibrated `level` intervals.
 #'
 #' Modelled missing-predictor bootstrap is not yet implemented: it requires
 #' joint predictor simulation and refits that preserve the imputation model and
@@ -211,9 +211,9 @@
 #'     that interval as indicative of scale, not as a calibrated
 #'     \code{level} interval (see Boundary intervals below).
 #'   \item A computable interval is not coverage certification. Check the
-#'     exact cell in
+#' exact model and parameter combination in
 #'     \href{https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html}{Capabilities and limits}
-#'     before reporting a route as inference-ready.
+#' before reporting its intervals as coverage-validated.
 #' }
 #'
 #' For a short applied walkthrough, see the vignette
@@ -231,13 +231,13 @@
 #' `method = "profile"` sets `profile.boundary = TRUE` and warns (class
 #' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
 #' reaches a boundary. **A profile interval is not a repair for a boundary.**
-#' Conditional on that flag, a seeded 10-group random-effect SD gate measured
+#' Conditional on that flag, a seeded 10-group random-effect SD simulation measured
 #' coverage at 0.1021, 0.2387, and 0.8683 against a nominal 0.95, and 0 of 89 in a
-#' fourth cell where boundary hits are rare (0.09% of fits). The mechanism is a
+#' fourth scenario where boundary hits are rare (0.09% of fits). The mechanism is a
 #' maximum likelihood random-effect SD biased 8.3%-15.8% low at small group counts,
 #' which anchors the interval low so that it misses from above.
 #'
-#' Unconditionally -- across all fits, flagged or not -- the same gate measured
+#' Unconditionally -- across all fits, flagged or not -- the same simulation measured
 #' 0.9248 against a nominal 0.95 over 400,000 attempts. A flagged interval is the
 #' bad case, not the typical one, and the flag is returned in the table so you can
 #' tell which case you are in.
@@ -289,16 +289,16 @@
 #' `relmat()`, `spatial()`, or `phylo_interaction()` is computable for
 #' `zero_one_beta()`, `nbinom2()`, and `zi_nbinom2()`, but the maximum
 #' likelihood point estimate it is built around is **biased low** for this
-#' class of cell: eleven of twelve retained ML estimates fell below truth in
-#' the sibling `nbinom2` provider cells (fit-level one-sided sign test
-#' `p = 0.0032`; `p = 0.0625` at cell level, once the shared data-generating
+#' model class: eleven of twelve retained ML estimates fell below truth in
+#' the sibling `nbinom2` provider scenarios (fit-level one-sided sign test
+#' `p = 0.0032`; `p = 0.0625` at scenario level, once the shared data-generating
 #' process and random-number stream are respected). Two corrections that exist
 #' elsewhere for this bias do not reach these routes: `bias_correct` shifts
 #' only the `method = "wald"` centre and never a profile endpoint, and native
 #' scale-side REML is unavailable here because `drm_validate_reml_spec()`
 #' admits only Gaussian and binomial models. The profile interval therefore
-#' inherits the bias of its centre uncorrected. These routes carry point-fit
-#' recovery evidence only, and no seeded campaign has yet measured the
+#' inherits the bias of its centre uncorrected. Only point-estimate recovery has
+#' been checked for these routes, and no simulation study has yet measured the
 #' coverage of a profile interval built on them, so treat the endpoints as a
 #' computed profile rather than calibrated inference.
 #'
@@ -338,10 +338,9 @@
 #' not derived: the `log(g / (g - 1))` SD-scale centre
 #' shift is about **twice** the leading-order REML SD correction
 #' (`0.5 * log(g / (g - 1))`), matching the larger ML shrinkage measured on these
-#' structured/bivariate cells (their effective df is well below `g - 1`). The
-#' magnitude's authority is the per-model-class simulation in
-#' `docs/design/219-structured-re-small-sample-bias-correction.md`, not a single
-#' source. Relevant references:
+#' structured/bivariate models (their effective df is well below `g - 1`). The
+#' magnitude used here comes from separate simulations for each structured or
+#' bivariate model class, not from a single general correction. Relevant references:
 #'
 #' Restricted maximum likelihood and the variance-component bias that motivates
 #' the centre shift (REML debiases the variance by `g/(g-1)`; the shift here is on
@@ -408,11 +407,11 @@
 #' Wolak, M. E., Fairbairn, D. J., & Paulsen, Y. R. (2012). Guidelines for
 #' estimating repeatability. Methods in Ecology and Evolution, 3(1), 129-137.
 #' \doi{10.1111/j.2041-210X.2011.00125.x}
-#' @seealso The tier definitions and per-cell evidence behind these interval
-#'   targets, including random-effect standard-deviation rows, are curated in
-#'   \code{vignette("capability-and-limits", package = "drmTMB")}: `confint()`
-#'   computes generically for any target, and the tier a given cell belongs to
-#'   is a documentation-level curation, not a runtime guard.
+#' @seealso The model-specific evidence behind these interval targets, including
+#'   random-effect standard-deviation rows, is summarized in
+#'   \code{vignette("capability-and-limits", package = "drmTMB")}. `confint()`
+#'   can compute intervals for targets whose coverage has not been measured, so a
+#'   successful computation is not by itself evidence of calibrated coverage.
 #' @export
 confint.drmTMB <- function(
   object,
@@ -3781,12 +3780,7 @@ drm_profile_endpoint_result <- function(
   nll_hat <- unname(object$opt$objective)
   cutoff <- stats::qchisq(level, df = 1) / 2
   curvature_se <- profile_endpoint_curvature_se(object, position)
-  control <- if (is.list(object$control) && is.list(object$control$optimizer)) {
-    object$control$optimizer
-  } else {
-    list()
-  }
-  control <- profile_endpoint_inner_control(control)
+  control <- profile_endpoint_inner_control(profile_fit_nlminb_control(object))
 
   endpoint_worker <- function(direction) {
     evaluator <- profile_endpoint_evaluator(
@@ -3971,8 +3965,7 @@ drm_profile_ordinal_cutpoint_confint <- function(object, target, level) {
     ))
   }
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
-  control <- if (is.list(object$control) && is.list(object$control$optimizer)) object$control$optimizer else list()
-  control <- profile_endpoint_inner_control(control)
+  control <- profile_endpoint_inner_control(profile_fit_nlminb_control(object))
   evaluator <- ordinal_cutpoint_profile_evaluator(object, target, control)
   cutoff <- stats::qchisq(level, df = 1) / 2
   nll_hat <- unname(object$opt$objective)
@@ -4078,6 +4071,21 @@ PROFILE_ENDPOINT_GRADIENT_TOL <- 1e-3
 # caller's (possibly speed-tuned) iteration budget: keep any tolerances but use a
 # generous iteration/evaluation budget so profile-CI reliability does not depend
 # on the original fit's iter.max / eval.max choice (issue #710.5).
+# Constrained profile solves use nlminb independently of the outer fit's
+# method. An optim control list cannot be forwarded to those solves. Legacy
+# fitted objects without optimizer_method retain their nlminb controls.
+profile_fit_nlminb_control <- function(object) {
+  control <- object$control
+  if (!is.list(control) || !is.list(control$optimizer)) {
+    return(list())
+  }
+  method <- control$optimizer_method
+  if (!is.null(method) && !identical(method, "nlminb")) {
+    return(list())
+  }
+  control$optimizer
+}
+
 profile_endpoint_inner_control <- function(control) {
   if (!is.list(control)) {
     control <- list()
@@ -4622,7 +4630,26 @@ drm_profile_direct_sd_clamp_trace <- function(object, profile) {
 
 drm_tmbprofile_confint <- function(profile, target_name, level) {
   tryCatch(
-    stats::confint(profile, level = level),
+    {
+      if (!inherits(profile, "tmbprofile")) {
+        return(stats::confint(profile, level = level))
+      }
+      # Invert each side of the profile separately. Equal objective values
+      # have the same mean aggregation used by TMB's confint method; naming
+      # ties explicitly prevents approx() from warning about that choice.
+      # Preserve TMB's first-minimum split: only the left side includes it.
+      minimum <- which.min(profile$value)
+      cutoff <- profile$value[[minimum]] + stats::qchisq(level, df = 1) / 2
+      rows <- seq_len(nrow(profile))
+      sides <- list(lower = rows[rows <= minimum], upper = rows[rows > minimum])
+      endpoints <- vapply(sides, function(index) {
+        stats::approx(
+          x = profile$value[index], y = profile[[1L]][index],
+          xout = cutoff, ties = mean
+        )$y
+      }, numeric(1))
+      matrix(endpoints, nrow = 1L, dimnames = list(names(profile)[[1L]], names(sides)))
+    },
     error = function(err) {
       cli::cli_abort(
         c(

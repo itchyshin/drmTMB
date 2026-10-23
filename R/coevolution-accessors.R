@@ -28,8 +28,7 @@
 #' location-scale model whose four axes `mu1`, `mu2`, `sigma1`, `sigma2` share
 #' one structured random effect (`phylo()`, `animal()`, `relmat()`, or
 #' `spatial()`) with a dense 4 x 4 among-axis covariance `Sigma_a`. They are
-#' ported term-for-term from `DRM.jl`'s `src/coevo_accessors.jl` (#1118) and
-#' return the same quantities:
+#' defined for the following quantities:
 #'
 #' * `coevolution_cor()`: the 4 x 4 among-axis **correlation** matrix
 #'   `R = D^{-1/2} Sigma_a D^{-1/2}`. Its off-diagonals are the coevolutionary
