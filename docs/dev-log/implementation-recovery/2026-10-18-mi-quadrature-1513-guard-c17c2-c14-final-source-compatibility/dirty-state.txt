@@ -1,0 +1,11 @@
+M NEWS.md
+M R/drmTMB.R
+M R/mi-weights.R
+M docs/design/03-likelihoods.md
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/dirty-state.txt
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/provenance.tsv
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/raw-attempts.tsv
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/summary.tsv
+M docs/dev-log/known-limitations.md
+M inst/extdata/env-skip-census.tsv
+M tests/testthat/test-mi-quadrature-1476-1477.R
