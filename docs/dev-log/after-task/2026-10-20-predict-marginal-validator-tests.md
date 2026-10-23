@@ -1,81 +1,52 @@
 # After task: predict/marginal validator tests
 
-## Task goal
+## 1. Goal
 
-Add direct, fit-free characterization tests for the argument validators and
-plain-vector helpers used by `predict_parameters()` and
-`marginal_parameters()`. Keep the tests separate from the fitted-model paths.
+Refresh the local PR #1606 candidate onto current `main`, verify its fit-free validator tests, and record the exact tested source without changing product code.
 
-## Files created or changed
+## 2. Implemented
 
-- `tests/testthat/test-predict-marginal-parameter-validators.R` adds the
-  characterization tests. This file is unchanged by the documentation follow-up.
+Created worktree `/private/tmp/drmtmb-pr1606-current-main-20261022` on `codex/pr1606-current-main-20261022` from PR head `0e1a847ec3f89b105d1622791b2bc1b24ad806a9`, then merged `review/main` at `2fb93b768977330fc9939d86375c37329a539277`. The merge had no conflicts. Updated the check log and this report to identify local test results and remaining limits.
+
+## 3a. Decisions and Rejected Alternatives
+
+Kept the PR test-only. No production, API, or capability claim changed. This task did not authorize a push, review-state change, or merge on GitHub, so the candidate remains local and the PR remains draft.
+
+## 4. Files Touched
+
+- `docs/dev-log/after-task/2026-10-20-predict-marginal-validator-tests.md`
 - `docs/dev-log/check-log.d/2026-10-22-predict-marginal-validator-tests.md`
-  records the focused result without adding another row to the shared log.
-- This after-task report records scope, evidence, and remaining limits.
 
-## Checks run and exact outcomes
+The PR's added test file was unchanged by this refresh.
 
-- `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::load_all(); testthat::test_file("tests/testthat/test-predict-marginal-parameter-validators.R")'`
-  on the rebased local tree based on current main
-  `f9bff01b5f3bbbc424402b73d67084dd446d9ff8`: **FAIL 0, WARN 0, SKIP 0,
-  PASS 114**. `devtools::load_all()` rebuilt the debug library and clang emitted
-  12 compiler warnings; testthat reported no warnings.
-- The six CI checks reported on the original PR head `5254d9f56bca18527f86b1f105a1f17958ed7f8b`
-  were all successful (`os-matrix`, `source-tree tests (blind spot)`, and
-  Ubuntu release shards 1–4). They predate the rebase onto current `main`; the
-  updated branch needs fresh exact-head CI after it is pushed.
-- Full `devtools::test()`, `R CMD check`, and helpers requiring a fitted model
-  were not run.
+## 5. Checks Run
 
-## Consistency audit
+On merged source `a40b66c7905d92972ee7365fc63dcdaf1f0a29c9`, `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 R_PROFILE_USER=/dev/null Rscript -e 'devtools::load_all(); testthat::test_file("tests/testthat/test-predict-marginal-parameter-validators.R")'` passed: 114 pass, 0 fail, 0 warnings, 0 skips. Debug compilation emitted 12 compiler warnings. `capability_ledger.py --check` passed with 31 generated outputs; C14 receipt equivalence passed with 3 eligible and 7 retained source-different receipts; `tools.tests.test_capability_ledger` passed all 81 tests; `git diff --check` passed. The report-only refresh changes no R or C++ source.
 
-Compared the assertions with the current-main definitions in
-`R/predict-parameters.R` and `R/marginal-parameters.R`. The expected validator
-errors, reserved output-name prefixes, link/response averaging rules, clamp
-band boundaries, row-wise standard errors, and unavailable-interval fields
-match those definitions. The change does not alter package code, public API,
-formula grammar, or user-facing capability claims, so the status inventory,
-design docs, and pkgdown navigation do not need updates.
+## 6. Tests of the Tests
 
-## Tests of the tests
+The test file checks validator return values and errors, reserved output names, averaging scales, clamp-band flags, row-wise link standard errors, and unavailable-interval output. `predict_parameters_clamp_bent()` uses a minimal stand-in object; no model fit is constructed.
 
-The focused run after rebasing onto current main exercised all 114 expectations and reported no failures,
-warnings, or skips. The tests assert returned values and error messages as well
-as helper output shape. `predict_parameters_clamp_bent()` uses a minimal
-stand-in object; no model fit is constructed. The tests do not claim coverage
-of helpers that require fitted objects.
+## 7a. Issue Ledger
 
-## What did not go smoothly
+PR #1606 has no linked issue. No issue state changed.
 
-The focused run rebuilt the debug library and emitted 12 compiler warnings
-from existing C++ dependencies/source; none became testthat warnings. Rebasing
-onto current `main` had one expected conflict in the shared check log. I kept
-the main-branch content and moved this PR's evidence to its per-slice record.
+## 8. Consistency Audit
 
-## Team learning and process improvements
+Spot-checked the assertions against the helper definitions in `R/predict-parameters.R` and `R/marginal-parameters.R`. The test-only change does not alter model or API design, so no design-doc or pkgdown update is needed.
 
-Small, pure helpers can be characterized without repeated model fits. Keep the
-test report explicit about which helpers use stand-ins and which fitted-model
-paths remain outside the test.
+## 9. What Did Not Go Smoothly
 
-## Design-doc updates
+The debug build emitted 12 compiler warnings from existing sources and dependencies. They did not appear as testthat warnings. The local merge itself was conflict-free.
 
-None. This is a test-only change and does not change model or API design.
+## 10. Known Residuals
 
-## pkgdown and documentation updates
+The full package suite, `R CMD check`, and fit-dependent helper paths were not run. The earlier PR-head workflow run `39854055897` had four successful checks and two cancelled Ubuntu shards; it does not validate merged source `a40b66c`. No fresh exact-head CI exists because this candidate was not pushed.
 
-No user-facing documentation or pkgdown navigation changed. The check log and
-this report are the developer records for the test addition.
+## 11. Team Learning
 
-## GitHub issue maintenance
+Fit-free tests can check pure helper contracts without model fitting. Keep their report explicit about stand-ins and untested fit-dependent paths.
 
-The PR has no linked issue. An open-issue search for
-`predict_parameters marginal_parameters` returned no matches; the issue tracker
-was left unchanged.
+## 12. Cross-Product Coverage
 
-## Known limitations and next actions
-
-The full test suite and `R CMD check` remain unrun, and fit-requiring helpers
-remain uncovered here. Push this synchronized update and check the new
-exact-head CI before promoting the PR from draft or merging it.
+This task does NOT cover model fitting, fit-dependent prediction helpers, the full package suite, `R CMD check`, GitHub CI for the merged candidate, or interval calibration. It makes no model-recovery or coverage claim.
