@@ -382,6 +382,19 @@ NEWS, check-log, and a stale C17 TSV. Intermediate C17 receipt commits
 were skipped and recertified once as `2026-10-18-pr1503-rebase`
 (`--tolerance 1e-10`; worst `|change|` 1.264e-12).
 
+# 2026-10-23: merge main into #1503
+
+Merged `origin/main` into `cursor/triage-d-silent-inputs`. Conflicts were
+`R/drmTMB.R` (`drm_newton_polish()` now has main's `trust_radius` and
+`max_backtrack` arguments, with this PR's `DRM_NEWTON_GRAD_TOL` default and
+`DRM_GRADIENT_STEP_TOL`), this log (both entries kept), and the C17 TSV
+pointer. C17 was recertified once on the merged tree as `res1503b`
+(`--tolerance 1e-10`; `|change|` 0 on mc-0568/0569/0576).
+Totoro `test_file()`: factor-response 31, fit-convergence-warning 52,
+quantile-residual-nonfinite 24, adequacy 23, phase18-sim-runner 76,
+newton-polish-guard 9 (1 skip), optimizer-tolerance 12, optimizer-selection
+234; 0 failures.
+
 # 2026-10-18 — rebase #1506 onto main `d89db5097`
 
 Rebased `claude/lane-f-docs-tutorials` onto current main. Conflict was
