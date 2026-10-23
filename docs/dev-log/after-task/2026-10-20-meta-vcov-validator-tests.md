@@ -24,12 +24,12 @@ For study `i`, the sampling block is `[[v1[i], cov12[i]], [cov12[i], v2[i]]]`. W
 
 ## 5. Checks Run
 
-- The local candidate is merge commit `cf067c380f977fccd326f33bb29f3c5fe1c665d4`, with parents PR head `753230efab6f22b5fa047d924f466f8f51fd7b84` and exact `review/main` commit `2fb93b768977330fc9939d86375c37329a539277`. The merge completed without conflicts.
+- The candidate includes merge commit `cf067c380f977fccd326f33bb29f3c5fe1c665d4`, which joins the earlier PR head `753230efab6f22b5fa047d924f466f8f51fd7b84` to exact `main` commit `2fb93b768977330fc9939d86375c37329a539277`. The current PR head is `ef77e158ae485075b93c7e7423d5064fe54a909c`; it changes only this report and the per-slice check-log relative to `cf067c3`. The test and package source are unchanged.
 - `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::test(filter = "meta-vcov")'`: 94 passed, 0 failed, 0 warnings, 0 skips. This runs both `test-meta-vcov-validators.R` and `test-meta-vcov.R` on the merged candidate.
 - `python3 tools/capability_ledger.py --check`: passed (31 generated outputs).
 - `python3 -m unittest tools.tests.test_capability_ledger`: 81 tests passed; C14 receipt equivalence passed (3 eligible, 7 source-different receipts retained).
 - `git diff --check review/main...HEAD` and `git diff --check`: passed.
-- GitHub run `39855947658` belongs to the old PR head `753230ef...`, not this local candidate. It completed as cancelled: release shards 3/4 and 4/4 succeeded; shards 1/4 and 2/4 and the source-tree job were cancelled. The combined commit status had no statuses. The local candidate has no GitHub CI result.
+- GitHub run `39887324310` completed successfully on exact PR head `ef77e158ae485075b93c7e7423d5064fe54a909c`: the OS matrix, source-tree test, and all four Ubuntu release shards passed. The focused local test was rerun on this tree: 94 passed, 0 failed, 0 warnings, 0 skips.
 - Full package tests and a fresh `R CMD check` were not run locally. Julia tests are outside this R helper-test change.
 
 ## 6. Tests of the Tests
@@ -50,7 +50,7 @@ The PR branch was 30 commits behind current `main`. Merging the exact reviewed `
 
 ## 10. Known Residuals
 
-These tests characterize current validators; they do not establish full-package health or change validation policy. The tested merge candidate `cf067c3` and the report-only closeout update remain local. The remote PR remains draft at head `753230ef...`; its only retrieved workflow run was cancelled and does not validate the local merge candidate. Full package tests, a fresh `R CMD check`, and exact-candidate GitHub CI remain outstanding.
+These tests characterize current validators; they do not establish a validation-policy change. The tested PR tree is at `ef77e158...`; the implementation and test file match the focused test run, and the only later changes from `cf067c3` are these evidence records. GitHub run `39887324310` completed successfully on that exact head, with all six jobs passing. The PR remains draft; no merge or release claim is made.
 
 ## 11. Team Learning
 
@@ -62,4 +62,4 @@ This change covers the native R `meta-vcov` tests and validators. It does NOT co
 
 ## Next Actions
 
-The isolated candidate is on local branch `codex/pr1600-main-sync-20261022`. Its tested implementation tree is merge commit `cf067c380f977fccd326f33bb29f3c5fe1c665d4`, followed only by these source-bound report and check-log updates. No push, ready-for-review transition, or PR merge was performed. Any next PR action requires review of this local candidate and green exact-head checks.
+The isolated candidate is on local branch `codex/refresh-pr1600`. Its tested implementation tree includes merge commit `cf067c380f977fccd326f33bb29f3c5fe1c665d4`, followed only by evidence-file updates. Run `39887324310` passed all six jobs on the prior exact PR head `ef77e158...`. No push, ready-for-review transition, or PR merge was performed. The refreshed evidence records require a new exact-head run before considering merge.
