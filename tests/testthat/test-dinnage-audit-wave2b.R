@@ -42,7 +42,7 @@ test_that("M4: simulate() masks missing-response rows instead of leaking the sen
     fit <- new_masked_family_fit(family_name)
     observed_y <- fit$missing_data$observed_y
     expect_true(any(!observed_y), info = family_name)
-    sims <- stats::simulate(fit, nsim = 3L, seed = 20260913, re.form = NA)
+    sims <- stats::simulate(fit, nsim = 3L, seed = 20260913, re.form = NULL)
     expect_true(
       all(is.na(as.matrix(sims[!observed_y, , drop = FALSE]))),
       info = family_name
@@ -72,7 +72,7 @@ test_that("M4: the already-correct beta_binomial branch still masks", {
     missing = miss_control(response = "include")
   )
   observed_y <- fit$missing_data$observed_y
-  sims <- stats::simulate(fit, nsim = 2L, seed = 20260913, re.form = NA)
+  sims <- stats::simulate(fit, nsim = 2L, seed = 20260913, re.form = NULL)
   expect_true(all(is.na(as.matrix(sims[!observed_y, , drop = FALSE]))))
 })
 

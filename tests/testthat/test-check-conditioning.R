@@ -190,7 +190,7 @@ test_that("check_drm() reports a stable, non-warning hessian_conditioning row fo
   # positive, so the implied minimum Hessian eigenvalue is a stable,
   # reproducible tiny positive number (not roundoff-noisy), and the huge
   # (but now reliable) condition number correctly earns a "note", never a
-  # "warning". attr(ck, "ok") stays TRUE because "note" does not flip it.
+  # "warning". Other diagnostic rows may still warn about rank deficiency.
   set.seed(1)
   n <- 200
   x <- stats::rnorm(n)
@@ -218,8 +218,13 @@ test_that("check_drm() reports a stable, non-warning hessian_conditioning row fo
   expect_equal(nrow(row), 1L)
   expect_true(row$status %in% c("ok", "note"))
   expect_match(row$value, "^min_eig=0\\.0")
-  expect_true(attr(chk, "ok"))
-  expect_true(all(chk$status != "warning"))
+  # Grade only the Hessian rows this test is about (#1521 item 3). The
+  # 1e-9 collinearity is also a genuine rank deficiency at the design-rank
+  # tolerance (1e-8), so `fixed_effect_rank_deficiency` correctly warns
+  # whenever this branch runs (macOS ARM: pdHess = TRUE), and a global
+  # "no warning anywhere" assertion failed there for that unrelated row.
+  hessian_rows <- chk[chk$check %in% c("hessian", "hessian_conditioning"), ]
+  expect_true(all(hessian_rows$status %in% c("ok", "note")))
   expect_true(all(chk$status != "error"))
 })
 

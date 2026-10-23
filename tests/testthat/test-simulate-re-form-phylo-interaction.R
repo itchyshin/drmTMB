@@ -1,4 +1,4 @@
-# `simulate.drmTMB(..., re.form = NULL)` for a `phylo_interaction()` q == 1
+# `simulate.drmTMB(..., re.form = NA)` for a `phylo_interaction()` q == 1
 # structured mu random effect -- Arc A2.
 #
 # `phylo_interaction()` shares the same q == 1 structured-mu marginal-draw
@@ -102,7 +102,7 @@ test_that("marginal simulation no longer aborts for a q1 phylo_interaction fit",
   expect_equal(fit$model$structured$phylo_mu$q, 1L)
 
   expect_no_error(simulate(fit, nsim = 2, seed = 1))
-  expect_no_error(simulate(fit, nsim = 2, seed = 1, re.form = NULL))
+  expect_no_error(simulate(fit, nsim = 2, seed = 1, re.form = NA))
 })
 
 test_that("phylo_interaction marginal simulation redraws a fresh pair effect per replicate", {
@@ -111,8 +111,8 @@ test_that("phylo_interaction marginal simulation redraws a fresh pair effect per
   pair_id <- paste0(built$data$plant, ":", built$data$pollinator)
 
   nsim <- 200
-  sims_marg <- simulate(fit, nsim = nsim, seed = 7, re.form = NULL)
-  sims_cond <- simulate(fit, nsim = nsim, seed = 7, re.form = NA)
+  sims_marg <- simulate(fit, nsim = nsim, seed = 7, re.form = NA)
+  sims_cond <- simulate(fit, nsim = nsim, seed = 7, re.form = NULL)
 
   pair_means_marg <- vapply(sims_marg, function(col) {
     tapply(col, pair_id, mean)[[1L]]
@@ -169,7 +169,7 @@ test_that("marginal bootstrap intervals work for a q1 phylo_interaction fit", {
     method = "bootstrap",
     R = 25L,
     seed = 42L,
-    bootstrap_re_form = NULL,   # marginal: the new default
+    bootstrap_re_form = NA,   # marginal: the new default
     refit_control = drm_control(se = FALSE)
   )
   expect_s3_class(ci, "data.frame")

@@ -140,3 +140,33 @@ test_that("a fitted drmTMB object carries the provenance stamp", {
   )
   expect_identical(rec$package_version, as.character(utils::packageVersion("drmTMB")))
 })
+
+test_that("configure.win is a POSIX sh script that bakes the provenance DCF", {
+  # R CMD INSTALL on Windows runs configure.win with the Rtools `sh`, not with
+  # cmd.exe. A batch-file configure.win (`@echo off`, `REM`) made every
+  # Windows source install fail with "configuration failed for package".
+  src_root <- testthat::test_path("..", "..")
+  win <- file.path(src_root, "configure.win")
+  unix <- file.path(src_root, "configure")
+  testthat::skip_if_not(file.exists(win) && file.exists(unix), "requires the source tree")
+  sh <- Sys.which("sh")
+  testthat::skip_if(!nzchar(sh), "requires sh")
+
+  first <- readLines(win, n = 1L, warn = FALSE)
+  expect_identical(first, "#!/bin/sh")
+  expect_false(any(grepl(
+    "^\\s*(@echo|REM\\b|setlocal|goto|call :)",
+    readLines(win, warn = FALSE),
+    ignore.case = TRUE
+  )))
+  expect_identical(system2(sh, c("-n", shQuote(win)), stdout = FALSE, stderr = FALSE), 0L)
+
+  scratch <- withr::local_tempdir()
+  file.copy(c(win, unix), scratch)
+  status <- withr::with_dir(scratch, system2(sh, "configure.win", stdout = FALSE, stderr = FALSE))
+  expect_identical(status, 0L)
+  dcf <- read.dcf(file.path(scratch, "inst", "build-provenance.dcf"))
+  expect_identical(colnames(dcf), c("GitSHA", "GitDirty", "GitReason", "BuildTimeUTC"))
+  expect_identical(unname(dcf[1, "GitSHA"]), "NA")
+  expect_match(unname(dcf[1, "GitReason"]), "no .git directory|git executable not found")
+})
