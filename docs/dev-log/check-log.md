@@ -382,6 +382,14 @@ check-log only. `R/drmTMB.R` and `R/methods.R` were not touched, so C17
 was not recertified. Full `testthat::test_dir()` on `a59a66be8`:
 passed=44952 failed=81 error=213 skipped=241 warning=20.
 
+# 2026-10-18 — rebase #1506 onto main `d89db5097`
+
+Rebased `claude/lane-f-docs-tutorials` onto current main. Conflict was
+check-log only. Docs-only; C17 not recertified. `capability_ledger.py --check`
+passed after rebase. Full `testthat::test_dir()` on `40f1243cd`: passed=46028
+failed=82 error=224 skipped=105 warning=30 (same env-only Julia/Suggests
+band as the other 2026-10-18 rebases).
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
@@ -400,6 +408,15 @@ so `bootstrap.n + bootstrap.failed` still equals `R`. Follow-up to merged
 (`R/drmTMB.R` and `R/methods.R` untouched). `R/julia-bridge.R` untouched.
 
 Report: `docs/dev-log/after-task/2026-10-11-dead-forked-worker.md`.
+
+# 2026-10-11: rebase #1506 onto main after #1507/#1527
+
+Rebased `claude/lane-f-docs-tutorials` onto `6beb1f2a0`. Docs only; no C17.
+`large-data.Rmd` kept main's Windows `parallel = "cluster"` sentence and the
+lane-F multicore-abort / serial example, then named cluster as the Windows
+worker backend so the two notes do not contradict. Tests: `capability_ledger.py
+--check` OK; `tools/check-reader-contracts.R` OK; `test-release-identity.R`
+20 pass; `test-reader-vignette-contracts.R` 35 pass.
 
 # 2026-10-11: parallel lane follow-up (PSOCK cluster, parallel multi-start, bootstrap shards)
 
