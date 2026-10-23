@@ -1,5 +1,14 @@
 # drmTMB (development)
 
+## New features
+
+* `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
+  check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
+  the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
+  tolerance was only reachable via the internal `validate_phylo_tree()` and
+  a tree that missed it by a negligible margin had no override short of
+  editing the tree itself (#1158).
+
 ## Documentation fixes
 
 * `?phylo` now correctly describes the existing unit-height convention:
@@ -9,6 +18,14 @@
   the earlier claim of preserving the supplied absolute branch-length scale;
   no fitting behavior or numerical default changed (Ayumi-495/
   LS_ecogeographical-rules#49).
+
+* `?heritability` no longer describes the `heritability()`/`icc()`/
+  `repeatability()` point estimate as "relative to a denominator on the
+  working (log-SD) scale". The estimate is a variance-share ratio in
+  `[0, 1]` on the natural (variance) scale; only its standard error and
+  confidence interval use a delta method on the working (log-SD) scale, as
+  the next paragraph already said. The computation itself was already
+  correct (verified numerically); only the description was wrong (#1231).
 
 ## Bug fixes
 
@@ -94,6 +111,12 @@
 * Multicore profile workers that error now abort `confint()` and `profile()`
   with the worker's error, as the serial path does, instead of returning a
   `try-error` element.
+* Retained bootstrap shards now record a forked worker that dies without a
+  result as a `worker_died` attempt instead of silently dropping the
+  replicate, as `confint(method = "bootstrap")` does. Replicates queued on
+  the same worker are recorded the same way. The shard ledger gains a
+  `worker_died` count, so usable plus failed refits still equal the
+  replicates attempted, also after shards are combined (#1537).
 * `configure.win` is now a POSIX shell script that runs `./configure`.
   R CMD INSTALL runs `configure.win` with the Rtools `sh`, so the previous
   cmd batch file failed at `@echo: command not found` and stopped every
@@ -159,6 +182,16 @@
   when a modelled column contains `NA` instead of sending it to Julia.
   The main bridge records how many rows it dropped, and `check_drm()`
   reports that count. `response = "include"` is unchanged.
+
+* `drm_newton_polish()` (the default `newton_polish = TRUE` post-fit polish)
+  now caps its Newton step to a trust radius and backtracks (halving, up to
+  a few times) before falling back to the unpolished optimum, instead of
+  taking an unguarded full step. On a Tweedie fixture with a tiny response
+  (`y = 0.01`), the previous unguarded step moved `beta_sigma` from -6.35 to
+  -23.6 and `beta_nu` from 2.44 to -24.4 -- into a region where TMB's
+  `dtweedie` bound-search loops for roughly 1e9 iterations, hanging the fit
+  indefinitely. Behaviour on well-conditioned fits, where the step never
+  approaches the trust radius, is unchanged (#1441).
 
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
