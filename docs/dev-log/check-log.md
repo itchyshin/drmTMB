@@ -439,6 +439,14 @@ allow-lists in `test-profile-targets.R`, `test-julia-inference.R`, and
 Targeted tests: `test-silent-input-drops.R` 5/5 pass;
 `test-gamma-location-scale.R` 7/7; `test-biv-lognormal.R` 6/6.
 
+# 2026-10-18 — rebase #1506 onto main `d89db5097`
+
+Rebased `claude/lane-f-docs-tutorials` onto current main. Conflict was
+check-log only. Docs-only; C17 not recertified. `capability_ledger.py --check`
+passed after rebase. Full `testthat::test_dir()` on `40f1243cd`: passed=46028
+failed=82 error=224 skipped=105 warning=30 (same env-only Julia/Suggests
+band as the other 2026-10-18 rebases).
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
@@ -447,6 +455,15 @@ receipt commits were skipped and recertified once at the end:
 |change| 0 on mc-0568/0569/0576. Touched tests: unused-dots + miss-control +
 predict-character + relmat-numeric 51 pass; `test-simulate-re-form.R` 22 pass
 via pkgload.
+
+# 2026-10-11: rebase #1506 onto main after #1507/#1527
+
+Rebased `claude/lane-f-docs-tutorials` onto `6beb1f2a0`. Docs only; no C17.
+`large-data.Rmd` kept main's Windows `parallel = "cluster"` sentence and the
+lane-F multicore-abort / serial example, then named cluster as the Windows
+worker backend so the two notes do not contradict. Tests: `capability_ledger.py
+--check` OK; `tools/check-reader-contracts.R` OK; `test-release-identity.R`
+20 pass; `test-reader-vignette-contracts.R` 35 pass.
 
 # 2026-10-11: parallel lane follow-up (PSOCK cluster, parallel multi-start, bootstrap shards)
 
