@@ -1221,6 +1221,8 @@ test_that("check_drm() reports mutated diagnostic failure branches", {
   nonconverged$opt$iterations <- 10L
   nonconverged$opt$evaluations["function"] <- 10L
   nonconverged$control$optimizer <- list(iter.max = 10, eval.max = 10)
+  # Budget diagnostics read the controls recorded for the selected attempt.
+  nonconverged$optimizer_used$control <- nonconverged$control$optimizer
   convergence <- check_drm(nonconverged)
   convergence <- convergence[convergence$check == "optimizer_convergence", ]
   expect_equal(convergence$status, "warning")

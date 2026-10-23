@@ -787,14 +787,14 @@ test_that("bivariate Gaussian mu supports correlated phylogenetic random interce
 
   # This fit has a structured mu phylogenetic random effect correlated
   # across two traits (q2, mu1/mu2), which marginal simulation does not yet
-  # support; re.form = NA keeps this test's structural intent (dims, names,
+  # support; re.form = NULL keeps this test's structural intent (dims, names,
   # finiteness, reproducibility).
-  sims <- simulate(fit, nsim = 2, seed = 20260631, re.form = NA)
+  sims <- simulate(fit, nsim = 2, seed = 20260631, re.form = NULL)
   expect_named(sims, c("sim_1_y1", "sim_1_y2", "sim_2_y1", "sim_2_y2"))
   expect_equal(nrow(sims), nrow(dat))
   expect_true(all(vapply(sims, is.numeric, logical(1L))))
   expect_true(all(is.finite(as.matrix(sims))))
-  expect_equal(sims, simulate(fit, nsim = 2, seed = 20260631, re.form = NA))
+  expect_equal(sims, simulate(fit, nsim = 2, seed = 20260631, re.form = NULL))
 })
 
 test_that("bivariate Gaussian mu supports phylogenetic q2 slope-only covariance", {
