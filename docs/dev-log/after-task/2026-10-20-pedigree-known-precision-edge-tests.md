@@ -21,6 +21,8 @@ corresponding Mendelian variances. For the positive-definite matrix fixture,
 the covariance and precision multiply to identity and their log determinants
 agree.
 
+Assumptions without asking: none.
+
 ## 4. Files Touched
 
 - `tests/testthat/test-pedigree-known-precision-edges.R` (preserved from the
@@ -31,11 +33,18 @@ agree.
 
 ## 5. Checks Run
 
-- `Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-pedigree-known-precision-edges.R")'`:
-  PASS, 66 expectations, 0 failures, 0 warnings, 0 skips.
+- On merged candidate `d7f9d1775ed79a29f3d03ec744290682bf68fb8d`,
+  `R_PROFILE_USER=/dev/null Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-pedigree-known-precision-edges.R")'`:
+  PASS, 66 expectations, 0 failures, 0 warnings, 0 skips (29.4 seconds).
+- `python3 tools/capability_ledger.py --check`: PASS, 31 generated outputs.
+- `python3 tools/capability_ledger.py --check-c14-receipt-equivalence`: PASS,
+  3 eligible and 7 source-different retained receipts.
+- `python3 -m unittest tools.tests.test_capability_ledger`: PASS, 81 tests.
 - `git diff --check`: PASS.
-- Prose style check: PASS, 0 findings.
-- This focused result does not certify the full package suite or `R CMD check`.
+- After-task structure check: PASS. The closeout wrapper reaches the global
+  Brain acceptance ledger and stops on nine unrelated unmet gates; those gates
+  were left untouched.
+- The full package suite and current-candidate `R CMD check` were not run.
 
 ## 6. Tests of the Tests
 
@@ -64,17 +73,16 @@ status remains unchecked. No issue was opened, commented on, or closed.
 
 ## 9. What Did Not Go Smoothly
 
-The isolated clone fetched the exact live PR head
-`4629c116ada05a9af7f8f8df0473d181606fb491` and current main
-`f9bff01b5f3bbbc424402b73d67084dd446d9ff8`. The focused test passed after the
-test-only change was replayed onto current main. Main already had its own recent
-append in `docs/dev-log/check-log.md`, so that file was preserved and this
-change records its result under `docs/dev-log/check-log.d/`. The rebased
-candidate was pushed to the existing PR branch at
-`6a218c143bc9b1c462af92e854e5664085d70d56` after verifying the expected old
-head. GitHub now reports the candidate as the exact PR head; fresh CI is
-queued. The focused test passed locally with 66 expectations and no failures,
-warnings, or skips. No draft-state or merge change was made.
+The PR head at preparation was
+`ef3bc4690f27644458aa48cdc212fa8061481f15`; its merge base was
+`f9bff01b5f3bbbc424402b73d67084dd446d9ff8`. I merged the exact current-main
+candidate `2fb93b768977330fc9939d86375c37329a539277` into a new local worktree
+without conflicts. The resulting merge candidate is
+`d7f9d1775ed79a29f3d03ec744290682bf68fb8d`. The PR's diff against that main
+contains only the test, this report, and the per-slice check-log. No remote
+branch was changed. The prior exact-PR-head workflow run `39856569302` was
+cancelled; three of four Linux shards and the source-tree job passed, but the
+remaining shard's R CMD check did not complete. The PR remains a draft.
 
 ## 10. Known Residuals
 
@@ -90,6 +98,12 @@ Tests-only PRs still need the repository's required check-log record and a
 complete after-task report. Keep the existing test and its warning note, and
 describe the focused validation separately from package-wide checks.
 
+Memory receipt: loaded the `drmTMB` LOAD-FIRST manifest through `route.py`,
+plus the `r-package-engineer` and `validation-harness` skills.
+
+Golden Set: `memory_regression.py --selftest` passed all detector checks. This
+task changed no hub or memory entries.
+
 ## 12. Cross-Product Coverage
 
 This R-only test does NOT cover DRModels.jl or the R-to-Julia bridge. It adds no
@@ -97,6 +111,8 @@ cross-cutting flags and makes no cross-product parity claim.
 
 ## Next Actions
 
-The rebased PR is based on current main
-`f9bff01b5f3bbbc424402b73d67084dd446d9ff8`. Wait for checks on the exact new
-head and complete review before changing the draft state or merging.
+The local candidate includes exact current main
+`2fb93b768977330fc9939d86375c37329a539277` and is ready for review. It has not
+been pushed, marked ready, reviewed, or merged. Before any remote update, run
+fresh checks on this exact candidate; do not treat the cancelled run or the
+focused local test as a full package pass.
