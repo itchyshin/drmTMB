@@ -204,6 +204,7 @@ julia_control_nondefault_probes <- function() {
     logsigma_clamp = drm_control(logsigma_clamp = c(-20, 20)),
     logsigma_clamp_margin = drm_control(logsigma_clamp_margin = 6),
     optimizer_preset = drm_control(optimizer_preset = "careful"),
+    optimizer_method = drm_control(optimizer_method = "BFGS"),
     newton_polish = drm_control(newton_polish = FALSE),
     multi_start = drm_control(multi_start = 5L),
     fallback_optimizer = drm_control(fallback_optimizer = "BFGS"),

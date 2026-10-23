@@ -55,7 +55,7 @@ test_that("unused levels still drop, and user-set contrasts warn instead of vani
 
   expect_warning(
     out <- drmTMB:::drm_droplevels_fixed_predictors(d, form),
-    class = "drmTMB_contrasts_unused_levels"
+    class = "drmTMB_contrasts_dropped"
   )
   expect_equal(levels(out$g), c("a", "b"))
   expect_null(attr(out$g, "contrasts"))
@@ -63,7 +63,7 @@ test_that("unused levels still drop, and user-set contrasts warn instead of vani
   fit <- NULL
   expect_warning(
     fit <- drmTMB(form, data = d, family = gaussian()),
-    class = "drmTMB_contrasts_unused_levels"
+    class = "drmTMB_contrasts_dropped"
   )
   expect_false("gc" %in% names(coef(fit, "mu")))
   expect_true(all(is.finite(summary(fit)$coefficients$std_error)))
