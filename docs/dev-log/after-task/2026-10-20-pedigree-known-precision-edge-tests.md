@@ -11,8 +11,8 @@ The existing test-only change adds direct tests for pedigree standardization,
 parent normalization and ordering, Quaas precision construction, covariance to
 precision conversion, and relatedness-matrix validation. The asymmetry cases
 distinguish the internal, prevalidated covariance-to-precision conversion
-helper—which symmetrizes from the upper triangle—from the model-facing
-`drm_known_relatedness_precision()` path, which rejects asymmetric input before
+helper, which symmetrizes from the upper triangle. The model-facing
+`drm_known_relatedness_precision()` path rejects asymmetric input before
 conversion. No package behavior or public API changed.
 
 ## 3a. Decisions and Rejected Alternatives
@@ -59,9 +59,9 @@ The file checks boundary and malformed-input paths, including self-parenting,
 cycles, unknown parents, duplicate IDs, malformed matrix names, non-finite
 values, singular covariance, and non-positive-definite covariance and precision
 matrices. The Quaas result is checked against the dense inverse obtained by
-`solve(A)` from the helper-generated relationship matrix. This independently
-checks the inverse calculation, not the relationship-matrix construction. The
-non-positive-definite precision path emits a CHOLMOD warning;
+`solve(A)` from the helper-generated relationship matrix. This oracle checks
+the dense inverse calculation; relationship-matrix construction remains outside
+its scope. The non-positive-definite precision path emits a CHOLMOD warning;
 the test suppresses that expected warning while asserting the helper's error.
 The asymmetry tests now preserve the boundary: the internal
 `drm_covariance_to_known_precision()` helper uses the upper triangle under its
