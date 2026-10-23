@@ -1,3 +1,11 @@
+# 2026-10-23: merge main again into #1505, recertify C17
+
+Merged `origin/main` into `cursor/triage-f-convergence`. Conflicts were the
+check-log (kept both sides) and the C17 receipt manifest (took main's rows,
+then recertified). C17 recertified with
+`python3 tools/recertify-c17.py --label pr1505-main-merge-2 --tolerance 1e-10`:
+`|change|` 0 on mc-0568, mc-0569 and mc-0576, source fingerprint unchanged.
+
 # 2026-10-22: merge main into #1505, recertify C17
 
 Merged `origin/main` (`2fb93b768`) into `cursor/triage-f-convergence` after the
