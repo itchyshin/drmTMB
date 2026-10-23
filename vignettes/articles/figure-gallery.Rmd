@@ -2559,7 +2559,7 @@ gallery_source_map <- data.frame(
     "fixed-effect univariate mu",
     "constant residual rho12 only; a rho12 regression summary returns conf.status = \"derived_interval_unavailable\"",
     "layout fixture; no fit produces all six rows together",
-    "partial q4 location-scale blocks for spatial, animal, and relmat (recovery-grade); regression and remaining richer paths planned",
+    "partial q4 location-scale blocks for spatial, animal, and relmat (point estimate only); regression and remaining richer paths planned",
     "display grammar for later result articles"
   ),
   stringsAsFactors = FALSE

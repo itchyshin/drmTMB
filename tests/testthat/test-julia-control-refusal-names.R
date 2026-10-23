@@ -23,6 +23,7 @@ julia_refusal_name_probes <- function() {
     logsigma_clamp = drm_control(logsigma_clamp = c(-20, 20)),
     logsigma_clamp_margin = drm_control(logsigma_clamp_margin = 6),
     optimizer_preset = drm_control(optimizer_preset = "careful"),
+    optimizer_method = drm_control(optimizer_method = "BFGS"),
     newton_polish = drm_control(newton_polish = FALSE),
     multi_start = drm_control(multi_start = 5L),
     fallback_optimizer = drm_control(fallback_optimizer = "BFGS"),
@@ -51,8 +52,8 @@ test_that("every non-optimizer drm_control() field is named when changed", {
       label = paste0("drm_control(", field, " = <non-default>) is named")
     )
   }
-  # Every field except `optimizer_preset` names itself and nothing else.
-  for (field in setdiff(fields, "optimizer_preset")) {
+  # Every field except the optimizer selectors names itself and nothing else.
+  for (field in setdiff(fields, c("optimizer_preset", "optimizer_method"))) {
     expect_equal(
       drm_julia_nondefault_control_fields(probes[[field]]),
       field,
@@ -171,5 +172,13 @@ test_that("every all-or-nothing route refuses through the naming helper", {
   )
   expect_true(
     grepl("drm_julia_nondefault_control_fields", joint_text, fixed = TRUE)
+  )
+})
+
+
+test_that("direct optimizer settings are named by Julia refusal", {
+  expect_setequal(
+    drm_julia_nondefault_control_fields(drm_control(optimizer_method = "BFGS")),
+    c("optimizer_method", "optimizer$maxit")
   )
 })

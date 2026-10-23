@@ -209,6 +209,7 @@ drm_bootstrap_shard_header <- function(
     seed = seed,
     re_form = if (is.null(re_form)) "NULL" else paste(deparse(re_form), collapse = " "),
     refit = list(
+      optimizer_method = refit_control$optimizer_method,
       optimizer_preset = refit_control$optimizer_preset,
       se = refit_control$se,
       multi_start = refit_control$multi_start
