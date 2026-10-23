@@ -1,9 +1,9 @@
 #' Heritability, ICC, and repeatability accessors
 #'
 #' `heritability()`, `icc()`, and `repeatability()` are derived-quantity
-#' accessors for structured-Gaussian `drmTMB` fits. All three report the
-#' share of total variance carried by one structured random-effect component
-#' relative to a denominator on the working (log-SD) scale:
+#' accessors for structured-Gaussian `drmTMB` fits. All three report a
+#' variance-share estimate in `[0, 1]`: the share of total variance carried by
+#' one structured random-effect component, on the natural (variance) scale:
 #'
 #' * `heritability()`: `sigma^2_focal / (sum of ALL structured mean-component
 #'   variances + residual variance)` -- the comparative-biology "phylogenetic
