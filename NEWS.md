@@ -2,6 +2,12 @@
 
 ## New features
 
+* `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
+  check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
+  the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
+  tolerance was only reachable via the internal `validate_phylo_tree()` and
+  a tree that missed it by a negligible margin had no override short of
+  editing the tree itself (#1158).
 * `cumulative_logit()` gains a fixed-effect discrimination formula,
   `bf(score ~ x, disc ~ z)`, with
   `Pr(y <= k) = logit^-1(disc * (theta_k - mu))` and `log(disc) = z' gamma`.
