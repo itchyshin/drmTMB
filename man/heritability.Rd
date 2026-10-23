@@ -73,9 +73,9 @@ and \code{method}.
 }
 \description{
 \code{heritability()}, \code{icc()}, and \code{repeatability()} are derived-quantity
-accessors for structured-Gaussian \code{drmTMB} fits. All three report the
-share of total variance carried by one structured random-effect component
-relative to a denominator on the working (log-SD) scale:
+accessors for structured-Gaussian \code{drmTMB} fits. All three report a
+variance-share estimate in \verb{[0, 1]}: the share of total variance carried by
+one structured random-effect component, on the natural (variance) scale:
 }
 \details{
 \itemize{
