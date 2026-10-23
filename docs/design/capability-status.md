@@ -187,18 +187,21 @@ docs/dev-log/evidence/julia-r-parity/uncited-accessors/).
 `R/model-comparison.R` ports DRM.jl's `src/comparison.jl`, and `aicc()` is
 exported with `default` and `drmTMB` methods. The word is `scope-limited` rather
 than `implemented` because the rest of the named suite is deliberately absent:
-`drm_lrtest()` is implemented but neither exported nor wired in, and
-`anova.drmTMB()` (`R/methods.R`, which predates the port) still aborts with
-"`anova()` likelihood-ratio comparisons are not implemented for `drmTMB` fits";
-there is no `update.drmTMB()` method in `NAMESPACE`; and `weights.drmTMB()`
+`drm_lrtest()` is implemented but not exported; `anova.drmTMB()` (`R/methods.R`)
+now returns a likelihood-ratio table built on it (#1240), with the REML/MAP
+guards, a boundary warning, and `lrt_boundary()`'s chi-bar-square p-value when
+exactly one or two random-effect SDs are added, while `anova()` on an
+`engine = "julia"` fit still refuses; there is no `update.drmTMB()` method in `NAMESPACE`; and `weights.drmTMB()`
 returns the prior per-observation weights, not Akaike model weights -- DRM.jl's
 `weights(fit)` returns `ones(nobs(fit))`, so this is a shared naming boundary
 rather than an R-side gap.
 
 BRIDGE AXIS for this suite (leaf `uncited-accessors`, 2026-09-05), measured
-against DRM.jl `aee371cc9`. `aicc()` reaches an `engine = "julia"` fit even
-though it has no `drmTMB_julia` method: it dispatches through `aicc.default()`,
-which works because `logLik.drmTMB_julia()` reports both `df` and `nobs`. On
+against DRM.jl `aee371cc9`. `aicc()` reaches an `engine = "julia"` fit: its
+value comes from `aicc.default()`, which works because `logLik.drmTMB_julia()`
+reports both `df` and `nobs`. Since #1498, `aicc()`, `AIC()` and `BIC()` have
+`drmTMB_julia` methods that first run the same REML/MAP information-criterion
+warning the native engine runs, then defer to those defaults. On
 the Gaussian random-intercept fixture it equals DRM.jl's own `aicc(fit)` to
 `0.000e+00` and `aicc(tmb_fit)` to `1.899e-11`. `drm_lrtest()` likewise runs on
 two bridge fits and reproduces DRM.jl's `lrtest` exactly. Two bridge-side

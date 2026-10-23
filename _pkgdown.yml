@@ -170,6 +170,7 @@ reference:
     contents:
       - starts_with("drmTMB")
       - drm_control
+      - drmTMB-parallel
       - objective_at
       - miss_control
       - drm_validate_complete_predictors

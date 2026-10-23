@@ -17,14 +17,14 @@
   profile_endpoint_max_eval = NULL,
   R = 199L,
   seed = NULL,
-  parallel = c("none", "multicore"),
+  parallel = c("none", "multicore", "cluster"),
   workers = NULL,
   refit_control = NULL,
   sd_boundary = 1e-04,
   rho_boundary = 0.98,
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
-  bootstrap_re_form = NULL,
+  bootstrap_re_form = NA,
   ...
 )
 }
@@ -83,13 +83,18 @@ endpoints.}
 
 \item{seed}{Optional seed for bootstrap simulation.}
 
-\item{parallel}{Profile or bootstrap backend: \code{"none"} or Unix
-\code{"multicore"}. For profile intervals, targets or \code{newdata} rows are split
-across workers. For bootstrap intervals, refits are split across workers.}
+\item{parallel}{Profile or bootstrap backend: \code{"none"}, Unix
+\code{"multicore"}, or socket \code{"cluster"} (PSOCK, any platform including
+Windows). For profile intervals, targets or \code{newdata} rows are split
+across workers. For bootstrap intervals, refits are split across workers.
+Every backend returns the serial result; see \link{drmTMB-parallel}.}
 
 \item{workers}{Requested profile or bootstrap workers. If \code{NULL} and
-\code{parallel = "multicore"}, \code{drmTMB} uses about half the detected CPU cores.
-Multicore execution is capped at the number of jobs and at 10 workers.}
+\code{parallel} is not \code{"none"}, \code{drmTMB} uses about half the detected CPU
+cores. Parallel execution is capped at the number of jobs and at 10
+workers.
+Keep BLAS and OpenMP threads at one while workers run; see
+\link{drmTMB-parallel}.}
 
 \item{refit_control}{Optional \code{\link[=drm_control]{drm_control()}} object used for bootstrap
 refits. The default skips \code{TMB::sdreport()} and drops the TMB object because
@@ -151,14 +156,16 @@ push them further conservative) and plain labelled covariance blocks (whose
 correction magnitude is not yet simulation-calibrated).}
 
 \item{bootstrap_re_form}{\code{re.form} passed through to \code{\link[stats:simulate]{stats::simulate()}}
-when \code{method = "bootstrap"}. The default, \code{NULL}, redraws random effects
-for every replicate (marginal simulation), matching what a parametric
-bootstrap of the fitted data-generating process requires. Passing \code{NA}
-instead holds random effects fixed at their conditional-mode estimate;
-this is a documented escape hatch for random-effect structures whose
-marginal draw is not yet implemented, and it makes the resulting
-intervals \strong{anticonservative} because between-group variability is
-never resampled -- it is not a neutral alternative to the default.}
+when \code{method = "bootstrap"}, with the same lme4 meanings as
+\code{\link[=simulate.drmTMB]{simulate.drmTMB()}}. The default, \code{NA}, redraws random effects for every
+replicate (marginal simulation), matching what a parametric bootstrap of
+the fitted data-generating process requires. Passing \code{NULL} instead holds
+random effects fixed at their conditional-mode estimate; this is a
+documented escape hatch for random-effect structures whose marginal draw
+is not yet implemented, and it makes the resulting intervals
+\strong{anticonservative} because between-group variability is never
+resampled -- it is not a neutral alternative to the default. Earlier
+drmTMB versions gave \code{NULL} and \code{NA} the reverse meaning (#1487).}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"} and the \code{tmbprofile} profile engine is used.

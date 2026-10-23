@@ -219,7 +219,7 @@ test_that("temporal OU preserves observation order across in-sample methods", {
   expect_length(stats::residuals(fit), nrow(dat))
   expect_equal(length(fit$random_effects$temporal$values), nrow(dat))
   fresh <- simulate(fit, nsim = 2L)
-  conditional <- simulate(fit, nsim = 2L, re.form = NA)
+  conditional <- simulate(fit, nsim = 2L, re.form = NULL)
   expect_equal(dim(fresh), c(nrow(dat), 2L))
   expect_equal(dim(conditional), c(nrow(dat), 2L))
   expect_true(all(is.finite(as.matrix(fresh))))
