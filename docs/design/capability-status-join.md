@@ -9,7 +9,7 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `89fca4c532835749e65037e00961cb3fc1255c87` |
+| drmTMB (this repo, HEAD at generation) | `7186e186b0229273de435038c054813d4aafe691` |
 | DRM.jl, at the programme pin, read with `git show` -- never its working tree | `da8b3f8711beb5ef3186b890544c2e7850c7f194` |
 
 The canonical DRM.jl clone normally sits on some lane's branch. Reading its
@@ -63,10 +63,10 @@ between the twins that a closure statement would otherwise average away.
 | `AGHQ adaptive-quadrature marginal estimator` | `planned` (docs/design/capability-status.md:126) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:184) |
 | `Model comparison suite (LRT/anova/AICc/weights/update)` | `scope-limited` (docs/design/capability-status.md:129) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:187) |
 | `Heritability/repeatability/ICC accessors` | `point-fit-recovery` (docs/design/capability-status.md:130) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:188) |
-| `Bivariate structured random effect on all four axes (q4 PLSM)` | `point-fit-recovery` (docs/design/capability-status.md:242) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:290) |
-| `Cross-family bivariate (different families for y1 y2)` | `planned` (docs/design/capability-status.md:243) | `missing` (DRM.jl@da8b3f87:docs/design/capability-status.md:291) |
-| `Missing-response handling (native, per fitted route)` | `implemented` (docs/design/capability-status.md:244) | `missing` (DRM.jl@da8b3f87:docs/design/capability-status.md:292) |
-| `Missing-predictor imputation (mi())` | `implemented` (docs/design/capability-status.md:245) | `experimental` (DRM.jl@da8b3f87:docs/design/capability-status.md:293) |
+| `Bivariate structured random effect on all four axes (q4 PLSM)` | `point-fit-recovery` (docs/design/capability-status.md:245) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:290) |
+| `Cross-family bivariate (different families for y1 y2)` | `planned` (docs/design/capability-status.md:246) | `missing` (DRM.jl@da8b3f87:docs/design/capability-status.md:291) |
+| `Missing-response handling (native, per fitted route)` | `implemented` (docs/design/capability-status.md:247) | `missing` (DRM.jl@da8b3f87:docs/design/capability-status.md:292) |
+| `Missing-predictor imputation (mi())` | `implemented` (docs/design/capability-status.md:248) | `experimental` (DRM.jl@da8b3f87:docs/design/capability-status.md:293) |
 
 ## What this file does NOT claim
 
