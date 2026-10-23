@@ -54,6 +54,10 @@ gradient component label, whether
 \code{\link[TMB:sdreport]{TMB::sdreport()}}, the fixed-effect Hessian's minimum eigenvalue and
 condition number at the optimum (\code{hessian_conditioning}; a comparable, but
 not numerically identical, read of the same object underlying \code{pdHess}).
+The reported \code{cond=} value is the condition number of the correlation-scaled
+covariance when every diagonal entry is positive, so a large raw condition
+number caused only by parameter units does not raise the note. A negative
+covariance eigenvalue still warns from the raw covariance.
 \code{hessian_conditioning} is computed from
 \code{\link[TMB:sdreport]{TMB::sdreport()}}'s already-materialized fixed-effect covariance
 (\code{sdr$cov.fixed}), never by evaluating the TMB C++ object directly, so it
@@ -67,7 +71,14 @@ Hessian (a weakly identified, near-flat direction such as a boundary
 correlation), dropped rows,
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
-Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks,
+Student-t \code{nu} boundary behaviour, dispersion parameters at a simpler-family
+limit (\code{dispersion_boundary}: for NB2 and its variants, extra-Poisson
+variance \code{mu * sigma^2} below 0.001 of the Poisson variance, with \code{mu} and
+\code{sigma} from \code{predict(..., type = "response")} so an offset or a random
+effect is included; a warning only when a coefficient's Wald standard
+error is blanked, and a note when some rows are at the limit but every
+coefficient keeps its standard error; Student-t \code{nu} above 1000, which is
+scale-free because \code{nu} is dimensionless), skew-normal \code{nu} finite-value checks,
 known sampling covariance summaries,
 dense known-covariance storage scale, dense fixed-effect design size and
 density, random-effect replication, and random-slope design variation. If a

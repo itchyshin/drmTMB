@@ -2271,10 +2271,19 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
       }
       drm_julia_check_factor_level_fidelity(mf, coded, dpar, data)
     }
-    cols <- tryCatch(
-      colnames(stats::model.matrix(stats::terms(mf), mf)),
+    X_labels <- tryCatch(
+      stats::model.matrix(stats::terms(mf), mf),
       error = function(e) NULL
     )
+    if (!is.null(X_labels)) {
+      # Same pre-fit refusal as the TMB engine (#1470): an exact aliased
+      # column is not sent to DRM.jl to come back as a converged fit with
+      # no usable standard error.
+      drm_abort_rank_deficient_designs(
+        stats::setNames(list(X_labels), label_key)
+      )
+    }
+    cols <- if (is.null(X_labels)) NULL else colnames(X_labels)
     if (!is.null(cols)) {
       # `as.list()`, not the bare character vector: JuliaCall auto-unboxes a
       # length-1 R atomic vector to a Julia SCALAR (a bare `String`, not a
@@ -8386,7 +8395,8 @@ drm_julia_xfam_sigma <- function(entry, mu, tag, data, env, dpar) {
   rows <- drm_julia_model_frame_rows(mf, nrow(data))
   # Do not require rows == mu$rows here. A sigma covariate can be missing on
   # a row the location axis kept. drm_julia_xfam_align_axes() drops that row
-  # from every axis so the designs stay paired (#1454).
+  # from every axis so the designs stay paired (#1454). The rank check runs
+  # in drm_julia_xfam_design_from_frame() after the shared rows are chosen.
   list(mf = mf, rows = rows)
 }
 
@@ -8576,100 +8586,6 @@ drm_droplevels_keep_contrasts <- function(data) {
   data
 }
 
-# Rank check used by the cross-family design.
-drm_complete_case_design <- function(X) {
-    if (!anyNA(X)) {
-      return(X)
-    }
-    if (inherits(X, "Matrix")) {
-      keep <- Matrix::rowSums(is.na(X)) == 0
-      return(X[keep, , drop = FALSE])
-    }
-    X[stats::complete.cases(X), , drop = FALSE]
-  }
-
-  drm_qr_rank_and_pivot <- function(q, tol) {
-    dollar <- tryCatch(
-      list(rank = q$rank, pivot = q$pivot),
-      error = function(e) NULL
-    )
-    if (!is.null(dollar) && !is.null(dollar$rank)) {
-      return(dollar)
-    }
-    if (!isS4(q) || !methods::is(q, "sparseQR")) {
-      return(list(rank = NULL, pivot = NULL))
-    }
-    Rdiag <- tryCatch(
-      abs(diag(as.matrix(qr.R(q)))),
-      error = function(e) NULL
-    )
-    if (is.null(Rdiag) || length(Rdiag) == 0L || !any(is.finite(Rdiag))) {
-      return(list(rank = NULL, pivot = NULL))
-    }
-    scale <- max(Rdiag, na.rm = TRUE)
-    rank <- if (!is.finite(scale) || scale <= 0) {
-      0L
-    } else {
-      as.integer(sum(Rdiag > tol * scale))
-    }
-    pivot <- if (methods::.hasSlot(q, "q")) as.integer(q@q) + 1L else NULL
-    list(rank = rank, pivot = pivot)
-  }
-
-  drm_aliased_columns <- function(X, tol = 1e-10) {
-    if (is.null(X) || (!is.matrix(X) && !inherits(X, "Matrix"))) {
-      return(character())
-    }
-    n_col <- ncol(X)
-    if (is.null(n_col) || n_col < 2L || nrow(X) < 1L) {
-      return(character())
-    }
-    X <- drm_complete_case_design(X)
-    n_col <- ncol(X)
-    if (is.null(n_col) || n_col < 2L || nrow(X) < 1L) {
-      return(character())
-    }
-    design <- X
-    info <- tryCatch(
-      drm_qr_rank_and_pivot(qr(design, tol = tol), tol),
-      error = function(e) NULL
-    )
-    if (
-      (is.null(info) || is.null(info$rank)) &&
-        inherits(design, "Matrix") &&
-        nrow(design) * n_col <= 200000L
-    ) {
-      design <- as.matrix(design)
-      info <- tryCatch(
-        drm_qr_rank_and_pivot(qr(design, tol = tol), tol),
-        error = function(e) NULL
-      )
-    }
-    if (is.null(info) || is.null(info$rank)) {
-      if (inherits(X, "Matrix") && nrow(X) * n_col > 200000L) {
-        cli::cli_warn(
-          c(
-            "The rank check could not factor a large sparse design, so aliased columns were not identified.",
-            "i" = "The fit continues. If standard errors are missing, drop linearly dependent columns and refit."
-          ),
-          class = "drmTMB_rank_check_skipped"
-        )
-      }
-      return(character())
-    }
-    if (info$rank >= n_col) {
-      return(character())
-    }
-    cols <- colnames(X)
-    if (is.null(cols) || length(cols) != n_col) {
-      cols <- paste0("column_", seq_len(n_col))
-    }
-    pivot <- info$pivot
-    if (is.null(pivot) || length(pivot) != n_col) {
-      return(cols)
-    }
-    cols[pivot[seq.int(info$rank + 1L, n_col)]]
-  }
 
 # Rebuild one design on the shared rows. Unused factor levels are dropped
 # without discarding a contrasts attribute, so `contr.sum` stays `f1`, `f2`
@@ -8749,6 +8665,9 @@ drm_julia_xfam_design_from_frame <- function(mf, pos, dpar) {
     aliased <- if (is.null(colnames(X))) "column_1" else colnames(X)
   }
   if (length(aliased) > 0L) {
+    if (ncol(X) >= 2L) {
+      drm_abort_rank_deficient_designs(stats::setNames(list(X), dpar))
+    }
     cli::cli_abort(
       c(
         "{.code engine = \"julia\"} cross-family alignment made the {.code {dpar}} design rank deficient.",

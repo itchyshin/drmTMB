@@ -91,10 +91,18 @@ test_that("a character predictor used bare and inside a transform still predicts
   d <- data.frame(
     y = stats::rnorm(30),
     chr = rep(c("a", "bb", "ccc"), 10),
+    x = stats::rnorm(30),
     stringsAsFactors = FALSE
   )
-  fit <- drmTMB(bf(y ~ chr + nchar(chr), sigma ~ 1), data = d)
-  nd <- data.frame(chr = c("a", "bb", "ccc"), stringsAsFactors = FALSE)
+  # nchar(chr) is constant per level of chr, so y ~ chr + nchar(chr) is
+  # rank-deficient and drm_abort_rank_deficient_designs() refuses it.
+  # I(x * nchar(chr)) still needs the raw character values.
+  fit <- drmTMB(bf(y ~ chr + I(x * nchar(chr)), sigma ~ 1), data = d)
+  nd <- data.frame(
+    chr = c("a", "bb", "ccc"),
+    x = c(0.1, -0.2, 0.3),
+    stringsAsFactors = FALSE
+  )
   expect_length(predict(fit, newdata = nd), 3L)
 })
 

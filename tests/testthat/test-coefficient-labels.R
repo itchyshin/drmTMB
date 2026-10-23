@@ -123,14 +123,18 @@ test_that("construct 6: scale() yields base-R public labels through a stub engin
   )
 })
 
-test_that("construct 7: reversed two-factor interaction yields base-R public labels through a stub engine map", {
+test_that("construct 7: an empty-cell two-factor interaction is still rank deficient", {
+  # g and h alternate in lockstep, so two cells of g:h are empty. The rank
+  # check refuses that design. Fitting it the way lm() does, with NA
+  # coefficients, is a design call and is not changed here.
   d <- construct_data()
-  expect_construct_base_r_labels(
-    drmTMB::bf(y ~ g + factor(h) + factor(h):g), d, "mu",
-    c(
-      "(Intercept)", "g: b", "__bridge_factor_1: 20.0",
-      "__bridge_factor_1: 20.0 & g: b"
-    )
+  expect_error(
+    drmTMB:::drm_julia_bridge_payload_coef_labels(
+      formula = drmTMB::bf(y ~ g + factor(h) + factor(h):g),
+      data = d,
+      env = environment()
+    ),
+    class = "drmTMB_rank_deficient_design"
   )
 })
 

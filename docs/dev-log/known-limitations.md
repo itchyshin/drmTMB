@@ -11,6 +11,55 @@ structured effect, cross-family bivariate, missing-response handling and
 to use instead today, and whether the fence is permanent or carries a stated
 revisit condition.
 
+- Exact rank-deficient fixed-effect designs now stop before fitting, with
+  class `drmTMB_rank_deficient_design`. The check uses a QR tolerance of
+  `1e-10` on every distributional-parameter matrix in the model, including
+  `mu`, `sigma`, `nu`, `zi`, `hu`, `zoi`, `coi`, `rho12`, bivariate blocks,
+  direct SD designs, the Julia bridge's R `model.matrix()`, and the
+  cross-family Julia `mu` and `sigma` designs. Rows with `NA` are dropped
+  and the complete cases are checked. A large sparse design that cannot be
+  factored warns with class `drmTMB_rank_check_skipped` instead of being
+  treated as full rank. A near-copy still fits; `check_drm()` remains the
+  report for weak identification. An interaction with an empty cell, such
+  as `y ~ site * trt` when one cell has no rows, is still refused: the
+  design has a zero column, not an `NA`, and `lm()` would return `NA`
+  coefficients. Whether drmTMB should fit that design is a design call and
+  is unchanged.
+  Dispersion estimates at a simpler-family limit are flagged and left
+  unchanged. For `nbinom2`, `zi_nbinom2`, `hurdle_nbinom2`, and
+  `truncated_nbinom2`, a row is at the limit when the extra-Poisson
+  variance `mu * sigma^2` is below 0.001. `mu` and `sigma` come from
+  `predict(..., type = "response")`, so an offset or a random effect on
+  either parameter is included. If `predict()` fails, a `drmTMB` fit warns
+  with class `drmTMB_dispersion_predict_fallback` and the check uses the
+  fixed linear predictor. Beta, beta-binomial, and zero-one-beta are not
+  flagged. For `student` and `biv_student`, `nu > 1000` is the Gaussian
+  limit; `nu` is dimensionless, so the cutoff does not depend on response
+  units. `summary()` sets the Wald standard error to `NA` only when that
+  coefficient's design column is nonzero only on limit rows, or, for a
+  treatment contrast on `sigma`, when the reference level is entirely at
+  the limit and the intercept is that level. A continuous covariate that
+  also loads on rows above the limit keeps its standard error.
+  `check_drm()` warns only in the blanked case. Some rows at the limit
+  with nothing blanked are a note, and `summary()` and `print()` do not
+  claim those standard errors are missing. Wald `confint()` sets
+  `conf.status` to `boundary_limit`, `interval_source` to `not_available`,
+  and leaves the endpoints missing. Profile and bootstrap intervals are
+  not blanked. `vcov()` still returns the raw covariance, so do not read
+  those diagonals as Wald standard errors.   `contr.sum` is not rewritten
+  into a treatment blank. When the reference level is the one at the limit,
+  the treatment contrast against it can still have a very large Wald
+  standard error. `sigma ~ 0 + g` reports a finite standard error for the
+  level that is not at the limit. Gaussian, gamma, lognormal, and Tweedie `sigma`
+  are interior scales and are not flagged. `corpairs()` profile intervals
+  are not masked. Follow-up: the Julia-engine `summary()` and
+  `check_drm.drmTMB_julia` do not yet blank these standard errors or report
+  `dispersion_boundary` or `hessian_conditioning`. On the TMB engine, the
+  `hessian_conditioning` note uses the correlation-scaled condition number
+  of `sdr$cov.fixed` when every diagonal entry is positive. A negative
+  covariance eigenvalue still warns from the raw covariance. Phase 18
+  records `dispersion_boundary` on each replicate summary and does not
+  muffle the warning.
 - The Q-Series v1.0 release boundary is generated in
   `docs/dev-log/release-audits/q-series-v1-release-status.md`. It separates
   implemented/basic-working Gaussian structured-effect rows and

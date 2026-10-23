@@ -368,6 +368,20 @@ predict_parameters_interval <- function(
   interval_source <- rep("wald", n)
   interval_source[!ok | clamp_bent] <- "not_available"
 
+  # A Wald ribbon that uses a coefficient blanked for a simpler-family
+  # dispersion limit is not an interval. Profile and bootstrap are not
+  # drawn here. `boundary_limit` is an unavailable status, and
+  # `interval_source = "not_available"` is the plot list's second gate.
+  boundary_row <- conf.status == "wald" &
+    predict_parameters_dispersion_boundary_rows(object, dpar, basis, n)
+  if (any(boundary_row)) {
+    std.error[boundary_row] <- NA_real_
+    conf.low[boundary_row] <- NA_real_
+    conf.high[boundary_row] <- NA_real_
+    conf.status[boundary_row] <- "boundary_limit"
+    interval_source[boundary_row] <- "not_available"
+  }
+
   list(
     std.error = std.error,
     conf.low = conf.low,
@@ -386,6 +400,50 @@ predict_parameters_interval <- function(
 # NA-safe (an eta of NA is never flagged) and always FALSE when the clamp is
 # disabled or inapplicable, matching drm_logsigma_clamp_active()'s band read
 # (R/drmTMB.R:3543-3547).
+# TRUE on rows whose Wald linear combination uses at least one coefficient
+# whose design support sits entirely on simpler-family limit rows. Those
+# coefficients have no usable Wald standard error, so the ribbon is dropped.
+predict_parameters_dispersion_boundary_rows <- function(object, dpar, basis, n) {
+  out <- rep(FALSE, n)
+  report <- tryCatch(
+    drm_dispersion_boundary_report(object),
+    error = function(e) NULL
+  )
+  if (is.null(report) || !isTRUE(report$at_limit)) {
+    return(out)
+  }
+  prefix <- paste0(dpar, ":")
+  flagged <- report$coefficient_rows[startsWith(report$coefficient_rows, prefix)]
+  if (length(flagged) == 0L) {
+    return(out)
+  }
+  flagged <- substring(flagged, nchar(prefix) + 1L)
+  X <- basis$X
+  if (is.null(X)) {
+    return(out)
+  }
+  X <- as.matrix(X)
+  if (nrow(X) != n) {
+    return(out)
+  }
+  cols <- colnames(X)
+  if (is.null(cols)) {
+    return(out)
+  }
+  bad <- cols %in% flagged
+  if (!any(bad)) {
+    return(out)
+  }
+  active_tol <- 1e-8 * max(1, max(abs(X), na.rm = TRUE))
+  for (i in seq_len(n)) {
+    active <- is.finite(X[i, ]) & abs(X[i, ]) > active_tol
+    if (any(active) && any(bad[active])) {
+      out[[i]] <- TRUE
+    }
+  }
+  out
+}
+
 predict_parameters_clamp_bent <- function(object, dpar, eta) {
   bent <- rep(FALSE, length(eta))
   if (

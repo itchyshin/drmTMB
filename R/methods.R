@@ -80,6 +80,12 @@ print.drmTMB <- function(x, ...) {
       "  convergence: {x$opt$convergence} (not converged; see {.fn check_drm})"
     )
   }
+  boundary <- drm_dispersion_boundary_report(x)
+  if (isTRUE(boundary$at_limit)) {
+    cli::cli_text(
+      "  dispersion boundary: a simpler-family limit was reached; Wald standard errors for the limit coefficients are not usable (see {.fn summary} and {.fn check_drm})"
+    )
+  }
   blocks <- coef(x)
   if (length(blocks)) {
     cli::cli_text("  fixed effects:")
@@ -4439,7 +4445,12 @@ summary.drmTMB <- function(
   if (conf.int) {
     if (identical(method, "wald")) {
       if (drm_has_sdreport_covariance(object)) {
-        ci <- drm_wald_confint(object, parm = ci_parm, level = level)
+        ci <- drm_wald_confint(
+          object,
+          parm = ci_parm,
+          level = level,
+          dispersion_warn = FALSE
+        )
       } else {
         ci_unavailable_status <- "wald_unavailable"
         ci <- empty_summary_confint()
@@ -4511,6 +4522,10 @@ summary.drmTMB <- function(
     object,
     interval_requested = conf.int
   )
+  dispersion_boundary <- drm_dispersion_boundary_report(object)
+  if (isTRUE(dispersion_boundary$at_limit)) {
+    drm_warn_dispersion_boundary(dispersion_boundary)
+  }
 
   out <- list(
     call = object$call,
@@ -4532,7 +4547,12 @@ summary.drmTMB <- function(
     conf.int = conf.int,
     conf.level = if (conf.int) level else NA_real_,
     conf.method = if (conf.int) method else NA_character_,
-    confint = ci
+    confint = ci,
+    dispersion_boundary = if (isTRUE(dispersion_boundary$at_limit)) {
+      dispersion_boundary$message
+    } else {
+      NULL
+    }
   )
   class(out) <- "summary.drmTMB"
   out
@@ -4645,6 +4665,11 @@ print.summary.drmTMB <- function(x, ...) {
   } else {
     cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
   }
+  if (is.character(x$dispersion_boundary)) {
+    cli::cli_text(
+      "dispersion boundary: a simpler-family limit was reached; affected Wald standard errors are NA (see {.fn check_drm})"
+    )
+  }
   convergence_label <- drm_convergence_label(
     x$convergence,
     x$convergence_message
@@ -4719,6 +4744,7 @@ drm_summary_coefficients <- function(object) {
   se <- rep(NA_real_, length(variances))
   ok <- is.finite(variances) & variances >= 0
   se[ok] <- sqrt(variances[ok])
+  se <- drm_blank_boundary_standard_errors(object, labels, se)
   data.frame(
     estimate = est,
     std_error = se,
@@ -5335,6 +5361,15 @@ drm_summary_add_parameter_standard_errors <- function(object, parameters) {
     }
     parameters$std_error[[i]] <- abs(derivative) * sqrt(variance)
   }
+  report <- drm_dispersion_boundary_report(object)
+  if (
+    !is.null(report) &&
+      isTRUE(report$at_limit) &&
+      length(report$parameter_parms) > 0L
+  ) {
+    hit <- parameters$parm %in% report$parameter_parms
+    parameters$std_error[hit] <- NA_real_
+  }
   parameters <- summary_parameter_order_columns(parameters)
   parameters
 }
@@ -5438,7 +5473,12 @@ summary_profile_coefficient_ci <- function(object, profile_ci, level) {
   if (!drm_has_sdreport_covariance(object)) {
     return(empty_summary_confint())
   }
-  drm_wald_confint(object, parm = NULL, level = level)
+  drm_wald_confint(
+    object,
+    parm = NULL,
+    level = level,
+    dispersion_warn = FALSE
+  )
 }
 
 empty_summary_confint <- function() {

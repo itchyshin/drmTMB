@@ -698,7 +698,7 @@ test_that("REML rejects unsupported first-slice neighbours", {
       data = dat,
       REML = TRUE
     ),
-    "full-rank dense"
+    "rank deficient"
   )
 })
 
