@@ -375,6 +375,19 @@ end: `python3 tools/recertify-c17.py --label pr-1504 --tolerance 1e-10`,
 also carries the #1495 contrast fix (ordered factors, stored contrast names,
 and a `drmTMB_contrasts_dropped` warning).
 
+# 2026-10-16: sweep-oct16 lane t2, Gaussian location-scale simulation recovery (receipt)
+
+Lane t2 of the 2026-10-16 sweep. drmTMB `ca3ddef` and DRModels.jl `f71b292` were each fitted to the same 9 cells × 500 reps, plus 2,000 confirmatory reps for every n ≥ 200 cell, on identical R-generated data. The run used a cloud session, not the shared box.
+
+The two engines agree to ≤ 2e-11 in logLik and ≤ 4e-10 in estimates on all 15,000 shared datasets at n ≥ 200. The formal verdict is FAIL:
+- Coverage fails in 5 of 28 gate rows. The two σ-intercept rows at n = 1000 are Monte Carlo noise. Three are real: on the pooled 2,500 reps, G = 20 sd(g) is 92.40% and the mean intercept 92.56%, both z-Wald under-coverage, and the n = 200 no-RE mean intercept is 92.96%, a small under-coverage.
+- Convergence fails only in the two n = 50 cells.
+- Bias passes everywhere.
+
+Filed: drmTMB#1558; DRModels.jl#1114; comments on DRModels.jl#969, #1050 and #1059, and on drmTMB#1554 (the sd(g) boundary label depends on the units of y). No package code changed; `.Rbuildignore` gains `^sweep-oct16$`.
+
+Receipt: `sweep-oct16/t2/RECEIPT_t2.md`. Report: `docs/dev-log/after-task/2026-10-16-sweep-oct16-t2-gaussian-ls-recovery.md`.
+
 # 2026-10-18 — rebase #1506 onto main `d89db5097`
 
 Rebased `claude/lane-f-docs-tutorials` onto current main. Conflict was
