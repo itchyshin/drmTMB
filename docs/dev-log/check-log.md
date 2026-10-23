@@ -390,6 +390,15 @@ end: `python3 tools/recertify-c17.py --label pr-1504 --tolerance 1e-10`,
 also carries the #1495 contrast fix (ordered factors, stored contrast names,
 and a `drmTMB_contrasts_dropped` warning).
 
+# 2026-10-23: merge origin/main into #1502
+
+Merged origin/main into `cursor/triage-c-bridge-inputs`. Conflicts were the
+check log (keep both sides) and the C17 receipt manifest. The manifest was
+rewired by `python3 tools/recertify-c17.py --label pr-1502-main-refresh2
+--tolerance 1e-10`: `|change|` 0 on mc-0568/0569/0576. Tests on Totoro:
+`test-julia-input-handling.R` 101 passed, `test-julia-diagnostics.R` 135 passed
+(2 skipped, Julia engine absent), `test-julia-gate-vs-engine.R` 154 passed.
+
 # 2026-10-18 — rebase #1502 onto main `d89db5097`
 
 Rebased `cursor/triage-c-bridge-inputs` onto current main. NEWS conflict
