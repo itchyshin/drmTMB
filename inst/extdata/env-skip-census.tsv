@@ -46,7 +46,8 @@ test-biv-lognormal-rho12-coverage-driver.R	build-premise	build	skips	1
 test-biv-lognormal-rho12-coverage-driver.R	suggests-package	environment	runs	1
 test-biv-lognormal.R	suggests-package	environment	runs	6
 test-biv-student.R	suggests-package	environment	runs	4
-test-bootstrap-shards.R	os	environment	runs	1
+test-bootstrap-shards.R	cran-lane	environment	runs	5
+test-bootstrap-shards.R	os	environment	runs	5
 test-boundary-surfacing.R	cran-lane	environment	runs	6
 test-check-conditioning.R	platform-numeric	runtime	depends	3
 test-check-drm.R	cran-lane	environment	runs	1

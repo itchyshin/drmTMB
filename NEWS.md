@@ -94,6 +94,12 @@
 * Multicore profile workers that error now abort `confint()` and `profile()`
   with the worker's error, as the serial path does, instead of returning a
   `try-error` element.
+* Retained bootstrap shards now record a forked worker that dies without a
+  result as a `worker_died` attempt instead of silently dropping the
+  replicate, as `confint(method = "bootstrap")` does. Replicates queued on
+  the same worker are recorded the same way. The shard ledger gains a
+  `worker_died` count, so usable plus failed refits still equal the
+  replicates attempted, also after shards are combined (#1537).
 * `configure.win` is now a POSIX shell script that runs `./configure`.
   R CMD INSTALL runs `configure.win` with the Rtools `sh`, so the previous
   cmd batch file failed at `@echo: command not found` and stopped every
