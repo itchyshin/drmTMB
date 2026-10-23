@@ -293,6 +293,42 @@ arc3a_family <- function(family) {
   }
 }
 
+gamma_structured_joint_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  n_phylo <- nrow(data$Q_phylo)
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  log_sigma <- as.vector(data$X_sigma %*% par$beta_sigma)
+  index <- data$phylo_mu_node_index + 1L
+  eta_mu <- eta_mu + data$phylo_mu_value[, 1L] * par$u_phylo[index]
+  quadratic <- sum(par$u_phylo * as.vector(data$Q_phylo %*% par$u_phylo))
+  prior <- 0.5 * (
+    n_phylo * log(2 * pi) + 2 * n_phylo * par$log_sd_phylo[[1L]] -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo[[1L]]) * quadratic
+  )
+  observed <- as.logical(data$observed_y)
+  sigma <- exp(log_sigma[observed])
+  mu <- exp(eta_mu[observed])
+  shape <- 1 / sigma^2
+  scale <- mu * sigma^2
+  prior - sum(data$weights[observed] * stats::dgamma(
+    data$y[observed], shape = shape, scale = scale, log = TRUE
+  ))
+}
+
+positive_continuous_central_gradient <- function(fn, par) {
+  vapply(
+    seq_along(par),
+    function(i) {
+      step <- 1e-6 * max(1, abs(par[[i]]))
+      plus <- minus <- par
+      plus[[i]] <- plus[[i]] + step
+      minus[[i]] <- minus[[i]] - step
+      (fn(plus) - fn(minus)) / (2 * step)
+    },
+    numeric(1L)
+  )
+}
+
 fit_arc3a_positive <- function(
   sim,
   family,
@@ -487,6 +523,195 @@ test_that("lognormal structured likelihood matches transformed Gaussian likeliho
     as.numeric(stats::logLik(fit_gaussian)) - sum(log(sim$data$y)),
     tolerance = 1e-5
   )
+})
+
+test_that("lognormal relmat q1 response mask matches its Gaussian oracle and DGP", {
+  sim <- new_arc3a_positive_data(
+    family = "lognormal", provider = "relmat", seed = 2026081734L,
+    n_level = 64L, n_each = 16L
+  )
+  dat <- sim$data
+  dat$y[seq(1L, nrow(dat), by = 16L)] <- NA_real_
+  observed <- !is.na(dat$y)
+  K <- sim$K
+  formula <- bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1)
+  fit_masked <- drmTMB(
+    formula, family = lognormal(), data = dat,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = lognormal(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  dat_gaussian <- transform(dat, log_y = log(y))
+  fit_gaussian <- drmTMB(
+    bf(log_y ~ x + relmat(1 | id, K = K), sigma ~ 1),
+    family = gaussian(), data = dat_gaussian,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(fit_gaussian$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0.1, 10))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "mu"), coef(fit_gaussian, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_gaussian, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_gaussian$sdpars$mu, tolerance = 1e-6)
+  expect_equal(
+    as.numeric(logLik(fit_masked)),
+    as.numeric(logLik(fit_gaussian)) - sum(log(dat$y[observed])),
+    tolerance = 1e-6
+  )
+  expect_lt(max(abs(coef(fit_masked, "mu") - sim$beta_mu)), 0.20)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - sim$beta_sigma), 0.15)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - sim$tau), 0.22)
+})
+
+test_that("lognormal phylo q1 response mask matches its Gaussian oracle and DGP", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_arc3a_positive_data(
+    family = "lognormal", provider = "phylo", seed = 2026081735L,
+    n_level = 64L, n_each = 16L
+  )
+  dat <- sim$data
+  dat$y[seq(1L, nrow(dat), by = 16L)] <- NA_real_
+  observed <- !is.na(dat$y)
+  tree <- sim$tree
+  formula <- bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+  fit_masked <- drmTMB(
+    formula, family = lognormal(), data = dat,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = lognormal(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  dat_gaussian <- transform(dat, log_y = log(y))
+  fit_gaussian <- drmTMB(
+    bf(log_y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+    family = gaussian(), data = dat_gaussian,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(fit_gaussian$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0.1, 10))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "mu"), coef(fit_gaussian, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_gaussian, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_gaussian$sdpars$mu, tolerance = 1e-6)
+  expect_equal(
+    as.numeric(logLik(fit_masked)),
+    as.numeric(logLik(fit_gaussian)) - sum(log(dat$y[observed])),
+    tolerance = 1e-6
+  )
+  expect_lt(max(abs(coef(fit_masked, "mu") - sim$beta_mu)), 0.20)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - sim$beta_sigma), 0.15)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - sim$tau), 0.22)
+})
+
+test_that("Gamma relmat q1 response mask has an oracle and recovers its DGP", {
+  sim <- new_arc3a_positive_data(
+    family = "gamma", provider = "relmat", seed = 2026081736L,
+    n_level = 64L, n_each = 16L
+  )
+  dat <- sim$data
+  dat$y[seq(1L, nrow(dat), by = 16L)] <- NA_real_
+  observed <- !is.na(dat$y)
+  K <- sim$K
+  formula <- bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1)
+  fit_masked <- drmTMB(
+    formula, family = stats::Gamma(link = "log"), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = stats::Gamma(link = "log"), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), gamma_structured_joint_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)),
+    positive_continuous_central_gradient(obj$fn, probe), tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0.1, 10))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_lt(max(abs(coef(fit_masked, "mu") - sim$beta_mu)), 0.22)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - sim$beta_sigma), 0.18)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - sim$tau), 0.24)
+})
+
+test_that("Gamma phylo q1 response mask has an oracle and recovers its DGP", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_arc3a_positive_data(
+    family = "gamma", provider = "phylo", seed = 2026081737L,
+    n_level = 128L, n_each = 16L
+  )
+  dat <- sim$data
+  dat$y[seq(1L, nrow(dat), by = 16L)] <- NA_real_
+  observed <- !is.na(dat$y)
+  tree <- sim$tree
+  formula <- bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+  fit_masked <- drmTMB(
+    formula, family = stats::Gamma(link = "log"), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = stats::Gamma(link = "log"), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), gamma_structured_joint_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)),
+    positive_continuous_central_gradient(obj$fn, probe), tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0.1, 10))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  # The uncentred phylogenetic draw shifts the conditional intercept; the
+  # covariate slope remains the clean fixed-effect recovery target.
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.35)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.18)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - sim$beta_sigma), 0.18)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - sim$tau), 0.24)
 })
 
 test_that("Gamma relmat comparator retains conditional prediction and one-slope support", {

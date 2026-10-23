@@ -170,6 +170,48 @@ new_sigma_only_phylo_gaussian_slope_data <- function(
   )
 }
 
+new_phylo_location_scale_gaussian_slope_data <- function(
+  seed = 2026081611L,
+  n_tip = 64L,
+  n_each = 20L,
+  beta_mu = c(`(Intercept)` = 0.35, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05),
+  sd_mu = c(`(Intercept)` = 0.30, x = 0.18),
+  sd_sigma = c(`(Intercept)` = 0.24, x = 0.15)
+) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  draw_phylo_field <- function(sd) {
+    as.vector(t(chol(A)) %*% stats::rnorm(n_tip, sd = sd))
+  }
+  phylo_mu_intercept <- draw_phylo_field(sd_mu[["(Intercept)"]])
+  phylo_mu_slope <- draw_phylo_field(sd_mu[["x"]])
+  phylo_sigma_intercept <- draw_phylo_field(sd_sigma[["(Intercept)"]])
+  phylo_sigma_slope <- draw_phylo_field(sd_sigma[["x"]])
+  names(phylo_mu_intercept) <- tree$tip.label
+  names(phylo_mu_slope) <- tree$tip.label
+  names(phylo_sigma_intercept) <- tree$tip.label
+  names(phylo_sigma_slope) <- tree$tip.label
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_tip)
+  mu <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x +
+    phylo_mu_intercept[species] + phylo_mu_slope[species] * x
+  log_sigma <- beta_sigma[["(Intercept)"]] +
+    phylo_sigma_intercept[species] + phylo_sigma_slope[species] * x
+  y <- mu + exp(log_sigma) * stats::rnorm(length(species))
+
+  list(
+    data = data.frame(y = unname(y), x = x, species = species),
+    tree = tree,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_mu = sd_mu,
+    sd_sigma = sd_sigma
+  )
+}
+
 new_phylo_gaussian_slope_data <- function(
   seed = 20260573,
   n_tip = 16L,
@@ -298,6 +340,87 @@ new_biv_phylo_gaussian_data <- function(
     rho_phylo = rho_phylo,
     sigma = sigma,
     rho12 = rho12
+  )
+}
+
+new_biv_phylo_slope_gaussian_data <- function(
+  seed = 2026081716L,
+  n_tip = 128L,
+  n_each = 20L,
+  sd_phylo = c(0.55, 0.45),
+  rho_phylo = 0.30,
+  sigma = c(0.18, 0.20),
+  rho12 = 0.10
+) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  z1 <- stats::rnorm(n_tip)
+  z2 <- rho_phylo * z1 + sqrt(1 - rho_phylo^2) * stats::rnorm(n_tip)
+  slope1 <- as.vector(t(chol(A)) %*% z1) * sd_phylo[[1L]]
+  slope2 <- as.vector(t(chol(A)) %*% z2) * sd_phylo[[2L]]
+  names(slope1) <- tree$tip.label
+  names(slope2) <- tree$tip.label
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  beta_mu1 <- c(`(Intercept)` = 0.35, x = 0.25)
+  beta_mu2 <- c(`(Intercept)` = -0.20, x = -0.30)
+  e1 <- stats::rnorm(length(species))
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(length(species))
+  list(
+    data = data.frame(
+      y1 = beta_mu1[[1L]] + (beta_mu1[[2L]] + slope1[species]) * x + sigma[[1L]] * e1,
+      y2 = beta_mu2[[1L]] + (beta_mu2[[2L]] + slope2[species]) * x + sigma[[2L]] * e2,
+      x = x, species = species
+    ),
+    tree = tree, beta_mu1 = beta_mu1, beta_mu2 = beta_mu2,
+    sd_phylo = sd_phylo, rho_phylo = rho_phylo, sigma = sigma, rho12 = rho12
+  )
+}
+
+manual_biv_response_loglik <- function(fit) {
+  dat <- fit$model$data
+  observed_y1 <- fit$missing_data$observed_y1
+  observed_y2 <- fit$missing_data$observed_y2
+  mu1 <- predict(fit, dpar = "mu1")
+  mu2 <- predict(fit, dpar = "mu2")
+  sigma1 <- predict(fit, dpar = "sigma1")
+  sigma2 <- predict(fit, dpar = "sigma2")
+  rho12 <- predict(fit, dpar = "rho12")
+  out <- numeric(nrow(dat))
+  both <- observed_y1 & observed_y2
+  z1 <- (dat$y1[both] - mu1[both]) / sigma1[both]
+  z2 <- (dat$y2[both] - mu2[both]) / sigma2[both]
+  one_minus_rho2 <- 1 - rho12[both]^2
+  out[both] <- -log(2 * pi) - log(sigma1[both]) - log(sigma2[both]) -
+    0.5 * log(one_minus_rho2) -
+    0.5 * (z1^2 - 2 * rho12[both] * z1 * z2 + z2^2) / one_minus_rho2
+  y1_only <- observed_y1 & !observed_y2
+  out[y1_only] <- stats::dnorm(dat$y1[y1_only], mu1[y1_only], sigma1[y1_only], log = TRUE)
+  y2_only <- !observed_y1 & observed_y2
+  out[y2_only] <- stats::dnorm(dat$y2[y2_only], mu2[y2_only], sigma2[y2_only], log = TRUE)
+  sum(out)
+}
+
+manual_biv_phylo_q2_prior_loglik <- function(fit) {
+  par <- fit$obj$env$parList(fit$opt$par)
+  n_phylo <- nrow(fit$model$tmb_data$Q_phylo)
+  u1 <- par$u_phylo[seq_len(n_phylo)]
+  u2 <- par$u_phylo[n_phylo + seq_len(n_phylo)]
+  Q <- as.matrix(fit$model$tmb_data$Q_phylo)
+  q11 <- drop(crossprod(u1, Q %*% u1))
+  q12 <- drop(crossprod(u1, Q %*% u2))
+  q22 <- drop(crossprod(u2, Q %*% u2))
+  sd <- exp(par$log_sd_phylo)
+  rho <- 0.999999 * tanh(par$eta_cor_phylo)
+  one_minus_rho2 <- 1 - rho^2
+  quadratic <- q11 / (sd[[1L]]^2 * one_minus_rho2) -
+    2 * rho * q12 / (sd[[1L]] * sd[[2L]] * one_minus_rho2) +
+    q22 / (sd[[2L]]^2 * one_minus_rho2)
+  log_det_cov <- 2 * sum(par$log_sd_phylo) + log(one_minus_rho2)
+  -0.5 * (
+    2 * n_phylo * log(2 * pi) + n_phylo * log_det_cov -
+      2 * fit$model$tmb_data$log_det_Q_phylo + quadratic
   )
 }
 
@@ -795,6 +918,124 @@ test_that("bivariate Gaussian mu supports correlated phylogenetic random interce
   expect_true(all(vapply(sims, is.numeric, logical(1L))))
   expect_true(all(is.finite(as.matrix(sims))))
   expect_equal(sims, simulate(fit, nsim = 2, seed = 20260631, re.form = NULL))
+})
+
+test_that("bivariate phylogenetic q2 response masks have an exact conditional oracle", {
+  sim <- new_biv_phylo_gaussian_data(n_tip = 8L, n_each = 8L)
+  dat <- sim$data
+  tree <- sim$tree
+  dat$y1[c(3L, 19L, 44L)] <- NA_real_
+  dat$y2[c(8L, 19L, 51L)] <- NA_real_
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  full_parameters <- fit$obj$env$parList(fit$opt$par)
+  joint <- TMB::MakeADFun(
+    data = fit$model$tmb_data, parameters = full_parameters,
+    map = fit$model$map, DLL = "drmTMB", silent = TRUE
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    -joint$fn(joint$par),
+    manual_biv_response_loglik(fit) + manual_biv_phylo_q2_prior_loglik(fit),
+    tolerance = 1e-6
+  )
+  expect_missing_response_sentinel_invariant(
+    fit, response = "y1", observed = fit$missing_data$observed_y1,
+    sentinels = c(-1e6, 1e6)
+  )
+  expect_missing_response_sentinel_invariant(
+    fit, response = "y2", observed = fit$missing_data$observed_y2,
+    sentinels = c(-1e6, 1e6)
+  )
+})
+
+test_that("bivariate phylogenetic q2 response masks recover a known DGP", {
+  sim <- new_biv_phylo_gaussian_data(
+    seed = 2026081701L, n_tip = 32L, n_each = 8L,
+    sd_phylo = c(0.90, 0.80), rho_phylo = 0.55,
+    sigma = c(0.18, 0.20), rho12 = 0.10
+  )
+  tree <- sim$tree
+  dat <- missing_response_mask_mcar_within_group(
+    sim$data, "y1", "species", seed = 2026081702L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y2", "species", seed = 2026081703L
+  )
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 800, iter.max = 800)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_phylo)), 0.35)
+  expect_lt(abs(unname(fit$corpars$phylo) - sim$rho_phylo), 0.30)
+  expect_lt(max(abs(c(
+    unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)
+  ) - sim$sigma)), 0.08)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.25)
+})
+
+test_that("bivariate phylogenetic q2 slope masks recover at the 128-tip rung", {
+  sim <- new_biv_phylo_slope_gaussian_data()
+  tree <- sim$tree
+  dat <- missing_response_mask_mcar_within_group(
+    sim$data, "y1", "species", seed = 2026081717L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y2", "species", seed = 2026081718L
+  )
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(0 + x | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(0 + x | p | species, tree = tree),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 1500, iter.max = 1500)
+  )
+  full_parameters <- fit$obj$env$parList(fit$opt$par)
+  joint <- TMB::MakeADFun(
+    data = fit$model$tmb_data, parameters = full_parameters,
+    map = fit$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  data_zero <- fit$model$tmb_data
+  data_large <- fit$model$tmb_data
+  data_zero$y1[fit$missing_data$observed_y1 == 0L] <- -1e6
+  data_large$y1[fit$missing_data$observed_y1 == 0L] <- 1e6
+  zero_obj <- TMB::MakeADFun(data_zero, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+  large_obj <- TMB::MakeADFun(data_large, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(-joint$fn(joint$par), manual_biv_response_loglik(fit) + manual_biv_phylo_q2_prior_loglik(fit), tolerance = 1e-6)
+  expect_equal(zero_obj$fn(zero_obj$par), large_obj$fn(large_obj$par), tolerance = 1e-8)
+  expect_equal(zero_obj$gr(zero_obj$par), large_obj$gr(large_obj$par), tolerance = 1e-8, ignore_attr = TRUE)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_phylo)), 0.20)
+  expect_lt(abs(unname(fit$corpars$phylo) - sim$rho_phylo), 0.20)
+  expect_lt(max(abs(c(unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)) - sim$sigma)), 0.05)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.15)
 })
 
 test_that("bivariate Gaussian mu supports phylogenetic q2 slope-only covariance", {
@@ -2032,6 +2273,43 @@ test_that("Gaussian supports phylogenetic residual-scale structured effects", {
   expect_equal(pair$estimate, unname(fit$corpars$phylo))
 })
 
+test_that("Gaussian matched phylogenetic location-scale masks match observed data", {
+  sim <- new_phylo_location_scale_gaussian_data(
+    seed = 2026081609L, n_tip = 64L, n_each = 20L,
+    sd_phylo = c(mu = 0.40, sigma = 0.24), rho_phylo = 0.30
+  )
+  tree <- sim$tree
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "species", seed = 2026081610L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + phylo(1 | species, tree = tree),
+    sigma ~ phylo(1 | species, tree = tree)
+  )
+  control <- drm_control(se = FALSE, optimizer = list(eval.max = 800, iter.max = 800))
+  fit_mask <- drmTMB(
+    form, gaussian(), masked, missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(fit_mask$corpars$phylo, fit_observed$corpars$phylo, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.25)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.25)
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_phylo[["mu"]]))), log(2))
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_phylo[["sigma"]]))), log(2))
+  expect_lt(abs(unname(fit_mask$corpars$phylo) - sim$rho_phylo), 0.35)
+})
+
 test_that("matched univariate phylogenetic location-scale terms reject mismatches early", {
   sim <- new_phylo_location_scale_gaussian_data(n_tip = 4L, n_each = 4L)
   tree <- sim$tree
@@ -2265,6 +2543,39 @@ test_that("Gaussian supports sigma-only phylogenetic residual-scale structured e
   expect_equal(sigma_target$profile_note, "ready")
 })
 
+test_that("Gaussian phylogenetic sigma intercept masks match observed data", {
+  sim <- new_sigma_only_phylo_gaussian_data(
+    seed = 2026081605L, n_tip = 64L, n_each = 20L
+  )
+  tree <- sim$tree
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "species", seed = 2026081606L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ phylo(1 | species, tree = tree))
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE, optimizer = list(eval.max = 600, iter.max = 600))
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE],
+    control = drm_control(se = FALSE, optimizer = list(eval.max = 600, iter.max = 600))
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.15)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_phylo)), log(2))
+})
+
 test_that("Gaussian supports sigma-only one-slope phylogenetic residual-scale fields", {
   sim <- new_sigma_only_phylo_gaussian_slope_data()
   tree <- sim$tree
@@ -2327,6 +2638,40 @@ test_that("Gaussian supports sigma-only one-slope phylogenetic residual-scale fi
   expect_equal(sd_targets$target_type, rep("direct", 2L))
   expect_true(all(sd_targets$profile_ready))
   expect_true(is.finite(as.numeric(stats::logLik(fit))))
+})
+
+test_that("Gaussian phylogenetic sigma slope masks match observed data", {
+  sim <- new_sigma_only_phylo_gaussian_slope_data(
+    seed = 2026081607L, n_tip = 64L, n_each = 20L
+  )
+  tree <- sim$tree
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "species", seed = 2026081608L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ phylo(1 + x | species, tree = tree))
+  control <- drm_control(se = FALSE, optimizer = list(eval.max = 800, iter.max = 800))
+  fit_mask <- drmTMB(
+    form, gaussian(), masked, missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.15)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.25)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$sigma) / unname(sim$sd_phylo)))),
+    log(2.5)
+  )
 })
 
 test_that("Gaussian supports matched one-slope phylogenetic location-scale fields", {
@@ -2404,6 +2749,50 @@ test_that("Gaussian supports matched one-slope phylogenetic location-scale field
   expect_true(is.finite(as.numeric(stats::logLik(fit))))
 })
 
+test_that("Gaussian matched one-slope phylogenetic location-scale masks match observed data", {
+  sim <- new_phylo_location_scale_gaussian_slope_data()
+  tree <- sim$tree
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "species", seed = 2026081612L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + phylo(1 + x | species, tree = tree),
+    sigma ~ phylo(1 + x | species, tree = tree)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.30)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) / unname(sim$sd_mu)))),
+    log(2.5)
+  )
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$sigma) / unname(sim$sd_sigma)))),
+    log(2.5)
+  )
+})
+
 test_that("Gaussian mu supports one-slope phylogenetic fields", {
   sim <- new_phylo_gaussian_slope_data()
   tree <- sim$tree
@@ -2459,4 +2848,41 @@ test_that("Gaussian mu supports one-slope phylogenetic fields", {
   expect_match(phylo_check$value, "n_coef=2", fixed = TRUE)
   expect_match(phylo_check$value, "min_phylo_sd=", fixed = TRUE)
   expect_match(phylo_check$value, "min_sd_ratio=", fixed = TRUE)
+})
+
+test_that("Gaussian phylogenetic mu slope masks match observed data", {
+  sim <- new_phylo_gaussian_slope_data(
+    seed = 2026081603L, n_tip = 64L, n_each = 12L
+  )
+  tree <- sim$tree
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "species", seed = 2026081604L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ 1)
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    stats::sigma(fit_mask)[[1L]], stats::sigma(fit_observed)[[1L]], tolerance = 1e-5
+  )
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(
+    max(abs(unname(fit_mask$sdpars$mu) - c(sim$sd_intercept, sim$sd_slope))),
+    0.30
+  )
+  expect_lt(abs(stats::sigma(fit_mask)[[1L]] - sim$sigma), 0.10)
 })

@@ -166,11 +166,12 @@ mr_t2_random_intercept_data <- function(route, seed) {
     mu <- exp(eta)
     dat$y <- rgamma(n, shape = 1 / sigma^2, scale = mu * sigma^2)
   }
+  complete <- dat
   dat <- missing_response_mask_mcar(dat, "y", seed = seed + 1L)
   if (any(tapply(!is.na(dat$y), dat$id, sum) == 0L)) {
     stop("Fixed-seed MCAR mask removed every response from a group.")
   }
-  list(data = dat, truth = truth, u = u)
+  list(data = dat, complete = complete, truth = truth, u = u)
 }
 
 test_that("Student, lognormal, and Gamma masks recover random-intercept DGPs", {
@@ -201,6 +202,37 @@ test_that("Student, lognormal, and Gamma masks recover random-intercept DGPs", {
         control = drm_control(se = FALSE)
       )
     )
+    observed <- !is.na(dat$y)
+    fit_observed <- switch(
+      route,
+      student = drmTMB(
+        bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1), student(),
+        case$complete[observed, , drop = FALSE], control = drm_control(se = FALSE)
+      ),
+      lognormal = drmTMB(
+        bf(y ~ x + (1 | id), sigma ~ z), lognormal(),
+        case$complete[observed, , drop = FALSE], control = drm_control(se = FALSE)
+      ),
+      gamma = drmTMB(
+        bf(y ~ x + (1 | id), sigma ~ z), Gamma(link = "log"),
+        case$complete[observed, , drop = FALSE], control = drm_control(se = FALSE)
+      )
+    )
+
+    for (dpar in intersect(names(case$truth), c("mu", "sigma", "nu"))) {
+      expect_equal(
+        unname(coef(fit, dpar)), unname(coef(fit_observed, dpar)),
+        tolerance = 1e-6, info = paste(route, dpar, "observed-data equality")
+      )
+    }
+    expect_equal(
+      as.numeric(logLik(fit)), as.numeric(logLik(fit_observed)),
+      tolerance = 1e-6, info = paste(route, "observed-data equality")
+    )
+    expect_missing_response_sentinel_invariant(
+      fit,
+      sentinels = if (route == "gamma") c(1, 0) else c(0, -1)
+    )
 
     expect_lt(
       max(abs(unname(coef(fit, "mu")) - case$truth$mu)),
@@ -224,6 +256,82 @@ test_that("Student, lognormal, and Gamma masks recover random-intercept DGPs", {
       cor(fit$random_effects$mu$values, case$u),
       switch(route, student = 0.45, lognormal = 0.50, gamma = 0.45)
     )
+  }
+})
+
+mr_t2_random_slope_data <- function(route, seed) {
+  set.seed(seed)
+  n_id <- switch(route, student = 44L, skew_normal = 50L, lognormal = 42L, gamma = 46L)
+  n_each <- 16L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  dat <- data.frame(id = id, x = rnorm(n), z = rnorm(n))
+  truth <- switch(
+    route,
+    student = list(mu = c(0.20, 0.48), sigma = c(-0.42, 0.18), nu = log(7), sd = 0.50),
+    skew_normal = list(mu = c(0.20, 0.45), sigma = c(-0.35, 0.18), nu = 1.6, sd = 0.45),
+    lognormal = list(mu = c(0.25, 0.40), sigma = c(-0.75, 0.18), sd = 0.50),
+    gamma = list(mu = c(0.15, 0.36), sigma = c(-0.85, 0.16), sd = 0.48)
+  )
+  u <- rnorm(n_id, sd = truth$sd)
+  eta <- truth$mu[[1L]] + (truth$mu[[2L]] + u[id]) * dat$x
+  sigma <- exp(truth$sigma[[1L]] + truth$sigma[[2L]] * dat$z)
+  if (route == "student") {
+    q <- qt((seq_len(n) - 0.5) / n, df = 2 + exp(truth$nu))
+    dat$y <- eta + sigma * sample(q)
+  } else if (route == "skew_normal") {
+    native <- skew_normal_public_to_native(eta, sigma, truth$nu)
+    dat$y <- native$xi + native$omega * (
+      native$delta * abs(rnorm(n)) + sqrt(1 - native$delta^2) * rnorm(n)
+    )
+  } else if (route == "lognormal") {
+    dat$y <- rlnorm(n, meanlog = eta, sdlog = sigma)
+  } else {
+    mu <- exp(eta)
+    dat$y <- rgamma(n, shape = 1 / sigma^2, scale = mu * sigma^2)
+  }
+  complete <- dat
+  dat <- missing_response_mask_mcar_within_group(dat, "y", "id", seed = seed + 1L)
+  list(data = dat, complete = complete, truth = truth, u = u)
+}
+
+test_that("continuous masks recover random-slope DGPs", {
+  routes <- c("student", "skew_normal", "lognormal", "gamma")
+  for (i in seq_along(routes)) {
+    route <- routes[[i]]
+    case <- mr_t2_random_slope_data(route, 2026081530L + i)
+    dat <- case$data
+    observed <- !is.na(dat$y)
+    form <- switch(
+      route,
+      student = bf(y ~ x + (0 + x | id), sigma ~ z, nu ~ 1),
+      skew_normal = bf(y ~ x + (0 + x | id), sigma ~ z, nu ~ 1),
+      lognormal = bf(y ~ x + (0 + x | id), sigma ~ z),
+      gamma = bf(y ~ x + (0 + x | id), sigma ~ z)
+    )
+    fit <- drmTMB(
+      form, switch(route, student = student(), skew_normal = skew_normal(), lognormal = lognormal(), gamma = Gamma(link = "log")),
+      dat, missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+    )
+    fit_observed <- drmTMB(
+      form, switch(route, student = student(), skew_normal = skew_normal(), lognormal = lognormal(), gamma = Gamma(link = "log")),
+      case$complete[observed, , drop = FALSE], control = drm_control(se = FALSE)
+    )
+    for (dpar in names(coef(fit))) {
+      expect_equal(coef(fit, dpar), coef(fit_observed, dpar), tolerance = 1e-5,
+        info = paste(route, dpar, "observed-data equality"))
+    }
+    expect_equal(fit$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5, info = route)
+    expect_equal(as.numeric(logLik(fit)), as.numeric(logLik(fit_observed)), tolerance = 1e-5, info = route)
+    expect_missing_response_sentinel_invariant(fit,
+      sentinels = if (route == "gamma") c(1, 0) else c(0, -1))
+    expect_lt(max(abs(unname(coef(fit, "mu")) - case$truth$mu)), 0.25)
+    expect_lt(max(abs(unname(coef(fit, "sigma")) - case$truth$sigma)), 0.25)
+    if (route == "student") expect_lt(abs(unname(coef(fit, "nu")) - case$truth$nu), 0.65)
+    if (route == "skew_normal") expect_lt(abs(unname(coef(fit, "nu")) - case$truth$nu), 0.35)
+    expect_lt(abs(unname(fit$sdpars$mu) - case$truth$sd), 0.28)
+    slope_effects <- fit$random_effects$mu$terms[["(0 + x | id)"]]
+    expect_gt(cor(slope_effects, case$u), 0.40)
   }
 })
 
@@ -290,6 +398,105 @@ test_that("MR-T2 masks reject all-missing and invalid observed responses", {
       info = paste("gamma", bad)
     )
   }
+})
+
+test_that("lognormal sigma random-intercept response mask matches observed data", {
+  set.seed(2026081542L)
+  n_id <- 60L
+  n_each <- 20L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rnorm(length(id))
+  truth_sd <- 0.38
+  u <- rnorm(n_id, sd = truth_sd)
+  dat <- data.frame(id, x)
+  dat$y <- rlnorm(nrow(dat), meanlog = 0.25 + 0.40 * x, sdlog = exp(-0.70 + u[id]))
+  masked <- missing_response_mask_mcar_within_group(dat, "y", "id", seed = 2026081543L)
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ 1 + (1 | id))
+  fit_mask <- drmTMB(form, lognormal(), masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+  fit_observed <- drmTMB(form, lognormal(), masked[observed, , drop = FALSE],
+    control = drm_control(se = FALSE))
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-6)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-6)
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(1, 0))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - c(0.25, 0.40))), 0.15)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) + 0.70), 0.18)
+  expect_lt(abs(unname(fit_mask$sdpars$sigma) - truth_sd), 0.22)
+  expect_gt(cor(fit_mask$random_effects$sigma$values, u), 0.40)
+})
+
+test_that("Gamma sigma random-intercept response mask matches observed data", {
+  set.seed(2026081546L)
+  n_id <- 60L
+  n_each <- 20L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rnorm(length(id))
+  truth_sd <- 0.36
+  u <- rnorm(n_id, sd = truth_sd)
+  dat <- data.frame(id, x)
+  mu <- exp(0.15 + 0.36 * x)
+  sigma <- exp(-0.85 + u[id])
+  dat$y <- rgamma(nrow(dat), shape = 1 / sigma^2, scale = mu * sigma^2)
+  masked <- missing_response_mask_mcar_within_group(dat, "y", "id", seed = 2026081547L)
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ 1 + (1 | id))
+  fit_mask <- drmTMB(form, Gamma(link = "log"), masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+  fit_observed <- drmTMB(form, Gamma(link = "log"), masked[observed, , drop = FALSE],
+    control = drm_control(se = FALSE))
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-6)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-6)
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(1, 0))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - c(0.15, 0.36))), 0.18)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) + 0.85), 0.18)
+  expect_lt(abs(unname(fit_mask$sdpars$sigma) - truth_sd), 0.20)
+  expect_gt(cor(fit_mask$random_effects$sigma$values, u), 0.40)
+})
+
+test_that("skew-normal random-intercept response mask matches observed data", {
+  set.seed(2026081563L)
+  n_id <- 50L
+  n_each <- 32L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- rnorm(n)
+  z <- rnorm(n)
+  truth_sd <- 0.45
+  u <- rnorm(n_id, sd = truth_sd)
+  mu <- 0.2 + 0.45 * x + u[id]
+  sigma <- exp(-0.35 + 0.18 * z)
+  nu <- 1.6
+  native <- skew_normal_public_to_native(mu, sigma, nu)
+  y <- native$xi + native$omega * (
+    native$delta * abs(rnorm(n)) + sqrt(1 - native$delta^2) * rnorm(n)
+  )
+  dat <- data.frame(y, x, z, id)
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "y", "id", seed = 2026081564L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1)
+  fit_mask <- drmTMB(
+    form, skew_normal(), masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    form, skew_normal(), masked[observed, ], control = drm_control(se = FALSE)
+  )
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "nu"), coef(fit_observed, "nu"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.25)
+  expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.35)
 })
 
 test_that("MR-T2 masks retain response-missing rows but drop predictor-missing rows", {

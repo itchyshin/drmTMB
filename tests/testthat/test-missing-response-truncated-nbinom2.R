@@ -147,14 +147,65 @@ test_that("MR-T5 recovers every fitted parameter with 25 percent MCAR", {
     missing = miss_control(response = "include"),
     se = TRUE
   )
+  observed <- !is.na(dat$count)
+  fit_observed <- mr_t5_fit(
+    dat[observed, , drop = FALSE], random = TRUE, se = FALSE
+  )
 
   expect_equal(mean(is.na(dat$count)), 0.25)
   expect_equal(fit$opt$convergence, 0L)
+  expect_equal(coef(fit, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit), sum(observed))
+  expect_missing_response_sentinel_invariant(fit, sentinels = c(1, 7))
   expect_lt(max(abs(unname(coef(fit, "mu")) - sim$truth$mu)), 0.25)
   expect_lt(max(abs(unname(coef(fit, "sigma")) - sim$truth$sigma)), 0.35)
   expect_lt(abs(unname(fit$sdpars$mu[["(1 | id)"]]) - sim$truth$sd_id), 0.25)
   id_effects <- fit$random_effects$mu$terms[["(1 | id)"]]
   expect_gt(cor(id_effects, sim$u_id), 0.35)
+})
+
+test_that("truncated NB2 random-slope response mask matches observed data", {
+  set.seed(2026081511L)
+  n_id <- 50L
+  n_each <- 32L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- runif(n, -1, 1)
+  z <- rnorm(n)
+  truth_sd <- 0.45
+  u <- rnorm(n_id, sd = truth_sd)
+  mu <- exp(0.4 + (-0.25 + u[id]) * x)
+  sigma <- exp(-0.65 + 0.15 * z)
+  p0 <- dnbinom(0, size = 1 / sigma^2, mu = mu)
+  count <- qnbinom(
+    p0 + pmax(runif(n), .Machine$double.eps) * (1 - p0),
+    size = 1 / sigma^2, mu = mu
+  )
+  dat <- data.frame(count, x, z, id)
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "count", "id", seed = 2026081512L
+  )
+  observed <- !is.na(masked$count)
+  form <- bf(count ~ x + (0 + x | id), sigma ~ z)
+  fit_mask <- drmTMB(
+    form, truncated_nbinom2(), masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    form, truncated_nbinom2(), masked[observed, ], control = drm_control(se = FALSE)
+  )
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(1, 7))
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.25)
+  slope_effects <- fit_mask$random_effects$mu$terms[["(0 + x | id)"]]
+  expect_gt(cor(slope_effects, u), 0.35)
 })
 
 test_that("MR-T5 retains neighbouring REML and mi gates", {

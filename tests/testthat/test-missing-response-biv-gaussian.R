@@ -66,6 +66,50 @@ manual_biv_missing_loglik <- function(fit) {
   sum(out)
 }
 
+manual_biv_labelled_mu_prior_loglik <- function(fit) {
+  # The bivariate labelled block is parameterised as independent standard
+  # normals; correlation and standard deviations transform these into the two
+  # endpoint contributions in the C++ likelihood.
+  u_mu <- fit$obj$env$parList(fit$opt$par)$u_mu
+  sum(stats::dnorm(u_mu, log = TRUE))
+}
+
+new_biv_sigma_q2_response_mask_data <- function(
+  seed = 2026081728L,
+  n_id = 128L,
+  n_each = 12L,
+  rho_scale = 0.45,
+  residual_rho = 0.20
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  z1 <- stats::rnorm(n_id)
+  z2 <- stats::rnorm(n_id)
+  beta_mu1 <- c(`(Intercept)` = 0.20, x = 0.45)
+  beta_mu2 <- c(`(Intercept)` = -0.10, x = -0.35)
+  beta_sigma <- c(sigma1 = log(0.38), sigma2 = log(0.52))
+  sd_sigma <- c(sigma1 = 0.28, sigma2 = 0.34)
+  b1 <- sd_sigma[[1L]] * z1
+  b2 <- sd_sigma[[2L]] * (rho_scale * z1 + sqrt(1 - rho_scale^2) * z2)
+  e1 <- stats::rnorm(n)
+  e2 <- residual_rho * e1 + sqrt(1 - residual_rho^2) * stats::rnorm(n)
+  list(
+    data = data.frame(
+      id = id, x = x,
+      y1 = beta_mu1[[1L]] + beta_mu1[[2L]] * x + exp(beta_sigma[[1L]] + b1[id]) * e1,
+      y2 = beta_mu2[[1L]] + beta_mu2[[2L]] * x + exp(beta_sigma[[2L]] + b2[id]) * e2
+    ),
+    beta_mu1 = beta_mu1, beta_mu2 = beta_mu2, beta_sigma = beta_sigma,
+    sd_sigma = sd_sigma, rho_scale = rho_scale, rho12 = residual_rho
+  )
+}
+
+manual_biv_labelled_sigma_prior_loglik <- function(fit) {
+  sum(stats::dnorm(fit$obj$env$parList(fit$opt$par)$u_sigma, log = TRUE))
+}
+
 test_that("default missing policy matches complete-pair bivariate Gaussian fits", {
   dat <- missing_response_biv_gaussian_data()
   dat$y2[3] <- NA_real_
@@ -209,6 +253,97 @@ test_that("bivariate Gaussian response-mask sentinel cannot leak", {
     observed = fit_zero$missing_data$observed_y2,
     sentinels = c(-1e6, 1e6)
   )
+})
+
+test_that("labelled bivariate mu block has a partial-response conditional oracle", {
+  set.seed(2026081604L)
+  n_id <- 40L
+  n_each <- 16L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- rnorm(n)
+  z <- matrix(rnorm(2L * n_id), ncol = 2L)
+  truth_sd <- c(0.50, 0.40)
+  truth_rho <- 0.30
+  u1 <- truth_sd[[1L]] * z[, 1L]
+  u2 <- truth_sd[[2L]] * (truth_rho * z[, 1L] + sqrt(1 - truth_rho^2) * z[, 2L])
+  dat <- data.frame(
+    id, x,
+    y1 = 0.2 + 0.4 * x + u1[id] + rnorm(n, sd = 0.35),
+    y2 = -0.1 - 0.3 * x + u2[id] + rnorm(n, sd = 0.45)
+  )
+  dat <- missing_response_mask_mcar_within_group(dat, "y1", "id", seed = 2026081605L)
+  dat <- missing_response_mask_mcar_within_group(dat, "y2", "id", seed = 2026081606L)
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    biv_gaussian(), dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  full_parameters <- fit$obj$env$parList(fit$opt$par)
+  joint <- TMB::MakeADFun(
+    data = fit$model$tmb_data, parameters = full_parameters,
+    map = fit$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  expect_equal(
+    -joint$fn(joint$par),
+    manual_biv_missing_loglik(fit) + manual_biv_labelled_mu_prior_loglik(fit),
+    tolerance = 1e-6
+  )
+  expect_missing_response_sentinel_invariant(
+    fit, response = "y1", observed = fit$missing_data$observed_y1,
+    sentinels = c(-1e6, 1e6)
+  )
+  expect_missing_response_sentinel_invariant(
+    fit, response = "y2", observed = fit$missing_data$observed_y2,
+    sentinels = c(-1e6, 1e6)
+  )
+})
+
+test_that("labelled bivariate sigma block has response-mask oracle and recovery", {
+  sim <- new_biv_sigma_q2_response_mask_data()
+  dat <- missing_response_mask_mcar_within_group(sim$data, "y1", "id", seed = 2026081729L)
+  dat <- missing_response_mask_mcar_within_group(dat, "y2", "id", seed = 2026081730L)
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x, mu2 = y2 ~ x,
+      sigma1 = ~ 1 + (1 | p | id),
+      sigma2 = ~ 1 + (1 | p | id),
+      rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 1200, iter.max = 1200)
+  )
+  full_parameters <- fit$obj$env$parList(fit$opt$par)
+  joint <- TMB::MakeADFun(
+    data = fit$model$tmb_data, parameters = full_parameters,
+    map = fit$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  data_zero <- fit$model$tmb_data
+  data_large <- fit$model$tmb_data
+  data_zero$y1[fit$missing_data$observed_y1 == 0L] <- -1e6
+  data_large$y1[fit$missing_data$observed_y1 == 0L] <- 1e6
+  zero_obj <- TMB::MakeADFun(data_zero, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+  large_obj <- TMB::MakeADFun(data_large, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    -joint$fn(joint$par),
+    manual_biv_missing_loglik(fit) + manual_biv_labelled_sigma_prior_loglik(fit),
+    tolerance = 1e-6
+  )
+  expect_equal(zero_obj$fn(zero_obj$par), large_obj$fn(large_obj$par), tolerance = 1e-8)
+  expect_equal(zero_obj$gr(zero_obj$par), large_obj$gr(large_obj$par), tolerance = 1e-8, ignore_attr = TRUE)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.20)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.20)
+  expect_lt(max(abs(c(unname(coef(fit, "sigma1")), unname(coef(fit, "sigma2"))) - sim$beta_sigma)), 0.20)
+  expect_lt(max(abs(unname(fit$sdpars$sigma) - sim$sd_sigma)), 0.15)
+  expect_lt(abs(unname(fit$corpars$sigma) - sim$rho_scale), 0.20)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.15)
 })
 
 test_that("bivariate response masks keep predictor and dense-V boundaries explicit", {

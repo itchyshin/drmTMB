@@ -177,8 +177,8 @@
 #'   unsupported under REML. For `binomial()` models, the bounded native route
 #'   requires exactly one ordinary unlabelled `mu` random intercept or exactly
 #'   one independent numeric slope. Fixed-only and multiple-term binomial
-#'   models, correlated or labelled covariance blocks, structured effects,
-#'   missing-data engines, and other extensions are not admitted under REML;
+#'   models, correlated or labelled covariance blocks, structured effects, and
+#'   other extensions are not admitted under REML;
 #'   use `REML = FALSE` for those models. The binomial route has diagnostic
 #'   parity and finite-uncertainty evidence, not calibrated interval or coverage
 #'   evidence. Every other non-Gaussian family rejects `REML = TRUE`; use
@@ -194,6 +194,12 @@
 #'   currently fit `REML = TRUE`; every other bridge route refuses it, some
 #' with a raw DRModels.jl error rather than a `drmTMB`-worded one. Do not assume
 #' bridge REML support for models outside this list.
+#'
+#'   With `missing = miss_control(response = "include")`, the native REML
+#'   route is currently validated for univariate Gaussian response masks and
+#'   for the bounded binomial ordinary `mu` random-intercept route, with complete
+#'   predictors and other non-response inputs. Other explicit missing-data
+#'   engines, including missing predictors, remain unsupported under REML.
 #'
 #'   Under native `REML = TRUE`, admitted mean fixed-effect coefficients are
 #'   marginalised in the TMB objective rather than estimated as ordinary fixed
@@ -417,18 +423,23 @@ drmTMB <- function(
       "i" = "Use {.code family = gaussian()}, {.code biv_gaussian()}, or {.code binomial()}, or set {.code REML = FALSE}."
     ))
   }
+  reml_response_mask_slice <-
+    family_type %in% c("gaussian", "binomial") &&
+    identical(missing_control$response, "include") &&
+    identical(missing_control$predictor, "fail")
   if (
     isTRUE(REML) &&
       drm_reml_missing_engine_engages(
         missing_control,
         formula,
         data
-      )
+      ) &&
+      !reml_response_mask_slice
   ) {
     cli::cli_abort(c(
-      "{.arg REML} is not implemented with explicit missing-data engines yet.",
+      "{.arg REML} with an explicit missing-data engine is currently implemented only for univariate Gaussian response masks.",
       "x" = "The model variables contain missing values and {.arg missing} requests a non-default engine.",
-      "i" = "Use the default {.code missing = miss_control()}, drop the incomplete rows, or set {.code REML = FALSE}."
+      "i" = "Use {.code family = gaussian()} with {.code missing = miss_control(response = \"include\")}, drop the incomplete rows, or set {.code REML = FALSE}."
     ))
   }
   if (isTRUE(REML) && !is.null(penalty)) {
@@ -6563,13 +6574,10 @@ drm_build_beta_ls_spec <- function(
       "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
     ))
   }
-  if (
-    length(sd_phylo_entries) > 0L &&
-      (include_missing_response || include_missing_predictor)
-  ) {
+  if (length(sd_phylo_entries) > 0L && include_missing_predictor) {
     cli::cli_abort(c(
-      "Beta phylogenetic direct-SD regression is not implemented with missing-data routes.",
-      "i" = "Use complete responses and predictors for {.code sd(species, level = \"phylogenetic\") ~ ...}; missing-response and {.fn mi} combinations remain deferred."
+      "Beta phylogenetic direct-SD regression is not implemented with missing-predictor {.fn mi}.",
+      "i" = "Use complete predictors for {.code sd(species, level = \"phylogenetic\") ~ ...}; response masking is supported separately."
     ))
   }
   if (
@@ -6938,18 +6946,6 @@ drm_build_zero_one_beta_spec <- function(
     sigma_terms = sigma_re$terms,
     zoi_terms = zoi_re$terms
   )
-  if (include_missing_response && length(zoi_re$terms) > 0L) {
-    cli::cli_abort(c(
-      "The zero-one-beta zoi q1 random-effect gate does not support missing responses.",
-      "i" = "Use complete observed responses with either {.code zoi ~ 1 + (1 | id)} or the same-raw-symbol slope form {.code zoi ~ x + (0 + x | id)}."
-    ))
-  }
-  if (include_missing_response && length(coi_re$terms) > 0L) {
-    cli::cli_abort(c(
-      "The zero-one-beta coi q1 random-effect gate does not support missing responses.",
-      "i" = "Use complete observed responses with {.code coi ~ 1 + (1 | id)} or the same-raw-symbol slope form {.code coi ~ x + (0 + x | id)}."
-    ))
-  }
   if (length(sigma_re$terms) > 0L) {
     validate_zero_one_beta_sigma_q1_fixed_rhs(
       sigma_entry$rhs,
@@ -7112,19 +7108,6 @@ drm_build_zero_one_beta_spec <- function(
     cli::cli_abort("A zero-one-beta coi formula can use only one structured provider in this q1 gate.")
   }
   coi_structured <- if (!is.null(coi_phylo$term)) coi_phylo$term else if (!is.null(coi_animal$term)) coi_animal$term else if (!is.null(coi_relmat$term)) coi_relmat$term else if (!is.null(coi_spatial$term)) coi_spatial$term else coi_phylo_interaction$term
-
-  if (include_missing_response && !is.null(zoi_structured)) {
-    cli::cli_abort(c(
-      "The zero-one-beta zoi q1 structured-effect gate does not support missing responses.",
-      "i" = "Use complete observed responses with a structured zoi provider such as {.fn phylo}, {.fn animal}, {.fn relmat}, or {.fn phylo_interaction}."
-    ))
-  }
-  if (include_missing_response && !is.null(coi_structured)) {
-    cli::cli_abort(c(
-      "The zero-one-beta coi q1 structured-effect gate does not support missing responses.",
-      "i" = "Use complete observed responses with a structured coi provider such as {.fn phylo}, {.fn animal}, {.fn relmat}, or {.fn phylo_interaction}."
-    ))
-  }
 
   structured_endpoints <- list(
     mu = mu_structured,

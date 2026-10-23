@@ -62,6 +62,7 @@ new_count_structured_mu_data <- function(
     coords = coords,
     Q = Q,
     beta_mu = beta_mu,
+    spatial_effect = spatial_effect,
     sigma_nb2 = sigma_nb2
   )
 }
@@ -88,10 +89,11 @@ nb2_phylo_q2_independent_nll <- function(fit, par) {
     n_phylo * log(2 * pi) + 2 * par$log_sd_phylo * n_phylo -
       data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo) * quadratic
   ))
-  prior - sum(data$weights * stats::dnbinom(
-    data$y,
-    size = exp(-2 * log_sigma),
-    mu = exp(eta_mu),
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dnbinom(
+    data$y[observed],
+    size = exp(-2 * log_sigma[observed]),
+    mu = exp(eta_mu[observed]),
     log = TRUE
   ))
 }
@@ -126,10 +128,11 @@ nb2_phylo_q2_covariance_nll <- function(fit, par, rho = NULL) {
       n_phylo * (2 * sum(par$log_sd_phylo) + log(one_minus_rho2)) -
       2 * data$log_det_Q_phylo + quadratic
   )
-  prior - sum(data$weights * stats::dnbinom(
-    data$y,
-    size = exp(-2 * log_sigma),
-    mu = exp(eta_mu),
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dnbinom(
+    data$y[observed],
+    size = exp(-2 * log_sigma[observed]),
+    mu = exp(eta_mu[observed]),
     log = TRUE
   ))
 }
@@ -172,6 +175,98 @@ poisson_phylo_q2_independent_nll <- function(fit, par) {
   prior - sum(data$weights * stats::dpois(data$y, exp(eta_mu), log = TRUE))
 }
 
+poisson_structured_q1_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  n_level <- nrow(data$Q_phylo)
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  index <- data$phylo_mu_node_index + 1L
+  eta_mu <- eta_mu + data$phylo_mu_value[, 1L] * par$u_phylo[index]
+  quadratic <- sum(par$u_phylo * as.vector(data$Q_phylo %*% par$u_phylo))
+  prior <- 0.5 * (
+    n_level * log(2 * pi) + 2 * n_level * par$log_sd_phylo[[1L]] -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo[[1L]]) * quadratic
+  )
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dpois(
+    data$y[observed], lambda = exp(eta_mu[observed]), log = TRUE
+  ))
+}
+
+poisson_structured_q1_slope_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  n_level <- nrow(data$Q_phylo)
+  u_phylo <- matrix(par$u_phylo, nrow = n_level)
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  for (k in seq_len(ncol(u_phylo))) {
+    eta_mu <- eta_mu + data$phylo_mu_value[, k] *
+      u_phylo[data$phylo_mu_node_index + 1L, k]
+  }
+  quadratic <- vapply(
+    seq_len(ncol(u_phylo)),
+    function(k) {
+      u <- u_phylo[, k]
+      sum(u * as.vector(data$Q_phylo %*% u))
+    },
+    numeric(1L)
+  )
+  prior <- sum(0.5 * (
+    n_level * log(2 * pi) + 2 * par$log_sd_phylo * n_level -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo) * quadratic
+  ))
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dpois(
+    data$y[observed], lambda = exp(eta_mu[observed]), log = TRUE
+  ))
+}
+
+nb2_structured_q1_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  n_level <- nrow(data$Q_phylo)
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  log_sigma <- as.vector(data$X_sigma %*% par$beta_sigma)
+  index <- data$phylo_mu_node_index + 1L
+  eta_mu <- eta_mu + data$phylo_mu_value[, 1L] * par$u_phylo[index]
+  quadratic <- sum(par$u_phylo * as.vector(data$Q_phylo %*% par$u_phylo))
+  prior <- 0.5 * (
+    n_level * log(2 * pi) + 2 * n_level * par$log_sd_phylo[[1L]] -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo[[1L]]) * quadratic
+  )
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dnbinom(
+    data$y[observed], size = exp(-2 * log_sigma[observed]),
+    mu = exp(eta_mu[observed]), log = TRUE
+  ))
+}
+
+nb2_structured_q1_slope_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  n_level <- nrow(data$Q_phylo)
+  u_phylo <- matrix(par$u_phylo, nrow = n_level)
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  for (k in seq_len(ncol(u_phylo))) {
+    eta_mu <- eta_mu + data$phylo_mu_value[, k] *
+      u_phylo[data$phylo_mu_node_index + 1L, k]
+  }
+  log_sigma <- as.vector(data$X_sigma %*% par$beta_sigma)
+  quadratic <- vapply(
+    seq_len(ncol(u_phylo)),
+    function(k) {
+      u <- u_phylo[, k]
+      sum(u * as.vector(data$Q_phylo %*% u))
+    },
+    numeric(1L)
+  )
+  prior <- sum(0.5 * (
+    n_level * log(2 * pi) + 2 * par$log_sd_phylo * n_level -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo) * quadratic
+  ))
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dnbinom(
+    data$y[observed], size = exp(-2 * log_sigma[observed]),
+    mu = exp(eta_mu[observed]), log = TRUE
+  ))
+}
+
 poisson_phylo_q2_covariance_nll <- function(fit, par, rho = NULL) {
   data <- fit$model$tmb_data
   n_phylo <- nrow(data$Q_phylo)
@@ -201,7 +296,10 @@ poisson_phylo_q2_covariance_nll <- function(fit, par, rho = NULL) {
       n_phylo * (2 * sum(par$log_sd_phylo) + log(one_minus_rho2)) -
       2 * data$log_det_Q_phylo + quadratic
   )
-  prior - sum(data$weights * stats::dpois(data$y, exp(eta_mu), log = TRUE))
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dpois(
+    data$y[observed], exp(eta_mu[observed]), log = TRUE
+  ))
 }
 
 poisson_provider_q2_covariance_nll <- function(fit, par, precision, rho = NULL) {
@@ -232,11 +330,38 @@ poisson_provider_q2_covariance_nll <- function(fit, par, precision, rho = NULL) 
       n_level * (2 * sum(par$log_sd_phylo) + log(one_minus_rho2)) -
       2 * log_det_precision + quadratic
   )
-  prior - sum(data$weights * stats::dpois(data$y, exp(eta_mu), log = TRUE))
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dpois(
+    data$y[observed], exp(eta_mu[observed]), log = TRUE
+  ))
 }
 
 poisson_provider_q2_independent_nll <- function(fit, par, precision) {
   poisson_provider_q2_covariance_nll(fit, par, precision, rho = 0)
+}
+
+poisson_spatial_plus_ordinary_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  for (j in seq_len(data$n_mu_re_terms)) {
+    index <- data$mu_re_index[, j] + 1L
+    term <- data$mu_re_term[index] + 1L
+    eta_mu <- eta_mu + data$mu_re_value[, j] *
+      exp(par$log_sd_mu[term]) * par$u_mu[index]
+  }
+  eta_mu <- eta_mu + data$phylo_mu_value[, 1L] *
+    par$u_phylo[data$phylo_mu_node_index + 1L]
+  quadratic <- sum(par$u_phylo * as.vector(data$Q_phylo %*% par$u_phylo))
+  spatial_prior <- 0.5 * (
+    nrow(data$Q_phylo) * log(2 * pi) +
+      2 * nrow(data$Q_phylo) * par$log_sd_phylo -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo) * quadratic
+  )
+  ordinary_prior <- -sum(stats::dnorm(par$u_mu, log = TRUE))
+  observed <- as.logical(data$observed_y)
+  spatial_prior + ordinary_prior - sum(data$weights[observed] * stats::dpois(
+    data$y[observed], exp(eta_mu[observed]), log = TRUE
+  ))
 }
 
 independent_spatial_precision <- function(coords, levels, jitter = 1e-6) {
@@ -292,7 +417,12 @@ new_count_structured_mu_plus_ordinary_data <- function(
       site = factor(site, levels = sites),
       id = factor(id, levels = ids)
     ),
-    coords = coords
+    coords = coords,
+    beta_mu = c(`(Intercept)` = 0.55, x = -0.20),
+    spatial_effect = spatial_effect,
+    ordinary_effect = ordinary_effect,
+    sd_spatial = 0.45,
+    sd_ordinary = 0.25
   )
 }
 
@@ -698,6 +828,462 @@ test_that("Poisson mu supports q1 spatial, animal, and relmat intercepts", {
   expect_lt(max(abs(coef(fit_relmat, "mu") - sim$beta_mu)), 0.45)
 })
 
+test_that("Poisson spatial q1 intercept response mask has oracle and recovery evidence", {
+  sim <- new_count_structured_mu_data(
+    n_level = 128L, n_each = 16L, seed = 2026081739L
+  )
+  dat <- sim$data
+  dat$poisson_spatial[seq(1L, nrow(dat), by = 16L)] <- NA_integer_
+  observed <- !is.na(dat$poisson_spatial)
+  coords <- sim$coords
+  formula <- bf(poisson_spatial ~ x + spatial(1 | site, coords = coords))
+  fit_masked <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), poisson_structured_q1_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  # The uncentred spatial draw shifts the realised intercept.
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.35)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.14)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.45), 0.25)
+})
+
+test_that("Poisson spatial plus ordinary response mask has oracle and recovery evidence", {
+  sim <- new_count_structured_mu_plus_ordinary_data(
+    n_site = 64L, n_id = 256L, n_each = 64L, seed = 2026081771L
+  )
+  dat <- sim$data
+  dat$y[seq(1L, nrow(dat), by = 64L)] <- NA_integer_
+  observed <- !is.na(dat$y)
+  coords <- sim$coords
+  formula <- bf(y ~ x + spatial(1 | site, coords = coords) + (1 | id))
+  fit_masked <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = stats::poisson(link = "log"),
+    data = dat[observed, , drop = FALSE], control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(
+    obj$fn(probe), poisson_spatial_plus_ordinary_nll(fit_masked, par),
+    tolerance = 1e-7
+  )
+  expect_equal(
+    as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  # Both simulated fields are uncentred, so this is the realised conditional intercept.
+  conditional_intercept <- sim$beta_mu[["(Intercept)"]] +
+    mean(sim$spatial_effect) + mean(sim$ordinary_effect)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - conditional_intercept), 0.18)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.12)
+  expect_lt(abs(fit_masked$sdpars$mu[["(1 | id)"]] - sim$sd_ordinary), 0.12)
+  expect_lt(abs(fit_masked$sdpars$mu[["spatial(1 | site)"]] - sim$sd_spatial), 0.16)
+})
+
+test_that("Poisson labelled spatial q1 intercept response mask has oracle and recovery evidence", {
+  sim <- new_count_structured_mu_data(
+    n_level = 128L, n_each = 64L, seed = 2026081766L
+  )
+  dat <- sim$data
+  dat$poisson_spatial[seq(1L, nrow(dat), by = 64L)] <- NA_integer_
+  observed <- !is.na(dat$poisson_spatial)
+  coords <- sim$coords
+  formula <- bf(poisson_spatial ~ x + spatial(1 | p | site, coords = coords))
+  fit_masked <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), poisson_structured_q1_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_equal(fit_masked$corpars$spatial, fit_observed$corpars$spatial, tolerance = 1e-6)
+  conditional_intercept <- sim$beta_mu[["(Intercept)"]] + mean(sim$spatial_effect)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - conditional_intercept), 0.20)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.45), 0.25)
+})
+
+test_that("Poisson animal and relmat q1 intercept response masks have separate recovery evidence", {
+  routes <- list(
+    list(provider = "animal", seed = 2026081740L),
+    list(provider = "relmat", seed = 2026081741L)
+  )
+  for (route in routes) {
+    sim <- new_count_structured_mu_data(
+      n_level = 128L, n_each = 16L, seed = route$seed
+    )
+    dat <- sim$data
+    dat$poisson_known[seq(1L, nrow(dat), by = 16L)] <- NA_integer_
+    observed <- !is.na(dat$poisson_known)
+    Q <- sim$Q
+    formula <- if (identical(route$provider, "animal")) {
+      bf(poisson_known ~ x + animal(1 | id, Ainv = Q))
+    } else {
+      bf(poisson_known ~ x + relmat(1 | id, Q = Q))
+    }
+    fit_masked <- drmTMB(
+      formula, family = stats::poisson(link = "log"), data = dat,
+      missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+    )
+    fit_observed <- drmTMB(
+      formula, family = stats::poisson(link = "log"), data = dat[observed, , drop = FALSE],
+      control = drm_control(se = FALSE)
+    )
+    obj <- TMB::MakeADFun(
+      data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+      map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+    )
+    probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+    par <- obj$env$parList(probe)
+
+    expect_equal(fit_masked$opt$convergence, 0L)
+    expect_equal(fit_observed$opt$convergence, 0L)
+    expect_equal(nobs(fit_masked), sum(observed))
+    expect_equal(fit_masked$missing_data$observed_y, observed)
+    expect_equal(obj$fn(probe), poisson_structured_q1_nll(fit_masked, par),
+      tolerance = 1e-7)
+    expect_equal(
+      as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+      tolerance = 5e-5
+    )
+    expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+    expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"),
+      tolerance = 1e-6)
+    expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu,
+      tolerance = 1e-6)
+    expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]),
+      0.35)
+    expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]),
+      0.14)
+    expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.45), 0.25,
+      )
+  }
+})
+
+test_that("Poisson spatial q1 slope response mask has oracle and recovery evidence", {
+  sim <- new_count_structured_mu_slope_only_data(
+    n_level = 128L, n_each = 16L, seed = 2026081742L
+  )
+  dat <- sim$data
+  dat$poisson_spatial[seq(1L, nrow(dat), by = 16L)] <- NA_integer_
+  observed <- !is.na(dat$poisson_spatial)
+  coords <- sim$coords
+  formula <- bf(poisson_spatial ~ x + spatial(0 + x | site, coords = coords))
+  fit_masked <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), poisson_structured_q1_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.15)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.18)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.40), 0.22)
+})
+
+test_that("NB2 phylo q1 intercept response mask has oracle and recovery evidence", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(
+    n_level = 128L, n_each = 16L, sd_slope = 0, seed = 2026081746L
+  )
+  dat <- sim$data
+  dat$nb2_phylo[seq(1L, nrow(dat), by = 16L)] <- NA_integer_
+  observed <- !is.na(dat$nb2_phylo)
+  tree <- sim$tree
+  formula <- bf(nb2_phylo ~ x + phylo(1 | site, tree = tree), sigma ~ 1)
+  fit_masked <- drmTMB(
+    formula, family = nbinom2(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = nbinom2(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), nb2_structured_q1_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.38)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$sigma_nb2)), 0.18)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.25), 0.22)
+})
+
+test_that("NB2 spatial, animal, and relmat q1 response masks have separate recovery evidence", {
+  routes <- list(
+    list(provider = "spatial", seed = 2026081743L),
+    list(provider = "animal", seed = 2026081744L),
+    list(provider = "relmat", seed = 2026081745L)
+  )
+  for (route in routes) {
+    sim <- new_count_structured_mu_data(
+      n_level = 128L, n_each = 16L, seed = route$seed
+    )
+    dat <- sim$data
+    response <- if (identical(route$provider, "spatial")) "nb2_spatial" else "nb2_known"
+    dat[[response]][seq(1L, nrow(dat), by = 16L)] <- NA_integer_
+    observed <- !is.na(dat[[response]])
+    coords <- sim$coords
+    Q <- sim$Q
+    formula <- switch(
+      route$provider,
+      spatial = bf(nb2_spatial ~ x + spatial(1 | site, coords = coords), sigma ~ 1),
+      animal = bf(nb2_known ~ x + animal(1 | id, Ainv = Q), sigma ~ 1),
+      relmat = bf(nb2_known ~ x + relmat(1 | id, Q = Q), sigma ~ 1)
+    )
+    fit_masked <- drmTMB(
+      formula, family = nbinom2(), data = dat,
+      missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+    )
+    fit_observed <- drmTMB(
+      formula, family = nbinom2(), data = dat[observed, , drop = FALSE],
+      control = drm_control(se = FALSE)
+    )
+    obj <- TMB::MakeADFun(
+      data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+      map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+    )
+    probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+    par <- obj$env$parList(probe)
+
+    expect_equal(fit_masked$opt$convergence, 0L)
+    expect_equal(fit_observed$opt$convergence, 0L)
+    expect_equal(nobs(fit_masked), sum(observed))
+    expect_equal(fit_masked$missing_data$observed_y, observed)
+    expect_equal(obj$fn(probe), nb2_structured_q1_nll(fit_masked, par), tolerance = 1e-7)
+    expect_equal(
+      as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+      tolerance = 5e-5
+    )
+    expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+    expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+    expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+    expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+    expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.38)
+    expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
+    expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$sigma_nb2)), 0.18)
+    expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.45), 0.28)
+  }
+})
+
+test_that("NB2 structured q1 intercept-slope response masks have separate recovery evidence", {
+  testthat::skip_if_not_installed("ape")
+  routes <- list(
+    list(provider = "phylo", seed = 2026081747L),
+    list(provider = "spatial", seed = 2026081748L),
+    list(provider = "animal", seed = 2026081749L),
+    list(provider = "relmat", seed = 2026081750L)
+  )
+  for (route in routes) {
+    sim <- new_count_structured_mu_slope_data(
+      n_level = 128L, n_each = 16L, seed = route$seed
+    )
+    dat <- sim$data
+    response <- switch(
+      route$provider,
+      phylo = "nb2_phylo",
+      spatial = "nb2_spatial",
+      "nb2_known"
+    )
+    dat[[response]][seq(1L, nrow(dat), by = 16L)] <- NA_integer_
+    observed <- !is.na(dat[[response]])
+    coords <- sim$coords
+    tree <- sim$tree
+    Q <- sim$Q
+    formula <- switch(
+      route$provider,
+      phylo = bf(nb2_phylo ~ x + phylo(1 + x | site, tree = tree), sigma ~ 1),
+      spatial = bf(nb2_spatial ~ x + spatial(1 + x | site, coords = coords), sigma ~ 1),
+      animal = bf(nb2_known ~ x + animal(1 + x | id, Ainv = Q), sigma ~ 1),
+      relmat = bf(nb2_known ~ x + relmat(1 + x | id, Q = Q), sigma ~ 1)
+    )
+    fit_masked <- drmTMB(
+      formula, family = nbinom2(), data = dat,
+      missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+    )
+    fit_observed <- drmTMB(
+      formula, family = nbinom2(), data = dat[observed, , drop = FALSE],
+      control = drm_control(se = FALSE)
+    )
+    obj <- TMB::MakeADFun(
+      data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+      map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+    )
+    probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+    par <- obj$env$parList(probe)
+
+    expect_equal(fit_masked$opt$convergence, 0L)
+    expect_equal(fit_observed$opt$convergence, 0L)
+    expect_equal(nobs(fit_masked), sum(observed))
+    expect_equal(fit_masked$missing_data$observed_y, observed)
+    expect_equal(obj$fn(probe), nb2_structured_q1_slope_nll(fit_masked, par), tolerance = 1e-7)
+    expect_equal(
+      as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+      tolerance = 5e-5
+    )
+    expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+    expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+    expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+    expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+    expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.38)
+    expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
+    expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$sigma_nb2)), 0.18)
+    expect_lt(abs(unname(fit_masked$sdpars$mu[[1L]]) - 0.25), 0.22)
+    expect_lt(abs(unname(fit_masked$sdpars$mu[[2L]]) - 0.45), 0.25)
+  }
+})
+
+test_that("Poisson phylo, animal, and relmat q1 slopes have separate response-mask recovery evidence", {
+  testthat::skip_if_not_installed("ape")
+  routes <- list(
+    list(provider = "phylo", seed = 2026081758L),
+    list(provider = "animal", seed = 2026081759L),
+    list(provider = "relmat", seed = 2026081760L)
+  )
+  for (route in routes) {
+    sim <- new_count_structured_mu_slope_data(
+      n_level = 128L, n_each = 64L, seed = route$seed
+    )
+    dat <- sim$data
+    response <- if (identical(route$provider, "phylo")) "poisson_phylo" else "poisson_known"
+    dat[[response]][seq(1L, nrow(dat), by = 64L)] <- NA_integer_
+    observed <- !is.na(dat[[response]])
+    tree <- sim$tree
+    Q <- sim$Q
+    formula <- switch(
+      route$provider,
+      phylo = bf(poisson_phylo ~ x + phylo(1 + x | site, tree = tree)),
+      animal = bf(poisson_known ~ x + animal(1 + x | id, Ainv = Q)),
+      relmat = bf(poisson_known ~ x + relmat(1 + x | id, Q = Q))
+    )
+    fit_masked <- drmTMB(
+      formula, family = stats::poisson(link = "log"), data = dat,
+      missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+    )
+    fit_observed <- drmTMB(
+      formula, family = stats::poisson(link = "log"), data = dat[observed, , drop = FALSE],
+      control = drm_control(se = FALSE)
+    )
+    obj <- TMB::MakeADFun(
+      data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+      map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+    )
+    probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+    par <- obj$env$parList(probe)
+
+    expect_equal(fit_masked$opt$convergence, 0L)
+    expect_equal(fit_observed$opt$convergence, 0L)
+    expect_equal(nobs(fit_masked), sum(observed))
+    expect_equal(fit_masked$missing_data$observed_y, observed)
+    expect_equal(obj$fn(probe), poisson_structured_q1_slope_nll(fit_masked, par), tolerance = 1e-7)
+    expect_equal(
+      as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+      tolerance = 5e-5
+    )
+    expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+    expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+    expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+    expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.30)
+    expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
+    expect_lt(abs(unname(fit_masked$sdpars$mu[[1L]]) - 0.25), 0.20)
+    expect_lt(abs(unname(fit_masked$sdpars$mu[[2L]]) - 0.45), 0.22)
+  }
+})
+
 expect_poisson_labelled_q2_provider_fit <- function(fit, provider, group) {
   expected_correlation <- paste0(
     "cor(mu:(Intercept),mu:x | p | ", group, ")"
@@ -982,6 +1568,52 @@ test_that("Poisson phylo q2 covariance penalty matches the dense joint oracle", 
   expect_gt(abs(full_obj$fn(rho_nonzero) - full_obj$fn(rho_zero)), 1e-5)
 })
 
+test_that("Poisson phylo labelled q2 response mask has oracle and recovery evidence", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(
+    n_level = 128L, n_each = 64L, rho_phylo = 0.35, seed = 2026081761L
+  )
+  dat <- sim$data
+  dat$poisson_phylo[seq(1L, nrow(dat), by = 64L)] <- NA_integer_
+  observed <- !is.na(dat$poisson_phylo)
+  tree <- sim$tree
+  formula <- bf(poisson_phylo ~ x + phylo(1 + x | p | site, tree = tree))
+  fit_masked <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+  correlation <- "cor(mu:(Intercept),mu:x | p | site)"
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), poisson_phylo_q2_covariance_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_equal(fit_masked$corpars$phylo, fit_observed$corpars$phylo, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.30)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
+  expect_lt(abs(unname(fit_masked$sdpars$mu[[1L]]) - 0.25), 0.20)
+  expect_lt(abs(unname(fit_masked$sdpars$mu[[2L]]) - 0.45), 0.22)
+  expect_lt(abs(unname(fit_masked$corpars$phylo[[correlation]]) - 0.35), 0.22)
+})
+
 test_that("NB2 phylo admits one labelled intercept-slope covariance block", {
   testthat::skip_if_not_installed("ape")
   sim <- new_count_structured_mu_slope_data(
@@ -1074,6 +1706,54 @@ test_that("NB2 phylo q2 covariance penalty matches the dense joint oracle", {
   rho_zero[[eta_index]] <- 0
   rho_nonzero[[eta_index]] <- atanh(0.35 / 0.999999)
   expect_gt(abs(full_obj$fn(rho_nonzero) - full_obj$fn(rho_zero)), 1e-5)
+})
+
+test_that("NB2 phylo labelled q2 response mask has oracle and recovery evidence", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(
+    n_level = 128L, n_each = 16L, rho_phylo = 0.35, seed = 2026081751L
+  )
+  dat <- sim$data
+  dat$nb2_phylo[seq(1L, nrow(dat), by = 16L)] <- NA_integer_
+  observed <- !is.na(dat$nb2_phylo)
+  tree <- sim$tree
+  formula <- bf(nb2_phylo ~ x + phylo(1 + x | p | site, tree = tree), sigma ~ 1)
+  fit_masked <- drmTMB(
+    formula, family = nbinom2(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = nbinom2(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+  correlation <- "cor(mu:(Intercept),mu:x | p | site)"
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), nb2_phylo_q2_covariance_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_equal(fit_masked$corpars$phylo, fit_observed$corpars$phylo, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.38)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$sigma_nb2)), 0.18)
+  expect_lt(abs(unname(fit_masked$sdpars$mu[[1L]]) - 0.25), 0.22)
+  expect_lt(abs(unname(fit_masked$sdpars$mu[[2L]]) - 0.45), 0.25)
+  expect_lt(abs(unname(fit_masked$corpars$phylo[[correlation]]) - 0.35), 0.25)
 })
 
 test_that("NB2 labelled phylo covariance keeps non-C1 forms closed", {
@@ -1343,6 +2023,79 @@ test_that("Poisson C2 provider q2 penalties match independent provider oracles",
       abs(full_obj$fn(rho_nonzero) - full_obj$fn(rho_zero)),
       1e-5
     )
+  }
+})
+
+test_that("Poisson spatial, animal, and relmat labelled q2 masks have separate recovery evidence", {
+  testthat::skip_if_not_installed("ape")
+  routes <- list(
+    list(provider = "spatial", seed = 2026081762L),
+    list(provider = "animal", seed = 2026081763L),
+    list(provider = "relmat", seed = 2026081764L)
+  )
+  for (route in routes) {
+    sim <- new_count_structured_mu_slope_data(
+      n_level = 128L, n_each = 64L, rho_provider = 0.35, seed = route$seed
+    )
+    dat <- sim$data
+    response <- if (identical(route$provider, "spatial")) "poisson_spatial" else "poisson_known"
+    dat[[response]][seq(1L, nrow(dat), by = 64L)] <- NA_integer_
+    observed <- !is.na(dat[[response]])
+    coords <- sim$coords
+    Q <- sim$Q
+    formula <- switch(
+      route$provider,
+      spatial = bf(poisson_spatial ~ x + spatial(1 + x | p | site, coords = coords)),
+      animal = bf(poisson_known ~ x + animal(1 + x | p | id, Ainv = Q)),
+      relmat = bf(poisson_known ~ x + relmat(1 + x | p | id, Q = Q))
+    )
+    fit_masked <- drmTMB(
+      formula, family = stats::poisson(link = "log"), data = dat,
+      missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+    )
+    fit_observed <- drmTMB(
+      formula, family = stats::poisson(link = "log"), data = dat[observed, , drop = FALSE],
+      control = drm_control(se = FALSE)
+    )
+    obj <- TMB::MakeADFun(
+      data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+      map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+    )
+    probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+    par <- obj$env$parList(probe)
+    precision <- if (identical(route$provider, "spatial")) {
+      independent_spatial_precision(coords, fit_masked$model$structured$phylo_mu$node_labels)
+    } else {
+      nodes <- fit_masked$model$structured$phylo_mu$node_labels
+      unname(Q[nodes, nodes, drop = FALSE])
+    }
+    group <- if (identical(route$provider, "spatial")) "site" else "id"
+    correlation <- paste0("cor(mu:(Intercept),mu:x | p | ", group, ")")
+
+    expect_equal(fit_masked$opt$convergence, 0L)
+    expect_equal(fit_observed$opt$convergence, 0L)
+    expect_equal(nobs(fit_masked), sum(observed))
+    expect_equal(fit_masked$missing_data$observed_y, observed)
+    expect_equal(
+      obj$fn(probe), poisson_provider_q2_covariance_nll(fit_masked, par, precision),
+      tolerance = 1e-7
+    )
+    expect_equal(
+      as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+      tolerance = 5e-5
+    )
+    expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+    expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+    expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+    expect_equal(
+      fit_masked$corpars[[route$provider]], fit_observed$corpars[[route$provider]],
+      tolerance = 1e-6
+    )
+    expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.30)
+    expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.30)
+    expect_lt(abs(unname(fit_masked$sdpars$mu[[1L]]) - 0.25), 0.20)
+    expect_lt(abs(unname(fit_masked$sdpars$mu[[2L]]) - 0.45), 0.22)
+    expect_lt(abs(unname(fit_masked$corpars[[route$provider]][[correlation]]) - 0.35), 0.22)
   }
 })
 

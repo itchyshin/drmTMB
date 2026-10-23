@@ -119,6 +119,92 @@ test_that("partial beta-binomial rows mask the whole encoded response", {
   expect_true(all(is.na(sims[!observed, ])))
 })
 
+test_that("beta-binomial random-intercept response mask matches observed-data fit", {
+  set.seed(2026081512)
+  n_id <- 60L
+  n_each <- 12L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- rnorm(n)
+  z <- rnorm(n)
+  trials <- sample(20:30, n, replace = TRUE)
+  truth_sd <- 0.6
+  u <- rnorm(n_id, sd = truth_sd)
+  mu <- plogis(-0.25 + 0.65 * x + u[id])
+  sigma <- exp(-1.35 + 0.15 * z)
+  p <- rbeta(n, mu / sigma^2, (1 - mu) / sigma^2)
+  dat <- data.frame(success = rbinom(n, trials, p), x, z, id)
+  dat$failure <- trials - dat$success
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "success", "id", seed = 2026081513
+  )
+  masked$failure[is.na(masked$success)] <- NA_integer_
+  observed <- !is.na(masked$success)
+
+  fit_mask <- drmTMB(
+    bf(cbind(success, failure) ~ x + (1 | id), sigma ~ z), beta_binomial(),
+    masked, missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    bf(cbind(success, failure) ~ x + (1 | id), sigma ~ z), beta_binomial(),
+    masked[observed, ], control = drm_control(se = FALSE)
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-6)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_beta_binomial_sentinel_invariant(fit_mask)
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - c(-0.25, 0.65))), 0.25)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - c(-1.35, 0.15))), 0.2)
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.2)
+  expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.6)
+})
+
+test_that("beta-binomial random-slope response mask matches observed-data fit", {
+  set.seed(2026081514)
+  n_id <- 60L
+  n_each <- 12L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- rnorm(n)
+  z <- rnorm(n)
+  trials <- sample(20:30, n, replace = TRUE)
+  truth_sd <- 0.55
+  u <- rnorm(n_id, sd = truth_sd)
+  mu <- plogis(-0.25 + 0.65 * x + u[id] * x)
+  sigma <- exp(-1.35 + 0.15 * z)
+  p <- rbeta(n, mu / sigma^2, (1 - mu) / sigma^2)
+  dat <- data.frame(success = rbinom(n, trials, p), x, z, id)
+  dat$failure <- trials - dat$success
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "success", "id", seed = 2026081515
+  )
+  masked$failure[is.na(masked$success)] <- NA_integer_
+  observed <- !is.na(masked$success)
+
+  fit_mask <- drmTMB(
+    bf(cbind(success, failure) ~ x + (0 + x | id), sigma ~ z), beta_binomial(),
+    masked, missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    bf(cbind(success, failure) ~ x + (0 + x | id), sigma ~ z), beta_binomial(),
+    masked[observed, ], control = drm_control(se = FALSE)
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-6)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_beta_binomial_sentinel_invariant(fit_mask)
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - c(-0.25, 0.65))), 0.25)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - c(-1.35, 0.15))), 0.2)
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.2)
+  expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.6)
+})
+
 test_that("ordinal masks preserve declared levels and cutpoint branches", {
   case <- mr_t4_ordinal_data(n = 360L, seed = 2026071411L)
   dat <- missing_response_mask_mcar(case$data, "score", seed = 2026071412L)
@@ -138,6 +224,77 @@ test_that("ordinal masks preserve declared levels and cutpoint branches", {
   sims <- simulate(fit, nsim = 2, seed = 2026071413L)
   expect_true(all(vapply(sims, is.ordered, logical(1L))))
   expect_true(all(vapply(sims, function(x) identical(levels(x), levels(case$data$score)), logical(1L))))
+})
+
+test_that("ordinal random-slope response mask matches observed-data fit", {
+  set.seed(2026081510)
+  n_id <- 50L
+  n_each <- 20L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rnorm(length(id))
+  truth_sd <- 0.5
+  u <- rnorm(n_id, sd = truth_sd)
+  cutpoints <- c(-1, 0, 1)
+  latent <- 0.8 * x + u[id] * x + rlogis(length(id))
+  dat <- data.frame(
+    score = ordered(findInterval(latent, cutpoints) + 1L, levels = 1:4), x, id
+  )
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "score", "id", seed = 2026081511
+  )
+  observed <- !is.na(masked$score)
+
+  fit_mask <- drmTMB(
+    bf(score ~ x + (0 + x | id)), cumulative_logit(), masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    bf(score ~ x + (0 + x | id)), cumulative_logit(), masked[observed, ],
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(unname(fit_mask$opt$par), unname(fit_observed$opt$par), tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(1, 3))
+  expect_lt(abs(unname(coef(fit_mask, "mu")) - 0.8), 0.2)
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.2)
+  expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.5)
+})
+
+test_that("ordinal random-intercept response mask matches observed-data fit", {
+  set.seed(2026081525L)
+  n_id <- 50L
+  n_each <- 24L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rnorm(length(id))
+  truth_sd <- 0.5
+  u <- rnorm(n_id, sd = truth_sd)
+  cutpoints <- c(-1, 0, 1)
+  latent <- 0.8 * x + u[id] + rlogis(length(id))
+  dat <- data.frame(
+    score = ordered(findInterval(latent, cutpoints) + 1L, levels = 1:4), x, id
+  )
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "score", "id", seed = 2026081526L
+  )
+  observed <- !is.na(masked$score)
+  form <- bf(score ~ x + (1 | id))
+  fit_mask <- drmTMB(
+    form, cumulative_logit(), masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    form, cumulative_logit(), masked[observed, ], control = drm_control(se = FALSE)
+  )
+  expect_equal(unname(fit_mask$opt$par), unname(fit_observed$opt$par), tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_identical(fit_mask$ordinal$levels, levels(dat$score))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(1, 3))
+  expect_lt(abs(unname(coef(fit_mask, "mu")) - 0.8), 0.2)
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.2)
+  expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.5)
 })
 
 test_that("MR-T4 recovers every encoded-response parameter", {

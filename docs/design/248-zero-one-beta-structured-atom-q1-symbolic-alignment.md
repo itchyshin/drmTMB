@@ -644,10 +644,36 @@ plus the §5.3 endpoint-swap negative control.
 
 **OUT — each requires its own gate.** Simultaneous structured `zoi` **and** `coi` in one
 fit · `q >= 2`, correlated or labelled blocks, cross-dpar covariance · structured *slopes*
-on an atom · combining a structured atom effect with an i.i.d. atom RE · missing responses
-with a structured atom effect (already refused for i.i.d. atom REs at `R/drmTMB.R:5448-5457`)
-· REML for an atom endpoint (`:2282-2296` admits only `all(codes == 1L)`) · profiles,
+on an atom · combining a structured atom effect with an i.i.d. atom RE ·
+REML for an atom endpoint (`:2282-2296` admits only `all(codes == 1L)`) · profiles,
 intervals, bootstrap, coverage · **any inference claim**.
+
+**Update (2026-08-14, Gauss).** "Missing responses with a structured atom effect" is
+removed from the OUT list above: it was a conservative admission-gate abort
+(`R/drmTMB.R`, two `cli::cli_abort()` calls guarded by `include_missing_response &&
+!is.null(zoi_structured)` / `coi_structured`), not a reflection of missing-template
+support, and it is now lifted. `src/drmTMB.cpp:3226` already gates the entire
+zero-one-beta contribution — both atoms and the interior beta density — on
+`observed_y(i) == 1`, so a masked row already contributes nothing to the likelihood or
+its gradient regardless of which dpar carries the structured effect; no `src/` change
+was needed or made. The combination is admitted at the formula level for `phylo`,
+`animal`, `relmat`, and `phylo_interaction` (the deferred `spatial` refusal above is
+unaffected). This is **not** a response-mask point-equivalence claim, though: a same-day
+oracle/gradient/sentinel-invariance/recovery pass over the seven admitted cells
+(`mc-0603` `zoi~phylo`, `mc-0604` `zoi~animal`, `mc-0605` `zoi~relmat`, `mc-0607`
+`zoi~phylo_interaction`, `mc-0613` `coi~phylo`, `mc-0614` `coi~animal`, `mc-0617`
+`coi~phylo_interaction`) found none of them clear the bar robustly enough to promote:
+`phylo` and `animal` atom endpoints reproduce the budget-independent "false convergence
+(8)" near-singular-Hessian signature already on record for their sigma-endpoint siblings
+(`mc-0593`/`mc-0594`); `phylo_interaction` atom endpoints reproduce the internal-node
+GMRF fragility on record for `mc-0597`; and even the best-behaved case, `relmat`
+(`mc-0605`, whose sigma-endpoint sibling `mc-0595` promoted cleanly), reproduced the same
+false-convergence signature on 1 of 3 informally scanned seeds. See
+`tests/testthat/test-zero-one-beta.R`, the comment block following the "zero-one-beta
+admits missing responses combined with a structured zoi/coi atom effect" test, for the
+full per-cell numbers. All seven stay `point_fit_only`
+(`point_fit_only_zero_one_beta_<provider>_<zoi|coi>_q1`, `profile_ready = FALSE`), same
+as the non-missing route.
 
 §2.4 shows the atom SDs are informed by a fraction `zoi` of the data with a per-group
 separation probability given in closed form. This slice establishes *that the engine

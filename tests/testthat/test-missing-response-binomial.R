@@ -117,3 +117,131 @@ test_that("response = 'include' masks missing responses but drops missing-predic
   expect_equal(sum(!fit$missing_data$observed_y), n_missing_response)
   expect_equal(nobs(fit), sum(dd$observed) - 1L)
 })
+
+test_that("binomial random-intercept response mask matches observed-data fit", {
+  set.seed(2026081407)
+  n_id <- 48L
+  n_each <- 16L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rep(seq(-1, 1, length.out = n_each), n_id)
+  truth_sd <- 0.6
+  u <- rnorm(n_id, sd = truth_sd)
+  dat <- data.frame(id, x)
+  dat$y <- rbinom(nrow(dat), 1L, plogis(-0.3 + 0.65 * x + u[id]))
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "y", "id", seed = 2026081408
+  )
+  observed <- !is.na(masked$y)
+
+  fit_mask <- drmTMB(
+    bf(y ~ x + (1 | id)), family = binomial(), data = masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    bf(y ~ x + (1 | id)), family = binomial(),
+    data = masked[observed, , drop = FALSE], control = drm_control(se = FALSE)
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0, 1))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - c(-0.3, 0.65))), 0.35)
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.35)
+  expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.3)
+})
+
+test_that("binomial REML random-intercept response mask matches observed data", {
+  set.seed(2026081554)
+  n_id <- 72L
+  n_each <- 16L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rnorm(length(id))
+  truth_sd <- 0.55
+  u <- rnorm(n_id, sd = truth_sd)
+  dat <- data.frame(id, x)
+  dat$y <- rbinom(nrow(dat), 1L, plogis(-0.30 + 0.65 * x + u[id]))
+  masked <- missing_response_mask_mcar_within_group(dat, "y", "id", seed = 2026081555)
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + (1 | id))
+  fit_mask <- drmTMB(form, binomial(), masked,
+    missing = miss_control(response = "include"), REML = TRUE, control = drm_control(se = FALSE))
+  fit_observed <- drmTMB(form, binomial(), masked[observed, , drop = FALSE],
+    REML = TRUE, control = drm_control(se = FALSE))
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0, 1))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - c(-0.30, 0.65))), 0.30)
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.25)
+  expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.35)
+})
+
+test_that("grouped-binomial REML random-slope response mask matches observed data", {
+  set.seed(2026081558)
+  n_id <- 64L
+  n_each <- 16L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rep(seq(-1, 1, length.out = n_each), n_id)
+  truth_sd <- 0.55
+  u <- rnorm(n_id, sd = truth_sd)
+  trials <- rep(12L, length(x))
+  success <- rbinom(length(x), trials, plogis(-0.30 + (0.65 + u[id]) * x))
+  dat <- data.frame(success, failure = trials - success, x, id)
+  masked <- missing_response_mask_mcar_within_group(dat, "success", "id", seed = 2026081559)
+  masked$failure[is.na(masked$success)] <- NA_integer_
+  observed <- !is.na(masked$success)
+  form <- bf(cbind(success, failure) ~ x + (0 + x | id))
+  fit_mask <- drmTMB(form, binomial(), masked,
+    missing = miss_control(response = "include"), REML = TRUE, control = drm_control(se = FALSE))
+  fit_observed <- drmTMB(form, binomial(), masked[observed, , drop = FALSE],
+    REML = TRUE, control = drm_control(se = FALSE))
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0, 11))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - c(-0.30, 0.65))), 0.22)
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.20)
+  slope_effects <- fit_mask$random_effects$mu$terms[["(0 + x | id)"]]
+  expect_gt(cor(slope_effects, u), 0.55)
+})
+
+test_that("grouped-binomial random-slope response mask matches observed-data fit", {
+  # Multiple trials give the slope-SD recovery target enough information.  Both
+  # columns of the cbind response are missing on an omitted response row.
+  set.seed(2026081507)
+  n_id <- 48L
+  n_each <- 16L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rep(seq(-1, 1, length.out = n_each), n_id)
+  truth_sd <- 0.6
+  u <- rnorm(n_id, sd = truth_sd)
+  trials <- rep(12L, length(x))
+  success <- rbinom(length(x), trials, plogis(-0.3 + 0.65 * x + u[id] * x))
+  dat <- data.frame(success, failure = trials - success, x, id)
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "success", "id", seed = 2026081508
+  )
+  masked$failure[is.na(masked$success)] <- NA_integer_
+  observed <- !is.na(masked$success)
+
+  fit_mask <- drmTMB(
+    bf(cbind(success, failure) ~ x + (0 + x | id)), family = binomial(),
+    data = masked, missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    bf(cbind(success, failure) ~ x + (0 + x | id)), family = binomial(),
+    data = masked[observed, , drop = FALSE], control = drm_control(se = FALSE)
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_equal(fit_mask$missing_data$observed_y, observed)
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0, 11))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - c(-0.3, 0.65))), 0.3)
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.2)
+  expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.6)
+})

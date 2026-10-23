@@ -47,7 +47,9 @@ new_spatial_location_scale_gaussian_data <- function(
   n_site = 7L,
   n_each = 7L,
   sd_spatial = c(mu = 0.35, sigma = 0.15),
-  rho_spatial = 0.10
+  rho_spatial = 0.10,
+  beta_mu = c(`(Intercept)` = 0.20, x = 0.20),
+  beta_sigma = c(`(Intercept)` = -1.10)
 ) {
   set.seed(seed)
   site_levels <- paste0("site_", seq_len(n_site))
@@ -75,17 +77,59 @@ new_spatial_location_scale_gaussian_data <- function(
 
   site <- rep(site_levels, each = n_each)
   x <- stats::rnorm(length(site))
-  log_sigma <- -1.10 + spatial_sigma[site]
-  y <- 0.20 +
-    0.20 * x +
+  log_sigma <- beta_sigma[["(Intercept)"]] + spatial_sigma[site]
+  y <- beta_mu[["(Intercept)"]] +
+    beta_mu[["x"]] * x +
     spatial_mu[site] +
     exp(log_sigma) * stats::rnorm(length(site))
 
   list(
     data = data.frame(y = unname(y), x = x, site = site),
     coords = coords,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
     sd_spatial = sd_spatial,
     rho_spatial = rho_spatial
+  )
+}
+
+new_spatial_sigma_gaussian_data <- function(
+  seed = 2026081613L,
+  n_site = 64L,
+  n_each = 20L,
+  sd_spatial = 0.28,
+  beta_mu = c(`(Intercept)` = 0.30, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05)
+) {
+  set.seed(seed)
+  site_levels <- paste0("site_", seq_len(n_site))
+  theta <- seq(0, 1.5 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(n_site) / (3 * n_site),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords, site = site_levels, group = "site"
+  )
+  covariance <- solve(as.matrix(precision$precision))
+  spatial_sigma <- as.vector(
+    t(chol(covariance)) %*% stats::rnorm(n_site, sd = sd_spatial)
+  )
+  names(spatial_sigma) <- site_levels
+
+  site <- rep(site_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_site)
+  log_sigma <- beta_sigma[["(Intercept)"]] + spatial_sigma[site]
+  y <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x +
+    exp(log_sigma) * stats::rnorm(length(site))
+
+  list(
+    data = data.frame(y = unname(y), x = x, site = site),
+    coords = coords,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_spatial = sd_spatial
   )
 }
 
@@ -95,7 +139,8 @@ new_spatial_gaussian_slope_data <- function(
   n_each = 8L,
   sd_intercept = 0.45,
   sd_slope = 0.30,
-  sigma = 0.16
+  sigma = 0.16,
+  beta_mu = c(`(Intercept)` = 0.6, x = -0.25)
 ) {
   set.seed(seed)
   site_levels <- paste0("site_", seq_len(n_site))
@@ -123,7 +168,6 @@ new_spatial_gaussian_slope_data <- function(
 
   site <- rep(site_levels, each = n_each)
   x <- rep(seq(-1, 1, length.out = n_each), times = n_site)
-  beta_mu <- c(`(Intercept)` = 0.6, x = -0.25)
   y <- beta_mu[[1L]] +
     beta_mu[[2L]] * x +
     spatial_intercept[site] +
@@ -192,6 +236,57 @@ new_spatial_sigma_slope_gaussian_data <- function(
   )
 }
 
+new_spatial_location_scale_gaussian_slope_data <- function(
+  seed = 2026081617L,
+  n_site = 64L,
+  n_each = 24L,
+  beta_mu = c(`(Intercept)` = 0.35, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05),
+  sd_mu = c(`(Intercept)` = 0.30, x = 0.18),
+  sd_sigma = c(`(Intercept)` = 0.24, x = 0.15)
+) {
+  set.seed(seed)
+  site_levels <- paste0("site_", seq_len(n_site))
+  theta <- seq(0, 1.5 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(n_site) / (3 * n_site),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords, site = site_levels, group = "site"
+  )
+  covariance <- solve(as.matrix(precision$precision))
+  draw_spatial_field <- function(sd) {
+    as.vector(t(chol(covariance)) %*% stats::rnorm(n_site, sd = sd))
+  }
+  spatial_mu_intercept <- draw_spatial_field(sd_mu[["(Intercept)"]])
+  spatial_mu_slope <- draw_spatial_field(sd_mu[["x"]])
+  spatial_sigma_intercept <- draw_spatial_field(sd_sigma[["(Intercept)"]])
+  spatial_sigma_slope <- draw_spatial_field(sd_sigma[["x"]])
+  names(spatial_mu_intercept) <- site_levels
+  names(spatial_mu_slope) <- site_levels
+  names(spatial_sigma_intercept) <- site_levels
+  names(spatial_sigma_slope) <- site_levels
+
+  site <- rep(site_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_site)
+  mu <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x +
+    spatial_mu_intercept[site] + spatial_mu_slope[site] * x
+  log_sigma <- beta_sigma[["(Intercept)"]] +
+    spatial_sigma_intercept[site] + spatial_sigma_slope[site] * x
+  y <- mu + exp(log_sigma) * stats::rnorm(length(site))
+
+  list(
+    data = data.frame(y = unname(y), x = x, site = site),
+    coords = coords,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_mu = sd_mu,
+    sd_sigma = sd_sigma
+  )
+}
+
 new_biv_spatial_gaussian_data <- function(
   seed = 20260582,
   n_site = 8L,
@@ -251,6 +346,94 @@ new_biv_spatial_gaussian_data <- function(
     rho_spatial = rho_spatial,
     sigma = sigma,
     rho12 = rho12
+  )
+}
+
+new_biv_spatial_slope_gaussian_data <- function(
+  seed = 2026081719L,
+  n_site = 128L,
+  n_each = 20L,
+  sd_spatial = c(0.55, 0.45),
+  rho_spatial = 0.30,
+  sigma = c(0.18, 0.20),
+  rho12 = 0.10
+) {
+  set.seed(seed)
+  site_levels <- paste0("site_", seq_len(n_site))
+  theta <- seq(0, 1.5 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(n_site) / (3 * n_site),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+  precision <- drmTMB:::drm_spatial_coords_precision(coords, site = site_levels, group = "site")
+  covariance <- solve(as.matrix(precision$precision))
+  z1 <- stats::rnorm(n_site)
+  z2 <- rho_spatial * z1 + sqrt(1 - rho_spatial^2) * stats::rnorm(n_site)
+  slope1 <- as.vector(t(chol(covariance)) %*% z1) * sd_spatial[[1L]]
+  slope2 <- as.vector(t(chol(covariance)) %*% z2) * sd_spatial[[2L]]
+  names(slope1) <- site_levels
+  names(slope2) <- site_levels
+  site <- rep(site_levels, each = n_each)
+  x <- stats::rnorm(length(site))
+  beta_mu1 <- c(`(Intercept)` = 0.35, x = 0.25)
+  beta_mu2 <- c(`(Intercept)` = -0.20, x = -0.30)
+  e1 <- stats::rnorm(length(site))
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(length(site))
+  list(
+    data = data.frame(
+      y1 = beta_mu1[[1L]] + (beta_mu1[[2L]] + slope1[site]) * x + sigma[[1L]] * e1,
+      y2 = beta_mu2[[1L]] + (beta_mu2[[2L]] + slope2[site]) * x + sigma[[2L]] * e2,
+      x = x, site = site
+    ),
+    coords = coords, beta_mu1 = beta_mu1, beta_mu2 = beta_mu2,
+    sd_spatial = sd_spatial, rho_spatial = rho_spatial, sigma = sigma, rho12 = rho12
+  )
+}
+
+manual_biv_spatial_response_loglik <- function(fit) {
+  dat <- fit$model$data
+  observed_y1 <- fit$missing_data$observed_y1
+  observed_y2 <- fit$missing_data$observed_y2
+  mu1 <- predict(fit, dpar = "mu1")
+  mu2 <- predict(fit, dpar = "mu2")
+  sigma1 <- predict(fit, dpar = "sigma1")
+  sigma2 <- predict(fit, dpar = "sigma2")
+  rho12 <- predict(fit, dpar = "rho12")
+  both <- observed_y1 & observed_y2
+  out <- numeric(nrow(dat))
+  z1 <- (dat$y1[both] - mu1[both]) / sigma1[both]
+  z2 <- (dat$y2[both] - mu2[both]) / sigma2[both]
+  one_minus_rho2 <- 1 - rho12[both]^2
+  out[both] <- -log(2 * pi) - log(sigma1[both]) - log(sigma2[both]) -
+    0.5 * log(one_minus_rho2) -
+    0.5 * (z1^2 - 2 * rho12[both] * z1 * z2 + z2^2) / one_minus_rho2
+  y1_only <- observed_y1 & !observed_y2
+  out[y1_only] <- stats::dnorm(dat$y1[y1_only], mu1[y1_only], sigma1[y1_only], log = TRUE)
+  y2_only <- !observed_y1 & observed_y2
+  out[y2_only] <- stats::dnorm(dat$y2[y2_only], mu2[y2_only], sigma2[y2_only], log = TRUE)
+  sum(out)
+}
+
+manual_biv_spatial_q2_prior_loglik <- function(fit) {
+  par <- fit$obj$env$parList(fit$opt$par)
+  n_spatial <- nrow(fit$model$tmb_data$Q_phylo)
+  u1 <- par$u_phylo[seq_len(n_spatial)]
+  u2 <- par$u_phylo[n_spatial + seq_len(n_spatial)]
+  Q <- as.matrix(fit$model$tmb_data$Q_phylo)
+  q11 <- drop(crossprod(u1, Q %*% u1))
+  q12 <- drop(crossprod(u1, Q %*% u2))
+  q22 <- drop(crossprod(u2, Q %*% u2))
+  sd <- exp(par$log_sd_phylo)
+  rho <- 0.999999 * tanh(par$eta_cor_phylo)
+  one_minus_rho2 <- 1 - rho^2
+  quadratic <- q11 / (sd[[1L]]^2 * one_minus_rho2) -
+    2 * rho * q12 / (sd[[1L]] * sd[[2L]] * one_minus_rho2) +
+    q22 / (sd[[2L]]^2 * one_minus_rho2)
+  log_det_cov <- 2 * sum(par$log_sd_phylo) + log(one_minus_rho2)
+  -0.5 * (
+    2 * n_spatial * log(2 * pi) + n_spatial * log_det_cov -
+      2 * fit$model$tmb_data$log_det_Q_phylo + quadratic
   )
 }
 
@@ -344,6 +527,76 @@ test_that("Gaussian mu supports coordinate-based spatial intercepts", {
   )
 })
 
+test_that("Gaussian spatial mu intercept masks recover known data", {
+  sim <- new_spatial_gaussian_data(
+    seed = 2026081637L, n_site = 64L, n_each = 20L
+  )
+  coords <- sim$coords
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "site", seed = 2026081638L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_spatial)), log(2.5))
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+})
+
+test_that("Gaussian REML spatial mu intercept masks recover known data", {
+  sim <- new_spatial_gaussian_data(
+    seed = 2026081649L, n_site = 128L, n_each = 20L
+  )
+  coords <- sim$coords
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "site", seed = 2026081650L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), REML = TRUE, control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], REML = TRUE, control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_spatial)), log(2.5))
+})
+
 test_that("Gaussian supports coordinate-spatial residual-scale structured effects", {
   sim <- new_spatial_location_scale_gaussian_data()
   coords <- sim$coords
@@ -383,6 +636,122 @@ test_that("Gaussian supports coordinate-spatial residual-scale structured effect
   )
   expect_true("sd:sigma:sigma:spatial(1 | site)" %in% profile_targets(fit)$parm)
   expect_equal(corpairs(fit, level = "spatial")$class, "mean-scale")
+})
+
+test_that("Gaussian matched spatial location-scale intercept masks match observed data", {
+  sim <- new_spatial_location_scale_gaussian_data(
+    seed = 2026081631L, n_site = 128L, n_each = 20L, rho_spatial = 0.30
+  )
+  coords <- sim$coords
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "site", seed = 2026081632L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + spatial(1 | site, coords = coords),
+    sigma ~ spatial(1 | site, coords = coords)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(fit_mask$corpars$spatial, fit_observed$corpars$spatial, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.30)
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_spatial[["mu"]]))), log(2.5))
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_spatial[["sigma"]]))), log(2.5))
+  expect_lt(abs(unname(fit_mask$corpars$spatial) - sim$rho_spatial), 0.45)
+})
+
+test_that("Gaussian spatial sigma intercept masks match observed data", {
+  sim <- new_spatial_sigma_gaussian_data()
+  coords <- sim$coords
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "site", seed = 2026081614L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ spatial(1 | site, coords = coords))
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_spatial)), log(2.5))
+})
+
+test_that("Gaussian spatial sigma slope masks match observed data", {
+  sim <- new_spatial_sigma_slope_gaussian_data(
+    seed = 2026081615L, n_site = 64L, n_each = 20L
+  )
+  coords <- sim$coords
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "site", seed = 2026081616L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ spatial(1 + x | site, coords = coords))
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.25)
+  expect_lt(
+    max(abs(log(
+      unname(fit_mask$sdpars$sigma) /
+        c(`spatial(1 | site)` = sim$sd_intercept, `spatial(0 + x | site)` = sim$sd_slope)
+    ))),
+    log(2.5)
+  )
 })
 
 test_that("bivariate Gaussian mu supports coordinate-based spatial correlation", {
@@ -529,6 +898,122 @@ test_that("bivariate Gaussian mu supports coordinate-based spatial correlation",
   expect_match(near_boundary_q2$value, "rho_abs=0.9950")
   expect_match(near_boundary_q2$message, "close to \\+/-1")
   expect_false(attr(near_boundary_chk, "ok"))
+})
+
+test_that("bivariate spatial q2 response masks have an exact conditional oracle", {
+  sim <- new_biv_spatial_gaussian_data(n_site = 8L, n_each = 8L)
+  dat <- sim$data
+  coords <- sim$coords
+  dat$y1[c(3L, 19L, 44L)] <- NA_real_
+  dat$y2[c(8L, 19L, 51L)] <- NA_real_
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + spatial(1 | p | site, coords = coords),
+      mu2 = y2 ~ x + spatial(1 | p | site, coords = coords),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  full_parameters <- fit$obj$env$parList(fit$opt$par)
+  joint <- TMB::MakeADFun(
+    data = fit$model$tmb_data, parameters = full_parameters,
+    map = fit$model$map, DLL = "drmTMB", silent = TRUE
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    -joint$fn(joint$par),
+    manual_biv_spatial_response_loglik(fit) + manual_biv_spatial_q2_prior_loglik(fit),
+    tolerance = 1e-6
+  )
+  expect_missing_response_sentinel_invariant(
+    fit, response = "y1", observed = fit$missing_data$observed_y1,
+    sentinels = c(-1e6, 1e6)
+  )
+  expect_missing_response_sentinel_invariant(
+    fit, response = "y2", observed = fit$missing_data$observed_y2,
+    sentinels = c(-1e6, 1e6)
+  )
+})
+
+test_that("bivariate spatial q2 response masks recover at the 128-site rung", {
+  sim <- new_biv_spatial_gaussian_data(
+    seed = 2026081713L, n_site = 128L, n_each = 20L,
+    sd_spatial = c(0.90, 0.80), rho_spatial = 0.55,
+    sigma = c(0.18, 0.20), rho12 = 0.10
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    sim$data, "y1", "site", seed = 2026081714L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y2", "site", seed = 2026081715L
+  )
+  coords <- sim$coords
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + spatial(1 | p | site, coords = coords),
+      mu2 = y2 ~ x + spatial(1 | p | site, coords = coords),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 1200, iter.max = 1200)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_spatial)), 0.25)
+  expect_lt(abs(unname(fit$corpars$spatial) - sim$rho_spatial), 0.25)
+  expect_lt(max(abs(c(
+    unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)
+  ) - sim$sigma)), 0.06)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.20)
+})
+
+test_that("bivariate spatial q2 slope masks recover at the 128-site rung", {
+  sim <- new_biv_spatial_slope_gaussian_data()
+  dat <- missing_response_mask_mcar_within_group(
+    sim$data, "y1", "site", seed = 2026081720L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y2", "site", seed = 2026081721L
+  )
+  coords <- sim$coords
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + spatial(0 + x | p | site, coords = coords),
+      mu2 = y2 ~ x + spatial(0 + x | p | site, coords = coords),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 1500, iter.max = 1500)
+  )
+  full_parameters <- fit$obj$env$parList(fit$opt$par)
+  joint <- TMB::MakeADFun(
+    data = fit$model$tmb_data, parameters = full_parameters,
+    map = fit$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  data_zero <- fit$model$tmb_data
+  data_large <- fit$model$tmb_data
+  data_zero$y1[fit$missing_data$observed_y1 == 0L] <- -1e6
+  data_large$y1[fit$missing_data$observed_y1 == 0L] <- 1e6
+  zero_obj <- TMB::MakeADFun(data_zero, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+  large_obj <- TMB::MakeADFun(data_large, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(-joint$fn(joint$par), manual_biv_spatial_response_loglik(fit) + manual_biv_spatial_q2_prior_loglik(fit), tolerance = 1e-6)
+  expect_equal(zero_obj$fn(zero_obj$par), large_obj$fn(large_obj$par), tolerance = 1e-8)
+  expect_equal(zero_obj$gr(zero_obj$par), large_obj$gr(large_obj$par), tolerance = 1e-8, ignore_attr = TRUE)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_spatial)), 0.20)
+  expect_lt(abs(unname(fit$corpars$spatial) - sim$rho_spatial), 0.20)
+  expect_lt(max(abs(c(unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)) - sim$sigma)), 0.05)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.15)
 })
 
 test_that("bivariate Gaussian mu supports spatial q2 slope-only covariance", {
@@ -1006,6 +1491,45 @@ test_that("Gaussian mu supports coordinate-based spatial one-slope fields", {
   )
 })
 
+test_that("Gaussian spatial mu slope masks recover known data", {
+  sim <- new_spatial_gaussian_slope_data(
+    seed = 2026081639L, n_site = 80L, n_each = 20L
+  )
+  coords <- sim$coords
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "site", seed = 2026081640L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + spatial(1 + x | site, coords = coords), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.25)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) /
+      c(`spatial(1 | site)` = sim$sd_intercept, `spatial(0 + x | site)` = sim$sd_slope)))),
+    log(2.5)
+  )
+})
+
 test_that("Gaussian sigma supports coordinate-based spatial one-slope fields", {
   sim <- new_spatial_sigma_slope_gaussian_data()
   coords <- sim$coords
@@ -1122,6 +1646,50 @@ test_that("Gaussian supports matched one-slope spatial location-scale fields", {
   expect_named(spatial_re$terms, c(mu_names, sigma_names))
   expect_length(spatial_re$values, 4L * nrow(sim$coords))
   expect_true(is.finite(as.numeric(stats::logLik(fit))))
+})
+
+test_that("Gaussian matched one-slope spatial location-scale masks match observed data", {
+  sim <- new_spatial_location_scale_gaussian_slope_data()
+  coords <- sim$coords
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "site", seed = 2026081618L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + spatial(1 + x | site, coords = coords),
+    sigma ~ spatial(1 + x | site, coords = coords)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.30)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) / unname(sim$sd_mu)))),
+    log(2.5)
+  )
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$sigma) / unname(sim$sd_sigma)))),
+    log(2.5)
+  )
 })
 
 test_that("spatial labelled one-slope location blocks expose partial q4 members", {

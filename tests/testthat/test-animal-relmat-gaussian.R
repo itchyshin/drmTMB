@@ -172,6 +172,223 @@ new_animal_sigma_slope_gaussian_data <- function(
   )
 }
 
+new_animal_sigma_gaussian_data <- function(
+  seed = 2026081619L,
+  n_id = 64L,
+  n_each = 20L,
+  sd_animal = 0.28,
+  beta_mu = c(`(Intercept)` = 0.30, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05)
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  A <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(A) <- diag(A) + 0.15
+  dimnames(A) <- list(id_levels, id_levels)
+  animal_sigma <- as.vector(
+    t(chol(A)) %*% stats::rnorm(n_id, sd = sd_animal)
+  )
+  names(animal_sigma) <- id_levels
+
+  id <- rep(id_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_id)
+  log_sigma <- beta_sigma[["(Intercept)"]] + animal_sigma[id]
+  y <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x +
+    exp(log_sigma) * stats::rnorm(length(id))
+
+  list(
+    data = data.frame(y = unname(y), x = x, id = id),
+    A = A,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_animal = sd_animal
+  )
+}
+
+new_animal_mu_gaussian_data <- function(
+  seed = 2026081641L,
+  n_id = 64L,
+  n_each = 20L,
+  sd_animal = 0.40,
+  sigma = 0.18,
+  beta_mu = c(`(Intercept)` = 0.30, x = -0.20)
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  A <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(A) <- diag(A) + 0.15
+  dimnames(A) <- list(id_levels, id_levels)
+  animal_mu <- as.vector(t(chol(A)) %*% stats::rnorm(n_id, sd = sd_animal))
+  names(animal_mu) <- id_levels
+
+  id <- rep(id_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_id)
+  y <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x + animal_mu[id] +
+    stats::rnorm(length(id), sd = sigma)
+
+  list(
+    data = data.frame(y = unname(y), x = x, id = id),
+    A = A,
+    beta_mu = beta_mu,
+    sd_animal = sd_animal,
+    sigma = sigma
+  )
+}
+
+new_animal_mu_slope_gaussian_data <- function(
+  seed = 2026081643L,
+  n_id = 80L,
+  n_each = 20L,
+  sd_animal = c(`(Intercept)` = 0.40, x = 0.24),
+  sigma = 0.18,
+  beta_mu = c(`(Intercept)` = 0.30, x = -0.20)
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  A <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(A) <- diag(A) + 0.15
+  dimnames(A) <- list(id_levels, id_levels)
+  draw_animal_field <- function(sd) {
+    as.vector(t(chol(A)) %*% stats::rnorm(n_id, sd = sd))
+  }
+  animal_intercept <- draw_animal_field(sd_animal[["(Intercept)"]])
+  animal_slope <- draw_animal_field(sd_animal[["x"]])
+  names(animal_intercept) <- id_levels
+  names(animal_slope) <- id_levels
+
+  id <- rep(id_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_id)
+  y <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x +
+    animal_intercept[id] + animal_slope[id] * x +
+    stats::rnorm(length(id), sd = sigma)
+
+  list(
+    data = data.frame(y = unname(y), x = x, id = id),
+    A = A,
+    beta_mu = beta_mu,
+    sd_animal = sd_animal,
+    sigma = sigma
+  )
+}
+
+new_animal_sigma_slope_large_data <- function(
+  seed = 2026081621L,
+  n_id = 64L,
+  n_each = 20L,
+  sd_animal = c(`(Intercept)` = 0.28, x = 0.16),
+  beta_mu = c(`(Intercept)` = 0.30, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05)
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  A <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(A) <- diag(A) + 0.15
+  dimnames(A) <- list(id_levels, id_levels)
+  draw_animal_field <- function(sd) {
+    as.vector(t(chol(A)) %*% stats::rnorm(n_id, sd = sd))
+  }
+  animal_intercept <- draw_animal_field(sd_animal[["(Intercept)"]])
+  animal_slope <- draw_animal_field(sd_animal[["x"]])
+  names(animal_intercept) <- id_levels
+  names(animal_slope) <- id_levels
+
+  id <- rep(id_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_id)
+  log_sigma <- beta_sigma[["(Intercept)"]] +
+    animal_intercept[id] + animal_slope[id] * x
+  y <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x +
+    exp(log_sigma) * stats::rnorm(length(id))
+
+  list(
+    data = data.frame(y = unname(y), x = x, id = id),
+    A = A,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_animal = sd_animal
+  )
+}
+
+new_animal_location_scale_gaussian_slope_data <- function(
+  seed = 2026081623L,
+  n_id = 64L,
+  n_each = 24L,
+  beta_mu = c(`(Intercept)` = 0.35, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05),
+  sd_mu = c(`(Intercept)` = 0.30, x = 0.18),
+  sd_sigma = c(`(Intercept)` = 0.24, x = 0.15)
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  A <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(A) <- diag(A) + 0.15
+  dimnames(A) <- list(id_levels, id_levels)
+  draw_animal_field <- function(sd) {
+    as.vector(t(chol(A)) %*% stats::rnorm(n_id, sd = sd))
+  }
+  animal_mu_intercept <- draw_animal_field(sd_mu[["(Intercept)"]])
+  animal_mu_slope <- draw_animal_field(sd_mu[["x"]])
+  animal_sigma_intercept <- draw_animal_field(sd_sigma[["(Intercept)"]])
+  animal_sigma_slope <- draw_animal_field(sd_sigma[["x"]])
+  names(animal_mu_intercept) <- id_levels
+  names(animal_mu_slope) <- id_levels
+  names(animal_sigma_intercept) <- id_levels
+  names(animal_sigma_slope) <- id_levels
+
+  id <- rep(id_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_id)
+  mu <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x +
+    animal_mu_intercept[id] + animal_mu_slope[id] * x
+  log_sigma <- beta_sigma[["(Intercept)"]] +
+    animal_sigma_intercept[id] + animal_sigma_slope[id] * x
+  y <- mu + exp(log_sigma) * stats::rnorm(length(id))
+
+  list(
+    data = data.frame(y = unname(y), x = x, id = id),
+    A = A,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_mu = sd_mu,
+    sd_sigma = sd_sigma
+  )
+}
+
+new_animal_location_scale_gaussian_data <- function(
+  seed = 2026081633L,
+  n_id = 128L,
+  n_each = 20L,
+  beta_mu = c(`(Intercept)` = 0.20, x = 0.20),
+  beta_sigma = c(`(Intercept)` = -1.10),
+  sd_animal = c(mu = 0.35, sigma = 0.16),
+  rho_animal = 0.30
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  A <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(A) <- diag(A) + 0.15
+  dimnames(A) <- list(id_levels, id_levels)
+  z_mu <- stats::rnorm(n_id)
+  z_sigma <- rho_animal * z_mu + sqrt(1 - rho_animal^2) * stats::rnorm(n_id)
+  animal_mu <- as.vector(t(chol(A)) %*% z_mu) * sd_animal[["mu"]]
+  animal_sigma <- as.vector(t(chol(A)) %*% z_sigma) * sd_animal[["sigma"]]
+  names(animal_mu) <- id_levels
+  names(animal_sigma) <- id_levels
+
+  id <- rep(id_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_id)
+  log_sigma <- beta_sigma[["(Intercept)"]] + animal_sigma[id]
+  y <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x + animal_mu[id] +
+    exp(log_sigma) * stats::rnorm(length(id))
+
+  list(
+    data = data.frame(y = unname(y), x = x, id = id),
+    A = A,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_animal = sd_animal,
+    rho_animal = rho_animal
+  )
+}
+
 new_known_relatedness_sigma_slope_data <- function(
   seed = 20260635,
   n_id = 8L,
@@ -226,10 +443,12 @@ dense_known_relatedness_gaussian_nll <- function(y, mu, sigma, sd_known, K) {
       sum(scaled^2))
 }
 
-new_biv_known_relatedness_gaussian_data <- function(seed = 2026052101) {
+new_biv_known_relatedness_gaussian_data <- function(
+  seed = 2026052101,
+  n_id = 10L,
+  n_each = 6L
+) {
   set.seed(seed)
-  n_id <- 10L
-  n_each <- 6L
   id_levels <- paste0("id", seq_len(n_id))
   K <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.40^abs(i - j))
   diag(K) <- diag(K) + 0.10
@@ -263,6 +482,90 @@ new_biv_known_relatedness_gaussian_data <- function(seed = 2026052101) {
     rho_known = rho_known,
     sigma = sigma,
     rho12 = rho12_true
+  )
+}
+
+new_biv_known_relatedness_slope_gaussian_data <- function(
+  seed = 2026081722L,
+  n_id = 64L,
+  n_each = 20L,
+  sd_known = c(0.55, 0.45),
+  rho_known = 0.30,
+  sigma = c(0.18, 0.20),
+  rho12_true = 0.10
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  K <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.40^abs(i - j))
+  diag(K) <- diag(K) + 0.10
+  dimnames(K) <- list(id_levels, id_levels)
+  Q <- solve(K)
+  id <- rep(id_levels, each = n_each)
+  x <- stats::rnorm(length(id))
+  z1 <- stats::rnorm(n_id)
+  z2 <- rho_known * z1 + sqrt(1 - rho_known^2) * stats::rnorm(n_id)
+  slope1 <- as.vector(t(chol(K)) %*% z1) * sd_known[[1L]]
+  slope2 <- as.vector(t(chol(K)) %*% z2) * sd_known[[2L]]
+  names(slope1) <- id_levels
+  names(slope2) <- id_levels
+  beta_mu1 <- c(`(Intercept)` = 0.25, x = 0.35)
+  beta_mu2 <- c(`(Intercept)` = -0.15, x = -0.25)
+  e1 <- stats::rnorm(length(id))
+  e2 <- rho12_true * e1 + sqrt(1 - rho12_true^2) * stats::rnorm(length(id))
+  list(
+    data = data.frame(
+      y1 = beta_mu1[[1L]] + (beta_mu1[[2L]] + slope1[id]) * x + sigma[[1L]] * e1,
+      y2 = beta_mu2[[1L]] + (beta_mu2[[2L]] + slope2[id]) * x + sigma[[2L]] * e2,
+      x = x, id = id
+    ),
+    K = K, Q = Q, beta_mu1 = beta_mu1, beta_mu2 = beta_mu2,
+    sd_known = sd_known, rho_known = rho_known, sigma = sigma, rho12 = rho12_true
+  )
+}
+
+manual_biv_known_response_loglik <- function(fit) {
+  dat <- fit$model$data
+  observed_y1 <- fit$missing_data$observed_y1
+  observed_y2 <- fit$missing_data$observed_y2
+  mu1 <- predict(fit, dpar = "mu1")
+  mu2 <- predict(fit, dpar = "mu2")
+  sigma1 <- predict(fit, dpar = "sigma1")
+  sigma2 <- predict(fit, dpar = "sigma2")
+  rho12 <- predict(fit, dpar = "rho12")
+  both <- observed_y1 & observed_y2
+  out <- numeric(nrow(dat))
+  z1 <- (dat$y1[both] - mu1[both]) / sigma1[both]
+  z2 <- (dat$y2[both] - mu2[both]) / sigma2[both]
+  one_minus_rho2 <- 1 - rho12[both]^2
+  out[both] <- -log(2 * pi) - log(sigma1[both]) - log(sigma2[both]) -
+    0.5 * log(one_minus_rho2) -
+    0.5 * (z1^2 - 2 * rho12[both] * z1 * z2 + z2^2) / one_minus_rho2
+  y1_only <- observed_y1 & !observed_y2
+  out[y1_only] <- stats::dnorm(dat$y1[y1_only], mu1[y1_only], sigma1[y1_only], log = TRUE)
+  y2_only <- !observed_y1 & observed_y2
+  out[y2_only] <- stats::dnorm(dat$y2[y2_only], mu2[y2_only], sigma2[y2_only], log = TRUE)
+  sum(out)
+}
+
+manual_biv_known_q2_prior_loglik <- function(fit) {
+  par <- fit$obj$env$parList(fit$opt$par)
+  n_known <- nrow(fit$model$tmb_data$Q_phylo)
+  u1 <- par$u_phylo[seq_len(n_known)]
+  u2 <- par$u_phylo[n_known + seq_len(n_known)]
+  Q <- as.matrix(fit$model$tmb_data$Q_phylo)
+  q11 <- drop(crossprod(u1, Q %*% u1))
+  q12 <- drop(crossprod(u1, Q %*% u2))
+  q22 <- drop(crossprod(u2, Q %*% u2))
+  sd <- exp(par$log_sd_phylo)
+  rho <- 0.999999 * tanh(par$eta_cor_phylo)
+  one_minus_rho2 <- 1 - rho^2
+  quadratic <- q11 / (sd[[1L]]^2 * one_minus_rho2) -
+    2 * rho * q12 / (sd[[1L]] * sd[[2L]] * one_minus_rho2) +
+    q22 / (sd[[2L]]^2 * one_minus_rho2)
+  log_det_cov <- 2 * sum(par$log_sd_phylo) + log(one_minus_rho2)
+  -0.5 * (
+    2 * n_known * log(2 * pi) + n_known * log_det_cov -
+      2 * fit$model$tmb_data$log_det_Q_phylo + quadratic
   )
 }
 
@@ -716,6 +1019,352 @@ test_that("animal and relmat Gaussian mu support one structured slope", {
   )
 })
 
+test_that("Gaussian animal mu intercept masks recover known data", {
+  sim <- new_animal_mu_gaussian_data()
+  A <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081642L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + animal(1 | id, A = A), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.25)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_animal)), log(2.5))
+})
+
+test_that("Gaussian REML animal mu intercept masks recover known data", {
+  sim <- new_animal_mu_gaussian_data(
+    seed = 2026081651L, n_id = 128L, n_each = 20L
+  )
+  A <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081652L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + animal(1 | id, A = A), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), REML = TRUE, control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], REML = TRUE, control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_animal)), log(2.5))
+})
+
+test_that("Gaussian animal mu slope masks recover known data", {
+  sim <- new_animal_mu_slope_gaussian_data()
+  A <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081644L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + animal(1 + x | id, A = A), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.25)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) / unname(sim$sd_animal)))),
+    log(2.5)
+  )
+})
+
+test_that("Gaussian relmat mu intercept masks recover known data", {
+  sim <- new_animal_mu_gaussian_data(seed = 2026081645L)
+  K <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081646L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.25)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_animal)), log(2.5))
+})
+
+test_that("Gaussian REML relmat mu intercept masks recover known data", {
+  sim <- new_animal_mu_gaussian_data(
+    seed = 2026081653L, n_id = 128L, n_each = 20L
+  )
+  K <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081654L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), REML = TRUE, control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], REML = TRUE, control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_animal)), log(2.5))
+})
+
+test_that("Gaussian relmat mu slope masks recover known data", {
+  sim <- new_animal_mu_slope_gaussian_data(seed = 2026081647L)
+  K <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081648L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + relmat(1 + x | id, K = K), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.25)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) / unname(sim$sd_animal)))),
+    log(2.5)
+  )
+})
+
+test_that("Gaussian animal sigma intercept masks match observed data", {
+  sim <- new_animal_sigma_gaussian_data()
+  A <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081620L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ animal(1 | id, A = A))
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_animal)), log(2.5))
+})
+
+test_that("Gaussian animal sigma slope masks match observed data", {
+  sim <- new_animal_sigma_slope_large_data()
+  A <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081622L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ animal(1 + x | id, A = A))
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.25)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$sigma) / unname(sim$sd_animal)))),
+    log(2.5)
+  )
+})
+
+test_that("Gaussian relmat sigma intercept masks match observed data", {
+  sim <- new_animal_sigma_gaussian_data(seed = 2026081625L)
+  K <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081626L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ relmat(1 | id, K = K))
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_animal)), log(2.5))
+})
+
+test_that("Gaussian relmat sigma slope masks match observed data", {
+  sim <- new_animal_sigma_slope_large_data(seed = 2026081627L)
+  K <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081628L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ relmat(1 + x | id, K = K))
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.25)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$sigma) / unname(sim$sd_animal)))),
+    log(2.5)
+  )
+})
+
 test_that("Gaussian sigma supports animal A-matrix one structured slope", {
   sim <- new_animal_sigma_slope_gaussian_data()
   A <- sim$A
@@ -828,6 +1477,174 @@ test_that("Gaussian sigma supports animal A-matrix one structured slope", {
       data = sim$data
     ),
     "matching intercept-only or one-slope structured terms"
+  )
+})
+
+test_that("Gaussian matched one-slope animal location-scale masks match observed data", {
+  sim <- new_animal_location_scale_gaussian_slope_data()
+  A <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081624L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + animal(1 + x | id, A = A),
+    sigma ~ animal(1 + x | id, A = A)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.30)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) / unname(sim$sd_mu)))),
+    log(2.5)
+  )
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$sigma) / unname(sim$sd_sigma)))),
+    log(2.5)
+  )
+})
+
+test_that("Gaussian matched animal location-scale intercept masks match observed data", {
+  sim <- new_animal_location_scale_gaussian_data()
+  A <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081634L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + animal(1 | id, A = A),
+    sigma ~ animal(1 | id, A = A)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(fit_mask$corpars$animal, fit_observed$corpars$animal, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.30)
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_animal[["mu"]]))), log(2.5))
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_animal[["sigma"]]))), log(2.5))
+  expect_lt(abs(unname(fit_mask$corpars$animal) - sim$rho_animal), 0.45)
+})
+
+test_that("Gaussian matched relmat location-scale intercept masks match observed data", {
+  sim <- new_animal_location_scale_gaussian_data(seed = 2026081635L)
+  K <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081636L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + relmat(1 | id, K = K),
+    sigma ~ relmat(1 | id, K = K)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(fit_mask$corpars$relmat, fit_observed$corpars$relmat, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.30)
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_animal[["mu"]]))), log(2.5))
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_animal[["sigma"]]))), log(2.5))
+  expect_lt(abs(unname(fit_mask$corpars$relmat) - sim$rho_animal), 0.45)
+})
+
+test_that("Gaussian matched one-slope relmat location-scale masks match observed data", {
+  sim <- new_animal_location_scale_gaussian_slope_data(seed = 2026081629L)
+  K <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081630L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + relmat(1 + x | id, K = K),
+    sigma ~ relmat(1 + x | id, K = K)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.30)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) / unname(sim$sd_mu)))),
+    log(2.5)
+  )
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$sigma) / unname(sim$sd_sigma)))),
+    log(2.5)
   )
 })
 
@@ -989,6 +1806,182 @@ test_that("Gaussian sigma supports relmat K/Q one structured slope", {
     unname(matched_Q$sdpars$sigma),
     tolerance = 1e-5
   )
+})
+
+test_that("bivariate animal and relmat q2 response masks have exact conditional oracles", {
+  sim <- new_biv_known_relatedness_gaussian_data()
+  dat <- sim$data
+  dat$y1[c(3L, 19L, 44L)] <- NA_real_
+  dat$y2[c(8L, 19L, 51L)] <- NA_real_
+  Q <- sim$Q
+  fits <- list(
+    relmat = drmTMB(
+      bf(
+        mu1 = y1 ~ x + relmat(1 | p | id, Q = Q),
+        mu2 = y2 ~ x + relmat(1 | p | id, Q = Q),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat,
+      missing = miss_control(response = "include"),
+      control = list(eval.max = 500, iter.max = 500)
+    ),
+    animal = drmTMB(
+      bf(
+        mu1 = y1 ~ x + animal(1 | p | id, Ainv = Q),
+        mu2 = y2 ~ x + animal(1 | p | id, Ainv = Q),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat,
+      missing = miss_control(response = "include"),
+      control = list(eval.max = 500, iter.max = 500)
+    )
+  )
+
+  for (fit in fits) {
+    full_parameters <- fit$obj$env$parList(fit$opt$par)
+    joint <- TMB::MakeADFun(
+      data = fit$model$tmb_data, parameters = full_parameters,
+      map = fit$model$map, DLL = "drmTMB", silent = TRUE
+    )
+    expect_equal(fit$opt$convergence, 0)
+    expect_equal(
+      -joint$fn(joint$par),
+      manual_biv_known_response_loglik(fit) + manual_biv_known_q2_prior_loglik(fit),
+      tolerance = 1e-6
+    )
+    expect_missing_response_sentinel_invariant(
+      fit, response = "y1", observed = fit$missing_data$observed_y1,
+      sentinels = c(-1e6, 1e6)
+    )
+    expect_missing_response_sentinel_invariant(
+      fit, response = "y2", observed = fit$missing_data$observed_y2,
+      sentinels = c(-1e6, 1e6)
+    )
+  }
+})
+
+test_that("bivariate relmat q2 response masks recover an independent known DGP", {
+  sim <- new_biv_known_relatedness_gaussian_data(
+    seed = 2026081707L, n_id = 64L, n_each = 20L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    sim$data, "y1", "id", seed = 2026081708L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y2", "id", seed = 2026081709L
+  )
+  Q <- sim$Q
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + relmat(1 | p | id, Q = Q),
+      mu2 = y2 ~ x + relmat(1 | p | id, Q = Q),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 1000, iter.max = 1000)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_known)), 0.25)
+  expect_lt(abs(unname(fit$corpars$relmat) - sim$rho_known), 0.25)
+  expect_lt(max(abs(c(
+    unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)
+  ) - sim$sigma)), 0.06)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.20)
+})
+
+test_that("bivariate animal q2 response masks recover an independent known DGP", {
+  sim <- new_biv_known_relatedness_gaussian_data(
+    seed = 2026081710L, n_id = 64L, n_each = 20L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    sim$data, "y1", "id", seed = 2026081711L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y2", "id", seed = 2026081712L
+  )
+  Q <- sim$Q
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + animal(1 | p | id, Ainv = Q),
+      mu2 = y2 ~ x + animal(1 | p | id, Ainv = Q),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 1000, iter.max = 1000)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_known)), 0.25)
+  expect_lt(abs(unname(fit$corpars$animal) - sim$rho_known), 0.25)
+  expect_lt(max(abs(c(
+    unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)
+  ) - sim$sigma)), 0.06)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.20)
+})
+
+test_that("bivariate animal and relmat q2 slope masks recover independent DGPs", {
+  settings <- list(
+    list(provider = "relmat", seed = 2026081722L, mask1 = 2026081723L, mask2 = 2026081724L),
+    list(provider = "animal", seed = 2026081725L, mask1 = 2026081726L, mask2 = 2026081727L)
+  )
+  for (setting in settings) {
+    sim <- new_biv_known_relatedness_slope_gaussian_data(seed = setting$seed)
+    Q <- sim$Q
+    dat <- missing_response_mask_mcar_within_group(sim$data, "y1", "id", seed = setting$mask1)
+    dat <- missing_response_mask_mcar_within_group(dat, "y2", "id", seed = setting$mask2)
+    fit <- if (identical(setting$provider, "relmat")) {
+      drmTMB(
+        bf(
+          mu1 = y1 ~ x + relmat(0 + x | p | id, Q = Q),
+          mu2 = y2 ~ x + relmat(0 + x | p | id, Q = Q),
+          sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+        ),
+        family = biv_gaussian(), data = dat,
+        missing = miss_control(response = "include"),
+        control = list(eval.max = 1500, iter.max = 1500)
+      )
+    } else {
+      drmTMB(
+        bf(
+          mu1 = y1 ~ x + animal(0 + x | p | id, Ainv = Q),
+          mu2 = y2 ~ x + animal(0 + x | p | id, Ainv = Q),
+          sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+        ),
+        family = biv_gaussian(), data = dat,
+        missing = miss_control(response = "include"),
+        control = list(eval.max = 1500, iter.max = 1500)
+      )
+    }
+    full_parameters <- fit$obj$env$parList(fit$opt$par)
+    joint <- TMB::MakeADFun(
+      data = fit$model$tmb_data, parameters = full_parameters,
+      map = fit$model$map, DLL = "drmTMB", silent = TRUE
+    )
+    data_zero <- fit$model$tmb_data
+    data_large <- fit$model$tmb_data
+    data_zero$y1[fit$missing_data$observed_y1 == 0L] <- -1e6
+    data_large$y1[fit$missing_data$observed_y1 == 0L] <- 1e6
+    zero_obj <- TMB::MakeADFun(data_zero, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+    large_obj <- TMB::MakeADFun(data_large, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+
+    expect_equal(fit$opt$convergence, 0)
+    expect_equal(-joint$fn(joint$par), manual_biv_known_response_loglik(fit) + manual_biv_known_q2_prior_loglik(fit), tolerance = 1e-6)
+    expect_equal(zero_obj$fn(zero_obj$par), large_obj$fn(large_obj$par), tolerance = 1e-8)
+    expect_equal(zero_obj$gr(zero_obj$par), large_obj$gr(large_obj$par), tolerance = 1e-8, ignore_attr = TRUE)
+    expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+    expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+    expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_known)), 0.20)
+    expect_lt(abs(unname(fit$corpars[[setting$provider]]) - sim$rho_known), 0.20)
+    expect_lt(max(abs(c(unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)) - sim$sigma)), 0.05)
+    expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.15)
+  }
 })
 
 test_that("bivariate Gaussian mu fits relmat and animal q2 known-matrix covariance", {

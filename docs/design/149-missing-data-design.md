@@ -150,9 +150,13 @@ draws, and credible intervals are out of scope for this lane.
 Estimator choice should stay separate from missing-data engine choice. ML is the
 default estimator. The first ordinary Gaussian mixed-model REML route lives on
 the top-level `drmTMB(..., REML = TRUE)` estimator switch, not in
-`miss_control()`. REML for explicit missing-response or missing-predictor routes
-remains a later slice because those likelihoods need their own extractor and
-comparator checks.
+`miss_control()`. The first explicit missing-data REML slice admits a univariate
+Gaussian response mask with complete predictors and other non-response inputs.
+Its G2 contract compares the masked fit with the observed-row restricted fit and
+retapes distinct response sentinels through the objective and gradient. This does
+not certify structured Gaussian REML, bivariate REML, non-Gaussian REML, or any
+missing-predictor engine; each needs its own observed-data derivation and
+comparator route.
 
 ## Response-Missingness Contract
 
@@ -528,7 +532,7 @@ separate MD7b, MD7c, and MD7e routes.
 | MD9d beta response plus binary `mi()`, fixed only | Implemented: one binary missing predictor inside a beta response location-scale model for interior proportions (model_type 10); the `mi()` 2-point sum carries the beta precision (`phi = exp(-2*log_sigma)`, with the same boundary nudge and shape floor as the vanilla beta density) through the shared leaf. | Stop before boundary (0/1) beta responses with `mi()` (use `zero_one_beta()`), response random effects or structured terms with `mi()`, non-binary missing predictors, multiple missing predictors, and simulation-based imputation summaries. |
 | MD10 non-Gaussian response-mask baseline | Implemented: `miss_control(response = "include")` first retained and marginalised missing responses for `binomial()`, `poisson()`, `nbinom2()`, and `beta_family()` via a plain `observed_y` data guard around each family's density (a data-if, never `CondExp`, so the masked-row placeholder is never taped). MR-T1 subsequently re-audited these four routes plus Gaussian and bivariate Gaussian against the shared G2/G3 contract. | This is the historical six-route baseline, not the current boundary. MR-T2–MR-T6 below extend the same invariant to every fitted response route. Mixed masking-plus-`mi()` and dense known-`V` partial-response masks remain outside the arc. |
 | MR-T2 continuous response masks | Implemented: `response = "include"` now uses the same plain `observed_y` data guard for Student-t, skew-normal, lognormal, and Gamma. Starts and validation use observed responses only; lognormal and Gamma keep the entire density and `log(y)` transformation inside the guard. Direct sentinel mutation, row/extractor contracts, and fixed-seed 25% MCAR recovery cover every fitted distributional parameter. | Student-t, lognormal, and Gamma are verified through ordinary random intercepts; skew-normal is fixed-effect only. Do not inherit this evidence to structured modifiers, REML, intervals, coverage, response plus `mi()`, or any remaining family. |
-| MR-T3 atom and boundary response masks | Implemented: `response = "include"` masks Tweedie and zero-one beta responses through one plain data-time guard around each whole atom/continuous density decision. Starts and validation use observed responses only. Direct retapes compare Tweedie zero versus positive sentinels and zero-one beta zero/one atoms versus an interior sentinel; exact fixed-seed 25% MCAR tests recover every fitted dpar. | Both routes are fixed-effect only. Do not inherit evidence to random or structured effects, REML, response plus `mi()`, intervals, coverage, or any remaining family. |
+| MR-T3 atom and boundary response masks | Implemented: `response = "include"` masks Tweedie and zero-one beta responses through one plain data-time guard around each whole atom/continuous density decision. Starts and validation use observed responses only. Direct retapes compare Tweedie zero versus positive sentinels and zero-one beta zero/one atoms versus an interior sentinel; exact fixed-seed 25% MCAR tests recover every fitted dpar. | This is the historical fixed-effect-only baseline for Tweedie and zero-one beta, not the current zero-one-beta boundary: `tests/testthat/test-zero-one-beta.R` subsequently added response-mask oracle/gradient/recovery evidence with a structured `phylo()`/`animal()`/`relmat()`/`spatial()` effect on `mu` or `sigma` (`point_fit_only`), and the `zoi`/`coi` structured-atom q1 gate now admits missing responses at the formula level too (see design doc 248 §8, 2026-08-14 update) — though a same-day pass found none of the seven `zoi`/`coi` structured-atom + missing-response cells earn response-mask promotion yet (design doc 248 has the per-cell numbers). Tweedie stays fixed-effect only. Do not inherit evidence to REML, response plus `mi()`, intervals, coverage, or any remaining family. |
 | MR-T4 encoded response masks | Implemented: beta-binomial treats either missing count component as a missing whole response row and retapes coordinated success/trials encodings; cumulative logit retains declared ordered-factor levels, guards before category indexing, and rejects any observed subset with an empty category. Exact fixed-seed 25% MCAR tests recover beta-binomial `mu`, `sigma`, and ordinary random-intercept SD plus the ordinal slope and every cutpoint. | Integer ordinal masking is rejected because erased top categories cannot be reconstructed. Do not inherit evidence to broader random/structured effects, REML, response plus `mi()`, intervals, or coverage. |
 | MR-T5 truncated-count response mask | Implemented: non-hurdle `truncated_nbinom2()` uses a positive sentinel and one plain data-time guard around both the NB2 density and zero-truncation normalization. Exact fixed-seed 25% MCAR recovery covers `mu`, `sigma`, and an ordinary `mu` random-intercept SD. | Hurdle NB2 is a separate MR-T6 route. Do not inherit this evidence to `sigma` random effects, structured effects, REML, response plus `mi()`, intervals, or coverage. |
 | MR-T6 count-mixture response masks | Implemented: fixed-effect ZIP, ZINB2, and hurdle NB2 each skip the complete zero-or-positive mixture contribution for a missing response. Separate missing-zero and missing-positive parity checks, zero-versus-positive sentinel retapes, and exact fixed-seed 25% MCAR recovery cover every fitted mixture dpar without inheriting evidence from a base family. | These are fixed-effect masking slices only. Do not inherit evidence to random or structured mixture routes, REML, response plus `mi()`, intervals, or coverage. |
@@ -630,10 +634,10 @@ After MD1, the public claim can be:
 
 ```text
 drmTMB can retain missing response rows for univariate Gaussian models with
-complete predictors through miss_control(response = "include"). Missing
-predictors, bivariate partial response pairs, EM engines, REML support for
-missing-data routes, imputation summaries, and measurement-error models remain
-future work.
+complete predictors through miss_control(response = "include"). The ordinary
+Gaussian REML response-mask slice is also validated against the observed-row
+restricted fit. Missing predictors, EM engines, broader REML formula cells,
+imputation summaries, and measurement-error models remain future work.
 ```
 
 After MD1 and MD2, the claim can become:
@@ -807,8 +811,8 @@ univariate fitted response route; the 18-route inventory and boundaries are in
 the missing-data vignette. Multiple missing predictors, grouped or structured
 non-Gaussian predictor models, transformed or interacted mi() terms,
 non-binary missing predictors in non-Gaussian response models,
-zero-inflated/hurdle responses with `mi()`, EM/profile engines, REML for
-explicit missing-data routes, simulated imputation summaries, response
+zero-inflated/hurdle responses with `mi()`, EM/profile engines, broader REML
+formula cells beyond the univariate Gaussian response-mask slice, simulated imputation summaries, response
 imputation, measurement-error models, and pigauto interoperability remain
 separate future lanes.
 ```
@@ -832,5 +836,10 @@ Student-t, lognormal, Gamma, beta-binomial, and truncated NB2 response-mask
 evidence includes an ordinary random intercept; skew-normal remains
 fixed-effect only, and no
 structured-route evidence is inherited from these route-level ticks. Tweedie
-and zero-one beta response masking is likewise fixed-effect only. ZIP, ZINB2,
+response masking is fixed-effect only. Zero-one beta response masking has
+`point_fit_only` evidence with one structured `phylo()`/`animal()`/`relmat()`/
+`spatial()` effect on `mu` or `sigma`, and the `zoi`/`coi` structured-atom q1
+gate admits missing responses at the formula level (design doc 248 §8); no
+`zoi`/`coi` structured-atom cell earned response-mask promotion as of
+2026-08-14 (design doc 248 has the per-cell numbers). ZIP, ZINB2,
 and hurdle NB2 have independent fixed-effect mixture recovery evidence only.

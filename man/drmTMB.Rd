@@ -137,8 +137,8 @@ Aggregation and ordinary direct \code{sd()} scale formulae also remain
 unsupported under REML. For \code{binomial()} models, the bounded native route
 requires exactly one ordinary unlabelled \code{mu} random intercept or exactly
 one independent numeric slope. Fixed-only and multiple-term binomial
-models, correlated or labelled covariance blocks, structured effects,
-missing-data engines, and other extensions are not admitted under REML;
+models, correlated or labelled covariance blocks, structured effects, and
+other extensions are not admitted under REML;
 use \code{REML = FALSE} for those models. The binomial route has diagnostic
 parity and finite-uncertainty evidence, not calibrated interval or coverage
 evidence. Every other non-Gaussian family rejects \code{REML = TRUE}; use
@@ -154,6 +154,12 @@ routes, an ordinary Gaussian \code{mu} random intercept, and large-p Poisson
 currently fit \code{REML = TRUE}; every other bridge route refuses it, some
 with a raw DRModels.jl error rather than a \code{drmTMB}-worded one. Do not assume
 bridge REML support for models outside this list.
+
+With \code{missing = miss_control(response = "include")}, the native REML
+route is currently validated for univariate Gaussian response masks and
+for the bounded binomial ordinary \code{mu} random-intercept route, with complete
+predictors and other non-response inputs. Other explicit missing-data
+engines, including missing predictors, remain unsupported under REML.
 
 Under native \code{REML = TRUE}, admitted mean fixed-effect coefficients are
 marginalised in the TMB objective rather than estimated as ordinary fixed

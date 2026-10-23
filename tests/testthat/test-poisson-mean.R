@@ -135,6 +135,37 @@ new_poisson_phylo_intercept_data <- function(
   )
 }
 
+poisson_phylo_q1_joint_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  n_phylo <- nrow(data$Q_phylo)
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  index <- data$phylo_mu_node_index + 1L
+  eta_mu <- eta_mu + data$phylo_mu_value[, 1L] * par$u_phylo[index]
+  quadratic <- sum(par$u_phylo * as.vector(data$Q_phylo %*% par$u_phylo))
+  prior <- 0.5 * (
+    n_phylo * log(2 * pi) + 2 * n_phylo * par$log_sd_phylo[[1L]] -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo[[1L]]) * quadratic
+  )
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dpois(
+    data$y[observed], lambda = exp(eta_mu[observed]), log = TRUE
+  ))
+}
+
+poisson_central_gradient <- function(fn, par) {
+  vapply(
+    seq_along(par),
+    function(i) {
+      step <- 1e-6 * max(1, abs(par[[i]]))
+      plus <- minus <- par
+      plus[[i]] <- plus[[i]] + step
+      minus[[i]] <- minus[[i]] - step
+      (fn(plus) - fn(minus)) / (2 * step)
+    },
+    numeric(1L)
+  )
+}
+
 test_that("drmTMB fits fixed-effect Poisson mean models", {
   sim <- new_poisson_data()
 
@@ -381,6 +412,48 @@ test_that("Poisson mu supports a q1 phylogenetic structured intercept", {
   expect_equal(nrow(phylo_check), 1L)
   expect_match(phylo_check$value, "n_species=", fixed = TRUE)
   expect_match(phylo_check$value, "phylo_sd=", fixed = TRUE)
+})
+
+test_that("Poisson phylo q1 intercept response mask has oracle and recovery evidence", {
+  sim <- new_poisson_phylo_intercept_data(
+    n_tip = 128L, n_each = 16L, seed = 2026081738L
+  )
+  dat <- sim$data
+  dat$count[seq(1L, nrow(dat), by = 16L)] <- NA_integer_
+  observed <- !is.na(dat$count)
+  tree <- sim$tree
+  formula <- bf(count ~ x + phylo(1 | species, tree = tree))
+  fit_masked <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), poisson_phylo_q1_joint_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), poisson_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  # The uncentred phylogenetic draw shifts the realised intercept.
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.35)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.14)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - sim$sd_phylo), 0.25)
 })
 
 test_that("Poisson q1 phylogenetic structured intercept rejects nearby planned routes", {
