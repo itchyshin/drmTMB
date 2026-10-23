@@ -67,7 +67,10 @@ Hessian (a weakly identified, near-flat direction such as a boundary
 correlation), dropped rows,
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
-Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks,
+Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks
+and a Wald caveat near \code{nu = 0}, a beta-binomial \code{sigma} at the binomial
+limit and a direct-SD \code{sd(group)} formula at the log-SD clamp (these last
+two rows appear only when they fire, as notes),
 known sampling covariance summaries,
 dense known-covariance storage scale, dense fixed-effect design size and
 density, random-effect replication, and random-slope design variation. If a

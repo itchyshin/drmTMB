@@ -153,6 +153,17 @@ which is also why the structured-RE bias correction in
 separate, opt-in, Wald-only mechanism rather than a blanket default change.
 This agrees with Russell's own "document, or add a variant" framing.
 
+**Status (2026-10-11).** Option (A) is shipped as the "Bootstrap intervals
+on biased targets" section of `?confint.drmTMB`. After owner decision 17,
+options (B) and (C) are shipped as the opt-in argument
+`bootstrap_interval = c("percentile", "basic", "bc")`, default
+`"percentile"`, in `bootstrap_interval_endpoints()` (`R/profile.R`). Basic
+and BC are computed on the fitted link scale for `exp`, `plogis`, `tanh`, and
+`rho12_tanh` targets so reflected endpoints stay in the parameter space; BC
+returns `bootstrap_unavailable` when every draw falls on one side of the
+estimate. BCa (D) is not implemented, and the default change (E) still waits
+for the section 7 simulation. The chi-square(1) profile cutoff is unchanged.
+
 ## 7. D-139 pre-run specification for a default change (E)
 
 **Estimands.** Per target: coverage of the nominal 95% interval; one-sided

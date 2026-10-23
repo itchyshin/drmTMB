@@ -61,7 +61,9 @@ test_that("remaining A1 help pages document Dinnage audit caveats", {
   }
 
   drm_help <- rd_text("drmTMB.Rd")
-  expect_match(drm_help, "conf.status = \"wald_unavailable\"", fixed = TRUE)
+  # #1317: REML Wald intervals now come from the full sdreport covariance;
+  # the page states that and keeps the bootstrap alternative for profiles.
+  expect_match(drm_help, "conf.status = \"wald\"", fixed = TRUE)
   expect_match(drm_help, "method = \"bootstrap\"", fixed = TRUE)
 
   predict_help <- rd_text("predict.drmTMB.Rd")

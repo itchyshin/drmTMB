@@ -172,6 +172,15 @@
 #'   **anticonservative** because between-group variability is never
 #'   resampled -- it is not a neutral alternative to the default. Earlier
 #'   drmTMB versions gave `NULL` and `NA` the reverse meaning (#1487).
+#' @param bootstrap_interval Interval shape for `method = "bootstrap"`, built
+#'   from the same refit draws. `"percentile"` (the default) takes quantiles
+#'   of the draws. `"basic"` reflects them about the estimate,
+#'   `2 * estimate - quantile`, and `"bc"` is the bias-corrected percentile
+#'   interval; both re-centre an interval whose draws sit a bias away from the
+#'   estimate. `"basic"` and `"bc"` are computed on the fitted link scale and
+#'   back-transformed, so SD intervals stay positive and correlation intervals
+#'   stay inside `(-1, 1)`. The accelerated BCa interval is not implemented.
+#'   See the "Bootstrap intervals on biased targets" section.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"` and the `tmbprofile` profile engine is used.
 #'   `drmTMB` supplies the profiled `obj`, `name`, `lincomb`, and `trace`
@@ -301,6 +310,37 @@
 #' been checked for these routes, and no simulation study has yet measured the
 #' coverage of a profile interval built on them, so treat the endpoints as a
 #' computed profile rather than calibrated inference.
+#'
+#' @section REML fits:
+#' With `REML = TRUE`, the mean (`mu`) coefficients are integrated out of the
+#' likelihood as TMB random effects, and so are the `sigma` coefficients when
+#' `sigma` has random effects. `method = "wald"` reads their standard
+#' errors from the full REML [TMB::sdreport()] covariance, the same source as
+#' [vcov()] and [summary()], so a Wald interval is returned wherever a
+#' standard error is printed. `method = "profile"` cannot hold an integrated
+#' coefficient fixed and stops with a message naming the alternatives:
+#' `method = "wald"`, `method = "bootstrap"`, or a refit with `REML = FALSE`.
+#' Random-effect SD and other non-integrated targets profile as usual.
+#'
+#' @section Bootstrap intervals on biased targets:
+#' `method = "bootstrap"` is a parametric *percentile* bootstrap: it simulates
+#' from the fitted model and refits with the same maximum likelihood estimator.
+#' When that estimator is biased, each refit adds the bias again, so the
+#' percentile interval is centred near twice the bias away from the truth
+#' instead of near the estimate. An independent evaluation (Dinnage, issue
+#' #1315) measured this on a Gaussian `sigma` intercept at `n = 100` and
+#' `R = 199`: the bootstrap midpoint sat 2.35 times the ML bias below the
+#' estimate, and coverage was 0.852 against 0.896 for Wald and 0.912 for
+#' profile at a nominal 0.95, with almost every miss on the high side. An
+#' unbiased mean slope showed no such gap. Those figures are transcribed from
+#' the issue, not re-derived here; the mechanism and options are in
+#' `docs/design/274-bootstrap-interval-bias.md`. For scale intercepts and
+#' random-effect SDs at small `n` or few groups, prefer `method = "wald"` or
+#' `method = "profile"`; use the bootstrap where the estimator is close to
+#' unbiased, such as mean coefficients. When a bootstrap is still wanted for a
+#' biased target, `bootstrap_interval = "basic"` or `"bc"` re-centres the
+#' interval on the estimate; neither has yet been calibrated by the coverage
+#' simulation in that design note, so the default stays `"percentile"`.
 #'
 #' @section Ordinal cutpoints:
 #' For a `cumulative_logit()` fit, the public ordinal targets are the ordered
@@ -434,6 +474,7 @@ confint.drmTMB <- function(
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
   bootstrap_re_form = NA,
+  bootstrap_interval = c("percentile", "basic", "bc"),
   ...
 ) {
   drm_abort_mspl_inference(object, "confint")
@@ -445,6 +486,8 @@ confint.drmTMB <- function(
   profile_precision_missing <- missing(profile_precision)
   parallel_missing <- missing(parallel)
   method_missing <- missing(method)
+  bootstrap_interval_missing <- missing(bootstrap_interval)
+  bootstrap_interval <- match.arg(bootstrap_interval)
   profile_engine <- match.arg(profile_engine)
   small_sample_df <- match.arg(small_sample_df)
   bias_correct <- match.arg(bias_correct)
@@ -455,6 +498,16 @@ confint.drmTMB <- function(
   )
   if (!is.null(newdata) && method_missing) {
     method <- "profile"
+  }
+  if (
+    !bootstrap_interval_missing &&
+      !identical(bootstrap_interval, "percentile") &&
+      !identical(method, "bootstrap")
+  ) {
+    cli::cli_abort(
+      "{.arg bootstrap_interval} is only used when {.code method = \"bootstrap\"}.",
+      class = "drmTMB_bootstrap_interval_method_error"
+    )
   }
   validate_profile_level(level)
   profile_precision <- resolve_profile_precision(
@@ -528,7 +581,8 @@ confint.drmTMB <- function(
       refit_control = refit_control,
       re_form = bootstrap_re_form,
       sd_boundary = sd_boundary,
-      rho_boundary = rho_boundary
+      rho_boundary = rho_boundary,
+      interval = bootstrap_interval
     ))
   }
 
@@ -1095,10 +1149,15 @@ drm_profile_curve <- function(
     "residual-correlation"
   )
   if (!isTRUE(target$profile_ready)) {
-    cli::cli_abort(c(
-      "Profile target {.val {target$parm}} is not ready for direct profiling.",
-      i = "Inventory note: {.val {target$profile_note}}."
-    ))
+    reml_hint <- profile_reml_integrated_hint(object, target)
+    cli::cli_abort(
+      c(
+        "Profile target {.val {target$parm}} is not ready for direct profiling.",
+        i = "Inventory note: {.val {target$profile_note}}.",
+        reml_hint
+      ),
+      class = if (!is.null(reml_hint)) "drmTMB_profile_reml_integrated_error"
+    )
   }
   if (!target$target_class %in% implemented_classes) {
     cli::cli_abort(c(
@@ -2238,6 +2297,7 @@ drm_wald_confint <- function(
     variances[in_covariance] <- cov_fixed[
       cbind(positions[in_covariance], positions[in_covariance])
     ]
+    variances <- wald_reml_integrated_variances(object, targets, variances)
   } else if (is.null(object$sdr)) {
     drm_sdreport_cov_fixed(object)
   }
@@ -2684,7 +2744,8 @@ drm_bootstrap_confint <- function(
   refit_control,
   re_form = NA,
   sd_boundary = 1e-4,
-  rho_boundary = 0.98
+  rho_boundary = 0.98,
+  interval = "percentile"
 ) {
   validate_profile_level(level)
   R <- validate_bootstrap_replicates(R)
@@ -2783,14 +2844,15 @@ drm_bootstrap_confint <- function(
       status <- "bootstrap_unavailable"
       message <- "fewer than two successful bootstrap refits"
     } else {
-      qs <- bootstrap_percentile_interval(
+      qs <- bootstrap_interval_endpoints(
         target_draws = target_draws[finite, , drop = FALSE],
         target = target,
-        probs = probs
+        probs = probs,
+        interval = interval
       )
       lower <- qs[[1L]]
       upper <- qs[[2L]]
-      status <- "bootstrap"
+      status <- if (all(is.finite(qs))) "bootstrap" else "bootstrap_unavailable"
       # Test on the NATURAL scale, not `draw_values`: the latter is the link
       # scale whenever the percentile is taken there, and "an SD near zero" is
       # only meaningful untransformed. This matches `wald_boundary_targets()`,
@@ -2802,6 +2864,15 @@ drm_bootstrap_confint <- function(
         rho_boundary = rho_boundary
       )
       message <- paste0(n_ok, "/", nrow(target_draws), " successful refits")
+      if (!identical(interval, "percentile")) {
+        message <- paste0(message, "; ", interval, " interval")
+      }
+      if (!all(is.finite(qs))) {
+        message <- paste0(
+          message,
+          "; bias-correction undefined (every draw on one side of the estimate)"
+        )
+      }
     }
     intervals[[i]] <- data.frame(
       parm = target$parm,
@@ -3200,6 +3271,62 @@ bootstrap_percentile_interval <- function(target_draws, target, probs) {
   )
 }
 
+# Interval shapes for the parametric bootstrap (owner decision 17, #1315;
+# docs/design/274-bootstrap-interval-bias.md section 5). All reuse the same
+# refit draws; none needs extra refits.
+#   "percentile": quantiles of the draws (the default, unchanged).
+#   "basic": the reflected interval 2 * theta_hat - q*, which re-centres a
+#     draw distribution that sits a bias b away from theta_hat (Davison and
+#     Hinkley 1997, sec. 5.2).
+#   "bc": bias-corrected percentile, z0 = qnorm(share of draws below
+#     theta_hat), levels pnorm(2 * z0 + qnorm(probs)) (Efron and Tibshirani
+#     1993, ch. 14). No acceleration term, so this is BC, not BCa; BCa needs
+#     n jackknife refits per target and is not implemented.
+# Percentile keeps its historical scale choice (link scale for exp targets).
+# Basic and BC work on the link scale whenever the target's transformation is
+# a known monotone link, so the reflected interval cannot leave the parameter
+# space (an SD stays positive, a correlation stays inside (-1, 1)).
+bootstrap_interval_endpoints <- function(
+  target_draws,
+  target,
+  probs,
+  interval = "percentile"
+) {
+  if (identical(interval, "percentile")) {
+    return(bootstrap_percentile_interval(target_draws, target, probs))
+  }
+  on_link <- target$transformation[[1L]] %in%
+    c("linear_predictor", "exp", "plogis", "tanh", "rho12_tanh")
+  draws <- if (on_link) target_draws$link_estimate else target_draws$estimate
+  theta_hat <- if (on_link) target$link_estimate[[1L]] else target$estimate[[1L]]
+  draws <- draws[is.finite(draws)]
+  if (length(draws) < 2L || length(theta_hat) != 1L || !is.finite(theta_hat)) {
+    return(c(NA_real_, NA_real_))
+  }
+  endpoints <- switch(
+    interval,
+    basic = {
+      q <- stats::quantile(draws, probs = rev(probs), names = FALSE, type = 8)
+      2 * theta_hat - q
+    },
+    bc = {
+      below <- (sum(draws < theta_hat) + 0.5 * sum(draws == theta_hat)) /
+        length(draws)
+      z0 <- stats::qnorm(below)
+      if (!is.finite(z0)) {
+        return(c(NA_real_, NA_real_))
+      }
+      adjusted <- stats::pnorm(2 * z0 + stats::qnorm(probs))
+      stats::quantile(draws, probs = adjusted, names = FALSE, type = 8)
+    },
+    cli::cli_abort("Internal error: unknown bootstrap interval {.val {interval}}.")
+  )
+  if (on_link) {
+    endpoints <- profile_transform_interval(endpoints, target)
+  }
+  endpoints
+}
+
 bootstrap_percentile_draws <- function(target_draws, target) {
   if (bootstrap_uses_link_percentiles(target)) {
     return(target_draws$link_estimate)
@@ -3409,6 +3536,61 @@ profile_target_opt_positions <- function(object, targets) {
   )
 }
 
+# Under `REML = TRUE` the mean coefficients are integrated out as TMB random
+# effects, so they are absent from `sdr$cov.fixed` and the position lookup
+# above leaves them NA. `vcov()` and `summary()` read the same coefficients
+# from the full REML sdreport covariance (`drm_sdreport_cov_coefficients()`,
+# keyed by `names(sdr$value)`); use that source here too so a Wald interval is
+# available exactly where a standard error is printed (#1317).
+wald_reml_integrated_variances <- function(object, targets, variances) {
+  if (!isTRUE(object$REML)) {
+    return(variances)
+  }
+  missing <- which(
+    is.na(variances) &
+      targets$target_class == "fixed-effect" &
+      !is.na(targets$index)
+  )
+  cov_full <- object$sdr$cov
+  value_names <- names(object$sdr$value)
+  if (
+    !length(missing) ||
+      !is.matrix(cov_full) ||
+      is.null(value_names) ||
+      length(value_names) != nrow(cov_full)
+  ) {
+    return(variances)
+  }
+  for (row in missing) {
+    hits <- which(value_names == targets$tmb_parameter[[row]])
+    index <- targets$index[[row]]
+    if (index >= 1L && index <= length(hits)) {
+      variances[[row]] <- cov_full[hits[[index]], hits[[index]]]
+    }
+  }
+  variances
+}
+
+# REML integrates the mean coefficients out of the likelihood, so there is no
+# fixed parameter to hold while re-optimizing; name the working alternatives.
+profile_reml_integrated_hint <- function(object, target) {
+  if (
+    !isTRUE(object$REML) ||
+      !identical(target$profile_note, "missing_tmb_parameter") ||
+      !identical(target$target_class, "fixed-effect")
+  ) {
+    return(NULL)
+  }
+  c(i = paste(
+    "With {.code REML = TRUE} this coefficient is integrated out of the",
+    "likelihood (mean coefficients always, {.code sigma} coefficients when",
+    "{.code sigma} has random effects), so it cannot be profiled. Use",
+    "{.code method = \"wald\"} (the REML standard error also shown by",
+    "{.fn summary}) or {.code method = \"bootstrap\"}, or refit with",
+    "{.code REML = FALSE} to profile it."
+  ))
+}
+
 profile_wald_standard_errors <- function(variances) {
   se <- rep(NA_real_, length(variances))
   ok <- is.finite(variances) & variances >= -sqrt(.Machine$double.eps)
@@ -3541,10 +3723,15 @@ drm_profile_target_confint <- function(
   }
 
   if (!isTRUE(target$profile_ready)) {
-    cli::cli_abort(c(
-      "Profile target {.val {target$parm}} is not ready for direct profiling.",
-      i = "Inventory note: {.val {target$profile_note}}."
-    ))
+    reml_hint <- profile_reml_integrated_hint(object, target)
+    cli::cli_abort(
+      c(
+        "Profile target {.val {target$parm}} is not ready for direct profiling.",
+        i = "Inventory note: {.val {target$profile_note}}.",
+        reml_hint
+      ),
+      class = if (!is.null(reml_hint)) "drmTMB_profile_reml_integrated_error"
+    )
   }
   if (!target$target_class %in% implemented_classes) {
     cli::cli_abort(c(

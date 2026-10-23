@@ -160,6 +160,17 @@ student <- function() {
 #' Positive `nu` gives right-skewed residuals, negative `nu` gives left-skewed
 #' residuals, and `nu = 0` reduces to the Gaussian location-scale likelihood.
 #'
+#' Do not read Wald standard errors, z tests, or Wald intervals for the `nu`
+#' coefficients literally when the slant is near zero. At `nu = 0` the score
+#' for the slant is identically zero, so the information matrix is singular
+#' and the Wald approximation breaks down nearby. An independent evaluation
+#' (Dinnage, issue #1336) found that `nu ~ x` Wald tests on Gaussian data
+#' rejected about 24% of the time at nominal 5%, and profile intervals only
+#' reduced this to about 9%. To ask whether residuals are skewed, compare
+#' [logLik()] or [AIC()] with a `gaussian()` fit of the same `mu` and `sigma`
+#' formulas. [check_drm()] adds a `skew_normal_nu_wald` note when a fitted
+#' slant is within 2 of zero or changes sign across observations.
+#'
 #' Ordinary unlabelled random intercepts and independent numeric slopes such as
 #' `(1 | id)` and `(0 + x | id)` may enter `mu`. Correlated or labelled `mu`
 #' slopes, `sigma` or `nu` random effects, `sd(group)` scale formulas, structured

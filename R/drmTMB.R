@@ -199,12 +199,14 @@
 #'   marginalised in the TMB objective rather than estimated as ordinary fixed
 #'   parameters. [summary.drmTMB()] and [vcov.drmTMB()] can still report finite
 #'   Wald standard errors for those coefficients from the full `sdreport`
-#'   covariance, but [confint.drmTMB()] does not currently form Wald or profile
-#'   intervals for REML-integrated mean coefficients. Wald rows return `NA`
-#'   bounds with `conf.status = "wald_unavailable"`, and profiling such a mean
-#'   coefficient can fail because the coefficient is not a top-level TMB
-#'   parameter. Use `confint(..., method = "bootstrap")` when an interval for a
-#'   REML mean coefficient is needed.
+#'   covariance, and [confint.drmTMB()] forms its Wald intervals from the same
+#'   covariance, so `method = "wald"` returns finite bounds with
+#'   `conf.status = "wald"` (earlier versions returned `NA` with
+#'   `conf.status = "wald_unavailable"`). When `sigma` has random effects, its
+#'   coefficients are integrated too. Profiling an integrated coefficient is not
+#'   possible because it is not a top-level TMB parameter; use
+#'   `method = "wald"`, `confint(..., method = "bootstrap")`, or a refit with
+#'   `REML = FALSE` when such an interval is needed.
 #' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
 #'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
 #'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
@@ -830,6 +832,8 @@ drm_fit_spec <- function(
     provenance = drm_provenance()
   )
   class(fit) <- "drmTMB"
+  fit$scale_clamp_unbounded <- drm_scale_clamp_unbounded_verdict(fit)
+  drm_warn_if_scale_clamp_unbounded(fit)
   drm_apply_storage_control(fit, control)
 }
 
@@ -3787,12 +3791,126 @@ drm_logsigma_clamp_active <- function(report, tmb_data) {
   if (!hit_hi && !hit_lo) {
     return(NULL)
   }
+  # Spread of log(sigma) within each response whose scale reached the lower
+  # arm; drm_lower_clamp_unbounded() reads it to separate a diverging scale
+  # predictor from a scale that is merely small everywhere.
+  lower_spread <- vapply(fields, function(field) {
+    field <- field[is.finite(field)]
+    if (!length(field) || !any(field < lo)) {
+      return(NA_real_)
+    }
+    max(field) - min(field)
+  }, numeric(1L))
   list(
     value = if (hit_hi) max(values) else min(values),
     arm = if (hit_hi) "upper" else "lower",
     lo = lo,
-    hi = hi
+    hi = hi,
+    lower_spread = suppressWarnings(max(lower_spread, na.rm = TRUE))
   )
+}
+
+# Continuous families whose density at an observation grows without bound as
+# its scale goes to zero. For these, a scale predictor can drive the scale of
+# one observation towards zero while the location predictor passes through
+# that observation exactly, so the likelihood has no finite maximum and the
+# reported optimum is a property of the clamp band, not of the data (#1469; a
+# Gaussian `sigma ~ x` fit at n = 8 reached different log-likelihoods on y and
+# y/sd(y)). Three conditions together mark that case:
+#   1. the lower log(sigma) clamp is hit and the within-response log(sigma)
+#      spread exceeds log(1e4) (drm_lower_clamp_unbounded(), report level);
+#   2. the observation with the smallest fitted scale is fitted exactly: its
+#      standardized (Pearson) residual is below 1e-3 in absolute value
+#      (drm_scale_clamp_exact_fit()). On the #1469 fits it was 1e-5 to 1e-7;
+#      on a well-posed heteroscedastic fit it is an ordinary N(0, 1) draw, and
+#      |z| < 1e-3 has probability 8e-4. Condition 2 is unit-free, so a
+#      well-posed fit whose response is rescaled into the clamp band is not
+#      flagged (the clamp note in check_drm() still tells the user to rescale);
+#   3. no known sampling variance (`meta_V()` keeps the likelihood bounded, so
+#      a meta-analysis at tau = 0 stays a legitimate boundary).
+# Count and proportion families are excluded: their sigma -> 0 arm is a finite
+# limit (Poisson, binomial) rather than a spike. Bivariate families are listed
+# for condition 1 but condition 2 needs univariate Pearson residuals, so they
+# are not flagged (a conservative gap).
+drm_unbounded_scale_families <- function() {
+  c(
+    "gaussian",
+    "biv_gaussian",
+    "lognormal",
+    "biv_lognormal",
+    "student",
+    "biv_student",
+    "skew_normal",
+    "gamma"
+  )
+}
+
+drm_lower_clamp_unbounded <- function(info, spec) {
+  !is.null(info) &&
+    identical(info$arm, "lower") &&
+    isTRUE(info$lower_spread > log(1e4)) &&
+    isTRUE(spec$model_type %in% drm_unbounded_scale_families()) &&
+    !isTRUE(spec$has_known_v)
+}
+
+drm_scale_clamp_exact_fit <- function(fit, tol = 1e-3) {
+  sigma <- tryCatch(
+    as.numeric(stats::predict(fit, dpar = "sigma", type = "response")),
+    error = function(e) NULL
+  )
+  z <- tryCatch(
+    suppressWarnings(as.numeric(stats::residuals(fit, type = "pearson"))),
+    error = function(e) NULL
+  )
+  if (
+    is.null(sigma) ||
+      is.null(z) ||
+      length(sigma) != length(z) ||
+      !any(is.finite(sigma))
+  ) {
+    return(FALSE)
+  }
+  smallest <- which.min(replace(sigma, !is.finite(sigma), Inf))
+  is.finite(z[[smallest]]) && abs(z[[smallest]]) < tol
+}
+
+# Fit-level verdict, computed once in drm_fit_spec() and stored as
+# `fit$scale_clamp_unbounded`, so convergence_status() reports it even when the
+# TMB object is dropped (`drm_control(keep_tmb_object = FALSE)`).
+drm_scale_clamp_unbounded_verdict <- function(fit) {
+  spec <- fit$model
+  if (
+    !isTRUE(spec$model_type %in% drm_unbounded_scale_families()) ||
+      isTRUE(spec$has_known_v) ||
+      is.null(fit$obj) ||
+      is.null(fit$tmb_state$last.par.best)
+  ) {
+    return(FALSE)
+  }
+  report <- tryCatch(
+    fit$obj$report(fit$tmb_state$last.par.best),
+    error = function(e) NULL
+  )
+  if (is.null(report)) {
+    return(FALSE)
+  }
+  info <- drm_logsigma_clamp_active(report, spec$tmb_data)
+  drm_lower_clamp_unbounded(info, spec) && drm_scale_clamp_exact_fit(fit)
+}
+
+drm_warn_if_scale_clamp_unbounded <- function(fit) {
+  if (!isTRUE(fit$scale_clamp_unbounded)) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(
+    c(
+      "{.fn drmTMB}: the scale predictor drives the fitted scale of an exactly fitted observation to the lower {.code log(sigma)} clamp.",
+      "i" = "The fitted scale spans more than four orders of magnitude and the location predictor passes through the observation with the smallest scale. Without a known sampling variance the likelihood then has no finite maximum: the estimates depend on the clamp band and on the units of the response, and {.fn convergence_status} returns {.val degenerate}.",
+      "i" = "Simplify the scale formula (for example {.code sigma ~ 1}) or collect more observations per scale parameter."
+    ),
+    class = "drmTMB_clamp_active_warning"
+  )
+  invisible(TRUE)
 }
 
 # Warn at fit time when the log(sigma) clamp is active at the optimum. The clamp
@@ -3814,7 +3932,9 @@ drm_warn_if_clamp_active <- function(obj, spec) {
   # The lower arm (sigma -> 0) is often a legitimate result (e.g. meta-analysis
   # tau = 0); it is surfaced by check_drm() (as a note, not a warning) rather
   # than raised as a fit-time cli warning here, to avoid warning on every
-  # variance-zero boundary fit. Only the upper (runaway-scale) arm warns.
+  # variance-zero boundary fit. Only the upper (runaway-scale) arm warns here;
+  # the unbounded lower-arm case (#1469) warns from
+  # drm_warn_if_scale_clamp_unbounded() once the fit object exists.
   if (is.null(info) || !identical(info$arm, "upper")) {
     return(invisible(FALSE))
   }
