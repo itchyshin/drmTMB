@@ -166,14 +166,14 @@ component.
 `fitted(fit)` and `residuals(fit)` use the estimated stable and temporal
 conditional deviations for these observed rows. `simulate(fit)` draws a new
 phylogenetic stable vector and a new independent OU path for each species;
-`simulate(fit, re.form = NA)` instead retains the fitted conditional latent
+`simulate(fit, re.form = NULL)` instead retains the fitted conditional latent
 components. These are in-sample tools only.
 
 ```{r in-sample-tools, eval = has_ape}
 head(fitted(fit))
 head(residuals(fit))
 head(simulate(fit, nsim = 2))
-head(simulate(fit, nsim = 2, re.form = NA))
+head(simulate(fit, nsim = 2, re.form = NULL))
 ```
 
 ## What can be reported now

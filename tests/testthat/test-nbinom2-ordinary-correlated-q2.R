@@ -40,7 +40,7 @@ test_that("NB2 q2 parser admits only one unlabelled intercept-slope block", {
   raw_par <- selected_tmb_par_list(fit)
   expect_equal(
     unname(fit$corpars$mu),
-    0.999999 * tanh(unname(raw_par$eta_cor_mu)),
+    0.99999999 * tanh(unname(raw_par$eta_cor_mu)),
     tolerance = 1e-12
   )
   report <- fit$obj$report()
@@ -110,7 +110,7 @@ test_that("NB2 q2 ML recovers a correlated random intercept and slope", {
   expect_lt(abs(sd1 - sim$truth[["x"]]), 0.30)
   expect_lt(abs(rho_re - sim$truth[["rho"]]), 0.30)
   raw_par <- selected_tmb_par_list(fit)
-  expect_equal(rho_re, 0.999999 * tanh(unname(raw_par$eta_cor_mu)), tolerance = 1e-12)
+  expect_equal(rho_re, 0.99999999 * tanh(unname(raw_par$eta_cor_mu)), tolerance = 1e-12)
 })
 
 test_that("NB2 q2 rejection matrix stays closed", {

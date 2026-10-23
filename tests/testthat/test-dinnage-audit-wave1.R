@@ -83,9 +83,15 @@ test_that("remaining A1 help pages document Dinnage audit caveats", {
   expect_match(sigma_help, "insight::get_sigma()", fixed = TRUE)
 
   phylo_help <- rd_text("phylo.Rd")
-  expect_match(phylo_help, "does not silently rescale the tree to unit height",
+  expect_match(phylo_help, "normalizes the Brownian covariance by the tree height",
     fixed = TRUE
   )
+  expect_match(phylo_help, "Multiplying all branch lengths by a positive constant",
+    fixed = TRUE
+  )
+  expect_false(grepl("does not silently rescale the tree to unit height",
+    phylo_help, fixed = TRUE
+  ))
 })
 
 test_that("M1: a constant weight leaves the mi() MLE unchanged (Dinnage audit)", {

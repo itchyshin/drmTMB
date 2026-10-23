@@ -123,7 +123,19 @@ test_that("Phase 18 count mu random-effect pilot combines Poisson and NB2", {
   expect_equal(nrow(out$aggregate), 10L)
   expect_equal(nrow(out$replicates), 10L)
   expect_equal(nrow(out$manifest), 2L)
-  expect_equal(nrow(out$failures), 0L)
+  # Print each failure row (an errored fit or an unclassed warning) so a
+  # platform-only failure names its cause in the CI log (#1521 item 2: one
+  # Windows-only warning, not reproducible on Linux).
+  expect_equal(
+    nrow(out$failures), 0L,
+    info = paste(
+      sprintf(
+        "%s/%s: %s",
+        out$failures$cell_id, out$failures$severity, out$failures$message
+      ),
+      collapse = "\n"
+    )
+  )
   expect_equal(nrow(out$wald_intervals), 10L)
   expect_equal(nrow(out$wald_coverage), 6L)
   expect_equal(nrow(out$profile_intervals), 4L)
