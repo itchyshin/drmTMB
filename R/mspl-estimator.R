@@ -299,6 +299,13 @@ drm_validate_mspl_spec <- function(spec) {
   }
   q <- if (q2) 2L else 1L
   p <- ncol(X)
+  # n_eff counts retained frequency-weighted Bernoulli trials, not
+  # observations. The paper's c = 2 * sqrt(p / n) (Sterzinger & Kosmidis 2023,
+  # Appendix) takes n as the number of observations, so n_eff equals it only
+  # for unweighted single-trial Bernoulli data. Grouped binomial counts and
+  # integer frequency weights are already accepted; their scaling is an
+  # algebraic extension that the paper's asymptotics do not license (see
+  # docs/design/250-mspl-binomial-logit-alignment.md).
   n_eff <- sum(round(frequency) * round(trials))
   scaling <- mspl_c_n(p, n_eff)
   if (!isTRUE(scaling$ok)) {
