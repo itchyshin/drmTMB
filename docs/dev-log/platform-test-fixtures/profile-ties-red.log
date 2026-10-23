@@ -1,0 +1,83 @@
+profile-interpolation-ties: W.W1...W2.W3..
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. profile interval inversion explicitly averages tied objective coordinates ('test-profile-interpolation-ties.R:13:3') - collapsing to unique 'x' values
+
+2. profile interval inversion explicitly averages tied objective coordinates ('test-profile-interpolation-ties.R:16:3') - collapsing to unique 'x' values
+
+3. profile inversion preserves the first minimum split and outside-range NA ('test-profile-interpolation-ties.R:41:3') - collapsing to unique 'x' values
+
+4. profile inversion preserves the first minimum split and outside-range NA ('test-profile-interpolation-ties.R:47:3') - collapsing to unique 'x' values
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-profile-interpolation-ties.R:16:3'): profile interval inver
+Expected `got <- drmTMB:::drm_tmbprofile_confint(prof, "target", 0.95)` not to throw any warnings.
+Actually got a <simpleWarning> with message:
+  collapsing to unique 'x' values
+Backtrace:
+     ▆
+  1. ├─testthat::expect_warning(...) at test-profile-interpolation-ties.R:16:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. └─drmTMB:::drm_tmbprofile_confint(prof, "target", 0.95)
+  8.   ├─base::tryCatch(...) at drmTMB/R/profile.R:4633:3
+  9.   │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 10.   │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 11.   │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 12.   ├─stats::confint(profile, level = level)
+ 13.   └─TMB:::confint.tmbprofile(profile, level = level)
+ 14.     └─stats::approx(left[[2]], left[[1]], hline)
+ 15.       └─stats:::regularize.values(x, y, ties, missing(ties), na.rm = na.rm)
+
+── 2. Failure ('test-profile-interpolation-ties.R:41:3'): profile inversion pres
+Expected `got <- drmTMB:::drm_tmbprofile_confint(prof, "target", 0.95)` not to throw any warnings.
+Actually got a <simpleWarning> with message:
+  collapsing to unique 'x' values
+Backtrace:
+     ▆
+  1. ├─testthat::expect_warning(...) at test-profile-interpolation-ties.R:41:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. └─drmTMB:::drm_tmbprofile_confint(prof, "target", 0.95)
+  8.   ├─base::tryCatch(...) at drmTMB/R/profile.R:4633:3
+  9.   │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 10.   │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 11.   │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 12.   ├─stats::confint(profile, level = level)
+ 13.   └─TMB:::confint.tmbprofile(profile, level = level)
+ 14.     └─stats::approx(left[[2]], left[[1]], hline)
+ 15.       └─stats:::regularize.values(x, y, ties, missing(ties), na.rm = na.rm)
+
+── 3. Failure ('test-profile-interpolation-ties.R:47:3'): profile inversion pres
+Expected `outside <- drmTMB:::drm_tmbprofile_confint(prof, "target", 0.99999)` not to throw any warnings.
+Actually got a <simpleWarning> with message:
+  collapsing to unique 'x' values
+Backtrace:
+     ▆
+  1. ├─testthat::expect_warning(...) at test-profile-interpolation-ties.R:47:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. └─drmTMB:::drm_tmbprofile_confint(prof, "target", 0.99999)
+  8.   ├─base::tryCatch(...) at drmTMB/R/profile.R:4633:3
+  9.   │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 10.   │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 11.   │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 12.   ├─stats::confint(profile, level = level)
+ 13.   └─TMB:::confint.tmbprofile(profile, level = level)
+ 14.     └─stats::approx(left[[2]], left[[1]], hline)
+ 15.       └─stats:::regularize.values(x, y, ties, missing(ties), na.rm = na.rm)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

@@ -92,8 +92,8 @@ The diagnostic table separates several questions that are easy to confuse:
 
 | Diagnostic | What it asks | First response when it warns |
 | --- | --- | --- |
-| `optimizer_convergence` | Did `nlminb()` return convergence code 0? | Inspect the optimizer message, gradient, and budget rows. |
-| `optimizer_budget` | Did the fit hit supplied `iter.max` or `eval.max` limits? | Increase limits if the model is still moving and the structure is defensible. |
+| `optimizer_convergence` | Did the selected optimizer return convergence code 0? | Inspect the optimizer message, gradient, and budget rows. |
+| `optimizer_budget` | Did the fit exhaust its optimizer budget? | `nlminb()` uses `iter.max`/`eval.max`; `optim()` uses `maxit` and reports evaluation counts without iteration counts. |
 | `fixed_gradient` | Is the fixed-parameter gradient small at the selected optimum, and which component is largest? | Treat large gradients as an optimization problem before using Wald inference. |
 | `hessian_positive_definite` | Did `TMB::sdreport()` report a positive-definite Hessian? | Look for boundary SDs, correlations, shape, dispersion, or inflation parameters. |
 | `standard_errors_finite` | Are fixed-effect standard errors finite? | If not, do not use Wald intervals until the Hessian problem is understood. |
@@ -104,11 +104,11 @@ whether the problem is unfinished optimization, weak identifiability, or an
 unnecessary model component.
 
 The same table is often easier to read as a status map. The next figure uses
-three tiny fitted examples: a clean Gaussian fit, the same model run with
+three small fitted examples: a Gaussian fit with default settings, the same model run with
 `drm_control(se = FALSE)`, and a deliberately under-budgeted random-effect fit.
 The colours are diagnostic statuses, not uncertainty intervals.
 
-```{r convergence-check-map, eval=has_ggplot2, warning=FALSE, fig.width=8.2, fig.height=4.8, fig.cap="`check_drm()` status map for three tiny fitted examples. Tiles show diagnostic statuses; they are not confidence intervals or posterior probabilities.", fig.alt="Tile plot of check_drm diagnostic statuses for a clean fit, a no-standard-error stress fit, and a deliberately low-budget random-effect fit. Clean checks are green, skipped Hessian and standard-error checks are blue notes, and low-budget optimizer and gradient checks are orange warnings."}
+```{r convergence-check-map, eval=has_ggplot2, warning=FALSE, fig.width=8.2, fig.height=4.8, fig.cap="`check_drm()` status map for three tiny fitted examples. Tiles show diagnostic statuses; they are not confidence intervals or posterior probabilities.", fig.alt="Tile plot of check_drm diagnostic statuses for a default-budget fit, the same model without standard errors, and a deliberately low-budget random-effect fit. Passing checks are green, skipped Hessian and standard-error checks are blue notes, and low-budget optimizer and gradient checks are orange warnings."}
 set.seed(20260523)
 diagnostic_data <- data.frame(
   y = 0.5 + 0.7 * stats::rnorm(80) + stats::rnorm(80, sd = 0.35),
@@ -138,8 +138,8 @@ fit_low_budget <- drmTMB(
 )
 
 diagnostic_fits <- list(
-  "Clean fit" = fit_clean,
-  "Stress fit\nse = FALSE" = fit_no_se,
+  "Default budget" = fit_clean,
+  "No standard errors\nse = FALSE" = fit_no_se,
   "Budget hit" = fit_low_budget
 )
 diagnostic_checks <- do.call(
@@ -229,103 +229,117 @@ ggplot2::ggplot(
   )
 ```
 
-```{r convergence-gradient-budget, eval=has_ggplot2, fig.width=7.8, fig.height=3.8, fig.cap="Optimizer-budget fixture from the same tiny fits. Points show recorded optimizer counts and maximum fixed-gradient size; the dotted line marks the `check_drm()` fixed-gradient warning threshold.", fig.alt="Two-panel lollipop plot comparing a clean fit and a deliberately low-budget fit. The low-budget fit has fewer recorded function evaluations and a much larger maximum fixed-gradient value, which crosses the dotted warning threshold."}
-extract_check_value <- function(fit, check_name) {
-  checks <- as.data.frame(check_drm(fit))
-  checks$value[match(check_name, checks$check)]
-}
-extract_named_number <- function(text, name) {
-  pattern <- paste0(".*", name, "=([-+0-9.eE]+).*")
-  as.numeric(sub(pattern, "\\1", text))
-}
+### Compare the budget and gradient checks
 
-gradient_budget <- data.frame(
-  fit = rep(c("Clean fit", "Budget hit"), each = 2),
-  metric = rep(c("function evaluations", "maximum fixed gradient"), 2),
-  value = c(
-    extract_named_number(
-      extract_check_value(fit_clean, "optimizer_budget"),
-      "function"
-    ),
-    extract_named_number(
-      extract_check_value(fit_clean, "fixed_gradient"),
-      "max"
-    ),
-    extract_named_number(
-      extract_check_value(fit_low_budget, "optimizer_budget"),
-      "function"
-    ),
-    extract_named_number(
-      extract_check_value(fit_low_budget, "fixed_gradient"),
-      "max"
+The table compares the **same model and data** under default and deliberately
+low optimizer limits. Both fits use the same explicit starting values, with
+Newton polishing disabled so a second optimization step cannot mask the budget
+limit. A function evaluation is one call to the objective
+function. The maximum absolute fixed gradient measures the largest local slope
+of that objective with respect to the fitted fixed parameters; a large value
+suggests that optimization is unfinished. Counts and gradients have different
+units and are shown in separate columns.
+
+```{r convergence-budget-table, eval=TRUE, echo=FALSE}
+# Fit independently of the optional ggplot2 status map above.
+set.seed(20260523)
+budget_data <- data.frame(x = stats::rnorm(80))
+budget_data$y <- 0.5 + 0.7 * budget_data$x + stats::rnorm(80, sd = 0.35)
+budget_model <- bf(y ~ x, sigma ~ 1)
+budget_start <- list(
+  `fixef:mu:(Intercept)` = 0, `fixef:mu:x` = 0,
+  `fixef:sigma:(Intercept)` = 0
+)
+budget_fits <- list(
+  "Default budget" = drmTMB(
+    budget_model, data = budget_data, family = gaussian(),
+    control = drm_control(start = budget_start, newton_polish = FALSE)
+  ),
+  "Low budget" = suppressWarnings(drmTMB(
+    budget_model, data = budget_data, family = gaussian(),
+    control = drm_control(
+      start = budget_start, newton_polish = FALSE,
+      optimizer = list(iter.max = 1, eval.max = 1)
     )
+  ))
+)
+budget_rows <- lapply(names(budget_fits), function(label) {
+  fit <- budget_fits[[label]]
+  checks <- as.data.frame(check_drm(fit))
+  gradient <- checks[checks$check == "fixed_gradient", ]
+  budget <- checks$value[checks$check == "optimizer_budget"]
+  convergence <- checks$value[checks$check == "optimizer_convergence"]
+  data.frame(
+    Fit = label,
+    `Function evaluations` = as.numeric(sub(".*function=([^;]+).*", "\\1", budget)),
+    `Maximum absolute gradient` = sub(";.*", "", sub("^max=", "", gradient$value)),
+    `Convergence code` = as.integer(convergence),
+    `Gradient check` = gradient$status,
+    check.names = FALSE
+  )
+})
+knitr::kable(
+  do.call(rbind, budget_rows), row.names = FALSE,
+  caption = "Optimizer diagnostics for the same Gaussian model under two budgets."
+)
+```
+
+Convergence code 0 means the optimizer reports convergence. The default
+`check_drm()` gradient threshold is `0.001`: a larger gradient gives a warning.
+The evaluation count describes the work recorded for the selected optimizer
+attempt, not a measure of fit quality or the total work across retry attempts.
+A small gradient alone does not establish a global optimum, identifiable
+parameters, or reliable standard errors. Check the Hessian and boundary rows
+as well before interpreting uncertainty. This example changes the optimizer
+budget; it does not compare BFGS with `nlminb()`.
+
+## Choose an optimizer directly
+
+To check whether a difficult fit depends on the optimizer, fit the same
+model with `nlminb()` and BFGS. Use identical public starting values for this
+comparison and turn off Newton polishing to compare the optimizers' own
+results. This example reuses `dat` from above:
+
+```{r, purl=FALSE}
+comparison_model <- bf(y ~ x + (1 | id), sigma ~ z)
+comparison_start <- list(`fixef:mu:(Intercept)` = 0)
+fit_nlminb <- drmTMB(
+  comparison_model, data = dat, family = gaussian(),
+  control = drm_control(
+    start = comparison_start, newton_polish = FALSE,
+    optimizer = list(iter.max = 2000, eval.max = 4000)
   )
 )
-gradient_budget$fit <- factor(
-  gradient_budget$fit,
-  levels = c("Clean fit", "Budget hit")
+fit_bfgs <- drmTMB(
+  comparison_model, data = dat, family = gaussian(),
+  control = drm_control(
+    optimizer_method = "BFGS", optimizer = list(maxit = 2000),
+    start = comparison_start, newton_polish = FALSE
+  )
 )
-gradient_budget$metric <- factor(
-  gradient_budget$metric,
-  levels = c("function evaluations", "maximum fixed gradient")
-)
-gradient_budget$value_plot <- pmax(gradient_budget$value, 1e-8)
-gradient_budget$baseline <- ifelse(
-  gradient_budget$metric == "function evaluations",
-  1,
-  1e-8
-)
-
-ggplot2::ggplot(
-  gradient_budget,
-  ggplot2::aes(value_plot, fit, fill = fit)
-) +
-  ggplot2::geom_segment(
-    ggplot2::aes(
-      x = baseline,
-      xend = value_plot,
-      y = fit,
-      yend = fit,
-      colour = fit
-    ),
-    linewidth = 1.1,
-    show.legend = FALSE
-  ) +
-  ggplot2::geom_point(
-    shape = 21,
-    size = 4.5,
-    colour = "white",
-    stroke = 0.8,
-    show.legend = FALSE
-  ) +
-  ggplot2::geom_vline(
-    data = data.frame(
-      metric = factor(
-        "maximum fixed gradient",
-        levels = levels(gradient_budget$metric)
-      )
-    ),
-    ggplot2::aes(xintercept = 0.001),
-    linetype = "dotted",
-    colour = "grey35",
-    linewidth = 0.5
-  ) +
-  ggplot2::facet_wrap(~metric, scales = "free_x") +
-  ggplot2::scale_x_log10() +
-  ggplot2::scale_fill_manual(
-    values = c("Clean fit" = "#0072B2", "Budget hit" = "#D55E00")
-  ) +
-  ggplot2::scale_colour_manual(
-    values = c("Clean fit" = "#0072B2", "Budget hit" = "#D55E00")
-  ) +
-  ggplot2::labs(
-    title = "A low-budget fit looks different from a clean optimum",
-    subtitle = "Use the gradient and optimizer-count rows before interpreting Wald output",
-    x = "Recorded value on a log scale",
-    y = NULL
-  ) +
-  theme_convergence()
+logLik(fit_nlminb)
+logLik(fit_bfgs)
+check_drm(fit_bfgs)
 ```
+
+`optimizer_method` also accepts `"L-BFGS-B"`, `"Nelder-Mead"`, and `"CG"`.
+These methods run directly and use `maxit = 1000` unless overridden.
+`L-BFGS-B` uses `factr` and `pgtol` for tolerances; the other methods accept
+`reltol` and `abstol`. See `?drm_control` for the control contract. There is no
+public box-bound setting. Each method optimizes the model's internally
+transformed parameters.
+
+Direct methods require the default `optimizer_preset` and no
+`fallback_optimizer`. They reuse `multi_start` and its parallel settings.
+Newton polishing remains enabled by default. `check_drm()` names the method
+that ran and reports convergence and budget status. Profile endpoint refits still use `nlminb()` with separate controls; choosing BFGS for
+the fit does not change that solver. These native choices are rejected by the
+Julia engine, whose supported controls are documented in `?drm_control`.
+
+Compare objective values, fixed-parameter gradients, Hessians, and boundary
+checks together. Agreement between optimizers helps diagnose a missed
+optimum; it does not establish that variance components are identifiable or
+that standard errors are calibrated.
 
 ## Use `drm_control()` for optimizer limits
 
@@ -564,12 +578,13 @@ covariance. More rows alone do not guarantee a better fit if the extra rows
 carry nearly the same paired response signal and leave residual `rho12` and
 structured covariance competing for it.
 
-`drmTMB` does not yet expose public `start_from`, raw starts, raw TMB maps,
-fallback optimizers, or stochastic multi-start controls. The reserved control
-names are deliberate: future start or optimizer comparison tools must record
-which parameters were copied, which targets were skipped or jittered, which
-optimizer result was selected, and whether inference is tied to that selected
-optimum.
+`drm_control(start = list(...))` accepts public parameter labels, and
+`multi_start` adds reproducible perturbed starts. `fallback_optimizer` can run
+an `optim()` method after unsuccessful `nlminb()` attempts; `optimizer_method`
+selects one directly. Copying a simpler fit through `start_from` and supplying
+raw TMB maps remain unsupported. Use the documented public labels when
+constructing starts and inspect the selected fit's diagnostics before using
+its intervals.
 
 ## Penalized / MAP estimation for weakly-identified phylogenetic components
 
@@ -697,14 +712,13 @@ A Gaussian REML fit is labeled `estimator = "REML"` and goes through the same
 `check_drm()`, profile, and standard-error diagnostics as an ML fit; REML does
 not change how you read them.
 
-For a binomial model, use `REML = FALSE` for scientific reporting. The admitted
-O2 binomial REML route agrees with `glmmTMB(REML = TRUE)` in deterministic
-joint-Laplace checks and returns finite uncertainty for the tested ordinary
-intercept and independent-slope fits, but it is only diagnostic evidence. It
-has no recovery or coverage campaign. An internal cumulative-logit estimator
-combining adaptive Gauss-Hermite quadrature with a Cox-Reid adjustment is not
-exposed through `drmTMB()` and does not authorize an interval from a public
-ordinal fit.
+For a binomial model, use `REML = FALSE` for scientific reporting. In the
+tested ordinary-intercept and independent-slope examples, the available
+binomial REML calculation agreed with `glmmTMB(REML = TRUE)` and returned finite
+uncertainty. That is a narrow diagnostic check, not evidence that the estimator
+recovers parameters well or that its intervals have reliable coverage. A
+separate cumulative-logit fitting method is not available through `drmTMB()`;
+it does not justify reporting an interval from a public ordinal fit.
 
 ## Separate optimization from uncertainty
 
@@ -830,3 +844,9 @@ mixed-model software:
   [`TMB::sdreport()` documentation](https://search.r-project.org/CRAN/refmans/TMB/html/sdreport.html),
   which explains why Wald standard errors depend on the fitted-parameter
   Hessian.
+
+Working in Julia? The
+[DRModels.jl companion page](https://itchyshin.github.io/DRModels.jl/stable/model-guides/convergence)
+mirrors this article with Julia syntax and states which parts DRModels.jl
+supports today. DRModels.jl is a separate package with its own fitting and
+inference routes; Julia is optional for `drmTMB` users.
