@@ -1,3 +1,18 @@
+# 2026-10-22: #1509 merge of main `2fb93b768`, C17 recertified
+
+Merged `origin/main` into `claude/lane-c-convergence-inference`. The conflicts
+were generated receipts only. The merged `R/` differs from both sides' pinned
+blobs, so C17 was recertified on the merge result with
+`python3 tools/recertify-c17.py --label pr-1509-main-refresh --tolerance 1e-10`
+(`|change|` 0.000e+00 on mc-0568 / mc-0569 / mc-0576). The three ledger rows
+now point at `2026-10-22-pr-1509-main-refresh-c17c2-c14-final-source-compatibility`.
+`capability_ledger.py --check`, `--check-c14-receipt-equivalence`, the eight
+wired `tools/tests` modules, `emit-profile-truth-manifest.R --check` and
+`check-capability-runtime.R` pass. The lss-tip-identity `public-001.json`
+receipt was not regenerated: it needs a live Julia run against the pinned
+DRM.jl clone, it is checked only on pushes to main (`receipt-staleness.yaml`),
+and it was already stale on main at `R/mi-weights.R`.
+
 # 2026-10-22: retain output from failed or colliding C17 recertification runs (#1591)
 
 `tools/recertify-c17.py` previously deleted partial output in `finally` and
