@@ -95283,6 +95283,8 @@ Closeout report:
 
 | 2026-09-24 | Sparse Quaas A-inverse for `animal()` pedigrees (#740) | `test-pedigree-sparse-ainv.R` 6 pass/0 fail; `test-animal-relmat-gaussian.R` 479 pass/0 fail; identity vs `chol2inv(chol(A))` < 1e-6 at n in {250,500,1000,2000,4000}; stored nonzeros 16,000,000 -> 27,830 at n=4000 | PASS; no fit-level wall-time claim made (needs a large-n animal cell) | Cursor / Shannon |
 
+| 2026-09-08 | Gaussian temporal AR1 implementation | Unlazy G1--G14 met; dense objective/score/Hessian/covariance oracle; retained final-source 12-fit recovery and 25-fit pilot; isolated `R CMD check` Status OK | Implemented native ML AR1 with optional same-ID intercept and fixed-effect Wald path. G16--G18 remain pending: C1 pilot interval availability 4/5, no campaign or coverage claim. | Codex / Noether / Pat / Rose |
+
 | 2026-10-19 | man/*.Rd vs roxygen sync (#1571) | `document()` rewrote 39 Rd files before, 0 after; `test-man-roxygen-sync.R` fails pre-fix, passes post-fix | PASS | Claude |
 
 | 2026-10-22 | Direct Gaussian aggregation helper tests (#1598) | `devtools::test(filter = "gaussian-aggregation")`: PASS 136, FAIL 0, WARN 0, SKIP 0; PR test source SHA-256 unchanged | Focused tests PASS; full package and Julia engine checks not run | Codex |
