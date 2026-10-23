@@ -91,6 +91,11 @@
   while avoiding a spurious "collapsing to unique 'x' values" warning from
   the implicit interpolation default (#1521).
 
+* `print()` for `check_drm()` results now wraps to the console width: one
+  block per check (check, status, value) with the full message underneath,
+  instead of splitting the table into several blocks with a very wide
+  `message` column. All columns are kept; no printed line exceeds 80
+  columns at the default width (#1534).
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value

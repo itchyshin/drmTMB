@@ -562,8 +562,38 @@ print.drm_check <- function(x, ...) {
   cli::cli_text(
     "  ok: {sum(x$status == 'ok')}; notes: {n_note}; warnings: {n_warn}; errors: {n_error}"
   )
-  print.data.frame(x, row.names = FALSE, ...)
+  cat(format_drm_check_rows(x, width = getOption("width", 80L)), sep = "\n")
   invisible(x)
+}
+
+# One block per check: `check  status  value`, then the full message wrapped
+# underneath. Every column is kept and nothing is truncated; no line exceeds
+# `width` unless a single word is longer than the line.
+format_drm_check_rows <- function(x, width = 80L) {
+  width <- max(as.integer(width), 40L)
+  check_w <- min(max(nchar(x$check), 5L), 30L)
+  status_w <- max(nchar(x$status), 6L)
+  lead <- sprintf("%-*s  %-*s  ", check_w, x$check, status_w, x$status)
+  blocks <- lapply(seq_len(nrow(x)), function(i) {
+    if (nchar(lead[[i]]) > width %/% 2L) {
+      # Narrow console: put the value on its own indented lines.
+      value <- strwrap(x$value[[i]], width = width, indent = 4L, exdent = 4L)
+      first <- c(sub("\\s+$", "", lead[[i]]), value)
+    } else {
+      pad <- strrep(" ", nchar(lead[[i]]))
+      value <- strwrap(x$value[[i]], width = width - nchar(lead[[i]]))
+      if (length(value) == 0L) {
+        value <- ""
+      }
+      first <- paste0(c(lead[[i]], rep(pad, length(value) - 1L)), value)
+    }
+    msg <- x$message[[i]]
+    if (is.na(msg) || !nzchar(msg)) {
+      return(first)
+    }
+    c(first, strwrap(msg, width = width, indent = 4L, exdent = 4L))
+  })
+  unlist(blocks, use.names = FALSE)
 }
 
 check_row <- function(check, status, value, message) {

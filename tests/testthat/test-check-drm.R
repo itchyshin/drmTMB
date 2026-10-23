@@ -1446,3 +1446,40 @@ test_that("check_drm() spatial weak_sd guards an unavailable residual scale (#71
   expect_match(spatial$value, "sd_ratio=\\s*NA")
   expect_false(grepl("tiny", spatial$message, fixed = TRUE))
 })
+
+# #1534: the print must fit in 80 columns and keep every column.
+test_that("print.drm_check() fits 80 columns and keeps check, status, value, message", {
+  withr::local_options(width = 80L)
+  set.seed(1534)
+  n <- 200
+  x <- stats::rnorm(n)
+  trials <- rep(10L, n)
+  successes <- stats::rbinom(n, trials, stats::plogis(0.2 + 0.5 * x))
+  dat <- data.frame(s = successes, f = trials - successes, x = x)
+  # Binomial data push beta-binomial sigma to the boundary (#1509 note row).
+  fit <- suppressWarnings(drmTMB(
+    bf(cbind(s, f) ~ x, sigma ~ 1),
+    family = beta_binomial(),
+    data = dat
+  ))
+  chk <- check_drm(fit)
+  expect_true("beta_binomial_sigma_boundary" %in% chk$check)
+
+  printed <- NULL
+  suppressMessages(printed <- capture.output(print(chk)))
+  expect_lte(max(nchar(printed)), 80L)
+
+  # Nothing is dropped: each check name, status and message text survives.
+  flat <- gsub("\\s+", " ", paste(printed, collapse = " "))
+  for (i in seq_len(nrow(chk))) {
+    expect_true(grepl(chk$check[[i]], flat, fixed = TRUE))
+    expect_true(grepl(gsub("\\s+", " ", chk$message[[i]]), flat, fixed = TRUE))
+  }
+  expect_true(grepl("binomial limit", flat, fixed = TRUE))
+
+  # A narrower console wraps further rather than overflowing.
+  withr::local_options(width = 60L)
+  narrow <- NULL
+  suppressMessages(narrow <- capture.output(print(chk)))
+  expect_lte(max(nchar(narrow)), 60L)
+})
