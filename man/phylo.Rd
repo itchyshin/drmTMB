@@ -4,7 +4,7 @@
 \alias{phylo}
 \title{Phylogenetic structured-effect marker}
 \usage{
-phylo(term, tree)
+phylo(term, tree, tolerance = sqrt(.Machine$double.eps))
 }
 \arguments{
 \item{term}{Structured random-effect term, currently \code{1 | species} or
@@ -13,6 +13,14 @@ phylo(term, tree)
 \item{tree}{Ultrametric phylogeny input with branch lengths. Relative branch
 lengths determine the phylogenetic covariance; absolute tree height is
 normalized internally.}
+
+\item{tolerance}{Relative tolerance for the ultrametricity check, applied as
+\code{tolerance * scale} where \code{scale} is the tree height (see
+\code{validate_phylo_tree()}). Defaults to \code{sqrt(.Machine$double.eps)}. Raise
+it only after confirming with
+\code{range(ape::node.depth.edgelength(tree)[seq_len(ape::Ntip(tree))])} that
+the tip-depth spread is genuinely negligible for the tree, not a real
+problem with it.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -53,4 +61,5 @@ modified.
 bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
 bf(count ~ x + phylo(1 | species, tree = tree))
 bf(count ~ x + phylo(1 + x | species, tree = tree))
+bf(y ~ x + phylo(1 | species, tree = tree, tolerance = 1e-4))
 }

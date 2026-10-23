@@ -24,7 +24,7 @@
 #' response-scale value for each supplied row. Row-specific `rho12` profile
 #' intervals from a regression `rho12` formula are computable this way, but no
 #' simulation has measured their coverage; treat them as interval-feasible,
-#' not as a calibrated `level` interval (tracked as issue #802).
+#' not as calibrated `level` intervals.
 #'
 #' Modelled missing-predictor bootstrap is not yet implemented: it requires
 #' joint predictor simulation and refits that preserve the imputation model and
@@ -211,9 +211,9 @@
 #'     that interval as indicative of scale, not as a calibrated
 #'     \code{level} interval (see Boundary intervals below).
 #'   \item A computable interval is not coverage certification. Check the
-#'     exact cell in
+#' exact model and parameter combination in
 #'     \href{https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html}{Capabilities and limits}
-#'     before reporting a route as inference-ready.
+#' before reporting its intervals as coverage-validated.
 #' }
 #'
 #' For a short applied walkthrough, see the vignette
@@ -231,13 +231,13 @@
 #' `method = "profile"` sets `profile.boundary = TRUE` and warns (class
 #' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
 #' reaches a boundary. **A profile interval is not a repair for a boundary.**
-#' Conditional on that flag, a seeded 10-group random-effect SD gate measured
+#' Conditional on that flag, a seeded 10-group random-effect SD simulation measured
 #' coverage at 0.1021, 0.2387, and 0.8683 against a nominal 0.95, and 0 of 89 in a
-#' fourth cell where boundary hits are rare (0.09% of fits). The mechanism is a
+#' fourth scenario where boundary hits are rare (0.09% of fits). The mechanism is a
 #' maximum likelihood random-effect SD biased 8.3%-15.8% low at small group counts,
 #' which anchors the interval low so that it misses from above.
 #'
-#' Unconditionally -- across all fits, flagged or not -- the same gate measured
+#' Unconditionally -- across all fits, flagged or not -- the same simulation measured
 #' 0.9248 against a nominal 0.95 over 400,000 attempts. A flagged interval is the
 #' bad case, not the typical one, and the flag is returned in the table so you can
 #' tell which case you are in.
@@ -289,16 +289,16 @@
 #' `relmat()`, `spatial()`, or `phylo_interaction()` is computable for
 #' `zero_one_beta()`, `nbinom2()`, and `zi_nbinom2()`, but the maximum
 #' likelihood point estimate it is built around is **biased low** for this
-#' class of cell: eleven of twelve retained ML estimates fell below truth in
-#' the sibling `nbinom2` provider cells (fit-level one-sided sign test
-#' `p = 0.0032`; `p = 0.0625` at cell level, once the shared data-generating
+#' model class: eleven of twelve retained ML estimates fell below truth in
+#' the sibling `nbinom2` provider scenarios (fit-level one-sided sign test
+#' `p = 0.0032`; `p = 0.0625` at scenario level, once the shared data-generating
 #' process and random-number stream are respected). Two corrections that exist
 #' elsewhere for this bias do not reach these routes: `bias_correct` shifts
 #' only the `method = "wald"` centre and never a profile endpoint, and native
 #' scale-side REML is unavailable here because `drm_validate_reml_spec()`
 #' admits only Gaussian and binomial models. The profile interval therefore
-#' inherits the bias of its centre uncorrected. These routes carry point-fit
-#' recovery evidence only, and no seeded campaign has yet measured the
+#' inherits the bias of its centre uncorrected. Only point-estimate recovery has
+#' been checked for these routes, and no simulation study has yet measured the
 #' coverage of a profile interval built on them, so treat the endpoints as a
 #' computed profile rather than calibrated inference.
 #'
@@ -338,10 +338,9 @@
 #' not derived: the `log(g / (g - 1))` SD-scale centre
 #' shift is about **twice** the leading-order REML SD correction
 #' (`0.5 * log(g / (g - 1))`), matching the larger ML shrinkage measured on these
-#' structured/bivariate cells (their effective df is well below `g - 1`). The
-#' magnitude's authority is the per-model-class simulation in
-#' `docs/design/219-structured-re-small-sample-bias-correction.md`, not a single
-#' source. Relevant references:
+#' structured/bivariate models (their effective df is well below `g - 1`). The
+#' magnitude used here comes from separate simulations for each structured or
+#' bivariate model class, not from a single general correction. Relevant references:
 #'
 #' Restricted maximum likelihood and the variance-component bias that motivates
 #' the centre shift (REML debiases the variance by `g/(g-1)`; the shift here is on
@@ -408,11 +407,11 @@
 #' Wolak, M. E., Fairbairn, D. J., & Paulsen, Y. R. (2012). Guidelines for
 #' estimating repeatability. Methods in Ecology and Evolution, 3(1), 129-137.
 #' \doi{10.1111/j.2041-210X.2011.00125.x}
-#' @seealso The tier definitions and per-cell evidence behind these interval
-#'   targets, including random-effect standard-deviation rows, are curated in
-#'   \code{vignette("capability-and-limits", package = "drmTMB")}: `confint()`
-#'   computes generically for any target, and the tier a given cell belongs to
-#'   is a documentation-level curation, not a runtime guard.
+#' @seealso The model-specific evidence behind these interval targets, including
+#'   random-effect standard-deviation rows, is summarized in
+#'   \code{vignette("capability-and-limits", package = "drmTMB")}. `confint()`
+#'   can compute intervals for targets whose coverage has not been measured, so a
+#'   successful computation is not by itself evidence of calibrated coverage.
 #' @export
 confint.drmTMB <- function(
   object,
@@ -916,7 +915,7 @@ profile.drmTMB <- function(
       )
     )
   }, plan)
-  out <- do.call(rbind, rows)
+  out <- drm_rbind_profile_rows(rows)
   row.names(out) <- NULL
   attr(out, "level") <- level
   class(out) <- c("profile.drmTMB", class(out))
@@ -1921,7 +1920,7 @@ drm_profile_confint <- function(
     )
   }
   rows <- profile_lapply(seq_len(nrow(targets)), worker, plan)
-  out <- do.call(rbind, rows)
+  out <- drm_rbind_profile_rows(rows)
   row.names(out) <- NULL
   warn_profile_boundary(out)
   drm_as_confint_table(out)
@@ -2092,7 +2091,7 @@ drm_profile_response_newdata_confint <- function(
     )
   }
   rows <- profile_lapply(seq_len(nrow(X)), worker, plan)
-  out <- do.call(rbind, rows)
+  out <- drm_rbind_profile_rows(rows)
   row.names(out) <- NULL
   warn_profile_boundary(out)
   drm_as_confint_table(out)
@@ -2737,7 +2736,11 @@ drm_bootstrap_confint <- function(
       refit_control = refit_control
     )
   }
-  rows <- bootstrap_lapply(seq_len(R), worker, plan)
+  rows <- drm_bootstrap_retain_dead_workers(
+    bootstrap_lapply(seq_len(R), worker, plan),
+    seq_len(R),
+    target_names
+  )
   draws <- do.call(rbind, rows)
   row.names(draws) <- NULL
   draws$bootstrap.requested <- R
@@ -2959,11 +2962,11 @@ bootstrap_refit_control <- function(refit_control) {
 }
 
 profile_lapply <- function(indices, worker, plan) {
-  drm_parallel_lapply(indices, worker, plan)
+  drm_parallel_lapply(indices, worker, plan, on_dead = "error")
 }
 
 bootstrap_lapply <- function(indices, worker, plan) {
-  drm_parallel_lapply(indices, worker, plan)
+  drm_parallel_lapply(indices, worker, plan, on_dead = "record")
 }
 
 # One dispatcher for the "none" | "multicore" | "cluster" backends. Workers
@@ -2972,16 +2975,17 @@ bootstrap_lapply <- function(indices, worker, plan) {
 # a null external pointer; TMB re-tapes it on first use from the serialized
 # data, parameters, and `last.par` state (TMB::MakeADFun's isNullPointer()
 # check), so profile workers reproduce the serial curve without refitting.
-drm_parallel_lapply <- function(indices, worker, plan) {
-  if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
-    return(lapply(indices, worker))
+drm_parallel_lapply <- function(indices, worker, plan, on_dead = "error") {
+  results <- if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
+    lapply(indices, worker)
+  } else if (identical(plan$backend, "cluster")) {
+    drm_cluster_lapply(indices, worker, plan$workers)
+  } else {
+    drm_mclapply_stop_on_error(
+      parallel::mclapply(indices, worker, mc.cores = plan$workers)
+    )
   }
-  if (identical(plan$backend, "cluster")) {
-    return(drm_cluster_lapply(indices, worker, plan$workers))
-  }
-  drm_mclapply_stop_on_error(
-    parallel::mclapply(indices, worker, mc.cores = plan$workers)
-  )
+  drm_check_parallel_results(results, indices, on_dead = on_dead)
 }
 
 drm_cluster_lapply <- function(indices, worker, workers) {
@@ -3013,7 +3017,9 @@ drm_cluster_worker_init <- function(lib_paths) {
 
 # parallel::mclapply() turns a worker error into a "try-error" element and only
 # warns.  The serial lapply() path aborts on the same error, so re-raise the
-# first worker error to keep both paths failing the same way.
+# first worker error to keep both paths failing the same way.  A child that
+# exits without a value (quit(), crash) becomes NULL; that is handled by
+# drm_check_parallel_results(), not here.
 drm_mclapply_stop_on_error <- function(results) {
   failed <- vapply(results, inherits, logical(1L), what = "try-error")
   if (any(failed)) {
@@ -3024,6 +3030,77 @@ drm_mclapply_stop_on_error <- function(results) {
     stop(as.character(results[[which(failed)[[1L]]]]), call. = FALSE)
   }
   results
+}
+
+# A forked child that dies returns NULL. rbind() then drops that element, so a
+# profile target or bootstrap replicate vanishes with no error. Profile paths
+# abort (class drmTMB_parallel_worker_died). Bootstrap paths keep the hole so
+# the caller can record a failed refit and leave bootstrap.n + bootstrap.failed
+# equal to the requested R (#1501).
+drm_check_parallel_results <- function(results, indices, on_dead = "error") {
+  dead <- drm_dead_worker_indices(results, indices)
+  if (!length(dead)) {
+    return(results)
+  }
+  if (identical(on_dead, "record")) {
+    if (length(results) < length(indices)) {
+      results <- c(results, vector("list", length(indices) - length(results)))
+    }
+    return(results)
+  }
+  cli::cli_abort(
+    c(
+      "A forked parallel worker died and returned no result.",
+      i = "{.fn parallel::mclapply} returns {.code NULL} when a child exits without a value.",
+      i = "Re-run with {.code parallel = \"none\"} to see the serial error, or use {.code parallel = \"cluster\"}."
+    ),
+    class = "drmTMB_parallel_worker_died"
+  )
+}
+
+drm_dead_worker_indices <- function(results, indices) {
+  n <- length(indices)
+  if (!is.list(results)) {
+    return(seq_len(n))
+  }
+  missing <- if (length(results) < n) {
+    seq.int(length(results) + 1L, n)
+  } else {
+    integer()
+  }
+  present <- seq_len(min(length(results), n))
+  c(present[vapply(results[present], is.null, logical(1L))], missing)
+}
+
+drm_rbind_profile_rows <- function(rows) {
+  if (any(vapply(rows, is.null, logical(1L)))) {
+    cli::cli_abort(
+      c(
+        "A forked parallel worker died and returned no result.",
+        i = "{.fn rbind} would drop that target silently.",
+        i = "Re-run with {.code parallel = \"none\"} to see the serial error, or use {.code parallel = \"cluster\"}."
+      ),
+      class = "drmTMB_parallel_worker_died"
+    )
+  }
+  do.call(rbind, rows)
+}
+
+# Replace a dead bootstrap worker with an empty failed-refit row so the
+# requested replicate count is unchanged. Ordinary failed refits already
+# take this path through bootstrap_refit_one(); a dead child must too.
+drm_bootstrap_retain_dead_workers <- function(rows, indices, target_names) {
+  if (length(rows) < length(indices)) {
+    rows <- c(rows, vector("list", length(indices) - length(rows)))
+  }
+  dead <- drm_dead_worker_indices(rows, indices)
+  for (i in dead) {
+    out <- bootstrap_empty_draws(indices[[i]], target_names)
+    out$refit_status <- "worker_died"
+    out$refit_message <- "forked worker died"
+    rows[[i]] <- out
+  }
+  rows
 }
 
 bootstrap_refit_one <- function(

@@ -617,6 +617,7 @@ drmTMB_julia_bridge <- function(
   call
 ) {
   REML <- drm_control_flag(REML, "REML")
+  drm_julia_refuse_offset_unsupported(formula)
   drm_julia_refuse_marker_slope_unsupported(formula)
   if (drm_julia_joint_requested(formula, impute, missing)) {
     return(drmTMB_julia_joint_bridge(
@@ -1461,7 +1462,10 @@ drm_julia_fe_only_fence_families <- function() {
 # `stats::terms()` reports an intercept, no term labels, and no offset. A
 # literal `~ 1` and a redundantly parenthesised `~ (1)` are both intercept-only,
 # while `~ 0 + z` is not -- which the naive `drm_julia_is_intercept_rhs()`
-# (an `identical(rhs, quote(1))` test) gets wrong in both directions.
+# (an `identical(rhs, quote(1))` test) gets wrong in both directions. Shared by
+# the dpar-scope fence and the biv_student constant-dpar check, which both match
+# `drm_build_biv_student_spec()` (measured: `sigma1 = ~ (1)` fits identically on
+# both engines, logLik -466.44449865).
 drm_julia_rhs_is_intercept_only <- function(rhs) {
   tt <- tryCatch(
     stats::terms(stats::as.formula(call("~", rhs), env = baseenv())),
@@ -1675,25 +1679,6 @@ drm_julia_refuse_fe_only_random_effects <- function(formula, family_type) {
 # those would move messages this file's siblings pin by name.
 drm_julia_biv_student_constant_dpars <- function() {
   c("sigma1", "sigma2", "nu", "rho12")
-}
-
-# Intercept-only in the SAME sense `drm_build_biv_student_spec()` means it:
-# `stats::terms()` reports an intercept, no term labels, and no offset. A literal
-# `~ 1` and a redundantly parenthesised `~ (1)` are both intercept-only (measured:
-# `sigma1 = ~ (1)` fits identically on both engines, logLik -466.44449865), while
-# `~ 0 + z` is not -- which a bare `identical(rhs, quote(1))` test would get wrong
-# in both directions.
-drm_julia_rhs_is_intercept_only <- function(rhs) {
-  tt <- tryCatch(
-    stats::terms(stats::as.formula(call("~", rhs), env = baseenv())),
-    error = function(e) NULL
-  )
-  if (is.null(tt)) {
-    return(drm_julia_is_intercept_rhs(rhs))
-  }
-  identical(attr(tt, "intercept"), 1L) &&
-    length(attr(tt, "term.labels")) == 0L &&
-    length(attr(tt, "offset")) == 0L
 }
 
 drm_julia_refuse_biv_student_beyond_native <- function(formula, family_type) {
@@ -3327,6 +3312,34 @@ drm_julia_collect_marker_slope_terms <- function(formula) {
   )
 }
 
+# R's `offset()` needs a fixed (non-estimated) coefficient, which the formula
+# translation to DRM.jl cannot express; DRM.jl rejects it from Julia with an
+# error that does not name the drmTMB alternative (#1572). Refuse in R, before
+# Julia starts, for every dpar and every bridge route.
+drm_julia_refuse_offset_unsupported <- function(formula) {
+  entries <- formula$entries
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(invisible(FALSE))
+  }
+  hit <- vapply(
+    entries,
+    function(entry) formula_contains_call(entry$rhs, "offset"),
+    logical(1L)
+  )
+  if (!any(hit)) {
+    return(invisible(FALSE))
+  }
+  dpars <- vapply(entries[hit], `[[`, character(1L), "dpar")
+  cli::cli_abort(
+    c(
+      "{.code engine = \"julia\"} does not support {.fn offset} in the {.field {dpars}} formula{?s}.",
+      x = "{.fn offset} fixes a coefficient at 1, and the R to Julia bridge cannot pass a fixed (non-estimated) coefficient to DRM.jl.",
+      i = "Use native {.code engine = \"tmb\"}, which supports {.fn offset} on the location formula and shifts the log-link intercept by exactly the offset."
+    ),
+    class = "drmTMB_julia_offset_unsupported"
+  )
+}
+
 drm_julia_refuse_marker_slope_unsupported <- function(formula) {
   if (isTRUE(drm_julia_marker_slope_pin_supports())) {
     return(invisible(FALSE))
@@ -3840,9 +3853,18 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
     }
     groups <- vapply(phylo_terms, `[[`, character(1L), "group")
     trees <- vapply(phylo_terms, `[[`, character(1L), "tree")
-    if (length(unique(groups)) != 1L || length(unique(trees)) != 1L) {
+    tolerances <- vapply(
+      phylo_terms,
+      function(t) if (is.null(t$tolerance)) sqrt(.Machine$double.eps) else t$tolerance,
+      double(1L)
+    )
+    if (
+      length(unique(groups)) != 1L ||
+        length(unique(trees)) != 1L ||
+        length(unique(tolerances)) != 1L
+    ) {
       cli::cli_abort(c(
-        "{.code engine = \"julia\"} requires all bivariate {.fn phylo} terms to share one tree and grouping factor.",
+        "{.code engine = \"julia\"} requires all bivariate {.fn phylo} terms to share one tree, grouping factor, and tolerance.",
         i = "Use native {.code engine = \"tmb\"} for heterogeneous phylogenetic structure across axes."
       ))
     }
@@ -3863,6 +3885,11 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   }
 
   tree <- get(rep_term$tree, envir = env, inherits = TRUE)
+  tolerance <- if (is.null(rep_term$tolerance)) {
+    sqrt(.Machine$double.eps)
+  } else {
+    rep_term$tolerance
+  }
   species <- as.character(data[[rep_term$group]])
   cache <- drm_julia_phylo_payload_cache
   if (
@@ -3874,12 +3901,13 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       identical(cache$full_family_type, family_type) &&
       identical(cache$full_locscale_mode, locscale_mode) &&
       identical(cache$full_coupled_phylo_tag, coupled_phylo_tag) &&
-      identical(cache$full_species, species)
+      identical(cache$full_species, species) &&
+      identical(cache$full_tolerance, tolerance)
   ) {
     return(cache$full_payload)
   }
 
-  info <- validate_phylo_tree(tree, species = species)
+  info <- validate_phylo_tree(tree, species = species, tolerance = tolerance)
   tree_payload <- drm_julia_phylo_tree_payload(tree, info = info)
   row_order <- order(
     match(species, tree_payload$tip_order),
@@ -3908,6 +3936,7 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   cache$full_locscale_mode <- locscale_mode
   cache$full_coupled_phylo_tag <- coupled_phylo_tag
   cache$full_species <- species
+  cache$full_tolerance <- tolerance
   cache$full_payload <- payload
   payload
 }
@@ -7341,7 +7370,7 @@ drm_julia_quantile_trials <- function(object, newdata) {
 #' observation and one column per `prob`, columns named as percentages,
 #' `attr(., "calibrated") == FALSE` (a distributional plug-in interval at the
 #' point estimate, not a calibrated-coverage interval), and the
-#' `"spike"`/`"unimplemented"` family status gate. Because the parameters come
+#' `"spike"`/`"unimplemented"` family status rules. Because the parameters come
 #' from this method's own reconstruction, the quantiles are FIXED-EFFECT,
 #' population-level for `newdata` rows and carry the same conditional
 #' random-effect scope as `type = "response"` for stored rows. For a bivariate
@@ -9137,12 +9166,9 @@ df.residual.drmTMB_julia_xfam <- function(object, ...) {
 
 #' Summary for a cross-family Julia fit
 #'
-#' The cross-family route (`drmTMB(bf(...), c(fam1, fam2), engine = "julia")`,
-#' via `drm_julia_call_xfam()` -> DRM.fit_mixed_family) is reachable from R
-#' and tested (`tests/testthat/test-xfam-bridge.R`), but its
-#' capability-ledger status is `experimental`/`partial`
-#' (`inst/extdata/julia-capabilities.tsv`, `cross_family_latent`). This
-#' summary reports point estimates only: the bridge does not retain a named
+#' The cross-family route
+#' `drmTMB(bf(...), c(fam1, fam2), engine = "julia")` is experimental and
+#' partial. This summary reports point estimates only: the bridge does not retain a named
 #' covariance matrix, so standard errors and Wald intervals are deliberately
 #' unavailable.
 #'
@@ -9247,10 +9273,10 @@ is_converged.drmTMB_julia_xfam <- function(
 
 #' Extract a latent-scale correlation from a cross-family Julia fit
 #'
-#' The cross-family route is reachable from R (`engine = "julia"` with a
-#' `c(family1, family2)` pair) and tested, but its capability-ledger status
-#' is `experimental`/`partial` (`inst/extdata/julia-capabilities.tsv`,
-#' `cross_family_latent`). This extractor reads `rho_latent` off an existing
+#' The cross-family route is experimental and partial. It is reachable from R
+#' with `engine = "julia"` and a `c(family1, family2)` pair, but it currently
+#' provides point estimates without standard errors or confidence intervals.
+#' This extractor reads `rho_latent` from an existing
 #' `drmTMB_julia_xfam` object.
 #'
 #' @param object A `drmTMB_julia_xfam` cross-family fit.

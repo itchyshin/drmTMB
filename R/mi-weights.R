@@ -179,6 +179,17 @@ drm_spec_uses_mi_quadrature_abort <- function(spec) {
 drm_mi_quadrature_inaccurate_beta_mu_boundary <- function() 0.10
 drm_mi_quadrature_inaccurate_gamma_cv <- function() 3
 
+drm_abort_mi_quadrature_guard_nonfinite <- function(detail) {
+  cli::cli_abort(
+    c(
+      "The {.fn mi} quadrature accuracy check found a non-finite fitted prior value.",
+      x = detail,
+      i = "The fitted {.fn mi} prior mean and CV must be finite. This is a named error, not a silent drop. Check convergence and the imputation model for that predictor (refs #1532)."
+    ),
+    class = "drmTMB_mi_quadrature_guard_nonfinite"
+  )
+}
+
 drm_mi_quadrature_slot_names <- function(slot) {
   if (identical(as.integer(slot), 2L)) {
     list(beta = "beta_mi2", log_sigma = "log_sigma_mi2")
@@ -215,7 +226,13 @@ drm_mi_quadrature_inaccurate_hits <- function(mp, par_list, slot) {
         mu <- mu[idx]
       }
     }
-    mu <- mu[is.finite(mu)]
+    if (any(!is.finite(mu))) {
+      drm_abort_mi_quadrature_guard_nonfinite(sprintf(
+        "Beta/zero-one-Beta prior for %s has a non-finite missing-row mean (%s).",
+        variable,
+        format(mu[!is.finite(mu)][[1L]])
+      ))
+    }
     boundary <- drm_mi_quadrature_inaccurate_beta_mu_boundary()
     bad <- mu <= boundary | mu >= (1 - boundary)
     if (!length(mu) || !any(bad)) {
@@ -230,12 +247,26 @@ drm_mi_quadrature_inaccurate_hits <- function(mp, par_list, slot) {
     )
   } else if (identical(family, "gamma")) {
     log_sigma <- as.numeric(par_list[[names$log_sigma]])
-    if (!length(log_sigma) || !is.finite(log_sigma[[1L]])) {
+    if (!length(log_sigma)) {
       return(character())
     }
+    if (!is.finite(log_sigma[[1L]])) {
+      drm_abort_mi_quadrature_guard_nonfinite(sprintf(
+        "Gamma prior for %s has a non-finite log CV (%s).",
+        variable,
+        format(log_sigma[[1L]])
+      ))
+    }
     cv <- exp(log_sigma[[1L]])
+    if (!is.finite(cv)) {
+      drm_abort_mi_quadrature_guard_nonfinite(sprintf(
+        "Gamma prior for %s has log CV %.6g, so the CV overflows to Inf.",
+        variable,
+        log_sigma[[1L]]
+      ))
+    }
     threshold <- drm_mi_quadrature_inaccurate_gamma_cv()
-    if (!is.finite(cv) || cv < threshold) {
+    if (cv < threshold) {
       return(character())
     }
     sprintf(

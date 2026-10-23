@@ -35,8 +35,7 @@
 #'   object. Leaving `missing` out of the [drmTMB()] call, or setting only
 #'   `response`, keeps complete-case row dropping. `"model"` enables the current `mi()` predictor-model routes when
 #'   paired with a matching `impute` formula or [impute_model()] in [drmTMB()].
-#' @param engine Missing-data engine. Only `"laplace"` is implemented in this
-#'   slice.
+#' @param engine Missing-data engine. Only `"laplace"` is implemented.
 #'
 #' @return A `drm_missing_control` object.
 #' @export
@@ -302,7 +301,7 @@ impute_model <- function(formula, family = stats::gaussian(), trials = NULL) {
 #' categorical predictor used inside [mi()]. It is currently a predictor-model
 #' family for [impute_model()], not a response family for [drmTMB()].
 #'
-#' The first fitted route is fixed-effect and uses the first factor level as
+#' The supported model is fixed-effect and uses the first factor level as
 #' the baseline category. Missing predictor values are integrated by exact
 #' summation over the unordered levels.
 #'
