@@ -126,3 +126,14 @@ evaluated as `log(mu)`/`log(1-mu)` on the log scale throughout
 floor or ceiling. `drm_binom_log_mu_eta()` (the `log|dmu/deta|` primitive for
 the MSPL Jeffreys weight) is independently derived, not adapted from
 gllvmTMB, which has no MSPL-style penalty.
+
+## TMB profile interval convention (2026-10-18)
+
+`drm_tmbprofile_confint()` in `R/profile.R` independently implements the
+linear profile inversion convention exposed by TMB 1.9.21's
+`confint.tmbprofile()` (TMB package, GPL-2). This compatibility implementation
+uses the same first-minimum split, chi-squared cutoff, and mean aggregation
+of tied objective values. It names `ties = mean` explicitly in the public
+`stats::approx()` call. No TMB source function is copied or modified. Pure
+regression tests compare the resulting interval with TMB's method for unique
+and repeated coordinates, repeated minima, and thresholds outside the range.

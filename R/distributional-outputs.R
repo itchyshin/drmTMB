@@ -125,7 +125,7 @@ drm_biv_gaussian_response_index <- function(dpar) {
 #' fixed-effect, population-level parameter estimates `theta_hat`: the result
 #' carries `attr(., "calibrated") <- FALSE` and does not propagate `theta_hat`
 #' uncertainty. See [fitted_distribution()] for the `"spike"`/`"unimplemented"`
-#' status gate this inherits (a `"spike"`-status family emits a one-time
+#' status rules this inherits (a `"spike"`-status family emits a one-time
 #' warning) and for the `response` argument's contract on a bivariate
 #' `biv_gaussian` fit (REQUIRED there: `1` or `2`, selecting which response's
 #' MARGINAL exceedance to return; `rho12` and any joint tail structure are

@@ -31,14 +31,11 @@
 #'
 #' **What this detects -- and does not.** A worm plot bends when the
 #' underlying quantile residuals depart from N(0,1); see
-#' `residuals.drmTMB()`'s Details for the full gated-campaign breakdown (400
-#' seeds x 18 families, tweedie: 99 of 400 seeds locally, full run deferred
-#' to Totoro;
-#' `docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`). In
-#' short: it flags shape/atom mis-specification a family cannot reabsorb
+#' `residuals.drmTMB()`'s Details for the numerical evidence and its incomplete
+#' Tweedie boundary. It flags shape/atom mis-specification a family cannot reabsorb
 #' through its own free parameters (heavy tails, ignored overdispersion or
 #' zero-inflation in a no-free-dispersion family, ignored truncation, a
-#' missing zero/one atom -- gated power >= 0.8), but it stays flat -- a
+#' missing zero/one atom -- power >= 0.8 in the evaluated scenarios), but it stays flat -- a
 #' genuine structural blind spot, not evidence of adequacy -- when a free
 #' nuisance/dispersion/inflation parameter absorbs the mis-specification
 #' (e.g. heteroscedasticity absorbed by Student-t `nu`, missing
@@ -140,7 +137,8 @@ worm_plot <- function(object, seed = NULL, nsim = 1L, response = NULL, ...) {
 #'
 #' **What this detects -- and does not.** Same scope as [worm_plot()] --
 #' shape/atom mis-specification a family cannot reabsorb through its own
-#' free parameters is detected with gated power >= 0.8 (heavy tails, ignored
+#' free parameters was detected with power >= 0.8 in the evaluated scenarios
+#' (heavy tails, ignored
 #' overdispersion or zero-inflation in a no-free-dispersion family, ignored
 #' truncation, a missing zero/one atom); a mis-specification a free
 #' nuisance/dispersion/inflation parameter absorbs (heteroscedasticity via
@@ -150,9 +148,7 @@ worm_plot <- function(object, seed = NULL, nsim = 1L, response = NULL, ...) {
 #' adequacy; the same mechanism mis-spec for `zi_poisson`/`zi_nbinom2` is
 #' sample-size-limited rather than structurally blind but stays far below
 #' 0.8 even at n = 3000. See `residuals.drmTMB()`'s Details for the
-#' full gated-campaign breakdown (tweedie: 99 of 400 seeds locally, full run
-#' deferred to Totoro)
-#' (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`).
+#' numerical evidence and its incomplete Tweedie boundary.
 #'
 #' @param object A `drmTMB` fit.
 #' @param seed Optional single integer seed, passed to

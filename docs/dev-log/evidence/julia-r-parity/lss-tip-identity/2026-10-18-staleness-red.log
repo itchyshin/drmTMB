@@ -1,0 +1,20 @@
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/check.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/control.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/drmTMB.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/formula-markers.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/julia-bridge.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/lrt-boundary.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/methods.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/missing-data.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/model-comparison.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/phylo-utils.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/predict-parameters.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: current source hash differs from receipt: R/profile.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: R/ file not recorded in receipt (added since): R/bootstrap-shards.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: R/ file not recorded in receipt (added since): R/parallel-docs.R
+STALE  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json: 42 of 54 recorded R/ files match, 2 unrecorded R/ file(s), runner matches; 95 of 95 DRM.jl-side entries match DRM_JL_PATH=/tmp/drmtmb-parity-drmodels-da8b3f871
+PHYLO_LABEL_RECEIPT_PASS labels=12 rows=72 checks=8 tolerance=4e-06
+C14 receipt equivalence: OK (3 eligible, 7 source-different retained receipts; C17 current-source compatibility PASS)
+ci-receipt-staleness: at least one receipt is stale relative to this checkout.
+This script never regenerates. Regenerate with a live Julia + the pinned DRM.jl clone
+(tools/run-julia-phylo-labels-public.R; tools/recertify-c17.py), LAST in the branch.
