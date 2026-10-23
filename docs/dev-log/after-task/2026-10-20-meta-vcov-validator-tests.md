@@ -24,7 +24,7 @@ For study `i`, the sampling block is `[[v1[i], cov12[i]], [cov12[i], v2[i]]]`. W
 
 ## 5. Checks Run
 
-- The candidate includes merge commit `cf067c380f977fccd326f33bb29f3c5fe1c665d4`, which joins the earlier PR head `753230efab6f22b5fa047d924f466f8f51fd7b84` to exact `main` commit `2fb93b768977330fc9939d86375c37329a539277`. The current PR head is `ef77e158ae485075b93c7e7423d5064fe54a909c`; it changes only this report and the per-slice check-log relative to `cf067c3`. The test and package source are unchanged.
+- The candidate includes merge commit `cf067c380f977fccd326f33bb29f3c5fe1c665d4`, which joins the earlier PR head `753230efab6f22b5fa047d924f466f8f51fd7b84` to exact `main` commit `2fb93b768977330fc9939d86375c37329a539277`. At the time of run `39887324310`, PR head `ef77e158ae485075b93c7e7423d5064fe54a909c` changed only this report and the per-slice check-log relative to `cf067c3`. The test and package source were unchanged. The PR branch now includes merge commit `37ef40ad0309bf913056816b25d939394986e2a4`, which joins evidence commit `18451c06a1bf7be83f684edafb06f614fd5ea0b1` to current `main` `12ec50f82d7bff1459756d79005321423f0c4e35`; the merge completed without conflicts.
 - `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::test(filter = "meta-vcov")'`: 94 passed, 0 failed, 0 warnings, 0 skips. This runs both `test-meta-vcov-validators.R` and `test-meta-vcov.R` on the merged candidate.
 - `python3 tools/capability_ledger.py --check`: passed (31 generated outputs).
 - `python3 -m unittest tools.tests.test_capability_ledger`: 81 tests passed; C14 receipt equivalence passed (3 eligible, 7 source-different receipts retained).
@@ -46,11 +46,11 @@ The assertions match `R/meta-vcov.R`: variance inputs must be numeric vectors wi
 
 ## 9. What Did Not Go Smoothly
 
-The PR branch was 30 commits behind current `main`. Merging the exact reviewed `main` commit into the isolated candidate produced no conflicts. The earlier shared root check-log conflict had already been resolved by retaining this slice's record under `check-log.d`. All focused local checks pass on the merged candidate.
+At initial reconciliation, the PR branch was 30 commits behind `main` at `2fb93b7`; merging that exact base into the isolated candidate produced no conflicts. Main later advanced to `12ec50f`, and that exact current main also merged without conflicts. The earlier shared root check-log conflict had already been resolved by retaining this slice's record under `check-log.d`. Focused local checks pass on the implementation tree.
 
 ## 10. Known Residuals
 
-These tests characterize current validators; they do not establish a validation-policy change. The tested PR tree is at `ef77e158...`; the implementation and test file match the focused test run, and the only later changes from `cf067c3` are these evidence records. GitHub run `39887324310` completed successfully on that exact head, with all six jobs passing. The PR remains draft; no merge or release claim is made.
+These tests characterize current validators; they do not establish a validation-policy change. GitHub run `39887324310` completed successfully on exact prior head `ef77e158...`, with all six jobs passing. The current isolated branch also merges live `main` `12ec50f...` without conflicts, but that resulting commit has not completed its own checks. The PR remains draft; no merge or release claim is made.
 
 ## 11. Team Learning
 
@@ -62,4 +62,4 @@ This change covers the native R `meta-vcov` tests and validators. It does NOT co
 
 ## Next Actions
 
-The isolated candidate is on local branch `codex/refresh-pr1600`. Its tested implementation tree includes merge commit `cf067c380f977fccd326f33bb29f3c5fe1c665d4`, followed only by evidence-file updates. Run `39887324310` passed all six jobs on the prior exact PR head `ef77e158...`. No push, ready-for-review transition, or PR merge was performed. The refreshed evidence records require a new exact-head run before considering merge.
+The isolated candidate is on local branch `codex/refresh-pr1600`, now at merge commit `37ef40ad0309bf913056816b25d939394986e2a4`. It contains current `main` `12ec50f82d7bff1459756d79005321423f0c4e35` and the test-only PR change; conflict resolution was unnecessary. Run `39887324310` passed all six jobs on prior exact head `ef77e158...`. The current isolated head has not been pushed or checked; publish this reconciled candidate and wait for its exact-head checks before considering merge.
