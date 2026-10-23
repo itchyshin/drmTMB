@@ -206,7 +206,7 @@ check_drm <- function(object, ...) {
 #' Set `include_hessian = TRUE` when the next step needs Wald-style
 #' uncertainty. In that mode, `is_converged()` also requires successful
 #' [TMB::sdreport()] output with `pdHess = TRUE` on top of the default
-#' [convergence_status()] gate. A fit can therefore be `"converged"` while
+#' [convergence_status()] requirements. A fit can therefore be `"converged"` while
 #' still returning `FALSE` with `include_hessian = TRUE`; this marks an
 #' inference-readiness problem, not automatic proof that point estimates are
 #' unusable.
