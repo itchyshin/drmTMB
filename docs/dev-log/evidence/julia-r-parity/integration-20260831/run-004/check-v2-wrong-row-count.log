@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/private/tmp/drm-parity-20260830/integration/drmTMB/tools/check-julia-integration-session.py", line 141, in <module>
+    check(result, process)
+    ~~~~~^^^^^^^^^^^^^^^^^
+  File "/private/tmp/drm-parity-20260830/integration/drmTMB/tools/check-julia-integration-session.py", line 50, in check
+    require(isinstance(table, list) and len(table) == 160, 'wrong original-row denominator')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/drm-parity-20260830/integration/drmTMB/tools/check-julia-integration-session.py", line 16, in require
+    raise ValueError(message)
+ValueError: wrong original-row denominator

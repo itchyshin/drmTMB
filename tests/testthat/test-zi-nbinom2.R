@@ -98,6 +98,9 @@ test_that("drmTMB fits zero-inflated nbinom2 models through a zi formula", {
     )
   )
   expect_true(all(ci$conf.status == "wald"))
+  expect_true(all(is.finite(ci$lower)))
+  expect_true(all(is.finite(ci$upper)))
+  expect_true(all(ci$lower < ci$upper))
 })
 
 test_that("zero-inflated nbinom2 likelihood matches independent calculation", {
@@ -196,9 +199,14 @@ test_that("zero-inflated nbinom2 methods return count-scale summaries", {
     )),
     tolerance = 1e-12
   )
+  # Since the Dinnage-audit M2 fix, sigma-type predictions report the
+  # soft-clamped predictor the likelihood evaluated (zi_nbinom2 is a
+  # clamped-scale family); on this extrapolation the raw predictor sits
+  # far below the lower clamp, so the raw exp(eta) is not the contract.
+  sigma_eta <- as.vector(stats::model.matrix(~z, newdata) %*% coef(fit, "sigma"))
   expect_equal(
     predict(fit, newdata = newdata, dpar = "sigma"),
-    exp(as.vector(stats::model.matrix(~z, newdata) %*% coef(fit, "sigma"))),
+    exp(drm_softclamp_log_sd(sigma_eta, fit$model$tmb_data)),
     tolerance = 1e-12
   )
   expect_equal(

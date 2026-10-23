@@ -1,0 +1,8 @@
+cell_id	target_id	dgp_id	seed	information_rung	fixture_module	source_sha	execution_scope	claim_ceiling	authorization_state
+mc-0266	mc-0266::sd:sigma:(1 | id)	b2_gaussian_ml_sigma_intercept_v1	2026072910	high	b2_direct_gaussian	7edefe40606d626284ede3d6c62a75d3af3b7870	local_only	interval_feasible	approved_for_local_profile
+mc-0277	mc-0277::sd:sigma:phylo(1 | species)	b2_gaussian_phylo_sigma_intercept_reml_v1	2026072917	high	b2_structured_q1	7edefe40606d626284ede3d6c62a75d3af3b7870	local_only	interval_feasible	approved_for_local_profile
+mc-0286	mc-0286::sd:mu:spatial(0 + x | site)	b2_gaussian_spatial_mu_slope_v1	2026072918	high	b2_structured_q1	7edefe40606d626284ede3d6c62a75d3af3b7870	local_only	interval_feasible	approved_for_local_profile
+mc-0288	mc-0288::sd:sigma:spatial(1 | site)	b2_gaussian_spatial_sigma_intercept_v1	2026072919	high	b2_structured_q1	7edefe40606d626284ede3d6c62a75d3af3b7870	local_only	interval_feasible	approved_for_local_profile
+mc-0417	mc-0417::sd:mu:spatial(1 | site)	b2_nbinom2_spatial_relmat_mu_intercept_v1	2026072925	high	b2_structured_q1	7edefe40606d626284ede3d6c62a75d3af3b7870	local_only	interval_feasible	approved_for_local_profile
+mc-0422	mc-0422::sd:sigma:spatial(1 | site)	b2_nbinom2_spatial_sigma_intercept_v1	2026072927	high	b2_structured_q1	7edefe40606d626284ede3d6c62a75d3af3b7870	local_only	interval_feasible	approved_for_local_profile
+mc-0424	mc-0424::sd:sigma:relmat(1 | id)	b2_nbinom2_relmat_sigma_intercept_v1	2026072929	high	b2_structured_q1	7edefe40606d626284ede3d6c62a75d3af3b7870	local_only	interval_feasible	approved_for_local_profile

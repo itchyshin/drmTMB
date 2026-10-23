@@ -11,14 +11,15 @@ animal(term, pedigree = NULL, A = NULL, Ainv = NULL)
 \code{1 + x | id}.}
 
 \item{pedigree}{Pedigree data frame with columns \code{id}, \code{dam}, and \code{sire}.
-Unknown parents can be \code{NA}, \code{""}, or \code{"0"}. The first fitted route builds
+Unknown parents can be \code{NA}, \code{""}, or \code{"0"}. When a pedigree is supplied,
+drmTMB builds
 a dense additive relationship matrix for Gaussian \code{mu} animal effects.}
 
-\item{A}{Additive relatedness or covariance matrix for the first fitted
+\item{A}{Additive relatedness or covariance matrix for the supported
 univariate Gaussian \code{mu} path.}
 
-\item{Ainv}{Sparse or dense inverse additive relatedness matrix for the first
-fitted univariate Gaussian \code{mu} path.}
+\item{Ainv}{Sparse or dense inverse additive relatedness matrix for the supported
+univariate Gaussian \code{mu} path.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -46,7 +47,7 @@ slope fields with separate SDs and no intercept-slope correlation.
 Large-pedigree sparse precision construction, multiple structured slopes,
 slope correlations, predictor-dependent \code{corpair()} regression,
 residual-scale structured slopes, and animal-model \verb{sd*()} direct-SD grammar
-remain planned.
+are not supported.
 }
 \examples{
 # Fitted: additive genetic variance in body size from a precomputed Ainv.

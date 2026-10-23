@@ -4,9 +4,10 @@
 #' family decides which distributional parameters are valid; `drm_formula()`
 #' only records the user's intended formulas. `bf()` is a short alias.
 #'
-#' @param ... Formulae or named formulae. The unnamed response formula is
-#'   interpreted as the location formula for a univariate model. For bivariate
-#'   models, prefer explicit `mu1 = y1 ~ ...` and `mu2 = y2 ~ ...` formulas.
+#' @param ... Formulae or named formulae, or symbols that evaluate to formulas in
+#'   the calling environment. The unnamed response formula is interpreted as the
+#'   location formula for a univariate model. For bivariate models, prefer
+#'   explicit `mu1 = y1 ~ ...` and `mu2 = y2 ~ ...` formulas.
 #'
 #' @return A `drm_formula` object.
 #' @export
@@ -34,11 +35,19 @@ drm_formula <- function(...) {
   if (length(calls) == 0L) {
     cli::cli_abort("{.fn drm_formula} requires at least one formula.")
   }
-  names <- names(calls)
+  call_names <- names(calls)
+  names <- call_names
   if (is.null(names)) {
     names <- rep("", length(calls))
   }
   names[is.na(names)] <- ""
+
+  calls <- lapply(seq_along(calls), function(i) {
+    drm_formula_resolve_input(calls[[i]], env, i)
+  })
+  if (!is.null(call_names)) {
+    names(calls) <- call_names
+  }
 
   out <- list(
     calls = calls,

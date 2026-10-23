@@ -93,10 +93,14 @@ intervals, coverage, `inference_ready_with_caveats`, or `supported` status.
 The retained denominator, gates, matrix digests, and hashes are recorded in
 `docs/dev-log/simulation-artifacts/2026-07-15-arc1b-s2r-relmat-q2-reml/README.md`.
 
-The S2R cell does not admit `relmat(..., Q = Q)`, `animal()`, unlabelled,
-unmatched, or differently ordered blocks, slopes, q4+, scale-side structure,
-extra random effects, incomplete pairs, non-unit weights, non-Gaussian
-families, or AI-REML. The spatial and supplied-`K` cells are separate exact
+The S2R cell admits the supplied-`A` `animal(1 | p | id, A = A)` q2 intercept
+representation (leaf-biv-animal-reml, this PR) on the same boundaries as
+supplied-`K` `relmat()`, but does not admit `relmat(..., Q = Q)`,
+`animal(..., Ainv = ...)` (precision), `animal(..., pedigree = ...)`
+(pedigree-built), unlabelled, unmatched, or differently ordered blocks,
+slopes, q4+, scale-side structure, extra random effects, incomplete pairs,
+non-unit weights, non-Gaussian families, or AI-REML.
+The spatial and supplied-`K` cells are separate exact
 admissions; neither creates provider-wide bivariate REML support.
 
 ## Excluded routes

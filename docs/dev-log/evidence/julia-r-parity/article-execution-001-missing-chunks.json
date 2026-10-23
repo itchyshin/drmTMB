@@ -1,0 +1,58 @@
+{
+  "kind": "article-execution-v1",
+  "time_utc": "2026-08-30 13:04:44",
+  "article_sha256": "9fc367f686f3074e117e8b51a12c02bf509a22b208d5d9c6701f393765b9383d",
+  "comparator": {
+    "version": "0.7.0",
+    "built": "R 4.6.0; aarch64-apple-darwin23; 2026-08-30 13:02:31 UTC; unix",
+    "code_hash": "98c372a1de766aae75058fc5ec36bc9f8c6b27c50aa616445e691dfa7c6d2907",
+    "n_objects": 1547,
+    "libpath": "/private/tmp/drm-parity-20260830/R-lib/drmTMB"
+  },
+  "loaded_dll_sha256": "37ecda8a20e59c7309717865948928fc186bca853cda65b2c23c27805de60174",
+  "julia_root": "/private/tmp/drm-parity-20260830/DRM.jl",
+  "julia_threads_requested": "1",
+  "blas_threads_requested": "1",
+  "R": "R version 4.6.0 (2026-04-24)",
+  "expressions": [
+    {
+      "index": 1,
+      "code": "knitr::opts_chunk$set(collapse = TRUE, comment = \"#>\")",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "list",
+      "result_preview": null
+    },
+    {
+      "index": 2,
+      "code": "library(drmTMB)",
+      "elapsed_seconds": 0.0049999999999998934,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "character",
+      "result_preview": null
+    }
+  ],
+  "fits": {
+    "fit_r": {
+      "status": "MISSING"
+    },
+    "fit_julia": {
+      "status": "MISSING"
+    },
+    "fit_lss": {
+      "status": "MISSING"
+    },
+    "fit_phylo_lss": {
+      "status": "MISSING"
+    },
+    "fit_missing": {
+      "status": "MISSING"
+    }
+  },
+  "checks": [],
+  "status": "ARTICLE_CHECK_FAILED"
+}

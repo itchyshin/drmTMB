@@ -1,0 +1,14 @@
+quantity	value
+logLik_tmb_laplace	-185.894258942419
+logLik_julia_ghq32	-185.86575807551
+ghq32_R_at_julia_estimate	-185.86575807551
+ghq64_R_at_julia_estimate	-185.865754551382
+ghq32_R_at_tmb_estimate	-185.86675921383
+abs_diff_julia_vs_R_ghq32	0
+abs_diff_ghq32_vs_ghq64_at_julia	3.52e-06
+tmb_max_abs_outer_gradient	1.51e-12
+julia_converged	TRUE
+julia_logLik_g_tol_1e-10	-185.86575807551
+julia_sigma_b	0.3537300797
+tmb_sigma_b	0.3496741358
+julia_estim_method	ML

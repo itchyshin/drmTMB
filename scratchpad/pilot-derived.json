@@ -1,0 +1,100 @@
+{
+ "mc-0001": {
+  "fam": "beta",
+  "dpar": "mu",
+  "n": 12,
+  "cov_min": 0.922,
+  "cov_max": 0.967,
+  "nsim": 4800,
+  "fin_min": 0.885,
+  "files": [
+   "phase2-results.tsv",
+   "results.tsv"
+  ],
+  "specs": [
+   "beta",
+   "beta_ls"
+  ]
+ },
+ "mc-0003": {
+  "fam": "beta",
+  "dpar": "sigma",
+  "n": 6,
+  "cov_min": 0.927,
+  "cov_max": 0.953,
+  "nsim": 2400,
+  "fin_min": 0.885,
+  "files": [
+   "phase2-results.tsv"
+  ],
+  "specs": [
+   "beta_ls"
+  ]
+ },
+ "mc-0057": {
+  "fam": "binomial",
+  "dpar": "mu",
+  "n": 12,
+  "cov_min": 0.948,
+  "cov_max": 0.973,
+  "nsim": 4800,
+  "fin_min": 1.0,
+  "files": [
+   "phase2-results.tsv",
+   "results.tsv"
+  ],
+  "specs": [
+   "binomial",
+   "binomial_rare"
+  ]
+ },
+ "mc-0397": {
+  "fam": "nbinom2",
+  "dpar": "mu",
+  "n": 12,
+  "cov_min": 0.927,
+  "cov_max": 0.968,
+  "nsim": 4800,
+  "fin_min": 1.0,
+  "files": [
+   "phase2-results.tsv",
+   "results.tsv"
+  ],
+  "specs": [
+   "nbinom2",
+   "nbinom2_ls"
+  ]
+ },
+ "mc-0398": {
+  "fam": "nbinom2",
+  "dpar": "sigma",
+  "n": 6,
+  "cov_min": 0.932,
+  "cov_max": 0.973,
+  "nsim": 2400,
+  "fin_min": 1.0,
+  "files": [
+   "phase2-results.tsv"
+  ],
+  "specs": [
+   "nbinom2_ls"
+  ]
+ },
+ "mc-0427": {
+  "fam": "poisson",
+  "dpar": "mu",
+  "n": 12,
+  "cov_min": 0.925,
+  "cov_max": 0.963,
+  "nsim": 4800,
+  "fin_min": 1.0,
+  "files": [
+   "phase2-results.tsv",
+   "results.tsv"
+  ],
+  "specs": [
+   "poisson",
+   "poisson_low"
+  ]
+ }
+}

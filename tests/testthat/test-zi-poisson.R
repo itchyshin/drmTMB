@@ -68,6 +68,9 @@ test_that("drmTMB fits zero-inflated Poisson models through a zi formula", {
     c("beta_mu", "beta_mu", "beta_mu", "beta_zi", "beta_zi", "beta_zi")
   )
   expect_true(all(ci$conf.status == "wald"))
+  expect_true(all(is.finite(ci$lower)))
+  expect_true(all(is.finite(ci$upper)))
+  expect_true(all(ci$lower < ci$upper))
 })
 
 test_that("zero-inflated Poisson likelihood matches independent calculation", {

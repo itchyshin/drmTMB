@@ -1,0 +1,10 @@
+field	value
+audit_path	docs/dev-log/interval-campaign-bindings/2026-07-30-b2-fresh-unattempted-audit.tsv
+registry_path	docs/dev-log/interval-campaign-bindings/2026-07-30-b2-fresh-unattempted-candidate-registry.tsv
+source_sha	9583b7caac3875f29f2a78343b0d417f5cc6810a
+candidate_count	0
+execution_authorized	FALSE
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+claim_ceiling	interval_feasible
+audit_conclusion	No previously-unattempted point_fit_recovery cell survives the approved E0, Lane C, missing-response, q6/q12, K=12, and prior-attempt fences.

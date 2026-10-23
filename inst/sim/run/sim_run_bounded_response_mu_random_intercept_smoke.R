@@ -56,7 +56,7 @@ phase18_fit_bounded_response_mu_ri <- function(data, cell) {
   if (identical(family, "beta")) {
     return(drmTMB(
       bf(prop ~ x + (1 | id), sigma ~ z),
-      family = beta(),
+      family = beta_family(),
       data = data
     ))
   }

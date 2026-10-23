@@ -19,15 +19,13 @@ two outcomes separately and then estimates a latent-normal association while
 holding the fitted margins fixed. These are different estimands.
 
 This article helps you choose a route for two outcomes measured on the same
-rows. The mixed-outcome route is a beta interface with alpha-scale Godambe
-standard errors and Wald intervals for every admitted pair class. The
-Bernoulli x ordinary-NB2 intercept route has coverage evidence and is
-inference-ready with caveats; the other admitted routes are interval-feasible
-and warn that coverage remains uncalibrated. Random effects and a generic
-family-pair interface remain outside this staged route. The exact direct
-lognormal route also has callable uncertainty methods for a constant `rho12`,
-with a retained fixed-effect calibration ladder for its tested domain; do not
-treat a finite interval as a validated general non-Gaussian claim.
+rows. For reviewed mixed outcome pairs, the staged route reports alpha-scale
+Godambe standard errors and Wald intervals. The Bernoulli x ordinary-NB2
+intercept route has been studied for interval coverage, but coverage is not yet
+established for the other admitted pairs. Random effects and a generic
+family-pair interface remain outside this staged route. The direct lognormal
+route also provides uncertainty methods for a constant `rho12`, but a finite
+interval alone does not establish a general non-Gaussian result.
 For a released direct Gaussian joint model, use `biv_gaussian()` and
 [Changing residual coupling with rho12](bivariate-coscale.html).
 
@@ -36,8 +34,8 @@ For a released direct Gaussian joint model, use `biv_gaussian()` and
 | Your paired outcomes | Route | What the association means |
 | --- | --- | --- |
 | Two Gaussian traits | Direct `biv_gaussian()` model | Gaussian residual `rho12` |
-| Two positive traits plausibly lognormal | Post-0.6 direct `biv_lognormal()` model | Log-response residual `rho12` |
-| Two heavy-tailed real-valued traits | Post-0.6 direct `biv_student()` model | Shared-Student-t residual/scatter `rho12` |
+| Two positive traits plausibly lognormal | Direct `biv_lognormal()` model | Log-response residual `rho12` |
+| Two heavy-tailed real-valued traits | Direct `biv_student()` model | Shared-Student-t residual/scatter `rho12` |
 | A reviewed mixed or discrete pair | `biv_associate()` staged route | Latent-normal copula `eta` after frozen margins; an intercept-bearing fixed-effect association formula is interval-feasible for Bernoulli x NB2 |
 
 Neither `rho12` nor `eta` is automatically the Pearson correlation of the two
@@ -293,11 +291,12 @@ pair classes remain intercept-only. Neither route is a general non-Gaussian
 bivariate claim. The staged route's alpha-scale standard
 errors and Wald intervals are interval-feasible for every admitted pair class
 and for the Bernoulli x ordinary-NB2 association-regression formula. Routes without
-coverage calibration emit an experimental-interval warning. Eta uncertainty
-inherits that warning and evidence tier; simultaneous eta bands and profiles
-remain unavailable. The direct lognormal
-constant-`rho12` profile, Wald, and bootstrap methods have direct calibration
-evidence only for the fixed-effect DGP in the Arc 6 coverage artifact; they do
-not validate the staged route or a general non-Gaussian association claim.
-Choose the route whose stated association scale matches the biological question,
-and treat every boundary as part of the model definition.
+coverage has not been established, the fit warns before reporting an interval.
+Eta uncertainty has the same limitation; simultaneous eta bands and profiles
+remain unavailable. The direct lognormal constant-`rho12` profile, Wald, and
+bootstrap methods have been checked only for a fixed-effect data-generating
+setting. They do not validate the staged route or a general non-Gaussian
+association claim. Choose the route whose stated association scale matches the
+biological question, and treat every boundary as part of the model definition.
+For the exact admitted mixed pairs and their output, continue to [Association
+between mixed outcome pairs](cross-family.html).

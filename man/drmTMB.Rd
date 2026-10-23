@@ -24,7 +24,7 @@ drmTMB(
 
 \item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
 \code{\link[=skew_normal]{skew_normal()}}, \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"},
-\code{\link[=tweedie]{tweedie()}}, \code{\link[=beta]{beta()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
+\code{\link[=tweedie]{tweedie()}}, \code{\link[=beta_family]{beta_family()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
 \code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[stats:binomial]{stats::binomial()}} with \code{link = "logit"}, \code{"probit"},
 or \code{"cloglog"},
 \code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
@@ -56,7 +56,7 @@ define Gaussian models for numeric missing predictors. Use
 a binary predictor, \code{list(score = impute_model(score ~ z, family = cumulative_logit()))} for an ordered predictor, or
 \code{list(habitat = impute_model(habitat ~ z, family = categorical()))} for
 an unordered predictor, or
-\code{list(cover = impute_model(cover ~ z, family = beta()))} for a strict
+\code{list(cover = impute_model(cover ~ z, family = beta_family()))} for a strict
 proportion predictor in \verb{(0, 1)}, or
 \code{list(cover = impute_model(cover ~ z, family = zero_one_beta()))} for a
 boundary proportion predictor in \verb{[0, 1]}, or
@@ -80,7 +80,7 @@ non-Gaussian response route also supports \code{family = poisson()} with one
 fixed-effect binary \code{mi()} predictor modelled by \code{family = binomial()}.}
 
 \item{missing}{Missing-data policy created by \code{\link[=miss_control]{miss_control()}}. The default
-keeps the existing complete-case behaviour. In the current fitted slices,
+keeps the existing complete-case behaviour. Among currently supported models,
 \code{missing = miss_control(response = "include")} is implemented only for
 univariate Gaussian response masks and bivariate Gaussian partial-response
 rows without dense known covariance. \code{missing = miss_control(predictor = "model")} is implemented for one \code{mi()}
@@ -92,15 +92,27 @@ categorical, strict beta/proportion, zero-one beta boundary-proportion,
 beta-binomial denominator-aware proportion, Poisson, negative-binomial, or
 zero-truncated negative-binomial count, lognormal positive continuous,
 Gamma positive continuous, and Tweedie semi-continuous predictors may use
-one fixed-effect family-aware \code{impute_model()}. The first Poisson-response
-route supports one fixed-effect binary missing predictor with a
-Bernoulli/logit \code{impute_model()}, complete count responses, and no
-zero-inflation, random, or structured response terms.}
+one fixed-effect family-aware \code{impute_model()}. Poisson, binomial,
+nbinom2, beta, Gamma, lognormal, beta-binomial, and student responses
+each support one fixed-effect binary missing predictor with a
+Bernoulli/logit \code{impute_model()}, complete responses, and no random
+or structured response terms. \code{nbinom2()} also admits one
+fixed-effect Gaussian \code{impute_model()} for a continuous missing
+predictor (k = 1; no grouped/structured predictor model, no k = 2).}
 
 \item{engine}{Computational engine. The default \code{"tmb"} uses the native
-\code{drmTMB} TMB backend. The \code{"julia"} compatibility bridge is halted and
-deferred for future work; it is retained only so existing objects and code
-can be inspected, not as a current fitting route.}
+\code{drmTMB} TMB backend. \code{"julia"} routes an admitted model to the DRModels.jl
+bridge: Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson,
+NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
+an additional large-p \code{phylo()} or coupled location-scale phylo route),
+plus \code{truncated_nbinom2()}, \code{zero_one_beta()}, \code{tweedie()}, and
+\code{beta_binomial()} on the fixed-effect route only. Each admitted family
+has been compared with \code{engine = "tmb"} on the same fitted target
+(coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
+relative); see \code{vignette("julia-engine", package = "drmTMB")} for
+the full family-by-route table and current boundaries. \code{engine = "julia"} needs a local
+DRModels.jl checkout and the optional \code{JuliaCall} package, and it is not a
+drop-in replacement for every native-TMB workflow.}
 
 \item{REML}{Logical; use restricted maximum likelihood where the selected
 engine supports it. Native \code{engine = "tmb"} restricts the likelihood by
@@ -114,32 +126,51 @@ intercept or independent intercept-plus-one-numeric-slope term with a
 constant residual scale (\code{sigma ~ 1}, with no sigma random effect).
 Slope-only, labelled, multiple-slope, and matched non-phylogenetic
 mean-scale REML remain outside that route. The two bivariate
-non-phylogenetic exceptions are matching labelled fixed-covariance q2
+non-phylogenetic exceptions are matching labelled two-axis (\code{q = 2}) fixed-covariance
 location intercepts for \code{spatial(1 | p | site, coords = coords)} and
 \code{relmat(1 | p | id, K = K)} in \code{mu1} and \code{mu2}, with intercept-only
 \code{sigma1}, \code{sigma2}, and \code{rho12}, complete response pairs, unit weights, no
 known \code{\link[=meta_V]{meta_V()}} covariance, and no additional ordinary random effect,
-direct-SD formula, or \code{corpair()} regression. Both have point-fit-recovery
-evidence only; bivariate \code{relmat(..., Q = Q)} REML remains deferred.
+direct-SD formula, or \code{corpair()} regression. Only point-estimate recovery
+has been checked for both; bivariate \code{relmat(..., Q = Q)} REML is unsupported.
 Aggregation and ordinary direct \code{sd()} scale formulae also remain
 unsupported under REML. For \code{binomial()} models, the bounded native route
 requires exactly one ordinary unlabelled \code{mu} random intercept or exactly
 one independent numeric slope. Fixed-only and multiple-term binomial
-models, correlated or labelled covariance blocks, structured effects,
-missing-data engines, and other extensions are not admitted under REML;
+models, correlated or labelled covariance blocks, structured effects, and
+other extensions are not admitted under REML;
 use \code{REML = FALSE} for those models. The binomial route has diagnostic
 parity and finite-uncertainty evidence, not calibrated interval or coverage
-evidence.
-The halted \code{engine = "julia"} compatibility bridge is not a supported
-estimator or REML route. Use native \code{engine = "tmb"} for fitting and use
-\code{REML = FALSE} for likelihood-ratio tests, AIC/BIC comparisons across
-different fixed-effect formulas, non-binomial non-Gaussian models, and
-currently unsupported extensions.
+evidence. Every other non-Gaussian family rejects \code{REML = TRUE}; use
+\code{REML = FALSE}. An internal experimental AGHQ plus Cox-Reid estimator is
+not a \code{drmTMB()} argument and is not what \code{REML = TRUE} runs. Public
+cumulative-logit random-slope fits remain maximum likelihood
+and have point-estimate recovery evidence only.
+\code{engine = "julia"} fits \code{REML = TRUE} on a route-by-route basis, not
+uniformly: the fixed-effect Gaussian location-scale model, the bivariate
+q = 4 phylogenetic route, the location-scale-scale \code{sd()}/\code{sd_phylo()}
+routes, an ordinary Gaussian \code{mu} random intercept, and large-p Poisson
+\code{phylo()} (a Cox-Reid Laplace route native \code{engine = "tmb"} does not have)
+currently fit \code{REML = TRUE}; every other bridge route refuses it, some
+with a raw DRModels.jl error rather than a \code{drmTMB}-worded one. Do not assume
+bridge REML support for models outside this list.
+
 With \code{missing = miss_control(response = "include")}, the native REML
-route is currently validated only for univariate Gaussian response masks
-with complete predictors and other non-response inputs. Other explicit
-missing-data engines, including missing predictors, remain unsupported
-under REML.}
+route is currently validated for univariate Gaussian response masks and
+for the bounded binomial ordinary \code{mu} random-intercept route, with complete
+predictors and other non-response inputs. Other explicit missing-data
+engines, including missing predictors, remain unsupported under REML.
+
+Under native \code{REML = TRUE}, admitted mean fixed-effect coefficients are
+marginalised in the TMB objective rather than estimated as ordinary fixed
+parameters. \code{\link[=summary.drmTMB]{summary.drmTMB()}} and \code{\link[=vcov.drmTMB]{vcov.drmTMB()}} can still report finite
+Wald standard errors for those coefficients from the full \code{sdreport}
+covariance, but \code{\link[=confint.drmTMB]{confint.drmTMB()}} does not currently form Wald or profile
+intervals for REML-integrated mean coefficients. Wald rows return \code{NA}
+bounds with \code{conf.status = "wald_unavailable"}, and profiling such a mean
+coefficient can fail because the coefficient is not a top-level TMB
+parameter. Use \code{confint(..., method = "bootstrap")} when an interval for a
+REML mean coefficient is needed.}
 
 \item{penalty}{Optional penalty / prior built by \code{\link[=drm_phylo_penalty]{drm_phylo_penalty()}}, or
 \code{NULL} (default) for plain maximum likelihood. A non-\code{NULL} penalty
@@ -156,16 +187,16 @@ q = 1 or correlated q = 2 grouping block. Supported links are
 \code{"logit"}, \code{"probit"} and \code{"cloglog"}. Kosmidis and Firth (2021,
 Theorem 1 and Section 3.1) prove the Jeffreys penalty gives finite
 estimates for any link whose working weight vanishes in both tails, which
-these three do; drmTMB's own TMB-Laplace evidence for them is recorded in
-\verb{docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/}.
+these three do. drmTMB has directly checked the TMB-Laplace implementation
+for all three links.
 Three limits are worth stating. The soft-penalty scale below is a \emph{logit}
 delta-method constant, kept unchanged for all three links because using it
 for probit and cloglog was measured to cost about 1\% of one standard error
 -- measured at \code{q = 1} with two fixed-effect columns, and not at \code{q = 2}.
 Under deep separation with a random slope the standard error is frequently
 unavailable for \strong{every} link, logit included (see the \code{NA} note below);
-in the most extreme cells measured this affected the large majority of
-converged fits. And the evidence behind the two new links used \strong{Bernoulli}
+in the most extreme scenarios measured this affected the large majority of
+converged fits. The comparisons for probit and cloglog used \strong{Bernoulli}
 responses with two fixed-effect columns, so grouped-binomial and wider
 designs inherit the \code{n_eff} extrapolation described next without direct
 measurement, for any link. For grouped binomial data, the

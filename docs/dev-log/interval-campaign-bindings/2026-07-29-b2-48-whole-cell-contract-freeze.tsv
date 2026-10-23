@@ -1,0 +1,12 @@
+field	value
+registry_path	docs/dev-log/interval-campaign-bindings/2026-07-29-b2-48-whole-cell-contract-draft.tsv
+source_sha	ee9cba6cbee18812cb93e9f84c36b572ad602b31
+registry_sha256	144113d5d55a74847e945678070243c92f5655e1a2f468c2514da3371a68d2cf
+candidate_count	48
+cohort_counts	direct=11;structured_q1=19;gaussian_q2=18
+execution_authorized	FALSE
+claim_ceiling	contract_design_only
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+negative_controls	mc-0260m retained; E0 pregrid_authorized=FALSE
+scope_exclusions	Lane A mc-0186; Lane C mc-0418/mc-0436; missing-response; q6 mc-0207/mc-0269; q12; remote compute

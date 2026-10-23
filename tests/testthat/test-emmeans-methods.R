@@ -571,7 +571,7 @@ test_that("emmeans response scale handles logit mu families", {
   )
   fit <- drmTMB(
     bf(prop ~ x + habitat, sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dat,
     control = emmeans_methods_control(se = TRUE)
   )

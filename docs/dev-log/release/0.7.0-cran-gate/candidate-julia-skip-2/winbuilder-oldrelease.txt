@@ -1,0 +1,15 @@
+Dear package maintainer,
+
+this notification has been generated automatically.
+Your package drmTMB_0.7.0.tar.gz has been built (if working) and checked for Windows.
+Please check the log files and (if working) the binary package at:
+https://win-builder.r-project.org/T2LOH4zOG6WT
+The files will be removed after roughly 72 hours.
+Installation time in seconds: 208
+Check time in seconds: 947
+Status: 1 NOTE
+R version 4.5.3 (2026-03-11 ucrt)
+
+All the best,
+Uwe Ligges
+(CRAN maintainer of binary packages for Windows)

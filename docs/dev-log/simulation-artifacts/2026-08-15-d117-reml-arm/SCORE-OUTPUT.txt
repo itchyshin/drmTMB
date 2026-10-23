@@ -1,0 +1,53 @@
+=====================================================================
+D-117 REML ARM -- scored against PREREGISTRATION.md
+=====================================================================
+
+rows: 400000  cells: 4  package: 0.6.0 
+host: totoro 
+
+--- HARNESS FALSIFIERS -------------------------------------------
+  [PASS] reml_flag reads back TRUE on REML arm / FALSE on ML arm (got TRUE / FALSE)
+  [PASS] REML and ML SD estimates differ (identical on 0.0000% of replicates)
+  [PASS] ML control reproduces banked pooled 0.924800: got 0.924800  (0.00 SE away)
+
+  per-cell ML control vs banked (coverage, and boundary incidence):
+    g10_n10_sd05   cov banked 0.92553 measured 0.92553 (+0.00000) | boundary banked 0.07632 measured 0.07632 (+0.00000)
+    g10_n04_sd05   cov banked 0.92290 measured 0.92290 (+0.00000) | boundary banked 0.49696 measured 0.49696 (+0.00000)
+    g10_n04_sd10   cov banked 0.92567 measured 0.92567 (+0.00000) | boundary banked 0.03704 measured 0.03704 (+0.00000)
+    g10_n10_sd10   cov banked 0.92510 measured 0.92510 (+0.00000) | boundary banked 0.00089 measured 0.00089 (+0.00000)
+  [PASS] every cell's ML control within 4 MCSE of banked (max dev 0.00000)
+
+  harness: OK -- proceeding to the REML result
+
+--- PRIMARY: pooled all-attempt profile coverage ------------------
+  ML   0.924800  [0.923978, 0.925615]
+  REML 0.946325  [0.945622, 0.947021]   (nominal 0.95, floor 0.918)
+  paired delta +0.021525  SE 0.000292  [+0.020953, +0.022097]  (73.7 SE)
+
+  PRE-REGISTERED VERDICT: REML NARROWS BUT DOES NOT CLOSE
+
+--- per cell ------------------------------------------------------
+  cell                 ML     REML     delta  delta_SE    floor
+  g10_n10_sd05     0.9255   0.9459   +0.0204    0.0006   clears
+  g10_n04_sd05     0.9229   0.9466   +0.0237    0.0006   clears
+  g10_n04_sd10     0.9257   0.9466   +0.0209    0.0006   clears
+  g10_n10_sd10     0.9251   0.9462   +0.0211    0.0006   clears
+
+--- recovery (SD point estimate vs truth) -------------------------
+  g10_n10_sd05   truth 0.50   ML  -10.26%   REML   -4.10%
+  g10_n04_sd05   truth 0.50   ML  -15.76%   REML   -7.63%
+  g10_n04_sd10   truth 1.00   ML   -9.31%   REML   -3.59%
+  g10_n10_sd10   truth 1.00   ML   -8.34%   REML   -3.07%
+  POOLED                      ML  -10.92%   REML   -4.60%
+
+--- boundary sub-population ---------------------------------------
+  ML   boundary incidence 0.1528   coverage | boundary 0.7420   | interior 0.9578
+  REML boundary incidence 0.1377   coverage | boundary 0.8279   | interior 0.9652
+
+--- availability and width ----------------------------------------
+  finite intervals  ML 400000 / 400000    REML 400000 / 400000
+  median width      ML 0.8065        REML 0.8932
+  misses ML         lower   4474  upper  25606   ratio 5.72:1
+  misses REML       lower   7080  upper  14390   ratio 2.03:1
+
+=====================================================================

@@ -1,6 +1,14 @@
 on:
+  # NO push-to-branch trigger (owner decision, 2026-09-06). Every merge to main was
+  # running the full sharded check again: MEASURED 25 push-to-main runs in one day,
+  # on top of the pull_request run that had already checked the same content. The
+  # house rule is `[pull_request, workflow_dispatch]`; this workflow predated it.
+  #
+  # `tags: ["v*"]` is DELIBERATELY KEPT. It is not the per-merge cost -- it is what
+  # runs the full ubuntu + macOS + Windows matrix for a release tag, which is the
+  # one time cross-OS coverage actually matters. Dropping `push:` wholesale would
+  # have removed that too.
   push:
-    branches: [main, master]
     tags: ["v*"]
   pull_request:
     branches: [main, master]
@@ -10,15 +18,22 @@ name: R-CMD-check
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancel superseded PR runs, never a tag run. This guard was written when merges
+  # to main also ran here and could be cancelled by the next merge, leaving that
+  # merge with no completed evidence -- green BY ABSENCE (measured 2026-09-03: run
+  # 33757335131 on main killed 2 min into each shard, 6 minutes in). Since
+  # 2026-09-06 there is no push-to-branch trigger, so that specific hole is closed
+  # by the trigger rather than by this expression; the expression is kept because a
+  # tag run must still never be cancelled.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Routine runs (pull_request, push to main) check Linux only to keep CI cheap.
+  # Routine runs (pull_request) check Linux only to keep CI cheap.
   # The full ubuntu + macOS + windows matrix runs only for release tags (v*) and
   # on demand via workflow_dispatch -- e.g. before a CRAN submission, or to
   # exercise cross-OS portability of compiled TMB code on a specific branch.
   os-matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -26,14 +41,23 @@ jobs:
         run: |
           FULL="${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}"
           if [ "$FULL" = "true" ]; then
-            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"},{"os":"macos-latest","r":"release"},{"os":"windows-latest","r":"release"}]}' >> "$GITHUB_OUTPUT"
+            # A release/tag run is the CRAN-shaped one: each OS runs the whole
+            # suite in a single job (shard 0 == unsharded), exactly as before.
+            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"},{"os":"macos-latest","r":"release"},{"os":"windows-latest","r":"release"}],"shard":[0]}' >> "$GITHUB_OUTPUT"
           else
-            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"}]}' >> "$GITHUB_OUTPUT"
+            # Routine runs shard the suite 4 ways. Measured 2026-09-03 on this
+            # repo's own check log: of a 44 min check, `checking tests` alone was
+            # 30m56s (10:59:14 -> 11:30:10), against 209s to install, 49s of
+            # examples and 124s of vignettes. Tests are ~75% of the wall clock,
+            # so they are the only part worth splitting -- cutting vignettes
+            # would have bought about two minutes.
+            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"}],"shard":[1,2,3,4]}' >> "$GITHUB_OUTPUT"
           fi
 
   R-CMD-check:
     needs: os-matrix
-    runs-on: ${{ matrix.config.os }}
+    # Keep public check names stable while selecting the known passing Linux image.
+    runs-on: ${{ matrix.config.os == 'ubuntu-latest' && 'ubuntu-24.04' || matrix.config.os }}
     # Measured, not guessed. Six completed ubuntu jobs on 2026-08-04 ran
     # 43m35s / 43m51s / 44m34s / 44m36s / 45m49s / 46m34s -- a ~44-47 min suite.
     # The former 45 was INSIDE that band, so runs were a coin flip: main itself was
@@ -44,7 +68,7 @@ jobs:
     # hung job in half the time the interim 120 allowed.
     timeout-minutes: 75
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.shard != 0 && format(' shard {0}/4', matrix.shard) || '' }}
 
     strategy:
       fail-fast: false
@@ -54,6 +78,10 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       NOT_CRAN: true
+      # "k/4" on routine runs, empty on the shard 0 (release/tag) combos above.
+      # tests/testthat.R treats an unset/empty value as "run everything", so a
+      # local devtools::test() and the CRAN lane are both unaffected.
+      DRMTMB_TEST_SHARD: ${{ matrix.shard != 0 && format('{0}/4', matrix.shard) || '' }}
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -77,9 +105,11 @@ jobs:
       # still credits it. See
       # docs/dev-log/after-task/2026-08-03-b4-ci-mc-0207-pin-drift.md.
       #
-      # 7 of 10 run. (This count read "6 of 9" before
-      # test_response_mask_formula_inventory.py was added and wired in the
-      # same change; before that it read "5 of 7": it had missed
+      # 9 of 12 run. (This count read "6 of 9" on main before
+      # test_response_mask_formula_inventory.py was added and wired in, and
+      # main had since wired three more files without updating it, so it is
+      # recounted here: 12 files under tools/tests/, 9 wired, 3 excluded as
+      # described below; before that it read "5 of 7": it had missed
       # test_b4_ci_guard.py, which already existed and was already wired. A
       # stale count in the comment whose whole purpose is to stop guards going
       # stale is worth correcting rather than propagating.)
@@ -109,12 +139,17 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           python3 tools/capability_ledger.py --check
+          # --check does not detect a stale C14/C17 receipt against current
+          # source; this does (#1538).
+          python3 tools/capability_ledger.py --check-c14-receipt-equivalence
           python3 -m unittest tools/tests/test_capability_ledger.py
+          python3 -m unittest tools/tests/test_ci_wires_c14_receipt_equivalence.py
           python3 -m unittest tools/tests/test_arc1_profile_reconcilers.py
           python3 -m unittest tools/tests/test_b3_q6_target_promotion.py
           python3 -m unittest tools/tests/test_b4_ci_guard.py
           python3 -m unittest tools/tests/test_b4_ci_c1.py
           python3 -m unittest tools/tests/test_profile_truth_gate.py
+          python3 -m unittest tools/tests/test_recertify_c17.py
           python3 -m unittest tools/tests/test_response_mask_formula_inventory.py
           Rscript --no-init-file tools/emit-profile-truth-manifest.R --check
           Rscript --no-init-file tools/check-capability-runtime.R
@@ -150,6 +185,127 @@ jobs:
         run: |
           Rscript --no-init-file tools/check-evidence-citations.R
 
+      # Julia bridge glue, mock-driven (#1081). No runner has Julia, so every
+      # live engine test skips here and the suite's teardown line says the
+      # bridge is UNTESTED. That line counts LIVE tests only: the marshalling
+      # code paths (payload serialization, coef_labels, joint dispatch, xfam
+      # routing, structured-RE fixtures) ARE executed by mock-driven
+      # assertions in the files below -- measured 2026-09-04 without Julia:
+      # 1212 expectations passed across these 11 files in 11.4 s. This step runs
+      # exactly those files, prints the tally, and FAILS unless > 0 passed
+      # with 0 failures and 0 errors, so a green run carries a counted claim
+      # about the glue rather than silence. It is NOT live-engine evidence:
+      # a mock that replaces the Julia call cannot see a signature mismatch
+      # with DRM.jl; that stays with the local DRM_JL_PATH lane.
+      # Runs after check-capability-runtime.R built the shared object, so
+      # pkgload::load_all() here does not recompile. Placed BEFORE the receipt
+      # step so a designed-red receipt (see below) never hides whether the
+      # glue step ran. suppressMessages() drops the per-file teardown line
+      # (tests/testthat/teardown-julia-bridge-summary.R) that would otherwise
+      # print eleven times; the tally below is the one counted claim.
+      - name: Julia bridge glue executes (mock-driven, no Julia)
+        if: runner.os == 'Linux'
+        env:
+          NOT_CRAN: true
+        run: |
+          Rscript --no-init-file -e '
+            suppressMessages(pkgload::load_all(".", quiet = TRUE))
+            files <- c(
+              "test-julia-bridge.R", "test-bridge-payload-serialization.R",
+              "test-julia-joint-call.R", "test-julia-joint-dispatch.R",
+              "test-julia-bridge-coef-labels.R", "test-julia-inference.R",
+              "test-julia-structured-inference.R", "test-julia-joint-finite-prepare.R",
+              "test-structured-re-bridge-fixtures.R", "test-julia-objective-at-bridge.R",
+              "test-xfam-bridge.R"
+            )
+            tally <- c(passed = 0L, failed = 0L, error = 0L, skipped = 0L)
+            for (f in files) {
+              res <- as.data.frame(suppressMessages(testthat::test_file(
+                file.path("tests/testthat", f), reporter = "silent", package = "drmTMB"
+              )))
+              row <- c(passed = sum(res$passed), failed = sum(res$failed),
+                       error = sum(res$error), skipped = sum(res$skipped))
+              cat(sprintf("%-42s passed=%4d failed=%d error=%d skipped=%d\n",
+                          f, row[["passed"]], row[["failed"]], row[["error"]], row[["skipped"]]))
+              tally <- tally + row
+            }
+            cat(sprintf(
+              "Julia bridge glue (mock-driven, no Julia): %d expectations passed, %d failed, %d errors, %d live skipped across %d files\n",
+              tally[["passed"]], tally[["failed"]], tally[["error"]], tally[["skipped"]], length(files)
+            ))
+            if (tally[["passed"]] == 0L || tally[["failed"]] > 0L || tally[["error"]] > 0L) {
+              stop("mock-driven bridge glue did not execute cleanly (see tally above)")
+            }
+          '
+
+      # Receipt staleness MOVED 2026-09-06 to .github/workflows/receipt-staleness.yaml,
+      # which runs on push to main. It ran here, on the PR merge preview, and so
+      # re-staled EVERY open PR whenever main moved -- including PRs touching no R/
+      # file (#1296 changed one test and went red on it). Measured: 16 merges in one
+      # afternoon against four live PRs. The guard's claim -- "a receipt must not
+      # drift from the source it certifies" -- is about MAIN, which is where drift
+      # enters and where it is now checked, on every merge, in ~2 minutes.
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
+
+  # THE BLIND SPOT THIS CLOSES. Every job above checks the built TARBALL, and
+  # .Rbuildignore removes tools/, docs/, pkgdown/, bench/, _pkgdown.yml and the
+  # simulation-results tree under inst/sim. A test whose premise is such a path hits
+  # its own skip_if(!file.exists(...)) and SKIPS -- and testthat prints a skip
+  # inside the same green summary as a pass. The premise is absent because of
+  # the BUILD, not the environment, so that skip is permanent: those tests have
+  # never once run in CI.
+  #
+  # Measured at origin/main df1aca4a6 by running the affected files twice, once
+  # in the source tree and once inside the extracted `R CMD build` tarball:
+  # 35 files change behaviour, 24,348 passing assertions collapse to 855, and
+  # 24 of the 35 contribute ZERO assertions to the tarball run. Two user-facing
+  # defects reached main inside that gap -- the reader-contract linter had
+  # silently stopped policing six vignettes (#1207) and nine exported functions
+  # were missing from the printable cheatsheets (#1208) -- and both were found
+  # by a full source-tree run, not by CI.
+  #
+  # This is deliberately NOT a fifth shard and NOT a second `R CMD check`: it is
+  # one ubuntu job that loads the package in place with pkgload::load_all() and
+  # runs only the derived subset. Measured locally (macOS, R 4.6.0, warm object
+  # files): 3m42s for all 35 files. The runner also pays a dependency install
+  # and one TMB compile, so budget well under the 75 the shards get.
+  #
+  # The file set is DERIVED from .Rbuildignore at run time and cross-checked
+  # against tools/source-tree-tests.txt, so a new test with a build-excluded
+  # premise cannot quietly join the blind spot, and an existing one cannot
+  # quietly leave the lane.
+  source-tree-tests:
+    runs-on: ubuntu-24.04
+    name: source-tree tests (blind spot)
+    timeout-minutes: 45
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      NOT_CRAN: true
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgload, any::testthat
+          needs: check
+
+      # Fails in milliseconds, before the compile, if the derived set and the
+      # committed manifest disagree -- a stale manifest is how this guard would
+      # rot, and it should not cost a build to say so.
+      - name: Source-tree test manifest is current
+        run: Rscript --no-init-file tools/run-source-tree-tests.R --check
+
+      - name: Run the tests R CMD check cannot reach
+        run: Rscript --no-init-file tools/run-source-tree-tests.R

@@ -1,0 +1,77 @@
+ℹ Updating drmTMB documentation
+ℹ Loading drmTMB
+ℹ Re-compiling drmTMB (debug build)
+── R CMD INSTALL ───────────────────────────────────────────────────────────────
+* installing *source* package ‘drmTMB’ ...
+** this is package ‘drmTMB’ version ‘0.7.0’
+** using staged installation
+** libs
+using C compiler: ‘Apple clang version 21.0.0 (clang-2100.1.1.101)’
+using C++ compiler: ‘Apple clang version 21.0.0 (clang-2100.1.1.101)’
+using SDK: ‘MacOSX26.5.sdk’
+clang++ -arch arm64 -std=gnu++20 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG  -I'/Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include' -I'/Users/z3437171/Library/R/arm64/4.6/library/TMB/include' -I/opt/R/arm64/include    -fPIC  -falign-functions=64 -Wall -g -O2  -UNDEBUG -Wall -pedantic -g -O0  -c drmTMB.cpp -o drmTMB.o
+In file included from drmTMB.cpp:14:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/TMB/include/TMB.hpp:96:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/Sparse:26:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/SparseCore:61:
+/Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/src/SparseCore/TriangularSolver.h:273:13: warning: variable 'count' set but not used [-Wunused-but-set-variable]
+  273 |       Index count = 0;
+      |             ^
+In file included from drmTMB.cpp:14:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/TMB/include/TMB.hpp:96:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/Sparse:29:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/SparseLU:35:
+/Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/src/SparseLU/SparseLU_heap_relax_snode.h:78:9: warning: variable 'nsuper_et_post' set but not used [-Wunused-but-set-variable]
+   78 |   Index nsuper_et_post = 0; // Number of relaxed snodes in postordered etree 
+      |         ^
+/Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/src/SparseLU/SparseLU_heap_relax_snode.h:79:9: warning: variable 'nsuper_et' set but not used [-Wunused-but-set-variable]
+   79 |   Index nsuper_et = 0; // Number of relaxed snodes in the original etree 
+      |         ^
+drmTMB.cpp:1254:16: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1254 |           Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                ^~~~~~~
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:2035:34: note: in instantiation of member function 'objective_function<double>::operator()' requested here
+ 2035 |       PROTECT( res = asSEXP( pf->operator()() ) );
+      |                                  ^
+/Library/Frameworks/R.framework/Resources/include/Rinternals.h:357:31: note: expanded from macro 'PROTECT'
+  357 | #define PROTECT(s)      Rf_protect(s)
+      |                                    ^
+drmTMB.cpp:1337:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1337 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:1417:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1417 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:1502:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1502 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:1640:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1640 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:1771:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1771 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:1833:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1833 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:1915:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1915 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:2019:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 2019 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:2100:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 2100 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:2184:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 2184 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:2277:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 2277 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+15 warnings generated.
+clang -arch arm64 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG  -I'/Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include' -I'/Users/z3437171/Library/R/arm64/4.6/library/TMB/include' -I/opt/R/arm64/include    -fPIC  -falign-functions=64 -Wall -g -O2  -UNDEBUG -Wall -pedantic -g -O0 -c init.c -o init.o
+clang++ -arch arm64 -std=gnu++20 -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -L/Library/Frameworks/R.framework/Resources/lib -L/opt/R/arm64/lib -o drmTMB.so drmTMB.o init.o -F/Library/Frameworks/R.framework/.. -framework R
+installing to /private/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T/RtmpY2bff2/devtools_install_1df95a0fd124/00LOCK-drmtmb-070-current-main-refreeze-0818/00new/drmTMB/libs
+** checking absolute paths in shared objects and dynamic libraries
+* DONE (drmTMB)

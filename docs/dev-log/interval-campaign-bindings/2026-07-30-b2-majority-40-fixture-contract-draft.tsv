@@ -1,0 +1,41 @@
+cell_id	target_id	dgp_id	seed	information_rung	fixture_module	execution_authorized	selection_state
+mc-0205	mc-0205::sd:mu1:(1 | p | id)	b2_biv_gaussian_reml_mu1_sigma1_block_v1	2026072903	low	b2_direct_biv_gaussian	FALSE	selected_40
+mc-0206	mc-0206::sd:sigma1:(1 | p | id)	b2_biv_gaussian_reml_mu1_sigma1_block_v1	2026072904	low	b2_direct_biv_gaussian	FALSE	selected_40
+mc-0260	mc-0260::fixef:mu:(Intercept)	b2_gaussian_ml_fixed_mu_v1	2026072906	low	b2_direct_gaussian	FALSE	selected_40
+mc-0261	mc-0261::fixef:mu:(Intercept)	b2_gaussian_reml_fixed_mu_v1	2026072907	low	b2_direct_gaussian	FALSE	selected_40
+mc-0262	mc-0262::fixef:sigma:(Intercept)	b2_gaussian_ml_fixed_sigma_v1	2026072908	low	b2_direct_gaussian	FALSE	selected_40
+mc-0263	mc-0263::fixef:sigma:x	b2_gaussian_reml_fixed_sigma_slope_v1	2026072909	low	b2_direct_gaussian	FALSE	selected_40
+mc-0266	mc-0266::sd:sigma:(1 | id)	b2_gaussian_ml_sigma_intercept_v1	2026072910	low	b2_direct_gaussian	FALSE	selected_40
+mc-0013	mc-0013::sd:mu:animal(0 + x | id)	b2_beta_animal_mu_slope_v1	2026072912	low	b2_structured_q1	FALSE	selected_40
+mc-0015	mc-0015::sd:sigma:animal(1 | id)	b2_beta_animal_sigma_intercept_v1	2026072913	low	b2_structured_q1	FALSE	selected_40
+mc-0273	mc-0273::sd:mu:phylo(0 + x | species)	b2_gaussian_phylo_mu_slope_ml_v1	2026072914	low	b2_structured_q1	FALSE	selected_40
+mc-0274	mc-0274::sd:mu:phylo(0 + x | species)	b2_gaussian_phylo_mu_slope_reml_v1	2026072915	low	b2_structured_q1	FALSE	selected_40
+mc-0275	mc-0275::sd:sigma:phylo(1 | species)	b2_gaussian_phylo_sigma_intercept_v1	2026072916	low	b2_structured_q1	FALSE	selected_40
+mc-0277	mc-0277::sd:sigma:phylo(1 | species)	b2_gaussian_phylo_sigma_intercept_reml_v1	2026072917	low	b2_structured_q1	FALSE	selected_40
+mc-0286	mc-0286::sd:mu:spatial(0 + x | site)	b2_gaussian_spatial_mu_slope_v1	2026072918	low	b2_structured_q1	FALSE	selected_40
+mc-0288	mc-0288::sd:sigma:spatial(1 | site)	b2_gaussian_spatial_sigma_intercept_v1	2026072919	low	b2_structured_q1	FALSE	selected_40
+mc-0289	mc-0289::sd:sigma:spatial(0 + x | site)	b2_gaussian_spatial_sigma_slope_v1	2026072920	low	b2_structured_q1	FALSE	selected_40
+mc-0298	mc-0298::sd:mu:animal(0 + x | id)	b2_gaussian_animal_mu_slope_v1	2026072921	low	b2_structured_q1	FALSE	selected_40
+mc-0310	mc-0310::sd:mu:relmat(0 + x | id)	b2_gaussian_relmat_mu_slope_v1	2026072922	low	b2_structured_q1	FALSE	selected_40
+mc-0321	mc-0321::sd:mu:phylo_interaction(1 | plant:pollinator)	b2_gaussian_phylo_interaction_mu_intercept_v1	2026072923	low	b2_structured_q1	FALSE	selected_40
+mc-0409	mc-0409::sd:mu:phylo_interaction(1 | plant:pollinator)	b2_nbinom2_phylo_interaction_mu_intercept_v1	2026072924	low	b2_structured_q1	FALSE	selected_40
+mc-0417	mc-0417::sd:mu:spatial(1 | site)	b2_nbinom2_spatial_relmat_mu_intercept_v1	2026072925	low	b2_structured_q1	FALSE	selected_40
+mc-0421	mc-0421::sd:sigma:phylo(1 | species)	b2_nbinom2_phylo_sigma_intercept_v1	2026072926	low	b2_structured_q1	FALSE	selected_40
+mc-0422	mc-0422::sd:sigma:spatial(1 | site)	b2_nbinom2_spatial_sigma_intercept_v1	2026072927	low	b2_structured_q1	FALSE	selected_40
+mc-0424	mc-0424::sd:sigma:relmat(1 | id)	b2_nbinom2_relmat_sigma_intercept_v1	2026072929	low	b2_structured_q1	FALSE	selected_40
+mc-0278	mc-0278::sd:mu:phylo(1 | p | species)	b2_gaussian_phylo_q2_intercept_ml_v1	2026072931	low	b2_gaussian_q2	FALSE	selected_40
+mc-0279	mc-0279::sd:sigma:phylo(1 | p | species)	b2_gaussian_phylo_q2_intercept_ml_v1	2026072931	low	b2_gaussian_q2	FALSE	selected_40
+mc-0280	mc-0280::sd:mu:mu:phylo(0 + x | p | species)	b2_gaussian_phylo_q2_slope_ml_v1	2026072932	low	b2_gaussian_q2	FALSE	selected_40
+mc-0281	mc-0281::sd:sigma:sigma:phylo(0 + x | p | species)	b2_gaussian_phylo_q2_slope_ml_v1	2026072932	low	b2_gaussian_q2	FALSE	selected_40
+mc-0291	mc-0291::sd:mu:spatial(1 | p | site)	b2_gaussian_spatial_q2_intercept_ml_v1	2026072934	low	b2_gaussian_q2	FALSE	selected_40
+mc-0292	mc-0292::sd:sigma:spatial(1 | p | site)	b2_gaussian_spatial_q2_intercept_ml_v1	2026072934	low	b2_gaussian_q2	FALSE	selected_40
+mc-0293	mc-0293::sd:mu:mu:spatial(0 + x | p | site)	b2_gaussian_spatial_q2_slope_ml_v1	2026072935	low	b2_gaussian_q2	FALSE	selected_40
+mc-0294	mc-0294::sd:sigma:sigma:spatial(0 + x | p | site)	b2_gaussian_spatial_q2_slope_ml_v1	2026072935	low	b2_gaussian_q2	FALSE	selected_40
+mc-0303	mc-0303::sd:mu:animal(1 | p | id)	b2_gaussian_animal_q2_intercept_ml_v1	2026072936	low	b2_gaussian_q2	FALSE	selected_40
+mc-0304	mc-0304::sd:sigma:animal(1 | p | id)	b2_gaussian_animal_q2_intercept_ml_v1	2026072936	low	b2_gaussian_q2	FALSE	selected_40
+mc-0305	mc-0305::sd:mu:mu:animal(0 + x | p | id)	b2_gaussian_animal_q2_slope_ml_v1	2026072937	low	b2_gaussian_q2	FALSE	selected_40
+mc-0306	mc-0306::sd:sigma:sigma:animal(0 + x | p | id)	b2_gaussian_animal_q2_slope_ml_v1	2026072937	low	b2_gaussian_q2	FALSE	selected_40
+mc-0315	mc-0315::sd:mu:relmat(1 | p | id)	b2_gaussian_relmat_q2_intercept_ml_v1	2026072938	low	b2_gaussian_q2	FALSE	selected_40
+mc-0316	mc-0316::sd:sigma:relmat(1 | p | id)	b2_gaussian_relmat_q2_intercept_ml_v1	2026072938	low	b2_gaussian_q2	FALSE	selected_40
+mc-0317	mc-0317::sd:mu:mu:relmat(0 + x | p | id)	b2_gaussian_relmat_q2_slope_ml_v1	2026072939	low	b2_gaussian_q2	FALSE	selected_40
+mc-0318	mc-0318::sd:sigma:sigma:relmat(0 + x | p | id)	b2_gaussian_relmat_q2_slope_ml_v1	2026072939	low	b2_gaussian_q2	FALSE	selected_40

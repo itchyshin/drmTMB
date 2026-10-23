@@ -443,7 +443,7 @@ new_biv_gaussian_corpair_data <- function(
   x <- stats::rnorm(n)
   ecology_id <- stats::rnorm(n_id)
   ecology <- ecology_id[id]
-  rho_group <- 0.999999 * tanh(beta_cor[[1L]] + beta_cor[[2L]] * ecology_id)
+  rho_group <- 0.99999999 * tanh(beta_cor[[1L]] + beta_cor[[2L]] * ecology_id)
   beta_mu1 <- c(0.2, 0.45)
   beta_mu2 <- c(-0.15, -0.35)
   sigma1 <- 0.35
@@ -1265,13 +1265,13 @@ test_that("bivariate Gaussian supports matching mu1/mu2 intercept-slope q4 block
   )
 
   # This fit has correlated covariance-block random effects (q4), which
-  # marginal simulation does not yet support; re.form = NA keeps this test's
+  # marginal simulation does not yet support; re.form = NULL keeps this test's
   # structural intent (dims, names, finiteness, reproducibility).
-  sims <- simulate(fit, nsim = 2, seed = 2026060202, re.form = NA)
+  sims <- simulate(fit, nsim = 2, seed = 2026060202, re.form = NULL)
   expect_named(sims, c("sim_1_y1", "sim_1_y2", "sim_2_y1", "sim_2_y2"))
   expect_equal(nrow(sims), nrow(sim$data))
   expect_true(all(is.finite(as.matrix(sims))))
-  expect_equal(sims, simulate(fit, nsim = 2, seed = 2026060202, re.form = NA))
+  expect_equal(sims, simulate(fit, nsim = 2, seed = 2026060202, re.form = NULL))
 })
 
 test_that("bivariate Gaussian supports matching mu1/mu2 q6 location blocks", {
@@ -1382,13 +1382,13 @@ test_that("bivariate Gaussian supports matching mu1/mu2 q6 location blocks", {
   )
 
   # This fit has correlated covariance-block random effects (q6), which
-  # marginal simulation does not yet support; re.form = NA keeps this test's
+  # marginal simulation does not yet support; re.form = NULL keeps this test's
   # structural intent (dims, names, finiteness, reproducibility).
-  sims <- simulate(fit, nsim = 1, seed = 2026060204, re.form = NA)
+  sims <- simulate(fit, nsim = 1, seed = 2026060204, re.form = NULL)
   expect_named(sims, c("sim_1_y1", "sim_1_y2"))
   expect_equal(nrow(sims), nrow(sim$data))
   expect_true(all(is.finite(as.matrix(sims))))
-  expect_equal(sims, simulate(fit, nsim = 1, seed = 2026060204, re.form = NA))
+  expect_equal(sims, simulate(fit, nsim = 1, seed = 2026060204, re.form = NULL))
 })
 
 test_that("bivariate Gaussian fits ordinary q2 corpair regression for mu1/mu2 blocks", {
@@ -1680,15 +1680,15 @@ test_that("bivariate Gaussian supports full q4 labelled location-scale covarianc
   expect_equal(nrow(summary(fit)$covariance), 6L)
 
   # This fit has correlated covariance-block random effects (q4 mu/sigma
-  # cross), which marginal simulation does not yet support; re.form = NA
+  # cross), which marginal simulation does not yet support; re.form = NULL
   # keeps this test's structural intent (dims, names, finiteness,
   # reproducibility).
-  sims <- simulate(fit, nsim = 2, seed = 20260630, re.form = NA)
+  sims <- simulate(fit, nsim = 2, seed = 20260630, re.form = NULL)
   expect_named(sims, c("sim_1_y1", "sim_1_y2", "sim_2_y1", "sim_2_y2"))
   expect_equal(nrow(sims), nrow(sim$data))
   expect_true(all(vapply(sims, is.numeric, logical(1L))))
   expect_true(all(is.finite(as.matrix(sims))))
-  expect_equal(sims, simulate(fit, nsim = 2, seed = 20260630, re.form = NA))
+  expect_equal(sims, simulate(fit, nsim = 2, seed = 20260630, re.form = NULL))
 })
 
 test_that("bivariate Gaussian supports q8 all-endpoint location-scale slope blocks", {
@@ -1814,9 +1814,9 @@ test_that("bivariate Gaussian supports q8 all-endpoint location-scale slope bloc
   expect_true(all(abs(unname(fit$corpars$re_cov)) < 1))
 
   # This fit has correlated covariance-block random effects (q8 all-endpoint),
-  # which marginal simulation does not yet support; re.form = NA keeps this
+  # which marginal simulation does not yet support; re.form = NULL keeps this
   # test's structural intent (dims, names, finiteness).
-  sims <- simulate(fit, nsim = 1, seed = 2026060702, re.form = NA)
+  sims <- simulate(fit, nsim = 1, seed = 2026060702, re.form = NULL)
   expect_named(sims, c("sim_1_y1", "sim_1_y2"))
   expect_equal(nrow(sims), nrow(sim$data))
   expect_true(all(is.finite(as.matrix(sims))))
@@ -2386,7 +2386,7 @@ test_that("bivariate Gaussian fits same-response mu/sigma covariance", {
     u_sigma = seq(0.9, -0.6, length.out = re_sigma$n_re),
     log_sd_sigma = log(sim$sd_sigma),
     eta_cor_sigma = 0,
-    eta_cor_mu_sigma = atanh(rho_transform / 0.999999)
+    eta_cor_mu_sigma = atanh(rho_transform / 0.99999999)
   )
 
   transformed <- drmTMB:::transform_biv_sigma_random_effects(
@@ -2516,7 +2516,7 @@ test_that("bivariate Gaussian fits same-response mu/sigma slope covariance", {
     u_sigma = seq(0.6, -0.5, length.out = re_sigma$n_re),
     log_sd_sigma = log(sim$sd_sigma),
     eta_cor_sigma = 0,
-    eta_cor_mu_sigma = atanh(rho_transform / 0.999999)
+    eta_cor_mu_sigma = atanh(rho_transform / 0.99999999)
   )
 
   transformed <- drmTMB:::transform_biv_sigma_random_effects(
@@ -3483,7 +3483,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   expect_error(
     drmTMB(
       bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
-      family = c(gaussian(), beta()),
+      family = c(gaussian(), beta_family()),
       data = dat
     ),
     "Mixed-response bivariate families"

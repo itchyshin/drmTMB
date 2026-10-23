@@ -17,14 +17,14 @@
   profile_endpoint_max_eval = NULL,
   R = 199L,
   seed = NULL,
-  parallel = c("none", "multicore"),
+  parallel = c("none", "multicore", "cluster"),
   workers = NULL,
   refit_control = NULL,
   sd_boundary = 1e-04,
   rho_boundary = 0.98,
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
-  bootstrap_re_form = NULL,
+  bootstrap_re_form = NA,
   ...
 )
 }
@@ -81,13 +81,18 @@ endpoints.}
 
 \item{seed}{Optional seed for bootstrap simulation.}
 
-\item{parallel}{Profile or bootstrap backend: \code{"none"} or Unix
-\code{"multicore"}. For profile intervals, targets or \code{newdata} rows are split
-across workers. For bootstrap intervals, refits are split across workers.}
+\item{parallel}{Profile or bootstrap backend: \code{"none"}, Unix
+\code{"multicore"}, or socket \code{"cluster"} (PSOCK, any platform including
+Windows). For profile intervals, targets or \code{newdata} rows are split
+across workers. For bootstrap intervals, refits are split across workers.
+Every backend returns the serial result; see \link{drmTMB-parallel}.}
 
 \item{workers}{Requested profile or bootstrap workers. If \code{NULL} and
-\code{parallel = "multicore"}, \code{drmTMB} uses about half the detected CPU cores.
-Multicore execution is capped at the number of jobs and at 10 workers.}
+\code{parallel} is not \code{"none"}, \code{drmTMB} uses about half the detected CPU
+cores. Parallel execution is capped at the number of jobs and at 10
+workers.
+Keep BLAS and OpenMP threads at one while workers run; see
+\link{drmTMB-parallel}.}
 
 \item{refit_control}{Optional \code{\link[=drm_control]{drm_control()}} object used for bootstrap
 refits. The default skips \code{TMB::sdreport()} and drops the TMB object because
@@ -149,14 +154,16 @@ push them further conservative) and plain labelled covariance blocks (whose
 correction magnitude is not yet simulation-calibrated).}
 
 \item{bootstrap_re_form}{\code{re.form} passed through to \code{\link[stats:simulate]{stats::simulate()}}
-when \code{method = "bootstrap"}. The default, \code{NULL}, redraws random effects
-for every replicate (marginal simulation), matching what a parametric
-bootstrap of the fitted data-generating process requires. Passing \code{NA}
-instead holds random effects fixed at their conditional-mode estimate;
-this is a documented escape hatch for random-effect structures whose
-marginal draw is not yet implemented, and it makes the resulting
-intervals \strong{anticonservative} because between-group variability is
-never resampled -- it is not a neutral alternative to the default.}
+when \code{method = "bootstrap"}, with the same lme4 meanings as
+\code{\link[=simulate.drmTMB]{simulate.drmTMB()}}. The default, \code{NA}, redraws random effects for every
+replicate (marginal simulation), matching what a parametric bootstrap of
+the fitted data-generating process requires. Passing \code{NULL} instead holds
+random effects fixed at their conditional-mode estimate; this is a
+documented escape hatch for random-effect structures whose marginal draw
+is not yet implemented, and it makes the resulting intervals
+\strong{anticonservative} because between-group variability is never
+resampled -- it is not a neutral alternative to the default. Earlier
+drmTMB versions gave \code{NULL} and \code{NA} the reverse meaning (#1487).}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"} and the \code{tmbprofile} profile engine is used.
@@ -167,13 +174,19 @@ arguments internally; set the profile target with \code{parm}.}
 A data frame with columns \code{parm}, \code{level}, \code{lower}, \code{upper},
 \code{scale}, \code{transformation}, \code{tmb_parameter}, \code{index}, \code{method}, and
 \code{profile.engine}, \code{conf.status}, \code{profile.boundary}, and
-\code{profile.message}. Successful rows currently use
+\code{profile.message}. The returned \code{parm} values use the fully-qualified
+target names used by \code{profile_targets()}, such as \code{fixef:sigma:z}, even
+when the input \code{parm} used a compact label such as \code{sigma:z}. Normalize
+names before joining the result back to user-supplied compact labels.
+Successful rows currently use
 \code{conf.status = "wald"}, \code{"profile"}, or \code{"bootstrap"}. Failed numeric
 profile rows use \code{"profile_failed"} with missing endpoints; profile rows
 mark intervals that land near a lower SD boundary or correlation boundary.
 Bootstrap interval results carry a \code{"bootstrap.diagnostics"} attribute
 with one diagnostic row per refit and target, including refit convergence,
 target availability, draw use, and the refit message.
+For a plain matrix view of the \code{lower} and \code{upper} columns, use
+\code{\link[=as.matrix.drm_confint]{as.matrix.drm_confint()}}.
 }
 \description{
 \code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. Wald
@@ -200,9 +213,16 @@ For predictor-dependent scale, residual-correlation, or currently supported
 response-scale value for each supplied row. Row-specific \code{rho12} profile
 intervals from a regression \code{rho12} formula are computable this way, but no
 simulation has measured their coverage; treat them as interval-feasible,
-not as a calibrated \code{level} interval (tracked as issue #802).
+not as calibrated \code{level} intervals.
 }
 \details{
+Modelled missing-predictor bootstrap is not yet implemented: it requires
+joint predictor simulation and refits that preserve the imputation model and
+missingness pattern. Such requests fail before simulation. Positive predictor
+scales use log-scale Wald intervals transformed by exp(); predictor mixture
+probabilities use logit-scale intervals transformed by plogis(). Public
+covariance and summary standard errors remain on the reported natural scale.
+
 Target names follow the profile target namespace. For fixed effects, use
 names such as \code{"fixef:mu:x"}, \code{"fixef:sigma:(Intercept)"}, or
 \code{"fixef:rho12:w"}. Compact coefficient labels from \code{summary(fit)}, such as
@@ -243,9 +263,9 @@ boundary warns with class \code{drmTMB_profile_boundary_warning}; treat
 that interval as indicative of scale, not as a calibrated
 \code{level} interval (see Boundary intervals below).
 \item A computable interval is not coverage certification. Check the
-exact cell in
+exact model and parameter combination in
 \href{https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html}{Capabilities and limits}
-before reporting a route as inference-ready.
+before reporting its intervals as coverage-validated.
 }
 
 For a short applied walkthrough, see the vignette
@@ -254,7 +274,7 @@ For a short applied walkthrough, see the vignette
 
 \section{Boundary intervals}{
 
-Both interval methods are unreliable when a variance component approaches zero
+Every interval method is unreliable when a variance component approaches zero
 or a correlation approaches \verb{+/-1}, and each warns about its own case.
 
 \code{method = "wald"} flags a row with \code{conf.status = "wald_at_boundary"} and warns
@@ -265,16 +285,26 @@ recommends \code{method = "profile"}.
 \code{method = "profile"} sets \code{profile.boundary = TRUE} and warns (class
 \code{drmTMB_profile_boundary_warning}) when it returns a usable interval that
 reaches a boundary. \strong{A profile interval is not a repair for a boundary.}
-Conditional on that flag, a seeded 10-group random-effect SD gate measured
+Conditional on that flag, a seeded 10-group random-effect SD simulation measured
 coverage at 0.1021, 0.2387, and 0.8683 against a nominal 0.95, and 0 of 89 in a
-fourth cell where boundary hits are rare (0.09\% of fits). The mechanism is a
+fourth scenario where boundary hits are rare (0.09\% of fits). The mechanism is a
 maximum likelihood random-effect SD biased 8.3\%-15.8\% low at small group counts,
 which anchors the interval low so that it misses from above.
 
-Unconditionally -- across all fits, flagged or not -- the same gate measured
+Unconditionally -- across all fits, flagged or not -- the same simulation measured
 0.9248 against a nominal 0.95 over 400,000 attempts. A flagged interval is the
 bad case, not the typical one, and the flag is returned in the table so you can
 tell which case you are in.
+
+Refitting the same design with \code{REML = TRUE} improved this without repairing
+it: over 400,000 paired replicates, profile coverage moved from 0.9248 to
+0.9463 against a nominal 0.95, the SD point estimate's downward bias roughly
+halved (pooled -10.9\% under maximum likelihood to -4.6\% under REML), and the
+upper-to-lower miss asymmetry fell from 5.7:1 to 2.0:1. Coverage conditional
+on the boundary flag improved but stayed well below nominal (0.74 to 0.83),
+so a flagged interval remains the bad case under either estimator. The
+default estimator is unchanged; this measurement covers the one design below
+only.
 
 This is a property of profile intervals near a variance boundary rather than of
 \code{drmTMB}: \code{lme4::lmer} on the same data-generating process and seeds agreed on
@@ -287,9 +317,26 @@ on the mean, 10 groups, 4 or 10 observations per group, maximum likelihood. They
 describe that corner, and are not a general statement about every family,
 provider, or group count.
 
+\code{method = "bootstrap"} flags a row with \code{conf.status = "bootstrap_at_boundary"}
+and warns (class \code{drmTMB_bootstrap_boundary_warning}) when at least 5\% of the
+retained resamples land on the target's bound. Resampling does not repair a
+boundary: a percentile interval whose draws pile up at zero is reporting the
+constraint rather than the sampling distribution. Measured on three Gaussian
+random-intercept fits at \code{R = 200}, a true SD of 0 put 43\% of draws on the
+bound and a true SD of 0.25 put 5\% there with a lower endpoint of exactly
+zero, while a true SD of 0.9 put none there. The flag needs at least 20
+retained draws to fire, because a share computed from a handful of resamples
+is noise; \code{bootstrap.n} reports how many were retained.
+
 Rows with \code{conf.status = "profile_failed"} or \code{"clamp_limited"} also carry
 \code{profile.boundary = TRUE}, but return missing endpoints and are not warned about
 separately; read their \code{conf.status} and \code{profile.message} instead.
+
+\code{check_drm()} does \strong{not} assess any of this. It reads the fit, so a target
+whose point estimate sits well clear of zero passes every fit-level check
+while its interval is still flagged here. \code{check_drm()} emits an
+\code{interval_reliability_scope} note saying so; read \code{conf.status} before
+reporting an interval.
 }
 
 \section{Profiling a structured \code{sigma} random-effect SD}{
@@ -298,16 +345,16 @@ A profile of a \code{sigma}-axis random-effect SD under \code{phylo()}, \code{an
 \code{relmat()}, \code{spatial()}, or \code{phylo_interaction()} is computable for
 \code{zero_one_beta()}, \code{nbinom2()}, and \code{zi_nbinom2()}, but the maximum
 likelihood point estimate it is built around is \strong{biased low} for this
-class of cell: eleven of twelve retained ML estimates fell below truth in
-the sibling \code{nbinom2} provider cells (fit-level one-sided sign test
-\code{p = 0.0032}; \code{p = 0.0625} at cell level, once the shared data-generating
+model class: eleven of twelve retained ML estimates fell below truth in
+the sibling \code{nbinom2} provider scenarios (fit-level one-sided sign test
+\code{p = 0.0032}; \code{p = 0.0625} at scenario level, once the shared data-generating
 process and random-number stream are respected). Two corrections that exist
 elsewhere for this bias do not reach these routes: \code{bias_correct} shifts
 only the \code{method = "wald"} centre and never a profile endpoint, and native
 scale-side REML is unavailable here because \code{drm_validate_reml_spec()}
 admits only Gaussian and binomial models. The profile interval therefore
-inherits the bias of its centre uncorrected. These routes carry point-fit
-recovery evidence only, and no seeded campaign has yet measured the
+inherits the bias of its centre uncorrected. Only point-estimate recovery has
+been checked for these routes, and no simulation study has yet measured the
 coverage of a profile interval built on them, so treat the endpoints as a
 computed profile rather than calibrated inference.
 }
@@ -351,10 +398,9 @@ The small-sample corrections applied by \code{small_sample_df} and \code{bias_co
 not derived: the \code{log(g / (g - 1))} SD-scale centre
 shift is about \strong{twice} the leading-order REML SD correction
 (\code{0.5 * log(g / (g - 1))}), matching the larger ML shrinkage measured on these
-structured/bivariate cells (their effective df is well below \code{g - 1}). The
-magnitude's authority is the per-model-class simulation in
-\code{docs/design/219-structured-re-small-sample-bias-correction.md}, not a single
-source. Relevant references:
+structured/bivariate models (their effective df is well below \code{g - 1}). The
+magnitude used here comes from separate simulations for each structured or
+bivariate model class, not from a single general correction. Relevant references:
 
 Restricted maximum likelihood and the variance-component bias that motivates
 the centre shift (REML debiases the variance by \code{g/(g-1)}; the shift here is on
@@ -423,9 +469,9 @@ estimating repeatability. Methods in Ecology and Evolution, 3(1), 129-137.
 \doi{10.1111/j.2041-210X.2011.00125.x}
 }
 \seealso{
-The tier definitions and per-cell evidence behind these interval
-targets, including random-effect standard-deviation rows, are curated in
-\code{vignette("capability-and-limits", package = "drmTMB")}: \code{confint()}
-computes generically for any target, and the tier a given cell belongs to
-is a documentation-level curation, not a runtime guard.
+The model-specific evidence behind these interval targets, including
+random-effect standard-deviation rows, is summarized in
+\code{vignette("capability-and-limits", package = "drmTMB")}. \code{confint()}
+can compute intervals for targets whose coverage has not been measured, so a
+successful computation is not by itself evidence of calibrated coverage.
 }

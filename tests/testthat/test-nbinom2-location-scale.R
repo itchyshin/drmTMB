@@ -761,11 +761,11 @@ test_that("nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + (1 + x | id), sigma ~ 1),
+      bf(y ~ x + (1 + x | p | id), sigma ~ 1),
       family = nbinom2(),
       data = dat
     ),
-    "Only independent NB2"
+    "unlabelled Poisson intercept-slope block"
   )
   expect_error(
     drmTMB(

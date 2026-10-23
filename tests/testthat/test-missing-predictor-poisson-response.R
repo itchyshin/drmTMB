@@ -108,7 +108,7 @@ test_that("Poisson-response mi() validates the first non-Gaussian response bound
 
   expect_error(
     drmTMB(
-      bf(y ~ z + mi(treatment), zi ~ 1),
+      bf(y ~ z + mi(treatment), zi ~ treatment),
       data = dat,
       family = poisson(),
       impute = list(
@@ -117,7 +117,7 @@ test_that("Poisson-response mi() validates the first non-Gaussian response bound
       missing = miss_control(predictor = "model"),
       control = drm_control(se = FALSE)
     ),
-    "zero inflation"
+    "missing predictor on"
   )
 
   dat$z[3] <- NA_real_

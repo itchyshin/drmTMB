@@ -533,15 +533,16 @@ test_that("biv_student rejects deferred first-slice syntax and intervals", {
     ),
     "penalty"
   )
-  expect_error(
-    drmTMB(
-      base_formula,
-      family = biv_student(),
-      data = dat,
-      engine = "julia"
-    ),
-    "engine"
-  )
+  # `engine = "julia"` USED to be refused here by a family-specific abort in
+  # drmTMB() ("implemented only for engine = \"tmb\"; the Julia route is
+  # deferred"). That abort is retired (fam-biv-student leaf, 2026-09-05): the
+  # Julia family registry is now the single admission authority, and the route
+  # is covered by tests/testthat/test-julia-family-biv_student.R -- registry
+  # row, payload labels, scope fence, and a live same-target receipt against
+  # engine = "tmb". The expectation removed here was also unsound: with no
+  # Julia engine on the machine the call errored for an unrelated reason and
+  # still matched "engine", so it passed green in exactly the configuration
+  # that could not test the claim.
 
   fit <- suppressWarnings(
     drmTMB(base_formula, family = biv_student(), data = dat)

@@ -1,0 +1,5 @@
+vignette,field,clause,rationale
+large-data.Rmd,obj,"`fit$obj` was intentionally dropped","Explains the negative case: gradient re-evaluation is unavailable after deliberately dropping the TMB object."
+figure-gallery.Rmd,model,"pred_tail$model <- ""Tail weight""","`model` is an ordinary plotting-data column, not a drmTMB fit slot."
+figure-gallery.Rmd,model,"pred_zi$model <- ""Structural-zero probability""","`model` is an ordinary plotting-data column, not a drmTMB fit slot."
+figure-gallery.Rmd,model,"pred_rho$model <- ""Residual correlation""","`model` is an ordinary plotting-data column, not a drmTMB fit slot."

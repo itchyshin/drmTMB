@@ -12,36 +12,36 @@ spatial(term, coords = NULL, mesh = NULL)
 \item{coords}{Coordinate object, such as a data frame or matrix of spatial
 coordinates.}
 
-\item{mesh}{Planned precomputed mesh object.}
+\item{mesh}{Reserved; precomputed mesh inputs are not supported.}
 }
 \value{
 A formula marker; never evaluated by users.
 }
 \description{
-\code{spatial()} marks structured spatial dependence. The first fitted path is
+\code{spatial()} marks structured spatial dependence. The supported base model is
 the univariate Gaussian location random intercept
 \code{spatial(1 | site, coords = coords)}, where \code{coords} is a matrix or data
 frame with one row per site or one row per observation. The univariate
 Gaussian location path also supports one numeric slope,
 \code{spatial(1 + x | site, coords = coords)}, as independent intercept and slope
 fields with separate SDs and no intercept-slope correlation. Matching
-labelled bivariate Gaussian \code{mu1}/\code{mu2} terms fit the first q=2
+labelled bivariate Gaussian \code{mu1}/\code{mu2} terms fit the supported q=2
 coordinate-spatial location covariance, matching univariate Gaussian \code{mu} and
 \code{sigma} intercept terms fit one spatial mean-scale correlation, and matching
-labelled all-four \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} terms fit the first constant
+labelled all-four \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} terms fit the supported constant
 q=4 location-scale block. Fitted non-Gaussian spatial routes cover the
 univariate student \code{mu} q=1 intercept or one-slope, ordinary Poisson and NB2
 \code{mu} q=1 intercepts or one-slopes, zero-inflated Poisson \code{zi} q=1 intercept,
 and the NB2 \code{sigma} q=1 one-slope, all at recovery grade: trust the point
 estimate, not the interval. Mesh inputs, multiple structured slopes,
-residual-scale structured slopes beyond the NB2 one-slope gate, slope
-correlations, and predictor-dependent spatial \code{corpair()} regression remain
-planned.
+residual-scale structured slopes beyond the supported NB2 slope, slope
+correlations, and predictor-dependent spatial \code{corpair()} regression are not
+supported.
 }
 \examples{
 # Fitted for univariate Gaussian mu with coords:
 bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
-# Fitted first q=2 bivariate spatial location block:
+# Supported q=2 bivariate spatial location block:
 bf(
   mu1 = y1 ~ x + spatial(1 | p | site, coords = coords),
   mu2 = y2 ~ x + spatial(1 | p | site, coords = coords),
@@ -49,6 +49,4 @@ bf(
   sigma2 = ~ 1,
   rho12 = ~ 1
 )
-# Planned:
-bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 }

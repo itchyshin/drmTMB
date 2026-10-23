@@ -1,0 +1,12 @@
+field	value
+source_sha	d128a8e2b71fce9940cdb38b2301682425694bef
+source_state	COMMITTED
+cohort_path	2026-07-31-b2-q12-phylo-proof-cohort.tsv
+re_admission_path	2026-07-31-b2-q12-phylo-proof-re-admission.tsv
+atlas_root	docs/dev-log/interval-feasibility/fit-atlas/d128a8e2b71fce9940cdb38b2301682425694bef/b2-q12-phylo-proof
+atlas_disposition	RETAINED_FIT_FAILURE
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+profile_packet	NOT_EMITTED
+claim_ceiling	fit_only_admission
+negative_control	mc-0260m retained non-covering K=12 control

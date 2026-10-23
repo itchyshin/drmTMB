@@ -50,10 +50,13 @@ test_that("family-tag gating admits Workflow G FE tags and phylo counts", {
       fam
     )
   }
-  # beta_binomial stays outside the R Julia bridge admission.
-  expect_error(
+  # A4 (2026-09-05): beta_binomial is admitted on the fixed-effect route, so
+  # the family TAG no longer refuses it; the phylo() shape is refused further
+  # down, before Julia, by the scope fence pinned in
+  # tests/testthat/test-julia-family-beta_binomial.R.
+  expect_equal(
     drmTMB:::drm_julia_family_tag("beta_binomial", has_phylo = TRUE),
-    "Workflow G fixed-effect|Gaussian one-/two-response"
+    "beta_binomial"
   )
 })
 
@@ -153,6 +156,7 @@ drm_phylo_count_fit <- function(n_tip = 24L) {
 }
 
 test_that("Poisson phylo fit via engine = 'julia' is finite, sane, TMB-parity", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
@@ -162,15 +166,9 @@ test_that("Poisson phylo fit via engine = 'julia' is finite, sane, TMB-parity", 
     "DRM.jl phylo-count engine not available"
   )
 
-  res <- tryCatch(
-    drm_phylo_count_fit(n_tip = 24L),
-    error = function(e) {
-      testthat::skip(paste(
-        "Poisson phylo round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # Poisson phylo round-trip: run bare so an engine error is a test ERROR,
+  # not a swallowed skip (#1127).
+  res <- drm_phylo_count_fit(n_tip = 24L)
 
   # --- Finite-and-sane floor (always required if the fit ran) ---------------
   expect_true("drmTMB_julia" %in% res$class)

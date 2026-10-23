@@ -1,9 +1,40 @@
-drm_test_drmjl_path <- function(envvar = "DRM_JL_PHYLO_PATH") {
-  path <- Sys.getenv(envvar, "")
-  if (!nzchar(path) && !identical(envvar, "DRM_JL_PHYLO_PATH")) {
-    path <- Sys.getenv("DRM_JL_PHYLO_PATH", "")
+# Family-specific opt-ins keep precedence. General settings follow the bridge:
+# canonical option/env, legacy option/env, then the older phylo-only fallback.
+# This remains the only place DRM_JL_PHYLO_PATH is read (gate N7-G3).
+drm_test_drmjl_path <- function(envvar = "DRM_JL_PATH") {
+  if (!envvar %in% c("DRMODELS_JL_PATH", "DRM_JL_PATH", "DRM_JL_PHYLO_PATH")) {
+    path <- Sys.getenv(envvar, "")
+    if (nzchar(path)) {
+      return(path)
+    }
   }
-  path
+  candidates <- list(
+    getOption("drmTMB.DRModels.jl.path", ""),
+    Sys.getenv("DRMODELS_JL_PATH", ""),
+    getOption("drmTMB.DRM.jl.path", ""),
+    Sys.getenv("DRM_JL_PATH", ""),
+    Sys.getenv("DRM_JL_PHYLO_PATH", "")
+  )
+  for (path in candidates) {
+    if (is.character(path) && length(path) == 1L && !is.na(path) && nzchar(path)) {
+      return(path)
+    }
+  }
+  ""
+}
+
+# Bind a test-selected checkout through both the canonical and legacy bridge
+# settings. The canonical option must carry the selected path because the
+# production resolver intentionally prefers it over every legacy setting.
+drm_test_local_drmjl_path <- function(path, .local_envir = parent.frame()) {
+  withr::local_options(
+    list(
+      drmTMB.DRModels.jl.path = path,
+      drmTMB.DRM.jl.path = path
+    ),
+    .local_envir = .local_envir
+  )
+  invisible(path)
 }
 
 drm_test_julia_home <- function() {
@@ -28,4 +59,118 @@ drm_test_local_julia_home <- function(.local_envir = parent.frame()) {
     withr::local_envvar(c(JULIA_HOME = home), .local_envir = .local_envir)
   }
   invisible(home)
+}
+
+# Issue #1081 option 1: a green run states its own boundary. Every path
+# through drm_skip_live_julia() records itself here, and a teardown file
+# prints the tally so silence about the unexercised live engine is no longer
+# silent. The contract runs both ways (tests/testthat/test-julia-bridge-summary.R):
+# zero live tests => the line says the LIVE ENGINE was not exercised;
+# any live test => it says the bridge was exercised and never claims otherwise.
+drm_julia_bridge_summary_env <- new.env(parent = emptyenv())
+drm_julia_bridge_summary_env$ran <- 0L
+drm_julia_bridge_summary_env$skipped <- 0L
+
+drm_julia_bridge_summary_reset <- function() {
+  drm_julia_bridge_summary_env$ran <- 0L
+  drm_julia_bridge_summary_env$skipped <- 0L
+  invisible(NULL)
+}
+
+drm_julia_bridge_summary_record_skip <- function() {
+  drm_julia_bridge_summary_env$skipped <- drm_julia_bridge_summary_env$skipped + 1L
+  invisible(NULL)
+}
+
+drm_julia_bridge_summary_record_live <- function() {
+  drm_julia_bridge_summary_env$ran <- drm_julia_bridge_summary_env$ran + 1L
+  invisible(NULL)
+}
+
+drm_julia_bridge_summary_line <- function() {
+  ran <- drm_julia_bridge_summary_env$ran
+  skipped <- drm_julia_bridge_summary_env$skipped
+  if (ran > 0L) {
+    ran_part <- sprintf(
+      "%d live test%s ran", ran, if (ran == 1L) "" else "s"
+    )
+    if (skipped > 0L) {
+      sprintf(
+        "Julia bridge: %s, %d skipped; bridge glue was exercised in this configuration.",
+        ran_part, skipped
+      )
+    } else {
+      sprintf(
+        "Julia bridge: %s; bridge glue was exercised in this configuration.",
+        ran_part
+      )
+    }
+  } else {
+    # Zero live tests: the LIVE ENGINE was not exercised. This line used to say
+    # "bridge glue is UNTESTED", which over-claimed: the mock-driven marshalling
+    # tests (local_mocked_bindings() around drm_julia_call_*) run in this very
+    # configuration. This tally only sees drm_skip_live_julia(), so it reports
+    # the ENGINE boundary and nothing more; CI counts the mock-driven tests in
+    # the step "Julia bridge glue executes (mock-driven, no Julia)"
+    # (.github/workflows/R-CMD-check.yaml, issue #1081), whose measured tally
+    # lives in that step's comment.
+    sprintf(
+      "Julia bridge: 0 live tests ran, %d skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).",
+      skipped
+    )
+  }
+}
+
+# Live JuliaCall::julia_setup() is unsafe on CRAN / win-builder even when
+# JuliaCall is installed (Suggests) and Julia is on PATH. Ligges R-release
+# hung inside julia_setup() for ~10448s on the post-#1061 tarball (2026-08-17)
+# because a CRAN-lane expect_error(engine = "julia") reached setup. Opt in with
+# DRMTMB_JULIA_TESTS=true. Repository CI uses NOT_CRAN=true (skip is a no-op).
+#
+# Match tests/testthat.R CRAN-lane detection for non-interactive checks, then
+# also call skip_on_cran() for defense in depth. Interactive sessions without
+# NOT_CRAN still rely on skip_on_cran() so local exploration keeps working.
+#
+# Every call is recorded into drm_julia_bridge_summary_env (issue #1081
+# option 1) so a green run can state whether the bridge glue ran or was
+# skipped, instead of a silent mock-only pass.
+drm_skip_live_julia <- function() {
+  proceed <- tryCatch(
+    {
+      .drm_skip_live_julia_impl()
+      TRUE
+    },
+    skip = function(cnd) {
+      drm_julia_bridge_summary_record_skip()
+      stop(cnd)
+    }
+  )
+  if (isTRUE(proceed)) {
+    drm_julia_bridge_summary_record_live()
+  }
+  invisible(proceed)
+}
+
+.drm_skip_live_julia_impl <- function() {
+  # Engine availability is decided HERE and nowhere else (#1127): a live Julia
+  # test needs a DRM.jl checkout. CI sets NOT_CRAN=true with no DRM.jl, and
+  # until 2026-09-03 the per-test tryCatch swallows hid that; now the gate
+  # skips with one reason. A path that exists but is not DRM.jl still
+  # proceeds and fails loudly (that is the point).
+  if (!dir.exists(drm_test_drmjl_path())) {
+    testthat::skip("DRModels.jl / DRM.jl engine not available (set DRMODELS_JL_PATH or DRM_JL_PATH)")
+  }
+  if (identical(Sys.getenv("DRMTMB_JULIA_TESTS"), "true")) {
+    return(invisible(TRUE))
+  }
+  if (
+    !isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false"))) &&
+      !interactive()
+  ) {
+    testthat::skip(
+      "Live Julia skipped on CRAN lane (set NOT_CRAN=true or DRMTMB_JULIA_TESTS=true)."
+    )
+  }
+  testthat::skip_on_cran()
+  invisible(TRUE)
 }

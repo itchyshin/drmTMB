@@ -15,6 +15,7 @@ drm_miss_jl_path <- function() {
 }
 
 test_that("engine='julia' fits Gaussian response='include' (observed-data, design kept)", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
@@ -23,49 +24,212 @@ test_that("engine='julia' fits Gaussian response='include' (observed-data, desig
     "DRM.jl engine path not available"
   )
 
-  res <- tryCatch(
-    {
-      pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
-      callr::r(
-        function(pkg, jl_path) {
-          julia_home <- Sys.getenv(
-            "DRM_JL_JULIA_HOME",
-            Sys.getenv("JULIA_HOME", "")
-          )
-          if (nzchar(julia_home)) {
-            Sys.setenv(JULIA_HOME = julia_home)
-          }
-          options(drmTMB.DRM.jl.path = jl_path)
-          suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
-          set.seed(1L)
-          n <- 60L
-          x <- stats::rnorm(n)
-          y <- 0.3 + 0.5 * x + stats::rnorm(n) * exp(0.1 * x)
-          y[1:6] <- NA
-          dat <- data.frame(y = y, x = x)
-          fj <- drmTMB::drmTMB(
-            drmTMB::bf(y ~ x, sigma ~ x),
-            family = stats::gaussian(),
-            data = dat,
-            engine = "julia",
-            missing = drmTMB::miss_control(response = "include")
-          )
-          list(ll = as.numeric(stats::logLik(fj)), nobs = stats::nobs(fj))
-        },
-        args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
-        error = "error"
+  # julia missing round-trip: run bare so an engine error is a test ERROR,
+  # not a swallowed skip (#1127).
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  res <- callr::r(
+    function(pkg, jl_path) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
       )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+      set.seed(1L)
+      n <- 60L
+      x <- stats::rnorm(n)
+      y <- 0.3 + 0.5 * x + stats::rnorm(n) * exp(0.1 * x)
+      y[1:6] <- NA
+      dat <- data.frame(y = y, x = x)
+      fj <- drmTMB::drmTMB(
+        drmTMB::bf(y ~ x, sigma ~ x),
+        family = stats::gaussian(),
+        data = dat,
+        engine = "julia",
+        missing = drmTMB::miss_control(response = "include")
+      )
+      list(ll = as.numeric(stats::logLik(fj)), nobs = stats::nobs(fj))
     },
-    error = function(e) {
-      testthat::skip(paste(
-        "julia missing round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
+    args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
+    error = "error"
   )
 
   expect_true(is.finite(res$ll))
   expect_equal(res$nobs, 54L) # 60 rows - 6 missing responses dropped from the likelihood
+})
+
+test_that("engine='julia' response='include' on Gaussian MEAN-phylo equals the drop fit (D-179 #2)", {
+  # The named hole in the gaussian_response_mask row: include used to be
+  # REFUSED on the mean-phylo route. The decision experiment (2026-08-27)
+  # showed native drmTMB's include and drop fits are byte-identical on this
+  # cell, so DRM.jl now fits include as observed rows + full tree. Assert the
+  # two policies agree through the LIVE bridge, on a fixture with one species
+  # fully masked (the prior-only-leaf case).
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not_installed("ape")
+  skip_if_not(
+    dir.exists(drm_miss_jl_path()),
+    "DRM.jl engine path not available"
+  )
+
+  # julia mean-phylo include round-trip: run bare (#1127).
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  res <- callr::r(
+    function(pkg, jl_path) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+      set.seed(20260827L)
+      n_tip <- 12L
+      m <- 5L
+      tree <- ape::rcoal(n_tip)
+      tree$tip.label <- paste0("sp_", seq_len(n_tip))
+      A <- ape::vcv(tree, corr = TRUE)
+      u <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip)) * 0.6
+      species <- factor(rep(tree$tip.label, each = m),
+                        levels = tree$tip.label)
+      n <- n_tip * m
+      x <- stats::rnorm(n)
+      y <- 0.3 + 0.5 * x + u[as.integer(species)] + 0.4 * stats::rnorm(n)
+      y[c(2L, 9L)] <- NA
+      y[(3L * m + 1L):(4L * m)] <- NA   # species 4 entirely masked
+      dat <- data.frame(y = y, x = x, species = species)
+
+      fit_one <- function(policy) {
+        drmTMB::drmTMB(
+          drmTMB::bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+          family = stats::gaussian(),
+          data = dat,
+          engine = "julia",
+          missing = drmTMB::miss_control(response = policy)
+        )
+      }
+      fi <- fit_one("include")
+      fd <- fit_one("drop")
+      list(
+        ll_incl = as.numeric(stats::logLik(fi)),
+        ll_drop = as.numeric(stats::logLik(fd)),
+        coef_incl = as.numeric(unlist(drmTMB::fixef(fi))),
+        coef_drop = as.numeric(unlist(drmTMB::fixef(fd))),
+        nobs_incl = stats::nobs(fi)
+      )
+    },
+    args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
+    error = "error"
+  )
+
+  expect_true(is.finite(res$ll_incl))
+  expect_equal(res$nobs_incl, 53L) # 60 rows - 7 masked responses
+  # include IS drop on this cell: same rows fitted, same likelihood, same
+  # coefficients (bridge marshalling differs only in WHERE the filter runs).
+  expect_equal(res$ll_incl, res$ll_drop, tolerance = 1e-10)
+  expect_equal(res$coef_incl, res$coef_drop, tolerance = 1e-10)
+})
+
+# --- #646 / A8c: inference on a masked-response Julia fit ---------------------
+#
+# A8 qualified this cell and found two defects that had nothing to do with the
+# point estimates (which match engine = "tmb" to ~7e-06 on this very fixture):
+#
+#   1. `is_converged()` read FALSE on a genuinely converged fit. DRM.jl's
+#      degeneracy bar took the response scale as `std(fit.obs[:mu])`, and that
+#      vector still carries NaN in the masked positions, so the bar was
+#      `smax > NaN` -- false for every `smax` under IEEE-754. MEASURED at the
+#      pin: raw Optim.converged TRUE, |grad|inf 6.41e-12 against g_tol 1e-8,
+#      and theta identical to the complete-case fit (max abs diff 0.0).
+#   2. `confint(method = "bootstrap")` threw "all 99 bootstrap replicates
+#      failed": every replicate died in `simulate` with DimensionMismatch,
+#      because the draw count was `fit.nobs` (54) while the fitted mean and
+#      scale vectors span the full design (60).
+#
+# Both are fixed in DRM.jl (#646). These assertions are the drmTMB-side guard,
+# and they are deliberately on the MASKED fixture -- on complete-case data
+# neither defect can appear, so a green test there would prove nothing.
+
+test_that("engine='julia' response='include' converges and bootstraps (#646)", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not(
+    dir.exists(drm_miss_jl_path()),
+    "DRM.jl engine path not available"
+  )
+
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  res <- callr::r(
+    function(pkg, jl_path) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+      set.seed(1L)
+      n <- 60L
+      x <- stats::rnorm(n)
+      y <- 0.3 + 0.5 * x + stats::rnorm(n) * exp(0.1 * x)
+      y[1:6] <- NA
+      dat <- data.frame(y = y, x = x)
+      fj <- drmTMB::drmTMB(
+        drmTMB::bf(y ~ x, sigma ~ x),
+        family = stats::gaussian(),
+        data = dat,
+        engine = "julia",
+        missing = drmTMB::miss_control(response = "include")
+      )
+      boot <- stats::confint(
+        fj,
+        parm = "fixef:mu:x",
+        method = "bootstrap",
+        R = 19L,
+        seed = 646L
+      )
+      list(
+        n_missing = sum(is.na(dat$y)),
+        converged = drmTMB::is_converged(fj),
+        opt = fj$opt,
+        boot_failed = boot$bootstrap.failed,
+        boot_n = boot$bootstrap.n,
+        boot_finite = all(is.finite(c(boot$lower, boot$upper)))
+      )
+    },
+    args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
+    error = "error"
+  )
+
+  # The fixture really is masked -- otherwise this test guards nothing.
+  expect_equal(res$n_missing, 6L)
+
+  # Defect 1: the converged fit reports converged.
+  expect_true(res$converged)
+  expect_equal(res$opt$convergence, 0L)
+
+  # `opt` carries the optimiser's iteration count and a message, not a bare
+  # integer: a user who sees convergence 1 must have something to read.
+  expect_true(all(c("convergence", "iterations", "message") %in% names(res$opt)))
+  expect_true(is.character(res$opt$message) && nzchar(res$opt$message))
+  expect_true(is.na(res$opt$iterations) || res$opt$iterations > 0L)
+
+  # Defect 2: the bootstrap completes instead of losing every replicate.
+  expect_equal(res$boot_failed, 0L)
+  expect_equal(res$boot_n, 19L)
+  expect_true(res$boot_finite)
 })
 
 test_that("engine='julia' rejects response='include' for non-Gaussian families", {
@@ -158,7 +322,7 @@ test_that("dropping NA rows first makes the phylo payload row_order complete-cas
 # the native engine='tmb' dropped-case fit OR error explicitly -- it must never
 # silently return a NaN loglik / non-converged result (the pre-fix failure mode).
 test_that("engine='julia' count phylo fit with NA response drops rows, matches native (live)", {
-  skip_on_cran()
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
@@ -168,21 +332,20 @@ test_that("engine='julia' count phylo fit with NA response drops rows, matches n
     "DRM.jl engine path not available"
   )
 
-  res <- tryCatch(
-    {
-      pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
-      callr::r(
-        function(pkg, jl_path) {
-          julia_home <- Sys.getenv(
-            "DRM_JL_JULIA_HOME",
-            Sys.getenv("JULIA_HOME", "")
-          )
-          if (nzchar(julia_home)) {
-            Sys.setenv(JULIA_HOME = julia_home)
-          }
-          options(drmTMB.DRM.jl.path = jl_path)
-          Sys.setenv(DRM_JL_PATH = jl_path)
-          suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+  # julia count-phylo NA round-trip: run bare (#1127).
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  res <- callr::r(
+    function(pkg, jl_path) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      Sys.setenv(DRM_JL_PATH = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
 
           set.seed(11L)
           N <- 40L
@@ -254,18 +417,9 @@ test_that("engine='julia' count phylo fit with NA response drops rows, matches n
             n_complete = nrow(dat_cc)
           )
         },
-        args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
-        error = "error"
-      )
-    },
-    error = function(e) {
-      testthat::skip(paste(
-        "julia count-phylo NA round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
+    args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
+    error = "error"
   )
-  skip_if(is.null(res))
 
   if (isTRUE(res$jl_errored)) {
     # Explicit error is an acceptable contract (never a silent NaN).

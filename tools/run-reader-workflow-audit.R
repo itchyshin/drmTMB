@@ -7,11 +7,13 @@
 # package is loaded.  A failed post-fit step is retained in the TSV so that a
 # successful optimisation cannot disguise a broken reader path.
 
-if (!requireNamespace("devtools", quietly = TRUE)) {
+if (!isNamespaceLoaded("drmTMB") && !requireNamespace("devtools", quietly = TRUE)) {
   stop("This development audit needs devtools to load the checkout.", call. = FALSE)
 }
 
-devtools::load_all(quiet = TRUE)
+if (!isNamespaceLoaded("drmTMB")) {
+  devtools::load_all(quiet = TRUE)
+}
 set.seed(20260812)
 
 status <- function(expr) {
@@ -49,21 +51,27 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
   started <- proc.time()[["elapsed"]]
   fitted <- status(fit())
   if (!fitted$ok) {
-    return(data.frame(
-      workflow = id, question = question, exact_model = model, estimand = estimand,
-      uncertainty_route = uncertainty, diagnostic_route = "check_drm()",
-      report_artifact = "generic post-fit smoke: summary() + fitted()",
-      evidence_tier = "smoke only; no recovery or calibration claim",
-      fit = "fail", diagnostics = "not_run", report_output = "not_run", limitation = limitation,
-      unsupported_request = paste0("profile target unsupported:", id),
-      unsupported_response = "not_run",
-      unsupported_message = "",
-      seconds = round(proc.time()[["elapsed"]] - started, 2),
-      fit_warnings = "", first_blocker = fitted$message, stringsAsFactors = FALSE
+    return(list(
+      result = data.frame(
+        workflow = id, question = question, exact_model = model, estimand = estimand,
+        uncertainty_route = uncertainty, diagnostic_route = "check_drm()",
+        report_artifact = "generic post-fit smoke: summary() + fitted()",
+        evidence_tier = "smoke only; no recovery or calibration claim",
+        fit = "fail", diagnostics = "not_run", report_output = "not_run", limitation = limitation,
+        unsupported_request = paste0("profile target unsupported:", id),
+        unsupported_response = "not_run",
+        unsupported_message = "",
+        seconds = round(proc.time()[["elapsed"]] - started, 2),
+        fit_warnings = "", first_blocker = fitted$message, stringsAsFactors = FALSE
+      ),
+      fit = NULL,
+      data = NULL
     ))
   }
 
-  fit_object <- fitted$value
+  fixture <- fitted$value
+  fit_object <- fixture$fit
+  fixture_data <- fixture$data
   diagnostic <- status(drmTMB::check_drm(fit_object))
   diagnostic_pass <- reader_diagnostic_pass(diagnostic)
   # This is a generic post-fit smoke only. Dedicated specialist assertions live
@@ -101,19 +109,23 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
   }
   if (!nzchar(blocker)) blocker <- "none"
 
-  data.frame(
-    workflow = id, question = question, exact_model = model, estimand = estimand,
-    uncertainty_route = uncertainty, diagnostic_route = "check_drm()",
-    report_artifact = "generic post-fit smoke: summary() + fitted()",
-    evidence_tier = "smoke only; no recovery or calibration claim", fit = "pass",
-    diagnostics = as_flag(diagnostic_pass), report_output = as_flag(reporting$ok),
-    unsupported_request = unsupported_request,
-    unsupported_response = as_flag(unsupported_pass),
-    unsupported_message = unsupported_message,
-    limitation = limitation,
-    seconds = round(proc.time()[["elapsed"]] - started, 2),
-    fit_warnings = fit_warnings,
-    first_blocker = blocker, stringsAsFactors = FALSE
+  list(
+    result = data.frame(
+      workflow = id, question = question, exact_model = model, estimand = estimand,
+      uncertainty_route = uncertainty, diagnostic_route = "check_drm()",
+      report_artifact = "generic post-fit smoke: summary() + fitted()",
+      evidence_tier = "smoke only; no recovery or calibration claim", fit = "pass",
+      diagnostics = as_flag(diagnostic_pass), report_output = as_flag(reporting$ok),
+      unsupported_request = unsupported_request,
+      unsupported_response = as_flag(unsupported_pass),
+      unsupported_message = unsupported_message,
+      limitation = limitation,
+      seconds = round(proc.time()[["elapsed"]] - started, 2),
+      fit_warnings = fit_warnings,
+      first_blocker = blocker, stringsAsFactors = FALSE
+    ),
+    fit = fit_object,
+    data = fixture_data
   )
 }
 
@@ -133,8 +145,11 @@ results <- list(
       growth <- 2 + 0.8 * x + 0.5 * (habitat == "grassland") +
         rnorm(n, sd = ifelse(habitat == "grassland", 0.8, 0.4))
       data <- reader_import(data.frame(growth, habitat, x))
-      drmTMB::drmTMB(drmTMB::bf(growth ~ habitat + x, sigma ~ habitat),
-        family = stats::gaussian(), data = data)
+      list(
+        fit = drmTMB::drmTMB(drmTMB::bf(growth ~ habitat + x, sigma ~ habitat),
+          family = stats::gaussian(), data = data),
+        data = data
+      )
     }
   ),
   run_workflow(
@@ -150,8 +165,11 @@ results <- list(
       mu <- effort * exp(0.4 + 0.5 * (habitat == "restored") + 0.3 * x)
       count <- stats::rnbinom(n, mu = mu, size = 2)
       data <- reader_import(data.frame(count, habitat, x, effort))
-      drmTMB::drmTMB(drmTMB::bf(count ~ habitat + x + offset(log(effort)), sigma ~ habitat),
-        family = drmTMB::nbinom2(), data = data)
+      list(
+        fit = drmTMB::drmTMB(drmTMB::bf(count ~ habitat + x + offset(log(effort)), sigma ~ habitat),
+          family = drmTMB::nbinom2(), data = data),
+        data = data
+      )
     }
   ),
   run_workflow(
@@ -171,8 +189,11 @@ results <- list(
       germinated <- stats::rbinom(n, trials, p)
       failed <- trials - germinated
       data <- reader_import(data.frame(germinated, failed, treatment, x))
-      drmTMB::drmTMB(drmTMB::bf(cbind(germinated, failed) ~ treatment + x, sigma ~ 1),
-        family = drmTMB::beta_binomial(), data = data)
+      list(
+        fit = drmTMB::drmTMB(drmTMB::bf(cbind(germinated, failed) ~ treatment + x, sigma ~ 1),
+          family = drmTMB::beta_binomial(), data = data),
+        data = data
+      )
     }
   ),
   run_workflow(
@@ -189,7 +210,10 @@ results <- list(
         levels = c("low", "medium", "high"))
       data <- reader_import(data.frame(score = as.character(score), habitat, x))
       data$score <- ordered(data$score, levels = c("low", "medium", "high"))
-      drmTMB::drmTMB(drmTMB::bf(score ~ habitat + x), family = drmTMB::cumulative_logit(), data = data)
+      list(
+        fit = drmTMB::drmTMB(drmTMB::bf(score ~ habitat + x), family = drmTMB::cumulative_logit(), data = data),
+        data = data
+      )
     }
   ),
   run_workflow(
@@ -205,8 +229,11 @@ results <- list(
       cover[sample.int(n, 8)] <- 0
       cover[sample.int(n, 8)] <- 1
       data <- reader_import(data.frame(cover, grazing))
-      drmTMB::drmTMB(drmTMB::bf(cover ~ grazing, sigma ~ 1, zoi ~ grazing, coi ~ 1),
-        family = drmTMB::zero_one_beta(), data = data)
+      list(
+        fit = drmTMB::drmTMB(drmTMB::bf(cover ~ grazing, sigma ~ 1, zoi ~ grazing, coi ~ 1),
+          family = drmTMB::zero_one_beta(), data = data),
+        data = data
+      )
     }
   ),
   run_workflow(
@@ -223,8 +250,11 @@ results <- list(
       x_phy <- rep(seq(-1, 1, length.out = 3), 16)
       trait <- 0.6 * x_phy + rep(stats::rnorm(16, sd = 0.35), each = 3) + stats::rnorm(48, sd = 0.25)
       data <- reader_import(data.frame(trait, x_phy, species))
-      drmTMB::drmTMB(drmTMB::bf(trait ~ x_phy + drmTMB::phylo(1 | species, tree = tree), sigma ~ 1),
-        family = stats::gaussian(), data = data)
+      list(
+        fit = drmTMB::drmTMB(drmTMB::bf(trait ~ x_phy + drmTMB::phylo(1 | species, tree = tree), sigma ~ 1),
+          family = stats::gaussian(), data = data),
+        data = data
+      )
     }
   ),
   run_workflow(
@@ -241,9 +271,10 @@ results <- list(
       rownames(coords) <- site_levels
       depth <- rep(seq(-1, 1, length.out = 4), 12)
       y <- 0.5 + 0.7 * depth + rep(stats::rnorm(12, sd = 0.3), each = 4) + stats::rnorm(48, sd = 0.3)
-      drmTMB::drmTMB(drmTMB::bf(
+      data <- reader_import(data.frame(y, depth, site))
+      list(fit = drmTMB::drmTMB(drmTMB::bf(
         y ~ depth + drmTMB::spatial(1 | site, coords = coords), sigma ~ 1
-      ), family = stats::gaussian(), data = reader_import(data.frame(y, depth, site)))
+      ), family = stats::gaussian(), data = data), data = data)
     }
   ),
   run_workflow(
@@ -256,13 +287,19 @@ results <- list(
     function() {
       food <- stats::runif(n, -1, 1)
       disturbance <- stats::runif(n, -1, 1)
-      activity <- 0.8 * food + stats::rnorm(n, sd = 0.6)
-      boldness <- -0.3 + 0.5 * food + stats::rnorm(n, sd = 0.7)
-      drmTMB::drmTMB(drmTMB::drm_formula(
+      residual_activity <- stats::rnorm(n)
+      residual_auxiliary <- stats::rnorm(n)
+      rho_true <- 0.65 * tanh(1.2 * disturbance)
+      residual_boldness <- rho_true * residual_activity +
+        sqrt(1 - rho_true^2) * residual_auxiliary
+      activity <- 0.8 * food + 0.6 * residual_activity
+      boldness <- -0.3 + 0.5 * food + 0.7 * residual_boldness
+      data <- reader_import(data.frame(activity, boldness, food, disturbance))
+      list(fit = drmTMB::drmTMB(drmTMB::drm_formula(
         mu1 = activity ~ food, mu2 = boldness ~ food,
         sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ disturbance
       ), family = c(stats::gaussian(), stats::gaussian()),
-      data = reader_import(data.frame(activity, boldness, food, disturbance)))
+      data = data), data = data)
     }
   ),
   run_workflow(
@@ -276,8 +313,11 @@ results <- list(
       vi <- stats::runif(30, 0.03, 0.12)
       yi <- stats::rnorm(30, 0.25, sqrt(vi + 0.08))
       data <- reader_import(data.frame(yi, vi))
-      drmTMB::drmTMB(drmTMB::bf(yi ~ 1 + drmTMB::meta_V(V = vi), sigma ~ 1),
-        family = stats::gaussian(), data = data)
+      list(
+        fit = drmTMB::drmTMB(drmTMB::bf(yi ~ 1 + drmTMB::meta_V(V = vi), sigma ~ 1),
+          family = stats::gaussian(), data = data),
+        data = data
+      )
     }
   ),
   run_workflow(
@@ -292,15 +332,28 @@ results <- list(
       growth <- 0.5 + 0.8 * temperature + stats::rnorm(n, sd = 0.3)
       growth[c(6, 22, 49)] <- NA_real_
       data <- reader_import(data.frame(growth, temperature))
-      drmTMB::drmTMB(drmTMB::bf(growth ~ temperature, sigma ~ 1), family = stats::gaussian(),
-        data = data,
-        missing = drmTMB::miss_control(response = "include"),
-        control = drmTMB::drm_control(se = FALSE))
+      list(
+        fit = drmTMB::drmTMB(drmTMB::bf(growth ~ temperature, sigma ~ 1), family = stats::gaussian(),
+          data = data,
+          missing = drmTMB::miss_control(response = "include"),
+          control = drmTMB::drm_control(se = FALSE)),
+        data = data
+      )
     }
   )
 )
 
-results <- do.call(rbind, results)
+audit_rows <- do.call(rbind, lapply(results, `[[`, "result"))
+reader_workflow_audit <- list(
+  results = audit_rows,
+  fixtures = stats::setNames(
+    lapply(results, function(result) list(fit = result$fit, data = result$data)),
+    audit_rows$workflow
+  )
+)
+# Keep the TSV and console contract stable while exposing the exact completed
+# fit/data pairs to deterministic reader-journey tests that source this audit.
+results <- reader_workflow_audit$results
 out <- Sys.getenv(
   "DRMTMB_READER_AUDIT_OUT",
   unset = file.path("docs", "dev-log", "reader-workflow-audit", "2026-08-12-reader-workflow-smoke.tsv")

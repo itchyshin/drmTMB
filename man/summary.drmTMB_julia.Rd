@@ -2,7 +2,7 @@
 % Please edit documentation in R/julia-bridge.R
 \name{summary.drmTMB_julia}
 \alias{summary.drmTMB_julia}
-\title{Summarise a legacy Julia-bridge \code{drmTMB} fit}
+\title{Summarise an \code{engine = "julia"} \code{drmTMB} fit}
 \usage{
 \method{summary}{drmTMB_julia}(
   object,
@@ -29,9 +29,9 @@ An object of class \code{summary.drmTMB_julia} with \code{coefficients},
 \code{random} (random-effect SDs), and fit-summary scalars.
 }
 \description{
-The Julia bridge is halted/deferred future work. This compatibility method
-inspects an existing \code{drmTMB_julia} object; it does not make Julia a current
-fitting or inference option. For new analyses, use native TMB fits.
+\code{engine = "julia"} is a current, actively-admitted fitting route (see
+\code{R/julia-family-registry.R}). This method summarises a \code{drmTMB_julia}
+object it produced.
 }
 \details{
 Builds a fixed-effect coefficient table (estimate, standard error, z value,
@@ -44,6 +44,6 @@ random-effect SD block (e.g. a phylogenetic SD) is reported on its positive
 response scale.
 
 Set \code{conf.int = TRUE} to append Wald (default) or profile confidence-interval
-columns. Profile / bootstrap intervals are available only for the Gaussian
-phylogenetic SD target; see \code{\link[=confint.drmTMB_julia]{confint.drmTMB_julia()}}.
+columns. Profile / bootstrap intervals are available for admitted Gaussian
+phylogenetic mean- and scale-axis SD targets; see \code{\link[=confint.drmTMB_julia]{confint.drmTMB_julia()}}.
 }

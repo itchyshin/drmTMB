@@ -1,0 +1,15 @@
+elapsed 0.1s
+OUTCOME=REFUSES
+MESSAGE= `engine = "julia"` cannot fit structured-effect models by `REML = TRUE`.
+✖ Refusing rather than fitting by maximum likelihood instead: ML and REML
+  differ precisely on the variance components REML exists to correct, so a
+  silent downgrade would move heritability, repeatability and ICC without
+  saying so.
+ℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for
+  maximum likelihood explicitly with `REML = FALSE`, or simplify to a
+  documented Gaussian REML cell.
+ℹ Native `engine = "tmb"` fits Gaussian cells by REML, and has a separate
+  diagnostic-only binomial REML route for an ordinary unlabelled `mu` random
+  intercept or independent slope. It does not offer a general REML fit for
+  every cell this bridge refuses. 
+DONE2

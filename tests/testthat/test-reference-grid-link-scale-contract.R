@@ -14,7 +14,8 @@ manual_response_from_link <- function(fit, dpar, eta) {
     logit = stats::plogis(eta),
     logm2 = 2 + exp(eta),
     atanh_guarded = 0.999999 * tanh(eta),
-    atanh_re_guarded = 0.999999 * tanh(eta),
+    atanh_re_guarded = 0.99999999 * tanh(eta),
+    atanh_phylo_guarded = 0.999999 * tanh(eta),
     stop("Unhandled link in test helper: ", link, call. = FALSE)
   )
 }
@@ -161,7 +162,7 @@ test_that("reference grids preserve link-response contracts for implemented univ
   )
   beta_fit <- drmTMB(
     bf(y ~ x, sigma ~ z),
-    family = beta(),
+    family = beta_family(),
     data = beta_dat,
     control = control
   )

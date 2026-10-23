@@ -1,0 +1,7 @@
+julia-bridge-coef-labels: 1............
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-julia-bridge-coef-labels.R:11:3'): versioned Julia coefficien
+Error in `eval(code, test_env)`: object 'drm_julia_bridge_coef_labels' not found
+
+══ DONE ════════════════════════════════════════════════════════════════════════

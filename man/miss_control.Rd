@@ -17,11 +17,13 @@ response missing is omitted. \code{"include"} keeps rows with supported missing
 responses and masks their response likelihood contribution.}
 
 \item{predictor}{Predictor missingness policy. \code{"fail"} errors on missing
-predictors. \code{"model"} enables the current \code{mi()} predictor-model routes when
+predictors when you pass \verb{missing =} with \code{predictor = "fail"} or with no
+arguments (\code{miss_control()}), whether written in the call or stored in an
+object. Leaving \code{missing} out of the \code{\link[=drmTMB]{drmTMB()}} call, or setting only
+\code{response}, keeps complete-case row dropping. \code{"model"} enables the current \code{mi()} predictor-model routes when
 paired with a matching \code{impute} formula or \code{\link[=impute_model]{impute_model()}} in \code{\link[=drmTMB]{drmTMB()}}.}
 
-\item{engine}{Missing-data engine. Only \code{"laplace"} is implemented in this
-slice.}
+\item{engine}{Missing-data engine. Only \code{"laplace"} is implemented.}
 }
 \value{
 A \code{drm_missing_control} object.
@@ -43,8 +45,12 @@ success/trial proportion, Poisson, negative-binomial, or zero-truncated
 negative-binomial count, positive continuous lognormal or Gamma, and
 exact-zero semi-continuous Tweedie missing predictors can use fixed-effect
 predictor models supplied by \code{\link[=impute_model]{impute_model()}}. The non-Gaussian response
-slices support \code{poisson()}, \code{binomial()}, \code{nbinom2()}, and \code{beta()} responses,
-each with one fixed-effect Bernoulli/logit binary missing predictor.
+slices support \code{poisson()}, \code{binomial()}, \code{nbinom2()}, \code{beta_family()},
+\code{Gamma(link = "log")}, \code{lognormal()}, \code{beta_binomial()}, and
+\code{student()} responses, each with one
+fixed-effect Bernoulli/logit binary missing predictor.
+\code{nbinom2()} also admits one fixed-effect Gaussian missing predictor
+(k = 1; no grouped/structured predictor model).
 EM/profile engines and simulation-based imputation
 summaries are reserved for later slices.
 }

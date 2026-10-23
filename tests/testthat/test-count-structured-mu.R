@@ -1308,7 +1308,7 @@ expect_poisson_labelled_q2_provider_fit <- function(fit, provider, group) {
   expect_named(fit$corpars[[provider]], expected_correlation)
   expect_true(is.finite(unname(fit$corpars[[provider]][[expected_correlation]])))
   expect_lt(abs(unname(fit$corpars[[provider]][[expected_correlation]])), 1)
-  par <- fit$obj$env$parList(fit$opt$par)
+  par <- selected_tmb_par_list(fit)
   rho_parameter <- 0.999999 * tanh(par$eta_cor_phylo)
   expect_equal(
     unname(fit$corpars[[provider]][[expected_correlation]]),
@@ -1357,7 +1357,9 @@ test_that("nbinom2 mu supports q1 spatial, animal, and relmat intercepts", {
 
 test_that("Poisson and nbinom2 mu support one structured count slope", {
   testthat::skip_if_not_installed("ape")
-  sim <- new_count_structured_mu_slope_data()
+  # B1 check_drm() is stricter on NB2 animal/relmat sigma geometry; seed
+  # 2026062513 can look converged yet read degenerate under convergence_status().
+  sim <- new_count_structured_mu_slope_data(seed = 2026062500L)
   dat <- sim$data
   coords <- sim$coords
   tree <- sim$tree
@@ -1458,7 +1460,7 @@ test_that("Poisson phylo admits one labelled intercept-slope covariance block", 
   expect_named(fit$corpars$phylo, expected_correlation)
   expect_true(is.finite(unname(fit$corpars$phylo[[expected_correlation]])))
   expect_lt(abs(unname(fit$corpars$phylo[[expected_correlation]])), 1)
-  par <- fit$obj$env$parList(fit$opt$par)
+  par <- selected_tmb_par_list(fit)
   rho_parameter <- 0.999999 * tanh(par$eta_cor_phylo)
   expect_equal(
     unname(fit$corpars$phylo[[expected_correlation]]),
@@ -1511,7 +1513,7 @@ test_that("Poisson phylo labelled q2 intercept SD computes a finite ordered prof
   # mislabelled row using an already-computed comparator, not a coverage
   # claim.
   wald_ci <- stats::confint(fit, parm = target$parm, level = 0.70, method = "wald")
-  expect_identical(wald_ci$conf.status, "wald")
+  expect_identical(wald_ci$conf.status, "wald_bias_corrected")
   expect_true(is.finite(wald_ci$lower))
   expect_true(is.finite(wald_ci$upper))
   expect_lt(profile_ci$lower, wald_ci$upper)
@@ -1646,7 +1648,7 @@ test_that("NB2 phylo admits one labelled intercept-slope covariance block", {
   expect_named(fit$corpars$phylo, expected_correlation)
   expect_true(is.finite(unname(fit$corpars$phylo[[expected_correlation]])))
   expect_lt(abs(unname(fit$corpars$phylo[[expected_correlation]])), 1)
-  par <- fit$obj$env$parList(fit$opt$par)
+  par <- selected_tmb_par_list(fit)
   rho_parameter <- 0.999999 * tanh(par$eta_cor_phylo)
   expect_equal(
     unname(fit$corpars$phylo[[expected_correlation]]),

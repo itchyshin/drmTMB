@@ -1,0 +1,38 @@
+rhs	status	ncol_r	ncol_jl	max_abs_design_diff	r_model_matrix	julia_raw	msg
+x	DESIGN_IDENTICAL	2	2	0	(Intercept)|x	(Intercept)|x	
+g3	DESIGN_IDENTICAL	3	3	0	(Intercept)|g3b|g3c	(Intercept)|g3: b|g3: c	
+factor(gi)	DESIGN_IDENTICAL	3	3	0	(Intercept)|factor(gi)9|factor(gi)10	(Intercept)|__bridge_factor_1: 9|__bridge_factor_1: 10	
+gchar	DESIGN_IDENTICAL	3	3	0	(Intercept)|gcharb|gcharc	(Intercept)|gchar: b|gchar: c	
+flag	DESIGN_IDENTICAL	2	2	0	(Intercept)|flagTRUE	(Intercept)|flag	
+gmix	DESIGN_IDENTICAL	3	3	0	(Intercept)|gmixB|gmixc	(Intercept)|gmix: B|gmix: c	
+g3rev	DESIGN_IDENTICAL	3	3	0	(Intercept)|g3revb|g3reva	(Intercept)|g3rev: b|g3rev: a	
+gcase	DESIGN_IDENTICAL	3	3	0	(Intercept)|gcaseA|gcaseb	(Intercept)|gcase: A|gcase: b	
+gifac	DESIGN_IDENTICAL	3	3	0	(Intercept)|gifac9|gifac10	(Intercept)|gifac: 9|gifac: 10	
+x * g3	DESIGN_IDENTICAL	6	6	0	(Intercept)|x|g3b|g3c|x:g3b|x:g3c	(Intercept)|x|g3: b|g3: c|x & g3: b|x & g3: c	
+x + g3 + x:g3	DESIGN_IDENTICAL	6	6	0	(Intercept)|x|g3b|g3c|x:g3b|x:g3c	(Intercept)|x|g3: b|g3: c|x & g3: b|x & g3: c	
+g3 * g2	DESIGN_IDENTICAL	6	6	0	(Intercept)|g3b|g3c|g2q|g3b:g2q|g3c:g2q	(Intercept)|g3: b|g3: c|g2: q|g3: b & g2: q|g3: c & g2: q	
+x + I(x^2)	DESIGN_IDENTICAL	3	3	0	(Intercept)|x|I(x^2)	(Intercept)|x|__bridge_I_1	
+x + z + I(x*z)	DESIGN_IDENTICAL	4	4	0	(Intercept)|x|z|I(x * z)	(Intercept)|x|z|__bridge_I_1	
+I(x^2 + z)	DESIGN_IDENTICAL	2	2	0	(Intercept)|I(x^2 + z)	(Intercept)|__bridge_I_1	
+log(I(x + 2))	DESIGN_IDENTICAL	2	2	0	(Intercept)|log(I(x + 2))	(Intercept)|log(__bridge_I_1)	
+poly(x, 2)	DESIGN_IDENTICAL	3	3	8.32667268468867e-16	(Intercept)|poly(x, 2)1|poly(x, 2)2	(Intercept)|__bridge_poly2c1_1|__bridge_poly2c2_2	
+poly(x, 3)	DESIGN_IDENTICAL	4	4	8.2572837456496e-16	(Intercept)|poly(x, 3)1|poly(x, 3)2|poly(x, 3)3	(Intercept)|__bridge_poly3c1_1|__bridge_poly3c2_2|__bridge_poly3c3_3	
+poly(x, 2) * g2	DESIGN_IDENTICAL	6	6	8.32667268468867e-16	(Intercept)|poly(x, 2)1|poly(x, 2)2|g2q|poly(x, 2)1:g2q|poly(x, 2)2:g2q	(Intercept)|__bridge_poly2c1_1|__bridge_poly2c2_2|g2: q|__bridge_poly2c1_1 & g2: q|__bridge_poly2c2_2 & g2: q	
+scale(x)	DESIGN_IDENTICAL	2	2	4.44089209850063e-16	(Intercept)|scale(x)	(Intercept)|__bridge_scale_1	
+scale(x) + scale(z)	DESIGN_IDENTICAL	3	3	4.44089209850063e-16	(Intercept)|scale(x)|scale(z)	(Intercept)|__bridge_scale_1|__bridge_scale_2	
+(x + z)^2	DESIGN_IDENTICAL	4	4	0	(Intercept)|x|z|x:z	(Intercept)|x|z|x & z	
+(x + z + g2)^2	DESIGN_IDENTICAL	7	7	0	(Intercept)|x|z|g2q|x:z|x:g2q|z:g2q	(Intercept)|x|z|g2: q|x & z|x & g2: q|z & g2: q	
+(x + z + g2)^3	DESIGN_IDENTICAL	8	8	0	(Intercept)|x|z|g2q|x:z|x:g2q|z:g2q|x:z:g2q	(Intercept)|x|z|g2: q|x & z|x & g2: q|z & g2: q|x & z & g2: q	
+x - 1	DESIGN_IDENTICAL	1	1	0	x	x	
+0 + x	DESIGN_IDENTICAL	1	1	0	x	x	
+x:z	DESIGN_IDENTICAL	2	2	0	(Intercept)|x:z	(Intercept)|x & z	
+x + z + x:z - z	DESIGN_IDENTICAL	3	3	0	(Intercept)|x|x:z	(Intercept)|x|x & z	
+(x + z)^2 - x:z	DESIGN_IDENTICAL	3	3	0	(Intercept)|x|z	(Intercept)|x|z	
+log(x + 2) * g2	DESIGN_IDENTICAL	4	4	0	(Intercept)|log(x + 2)|g2q|log(x + 2):g2q	(Intercept)|log(x + 2)|g2: q|log(x + 2) & g2: q	
+x + g3 - x	DESIGN_IDENTICAL	3	3	0	(Intercept)|g3b|g3c	(Intercept)|g3: b|g3: c	
+poly(x, 2) + z - z	DESIGN_IDENTICAL	3	3	8.32667268468867e-16	(Intercept)|poly(x, 2)1|poly(x, 2)2	(Intercept)|__bridge_poly2c1_1|__bridge_poly2c2_2	
+I(x^2):g2	DESIGN_IDENTICAL	3	3	0	(Intercept)|I(x^2):g2p|I(x^2):g2q	(Intercept)|__bridge_I_1 & g2: p|__bridge_I_1 & g2: q	
+x + factor(gi) + x:factor(gi)	DESIGN_IDENTICAL	6	6	0	(Intercept)|x|factor(gi)9|factor(gi)10|x:factor(gi)9|x:factor(gi)10	(Intercept)|x|__bridge_factor_1: 9|__bridge_factor_1: 10|x & __bridge_factor_1: 9|x & __bridge_factor_1: 10	
+sqrt(x + 2)	DESIGN_IDENTICAL	2	2	0	(Intercept)|sqrt(x + 2)	(Intercept)|sqrt(x + 2)	
+I(x)	DESIGN_IDENTICAL	2	2	0	(Intercept)|I(x)	(Intercept)|__bridge_I_1	
+I((x))	DESIGN_IDENTICAL	2	2	0	(Intercept)|I((x))	(Intercept)|__bridge_I_1	

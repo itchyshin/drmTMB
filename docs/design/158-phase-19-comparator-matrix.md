@@ -42,7 +42,7 @@ Internal-to-comparator conversions:
 | `lognormal()` | `sigma` on `log(y)` | identity `mu` on `log(y)` | `glmmTMB`/`lm` on `log(y)` | compare on the log scale; `sigma` is the log-scale SD |
 | `Gamma(link="log")` | `sigma` | shape `= 1 / sigma^2` | `glmmTMB`/`glm` Gamma shape or dispersion | `shape = 1/sigma^2`; `glm` dispersion `= sigma^2` |
 | `tweedie()` | `sigma`, `nu` | `phi = sigma^2`, `nu = 1 + plogis(eta_nu)` power | `glmmTMB::tweedie` (dispersion, power) | `phi = sigma^2`; power matches `nu` (see doc 126 for weights/offset boundary) |
-| `beta()` | `sigma` | precision `phi = 1 / sigma^2` | `betareg`/`glmmTMB` beta precision `phi` | `phi = 1/sigma^2` |
+| `beta_family()` | `sigma` | precision `phi = 1 / sigma^2` | `betareg`/`glmmTMB` beta precision `phi` | `phi = 1/sigma^2` |
 | `beta_binomial()` | `sigma` | precision `phi = 1/sigma^2`, row trials | `glmmTMB` betabinomial | match precision; align trials column |
 | `stats::binomial()` | event probability `mu` | logit-mean only; row trials from 0/1 or `cbind(success, failure)` | base `stats::glm()` binomial | compare coefficients, standard errors, `logLik`, AIC, and BIC directly |
 | `nbinom2()` | `sigma` | size `= 1 / sigma^2` | `glmmTMB::nbinom2` / `MASS::glm.nb` theta | `theta (size) = 1/sigma^2` |
@@ -82,7 +82,7 @@ package.
 | Poisson `mu` (RE) | `glmmTMB`, `lme4` | counts, RE SD | — |
 | NB2 (`mu`, `sigma`) | `glmmTMB::nbinom2`, `MASS::glm.nb` | mean, overdispersion (`theta=1/sigma^2`) | `glm.nb` has no RE |
 | Zero-inflated/hurdle counts | `glmmTMB` (ziformula) | ZI/hurdle probability | — |
-| `beta()` | `betareg`, `glmmTMB` | mean, precision (`phi=1/sigma^2`) | `betareg` has no RE; use `glmmTMB` for RE |
+| `beta_family()` | `betareg`, `glmmTMB` | mean, precision (`phi=1/sigma^2`) | `betareg` has no RE; use `glmmTMB` for RE |
 | `beta_binomial()` | `glmmTMB` (betabinomial) | mean, precision, trials | — |
 | `stats::binomial()` fixed-effect | `stats::glm()` | event probability, fixed logit coefficients, likelihood constants | no random effects, no modelled scale, no Julia bridge promotion in the first slice |
 | `lognormal()` / `Gamma(link="log")` | `glmmTMB`, base `glm` | mean, dispersion | compare lognormal on the log scale |

@@ -231,11 +231,11 @@ confint(assoc, type = "eta") # transformed interval for constant eta
 All admitted routes are interval-feasible. Those without route-specific
 coverage calibration warn that their intervals are experimental. The
 intercept-only Bernoulli x ordinary-NB2 route is inference-ready with caveats.
-In its retained high-information
-campaign (`n = 480` or `960`), all 16 cells passed the predeclared bias,
-availability, SE-calibration, and 95% coverage gates; cell coverage ranged from
-0.935 to 0.957. The earlier lower-information campaign (`n = 120` or `240`)
-failed five primary coverage cells because some intervals were unavailable.
+In the saved simulation study with more observations
+(`n = 480` or `960`), all 16 settings met the predeclared criteria for bias,
+interval availability, standard-error calibration, and 95% coverage; coverage ranged from
+0.935 to 0.957. The earlier study with fewer observations (`n = 120` or `240`)
+failed the primary coverage criterion in five settings because some intervals were unavailable.
 Accordingly, lower-information fits are not blocked: a numerically valid
 covariance is returned with a warning, while an unstable or boundary result
 returns an informative error rather than a placeholder interval.

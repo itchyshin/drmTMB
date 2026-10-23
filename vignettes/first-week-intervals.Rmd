@@ -20,7 +20,7 @@ does **not** claim nominal coverage on every route.
 
 For the longer post-fit toolbox (`check_drm()`, Wald shortcuts, bootstrap,
 `newdata` profiles), read
-[Checking and using fitted models](model-workflow.html). For which cells have
+[Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html). For which cells have
 coverage evidence, read
 [Can I fit and report this model?](capability-and-limits.html).
 
@@ -112,8 +112,8 @@ ci_site[, c("parm", "lower", "upper", "conf.status", "profile.boundary")]
 **When not to trust a returned interval**
 
 - `profile.boundary == TRUE` on a usable interval: treat the interval as
-  indicative of scale, not as a calibrated `level` interval. The D-117
-  10-group random-effect SD gate measured conditional coverage as low as
+  indicative of scale, not as a calibrated `level` interval. In a 10-group
+  random-effect SD study, conditional coverage was as low as
   0.1021 against a nominal 0.95 when that flag was set (and 0 of 89 in one
   cell where boundary hits are rare); the same behaviour appears in `lme4`
   on the same seeds (see `?confint.drmTMB` Boundary intervals). Prefer more
@@ -123,6 +123,12 @@ ci_site[, c("parm", "lower", "upper", "conf.status", "profile.boundary")]
   groups, not of this package. Unconditionally the interval still covered
   0.9248 against a nominal 0.95 over 400,000 attempts, so the flagged rows
   are the bad case rather than the usual one.
+- `REML = TRUE` helps here, measurably, without fixing everything: on the
+  same design and seeds it moved profile coverage from 0.9248 to 0.9463,
+  roughly halved the SD's downward bias, and made the misses nearly
+  balanced. The boundary caveat above still applies under REML, and this
+  is measured on this one design only -- the default estimator is
+  unchanged.
 - `conf.status` is `profile_failed`, `clamp_limited`, `wald_at_boundary`,
   `newdata_required`, or `derived_interval_unavailable`: there is no usable
   calibrated interval on that row — follow the action implied by the status.
@@ -133,7 +139,7 @@ ci_site[, c("parm", "lower", "upper", "conf.status", "profile.boundary")]
 
 | Next question | Go here |
 | --- | --- |
-| Full post-fit toolbox and `conf.status` table | [Checking and using fitted models](model-workflow.html) |
+| Full post-fit toolbox and `conf.status` table | [Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html) |
 | Which family × effect rows have coverage evidence | [Can I fit and report this model?](capability-and-limits.html) |
 | Large tip counts and `se_group_sd` | [Working with large data](large-data.html) |
 | Reference detail for Wald, profile, and boundary warnings | `?confint.drmTMB` |

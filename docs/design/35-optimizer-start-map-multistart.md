@@ -2,10 +2,9 @@
 
 ## Purpose
 
-`drmTMB` currently exposes optimizer controls through `drm_control()` and passes
-them to `stats::nlminb()`. Slice 80 records the stricter contract needed before
-the package exposes user starts, fixed parameters, fallback optimizers, or
-multi-start fitting.
+`drmTMB` exposes optimizer selection and controls through `drm_control()`.
+The selected optimum must drive every reported estimate and interval. The
+dated design sections below retain the decisions that led to the public API.
 
 The central invariant is simple:
 
@@ -20,7 +19,28 @@ must re-pin that object to `fit$opt$par` before launching a profile.
 
 ## Current Public Contract
 
-The only public optimizer entry point is:
+As of 18 October 2026, `optimizer_method` selects `"nlminb"` (the default),
+`"BFGS"`, `"L-BFGS-B"`, `"Nelder-Mead"`, or `"CG"`. Direct `optim()` methods
+run without first trying `nlminb()` and accept their own controls through
+`optimizer = list(...)`, with `maxit = 1000L` unless overridden. A direct
+method requires the default preset and `fallback_optimizer = NULL`. Unknown
+or method-incompatible controls are rejected, as are nonpositive `fnscale`
+and misplaced bounds. No public box-bound interface is added.
+
+The method is recorded in `optimizer_used$optimizer` and
+`optimizer_attempts$optimizer`. Evaluation counts are retained; iteration
+counts from `optim()` remain unavailable. Public labelled `start`,
+reproducible `multi_start`, parallel starts, and optional Newton polishing
+apply to the selected method. Profile endpoint refits retain separate
+`nlminb()` controls. Julia routes reject these native controls.
+
+`fallback_optimizer` remains the opt-in method tried after unsuccessful
+`nlminb()` attempts. `start_from` and raw TMB maps remain unsupported.
+See `?drm_control` and the convergence article for executable syntax.
+
+### Earlier nlminb preset contract
+
+The original public optimizer entry point was:
 
 ```r
 control = drm_control(
@@ -265,10 +285,30 @@ release-readiness, or public warm-start API claim follows from this artifact.
 Numerical guards remain a separate sensitivity-simulation question under
 `docs/design/176-numerical-guard-simulation-audit.md`.
 
-## Future Start Contract
+## Public Start Contract (DECIDED 2026-09-01; implementation in progress)
 
-User starts should not be a free-form replacement of the entire TMB parameter
-list. The public interface should be namespaced by fitted parameter labels:
+**Status.** The contract below is settled. It is **not yet implemented** — the code
+lands on `claude/rev-parity-a2-start` and `claude/rev-parity-a3-objective-at`, and
+this section must not be read as a statement that `drm_control(start = ...)` works
+today. Until those land, `start` remains a reserved name and `drm_control()` still
+errors.
+
+**Why now.** The R<->Julia twin programme is blocked at DRM.jl#575: on the
+`biv-q4-phylo-reml` fixture DRM.jl's solver stops at a point that is worse on
+DRM.jl's own objective than the one TMB found, and the gap *grows* as `g_tol`
+tightens (0.0162 -> 0.0187) — the signature of a mode-finder defect rather than a
+loose tolerance. Diagnosing that requires evaluating each engine's objective at the
+other engine's fitted point. The Julia half exists
+(`DRM.reml_objective_at`); the R half was impossible, because drmTMB could neither
+start a fit at a supplied point nor report its objective at one. The 2026-09-01
+diagnosis was therefore done by hand in a scratchpad. This contract exists so that
+it never has to be again.
+
+### The surface
+
+User starts are **not** a free-form replacement of the TMB parameter list. The
+public interface is namespaced by fitted parameter labels, and lives on
+`drm_control()`, not on `drmTMB()`:
 
 ```r
 drm_control(
@@ -281,18 +321,268 @@ drm_control(
 )
 ```
 
-Design constraints before implementation:
+`drm_control()` is the right home: `start` is already reserved there
+(`drm_control_reserved_names()`), and `drmTMB()` explicitly rejects arguments it
+does not name, so a `drmTMB(start = )` argument would be a second, competing
+control channel.
 
-- starts must be checked after formula parsing, because valid names depend on
-  the fitted family, distributional parameters, random-effect terms, and
-  structured effects;
-- starts must be transformed to the internal unconstrained scale before TMB
-  sees them;
-- unknown names must error before optimization;
-- partial starts should update only named targets and leave family builders in
-  charge of the remaining robust defaults;
-- random-effect latent starts should remain internal until there is a clear
-  biological use case and simulation evidence.
+### Binding requirements
+
+These were written as pre-implementation constraints and are now the acceptance
+criteria:
+
+- starts are checked **after formula parsing**, because valid names depend on the
+  fitted family, distributional parameters, random-effect terms, and structured
+  effects;
+- starts are transformed to the internal unconstrained scale **before TMB sees
+  them**;
+- unknown names **error before optimization**, never at optimizer time;
+- partial starts update **only** the named targets and leave the family builders in
+  charge of every remaining robust default;
+- random-effect **latent** starts remain internal — no public label addresses `u`
+  — until there is a clear biological use case and simulation evidence.
+
+### Scope of the first landing
+
+All three label families ship together: `fixef:`, `sd:` and `cor:`. A
+`fixef:`-only start would not serve the motivating case at all, because the #575
+dispute lives entirely in the variance-component block.
+
+`start_from = <a fitted model>` — the simpler-to-richer warm-start ladder described
+in the next section — is **explicitly out of scope** and stays reserved. The
+evidence in "Slice 373-390 Q2 Source-Start Evidence" below is *negative*: every
+source-fit start still false-converged, with residual `rho12` at the boundary. A
+labelled point start and a source-fit ladder are different contracts with different
+risks, and only the first is decided here.
+
+### Implementation route (reuse, not rebuild)
+
+Nothing new is invented at the TMB boundary. The private start-override hook
+documented in "Current Private Start Override Hook" above already runs immediately
+before `TMB::MakeADFun()`, already rejects unknown components, non-finite values and
+length mismatches, already preserves `map`-fixed slots including `factor(NA)`, and
+already records `spec$start_override_applied` provenance. The public contract is a
+**validated translation layer from labels to that hook**, and nothing more.
+
+The label-to-slot keying likewise has a working precedent: the private q>2 staged
+mapper (`drm_qgt2_staged_start_override()`, "Current Private Q8 Staged-Start
+Mapper" above) already keys fixed effects by distributional parameter and
+model-matrix column name, endpoint SDs by covariance-member key, and correlations
+by pair key — exactly the three label families named here.
+
+The selected-optimum invariant at the top of this document is unaffected: a start
+changes where the optimizer begins, never what is reported. Every reported quantity
+remains a function of `opt$par`.
+
+## Objective At A Point
+
+`start` and `objective_at()` are two verbs over **one vocabulary**. The same label
+namespace addresses both "begin here" and "evaluate here", which is what makes a
+cross-engine comparison expressible in two calls instead of a scratchpad.
+
+```r
+objective_at(fit, at = list("fixef:mu:(Intercept)" = 0.2, "sd:mu:(1 | id)" = 0.3))
+```
+
+`objective_at()` evaluates the fitted model's objective at a supplied point
+**without refitting**. It is a diagnostic, not an estimator: it selects nothing,
+reports no uncertainty, and changes no fitted quantity.
+
+Requirements:
+
+- it reuses the existing evaluation pattern in `R/profile.R`, which already
+  evaluates `obj$fn()` at a substituted parameter vector for profile endpoints —
+  a second independent evaluation path would be two implementations of one thing;
+- **the self-consistency anchor**: `objective_at(fit, <the fit's own optimum>)` must
+  equal `-logLik(fit)` to machine tolerance. Every cross-engine number rests on
+  this, so it is a required test, not a nicety;
+- unknown labels error before evaluation, on the same rule as `start`;
+- it must not mutate the fitted object. TMB objects carry mutable `last.par` state,
+  and the selected-optimum invariant requires that state be restored, so
+  `objective_at()` re-pins the object afterwards.
+
+### The bridge counterpart, and a correction to its design note
+
+A companion note,
+`docs/dev-log/evidence/julia-r-parity/ayumi-target/objective-at-bridge-note.md`,
+designs an R-side wrapper for `DRM.reml_objective_at`. **One premise in it does not
+hold against current code and should not be relied on.** The note assumes the
+wrapper can reuse a fitted object's "cached Julia-side `prob`/`Q_cond` handles
+rather than re-marshalling data". There is no such cache: `Q_cond` does not appear
+anywhere in this repository, `drm_julia_call_bridge()` passes formula, data, tree
+and options into `DRM.drm_bridge` in a single `JuliaCall::julia_call`, and every
+structure DRM.jl builds internally is discarded when that call returns. R retains
+only the flat result list, stored verbatim as `fit$bridge`.
+
+The consequence is a scoping one, and it is recorded here rather than repaired
+quietly: any R-side `objective_at` for the bridge must either re-marshal the
+payload and rebuild the problem Julia-side, or wait for DRM.jl to expose an entry
+point that accepts a payload plus a parameter point. The former can be attempted
+without editing DRM.jl, by registering a second Julia-side shim from R exactly as
+`drm_julia_setup()` already registers `drmTMB_drm_bridge`. Whether DRM.jl's problem
+construction is reachable from its public API is an open question, to be answered
+by a bounded spike and not assumed.
+
+**Boundary.** Neither verb promotes any bridge route, changes any
+`r_bridge_status`, alters any capability-ledger claim, or resolves DRM.jl#575.
+They make the question answerable; they do not answer it.
+
+## Phylo Covariance Block (N3, 2026-09-03; corrected N3b, 2026-09-03)
+
+**Why.** The A5 cross-engine receipt
+(`docs/dev-log/evidence/julia-r-parity/ayumi-target/2026-09-02-a5-cross-engine-receipt.R`)
+needed to evaluate `objective_at()` on the committed `biv-q4-phylo-reml` fixture and
+found two gaps in the label vocabulary above: `biv_gaussian`'s `rho12` fixed effect
+(`beta_rho12` carried no model-matrix column names, so the existing generic `fixef:`
+family could not reach it) and the q >= 2 phylogenetic location/scale covariance
+block (`log_sd_phylo`, `eta_cor_phylo`/`theta_phylo`), which lives in
+`spec$structured$phylo_mu` outside `spec$random` entirely and so has no `<dpar>` the
+ordinary `sd:`/`cor:` families could key on. The receipt worked around this by
+addressing `beta_rho12`/`log_sd_phylo`/`theta_phylo` by internal TMB parameter name.
+This section closes both gaps.
+
+**N3b correction (2026-09-03).** The first landing gave `phylo_cor:<axis1>:<axis2>`
+a dual meaning: a bounded `(-1, 1)` correlation for q = 2 and block-diagonal q > 2,
+but a raw, unbounded Cholesky-space working parameter for a dense q > 2 block. That
+violates the vocabulary's own naming discipline — a `_cor:` label should always mean
+a correlation. The families are now split: `phylo_cor:` ALWAYS denotes a correlation
+strictly in `(-1, 1)`, and REFUSES on a dense block; `phylo_theta:<axis1>:<axis2>` is
+the dense-only, honestly-named counterpart for the raw working parameter, and
+REFUSES everywhere `phylo_cor:` already applies. See CLAUDE.md: "Residual
+correlations must use a bounded transform such as tanh(eta)" — `phylo_cor:` now
+actually keeps that invariant unconditionally, rather than only when the block
+happens to be q = 2 or block-diagonal.
+
+### `rho12` reaches the existing `fixef:` family
+
+`beta_rho12` is now named with `colnames(X_rho12)` at start-build time
+(`biv_gaussian_start()`, R/drmTMB.R) exactly the way `beta_mu1`/`beta_mu2`/
+`beta_sigma1`/`beta_sigma2` already are (from `lm.fit()`/
+`gaussian_sigma_fixed_start()`). No new label family is needed — the existing
+generic `fixef:<dpar>:<column>` reaches it directly with `dpar = "rho12"`:
+
+```r
+objective_at(fit, at = list("fixef:rho12:(Intercept)" = 0.12))
+```
+
+`rho12` is never folded into the REML Laplace random block (only `beta_mu1`,
+`beta_mu2`, `beta_sigma1`, `beta_sigma2` are — see `drm_fit_df()`), so, unlike
+`fixef:mu:` under REML, this is honored under `REML = TRUE` too.
+
+### Three families for the phylo covariance block
+
+`phylo_sd:<axis>`, `phylo_cor:<axis1>:<axis2>`, and `phylo_theta:<axis1>:<axis2>`
+address `spec$structured$phylo_mu`'s working parameters. They have their own arity
+(2, 3, and 3 segments respectively) and are parsed by `drm_parse_public_start_label()`
+before the generic `family:dpar:target` pattern; all three are resolved by branches
+in `drm_resolve_public_start_target()` (R/drmTMB.R).
+
+`<axis>` names come from `drm_phylo_mu_axis_labels()`, which is
+`phylo_mu_endpoint_dpars(phylo_mu)` (usually just the dpar, e.g. `mu1`, `mu2`,
+`sigma1`, `sigma2` for a q = 4 block; a coefficient suffix is appended only if the
+same dpar appears twice, e.g. an intercept-and-slope block). This is the SAME order
+`log_sd_phylo` uses and the SAME order/labelling
+`fit$obj$report()$phylo_q4_covariance`'s rows/columns follow, so an axis label
+always identifies the same covariance-matrix row/column a user would read off the
+report.
+
+**`phylo_sd:<axis>`** — one axis's phylogenetic SD, on the natural (positive) scale,
+mapping to `log_sd_phylo[index]` (transform: `log(value)`, matching `sd:`):
+
+```r
+objective_at(fit, at = list(
+  "phylo_sd:mu1" = 0.35, "phylo_sd:mu2" = 0.41,
+  "phylo_sd:sigma1" = 0.12, "phylo_sd:sigma2" = 0.09
+))
+```
+
+**`phylo_cor:<axis1>:<axis2>`** — a pair of axes' phylogenetic correlation, ALWAYS
+strictly in `(-1, 1)`, decoded exactly like `cor:`:
+
+- **q = 2** (a single pair, e.g. `mu1`/`mu2` location phylo): maps to the scalar
+  `eta_cor_phylo`, transform `atanh(value / 0.999999)` — the exact inverse of
+  `split_tmb_corpars()`'s `0.999999 * tanh(eta)` decode.
+- **q > 2, block-diagonal** (e.g. a `mu1`/`mu2` block and a separate `sigma1`/
+  `sigma2` block under distinct labels): each labelled 2-endpoint block
+  contributes ONE `theta_phylo` entry that IS a bounded correlation directly (no
+  Cholesky reconstruction — see the `block_size == 2` branch,
+  src/drmTMB.cpp:5071-5101). Same `atanh(value / 0.999999)` transform as q = 2.
+- **q > 2, dense** (a single unstructured block spanning all `q` axes under one
+  shared label — the A5 fixture's shape): **REFUSES**, pointing at `phylo_theta:`
+  instead. A dense block's `theta_phylo` entries are TMB's `UNSTRUCTURED_CORR_t`
+  Cholesky-space parameterisation (`density::UNSTRUCTURED_CORR_t`, src/drmTMB.cpp:215;
+  replicated in R by `tmb_unstructured_corr_matrix()`), and a single entry is
+  **not** algebraically one pair's correlation — the correlation matrix is the
+  nonlinear function `cov2cor(L %*% t(L))` of ALL entries together — so there is no
+  honest `(-1, 1)` value `phylo_cor:` could return there.
+
+On a q = 2 or block-diagonal q > 2 fit, this is a bounded correlation:
+
+```r
+objective_at(fit, at = list("phylo_cor:mu1:mu2" = 0.42))   # succeeds
+```
+
+On a DENSE q > 2 fit (this document's running example), the same call refuses:
+
+```r
+objective_at(fit, at = list("phylo_cor:mu1:mu2" = 0.42))
+#> Error: Start label "phylo_cor:mu1:mu2" cannot be honored: this phylogenetic
+#> covariance block is dense.
+#> x Its working parameters are raw `UNSTRUCTURED_CORR_t` Cholesky entries, not
+#>   pairwise correlations, so no `phylo_cor:` value would be honest here.
+#> i Use `phylo_theta:mu1:mu2` to address the same working parameter on its own
+#>   raw (unconstrained) scale.
+```
+
+**`phylo_theta:<axis1>:<axis2>`** — the dense-block-only, honestly-named
+counterpart: the raw, unconstrained `theta_phylo` working parameter, on its own
+scale, **no transform**. It REFUSES for q = 2 or block-diagonal q > 2, where
+`phylo_cor:` is already the correct, bounded-correlation family, pointing back at
+`phylo_cor:`. `drm_phylo_mu_dense_theta_index()` maps an axis pair to its
+`theta_phylo` position, matching the Cholesky fill order exactly (checked on a
+fitted fixture: `tmb_unstructured_corr_matrix(theta_phylo)` reproduces
+`cov2cor(report()$phylo_q4_covariance)`): for q = 4 the position order is
+`(mu1,mu2)`, `(mu1,sigma1)`, `(mu2,sigma1)`, `(mu1,sigma2)`, `(mu2,sigma2)`,
+`(sigma1,sigma2)`. Entry k is the raw Cholesky coordinate of cell k, not that cell's
+correlation: each Cholesky row is renormalised, so perturbing one entry moves every
+correlation cell sharing its row (Rose N3 pass, 2026-09-03). That is exactly why this
+family carries no transform and is not called `phylo_cor:`.
+
+`phylo_cor:` values must satisfy |value| < 0.999999, the invertible range of TMB's
+bounded map `rho = 0.999999 * tanh(eta)`; values in [0.999999, 1) are refused rather
+than becoming `NaN` starts.
+
+```r
+objective_at(fit, at = list(
+  "phylo_theta:mu1:mu2" = -6.2,       # dense q4: raw theta_phylo[1]
+  "phylo_theta:mu1:sigma1" = 0.4,     # dense q4: raw theta_phylo[2]
+  "phylo_theta:sigma1:sigma2" = 0.1   # dense q4: raw theta_phylo[6]
+))
+```
+
+This is the honest choice given the parameterisation: naming raw Cholesky-space
+working parameters under their own family, rather than inventing a natural-scale
+fiction under `phylo_cor:` that would not round-trip through
+`tmb_unstructured_corr_matrix()`, and rather than silently returning a value on a
+scale `phylo_cor:`'s own name does not promise. Reconstructing all q axes'
+`phylo_sd:`/`phylo_theta:` labels from a fit's own optimum (as `objective_at()`'s
+self-consistency anchor and `drm_control(start = ...)`'s warm-start test both do) is
+unaffected — the raw `theta_phylo` values ARE what a fit reports at `fit$opt$par`,
+so reading them back out and resupplying them round-trips exactly.
+
+Unknown axes error before evaluation, listing the available axes, on the same rule
+as every other label family. Using `phylo_cor:` on a dense block, or `phylo_theta:`
+on a q = 2/block-diagonal block, errors before evaluation too, naming the correct
+family to use instead.
+
+**Tests.** `tests/testthat/test-objective-at.R` (`objective_at reaches rho12 and
+the q4 phylo block: ...`, a displaced-point test, an unknown-axis test, and
+`phylo_cor: refuses on the dense q4 phylo block (phylo block), pointing to
+phylo_theta:`) and `tests/testthat/test-start-contract.R` (`a start naming rho12
+and the q4 phylo covariance block converges to the same optimum` and `a phylo_cor:
+start refuses on the dense q4 phylo covariance block, pointing to phylo_theta:`)
+exercise all three families end to end on a small (16-tip, 3 obs/tip) synthetic
+dense-q4 `biv_gaussian` REML fit.
 
 ## Future Simpler-Fit Warm-Start Contract
 
@@ -590,3 +880,26 @@ Slice 275 reserves warm-start names and documents the simpler-fit contract.
 Slice 276 reserves fallback-optimizer names and documents fallback comparison
 provenance. Neither slice adds user starts, warm starts, maps, fallback
 optimizers, or multi-start fitting.
+
+## 2026-09-01 Amendment
+
+The former "Future Start Contract" section is now "Public Start Contract
+(DECIDED 2026-09-01; implementation in progress)", and a new "Objective At A
+Point" section sits beside it. What changed is the *status* of the contract, not
+its content: the label namespace and all five binding requirements are carried
+over verbatim from the version this document has held since slice 80.
+
+What this amendment does **not** do:
+
+- it does not implement anything. `start` is still a reserved name and
+  `drm_control()` still errors on it until the implementation branches land;
+- it does not lift the reservation on `start_from`, `warm_start`, `map`,
+  `fixed`, or the fallback-optimizer names. Those sections are unchanged;
+- it does not promote a bridge route, change any `r_bridge_status`, or alter
+  any row of `inst/extdata/julia-capabilities.tsv`;
+- it does not bear on release. Decision D-164 holds drmTMB's CRAN submission;
+  this is reversible package design work, which D-164 explicitly still allows.
+
+Motivating context and the correction to the bridge design note's cached-`prob`
+premise are recorded in the two new sections rather than here, so they travel
+with the contract they constrain.

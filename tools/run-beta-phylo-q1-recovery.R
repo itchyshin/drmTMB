@@ -636,7 +636,7 @@ recovery_attempt <- function(row) {
     withCallingHandlers(
       drmTMB::drmTMB(
         drmTMB::bf(y ~ x + drmTMB::phylo(1 | spp_id, tree = tree), sigma ~ x),
-        family = drmTMB::beta(),
+        family = drmTMB::beta_family(),
         data = generated$data,
         control = drmTMB::drm_control(optimizer_preset = "robust")
       ),

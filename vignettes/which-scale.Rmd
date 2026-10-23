@@ -731,8 +731,9 @@ b_{1j}
 \end{aligned}
 \]
 
-This `rho_re` is a group-level random-effect correlation. It is reported under
-`corpars$mu`.
+This `rho_re` is a group-level random-effect correlation. Read it from the
+matching row of `corpairs(fit, level = "group")` or
+`summary(fit)$covariance`.
 
 Implemented bivariate residual correlation:
 
@@ -866,9 +867,9 @@ Current planned but not implemented syntax includes:
   location-scale correlations, structured `rho12` effects, mesh/SPDE spatial
   fields, spatial slope correlations, and non-Gaussian spatial structured
   effects outside the exact ordinary Poisson/NB2 q1 spatial `mu`
-  intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t
+  intercept-plus-one-slope, NB2 q1 spatial `sigma` (point estimate only), Student-t
   spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and
-  fixed-`zi` NB2 spatial `mu` gates.
+  fixed-`zi` NB2 spatial `mu` forms.
 
 With the scale vocabulary settled, move on to
 [Choosing response families](distribution-families.html) to pick a family,

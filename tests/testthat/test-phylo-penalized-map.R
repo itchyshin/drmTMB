@@ -86,9 +86,51 @@ test_that("penalty shrinks the phylo SD, labels MAP, and keeps logLik unpenalize
   expect_equal(-fit_map$opt$objective, fit_map$logLik - pen, tolerance = 1e-6)
 
   # Penalty value matches the analytic PC-prior (exponential-on-SD + Jacobian).
-  rep <- fit_map$obj$report()
+  #
+  # `log_sd` MUST come from `parList(opt$par)`, i.e. the optimiser's own answer,
+  # and NOT from `obj$report()`. A bare `report()` defaults to `obj$env$last.par`,
+  # which `TMB::sdreport()` leaves a finite-difference step off the optimum; this
+  # assertion used to read `log_sd` from exactly that call, so both sides of the
+  # comparison were evaluated at the same perturbed state and agreed no matter
+  # what the reported penalty was. Deriving the expectation independently is what
+  # gives this assertion any power.
   lam <- fit_map$penalty$rate
-  log_sd <- as.numeric(rep$log_sd_phylo)
+  log_sd <- as.numeric(fit_map$obj$env$parList(fit_map$opt$par)$log_sd_phylo)
   expected_pen <- sum(lam * exp(log_sd) - log_sd - log(lam))
-  expect_equal(pen, expected_pen, tolerance = 1e-6)
+  expect_equal(pen, expected_pen, tolerance = 1e-8)
+})
+
+test_that("the reported penalty does not depend on whether SEs were requested", {
+  skip_on_cran()
+  fx <- phylo_penalty_fixture("pen_003")
+  tree <- fx$tree
+  form <- bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+  pen_spec <- drm_phylo_penalty(sd_u = 0.25, sd_alpha = 0.01)
+
+  with_se <- drmTMB(form, data = fx$data, penalty = pen_spec)
+  no_se <- drmTMB(
+    form,
+    data = fx$data,
+    penalty = pen_spec,
+    control = drm_control(se = FALSE)
+  )
+
+  # Same data, same optimum -- the two fits differ ONLY in whether sdreport ran.
+  expect_equal(with_se$opt$par, no_se$opt$par, tolerance = 1e-10)
+
+  # `TMB::sdreport()` perturbs `obj$env$last.par` with its finite-difference
+  # Hessian stencil, so a bare `obj$report()` after it evaluates every REPORT()ed
+  # quantity off-optimum. That made `phylo_penalty` -- and hence `logLik` --
+  # depend on `se`, which is a pure diagnostic switch that must not move a
+  # reported estimate. This is the regression guard for that.
+  expect_equal(
+    as.numeric(with_se$phylo_penalty),
+    as.numeric(no_se$phylo_penalty),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    as.numeric(with_se$logLik),
+    as.numeric(no_se$logLik),
+    tolerance = 1e-10
+  )
 })

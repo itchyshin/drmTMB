@@ -1,0 +1,176 @@
+{
+ "IF:ordinary-intercept-profile-gate": [
+  "mc-0005",
+  "mc-0059"
+ ],
+ "IF:ordinary-slope-profile-gate": [
+  "mc-0007",
+  "mc-0270",
+  "mc-0380",
+  "mc-0402",
+  "mc-0431",
+  "mc-0511"
+ ],
+ "IF:q1-expanded-whole-cell": [
+  "mc-0012",
+  "mc-0248",
+  "mc-0386",
+  "mc-0434",
+  "mc-0440",
+  "mc-0447",
+  "mc-0451"
+ ],
+ "IF:phylo-q2-canonical": [
+  "mc-0083",
+  "mc-0084",
+  "mc-0208",
+  "mc-0209"
+ ],
+ "IF:q2plus-phylo": [
+  "mc-0089",
+  "mc-0090"
+ ],
+ "IF:q2plus-phylo-scale": [
+  "mc-0091",
+  "mc-0092"
+ ],
+ "IF:q6-provider-highinfo": [
+  "mc-0101",
+  "mc-0145",
+  "mc-0167"
+ ],
+ "IF:b2-q6-proof-profile": [
+  "mc-0102",
+  "mc-0124",
+  "mc-0146",
+  "mc-0168"
+ ],
+ "IF:q2-production-whole-cell": [
+  "mc-0107",
+  "mc-0108",
+  "mc-0129",
+  "mc-0130",
+  "mc-0151",
+  "mc-0152",
+  "mc-0201",
+  "mc-0674"
+ ],
+ "IF:spatial-q2-slope": [
+  "mc-0109",
+  "mc-0110"
+ ],
+ "IF:q2plus-scale": [
+  "mc-0113",
+  "mc-0114",
+  "mc-0135",
+  "mc-0136",
+  "mc-0157",
+  "mc-0158"
+ ],
+ "IF:q4-provider-highinfo": [
+  "mc-0115",
+  "mc-0116",
+  "mc-0117",
+  "mc-0118",
+  "mc-0137",
+  "mc-0138",
+  "mc-0139",
+  "mc-0140",
+  "mc-0159",
+  "mc-0160",
+  "mc-0161",
+  "mc-0162"
+ ],
+ "IF:q2-animal-slope-highinfo": [
+  "mc-0131",
+  "mc-0132"
+ ],
+ "IF:biv-fixed-scale": [
+  "mc-0184",
+  "mc-0185"
+ ],
+ "IF:ordinary-biv-scale-intercept": [
+  "mc-0187",
+  "mc-0188"
+ ],
+ "IF:ordinary-biv-sigma-re-intercept": [
+  "mc-0203",
+  "mc-0204"
+ ],
+ "IF:phylo-q4-location": [
+  "mc-0212",
+  "mc-0213"
+ ],
+ "IF:phylo-q4-scale": [
+  "mc-0214",
+  "mc-0215"
+ ],
+ "IF:phylo-dense-q4-highinfo": [
+  "mc-0216",
+  "mc-0217",
+  "mc-0218",
+  "mc-0219"
+ ],
+ "IF:ordinary-intercept-expanded-profile-gate": [
+  "mc-0225",
+  "mc-0265",
+  "mc-0267",
+  "mc-0401",
+  "mc-0403",
+  "mc-0429",
+  "mc-0463",
+  "mc-0538",
+  "mc-0567"
+ ],
+ "IF:q1-direct-intercept-whole-cell": [
+  "mc-0251",
+  "mc-0388"
+ ],
+ "IF:ordinary-slope-profile-gate-high": [
+  "mc-0271"
+ ],
+ "IF:b2-e0-q2-high": [
+  "mc-0280",
+  "mc-0281",
+  "mc-0293",
+  "mc-0294",
+  "mc-0305",
+  "mc-0306",
+  "mc-0317",
+  "mc-0318"
+ ],
+ "IF:arc6-profile-feasibility": [
+  "mc-0282"
+ ],
+ "IF:scalar-animal-relmat-q1-highinfo": [
+  "mc-0297",
+  "mc-0300",
+  "mc-0312"
+ ],
+ "IF:nb2-q1-provider-breadth": [
+  "mc-0405",
+  "mc-0406",
+  "mc-0407",
+  "mc-0408"
+ ],
+ "IF:count-q1-slope-canonical": [
+  "mc-0410",
+  "mc-0411",
+  "mc-0412",
+  "mc-0413",
+  "mc-0435",
+  "mc-0441",
+  "mc-0448",
+  "mc-0452"
+ ],
+ "IF:student-spatial-q1-highinfo": [
+  "mc-0494"
+ ],
+ "SA:2026-08-05-135-trace-campaign": [
+  "mc-0568",
+  "mc-0576",
+  "mc-0595",
+  "mc-0596",
+  "mc-0653"
+ ]
+}

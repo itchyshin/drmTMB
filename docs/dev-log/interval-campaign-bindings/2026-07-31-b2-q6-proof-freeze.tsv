@@ -1,0 +1,14 @@
+field	value
+source_sha	903835cab3d7a1b905c001aa66c60fa99f6f0204
+contract_source_sha	dc62878e6f0732ddf65e65b58f07377f48a88f37
+candidate_count	4
+execution_scope	local_only
+prior_disposition	E0_frozen
+re_admission_basis	approved_S0-S4_q6_proof_fit_only_2026-07-31
+re_admission_scope	exact_tuple_fit_only_only
+authorization_state	approved_for_local_fit_only
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+claim_ceiling	fit_only_admission
+q12_execution	DEFERRED
+negative_control	mc-0260m retained non-covering K=12 control

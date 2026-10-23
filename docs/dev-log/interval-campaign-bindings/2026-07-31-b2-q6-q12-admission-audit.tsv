@@ -1,0 +1,23 @@
+cell_id	q_gate	disposition	reason	source_address	execution_authorized
+mc-0102	q6	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0103	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0104	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0105	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0106	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0124	q6	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0125	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0126	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0127	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0128	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0146	q6	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0147	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0148	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0149	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0150	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0168	q6	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0169	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0170	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0171	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0172	q12	contract_ready	Exact high-information source-addressed whole-cell fixture contract; execution remains separately unauthorised.	tools/b2-q6-q12-admission-contracts.R	FALSE
+mc-0207	q6	excluded_nonexact_ordinary	The legacy ordinary q>2 representative source has no cell-specific formula, direct target, truth scale, or DGP; this arc may not invent one.	docs/dev-log/interval-campaign-bindings/2026-07-27-e2-source-cards-fixed-ordinary.tsv	FALSE
+mc-0269	q6	excluded_nonexact_ordinary	The legacy ordinary q>2 representative source has no cell-specific formula, direct target, truth scale, or DGP; this arc may not invent one.	docs/dev-log/interval-campaign-bindings/2026-07-27-e2-source-cards-fixed-ordinary.tsv	FALSE

@@ -1,0 +1,64 @@
+suppressMessages(devtools::load_all("/Users/z3437171/local-scratch/parity-joint/wt-fam-biv-student", quiet = TRUE))
+simulate_biv_student_truth <- function(n, beta1, beta2, sigma1, sigma2, nu, rho12) {
+  x <- seq(-1, 1, length.out = n)
+  z1 <- stats::rnorm(n); z2 <- rho12 * z1 + sqrt(1 - rho12^2) * stats::rnorm(n)
+  s <- sqrt(nu / stats::rchisq(n, df = nu))
+  data.frame(x = x, y1 = beta1[[1]] + beta1[[2]] * x + sigma1 * z1 * s,
+             y2 = beta2[[1]] + beta2[[2]] * x + sigma2 * z2 * s)
+}
+set.seed(6401)
+dat <- simulate_biv_student_truth(200, c(0.2, 0.45), c(-0.3, -0.25), 0.55, 0.85, 7, 0.35)
+dat$g <- factor(rep(seq_len(20), each = 10))
+dat$z <- stats::rnorm(nrow(dat))
+dat$w <- rep(1, nrow(dat))
+suppressMessages(library(ape))
+tr <- ape::compute.brlen(ape::stree(16, type = "balanced"), method = "Grafen")
+tr$tip.label <- paste0("s", 1:16)
+dat$sp <- factor(rep(paste0("s", 1:16), length.out = nrow(dat)))
+K <- ape::vcv(tr, corr = TRUE)
+
+probe <- function(label, expr_native, expr_julia) {
+  cat("\n############ ", label, "\n")
+  n <- tryCatch(eval(expr_native), error = function(e) e)
+  cat("  tmb   : ", if (inherits(n, "condition")) paste("REFUSED:", gsub("\n", " ", paste(conditionMessage(n), collapse=" "))) else
+                     sprintf("FITTED logLik=%.8f", as.numeric(logLik(n))), "\n")
+  j <- tryCatch(eval(expr_julia), error = function(e) e)
+  cat("  julia : ", if (inherits(j, "condition")) paste("REFUSED:", gsub("\n", " ", paste(conditionMessage(j), collapse=" "))) else
+                     sprintf("FITTED logLik=%.8f", as.numeric(logLik(j))), "\n")
+}
+
+probe("A. random intercept on mu1  bf(mu1 = y1 ~ x + (1|g), mu2 = y2 ~ x, ...)",
+  quote(drmTMB(bf(mu1 = y1 ~ x + (1|g), mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat)),
+  quote(drmTMB(bf(mu1 = y1 ~ x + (1|g), mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat, engine = "julia")))
+
+probe("B. phylo() on mu1/mu2",
+  quote(drmTMB(bf(mu1 = y1 ~ x + phylo(1|sp, tree = tr), mu2 = y2 ~ x + phylo(1|sp, tree = tr), sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat)),
+  quote(drmTMB(bf(mu1 = y1 ~ x + phylo(1|sp, tree = tr), mu2 = y2 ~ x + phylo(1|sp, tree = tr), sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat, engine = "julia")))
+
+probe("C. relmat() marker on mu1",
+  quote(drmTMB(bf(mu1 = y1 ~ x + relmat(1|sp, K = K), mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat)),
+  quote(drmTMB(bf(mu1 = y1 ~ x + relmat(1|sp, K = K), mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat, engine = "julia")))
+
+probe("D. non-intercept sigma1 ~ z",
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ z, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat)),
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ z, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat, engine = "julia")))
+
+probe("E. non-intercept rho12 ~ z",
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12 = ~ z), family = biv_student(), data = dat)),
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12 = ~ z), family = biv_student(), data = dat, engine = "julia")))
+
+probe("F. non-intercept nu ~ z",
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu = ~ z, rho12=~1), family = biv_student(), data = dat)),
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu = ~ z, rho12=~1), family = biv_student(), data = dat, engine = "julia")))
+
+probe("G. weights = w",
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat, weights = w)),
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat, weights = w, engine = "julia")))
+
+probe("H. REML = TRUE",
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat, REML = TRUE)),
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat, REML = TRUE, engine = "julia")))
+
+probe("I. penalty = drm_phylo_penalty()",
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat, penalty = drm_phylo_penalty(lambda = 1))),
+  quote(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1=~1, sigma2=~1, nu=~1, rho12=~1), family = biv_student(), data = dat, penalty = drm_phylo_penalty(lambda = 1), engine = "julia")))

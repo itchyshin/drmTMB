@@ -1,0 +1,331 @@
+linter_path <- testthat::test_path("..", "..", "tools", "check-reader-contracts.R")
+
+if (!file.exists(linter_path)) {
+  test_that("reader vignette development linter is available", {
+    skip("Top-level development tools are intentionally excluded from the source tarball")
+  })
+} else {
+contract_linter <- new.env(parent = globalenv())
+sys.source(linter_path, envir = contract_linter)
+
+contract_fixture <- function(files = list(), manifest = NULL, exceptions = NULL) {
+  root <- tempfile("reader-contract-")
+  dir.create(file.path(root, "vignettes"), recursive = TRUE)
+  dir.create(file.path(root, "inst", "reader-contracts"), recursive = TRUE)
+
+  base_files <- list(
+    "adding-families.Rmd" = "fit$opt$convergence",
+    "testing-likelihoods.Rmd" = "fit$model$X",
+    "source-map.Rmd" = "Find the right public guide.",
+    "large-data.Rmd" = "`fit$obj` was intentionally dropped",
+    "figure-gallery.Rmd" = paste(
+      'pred_tail$model <- "Tail weight"',
+      'pred_zi$model <- "Structural-zero probability"',
+      'pred_rho$model <- "Residual correlation"',
+      sep = "\n"
+    ),
+    "reader.Rmd" = "summary(fit)$parameters\nranef(fit)$terms"
+  )
+  files <- utils::modifyList(base_files, files)
+  for (name in names(files)) writeLines(files[[name]], file.path(root, "vignettes", name))
+
+  if (is.null(manifest)) {
+    manifest <- data.frame(
+      vignette = names(files),
+      audience = c("contributor", "contributor", rep("reader", length(files) - 2L)),
+      permitted_private_fields = c("opt", "model", rep("", length(files) - 2L)),
+      rationale = c("convergence assertion", "likelihood reconstruction", rep("", length(files) - 2L)),
+      stringsAsFactors = FALSE
+    )
+  }
+  if (is.null(exceptions)) {
+    exceptions <- contract_linter$reader_contract_expected_exceptions
+  }
+  utils::write.csv(manifest, file.path(root, "inst", "reader-contracts", "vignette-manifest.csv"), row.names = FALSE)
+  utils::write.csv(exceptions, file.path(root, "inst", "reader-contracts", "private-access-exceptions.csv"), row.names = FALSE)
+  root
+}
+
+test_that("the scanner catches private slots regardless of object name", {
+  root <- contract_fixture(files = list("reader.Rmd" = "arbitrary_name$sdpars$mu"))
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Undeclared private access in reader.Rmd.*sdpars"
+  )
+})
+
+test_that("the scanner catches bracket private slots regardless of object name", {
+  root <- contract_fixture(files = list("reader.Rmd" = 'x[["sdpars"]][["mu"]]'))
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Undeclared private access in reader.Rmd.*sdpars"
+  )
+})
+
+test_that("the scanner catches bare and backticked private output routes", {
+  for (route in c("sdpars$mu", "`corpars`$mu", "random_effects[[\"sigma\"]]")) {
+    root <- contract_fixture(files = list("reader.Rmd" = route))
+    problems <- paste(contract_linter$reader_contract_lint(root), collapse = "\n")
+    expect_match(problems, "Undeclared private access in reader.Rmd")
+  }
+})
+
+test_that("reader-facing sources reject unambiguous internal process language", {
+  root <- contract_fixture(files = list(
+    "reader.Rmd" = "Issue #859 tracks this reader route."
+  ))
+  writeLines(
+    "The final wording landed in PR #1390.",
+    file.path(root, "README.md")
+  )
+  writeLines(
+    "description: Consult the capability ledger before use.",
+    file.path(root, "_pkgdown.yml")
+  )
+  dir.create(file.path(root, "vignettes", "articles"))
+  file.rename(
+    file.path(root, "vignettes", "source-map.Rmd"),
+    file.path(root, "vignettes", "articles", "source-map.Rmd")
+  )
+  writeLines(
+    c(
+      "The scoreboard is green.",
+      "Fixture evidence supports this sentence.",
+      "See docs/dev-log/check-log.md for details.",
+      "Rose approval is still pending.",
+      "A persona review is required.",
+      "The worktree carries the draft.",
+      "This remains in the implementation lane.",
+      "The development arc is not complete."
+    ),
+    file.path(root, "vignettes", "articles", "source-map.Rmd")
+  )
+
+  problems <- paste(contract_linter$reader_contract_lint(root), collapse = "\n")
+  expect_match(problems, "PR/issue identifier.*README[.]md")
+  expect_match(problems, "PR/issue identifier.*reader[.]Rmd")
+  expect_match(problems, "capability ledger.*_pkgdown[.]yml")
+  expect_match(problems, "scoreboard.*source-map[.]Rmd")
+  expect_match(problems, "fixture evidence.*source-map[.]Rmd")
+  expect_match(problems, "dev-log path.*source-map[.]Rmd")
+  expect_match(problems, "agent/persona review or approval.*source-map[.]Rmd")
+  expect_match(problems, "worktree.*source-map[.]Rmd")
+  expect_match(problems, "implementation/development lane or arc.*source-map[.]Rmd")
+})
+
+test_that("source-only process lint allows scientific uses and ignores built output", {
+  scientific_text <- c(
+    "The arc of a circle defines the sampling boundary.",
+    "A biological lane connected the two habitat patches.",
+    "Replicates were assigned to each experimental lane.",
+    "Agent-based simulations reproduce the movement process."
+  )
+  root <- contract_fixture(files = list(
+    "reader.Rmd" = scientific_text
+  ))
+  writeLines(scientific_text, file.path(root, "README.md"))
+  writeLines(
+    "description: Agent-based simulations across experimental lanes.",
+    file.path(root, "_pkgdown.yml")
+  )
+  dir.create(file.path(root, "docs"))
+  writeLines(
+    "Generated site text mentions PR #999 and a worktree.",
+    file.path(root, "docs", "index.html")
+  )
+
+  expect_length(contract_linter$reader_contract_lint(root), 0L)
+})
+
+test_that("route scanning keeps contributor permissions exact", {
+  root <- contract_fixture(files = list("adding-families.Rmd" = "`opt`$convergence\n`sdpars`$mu"))
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Undeclared private access in adding-families.Rmd.*sdpars"
+  )
+})
+
+test_that("public summary and ranef fields are accepted", {
+  root <- contract_fixture(files = list(
+    "reader.Rmd" = paste(
+      "summary(fit)$parameters",
+      "summary(fit)$covariance",
+      "ranef(fit)$terms",
+      sep = "\n"
+    )
+  ))
+  expect_length(contract_linter$reader_contract_lint(root), 0L)
+})
+
+test_that("contributor permissions are field-specific", {
+  root <- contract_fixture(files = list("adding-families.Rmd" = "fit$opt$convergence\nfit$sdr$pdHess"))
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Undeclared private access in adding-families.Rmd.*sdr"
+  )
+})
+
+test_that("contributor permissions cannot be broadened even when used", {
+  root <- contract_fixture(files = list("adding-families.Rmd" = "fit$opt$convergence\nfit$sdr$pdHess"))
+  manifest_path <- file.path(root, "inst", "reader-contracts", "vignette-manifest.csv")
+  manifest <- utils::read.csv(manifest_path, stringsAsFactors = FALSE, check.names = FALSE)
+  manifest$permitted_private_fields[manifest$vignette == "adding-families.Rmd"] <- "opt;sdr"
+  utils::write.csv(manifest, manifest_path, row.names = FALSE)
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Contributor permission must be exactly adding-families.Rmd -> opt"
+  )
+})
+
+test_that("the manifest is complete and has no duplicate or stale article rows", {
+  root <- contract_fixture()
+  writeLines("summary(fit)$parameters", file.path(root, "vignettes", "unmanifested.Rmd"))
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Missing manifest row.*unmanifested.Rmd"
+  )
+
+  manifest <- utils::read.csv(file.path(root, "inst", "reader-contracts", "vignette-manifest.csv"), stringsAsFactors = FALSE)
+  manifest <- rbind(manifest, manifest[manifest$vignette == "reader.Rmd", , drop = FALSE])
+  utils::write.csv(manifest, file.path(root, "inst", "reader-contracts", "vignette-manifest.csv"), row.names = FALSE)
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Duplicate manifest row.*reader.Rmd"
+  )
+
+  root <- contract_fixture()
+  manifest_path <- file.path(root, "inst", "reader-contracts", "vignette-manifest.csv")
+  manifest <- utils::read.csv(manifest_path, stringsAsFactors = FALSE, check.names = FALSE)
+  manifest <- rbind(
+    manifest,
+    data.frame(
+      vignette = "removed-article.Rmd",
+      audience = "reader",
+      permitted_private_fields = "",
+      rationale = "",
+      stringsAsFactors = FALSE
+    )
+  )
+  utils::write.csv(manifest, manifest_path, row.names = FALSE)
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Manifest references absent vignette.*removed-article.Rmd"
+  )
+})
+
+test_that("pkgdown-only articles are discovered and policed, not skipped", {
+  # Regression guard: moving a reader document into `vignettes/articles/` must
+  # keep it under the contract.  A non-recursive scan reports it as an absent
+  # manifest row and stops reading it altogether.
+  root <- contract_fixture()
+  dir.create(file.path(root, "vignettes", "articles"))
+  file.remove(file.path(root, "vignettes", "reader.Rmd"))
+  writeLines(
+    "arbitrary_name$sdpars$mu",
+    file.path(root, "vignettes", "articles", "reader.Rmd")
+  )
+  problems <- paste(contract_linter$reader_contract_lint(root), collapse = "\n")
+  expect_match(problems, "Undeclared private access in reader.Rmd.*sdpars")
+  expect_no_match(problems, "Manifest references absent vignette")
+})
+
+test_that("a vignette basename used in two directories fails closed", {
+  root <- contract_fixture()
+  dir.create(file.path(root, "vignettes", "articles"))
+  writeLines(
+    "summary(fit)$parameters",
+    file.path(root, "vignettes", "articles", "reader.Rmd")
+  )
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Ambiguous vignette basename.*reader[.]Rmd"
+  )
+})
+
+test_that("reader exceptions are clause-bound and stale exceptions fail", {
+  exceptions <- data.frame(
+    vignette = "reader.Rmd",
+    field = "obj",
+    clause = "fit$obj was intentionally dropped",
+    rationale = "negative explanatory clause",
+    stringsAsFactors = FALSE
+  )
+  root <- contract_fixture(exceptions = exceptions)
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Stale or ambiguous private-access exception"
+  )
+
+  root <- contract_fixture(
+    files = list("reader.Rmd" = "fit$obj was intentionally dropped"),
+    exceptions = exceptions
+  )
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Approved private-access exception record.*missing"
+  )
+})
+
+test_that("invalid declared private vocabulary fails closed", {
+  root <- contract_fixture()
+  manifest_path <- file.path(root, "inst", "reader-contracts", "vignette-manifest.csv")
+  manifest <- utils::read.csv(manifest_path, stringsAsFactors = FALSE, check.names = FALSE)
+  manifest$permitted_private_fields[manifest$vignette == "adding-families.Rmd"] <- "opt;not_a_private_slot"
+  writeLines(
+    "opt$convergence\nnot_a_private_slot$mu",
+    file.path(root, "vignettes", "adding-families.Rmd")
+  )
+  utils::write.csv(manifest, manifest_path, row.names = FALSE)
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Invalid declared private field.*not_a_private_slot"
+  )
+})
+
+test_that("exception records are immutable, unique, and cannot be widened", {
+  root <- contract_fixture()
+  exception_path <- file.path(root, "inst", "reader-contracts", "private-access-exceptions.csv")
+  exceptions <- utils::read.csv(exception_path, stringsAsFactors = FALSE, check.names = FALSE)
+  exceptions <- rbind(exceptions, exceptions[1L, , drop = FALSE])
+  utils::write.csv(exceptions, exception_path, row.names = FALSE)
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Duplicate private-access exception record"
+  )
+
+  extra_exception <- data.frame(
+    vignette = "reader.Rmd",
+    field = "obj",
+    clause = "fit$obj reader-only explanation",
+    rationale = "structurally valid but unauthorized",
+    stringsAsFactors = FALSE
+  )
+  root <- contract_fixture(
+    files = list("reader.Rmd" = "fit$obj reader-only explanation"),
+    exceptions = rbind(contract_linter$reader_contract_expected_exceptions, extra_exception)
+  )
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Unauthorized private-access exception record.*reader.Rmd"
+  )
+})
+
+test_that("the live corpus has the complete immutable manifest", {
+  project_root <- normalizePath(testthat::test_path("..", ".."))
+  manifest <- contract_linter$reader_contract_read_csv(
+    file.path(project_root, "inst", "reader-contracts", "vignette-manifest.csv"),
+    c("vignette", "audience", "permitted_private_fields", "rationale")
+  )
+  # Discovery comes from the linter itself so the corpus the test asserts over
+  # and the corpus the linter polices cannot drift apart again.
+  source_paths <- contract_linter$reader_contract_source_paths(
+    file.path(project_root, "vignettes")
+  )
+  source_vignettes <- names(source_paths)
+  expect_equal(nrow(manifest), 38L)
+  expect_equal(sum(grepl("/articles/", source_paths, fixed = TRUE)), 6L)
+  expect_identical(anyDuplicated(manifest$vignette), 0L)
+  expect_setequal(manifest$vignette, source_vignettes)
+  expect_length(contract_linter$reader_contract_lint(project_root), 0L)
+})
+}

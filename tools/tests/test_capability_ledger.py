@@ -22,6 +22,20 @@ assert SPEC and SPEC.loader
 ledger = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(ledger)
 INTERNAL_ROADMAP = ROOT / "docs" / "dev-log" / "internal-roadmap.md"
+DEVELOPMENT_ARTICLES = {
+    "distributional-outputs-and-adequacy.Rmd",
+    "figure-gallery.Rmd",
+    "function-map-cheatsheet.Rmd",
+    "model-workflow.Rmd",
+    "phylogenetic-spatial.Rmd",
+    "simulation-plot-grammar.Rmd",
+}
+
+
+def reader_vignette_path(name: str) -> Path:
+    """Return the source path for an installed or development article."""
+    directory = "articles" if name in DEVELOPMENT_ARTICLES else ""
+    return ROOT / "vignettes" / directory / name
 
 
 class CapabilityLedgerTests(unittest.TestCase):
@@ -43,7 +57,15 @@ class CapabilityLedgerTests(unittest.TestCase):
         # q4/q6/q8 ordinary bivariate REML blocks) into exact per-q leaves;
         # mc-0207 becomes the q4 leaf in place, mc-0715/mc-0716 are new q6/q8
         # leaves. The split promotes nothing.
-        self.assertEqual(len(model), 699)
+        # 699 -> 700: Design 257 Wave 1 adds mc-0717, the binomial ordinary
+        # correlated (1 + x | g) ML-Laplace point_fit_recovery cell.
+        # 700 -> 701: Wave 2 adds mc-0718, the Poisson ordinary correlated
+        # (1 + x | g) ML-Laplace point_fit_recovery cell.
+        # 701 -> 702: Wave 2.5 adds mc-0719, the ordinary NB2 correlated
+        # (1 + x | g) ML-Laplace point_fit_recovery cell.
+        # 702 -> 703: Wave 3 adds mc-0720, the ordinary lognormal correlated
+        # (1 + x | g) ML-Laplace point_fit_recovery cell.
+        self.assertEqual(len(model), 703)
         self.assertEqual(len(missing), 18)
         self.assertEqual(len(association), 6)
         by_association = {row["cell_id"]: row for row in association}
@@ -313,8 +335,8 @@ class CapabilityLedgerTests(unittest.TestCase):
                 provenance = receipt / "provenance.tsv"
                 provenance.write_text(
                     "\n".join(
-                        "git_blob:R/methods.R\t" + "d" * 40
-                        if line.startswith("git_blob:R/methods.R\t")
+                        "git_blob:R/drmTMB.R\t" + "d" * 40
+                        if line.startswith("git_blob:R/drmTMB.R\t")
                         else line
                         for line in provenance.read_text(encoding="utf-8").splitlines()
                     )
@@ -347,7 +369,7 @@ class CapabilityLedgerTests(unittest.TestCase):
                 ledger.C17_C14_CURRENT_SOURCE_COMPATIBILITY = original
                 shutil.rmtree(receipt, ignore_errors=True)
 
-        self.assertIn("current source blob differs for R/methods.R", blob_message)
+        self.assertIn("current source blob differs for R/drmTMB.R", blob_message)
         self.assertIn("LEAVE source_fingerprint alone", blob_message)
         self.assertNotIn("update source_fingerprint", blob_message)
 
@@ -542,10 +564,14 @@ class CapabilityLedgerTests(unittest.TestCase):
         # Arc 4b raised implemented 337 -> 339. The exact 0.7 capability-truth
         # reconciliation then corrects the two C14 false negatives mc-0060 and
         # mc-0062, so implemented becomes 341 and rejected_by_design becomes 348.
+        # Design 257 Wave 1 then adds mc-0717 (implemented), so 341 -> 342.
+        # Wave 2 adds mc-0718 (implemented), so 342 -> 343.
+        # Wave 2.5 adds mc-0719 (implemented), so 343 -> 344.
+        # Wave 3 adds mc-0720 (implemented), so 344 -> 345.
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 341, "not_implemented": 10, "rejected_by_design": 348},
+            {"implemented": 345, "not_implemented": 10, "rejected_by_design": 348},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -588,10 +614,12 @@ class CapabilityLedgerTests(unittest.TestCase):
         }
 
         # Arc 4b plus the exact two-row 0.7 capability-truth override (see above).
+        # 341 -> 345: Design 257 Wave 1 (mc-0717), Wave 2 (mc-0718),
+        # Wave 2.5 (mc-0719), then Wave 3 (mc-0720).
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 341, "not_implemented": 10, "rejected_by_design": 348},
+            {"implemented": 345, "not_implemented": 10, "rejected_by_design": 348},
         )
         # Two assertions, because one number cannot express both facts.
         #
@@ -680,9 +708,18 @@ class CapabilityLedgerTests(unittest.TestCase):
         # ten-clause contract; nine siblings withheld. All five sit inside the
         # frozen window, so FROZEN_CENSUS_POINT_FIT_RECOVERY moves 59 -> 54 with
         # this total. Recounted directly from cells.tsv.
+        # 56 -> 77 on 2026-08-16: the owner-decided demotion of the 21 import cells
+        # whose cited evidence never computes an interval (import shape audit;
+        # transitions tr-mc-*-import-shape-audit). All 21 are model-surface.
+        # 77 -> 80: Design 257 Wave 1 adds mc-0717 (source_order 717),
+        # Wave 2 adds mc-0718 (source_order 718), and Wave 2.5 adds
+        # mc-0719 (source_order 719), all outside the frozen window,
+        # at point_fit_recovery.
+        # 80 -> 81: Wave 3 adds mc-0720 (source_order 720) at
+        # point_fit_recovery, also outside the frozen window.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            56,
+            81,
         )
 
         by_id = {row["cell_id"]: row for row in model}
@@ -1032,13 +1069,118 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_legacy_supported_label_does_not_authorize_an_interval(self):
         fit, point, interval = ledger.reader_reporting_permissions(
-            {"capability_status": "implemented", "evidence_tier": "supported"},
+            {
+                "capability_status": "implemented",
+                "evidence_tier": "legacy_fit_supported",
+            },
             "Wald interval",
         )
         self.assertTrue(fit.startswith("Yes"))
         self.assertTrue(point.startswith("Yes"))
         self.assertTrue(interval.startswith("No"))
         self.assertIn("legacy supported label", interval)
+
+    def test_supported_is_the_ladder_summit_and_does_authorize_an_interval(self):
+        """`supported` must outrank the tier below it in PERMISSION, not just order.
+
+        Until 2026-08-15 one token carried both meanings: the ladder's summit and
+        the migrated board `fit_status` label. The reader translator gave it the
+        legacy wording, so the ladder's TOP rung authorized strictly LESS than
+        `inference_ready_with_caveats` directly beneath it, while every aggregate
+        still counted it first as the strongest evidence.
+        """
+        _, _, top = ledger.reader_reporting_permissions(
+            {"capability_status": "implemented", "evidence_tier": "supported"},
+            "profile interval",
+        )
+        _, _, below = ledger.reader_reporting_permissions(
+            {
+                "capability_status": "implemented",
+                "evidence_tier": "inference_ready_with_caveats",
+            },
+            "profile interval",
+        )
+        self.assertTrue(top.startswith("Yes"))
+        self.assertTrue(below.startswith("Yes"))
+        self.assertNotIn("legacy supported label", top)
+
+    def test_legacy_fit_supported_ranks_below_interval_feasible(self):
+        order = ledger.TIER_ORDER
+        self.assertIn("legacy_fit_supported", order)
+        self.assertGreater(
+            order.index("legacy_fit_supported"), order.index("interval_feasible")
+        )
+        self.assertLess(order.index("supported"), order.index("interval_feasible"))
+
+    def test_tier_order_is_monotone_in_reader_permission(self):
+        """A stronger rank must never authorize LESS than a weaker one.
+
+        This is the guard for a defect class the ledger hit twice, found on
+        2026-08-15:
+
+          * `supported` sat at the summit while the reader translator gave it the
+            legacy fit label's wording, so it authorized strictly less than
+            `inference_ready_with_caveats` directly beneath it.
+          * `diagnostic_only` ranked above `point_fit_recovery` while granting no
+            point-report permission at all, where `point_fit_recovery` grants one.
+
+        Both were invisible because rank and permission lived in different
+        functions and nothing compared them. This compares them.
+        """
+        def permits(tier):
+            _, point, interval = ledger.reader_reporting_permissions(
+                {"capability_status": "implemented", "evidence_tier": tier},
+                "profile interval",
+            )
+            return (interval.startswith("Yes"), point.startswith("Yes"))
+
+        ranked = [t for t in ledger.TIER_ORDER if t not in {"miswired", "none"}]
+        for stronger, weaker in zip(ranked, ranked[1:]):
+            s_int, s_pt = permits(stronger)
+            w_int, w_pt = permits(weaker)
+            self.assertGreaterEqual(
+                (s_int, s_pt), (w_int, w_pt),
+                f"{stronger} ranks above {weaker} but authorizes less: "
+                f"{stronger}=(interval={s_int}, point={s_pt}) vs "
+                f"{weaker}=(interval={w_int}, point={w_pt})",
+            )
+
+    def test_location_checked_is_rendered_and_derived(self):
+        """The location split must be VISIBLE and must agree with the stored column.
+
+        docs/design/255 separates what a tier claims (shape) from whether a location
+        check ran (`location_checked`). A stored-but-unrendered column would put the
+        honest number back where it was before the split: inferable, not visible.
+        """
+        generated = ledger.outputs(self.cells, self.evidence)
+        model = [
+            row for row in self.cells
+            if row["axis"] == "model_surface"
+        ]
+        claiming = [
+            row for row in model
+            if row["evidence_tier"] in {
+                "supported", "inference_ready_with_caveats", "interval_feasible"
+            }
+        ]
+        from collections import Counter
+        counts = Counter(row["location_checked"] for row in claiming)
+        line = ledger.location_summary_line(model)
+        self.assertIn(f"{len(claiming)} interval-claiming cells", line)
+        self.assertIn(f"**{counts.get('passed', 0)} passed**", line)
+        self.assertIn(f"**{counts.get('unchecked', 0)} unchecked**", line)
+        # rendered on both prose surfaces and as a census column
+        summary = generated[ledger.READER_SUMMARY].decode("utf-8")
+        self.assertIn("Location checks among", summary)
+        surface_html = next(
+            content.decode("utf-8") for path, content in generated.items()
+            if str(path).endswith("capability-surface.html")
+        )
+        self.assertIn("Location checked", surface_html)
+        self.assertIn("Location checks among", surface_html)
+        # and every cell carries a legal value (the validator's contract)
+        for row in self.cells:
+            self.assertIn(row["location_checked"], ledger.LOCATION_CHECKED, row["cell_id"])
 
     def test_reader_summary_is_packaged_and_free_of_internal_cell_jargon(self):
         generated = ledger.outputs(self.cells, self.evidence)
@@ -1137,10 +1279,7 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_reader_navigation_redirect_and_public_language_contract(self):
         config = (ROOT / "_pkgdown.yml").read_text()
-        self.assertIn(
-            '- ["ROADMAP.html", "articles/capability-and-limits.html"]',
-            config,
-        )
+        self.assertNotIn("ROADMAP.html", config)
         intro = config.split("    intro:", 1)[1].split("    model_guides:", 1)[0]
         intro_pairs = re.findall(
             r"- text: ([^\n]+)\n\s+href: ([^\n]+)", intro
@@ -1149,6 +1288,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             intro_pairs,
             [
                 ("Overview and first model", "articles/drmTMB.html"),
+                ("Find the right guide for your question", "articles/source-map.html"),
                 ("Can I fit and report this?", "articles/capability-and-limits.html"),
                 ("Choose a family", "articles/distribution-families.html"),
                 ("Function map and cheat sheet", "articles/function-map-cheatsheet.html"),
@@ -1170,38 +1310,47 @@ class CapabilityLedgerTests(unittest.TestCase):
             ),
             1,
         )
-        getting_started = config.split("  - title: Getting Started", 1)[1].split(
-            "  - title: Capability and Model Choice", 1
+        getting_started = config.split("  - title: Where should I start?", 1)[1].split(
+            "  - title: Which model matches my question and data?", 1
         )[0]
         capability_choice = config.split(
-            "  - title: Capability and Model Choice", 1
-        )[1].split("  - title: Location and Scale", 1)[0]
-        article_entry_pattern = r"^\s{6}- ([A-Za-z0-9][A-Za-z0-9-]*)\s*$"
+            "  - title: Which model matches my question and data?", 1
+        )[1].split("  - title: Do predictors change the mean, the variation, or both?", 1)[0]
+        article_entry_pattern = (
+            r"^\s{6}- ((?:articles/)?[A-Za-z0-9][A-Za-z0-9-]*)\s*$"
+        )
         getting_started_entries = re.findall(
             article_entry_pattern, getting_started, re.MULTILINE
         )
         capability_choice_entries = re.findall(
             article_entry_pattern, capability_choice, re.MULTILINE
         )
-        self.assertEqual(getting_started_entries.count("function-map-cheatsheet"), 1)
+        self.assertEqual(
+            getting_started_entries.count("articles/function-map-cheatsheet"), 1
+        )
+        self.assertNotIn("function-map-cheatsheet", getting_started_entries)
         self.assertNotIn("model-map", getting_started_entries)
         self.assertEqual(capability_choice_entries.count("model-map"), 1)
-        self.assertNotIn("function-map-cheatsheet", capability_choice_entries)
+        self.assertNotIn("articles/function-map-cheatsheet", capability_choice_entries)
 
-        learning_path = (ROOT / "vignettes" / "drmTMB.Rmd").read_text().split(
-            "## Learning path", 1
-        )[1]
+        next_guide = (ROOT / "vignettes" / "drmTMB.Rmd").read_text().split(
+            "## Choose your next guide", 1
+        )[1].split("## Check before interpreting", 1)[0]
         learning_links = (
-            "capability-and-limits.html",
             "distribution-families.html",
-            "function-map-cheatsheet.html",
-            "model-workflow.html",
+            "structural-dependence.html",
+            "bivariate-coscale.html",
+            "meta-analysis.html",
+            "capability-and-limits.html",
         )
-        learning_positions = [learning_path.index(link) for link in learning_links]
+        learning_positions = [next_guide.index(link) for link in learning_links]
         self.assertEqual(learning_positions, sorted(learning_positions))
+        self.assertIn("model-map.html", next_guide)
 
         design = (ROOT / "docs" / "design" / "226-reader-learning-path.md").read_text()
-        vignette_stems = {path.stem for path in (ROOT / "vignettes").glob("*.Rmd")}
+        vignette_stems = {
+            path.stem for path in (ROOT / "vignettes").rglob("*.Rmd")
+        }
         vignette_count = len(vignette_stems)
         self.assertIn(f"across {vignette_count} vignettes", design.splitlines()[0])
         self.assertIn(f"{vignette_count} rows.", design)
@@ -1215,15 +1364,74 @@ class CapabilityLedgerTests(unittest.TestCase):
             article_entry_pattern, article_index, re.MULTILINE
         )
         self.assertEqual(len(article_stems), len(set(article_stems)))
-        self.assertEqual(set(article_stems), vignette_stems)
+        article_names = [Path(stem).name for stem in article_stems]
+        self.assertEqual(len(article_names), len(set(article_names)))
+        self.assertEqual(set(article_names), vignette_stems)
 
-        public_paths = [ROOT / "README.md", *sorted((ROOT / "vignettes").glob("*.Rmd"))]
+        public_paths = [
+            ROOT / "README.md",
+            *sorted((ROOT / "vignettes").rglob("*.Rmd")),
+        ]
         public_text = "\n".join(path.read_text() for path in public_paths)
         for stale in (
             "ROADMAP.html", "ROADMAP.md", "check the roadmap",
             "What drmTMB can and can't do", "What can I trust?",
         ):
             self.assertNotIn(stale, public_text)
+
+        model_map = (ROOT / "vignettes" / "model-map.Rmd").read_text()
+        for reader_marker in (
+            "Use this guide to choose a route from your scientific question.",
+            "runnable example, and\ninterpretation.",
+            "| If your data and question are... | Eligible route | Key limitation | Next guide |",
+            "Before reporting an estimate or interval, run `check_drm()`",
+        ):
+            self.assertIn(reader_marker, model_map)
+        for internal_phrase in (
+            "implemented-versus-planned boundary",
+            "validation-debt register",
+            "evidence behind advertised surfaces",
+            "source map points contributors",
+        ):
+            self.assertNotIn(internal_phrase, model_map)
+
+    def test_public_vignettes_are_free_of_internal_route_jargon(self):
+        # Reader pages never carry these internal evidence/bridge phrases; the
+        # reader-facing tier vocabulary lives in capability-and-limits.Rmd
+        # ("point estimate only", "diagnostic only", "fixed spatial range").
+        # 2026-09-21: structural-dependence.Rmd is excluded only until its own
+        # fix (branch codex/structural-reader-decisions-20260921, PR #1418)
+        # lands on main; that version is already clean of every phrase below,
+        # so drop the exclusion in the first commit after #1418 merges.
+        public_vignettes = sorted((ROOT / "vignettes").glob("*.Rmd")) + sorted(
+            (ROOT / "vignettes" / "articles").glob("*.Rmd")
+        )
+        public_vignettes = [
+            p for p in public_vignettes if p.name != "structural-dependence.Rmd"
+        ]
+        self.assertTrue(public_vignettes)
+        for path in public_vignettes:
+            normalized = " ".join(path.read_text().split()).lower()
+            for internal_phrase in (
+                "pedigree/ainv bridge marshalling",
+                "recovery-grade nb2",
+                "fixed-kappa mesh intercept",
+                # Same class, any spelling: the reader must never meet the
+                # internal tier words or the bridge vocabulary on these pages.
+                "bridge marshalling",
+                "bridge marshaling",
+                "bridge claims",
+                "recovery-grade",
+                "recovery grade",
+                "diagnostic-grade",
+                "diagnostic grade",
+                "fixed-kappa",
+                "local-fit level",
+            ):
+                self.assertFalse(
+                    internal_phrase in normalized,
+                    f"{internal_phrase!r} found in {path.relative_to(ROOT)}",
+                )
 
     def test_capability_article_has_reporting_rule_and_stable_terms(self):
         article = (ROOT / "vignettes/capability-and-limits.Rmd").read_text()
@@ -1241,7 +1449,14 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(article.count("meta_known_V(V = V)"), 1)
         self.assertEqual(len(re.findall(r"\btau\b", article)), 1)
         self.assertIn('<details class="drmtmb-notation">', article)
-        self.assertIn("Supported (legacy ledger label)", article)
+        for label in (
+            "**Point estimate and interval:**",
+            "**Point estimate only:**",
+            "**Feasibility only:**",
+            "**Not available:**",
+        ):
+            self.assertIn(label, article)
+        self.assertNotIn("Supported (legacy ledger label)", article)
         self.assertNotIn("Five non-Gaussian families now carry", article)
         self.assertNotIn("All five admitted fixed-effect", article)
         self.assertNotRegex(
@@ -1445,7 +1660,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             "`binomial()`",
             "`poisson()`",
             "`nbinom2()`",
-            "`beta()`",
+            "`beta_family()`",
             "`student()`",
             "`lognormal()`",
             '`Gamma(link = "log")`',
@@ -1466,7 +1681,7 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_reader_surfaces_do_not_erase_structured_sigma_slope_support(self):
         surfaces = {
-            name: (ROOT / "vignettes" / name).read_text()
+            name: reader_vignette_path(name).read_text()
             for name in (
                 "animal-models.Rmd",
                 "count-nbinom2.Rmd",
@@ -1581,22 +1796,27 @@ class CapabilityLedgerTests(unittest.TestCase):
             "exact A-matrix q1 `sigma` one-slope route",
             surfaces["animal-models.Rmd"],
         )
-        self.assertIn(
-            "exact K/Q q1 `sigma` one-slope route",
-            surfaces["relmat-known-matrices.Rmd"],
-        )
+        relmat = surfaces["relmat-known-matrices.Rmd"]
+        self.assertIn("relmat(1 + x | id, K = K)", relmat)
+        self.assertIn("relmat(1 + x | id, Q = Q)", relmat)
+        self.assertIn("in `sigma`", relmat)
+        self.assertIn("For the documented one-slope K/Q route", relmat)
         self.assertIn(
             "q1 structured `sigma` one-slope paths fit for",
             surfaces["phylogenetic-spatial.Rmd"],
         )
-        self.assertIn(
-            "a q1 `sigma` one-slope point-fit/extractor route",
-            surfaces["implementation-map.Rmd"],
-        )
-        self.assertIn(
-            "unlabelled correlated intercept-slope and multi-slope blocks",
-            surfaces["implementation-map.Rmd"],
-        )
+        overview = surfaces["implementation-map.Rmd"]
+        for link in (
+            "animal-models.html",
+            "relmat-known-matrices.html",
+            "structural-dependence.html",
+            "formula-grammar.html",
+            "count-nbinom2.html",
+            "distribution-families.html",
+            "proportion-beta-binomial.html",
+        ):
+            self.assertIn(link, overview)
+        self.assertNotRegex(overview, r"\\b(?:mc|mr|as)-\\d{4}[a-z]?\\b")
         self.assertIn(
             "Unlabelled ordinary correlated residual-scale intercept-slope",
             surfaces["02-family-registry.md"],
@@ -1618,36 +1838,35 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["02-family-registry.md"],
         )
         self.assertIn(
-            "`mu` intercept-plus-one-slope routes using one of",
-            surfaces["distribution-families.Rmd"],
+            "Poisson and NB2 models without zero inflation allow one such term "
+            "with an intercept and one numeric slope in `mu`. NB2 also allows "
+            "these terms separately in `sigma`.",
+            " ".join(surfaces["distribution-families.Rmd"].split()),
         )
         self.assertIn(
             "Poisson/NB2 q=1 `phylo()`/`spatial()`/`animal()`/`relmat()` `mu` intercept-plus-one-slope routes",
             surfaces["model-map.Rmd"],
         )
         self.assertIn(
-            "separate recovery-grade NB2 q=1 structured `sigma` routes",
+            "separate NB2 q=1 structured `sigma` routes (point estimate only)",
             surfaces["model-map.Rmd"],
-        )
-        self.assertIn(
-            "Poisson/NB2 q1 single-provider structured `mu`",
-            surfaces["implementation-map.Rmd"],
         )
         self.assertIn(
             "Ordinary non-zero-inflated NB2 fits a plain log-`sigma` random intercept",
             surfaces["34-validation-debt-register.md"],
         )
         self.assertIn(
-            "q=1 `hu ~ relmat(1 | id, K/Q = ...)` intercept route",
+            "hu ~ relmat(1 | id, K = K)",
             surfaces["distribution-families.Rmd"],
+        )
+        self.assertIn(
+            "one relatedness intercept in `hu`, supplied as either a covariance "
+            "matrix `K` or precision matrix `Q`",
+            " ".join(surfaces["distribution-families.Rmd"].split()),
         )
         self.assertIn(
             "one truncated-NB2 q=1 `hu ~ relmat(1 | id, K/Q = ...)` diagnostic-only route",
             surfaces["model-map.Rmd"],
-        )
-        self.assertIn(
-            "one diagnostic-only truncated-NB2 q=1 `hu ~ relmat(K/Q)` intercept",
-            surfaces["implementation-map.Rmd"],
         )
         self.assertIn(
             "exact recovery-grade NB2\n  q=1 `sigma` intercept-plus-one-slope routes",
@@ -1742,7 +1961,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             "41-phase-18-simulation-programme.md",
             "59-structural-slope-and-non-gaussian-map.md",
             "79-supported-nongaussian-evidence-goal.md",
-            "implementation-map.Rmd",
             "known-limitations.md",
         ):
             self.assertIn("crossed", surfaces[name])
@@ -1758,8 +1976,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             "34-validation-debt-register.md",
             "46-pre-simulation-readiness-matrix.md",
             "109-phase-18-core-family-completion-map-slices-1279-1288.md",
-            "count-nbinom2.Rmd",
-            "distribution-families.Rmd",
             "formula-grammar.Rmd",
             "model-map.Rmd",
         ):
@@ -1767,6 +1983,24 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertIn("NB2", surfaces[name])
             self.assertIn("spatial", surfaces[name])
             self.assertIn("relmat", surfaces[name])
+        count = " ".join(surfaces["count-nbinom2.Rmd"].split())
+        self.assertIn("One NB2 model without zero inflation", count)
+        self.assertIn(
+            "mu ~ spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q)",
+            count,
+        )
+        self.assertIn(
+            "Its point estimates have simulation checks, but its intervals do not.",
+            count,
+        )
+        self.assertIn(
+            "This does not extend to other combinations of structured effects.",
+            count,
+        )
+        self.assertIn(
+            "count-nbinom2.html#adding-grouped-or-structured-effects",
+            surfaces["distribution-families.Rmd"],
+        )
         self.assertIn(
             "Superseded boundary (2026-07-14)",
             surfaces["134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md"],
@@ -1811,12 +2045,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             "Ordinary ordinal random effects, other structured routes",
             surfaces["formula-grammar.Rmd"],
         )
-        self.assertIn(
-            "eligible cumulative-logit, Student-t, beta, Tweedie, skew-normal, and zero-one-beta routes",
-            surfaces["implementation-map.Rmd"],
-        )
-        self.assertIn("exact `mc-0539` is inference-ready with caveats", surfaces["implementation-map.Rmd"])
-        self.assertIn("exact `mc-0575` is inference-ready with caveats", surfaces["implementation-map.Rmd"])
         self.assertIn(
             "zero_one_beta()` | `mu` logit",
             surfaces["02-family-registry.md"],
@@ -1875,11 +2103,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             "exact q1 `mu ~ phylo(1 | id, tree = tree)` intercept",
             surfaces["06-distribution-roadmap.md"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "Tweedie and\n  skew-normal both fit ordinary unlabelled `mu` random intercepts",
             surfaces["README.md"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "Ordinary\n  unlabelled `mu` random intercepts and independent numeric slopes are\n  recovery-grade",
             surfaces["README.md"],
         )
@@ -1914,10 +2142,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         ):
             self.assertNotIn(stale, ordinal_combined)
         self.assertNotIn("skew-normal is a fixed-effect first slice", surfaces["README.md"])
-        self.assertIn(
-            "Every fitted univariate\nnon-Gaussian family has an ordinary recovery-grade `mu` random intercept and\nindependent numeric slope",
-            surfaces["README.md"],
-        )
+        self.assertIn("What can I fit today?", surfaces["README.md"])
+        self.assertIn("articles/model-map.html", surfaces["README.md"])
+        self.assertNotIn("ordinary recovery-grade `mu` random intercept", surfaces["README.md"])
         self.assertIn(
             "Can I fit and report this model?",
             surfaces["drmTMB.Rmd"],
@@ -1934,42 +2161,54 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["model-map.Rmd"],
         )
         self.assertNotIn("and non-Gaussian paths remain planned", surfaces["model-map.Rmd"])
+        self.assertIn("articles/model-map.html", surfaces["README.md"])
+        self.assertIn("Can I fit and report this model?", surfaces["README.md"])
         for name in (
-            "README.md",
             "model-map.Rmd",
             "phylogenetic-spatial.Rmd",
-            "implementation-map.Rmd",
-            "spatial-models.Rmd",
         ):
             self.assertIn("non-Gaussian spatial", surfaces[name])
             self.assertIn("outside the", surfaces[name])
             self.assertNotIn("non-Gaussian spatial effects are still", surfaces[name])
             self.assertNotIn("non-Gaussian spatial effects, and", surfaces[name])
         for name in (
-            "README.md",
             "model-map.Rmd",
             "phylogenetic-spatial.Rmd",
-            "implementation-map.Rmd",
-            "spatial-models.Rmd",
-            "source-map.Rmd",
             "which-scale.Rmd",
         ):
             normalized = " ".join(surfaces[name].split())
             for gate in (
                 "ordinary Poisson/NB2 q1 spatial `mu`",
-                "recovery-grade NB2 q1 spatial `sigma`",
+                "NB2 q1 spatial `sigma` (point estimate only)",
                 "Student-t spatial `mu`",
                 "Poisson spatial `zi`",
                 "fixed-`zi` NB2 spatial `mu`",
             ):
                 self.assertIn(gate, normalized)
+        # The spatial learning page names the same supported routes in reader
+        # language rather than exposing the internal q1/zi gate labels.
+        spatial = " ".join(surfaces["spatial-models.Rmd"].split())
+        self.assertIn("non-Gaussian spatial", spatial)
+        self.assertIn("other than the documented", spatial)
+        for route in (
+            "Poisson and NB2 one-response location models with an intercept plus one slope",
+            "NB2 one-response scale model",
+            "Student-t location models",
+            "Poisson zero-inflation models",
+            "fixed-zero-inflation Poisson or NB2 location models",
+        ):
+            self.assertIn(route, spatial)
         self.assertNotIn(
             "gates outside the exact ordinary Poisson/NB2",
             surfaces["spatial-models.Rmd"],
         )
-        for name in ("README.md", "model-map.Rmd"):
+        self.assertNotIn(
+            "non-Gaussian phylogenetic slopes outside the exact",
+            surfaces["README.md"],
+        )
+        for name in ("model-map.Rmd",):
             self.assertIn(
-                "non-Gaussian phylogenetic slopes outside the exact unlabelled Poisson/NB2 q1 intercept-plus-one-slope gates",
+                "non-Gaussian phylogenetic slopes outside the exact unlabelled Poisson/NB2 q1 intercept-plus-one-slope forms",
                 surfaces[name],
             )
             self.assertNotIn(
@@ -1981,15 +2220,15 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["implementation-map.Rmd"],
         )
         self.assertIn(
-            "The eligible ordinary routes accept unlabelled `mu` random intercepts",
-            surfaces["distribution-families.Rmd"],
+            "random intercept such as `(1 | site)` in `mu`. An independent numeric slope",
+            " ".join(surfaces["distribution-families.Rmd"].split()),
         )
         self.assertIn(
-            "an active `hu` formula does not",
-            surfaces["distribution-families.Rmd"],
+            "an active hurdle formula does not allow those mean random effects",
+            " ".join(surfaces["count-nbinom2.Rmd"].split()),
         )
         self.assertIn(
-            "exact q=1 `mu`/`sigma ~ animal()` recovery-grade gates",
+            "the tested single-term `animal()` effects in `mu` or `sigma` can be fitted",
             surfaces["distribution-families.Rmd"],
         )
         self.assertNotIn(
@@ -2033,7 +2272,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             "Exact q1 NB2 structured `sigma` intercept-plus-one-slope routes",
             surfaces["NEWS.md"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "exact q=1 NB2 structured `sigma` intercept-plus-one-slope routes",
             surfaces["README.md"],
         )
@@ -2062,10 +2301,8 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_provider_claims_name_exact_nongaussian_gates(self):
         phylo_surfaces = {
-            name: " ".join((ROOT / "vignettes" / name).read_text().split())
+            name: " ".join(reader_vignette_path(name).read_text().split())
             for name in (
-                "implementation-map.Rmd",
-                "phylogenetic-models.Rmd",
                 "phylogenetic-spatial.Rmd",
                 "structural-dependence.Rmd",
             )
@@ -2084,7 +2321,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         for gate in (
             "Poisson/NB2 q1 animal `mu` intercept-plus-one-slope",
             "NB2 q1 animal `sigma`",
-            "beta animal route",
+            "beta animal models",
             "Poisson/NB2 q1 relmat `mu` intercept-plus-one-slope",
             "NB2 q1 relmat `sigma`",
             "Gamma q1 relmat `mu`",
@@ -2102,7 +2339,7 @@ class CapabilityLedgerTests(unittest.TestCase):
                 ROOT / "docs/dev-log/known-limitations.md",
                 ROOT / "vignettes/implementation-map.Rmd",
                 ROOT / "vignettes/phylogenetic-models.Rmd",
-                ROOT / "vignettes/phylogenetic-spatial.Rmd",
+                reader_vignette_path("phylogenetic-spatial.Rmd"),
                 ROOT / "vignettes/structural-dependence.Rmd",
             )
         )
@@ -2121,7 +2358,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             "programme": ROOT / "docs/design/41-phase-18-simulation-programme.md",
             "debt": ROOT / "docs/design/34-validation-debt-register.md",
             "model_map": ROOT / "vignettes/model-map.Rmd",
-            "implementation_map": ROOT / "vignettes/implementation-map.Rmd",
         }
         normalized = {
             name: " ".join(path.read_text().split())
@@ -2137,7 +2373,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             "readiness": "beyond the two exact q1 intercept gates",
             "debt": "zero-inflated spatial effects beyond the exact Poisson gate",
             "model_map": "and zero-inflated spatial effects |",
-            "implementation_map": "beyond the exact Poisson `zi`, fixed-`zi` Poisson `mu`, and fixed-`zi` NB2 `mu` gates",
         }
         for name, stale in stale_by_surface.items():
             self.assertNotIn(stale, normalized[name], name)
@@ -2162,7 +2397,19 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_student_structured_tiers_fail_closed_to_live_ledger(self):
         by_id = {row["cell_id"]: row for row in self.cells}
         self.assertEqual(by_id["mc-0493"]["evidence_tier"], "diagnostic_only")
-        self.assertEqual(by_id["mc-0494"]["evidence_tier"], "interval_feasible")
+        # mc-0494 held interval_feasible until 2026-08-15, when the interval-truth
+        # re-check derived its true value from its own frozen campaign contract and
+        # found the retained interval [0.305, 0.528] does not contain it (truth 0.20).
+        # It is one of seven spatial cells whose fixture generates the latent field
+        # from a different covariance than the fitted kernel, so the declared truth is
+        # not the model's estimand and no valid location check exists. Demoted to
+        # diagnostic_only rather than point_fit_recovery because the same
+        # misspecification means the point estimate was never validly tested either.
+        self.assertEqual(by_id["mc-0494"]["evidence_tier"], "diagnostic_only")
+        self.assertIn(
+            "conditional on the correlation range",
+            by_id["mc-0494"]["claim_boundary"],
+        )
         self.assertEqual(by_id["mc-0495"]["evidence_tier"], "diagnostic_only")
         self.assertEqual(by_id["mc-0641"]["evidence_tier"], "diagnostic_only")
         for cell_id in ("mc-0229", "mc-0364", "mc-0641", "mc-0662", "mc-0667"):
@@ -2199,7 +2446,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             "diagnostic-only Student-t q1 `nu ~ phylo",
             "intercept-only `mu ~ spatial(1 | ...)`",
             "`mu ~ spatial(1 + x | ...)` is recovery-grade",
-            "Capability tiers, defined once",
+            "## Evidence and exact tested scopes",
             "fixed-`zi` Poisson",
             "diagnostic-only fixed-`zi` NB2",
         ):
@@ -2273,13 +2520,22 @@ class CapabilityLedgerTests(unittest.TestCase):
         for stale in forbidden:
             self.assertNotIn(stale, surfaces, stale)
 
+        # Contributor records retain their evidence labels; reader pages state
+        # the fitting-only limit directly beside the affected model.
         for claim in (
-            "diagnostic-only q=1 Poisson `zi ~ spatial",
             "diagnostic-only q1 `hu ~ relmat",
             "diagnostic-only q1 `mu ~ phylo",
             "diagnostic-only fixed-`zi` Poisson",
         ):
             self.assertIn(claim, surfaces, claim)
+        count = " ".join((ROOT / "vignettes/count-nbinom2.Rmd").read_text().split())
+        self.assertIn("zi ~ spatial(1 | id, coords = coords)", count)
+        self.assertIn(
+            "The hurdle-relatedness and zero-inflated spatial models above have "
+            "been checked for fitting and extracting results only. Their "
+            "point-estimate accuracy and confidence intervals have not been validated.",
+            count,
+        )
 
     def test_provider_tutorials_name_exact_nongaussian_rows(self):
         phylo = " ".join(
@@ -2287,10 +2543,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         for claim in (
             "Poisson has no residual `sigma` formula",
-            "NB2 overdispersion deviations",
-            "Student-t tail-weight deviations",
-            "cumulative-logit location deviations",
-            "unlabelled intercept plus one independent slope at recovery grade",
+            "NB2 instead has a modelled overdispersion `sigma`",
+            "One ordinary Poisson or NB2",
+            "For the complete syntax boundary, including unsupported combinations",
         ):
             self.assertIn(claim, phylo)
         self.assertNotIn("count families have no residual `sigma` formula", phylo)
@@ -2303,7 +2558,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             animal,
         )
         self.assertIn("beta `sigma` accepts an intercept only", animal)
-        self.assertNotIn("a `beta()` animal intercept in `mu` or `sigma`", animal)
+        self.assertNotIn("a `beta_family()` animal intercept in `mu` or `sigma`", animal)
 
         relmat = " ".join(
             (ROOT / "vignettes/relmat-known-matrices.Rmd").read_text().split()
@@ -2314,7 +2569,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         ):
             self.assertIn(claim, relmat)
         self.assertIn(
-            "diagnostic-only intercept-only `hu` gate",
+            "diagnostic-only intercept-only `hu` model",
             relmat,
         )
         self.assertIn(
@@ -2380,11 +2635,17 @@ class CapabilityLedgerTests(unittest.TestCase):
                 ROOT / "vignettes/capability-and-limits.Rmd"
             ).read_text(),
         }
-        self.assertIn("Poisson slope-only `mu ~ spatial(0 + x", public["README"])
-        self.assertIn("Poisson `mu ~ spatial(1 | site", public["README"])
+        self.assertIn("What can I fit today?", public["README"])
+        self.assertIn("articles/model-map.html", public["README"])
+        self.assertNotIn("Poisson slope-only `mu ~ spatial(0 + x", public["README"])
         self.assertIn("ten Q-Series v1.0 rows", public["ROADMAP"])
         self.assertIn("ten row-specific\n  diagnostic-only gates", public["NEWS"])
-        self.assertIn("Row-specific single-smoke slices", public["capability"])
+        capability = " ".join(public["capability"].split())
+        self.assertIn(
+            "**Feasibility only:** the model can be fitted and its result extracted, "
+            "but it is not a scientific reporting route.",
+            capability,
+        )
         # pkgdown-site/llms.txt is a git-ignored pkgdown BUILD artifact, not a ledger
         # output. Assert on it only when it is version-controlled; a git-ignored local
         # build may be stale or absent, and the authoritative surface check is the README
@@ -2416,12 +2677,15 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertIn("Poisson `mu ~ spatial(1 | site", llms)
 
         count = (ROOT / "vignettes/count-nbinom2.Rmd").read_text()
-        self.assertIn("diagnostic-only probability-component", count)
         self.assertNotIn("recovery-grade probability-component", count)
-        count_surfaces = {
-            "README": public["README"],
-            "count source": count,
-        }
+        for page in ("count-nbinom2.Rmd", "distribution-families.Rmd"):
+            self.assertNotRegex(
+                (ROOT / "vignettes" / page).read_text(),
+                r"\b(?:diagnostic-only|recovery[ -]grade|gate|ledger|q\s*=?\s*[124])\b",
+                page,
+            )
+        self.assertIn("articles/model-map.html", public["README"])
+        count_surfaces = {"count source": count}
         # Same rule as llms.txt above: the rendered article is a git-ignored pkgdown
         # build artifact; assert on it only when version-controlled, so a stale local
         # render cannot fail this ledger test. The tracked count source (asserted in the
@@ -2433,18 +2697,27 @@ class CapabilityLedgerTests(unittest.TestCase):
             count_surfaces["llms"] = llms
         for name, text in count_surfaces.items():
             normalized = " ".join(text.split())
-            self.assertIn("fixed-`zi`", normalized, name)
+            self.assertIn("keep zero inflation constant", normalized, name)
             self.assertIn("Poisson", normalized, name)
             self.assertIn("NB2", normalized, name)
-            self.assertIn("diagnostic-only", normalized, name)
             self.assertIn(
-                "do not establish point-estimate recovery, intervals, or coverage",
+                "checked for fitting and extracting results only",
                 normalized,
                 name,
             )
+            self.assertIn(
+                "point-estimate accuracy and confidence intervals have not been validated",
+                normalized,
+                name,
+            )
+            for formula in (
+                "bf(count ~ habitat + spatial(1 | site, coords = coords), zi ~ 1)",
+                "bf(count ~ habitat + spatial(1 | site, coords = coords), sigma ~ 1, zi ~ 1)",
+            ):
+                self.assertIn(formula, normalized, name)
         model_map = (ROOT / "vignettes/model-map.Rmd").read_text()
         self.assertIn(
-            "both fixed-`zi` spatial-`mu` gates have no recovery, interval, or coverage promotion",
+            "both fixed-`zi` spatial-`mu` forms lack evidence supporting parameter recovery, interval reporting, or coverage",
             model_map,
         )
         spatial = (ROOT / "vignettes/spatial-models.Rmd").read_text()
@@ -2466,7 +2739,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
 
     def test_provider_vignettes_show_exact_arc1a_reml_calls_and_sd_semantics(self):
-        vignette = (ROOT / "vignettes/capability-and-limits.Rmd").read_text()
+        vignette = " ".join(
+            (ROOT / "vignettes/capability-and-limits.Rmd").read_text().split()
+        )
         providers = {
             "spatial": (ROOT / "vignettes/spatial-models.Rmd").read_text(),
             "animal": (ROOT / "vignettes/animal-models.Rmd").read_text(),
@@ -2484,29 +2759,56 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("animal_scale * sqrt(diag(A))", providers["animal"])
         self.assertNotIn("Read the fitted animal-model location SD", providers["animal"])
         self.assertNotIn("animal endpoint standard deviations", providers["animal"])
+        for term in (
+            "spatial(1 + x | site, coords = coords)",
+            "animal(1 + x | id, A = A)",
+            "relmat(1 + x | id, K = K)",
+        ):
+            self.assertIn(
+                f"bf(y ~ x + {term}, sigma ~ 1), "
+                "family = gaussian(), data = dat, REML = TRUE",
+                vignette,
+            )
         self.assertIn(
-            "Arc 1a additionally accepts a\n"
-            "pure-`mu`, univariate `spatial()`, `animal()`, or `relmat()` term",
+            "For a pure Gaussian mean model, REML is available for an unlabelled "
+            "spatial, animal, or relatedness intercept, or for that intercept plus "
+            "one independent numeric slope, when `sigma ~ 1`.",
+            vignette,
+        )
+        self.assertIn(
+            "Pedigree and `Ainv` animal inputs and relmat `Q` are accepted "
+            "representations, but they do not automatically inherit every "
+            "uncertainty result obtained with `A` and `K`.",
             vignette,
         )
         self.assertNotIn("eight anchor cells", vignette.lower())
         self.assertNotIn(
-            "rejects non-phylogenetic\nmean-side structured effects",
+            "rejects non-phylogenetic mean-side structured effects",
             vignette,
         )
         self.assertIn(
-            "q1 `mu` and the exact phylo/relmat slope-only q2 `mu1:x`/`mu2:x` SD rows use\n"
-            "the default location-axis bias-corrected, small-sample-t Wald channel",
+            "for the checked Gaussian mean-intercept forms, use the default "
+            "bias-corrected, small-sample-t Wald interval",
             vignette,
         )
         self.assertIn(
-            "raw uncorrected log-SD Wald-z",
+            "For the checked Gaussian scale-slope forms, the assessed interval "
+            "is the uncorrected log-standard-deviation Wald interval; "
+            "profile intervals remain feasibility checks at eight structured "
+            "levels rather than reporting intervals",
             vignette,
         )
-        self.assertIn("diagnostic-only at `g = 8`", vignette)
+        self.assertIn(
+            "For the selected bivariate mean-slope forms, use plain `confint(fit)` "
+            "and do not turn off its default small-sample correction",
+            vignette,
+        )
         self.assertIn("the covariance is `s_j^2 K_h`", vignette)
-        self.assertIn("marginal\nSD `s_j sqrt(K_h[ii])`", vignette)
-        self.assertIn("`M` is the number of structured levels", vignette)
+        self.assertIn(
+            "the marginal standard deviation at level `i` is `s_j sqrt(K_h[ii])`",
+            vignette,
+        )
+        self.assertIn("only when that matrix diagonal is one", vignette)
         self.assertNotIn(
             "structured-RE anchor cells above, `method = \"profile\"`",
             vignette,
@@ -2528,11 +2830,22 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         count_vignette = (ROOT / "vignettes/count-nbinom2.Rmd").read_text()
         count_intro = count_vignette.split("The source motivation", maxsplit=1)[0]
+        self.assertIn("#adding-grouped-or-structured-effects", count_intro)
+        count_guidance = " ".join(count_vignette.split())
         self.assertIn(
-            "exact q1 structured `sigma`\nintercept-plus-one-slope routes",
-            count_intro,
+            "NB2 allows the same terms in `sigma`, fitted separately from the structured `mu` term",
+            count_guidance,
         )
-        self.assertIn("at recovery grade", count_intro)
+        self.assertIn(
+            "bf(count ~ habitat, sigma ~ z + phylo(1 + x | species, tree = tree))",
+            count_guidance,
+        )
+        self.assertIn(
+            "These structured count models can be used for point estimates in the "
+            "combinations shown above, but their confidence intervals have not yet "
+            "been shown to be reliable.",
+            count_guidance,
+        )
 
         historical_count = (
             ROOT / "docs/design/67-sdstar-p8-poisson-q1.md"
@@ -2553,7 +2866,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertNotIn("estimates the SD of the latent site field", vignette)
 
     def test_phylogenetic_spatial_vignette_uses_row_specific_intervals(self):
-        vignette = (ROOT / "vignettes/phylogenetic-spatial.Rmd").read_text()
+        vignette = reader_vignette_path("phylogenetic-spatial.Rmd").read_text()
         self.assertIn(
             "exact phylo/relmat slope-only q2 `mu1:x`/`mu2:x` SD rows\n"
             "use the default location-axis bias-corrected, small-sample-t Wald channel",
@@ -2605,12 +2918,12 @@ class CapabilityLedgerTests(unittest.TestCase):
                 vignette,
                 r"(?s)corpairs\([^\)]*(?:ystep|ytol)\s*=",
             )
-        workflow = (ROOT / "vignettes/model-workflow.Rmd").read_text()
+        workflow = reader_vignette_path("model-workflow.Rmd").read_text()
         self.assertIn(
             "profile availability alone is not that evidence",
             workflow,
         )
-        phylo = (ROOT / "vignettes/phylogenetic-spatial.Rmd").read_text()
+        phylo = reader_vignette_path("phylogenetic-spatial.Rmd").read_text()
         self.assertIn(
             "Neither predictor-dependent q2 example above\n"
             "has coverage-backed interval validation",
@@ -2770,7 +3083,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertNotIn(stale, combined)
 
     def test_q2_profile_example_is_diagnostic_not_reporting_guidance(self):
-        vignette = (ROOT / "vignettes/phylogenetic-spatial.Rmd").read_text()
+        vignette = reader_vignette_path("phylogenetic-spatial.Rmd").read_text()
         self.assertIn(
             "The intercept-only bivariate q2 example below is diagnostic-only under\n"
             "both Wald and profile channels",
@@ -2807,7 +3120,17 @@ class CapabilityLedgerTests(unittest.TestCase):
         runtime = ledger.validate_missing_predictor_runtime_map()
         self.assertEqual(
             runtime,
-            {"gaussian", "poisson", "binomial", "nbinom2", "beta"},
+            {
+                "gaussian",
+                "poisson",
+                "binomial",
+                "nbinom2",
+                "beta",
+                "gamma",
+                "lognormal",
+                "beta_binomial",
+                "student",
+            },
         )
         rows = {
             row["family_route"]: row
@@ -2816,7 +3139,14 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("broad", rows["gaussian"]["Miss-predictor mi()"])
         self.assertIn("implemented", rows["zi_poisson"]["Miss-predictor mi()"])
         self.assertIn("via `poisson`", rows["zi_poisson"]["Miss-predictor mi()"])
-        self.assertIn("rejected", rows["gamma"]["Miss-predictor mi()"])
+        self.assertIn("implemented", rows["gamma"]["Miss-predictor mi()"])
+        self.assertIn("one binary", rows["gamma"]["Miss-predictor mi()"])
+        self.assertIn("implemented", rows["lognormal"]["Miss-predictor mi()"])
+        self.assertIn("one binary", rows["lognormal"]["Miss-predictor mi()"])
+        self.assertIn("implemented", rows["beta_binomial"]["Miss-predictor mi()"])
+        self.assertIn("one binary", rows["beta_binomial"]["Miss-predictor mi()"])
+        self.assertIn("implemented", rows["student"]["Miss-predictor mi()"])
+        self.assertIn("one binary", rows["student"]["Miss-predictor mi()"])
 
     def test_generated_surfaces_have_live_wording_and_ledger_date(self):
         generated = ledger.outputs(self.cells, self.evidence)
@@ -3055,6 +3385,65 @@ class CapabilityLedgerTests(unittest.TestCase):
                 f"{token!r} leaked into the family map; comparator evidence must stay "
                 "scoped to individual cells",
             )
+
+    def test_mc0717_binomial_ordinary_correlated_is_a_new_point_fit_cell(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        row = by_id["mc-0717"]
+        self.assertEqual(row["axis"], "model_surface")
+        self.assertEqual(row["family_route"], "binomial")
+        self.assertEqual(row["route_variant"], "ordinary_correlated_q2")
+        self.assertEqual(row["effect_type"], "ordinary_re_slope")
+        self.assertEqual(row["estimator"], "ML")
+        self.assertEqual(row["capability_status"], "implemented")
+        self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+        self.assertIn("sd0", row["claim_boundary"])
+        self.assertIn("sd1", row["claim_boundary"])
+        self.assertIn("rho_re", row["claim_boundary"])
+        self.assertIn("not the independent-slope cell mc-0061", row["claim_boundary"])
+        self.assertNotEqual(by_id["mc-0061"]["route_variant"], "ordinary_correlated_q2")
+        self.assertEqual(by_id["mc-0061"]["evidence_tier"], "inference_ready_with_caveats")
+        self.assertEqual(by_id["mc-0060"]["evidence_tier"], "diagnostic_only")
+        self.assertEqual(by_id["mc-0062"]["evidence_tier"], "diagnostic_only")
+
+    def test_mc0718_poisson_ordinary_correlated_is_a_new_point_fit_cell(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        row = by_id["mc-0718"]
+        self.assertEqual(row["axis"], "model_surface")
+        self.assertEqual(row["family_route"], "poisson")
+        self.assertEqual(row["source_order"], "718")
+        self.assertEqual(row["route_variant"], "ordinary_correlated_q2")
+        self.assertEqual(row["effect_type"], "ordinary_re_slope")
+        self.assertEqual(row["estimator"], "ML")
+        self.assertEqual(row["capability_status"], "implemented")
+        self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+        self.assertIn("sd0", row["claim_boundary"])
+        self.assertIn("sd1", row["claim_boundary"])
+        self.assertIn("rho_re", row["claim_boundary"])
+        self.assertIn("not Wave 1 binomial mc-0717", row["claim_boundary"])
+        self.assertEqual(by_id["mc-0717"]["source_order"], "717")
+        self.assertEqual(by_id["mc-0432"]["capability_status"], "rejected_by_design")
+
+    def test_mc0719_nbinom2_ordinary_correlated_is_a_new_point_fit_cell(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        row = by_id["mc-0719"]
+        self.assertEqual(row["axis"], "model_surface")
+        self.assertEqual(row["family_route"], "nbinom2")
+        self.assertEqual(row["source_order"], "719")
+        self.assertEqual(row["model_type"], "7")
+        self.assertEqual(row["route_variant"], "ordinary_correlated_q2")
+        self.assertEqual(row["effect_type"], "ordinary_re_slope")
+        self.assertEqual(row["estimator"], "ML")
+        self.assertEqual(row["capability_status"], "implemented")
+        self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+        self.assertIn("sd0", row["claim_boundary"])
+        self.assertIn("sd1", row["claim_boundary"])
+        self.assertIn("rho_re", row["claim_boundary"])
+        self.assertIn("not the independent-slope cell mc-0402", row["claim_boundary"])
+        self.assertIn("not Wave 2 Poisson mc-0718", row["claim_boundary"])
+        self.assertEqual(by_id["mc-0402"]["evidence_tier"], "interval_feasible")
+        self.assertNotEqual(by_id["mc-0402"]["route_variant"], "ordinary_correlated_q2")
+        self.assertEqual(by_id["mc-0718"]["family_route"], "poisson")
+        self.assertEqual(by_id["mc-0718"]["evidence_tier"], "point_fit_recovery")
 
     def test_evidence_class_is_a_closed_vocabulary(self):
         """A typo in evidence_class used to yield zero badges and a green --check."""

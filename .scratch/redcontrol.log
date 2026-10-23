@@ -1,0 +1,30 @@
+===== RC0 BASELINE (no defect) =====
+FAIL 0 SKIP 0 PASS 54 ERROR 0
+
+===== RC1 PLANT: delete the spec("biv_student", fe = TRUE) registry row =====
+eca20e9ca429510caebdac43be1a6794b664aec3ad27a990fd82d2f89c67b930  R/julia-family-registry.R
+PLANTED: registry row removed
+FAIL 1 SKIP 0 PASS 11 ERROR 4
+eca20e9ca429510caebdac43be1a6794b664aec3ad27a990fd82d2f89c67b930  R/julia-family-registry.R
+RESTORED_BYTE_IDENTICAL
+
+===== RC2 PLANT: drop "nu" from the biv_student default-label branch =====
+67f62890bf9b13587e21b3305b6280dbe85f0ba2a5bd1f6e9af66d58f7336ed7  R/julia-bridge.R
+PLANTED: nu removed from the biv_student defaulter
+FAIL 1 SKIP 0 PASS 34 ERROR 1
+67f62890bf9b13587e21b3305b6280dbe85f0ba2a5bd1f6e9af66d58f7336ed7  R/julia-bridge.R
+RESTORED_BYTE_IDENTICAL
+
+===== RC3 PLANT: remove the scope-fence call site =====
+PLANTED: fence call removed
+FAIL 0 SKIP 0 PASS 46 ERROR 1
+RESTORED_BYTE_IDENTICAL
+
+===== RC4 PLANT: remove the confint biv_student guard =====
+PLANTED: confint guard removed
+FAIL 1 SKIP 0 PASS 53 ERROR 0
+RESTORED_BYTE_IDENTICAL
+
+===== FINAL STATE =====
+FAIL 0 SKIP 0 PASS 54 ERROR 0
+?? .scratch/

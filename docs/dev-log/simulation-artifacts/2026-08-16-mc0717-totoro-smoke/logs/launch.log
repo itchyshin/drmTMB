@@ -1,0 +1,26 @@
+[mc0717] HEAD=5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d workers=8 out=/home/snakagaw/hsq_work/drmTMB-mc0717/docs/dev-log/simulation-artifacts/2026-08-16-mc0717-totoro-smoke
+[mc0717] 1-fit toy
+TOY PASS conv=0 pdHess=TRUE sd0=0.7564 sd1=0.2499 rho=0.9716 names=(1 + x | id):(Intercept)|(1 + x | id):x / cor((Intercept),x | id)
+[mc0717] rejection matrix
+REJECTION MATRIX PASS
+         neighbour stayed_red
+1             reml       TRUE
+2 missing_response       TRUE
+3         labelled       TRUE
+4            mixed       TRUE
+5          poisson       TRUE
+                                                                                                                                                                                                                                                                                                                                                         message
+1                                                                                                                                                                                                Correlated q = 2 binomial random effects are not implemented with\n`REML`.\nℹ Use `REML = FALSE`, or use the separately validated q = 1 binomial REML\n  route.
+2                                                                                                                                                                                          Correlated q = 2 binomial random effects are not implemented with\nmissing-response integration.\nℹ Use complete responses or an independently validated q = 1 route.
+3                                        Binomial correlated random effects support one unlabelled\nintercept-slope block.\n✖ Requested random-effect term: `(1 + x | p | id)`.\nℹ Use exactly `cbind(successes, failures) ~ x + (1 + x | id)`.\nℹ Labelled covariance blocks, additional random-effect terms, and multiple\n  random slopes remain unsupported.
+4                            Binomial correlated random effects support one unlabelled\nintercept-slope block.\n✖ Requested random-effect terms: `(1 | id)` and `(1 + x | id)`.\nℹ Use exactly `cbind(successes, failures) ~ x + (1 + x | id)`.\nℹ Labelled covariance blocks, additional random-effect terms, and multiple\n  random slopes remain unsupported.
+5 Only independent Poisson `mu` random intercepts and slopes are\nimplemented in this slice.\n✖ Unsupported random-effect term: `(1 + x | id)`.\nℹ Use syntax like `count ~ x + (1 | id)` or `count ~ x + (0 + x | id)`.\nℹ Correlated Poisson random-slope blocks and labelled covariance blocks remain\n  planned for a later non-Gaussian random-effect gate.
+                                   git_sha
+1 5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d
+2 5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d
+3 5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d
+4 5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d
+5 5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d
+[mc0717] launching 27 fits with GNU parallel -j 8
+[mc0717] wrote 27 result rows to /home/snakagaw/hsq_work/drmTMB-mc0717/docs/dev-log/simulation-artifacts/2026-08-16-mc0717-totoro-smoke/results.tsv
+[mc0717] DONE

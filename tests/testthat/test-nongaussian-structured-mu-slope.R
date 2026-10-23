@@ -243,7 +243,7 @@ test_that("non-count structured mu one-slope cells fit and expose intercept + sl
 
   fit_beta <- drmTMB(
     bf(y ~ x + animal(1 + x | id, pedigree = ped_beta), sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dat_beta,
     control = drm_control(se = FALSE)
   )
@@ -285,11 +285,11 @@ test_that("Beta animal mu intercept-slope response mask has oracle and recovery 
   pedigree <- sim$pedigree
   formula <- bf(y ~ x + animal(1 + x | id, pedigree = pedigree), sigma ~ 1)
   fit_masked <- drmTMB(
-    formula, family = beta(), data = dat,
+    formula, family = beta_family(), data = dat,
     missing = miss_control(response = "include"), control = drm_control(se = FALSE)
   )
   fit_observed <- drmTMB(
-    formula, family = beta(), data = dat[observed, , drop = FALSE],
+    formula, family = beta_family(), data = dat[observed, , drop = FALSE],
     control = drm_control(se = FALSE)
   )
   obj <- TMB::MakeADFun(
@@ -330,11 +330,11 @@ test_that("Beta animal sigma response mask has oracle and recovery evidence", {
   pedigree <- sim$pedigree
   formula <- bf(y ~ x, sigma ~ animal(1 | id, pedigree = pedigree))
   fit_masked <- drmTMB(
-    formula, family = beta(), data = dat,
+    formula, family = beta_family(), data = dat,
     missing = miss_control(response = "include"), control = drm_control(se = FALSE)
   )
   fit_observed <- drmTMB(
-    formula, family = beta(), data = dat[observed, , drop = FALSE],
+    formula, family = beta_family(), data = dat[observed, , drop = FALSE],
     control = drm_control(se = FALSE)
   )
   obj <- TMB::MakeADFun(
@@ -376,11 +376,11 @@ test_that("Beta animal mu intercept response mask has oracle and recovery eviden
   pedigree <- sim$pedigree
   formula <- bf(y ~ x + animal(1 | id, pedigree = pedigree), sigma ~ 1)
   fit_masked <- drmTMB(
-    formula, family = beta(), data = dat,
+    formula, family = beta_family(), data = dat,
     missing = miss_control(response = "include"), control = drm_control(se = FALSE)
   )
   fit_observed <- drmTMB(
-    formula, family = beta(), data = dat[observed, , drop = FALSE],
+    formula, family = beta_family(), data = dat[observed, , drop = FALSE],
     control = drm_control(se = FALSE)
   )
   obj <- TMB::MakeADFun(

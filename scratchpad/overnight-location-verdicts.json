@@ -1,0 +1,253 @@
+{
+ "checked": [
+  {
+   "cell": "mc-0568",
+   "truth": 0.45,
+   "n": 5,
+   "brackets": 5,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0576",
+   "truth": 0.45,
+   "n": 5,
+   "brackets": 5,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0595",
+   "truth": 0.45,
+   "n": 5,
+   "brackets": 5,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0596",
+   "truth": 0.45,
+   "n": 5,
+   "brackets": 5,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0653",
+   "truth": 0.6,
+   "n": 5,
+   "brackets": 5,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0102",
+   "truth": 0.4,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0124",
+   "truth": 0.4,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0146",
+   "truth": 0.4,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0168",
+   "truth": 0.4,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0131",
+   "truth": 1.05,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0132",
+   "truth": 0.9,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0187",
+   "truth": -0.967584026261706,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0188",
+   "truth": -0.653926467406664,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0203",
+   "truth": 0.4,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0204",
+   "truth": 0.35,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0216",
+   "truth": 0.5,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0217",
+   "truth": 0.5,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0218",
+   "truth": 0.4,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0219",
+   "truth": 0.4,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0280",
+   "truth": 0.45,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0281",
+   "truth": 0.3,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0282",
+   "truth": 0.6,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0293",
+   "truth": 0.45,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0294",
+   "truth": 0.3,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0297",
+   "truth": 0.65,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0300",
+   "truth": 0.3,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0305",
+   "truth": 0.45,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0306",
+   "truth": 0.3,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0312",
+   "truth": 0.3,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0317",
+   "truth": 0.45,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  },
+  {
+   "cell": "mc-0318",
+   "truth": 0.3,
+   "n": 1,
+   "brackets": 1,
+   "worst": 0.0,
+   "verdict": "passed"
+  }
+ ],
+ "nomatch": []
+}

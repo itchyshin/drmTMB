@@ -74,7 +74,7 @@ test_that("a constant mu offset shifts the intercept and preserves slopes", {
       data = seeded(105, transform(base, y = stats::rgamma(n, 4, rate = 4 / exp(1 + 0.5 * x))))
     ),
     beta = list(
-      lhs = "y", rest = ", sigma = ~1", family = "beta()",
+      lhs = "y", rest = ", sigma = ~1", family = "beta_family()",
       data = seeded(106, transform(base, y = pmin(pmax(stats::plogis(0.3 + 0.5 * x +
         stats::rnorm(n, 0, 0.3)), 1e-4), 1 - 1e-4)))
     ),

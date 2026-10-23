@@ -268,7 +268,7 @@ test_that("imputed() reports MD3a missing-predictor conditional modes", {
   )
 
   out <- imputed(fit)
-  modes <- fit$obj$env$parList(fit$opt$par)$x_miss
+  modes <- selected_tmb_par_list(fit)$x_miss
 
   expect_s3_class(out, "data.frame")
   expect_named(
@@ -414,7 +414,7 @@ test_that("Gaussian mi() predictor model validates the first MD3a boundary", {
       missing = miss_control(predictor = "model"),
       control = drm_control(se = FALSE)
     ),
-    "exactly one"
+    "2-element"
   )
   expect_error(
     drmTMB(

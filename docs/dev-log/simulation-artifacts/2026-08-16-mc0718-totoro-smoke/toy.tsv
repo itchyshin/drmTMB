@@ -1,0 +1,2 @@
+seed	n_each	method	convergence	pdHess	sd0	sd1	rho_re	abs_err_sd0	abs_err_sd1	abs_err_rho	exception_class	git_sha	wall_sec	sd_names	cor_names	message
+881000	4	drmtmb_corr_toy	0	TRUE	0.678881899882586	0.393173456950456	0.207266022839117	NA	NA	NA	none	3e8a9aaec9aae3e20a5e3bbd46fb65561304e368	NA	(1 + x | id):(Intercept)|(1 + x | id):x	cor((Intercept),x | id)	NA

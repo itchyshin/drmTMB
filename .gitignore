@@ -13,11 +13,20 @@ __pycache__/
 # testthat debug byproducts, written by test_dir()/devtools::test() when a
 # test fails. Never source; would otherwise be swept in by a broad `git add`.
 tests/testthat/_problems/
+
+# Baked at install time by ./configure / configure.win (see
+# R/provenance.R::drm_provenance()). If tracked, this file would itself make
+# `git status --porcelain` report "dirty" on every subsequent
+# devtools::install()/R CMD INSTALL from this checkout.
+/inst/build-provenance.dcf
 tests/testthat/testthat-problems.rds
 
 # User-specific files
 .Ruserdata
 .DS_Store
+
+# Registered local worktrees belong to Git metadata, not package source
+.worktrees/
 
 # Example code in package build process
 *-Ex.R
@@ -87,3 +96,12 @@ rsconnect/
 # scratchpad: evidence scripts ARE committed (see handover); logs and caches are not
 scratchpad/*.log
 scratchpad/*.rds
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# Local verification gates and campaign scratch (never ship).
+.unlazy/
+
+# Local R library used by this checkout (never ship).
+.Rlib/

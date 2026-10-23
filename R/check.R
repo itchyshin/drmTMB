@@ -9,7 +9,17 @@
 #' optimizer evaluation counts, fixed-parameter gradients including the largest
 #' gradient component label, whether
 #' [TMB::sdreport()] was computed, skipped, or failed, Hessian status from
-#' [TMB::sdreport()], finite fixed-effect standard errors, standard errors that
+#' [TMB::sdreport()], the fixed-effect Hessian's minimum eigenvalue and
+#' condition number at the optimum (`hessian_conditioning`; a comparable, but
+#' not numerically identical, read of the same object underlying `pdHess`).
+#' `hessian_conditioning` is computed from
+#' [TMB::sdreport()]'s already-materialized fixed-effect covariance
+#' (`sdr$cov.fixed`), never by evaluating the TMB C++ object directly, so it
+#' is available for random-effect and REML fits (where the underlying
+#' Hessian is Laplace-marginalized) and for a fit restored via `saveRDS()`/
+#' `readRDS()`, and reports a `note` with a stated reason, not a bare `NA`,
+#' only when `sdr$cov.fixed` itself is absent or incomplete (for example
+#' `drm_control(se = FALSE)`, or a failed `sdreport()`), finite fixed-effect standard errors, standard errors that
 #' are finite but inflated relative to the others despite a positive-definite
 #' Hessian (a weakly identified, near-flat direction such as a boundary
 #' correlation), dropped rows,
@@ -57,7 +67,16 @@
 #' fit includes `sd_phylo(species) ~ x_species`,
 #' `sd_phylo1(species) ~ x_species`, or
 #' `sd_phylo2(species) ~ x_species`, it reports species replication and the
-#' fitted direct-SD surface range. If a univariate Gaussian fit used
+#' fitted direct-SD surface range. When that phylogenetic SD depends on
+#' covariates (for example `sd(species, level = "phylogenetic") ~ x_species`),
+#' the `phylo_sd_shared_shift` row reports `z_shared`, the size of any common
+#' shift in the fitted phylogenetic effects in prior-SD units. Such a shift
+#' adds shift x SD to every mean, a curved function of the SD covariates, so it
+#' can stand in for curvature missing from the location formula and give the
+#' likelihood more than one optimum. The row is a `note` when
+#' `abs(z_shared) >= 2` and a `warning` when `abs(z_shared) >= 3`; then check
+#' the mean for missing curvature, refit from other starting values, and
+#' interpret location coefficients with care. If a univariate Gaussian fit used
 #' `drm_control(aggregate_gaussian = TRUE)`, it reports original rows,
 #' aggregation cells, compression ratio, and largest cell size. If a fit was
 #' stored with
@@ -78,6 +97,71 @@
 #' programmatic checks, the returned object has `attr(x, "ok") == TRUE` only
 #' when no rows have `warning` or `error` status.
 #'
+#' For native `drmTMB` fits, this is a stable reader schema: the
+#' `drm_check` data frame has, in order, the character columns `check`,
+#' `status`, `value`, and `message`. `status` is one of `"ok"`, `"note"`,
+#' `"warning"`, or `"error"`. Its `"ok"` attribute is `TRUE` exactly when
+#' no row has status `"warning"` or `"error"`.
+#'
+#' @section Fits from `engine = "julia"`:
+#'
+#' A fit produced by the DRM.jl bridge (`engine = "julia"`, class
+#' `drmTMB_julia`) dispatches through this same generic and returns the same
+#' four-column `drm_check` schema, but it reports a deliberately **different
+#' and much shorter** set of rows. Almost every check listed above reads a
+#' `TMB` object or a [TMB::sdreport()] that a bridge fit does not have, so a
+#' clean `engine = "julia"` table is a narrower claim than a clean
+#' `engine = "tmb"` table on the same model. The rows are:
+#'
+#' \describe{
+#'   \item{`engine_route`}{Always a `note`. Names the engine, the DRM.jl
+#'     route, and the estimator (`"engine=julia; route=<route>;
+#'     estimator=<ML|REML>"`), and its message lists the native
+#'     `engine = "tmb"` checks that did not run. Being a `note`, it never
+#'     flips `attr(x, "ok")`: reporting which machinery ran is not itself a
+#'     fault.}
+#'   \item{`optimizer_convergence`}{Whether DRM.jl reported convergence. This
+#'     is DRM.jl's own convergence flag, not `nlminb()`'s `convergence` code,
+#'     and the two are not claimed to agree.}
+#'   \item{`fixed_gradient`}{Route-aware. Only some DRM.jl routes store a
+#'     gradient callback, and the bridge omits the gradient entirely rather
+#'     than sending a fabricated one on a route without it; on such a route
+#'     this row is a `note` naming the route, stationarity is **not** scored,
+#'     and `attr(x, "ok")` does not reflect it. When a gradient is present the
+#'     row reports `max|gradient|` and the largest component. In both cases the
+#'     value string carries `source=`, naming which producer made the number in
+#'     DRM.jl's own `grad_source` vocabulary (`"locscale"`, `"stored"`,
+#'     `"forward"`, `"finite"`, `"none"`, `"unavailable"`) so that an exact
+#'     analytic gradient, an automatic-differentiation gradient, and a finite
+#'     difference accurate only to roughly `1e-6` relative do not print
+#'     identically. The current bridge payload has exactly one gradient
+#'     producer, the fit's own stored callback, so a gradient that crossed the
+#'     bridge is reported as `source=stored`. When no gradient crossed, the
+#'     bridge does not report which of the remaining five cases applies, so the
+#'     row records `source=unknown` -- deliberately not one of DRM.jl's six
+#'     values -- and points you at DRM.jl's own `check_drm(fit)` in Julia,
+#'     whose `grad_source` field tells them apart. This is not TMB's
+#'     `sdreport()` gradient and the two engines are not claimed to agree
+#'     numerically. A source outside that vocabulary, or one that contradicts
+#'     the payload (a producer named when no gradient crossed, or `"none"` /
+#'     `"unavailable"` alongside one that did), aborts rather than being
+#'     printed.}
+#'   \item{`bridge_covariance`}{The DRM.jl analogue of `sdreport_status`:
+#'     whether the fixed-effect covariance the bridge marshalled back is
+#'     complete (`ok`), partial (some distributional parameters finite, others
+#'     not, which some structured routes produce by design), or unavailable.
+#'     [TMB::sdreport()] is not run for a bridge fit.}
+#'   \item{`bridge_standard_errors`}{The DRM.jl analogue of
+#'     `standard_errors_finite`: whether every fixed-effect standard error
+#'     implied by that covariance is a finite real number. A complete
+#'     covariance can still carry a negative variance on the diagonal, which
+#'     `bridge_covariance` cannot see.}
+#' }
+#'
+#' The `gradient_tolerance` argument applies as it does for a native fit; the
+#' `rho_boundary` and `sd_boundary` arguments do not, because the
+#' corresponding rows are not computed for a bridge fit.
+#'
 #' @param object A `drmTMB` fit.
 #' @param gradient_tolerance Maximum absolute fixed-parameter gradient treated
 #'   as acceptable.
@@ -88,8 +172,11 @@
 #'   boundary.
 #' @param ... Reserved for future diagnostic options.
 #'
-#' @return A data frame of checks with columns `check`, `status`, `value`, and
-#'   `message`. The returned object has class `drm_check`.
+#' @return A `drm_check` data frame. Its stable native reader columns are, in
+#'   order, `check`, `status`, `value`, and `message`, all character. `status`
+#'   uses only `"ok"`, `"note"`, `"warning"`, and `"error"`; its `"ok"`
+#'   attribute is `TRUE` exactly when no row has status `"warning"` or
+#'   `"error"`.
 #' @export
 #'
 #' @examples
@@ -105,16 +192,20 @@ check_drm <- function(object, ...) {
 #'
 #' `is_converged()` is a compact programmatic flag for workflows that need a
 #' yes/no answer before comparing, displaying, or post-processing a `drmTMB`
-#' fit. By default it checks only stored optimizer status: the `nlminb()`
-#' convergence code must be 0 and the stored objective and log-likelihood must
-#' be finite.
+#' fit. By default it delegates to [convergence_status()]: it returns `TRUE`
+#' when the status is `"converged"` or `"boundary"`, and `FALSE` when the
+#' status is `"degenerate"`. A fit can therefore report optimizer code `0`
+#' while still returning `FALSE` here when the likelihood geometry or
+#' uncertainty diagnostics are degenerate; use [check_drm()] or
+#' [convergence_status()] for detail.
 #'
 #' Set `include_hessian = TRUE` when the next step needs Wald-style
 #' uncertainty. In that mode, `is_converged()` also requires successful
-#' [TMB::sdreport()] output with `pdHess = TRUE`. A fit can therefore be
-#' optimizer-converged while still returning `FALSE` with
-#' `include_hessian = TRUE`; this marks an inference-readiness problem, not
-#' automatic proof that point estimates are unusable.
+#' [TMB::sdreport()] output with `pdHess = TRUE` on top of the default
+#' [convergence_status()] requirements. A fit can therefore be `"converged"` while
+#' still returning `FALSE` with `include_hessian = TRUE`; this marks an
+#' inference-readiness problem, not automatic proof that point estimates are
+#' unusable.
 #'
 #' Use [check_drm()] when you need the full diagnostic table and messages.
 #'
@@ -159,15 +250,12 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
     cli::cli_abort("{.arg include_hessian} must be `TRUE` or `FALSE`.")
   }
 
-  objective_values <- if (drm_is_mspl(object)) {
-    c(object$opt$objective, object$mspl$unpenalized_laplace_objective)
-  } else {
-    c(object$opt$objective, object$logLik)
+  status <- convergence_status(object)
+  if (!identical(status, "converged") && !identical(status, "boundary")) {
+    return(FALSE)
   }
-  optimizer_ok <- identical(as.integer(object$opt$convergence), 0L) &&
-    isTRUE(all(is.finite(objective_values)))
-  if (!optimizer_ok || !include_hessian) {
-    return(optimizer_ok)
+  if (!include_hessian) {
+    return(TRUE)
   }
 
   if (drm_is_mspl(object)) {
@@ -177,6 +265,141 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
   identical(drm_uncertainty_status(object), "ok") &&
     !is.null(object$sdr) &&
     isTRUE(object$sdr$pdHess)
+}
+
+#' Convergence status for a drmTMB fit
+#'
+#' `convergence_status()` returns a short character label for programmatic
+#' workflows that need more detail than [is_converged()]. A fit can report
+#' optimizer code `0` while the likelihood geometry is degenerate (no proper
+#' maximum or non-finite uncertainty); such fits return `"degenerate"` even
+#' when `multi_start` selected among several starts. `"boundary"` marks an
+#' optimizer-converged fit with variance-component or residual-correlation
+#' parameters near an interpretability boundary. [is_converged()] stays a
+#' plain logical: it is `TRUE` for `"converged"` and `"boundary"`, and
+#' `FALSE` for `"degenerate"`.
+#'
+#' @param object A `drmTMB` fit.
+#' @param ... Reserved for future options.
+#'
+#' @return One of `"converged"`, `"boundary"`, or `"degenerate"`.
+#' @export
+#'
+#' @examples
+#' set.seed(20260916)
+#' dat <- data.frame(y = rnorm(40), x = rnorm(40))
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#' convergence_status(fit)
+convergence_status <- function(object, ...) {
+  UseMethod("convergence_status")
+}
+
+#' @rdname convergence_status
+#' @export
+convergence_status.default <- function(object, ...) {
+  cli::cli_abort(
+    "{.fn convergence_status} is implemented for {.cls drmTMB} fits."
+  )
+}
+
+#' @rdname convergence_status
+#' @export
+convergence_status.drmTMB <- function(object, ...) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort(
+      "{.arg ...} is reserved for future {.fn convergence_status} options."
+    )
+  }
+  if (!drm_optimizer_converged(object)) {
+    return("degenerate")
+  }
+  if (
+    drm_inference_degenerate(object) ||
+      drm_fixed_effect_rank_deficient(object) ||
+      drm_standard_errors_pathological(object)
+  ) {
+    return("degenerate")
+  }
+  if (drm_inference_at_boundary(object)) {
+    return("boundary")
+  }
+  "converged"
+}
+
+drm_optimizer_converged <- function(object) {
+  objective_values <- if (drm_is_mspl(object)) {
+    c(object$opt$objective, object$mspl$unpenalized_laplace_objective)
+  } else {
+    c(object$opt$objective, object$logLik)
+  }
+  identical(as.integer(object$opt$convergence), 0L) &&
+    isTRUE(all(is.finite(objective_values)))
+}
+
+drm_inference_degenerate <- function(object) {
+  if (identical(as.integer(object$opt$convergence), 7L)) {
+    return(TRUE)
+  }
+  if (!drm_optimizer_converged(object)) {
+    return(FALSE)
+  }
+  if (identical(object$control$se, FALSE)) {
+    return(FALSE)
+  }
+  if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
+    return(TRUE)
+  }
+  vcov <- tryCatch(stats::vcov(object), error = function(e) NULL)
+  if (is.null(vcov) || !is.matrix(vcov) || nrow(vcov) == 0L) {
+    return(TRUE)
+  }
+  variances <- diag(vcov)
+  standard_errors <- rep(NA_real_, length(variances))
+  non_negative <- is.finite(variances) & variances >= 0
+  standard_errors[non_negative] <- sqrt(variances[non_negative])
+  !all(is.finite(standard_errors))
+}
+
+drm_standard_errors_pathological <- function(object) {
+  row <- check_standard_errors_inflated(object)
+  !is.null(row) && grepl("n_inflated=[1-9]", row$value, perl = TRUE)
+}
+
+drm_fixed_effect_rank_deficient <- function(object) {
+  X <- object$model$X
+  if (is.null(X) || length(X) == 0L) {
+    return(FALSE)
+  }
+  for (block in X) {
+    if (
+      is.null(block) ||
+        (!is.matrix(block) && !inherits(block, "Matrix"))
+    ) {
+      next
+    }
+    dims <- dim(block)
+    if (is.null(dims) || length(dims) != 2L || dims[[2L]] <= 0L) {
+      next
+    }
+    block_rank <- qr(block, tol = 1e-8)$rank
+    if (block_rank < dims[[2L]]) {
+      return(TRUE)
+    }
+  }
+  FALSE
+}
+
+drm_inference_at_boundary <- function(object) {
+  if (!drm_optimizer_converged(object) || drm_inference_degenerate(object)) {
+    return(FALSE)
+  }
+  rho_row <- check_rho12_boundary(object, rho_boundary = 0.98)
+  if (!is.null(rho_row) && identical(rho_row$status, "warning")) {
+    return(TRUE)
+  }
+  sd_row <- check_random_effect_sd_boundary(object, sd_boundary = 1e-4)
+  !is.null(sd_row) && identical(sd_row$status, "warning")
 }
 
 #' @rdname check_drm
@@ -200,17 +423,24 @@ check_drm.drmTMB <- function(
 
   rows <- list(
     check_optimizer_convergence(object),
+    check_convergence_status(object),
     check_optimizer_budget(object),
     check_finite_objective(object),
     check_logsigma_clamp_active(object),
     check_fixed_gradient(object, gradient_tolerance = gradient_tolerance),
     check_sdreport_status(object),
     check_hessian(object),
+    check_hessian_conditioning(object),
     check_standard_errors_finite(object),
     check_standard_errors_inflated(object),
+    check_weakly_identified_fixed_effects(object),
+    check_observations_per_parameter(object),
+    check_fixed_effect_design_collinearity(object),
+    check_fixed_effect_rank_deficiency(object),
     check_dropped_rows(object),
     check_scale_positive(object),
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
+    check_interval_reliability_scope(object),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
     check_skew_normal_nu(object),
@@ -247,6 +477,7 @@ check_drm.drmTMB <- function(
     check_mesh_spatial_mu_diagnostics(object),
     check_known_relatedness_mu_diagnostics(object),
     check_phylo_direct_sd_model(object),
+    check_phylo_sd_shared_shift(object),
     check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary),
     check_biv_structured_q2_covariance(object, rho_boundary = rho_boundary),
     check_biv_structured_q4_covariance(object, rho_boundary = rho_boundary),
@@ -258,12 +489,34 @@ check_drm.drmTMB <- function(
   rownames(out) <- NULL
   class(out) <- c("drm_check", "data.frame")
   attr(out, "ok") <- !any(out$status %in% c("warning", "error"))
+  attr(out, "n_checks_total") <- nrow(out)
+  out
+}
+
+#' @export
+`[.drm_check` <- function(x, i, j, drop = FALSE) {
+  n_total <- attr(x, "n_checks_total")
+  if (is.null(n_total)) {
+    n_total <- nrow(x)
+  }
+  out <- NextMethod("[")
+  if (!is.data.frame(out)) {
+    return(out)
+  }
+  class(out) <- c("drm_check", "data.frame")
+  attr(out, "n_checks_total") <- n_total
+  attr(out, "ok") <- attr(x, "ok")
   out
 }
 
 #' @export
 print.drm_check <- function(x, ...) {
-  cli::cli_text("<drm_check: {nrow(x)} checks>")
+  n_total <- attr(x, "n_checks_total")
+  if (!is.null(n_total) && nrow(x) < n_total) {
+    cat(sprintf("<drm_check: %d of %d checks shown>\n", nrow(x), n_total))
+  } else {
+    cat(sprintf("<drm_check: %d checks>\n", nrow(x)))
+  }
   n_warn <- sum(x$status == "warning")
   n_error <- sum(x$status == "error")
   n_note <- sum(x$status == "note")
@@ -362,13 +615,22 @@ validate_check_scalar <- function(x, name, lower = -Inf, upper = Inf) {
   invisible(x)
 }
 
+check_optimizer_name <- function(object) {
+  method <- object$optimizer_used[["optimizer"]]
+  if (is.null(method)) {
+    method <- object$control$optimizer_method
+  }
+  if (is.null(method)) "nlminb" else method
+}
+
 check_optimizer_convergence <- function(object) {
   convergence <- object$opt$convergence
   ok <- identical(as.integer(convergence), 0L)
+  method <- check_optimizer_name(object)
   message <- if (ok) {
-    "nlminb convergence code is 0."
+    paste0(method, " convergence code is 0.")
   } else {
-    paste("nlminb convergence message:", object$opt$message)
+    paste(method, "convergence message:", object$opt$message)
   }
   check_row(
     "optimizer_convergence",
@@ -383,27 +645,38 @@ check_optimizer_budget <- function(object) {
   evaluations <- object$opt$evaluations
   function_evaluations <- optimizer_evaluation_count(evaluations, "function")
   gradient_evaluations <- optimizer_evaluation_count(evaluations, "gradient")
-
-  control <- object$control$optimizer
+  control <- object$optimizer_used$control
+  if (is.null(control)) {
+    control <- object$control$optimizer
+  }
   if (is.null(control)) {
     control <- list()
   }
+  value <- paste0(
+    "iterations=", format_optimizer_count(iterations),
+    "; function=", format_optimizer_count(function_evaluations),
+    "; gradient=", format_optimizer_count(gradient_evaluations)
+  )
+  method <- check_optimizer_name(object)
+  if (!identical(method, "nlminb")) {
+    limit <- optimizer_budget_limit(control, "maxit")
+    hit_budget <- identical(as.integer(object$opt$convergence), 1L)
+    message <- if (hit_budget) {
+      paste0(method, " stopped at its maxit budget (optim convergence code 1); ",
+             "inspect gradients and the model before increasing maxit.")
+    } else {
+      paste0(method, " does not report iteration counts; function and gradient ",
+             "evaluations are not iteration counts. Supplied maxit=",
+             format_optimizer_count(limit), ".")
+    }
+    return(check_row("optimizer_budget", if (hit_budget) "warning" else "note", value, message))
+  }
   iter_max <- optimizer_budget_limit(control, "iter.max")
   eval_max <- optimizer_budget_limit(control, "eval.max")
-
   hit_iter <- optimizer_budget_reached(iterations, iter_max)
   hit_eval <- optimizer_budget_reached(function_evaluations, eval_max)
   hit_budget <- hit_iter || hit_eval
   converged <- identical(as.integer(object$opt$convergence), 0L)
-
-  value <- paste0(
-    "iterations=",
-    format_optimizer_count(iterations),
-    "; function=",
-    format_optimizer_count(function_evaluations),
-    "; gradient=",
-    format_optimizer_count(gradient_evaluations)
-  )
   message <- if (hit_budget) {
     paste(
       "Optimizer reached a supplied evaluation or iteration limit;",
@@ -415,16 +688,9 @@ check_optimizer_budget <- function(object) {
   } else {
     "Optimizer evaluation counts recorded; no eval.max or iter.max control was supplied."
   }
-
   check_row(
     "optimizer_budget",
-    if (hit_budget && !converged) {
-      "warning"
-    } else if (hit_budget) {
-      "note"
-    } else {
-      "ok"
-    },
+    if (hit_budget && !converged) "warning" else if (hit_budget) "note" else "ok",
     value,
     message
   )
@@ -499,7 +765,18 @@ check_logsigma_clamp_active <- function(object) {
       "The log(sigma) clamp does not apply to this family."
     ))
   }
-  report <- tryCatch(object$obj$report(), error = function(e) NULL)
+  # This runs post-hoc on a stored fit, whose `obj$env$last.par` was left a
+  # finite-difference step away from the optimum by `TMB::sdreport()` during the
+  # fit. A bare `report()` defaults to `last.par`, so the clamp would be judged --
+  # and its value printed -- off-optimum. Report at the fit's stored `tmb_state`,
+  # which was captured before sdreport. Passing the parameter vector rather than
+  # re-pinning matters: a pin would MUTATE the stored fit's TMB object as a side
+  # effect of running a diagnostic, and a diagnostic must not change the object
+  # it inspects.
+  report <- tryCatch(
+    object$obj$report(object$tmb_state$last.par.best),
+    error = function(e) NULL
+  )
   if (is.null(report)) {
     return(check_row(
       "logsigma_clamp_active",
@@ -515,6 +792,31 @@ check_logsigma_clamp_active <- function(object) {
       "ok",
       NA,
       "The log(sigma) clamp is not active at the optimum."
+    ))
+  }
+  # Both clamp arms are reported (Dinnage audit C1). The upper arm keeps
+  # warning strength: a scale running to +Inf is artificial convergence. The
+  # lower arm is a note: sigma -> 0 is a legitimate result when the residual
+  # scale is genuinely zero (for example a meta-analysis at tau = 0), but the
+  # same arm also fires when the response sits on a very small numeric scale
+  # and the scale coefficients are badly wrong, so it must not be silent.
+  if (identical(info$arm, "lower")) {
+    return(check_row(
+      "logsigma_clamp_active",
+      "note",
+      format_check_number(info$value),
+      sprintf(
+        paste(
+          "The fitted log(sigma) reached %.2f, below the clamp band lower bound %g;",
+          "the scale ran to the lower clamp. This is expected when the residual",
+          "scale is genuinely zero (for example a meta-analysis with tau = 0), but",
+          "it also happens when the response is on a very small numeric scale and",
+          "the scale coefficients are wrong: compare sigma() with the spread of the",
+          "response and consider rescaling the response before refitting."
+        ),
+        info$value,
+        info$lo
+      )
     ))
   }
   check_row(
@@ -670,6 +972,292 @@ check_hessian <- function(object) {
   )
 }
 
+# Minimum eigenvalue and condition number of the fixed-effect Hessian at the
+# optimum (drmTMB/DRM.jl issue #569). `check_hessian()` above reports only a
+# bare `pdHess` boolean; this row makes "how near-singular" a comparable
+# number rather than a yes/no. It is a genuinely different read of the same
+# object than TMB's internal pdHess computation -- it is not claimed to be
+# numerically identical, only comparable.
+#
+# THIS ROW NEVER CALLS THE TMB C++ OBJECT. An earlier version evaluated
+# `object$obj$he(object$opt$par)` directly. That SEGFAULTED (uncatchable by
+# `tryCatch()`, took the whole R session down) on any fit that had been
+# through `saveRDS()`/`readRDS()`: the TMB external pointer reads dead on
+# entry to `check_drm()` but is REVIVED before this row runs, and the
+# revived pointer's AD tape is unusable for `he()` even though `gr()`
+# tolerates it. Pointer-liveness is the wrong predicate to guard on (it
+# reads live by the time this code runs), so no guard can fix it -- the only
+# fix is to never make the call. Measured 2026-09-01/02 (see
+# docs/dev-log/after-task/2026-09-01-b2-check-conditioning.md sec 13):
+# `object$sdr$cov.fixed` is an already-materialized numeric matrix (no C++
+# call at all), present after serialization, and gives the same condition
+# number and an algebraically equivalent minimum eigenvalue to six
+# significant figures on a well-conditioned fit (measured: cond(H) =
+# 2.408905027 vs cond(cov) = 2.408903421; min_eig(H) = 180 vs
+# 1/max_eig(cov) = 180.00012). This also closes what was a documented scope
+# gap: `obj$he()` has no Laplace support, so this row was a permanent `note`
+# with value `NA` for every random-effect or REML fit -- exactly the model
+# class the R/Julia parity programme is mostly about. `sdr$cov.fixed` IS
+# populated for those fits (measured on a random-intercept fit: 4x4,
+# cond = 7.065, implied min_eig(H) = 39.908), so `hessian_conditioning` now
+# reports a real number there too.
+#
+# For an MSPL fit, `hessian_conditioning_row()` still reuses the eigenvalues
+# already computed by `drm_mspl_hessian_diagnostics()` (`optimHess()` on the
+# unpenalized Laplace objective) -- that path was never the source of the
+# crash and is unrelated to `sdr$cov.fixed`.
+check_hessian_conditioning <- function(object) {
+  if (drm_is_mspl(object)) {
+    eig <- object$mspl$numerical$hessian_eigenvalues
+    if (is.null(eig) || length(eig) == 0L || !all(is.finite(eig))) {
+      return(check_row(
+        "hessian_conditioning",
+        "note",
+        NA_character_,
+        "Hessian eigenvalues are unavailable for this MSPL fit."
+      ))
+    }
+    return(hessian_conditioning_row(
+      eig,
+      "the separately evaluated MSPL outer Hessian (optimHess on the unpenalized Laplace objective)"
+    ))
+  }
+  if (is.null(object$sdr)) {
+    return(check_row(
+      "hessian_conditioning",
+      "note",
+      NA_character_,
+      paste(
+        "Hessian conditioning is unavailable because this fit has no",
+        "TMB::sdreport() object: either drm_control(se = FALSE) was used, or",
+        "sdreport() failed. If se = TRUE was already in force (the default),",
+        "the design is usually rank-deficient: look for a duplicated predictor",
+        "column or a factor level with no observations (drmTMB drops unused",
+        "levels on entry since the Dinnage audit, Md-E), then refit."
+      )
+    ))
+  }
+  cov <- object$sdr$cov.fixed
+  if (
+    is.null(cov) ||
+      !is.matrix(cov) ||
+      nrow(cov) == 0L ||
+      !all(is.finite(cov))
+  ) {
+    return(check_row(
+      "hessian_conditioning",
+      "note",
+      NA_character_,
+      paste(
+        "Hessian conditioning is unavailable because sdr$cov.fixed is",
+        "absent, empty, or contains non-finite entries (an incomplete",
+        "sdreport() result); inspect sdreport_status and",
+        "hessian_positive_definite before interpreting this fit's SEs."
+      )
+    ))
+  }
+  hessian_conditioning_cov_row(
+    cov,
+    "TMB's sdreport() fixed-effect covariance (sdr$cov.fixed), inverted"
+  )
+}
+
+hessian_conditioning_ill_threshold <- 1e8
+
+# Roundoff floor for TRUSTING the SIGN of `sdr$cov.fixed`'s most extreme
+# (algebraically smallest) eigenvalue, in the COVARIANCE's own eigenvalue
+# scale -- not the Hessian's. `cov.fixed` is an ordinary already-materialized
+# double-precision matrix (TMB's own solve of the Hessian), decomposed here
+# with `eigen()`, an ordinary dense symmetric LAPACK eigensolver -- the same
+# kind of computation `check_known_v()` elsewhere in this file already
+# tolerance-gates with a `sqrt(eps) * scale` floor for exactly this reason
+# (backward-stability bounds eigenvalue error by a small multiple of
+# `eps * ||matrix||_2` for this class of solver). Re-used here rather than
+# the AD-Hessian-specific `eps`-only floor the earlier `obj$he()` version
+# used: that floor was calibrated to AD's own (tighter) roundoff behaviour,
+# which no longer applies once the matrix in hand is `cov.fixed`, not a
+# freshly evaluated AD Hessian.
+hessian_conditioning_cov_eps_multiplier <- sqrt(.Machine$double.eps)
+
+# Computes the fixed-effect Hessian's conditioning FROM `sdr$cov.fixed`
+# without ever forming or inverting the Hessian directly (no C++ call; see
+# the comment above `check_hessian_conditioning()`).
+#
+# `cov.fixed`'s eigenvalues `mu_i` are the RECIPROCALS of the Hessian's
+# eigenvalues (same eigenvectors, `H = cov^{-1}`, `mu_i = 1 / lambda_i`).
+# Only the two ALGEBRAIC extremes of `mu` -- `mu_max` and `mu_min` -- can map
+# to an extreme (smallest, most negative, or smallest positive) Hessian
+# eigenvalue; every intermediate `mu` maps to an unremarkable, non-extreme
+# Hessian eigenvalue and is never the one this diagnostic reports. That
+# matters because the mapping is NOT scale-symmetric across a sign change:
+# when `cov.fixed` has a genuinely negative eigenvalue (an indefinite
+# Hessian; `pdHess = FALSE`), `mu_min` -- not `mu_max` -- is the one whose
+# reciprocal exposes it, however small that reciprocal is in Hessian-scale
+# (e.g. measured: `mu_min = -2.1e11` well beyond the tolerance floor below
+# reciprocates to `min_eig(H) = -4.76e-12`, a numerically tiny value that
+# would have been misread as roundoff dust had it been tested directly on
+# the Hessian scale, exactly the failure this function avoids by testing
+# reliability on `mu_min` BEFORE taking its reciprocal, not after).
+#
+# The reliability test is therefore on `mu_min` itself, at the covariance's
+# own scale: only when `|mu_min|` clears `hessian_conditioning_cov_eps_multiplier
+# * eps * max(|mu_max|, |mu_min|, 1)` is `mu_min`'s negative sign trusted; a
+# `mu_min` at or below that floor is deferred to the ordinary `mu_max`-based
+# (well-conditioned/positive-definite) formula, matching the same "unreliable
+# sign, defer to ok" reasoning the earlier AD-Hessian version used, just
+# anchored to the quantity that actually carries the roundoff here.
+hessian_conditioning_cov_row <- function(cov, source) {
+  eig_cov <- eigen(
+    (cov + t(cov)) / 2,
+    symmetric = TRUE,
+    only.values = TRUE
+  )$values
+  mu_max <- max(eig_cov)
+  mu_min <- min(eig_cov)
+  max_abs_cov <- max(abs(eig_cov))
+  min_abs_cov <- min(abs(eig_cov))
+  tol_cov <- hessian_conditioning_cov_eps_multiplier *
+    max(max_abs_cov, 1)
+
+  mu_min_trusted_negative <- mu_min < -tol_cov
+  min_eig <- if (mu_min_trusted_negative) 1 / mu_min else 1 / mu_max
+  condition <- if (min_abs_cov <= 0) Inf else max_abs_cov / min_abs_cov
+
+  status <- if (mu_min_trusted_negative) {
+    "warning"
+  } else if (condition > hessian_conditioning_ill_threshold) {
+    "note"
+  } else {
+    "ok"
+  }
+
+  check_row(
+    "hessian_conditioning",
+    status,
+    paste0(
+      "min_eig=",
+      format_check_number(min_eig),
+      "; cond=",
+      format_check_number(condition)
+    ),
+    paste0(
+      "Minimum eigenvalue and condition number of ",
+      source,
+      ". These are a genuinely different read of the fit's conditioning than ",
+      "TMB's internal pdHess flag -- comparable across fits, not claimed to be ",
+      "numerically identical to any raw TMB gradient or Hessian quantity. ",
+      if (identical(status, "warning")) {
+        paste(
+          "The covariance's own smallest eigenvalue is negative well beyond",
+          "the roundoff floor, so the implied minimum Hessian eigenvalue is",
+          "trusted as genuinely negative -- matching a non-PD Hessian; treat",
+          "standard errors and correlations among the affected parameters as",
+          "unreliable."
+        )
+      } else if (identical(status, "note")) {
+        paste0(
+          "The condition number exceeds ",
+          hessian_conditioning_ill_threshold,
+          ", signalling a near-flat, weakly identified direction; a clean",
+          " pdHess is necessary, not sufficient. Treat standard errors and",
+          " correlations among the affected parameters with caution."
+        )
+      } else {
+        "This fit's Hessian conditioning is within the requested threshold."
+      }
+    )
+  )
+}
+
+# Reused only by the MSPL path above, whose eigenvalues come directly from
+# `drm_mspl_hessian_diagnostics()`'s `optimHess()` call (a Hessian evaluated
+# once at fit time and stored, not `obj$he()`), so it is unaffected by, and
+# not part of, the `obj$he()` removal described above.
+hessian_conditioning_eps_multiplier <- 100
+
+hessian_conditioning_row <- function(eig, source) {
+  min_eig <- min(eig)
+  max_abs_eig <- max(abs(eig))
+  tol <- hessian_conditioning_eps_multiplier *
+    .Machine$double.eps *
+    max(max_abs_eig, 1)
+
+  # Three regimes, in order of how much the sign/magnitude of `min_eig` can
+  # be trusted:
+  # 1. `min_eig < -tol`: robustly, resolvably negative -- the same signal as
+  #    a non-PD Hessian, so it is a "warning" like `check_hessian()`.
+  # 2. `abs(min_eig) <= tol`: at the roundoff floor. Its sign is not
+  #    trustworthy and any condition number computed by dividing by it would
+  #    itself be roundoff-dominated. Reported as "ok": `pdHess` already
+  #    covers whether TMB itself judged this fit positive-definite, and
+  #    fabricating a numerically unstable condition number here would be
+  #    decoration, not signal.
+  # 3. `min_eig > tol`: resolvably positive. A positive but ill-conditioned
+  #    Hessian is a different, milder signal than case 1: a near-flat,
+  #    weakly identified direction (the same phenomenon
+  #    `check_standard_errors_inflated()` reports as a "note" despite
+  #    `pdHess = TRUE`, e.g. a poorly identified Student-t `nu`), so it is a
+  #    "note" and does not flip the fit's overall `ok` status.
+  if (min_eig < -tol) {
+    status <- "warning"
+    condition <- Inf
+  } else if (abs(min_eig) <= tol) {
+    status <- "ok"
+    condition <- max_abs_eig / max(abs(min_eig), .Machine$double.eps)
+  } else {
+    condition <- max_abs_eig / min_eig
+    status <- if (condition > hessian_conditioning_ill_threshold) {
+      "note"
+    } else {
+      "ok"
+    }
+  }
+
+  check_row(
+    "hessian_conditioning",
+    status,
+    paste0(
+      "min_eig=",
+      format_check_number(min_eig),
+      "; cond=",
+      format_check_number(condition)
+    ),
+    paste0(
+      "Minimum eigenvalue and condition number of ",
+      source,
+      ". These are a genuinely different read of the fit's conditioning than ",
+      "TMB's internal pdHess flag -- comparable across fits, not claimed to be ",
+      "numerically identical to any raw TMB gradient or Hessian quantity. ",
+      if (identical(status, "warning")) {
+        paste(
+          "The minimum eigenvalue is negative well beyond the roundoff",
+          "floor, matching a non-PD Hessian; treat standard errors and",
+          "correlations among the affected parameters as unreliable."
+        )
+      } else if (abs(min_eig) <= tol) {
+        paste0(
+          "The minimum eigenvalue is within a machine-epsilon-scaled floor ",
+          "of zero (|min_eig| <= ",
+          format_check_number(tol),
+          "); its sign and any condition number computed from it are not ",
+          "reliable, so this is reported as ok and defers to pdHess."
+        )
+      } else if (identical(status, "note")) {
+        paste0(
+          "The condition number exceeds ",
+          hessian_conditioning_ill_threshold,
+          " with a resolvably positive minimum eigenvalue, signalling a ",
+          "near-flat, weakly identified direction; a clean pdHess is ",
+          "necessary, not sufficient. Treat standard errors and correlations ",
+          "among the affected parameters with caution."
+        )
+      } else {
+        "This fit's Hessian conditioning is within the requested threshold."
+      }
+    )
+  )
+}
+
 check_sdreport_status <- function(object) {
   status <- drm_uncertainty_status(object)
   check_row(
@@ -762,7 +1350,14 @@ check_standard_errors_inflated <- function(object) {
   if (length(finite_standard_errors) == 0L) {
     return(NULL)
   }
-  median_se <- stats::median(finite_standard_errors)
+  reference_se <- finite_standard_errors[
+    finite_standard_errors < inflated_standard_error_floor
+  ]
+  if (length(reference_se) == 0L) {
+    median_se <- min(finite_standard_errors)
+  } else {
+    median_se <- stats::median(reference_se)
+  }
   inflated <- is.finite(standard_errors) &
     standard_errors >= inflated_standard_error_floor &
     standard_errors >= inflated_standard_error_ratio * median_se
@@ -779,7 +1374,7 @@ check_standard_errors_inflated <- function(object) {
       n_inflated,
       "; max_se=",
       format_check_number(max(finite_standard_errors)),
-      "; median_se=",
+      "; reference_median=",
       format_check_number(median_se),
       if (n_inflated > 0L) {
         paste0("; example=", param_names[which(inflated)[[1L]]])
@@ -802,6 +1397,315 @@ check_standard_errors_inflated <- function(object) {
   )
 }
 
+check_weakly_identified_fixed_effects <- function(object) {
+  row <- check_standard_errors_inflated(object)
+  if (is.null(row) || !grepl("n_inflated=[1-9]", row$value, perl = TRUE)) {
+    return(NULL)
+  }
+  check_row(
+    "weakly_identified_fixed_effects",
+    "warning",
+    row$value,
+    paste(
+      "At least one fixed-effect standard error is pathologically large",
+      "relative to the reference scale; the fit is not identified enough for",
+      "plain is_converged() to read TRUE and multi_start cannot clear this."
+    )
+  )
+}
+
+check_convergence_status <- function(object) {
+  status <- convergence_status(object)
+  check_row(
+    "convergence_status",
+    switch(
+      status,
+      converged = "ok",
+      boundary = "note",
+      degenerate = "note",
+      "note"
+    ),
+    status,
+    switch(
+      status,
+      converged = paste(
+        "Optimizer convergence and uncertainty diagnostics are consistent with",
+        "a proper interior optimum."
+      ),
+      boundary = paste(
+        "The fit converged but variance-component or residual-correlation",
+        "parameters are near an interpretability boundary; read",
+        "convergence_status() and boundary rows before inference."
+      ),
+      degenerate = paste(
+        "The optimizer reported success but the likelihood geometry or",
+        "uncertainty is degenerate (no reliable maximum or non-finite",
+        "standard errors). multi_start cannot clear this state;",
+        "is_converged() is FALSE."
+      ),
+      "Convergence status could not be classified."
+    )
+  )
+}
+
+observations_per_parameter_threshold <- 10
+
+check_observations_per_parameter <- function(object) {
+  n_obs <- object$nobs
+  n_par <- object$df
+  if (
+    is.null(n_obs) ||
+      is.null(n_par) ||
+      length(n_obs) != 1L ||
+      length(n_par) != 1L ||
+      !is.finite(n_obs) ||
+      !is.finite(n_par) ||
+      n_par <= 0
+  ) {
+    return(NULL)
+  }
+  ratio <- n_obs / n_par
+  low <- ratio < observations_per_parameter_threshold
+  check_row(
+    "observations_per_parameter",
+    if (low) "note" else "ok",
+    paste0(
+      "n_obs=",
+      n_obs,
+      "; n_par=",
+      n_par,
+      "; ratio=",
+      format_check_number(ratio)
+    ),
+    if (low) {
+      paste(
+        "Fewer than",
+        observations_per_parameter_threshold,
+        "observations per estimated parameter; the diagnostic board does not",
+        "become more cautious automatically at small n, so inspect effect",
+        "sizes and uncertainty before interpreting tests."
+      )
+    } else {
+      paste(
+        "Observations per estimated parameter are at or above the small-sample",
+        "note threshold (",
+        observations_per_parameter_threshold,
+        ").",
+        sep = ""
+      )
+    }
+  )
+}
+
+fixed_effect_collinearity_threshold <- 0.99
+
+check_fixed_effect_design_collinearity <- function(
+  object,
+  r_threshold = fixed_effect_collinearity_threshold
+) {
+  X <- object$model$X
+  if (is.null(X) || length(X) == 0L) {
+    return(NULL)
+  }
+  max_abs_r <- NA_real_
+  example <- NA_character_
+  for (block in X) {
+    if (
+      is.null(block) ||
+        (!is.matrix(block) && !inherits(block, "Matrix"))
+    ) {
+      next
+    }
+    cols <- colnames(block)
+    if (is.null(cols)) {
+      cols <- paste0("col", seq_len(ncol(block)))
+    }
+    numeric_cols <- which(vapply(
+      seq_len(ncol(block)),
+      function(j) {
+        xj <- block[, j, drop = TRUE]
+        is.numeric(xj) && stats::var(xj, na.rm = TRUE) > 0
+      },
+      logical(1L)
+    ))
+    if (length(numeric_cols) < 2L) {
+      next
+    }
+    for (i in seq_len(length(numeric_cols) - 1L)) {
+      for (j in (i + 1L):length(numeric_cols)) {
+        ci <- numeric_cols[[i]]
+        cj <- numeric_cols[[j]]
+        r <- stats::cor(block[, ci], block[, cj], use = "complete.obs")
+        if (!is.finite(r)) {
+          next
+        }
+        abs_r <- abs(r)
+        if (!is.finite(max_abs_r) || abs_r > max_abs_r) {
+          max_abs_r <- abs_r
+          example <- paste0(cols[[ci]], "~", cols[[cj]])
+        }
+      }
+    }
+  }
+  if (!is.finite(max_abs_r)) {
+    return(NULL)
+  }
+  high <- max_abs_r > r_threshold
+  check_row(
+    "fixed_effect_collinearity",
+    if (high) "note" else "ok",
+    paste0(
+      "max_abs_r=",
+      format_check_number(max_abs_r),
+      if (high) paste0("; pair=", example) else ""
+    ),
+    if (high) {
+      paste(
+        "At least one pair of fixed-effect design columns has absolute",
+        "correlation above",
+        r_threshold,
+        "; standard errors may be inflated even when the Hessian is",
+        "positive-definite."
+      )
+    } else {
+      "No fixed-effect design column pair exceeds the collinearity note threshold."
+    }
+  )
+}
+
+check_fixed_effect_rank_deficiency <- function(object) {
+  X <- object$model$X
+  if (is.null(X) || length(X) == 0L) {
+    return(NULL)
+  }
+  deficient <- character()
+  for (i in seq_along(X)) {
+    block <- X[[i]]
+    if (
+      is.null(block) ||
+        (!is.matrix(block) && !inherits(block, "Matrix"))
+    ) {
+      next
+    }
+    dims <- dim(block)
+    if (is.null(dims) || length(dims) != 2L || dims[[2L]] <= 0L) {
+      next
+    }
+    block_rank <- qr(block, tol = 1e-8)$rank
+    if (block_rank < dims[[2L]]) {
+      name <- names(X)[[i]]
+      if (is.null(name) || !nzchar(name)) {
+        name <- paste0("X", i)
+      }
+      deficient <- c(
+        deficient,
+        paste0(name, ":rank=", block_rank, "/ncol=", dims[[2L]])
+      )
+    }
+  }
+  if (length(deficient) == 0L) {
+    return(NULL)
+  }
+  check_row(
+    "fixed_effect_rank_deficiency",
+    "warning",
+    paste(deficient, collapse = "; "),
+    paste(
+      "At least one fixed-effect design matrix is rank-deficient;",
+      "coefficients and standard errors are not identified even when the",
+      "optimizer reports convergence."
+    )
+  )
+}
+
+empty_dropped_groups <- function() {
+  data.frame(
+    variable = character(),
+    n_lost = integer(),
+    example = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
+check_fit_input_data <- function(object) {
+  keep <- object$model$keep
+  if (is.null(keep)) {
+    return(NULL)
+  }
+  data <- object$model$input_data
+  if (!is.data.frame(data) || nrow(data) != length(keep)) {
+    return(NULL)
+  }
+  data
+}
+
+check_random_grouping_variables <- function(object) {
+  random <- object$model$random
+  if (!is.list(random)) {
+    return(character())
+  }
+  vars <- character()
+  for (block in random) {
+    if (is.list(block) && length(block$group_names) > 0L) {
+      vars <- c(vars, unique(as.character(block$group_names)))
+    }
+  }
+  unique(vars[nzchar(vars)])
+}
+
+check_dropped_group_levels <- function(object) {
+  empty <- empty_dropped_groups()
+  keep <- object$model$keep
+  if (is.null(keep)) {
+    return(empty)
+  }
+  data <- check_fit_input_data(object)
+  if (is.null(data)) {
+    return(empty)
+  }
+  vars <- check_random_grouping_variables(object)
+  if (length(vars) == 0L) {
+    return(empty)
+  }
+  rows <- list()
+  for (var in vars) {
+    if (!var %in% names(data)) {
+      next
+    }
+    g <- data[[var]]
+    if (all(is.na(g))) {
+      next
+    }
+    levels <- if (is.factor(g)) {
+      levels(g)
+    } else {
+      unique(as.character(g[!is.na(g)]))
+    }
+    lost <- character()
+    for (le in levels) {
+      rows_le <- which(!is.na(g) & as.character(g) == le)
+      if (length(rows_le) == 0L) {
+        next
+      }
+      if (!any(keep[rows_le])) {
+        lost <- c(lost, le)
+      }
+    }
+    if (length(lost) > 0L) {
+      rows[[length(rows) + 1L]] <- data.frame(
+        variable = var,
+        n_lost = length(lost),
+        example = lost[[1L]],
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+  if (length(rows) == 0L) {
+    return(empty)
+  }
+  do.call(rbind, rows)
+}
+
 check_dropped_rows <- function(object) {
   keep <- object$model$keep
   if (is.null(keep)) {
@@ -813,14 +1717,43 @@ check_dropped_rows <- function(object) {
     ))
   }
   dropped <- sum(!keep)
+  dropped_groups <- check_dropped_group_levels(object)
+  n_groups_lost <- if (nrow(dropped_groups) > 0L) {
+    sum(dropped_groups$n_lost)
+  } else {
+    0L
+  }
+  group_value <- if (n_groups_lost > 0L) {
+    paste0("; groups_lost=", n_groups_lost)
+  } else {
+    ""
+  }
+  group_message <- if (n_groups_lost > 0L) {
+    first <- dropped_groups[1L, , drop = FALSE]
+    paste0(
+      " At least one grouping variable lost every row for one or more levels: ",
+      first$variable[[1L]],
+      " lost ",
+      first$n_lost[[1L]],
+      " level",
+      if (first$n_lost[[1L]] == 1L) "" else "s",
+      if (nzchar(first$example[[1L]])) paste0(" (for example ", first$example[[1L]], ")") else "",
+      "."
+    )
+  } else {
+    ""
+  }
   check_row(
     "dropped_rows",
-    if (dropped == 0L) "ok" else "note",
-    paste0("nobs=", object$nobs, "; dropped=", dropped),
-    if (dropped == 0L) {
+    if (dropped == 0L && n_groups_lost == 0L) "ok" else "note",
+    paste0("nobs=", object$nobs, "; dropped=", dropped, group_value),
+    if (dropped == 0L && n_groups_lost == 0L) {
       "No rows were dropped by model-frame or known-covariance filtering."
     } else {
-      "Rows were dropped by complete-case or known-covariance filtering."
+      paste0(
+        "Rows were dropped by complete-case or known-covariance filtering.",
+        group_message
+      )
     }
   )
 }
@@ -929,6 +1862,39 @@ check_random_effect_sd_boundary <- function(object, sd_boundary) {
   )
 }
 
+# `check_drm()` reads the FIT. Interval reliability is a different question and
+# this function does not answer it: a random-effect SD estimate can sit well
+# above `sd_boundary` -- clearing every check above -- while `confint()` still
+# warns that the interval for that same target reaches a variance boundary,
+# because the profile discovers the bound while profiling and the percentile
+# bootstrap discovers it in the resamples. Measured on a 10-group Gaussian fit:
+# SD estimate 0.1936 (comfortably clear of the 1e-4 threshold, every check ok)
+# with 43% of bootstrap draws on the bound and a profile boundary warning.
+#
+# Left silent, that all-clear reads as permission to report the interval. This
+# row makes the gate the documentation tells users to run state the limit of its
+# own scope rather than imply coverage it never assessed. It deliberately
+# invents no threshold and re-fits nothing.
+check_interval_reliability_scope <- function(object) {
+  sd_values <- unlist(object$sdpars, use.names = TRUE)
+  if (length(sd_values) == 0L) {
+    return(NULL)
+  }
+  n_targets <- length(sd_values)
+  check_row(
+    "interval_reliability_scope",
+    "note",
+    paste0("sd_targets=", n_targets, "; assessed_here=0"),
+    paste0(
+      "This fit has ",
+      n_targets,
+      " random-effect standard-deviation target",
+      if (n_targets == 1L) "" else "s",
+      ". `check_drm()` assesses the fit, not interval reliability: a target can pass every check above and still return an interval that `confint()` warns about at a variance boundary. Before reporting an interval, call `confint()` and read `conf.status` and any boundary warning."
+    )
+  )
+}
+
 check_rho12_boundary <- function(object, rho_boundary) {
   if (
     !object$model$model_type %in%
@@ -953,7 +1919,7 @@ check_rho12_boundary <- function(object, rho_boundary) {
       paste0(
         "At least one fitted residual correlation is close to +/-1 using boundary ",
         rho_boundary,
-        "."
+        ". A profile interval for residual rho12 at this boundary is usually identical to Wald; read conf.status on confint()."
       )
     }
   )
@@ -3256,6 +4222,141 @@ phylo_direct_sd_message <- function(dpar, invalid_sd, weak_replication) {
     dpar,
     "direct-SD model has replicated species and a finite",
     "positive fitted species-level SD surface."
+  )
+}
+
+# Shared shift in the latent phylogenetic field when its SD depends on
+# covariates. The latent field u has prior N(0, Q^-1) with the root fixed at 0,
+# and the mean receives u_i * SD_i. A common shift delta in u therefore adds
+# delta * SD_i(x) to the mean: a curved function of the SD covariates that can
+# stand in for curvature missing from the location formula, producing separate
+# optima. z = 1'Qu / sqrt(1'Q1) is the prior-precision-weighted shift in prior
+# SD units (standard normal under the prior; z^2 / 2 is its prior cost). See
+# docs/design/277-sd-phylo-root-offset-identifiability.md.
+phylo_shared_shift_threshold_note <- 2
+phylo_shared_shift_threshold_warning <- 3
+
+phylo_shared_shift_statistic <- function(Q, u) {
+  Q1 <- as.numeric(Matrix::rowSums(Q))
+  one_Q_one <- sum(Q1)
+  if (
+    length(Q1) != length(u) ||
+      !is.finite(one_Q_one) ||
+      one_Q_one <= 0 ||
+      any(!is.finite(u))
+  ) {
+    return(NULL)
+  }
+  one_Q_u <- sum(Q1 * u)
+  list(
+    shift = one_Q_u / one_Q_one,
+    z = one_Q_u / sqrt(one_Q_one),
+    prior_cost = one_Q_u^2 / (2 * one_Q_one)
+  )
+}
+
+check_phylo_sd_shared_shift <- function(object) {
+  sd_phylo <- object$model$random_scale$phylo
+  if (
+    !is.list(sd_phylo) ||
+      is.null(sd_phylo$n_models) ||
+      sd_phylo$n_models == 0L
+  ) {
+    return(NULL)
+  }
+  phylo_mu <- object$model$structured$phylo_mu
+  Q <- phylo_mu$precision$precision
+  latent <- object$random_effects$phylo_mu$latent
+  if (is.null(Q) || is.null(latent)) {
+    return(NULL)
+  }
+  n_node <- nrow(Q)
+  endpoints <- phylo_mu_endpoint_dpars(phylo_mu)
+  if (n_node < 1L || length(latent) != n_node * length(endpoints)) {
+    return(NULL)
+  }
+
+  rows <- lapply(sd_phylo$dpars, function(dpar) {
+    X <- sd_phylo$X_list[[dpar]]
+    if (is.null(X) || NCOL(X) < 2L) {
+      # An intercept-only SD scales the field by a constant, so a shared
+      # shift is absorbed by the location intercept and cannot bend the mean.
+      return(NULL)
+    }
+    target <- unname(sd_phylo$target_dpar[[dpar]])
+    if (is.null(target) || is.na(target)) {
+      target <- "mu"
+    }
+    k <- match(target, endpoints)
+    if (is.na(k)) {
+      return(NULL)
+    }
+    u <- unname(latent[(k - 1L) * n_node + seq_len(n_node)])
+    stat <- phylo_shared_shift_statistic(Q, u)
+    if (is.null(stat)) {
+      return(NULL)
+    }
+    sd_values <- object$sdpars[[dpar]]
+    finite_sd <- sd_values[is.finite(sd_values)]
+    mean_shift <- stat$shift * c(
+      min_finite_or_na(finite_sd),
+      max_finite_or_na(finite_sd)
+    )
+    abs_z <- abs(stat$z)
+    status <- if (abs_z >= phylo_shared_shift_threshold_warning) {
+      "warning"
+    } else if (abs_z >= phylo_shared_shift_threshold_note) {
+      "note"
+    } else {
+      "ok"
+    }
+    check_row(
+      "phylo_sd_shared_shift",
+      status,
+      paste0(
+        "dpar=",
+        dpar,
+        "; target=",
+        target,
+        "; z_shared=",
+        format_check_number(stat$z),
+        "; latent_shift=",
+        format_check_number(stat$shift),
+        "; mean_shift_range=[",
+        format_check_number(min(mean_shift)),
+        ",",
+        format_check_number(max(mean_shift)),
+        "]"
+      ),
+      phylo_shared_shift_message(dpar, status)
+    )
+  })
+
+  rows <- Filter(Negate(is.null), rows)
+  if (length(rows) == 0L) {
+    return(NULL)
+  }
+  do.call(rbind, rows)
+}
+
+phylo_shared_shift_message <- function(dpar, status) {
+  if (identical(status, "ok")) {
+    return(paste(
+      "The fitted phylogenetic effects show no large shared shift, so the",
+      dpar,
+      "covariates are not visibly standing in for curvature in the mean."
+    ))
+  }
+  paste(
+    "The fitted phylogenetic effects share a large common shift. Because",
+    dpar,
+    "depends on covariates, that shift adds shift x SD to every mean, a curved",
+    "function of those covariates, so the location coefficients may be",
+    "compensating for curvature the mean model lacks, and other starts can",
+    "reach a different optimum. Check the mean for missing curvature (for",
+    "example quadratic terms), refit from other starting values, and interpret",
+    "the location coefficients with care. See",
+    "docs/design/277-sd-phylo-root-offset-identifiability.md."
   )
 }
 

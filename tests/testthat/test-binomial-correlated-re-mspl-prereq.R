@@ -64,7 +64,7 @@ test_that("binomial q2 parser admits only one unlabelled intercept-slope block",
   expect_equal(fit$model$random$mu$n_terms, 2L)
   expect_equal(fit$model$random$mu$n_cors, 1L)
   expect_named(fit$corpars$mu, "cor((Intercept),x | id)")
-  raw_par <- fit$obj$env$parList(fit$opt$par)
+  raw_par <- selected_tmb_par_list(fit)
   expect_equal(
     unname(fit$corpars$mu),
     tanh(unname(raw_par$eta_cor_mu)),
@@ -97,7 +97,7 @@ test_that("binomial q2 likelihood, fitted effects, and gradients use the same ma
   )
   expect_equal(fit$opt$convergence, 0L)
   expect_true(all(is.finite(c(fit$sdpars$mu, fit$corpars$mu))))
-  raw_par <- fit$obj$env$parList(fit$opt$par)
+  raw_par <- selected_tmb_par_list(fit)
   latent <- unname(raw_par$u_mu)
   values <- drmTMB:::transform_mu_random_effects(
     latent, raw_par, fit$model$random$mu, fit$model$random_scale$mu,
@@ -128,7 +128,7 @@ test_that("fresh q2 simulation uses the native eta and stable sech map", {
     control = drm_control(se = FALSE)
   )
   re <- fit$model$random$mu
-  eta <- as.numeric(fit$obj$env$parList(fit$opt$par)$eta_cor_mu)
+  eta <- as.numeric(selected_tmb_par_list(fit)$eta_cor_mu)
   set.seed(991L)
   draw <- drmTMB:::drm_fresh_ordinary_random_effect_values(
     re, fit$sdpars$mu, fit$corpars$mu, eta_lookup = eta
@@ -164,6 +164,75 @@ test_that("binomial q2 ML recovers a correlated random intercept and slope", {
     names(fit$sdpars$mu),
     c("(1 + x | id):(Intercept)", "(1 + x | id):x")
   )
-  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$truth[1:2])), 0.30)
-  expect_lt(abs(unname(fit$corpars$mu) - sim$truth[["rho"]]), 0.30)
+  sd0 <- unname(fit$sdpars$mu[["(1 + x | id):(Intercept)"]])
+  sd1 <- unname(fit$sdpars$mu[["(1 + x | id):x"]])
+  rho_re <- unname(fit$corpars$mu[["cor((Intercept),x | id)"]])
+  expect_lt(abs(sd0 - sim$truth[["(Intercept)"]]), 0.30)
+  expect_lt(abs(sd1 - sim$truth[["x"]]), 0.30)
+  expect_lt(abs(rho_re - sim$truth[["rho"]]), 0.30)
+  raw_par <- selected_tmb_par_list(fit)
+  report <- fit$obj$report()
+  expect_true(all(c("eta_cor_mu", "rho_mu_re", "logsech_mu_re") %in% names(report)))
+  expect_equal(rho_re, tanh(unname(raw_par$eta_cor_mu)), tolerance = 1e-12)
+})
+
+test_that("binomial q2 rejection matrix stays closed", {
+  sim <- mspl_q2_data(n_group = 10L, n_each = 8L, seed = 20260813L)
+  q2 <- bf(cbind(success, failure) ~ x + (1 + x | id))
+
+  expect_error(
+    drmTMB(q2, family = binomial(), data = sim$data, REML = TRUE),
+    "Correlated q = 2 binomial random effects are not implemented with",
+    fixed = TRUE
+  )
+
+  missing_dat <- sim$data
+  missing_dat$success[[1L]] <- NA_integer_
+  expect_error(
+    drmTMB(
+      q2,
+      family = binomial(),
+      data = missing_dat,
+      missing = miss_control(response = "include")
+    ),
+    "missing-response integration",
+    fixed = TRUE
+  )
+
+  expect_error(
+    drmTMB(
+      bf(cbind(success, failure) ~ x + (1 | id) + (1 + x | id)),
+      family = binomial(),
+      data = sim$data
+    ),
+    "unlabelled intercept-slope block"
+  )
+
+  expect_error(
+    drmTMB(
+      bf(cbind(success, failure) ~ x + (1 + x | p | id)),
+      family = binomial(),
+      data = sim$data
+    ),
+    "unlabelled intercept-slope block"
+  )
+
+  # Wave 3 admits ordinary lognormal `(1 + x | g)` as mc-0720. Gamma stays
+  # the next red positive-continuous neighbour.
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 + x | id)),
+      family = stats::Gamma(link = "log"),
+      data = transform(sim$data, y = pmax(success, 1))
+    ),
+    "Only independent"
+  )
+
+  const_dat <- sim$data
+  const_dat$x <- as.numeric(const_dat$id)
+  expect_error(
+    drmTMB(q2, family = binomial(), data = const_dat),
+    "need within-group variation in the slope predictor",
+    fixed = TRUE
+  )
 })

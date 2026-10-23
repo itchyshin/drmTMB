@@ -13,8 +13,77 @@
 #       sparse all-node q1 tolerance for this exact route and asserts TMB-vs-Julia
 #       logLik parity, without making any REML, interval, or non-Gaussian claim.
 
+# Defense in depth: the CRAN invert filter already excludes this file. This
+# skip keeps a direct test_file() on win-builder from hanging in julia_setup().
+drm_skip_live_julia()
+
 drm_parity_jl_path <- function() {
   drm_test_drmjl_path()
+}
+
+# --- D3 (#1083): the round-trips below run in a callr subprocess and used to
+# funnel EVERY subprocess error into testthat::skip(), which reads as
+# "environment unavailable" even when the error is a genuine regression in
+# the code under test (a signature change, a dropped keyword, a marshalling
+# bug). skip_if_not_installed()/skip_if_not(dir.exists(...)) above each test
+# already gate the ABSENT-ENVIRONMENT case (JuliaCall/callr/pkgload/ape not
+# installed, no DRM.jl checkout on disk); this discriminator narrows what
+# ELSE may still legitimately skip once those gates pass: only the exact
+# startup-failure messages JuliaCall::julia_setup() and drm_julia_setup()
+# raise when Julia/DRM.jl itself cannot be reached. Everything else --
+# including JuliaCall's "Error happens when you try to execute command ..."
+# wrapper around a DRM.jl-side error, which is exactly what a code
+# regression looks like -- must FAIL, not skip.
+# NOTE: these are UNANCHORED substring matches, deliberately. A callr
+# subprocess error's conditionMessage() is a multi-line "Caused by error..."
+# chain (see callr::r(..., error = "error")), not a bare message starting
+# with the JuliaCall/drm_julia_setup text -- an earlier version of this rule
+# anchored with `^`/`$` and consequently NEVER matched, so the negative
+# control (skip when the environment is genuinely absent) silently failed
+# closed into FAIL. Caught by running that negative control live, not by
+# inspection.
+drm_parity_environment_absent_patterns <- c(
+  "Julia is not found",                                  # JuliaCall::julia_setup()
+  "is too old and is not supported",                     # JuliaCall::julia_setup()
+  "libjulia cannot be located",                           # JuliaCall::julia_setup()
+  "libjulia located at .* is not a valid file",           # JuliaCall::julia_setup()
+  "sysimage at path: .* is not found",                    # JuliaCall::julia_setup()
+  "needs a local DRModels\\.jl.*checkout, and none was found",  # drm_julia_setup()
+  "DRM\\.jl path .* does not exist",                       # drm_julia_setup(): bad DRM_JL_PATH
+  "does not look like a DRM\\.jl checkout"                 # drm_julia_setup(): no Project.toml
+)
+
+drm_parity_is_environment_absent <- function(e) {
+  msg <- conditionMessage(e)
+  any(vapply(
+    drm_parity_environment_absent_patterns,
+    function(p) grepl(p, msg, perl = TRUE),
+    logical(1)
+  ))
+}
+
+# Runs a parity fit_fn(), routing an ABSENT-ENVIRONMENT error to skip() and
+# every other error (including a subprocess CODE error) to fail(). Replaces
+# the old inline-handler pattern that skipped on every fit_fn() error,
+# regardless of cause, at every call site in this file (#1083). The
+# discriminating handler lives in a separately named function (rather than
+# inline in the tryCatch() call) so #1127's skip-swallow oracle -- a naive
+# text scan for an inline error handler that unconditionally reaches skip()
+# -- reads this file's one remaining call correctly: it already fails,
+# not skips, on a genuine code error.
+drm_parity_run <- function(fit_fn, label) {
+  tryCatch(fit_fn(), error = function(e) drm_parity_run_error_handler(e, label))
+}
+
+drm_parity_run_error_handler <- function(e, label) {
+  if (drm_parity_is_environment_absent(e)) {
+    testthat::skip(paste0(label, " unavailable: ", conditionMessage(e)))
+  }
+  testthat::fail(paste0(
+    label,
+    " subprocess raised a CODE error (not an environment gap): ",
+    conditionMessage(e)
+  ))
 }
 
 drm_parity_fit_route_c <- function() {
@@ -73,14 +142,9 @@ test_that("engine='julia' == engine='tmb' to <=1e-6 on Gaussian location-scale (
     "DRM.jl engine path not available"
   )
 
-  res <- tryCatch(
-    drm_parity_fit_route_c(),
-    error = function(e) {
-      testthat::skip(paste(
-        "tmb-vs-julia parity round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
+  res <- drm_parity_run(
+    drm_parity_fit_route_c,
+    "tmb-vs-julia parity round-trip (Route C)"
   )
 
   expect_true(isTRUE(res$conv_tmb) && isTRUE(res$conv_jl))
@@ -154,14 +218,9 @@ test_that("engine='julia' == engine='tmb' to <=1e-6 on bivariate Gaussian residu
     dir.exists(drm_parity_jl_path()),
     "DRM.jl engine path not available"
   )
-  res <- tryCatch(
-    drm_parity_fit_route_b(),
-    error = function(e) {
-      testthat::skip(paste(
-        "biv parity round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
+  res <- drm_parity_run(
+    drm_parity_fit_route_b,
+    "biv parity round-trip (Route B)"
   )
   expect_true(isTRUE(res$conv_tmb) && isTRUE(res$conv_jl))
   # logLik parity confirms the models agree, INCLUDING the guarded RHO_GUARD*tanh rho12 link
@@ -286,21 +345,12 @@ test_that("q2 Gaussian phylo residual-correlation bridge parity is banked narrow
     "DRM.jl engine path not available"
   )
 
-  res <- tryCatch(
-    drm_parity_fit_q2_phylo(),
-    error = function(e) {
-      testthat::skip(paste(
-        "q2 phylo parity round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
-  if (inherits(res, "error")) {
-    testthat::fail(paste(
-      "q2 phylo parity subprocess returned an error:",
-      conditionMessage(res)
-    ))
-  }
+  # Previously broken (DRM.jl clone 77513aa0, 2026-09-03, #1127 live run):
+  # the coef_labels dpar "phylocov" (Julia names
+  # phylocov_Sigma_a:L11/L21/L22) was not covered by the R-side coef_labels
+  # dict. Fixed by N9 (2026-09-03, design 258 S7.7 amendment) -- see
+  # `drm_julia_bridge_payload_coef_labels()`, R/julia-bridge.R.
+  res <- drm_parity_run(drm_parity_fit_q2_phylo, "q2 phylo parity round-trip")
 
   expect_true(
     isTRUE(res$conv_tmb) && isTRUE(res$conv_direct) && isTRUE(res$conv_jl)
@@ -485,21 +535,7 @@ test_that("q2 Gaussian known structured residual-correlation bridge parity is ba
     "DRM.jl engine path not available"
   )
 
-  res <- tryCatch(
-    drm_parity_fit_q2_known_structured(),
-    error = function(e) {
-      testthat::skip(paste(
-        "q2 known-structured parity round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
-  if (inherits(res, "error")) {
-    testthat::fail(paste(
-      "q2 known-structured parity subprocess returned an error:",
-      conditionMessage(res)
-    ))
-  }
+  res <- drm_parity_run(drm_parity_fit_q2_known_structured, "q2 known-structured parity round-trip")
 
   expect_setequal(names(res), c("relmat", "animal", "spatial"))
   for (kind in names(res)) {
@@ -621,21 +657,7 @@ test_that("engine='julia' == engine='tmb' to <=1e-6 on Gaussian phylo-mean (Rout
     "DRM.jl engine path not available"
   )
 
-  res <- tryCatch(
-    drm_parity_fit_route_a(),
-    error = function(e) {
-      testthat::skip(paste(
-        "q1 Gaussian phylo-mean parity round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
-  if (inherits(res, "error")) {
-    testthat::fail(paste(
-      "q1 Gaussian phylo-mean parity subprocess returned an error:",
-      conditionMessage(res)
-    ))
-  }
+  res <- drm_parity_run(drm_parity_fit_route_a, "q1 Gaussian phylo-mean parity round-trip (Route A)")
   expect_true(
     isTRUE(res$conv_tmb) && isTRUE(res$conv_direct) && isTRUE(res$conv_jl)
   )
@@ -772,21 +794,7 @@ test_that("q1 Gaussian relmat ML parity is banked", {
     "DRM.jl general-covariance engine not available"
   )
 
-  res <- tryCatch(
-    drm_parity_fit_q1_relmat_gaussian_ml(),
-    error = function(e) {
-      testthat::skip(paste(
-        "q1 Gaussian relmat ML parity round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
-  if (inherits(res, "error")) {
-    testthat::fail(paste(
-      "q1 Gaussian relmat ML parity subprocess returned an error:",
-      conditionMessage(res)
-    ))
-  }
+  res <- drm_parity_run(drm_parity_fit_q1_relmat_gaussian_ml, "q1 Gaussian relmat ML parity round-trip")
 
   expect_true(
     isTRUE(res$conv_tmb) && isTRUE(res$conv_direct) && isTRUE(res$conv_jl)
@@ -937,21 +945,7 @@ test_that("q1 Gaussian animal ML parity is banked", {
     "DRM.jl general-covariance engine not available"
   )
 
-  res <- tryCatch(
-    drm_parity_fit_q1_animal_gaussian_ml(),
-    error = function(e) {
-      testthat::skip(paste(
-        "q1 Gaussian animal ML parity round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
-  if (inherits(res, "error")) {
-    testthat::fail(paste(
-      "q1 Gaussian animal ML parity subprocess returned an error:",
-      conditionMessage(res)
-    ))
-  }
+  res <- drm_parity_run(drm_parity_fit_q1_animal_gaussian_ml, "q1 Gaussian animal ML parity round-trip")
 
   expect_true(
     isTRUE(res$conv_tmb) && isTRUE(res$conv_direct) && isTRUE(res$conv_jl)
@@ -1111,21 +1105,7 @@ test_that("q1 Gaussian spatial ML parity is banked against native fixed-range K"
     "DRM.jl general-covariance engine not available"
   )
 
-  res <- tryCatch(
-    drm_parity_fit_q1_spatial_gaussian_ml(),
-    error = function(e) {
-      testthat::skip(paste(
-        "q1 Gaussian spatial ML parity round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
-  if (inherits(res, "error")) {
-    testthat::fail(paste(
-      "q1 Gaussian spatial ML parity subprocess returned an error:",
-      conditionMessage(res)
-    ))
-  }
+  res <- drm_parity_run(drm_parity_fit_q1_spatial_gaussian_ml, "q1 Gaussian spatial ML parity round-trip")
 
   expect_true(
     isTRUE(res$conv_tmb) && isTRUE(res$conv_direct) && isTRUE(res$conv_jl)
@@ -1345,21 +1325,13 @@ test_that("q1 Gaussian sigma-phylo and mu+sigma ML parity are banked", {
     "DRM.jl engine path not available"
   )
 
-  res <- tryCatch(
-    drm_parity_fit_q1_sigma_phylo_ml(),
-    error = function(e) {
-      testthat::skip(paste(
-        "q1 sigma-phylo ML parity round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
-  if (inherits(res, "error")) {
-    testthat::fail(paste(
-      "q1 sigma-phylo ML parity subprocess returned an error:",
-      conditionMessage(res)
-    ))
-  }
+  # Previously broken (DRM.jl clone 77513aa0, 2026-09-03, #1127 live run):
+  # the coef_labels dpar "resd_sigma" (Julia name
+  # resd_sigma_species:sd_sigma) was not covered by the R-side coef_labels
+  # dict -- same root cause as the sigma-phylo REML skip in
+  # test-julia-sigma-phylo-reml.R. Fixed by N9 (2026-09-03, design 258 S7.7
+  # amendment) -- see `drm_julia_bridge_payload_coef_labels()`, R/julia-bridge.R.
+  res <- drm_parity_run(drm_parity_fit_q1_sigma_phylo_ml, "q1 sigma-phylo ML parity round-trip")
 
   expect_identical(res$sigma_only$parity_status, "passed")
   expect_true(

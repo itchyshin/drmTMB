@@ -348,7 +348,68 @@ drm_binomial_correlated_q2 <- function(spec) {
     identical(re$coef_names[[1L]], "(Intercept)")
 }
 
+drm_nbinom2_correlated_q2 <- function(spec) {
+  if (!identical(spec$model_type, "nbinom2")) return(FALSE)
+  re <- spec$random$mu
+  isTRUE(re$n_terms == 2L && re$n_cors == 1L) &&
+    length(unique(re$group_names)) == 1L &&
+    identical(re$coef_names[[1L]], "(Intercept)")
+}
+
+drm_lognormal_correlated_q2 <- function(spec) {
+  if (!identical(spec$model_type, "lognormal")) return(FALSE)
+  re <- spec$random$mu
+  isTRUE(re$n_terms == 2L && re$n_cors == 1L) &&
+    length(unique(re$group_names)) == 1L &&
+    identical(re$coef_names[[1L]], "(Intercept)")
+}
+
+drm_binomial_q2_slope_unique_n <- function(values, group_index) {
+  counts <- vapply(
+    split(values, group_index),
+    function(x) length(unique(x[is.finite(x)])),
+    integer(1L)
+  )
+  if (length(counts) == 0L) {
+    return(0L)
+  }
+  max(counts)
+}
+
+drm_validate_q2_slope_variation <- function(re, family_label = "binomial") {
+  slope_terms <- which(re$coef_names != "(Intercept)")
+  for (k in slope_terms) {
+    max_unique <- drm_binomial_q2_slope_unique_n(
+      re$value[, k],
+      re$index[, k]
+    )
+    if (max_unique < 2L) {
+      variable <- re$coef_names[[k]]
+      group_name <- re$group_names[[k]]
+      cli::cli_abort(c(
+        "Correlated q = 2 {family_label} random effects need within-group variation in the slope predictor.",
+        "x" = "{.field {variable}} is constant within every level of {.field {group_name}}.",
+        "i" = "The slope SD and group-level {.code rho_re} are unidentified in that design.",
+        "i" = "Use a predictor that varies within {.field {group_name}}."
+      ))
+    }
+  }
+  invisible(re)
+}
+
+drm_validate_binomial_q2_slope_variation <- function(re) {
+  drm_validate_q2_slope_variation(re, family_label = "binomial")
+}
+
 drm_validate_binomial_q2_context <- function(spec, REML = FALSE) {
+  if (drm_nbinom2_correlated_q2(spec)) {
+    drm_validate_q2_slope_variation(spec$random$mu, family_label = "NB2")
+    return(invisible(spec))
+  }
+  if (drm_lognormal_correlated_q2(spec)) {
+    drm_validate_q2_slope_variation(spec$random$mu, family_label = "lognormal")
+    return(invisible(spec))
+  }
   if (!drm_binomial_correlated_q2(spec)) return(invisible(spec))
   if (isTRUE(REML)) {
     cli::cli_abort(c(
@@ -363,6 +424,7 @@ drm_validate_binomial_q2_context <- function(spec, REML = FALSE) {
       "i" = "Use complete responses or an independently validated q = 1 route."
     ))
   }
+  drm_validate_q2_slope_variation(spec$random$mu, family_label = "binomial")
   invisible(spec)
 }
 

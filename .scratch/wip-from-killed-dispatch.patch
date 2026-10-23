@@ -1,0 +1,75 @@
+diff --git a/R/drmTMB.R b/R/drmTMB.R
+index f3822ae97..db3dcbe33 100644
+--- a/R/drmTMB.R
++++ b/R/drmTMB.R
+@@ -284,15 +284,14 @@ drmTMB <- function(
+   }
+   engine <- match.arg(engine)
+   estimator <- drm_match_estimator(estimator)
+-  if (
+-    identical(engine, "julia") &&
+-      inherits(family, "drm_family") &&
+-      identical(family$name, "biv_student")
+-  ) {
+-    cli::cli_abort(
+-      "{.fn biv_student} is implemented only for {.code engine = \"tmb\"}; the Julia route is deferred."
+-    )
+-  }
++  # `biv_student()` used to abort here for `engine = "julia"` ("the Julia route
++  # is deferred"), a family-specific gate that fired BEFORE the Julia family
++  # registry was ever consulted. It is retired (A4, 2026-09-05): the registry
++  # row in R/julia-family-registry.R is now the single admission authority for
++  # this family, exactly as it is for every other one, and DRM.jl's
++  # `_bridge_family("biv_student")` (src/bridge.jl) plus its bivariate Student-t
++  # route (src/bivariate_student.jl) fit the same target -- measured at pin
++  # 430ef64cc, see tests/testthat/test-julia-family-biv_student.R.
+   drm_reject_smooth_terms(formula)
+   formula <- drm_desugar_double_bars(formula, data)
+   formula_env <- drm_formula_env(formula, parent.frame())
+diff --git a/R/julia-bridge.R b/R/julia-bridge.R
+index e16588edb..60f490443 100644
+--- a/R/julia-bridge.R
++++ b/R/julia-bridge.R
+@@ -1807,7 +1807,16 @@ drm_julia_bridge_default_dpar_labels <- function(labels, formula, family_type) {
+       labels[[dpar]] <<- "(Intercept)"
+     }
+   }
+-  if (identical(family_type, "biv_gaussian")) {
++  if (identical(family_type, "biv_student")) {
++    # A4 (2026-09-05): biv_gaussian's three default blocks PLUS the shared
++    # `nu`. DRM.jl's bivariate Student-t route always fits a `nu` block --
++    # `_design(..., get(rhs, :nu, ConstantTerm(1)), ...)` in
++    # src/bivariate_student.jl -- exactly as drmTMB's own
++    # `drm_build_biv_student_spec()` inserts `default_dpar_entry("nu",
++    # quote(1))` when the formula omits it, so `bf(mu1 = y1 ~ x, mu2 = y2 ~ x)`
++    # must carry four defaulted labels or the echo aborts.
++    for (dpar in c("sigma1", "sigma2", "nu", "rho12")) add_default(dpar)
++  } else if (identical(family_type, "biv_gaussian")) {
+     for (dpar in c("sigma1", "sigma2", "rho12")) add_default(dpar)
+   } else if (!(family_type %in% drm_julia_dispersionless_families())) {
+     add_default("sigma")
+diff --git a/R/julia-family-registry.R b/R/julia-family-registry.R
+index 342e917e0..91df963a7 100644
+--- a/R/julia-family-registry.R
++++ b/R/julia-family-registry.R
+@@ -90,7 +90,19 @@ drm_julia_family_registry <- function() {
+     # R/julia-family-cumulative_logit.R moves DRM.jl's `cutpoints` block into
+     # `fit$ordinal` (design 258 section 8.9). Fixed effects only: no phylo, RE,
+     # or structured route (a later row's job).
+-    spec("cumulative_logit", fe = TRUE, dispersionless = TRUE)
++    spec("cumulative_logit", fe = TRUE, dispersionless = TRUE),
++    # biv_student (A4, 2026-09-05): drmTMB's exact shared-nu bivariate
++    # Student-t, fixed-effect route ONLY. dpars mu1, mu2, sigma1, sigma2, one
++    # shared nu, rho12 -- the SAME parameterisation on both sides: identity
++    # mu1/mu2, log sigma1/sigma2 (SCALES, not marginal SDs), nu on the "logm2"
++    # link nu = 2 + exp(eta), and a guarded-atanh rho12 SCATTER correlation
++    # (R/family.R `biv_student()`; DRM.jl src/bivariate_student.jl at pin
++    # 430ef64cc). Bivariate-ness is a FORMULA property in DRM.jl, so its
++    # `_bridge_family()` maps this tag to `Student()` and the keyed mu1/mu2
++    # parts select the bivariate route (src/bridge.jl). No phylo, RE, or
++    # structured column: DRM.jl refuses structured markers on this route by
++    # design ("residual-only"), and native drmTMB defers them too.
++    spec("biv_student", fe = TRUE)
+     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
+     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
+     #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal

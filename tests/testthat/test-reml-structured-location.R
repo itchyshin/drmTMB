@@ -213,6 +213,20 @@ arc1a_reml_reference <- function(fixture, REML = TRUE) {
     upper = rep(log(5), q + 1L),
     control = list(maxit = 3000L, factr = 1e5, pgtol = 1e-10)
   )
+  if (!identical(opt$convergence, 0L)) {
+    # L-BFGS-B can end in a line-search error near the optimum (code 52 under
+    # single-threaded OpenBLAS); polish from where it stopped with nlminb.
+    polish <- stats::nlminb(
+      start = opt$par,
+      objective = objective,
+      lower = rep(log(1e-4), q + 1L),
+      upper = rep(log(5), q + 1L),
+      control = list(iter.max = 3000L, eval.max = 6000L)
+    )
+    if (polish$objective <= opt$value + 1e-8) {
+      opt <- list(par = polish$par, convergence = polish$convergence)
+    }
+  }
   par <- opt$par
   V <- exp(2 * par[[q + 1L]]) * diag(n)
   for (j in seq_len(q)) {
@@ -237,6 +251,18 @@ arc1a_tmb_to_reference_par <- function(par) {
     unname(par[names(par) == "beta_sigma"])
   )
 }
+
+test_that("Arc 1a REML reference fit reports optimizer success for every fixture", {
+  # L-BFGS-B stops with code 52 (ABNORMAL_TERMINATION_IN_LNSRCH) on the
+  # spatial one-slope fixture under single-threaded OpenBLAS (#1592).
+  for (provider in c("spatial", "animal", "relmat")) {
+    for (shape in c("intercept", "one_slope")) {
+      reference <- arc1a_reml_reference(arc1a_provider_fixture(provider, shape))
+      expect_identical(reference$convergence, 0L, info = paste(provider, shape))
+      expect_true(is.finite(reference$objective(reference$par)))
+    }
+  }
+})
 
 test_that("Arc 1a REML providers match an independent restricted likelihood", {
   skip_on_cran()

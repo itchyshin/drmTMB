@@ -134,7 +134,7 @@ drm_wfg_case_spec <- function(slug) {
     ),
     "proportion-beta" = list(
       formula = quote(bf(y ~ x, sigma ~ 1)),
-      family = quote(beta())
+      family = quote(beta_family())
     ),
     "meta-analysis-V" = list(
       formula = quote(bf(y ~ x + meta_V(V = v), sigma ~ 1)),
@@ -246,7 +246,7 @@ drm_wfg_fit_slug <- function(slug, fixtures_root, jl_path) {
         ),
         "proportion-beta" = list(
           formula = drmTMB::bf(y ~ x, sigma ~ 1),
-          family = drmTMB::beta()
+          family = beta_family()
         ),
         "meta-analysis-V" = list(
           formula = drmTMB::bf(y ~ x + meta_V(V = v), sigma ~ 1),
@@ -317,7 +317,7 @@ test_that("Workflow G fixture map covers the eleven admitted cells", {
 })
 
 test_that("live engine=julia matches DRM.jl Workflow G expected.toml", {
-  skip_on_cran()
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")

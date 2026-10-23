@@ -1,0 +1,112 @@
+{
+  "package": "drmTMB",
+  "version": "0.7.0",
+  "release_type": "first_submission",
+  "target_cran_version": "0.7.0",
+  "note": "Current immutable replacement candidate built from merged main after the rejected e9c5556d reader and provenance repairs. Exact bytes passed local --as-cran and all three win-builder arms; exact source passed 3-OS CI and three sanitizers. rchk remains red with findings confined to installed TMB headers. Claimed rung is platform-clean only. No submission is authorized.",
+  "profile": {
+    "compiled_code": true,
+    "reverse_dependencies": false,
+    "system_or_external_services": true,
+    "large_data_or_vignettes": true
+  },
+  "artifact": {
+    "path": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/drmTMB_0.7.0.tar.gz",
+    "sha256": "6b45164ba1221538de5dbf01eb15d83d77fae8b4e3e15de557f2b39372eedc62",
+    "size_bytes": 4367799,
+    "source_commit": "5485ccb8aeca404412fd346a3a538d0e57808c79",
+    "clean_worktree": true,
+    "inventory_evidence": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/tar-inventory.txt",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-5485ccb8a/tar-inventory.txt"
+    },
+    "forbidden_entries": [],
+    "entry_count": 945,
+    "immutability": "Candidate tarball is read-only; R CMD build timestamps make these exact bytes non-regenerable."
+  },
+  "evidence": {
+    "product_contract": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/current-main-change-impact.md"
+    },
+    "rights_and_consent": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/rights-and-consent.md"
+    },
+    "current_cran_policy": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/current-cran-policy.md"
+    },
+    "rendered_site": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/rendered-site-inspection.md"
+    },
+    "local_as_cran": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/local-as-cran-00check.log"
+    },
+    "incoming_feasibility": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/local-as-cran-00check.log"
+    },
+    "installed_package": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/timing-and-size.md"
+    },
+    "timing": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/timing-and-size.md"
+    },
+    "platform_matrix": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/platform-matrix.md"
+    },
+    "external_logs": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/EVIDENCE-SHA256SUMS"
+    },
+    "reverse_dependencies": {
+      "kind": "rationale",
+      "value": "NOT_APPLICABLE: first submission; drmTMB has no CRAN reverse dependencies"
+    },
+    "compiled_diagnostics": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/rhub-result.md"
+    },
+    "external_service_behaviour": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/local-as-cran-00check.log"
+    },
+    "size_and_vignette_budget": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-5485ccb8a/timing-and-size.md"
+    }
+  },
+  "panel": {
+    "grace": "NOT_RUN",
+    "rose": "NOT_RUN",
+    "pat": "NOT_RUN",
+    "note": "Fresh panel runs only after the platform-clean ledger passes mechanically."
+  },
+  "status_claim": "platform-clean",
+  "submission": {
+    "uploaded_sha256": "",
+    "uploaded_size_bytes": 0,
+    "timestamp": "",
+    "submission_id": "",
+    "confirmation_evidence": {},
+    "incoming_evidence": {},
+    "acceptance_evidence": {},
+    "archive_evidence": {},
+    "public_package_evidence": {},
+    "public_check_page_evidence": {}
+  },
+  "known_evidence_gaps": {
+    "rhub_rchk": "Run 32190185592 is red: rchk findings occur in installed TMB headers and no protection finding cites drmTMB.cpp; all three sanitizer jobs passed. The failure remains visible and adjudicated.",
+    "windows_timing": "The R-release and R-devel test stages took 14 minutes. CRAN has no fixed ten-minute rule but asks packages to minimize check CPU time; Grace must adjudicate before submission-ready.",
+    "oldrelease_raw_email": "The maintainer supplied the R-oldrelease result URL, not the raw email or screenshot. Result index, complete check log, raw tests, upload trace, timestamp, hash, and size are preserved; no email is claimed.",
+    "urlchecker_doi_403": "Two DOI redirects previously returned 403 to automated checks while resolving through Crossref; explain if still present at submission.",
+    "submission": "No submit_cran call or CRAN submission is authorized."
+  }
+}

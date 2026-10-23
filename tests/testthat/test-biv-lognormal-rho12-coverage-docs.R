@@ -15,7 +15,10 @@ test_that("direct lognormal coverage boundary is synchronized across public desi
     function(path) paste(readLines(path, warn = FALSE), collapse = "\n"),
     character(1L)
   )
-  expect_true(all(grepl("profile (is|as)( the)? primary", text)))
+  expect_true(all(grepl(
+    "profile (is|as)( the)? primary|use direct profile intervals",
+    text
+  )))
   expect_true(all(grepl("fixed-effect", text, fixed = TRUE)))
   expect_true(all(grepl("rho12", text, fixed = TRUE)))
   expect_false(any(grepl("calibrated comparators", text, fixed = TRUE)))

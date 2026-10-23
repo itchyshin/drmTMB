@@ -1,0 +1,3 @@
+| Date | Slice | Evidence | Boundary |
+| --- | --- | --- | --- |
+| 2026-09-20 | Refresh current phylogenetic-label receipt after R documentation edits | Source `592aecaae8aac4f7f934693cdb389000bddcb576`; DRModels pin `90fbb0e28306fa09a68dc2b03d74c981a74fe908`; native build plus runner/checker 69.366 seconds, runner 42.016 seconds; all 8 receipt checks and 12 mutation controls passed; freshness 54/54 R and 95/95 Julia entries, runner and C17 PASS. | Generated evidence only; no source, workflow, API, or pin changes. One 12-label/72-row Gaussian phylogenetic location-scale workflow, not a full package check. See ../after-task/2026-09-20-tip-receipt-refresh.md. |

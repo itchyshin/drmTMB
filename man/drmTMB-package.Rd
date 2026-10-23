@@ -12,15 +12,15 @@ Model Builder.
 }
 \section{Status vocabulary}{
 
-Public documentation uses a small status vocabulary. "Stable" means a routine
-fitted path with tests, diagnostics or interval status, and a reader-facing
-example or guide. "First slice" means fitted and tested, but intentionally
-narrow. "Opt-in control" means available for hardening, scalability, or memory
-control, not a modelling guarantee for neighbouring surfaces. "Planned" or
-"reserved" syntax may appear in roadmap or formula-grammar text, but should be
-rejected by \code{drmTMB()} or treated as design-only until likelihood, tests,
-documentation, and after-task evidence land. "Unsupported" or "blocked"
-syntax should not be used as analysis syntax.
+Public documentation distinguishes fitting support from evidence about
+inference. "Supported" means that \code{drmTMB()} accepts and fits the model under
+the stated family, formula, and data conditions. "Point-estimate recovery
+only" means that the fitted point estimates have been checked, but interval
+coverage has not. "Experimental" means that the route is usable only within
+its stated limits and may not provide standard errors or intervals.
+"Unsupported" syntax should not be used for analysis. See
+\code{vignette("capability-and-limits", package = "drmTMB")} for the evidence
+available for specific model and parameter combinations.
 }
 
 \seealso{

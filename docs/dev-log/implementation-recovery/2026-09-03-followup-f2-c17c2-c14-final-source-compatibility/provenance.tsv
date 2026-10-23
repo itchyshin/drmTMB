@@ -1,0 +1,14 @@
+key	value
+run_status	COMPLETE
+source_sha	28186314938ae2d7a3ff03ce559ae3a4d9711d8b
+runner_sha256	03e230c48539267d803a22e43ffcc68786b08236c4bd6bf9f11c1b1b37c9b1df
+git_blob:R/drmTMB.R	08cb7b7422dcb0b328171aa5d1f58638133b0436
+git_blob:R/methods.R	77a050e5b1c558eb68f91b198b282be9269e5bc0
+git_blob:src/drmTMB.cpp	1f0b729483455ce150d508d4203b1ab8e1cc1637
+git_blob:tests/testthat/test-zero-one-beta.R	59b88730365b4fa00b1f0b0a913288edbb76a804
+git_blob:tools/run-lane-c-c17c1-c14-model15-compatibility.R	b0650851d2a7a2989d9622eed1f3ed68d9ef2a3d
+loaded_namespace_path	/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/wt-f2
+utc_start	2026-09-03 11:10:32 UTC
+utc_finish	2026-09-03 11:11:56 UTC
+exact_command	R_PROFILE_USER=/dev/null Rscript --no-init-file tools/run-lane-c-c17c1-c14-model15-compatibility.R
+dirty_state_path	dirty-state.txt

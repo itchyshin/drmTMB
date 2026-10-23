@@ -23,11 +23,11 @@ corpair(
 
 \item{class}{Optional latent correlation class: \code{"location-location"},
 \code{"location-scale"}, or \code{"scale-scale"}. This is an extraction-oriented
-shorthand and is not the first fitted q=4 correlation-regression target.}
+shorthand and does not select a q=4 correlation-regression model.}
 
 \item{from, to}{Optional endpoint-specific distributional parameters, such as
-\code{"mu1"} and \code{"mu2"} for the first fitted q=2 targets, or
-\code{"mu1"} and \code{"sigma2"} for later location-scale targets.}
+\code{"mu1"} and \code{"mu2"} for the supported q=2 targets. Other endpoint
+combinations are not supported.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -35,15 +35,15 @@ A formula marker; never evaluated by users.
 \description{
 \code{corpair()} marks predictor-dependent latent random-effect correlations. It
 is distinct from residual \code{rho12} and from the \code{\link[=corpairs]{corpairs()}} extractor. The
-first fitted paths are q=2 location-location cases for matching labelled
+Current support covers q=2 location-location models with matching labelled
 \code{mu1}/\code{mu2} random intercepts:
 \code{corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x}
 and
 \code{corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology}.
 Predictors must be constant within the grouping factor. Spatial
 \code{corpair()} regressions, location-scale \code{corpair()} regressions,
-scale-scale \code{corpair()} regressions, and q=4 \code{corpair()} regressions remain
-planned.
+scale-scale \code{corpair()} regressions, and q=4 \code{corpair()} regressions are
+not supported.
 The phylogenetic q=2 route uses a positive-definite two-field loading
 contract for the whole tree-coupled species block.
 }

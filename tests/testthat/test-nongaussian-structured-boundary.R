@@ -300,7 +300,7 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   expect_error(
     drmTMB(
       bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1),
-      family = beta(),
+      family = beta_family(),
       data = dat_beta
     ),
     "Structured non-Gaussian paths"
@@ -319,7 +319,7 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   )
   fit_beta_sigma_animal <- drmTMB(
     bf(y ~ x, sigma ~ animal(1 | id, pedigree = ped_beta_sigma)),
-    family = beta(),
+    family = beta_family(),
     data = dat_beta_sigma_animal,
     control = drm_control(se = FALSE)
   )
@@ -344,7 +344,7 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   expect_error(
     drmTMB(
       bf(y ~ x, sigma ~ animal(1 + x | id, pedigree = ped)),
-      family = beta(),
+      family = beta_family(),
       data = dat_beta
     ),
     "intercept-only structured terms"

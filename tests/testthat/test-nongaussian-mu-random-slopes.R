@@ -88,7 +88,7 @@ fit_nongaussian_mu_slope <- function(family, data) {
   if (identical(family, "beta")) {
     return(drmTMB(
       bf(y ~ x + (0 + x | id), sigma ~ 1),
-      family = beta(),
+      family = beta_family(),
       data = data
     ))
   }

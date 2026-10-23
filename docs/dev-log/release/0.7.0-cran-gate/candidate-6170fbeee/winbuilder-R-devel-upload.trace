@@ -1,0 +1,37 @@
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Host win-builder.r-project.org:21 was resolved.
+* IPv6: (none)
+* IPv4: 129.217.207.166
+*   Trying 129.217.207.166:21...
+* Connected to win-builder.r-project.org (129.217.207.166) port 21
+< 220-Microsoft FTP Service
+< 220 Welcome on win-builder.R-project.org
+> USER anonymous
+< 331 Anonymous access allowed, send identity (e-mail name) as password.
+> PASS itchyshin@gmail.com
+< 230-Before uploading source packages to R-release, R-devel please read
+<     https://win-builder.R-project.org/index.htm
+< 230 User logged in.
+> PWD
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0< 257 "/" is current directory.
+* Entry path is '/'
+> CWD R-devel
+* ftp_perform ends with SECONDARY: 0
+< 250 CWD command successful.
+> EPSV
+* Connect data stream passively
+< 229 Entering Extended Passive Mode (|||59409|)
+* Connecting to 129.217.207.166 (129.217.207.166) port 59409
+*   Trying 129.217.207.166:59409...
+* Connected 2nd connection to 129.217.207.166 port 59409
+> TYPE I
+< 200 Type set to I.
+> STOR drmTMB_0.7.0.tar.gz
+< 125 Data connection already open; Transfer starting.
+} [65536 bytes data]
+  3 4266k    0     0    3  141k      0  85123  0:00:51  0:00:01  0:00:50 85098 93 4266k    0     0   93 4000k      0  1466k  0:00:02  0:00:02 --:--:-- 1465k* upload completely sent off: 4368396 bytes
+* Remembering we are in dir "R-devel/"
+< 226 Transfer complete.
+100 4266k    0     0  100 4266k      0  1457k  0:00:02  0:00:02 --:--:-- 1457k
+* Connection #0 to host win-builder.r-project.org left intact

@@ -1,0 +1,11 @@
+field	value
+selection_path	docs/dev-log/interval-campaign-bindings/2026-07-30-b2-majority-40-fixture-contract-draft.tsv
+source_sha	a62b22208bb4b5101d2db3ae3610189a7d3d2310
+selected_count	40
+fit_validated_count	32
+package_rejected_count	8
+package_rejected_cells	mc-0280,mc-0281,mc-0293,mc-0294,mc-0305,mc-0306,mc-0317,mc-0318
+execution_authorized	FALSE
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+claim_ceiling	interval_feasible

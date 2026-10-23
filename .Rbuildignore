@@ -28,3 +28,9 @@
 ^Meta$
 ^CRAN-SUBMISSION$
 ^LOOP$
+^\.cursor$
+^\.mcp\.json$
+^\.ignore$
+^graft$
+^\.scratch$
+^tools-scratch$

@@ -52,7 +52,7 @@ READER_SUMMARY_SPECS = (
         ),
         "interval_method": "Wald mean-coefficient interval",
         "fallback": (
-            "For a different structure, use a fixed-effect `beta()` location "
+            "For a different structure, use a fixed-effect `beta_family()` location "
             "model without `phylo()` or random terms."
         ),
     },
@@ -260,18 +260,27 @@ IMPORTED_MODEL_COUNT = 668
 # single legacy row representing q4/q6/q8 ordinary bivariate REML blocks with no unique
 # formula/target) into exact per-q leaves: mc-0207 becomes the q4 leaf in place, and
 # mc-0715 (q6) / mc-0716 (q8) are new leaves (697 -> 699). The split promotes nothing.
+# Design 257 Wave 1 adds mc-0717 (ordinary binomial unlabelled correlated q2)
+# at point_fit_recovery (699 -> 700). Wave 2 adds mc-0718 (ordinary Poisson
+# unlabelled correlated q2) at point_fit_recovery (700 -> 701). Wave 2.5
+# adds mc-0719 (ordinary NB2 unlabelled correlated q2) at point_fit_recovery
+# (701 -> 702). Wave 3 adds mc-0720 (ordinary lognormal unlabelled correlated
+# q2) at point_fit_recovery (702 -> 703). The inserts promote nothing else.
 # Bump this guard only for an approved row insert or split, never to silence drift.
-MODEL_SURFACE_COUNT = 699
+MODEL_SURFACE_COUNT = 703
 ASSOCIATION_COUNT = 6
 # 2026-08-09 systems-audit seeding: the first missing_predictor axis rows.
 # One row per (response family x predictor family) cell actually admitted by
 # drm_missing_predictor_families() (R/missing-data.R:366-368) and its use sites
 # (R/drmTMB.R:277-296): 13 cells for the gaussian() response x its 13-family
 # impute_model() catalogue (gaussian itself plus 12 non-Gaussian predictor
-# families), and 4 cells for the poisson()/binomial()/nbinom2()/beta() responses,
-# each admitting only one binary (bernoulli) missing predictor. Bump this guard
-# only for an approved row insert, never to silence drift.
-MISSING_PREDICTOR_COUNT = 17
+# families); 8 cells for poisson()/binomial()/nbinom2()/beta_family()/gamma()/
+# lognormal()/beta_binomial()/student() responses, each admitting only one
+# binary (bernoulli) missing predictor; mp-nbinom2-gaussian (nbinom2 x
+# one Gaussian predictor); plus mp-gaussian-gaussian-k2-indep;
+# plus mp-zi-poisson-bernoulli (D-23; ZIP mixture, not a poisson alias).
+# Bump this guard only for an approved row insert, never to silence drift.
+MISSING_PREDICTOR_COUNT = 24
 # The frozen 2026-07-09 census: the original 676 model_surface rows and their
 # recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
 # count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
@@ -381,7 +390,10 @@ FROZEN_CENSUS_COUNT = 676
 # frozen <=676 window, so it does not move this constant. The gap the note above
 # describes -- "reconcile() never reads a true value" -- is now closed
 # mechanically; that is what found these two.
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 55
+# 55 -> 76 on 2026-08-16: owner-decided demotion of the 21 import cells whose cited
+# evidence never computes an interval (docs/dev-log/2026-08-15-import-44-shape-audit.md;
+# transitions tr-mc-*-import-shape-audit). The guard fired and was updated deliberately.
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 76
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -741,7 +753,7 @@ CELL_FIELDS = [
     "capability_status", "work_status", "evidence_tier", "test_gate",
     "tranche_id", "owner", "blocking_reviewers", "primary_evidence_id",
     "claim_boundary", "next_gate", "issue_url", "pr_url", "updated_commit",
-    "updated_date", "legacy_evidence_source", "notes",
+    "updated_date", "legacy_evidence_source", "notes", "location_checked",
 ]
 EVIDENCE_FIELDS = [
     "evidence_id", "cell_id", "evidence_class", "path_or_url", "commit_sha",
@@ -796,14 +808,58 @@ EVIDENCE_CLASSES = {
     "g2_contract_test", "contract_test", "coverage_study", "admission_test",
     "estimator_diagnostic", "external_comparator",
 }
+# `interval_feasible` claims SHAPE, not LOCATION (decision 2026-08-15,
+# docs/design/255-interval-feasible-tier-contract.md). A cell at that tier asserts an
+# interval EXISTS and is well formed -- finite, ordered, unclamped, convergence 0,
+# pdHess TRUE -- and asserts nothing about whether it contains the true value. Whether a
+# location check was run, and its outcome, is recorded ORTHOGONALLY in `location_checked`,
+# the same separation the project already made for comparator evidence (docs/design/242).
+# Before this decision the token carried four unreconciled cohort standards, two of them
+# approved four days apart in direct contradiction.
+LOCATION_CHECKED = {
+    # a location check was run and the interval contained the true value, or a coverage
+    # study established bracketing by construction
+    "passed",
+    # a location check was run and the interval did not contain the declared true value
+    "failed",
+    # no interval/profile mechanism applies (e.g. the two_stage_Godambe association axis),
+    # or the cell makes no interval claim
+    "not_applicable",
+    # an interval claim exists and no location check has been run. NOT a synonym for
+    # "no evidence" -- it is the honest absence of THIS check.
+    "unchecked",
+}
 EVIDENCE_TIERS = {
     "supported", "inference_ready_with_caveats", "interval_feasible",
-    "diagnostic_only", "point_fit_recovery", "none", "miswired", "na",
+    "legacy_fit_supported", "diagnostic_only", "point_fit_recovery",
+    "none", "miswired", "na",
 }
 
+# TIER_ORDER is strongest-first, and it MUST stay monotone in what the reader is
+# actually permitted to report (see reader_reporting_permissions). Two inversions
+# were fixed on 2026-08-15:
+#
+#   * `supported` was one token for both the ladder's summit and the 2026-07-11
+#     migration's imported board `fit_status` label, so the summit authorized
+#     strictly LESS than the rung beneath it. The legacy meaning now has its own
+#     token, `legacy_fit_supported`.
+#   * `diagnostic_only` ranked ABOVE `point_fit_recovery` while granting strictly
+#     less -- diagnostic evidence carries no point-report permission, whereas
+#     recovery-backed point estimates do.
+#
+# Permission strength, strongest first: point+interval (supported,
+# inference_ready_with_caveats) > point only (interval_feasible,
+# point_fit_recovery, legacy_fit_supported) > nothing (diagnostic_only, none).
+# Within the point-only band the ordering is by evidence strength: a well-formed
+# profile (interval_feasible) > a recovery test (point_fit_recovery) > a legacy
+# label with no run behind it (legacy_fit_supported).
+#
+# test_tier_order_is_monotone_in_reader_permission pins this; it is the guard that
+# would have caught both inversions.
 TIER_ORDER = [
     "supported", "inference_ready_with_caveats", "interval_feasible",
-    "diagnostic_only", "point_fit_recovery", "none", "miswired",
+    "point_fit_recovery", "legacy_fit_supported", "diagnostic_only",
+    "none", "miswired",
 ]
 STRUCTURED_PROVIDERS = [
     "phylo", "spatial", "animal", "relmat", "phylo_interaction",
@@ -890,6 +946,30 @@ def compact_json_bytes(value: object) -> bytes:
     return (json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
 
 
+def location_summary_line(rows: list[dict[str, str]]) -> str:
+    """One derived sentence: the location_checked split among interval-claiming cells.
+
+    `interval_feasible` claims SHAPE only (docs/design/255); this line is the reader's
+    view of the orthogonal location fact, so the honest number is printed rather than
+    left to be inferred from tier names.
+    """
+    claiming = [
+        row for row in rows
+        if row["evidence_tier"] in {
+            "supported", "inference_ready_with_caveats", "interval_feasible"
+        }
+    ]
+    counts = Counter(row.get("location_checked", "") for row in claiming)
+    return (
+        f"- Location checks among the {len(claiming)} interval-claiming cells "
+        f"(`location_checked`; tiers claim interval SHAPE only — docs/design/255): "
+        f"**{counts.get('passed', 0)} passed**, "
+        f"**{counts.get('unchecked', 0)} unchecked**, "
+        f"**{counts.get('failed', 0)} failed**, "
+        f"**{counts.get('not_applicable', 0)} not applicable**."
+    )
+
+
 def schema_value() -> dict[str, object]:
     return {
         "schema_version": 1,
@@ -903,6 +983,7 @@ def schema_value() -> dict[str, object]:
             "test_gate": sorted(TEST_GATES),
             "evidence_tier": sorted(EVIDENCE_TIERS),
             "evidence_class": sorted(EVIDENCE_CLASSES),
+            "location_checked": sorted(LOCATION_CHECKED),
         },
         "expected_counts": {
             "model_surface": MODEL_SURFACE_COUNT,
@@ -2215,6 +2296,11 @@ def validate(
             errors.append(f"{row['cell_id']}: invalid work_status")
         if row["test_gate"] not in TEST_GATES:
             errors.append(f"{row['cell_id']}: invalid test_gate")
+        if row.get("location_checked", "") not in LOCATION_CHECKED:
+            errors.append(
+                f"{row['cell_id']}: location_checked "
+                f"{row.get('location_checked', '')!r} is not a known value"
+            )
         if row["evidence_tier"] not in EVIDENCE_TIERS:
             errors.append(f"{row['cell_id']}: invalid evidence_tier")
         if not row["claim_boundary"] or not row["next_gate"]:
@@ -2386,9 +2472,13 @@ def validate(
     # these shapes), so implemented rises 337 -> 339 while rejected_by_design and
     # not_implemented are untouched -- the split changes evidence_tier, not
     # capability_status.
+    # Design 257 Wave 1 inserts mc-0717 as implemented (341 -> 342).
+    # Wave 2 inserts mc-0718 as implemented (342 -> 343).
+    # Wave 2.5 inserts mc-0719 as implemented (343 -> 344).
+    # Wave 3 inserts mc-0720 as implemented (344 -> 345).
     expected = Counter(
         {
-            "implemented": 341,
+            "implemented": 345,
             "rejected_by_design": (
                 C14_BOUNDARY_COUNT
                 + len(C14_ZOB_LEAF_TAXONOMY)
@@ -3001,7 +3091,8 @@ def widget_value(
 ) -> dict[str, object]:
     tiers = [
         "supported", "inference_ready_with_caveats", "interval_feasible",
-        "diagnostic_only", "point_fit_recovery", "none", "miswired",
+        "legacy_fit_supported", "diagnostic_only", "point_fit_recovery",
+        "none", "miswired",
     ]
     families = sorted({row["family"] for row in model})
     matrix = {
@@ -3175,6 +3266,16 @@ def reader_reporting_permissions(
             "No — no named interval method or reporting permission.",
         )
     if row["evidence_tier"] == "supported":
+        return (
+            "Yes — this exact model route is implemented.",
+            "Yes — report the point estimate within the stated exact scope.",
+            (
+                f"Yes — {interval_method}; coverage-backed within the stated exact scope."
+                if interval_method
+                else "Yes — coverage-backed within the stated exact scope."
+            ),
+        )
+    if row["evidence_tier"] == "legacy_fit_supported":
         return (
             "Yes — this exact model route is implemented.",
             "Yes — report the point estimate only within the stated exact scope.",
@@ -3444,13 +3545,18 @@ def reader_summary_markdown(cells: list[dict[str, str]]) -> str:
         ),
         "- Evidence among implemented model cells: **{supported} supported**, "
         "**{inference_ready} inference-ready with caveats**, **{interval_feasible} "
-        "interval-feasible**, **{point_fit_recovery} point-fit recovery**, and "
+        "interval-feasible**, **{legacy_fit} legacy fit-supported (no interval "
+        "permission)**, **{point_fit_recovery} point-fit recovery**, and "
         "**{diagnostic_only} diagnostic-only**.".format(
             supported=evidence.get("supported", 0),
+            legacy_fit=evidence.get("legacy_fit_supported", 0),
             inference_ready=evidence.get("inference_ready_with_caveats", 0),
             interval_feasible=evidence.get("interval_feasible", 0),
             point_fit_recovery=evidence.get("point_fit_recovery", 0),
             diagnostic_only=evidence.get("diagnostic_only", 0),
+        ),
+        location_summary_line(
+            [row for row in cells if row["axis"] == "model_surface"]
         ),
         "",
         "</details>",
@@ -3796,15 +3902,19 @@ def surface_markdown(
         f"- Evidence: **{tiers['supported']} supported**, "
         f"**{tiers['inference_ready_with_caveats']} inference-ready**, "
         f"**{tiers['interval_feasible']} interval-feasible**, "
+        f"**{tiers['legacy_fit_supported']} legacy fit-supported "
+        f"(no interval permission)**, "
         f"**{tiers['point_fit_recovery']} recovery-grade**.",
+        location_summary_line(model),
         f"- Missing-response board: **{len(missing)} routes; "
         f"{missing_gates['G0']} G0; {missing_gates['G1']} G1; "
         f"{missing_gates['G2']} G2; {verified_missing} verified (G3+)**.",
         "",
         "## Staged association capability",
         "",
-        "The evidence ladder is point-fit recovery, interval feasible, inference-"
-        "ready with caveats, then supported. Interval feasibility is sufficient "
+        "The evidence ladder is diagnostic-only, legacy fit-supported, point-fit "
+        "recovery, interval feasible, inference-ready with caveats, then "
+        "supported. Interval feasibility is sufficient "
         "to expose a scoped method; coverage evidence promotes the tested domain "
         "to inference-ready. Limits belong in the claim boundary unless evidence "
         "directly contradicts the route.",
@@ -3957,8 +4067,8 @@ def surface_html(
             **{key: row[key] for key in (
                 "cell_id", "family_route", "route_variant", "dpar", "effect_type",
                 "structure_provider", "dimension", "q_gate", "estimator",
-                "capability_status", "evidence_tier", "claim_boundary",
-                "primary_evidence_id",
+                "capability_status", "evidence_tier", "location_checked",
+                "claim_boundary", "primary_evidence_id",
             )},
             "planning_class": planning_class(row),
             "external_comparator": comparators.get(row["cell_id"], ""),
@@ -3977,6 +4087,7 @@ def surface_html(
         f"<td>{html.escape(planning_class(row))}</td>"
         f"<td><span class=\"pill\">{html.escape(row['capability_status'].replace('_', ' '))}</span></td>"
         f"<td>{html.escape(row['evidence_tier'].replace('_', ' '))}</td>"
+        f"<td>{html.escape(row.get('location_checked', '').replace('_', ' '))}</td>"
         f"<td>{html.escape(comparators.get(row['cell_id'], ''))}</td>"
         f"<td>{html.escape(row['claim_boundary'])}</td>"
         "</tr>"
@@ -4008,13 +4119,14 @@ def surface_html(
 <p class="lede">One model census, one staged-association surface, one scoped missing-response evidence summary, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence across axes.</p>
 <nav class="jump" aria-label="Capability surface sections"><a href="#association">Association</a><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
 <p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells, {len(association)} staged-association cells, and 18 missing-response routes. Evidence never transfers automatically between axes; a missing-response ✓ appears only at G3 recovery or above and never promotes the model's separate inference tier.</p>
+<p class="scope">{html.escape(location_summary_line(model).lstrip('- ').replace('**', ''))}</p>
 <section class="stats" aria-label="Capability summary">
 <div class="stat"><b>{len(model)}</b><span>model cells</span></div><div class="stat"><b>{len(association)}</b><span>association cells</span></div><div class="stat"><b>{sum(row['evidence_tier'] == 'interval_feasible' for row in association)}</b><span>association interval-feasible</span></div><div class="stat"><b>{sum(row['evidence_tier'] == 'inference_ready_with_caveats' for row in association)}</b><span>association inference-ready</span></div><div class="stat"><b>{len(missing)}</b><span>missing-response routes</span></div>
 <div class="stat"><b>{status['implemented']}</b><span>implemented model cells</span></div><div class="stat"><b>{status['not_implemented']}</b><span>actionable backlog cells</span></div><div class="stat"><b>{status['rejected_by_design']}</b><span>not currently supported</span></div><div class="stat"><b>{tiers['inference_ready_with_caveats']}</b><span>inference-ready cells</span></div>
 <div class="stat"><b>{missing_gates['G1']}</b><span>routes at G1</span></div><div class="stat"><b>{verified_missing}</b><span>routes verified at G3+</span></div>
 </section>
 <h2 id="association">Staged association capability</h2>
-<p>The evidence ladder is point-fit recovery → interval feasible → inference-ready with caveats → supported. Interval feasibility is enough to expose a scoped method; coverage promotes the tested domain to inference-ready. Limits belong in warnings and the claim boundary unless evidence directly contradicts the route.</p>
+<p>The evidence ladder is diagnostic-only → legacy fit-supported → point-fit recovery → interval feasible → inference-ready with caveats → supported. Interval feasibility is enough to expose a scoped method; coverage promotes the tested domain to inference-ready. Limits belong in warnings and the claim boundary unless evidence directly contradicts the route.</p>
 <div class="table-wrap"><table><caption>{len(association)} post-fit <code>associate_pairs()</code> capability cells</caption><thead><tr><th scope="col">Cell</th><th scope="col">Pair route</th><th scope="col">Shape</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Claim boundary</th></tr></thead><tbody>{association_rows}</tbody></table></div>
 <h2 id="missing-response">Missing-response evidence</h2>
 <p class="scope"><strong>Current G4/G5 evidence (target-rung grain):</strong> {html.escape(missing_g4g5_summary())}</p>
@@ -4026,7 +4138,7 @@ def surface_html(
 <p class="muted"><strong>External comparator</strong> names a package that fits the same model and reaches the same estimates on a single simulated dataset. It says the implementation agrees with an independent one; it is <em>not</em> an interval, coverage, bias or recovery claim, and it never raises the evidence tier. <em>strong</em> means a separate estimation engine (lme4, metafor); <em>weak</em> means the comparator shares drmTMB's TMB/AD stack (glmmTMB), so agreement is a consistency check between related implementations. A blank cell means no comparator has been recorded — for structured, scale-side, bivariate and phylogenetic routes no established implementation exists to compare against at all.</p>
 <div class="filters" role="search"><label>Route <select id="family"><option value="">All</option></select></label><label>Status <select id="status"><option value="">All</option></select></label><label>Search <input id="query" type="search" placeholder="parameter, provider, evidence…"></label><button id="clear" type="button">Clear</button></div>
 <div id="count" class="muted" aria-live="polite"></div>
-<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Planning class</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
+<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Planning class</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Location checked</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
 <h2 id="family-capability">Per-family capability reference</h2>
 <p class="muted">This reference is projected from current model-surface cells. REML uses only REML rows; missing-response is joined from its separate route ledger; and missing-predictor support follows the live R runtime gate.</p>
 <div class="family-wrap"><table class="family-map"><caption>Live per-family capability map</caption><thead><tr><th scope="col">Family</th><th scope="col">dpars</th><th scope="col">Fixed</th><th scope="col">Random (int / slope)</th><th scope="col">Structured — phylo / spatial / animal / relmat / phylo_interaction</th><th scope="col">REML</th><th scope="col">Highest evidence (exact scope)</th><th scope="col">Missing response</th><th scope="col">Missing predictor mi()</th></tr></thead><tbody>{family_map_html(missing, family_rows)}</tbody></table></div>

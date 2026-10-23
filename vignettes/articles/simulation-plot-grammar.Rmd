@@ -1,0 +1,759 @@
+---
+title: "Simulation plot grammar"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Simulation plot grammar}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.2,
+  dpi = 144,
+  eval = has_ggplot2
+)
+```
+
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
+This article shows how to plot simulation results so readers can assess bias,
+interval coverage, fitting problems, and computing time. The tables and figures
+use illustrative data; they are not measured results for `drmTMB`. Replace them
+with results from your own repeated simulations before drawing conclusions
+about a model or estimator. For the models currently available, see
+[Can I fit and report this model?](capability-and-limits.html).
+
+Simulation figures should answer the same reader questions across continuous,
+proportion, count, and meta-analysis examples:
+
+- Does the estimator recover the truth without important bias?
+- How large is the error, measured by RMSE?
+- Do interval procedures cover at the advertised rate?
+- Does power increase under the intended effect?
+- How often do fits converge, hit boundaries, warn, or fail?
+- How much runtime does each surface require?
+
+```{r setup}
+library(ggplot2)
+
+theme_sim_grammar <- function() {
+  theme_minimal(base_size = 11) +
+    theme(
+      panel.grid.minor = element_blank(),
+      panel.grid.major.y = element_blank(),
+      plot.title.position = "plot",
+      plot.title = element_text(face = "bold"),
+      plot.subtitle = element_text(colour = "grey30", lineheight = 1.05),
+      strip.text = element_text(face = "bold"),
+      legend.position = "bottom",
+      plot.margin = margin(6, 10, 12, 6)
+    )
+}
+
+surface_palette <- c(
+  "Gaussian location-scale" = "#0072B2",
+  "Proportion" = "#009E73",
+  "Count" = "#D55E00",
+  "Meta-analysis" = "#CC79A7"
+)
+
+surface_levels <- names(surface_palette)
+surface_facet_labels <- c(
+  "Gaussian location-scale" = "Gaussian\nlocation-scale",
+  "Proportion" = "Proportion",
+  "Count" = "Count",
+  "Meta-analysis" = "Meta-analysis"
+)
+estimand_display_labels <- c(
+  "beta_x" = "beta_x",
+  "sigma" = "sigma",
+  "sd_group" = "sd(group)",
+  "rho12" = "rho12"
+)
+```
+
+## Bias and RMSE
+
+Bias and RMSE should be plotted beside the estimand. A single average across
+all parameters hides the distinction between fixed effects, residual scale,
+random-effect SDs, and residual correlation `rho12`.
+
+```{r accuracy-fixture-data, include = FALSE}
+accuracy_targets <- data.frame(
+  surface = rep(surface_levels, each = 4),
+  estimand = rep(c("beta_x", "sigma", "sd_group", "rho12"), 4),
+  target_bias = c(
+    0.01, -0.02, 0.03, 0.00,
+    0.00, 0.01, 0.02, NA,
+    0.02, NA, 0.06, NA,
+    -0.01, 0.02, NA, 0.03
+  ),
+  target_rmse = c(
+    0.09, 0.12, 0.18, 0.16,
+    0.07, 0.09, 0.15, NA,
+    0.12, NA, 0.22, NA,
+    0.08, 0.11, NA, 0.14
+  ),
+  n_replicate = c(
+    300, 300, 260, 280,
+    300, 300, 250, NA,
+    280, NA, 220, NA,
+    300, 300, NA, 260
+  )
+)
+accuracy_targets$error_sd <- sqrt(
+  pmax(accuracy_targets$target_rmse^2 - accuracy_targets$target_bias^2, 0)
+)
+accuracy_replicates <- do.call(
+  rbind,
+  lapply(seq_len(nrow(accuracy_targets)), function(i) {
+    row <- accuracy_targets[i, ]
+    if (
+      is.na(row$target_bias) ||
+        is.na(row$target_rmse) ||
+        is.na(row$n_replicate)
+    ) {
+      return(NULL)
+    }
+    data.frame(
+      surface = row$surface,
+      estimand = row$estimand,
+      replicate = seq_len(row$n_replicate),
+      error = row$target_bias +
+        qnorm(ppoints(row$n_replicate)) * row$error_sd
+    )
+  })
+)
+summarise_accuracy_rows <- function(rows) {
+  data.frame(
+    surface = rows$surface[1],
+    estimand = rows$estimand[1],
+    bias = mean(rows$error),
+    rmse = sqrt(mean(rows$error^2)),
+    error_sd = stats::sd(rows$error),
+    n_replicate = nrow(rows)
+  )
+}
+accuracy_summary <- do.call(
+  rbind,
+  lapply(
+    split(
+      accuracy_replicates,
+      interaction(accuracy_replicates$surface, accuracy_replicates$estimand, drop = TRUE)
+    ),
+    summarise_accuracy_rows
+  )
+)
+accuracy_summary <- merge(
+  accuracy_targets[c("surface", "estimand", "n_replicate")],
+  accuracy_summary,
+  by = c("surface", "estimand"),
+  all.x = TRUE,
+  sort = FALSE
+)
+accuracy_summary$n_replicate <- ifelse(
+  is.na(accuracy_summary$n_replicate.y),
+  accuracy_summary$n_replicate.x,
+  accuracy_summary$n_replicate.y
+)
+accuracy_summary$n_replicate.x <- NULL
+accuracy_summary$n_replicate.y <- NULL
+accuracy_summary$surface <- factor(
+  accuracy_summary$surface,
+  levels = surface_levels
+)
+accuracy_summary$bias_mcse <- with(
+  accuracy_summary,
+  error_sd / sqrt(n_replicate)
+)
+accuracy_summary$rmse_mcse <- with(
+  accuracy_summary,
+  rmse / sqrt(2 * n_replicate)
+)
+accuracy_summary$bias_low <- accuracy_summary$bias -
+  1.96 * accuracy_summary$bias_mcse
+accuracy_summary$bias_high <- accuracy_summary$bias +
+  1.96 * accuracy_summary$bias_mcse
+accuracy_summary$rmse_low <- pmax(
+  0,
+  accuracy_summary$rmse - 1.96 * accuracy_summary$rmse_mcse
+)
+accuracy_summary$rmse_high <- accuracy_summary$rmse +
+  1.96 * accuracy_summary$rmse_mcse
+accuracy_summary$estimand <- factor(
+  accuracy_summary$estimand,
+  levels = rev(c("beta_x", "sigma", "sd_group", "rho12"))
+)
+accuracy_missing <- accuracy_summary[
+  is.na(accuracy_summary$bias) | is.na(accuracy_summary$rmse),
+  ,
+  drop = FALSE
+]
+accuracy_missing$missing_label <- "not\ntargeted"
+accuracy_missing$bias_missing_x <- 0.42
+accuracy_missing$rmse_missing_x <- 0.22
+
+display_replicates <- 49
+accuracy_replicate_display <- do.call(
+  rbind,
+  lapply(split(accuracy_replicates, accuracy_replicates[c("surface", "estimand")]), function(rows) {
+    if (nrow(rows) == 0L) {
+      return(NULL)
+    }
+    keep <- round(seq(1, nrow(rows), length.out = display_replicates))
+    rows[keep, , drop = FALSE]
+  })
+)
+accuracy_replicate_display$surface <- factor(
+  accuracy_replicate_display$surface,
+  levels = surface_levels
+)
+accuracy_replicate_display$estimand <- factor(
+  accuracy_replicate_display$estimand,
+  levels = levels(accuracy_summary$estimand)
+)
+```
+
+```{r bias-display, fig.width=8.4, fig.height=5.2, fig.cap="Bias fixture showing sampled replicate-level signed errors, aggregate mean-bias points, and 95% Monte Carlo standard-error intervals by simulation surface.", fig.alt="Faceted bias plot with one surface per panel. Faint points and pale violins show sampled replicate errors, darker points show mean bias, horizontal bars show 95 percent Monte Carlo standard-error intervals, and not-targeted lanes remain labelled."}
+set.seed(20260519)
+ggplot(accuracy_replicate_display, aes(error, estimand)) +
+  geom_vline(xintercept = 0, linetype = "dotted", colour = "grey55") +
+  geom_violin(
+    aes(
+      fill = surface
+    ),
+    width = 0.62,
+    alpha = 0.16,
+    colour = NA,
+    scale = "width",
+    trim = FALSE
+  ) +
+  geom_point(
+    aes(colour = surface),
+    position = position_jitter(height = 0.05, width = 0),
+    alpha = 0.22,
+    size = 0.65,
+    show.legend = FALSE
+  ) +
+  geom_errorbar(
+    data = accuracy_summary,
+    aes(
+      xmin = bias_low,
+      xmax = bias_high,
+      y = estimand,
+      colour = surface
+    ),
+    inherit.aes = FALSE,
+    orientation = "y",
+    width = 0.16,
+    linewidth = 0.65,
+    na.rm = TRUE
+  ) +
+  geom_point(
+    data = accuracy_summary,
+    aes(bias, estimand, colour = surface),
+    size = 2.4,
+    na.rm = TRUE
+  ) +
+  geom_text(
+    data = accuracy_missing,
+    aes(
+      x = bias_missing_x,
+      y = estimand,
+      label = missing_label
+    ),
+    colour = "grey55",
+    size = 2.25,
+    lineheight = 0.9,
+    hjust = 0,
+    inherit.aes = FALSE
+  ) +
+  facet_wrap(
+    ~surface,
+    nrow = 1,
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
+  scale_colour_manual(values = surface_palette, drop = FALSE) +
+  scale_fill_manual(values = surface_palette, drop = FALSE) +
+  labs(
+    title = "Bias displays should show replicate-level error",
+    subtitle = "Faint dots sample fixture replicate errors; points/bars show mean bias with 95% MCSE",
+    x = "Estimate minus truth",
+    y = NULL,
+    colour = "Surface"
+  ) +
+  scale_x_continuous(
+    breaks = c(-0.5, 0, 0.5),
+    labels = c("-0.5", "0.0", "0.5")
+  ) +
+  coord_cartesian(xlim = c(-0.72, 0.72)) +
+  scale_y_discrete(labels = estimand_display_labels) +
+  guides(colour = "none", fill = "none") +
+  theme_sim_grammar()
+```
+
+```{r rmse-display, fig.width=8.4, fig.height=5.2, fig.cap="RMSE fixture showing aggregate root-mean-square error points and 95% Monte Carlo standard-error intervals by simulation surface.", fig.alt="Faceted RMSE plot with one panel per simulation surface. Points show aggregate root-mean-square error, horizontal bars show 95 percent Monte Carlo standard-error intervals, and not-targeted estimand lanes remain visible."}
+ggplot(accuracy_summary, aes(rmse, estimand, colour = surface)) +
+  geom_errorbar(
+    aes(
+      xmin = rmse_low,
+      xmax = rmse_high
+    ),
+    orientation = "y",
+    width = 0.15,
+    linewidth = 0.9,
+    alpha = 0.9,
+    na.rm = TRUE
+  ) +
+  geom_point(size = 2.4, na.rm = TRUE) +
+  geom_text(
+    data = accuracy_missing,
+    aes(
+      x = rmse_missing_x,
+      y = estimand,
+      label = missing_label
+    ),
+    colour = "grey55",
+    size = 2.25,
+    lineheight = 0.9,
+    hjust = 0,
+    inherit.aes = FALSE
+  ) +
+  facet_wrap(
+    ~surface,
+    nrow = 2,
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
+  scale_colour_manual(values = surface_palette, drop = FALSE) +
+  labs(
+    title = "RMSE needs its own uncertainty display",
+    subtitle = "Facets are surfaces; points and bars are RMSE and 95% MCSE intervals for each estimand",
+    x = "Root mean-square error",
+    y = NULL,
+    colour = "Surface"
+  ) +
+  scale_x_continuous(
+    breaks = c(0, 0.10, 0.20),
+    limits = c(0, 0.31),
+    expand = expansion(mult = c(0.01, 0.04))
+  ) +
+  scale_y_discrete(labels = estimand_display_labels) +
+  guides(colour = "none") +
+  theme_sim_grammar()
+```
+
+The missing rows are part of the message, so unsupported cells stay visible as
+`not targeted` lanes. A count pilot should not quietly fill `rho12` with zeros,
+and a proportion example should not invent a random-effect SD if that surface
+was not fitted. Real bias reports should replace the fixture quantiles above
+with one row per replicate estimate or error, then overplot the aggregate mean
+and its Monte Carlo standard-error (MCSE) interval. RMSE should remain
+an aggregate root-mean-square summary with its own MCSE interval, not a cloud
+whose center could be mistaken for a mean absolute error.
+
+## Coverage and Power
+
+Coverage and power are proportions, so every point should carry or clearly
+reference the number of replicates that contributed to it and a Monte Carlo
+uncertainty interval. Real reports should plot stored replicate rows or stored
+replicate-block summaries when they are available; the fixture below illustrates
+that grammar with block-level proportions plus a binomial MCSE approximation for
+the aggregate.
+
+The example table still carries `n_interval` for each cell. The rendered plot
+keeps the `n` values out of the panel labels so the MCSE bars, points, and
+block-level dots stay aligned and readable.
+
+```{r coverage-power-display, fig.width=8.6, fig.height=5.2, fig.cap="Coverage and power fixture; faint dots are replicate-block proportions, points are aggregate proportions, and horizontal bars are 95% binomial MCSE intervals.", fig.alt="Faceted point plot showing illustrative coverage and power with Monte Carlo uncertainty intervals for four simulation surfaces, with one panel per surface so intervals align with their points."}
+interval_summary <- data.frame(
+  surface = rep(surface_levels, each = 4),
+  estimand = rep(c("beta_x", "sigma", "sd_group", "rho12"), 4),
+  coverage = c(
+    0.95, 0.93, 0.91, 0.94,
+    0.94, 0.92, 0.90, NA,
+    0.92, NA, 0.86, NA,
+    0.95, 0.94, NA, 0.92
+  ),
+  power = c(
+    0.82, 0.64, 0.58, 0.70,
+    0.78, 0.60, 0.52, NA,
+    0.74, NA, 0.46, NA,
+    0.80, 0.61, NA, 0.66
+  ),
+  n_interval = c(
+    280, 280, 240, 260,
+    280, 280, 230, NA,
+    250, NA, 200, NA,
+    280, 280, NA, 240
+  )
+)
+interval_summary$surface <- factor(
+  interval_summary$surface,
+  levels = surface_levels
+)
+interval_long <- rbind(
+  data.frame(
+    interval_summary[c("surface", "estimand", "n_interval")],
+    measure = "Coverage",
+    value = interval_summary$coverage,
+    target = 0.95
+  ),
+  data.frame(
+    interval_summary[c("surface", "estimand", "n_interval")],
+    measure = "Power",
+    value = interval_summary$power,
+    target = 0.80
+  )
+)
+interval_long$mcse <- sqrt(
+  interval_long$value * (1 - interval_long$value) / interval_long$n_interval
+)
+interval_long$lower <- pmax(0, interval_long$value - 1.96 * interval_long$mcse)
+interval_long$upper <- pmin(1, interval_long$value + 1.96 * interval_long$mcse)
+interval_long$measure <- factor(
+  interval_long$measure,
+  levels = c("Coverage", "Power")
+)
+interval_long$estimand <- factor(
+  interval_long$estimand,
+  levels = rev(c("beta_x", "sigma", "sd_group", "rho12"))
+)
+interval_long$missing_x <- ifelse(
+  interval_long$measure == "Coverage",
+  0.405,
+  0.405
+)
+interval_target <- unique(interval_long[c("measure", "target")])
+interval_present <- interval_long[!is.na(interval_long$value), , drop = FALSE]
+interval_missing <- interval_long[is.na(interval_long$value), , drop = FALSE]
+make_interval_blocks <- function(row, n_block = 18) {
+  block_size <- max(8L, floor(row$n_interval / n_block))
+  block_proportion <- qbinom(
+    ppoints(n_block),
+    size = block_size,
+    prob = row$value
+  ) / block_size
+  data.frame(
+    surface = row$surface,
+    estimand = row$estimand,
+    measure = row$measure,
+    block_proportion = block_proportion
+  )
+}
+interval_blocks <- do.call(
+  rbind,
+  lapply(seq_len(nrow(interval_present)), function(i) {
+    make_interval_blocks(interval_present[i, ])
+  })
+)
+
+ggplot(interval_present, aes(value, estimand, colour = surface)) +
+  geom_vline(
+    data = interval_target,
+    aes(xintercept = target),
+    linetype = "dotted",
+    colour = "grey55",
+    inherit.aes = FALSE
+  ) +
+  geom_point(
+    data = interval_blocks,
+    aes(block_proportion, estimand, colour = surface),
+    position = position_jitter(height = 0.07, width = 0),
+    alpha = 0.18,
+    size = 0.70,
+    inherit.aes = FALSE
+  ) +
+  geom_segment(
+    aes(x = lower, xend = upper, yend = estimand),
+    linewidth = 0.4,
+    na.rm = TRUE
+  ) +
+  geom_point(size = 2.1, na.rm = TRUE) +
+  geom_text(
+    data = interval_missing,
+    aes(x = missing_x, y = estimand, label = "not\ntargeted"),
+    colour = "grey55",
+    size = 2.15,
+    lineheight = 0.9,
+    hjust = 0,
+    inherit.aes = FALSE
+  ) +
+  facet_grid(
+    measure ~ surface,
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
+  scale_colour_manual(values = surface_palette, guide = "none") +
+  coord_cartesian(xlim = c(0.38, 1)) +
+  scale_x_continuous(
+    breaks = c(0.4, 0.6, 0.8, 0.95),
+    labels = c("0.40", "0.60", "0.80", "0.95")
+  ) +
+  scale_y_discrete(labels = estimand_display_labels) +
+  labs(
+    title = "Interval coverage and power need Monte Carlo uncertainty",
+    subtitle = "Faint dots: replicate-block proportions; points/bars: aggregate proportions with 95% binomial MCSE",
+    x = "Proportion",
+    y = NULL,
+    colour = "Surface"
+  ) +
+  theme_sim_grammar()
+```
+
+The plot should make pilot status obvious. With few replicates, a coverage
+estimate near 0.95 can still be too noisy for a release claim.
+
+## Convergence and Runtime
+
+Convergence, positive-definite Hessian status, and runtime should sit beside
+accuracy. A surface with low bias but frequent warnings or high runtime is not
+ready for broad claims. Fit-status proportions and runtime seconds use separate
+figures below because they answer related readiness questions on different
+scales.
+
+```{r run-summary-fixture-data, include = FALSE}
+run_summary <- data.frame(
+  surface = surface_levels,
+  convergence_rate = c(0.98, 0.96, 0.90, 0.95),
+  pdhess_rate = c(0.96, 0.94, 0.86, 0.93),
+  elapsed_median = c(0.35, 0.28, 0.52, 0.44),
+  elapsed_p90 = c(0.72, 0.58, 1.35, 0.96)
+)
+run_summary$surface <- factor(run_summary$surface, levels = surface_levels)
+run_long <- rbind(
+  data.frame(
+    surface = run_summary$surface,
+    measure = "Converged",
+    value = run_summary$convergence_rate
+  ),
+  data.frame(
+    surface = run_summary$surface,
+    measure = "pdHess",
+    value = run_summary$pdhess_rate
+  ),
+  data.frame(
+    surface = run_summary$surface,
+    measure = "Median runtime",
+    value = run_summary$elapsed_median
+  ),
+  data.frame(
+    surface = run_summary$surface,
+    measure = "90th percentile runtime",
+    value = run_summary$elapsed_p90
+  )
+)
+run_long$panel <- ifelse(
+  grepl("runtime", run_long$measure),
+  "Runtime (seconds)",
+  "Fit status proportion"
+)
+run_long$measure <- factor(
+  run_long$measure,
+  levels = c(
+    "Converged",
+    "pdHess",
+    "Median runtime",
+    "90th percentile runtime"
+  )
+)
+run_long$measure_label <- factor(
+  run_long$measure,
+  levels = rev(levels(run_long$measure))
+)
+fit_status_long <- run_long[run_long$panel == "Fit status proportion", ]
+fit_status_long$measure_label <- factor(
+  fit_status_long$measure,
+  levels = rev(c("Converged", "pdHess"))
+)
+runtime_long <- run_long[run_long$panel == "Runtime (seconds)", ]
+runtime_long$measure_label <- factor(
+  runtime_long$measure,
+  levels = rev(c("Median runtime", "90th percentile runtime"))
+)
+```
+
+```{r fit-status-display, fig.width=8.6, fig.height=3.4, fig.cap="Fit-status readiness fixture showing convergence and positive-definite Hessian proportions on a shared 0-1 scale by simulation surface.", fig.alt="Faceted fit-status proportion plot. Each panel shows converged and positive-definite Hessian rates as horizontal segments ending at points, with a dotted reference line at 1.0."}
+ggplot(fit_status_long, aes(value, measure_label, colour = measure)) +
+  geom_vline(xintercept = 1, linetype = "dotted", colour = "grey55") +
+  geom_segment(
+    aes(x = 0, xend = value, yend = measure_label),
+    linewidth = 1.2,
+    lineend = "round"
+  ) +
+  geom_point(size = 2.6) +
+  facet_wrap(
+    ~surface,
+    nrow = 1,
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
+  scale_colour_manual(values = c(
+    "Converged" = "#0072B2",
+    "pdHess" = "#56B4E9"
+  )) +
+  scale_y_discrete(labels = c(
+    "Converged" = "converged",
+    "pdHess" = "pdHess"
+  )) +
+  scale_x_continuous(
+    breaks = c(0, 0.5, 1),
+    labels = c("0", "0.5", "1"),
+    limits = c(0, 1),
+    expand = expansion(mult = c(0, 0.03))
+  ) +
+  labs(
+    title = "Fit-status proportions need a readiness row",
+    subtitle = "Convergence and pdHess rates stay on a 0-1 scale",
+    x = "Fit-status proportion",
+    y = NULL,
+    colour = "Measure"
+  ) +
+  guides(colour = "none") +
+  theme_sim_grammar() +
+  theme(panel.spacing.x = grid::unit(16, "pt"))
+```
+
+```{r runtime-display, fig.width=8.6, fig.height=3.4, fig.cap="Runtime readiness fixture showing median and 90th percentile elapsed seconds by simulation surface.", fig.alt="Faceted runtime plot. Each panel shows median and 90th percentile elapsed seconds as horizontal segments ending at points, using a seconds axis separate from the fit-status proportion display."}
+ggplot(runtime_long, aes(value, measure_label, colour = measure)) +
+  geom_segment(
+    aes(x = 0, xend = value, yend = measure_label),
+    linewidth = 1.2,
+    lineend = "round"
+  ) +
+  geom_point(size = 2.6) +
+  facet_wrap(
+    ~surface,
+    nrow = 1,
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
+  scale_colour_manual(values = c(
+    "Median runtime" = "#009E73",
+    "90th percentile runtime" = "#E69F00"
+  )) +
+  scale_y_discrete(labels = c(
+    "Median runtime" = "median",
+    "90th percentile runtime" = "90th pct."
+  )) +
+  scale_x_continuous(
+    breaks = c(0, 0.5, 1, 1.5),
+    labels = c("0", "0.5", "1", "1.5"),
+    limits = c(0, 1.5),
+    expand = expansion(mult = c(0, 0.03))
+  ) +
+  labs(
+    title = "Runtime summaries need a seconds scale",
+    subtitle = "Median and 90th percentile rows separate typical from difficult fits",
+    x = "Elapsed seconds per fit",
+    y = NULL,
+    colour = "Measure"
+  ) +
+  guides(colour = "none") +
+  theme_sim_grammar() +
+  theme(panel.spacing.x = grid::unit(16, "pt"))
+```
+
+Runtime summaries should report medians and high quantiles, not only means,
+because a few difficult cells can dominate overnight simulation planning.
+
+## Failure Ledger
+
+Failures and warnings are data. They should be summarised by surface and
+condition instead of filtered away before plotting.
+
+```{r failure-ledger-display, fig.width=8.6, fig.height=4.2, fig.cap="Failure-ledger fixture showing replicate counts by status; warnings, boundary cases, errors, and skipped cells remain visible as separate rows instead of stacked slivers.", fig.alt="Faceted horizontal bar plot showing illustrative ok, warning, boundary, error, and skipped replicate counts as separate rows by simulation surface."}
+failure_ledger <- data.frame(
+  surface = rep(surface_levels, each = 5),
+  status = rep(c("ok", "warning", "boundary", "error", "skipped"), 4),
+  count = c(
+    268, 14, 10, 4, 4,
+    262, 18, 12, 5, 3,
+    232, 30, 20, 12, 6,
+    252, 20, 14, 8, 6
+  )
+)
+failure_ledger$surface <- factor(failure_ledger$surface, levels = surface_levels)
+failure_ledger$status <- factor(
+  failure_ledger$status,
+  levels = c("ok", "warning", "boundary", "error", "skipped")
+)
+failure_ledger$status_label <- factor(
+  failure_ledger$status,
+  levels = rev(levels(failure_ledger$status))
+)
+
+ggplot(failure_ledger, aes(count, status_label, fill = status)) +
+  geom_col(width = 0.64) +
+  facet_wrap(
+    ~surface,
+    nrow = 1,
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
+  scale_fill_manual(values = c(
+    "ok" = "#009E73",
+    "warning" = "#E69F00",
+    "boundary" = "#56B4E9",
+    "error" = "#D55E00",
+    "skipped" = "#999999"
+  )) +
+  scale_y_discrete(labels = c(
+    "ok" = "ok",
+    "warning" = "warning",
+    "boundary" = "boundary",
+    "error" = "error",
+    "skipped" = "skipped"
+  )) +
+  scale_x_continuous(
+    breaks = c(0, 25, 100, 200, 300),
+    expand = expansion(mult = c(0, 0.04))
+  ) +
+  labs(
+    title = "Warnings and failures stay visible",
+    subtitle = "Separate rows keep rare statuses readable beside the dominant ok count",
+    x = "Replicate count",
+    y = NULL,
+    fill = "Status"
+  ) +
+  guides(fill = "none") +
+  theme_sim_grammar()
+```
+
+Real reports should pair this figure with a table that preserves warning
+classes, error messages, seeds, and cell identifiers. The plot is for scanning;
+the ledger is for debugging and reproducibility.
+
+## Minimum Table Contract
+
+A real simulation result can add columns, but it should not drop these fields:
+
+| Field | Purpose |
+| --- | --- |
+| `surface` | Human-readable model surface, such as Gaussian location-scale, count, proportion, or meta-analysis |
+| `cell_id` | The varied condition, such as sample size, effect size, true SD, or known-`V` structure |
+| `estimand` | The scientific target, such as `beta_x`, `sigma`, `sd_group`, or `rho12` |
+| `truth`, `estimate`, `error` | The value used for bias and RMSE |
+| `conf.low`, `conf.high`, `interval_status` | The interval source and whether coverage is meaningful |
+| `converged`, `pdHess`, `boundary` | Fit diagnostics that should be summarised and plotted |
+| `elapsed`, `warning_count`, `error_message` | Runtime and failure-ledger fields |
+| `n_replicate`, `mcse` | Monte Carlo uncertainty for any aggregate claim |
+
+The plotting grammar is deliberately conservative. A feature should not enter a
+comprehensive plot until the model surface is fitted, the estimand is named, the
+interval source is known, and failed replicates remain visible.

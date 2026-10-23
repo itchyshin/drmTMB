@@ -1,0 +1,7 @@
+cell_id	target_id	dgp_id	information_rung	seed	source_sha	execution_scope	claim_ceiling	authorization_state
+mc-0251	mc-0251::sd:mu:phylo(1 | id)	b1_gamma_phylo_mu	low	2026072801	22c9fabb66303b334b5f0013cadd81db1d535bc7	local_only	interval_feasible	approved_for_local_profile
+mc-0388	mc-0388::sd:mu:relmat(1 | id)	b1_lognormal_relmat_mu	low	2026072802	22c9fabb66303b334b5f0013cadd81db1d535bc7	local_only	interval_feasible	approved_for_local_profile
+mc-0405	mc-0405::sd:mu:phylo(1 | species)	nbinom2_phylo_mu_intercept_fixture	low	20260641	22c9fabb66303b334b5f0013cadd81db1d535bc7	local_only	interval_feasible	approved_for_local_profile
+mc-0406	mc-0406::sd:mu:spatial(1 | site)	count_spatial_nbinom2_q1_mu_intercept	low	2026052802	22c9fabb66303b334b5f0013cadd81db1d535bc7	local_only	interval_feasible	approved_for_local_profile
+mc-0407	mc-0407::sd:mu:animal(1 | id)	count_animal_nbinom2_q1_mu_intercept	low	2026052802	22c9fabb66303b334b5f0013cadd81db1d535bc7	local_only	interval_feasible	approved_for_local_profile
+mc-0408	mc-0408::sd:mu:relmat(1 | id)	count_relmat_nbinom2_q1_mu_intercept	low	2026052802	22c9fabb66303b334b5f0013cadd81db1d535bc7	local_only	interval_feasible	approved_for_local_profile

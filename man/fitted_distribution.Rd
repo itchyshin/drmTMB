@@ -39,9 +39,9 @@ consumers (quantile residuals, \code{predict(type = "quantile")},
 re-deriving the public-to-native parameter conversion.
 }
 \details{
-\code{fitted_distribution()} only supports \code{model_type}s with a promoted entry
-in \code{\link[=drm_family_dpq]{drm_family_dpq()}}: as of DO-T3 batch D all 18 fitted \code{model_type}
-values are promoted (\code{status = "reference"}), including bivariate
+\code{fitted_distribution()} only supports \code{model_type}s with
+\code{status = "reference"} in \code{\link[=drm_family_dpq]{drm_family_dpq()}}. All 18 currently
+fitted \code{model_type} values are included, including bivariate
 \code{"biv_gaussian"} (see the \code{response} argument below). \code{newdata} support
 inherits the same limitation as \code{\link[=predict_parameters]{predict_parameters()}}: fixed-effect,
 population-level predictions only. For meta-analysis gaussian fits

@@ -1,0 +1,16 @@
+field	value
+source_sha	0180fff50655342e7e0b5d0c216bdb9aa2272144
+source_state	COMMITTED_SOURCE_SNAPSHOT
+ledger_input_state	WORKING_TREE_RECONCILIATION_OVERLAY
+ledger_input_sha256	08eaed783f214b4a138bd3e931ee1d845c5bdf41e3ef5850e5c3cd8e2717dbf9
+dossier_path	docs/dev-log/interval-campaign-bindings/2026-08-01-b2-interval-exit-dossier.tsv
+q12_diagnostic_path	docs/dev-log/interval-campaign-bindings/2026-08-01-b2-q12-whole-cell-diagnostic.tsv
+registry_path	docs/dev-log/interval-campaign-bindings/2026-08-01-b2-interval-exit-candidate-registry.tsv
+current_b2_recovery_count	63
+candidate_count	0
+future_e0_readmission_count	4
+execution_authorized	FALSE
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+claim_ceiling	interval_feasible
+audit_conclusion	The 63-row denominator is bound to the named working-tree ledger overlay, while all non-ledger source inputs are pinned to the committed source SHA. No execution-authorised candidate remains. Four E0-fenced rows need a distinct re-admission decision; retained q6 receipts require a separate promotion decision; q12 remains a whole-cell fit-only NO-GO.

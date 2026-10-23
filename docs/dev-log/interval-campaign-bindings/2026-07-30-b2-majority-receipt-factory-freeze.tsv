@@ -1,0 +1,12 @@
+field	value
+source_sha	4caca49664f44ac686d01c2f5955a5f2647f081d
+target_atlas	docs/dev-log/interval-campaign-bindings/2026-07-30-b2-majority-target-atlas.tsv
+information_rungs	docs/dev-log/interval-campaign-bindings/2026-07-30-b2-majority-information-rungs.tsv
+fit_validated_count	32
+sdreport_present_count	32
+uniquely_profile_ready_count	21
+pdHess_true_count	29
+pdHess_false_count	3
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+claim_ceiling	interval_feasible

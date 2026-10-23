@@ -1,0 +1,10 @@
+#!/bin/sh
+# Windows counterpart to ./configure. R CMD INSTALL runs configure.win with the
+# Rtools `sh`, not cmd.exe, so this file must be a POSIX shell script; the
+# earlier batch-file version failed at "@echo: command not found" and broke
+# every Windows install. Delegate to ./configure, which bakes build provenance
+# into inst/build-provenance.dcf and is never fatal (no git binary or no .git
+# checkout writes the DCF with a stated reason). Keep install non-fatal here
+# too, whatever ./configure returns.
+sh ./configure || true
+exit 0

@@ -1,0 +1,139 @@
+
+@@@@  J. baseline (control) 
+  tmb: FITTED logLik=-466.44449865 npar=8
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+[91m[1mERROR: [22m[39mLoadError: UndefVarError: `loglogistic` not defined
+Stacktrace:
+ [1] top-level scope
+[90m   @[39m [90m~/.julia/packages/LogExpFunctions/LITgj/ext/[39m[90m[4mLogExpFunctionsInverseFunctionsExt.jl:19[24m[39m
+ [2] [0m[1minclude[22m
+[90m   @[39m [90mBase[39m [90m./[39m[90m[4mBase.jl:495[24m[39m[90m [inlined][39m
+ [3] [0m[1minclude_package_for_output[22m[0m[1m([22m[90mpkg[39m::[0mBase.PkgId, [90minput[39m::[0mString, [90mdepot_path[39m::[0mVector[90m{String}[39m, [90mdl_load_path[39m::[0mVector[90m{String}[39m, [90mload_path[39m::[0mVector[90m{String}[39m, [90mconcrete_deps[39m::[0mVector[90m{Pair{Base.PkgId, UInt128}}[39m, [90msource[39m::[0mNothing[0m[1m)[22m
+[90m   @[39m [90mBase[39m [90m./[39m[90m[4mloading.jl:2216[24m[39m
+ [4] top-level scope
+[90m   @[39m [90m[4mstdin:3[24m[39m
+in expression starting at /Users/z3437171/.julia/packages/LogExpFunctions/LITgj/ext/LogExpFunctionsInverseFunctionsExt.jl:1
+in expression starting at stdin:3
+drmTMB_drm_bridge (generic function with 1 method)
+  
+drmTMB_drm_bridge_conditional_gaussian_ri (generic function with 1 method)
+  
+drmTMB_drm_bridge_q2_phylo (generic function with 1 method)
+  
+drmTMB_drm_bridge_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_fixef_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_structured (generic function with 1 method)
+  
+drmTMB_mixed_family (generic function with 1 method)
+  
+  julia: FITTED logLik=-466.44449865 npar=8
+
+@@@@  K. stray univariate `sigma = ~ z` alongside mu1/mu2 
+  tmb: REFUSED: `biv_student()` supports only `mu1`, `mu2`, `sigma1`, `sigma2`, one shared `nu`, and `rho12` formulas. ✖ Unsupported parameter: "sigma". ℹ Separate `nu1`/`nu2` parameters are not part of the shared-nu bivariate Student-t contract.
+  julia: REFUSED: Error happens in Julia. drm_bridge: coef_labels supplies names for unknown dpar "sigma"; the model has dpars: mu1, mu2, sigma1, sigma2, nu, rho12 Stacktrace: [1] error(s::String) @ Base ./error.jl:35 [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}) @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:1614 [3] _bridge_coef_vector(fit::DrmFit{Student}; labels::DRM._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:1569 [4] _bridge_coef_vector @ ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:1541 [inlined] [5] _bridge_flatten(fit::DrmFit{Student}; family::String, newdata::Nothing, labels::DRM._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any}) @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:1437 [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:61 [7] drm_bridge @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:51 [inlined] [8] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) @ Main ./none:1 [9] docall(call1::Ptr{Nothing}) @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0
+
+@@@@  L. offset() on mu1 
+  tmb: REFUSED: This formula contains unsupported model terms. ✖ The `mu1` formula contains unsupported term: "offset".
+  julia: REFUSED: Error happens in Julia. UndefVarError: `offset` not defined Stacktrace: [1] top-level scope @ none:1 [2] eval @ ./boot.jl:385 [inlined] [3] eval @ ~/local-scratch/parity-joint/drmjl-430ef64cc/src/DRM.jl:36 [inlined] [4] _bridge_formula_from_expr(expr::Expr, ctx::DRM._BridgeXlateCtx) @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:1432 [5] _bridge_parse_formula_part(part::String, ctx::DRM._BridgeXlateCtx) @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:1420 [6] #1537 @ ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:660 [inlined] [7] iterate(g::Base.Generator, s::Vararg{Any}) @ Base ./generator.jl:47 [inlined] [8] _collect(c::Vector{String}, itr::Base.Generator{Vector{String}, DRM.var"#1537#1539"{DRM._BridgeXlateCtx}}, ::Base.EltypeUnknown, isz::Base.HasShape{1}) @ Base ./array.jl:854 [9] collect_similar(cont::Vector{String}, itr::Base.Generator{Vector{String}, DRM.var"#1537#1539"{DRM._BridgeXlateCtx}}) @ Base ./array.jl:763 [10] map(f::Function, A::Vector{String}) @ Base ./abstractarray.jl:3282 [11] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y1::Vector{Float64}, x::Vector{Float64}, z::Vector{Float64}, y2::Vector{Float64}}; labels::Bool) @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:660 [12] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:55 [13] drm_bridge @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:51 [inlined] [14] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) @ Main ./none:1 [15] docall(call1::Ptr{Nothing}) @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0
+
+@@@@  M. sd(g) scale submodel 
+  tmb: REFUSED: `biv_student()` supports only `mu1`, `mu2`, `sigma1`, `sigma2`, one shared `nu`, and `rho12` formulas. ✖ Unsupported parameter: "sd(g)". ℹ Separate `nu1`/`nu2` parameters are not part of the shared-nu bivariate Student-t contract.
+  julia: REFUSED: Error happens in Julia. drm_bridge: unused LSS label provenance Stacktrace: [1] error(s::String) @ Base ./error.jl:35 [2] _bridge_formula(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::@NamedTuple{y1::Vector{Float64}, x::Vector{Float64}, y2::Vector{Float64}}; labels::Bool) @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:743 [3] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:55 [4] drm_bridge @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:51 [inlined] [5] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) @ Main ./none:1 [6] docall(call1::Ptr{Nothing}) @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0
+
+@@@@  N. sigma1 = ~ (1) redundant parens 
+  tmb: FITTED logLik=-466.44449865 npar=8
+  julia: FITTED logLik=-466.44449865 npar=8
+
+@@@@  O. sigma1 = ~ 0 + z (no intercept) 
+  tmb: REFUSED: `biv_student()` currently allows fixed-effect `mu1`/`mu2` only, with intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. ℹ Random or structured effects, `meta_V()`, offsets, and sigma/nu/rho predictors are deferred.
+  julia: FITTED logLik=-499.64729260 npar=8
+
+@@@@  P. omitted sigma1/sigma2/nu/rho12 (short form) 
+  tmb: FITTED logLik=-466.44449865 npar=8
+  julia: FITTED logLik=-466.44449865 npar=8
+Julia exit.
+  Activating project at `~/local-scratch/parity-joint/drmjl-430ef64cc`
+┌ Error: Error during loading of extension LogExpFunctionsInverseFunctionsExt of LogExpFunctions, use `Base.retry_load_extensions()` to retry.
+│   exception =
+│    1-element ExceptionStack:
+│    Failed to precompile LogExpFunctionsInverseFunctionsExt [1e5f9c58-a15c-5ce5-87cf-a68a2eda25d9] to "/Users/z3437171/.julia/compiled/v1.10/LogExpFunctionsInverseFunctionsExt/jl_3kjHAO".
+│    Stacktrace:
+│      [1] error(s::String)
+│        @ Base ./error.jl:35
+│      [2] compilecache(pkg::Base.PkgId, path::String, internal_stderr::IO, internal_stdout::IO, keep_loaded_modules::Bool)
+│        @ Base ./loading.jl:2462
+│      [3] compilecache(pkg::Base.PkgId, path::String, internal_stderr::IO, internal_stdout::IO, keep_loaded_modules::Bool)
+│        @ Base ./loading.jl:2334 [inlined]
+│      [4] (::Base.var"#968#969"{Base.PkgId})()
+│        @ Base ./loading.jl:1968
+│      [5] mkpidlock(f::Base.var"#968#969"{Base.PkgId}, at::String, pid::Int32; kwopts::@Kwargs{stale_age::Int64, wait::Bool})
+│        @ FileWatching.Pidfile ~/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/share/julia/stdlib/v1.10/FileWatching/src/pidfile.jl:93
+│      [6] #mkpidlock#6
+│        @ FileWatching.Pidfile ~/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/share/julia/stdlib/v1.10/FileWatching/src/pidfile.jl:88 [inlined]
+│      [7] trymkpidlock(::Function, ::Vararg{Any}; kwargs::@Kwargs{stale_age::Int64})
+│        @ FileWatching.Pidfile ~/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/share/julia/stdlib/v1.10/FileWatching/src/pidfile.jl:111
+│      [8] #invokelatest#2
+│        @ Base ./essentials.jl:889 [inlined]
+│      [9] invokelatest
+│        @ Base ./essentials.jl:884 [inlined]
+│     [10] maybe_cachefile_lock(f::Base.var"#968#969"{Base.PkgId}, pkg::Base.PkgId, srcpath::String; stale_age::Int64)
+│        @ Base ./loading.jl:2977
+│     [11] maybe_cachefile_lock
+│        @ Base ./loading.jl:2974 [inlined]
+│     [12] _require(pkg::Base.PkgId, env::Nothing)
+│        @ Base ./loading.jl:1964
+│     [13] __require_prelocked(uuidkey::Base.PkgId, env::Nothing)
+│        @ Base ./loading.jl:1806
+│     [14] #invoke_in_world#3
+│        @ Base ./essentials.jl:921 [inlined]
+│     [15] invoke_in_world
+│        @ Base ./essentials.jl:918 [inlined]
+│     [16] _require_prelocked
+│        @ Base ./loading.jl:1797 [inlined]
+│     [17] _require_prelocked
+│        @ Base ./loading.jl:1796 [inlined]
+│     [18] run_extension_callbacks(extid::Base.ExtensionId)
+│        @ Base ./loading.jl:1289
+│     [19] run_extension_callbacks(pkgid::Base.PkgId)
+│        @ Base ./loading.jl:1324
+│     [20] run_package_callbacks(modkey::Base.PkgId)
+│        @ Base ./loading.jl:1158
+│     [21] _tryrequire_from_serialized(modkey::Base.PkgId, path::String, ocachepath::String, sourcepath::String, depmods::Vector{Any})
+│        @ Base ./loading.jl:1481
+│     [22] _require_search_from_serialized(pkg::Base.PkgId, sourcepath::String, build_id::UInt128)
+│        @ Base ./loading.jl:1568
+│     [23] _require(pkg::Base.PkgId, env::String)
+│        @ Base ./loading.jl:1932
+│     [24] __require_prelocked(uuidkey::Base.PkgId, env::String)
+│        @ Base ./loading.jl:1806
+│     [25] #invoke_in_world#3
+│        @ Base ./essentials.jl:921 [inlined]
+│     [26] invoke_in_world
+│        @ Base ./essentials.jl:918 [inlined]
+│     [27] _require_prelocked(uuidkey::Base.PkgId, env::String)
+│        @ Base ./loading.jl:1797
+│     [28] macro expansion
+│        @ Base ./loading.jl:1784 [inlined]
+│     [29] macro expansion
+│        @ Base ./lock.jl:267 [inlined]
+│     [30] __require(into::Module, mod::Symbol)
+│        @ Base ./loading.jl:1747
+│     [31] #invoke_in_world#3
+│        @ Base ./essentials.jl:921 [inlined]
+│     [32] invoke_in_world
+│        @ Base ./essentials.jl:918 [inlined]
+│     [33] require(into::Module, mod::Symbol)
+│        @ Base ./loading.jl:1740
+│     [34] eval
+│        @ Core ./boot.jl:385 [inlined]
+│     [35] eval_string(x::String)
+│        @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:203
+│     [36] docall(call1::Ptr{Nothing})
+│        @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0
+└ @ Base loading.jl:1295

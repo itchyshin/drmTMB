@@ -101,6 +101,19 @@ drm_o3_split <- function(psi, family, p) {
   else list(beta = psi[seq_len(p)], theta = psi[-seq_len(p)])
 }
 
+drm_o3_optim_control <- function() {
+  list(reltol = 1e-8, maxit = 400)
+}
+
+drm_o3_check_optim <- function(o, context) {
+  if (!identical(o$convergence, 0L)) {
+    cli::cli_warn(
+      "{.arg {context}} optimizer returned non-zero convergence code {.val {o$convergence}}."
+    )
+  }
+  invisible(o)
+}
+
 # The O3 adjusted negative log-likelihood at a given sd: profile (beta,theta) out
 # of the AGHQ marginal, then add 0.5*log|I_{psi psi}| (Hessian of the profiled negative
 # AGHQ marginal). Returns -ell_R(sd) and the profiled psi.
@@ -110,7 +123,8 @@ drm_o3_cr_negll <- function(sd, family, X, z, y, group_idx, trials, K, nodes, ps
     s <- drm_o3_split(psi, family, p)
     -drm_o3_marginal_ll(s$beta, s$theta, sd, family, X, z, y, group_idx, trials, nodes, cache)
   }
-  o <- stats::optim(psi_start, fpsi, method = "BFGS", control = list(reltol = 1e-8))
+  o <- stats::optim(psi_start, fpsi, method = "BFGS", control = drm_o3_optim_control())
+  drm_o3_check_optim(o, "aghq_cr")
   H <- stats::optimHess(o$par, fpsi)
   list(value = o$value + 0.5 * as.numeric(determinant(H, logarithm = TRUE)$modulus),
        psi = o$par)
@@ -151,7 +165,8 @@ drm_o3_fit <- function(y, X, z, group, family = c("binomial", "cumulative_logit"
       s <- drm_o3_split(par[seq_len(npar)], family, p)
       -drm_o3_marginal_ll(s$beta, s$theta, exp(par[npar + 1L]), family, X, z, y, group_idx, trials, nd, cache)
     }
-    o <- stats::optim(c(psi0, log(0.7)), obj, method = "BFGS", control = list(reltol = 1e-8, maxit = 400))
+    o <- stats::optim(c(psi0, log(0.7)), obj, method = "BFGS", control = drm_o3_optim_control())
+    drm_o3_check_optim(o, "aghq")
     s <- drm_o3_split(o$par[seq_len(npar)], family, p)
     return(list(sd = exp(o$par[npar + 1L]), beta = s$beta, theta = s$theta,
                 estimator = estimator, nodes = nodes, family = family))

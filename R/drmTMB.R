@@ -67,7 +67,7 @@
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()], [student()],
 #'   [skew_normal()], [lognormal()], [stats::Gamma()] with `link = "log"`,
-#'   \code{\link[=tweedie]{tweedie()}}, [beta()], [zero_one_beta()],
+#'   \code{\link[=tweedie]{tweedie()}}, [beta_family()], [zero_one_beta()],
 #'   [beta_binomial()], [stats::binomial()] with `link = "logit"`, `"probit"`,
 #'   or `"cloglog"`,
 #'   [cumulative_logit()], [stats::poisson()] with `link = "log"`, [nbinom2()],
@@ -96,7 +96,7 @@
 #'   cumulative_logit()))` for an ordered predictor, or
 #'   `list(habitat = impute_model(habitat ~ z, family = categorical()))` for
 #'   an unordered predictor, or
-#'   `list(cover = impute_model(cover ~ z, family = beta()))` for a strict
+#'   `list(cover = impute_model(cover ~ z, family = beta_family()))` for a strict
 #'   proportion predictor in `(0, 1)`, or
 #'   `list(cover = impute_model(cover ~ z, family = zero_one_beta()))` for a
 #'   boundary proportion predictor in `[0, 1]`, or
@@ -121,7 +121,7 @@
 #'   non-Gaussian response route also supports `family = poisson()` with one
 #'   fixed-effect binary `mi()` predictor modelled by `family = binomial()`.
 #' @param missing Missing-data policy created by [miss_control()]. The default
-#'   keeps the existing complete-case behaviour. In the current fitted slices,
+#' keeps the existing complete-case behaviour. Among currently supported models,
 #'   `missing = miss_control(response = "include")` is implemented only for
 #'   univariate Gaussian response masks and bivariate Gaussian partial-response
 #'   rows without dense known covariance. `missing =
@@ -134,14 +134,26 @@
 #'   beta-binomial denominator-aware proportion, Poisson, negative-binomial, or
 #'   zero-truncated negative-binomial count, lognormal positive continuous,
 #'   Gamma positive continuous, and Tweedie semi-continuous predictors may use
-#'   one fixed-effect family-aware `impute_model()`. The first Poisson-response
-#'   route supports one fixed-effect binary missing predictor with a
-#'   Bernoulli/logit `impute_model()`, complete count responses, and no
-#'   zero-inflation, random, or structured response terms.
+#'   one fixed-effect family-aware `impute_model()`. Poisson, binomial,
+#'   nbinom2, beta, Gamma, lognormal, beta-binomial, and student responses
+#'   each support one fixed-effect binary missing predictor with a
+#'   Bernoulli/logit `impute_model()`, complete responses, and no random
+#'   or structured response terms. `nbinom2()` also admits one
+#'   fixed-effect Gaussian `impute_model()` for a continuous missing
+#'   predictor (k = 1; no grouped/structured predictor model, no k = 2).
 #' @param engine Computational engine. The default `"tmb"` uses the native
-#'   `drmTMB` TMB backend. The `"julia"` compatibility bridge is halted and
-#'   deferred for future work; it is retained only so existing objects and code
-#'   can be inspected, not as a current fitting route.
+#'   `drmTMB` TMB backend. `"julia"` routes an admitted model to the DRModels.jl
+#'   bridge: Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson,
+#'   NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
+#'   an additional large-p `phylo()` or coupled location-scale phylo route),
+#'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, and
+#'   `beta_binomial()` on the fixed-effect route only. Each admitted family
+#' has been compared with `engine = "tmb"` on the same fitted target
+#'   (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
+#'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for
+#' the full family-by-route table and current boundaries. `engine = "julia"` needs a local
+#'   DRModels.jl checkout and the optional `JuliaCall` package, and it is not a
+#'   drop-in replacement for every native-TMB workflow.
 #' @param REML Logical; use restricted maximum likelihood where the selected
 #'   engine supports it. Native `engine = "tmb"` restricts the likelihood by
 #'   marginalising the admitted fixed-effect mean coefficients. Validated
@@ -154,13 +166,13 @@
 #'   constant residual scale (`sigma ~ 1`, with no sigma random effect).
 #'   Slope-only, labelled, multiple-slope, and matched non-phylogenetic
 #'   mean-scale REML remain outside that route. The two bivariate
-#'   non-phylogenetic exceptions are matching labelled fixed-covariance q2
+#' non-phylogenetic exceptions are matching labelled two-axis (`q = 2`) fixed-covariance
 #'   location intercepts for `spatial(1 | p | site, coords = coords)` and
 #'   `relmat(1 | p | id, K = K)` in `mu1` and `mu2`, with intercept-only
 #'   `sigma1`, `sigma2`, and `rho12`, complete response pairs, unit weights, no
 #'   known [meta_V()] covariance, and no additional ordinary random effect,
-#'   direct-SD formula, or `corpair()` regression. Both have point-fit-recovery
-#'   evidence only; bivariate `relmat(..., Q = Q)` REML remains deferred.
+#' direct-SD formula, or `corpair()` regression. Only point-estimate recovery
+#' has been checked for both; bivariate `relmat(..., Q = Q)` REML is unsupported.
 #'   Aggregation and ordinary direct `sd()` scale formulae also remain
 #'   unsupported under REML. For `binomial()` models, the bounded native route
 #'   requires exactly one ordinary unlabelled `mu` random intercept or exactly
@@ -169,17 +181,36 @@
 #'   other extensions are not admitted under REML;
 #'   use `REML = FALSE` for those models. The binomial route has diagnostic
 #'   parity and finite-uncertainty evidence, not calibrated interval or coverage
-#'   evidence.
-#'   The halted `engine = "julia"` compatibility bridge is not a supported
-#'   estimator or REML route. Use native `engine = "tmb"` for fitting and use
-#'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
-#'   different fixed-effect formulas, non-binomial non-Gaussian models, and
-#'   currently unsupported extensions.
+#'   evidence. Every other non-Gaussian family rejects `REML = TRUE`; use
+#' `REML = FALSE`. An internal experimental AGHQ plus Cox-Reid estimator is
+#'   not a `drmTMB()` argument and is not what `REML = TRUE` runs. Public
+#'   cumulative-logit random-slope fits remain maximum likelihood
+#' and have point-estimate recovery evidence only.
+#'   `engine = "julia"` fits `REML = TRUE` on a route-by-route basis, not
+#'   uniformly: the fixed-effect Gaussian location-scale model, the bivariate
+#'   q = 4 phylogenetic route, the location-scale-scale `sd()`/`sd_phylo()`
+#'   routes, an ordinary Gaussian `mu` random intercept, and large-p Poisson
+#'   `phylo()` (a Cox-Reid Laplace route native `engine = "tmb"` does not have)
+#'   currently fit `REML = TRUE`; every other bridge route refuses it, some
+#' with a raw DRModels.jl error rather than a `drmTMB`-worded one. Do not assume
+#' bridge REML support for models outside this list.
+#'
 #'   With `missing = miss_control(response = "include")`, the native REML
 #'   route is currently validated for univariate Gaussian response masks and
 #'   for the bounded binomial ordinary `mu` random-intercept route, with complete
 #'   predictors and other non-response inputs. Other explicit missing-data
 #'   engines, including missing predictors, remain unsupported under REML.
+#'
+#'   Under native `REML = TRUE`, admitted mean fixed-effect coefficients are
+#'   marginalised in the TMB objective rather than estimated as ordinary fixed
+#'   parameters. [summary.drmTMB()] and [vcov.drmTMB()] can still report finite
+#'   Wald standard errors for those coefficients from the full `sdreport`
+#'   covariance, but [confint.drmTMB()] does not currently form Wald or profile
+#'   intervals for REML-integrated mean coefficients. Wald rows return `NA`
+#'   bounds with `conf.status = "wald_unavailable"`, and profiling such a mean
+#'   coefficient can fail because the coefficient is not a top-level TMB
+#'   parameter. Use `confint(..., method = "bootstrap")` when an interval for a
+#'   REML mean coefficient is needed.
 #' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
 #'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
 #'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
@@ -194,16 +225,16 @@
 #'   `"logit"`, `"probit"` and `"cloglog"`. Kosmidis and Firth (2021,
 #'   Theorem 1 and Section 3.1) prove the Jeffreys penalty gives finite
 #'   estimates for any link whose working weight vanishes in both tails, which
-#'   these three do; drmTMB's own TMB-Laplace evidence for them is recorded in
-#'   `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`.
+#' these three do. drmTMB has directly checked the TMB-Laplace implementation
+#' for all three links.
 #'   Three limits are worth stating. The soft-penalty scale below is a *logit*
 #'   delta-method constant, kept unchanged for all three links because using it
 #'   for probit and cloglog was measured to cost about 1% of one standard error
 #'   -- measured at `q = 1` with two fixed-effect columns, and not at `q = 2`.
 #'   Under deep separation with a random slope the standard error is frequently
 #'   unavailable for **every** link, logit included (see the `NA` note below);
-#'   in the most extreme cells measured this affected the large majority of
-#'   converged fits. And the evidence behind the two new links used **Bernoulli**
+#' in the most extreme scenarios measured this affected the large majority of
+#' converged fits. The comparisons for probit and cloglog used **Bernoulli**
 #'   responses with two fixed-effect columns, so grouped-binomial and wider
 #'   designs inherit the `n_eff` extrapolation described next without direct
 #'   measurement, for any link. For grouped binomial data, the
@@ -254,29 +285,47 @@ drmTMB <- function(
   ...
 ) {
   fit_call <- match.call()
+  family <- drm_eval_family_arg(substitute(family), parent.frame())
   if (!inherits(formula, "drm_formula")) {
     cli::cli_abort(
       "{.arg formula} must be created with {.fn drm_formula} or {.fn bf}."
     )
   }
-  dots <- list(...)
-  if (length(dots) > 0L) {
-    cli::cli_abort("{.fn drmTMB} does not use arguments in {.arg ...} yet.")
+  # Inspect `...` without forcing it: `subset = cyl == 4` must not fail with
+  # "object 'cyl' not found" before this guard can name the argument (#1486).
+  if (...length() > 0L) {
+    drm_abort_unused_dots(
+      names(match.call(expand.dots = FALSE)$...),
+      n_dots = ...length(),
+      call = environment()
+    )
   }
   if (!is.data.frame(data)) {
     cli::cli_abort("{.arg data} must be a data frame.")
   }
+  # An unused factor level (e.g. left over from a `subset()` without
+  # `droplevels()`) gives a design-matrix column of all zeros, which makes
+  # the fit's Hessian singular: point estimates come back exactly right, but
+  # every standard error is NA (Dinnage audit Md-E). Drop unused levels from
+  # the factor columns that enter a FIXED-EFFECT design matrix, once, up
+  # front. Responses, `mi()` predictors and random-effect / structured-marker
+  # grouping variables keep their declared level sets: an ordinal response or
+  # an imputed ordinal predictor with an empty category must still reach its
+  # own "empty category" refusal rather than be silently re-levelled.
+  # `droplevels()` itself rebuilds the factor and drops a contrasts
+  # attribute, so `contrasts(f) <- contr.sum(3)` became treatment columns.
+  # The helper drops unused levels and puts that attribute back (#1495).
+  data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
-  if (
-    identical(engine, "julia") &&
-      inherits(family, "drm_family") &&
-      identical(family$name, "biv_student")
-  ) {
-    cli::cli_abort(
-      "{.fn biv_student} is implemented only for {.code engine = \"tmb\"}; the Julia route is deferred."
-    )
-  }
+  # `biv_student()` used to abort here for `engine = "julia"` ("the Julia route
+  # is deferred"), a family-specific gate that fired BEFORE the Julia family
+  # registry was ever consulted. It is retired (A4, 2026-09-05): the registry
+  # row in R/julia-family-registry.R is now the single admission authority for
+  # this family, exactly as it is for every other one, and DRM.jl's
+  # `_bridge_family("biv_student")` (src/bridge.jl) plus its bivariate Student-t
+  # route (src/bivariate_student.jl) fit the same target -- measured at pin
+  # 430ef64cc, see tests/testthat/test-julia-family-biv_student.R.
   drm_reject_smooth_terms(formula)
   formula <- drm_desugar_double_bars(formula, data)
   formula_env <- drm_formula_env(formula, parent.frame())
@@ -306,6 +355,17 @@ drmTMB <- function(
   }
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
+  # A-2 (#1332, #1484): fail on NA predictors only when the caller supplies
+  # `missing =` with a control built as `miss_control()` or
+  # `miss_control(predictor = "fail")`, not when they only set
+  # `response = "include"` (row drop for incomplete predictors stays). The
+  # evaluated control decides, so `missing = ctl` behaves like its literal call.
+  if (
+    "missing" %in% names(as.list(fit_call))[-1L] &&
+      drm_missing_explicit_predictor_fail(missing)
+  ) {
+    drm_validate_complete_predictors(formula, data)
+  }
   REML <- drm_control_flag(REML, "REML")
   penalty <- drm_parse_phylo_penalty(penalty)
 
@@ -315,6 +375,7 @@ drmTMB <- function(
     data = data,
     env = parent.frame()
   )
+  drm_abort_mi_zero_weight_missing_in_data(data, weights_full, impute)
 
   family_type <- drm_family_type(family)
   drm_validate_mspl_request(
@@ -328,6 +389,8 @@ drmTMB <- function(
     missing_control = missing_control,
     control = control
   )
+  n_rows_before_mspl_filter <- nrow(data)
+  input_data <- data
   mspl_frequency_rows <- drm_mspl_filter_frequency_rows(
     data,
     weights_full,
@@ -392,7 +455,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, {.code beta()}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, and the non-hurdle {.fn truncated_nbinom2} route.",
+      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, {.code beta_family()}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, and the non-hurdle {.fn truncated_nbinom2} route.",
       "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
@@ -402,14 +465,14 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(predictor = \"model\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-predictor {.fn mi} models are currently validated only for {.code gaussian()} responses (the broad predictor-family catalogue) and {.code poisson()}/{.code binomial()}/{.code nbinom2()}/{.code beta()} responses (one binary missing predictor).",
+      "x" = "Missing-predictor {.fn mi} models are currently validated only for {.code gaussian()} responses (the broad predictor-family catalogue), {.code nbinom2()} responses (one binary or one Gaussian missing predictor), and {.code poisson()}/{.code binomial()}/{.code beta_family()}/{.code Gamma(link = \"log\")}/{.fn lognormal}/{.fn beta_binomial}/{.fn student} responses (one binary missing predictor).",
       "i" = "Use complete predictors, or {.code missing = miss_control(predictor = \"fail\")}, for a {.val {family_type}} response until its {.fn mi} slice lands."
     ))
   }
   if (!family_type %in% drm_missing_predictor_families() && !is.null(impute)) {
     cli::cli_abort(c(
       "{.arg impute} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "{.fn mi} predictor models are currently validated only for {.code gaussian()}, {.code poisson()}, {.code binomial()}, {.code nbinom2()}, and {.code beta()} responses.",
+      "x" = "{.fn mi} predictor models are currently validated only for {.code gaussian()}, {.code poisson()}, {.code binomial()}, {.code nbinom2()}, {.code beta_family()}, {.code Gamma(link = \"log\")}, {.fn lognormal}, {.fn beta_binomial}, and {.fn student} responses.",
       "i" = "Drop {.arg impute} (or use a supported response) for a {.val {family_type}} model until its {.fn mi} slice lands."
     ))
   }
@@ -447,6 +510,7 @@ drmTMB <- function(
       data,
       env = formula_env,
       weights = weights_full,
+      impute = impute,
       missing = missing_control
     ),
     skew_normal = drm_build_skew_normal_ls_spec(
@@ -461,6 +525,7 @@ drmTMB <- function(
       data,
       env = formula_env,
       weights = weights_full,
+      impute = impute,
       missing = missing_control
     ),
     gamma = drm_build_gamma_ls_spec(
@@ -468,6 +533,7 @@ drmTMB <- function(
       data,
       env = formula_env,
       weights = weights_full,
+      impute = impute,
       missing = missing_control
     ),
     tweedie = drm_build_tweedie_ls_spec(
@@ -497,6 +563,7 @@ drmTMB <- function(
       data,
       env = formula_env,
       weights = weights_full,
+      impute = impute,
       missing = missing_control
     ),
     binomial = drm_build_binomial_spec(
@@ -561,6 +628,21 @@ drmTMB <- function(
     )
   )
 
+  # check_drm()'s dropped_rows row reads spec$keep, a logical vector the
+  # family builders compute relative to the (possibly MSPL-filtered) `data`
+  # above -- so it never saw rows MSPL discarded before any builder ran, and
+  # reported "no rows were dropped" even when MSPL had discarded some
+  # (Dinnage audit Md-N). Re-express spec$keep relative to the ORIGINAL
+  # input data by threading mspl_frequency_rows$kept through: FALSE for every
+  # row MSPL discarded, and the builder's own keep value for every row MSPL
+  # kept. A no-op when MSPL is not in use (kept is then seq_len(nrow(data))).
+  if (!is.null(spec$keep)) {
+    keep_full <- rep(FALSE, n_rows_before_mspl_filter)
+    keep_full[mspl_frequency_rows$kept] <- spec$keep
+    spec$keep <- keep_full
+  }
+  spec$input_data <- input_data
+
   drm_fit_spec(
     spec = spec,
     formula = formula,
@@ -610,25 +692,71 @@ drm_fit_spec <- function(
   # Per-group direct-SD ADREPORT is opt-in: it makes the joint ADREPORT covariance
   # n_group x n_group, which `vcov()` reads under REML. See `drm_control()`.
   spec$tmb_data$report_group_sd <- as.integer(isTRUE(control$se_group_sd))
+  if (!is.null(control$start) && length(control$start) > 0L) {
+    public_override <- drm_translate_public_start_override(spec, control$start)
+    base_override <- if (is.null(spec$start_override)) list() else spec$start_override
+    spec$start_override <- utils::modifyList(base_override, public_override)
+  }
   spec <- drm_apply_start_override(spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
-  obj <- TMB::MakeADFun(
-    data = spec$tmb_data,
-    parameters = spec$start,
-    map = spec$map,
-    random = spec$tmb_random_names,
-    DLL = "drmTMB",
-    silent = TRUE
+  mi_quad_abort <- drm_spec_uses_mi_quadrature_abort(spec)
+  obj <- tryCatch(
+    TMB::MakeADFun(
+      data = spec$tmb_data,
+      parameters = spec$start,
+      map = spec$map,
+      random = spec$tmb_random_names,
+      DLL = "drmTMB",
+      silent = TRUE
+    ),
+    error = function(e) {
+      if (isTRUE(mi_quad_abort)) {
+        drm_rethrow_mi_quadrature_error(e)
+      }
+      stop(e)
+    }
   )
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, obj$par, "starting")
+  }
 
   optimizer <- drm_optimize_with_preset_retry(obj, control)
   opt <- optimizer$opt
+  if (isTRUE(control$newton_polish)) {
+    opt <- drm_newton_polish(opt, obj$fn, obj$gr)
+    optimizer$opt <- opt
+    optimizer$selected$objective <- opt$objective
+    optimizer$selected$convergence <- opt$convergence
+    optimizer$selected$message <- opt$message
+    selected_attempt <- which(optimizer$attempts$selected)
+    optimizer$attempts$objective[selected_attempt] <- opt$objective
+    optimizer$attempts$convergence[selected_attempt] <- opt$convergence
+    optimizer$attempts$message[selected_attempt] <- if (is.null(opt$message)) {
+      NA_character_
+    } else {
+      opt$message
+    }
+  }
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, opt$par, "fitted")
+  }
+  drm_warn_mi_quadrature_inaccurate(spec, obj$env$parList())
   drm_warn_if_not_converged(opt)
   drm_warn_if_nonfinite_objective(opt)
   drm_pin_tmb_object_to_optimum(obj, opt)
   drm_warn_if_clamp_active(obj, spec)
   tmb_state <- drm_tmb_selected_state(obj, opt)
+
+  # Store the final outer gradient at `opt$par` here, at fit time, so it is a
+  # property of the fit rather than something computed lazily (and only when
+  # `obj` was retained) inside `check_drm()`'s `check_fixed_gradient()`
+  # (`R/check.R`). `obj$gr()` mutates `obj$env$last.par` as a side effect
+  # (independent of the `par` argument it is handed), so re-pin to `tmb_state`
+  # immediately after -- this evaluation must not leak into what `report()`
+  # sees below, per the selected-optimum invariant (docs/design/35).
+  fit_gradient <- drm_fit_gradient(obj, opt)
+  drm_pin_tmb_object_to_optimum(obj, opt, tmb_state)
 
   uncertainty <- drm_compute_uncertainty(
     obj,
@@ -637,11 +765,29 @@ drm_fit_spec <- function(
     estimator = spec$estimator
   )
   sdr <- uncertainty$sdr
-  par_list <- obj$env$parList(opt$par)
+  # sdreport() can leave the mutable full parameter vector at a Hessian
+  # perturbation. Use the selected pre-SE state for random/marginalized entries;
+  # parList still takes fixed parameters from opt$par and does not mutate obj.
+  par_list <- obj$env$parList(opt$par, par = tmb_state$last.par.best)
   par <- split_tmb_parameters(par_list, spec)
   missing_data <- drm_finalize_missing_data(spec$missing_data, par_list, spec)
 
-  objective_report <- obj$report()
+  # Report AT the optimum. `drm_compute_uncertainty()` above runs
+  # `TMB::sdreport()`, whose finite-difference Hessian stencil leaves
+  # `obj$env$last.par` a step away from the optimum (measured: 1e-3). A bare
+  # `obj$report()` defaults to `last.par`, so reporting here evaluated every
+  # REPORT()ed quantity at that perturbed state -- which made `phylo_penalty`,
+  # and therefore `logLik`, wrong for every penalized fit whenever standard
+  # errors were requested.
+  #
+  # `tmb_state` was captured at line 621, BEFORE sdreport, so it holds the clean
+  # optimum. Pass it to `report()` rather than re-pinning with
+  # `drm_pin_tmb_object_to_optimum()`: the pin MUTATES `obj$env$last.par`, and
+  # that mutation persists into the returned fit, changing the state every later
+  # consumer sees (conditional modes, fitted effects). Reporting is a read, so it
+  # must not have a side effect -- this evaluates at the optimum and leaves the
+  # object exactly as it found it.
+  objective_report <- obj$report(tmb_state$last.par.best)
   phylo_penalty_report <- objective_report$phylo_penalty
   phylo_penalty_value <- if (is.null(phylo_penalty_report)) {
     0
@@ -683,12 +829,16 @@ drm_fit_spec <- function(
     df = drm_fit_df(spec, opt),
     nobs = spec$nobs,
     estimator = spec$estimator,
+    estimator_exact = drm_estimator_exact(spec),
     penalty = spec$penalty,
     phylo_penalty = phylo_penalty_value,
     mspl = mspl,
     REML = isTRUE(REML),
     optimizer_used = optimizer$selected,
-    optimizer_attempts = optimizer$attempts
+    optimizer_attempts = optimizer$attempts,
+    gradient = fit_gradient$gradient,
+    gradient_max_component = fit_gradient$max_component,
+    provenance = drm_provenance()
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
@@ -750,12 +900,16 @@ drm_perturbed_starts <- function(par, n_start) {
 # result with the lowest finite objective. With n_start == 1 this is exactly the
 # single-start call, so the default fit is unchanged. If every start errors, the
 # last error is re-raised for the caller's tryCatch to record.
-drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
+drm_optimize_multistart <- function(
+  obj,
+  optimizer,
+  control_opt,
+  n_start,
+  plan = NULL
+) {
   starts <- drm_perturbed_starts(obj$par, n_start)
-  best <- NULL
-  last_error <- NULL
-  for (start in starts) {
-    res <- tryCatch(
+  run_start <- function(start) {
+    tryCatch(
       optimizer(
         start = start,
         objective = obj$fn,
@@ -764,6 +918,19 @@ drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
       ),
       error = function(e) e
     )
+  }
+  parallel_starts <- n_start > 1L && is.list(plan) &&
+    !identical(plan$backend, "none") && isTRUE(plan$workers > 1L)
+  results <- if (parallel_starts) {
+    # Every worker begins from the parent's untouched TMB state (issue #1248).
+    drm_parallel_lapply(starts, run_start, plan)
+  } else {
+    NULL
+  }
+  best <- NULL
+  last_error <- NULL
+  for (k in seq_along(starts)) {
+    res <- if (parallel_starts) results[[k]] else run_start(starts[[k]])
     if (inherits(res, "error")) {
       last_error <- res
       next
@@ -780,7 +947,44 @@ drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
   if (is.null(best)) {
     stop(last_error)
   }
+  if (parallel_starts && length(best$opt$par) == length(obj$par)) {
+    # Workers cannot update the parent's TMB environment, so evaluate the
+    # winning start here: last.par and last.par.best then hold its optimum
+    # (and inner random-effect mode) as they would after a serial run.
+    obj$fn(best$opt$par)
+    obj$gr(best$opt$par)
+  }
   best$opt
+}
+
+drm_multistart_plan <- function(control, n_start) {
+  parallel <- control$parallel
+  if (is.null(parallel) || identical(parallel, "none") || n_start <= 1L) {
+    return(list(backend = "none", workers = 1L))
+  }
+  bootstrap_parallel_plan(n_start, parallel = parallel, workers = control$workers)
+}
+
+# Adapt optim's interface and result names to the nlminb-shaped fit contract.
+drm_optim_adapter <- function(method, optim_fn = stats::optim) {
+  force(method)
+  force(optim_fn)
+  function(start, objective, gradient, control) {
+    result <- optim_fn(
+      par = start,
+      fn = objective,
+      gr = if (identical(method, "Nelder-Mead")) NULL else gradient,
+      method = method,
+      control = control
+    )
+    list(
+      par = result$par,
+      objective = result$value,
+      convergence = result$convergence,
+      message = if (is.null(result$message)) NA_character_ else result$message,
+      evaluations = result$counts
+    )
+  }
 }
 
 drm_optimize_with_preset_retry <- function(
@@ -790,8 +994,34 @@ drm_optimize_with_preset_retry <- function(
   fallback_fn = stats::optim,
   warn = TRUE
 ) {
-  attempt_specs <- drm_optimizer_attempt_specs(control)
   n_start <- if (is.null(control$multi_start)) 1L else control$multi_start
+  multistart_plan <- drm_multistart_plan(control, n_start)
+  method <- control$optimizer_method
+  if (!is.null(method) && !identical(method, "nlminb")) {
+    elapsed_start <- proc.time()[["elapsed"]]
+    opt <- drm_optimize_multistart(
+      obj, drm_optim_adapter(method, fallback_fn), control$optimizer,
+      n_start, plan = multistart_plan
+    )
+    row <- drm_optimizer_attempt_row(
+      attempt = 1L,
+      preset = NA_character_,
+      control = control$optimizer,
+      status = "ok",
+      convergence = opt$convergence,
+      message = opt$message,
+      objective = opt$objective,
+      elapsed_sec = proc.time()[["elapsed"]] - elapsed_start,
+      selected = TRUE,
+      optimizer = method
+    )
+    return(list(
+      opt = opt,
+      selected = drm_optimizer_selected_record(row),
+      attempts = row
+    ))
+  }
+  attempt_specs <- drm_optimizer_attempt_specs(control)
   rows <- vector("list", length(attempt_specs))
   opts <- vector("list", length(attempt_specs))
   last_error <- NULL
@@ -806,7 +1036,8 @@ drm_optimize_with_preset_retry <- function(
           obj,
           optimizer,
           spec$control,
-          n_start
+          n_start,
+          plan = multistart_plan
         )
       ),
       error = function(e) list(ok = FALSE, value = e)
@@ -870,11 +1101,10 @@ drm_optimize_with_preset_retry <- function(
     fb_control <- list(maxit = 1000L)
     fb_start <- proc.time()[["elapsed"]]
     fb_res <- tryCatch(
-      fallback_fn(
-        par = obj$par,
-        fn = obj$fn,
-        gr = obj$gr,
-        method = fallback,
+      drm_optim_adapter(fallback, fallback_fn)(
+        start = obj$par,
+        objective = obj$fn,
+        gradient = obj$gr,
         control = fb_control
       ),
       error = function(e) e
@@ -891,20 +1121,12 @@ drm_optimize_with_preset_retry <- function(
         message = conditionMessage(fb_res),
         objective = NA_real_,
         elapsed_sec = fb_elapsed,
-        selected = FALSE
+        selected = FALSE,
+        optimizer = fallback
       )
     } else {
-      fb_message <- if (is.null(fb_res$message)) {
-        NA_character_
-      } else {
-        fb_res$message
-      }
-      fb_opt <- list(
-        par = fb_res$par,
-        objective = fb_res$value,
-        convergence = fb_res$convergence,
-        message = fb_message
-      )
+      fb_message <- fb_res$message
+      fb_opt <- fb_res
       opts[[fb_attempt]] <- fb_opt
       fb_converged <- identical(as.integer(fb_opt$convergence), 0L) &&
         length(fb_opt$objective) == 1L &&
@@ -918,7 +1140,8 @@ drm_optimize_with_preset_retry <- function(
         message = fb_message,
         objective = fb_opt$objective,
         elapsed_sec = fb_elapsed,
-        selected = fb_converged
+        selected = fb_converged,
+        optimizer = fallback
       )
       if (fb_converged) {
         attempts <- drm_optimizer_attempts_frame(rows)
@@ -976,6 +1199,105 @@ drm_optimize_with_preset_retry <- function(
   )
 }
 
+# #1130: nlminb's own stopping rules (`rel.tol`, `x.tol`) trigger on a
+# relative change in the objective or the step, not on the gradient norm. On
+# a flat or weakly-curved surface (for example a variance component
+# identified by few groups), nlminb can report "relative convergence" while
+# `obj$gr()` at that point is still nowhere near zero -- observed on the
+# #1130 fixture as coefficients ~1e-5 away from the true optimum, invisible
+# at the training rows but amplified at extrapolated newdata. Tightening
+# `rel.tol`/`x.tol` does not reliably fix this: pushed to 1e-14 on that same
+# fixture, nlminb instead reports "singular convergence" and moves the
+# estimate a *similar* distance, this time driven by finite-difference noise
+# in nlminb's own line search (docs/design/2026-09-03-nlminb-newton-polish.md
+# has the measurements).
+#
+# `drm_newton_polish()` instead uses the exact TMB outer gradient
+# (`obj$gr()`, already exact up to the inner Laplace solve) and a numerical
+# Hessian built by finite-differencing that exact gradient
+# (`stats::optimHess()`), then takes plain Newton steps until the gradient's
+# max absolute component is at or below `grad_tol` or `max_iter` is reached.
+# This is immune to the relative-objective stopping-rule pathology above: it
+# only stops when the actual gradient is small, and a step is accepted only
+# if it does not increase the objective (a guard against a bad local Hessian
+# estimate). Cost is `max_iter` extra Hessian builds (each ~`2 * length(par)`
+# extra gradient evaluations) on top of the ordinary nlminb fit; skipped
+# entirely when the reported optimum is already inside `grad_tol`. Opt-out
+# via `drm_control(newton_polish = FALSE)`.
+#
+# `fn`/`gr` take the exact TMB `obj$fn`/`obj$gr` signature (a plain function of
+# the full or free parameter vector to a scalar objective / gradient vector) so
+# this same polish can be reused on a *constrained* endpoint solve's free
+# parameters (`R/profile.R`, `profile_endpoint_evaluator()`), not just the
+# unconstrained fit. Passing mismatched `fn`/`gr` -- one polished, one not --
+# would bias a profile-likelihood comparison between the two (#1130 CI
+# follow-up): the polished side reaches a lower nll for free, which the
+# unpolished side cannot match, artificially narrowing the interval.
+drm_newton_polish <- function(opt, fn, gr, grad_tol = 1e-8, max_iter = 3L) {
+  par <- opt$par
+  grad <- tryCatch(as.numeric(gr(par)), error = function(e) NULL)
+  if (is.null(grad) || !all(is.finite(grad))) {
+    return(opt)
+  }
+  if (max(abs(grad)) <= grad_tol) {
+    return(opt)
+  }
+  objective <- as.numeric(opt$objective)
+  polished <- FALSE
+  for (i in seq_len(max_iter)) {
+    he <- tryCatch(
+      stats::optimHess(par, fn, gr),
+      error = function(e) NULL
+    )
+    if (is.null(he) || !all(is.finite(he))) {
+      break
+    }
+    step <- tryCatch(solve(he, grad), error = function(e) NULL)
+    if (is.null(step) || !all(is.finite(step))) {
+      break
+    }
+    par_new <- par - step
+    grad_new <- tryCatch(as.numeric(gr(par_new)), error = function(e) NULL)
+    # `fn()` (TMB's `obj$fn`) returns a value carrying a stray `logarithm`
+    # attribute that nlminb's own `$objective` never has. Assigning it
+    # unstripped leaked the attribute through `stored_loglik` into the public
+    # `logLik()` object and broke test-animal-relmat-gaussian.R (Rose f3 pass,
+    # 2026-09-03). Strip it at the source, where the value enters the polish.
+    objective_new <- tryCatch(
+      as.numeric(fn(par_new)),
+      error = function(e) NA_real_
+    )
+    if (
+      is.null(grad_new) ||
+        !all(is.finite(grad_new)) ||
+        !is.finite(objective_new) ||
+        objective_new > objective + 1e-8
+    ) {
+      break
+    }
+    par <- par_new
+    grad <- grad_new
+    objective <- objective_new
+    polished <- TRUE
+    if (max(abs(grad)) <= grad_tol) {
+      break
+    }
+  }
+  if (!polished) {
+    return(opt)
+  }
+  opt$par <- stats::setNames(par, names(opt$par))
+  opt$objective <- objective
+  if (max(abs(grad)) <= grad_tol) {
+    opt$convergence <- 0L
+    opt$message <- sprintf(
+      "converged (Newton polish; max |gradient| = %.3g)",
+      max(abs(grad))
+    )
+  }
+  opt
+}
+
 drm_optimizer_attempt_specs <- function(control) {
   current <- control$optimizer_preset
   ladder <- c("default", "careful", "robust")
@@ -1002,11 +1324,12 @@ drm_optimizer_attempt_row <- function(
   message,
   objective,
   elapsed_sec,
-  selected
+  selected,
+  optimizer = "nlminb"
 ) {
   data.frame(
     attempt = as.integer(attempt),
-    optimizer = "nlminb",
+    optimizer = optimizer,
     optimizer_preset = as.character(preset),
     status = as.character(status),
     convergence = as.integer(convergence),
@@ -1142,6 +1465,18 @@ drm_apply_estimator_spec <- function(
   }
   spec$tmb_random_names <- c(spec$random_names, mean_fixed, scale_fixed)
   spec
+}
+
+drm_estimator_exact <- function(spec) {
+  if (!identical(spec$estimator, "REML")) {
+    return(NA)
+  }
+  if (!identical(spec$model_type, "gaussian") &&
+      !identical(spec$model_type, "biv_gaussian")) {
+    return(FALSE)
+  }
+  scale_terms <- c("beta_sigma", "beta_sigma1", "beta_sigma2")
+  !any(scale_terms %in% spec$tmb_random_names)
 }
 
 drm_start_override_empty_record <- function() {
@@ -1306,6 +1641,425 @@ drm_start_override_mapped_slots <- function(map, n, parameter) {
     ))
   }
   is.na(map)
+}
+
+# Public start contract (docs/design/35-optimizer-start-map-multistart.md,
+# "Public Start Contract"): a validated translation layer from public start
+# labels ("fixef:<dpar>:<column>", "sd:<dpar>:<term>", "cor:<dpar>:<term>")
+# to the internal `spec$start_override` component-keyed format already
+# consumed by `drm_apply_start_override()`. Nothing new happens at the TMB
+# boundary; this only builds the same shape the private hook already
+# validates and applies.
+drm_translate_public_start_override <- function(spec, start) {
+  labels <- names(start)
+  override <- list()
+  for (i in seq_along(start)) {
+    label <- labels[[i]]
+    value <- start[[i]]
+    parsed <- drm_parse_public_start_label(label)
+    if (is.null(parsed)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, {.code cor:<dpar>:<term>}, {.code phylo_sd:<axis>}, {.code phylo_cor:<axis1>:<axis2>}, or {.code phylo_theta:<axis1>:<axis2>} format."
+      ))
+    }
+    if (identical(parsed$family, "u")) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} addresses a latent random effect.",
+        "x" = "Labels of the form {.val u:<dpar>:<term>} target the latent random effect ({.code u}), which is not part of the public start contract.",
+        "i" = "Only {.code fixef:}, {.code sd:}, and {.code cor:} labels are supported."
+      ))
+    }
+    resolved <- drm_resolve_public_start_target(spec, parsed, value, label)
+    component <- resolved$component
+    if (is.null(override[[component]])) {
+      override[[component]] <- spec$start[[component]]
+    }
+    override[[component]][[resolved$index]] <- resolved$value
+  }
+  drm_warn_if_start_saturates_logsigma_clamp(spec, override)
+  override
+}
+
+# Defect A2-D1 (adversarial pass, 2026-09-01): a `fixef:sigma:`-family start
+# placed outside the log(sigma) soft-clamp band lands in the clamp's fully
+# saturated tail, where the softclamp derivative is ~0 in floating point. The
+# optimizer then sees an already-flat gradient at the start itself and
+# reports a spurious `nlminb` convergence code 0 without ever moving --
+# "converged" is arithmetically true and scientifically false. This computes
+# the actual per-row `log(sigma)` linear predictor implied by the *proposed*
+# start (baseline defaults plus the override) and warns before optimization
+# ever runs when it already lies outside the configured band, so the failure
+# mode is diagnosed at its source (the start) rather than discovered later as
+# an unexplained non-convergent-looking "success". This never edits the
+# user's start value -- only reports the condition, per the public start
+# contract's invariant that a start changes only where the optimizer begins.
+drm_warn_if_start_saturates_logsigma_clamp <- function(spec, override) {
+  if (!isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
+    return(invisible(FALSE))
+  }
+  if (!identical(as.integer(spec$tmb_data$use_logsigma_clamp), 1L)) {
+    return(invisible(FALSE))
+  }
+  band <- spec$tmb_data$logsigma_clamp
+  if (length(band) < 2L || anyNA(band[1:2])) {
+    return(invisible(FALSE))
+  }
+  lo <- band[[1L]]
+  hi <- band[[2L]]
+  sigma_components <- intersect(
+    names(override),
+    c("beta_sigma", "beta_sigma1", "beta_sigma2")
+  )
+  for (component in sigma_components) {
+    dpar <- sub("^beta_", "", component)
+    X <- spec$X[[dpar]]
+    beta <- override[[component]]
+    if (is.null(X) || is.null(beta) || ncol(X) != length(beta)) {
+      next
+    }
+    eta <- as.vector(X %*% beta)
+    eta <- eta[is.finite(eta)]
+    if (length(eta) == 0L || !any(eta > hi | eta < lo)) {
+      next
+    }
+    clamped <- pmin(pmax(eta, lo), hi)
+    extreme <- eta[[which.max(abs(eta - clamped))]]
+    cli::cli_warn(
+      c(
+        "{.arg start} places {.code log(sigma)} for {.val {dpar}} outside the configured clamp band [{.val {lo}}, {.val {hi}}] (reaches {.val {round(extreme, 1)}}).",
+        "i" = "The optimizer may see a locally flat objective at this start and report a spurious convergence without ever moving away from it. Choose a start inside the band, or widen it with {.code drm_control(logsigma_clamp = )}."
+      ),
+      class = "drmTMB_start_clamp_saturated_warning"
+    )
+  }
+  invisible(TRUE)
+}
+
+drm_parse_public_start_label <- function(label) {
+  if (!is.character(label) || length(label) != 1L || is.na(label)) {
+    return(NULL)
+  }
+  # Phylo covariance block families (design 35, "Phylo Covariance Block"; N3,
+  # 2026-09-03; split N3b, 2026-09-03): `phylo_sd:<axis>` (one axis),
+  # `phylo_cor:<axis1>:<axis2>` (a pair, ALWAYS a bounded correlation), and
+  # `phylo_theta:<axis1>:<axis2>` (a pair, the DENSE-block-only raw Cholesky
+  # working parameter) address the q>=2 phylogenetic location/scale
+  # covariance block's working parameters (`log_sd_phylo`/`eta_cor_phylo`/
+  # `theta_phylo`), which live outside `spec$random` and so cannot be named
+  # `<dpar>` the way an ordinary random-effect term can. These have their own
+  # arity (2 and 3 segments respectively, vs. the generic family's fixed 3)
+  # so they are parsed before the generic `family:dpar:target` pattern.
+  m <- regmatches(label, regexec("^phylo_sd:(.+)$", label))[[1L]]
+  if (length(m) == 2L) {
+    return(list(family = "phylo_sd", dpar = NA_character_, target = m[[2L]]))
+  }
+  m <- regmatches(label, regexec("^phylo_cor:([^:]+):(.+)$", label))[[1L]]
+  if (length(m) == 3L) {
+    return(list(family = "phylo_cor", dpar = m[[2L]], target = m[[3L]]))
+  }
+  # `phylo_theta:<axis1>:<axis2>` (N3b, 2026-09-03): the honest counterpart to
+  # `phylo_cor:` for a DENSE q > 2 phylo block, where the working parameter is
+  # a raw `UNSTRUCTURED_CORR_t` Cholesky entry with no correlation meaning in
+  # isolation. See `drm_resolve_public_start_target()` for the split.
+  m <- regmatches(label, regexec("^phylo_theta:([^:]+):(.+)$", label))[[1L]]
+  if (length(m) == 3L) {
+    return(list(family = "phylo_theta", dpar = m[[2L]], target = m[[3L]]))
+  }
+  m <- regmatches(label, regexec("^([^:]+):([^:]+):(.+)$", label))[[1L]]
+  if (length(m) != 4L) {
+    return(NULL)
+  }
+  list(family = m[[2L]], dpar = m[[3L]], target = m[[4L]])
+}
+
+# Axis labels for a structured (phylogenetic/spatial/animal/relmat) mu
+# covariance block, in the SAME order as `log_sd_phylo` and the rows/columns
+# of `obj$report()$phylo_q4_covariance` (design 35, "Phylo Covariance Block").
+# For the common case (one axis per endpoint dpar, e.g. `mu1`, `mu2`,
+# `sigma1`, `sigma2`) the axis label is just the dpar name; if the same dpar
+# appears more than once (an intercept-and-slope block on one dpar) the
+# coefficient name is appended to disambiguate.
+drm_phylo_mu_axis_labels <- function(phylo_mu) {
+  dpars <- phylo_mu_endpoint_dpars(phylo_mu)
+  if (!anyDuplicated(dpars)) {
+    return(dpars)
+  }
+  paste0(dpars, ":", structured_mu_endpoint_coef_names(phylo_mu))
+}
+
+# Position of the `theta_phylo` working parameter for a dense (single-block,
+# q > 2) phylo covariance's axis pair, matching TMB's `UNSTRUCTURED_CORR_t`
+# Cholesky fill order exactly as replicated by `tmb_unstructured_corr_matrix()`:
+# lower-triangle cells (row > col, 1-indexed axis positions) filled in
+# row-ascending, then column-ascending order, e.g. for q = 4 the order is
+# (mu1,mu2), (mu1,sigma1), (mu2,sigma1), (mu1,sigma2), (mu2,sigma2), (sigma1,sigma2).
+# The mapping was checked on a fitted fixture by confirming that
+# `tmb_unstructured_corr_matrix(theta_phylo)` reproduces
+# `cov2cor(report()$phylo_q4_covariance)` (N3 after-task note, 2026-09-03).
+# Entry k is the raw Cholesky-space coordinate of cell k, NOT that cell's
+# correlation: because each Cholesky row is renormalised, perturbing entry k
+# moves every correlation cell in the same row (Rose N3 pass, 2026-09-03),
+# which is why the public family is named `phylo_theta:` and carries no
+# transform. Returns NA if the pair is not found among the axis labels.
+# `phylo_cor:` starts invert TMB's bounded map rho = 0.999999 * tanh(eta)
+# (src/drmTMB.cpp), so the invertible range is |value| < 0.999999, not
+# |value| < 1: atanh(value / 0.999999) is NaN just inside the open unit interval
+# (Rose N3 pass, 2026-09-03). Refuse there instead of passing NaN to the optimizer.
+drm_phylo_cor_bound <- 0.999999
+drm_check_phylo_cor_start_value <- function(value, label, what) {
+  if (!is.finite(value) || !(abs(value) < drm_phylo_cor_bound)) {
+    cli::cli_abort(c(
+      "Start label {.val {label}} must be a correlation with |value| < {drm_phylo_cor_bound}.",
+      "x" = "{.code phylo_cor:} starts for {what} are given on the natural correlation scale, which drmTMB bounds at {drm_phylo_cor_bound} * tanh(eta)."
+    ))
+  }
+  invisible(value)
+}
+
+drm_phylo_mu_dense_theta_index <- function(phylo_mu, axis1, axis2) {
+  axis_labels <- drm_phylo_mu_axis_labels(phylo_mu)
+  a <- match(axis1, axis_labels)
+  b <- match(axis2, axis_labels)
+  if (is.na(a) || is.na(b) || a == b) {
+    return(NA_integer_)
+  }
+  row <- max(a, b)
+  col <- min(a, b)
+  q <- length(axis_labels)
+  cells <- which(lower.tri(matrix(0, q, q)), arr.ind = TRUE)
+  cells <- cells[order(cells[, "row"], cells[, "col"]), , drop = FALSE]
+  pos <- which(cells[, "row"] == row & cells[, "col"] == col)
+  if (length(pos) != 1L) {
+    return(NA_integer_)
+  }
+  pos
+}
+
+drm_resolve_public_start_target <- function(spec, parsed, value, label) {
+  family <- parsed$family
+  dpar <- parsed$dpar
+  target <- parsed$target
+
+  if (identical(family, "fixef")) {
+    component <- paste0("beta_", dpar)
+    baseline <- spec$start[[component]]
+    target_names <- names(baseline)
+    if (is.null(baseline) || is.null(target_names) || !(target %in% target_names)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {target}} is not a fixed-effect coefficient of {.val {dpar}} in this model."
+      ))
+    }
+    # Defect A2-D2 (adversarial pass, 2026-09-01): under REML, `drm_apply_estimator_spec()`
+    # folds this component's fixed effects into the Laplace random block
+    # (`spec$tmb_random_names`) so they are integrated out of the outer
+    # objective, not optimized as free coordinates. A `fixef:` start therefore
+    # has no fixed point to seed and was previously accepted silently with no
+    # effect on the fit. Error instead, matching `objective_at()`'s refusal of
+    # the same labels under REML, so the two verbs agree on what the shared
+    # label vocabulary means.
+    if (isTRUE(component %in% spec$tmb_random_names)) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} cannot be honored under REML.",
+        "x" = "REML integrates the {.val {dpar}} fixed effects out of the outer objective (they are folded into the Laplace random block), so there is no free coordinate for a {.code fixef:} start to seed.",
+        "i" = "Use {.code REML = FALSE} to give {.val {dpar}} fixed effects a {.code fixef:} start, or omit this label under REML."
+      ))
+    }
+    return(list(
+      component = component,
+      index = match(target, target_names),
+      value = as.numeric(value)
+    ))
+  }
+
+  if (identical(family, "sd")) {
+    component <- paste0("log_sd_", dpar)
+    term_labels <- spec$random[[dpar]]$labels
+    if (is.null(spec$start[[component]]) || is.null(term_labels) || !(target %in% term_labels)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {target}} is not a random-effect standard-deviation term of {.val {dpar}} in this model."
+      ))
+    }
+    if (!(value > 0)) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} must be a positive number.",
+        "x" = "{.code sd:} starts are given on the natural (positive) scale."
+      ))
+    }
+    return(list(
+      component = component,
+      index = match(target, term_labels),
+      value = log(value)
+    ))
+  }
+
+  if (identical(family, "cor")) {
+    component <- paste0("eta_cor_", dpar)
+    cor_labels <- spec$random[[dpar]]$cor_labels
+    if (is.null(spec$start[[component]]) || is.null(cor_labels) || !(target %in% cor_labels)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {target}} is not a random-effect correlation term of {.val {dpar}} in this model."
+      ))
+    }
+    if (!(value > -1) || !(value < 1)) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} must be strictly between -1 and 1.",
+        "x" = "{.code cor:} starts are given on the natural correlation scale."
+      ))
+    }
+    return(list(
+      component = component,
+      index = match(target, cor_labels),
+      value = atanh(value)
+    ))
+  }
+
+  # Phylo covariance block families (design 35, "Phylo Covariance Block"; N3,
+  # 2026-09-03; split N3b, 2026-09-03). `spec$structured$phylo_mu` is the
+  # q >= 2 structured location/scale block itself (`log_sd_phylo`,
+  # `eta_cor_phylo`/`theta_phylo`), which lives outside `spec$random` and
+  # outside the ordinary `<dpar>` vocabulary -- see `drm_phylo_mu_axis_labels()`
+  # and `drm_phylo_mu_dense_theta_index()` just above.
+  #
+  # `phylo_cor:<axis1>:<axis2>` ALWAYS denotes a correlation strictly in
+  # (-1, 1): the q = 2 scalar `eta_cor_phylo`, or (for a block-diagonal
+  # q > 2 block) the one `theta_phylo` entry a labelled 2-endpoint block
+  # contributes directly (no Cholesky reconstruction needed). For a DENSE
+  # q > 2 block, `theta_phylo` entries are raw TMB `UNSTRUCTURED_CORR_t`
+  # Cholesky-space working parameters with no correlation meaning in
+  # isolation (the correlation matrix is the nonlinear `L %*% t(L)` ->
+  # `cov2cor()` of ALL entries together; see `tmb_unstructured_corr_matrix()`),
+  # so `phylo_cor:` REFUSES there and points at the honestly-named
+  # `phylo_theta:<axis1>:<axis2>` instead, which addresses the SAME
+  # `theta_phylo` position on its own raw, unconstrained scale -- no
+  # transform, and no bounded-correlation meaning claimed. `phylo_theta:` is
+  # the dense-only counterpart; it refuses for q = 2 or block-diagonal
+  # q > 2, where `phylo_cor:` is already the correct, honest family.
+  if (
+    identical(family, "phylo_sd") ||
+      identical(family, "phylo_cor") ||
+      identical(family, "phylo_theta")
+  ) {
+    phylo_mu <- spec$structured$phylo_mu
+    if (!isTRUE(phylo_mu$has)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "This model has no phylogenetic (or other structured) location/scale covariance block."
+      ))
+    }
+    axis_labels <- drm_phylo_mu_axis_labels(phylo_mu)
+
+    if (identical(family, "phylo_sd")) {
+      axis <- target
+      if (!(axis %in% axis_labels)) {
+        cli::cli_abort(c(
+          "Unknown public start label {.val {label}}.",
+          "x" = "{.val {axis}} is not a phylogenetic covariance axis in this model.",
+          "i" = "Available axes: {.val {axis_labels}}."
+        ))
+      }
+      if (!(value > 0)) {
+        cli::cli_abort(c(
+          "Start label {.val {label}} must be a positive number.",
+          "x" = "{.code phylo_sd:} starts are given on the natural (positive) scale."
+        ))
+      }
+      return(list(
+        component = "log_sd_phylo",
+        index = match(axis, axis_labels),
+        value = log(value)
+      ))
+    }
+
+    # phylo_cor:/phylo_theta:: `dpar` and `target` hold the two axes (the
+    # parser captures the first axis as `dpar` and the rest of the label,
+    # greedily, as `target`).
+    axis1 <- dpar
+    axis2 <- target
+    if (!(axis1 %in% axis_labels) || !(axis2 %in% axis_labels) || identical(axis1, axis2)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {axis1}}:{.val {axis2}} is not a phylogenetic covariance axis pair in this model.",
+        "i" = "Available axes: {.val {axis_labels}}."
+      ))
+    }
+    q <- structured_mu_q(phylo_mu)
+    dense <- q > 2L && !phylo_mu_is_block_diagonal(phylo_mu)
+
+    if (identical(family, "phylo_theta")) {
+      if (!dense) {
+        cli::cli_abort(c(
+          "Start label {.val {label}} does not apply to this phylogenetic covariance block.",
+          "x" = "This block is q = 2 or block-diagonal, where its working parameter IS already a bounded correlation.",
+          "i" = "Use {.code phylo_cor:{axis1}:{axis2}} instead."
+        ))
+      }
+      pos <- drm_phylo_mu_dense_theta_index(phylo_mu, axis1, axis2)
+      if (is.na(pos)) {
+        cli::cli_abort(c(
+          "Unknown public start label {.val {label}}.",
+          "x" = "{.val {axis1}}:{.val {axis2}} could not be mapped to a {.code theta_phylo} working parameter."
+        ))
+      }
+      return(list(
+        component = "theta_phylo",
+        index = pos,
+        value = as.numeric(value)
+      ))
+    }
+
+    # phylo_cor: from here on -- ALWAYS a bounded correlation strictly in
+    # (-1, 1). A dense block has no honest value to offer here (see the
+    # header comment), so it refuses and points at `phylo_theta:` instead.
+    if (dense) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} cannot be honored: this phylogenetic covariance block is dense.",
+        "x" = "Its working parameters are raw {.code UNSTRUCTURED_CORR_t} Cholesky entries, not pairwise correlations, so no {.code phylo_cor:} value would be honest here.",
+        "i" = "Use {.code phylo_theta:{axis1}:{axis2}} to address the same working parameter on its own raw (unconstrained) scale."
+      ))
+    }
+    if (q <= 2L) {
+      # Exactly one pair, a single scalar `eta_cor_phylo` on the SAME bounded
+      # tanh scale as the ordinary `cor:` family (now 0.99999999 * tanh(eta), #1190; see
+      # `split_tmb_corpars()`).
+      drm_check_phylo_cor_start_value(value, label, "a q = 2 phylogenetic block")
+      return(list(
+        component = "eta_cor_phylo",
+        index = 1L,
+        value = atanh(value / drm_phylo_cor_bound)
+      ))
+    }
+    # Block-diagonal q > 2: each labelled 2-endpoint block contributes one
+    # `theta_phylo` entry that IS a bounded tanh-transformed correlation
+    # directly (no Cholesky reconstruction needed; see
+    # `split_tmb_corpars()`'s block-diagonal branch), so this stays on the
+    # same natural correlation scale as `cor:` and the q = 2 case above.
+    pairs <- phylo_mu_pair_table(phylo_mu)
+    pos <- which(
+      (pairs$from_dpar == axis1 & pairs$to_dpar == axis2) |
+        (pairs$from_dpar == axis2 & pairs$to_dpar == axis1)
+    )
+    if (length(pos) != 1L) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {axis1}} and {.val {axis2}} are not in the same labelled phylogenetic covariance block."
+      ))
+    }
+    drm_check_phylo_cor_start_value(value, label, "a block-diagonal phylogenetic covariance")
+    return(list(
+      component = "theta_phylo",
+      index = pos,
+      value = atanh(value / drm_phylo_cor_bound)
+    ))
+  }
+
+  cli::cli_abort(c(
+    "Unknown public start label {.val {label}}.",
+    "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, {.code cor:<dpar>:<term>}, {.code phylo_sd:<axis>}, {.code phylo_cor:<axis1>:<axis2>}, or {.code phylo_theta:<axis1>:<axis2>} format."
+  ))
 }
 
 drm_qgt2_staged_start_override <- function(
@@ -1511,6 +2265,7 @@ drm_qgt2_staged_fit_metrics <- function(
   logLik <- NA_real_
   df <- NA_real_
   nobs <- NA_real_
+  optimizer_method <- NA_character_
   optimizer_preset <- NA_character_
   optimizer_attempt_count <- NA_integer_
   optimizer_selected_attempt <- NA_character_
@@ -1523,6 +2278,7 @@ drm_qgt2_staged_fit_metrics <- function(
   gradient_evaluations <- NA_real_
   iter_max <- NA_real_
   eval_max <- NA_real_
+  maxit <- NA_real_
   budget_status <- NA_character_
   sdreport_status <- NA_character_
   sdreport_message <- NA_character_
@@ -1558,6 +2314,11 @@ drm_qgt2_staged_fit_metrics <- function(
       optimizer_preset <- as.character(fit$optimizer_used$optimizer_preset)
     }
     attempts <- drm_qgt2_optimizer_attempts(fit)
+    optimizer_method <- attempts$optimizer
+    if (is.na(optimizer_method)) {
+      optimizer_method <- drm_qgt2_scalar_character(fit$control$optimizer_method)
+    }
+    if (is.na(optimizer_method)) optimizer_method <- "nlminb"
     optimizer_attempt_count <- attempts$count
     optimizer_selected_attempt <- attempts$selected
     optimizer_retried <- isTRUE(attempts$count > 1L)
@@ -1579,8 +2340,11 @@ drm_qgt2_staged_fit_metrics <- function(
     if (is.na(gradient_evaluations)) {
       gradient_evaluations <- drm_qgt2_named_numeric(fit$opt$counts, "gradient")
     }
-    iter_max <- drm_qgt2_named_numeric(fit$control$optimizer, "iter.max")
-    eval_max <- drm_qgt2_named_numeric(fit$control$optimizer, "eval.max")
+    optimizer_control <- fit$optimizer_used$control
+    if (is.null(optimizer_control)) optimizer_control <- fit$control$optimizer
+    iter_max <- drm_qgt2_named_numeric(optimizer_control, "iter.max")
+    eval_max <- drm_qgt2_named_numeric(optimizer_control, "eval.max")
+    maxit <- drm_qgt2_named_numeric(optimizer_control, "maxit")
     se_requested <- if (!is.null(fit$control$se)) {
       isTRUE(fit$control$se)
     } else {
@@ -1628,7 +2392,9 @@ drm_qgt2_staged_fit_metrics <- function(
       iterations = iterations,
       function_evaluations = function_evaluations,
       iter_max = iter_max,
-      eval_max = eval_max
+      eval_max = eval_max,
+      optimizer_method = optimizer_method,
+      maxit = maxit
     )
     failure <- drm_qgt2_failure_status(
       convergence = convergence,
@@ -1651,6 +2417,7 @@ drm_qgt2_staged_fit_metrics <- function(
     df = df,
     nobs = nobs,
     elapsed_sec = as.numeric(elapsed),
+    optimizer_method = optimizer_method,
     optimizer_preset = optimizer_preset,
     optimizer_attempt_count = optimizer_attempt_count,
     optimizer_selected_attempt = optimizer_selected_attempt,
@@ -1663,6 +2430,7 @@ drm_qgt2_staged_fit_metrics <- function(
     gradient_evaluations = gradient_evaluations,
     iter_max = iter_max,
     eval_max = eval_max,
+    maxit = maxit,
     budget_status = budget_status,
     sdreport_status = sdreport_status,
     sdreport_message = sdreport_message,
@@ -1681,8 +2449,31 @@ drm_qgt2_staged_fit_metrics <- function(
 }
 
 drm_qgt2_optimizer_attempts <- function(fit) {
+  used <- fit$optimizer_used
+  method <- drm_qgt2_scalar_character(used[["optimizer"]])
+  selected <- drm_qgt2_scalar_character(used$optimizer_preset)
+  if (is.na(selected)) selected <- method
   attempts <- fit$optimizer_attempts
   if (is.data.frame(attempts) && nrow(attempts) > 0L) {
+    selected_index <- if ("selected" %in% names(attempts)) {
+      which(attempts$selected %in% TRUE)
+    } else {
+      integer()
+    }
+    if (length(selected_index) != 1L &&
+        "attempt" %in% names(attempts) && length(used$attempt) == 1L) {
+      selected_index <- which(attempts$attempt %in% used$attempt)
+    }
+    if (length(selected_index) != 1L && nrow(attempts) == 1L) {
+      selected_index <- 1L
+    }
+    if (length(selected_index) == 1L) {
+      row <- attempts[selected_index, , drop = FALSE]
+      row_method <- drm_qgt2_scalar_character(row[["optimizer"]])
+      if (!is.na(row_method)) method <- row_method
+      selected <- drm_qgt2_scalar_character(row$optimizer_preset)
+      if (is.na(selected)) selected <- method
+    }
     presets <- if ("optimizer_preset" %in% names(attempts)) {
       paste(attempts$optimizer_preset, collapse = " | ")
     } else {
@@ -1696,21 +2487,14 @@ drm_qgt2_optimizer_attempts <- function(fit) {
       NA_character_
     }
     return(list(
-      count = nrow(attempts),
-      selected = if ("optimizer_preset" %in% names(attempts)) {
-        as.character(utils::tail(attempts$optimizer_preset, 1L))
-      } else {
-        NA_character_
-      },
-      presets = presets,
-      statuses = statuses
+      count = nrow(attempts), selected = selected, presets = presets,
+      statuses = statuses, optimizer = method
     ))
   }
   list(
-    count = 1L,
-    selected = drm_qgt2_scalar_character(fit$optimizer_used$optimizer_preset),
-    presets = drm_qgt2_scalar_character(fit$optimizer_used$optimizer_preset),
-    statuses = NA_character_
+    count = 1L, selected = selected,
+    presets = drm_qgt2_scalar_character(used$optimizer_preset),
+    statuses = NA_character_, optimizer = method
   )
 }
 
@@ -1740,10 +2524,17 @@ drm_qgt2_budget_status <- function(
   iterations,
   function_evaluations,
   iter_max,
-  eval_max
+  eval_max,
+  optimizer_method = "nlminb",
+  maxit = NA_real_
 ) {
   if (identical(convergence, 0L)) {
     return("converged")
+  }
+  if (!identical(optimizer_method, "nlminb")) {
+    # optim reports maxit exhaustion with code 1, but returns no iteration count.
+    if (identical(convergence, 1L)) return("iteration_budget_reached")
+    return("nonconverged_before_budget_or_unknown")
   }
   if (
     is.finite(iterations) &&
@@ -2388,6 +3179,25 @@ drm_reml_admits_biv_relmat_q2_intercept <- function(spec) {
   )
 }
 
+# leaf-biv-animal-reml (2026-09-05): the bivariate q2 exact-covariance REML
+# route is provider-agnostic in TMB (src/drmTMB.cpp has no branch on marker
+# identity for this route) and in DRM.jl's own REML implementation (kind ===
+# :animal and kind === :relmat both call the IDENTICAL
+# make_coevo_problem_from_covariance() path, bit-identical loglik measured on
+# a matched fixture). The prior refusal of animal() here was a recorded SCOPE
+# decision (docs/design/211-structured-reml-status.md), not a mathematical
+# objection, so this widens admission to the supplied-`A` representation
+# exactly as relmat's supplied-`K` representation is admitted. Precision
+# (`Ainv`) and pedigree-built (`pedigree`) animal representations stay
+# refused (representation != "A").
+drm_reml_admits_biv_animal_q2_intercept <- function(spec) {
+  drm_reml_admits_biv_exact_q2_intercept(
+    spec,
+    provider = "animal",
+    representation = "A"
+  )
+}
+
 drm_validate_reml_spec <- function(spec) {
   if (identical(spec$model_type, "biv_gaussian")) {
     return(drm_validate_reml_spec_biv(spec))
@@ -2583,15 +3393,18 @@ drm_validate_reml_spec_biv <- function(spec) {
       drm_reml_admits_biv_spatial_q2_intercept(spec)
     relmat_q2_admitted <-
       drm_reml_admits_biv_relmat_q2_intercept(spec)
+    animal_q2_admitted <-
+      drm_reml_admits_biv_animal_q2_intercept(spec)
     if (
       !identical(structured_type, "phylo") &&
         !spatial_q2_admitted &&
-        !relmat_q2_admitted
+        !relmat_q2_admitted &&
+        !animal_q2_admitted
     ) {
       cli::cli_abort(c(
-        "For bivariate models, {.arg REML} supports phylogenetic ({.fn phylo}) structured effects and exact fixed-covariance spatial or supplied-{.code K} relmat q2 location blocks.",
+        "For bivariate models, {.arg REML} supports phylogenetic ({.fn phylo}) structured effects and exact fixed-covariance spatial, supplied-{.code K} relmat, or supplied-{.code A} animal q2 location blocks.",
         "i" = "The spatial exception requires matching labelled {.code spatial(1 | p | site, coords = coords)} intercepts in {.code mu1} and {.code mu2}, constant {.code sigma1}, {.code sigma2}, and {.code rho12}, complete response pairs, unit weights, and no other random-effect layer.",
-        "i" = "The relatedness exception has the same boundaries and requires matching labelled {.code relmat(1 | p | id, K = K)} intercepts; supplied precision {.code Q}, animal, slopes, q4+, and scale-side bivariate relmat REML routes remain deferred.",
+        "i" = "The relatedness exception has the same boundaries and requires matching labelled {.code relmat(1 | p | id, K = K)} or {.code animal(1 | p | id, A = A)} intercepts; supplied precision {.code Q}/{.code Ainv}, pedigree-built animal matrices, slopes, q4+, and scale-side bivariate relmat/animal REML routes remain deferred.",
         "i" = "Known covariance, missing or weighted response pairs, and additional random, direct-SD, or corpair layers remain outside both exact exceptions; use an admitted cell or set {.code REML = FALSE}."
       ))
     }
@@ -2806,6 +3619,26 @@ drm_pin_tmb_object_to_optimum <- function(obj, opt, state = NULL) {
   invisible(TRUE)
 }
 
+# Compute the final outer gradient at `opt$par`, at fit time, so it is stored
+# on the fit rather than reconstructed lazily (and only when `obj` was kept)
+# inside `check_drm()`'s `check_fixed_gradient()` (`R/check.R`). Uses
+# `fixed_gradient_component_label()` (also `R/check.R`) for the worst-component
+# label, so a stored value and the live `check_drm()` row always agree -- one
+# label rule, not two copies that can drift apart.
+drm_fit_gradient <- function(obj, opt) {
+  gradient <- tryCatch(
+    as.numeric(obj$gr(opt$par)),
+    error = function(e) NULL
+  )
+  if (is.null(gradient) || !all(is.finite(gradient))) {
+    return(list(gradient = gradient, max_component = NA_character_))
+  }
+  names(gradient) <- names(opt$par)
+  max_index <- if (length(gradient) > 0L) which.max(abs(gradient)) else NA_integer_
+  max_component <- fixed_gradient_component_label(list(opt = opt), gradient, max_index)
+  list(gradient = gradient, max_component = max_component)
+}
+
 # Interpret an nlminb convergence code. Returns NULL when the optimizer reported
 # convergence (code 0) and a short human label otherwise, surfacing the PORT
 # message (for example "false convergence (8)").
@@ -2840,7 +3673,7 @@ drm_warn_if_not_converged <- function(opt) {
   cli::cli_warn(
     c(
       "{.fn drmTMB}: {label}.",
-      "i" = "Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect {.code fit$optimizer_attempts} and run {.fn check_drm} to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit."
+      "i" = "Treat the estimates and standard errors with caution. Inspect {.code fit$optimizer_attempts} and run {.fn check_drm} to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit."
     ),
     class = "drmTMB_convergence_warning"
   )
@@ -2850,8 +3683,8 @@ drm_warn_if_not_converged <- function(opt) {
 # Warn at fit time when the optimized objective is not finite. TMB normally
 # returns a finite objective at the reported optimum, so this is a defensive
 # guard: a non-finite objective means the fit never reached a usable optimum and
-# its log-likelihood, estimates, and SEs are meaningless, but nlminb may not have
-# thrown an error.
+# its log-likelihood, estimates, and SEs are meaningless, but the optimizer may
+# not have thrown an error.
 drm_warn_if_nonfinite_objective <- function(opt) {
   objective <- opt$objective
   if (length(objective) == 1L && is.finite(objective)) {
@@ -2860,7 +3693,7 @@ drm_warn_if_nonfinite_objective <- function(opt) {
   cli::cli_warn(
     c(
       "{.fn drmTMB}: the optimized objective is not finite.",
-      "i" = "The fit did not reach a usable optimum; its log-likelihood, estimates, and standard errors are unreliable. Inspect with {.fn check_drm}, rescale or simplify the model, or refit with {.code control = drm_control(optimizer_preset = \"robust\")}."
+      "i" = "The fit did not reach a usable optimum; its log-likelihood, estimates, and standard errors are unreliable. Inspect {.code fit$optimizer_attempts} and run {.fn check_drm}; rescale or simplify the model before refitting."
     ),
     class = "drmTMB_nonfinite_objective_warning"
   )
@@ -2880,6 +3713,8 @@ drm_clamped_scale_families <- function() {
   c(
     "gaussian",
     "biv_gaussian",
+    "biv_lognormal",
+    "biv_student",
     "student",
     "skew_normal",
     "lognormal",
@@ -2914,14 +3749,27 @@ drm_logsigma_clamp_active <- function(report, tmb_data) {
   ]
   values <- unlist(fields, use.names = FALSE)
   values <- values[is.finite(values)]
-  # Only the upper bound flags artificial convergence from a runaway scale
-  # (sigma -> Inf / overflow). The lower bound (sigma -> 0) is the variance-zero
-  # boundary, which is often a legitimate result (e.g. meta-analysis tau = 0) and
-  # is handled by the random-effect SD / scale checks in check_drm().
-  if (length(values) == 0L || !any(values > hi)) {
+  # Both bounds are reported. The UPPER arm stays a warning-strength signal: it
+  # flags artificial convergence from a runaway scale (sigma -> Inf / overflow).
+  # The LOWER arm (sigma -> 0) is often a legitimate result (e.g. meta-analysis
+  # tau = 0), so callers should report it as a note rather than a warning -- but
+  # it must be reported, because the same lower-clamp arm also fires when the
+  # response is on a small numeric scale and the scale coefficient is badly
+  # wrong (Dinnage audit C1). Same predicate as R/profile.R:4197.
+  if (length(values) == 0L) {
     return(NULL)
   }
-  list(value = max(values), lo = lo, hi = hi)
+  hit_hi <- any(values > hi)
+  hit_lo <- any(values < lo)
+  if (!hit_hi && !hit_lo) {
+    return(NULL)
+  }
+  list(
+    value = if (hit_hi) max(values) else min(values),
+    arm = if (hit_hi) "upper" else "lower",
+    lo = lo,
+    hi = hi
+  )
 }
 
 # Warn at fit time when the log(sigma) clamp is active at the optimum. The clamp
@@ -2940,7 +3788,11 @@ drm_warn_if_clamp_active <- function(obj, spec) {
     return(invisible(FALSE))
   }
   info <- drm_logsigma_clamp_active(report, spec$tmb_data)
-  if (is.null(info)) {
+  # The lower arm (sigma -> 0) is often a legitimate result (e.g. meta-analysis
+  # tau = 0); it is surfaced by check_drm() (as a note, not a warning) rather
+  # than raised as a fit-time cli warning here, to avoid warning on every
+  # variance-zero boundary fit. Only the upper (runaway-scale) arm warns.
+  if (is.null(info) || !identical(info$arm, "upper")) {
     return(invisible(FALSE))
   }
   cli::cli_warn(
@@ -3003,6 +3855,9 @@ drm_binomial_link_code <- function(link) switch(link, logit = 0L, probit = 1L, c
   cli::cli_abort("Internal error: unsupported binomial link {.val {link}}."))
 
 drm_family_type <- function(family) {
+  if (is.function(family) && identical(family, base::beta)) {
+    drm_abort_base_beta_as_family()
+  }
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
     return("gaussian")
   }
@@ -3110,7 +3965,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.fn biv_lognormal}, {.fn biv_student}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\"/\"probit\"/\"cloglog\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.fn biv_lognormal}, {.fn biv_student}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta_family}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\"/\"probit\"/\"cloglog\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
@@ -3323,8 +4178,14 @@ drm_build_gaussian_ls_spec <- function(
     sd_phylo_entries,
     mu_phylo$term
   )
-  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  mi_setup <- drm_prepare_gaussian_mi_setup(
+    mu_entry$rhs,
+    impute,
+    missing,
+    allow_k2 = TRUE
+  )
   include_missing_predictor <- isTRUE(mi_setup$enabled)
+  mi_setup2 <- drm_mi_setup_second(mi_setup)
   sparse_mu <- isTRUE(control$sparse_fixed)
   aggregate_gaussian <- isTRUE(control$aggregate_gaussian)
   if (include_missing_predictor && sparse_mu) {
@@ -3403,7 +4264,7 @@ drm_build_gaussian_ls_spec <- function(
     all.vars(f_mu)
   }
   if (include_missing_predictor) {
-    mu_model_vars <- setdiff(mu_model_vars, mi_setup$variable)
+    mu_model_vars <- setdiff(mu_model_vars, drm_mi_setup_variables(mi_setup))
   }
   impute_vars <- if (include_missing_predictor) {
     c(
@@ -3417,6 +4278,12 @@ drm_build_gaussian_ls_spec <- function(
           isTRUE(mi_setup$structured$enabled)
       ) {
         structured_mu_vars(mi_setup$structured$term)
+      },
+      if (is.list(mi_setup2)) {
+        c(
+          all.vars(stats::delete.response(stats::terms(mi_setup2$formula))),
+          mi_setup2$trials_variable
+        )
       }
     )
   } else {
@@ -3446,7 +4313,7 @@ drm_build_gaussian_ls_spec <- function(
     random_effect_vars(sigma_re$terms)
   ))
   if (length(vars) > 0L) {
-    model_keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    model_keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     model_keep <- rep(TRUE, nrow(data))
   }
@@ -3556,6 +4423,15 @@ drm_build_gaussian_ls_spec <- function(
     data_model,
     env = env
   )
+  missing_predictor2 <- if (is.list(mi_setup2)) {
+    drm_build_gaussian_missing_predictor_model(
+      mi_setup2,
+      data_model,
+      env = env
+    )
+  } else {
+    drm_empty_missing_predictor_model(nrow(data_model))
+  }
   if (include_missing_predictor) {
     missing_response_value <- if (is.null(missing_predictor$response_value)) {
       missing_predictor$x
@@ -3568,6 +4444,14 @@ drm_build_gaussian_ls_spec <- function(
       )
     }
     mf_mu[[missing_predictor$model_column]] <- missing_response_value
+    if (isTRUE(missing_predictor2$enabled)) {
+      if (!missing_predictor2$model_column %in% names(mf_mu)) {
+        cli::cli_abort(
+          "Internal {.fn mi} model-frame error: second missing predictor column was not retained."
+        )
+      }
+      mf_mu[[missing_predictor2$model_column]] <- missing_predictor2$x
+    }
   }
 
   terms_mu <- stats::delete.response(stats::terms(mf_mu))
@@ -3588,6 +4472,17 @@ drm_build_gaussian_ls_spec <- function(
       if (is.na(missing_predictor$mu_col)) {
         cli::cli_abort(
           "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+        )
+      }
+    }
+    if (isTRUE(missing_predictor2$enabled)) {
+      missing_predictor2$mu_col <- match(
+        missing_predictor2$model_column,
+        colnames(X_mu)
+      )
+      if (is.na(missing_predictor2$mu_col)) {
+        cli::cli_abort(
+          "Internal {.fn mi} design-matrix error: second missing predictor coefficient column was not found."
         )
       }
     }
@@ -3688,10 +4583,22 @@ drm_build_gaussian_ls_spec <- function(
       start$beta_zoi <- missing_predictor$zoi_start
       start$beta_coi <- missing_predictor$coi_start
     }
+    if (isTRUE(missing_predictor2$enabled)) {
+      start$beta_mi2 <- missing_predictor2$beta_start
+      start$log_sigma_mi2 <- missing_predictor2$log_sigma_start
+      start$x_miss2 <- missing_predictor2$x_miss_start
+    }
   }
-  predictor_metadata <- drm_missing_predictor_metadata(
-    missing_predictor,
-    original_row = which(keep)
+  predictor_metadata <- c(
+    drm_missing_predictor_metadata(
+      missing_predictor,
+      original_row = which(keep)
+    ),
+    drm_missing_predictor_metadata(
+      missing_predictor2,
+      original_row = which(keep),
+      latent_name = "x_miss2"
+    )
   )
   missing_data <- new_drm_missing_data(
     control = missing,
@@ -3774,6 +4681,7 @@ drm_build_gaussian_ls_spec <- function(
     random_scale = list(mu = sd_mu, phylo = sd_phylo),
     structured = list(phylo_mu = phylo_mu, mesh_spatial_mu = mesh_spatial_mu),
     missing_predictor = missing_predictor,
+    missing_predictor2 = missing_predictor2,
     data = data_model,
     variables = vars,
     keep = keep,
@@ -3807,6 +4715,9 @@ drm_build_gaussian_ls_spec <- function(
           identical(missing_predictor$family, "gaussian")
       ) {
         "x_miss"
+      },
+      if (isTRUE(missing_predictor2$enabled)) {
+        "x_miss2"
       },
       if (
         include_missing_predictor && isTRUE(missing_predictor$random$enabled)
@@ -3898,6 +4809,7 @@ drm_build_student_ls_spec <- function(
   data,
   env = parent.frame(),
   weights = NULL,
+  impute = NULL,
   missing = miss_control()
 ) {
   missing <- drm_parse_missing_control(missing)
@@ -3910,7 +4822,8 @@ drm_build_student_ls_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Student-t models only support {.code mu}, {.code sigma}, and {.code nu}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -3986,6 +4899,34 @@ drm_build_student_ls_spec <- function(
   sigma_entry$rhs <- sigma_re$rhs
   validate_student_sigma_random_terms(sigma_re$terms)
 
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+    cli::cli_abort(c(
+      "The first student-response {.fn mi} slice supports one binary missing predictor.",
+      "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+    ))
+  }
+  if (include_missing_response && include_missing_predictor) {
+    cli::cli_abort(c(
+      "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a student response yet.",
+      "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+    ))
+  }
+  if (
+    include_missing_predictor &&
+      (length(mu_re$terms) > 0L ||
+        length(sigma_re$terms) > 0L ||
+        !is.null(mu_spatial$term) ||
+        !is.null(nu_phylo$term))
+  ) {
+    cli::cli_abort(c(
+      "The first student-response {.fn mi} slice is fixed-effect {.code mu}/{.code sigma}/{.code nu} only.",
+      "i" = "Remove random or structured terms for the {.fn mi} predictor slice."
+    ))
+  }
+
   for (entry in list(mu_entry, sigma_entry, nu_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
@@ -3993,6 +4934,11 @@ drm_build_student_ls_spec <- function(
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
   f_nu <- drm_entry_formula(nu_entry, response = FALSE)
+  impute_vars <- if (include_missing_predictor) {
+    all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
+  } else {
+    character(0)
+  }
 
   vars <- unique(c(
     all.vars(f_mu),
@@ -4000,13 +4946,17 @@ drm_build_student_ls_spec <- function(
     all.vars(f_nu),
     random_effect_vars(mu_re$terms),
     structured_mu_vars(mu_spatial$term),
-    structured_mu_vars(nu_phylo$term)
+    structured_mu_vars(nu_phylo$term),
+    impute_vars
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
+  if (include_missing_predictor) {
+    vars <- setdiff(vars, mi_setup$variable)
+  }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -4021,7 +4971,11 @@ drm_build_student_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
+    na.action = if (include_missing_response || include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -4061,10 +5015,35 @@ drm_build_student_ls_spec <- function(
     y[!observed_y] <- response_sentinel
   }
 
+  missing_predictor <- drm_build_gaussian_missing_predictor_model(
+    mi_setup,
+    data_model,
+    env = env
+  )
+  if (include_missing_predictor) {
+    if (!missing_predictor$model_column %in% names(mf_mu)) {
+      cli::cli_abort(
+        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+      )
+    }
+    mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
+  }
+
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
     mf_mu
   )
+  if (include_missing_predictor) {
+    missing_predictor$mu_col <- match(
+      missing_predictor$model_column,
+      colnames(X_mu)
+    )
+    if (is.na(missing_predictor$mu_col)) {
+      cli::cli_abort(
+        "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+      )
+    }
+  }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
 
@@ -4110,6 +5089,7 @@ drm_build_student_ls_spec <- function(
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = phylo_mu),
+    missing_predictor = missing_predictor,
     data = data_model,
     variables = vars,
     keep = keep,
@@ -4129,7 +5109,23 @@ drm_build_student_ls_spec <- function(
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
-  spec$missing_data <- if (include_missing_response) {
+  if (include_missing_predictor) {
+    spec$start$beta_mi <- missing_predictor$beta_start
+  }
+  spec$missing_data <- if (include_missing_predictor) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = NA_real_,
+      predictors = drm_missing_predictor_metadata(
+        missing_predictor,
+        original_row = which(keep)
+      ),
+      version = "MD-student-mi"
+    )
+  } else if (include_missing_response) {
     new_drm_missing_data(
       control = missing,
       original_row = which(keep),
@@ -4145,7 +5141,7 @@ drm_build_student_ls_spec <- function(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- if (include_missing_response) {
+  spec$nobs <- if (include_missing_response || include_missing_predictor) {
     spec$missing_data$counts$likelihood_rows
   } else {
     length(spec$y)
@@ -4285,7 +5281,7 @@ drm_build_skew_normal_ls_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -4434,6 +5430,7 @@ drm_build_lognormal_ls_spec <- function(
   data,
   env = parent.frame(),
   weights = NULL,
+  impute = NULL,
   missing = miss_control()
 ) {
   missing <- drm_parse_missing_control(missing)
@@ -4446,7 +5443,8 @@ drm_build_lognormal_ls_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Lognormal models only support {.code mu} and {.code sigma}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -4515,6 +5513,19 @@ drm_build_lognormal_ls_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_positive_continuous_mu_random_terms(mu_re$terms, "{.fn lognormal}")
+  if (include_missing_response) {
+    has_ordinary_correlated <- any(vapply(
+      mu_re$terms,
+      function(term) term$type %in% c("correlated_slope", "correlated_block"),
+      logical(1L)
+    ))
+    if (isTRUE(has_ordinary_correlated)) {
+      cli::cli_abort(c(
+        "Ordinary lognormal correlated {.code (1 + x | g)} blocks are not implemented with missing-response integration.",
+        "i" = "Use complete data, or the independent form {.code (1 | g) + (0 + x | g)}."
+      ))
+    }
+  }
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
   validate_positive_continuous_sigma_random_terms(
@@ -4529,25 +5540,61 @@ drm_build_lognormal_ls_spec <- function(
     family_label = "lognormal"
   )
 
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+    cli::cli_abort(c(
+      "The first lognormal-response {.fn mi} slice supports one binary missing predictor.",
+      "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+    ))
+  }
+  if (include_missing_response && include_missing_predictor) {
+    cli::cli_abort(c(
+      "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a lognormal response yet.",
+      "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+    ))
+  }
+  if (
+    include_missing_predictor &&
+      (length(mu_re$terms) > 0L ||
+        length(sigma_re$terms) > 0L ||
+        !is.null(mu_structured_term))
+  ) {
+    cli::cli_abort(c(
+      "The first lognormal-response {.fn mi} slice is fixed-effect {.code mu}/{.code sigma} only.",
+      "i" = "Remove random or structured terms for the {.fn mi} predictor slice."
+    ))
+  }
+
   for (entry in list(mu_entry, sigma_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+  impute_vars <- if (include_missing_predictor) {
+    all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
+  } else {
+    character(0)
+  }
 
   vars <- unique(c(
     all.vars(f_mu),
     all.vars(f_sigma),
     random_effect_vars(mu_re$terms),
     random_effect_vars(sigma_re$terms),
-    structured_mu_vars(mu_structured_term)
+    structured_mu_vars(mu_structured_term),
+    impute_vars
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
+  if (include_missing_predictor) {
+    vars <- setdiff(vars, mi_setup$variable)
+  }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -4562,7 +5609,11 @@ drm_build_lognormal_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
+    na.action = if (include_missing_response || include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -4601,10 +5652,35 @@ drm_build_lognormal_ls_spec <- function(
     y[!observed_y] <- response_sentinel
   }
 
+  missing_predictor <- drm_build_gaussian_missing_predictor_model(
+    mi_setup,
+    data_model,
+    env = env
+  )
+  if (include_missing_predictor) {
+    if (!missing_predictor$model_column %in% names(mf_mu)) {
+      cli::cli_abort(
+        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+      )
+    }
+    mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
+  }
+
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
     mf_mu
   )
+  if (include_missing_predictor) {
+    missing_predictor$mu_col <- match(
+      missing_predictor$model_column,
+      colnames(X_mu)
+    )
+    if (is.na(missing_predictor$mu_col)) {
+      cli::cli_abort(
+        "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+      )
+    }
+  }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
 
   if (nrow(X_sigma) != length(y)) {
@@ -4641,6 +5717,7 @@ drm_build_lognormal_ls_spec <- function(
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = phylo_mu),
+    missing_predictor = missing_predictor,
     data = data_model,
     variables = vars,
     keep = keep,
@@ -4664,7 +5741,23 @@ drm_build_lognormal_ls_spec <- function(
       if (length(rn)) rn else NULL
     }
   )
-  spec$missing_data <- if (include_missing_response) {
+  if (include_missing_predictor) {
+    spec$start$beta_mi <- missing_predictor$beta_start
+  }
+  spec$missing_data <- if (include_missing_predictor) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = NA_real_,
+      predictors = drm_missing_predictor_metadata(
+        missing_predictor,
+        original_row = which(keep)
+      ),
+      version = "MD-lognormal-mi"
+    )
+  } else if (include_missing_response) {
     new_drm_missing_data(
       control = missing,
       original_row = which(keep),
@@ -4680,7 +5773,7 @@ drm_build_lognormal_ls_spec <- function(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- if (include_missing_response) {
+  spec$nobs <- if (include_missing_response || include_missing_predictor) {
     spec$missing_data$counts$likelihood_rows
   } else {
     length(spec$y)
@@ -4693,6 +5786,7 @@ drm_build_gamma_ls_spec <- function(
   data,
   env = parent.frame(),
   weights = NULL,
+  impute = NULL,
   missing = miss_control()
 ) {
   missing <- drm_parse_missing_control(missing)
@@ -4705,7 +5799,8 @@ drm_build_gamma_ls_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Gamma models only support {.code mu} and {.code sigma}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -4790,25 +5885,61 @@ drm_build_gamma_ls_spec <- function(
     preserve_gamma_relmat = TRUE
   )
 
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+    cli::cli_abort(c(
+      "The first Gamma-response {.fn mi} slice supports one binary missing predictor.",
+      "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+    ))
+  }
+  if (include_missing_response && include_missing_predictor) {
+    cli::cli_abort(c(
+      "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a Gamma response yet.",
+      "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+    ))
+  }
+  if (
+    include_missing_predictor &&
+      (length(mu_re$terms) > 0L ||
+        length(sigma_re$terms) > 0L ||
+        !is.null(mu_structured_term))
+  ) {
+    cli::cli_abort(c(
+      "The first Gamma-response {.fn mi} slice is fixed-effect {.code mu}/{.code sigma} only.",
+      "i" = "Remove random or structured terms for the {.fn mi} predictor slice."
+    ))
+  }
+
   for (entry in list(mu_entry, sigma_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+  impute_vars <- if (include_missing_predictor) {
+    all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
+  } else {
+    character(0)
+  }
 
   vars <- unique(c(
     all.vars(f_mu),
     all.vars(f_sigma),
     random_effect_vars(mu_re$terms),
     random_effect_vars(sigma_re$terms),
-    structured_mu_vars(mu_structured_term)
+    structured_mu_vars(mu_structured_term),
+    impute_vars
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
+  if (include_missing_predictor) {
+    vars <- setdiff(vars, mi_setup$variable)
+  }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -4823,7 +5954,11 @@ drm_build_gamma_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
+    na.action = if (include_missing_response || include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -4862,10 +5997,35 @@ drm_build_gamma_ls_spec <- function(
     y[!observed_y] <- response_sentinel
   }
 
+  missing_predictor <- drm_build_gaussian_missing_predictor_model(
+    mi_setup,
+    data_model,
+    env = env
+  )
+  if (include_missing_predictor) {
+    if (!missing_predictor$model_column %in% names(mf_mu)) {
+      cli::cli_abort(
+        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+      )
+    }
+    mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
+  }
+
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
     mf_mu
   )
+  if (include_missing_predictor) {
+    missing_predictor$mu_col <- match(
+      missing_predictor$model_column,
+      colnames(X_mu)
+    )
+    if (is.na(missing_predictor$mu_col)) {
+      cli::cli_abort(
+        "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+      )
+    }
+  }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
 
   if (nrow(X_sigma) != length(y)) {
@@ -4902,6 +6062,7 @@ drm_build_gamma_ls_spec <- function(
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = phylo_mu),
+    missing_predictor = missing_predictor,
     data = data_model,
     variables = vars,
     keep = keep,
@@ -4922,7 +6083,23 @@ drm_build_gamma_ls_spec <- function(
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
-  spec$missing_data <- if (include_missing_response) {
+  if (include_missing_predictor) {
+    spec$start$beta_mi <- missing_predictor$beta_start
+  }
+  spec$missing_data <- if (include_missing_predictor) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = NA_real_,
+      predictors = drm_missing_predictor_metadata(
+        missing_predictor,
+        original_row = which(keep)
+      ),
+      version = "MD-gamma-mi"
+    )
+  } else if (include_missing_response) {
     new_drm_missing_data(
       control = missing,
       original_row = which(keep),
@@ -4938,7 +6115,7 @@ drm_build_gamma_ls_spec <- function(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- if (include_missing_response) {
+  spec$nobs <- if (include_missing_response || include_missing_predictor) {
     spec$missing_data$counts$likelihood_rows
   } else {
     length(spec$y)
@@ -4963,7 +6140,8 @@ drm_build_tweedie_ls_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "{.fn tweedie} models only support {.code mu}, {.code sigma}, and intercept-only {.code nu}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -5057,7 +6235,7 @@ drm_build_tweedie_ls_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -5227,12 +6405,13 @@ drm_build_beta_ls_spec <- function(
   reject_planned_bounded_inflation(
     entries = entries,
     unsupported = unsupported,
-    family_label = "beta()"
+    family_label = "beta_family()"
   )
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Beta models only support {.code mu} and {.code sigma}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_mu_dpar)) {
@@ -5416,7 +6595,7 @@ drm_build_beta_ls_spec <- function(
     vars <- setdiff(vars, mi_setup$variable)
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -5648,7 +6827,8 @@ drm_build_zero_one_beta_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Zero-one beta models only support {.code mu}, {.code sigma}, {.code zoi}, and {.code coi}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -5950,7 +7130,7 @@ drm_build_zero_one_beta_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -6127,6 +7307,7 @@ drm_build_beta_binomial_spec <- function(
   data,
   env = parent.frame(),
   weights = NULL,
+  impute = NULL,
   missing = miss_control()
 ) {
   missing <- drm_parse_missing_control(missing)
@@ -6144,7 +7325,8 @@ drm_build_beta_binomial_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Beta-binomial models only support {.code mu} and {.code sigma}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -6205,23 +7387,57 @@ drm_build_beta_binomial_spec <- function(
   sigma_entry$rhs <- sigma_re$rhs
   validate_beta_binomial_sigma_random_terms(sigma_re$terms)
 
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+    cli::cli_abort(c(
+      "The first beta-binomial-response {.fn mi} slice supports one binary missing predictor.",
+      "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+    ))
+  }
+  if (include_missing_response && include_missing_predictor) {
+    cli::cli_abort(c(
+      "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a beta-binomial response yet.",
+      "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+    ))
+  }
+  if (
+    include_missing_predictor &&
+      (length(mu_re$terms) > 0L || length(sigma_re$terms) > 0L)
+  ) {
+    cli::cli_abort(c(
+      "The first beta-binomial-response {.fn mi} slice is fixed-effect {.code mu}/{.code sigma} only.",
+      "i" = "Remove random or structured terms for the {.fn mi} predictor slice."
+    ))
+  }
+
   for (entry in list(mu_entry, sigma_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+  impute_vars <- if (include_missing_predictor) {
+    all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
+  } else {
+    character(0)
+  }
 
   vars <- unique(c(
     all.vars(f_mu),
     all.vars(f_sigma),
-    random_effect_vars(mu_re$terms)
+    random_effect_vars(mu_re$terms),
+    impute_vars
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
+  if (include_missing_predictor) {
+    vars <- setdiff(vars, mi_setup$variable)
+  }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -6236,7 +7452,11 @@ drm_build_beta_binomial_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
+    na.action = if (include_missing_response || include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -6277,10 +7497,35 @@ drm_build_beta_binomial_spec <- function(
   response$failures[observed_y] <- response_obs$failures
   response$trials[observed_y] <- response_obs$trials
 
+  missing_predictor <- drm_build_gaussian_missing_predictor_model(
+    mi_setup,
+    data_model,
+    env = env
+  )
+  if (include_missing_predictor) {
+    if (!missing_predictor$model_column %in% names(mf_mu)) {
+      cli::cli_abort(
+        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+      )
+    }
+    mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
+  }
+
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
     mf_mu
   )
+  if (include_missing_predictor) {
+    missing_predictor$mu_col <- match(
+      missing_predictor$model_column,
+      colnames(X_mu)
+    )
+    if (is.na(missing_predictor$mu_col)) {
+      cli::cli_abort(
+        "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+      )
+    }
+  }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
 
   if (nrow(X_sigma) != length(response$successes)) {
@@ -6311,6 +7556,7 @@ drm_build_beta_binomial_spec <- function(
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
+    missing_predictor = missing_predictor,
     denominator = response[c("success_name", "failure_name", "trials")],
     data = data_model,
     variables = vars,
@@ -6327,7 +7573,23 @@ drm_build_beta_binomial_spec <- function(
     map = beta_binomial_map(re_mu),
     random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
-  spec$missing_data <- if (include_missing_response) {
+  if (include_missing_predictor) {
+    spec$start$beta_mi <- missing_predictor$beta_start
+  }
+  spec$missing_data <- if (include_missing_predictor) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = NA_real_,
+      predictors = drm_missing_predictor_metadata(
+        missing_predictor,
+        original_row = which(keep)
+      ),
+      version = "MD-beta-binomial-mi"
+    )
+  } else if (include_missing_response) {
     new_drm_missing_data(
       control = missing,
       original_row = which(keep),
@@ -6343,7 +7605,7 @@ drm_build_beta_binomial_spec <- function(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- if (include_missing_response) {
+  spec$nobs <- if (include_missing_response || include_missing_predictor) {
     spec$missing_data$counts$likelihood_rows
   } else {
     length(spec$y)
@@ -6414,6 +7676,17 @@ drm_build_binomial_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_binomial_mu_random_terms(mu_re$terms)
+  # First binomial structured slice (#1048): one unlabelled q1 phylo() intercept
+  # on mu. Phylogenetic logistic regression -- a binary trait on a tree -- is the
+  # canonical comparative-methods use of a binary response, and binomial was the
+  # only common family without a structured route. Deliberately narrow, matching
+  # how beta and zero-one-beta grew provider by provider: phylo only (no
+  # spatial/animal/relmat yet), intercept only (no slopes, no labels), not
+  # combinable with mi() or with ordinary random effects in this slice.
+  mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
+  mu_entry$rhs <- mu_phylo$rhs
+  binomial_structured_term <- mu_phylo$term
+  validate_binomial_structured_mu_term(binomial_structured_term, mu_re$terms)
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
   if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
@@ -6435,6 +7708,12 @@ drm_build_binomial_spec <- function(
       "i" = "Use one of a {.code (1 | id)} random intercept or {.code miss_control(predictor = \"model\")}, not both."
     ))
   }
+  if (include_missing_predictor && !is.null(binomial_structured_term)) {
+    cli::cli_abort(c(
+      "A binomial {.fn phylo} effect cannot yet be combined with missing-predictor {.fn mi}.",
+      "i" = "Fit the phylogenetic slice without {.code miss_control(predictor = \"model\")}."
+    ))
+  }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -6446,6 +7725,7 @@ drm_build_binomial_spec <- function(
   vars <- unique(c(
     all.vars(f_mu),
     impute_vars,
+    structured_mu_vars(binomial_structured_term),
     random_effect_vars(mu_re$terms)
   ))
   # response = "include": keep missing-response rows (exclude the response from
@@ -6459,7 +7739,7 @@ drm_build_binomial_spec <- function(
     keep_vars <- setdiff(keep_vars, mi_setup$variable)
   }
   if (length(keep_vars) > 0L) {
-    keep <- stats::complete.cases(data[, keep_vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, keep_vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -6555,6 +7835,11 @@ drm_build_binomial_spec <- function(
   }
 
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  phylo_mu <- build_structured_mu_structure(
+    binomial_structured_term,
+    data_model,
+    env
+  )
 
   spec <- list(
     model_type = "binomial",
@@ -6579,7 +7864,7 @@ drm_build_binomial_spec <- function(
       mu = empty_sd_mu_structure(re_mu$n_re),
       phylo = empty_sd_phylo_structure()
     ),
-    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    structured = list(phylo_mu = phylo_mu),
     missing_predictor = missing_predictor,
     denominator = response[
       c("success_name", "failure_name", "trials", "encoding")
@@ -6595,10 +7880,14 @@ drm_build_binomial_spec <- function(
       offset_mu,
       re_mu = re_mu,
       observed_y = observed_y,
-      link = link
+      link = link,
+      phylo_mu = phylo_mu
     ),
-    map = binomial_map(re_mu),
-    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+    map = binomial_map(re_mu, phylo_mu),
+    random_names = c(
+      if (re_mu$n_re > 0L) "u_mu",
+      if (isTRUE(phylo_mu$has)) "u_phylo"
+    )
   )
   if (include_missing_predictor) {
     spec$start$beta_mi <- missing_predictor$beta_start
@@ -6716,7 +8005,7 @@ drm_build_cumulative_logit_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -6859,7 +8148,8 @@ drm_build_poisson_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Poisson models only support {.code mu} and optional {.code zi}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -6939,6 +8229,19 @@ drm_build_poisson_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry))
+  if (include_missing_response) {
+    has_ordinary_correlated <- any(vapply(
+      mu_re$terms,
+      function(term) term$type %in% c("correlated_slope", "correlated_block"),
+      logical(1L)
+    ))
+    if (isTRUE(has_ordinary_correlated)) {
+      cli::cli_abort(c(
+        "Ordinary Poisson correlated {.code (1 + x | g)} blocks are not implemented with missing-response integration.",
+        "i" = "Use complete data, or the independent form {.code (1 | g) + (0 + x | g)}."
+      ))
+    }
+  }
   validate_count_structured_mu_term(
     mu_structured_term,
     mu_re$terms,
@@ -6979,10 +8282,31 @@ drm_build_poisson_spec <- function(
     ))
   }
   if (include_missing_predictor && !is.null(zi_entry)) {
-    cli::cli_abort(c(
-      "Poisson-response {.fn mi} predictor models are not implemented with zero inflation yet.",
-      "i" = "Fit the first non-Gaussian response missing-predictor slice without a {.code zi} formula."
-    ))
+    # D-23: mi() in mu only; ZIP mixture in the 2-point sum; eta_zi
+    # from observed-only predictors. zi ~ mi(x) is a different estimand.
+    if (formula_contains_call(zi_entry$rhs, "mi")) {
+      cli::cli_abort(c(
+        "Zero-inflated Poisson cannot carry {.fn mi} on {.code zi}.",
+        "x" = "{.fn mi} is legal only in {.code mu}. A path to {.code zi} is not a path to the conditional mean.",
+        "i" = "Use {.code zi ~ 1} or {.code zi ~} fully observed covariates."
+      ))
+    }
+    if (mi_setup$variable %in% all.vars(zi_entry$rhs)) {
+      cli::cli_abort(c(
+        "Zero-inflated Poisson cannot use the missing predictor on {.code zi}.",
+        "x" = "{.code eta_zi} must come from observed-only predictors.",
+        "i" = "Use {.code zi ~ 1} or drop {.val {mi_setup$variable}} from the {.code zi} formula."
+      ))
+    }
+    if (
+      !is.null(zi_spatial$term) ||
+        formula_contains_call(zi_entry$rhs, "|")
+    ) {
+      cli::cli_abort(c(
+        "The first zero-inflated Poisson {.fn mi} slice is fixed-effect {.code mu} and {.code zi} only.",
+        "i" = "Remove random or structured terms from {.code zi}, or drop {.fn mi}."
+      ))
+    }
   }
   if (
     include_missing_predictor &&
@@ -7037,7 +8361,7 @@ drm_build_poisson_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -7202,7 +8526,7 @@ drm_build_poisson_spec <- function(
         missing_predictor,
         original_row = which(keep)
       ),
-      version = "MD9a"
+      version = if (!is.null(zi_entry)) "MD-zi-poisson-mi" else "MD9a"
     )
   } else if (include_missing_response) {
     new_drm_missing_data(
@@ -7292,7 +8616,8 @@ drm_build_nbinom2_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "{.fn nbinom2} models only support {.code mu}, {.code sigma}, and optional {.code zi}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -7438,6 +8763,19 @@ drm_build_nbinom2_spec <- function(
     family_label = "NB2",
     inflated_label = "Zero-inflated NB2"
   )
+  if (include_missing_response) {
+    has_ordinary_correlated <- any(vapply(
+      mu_re$terms,
+      function(term) term$type %in% c("correlated_slope", "correlated_block"),
+      logical(1L)
+    ))
+    if (isTRUE(has_ordinary_correlated)) {
+      cli::cli_abort(c(
+        "Ordinary NB2 correlated {.code (1 + x | g)} blocks are not implemented with missing-response integration.",
+        "i" = "Use complete data, or the independent form {.code (1 | g) + (0 + x | g)}."
+      ))
+    }
+  }
   validate_count_structured_mu_term(
     mu_structured_term,
     mu_re$terms,
@@ -7488,11 +8826,25 @@ drm_build_nbinom2_spec <- function(
 
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
-  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+  if (
+    include_missing_predictor &&
+      !identical(mi_setup$family, "bernoulli") &&
+      !identical(mi_setup$family, "gaussian")
+  ) {
     cli::cli_abort(c(
-      "The first nbinom2-response {.fn mi} slice supports one binary missing predictor.",
+      "The first nbinom2-response {.fn mi} slice supports one binary or one Gaussian missing predictor.",
       "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
-      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} or {.code impute_model(x ~ z, family = gaussian())}."
+    ))
+  }
+  if (
+    include_missing_predictor &&
+      identical(mi_setup$family, "gaussian") &&
+      (isTRUE(mi_setup$random$enabled) || isTRUE(mi_setup$structured$enabled))
+  ) {
+    cli::cli_abort(c(
+      "The first nbinom2-response Gaussian {.fn mi} slice is a fixed-effect predictor model only.",
+      "i" = "Drop grouped or structured terms from the {.arg impute} formula."
     ))
   }
   if (include_missing_response && include_missing_predictor) {
@@ -7558,7 +8910,7 @@ drm_build_nbinom2_spec <- function(
     vars <- setdiff(vars, mi_setup$variable)
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -7794,12 +9146,22 @@ drm_build_nbinom2_spec <- function(
       if (re_mu$n_re > 0L) "u_mu",
       if (re_sigma$n_re > 0L) "u_sigma",
       if (isTRUE(phylo_mu$has)) "u_phylo",
-      if (isTRUE(phylo_mu2$has)) "u_phylo2"
+      if (isTRUE(phylo_mu2$has)) "u_phylo2",
+      if (
+        include_missing_predictor &&
+          identical(missing_predictor$family, "gaussian")
+      ) {
+        "x_miss"
+      }
     )
   )
   spec <- add_structured_mu2_parameters(spec, phylo_mu2, y)
   if (include_missing_predictor) {
     spec$start$beta_mi <- missing_predictor$beta_start
+    if (identical(missing_predictor$family, "gaussian")) {
+      spec$start$log_sigma_mi <- missing_predictor$log_sigma_start
+      spec$start$x_miss <- missing_predictor$x_miss_start
+    }
   }
   spec$missing_data <- if (include_missing_predictor) {
     new_drm_missing_data(
@@ -7812,7 +9174,11 @@ drm_build_nbinom2_spec <- function(
         missing_predictor,
         original_row = which(keep)
       ),
-      version = "MD-nbinom2-mi"
+      version = if (identical(missing_predictor$family, "gaussian")) {
+        "MD-nbinom2-gaussian-mi"
+      } else {
+        "MD-nbinom2-mi"
+      }
     )
   } else if (include_missing_response) {
     new_drm_missing_data(
@@ -7854,7 +9220,8 @@ drm_build_truncated_nbinom2_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "{.fn truncated_nbinom2} models only support {.code mu}, optional {.code sigma}, and optional {.code hu}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -7980,7 +9347,7 @@ drm_build_truncated_nbinom2_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -8214,7 +9581,8 @@ drm_build_biv_gaussian_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "{.fn biv_gaussian} models only support {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, {.code rho12}, bivariate ordinary location random-effect SD formulas {.code sd1(group)} / {.code sd2(group)}, bivariate phylogenetic location random-effect SD formulas {.code sd_phylo1(group)} / {.code sd_phylo2(group)}, and the first ordinary or phylogenetic location-location {.fn corpair} formulas.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   for (required in c("mu1", "mu2")) {
@@ -8564,7 +9932,7 @@ drm_build_biv_gaussian_spec <- function(
     random_effect_vars(sigma1_re$terms),
     random_effect_vars(sigma2_re$terms)
   ))
-  keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   if (include_missing_response && any(!keep)) {
     cli::cli_abort(c(
       "Missing predictors, grouping variables, or structured-effect inputs are not implemented for bivariate Gaussian response masks in MD2.",
@@ -8884,7 +10252,8 @@ drm_build_biv_lognormal_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "{.fn biv_lognormal} supports only {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, and {.code rho12} formulas.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   has_bar_term <- vapply(entries, function(entry) {
@@ -9233,10 +10602,23 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, and {.fn phylo_interaction} (the {.fn spatial} provider is deferred for the {.code zoi}/{.code coi} atoms pending the mesh/SPDE lane).",
+      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, and {.fn phylo_interaction} (the {.fn spatial} provider is deferred for the {.code zoi}/{.code coi} atoms pending the mesh/SPDE lane), and a binomial q=1 unlabelled {.code mu} intercept slice for {.fn phylo}.",
       "i" = "Structured non-Gaussian paths beyond those gates, including ordinal, shape, hurdle, labelled count covariance, structured count slope-only routes outside the admitted Poisson fixed-covariance spatial slope-only gate, multiple structured count slopes, structured count scale routes outside the NB2 one-slope gate, and zero-one-beta structured slopes, labels, q>=2 fields, or simultaneous endpoints, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
+  }
+
+  # mi() is legal only in the univariate mean formula (mu); on every other
+  # parameter it was previously parsed and silently discarded, since the
+  # public mi() stub is just `function(x) x` and no non-mu formula path
+  # extracts or rejects it (Dinnage audit Md-D). Checked ahead of the
+  # shared `unsupported` list below so it applies uniformly.
+  if (!identical(dpar, "mu") && formula_contains_call(rhs, "mi")) {
+    cli::cli_abort(c(
+      "{.fn mi} is not supported outside the {.code mu} formula.",
+      "x" = "The {.code {dpar}} formula contains {.fn mi}.",
+      "i" = "{.fn mi} models missing values in a predictor of the conditional mean; use ordinary covariates or drop {.fn mi} from {.code {dpar}}."
+    ))
   }
 
   unsupported <- c("|", "meta_known_V", "meta_V", "gr", "phylo", "spatial")
@@ -9393,6 +10775,28 @@ validate_poisson_mu_random_terms <- function(
       "i" = "Fit {.code y ~ x + (1 | id) + (0 + x | id)} without a {.code zi} formula, or use a fixed-effect {.code zi ~ predictors} model."
     ))
   }
+  has_correlated_block <- vapply(
+    terms,
+    function(term) term$type %in% c("correlated_slope", "correlated_block"),
+    logical(1L)
+  )
+  if (any(has_correlated_block)) {
+    count_wedge <-
+      family_label %in% c("Poisson", "NB2") &&
+      length(terms) == 1L &&
+      identical(terms[[1L]]$type, "correlated_slope") &&
+      is.null(terms[[1L]]$covariance_label)
+    if (!count_wedge) {
+      labels <- vapply(terms, `[[`, character(1L), "label")
+      cli::cli_abort(c(
+        "Ordinary correlated {family_label} random effects support one unlabelled Poisson intercept-slope block or the matching ordinary NB2 block.",
+        "x" = "Requested random-effect term{?s}: {.code {labels}}.",
+        "i" = "Use exactly {.code count ~ x + (1 + x | id)} with {.code family = poisson()} or {.fn nbinom2} and complete data.",
+        "i" = "Zero-inflated or truncated counts, labelled covariance blocks, additional random-effect terms, and multiple random slopes remain unsupported."
+      ))
+    }
+    return(invisible(terms))
+  }
   unsupported <- vapply(
     terms,
     function(term) {
@@ -9407,7 +10811,7 @@ validate_poisson_mu_random_terms <- function(
       "Only independent {family_label} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use syntax like {.code count ~ x + (1 | id)} or {.code count ~ x + (0 + x | id)}.",
-      "i" = "Correlated {family_label} random-slope blocks and labelled covariance blocks remain planned for a later non-Gaussian random-effect gate."
+      "i" = "Ordinary Poisson and ordinary NB2 also admit one complete-data unlabelled {.code (1 + x | id)} block; labelled covariance blocks remain planned."
     ))
   }
   invisible(terms)
@@ -10424,6 +11828,30 @@ validate_positive_continuous_mu_random_terms <- function(terms, family_label) {
   if (length(terms) == 0L) {
     return(invisible(terms))
   }
+  has_correlated_block <- vapply(
+    terms,
+    function(term) term$type %in% c("correlated_slope", "correlated_block"),
+    logical(1L)
+  )
+  if (any(has_correlated_block)) {
+    # Wave 3 admits exactly one complete-data unlabelled lognormal (1 + x | g)
+    # block. Gamma and every other positive-continuous neighbour stay rejected.
+    lognormal_wedge <-
+      identical(family_label, "{.fn lognormal}") &&
+      length(terms) == 1L &&
+      identical(terms[[1L]]$type, "correlated_slope") &&
+      is.null(terms[[1L]]$covariance_label)
+    if (!lognormal_wedge) {
+      labels <- vapply(terms, `[[`, character(1L), "label")
+      cli::cli_abort(c(
+        "Only independent {family_label} {.code mu} random intercepts and slopes are implemented in this slice.",
+        "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+        "i" = "Use syntax like {.code bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)}.",
+        "i" = "Ordinary {.fn lognormal} also admits one complete-data unlabelled {.code (1 + x | id)} block; Gamma and labelled covariance blocks remain rejected."
+      ))
+    }
+    return(invisible(terms))
+  }
   unsupported <- vapply(
     terms,
     function(term) {
@@ -10438,7 +11866,7 @@ validate_positive_continuous_mu_random_terms <- function(terms, family_label) {
       "Only independent {family_label} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use syntax like {.code bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)}.",
-      "i" = "Correlated positive-continuous slopes, labelled covariance blocks, structured effects, and scale random effects remain planned until separate recovery tests exist."
+      "i" = "Ordinary {.fn lognormal} also admits one complete-data unlabelled {.code (1 + x | id)} block; correlated Gamma slopes, labelled covariance blocks, structured effects, and scale random effects remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -10782,6 +12210,34 @@ validate_beta_phylo_mu_structured_term <- function(term) {
   invisible(NULL)
 }
 
+validate_binomial_structured_mu_term <- function(term, re_terms) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  # First binomial structured slice (#1048): one unlabelled q1 phylo() intercept.
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Binomial {.fn phylo} {.code mu} effects currently support only an unlabelled q1 intercept.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code phylo(1 | id, tree = tree)}; labelled covariance blocks remain deferred."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "Binomial {.fn phylo} {.code mu} effects currently support only an intercept-only q1 term.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Use {.code phylo(1 | id, tree = tree)}; phylogenetic slopes remain deferred."
+    ))
+  }
+  if (length(re_terms) > 0L) {
+    cli::cli_abort(c(
+      "A binomial {.fn phylo} effect cannot yet be combined with ordinary random effects.",
+      "i" = "Use one of {.code phylo(1 | id, tree = tree)} or {.code (1 | id)}, not both, in this slice."
+    ))
+  }
+  invisible(NULL)
+}
+
 validate_beta_animal_sigma_structured_term <- function(term) {
   if (is.null(term)) {
     return(invisible(NULL))
@@ -10857,6 +12313,99 @@ validate_beta_binomial_sigma_random_terms <- function(terms) {
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
     "i" = "This slice adds only ordinary {.fn beta_binomial} {.code mu} random intercepts on the logit success-probability predictor; count-level overdispersion random effects need their own likelihood and recovery tests."
   ))
+}
+
+# Name the arguments that reached `drmTMB(...)` instead of evaluating them
+# (#1486). `subset` and `na.action` are common lm()/glm() habits, so they get a
+# concrete next step; misspelt formals (`weigths =`) are visible by name.
+drm_abort_unused_dots <- function(
+  dot_names,
+  n_dots = length(dot_names),
+  call = parent.frame()
+) {
+  if (is.null(dot_names)) {
+    dot_names <- rep("", n_dots)
+  }
+  named <- dot_names[nzchar(dot_names)]
+  n_unnamed <- sum(!nzchar(dot_names))
+  bullets <- c(
+    "{.fn drmTMB} does not use extra arguments in {.arg ...}."
+  )
+  if (length(named) > 0L) {
+    bullets <- c(
+      bullets,
+      "x" = "Unused argument{?s}: {.arg {named}}."
+    )
+  }
+  if (n_unnamed > 0L) {
+    bullets <- c(
+      bullets,
+      "x" = paste0(
+        n_unnamed,
+        " unnamed extra argument", if (n_unnamed > 1L) "s" else "",
+        "; name every argument after {.arg data}."
+      )
+    )
+  }
+  if ("subset" %in% named) {
+    bullets <- c(
+      bullets,
+      "i" = "Subset {.arg data} before fitting, for example {.code data = subset(d, cyl == 4)}."
+    )
+  }
+  if ("na.action" %in% named) {
+    bullets <- c(
+      bullets,
+      "i" = "Use {.arg missing} with {.fn miss_control} to choose how missing values are handled."
+    )
+  }
+  if (length(named) > 0L && !all(named %in% c("subset", "na.action"))) {
+    bullets <- c(
+      bullets,
+      "i" = "Check the spelling against the arguments of {.fn drmTMB}."
+    )
+  }
+  cli::cli_abort(bullets, class = "drmTMB_unused_dots_error", call = call)
+}
+
+# Drop unused levels only from factor columns that appear in plain fixed-effect
+# terms of some distributional-parameter formula (Dinnage audit Md-E). A column
+# is protected -- its levels are left alone -- when it is a response (`lhs` of
+# any entry), or appears inside a random bar `(... | g)`, or inside a marker
+# call whose argument set is a declared contract (`mi()`, `phylo()`,
+# `relmat()`, `spatial()`, `meta_V()`, `precision()`). Protection wins over use
+# so a variable serving both roles is never re-levelled.
+drm_droplevels_fixed_predictors <- function(data, formula) {
+  entries <- formula$entries
+  if (is.null(entries)) {
+    return(data)
+  }
+  protected_calls <- c("mi", "phylo", "relmat", "spatial", "meta_V", "precision")
+  protect <- character(0)
+  use <- character(0)
+  for (entry in entries) {
+    if (!is.null(entry$lhs)) {
+      protect <- c(protect, all.vars(entry$lhs))
+    }
+    if (is.null(entry$rhs)) {
+      next
+    }
+    for (term in flatten_plus_terms(entry$rhs)) {
+      term_names <- all.names(term)
+      if (is_random_bar_call(term) || any(term_names %in% c("|", "||", protected_calls))) {
+        protect <- c(protect, all.vars(term))
+      } else {
+        use <- c(use, all.vars(term))
+      }
+    }
+  }
+  cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
+  for (col in cols) {
+    if (is.factor(data[[col]])) {
+      data[[col]] <- drm_droplevels_keep_contrasts_factor(data[[col]])
+    }
+  }
+  data
 }
 
 is_random_bar_call <- function(expr) {
@@ -13167,7 +14716,7 @@ build_known_precision_mu_structure <- function(term, data, env) {
       "x" = "Use syntax like {.code {marker}(1 | id, Q = Q)} where {.field id} is a column in {.arg data}."
     ))
   }
-  group_values <- as.character(data[[group]])
+  group_values <- drm_id_labels(data[[group]])
   if (length(unique(group_values)) < 2L) {
     cli::cli_abort(c(
       "{.fn {marker}} grouping variable {.field {group}} has fewer than two observed levels.",
@@ -16378,7 +17927,7 @@ subset_likelihood_weights <- function(weights, keep, n_data, n_model) {
   if (any(bad)) {
     cli::cli_abort(c(
       "{.arg weights} must be finite and non-missing for all modelled rows.",
-      "x" = "After model-row filtering, {sum(bad)} weight value{?s} are missing or non-finite."
+      "x" = "After model-row filtering, {sum(bad)} weight value{?s} {?is/are} missing or non-finite."
     ))
   }
   if (any(out < 0)) {
@@ -17456,7 +19005,8 @@ binomial_start <- function(
   offset_mu = rep(0, length(successes)),
   re_mu = empty_random_mu_structure(length(successes)),
   observed_y = rep(TRUE, length(successes)),
-  link = "logit"
+  link = "logit",
+  phylo_mu = empty_phylo_mu_structure()
 ) {
   observed_y <- as.logical(observed_y)
   # Starting values must be on the FITTED link's scale. This used to hardcode
@@ -17515,6 +19065,7 @@ binomial_start <- function(
     y_scale,
     observed_y = observed_y
   )
+  phylo_start <- gaussian_phylo_start(resid, phylo_mu)
   c(
     list(beta_mu = beta_mu),
     list(
@@ -17535,17 +19086,20 @@ binomial_start <- function(
       beta_sigma1 = 0,
       beta_sigma2 = 0,
       beta_rho12 = 0,
-      u_phylo = 0,
-      log_sd_phylo = 0,
+      u_phylo = phylo_start$u_phylo,
+      log_sd_phylo = phylo_start$log_sd_phylo,
       eta_cor_phylo = 0
     )
   )
 }
 
-binomial_map <- function(re_mu = empty_random_mu_structure(1L)) {
+binomial_map <- function(
+  re_mu = empty_random_mu_structure(1L),
+  phylo_mu = empty_phylo_mu_structure()
+) {
   poisson_map(
     re_mu = re_mu,
-    phylo_mu = empty_phylo_mu_structure()
+    phylo_mu = phylo_mu
   )
 }
 
@@ -18564,7 +20118,12 @@ biv_gaussian_start <- function(
   }
   rho <- max(min(rho, 0.8), -0.8)
 
-  beta_rho12 <- numeric(ncol(X_rho12))
+  # Named at build time (2026-09-03, N3) so the generic `fixef:rho12:<column>`
+  # public start label already reaches `beta_rho12` via
+  # `drm_resolve_public_start_target()`'s existing `fixef:` branch -- the same
+  # mechanism `beta_mu1`/`beta_mu2`/`beta_sigma1`/`beta_sigma2` already use
+  # (their names come from `lm.fit()`/`gaussian_sigma_fixed_start()` instead).
+  beta_rho12 <- stats::setNames(numeric(ncol(X_rho12)), colnames(X_rho12))
   beta_sigma1 <- gaussian_sigma_fixed_start(
     resid = resid1,
     X_sigma = X_sigma1,
@@ -19165,6 +20724,26 @@ add_covariance_probe_parameter <- function(spec) {
   if (is.null(spec$map$log_sd_mi_struct) && !has_mi_struct) {
     spec$map$log_sd_mi_struct <- factor(NA)
   }
+  has_mi2 <- is.list(spec$missing_predictor2) &&
+    isTRUE(spec$missing_predictor2$enabled)
+  if (is.null(spec$start$beta_mi2)) {
+    spec$start$beta_mi2 <- 0
+  }
+  if (is.null(spec$start$log_sigma_mi2)) {
+    spec$start$log_sigma_mi2 <- 0
+  }
+  if (is.null(spec$start$x_miss2)) {
+    spec$start$x_miss2 <- 0
+  }
+  if (is.null(spec$map$beta_mi2) && !has_mi2) {
+    spec$map$beta_mi2 <- factor(NA)
+  }
+  if (is.null(spec$map$log_sigma_mi2) && !has_mi2) {
+    spec$map$log_sigma_mi2 <- factor(NA)
+  }
+  if (is.null(spec$map$x_miss2) && !has_mi2) {
+    spec$map$x_miss2 <- factor(NA)
+  }
   # Scoped second structured location field. Every model declares its parameters
   # so the shared C++ signature is satisfied; they are mapped off unless the
   # admitted intercept-only two-provider combo populated `phylo_mu2`.
@@ -19500,7 +21079,7 @@ make_tmb_data_core <- function(spec) {
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
       n_mu_re_terms = re_mu$n_terms,
-      n_mu_re_cors = 0L,
+      n_mu_re_cors = re_mu$n_cors,
       mu_re_index = re_mu$index0,
       mu_re_value = re_mu$value,
       mu_re_term = re_mu$term_id0,
@@ -19881,6 +21460,7 @@ make_tmb_data_core <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "binomial")) {
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 18L,
       link_code = drm_binomial_link_code(if (is.null(spec$link)) "logit" else spec$link),
@@ -19931,11 +21511,28 @@ make_tmb_data_core <- function(spec) {
       sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      # #1048: the first binomial structured slice. These five fields used to be
+      # hard-coded to the empty values, which silently discarded a parsed
+      # phylo() term at the data-assembly step -- the builder had already
+      # validated and stored it, so has_phylo_mu = 0L here was the one line that
+      # turned a real structure into a no-op.
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "cumulative_logit")) {
@@ -20589,7 +22186,16 @@ split_tmb_parameters <- function(par, spec) {
     beta_zi <- unname(par$beta_zi)
     names(beta_mu) <- colnames(spec$X$mu)
     names(beta_zi) <- colnames(spec$X$zi)
-    return(list(mu = beta_mu, zi = beta_zi))
+    out <- list(mu = beta_mu, zi = beta_zi)
+    if (
+      is.list(spec$missing_predictor) &&
+        isTRUE(spec$missing_predictor$enabled)
+    ) {
+      beta_mi <- unname(par$beta_mi)
+      names(beta_mi) <- spec$missing_predictor$coef_names
+      out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+    }
+    return(out)
   }
   if (identical(spec$model_type, "zi_nbinom2")) {
     beta_mu <- unname(par$beta_mu)
@@ -20656,6 +22262,15 @@ split_tmb_parameters <- function(par, spec) {
       beta_nu <- unname(par$beta_nu)
       names(beta_nu) <- colnames(spec$X$nu)
       out$nu <- beta_nu
+      if (
+        identical(spec$model_type, "student") &&
+          is.list(spec$missing_predictor) &&
+          isTRUE(spec$missing_predictor$enabled)
+      ) {
+        beta_mi <- unname(par$beta_mi)
+        names(beta_mi) <- spec$missing_predictor$coef_names
+        out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+      }
       return(out)
     }
     if (spec$random_scale$mu$n_models > 0L) {
@@ -20688,7 +22303,10 @@ split_tmb_parameters <- function(par, spec) {
     if (
       (identical(spec$model_type, "gaussian") ||
         identical(spec$model_type, "nbinom2") ||
-        identical(spec$model_type, "beta")) &&
+        identical(spec$model_type, "beta") ||
+        identical(spec$model_type, "gamma") ||
+        identical(spec$model_type, "lognormal") ||
+        identical(spec$model_type, "beta_binomial")) &&
         is.list(spec$missing_predictor) &&
         isTRUE(spec$missing_predictor$enabled)
     ) {
@@ -20713,6 +22331,19 @@ split_tmb_parameters <- function(par, spec) {
           stats::setNames(
             exp(unname(par$log_sigma_mi)),
             spec$missing_predictor$variable
+          )
+      }
+      if (
+        is.list(spec$missing_predictor2) &&
+          isTRUE(spec$missing_predictor2$enabled)
+      ) {
+        beta_mi2 <- unname(par$beta_mi2)
+        names(beta_mi2) <- spec$missing_predictor2$coef_names
+        out[[paste0("mi_", spec$missing_predictor2$variable)]] <- beta_mi2
+        out[[paste0("sigma_mi_", spec$missing_predictor2$variable)]] <-
+          stats::setNames(
+            exp(unname(par$log_sigma_mi2)),
+            spec$missing_predictor2$variable
           )
       }
       if (identical(spec$missing_predictor$family, "zero_one_beta")) {
@@ -21031,7 +22662,14 @@ split_tmb_corpars <- function(par, spec) {
       spec$structured$phylo_mu
     )
   if (
-    !spec$model_type %in% c("gaussian", "biv_gaussian", "binomial") &&
+    !spec$model_type %in% c(
+      "gaussian",
+      "biv_gaussian",
+      "binomial",
+      "poisson",
+      "nbinom2",
+      "lognormal"
+    ) &&
       !count_phylo_q2
   ) {
     return(list())
@@ -21060,7 +22698,7 @@ split_tmb_corpars <- function(par, spec) {
       rho_mu <- if (identical(spec$model_type, "binomial")) {
         tanh(eta_mu)
       } else {
-        0.999999 * tanh(eta_mu)
+        DRM_RE_CORR_GUARD * tanh(eta_mu)
       }
       names(rho_mu) <- spec$random$mu$cor_labels
     }
@@ -21072,13 +22710,13 @@ split_tmb_corpars <- function(par, spec) {
     re_mu_sigma <- empty_mu_sigma_random_covariance(spec$random$sigma$n_re)
   }
   if (re_mu_sigma$n_cors > 0L) {
-    rho_mu_sigma <- 0.999999 *
+    rho_mu_sigma <- DRM_RE_CORR_GUARD *
       tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
     names(rho_mu_sigma) <- re_mu_sigma$cor_labels
     out$mu_sigma <- rho_mu_sigma
   }
   if (spec$random$sigma$n_cors > 0L) {
-    rho_sigma <- 0.999999 *
+    rho_sigma <- DRM_RE_CORR_GUARD *
       tanh(unname(par$eta_cor_sigma[seq_len(spec$random$sigma$n_cors)]))
     names(rho_sigma) <- spec$random$sigma$cor_labels
     out$sigma <- rho_sigma
@@ -21154,7 +22792,10 @@ modelled_corpair_values <- function(par, spec) {
     return(numeric())
   }
   eta <- as.vector(model$X %*% unname(par$beta_cor_mu[seq_len(ncol(model$X))]))
-  0.999999 * tanh(eta)
+  # Group correlations use rho_mu_group (random-effect guard); the modelled
+  # phylogenetic correlation keeps rho_node's 0.999999 (#1190).
+  guard <- if (corpair_model_is_phylogenetic(model)) 0.999999 else DRM_RE_CORR_GUARD
+  guard * tanh(eta)
 }
 
 # Per-level labels for a modelled group mu correlation. Each fitted correlation
@@ -21560,7 +23201,7 @@ transform_mu_random_effects <- function(
   sd_by_index <- mu_sd_by_random_effect(par, re_mu, sd_mu, tmb_data)
   rho <- if (re_mu$n_cors > 0L) {
     eta <- unname(par$eta_cor_mu[seq_len(re_mu$n_cors)])
-    if (isTRUE(binomial_q2)) tanh(eta) else 0.999999 * tanh(eta)
+    if (isTRUE(binomial_q2)) tanh(eta) else DRM_RE_CORR_GUARD * tanh(eta)
   } else {
     numeric()
   }
@@ -21726,7 +23367,7 @@ transform_sigma_random_effects <- function(
 ) {
   sd_by_term <- exp(unname(par$log_sd_sigma[seq_len(re_sigma$n_terms)]))
   rho_mu_sigma <- if (re_mu_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
   } else {
     numeric()
   }
@@ -21755,12 +23396,12 @@ transform_biv_sigma_random_effects <- function(
 ) {
   sd_by_term <- exp(unname(par$log_sd_sigma[seq_len(re_sigma$n_terms)]))
   rho_sigma <- if (re_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_sigma[seq_len(re_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_sigma[seq_len(re_sigma$n_cors)]))
   } else {
     numeric()
   }
   rho_mu_sigma <- if (re_mu_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
   } else {
     numeric()
   }

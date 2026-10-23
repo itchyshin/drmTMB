@@ -1,0 +1,66 @@
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+[91m[1mERROR: [22m[39mLoadError: UndefVarError: `loglogistic` not defined
+[90m   @[39m [90m~/.julia/packages/LogExpFunctions/LITgj/ext/[39m[90m[4mLogExpFunctionsInverseFunctionsExt.jl:19[24m[39m
+[90m   @[39m [90mBase[39m [90m./[39m[90m[4mBase.jl:495[24m[39m[90m [inlined][39m
+[90m   @[39m [90mBase[39m [90m./[39m[90m[4mloading.jl:2216[24m[39m
+[90m   @[39m [90m[4mstdin:3[24m[39m
+drmTMB_drm_bridge (generic function with 1 method)
+  
+drmTMB_drm_bridge_conditional_gaussian_ri (generic function with 1 method)
+  
+drmTMB_drm_bridge_q2_phylo (generic function with 1 method)
+  
+drmTMB_drm_bridge_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_fixef_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_structured (generic function with 1 method)
+  
+drmTMB_mixed_family (generic function with 1 method)
+  
+
+##### SE CELL 1 REML #####
+tmb   SE names: mu_(Intercept), mu_x, sigma_(Intercept), sigma_z
+julia SE names: mu_(Intercept), mu_x, sigma_(Intercept), sigma_z
+  SE mu_(Intercept)         tmb=0.096209734501 julia=0.095912838985 abs=2.968955e-04 rel=3.085920e-03
+  SE mu_x                   tmb=0.102556192495 julia=0.102248528678 abs=3.076638e-04 rel=2.999954e-03
+  SE sigma_(Intercept)      tmb=0.093910378014 julia=0.093910407580 abs=2.956599e-08 rel=3.148319e-07
+  SE sigma_z                tmb=0.107016016229 julia=0.107016083239 abs=6.700982e-08 rel=6.261663e-07
+MAX_ABS_SE_DIFF=3.076638169835e-04 MAX_REL_SE_DIFF=3.085919709796e-03 n_SE=4
+RED CONTROL se_julia[mu_(Intercept)]*1.10 -> MAX_REL_SE_DIFF=9.660548831922e-02 : FAILS (as it must) at rtol 1e-3
+
+##### SE CELL 2 REML #####
+tmb   SE names: mu_(Intercept), mu_x, sigma_(Intercept)
+julia SE names: mu_(Intercept), mu_x, sigma_(Intercept)
+  SE mu_(Intercept)         tmb=0.167667004565 julia=0.167667004565 abs=2.997602e-15 rel=1.787831e-14
+  SE mu_x                   tmb=0.043108485585 julia=0.043108485586 abs=8.145498e-13 rel=1.889535e-11
+  SE sigma_(Intercept)      tmb=0.061082888344 julia=0.061082908704 abs=2.036076e-08 rel=3.333301e-07
+MAX_ABS_SE_DIFF=2.036076315881e-08 MAX_REL_SE_DIFF=3.333300652762e-07 n_SE=3
+RED CONTROL se_julia[mu_(Intercept)]*1.10 -> MAX_REL_SE_DIFF=9.999999999998e-02 : FAILS (as it must) at rtol 1e-3
+
+##### CELL 3 block-diagonal q4, 100 tips x 5 = 500, seed 3 #####
+drm_julia_biv_phylo_dimension = q4
+tmb  (2.6s) convergence=0 estimator=REML logLik=-934.738393347485
+julia(31.0s) estimator=REML engine_estim_method=REML effective_REML=TRUE logLik=-930.165353375125
+  coef mu1_(Intercept)        tmb=0.402777296173 julia=0.397133519460 d=5.643777e-03
+  coef mu2_(Intercept)        tmb=0.566952866005 julia=0.568201427909 d=1.248562e-03
+  coef sigma1_(Intercept)     tmb=-0.392777376514 julia=-0.397565148933 d=4.787772e-03
+  coef sigma2_(Intercept)     tmb=-0.748475520726 julia=-0.754474067983 d=5.998547e-03
+  coef rho12_(Intercept)      tmb=0.053983650949 julia=0.050963519551 d=3.020131e-03
+MAX_ABS_COEF_DIFF=5.998547256231e-03 names_identical=TRUE
+logLik REML tmb=-934.738393347485 julia=-930.165353375125 ABS_DIFF=4.573039972361e+00
+logLik ML   tmb=-931.105199991051 julia=-926.176020766777 ABS_DIFF=4.929179224274e+00
+ML_REML_GAP tmb=3.633193356434 julia=3.989332608348 ; tmb ML convergence=0
+
+##### SE CELL 3 REML #####
+tmb   SE names: mu1_(Intercept), mu2_(Intercept), sigma1_(Intercept), sigma2_(Intercept), rho12_(Intercept)
+julia SE names: mu1_(Intercept), mu2_(Intercept), sigma1_(Intercept), sigma2_(Intercept), rho12_(Intercept)
+NO COMMON FINITE SE
+
+DONE
+Julia exit.
+  Activating project at `~/local-scratch/parity-joint/drmjl-ref-aee371cc`

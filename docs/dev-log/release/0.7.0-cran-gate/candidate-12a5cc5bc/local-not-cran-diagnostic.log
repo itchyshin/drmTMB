@@ -1,0 +1,945 @@
+* using log directory ‘/private/tmp/drmtmb-070-check-e9c5556d-live/drmTMB.Rcheck’
+* using R version 4.6.0 (2026-04-24)
+* using platform: aarch64-apple-darwin23
+* R was compiled by
+    Apple clang version 17.0.0 (clang-1700.3.19.1)
+    GNU Fortran (GCC) 14.2.0
+* running under: macOS Tahoe 26.6.1
+* using session charset: UTF-8
+* current time: 2026-08-18 14:02:00 UTC
+* using options ‘--run-donttest --no-manual --as-cran’
+* checking for file ‘drmTMB/DESCRIPTION’ ... OK
+* this is package ‘drmTMB’ version ‘0.7.0’
+* package encoding: UTF-8
+* checking CRAN incoming feasibility ... [4s/26s] NOTE
+Maintainer: ‘Shinichi Nakagawa <itchyshin@gmail.com>’
+
+New submission
+
+Size of tarball: 10090216 bytes
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘drmTMB’ can be installed ... [73s/78s] OK
+* used C compiler: ‘Apple clang version 21.0.0 (clang-2100.1.1.101)’
+* used C++ compiler: ‘Apple clang version 21.0.0 (clang-2100.1.1.101)’
+* used SDK: ‘MacOSX26.5.sdk’
+* checking installed package size ... INFO
+  installed size is 31.7Mb
+  sub-directories of 1Mb or more:
+    doc   11.6Mb
+    libs  13.7Mb
+    R      3.1Mb
+    sim    1.9Mb
+* checking package directory ... OK
+* checking for future file timestamps ... OK
+* checking ‘build’ directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking whether startup messages can be suppressed ... OK
+* checking use of S3 registration ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... [31s/33s] OK
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking line endings in C/C++/Fortran sources/headers ... OK
+* checking pragmas in C/C++ headers and code ... OK
+* checking compilation flags used ... OK
+* checking compiled code ... OK
+* checking installed files from ‘inst/doc’ ... OK
+* checking files in ‘vignettes’ ... OK
+* checking examples ... [12s/13s] OK
+* checking for unstated dependencies in ‘tests’ ... OK
+* checking tests ...
+  Running ‘spelling.R’
+  Comparing ‘spelling.Rout’ to ‘spelling.Rout.save’ ...
+4,15c4,15
+< > #
+< > # Report-only (error = FALSE): prints potential spelling errors to the check
+< > # log without failing R CMD check, so an incomplete inst/WORDLIST never breaks
+< > # CI. Skipped on CRAN (skip_on_cran = TRUE) because it depends on the system
+< > # hunspell dictionary.
+< > #
+< > # To switch to enforcement (error = TRUE), first run spelling::update_wordlist()
+< > # locally (needs hunspell) to populate inst/WORDLIST with every current term,
+< > # then flip error = TRUE. DESCRIPTION uses `Language: en-GB` because the
+< > # package prose uses British spellings (behaviour, colour, modelling, ...), and
+< > # CI has already confirmed the en_GB hunspell dictionary is available.
+< > if (requireNamespace("spelling", quietly = TRUE)) {
+---
+> + #
+> + # Report-only (error = FALSE): prints potential spelling errors to the check
+> + # log without failing R CMD check, so an incomplete inst/WORDLIST never breaks
+> + # CI. Skipped on CRAN (skip_on_cran = TRUE) because it depends on the system
+> + # hunspell dictionary.
+> + #
+> + # To switch to enforcement (error = TRUE), first run spelling::update_wordlist()
+> + # locally (needs hunspell) to populate inst/WORDLIST with every current term,
+> + # then flip error = TRUE. DESCRIPTION uses `Language: en-GB` because the
+> + # package prose uses British spellings (behaviour, colour, modelling, ...), and
+> + # CI has already confirmed the en_GB hunspell dictionary is available.
+> + if (requireNamespace("spelling", quietly = TRUE)) {
+22,842c22
+< Potential spelling errors:
+<   WORD               FOUND IN
+< abline             bivariate-coscale.Rmd:445
+< Adelie             comparing-with-other-packages.Rmd:504
+< ADEMP              NEWS.md:1413,1486,1494,1496,1503,1505,1563,1564,1565,1566,1567,1568,1638
+<                    implementation-map.Rmd:89
+< ADREPORT           NEWS.md:1247
+< aes                animal-models.Rmd:360
+<                    bivariate-coscale.Rmd:445
+<                    convergence.Rmd:199
+<                    figure-gallery.Rmd:265,370,594,1269,1400,1492,1602,1791,2052
+<                    location-scale-scale.Rmd:369
+<                    location-scale.Rmd:361
+<                    relmat-known-matrices.Rmd:460
+<                    spatial-models.Rmd:398
+<                    which-scale.Rmd:600
+< AGHQ               drmTMB.Rd:133
+<                    NEWS.md:271,426,625
+<                    README.md:188,409
+<                    capability-and-limits.Rmd:156
+< Aii                animal-models.Rmd:360
+< Ainv               NEWS.md:1376,1452,1514,1517,1518
+<                    README.md:364
+<                    animal-models.Rmd:162
+<                    implementation-map.Rmd:184,198
+<                    model-map.Rmd:131,255,370
+<                    phylogenetic-spatial.Rmd:620,674,675
+< alt                animal-models.Rmd:342,418
+<                    bivariate-coscale.Rmd:429,659
+<                    convergence.Rmd:111
+<                    figure-gallery.Rmd:219,350,495,675,1232,1362,1478,1568,1752,2052
+<                    location-scale-scale.Rmd:342
+<                    location-scale.Rmd:334
+<                    model-workflow.Rmd:292,783,927
+<                    phylogenetic-spatial.Rmd:493,548
+<                    relmat-known-matrices.Rmd:456,569
+<                    spatial-models.Rmd:386
+<                    which-scale.Rmd:393,579
+< anticonservative   confint.drmTMB.Rd:158
+<                    NEWS.md:463,478,481
+< AR                 NEWS.md:1262
+< arg                cross-family.Rmd:139
+< artifact           NEWS.md:1416,1423,1424,1428,1431,1451,1452,1453,1472,1477,1478,1479,1480,1481,1482,1483,1484,1501,1510,1537,1538,1539,1540,1541,1542,1545,1566,1604,1654
+<                    README.md:361,386
+<                    bivariate-coscale.Rmd:797,824
+<                    bivariate-nongaussian.Rmd:285
+<                    capability-and-limits.Rmd:496
+<                    formula-grammar.Rmd:392
+<                    implementation-map.Rmd:80,90,129,147,175,195,215,216,228
+<                    large-data.Rmd:307
+<                    model-map.Rmd:128,371
+<                    phylogenetic-spatial.Rmd:254
+<                    robust-student.Rmd:293
+< Artifact           README.md:293
+<                    phylogenetic-spatial.Rmd:254
+< artifacts          NEWS.md:1416,1422,1424,1449,1452,1453,1472,1477,1478,1479,1480,1481,1482,1484,1486,1487,1488,1490,1501,1502,1534,1535,1537,1540,1541,1544
+<                    implementation-map.Rmd:95,147,150,151,152,153,162
+<                    model-map.Rmd:128
+<                    source-map.Rmd:136,138
+< Artifacts          NEWS.md:118
+< ASReml             NEWS.md:1585
+< asymp              figure-gallery.Rmd:1492
+< Ayumi              NEWS.md:1090,1412,1414,1550
+<                    README.md:454
+<                    convergence.Rmd:678
+<                    implementation-map.Rmd:149
+<                    large-data.Rmd:144
+< Azzalini           sigma.drmTMB.Rd:26
+<                    skew_normal.Rd:20
+<                    NEWS.md:1413
+< bergmann           NEWS.md:1459
+< bg                 bivariate-coscale.Rmd:445
+< Biometrika         confint.drmTMB.Rd:391,408
+< biv                bivariate-coscale.Rmd:429
+<                    capability-ledger-family-map.md:4
+< bmatrix            bivariate-coscale.Rmd:55,88,203,207,545,758
+<                    bivariate-nongaussian.Rmd:52
+<                    which-scale.Rmd:715,756,760
+< boldsymbol         count-nbinom2.Rmd:104,106
+<                    location-scale.Rmd:113,152
+<                    meta-analysis.Rmd:415
+<                    phylogenetic-models.Rmd:68
+<                    phylogenetic-spatial.Rmd:344,351,356,365,1087,1117,1121,1257,1263,1266,1281,1358,1360,1366,1368,1374,1795
+<                    proportion-beta-binomial.Rmd:239,242
+< Buuren             worm_plot.Rd:29
+< Casella            confint.drmTMB.Rd:398
+< catalog            NEWS.md:1410
+< cbind              figure-gallery.Rmd:350,1568
+<                    formula-grammar.Rmd:80,81
+< cdots              distribution-families.Rmd:822
+< center             simulation-plot-grammar.Rmd:366
+< centiles           centile_chart.Rd:24
+<                    distributional-outputs-and-adequacy.Rmd:143,171,179
+<                    figure-gallery.Rmd:708
+< Centiles           figure-gallery.Rmd:724
+< checkmark          missing-data.Rmd:85
+< cleanup            source-map.Rmd:191
+< cloglog            drmTMB.Rd:162
+<                    NEWS.md:118,130,145,219,226,233,236
+< closeout           NEWS.md:899,1456,1489,1494,1614
+< CMD                README.md:4
+< coi                distribution-families.Rmd:451
+<                    formula-grammar.Rmd:78
+<                    implementation-map.Rmd:121
+<                    model-map.Rmd:60
+<                    proportion-beta-binomial.Rmd:512
+<                    source-map.Rmd:132,132,132
+< COM                NEWS.md:1485,1491
+<                    count-nbinom2.Rmd:482
+<                    distribution-families.Rmd:518,928
+< conf               bivariate-coscale.Rmd:429,445
+<                    figure-gallery.Rmd:243,265,495,519,545,1256,1385,1400,1568,1602,1784,1791
+<                    location-scale.Rmd:347,354,361
+<                    model-workflow.Rmd:790,797
+<                    which-scale.Rmd:406,413,579,587
+< coord              bivariate-coscale.Rmd:445
+<                    figure-gallery.Rmd:370
+<                    relmat-known-matrices.Rmd:460
+<                    spatial-models.Rmd:398
+< coords             README.md:363,363
+<                    capability-and-limits.Rmd:161
+<                    formula-grammar.Rmd:93,136,138,139,140
+<                    implementation-map.Rmd:125,225
+<                    model-map.Rmd:130,174
+<                    phylogenetic-spatial.Rmd:686,687,688,690
+<                    spatial-models.Rmd:156,158,221,386
+<                    structural-dependence.Rmd:53
+< corpair            README.md:361
+<                    animal-models.Rmd:165
+<                    relmat-known-matrices.Rmd:262
+< corpairs           animal-models.Rmd:423
+<                    bivariate-coscale.Rmd:659
+<                    phylogenetic-spatial.Rmd:493,548
+<                    relmat-known-matrices.Rmd:569,574
+< coscale            predict_parameters.Rd:61
+<                    NEWS.md:1455,1553,1736,1810,1821,1834,1842,1843
+<                    README.md:281
+<                    adding-families.Rmd:40
+<                    bivariate-coscale.Rmd:43,328,332,368,429,659
+<                    capability-and-limits.Rmd:483
+<                    distribution-families.Rmd:72
+<                    drmTMB.Rmd:44
+<                    formula-grammar.Rmd:54,106
+<                    function-map-cheatsheet.Rmd:56
+<                    implementation-map.Rmd:148,179
+<                    model-map.Rmd:33,59
+<                    phylogenetic-spatial.Rmd:317,439,667,1281,1428,1726
+<                    robust-student.Rmd:38
+<                    source-map.Rmd:142
+<                    structural-dependence.Rmd:41
+<                    testing-likelihoods.Rmd:43,371,373
+< Coscale            capability-and-limits.Rmd:24
+<                    implementation-map.Rmd:50
+< Cov                phylogenetic-spatial.Rmd:1290,1348,1806
+< CPUE               distribution-families.Rmd:394
+< CSVs               NEWS.md:1423,1500,1539,1540,1609,1623
+<                    figure-gallery.Rmd:2400
+< cutoff             plot.profile.drmTMB.Rd:23
+<                    profile.drmTMB.Rd:28
+<                    NEWS.md:1462
+<                    model-workflow.Rmd:286,292
+< dat                figure-gallery.Rmd:495,519,545
+<                    location-scale.Rmd:334,361
+< debiased           NEWS.md:1156,1252
+< debiases           confint.drmTMB.Rd:387
+<                    NEWS.md:1150,1171
+< debiasing          NEWS.md:1131,1225
+< desugaring         NEWS.md:585
+< desugars           NEWS.md:576
+< df                 confint.drmTMB.Rd:381
+<                    figure-gallery.Rmd:495
+< DG                 drm_family_dpq.Rd:32
+<                    drm_quantile_residuals.Rd:63,65
+<                    residuals.drmTMB.Rd:77,78
+<                    NEWS.md:780,808,883,890
+< DGP                NEWS.md:284,1156,1416,1425,1426,1427,1429,1452,1453,1472,1477,1478,1479,1480,1481,1482,1484,1486,1499,1502,1503,1563,1568,1629,1632
+<                    bivariate-nongaussian.Rmd:285
+< DHGLM              NEWS.md:1215
+< diag               animal-models.Rmd:342
+< dispatchable       NEWS.md:1424
+< doi                location-scale-scale.Rmd:478
+< Dorie              drm_phylo_penalty.Rd:63
+< dpar               confint.drmTMB.Rd:199
+<                    fitted_distribution.Rd:29
+<                    NEWS.md:795,814,1208
+<                    README.md:55
+<                    bivariate-coscale.Rmd:429
+<                    figure-gallery.Rmd:243,262,350,495,519,545,594,1256,1385,1568,1784
+<                    location-scale.Rmd:347,354
+<                    model-workflow.Rmd:790,797,804,927
+<                    which-scale.Rmd:406,413,420,579,587
+< dpars              drm_family_dpq.Rd:46
+<                    NEWS.md:1554
+<                    capability-and-limits.Rmd:118
+<                    capability-ledger-family-map.md:1
+<                    capability-ledger-missing-response.md:15
+< DRAC               source-map.Rmd:136
+< drm                NEWS.md:1408
+<                    convergence.Rmd:111,120,140
+<                    figure-gallery.Rmd:1249
+<                    source-map.Rmd:127,130,132,135
+< drmtmb             figure-gallery.Rmd:265,370,594,682,1269,1400,1602,1791,2052
+<                    capability-ledger-summary.md:5,7,19,31,43,55,67,79,91
+< drmTMB's           drmTMB.Rd:158
+<                    native_reader_contracts.Rd:7
+<                    NEWS.md:118,1391
+<                    capability-and-limits.Rmd:155
+< Drobniak           location-scale-scale.Rmd:475
+< ed                 drm_control.Rd:38,47
+<                    NEWS.md:1093
+< ELR                NEWS.md:1290
+< emm                figure-gallery.Rmd:1478,1492
+< EMM                NEWS.md:1685
+< emmean             figure-gallery.Rmd:1492
+< EMMs               NEWS.md:1671,1686,1688,1715
+< errorbar           figure-gallery.Rmd:1400,1602
+< errored            model-selection.Rmd:358
+< erroring           NEWS.md:1649
+< estimand           plot_parameter_surface.Rd:59
+<                    NEWS.md:1564,1606
+<                    bivariate-coscale.Rmd:399
+<                    capability-and-limits.Rmd:332
+<                    distribution-families.Rmd:905
+<                    drmTMB.Rmd:173,194
+<                    figure-gallery.Rmd:489,2400
+<                    model-workflow.Rmd:888
+<                    simulation-plot-grammar.Rmd:98,758
+< estimands          NEWS.md:1422,1425,1426,1563,1638
+<                    bivariate-nongaussian.Rmd:15
+<                    figure-gallery.Rmd:2400
+< estimate's         confint.drmTMB.Rd:281
+<                    NEWS.md:338
+< FC                 convergence.Rmd:199
+< FCF                relmat-known-matrices.Rmd:460
+< FIML               NEWS.md:215,994
+< fittable           NEWS.md:1430
+<                    convergence.Rmd:612
+< fixef              capability-ledger-missing-response.md:8
+< fontface           figure-gallery.Rmd:2052
+< frac               count-nbinom2.Rmd:112,123
+<                    cross-family.Rmd:161
+<                    distribution-families.Rmd:406,635,774
+<                    location-scale-scale.Rmd:328
+<                    meta-analysis.Rmd:203
+<                    phylogenetic-models.Rmd:92
+<                    proportion-beta-binomial.Rmd:178,246,414
+< Fredriks           worm_plot.Rd:29
+< GAMLSS             worm_plot.Rd:34
+<                    adding-families.Rmd:152
+<                    distributional-outputs-and-adequacy.Rmd:62,121
+< Gelman             drm_phylo_penalty.Rd:63
+< genomically        relmat-known-matrices.Rmd:214
+< GLMMs              phylogenetic-spatial.Rmd:1662
+< glmmTMB's          distribution-families.Rmd:138
+< GLS                NEWS.md:713
+< GMRF               NEWS.md:642
+<                    README.md:343
+<                    formula-grammar.Rmd:386
+<                    model-map.Rmd:136
+<                    phylogenetic-spatial.Rmd:1096,1628,1655,1662
+<                    spatial-models.Rmd:207,221
+< GMRFs              phylogenetic-spatial.Rmd:1662
+< Godambe            associate_pairs.Rd:40
+<                    association.Rd:27
+<                    biv_associate.Rd:35,45
+<                    confint.drm_pair_association.Rd:28
+<                    vcov.drm_pair_association.Rd:18
+<                    NEWS.md:441,516,529,561
+<                    bivariate-nongaussian.Rmd:21,257
+<                    capability-and-limits.Rmd:145,530
+<                    cross-family.Rmd:32,145,215
+< Gorman             bivariate-nongaussian.Rmd:72
+< gradientn          relmat-known-matrices.Rmd:460
+< grep               structured_effects.Rd:30
+< grepping           NEWS.md:1436
+< Hadfield           phylo.Rd:42
+<                    phylogenetic-models.Rmd:96,479
+< handoffs           NEWS.md:1505
+< Harville           confint.drmTMB.Rd:394
+< Hermite            NEWS.md:808
+<                    capability-and-limits.Rmd:325
+<                    convergence.Rmd:700
+< hline              bivariate-coscale.Rmd:445
+<                    figure-gallery.Rmd:594
+<                    spatial-models.Rmd:398
+< HOLDs              NEWS.md:648
+< HSquared           NEWS.md:1418
+< hu                 README.md:355
+<                    distribution-families.Rmd:68,676,679,688
+<                    formula-grammar.Rmd:96
+<                    implementation-map.Rmd:226
+<                    capability-ledger-family-map.md:14
+<                    model-map.Rmd:60,123
+< ifelse             bivariate-coscale.Rmd:659
+<                    figure-gallery.Rmd:243,519,1478
+<                    model-workflow.Rmd:804
+< ij                 bivariate-coscale.Rmd:545,758
+<                    location-scale-scale.Rmd:46
+<                    location-scale.Rmd:150,152
+<                    phylogenetic-models.Rmd:66,68
+<                    which-scale.Rmd:128,130,133,135,164,166,169,171,209,211,214,216,539,541,542,715,718,719
+< ing                drm_control.Rd:53
+< INLA               phylogenetic-spatial.Rmd:1662
+< inspectable        implementation-map.Rmd:90
+< int                bivariate-coscale.Rmd:429
+<                    figure-gallery.Rmd:243,495,519,545,1256,1385,1568,1784
+<                    capability-ledger-family-map.md:1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+<                    location-scale.Rmd:347
+<                    model-workflow.Rmd:790
+<                    which-scale.Rmd:406,579
+< itchyshin          NEWS.md:1459
+< iter               convergence.Rmd:120
+<                    figure-gallery.Rmd:1249
+< iU                 cross-family.Rmd:161
+< JH                 cross-family.Rmd:161
+< jitterdodge        figure-gallery.Rmd:1400
+< jl                 confint.drmTMB_julia.Rd:55
+<                    summary.drmTMB_julia.Rd:39,41
+<                    NEWS.md:203,233,1418
+<                    README.md:454
+<                    julia-engine.Rmd:37,91
+< jl's               confint.drmTMB_julia.Rd:58
+<                    NEWS.md:203,211
+< JuliaCall          NEWS.md:203
+<                    julia-engine.Rmd:37,91
+< Kenward            confint.drmTMB.Rd:418
+< Kosmidis           drmTMB.Rd:155,183
+<                    model-fit-extractors.Rd:78
+<                    NEWS.md:118
+< Kosmidis's         drmTMB.Rd:175
+< Kubokawa           confint.drmTMB.Rd:438
+< labeled            drmTMB.Rd:147
+<                    convergence.Rmd:607,696
+< Lagisz             location-scale-scale.Rmd:475
+< lapply             convergence.Rmd:140
+< LCL                figure-gallery.Rmd:1492
+< ldots              meta-analysis.Rmd:55
+< len                convergence.Rmd:111
+<                    figure-gallery.Rmd:1232,1362
+< level's            comparing-with-other-packages.Rmd:210
+< Liang              confint.drmTMB.Rd:425
+< Lifecycle          README.md:6
+< Ligges             NEWS.md:16
+< Lindgren           phylogenetic-spatial.Rmd:1662
+< lineend            figure-gallery.Rmd:1492
+< linetype           animal-models.Rmd:360
+<                    bivariate-coscale.Rmd:445
+<                    figure-gallery.Rmd:594
+< linewidth          animal-models.Rmd:360
+<                    bivariate-coscale.Rmd:445
+<                    convergence.Rmd:199
+<                    figure-gallery.Rmd:265,370,1269,1400,1492,1602,1791,2052
+<                    location-scale-scale.Rmd:369
+<                    location-scale.Rmd:361
+<                    spatial-models.Rmd:398
+< lme                simulate.drmTMB.Rd:68
+<                    comparing-with-other-packages.Rmd:2
+< logLik             which-scale.Rmd:690
+< LSS                meta-analysis.Rmd:372
+< LTER               bivariate-nongaussian.Rmd:69
+< lty                bivariate-coscale.Rmd:445
+< lwd                bivariate-coscale.Rmd:445
+< mathbb             location-scale.Rmd:212
+<                    model-workflow.Rmd:110
+< mathbf             bivariate-coscale.Rmd:545,758
+<                    location-scale.Rmd:113,150
+<                    meta-analysis.Rmd:415
+<                    phylogenetic-models.Rmd:66
+<                    phylogenetic-spatial.Rmd:340,345,355,369,1087,1096,1115,1118,1124,1252,1257,1263,1285,1290,1358,1360,1366,1368,1374,1697,1795,1797,1806
+<                    which-scale.Rmd:715
+< mathcal            phylogenetic-models.Rmd:66,131
+< mathrm             phylogenetic-spatial.Rmd:345,355,369,1290,1301,1348
+< mathsf             location-scale.Rmd:113,152
+< mc                 capability-and-limits.Rmd:496
+< MCAR               NEWS.md:909,921,931,942,952,963,994
+<                    README.md:359
+< MCMCglmm           NEWS.md:1252
+< MCSE               NEWS.md:1368,1420,1422,1423,1424,1428,1584,1606,1607,1608,1609
+<                    figure-gallery.Rmd:2400
+<                    simulation-plot-grammar.Rmd:366,377,384
+< MCSEs              NEWS.md:1441,1621
+< Merder             distributional-outputs-and-adequacy.Rmd:62
+< mis                qq_plot.Rd:33,46,49,54
+<                    residuals.drmTMB.Rd:95,100,107,113,117,120
+<                    worm_plot.Rd:33,53,58,61,63,67
+<                    NEWS.md:606,840,1065
+<                    capability-and-limits.Rmd:369
+<                    distributional-outputs-and-adequacy.Rmd:138,185,198,212
+<                    figure-gallery.Rmd:675,682
+< Mizuno             NEWS.md:1090
+<                    location-scale-scale.Rmd:475
+< Mizuno's           convergence.Rmd:678
+< ML's               NEWS.md:1231
+<                    convergence.Rmd:682
+< mr                 capability-ledger-family-map.md:12,18,19
+<                    capability-ledger-missing-response.md:5,8,9,11,13,14
+< MSPL               anova.drmTMB.Rd:20
+<                    drmTMB.Rd:178
+<                    model-fit-extractors.Rd:62,76,83,89,91
+<                    NEWS.md:110,145,236
+< mult               animal-models.Rmd:360
+<                    figure-gallery.Rmd:1492
+<                    location-scale-scale.Rmd:369
+< MVN                bivariate-coscale.Rmd:55,207,545,758
+<                    phylogenetic-spatial.Rmd:345,369,1087,1124,1257,1697
+<                    which-scale.Rmd:715,760
+< Nagashima          confint.drmTMB.Rd:438
+< nbudget            convergence.Rmd:140
+< nconvergence       convergence.Rmd:140
+< NDVI               proportion-beta-binomial.Rmd:65,85,123
+< newdata            bivariate-coscale.Rmd:429
+<                    figure-gallery.Rmd:243,350,495,519,545,1256,1385,1568,1784
+<                    location-scale.Rmd:347
+<                    model-workflow.Rmd:790
+<                    which-scale.Rmd:406
+< ngradient          convergence.Rmd:140
+< nHessian           convergence.Rmd:140
+< Nibi               NEWS.md:1368
+< nmarginal          animal-models.Rmd:342
+< nmean              bivariate-coscale.Rmd:659
+< nmu                animal-models.Rmd:418
+<                    phylogenetic-spatial.Rmd:493,548
+<                    relmat-known-matrices.Rmd:569
+< nobjective         convergence.Rmd:140
+< nonconstant        capability-and-limits.Rmd:452
+< nonconverged       model-selection.Rmd:358
+< nondegenerate      drm_phylo_penalty.Rd:64
+< nonlinear          summary.drmTMB.Rd:63
+<                    NEWS.md:1803,1826
+<                    location-scale-scale.Rmd:333
+< nonstandard        confint.drmTMB.Rd:426
+< nonstationary      NEWS.md:1781
+<                    formula-grammar.Rmd:434
+<                    phylogenetic-spatial.Rmd:737,944
+< nonzero            drm_control.Rd:142
+<                    drmTMB.Rd:34
+<                    simulate.drmTMB.Rd:54
+<                    truncated_nbinom2.Rd:19
+<                    NEWS.md:1156,1433,1776
+<                    distribution-families.Rmd:68,672,724
+<                    formula-grammar.Rmd:96
+< normal's           NEWS.md:883
+< nrelatedness       relmat-known-matrices.Rmd:460
+< nrho               bivariate-coscale.Rmd:659
+< nrow               figure-gallery.Rmd:1232,1269,1362
+<                    location-scale-scale.Rmd:369
+< nSD                convergence.Rmd:140
+< nse                convergence.Rmd:140
+< nSEs               convergence.Rmd:140
+< nsigma             animal-models.Rmd:342
+< nspatial           spatial-models.Rmd:398
+< nstatus            convergence.Rmd:140
+< O'Dea              phylogenetic-spatial.Rmd:1677
+< operatorname       bivariate-coscale.Rmd:55,207,545,758
+<                    count-nbinom2.Rmd:64,222
+<                    cross-family.Rmd:161
+<                    distribution-families.Rmd:193,215,252,285,321,367,406,451,500,531,560,596,635,638,640,676,739,774,817
+<                    location-scale-scale.Rmd:46,49,56,56
+<                    location-scale.Rmd:113,152,212
+<                    meta-analysis.Rmd:55,230,394,415
+<                    missing-data.Rmd:332,343
+<                    model-workflow.Rmd:110
+<                    phylogenetic-spatial.Rmd:340,345,369,1087,1110,1124,1257,1290,1348,1697,1795,1806
+<                    proportion-beta-binomial.Rmd:85,178,414,512
+<                    robust-student.Rmd:51
+<                    which-scale.Rmd:96,128,164,209,292,363,475,539,541,715,760
+< optim              NEWS.md:1395
+< ORCID              drmTMB-package.Rd:36,40
+< overcoverage       README.md:365
+< overplot           qq_plot.Rd:15
+<                    worm_plot.Rd:15
+<                    figure-gallery.Rmd:2400
+<                    simulation-plot-grammar.Rmd:366
+< overplots          qq_plot.Rd:36
+<                    worm_plot.Rd:38
+< oversubscription   model-workflow.Rmd:358
+< parameterised      capability-and-limits.Rmd:483
+< parm               animal-models.Rmd:342
+<                    model-workflow.Rmd:292
+< Paulsen            confint.drmTMB.Rd:448
+< pdHess             NEWS.md:1368
+< ped                formula-grammar.Rmd:135
+< phylo              NEWS.md:207,1022,1056,1074,1142,1366,1372,1457,1464,1470,1471,1473,1475,1476,1477,1485,1502,1504,1511,1512,1515,1586,1648
+<                    README.md:355,362,362,365,367
+<                    bipartite-phylogenetic-interactions.Rmd:57,60,60
+<                    capability-and-limits.Rmd:122,630
+<                    distribution-families.Rmd:69
+<                    formula-grammar.Rmd:118,119,126,127,128,130,131,131,134
+<                    implementation-map.Rmd:127,157,182,186,211
+<                    capability-ledger-family-map.md:1,3,3,4,4,5,6,7,8,9,10,11,11,12,12,13,14,15,16,17,18,19,20
+<                    large-data.Rmd:150
+<                    model-map.Rmd:123,172,173,491
+<                    phylogenetic-models.Rmd:66,85,92,131,451,452,454,455,456,457,458,459,460,461
+<                    phylogenetic-spatial.Rmd:325,345,355,384,614,667,677,678,679,680,690,970,1016,1096,1124,1129,1196,1290,1301,1348,1374,1677,1697,1806
+<                    structural-dependence.Rmd:52,89
+< Phylo              model-map.Rmd:255
+<                    phylogenetic-spatial.Rmd:384,386
+< pigauto            README.md:359
+< PIRLS              comparing-with-other-packages.Rmd:118
+< pleuropneumonia    comparing-with-other-packages.Rmd:82
+< poisson            figure-gallery.Rmd:519
+<                    formula-grammar.Rmd:83,129
+<                    capability-ledger-family-map.md:8,10
+< Poisson            drmTMB.Rd:32,92,95,206,207,211,217
+<                    fitted.drmTMB.Rd:21,30
+<                    impute_model.Rd:47,52
+<                    imputed.Rd:54
+<                    miss_control.Rd:42
+<                    nbinom2.Rd:20
+<                    phylo_interaction.Rd:31
+<                    phylo.Rd:22,24,26
+<                    residuals.drmTMB.Rd:49,51,106
+<                    sigma.drmTMB.Rd:32
+<                    simulate.drmTMB.Rd:47,48
+<                    spatial.Rd:33,34
+<                    tweedie.Rd:13
+<                    description:9
+<                    NEWS.md:5,36,38,49,176,207,840,909,963,1002,1323,1370,1423,1424,1445,1446,1447,1448,1471,1472,1473,1485,1491,1493,1494,1496,1497,1498,1499,1500,1501,1505,1506,1511,1512,1533,1534,1543,1554,1565,1593,1594,1595,1600,1601,1602,1603,1604,1605,1645,1646,1652,1663,1669,1670,1799,1818,1828
+<                    README.md:235,355,359,367,386,465
+<                    bipartite-phylogenetic-interactions.Rmd:47,61,147
+<                    capability-and-limits.Rmd:151,158,291,369,402,416,595
+<                    count-nbinom2.Rmd:31,40,105,105,106,195,210,393,443,448,460,463,469,482
+<                    distribution-families.Rmd:66,81,152,179,498,500,518,529,552,585,928
+<                    distributional-outputs-and-adequacy.Rmd:198
+<                    drmTMB.Rmd:151
+<                    figure-gallery.Rmd:39
+<                    formula-grammar.Rmd:82,84,85,156,184
+<                    implementation-map.Rmd:74,124,124,125,125,131,153,155,156,181,181,183,183,184,185,186,196,197,198,199,200,201,201,214,216,216,225,227,232,232,233,233
+<                    capability-ledger-summary.md:31,41
+<                    missing-data.Rmd:51,64,107,144,153,153,427,471,522,769,804,1023
+<                    model-map.Rmd:58,58,123,129,129,129,130,134,292,369,370,390
+<                    phylogenetic-models.Rmd:335,340,367,381,455
+<                    phylogenetic-spatial.Rmd:254,383,384,385,387,1237
+<                    source-map.Rmd:136,137,191,227
+<                    spatial-models.Rmd:666
+<                    which-scale.Rmd:865
+< precompute         bipartite-phylogenetic-interactions.Rmd:58
+< Precompute         bipartite-phylogenetic-interactions.Rmd:191
+< pred               bivariate-coscale.Rmd:429
+<                    figure-gallery.Rmd:243,262,265,350,367,370,495,519,545,578,580,594,1256,1269,1385,1400,1784,1791
+<                    model-workflow.Rmd:790,797,804,818,927
+< PSOCK              NEWS.md:1532
+< Psychometrika      drm_phylo_penalty.Rd:65
+< qquad              count-nbinom2.Rmd:112
+<                    cross-family.Rmd:139,161,185
+<                    location-scale.Rmd:152
+<                    meta-analysis.Rmd:55,203
+<                    phylogenetic-spatial.Rmd:1087,1118,1348,1360,1368,1797
+<                    proportion-beta-binomial.Rmd:246
+< quadrat            count-nbinom2.Rmd:31
+<                    proportion-beta-binomial.Rmd:65,500
+< quadrats           proportion-beta-binomial.Rmd:31,409
+< R's                NEWS.md:593
+<                    formula-grammar.Rmd:39
+< Rabe               drm_phylo_penalty.Rd:63
+< raincloud          NEWS.md:1608
+<                    figure-gallery.Rmd:2400
+< ranef              spatial-models.Rmd:386
+< realization's      qq_plot.Rd:38
+<                    worm_plot.Rd:40
+< rect               bivariate-coscale.Rmd:445
+< relmat             random_effect_scale_formulas.Rd:50
+<                    NEWS.md:730,1044,1056,1074,1366,1376,1457,1464,1470,1471,1473,1476,1502,1504,1518,1519,1586
+<                    README.md:355,364,364,365
+<                    bipartite-phylogenetic-interactions.Rmd:59
+<                    capability-and-limits.Rmd:160,162,246,429,452,630
+<                    distribution-families.Rmd:68
+<                    figure-gallery.Rmd:2052
+<                    formula-grammar.Rmd:96,123,123,124,124,125,125,130,141
+<                    implementation-map.Rmd:174,186,199,199,226
+<                    capability-ledger-family-map.md:1,3,3,4,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+<                    missing-data.Rmd:159
+<                    model-map.Rmd:60,123,131,255,370
+<                    phylogenetic-spatial.Rmd:325,387,418,418,548,604,612,617,620,691,691,692,692,693,693,970,1016,1096,1677
+<                    relmat-known-matrices.Rmd:2,187,188,189,190,257,257,258,258,259,259,260,261,262,262,429,456,460,569,574
+<                    source-map.Rmd:124
+<                    structural-dependence.Rmd:55,55,77,89
+< REML's             NEWS.md:1201
+< reprojected        make_mesh.Rd:18
+< requireNamespace   animal-models.Rmd:342,418
+<                    bivariate-coscale.Rmd:445,659
+<                    figure-gallery.Rmd:1478
+<                    location-scale.Rmd:361
+<                    model-workflow.Rmd:292,804,927
+<                    phylogenetic-spatial.Rmd:493,548
+<                    relmat-known-matrices.Rmd:456,569
+<                    spatial-models.Rmd:386
+<                    which-scale.Rmd:420,600
+< resumable          NEWS.md:1500,1502,1534,1535,1578,1582
+< retape             NEWS.md:942
+< retaped            NEWS.md:963
+< retapes            NEWS.md:909,931
+< Riebler            drm_phylo_penalty.Rd:59
+< rnorm              convergence.Rmd:111
+<                    figure-gallery.Rmd:219,545,1232,1362,1752
+< roundable          sigma.drmTMB.Rd:15,39
+<                    NEWS.md:1465
+< rowwise            figure-gallery.Rmd:1568,1602
+< rpois              figure-gallery.Rmd:519
+< Rtools             README.md:126
+<                    drmTMB.Rmd:69
+< runif              figure-gallery.Rmd:219,495,519,545,1232,1752
+< scaffolded         NEWS.md:973
+<                    README.md:71
+< sd                 animal-models.Rmd:342,360
+<                    convergence.Rmd:111,140
+<                    figure-gallery.Rmd:219,1232,1249,1256,1269,1362,1752
+<                    capability-ledger-family-map.md:12
+<                    location-scale-scale.Rmd:342
+<                    location-scale.Rmd:152,491
+<                    model-workflow.Rmd:195
+<                    phylogenetic-models.Rmd:454,458
+<                    which-scale.Rmd:135,164,171,209,216,292,299,305,539,542,579,587,594,600,715
+< SD's               first-week-intervals.Rmd:126
+< SDs                animal.Rd:45
+<                    check_drm.Rd:74,86,90,94
+<                    confint.drmTMB.Rd:236
+<                    drm_phylo_penalty_sweep.Rd:21
+<                    drm_phylo_penalty.Rd:17
+<                    phylo.Rd:27
+<                    profile_targets.Rd:64
+<                    relmat.Rd:52
+<                    sigma.drmTMB.Rd:41,42
+<                    spatial.Rd:27
+<                    summary.drmTMB_julia.Rd:29
+<                    NEWS.md:245,551,625,1277,1290,1303,1368,1372,1374,1376,1385,1415,1420,1422,1425,1426,1427,1428,1429,1430,1431,1437,1476,1493,1519,1525,1576,1586,1600,1613,1652,1658,1697,1745,1753,1754,1764,1784,1788,1790,1837,1838
+<                    README.md:365,465
+<                    animal-models.Rmd:289
+<                    bivariate-coscale.Rmd:43,101,104,152,168,196,287,359,368,399,411,429,539,716,722,789
+<                    capability-and-limits.Rmd:429
+<                    convergence.Rmd:98,100,376,764
+<                    distribution-families.Rmd:58,70
+<                    drmTMB.Rmd:123,194
+<                    figure-gallery.Rmd:945,952
+<                    first-week-intervals.Rmd:31
+<                    formula-grammar.Rmd:392
+<                    implementation-map.Rmd:116,146,147,229
+<                    location-scale-scale.Rmd:82,165
+<                    location-scale.Rmd:308,491
+<                    model-map.Rmd:86,96,97,124,128,199,292,399
+<                    model-workflow.Rmd:195,385,403,454,717
+<                    phylogenetic-models.Rmd:176,190,222
+<                    phylogenetic-spatial.Rmd:254,399,682,689,837,870,970,1025,1374,1385,1585,1613,1677,1743,1792,1850
+<                    relmat-known-matrices.Rmd:429
+<                    simulation-plot-grammar.Rmd:98
+<                    spatial-models.Rmd:328,340,342,346,357
+<                    which-scale.Rmd:579,676,780,833
+< se                 convergence.Rmd:120,140
+< Searle             confint.drmTMB.Rd:398
+< sech               NEWS.md:27
+< seq                bivariate-coscale.Rmd:429
+<                    convergence.Rmd:111
+<                    figure-gallery.Rmd:243,495,519,545,1232,1256,1269,1362,1492,1774
+<                    location-scale.Rmd:334
+<                    model-workflow.Rmd:783
+<                    which-scale.Rmd:393
+< SEs                README.md:358
+<                    implementation-map.Rmd:158
+<                    model-map.Rmd:126
+< sharded            source-map.Rmd:138
+< sim                bivariate-coscale.Rmd:55,207,545,758
+<                    bivariate-nongaussian.Rmd:52
+<                    count-nbinom2.Rmd:64
+<                    cross-family.Rmd:185
+<                    distribution-families.Rmd:193,215,252,285,321,367,406,500,531,560,596,635,739,774
+<                    location-scale-scale.Rmd:46,49
+<                    location-scale.Rmd:113,152,212
+<                    meta-analysis.Rmd:55,230,394,415
+<                    missing-data.Rmd:332,343
+<                    model-workflow.Rmd:110
+<                    phylogenetic-models.Rmd:66
+<                    phylogenetic-spatial.Rmd:340,345,369,1087,1110,1124,1257,1697
+<                    proportion-beta-binomial.Rmd:85,178,414
+<                    robust-student.Rmd:51
+<                    which-scale.Rmd:96,128,164,209,292,363,475,539,541,715,760
+< SkewNormalMoment   distribution-families.Rmd:252
+< softmax            categorical.Rd:13
+<                    impute_model.Rd:42
+<                    imputed.Rd:61
+<                    capability-and-limits.Rmd:595
+<                    missing-data.Rmd:51,149,574
+< Sorbye             drm_phylo_penalty.Rd:59
+< spatiotemporal     NEWS.md:413
+<                    README.md:343
+<                    phylogenetic-spatial.Rmd:1662
+<                    spatial-models.Rmd:221
+< SPDE               make_mesh.Rd:5,14,34
+<                    NEWS.md:1450,1464,1493,1511,1525,1846
+<                    README.md:343,367,465
+<                    formula-grammar.Rmd:386
+<                    implementation-map.Rmd:183
+<                    model-map.Rmd:130,134,136,246,292,369
+<                    phylogenetic-spatial.Rmd:254,620,1096,1613,1628,1655,1662,1677
+<                    source-map.Rmd:227
+<                    spatial-models.Rmd:142,157
+<                    which-scale.Rmd:865
+< spp                phylogenetic-models.Rmd:458
+< sprintf            location-scale-scale.Rmd:369
+< ss                 phylogenetic-spatial.Rmd:1795
+< st                 phylogenetic-spatial.Rmd:1348
+< standalone         NEWS.md:1416,1423,1424,1516,1838
+<                    spatial-models.Rmd:346
+<                    which-scale.Rmd:865
+< Stasinopoulos      distributional-outputs-and-adequacy.Rmd:62
+< StatsModels        NEWS.md:211
+< Sterzinger         drmTMB.Rd:175
+< Stram              confint.drmTMB.Rd:430
+< stringsAsFactors   convergence.Rmd:140
+<                    figure-gallery.Rmd:2052
+< subclade           convergence.Rmd:682
+< suppressMessages   figure-gallery.Rmd:1478
+< tanh               bivariate-coscale.Rmd:75,203
+<                    cross-family.Rmd:139,171,300
+<                    figure-gallery.Rmd:545
+<                    which-scale.Rmd:756
+< texttt             cross-family.Rmd:300
+< Tibshirani         confint.drmTMB.Rd:442
+< TMB's              NEWS.md:1445
+<                    comparing-with-other-packages.Rmd:118
+<                    missing-data.Rmd:347
+< Totoro             qq_plot.Rd:58
+<                    residuals.drmTMB.Rd:89
+<                    worm_plot.Rd:51
+<                    NEWS.md:284,373,413,642,664,685,713,730,840
+<                    distributional-outputs-and-adequacy.Rmd:185
+<                    source-map.Rmd:136
+< tweedie            qq_plot.Rd:57
+<                    residuals.drmTMB.Rd:87
+<                    worm_plot.Rd:50
+<                    NEWS.md:840
+<                    distributional-outputs-and-adequacy.Rmd:185
+<                    formula-grammar.Rmd:75
+<                    capability-ledger-family-map.md:18
+<                    source-map.Rmd:130
+< u                  phylogenetic-models.Rmd:62,66,68
+<                    phylogenetic-spatial.Rmd:1343,1348,1360,1363,1368,1371,1374
+<                    which-scale.Rmd:128,164,209,292,539
+< ultrametric        phylo.Rd:42
+<                    NEWS.md:1837
+<                    formula-grammar.Rmd:320
+<                    phylogenetic-models.Rmd:75,106
+<                    phylogenetic-spatial.Rmd:1149,1225,1236,1655
+<                    relmat-known-matrices.Rmd:192
+< Ultrametric        phylo_interaction.Rd:13,15
+<                    phylo.Rd:13
+< uncentred          capability-and-limits.Rmd:157,355
+< unclamped          NEWS.md:1404,1405
+< undercoverage      NEWS.md:332
+< undercovers        confint.drmTMB.Rd:262
+<                    NEWS.md:1406
+<                    convergence.Rmd:100
+< underdispersion    count-nbinom2.Rmd:482
+<                    distribution-families.Rmd:518
+< unlabeled          formula-grammar.Rmd:434
+< unmodelled         comparing-with-other-packages.Rmd:125
+< unname             animal-models.Rmd:342
+<                    spatial-models.Rmd:386
+< unpromoted         NEWS.md:373
+<                    phylogenetic-models.Rmd:472
+< unsquared          comparing-with-other-packages.Rmd:479
+< unsurveyable       count-nbinom2.Rmd:383
+< untruncated        fitted.drmTMB.Rd:27
+<                    sigma.drmTMB.Rd:37
+<                    truncated_nbinom2.Rd:14,24
+<                    NEWS.md:188,1836
+<                    distribution-families.Rmd:67,666,701
+<                    formula-grammar.Rmd:94,184
+<                    testing-likelihoods.Rmd:311,334
+< Var                count-nbinom2.Rmd:64,222
+<                    cross-family.Rmd:161
+<                    distribution-families.Rmd:321,367,406,500,560,596,635,676,739,774
+<                    missing-data.Rmd:828
+<                    phylogenetic-spatial.Rmd:1290,1795
+<                    proportion-beta-binomial.Rmd:85,178,414
+< varepsilon         phylogenetic-models.Rmd:66
+< VCV                phylogenetic-spatial.Rmd:593
+< vjust              location-scale-scale.Rmd:369
+< vline              animal-models.Rmd:360
+<                    spatial-models.Rmd:398
+< wald               figure-gallery.Rmd:1568
+< walkthrough        confint.drmTMB.Rd:251
+<                    capability-and-limits.Rmd:562
+<                    drmTMB.Rmd:123
+< widehat            cross-family.Rmd:136,139,161
+< Wolak              confint.drmTMB.Rd:448
+< xend               figure-gallery.Rmd:1492
+< xintercept         animal-models.Rmd:360
+<                    spatial-models.Rmd:398
+< xlab               bivariate-coscale.Rmd:445
+< yend               figure-gallery.Rmd:1492
+< yintercept         bivariate-coscale.Rmd:445
+<                    figure-gallery.Rmd:594
+<                    spatial-models.Rmd:398
+< ylab               bivariate-coscale.Rmd:445
+< ylim               bivariate-coscale.Rmd:445
+<                    figure-gallery.Rmd:370
+< ymax               bivariate-coscale.Rmd:445
+<                    figure-gallery.Rmd:265,1400,1602,1791
+<                    location-scale.Rmd:361
+< ymin               bivariate-coscale.Rmd:445
+<                    figure-gallery.Rmd:265,1400,1602,1791
+<                    location-scale.Rmd:361
+< zi                 profile_targets.Rd:45
+<                    README.md:355
+<                    distribution-families.Rmd:65,531,596
+<                    figure-gallery.Rmd:495,519,578,580,594
+<                    formula-grammar.Rmd:93
+<                    implementation-map.Rmd:125,225
+<                    capability-ledger-family-map.md:10,10,11,11
+<                    model-map.Rmd:130
+< ZINB               NEWS.md:1441
+<                    distribution-families.Rmd:596
+<                    formula-grammar.Rmd:91,92
+<                    model-selection.Rmd:212,245
+< zoi                distribution-families.Rmd:451
+<                    formula-grammar.Rmd:78
+<                    implementation-map.Rmd:121,121
+<                    model-map.Rmd:60,60
+<                    proportion-beta-binomial.Rmd:512
+<                    source-map.Rmd:132,132,132
+< If these are false positive, run `spelling::update_wordlist()`.All Done!
+---
+> All Done!
+  Running ‘testthat.R’ [19m/21m]
+ [19m/21m] NOTE
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes ... OK
+* checking re-building of vignette outputs ... [91s/103s] OK
+* checking for non-standard things in the check directory ... OK
+* checking for detritus in the temp directory ... OK
+* DONE
+
+Status: 2 NOTEs
+See
+  ‘/private/tmp/drmtmb-070-check-e9c5556d-live/drmTMB.Rcheck/00check.log’
+for details.
+

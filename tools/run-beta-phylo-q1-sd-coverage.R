@@ -410,7 +410,7 @@ pr2c_recovery_attempt <- function(row, methods = pr2c_methods(), level = 0.95) {
           sigma ~ x_sigma,
           sd(spp_id, level = "phylogenetic") ~ x_tau
         ),
-        family = drmTMB::beta(),
+        family = drmTMB::beta_family(),
         data = generated$data,
         control = drmTMB::drm_control(
           optimizer_preset = "robust",

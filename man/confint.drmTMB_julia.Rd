@@ -2,7 +2,7 @@
 % Please edit documentation in R/julia-bridge.R
 \name{confint.drmTMB_julia}
 \alias{confint.drmTMB_julia}
-\title{Inspect legacy interval output from a halted Julia bridge}
+\title{Confidence intervals for an \code{engine = "julia"} fit}
 \usage{
 \method{confint}{drmTMB_julia}(
   object,
@@ -20,8 +20,10 @@
 
 \item{parm}{Optional target selection. For \code{"wald"}, compact coefficient
 labels (\code{"mu:x"}) or full names (\code{"fixef:mu:x"}); for \code{"profile"} /
-\code{"bootstrap"}, supported SD target names such as
-\code{"sd:mu:phylo(1 | species)"} or, for q = 4 bivariate fits,
+\code{"bootstrap"}, either a fixed-effect target such as \code{"fixef:mu:x"} (or
+the compact \code{"mu:x"} alias) or a supported SD target name such as
+\code{"sd:mu:phylo(1 | species)"} / \code{"sd:sigma:phylo(1 | species)"} or,
+for q = 4 bivariate fits,
 \code{"sd:sigma1:phylo(1 | species)"}.}
 
 \item{level}{Confidence level.}
@@ -43,12 +45,13 @@ A confidence-interval data frame with the shared \code{parm}, \code{level},
 \code{method}, and \code{conf.status} columns.
 }
 \description{
-The Julia bridge is halted/deferred future work and is not a current fitting
-or inference route. This method is retained only for inspecting existing
-\code{drmTMB_julia} objects; use native TMB fits for new analyses.
+\code{engine = "julia"} is a current, actively-admitted fitting route (see
+\code{R/julia-family-registry.R} and \code{vignettes/julia-engine.Rmd} for which
+families and routes it covers). This method computes intervals for an
+existing \code{drmTMB_julia} object.
 }
 \details{
-For a legacy \code{engine = "julia"} fit, \code{confint()} exposes two interval families:
+For a \code{drmTMB_julia} fit, \code{confint()} exposes two interval families:
 \itemize{
 \item \code{method = "wald"} (the default) builds symmetric Wald intervals for the
 fixed-effect coefficients (mu, sigma, ...) on the linear-predictor (link)
@@ -56,9 +59,25 @@ scale, using the fixed-effect covariance DRM.jl marshals back through the
 bridge (\code{vcov(object)}). This mirrors the native drmTMB Wald path, whose
 fixed-effect rows are also reported on the link scale.
 \item \code{method = "profile"} / \code{method = "bootstrap"} re-enter DRM.jl's inference
-primitive for supported phylogenetic SD targets, transformed back to the
-positive response scale. The current R bridge exposes the univariate
-Gaussian \code{sd:mu:phylo(1 | species)} target and the four bivariate q = 4
-targets \verb{sd:mu1:*}, \verb{sd:mu2:*}, \verb{sd:sigma1:*}, and \verb{sd:sigma2:*}.
+primitive. Two target families are supported:
+\itemize{
+\item the phylogenetic SD targets, transformed back to the positive response
+scale: the univariate Gaussian \code{sd:mu:phylo(1 | species)} and
+\code{sd:sigma:phylo(1 | species)} targets, and
+the four bivariate q = 4 targets \verb{sd:mu1:*}, \verb{sd:mu2:*}, \verb{sd:sigma1:*},
+and \verb{sd:sigma2:*};
+\item ordinary fixed-effect coefficients (\verb{fixef:<dpar>:<coef>}, e.g.
+\code{"fixef:mu:x"}), reported on the same link scale as the Wald rows. Not
+available for the bivariate q = 4 route (\code{biv_gaussian}), whose fixed
+effects are not individually profiled here.
 }
+}
+
+Ordered cutpoints of a \code{\link[=cumulative_logit]{cumulative_logit()}} fit are the documented
+exception. \code{\link[=profile_targets]{profile_targets()}} lists them (\code{"ordinal:cutpoint:<label>"})
+so they are discoverable, and the fitted values are on the object in
+\code{fit$ordinal$cutpoints}, but no interval method routes them: DRM.jl's
+bridge inference accepts only fixed-effect and SD targets, so \code{confint()}
+refuses a cutpoint target for every \code{method} and points at
+\code{engine = "tmb"}, whose constrained cutpoint profile does solve them.
 }

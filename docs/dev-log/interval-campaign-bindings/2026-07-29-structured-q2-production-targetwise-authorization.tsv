@@ -1,0 +1,11 @@
+cell_id	target_id	review_state	reviewer	reviewed_at
+mc-0107	mc-0107::sd:mu:mu1:spatial(1 | p | site)	canonical_targetwise_receipt_authorized	Active Lane-B 144-goal authority	2026-07-29
+mc-0108	mc-0108::sd:mu:mu2:spatial(1 | p | site)	canonical_targetwise_receipt_authorized	Active Lane-B 144-goal authority	2026-07-29
+mc-0129	mc-0129::sd:mu:mu1:animal(1 | p | id)	canonical_targetwise_receipt_authorized	Active Lane-B 144-goal authority	2026-07-29
+mc-0130	mc-0130::sd:mu:mu2:animal(1 | p | id)	canonical_targetwise_receipt_authorized	Active Lane-B 144-goal authority	2026-07-29
+mc-0151	mc-0151::sd:mu:mu1:relmat(1 | p | id)	canonical_targetwise_receipt_authorized	Active Lane-B 144-goal authority	2026-07-29
+mc-0152	mc-0152::sd:mu:mu2:relmat(1 | p | id)	canonical_targetwise_receipt_authorized	Active Lane-B 144-goal authority	2026-07-29
+mc-0199	mc-0199::sd:mu:mu1:spatial(1 | p | site)	canonical_targetwise_receipt_authorized	Active Lane-B 144-goal authority	2026-07-29
+mc-0672	mc-0672::sd:mu:mu2:spatial(1 | p | site)	canonical_targetwise_receipt_authorized	Active Lane-B 144-goal authority	2026-07-29
+mc-0201	mc-0201::sd:mu:mu1:relmat(1 | p | id)	canonical_targetwise_receipt_authorized	Active Lane-B 144-goal authority	2026-07-29
+mc-0674	mc-0674::sd:mu:mu2:relmat(1 | p | id)	canonical_targetwise_receipt_authorized	Active Lane-B 144-goal authority	2026-07-29

@@ -1,4 +1,1056 @@
+# 2026-10-22: retain output from failed or colliding C17 recertification runs (#1591)
+
+`tools/recertify-c17.py` previously deleted partial output in `finally` and
+could lose a complete run when the dated destination already existed. The
+runner now preserves failed, rejected, and colliding output in unique sibling
+directories while restoring the committed receipt. Four focused Python tests
+pass, including three output-retention regressions and the existing dry-run
+check. The local 12-fit dry-run reproduced all three receipt values exactly
+(`0.000e+00` change) and left the manifest unchanged. Full package tests were
+not run. The exact-head CI and review remain pending; see
+`docs/dev-log/after-task/2026-10-22-recertify-c17-output-retention.md`.
+
+# 2026-10-22: fit-free tests for phylogenetic penalty helpers (#1601)
+
+Synced PR head `6af76a98a86c6db7c757e256147548a4c82cf77f` with live `main`
+`7820315cc904358edbf3635515ebd3a73dbb7f31` in an isolated clone. The merge
+completed without conflict; the test file remained unchanged (Git blob
+`a2a8f08ad5c8309da60fce6406940121f9eb9236`, SHA-256
+`f514b2031745d15392082fc6b08751c2fe8cb79b99f309567f5f674369238e71`).
+
+Focused fit-free check on the synced source: `Rscript -e
+'devtools::test(filter = "phylo-penalty-spec", reporter = "summary")'`
+under R 4.6.0 / macOS Tahoe 26.7.1 / ARM64 completed with 63 successful
+expectations and no failures. No fits were run. The PR's earlier 75-pass
+`filter = "penalty"` result was not rerun and remains historical. Full package
+tests and `R CMD check` were not run. No package code changed.
+
+The PR's original after-task note was expanded to include the source sync,
+checks, test limitations, issue search, consistency audit, and next action.
+No matching open issue was found; the issue tracker was left unchanged.
+
+# 2026-10-18: rebase #1513 onto main after #1504 merged
+
+Rebased `cursor/triage-i-mi` onto `e17921e9b` (#1504 squash-merged). Dropped
+the six copied #1504 commits (`37a90043f` to `af2ee2501`, including the
+`46d125a50` C17 receipt) and both merges of main; the 27 #1513 commits were
+replayed in order. `NEWS.md` and this log had additive conflicts and keep both
+sides; `simulate()` keeps main's lme4 `re.form` default plus the `mi()`
+weights abort; intermediate C17 TSV conflicts took the #1513 side. `git diff
+origin/main -- src/` touches only `src/drmTMB.cpp`, and every hunk is #1513's
+`mi()` work: the Gamma adaptive quadrature helpers and call sites, the
+`drm_abort_mi_quadrature_nonfinite()` abort, and the #1459 weight-0 skip
+(`if (asDouble(weights(i)) > 0.0)`). `src/drm_numeric.h` and
+`src/drm_response_kernels.h` match main.
+
+C17: `python3 tools/recertify-c17.py --label 1513-rebase --tolerance 1e-10`
+on Totoro (R 4.6.1), worst `|change|` 1.264e-12 on mc-0568 / 0569 / 0576,
+source fingerprint unchanged; `--check-c14-receipt-equivalence` OK. Full suite
+on Totoro (12 `devtools::test()` shards): 49,423 pass, 2 fail, 0 error, 106
+skip. Both fails reproduce on `e17921e9b` in the same environment: Arc 1a REML
+spatial one-slope (reference optimiser code 52) and the NB2 sigma mis-wire
+guard (logLik gap 14.5). `devtools::document()` produced only the known #1400
+`.Rd` drift plus a RoxygenNote bump; #1513 changes no roxygen lines, so
+nothing was committed.
+
+# 2026-10-18: #1513 runtime guard drmTMB_mi_quadrature_inaccurate
+
+R-only post-fit warning `drmTMB_mi_quadrature_inaccurate` in
+`drm_fit_spec()` after the fitted `fn`/`gr` probe
+(`R/drmTMB.R:727`). Nothing in `src/`. The helper loops
+`missing_predictor` and `missing_predictor2`.
+
+Thresholds, documented against the measured 15-node leftover:
+- Beta / zero-one-Beta missing-row prior mean at or inside `0.10` of
+  0 or 1 (`4.65e-3` at `mu = 0.10`, `sigma = 1`; `4.81e-3` at
+  `mu = 0.02`, `sigma = 1`). Mid-range `mu = 0.50`, `sigma = 0.5` and
+  the pinched `mu = 0.10`, `sigma = 0.2` case stay inside `2.6e-5`, so
+  the mu-only cut is conservative at that pin.
+- Gamma CV `>= 3` (12% of an 80-row scan exceed `1e-4`, worst `1.47`).
+
+15-node Beta rule and labelled skips kept. No check before the Julia
+branch (Julia already refuses Beta/Gamma `mi()`).
+
+Tests: helper with two `mi()` terms, bad one second (Gaussian first +
+Gamma/Beta second); live two-Gaussian `drmTMB()` then second slot
+relabelled Gamma at CV 3.5; live Beta `mu ~ 0.04` warns; live Gamma
+CV 3 warns; healthy Gamma CV 0.10 does not warn.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail / 175 pass / 2
+labelled skips; `test-env-skip-census.R` 0 fail / 5 pass (cran-lane
+5→9). Unweighted cites stay `:1434`, `:1475`, `:4678`. `n_cpp` untouched.
+
+Full `testthat::test_dir()` (R 4.3.3, `NOT_CRAN=true`): the Summary
+reporter still prints only the first 10 failures, all this VM's missing
+Suggests (`ape`, `emmeans`, `mvtnorm`), the same class as Engine A.
+`test-mi-quadrature-1476-1477.R` in that run: 175 pass / 2 labelled
+skips / 0 fail. Touched mi() files had 0 fail.
+
+C17 `--label mi-quadrature-1513-guard --tolerance 1e-10`: `|change|
+0.000e+00` on mc-0568 / 0569 / 0576. Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-guard-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK. Tracked run-1 moved aside, then restored.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
+# 2026-10-18: #1513 Engine A (merge main, abort every mi() term, C++ notes)
+
+Merged `origin/main` (`d89db5097`) into `cursor/triage-i-mi` as a normal
+merge commit (`5525f0e99`). No force-push. Conflicts were NEWS,
+`R/methods.R` (`simulate()` keeps the `mi()` weights abort and takes
+main's lme4 `re.form` meanings), check-log, and the C17 TSV.
+
+Engine A items:
+1. Merge: done.
+2. `drm_spec_uses_mi_quadrature_abort()` now checks
+   `missing_predictor` and `missing_predictor2`, not only the first
+   slot. Unit test covers Gaussian-first + Gamma-second.
+3. `skip_on_cran()` on the Gamma `weights = 2` fit in
+   `test-mi-weights-1459.R`. Census cran-lane 4→5 on the quadrature
+   file; new cran-lane 1 on the weights file.
+4. Unweighted Gaussian prior sites stay `:1434`, `:1475`, `:4678`.
+5. C++ notes kept: a node with `u_raw > 500` drops its `w cosh(t)`
+   weight (`n_cpp = 46L`, paired huge-mu test expects a floor term);
+   AD vs FD at the pole where Newton branch B wins (`< 1e-5`).
+   Beta low-mu runtime guard was not built.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail / 167 pass / 2 labelled
+skips; `test-guard-branch-continuity.R` 0 fail / 69 pass (`n_cpp = 46L`);
+`test-mi-weights-1459.R` 0 fail / 55 pass.
+
+Full `testthat::test_dir()`: FAIL 67 / WARN 26 / SKIP 343 / PASS 46170.
+All 67 failures are this VM's missing Suggests (`ape`, `emmeans`,
+`mvtnorm`, `tweedie`, `JuliaCall`), the same class as the 2026-10-12
+closeout (julia-fe-only-fence expects a DRM.jl checkout message;
+tweedie oracle needs `{tweedie}`; phylo tests need `{ape}`). Touched
+mi() files had 0 fail.
+
+C17 `--label mi-quadrature-1513-r5-main --tolerance 1e-10` after the
+merge and the cpp edit: `|change| 0.000e+00` on mc-0568 / 0569 / 0576.
+Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-r5-main-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK. Tracked run-1 was moved aside, then restored.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
+# 2026-10-18: #1513 Code Reviewer blockers (live abort, rethrow, 1459, Beta 0.02)
+
+1. Live `drmTMB()` Gamma `mi()` with `y = 1e200` on a missing-x row raises
+   classed `drmTMB_mi_quadrature_nonfinite` (confirmed; test in
+   `test-mi-quadrature-1476-1477.R`).
+2. `drm_rethrow_mi_quadrature_error` is live: `drm_fit_spec()` calls it
+   on MakeADFun errors and `drm_probe_mi_quadrature_objective` calls it
+   on start/fitted `fn`/`gr`. Dead `drm_wrap_mi_quadrature_objective`
+   (C-stack overflow) was removed. New test classifies a C++ tape token.
+3. Beta `mu = 0.02` vs `integrate()` is `4.81e-3` on the frozen 15-node
+   Gauss-Legendre rule (101 GL nodes still `3.0e-4`). Labelled skip,
+   refs #1476 / #1531. Not a Gamma-rule change.
+4. `#1459` warning cites the actual unweighted sites `:1434`, `:1475`,
+   `:4678`. Gamma and Beta `mi()` plus `weights = 2` do not warn.
+   `drm_mi_prior_path_unweighted()` requires a Gaussian family on both
+   slots.
+5. C17 recertify already ran on the final cpp (`--label
+   mi-quadrature-1513-r5`, `|change| 0.000e+00`). This slice does not
+   edit `src/drmTMB.cpp`. Equivalence rechecked.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
+# 2026-10-18: #1513 round 5 closeout (C17 + labelled CV >= 3 skip)
+
+Remeasured the Round 5 tables at `3b4ac1054` (R 4.3.3, TMB 1.9.25). The
+blockers are inside `1e-4`: Gamma pole CV 0.5 `1.05e-8` (was `4.0e-3`),
+CV 1 `1.82e-7` (was `0.28`); Poisson CV 2 `y = 0` `2.12e-5`. Worst
+asserted row remains Gaussian CV 2 `y = 2.2` at `2.48e-5`. Mode residual
+after step 5 at `y = 2.05`: CV 0.5 `1.83e-3`, CV 1 `4.47e-7`, CV 2
+`-3.9e-13`. Integrand, score and Hessian are on `u = log(x)` with
+Jacobian `+u`; nodes sit after the five Newton steps.
+
+Labelled skip for CV `>= 3` names
+`docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md` (refs
+#1477). An 80-row random scan at CV 3 fails 12% (worst `1.47`). Census
+gained one `runtime-conditional` site on `test-mi-quadrature-1476-1477.R`.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail (1 labelled skip);
+`test-guard-branch-continuity.R` 0 fail (`n_cpp = 45L`). Compiled
+per-row vs `integrate()` ran with `NOT_CRAN=true`.
+
+C17 `--label mi-quadrature-1513-r5 --tolerance 1e-10` at `3b4ac1054`:
+`|change| 0.000e+00` on mc-0568 / 0569 / 0576. Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-r5-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK (mc-0568 included). Tracked run-1 was moved aside, then
+restored. The `mi()` sinh map sits outside the authenticated model-15
+anchors. Full suite follows.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1532
+
+# 2026-10-15: #1513 round 5 Gamma mi() pole fix (sinh-mapped trapezoid)
+
+Cause of the CV 0.5 (`4.0e-3`) and CV 1 (`0.28`) pole errors: the five
+clamped log-`x` Newton steps had not reached the mode (score about
+`-15` after step 5 at the pole rows; each step moves `x` by a factor of
+`exp(-0.5)` against a response sd of 0.2 in `x`), and at CV 1 and above
+the Gauss-Hermite nodes could not reach the `exp(shape * u)` left tail.
+The Gaussian-only-derivative suspicion was already fixed at `3ea958fdc`:
+the C++ and R mirror use each family's own `g`/`H`, and
+`drm_gamma_mi_grad_hess()` is now checked against central differences of
+the Jacobian-carrying log integrand for Gaussian and Poisson.
+
+Now: still exactly five steps, each the better (by log integrand) of the
+clamped log-`x` step and a Newton step on `G(x) = g / x` written with the
+log-`x` derivatives; nodes `mode + sigma_u sinh(t)` on 51 equally spaced
+`t` in `[-5, 4]`, weight `h cosh(t) sigma_u`, placed after step 5. `n_cpp`
+is `45L` (ten new CondExp sites, two paired guard tests). The reference
+`integrate()` was also wrong at CV 2: it stopped at `log(mu) - 12` and
+lost about 5% of the mass; the old "`8.3e-2`" and "`4.6e2`" were mostly
+that, plus real failure at `y = 30`.
+
+Per-row `|log marginal - log integrate()|`, R mirror and compiled TMB
+agree to `4e-13`:
+
+| Gaussian y (x*) | CV 0.5 | CV 1 | CV 2 |
+| --- | --- | --- | --- |
+| 2.05 (pole, 0.1) | 1.05e-8 | 1.82e-7 | 9.02e-7 |
+| 2.20 | 4.98e-9 | 8.82e-9 | 2.48e-5 |
+| 2.50 | 9.04e-10 | 1.81e-9 | 5.31e-7 |
+| 3.50 | 7.02e-11 | 7.32e-11 | 7.39e-11 |
+| 12.0 (tail) | 3.8e-12 | 3.8e-12 | 3.8e-12 |
+
+| Poisson y | CV 0.2 | CV 1 | CV 2 |
+| --- | --- | --- | --- |
+| 0 | 7.2e-10 | 1.50e-6 | 2.12e-5 |
+| 1 | 8.7e-10 | 9.02e-7 | 1.26e-5 |
+| 4 | 1.31e-9 | 1.75e-6 | 1.13e-5 |
+| 30 | 2.2e-10 | 6.3e-10 | 6.1e-10 |
+
+Open: CV `>= 3`; Poisson with `exp(eta)` at the prior mean of about `1e3`
+or more (five steps stop short; twelve recover the moderate cases). Julia
+refusals for Beta/Gamma `mi()` and `drmTMB_julia_mi_weights_unsupported`
+are unchanged and tested. C17 and the full suite are not re-run (session 2).
+
+# 2026-10-12: #1513 five fixed family-correct Newton steps
+
+Newton is exactly five steps from `log(mu)` with each family's own
+`g`/`H` (Poisson adds `(y - mu) eta'(x)` and the matching curvature).
+No data-dependent stop. `n_cpp = 35L`.
+
+- Poisson × Gamma CV 1: `5.18e-5` (before `5.4e-4`).
+- Poisson × Gamma CV 2 `y = 0`: finite, vs `integrate()` `8.3e-2`.
+- Poisson × Gamma CV 2 `y = 30`: finite, vs `integrate()` `4.6e2`.
+- Gamma tail `y = 12`: CV 0.05 / 0.5 / 1 all `< 1e-4`.
+- Gamma pole `y = 2.05` CV 0.05: `< 1e-4`. Pole CV 0.5 / 1: `4.0e-3` / `0.28` (not asserted).
+
+Refs #1477
+Refs #1476
+Refs #1459
+
+# 2026-10-12: #1513 Round 4 family-correct Newton and live abort
+
+Newton uses each family's own log-density `g`/`H` wrt `x` (analytic Gaussian and Poisson; otherwise FD of `drm_response_log_density`). A non-negative Hessian skips the step and falls back to the prior mode. Gamma production is 51-node posterior-mode GH. `drm_fit_spec()` rethrows the C++ tape token through `drm_rethrow_mi_quadrature_error` and probes start/fitted `fn`/`gr` for Gamma/Beta/ZOB `mi()` only. `n_cpp = 40L`. Headers and unweighted Gaussian priors unchanged.
+
+Acceptance vs fine-split `integrate()` (R 4.3.3, TMB 1.9.25):
+- Gamma pole `y=2.05`: CV 0.05 `5.7e-14`; 0.5 `1.3e-8`; 1 `2.7e-5` (before: y=7 easy `1e-15`; pole was untested).
+- Gamma tail `y=12`: CV 0.05 `4.1e-12`; 0.5 `2.0e-14`; 1 `2.8e-14`.
+- Poisson × Gamma CV 1: `5.17e-5` (before `5.4e-4`).
+- Poisson × Gamma CV 2 `y=0`: finite (before classed abort).
+- Gamma pole CV 2: `9.51e-2` (labelled skip; issue draft `docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md`, refs #1477).
+- U-shaped Beta shapes `(0.13, 0.31)`, `y` near 0: `0.54` recorded for #1531 (that issue cites `1.6e-2`).
+- Live `drmTMB()` Gamma `mi()` with `y=1e200` on a missing-x row raises `drmTMB_mi_quadrature_nonfinite`.
+
+Focused local: `test-mi-quadrature-1476-1477.R` 0 fail (1 expected skip); `test-guard-branch-continuity.R` 0 fail; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-mi-weights-1459.R` 0 fail.
+
+C17 `--label mi-quadrature-1513 --tolerance 1e-10` at `3ea958fdc`: `|change| 0.000e+00` on mc-0568 / 0569 / 0576. Receipt `docs/dev-log/implementation-recovery/2026-10-12-mi-quadrature-1513-c17c2-c14-final-source-compatibility`. `python3 tools/capability_ledger.py --check-c14-receipt-equivalence` prints OK (mc-0568 included). The `mi()` Newton and live abort sit outside the authenticated model-15 anchors. Full suite follows.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+
+# 2026-10-12: #1513 quadrature restore + adaptive Gamma
+
+Beta / zero-one-Beta `mi()` restored to the frozen 15-node Gauss-Legendre rule, ZOB atoms `c(0, nodes, 1)`. Gamma `mi()` is posterior-mode GH on `u = log(x)` (5 Newton steps from `log(mu)`, analytic Gaussian score/Hessian, CondExp step clamp, unnormalised log-sum, no CV branch). `drmTMB_mi_quadrature_nonfinite` aborts a NaN/`-Inf` marginal. Headers `src/drm_numeric.h` and `src/drm_response_kernels.h` were not edited. Unweighted Gaussian priors stay `:1301`, `:1342`, `:4556`. `n_cpp = 35L` (drop two IS `s_floor`s, add five Newton clamps). C17 not recertified (`R/drmTMB.R` and `R/methods.R` unchanged).
+
+Acceptance (R 4.3.3, TMB 1.9.25):
+- Beta mid-range `mu=0.5`, `sigma=0.5`, `sd_y=0.1`: `integrate()` abs logLik error `9.87e-7` (tolerance `2.6e-5`).
+- Beta mid-range `mu=0.10`, `sigma=0.2`, `sd_y=0.1`: `9.10e-6`.
+- U-shaped Beta `mu=0.02` / `0.10`, `sigma=1`, `y=1`, `sd_y=0.1`, `beta_x=2`: `1.638e-2` / `1.659e-2` (follow-up, refs #1476; GitHub issue create returned 403).
+- Gamma vs log-x `integrate()`, `sd_y=0.1`: CV 0.05 `3.8e-15`; 0.10 `2.2e-15`; 0.50 `1.6e-15`; 1 `5.8e-15`; 2 `1.3e-15` (all `< 1e-4`; CV>1 passed, no skip).
+- Poisson response × Gamma `mi()` helper: `2.87e-13`.
+- `obj$gr` vs FD `h=1e-5` at CV 0.05, 1, 2: all `< 1e-5` after analytic Newton.
+- Classed abort: `drmTMB_mi_quadrature_nonfinite` from the R helper (NaN `y`) and `cli_abort` probe.
+- Weight-0 `y=1e200` pin still passes.
+
+Focused local: `test-mi-quadrature-1476-1477.R` 0 fail; `test-guard-branch-continuity.R` 0 fail (`n_cpp = 35L`); `test-missing-predictor-{beta,gamma,zero-one-beta}.R` 0 fail; `test-mi-weights-1459.R` 0 fail; Dinnage M1 0 fail.
+
+Full `testthat::test_dir()` at `d8d9a41b2` then census refresh: progress-char parse PASS 47785, WARN 58, SKIP 122. Reporter listed 9 failures; `Rscript tools/write-env-skip-census.R` fixed the two in-PR `test-env-skip-census.R` rows (cran-lane 1→2 plus the CV>1 runtime skip site). The other seven are this VM, not the quadrature edit: three `test-julia-fe-only-fence.R` rows that expect a DRM.jl checkout message and see missing `{JuliaCall}`; `test-julia-bridge.R` `fixef()` and `test-julia-joint-call.R` need `{JuliaCall}`; `test-missing-predictor-prediction.R` sparse `crossprod` (same VM defect as 2026-10-09); `test-reml-phylo-location.R` non-convergence. Live Julia: 0 ran, 69 skipped (`DRMODELS_JL_PATH` unset). `test-env-skip-census.R` 0 fail after the refresh.
+
+Refs #1477
+Refs #1476
+Refs #1459
+
+# 2026-10-11: STEP 2 #1459 gates (no quadrature rewrite)
+
+Warning `drmTMB_mi_weights_prior_unweighted` now fires only on the unweighted Gaussian prior paths: `src/drmTMB.cpp:1301`, `:1342`, and the nbinom2 x Gaussian copy at `:4556`. Beta `mi()` plus `weights = 2` does not warn. Weight 0 uses `if (asDouble(weights(i)) > 0)`; the pin is a weight-0 Gaussian row at `y = 1e200` with finite `fn` and `gr`. M1 helper re-polishes weight-2 from the unit-weight MLE and restores the dup-vs-w2 coefficient compare; any leftover gap is Gamma-only. `predict()` / `simulate()` allow `weights = 1`. Julia refuses non-unit weights for every family, including Beta `mi()` with `weights = 2`, before the family check. `.Rlib/` gitignored. Tracked C17 run-1 folder restored. C17 `--label triage-i-mi-r2 --tolerance 1e-10`: `|change| 0.000e+00` on mc-0568 / 0569 / 0576 at `8f6165344`. No quadrature code in this slice.
+
+Focused local: `test-mi-weights-1459.R` 0 fail / 10 tests; `test-julia-mi-weights.R` 0 fail / 5 tests; `test-guard-branch-continuity.R` 0 fail / 15 tests (`n_cpp = 32L`); Dinnage M1 families 0 fail / 11 tests.
+
+STEP 1 estimate only (no rewrite): adaptive posterior-mode GH is a high-invasiveness change across the 13 Gaussian-response `mi_family` blocks plus copied loops; a unimodal Newton proposal may still miss U-shaped Beta. Fallback is revert Beta to the old 15-node GL and pin known `integrate()` failures as follow-ups. See `docs/dev-log/after-task/2026-10-11-triage-i-mi-r2-gates.md`.
+
+Refs #1459
+Refs #1477
+Refs #1476
+
+# 2026-10-11: R reviewer #1459 acceptance
+
+`weights = 1` with `mi()` matches the unweighted fit (coef, logLik, nll to 1e-10) and does not emit `drmTMB_mi_weights_prior_unweighted`. Weight 2 matches a duplicated row in the response term only; `nll_dup - nll_w2 = -prior_row2`. Weight 0 or `NA` on a missing `mi()` covariate is `drmTMB_mi_zero_weight_missing` before the generic NA-weight abort (named error, not a drop). `predict()` / `simulate()` honour fitted coefficients and refuse `weights=` with `drmTMB_mi_weights_predict_unsupported`. Renormalised Beta/Gamma quadrature mass is 1. CondExp anchor in `drmTMB.cpp` is 33L (weight-0 helper + two IS `s_floor`s).
+
+Focused local: `test-mi-weights-1459.R` 0 fail / 44 pass; `test-julia-mi-weights.R` 0 fail / 7 pass; `test-mi-quadrature-1476-1477.R` 0 fail / 41 pass; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-guard-branch-continuity.R` 0 fail / 66 pass.
+
+C17 recertified at `9ed39d074` (`python3 tools/recertify-c17.py --label triage-i-mi --tolerance 1e-10`). Worst `|change|` in mean tau relative error was `0.000e+00` on mc-0568 / mc-0569 / mc-0576. Receipt `docs/dev-log/implementation-recovery/2026-10-11-triage-i-mi-c17c2-c14-final-source-compatibility`. The `mi()` quadrature and weight gates sit outside the authenticated model-15 anchors.
+
+Local `testthat::test_dir()` under `pkgload::load_all()` (R 4.3.3, TMB 1.9.25): the reporter stopped at its 10-failure cap. Failures that belong to this VM, not the `mi()` edit: three `test-julia-fe-only-fence.R` rows that expect a DRM.jl checkout message and instead see missing `{JuliaCall}`; `test-julia-joint-call.R` and `fixef()` on a Julia mock that need `{JuliaCall}`; `test-missing-predictor-prediction.R` sparse `crossprod` (same VM defect as 2026-10-09). One in-PR failure was `test-env-skip-census.R` because `test-mi-quadrature-1476-1477.R` added `skip_on_cran()`; `Rscript tools/write-env-skip-census.R` added that one cran-lane row. CI run 38120371317 (head `e682acb6c`) failed on that census plus Dinnage M1 Gamma: `weights = 2` scales the Gamma IS objective by exactly 2, but nlminb stopped short on the steeper surface. `run_mi_weight_invariance()` now asserts the 2× nll contract and treats a worse `weights = 2` nll as optimizer scale, not a prior-weight change. Focused files after load_all: adequacy 21 pass; Gamma/Beta/ZOB manuals pass; #1459 / Julia-weight / quadrature / guard-branch pass; M1 families 77 pass. Live Julia: 0 ran, 69 skipped (`DRMODELS_JL_PATH` unset).
+
+Refs #1459
+Refs #1477
+Refs #1476
+
+# 2026-10-11: mi() quadrature (#1477, #1476) and #1459 gates
+
+`cursor/triage-i-mi` from `af2ee2501` (#1504). Gamma `mi()` uses a 31-node Gauss-Hermite lognormal proposal with `drm_log1p_nonnegative(CV^2)` and renormalised mass (#1477). Beta / zero-one-Beta interior uses a 31-node logit-normal Gauss-Hermite rule, also renormalised (#1476). Headers `src/drm_numeric.h` and `src/drm_response_kernels.h` were not edited. Continuous `mi()` prior stays unweighted (#1459); `drm_weight_times_logdens` guards `0 * (-Inf)` on the Gaussian response term. Julia `mi()` plus non-unit weights is a classed refusal. `R/methods.R` gained the predict/simulate `weights=` refuse; C17 pending if that edit stays through the full suite.
+
+Refs #1477
+Refs #1476
+Refs #1459
+
+# 2026-10-11: mi() weights gates (#1459) and Julia refusal
+
+R-only first slice on `cursor/triage-i-mi`. `engine = "julia"` plus `mi()` plus non-unit weights is a classed refusal (`drmTMB_julia_mi_weights_unsupported`) before any Julia process starts. Unit weights are treated as omitted. Native TMB emits a classed warning that the imputation prior ignores weights; the prior itself is unchanged. Weight 0 or NA on a missing `mi()` covariate is `drmTMB_mi_zero_weight_missing`. `predict()` / `simulate()` refuse an explicit `weights` argument on an `mi()` fit.
+
+`R/drmTMB.R` was not edited. `R/methods.R` gained the predict/simulate `weights=` refuse only. C17 is pending the next compile slice if the methods.R edit stays.
+
+Refs #1459, #1477, #1476.
+
+# 2026-10-18: #1504 reviewer fixes
+
+`skip_on_cran()` now opens the eight fitted test blocks in
+`test-factor-contrasts.R`, `test-log1mexp-ad.R`, `test-student-large-nu.R`
+and `test-julia-missing-alignment.R`. `R/julia-bridge.R` loses the stale
+"delete these three" comment and the dead
+`exists("drm_abort_rank_deficient_designs")` branch. C17 does not pin that
+file: `capability_ledger.py --check` OK, and
+`recertify-c17.py --label pr-1504 --tolerance 1e-10 --dry-run` gave `|change|`
+0 on all three cells, so the receipt was not rewritten. Full suite on Totoro
+(R 4.6.1, nine processes): 49,146 pass, 4 fail, 0 error, 104 skip. Two fails
+were the env-skip census, regenerated with `tools/write-env-skip-census.R`
+(rerun 5/5). Two are `skip_fragile_recovery()` tests that fail the same way on
+`9c61c8246`: Arc 1a REML spatial one-slope (reference optimiser code 52) and
+the NB2 sigma mis-wire guard. `test-numeric-kernel-oracle.R` passed on Totoro
+(392 expectations). `devtools::document()` produced only the known #1400 `.Rd`
+drift, which was not committed.
+
+# 2026-10-18: rebase #1504 onto main after #1579
+
+Rebased `cursor/triage-e-numeric` onto `95e81e911` (50 commits). `NEWS.md`
+and this log had additive conflicts and keep both sides. The intermediate C17
+receipt commit was skipped, as for #1508, and C17 was recertified once at the
+end: `python3 tools/recertify-c17.py --label pr-1504 --tolerance 1e-10`,
+`|change|` 0 on mc-0568/0569/0576, source fingerprint unchanged. The branch
+also carries the #1495 contrast fix (ordered factors, stored contrast names,
+and a `drmTMB_contrasts_dropped` warning).
+
+# 2026-10-11: rebase #1508 onto main after #1507/#1527
+
+Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
+receipt commits were skipped and recertified once at the end:
+`python3 tools/recertify-c17.py --label pr-1508 --tolerance 1e-10`,
+|change| 0 on mc-0568/0569/0576. Touched tests: unused-dots + miss-control +
+predict-character + relmat-numeric 51 pass; `test-simulate-re-form.R` 22 pass
+via pkgload.
+
+# 2026-10-11: parallel lane follow-up (PSOCK cluster, parallel multi-start, bootstrap shards)
+
+Owner decisions 18 and 19 implemented on `claude/drm-parallel-perf-2`,
+stacked on #1510: `parallel = "cluster"` for `confint()`/`profile()`
+(identical to serial; 1.70x on four profile targets);
+`drm_control(parallel, workers)` for multi-start (2.47x multicore, 1.48x
+cluster on a hard RE fit; RE agreement 6.8e-8); internal bootstrap shards
+with a fail-closed reducer. `simulate()` stays serial after a benchmark.
+
+Report: `docs/dev-log/after-task/2026-10-11-parallel-perf-lane-2.md`.
+
+# 2026-10-11: parallel and performance lane (#1387, #1247; plans for #1248, #914, #1250, #1254, #861)
+
+`drm_profile_trace_object()` no longer stores `par` per objective evaluation
+(6.5 MB to 51 KB on a 3,020-evaluation profile; identical curves and clamp
+status). `profile()` gains `parallel`/`workers` (2.40x on four targets,
+identical apart from `elapsed`). Multicore worker errors now abort. New
+`?drmTMB-parallel` thread-policy topic. Measured, not adopted: relaxed
+`inner.control` (no gain, estimates bitwise equal) and forked multi_start
+(2.7x, needs a TMB-environment handoff design).
+
+Report: `docs/dev-log/after-task/2026-10-11-parallel-perf-lane.md`.
+Branch: `claude/drm-parallel-perf`.
+
+# 2026-10-09: character predictors use the full-frame reference level
+
+`model.frame()` leaves a character or logical predictor as character or logical. The reference-level guard only inspected factors, so `g = c("a", "a", "b", "b", "c", "c")` with the `"a"` rows dropped by the other response rebuilt treatment columns against baseline `b` and kept `gc`. `drm_julia_xfam_design_from_frame()` now calls `factor()` on those columns using the full frame, then applies the same reference check. The response column is left unchanged. `R/drmTMB.R` and `R/methods.R` were not edited, so C17 was not recertified.
+
+Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 71 expectations. `test-xfam-bridge.R`: 0 failures, 43 expectations, 6 skips (live Julia and `{glmmTMB}`). Full `testthat::test_dir()`: PASS 45117, FAIL 4, WARN 77, SKIP 440. The four failures are this VM: two B1 adapter errors because `{ape}` is absent, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. `{JuliaCall}` is installed, so the old fence failure that stopped on a missing JuliaCall message did not recur. Live engine tests still skipped: `DRMODELS_JL_PATH` was unset for the suite (0 live tests ran, 67 skipped).
+
+# 2026-10-09: cross-family contrasts kept, reference level refused
+
+`contrasts(f) <- contr.sum(3)` was becoming treatment columns `fb`, `fc` because `droplevels()` calls `factor()` and drops the contrasts attribute, even when no level was removed. `drm_droplevels_keep_contrasts_factor()` drops unused levels and writes that attribute back. The cross-family rebuild and the TMB pre-fit drop both use it, so a Julia cross-family design and `engine = "tmb"` both keep `f1`, `f2`, with and without dropped rows that leave every level in the data. An ordered factor keeps `o.L` and `o.Q`.
+
+Removing the treatment reference level on a cross-family axis now errors and names the level. The fit no longer keeps a column such as `gc` and silently changes its baseline from `c - a` to `c - b`. A non-reference treatment level that the shared-row drop empties is still removed.
+
+The rank check in `drm_julia_xfam_design_from_frame()` calls `drm_aliased_columns(X, tol = 1e-10)`. A design with predictor noise of `1e-8` still builds. An exact copy of a column errors with class `drmTMB_rank_deficient_design`. `qr()`'s default tolerance is `1e-7`.
+
+`R/drmTMB.R` changed, so C17 was recertified (`--tolerance 1e-10`). On the original branch the worst `|change|` was `1.322e-11` (mc-0569). After the rebase onto `main` it was recertified once more (`--label pr-1504`), with `|change|` 0 on all three cells. `R/methods.R` and `src/drmTMB.cpp` did not change. `lss-tip-identity` hashes every `R/*.R` and will be regenerated once on `main`. It was not rewritten here.
+
+Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 70 expectations. Related files re-run with no failures: coefficient labels, xfam bridge, formula constructs, dinnage wave 1, julia diagnostics, julia bridge, julia structured, julia missing. Full `testthat::test_dir()`: PASS 45044, FAIL 5, WARN 77, SKIP 446. The five failures are this VM, not the contrast change: two B1 adapter errors because `{ape}` is absent, one Julia fence that stops on missing `{JuliaCall}` before the DRM.jl path message, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. Live Julia tests skipped: Julia is not installed on this VM, and `DRMODELS_JL_PATH` / `DRM_JL_PATH` is unset, so the live engine did not start. The column checks call `drm_julia_xfam_axes()` and `drm_julia_xfam_design_from_frame()` in R, which is the design the Julia fit sends.
+
+# 2026-10-08: cross-family cbind, emptied factor levels, offset refusal
+
+Review round on draft PR #1504. R only. `src/drmTMB.cpp`, `R/drmTMB.R`, and `R/methods.R` were not edited, so C17 was not recertified.
+
+- `cbind(successes, failures)` on a cross-family axis errors before the shared-row index is built, with or without `NA`. A single 0/1 column still marshals.
+- Each axis design is rebuilt on the shared rows. An `NA` on `y1` that empties factor level `c` on `mu2` drops that column. One observed level left, or a rank-deficient design, errors.
+- `fitted()` and `residuals()` are indexed like the original data. Dropped rows are `NA`. `kept_rows` stores the fitted positions.
+- `offset()` on a cross-family location or sigma formula errors. `model.matrix()` had been dropping it.
+- `%||%` in `R/zzz.R` matches `if (is.null(x)) y else x` and is defined only when R does not already have it (base since 4.4.0). A rebase against the bridge-inputs copy keeps one definition.
+- The lost-level guard was not extended. The structured payload already errors unless there is exactly one structured term.
+
+Local R 4.3.3, reinstall without recompile. `test-julia-missing-alignment.R` 9 tests, 0 failures, 57 expectations. Also green, no Julia process: `test-xfam-bridge.R` 12/0/6 skip/43, `test-coefficient-labels.R` 44/0/11/100, `test-julia-diagnostics.R` 22/0/2/123, `test-julia-bridge.R` 16/0/2/139, `test-julia-structured.R` 9/0/1/59, `test-julia-missing.R` 8/0/5/5. The related-file union is 182 tests, 0 failures, 17 skips, 1525 expectations.
+
+`lss-tip-identity` hashes every `R/*.R`. This round edits `R/julia-bridge.R` and `R/zzz.R`. That receipt will be regenerated once on `main` after the batch lands. It was not rewritten here.
+
+# 2026-10-08: Student large-nu logLik, log1mexp AD ceiling, Julia NA alignment
+
+Fixed three open bugs on `cursor/triage-e-numeric`.
+
+- #1462: `drm_student_log_density()` keeps the lgamma constant for `nu < 1e4` and uses a three-term Stirling series for `nu >= 1e4`, with `drm_log1p_nonnegative(z^2/nu)`. `logLik()` reads that objective. `fitted_distribution()` already uses `stats::dt()`.
+- #1472: `drm_log1mexp()` and `drm_log1p_nonnegative()` clamp each `CppAD::CondExp` branch into the region where that branch is finite. The selected value is unchanged. Cloglog successes at `eta <= -40` and zero-truncated NB2 at `eta_mu <= -38` now have a finite Hessian.
+- #1454: cross-family Julia axes intersect kept row indices, including sigma designs, so staggered `NA`s stay on one complete-case index. Structured `response = "drop"` drops incomplete rows and errors if a grouping level disappears. q2 structured payloads refuse incomplete modelled columns. `check_drm()` reports the main-route drop count when the bridge recorded one. The Student fix stays inside `drm_student_log_density()`; the three `src/drmTMB.cpp` call sites already call that function and were not patched. `R/drmTMB.R` and `R/methods.R` are unchanged, so C17 was not recertified.
+- Portability: package code defines `%||%`, which base R provides from 4.4.0. `DESCRIPTION` allows R >= 4.1. The review round guards that definition so a rebase keeps one copy.
+
+Local R 4.3.3, drmTMB installed to `/workspace/.Rlib`. Final green union of the related files: 179 tests, 0 failures, 17 skips (live Julia or `NOT_CRAN`), 1488 expectations. New files: `test-student-large-nu.R` (2/23), `test-log1mexp-ad.R` (2/26), `test-julia-missing-alignment.R` (6/20). The first numeric-oracle tweedie case failed only because `{tweedie}` was not installed; after installing it, 19/392 passed. The CondExp enumeration anchor moved from 5/4 to 9/8 in `drm_numeric.h` / `drm_response_kernels.h` and passed.
+
+`R/drmTMB.R`, `R/methods.R`, and `src/drmTMB.cpp` were not edited, so C14/C17 was not recertified. `lss-tip-identity` hashes every `R/*.R`; `R/julia-bridge.R`, `R/julia-diagnostics.R`, and `R/zzz.R` will make that receipt stale on the next push to `main`. It was not rewritten here. Receipt staleness does not run on pull requests.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-e-numeric.md`.
+
+# 2026-10-04: phylogenetic tree-height documentation correction
+
+Corrected `phylo()` roxygen, generated help and NEWS to describe the existing
+unit-height Brownian covariance. No fitting code or defaults changed. Added
+branch-unit invariance tests and corrected the help contract that previously
+required the false absolute-scale claim (Ayumi-495/LS_ecogeographical-rules#49).
+
+Focused local tests using the installed 0.7.1 engine: 29 tests, 220 passed
+expectations, zero failures, errors or skips. R expression equivalence,
+`tools::checkRd`, `git diff --check`, `pkgdown::check_pkgdown()` and a local
+`phylo` reference-page build/content check passed. The full package suite,
+release checks, deployment and Ayumi's empirical fits were not checked.
+
+Report: `docs/dev-log/after-task/2026-10-04-phylo-tree-height-docs.md`.
+Local branch: `codex/phylo-height-docs`; original checkout preserved.
+
+# 2026-09-17 — Dinnage arc3 Wave C MERGED + tip-identity receipt (#1380)
+
+**Lane:** Grace · merge gate (Composer).
+
+**Evidence:** [#1380](https://github.com/itchyshin/drmTMB/pull/1380) **MERGED** @ `9c2c6a29c` (2026-09-17T18:18:10Z). Branch tip `46f2bf523` (includes census fix `b60beecc9`). CI [`35255223781`](https://github.com/itchyshin/drmTMB/actions/runs/35255223781) all SUCCESS. **D-263: ACCEPT** @ `b60beecc9` ([5718829248](https://github.com/itchyshin/drmTMB/pull/1380#issuecomment-5718829248)). Refreshed `lss-tip-identity/public-001.json` R/ hashes on `main`; local `ci-receipt-staleness.sh` **FRESH**.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — **Wave C DONE**.
+
+**Non-claims:** no release/tag; confirm `receipt-staleness` workflow on `main` after push.
+
+---
+
+# 2026-09-17 — Dinnage arc3 Wave C CI red @ 2905e44; merge blocked (#1380)
+
+**Lane:** Grace · merge gate (Composer).
+
+**Evidence:** PR [#1380](https://github.com/itchyshin/drmTMB/pull/1380) OPEN @ `2905e44ecb2471b26807abb6f09e9aff84d1e436`. **D-263: ACCEPT** @ tip ([5718488524](https://github.com/itchyshin/drmTMB/pull/1380#issuecomment-5718488524)). CI [`35252129804`](https://github.com/itchyshin/drmTMB/actions/runs/35252129804) **failure**: ubuntu-latest (release) shard 3/4 — `test-env-skip-census.R` (committed census missing `test-dinnage-audit-wave4c.R` runtime-conditional row).
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md`.
+
+**Non-claims:** **no merge**; no receipt on `main`; D-263 ACCEPT void if tip moves before merge.
+
+---
+
+# 2026-09-17 — Dinnage arc3 Wave C D-263 REJECT @ tip (#1380)
+
+**Lane:** Grace · merge gate held (Composer coord).
+
+**Evidence:** PR [#1380](https://github.com/itchyshin/drmTMB/pull/1380) OPEN @ `6f46d089f1c15c8fc32a184b422ac51acbba17ac`. CI [`35248209220`](https://github.com/itchyshin/drmTMB/actions/runs/35248209220) all SUCCESS on that tip. **D-263: REJECT** @ tip ([comment 5718384588](https://github.com/itchyshin/drmTMB/pull/1380#issuecomment-5718384588); P1 `NEWS.md` vs removed deprecated `drmTMB::beta()`). Prior ACCEPT @ `97bd85427` superseded by tip delta.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md`.
+
+**Non-claims:** **no merge** of #1380; no receipt-staleness on `main` until post-merge; fixer owns alias/NEWS alignment on branch.
+
+---
+
+# 2026-09-16 — Coord truth refresh: #1375 merged; #1379 hotfix live (#1375)
+
+**Lane:** Ada · `ada:coord-truth-1379` (coord docs only; gh-verified).
+
+**Evidence:** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) **MERGED** @ `4806b4839` (2026-09-16T17:13:06Z). [#1379](https://github.com/itchyshin/drmTMB/pull/1379) **OPEN** @ `59667a423` (`hotfix/a2-missing-predictor-gate`). [#1377](https://github.com/itchyshin/drmTMB/pull/1377) **OPEN** (may close after #1379). `main` @ `542ca455a`; **`receipt-staleness` on `main` RED** until #1379 lands. **Supersedes** any board/CLAIMS row treating #1375 OPEN or `296a1f763` as current CI truth.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md`.
+
+**Non-claims:** no merge of #1379/#1377 in this commit.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 MERGED + tip-identity receipt (#1375)
+
+**Lane:** Grace · post-merge receipt on `main` @ `4806b4839`.
+
+**Evidence:** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) **MERGED** @ `4806b4839` (merge commit; head `af9fc76ff`). **D-263: ACCEPT** @ `78df3d4d6` (Shinichi). Regenerated `lss-tip-identity/public-001.json`; local `ci-receipt-staleness.sh` **FRESH** (C17 unchanged).
+
+**Coordination update:** tip-identity receipt PR open on `main`; merge when `receipt-staleness` green.
+
+**Non-claims:** receipt PR not merged until CI settled green.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 merge main sync (#1375)
+
+**Lane:** Grace · `merge origin/main` into B2 branch to clear PR **DIRTY** / **CONFLICTING** (coord-only delta on `main` since `78df3d4d6`).
+
+**Fix:** resolved conflicts in `check-log.md`, `coordination-board.md`, `CLAIMS.md`, `LOOP/checkpoint.md` (fold `main` coord state).
+
+**Non-claims:** superseded by #1375 merge @ `4806b4839`.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 D-263 ACCEPT @ C17; check-log tip (#1375)
+
+**Lane:** Ada coordinator · `ada:coord-b1375` (coord docs only).
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `78df3d4d6`; **inert C17 recert** @ `14618e6e4` (`mc-0568` / C17+C14); **check-log merge** (`origin/main` into B2) @ `78df3d4d6`. **D-263: ACCEPT** @ `14618e6e4` (Shinichi). **D-263 re-ACCEPT @ `78df3d4d6`** posted (Composer + reviewer lane). CI [`35125446950`](https://github.com/itchyshin/drmTMB/actions/runs/35125446950) on `78df3d4d6`.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — merge gated on settled green CI + mergeable PR head.
+
+**Non-claims:** no merge of #1375 until fresh D-263 on tip + settled green CI.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 D-263 ACCEPT @ shard fixes (#1375)
+
+**Lane:** Ada coordinator · `ada:coord-b1375` (coord docs only).
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `1424f1971`; tip shard fixes (**REML IC**, **A-2 explicit `missing=` gating**, **census TSV**). **D-263: ACCEPT** @ `1424f1971` (Shinichi). CI dispatch [`35124451699`](https://github.com/itchyshin/drmTMB/actions/runs/35125451699) **in flight** on tip.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — **MERGE-READY pending settled green CI**; merge when green (keep-going); tip-identity receipt LAST on `R/` before merge. PR comment ACCEPT posted @ tip.
+
+**Non-claims:** merge only after settled green CI on `1424f1971`.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 D-263 ACCEPT @ bf.R fix (#1375)
+
+**Lane:** Ada coordinator · `ada:dinnage-arc3-coord` (coord docs only).
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `05c28c1bb`; **`R/bf.R` `call_names` fix** (restore names on `drm_formula$calls` after `drm_formula_resolve_input`). **D-263: ACCEPT** @ `05c28c1bb` (Shinichi). CI run [`35123724324`](https://github.com/itchyshin/drmTMB/actions/runs/35123724324) **in flight**.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — **MERGE-READY pending settled green CI**; **keep-going** merge via `pr_merge_when_green.sh`; tip-identity receipt LAST on `R/` before merge.
+
+**Non-claims:** merge only after settled green CI.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 CI red shard 3 (#1375)
+
+**Lane:** Ada coordinator · `ada:coord-b1375-ci-red` (coord docs only).
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `296a1f763`; CI run [`35120853817`](https://github.com/itchyshin/drmTMB/actions/runs/35120853817) — **ubuntu-latest (release) shard 3/4** failed `tests/testthat/test-package-skeleton.R` (`drm_formula`). **D-263 ACCEPT** @ tip **stands until tip moves** (GitHub **Approve** blocked — same-author). Fixer in flight (Composer).
+
+**Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — **CI RED**; **no merge** until settled green CI; tip-identity receipt LAST on `R/` before merge.
+
+**Non-claims:** no merge; no new D-263 ACCEPT.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 Rd args (#1375)
+
+**Lane:** Gauss · `gauss:dinnage-arc3-B2` · worktree `drmTMB-dinnage-arc3-B2`.
+
+**Fix:** R CMD check ERROR — undocumented `\arguments` for `drm_validate_complete_predictors` (`formula`, `data`). Added roxygen `@param` / `@return` in `R/missing-data.R`; `devtools::document()`; `tools::checkRd("man/drm_validate_complete_predictors.Rd")` clean.
+
+**Non-claims:** no D-263 ACCEPT; no merge.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 C17 recert (#1375)
+
+**Lane:** Gauss · `gauss:dinnage-arc3-B2` · worktree `drmTMB-dinnage-arc3-B2`.
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) @ `9c5a90dd3` (pre-push). D-263 REQUEST CHANGES: Ubuntu shards failed `mc-0568` model-15 fingerprint drift after `R/drmTMB.R` / `R/methods.R` edits.
+
+| Check | Result |
+| --- | --- |
+| C17 model-15 compatibility (`recertify-c17.py --label pr1375-b2`) | ✅ 12/12, `PASS_CURRENT_SOURCE_COMPATIBILITY`; mean_tau_relative_error **inert** (\|change\| 0.000e+00 on mc-0568/0569/0576) |
+| Ledger | ✅ `capability_ledger.py --check`; ✅ 80/80 `test_capability_ledger` (fail-closed C17 modes) |
+| Receipt | `docs/dev-log/implementation-recovery/2026-09-16-pr1375-b2-c17c2-c14-final-source-compatibility/` |
+| Audit note | `docs/dev-log/audits/2026-09-16-dinnage-arc3-b2-review.md` |
+
+**Also:** `?confint.drmTMB` cross-links `as.matrix.drm_confint()`; S7 doc typo in `R/control.R`.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 D-263 REQUEST CHANGES (#1375)
+
+**Lane:** Ada coordinator · `ada:dinnage-arc3-coord` (status); `gauss:dinnage-arc3-B2` (P0 fix).
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `9c5a90dd3` on `cursor/dinnage-arc3-b2-surfaces-20260916`; local **47/47** reported. **D-263 review: REQUEST CHANGES** (not ACCEPT). **P0:** C17/C14 capability-ledger fingerprint drift (`mc-0568`) on `R/drmTMB.R` + `R/methods.R` — Gauss fixer spawned (re-cert + push). **P2:** confint Rd cross-link, audit note, check-log (fixer). `main` @ `ba2e8d31`; tip-identity last green @ `e169d7a76` (run `35111843393`).
+
+**Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — B2 not MERGE-READY; no merge until settled green CI + fresh **D-263 ACCEPT**; tip-identity receipt LAST on `R/` before merge.
+
+**Non-claims:** no agent merge of #1375; no MERGE-READY claim.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 PR open (#1375)
+
+**Lane:** `gauss:dinnage-arc3-B2` · Ada coord note.
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `9c5a90dd3` on `cursor/dinnage-arc3-b2-surfaces-20260916`; local **47/47** reported; CI in flight (R-CMD-check run `35112881554`, `os-matrix` green at open). B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) **MERGED** @ `f822a34da`; `main` @ `e169d7a76`.
+
+**Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — B2 in flight; await CI green + **D-263** attributed closeout on #1316, #1332, #1353, #1355, #1360; tip-identity receipt LAST before merge; prefer **Composer** for CI watch; coord push OK.
+
+**Non-claims:** no agent merge of #1375 unless CI settled green and explicitly authorized.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B1 merged (#1373); B2 unlocked
+
+**Lane:** Ada coordinator · `ada:dinnage-arc3-coord`.
+
+**Evidence:** PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) merged @ `f822a34da` (merge commit; Shinichi/Grace). GitHub Actions `receipt-staleness` run `35111843393` green on `main` — no follow-up tip-identity PR.
+
+**Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — B1 closed; Wave B2 UNLOCKED; spawn brief § B2.
+
+---
+
+# 2026-09-16 — Dinnage arc3 receipt gate clear again (#1374)
+
+**Lane:** Ada coordinator · `ada:dinnage-arc3-coord`.
+
+**Evidence:** PR [#1374](https://github.com/itchyshin/drmTMB/pull/1374) merged @ `f7b40b75a`; GitHub Actions `receipt-staleness` run `35103746783` green on `main`.
+
+**Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — receipt gate clear; ~~HOLD docs-only main pushes~~ lifted; coord/docs push OK. **#1373** still OPEN @ `994308a08` awaiting CI — do not merge unless green and authorized.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B1 PR open (#1373)
+
+**Lane:** `dinnage-arc3-cursor` (Ada coord).
+
+**Evidence:** PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) OPEN @ `37428bae5` on `cursor/dinnage-arc3-b1-check-20260916`; local 6/6 wave4b1 tests reported; CI pending at open; [#1372](https://github.com/itchyshin/drmTMB/pull/1372) already merged.
+
+**Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — B1 in flight; await CI green + D-263 track (#1370); tip-identity receipt LAST before merge; prefer Composer for CI watch.
+
+---
+
+# 2026-09-16 — Dinnage arc3 receipt gate clear (#1372)
+
+**Lane:** Ada coordinator · `ada:dinnage-arc3-coord`.
+
+**Evidence:** PR [#1372](https://github.com/itchyshin/drmTMB/pull/1372) merged @ `dd937ac3`; GitHub Actions workflow `receipt-staleness` run `35096373487` green on `main`.
+
+**Coordination update:** `coordination-board.md` tip, `docs/dev-log/lanes/dinnage-arc3-cursor/CLAIMS.md`, `LOOP/checkpoint.md` — receipt gate clear; merge queue resumed for #1368/#1370 (#1371 already merged); B1 may open PR with tip-identity regen LAST on `R/` merges; push coord docs to `main` OK.
+
+**Non-claims:** no agent merge of #1368/#1370 unless CI green and explicitly authorized (Grace watchers preferred).
+
+---
+
+# 2026-08-18 — win-builder Julia hang root cause + CRAN-lane hard stop
+
+**Lane:** `cursor/070-julia-skip-winbuilder-fix` (from `origin/main` @ `02b8fbe72`).
+
+**Root cause:** #1061's `^julia` filter excluded `test-julia-*.R`, but
+`test-binomial-response.R` (CRAN lane) still ran `expect_error(drmTMB(..., engine = "julia"))`.
+Workflow G admits fixed-effect `binomial` into the Julia bridge, so the call
+entered `JuliaCall::julia_setup()` and hung Ligges R-release (`v57uv6zakfKO`,
+`8764b2fe…`, ~10448s) at "Loading setup script for JuliaCall...".
+
+**Fix:** `drm_julia_cran_lane_blocked()` + abort in `drm_julia_setup()`; harden
+`drm_skip_live_julia()`; replace obsolete binomial `expect_error` with pure-R
+`drm_julia_family_tag("binomial")` assertion; expand `test-cran-lane-filter.R`.
+
+**Checks:** focused `cran-lane-filter` + `binomial-response` with `NOT_CRAN=false`.
+
+**Non-claims:** no `submit_cran`; no Ligges email; no #1033; `platform-clean` not advanced.
+
+---
+
 # Check Log
+
+## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
+
+Lane: Cursor, `cursor/ng-correlated-slope-wave3-lognormal` on worktree
+`.worktrees/design257-1060-rebase` (fresh from `origin/main`; not the dirty
+July primary checkout). No `submit_cran`. No #1033. No mc-0576 campaign.
+
+| Check | Result |
+| --- | --- |
+| Symbolic alignment | design 257 Wave 3 table: sd0/sd1/rho_re; design-17 map; not rho12 |
+| C++ `model_type == 4` | design-17 `eta_cor_mu` / `rho_mu_re` (no logsech) |
+| R fences | lognormal-only validator wedge; missing-response abort; corpars allowlist; constant-within-group x; Gamma stays rejected |
+| Ledger | `mc-0720` `ordinary_correlated_q2` / `point_fit_recovery`; MODEL_SURFACE 702→703; implemented 344→345 |
+| Focused tests | FAIL 0 on the Wave-3 filter set (lognormal q2 + neighbours + location-scale + nongaussian slopes) |
+| C14 | cheap blob refresh; 4/4 PASS; tau digits unchanged; `source_fingerprint` left alone |
+| Ledger unit tests | counts bumped 702→703 / 344→345 / PFR 80→81 |
+| Draft PR | [#1069](https://github.com/itchyshin/drmTMB/pull/1069) tip `f5d464d90` |
+| CI | tip `f5d464d90` run `32085311878` SUCCESS (ubuntu 47m16s); prior `70550fd48`/`32081714283` also green |
+
+## 2026-08-17 — julia-skip win-builder FTP (Cursor)
+
+- Exact-bytes upload of `~/drmTMB-release-artifacts/0.7.0-julia-skip/drmTMB_0.7.0.tar.gz`
+  (SHA-256 `8764b2febf1d01b0c8709f3b931cae5195373ae9e1b35939fd5e39c39f058212`) to
+  win-builder R-release (23:21:44Z, curl 0 / 226) and R-oldrelease (23:21:47Z, curl 0 / 226).
+- Receipt: `docs/dev-log/release/0.7.0-cran-gate/candidate-julia-skip/winbuilder-upload-receipt.md`.
+- No submit_cran; no Ligges email; no #1033; no check results invented.
+
+
+## 2026-08-17 — OVERRIDE QUIESCE: #1060 → #1065 → #1061 + docs #1057/#1064
+
+Lane: Cursor, `.worktrees/design257-1060-rebase`. Shinichi unblocked the parked
+merge stack. Leftover mid-rebase in `design257-1060-rebase` was aborted first.
+No `submit_cran`. No Ligges email. No #1033. No Wave 3.
+
+| Check | Result |
+| --- | --- |
+| #1059 | already on `main` `f021a2ece` (merge commit) |
+| #1060 | squash `0a7f93f16` after `--onto origin/main` (check-log only) |
+| #1065 | squash `a79b0b014` after `--onto origin/main` (check-log only) |
+| #1061 | squash `2f7403902` after `--onto origin/main` (check-log only) |
+| #1057 | squash `3dacd7f58`; kept live design 257 from Waves; banked unique notes |
+| #1064 | this handover SHA update; merge next |
+| #1060 smoke | still **rho 8/9** (`881402`, `n_each=4`) |
+
+Handover: `docs/dev-log/handover/2026-08-17-overnight-gapfill-handover.md`.
+
+## 2026-08-17 — morning handover refresh (docs only)
+
+Lane: Cursor, `cursor/overnight-gapfill-board`. Scorecard next action + finisher brief.
+No `submit_cran`. No #1033. Wave 3 not started.
+
+| Check | Result |
+| --- | --- |
+| #1062 | MERGED `186d88038` |
+| #1063 | MERGED `2d92c3666`; ubuntu C14 red (cheap `R/drmTMB.R` blob); left |
+| #1059 | draft complete; Totoro 9/9; CONFLICTING vs `main` |
+| #1060 | smoke banked `e5657ecbf`; **rho 8/9** (seed 881402); comment posted; do not claim 9/9 |
+| #1065 | NB2 draft snapshot @ `53f447b9f`; not in merge stack |
+| Wave 3 | never started |
+| Finisher GO | #1057 → #1059 → #1060 → #1061 |
+
+Handover: `docs/dev-log/handover/2026-08-17-overnight-gapfill-handover.md`.
+
+## 2026-08-17 — overnight gap-fill closeout (docs only)
+
+Lane: Cursor, `cursor/overnight-gapfill-board`. Stop ~05:40 MDT. No shipped
+`R/` / `src/` merge. No Ligges. No #1033. No `submit_cran`.
+
+| Check | Result |
+| --- | --- |
+| Board PR | draft [#1064](https://github.com/itchyshin/drmTMB/pull/1064) |
+| #1059 | `ae307f4b1`; constant-x + Totoro bank; CI green; now CONFLICTING |
+| #1060 | rebased onto 1059 tip (`3e8a9aaec`); MERGEABLE; CI not yet |
+| NB2 PR | none |
+| Wave 3 lognormal | worktree at Wave 2 tip; **no implementation commit** |
+| #1062 ADEMP | **merged** to `main` (`186d88038`) |
+| #1063 REML 4a | open; touches `R/drmTMB.R`; CONFLICTING; ubuntu FAIL; **not merged** |
+
+Handover: `docs/dev-log/handover/2026-08-17-overnight-gapfill-handover.md`.
+
+## 2026-08-16 — overnight gap-fill board (docs only)
+
+Lane: Cursor, `cursor/overnight-gapfill-board`. Docs-only status board for the
+18:42–05:00 MDT window. No `R/` / `src/` / test edits. Quiesce holds.
+
+| Check | Result |
+| --- | --- |
+| `gh pr list` open set | #1061, #1060, #1059, #1057, #1049, #1033, #858 |
+| #1059 head | `ae307f4b1` (constant-x `3399e7eda` + Totoro bank) |
+| #1060 vs 1059 tip | not an ancestor at 18:53; sibling rebase later landed `3e8a9aaec` |
+| NB2 / ADEMP / 4a PRs | none at 18:53 MDT |
+
+Board: `docs/dev-log/research/2026-08-16-overnight-gapfill-board.md`.
+
+## 2026-08-16 — win-builder Julia skip (Ligges ERROR)
+
+Lane: Cursor, `cursor/070-winbuilder-julia-skip` from freeze `302ac2579`. Ligges
+R-release (`qdiOL4tO0suj`, 105m) and R-oldrelease (`GXMxAgB00l1C`, 149m) both
+ERROR with `testthat.Rout.fail` ending at `JuliaCall::julia_setup()`. No
+testthat Failure block. NOTE is incoming feasibility (*centile* /
+*misspecification* / *uncalibrated*), not GNU make.
+
+| Check | Result |
+| --- | --- |
+| CRAN invert filter | `^julia` added; `NOT_CRAN=true` still unfiltered |
+| Live JuliaCall tests | `drm_skip_live_julia()` unless `DRMTMB_JULIA_TESTS=true` |
+| `test-xfam-bridge.R` cheap R tests | stay on the CRAN lane |
+| Focused tests | `^cran-lane-filter$` FAIL 0 / PASS 11; invert sim 16/16 julia stems excluded; CRAN-lane xfam FAIL 0 / SKIP 4 / PASS 65 |
+| `platform-clean` | **still NOT READY** — needs new tarball + re-upload |
+| submit_cran / Ligges email / merge-as-clean | **not done** |
+## 2026-08-16 — `mc-0576` ADEMP: align promotion rule with Arc 4c S0
+
+Lane: Cursor, `cursor/mc0576-ademp-s0-align` (scratch
+`~/local-scratch/lanes/drmTMB-mc0576-ademp`). Docs only. Builds on merged
+PR #1062; does not relaunch the freeze.
+
+| Check | Result |
+| --- | --- |
+| Frozen `(M, SD, n_each)` | unchanged: `{8,16,32,64}`, 0.45, 50 |
+| Gate (3) | contiguous suffix of `{16,32,64}`; `M=64` required; `M=8` never floor |
+| Claim ceiling | still `inference_ready_with_caveats`; never `supported` first campaign |
+| Launch | **do not launch**; Totoro-or-DRAC waits for owner GO |
+| Fits / ledger | **not run** |
+
+ADEMP: `docs/dev-log/research/2026-08-16-mc-0576-zo-beta-sigma-slope-ademp-freeze.md`.
+After-task: `docs/dev-log/after-task/2026-08-16-mc-0576-ademp-s0-gate-align.md`.
+
+## 2026-08-16 — Public NG REML honesty (4a): README + ?drmTMB match the ledger
+
+Lane: Cursor, `cursor/ng-reml-honesty-4a` (worktree
+`~/local-scratch/lanes/drmTMB-ng-reml-honesty-4a`). Docs only.
+
+| Check | Result |
+| --- | --- |
+| `origin/main` README L190–205 | binomial REML already diagnostic-only |
+| Reconciliation L28–40 | `mc-0060`/`mc-0062` diagnostic; `mc-0227` ML point-fit; O3 internal |
+| `R/drmTMB.R` diff | roxygen only; no abort / `drm_validate_reml_spec` hunk |
+| `NAMESPACE` | no O3 export |
+| Ledger cells | not touched |
+| `rg` `REML planned\|non-Gaussian REML is\|REML is planned\|public O3` on edited surfaces | no leftover product claim |
+
+Pat-level sentence now on README (family bullet + Current boundaries) and
+`?drmTMB`: O2 = diagnostic binomial only; O3 = private; other NG reject REML.
+After-task: `docs/dev-log/after-task/2026-08-16-ng-reml-honesty-4a.md`.
+
+## 2026-08-16 — `mc-0576` ADEMP freeze (ZO-beta sigma slope); docs only; do not launch
+
+Lane: Cursor, `cursor/mc0576-ademp-freeze` (worktree off `origin/main`). Stayed off
+PRs #1033 / #1059 / #1060 and off all `R/` / `src/`.
+
+`git show origin/main:docs/dev-log/dashboard/capability-ledger/cells.tsv` row
+`mc-0576` is `interval_feasible` (135-trace profile existence; true SD 0.45).
+Coverage remains a separate goal. This slice freezes the ADEMP so a later
+campaign cannot invent `M` / SD / `n_each`.
+
+| Check | Result |
+| --- | --- |
+| Ledger row | `interval_feasible`; next_gate = coverage out of scope |
+| Frozen DGP | SD **0.45**, `n_each` **50**, `M ∈ {8, 16, 32, 64}` |
+| Estimand | `sd:sigma:(0 + x \| id)` on `sigma ~ x + (0 + x \| id)` |
+| Not this cell | `mc-0575` mu slope; `(1 + x \| id)`; REML; Wave 3; NB2 |
+| Claim ceiling | later `inference_ready_with_caveats`; never `supported` first campaign |
+| Compute | Totoro-or-DRAC? **wait for owner GO** |
+| Fits / ledger edit | **not run** |
+
+ADEMP: `docs/dev-log/research/2026-08-16-mc-0576-zo-beta-sigma-slope-ademp-freeze.md`.
+After-task: `docs/dev-log/after-task/2026-08-16-mc-0576-ademp-freeze.md`.
+
+**Do not launch** a smoke or `N ≈ 1200` campaign from this document.
+
+## 2026-08-16 — Design 257 Wave 2.5: NB2 ordinary correlated `(1+x|g)` as `mc-0719`
+
+Lane: Cursor, `cursor/ng-correlated-slope-nb2` stacked on `#1060` /
+`cursor/ng-correlated-slope-wave2` @ `e5657ecbf` (Totoro smoke on
+`3e8a9aaec`). Worktree is
+`/Users/z3437171/local-scratch/lanes/drmTMB-ng-corr-nb2` (Dropbox
+`.worktrees/ng-corr-nb2` abandoned after a reset race). **Quiesce merge
+hold** — draft PR only; do not merge to `main`. `#1061` / `#1033` / MSPL /
+Ligges / CRAN not touched.
+
+| Check | Result |
+| --- | --- |
+| Cell | **`mc-0719`** (`ordinary_correlated_q2`); `mc-0402` stays `interval_feasible`; `mc-0718` stays Poisson `point_fit_recovery` |
+| Wedge | complete-data ordinary `nbinom2()` `count ~ x + (1 + x \| id)`, ML-Laplace, design-17 |
+| Alignment | report symbols match Poisson (`eta_cor_mu`, `rho_mu_re`; no `logsech_mu_re`); gate flipped |
+| Surface | `MODEL_SURFACE_COUNT` 701 → **702**; implemented 343 → **344**; `point_fit_recovery` 79 → **80** |
+| Focused R tests | `nbinom2-ordinary-correlated-q2\|nbinom2-location-scale\|poisson-ordinary-correlated-q2\|poisson-mean\|binomial-correlated-re-mspl-prereq` FAIL 0 / WARN 0 / SKIP 0 / PASS 478 |
+| Ledger | `python3 tools/capability_ledger.py --check` OK (31 generated outputs) |
+| C14 | 4/4 PASS; `source_fingerprint` unchanged; Wave 2 receipt left in place |
+| Merge | **not requested**; draft only |
+
+## 2026-08-16 — mc-0718 Totoro 27-fit smoke (PR #1060)
+
+Lane: Cursor, `cursor/ng-correlated-slope-wave2` (worktree `.worktrees/ng-corr-w2`).
+Named GO. Totoro, not DRAC. Draft PR only. Ceiling `point_fit_recovery`.
+
+| Check | Result |
+| --- | --- |
+| SHA | `3e8a9aaec` (live PR #1060 head; first deploy refused stale `aef4c860`) |
+| Toy | PASS (`881000`; finite design-17 names) |
+| Rejection | 5/5 red (REML, missing-response, labelled, mixed, NB2) |
+| Denominator | 27/27; `exception_class = none`; all `conv=0`, `pdHess=TRUE` |
+| Claim 0.30 | `sd0` 9/9, `sd1` 9/9, `rho_re` **8/9**; miss is `n_each=4` seed `881402` (`0.894` vs 0.45, `|err|=0.444`; glmmTMB same) |
+| Oracle | max \|drmTMB − glmmTMB\| 5.0e-6 / 5.8e-6 / 1.5e-5 |
+| Workers | 8; cap 16; wall 3 s; live `nproc=384` |
+| Quiesce | **no merge**; not #1033 / Ligges / DRAC |
+
+After-task: `docs/dev-log/after-task/2026-08-16-mc0718-totoro-smoke.md`.
+
+## 2026-08-16 — Stack refresh: #1060 onto #1059 tip `ae307f4b1`
+
+Lane: Cursor, rebasing `cursor/ng-correlated-slope-wave2` onto
+`cursor/ng-correlated-slope-impl` @ `ae307f4b1` (`3399e7eda` constant-x abort
++ Totoro smoke). **Quiesce merge hold** — neither PR merges to `main`.
+`#1033` / Ligges / CRAN not touched.
+
+| Check | Result |
+| --- | --- |
+| Order | Wave 1 first (`mc-0717`), then Wave 2 (`mc-0718`) |
+| Surface | `MODEL_SURFACE_COUNT` **701**; implemented **343** |
+| Kept | `mc-0717` + `mc-0718`; Wave 1 constant-within-group `x` abort |
+| Poisson rejection | already NB2 on Wave 2; constant-x abort kept |
+| Merge | **not requested**; drafts only |
+
+## 2026-08-16 — Stack Wave 2 (`#1060` / `mc-0718`) onto Wave 1 (`#1059` / `mc-0717`)
+
+Lane: Cursor, stacking `cursor/ng-correlated-slope-wave2` onto
+`cursor/ng-correlated-slope-impl`. **Quiesce merge hold** — neither PR merges
+to `main`. `#1060` retargets to the Wave 1 branch.
+
+| Check | Result |
+| --- | --- |
+| Order | Wave 1 first (`mc-0717`, source_order 717), then Wave 2 (`mc-0718`, 718) |
+| Surface | `MODEL_SURFACE_COUNT` 699 → **701**; implemented 341 → **343** |
+| Design 257 | one file; Wave 0 "no family" text replaced by the live Wave 1+2 contract |
+| NEWS / grammar | both waves present; no duplicate 257 |
+| Focused R tests | `binomial-correlated-re-mspl-prereq\|reml-binomial-coxreid\|poisson-ordinary-correlated-q2\|poisson-mean` FAIL 0 / WARN 0 / SKIP 0 / PASS 250 |
+| Merge | **not requested**; drafts only |
+
+## 2026-08-16 — constant-within-group `x` rejection for binomial q2 (PR #1059)
+
+Lane: Cursor Grok, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
+Design 257 ADEMP asked for a rejection test, not a recovery cell. **Abort landed.**
+Merge **not requested**. C14 / `R/drmTMB.R` / #1033 / Ligges / NB2 **not touched**.
+
+| Check | Result |
+| --- | --- |
+| Abort site | `drm_validate_binomial_q2_slope_variation()` in `R/mspl-estimator.R` (not C14-pinned) |
+| Rule | abort when no group has 2+ unique finite slope values |
+| `devtools::test(filter = 'binomial-correlated-re-mspl-prereq')` | 57 pass / 0 fail (was 56) |
+| `devtools::test(filter = 'reml-binomial-coxreid')` | 33 pass / 0 fail |
+| Parser `experimental q = 2` hint | left in `R/drmTMB.R`; C14 refresh is not cheap |
+| Claim ceiling | still `point_fit_recovery`; no recovery claimed for constant-`x` |
+
+## 2026-08-16 — mc-0717 Totoro 27-fit smoke (PR #1059)
+
+Lane: Cursor Grok, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
+Shinichi named GO. **PASS.** Merge **not requested**. DRAC / Ligges / #1033 **not touched**.
+
+| Check | Result |
+| --- | --- |
+| SHA | `5d5048d8d` on Totoro `~/hsq_work/drmTMB-mc0717` |
+| Toy | PASS; Design 257 names finite |
+| Rejection matrix | 5/5 red (REML, missing-response, labelled, mixed, Poisson) |
+| Denominator | 27/27; 0 exceptions dropped |
+| Convergence / `pdHess` | 27/27 / 27/27 |
+| Claim 0.30 gates `sd0` / `sd1` / `rho_re` | 9/9 / 9/9 / 9/9; max \|err\| 0.120 / 0.123 / 0.242 |
+| Oracle max \|drmTMB − glmmTMB\| | 1.9e-5 / 1.0e-5 / 4.1e-5 |
+| Workers / wall | 8 workers, cap 16; 27-fit wall 3 s; process group reaped |
+| Claim ceiling | still `point_fit_recovery` |
+
+Artifacts: `docs/dev-log/simulation-artifacts/2026-08-16-mc0717-totoro-smoke/`.
+
+## 2026-08-16 — Fisher / Noether merge-path for PR #1059 (`mc-0717`)
+
+Lane: Cursor Grok, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
+**PASS** alignment + claim ceiling. **Merge blocked by quiesce.** Totoro smoke **not launched**.
+
+| Check | Result |
+| --- | --- |
+| Fitted object (seed `20260811`, `n_group=56`, `n_each=14`) | `drmTMB` binomial logit, `estimator=ML`, `REML=FALSE`, `conv=0`, `pdHess=TRUE` |
+| `sd0` `sdpars$mu["(1 + x \| id):(Intercept)"]` | 0.599448 vs 0.65; \|err\|=0.0506; gate 0.30 PASS |
+| `sd1` `sdpars$mu["(1 + x \| id):x"]` | 0.414522 vs 0.42; \|err\|=0.0055; gate 0.30 PASS |
+| `rho_re` `corpars$mu["cor((Intercept),x \| id)"]` | 0.308915 vs 0.45; \|err\|=0.1411; gate 0.30 PASS; `== tanh(eta_cor_mu)` |
+| Log-sech `Σ_g` | off-diag 0.076761 = `sd0 * sd1 * rho_re` |
+| REML creep | `REML=TRUE` still aborts |
+| Interval creep | ledger/NEWS/grammar stay `point_fit_recovery`; generic `profile_ready=TRUE` is not a claim |
+| Residuals | constant-within-group `x` still fits (`sd1≈0`, `pdHess=FALSE`); parser hint still `experimental q = 2` |
+| Totoro BatchMode | OK 20:02 UTC; brief written; **not launched** |
+| Merge | **not requested** |
+
+Brief: `docs/dev-log/research/2026-08-16-mc0717-totoro-smoke-brief.md`.
+
+## 2026-08-16 — Design 257 Wave 1: binomial ordinary correlated `mc-0717`
+
+Lane: Cursor, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
+Base: `origin/main` `@ d9fddfa28`. **Quiesce merge hold** — draft PR only.
+
+| Check | Result |
+| --- | --- |
+| Extractors `sd0` / `sd1` / `rho_re` | Present on `sdpars$mu` / `corpars$mu`; log-sech report symbols exist |
+| `devtools::test(filter = 'binomial-correlated-re-mspl-prereq')` | 56 pass / 0 fail |
+| `devtools::test(filter = 'reml-binomial-coxreid')` | 8 pass / 0 fail (REML fence kept) |
+| `python3 tools/capability_ledger.py --check` | OK |
+| `python3 -m unittest tools.tests.test_capability_ledger -q` | 78 OK |
+| New cell | `mc-0717` `ordinary_correlated_q2` `point_fit_recovery` |
+| Not overwritten | `mc-0060` / `mc-0061` / `mc-0062` unchanged |
+| Merge | **not requested**; quiesce stands |
+
+## 2026-08-16 — Design 257 Wave 2: Poisson ordinary correlated `(1+x|g)` as `mc-0718`
+
+Lane: Cursor, `cursor/ng-correlated-slope-wave2` (worktree `.worktrees/ng-corr-w2`).
+Draft PR only. Quiesce still standing. Not `mc-0717`, not `mc-0061`.
+
+| Check | Result |
+| --- | --- |
+| Wedge | complete-data Poisson log `count ~ x + (1 + x \| id)`, ML-Laplace, `point_fit_recovery` |
+| Cell | **`mc-0718`** (`ordinary_correlated_q2`); `mc-0432` stays rejected remainder |
+| Focused tests | `poisson-ordinary-correlated-q2\|poisson-mean` FAIL 0 / WARN 0 / SKIP 0 / PASS 161 |
+| Ledger `--check` | OK (31 generated outputs); surface 699→700, implemented 341→342 (pre-stack; stacked surface is 701) |
+| C14 refresh | runner 4/4 PASS; receipt `2026-08-16-wave2-poisson-c17c2-c14-final-source-compatibility/`; fingerprint unchanged |
+| C++ | untouched (design-17 carrier already in `model_type == 6`) |
+| Neighbours | NB2 / labelled / mixed / REML / missing-response stay rejected |
+| Quiesce | **no merge** |
+
+After-task: `docs/dev-log/after-task/2026-08-16-design-257-wave2-poisson-correlated.md`.
+
+## 2026-08-16 — win-builder collection: R-devel clean; R-release/oldrelease ABSENT → re-upload; STOP
+
+Lane: Cursor, `cursor/070-winbuilder-collect` (worktree `.worktrees/cran-07`). Candidate
+`302ac2579` / SHA-256 `0d150ef3…b95e075`.
+
+| Check | Result |
+| --- | --- |
+| Gmail `in:anywhere from:ligges drmTMB_0.7.0` (incl. Trash) | 1 hit: R-devel only |
+| Positive control (Ligges newer_than:14d) | devel + five 0.6.0 threads — mailbox OK |
+| R-devel Status | **1 NOTE** (New submission + spelling); 0 E / 0 W; tests [13m] OK |
+| R-release / R-oldrelease emails | **ABSENT** |
+| Pre-upload hash | matches freeze |
+| Re-upload R-release / R-oldrelease | FTP OK 14:47:41Z / 14:47:45Z; both listed in queue |
+| Gate at `tarball-clean` | READY FOR CLAIMED RUNG |
+| Gate probe at `platform-clean` | NOT READY (`external_logs` missing) |
+| Quiesce | **STILL STANDING** (matrix incomplete) |
+| Submission / Gate 7 | **not run** |
+
+Filed under `candidate-302ac2579/`: `winbuilder-devel.txt` + `00check.log`, ABSENT stubs for
+release/oldrelease, `winbuilder-reupload-2026-08-16.md`. Board updated; QUIESCE not lifted.
 
 ## 2026-08-14 — Beta animal location-intercept response-mask recovery
 
@@ -739,7 +1791,6 @@
   passed; the response-mask inventory, capability ledger, and `git diff --check`
   passed. This does not promote coi slopes, other random or structured effects,
   REML, another response family, or missing predictors.
-
 
 ## 2026-08-10 — Emmy condition 1: `link_code` becomes a required argument
 
@@ -25750,7 +26801,9 @@ Actions run:
 Validation:
 
 ```sh
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/dev-log/check-log.md
+rg -n '^(
+
+|
 air format docs/dev-log/check-log.md
 git diff --check
 GIT_EDITOR=true git rebase --continue
@@ -25919,7 +26972,9 @@ Rscript --vanilla -e "x <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/
 Rscript --vanilla -e "pkgdown::build_news()"
 rg -n "#447|#446|phylo_interaction\\(\\)|correlation_block_status" NEWS.md docs/dev-log/after-task/2026-05-31-phylo-interaction-first-slice.md docs/dev-log/after-task/2026-05-31-bipartite-phylogenetic-interactions-article.md docs/dev-log/check-log.md pkgdown-site/news/index.html
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/dev-log/check-log.md
+rg -n '^(
+
+|
 air format docs/dev-log/check-log.md
 git diff --check
 GIT_EDITOR=true git rebase --continue
@@ -26127,7 +27182,9 @@ Validation:
 Rscript --vanilla -e "devtools::test(filter = '^phase18-(structured-workflow-registry|structured-dependence-wrapper-readiness)$', reporter = 'summary')"
 air format ROADMAP.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-correlation-block-wrapper-target-plan.md docs/dev-log/after-task/2026-05-30-family-surface-status-tables.md docs/dev-log/after-task/2026-05-30-structured-dependence-wrapper-readiness.md inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R tests/testthat/test-phase18-structured-workflow-registry.R
 git diff --check
-rg -n '<<<<<<<|=======|>>>>>>>' ROADMAP.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md inst/sim/run tests/testthat
+rg -n '
+
+|
 rg -n 'Workflow status helper bundle|Slice 1827|Slice 1826 Workflow Status|Slice 1826 adds read-only workflow|next slice is a benchmark/API gate' ROADMAP.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-*.md
 ```
 
@@ -38014,7 +39071,9 @@ Checks:
   after-task report were inspected before committing the slice-3 freeze point.
 - `git diff --check`: passed before the slice-3 commit and again after the
   slice-4 design edits.
-- `rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob
+- `rg -n '^(
+
+|
   '!docs/dev-log/recovery-checkpoints/**'`: no conflict markers found before
   the slice-3 commit.
 - `Rscript -e "cat(as.character(packageVersion('TMB')), '\\n');
@@ -38727,9 +39786,13 @@ Checks:
   the final site build.
 - `rg -n '```text|\\mathrm\\{Normal\\}|temperature_|growth_|x1_|x2_|yi_i' vignettes/location-scale.Rmd vignettes/which-scale.Rmd vignettes/robust-student.Rmd vignettes/bivariate-coscale.Rmd vignettes/phylogenetic-spatial.Rmd`:
   confirmed only intentional code-like or R-object leftovers remained.
-- `rg -n '```text|temperature_i|treatment_i|habitat_i|trap_nights_i|survey_method_i|larger fitted sigma|^(<<<<<<<|=======|>>>>>>>)' vignettes/distribution-families.Rmd`:
+- `rg -n '```text|temperature_i|treatment_i|habitat_i|trap_nights_i|survey_method_i|larger fitted sigma|^(
+
+|
   no matches.
-- `rg -n '<<<<<<<|=======|>>>>>>>' docs/dev-log/check-log.md _pkgdown.yml vignettes/drmTMB.Rmd vignettes/model-map.Rmd docs/design/21-tutorial-style.md docs/dev-log/after-task/2026-05-12-tutorial-map-model-guides.md`:
+- `rg -n '
+
+|
   no conflict markers found.
 - `rg -n "What can I fit today\\?|Model Guides|Guide Versus Tutorial Split|model-map|rho ~|meta_gaussian\\(|tau ~|meta_known_V\\([^V]" _pkgdown.yml vignettes docs/design README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md`:
   confirmed the new guide/nav/style strings and found only intentional
@@ -77497,7 +78560,9 @@ RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools
 RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /usr/local/bin/Rscript --vanilla -e 'pkgdown::build_article("model-selection", quiet = TRUE)'
 rg -n "best model|AIC.*proves|BIC.*proves|formal.*model-selection|formal.*AIC|formal.*BIC|calibrated.*model-selection|operating-characteristic|power grid|same data|same analysis rows|same response" vignettes/model-selection.Rmd docs/design/167-model-selection-aic-bic-simulation-design.md NEWS.md docs/design/37-worked-example-inventory.md inst/sim/README.md
 rg -n "model-selection|model selection|AIC|BIC" README.md ROADMAP.md NEWS.md docs vignettes inst/sim --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!docs/dev-log/simulation-artifacts/**'
-rg -n "[[:blank:]]$|^<<<<<<<|^=======$|^>>>>>>>" vignettes/model-selection.Rmd docs/design/167-model-selection-aic-bic-simulation-design.md inst/sim/dgp/sim_dgp_model_selection.R inst/sim/fit/sim_summarise_model_selection.R inst/sim/run/sim_run_model_selection_smoke.R inst/sim/run/sim_write_model_selection_smoke.R tests/testthat/test-phase18-model-selection-smoke.R inst/sim/reports/model-selection-article-summary.csv
+rg -n "[[:blank:]]$|^
+
+$|^
 git diff --check -- NEWS.md _pkgdown.yml docs/design/37-worked-example-inventory.md inst/sim/README.md
 ```
 
@@ -77973,7 +79038,9 @@ rg -n 'skew-normal residual asymmetry|Phase 18 artifact tests|fixed-effect `skew
 Rscript --vanilla -e 'pkgdown::check_pkgdown(); cat("pkgdown_check_ok\n")'
 git diff --check
 rg -n 'Planned, not fitted yet|Use this planned syntax|not a fitted option today|skew-family likelihood exists|skew-normal.*not yet fitted|skew-normal.*not implemented|skew-normal.*remain design|skew_normal\(\) \(planned\)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes inst/sim .github --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'
-rg -n '^(<<<<<<<|=======|>>>>>>>)' .github/workflows/phase18-simulation-grid.yaml NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md docs/design/125-phase-18-next-two-team-slices-1619-1718.md docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md docs/design/132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md docs/design/157-capability-completion-worklist.md docs/design/158-phase-19-comparator-matrix.md docs/design/34-validation-debt-register.md docs/design/37-worked-example-inventory.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/known-limitations.md inst/sim/README.md inst/sim/registry/phase18_structured_workflow_registry.csv inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R vignettes/model-map.Rmd vignettes/robust-student.Rmd docs/dev-log/after-task/2026-06-09-skew-normal-fixed-effect-artifact-lane.md inst/sim/dgp/sim_dgp_skew_normal_fixed_effect.R inst/sim/fit/sim_summarise_skew_normal_fixed_effect.R inst/sim/run/sim_run_skew_normal_fixed_effect_smoke.R inst/sim/run/sim_summary_skew_normal_fixed_effect_smoke.R inst/sim/run/sim_write_skew_normal_fixed_effect_grid.R tests/testthat/test-phase18-skew-normal-fixed-effect.R
+rg -n '^(
+
+|
 Rscript --vanilla -e 'devtools::test(filter = "phase18-structured-workflow-registry", reporter = "summary")'
 Rscript --vanilla -e 'devtools::test(filter = "phase18-actions-runner", reporter = "summary")'
 ```
@@ -78617,7 +79684,9 @@ sh tools/start-mission-control.sh --background
 npx playwright screenshot --full-page --viewport-size=1440,1200 http://127.0.0.1:8765/ /tmp/drmtmb-julia-gates-desktop.png
 npx playwright screenshot --full-page --viewport-size=390,1400 http://127.0.0.1:8765/ /tmp/drmtmb-julia-gates-mobile.png
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs R tests tools inst
+rg -n '^(
+
+|
 ```
 
 Results:
@@ -78725,7 +79794,9 @@ npx playwright screenshot --full-page --viewport-size=1440,1200 http://127.0.0.1
 npx playwright screenshot --full-page --viewport-size=390,1400 http://127.0.0.1:8765/ /tmp/drmtmb-binomial-dashboard-mobile.png
 Rscript --vanilla -e 'devtools::check(error_on = "never")'
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n '^(
+
+|
 rg -n 'planned `stats::binomial|planned plain|Planned Plain Binomial|Use the planned `stats::binomial|binomial response family \| planned|Not-yet-fitted.*binomial' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
 ```
 
@@ -78831,7 +79902,9 @@ Rscript --vanilla -e 'devtools::test()'
 Rscript --vanilla -e 'devtools::check(error_on = "never", document = FALSE)'
 Rscript --vanilla -e 'pkgdown::check_pkgdown()'
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n '^(
+
+|
 rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/158-phase-19-comparator-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json tools/start-mission-control.sh
 ```
 
@@ -78892,7 +79965,9 @@ Rscript --vanilla -e 'pkgdown::check_pkgdown()'
 Rscript --vanilla -e 'devtools::test()'
 Rscript --vanilla -e 'devtools::check(error_on = "never", document = FALSE)'
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n '^(
+
+|
 rg hard-framing terms over the touched current docs and vignette files
 rg -n '^successes out of known trials -> beta_binomial\(\)|Counted successes out of trials \|.*`beta_binomial\(\)`' vignettes/proportion-beta-binomial.Rmd vignettes/distribution-families.Rmd vignettes/model-map.Rmd docs/design/37-worked-example-inventory.md docs/design/116-nongaussian-tutorial-gate-slices-1349-1358.md docs/design/79-supported-nongaussian-evidence-goal.md
 rg -n 'Numerical Guard Simulation Audit|Hao Qin|likelihood-altering|logsigma_clamp|guard_sensitivity' docs/design/176-numerical-guard-simulation-audit.md docs/dev-log/team-improvements.md
@@ -79000,7 +80075,9 @@ python3 tools/validate-mission-control.py
 sh tools/start-mission-control.sh --background
 curl -fsS http://127.0.0.1:8765/docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n '^(
+
+|
 rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/158-phase-19-comparator-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json tools/start-mission-control.sh
 ```
 
@@ -79052,7 +80129,9 @@ Checks run:
 
 ```sh
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-17-local-queue-refresh-after-binomial.md
+rg -n '^(
+
+|
 rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md
 ```
 
@@ -79108,7 +80187,9 @@ sh tools/start-mission-control.sh --background
 curl -fsS http://127.0.0.1:8765/docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/README.md
 browser DOM check at http://127.0.0.1:8765/ for desktop and 390x844 mobile
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/175-phase-18-binomial-fixed-effect-artifacts.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-17-binomial-interval-calibration.md docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration tools/start-mission-control.sh
+rg -n '^(
+
+|
 rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/175-phase-18-binomial-fixed-effect-artifacts.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/README.md tools/start-mission-control.sh
 ```
 
@@ -79159,7 +80240,9 @@ python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-guard-
 python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep-json-guard-pilot.out
 python3 tools/validate-mission-control.py
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-17-logsigma-clamp-sensitivity-pilot.md docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot
+rg -n '^(
+
+|
 rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-17-logsigma-clamp-sensitivity-pilot.md docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md
 sh tools/start-mission-control.sh --background
 curl -fsS http://127.0.0.1:8765/docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md
@@ -79198,7 +80281,9 @@ Checks run:
 git diff --check
 rg -n 'planned.*logsigma|logsigma.*planned|planned.*log\(sigma\)|planned knob|expose the band as a control' docs/design/174-controls-and-convergence.md
 # forbidden-framing scan over touched prose: no hits
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/174-controls-and-convergence.md docs/dev-log/after-task/2026-06-17-logsigma-control-doc-truth-refresh.md docs/dev-log/check-log.md
+rg -n '^(
+
+|
 ```
 
 Boundary: docs only; no package code, no `src/drmTMB.cpp`, no `R/control.R`, no
@@ -79237,7 +80322,9 @@ python3 -m json.tool docs/dev-log/dashboard/status.json
 python3 tools/validate-mission-control.py
 Rscript --vanilla -e 'devtools::test(filter = "phase18-skew-normal-fixed-effect|skew-normal-location-scale|skew-normal-density-contract", reporter = "summary")'
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/after-task/2026-06-17-skew-normal-fixed-effect-pilot.md docs/dev-log/check-log.md docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot
+rg -n '^(
+
+|
 ```
 
 Boundary: no package code, no TMB likelihood code, no Julia bridge change, no
@@ -79265,7 +80352,9 @@ Rscript --vanilla -e 'devtools::document()'
 Rscript --vanilla -e 'pkgdown::check_pkgdown()'
 Rscript --vanilla -e 'devtools::check(error_on = "never")'
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' R/drmTMB.R tests/testthat/test-optimizer-contract.R docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task
+rg -n '^(
+
+|
 forbidden-framing scan over touched prose and code
 ```
 
@@ -94153,6 +95242,773 @@ can see which commit each one actually examined.
   profile target through exported `confint(..., method = "profile")`. The
   regenerated receipt records `unsupported_response = pass` for every row,
   confirming that no model manufactures an interval for an unsupported target.
+
+## 2026-08-14 — native reader contract candidate
+
+- PR 1 records every one of the 37 reader/contributor vignettes exactly once,
+  freezes the three contributor field permissions and four explanatory reader
+  exceptions, and rejects unmanifested, duplicated, broadened, or stale access
+  rules. Eight reader articles now use exported diagnosis and extraction paths.
+- PR 2 documents and tests the minimum native reader schemas for `check_drm()`,
+  `summary()`, `ranef()`, `fitted()`, and `predict_parameters()`. The ten audit
+  fits are shared with ten distinct scientific assertions; an unsupported
+  request passes only when it returns the public unknown-target explanation.
+- Focused evidence: reader schema 34/34, repaired journey contract 53/53, and
+  vignette contract 21/21. `Rscript tools/check-reader-contracts.R` reported
+  the live 37-article corpus clean. The initial eight-article render set and
+  six-article D-43 repair set passed (13 unique articles), and rendered output
+  contained no private `sdpars$`, `corpars$`, or `random_effects` route.
+  `pkgdown::check_pkgdown()` reported no problems.
+- Full native `devtools::test()` exited 0 with no failures, retaining 70
+  expected warnings and 26 explicit skips. Julia engine paths were disabled
+  under the approved post-0.7 boundary. The exact source-tarball
+  `R CMD check --as-cran` completed with 0 errors, 0 warnings, and one expected
+  new-submission NOTE; receipt:
+  `/private/tmp/drmtmb-native-reader-check-final4-20260814/drmTMB.Rcheck/00check.log`.
+- PR #1027's repaired head `c1a756ee9` passed both required checks in GitHub
+  run `31813020416` and is clean and mergeable. The stacked scientific-journey
+  repair is `ba431b0b3`. The five protected files retain their lane-receipt
+  blob hashes.
+- Fresh D-43 completion review is 3/3 `DONE`: Emmy, Fisher, and Rose report no
+  unresolved P0-P2 after the prose-route and journey-contract repairs.
+  This is a reader-contract claim only: no likelihood, estimand, calibration,
+  Julia, MSPL, CRAN re-freeze, or capability-ledger status changed.
+- The first manually dispatched PR #1028 exact-head run `31817341265` failed
+  closed before package check because reader documentation changed the
+  capability-receipt-pinned `R/methods.R` blob. The validator reported that the
+  authenticated model-15 fingerprint still matched. The in-scope repair
+  restored `R/methods.R` byte-for-byte (`cdc73257105a7e26cb9ab36a9c469726d5a55652`)
+  and moved the same schema prose to the dedicated roxygen/Rd topic
+  `native_reader_contracts`. No capability file or claim changed. The ledger
+  generator then passed for 31 outputs and all 73 ledger tests passed, including
+  C17/C14 current-source compatibility.
+
+## 2026-08-15 — pkgdown reference index repairs the reader-contract topic
+
+- The post-merge `pkgdown` run `31842957306` on `main` FAILED at
+  `build_reference_index()`: `In _pkgdown.yml, 1 topic missing from index:
+  "native_reader_contracts"`. The reader arc added `man/native_reader_contracts.Rd`
+  as a doc-only `@name` topic while `_pkgdown.yml` was one of that arc's lane
+  fences, so the topic landed without its index entry and the site stopped
+  deploying. Every later `main` push would have repeated the failure.
+- Repair: registered `native_reader_contracts` in the `reference:` section
+  `Model fitting and post-fit tools`, immediately before `check_drm`, so the
+  contract page precedes the post-fit verbs it governs.
+- Verified before/after rather than assuming: without the entry
+  `pkgdown::check_pkgdown()` aborts through `check_missing_topics()`; with it the
+  check reports `No problems found`. The exact failing CI call path,
+  `pkgdown::build_reference_index()`, then completed and the rendered
+  `reference/index.html` contains the topic.
+- Note for reviewers: `.github/workflows/pkgdown.yaml` triggers only on
+  `workflow_run` against `main` or on `workflow_dispatch`, so a pull request does
+  not exercise this path. The local reference-index build above is the
+  pre-merge evidence.
+- Scope: documentation index only. No R code, likelihood, estimand, capability
+  ledger, claim, or reader contract changed.
+
+## 2026-08-15 — external-oracle harness: first cross-package interval agreement
+
+- New `tests/testthat/test-comparators-external-oracle.R` reads the shipped
+  `lme4` and `glmmTMB` corpora through `find.package()` at test time. Nothing is
+  vendored: `glmmTMB` is AGPL-3 and this package is GPL (>= 3). Both packages
+  were already accepted `Suggests`, so no dependency changed.
+- **`fm1P`/`fm1B` provenance is UNRESOLVED, and the suite does not depend on
+  resolving it.** A first pass claimed the references were ML-derived
+  (`REML = FALSE`), reasoning from an ML refit reproducing `fm1P` to `4.36e-5`
+  against a REML refit at `5.64e-4`. Rose's audit **refuted that as established**:
+  a converged REML/`bobyqa` refit reproduces `fm1P` to `5.63e-5`, better than two
+  of three ML reconstructions, so the apparent 13x ratio is an optimizer artifact.
+  Within-REML optimizer spread (`5.63e-4`) is the same size as the ML-vs-REML
+  separation (`6.08e-4`), signal-to-noise about 1.1. `fm1P` carries no estimator
+  metadata and lme4 ships no generating script, so the provenance is not
+  recoverable from the artifact or by reconstruction. The claim was withdrawn
+  rather than defended.
+- Interval agreement, `confint(..., method = "profile")` versus `fm1P`, at a
+  `5e-4` **absolute** bound asserted as `max(abs(drmTMB - fm1P))` over both
+  endpoints. This is `expect_lt()`, not `expect_equal(tolerance = )`: under
+  testthat edition 3 the `tolerance` argument is **relative**, which on these
+  targets permitted absolute slack of `2.6e-2` — 40x looser than the comment
+  claimed. The first revision of this file carried exactly that mismatch between
+  code and prose, and Rose caught it.
+- Observed maxima under the corrected absolute bound: `sd(Intercept)` `2.63e-4`,
+  `sd(Days)` `1.39e-5`, `cor` `3.27e-5`, `sigma` `3.11e-4` — worst case 62% of
+  budget. The bound is **non-vacuous, measured not argued**: refitting the same
+  model with `REML = TRUE` misses three of four targets by `1.80`, `0.399` and
+  `1.93e-2` against the `5e-4` budget. What the test asserts is that drmTMB's
+  profile endpoints agree with lme4's shipped reference to within lme4's own
+  optimizer-to-optimizer reproducibility for this model — a regression guard, not
+  an estimator proof.
+- **Boundary held, not blurred.** drmTMB's REML point estimates and logLik match
+  `lme4` closely, but a REML-versus-REML profile-interval spot check showed an
+  approximately 5% gap on three of four targets. No REML interval-parity claim is
+  made anywhere in this change.
+- **No ledger row was added, and the two blocks differ in why.** The *interval*
+  block genuinely cannot carry an `external_comparator` row:
+  `docs/design/242-external-comparator-evidence-class.md` requires every such row's
+  `claim_boundary` to state it does not cover intervals, enforced by
+  `tools/tests/test_capability_ledger.py`, so a conforming row would have to
+  declare something false. The *point-agreement* block is different — doc 242
+  §"Licensed" covers exactly that ("drmTMB's likelihood and optimizer reach the
+  same optimum as an independent implementation of the same model, on the dataset
+  tested"), so the `fm_us1` and `fm_diag2` comparisons **could** carry a conforming
+  row today. Withholding it is a deliberate scope choice for this arc, **not** a
+  policy prohibition; an earlier draft of this entry conflated the two and would
+  have misdirected the next contributor. Independence strength is recorded in
+  comments: `lme4` strong (separate engine), `glmmTMB` weak (same TMB/AD stack).
+- `fm_nest` was dropped from the matched-twin set after the recon wrongly claimed
+  it expressible: drmTMB rejects nested `(1 | Subject/fDays)` grouping with
+  "Random-effect grouping terms must be simple variables." The candidate matrix
+  row in `docs/dev-log/external-oracle/candidates.tsv` initially still read
+  `EXPRESSIBLE` with the false note "drmTMB supports nested structures via formula
+  expansion", while three separate documents asserted it had been corrected. Rose
+  caught the discrepancy; the row now reads `NOT_EXPRESSIBLE` and carries the
+  verbatim rejection message. Verdict counts are 18 expressible, 14 not.
+- `tests/testthat/test-reader-oldfit-compat.R` adopts the stored-old-fit pattern.
+  A drmTMB fit's TMB pointer does die across `saveRDS()`/`readRDS()`
+  (`TMB:::isNullPointer()` flips), but TMB retapes transparently from the retained
+  plain-R `data`/`parameters`/`map`, and `fit$sdr` holds no pointers, so the reader
+  verbs survive. This is a **within-version** guarantee only; it cannot detect a
+  cross-release structural change until a real 0.7.0 fit artifact is frozen.
+- `tests/testthat/test-profile-shape-boundary.R` pins an honest limitation.
+  `lme4`'s `badprof.rds` is a stored `thpr` result with no `call`, `formula`, or
+  `data` and no companion dataset, so it **cannot** be run through drmTMB's
+  profile code as issue #859 proposed; it is used as a read-only shape oracle.
+  `profile_interval_diagnostics()` is architecturally endpoint-only and therefore
+  structurally cannot see profile-shape pathology, which is what the test pins.
+  On a clean Gaussian fixture `zeta^2 == delta_deviance` holds to `8.9e-16`,
+  cross-checked against `fit$opt$objective` rather than only the internal
+  `min(objective)` baseline. `badprof`'s own pathology is three distinct classes,
+  not uniform non-monotonicity: only `cYear` triggers lme4's non-monotonic
+  warning (197 of 198 `.zeta` values are `NaN`), while `(Intercept)` and `.sig02`
+  fall back to linear interpolation on a bad spline fit.
+- Verification, all run locally on this branch: the three new files pass 28, 15,
+  and 25 expectations with 0 failures and 0 skips. The landed reader baseline is
+  intact — `test-reader-public-schema.R` and `test-reader-journeys.R` pass with
+  53 journey assertions and no skips. `tools/check-reader-contracts.R` reports
+  `OK`; `tools/capability_ledger.py --check` reports `OK (31 generated outputs)`;
+  the ledger unit tests pass with `C17 current-source compatibility PASS`. None of
+  the five receipt-pinned source files was modified.
+- An adversarial audit was run as a gate before this entry was finalized, and it
+  returned NOT-DONE on three claims. All three defects were in the written claims
+  and one artifact, not in the tests themselves: the uncorrected `fm_nest` row,
+  the relative-vs-absolute tolerance mismatch, and the overstated ML provenance.
+  Each is now fixed or withdrawn above rather than argued down. What survived the
+  audit unchanged: the interval test is non-vacuous, the suite runs with **0
+  skips** under `test_dir(package = "drmTMB")` (176/176), the reader baseline is
+  intact, no receipt-pinned file changed, and the ledger and linter gates pass.
+  Full record: `docs/dev-log/external-oracle/rose-audit.md`.
+- **The pkgdown repair is CONFIRMED WORKING on `main`, not merely merged.**
+  `R-CMD-check` `31856928532` on `859c0f6e6` passed, which released the gated
+  `workflow_run` trigger, and `pkgdown` run **`31859033276` completed `success`**.
+  The site deploys again. The first post-merge attempt (`31856933151`) had skipped
+  because its own triggering check was cancelled by concurrency, so this is the
+  first genuine confirmation.
+- Local `--as-cran` on a source tarball: **0 errors**, 1 NOTE (`New submission`,
+  expected). Two WARNINGs appeared and both are **artifacts of building with
+  `--no-build-vignettes`** — `inst/doc` absent, vignettes lacking rendered
+  counterparts — not package defects. That makes it a partial check by
+  construction; the authoritative full check is CI on the PR's exact head.
+- **CI is green on the harness branch's exact head**, run `31858120192` at
+  `764d30152`: `FAIL 0 | WARN 71 | SKIP 312 | PASS 20786`. The head SHA was checked
+  against the run rather than reading a nearby badge — two earlier runs in this arc
+  were pinned to superseded commits.
+- **The new tests demonstrably RAN rather than skipped.** The only skip attributable
+  to the three new files is the single deliberate, narrowly stated one in
+  `test-profile-shape-boundary.R:142` — "docs/ is not present in this check tree
+  (excluded via `.Rbuildignore`)" — which guards a text-consistency assertion that
+  cannot run from a tarball. `test-comparators-external-oracle.R` and
+  `test-reader-oldfit-compat.R` contribute **zero** skips.
+- **Recorded fragility, not currently a failure:** CI emits a `glmmTMB` load warning,
+  "glmmTMB was built with TMB package version 1.9.21, current TMB package version is
+  1.9.23". `requireNamespace()` still succeeds, so the oracle tests run and pass. But
+  if that mismatch ever becomes a load error, `skip_if_not_installed("glmmTMB")` will
+  turn the whole glmmTMB half of this harness into a silent skip. Worth watching at
+  the next TMB bump.
+- **STATUS — the oracle harness is not yet merged.** It remains open on
+  `claude/external-oracle-intervals`. Reconciliation logged five P1 and four P2 audit
+  findings; P1-1 through P1-4 have since been fixed, and the remainder are left open
+  by choice with owners recorded in
+  `docs/dev-log/plan-actual/2026-08-15-external-oracle.md`, alongside a routing
+  commitment honoured on one of three eligible slices.
+
+## 2026-08-15 — `ranef()` and `fixef()` now dispatch regardless of attach order
+
+- **The bug, in user terms.** `library(drmTMB); library(glmmTMB)` made `ranef(fit)`
+  fail outright with "no applicable method for 'ranef' applied to an object of
+  class `drmTMB`". Load order was the only cause; nothing about the fit was wrong.
+  The same held for `lme4` and `nlme`, and for `fixef()`.
+- **Why.** `fixef()` and `ranef()` are drmTMB's own generics (`R/methods.R`), but
+  `nlme` defines generics of the same name and **`lme4` and `glmmTMB` re-export
+  `nlme`'s rather than defining their own** — verified by
+  `identical(lme4::ranef, nlme::ranef)` and the same for `glmmTMB` and `fixef`.
+  Whichever package attaches last wins, and `nlme`'s generic had no drmTMB method.
+- **Fix.** `R/zzz.R`'s `.onLoad` now registers `fixef.drmTMB` and `ranef.drmTMB`
+  against `nlme`'s generics. Because all three packages share that one generic,
+  a single registration covers `nlme`, `lme4` and `glmmTMB`. Registration is
+  dynamic rather than a `NAMESPACE` `S3method()` directive because `nlme` is
+  optional here — drmTMB does not import it and must load without it — so
+  `NAMESPACE` is unchanged. `nlme` is added to `Suggests`.
+- **`sigma()` needed nothing** and was deliberately left alone: it is already
+  registered against `stats::sigma`, the generic `lme4` and `glmmTMB` also use, so
+  no attach order can mask it. A test records this so it is not "fixed" by reflex.
+- **The test is non-vacuous, proven by disabling the fix.** With
+  `register_foreign_s3_methods()` commented out the new file reports **2 failures**
+  (`nlme::ranef` and `nlme::fixef` both error); with it restored, **12 pass**. The
+  end-to-end user scenario was also exercised directly: attach `glmmTMB` after
+  `drmTMB`, confirm `ranef` still resolves through `nlme`'s generic, and confirm
+  bare `ranef(fit)` and `fixef(fit)` both work — then attach `lme4` as well and
+  confirm they still work.
+- Regression surface re-run: `test-reader-journeys.R` 53, `test-reader-public-schema.R`
+  34, `test-comparators-external-oracle.R` 28, `test-comparators.R` 134 — all with
+  0 failures and 0 skips. Reader-contract linter OK; capability-ledger OK with 73
+  ledger tests and C17 current-source compatibility PASS. `R/methods.R` and the
+  other four receipt-pinned files are untouched, which is why the fix lives in
+  `R/zzz.R` rather than beside the methods it registers.
+- **Why this mattered enough to fix at package level.** The class had already been
+  repaired twice at the caller: `library(lme4)` in the oracle test file broke the
+  landed reader tests (PR #1031), and `library(glmmTMB)` in a new article broke
+  eight downstream vignettes under `--as-cran`. Both repairs removed an attach.
+  Neither helped a user, who has every right to attach a comparator package.
+
+## 2026-08-15 — Phase 19: `comparing-with-other-packages.Rmd`, its comparator tests, and their registration
+
+**Scope of this entry.** It was first written against a tree that held only the
+four registration edits, while the article was still another agent's in-flight
+work. The article and its test file have since landed in this same branch, and
+three statements written at that moment (the article "does not exist"; the
+reader-contract linter "fails"; an `expect_setequal()` "will fail") were true
+then and are false now. Rather than ship an entry that a future session would
+read as current, this entry has been brought up to date: the registration
+record below is unchanged in substance, and the article, the test file, the
+`DESCRIPTION` change, and a repair pass have been added. Every number below was
+re-run in the tree as it now stands, not carried over.
+
+- The branch now contains four coupled things, not one: the reader article
+  `vignettes/comparing-with-other-packages.Rmd`, its regression guards in
+  `tests/testthat/test-comparators-phase19.R`, the `metadat` declaration in
+  `DESCRIPTION`, and the four registration edits recorded below.
+- `_pkgdown.yml`: added a new top-level `articles:` section, `- title:
+  Comparison with Established Packages`, `contents: [comparing-with-other-packages]`,
+  inserted between the existing "Applied Family Tutorials" and "Model Checking
+  and Practical Workflow" sections, per `PR2-build-plan.md` §9.1 item 2. The
+  vignettes==articles invariant now holds at **38** (`awk` count over the
+  `articles:` block, confirmed after the edit).
+- `inst/reader-contracts/vignette-manifest.csv`: added
+  `comparing-with-other-packages.Rmd,reader,,` (trailing fields empty, matching
+  the `structural-dependence.Rmd,reader,,` pattern), placed alphabetically
+  between `capability-and-limits.Rmd` and `convergence.Rmd` to match the file's
+  existing sort order. File is now 39 lines = 1 header + 38 rows.
+- `tests/testthat/test-reader-vignette-contracts.R`: bumped
+  `expect_equal(nrow(manifest), 37L)` to `38L` at the line that reads that
+  literal today (verified by `grep -n`, not assumed from an old citation).
+- **§9 line-number re-verification (requested explicitly, because this phase
+  has had stale-line-citation recur three times):** all four of §9.1's cited
+  locations were checked against the live worktree *before* editing and all
+  four were still exactly where the plan said — `_pkgdown.yml:256-261` /
+  `:262-268` (Applied Family Tutorials / Model Checking boundary),
+  `inst/reader-contracts/vignette-manifest.csv:36` (`structural-dependence.Rmd`
+  row), and `tests/testthat/test-reader-vignette-contracts.R:224` /
+  `:226` (`nrow()` and `expect_setequal()`). This round's §9 citations were
+  accurate, unlike the pattern the plan itself warns about elsewhere.
+- **Honest audit history, recorded per the maintainer's instruction:** the
+  restructured plan and its columned comparator survey failed **five
+  consecutive claims audits** (Rose, gate1–gate5) on one recurring defect
+  class — unqualified absence claims ("no comparator exists for X"). Each of
+  the first four repairs moved the wording rather than closing the defect
+  (`docs/dev-log/external-oracle/phase19/gate5-claims.md` Part D table: a
+  5-string blacklist in round 2→3, a required-clause phrase search in round
+  3→4, each defeated by a new unmatched phrasing). The maintainer's decisions
+  along the way: (1) drop the two frontier fits from the article rather than
+  keep arguing their wording; (2) once the defect class persisted in the
+  *taxonomy itself* — not just individual sentences — cut the absence
+  narrative out of the article entirely, and give the per-family comparator
+  survey table explicit **claim-class / searched / run** columns so
+  incompleteness is visible from the table's shape (an empty cell is the
+  finding) rather than from a prose sweep. Round 5 closed the four-round class
+  this way; `gate5-claims.md` Part A verifies all 17 survey rows carry
+  non-empty claim-class/searched/run cells mechanically. **The recurring
+  mechanism was string-shaped sweeps substituting for enumeration** — a grep
+  for one known-bad phrase or clause, rather than reading every sentence
+  against the rule — and round 5 is the first that replaced the surface the
+  claim needed rather than chasing its wording. Round 5's own gate is not a
+  clean pass: it found one blocking finding (G5-B1, two mandated article
+  conclusions assert a named comparator "cannot" do something, a related but
+  distinct absence-claim shape) and five serious findings, all confined to
+  planning documents. **§9 (registration, this entry's own subject), §12
+  (reproducibility), and the c04–c09 build specifications remain unaudited
+  from the audit side** — `gate5-claims.md` says so explicitly and this
+  registration slice does not close that gap; it only re-verified §9's line
+  numbers, which is a narrower check than a claims audit.
+- No capability-ledger row is added by this entry, consistent with
+  `PR2-build-plan.md` §10.1's recommendation (no new ledger rows in PR 2).
+- Verification, re-run in the current tree (the article is present, so the
+  linter's earlier missing-vignette failure no longer applies):
+
+  ```
+  $ R_PROFILE_USER=/dev/null Rscript --no-init-file tools/check-reader-contracts.R
+  Reader vignette contract: OK
+  (exit code 0)
+
+  testthat::test_file("tests/testthat/test-reader-vignette-contracts.R")
+    21 assertions, 0 failed, 0 errors, 0 skipped
+
+  testthat::test_file("tests/testthat/test-comparators-phase19.R")
+    8 test blocks, 41 assertions, 0 failed, 0 errors, 0 skipped
+
+  $ python3 -m unittest tools/tests/test_capability_ledger.py
+    Ran 73 tests — OK
+
+  knitr::knit("vignettes/comparing-with-other-packages.Rmd")
+    73/73 chunks, no error (the two error = TRUE chunks fire as intended)
+  ```
+- A pre-edit lane-check hook flagged that 32 other refs carry unrelated commits
+  touching `_pkgdown.yml` (e.g. `codex/joint-mi-two-predictor`,
+  `claude/07-release-slice`, `cursor/useful-07-user-facing`). This edit is a
+  single additive insertion (one new `articles:` section) scoped to this
+  phase's own vignette and does not appear to duplicate any of those; not
+  independently diffed against all 32 refs given the scope of this task.
+
+### The article — `vignettes/comparing-with-other-packages.Rmd`
+
+- Eight comparisons, each a real dataset with a real `drmTMB` fit and a real
+  comparator fit beside it, grouped by how independent the comparator is:
+  Comparisons 1–3 against `lme4` and `metafor` (STRONG, no shared estimation
+  code), 4–5 against `ordinal` (unclassified — `docs/design/242-external-
+  comparator-evidence-class.md` has not classified it), 6–8 against `glmmTMB`
+  (WEAK — same TMB AD stack and outer optimizer, so a consistency check between
+  related implementations).
+- Evidence class is `external_comparator`: point estimates and `logLik` only,
+  one dataset and one seed per cell, no interval or coverage claim anywhere,
+  per `docs/design/242-external-comparator-evidence-class.md`. **No
+  capability-ledger row is added**, per `PR2-build-plan.md` §10.1.
+- The article volunteers its own uncomfortable finding twice: every
+  residual-scale `sigma` comparison in it is in the WEAK `glmmTMB` group. The
+  two separate-engine `sigma` checks are the meta-analysis comparisons, where
+  `sigma` is a between-study heterogeneity SD under `meta_V()`, not a residual
+  scale.
+
+### The tests — `tests/testthat/test-comparators-phase19.R`
+
+- One `test_that()` per article Comparison, mirroring the same `drmTMB` call,
+  the same comparator call, and the same matched-scale conversion. 41
+  assertions across 8 blocks.
+- Tolerances are stated per assertion with the measured difference recorded in
+  a comment beside it, rather than set to a round number and left unexplained.
+  Comparison 1 is deliberately the loosest at `1e-3`: both sides are `nAGQ = 1`
+  Laplace, and the residual gap is a stable difference between TMB's AD inner
+  solve and `lme4`'s PIRLS solve, not under-convergence.
+- The guards are non-vacuous under mutation, checked rather than asserted:
+  refitting Comparison 6 with the wrong random-effect structure, Comparison 5
+  without its random intercept, and Comparison 2 against `rma.uni()`'s default
+  REML each turn the relevant assertions red; a relative perturbation sweep on
+  Comparison 1 passes at `1e-4` and fails at `1e-3`.
+
+### `DESCRIPTION` — `metadat` declared
+
+- Added `metadat` to `Suggests` (alphabetically, between `MASS` and
+  `metafor`). Comparisons 2 and 3 call `metadat::dat.bcg` in both the article
+  and the tests, and `R CMD check`'s unstated-dependency scan reaches tangled
+  vignette sources as well as test files, so an undeclared `metadat` was a real
+  check risk.
+- This declares a dependency the package already had transitively rather than
+  adding a new one: `metafor` 5.0.1's `Depends` field is
+  `R (>= 4.0.0), methods, Matrix, metadat, numDeriv`, verified by reading
+  `packageDescription("metafor")$Depends`, so `metadat` is already installed
+  wherever `metafor` is. The transitive route is not something this package
+  pins, though — `DESCRIPTION` declares a bare `metafor` with no version
+  floor — which is the second reason to declare `metadat` directly. A scan of
+  every local and remote ref confirmed no other branch already adds it, so this
+  is not a duplicate of another lane's fix.
+
+### Repair pass over the landed artifacts
+
+Two independent audits (`docs/dev-log/external-oracle/phase19/build-verify-
+claims.md`, `-numeric.md`) ran against the landed article and tests. Both found
+the A1 absence-claim enumeration **clean** — 0 violations across 59 paragraphs,
+13 headings and 8 table cells — every arithmetic claim independently
+reproduced, and the tests non-vacuous under mutation. The defects they did find
+were about attribution and completeness, and are closed here:
+
+- **Wrong ledger cell.** Comparison 5 displays a random *intercept*
+  (`(1 | judge)`) but cited `mc-0227`, which is the `ordinary_re_slope` row at
+  `point_fit_recovery`, and imported that row's package-private-estimator
+  boundary prose, which describes neither model. Both cells were re-read from
+  `docs/dev-log/dashboard/capability-ledger/cells.tsv`: the displayed model is
+  governed by `mc-0225` (`ordinary_re_intercept`, ML, `interval_feasible`). The
+  citation, the tier, and the boundary wording are now `mc-0225`'s own, with
+  `mc-0227` named only as the different cell it is.
+- **A false "only".** Comparison 3 claimed to be the only comparison checking a
+  `sigma` linear predictor against a separate engine; Comparison 2 does it too
+  (`drmTMB` `tau^2` 0.2800281 vs `metafor` 0.2800282). Corrected in all three
+  places that carried the omission — the independence line, the closing
+  summary, and the capability table's `sigma` fixed-effects row (now 2, 3, 6,
+  7, 8; five times, not four).
+- **An unshown claim.** Comparison 5 asserted cutpoint agreement without ever
+  printing `drmTMB`'s cutpoints, while Comparison 4 printed both sides.
+  `summary(fit5)$ordinal$cutpoints` is now displayed; rendered, the two sets
+  agree visibly (`-1.623669 / 1.513357 / 4.228520 / 6.088769` against `clmm`'s
+  `-1.623667 / 1.513365 / 4.228527 / 6.088773`, max abs diff 8.7e-06), so the
+  claim is checkable from the page rather than only from the test.
+- **A pointer that dead-ends.** Comparison 1 offered `nbinom2()` beside
+  `beta_binomial()` for a two-column `cbind(incidence, size - incidence)`
+  response. Run on the article's own model, `beta_binomial()` fits
+  (`logLik = -88.042`) and `nbinom2()` errors with "Internal model-frame
+  mismatch in nbinom2 model." `nbinom2()` is now scoped explicitly to a
+  single-column count response instead of being offered as a substitute.
+- **A guard that errors instead of skipping.** Comparison 6's test used
+  `lme4::sleepstudy` but skipped only on `glmmTMB`; a machine with `glmmTMB`
+  and without `lme4` is a legitimate check environment, and there the test
+  errored. `skip_if_not_installed("lme4")` added.
+- **A stale header comment.** The test file's header said the `DESCRIPTION`
+  edit was out of scope and cited "metafor (>= 5.0-1)" although `DESCRIPTION`
+  declares a bare `metafor` with no floor. Rewritten to record what is now
+  true.
+
+### 2026-08-15 — `--as-cran` caught a search-path leak the unit tests could not
+
+- The first `R CMD check --as-cran` of this branch **FAILED**: eight vignettes
+  failed to re-build with `no applicable method for 'ranef' applied to an object
+  of class "drmTMB"`, raised from `nlme::ranef`.
+- **Cause, and it was ours.** The new article attached `glmmTMB` with `library()`.
+  `glmmTMB` re-exports `nlme`'s `ranef` generic, and **drmTMB's `ranef` is not
+  registered as an S3 method on that generic** — `getS3method("ranef", "drmTMB")`
+  returns `NULL` — so once anything exporting `ranef` is attached, every later
+  `ranef(fit)` call fails outright.
+- Attribution was established rather than assumed. `spatial-models.Rmd` knits
+  cleanly **on its own**, and **all eight failures sort alphabetically after
+  `comparing-with-other-packages.Rmd` while every vignette before it passed**.
+  Vignette re-building shares a search path, so one `library()` broke the rest.
+- Repair: the attach is removed. `glmmTMB` is now reached as `glmmTMB::glmmTMB()`,
+  the `nbinom2` clash demonstration is made explicit with `glmmTMB::nbinom2()`,
+  and the prose now explains that the `drmTMB::` prefixes exist to avoid masking.
+- Verified both directions in one session: the article knits, `glmmTMB` is absent
+  from the search path afterwards, `ranef` resolves to `drmTMB`, and
+  `spatial-models.Rmd` then knits cleanly. Before the fix it failed.
+- **This is the second time this exact class has bitten this arc.** The first was
+  `library(lme4)` in the oracle test file breaking the landed reader tests
+  (repaired in PR #1031). The underlying fragility is in the package, not the
+  callers: any user who attaches `lme4`, `glmmTMB` or `nlme` after `drmTMB` loses
+  `ranef()`. That is worth a separate fix — registering `ranef.drmTMB` on the
+  `nlme` generic — and is **not** attempted here.
+- The second `--as-cran` cleared all eight downstream vignettes but failed on the
+  new article itself, in a cascade from the same root cause: with `glmmTMB` no
+  longer attached, `fixef(cmp6)` reached drmTMB's `fixef` (no method for a
+  `glmmTMB` object) and `Owls` was no longer on the search path. Repaired by
+  qualifying `glmmTMB::fixef()` on all three comparator fits and loading
+  `data(Owls, package = "glmmTMB")` explicitly. `rmarkdown::render()` now
+  completes, `glmmTMB` is absent from the search path afterwards, and `ranef`
+  resolves to `drmTMB`.
+- **Method note, because it changes what "verified" means here.** The earlier
+  `knitr::knit()` check reported OK on a file that `rmarkdown::render()` then
+  failed. `R CMD check` re-builds vignettes with `rmarkdown`, so `render()` is the
+  authoritative local check and `knit()` is not a substitute for it. Both
+  cascading defects were invisible to `knit()`.
+- The third `--as-cran` is **0 errors, 0 warnings, 2 notes**: the expected
+  `New submission`, and a `Non-standard file/directory found at top level:
+  'figure'` that was **my own debris** — two PNGs knitr wrote into the package root
+  while I was knitting `spatial-models.Rmd` to diagnose the search-path leak, then
+  swept into a commit by `git add -A`. Removed. The repo's own guidance is to stage
+  scoped paths and never `git add -A`; not following it cost a NOTE.
+- **No unstated-dependency note appeared**, which is what makes the `metadat`
+  declaration *observed* rather than merely reasoned. That was the whole purpose of
+  running `--as-cran` here, and it is the check that first exposed the vignette
+  leak as well.
+- A final audit of the three surfaces the claims reviewer never reached — the
+  registration checklist, the reproducibility block, and the c04–c09 build
+  specifications — returned **registration correct on all five coupled edits**
+  (including the fifth, `docs/design/226`, which the contract's own text still
+  does not name) but **reproducibility NOT BUILT**: no versions, platform, seed
+  statement or threading information appeared anywhere a re-runner could find it,
+  although issue #60's Definition of Done requires exactly that, and the article
+  quotes precisions (`1e-3`, `1.63e-11`) that depend on the comparator versions
+  in use. Repaired by adding a "Reproducing these numbers" section that emits the
+  drmTMB, TMB, Matrix and comparator versions, the R version, platform and BLAS.
+  It also states plainly that no comparison draws random numbers, so there is no
+  seed to record — the quantities that vary between machines are the optimiser
+  stopping point and the BLAS, which is what is recorded instead.
+- The same audit found one more stale count in `docs/design/226` that my earlier
+  hand-edit missed: the prose sentence introducing the placement table still said
+  37. The automated ledger test does not check that sentence — it checks the title,
+  the "N rows." statement and the table stems — so the count was internally
+  inconsistent while passing. Corrected.
+- The c04–c09 build specifications — the surface flagged as unaudited for three to
+  four rounds — were finally audited by re-fitting every model in fresh sessions.
+  **Every displayed number reproduced**, no number was attached to the wrong model,
+  and 14 of 16 deliberately introduced mutants were caught. Three defects were
+  found and are fixed here:
+  - The article said `rma.mv(struct = "DIAG")` treats `alternate` as a reference
+    level "on both sides". It has **no** reference level: it estimates one free
+    `tau^2` per level, so its four parameters are one `beta` plus three `tau^2`.
+    What makes the two sides line up is level **order**, not a shared reference.
+    Notably **the test file already had this right and the article did not** — the
+    guard was more accurate than the prose it was guarding.
+  - `mc-0227` was described as "a tier lower"; the ordered scale places
+    `diagnostic_only` between the two, so it is two tiers.
+  - The Comparison 7 test did not pin the `sigma ~ sex` structure the section
+    exists to demonstrate. Collapsing **both** sides to an intercept-only scale
+    left four of five assertions passing, because `unname()`'d coefficient vectors
+    of equal length still agree. Two `expect_named()` assertions now pin the terms;
+    re-running that same mutation produces **3 failures** instead of 1.
+- Not covered by that audit, and stated so nobody reads it as broader than it is:
+  `nbinom2` `theta = 1/sigma^2` was outside the audited range, and beta `phi`,
+  the tweedie `2 *` factor and the `rho12` guard are exercised nowhere in either
+  artifact — correctly absent rather than wrongly asserted.
+
+## 2026-08-15 — interval-claim truth audit (`claude/lane-interval-truth-audit`)
+
+Every capability cell claiming `interval_feasible` or above now has a recorded position on whether
+its profile interval **brackets its true value**, or an explicit statement that it does not.
+
+**Coverage moved 27 → 112 of 233 claiming cells.** 78 pass, 7 fail, 21 are covered by a stronger
+instrument, 31 have no recoverable truth and therefore **no verdict**, and **121 remain unchecked** —
+scoped in `docs/dev-log/2026-08-15-rerun-73-scoping.md` as fixture construction (~40–70 h), not a
+compute job. No compute campaign was run.
+
+Checks: `capability_ledger.py --check` OK (31 generated outputs) · `test_capability_ledger.py`
+**76/76** (73 at lane start) · `test_profile_truth_gate.py` **24/24** · all three re-run green after
+rebasing onto `origin/main` `9f1ea65ba`. No R package source changed, so `--as-cran` and `pkgdown`
+were not run.
+
+Ledger changes, all downward or narrower:
+
+- **7 spatial cells demoted** `interval_feasible` → `diagnostic_only` (`mc-0113/0114/0115/0116/0117/0118/0494`).
+  Their fixtures generate the latent field from a different covariance than the fitted kernel, so the
+  declared truth is not the model's estimand and no valid location check exists. Not
+  `point_fit_recovery`: the Arc-7b precedent rested on a point-fit gate these cells do not have.
+- **28 spatial interval claims narrowed** to state that `spatial(coords=)` fixes the correlation range
+  at the median positive pairwise distance and never estimates it (`R/drmTMB.R:13403-13407`). For 21 of
+  them the retained evidence generated data through that same fixed-range kernel, so the assumption was
+  correct by construction and **range misspecification was never exercised**.
+- **4 cells re-tiered** off the summit into a new `legacy_fit_supported` rung. `supported` is now
+  **0 cells**, which agrees with `q-series-v1-release-status.md` rather than merely being reconcilable
+  with it.
+- **`mc-0285`'s claim boundary repaired** — it asserted precomputed-mesh spatial "is planned but not
+  implemented (R/drmTMB.R:8434-8440)"; both halves were false.
+
+**Two evidence-ladder inversions fixed.** `supported` was one token for the ladder's summit and the
+2026-07-11 migration's imported board `fit_status` label, so the summit authorized strictly less than
+the rung beneath it; and `diagnostic_only` ranked above `point_fit_recovery` while granting no
+point-report permission at all. `TIER_ORDER` is now monotone in reader permission, pinned by
+`test_tier_order_is_monotone_in_reader_permission`, which was proven by making it fail on purpose
+against the old order.
+
+**Note on an earlier entry.** The 2026-08-14 line stating that "the ordered scale places
+`diagnostic_only` between the two" described the pre-2026-08-15 ordering. Under the corrected ladder
+`point_fit_recovery` sits directly beneath `interval_feasible`; the vignette prose that repeated it
+(`vignettes/comparing-with-other-packages.Rmd:362`) is corrected here. The earlier entry is left as
+written — this log is append-only history.
+
+**Provenance.** 96 of 116 re-checked cells cited a producing runner absent from `origin/main`, and 100
+of 101 frozen campaign contracts were likewise off-mainline; none had been deleted, the adding commits
+simply were not ancestors of main. **134 files recovered** and byte-verified (two hash exactly to
+digests recorded inside the contracts; `source_map_sha256` 12/12; 32/32 recovered R files parse).
+Recovery is not re-execution — none was run.
+
+One number published wrong and corrected the same day: `mc-0248` was reported as a 99% failure; it was
+a join error against a target its own claim boundary excludes, and it passes. Both affected documents
+carry a dated CORRECTION block.
+
+Report: `docs/dev-log/after-task/2026-08-15-interval-claim-truth-audit.md` ·
+plan-vs-actual: `docs/dev-log/plan-actual/2026-08-15-interval-claim-truth-audit.md`
+
+### 2026-08-15 (follow-up) — spatial conditioning extended to every fitted cell
+
+The 28 interval-tier spatial cells were narrowed in the entry above. The same conditioning applies to
+the 23 fitted spatial cells *below* those tiers (14 `diagnostic_only`, 9 `point_fit_recovery`), which
+run through the identical `drm_spatial_coords_precision` call site. They now carry a **tier-neutral**
+variant — *"the spatial sd(group) **estimate** here is conditional on the correlation range… This cell
+makes no interval claim, so the conditioning applies to its point-scale evidence"* — because the
+interval-framed sentence would have implied a claim these cells do not make.
+
+**All 51 fitted spatial cells now disclose.** The remaining 50 spatial rows are `rejected_by_design`
+(48) or `not_implemented` (2): no fit, nothing to condition.
+
+Mesh was ruled out for all 23 **structurally, not by assumption**: `allow_mesh = TRUE` occurs exactly
+once in the package (`R/drmTMB.R:3219`, the univariate-Gaussian `mu` extractor) and none of the 23 sits
+on that route — they are bivariate, non-Gaussian, or Gaussian `sigma`. `mc-0446`, whose row mentions a
+mesh lane, states `coords = coords` in its own boundary.
+
+Checks: `capability_ledger.py --check` OK (31 generated outputs) · `test_capability_ledger.py` 76/76 ·
+`test_profile_truth_gate.py` 24/24. No tier changed, so no `transitions.tsv` rows were added.
+
+## 2026-08-15 — evidence re-wire, the tier contract, and the assertion gap (`claude/lane-irc-legacy-evidence`)
+
+Follow-up to the interval-claim truth audit merged earlier today (PR #1040).
+
+**The 16 interval-permission cells are all legitimate.** Every cell at
+`inference_ready_with_caveats` resting on a runless `legacy_model_evidence` stub turned out to have a
+real, reviewed, promoted campaign behind it — the 2026-07-11 schema migration dropped the link. All
+16 re-wired to `coverage_study` evidence rows (10 via the predecessor q-series summary, 6 via the
+2026-07-09 pilot with coverage recomputed from both result files). **41/41 cells at that tier are now
+coverage-backed; zero demotions.** This corrects the merged audit's class-(c) count: (b) 21→31,
+(c) 65→55, defects 189→179, with the correction appended to the merged map rather than rewritten.
+
+**`interval_feasible` now has a defined contract** (owner decision; memo
+`docs/design/255-interval-feasible-tier-contract.md`): the tier claims SHAPE — a finite, ordered,
+unclamped interval from a converged, pdHess-positive fit — and location is recorded orthogonally in a
+new `location_checked ∈ {passed, failed, not_applicable, unchecked}` column, derived for all 740
+cells. Of the 226 claiming cells: **145 passed · 75 unchecked · 6 not_applicable**. The memo
+established the tier had carried four unreconciled cohort standards, two approved four days apart in
+contradiction; the remaining genuinely-open population is ~26 cells, not the 105 previously quoted.
+
+**The 14 label-only confint sites now assert their endpoints** (finite, ordered) across 7 test files.
+The first version of the fix used the receipt column names (`conf.low`/`conf.high`) instead of
+`confint()`'s (`lower`/`upper`) and passed VACUOUSLY — `all(logical(0))` is TRUE — reproducing the
+audited defect class inside its own repair. The deliberate-red mutation caught it; after the fix the
+mutant fails and the revert passes. Three other `expect_true(all(...))` sites on different objects
+share the vacuous shape and are recorded open, not chased.
+
+**The 7 spatial demotions' boundaries were restated** under the adopted contract: the operative
+ground below `interval_feasible` is that the fixture misspecification invalidates the point premise;
+`location_checked=failed` carries the bracketing miss. Originals retained verbatim inside the new text.
+
+Checks (the full CI set, after every commit): 6/6 python suites · ledger `--check` OK (31 outputs) ·
+truth-manifest OK (30 rows) · capability-runtime OK (18 routes) · fence-integrity none ·
+evidence-citations none · 7 touched test files FAIL=0. B4-CI pins re-frozen twice, each gated on a
+field-level diff proving no pre-existing field moved. After-task:
+`docs/dev-log/after-task/2026-08-15-irc-evidence-rewire-and-tier-contract.md` (PASS close-out
+compiler); plan-vs-actual filed alongside.
+
+## 2026-08-15/16 — overnight: 31 location verdicts, the 44-cell import audit, four residuals closed
+
+Unattended run on `claude/lane-overnight-0815`, off `a5bd62d6b`.
+
+**31 cells went from "no recoverable truth" to a location verdict, at zero compute.** Truth was
+recovered for all 31 (135-trace `all-receipts.tsv` `true_value` for 5; campaign bindings for 26, 18 of
+those cross-validated against fixture-builder constants, some readable only at off-mainline commits),
+then checked with the gate's own rule: **31/31 pass, every retained interval brackets its truth,
+worst relative miss 0.0%**. Five carry 5 seeds (both gate arms reachable); the other 26 are
+**magnitude-only**. Claiming cells now **176 passed / 44 unchecked / 6 not_applicable**.
+
+**The 44-cell 2026-07-11 import was audited against the shape contract** (`docs/design/255`): **19
+shape-justified, 22 whose cited evidence never computes an interval at all, 3 with an unwired campaign
+whose coverage is 0.81–0.86 against nominal 0.95** — a warning, not a promotion. No tier was changed;
+the disposition is the owner's. Facts: `2026-08-15-import-44-shape-audit.md`.
+
+**Four residuals closed.** `location_checked` is now rendered (census column + a derived sentence on
+three surfaces, test-pinned). The three flagged vacuous-shape test sites are all **real** — zero fixes
+needed. `binding_source_sha256` is **not** the defect the earlier audit recorded: the validator
+enforces it as the digest of the shared bindings input, so my own claim was wrong and is corrected;
+semantics documented. The frozen-before-decision staleness class has **8 more instances**, all from
+one 2026-06-30 commit, now covered by the extended supersession note — and the sweep confirms the
+class does not recur elsewhere across 190 decision-bearing TSVs.
+
+**`mc-0596`'s cross-arc tension is a fixture difference, not a contradiction.** On the fixture backing
+its interval claim, three seeds give convergence 0, pdHess TRUE, and an independent `nlminb` restart
+re-confirms the optimum under both the raw defaults and the campaign's 900-iteration budget
+(grad-max ≤ 1.2e-3). The "false convergence (8)" was measured on the response-mask arc's own sentinel
+fixture. Facts only; D-87 disposition reserved.
+
+**Two citation errors of my own from the previous lane were found and repaired** — an extension that
+made `mc-0486` look shape-justified using a different test's assertions, and an off-by-one leaving
+`mc-0623/0625/0627` citing line 100 when their assertions sit at 101-103.
+
+**One fix was written, proven, and deliberately thrown away:** endpoint assertions for the
+zero_one_beta cells passed (1521) and mutation-proved red, but `test-zero-one-beta.R` is the pinned
+source blob behind `mc-0568`'s retained receipt, so the C14/C17 guard rejected it. Reverted — a
+convenience fix is not worth invalidating a provenance binding, and the coupling is now recorded.
+
+Checks after every change: `capability_ledger.py --check` OK (31 outputs) · `test_capability_ledger`,
+`test_b4_ci_c1`, `test_profile_truth_gate` all OK. Compute spend: three single-threaded fits. After-task:
+`docs/dev-log/after-task/2026-08-16-overnight-location-and-import-audit.md`.
+
+### 2026-08-16 — RETRACTION: the reported `drmTMB(se = TRUE)` PSOCK worker leak does not exist
+
+The overnight entry above recorded a PSOCK worker leak on the `se` path. **That was wrong, and the
+error was in my attribution method, not in the package.**
+
+`grep -rE "makeCluster|makePSOCKcluster|makeForkCluster|parLapply|foreach|future::" R/` returns
+**nothing**: the package creates no cluster on any path. Its only parallel mechanism is fork-based
+`mclapply` (`R/profile.R:2804,2811`), reached solely via `parallel = "multicore"` on bootstrap or
+profile — never from `se`, which is one in-process `TMB::sdreport()` call. PSOCK is deliberately
+unsupported because fitted TMB objects carry external pointers that do not survive serialisation.
+
+Two mistakes produced the false report:
+
+1. **A global census on a shared host.** I counted `ps aux | grep workRSOCK` across a machine running
+   ten lanes and attributed the result to whatever I was running.
+2. **`PPID 1` misread as orphaning.** Since R 4.0, `makePSOCKcluster()` on localhost defaults to
+   `setup_strategy = "parallel"`, which backgrounds every worker at launch; healthy, connected workers
+   are reparented to init. PPID 1 is normal.
+
+Lane `claude/eloquent-driscoll-521fa1` resolved a live worker of the exact signature **by port** to a
+living master: a concurrent pigauto benchmark (`script/bench_zi_count.R`), whose own scripts call
+`makeCluster()` with `stopCluster()` on the success path only. Its owner has been notified. That lane
+also measured the negative directly — 3× `drmTMB(se = TRUE)` and 3× `test-profile-targets.R`, zero new
+workers each time — and landed a hygiene guard plus a non-repro report on its own branch.
+
+**I killed those workers three times tonight believing them orphaned**, which may have terminated
+another lane's live compute. Recorded here rather than left in a scratchpad.
+
+**Rule:** attribute a process by PORT, or by descent from your own PID. Never by a global count on a
+shared host.
+
+## 2026-08-19 — current-main 0.7.0 exact evidence reached `submission-ready`
+
+Final immutable candidate: source `6170fbeeea65f22444d7b0934f4e808c40744d22`,
+SHA-256 `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
+4,368,396 bytes, 946 entries. Exact-byte local `--as-cran` and all three
+win-builder arms pass with only the expected first-submission NOTE; Windows
+tests take 110–152 seconds. Exact-source 3-OS CI and three sanitizer arms pass;
+red rchk findings remain confined to installed TMB headers. All 69 packet hashes
+verify in repo and durable copies. Grace, Rose, and Pat are READY, and the
+executable ledger returns `READY FOR CLAIMED RUNG` at `submission-ready`.
+
+This is readiness evidence, not submission authority. No `submit_cran()`, no
+19 August submission, no #1033 change, and no `_julia_skip2_artifacts/` change.
+Closeout report:
+`docs/dev-log/after-task/2026-08-19-current-main-070-exact-evidence-closeout.md`.
+
+**Landing correction.** PR #1076 merged as `7fd86d031` at 12:47:03Z before its
+pending Ubuntu job completed: `gh pr merge --auto` merged immediately because
+the job was not configured as a required check. This was earlier than intended
+and was disclosed in-session. The real `ubuntu-latest (release)` job, not only
+`os-matrix`, subsequently passed at 13:17:34Z after 40m19s:
+<https://github.com/itchyshin/drmTMB/actions/runs/32253581513/job/96070045054>.
+All #1076 paths are build-excluded; candidate bytes remain `1d6445db…`.
+
+## 2026-08-19 — function map and printable cheat sheet restored
+
+The maintainer rejected the replacement design and requested the originals.
+The exact historical article and audited 1536 x 1024 Image 2.0 map were restored
+from commit `cc4f5bae`; the PNG SHA-256 is
+`ad709c25d9942ed8e03b08d0e24ffece20f3161e81587e25b04dad12f287729d`.
+The original two-page A4 cheat-sheet design and ReportLab source were recovered
+from preserved Codex checkpoint ref
+`refs/codex/turn-diffs/captures/1786550471672/93d68566-a14b-4f95-98da-c3b71a620bc1/base`.
+Its separate card-map PDF was not retained; the one-page printable workflow map
+was newly built by embedding the restored audited PNG.
+Only package-version text, current exported-function coverage, download links,
+accessible-alternative wording, provenance, and regression tests were updated.
+
+Final local gate: PDF generator/export check PASS; focused R tests 70/70 and
+17/17 PASS; reader-navigation Python contract 1/1 PASS; article build PASS;
+`pkgdown::check_pkgdown()` reports no problems. `pdfinfo` reports one 12 x 8
+map page and two A4-landscape cheat-sheet pages. Fresh 150-dpi renders of all
+pages are unclipped; the first new assessment-card render crossed the footer
+and was repaired before the final artifacts. The original PNG is now positively
+fenced by checksum and its Image 2.0 plus deterministic-overlay provenance is
+recorded in `inst/COPYRIGHTS`.
+The 102-row shared checkout was not bulk-cleaned: `.worktrees/` is newly ignored,
+while ambiguous tracked, scratchpad, agent, document, and test work is preserved
+and classified in `docs/dev-log/2026-08-19-dirty-checkout-disposition.md`.
+
+This repair changes five build-included paths in the immutable `6170fbeee`
+submission candidate: `inst/COPYRIGHTS`, both focused test files, the article
+Rmd, and its restored PNG. Merge/deploy therefore remains held for
+post-submission unless the maintainer explicitly reopens the exact-byte release
+gate.
+
+Closeout report:
+`docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.
+
+| 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
+
+| 2026-09-24 | Sparse Quaas A-inverse for `animal()` pedigrees (#740) | `test-pedigree-sparse-ainv.R` 6 pass/0 fail; `test-animal-relmat-gaussian.R` 479 pass/0 fail; identity vs `chol2inv(chol(A))` < 1e-6 at n in {250,500,1000,2000,4000}; stored nonzeros 16,000,000 -> 27,830 at n=4000 | PASS; no fit-level wall-time claim made (needs a large-n animal cell) | Cursor / Shannon |
+
+| 2026-10-19 | man/*.Rd vs roxygen sync (#1571) | `document()` rewrote 39 Rd files before, 0 after; `test-man-roxygen-sync.R` fails pre-fix, passes post-fix | PASS | Claude |
+
+| 2026-10-22 | Direct Gaussian aggregation helper tests (#1598) | `devtools::test(filter = "gaussian-aggregation")`: PASS 136, FAIL 0, WARN 0, SKIP 0; PR test source SHA-256 unchanged | Focused tests PASS; full package and Julia engine checks not run | Codex |
 
 ## 2026-08-14 — first response-mask REML formula cell
 

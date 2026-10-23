@@ -29,7 +29,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 Model selection comes after candidate models have been chosen, fitted, and
 checked with the post-fit workflow in [Checking and using fitted
-models](model-workflow.html). In `drmTMB`, AIC and BIC can compare fitted
+models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html). In `drmTMB`, AIC and BIC can compare fitted
 distributional-regression models, but they do not decide whether a candidate
 set is biologically sensible or whether a weak fit should be interpreted.
 
@@ -60,7 +60,7 @@ formulas.
 library(drmTMB)
 
 criterion_converged <- function(fit) {
-  isTRUE(fit$opt$convergence == 0)
+  is_converged(fit)
 }
 
 criterion_table <- function(...) {
@@ -128,12 +128,15 @@ fit_mixed_x_reml <- drmTMB(
 )
 
 ll_reml <- logLik(fit_mixed_x_reml)
+mixed_parameters <- summary(fit_mixed_x_reml)$parameters
 data.frame(
   estimator = fit_mixed_x_reml$estimator,
   restricted_logLik = as.numeric(ll_reml),
   df = attr(ll_reml, "df"),
   residual_sigma = unname(sigma(fit_mixed_x_reml)[1]),
-  id_sd = unname(fit_mixed_x_reml$sdpars$mu["(1 | id)"])
+  id_sd = mixed_parameters[
+    mixed_parameters$parm == "sd:mu:(1 | id)", "estimate"
+  ]
 )
 ```
 

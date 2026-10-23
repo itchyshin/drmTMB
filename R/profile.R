@@ -24,7 +24,14 @@
 #' response-scale value for each supplied row. Row-specific `rho12` profile
 #' intervals from a regression `rho12` formula are computable this way, but no
 #' simulation has measured their coverage; treat them as interval-feasible,
-#' not as a calibrated `level` interval (tracked as issue #802).
+#' not as calibrated `level` intervals.
+#'
+#' Modelled missing-predictor bootstrap is not yet implemented: it requires
+#' joint predictor simulation and refits that preserve the imputation model and
+#' missingness pattern. Such requests fail before simulation. Positive predictor
+#' scales use log-scale Wald intervals transformed by exp(); predictor mixture
+#' probabilities use logit-scale intervals transformed by plogis(). Public
+#' covariance and summary standard errors remain on the reported natural scale.
 #'
 #' Target names follow the profile target namespace. For fixed effects, use
 #' names such as `"fixef:mu:x"`, `"fixef:sigma:(Intercept)"`, or
@@ -88,12 +95,17 @@
 #' @param R Number of parametric-bootstrap refits when
 #'   `method = "bootstrap"`.
 #' @param seed Optional seed for bootstrap simulation.
-#' @param parallel Profile or bootstrap backend: `"none"` or Unix
-#'   `"multicore"`. For profile intervals, targets or `newdata` rows are split
+#' @param parallel Profile or bootstrap backend: `"none"`, Unix
+#'   `"multicore"`, or socket `"cluster"` (PSOCK, any platform including
+#'   Windows). For profile intervals, targets or `newdata` rows are split
 #'   across workers. For bootstrap intervals, refits are split across workers.
+#'   Every backend returns the serial result; see [drmTMB-parallel].
 #' @param workers Requested profile or bootstrap workers. If `NULL` and
-#'   `parallel = "multicore"`, `drmTMB` uses about half the detected CPU cores.
-#'   Multicore execution is capped at the number of jobs and at 10 workers.
+#'   `parallel` is not `"none"`, `drmTMB` uses about half the detected CPU
+#'   cores. Parallel execution is capped at the number of jobs and at 10
+#'   workers.
+#'   Keep BLAS and OpenMP threads at one while workers run; see
+#'   [drmTMB-parallel].
 #' @param refit_control Optional [drm_control()] object used for bootstrap
 #'   refits. The default skips `TMB::sdreport()` and drops the TMB object because
 #'   bootstrap intervals use refit point estimates.
@@ -150,14 +162,16 @@
 #'   push them further conservative) and plain labelled covariance blocks (whose
 #'   correction magnitude is not yet simulation-calibrated).
 #' @param bootstrap_re_form `re.form` passed through to [stats::simulate()]
-#'   when `method = "bootstrap"`. The default, `NULL`, redraws random effects
-#'   for every replicate (marginal simulation), matching what a parametric
-#'   bootstrap of the fitted data-generating process requires. Passing `NA`
-#'   instead holds random effects fixed at their conditional-mode estimate;
-#'   this is a documented escape hatch for random-effect structures whose
-#'   marginal draw is not yet implemented, and it makes the resulting
-#'   intervals **anticonservative** because between-group variability is
-#'   never resampled -- it is not a neutral alternative to the default.
+#'   when `method = "bootstrap"`, with the same lme4 meanings as
+#'   [simulate.drmTMB()]. The default, `NA`, redraws random effects for every
+#'   replicate (marginal simulation), matching what a parametric bootstrap of
+#'   the fitted data-generating process requires. Passing `NULL` instead holds
+#'   random effects fixed at their conditional-mode estimate; this is a
+#'   documented escape hatch for random-effect structures whose marginal draw
+#'   is not yet implemented, and it makes the resulting intervals
+#'   **anticonservative** because between-group variability is never
+#'   resampled -- it is not a neutral alternative to the default. Earlier
+#'   drmTMB versions gave `NULL` and `NA` the reverse meaning (#1487).
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"` and the `tmbprofile` profile engine is used.
 #'   `drmTMB` supplies the profiled `obj`, `name`, `lincomb`, and `trace`
@@ -166,13 +180,19 @@
 #' @return A data frame with columns `parm`, `level`, `lower`, `upper`,
 #'   `scale`, `transformation`, `tmb_parameter`, `index`, `method`, and
 #'   `profile.engine`, `conf.status`, `profile.boundary`, and
-#'   `profile.message`. Successful rows currently use
+#'   `profile.message`. The returned `parm` values use the fully-qualified
+#'   target names used by `profile_targets()`, such as `fixef:sigma:z`, even
+#'   when the input `parm` used a compact label such as `sigma:z`. Normalize
+#'   names before joining the result back to user-supplied compact labels.
+#'   Successful rows currently use
 #'   `conf.status = "wald"`, `"profile"`, or `"bootstrap"`. Failed numeric
 #'   profile rows use `"profile_failed"` with missing endpoints; profile rows
 #'   mark intervals that land near a lower SD boundary or correlation boundary.
 #'   Bootstrap interval results carry a `"bootstrap.diagnostics"` attribute
 #'   with one diagnostic row per refit and target, including refit convergence,
 #'   target availability, draw use, and the refit message.
+#'   For a plain matrix view of the `lower` and `upper` columns, use
+#'   [as.matrix.drm_confint()].
 #'
 #' @section Default uncertainty story:
 #' Use this recipe for ordinary first-week inference; it restates measured
@@ -191,16 +211,16 @@
 #'     that interval as indicative of scale, not as a calibrated
 #'     \code{level} interval (see Boundary intervals below).
 #'   \item A computable interval is not coverage certification. Check the
-#'     exact cell in
+#' exact model and parameter combination in
 #'     \href{https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html}{Capabilities and limits}
-#'     before reporting a route as inference-ready.
+#' before reporting its intervals as coverage-validated.
 #' }
 #'
 #' For a short applied walkthrough, see the vignette
 #' \emph{First-week intervals: fit, profile, and boundary}.
 #'
 #' @section Boundary intervals:
-#' Both interval methods are unreliable when a variance component approaches zero
+#' Every interval method is unreliable when a variance component approaches zero
 #' or a correlation approaches `+/-1`, and each warns about its own case.
 #'
 #' `method = "wald"` flags a row with `conf.status = "wald_at_boundary"` and warns
@@ -211,16 +231,26 @@
 #' `method = "profile"` sets `profile.boundary = TRUE` and warns (class
 #' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
 #' reaches a boundary. **A profile interval is not a repair for a boundary.**
-#' Conditional on that flag, a seeded 10-group random-effect SD gate measured
+#' Conditional on that flag, a seeded 10-group random-effect SD simulation measured
 #' coverage at 0.1021, 0.2387, and 0.8683 against a nominal 0.95, and 0 of 89 in a
-#' fourth cell where boundary hits are rare (0.09% of fits). The mechanism is a
+#' fourth scenario where boundary hits are rare (0.09% of fits). The mechanism is a
 #' maximum likelihood random-effect SD biased 8.3%-15.8% low at small group counts,
 #' which anchors the interval low so that it misses from above.
 #'
-#' Unconditionally -- across all fits, flagged or not -- the same gate measured
+#' Unconditionally -- across all fits, flagged or not -- the same simulation measured
 #' 0.9248 against a nominal 0.95 over 400,000 attempts. A flagged interval is the
 #' bad case, not the typical one, and the flag is returned in the table so you can
 #' tell which case you are in.
+#'
+#' Refitting the same design with `REML = TRUE` improved this without repairing
+#' it: over 400,000 paired replicates, profile coverage moved from 0.9248 to
+#' 0.9463 against a nominal 0.95, the SD point estimate's downward bias roughly
+#' halved (pooled -10.9% under maximum likelihood to -4.6% under REML), and the
+#' upper-to-lower miss asymmetry fell from 5.7:1 to 2.0:1. Coverage conditional
+#' on the boundary flag improved but stayed well below nominal (0.74 to 0.83),
+#' so a flagged interval remains the bad case under either estimator. The
+#' default estimator is unchanged; this measurement covers the one design below
+#' only.
 #'
 #' This is a property of profile intervals near a variance boundary rather than of
 #' `drmTMB`: `lme4::lmer` on the same data-generating process and seeds agreed on
@@ -233,25 +263,42 @@
 #' describe that corner, and are not a general statement about every family,
 #' provider, or group count.
 #'
+#' `method = "bootstrap"` flags a row with `conf.status = "bootstrap_at_boundary"`
+#' and warns (class `drmTMB_bootstrap_boundary_warning`) when at least 5% of the
+#' retained resamples land on the target's bound. Resampling does not repair a
+#' boundary: a percentile interval whose draws pile up at zero is reporting the
+#' constraint rather than the sampling distribution. Measured on three Gaussian
+#' random-intercept fits at `R = 200`, a true SD of 0 put 43% of draws on the
+#' bound and a true SD of 0.25 put 5% there with a lower endpoint of exactly
+#' zero, while a true SD of 0.9 put none there. The flag needs at least 20
+#' retained draws to fire, because a share computed from a handful of resamples
+#' is noise; `bootstrap.n` reports how many were retained.
+#'
 #' Rows with `conf.status = "profile_failed"` or `"clamp_limited"` also carry
 #' `profile.boundary = TRUE`, but return missing endpoints and are not warned about
 #' separately; read their `conf.status` and `profile.message` instead.
+#'
+#' `check_drm()` does **not** assess any of this. It reads the fit, so a target
+#' whose point estimate sits well clear of zero passes every fit-level check
+#' while its interval is still flagged here. `check_drm()` emits an
+#' `interval_reliability_scope` note saying so; read `conf.status` before
+#' reporting an interval.
 #'
 #' @section Profiling a structured `sigma` random-effect SD:
 #' A profile of a `sigma`-axis random-effect SD under `phylo()`, `animal()`,
 #' `relmat()`, `spatial()`, or `phylo_interaction()` is computable for
 #' `zero_one_beta()`, `nbinom2()`, and `zi_nbinom2()`, but the maximum
 #' likelihood point estimate it is built around is **biased low** for this
-#' class of cell: eleven of twelve retained ML estimates fell below truth in
-#' the sibling `nbinom2` provider cells (fit-level one-sided sign test
-#' `p = 0.0032`; `p = 0.0625` at cell level, once the shared data-generating
+#' model class: eleven of twelve retained ML estimates fell below truth in
+#' the sibling `nbinom2` provider scenarios (fit-level one-sided sign test
+#' `p = 0.0032`; `p = 0.0625` at scenario level, once the shared data-generating
 #' process and random-number stream are respected). Two corrections that exist
 #' elsewhere for this bias do not reach these routes: `bias_correct` shifts
 #' only the `method = "wald"` centre and never a profile endpoint, and native
 #' scale-side REML is unavailable here because `drm_validate_reml_spec()`
 #' admits only Gaussian and binomial models. The profile interval therefore
-#' inherits the bias of its centre uncorrected. These routes carry point-fit
-#' recovery evidence only, and no seeded campaign has yet measured the
+#' inherits the bias of its centre uncorrected. Only point-estimate recovery has
+#' been checked for these routes, and no simulation study has yet measured the
 #' coverage of a profile interval built on them, so treat the endpoints as a
 #' computed profile rather than calibrated inference.
 #'
@@ -291,10 +338,9 @@
 #' not derived: the `log(g / (g - 1))` SD-scale centre
 #' shift is about **twice** the leading-order REML SD correction
 #' (`0.5 * log(g / (g - 1))`), matching the larger ML shrinkage measured on these
-#' structured/bivariate cells (their effective df is well below `g - 1`). The
-#' magnitude's authority is the per-model-class simulation in
-#' `docs/design/219-structured-re-small-sample-bias-correction.md`, not a single
-#' source. Relevant references:
+#' structured/bivariate models (their effective df is well below `g - 1`). The
+#' magnitude used here comes from separate simulations for each structured or
+#' bivariate model class, not from a single general correction. Relevant references:
 #'
 #' Restricted maximum likelihood and the variance-component bias that motivates
 #' the centre shift (REML debiases the variance by `g/(g-1)`; the shift here is on
@@ -361,11 +407,11 @@
 #' Wolak, M. E., Fairbairn, D. J., & Paulsen, Y. R. (2012). Guidelines for
 #' estimating repeatability. Methods in Ecology and Evolution, 3(1), 129-137.
 #' \doi{10.1111/j.2041-210X.2011.00125.x}
-#' @seealso The tier definitions and per-cell evidence behind these interval
-#'   targets, including random-effect standard-deviation rows, are curated in
-#'   \code{vignette("capability-and-limits", package = "drmTMB")}: `confint()`
-#'   computes generically for any target, and the tier a given cell belongs to
-#'   is a documentation-level curation, not a runtime guard.
+#' @seealso The model-specific evidence behind these interval targets, including
+#'   random-effect standard-deviation rows, is summarized in
+#'   \code{vignette("capability-and-limits", package = "drmTMB")}. `confint()`
+#'   can compute intervals for targets whose coverage has not been measured, so a
+#'   successful computation is not by itself evidence of calibrated coverage.
 #' @export
 confint.drmTMB <- function(
   object,
@@ -380,14 +426,14 @@ confint.drmTMB <- function(
   profile_endpoint_max_eval = NULL,
   R = 199L,
   seed = NULL,
-  parallel = c("none", "multicore"),
+  parallel = c("none", "multicore", "cluster"),
   workers = NULL,
   refit_control = NULL,
   sd_boundary = 1e-4,
   rho_boundary = 0.98,
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
-  bootstrap_re_form = NULL,
+  bootstrap_re_form = NA,
   ...
 ) {
   drm_abort_mspl_inference(object, "confint")
@@ -480,7 +526,9 @@ confint.drmTMB <- function(
       parallel = bootstrap_parallel,
       workers = workers,
       refit_control = refit_control,
-      re_form = bootstrap_re_form
+      re_form = bootstrap_re_form,
+      sd_boundary = sd_boundary,
+      rho_boundary = rho_boundary
     ))
   }
 
@@ -647,8 +695,8 @@ confint.drmTMB <- function(
 #'   profiling: the zi-nbinom2 note covers the ordinary q1 scale route, and the
 #'   zero-one-beta notes cover that bounded family's structured q1 mean route
 #'   and its zero- and one-inflation routes.
-#'   Derived variance-ratio summaries such as repeatability and phylogenetic
-#'   signal are listed as point-estimate targets with
+#'   Derived variance-ratio summaries such as `total_variance_share` and
+#'   `phylo_total_variance_share` are listed as point-estimate targets with
 #'   `profile_ready = FALSE`.
 #'
 #' @examples
@@ -718,6 +766,17 @@ profile_targets <- function(object, ready_only = FALSE) {
 #' @param first_pass_ystep,first_pass_ytol Coarse [TMB::tmbprofile()] controls
 #'   used only when `compare = TRUE`. The dense pass uses `profile_precision`,
 #'   `profile_maxit`, and `...`.
+#' @param parallel Parallel backend for profiling several targets. `"none"`
+#'   (the default) profiles targets one after another. `"multicore"` profiles
+#'   independent targets in forked worker processes with
+#'   [parallel::mclapply()] on Unix-alikes; `"cluster"` uses socket (PSOCK)
+#'   workers on any platform. The returned curves are identical to the serial
+#'   result because every target starts from the same pinned optimum. A single target is always profiled
+#'   serially. Keep `TMB::openmp()` and BLAS threads at one when using
+#'   `"multicore"`; see [drmTMB-parallel].
+#' @param workers Optional positive whole number of worker processes for
+#'   `parallel = "multicore"`. `NULL` uses half the detected physical cores,
+#'   capped at 10 and at the number of targets.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()]. `drmTMB`
 #'   supplies the profiled `obj`, `name`, `lincomb`, and `trace` arguments
 #'   internally; set the profile target with `parm`.
@@ -747,8 +806,14 @@ profile.drmTMB <- function(
   compare = FALSE,
   first_pass_ystep = 0.5,
   first_pass_ytol = 2,
+  parallel = c("none", "multicore", "cluster"),
+  workers = NULL,
   ...
 ) {
+  parallel <- resolve_bootstrap_parallel(
+    parallel,
+    missing_arg = missing(parallel)
+  )
   drm_abort_mspl_inference(fitted, "profile")
   if (identical(fitted$model$model_type, "biv_student")) {
     cli::cli_abort(
@@ -796,7 +861,12 @@ profile.drmTMB <- function(
       i = "Use {.fn confint} with {.code method = \"profile\"} and {.code profile_engine = \"auto\"} for the constrained interval."
     ))
   }
-  rows <- lapply(seq_len(nrow(targets)), function(i) {
+  plan <- profile_parallel_plan(
+    nrow(targets),
+    parallel = parallel,
+    workers = workers
+  )
+  rows <- profile_lapply(seq_len(nrow(targets)), function(i) {
     target <- targets[i, , drop = FALSE]
     if (isTRUE(compare)) {
       return(rbind(
@@ -844,7 +914,7 @@ profile.drmTMB <- function(
         profile_args
       )
     )
-  })
+  }, plan)
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   attr(out, "level") <- level
@@ -1175,7 +1245,22 @@ profile_controls_label <- function(args) {
 # atanh round-trips stay finite. This must match the guard used by rho_response()
 # and guarded_correlation_link() (methods.R) so the forward link and its inverse
 # agree; the DRM.jl twin must mirror the same value (issue #713.6).
+# Random-effect correlation targets use DRM_RE_CORR_GUARD (methods.R, 0.99999999,
+# raised with src/drmTMB.cpp in #1190); DRM_CORR_GUARD is the residual/phylo
+# guard.
 DRM_CORR_GUARD <- 0.999999
+
+# The shared "tanh" correlation transformation serves random-effect targets
+# (guard DRM_RE_CORR_GUARD) and the phylogenetic correlation `eta_cor_phylo`
+# (TMB's rho_phylo / rho_node keep 0.999999). Pick the guard from the TMB
+# parameter the target profiles (#1190).
+profile_correlation_guard <- function(tmb_parameter) {
+  if (length(tmb_parameter) && identical(as.character(tmb_parameter[[1L]]), "eta_cor_phylo")) {
+    DRM_CORR_GUARD
+  } else {
+    DRM_RE_CORR_GUARD
+  }
+}
 
 profile_transform_values <- function(values, target) {
   switch(
@@ -1183,7 +1268,8 @@ profile_transform_values <- function(values, target) {
     linear_predictor = values,
     ordered_cutpoint = values,
     exp = exp(values),
-    tanh = DRM_CORR_GUARD * tanh(values),
+    plogis = stats::plogis(values),
+    tanh = profile_correlation_guard(target$tmb_parameter) * tanh(values),
     rho12_tanh = rho_response(values),
     values
   )
@@ -1323,7 +1409,7 @@ resolve_bootstrap_parallel <- function(parallel, missing_arg = FALSE) {
   if (isTRUE(missing_arg)) {
     return("none")
   }
-  match.arg(parallel, c("none", "multicore"))
+  match.arg(parallel, c("none", "multicore", "cluster"))
 }
 
 validate_profile_maxit <- function(profile_maxit) {
@@ -1423,9 +1509,47 @@ interval_source_levels <- function() {
   c("wald", "profile", "bootstrap", "not_available")
 }
 
+# Target inventory for an `engine = "julia"` fit (#1156). `profile_targets()`
+# used to return only `drm_julia_profile_targets()` -- the phylogenetic SD
+# rows -- so a Julia fit of `y ~ x + phylo(1 | species), sigma ~ 1` listed one
+# target while the same TMB fit listed six, even though `confint()` accepted
+# the fixed-effect names in full (`drm_julia_confint()` already rbind()s the
+# SD inventory with `drm_julia_wald_targets()`). Discovery now reports the
+# same union the engine accepts, in the native row order: fixed-effect rows,
+# the response-scale `sigma` alias, then the random-effect SD rows.
+#
+# The union is built HERE, not inside `drm_julia_profile_targets()`, because
+# `drm_julia_confint()` and `drm_julia_bootstrap_confint()` rbind() that
+# function's rows with the fixed-effect rows themselves; widening it would
+# duplicate every fixed-effect row and make the one-target validator reject
+# a valid `parm`. The `sigma` alias row stays Wald-only (`profile_ready =
+# FALSE`, note `missing_tmb_parameter`), exactly as `drm_julia_wald_confint()`
+# reports it; the native TMB fit additionally lists a derived
+# `phylo_total_variance_share` row that the bridge has no counterpart for.
+drm_julia_profile_target_union <- function(object) {
+  out <- rbind(
+    drm_julia_wald_targets(object),
+    drm_julia_wald_scale_targets(object),
+    drm_julia_profile_targets(object),
+    # #1144: the ordinal rows of a `cumulative_logit()` bridge fit. Same
+    # discoverable-but-not-ready treatment as the `sigma` alias row above --
+    # the cutpoints are on the fit (`object$ordinal`) and the native engine
+    # profiles them, but DRM.jl's bridge inference has no cutpoint target, so
+    # discovery must list them and `confint()` must refuse them by name.
+    # Empty for every family without an `ordinal` slot.
+    drm_julia_cumulative_logit_targets(object)
+  )
+  out <- out[!duplicated(out$parm), , drop = FALSE]
+  row.names(out) <- NULL
+  if (nrow(out) == 0L) {
+    return(empty_profile_targets())
+  }
+  validate_profile_targets(out)
+}
+
 drm_profile_targets <- function(object) {
   if (inherits(object, "drmTMB_julia")) {
-    return(drm_julia_profile_targets(object))
+    return(drm_julia_profile_target_union(object))
   }
 
   rows <- list()
@@ -1455,7 +1579,9 @@ drm_profile_targets <- function(object) {
 
   for (dpar in names(object$coefficients)) {
     beta <- object$coefficients[[dpar]]
-    internal <- profile_fixef_internal(dpar)
+    transformed <- profile_missing_predictor_transform(dpar, object)
+    internal <- if (is.null(transformed)) profile_fixef_internal(dpar, object) else transformed$internal
+    transformation <- if (is.null(transformed)) "linear_predictor" else transformed$transformation
     indices <- next_indices(internal, length(beta))
     add_rows(lapply(seq_along(beta), function(i) {
       status <- profile_direct_target_status(
@@ -1471,9 +1597,13 @@ drm_profile_targets <- function(object) {
         tmb_parameter = internal,
         index = indices[[i]],
         estimate = unname(beta[[i]]),
-        link_estimate = unname(beta[[i]]),
-        scale = "link",
-        transformation = "linear_predictor",
+        link_estimate = if (is.null(transformed)) unname(beta[[i]]) else {
+          positions <- which(names(object$opt$par) == internal)
+          if (length(positions) >= indices[[i]]) unname(object$opt$par[positions[indices[[i]]]]) else
+            switch(transformation, exp = log(unname(beta[[i]])), plogis = stats::qlogis(unname(beta[[i]])))
+        },
+        scale = if (is.null(transformed)) "link" else "response",
+        transformation = transformation,
         target_type = "direct",
         profile_ready = status$profile_ready,
         profile_note = status$profile_note
@@ -1492,7 +1622,7 @@ drm_profile_targets <- function(object) {
         identical(names(beta), "(Intercept)") &&
         identical(drm_dpar_link(object, dpar), "log")
     ) {
-      internal <- profile_fixef_internal(dpar)
+      internal <- profile_fixef_internal(dpar, object)
       status <- profile_direct_target_status(object, internal, 1L)
       add_rows(list(new_profile_target_row(
         parm = dpar,
@@ -1673,7 +1803,7 @@ drm_profile_targets <- function(object) {
         } else {
           guarded_correlation_link(
             unname(values[[i]]),
-            guard = DRM_CORR_GUARD
+            guard = profile_correlation_guard(internal)
           )
         },
         scale = "response",
@@ -1793,7 +1923,7 @@ drm_profile_confint <- function(
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   warn_profile_boundary(out)
-  out
+  drm_as_confint_table(out)
 }
 
 profile_serial_plan <- function() {
@@ -1886,7 +2016,7 @@ drm_profile_response_newdata_confint <- function(
     )
   }
 
-  internal <- profile_fixef_internal(dpar)
+  internal <- profile_fixef_internal(dpar, object)
   par_names <- names(object$opt$par)
   positions <- which(par_names == internal)
   if (length(positions) < ncol(X)) {
@@ -1964,7 +2094,7 @@ drm_profile_response_newdata_confint <- function(
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   warn_profile_boundary(out)
-  out
+  drm_as_confint_table(out)
 }
 
 # The Wald path warns at a variance-component or correlation boundary and sends
@@ -2068,6 +2198,7 @@ drm_wald_confint <- function(
   #   "group" (opt-in): shift every structured SD target (mu and sigma alike).
   #   "none" (opt-out): leave every centre at the ML estimate, byte-identical to
   #     the pre-default behaviour.
+  bias_applied <- rep(FALSE, nrow(targets))
   if (!identical(bias_correct, "none")) {
     log_bias <- wald_target_log_bias(
       object,
@@ -2075,6 +2206,7 @@ drm_wald_confint <- function(
       location_only = identical(bias_correct, "location")
     )
     has_bias <- !is.na(log_bias)
+    bias_applied <- has_bias
     targets$link_estimate[has_bias] <-
       targets$link_estimate[has_bias] + log_bias[has_bias]
   }
@@ -2149,6 +2281,9 @@ drm_wald_confint <- function(
     profile.message = NA_character_,
     stringsAsFactors = FALSE
   )
+  if (any(interval_ready & bias_applied)) {
+    out$conf.status[interval_ready & bias_applied] <- "wald_bias_corrected"
+  }
 
   # A Wald interval on a variance component near zero or a correlation near +/-1
   # is unreliable (boundary / chi-square-mixture inference). Keep the interval --
@@ -2160,20 +2295,34 @@ drm_wald_confint <- function(
       sd_boundary = sd_boundary,
       rho_boundary = rho_boundary
     )
-  out$conf.status[at_boundary] <- "wald_at_boundary"
-  if (any(at_boundary)) {
-    n_boundary <- sum(at_boundary)
+  at_boundary_no_bias <- at_boundary & !bias_applied
+  out$conf.status[at_boundary_no_bias] <- "wald_at_boundary"
+  is_rho12 <- targets$target_class == "residual-correlation"
+  at_boundary_profile <- at_boundary & !is_rho12
+  at_boundary_rho12 <- at_boundary & is_rho12
+  if (any(at_boundary_profile)) {
+    n_boundary <- sum(at_boundary_profile)
     cli::cli_warn(
       c(
-        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary]}} {?is/are} at a variance-component or correlation boundary.",
+        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary_profile]}} {?is/are} at a variance-component or correlation boundary.",
         "i" = "{cli::qty(n_boundary)}Wald coverage is unreliable on the boundary; use {.code confint(method = \"profile\")} for {?this/these} target{?s}."
+      ),
+      class = "drmTMB_wald_boundary_warning"
+    )
+  }
+  if (any(at_boundary_rho12)) {
+    n_boundary <- sum(at_boundary_rho12)
+    cli::cli_warn(
+      c(
+        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary_rho12]}} {?is/are} at a residual-correlation boundary.",
+        "i" = "{cli::qty(n_boundary)}Profile intervals for residual rho12 at this boundary are usually identical to Wald; read {.field conf.status} on the returned table instead of switching method."
       ),
       class = "drmTMB_wald_boundary_warning"
     )
   }
 
   row.names(out) <- NULL
-  out
+  drm_as_confint_table(out)
 }
 
 # A structured random-effect SD target sits on the location (mu) axis when its
@@ -2450,6 +2599,17 @@ registry_sd_target_group_count <- function(target, registry) {
 # correlation boundary, where the symmetric Wald interval is unreliable. Scoped
 # by `target_class`: random-effect / structured SDs near zero and any correlation
 # near +/-1, but NOT the residual or distributional scale (regular asymptotics).
+profile_sd_boundary_rows <- function(targets) {
+  is_sd <- grepl("-sd$", targets$target_class)
+  # These public summaries stay fixed-effect rows so coef()/vcov() retain them,
+  # but their raw parameters are random-effect SDs, not regular residual scales.
+  if (!is.null(targets$tmb_parameter)) {
+    is_sd <- is_sd | (targets$target_class == "fixed-effect" &
+      targets$tmb_parameter %in% c("log_sd_mi_group", "log_sd_mi_struct"))
+  }
+  is_sd
+}
+
 wald_boundary_targets <- function(
   targets,
   sd_boundary = 1e-4,
@@ -2460,12 +2620,58 @@ wald_boundary_targets <- function(
   }
   target_class <- targets$target_class
   estimate <- targets$estimate
-  is_sd <- grepl("-sd$", target_class)
+  is_sd <- profile_sd_boundary_rows(targets)
   is_correlation <- grepl("correlation", target_class)
   finite <- is.finite(estimate)
   (is_sd & finite & estimate < sd_boundary) |
     (is_correlation & finite & abs(estimate) > rho_boundary)
 }
+
+# Fraction of retained bootstrap draws sitting on the target's bound: zero for a
+# random-effect or structured SD, +/-1 for a correlation. Residual and
+# distributional scales are regular and never flagged, matching
+# `wald_boundary_targets()`.
+bootstrap_boundary_share_at <- function(
+  values,
+  target,
+  sd_boundary = 1e-4,
+  rho_boundary = 0.98
+) {
+  values <- values[is.finite(values)]
+  if (length(values) < bootstrap_boundary_min_draws) {
+    return(0)
+  }
+  target_class <- target$target_class
+  if (profile_sd_boundary_rows(target)) {
+    return(mean(values < sd_boundary))
+  }
+  if (grepl("correlation", target_class)) {
+    return(mean(abs(values) > rho_boundary))
+  }
+  0
+}
+
+# A percentile interval built from draws that repeatedly hit the bound is
+# reporting the bound, not the sampling distribution. Calibrated against three
+# Gaussian random-intercept fits at R = 200, measuring the share of retained
+# draws with SD < `sd_boundary` and the resulting interval:
+#
+#   true SD 0.00   43.0% at bound   [0.000, 0.496]   flag
+#   true SD 0.25    5.0% at bound   [0.000, 0.248]   flag -- endpoint IS the bound
+#   true SD 0.90    0.0% at bound   [0.667, 1.162]   quiet
+#
+# One in twenty separates the two regimes: at 5% the lower endpoint has already
+# collapsed to zero, and at 0% it has not. The middle case is a true positive,
+# not over-warning -- reporting "[0, 0.248]" for a standard deviation without
+# saying the lower end is a constraint is exactly the failure this guards.
+bootstrap_boundary_share <- 0.05
+
+# A share is only a statistic when there are draws to compute it from. At
+# `R = 2` a single boundary draw reads as 50%, which is noise, not evidence --
+# the plumbing tests in `test-profile-targets.R` deliberately run that small.
+# Below this many retained draws the flag stays silent; `bootstrap.n` is already
+# reported on every row, so a caller who used too few replicates can see it.
+bootstrap_boundary_min_draws <- 20L
 
 drm_bootstrap_confint <- function(
   object,
@@ -2476,12 +2682,26 @@ drm_bootstrap_confint <- function(
   parallel,
   workers,
   refit_control,
-  re_form = NULL
+  re_form = NA,
+  sd_boundary = 1e-4,
+  rho_boundary = 0.98
 ) {
   validate_profile_level(level)
   R <- validate_bootstrap_replicates(R)
+  if (isTRUE(object$model$missing_predictor$enabled) ||
+      isTRUE(object$model$missing_predictor2$enabled)) {
+    cli::cli_abort(c(
+      "Bootstrap intervals for modelled missing predictors require joint predictor simulation and missingness-preserving refits.",
+      "i" = "That workflow is not implemented; use Wald or a validated profile target while joint bootstrap remains under development."
+    ), class = "drmTMB_joint_bootstrap_unavailable")
+  }
   plan <- bootstrap_parallel_plan(R, parallel = parallel, workers = workers)
   refit_control <- bootstrap_refit_control(refit_control)
+  if (!identical(plan$backend, "none")) {
+    # Outer bootstrap workers already use the cores; never nest multi-start
+    # workers inside them (see ?drmTMB-parallel).
+    refit_control$parallel <- "none"
+  }
   if (nrow(targets) == 0L) {
     return(empty_confint_table(method = "bootstrap"))
   }
@@ -2493,18 +2713,19 @@ drm_bootstrap_confint <- function(
   }
 
   # Parametric bootstrap resamples the DATA-GENERATING process, so random
-  # effects must be redrawn per replicate (`re.form = NULL`, the simulate()
-  # default). Holding them at the fitted MAP would leave between-group
-  # variability unresampled and the resulting intervals anticonservative --
-  # which is precisely the defect this argument exists to avoid. `re_form = NA`
-  # is offered as a documented escape hatch for structures whose marginal draw
-  # is not yet implemented; it is NOT a neutral choice.
-  simulations <- stats::simulate(
-    object,
-    nsim = R,
-    seed = seed,
-    re.form = re_form
-  )
+  # effects must be redrawn per replicate (`re.form = NA`, the simulate()
+  # default, lme4 meaning since #1487). Holding them at the fitted MAP would
+  # leave between-group variability unresampled and the resulting intervals
+  # anticonservative -- which is precisely the defect this argument exists to
+  # avoid. `re_form = NULL` is offered as a documented escape hatch for
+  # structures whose marginal draw is not yet implemented; it is NOT a neutral
+  # choice. The default is not passed on, so simulate() does not print its
+  # one-time re.form message for a caller who never set it.
+  simulations <- if (identical(re_form, NA)) {
+    stats::simulate(object, nsim = R, seed = seed)
+  } else {
+    stats::simulate(object, nsim = R, seed = seed, re.form = re_form)
+  }
   target_names <- targets$parm
   worker <- function(index) {
     bootstrap_refit_one(
@@ -2536,6 +2757,12 @@ drm_bootstrap_confint <- function(
 
   probs <- c((1 - level) / 2, (1 + level) / 2)
   intervals <- vector("list", nrow(targets))
+  # Share of retained resamples that collapsed onto the parameter's bound. This
+  # is the bootstrap's own boundary signal: the Wald test reads the point
+  # estimate and the profile test discovers the bound while profiling, so
+  # neither is available or appropriate here. A percentile interval whose draws
+  # pile up at zero is reporting the bound, not the sampling distribution.
+  boundary_fraction <- rep(0, nrow(targets))
   for (i in seq_len(nrow(targets))) {
     target <- targets[i, , drop = FALSE]
     target_index <- draws$parm == target$parm
@@ -2560,6 +2787,16 @@ drm_bootstrap_confint <- function(
       lower <- qs[[1L]]
       upper <- qs[[2L]]
       status <- "bootstrap"
+      # Test on the NATURAL scale, not `draw_values`: the latter is the link
+      # scale whenever the percentile is taken there, and "an SD near zero" is
+      # only meaningful untransformed. This matches `wald_boundary_targets()`,
+      # which reads `targets$estimate`.
+      boundary_fraction[[i]] <- bootstrap_boundary_share_at(
+        target_draws$estimate[finite],
+        target,
+        sd_boundary = sd_boundary,
+        rho_boundary = rho_boundary
+      )
       message <- paste0(n_ok, "/", nrow(target_draws), " successful refits")
     }
     intervals[[i]] <- data.frame(
@@ -2585,8 +2822,35 @@ drm_bootstrap_confint <- function(
   }
   out <- do.call(rbind, intervals)
   row.names(out) <- NULL
+
+  # A resampled interval is no more trustworthy at a variance-component or
+  # correlation boundary than a Wald or profile one; percentile bootstrap on a
+  # parameter pinned near its bound inherits the same conditional
+  # undercoverage. The Wald and profile routes each flag this, so leaving the
+  # bootstrap route silent made it the one unguarded way to obtain a
+  # clean-looking boundary interval for a target the other two warn about.
+  # The boundary test is a property of the FIT, not of the interval method, so
+  # the same detector serves all three routes.
+  at_boundary <- !is.na(out$conf.status) &
+    out$conf.status == "bootstrap" &
+    is.finite(out$lower) &
+    is.finite(out$upper) &
+    boundary_fraction >= bootstrap_boundary_share
+  out$conf.status[at_boundary] <- "bootstrap_at_boundary"
+  if (any(at_boundary)) {
+    n_boundary <- sum(at_boundary)
+    cli::cli_warn(
+      c(
+        "{cli::qty(n_boundary)}Bootstrap interval{?s} for {.val {out$parm[at_boundary]}} {?is/are} at a variance-component or correlation boundary.",
+        "!" = "{cli::qty(n_boundary)}Bootstrap coverage is unreliable there, so {?this interval is/these intervals are} not a reliable {.arg level} interval.",
+        "i" = "See the {.strong Boundary intervals} section of {.code ?confint.drmTMB}. Resampling does not repair a boundary."
+      ),
+      class = "drmTMB_bootstrap_boundary_warning"
+    )
+  }
+
   attr(out, "bootstrap.diagnostics") <- draws
-  out
+  drm_as_confint_table(out)
 }
 
 validate_bootstrap_replicates <- function(R) {
@@ -2615,17 +2879,18 @@ bootstrap_parallel_plan <- function(R, parallel, workers) {
     !is.character(parallel) ||
       length(parallel) != 1L ||
       is.na(parallel) ||
-      !parallel %in% c("none", "multicore")
+      !parallel %in% c("none", "multicore", "cluster")
   ) {
     cli::cli_abort(
-      "{.arg parallel} must be one of {.val none} or {.val multicore}."
+      "{.arg parallel} must be one of {.val none}, {.val multicore}, or {.val cluster}."
     )
   }
   workers <- resolve_parallel_workers(workers, parallel)
   if (identical(parallel, "multicore") && .Platform$OS.type == "windows") {
-    cli::cli_abort(
-      "{.code parallel = \"multicore\"} is not available on Windows."
-    )
+    cli::cli_abort(c(
+      "{.code parallel = \"multicore\"} is not available on Windows.",
+      i = "Use {.code parallel = \"cluster\"} for socket (PSOCK) workers."
+    ))
   }
   actual_workers <- if (identical(parallel, "none")) {
     1L
@@ -2666,6 +2931,21 @@ profile_parallel_plan <- function(n_task, parallel, workers) {
   bootstrap_parallel_plan(n_task, parallel = parallel, workers = workers)
 }
 
+bootstrap_refit_missing_control <- function(object) {
+  missing_data <- object$model$missing_data
+  if (!is.list(missing_data)) {
+    return(NULL)
+  }
+  if (!identical(missing_data$response_policy, "include")) {
+    return(NULL)
+  }
+  engine <- missing_data$engine
+  if (!is.character(engine) || length(engine) != 1L || is.na(engine)) {
+    engine <- "laplace"
+  }
+  miss_control(response = "include", predictor = "fail", engine = engine)
+}
+
 bootstrap_refit_control <- function(refit_control) {
   if (is.null(refit_control)) {
     return(drm_control(
@@ -2678,17 +2958,71 @@ bootstrap_refit_control <- function(refit_control) {
 }
 
 profile_lapply <- function(indices, worker, plan) {
-  if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
-    return(lapply(indices, worker))
-  }
-  parallel::mclapply(indices, worker, mc.cores = plan$workers)
+  drm_parallel_lapply(indices, worker, plan)
 }
 
 bootstrap_lapply <- function(indices, worker, plan) {
+  drm_parallel_lapply(indices, worker, plan)
+}
+
+# One dispatcher for the "none" | "multicore" | "cluster" backends. Workers
+# receive the same inputs as the serial lapply(), so every backend returns
+# the same values. A fitted TMB object shipped to a socket worker arrives with
+# a null external pointer; TMB re-tapes it on first use from the serialized
+# data, parameters, and `last.par` state (TMB::MakeADFun's isNullPointer()
+# check), so profile workers reproduce the serial curve without refitting.
+drm_parallel_lapply <- function(indices, worker, plan) {
   if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
     return(lapply(indices, worker))
   }
-  parallel::mclapply(indices, worker, mc.cores = plan$workers)
+  if (identical(plan$backend, "cluster")) {
+    return(drm_cluster_lapply(indices, worker, plan$workers))
+  }
+  drm_mclapply_stop_on_error(
+    parallel::mclapply(indices, worker, mc.cores = plan$workers)
+  )
+}
+
+drm_cluster_lapply <- function(indices, worker, workers) {
+  cl <- parallel::makePSOCKcluster(workers)
+  on.exit(parallel::stopCluster(cl), add = TRUE)
+  parallel::clusterCall(cl, drm_cluster_worker_init, drm_cluster_lib_paths())
+  parallel::parLapply(cl, indices, worker)
+}
+
+# The library holding the drmTMB build this session loaded goes first, so
+# socket workers load the same build even when it was attached with
+# `library(drmTMB, lib.loc = ...)` rather than from `.libPaths()`.
+drm_cluster_lib_paths <- function() {
+  pkg_path <- tryCatch(
+    getNamespaceInfo("drmTMB", "path"),
+    error = function(err) NA_character_
+  )
+  own_lib <- if (is.character(pkg_path) && !is.na(pkg_path)) dirname(pkg_path)
+  unique(c(own_lib, .libPaths()))
+}
+
+# Runs on each socket worker: use the caller's library paths so the worker
+# loads the same drmTMB build, then attach its namespace and DLL.
+drm_cluster_worker_init <- function(lib_paths) {
+  .libPaths(lib_paths)
+  suppressPackageStartupMessages(loadNamespace("drmTMB"))
+  invisible(NULL)
+}
+
+# parallel::mclapply() turns a worker error into a "try-error" element and only
+# warns.  The serial lapply() path aborts on the same error, so re-raise the
+# first worker error to keep both paths failing the same way.
+drm_mclapply_stop_on_error <- function(results) {
+  failed <- vapply(results, inherits, logical(1L), what = "try-error")
+  if (any(failed)) {
+    err <- attr(results[[which(failed)[[1L]]]], "condition")
+    if (inherits(err, "condition")) {
+      stop(err)
+    }
+    stop(as.character(results[[which(failed)[[1L]]]]), call. = FALSE)
+  }
+  results
 }
 
 bootstrap_refit_one <- function(
@@ -2711,6 +3045,15 @@ bootstrap_refit_one <- function(
       )
       if (!object$model$model_type %in% c("biv_lognormal", "biv_student")) {
         arguments$weights <- bootstrap_weights
+      }
+      # Replicates now carry the seed fit's response NA mask (#1188), so they
+      # must also be refitted under the seed fit's response policy. Under the
+      # default `"drop"` an `"include"` fit's replicates would silently change
+      # estimand: `"include"` keeps a masked row inside any latent structure
+      # spanning rows, `"drop"` removes the row entirely.
+      refit_missing <- bootstrap_refit_missing_control(object)
+      if (!is.null(refit_missing)) {
+        arguments$missing <- refit_missing
       }
       do.call(drmTMB, arguments)
     },
@@ -2790,6 +3133,21 @@ bootstrap_uses_link_percentiles <- function(target) {
   identical(target$transformation[[1L]], "exp")
 }
 
+# Re-apply the seed fit's response NA mask to a simulated replicate draw
+# (#1188). `simulate()` draws over the FULL design, so a replicate built by
+# overwriting the response column wholesale carries no missing values at all
+# and refits on MORE rows than the seed fit ever observed. A bootstrap whose
+# replicates are richer than the original necessarily understates uncertainty,
+# and the narrowing grows with the missing fraction. Restoring the mask keeps
+# every replicate on the seed fit's observed row count.
+bootstrap_restore_response_mask <- function(values, missing_mask) {
+  if (length(missing_mask) != length(values)) {
+    return(values)
+  }
+  values[missing_mask] <- NA
+  values
+}
+
 bootstrap_response_data <- function(object, simulations, index) {
   data <- object$data
   if (object$model$model_type %in% c("biv_gaussian", "biv_lognormal")) {
@@ -2801,9 +3159,43 @@ bootstrap_response_data <- function(object, simulations, index) {
         "Internal error: bivariate bootstrap simulations are missing response columns."
       )
     }
-    data[[response_names[[1L]]]] <- simulations[[sim_y1]]
-    data[[response_names[[2L]]]] <- simulations[[sim_y2]]
+    mask_y1 <- is.na(data[[response_names[[1L]]]])
+    mask_y2 <- is.na(data[[response_names[[2L]]]])
+    data[[response_names[[1L]]]] <- bootstrap_restore_response_mask(
+      simulations[[sim_y1]],
+      mask_y1
+    )
+    data[[response_names[[2L]]]] <- bootstrap_restore_response_mask(
+      simulations[[sim_y2]],
+      mask_y2
+    )
     return(data)
+  }
+  if (identical(object$model$model_type, "binomial")) {
+    denominator <- object$model$denominator
+    if (
+      is.list(denominator) &&
+        identical(denominator$encoding, "cbind(successes, failures)")
+    ) {
+      sim_col <- paste0("sim_", index)
+      if (!sim_col %in% names(simulations)) {
+        cli::cli_abort(
+          "Internal error: bootstrap simulations are missing response column {.val {sim_col}}."
+        )
+      }
+      # A cbind() response is missing when EITHER cell is missing, so the mask
+      # is the union of the two columns' original NA patterns; the failure
+      # column then inherits it through NA arithmetic.
+      response_mask <- is.na(data[[denominator$success_name]]) |
+        is.na(data[[denominator$failure_name]])
+      successes <- bootstrap_restore_response_mask(
+        simulations[[sim_col]],
+        response_mask
+      )
+      data[[denominator$success_name]] <- successes
+      data[[denominator$failure_name]] <- denominator$trials - successes
+      return(data)
+    }
   }
   response <- response_name_from_model_frame(
     object,
@@ -2826,7 +3218,10 @@ bootstrap_response_data <- function(object, simulations, index) {
       "Internal error: bootstrap simulations are missing response column {.val {sim_col}}."
     )
   }
-  data[[response]] <- simulations[[sim_col]]
+  data[[response]] <- bootstrap_restore_response_mask(
+    simulations[[sim_col]],
+    is.na(data[[response]])
+  )
   data
 }
 
@@ -2841,7 +3236,7 @@ wald_supported_targets <- function(targets) {
         "residual-correlation"
       ) &
     targets$transformation %in%
-      c("linear_predictor", "exp", "tanh", "rho12_tanh")
+      c("linear_predictor", "exp", "plogis", "tanh", "rho12_tanh")
 }
 
 bootstrap_supported_targets <- function(targets) {
@@ -2944,7 +3339,7 @@ profile_wald_standard_errors <- function(variances) {
 }
 
 empty_confint_table <- function(method = character()) {
-  data.frame(
+  out <- data.frame(
     parm = character(),
     level = numeric(),
     lower = numeric(),
@@ -2960,6 +3355,34 @@ empty_confint_table <- function(method = character()) {
     profile.message = character(),
     stringsAsFactors = FALSE
   )
+  drm_as_confint_table(out)
+}
+
+#' Coerce a drmTMB confidence-interval table to a matrix
+#'
+#' Returns a two-column numeric matrix with row names taken from `parm`, in the
+#' same shape as [stats::confint()] for ordinary linear models.
+#'
+#' @param x A `drm_confint` object from [confint.drmTMB()].
+#' @param ... Ignored.
+#' @return A numeric matrix with two columns (lower and upper interval limits).
+#' @export
+as.matrix.drm_confint <- function(x, ...) {
+  if (!nrow(x)) {
+    return(matrix(numeric(), nrow = 0L, ncol = 2L))
+  }
+  level <- x$level[[1L]]
+  alpha <- (1 - level) / 2
+  pct <- function(p) paste0(format(100 * p, trim = TRUE, scientific = FALSE), " %")
+  mat <- cbind(x$lower, x$upper)
+  colnames(mat) <- c(pct(alpha), pct(1 - alpha))
+  rownames(mat) <- x$parm
+  mat
+}
+
+drm_as_confint_table <- function(x) {
+  class(x) <- c("drm_confint", "data.frame")
+  x
 }
 
 drm_profile_target_confint <- function(
@@ -3357,12 +3780,7 @@ drm_profile_endpoint_result <- function(
   nll_hat <- unname(object$opt$objective)
   cutoff <- stats::qchisq(level, df = 1) / 2
   curvature_se <- profile_endpoint_curvature_se(object, position)
-  control <- if (is.list(object$control) && is.list(object$control$optimizer)) {
-    object$control$optimizer
-  } else {
-    list()
-  }
-  control <- profile_endpoint_inner_control(control)
+  control <- profile_endpoint_inner_control(profile_fit_nlminb_control(object))
 
   endpoint_worker <- function(direction) {
     evaluator <- profile_endpoint_evaluator(
@@ -3488,6 +3906,17 @@ ordinal_cutpoint_profile_evaluator <- function(object, target, control) {
       out
     }
     opt <- stats::nlminb(start, fn_free, gr_free, control = control)
+    # #1144: the free optimum is Newton-polished (`drm_fit_spec()`), but this
+    # constrained cutpoint solve stopped wherever `nlminb` alone stopped -- on
+    # a random-intercept ordinal fit that is a gradient of ~1e-3 to 2e-3 at
+    # BOTH endpoints against ~1e-8 at the fitted optimum, the same asymmetry
+    # that biased the main endpoint solve (#1130, `profile_endpoint_evaluator`).
+    # Polish both endpoints the same way, under the same `newton_polish`
+    # control, so the constrained nll is compared like with like. The
+    # `PROFILE_ENDPOINT_GRADIENT_TOL` guard below is unchanged.
+    if (isTRUE(object$control$newton_polish)) {
+      opt <- drm_newton_polish(opt, fn_free, gr_free)
+    }
     if (is.finite(opt$objective) &&
       opt$objective < (object$opt$objective - 1e-3)) {
       cli::cli_abort(c(
@@ -3536,8 +3965,7 @@ drm_profile_ordinal_cutpoint_confint <- function(object, target, level) {
     ))
   }
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
-  control <- if (is.list(object$control) && is.list(object$control$optimizer)) object$control$optimizer else list()
-  control <- profile_endpoint_inner_control(control)
+  control <- profile_endpoint_inner_control(profile_fit_nlminb_control(object))
   evaluator <- ordinal_cutpoint_profile_evaluator(object, target, control)
   cutoff <- stats::qchisq(level, df = 1) / 2
   nll_hat <- unname(object$opt$objective)
@@ -3643,6 +4071,21 @@ PROFILE_ENDPOINT_GRADIENT_TOL <- 1e-3
 # caller's (possibly speed-tuned) iteration budget: keep any tolerances but use a
 # generous iteration/evaluation budget so profile-CI reliability does not depend
 # on the original fit's iter.max / eval.max choice (issue #710.5).
+# Constrained profile solves use nlminb independently of the outer fit's
+# method. An optim control list cannot be forwarded to those solves. Legacy
+# fitted objects without optimizer_method retain their nlminb controls.
+profile_fit_nlminb_control <- function(object) {
+  control <- object$control
+  if (!is.list(control) || !is.list(control$optimizer)) {
+    return(list())
+  }
+  method <- control$optimizer_method
+  if (!is.null(method) && !identical(method, "nlminb")) {
+    return(list())
+  }
+  control$optimizer
+}
+
 profile_endpoint_inner_control <- function(control) {
   if (!is.list(control)) {
     control <- list()
@@ -3707,6 +4150,21 @@ profile_endpoint_evaluator <- function(object, target_position, control) {
     }
     solve_from <- function(start_values) {
       opt <- stats::nlminb(start_values, fn_free, gr_free, control = control)
+      # #1130 CI follow-up: the free (unconstrained) optimum is Newton-polished
+      # by default (`drm_fit_spec()`, `R/drmTMB.R`) to a gradient of ~1e-9-1e-14,
+      # but this constrained endpoint solve was left at whatever `nlminb` alone
+      # reached. Comparing a polished nll against an unpolished one biases the
+      # profile: the unpolished (constrained) side stops with a higher nll than
+      # its true constrained minimum, which narrows the reported interval (the
+      # `plot.window(): need finite 'xlim' values` vignette failure was the
+      # extreme case, where the endpoint's code-1 gradient exceeded
+      # `PROFILE_ENDPOINT_GRADIENT_TOL` and the solve was rejected outright).
+      # Polishing this side the same way keeps the comparison symmetric.
+      # `drm_control(newton_polish = FALSE)` skips both sides, not just the
+      # free fit, so the comparison stays symmetric in that direction too.
+      if (isTRUE(object$control$newton_polish)) {
+        opt <- drm_newton_polish(opt, fn_free, gr_free)
+      }
       opt_gradient <- tryCatch(
         gr_free(opt$par),
         error = function(err) rep(NA_real_, length(opt$par))
@@ -3973,19 +4431,56 @@ drm_tmbprofile <- function(object, target_name, lincomb, trace, ...) {
   )
 }
 
-drm_profile_trace_object <- function(object, target_name, lincomb) {
+# Issue #1387: TMB::tmbprofile() calls obj$fn() once per inner evaluation, so
+# the trace must not keep a data-sized record per call.  Each evaluation keeps
+# only its scalar objective and error message.  The only consumer of the fixed
+# vector, the direct-SD clamp check below, is reduced on the fly into counts,
+# so memory no longer grows as O(evaluations x length(par)).  Set
+# `options(drmTMB.profile_trace_par = TRUE)` to retain the full per-evaluation
+# `par` trail for debugging.
+drm_profile_trace_object <- function(
+  object,
+  target_name,
+  lincomb,
+  keep_par = isTRUE(getOption("drmTMB.profile_trace_par", FALSE))
+) {
   evaluations <- new.env(parent = emptyenv())
-  evaluations$entries <- list()
+  evaluations$n <- 0L
+  evaluations$objective <- numeric()
+  evaluations$error <- character()
+  evaluations$par <- list()
+  clamp_band <- drm_profile_direct_sd_clamp_band(object)
+  # Without direct-SD predictors the per-evaluation status reduces to a
+  # finiteness check, so skip the parList() reconstruction on every call.
+  has_direct_sd <- is.numeric(clamp_band) && drm_profile_has_direct_sd(object)
+  evaluations$clamp <- if (is.numeric(clamp_band)) {
+    c(active = 0L, unavailable = 0L)
+  }
   obj <- object$obj
   original_fn <- obj$fn
 
   record_evaluation <- function(par) {
-    index <- length(evaluations$entries) + 1L
-    evaluations$entries[[index]] <- list(
-      par = stats::setNames(as.numeric(par), names(par)),
-      objective = NA_real_,
-      error = NULL
-    )
+    index <- evaluations$n + 1L
+    evaluations$n <- index
+    evaluations$objective[[index]] <- NA_real_
+    evaluations$error[[index]] <- NA_character_
+    if (keep_par) {
+      evaluations$par[[index]] <- stats::setNames(as.numeric(par), names(par))
+    }
+    if (is.numeric(clamp_band)) {
+      status <- if (has_direct_sd) {
+        drm_profile_direct_sd_clamp_par_status(object, par, clamp_band)
+      } else if (!is.numeric(par) || !length(par) || any(!is.finite(par))) {
+        NA
+      } else {
+        FALSE
+      }
+      if (is.na(status)) {
+        evaluations$clamp[["unavailable"]] <- evaluations$clamp[["unavailable"]] + 1L
+      } else if (status) {
+        evaluations$clamp[["active"]] <- evaluations$clamp[["active"]] + 1L
+      }
+    }
     index
   }
 
@@ -3994,16 +4489,16 @@ drm_profile_trace_object <- function(object, target_name, lincomb) {
     value <- tryCatch(
       original_fn(par),
       error = function(err) {
-        evaluations$entries[[index]]$error <- conditionMessage(err)
+        evaluations$error[[index]] <- conditionMessage(err)
         stop(err)
       }
     )
-    evaluations$entries[[index]]$objective <- as.numeric(value)
+    evaluations$objective[[index]] <- as.numeric(value)[1L]
     value
   }
 
   snapshot <- function() {
-    list(
+    out <- list(
       target_name = target_name,
       lincomb = as.numeric(lincomb),
       baseline = list(
@@ -4013,27 +4508,36 @@ drm_profile_trace_object <- function(object, target_name, lincomb) {
         ),
         objective = as.numeric(object$opt$objective)
       ),
-      evaluations = evaluations$entries
+      n_evaluations = evaluations$n,
+      objective = evaluations$objective,
+      error = evaluations$error,
+      clamp = evaluations$clamp
     )
+    if (keep_par) {
+      out$evaluations <- lapply(seq_len(evaluations$n), function(i) {
+        list(
+          par = evaluations$par[[i]],
+          objective = evaluations$objective[[i]],
+          error = if (!is.na(evaluations$error[[i]])) evaluations$error[[i]]
+        )
+      })
+    }
+    out
   }
 
   list(obj = obj, snapshot = snapshot)
 }
 
-# A direct-SD clamp changes the likelihood whenever its raw group-level
-# log-scale predictor is outside the identity band.  The full TMB profile API
-# does not return every constrained optimizer state, but it does call obj$fn()
-# for every fixed parameter vector it evaluates.  Direct-SD predictors depend
-# only on that fixed vector, so tracing those calls is sufficient here.  Any
-# reconstruction failure is deliberately unavailable rather than treated as no
-# clamp contact.
-drm_profile_direct_sd_clamp_trace <- function(object, profile) {
+# Returns the two-element clamp band when the direct-SD clamp is active, the
+# string "not_applicable" when it is off, or "trace_incomplete" when the band
+# is malformed.
+drm_profile_direct_sd_clamp_band <- function(object) {
   tmb_data <- object$model$tmb_data
   if (
     length(tmb_data$use_logsigma_clamp) != 1L ||
       !identical(as.integer(tmb_data$use_logsigma_clamp), 1L)
   ) {
-    return(list(status = "not_applicable"))
+    return("not_applicable")
   }
   band <- tmb_data$logsigma_clamp
   if (
@@ -4041,45 +4545,84 @@ drm_profile_direct_sd_clamp_trace <- function(object, profile) {
       any(!is.finite(band[seq_len(2L)])) ||
       band[[1L]] >= band[[2L]]
   ) {
-    return(list(status = "trace_incomplete"))
+    return("trace_incomplete")
+  }
+  band
+}
+
+drm_profile_has_direct_sd <- function(object) {
+  random_scale <- object$model$random_scale
+  n_mu <- random_scale$mu$n_models
+  n_phylo <- if (is.list(random_scale$phylo)) random_scale$phylo$n_models
+  # Fall back to full classification whenever the structure is unexpected.
+  if (length(n_mu) != 1L || is.na(n_mu)) {
+    return(TRUE)
+  }
+  n_mu > 0L || (length(n_phylo) == 1L && !is.na(n_phylo) && n_phylo > 0L)
+}
+
+# TRUE when any raw direct-SD log-scale predictor at fixed vector `par` lies
+# outside `band`, FALSE when none does, NA when it cannot be reconstructed.
+drm_profile_direct_sd_clamp_par_status <- function(object, par, band) {
+  if (!is.numeric(par) || !length(par) || any(!is.finite(par))) {
+    return(NA)
+  }
+  par_list <- tryCatch(
+    object$obj$env$parList(par),
+    error = function(err) NULL
+  )
+  if (is.null(par_list)) {
+    return(NA)
+  }
+  eta <- tryCatch(
+    drm_direct_sd_logscale_values(par_list, object$model),
+    error = function(err) NULL
+  )
+  if (is.null(eta) || !length(eta)) {
+    return(FALSE)
+  }
+  values <- unlist(eta, use.names = FALSE)
+  if (!length(values) || any(!is.finite(values))) {
+    return(NA)
+  }
+  any(values < band[[1L]] | values > band[[2L]])
+}
+
+# A direct-SD clamp changes the likelihood whenever its raw group-level
+# log-scale predictor is outside the identity band.  The full TMB profile API
+# does not return every constrained optimizer state, but it does call obj$fn()
+# for every fixed parameter vector it evaluates.  Direct-SD predictors depend
+# only on that fixed vector, so tracing those calls is sufficient here.  The
+# trace reduces each call to clamp counts as it happens (issue #1387); a trace
+# that instead carries per-evaluation `par` entries is classified here.  Any
+# reconstruction failure is deliberately unavailable rather than treated as no
+# clamp contact.
+drm_profile_direct_sd_clamp_trace <- function(object, profile) {
+  band <- drm_profile_direct_sd_clamp_band(object)
+  if (is.character(band)) {
+    return(list(status = band))
   }
   trace <- attr(profile, "drmTMB_profile_trace", exact = TRUE)
-  if (!is.list(trace) || !is.list(trace$baseline) || !is.list(trace$evaluations)) {
+  if (!is.list(trace) || !is.list(trace$baseline)) {
     return(list(status = "trace_incomplete"))
   }
-  entries <- c(list(trace$baseline), trace$evaluations)
-  if (!length(entries)) {
+  counts <- trace$clamp
+  has_counts <- is.numeric(counts) &&
+    all(c("active", "unavailable") %in% names(counts))
+  if (!has_counts && !is.list(trace$evaluations)) {
     return(list(status = "trace_incomplete"))
+  }
+  entries <- list(trace$baseline)
+  if (!has_counts) {
+    entries <- c(entries, trace$evaluations)
   }
   active <- vapply(entries, function(entry) {
-    par <- entry$par
-    if (!is.numeric(par) || !length(par) || any(!is.finite(par))) {
-      return(NA)
-    }
-    par_list <- tryCatch(
-      object$obj$env$parList(par),
-      error = function(err) NULL
-    )
-    if (is.null(par_list)) {
-      return(NA)
-    }
-    eta <- tryCatch(
-      drm_direct_sd_logscale_values(par_list, object$model),
-      error = function(err) NULL
-    )
-    if (is.null(eta) || !length(eta)) {
-      return(FALSE)
-    }
-    values <- unlist(eta, use.names = FALSE)
-    if (!length(values) || any(!is.finite(values))) {
-      return(NA)
-    }
-    any(values < band[[1L]] | values > band[[2L]])
+    drm_profile_direct_sd_clamp_par_status(object, entry$par, band)
   }, logical(1L))
-  if (anyNA(active)) {
+  if (anyNA(active) || (has_counts && counts[["unavailable"]] > 0L)) {
     return(list(status = "trace_incomplete"))
   }
-  if (any(active)) {
+  if (any(active) || (has_counts && counts[["active"]] > 0L)) {
     return(list(status = "clamp_limited"))
   }
   list(status = "ok")
@@ -4087,7 +4630,26 @@ drm_profile_direct_sd_clamp_trace <- function(object, profile) {
 
 drm_tmbprofile_confint <- function(profile, target_name, level) {
   tryCatch(
-    stats::confint(profile, level = level),
+    {
+      if (!inherits(profile, "tmbprofile")) {
+        return(stats::confint(profile, level = level))
+      }
+      # Invert each side of the profile separately. Equal objective values
+      # have the same mean aggregation used by TMB's confint method; naming
+      # ties explicitly prevents approx() from warning about that choice.
+      # Preserve TMB's first-minimum split: only the left side includes it.
+      minimum <- which.min(profile$value)
+      cutoff <- profile$value[[minimum]] + stats::qchisq(level, df = 1) / 2
+      rows <- seq_len(nrow(profile))
+      sides <- list(lower = rows[rows <= minimum], upper = rows[rows > minimum])
+      endpoints <- vapply(sides, function(index) {
+        stats::approx(
+          x = profile$value[index], y = profile[[1L]][index],
+          xout = cutoff, ties = mean
+        )$y
+      }, numeric(1))
+      matrix(endpoints, nrow = 1L, dimnames = list(names(profile)[[1L]], names(sides)))
+    },
     error = function(err) {
       cli::cli_abort(
         c(
@@ -4203,7 +4765,8 @@ profile_transform_interval <- function(interval, target) {
     target$transformation,
     linear_predictor = interval,
     exp = exp(interval),
-    tanh = DRM_CORR_GUARD * tanh(interval),
+    plogis = stats::plogis(interval),
+    tanh = profile_correlation_guard(target$tmb_parameter) * tanh(interval),
     rho12_tanh = rho_response(interval),
     interval
   )
@@ -4215,7 +4778,8 @@ profile_transform_newdata_interval <- function(interval, object, dpar, offset) {
     drm_dpar_link(object, dpar),
     log = exp(eta_interval),
     atanh_guarded = rho_response(eta_interval),
-    atanh_re_guarded = rho_response(eta_interval, guard = DRM_CORR_GUARD),
+    atanh_re_guarded = rho_response(eta_interval, guard = DRM_RE_CORR_GUARD),
+    atanh_phylo_guarded = rho_response(eta_interval, guard = DRM_CORR_GUARD),
     cli::cli_abort(
       "Internal error: no response-scale profile transformation for {.val {dpar}}."
     )
@@ -4228,6 +4792,7 @@ profile_newdata_transformation <- function(object, dpar) {
     log = "exp",
     atanh_guarded = "rho12_tanh",
     atanh_re_guarded = "random_effect_correlation_tanh",
+    atanh_phylo_guarded = "random_effect_correlation_tanh",
     "unknown"
   )
 }
@@ -4287,7 +4852,7 @@ profile_registry_cor_targets <- function(object) {
       link_estimate = if (is_unstructured_corr) {
         NA_real_
       } else {
-        guarded_correlation_link(estimate, guard = DRM_CORR_GUARD)
+        guarded_correlation_link(estimate, guard = DRM_RE_CORR_GUARD)
       },
       scale = "response",
       transformation = if (is_unstructured_corr) {
@@ -4394,7 +4959,12 @@ validate_profile_targets <- function(targets) {
     "mesh_field_scale_intervals_unvalidated",
     "derived_target",
     "derived_unstructured_correlation",
-    "internal_ordinal_parameter"
+    "internal_ordinal_parameter",
+    # #1144: a public ordinal cutpoint on an `engine = "julia"` fit. Listed by
+    # `profile_targets()` so it is discoverable, never ready -- DRM.jl's
+    # bridge inference has no cutpoint target, so `confint()` refuses it and
+    # names `engine = "tmb"` (R/julia-family-cumulative_logit.R).
+    "julia_ordinal_cutpoint_native_only"
   )
   bad_note <- !targets$profile_note %in% allowed_notes
   if (any(bad_note)) {
@@ -4405,6 +4975,7 @@ validate_profile_targets <- function(targets) {
   allowed_transformations <- c(
     "linear_predictor",
     "exp",
+    "plogis",
     "rho12_tanh",
     "tanh",
     "variance_ratio",
@@ -4430,7 +5001,51 @@ validate_profile_targets <- function(targets) {
   targets
 }
 
-profile_fixef_internal <- function(dpar) {
+# Public missing-predictor summaries are already on their natural scale.
+# Keep exact model metadata separate from ordinary coefficient name mapping.
+profile_missing_predictor_transform <- function(dpar, object) {
+  for (slot in seq_len(2L)) {
+    key <- if (slot == 1L) "missing_predictor" else "missing_predictor2"
+    predictor <- object$model[[key]]
+    variable <- predictor$variable
+    if (!is.character(variable) || length(variable) != 1L || is.na(variable)) next
+    descriptor <- function(internal, transformation = "exp") {
+      list(internal = internal, transformation = transformation)
+    }
+    scale_families <- c("gaussian", "beta", "zero_one_beta", "beta_binomial",
+      "lognormal", "gamma", "nbinom2", "truncated_nbinom2", "tweedie")
+    if (identical(dpar, paste0("sigma_mi_", variable)) &&
+        isTRUE(predictor$family %in% scale_families)) {
+      return(descriptor(if (slot == 1L) "log_sigma_mi" else "log_sigma_mi2"))
+    }
+    if (slot != 1L) next
+    if (identical(predictor$family, "zero_one_beta")) {
+      if (identical(dpar, paste0("zoi_mi_", variable))) return(descriptor("beta_zoi", "plogis"))
+      if (identical(dpar, paste0("coi_mi_", variable))) return(descriptor("beta_coi", "plogis"))
+    }
+    if (isTRUE(predictor$random$enabled) &&
+        identical(dpar, paste0("sd_mi_group_", variable))) return(descriptor("log_sd_mi_group"))
+    if (isTRUE(predictor$structured$enabled) &&
+        identical(dpar, paste0("sd_mi_", predictor$structured$type, "_", variable))) {
+      return(descriptor("log_sd_mi_struct"))
+    }
+  }
+  NULL
+}
+
+profile_fixef_internal <- function(dpar, object = NULL) {
+  # Public blocks use the variable name; native parameters use model slots.
+  # Match exact stored metadata, not a prefix (positive scales and mixture
+  # probabilities have different public transformations).
+  for (slot in seq_len(2L)) {
+    key <- if (slot == 1L) "missing_predictor" else "missing_predictor2"
+    predictor <- object$model[[key]]
+    variable <- predictor$variable
+    if (is.character(variable) && length(variable) == 1L &&
+        !is.na(variable) && identical(dpar, paste0("mi_", variable))) {
+      return(if (slot == 1L) "beta_mi" else "beta_mi2")
+    }
+  }
   if (
     any(startsWith(
       dpar,
@@ -4807,7 +5422,9 @@ profile_newdata_dpar <- function(object, parm) {
   ]
   corpair <- corpair[vapply(
     corpair,
-    function(dpar) identical(drm_dpar_link(object, dpar), "atanh_re_guarded"),
+    function(dpar) {
+      drm_dpar_link(object, dpar) %in% c("atanh_re_guarded", "atanh_phylo_guarded")
+    },
     logical(1)
   )]
   supported <- c(scale_or_residual, corpair)

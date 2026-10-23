@@ -23,7 +23,10 @@ response_validated <- c(
   "tweedie", "binomial", "poisson", "nbinom2", "beta", "zero_one_beta",
   "beta_binomial", "cumulative_logit", "truncated_nbinom2"
 )
-predictor_validated <- c("gaussian", "poisson", "binomial", "nbinom2", "beta")
+predictor_validated <- c(
+  "gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma", "lognormal",
+  "beta_binomial", "student"
+)
 
 # One response family object per family_type a user can pass, with a y valid
 # enough to reach the policy gate (the gate fires before family y-validation).
@@ -39,7 +42,7 @@ cap_family_cases <- function() {
     nbinom2           = list(fam = nbinom2(),                data = base(rnbinom(n, mu = 3, size = 2))),
     tweedie           = list(fam = tweedie(),                data = base(pmax(0, rnorm(n, 2)))),
     truncated_nbinom2 = list(fam = truncated_nbinom2(),      data = base(1L + rpois(n, 3))),
-    beta              = list(fam = beta(),                   data = base(plogis(rnorm(n)))),
+    beta              = list(fam = beta_family(),                   data = base(plogis(rnorm(n)))),
     zero_one_beta     = list(fam = zero_one_beta(),          data = base(plogis(rnorm(n)))),
     beta_binomial     = list(fam = beta_binomial(),          data = base(rbinom(n, 1, 0.5))),
     cumulative_logit  = list(fam = cumulative_logit(),
@@ -82,7 +85,7 @@ test_that("supplying `impute` with a non-validated response family loudly reject
   # Use response families that remain OUTSIDE drm_missing_predictor_families();
   # as P3 validates a family (beta/nbinom2/binomial are now validated) it must
   # move out of this reject set, mirroring predictor_validated above.
-  for (ft in c("gamma", "tweedie", "lognormal")) {
+  for (ft in c("tweedie", "skew_normal")) {
     cs <- cases[[ft]]
     # predictor="model" + impute on a non-validated response hits the predictor
     # capability gate first; either way it must reject loudly, never proceed.

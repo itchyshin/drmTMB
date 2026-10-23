@@ -1,99 +1,382 @@
 ---
-title: "Julia engine: future support"
+title: "Using the Julia engine"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Julia engine: future support}
+  %\VignetteIndexEntry{Using the Julia engine}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(drmTMB)
 ```
 
-<style>
-@media (max-width: 575.98px) {
-  main h1 {
-    hyphens: none;
-    overflow-wrap: normal;
-    word-break: normal;
-  }
+**DRModels.jl** is the optional Julia companion to the R package `drmTMB`.
+Here, an **engine** is the software that fits the model. You keep the R formula
+and data interface and select `engine = "julia"` when fitting a supported
+model. The default, `engine = "tmb"`, uses **Template Model Builder (TMB)** and
+does not require Julia. The two engines do not support every model or summary
+in the same way; check the limits in this guide before switching.
 
-  main table {
-    display: block;
-    min-width: 720px;
-    max-width: 100%;
-    overflow-x: auto;
-  }
-}
-</style>
+Julia is useful for repeated fitting and for models that can use DRModels.jl's sparse
+structured solvers. It also fits ordinary regression models: a large phylogeny
+is not a prerequisite. Which backend is faster depends on the model, requested
+inference, data size, and whether Julia has already started and compiled the code.
 
-`drmTMB` currently supports analysis and reporting through its native Template
-Model Builder (TMB) engine. The Julia bridge is **halted and
-deferred** for this release. It is not part of the current supported model
-surface, and users should not rely on `engine = "julia"` for an analysis,
-confidence interval, benchmark, or reproducible report.
+This guide starts with an ordinary regression, then shows group-level and
+phylogenetic scale regression. The examples are not run during the standard R
+package build, so that installing or reading `drmTMB` does not require Julia.
 
-The deferred work is tracked under issue #499. This page remains in the site so
-that readers understand the intended direction: a future Julia backend may
-eventually provide an additional execution engine, while preserving the same
-R-facing formula and result contract. It is not a request to install Julia,
-JuliaCall, or DRM.jl today.
+## Setup and prerequisites
 
-## What to use now
+Install **Julia 1.10 or later** and the optional R package `JuliaCall`. The
+Julia companion is **DRModels.jl**. The bridge uses a local source checkout;
+registration is not required.
 
-Use the native engine, which is the default. There is no `engine` argument to
-set for ordinary work:
+Run once in a terminal, choosing a directory where you keep source packages:
 
-```r
-fit <- drmTMB(
-  bf(y ~ x, sigma ~ x),
-  family = gaussian(),
-  data = dat
+```sh
+git clone https://github.com/itchyshin/DRModels.jl.git
+julia --project=DRModels.jl -e 'using Pkg; Pkg.instantiate()'
+```
+
+Then, in R, set the checkout path **before the first Julia call**:
+
+```{r julia-install, eval=FALSE}
+install.packages("JuliaCall")
+Sys.setenv(DRMODELS_JL_PATH = "/absolute/path/to/DRModels.jl")
+library(drmTMB)
+```
+
+Use `options(drmTMB.DRModels.jl.path = "/absolute/path/to/DRModels.jl")`
+instead of the environment setting if you prefer to keep the path in your R
+setup. For a new analysis, use one of these two settings. Restart R after
+changing checkouts.
+
+Replace the path with the directory containing the checkout's `Project.toml` and
+`src/`. The bridge initializes Julia when needed. The first fit includes
+startup and compilation, so compare later fits when timing a repeated
+workflow. Record the checkout revision with an analysis that needs to be
+reproduced.
+
+## Start with an ordinary regression
+
+These data are generated in R and use the same formula for both backends:
+
+```{r julia-ordinary, eval=FALSE}
+set.seed(42)
+dat <- data.frame(x = seq(-1, 1, length.out = 120))
+dat$y <- 1 + 0.8 * dat$x + rnorm(nrow(dat), sd = exp(-0.4 + 0.2 * dat$x))
+form <- bf(y ~ x, sigma ~ x)
+
+fit_r <- drmTMB(form, data = dat, family = gaussian(), engine = "tmb")
+fit_julia <- drmTMB(form, data = dat, family = gaussian(), engine = "julia")
+
+summary(fit_julia)
+coef(fit_julia)
+predict(fit_julia, dpar = "mu")
+predict(fit_julia, dpar = "sigma", type = "response")
+logLik(fit_r)
+logLik(fit_julia)
+```
+
+The `mu` coefficients describe the conditional mean. The `sigma` coefficients
+are on the log standard-deviation scale: exponentiating a coefficient gives a
+multiplicative change in residual standard deviation, not residual variance.
+Compare the same estimator and requested outputs when checking the two fits.
+
+## Model variation between groups
+
+In a location-scale-scale model, predictors can enter the mean, residual
+standard deviation, and group-level standard deviation. Here sex is constant
+within each individual, and each individual has repeated observations:
+
+```{r julia-group-lss, eval=FALSE}
+set.seed(43)
+individuals <- data.frame(
+  individual = factor(seq_len(40)),
+  sex = factor(rep(c("female", "male"), each = 20))
 )
+individuals$b <- rnorm(40, sd = exp(-0.3 + 0.25 * (individuals$sex == "male")))
+personality_data <- individuals[rep(seq_len(40), each = 4), ]
+personality_data$exploration_score <-
+  1 + 0.5 * (personality_data$sex == "male") + personality_data$b +
+  rnorm(nrow(personality_data), sd = 0.5)
+
+formula_lss <- bf(
+  exploration_score ~ sex + (1 | individual),
+  sigma ~ sex,
+  sd(individual) ~ sex
+)
+fit_lss <- drmTMB(
+  formula_lss, family = gaussian(), data = personality_data,
+  REML = TRUE, engine = "julia"
+)
+summary(fit_lss)
+names(coef(fit_lss))
 ```
 
-Continue with the ordinary post-fit workflow:
+Use the returned coefficient-block names when selecting a block with `coef()`;
+formula text such as `sd(individual)` need not be the stored block name.
+Gaussian REML is available on supported routes. It accounts for estimating
+specified fixed effects, but does not guarantee unbiased estimates in every
+model or sample. Keep ML/REML choices explicit when comparing fits.
 
-```r
-check_drm(fit)
-summary(fit)
+## Add a phylogeny
+
+The Julia bridge accepts rooted polytomies with positive branch lengths.
+Tip labels remain literal: spaces, apostrophes and Unicode do not need to be
+renamed. The bridge quotes labels for transport and restores observation order.
+Zero-length branches and unary nodes remain unsupported; this bridge uses
+ultrametric trees on the correlation scale.
+
+The same scale-regression idea applies to a phylogenetic group effect. This
+small simulated example creates an ultrametric tree and matches data rows to
+its tip labels explicitly:
+
+```{r julia-phylo-lss, eval=FALSE}
+install.packages("ape") # once, if not already installed
+set.seed(44)
+bird_tree <- ape::rcoal(40)
+bird_data <- data.frame(
+  species = bird_tree$tip.label,
+  habitat = rnorm(40),
+  latitude = runif(40, -1, 1)
+)
+A <- ape::vcv(bird_tree, corr = TRUE)[bird_data$species, bird_data$species]
+sd_phylo <- exp(-0.3 + 0.2 * bird_data$habitat)
+u <- sd_phylo * drop(t(chol(A)) %*% rnorm(40))
+bird_data$log_body_mass <- 1 + 0.4 * bird_data$habitat + u +
+  rnorm(40, sd = exp(-0.7 + 0.1 * bird_data$latitude))
+
+formula_phylo_lss <- bf(
+  log_body_mass ~ habitat + phylo(1 | species, tree = bird_tree),
+  sigma ~ latitude,
+  sd(species, level = "phylogenetic") ~ habitat
+)
+fit_phylo_lss <- drmTMB(
+  formula_phylo_lss, family = gaussian(), data = bird_data,
+  REML = TRUE, engine = "julia"
+)
+summary(fit_phylo_lss)
 ```
 
-For model-specific guidance, start with [Model workflow](model-workflow.html),
-[Capability and limits](capability-and-limits.html), and the relevant family or
-structured-effect tutorial. Those pages state the current TMB-supported
-boundaries and inference evidence.
+Here `habitat` predicts both the mean and the phylogenetic standard deviation;
+`latitude` predicts residual standard deviation. The dense matrix above is only
+for generating this small example, not a recipe for simulating very large trees.
 
-## What future Julia support would need to establish
+## Missing responses
 
-Before `engine = "julia"` can become a reader-facing option, a future release
-needs an explicit admission and validation programme. At minimum, each proposed
-model cell would need:
+For supported Gaussian routes, `response = "include"` retains the full tree and
+group design while conditioning the likelihood on observed responses. This is
+not predictor imputation. Proper tree pruning can preserve covariances between
+observed tips; dropping a response does not inherently change those covariances.
 
-| Requirement | Why it matters |
-| --- | --- |
-| Formula and data marshalling checks | The R formula, factor levels, missing-data handling, and parameter scales must arrive at the same model. |
-| Native-TMB comparison on the same admitted cell | Matching fitted quantities and likelihood conventions must be demonstrated where a native comparator exists. |
-| Independent recovery and interval evidence | A finite fit or an internal benchmark does not establish point-estimate or interval reliability. |
-| Guardrails for unsupported neighbouring syntax | Users should get a clear error rather than silent feature or scale drift. |
-| Reproducible installation and version contract | Optional Julia dependencies must be pinned and documented without becoming required for normal `drmTMB` use. |
+```{r julia-missing-response, eval=FALSE}
+bird_data_with_missing <- bird_data
+bird_data_with_missing$log_body_mass[c(3, 9)] <- NA_real_
+fit_missing <- drmTMB(
+  formula_phylo_lss, family = gaussian(), data = bird_data_with_missing,
+  missing = miss_control(response = "include"),
+  REML = TRUE, engine = "julia"
+)
+summary(fit_missing)
+```
 
-Performance results, algorithm comparisons, and development-checkout output
-are not release claims. They will be documented only when a specific future
-bridge cell has passed this admission process.
+Check each prediction method's documented target and row behavior. Retaining
+unobserved tips in the model does not by itself establish support for every
+prediction target, such as `predict(..., dpar = "sd(species)")`.
 
-## Scope boundary
+## Inference and post-fit methods
 
-The deferred Julia work does not change the current package boundary:
+The bridge has methods for `summary()`, `coef()`, `vcov()`, `logLik()`,
+`predict()` and `confint()`. Availability depends on the fitted route and target;
+a `drmTMB_julia` object does not automatically inherit every native-TMB diagnostic.
 
-- TMB remains the default and supported engine.
-- `drmTMB` does not install or require Julia, JuliaCall, or DRM.jl.
-- The deferred bridge does not expand current family, structured-effect,
-  missing-data, interval, coverage, or simulation claims.
-- Cross-family and mixed-family model development remains separate from the
-  native bivariate Gaussian scope.
+```{r julia-intervals, eval=FALSE}
+vcov(fit_julia)
+confint(fit_julia, method = "wald")
+confint(fit_julia, method = "profile", parm = "fixef:mu:x")
+```
 
-Contributors considering future work should begin with the release manifest,
-issue #499, and the native package's current tests and capability ledger rather
-than treating an old Julia bridge prototype as a supported API.
+With matching development versions of drmTMB and DRModels.jl, transformed terms
+retain their public formula names. For a model containing `I(x^2)`, select
+`parm = "fixef:mu:I(x^2)"`; factor and interaction selectors likewise use the
+names returned by `coef(fit_julia)`. Do not substitute generated Julia column
+numbers. Supported fixed-effect predictions on new data retain the training
+centering, scaling and polynomial basis. Older fitted objects without this
+label metadata keep their original coefficient names.
+
+These interval examples use the ordinary **ML** fit above. Check the documented
+objective and target before comparing ML and REML inference. Agreement between
+engines does not establish nominal interval coverage.
+
+Inspect `conf.status` and `profile.message`, not just the limits. A
+`profile_failed` result has an invalid endpoint; signed infinity can be a
+failure placeholder, and a transformed SD lower limit of zero does not clear
+that failure. A profile that did not cross the threshold within the searched
+range is a separate diagnostic. Generic Julia profiles now report failed
+nuisance solves, but successful optimizer termination does not by itself prove
+a global optimum or a practical large-tree runtime.
+
+### Which interval routes can I use?
+
+For ordinary fixed-effect Gaussian location-scale models and ordinary binomial
+models, the Julia bridge supports Wald and profile intervals for fixed-effect
+mean coefficients. Bootstrap results can be useful as a sensitivity check, but
+they are not a substitute for a successful profile or for evidence about
+interval coverage. For residual-only bivariate Gaussian models, use
+`engine = "tmb"` when you need intervals. Check the
+[capability guide](capability-and-limits.html) for the fitted route and target
+before interpreting any Julia-engine interval.
+
+### REML standard errors are not directly comparable across engines
+
+On a supported REML route, a fixed-effect Wald standard error can differ
+between the Julia and TMB engines because they use different uncertainty
+calculations. That difference is not, by itself, evidence that either fit is
+wrong. Do not treat standard errors from the two engines as interchangeable;
+use the engine and interval method documented for your fitted route.
+
+## One modelled missing predictor (development route)
+
+The Julia engine also has a narrow, **development** route for one
+modelled missing predictor. It is limited to a Gaussian identity-link response,
+one bare additive `mi(x)` term, complete fixed-effect exogenous designs, and a
+Gaussian or Bernoulli fixed-effect predictor model. Missing `x` values are
+integrated in the joint likelihood; they are not filled before fitting.
+
+```{r julia-missing-predictor, eval=FALSE}
+set.seed(45)
+n <- 80
+joint_data <- data.frame(z = seq(-1, 1, length.out = n))
+joint_data$x <- 0.2 + 0.7 * joint_data$z + rnorm(n, sd = 0.25)
+joint_data$y <- 0.4 + 0.5 * joint_data$z + 0.8 * joint_data$x + rnorm(n, sd = 0.3)
+joint_data$x[c(8, 21, 53)] <- NA_real_
+joint_data$y[c(15, 53)] <- NA_real_
+
+fit_joint <- drmTMB(
+  bf(y ~ z + mi(x), sigma ~ 1), family = gaussian(), data = joint_data,
+  impute = list(x = x ~ z),
+  missing = miss_control(response = "include", predictor = "model"),
+  engine = "julia"
+)
+coef(fit_joint)
+imputed(fit_joint, rows = "all")
+```
+
+For a binary predictor, use
+`impute = list(x = impute_model(x ~ z, family = binomial()))`. The R development
+route also accepts `response = "drop"`; it drops missing-response rows during
+preparation. That preprocessing differs from native-TMB behaviour, so it is not
+a response-policy parity claim.
+
+This route excludes other response families, additional or interacted `mi()`
+terms, random or structured effects, offsets, weights, non-default controls,
+and REML. `summary()` and Wald `confint()` require a usable returned covariance;
+profile and bootstrap intervals are unsupported. For a Gaussian predictor, the
+predictor-SD Wald interval is transformed to the natural SD scale, can cross
+zero, and is not a native-interval-parity or coverage result. Two public bridge
+adapter cases pass. Native training prediction and binary `newdata` handling
+have been repaired and checked independently. Full numerical parity remains
+open: small differences in optimizer stopping affect coefficients and predictions
+beyond the declared tolerance. This development route makes no speed or
+interval-coverage claim.
+
+## Species counts, sparse solvers and parallel work
+
+**There is no universal 5,000-species limit.** The limit belongs to particular
+dense Gaussian location-scale-scale (LSS) routes, and is a limit on observations,
+not a general Julia limit.
+
+For a single phylogenetic LSS component, DRModels.jl automatically chooses its sparse
+tree engine once there are more than 500 species. In direct Julia use, you can
+also request that route explicitly with `sparse = true` or
+`algorithm = :sparse_lbfgs`. The sparse route avoids constructing the dense
+species-by-species covariance matrix. A deliberately forced dense fallback, and
+the current multi-component LSS route, still stop at 5,000 observations. Repeated
+observations per species can therefore reach the dense limit before a dataset has
+5,000 species.
+
+Other sparse phylogenetic routes have different practical limits. Species count,
+observation count, number of latent effects, and requested uncertainty all affect
+cost.
+
+A dense double-precision 5,000 by 5,000 matrix alone occupies about 200 MB, before
+factorizations and temporary storage. Its storage grows quadratically and a
+general dense factorization grows cubically. Tree-based augmented-state solvers
+can avoid the dense covariance, but the precision is **tree-sparse**, not generally
+tridiagonal. Crossed effects and other structures can introduce additional fill.
+
+Sparse likelihood calculations, model construction, standard errors, profiles,
+and bootstrap refits are different workloads. A fast likelihood evaluation is
+not evidence that a complete fit or interval calculation takes the same time.
+There is no single speedup factor for all Julia-backed models.
+
+To make multiple Julia threads available, set `JULIA_NUM_THREADS` before Julia
+starts (for example in the shell launching R). A multi-threaded runtime does not
+make every fit parallel automatically. Use the documented options for the
+specific workflow, and avoid combining many Julia workers with many BLAS threads.
+
+## Current boundaries
+
+The Julia backend is implemented, but it is not yet a replacement for every
+native-TMB workflow. Check the [capability guide](capability-and-limits.html) for the
+model you intend to fit. In particular:
+
+- The one-modelled-predictor development route above is available through
+  `engine = "julia"`; other missing-predictor models remain native-TMB workflows.
+- Missing-response inclusion and REML depend on the model route. Most
+  non-Gaussian bridge routes fit ML only, but large-p Poisson `phylo()` is a
+  genuine exception: the bridge fits `REML = TRUE` there by Cox-Reid Laplace,
+  a route native `engine = "tmb"` does not have. Check the table below before
+  assuming that a non-Gaussian Julia model is ML-only.
+- An accepted family does not mean that every random effect, structured term,
+  weight, control, or post-fit method is available. The fixed-effect-only
+  families in the table do not support `phylo()`, `relmat()`, `animal()`,
+  `spatial()`, ordinary random effects, or `sd()`/`sd_phylo()` scale models on
+  the Julia route. Use `engine = "tmb"` if your analysis needs one of those
+  extensions.
+- `predict()` on new data currently has narrower Julia support than in-sample
+  prediction; do not assume that every distributional parameter is available.
+
+If the bridge rejects a combination, use the native engine for that analysis
+and retain the warning or error when reporting the limitation.
+
+## Family and route reference
+
+The table below is a starting point, not a promise that every neighbouring
+formula will work. Choose the listed route, then consult the
+[capability guide](capability-and-limits.html) before adding terms or choosing
+an interval.
+
+| Family | Available Julia route |
+|---|---|
+| `gaussian()` | fixed effects; selected `phylo()`, ordinary random-effect, `relmat()`, `spatial()`, and `animal()` routes |
+| `biv_gaussian()` | fixed effects with residual `rho12`; selected coupled phylogenetic route |
+| `student()` or `lognormal()` | fixed effects only |
+| `poisson()` or `nbinom2()` | fixed effects; selected large-phylogeny routes; fixed-effect `zi` terms; `nbinom2()` also has the Julia hurdle spelling below |
+| `gamma()` or `beta_family()` | fixed effects; selected large-phylogeny routes |
+| `stats::binomial(link = "logit")` | fixed effects; selected large-phylogeny mean route |
+| `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, `beta_binomial()`, or `cumulative_logit()` | fixed effects only |
+| `skew_normal()` or another family | not currently available through the Julia engine |
+
+The `zi` and `hu` dpars are not separate families: they are formula terms
+(`bf(y ~ x, zi ~ x)` or `bf(y ~ x, hu ~ x)`) added to `poisson()` or
+`nbinom2()`, and the bridge admits them through those families' fixed-effect
+route rather than through a family-specific ledger row. `hu` has a spelling
+mismatch between engines today: native `engine = "tmb"` fits the hurdle model
+as `truncated_nbinom2()` with `hu ~ ...`, while `engine = "julia"` fits it as
+`nbinom2()` with `hu ~ ...` (DRModels.jl reads `hu` on `nbinom2()` as the hurdle
+model). The same call does not fit on both engines yet. Use the TMB spelling
+when you need a model that can move between both engines.
+
+### Controls
+
+Start with the default control settings when using the Julia engine. Its
+advanced optimizer settings are intentionally narrower than the TMB controls,
+and some structured and multi-response Julia routes accept no extra controls.
+If your analysis depends on a particular `drm_control()` setting, use
+`engine = "tmb"` unless the [capability guide](capability-and-limits.html)
+explicitly lists it for your route.

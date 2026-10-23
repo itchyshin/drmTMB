@@ -1,0 +1,41 @@
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+drmTMB_drm_bridge (generic function with 1 method)
+  
+drmTMB_drm_bridge_conditional_gaussian_ri (generic function with 1 method)
+  
+drmTMB_drm_bridge_q2_phylo (generic function with 1 method)
+  
+drmTMB_drm_bridge_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_fixef_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_structured (generic function with 1 method)
+  
+drmTMB_mixed_family (generic function with 1 method)
+  
+coefficient_labels_direct (generic function with 1 method)
+  
+quadratic returned coeferror 3.885781e-15 
+punctuation returned coeferror 6.106227e-16 
+two_factors returned coeferror 4.926615e-16 
+no_intercept returned coeferror Inf 
+declared_levels returned coeferror Inf 
+transforms returned coeferror 9.436896e-16 
+INFERENCE I(x^2) returned 
+INFERENCE gb returned 
+INFERENCE x:gb returned 
+         no_intercept:names    no_intercept:coefficient 
+                      FALSE                       FALSE 
+      declared_levels:names declared_levels:coefficient 
+                      FALSE                       FALSE 
+ELAPSED 40.558 STATUS FAIL 
+Error: Coefficient-label parity checks failed; all results retained
+Execution halted
+Julia exit.
+  Activating project at `/private/tmp/drm-parity-20260830/DRM.jl`
+
+EXIT=1 SECONDS=41.08318654214963

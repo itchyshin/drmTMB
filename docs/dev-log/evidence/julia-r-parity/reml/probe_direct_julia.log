@@ -1,0 +1,21 @@
+ids match data levels: true
+=== animal(A=K), method=:REML ===
+estimation_method = REML
+converged = true
+loglik = -65.2776470082161
+reml_loglik = -65.2776470082161
+ml_loglik = -60.002557910638046
+theta = [0.09762790519861095, 0.4909552240133248, 0.13705768319664452, -0.27745253408106374, -1.288528078984287, -1.0868522778306788, 0.0943465320718141, -0.2462099407817363, 0.14152490468824078, -0.8805687113697958]
+coefnames mu1 = ["(Intercept)", "x"]
+coefnames mu2 = ["(Intercept)", "x"]
+vcov diag = [NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]
+=== relmat(K=K), method=:REML ===
+estimation_method = REML
+converged = true
+loglik = -65.2776470082161
+reml_loglik = -65.2776470082161
+theta = [0.09762790519861095, 0.4909552240133248, 0.13705768319664452, -0.27745253408106374, -1.288528078984287, -1.0868522778306788, 0.0943465320718141, -0.2462099407817363, 0.14152490468824078, -0.8805687113697958]
+=== comparison ===
+loglik identical? true
+theta identical? true
+max|d_theta| = 0.0

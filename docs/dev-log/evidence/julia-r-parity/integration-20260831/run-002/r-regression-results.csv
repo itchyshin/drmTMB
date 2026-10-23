@@ -1,0 +1,114 @@
+"file","context","test","nb","failed","skipped","error","warning","user","system","real","passed"
+"test-cran-lane-filter.R","cran-lane-filter","CRAN runner uses the reviewed allowlist",9,0,FALSE,FALSE,0,0.0309999999999999,0.00899999999999999,0.0589999999999999,9
+"test-cran-lane-filter.R","cran-lane-filter","testthat CRAN allowlist is exact and representative",17,0,FALSE,FALSE,0,0.0349999999999999,0.017,0.089,17
+"test-cran-lane-filter.R","cran-lane-filter","drm_skip_live_julia skips on CRAN unless DRMTMB_JULIA_TESTS=true",3,0,FALSE,FALSE,0,0.00499999999999989,0.002,0.0110000000000001,3
+"test-cran-lane-filter.R","cran-lane-filter","drm_julia_cran_lane_blocked matches CRAN-lane predicate",4,0,FALSE,FALSE,0,0.00800000000000001,0.005,0.0370000000000001,4
+"test-cran-lane-filter.R","cran-lane-filter","drm_julia_setup aborts before JuliaCall when CRAN-lane blocked",1,0,FALSE,FALSE,0,0.0350000000000001,0.005,0.0449999999999999,1
+"test-julia-batch-startup.R","julia-batch-startup","Julia startup blocks an actual check lane but admits ordinary batch R",5,0,FALSE,FALSE,0,0.0150000000000001,0.005,0.0390000000000001,5
+"test-julia-batch-startup.R","julia-batch-startup","Julia batch-startup gate does not infer a check lane from interactivity",2,0,FALSE,FALSE,0,0.004,0.002,0.0139999999999998,2
+"test-julia-bridge-coef-labels.R","julia-bridge-coef-labels","versioned Julia coefficient labels preserve ordered identities",8,0,FALSE,FALSE,0,0.0479999999999998,0.00699999999999998,0.0779999999999998,8
+"test-julia-bridge-coef-labels.R","julia-bridge-coef-labels","versioned label metadata refuses incomplete or ambiguous maps",14,0,FALSE,FALSE,0,0.0349999999999999,0.003,0.04,14
+"test-julia-bridge-coef-labels.R","julia-bridge-coef-labels","public Julia fit stores mapped labels without changing coefficient values",8,0,FALSE,FALSE,0,0.034,0.00800000000000001,0.0710000000000002,8
+"test-julia-bridge-coef-labels.R","julia-bridge-coef-labels","public label mapping reaches raw inference and refuses before setup",4,0,FALSE,FALSE,0,0.0609999999999999,0.01,0.0980000000000003,4
+"test-julia-bridge-coef-labels.R","julia-bridge-coef-labels","versioned transformed labels preserve training bases for newdata",2,0,FALSE,FALSE,0,0.1,0.004,0.112,2
+"test-julia-bridge.R","julia-bridge","Julia bridge serializes drm_formula() objects",5,0,FALSE,FALSE,0,0.0290000000000001,0.005,0.0510000000000002,5
+"test-julia-bridge.R","julia-bridge","Julia bridge marshals one phylogenetic tree",14,0,FALSE,FALSE,0,0.163,0.011,0.211,14
+"test-julia-bridge.R","julia-bridge","Julia bridge object exposes standard fitted-model methods",23,0,FALSE,FALSE,0,0.097,0.016,0.172,23
+"test-julia-bridge.R","julia-bridge","Julia bivariate residual bridge exposes Hopper #5 result-shape methods",17,0,FALSE,FALSE,0,0.0230000000000001,0.012,0.0779999999999998,17
+"test-julia-bridge.R","julia-bridge","Julia phylo bridge keeps structured scales out of fixed effects",31,0,FALSE,FALSE,0,0.0770000000000002,0.023,0.17,31
+"test-julia-bridge.R","julia-bridge","engine = 'julia' guardrails fail before JuliaCall setup",3,0,FALSE,FALSE,0,0.114,0.001,0.118,3
+"test-julia-bridge.R","julia-bridge","Julia bridge marshals the q4 PLSM bivariate phylo route",21,0,FALSE,FALSE,0,0.0790000000000002,0.016,0.171,21
+"test-julia-bridge.R","julia-bridge","Julia q4 bridge admits bivariate response masks without R-side dropping",8,0,FALSE,FALSE,0,0.0190000000000001,0.00900000000000001,0.0579999999999998,8
+"test-julia-conditional-components.R","julia-conditional-components","stored scalar intercept and slope components add their validated modes",2,0,FALSE,FALSE,0,0.0270000000000001,0.003,0.0379999999999998,2
+"test-julia-conditional-components.R","julia-conditional-components","stored correlated intercept-slope modes use their declared column order",1,0,FALSE,FALSE,0,0.004,0.002,0.00900000000000034,1
+"test-julia-conditional-components.R","julia-conditional-components","stored distinct-group scalar components add in formula order",2,0,FALSE,FALSE,0,0.00600000000000023,0.003,0.0149999999999997,2
+"test-julia-conditional-components.R","julia-conditional-components","component admission refuses unrecoverable ordinary shapes",4,0,FALSE,FALSE,0,0.0089999999999999,0.004,0.0230000000000001,4
+"test-julia-conditional-components.R","julia-conditional-components","component admission validates slope payload columns before Julia setup",3,0,FALSE,FALSE,0,0.0289999999999999,0.002,0.0329999999999999,3
+"test-julia-conditional-components.R","julia-conditional-components","component payload validation refuses altered maps, loadings, and mode shapes",7,0,FALSE,FALSE,0,0.112,0.006,0.131,7
+"test-julia-conditional-components.R","julia-conditional-components","stored multi-component sigma follows the DRM clamp after payload validation",8,0,FALSE,FALSE,0,0.0249999999999999,0.00900000000000001,0.0699999999999998,8
+"test-julia-conditional-prediction.R","julia-conditional-prediction","stored Gaussian ordinary random-intercept mu uses validated BLUPs",3,0,FALSE,FALSE,0,0.0210000000000004,0.004,0.0360000000000005,3
+"test-julia-conditional-prediction.R","julia-conditional-prediction","conditional Gaussian payload must match the training group map",5,0,FALSE,FALSE,0,0.0640000000000001,0.002,0.069,5
+"test-julia-conditional-prediction.R","julia-conditional-prediction","conditional payload does not change Gaussian random-effect newdata",1,0,FALSE,FALSE,0,0.004,0.002,0.016,1
+"test-julia-conditional-prediction.R","julia-conditional-prediction","conditional adapter identifies only a single Gaussian mu intercept",6,0,FALSE,FALSE,0,0.0129999999999999,0.006,0.0350000000000001,6
+"test-julia-conditional-prediction.R","julia-conditional-prediction","bridge constructor retains the fit-time conditional payload",2,0,FALSE,FALSE,0,0.00499999999999989,0.003,0.0140000000000002,2
+"test-julia-conditional-prediction.R","julia-conditional-prediction","numeric first-seen groups retain their Julia types through the wrapper",1,0,FALSE,FALSE,0,0.004,0.002,0.0149999999999997,1
+"test-julia-conditional-prediction.R","julia-conditional-prediction","logical first-seen groups use the same typed transport contract",2,0,FALSE,FALSE,0,0.00500000000000034,0.002,0.0120000000000005,2
+"test-julia-gate-vs-engine.R","julia-gate-vs-engine","Julia bridge intentional-gate registry is complete and unique",17,0,FALSE,FALSE,0,0.0219999999999998,0.012,0.0710000000000006,17
+"test-julia-gate-vs-engine.R","julia-gate-vs-engine","dashboard Julia gate artifact matches the registry",3,0,FALSE,FALSE,0,0.0109999999999997,0.004,0.0250000000000004,3
+"test-julia-gate-vs-engine.R","julia-gate-vs-engine","Julia capability comparison artifact matches the registry",19,0,FALSE,FALSE,0,0.0390000000000001,0.016,0.0859999999999994,19
+"test-julia-gate-vs-engine.R","julia-gate-vs-engine","public Julia bridge docs do not outrun the bridge registries",5,0,FALSE,FALSE,0,0.0170000000000003,0.00599999999999995,0.0470000000000006,5
+"test-julia-gate-vs-engine.R","julia-gate-vs-engine","base Julia bridge gates are intentional and pre-JuliaCall",42,0,FALSE,FALSE,0,0.218,0.026,0.31,42
+"test-julia-gate-vs-engine.R","julia-gate-vs-engine","bivariate invalid phylo gates are intentional and pre-JuliaCall",14,0,FALSE,FALSE,0,0.0779999999999998,0.013,0.146,14
+"test-julia-gate-vs-engine.R","julia-gate-vs-engine","structured Julia bridge gates are intentional and pre-JuliaCall",21,0,FALSE,FALSE,0,0.0920000000000001,0.01,0.143000000000001,21
+"test-julia-gate-vs-engine.R","julia-gate-vs-engine","cross-family Julia bridge gates are intentional and pre-JuliaCall",21,0,FALSE,FALSE,0,0.103,0.00900000000000001,0.153,21
+"test-julia-joint-binary-levels.R","julia-joint-binary-levels","joint Julia numeric binary levels use the fitted encoding",9,0,FALSE,FALSE,0,0.0579999999999998,0.00599999999999995,0.0840000000000005,9
+"test-julia-joint-binary-levels.R","julia-joint-binary-levels","numeric-looking distinct binary labels are not silently collapsed",3,0,FALSE,FALSE,0,0.016,0.003,0.0259999999999998,3
+"test-julia-joint-dispatch.R","julia-joint-dispatch","public Julia entry routes joint models before legacy impute refusal",4,0,FALSE,FALSE,0,0.00699999999999967,0.004,0.0259999999999998,4
+"test-julia-joint-dispatch.R","julia-joint-dispatch","joint detection does not alter ordinary model routing",4,0,FALSE,FALSE,0,0.00699999999999967,0.004,0.0209999999999999,4
+"test-julia-joint-finite-prepare.R","julia-joint-finite-prepare","finite predictor preparation preserves state-expanded native design",22,0,FALSE,FALSE,0,0.862,0.019,0.959,22
+"test-julia-joint-finite-prepare.R","julia-joint-finite-prepare","ordinal predictor intercept removal and row policy are retained",5,0,FALSE,FALSE,0,0.0759999999999996,0.004,0.0940000000000003,5
+"test-julia-joint-finite-result.R","julia-joint-finite-result","finite raw covariance and public coefficients keep distinct axes",10,0,FALSE,FALSE,0,0.138,0.00800000000000001,0.175,10
+"test-julia-joint-finite-result.R","julia-joint-finite-result","finite contracts reject corrupted probabilities, cuts and metadata",12,0,FALSE,FALSE,0,0.0789999999999997,0.002,0.0880000000000001,12
+"test-julia-joint-finite-result.R","julia-joint-finite-result","finite prediction retains fitted levels and rejects unknown or missing labels",4,0,FALSE,FALSE,0,0.0209999999999999,0.003,0.0310000000000006,4
+"test-julia-joint-methods.R","julia-joint-methods","joint Julia result preserves explicit blocks and transforms Gaussian predictor SD",16,0,FALSE,FALSE,0,0.0460000000000003,0.013,0.112,16
+"test-julia-joint-methods.R","julia-joint-methods","joint Julia imputed returns the native eight-column contract",6,0,FALSE,FALSE,0,0.116000000000001,0.006,0.146,6
+"test-julia-joint-methods.R","julia-joint-methods","joint Julia prediction, summary, and confidence intervals use the joint contract",9,0,FALSE,FALSE,0,0.162000000000001,0.005,0.184,9
+"test-julia-joint-methods.R","julia-joint-methods","joint Julia Bernoulli prediction preserves fitted level coding",4,0,FALSE,FALSE,0,0.0339999999999998,0.003,0.0499999999999998,4
+"test-julia-joint-methods.R","julia-joint-methods","joint Julia retains character levels that occur only with missing modelled x",4,0,FALSE,FALSE,0,0.0520000000000005,0.003,0.0629999999999997,4
+"test-julia-joint-methods.R","julia-joint-methods","joint Julia covariance failure hides Wald uncertainty",3,0,FALSE,FALSE,0,0.0120000000000005,0.003,0.0269999999999992,3
+"test-julia-joint-methods.R","julia-joint-methods","joint Julia accepts an all-missing failed Hessian covariance without Wald inference",3,0,FALSE,FALSE,0,0.0120000000000005,0.00199999999999989,0.0270000000000001,3
+"test-julia-joint-methods.R","julia-joint-methods","joint Julia rejects lossy row identifiers and non-binary masks",2,0,FALSE,FALSE,0,0.0279999999999996,0.001,0.0300000000000002,2
+"test-julia-joint-missing.R","julia-joint-missing","classed missing controls do not bypass engine validation",1,0,FALSE,FALSE,0,0.0129999999999999,0.001,0.0150000000000006,1
+"test-julia-joint-missing.R","julia-joint-missing","subtraction cannot hide modelled covariates or invalid raw controls",5,0,FALSE,FALSE,0,0.0549999999999997,0.001,0.0609999999999999,5
+"test-julia-joint-missing.R","julia-joint-missing","joint Julia preparation serializes all four response/predictor masks",14,0,FALSE,FALSE,0,0.024,0.011,0.0759999999999996,14
+"test-julia-joint-missing.R","julia-joint-missing","joint Julia preparation preserves factor coding and a non-last mi column",4,0,FALSE,FALSE,0,0.0110000000000001,0.003,0.0249999999999995,4
+"test-julia-joint-missing.R","julia-joint-missing","joint Julia preparation preserves native response-drop retained rows",4,0,FALSE,FALSE,0,0.0110000000000001,0.004,0.0259999999999998,4
+"test-julia-joint-missing.R","julia-joint-missing","joint Julia preparation admits the fixed Bernoulli predictor route",2,0,FALSE,FALSE,0,0.00800000000000001,0.002,0.0190000000000001,2
+"test-julia-joint-missing.R","julia-joint-missing","joint Julia preparation rejects unsupported exogenous and control neighbours",9,0,FALSE,FALSE,0,0.119,0.002,0.123,9
+"test-julia-joint-two.R","julia-joint-two","two Gaussian Julia preparation preserves both native designs and all masks",11,0,FALSE,FALSE,0,0.0960000000000001,0.00800000000000001,0.129,11
+"test-julia-joint-two.R","julia-joint-two","two Gaussian R result keeps both SD transforms and variable summaries",13,0,FALSE,FALSE,0,0.0540000000000003,0.00900000000000001,0.0939999999999994,13
+"test-julia-phylo-labels.R","julia-phylo-labels","Julia Newick serializer escapes and preserves non-simple tip labels",3,0,FALSE,FALSE,0,0.00699999999999967,0.003,0.0200000000000014,3
+"test-julia-phylo-labels.R","julia-phylo-labels","Julia Newick serialization preserves row identity after edge reordering",3,0,FALSE,FALSE,0,0.00600000000000023,0.003,0.0129999999999999,3
+"test-julia-phylo-labels.R","julia-phylo-labels","Julia Newick serializer keeps accepted control whitespace literally",3,0,FALSE,FALSE,0,0.00600000000000023,0.003,0.0190000000000001,3
+"test-julia-phylo-labels.R","julia-phylo-labels","Julia Newick serializer keeps collision-prone spaces and old simple labels distinct",3,0,FALSE,FALSE,0,0.00699999999999967,0.004,0.0170000000000012,3
+"test-julia-phylo-labels.R","julia-phylo-labels","Julia Newick serializer preserves native tree-label rejections",2,0,FALSE,FALSE,0,0.024,0.001,0.0330000000000013,2
+"test-julia-phylo-polytomy.R","julia-phylo-polytomy","Julia serialization retains polytomies, lengths and traversal order",30,0,FALSE,FALSE,0,0.0510000000000002,0.028,0.149000000000001,30
+"test-julia-phylo-polytomy.R","julia-phylo-polytomy","Julia serializer keeps other explicit tree refusal boundaries",3,0,FALSE,FALSE,0,0.0249999999999995,0.002,0.0299999999999994,3
+"test-julia-predict-newdata.R","julia-predict-newdata","predict(newdata) on a Poisson phylo Julia fit is finite, right length",7,0,FALSE,FALSE,0,0.0110000000000001,0.005,0.0340000000000007,7
+"test-julia-predict-newdata.R","julia-predict-newdata","predict(newdata) default dpar and type are mu + response",1,0,FALSE,FALSE,0,0.00399999999999956,0.001,0.00900000000000034,1
+"test-julia-predict-newdata.R","julia-predict-newdata","predict(newdata) inverts the Gaussian identity link",2,0,FALSE,FALSE,0,0.00499999999999989,0.002,0.0120000000000005,2
+"test-julia-predict-newdata.R","julia-predict-newdata","predict(newdata) honours factor contrasts from the training data",2,0,FALSE,FALSE,0,0.00400000000000045,0.002,0.00999999999999979,2
+"test-julia-predict-newdata.R","julia-predict-newdata","predict(newdata) supports Gaussian sigma on its log link",2,0,FALSE,FALSE,0,0.00500000000000078,0.003,0.0109999999999992,2
+"test-julia-predict-newdata.R","julia-predict-newdata","predict(newdata) flags a design/coefficient mismatch",1,0,FALSE,FALSE,0,0.00499999999999989,0.001,0.00699999999999967,1
+"test-julia-predict-newdata.R","julia-predict-newdata","predict(newdata) aligns factor and interaction coefficient names (user-journey snag)",1,0,TRUE,FALSE,0,0.00100000000000033,0.001,0.00400000000000134,0
+"test-julia-prediction-scales.R","julia-prediction-scales","stored fixed-effect dpars use their canonical link scale",3,0,FALSE,FALSE,0,0.00800000000000001,0.00299999999999989,0.0220000000000002,3
+"test-julia-prediction-scales.R","julia-prediction-scales","Gaussian sigma supports fixed-effect newdata predictions",3,0,FALSE,FALSE,0,0.0149999999999997,0.003,0.0269999999999992,3
+"test-julia-prediction-scales.R","julia-prediction-scales","omitted default atom formula is admitted only for intercept-only coefficients",2,0,FALSE,FALSE,0,0.0140000000000002,0.001,0.0180000000000007,2
+"test-julia-prediction-scales.R","julia-prediction-scales","newdata preserves factor and no-intercept scale designs",2,0,FALSE,FALSE,0,0.00600000000000023,0.002,0.0120000000000005,2
+"test-julia-prediction-scales.R","julia-prediction-scales","stored structured predictions refuse an absent conditional payload",2,0,FALSE,FALSE,0,0.0230000000000006,0.001,0.0250000000000004,2
+"test-julia-prediction-scales.R","julia-prediction-scales","ordinary random effects are stripped for newdata and refused when stored",2,0,FALSE,FALSE,0,0.0179999999999998,0.001,0.0299999999999994,2
+"test-julia-prediction-scales.R","julia-prediction-scales","known sampling covariance markers are not fixed predictors",5,0,FALSE,FALSE,0,0.0119999999999996,0.005,0.0289999999999999,5
+"test-julia-prediction-scales.R","julia-prediction-scales","stored lognormal mu and guarded rho use coefficient-scale contracts",4,0,FALSE,FALSE,0,0.00999999999999979,0.005,0.0269999999999992,4
+"test-julia-prediction-scales.R","julia-prediction-scales","legacy objects infer only verified family metadata and refuse offsets",2,0,FALSE,FALSE,0,0.0149999999999997,0.002,0.0310000000000006,2
+"test-julia-prediction-scales.R","julia-prediction-scales","unsupported non-dpar coefficient blocks refuse prediction",1,0,FALSE,FALSE,0,0.0190000000000001,0.001,0.0229999999999997,1
+"test-missing-predictor-prediction.R","missing-predictor-prediction","Gaussian training mu design uses finalized missing-predictor means",4,0,FALSE,FALSE,0,0.0419999999999998,0.004,0.0790000000000006,4
+"test-missing-predictor-prediction.R","missing-predictor-prediction","Bernoulli mi newdata maps fitted labels without changing numeric coding",6,0,FALSE,FALSE,0,0.0499999999999998,0.005,0.0710000000000015,6
+"test-missing-predictor-prediction.R","missing-predictor-prediction","missing-predictor prediction refuses inconsistent stored metadata",1,0,FALSE,FALSE,0,0.00899999999999945,0.001,0.016,1
+"test-missing-predictor-prediction.R","missing-predictor-prediction","finite-state missing predictors weight observation-major designs",7,0,FALSE,FALSE,0,0.0650000000000004,0.006,0.0839999999999996,7
+"test-missing-predictor-prediction.R","missing-predictor-prediction","multiple numeric missing predictors update only their missing rows",4,0,FALSE,FALSE,0,0.0120000000000005,0.005,0.032,4
+"test-missing-predictor-prediction.R","missing-predictor-prediction","Bernoulli prediction validates fitted levels and leaves sigma exogenous",3,0,FALSE,FALSE,0,0.0139999999999993,0.003,0.0229999999999997,3
+"test-missing-predictor-prediction.R","missing-predictor-prediction","numeric Bernoulli labels take deterministic raw-level precedence",5,0,FALSE,FALSE,0,0.0249999999999995,0.004,0.052999999999999,5
+"test-missing-predictor-prediction.R","missing-predictor-prediction","finite-state reconciliation accepts a sparse stored state design",2,0,FALSE,FALSE,0,0.00699999999999967,0.001,0.0129999999999999,2
+"test-missing-predictor-prediction.R","missing-predictor-prediction","Bernoulli newdata survives missing stored templates",2,0,FALSE,FALSE,0,0.126,0.003,0.136999999999999,2
+"test-missing-predictor-prediction.R","missing-predictor-prediction","ambiguous parsed numeric Bernoulli labels reject numeric newdata",4,0,FALSE,FALSE,0,0.0209999999999999,0.003,0.0549999999999997,4
+"test-missing-predictor-prediction.R","missing-predictor-prediction","decoded Bernoulli fallback leaves other factor validation intact",2,0,FALSE,FALSE,0,0.0229999999999997,0.001,0.0259999999999998,2
+"test-missing-predictor-public-covariance.R","missing-predictor-public-covariance","finite predictor regression covariance uses the first native slot",50,0,FALSE,FALSE,0,1.252,0.048,1.476,50
+"test-missing-predictor-public-covariance.R","missing-predictor-public-covariance","two predictors use independent native slots with custom variable names",36,0,FALSE,FALSE,0,0.178,0.0319999999999999,0.305999999999999,36
+"test-missing-predictor-public-covariance.R","missing-predictor-public-covariance","predictor target mapping is exact and does not admit transformed summaries",15,0,FALSE,FALSE,0,0.0220000000000002,0.012,0.0800000000000001,15
+"test-missing-predictor-transformed-covariance.R","missing-predictor-transformed-covariance","two Gaussian predictor scales transform both covariance axes and log-Wald intervals",48,0,FALSE,FALSE,0,0.278,0.041,0.49,48
+"test-missing-predictor-transformed-covariance.R","missing-predictor-transformed-covariance","zero-one-beta predictor scale and probabilities have log and logit uncertainty",48,0,FALSE,FALSE,0,0.271,0.0409999999999999,0.447000000000001,48
+"test-missing-predictor-transformed-covariance.R","missing-predictor-transformed-covariance","grouped and structured predictor SD covariance uses its log coordinate",80,0,FALSE,FALSE,0,0.463000000000001,0.0559999999999999,0.725,80
+"test-missing-predictor-transformed-covariance.R","missing-predictor-transformed-covariance","predictor SD boundaries remain distinct from regular residual scales",4,0,FALSE,FALSE,0,0.00999999999999979,0.004,0.0340000000000007,4
+"test-missing-predictor-transformed-covariance.R","missing-predictor-transformed-covariance","exact predictor transform metadata and stable logistic tails are enforced",14,0,FALSE,FALSE,0,0.0190000000000001,0.01,0.0619999999999994,14
+"test-selected-state-prediction.R","selected-state-prediction","Gaussian conditional predictions use the selected state with SEs",10,0,FALSE,FALSE,0,0.215,0.012,0.308,10
+"test-selected-state-prediction.R","selected-state-prediction","selected-state extraction preserves fixed-effect and REML neighbours",7,0,FALSE,FALSE,0,0.119,0.00700000000000012,0.167,7

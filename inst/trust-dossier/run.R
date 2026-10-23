@@ -6,14 +6,23 @@
 ## Run from this directory:  Rscript run.R
 ## Or from the package root:  Rscript inst/trust-dossier/run.R
 ##
-## Requires (all on CRAN): drmTMB, metafor, glmmTMB, metadat.
+## Requires drmTMB installed from the source or release candidate under review.
+## Comparator packages metafor, glmmTMB, and metadat are available on CRAN.
 ## The simulation harness is sourced from inst/sim/ of the drmTMB source tree.
 
 suppressWarnings(suppressMessages({
   ok <- all(vapply(c("drmTMB", "metafor", "glmmTMB", "metadat"),
                    requireNamespace, logical(1), quietly = TRUE))
 }))
-if (!ok) stop("Need drmTMB, metafor, glmmTMB, metadat installed.", call. = FALSE)
+if (!ok) {
+  stop(
+    paste(
+      "Need drmTMB installed from the source or release candidate under review,",
+      "plus metafor, glmmTMB, and metadat."
+    ),
+    call. = FALSE
+  )
+}
 suppressWarnings(suppressMessages({
   library(drmTMB); library(metafor); library(glmmTMB); library(metadat)
 }))

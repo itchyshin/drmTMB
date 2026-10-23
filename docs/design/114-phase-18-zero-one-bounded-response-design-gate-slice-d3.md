@@ -16,12 +16,12 @@ models.
 ## Current Bounded-Response Routes
 
 `drmTMB` currently has two fitted bounded-response routes. Strict continuous
-proportions use `beta()`:
+proportions use `beta_family()`:
 
 ```r
 drmTMB(
   bf(prop ~ x, sigma ~ z),
-  family = beta(),
+  family = beta_family(),
   data = dat
 )
 ```
@@ -83,7 +83,7 @@ logit(coi_i) = eta_coi_i
 `zoi` and `coi` are already reserved component names in the formula grammar, but
 this note does not make them runnable. The implementation issue should decide
 the public family constructor name, document how it differs from strict
-`beta()` and denominator-aware `beta_binomial()`, and then update
+`beta_family()` and denominator-aware `beta_binomial()`, and then update
 `docs/design/01-formula-grammar.md`, `docs/design/03-likelihoods.md`,
 roxygen2 documentation, tutorials, tests, and pkgdown navigation in the same
 pull request.
@@ -99,13 +99,13 @@ these checks before the family is advertised as fitted:
   should not invent boundary mass;
 - recovery checks for `mu`, `sigma`, `zoi`, and `coi` coefficients on their
   modelled link scales;
-- malformed-input tests that keep strict `beta()` errors clear for exact 0/1
+- malformed-input tests that keep strict `beta_family()` errors clear for exact 0/1
   data and keep `beta_binomial()` denominator errors separate;
 - prediction and fitted-value rules that state whether the returned response
   mean includes the boundary masses;
 - interval/status rows for fixed-effect coefficients before any direct
   response-scale interval claim;
-- reader-facing examples that tell users when to choose strict `beta()`,
+- reader-facing examples that tell users when to choose strict `beta_family()`,
   `beta_binomial()`, or the zero-one beta route.
 
 No random effects should enter `zoi` or `coi` in the first slice. No covariance

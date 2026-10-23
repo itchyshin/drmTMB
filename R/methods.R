@@ -80,6 +80,17 @@ print.drmTMB <- function(x, ...) {
       "  convergence: {x$opt$convergence} (not converged; see {.fn check_drm})"
     )
   }
+  blocks <- coef(x)
+  if (length(blocks)) {
+    cli::cli_text("  fixed effects:")
+    for (nm in names(blocks)) {
+      block <- blocks[[nm]]
+      if (length(block)) {
+        formatted <- paste0(names(block), " = ", format(signif(block, 4)), collapse = ", ")
+        cli::cli_text("    {nm}: {formatted}")
+      }
+    }
+  }
   invisible(x)
 }
 
@@ -97,7 +108,6 @@ print.drmTMB <- function(x, ...) {
 #'
 #' @return A named numeric vector when `dpar` is supplied, otherwise a named
 #'   list of coefficient vectors.
-#' @export
 #'
 #' @examples
 #' set.seed(20260525)
@@ -116,10 +126,6 @@ print.drmTMB <- function(x, ...) {
 #' coef(fit)
 #' names(coef(fit))
 #' identical(coef(fit), fixef(fit))
-fixef <- function(object, ...) {
-  UseMethod("fixef")
-}
-
 #' @rdname fixef
 #' @export
 fixef.drmTMB <- function(object, dpar = NULL, ...) {
@@ -142,7 +148,6 @@ fixef.drmTMB <- function(object, dpar = NULL, ...) {
 #'
 #' @return A named list of random-effect blocks when `dpar = NULL`, otherwise
 #'   one random-effect block.
-#' @export
 #'
 #' @examples
 #' set.seed(20260525)
@@ -157,10 +162,6 @@ fixef.drmTMB <- function(object, dpar = NULL, ...) {
 #' fit <- drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), data = dat)
 #' names(ranef(fit))
 #' head(ranef(fit, "mu")$terms[["(1 | id)"]])
-ranef <- function(object, ...) {
-  UseMethod("ranef")
-}
-
 #' @rdname ranef
 #' @export
 ranef.drmTMB <- function(object, dpar = NULL, ...) {
@@ -2328,7 +2329,17 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 
 #' @rdname model-fit-extractors
 #' @export
-vcov.drmTMB <- function(object, ...) {
+vcov.drmTMB <- function(object, ..., type = "model", robust = FALSE) {
+  if (identical(type, "robust") || isTRUE(robust)) {
+    cli::cli_abort(
+      c(
+        "Robust (sandwich) standard errors are not implemented for {.cls drmTMB} fits.",
+        "x" = "{.fn vcov} has no {.code type = \"robust\"} route, so requesting it must not silently fall back to the model-based matrix.",
+        "i" = "Try {.fn confint} with {.code method = \"boot\"} for a resampling-based interval, or refit with a heavier-tailed family (e.g. {.fn student}) if the concern is family misspecification."
+      ),
+      class = "drmTMB_vcov_robust_unsupported"
+    )
+  }
   if (drm_is_mspl(object)) {
     return(drm_mspl_vcov(object))
   }
@@ -2337,6 +2348,9 @@ vcov.drmTMB <- function(object, ...) {
   targets <- drm_profile_targets(object)
   targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
   matched <- match(paste0("fixef:", labels), targets$parm)
+  jacobian <- vapply(matched, function(row) {
+    if (is.na(row)) NA_real_ else summary_parameter_delta_derivative(targets[row, , drop = FALSE])
+  }, numeric(1L))
   out <- matrix(
     NA_real_,
     nrow = length(labels),
@@ -2366,7 +2380,9 @@ vcov.drmTMB <- function(object, ...) {
     for (a in ok) {
       for (b in ok) {
         if (is.na(out[a, b])) {
-          out[a, b] <- cov_src[pos[[a]], pos[[b]]]
+          # Apply the public-coordinate derivative on both axes, including
+          # cross-covariance with ordinary response/predictor coefficients.
+          out[a, b] <- jacobian[[a]] * cov_src[pos[[a]], pos[[b]]] * jacobian[[b]]
         }
       }
     }
@@ -2549,6 +2565,11 @@ drm_standard_error_status <- function(object) {
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future extractor options.
 #' @param k Numeric penalty per parameter for `AIC()`; the default is `2`.
+#' @param type For `vcov()`, `"model"` (the default) for the model-based
+#'   covariance matrix. `"robust"` is not implemented and errors rather than
+#'   silently falling back to the model-based matrix.
+#' @param robust For `vcov()`, a `TRUE`/`FALSE` alias for
+#'   `type = "robust"`/`type = "model"`; also errors when `TRUE`.
 #'
 #' @return `logLik()` returns an object of class `"logLik"`. `vcov()` returns a
 #'   numeric covariance matrix. `nobs()`, `df.residual()`, and `deviance()`
@@ -2626,7 +2647,35 @@ logLik.drmTMB <- function(object, ...) {
 # Warn when an information criterion is requested for a fit where it is not a
 # valid comparison. `stats::AIC()`/`BIC()` default methods read the logLik value
 # and ignore the estimator, so the guard lives in the drmTMB methods below.
+drm_ic_fixed_effect_signature <- function(object) {
+  blocks <- coef(object)
+  # Sort the block names: native fits list dpar blocks in model order (mu1, mu2,
+  # sigma1, sigma2, rho12) while engine = "julia" fits come out of split() in
+  # alphabetical order, so list order alone made identical bivariate fixed
+  # effects look different across engines.
+  block_names <- sort(names(blocks), method = "radix")
+  paste(
+    vapply(
+      block_names,
+      function(nm) {
+        paste0(nm, ":", paste(names(blocks[[nm]]), collapse = ","))
+      },
+      character(1L)
+    ),
+    collapse = "|"
+  )
+}
+
+# Fits whose estimator the information-criterion guard can read: native fits
+# and `engine = "julia"` bridge fits (#1498), which record `estimator` and
+# `REML` the same way but do not inherit "drmTMB".
+drm_ic_guarded_fit <- function(o) {
+  inherits(o, c("drmTMB", "drmTMB_julia"))
+}
+
 drm_warn_information_criterion <- function(fits, what) {
+  fits <- fits[vapply(fits, drm_ic_guarded_fit, logical(1L))]
+  drm_fits <- fits
   estimators <- vapply(
     fits,
     function(o) if (is.null(o$estimator)) "ML" else o$estimator,
@@ -2642,33 +2691,58 @@ drm_warn_information_criterion <- function(fits, what) {
     )
   }
   if (any(estimators == "REML")) {
-    cli::cli_warn(
-      c(
-        "{what} from a REML fit is comparable only across models with identical fixed effects.",
-        "i" = "Never compare ML with REML, or different mean structures, by {what}; refit with {.code REML = FALSE} for fixed-effect model selection."
-      ),
-      class = "drmTMB_ic_reml_warning"
-    )
+    reml_comparison_invalid <- length(drm_fits) < 2L ||
+      any(estimators != "REML") ||
+      length(unique(vapply(
+        drm_fits[estimators == "REML"],
+        drm_ic_fixed_effect_signature,
+        character(1L)
+      ))) > 1L
+    if (reml_comparison_invalid) {
+      cli::cli_warn(
+        c(
+          "{what} from a REML fit is comparable only across models with identical fixed effects.",
+          "i" = "Never compare ML with REML, or different mean structures, by {what}; refit with {.code REML = FALSE} for fixed-effect model selection."
+        ),
+        class = "drmTMB_ic_reml_warning"
+      )
+    }
   }
   invisible(NULL)
 }
 
+# `o` may be a drmTMB fit or a foreign fit (e.g. `lm`, `gls`) passed in `...`;
+# foreign fits are read through `stats::logLik()`/`stats::nobs()` like
+# `stats::AIC.default` does, so they keep their own row instead of being
+# silently dropped from the comparison table.
+drm_ic_loglik_df <- function(o) {
+  if (inherits(o, "drmTMB")) {
+    return(list(value = as.numeric(o$logLik), df = as.numeric(o$df)))
+  }
+  ll <- stats::logLik(o)
+  list(value = as.numeric(ll), df = as.numeric(attr(ll, "df")))
+}
+
+drm_ic_nobs <- function(o) {
+  if (inherits(o, "drmTMB")) as.numeric(o$nobs) else as.numeric(stats::nobs(o))
+}
+
 drm_information_criterion <- function(fits, penalty, what) {
-  if (any(vapply(fits, drm_is_mspl, logical(1L)))) {
-    drm_abort_mspl_inference(fits[[which(vapply(fits, drm_is_mspl, logical(1L)))[[1L]]]], what)
+  mspl <- which(vapply(fits, drm_is_mspl, logical(1L)))
+  if (length(mspl)) {
+    drm_abort_mspl_inference(fits[[mspl[[1L]]]], what)
   }
   drm_warn_information_criterion(fits, what)
-  values <- vapply(
-    fits,
-    function(o) -2 * as.numeric(o$logLik) + penalty(o) * as.numeric(o$df),
-    numeric(1L)
-  )
+  computed <- lapply(fits, function(o) {
+    ll_df <- drm_ic_loglik_df(o)
+    list(value = -2 * ll_df$value + penalty(o) * ll_df$df, df = ll_df$df)
+  })
   if (length(fits) == 1L) {
-    return(values[[1L]])
+    return(computed[[1L]]$value)
   }
   data.frame(
-    df = vapply(fits, function(o) as.numeric(o$df), numeric(1L)),
-    stats::setNames(list(values), what)
+    df = vapply(computed, `[[`, numeric(1L), "df"),
+    stats::setNames(list(vapply(computed, `[[`, numeric(1L), "value")), what)
   )
 }
 
@@ -2676,7 +2750,6 @@ drm_information_criterion <- function(fits, penalty, what) {
 #' @export
 AIC.drmTMB <- function(object, ..., k = 2) {
   fits <- c(list(object), list(...))
-  fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
   drm_information_criterion(fits, function(o) k, "AIC")
 }
 
@@ -2684,31 +2757,73 @@ AIC.drmTMB <- function(object, ..., k = 2) {
 #' @export
 BIC.drmTMB <- function(object, ...) {
   fits <- c(list(object), list(...))
-  fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
-  drm_information_criterion(fits, function(o) log(as.numeric(o$nobs)), "BIC")
+  drm_information_criterion(fits, function(o) log(drm_ic_nobs(o)), "BIC")
 }
 
-#' Likelihood comparison guard for drmTMB fits
+#' Likelihood-ratio comparison of drmTMB fits
 #'
-#' Experimental MSPL fits do not expose likelihood-ratio comparisons. Ordinary
-#' drmTMB fits likewise have no package-level `anova()` comparison contract;
-#' compare explicitly supported likelihood quantities instead.
+#' `anova(m0, m1, ...)` tests nested [drmTMB()] fits with a likelihood-ratio
+#' test. The fits are ordered by their number of parameters and each model is
+#' tested against the one before it, as in `lme4` and `glmmTMB`. The statistic
+#' is \eqn{2 (\ell_{\mathrm{full}} - \ell_{\mathrm{reduced}})} with
+#' `df(full) - df(reduced)` degrees of freedom, and the table has columns
+#' `npar`, `logLik`, `deviance`, `Chisq`, `Df` and `Pr(>Chisq)`.
+#'
+#' Guards, all of which abort with a message saying what to do next:
+#' * the fits must be on the same observations;
+#' * ML and REML fits are never mixed, and REML fits must share their
+#'   fixed-effect (mean) structure, because restricted likelihoods are
+#'   comparable only across variance structures;
+#' * penalized (MAP) fits abort, as their variance components are shrunk by
+#'   the prior;
+#' * experimental MSPL fits abort, as for every likelihood method;
+#' * `engine = "julia"` fits are not supported, and neither are models with
+#'   the same number of parameters (compare those with [AIC()]).
+#'
+#' **Boundary tests.** When the larger model adds a random-effect standard
+#' deviation, the null value 0 sits on the edge of the parameter space and the
+#' usual chi-square reference is conservative. A
+#' `drmTMB_anova_boundary_warning` is signalled for such a pair. If exactly one
+#' or two standard deviations are added and nothing else, `Pr(>Chisq)` is the
+#' chi-bar-square mixture from [lrt_boundary()]; the attribute `"p.method"`
+#' records `"chibar"` or `"chisq"` per row. Otherwise the naive chi-square
+#' p-value is reported and the warning says it is conservative.
+#'
+#' A negative statistic (the smaller model fitted better) is reported as is
+#' and gives a p-value of 1 (or the boundary value); it signals non-nested
+#' models or a fit that did not converge.
 #'
 #' @param object A `drmTMB` fit.
-#' @param ... Additional fitted objects.
-#' @param test Requested test label; currently unsupported.
+#' @param ... Further `drmTMB` fits to compare with `object`.
+#' @param test `NULL` (the default), `"Chisq"` or `"LRT"`; only the
+#'   likelihood-ratio test is offered.
 #'
-#' @return This method always errors.
+#' @return An object of class `c("anova", "data.frame")` with one row per
+#'   fit, in order of increasing number of parameters.
+#' @seealso [lrt_boundary()], [AIC()], [model-comparison]
+#' @examples
+#' \donttest{
+#' set.seed(1)
+#' n <- 80
+#' dat <- data.frame(x = rnorm(n))
+#' dat$y <- 0.2 + 0.6 * dat$x + rnorm(n)
+#' m0 <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
+#' m1 <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+#' anova(m0, m1)
+#' }
 #' @export
 anova.drmTMB <- function(object, ..., test = NULL) {
-  fits <- c(list(object), list(...))
-  mspl <- vapply(fits, drm_is_mspl, logical(1L))
-  if (any(mspl)) {
-    drm_abort_mspl_inference(fits[[which(mspl)[[1L]]]], "anova")
-  }
-  cli::cli_abort(
-    "{.fn anova} likelihood-ratio comparisons are not implemented for {.cls drmTMB} fits."
+  dots <- list(...)
+  dot_exprs <- as.list(substitute(list(...)))[-1L]
+  labels <- c(
+    paste(deparse(substitute(object)), collapse = ""),
+    vapply(dot_exprs, function(e) paste(deparse(e), collapse = ""), character(1L))
   )
+  given <- names(dots)
+  if (!is.null(given)) {
+    labels[-1L][nzchar(given)] <- given[nzchar(given)]
+  }
+  drm_anova_lrt(c(list(object), dots), labels, test = test)
 }
 
 #' @rdname model-fit-extractors
@@ -2754,7 +2869,7 @@ deviance.drmTMB <- function(object, ...) {
 #' CDF evaluation via [fitted_distribution()]`$q()` at [predict_parameters()]'s
 #' fixed-effect, population-level parameter estimates -- see
 #' [fitted_distribution()] for the fixed-effect-only scope and the
-#' `"spike"`/`"unimplemented"` status gate this inherits (a `"spike"`-status
+#' `"spike"`/`"unimplemented"` status rules this inherits (a `"spike"`-status
 #' family emits a one-time warning; an unregistered `model_type` raises a
 #' clear error). For bivariate `biv_gaussian` fits, `dpar` selects which
 #' response's MARGINAL quantile to return (`"mu1"`/`"sigma1"` for response 1,
@@ -2786,6 +2901,38 @@ deviance.drmTMB <- function(object, ...) {
 #'   `type = "quantile"`, a numeric matrix with one row per observation and
 #'   one column per `prob` (columns named as percentages, e.g. `"2.5%"`), with
 #'   `attr(., "calibrated") == FALSE`.
+#' @details
+#' For retained training data with a modelled missing predictor, prediction uses
+#' that predictor's finalized conditional plug-in in the fixed-effect design.
+#' This is a distributional-parameter prediction, not an integrated response
+#' mean, and fixed-effect covariance does not propagate imputation-parameter
+#' uncertainty through the design basis.
+#'
+#' More generally, `type = "response"` means "on the response scale of the
+#' requested distributional parameter", not always `E[Y]`. For
+#' zero-inflated and hurdle count families it returns the component count mean
+#' when `dpar = "mu"`, not the unconditional mean after structural-zero or
+#' hurdle mixing. For lognormal fits it returns `mu` on the log-response scale,
+#' not `exp(mu + sigma^2 / 2)`. For cumulative-logit fits it returns the
+#' location linear predictor on its response scale, not an expected ordinal
+#' score. Use [fitted.drmTMB()] for fitted-row response means or expected
+#' scores; use explicit distributional-parameter predictions when a new-data
+#' mean must be assembled outside the fitted rows.
+#'
+#' Binary predictor labels follow the fitted encoding, regardless of the levels
+#' present in the new batch. Numeric new values match raw numeric fitted labels;
+#' for nonnumeric fitted labels, numeric 0/1 values specify the encoded states.
+#' If distinct labels become identical as numbers (for example, "01" and "1"),
+#' supply character or factor values to preserve their identity.
+#'
+#' For families in `drm_clamped_scale_families()`, the `log(sigma)` linear
+#' predictor is soft-clamped inside the TMB likelihood to keep the objective
+#' finite. `predict(dpar = "sigma")` (and the bivariate `sigma1`/`sigma2`)
+#' reports that same clamped scale, on both `type = "link"` and
+#' `type = "response"`, so the value matches what the likelihood actually
+#' evaluated. When `check_drm()` reports the clamp active, this makes the
+#' fit's own diagnostics honest, not correct: the estimate itself is still
+#' unreliable near the clamp (see the rescaling advice there).
 #' @seealso [fitted.drmTMB()], [rho12()], [stats::sigma()], [fitted_distribution()],
 #'   [exceedance()]
 #'
@@ -2809,6 +2956,7 @@ predict.drmTMB <- function(
   prob = c(0.025, 0.5, 0.975),
   ...
 ) {
+  drm_abort_mi_weights_predict(object, list(...))
   if (is.null(dpar)) {
     dpar <- object$model$dpars[[1L]]
   }
@@ -2881,6 +3029,7 @@ predict.drmTMB <- function(
       )
   }
 
+  eta <- drm_clamped_sigma_eta(object, dpar, eta)
   if (type == "link") {
     return(eta)
   }
@@ -2924,14 +3073,14 @@ predict.drmTMB <- function(
 #' chi-squared scale-mixture draw per response pair together with the fitted
 #' shared `nu`; independent marginal t draws would be a different model.
 #'
-#' By default (`re.form = NULL`), models with ordinary grouped random effects
-#' draw a **fresh** random-effect realization for every replicate, so
-#' replicate-to-replicate variability reflects both the between-group and the
-#' residual sources of variance (matching the lme4/glmmTMB `re.form`
-#' convention). Pass `re.form = NA` to simulate conditionally on the fitted
-#' random effects instead (holding every random effect fixed at its
-#' conditional-mode estimate, the behaviour this function had before
-#' `re.form` was added). Marginal simulation also redraws a single-endpoint
+#' `re.form` follows the `lme4::simulate.merMod()` convention. By default
+#' (`re.form = NA`, or equivalently `re.form = ~0`), models with ordinary
+#' grouped random effects draw a **fresh** random-effect realization for every
+#' replicate, so replicate-to-replicate variability reflects both the
+#' between-group and the residual sources of variance. Pass `re.form = NULL`
+#' to simulate conditionally on the fitted random effects instead (holding
+#' every random effect fixed at its conditional-mode estimate). Marginal
+#' simulation also redraws a single-endpoint
 #' (`q == 1`) phylogenetic, spatial, relatedness-matrix (`relmat`),
 #' animal-model, or `phylo_interaction` structured `mu` random effect from its
 #' fitted covariance `sd^2 * Q^-1`. It does not yet support a structured mu
@@ -2941,16 +3090,29 @@ predict.drmTMB <- function(
 #' random-effect correlation (`corpair`) regression, or a modelled
 #' (heteroscedastic) random-effect scale; `simulate()` throws an informative
 #' error naming the unsupported structure for those models and directs the
-#' user to `re.form = NA`. Models without random effects are unaffected by
+#' user to `re.form = NULL`. Models without random effects are unaffected by
 #' `re.form`.
+#'
+#' Earlier versions of drmTMB gave the explicit values the reverse meaning
+#' (`NULL` drew fresh random effects and `NA` held them fixed; #1487). The default output is
+#' unchanged, but code that passed `re.form` explicitly now runs the other
+#' simulation, so the first explicit `re.form` in a session prints a one-time
+#' message (class `drmTMB_re_form_semantics_message`).
+#'
+#' For a fit made with `missing = miss_control(response = "include")`,
+#' `simulate()` returns `NA` at masked rows for every family, matching
+#' `residuals()`, so posterior-predictive tools such as
+#' `DHARMa::createDHARMa()` see draws only where a response was observed.
 #'
 #' @param object A `drmTMB` fit.
 #' @param nsim Number of simulated data sets.
 #' @param seed Optional random-number seed. The previous `.Random.seed` state
 #'   is restored after simulation.
-#' @param re.form `NULL` (the default) draws fresh random effects for every
-#'   replicate (marginal simulation). `NA` holds every random effect fixed at
-#'   its fitted conditional-mode estimate (conditional simulation).
+#' @param re.form `NA` (the default) or `~0` draws fresh random effects for
+#'   every replicate (marginal simulation). `NULL` holds every random effect
+#'   fixed at its fitted conditional-mode estimate (conditional simulation).
+#'   These meanings match `lme4::simulate.merMod()`; earlier drmTMB versions
+#'   reversed them (see Details).
 #' @param ... Reserved for future simulation options.
 #'
 #' @return A data frame. Univariate models return one column per simulation.
@@ -2962,21 +3124,18 @@ predict.drmTMB <- function(
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' simulate(fit, nsim = 2, seed = 1)
 #' @export
-simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) {
-  if (!is.null(re.form) && !identical(re.form, NA)) {
-    cli::cli_abort(c(
-      "{.arg re.form} must be {.code NULL} or {.code NA}.",
-      "i" = "{.code NULL} (the default) draws fresh random effects for every replicate (marginal simulation).",
-      "i" = "{.code NA} holds every random effect fixed at its fitted conditional-mode estimate (conditional simulation)."
-    ))
+simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NA, ...) {
+  drm_abort_mi_weights_predict(object, list(...))
+  if (!base::missing(re.form)) {
+    drm_simulate_re_form_semantics_message()
   }
-  marginal <- is.null(re.form)
+  marginal <- drm_simulate_re_form_marginal(re.form)
   if (marginal) {
     unsupported <- drm_simulate_marginal_unsupported(object)
     if (!is.null(unsupported)) {
       cli::cli_abort(c(
-        "Marginal simulation ({.code re.form = NULL}) does not yet support {unsupported}.",
-        "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+        "Marginal simulation ({.code re.form = NA}, the default) does not yet support {unsupported}.",
+        "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
       ))
     }
   }
@@ -3018,6 +3177,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3064,6 +3224,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3085,6 +3246,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3108,6 +3270,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3129,6 +3292,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3159,6 +3323,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3198,6 +3363,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3232,12 +3398,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
-    if (
-      is.list(object$missing_data) &&
-        identical(object$missing_data$response_policy, "include")
-    ) {
-      sims[!object$missing_data$observed_y, ] <- NA_integer_
-    }
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3255,6 +3416,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3282,6 +3444,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3298,6 +3461,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3319,6 +3483,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3340,6 +3505,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3368,6 +3534,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3405,6 +3572,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3438,6 +3606,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3480,6 +3649,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3599,9 +3769,12 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' `drmTMB` fit.
 #'
 #' For univariate Gaussian models, response residuals are `y - mu`. Pearson
-#' residuals divide by the fitted observation standard deviation. If a dense
-#' known sampling covariance was used, Pearson residuals are whitened by the
-#' fitted total observation covariance.
+#' residuals divide by the fitted observation standard deviation. Student-t
+#' Pearson residuals use the fitted Student-t scale; this is not the marginal
+#' residual standard deviation when `nu > 2`. Skew-normal Pearson residuals use
+#' the public response-standard-deviation parameter. If a dense known sampling
+#' covariance was used, Pearson residuals are whitened by the fitted total
+#' observation covariance.
 #'
 #' For lognormal models, response residuals are `y - fitted_mean`. Pearson
 #' residuals are computed on the log-response scale as `(log(y) - mu) / sigma`.
@@ -3609,9 +3782,12 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' divide by the fitted Gamma standard deviation `mu * sigma`, where `sigma` is
 #' the coefficient of variation. For Tweedie models, response residuals are
 #' `y - mu` and Pearson residuals divide by
-#' `sqrt(sigma^2 * mu^nu)`. For zero-one beta models, response residuals
-#' are observed proportions minus the unconditional fitted mean, including exact
-#' zero-one boundary mass. For beta-binomial models, response residuals are
+#' `sqrt(sigma^2 * mu^nu)`. For beta models, response residuals are `y - mu`
+#' and Pearson residuals divide by
+#' `sqrt(mu * (1 - mu) * sigma^2 / (1 + sigma^2))`. For zero-one beta models,
+#' response residuals are observed proportions minus the unconditional fitted
+#' mean, including exact zero-one boundary mass. For beta-binomial models,
+#' response residuals are
 #' observed success proportions minus fitted `mu`, and Pearson residuals
 #' divide by the fitted beta-binomial proportion standard deviation. For
 #' binomial models, response residuals are observed success proportions minus
@@ -3641,15 +3817,15 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #'
 #' `type = "quantile"` returns Dunn-Smyth randomized quantile residuals from
 #' [drm_quantile_residuals()]: `qnorm(F(y; theta_hat))` at the fitted,
-#' fixed-effect distributional parameters. As of DO-T3 batch D, all 18 fitted
-#' `model_type` values have a promoted entry in [drm_family_dpq()], so
+#' fixed-effect distributional parameters. All 18 currently fitted
+#' `model_type` values have `status = "reference"` in [drm_family_dpq()], so
 #' `type = "quantile"` is available for every family, including bivariate
 #' `biv_gaussian` (where `response` -- `1` or `2` -- is REQUIRED and selects
 #' which response's MARGINAL residuals to compute; omitting it errors
 #' clearly, as does supplying it for a univariate fit; see
-#' [fitted_distribution()]). Spike-status families (feasibility-only, not yet
-#' DG2/DG3-verified) emit a one-time warning that the residual is
-#' exploratory, not DG-verified; none currently have this status. See
+#' [fitted_distribution()]). Families whose distributional
+#' diagnostics have not been evaluated by simulation emit a one-time warning
+#' that the residual is exploratory; none currently have this status. See
 #' [drm_quantile_residuals()] for the fixed-effect-only adequacy caveat: for
 #' random-effect or structured fits, these residuals are conditional on the
 #' fixed-effect prediction, not marginal, so a departure (or its absence) is
@@ -3657,19 +3833,17 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' claim. Pass `seed`, `nsim`, and/or `response` through `...` to
 #' [drm_quantile_residuals()].
 #'
-#' **What this detects -- and does not.** Evidence: a 400-seed gated
-#' simulation campaign across all 18 fitted families (tweedie: 99 of 400
-#' seeds locally, 66/99 dispersion-arm non-convergence, full run deferred to
-#' Totoro)
-#' (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`).
-#' Under a correctly specified fixed-effect model, type-I error stays at or
+#' **What this detects -- and does not.** The evidence used 400 seeds across
+#' 18 fitted families. Tweedie evidence is incomplete: 99 of 400 intended seeds
+#' were run, and 66 of the 99 dispersion-arm fits did not converge. For the
+#' completed family scenarios, type-I error stays at or
 #' below the nominal rate (0.0025-0.025 at alpha = 0.05 across families); the
 #' underlying KS+PIT statistic is conservative, so power is understated, not
 #' overstated. `type = "quantile"` **detects** distributional shape and atom
 #' mis-specification that a family cannot reabsorb through its own free
 #' parameters -- heavy tails fit as Gaussian, overdispersion or
 #' zero-inflation ignored by a family with no free dispersion parameter,
-#' truncation ignored, a missing zero/one atom -- with gated power >= 0.8 at
+#' truncation ignored, a missing zero/one atom -- with power >= 0.8 at
 #' n = 300-400 per arm (commonly 0.9-1.0). It has a genuine **structural
 #' blind spot**, not a bug: a mis-specification that a fitted family's own
 #' free nuisance/dispersion/inflation parameter absorbs leaves the
@@ -3692,9 +3866,9 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' wrong-family detection is sample-size limited rather than structurally
 #' blind: power rises from about 0.19 at n = 300 to 0.79 at n = 1000 and 1.0
 #' at n = 3000, so that specific mis-specification needs n well above 1000 to
-#' be reliably caught. A distributional-output/adequacy tick on a family
-#' never changes or implies anything about that family's own inference-tier
-#' status; see `tests/testthat/test-dg-firewall.R`.
+#' be reliably caught. A distributional-output/adequacy result for a family
+#' does not establish interval coverage or other inferential performance for
+#' that family.
 #'
 #' @param object A `drmTMB` fit.
 #' @param type Residual type: `"response"`, `"pearson"`, or `"quantile"`.
@@ -3711,6 +3885,16 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' residuals(fit)
 #' residuals(fit, type = "pearson")
 #' residuals(fit, type = "quantile")
+#' if (requireNamespace("DHARMa", quietly = TRUE)) {
+#'   sims <- simulate(fit, nsim = 20)
+#'   dh <- DHARMa::createDHARMa(
+#'     simulatedResponse = as.matrix(sims),
+#'     observedResponse = fit$model$y,
+#'     fittedPredictedResponse = fitted(fit),
+#'     integerResponse = FALSE
+#'   )
+#'   DHARMa::testUniformity(dh)
+#' }
 #' @export
 residuals.drmTMB <- function(
   object,
@@ -4003,6 +4187,22 @@ residuals.drmTMB <- function(
 #' sampling variance plus residual variance. Simulation and Pearson residuals
 #' combine known sampling covariance with residual scale internally.
 #'
+#' For families in `drm_clamped_scale_families()`, `sigma()` reports the
+#' soft-clamped scale the TMB likelihood actually evaluated (see
+#' [predict.drmTMB()]), the same scale that [residuals.drmTMB()], `fitted()`,
+#' and `simulate()` use. When `check_drm()` reports the clamp active, this
+#' makes the fit honest about what it evaluated, not correct: the estimate
+#' itself is still unreliable near the clamp.
+#'
+#' `sigma()` follows `drmTMB`'s distributional-regression contract, not the
+#' scalar summary contract some generic tools expect from [stats::sigma()].
+#' When the scale formula contains fitted-row variation, such as `sigma ~ x`,
+#' `sigma()` returns one scale value per observation. Generic helpers that
+#' assume a scalar residual scale, including `insight::get_sigma()`, may
+#' summarize that vector and hide the fitted heterogeneity; inspect
+#' `range(sigma(fit))` or [predict.drmTMB()] with `dpar = "sigma"` when the
+#' scale model is part of the scientific question.
+#'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future scale-extractor options.
 #'
@@ -4076,10 +4276,45 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' The covariance component reports currently fitted registry-backed rows and
 #' fitted bivariate phylogenetic covariance rows, including q=2 mean-mean and
 #' q=4 endpoint rows where present.
-#' The derived component reports simple point-estimate variance ratios, such as
-#' Gaussian random-intercept repeatability and phylogenetic signal, when the
-#' ingredients are unambiguous. Derived confidence intervals are marked as
-#' unavailable until a nonlinear interval method is implemented.
+#' The derived component reports simple point-estimate variance ratios --
+#' `total_variance_share` for a Gaussian random-intercept mu component and
+#' `phylo_total_variance_share` for a phylogenetic mu component -- when the
+#' ingredients are unambiguous. Both divide by the TOTAL variance (every mu
+#' random-effect variance plus the residual variance), which is a different
+#' denominator from the `icc()`/`repeatability()` accessors (focal component
+#' variance over that component plus the residual only); see `?heritability`
+#' for the distinction. Both rows are computed only for Gaussian fits with an
+#' identity-link mean, where the latent, expected-data, and observed-data
+#' scales of de Villemereuil, Schielzeth, Nakagawa & Morrissey (2016,
+#' *Genetics* 204:1281-1294) coincide, so there is no separate latent- or
+#' liability-scale value to distinguish. `residual_variance` is `sigma^2`
+#' when `sigma`'s fixed part reduces to a single log-link intercept; when
+#' `sigma` additionally carries an ordinary random intercept, or a
+#' phylogenetic random intercept with a unit-diagonal correlation (the
+#' default `phylo(...)` route), `residual_variance` is instead the *marginal*
+#' residual variance `exp(2*b0 + 2*sum_k(omega_k^2))` -- `E[sigma^2]`, not the
+#' squared median `exp(2*b0)` -- where `omega_k` are the working-scale
+#' (log-SD) standard deviations of those effects. A random slope on `sigma`,
+#' a structured `sigma` effect without a verified unit-diagonal correlation
+#' (measured on the rows the design uses), or a fit that carries a `sigma`
+#' random effect while the `log(sigma)` soft clamp bent the assembled
+#' predictor for at least one observation (`clamp_limited`; a clamp-active
+#' `sigma ~ 1` fit still returns its constant clamped scale), has no
+#' closed-form marginal residual variance here and is
+#' refused (a `residual_variance.message` attribute on the empty result names
+#' the reason, and is also shown under the (empty) derived table when
+#' printed). Derived
+#' confidence intervals are marked as unavailable until a nonlinear interval
+#' method is implemented.
+#' The derived table's `residual_sd` column is `sqrt(residual_variance)` --
+#' i.e. `sqrt(E[sigma^2]) = exp(b0 + sum_k(omega_k^2))` -- and this is a
+#' DIFFERENT quantity from the `sigma` row in the `parameters` component,
+#' which is always the conditional/median scale `exp(b0)`. The two coincide
+#' only when `sigma` carries no random effect; when it does, `residual_sd` is
+#' larger (e.g. 1.0144 vs a `sigma` row of 0.7599 on one fixture), and both
+#' are labelled `scale = "response"` because both genuinely are on the
+#' response scale -- they are not alternative scales of the same quantity,
+#' they are two different quantities.
 #' When `TMB::sdreport()` succeeds, direct response-scale parameter rows also
 #' include delta-method standard errors; descriptive fitted ranges and derived
 #' variance ratios do not.
@@ -4123,11 +4358,14 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #'
 #' @return An object of class `summary.drmTMB`.
 #'
-#' @seealso The tier definitions and per-cell evidence behind these interval
-#'   targets, including random-effect standard-deviation rows, are curated in
-#'   \code{vignette("capability-and-limits", package = "drmTMB")}: `summary()`
-#'   computes intervals generically for any target, and the tier a given cell
-#'   belongs to is a documentation-level curation, not a runtime guard.
+#' @seealso The model-specific evidence behind these interval targets, including
+#'   random-effect standard-deviation rows, is summarized in
+#'   \code{vignette("capability-and-limits", package = "drmTMB")}. `summary()`
+#'   can compute intervals for targets whose coverage has not been measured, so a
+#'   successful computation is not by itself evidence of calibrated coverage.
+#'   The optional \pkg{emmeans} package can compute estimated marginal means
+#'   from supported fixed-effect `drmTMB` fits using the package registration
+#'   installed at load time.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -4141,6 +4379,9 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #'   ci_parm = "sigma",
 #'   profile_precision = "fast"
 #' )
+#' if (requireNamespace("emmeans", quietly = TRUE)) {
+#'   emmeans::emmeans(fit, specs = "x", at = list(x = c(-1, 0, 1)))
+#' }
 #' @export
 summary.drmTMB <- function(
   object,
@@ -4273,6 +4514,7 @@ summary.drmTMB <- function(
 
   out <- list(
     call = object$call,
+    nobs = stats::nobs(object),
     coefficients = coefficients,
     parameters = parameters,
     covariance = covariance,
@@ -4284,7 +4526,9 @@ summary.drmTMB <- function(
     logLik = if (drm_is_mspl(object)) NA_real_ else stats::logLik(object),
     mspl = if (drm_is_mspl(object)) object$mspl else NULL,
     estimator = object$estimator,
+    estimator_exact = object$estimator_exact,
     convergence = object$opt$convergence,
+    convergence_message = object$opt$message,
     conf.int = conf.int,
     conf.level = if (conf.int) level else NA_real_,
     conf.method = if (conf.int) method else NA_character_,
@@ -4298,7 +4542,21 @@ summary.drmTMB <- function(
 print.summary.drmTMB <- function(x, ...) {
   cli::cli_text("<summary.drmTMB>")
   if (!is.null(x$estimator)) {
-    cli::cli_text("estimator: {x$estimator}")
+    estimator_detail <- if (identical(x$estimator, "REML") &&
+        !is.null(x$estimator_exact) && !is.na(x$estimator_exact)) {
+      if (isTRUE(x$estimator_exact)) {
+        "exact restricted likelihood"
+      } else {
+        "Laplace/Cox-Reid adjusted profile"
+      }
+    } else {
+      NULL
+    }
+    if (is.null(estimator_detail)) {
+      cli::cli_text("estimator: {x$estimator}")
+    } else {
+      cli::cli_text("estimator: {x$estimator} ({estimator_detail})")
+    }
   }
   if (isTRUE(x$conf.int)) {
     cli::cli_text(
@@ -4337,6 +4595,17 @@ print.summary.drmTMB <- function(x, ...) {
   if (is.data.frame(x$derived) && nrow(x$derived) > 0L) {
     cli::cli_text("Derived summaries:")
     print(drm_summary_print_derived(x$derived))
+  } else if (
+    is.data.frame(x$derived) &&
+      is.character(attr(x$derived, "residual_variance.message"))
+  ) {
+    # Name the reason instead of a silent empty derived block (2026-09-14
+    # ruling, S2b item 5): `residual_variance.message` was previously written
+    # by drm_derived_summary_rows() but had no reader anywhere in the
+    # package.
+    cli::cli_text(
+      "Derived summaries: {attr(x$derived, 'residual_variance.message')}"
+    )
   }
   if (!is.null(x$ordinal)) {
     cli::cli_text("Ordinal cutpoints:")
@@ -4376,7 +4645,21 @@ print.summary.drmTMB <- function(x, ...) {
   } else {
     cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
   }
-  cli::cli_text("convergence: {x$convergence}")
+  convergence_label <- drm_convergence_label(
+    x$convergence,
+    x$convergence_message
+  )
+  if (is.null(convergence_label)) {
+    cli::cli_text("convergence: {x$convergence}")
+  } else {
+    cli::cli_text(
+      "convergence: {x$convergence} (not converged; {convergence_label}; see {.fn check_drm})"
+    )
+    cli::cli_warn(
+      "The fit did not converge: {convergence_label}. Treat estimates and standard errors with caution.",
+      class = "drmTMB_convergence_warning"
+    )
+  }
   invisible(x)
 }
 
@@ -4485,18 +4768,30 @@ drm_derived_summary_rows <- function(object) {
   }
   sigma <- drm_constant_residual_sigma(object)
   if (!is.finite(sigma)) {
-    return(empty_derived_summary_parameters())
+    # Name the reason instead of a silent empty frame (Fisher's 2026-09-14
+    # ruling on docs/design/275, "Concrete change" item 3): a random slope on
+    # sigma, or a structured sigma effect without a verified unit-diagonal
+    # correlation, is a different situation from an ordinary heteroscedastic
+    # sigma ~ x fit, and the reader should be told which.
+    out <- empty_derived_summary_parameters()
+    attr(out, "residual_variance.message") <-
+      drm_residual_sigma_na_reason_text(attr(sigma, "reason"))
+    return(out)
   }
   sd_values <- object$sdpars$mu
   if (is.null(sd_values) || length(sd_values) == 0L) {
     return(empty_derived_summary_parameters())
   }
 
-  # Repeatability/ICC and phylogenetic signal are defined against the TOTAL
-  # variance, so the denominator must include every mu random-effect variance
-  # plus the residual variance. Summing only the current term's variance
-  # overstates each ratio whenever multiple mu random effects are present
-  # (see issue #695).
+  # These rows ("total_variance_share" and "phylo_total_variance_share")
+  # are defined against the TOTAL variance, so the denominator must include
+  # every mu random-effect variance plus the residual variance. Summing only
+  # the current term's variance overstates each ratio whenever multiple mu
+  # random effects are present (see issue #695). This is a DIFFERENT
+  # denominator from the icc()/repeatability() accessors in
+  # R/heritability.R, which divide the focal component's variance by that
+  # component plus the residual only -- do not rename these rows back to
+  # "repeatability" (see docs/design/259-heritability-icc-repeatability.md).
   numeric_sd <- vapply(sd_values, function(v) unname(v)[[1L]], numeric(1))
   valid_sd <- is.finite(numeric_sd) & numeric_sd >= 0
   residual_variance <- sigma^2
@@ -4572,6 +4867,18 @@ empty_derived_summary_parameters <- function() {
   )
 }
 
+# The residual scale exp(b0) is exact only when `sigma` is a constant (a
+# single log-link intercept, no random effect). When `sigma` additionally
+# carries an ordinary random intercept, or a phylogenetic random intercept
+# with a unit-diagonal correlation, exp(b0) is sigma's *median*, not its RMS;
+# the correct marginal residual variance is exp(2*b0 + 2*sum_k(omega_k^2))
+# (docs/design/275-repeatability-scale-and-residual-variance.md sections 4-5,
+# Fisher's 2026-09-14 ruling on that note). The return value is `NA_real_`
+# with a `reason` attribute -- consumed by drm_residual_sigma_na_reason_text()
+# -- when no closed-form scalar residual variance exists: more than one fixed
+# coefficient on sigma, a non-log link, a known-dispersion override, a random
+# SLOPE on sigma, or a structured sigma effect without a verified
+# unit-diagonal correlation.
 drm_constant_residual_sigma <- function(object) {
   beta <- object$coefficients$sigma
   if (
@@ -4580,29 +4887,272 @@ drm_constant_residual_sigma <- function(object) {
       !identical(names(beta), "(Intercept)") ||
       !identical(drm_dpar_link(object, "sigma"), "log")
   ) {
-    return(NA_real_)
+    return(structure(NA_real_, reason = "non_constant_sigma_predictor"))
   }
   known_v <- known_v_diag(object)
   if (
     length(known_v) > 0L &&
       any(is.finite(known_v) & abs(known_v) > sqrt(.Machine$double.eps))
   ) {
-    return(NA_real_)
+    return(structure(NA_real_, reason = "known_residual_variance"))
   }
-  exp(unname(beta[[1L]]))
+  # The likelihood evaluates the soft-clamped log-scale predictor for the
+  # clamped-scale families, and sigma() reports that value (Dinnage audit
+  # M2); the residual variance must sit on the same scale or summary()'s
+  # residual_sd and sigma() disagree on a clamp-active fit.
+  b0 <- drm_clamped_sigma_eta(object, "sigma", unname(beta[[1L]]))
+  if (!has_sigma_random_effects(object)) {
+    return(exp(b0))
+  }
+  # The kernel clamps the ASSEMBLED predictor log_sigma = X*beta + u, not
+  # just the intercept (src/drmTMB.cpp:2437, applied after every
+  # random-effect contribution at 811/994/1033), so under an active clamp
+  # the quantity the likelihood integrates is E[exp(2*c(b0+u))] -- bounded
+  # by exp(2*(hi+margin)) -- not exp(2*c(b0) + 2*sum omega_k^2) below, which
+  # is unbounded in omega and is the moment of no distribution the
+  # likelihood uses (measured 1.47x high on a partly-bent clamp-active fit;
+  # exact, ratio 1.001, when the clamp is inactive -- Fisher's 2026-09-14
+  # S2b follow-up ruling on docs/design/275). Refuse rather than ship a
+  # hybrid, matching e86359fe2's conf.status = "clamp_limited" treatment of
+  # the same defect in predict_parameters().
+  if (isTRUE(object$model$model_type %in% drm_clamped_scale_families())) {
+    report <- tryCatch(
+      object$obj$report(object$tmb_state$last.par.best),
+      error = function(e) NULL
+    )
+    if (
+      !is.null(report) &&
+        !is.null(drm_logsigma_clamp_active(report, object$model$tmb_data))
+    ) {
+      return(structure(NA_real_, reason = "clamp_limited"))
+    }
+  }
+  omega2_sum <- drm_sigma_random_effect_omega2_sum(object)
+  if (!is.finite(omega2_sum)) {
+    return(structure(NA_real_, reason = attr(omega2_sum, "reason")))
+  }
+  exp(b0 + omega2_sum)
+}
+
+# Sum of squared working-scale SDs (omega_k^2) across every random effect
+# living on sigma's log-link linear predictor: ordinary random intercepts
+# (`object$model$random$sigma`) and a phylogenetic random intercept
+# (`phylo(1 | group, tree = tree)`, whose default `correlation = TRUE`
+# tree-height normalisation gives a unit correlation diagonal --
+# R/phylo-utils.R:250-252). Returns `NA_real_` with a `reason` attribute --
+# "random_slope_on_sigma", "structured_sigma_non_unit_diagonal", or
+# "structured_sigma_diagonal_not_checked" -- when the sum is not a
+# well-defined scalar: a random SLOPE on sigma (a design-dependent variance,
+# not a single omega), or a structured sigma effect whose correlation matrix
+# is MEASURED to not have a unit diagonal, or one whose diagonal could not be
+# measured at all. The diagonal is measured, not inferred from
+# `structured_mu_type()`'s label (2026-09-14 ruling on
+# docs/design/275-repeatability-scale-and-residual-variance.md: "the refusal
+# should be conditioned on the diagonal of the structured matrix, not on the
+# word 'phylogenetic'") -- see drm_structured_sigma_unit_diagonal(). Every
+# sigma-side working-scale SD (ordinary or phylogenetic) is already
+# aggregated into `object$sdpars$sigma` by split_tmb_sdpars(), so once the
+# slope/unit-diagonal checks pass this just sums that vector.
+drm_sigma_random_effect_omega2_sum <- function(object) {
+  random_sigma <- object$model$random$sigma
+  if (is.list(random_sigma) && isTRUE(random_sigma$n_re > 0L)) {
+    coef_names <- random_sigma$coef_names
+    if (any(!is.na(coef_names) & coef_names != "(Intercept)")) {
+      return(structure(NA_real_, reason = "random_slope_on_sigma"))
+    }
+  }
+  phylo_mu <- object$model$structured$phylo_mu
+  if (isTRUE(phylo_mu$has)) {
+    endpoint_dpars <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
+    sigma_idx <- which(endpoint_dpars == "sigma")
+    if (length(sigma_idx) > 0L) {
+      coef_names <- phylo_mu$coef_names
+      if (
+        !is.null(coef_names) &&
+          any(
+            !is.na(coef_names[sigma_idx]) &
+              coef_names[sigma_idx] != "(Intercept)"
+          )
+      ) {
+        return(structure(NA_real_, reason = "random_slope_on_sigma"))
+      }
+      unit_diagonal <- drm_structured_sigma_unit_diagonal(phylo_mu)
+      if (is.na(unit_diagonal)) {
+        return(structure(
+          NA_real_,
+          reason = "structured_sigma_diagonal_not_checked"
+        ))
+      }
+      if (!unit_diagonal) {
+        return(structure(
+          NA_real_,
+          reason = "structured_sigma_non_unit_diagonal"
+        ))
+      }
+    }
+  }
+  sd_sigma <- object$sdpars$sigma
+  if (is.null(sd_sigma) || length(sd_sigma) == 0L) {
+    return(0)
+  }
+  sum(sd_sigma^2)
+}
+
+# Whether a structured effect's IMPLIED correlation matrix has a unit
+# diagonal, measured by inverting its precision matrix -- not inferred from
+# `structured_mu_type(phylo_mu)`'s label. The 2026-09-14 ruling on
+# docs/design/275-repeatability-scale-and-residual-variance.md found the
+# label-based check false for a measured case
+# (`sigma ~ spatial(1 | site, coords = coords)`, diag(Sigma) = 1.000001 --
+# unit, but refused as "phylogenetic-only"); this checks the actual matrix
+# instead.
+#
+# The diagonal is measured on the MODELLED-UNIT rows, not necessarily the
+# whole matrix (Fisher's 2026-09-14 S2b follow-up review,
+# docs/dev-log/audits/2026-09-14-dinnage-wave3-review.md "### S2b follow-up
+# (4ae2f5d99, d61f65183)"): a `phylo()` term's precision
+# (`drm_phylo_augmented_precision()`, R/phylo-utils.R:258) is AUGMENTED with
+# a latent internal-node basis -- 38x38 for a 20-tip tree -- and only its
+# tip/species rows are the ones the design matrix actually multiplies;
+# measured directly, those rows have a unit diagonal (`[1, 1]`) even for
+# `phylo()` on `sigma` ALONE, while the whole augmented diagonal ranges over
+# `[0.554, 1]` and would falsely refuse a fit whose modelled units really
+# are unit-diagonal. Every structured builder records the rows its design
+# loads on as `observation_node_index` (`phylo()`, `phylo_interaction()`,
+# `spatial()`, `animal()`/`relmat()`; R/drmTMB.R ~14111, ~14216, ~14329,
+# ~14592), and the tree-based precisions additionally carry
+# `precision$species_node_index` / `precision$tip_node_index`; the helper
+# measures on the design rows first and the species/tip index as fallback,
+# never over a whole augmented matrix. This indexing is independent of `structured_mu_q()`: a
+# `phylo()` term shared across two endpoints (`q > 1`, e.g. the same term on
+# both `mu` and `sigma`) reuses the identical per-tree precision object
+# (measured: `phylo_mu$precision` is built once in
+# `build_phylo_mu_structure()`, R/drmTMB.R:14083, before `q` is computed),
+# so its tip rows are exactly as measurable there -- this retires the old
+# `q > 1L && type == "phylo"` trusted-by-construction branch entirely. Any
+# block, whatever its `q`, is measured on `observation_node_index` (the rows
+# the design loads on, present on every structured builder), so a Kronecker
+# `phylo_interaction()` block is measured on its used rows too; a block with
+# no row index at all reports "not checked" rather than a guess.
+#
+# Returns `TRUE`/`FALSE` when the diagonal was measured (within `tol`), or
+# `NA` when it could not be measured (no precision matrix, non-square, the
+# inversion failed, or no row index of any kind, whatever the block's `q`) --
+# callers must report an `NA` result as "the diagonal was not checked",
+# never as "the diagonal is not unit" (D-252: a refusal is a claim, and a
+# false one is a defect).
+drm_structured_sigma_unit_diagonal <- function(phylo_mu, tol = 1e-3) {
+  precision_obj <- phylo_mu$precision
+  precision <- precision_obj$precision
+  if (
+    is.null(precision) ||
+      is.null(dim(precision)) ||
+      nrow(precision) != ncol(precision) ||
+      nrow(precision) == 0L
+  ) {
+    return(NA)
+  }
+  # Measure on the rows the DESIGN uses: every structured builder records
+  # `observation_node_index` (the precision rows each observation loads on);
+  # the species/tip index is the tree-specific fallback. With no row index at
+  # all the diagonal is NOT measured -- whole-matrix inversion of an augmented
+  # (tips + internal nodes, or Kronecker) precision reads latent rows and
+  # reports a false "not unit" (Fisher, review of 1c44d2f12: phylo_interaction()
+  # whole-matrix range [0.505, 1] while its 30 used rows are exactly 1).
+  index <- phylo_mu$observation_node_index
+  if (is.null(index) || length(index) == 0L) {
+    index <- precision_obj$species_node_index
+  }
+  if (is.null(index) || length(index) == 0L) {
+    index <- precision_obj$tip_node_index
+  }
+  if (is.null(index) || length(index) == 0L) {
+    return(NA)
+  }
+  index <- unique(unname(as.integer(index)))
+  if (length(index) == 0L || anyNA(index)) {
+    return(NA)
+  }
+  covariance <- tryCatch(
+    as.matrix(Matrix::solve(precision)),
+    error = function(e) NULL
+  )
+  if (is.null(covariance)) {
+    return(NA)
+  }
+  d <- diag(covariance)[index]
+  if (length(d) == 0L || anyNA(d) || !all(is.finite(d))) {
+    return(NA)
+  }
+  all(abs(d - 1) <= tol)
+}
+
+# Human-readable reason a constant/closed-form residual-scale sigma is not
+# available, shared by drm_derived_summary_rows() (attached as a
+# `residual_variance.message` attribute on the empty result, following the
+# `std_error.message` convention above) and drm_variance_ratio() (used in its
+# abort message) so the two callers name the SAME defect
+# (docs/design/275-repeatability-scale-and-residual-variance.md, Fisher's
+# 2026-09-14 ruling).
+drm_residual_sigma_na_reason_text <- function(reason) {
+  switch(
+    reason,
+    non_constant_sigma_predictor = paste(
+      "This fit has a sigma predictor, a non-log link, or a",
+      "known-dispersion override, so a single scalar residual variance is",
+      "not defined. Random-effect SD estimates remain available in $sdpars."
+    ),
+    known_residual_variance = paste(
+      "This fit has a known-dispersion override, so a single scalar",
+      "residual variance is not defined."
+    ),
+    random_slope_on_sigma = paste(
+      "This fit has a random slope on sigma (a design-dependent variance,",
+      "not a single scalar), so a single scalar residual variance is not",
+      "defined."
+    ),
+    structured_sigma_non_unit_diagonal = paste(
+      "This fit has a structured sigma random effect whose correlation",
+      "matrix was measured and does not have a unit diagonal, so a single",
+      "scalar residual variance is not defined."
+    ),
+    structured_sigma_diagonal_not_checked = paste(
+      "This fit has a structured sigma random effect whose correlation",
+      "matrix's diagonal was not checked, so a single scalar residual",
+      "variance is not defined."
+    ),
+    clamp_limited = paste(
+      "This fit's log(sigma) soft clamp is active at the optimum, so the",
+      "closed-form marginal residual variance (which assumes an unclamped",
+      "random effect) is not defined; see check_drm() for the clamp",
+      "diagnostic."
+    ),
+    paste(
+      "This fit does not have a constant residual scale (sigma ~ 1) or a",
+      "closed-form marginal residual variance, so a single scalar residual",
+      "variance is not defined."
+    )
+  )
 }
 
 derived_summary_random_effect_kind <- function(term) {
+  # split_tmb_sdpars() prefixes the label with `mu:`/`sigma:` once the SAME
+  # structured term also has a sibling on the other endpoint (e.g.
+  # "mu:phylo(1 | species)" when phylo() is on both mu and sigma) -- strip it
+  # before matching, or a phylo()-on-mu-and-sigma fit yields no row here
+  # (2026-09-14 ruling, S2b item 2; mirrors the same fix in
+  # R/heritability.R's drm_variance_ratio_positions()).
+  term <- sub("^(mu|sigma):", "", term)
   if (startsWith(term, "phylo(")) {
     group <- random_intercept_group_from_call(term, "phylo")
     if (is.na(group)) {
       return(NULL)
     }
     return(list(
-      quantity = "phylogenetic_signal",
+      quantity = "phylo_total_variance_share",
       level = "phylogenetic",
       group = group,
-      parm = paste0("derived:phylogenetic_signal(", group, ")")
+      parm = paste0("derived:phylo_total_variance_share(", group, ")")
     ))
   }
   group <- random_intercept_group_from_term(term)
@@ -4610,10 +5160,10 @@ derived_summary_random_effect_kind <- function(term) {
     return(NULL)
   }
   list(
-    quantity = "repeatability",
+    quantity = "total_variance_share",
     level = "group",
     group = group,
-    parm = paste0("derived:repeatability(", group, ")")
+    parm = paste0("derived:total_variance_share(", group, ")")
   )
 }
 
@@ -4834,7 +5384,8 @@ summary_parameter_delta_derivative <- function(target) {
     target$transformation[[1L]],
     linear_predictor = 1,
     exp = exp(eta),
-    tanh = 0.999999 * (1 - tanh(eta)^2),
+    plogis = stats::plogis(eta) * stats::plogis(-eta),
+    tanh = profile_correlation_guard(target$tmb_parameter) * (1 - tanh(eta)^2),
     rho12_tanh = 0.999999 * (1 - tanh(eta)^2),
     NA_real_
   )
@@ -5157,9 +5708,237 @@ drm_summary_print_derived <- function(derived) {
   out
 }
 
+drm_missing_predictor_prediction_entries <- function(object, dpar) {
+  if (!identical(dpar, "mu")) {
+    return(list())
+  }
+  missing_data <- object$missing_data
+  if (!is.list(missing_data) || is.null(missing_data$predictors)) {
+    return(list())
+  }
+  predictors <- missing_data$predictors
+  predictor_names <- names(predictors)
+  if (!is.list(predictors) || length(predictor_names) != length(predictors) ||
+      anyNA(predictor_names) || any(!nzchar(predictor_names))) {
+    cli::cli_abort("Missing-predictor prediction metadata must be a named list.")
+  }
+  for (entry in predictors) {
+    if (!is.list(entry) || !is.character(entry$variable) ||
+        length(entry$variable) != 1L || is.na(entry$variable) || !nzchar(entry$variable) ||
+        !is.character(entry$family) || length(entry$family) != 1L ||
+        is.na(entry$family) || !nzchar(entry$family)) {
+      cli::cli_abort("Missing-predictor prediction metadata has an invalid variable or family.")
+    }
+  }
+  predictors
+}
+
+drm_prediction_binary_values <- function(value, variable, levels) {
+  if (length(levels) != 2L || anyNA(levels) || any(!nzchar(levels)) ||
+      anyDuplicated(levels) || anyNA(value)) {
+    cli::cli_abort("Binary missing-predictor prediction metadata or values are incomplete.")
+  }
+  if (is.factor(value) || is.character(value)) {
+    labels <- as.character(value)
+    unknown <- setdiff(unique(labels), levels)
+    if (length(unknown) > 0L) {
+      cli::cli_abort(c(
+        "New prediction data contains unknown binary predictor level{?s} for {.var {variable}}.",
+        "i" = "Unknown level{?s}: {.val {unknown}}.",
+        "i" = "Fitted level{?s}: {.val {levels}}."
+      ))
+    }
+    return(as.numeric(match(labels, levels) - 1L))
+  }
+  if (is.logical(value)) {
+    if (!identical(levels, c("FALSE", "TRUE")) && !identical(levels, c("0", "1"))) {
+      cli::cli_abort("Logical binary prediction values do not match the fitted predictor levels.")
+    }
+    return(as.numeric(value))
+  }
+  if (is.numeric(value) || is.integer(value)) {
+    if (any(!is.finite(value))) {
+      cli::cli_abort("Binary missing-predictor prediction values must be finite.")
+    }
+    numeric_levels <- suppressWarnings(as.numeric(levels))
+    if (all(is.finite(numeric_levels))) {
+      if (anyDuplicated(numeric_levels)) {
+        cli::cli_abort("Binary missing-predictor prediction metadata has ambiguous fitted numeric levels.")
+      }
+      if (any(!value %in% numeric_levels)) {
+        cli::cli_abort("Binary missing-predictor prediction values must match the fitted numeric levels.")
+      }
+      return(as.numeric(match(value, numeric_levels) - 1L))
+    }
+    if (any(!value %in% c(0, 1))) {
+      cli::cli_abort("Binary missing-predictor prediction values must be finite 0/1 values.")
+    }
+    return(as.numeric(value))
+  }
+  cli::cli_abort("Binary missing-predictor prediction values must be numeric 0/1, logical, factor, or character.")
+}
+
+drm_prepare_missing_predictor_prediction_newdata <- function(object, newdata, dpar) {
+  predictors <- drm_missing_predictor_prediction_entries(object, dpar)
+  for (entry in predictors) {
+    if (!identical(entry$family, "bernoulli")) {
+      next
+    }
+    variable <- entry$variable
+    if (!variable %in% names(newdata)) {
+      cli::cli_abort("New prediction data is missing modelled binary predictor {.var {variable}}.")
+    }
+    newdata[[variable]] <- drm_prediction_binary_values(
+      newdata[[variable]], variable, as.character(entry$levels)
+    )
+  }
+  newdata
+}
+
+drm_prepare_missing_predictor_prediction_template <- function(object, template, dpar) {
+  predictors <- drm_missing_predictor_prediction_entries(object, dpar)
+  for (entry in predictors) {
+    if (!identical(entry$family, "bernoulli") || !entry$variable %in% names(template)) {
+      next
+    }
+    if (is.factor(template[[entry$variable]])) {
+      template[[entry$variable]] <- rep.int(0, nrow(template))
+    }
+  }
+  template
+}
+
+drm_prediction_metadata_logical <- function(value, label, n) {
+  if (!is.logical(value) || length(value) != n || anyNA(value)) {
+    cli::cli_abort("Missing-predictor prediction {label} must be a complete logical vector of length {n}.")
+  }
+  value
+}
+
+drm_prediction_metadata_rows <- function(value, label) {
+  if (!is.numeric(value) || any(!is.finite(value)) || any(value != floor(value)) ||
+      any(value < 1L) || any(value > .Machine$integer.max)) {
+    cli::cli_abort("Missing-predictor prediction {label} must contain finite positive integer rows.")
+  }
+  as.integer(value)
+}
+
+drm_missing_predictor_prediction_rows <- function(entry, original_row, n) {
+  observed <- drm_prediction_metadata_logical(entry$observed, "observed metadata", n)
+  missing_rows <- which(!observed)
+  entry_model_row <- drm_prediction_metadata_rows(entry$model_row, "model-row metadata")
+  entry_original_row <- drm_prediction_metadata_rows(entry$original_row, "original-row metadata")
+  if (!identical(entry_model_row, missing_rows) ||
+      !identical(entry_original_row, original_row[missing_rows])) {
+    cli::cli_abort("Missing-predictor prediction model-row metadata does not match the stored design matrix.")
+  }
+  missing_rows
+}
+
+drm_missing_predictor_state_model <- function(object, variable) {
+  candidates <- list(
+    object$model$missing_predictor,
+    object$model$missing_predictor2
+  )
+  matches <- Filter(
+    function(model) {
+      is.list(model) && isTRUE(model$enabled) && identical(model$variable, variable)
+    },
+    candidates
+  )
+  if (length(matches) != 1L) {
+    cli::cli_abort("Missing-predictor state metadata has no unique fitted predictor model.")
+  }
+  matches[[1L]]
+}
+
+drm_reconcile_missing_predictor_state_matrix <- function(
+  object,
+  X,
+  entry,
+  original_row,
+  n
+) {
+  model <- drm_missing_predictor_state_model(object, entry$variable)
+  n_state <- model$n_state
+  levels <- as.character(model$levels)
+  if (!is.numeric(n_state) || length(n_state) != 1L || is.na(n_state) ||
+      n_state < 2L || n_state != floor(n_state) || length(levels) != n_state ||
+      anyNA(levels) || any(!nzchar(levels)) || anyDuplicated(levels)) {
+    cli::cli_abort("Missing-predictor state metadata has invalid fitted state levels.")
+  }
+  missing_rows <- drm_missing_predictor_prediction_rows(entry, original_row, n)
+  entry_levels <- as.character(entry$levels)
+  if (!identical(entry_levels, levels) || !identical(entry$n_state, as.integer(n_state))) {
+    cli::cli_abort("Missing-predictor state metadata does not match the fitted states.")
+  }
+  probability <- entry$conditional_probabilities
+  if (!is.matrix(probability) || !identical(dim(probability), c(length(missing_rows), n_state)) ||
+      !identical(colnames(probability), levels) || any(!is.finite(probability)) ||
+      any(probability < 0)) {
+    cli::cli_abort("Missing-predictor state probabilities must be finite, row-matched, and named by fitted states.")
+  }
+  totals <- rowSums(probability)
+  if (any(!is.finite(totals)) || any(totals <= 0) || any(abs(totals - 1) > 1e-8)) {
+    cli::cli_abort("Missing-predictor state probabilities must be normalized by model row.")
+  }
+  state_X <- model$X_mu_state
+  if (!(is.matrix(state_X) || inherits(state_X, "Matrix")) ||
+      nrow(state_X) != n * n_state || ncol(state_X) != ncol(X) ||
+      !identical(colnames(state_X), colnames(X)) ||
+      any(!is.finite(state_X))) {
+    cli::cli_abort("Missing-predictor state design must be observation-major and align with the fitted mu design.")
+  }
+  for (i in seq_along(missing_rows)) {
+    row <- missing_rows[[i]]
+    state_rows <- (row - 1L) * n_state + seq_len(n_state)
+    X[row, ] <- as.numeric(crossprod(probability[i, ] / totals[[i]], state_X[state_rows, , drop = FALSE]))
+  }
+  X
+}
+
+drm_reconcile_missing_predictor_matrix <- function(object, X, dpar) {
+  predictors <- drm_missing_predictor_prediction_entries(object, dpar)
+  if (length(predictors) == 0L) {
+    return(X)
+  }
+  n <- nrow(X)
+  missing_data <- object$missing_data
+  original_row <- drm_prediction_metadata_rows(missing_data$original_row, "original-row metadata")
+  model_row <- drm_prediction_metadata_rows(missing_data$model_row, "model-row metadata")
+  if (length(original_row) != n || length(model_row) != n ||
+      !identical(model_row, seq_len(n))) {
+    cli::cli_abort("Missing-predictor prediction row metadata does not match the stored design matrix.")
+  }
+  for (entry in predictors) {
+    if (entry$family %in% c("ordinal", "categorical")) {
+      X <- drm_reconcile_missing_predictor_state_matrix(
+        object, X, entry, original_row, n
+      )
+      next
+    }
+    missing_rows <- drm_missing_predictor_prediction_rows(entry, original_row, n)
+    if (!is.numeric(entry$value)) {
+      cli::cli_abort("Missing-predictor prediction values must be numeric for non-state predictor metadata.")
+    }
+    values <- as.numeric(entry$value)
+    if (length(values) != n || any(!is.finite(values[missing_rows]))) {
+      cli::cli_abort("Missing-predictor prediction values must be finite for every missing model row.")
+    }
+    column <- paste0("mi(", entry$variable, ")")
+    if (!column %in% colnames(X) || sum(colnames(X) == column) != 1L) {
+      cli::cli_abort("Missing-predictor prediction metadata has no unique {.code {column}} design column.")
+    }
+    X[missing_rows, column] <- values[missing_rows]
+  }
+  X
+}
+
 drm_prediction_matrix <- function(object, newdata, dpar) {
   if (is.null(newdata)) {
-    return(object$model$X[[dpar]])
+    return(drm_reconcile_missing_predictor_matrix(
+      object, object$model$X[[dpar]], dpar
+    ))
   }
   if (!is.data.frame(newdata)) {
     cli::cli_abort("{.arg newdata} must be a data frame.")
@@ -5239,10 +6018,12 @@ drm_prepare_prediction_newdata <- function(object, newdata, dpar) {
   if (!is.data.frame(newdata)) {
     return(newdata)
   }
+  newdata <- drm_prepare_missing_predictor_prediction_newdata(object, newdata, dpar)
   template <- drm_prediction_template_data(object, dpar)
   if (!is.data.frame(template)) {
     return(newdata)
   }
+  template <- drm_prepare_missing_predictor_prediction_template(object, template, dpar)
 
   drm_prepare_model_matrix_newdata(
     newdata = newdata,
@@ -5275,8 +6056,17 @@ drm_prepare_model_matrix_newdata <- function(newdata, dpar, terms, template) {
       ))
     }
   }
+  bare_only <- drm_bare_only_term_variables(terms)
   for (name in intersect(intersect(names(newdata), names(template)), needed)) {
     source <- template[[name]]
+    if (is.character(source) && name %in% bare_only) {
+      # model.matrix() builds levels from the rows it is given, so a character
+      # training column used as a bare term must be rebuilt with the fitted
+      # levels before a partial prediction grid reaches it (#1497). A column
+      # that also appears inside a transform (as.numeric(x), I(x * z), mi(x))
+      # is left alone: the transform must see the raw values.
+      source <- factor(source)
+    }
     if (!is.factor(source)) {
       next
     }
@@ -5296,6 +6086,19 @@ drm_prepare_model_matrix_newdata <- function(newdata, dpar, terms, template) {
     )
   }
   newdata
+}
+
+# Variables that enter the right-hand side only as bare names, never inside a
+# transform or marker call (#1497 review).
+drm_bare_only_term_variables <- function(terms) {
+  vars <- as.list(attr(stats::delete.response(terms), "variables"))[-1L]
+  if (length(vars) == 0L) {
+    return(character())
+  }
+  bare <- vapply(vars, is.name, logical(1L))
+  bare_names <- vapply(vars[bare], as.character, character(1L))
+  inside <- unique(unlist(lapply(vars[!bare], all.vars), use.names = FALSE))
+  setdiff(bare_names, inside)
 }
 
 drm_prepare_random_scale_newdata <- function(sd_target, newdata, dpar) {
@@ -5712,6 +6515,23 @@ drm_fitted_response <- function(object) {
   )
 }
 
+# Route a sigma-type linear predictor through the same soft clamp the TMB
+# likelihood applies for scale-bearing families (Dinnage audit M2, issue
+# #1308), so predict()/sigma()/residuals()/fitted()/simulate() report the
+# scale the likelihood actually evaluated instead of the raw, unclamped
+# predictor. A no-op for every other dpar and for families the clamp does not
+# cover; see drm_clamped_scale_families() and drm_softclamp_log_sd()
+# (R/drmTMB.R).
+drm_clamped_sigma_eta <- function(object, dpar, eta) {
+  if (
+    !dpar %in% c("sigma", "sigma1", "sigma2") ||
+      !isTRUE(object$model$model_type %in% drm_clamped_scale_families())
+  ) {
+    return(eta)
+  }
+  drm_softclamp_log_sd(eta, object$model$tmb_data)
+}
+
 drm_inverse_link <- function(object, dpar, eta) {
   link <- drm_dpar_link(object, dpar)
   switch(
@@ -5724,7 +6544,8 @@ drm_inverse_link <- function(object, dpar, eta) {
     logm2 = 2 + exp(eta),
     logit12 = 1 + stats::plogis(eta),
     atanh_guarded = rho_response(eta),
-    atanh_re_guarded = rho_response(eta, guard = 0.999999),
+    atanh_re_guarded = rho_response(eta, guard = DRM_RE_CORR_GUARD),
+    atanh_phylo_guarded = rho_response(eta, guard = 0.999999),
     cli::cli_abort("Internal error: unknown inverse link {.val {link}}.")
   )
 }
@@ -5743,6 +6564,11 @@ drm_dpar_link <- function(object, dpar) {
   # refactored: unifying the two would require every model_type to carry a
   # drm_family object and is deferred to avoid destabilizing link resolution.
   if (startsWith(dpar, "corpair(")) {
+    # A modelled phylogenetic correlation keeps TMB's 0.999999 guard (rho_node);
+    # a modelled group correlation uses the random-effect guard (#1190).
+    if (isTRUE(has_modelled_phylo_correlation(object$model))) {
+      return("atanh_phylo_guarded")
+    }
     return("atanh_re_guarded")
   }
   links <- switch(
@@ -5805,6 +6631,13 @@ drm_dpar_link <- function(object, dpar) {
   }
   unname(links[[dpar]])
 }
+
+# Guard for random-effect correlations, rho = DRM_RE_CORR_GUARD * tanh(eta).
+# Must equal the Type(0.99999999) at the rho_mu_re / rho_sigma_re /
+# rho_mu_sigma_re / rho_mu_group sites in src/drmTMB.cpp, so the R-side
+# response scale reproduces TMB's reported correlation (#1190). The residual
+# rho12 and phylogenetic correlations keep 0.999999.
+DRM_RE_CORR_GUARD <- 0.99999999
 
 rho_response <- function(eta, guard = 0.999999) {
   guard * tanh(eta)
@@ -5979,10 +6812,19 @@ predict_random_scale_dpar <- function(
     names_out <- rownames(newdata)
   }
   eta <- as.vector(X %*% object$coefficients[[dpar]])
+  # The kernel soft-clamps this same log(sd) predictor before exponentiating
+  # it (src/drmTMB.cpp ~2482-2485, drm_softclamp_log_sd), and the fit's own
+  # summary agrees: sd_mu_group_values()/sd_phylo_group_values()
+  # (R/drmTMB.R:23062-23092) apply drm_softclamp_log_sd() then
+  # drm_exp_sd_logscale_guarded() to the identical eta. Without the same
+  # clamp here, predict(dpar = "sd(...)") reported the raw, unclamped
+  # predictor and disagreed with fit$sdpars by up to ~25x on a fixture where
+  # the clamp band binds (Dinnage audit M2 review, item 2).
+  eta <- drm_softclamp_log_sd(eta, object$model$tmb_data)
   if (type == "link") {
     stats::setNames(eta, names_out)
   } else {
-    stats::setNames(exp(eta), names_out)
+    stats::setNames(drm_exp_sd_logscale_guarded(eta), names_out)
   }
 }
 
@@ -6075,9 +6917,49 @@ covariance_block_random_effect_contribution <- function(object, dpar) {
   rowSums(block_re$contribution[, cols, drop = FALSE])
 }
 
-# ---- Marginal (re.form = NULL) random-effect redraw helpers ---------------
+# `re.form` follows lme4 (#1487): NA or ~0 = marginal (fresh random effects),
+# NULL = conditional on the fitted random effects. Returns TRUE for marginal.
+drm_simulate_re_form_marginal <- function(re.form) {
+  if (is.null(re.form)) {
+    return(FALSE)
+  }
+  if (identical(re.form, NA) || drm_is_zero_re_formula(re.form)) {
+    return(TRUE)
+  }
+  cli::cli_abort(c(
+    "{.arg re.form} must be {.code NA}, {.code ~0}, or {.code NULL}.",
+    "i" = "{.code NA} (the default) or {.code ~0} draws fresh random effects for every replicate (marginal simulation).",
+    "i" = "{.code NULL} holds every random effect fixed at its fitted conditional-mode estimate (conditional simulation)."
+  ))
+}
+
+drm_is_zero_re_formula <- function(x) {
+  if (!inherits(x, "formula") || length(x) != 2L) {
+    return(FALSE)
+  }
+  rhs <- x[[2L]]
+  is.numeric(rhs) && length(rhs) == 1L && identical(as.numeric(rhs), 0)
+}
+
+# The explicit values swapped meaning in #1487; say so once per session to
+# anyone who passes `re.form` explicitly.
+drm_simulate_re_form_semantics_message <- function() {
+  cli::cli_inform(
+    c(
+      "{.fn simulate} now follows the lme4 {.arg re.form} convention.",
+      "*" = "{.code re.form = NA} (the default) or {.code ~0} draws fresh random effects.",
+      "*" = "{.code re.form = NULL} holds the fitted random effects fixed.",
+      "i" = "Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them."
+    ),
+    class = "drmTMB_re_form_semantics_message",
+    .frequency = "once",
+    .frequency_id = "drmTMB_simulate_re_form_semantics"
+  )
+}
+
+# ---- Marginal (re.form = NA) random-effect redraw helpers -----------------
 #
-# `simulate.drmTMB(..., re.form = NULL)` draws a FRESH random-effect
+# `simulate.drmTMB(..., re.form = NA)` draws a FRESH random-effect
 # realization for every replicate instead of reusing the fitted conditional-
 # mode random effects that `mu_random_effect_contribution()` /
 # `sigma_random_effect_contribution()` add to `predict()` when `newdata` is
@@ -6146,7 +7028,7 @@ drm_fresh_ordinary_random_effect_values <- function(
     cli::cli_abort(c(
       "Marginal simulation could not find a fitted random-effect SD for every {.field {re$labels}} term.",
       "i" = "This usually means the random-effect scale is itself modelled (heteroscedastic).",
-      "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+      "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
     ))
   }
   rho <- rep(NA_real_, re$n_cors)
@@ -6156,7 +7038,7 @@ drm_fresh_ordinary_random_effect_values <- function(
   if (re$n_cors > 0L && anyNA(rho)) {
     cli::cli_abort(c(
       "Marginal simulation could not find a fitted correlation for every {.field {re$cor_labels}} random-effect block.",
-      "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+      "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
     ))
   }
   has_cross <- !is.null(cross_re) && isTRUE(cross_re$n_cors > 0L)
@@ -6190,7 +7072,7 @@ drm_fresh_ordinary_random_effect_values <- function(
         if (is.null(rho_i) || is.na(rho_i)) {
           cli::cli_abort(c(
             "Marginal simulation could not find a fitted mu/sigma cross-correlation for {.field {cross_label}}.",
-            "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+            "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
           ))
         }
         mu_idx <- cross_re$sigma_cross_mu_index0[[idx]] + 1L
@@ -6280,7 +7162,7 @@ drm_structured_mu_random_effect_draws <- function(object) {
     cli::cli_abort(c(
       "Marginal simulation could not find a fitted structured-effect SD for {.field {label}}.",
       "i" = "This usually means the structured random-effect scale is itself modelled (heteroscedastic).",
-      "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+      "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
     ))
   }
   key <- structured_mu_random_effect_key(phylo_mu, model_type)
@@ -6394,6 +7276,7 @@ drm_marginal_predict <- function(
   if (!is.null(contrib)) {
     eta <- eta + contrib
   }
+  eta <- drm_clamped_sigma_eta(object, dpar, eta)
   if (identical(type, "link")) {
     return(eta)
   }

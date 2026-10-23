@@ -8,7 +8,7 @@ b2_q6_audit_stop <- function(...) stop(..., call. = FALSE)
 
 b2_q6_audit_hash <- function(path) {
   cmd <- if (nzchar(Sys.which("sha256sum"))) "sha256sum" else "shasum"
-  args <- if (identical(cmd, "sha256sum")) path else c("-a", "256", path)
+  args <- if (identical(cmd, "sha256sum")) shQuote(path) else c("-a", "256", shQuote(path))
   sub("\\s.*$", "", system2(cmd, args, stdout = TRUE))
 }
 
@@ -24,8 +24,8 @@ b2_q6_audit_result_dir <- function(root, row) {
 }
 
 b2_q6_audit_source_enforces_serial <- function(root, sha) {
-  cohort <- paste(system2("git", c("-C", root, "show", paste0(sha, ":tools/run-b2-q6-proof-profile-cohort.R")), stdout = TRUE), collapse = "\n")
-  barrier <- paste(system2("git", c("-C", root, "show", paste0(sha, ":tools/b2-retained-profile-serial.R")), stdout = TRUE), collapse = "\n")
+  cohort <- paste(system2("git", c("-C", shQuote(root), "show", paste0(sha, ":tools/run-b2-q6-proof-profile-cohort.R")), stdout = TRUE), collapse = "\n")
+  barrier <- paste(system2("git", c("-C", shQuote(root), "show", paste0(sha, ":tools/b2-retained-profile-serial.R")), stdout = TRUE), collapse = "\n")
   grepl("b2_serial_run", cohort, fixed = TRUE) &&
     grepl("b2_serial_wait_for_terminal", barrier, fixed = TRUE) &&
     grepl("if (!isTRUE(state$alive))", barrier, fixed = TRUE) &&
@@ -44,7 +44,11 @@ b2_q6_audit_run <- function(root, authorization, output) {
     b2_q6_audit_stop("Authorization lacks one frozen runner source/tree identity.")
   }
   sha <- auth$runner_source_sha[[1L]]
-  tree <- trimws(system2("git", c("-C", root, "rev-parse", paste0(sha, "^{tree}")), stdout = TRUE))
+  tree <- trimws(system2(
+    "git",
+    c("-C", shQuote(root), "rev-parse", paste0(sha, "^{tree}")),
+    stdout = TRUE
+  ))
   if (!identical(tree, auth$runner_source_tree_sha[[1L]])) b2_q6_audit_stop("Runner tree does not match authorization.")
   source_serial <- b2_q6_audit_source_enforces_serial(root, sha)
   auth_hash <- b2_q6_audit_hash(authorization)

@@ -1,0 +1,11 @@
+field	value
+source_sha	82df7a324469b393a7ee7e9ce5c1ebd96757fd2c
+source_state	COMMITTED
+cohort_path	2026-08-01-b2-q12-nonphylo-fit-only-cohort.tsv
+readmission_path	2026-08-01-b2-q12-nonphylo-fit-only-re-admission.tsv
+provider_count	3
+target_count	12
+execution_authorized	FALSE
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+claim_ceiling	fit_only_admission

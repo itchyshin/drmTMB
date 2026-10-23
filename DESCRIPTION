@@ -1,27 +1,16 @@
 Package: drmTMB
 Title: Distributional Regression Models Using Template Model Builder
-Version: 0.7.0
+Version: 0.7.1
 Authors@R: c(
     person("Shinichi", "Nakagawa", email = "itchyshin@gmail.com",
            role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0002-7765-5182"))
   )
-Description: Fast distributional regression models for univariate and
-    bivariate responses using Template Model Builder. The current
-    implementation focuses on Gaussian and Student-t location-scale models,
-    known sampling covariance, phylogenetic location effects, random-effect
-    scale models, bivariate residual correlation, positive-continuous,
-    'Tweedie' semi-continuous, strict-proportion, zero-one bounded, and
-    denominator-aware proportion families, fixed-effect Bernoulli/binomial
-    event-probability models, and
-    fixed-effect Poisson, negative-binomial, zero-inflated, zero-truncated,
-    hurdle count, and ordinal cumulative-logit models.
-    Skewness and additional response-family models are staged for later
-    phases. Every fitted family also exposes a distributional-output and
-    adequacy layer: randomized quantile-residual worm and QQ plots that
-    detect fixed-effect shape and atom misspecification, and
-    conditional-quantile, exceedance, and centile outputs with plug-in
-    (uncalibrated) intervals.
+Description: Fast distributional regression models for one or two responses
+    using Template Model Builder. Predictors can change an outcome's average,
+    residual variability, shape, or probability of zero. Begin with the
+    documented tutorials; check the fitted model and the model-specific limits
+    before reporting results.
 License: GPL (>= 3)
 URL: https://itchyshin.github.io/drmTMB/, https://github.com/itchyshin/drmTMB
 BugReports: https://github.com/itchyshin/drmTMB/issues
@@ -37,7 +26,8 @@ Imports:
     methods,
     stats,
     TMB (>= 1.9.6),
-    utils
+    utils,
+    nlme
 LinkingTo:
     RcppEigen,
     TMB
@@ -45,6 +35,7 @@ Suggests:
     ape,
     callr,
     detectseparation (>= 0.4.0),
+    DHARMa,
     emmeans,
     extraDistr,
     fmesher,
@@ -54,6 +45,7 @@ Suggests:
     knitr,
     lme4,
     MASS,
+    metadat,
     metafor,
     mvtnorm,
     numDeriv,
@@ -61,6 +53,7 @@ Suggests:
     palmerpenguins,
     pkgload,
     rmarkdown,
+    roxygen2,
     sf,
     spelling,
     statmod,

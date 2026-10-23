@@ -1,0 +1,15 @@
+totoro
+date=2026-08-16T20:44:47Z
+hostname=totoro
+nproc=1
+nworkers=8
+core_cap=16
+totoro_core_cap=150
+git_sha=5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d
+repo=/home/snakagaw/hsq_work/drmTMB-mc0717
+lib=/home/snakagaw/hsq_work/drmTMB-mc0717-library
+loadavg=2.78 2.46 2.29 3/6288 3688117
+# NOTE: the nproc=1 line above is a recording glitch. Live ssh nproc=384
+# before and after the run. The core guard would have refused NWORKERS=8
+# if nproc had been 1 at launch. GNU parallel joblog shows 8 concurrent
+# starts. Treat machine size as 384 and workers used as 8.

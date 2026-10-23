@@ -3,6 +3,13 @@
 Read this ledger together with
 `docs/design/168-r-julia-finish-capability-matrix.md`; when a status boundary
 differs, the stricter fitted, planned, or unsupported row governs public claims.
+For the six capabilities whose `engine = "julia"` bridge cell reads `UNCITED`
+on `docs/design/parity-scoreboard.md` -- AGHQ, VA/ELBO, the q4 PLSM bivariate
+structured effect, cross-family bivariate, missing-response handling and
+`mi()` -- the boundary is written out in
+`docs/design/parity-fenced-capabilities.md`: which decision fences each, what
+to use instead today, and whether the fence is permanent or carries a stated
+revisit condition.
 
 - The Q-Series v1.0 release boundary is generated in
   `docs/dev-log/release-audits/q-series-v1-release-status.md`. It separates
@@ -44,15 +51,16 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   q > 2 SDs are direct profile targets, but q > 2 correlations are not direct
   profile interval targets yet.
 - Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
-  unlabelled location (`mu`) random intercept or independent slope. Its
-  joint-Laplace result and uncertainty agree with the overlapping
-  `glmmTMB(REML = TRUE)` calculation in deterministic checks, but no recovery
-  or coverage campaign authorizes scientific reporting. Fixed-only binomial
-  REML has no admitted variance component; correlated, labelled, structured,
-  and missing-response forms remain unavailable. Other non-Gaussian public
-  REML routes are not implemented. The retained cumulative-logit AGHQ plus
-  Cox-Reid campaign concerns a package-private estimator and supplies no
-  `drmTMB()` fit or reporting permission.
+  unlabelled location (`mu`) random intercept (`mc-0060`) or independent
+  slope (`mc-0062`). Its joint-Laplace result and uncertainty agree with the
+  overlapping `glmmTMB(REML = TRUE)` calculation in deterministic checks, but
+  no recovery or coverage campaign authorizes scientific reporting.
+  Fixed-only binomial REML has no admitted variance component; correlated,
+  labelled, structured, and missing-response forms remain unavailable. Other
+  non-Gaussian public REML routes are not implemented. The retained
+  cumulative-logit AGHQ plus Cox-Reid campaign (O3) concerns a
+  package-private estimator and supplies no `drmTMB()` fit or reporting
+  permission; public `mc-0227` stays ML `point_fit_recovery`.
 - Residual-scale random intercepts, independent numeric random slopes, and
   UNLABELLED correlated intercept-slope blocks are implemented on log-`sigma` in
   the `sigma` formula as `sigma ~ x + (1 | id)`, `sigma ~ x + (0 + w | id)`, and
@@ -146,7 +154,26 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `miss_control(predictor = "model")` fits one explicit `mi()` missing
   predictor at a time in univariate Gaussian location models, with fixed-effect
   family-aware predictor models plus the grouped and structured Gaussian
-  covariate routes. Poisson, binomial, NB2, and beta response models separately
+  covariate routes.   Beta and zero-one-Beta `mi()` use the frozen 15-node
+  Gauss-Legendre rule; U-shaped Beta (`mu` 0.02 or 0.10 with `sigma = 1`)
+  still has an `integrate()` logLik error of about `1.64e-2` (refs #1476).
+  The worse U-shaped case with Beta shapes `(0.13, 0.31)` and `y` near
+  the 0 pole is about `0.54` log units (#1531 cites `1.6e-2`, which
+  understates that pole case). A successful TMB fit now warns with
+  class `drmTMB_mi_quadrature_inaccurate` when any `mi()` term's
+  estimated missing-row Beta / zero-one-Beta prior mean is within
+  `0.10` of 0 or 1 (15-node error `4.65e-3` at `mu = 0.10`, `sigma = 1`
+  and `4.81e-3` at `mu = 0.02`, `sigma = 1`). Gamma `mi()` uses a posterior-mode
+  sinh-mapped trapezoid rule on `log(x)` at every CV. Against a log-space
+  `integrate()` reference the per-row logLik error is under `1e-4` for
+  Gaussian responses at CV 0.05 to 2 (worst `2.5e-5`, near the mode at
+  CV 2) and for Poisson responses at CV 0.2 to 2 with `y` = 0, 1, 4, 30.
+  Still open (refs #1477): CV `>= 3` (12% of an 80-row random `(mu, y)`
+  scan exceed `1e-4`, worst `1.47`; the same classed warning fires at
+  fitted CV `>= 3`),
+  and a Poisson response whose mean at the prior mean is far above `y`
+  (`exp(eta)` at `x = mu` of about `1e3` or more), where five Newton steps
+  stop short of the mode; twelve steps recover the moderate cases. Poisson, binomial, NB2, and beta response models separately
   support one fixed-effect binary `mi()` predictor when the response is
   complete. Beta-binomial masking requires a complete success/failure pair per
   observed row; cumulative-logit masking requires an ordered factor and every
@@ -400,15 +427,18 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
 - Univariate lognormal location-scale models are implemented for positive
   finite responses. `mu` and `sigma` are on the log-response scale, and
   ordinary unlabelled `mu` random intercepts and independent numeric slopes
-  such as `(1 | id) + (0 + x | id)` are fitted. One ordinary log-`sigma`
+  such as `(1 | id) + (0 + x | id)` are fitted. One complete-data ordinary
+  unlabelled correlated intercept-slope block `(1 + x | id)` is also fitted
+  at `point_fit_recovery` (`mc-0720`) under the design-17 Cholesky; it is not
+  the independent-slope cell `mc-0380`. One ordinary log-`sigma`
   random intercept is also fitted; its exact Arc 4a ledger domain is
   inference-ready with caveats and mildly anti-conservative coverage. The
   `mu` and `sigma` random-effect routes must be fitted separately; combining
   them is rejected.
   Arc 3a fits one recovery-grade unlabelled q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`.
-  Structured slopes, labels,
+  Labelled slopes, other structured routes,
   `sigma` structure, joint `mu`/`sigma`, simultaneous structured providers, spatial/animal,
-  REML, intervals/coverage, and bivariate lognormal extensions beyond the
+  REML, missing-response for the correlated wedge, intervals/coverage, and bivariate lognormal extensions beyond the
   separate fixed-effect complete-pair Arc 6.3 slice remain rejected.
 - Univariate Student-t location-scale-shape models are implemented for robust
   continuous responses, including fixed-effect `mu`, `sigma`, and `nu` formulas
@@ -461,11 +491,14 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   boundary messages. There is no modelled `sigma`
   parameter. The first structured count routes are fitted for one unlabelled
   q=1 `phylo()`, `spatial()`, `animal()`, or `relmat()` intercept in ordinary
-  Poisson `mu`. Overdispersion, correlated Poisson slope blocks, labelled
+  Poisson `mu`. One complete-data unlabelled ordinary `(1 + x | g)` Poisson
+  block is `point_fit_recovery` (`mc-0718`) under the design-17 Cholesky;
+  it is not an interval or coverage claim. Overdispersion, labelled ordinary
   Poisson covariance blocks, known sampling covariance, structured count
-  slopes, zero-inflated structured effects beyond the exact Poisson spatial `zi`
-  local-fit gate, simultaneous structured types within Poisson, and bivariate or mixed Poisson
-  models remain planned.
+  slopes beyond the existing labelled q2 point-fits, zero-inflated structured
+  effects beyond the exact Poisson spatial `zi` local-fit gate, simultaneous
+  structured types within Poisson, and bivariate or mixed Poisson models remain
+  planned.
 - Fixed-effect univariate negative-binomial 2 mean-dispersion models are
   implemented for overdispersed counts with `family = nbinom2()`. `mu` is the
   count mean and `sigma` is an overdispersion scale in
@@ -480,9 +513,12 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   are implemented by adding `hu ~ predictors`; `hu` is the hurdle-zero
   probability and nonzero counts come from the zero-truncated NB2 component.
   Ordinary non-zero-inflated NB2 `mu` random intercepts and independent numeric
-  slopes, the first ordinary NB2 log-`sigma` random intercept, and ordinary
+  slopes, one complete-data unlabelled ordinary `(1 + x | g)` NB2 block at
+  `point_fit_recovery` (`mc-0719`) under the same design-17 Cholesky as Poisson,
+  the first ordinary NB2 log-`sigma` random intercept, and ordinary
   zero-truncated NB2 `mu` random intercepts and independent numeric slopes are
-  fitted. Apart from the exact Poisson spatial `zi`, Poisson fixed-`zi` spatial
+  fitted. `mc-0719` is not an interval or coverage claim and is not the
+  independent-slope cell `mc-0402`. Apart from the exact Poisson spatial `zi`, Poisson fixed-`zi` spatial
   `mu`, NB2 fixed-`zi` spatial `mu`, and truncated-NB2 hurdle
   `hu ~ relmat(1 | id, Q = Q)` local
   fit-only gates, random effects in `zi`, `hu`, or the count-side `mu` path of
@@ -540,9 +576,14 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `stats::glm()` log-likelihood, AIC, and BIC parity, and has no public
   `sigma`. Ordinary `mu` random intercepts and independent numeric slopes are
   fitted first slices. One complete-data native-TMB unlabelled correlated
-  intercept-slope block is also fitted at point-fit-only grade. The exact independent-slope domain in capability cell
-  `mc-0061` is inference-ready with caveats; it does not authorize neighbouring
-  random-effect designs. Non-logit links, factor response ordering, proportions plus
+  intercept-slope block `(1 + x | g)` recovers `sd0`, `sd1`, and group-level
+  `rho_re` at `point_fit_recovery` in capability cell `mc-0717`; that cell is
+  not the independent-slope cell `mc-0061`. A slope predictor that is constant
+  within every group is rejected before the fit because `sd1` and `rho_re` are
+  unidentified. The exact independent-slope domain in
+  `mc-0061` is inference-ready with caveats; it does not authorize the correlated
+  block, REML, missing-response, labelled, or mixed `(1 | g) + (1 + x | g)`
+  neighbours. Non-logit links, factor response ordering, proportions plus
   `weights`, `weights = trials`, labelled or multiple correlated random slopes, structured effects,
   bivariate or mixed responses, and `engine = "julia"` remain unsupported.
   Experimental `estimator = "mspl"` is narrower still: one q=1 or q=2 ordinary
@@ -724,7 +765,9 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   row-specific phylo `nu` gate, Student-t known-covariance
   models, broad Student-t phylogenetic models, richer bivariate Student-t
   models beyond the exact fixed-effect shared-`nu` source slice,
-  correlated lognormal/Gamma/beta/beta-binomial random slopes,
+  correlated Gamma/beta/beta-binomial random slopes and labelled or mixed
+  lognormal correlated neighbours beyond the exact `mc-0720` unlabelled
+  `(1 + x | id)` wedge,
   lognormal/Gamma `sigma` slopes, labelled or combined `sigma` random effects,
   beta/beta-binomial `sigma` random effects beyond the exact beta q1
   `sigma ~ animal()` intercept gate,

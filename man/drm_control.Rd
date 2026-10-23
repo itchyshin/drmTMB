@@ -18,13 +18,25 @@ drm_control(
   logsigma_clamp = c(-12, 12),
   logsigma_clamp_margin = 3,
   optimizer_preset = c("default", "careful", "robust"),
+  newton_polish = TRUE,
   multi_start = 1L,
-  fallback_optimizer = NULL
+  fallback_optimizer = NULL,
+  start = NULL,
+  parallel = c("none", "multicore", "cluster"),
+  workers = NULL,
+  optimizer_method = "nlminb"
 )
 }
 \arguments{
 \item{optimizer}{Named list passed to the \code{control} argument of
-\code{\link[stats:nlminb]{stats::nlminb()}}.}
+\code{\link[stats:nlminb]{stats::nlminb()}} or \code{\link[stats:optim]{stats::optim()}}, according to \code{optimizer_method}.
+Direct \code{optim()} methods use \code{maxit = 1000L} unless overridden, with their
+native tolerance defaults. \code{"L-BFGS-B"} uses \code{factr} and \code{pgtol};
+the other methods use \code{reltol} and \code{abstol}. Unknown controls and controls
+for other methods are rejected. \code{fnscale} must be finite and positive:
+fitting minimizes the negative log-likelihood. \code{lower} and \code{upper} are not
+control settings and are rejected; model parameters are transformed
+internally, and no user-supplied box bounds are provided.}
 
 \item{se}{Logical; compute standard errors and fixed-effect covariance with
 \code{\link[TMB:sdreport]{TMB::sdreport()}} after optimization. Set to \code{FALSE} to keep fitted
@@ -77,12 +89,12 @@ note because it cannot re-evaluate the gradient without \code{fit$obj}, and
 profile-likelihood confidence intervals will be unavailable.}
 
 \item{sparse_fixed}{Logical; opt-in control for sparse fixed-effect
-design matrices. The first fitted path is limited to univariate Gaussian
+design matrices. This option is limited to univariate Gaussian
 \code{mu} fixed effects with no random effects and intercept-only \code{sigma}.}
 
 \item{aggregate_gaussian}{Logical; opt-in control for sufficient-
-statistic row aggregation in univariate Gaussian fixed-effect models. The
-first fitted path rejects random effects, structured effects, known
+statistic row aggregation in univariate Gaussian fixed-effect models. This
+option rejects random effects, structured effects, known
 sampling covariance, bivariate models, non-Gaussian families, non-unit
 likelihood weights, and combined sparse fixed-effect matrices.}
 
@@ -102,27 +114,89 @@ the default band). Ignored when \code{logsigma_clamp = NULL}.}
 optimizer controls, \code{"careful"} sets \code{iter.max = 1000} and
 \code{eval.max = 1000}, and \code{"robust"} sets \code{iter.max = 5000} and
 \code{eval.max = 5000}. The optimizer escalates this ladder automatically when a
-preset does not converge.}
+preset does not converge. Presets apply only to \code{optimizer_method = "nlminb"}.}
+
+\item{newton_polish}{Logical (default \code{TRUE}). \code{\link[stats:nlminb]{stats::nlminb()}}'s own
+\code{rel.tol}/\code{x.tol} stopping rules trigger on a relative change in the
+objective or the step, not on the gradient norm, so on a flat or
+weakly-curved surface (for example a variance component identified by
+few groups) \code{nlminb()} can report convergence while the true gradient at
+that point is still far from zero. Rather than tightening
+\code{rel.tol}/\code{x.tol} -- which in the tested flat-surface case instead produced a
+spurious "singular convergence" code without reliably landing closer to
+the true optimum -- the default fixed \code{rel.tol}/\code{x.tol} (\code{nlminb()}'s
+own) are left alone, and a Newton polish step is applied to whatever
+the selected optimizer returns: the exact TMB gradient plus a finite-differenced
+Hessian of that gradient (\code{stats::optimHess()}) drive a few Newton steps
+until the gradient's max absolute component is at or below a small
+threshold, accepting a step only if it does not increase the objective.
+Cost is a handful of extra gradient evaluations at the reported optimum
+(skipped entirely once the gradient is already small); set to \code{FALSE} to
+restore the pre-0.7.1 behaviour of reporting \code{nlminb()}'s raw optimum
+unpolished. The same polish applies to direct \code{optim()} methods; set
+\code{newton_polish = FALSE} to inspect their raw results.}
 
 \item{multi_start}{Whole number \verb{>= 1} (default \code{1}). With \code{multi_start > 1},
-each optimizer preset is run from \code{multi_start} starting points -- the
+each \code{nlminb()} preset or the directly selected \code{optim()} method is run
+from \code{multi_start} starting points -- the
 principled start plus reproducibly perturbed starts -- and the lowest-
 objective result is kept. Opt-in robustness for weakly identified models;
-\code{multi_start = 1} is the single-start fit and is unchanged.}
+\code{multi_start = 1} is the single-start fit and is unchanged. Joint models
+with both scale and zero-inflation predictors (for example \code{sigma ~ ...}
+together with \code{zi ~ ...} on Poisson or \code{nbinom2()} families) can admit
+multiple local optima; when a fit looks unstable or convergence
+checks flag a boundary, try \code{multi_start > 1} before changing the model.
+The starts run one after another unless \code{parallel} is set.}
 
 \item{fallback_optimizer}{\code{NULL} (default) or one \code{\link[stats:optim]{stats::optim()}} method
 (\code{"BFGS"}, \code{"L-BFGS-B"}, \code{"Nelder-Mead"}, \code{"CG"}). When set, and no
 \code{nlminb()} preset converges, \code{drmTMB()} tries this optimizer as a final
 attempt; a different algorithm can succeed on a numerically awkward but
-identified problem. Opt-in; \code{NULL} keeps the \code{nlminb()}-only ladder.}
+identified problem. Opt-in; \code{NULL} keeps the \code{nlminb()}-only ladder.
+Available only with \code{optimizer_method = "nlminb"}.}
+
+\item{start}{\code{NULL} (default) or a named list of starting values, keyed by
+public start labels. Three label families are supported:
+\code{"fixef:<dpar>:<column>"} for a fixed-effect coefficient (already on the
+model's internal/link scale, e.g. \code{log(sigma)} for the default \code{sigma}
+link); \code{"sd:<dpar>:<term>"} for a random-effect standard deviation, given
+on the natural (positive) scale and transformed internally via \code{log()};
+and \code{"cor:<dpar>:<term>"} for a random-effect correlation, given on the
+natural \verb{(-1, 1)} scale and transformed internally via \code{atanh()}. Labels
+are validated against the parsed formula and family; unknown labels
+error before optimization starts. A start only changes where the
+optimizer begins, never what is reported: unnamed components keep the
+ordinary family-builder default. Latent random-effect values (\code{u}) are
+not addressable through this contract.}
+
+\item{parallel, workers}{Backend and worker count for the \code{multi_start}
+starts only: \code{"none"} (default) runs them one after another,
+\code{"multicore"} forks Unix workers, and \code{"cluster"} uses socket (PSOCK)
+workers on any platform. A single fit, and \code{multi_start = 1}, always run
+on one core. Parallel starts each begin from the same initial TMB state,
+so with random effects they can differ from the serial run at the inner
+solver's tolerance; fixed-effect fits are identical. \code{workers = NULL} uses
+about half the detected cores, capped at \code{multi_start} and at 10. See
+\link{drmTMB-parallel}.}
+
+\item{optimizer_method}{One exact method name: \code{"nlminb"} (default),
+\code{"BFGS"}, \code{"L-BFGS-B"}, \code{"Nelder-Mead"}, or \code{"CG"}. A direct \code{optim()}
+method runs immediately, without the \code{nlminb()} preset ladder or fallback.
+These methods require \code{optimizer_preset = "default"} and
+\code{fallback_optimizer = NULL}. The selected method is recorded in
+\code{fit$optimizer_used$optimizer} and \code{fit$optimizer_attempts$optimizer};
+its attempt has \code{optimizer_preset = NA} because no preset applies.
+\code{optim()} evaluation counts are stored in \code{fit$opt$evaluations};
+it does not report an iteration count.}
 }
 \value{
 A \code{drm_control} object.
 }
 \description{
 \code{drm_control()} collects optimizer settings and storage choices for
-\code{\link[=drmTMB]{drmTMB()}}. Use \code{optimizer} for settings passed to \code{\link[stats:nlminb]{stats::nlminb()}}, or
-\code{optimizer_preset} for named \code{nlminb()} budgets that keep ordinary defaults
+\code{\link[=drmTMB]{drmTMB()}}. Select \code{nlminb()} (the default) or a \code{\link[stats:optim]{stats::optim()}} method
+with \code{optimizer_method}. Use \code{optimizer} for that method's control settings,
+or \code{optimizer_preset} for named \code{nlminb()} budgets that keep ordinary defaults
 fast while making complex refits easier to write. Use the storage flags when
 a fitted object should keep less R-side state, for
 example during large-data experiments where the original data frame and TMB
@@ -132,6 +206,19 @@ automatic-differentiation object are expensive to retain.
 For optimizer-only settings, \code{control = list(eval.max = 1000)} remains
 valid. When using \code{drm_control()}, put optimizer arguments inside
 \code{optimizer = list(...)}; do not pass \code{eval.max} directly to \code{drm_control()}.
+Under \code{engine = "julia"} the forwarded set is a closed whitelist:
+\code{optimizer$g_tol} and \code{optimizer$algorithm} on the base bridge, plus
+\code{optimizer$q4_vcov} on the bivariate q = 4 phylogenetic route. On that q4
+route \code{optimizer$g_tol} becomes DRM.jl's outer-gradient tolerance
+(\code{q4_g_tol}) and \code{optimizer$algorithm} is refused, because that route's
+optimiser has no solver-selection setting. \emph{Every} other \code{drm_control()}
+field is rejected with an error naming it -- never silently ignored --
+because it describes an \code{nlminb()}/TMB program that DRM.jl does not run;
+use \code{engine = "tmb"} for those. The rejected set is derived from
+\code{drm_control()} itself, so a control added here is rejected on the Julia
+path without a matching edit to the bridge. The structured, bivariate q2
+structured, and cross-family Julia routes are narrower still: they accept
+only a default \code{control}, so even \code{optimizer$g_tol} is refused there.
 Presets \code{"careful"} and \code{"robust"} expand to explicit \code{iter.max} and
 \code{eval.max} controls for \code{nlminb()}. Values in \code{optimizer} override values from
 the selected preset.

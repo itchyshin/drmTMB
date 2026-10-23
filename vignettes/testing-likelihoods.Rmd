@@ -35,10 +35,9 @@ symbolic model, the R syntax, the TMB likelihood, and the tests. It assumes you
 are validating a family already underway from [Adding distribution
 families](adding-families.html), not writing formula grammar from scratch.
 
-The planning reference is `docs/design/05-testing-strategy.md`. This article is
-the practical version: what to put in a pull request or phase before asking
-users to rely on a model. `drm_formula()` is the canonical long form used in
-the examples; `bf()` is its short alias.
+Use this article with [Capability and limits](capability-and-limits.html), which
+states the combinations users can rely on today. `drm_formula()` is the
+canonical long form used in the examples; `bf()` is its short alias.
 
 In this guide, location means a mean-like parameter such as `mu`; scale means a
 residual spread or dispersion-like parameter such as `sigma`; shape means a
@@ -56,8 +55,9 @@ Every fitted model should have the same four-part contract:
 
 Those checks establish a code-path and parameterization contract; they do not,
 by themselves, establish interval calibration, coverage, broad performance, or
-support for a neighbouring formula. The release manifest and capability ledger
-remain the claim ceiling.
+support for a neighbouring formula. Treat a combination as unsupported unless
+it is described in [Capability and limits](capability-and-limits.html), even if
+a nearby validation example passes.
 
 | Evidence layer | Establishes | Does not establish |
 | --- | --- | --- |
@@ -241,10 +241,10 @@ expect_equal(as.numeric(logLik(fit)), ll_independent, tolerance = 1e-6)
 
 ## Tier 2: simulation recovery
 
-Simulation recovery is the main internal validation source for new `drmTMB`
-features. It should be used whenever a model has no exact comparator, or
-whenever the package adds a distributional parameter that other software does
-not model in the same way.
+Simulation recovery is the main validation tool for new `drmTMB` features. It
+should be used whenever a model has no exact comparator, or whenever the
+package adds a distributional parameter that other software does not model in
+the same way.
 
 A simulation recovery test should:
 
@@ -481,23 +481,23 @@ Use this split deliberately:
 | Large simulation grid | no | operating characteristics across parameter space |
 | Bootstrap or profile-likelihood coverage | no, until scheduled | uncertainty calibration |
 
-## Before closing a task
+## Before presenting a likelihood as supported
 
-Before a likelihood task is complete, run the after-task audit. The compact
-checklist is:
+Before describing a likelihood as supported, check that:
 
 - the symbolic equation, R syntax, and TMB implementation describe the same
   model;
 - tests include either an independent likelihood check, a comparator check, or
   simulation recovery;
 - at least one unsupported or malformed neighbouring case is checked;
-- `docs/design/03-likelihoods.md`, `docs/design/05-testing-strategy.md`, and
-  relevant vignettes are synchronized;
+- [Formula grammar](formula-grammar.html), [Distribution
+  families](distribution-families.html), [Capability and
+  limits](capability-and-limits.html), and any worked article agree on the
+  supported syntax and scope;
 - `pkgdown::check_pkgdown()` and `pkgdown::build_site()` pass for user-facing
   documentation changes;
-- `docs/dev-log/check-log.md` and an after-task report record the checks, what
-  did not go smoothly, and what remains unsupported.
+- remaining limitations appear beside the relevant public example rather than
+  only in contributor notes.
 
-This discipline is deliberately slow at the end of each task. It is much faster
-than debugging a package whose equations, examples, tests, and documentation
-have drifted apart.
+This checklist keeps the equations, examples, tests, and public support claims
+from drifting apart.

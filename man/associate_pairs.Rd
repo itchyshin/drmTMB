@@ -10,10 +10,10 @@ associate_pairs(fit_1, fit_2, kernel, association)
 \item{fit_1, fit_2}{Two fitted \code{drmTMB} marginal models. They must use the
 identical complete analysis data, in the same order.}
 
-\item{kernel}{A named association kernel. Arc 6 accepts only
+\item{kernel}{A named association kernel. The current implementation accepts only
 \code{latent_normal()}.}
 
-\item{association}{Association formula. Most Arc 6 pair classes accept only
+\item{association}{Association formula. Most supported pair classes accept only
 \code{~ 1}. The beta Bernoulli x ordinary-NB2 route accepts an intercept-bearing
 fixed-effect formula, including multiple predictors, factors,
 interactions, and explicit transformations. Random effects, offsets,
@@ -25,7 +25,7 @@ An object of class \code{drm_pair_association}.
 \description{
 \code{associate_pairs()} estimates a named within-row association after fitting
 two marginal models. It never refits, updates, profiles, or otherwise alters
-either margin. The reviewed Arc 6 slices implement fixed-effect Gaussian
+either margin. Supported pairs include fixed-effect Gaussian
 margins paired with literal Bernoulli \code{binomial(link = "logit")} or ordinary
 \code{nbinom2()} margins, literal Bernoulli paired with ordinary \code{nbinom2()},
 two literal Bernoulli margins, and two ordinary \code{nbinom2()} margins, on the
@@ -38,9 +38,10 @@ The \code{\link[=corpair]{corpair()}} formula marker is a distinct interface.
 The stage-2 Hessian treats the margins as fixed and is not used for
 uncertainty. For every admitted pair route, \code{\link[=vcov]{vcov()}} and \code{\link[=confint]{confint()}} instead
 use a two-stage Godambe covariance that propagates fitted-margin uncertainty
-when the fit-specific calculation succeeds. These alpha-scale routes are
-interval-feasible. The retained Bernoulli x ordinary-NB2 intercept campaign
-supports the stronger inference-ready-with-caveats tier. Intercept-only
+when the fit-specific calculation succeeds. These alpha-scale intervals are
+computable, but their coverage has not been measured for every supported pair.
+For the Bernoulli x ordinary-NB2 intercept-only model, simulation supports
+interval use with caveats. Intercept-only
 associations also expose bounded eta intervals through
 \code{confint(object, type = "eta")}; \code{\link[=predict.drm_pair_association]{predict.drm_pair_association()}} supplies
 delta-method eta standard errors and pointwise transformed intervals.

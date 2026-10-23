@@ -1,0 +1,42 @@
+upload_start=2026-08-18T14:46:08Z
+e9c5556ddf09707f1020099d5d87c6cf419d64f14d00c81ccd4931708d4d485b  /Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc/drmTMB_0.7.0.tar.gz
+size=10090216 bytes
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Host win-builder.r-project.org:21 was resolved.
+* IPv6: (none)
+* IPv4: 129.217.207.166
+*   Trying 129.217.207.166:21...
+* Connected to win-builder.r-project.org (129.217.207.166) port 21
+< 220-Microsoft FTP Service
+< 220 Welcome on win-builder.R-project.org
+> USER anonymous
+< 331 Anonymous access allowed, send identity (e-mail name) as password.
+> PASS itchyshin@gmail.com
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0< 230-Before uploading source packages to R-release, R-devel please read
+<     https://win-builder.R-project.org/index.htm
+< 230 User logged in.
+> PWD
+< 257 "/" is current directory.
+* Entry path is '/'
+> CWD R-oldrelease
+* ftp_perform ends with SECONDARY: 0
+< 250 CWD command successful.
+> EPSV
+* Connect data stream passively
+< 229 Entering Extended Passive Mode (|||53227|)
+* Connecting to 129.217.207.166 (129.217.207.166) port 53227
+*   Trying 129.217.207.166:53227...
+* Connected 2nd connection to 129.217.207.166 port 53227
+> TYPE I
+< 200 Type set to I.
+> STOR drmTMB_0.7.0.tar.gz
+< 125 Data connection already open; Transfer starting.
+  0 9853k    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0} [65536 bytes data]
+ 25 9853k    0     0   25 2496k      0  1017k  0:00:09  0:00:02  0:00:07 1017k* upload completely sent off: 10090216 bytes
+* Remembering we are in dir "R-oldrelease/"
+< 226 Transfer complete.
+100 9853k    0     0  100 9853k      0  3187k  0:00:03  0:00:03 --:--:-- 3187k
+* Connection #0 to host win-builder.r-project.org left intact
+upload_end=2026-08-18T14:46:11Z
+drmTMB_0.7.0.tar.gz

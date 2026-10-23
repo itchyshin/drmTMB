@@ -1,0 +1,83 @@
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+drmTMB_drm_bridge (generic function with 1 method)
+  
+drmTMB_drm_bridge_conditional_gaussian_ri (generic function with 1 method)
+  
+drmTMB_drm_bridge_q2_phylo (generic function with 1 method)
+  
+drmTMB_drm_bridge_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_fixef_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_structured (generic function with 1 method)
+  
+drmTMB_mixed_family (generic function with 1 method)
+  
+$native_names
+[1] "(Intercept)" "x"           "I(x^2)"      "gb"          "gc"         
+[6] "x:gb"        "x:gc"       
+
+$public_coefficients
+$public_coefficients$mu
+ (Intercept)            x __bridge_I_1         g: b         g: c     x & g: b 
+ 0.403083549  0.636759142  0.218658220  0.398258652 -0.155773904  0.340215972 
+    x & g: c 
+ 0.002054629 
+
+$public_coefficients$sigma
+(Intercept) 
+  -0.500218 
+
+
+$bridge_names
+     mu_(Intercept)                mu_x     mu___bridge_I_1             mu_g: b 
+   "mu_(Intercept)"              "mu_x"   "mu___bridge_I_1"           "mu_g: b" 
+            mu_g: c         mu_x & g: b         mu_x & g: c   sigma_(Intercept) 
+          "mu_g: c"       "mu_x & g: b"       "mu_x & g: c" "sigma_(Intercept)" 
+
+$selectors
+$selectors[[1]]
+$selectors[[1]]$term
+[1] "I(x^2)"
+
+$selectors[[1]]$status
+[1] "error"
+
+$selectors[[1]]$message
+[1] "Unknown confidence-interval target: \"fixef:mu:I(x^2)\".\nℹ Use full profile target names such as \"fixef:mu:x\".\nℹ First available targets: fixef:mu:(Intercept), fixef:mu:x,\n  fixef:mu:__bridge_I_1, fixef:mu:g: b, fixef:mu:g: c, fixef:mu:x & g: b,\n  fixef:mu:x & g: c, fixef:sigma:(Intercept)."
+
+
+$selectors[[2]]
+$selectors[[2]]$term
+[1] "gb"
+
+$selectors[[2]]$status
+[1] "error"
+
+$selectors[[2]]$message
+[1] "Unknown confidence-interval target: \"fixef:mu:gb\".\nℹ Use full profile target names such as \"fixef:mu:x\".\nℹ First available targets: fixef:mu:(Intercept), fixef:mu:x,\n  fixef:mu:__bridge_I_1, fixef:mu:g: b, fixef:mu:g: c, fixef:mu:x & g: b,\n  fixef:mu:x & g: c, fixef:sigma:(Intercept)."
+
+
+$selectors[[3]]
+$selectors[[3]]$term
+[1] "x:gb"
+
+$selectors[[3]]$status
+[1] "error"
+
+$selectors[[3]]$message
+[1] "Unknown confidence-interval target: \"fixef:mu:x:gb\".\nℹ Use full profile target names such as \"fixef:mu:x\".\nℹ First available targets: fixef:mu:(Intercept), fixef:mu:x,\n  fixef:mu:__bridge_I_1, fixef:mu:g: b, fixef:mu:g: c, fixef:mu:x & g: b,\n  fixef:mu:x & g: c, fixef:sigma:(Intercept)."
+
+
+
+$elapsed
+[1] 17.447
+
+Julia exit.
+  Activating project at `/private/tmp/drm-parity-20260830/DRM.jl`
+
+EXIT=0 SECONDS=20.034633457893506

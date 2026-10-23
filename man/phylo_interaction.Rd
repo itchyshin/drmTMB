@@ -21,19 +21,18 @@ A formula marker; never evaluated by users.
 \code{phylo_interaction()} marks a pair-level phylogenetic interaction between two
 partner clades. It is the friendly route for bipartite ecological-network
 effects where rows are plant-pollinator, host-symbiont, predator-prey, or
-other two-partner interactions. The first fitted slice is a single q=1
+other two-partner interactions. The currently supported model has a single
 location random intercept whose latent precision is the sparse Kronecker
 product of the two phylogenetic augmented precisions. Use
 \code{relmat(1 | pair, Q = Q_pair)} as the lower-level user-supplied precision
 escape hatch.
 }
 \details{
-The fitted first slice supports ordinary Gaussian, ordinary Poisson, and
-ordinary NB2 location models wherever the existing q=1 structured \code{mu}
+This random-intercept model supports ordinary Gaussian, ordinary Poisson, and
+ordinary NB2 location responses wherever a single structured \code{mu}
 machinery is active. Binary/Bernoulli incidence models and additive models
-that combine partner main phylogenies and the pair-level interaction are
-planned after the corresponding likelihood and multi-layer structured
-recovery tests are in place.
+that combine partner main phylogenies with the pair-level interaction are not
+supported.
 }
 \examples{
 bf(

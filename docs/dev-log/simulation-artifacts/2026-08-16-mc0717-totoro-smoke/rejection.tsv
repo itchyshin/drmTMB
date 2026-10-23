@@ -1,0 +1,26 @@
+neighbour	stayed_red	message	git_sha
+reml	TRUE	Correlated q = 2 binomial random effects are not implemented with
+`REML`.
+ℹ Use `REML = FALSE`, or use the separately validated q = 1 binomial REML
+  route.	5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d
+missing_response	TRUE	Correlated q = 2 binomial random effects are not implemented with
+missing-response integration.
+ℹ Use complete responses or an independently validated q = 1 route.	5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d
+labelled	TRUE	Binomial correlated random effects support one unlabelled
+intercept-slope block.
+✖ Requested random-effect term: `(1 + x | p | id)`.
+ℹ Use exactly `cbind(successes, failures) ~ x + (1 + x | id)`.
+ℹ Labelled covariance blocks, additional random-effect terms, and multiple
+  random slopes remain unsupported.	5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d
+mixed	TRUE	Binomial correlated random effects support one unlabelled
+intercept-slope block.
+✖ Requested random-effect terms: `(1 | id)` and `(1 + x | id)`.
+ℹ Use exactly `cbind(successes, failures) ~ x + (1 + x | id)`.
+ℹ Labelled covariance blocks, additional random-effect terms, and multiple
+  random slopes remain unsupported.	5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d
+poisson	TRUE	Only independent Poisson `mu` random intercepts and slopes are
+implemented in this slice.
+✖ Unsupported random-effect term: `(1 + x | id)`.
+ℹ Use syntax like `count ~ x + (1 | id)` or `count ~ x + (0 + x | id)`.
+ℹ Correlated Poisson random-slope blocks and labelled covariance blocks remain
+  planned for a later non-Gaussian random-effect gate.	5d5048d8d5cdbed623c524b56a6a96e1f0f3c52d

@@ -1,0 +1,2 @@
+M NEWS.md
+M docs/dev-log/dashboard/capability-ledger/2026-08-08-c17c2-c14-final-source-compatibility.tsv

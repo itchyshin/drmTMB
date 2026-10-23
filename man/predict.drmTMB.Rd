@@ -66,7 +66,7 @@ RESPONSE distribution (not of a linear predictor): \code{qnorm}-style inverse
 CDF evaluation via \code{\link[=fitted_distribution]{fitted_distribution()}}\verb{$q()} at \code{\link[=predict_parameters]{predict_parameters()}}'s
 fixed-effect, population-level parameter estimates -- see
 \code{\link[=fitted_distribution]{fitted_distribution()}} for the fixed-effect-only scope and the
-\code{"spike"}/\code{"unimplemented"} status gate this inherits (a \code{"spike"}-status
+\code{"spike"}/\code{"unimplemented"} status rules this inherits (a \code{"spike"}-status
 family emits a one-time warning; an unregistered \code{model_type} raises a
 clear error). For bivariate \code{biv_gaussian} fits, \code{dpar} selects which
 response's MARGINAL quantile to return (\code{"mu1"}/\code{"sigma1"} for response 1,
@@ -77,6 +77,38 @@ result carries \code{attr(., "calibrated") <- FALSE}: this is a distributional
 (plug-in) interval at the point estimate \code{theta_hat}, not a
 calibrated-coverage interval, and it does not propagate \code{theta_hat}
 uncertainty.
+
+For retained training data with a modelled missing predictor, prediction uses
+that predictor's finalized conditional plug-in in the fixed-effect design.
+This is a distributional-parameter prediction, not an integrated response
+mean, and fixed-effect covariance does not propagate imputation-parameter
+uncertainty through the design basis.
+
+More generally, \code{type = "response"} means "on the response scale of the
+requested distributional parameter", not always \code{E[Y]}. For
+zero-inflated and hurdle count families it returns the component count mean
+when \code{dpar = "mu"}, not the unconditional mean after structural-zero or
+hurdle mixing. For lognormal fits it returns \code{mu} on the log-response scale,
+not \code{exp(mu + sigma^2 / 2)}. For cumulative-logit fits it returns the
+location linear predictor on its response scale, not an expected ordinal
+score. Use \code{\link[=fitted.drmTMB]{fitted.drmTMB()}} for fitted-row response means or expected
+scores; use explicit distributional-parameter predictions when a new-data
+mean must be assembled outside the fitted rows.
+
+Binary predictor labels follow the fitted encoding, regardless of the levels
+present in the new batch. Numeric new values match raw numeric fitted labels;
+for nonnumeric fitted labels, numeric 0/1 values specify the encoded states.
+If distinct labels become identical as numbers (for example, "01" and "1"),
+supply character or factor values to preserve their identity.
+
+For families in \code{drm_clamped_scale_families()}, the \code{log(sigma)} linear
+predictor is soft-clamped inside the TMB likelihood to keep the objective
+finite. \code{predict(dpar = "sigma")} (and the bivariate \code{sigma1}/\code{sigma2})
+reports that same clamped scale, on both \code{type = "link"} and
+\code{type = "response"}, so the value matches what the likelihood actually
+evaluated. When \code{check_drm()} reports the clamp active, this makes the
+fit's own diagnostics honest, not correct: the estimate itself is still
+unreliable near the clamp (see the rescaling advice there).
 }
 \examples{
 dat <- data.frame(

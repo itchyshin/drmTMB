@@ -1,0 +1,796 @@
+{
+  "source_before": {
+    "R/adequacy-plots.R": "50d41a04d8305b034c0e2dfbe4209591c992ee6d4cde800f71678d742b487d16",
+    "R/adequacy.R": "7a88ca078c0931f257b5bf5a1c9d5315448f7d8e907921e1418d2f6584163d9a",
+    "R/aghq-coxreid.R": "66fcd996070128ef1feefb0845694888f8167ee7e4396b4d04a43d8480a4383d",
+    "R/associate-pairs-sandwich-bernoulli-bernoulli.R": "d6ccc65580d7e0700ab2aed7c49c8369e21f3a441eb6ee8b25c8543d411fd8b3",
+    "R/associate-pairs-sandwich-gaussian-bernoulli.R": "2129bbe7278b0912ba436aa71d9fc80cb5cbdf4822af20fb618ce4baefbc8860",
+    "R/associate-pairs-sandwich-gaussian-nbinom2.R": "578751c099044dc943cbadc144deaa403ff5340eaefba49aaa1f3e21de5e43fd",
+    "R/associate-pairs-sandwich-nbinom2-nbinom2.R": "bbbf3d78813b32fe8a61e4589bd9ecf1f7fdf6d8841995f52fd3ff5dbb5b0a43",
+    "R/associate-pairs-sandwich.R": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c",
+    "R/associate-pairs.R": "35c2f32a0a4f5789c97be437758331edd9acd783a83a121a3bd6c0ac9f57616c",
+    "R/bf.R": "71dbc96868e020a4e32b7170989bd49142a7bddd0750d79875740283f7d5d43e",
+    "R/check.R": "a63e0551c7a6b494fef73d86b0b0f1752ae1f222893b547214d63e6dd4e6f979",
+    "R/control.R": "066b5bb4662677340f99a5ebbd7d51396379b8c85d0aee9f6526e263711fbcb3",
+    "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
+    "R/drmTMB-package.R": "25050f7f5002a26e1f9371ad01f6b5faf52af82d946f9ba46c484d83cd0f535f",
+    "R/drmTMB.R": "1fb01724a4d6060f22f2d4062f09cb0f9ecd5d17f4626d0cbb919fe0a0796b59",
+    "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
+    "R/family-dpq.R": "1b73f4cbd511f2c5c230e254f83a02483815029b725689a53031af8ba38f70ad",
+    "R/family.R": "34bef8f5ae57f4e794b8a5788e1982f9ba61168fed74c38125722ba937a29959",
+    "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
+    "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
+    "R/julia-bridge.R": "72fcb02a5fecb9c30d6c7e5901f65fce6fedfadddc5ea767de2f710351e885c8",
+    "R/julia-joint-call.R": "6c8268c16c9c33d032a1d670eddc4fe6d2628a201a16a9a79559c3ef633cca2e",
+    "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
+    "R/julia-joint-methods.R": "6d5898a8bd21aaf8c71ac20f3b73e71dcdad364d4f31b7b680f961d29ec9dcc8",
+    "R/julia-joint-missing.R": "4f3fde9be5b7579de6d5e74e5f4710d7fb83bb2cb8b59c7d4a7b4f37978e858e",
+    "R/marginal-parameters.R": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea",
+    "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
+    "R/meta-vcov.R": "48cbbcd5ad03689404beda6129e13bac2e80ab5394364b9aca5c982f4a5fb29a",
+    "R/methods.R": "eba7845158b020c795187052ea171c07428d659f70dee0d5f3c16ed351313120",
+    "R/missing-data.R": "3a11d48863e31b43fbd8ad7631f47525867ee02b2503a41cc8d49a885b1fbf84",
+    "R/mspl-estimator.R": "389633693e357910d3ecf0d23472e29dc7310df922e2f150f197dc9f149d40d5",
+    "R/mspl.R": "6f394409ab1cff8e72f73c2a01626de8177d75794c03cb5d489bf4502a33719e",
+    "R/parse-formula.R": "af4c67439321c4f15ebad64f52161879a8169389af0abd5782d88bb9d2aa0faa",
+    "R/penalty.R": "8f9124aeccddf07f978ba75cb60e0bd786f4edfac91aa993c3848cde38f67df1",
+    "R/phylo-utils.R": "dd2d36f89bd3ea47161068e480004772ac9e162c31df7b0b89dae9b759c3e7ff",
+    "R/plot-corpairs.R": "23fd048ab1c152ee325ba203210f67d5c96b88c516cff4ec7c887448a805137c",
+    "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
+    "R/predict-parameters.R": "13c3bafaee98d08a938b0be921c049b158958cc47b8ac74ae405876986f4ca7e",
+    "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
+    "R/profile.R": "a2026e6d10ee6abdb4199a1ae7ce92731d7ab14b5d033507ef9999fd34fe0420",
+    "R/random-effect-scale-formulas.R": "4fa4a0ad558fac45e294a4c1a20da87eb523c1f2de7e2a2741993750d0d53c8c",
+    "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
+    "R/sparse-fixed.R": "eb38f9a4281aeb652f392eb4f4bb075fd733195b665aa666a96d2fc3c8364bfd",
+    "R/zzz.R": "43307cf57423f651b986306ee8e04ab12206b6655fee33f1a3b9042925f4cb4b",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/aghq_1d.jl": "66464da504723ea24f50aefece46c17d29600d9242d2cb2de9b233b2ea8a7452",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/associate_pairs.jl": "dbaae28b966f48ad99a46dfa796561aab2cb2a26c15a898811945e1f1160e9d1",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/beta.jl": "9af3b4dc7c4df2b6bf2ec4afbc09be59c62ff0ac39bfef7113dbda7900171a3c",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/betabinomial.jl": "28f7ac5dd4ecfa426187861a30e045fa5311d6dc4da6ad015d4212f5eaa94909",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/bias_correct.jl": "68cee45247626cbc114dc29ccca675553e86179cd75885cf3ca750f07ff5b627",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/binomial.jl": "f16e768668d432bfbef9f1d140470647bd2a20274f35bfc95a8cae9c0b9c8527",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/bivariate_lognormal.jl": "af39e1e71fc45f63137f49e62e03750d0d59fc8a2e5fce802aa200bc55522a27",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/bivariate_student.jl": "f72d2b80cb3f5ce877dc0293f02f9a7f443a5eba51e832b471b0d28e23b876a7",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/bootstrap_q4_phylo.jl": "1a273cd13533b2c61d09070901d4d20c3eb4838ab40de3e48d9ca188d7753012",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/bridge.jl": "411d64b6c115e881694f84322db161dc89747e171e2c671905f0b3e0c8d3f0c4",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/chibar.jl": "6521eafccce2f505886dc3eb1d13541162812f8c093d88427a72658d4fddd97f",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/coevo_accessors.jl": "9edb84589ef8499b80decabe1d12fbff1fad2802a4a3fc57d5487eedff99f65c",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/coevolution_q.jl": "77ce90a3e7dac5f9f4df4e7fac94d036146635afd7df3ab7b953b228151cb58c",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/comparison.jl": "3482d6b88f7ec5d545a2947030103fb638f41050c9a10fcb41a9823eec6eeacc",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/cumulative.jl": "5d7c8db90e0a00b3680f7e4a818ccda7912148c70fd3f5fdbcc7e6d63af10c5a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/DRM.jl": "446bd379de9f82c0faeeb4c16af8cb59221958950ec452747f9a289a95488bc8",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/em_squarem_fit.jl": "27dd32a19ca624dad007c63968f76974e790c29b09acb6767cef3f695f5d51c9",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/estep_armijoguard.jl": "19e8eb019a3184db1b13c1cde8ee882ef66b174882de15a96ba02840380cfd13",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/estep_initprior.jl": "64231307ede8f6ec71ac7e5eef07bedb0c440e7f52dad5485c9637dadaf59436",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/estep_lm.jl": "2550ab9b7edd3c0a21a6f9f0d26c3eddef046c303058569d71dcba7c678140c5",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/estep_trustregion.jl": "c4a62576c388238f16a4fb14b812c2074d9bc7999882a8cbd3e8112a6893e9f6",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_em_closed.jl": "e21460eb4a5cff018eb826f6b2ec3a638e2a9059eb0db568eea602537d9814cf",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_em_natgrad.jl": "35ec282ee4fd85fe715fbd4414b801c91100b5fbf240837484d94a985dc9b63a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_ml_q4.jl": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_ml_warm.jl": "6091d3ff479f9bc3805b3faffd530bf4e675f735628435d7b11a226ad3fbfc2c",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_q4_p100_tmb.jl": "269759ce21c31ac167897df3d67f12d53cdb023b0cc3890e24b25610cbb0ee07",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_q4_tmbgrad.jl": "188582efc569ba54d141f4b9ac58b8f474e33ddc154ae0a9f8a6cda239eec5a6",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_sparse_direct.jl": "f03753b30d303febb3fac1ef89e347234f44878684cf62875d967ca35e2e322a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/location_only.jl": "39eac765202c2c7a4ed6bf990ea2214d17845cad4bbc3697a6f26651afd59646",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/q4_em_dense.jl": "f4c64d74d8d975881a9398192976402d688e8ce494b021bc01fb6816fded3bc7",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/fisherz_q4.jl": "cc864faa1b1a51c044309939e84bc1fa78a328e316ea3d8453b4ba1e2f1bf046",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/fit_ml_q4.jl": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/fit_q4_sparse_tmb.jl": "51c0d6e982d53b0d2d448b2ed05d979f780cdb36bc27e71f4b47ebb25b8b18a2",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gamma.jl": "a22a3c4cbbb5ce37ffa41025118646b722df195d490a22926e03c7be0d1bd4c7",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_bivariate.jl": "7cf90337062b3ff13367321ad2b8384ecb74776c49358aa28cdb5dff04317251",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_core.jl": "2c4f2d38f1b8d1e4557583c9d1db6826681ac9696bf1b75b9330376e9e5f9d05",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_locscale_phylo.jl": "78fcaecf0a8d6fe2055321d68071101039772f71263a456cbbabbb5edbf9a39d",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_lss.jl": "1e18a621a6047654b1331d4e0a43864b4e2495e7e8f149bcde2ce5f161d9f780",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_meta.jl": "66c3c4a09dd952793eeebca5c9a273d8498b32b4839e868e0d26ff0e83891cfa",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_ranef.jl": "7d096ded5eaa1172b6d6f4c8afc2794bebf84f4ae165d56fdca0758e30d18907",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_sparse_lss.jl": "96ee90f88bc12af7e6eebd7f3f51fb285711cf8f9f9c2ed0a19953ca6b19de1f",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_structured.jl": "3ba579b2db88f3ec02903b3183456a6dfed6d74714b83fe554b80e4663dd3698",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/heritability.jl": "524ac27831a0b7ac13575f43c0f4c62da7d96759c8d26f4c44392da915d7e24a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/inference.jl": "bb2606042a4ee7d165fdd8b6e1b0f7f187a7738cad90cdd3ec80eccf1bbd49c0",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/introspection.jl": "546b64e0273da4530c1d1f5208b2728c001fe9466eaec1f9b5527c6730860535",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_bridge.jl": "ffb6feec68b08cb137200ccd1f493df9b40bb67ad46c5edc0d019f59946dd553",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_finite_bridge.jl": "5536cf92cbc04e1d080b1ae5bb693e3f35d02ebf5142b009699470922f72058a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_finite.jl": "682bfff907800dc9d83a742a2e825c3955cb8b80926c84420ff5db74045ad78e",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_frontend.jl": "34e715491f4b967ed119a22bd2abce5a76095d69ebfaeca99910d0585fcd4964",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_predictor.jl": "f9f59bedbf281db34f4a0fda89ab2110daf813ea376c41a0f77e4694b294478b",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_two_predictor.jl": "fec1668bb4f6266d7580fbcbc162ae48a1b6202cf614335b97da02ca705ec7bc",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_uncertainty.jl": "2da147052c184cda46e9569290fa4c5e7b722021849c45652845882aa4097e96",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/lc_metric.jl": "f096872d4af733271d9f746735fd38c0cb2a59b9f9c61ea90150cc8beae43d1f",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/link_residual.jl": "ef69948c94a6a08e3c95f0ffb393f1b3859e1319dec869df92a5350be7b760e2",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/location_only.jl": "43c8727284f5cc592d2ba70b5bc21e4ac8a4224c5910d85f49f9c315268bb6ce",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_corr.jl": "8b558c2fab3416085875ee30956ff7d26600703163f487333c05de21f19bdd4a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_fit.jl": "10a8782a78db3b1c47a5007a998ed487072285d7f7ec0c395c5bd7664f0f6d01",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_frontend.jl": "4ed6b15861df4562df0dd7fc970c3272cd0e07048bf75e46b4866ea0315861ef",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_grad.jl": "2863ec63c5a9519de3093f8c4ccbc39ff53a47295ab9abcfcbf36afa3f02e0e8",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_infer.jl": "7944724797b8ddab50df4f741bbbf3d86d1627963976f09a5c6bdfe89e4b945a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_inner.jl": "7915b9cc780e723cd9928b2a71c3f22884d21df5f0b57c1ea1f0e2db334f8bcb",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_kernels.jl": "b9b64012a776029a44656bf7451ebeca4193d6de815affda60baa6c8d304bd60",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_marginal.jl": "05cd2e416c14fb3e8063e2bb0288c574c39bec733278d2734829b458443dd71d",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_profile.jl": "c6ca8e2d9d76c372be17f61f2edc00fcef299ed897b05742ef035b3f6d29c2b5",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_sigma.jl": "23abfb0d6b2b60179ef320cf6a219baf408429709203d378dfcf0a45ab800b83",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/lognormal.jl": "6dc293eb9cb03b77d0f5590f74e34bcd92df7617bdd9e0ef67db307433b30e54",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/meta_vcov_bivariate.jl": "fe4298f40ce8560378b3f6628a99d20bc6b7111b2bd0f3f423e5384f6aa8e8be",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/missing_data.jl": "8cb515c0ce55ac1c2f1939c7373ecfdd8b1c57ac8bcdefa9f8ebc23225d3c537",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/mixed_family_postfit.jl": "0973c19cfe22b94640682fd5221d2bc09fa9b7900d377137d5984d1303edb661",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/mixed_family.jl": "1eae9a0f838bdcb5517812d73ec4b3db6dadda15c212f0d861c16da42a3f3500",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/negbinomial.jl": "2e8b20713b9e317c37d8f8bae3c74360ddc6f9a64cac3cbe45260a430b3a6f5f",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/phylo_interaction.jl": "10288c86a05f5cdaeb66fd6a9e3f8940d9098421cc2aaa1c878e89244e4a62ea",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/phylo_penalty.jl": "b186cd9521598ff502aafe09f9768ec32899faf8511aa2d2bb5c4ea358e34c39",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/plotting_ext.jl": "1283c8404b9cdda7774931b4fe7624d2e1ba42c9b31c7058e966efb5206493c4",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/poisson.jl": "7f4aadbf523fbbb0025aa07efdd54dcf5dfcb1a683e3745f4d4a67035bb6bdeb",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/profile_q4_phylo.jl": "23761ae1b082d9183118641f8dde457291f93bb389243a3f3efd293873aef3c4",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/quantile_residuals.jl": "2f582a77af8a1506746713e82c2975b7c1204801fa638ced8d1266af6fda56c5",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/reml_q2.jl": "f3e63e5040fd40c0a99c8e514cee281b54774c88670b2cc67e116f88bfb52989",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/reml_q4.jl": "269ad2492322b1733ef187c885d5b5e465d6a7d8b12c5597a2e57d22858e0d77",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/skewnormal.jl": "870cf8fd10a6f60a754ec67b957a4500fe44eb10ca9757bfffa1a28f0c501ee8",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/sparse_aug_plsm.jl": "15bfa5fd2c7cdfadf70dd32857281efcf15dd9e2433020872973e40a79ead6b3",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/sparse_em_fit.jl": "e99ef15e448e7b01424f779cea1b6297fc5014a419bf59b5ae3b94c35f9a65cd",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/sparse_laplace_glmm.jl": "396ff2a2372c526e88ddba4e4673097667acf0a623eb338e91ba4a5539d8bc93",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/sparse_phy.jl": "87b50930da7940d5a5772adfd125be1b1698a0af877b7380175d395ebeabc874",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/student.jl": "2dd03d7ec050bfbae3964b0db98f5020c26f45f38d6dc952922b1a40bfa09d9e",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/summary.jl": "cca7bb9066c240116a59a0c7322718840709352b3320c26b5a917d6afb0d0b79",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/takahashi_selinv.jl": "1ec53baad46c20c0c93d1f70626be5f39d9237e8f62f587741e8b56122214af1",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/tweedie.jl": "939dcf2c5b156163d0903d8166f52833a8ff90ff984c8ffb578495d1586ea2bc",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/variational.jl": "ec6e7be942370bfe67fe86396fd8480d0e2224096d236d3b8b56582d38020a7b",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/vcov_guard.jl": "49276610d4c71db6241b3bb7836f48ce85ac8b6ad494962a4250a66137ccb78a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/visualization.jl": "31a29e6d991acca983478eaffc5a6f48f3545b77fa4ecbf93b033cd14a89b53d",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
+  },
+  "runner_sha256": "a08dad9eb1e8f8a4a7fa2fae682e8e9a6d2ad054d99a1cd64e9ea262df3317a4",
+  "scope": "One shuffled-row labeled-polytomy Gaussian LSS workflow; direct data explicitly ordered by tree tips",
+  "result": {
+    "status": "PASS",
+    "checks": {
+      "names": true,
+      "covariance": true,
+      "likelihood": true,
+      "native_parity": true,
+      "bridge_parity": true,
+      "rows": true,
+      "converged": true,
+      "source": true
+    },
+    "labels": ["A B", "AB", "A_B", "O'Brien", "comma,tip", "colon:tip", "semi;tip", "(tip)[x]", "日本 tree", "  edge  ", "tab\ttip", "line\nbreak"],
+    "payload": {
+      "newick": "(('A B':1,AB:1,A_B:1):1,('O''Brien':1,'comma,tip':1,'colon:tip':1):1,('semi;tip':1,'(tip)[x]':1,'日本 tree':1):1,('  edge  ':1,'tab\ttip':1,'line\nbreak':1):1);",
+      "tip_order": ["A B", "AB", "A_B", "O'Brien", "comma,tip", "colon:tip", "semi;tip", "(tip)[x]", "日本 tree", "  edge  ", "tab\ttip", "line\nbreak"]
+    },
+    "data": [
+      {
+        "y": 0.16082310192204177,
+        "x": 0.79759060274054872,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 0.29455219709960206,
+        "x": -1.8292989255880958,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": 0.41856563193777474,
+        "x": 0.084626309437567618,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": -0.26914139192780179,
+        "x": 0.10002729893514582,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": 1.50966160318733,
+        "x": 0.91730012369325631,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": -0.96725408881941377,
+        "x": -1.6488143350594475,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": 0.18560374173822075,
+        "x": -0.56643842392223465,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": -0.07368600559891611,
+        "x": 0.75574155021038414,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": -0.038718284729606395,
+        "x": 0.32577347938951695,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 1.1038899283172303,
+        "x": -0.45494792778793103,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      },
+      {
+        "y": 0.22544885979816359,
+        "x": 0.020544650308023094,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 1.0525179353653678,
+        "x": 0.70221762051880954,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": 1.1692289774555502,
+        "x": 1.9542735365703976,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": -0.35123594014859899,
+        "x": 0.67791836338092082,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 0.45754915061080281,
+        "x": -0.40702349376073704,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": 0.21743434030545994,
+        "x": 0.46069240062038902,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": 1.5156862070386716,
+        "x": -0.04373047017998935,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": -0.69131483648702008,
+        "x": 0.954173170173792,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": -0.68186426294432656,
+        "x": 0.18652887962025821,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": 0.83134683838523915,
+        "x": 1.2789663280227399,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": -0.52932805244881787,
+        "x": -0.13599067670468321,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": 0.51925853741665329,
+        "x": -0.63847746957511098,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": 0.60538027438847997,
+        "x": 1.0199479197533667,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": -0.51626369459799615,
+        "x": -1.0308319607945604,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": 0.8493711962726499,
+        "x": -0.06208304242399143,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": -0.42092408136565823,
+        "x": 1.0210448782937049,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": -0.1071536312115336,
+        "x": -1.7052255222532786,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": -0.26423778334227327,
+        "x": 0.76064115123798748,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": -0.70804309240624608,
+        "x": -1.0819630152866637,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": 0.40242720190193004,
+        "x": -0.17392436771125752,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": -0.24840245184116169,
+        "x": 2.2907351132626674,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": 0.24601026749383115,
+        "x": 0.31542859404277152,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": 0.1503874240569277,
+        "x": -0.18826012589597335,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": 0.40528686226513705,
+        "x": -0.06754649379951122,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": 0.79780405517949771,
+        "x": 0.38665143232796995,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": 1.5449674468047756,
+        "x": -0.53883651631302742,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      },
+      {
+        "y": 0.47143926862661617,
+        "x": 0.47368955600230223,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": 0.21295103731935985,
+        "x": -1.0284881712767113,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": 0.42883475203647303,
+        "x": -0.78046638056557216,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": -0.20882994498220298,
+        "x": 1.6315314170559201,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": 0.29769372055744725,
+        "x": 0.59863721933696079,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": -0.044084552583589676,
+        "x": 0.58992773559476241,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": -0.078347979408248669,
+        "x": 0.44288694518709376,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": -0.060621402693245785,
+        "x": 1.3164715942535536,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": 1.2508628557927033,
+        "x": 0.066870095140100005,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": 0.63072619166485,
+        "x": 0.50033137416791273,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": -0.87794597236064509,
+        "x": -1.1621759967144554,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": 0.46108226608728936,
+        "x": -0.44071329811027599,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": 0.20612112283264822,
+        "x": -0.54012656577505314,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": -0.34663566596133732,
+        "x": -1.1677445297329432,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": -0.097018605651553291,
+        "x": -0.31657429781502194,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": 0.67708285851262673,
+        "x": -0.17415941691003667,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": 0.45890354528181532,
+        "x": -0.3737165432696008,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      },
+      {
+        "y": 1.4448450965346773,
+        "x": 0.92096853726792771,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": -0.80436021698902815,
+        "x": -0.78135139508383,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": 0.19104846772964648,
+        "x": -0.30887677036019867,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": 1.1863563203319603,
+        "x": 1.1521763674846925,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      },
+      {
+        "y": -0.41818731874669596,
+        "x": 0.89910540948527629,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": 0.40381949547170626,
+        "x": 0.12871259138456201,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": 0.2486370415091177,
+        "x": -1.1731826582027178,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": 1.2686637177855298,
+        "x": 0.8935267700366657,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": 0.67992452309490192,
+        "x": 0.70798879673429127,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": 0.19844080314956966,
+        "x": -0.24324272687361947,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": 0.98079510370021517,
+        "x": 1.087098943714508,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      },
+      {
+        "y": -0.41439229640707592,
+        "x": 0.63939801904915505,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": -0.46550745117207948,
+        "x": 0.62556106242450527,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": 0.89229420133241033,
+        "x": 0.059948701794277283,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": -0.11679765303244943,
+        "x": -0.68986796697337249,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 0.033012010998806796,
+        "x": -0.81261007168330857,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 0.097879434291818182,
+        "x": 1.0611494548705669,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": -0.060840398833762133,
+        "x": -0.21225502810313365,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": 1.0846669923921812,
+        "x": -0.052495305947474827,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      }
+    ],
+    "permutation": [1, 9, 11, 14, 68, 69, 2, 19, 34, 39, 41, 50, 26, 28, 29, 31, 42, 66, 6, 24, 32, 44, 65, 70, 5, 12, 15, 20, 47, 54, 10, 36, 53, 57, 64, 72, 25, 33, 40, 56, 59, 63, 13, 16, 38, 43, 51, 61, 23, 27, 37, 49, 52, 62, 4, 8, 18, 21, 55, 58, 17, 22, 35, 45, 48, 67, 3, 7, 30, 46, 60, 71],
+    "outputs": {
+      "native": {
+        "mu": [0.27501827895020792, 0.22373790875585847],
+        "sigma": [-0.93889016624883459, -0.0059594035781516197],
+        "sd_phylo": [-0.7685537072845865, -0.5056338532343253],
+        "loglik": -47.951068142388536,
+        "converged": true
+      },
+      "bridge": {
+        "mu": [0.27501793136136005, 0.22373803708575796],
+        "sigma": [-0.93889050281273978, -0.0059595982980807883],
+        "sd_phylo": [-0.76855461703284833, -0.50563284681666743],
+        "loglik": -47.951068142352284,
+        "converged": true
+      },
+      "direct": {
+        "blas": 1,
+        "fitted": [0.45346928721657698, 0.34790585017456821, 0.27961455109389044, 0.42669405528859683, 0.12066822658239519, 0.093206149006819519, -0.13426581949280653, 0.31675153674740225, 0.25990521142663209, 0.10039791536219278, 0.40895584774228799, 0.013749062461279819, 0.50346450820726019, 0.44520228946599849, 0.032941650121733973, 0.78754250908617074, 0.40700720494577819, 0.41497973554550016, -0.093884551483699966, 0.044381611887922098, 0.34559130583321013, 0.56956270173880852, 0.41807558905994008, 0.51243742744872278, 0.4802528604550122, 0.43213072338327019, 0.1839512938195455, 0.56117134709194749, 0.014994955108283513, 0.48107362410742793, 0.17322877502185521, 0.1544597068913553, 0.19140332554374484, 0.53280361019898403, 0.51824331514604494, 0.26327273465245571, 0.26112759331310437, 0.23289698033187731, 0.64005356805719671, 0.20591044905958078, 0.30381583390596317, 0.22059528111526927, 0.71226325636226306, 0.37809234477649151, 0.044906006753987829, 0.37410858712842809, 0.2041882193764249, 0.4749338569729411, 0.50321907685668055, -0.10650587977612498, 0.38100030280933939, 0.15417107375697811, 0.23605184528190828, 0.43342195502139808, 0.29739784288009991, 0.44410606234957917, 0.48850276349593919, 0.24459164429349031, 0.10019990395108537, 0.47618201081278239, 0.26523376180245195, 0.13216623559514296, 0.36152656386681681, 0.28997931518774389, 0.17641360312457641, 0.28843073622665111, 0.29395205572073335, 0.14828411026304883, 0.2361044347282617, 0.38696109091010877, 0.012532346272032263, 0.22752840801198254],
+        "mu": [0.27501793136136005, 0.22373803708575796],
+        "sigma": [-0.93889050281273978, -0.0059595982980807883],
+        "sd_phylo": [-0.76855461703284833, -0.50563284681666743],
+        "threads": 1,
+        "loglik": -47.951068142352284,
+        "converged": true,
+        "julia": "1.10.0",
+        "source": "/private/tmp/drm-parity-20260830/DRM.jl/src/DRM.jl",
+        "covariance": [
+          [2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 2, 1, 1, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 1, 1, 2, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 2, 1, 1, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2]
+        ],
+        "labels": ["A B", "AB", "A_B", "O'Brien", "comma,tip", "colon:tip", "semi;tip", "(tip)[x]", "日本 tree", "  edge  ", "tab\ttip", "line\nbreak"]
+      }
+    },
+    "oracle_errors": {
+      "native": 6.3948846218409017e-14,
+      "bridge": 1.4210854715202004e-14,
+      "direct": 1.4210854715202004e-14
+    },
+    "native_differences": {
+      "mu": 3.4758884787100541e-07,
+      "sigma": 3.3656390518999046e-07,
+      "sd_phylo": 1.0064176578783446e-06,
+      "loglik": 3.6251890378480311e-11
+    },
+    "bridge_differences": {
+      "mu": 0,
+      "sigma": 0,
+      "sd_phylo": 0,
+      "loglik": 0
+    }
+  },
+  "source_after": {
+    "R/adequacy-plots.R": "50d41a04d8305b034c0e2dfbe4209591c992ee6d4cde800f71678d742b487d16",
+    "R/adequacy.R": "7a88ca078c0931f257b5bf5a1c9d5315448f7d8e907921e1418d2f6584163d9a",
+    "R/aghq-coxreid.R": "66fcd996070128ef1feefb0845694888f8167ee7e4396b4d04a43d8480a4383d",
+    "R/associate-pairs-sandwich-bernoulli-bernoulli.R": "d6ccc65580d7e0700ab2aed7c49c8369e21f3a441eb6ee8b25c8543d411fd8b3",
+    "R/associate-pairs-sandwich-gaussian-bernoulli.R": "2129bbe7278b0912ba436aa71d9fc80cb5cbdf4822af20fb618ce4baefbc8860",
+    "R/associate-pairs-sandwich-gaussian-nbinom2.R": "578751c099044dc943cbadc144deaa403ff5340eaefba49aaa1f3e21de5e43fd",
+    "R/associate-pairs-sandwich-nbinom2-nbinom2.R": "bbbf3d78813b32fe8a61e4589bd9ecf1f7fdf6d8841995f52fd3ff5dbb5b0a43",
+    "R/associate-pairs-sandwich.R": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c",
+    "R/associate-pairs.R": "35c2f32a0a4f5789c97be437758331edd9acd783a83a121a3bd6c0ac9f57616c",
+    "R/bf.R": "71dbc96868e020a4e32b7170989bd49142a7bddd0750d79875740283f7d5d43e",
+    "R/check.R": "a63e0551c7a6b494fef73d86b0b0f1752ae1f222893b547214d63e6dd4e6f979",
+    "R/control.R": "066b5bb4662677340f99a5ebbd7d51396379b8c85d0aee9f6526e263711fbcb3",
+    "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
+    "R/drmTMB-package.R": "25050f7f5002a26e1f9371ad01f6b5faf52af82d946f9ba46c484d83cd0f535f",
+    "R/drmTMB.R": "1fb01724a4d6060f22f2d4062f09cb0f9ecd5d17f4626d0cbb919fe0a0796b59",
+    "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
+    "R/family-dpq.R": "1b73f4cbd511f2c5c230e254f83a02483815029b725689a53031af8ba38f70ad",
+    "R/family.R": "34bef8f5ae57f4e794b8a5788e1982f9ba61168fed74c38125722ba937a29959",
+    "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
+    "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
+    "R/julia-bridge.R": "72fcb02a5fecb9c30d6c7e5901f65fce6fedfadddc5ea767de2f710351e885c8",
+    "R/julia-joint-call.R": "6c8268c16c9c33d032a1d670eddc4fe6d2628a201a16a9a79559c3ef633cca2e",
+    "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
+    "R/julia-joint-methods.R": "6d5898a8bd21aaf8c71ac20f3b73e71dcdad364d4f31b7b680f961d29ec9dcc8",
+    "R/julia-joint-missing.R": "4f3fde9be5b7579de6d5e74e5f4710d7fb83bb2cb8b59c7d4a7b4f37978e858e",
+    "R/marginal-parameters.R": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea",
+    "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
+    "R/meta-vcov.R": "48cbbcd5ad03689404beda6129e13bac2e80ab5394364b9aca5c982f4a5fb29a",
+    "R/methods.R": "eba7845158b020c795187052ea171c07428d659f70dee0d5f3c16ed351313120",
+    "R/missing-data.R": "3a11d48863e31b43fbd8ad7631f47525867ee02b2503a41cc8d49a885b1fbf84",
+    "R/mspl-estimator.R": "389633693e357910d3ecf0d23472e29dc7310df922e2f150f197dc9f149d40d5",
+    "R/mspl.R": "6f394409ab1cff8e72f73c2a01626de8177d75794c03cb5d489bf4502a33719e",
+    "R/parse-formula.R": "af4c67439321c4f15ebad64f52161879a8169389af0abd5782d88bb9d2aa0faa",
+    "R/penalty.R": "8f9124aeccddf07f978ba75cb60e0bd786f4edfac91aa993c3848cde38f67df1",
+    "R/phylo-utils.R": "dd2d36f89bd3ea47161068e480004772ac9e162c31df7b0b89dae9b759c3e7ff",
+    "R/plot-corpairs.R": "23fd048ab1c152ee325ba203210f67d5c96b88c516cff4ec7c887448a805137c",
+    "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
+    "R/predict-parameters.R": "13c3bafaee98d08a938b0be921c049b158958cc47b8ac74ae405876986f4ca7e",
+    "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
+    "R/profile.R": "a2026e6d10ee6abdb4199a1ae7ce92731d7ab14b5d033507ef9999fd34fe0420",
+    "R/random-effect-scale-formulas.R": "4fa4a0ad558fac45e294a4c1a20da87eb523c1f2de7e2a2741993750d0d53c8c",
+    "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
+    "R/sparse-fixed.R": "eb38f9a4281aeb652f392eb4f4bb075fd733195b665aa666a96d2fc3c8364bfd",
+    "R/zzz.R": "43307cf57423f651b986306ee8e04ab12206b6655fee33f1a3b9042925f4cb4b",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/aghq_1d.jl": "66464da504723ea24f50aefece46c17d29600d9242d2cb2de9b233b2ea8a7452",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/associate_pairs.jl": "dbaae28b966f48ad99a46dfa796561aab2cb2a26c15a898811945e1f1160e9d1",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/beta.jl": "9af3b4dc7c4df2b6bf2ec4afbc09be59c62ff0ac39bfef7113dbda7900171a3c",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/betabinomial.jl": "28f7ac5dd4ecfa426187861a30e045fa5311d6dc4da6ad015d4212f5eaa94909",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/bias_correct.jl": "68cee45247626cbc114dc29ccca675553e86179cd75885cf3ca750f07ff5b627",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/binomial.jl": "f16e768668d432bfbef9f1d140470647bd2a20274f35bfc95a8cae9c0b9c8527",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/bivariate_lognormal.jl": "af39e1e71fc45f63137f49e62e03750d0d59fc8a2e5fce802aa200bc55522a27",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/bivariate_student.jl": "f72d2b80cb3f5ce877dc0293f02f9a7f443a5eba51e832b471b0d28e23b876a7",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/bootstrap_q4_phylo.jl": "1a273cd13533b2c61d09070901d4d20c3eb4838ab40de3e48d9ca188d7753012",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/bridge.jl": "411d64b6c115e881694f84322db161dc89747e171e2c671905f0b3e0c8d3f0c4",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/chibar.jl": "6521eafccce2f505886dc3eb1d13541162812f8c093d88427a72658d4fddd97f",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/coevo_accessors.jl": "9edb84589ef8499b80decabe1d12fbff1fad2802a4a3fc57d5487eedff99f65c",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/coevolution_q.jl": "77ce90a3e7dac5f9f4df4e7fac94d036146635afd7df3ab7b953b228151cb58c",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/comparison.jl": "3482d6b88f7ec5d545a2947030103fb638f41050c9a10fcb41a9823eec6eeacc",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/cumulative.jl": "5d7c8db90e0a00b3680f7e4a818ccda7912148c70fd3f5fdbcc7e6d63af10c5a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/DRM.jl": "446bd379de9f82c0faeeb4c16af8cb59221958950ec452747f9a289a95488bc8",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/em_squarem_fit.jl": "27dd32a19ca624dad007c63968f76974e790c29b09acb6767cef3f695f5d51c9",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/estep_armijoguard.jl": "19e8eb019a3184db1b13c1cde8ee882ef66b174882de15a96ba02840380cfd13",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/estep_initprior.jl": "64231307ede8f6ec71ac7e5eef07bedb0c440e7f52dad5485c9637dadaf59436",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/estep_lm.jl": "2550ab9b7edd3c0a21a6f9f0d26c3eddef046c303058569d71dcba7c678140c5",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/estep_trustregion.jl": "c4a62576c388238f16a4fb14b812c2074d9bc7999882a8cbd3e8112a6893e9f6",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_em_closed.jl": "e21460eb4a5cff018eb826f6b2ec3a638e2a9059eb0db568eea602537d9814cf",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_em_natgrad.jl": "35ec282ee4fd85fe715fbd4414b801c91100b5fbf240837484d94a985dc9b63a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_ml_q4.jl": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_ml_warm.jl": "6091d3ff479f9bc3805b3faffd530bf4e675f735628435d7b11a226ad3fbfc2c",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_q4_p100_tmb.jl": "269759ce21c31ac167897df3d67f12d53cdb023b0cc3890e24b25610cbb0ee07",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_q4_tmbgrad.jl": "188582efc569ba54d141f4b9ac58b8f474e33ddc154ae0a9f8a6cda239eec5a6",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/fit_sparse_direct.jl": "f03753b30d303febb3fac1ef89e347234f44878684cf62875d967ca35e2e322a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/location_only.jl": "39eac765202c2c7a4ed6bf990ea2214d17845cad4bbc3697a6f26651afd59646",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/experimental/q4_em_dense.jl": "f4c64d74d8d975881a9398192976402d688e8ce494b021bc01fb6816fded3bc7",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/fisherz_q4.jl": "cc864faa1b1a51c044309939e84bc1fa78a328e316ea3d8453b4ba1e2f1bf046",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/fit_ml_q4.jl": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/fit_q4_sparse_tmb.jl": "51c0d6e982d53b0d2d448b2ed05d979f780cdb36bc27e71f4b47ebb25b8b18a2",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gamma.jl": "a22a3c4cbbb5ce37ffa41025118646b722df195d490a22926e03c7be0d1bd4c7",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_bivariate.jl": "7cf90337062b3ff13367321ad2b8384ecb74776c49358aa28cdb5dff04317251",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_core.jl": "2c4f2d38f1b8d1e4557583c9d1db6826681ac9696bf1b75b9330376e9e5f9d05",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_locscale_phylo.jl": "78fcaecf0a8d6fe2055321d68071101039772f71263a456cbbabbb5edbf9a39d",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_lss.jl": "1e18a621a6047654b1331d4e0a43864b4e2495e7e8f149bcde2ce5f161d9f780",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_meta.jl": "66c3c4a09dd952793eeebca5c9a273d8498b32b4839e868e0d26ff0e83891cfa",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_ranef.jl": "7d096ded5eaa1172b6d6f4c8afc2794bebf84f4ae165d56fdca0758e30d18907",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_sparse_lss.jl": "96ee90f88bc12af7e6eebd7f3f51fb285711cf8f9f9c2ed0a19953ca6b19de1f",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/gaussian_structured.jl": "3ba579b2db88f3ec02903b3183456a6dfed6d74714b83fe554b80e4663dd3698",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/heritability.jl": "524ac27831a0b7ac13575f43c0f4c62da7d96759c8d26f4c44392da915d7e24a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/inference.jl": "bb2606042a4ee7d165fdd8b6e1b0f7f187a7738cad90cdd3ec80eccf1bbd49c0",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/introspection.jl": "546b64e0273da4530c1d1f5208b2728c001fe9466eaec1f9b5527c6730860535",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_bridge.jl": "ffb6feec68b08cb137200ccd1f493df9b40bb67ad46c5edc0d019f59946dd553",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_finite_bridge.jl": "5536cf92cbc04e1d080b1ae5bb693e3f35d02ebf5142b009699470922f72058a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_finite.jl": "682bfff907800dc9d83a742a2e825c3955cb8b80926c84420ff5db74045ad78e",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_frontend.jl": "34e715491f4b967ed119a22bd2abce5a76095d69ebfaeca99910d0585fcd4964",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_predictor.jl": "f9f59bedbf281db34f4a0fda89ab2110daf813ea376c41a0f77e4694b294478b",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_two_predictor.jl": "fec1668bb4f6266d7580fbcbc162ae48a1b6202cf614335b97da02ca705ec7bc",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/joint_missing_uncertainty.jl": "2da147052c184cda46e9569290fa4c5e7b722021849c45652845882aa4097e96",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/lc_metric.jl": "f096872d4af733271d9f746735fd38c0cb2a59b9f9c61ea90150cc8beae43d1f",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/link_residual.jl": "ef69948c94a6a08e3c95f0ffb393f1b3859e1319dec869df92a5350be7b760e2",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/location_only.jl": "43c8727284f5cc592d2ba70b5bc21e4ac8a4224c5910d85f49f9c315268bb6ce",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_corr.jl": "8b558c2fab3416085875ee30956ff7d26600703163f487333c05de21f19bdd4a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_fit.jl": "10a8782a78db3b1c47a5007a998ed487072285d7f7ec0c395c5bd7664f0f6d01",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_frontend.jl": "4ed6b15861df4562df0dd7fc970c3272cd0e07048bf75e46b4866ea0315861ef",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_grad.jl": "2863ec63c5a9519de3093f8c4ccbc39ff53a47295ab9abcfcbf36afa3f02e0e8",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_infer.jl": "7944724797b8ddab50df4f741bbbf3d86d1627963976f09a5c6bdfe89e4b945a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_inner.jl": "7915b9cc780e723cd9928b2a71c3f22884d21df5f0b57c1ea1f0e2db334f8bcb",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_kernels.jl": "b9b64012a776029a44656bf7451ebeca4193d6de815affda60baa6c8d304bd60",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_marginal.jl": "05cd2e416c14fb3e8063e2bb0288c574c39bec733278d2734829b458443dd71d",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_profile.jl": "c6ca8e2d9d76c372be17f61f2edc00fcef299ed897b05742ef035b3f6d29c2b5",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/locscale_sigma.jl": "23abfb0d6b2b60179ef320cf6a219baf408429709203d378dfcf0a45ab800b83",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/lognormal.jl": "6dc293eb9cb03b77d0f5590f74e34bcd92df7617bdd9e0ef67db307433b30e54",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/meta_vcov_bivariate.jl": "fe4298f40ce8560378b3f6628a99d20bc6b7111b2bd0f3f423e5384f6aa8e8be",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/missing_data.jl": "8cb515c0ce55ac1c2f1939c7373ecfdd8b1c57ac8bcdefa9f8ebc23225d3c537",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/mixed_family_postfit.jl": "0973c19cfe22b94640682fd5221d2bc09fa9b7900d377137d5984d1303edb661",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/mixed_family.jl": "1eae9a0f838bdcb5517812d73ec4b3db6dadda15c212f0d861c16da42a3f3500",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/negbinomial.jl": "2e8b20713b9e317c37d8f8bae3c74360ddc6f9a64cac3cbe45260a430b3a6f5f",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/phylo_interaction.jl": "10288c86a05f5cdaeb66fd6a9e3f8940d9098421cc2aaa1c878e89244e4a62ea",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/phylo_penalty.jl": "b186cd9521598ff502aafe09f9768ec32899faf8511aa2d2bb5c4ea358e34c39",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/plotting_ext.jl": "1283c8404b9cdda7774931b4fe7624d2e1ba42c9b31c7058e966efb5206493c4",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/poisson.jl": "7f4aadbf523fbbb0025aa07efdd54dcf5dfcb1a683e3745f4d4a67035bb6bdeb",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/profile_q4_phylo.jl": "23761ae1b082d9183118641f8dde457291f93bb389243a3f3efd293873aef3c4",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/quantile_residuals.jl": "2f582a77af8a1506746713e82c2975b7c1204801fa638ced8d1266af6fda56c5",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/reml_q2.jl": "f3e63e5040fd40c0a99c8e514cee281b54774c88670b2cc67e116f88bfb52989",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/reml_q4.jl": "269ad2492322b1733ef187c885d5b5e465d6a7d8b12c5597a2e57d22858e0d77",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/skewnormal.jl": "870cf8fd10a6f60a754ec67b957a4500fe44eb10ca9757bfffa1a28f0c501ee8",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/sparse_aug_plsm.jl": "15bfa5fd2c7cdfadf70dd32857281efcf15dd9e2433020872973e40a79ead6b3",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/sparse_em_fit.jl": "e99ef15e448e7b01424f779cea1b6297fc5014a419bf59b5ae3b94c35f9a65cd",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/sparse_laplace_glmm.jl": "396ff2a2372c526e88ddba4e4673097667acf0a623eb338e91ba4a5539d8bc93",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/sparse_phy.jl": "87b50930da7940d5a5772adfd125be1b1698a0af877b7380175d395ebeabc874",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/student.jl": "2dd03d7ec050bfbae3964b0db98f5020c26f45f38d6dc952922b1a40bfa09d9e",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/summary.jl": "cca7bb9066c240116a59a0c7322718840709352b3320c26b5a917d6afb0d0b79",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/takahashi_selinv.jl": "1ec53baad46c20c0c93d1f70626be5f39d9237e8f62f587741e8b56122214af1",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/tweedie.jl": "939dcf2c5b156163d0903d8166f52833a8ff90ff984c8ffb578495d1586ea2bc",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/variational.jl": "ec6e7be942370bfe67fe86396fd8480d0e2224096d236d3b8b56582d38020a7b",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/vcov_guard.jl": "49276610d4c71db6241b3bb7836f48ce85ac8b6ad494962a4250a66137ccb78a",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/visualization.jl": "31a29e6d991acca983478eaffc5a6f48f3545b77fa4ecbf93b033cd14a89b53d",
+    "/private/tmp/drm-parity-20260830/DRM.jl/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
+  },
+  "source_unchanged": true,
+  "elapsed": 29.148,
+  "status": "PASS"
+}

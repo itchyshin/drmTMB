@@ -46,14 +46,11 @@ distributional form, never a general validity or calibration claim.
 
 \strong{What this detects -- and does not.} A worm plot bends when the
 underlying quantile residuals depart from N(0,1); see
-\code{residuals.drmTMB()}'s Details for the full gated-campaign breakdown (400
-seeds x 18 families, tweedie: 99 of 400 seeds locally, full run deferred
-to Totoro;
-\verb{docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/}). In
-short: it flags shape/atom mis-specification a family cannot reabsorb
+\code{residuals.drmTMB()}'s Details for the numerical evidence and its incomplete
+Tweedie boundary. It flags shape/atom mis-specification a family cannot reabsorb
 through its own free parameters (heavy tails, ignored overdispersion or
 zero-inflation in a no-free-dispersion family, ignored truncation, a
-missing zero/one atom -- gated power >= 0.8), but it stays flat -- a
+missing zero/one atom -- power >= 0.8 in the evaluated scenarios), but it stays flat -- a
 genuine structural blind spot, not evidence of adequacy -- when a free
 nuisance/dispersion/inflation parameter absorbs the mis-specification
 (e.g. heteroscedasticity absorbed by Student-t \code{nu}, missing

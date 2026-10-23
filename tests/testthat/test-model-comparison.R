@@ -1,0 +1,445 @@
+# aicc() and drm_lrtest(): the R port of DRM.jl src/comparison.jl (#1117).
+#
+# Fixtures 1 and 2 are the first two cells of DRM.jl tools/parity_fixture.R
+# (base_gaussian_location_scale, base_gaussian_intercept_only), so every
+# number here is on data both engines are known to fit. The pure-R tests mirror
+# DRM.jl test/test_comparison.jl; the live block at the end computes the same
+# quantities natively in DRM.jl (pin 430ef64cc) through JuliaCall and asserts
+# the port matches to 1e-8.
+
+drm_mc_fixture_1 <- function() {
+  set.seed(20260814)
+  n <- 120
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  data.frame(
+    y = 0.4 + 0.9 * x + exp(-0.3 + 0.25 * z) * stats::rnorm(n),
+    x = x,
+    z = z
+  )
+}
+
+drm_mc_fixture_2 <- function() {
+  set.seed(99)
+  n <- 100
+  x <- stats::rnorm(n)
+  data.frame(y = 1.2 - 0.6 * x + 0.7 * stats::rnorm(n), x = x)
+}
+
+drm_mc_fit <- function(form, dat, engine = "tmb", ...) {
+  drmTMB::drmTMB(form, family = stats::gaussian(), data = dat, engine = engine, ...)
+}
+
+test_that("aicc() is AIC plus the second-order correction (DRM.jl comparison.jl:209-215)", {
+  dat <- drm_mc_fixture_1()
+  fit <- drm_mc_fit(bf(y ~ x, sigma ~ z), dat)
+  k <- fit$df
+  n <- fit$nobs
+  expect_identical(k, 4L)
+  expect_identical(n, 120L)
+  expected <- AIC(fit) + 2 * k * (k + 1) / (n - k - 1)
+  expect_equal(aicc(fit), expected, tolerance = 1e-12)
+  expect_gt(aicc(fit), AIC(fit))
+  expect_true(is.finite(aicc(fit)))
+})
+
+test_that("aicc() returns Inf when n - k - 1 <= 0 (DRM.jl comparison.jl:213)", {
+  dat <- drm_mc_fixture_1()[1:3, ]
+  fit <- drm_mc_fit(bf(y ~ 1, sigma ~ 1), dat)
+  expect_identical(fit$df, 2L)
+  expect_identical(fit$nobs, 3L)
+  expect_identical(aicc(fit), Inf)
+  # The pure arithmetic, including the strict inequality at n - k - 1 = 0.
+  expect_identical(drm_aicc_from_loglik(-1, k = 2, n = 3), Inf)
+  expect_identical(drm_aicc_from_loglik(-1, k = 2, n = 2), Inf)
+  expect_equal(drm_aicc_from_loglik(-1, k = 2, n = 4), 2 + 4 + 2 * 2 * 3 / 1)
+})
+
+test_that("aicc() default method works from logLik() attributes", {
+  dat <- drm_mc_fixture_2()
+  fit <- stats::lm(y ~ x, data = dat)
+  ll <- stats::logLik(fit)
+  k <- attr(ll, "df")
+  n <- attr(ll, "nobs")
+  expect_equal(aicc(fit), AIC(fit) + 2 * k * (k + 1) / (n - k - 1))
+  expect_error(aicc(structure(list(), class = "drm_mc_no_loglik")))
+})
+
+test_that("aicc() on a REML fit warns with the AICc label", {
+  dat <- drm_mc_fixture_1()
+  fit <- drm_mc_fit(bf(y ~ x, sigma ~ z), dat, REML = TRUE)
+  expect_warning(
+    value <- aicc(fit),
+    class = "drmTMB_ic_reml_warning",
+    regexp = "AICc"
+  )
+  expect_true(is.finite(value))
+})
+
+test_that("drm_lrtest() matches DRM.jl lrtest on fixture 1 (comparison.jl:65-78)", {
+  dat <- drm_mc_fixture_1()
+  full <- drm_mc_fit(bf(y ~ x, sigma ~ z), dat)
+  reduced <- drm_mc_fit(bf(y ~ 1, sigma ~ 1), dat)
+  t <- drm_lrtest(reduced, full)
+  expect_named(t, c("statistic", "df", "p.value"))
+  expect_equal(t$statistic, 2 * (as.numeric(logLik(full)) - as.numeric(logLik(reduced))))
+  expect_identical(t$df, as.numeric(full$df - reduced$df))
+  expect_identical(t$df, 2)
+  expect_equal(t$p.value, stats::pchisq(t$statistic, df = 2, lower.tail = FALSE))
+  expect_gt(t$statistic, 0)
+  expect_lt(t$p.value, 0.05)
+  # Wrong argument order: no extra parameters in "full".
+  expect_error(drm_lrtest(full, reduced), "more parameters")
+  # Different data are not a likelihood ratio.
+  expect_error(drm_lrtest(drm_mc_fit(bf(y ~ 1, sigma ~ 1), dat[1:60, ]), full), "observations")
+})
+
+test_that("drm_lrtest() REML guard: same mean structure passes, different errors (comparison.jl:133-142)", {
+  dat <- drm_mc_fixture_1()
+  full <- drm_mc_fit(bf(y ~ x, sigma ~ z), dat, REML = TRUE)
+  same_mean <- drm_mc_fit(bf(y ~ x, sigma ~ 1), dat, REML = TRUE)
+  diff_mean <- drm_mc_fit(bf(y ~ 1, sigma ~ z), dat, REML = TRUE)
+  t <- drm_lrtest(same_mean, full)
+  expect_identical(t$df, 1)
+  expect_true(t$p.value >= 0 && t$p.value <= 1)
+  expect_error(drm_lrtest(diff_mean, full), class = "drmTMB_lrtest_reml_error")
+})
+
+test_that("drm_lrtest() refuses penalized (MAP) fits (comparison.jl:151-158)", {
+  dat <- drm_mc_fixture_1()
+  full <- drm_mc_fit(bf(y ~ x, sigma ~ z), dat)
+  reduced <- drm_mc_fit(bf(y ~ 1, sigma ~ 1), dat)
+  map <- full
+  map$estimator <- "MAP"
+  expect_error(drm_lrtest(reduced, map), class = "drmTMB_lrtest_map_error")
+})
+
+test_that("drm_lrtest() warns on a boundary variance-component null (comparison.jl:101-114)", {
+  dat <- drm_mc_fixture_1()
+  dat$g <- factor(rep(seq_len(12), each = 10))
+  full <- drm_mc_fit(bf(y ~ x + (1 | g), sigma ~ z), dat)
+  reduced <- drm_mc_fit(bf(y ~ x, sigma ~ z), dat)
+  expect_identical(drm_lrtest_vc_labels(full), "mu:(1 | g)")
+  expect_identical(drm_lrtest_vc_labels(reduced), character(0))
+  expect_warning(
+    t <- drm_lrtest(reduced, full),
+    class = "drmTMB_lrtest_boundary_warning"
+  )
+  expect_identical(t$df, 1)
+  # Same variance structure on both sides: silent.
+  expect_silent(drm_lrtest(drm_mc_fit(bf(y ~ 1 + (1 | g), sigma ~ z), dat), full))
+})
+
+# Native DRM.jl oracle: the same fixtures fit inside DRM.jl at the pin, with
+# aicc()/lrtest() evaluated by DRM.jl itself, against the R port applied to
+# (a) the engine = "julia" object and (b) the engine = "tmb" object.
+drm_mc_julia_native <- function(dat, full_mu, full_sigma, red_mu, red_sigma) {
+  JuliaCall::julia_assign("drm_mc_rdat", dat)
+  cols <- paste(
+    vapply(names(dat), function(v) sprintf("%s = Float64.(drm_mc_rdat.%s)", v, v), character(1)),
+    collapse = ", "
+  )
+  JuliaCall::julia_command(sprintf("drm_mc_dat = (; %s);", cols))
+  JuliaCall::julia_command(sprintf(
+    "drm_mc_full = drmTMB_backend.drm(drmTMB_backend.bf(drmTMB_backend.@formula(%s), drmTMB_backend.@formula(%s)), drmTMB_backend.Gaussian(); data = drm_mc_dat);",
+    full_mu, full_sigma
+  ))
+  JuliaCall::julia_command(sprintf(
+    "drm_mc_red = drmTMB_backend.drm(drmTMB_backend.bf(drmTMB_backend.@formula(%s), drmTMB_backend.@formula(%s)), drmTMB_backend.Gaussian(); data = drm_mc_dat);",
+    red_mu, red_sigma
+  ))
+  out <- JuliaCall::julia_eval(
+    "let t = drmTMB_backend.lrtest(drm_mc_red, drm_mc_full); [drmTMB_backend.aicc(drm_mc_full), drmTMB_backend.aicc(drm_mc_red), t.statistic, Float64(t.dof), t.pvalue] end"
+  )
+  list(aicc_full = out[[1]], aicc_red = out[[2]], statistic = out[[3]], df = out[[4]], p.value = out[[5]])
+}
+
+test_that("aicc()/drm_lrtest() agree with native DRM.jl on two committed fixtures", {
+  drm_skip_live_julia()
+  fixtures <- list(
+    list(
+      dat = drm_mc_fixture_1(),
+      full = bf(y ~ x, sigma ~ z), reduced = bf(y ~ 1, sigma ~ 1),
+      jl = c("y ~ 1 + x", "sigma ~ 1 + z", "y ~ 1", "sigma ~ 1")
+    ),
+    list(
+      dat = drm_mc_fixture_2(),
+      full = bf(y ~ x, sigma ~ 1), reduced = bf(y ~ 1, sigma ~ 1),
+      jl = c("y ~ 1 + x", "sigma ~ 1", "y ~ 1", "sigma ~ 1")
+    )
+  )
+  for (fx in fixtures) {
+    fj_full <- drm_mc_fit(fx$full, fx$dat, engine = "julia")
+    fj_red <- drm_mc_fit(fx$reduced, fx$dat, engine = "julia")
+    ft_full <- drm_mc_fit(fx$full, fx$dat, engine = "tmb")
+    ft_red <- drm_mc_fit(fx$reduced, fx$dat, engine = "tmb")
+    native <- drm_mc_julia_native(fx$dat, fx$jl[1], fx$jl[2], fx$jl[3], fx$jl[4])
+    # (a) formula parity on DRM.jl's own log-likelihood: 1e-8 on every quantity.
+    tj <- drm_lrtest(fj_red, fj_full)
+    expect_lt(abs(aicc(fj_full) - native$aicc_full), 1e-8)
+    expect_lt(abs(aicc(fj_red) - native$aicc_red), 1e-8)
+    expect_lt(abs(tj$statistic - native$statistic), 1e-8)
+    expect_identical(tj$df, native$df)
+    expect_lt(abs(tj$p.value - native$p.value), 1e-8)
+    # (b) cross-engine: TMB's optimum against DRM.jl's. Information criteria
+    # and the LR statistic inherit the two engines' log-likelihood gap, measured
+    # at <= 2e-12 on both fixtures (2026-09-04, pin 430ef64cc), so the 1e-8
+    # bar holds here with four orders of headroom.
+    tt <- drm_lrtest(ft_red, ft_full)
+    expect_lt(abs(aicc(ft_full) - native$aicc_full), 1e-8)
+    expect_lt(abs(aicc(ft_red) - native$aicc_red), 1e-8)
+    expect_lt(abs(tt$statistic - native$statistic), 1e-8)
+    expect_identical(tt$df, native$df)
+    expect_lt(abs(tt$p.value - native$p.value), 1e-8)
+  }
+})
+
+# ---- BRIDGE AXIS: the suite's four verbs on an engine = "julia" fit ---------
+#
+# The live block above already fits with engine = "julia" and shows aicc() and
+# drm_lrtest() agree with DRM.jl's own on two fixed-effect fixtures. What was
+# never checked is the rest of the suite. Measured 2026-09-05 against DRM.jl
+# aee371cc9 on a Gaussian random-intercept pair (n = 360, G = 30):
+#
+#   aicc(julia_fit)  856.6308350330 == DRM.jl aicc      |d| = 0.000e+00
+#                                   vs aicc(tmb_fit)    |d| = 1.899e-11
+#   drm_lrtest       stat 277.6900074326, df 1, p 2.393265e-62 == DRM.jl lrtest
+#   anova(julia)     had NO method -> bare UseMethod error, while anova(tmb)
+#                    gave drmTMB's own refusal. Now the same refusal on both.
+#   weights(julia)   returned NULL SILENTLY via stats:::weights.default, while
+#                    weights(tmb) on the same unweighted model returns 360 ones
+#                    and DRM.jl's weights(fit) returns ones(nobs) (measured:
+#                    length 360, all one). Now ones on both.
+#
+# These three assertions need no Julia: they are dispatch on the class.
+drm_mc_stub_julia <- function(nobs = 7L) {
+  structure(list(nobs = nobs, df = 3L), class = "drmTMB_julia")
+}
+
+test_that("anova() refuses an engine = 'julia' fit with drmTMB's own message", {
+  stub <- drm_mc_stub_julia()
+  expect_error(
+    stats::anova(stub),
+    "not implemented for <drmTMB_julia> fits"
+  )
+  # The native engine offers an LRT table (#1240); a single fit has nothing to
+  # compare it with, so it asks for a second one.
+  expect_error(
+    stats::anova(drm_mc_fit(bf(y ~ x, sigma ~ 1), drm_mc_fixture_2())),
+    "at least two nested"
+  )
+})
+
+test_that("weights() on an engine = 'julia' fit returns ones, not NULL", {
+  stub <- drm_mc_stub_julia(nobs = 7L)
+  w <- stats::weights(stub)
+  expect_type(w, "double")
+  expect_length(w, 7L)
+  expect_true(all(w == 1))
+  # RED CONTROL for the defect this closes: without the method, dispatch falls
+  # through to stats:::weights.default, which reads `object$weights` -- absent
+  # here -- and returns NULL silently.
+  expect_null(stats:::weights.default(stub))
+  # The native engine on an unweighted fit: ones, the same answer.
+  ft <- drm_mc_fit(bf(y ~ x, sigma ~ 1), drm_mc_fixture_2())
+  expect_true(all(stats::weights(ft) == 1))
+  expect_length(stats::weights(ft), stats::nobs(ft))
+
+  # The length must come from nobs(), not from the raw `nobs` field: a joint
+  # fit counts only its OBSERVED rows (nobs.drmTMB_julia_joint() is
+  # sum(observed_y)), so reading object$nobs would hand back a weight vector
+  # longer than the data the fit used. The _joint and _xfam subclasses inherit
+  # weights.drmTMB_julia, so this is the shape that would break.
+  joint <- structure(
+    list(nobs = 12L, bridge_payload = list(observed_y = c(rep(1, 7), rep(0, 5)))),
+    class = c("drmTMB_julia_joint", "drmTMB_julia")
+  )
+  expect_identical(stats::nobs(joint), 7L)
+  expect_length(stats::weights(joint), 7L)
+  expect_true(all(stats::weights(joint) == 1))
+})
+
+# DRM.jl oracle for the random-intercept pair: `g` crosses as an integer
+# grouping key, not a Float64 covariate.
+drm_mc_julia_ri_native <- function(dat) {
+  JuliaCall::julia_assign("drm_mc_ri_y", dat$y)
+  JuliaCall::julia_assign("drm_mc_ri_x", dat$x)
+  JuliaCall::julia_assign("drm_mc_ri_g", as.integer(dat$g))
+  JuliaCall::julia_command(
+    "drm_mc_ri_d = (; y = drm_mc_ri_y, x = drm_mc_ri_x, g = drm_mc_ri_g);"
+  )
+  JuliaCall::julia_command(paste0(
+    "drm_mc_ri_full = drmTMB_backend.drm(drmTMB_backend.bf(drmTMB_backend.@formula(y ~ 1 + x + (1 | g)), ",
+    "drmTMB_backend.@formula(sigma ~ 1)), drmTMB_backend.Gaussian(); data = drm_mc_ri_d);"
+  ))
+  JuliaCall::julia_command(paste0(
+    "drm_mc_ri_red = drmTMB_backend.drm(drmTMB_backend.bf(drmTMB_backend.@formula(y ~ 1 + x), ",
+    "drmTMB_backend.@formula(sigma ~ 1)), drmTMB_backend.Gaussian(); data = drm_mc_ri_d);"
+  ))
+  out <- JuliaCall::julia_eval(paste0(
+    "let t = drmTMB_backend.lrtest(drm_mc_ri_red, drm_mc_ri_full); ",
+    "[drmTMB_backend.aicc(drm_mc_ri_full), drmTMB_backend.aicc(drm_mc_ri_red), t.statistic, ",
+    "Float64(t.dof), t.pvalue] end"
+  ))
+  list(aicc_full = out[[1]], aicc_red = out[[2]], statistic = out[[3]],
+       df = out[[4]], p.value = out[[5]])
+}
+
+test_that("aicc() reaches an engine = 'julia' fit and matches tmb and DRM.jl", {
+  drm_skip_live_julia()
+  drmTMB:::drm_julia_setup()
+  set.seed(20260905)
+  G <- 30L
+  m <- 12L
+  g <- rep(seq_len(G), each = m)
+  x <- stats::rnorm(G * m)
+  b <- 0.8 * stats::rnorm(G)
+  dat <- data.frame(
+    y = 0.5 - 0.4 * x + b[g] + 0.7 * stats::rnorm(G * m),
+    x = x, g = factor(g)
+  )
+  full <- bf(y ~ x + (1 | g), sigma ~ 1)
+  red <- bf(y ~ x, sigma ~ 1)
+  fj_full <- drm_mc_fit(full, dat, engine = "julia")
+  fj_red <- drm_mc_fit(red, dat, engine = "julia")
+  ft_full <- drm_mc_fit(full, dat, engine = "tmb")
+  ft_red <- drm_mc_fit(red, dat, engine = "tmb")
+
+  # aicc.drmTMB_julia() runs the REML/MAP guard (#1498) and then defers to
+  # aicc.default(), which needs logLik() to report df and nobs. It does.
+  ll <- stats::logLik(fj_full)
+  expect_false(is.null(attr(ll, "df")))
+  expect_false(is.null(attr(ll, "nobs")))
+  expect_lt(abs(aicc(fj_full) - aicc(ft_full)), 1e-6)
+  expect_lt(abs(aicc(fj_red) - aicc(ft_red)), 1e-6)
+  # Strictly above AIC, as DRM.jl documents.
+  expect_gt(aicc(fj_full), stats::AIC(fj_full))
+
+  # DRM.jl's own aicc/lrtest on the same data: the oracle. drm_mc_julia_native()
+  # maps every column through Float64, which a grouping factor cannot survive,
+  # so the random-intercept oracle passes `g` as an integer of its own.
+  native <- drm_mc_julia_ri_native(dat)
+  expect_lt(abs(aicc(fj_full) - native$aicc_full), 1e-8)
+  expect_lt(abs(aicc(fj_red) - native$aicc_red), 1e-8)
+  tj <- suppressWarnings(drm_lrtest(fj_red, fj_full))
+  expect_lt(abs(tj$statistic - native$statistic), 1e-8)
+  expect_identical(tj$df, native$df)
+  cat(sprintf(
+    "\n[aicc BRIDGE] julia=%.10f tmb=%.10f DRM.jl=%.10f | |d julia-tmb|=%.2e |d julia-DRM.jl|=%.2e\n",
+    aicc(fj_full), aicc(ft_full), native$aicc_full,
+    abs(aicc(fj_full) - aicc(ft_full)), abs(aicc(fj_full) - native$aicc_full)
+  ))
+})
+
+# ---- #1498: AIC/BIC/aicc on engine = "julia" REML fits run the REML guard ---
+#
+# A bridge fit has class "drmTMB_julia" only, so before #1498 AIC()/BIC() went
+# to stats::AIC.default()/BIC.default() and aicc() to aicc.default(): none ran
+# drm_warn_information_criterion(), although the julia route fits REML and
+# records estimator = "REML". These stubs carry exactly the fields a bridge fit
+# records (julia-bridge.R new_drmTMB_julia()), so no Julia is needed.
+drm_mc_stub_julia_fit <- function(estimator = "ML", mu = c("(Intercept)", "x"),
+                                  loglik = -100, df = 3L, nobs = 50L) {
+  structure(
+    list(
+      logLik = loglik,
+      df = df,
+      nobs = nobs,
+      estimator = estimator,
+      REML = identical(estimator, "REML"),
+      coefficients = list(
+        mu = stats::setNames(rep(0.1, length(mu)), mu),
+        sigma = c("(Intercept)" = 0)
+      )
+    ),
+    class = "drmTMB_julia"
+  )
+}
+
+test_that("logLik() of an engine = 'julia' REML fit carries the estimator attributes", {
+  ll <- stats::logLik(drm_mc_stub_julia_fit("REML"))
+  expect_identical(attr(ll, "estimator"), "REML")
+  expect_true(attr(ll, "REML"))
+  ll_ml <- stats::logLik(drm_mc_stub_julia_fit("ML"))
+  expect_identical(attr(ll_ml, "estimator"), "ML")
+  expect_null(attr(ll_ml, "REML"))
+})
+
+test_that("AIC/BIC/aicc warn on engine = 'julia' REML fits like the native engine (#1498)", {
+  reml_full <- drm_mc_stub_julia_fit("REML", mu = c("(Intercept)", "x"))
+  reml_null <- drm_mc_stub_julia_fit("REML", mu = "(Intercept)", df = 2L)
+  ml_full <- drm_mc_stub_julia_fit("ML", mu = c("(Intercept)", "x"))
+
+  # A single REML fit: the value alone invites cross-model comparison.
+  expect_warning(stats::AIC(reml_full), class = "drmTMB_ic_reml_warning")
+  expect_warning(stats::BIC(reml_full), class = "drmTMB_ic_reml_warning")
+  expect_warning(aicc(reml_full), class = "drmTMB_ic_reml_warning", regexp = "AICc")
+  # Different mean structures under REML, and REML against ML.
+  expect_warning(stats::AIC(reml_full, reml_null), class = "drmTMB_ic_reml_warning")
+  expect_warning(stats::BIC(reml_full, ml_full), class = "drmTMB_ic_reml_warning")
+
+  # Identical fixed effects under REML (variance-structure comparison) and ML
+  # fits stay silent, as on the native engine.
+  reml_same <- drm_mc_stub_julia_fit("REML", mu = c("(Intercept)", "x"), loglik = -99)
+  expect_no_warning(stats::AIC(reml_full, reml_same))
+  expect_no_warning(stats::AIC(ml_full))
+  expect_no_warning(aicc(ml_full))
+
+  # Values are unchanged: the guard only warns, and the stats defaults keep the
+  # caller's object names as row names.
+  tab <- suppressWarnings(stats::AIC(reml_full, reml_null))
+  expect_identical(rownames(tab), c("reml_full", "reml_null"))
+  expect_equal(tab$AIC, c(-2 * -100 + 2 * 3, -2 * -100 + 2 * 2))
+  expect_equal(
+    suppressWarnings(aicc(reml_full)),
+    drm_aicc_from_loglik(-100, 3, 50)
+  )
+  expect_equal(stats::BIC(ml_full), 200 + log(50) * 3)
+})
+
+test_that("a native REML fit compared with a julia ML fit warns from either side (#1498)", {
+  dat <- drm_mc_fixture_1()
+  tmb_reml <- drm_mc_fit(bf(y ~ x, sigma ~ z), dat, REML = TRUE)
+  julia_ml <- drm_mc_stub_julia_fit("ML", nobs = nrow(dat))
+  expect_warning(stats::AIC(tmb_reml, julia_ml), class = "drmTMB_ic_reml_warning")
+  expect_warning(stats::AIC(julia_ml, tmb_reml), class = "drmTMB_ic_reml_warning")
+})
+
+test_that("a native ML fit compared with a julia REML fit warns in both orders (#1498 review)", {
+  # Pins the native-first filter in drm_warn_information_criterion(): the guard
+  # must read julia fits that arrive through a native AIC.drmTMB()/BIC.drmTMB()
+  # call, otherwise the native ML fit alone hides the REML fit from the guard.
+  dat <- drm_mc_fixture_1()
+  tmb_ml <- drm_mc_fit(bf(y ~ x, sigma ~ z), dat)
+  julia_reml <- drm_mc_stub_julia_fit("REML", nobs = nrow(dat))
+  expect_warning(stats::AIC(tmb_ml, julia_reml), class = "drmTMB_ic_reml_warning")
+  expect_warning(stats::BIC(tmb_ml, julia_reml), class = "drmTMB_ic_reml_warning")
+  expect_warning(stats::AIC(julia_reml, tmb_ml), class = "drmTMB_ic_reml_warning")
+})
+
+test_that("the REML fixed-effect signature ignores the engines' dpar block order (#1498 review)", {
+  # Native fits list bivariate blocks as mu1, mu2, sigma1, sigma2, rho12;
+  # engine = "julia" fits come out of split() alphabetically.
+  mk <- function(order) {
+    blocks <- list(
+      mu1 = c("(Intercept)" = 0, x = 0), mu2 = c("(Intercept)" = 0, x = 0),
+      sigma1 = c("(Intercept)" = 0), sigma2 = c("(Intercept)" = 0),
+      rho12 = c("(Intercept)" = 0)
+    )[order]
+    fit <- drm_mc_stub_julia_fit("REML")
+    fit$coefficients <- blocks
+    fit
+  }
+  native_order <- mk(c("mu1", "mu2", "sigma1", "sigma2", "rho12"))
+  julia_order <- mk(c("mu1", "mu2", "rho12", "sigma1", "sigma2"))
+  expect_identical(
+    drmTMB:::drm_ic_fixed_effect_signature(native_order),
+    drmTMB:::drm_ic_fixed_effect_signature(julia_order)
+  )
+  # Identical fixed effects under REML stay silent whatever the block order ...
+  expect_no_warning(stats::AIC(native_order, julia_order))
+  # ... and a genuinely different mean structure still warns.
+  smaller <- mk(c("mu1", "mu2", "rho12", "sigma1", "sigma2"))
+  smaller$coefficients$mu2 <- c("(Intercept)" = 0)
+  expect_warning(stats::AIC(native_order, smaller), class = "drmTMB_ic_reml_warning")
+})

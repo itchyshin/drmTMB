@@ -1,0 +1,28 @@
+julia-joint-finite-prepare: 12
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-julia-joint-finite-prepare.R:18:5'): finite predictor prepara
+Error in `drm_julia_joint_prepare(bf(y ~ z + mi(x), sigma ~ 1), gaussian(), d, impute = list(x = im), missing = miss_control(response = response, predictor = "model"))`: The Julia joint missing-predictor adapter supports Gaussian or Bernoulli predictor models only.
+x Received predictor family "ordinal".
+Backtrace:
+    ▆
+ 1. └─finite_joint_prepare(kind) at test-julia-joint-finite-prepare.R:18:5
+ 2.   └─drmTMB:::drm_julia_joint_prepare(...) at test-julia-joint-finite-prepare.R:13:3
+ 3.     └─cli::cli_abort(...) at drmTMB/R/julia-joint-missing.R:283:5
+ 4.       └─rlang::abort(...)
+
+── 2. Error ('test-julia-joint-finite-prepare.R:36:3'): ordinal predictor interc
+Error in `drm_julia_joint_prepare(bf(y ~ z + mi(x), sigma ~ 1), gaussian(), d, impute = list(x = im), missing = miss_control(response = response, predictor = "model"))`: The Julia joint missing-predictor adapter supports Gaussian or Bernoulli predictor models only.
+x Received predictor family "ordinal".
+Backtrace:
+    ▆
+ 1. └─finite_joint_prepare("ordinal", intercept_only = TRUE) at test-julia-joint-finite-prepare.R:36:3
+ 2.   └─drmTMB:::drm_julia_joint_prepare(...) at test-julia-joint-finite-prepare.R:13:3
+ 3.     └─cli::cli_abort(...) at drmTMB/R/julia-joint-missing.R:283:5
+ 4.       └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Frustration is a natural part of programming :)
+Error:
+! Test failures.
+Execution halted

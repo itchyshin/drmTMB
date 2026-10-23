@@ -1,0 +1,13 @@
+gate	value	rule
+n_fits_in_denominator	27	27
+claim_convergence	9	9/9 conv=0
+all_convergence	27	27/27 conv=0
+claim_finite_extractors	1	9/9 finite
+claim_pdHess	9	record; 9/9 TRUE
+claim_abs_err_sd0_lt_0.30	9	9/9
+claim_abs_err_sd1_lt_0.30	9	9/9
+claim_abs_err_rho_lt_0.30	9	9/9
+exceptions_dropped	0	must be 0 dropped
+oracle_max_abs_sd0	1.93681098989984e-05	agreement
+oracle_max_abs_sd1	1.03634846790324e-05	agreement
+oracle_max_abs_rho	4.08779802640313e-05	agreement

@@ -1,10 +1,13 @@
-# Arcs — useful-0.7 user-facing
-
-| id | status | gate | one-line |
+# arcs — dinnage-2
+| id | arc | status | gate |
 |---|---|---|---|
-| A0-gap-map | done | — | Thin new vignette `first-week-intervals` (reuse model-workflow as deep link) |
-| R1-uncertainty-freeze | done | — | NEWS + `?confint` default uncertainty story |
-| R2-onboarding | done | — | Vignette + Getting Started + learning-path links |
-| R3-capability-skim | done | — | Skim table in capability-and-limits + README links |
-| R4-ayumi-se | done | — | `se_group_sd` advice in `large-data` + learning path |
-| Closeout | done | draft-PR | after-task + pkgdown check OK; draft PR |
+| L0 | ledger `.unlazy/dinnage-2` + LOOP kit | DONE | — |
+| B1 | batch 1: M1a (tests red + patch prepared), M2, S6 note, S2a note + S3 roxygen | DONE | — |
+| DOC | `devtools::document()` once; man/ diff matches OWNS | DONE (drm_phylo_penalty, predict.drmTMB, sigma.drmTMB only) | — |
+| B2 | M1b (apply patch, recompile, green) ∥ S2b (after F-B concurs) | M1b DONE (fc461aae4); S2b IN PROGRESS | — |
+| F | Fisher F-A (code) + F-B (docs) fresh Opus reviews → repairs | F-B DONE (3x accept-with-changes, CONCUR); repairs IN PROGRESS; F-A todo | Fisher REJECT unrepaired = STOP |
+| NEWS | NEWS.md, check-log, issue-comment drafts | todo | — |
+| MV | Haiku mechanical verify: `--reverify` all leaves | todo | — |
+| CHK | as-cran on clean export; commit; push | todo | push pre-authorised; merge = STOP |
+| REC | Melissa plan-actual | todo | — |
+| CLOSE | after-task, vault, handover, post issue comments | todo | — |

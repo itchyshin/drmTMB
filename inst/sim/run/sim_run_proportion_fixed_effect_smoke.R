@@ -47,7 +47,7 @@ phase18_fit_proportion_fe <- function(data, cell) {
   if (identical(family, "beta")) {
     return(drmTMB(
       bf(prop ~ x, sigma ~ z),
-      family = beta(),
+      family = beta_family(),
       data = data
     ))
   }

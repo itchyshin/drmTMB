@@ -30,16 +30,18 @@ if (!"package:drmTMB" %in% search()) {
 }
 </style>
 
-`drmTMB` fits distributional regression models for one or two responses. This
-introduction explains the model components, fits a first model, and shows how
-to interpret it. If you only need to find a function or tutorial, use the
-shorter [Get started function map](function-map-cheatsheet.html).
+`drmTMB` fits distributional regression models for one or two responses. Start
+here if you have one response and want to ask whether predictors change its
+average, its residual variability, or both. This article fits a small Gaussian
+model, explains the output, and shows what to check before interpretation.
 
 The central workflow is simple: write one formula for each parameter you want
-to estimate, then check that the fitted model matches the symbolic model you had
-in mind. The broader implemented map lives in
-[What can I fit today?](model-map.html), and family choice lives in
-[Choosing response families](distribution-families.html).
+to estimate, fit the simplest model that answers the question, and check the
+fit before interpreting it. If you instead have a phylogenetic tree, begin
+with [Phylogenetic mixed models](phylogenetic-models.html). If your response is
+an effect size with known sampling variance or covariance, begin with
+[Mean effects and residual heterogeneity](meta-analysis.html). The broader
+map, including other response types, is [What can I fit today?](model-map.html).
 
 The parameter names stay consistent across the site. Location is a
 family-specific centre or location parameter; for Gaussian models it is the
@@ -53,18 +55,21 @@ variability change with an environmental predictor, after accounting for
 repeated measures from the same site or species? In `drmTMB`, that question is
 written as one formula for the mean and one formula for the residual scale.
 
-## Install the preview
+## Install
 
-`drmTMB` is not on CRAN yet. Install the current development version (the
-`0.6.0` line) from GitHub with `pak`:
+This vignette describes `drmTMB` 0.7.1, the current development version.
+`drmTMB` 0.7.0 is the first CRAN release. Install it from CRAN:
+
+```r
+install.packages("drmTMB")
+```
+
+Or install the current development source from GitHub with `pak`:
 
 ```r
 install.packages("pak")
 pak::pak("itchyshin/drmTMB")
 ```
-
-The earlier `v0.5.0` tag predates the current line and is not a supported
-install target; a `0.6.0` release will be tagged when it reaches CRAN.
 
 You need R 4.1.0 or newer and a working compiler toolchain because TMB models
 are compiled during installation. If installation fails while compiling C++,
@@ -126,43 +131,23 @@ variances, read [When variance carries signal, Part
 2](location-scale-scale.html) when predictors model a grouped or
 phylogenetic random-effect SD through `sd()`.
 
-## Learning path
+## Choose your next guide
 
-Start with the question you want to answer, not with the full list of features.
-The tutorials are arranged so that each article pairs symbolic equations, R
-syntax, fitted output, and interpretation.
+The first fit above is the right next step when your response is continuous and
+you want to model its average and residual variation. Choose another guide only
+when your data require it.
 
-The opening rows below follow the Get started menu: check the reporting
-boundary, choose a family, find the smallest useful function sequence, and
-then check the fitted model. The remaining rows route common modelling and
-diagnostic questions to the matching guide.
-
-| If your question is... | Read this first | Main parameter |
+| If your question is... | Continue with | Key distinction |
 | --- | --- | --- |
-| Can I fit this model, report its point estimate or interval, and what should I try if I cannot? | [Can I fit and report this model?](capability-and-limits.html) | reporting scope and named fallback |
-| Which family fits my response — continuous, count, proportion, or robust? | [Choosing response families](distribution-families.html) | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
-| I know my task but not which function or shortest workflow to use. | [Function map and cheat sheet](function-map-cheatsheet.html) | task-to-function route and minimal workflow |
-| After fitting, which checks and interval-status columns should I read? | [Checking and using fitted models](model-workflow.html) | `check_drm()`, `profile_targets()`, `conf.status` |
-| How do I profile a random-effect SD and know when not to trust the interval? | [First-week intervals: fit, profile, and boundary](first-week-intervals.html) | `profile_targets()`, `confint(method = "profile")`, `profile.boundary` |
-| Am I modelling residual variation, group-level variation, or likelihood weights? | [Which scale are you modelling?](which-scale.html) | `sigma`, `sd(group)`, `weights` |
-| Do group or phylogenetic covariance rows answer a bivariate question beyond residual coupling? | [What can I fit today?](model-map.html) | `corpairs()`, `corpair()`, `sd1(group, level = "phylogenetic")`, `sd2(group, level = "phylogenetic")` |
-| Do predictors change the mean and residual variability of one response? | [When variance carries signal, Part 1](location-scale.html) | `mu`, `sigma` |
-| Do predictors change residual variability and the SD of a grouped or phylogenetic random effect? | [When variance carries signal, Part 2](location-scale-scale.html) | `mu`, `sigma`, `sd(group)` |
-| Do counts show extra-Poisson variation or structural zeros? | [Count abundance and extra zeros](count-nbinom2.html) | NB2 `mu`, `sigma`, `zi` |
-| Are proportions successes out of trials, continuous rates inside `(0, 1)`, or continuous rates with structural exact boundaries? | [Proportions and success rates](proportion-beta-binomial.html) | beta-binomial, beta, and zero-one beta `mu`, `sigma`, `zoi`, `coi` |
-| Does a predictor change residual coupling between two responses? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` |
-| Do repeated individuals have correlated average responses after accounting for residual coupling? | [Changing residual coupling with rho12](bivariate-coscale.html) | `corpairs(level = "group")` |
-| Do effect sizes have known sampling variances or covariance? (a specialist route, not a family choice for raw response data) | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_V(V = V)`, `sigma` (implemented/tested; tier unregistered, with no interval or coverage claim) |
-| Do species trait means remain similar after accounting for shared ancestry, do sites share coordinate-structured deviations, or do individuals have known relatedness? | [Structural dependence overview](structural-dependence.html) | `animal()`, `phylo()`, `spatial()`, `relmat()` |
-| I have more than one candidate fit — which one should I report? | [Model selection with AIC and BIC](model-selection.html) | `AIC()`, `BIC()` |
-| Is the fitted distribution itself adequate, not just the mean structure? | [Distributional outputs and adequacy](distributional-outputs-and-adequacy.html) | `worm_plot()`, `qq_plot()`, `centile_chart()` |
-| The optimizer did not converge cleanly — what do I check? | [Errors, warnings, and convergence](convergence.html) | `optimizer_convergence`, `fixed_gradient` |
-| My fit is slow or memory-heavy — how do I keep fitting at this scale? | [Working with large data](large-data.html) | `keep_data`, `keep_model_frame`, `se = FALSE`, `se_group_sd` |
+| Which response family fits continuous, count, proportion, robust, or zero-heavy data? | [Choosing response families](distribution-families.html) | A family determines what `mu`, `sigma`, and any extra parameters mean. |
+| Do related species, sites, animals, or a supplied relationship matrix share deviations? | [Structural dependence overview](structural-dependence.html) | A structured deviation is not the same as residual variation or residual correlation. |
+| Do two responses remain associated after their means and residual SDs are modelled? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` is residual coupling, not a correlation among groups or species. |
+| Do effect sizes come with known sampling variances or covariance? | [Mean effects and residual heterogeneity](meta-analysis.html) | This is a Gaussian known-variance analysis, not a family for raw observations. |
+| Is an estimate or interval safe to report? | [Can I fit and report this model?](capability-and-limits.html) | A model that fits can still have weak diagnostics or unsupported uncertainty. |
 
-Here `nu` is a shape parameter, `zi` and `hu` are zero-process parameters, and
-`sd(group)` refers to a group-level random-effect standard deviation rather than
-the residual scale `sigma`. Use the model guide "What can I fit today?" when you
-need the longer status map before choosing syntax.
+Use [What can I fit today?](model-map.html) only when you need a compact
+route-and-limitation map. For any model, run `check_drm()` before interpreting
+coefficients or intervals.
 
 For a first applied analysis, fit the simplest model that answers the question,
 run `check_drm()`, and then read the coefficient table on the parameter scale
@@ -191,20 +176,18 @@ parameter boundaries. Inspect a `note`; resolve a `warning` or `error` before
 treating estimates as stable. The [errors, warnings, and convergence
 guide](convergence.html) explains what to try next.
 
-The key rule is to keep correlation layers separate. A bivariate residual
-`rho12` is within-observation coupling after the two means and residual SDs are
-modelled. A random-effect correlation is a group-level quantity. Phylogenetic
-rows from `corpairs(..., level = "phylogenetic")` are structured-effect
-quantities, and the first coordinate-spatial mean-mean row is reported by
-`corpairs(..., level = "spatial")` when matching labelled spatial terms are
-fitted in `mu1` and `mu2`. The constant coordinate-spatial q=4 location-scale
-block is also fitted when matching labelled spatial terms appear in all four
-`mu1`/`mu2`/`sigma1`/`sigma2` endpoints. Predictor-dependent spatial
-`corpair()` rows remain planned. Those layers should not be reported as if they
-were the same estimand.
+Keep correlation layers separate. A bivariate residual `rho12` describes how
+two responses vary together within an observation after their means and
+residual SDs are modelled. A random-effect correlation instead describes how
+group-level deviations vary together. Phylogenetic and spatial structure are
+further kinds of group-level pattern. They answer different biological
+questions and should not be reported as the same quantity. If correlation is
+your scientific question, continue with the [structural dependence
+overview](structural-dependence.html) before adding it to this introductory
+model.
 
 Use [Can I fit and report this model?](capability-and-limits.html) for the
 current reporting boundary and named fallback; use the [model map](model-map.html)
 when you need syntax detail. Once this first fit is checked, continue with
-[Checking and using fitted models](model-workflow.html) or choose a scientific
+[Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html) or choose a scientific
 question from the Learning path table above.

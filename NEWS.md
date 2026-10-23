@@ -1,9 +1,2038 @@
+# drmTMB (development)
+
+## Documentation fixes
+
+* `?phylo` now correctly describes the existing unit-height convention:
+  drmTMB divides the Brownian covariance by tree height, so multiplying all
+  branch lengths by the same positive constant leaves the normalized
+  covariance unchanged. The input tree object is not modified. This corrects
+  the earlier claim of preserving the supplied absolute branch-length scale;
+  no fitting behavior or numerical default changed (Ayumi-495/
+  LS_ecogeographical-rules#49).
+
+## Bug fixes
+
+* `summary()` now flags a non-converged fit as `print()` does. The printed
+  summary says "not converged" with the optimizer message, and printing it
+  raises a warning of class `drmTMB_convergence_warning`, the same class as
+  the fit-time warning. `summary()` also stores the optimizer message as
+  `convergence_message` (#1545).
+
+* The post-fit `mi()` quadrature accuracy check no longer drops a NA or NaN
+  Beta/zero-one-Beta missing-row mean, and no longer skips a NA, NaN, or
+  infinite Gamma log CV or an overflowing Gamma CV. Each now stops with class
+  `drmTMB_mi_quadrature_guard_nonfinite` instead of returning the fit with no
+  signal (refs #1532).
+
+* Gamma `mi()` missing-x rows use a 51-node posterior-mode Gauss-Hermite
+  rule on `u = log(x)`. Exactly five Newton steps start at the log prior
+  mean and use each response family's own log-density gradient and
+  Hessian (Poisson adds `(y - mu) eta'(x)` and the matching curvature).
+  There is no data-dependent stop. Nodes sit at the mode scaled by
+  `1/sqrt(-H)`. The log-sum is the unnormalised marginal (no
+  `log_mass`). A NaN or `-Inf` row stops the fit with class
+  `drmTMB_mi_quadrature_nonfinite`, including on a live `drmTMB()` call
+  (start and fitted `fn`/`gr` probes, and the C++ tape token through
+  `drm_rethrow_mi_quadrature_error`). The abort watches every `mi()`
+  term, not only the first slot. A node that hits `u_max = 500` keeps a
+  finite `x` and drops its `w cosh(t)` weight. Against
+  `stats::integrate()` on the log-x scale the per-row logLik error is
+  below `1e-4` near the pole and in the tail at CV 0.05, 0.5, and 1, and
+  for Poisson times Gamma at CV 1. Poisson times Gamma at CV 2 with
+  `y = 0` stays finite. CV `> 1` near the pole remains a follow-up
+  (Refs #1477). `obj$gr()` matches a finite-difference gradient to
+  `1e-5` at CV 0.05, 1, and 2, and at the pole geometry where Newton
+  branch B wins (Refs #1477). A fitted Gamma `mi()` with CV at least 3
+  also raises `drmTMB_mi_quadrature_inaccurate` (see the Beta `mi()`
+  note below).
+
+* Beta and zero-one-Beta `mi()` keep the frozen 15-node Gauss-Legendre
+  rule on `(0, 1)`, with zero-one-Beta atoms at 0 and 1. Mid-range Beta
+  logLik error versus `integrate()` is about `2.6e-5`. U-shaped Beta
+  (`mu` 0.02 and 0.10, `sigma = 1`) is about `1.64e-2`. The worse
+  U-shaped case with shapes `(0.13, 0.31)` and `y` near the 0 pole
+  is about `0.54` and is recorded for #1531 (Refs #1476).
+  Weight 0 on a missing row still uses `if (asDouble(weights(i)) > 0)`
+  (Refs #1476). After a successful TMB fit, class
+  `drmTMB_mi_quadrature_inaccurate` warns when any `mi()` term's
+  estimated missing-row Beta / zero-one-Beta prior mean is within
+  `0.10` of 0 or 1 (the 15-node rule is `4.65e-3` at `mu = 0.10`,
+  `sigma = 1` and `4.81e-3` at `mu = 0.02`, `sigma = 1`) or when a
+  Gamma `mi()` CV is at least 3. The check is R-only, loops both
+  `mi()` slots, and does not run on the Julia route, which already
+  refuses Beta and Gamma `mi()`.
+
+* `engine = "julia"` now refuses `mi()` plus non-unit observation weights
+  for every family, with class `drmTMB_julia_mi_weights_unsupported`,
+  before the Julia family check. DRModels.jl ignores weights on both the
+  response and the imputation prior. Unit weights (`weights = 1`) are
+  treated as omitted. Native `engine = "tmb"` still fits. The classed
+  warning `drmTMB_mi_weights_prior_unweighted` fires only on the
+  unweighted Gaussian prior paths (`src/drmTMB.cpp:1434`, `:1475`, and
+  the nbinom2 x Gaussian copy at `:4678`). Beta, Gamma, and the other
+  M1 families already weight the prior and do not warn. Weight 0 or
+  `NA` on a row whose `mi()` predictor is missing is a named error
+  (`drmTMB_mi_zero_weight_missing`). A weight-0 observed Gaussian row
+  is skipped with `if (asDouble(weights(i)) > 0)` so `y = 1e200` keeps
+  `fn` and `gr` finite. `predict()` and `simulate()` allow `weights = 1`
+  and refuse non-unit `weights` on an `mi()` fit
+  (`drmTMB_mi_weights_predict_unsupported`) (Refs #1459).
+
+* Profile confidence intervals now explicitly average parameter coordinates
+  at tied objective values. This preserves the existing interpolation result
+  while avoiding a spurious "collapsing to unique 'x' values" warning from
+  the implicit interpolation default (#1521).
+
+* `profile()` and `confint(method = "profile")` no longer keep the full
+  fixed-parameter vector for every objective evaluation of a full
+  `TMB::tmbprofile()` run. The private trace now stores one objective value
+  and one error slot per evaluation and reduces the direct-SD clamp check as
+  it goes, so a 3,020-evaluation profile of an 82-parameter fit shrank from
+  6.5 MB to 51 KB with identical curves and clamp status. Set
+  `options(drmTMB.profile_trace_par = TRUE)` to keep the full trail for
+  debugging (#1387).
+* Multicore profile workers that error now abort `confint()` and `profile()`
+  with the worker's error, as the serial path does, instead of returning a
+  `try-error` element.
+* `configure.win` is now a POSIX shell script that runs `./configure`.
+  R CMD INSTALL runs `configure.win` with the Rtools `sh`, so the previous
+  cmd batch file failed at `@echo: command not found` and stopped every
+  Windows source install and Windows CI build. Build provenance and the
+  never-fatal fallbacks are unchanged.
+
+* `family = student()` no longer reports a log-likelihood above the Gaussian
+  maximum when `nu` is huge. The compiled density evaluates
+  `lgamma((nu+1)/2) - lgamma(nu/2)` with a Stirling series for `nu >= 1e4`,
+  and uses `log1p` for `z^2/nu` (#1462). Moderate `nu` is unchanged. A fit
+  that previously stopped at `nu` around `1e6` or larger can move, because
+  the old objective was rounding noise. `logLik()` reads that objective.
+  `fitted_distribution()` already used `stats::dt()`.
+
+* Binomial cloglog and zero-truncated or hurdle NB2 Hessians stay finite when
+  a success probability or a truncated mean is far below `1e-16` (#1472).
+  The log-likelihood value at those points is unchanged. `drm_log1p_nonnegative()`
+  got the same treatment for a huge argument, which is the kernel used by
+  bivariate Student-t.
+
+* The Julia bridge defines `%||%` itself when the running R does not
+  already provide it. Base R added that operator in 4.4.0, and
+  `DESCRIPTION` allows R >= 4.1, so formula marshalling, bridge
+  diagnostics, and the MSPL link code errored on older R with
+  "could not find function `%||%`". The definition matches base: the
+  right-hand side only when the left-hand side is `NULL`. A second copy
+  from a rebase does not replace it.
+
+* `engine = "julia"` cross-family fits now drop one shared complete case.
+  A length check used to pair row 3 of one response with a different row of
+  the other when the `NA`s were staggered (#1454). An `NA` in `y1` on row 3
+  and an `NA` in `y2` on row 7 now drops both rows from both axes, and a
+  missing sigma covariate drops that row from the location axes too.
+  Each design is rebuilt on those shared rows. Assigned contrasts are
+  kept, including `contr.sum` and the polynomial contrasts of an ordered
+  factor, so `contrasts(f) <- contr.sum(3)` still yields columns `f1` and
+  `f2` when every level remains. The same helper now drops unused levels
+  on the TMB engine, which had been recoding those columns as treatment
+  contrasts (`fb`, `fc`) (#1495). When `drmTMB()` drops an unused level,
+  a stored contrast matrix keeps its rows for the levels that remain, on
+  ordered factors too, and a contrast name such as `"contr.sum"` is kept
+  as is. If those rows are not a contrast basis (`contr.sum(4)` on three
+  levels), the fit uses the default coding and warns
+  (`drmTMB_contrasts_dropped`), as `lm()` does. A non-reference treatment
+  level that the drop empties is still removed. Removing the reference level stops the fit
+  and names that level, instead of keeping a column such as `gc` and
+  silently changing its baseline. A character or logical predictor is
+  factored from the full frame before that check. `g = c("a", "a", "b",
+  "b", "c", "c")` with the `"a"` rows removed by the other response stops
+  the fit and names `"a"`, instead of keeping `gc` against a new baseline
+  `b`. Fewer than two observed levels, a
+  contrast coding that cannot be kept, or any other aliased column
+  (tolerance 1e-10) also stops the fit.
+  `fitted()` and `residuals()` are the length of the original data, with
+  `NA` on dropped rows, and the kept positions are stored in `kept_rows`.
+  `cbind(successes, failures)` is refused on a cross-family axis, with or
+  without missing values: flattening that response and keeping the first
+  `n` entries dropped the failures. A single 0/1 column is unchanged.
+  `offset()` on a location or sigma formula is refused, because
+  `model.matrix()` would have ignored it. Structured `response = "drop"`
+  fits drop incomplete rows, and error if that would remove a whole
+  grouping level from the covariance. Bivariate q2 structured fits error
+  when a modelled column contains `NA` instead of sending it to Julia.
+  The main bridge records how many rows it dropped, and `check_drm()`
+  reports that count. `response = "include"` is unchanged.
+
+* `family = beta()` now fails with a drmTMB message that names
+  `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
+  `beta()` stays unexported so it does not mask [base::beta()] (#1420).
+
+## New features
+
+* `drm_control(optimizer_method = "BFGS")` selects BFGS directly, even when
+  `nlminb()` would converge. `"L-BFGS-B"`, `"Nelder-Mead"`, and `"CG"` are
+  also selectable. Pass method-specific settings such as `maxit` through
+  `optimizer = list(...)`. The default remains `"nlminb"`; its presets and
+  fallback behavior are unchanged. Diagnostics and attempt records name the
+  method used. Profile endpoint refits retain their own `nlminb()` controls.
+
+* `confint()` and `profile()` accept `parallel = "cluster"`, a socket
+  (PSOCK) backend that works on every platform, including Windows. Workers
+  load the same installed `drmTMB` build, and TMB re-tapes the shipped fit on
+  first use, so results equal the serial run apart from elapsed time. Four
+  profile targets on four workers took 6.5 s against 11.1 s serially; the
+  backend costs about a second to start (#1236).
+* `drm_control()` gains `parallel` and `workers` for the starts of
+  `multi_start` only; a single fit still runs on one core (#1248, #1254). On
+  a Gaussian location-scale fit with random effects in both parts, four
+  starts took 1.95 s with `"multicore"` and 3.24 s with `"cluster"`, against
+  4.80 s serially. Parallel starts all begin from the same initial TMB
+  state, so random-effect estimates agree with the serial run to about
+  `1e-7`; fixed-effect fits are identical. Bootstrap refits never start
+  their own parallel multi-start inside parallel bootstrap workers.
+* `simulate()` stays serial after a benchmark: per-draw workers were slower
+  than the vectorised draw even at 10,000 rows and 500 draws (#1247).
+* Internal retained-bootstrap shards (`drm_bootstrap_shard()`,
+  `drm_bootstrap_combine()`, `drm_bootstrap_ledger()`) keep every attempted
+  refit with its replicate seed and status, draw each replicate from its own
+  L'Ecuyer-CMRG stream, and join only compatible, non-overlapping shards.
+  They are not exported and do not change `confint(method = "bootstrap")`
+  (#861).
+
+* `profile()` gains `parallel = c("none", "multicore")` and `workers`, the
+  same contract `confint()` already had. Multicore profiles of several
+  targets return the same curves as the serial run apart from the `elapsed`
+  column; four targets on four workers ran 2.4 times faster (9.5 s to 4.0 s)
+  in a local check (#1247).
+* New help topic `?drmTMB-parallel` states the package's thread policy: one
+  fit uses one core (the compiled objective has no OpenMP, so
+  `TMB::openmp()` does not speed it up), parallelism is across independent
+  profile and bootstrap jobs, inner BLAS/OpenMP threads should stay at one
+  when outer workers run, and Windows has no cluster backend because fitted
+  TMB objects cannot be copied between R processes (#1232, #1237, #1249,
+  #1254, #1236).
+
+# drmTMB 0.7.1
+
+## API compatibility fixes
+
+* The Julia bridge now selects the configured checkout, reads its declared
+  package name (`DRModels` or legacy `DRM`), and verifies the resolved and
+  loaded source paths, including joint missing-predictor fits and generated
+  inference helpers. Set `drmTMB.DRModels.jl.path` or `DRMODELS_JL_PATH` for
+  the checkout; `drmTMB.DRM.jl.path`, `DRM_JL_PATH`, and `../DRM.jl` remain
+  supported. Automatic sibling discovery also checks `../DRModels.jl` first.
+  Julia and `JuliaCall` remain optional; the default TMB engine is unchanged.
+
+## Independent-evaluation fixes
+
+* Exported `beta_family()` for strict continuous-proportion models so the
+  unqualified name `beta()` no longer masks [base::beta()]. The old
+  `beta()` constructor remains available as a deprecated unexported alias
+  (`drmTMB:::beta()`). `drmTMB::beta()` is not exported.
+
+* `fixef()` and `ranef()` now re-export `nlme`'s shared generics (as
+  `glmmTMB` and `lme4` already do), so loading `drmTMB` after `glmmTMB` or
+  `lme4` no longer breaks mixed-model extractors on foreign fits.
+
+## Documentation fixes
+
+* `cumulative_logit()` now documents that integer-coded ordinal responses are
+  accepted at face value in increasing numeric order, and that analysts should
+  use ordered factors when labels carry the scientific order.
+
+* The capability vignette now lists `lognormal()`, `Gamma(link = "log")`,
+  `student()`, and `beta_binomial()` among non-Gaussian response families
+  that can fit one binary missing predictor through `mi()`.
+
+* `student()` no longer claims that Student-t is the only implemented family
+  whose public `sigma` is a scale rather than `SD[y]`.
+
+* `meta_V()` now states that a known sampling covariance matrix is matched to
+  the retained model frame by row position, not by dimnames.
+
+* `confint()` now states that its returned `parm` column uses fully-qualified
+  target names such as `fixef:sigma:z`, even when the caller selected the same
+  target with a compact label such as `sigma:z`.
+
+* `?drmTMB` now explains that Wald/profile `confint()` does not currently form
+  intervals for REML-integrated mean coefficients, even though `summary()` and
+  `vcov()` can report finite Wald standard errors from the full `sdreport`
+  covariance. It names bootstrap intervals as the current working alternative.
+
+
+* `?predict.drmTMB` now states that `type = "response"` returns the requested
+  distributional parameter on its response scale, not necessarily `E[Y]`; it
+  points users to `fitted()` for fitted-row response means and expected ordinal
+  scores.
+
+* `?summary.drmTMB` and `?residuals.drmTMB` now make optional `emmeans` and
+  DHARMa workflows discoverable, including a guarded `DHARMa::createDHARMa()`
+  example built from `simulate()`.
+
+* `?residuals.drmTMB` now documents Pearson-residual scale conventions for
+  `student()`, `skew_normal()`, and `beta()` alongside the other enumerated
+  families.
+
+* `?sigma.drmTMB` now states that `sigma()` returns one value per fitted row
+  when the scale formula varies by row, and warns that generic tools expecting
+  a scalar residual scale can summarize away this heterogeneity.
+
+* `?phylo` added branch-length-scale guidance. Its description of absolute
+  scale preservation was incorrect; see the development documentation
+  correction above for the existing unit-height covariance convention.
+
+* `miss_control(predictor = "fail")` now errors when ordinary predictors contain
+  missing values, matching the documented default.
+* `bf()` and `drm_formula()` accept formulas held in variables (for example
+  `bf(mu = f_mu, sigma = f_sigma)`).
+* `confint()` results carry class `drm_confint`, and `as.matrix()` returns the
+  two-column matrix shape of `stats::confint()`.
+* Minor surfaces bundle: guided errors for mistyped columns, singular weight
+  grammar, AIC/BIC REML warnings only on invalid comparisons, Tweedie power
+  guards, `print()` shows fixed effects, and every unsupported-parameter abort
+  includes a hint.
+* `?drm_control` documents joint `sigma` + `zi` local-optimum risk and
+  `multi_start` advice.
+
+## Diagnostics and convergence fixes
+
+* `check_standard_errors_inflated` now bases its ratio on the median of
+  finite standard errors below the absolute floor (reported as
+  `reference_median=`), so collinear or weakly identified fits still flag
+  pathological inflation.
+* Subsetting a `drm_check` object keeps class and `print()` reports
+  `X of N checks shown` when rows are filtered.
+* `check_drm()` adds `observations_per_parameter` (note below 10 obs per
+  estimated parameter) and `fixed_effect_collinearity` (note when pairwise
+  |r| exceeds 0.99).
+* New `convergence_status()` labels fits `converged`, `boundary`, or
+  `degenerate`; `is_converged()` stays logical and returns `FALSE` on
+  degenerate geometry even when `multi_start` hits optimizer code 0.
+
+* Wald intervals record `conf.status = "wald_bias_corrected"` when default
+  small-sample bias correction shifts the interval centre; the phylo `g`
+  denominator question is documented in
+  the supporting technical documentation.
+
+## Missing-data and interval-guidance fixes
+
+* `check_drm()`'s `dropped_rows` row now reports `groups_lost=` when
+  complete-case or known-covariance filtering drops every row for one or
+  more random-effect grouping levels, not only a row count.
+
+* Wald intervals for residual `rho12` at a correlation boundary no longer
+  recommend `method = "profile"` when profile intervals are usually identical
+  to Wald there; `check_rho12_boundary()` states the same instead of implying
+  a profile switch.
+
+## Weighted missing-data fixes
+
+* `weights()` composed with `mi()` now leaves the maximum-likelihood
+  estimate unchanged under a constant reweighting for EVERY imputation
+  family, not only the Bernoulli family repaired previously. The eleven
+  `mi_family` quadrature blocks in `src/drmTMB.cpp` (ordinal, categorical,
+  beta, zero-one-beta, beta-binomial, Poisson, NB2, truncated NB2,
+  lognormal, gamma, Tweedie) multiplied `weights(i)` into each quadrature
+  node before `logspace_add()` combined them and then subtracted the
+  combined log-density with no outer weight at all; the observed-row
+  imputation-prior term was unweighted too. `weights(i)` now multiplies the
+  combined mixture log-density and the observed-row prior, so `weights = c`
+  is literal row duplication and the weighted objective is exactly `c` times
+  the unweighted one (asserted through the fitted TMB objective in the new
+  per-family test, which fails 43 times on the previous kernel). Three
+  neighbours are recorded, not fixed. (1) The Gaussian latent `mi()` route
+  (`mi_family == 0`, two blocks, `src/drmTMB.cpp` near lines 1215 and 4429)
+  and the second-covariate `has_mi2` prior (near line 1257) leave the
+  covariate-model density unweighted: for OBSERVED rows that is the same
+  one-line change as the template; for MISSING rows the covariate is a
+  Laplace-integrated latent, and weighting both terms inside the integral is
+  not the same as weighting the marginal, so that half needs its own design
+  (the exact Gaussian marginal, then weighted, is the clean route). (2) The
+  Tweedie imputation model sizes its fixed 35-node quadrature support from a
+  start-value dispersion built with `stats::var()` (n - 1), so duplicating
+  rows moves the support and the same integral evaluates about 1.3 nats
+  apart; more importantly the support is frozen at the start value, so the
+  integral is silently truncated whenever the fitted imputation scale
+  outgrows it. Its duplication test arm is therefore not a negative control
+  for Tweedie; the objective identity is.
+
+* `sigma()`, `predict(dpar = "sigma")` (both `type = "link"` and
+  `"response"`), `residuals()`, `fitted()` and `simulate()` now report the
+  soft-clamped scale the likelihood actually evaluated for every family in
+  `drm_clamped_scale_families()`. Previously the accessors returned
+  `exp(eta)` on the raw linear predictor while the TMB objective used the
+  clamped value, so on a fit where the clamp binds `sigma()` could exceed the
+  fitted scale many-fold, a hand-recomputed log-likelihood under `sigma(fit)`
+  missed `logLik(fit)` by hundreds of nats, and the Pearson residual spread
+  read about two rather than one. One internal helper now applies the clamp
+  at the two live prediction paths (`predict.drmTMB()` and the marginal
+  predictor `simulate()` uses); the fix is a no-op whenever the clamp is
+  inactive. The independent review of that change found two more raw-scale
+  consumers, repaired in follow-up commits: `predict_parameters()` built
+  its Wald interval from the raw predictor while its estimate was clamped,
+  so 60 of 200 rows on a clamp-active fit showed an estimate outside its
+  own interval; clamping the endpoints instead collapsed the interval to
+  zero width at saturated rows (measured coverage 0), so clamp-bent rows
+  now carry `NA` endpoints flagged `conf.status = "clamp_limited"`, as
+  `profile()` already does for direct SD targets, and in-band rows keep
+  the ordinary Wald interval. That refusal selects on the estimate, not
+  the truth: near the band edge the intervals that are returned are
+  conditioned on the estimate having stayed in band, and the review
+  measured their coverage falling from 0.985 to 0.882 as the true
+  predictor approached the edge (0.98 unconditional), so treat any
+  scale-parameter interval on a clamp-active fit as provisional; and
+  `predict(dpar = "sd(group)")` for a modelled
+  random-effect scale returned `exp(raw eta)` while the kernel and the
+  fit's own `sdpars` use the clamped value. Not yet aligned, and recorded
+  as follow-ups: the response-scale `profile()` output for `sigma`, the
+  Julia-bridge scale target, `summary_parameter_delta_derivative()`, and
+  `check_drm()`'s clamp detector, which does not read a modelled
+  `sd(group)` scale. Reporting the clamped value makes such a fit honest,
+  not correct: when `check_drm()` says the clamp is active, rescale the
+  response and refit.
+
+* `summary()$derived` and the `heritability()`/`icc()`/`repeatability()`
+  accessors now use the marginal residual variance when `sigma` carries
+  random intercepts. `drm_constant_residual_sigma()` returned `exp(b0)`, the
+  median scale, so with a random intercept on `log(sigma)` of SD `omega` the
+  variance-share denominator was too small by a factor `exp(2 omega^2)`
+  (Russell measured +60.6% on the ratio at `omega = 0.8`). The residual
+  variance is now `exp(2 b0 + 2 sum(omega_k^2))`, exactly `E[sigma^2]` for
+  Gaussian random intercepts on the log scale, including a phylogenetic
+  random intercept on `sigma` under the default unit-diagonal correlation;
+  the delta-method standard error of the accessors carries the extra
+  dependence on each `omega_k` (hand-derived and package SEs agree to
+  1e-11). That change corrects WHICH quantity the interval brackets; it
+  does not make the bracket nominal: the accessors' interval is still a
+  Wald interval on a variance ratio, and the independent review measured
+  95% coverage of 0.910 with a random intercept on `sigma` and 0.928 for
+  a `sigma ~ 1` control over 500 replicates each, a shortfall that predates
+  this change (`method = "profile"` where available is the safer choice).
+  Random slopes on `sigma`, a structured effect whose correlation diagonal
+  (measured on the rows the design uses, e.g. the tips of a tree, never the
+  latent internal nodes) is not one, or a fit that carries a `sigma`
+  random effect while the `log(sigma)` soft clamp bent the assembled
+  predictor for at least one observation (the kernel clamps the assembled
+  predictor, so the closed form is no longer the moment the likelihood
+  uses; a clamp-active `sigma ~ 1` fit still returns its constant clamped
+  scale) give `NA` with a message naming why instead of the silently wrong
+  median. `summary()$derived$residual_sd` is the marginal
+  `sqrt(E[sigma^2])` while the `sigma` parameter row remains the median
+  `exp(b0)`; they coincide only when `sigma` carries no random effect. Both repeatability loci
+  are Gaussian-only, so the three-scale question of de Villemereuil et al.
+  (2016) does not arise for this number; the audit note
+  the supporting technical documentation records
+  that non-Gaussian fits are refused by an error rather than mislabelled,
+  and that latent-scale support for them is a feature decision.
+
+* `?drm_phylo_penalty` now describes the estimator the package actually
+  reports. The prior on each phylogenetic SD is the documented exponential
+  (PC) prior with `P(sd > sd_u) = sd_alpha` holding exactly; the penalty is
+  evaluated on `log(sd)` with the change-of-variables Jacobian, so the
+  reported penalised `sd_phylo` is the mode in `log(sd)`, is never zero, and
+  sits at `1/rate` (0.334 at the defaults) under a flat likelihood. A
+  penalised fit must not be used to test a null of no phylogenetic signal.
+  No code or default changed.
+
+* The numeric-kernel oracle helper `run_oracle()` now counts grid points
+  whose C++ kernel or reference evaluation is non-finite after explicit
+  exclusions, and fails when that count exceeds a caller-supplied ceiling
+  (`max_nonfinite`). Previously those rows were dropped silently before the
+  relative-error assertion, so a broken kernel could pass with fewer checked
+  points than the grid implied. The beta-binomial oracle pins
+  `max_nonfinite = 0` on the non-excluded grid while keeping a separate,
+  looser tolerance on deliberately excluded huge-`phi` rows.
+
+* `beta_binomial()` now nudges extreme logit means inward and floors the
+  beta shape parameters in both the main TMB block and the `mi()` response
+  kernel leaf, matching the guards `beta()` already had. Extreme `beta_mu`
+  values that previously drove `lgamma()` to `-Inf` now return a finite
+  log-density, asserted against an `lbeta()` reference in the audit
+  regression tests.
+
+* REML fits now carry `estimator_exact`, and `summary()`/`print()` name
+  whether the fit used exact restricted likelihood or a Laplace/Cox-Reid
+  adjusted profile (Gaussian models with a random effect on `sigma` are
+  labelled adjusted).
+
+* Phylogenetic fits now inform when tree tips are absent from the data and
+  the fit uses the subtree induced by the observed species
+  (`validate_phylo_tree()`).
+
+* `simulate()` on `drm_pair_association` objects restores the caller's
+  `.Random.seed` after an internal `set.seed()`, via `on.exit()`.
+
+* The AGHQ and Cox-Reid optimizers share one
+  `drm_o3_optim_control()` (`reltol`, `maxit`) and warn when `optim()`
+  returns a non-zero convergence code.
+
+* `summary()` now includes `nobs`, matching `nobs(fit)`.
+
+* When `summary()$derived` is empty because a single scalar residual
+  variance is not defined (for example `sigma ~ x`), the empty table carries
+  a message pointing to `$sdpars`, and `print(summary())` repeats it.
+
+## Core modelling fixes
+
+* `simulate()` now returns `NA` at masked missing-response rows for every
+  family, matching `residuals()`. Twelve of thirteen families previously
+  returned the internal missing-response sentinel (0, or 1 for the positive
+  families) at those rows, so posterior-predictive tools such as DHARMa saw
+  fabricated observations. The zero-inflated, hurdle and truncated count
+  families were masked in a second commit after review; two tests that had
+  pinned finite draws at masked rows now assert the masking invariant.
+
+* `fitted_distribution()`'s `$p()` and `$d()` recycle a scalar threshold
+  across every row for the zero-inflated, hurdle and truncated count
+  families; they previously returned row 1's value only.
+* `vcov(fit, type = "robust")` (and `robust = TRUE`) now aborts with class
+  `drmTMB_vcov_robust_unsupported` and says what to try instead; it used to
+  return the model-based matrix silently.
+* `AIC()` and `BIC()` called with a drmTMB fit and a foreign model (for
+  example an `lm` fit) return the standard one-row-per-model data frame;
+  they used to drop the foreign model and return a bare scalar.
+* The `fixed_gradient` row of `check_drm()` no longer fires on correct fits at
+  large n: the Newton polish added in
+  already drives every correct fit's gradient far below the tolerance. A
+  regression test now locks that behaviour at n = 2000. The phylogenetic SD
+  penalty's documented prior stays open as a design
+  decision after review; no change ships for it.
+
+## Formula parsing and diagnostics fixes
+
+* `drm_logsigma_clamp_active()` (and `check_drm()`'s `logsigma_clamp_active`
+  row) now detects the LOWER `log(sigma)` clamp arm, not just the upper one.
+  Previously a scale-model fit whose raw `log(sigma)` predictor sat on the
+  lower bound (e.g. a response on a small numeric scale) was reported as
+  "the clamp is not active", even though the clamp had changed what the
+  likelihood evaluated. The fit-time `cli_warn()` still fires only for the
+  upper (runaway-scale) arm, since the lower arm is often a legitimate
+  variance-zero boundary (meta-analysis `tau = 0`).
+* `drm_clamped_scale_families()` (and hence `check_drm()`'s
+  `logsigma_clamp_active` row) now names `biv_lognormal` and `biv_student`,
+  not just `biv_gaussian`. `src/drmTMB.cpp` clamps `log_sigma1`/`log_sigma2`
+  identically for all three bivariate families in one shared branch, but the
+  R-side list previously named only `biv_gaussian`, so `check_drm()` printed
+  the false sentence "The log(sigma) clamp does not apply to this family"
+  for the other two.
+* `weights()` composed with `mi()` (missing-predictor imputation) no longer
+  moves the maximum-likelihood estimate under a constant reweighting. Ten
+  duplicate call sites in `src/drmTMB.cpp` (one per response family sharing
+  the Bernoulli-imputed, `mi_family == 1` two-point mixture) multiplied
+  `weights(i)` into each mixture leaf BEFORE `logspace_add()` combined them,
+  computing `log(p1*f1^w + p0*f0^w)` instead of the correct
+  `w*log(p1*f1 + p0*f0)`; a constant weight therefore shifted the `mi(x)`
+  coefficient. `weights(i)` now multiplies the combined mixture log-density
+  and the (previously unweighted) imputation-prior term for observed rows,
+  matching the general contract that `weights = c` is identical to literal
+  row duplication. The `drm_response_log_density()` contract comment in
+  `src/drm_response_kernels.h` is updated to spell out that "outside the
+  leaf" means outside the whole mixture, not just outside each leaf call.
+  The `mi_family` quadrature blocks for other imputed-covariate families
+  (ordinal, categorical, beta, Poisson, lognormal, gamma, NB2, Tweedie,
+  zero-one-beta, truncated-NB2, beta-binomial) share a structurally similar
+  pattern and were fixed in the weighted-missing-data section above.
+* `mi()` is now rejected with an error on every formula parameter except
+  `mu`. The public `mi()` marker is an identity stub (`function(x) x`), and
+  no non-`mu` formula path extracted or rejected it, so e.g. `sigma ~ mi(z)`
+  was silently parsed as an ordinary covariate and gave a bit-identical
+  logLik to `sigma ~ z` -- no error, and no missing-data handling for `z`.
+
+* An unused factor level (for example, left over after `subset()` without
+  `droplevels()`) no longer zeroes out every fixed-effect standard error.
+  The empty level's design-matrix column of all zeros made the fit's
+  Hessian singular, so estimates came back exactly right but every SE (not
+  just the empty level's) came back `NA` with a `sdreport_non_pd_hessian`
+  status, and refitting with `drm_control(se = TRUE)` -- the message
+  `check_drm()` printed -- was a no-op, since `se = TRUE` is already the
+  default. `drmTMB()` now drops unused levels from the factor columns that
+  enter a fixed-effect design matrix, once, up front; responses, `mi()`
+  predictors and random-effect or structured-marker grouping variables keep
+  their declared level sets, so an ordinal response with an empty category
+  still reaches its own refusal.
+* `check_drm()`'s `dropped_rows` row now reflects rows the experimental
+  MSPL estimator discarded because of a zero frequency weight, not just
+  rows dropped by complete-case or known-covariance filtering. MSPL filters
+  `data` before any family builder computes its `keep` vector, so a
+  builder's `keep` was always relative to the already-MSPL-filtered data --
+  MSPL-discarded rows were invisible to it, and the row printed "no rows
+  were dropped" even when MSPL had discarded some.
+  `mspl_frequency_rows$kept` is now threaded through to re-express
+  `model$keep` relative to the original input data.
+* `skew_normal()` now uses the package's own tail-safe `drm_log_pnorm()`
+  (already used by the binomial probit link) for its skew-CDF factor,
+  instead of flooring `pnorm(...)` with `+ 1e-300`. The floor saturated the
+  far-tail log-density to a constant (`log(1e-300) ~= -690.8`) regardless
+  of how far in the tail a point actually was, giving a gradient wrong by
+  orders of magnitude and a plateau a maximiser could sit on.
+* The `default:` branch of `drm_response_log_density()`
+  (`src/drm_response_kernels.h`) now calls `error()` instead of silently
+  returning `Type(0.0)` (a likelihood contribution of 1) for an unhandled
+  `model_type`. Every current call site is reachable-safe, so this is a
+  guard against the next family wired into an `mi()` two-point sum before
+  its case is added here, not a fix to an observable behaviour today.
+
+
+Version bump only -- tagging, release and CRAN submission remain the
+maintainer's ceremonies. This heading summarizes, at a glance, the
+`engine = "julia"` bridge work already recorded in detail under the 0.7.0
+section below:
+
+* `engine = "julia"` masked-response fits: the `is_converged()` and
+  bootstrap defects are fixed upstream in DRM.jl.
+* `engine = "julia"` bridge-side profile/bootstrap inference is qualified
+  on two routes: `base_gaussian_location_scale` and
+  `plain_binomial_nonphylo`.
+* `engine = "julia"` admits `beta_binomial()` and `cumulative_logit()` on
+  fixed-effect routes, and `predict()` on `cumulative_logit()` Julia fits
+  now matches `engine = "tmb"`.
+* REML support is tabled by route and measured across both engines, and
+  `drm_julia_reml_supported()` now also covers Location-Scale-Scale `sd(...)`
+  models, promoting the location-scale-scale route from `partial` to
+  `covered`.
+
+See the 0.7.0 section immediately below for the full, measured detail on
+every item above.
 # drmTMB 0.7.0
+
+## `engine = "julia"` control surface: no silent drops, boundary made permanent (leaf-engine-control-surface)
+
+* `drmTMB(..., engine = "julia")` no longer silently ignores a `drm_control()`
+  setting. Seven fields -- `se_report_covariance`, `se_skip_delta_method`,
+  `se_group_sd`, `logsigma_clamp`, `logsigma_clamp_margin`, `newton_polish`
+  and `fallback_optimizer` -- reached the bridge, were dropped, and the fit
+  came back as if nothing had been asked for. Measured live at DRM.jl pin
+  `430ef64cc`: `drmTMB(bf(y ~ x, sigma ~ x), data, engine = "julia", control =
+  drm_control(newton_polish = FALSE))` returned a fit byte-identical to the
+  default one (`logLik -199.0299845089`, same four coefficients) with no
+  error. They now abort with an error naming the setting, like the nine
+  settings that already did. The refused set is derived from `drm_control()`
+  itself rather than hand-listed, so a control added to `drm_control()` is
+  refused on the Julia path without a matching bridge edit; a totality test
+  asserts the classification covers `names(drm_control())` exactly.
+* **Behaviour change.** A script that passed one of those seven settings with
+  `engine = "julia"` used to run and now errors. It was never honoured, so no
+  result changes -- what changes is that the mismatch is now visible. Use
+  `engine = "tmb"` for those controls.
+* The forwarded set is documented as a closed whitelist in `?drm_control` and
+  the Julia-engine vignette: `optimizer$g_tol` and `optimizer$algorithm` on
+  the base bridge, plus `optimizer$q4_vcov` on the bivariate q = 4
+  phylogenetic route, where `optimizer$g_tol` is forwarded as DRM.jl's
+  `q4_g_tol` and `optimizer$algorithm` is refused. Both admitted knobs were
+  confirmed to reach the engine in the same run: `g_tol = 1` moved the fit to
+  `logLik -199.0364652191`, and `algorithm = "em"` reached DRM.jl and threw
+  its own `ArgumentError` from `gaussian_core.jl`.
+* The `engine_control_surface` capability row is no longer ambiguous. Its
+  `next_action` used to read "Design `engine_control` explicitly before
+  relaxing the gate", advertising work that cannot be finished: most of
+  `drm_control()` describes an `nlminb()`/TMB program that DRM.jl does not
+  run, so there is nothing to forward it to and no native comparator against
+  which a parity claim could be measured. The row now carries a permanent
+  claim boundary naming every setting that does not cross and what to do
+  instead, and `claim_status` stays `experimental` permanently -- it records a
+  deliberately narrow Julia-native surface, not unfinished work.
+## Julia routes that refuse a whole `control` now name the offending settings (#1108)
+
+* The four `engine = "julia"` routes that accept only a default `drm_control()`
+  -- structured, bivariate q2 structured, cross-family, and the joint
+  missing-predictor adapter -- refused without saying WHICH setting they
+  refused. A caller who passed `drm_control(newton_polish = FALSE,
+  se_group_sd = TRUE, optimizer = list(iter.max = 500))` to a cross-family
+  model was told only that "cross-family models currently accept only default
+  `control`" and had to bisect their own call to find out why. Those routes
+  were already fail-CLOSED -- nothing was silently dropped on them -- so this is
+  a message defect, not a behaviour one, and the fitting behaviour is unchanged.
+* The refusal now adds a line naming every non-default setting, derived from
+  `drm_control()` itself (`drm_julia_nondefault_control_fields()`) rather than
+  hand-listed, and reports `optimizer` entries the way a user wrote them
+  (`optimizer$iter.max`). Measured on this branch, the same call now reports
+  `Non-default control settings: "se_group_sd", "newton_polish", and
+  "optimizer$iter.max"`.
+* `optimizer_preset` is a macro that also rewrites the nlminb iteration
+  budgets, so it reports `optimizer_preset`, `optimizer$iter.max` and
+  `optimizer$eval.max` together. That is measured behaviour and is pinned by a
+  test rather than hidden.
+* `tests/testthat/test-julia-control-refusal-names.R` enumerates
+  `names(drm_control())`, so a new control field that the naming layer does not
+  cover fails the suite instead of going unnamed.
+
+## `engine = "julia"` refuses a factor design it cannot reproduce, before Julia starts (DRM.jl #467, #609)
+
+* The A6 guard already compared CODING SCHEMES (ordered factors, an explicit
+  `contrasts` attribute, a non-default `options("contrasts")`). Two shapes
+  agree on the scheme and disagree about the LEVELS it is applied to, so they
+  went straight past it. Both were measured this run, driving 58
+  formula-construct cases end to end through `engine = "julia"` against
+  `engine = "tmb"` and probing the marshalled columns in the live Julia
+  session: 46 faithful, 10 refused, and 2 SILENTLY MISLABELLED.
+
+* **A character column whose R level order is not code-point order now
+  refuses.** R builds levels with `sort()` under the session collation, so
+  `c("a", "B", "c")` gives levels a, B, c and codes against `"a"`. A character
+  column crosses the bridge as a plain Julia `Vector{String}` -- no pool, no
+  order -- and DRM.jl sorts it by code point, giving levels B, a, c and coding
+  against `"B"`. Same column COUNT, so no count check fires. Measured at the
+  standing pin DRM.jl 430ef64cc: the fit SUCCEEDED, both engines returned
+  IDENTICAL coefficient names, and `max|coef diff|` was 0.1785 (n = 120) and
+  1.1036 (n = 150) -- `engine = "julia"`'s intercept was the mean of the wrong
+  baseline group. `factor(<character column>)` is the same hazard, because the
+  bridge materialises the ORIGINAL values and sorts those. A FACTOR column is
+  immune: its level order crosses intact in the `CategoricalVector` pool
+  (probed for `levels = c("c", "b", "a")`), which is why the refusal tells you
+  to store the column as a factor with an explicit level order.
+
+* **A factor level that no row uses now refuses.** `model.matrix()` gives every
+  DECLARED level a column, including an all-zero one; DRM.jl codes only the
+  levels it observes, so it builds one column fewer. This was already
+  fail-closed, but only deep inside Julia and with a message that named neither
+  the column nor the fix (`the R side must send exactly one name per column`,
+  plus a Julia stack trace). drmTMB now names the unused level and points at
+  `droplevels()`.
+
+* Newer DRM.jl builds carry their own echo check
+  (`_bridge_check_coef_labels_fidelity`) that refuses the first shape from the
+  Julia side. That check does NOT exist at the pin above, which is why this
+  guard is upstream of it: a refusal that lives only in the engine still lets
+  an older build report the wrong parameter under the right name. The engine
+  check remains the second line of defence, and DRM.jl's count message gained
+  the unused-level explanation in a companion change.
+
+* Scope, measured, NOT derived: the other 46 cases in the battery
+  (`factor()`, a bare factor column, reversed declared levels, mixed-case
+  factor LEVELS, `factor()` over an integer column with 2/9/10 ordering,
+  character columns whose order already agrees, logical columns, factor:factor
+  and numeric:factor interactions, `I(x^2)`, `I(x*z)`, `I(x^2 + z)`,
+  `poly(x, 2)`, `poly(x, 3)`, `poly(x, 2) * g`, `scale(x)`, `(x + z)^2`,
+  `(x + z + g)^3`, `x - 1`, `0 + x`, `x:z`, `x + z + x:z - z`,
+  `(x + z)^2 - x:z`, `log(x + 2)`, `sqrt(x + 2)`, and the sigma-side repeats)
+  were FAITHFUL: identical coefficient names and `max|coef diff| <= 2.675e-10`
+  against `engine = "tmb"`. An independent design oracle went further and
+  compared VALUES: for 37 constructs DRM.jl's own design matrix is element-wise
+  identical to R's `model.matrix()` (31 at exactly 0; `poly(x, 2)` 8.33e-16,
+  `poly(x, 3)` 8.26e-16, `scale(x)` 4.44e-16 -- so DRM.jl reproduces R's
+  ORTHOGONAL `raw = FALSE` polynomial basis, #467's flagged high-risk case).
+  `I(log(x + 2))`, `x * z - x:z` (a `-` removal over an unexpanded `*`) and a
+  single-level factor keep their existing refusals. This is one Gaussian
+  location-scale fixture per construct, not a coverage study.
+## Hurdle NB2 through `engine = "julia"`: ONE call now fits on both engines
+
+* `drmTMB(bf(y ~ x, sigma ~ z, hu ~ w), family = truncated_nbinom2())` -- drmTMB's
+  spelling of the hurdle negative binomial, since there is no
+  `hurdle_nbinom2()` constructor -- previously fitted on `engine = "tmb"` and
+  ABORTED on `engine = "julia"`, while the bridge instead accepted
+  `family = nbinom2()` with `hu`, which the native engine refuses. A user could
+  not switch `engine =` on one call. The matching DRM.jl implementation makes
+  `TruncatedNegBinomial2()` accept an `hu` part (delegating to its existing
+  NegBinomial2 hurdle kernel), and the bridge fit now reports the native
+  `model_type` `"hurdle_nbinom2"` instead of `"truncated_nbinom2"`, so
+  `predict(fit, dpar = "hu")` resolves its logit link the way it does natively.
+  Measured on the native test suite's own hurdle fixture (n = 1800, 486 zeros),
+  both engines on the same call: coefficients agree to 9.4e-12 over 8
+  coefficients, logLik -2941.45558666655 vs -2941.45558666657, Wald SEs to
+  1.1e-06 relative, estimator `"ML"` on both. Fixed effects only -- no
+  phylogenetic, random-effect or structured hurdle route, and no interval
+  claim. Known gap, declared not fixed: `fitted()`/`residuals()` on this route
+  return the untruncated count mean through the bridge rather than the hurdle
+  mean; every dpar is correct, so `hurdle_nbinom2_mean()` reproduces the native
+  `fitted()` from them exactly.
+## `biv_lognormal()` on the `engine = "julia"` fixed-effect route
+
+* `drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+  family = biv_lognormal(), engine = "julia")` now fits instead of refusing with
+  "currently supports Workflow G fixed-effect families". One registry row
+  (`spec("biv_lognormal", fe = TRUE)`) admits it, and the bridge's default
+  label branch now matches the `biv_` prefix rather than the single literal
+  `"biv_gaussian"` -- without that, the registry row alone left BOTH the full
+  and the short `bf(mu1 = y1 ~ x, mu2 = y2 ~ x)` form aborting inside DRM.jl
+  (`coef_labels supplies names for unknown dpar "sigma"`), because a scalar
+  `sigma` label was being sent to a model whose blocks are
+  `sigma1`/`sigma2`/`rho12`. The scale contract is unchanged from the native
+  engine and was measured, not assumed: both engines take `y1`/`y2` on the raw
+  positive scale, `mu1`/`mu2` are means of `log y`, `sigma1`/`sigma2` are SDs
+  of `log y`, and both carry the change-of-variables Jacobian, so both match
+  the independent raw-scale oracle in `tests/testthat/test-biv-lognormal.R`
+  (logLik -164.673669588 on both, agreeing with the oracle to 4e-13). Measured
+  same-target receipts on an n = 600 draw at DRM.jl pin 430ef64cc: coefficients
+  9.288083e-07 (7/7 name-matched), logLik -1124.208196846248 vs
+  -1124.208196846242, Wald SE 1.707768e-06 relative. **Scope: fixed-effect
+  `mu1`/`mu2` with intercept-only `sigma1`/`sigma2`/`rho12` only** -- the same
+  cell the native engine admits; no random effects, no phylogenetic or
+  structured route, no interval-coverage claim.
+* The admission needed a scope fence to hold that boundary, and this is the
+  part worth reading twice. Bivariate families are exempt from the A4.G17
+  fixed-effect-only random-effect fence because `biv_gaussian` legitimately
+  fits predictor-driven `sigma1`/`sigma2`/`rho12` -- so the new registry row
+  inherited an exemption `biv_lognormal` has not earned. Measured at the pin
+  before the fence existed: `sigma1 = ~ x` FIT through `engine = "julia"`
+  (logLik -71.4056477) and so did `rho12 = ~ x` (logLik -70.64289338), while
+  `engine = "tmb"` refused both. `engine = "julia"` now refuses a predictor on
+  `sigma1`/`sigma2`/`rho12` and an ordinary random-effect bar for this family
+  on the R side, before Julia starts, in the same words the native engine uses.
+  `biv_gaussian()` is untouched.
+## Bootstrap replicates keep a masked fit's response mask (#1188)
+
+* `confint(method = "bootstrap")` on a fit made with
+  `missing = miss_control(response = "include")` drew every replicate over the
+  full design and refitted on all rows, regardless of how many rows the seed
+  fit actually observed. A bootstrap whose replicates are richer than the
+  original understates uncertainty, and the shortfall grew with the missing
+  fraction. `bootstrap_response_data()` now re-applies the seed fit's response
+  `NA` mask to each simulated draw, and the replicate is refitted under the
+  seed fit's own response policy, so every replicate uses the same rows the
+  seed fit did.
+* Measured this run on `y = 0.3 + 0.5x + N(0,1) exp(0.1x)`, `n = 60`,
+  `bf(y ~ x, sigma ~ x)`, Gaussian, target `fixef:mu:x` with truth `0.5`;
+  `S = 200` datasets per cell, `B = 99` replicates each, nominal 95%
+  percentile interval, both arms on the same datasets and bootstrap seeds.
+  Coverage at 10% / 30% / 50% of responses masked was 0.895 / 0.820 / 0.720
+  before and 0.910 / 0.895 / 0.910 after, against a Wald reference of
+  0.920 / 0.925 / 0.915 on the same datasets. Monte Carlo standard errors are
+  0.020-0.032; the paired improvement is significant at 30% masking
+  (p = 2.75e-04) and 50% masking (p = 7.28e-12) but **not** at 10%
+  (p = 0.375), so this release does not claim the 10% cell.
+* The default `missing = miss_control(response = "drop")` policy is untouched:
+  a drop fit stores complete-cased data, so it never had a mask to lose and
+  the restoration is a measured no-op there. Post-fix bootstrap coverage is
+  still slightly below nominal on this `n = 60` location-scale fixture, but so
+  is Wald on the same datasets; that residual is small-sample behaviour, not a
+  missing-data effect, and is not claimed fixed.
+* The matching DRM.jl change (`_bootstrap_data`) lands separately, so
+  `engine = "julia"` and `engine = "tmb"` keep the same replicate semantics.
+## `engine = "julia"` admits REML on the bivariate q = 2 structured routes
+
+* `drmTMB(bf(mu1 = y1 ~ x + phylo(1 | p | id, tree = tree), mu2 = y2 ~ x +
+  phylo(1 | p | id, tree = tree), sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+  biv_gaussian(), engine = "julia", REML = TRUE)` now fits instead of refusing,
+  and likewise for matching `relmat(1 | p | id, K = K)` and
+  `spatial(1 | p | id, coords = coords)` markers. The bridge previously refused
+  this cell for EVERY provider -- through two different branches, one per
+  marker family -- while DRM.jl fits it (`fit_coevolution_q2_reml`) and native
+  `engine = "tmb"` has always admitted it. Measured at DRM.jl pin `430ef64cc`
+  against `engine = "tmb"` `REML = TRUE` on the same fixture: max |d coef|
+  `5.15e-05` (phylo), `5.29e-05` (relmat), `4.20e-05` (spatial); |d logLik|
+  `1.80e-04`, `3.70e-07`, `4.49e-08`; `estimator` and DRM.jl's own
+  `estim_method` read `REML` on all three, with the ML and REML
+  log-likelihoods about 6 units apart. phylo's `1.80e-04` is the one number
+  above `1e-4`, and it is a property of that route rather than of REML: the
+  already-shipped ML fit on the same fixture disagrees by `5.42e-04`, three
+  times wider.
+* **Point estimates only on these routes.** No standard error, confidence
+  interval, or coverage claim is made here. When the receipt was measured
+  DRM.jl reported an all-NaN covariance for the bivariate q = 2 structured
+  cell; DRM.jl has since started returning a finite one, confirmed live at pin
+  `0edb916a5` alongside an exact reproduction of every point number above. The
+  receipt stays point-only regardless: that covariance is the ML
+  observed-information curvature evaluated at the REML point, which is not the
+  quantity `engine = "tmb"` reports for a REML fit, and no comparison of the
+  two has been measured. Use `engine = "tmb"` when you need uncertainty on this
+  model.
+* **`animal()` q = 2 stays refused.** DRM.jl fits it, but native
+  `engine = "tmb"` still refuses bivariate `animal()` q = 2 REML, so there is
+  no same-target comparator to measure against; the route is admitted only
+  after a same-target comparison is available. Every other bivariate
+  structured shape keeps its existing refusal unchanged.
+
+## Formula checks now cover `sd(<group>)` coefficient labels
+
+* A 58-construct battery ran formulas through `engine = "julia"` on **one**
+  Gaussian location-scale fixture and recorded two of them as silently
+  mislabelled at the standing DRM.jl pin `430ef64cc`: a character column whose
+  R locale-collated level order is not Julia's code-point order, and a factor
+  level no row uses. Re-measured at drmTMB `2fcbb0fbf` against a live DRM.jl
+  (`aee371cc9`), **neither is silent any more on a `mu` or `sigma` block** --
+  DRM.jl's own `_bridge_check_coef_labels_fidelity` refuses both, on every
+  family tried (poisson, nbinom2, binomial, gamma, cumulative_logit) and on
+  both dpar sides, while a properly declared factor stays faithful to
+  `1.05e-11` (poisson), `1.07e-11` (nbinom2) and `5.58e-12` (cumulative_logit).
+  The silence was a property of the dead pin.
+* **It is not gone everywhere.** That check iterates
+  `_bridge_rendered_regression_blocks`, which skips every location-scale-scale
+  `sd_<group>` / `sdphy_<group>` block by construction, so the group-level SD
+  formula was echoed with R's names and never compared against the design
+  DRM.jl built. Measured at `2fcbb0fbf` + `aee371cc9`:
+  `bf(y ~ x + (1 | study), sigma ~ z, sd(study) ~ s_chr)` converged on both
+  engines to an **identical** `logLik` (`-69.917488`, diff `2.98e-13`) under
+  identical coefficient names, with `mu` and `sigma` faithful to `2.12e-11`
+  and the `sd` block off by **`1.3853`** -- `s_chrBeta` reported as `0.692648`
+  by `engine = "tmb"` and `-0.692648` by `engine = "julia"`, the baseline
+  having moved from `alpha` to `Beta`. Declaring the same column as a factor
+  in R makes the identical model faithful to `1.46e-10`, which identifies the
+  level order rather than the fit as the mechanism.
+* `tests/testthat/test-julia-formula-constructs-nongaussian.R` pins the
+  contract that matters here: a construct must be either FAITHFUL (identical
+  base-R names AND coefficients within tolerance) or REFUSED, never the third
+  thing -- converging, returning identical names, and reporting a coefficient
+  that means something other than its label says. It sets a Latin collation
+  explicitly, because testthat's default `LC_COLLATE = "C"` is exactly Julia's
+  code-point order and every case would otherwise skip while reading green.
+  31 pass / 0 fail / 0 skip live.
+* Two independent fixes close the `sd()` case and both were verified here:
+  drmTMB's own `drm_julia_check_factor_level_fidelity()` refuses it before
+  Julia starts, and DRM.jl's
+  `_bridge_check_lss_coef_labels_fidelity` refuses it in the engine. **NOT
+  covered:** the multi-IID `sd` route, `sdphy_<group>` live, and random-effect
+  routes generally, where DRM.jl supplies no `bridge_formula_labels_v1` at all
+  and so refuses *every* factor, declared or not -- honest, but a separate gap.
+
+## `engine = "julia"` default coefficient labels widened for the A4 family admissions
+
+* The Julia bridge's default coefficient labeller
+  (`drm_julia_bridge_default_dpar_labels()`) previously defaulted a `nu`
+  label only for `student()`; every other family with a native dpar beyond
+  `mu`/`sigma` -- `tweedie()`'s and `skew_normal()`'s `nu`, `zero_one_beta()`'s
+  `zoi`/`coi` -- was left unlabelled, so the SAME short formula forms
+  `engine = "tmb"` accepts (a bare `bf(y ~ x)`, or `bf(y ~ x, sigma ~ z)`)
+  aborted at DRM.jl's echo with `coef_labels is missing an entry for dpar
+  "nu"`. The defaulter now reads the extra dpars off each family's own
+  constructor. Measured live at DRM.jl pin `430ef64cc`: `tweedie()`'s bare
+  `bf(y ~ x)` and `bf(y ~ x, sigma ~ z)` now reach the SAME logLik as
+  `engine = "tmb"` exactly (`-479.8586143` and `-463.2274318`); a bare
+  `zero_one_beta()` formula that omits `zoi`/`coi` now fits instead of
+  aborting. A `nu` formula that native TMB refuses but DRM.jl fits (tweedie's
+  `nu ~ z`) is neither silently accepted nor pre-refused: `engine = "julia"`
+  now emits one informational message naming the shape and the native
+  refusal it has no cross-engine receipt against. This completes the
+  fixed-effect (Workflow G) admission of the six A4 families landed across
+  separate PRs: `tweedie()`, `zero_one_beta()`, `beta_binomial()`,
+  `truncated_nbinom2()`, `cumulative_logit()`, and `skew_normal()`.
+
+## `engine = "julia"` target discovery closes over what `confint()` accepts (#1156)
+
+* `profile_targets()` on a Julia fit and `confint()` on the same fit disagreed
+  in two ways that #1156's own fix did not reach. Measured at DRM.jl pin
+  430ef64cc on one Gaussian 32-tip fit of
+  `bf(y ~ x + phylo(1 | species, tree), sigma ~ 1, sd(species, level = "phylogenetic") ~ z)`
+  fitted on both engines. **(1) The two engines name the same estimand
+  differently**: native TMB reports `fixef:sd_phylo(species):z`, the bridge
+  reports `fixef:sd_phylo:z`, the Wald intervals agree to six significant
+  figures (`[0.1548584, 0.5961240]` vs `[0.1548585, 0.5961239]`), and each
+  engine refused the other's spelling -- so a script could not be moved between
+  engines by changing `engine =` alone. The native spelling is now documented as
+  CANONICAL (docs/design/258-coefficient-naming-contract.md section 9) and the
+  bridge ACCEPTS it, resolving it to the row it reports; the bridge's own short
+  form is still what `coef()`, `vcov()` and `profile_targets()` print.
+  **(2) A listed target was called unknown**: `sigma` is listed by
+  `profile_targets()` (`profile_ready = FALSE`, note `missing_tmb_parameter`)
+  but `confint(fit, "sigma", method = "profile")` answered
+  `Unknown confidence-interval target: "sigma"`. It now says the row is listed,
+  gives its inventory note, names the profile-ready alias to use instead, and
+  lists the profile-ready targets. The union #1156 introduced was measured
+  CLOSED at this pin (nothing `confint()` accepted was unlisted) and is now
+  pinned by tests that fail if it regresses.
+
+## `engine = "julia"` admits `REML = TRUE` for the residual-only bivariate Gaussian cell
+
+* `drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+  family = biv_gaussian(), REML = TRUE, engine = "julia")` now fits instead of
+  refusing. Native `engine = "tmb"` has always fitted this cell by REML, and
+  DRM.jl (PR itchyshin/DRM.jl#652) now fits the same restricted likelihood in
+  closed form: both engines integrate out exactly `beta_mu1` and `beta_mu2` and
+  both report the normalised Patterson-Thompson log-likelihood, so there is no
+  data-independent constant to remove before comparing. Same-target on the
+  committed fixture (n = 60, seed 1): `logLik` `-97.021205818372` on both engines
+  (difference `0.0`), 7/7 coefficient names identical with max scaled difference
+  `4.33e-07`, Wald SE max relative difference `6.54e-07`; the Julia fit's
+  `estimator` and DRM.jl's `estim_method` both read `"REML"`. The ML route is
+  unchanged (`-90.202703298791` on both engines). **The `rho12` max coefficient
+  gap (`4.33e-07`) is entirely a link-guard convention difference, not model
+  disagreement**: native TMB bounds `rho12` via `0.999999 * tanh(eta)`
+  (`src/drmTMB.cpp`) while DRM.jl uses `0.99999999 * tanh(eta)`
+  (`src/sparse_aug_plsm.jl`), so `rho12:(Intercept)` is not the same parameter
+  on the two engines; on the natural (bounded) rho scale the two engines agree
+  to `3.95e-12`. The gap grows with `|rho|` and reaches `4.95e-04` at
+  `rho = 0.999`, which would break the `1e-4` coefficient bar with both engines
+  exactly correct (drmTMB#1190). **This shape only**: the gate
+  requires all five bivariate dpars, no structured marker, no `meta_V()`, no
+  random bar, and intercept-only `sigma1`, `sigma2` and `rho12`. A
+  covariate-carrying `sigma`/`rho12` design keeps refusing even though DRM.jl's
+  closed form covers it, because nothing has measured it against a native
+  comparator. The capability guide now lists `biv_gaussian_residual` as
+  fitting under ML and REML on both engines.
+## Bridge-side profile and bootstrap inference qualified on the masked-response Julia route (#544)
+
+* `gaussian_response_mask` is promoted `partial` -> `supported` on the
+  `r_bridge_status` axis. On a Gaussian location-scale fit with
+  `missing = miss_control(response = "include")`, `confint()` through
+  `engine = "julia"` now agrees with `engine = "tmb"` on the same fit and the
+  same target: Wald to 7.9e-08, profile to 5.1e-06/7.2e-06 (against a 1e-4
+  bar stated before measuring), and a 99-replicate parametric bootstrap
+  completes with 0 failures on both engines. This closes the
+  "bridge-side inference remains unqualified (G3)" fence for this route.
+* **This requires DRM.jl at or after #646.** Against an older DRM.jl the same
+  fit reports `is_converged()` `FALSE` and its bootstrap loses every
+  replicate; both were DRM.jl defects, not drmTMB ones.
+* **Disclosed, and it affects `engine = "tmb"` equally:** a parametric
+  bootstrap on a masked-response fit draws each replicate response over the
+  FULL design and refits on every row, so the interval is calibrated to the
+  complete-data sample size and is narrower than the observed-data Wald
+  interval by an amount that grows with the missing fraction (measured
+  bootstrap/Wald width ratio at 10%/30%/50% masked: 0.82/0.67/0.65 on
+  `engine = "julia"`, 0.83/0.68/0.68 on `engine = "tmb"`). If you bootstrap a
+  heavily masked fit on either engine, treat the interval as
+  anti-conservative. A cross-engine fix is tracked as #1188.
+## Ordered cutpoints through `engine = "julia"`: discoverable, and refused by name (#1144)
+
+* #1144 polished the constrained `stats::nlminb()` solve behind the native
+  ordinal cutpoint profile, so `engine = "tmb"` reports honest
+  `"ordinal:cutpoint:<label>"` intervals. `cumulative_logit()` is an admitted
+  bridge family, so the same question needed an answer on the other engine.
+  Measured on the committed fixture at DRM.jl pin 430ef64cc: the Julia fit's
+  `fit$ordinal$cutpoints` already agreed with the native slot to 8.98e-13, but
+  `profile_targets()` listed no ordinal row at all, and
+  `confint(fit, parm = "ordinal:cutpoint:low|medium")` answered
+  `Unknown confidence-interval target` for `method = "wald"`, `"profile"` and
+  `"bootstrap"` alike -- a typo diagnosis for a target plainly on the fit.
+  DRM.jl's bridge inference accepts only fixed-effect and random-effect-SD
+  targets at that pin, so the cutpoint interval genuinely cannot be routed.
+  `profile_targets()` now lists the ordinal rows for a Julia-engine
+  `cumulative_logit()` fit -- the same names, in the same order, as the native
+  fit -- with the public cutpoint rows `profile_ready = FALSE` and note
+  `julia_ordinal_cutpoint_native_only`, and `confint()` refuses a cutpoint
+  target for every `method`, naming the cutpoint, `engine = "tmb"`, and
+  `fit$ordinal$cutpoints`. **No numbers changed on either engine**: this is a
+  discovery-and-diagnosis fix plus an explicit engine boundary.
+## Same-target REML receipts for three capabilities the parity scoreboard read UNCITED (#1142)
+
+* `docs/design/parity-scoreboard.md` reported 23 of 45 drmTMB-native
+  capabilities UNCITED on its bridge axis -- reachable through
+  `engine = "julia"`, but with no receipt a reader could check. Three were REML
+  cells, and no REML row existed in any of DRM.jl's four evidence tables at
+  all. All three now carry a same-target comparison against `engine = "tmb"`,
+  measured at DRM.jl `aee371cc9`: the fixed-effect Gaussian location-scale cell
+  (coefficients `9.47e-12`, REML logLik `7.11e-14`), the Gaussian mean ordinary
+  random intercept `(1 | g)` (coefficients `9.36e-11`, logLik `1.07e-12`, SEs
+  `3.33e-07` relative), and the bivariate dense q4 phylogenetic location-scale
+  cell (coefficients `7.47e-04`, logLik `2.02e-02`, inside that row's own
+  recorded `atol_loglik` of 0.03). Estimator honesty is read from both sides on
+  every fit -- drmTMB's `fit$estimator` and DRM.jl's own `estim_method` -- and
+  the ML/REML logLik gap is asserted non-zero, so an ML fit wearing a REML
+  label would fail the tests rather than pass them. `engine = "julia"` gains no
+  new route here; only evidence.
+* Two boundaries are recorded rather than papered over. **(a)** On the
+  heteroscedastic fixed-effect cell the two mean-block Wald SEs differ by
+  `3.09e-03` relative, past the `1e-3` bar, while the scale block agrees to
+  `3.1e-07`; a control refitting the same data with `sigma ~ 1` makes the mean
+  block agree exactly, so the gap is carried by the sigma covariate, not by
+  REML. **(b)** A *block-diagonal* q4 call -- two distinct phylo labels, one on
+  the means and one on the scales -- is silently fitted as the *dense* q4 model
+  by `engine = "julia"`: on one fixture the native block-diagonal REML fit gives
+  logLik `-934.738` at `df = 11` while the bridge returns `-930.165` at
+  `df = 15`, the dense answer. Use `engine = "tmb"` for a block-diagonal q4 REML
+  fit until the bridge refuses that layout. Both are in
+  `docs/design/261-reml-by-route.md`, and the ledger note claiming the
+  `engine = "julia"` path for the q4 cell was "halted by design" is corrected --
+  it fits.
+
+## `biv_student()` admitted through `engine = "julia"` (leaf fam-biv-student)
+
+* `drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, nu = ~1,
+  rho12 = ~1), family = biv_student(), engine = "julia")` now fits instead of
+  refusing. DRM.jl needed no change: at pin `430ef64cc` its
+  `_bridge_family("biv_student")` already routed the tag to the bivariate
+  Student-t model in `src/bivariate_student.jl`, so the admission is one row in
+  the Julia family registry plus the retirement of a family-specific abort in
+  `drmTMB()` that fired before the registry was ever consulted. Measured this
+  run against `engine = "tmb"` on the `tests/testthat/test-biv-student.R` draw
+  (n = 400, seed 6401): coefficients agree to `3.771e-07` (8/8 matched by
+  name), logLik `-928.707976` on both engines (diff `2.569e-11`), and
+  per-coefficient Wald standard errors agree to `9.013e-07` relative, with the
+  comparator's own negative control still failing as it must. `sigma1`/`sigma2`
+  are Student-t **scales** (marginal `SD = sigma * sqrt(nu / (nu - 2))`), `nu`
+  is one **shared** degrees-of-freedom parameter, and `rho12` is the
+  **scatter** correlation -- zero `rho12` is not independence at finite `nu` --
+  identically on both engines.
+* The Julia route is fenced to exactly the shape native `engine = "tmb"` fits.
+  Random-effect bars and non-intercept `sigma1`, `sigma2`, `nu` or `rho12`
+  formulas are refused with the native wording before Julia starts, and
+  `confint()` is deferred for this family on both engines as it always was
+  natively. Each of these fitted or returned intervals through
+  `engine = "julia"` before this release while `engine = "tmb"` refused them;
+  a shape the native engine refuses has no same-target comparator and so can
+  carry no parity receipt. No interval-coverage claim is made.
+
+## `predict(type = "quantile")` now works through `engine = "julia"` (#1198)
+
+* `predict()` on an `engine = "julia"` fit accepted `type = c("response",
+  "link")` only, so `predict(fit, type = "quantile")` was refused by
+  `match.arg()` for EVERY family while `engine = "tmb"` has accepted it since
+  the distributional-output layer landed. The bridge method now takes
+  `type = "quantile"` and a `prob` argument, and hands the fit to the SAME
+  native quantile code the TMB engine uses: the per-family density/CDF/quantile
+  registry, the `prob` validation, the percentage column labels, and the
+  `calibrated`/`prob`/`label` attributes all keep one source of truth, with
+  only the per-row distributional parameters coming from the bridge's own
+  reconstruction. All 14 families the bridge admits on its fixed-effect route
+  qualify: gaussian, biv_gaussian, student, lognormal, poisson, nbinom2, gamma,
+  beta, binomial, truncated_nbinom2, zero_one_beta, tweedie, beta_binomial and
+  cumulative_logit. Measured against `engine = "tmb"` on the same fit at DRM.jl
+  pin `430ef64cc` (`tests/testthat/test-julia-predict-quantile.R`, prob = 0.1 /
+  0.5 / 0.9), identical dimensions, column names and attributes, and max |d
+  quantile| at most `4.93e-11` on stored rows and `2.34e-11` on fresh
+  `newdata` -- exactly `0` for the five discrete families. **NOT covered:** a
+  `meta_V()` fit refuses `type = "quantile"` on this engine, because a
+  Julia-bridge fit does not retain the per-row known sampling variance and its
+  quantiles would silently use `sigma` alone (measured `3.485e-01` too narrow
+  against `engine = "tmb"`); use `engine = "tmb"` there. This is a
+  distributional plug-in interval on both engines -- `attr(., "calibrated")` is
+  `FALSE` -- and it makes no interval-coverage claim.
+## Zero-inflated Poisson through `engine = "julia"`: focused tests, and a corrected registry note (leaf-fam-zi-poisson)
+
+* The `zi_poisson` capability row has carried a same-target parity receipt
+  since 2026-09-05, but no test drove a `zi ~` formula part through
+  `engine = "julia"` -- measured that day, of the `tests/testthat` files
+  matching `engine = "julia"`, none also matched a `zi ~` formula. Of design
+  168's four limbs of "covered", the focused-test limb was missing.
+  `tests/testthat/test-julia-zi-poisson.R` now supplies it
+  (`[ FAIL 0 | WARN 0 | SKIP 0 | PASS 39 ]`, 1 live test): the admission
+  mechanism, the payload and coefficient labels for both dpar blocks, the live
+  same-target round trip, and a plain-Poisson contrast on the same data
+  proving the `zi` part reaches the engine rather than being dropped in
+  marshalling. Re-measured in that run on its own fixture (`n = 600`,
+  seed 20260905, `bf(count ~ x, zi ~ z)`, DRM.jl pin 430ef64cc, comparison code
+  from DRM.jl `tools/parity_numeric.R` and `tools/parity_se.R`): coefficients
+  `5.776934e-12` (4/4 matched by name), logLik `-786.1016601045` on both
+  engines (diff `1.136868e-12`), Wald SE `1.317571e-08` absolute /
+  `2.373401e-07` relative over 4 SEs, negative control `NEGATIVE_CONTROL_OK`
+  at rel `9.090911e-02`, estimator `ML` on both. This closes a limb; it does
+  **not** move `r_bridge_status`, which stays `partial` pending a bridge-side
+  inference (G3) receipt.
+* `R/julia-family-registry.R` listed `zi_poisson`, `zi_nbinom2` and
+  `hurdle_nbinom2` among families "the Julia bridge has NO case yet" for. That
+  was wrong on both halves, and the note is corrected. They are `model_type`
+  values, not `family_type` values: `drm_family_type()` never returns any of
+  them, a zero-inflated Poisson is spelled `family = poisson()` plus a `zi ~`
+  formula part, and the bridge already routes all three through the
+  `poisson` / `nbinom2` registry rows plus the `zi` / `hu` entries in
+  `julia_bridge_supported_dpars()`. No registry row is added: one keyed on
+  those names would admit a family tag drmTMB never emits.
+## Bivariate `animal()` q2 REML admitted (leaf-biv-animal-reml)
+
+* `drmTMB(bf(mu1 = y1 ~ x1 + animal(1 | p | id, A = A), mu2 = y2 ~ x2 +
+  animal(1 | p | id, A = A), sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+  family = biv_gaussian(), REML = TRUE)` now fits instead of refusing. The
+  bivariate q2 exact-covariance REML route was already provider-agnostic in
+  TMB's C++ (no branch on marker identity) and in DRM.jl's own REML
+  implementation (`animal` and `relmat` markers call the identical
+  `make_coevo_problem_from_covariance()` path, bit-identical loglik measured
+  on a matched fixture); the prior refusal was a recorded scope decision, not
+  a mathematical one. Measured this run: the new `animal()` REML fit agrees
+  with the `relmat()` control on the same matrix to machine precision
+  (identical mathematics), with the dense restricted-likelihood oracle, and
+  with a direct DRM.jl `method = :REML` call (`|d logLik| < 1e-4`,
+  coefficients to `1e-7`). That
+  DRM.jl comparison is point-estimate and logLik only: DRM.jl's bivariate q2
+  structured route returns `vcov = NaN` for every provider and both
+  estimators, so there is no Julia SE to compare. `engine = "julia"` itself
+  is untouched by this change and still refuses `REML = TRUE` on every
+  bivariate q2 structured route (phylo, spatial, relmat, animal alike); the
+  fit above is native TMB (`engine = "tmb"`) only. Precision (`Ainv`) and
+  pedigree-built animal representations, slopes, q4+, and scale-side
+  bivariate relmat/animal REML routes remain deferred and refused.
+## `engine = "julia"` zero-inflated NB2: `fitted()` and `residuals()` now agree with the native engine (DRM.jl bridge fix)
+
+* A zero-inflated negative-binomial model (`family = nbinom2()` with a `zi ~ `
+  formula part, native `model_type` `"zi_nbinom2"`) already routed through
+  `engine = "julia"`, but nothing tested or documented it -- and it carried a
+  silent disagreement. `fitted()` and `residuals()` differed between the two
+  engines on the SAME converged fit, because DRM.jl's `fitted()` is the
+  count-component mean `mu` while drmTMB's is the unconditional mean
+  `(1 - zi) * mu`. Measured on the package's own
+  `tests/testthat/test-zi-nbinom2.R` fixture (n = 1800): coefficients agreed to
+  4.56745752330789e-13 and logLik to 1.72803993336856e-11, while `fitted()`
+  disagreed by 1.3665229755584 -- invisible to any coefficient or likelihood
+  check. Fixed on the DRM.jl bridge boundary (`_bridge_fitted_marginal`), which
+  leaves DRM.jl's own `fitted`/`simulate`/`marginal_parameters` and the bridge's
+  `mu` dpar untouched; after the fix the difference is 4.83169060316868e-13. The
+  same repair covers zero-inflated Poisson; hurdle fits are deliberately not
+  repaired (their mean also divides by `1 - P(0)` and has no bridge receipt).
+  A new `tests/testthat/test-julia-family-zi_nbinom2.R` pins the route: coef,
+  logLik and Wald-SE parity, the coefficient-naming contract for all three dpar
+  blocks (design 258 section 8.10), the engine's own refusals, and two KNOWN
+  GAPS that are pinned rather than claimed -- `predict(dpar = "zi")` is refused
+  on a Julia-engine fit (the bridge tags it `"nbinom2"`, whose link table has no
+  `zi` row), and `sigma()` returns a list rather than the numeric vector the
+  native engine returns. **No registry row and no family admission**: the route
+  was already reachable through the existing `nbinom2` row.
+
+## `engine = "julia"` scope fence for the fixed-effect-only family cohort (A4.G17)
+
+* Admitting a family on the `engine = "julia"` fixed-effect route (`fe = TRUE`
+  in the family registry, R/julia-family-registry.R) had a gap: nothing
+  pre-Julia checked an ordinary random-effect bar (`(1 | g)`, including random
+  slopes) or an `sd()`/`sd_phylo()` scale submodel against that family for a
+  family with none of phylo_only/locscale_phylo/slope_phylo/structured set.
+  Measured on origin/main with `DRM_JL_PATH` unset: `student() y ~ x + (1 | g)`,
+  `beta_binomial() cbind(s, f) ~ x + (1 | g)`, `lognormal() sigma ~ z + (1 | g)`,
+  `zero_one_beta() y ~ x + (1 | g)`, and `truncated_nbinom2() y ~ x + (1 + x | g)`
+  all reached `drm_julia_setup()` -- five of six fe-only families with no receipt.
+  A new `drm_julia_refuse_fe_only_random_effects()` gate, registry-driven (no
+  hard-coded family list, so a later fe-only admission is covered without an
+  edit here), now refuses these before Julia starts, naming the family, the
+  `fe` registry column that admitted it, and the offending term. `phylo()` and
+  `relmat()`/`animal()`/`spatial()` markers are untouched by this gate -- both
+  are already refused pre-Julia by existing gates. **No family admission or
+  removal, no DRM.jl change, no comparison-row change**: this closes a scope
+  gap only.
+## Profile and bootstrap intervals on the residual bivariate Gaussian Julia route (#544)
+
+* `confint(fit, parm = "fixef:mu1:x", method = "profile" | "bootstrap")` now
+  works for a residual-only bivariate Gaussian fit made with
+  `engine = "julia"` -- `bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ 1,
+  sigma2 = ~ 1, rho12 = ~ 1)`, `family = biv_gaussian()`. Previously
+  `profile_targets()` reported `profile_ready = FALSE` for EVERY row of EVERY
+  bivariate fit, so no parameter of this route -- including `rho12` -- had a
+  profile or bootstrap target, and the call was refused R-side before any
+  Julia call. The bivariate rule is now a SPLIT rather than a blanket
+  refusal: a bivariate fit carrying a covariance provider (a phylo tree, or a
+  `K` / `A` / `coords` matrix) is the structured route, whose inference target
+  is the four among-axis SDs, and its fixed-effect rows stay not-ready; a
+  bivariate fit carrying none is this residual route and is ready on the same
+  precondition every univariate route uses. The bootstrap half requires the
+  matching DRM.jl fix; profile needed no engine change. Measured on the committed
+  `gaussian-bivariate-rho12` fixture (n = 180): 7 profile-ready fixed-effect
+  targets where there were none, all seven profiling to a finite interval;
+  same-target agreement against `engine = "tmb"` of Wald 3.4e-14 / 3.0e-07 and
+  profile 2.1e-06 / 6.5e-06 on `fixef:mu1:x` and `fixef:rho12:(Intercept)`;
+  bootstrap `R = 99` with 0/99 failed on both engines. The capability row
+  `biv_gaussian_residual` moves `partial` -> `supported` on the
+  `r_bridge_status` axis. NOT an interval-coverage claim (one fixture, one
+  seed), and the bootstrap comparison is distributional overlap only -- the
+  two engines draw from independent RNG streams, so the same `seed` does not
+  reproduce the same replicates. The `fixef:rho12:(Intercept)` agreement is
+  NOT solver agreement of the kind `fixef:mu1:x` shows: TMB guards `rho12`
+  with `0.999999` and DRM.jl with `0.99999999`, a deterministic guard-constant
+  reparameterisation of about `9.9e-07 * rho / (1 - rho^2)` on the
+  linear-predictor coefficient, predicted at `3.77138e-07` and measured at
+  `3.77151e-07` for this fixture's `|rho12| ~ 0.34`. The 1e-6 Wald bar on
+  `rho12` is therefore CONDITIONAL on this fixture's weak correlation, not a
+  general parity claim: the offset crosses 1e-6 near `|rho12| ~ 0.62` and
+  reaches `~4.9e-05` at `rho12 = 0.99`. Tracked cross-engine at
+  itchyshin/drmTMB#1190; aligning the three guard constants (TMB, DRM.jl, and
+  the bridge's own `atanh(rho)` back-transform in
+  `drm_julia_residual_rho12_corpair()`) changes numerics on every bivariate
+  comparison and is a deliberate cross-engine decision, not part of this change.
+## `engine = "julia"` masked-response fits: convergence flag and bootstrap fixed upstream (DRM.jl #646)
+
+* A Gaussian fit with `missing = miss_control(response = "include")` through
+  `engine = "julia"` reported `is_converged()` FALSE and failed all bootstrap
+  replicates, even though its coefficients and profile interval agreed with
+  `engine = "tmb"` to ~7e-06 on the same fixture. Both defects were DRM.jl's
+  and are fixed there (DRM.jl #646): the degeneracy check took `std()` of a
+  response vector still carrying NaN in the masked rows (so its bar was NaN and
+  every comparison against it false), and the replicate simulator drew
+  `fit.nobs` values against full-design mean and scale vectors, throwing
+  `DimensionMismatch` on every replicate. MEASURED on the fixture: raw
+  `Optim.converged` TRUE, `|grad|inf` 6.41e-12 against a `g_tol` of 1e-8, and a
+  parameter vector bit-identical to the complete-case fit -- a wrong
+  return-code mapping, not a hard optimisation surface.
+* `fit$opt` for a Julia-engine fit is no longer a bare
+  `list(convergence = <0/1>)`. It now also carries `iterations` (the
+  optimiser's own count, `NA_integer_` on a route that does not record one --
+  never 0) and a `message` describing what DRM.jl reported. DRM.jl sends no
+  optimiser message string, so `message` is composed from the facts that did
+  cross the bridge and says so; it is not presented as a verbatim optimiser
+  message.
+* `tests/testthat/test-julia-missing.R` gains a live assertion block on the
+  masked fixture: `is_converged()` TRUE, `opt$convergence` 0, `opt` carrying
+  `iterations` and `message`, and `confint(method = "bootstrap", R = 19)` with
+  0 failed replicates.
+* NOT promoted here. The `gaussian_response_mask` capability row stays
+  `partial`: the two defects that blocked its G3 qualification are fixed and
+  re-measured (wald delta 7.86e-08, profile delta 7.18e-06, bootstrap 0/99
+  failed on both engines), but the status move belongs on top of #1184, which
+  is concurrently rewriting that row and the guard that pins it.
+* MEASURED: the parametric bootstrap on a masked-response fit is
+  anti-conservative, and the narrowing GROWS with the missing fraction --
+  masking 10% / 30% / 50% of the rows gave relative narrowing of roughly
+  -7% / -27% / -40% against the seed fit's Wald SE, and an implied nominal-95
+  interval covering roughly 93% / 85% / 76% of the time. The narrowing grows
+  with the missing fraction because replicates are drawn over the FULL design
+  regardless of how many rows were observed; this is shared by both engines.
+  The fix (a mask-preserving bootstrap) is a cross-engine statistical
+  calibration change, out of scope here, and tracked as #1188.
+## `engine = "julia"` bridge-side profile/bootstrap inference qualified on two routes (G3)
+
+* `base_gaussian_location_scale` and `plain_binomial_nonphylo` promoted
+  `r_bridge_status` `partial` -> `supported`: profile and bootstrap
+  confidence intervals through `engine = "julia"` on a real fixed-effect
+  target agree with `engine = "tmb"` within `1e-4` (profile deltas measured
+  `2.8e-06`/`5.9e-07` and `9.4e-08`/`2.3e-06`), both engines converge, and
+  bootstrap (`R = 99`) intervals overlap with `0/99` failed replicates on
+  either side. `plain_binomial_nonphylo`'s bootstrap is enabled by
+  drmTMB#1123 (already fixed). Two related rows do NOT promote:
+  `biv_gaussian_residual` has no profile/bootstrap-ready target on the
+  Julia bridge for any parameter (a structural gap), and
+  `gaussian_response_mask`'s Julia bootstrap fails all 99 replicates while
+  its underlying fit's own optimizer convergence flag reads `FALSE` on the
+  missing-response fixture -- both newly measured, both left unqualified
+  rather than rounded up. A purpose-built quasi-complete-separation binomial
+  cell exercises DRM.jl's profile-endpoint-failure backstop through
+  the public `confint()` entry point for the first time: `engine = "julia"`
+  refuses rather than returning an infinite bound.
+## `engine = "julia"` fits the mean-only phylogenetic Gaussian cell by REML
+
+* `drmTMB(bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+  family = gaussian(), REML = TRUE, engine = "julia")` now fits instead of
+  refusing. DRM.jl #624 item (c) is closed on the engine side, so the bridge's
+  REML gate admits this one cell. Both engines integrate out the same set --
+  the phylogenetic field and `beta_mu` -- and both carry the same additive
+  `0.5 * p_mu * log(2 * pi)` from the Patterson-Thompson restriction, so the two
+  REML log-likelihoods are directly comparable with no constant removed:
+  drmTMB's REML construction folds `beta_mu` into TMB's `random=` vector, and
+  DRM.jl profiles it out exactly by GLS and adds
+  `0.5 * logdet(Xmu' V^-1 Xmu) - 0.5 * p_mu * log(2 * pi)`. Measured on the
+  committed fixture (`tests/testthat/test-reml-phylo-location.R` draw, n = 90,
+  30 tips) against native `engine = "tmb"` with `REML = TRUE`: logLik
+  `-76.000977125761` vs `-76.000977125105` (`6.56e-10`), max scaled coefficient
+  difference `3.71e-08`, identical coefficient names, identical `nobs` (90) and
+  `df` (4); the fit's `estimator` is `"REML"` and equals what DRM.jl reports as
+  `estim_method`. **One documented convention difference**: drmTMB's REML
+  standard errors for `beta_mu` come from TMB's `sdreport` over a random set
+  that contains it, so they propagate variance-parameter uncertainty, while
+  DRM.jl reports the canonical `(Xmu' Vhat^-1 Xmu)^-1` -- a hand-built GLS
+  oracle confirms DRM.jl to `4.5e-08`, and the two engines' SEs differ by
+  `4.84e-05`, `1.50e-03` and `1.42e-07` relative on the three coefficients.
+  This is a construction difference, not an error on either side: the test
+  asserts DRM.jl-vs-oracle agreement at rtol `~5e-7` and bounds the
+  cross-engine gap at rtol `2.5e-3`, not a bare rtol-`1e-3` cross-engine
+  match. Tracked in #1201.
+  **Scope**: `phylo()` with an intercept-only `sigma` only. A `sigma`
+  predictor, an ordinary `(1 | g)` bar alongside the phylo term, `relmat()` /
+  `animal()` / `spatial()`, and a non-default `missing` response engine all
+  still refuse before Julia starts, with drmTMB's own message. The capability
+  guide now lists `gaussian_phylo_mean` as fitting under ML and REML on both
+  engines. `fit$bridge$gradient` is deliberately absent on a Julia
+  REML fit of this cell (it is present, and near zero, on the ML fit): the
+  route's analytic score belongs to the ML marginal and is `(1.01, 0.99)` on the
+  variance parameters at the REML optimum, so reporting it would have read as
+  "not converged" for a converged fit.
+
+## `engine = "julia"` admits `beta_binomial()` (fixed effects)
+
+* `drmTMB(bf(cbind(successes, failures) ~ x, sigma ~ z), family = beta_binomial(),
+  engine = "julia")` now routes to DRM.jl's `BetaBinomial` instead of refusing
+  with the Workflow G message. Both engines fit the same target with the same
+  `sigma` parameterisation (precision `phi = 1 / sigma^2`); the per-row
+  denominator crosses as `trials` context, not as a distributional parameter.
+  Measured at DRM.jl pin `430ef64cc` on the committed fixture
+  (`tests/testthat/test-beta-binomial.R` draw, n = 1200): max |d coef|
+  `7.77e-15`, |d logLik| `2.57e-10`, per-coefficient Wald SE max relative
+  difference `1.73e-07`; the fit's `estimator` (`"ML"`) equals what DRM.jl
+  reports as `estim_method`. **Fixed effects only**: a `phylo()` term with this
+  family is still refused before Julia starts, and no `(1 | g)` route, structured
+  marker, or interval-coverage claim is made; use `engine = "tmb"` for those.
+
+## `engine = "julia"` admits `cumulative_logit()` on the fixed-effect route
+
+* `cumulative_logit()` (dpar `mu`; ordered-factor response) now routes through
+  `engine = "julia"` for fixed-effect models -- one row in the Julia family
+  registry plus a small family file that integer-codes the ordered response,
+  sends `mu` without its intercept, labels DRM.jl's `cutpoints` block with
+  drmTMB's own `"low|medium"` spelling, and moves that block into
+  `fit$ordinal` (the native engine's slot; cutpoints never appear in `coef()`
+  or `vcov()`). Same target as `engine = "tmb"` on the committed
+  `test-cumulative-logit.R` fixture at DRM.jl pin `430ef64cc`: max |d coef|
+  2.20e-14, |d logLik| 1.13e-11, cutpoints within 8.98e-13, Wald SE within
+  5.76e-09 relative; `estimator` reads `"ML"` and equals DRM.jl's
+  `estim_method`. A `sigma ~` formula and an unordered factor are refused
+  before Julia starts with the native engine's own reasons. Known gap, not
+  fixed here: `predict()` on the Julia object aborts for this family (its
+  design rebuild keeps the `mu` intercept); `fitted()` is unaffected. No
+  phylogenetic, structured, or random-effect ordinal routes are admitted;
+  `(1 | g)` fails closed at DRM.jl's label echo.
+
+## `engine = "julia"` admits `skew_normal()` on the fixed-effect route
+
+* `skew_normal()` (dpars `mu`, `sigma`, `nu`) now routes through
+  `engine = "julia"` for fixed-effect models -- one row in the Julia family
+  registry on the R side, plus a five-line `_bridge_family()` case in DRM.jl
+  (`SkewNormal()` existed there but the R bridge had no tag for it; an older
+  DRM.jl checkout without that case still aborts at the
+  Julia boundary with `drm_bridge: unsupported family`). Same target as
+  `engine = "tmb"` on the committed `test-skew-normal-location-scale.R`
+  fixture at DRM.jl pin `430ef64cc` + that case: max |d coef| 1.89e-11,
+  |d logLik| 2.16e-12, per-coefficient Wald SE within 1.04e-06 relative;
+  `estimator` reads `"ML"` and equals DRM.jl's `estim_method`. The public
+  moment parameterisation (`mu` = mean, `sigma` = SD, `nu` = Azzalini slant)
+  is the same on both engines, so the bridged coefficients are the native
+  ones; a predictor-dependent `nu ~ z` agrees to the same tolerance. Write
+
+## `predict()` on `cumulative_logit()` Julia fits now matches `engine = "tmb"`
+
+* Closes the gap the `cumulative_logit()` admission above recorded:
+  `predict()` on an `engine = "julia"` `cumulative_logit()` fit no longer
+  aborts. The reconstructed `mu` design dropped the fitted coefficient block's
+  intercept but kept restoring "(Intercept)" via `stats::model.matrix()`;
+  the design rebuild now drops it too, scoped to `cumulative_logit()`'s `mu`
+  dpar so no other family's Julia prediction path is touched. `mu`'s link is
+  identity, so `type = "response"` and `type = "link"` are identical on both
+  engines. Measured on the committed
+  `tests/testthat/test-julia-cumlogit-predict.R` fixture (n = 900) at DRM.jl
+  pin `430ef64cc`: max |d prediction| for stored data and fresh `newdata`,
+  both types, all below `1.5e-13`. Thresholds are not read by `predict()`
+  on either engine for this family -- they live in `fit$ordinal`, not in the
+  linear predictor. `type = "quantile"` on `engine = "julia"` fits was
+  unavailable when this landed; it is added by the entry at the top of this
+  file (drmTMB#1198).
+
+## REML support tabled by route, measured across both engines (#1142)
+
+* `docs/design/261-reml-by-route.md`, generated by
+  `tools/write-reml-route-table.R`, tables REML support for every
+  `engine = "julia"`-admitted route (the 21-row capability TSV plus A5's three
+  ordinary-random-effect shapes) across native `engine = "tmb"`, native
+  DRM.jl, and the bridge -- 30 rows, each FITS/REFUSES/N/A with a measured or
+  cited receipt, no cell says "expected". No REML behaviour changed: this is
+  measurement only. Surfaces two new capability gaps where native TMB is
+  ahead of DRM.jl (plain fixed-effect bivariate Gaussian REML, and mean-only
+  Gaussian `relmat()` REML), one new bridge under-admission (DRM.jl's own
+  `#450` Poisson+`relmat()` Cox-Reid REML is unreachable through
+  `engine = "julia"` because the structured-term gate fires before the
+  Poisson-specific gate), and one four-cell honesty-of-interface gap
+  (`fe_poisson`, `zi_poisson`, Poisson+`relmat()`, and Gaussian random-slope
+  REML requests reach a raw Julia stack trace instead of the bridge's
+  intended refusal message). None of these are fixed here; see the table's
+  Gaps section.
+
+## Coevolution accessors ported from DRM.jl (#1118)
+
+* New `coevolution_cor()`, `coevolution_vc()`, and `coevolution_summary()`
+  read the among-axis structure of a q = 4 structured bivariate
+  location-scale fit -- the 4 x 4 correlation matrix over `mu1`, `mu2`,
+  `sigma1`, `sigma2`, the per-axis variance components, and a tidy long form
+  over the six axis pairs -- from the covariance the fit already stores,
+  for both the native engine and `engine = "julia"` (whose raw-branch-length
+  `Sigma_a` is rescaled to the unit-height convention, as `profile_targets()`
+  already does). Ported term-for-term from DRM.jl `src/coevo_accessors.jl`
+  and checked live against DRM.jl's own accessors at pin `430ef64cc`.
+## Boundary-corrected likelihood-ratio test for variance components (DRM.jl #1116 port)
+
+* New `chibar_pvalue(statistic, q)` and `lrt_boundary(full, reduced, q)`:
+  the chi-bar-square boundary-corrected likelihood-ratio test for `q` (1 or
+  2) variance components tested at zero, ported term-for-term from DRM.jl
+  `src/chibar.jl` (pin `430ef64cc`). Dropping a random effect tests a
+  variance on the boundary of its space, where the naive `chisq(q)` p-value
+  is conservative; `lrt_boundary()` reports both the corrected and the naive
+  p-value, refuses ML-vs-REML pairs, REML pairs with different mean
+  structures, and penalized (MAP) fits. Measured against DRM.jl's native
+  `lrt_boundary` on the same data (four fixtures, `q = 1` and `q = 2`): the
+  statistic agrees to `3.8e-10` (strong random intercept, stat 670.27),
+  `2.2e-11` (moderate, stat 2.2012, p 0.06895 vs 0.06895 to `9.7e-13`) and
+  `4.5e-11` (two crossed intercepts, `q = 2`, stat 94.418); at a variance
+  estimated at zero both engines return the boundary point mass `0.5`
+  (to `2.3e-7`). `chibar_pvalue()` agrees with `DRM.chibar_pvalue` to
+  `1e-12` relative on identical statistics
+  (`tests/testthat/test-lrt-boundary.R`).
+## `engine = "julia"` admits `tweedie()` on the fixed-effect route
+
+* `tweedie()` (dpars `mu`, `sigma`, `nu`) now routes through `engine = "julia"`
+  for fixed-effect models -- one row in the Julia family registry, no bridge
+  code. Same target as `engine = "tmb"` on the committed
+  `test-tweedie-location-scale.R` fixture at DRM.jl pin `430ef64cc`:
+  max |d coef| 2.77e-11, |d logLik| 0, per-coefficient Wald SE within 3.28e-06
+  relative; `estimator` reads `"ML"` and equals DRM.jl's `estim_method`. Write
+  `nu ~ 1` explicitly for now: a formula that omits `nu` aborts at DRM.jl's
+  label echo (`coef_labels is missing an entry for dpar "nu"`) because the
+  bridge's label defaulter fills `nu` only for `student()`; that one-line fix
+  sits outside this change. No phylogenetic, structured, or random-effect
+  skew-normal routes are admitted; `(1 | g)` fails closed at DRM.jl.
+  tweedie routes are admitted; `(1 | g)` fails closed at the same echo.
+## `engine = "julia"` admits `zero_one_beta()` (fixed effects)
+
+* `drmTMB(bf(prop ~ x, sigma ~ z, zoi ~ w, coi ~ v), family = zero_one_beta(),
+  engine = "julia")` now routes to DRM.jl's `ZeroOneBeta` instead of refusing
+  with the Workflow G message. Both engines fit the same three-part mixture —
+  `mu` (logit, the interior beta mean), `sigma` (log, `phi = 1 / sigma^2`),
+  `zoi` (logit), `coi` (logit) — and all four dpars cross the design-258 label
+  contract. Measured 2026-09-05 at DRM.jl pin `430ef64cc` on the committed
+  fixture (the `tests/testthat/test-zero-one-beta.R` draw, n = 1600):
+  max |d coef| `3.98e-11`, |d logLik| `1.93e-12`, max |d fitted| `9.08e-12`,
+  per-coefficient Wald SE max relative difference `9.76e-07` over all 8
+  coefficients; the fit's `estimator` (`"ML"`) equals what DRM.jl reports as
+  `estim_method`. **Fixed effects only, and all four formula parts must be
+  written**: a `(1 | g)` term is refused by DRM.jl (`ZeroOneBeta() currently
+  supports fixed effects only`), and a formula that omits `zoi`/`coi` (which
+  native `engine = "tmb"` fits with intercept-only parts) aborts at the label
+  echo — use `engine = "tmb"` for either. Not a phylogenetic, structured, or
+  interval-coverage claim.
+## Model comparison: `aicc()` and the nested likelihood-ratio test, ported from DRM.jl (#1117)
+
+* New `aicc()` returns the small-sample corrected AIC, `AIC + 2k(k + 1) / (n - k - 1)`,
+  for a `drmTMB` fit on either engine (`Inf` when `n - k - 1 <= 0`, as in DRM.jl),
+  and the internal `drm_lrtest(reduced, full)` computes DRM.jl's `lrtest()`
+  (statistic, df, p-value) with its REML, MAP and boundary-variance guards.
+  Both are ports of DRM.jl `src/comparison.jl` at pin `430ef64cc`, measured
+  against DRM.jl's own values on two committed fixtures: every quantity agrees
+  to `1e-8` on the `engine = "julia"` object and to `2e-12` across engines.
+  `anova.drmTMB()` still refuses; wiring it to `drm_lrtest()` is a follow-up.
+## `check_drm()` now reads DRM.jl's route-aware gradient/convergence diagnostics (#1108 / DRM.jl #569)
+
+* DRM.jl #632 attaches the objective gradient at the optimum (`gradient`,
+  index-aligned `gradient_names`) to the bridge payload, but only for routes
+  whose internal fitter carries one; other routes correctly omit the field
+  rather than filling zeros/NaN. `check_drm()` on a `engine = "julia"` fit
+  previously errored with "no applicable method" even when that gradient was
+  sitting unread in `fit$bridge$gradient`. `check_drm.drmTMB_julia()` now
+  dispatches through the SAME generic a native TMB fit uses, reporting
+  `optimizer_convergence` and a route-aware `fixed_gradient` row: numeric
+  `max|gradient|` and its largest component when the route carries one, a
+  NOTE naming the route (never a fabricated number) when it does not.
+  Verified against DRM.jl `430ef64cc`: the bivariate structured q2/q4 route
+  and the sparse location-scale-scale ML route attach a gradient; the base
+  Gaussian/GLMM route and the non-Gaussian phylo Laplace route do not — both
+  directions are exercised by a live test, not just a mocked one.
+
+## Pinned DRM.jl clone moved from `e0a65f96b` to `430ef64cc`
+
+* The pin advances 18 commits, carrying DRM.jl #630 (sparse LSS gradient
+  O(n+G) rather than O(G·n) — every warm-timing receipt taken at the old pin
+  is now pessimistic, not wrong), #631 (profile endpoints never return an
+  infinite bound; the sparse-LSS data race behind it is fixed), #632 (the
+  bridge forwards optimizer options and exposes the stored gradient) and
+  #633. Measured on the **full** live-Julia suite, all 37 `test-julia*.R`
+  files in one session: **1440 passed, 0 failed, 0 errors, 0 skipped.**
+  Dependency versions were held fixed (`Project.toml` identical across the
+  refs, so the previous pin's `Manifest.toml` was carried over) and the clone
+  was precompiled before measuring — the two controls whose absence
+  invalidated an earlier probe.
+* Compared file by file against the previous pin's sweep, **nothing
+  changed** — the one differing file is a test converted by the previous
+  re-pin, not an engine change. In particular #631's change to profile
+  endpoint numbers reaches no test in this suite, which is recorded as a gap
+  for the bridge-side inference qualification to close rather than as a pass.
+* Totoro's full-suite runner, which existed only on that host, is now
+  vendored in DRM.jl as `tools/totoro_run_suite.sh` (DRM.jl #638).
+
+## `engine = "julia"` admits `truncated_nbinom2()` (fixed effects)
+
+* `drmTMB(bf(y ~ x, sigma ~ 1), family = truncated_nbinom2(), engine = "julia")`
+  now routes to DRM.jl's `TruncatedNegBinomial2` instead of refusing with the
+  Workflow G message. Both engines fit the same zero-truncated NB2 target with
+  the same `size = 1 / sigma^2` parameterisation. Measured at DRM.jl pin
+  `430ef64cc` on the committed fixture (`tests/testthat/test-family-dpq-batchC.R`
+  draw, n = 300): max |d coef| `8.81e-11`, |d logLik| `2.84e-12`, per-coefficient
+  Wald SE max relative difference `2.71e-07`; the fit's `estimator` (`"ML"`)
+  equals what DRM.jl reports as `estim_method`. **Fixed effects only**: a
+  `(1 | g)` term or a `hu` hurdle formula is refused (by DRM.jl, and by the
+  design-258 label echo respectively), never silently dropped; use
+  `engine = "tmb"` for those. Not a phylogenetic, structured, or interval
+  coverage claim.
+## `engine = "julia"`: a structured marker with a non-intercept left side of the bar is refused before Julia boots
+
+* `phylo(1 + x | g)`, `phylo(0 + x | g)`, and the same shapes on `relmat()`,
+  `animal()`, and `spatial()` are now refused by an R-side capability gate
+  the moment `drmTMB(..., engine = "julia")` is called, rather than reaching
+  the JuliaCall subprocess and being refused there. At the pinned DRM.jl
+  (`430ef64cc`, carrying DRM.jl #621's `_check_phylo_re_lhs`), every such
+  construct is already refused live — verified for a Gamma
+  `phylo(1 + x | species)` slope, which DRM.jl throws as `phylo(1 + x |
+  species) is not implemented on the univariate routes -- only phylo(1 |
+  species) (intercept) is` after booting Julia. This gate moves the same
+  refusal in front of that boot (defense-in-depth, drmTMB#1146), so it holds
+  even if a future DRM.jl refactor narrows one of the more specific
+  admission checks that also catch some of these shapes today. The gate is
+  capability-gated, not a permanent ban: `drm_julia_marker_slope_pin_supports()`
+  is the single switch to flip when a future pin fits one of these
+  constructs. `engine = "tmb"` is unaffected and keeps fitting, for example,
+  the two-SD Gaussian phylogenetic random slope.
+
+## `engine = "julia"`: the ENGINE now decides which estimator ran, and two Poisson REML cells are admitted
+
+* drmTMB labelled a Julia fit `"REML"` purely from its own support gate. Nothing
+  checked what DRM.jl actually did, so a gate that was too permissive would have
+  returned a maximum-likelihood fit **labelled REML**, with nothing to reveal it.
+  DRM.jl #625 now reports `estim_method` on every fit, so the engine is the
+  authority: if it says it fitted ML while REML was asked for and believed
+  supported, the fit **aborts** and names it as a drmTMB gate defect rather than
+  mislabelling the result. This closes the one failure direction a user cannot
+  recover from.
+* `drm_julia_reml_supported()` admits Poisson `(1 | g)` and Poisson
+  `phylo(1 | species)`, which it previously refused. Since the refusal landed
+  these raised an avoidable error even though DRM.jl can restrict them. Widened
+  on MEASUREMENT, not on report: each was verified with the `estim_method`
+  oracle at pin `e0a65f96b` — `poisson_random_intercept` reports `:REML` with
+  ml `-123.1282` / reml `-128.6623`; `poisson_phylo_intercept` reports `:REML`
+  with ml `-74.6002` / reml `-79.3865`. Both restrictions are several
+  log-likelihood units, not convergence noise.
+* **Not** widened: the bivariate structured q=2 cell that DRM.jl's refusal text
+  also names. It was not verified, because drmTMB refuses that shape earlier and
+  for an unrelated reason — the Julia route supports one `phylo()` term, and a
+  q=2 spec carries one per mean axis. The REML question never arises there, so
+  admitting it would have meant trusting the engine's description of itself,
+  which is exactly what the measurement above exists to avoid.
+
+
+## Pinned DRM.jl clone moved from `77513aa0` to `e0a65f96b`
+
+* The `engine = "julia"` evidence and live tests are measured against a pinned
+  DRM.jl checkout. That pin moved. Measured on the **full** live-Julia suite (all
+  37 `test-julia*.R` files, one session): **1433 passed, 0 failed, 1 error**,
+  where the single error is the one intended behaviour change below. The clone's
+  `Project.toml` is identical across the two refs, so the previous pin's
+  `Manifest.toml` was carried over and **dependency versions are held fixed** —
+  only engine code differs between the measurements.
+* **`phylo(1 + x | g)` on a univariate route is now REFUSED by DRM.jl rather than
+  silently fitted.** At the old pin, DRM.jl's parser kept only the grouping symbol,
+  so it fitted an **intercept-only** model and quietly discarded `x` — the label was
+  correct for the model it actually fitted, not for the two-SD random slope the user
+  wrote. DRM.jl now fails closed. `tests/testthat/test-julia-slope-nongaussian.R`
+  asserts that specific refusal, with negative controls so that a `coef_labels`
+  regression, a precompile failure, or a missing-package error cannot pass as the
+  refusal. A genuine two-SD phylogenetic random slope on non-Gaussian families
+  remains unimplemented on both engines.
+* The new pin also carries DRM.jl's REML honesty work: the bridge now reports
+  `estim_method` on every fit, `ml_loglik` always, and `reml_loglik` only when the
+  fit really was restricted. A silent ML downgrade is therefore now directly
+  observable rather than inferred from a likelihood gap.
+* Reading that work surfaced a gap in the other direction: DRM.jl's rewritten
+  refusal message enumerates the cells it *can* fit by REML, and that list is wider
+  than `drm_julia_reml_supported()` in three places — bivariate structured q=2,
+  Poisson `(1 | g)`, and Poisson `phylo(1 | species)`. Since the Julia route now
+  refuses rather than downgrading, those three raise an avoidable error. Tracked as
+  #1152; deliberately **not** fixed here, because DRM.jl's message is its own claim
+  about itself and widening the gate on it, unverified, risks the more dangerous
+  opposite fault.
+* Provenance comments throughout the source and design notes that read "measured
+  against DRM.jl 77513aa0" are left standing: they are dated records of what was
+  verified then, and rewriting them would assert measurements never made at the new
+  pin. `docs/design/258` §7.8 records which of those statements a reader must carry
+  forward differently.
+
+
+## Breaking: `engine = "julia"` now REFUSES unsupported `REML = TRUE` instead of quietly fitting ML
+
+* Asking for `REML = TRUE` on a cell the DRM.jl bridge cannot fit by restricted
+  maximum likelihood used to emit a warning and then **fit by maximum likelihood
+  anyway**. The same script on two engines therefore returned two different
+  estimators, separated only by a warning, and it did so on exactly the
+  quantities REML exists to correct: variance components, and every ratio built
+  from them (`heritability()`, `repeatability()`, `icc()`). Nothing in the
+  returned fit announced the substitution beyond `effective_REML`, which nobody
+  reads. It is now an error.
+* The error names the cell, says the Julia engine cannot fit it by REML, and
+  gives the two ways forward: `REML = FALSE` to ask for maximum likelihood
+  explicitly, or a documented Gaussian REML cell. The `engine = "tmb"` pointer
+  is deliberately **bounded** — TMB fits Gaussian cells by REML and has a
+  separate diagnostic-only binomial route, but it does not offer a general REML
+  fit for every cell the bridge refuses, and the error says so rather than
+  sending users to a route that will also decline.
+* The refusal fires **before** anything is marshalled to Julia, so an unsupported
+  request costs no fit.
+* Why this is not gated on finishing the support census: the two failure
+  directions are not symmetric. A gate that is too *narrow* produces a visible
+  error next to a route that works — recoverable in one line. A gate that is too
+  *wide* hands back ML labelled REML — not recoverable, because nothing tells
+  you to look. The refusal only ever affects the first direction; widening the
+  gate where the census shows DRM.jl is more capable than drmTMB assumes is a
+  separate, later change. Census batch 1 (4 cells) agrees with the current gate
+  on every cell and found no instance of the dangerous wide direction.
+
 
 First CRAN-targeted release candidate; not yet submitted to or accepted by
 CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
+
+## Regression cover for the non-interactive `engine = "julia"` abort
+
+* `engine = "julia"` used to abort in an ordinary `Rscript` session with "Live
+  Julia setup is disabled on the CRAN check lane", because the CRAN-lane
+  predicate inferred "package check" from `!interactive()`. A scripted analysis
+  is a supported way to use the package, so this blocked real non-interactive
+  use (reported by an outside user working on a 10,970-species tree). The
+  behaviour was fixed on 2026-08-30 by requiring R's own
+  `_R_CHECK_PACKAGE_NAME_` marker; **this entry adds the regression test the fix
+  shipped without.** Reverting the fix left the existing CRAN-lane test file
+  fully green (32 passed, 0 failed), so the bug could have been reintroduced
+  without CI noticing; the new
+  `tests/testthat/test-julia-noninteractive-lane.R` fails against the pre-fix
+  predicate.
+* The marker choice is now backed by measurement rather than inference: probe packages
+  under `R CMD check` show `_R_CHECK_PACKAGE_NAME_` set in the examples lane,
+  in `tests/testthat.R`, and inside `test_check()`, but **absent from the
+  vignette rebuild subprocess**, which carries no check marker at all.
+  `TESTTHAT_IS_CHECKING` would have been the wrong marker: it is missing from
+  the examples lane, the lane the guard was originally written for. Because the
+  vignette lane is invisible to any marker, the new test file also scans every
+  vignette and fails if an *evaluated* chunk ever calls `engine = "julia"`, with
+  a positive control proving the scanner detects a planted chunk.
+
+## Renamed: `summary()`'s derived "repeatability"/"phylogenetic_signal" rows
+
+* `summary()`'s `derived` component printed rows labelled `"repeatability"`
+  and `"phylogenetic_signal"` for structured `mu` random-effect components.
+  These rows divide by the TOTAL variance (every `mu` random-effect variance
+  in the fit, summed, plus the residual variance). The `icc()` /
+  `repeatability()` accessors, added separately, use a different
+  focal-vs-residual denominator (that one component's variance over itself
+  plus the residual only) under the same word "repeatability" -- the two
+  agreed on a fit with one structured `mu` component and silently disagreed
+  on a fit with two or more. `summary()`'s rows are renamed to
+  `"total_variance_share"` and `"phylo_total_variance_share"`, which state
+  their denominator; their arithmetic is unchanged. `icc()`, `repeatability()`,
+  and `heritability()` are unaffected -- they keep their existing names and
+  values. If you matched on the row name `"repeatability"` or
+  `"phylogenetic_signal"` in `summary(fit)$derived`, or on the profile-target
+  `parm` strings `"derived:repeatability(<group>)"` /
+  `"derived:phylogenetic_signal(<group>)"`, update to the new names. See
+  `docs/design/259-heritability-icc-repeatability.md` section 3 item 5 for
+  which function owns which denominator.
+
+## Fixed: `profile_targets()` on an `engine = "julia"` fit listed one target where `confint()` accepts five (#1156)
+
+* `profile_targets()` returned early for a Julia fit with only the phylogenetic
+  SD inventory, so `bf(y ~ x + phylo(1 | species), sigma ~ 1)` listed **1**
+  target (`sd:mu:phylo(1 | species)`) while the same TMB fit listed 6 -- even
+  though `confint(fit, parm = "fixef:mu:x", method = "profile")` on the Julia
+  fit already worked when the name was typed in full. Discovery now returns
+  the union the engine accepts, in the native row order: `fixef:mu:(Intercept)`,
+  `fixef:mu:x`, `fixef:sigma:(Intercept)`, `sigma`, `sd:mu:phylo(1 | species)`
+  (measured live against the pinned DRM.jl clone `430ef64cc`; each of the four
+  `profile_ready` rows returns a finite profile interval). The `sigma`
+  response-scale alias is listed as it is on the Wald path -- `profile_ready =
+  FALSE`, note `missing_tmb_parameter` -- and the native fit's derived
+  `phylo_total_variance_share` row has no bridge counterpart, so it remains
+  TMB-only.
+
+## Fixed: `nlminb` could report convergence short of the true optimum on flat surfaces (#1130)
+
+* `nlminb()`'s own `rel.tol`/`x.tol` stopping rules trigger on a relative
+  change in the objective or step, not on the gradient norm, so on a flat or
+  weakly-curved surface (for example a variance component identified by few
+  groups) it could report `convergence == 0` while the exact TMB gradient at
+  that point was still far from zero -- invisible at the training rows but
+  amplified at extrapolated `newdata`. `drmTMB()` now applies a Newton polish
+  by default after every `nlminb()` fit: a few Newton steps on the exact TMB
+  gradient and a finite-differenced Hessian of it, accepting a step only if
+  it does not increase the objective, until the gradient's max absolute
+  component is small. This does not change `nlminb`'s own tolerances
+  (tightening them was tried and found unreliable: see
+  `docs/design/260-nlminb-newton-polish-optimizer-tolerance.md`), costs a
+  handful of extra gradient evaluations at the reported optimum (skipped
+  entirely once the gradient is already small; measured negligible on a
+  small Gaussian, a location-scale, and a phylogenetic fit), and honestly
+  recomputes the reported `convergence` code and message from the polished
+  gradient rather than trusting `nlminb`'s own diagnostic. Opt out with
+  `drm_control(newton_polish = FALSE)`.
+* `confint(..., method = "profile", profile_engine = "endpoint")` compares
+  the free fit's objective against a constrained endpoint solve; the polish
+  above originally ran on the free fit only, so a constrained endpoint could
+  stop short of its own minimum relative to the now-lower free objective and
+  get rejected by the existing gradient guard, narrowing or invalidating the
+  interval. The same polish now runs on the constrained endpoint solve too,
+  keeping the comparison symmetric (and skipped on both sides together under
+  `drm_control(newton_polish = FALSE)`).
+* The constrained ordinal cutpoint profile (`confint(fit, parm =
+  "ordinal:cutpoint:<label>", method = "profile")`) had the same asymmetry
+  (#1144): its endpoint solve stopped wherever `nlminb` alone stopped. On the
+  committed random-intercept `cumulative_logit()` fixture that was a gradient
+  of 3.6e-4 to 1.9e-3 at the six endpoints (two above the 1e-3 acceptance
+  guard) against 8.5e-10 at the free optimum. Both endpoints of every cutpoint
+  are now polished the same way (measured 4e-14 to 7e-9 afterwards); the
+  gradient guard `PROFILE_ENDPOINT_GRADIENT_TOL` is unchanged at 1e-3, and on
+  that fixture the reported intervals move by less than 1e-9 -- the fix is
+  to the solve's consistency, not to a visibly wrong interval.
+
+## Fixed: bootstrap `confint()` failed for `cbind(successes, failures)` binomial fits (#1123)
+
+* `confint(fit, method = "bootstrap")` errored with "Bootstrap confidence
+  intervals require a stored response column in the fitted data" for
+  binomial fits whose response used trial-denominator syntax --
+  `bf(cbind(successes, failures) ~ x)` -- even though `method = "wald"` and
+  `method = "profile"` worked on the same fit. The internal resampler only
+  knew how to write a single simulated response column back into the
+  refit data, so a two-column `cbind()` response tripped its guard.
+  Bootstrap replicates now rebuild the two-column response from the
+  simulated successes and each row's original trial size; Bernoulli 0/1 and
+  proportion-with-weights binomial fits are unaffected.
+
+## Fitted objects now store the final gradient (DRM.jl #569, R-side)
+
+* `drmTMB()` fits now carry `$gradient` (the final outer gradient at
+  `opt$par`) and `$gradient_max_component` (the label of its largest
+  |component|), computed once at fit time. Previously this quantity was only
+  available lazily, inside `check_drm()`'s `fixed_gradient` row, and only
+  when the fit retained its TMB object (`drm_control(keep_tmb_object =
+  TRUE)`, the default). The stored value agrees exactly with what
+  `check_drm()` computes live, and survives `keep_tmb_object = FALSE`.
+
+## Public start contract: `drm_control(start = list(...))`
+
+* `drm_control()` gains a `start` argument implementing the public start
+  contract from design 35 ("Public Start Contract"): a named list keyed by
+  `"fixef:<dpar>:<column>"`, `"sd:<dpar>:<term>"`, or `"cor:<dpar>:<term>"`
+  labels. Labels are validated against the parsed formula and family
+  **before** optimization (unknown labels error before the fit runs, never
+  during it). Values are transformed to the internal unconstrained scale
+  before `TMB::MakeADFun()` sees them: `sd:` starts are natural-scale and
+  `log()`-transformed, `cor:` starts are natural `(-1, 1)`-scale and
+  `atanh()`-transformed, and `fixef:` starts are already on the model's
+  internal link scale. A partial start updates only the named targets; every
+  other component keeps the ordinary family-builder default. Latent
+  random-effect (`u`) values are not addressable through this contract. This
+  is a validated translation layer onto the existing private
+  `drm_apply_start_override()` hook -- nothing changes at the TMB boundary,
+  and a start changes only where the optimizer begins, never what is
+  reported. `start_from = <a fitted model>` remains reserved and
+  unimplemented.
+* Two defects found by an adversarial pass are fixed. (1) A `fixef:sigma:`
+  (or `sigma1:`/`sigma2:`) start whose implied `log(sigma)` linear predictor
+  falls outside the configured `logsigma_clamp` band now warns
+  (`drmTMB_start_clamp_saturated_warning`) before the fit that produces the
+  bad result: the softclamp derivative is ~0 in that region, so `nlminb` can
+  see an already-flat gradient at the start and report a spuriously clean
+  convergence without ever moving. The start itself is never silently moved.
+  (2) A `fixef:mu:` (or scale-side `fixef:sigma:` when a `sigma` variance
+  component makes REML fold it in too) start under `REML = TRUE` now errors
+  instead of being silently accepted with no effect: REML integrates those
+  fixed effects into the Laplace random block, so there is no free
+  coordinate for the start to seed. This matches `objective_at()`'s existing
+  refusal of the same labels under REML.
+
+## `objective_at()`: evaluate the fitted objective at a supplied point
+
+* New exported S3 generic `objective_at(object, at = list(...))`, with a
+  `drmTMB` method, implementing design 35's "Objective At A Point": it
+  shares the `start=` label vocabulary (`"fixef:<dpar>:<column>"`,
+  `"sd:<dpar>:<term>"`, `"cor:<dpar>:<term>"`) to evaluate a fitted model's
+  TMB objective (negative log-likelihood) at a supplied point, **without
+  refitting**. It reuses the existing `R/profile.R` evaluation pattern
+  (substituting into a copy of `fit$opt$par` and calling `fit$obj$fn()`)
+  rather than a second implementation. This is a diagnostic: it selects
+  nothing, reports no uncertainty, and does not mutate the fitted object
+  (the TMB object is re-pinned to its optimum after evaluation). Requires
+  `drm_control(keep_tmb_object = TRUE)` (the default). Unknown labels error
+  before evaluation, on the same rule as `start=`. For penalized (MAP) fits
+  the return value is on the same unpenalized convention as `logLik()` (any
+  penalty is subtracted back out, so `objective_at(fit, <own optimum>) ==
+  -logLik(fit)` holds for every fit type), and it errors for experimental
+  MSPL fits exactly as `logLik()` does.
+* `start=`/`objective_at()` labels now reach `biv_gaussian`'s `rho12` fixed
+  effect (via the existing generic `fixef:rho12:<column>` label -- `beta_rho12`
+  is now named at start-build time) and the phylogenetic location/scale
+  covariance block via three new families, `phylo_sd:<axis>`,
+  `phylo_cor:<axis1>:<axis2>`, and `phylo_theta:<axis1>:<axis2>` (design 35,
+  "Phylo Covariance Block"). `phylo_cor:` always denotes a correlation
+  strictly in `(-1, 1)` (q = 2 or block-diagonal q > 2); on a DENSE q > 2
+  block, where the working parameter is a raw `UNSTRUCTURED_CORR_t`
+  Cholesky-space entry with no correlation meaning in isolation, `phylo_cor:`
+  refuses and names `phylo_theta:` -- the honestly-named, unconstrained-scale
+  counterpart -- as the alternative, rather than returning a value on a
+  scale its own name does not promise. Closes a gap the A5 cross-engine
+  receipt had to work around by addressing
+  `beta_rho12`/`log_sd_phylo`/`theta_phylo` by internal TMB parameter name.
+
+## Build provenance (`drm_provenance()`)
+
+* New exported `drm_provenance()` (DRM.jl#473) answers a question
+  `packageVersion("drmTMB")` cannot: which BUILD produced this attachment,
+  not just which release. Two builds can report the same version string
+  while differing by commits under `R/`, `src/`, or `NAMESPACE`.
+  `drm_provenance()` returns `package_version`, `git_sha`, `git_dirty`,
+  `build_time`, `source`, `reason`, and `queried_at`. Every fitted `drmTMB`
+  object now carries this record at `fit$provenance`.
+* The git SHA and working-tree dirty flag are captured once, at build time,
+  by `./configure`/`configure.win` (plain `git rev-parse`/`git status
+  --porcelain`, non-fatal) and baked into `inst/build-provenance.dcf`. An
+  installed package has no `.git` to consult, so `drm_provenance()` never
+  attempts a live git lookup at call time; when the baked file is absent
+  (e.g. `devtools::load_all()`, or a build whose `configure` step did not
+  run) it returns `source = "unavailable"` with a stated `reason`, and
+  `source = "baked-without-git"` when `configure` ran but git itself was
+  unavailable (no git binary, or no `.git`, as when installing from a
+  released tarball).
+* `tools/drmtmb_provenance.R` is a separate, unshipped developer/CI tool
+  (excluded from the built tarball via the pre-existing `.Rbuildignore`
+  `tools/` rule, same as every other script in that directory) for stamping
+  a build anchor into Julia-side fixture receipts. It duplicates rather than
+  shares the few git-capture lines with `configure`, deliberately: a shipped
+  `configure` must not depend on an unshipped file.
+* This is drmTMB-side only. DRM.jl has no equivalent provenance surface yet.
+
+## Student-t response + one binary `mi()` predictor
+
+* A `student()` response can now carry **one** binary `mi()` predictor
+  (`y ~ z + mi(treatment)` with
+  `impute_model(treatment ~ z, family = binomial())`). This is drmTMB
+  #962 / S6 A7: C++ `has_mi` wiring via `drm_student_log_density`
+  (identity location; `nu = 2 + exp(eta_nu)`). The shared 7-arg leaf
+  ABI is **not** extended — see `LOOP/notes/A7-student-nu-abi.md`.
+  Ledger cell `mp-student-bernoulli` records MCAR + MAR point
+  recovery. This is **not** FIML, **not** `impute_joint`, **not**
+  k ≥ 2, and **not** a continuous missing predictor under student.
+  zi-* responses remain gated. Capability stays `partial`.
+
+## nbinom2 response + one Gaussian `mi()` predictor
+
+* An `nbinom2()` response can now carry **one** Gaussian `mi()`
+  predictor (`y ~ z + mi(x)` with
+  `impute_model(x ~ z, family = gaussian())`). This is drmTMB #962 /
+  S6 A7: C++ `has_mi` for `mi_family == 0` inside `model_type == 7`,
+  not a whitelist-only edit (`nbinom2` was already on
+  `drm_missing_predictor_families()`). Ledger cell
+  `mp-nbinom2-gaussian` records a joint-density identity plus MCAR +
+  MAR point recovery. This is **not** FIML, **not** `impute_joint`,
+  **not** k ≥ 2, and **not** a grouped or structured predictor model.
+  Poisson / binomial / beta responses still take a binary predictor
+  only. zi-* responses remain gated.
+
+## Zero-inflated Poisson + one binary `mi()` predictor
+
+* A zero-inflated Poisson response (`family = poisson()` plus `zi ~ 1`)
+  can now carry **one** binary `mi()` predictor in **`mu` only**
+  (`y ~ z + mi(treatment), zi ~ 1` with
+  `impute_model(treatment ~ z, family = binomial())`). C++ `has_mi` wiring
+  **inlines the ZIP
+  mixture** in `model_type == 8`. It does **not** reuse the plain
+  Poisson leaf for structural zeros, and `eta_zi` comes from
+  observed-only predictors. Ledger cell `mp-zi-poisson-bernoulli`
+  records MCAR + MAR point recovery. This is **not** FIML, **not**
+  `impute_joint`, **not** k ≥ 2, **not** `mi()` on `zi`, and **not**
+  `zi_nbinom2`. Student remains gated. Capability stays partial.
+
+## Beta-binomial response + one binary `mi()` predictor
+
+* A `beta_binomial()` response can now carry **one** binary `mi()`
+  predictor (`cbind(success, failure) ~ z + mi(treatment)` with
+  `impute_model(treatment ~ z, family = binomial())`). C++ `has_mi` wiring
+  and a `drm_response_log_density`
+  beta-binomial leaf (logit success probability), not a whitelist-only
+  edit. Ledger cell `mp-beta-binomial-bernoulli` records MCAR + MAR
+  point recovery. This is **not** FIML, **not** `impute_joint`, **not**
+  k ≥ 2, and **not** a continuous missing predictor under
+  beta_binomial. Student and zi-* responses remain gated.
+
+## Lognormal response + one binary `mi()` predictor
+
+* A `lognormal()` response can now carry **one** binary `mi()`
+  predictor (`y ~ z + mi(treatment)` with
+  `impute_model(treatment ~ z, family = binomial())`). This is drmTMB
+  #962 / S6 A7: C++ `has_mi` wiring and a `drm_response_log_density`
+  lognormal leaf (identity log-location), not a whitelist-only edit.
+  Ledger cell `mp-lognormal-bernoulli` records MCAR + MAR point
+  recovery. This is **not** FIML, **not** `impute_joint`, **not**
+  k ≥ 2, and **not** a continuous missing predictor under lognormal.
+  Student and zi-* responses remain gated.
+
+## Gamma response + one binary `mi()` predictor
+
+* A `Gamma(link = "log")` response can now carry **one** binary `mi()`
+  predictor (`y ~ z + mi(treatment)` with
+  `impute_model(treatment ~ z, family = binomial())`). This is drmTMB
+  #962 / S6 A7: C++ `has_mi` wiring and a `drm_response_log_density`
+  Gamma leaf, not a whitelist-only edit. Ledger cell
+  `mp-gamma-bernoulli` records MCAR + MAR point recovery. This is
+  **not** FIML, **not** `impute_joint`, **not** k ≥ 2, and **not** a
+  continuous missing predictor under Gamma. Lognormal, student,
+  beta_binomial, and zi-* responses remain gated.
+
+## Two independent Gaussian `mi()` terms
+
+* A Gaussian response can now carry **two independent** `mi()` terms
+  with a named `impute` list (`y ~ mi(m1) + mi(m2) + x`). This is
+  #963 option (b): product of margins, no residual correlation. It is
+  **not** `impute_joint` and **not** FIML. Non-Gaussian responses still
+  require exactly one `mi()` term. Ledger cell
+  `mp-gaussian-gaussian-k2-indep` records MCAR + MAR point recovery.
+
+## Lognormal ordinary correlated slope
+
+* Complete-data `lognormal()` models with `y ~ x + (1 + x | id)` now have
+  simulation evidence for recovery of the group-level intercept SD, slope SD,
+  and their correlation on the log-response scale. This addition estimates
+  the intercept and slope jointly; their correlation is not residual `rho12`.
+  The slope predictor must vary within at least one group. A predictor that
+  is constant within every group is rejected before fitting because its slope
+  SD and intercept-slope correlation cannot be identified.
+  This addition does not cover Gamma models, REML, missing responses, labelled
+  covariance blocks, or mixed `(1 | g) + (1 + x | g)` terms. Confidence
+  intervals remain unavailable, and their coverage has not been established.
+
+* **CRAN / win-builder Julia hang (post-#1061).** The `^julia` invert filter
+  correctly excluded `test-julia-*.R`, but `test-binomial-response.R` still
+  called `drmTMB(..., engine = "julia")` inside `expect_error()`. Workflow G
+  admits fixed-effect binomial into the Julia bridge, so that call reached
+  `JuliaCall::julia_setup()` and hung Ligges R-release for ~10448s. `drm_julia_setup()`
+  now hard-blocks the non-interactive CRAN lane unless `DRMTMB_JULIA_TESTS=true`,
+  `drm_skip_live_julia()` matches the same predicate, and the obsolete
+  binomial `expect_error(engine = "julia")` is replaced with a pure-R tag check.
+
+## Binomial ordinary correlated slope
+
+* Complete-data binomial models with a logit link and
+  `cbind(success, failure) ~ x + (1 + x | id)` now have simulation evidence
+  for recovery of the group-level intercept SD, slope SD, and their correlation
+  on the log-odds scale. The intercept and slope are estimated jointly.
+  The slope predictor must vary within at least one group. A predictor that
+  is constant within every group is rejected before fitting because its slope
+  SD and intercept-slope correlation cannot be identified.
+  This addition does not cover REML, missing responses, labelled covariance
+  blocks, or mixed `(1 | g) + (1 + x | g)` terms. Confidence intervals remain
+  unavailable, and their coverage has not been established.
+
+## Poisson ordinary correlated slope
+
+* Complete-data Poisson models with a log link and
+  `count ~ x + (1 + x | id)` now have simulation evidence for recovery of the
+  group-level intercept SD, slope SD, and their correlation on the log-mean
+  scale. The intercept and slope are estimated jointly.
+  This addition does not cover REML, missing responses, labelled covariance
+  blocks, or mixed `(1 | g) + (1 + x | g)` terms. Confidence intervals remain
+  unavailable, and their coverage has not been established.
+
+## NB2 ordinary correlated slope
+
+* Complete-data `nbinom2()` models with `count ~ x + (1 + x | id)` now have
+  simulation evidence for recovery of the group-level intercept SD, slope SD,
+  and their correlation on the log-mean scale. The intercept and slope are
+  estimated jointly. The slope predictor must vary within at least one group.
+  A predictor that is constant within every group is rejected before fitting
+  because its slope SD and intercept-slope correlation cannot be identified.
+  This addition does not cover zero-inflated or truncated negative-binomial
+  models, REML, missing responses, labelled covariance blocks, or mixed
+  `(1 | g) + (1 + x | g)` terms. Confidence intervals remain unavailable, and
+  their coverage has not been established.
+
+## Binomial responses accept a phylogenetic random effect
+
+* `binomial()` now accepts `phylo(1 | species, tree = tree)` in the `mu`
+  formula, allowing logistic regression to account for shared ancestry.
+  Use one unlabelled phylogenetic random intercept with either a binary
+  response or the two-column `cbind(successes, failures)` response.
+  Phylogenetic slopes, labelled covariance blocks, `spatial()`/`animal()`/
+  `relmat()`, combinations with ordinary random effects, and combinations with
+  missing-predictor `mi()` terms are rejected with explicit messages.
+
+  Supporting Bernoulli simulations in the Julia twin used a unit-height
+  balanced tree, 12 observations per tip, and 30 replicates per tree size.
+  The fixed-effect slope and phylogenetic SD (`sd_phylo`) were essentially
+  unbiased at 160 tips. At 40 and 80 tips, the phylogenetic SD was about 9%
+  too small under the Laplace approximation. These checks concern point
+  estimates for that Bernoulli design; they do not establish recovery for
+  the two-column response or confidence-interval coverage.
+
+## Fixed: penalized fits reported `phylo_penalty` and `logLik` off the optimum
+
+* A penalized (MAP) phylogenetic fit read its penalty from a bare
+  `obj$report()`, which TMB evaluates at `obj$env$last.par`. After
+  `TMB::sdreport()` that is a finite-difference step away from the optimum, so
+  `fit$phylo_penalty` -- and therefore `fit$logLik`, which is
+  `-opt$objective + phylo_penalty` -- were both slightly wrong. The error scaled
+  with the penalty (order 1e-3 at `sd_u = 0.5`) and, being a diagnostic-time
+  artefact, made both values depend on whether standard errors had been
+  requested at all: the same fit at the same optimum reported different numbers
+  under `se = TRUE` and `se = FALSE`.
+
+  The practical consequence was in `drm_phylo_penalty_sweep()`, whose `logLik`
+  column is the basis for deciding whether a coupling is data-informed or
+  prior-shaped. The error differed per row, so it did not cancel in exactly the
+  comparison the sweep exists to make.
+
+  Estimates were never affected -- `opt$par` and `sdreport()` were always at the
+  optimum. `check_drm()`'s `log(sigma)` clamp row had the same defect and is
+  fixed alongside. The existing regression test could not catch this because it
+  derived its "expected" penalty from the same bare `report()` call, so both
+  sides of the assertion moved together; it now derives the expectation from
+  `parList(opt$par)`, and a new test asserts that `se` cannot move a reported
+  estimate.
 
 ## Experimental MSPL accepts probit and complementary log-log
 
@@ -19,9 +2048,7 @@ Template Model Builder.
   cloglog all do. drmTMB's own TMB-Laplace evidence: **no non-finite estimate
   in 43,972 completed fits**, and Wald standard errors calibrated in the
   identified regime (probit `mean(SE)/sd(beta)` in `[0.946, 1.008]`, cloglog in
-  `[0.957, 1.027]`). Artifacts under
-  `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`.
-  **Scope of that measurement:** Bernoulli responses with two fixed-effect
+  `[0.957, 1.027]`). **Scope of that measurement:** Bernoulli responses with two fixed-effect
   columns. Grouped-binomial and wider designs inherit the `n_eff` extrapolation
   noted below without direct measurement -- which was already true of the logit
   route and is not made worse here, only left unresolved for two more links.
@@ -46,6 +2073,28 @@ Template Model Builder.
   units from its own intercept; this removes a class of avoidable optimizer
   failures. Slopes still start at zero and the start remains deterministic and
   finite.
+
+## Boundary intervals are now flagged on every route
+
+* **`confint(method = "bootstrap")` warns at a variance-component or correlation
+  boundary** (class `drmTMB_bootstrap_boundary_warning`, `conf.status =
+  "bootstrap_at_boundary"`). The Wald and profile routes already flagged their
+  own boundary cases; bootstrap did not, which made it the one route that could
+  return a clean-looking interval for a target the other two warn about.
+  **Resampling does not repair a boundary** — a percentile interval whose draws
+  pile up at zero is reporting the constraint, not the sampling distribution.
+* The flag fires when at least 5% of retained resamples land on the bound, and
+  requires at least 20 retained draws, because a share computed from a handful
+  of resamples is noise rather than evidence. Calibration at `R = 200`: a true
+  SD of 0 put **43%** of draws on the bound; a true SD of 0.25 put **5%** there,
+  with a lower endpoint of exactly zero; a true SD of 0.9 put **none** there.
+* **`check_drm()` now states what it does not check.** It reads the fit, so a
+  random-effect SD comfortably clear of zero passes every fit-level check while
+  `confint()` still warns about that same target's interval — measured on a
+  10-group fit with an SD estimate of 0.1936, every check `ok`, and 43% of
+  bootstrap draws on the bound. A new `interval_reliability_scope` note records
+  that interval reliability is not assessed there and points at `conf.status`.
+  Previously that all-clear could reasonably be read as permission to report.
 
 ## Offsets in `mu` for every univariate family
 
@@ -104,14 +2153,16 @@ Template Model Builder.
   and clamping it. This keeps accuracy in the extreme tails; see
   `docs/design/252-binomial-link-generalisation.md` §3 and `inst/COPYRIGHTS`.
 * **This is a fitting capability, not an interval or coverage claim.** The new
-  links inherit binomial's existing capability-ledger evidence; no new recovery
+  links inherit binomial's existing validation evidence; no new recovery
   or coverage campaign was run for them, and the census is unchanged.
 * The `DRM.jl` bridge continues to reject probit and cloglog: DRM.jl implements
   the logit mean only, so `engine = "julia"` errors rather than silently fitting
   a different model.
-* The maximum-softly-penalized-likelihood (MSPL) entry point remains
-  **logit-only**. Its finiteness guarantee is published for the fixed-effect
-  case; the mixed-effects probit/cloglog bounds are open research.
+* **Superseded later in 0.7.0:** the maximum-softly-penalized-likelihood
+  (MSPL) entry point was initially logit-only. It now also admits probit and
+  complementary log-log links under the explicitly bounded, experimentally
+  supported contract described in “Experimental MSPL accepts probit and
+  complementary log-log” above.
 
 ## Default uncertainty story
 
@@ -125,7 +2176,7 @@ Template Model Builder.
   interval at a variance-component boundary warns with class
   `drmTMB_profile_boundary_warning`. That warning does **not** repair coverage;
   treat the interval as indicative of scale, not as a calibrated `level`
-  interval (see `?confint.drmTMB` Boundary intervals; D-117 evidence).
+  interval (see the Boundary intervals section of `?confint.drmTMB`).
 * **No nominal-coverage-everywhere claim.** A computable interval is not
   coverage certification. Report a route as inference-ready only when the
   capability guide names that exact cell.
@@ -135,11 +2186,15 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
 ## REML capability wording now matches the callable surface
 
 * The capability guide now records the bounded O2 binomial REML route: one
-  ordinary unlabelled location (`mu`) random intercept or independent slope.
-  This route is diagnostic-only despite deterministic agreement with
-  `glmmTMB(REML = TRUE)`; it has no recovery or coverage claim. Fixed-only,
-  multiple-term, correlated, labelled, structured, and missing-response
-  binomial REML remain unavailable.
+  ordinary unlabelled location (`mu`) random intercept (`mc-0060`) or
+  independent slope (`mc-0062`). This route is diagnostic-only despite
+  deterministic agreement with `glmmTMB(REML = TRUE)`; it has no recovery or
+  coverage claim. Fixed-only, multiple-term, correlated, labelled, structured,
+  and missing-response binomial REML remain unavailable.
+* README and `?drmTMB` now state the same public non-Gaussian REML boundary
+  without requiring the capability guide: binomial O2 only, both
+  diagnostic-only; O3 remains package-private; `mc-0227` stays public ML
+  `point_fit_recovery`. Other non-Gaussian families reject `REML = TRUE`.
 * The retained cumulative-logit AGHQ plus Cox-Reid campaign is now identified
   as evidence for a package-private estimator. It does not grant a public
   `drmTMB()` fit or reader-facing reporting permission.
@@ -168,10 +2223,9 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   `mc-0425` at 4/5). Per the preregistration, 4/5 truth-bracketing is a block,
   not an 80% pass. This is still not coverage or calibration.
 
-* Structured-sigma promotions (`mc-0595`, `mc-0596`, `mc-0653`) name in
+* Structured-sigma results (`mc-0595`, `mc-0596`, `mc-0653`) state in
   `claim_boundary` the documented ML sigma-axis low bias and that REML is
-  unavailable for these families. Evidence:
-  `docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/`.
+  unavailable for these families.
 
 ## Profile intervals now warn at a variance-component boundary
 
@@ -180,8 +2234,8 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   `drmTMB_profile_boundary_warning`. Until now only the *Wald* path warned at a
   boundary (`drmTMB_wald_boundary_warning`), and it steers the user to
   `method = "profile"` -- into a regime the package had measured as worse, with no
-  signal. Conditional on the boundary flag, the D-117 10-group random-effect SD
-  gate measured profile coverage at **0.1021**, **0.2387**, and **0.8683** against a
+  signal. Conditional on the boundary flag, a 10-group random-effect SD
+  study measured profile coverage at **0.1021**, **0.2387**, and **0.8683** against a
   nominal 0.95 -- and 0 of 89 in a fourth cell where boundary hits are rare (0.09%
   of fits) -- driven by a random-effect SD point estimate biased **8.3%-15.8%** low,
   which anchors the interval low and makes it miss from above. Unconditionally, over
@@ -197,15 +2251,26 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   excluded its own maximum likelihood estimate. Sub-nominal coverage here is a
   property of profile intervals near a variance boundary, not of this
   implementation. The comparator ran at 1,000 replicates per cell and was not
-  re-run at 400,000. Evidence:
-  `docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/` and
-  `.../2026-08-09-d117-100k-regate/`.
+  re-run at 400,000.
 
 * **Scope.** All of the above was measured on one design: Gaussian, a single random
   intercept on the mean, 10 groups, 4 or 10 observations per group, maximum
   likelihood. It is not a general claim about other families, providers, or group
   counts, and 0.9248 against a nominal 0.95 is real undercoverage -- the package's
   small-sample floor is deliberately tapered with the group count for that reason.
+
+* **`REML = TRUE` improves this design without repairing it -- now measured.** Over
+  400,000 paired replicates on the same design and seeds, refitting with
+  `REML = TRUE` moved profile coverage from **0.9248** to **0.9463** against a
+  nominal 0.95, roughly halved the SD point estimate's downward bias (pooled
+  **-10.9%** under maximum likelihood to **-4.6%** under REML), and brought the
+  upper-to-lower miss asymmetry from **5.7:1** to **2.0:1** -- a better-centred
+  interval, not merely a wider one. Coverage conditional on the boundary flag
+  improved but stayed well below nominal (0.74 to 0.83), so the boundary warning
+  applies under either estimator. The maximum likelihood control arm of this
+  campaign reproduced the 400,000-attempt results above to five decimal places. The
+  default estimator is unchanged, and this measurement covers the same single
+  design as the figures above.
 
 * The interval is still returned -- a boundary is a warning, not an auto-discard,
   matching the Wald path. Only usable intervals are flagged: `profile_failed` and
@@ -351,10 +2416,10 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
 * `predict()` is deliberately unchanged: conditional prediction at the original
   data is correct, and was not the defect.
 
-* Found by the Arc B numerical audit's score-consistency check, not by reading
+* Found by a numerical audit's score-consistency check, not by reading
   the code — the first Bartlett identity `E[score] = 0` failed on the
   random-effect variance component at `z = 5.36` (60 replicates) growing to
-  `10.59` (200), and now measures `z = -0.205`. No certified capability-ledger
+  `10.59` (200), and now measures `z = -0.205`. No documented supported
   cell relied on bootstrap intervals, so no evidence was retracted. See
   `docs/design/243-marginal-simulation-and-re-form.md`.
 
@@ -382,17 +2447,17 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   `rho12` model and supplies no simultaneous eta bands, profiles, calibrated association-regression coverage, random
   effects, offsets, missing association predictors, aliases, or dot expansion.
 
-## Arc 6.5 Bernoulli × Bernoulli development slice (superseded for intervals)
+## Bernoulli × Bernoulli association (superseded for intervals)
 
 * Historical point-estimate note, superseded by **Association alpha intervals**
   above: `associate_pairs()` admits two frozen literal Bernoulli-logit margins and
   estimates a latent-normal `eta` using deterministic bivariate-normal
   rectangle probabilities. Its alpha-scale Godambe-Wald interval is now
-  interval-feasible when diagnostics pass, while its retained recovery campaign
-  remains HOLD and coverage remains uncalibrated. It is neither `rho12` nor an
+  interval-feasible when diagnostics pass, while its recovery study has not met
+  the required criteria and coverage remains uncalibrated. It is neither `rho12` nor an
   observed-scale correlation or odds ratio.
 
-## Arc 6.4 exact bivariate Student-t development slice
+## Exact bivariate Student-t likelihood: initial implementation
 
 * `biv_student()` now fits one bounded exact bivariate Student-t likelihood:
   fixed-effect `mu1`/`mu2`, constant Student-t scales `sigma1`/`sigma2`, one
@@ -401,10 +2466,10 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   margins, because each pair shares the same scale-mixture draw. The route is
   source-tested only; random/structured effects, scale/shape/correlation
   predictors, partial pairs, offsets, weights, `meta_V`, `mi()`, REML, Julia,
-  intervals, coverage, smoke, recovery, and capability promotion remain
-  deferred.
+  and intervals remain unavailable. Numerical fit checks, parameter-recovery
+  studies, and interval-coverage studies have not yet established reliability.
 
-## Arc 6.3 exact bivariate lognormal development slice
+## Exact bivariate lognormal likelihood: initial implementation
 
 * `biv_lognormal()` now fits one bounded exact bivariate-lognormal likelihood:
   fixed-effect `mu1`/`mu2`, constant log-response SDs, and a constant `rho12`.
@@ -412,7 +2477,8 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   the frozen-margin `eta` or a raw-scale correlation. The route accepts only
   complete, finite, positive pairs with unit weights; all random/structured
   effects, sigma/rho predictors, offsets, `meta_V`, `mi()`, REML, Julia,
-  intervals, coverage, and capability claims remain deferred.
+  and intervals remain unavailable. Interval coverage and broader reliability
+  have not yet been established.
 
 ## Cross-family association first implementation (superseded for intervals)
 
@@ -429,7 +2495,7 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   caveats. The staged interface still does not add mixed-family `rho12`;
   eta-scale uncertainty is a derived transformation of the alpha covariance.
 
-## First-impression formula surface (issue #776)
+## First-impression formula surface
 
 * `(1 + x || g)`, the `lme4`/`brms` spelling for uncorrelated random effects, is
   now accepted and desugars to `(1 | g) + (0 + x | g)`. Previously R parsed `||`
@@ -440,9 +2506,9 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   same model: on a 20-group fixture they agree in log-likelihood and in every
   fixed-effect coefficient, while the correlated `(1 + x | g)` block stays
   distinct.
-* This is a formula rewrite onto a route drmTMB already fits and has certified.
-  No likelihood, no TMB change, and no new capability claim: no ledger cell
-  changes tier, and the desugaring is inert on formulas that contain no `||`.
+* This is a formula rewrite onto an existing model. It does not change the
+  likelihood or the reliability evidence for that model, and it leaves formulas
+  without `||` unchanged.
 * A categorical slope under `||` is rejected rather than silently accepted. In
   `lme4` `||` splits by formula term rather than by design-matrix column, so a
   factor slope keeps its within-factor correlations and is not in fact
@@ -452,14 +2518,13 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   model frame is evaluated. A reader arriving from `mgcv` or `gamlss` previously
   got R's own `could not find function "s"`; the message now points at `poly()`
   and `splines::ns()` and states that penalised smooths are not implemented.
-* A user-facing error no longer leaks internal roadmap vocabulary: the
-  univariate Gaussian parameter check named "Phase 1" instead of naming the
-  supported distributional parameters.
+* The univariate Gaussian parameter error now names the supported
+  distributional parameters.
 * The simple-grouping rule (`(1 | g1/g2)` and `(1 | g1:g2)` are not implemented)
   is now locked by tests on both the `mu` and `sigma` parse paths, where the
   guard is duplicated.
 
-## Reader-facing plotting surface complete (issue #58)
+## Reader-facing plotting surface complete
 
 * The figure gallery now demonstrates all six public plotting functions.
   Alongside the existing `plot_parameter_surface()`, it adds worked examples of
@@ -472,14 +2537,14 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   mistaken for a fitted result. A long-standing inverted axis label on the
   simulation bias panel is corrected. Documentation only; no code change.
 
-## Arc 4c ordinary `mu` random-slope profile coverage
+## Ordinary `mu` random-slope profile coverage
 
-* The exact independent `mu` random-slope cells for `skew_normal()`
-  (`mc-0464`), `tweedie()` (`mc-0539`), and `zero_one_beta()` (`mc-0575`) are
-  now `inference_ready_with_caveats` for the standard ML-Laplace profile
-  interval. A retained 1,200-attempt-per-M Fir campaign supports a deployment
-  floor of M=16 for each family at true slope SD 0.50. The ledger estimator
-  remains `ML`; no cell earns `supported` status.
+* Independent `mu` random slopes for `skew_normal()`, `tweedie()`, and
+  `zero_one_beta()` now have profile-interval evidence with caveats under
+  standard maximum likelihood with the Laplace approximation. A simulation
+  study with 1,200 attempts per tested group count supports use from 16 groups
+  in the tested designs, at true slope SD 0.50. This does not establish general
+  reliability beyond those designs.
 * This narrow result does not cover other SDs, observation counts, group grids,
   correlated or labelled slopes, scale/shape random effects, structured
   effects, REML, or AGHQ. Skew-normal retains slant-identification risk,
@@ -508,9 +2573,9 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   `g = 256` and `g = 512` results remain explicit HOLDs. REML, q2/q4, labels,
   phylogenetic slopes, phylogeny in family `sigma`, direct `sd()` regression,
   `zero_one_beta()`, missing/external data, intervals, coverage, and broader
-  Beta or all-family claims remain outside this PR.
+  Beta or all-family claims remain outside this result.
 
-## Exact supplied-relatedness q2 REML intercept (Arc 1b-S2R)
+## Exact supplied-relatedness q2 REML intercept
 
 * `drmTMB(..., REML = TRUE)` now admits one exact bivariate-Gaussian
   supplied-relatedness location cell: matching labelled
@@ -528,9 +2593,9 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
 * This is a `point_fit_recovery` admission only. Supplied precision `Q`,
   `animal()`, slopes, scale-side blocks, q4 or larger blocks, non-Gaussian
   families, intervals, coverage, AI-REML, and `supported` claims remain outside
-  this arc.
+  this result.
 
-## Exact bivariate-spatial q2 REML intercept (Arc 1b-S1)
+## Exact bivariate-spatial q2 REML intercept
 
 * `drmTMB(..., REML = TRUE)` now admits one exact bivariate-Gaussian
   coordinate-spatial location cell: matching labelled
@@ -548,8 +2613,8 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
 * This is a `point_fit_recovery` admission only. Spatial slopes, range
   estimation, animal-model bivariate REML, supplied-`Q` relatedness REML,
   scale-side q2, q4 or larger blocks, intervals, coverage, AI-REML, and
-  `supported` claims remain outside this spatial arc. Arc 1b-S2R subsequently
-  admits only the exact matching supplied-`K` `relmat()` q2 location-intercept
+  `supported` claims remain outside this spatial result. The supplied-relatedness
+  result above subsequently admits only the exact matching supplied-`K` `relmat()` q2 location-intercept
   cell at the same evidence tier.
 * A subsequent prospective Confidence Eye campaign promoted the two direct
   spatial-SD cells and their joint latent spatial correlation target to
@@ -561,7 +2626,7 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   geometries or information configurations, and `supported` remain outside
   the claim.
 
-## Positive-continuous q1 structured location intercepts (Arc 3a)
+## Positive-continuous q1 structured location intercepts
 
 * Native univariate ML now fits one unlabelled q1 structured intercept in
   `mu` for Gamma-`phylo()`, lognormal-`phylo()`, and
@@ -577,9 +2642,9 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   cells are therefore `point_fit_recovery`; no interval tier is implied.
 * New-route slopes, labels/q2+, `sigma` structure, joint `mu`/`sigma`,
   simultaneous structured providers, spatial/animal, bivariate responses, REML, intervals, coverage,
-  and `supported` claims remain outside this arc.
+  and `supported` claims remain outside this result.
 
-## Exact-Gaussian REML for mean-side structured providers (Arc 1a)
+## Exact-Gaussian REML for mean-side structured providers
 
 * `drmTMB(..., REML = TRUE)` now admits pure-`mu`, univariate Gaussian
   `spatial()`, `animal()`, and `relmat()` terms as an unlabelled intercept or an
@@ -600,9 +2665,9 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   `s_j^2 K_h`; a node's marginal SD is `s_j sqrt(K_h[ii])`, so it equals
   `s_j` only when that diagonal entry is one. Slope-only,
   labelled or multiple slopes, sigma random effects, matched `mu+sigma`,
-  bivariate and non-Gaussian routes remain outside this Arc 1a claim.
+  bivariate and non-Gaussian routes remain outside this result.
 
-## Residual-scale random intercepts for lognormal and Gamma (Arc 2c)
+## Residual-scale random intercepts for lognormal and Gamma
 
 * `predict(..., dpar = "sigma")` now includes the fitted residual-scale random
   intercept for `lognormal()` and `Gamma(link = "log")` models; `sigma()`,
@@ -615,46 +2680,38 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
 * As with the mean random effects, the `sigma`-SD is fit by maximum likelihood
   with the Laplace approximation and can be biased downward when the number of
   groups or the per-group replication is small. Point recovery at 40 groups
-  has -3% to -4% relative bias. The separate Arc 4a iid campaign promotes only
-  the lognormal route to `inference_ready_with_caveats` for true SD 0.4,
+  has -3% to -4% relative bias. A separate simulation study provides interval
+  evidence with caveats only for the lognormal route at true SD 0.4,
   `n_each=12`, and exactly `M={16,32,64}`; coverage is mildly
   anti-conservative, not nominal. Gamma retains point-recovery evidence only.
-  See `docs/dev-log/simulation-artifacts/2026-07-12-arc2c-sigma-recovery/` and
-  `docs/dev-log/simulation-artifacts/2026-07-12-dg3-re-sd-coverage/README-profile-iid-v2.md`.
-  Sentinels remain in `tests/testthat/test-arc2c-sigma-random-intercept.R`.
-* Scope (first gate): one independent `sigma` random intercept only. A `sigma`
+* Scope of this initial change: one independent `sigma` random intercept only. A `sigma`
   random slope, labelled covariance blocks, and combining a `sigma` random
   effect with a `mu` random effect in the same model remain rejected until joint
   recovery tests exist. The other non-Gaussian families still reject `sigma`
   random effects.
 
-## Random slopes for the intercept-only families (Arc 2b)
+## Random slopes for the intercept-only families
 
 * One independent `mu` random slope `(0 + x | id)` is now accepted for the five
-  families that gained a random intercept in Arc 2a: `binomial()`,
+  families that previously gained a random intercept: `binomial()`,
   `cumulative_logit()`, `skew_normal()`, `tweedie()`, and `zero_one_beta()`.
-  Combined with Arc 2a, every fitted univariate family now supports both a mean
+  With this addition, every fitted univariate family now supports both a mean
   random intercept and an independent mean random slope.
 * Random-effect standard deviations for these families are fit by maximum
   likelihood with the Laplace approximation and can be biased downward when the
   number of groups or the per-group replication is small. All five have point
   recovery from a 60-seed sweep (per-family relative slope-SD bias of -2% to
-  -9% at 40 groups). A separate Arc 4a iid campaign promoted the binomial
+  -9% at 40 groups). A separate simulation study supported the binomial
   route to `inference_ready_with_caveats` at true SD 0.6, 12 observations and
   12 trials per observation, and exactly `M={32,64}`; it is coverage-backed but
-  mildly anti-conservative rather than certified nominal. Point-recovery
-  evidence is in
-  `docs/dev-log/simulation-artifacts/2026-07-12-arc2b-slope-recovery/`, with
-  single-seed DG2 sentinels in `tests/testthat/test-arc2b-mu-random-slope.R`;
-  corrected binomial coverage evidence is in
-  `docs/dev-log/simulation-artifacts/2026-07-12-dg3-re-sd-coverage/README-profile-iid-v2.md`.
-  Later campaigns promoted cumulative-logit (`mc-0227`) and the three Arc 4c
-  cells above under their own exact design-specific caveats.
+  mildly anti-conservative rather than certified nominal.
+  Later studies supported cumulative-logit and the skew-normal, Tweedie, and
+  zero-one-beta models described above, each with its own design-specific caveats.
 * Scope: one independent `mu` slope only. Correlated intercept-slope blocks
   `(1 + x | id)`, labelled covariance blocks `(0 + x | p | id)`, and
   `sigma`/shape/inflation-dpar random effects remain rejected for these families.
 
-## Random intercepts for every family (Arc 2a)
+## Random intercepts for every family
 
 * An ordinary `mu` random intercept `(1 | group)` is now accepted for the five
   families that previously rejected all random effects: `binomial()`,
@@ -664,8 +2721,7 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   `beta()`, `beta_binomial()`, `student()`, `truncated_nbinom2()`) that already
   did.
 * Fits are by maximum likelihood (Laplace). Random-effect standard deviations
-  are recovered at a known data-generating point (per-family DG2 sentinels in
-  `tests/testthat/test-arc2a-mu-random-intercept.R`). With few or small clusters
+  are recovered in per-family tests at known data-generating values. With few or small clusters
   the random-effect standard deviation can be biased low under the Laplace
   approximation; adaptive Gauss-Hermite quadrature is the standard remedy for
   the non-Gaussian families and remains planned.
@@ -695,11 +2751,10 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   draws model-conditional centile curves against one covariate. All three, and
   the plug-in prediction intervals, carry `attr(., "calibrated") <- FALSE`;
   none of these outputs propagate `theta_hat` uncertainty.
-* **What the diagnostic detects, and what it does not (see
-  `docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`,
-  400-seed gated campaign across all 18 families; tweedie: 99 of 400 seeds
-  locally, 66/99 dispersion-arm non-convergence, full run deferred to
-  Totoro).** Under a correctly
+* **What the diagnostic detects, and what it does not.** A 400-seed study
+  covered all 18 families. Tweedie completed 99 of 400 seeds locally, with
+  66/99 dispersion-arm fits failing to converge; the full run was deferred.
+  Under a correctly
   specified fixed-effect model, type-I error stays near or below the nominal
   rate (Type-I 0.0025-0.025 across families at alpha = 0.05; the KS+PIT
   statistic is conservative, so power is understated, not overstated). Under
@@ -752,10 +2807,10 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   `theta_hat`, random-effect/structured residual adequacy, and bivariate
   joint (non-marginal) outputs remain separately authorized future work.
 
-## Missing responses: MR-T7 certification
+## Missing responses across fitted families
 
-* The generated capability ledger and live runtime oracle now reconcile all 18
-  fitted response routes at G3 recovery-verified, with zero G0 routes. The
+* The published capability guide and live runtime checks now agree for all 18
+  fitted response routes. Every route has recovery evidence. The
   capability page, missing-data article, design inventory, NEWS, roadmap, and
   machine-readable evidence are regenerated from the same route state. This
   closeout adds no family, formula grammar, estimator, interval, or coverage
@@ -822,8 +2877,8 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   bivariate Gaussian, binomial, Poisson, NB2, and beta—now share direct
   retaped-sentinel tests, original-row and extractor contracts, and fixed-seed
   25% MCAR recovery tests. Univariate residuals are `NA` on masked response
-  rows while fitted values retain the original row length. These tests promote
-  the six routes to the capability ledger's G3 recovery-verified tier; they do
+  rows while fitted values retain the original row length. These tests give
+  the six routes recovery evidence; they do
   not claim interval calibration or coverage.
 
 # drmTMB 0.5.0
@@ -888,8 +2943,7 @@ See `vignette("missing-data")` for the full capability matrix.
 
 ## Coverage validation
 
-* A simulation coverage campaign (400 seeds, n-ladder 50–800; see
-  `docs/dev-log/simulation-artifacts/2026-07-09-nongaussian-unstructured-coverage-pilot/`)
+* A simulation coverage study (400 seeds, n-ladder 50–800)
   confirms that unstructured (fixed-effect) non-Gaussian confidence intervals are
   calibrated. The mean coefficients of `binomial()`, `poisson()`, `beta()`, and
   `nbinom2()` — including rare-event and low-count stress — and the location-scale
@@ -897,13 +2951,13 @@ See `vignette("missing-data")` for the full capability matrix.
   Wald coverage. `beta()` location-scale intervals are calibrated for interior
   proportions; exact 0/1 observations require `zero_one_beta()`.
 
-## Documentation and release-ledger alignment
+## Documentation and release-status alignment
 
-* `README.md`, `ROADMAP.md`, and `docs/dev-log/known-limitations.md` now state
+* The README and capability and limitations pages now state
   the exact REML structured-effect boundary shipped across 0.2.0/0.3.0:
   univariate Gaussian REML accepts phylogenetic mean-side, scale-side, and
   matched q2 mean-and-scale blocks, plus univariate spatial/animal/relmat
-  scale-side blocks. Arc 1a additionally admits the exact pure-`mu`
+  scale-side blocks. The documented surface additionally admits the exact pure-`mu`
   spatial/animal/relmat intercept and independent one-slope cells over the
   documented discrete domains; other non-phylogenetic mean-side or mixed
   mean+scale structured effects, sparse-fixed designs, Gaussian row
@@ -911,16 +2965,14 @@ See `vignette("missing-data")` for the full capability matrix.
   accepts phylogenetic structured effects in every covariance layout,
   including the dense q4 block, and rejects spatial/animal/relmat entirely.
   REML remains rejected outright for every non-Gaussian family.
-* `ROADMAP.md` corrects the Q-Series `inference_ready` anchor count from five
-  rows to eight, adding the three q1 `mu:(Intercept)` anchors (phylo,
-  spatial, relmat) that the release ledger already carried but the roadmap
-  text had not listed. Two of the eight rows -- the phylo and relmat q2
+* Eight Q-Series rows have `inference_ready` evidence, including three q1
+  `mu:(Intercept)` routes (phylo, spatial, relmat). Two of the eight rows -- the phylo and relmat q2
   `mu1:x`/`mu2:x` slope-SD rows -- are `inference_ready` only through the
   bias-corrected `confint()` channel; their raw uncorrected Wald intervals
   fail coverage. No structured row is `supported`, and non-Gaussian
   structured rows remain point-recovery evidence only, with no intervals,
   coverage, or `supported` claim.
-* `docs/dev-log/known-limitations.md` records that `nbinom2()` structured
+* The limitations page records that `nbinom2()` structured
   `sigma` terms (`phylo`/`spatial`/`animal`/`relmat`) now correctly target the
   scale predictor `log_sigma` (the routing fix announced under *Bug fixes*
   above); earlier versions mis-targeted the mean predictor. These four rows are
@@ -935,7 +2987,7 @@ See `vignette("missing-data")` for the full capability matrix.
   that blanket recommendation: q1 `mu` and the exact phylo/relmat slope-only
   q2 `mu1:x`/`mu2:x` SD rows use the default location-axis bias-corrected,
   small-sample-t Wald channel; q1 `sigma` uses raw uncorrected log-SD Wald-z
-  evidence and its profile channel is diagnostic-only at `g = 8`; Arc 1a REML
+  evidence and its profile channel is diagnostic-only at `g = 8`; the tested non-phylogenetic REML routes
   uses direct structured-SD profiles only over its tested discrete domains. A
   target appearing in
   `profile_targets()` means that it can be computed, not that its profile
@@ -988,8 +3040,7 @@ Reported by Ayumi Mizuno on a 10,440-tip bivariate phylogenetic fit, where
 
 Restricted maximum likelihood now covers substantially more of the location-scale
 family, debiasing scale-side variance components with adequate within-group
-replication. Every combination admitted under REML is also admitted under ML
-(`docs/dev-log/ml-reml-coverage-2026-07-07.md`).
+replication. Every combination admitted under REML is also admitted under ML.
 
 * **Matched mean-and-scale phylogenetic block (q2) under REML.** A univariate
   `mu` + `sigma` model with a correlated `phylo(1 | p | id)` block is now admitted; a
@@ -1024,7 +3075,7 @@ replication. Every combination admitted under REML is also admitted under ML
 * **Bivariate mean-scale random-effect correlations and `q > 2` labelled location
   covariance blocks under REML.** Both are now admitted; REML is consistently less
   biased than ML on the block standard deviations. **ML/REML parity is now complete
-  for every implemented cell** (`docs/dev-log/ml-reml-coverage-2026-07-07.md`).
+  for every implemented cell.**
 
 * **Scale-side spatial / animal / relatedness structured effects under REML.**
   `sigma ~ spatial(...)`, `sigma ~ animal(...)`, and `sigma ~ relmat(...)` now fit
@@ -1032,7 +3083,7 @@ replication. Every combination admitted under REML is also admitted under ML
   scale-side intercept standard deviation in every cell (bias approaching zero as the
   group count grows) and profile-CI coverage clears the small-sample floor. Mean-side
   non-phylogenetic structured effects under REML were unvalidated and rejected at
-  the time of this entry. **Superseded in 0.6.0:** the Arc 1a spatial, animal, and
+  the time of this entry. **Superseded in 0.6.0:** the spatial, animal, and
   `relmat()` unlabelled mean-intercept and independent intercept-plus-one-numeric-
   slope REML cells are now admitted only over their recorded discrete recovery
   domains; slope-only, labelled, multiple-slope, q > 1, simultaneous-provider,
@@ -1169,17 +3220,16 @@ than that matrix.
   cross-check, REML, AI-REML, bridge parity, the structured q8 rows, or
   `supported` wording.
 
-* The Q-Series v1.0 release status is now generated from the 104-row support-cell
-  board and recorded in `docs/dev-log/release-audits/q-series-v1-release-status.md`.
-  It separates implemented/basic-working Gaussian structured-effect rows, 27 non-Gaussian
-  recovery rows, and 10 non-Gaussian diagnostic-only rows from post-v1.0
-  `inference_ready` and
-  `supported` validation. This is release-planning evidence only; it does not
-  authorize coverage, q4/q8 promotion, broad bridge support, REML, AI-REML, or
-  public-support wording.
+* Structured-effect evidence distinguishes implemented Gaussian models,
+  27 non-Gaussian models with parameter-recovery evidence, and 10 non-Gaussian
+  models with diagnostic-only evidence. These counts do not establish reliable
+  intervals, interval coverage, q4/q8 reliability, broad bridge support, REML,
+  or AI-REML. See [Can I fit and report this?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html)
+  for guidance on fitting, reporting estimates, and reporting uncertainty.
 
 * The Q-Series v1.0 practical surface now includes ten row-specific
-  diagnostic-only gates outside the ordinary `mu` lanes: Student-t intercept-only
+  diagnostic-only gates—fit-and-diagnose routes that are not yet supported for
+  scientific reporting—beyond ordinary `mu` models: Student-t intercept-only
   `mu ~ spatial(1 | id, coords = coords)`, Student-t `nu ~ phylo(1 | id, tree = tree)`,
   cumulative-logit ordinal `mu ~ phylo(1 | id, tree = tree)`, truncated-NB2 hurdle
   `hu ~ relmat(1 | id, Q = Q)`, zero-inflated Poisson
@@ -1195,7 +3245,7 @@ than that matrix.
   neighbouring-row evidence.
 
 * `truncated_nbinom2()` hurdle models now fit the row-specific Q-Series v1.0
-  `hu ~ relmat(1 | id, Q = Q)` local gate. The fitted relatedness-field SD for
+  `hu ~ relmat(1 | id, Q = Q)` route. The fitted relatedness-field SD for
   the hurdle probability is exposed through `sdpars$hu` and
   `ranef("relmat_hu")`. This is local fit-only/extractor evidence; hurdle
   slopes, labelled covariance, broader hurdle structured effects, intervals,
@@ -1271,15 +3321,15 @@ than that matrix.
 * `confint()` now warns when a default Wald interval is requested for the skew-normal slant `nu`, recommending `method = "profile"` (or `method = "bootstrap"`) instead. An ADEMP pilot found the Wald slant interval over-rejects near `nu = 0` (24-40% false positives versus the nominal 5%) because the Azzalini information is near-singular at `alpha = 0`. A later fixed-effect guard grid kept tail-floor exposure and fixed-gradient diagnostics visible rather than treating finite likelihoods as interval evidence. The warning is scoped to skew-normal `nu` only; Wald intervals for other families, including Student-t `nu` (tail shape) and Tweedie `nu` (power), are unchanged.
 * `confint(method = "profile")` now accepts `profile_endpoint_max_eval` for direct scalar endpoint profiles, giving long variance-component or correlation diagnostics an explicit endpoint-evaluation budget. When the budget is reached, `confint()` returns an endpoint `profile_failed` row with missing endpoints instead of silently falling through to a full-profile fallback. The Ayumi q4 developer harness can pass the same budget through `DRMTMB_AYUMI_Q4_PROFILE_ENDPOINT_MAX_EVAL` and now separates returned-fit status from convergence/Hessian inference status (#555).
 * `confint(method = "profile")` now returns an explicit row-level `conf.status = "profile_failed"` with missing endpoints when a direct numeric profile target fails during endpoint or `tmbprofile` evaluation, instead of aborting the whole interval request or labelling a non-finite interval as a successful profile. Focused regression tests keep bivariate q=4 phylogenetic location-scale sigma SDs visible as direct native-TMB ML profile targets, check weak-Hessian profile status for those sigma targets, and leave q4 phylogenetic correlations derived and not profile-ready (#551).
-* Phase 18 now has a standalone fixed-effect skew-normal artifact lane (`skew_normal_fixed_effect`). The new DGP, summariser, smoke runner, grid writer, manual Actions task, and focused tests save aggregate, replicate-level, manifest, failure-ledger, fixed-effect Wald interval, optional profile, optional parametric-bootstrap, interval-evidence, interval-diagnostic, and interval-failure artifacts for `bf(y ~ x, sigma ~ z, nu ~ w), family = skew_normal()`. The default grid uses moderate shape-recovery sample sizes (`n = 720` and `1440`) because stochastic skewness recovery is sample-size dependent; this is repeatable smoke/grid infrastructure, not a formal 500- or 1000-replicate operating-characteristic result.
+* Simulation tools now assess fixed-effect skew-normal models specified as `bf(y ~ x, sigma ~ z, nu ~ w), family = skew_normal()`. They save individual and aggregate results, warnings and failures, fixed-effect Wald intervals, and optional profile and parametric-bootstrap intervals. The default sample sizes are `n = 720` and `1440` because skewness recovery depends on sample size. These tools enable repeatable checks; this entry does not report a formal 500- or 1000-replicate study of bias or interval coverage.
 * `skew_normal()` now fits the first univariate fixed-effect skew-normal location-scale-shape route with public `mu = E[y]`, public `sigma = SD[y]`, and residual slant `nu` on the identity scale. The TMB likelihood transforms internally to native skew-normal `xi`, `omega`, and `alpha = nu`; focused tests cover density normalization, native-density comparison, Gaussian normal limit, positive and negative skew recovery, predictor-dependent `nu`, Gaussian false-positive behaviour, simulation, fixed-effect interval visibility, and malformed-neighbour rejection. Random effects, `sd(group)`, known sampling covariance, structured effects, bivariate skew-normal models, residual `rho12`, latent `skew(id)`, and `skew` aliases remain planned.
 * `drmTMB()` now forwards `REML = TRUE` through the experimental `engine = "julia"` bridge for one route-specific bivariate q = 4 Gaussian phylogenetic location-scale DRM.jl cell when the installed DRM.jl build supports that Patterson-Thompson REML diagnostic. The bridge article now shows the glmmTMB-style top-level `REML = TRUE/FALSE` switch, the labelled four-axis `phylo()` syntax, and the current missing-response boundary. This bridge evidence does not establish native-TMB q4 REML; the native route has separate recovery evidence. It also does not establish HSquared AI-REML, non-Gaussian REML, broad R-to-Julia bridge support, public optimizer controls, q4 interval reliability, or q4 interval coverage; weights, missing-predictor imputation, non-default control, most non-Gaussian families, unsupported phylogenetic neighbours, `corpair()` entries, simulation, and persistent Julia handles remain native-TMB or future bridge work (#544).
 * `drmTMB()` now records `estimator`, `REML`, `requested_REML`, and `effective_REML` on experimental Julia-engine fits, so downstream diagnostics can distinguish requested REML from the estimator actually fitted. Unsupported Julia REML requests now warn with the exact unsupported cell, fall back to ML, and state that native `engine = "tmb"` is only an REML fallback for its documented univariate Gaussian REML slice rather than for every rejected Julia cell (#555).
 * `biv_gaussian()` now fits the first ordinary q8 all-endpoint location-scale slope covariance slice: matching labelled `(1 + x | p | id)` terms in `mu1`, `mu2`, `sigma1`, and `sigma2`. The fitted block has eight endpoint SDs and 28 latent group-level correlations across response-specific location intercepts, location slopes, scale intercepts, and scale slopes. The SDs appear in `sdpars$mu` and `sdpars$sigma`; the correlations appear in `corpars$re_cov`, `corpairs(level = "group", block = "p")`, `summary()$covariance`, `profile_targets()`, and `check_drm()`. The Phase 18 registry now exposes opt-in `biv_gaussian_q8_endpoint` and `biv_gaussian_q8_endpoint_recovery` Actions tasks; the recovery lane reports bias, RMSE, MCSE, and explicit interval unavailability. A 2026-06-07 local two-cell audit ran 20 replicates per cell and kept q8 at `hold_diagnostic`: 38/40 manifests completed, model-convergence rates were 0.263 and 0.158, positive-Hessian rates were 0 in both cells, two replicates failed with non-positive leading minors, and no Wald intervals were usable. Q8 still has no coverage result, power claim, predictor-dependent `corpair()` regression, random `rho12`, structured q8 sibling, or non-Gaussian q8 route.
 * `biv_gaussian()` now fits the first same-response location-scale slope covariance slice: matching labelled `(0 + x | p | id)` terms in `mu1`/`sigma1` or `mu2`/`sigma2`. The location-slope SD appears in `sdpars$mu`, the scale-slope SD appears in `sdpars$sigma`, and the group-level `cor(mu1:x,sigma1:x | p | id)` or `cor(mu2:x,sigma2:x | p | id)` row appears in `corpars$mu_sigma`, `corpairs(class = "mean-scale-slope")`, `summary()$parameters`, `profile_targets()`, and `check_drm()`. Cross-response pairs, mismatched coefficients, and univariate labelled `sigma` slopes remain closed; the all-endpoint q8 route is a separate source-tested slice.
 * The Phase 18 same-response bivariate Gaussian q=2 `mu`/`sigma` slope covariance lane now has smoke and multi-replicate recovery artifacts (`biv_gaussian_mu_sigma_slope` and `biv_gaussian_mu_sigma_slope_recovery`). The lane reuses the fitted matching `(0 + x | p | id)` terms in `mu1` and `sigma1`, reports 12 estimands, emits bias, RMSE, empirical SE, MCSE, and fixed-effect Wald coverage tables, and keeps the two slope SDs plus the derived `mu_sigma` correlation out of Wald interval claims. A local 2026-06-06 formal audit ran 500 replicates in each of the two default recovery cells and produced 1,000 `ok` manifest rows, but convergence/positive-Hessian rates were 0.856 and 0.884 and all-replicate fixed-effect Wald coverage was 0.796-0.850. A follow-up hardening audit regenerated and robust-refit the 130 weak replicates; none were rescued, all retained false-convergence and `pdHess = FALSE`, and estimates were unchanged. Among interval-available converged fits, fixed-effect Wald coverage was 0.930-0.972, and endpoint profiles succeeded on two clean representative fits for `rho12`, both slope SDs, and `cor(mu1:x,sigma1:x | p | id)`. This is diagnostic evidence and profile feasibility, not power-grid support.
-* The ordinary NB2 `mu` random-effect surface now has a standalone recovery artifact lane (`nbinom2_mu_re_recovery`), parallel to the Poisson one: it runs the already-recovery-capable smoke summary at recovery-scale `n_rep` and emits isolated bias/RMSE/MCSE, Wald-coverage, and profile-coverage CSVs through an opt-in Actions task, as a `ready_grid` `random_slopes` registry row. (The truncated-NB2 `mu` random-intercept surface already had an equivalent standalone coverage-emitting lane through its existing `truncated_nbinom2_mu_random_intercept` task, so it needed no new writer.)
-* The ordinary Poisson `mu` random-effect surface now has a standalone, dispatchable recovery artifact lane (`poisson_mu_re_recovery`) — the first non-Gaussian recovery artifact lane. The recovery contract (bias, RMSE, MCSE, Wald coverage for the fixed mean coefficients, and profile coverage for the random-effect SD) was already computed by the smoke summary; the new opt-in lane runs it at recovery-scale `n_rep` and emits isolated CSV artifacts instead of only riding the combined first-wave summary. It is a `ready_grid` `random_slopes` registry row.
+* Simulation tools for ordinary NB2 `mu` random effects now save separate summaries of bias, root mean squared error (RMSE), Monte Carlo standard error (MCSE), and Wald and profile interval coverage across repeated fits. Zero-truncated NB2 random-intercept models already had equivalent output. This adds a way to run and summarize recovery studies; it does not itself establish coverage.
+* Simulation tools for ordinary Poisson `mu` random effects now save separate repeated-fit summaries of bias, RMSE, MCSE, Wald interval coverage for fixed mean coefficients, and profile interval coverage for the random-effect SD. These quantities were previously available only within a combined pilot summary; no new coverage result is claimed here.
 * The Phase 18 bivariate Gaussian slope-only `mu1`/`mu2` covariance lane now has a multi-replicate recovery companion (`biv_gaussian_mu_slope_recovery`). It reuses the smoke DGP, fit, and runner for the matching `(0 + x | p | id)` block and reports bias, RMSE, empirical SE, Monte Carlo standard error, and Wald interval coverage across its 10 estimands. Wald coverage is reported only for the fixed `mu1`/`mu2` endpoints; the two slope random-effect SDs and the derived slope-slope correlation stay `derived_interval_unavailable`. The lane is a `ready_grid` `random_slopes` registry row with its own opt-in Actions task and grid writer.
 * The Phase 18 bivariate Gaussian q=6 `mu1`/`mu2` location covariance lane now has a multi-replicate recovery companion (`biv_gaussian_q6_location_recovery`). It reuses the smoke DGP, fit, and runner for the matching `(1 + x + z | p | id)` block in both location formulas and reports bias, RMSE, empirical SE, Monte Carlo standard error, and Wald interval coverage across its 30 estimands. Wald coverage is reported only for the fixed `mu1`/`mu2` endpoints; the six location random-effect SDs and the fifteen derived location-location correlations stay `derived_interval_unavailable`. The lane is a `ready_grid` `random_slopes` registry row with its own opt-in Actions task and grid writer.
 * The Phase 18 bivariate Gaussian q=2 residual-scale intercept covariance lane now has a multi-replicate recovery companion (`biv_gaussian_q2_scale_recovery`). It reuses the smoke DGP, fit, and runner, runs at recovery-scale `n_rep`, and reports bias, RMSE, empirical SE, Monte Carlo standard error, and Wald interval coverage. Wald coverage is reported only for the fixed `mu1`/`mu2` endpoints that carry a standard error; the random-effect scale SDs and the derived scale-scale correlation stay `derived_interval_unavailable`. The lane is registered as a `ready_grid` `correlation_blocks` row with its own opt-in Actions task and grid writer, and its design sheet is `docs/design/156-phase-18-bivariate-scale-q2-recovery-ademp.md`.
@@ -1327,19 +3377,19 @@ than that matrix.
 * `poisson()` now fits the labelled-scalar spatial count route `bf(count ~ x + spatial(1 | p | site, coords = coords))`. The label is treated as a scalar covariance-block tag for the existing q1 spatial `mu` field and is exposed through `sdpars$mu`, `ranef("spatial_mu")`, and a direct `profile_targets()` row. This is local fit-only evidence only: q2/q4 count covariance, labelled slopes, simultaneous structured providers, intervals, coverage, `inference_ready`, `supported`, REML, AI-REML, bridge support, and public support remain out of scope.
 * `nbinom2()` now fits the ordinary, non-zero-inflated q=1 phylogenetic `mu` intercept with syntax `bf(count ~ x + phylo(1 | species, tree = tree), sigma ~ z)`. The fitted effect is on the log-mean scale while `sigma` remains fixed-effect overdispersion; `sdpars$mu`, `ranef("phylo_mu")`, `profile_targets()` as a direct `log_sd_phylo` target, and `check_drm()` phylogenetic diagnostics expose the route. Historical note, superseded by current recovery evidence: exact q1 structured `sigma` intercept-plus-one-slope routes now fit for phylo/spatial/animal/relmat. Labelled q2/q4 count blocks, zero-inflated NB2 phylogeny, richer structured sigma blocks, structured-sigma intervals/coverage, simultaneous structured count types, and count cross-parameter covariance remain planned.
 * `poisson()` and `nbinom2()` now fit q=1 `spatial()`, `animal()`, and `relmat()` `mu` intercepts for ordinary non-zero-inflated count models, extending the existing q=1 `phylo()` count route. The fitted log-mean structured SD appears in `sdpars$mu`, marker-specific `ranef()` blocks such as `ranef("spatial_mu")`, direct `profile_targets()` rows through `log_sd_phylo`, and `check_drm()` structured diagnostics. Historical note, superseded by current recovery evidence: exact q1 structured NB2 `sigma` intercept-plus-one-slope routes now fit for phylo/spatial/animal/relmat. Pure or multiple structured count slopes, labelled q2/q4 count covariance beyond the exact Poisson scalar-label gate, zero-inflated structured effects beyond the exact local-fit gates, simultaneous structured count types, richer structured sigma blocks, and structured-sigma intervals/coverage remain planned.
-* Phase 18 now has an opt-in count structured q1 artifact lane for ordinary Poisson/NB2 `spatial()`, `animal()`, and `relmat()` `mu` intercepts. The new DGP, summariser, smoke runner, summary helper, grid writer, manual `count_structured_q1` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct `log_sd_phylo` profile-target, optional profile-interval, interval-evidence, interval-diagnostic, and interval-failure artifacts without adding zero-inflated structure, structured slopes, labelled count covariance, structured NB2 `sigma`, `task = "all"` inclusion, or formal recovery claims.
+* Simulation tools now assess ordinary Poisson/NB2 models with one structured `mu` intercept supplied through `spatial()`, `animal()`, or `relmat()`. They retain individual and aggregate fit results, warnings and failures, fixed-effect Wald intervals and coverage, and optional intervals for direct `log_sd_phylo` profile targets. This adds no formal recovery result and does not cover zero-inflated structure, structured slopes, labelled count covariance, or structured NB2 `sigma`.
 * `nbinom2()` now fits the first ordinary log-`sigma` random-intercept gate for non-zero-inflated models, with syntax such as `bf(count ~ x, sigma ~ z + (1 | id))`. The fitted effect models grouped overdispersion on the log-`sigma` scale and is exposed through `sdpars$sigma`, `random_effects$sigma`, `sigma()`, `predict(dpar = "sigma")`, direct `log_sd_sigma` profile targets, and `check_drm()` replication diagnostics. Historical note, superseded by current recovery evidence: exact q1 structured NB2 `sigma` intercept-plus-one-slope routes now fit for phylo/spatial/animal/relmat. Ordinary NB2 `sigma` slopes, labelled covariance blocks, joint `mu`/`sigma` random effects, zero-inflated/truncated/hurdle NB2 scale random effects, richer structured sigma blocks, structured-sigma intervals/coverage, and Poisson scale random effects remain planned or inapplicable.
 * `beta()` and `beta_binomial()` now support ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `bf(prop ~ x + (1 | id) + (0 + x | id), sigma ~ z)` for strict `(0, 1)` responses and `bf(cbind(success, failure) ~ x + (1 | id) + (0 + x | id), sigma ~ z)` for counted successes out of known trials. The fitted logit-mean or logit-success-probability SD appears in `sdpars$mu`, `random_effects$mu`, direct `profile_targets()` rows, and `check_drm()` replication diagnostics; correlated bounded-response random slopes, labelled covariance blocks, `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, structured effects, known covariance, and bivariate or mixed bounded-response models remain planned.
 * `student()` now supports ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z, nu ~ 1)`. The fitted location SD appears in `sdpars$mu`, `random_effects$mu`, direct `profile_targets()` rows, and `check_drm()` replication diagnostics. Historical note: correlated Student-t random slopes, labelled covariance blocks, `sigma` random effects, `nu` random effects beyond the exact phylo local-fit gate, broad structured effects, and known covariance remain planned; the later Arc 6.4 exact `biv_student()` source slice is deliberately narrower and carries no recovery claim.
 * `lognormal()` and `Gamma(link = "log")` now support ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. The fitted SDs appear in `sdpars$mu`, `random_effects$mu`, direct `profile_targets()` rows, and `check_drm()` replication diagnostics. This historical ordinary-effect entry is superseded in part by the exact Arc 3a q1 Gamma-phylo and lognormal-phylo/relmat intercept gates; correlated positive-continuous random slopes, labelled covariance blocks, `sigma` slopes, labelled or combined `sigma` random effects, other structured positive-continuous effects, known covariance, and bivariate or mixed positive-continuous models remain planned.
-* Phase 18 now has a Student-t `mu` random-intercept artifact lane for `student()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `student_mu_random_intercept` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct-SD profile interval, and profile coverage artifacts for ordinary `(1 | id)` in `mu` with fixed-effect `sigma` and `nu`, while keeping correlated Student-t random slopes, labelled covariance blocks, `sigma` random effects, `nu` random effects beyond the exact phylo local-fit gate, broad structured effects, known covariance, and bivariate Student-t models out of scope.
-* Phase 18 now has a zero-truncated NB2 `mu` random-intercept artifact lane for `truncated_nbinom2()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `truncated_nbinom2_mu_random_intercept` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct-SD profile interval, and profile coverage artifacts for ordinary `(1 | id)` in `mu`, while keeping correlated zero-truncated NB2 random slopes, labelled covariance blocks, `sigma` random effects, hurdle random effects, zero-inflated zero-truncated models, structured effects, and bivariate count models out of scope.
-* Phase 18 now has a bounded-response `mu` random-intercept artifact lane for `beta()` and `beta_binomial()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `bounded_response_mu_random_intercept` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct-SD profile interval, and profile coverage artifacts for ordinary `(1 | id)` in `mu`. Historical boundary note, superseded for the exact zero-one-beta ordinary `zoi` q1 intercept and same-raw-symbol slope gates: other zero-one beta random effects, correlated bounded-response slopes, labelled covariance blocks, structured effects, known covariance, and mixed bounded-response models remain out of scope.
-* Phase 18 now has a fixed-effect proportion artifact lane for `beta()` and `beta_binomial()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `proportion_fixed_effect` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, and Wald coverage artifacts while keeping exact 0/1 boundary mass, `zoi`/`coi`, correlated bounded-response random slopes, labelled covariance blocks, `sigma` random effects, structured bounded responses, and mixed-response bounded models out of scope.
-* Phase 18 now has a fixed-effect positive-continuous artifact lane for `lognormal()` and `Gamma(link = "log")`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `positive_continuous_fixed_effect` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, and Wald coverage artifacts while keeping Tweedie, generalized Gamma, positive-response random effects beyond the ordinary `mu` intercept slice, known-covariance positive responses, structured positive responses, and mixed-response positive-continuous models out of scope.
-* Phase 18 now has a positive-continuous `mu` random-intercept artifact lane for `lognormal()` and `Gamma(link = "log")`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `positive_continuous_mu_random_intercept` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct-SD profile interval, and profile coverage artifacts for ordinary `(1 | id)` in `mu`, while keeping correlated positive-continuous random slopes, labelled covariance blocks, `sigma` random effects, Tweedie, generalized Gamma, structured effects, known covariance, and mixed positive-continuous models out of scope.
-* Phase 18 added a fixed-effect ordinal artifact lane for `cumulative_logit()`. Historical note, superseded in part by later ordinary `mu` intercept/slope recovery and an exact phylogenetic intercept gate: this artifact lane itself covers only aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, cutpoint, and cutpoint-ordering outputs; correlated/labelled or other structured ordinal effects, ordinal scale/discrimination formulas, bivariate ordinal models, and mixed-response ordinal models remain out of scope.
-* Phase 18 now has a fixed-effect zero-one beta artifact lane for `zero_one_beta()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `zero_one_beta_fixed_effect` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, and Wald coverage artifacts. Historical boundary note, superseded for the exact ordinary `zoi` q1 intercept and same-raw-symbol slope gates: other zero-one random effects, covariance blocks, denominator syntax, known covariance, structured bounded responses, and bivariate or mixed bounded-response models remain out of scope.
+* Simulation tools for `student()` now record repeated-fit results, failures, fixed-effect Wald intervals, direct-SD profile intervals, and their coverage for ordinary `(1 | id)` in `mu` with fixed-effect `sigma` and `nu`. These outputs do not establish reliable coverage. Correlated Student-t slopes, labelled covariance, `sigma` random effects, broad structured effects, known covariance, and bivariate Student-t models are outside this study design. A separately tested phylogenetic `nu` random-intercept model has local fitting evidence only; other `nu` random effects remain outside scope.
+* Simulation tools for `truncated_nbinom2()` now record the same fit, failure, Wald-interval, direct-SD profile-interval, and coverage summaries for ordinary `(1 | id)` in `mu`. These outputs do not establish reliable coverage. Correlated slopes, labelled covariance, `sigma` or hurdle random effects, zero-inflated zero-truncated models, structured effects, and bivariate count models remain outside scope.
+* Simulation tools for `beta()` and `beta_binomial()` now record fit results, failures, fixed-effect Wald intervals, direct-SD profile intervals, and their coverage for ordinary `(1 | id)` in `mu`. These outputs do not establish reliable coverage. Later work separately added ordinary zero-one-beta `zoi` intercepts and slopes using the same raw predictor symbol. Other zero-one-beta random effects, correlated bounded-response slopes, labelled covariance, structured effects, known covariance, and mixed bounded-response models remain outside this study design.
+* Fixed-effect `beta()` and `beta_binomial()` simulation tools now save individual and aggregate results, failures, Wald intervals, and their coverage. This is infrastructure for checking intervals, not a coverage result. Structural exact 0/1 mass, `zoi`/`coi`, correlated bounded-response slopes, labelled covariance, `sigma` random effects, structured effects, and mixed-response bounded models remain outside scope.
+* Fixed-effect `lognormal()` and `Gamma(link = "log")` simulation tools now save individual and aggregate results, failures, Wald intervals, and their coverage. This is infrastructure for checking intervals, not a coverage result. Tweedie, generalized Gamma, positive-response random effects beyond the ordinary `mu` intercept, known sampling covariance, structured effects, and mixed positive-continuous responses remain outside scope.
+* Simulation tools for `lognormal()` and `Gamma(link = "log")` models with ordinary `(1 | id)` in `mu` now save fit results, failures, fixed-effect Wald intervals, direct-SD profile intervals, and their coverage. These outputs do not establish reliable coverage. Correlated slopes, labelled covariance, `sigma` random effects, Tweedie, generalized Gamma, structured effects, known covariance, and mixed positive-continuous models remain outside this study design.
+* Fixed-effect `cumulative_logit()` simulation tools now save fit and failure summaries, fixed-effect Wald intervals and coverage, cutpoints, and cutpoint-ordering checks. Later work separately assessed ordinary `mu` intercepts/slopes and one phylogenetic intercept model. Correlated or labelled effects, other structured ordinal effects, scale/discrimination formulas, cutpoint-specific predictors, bivariate ordinal models, and mixed-response ordinal models remain outside this study design.
+* Fixed-effect `zero_one_beta()` simulation tools now save individual and aggregate results, failures, fixed-effect Wald intervals, and their coverage. These outputs do not establish reliable coverage. Later work separately added ordinary `zoi` and `coi` intercepts and slopes using the same raw predictor symbol. Other zero-one-beta random effects, covariance blocks, denominator syntax, known covariance, structured effects, and bivariate or mixed bounded-response models remain outside this study design.
 * Phase 18 Slice C now closes the count first-wave review lane as a documented evidence inventory rather than a new syntax lane. The new count-closure note ties together paired Poisson/NB2 `mu` random effects, NB2 log-`sigma` random intercepts, Poisson q1 phylo, NB2 q1 phylo, the NB2 `hold_smoke_only` formal gate, and the next Slice D choices while keeping COM-Poisson, generalized Poisson, Tweedie, zero-one beta, skew-normal, and new random-effect syntax out of scope.
 * Phase 18 now has an overdispersion-aware NB2 phylogenetic q1 formal-admission lane for `bf(count ~ x + phylo(1 | species, tree = tree), sigma ~ z)`. The new ADEMP sheet, DGP, target-plus-grouped-comparator fitter, summariser, smoke runner, summary helper, grid writer, formal-grid spec/read-back QA helpers, promotion-decision helper, focused tests, and manual `nbinom2_phylo_q1_formal` Actions task save aggregate, replicate, manifest, failure-ledger, Wald interval, Wald coverage, direct `log_sd_phylo` profile-target, optional profile-interval, interval-evidence, interval-diagnostic, and interval-failure artifacts. This does not create formal recovery or coverage claims until the 500-replicate grid is run and audited.
 * Phase 18 Slices 541-555 now record a local NB2 phylogenetic q1 formal-audit pass. The all-cell sentinel ran 288 formal cells once and the representative audit ran 24 formal-shaped cells with five replicates each, both with direct `log_sd_phylo` profiles and grouped-comparator rows. The artifacts passed read-back QA, all sentinel fits and all replicate-audit rows converged, and the promotion helper correctly keeps the route at `hold_smoke_only` because the 500-replicate formal recovery gate was not run. Profile failures at true `sd_phylo = 0` and fixed-`sigma` instability in low-count, low-overdispersion cells remain visible audit boundaries.
@@ -1421,7 +3471,7 @@ than that matrix.
 * Phase 18 now has its first one-page ADEMP sheet for the admitted Gaussian location-scale lane, tying the existing `phase18_dgp_gaussian_ls()` helper to aims, DGP conditions, estimands, methods, performance measures, and Williams-style reporting checks before larger grids run.
 * Phase 18 now has a one-page ADEMP sheet for the admitted Gaussian `meta_V(V = V)` lane, keeping known sampling covariance as input data and public residual `sigma` as the fitted heterogeneity estimand before vector or dense known-`V` grids expand.
 * Phase 18 now has a one-page ADEMP sheet for the paired Poisson/NB2 `mu` random-effect lane, keeping the first count grid to ordinary non-zero-inflated `mu` random intercepts and independent numeric slopes while zero-inflated, hurdle, zero-truncated, structured, correlated-slope, and labelled covariance count models remain failure-ledger rows.
-* Phase 18 now has a one-page ADEMP sheet for the fixed-effect proportion lane, separating strict continuous `beta()` responses from denominator-aware `beta_binomial()` success counts while keeping exact 0/1 boundary mass outside that earlier beta/beta-binomial artifact lane. Random effects beyond the beta and beta-binomial ordinary `mu` intercept/slope slices, structured effects, known sampling covariance, and mixed-response bounded models remain in the failure ledger.
+* The fixed-effect proportion simulation design distinguishes continuous `beta()` responses from denominator-aware `beta_binomial()` success counts. Structural exact 0/1 mass, random effects beyond ordinary `mu` intercepts/slopes, structured effects, known sampling covariance, and mixed-response bounded models remain outside that study design.
 * Phase 18 added a one-page ADEMP sheet for the fixed-effect ordinal lane. Historical note, superseded in part by later ordinary `mu` intercept/slope recovery and an exact phylogenetic intercept gate: correlated/labelled or other structured ordinal effects, scale/discrimination formulas, cutpoint-specific predictors, bivariate ordinal models, and mixed-response ordinal models remain in the failure ledger.
 * Phase 18 now has a one-page ADEMP sheet for the bivariate Gaussian residual `rho12` lane, defining the response-specific mean and scale DGP, residual covariance matrix, response-scale `rho12` grids, and boundary diagnostics while keeping group-level `corpairs()`, structured correlations, known sampling covariance, random effects in `rho12`, mixed-response families, and bivariate random-slope covariance in separate design or failure-ledger lanes.
 * Broader bivariate random-slope combination boundaries now have focused error coverage for unsupported residual-scale slope variants, cross-response or coefficient-mismatched same-response location-scale slope combinations, and all-four q=8-style slope requests while the matching q2 `sigma1`/`sigma2` scale-slope route is fitted separately.

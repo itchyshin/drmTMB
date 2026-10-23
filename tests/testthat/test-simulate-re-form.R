@@ -1,10 +1,10 @@
 # `simulate.drmTMB(..., re.form = )` contract tests -- Arc A1.
 #
-# `re.form = NULL` (the default) draws a FRESH random effect per replicate
-# (marginal simulation); `re.form = NA` freezes every random effect at its
-# fitted conditional-mode estimate (conditional simulation, the behaviour
-# `simulate.drmTMB()` had before `re.form` was added). This file tests the
-# contract itself, not any one family's density.
+# `re.form = NA` (the default) draws a FRESH random effect per replicate
+# (marginal simulation); `re.form = NULL` freezes every random effect at its
+# fitted conditional-mode estimate (conditional simulation). These match
+# lme4::simulate.merMod(); drmTMB used the reverse meanings before #1487. This
+# file tests the contract itself, not any one family's density.
 
 new_re_form_intercept_data <- function(n_id = 8L, n_each = 6L, seed = 20260726) {
   set.seed(seed)
@@ -17,37 +17,37 @@ new_re_form_intercept_data <- function(n_id = 8L, n_each = 6L, seed = 20260726) 
   list(data = data.frame(y = y, x = x, id = id), n_id = n_id)
 }
 
-test_that("re.form = NULL is the default and redraws random effects across replicates", {
+test_that("re.form = NA is the default and redraws random effects across replicates", {
   sim <- new_re_form_intercept_data()
   fit <- drmTMB(bf(y ~ x + (1 | id)), family = gaussian(), data = sim$data)
 
-  # Same seed: default (re.form omitted) must equal explicit re.form = NULL.
+  # Same seed: default (re.form omitted) must equal explicit re.form = NA.
   expect_equal(
     simulate(fit, nsim = 3, seed = 1),
-    simulate(fit, nsim = 3, seed = 1, re.form = NULL)
+    simulate(fit, nsim = 3, seed = 1, re.form = NA)
   )
 
   # Marginal replicates should differ from each other (fresh RE draws), not
   # just from residual noise alone -- distinct seeds give visibly different
   # per-group means.
   nsim <- 60
-  sims <- simulate(fit, nsim = nsim, seed = 2, re.form = NULL)
+  sims <- simulate(fit, nsim = nsim, seed = 2, re.form = NA)
   group_means <- vapply(sims, function(col) {
     tapply(col, sim$data$id, mean)[[1L]]
   }, numeric(1L))
   expect_gt(stats::var(group_means), 0.05)
 })
 
-test_that("re.form = NA reproduces conditional simulation (fitted REs held fixed)", {
+test_that("re.form = NULL reproduces conditional simulation (fitted REs held fixed)", {
   sim <- new_re_form_intercept_data()
   fit <- drmTMB(bf(y ~ x + (1 | id)), family = gaussian(), data = sim$data)
 
   nsim <- 60
-  sims_cond <- simulate(fit, nsim = nsim, seed = 3, re.form = NA)
+  sims_cond <- simulate(fit, nsim = nsim, seed = 3, re.form = NULL)
   group_means_cond <- vapply(sims_cond, function(col) {
     tapply(col, sim$data$id, mean)[[1L]]
   }, numeric(1L))
-  sims_marg <- simulate(fit, nsim = nsim, seed = 3, re.form = NULL)
+  sims_marg <- simulate(fit, nsim = nsim, seed = 3, re.form = NA)
   group_means_marg <- vapply(sims_marg, function(col) {
     tapply(col, sim$data$id, mean)[[1L]]
   }, numeric(1L))
@@ -63,8 +63,8 @@ test_that("re.form = NA reproduces conditional simulation (fitted REs held fixed
   # Conditional simulation is reproducible under a fixed seed, same as
   # marginal.
   expect_equal(
-    simulate(fit, nsim = 2, seed = 4, re.form = NA),
-    simulate(fit, nsim = 2, seed = 4, re.form = NA)
+    simulate(fit, nsim = 2, seed = 4, re.form = NULL),
+    simulate(fit, nsim = 2, seed = 4, re.form = NULL)
   )
 })
 
@@ -77,8 +77,8 @@ test_that("re.form has no effect on a fixed-effects-only model", {
   fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
 
   expect_equal(
-    simulate(fit, nsim = 4, seed = 5, re.form = NULL),
-    simulate(fit, nsim = 4, seed = 5, re.form = NA)
+    simulate(fit, nsim = 4, seed = 5, re.form = NA),
+    simulate(fit, nsim = 4, seed = 5, re.form = NULL)
   )
 })
 
@@ -124,15 +124,15 @@ test_that("marginal simulation aborts with a clear message for an unsupported st
     simulate(fit, nsim = 2, seed = 6),
     "does not yet support.*covariance-block random effects"
   )
-  # re.form = NA still works (the escape hatch the error message points to).
-  expect_no_error(simulate(fit, nsim = 2, seed = 6, re.form = NA))
+  # re.form = NULL still works (the escape hatch the error message points to).
+  expect_no_error(simulate(fit, nsim = 2, seed = 6, re.form = NULL))
 })
 
 test_that("confint bootstrap_re_form threads through simulate() for a supported RE structure", {
   sim <- new_re_form_intercept_data()
   fit <- drmTMB(bf(y ~ x + (1 | id)), family = gaussian(), data = sim$data)
 
-  # Default: bootstrap_re_form = NULL runs marginally, same as passing it
+  # Default: bootstrap_re_form = NA runs marginally, same as passing it
   # explicitly.
   ci_default <- confint(
     fit,
@@ -147,12 +147,12 @@ test_that("confint bootstrap_re_form threads through simulate() for a supported 
     method = "bootstrap",
     R = 7,
     seed = 11,
-    bootstrap_re_form = NULL
+    bootstrap_re_form = NA
   )
   expect_equal(ci_default$lower, ci_marginal$lower)
   expect_equal(ci_default$upper, ci_marginal$upper)
 
-  # bootstrap_re_form = NA runs conditionally instead, and threads all the way
+  # bootstrap_re_form = NULL runs conditionally instead, and threads all the way
   # to a different simulate() draw (and hence, generally, a different
   # interval) than the marginal default under the same seed.
   ci_conditional <- confint(
@@ -161,12 +161,12 @@ test_that("confint bootstrap_re_form threads through simulate() for a supported 
     method = "bootstrap",
     R = 7,
     seed = 11,
-    bootstrap_re_form = NA
+    bootstrap_re_form = NULL
   )
   expect_false(isTRUE(all.equal(ci_marginal$lower, ci_conditional$lower)))
 })
 
-test_that("confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NA succeeds", {
+test_that("confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NULL succeeds", {
   fit <- new_re_form_unsupported_fit()
 
   expect_error(
@@ -186,11 +186,11 @@ test_that("confint bootstrap aborts by default on an unsupported RE structure, b
     method = "bootstrap",
     R = 5,
     seed = 12,
-    bootstrap_re_form = NA
+    bootstrap_re_form = NULL
   ))
 })
 
-test_that("re.form only accepts NULL or NA", {
+test_that("re.form only accepts NA, ~0, or NULL", {
   set.seed(20260729)
   n <- 30
   x <- stats::rnorm(n)
@@ -200,6 +200,69 @@ test_that("re.form only accepts NULL or NA", {
 
   expect_error(
     simulate(fit, nsim = 1, seed = 1, re.form = TRUE),
-    "re.form.*NULL.*NA"
+    "re.form.*NA.*NULL"
   )
+  expect_error(
+    simulate(fit, nsim = 1, seed = 1, re.form = ~ (1 | g)),
+    "re.form.*NA.*NULL"
+  )
+})
+
+test_that("re.form = ~0 is the lme4 spelling of NA (#1487)", {
+  sim <- new_re_form_intercept_data()
+  fit <- drmTMB(bf(y ~ x + (1 | id)), family = gaussian(), data = sim$data)
+  expect_equal(
+    suppressMessages(simulate(fit, nsim = 3, seed = 8, re.form = ~0)),
+    suppressMessages(simulate(fit, nsim = 3, seed = 8, re.form = NA))
+  )
+  expect_false(isTRUE(all.equal(
+    suppressMessages(simulate(fit, nsim = 3, seed = 8, re.form = NA)),
+    suppressMessages(simulate(fit, nsim = 3, seed = 8, re.form = NULL))
+  )))
+})
+
+test_that("an explicit re.form gets a one-time semantics message (#1487)", {
+  sim <- new_re_form_intercept_data()
+  fit <- drmTMB(bf(y ~ x + (1 | id)), family = gaussian(), data = sim$data)
+  expect_no_message(simulate(fit, nsim = 1, seed = 9))
+  withr::local_options(rlib_message_verbosity = "verbose")
+  expect_message(
+    simulate(fit, nsim = 1, seed = 9, re.form = NULL),
+    class = "drmTMB_re_form_semantics_message"
+  )
+  expect_message(
+    simulate(fit, nsim = 1, seed = 9, re.form = NA),
+    "lme4"
+  )
+})
+
+test_that("the default confint bootstrap still draws fresh random effects (#1487)", {
+  sim <- new_re_form_intercept_data()
+  fit <- drmTMB(bf(y ~ x + (1 | id)), family = gaussian(), data = sim$data)
+  seen <- logical()
+  real <- drmTMB:::drm_simulate_re_form_marginal
+  local_mocked_bindings(
+    drm_simulate_re_form_marginal = function(re.form) {
+      out <- real(re.form)
+      seen <<- c(seen, out)
+      out
+    }
+  )
+  withr::local_options(rlib_message_verbosity = "verbose")
+  expect_no_message(
+    confint(fit, parm = "sd:mu:(1 | id)", method = "bootstrap", R = 3, seed = 13),
+    class = "drmTMB_re_form_semantics_message"
+  )
+  expect_identical(seen, TRUE)
+
+  seen <- logical()
+  suppressMessages(confint(
+    fit,
+    parm = "sd:mu:(1 | id)",
+    method = "bootstrap",
+    R = 3,
+    seed = 13,
+    bootstrap_re_form = NULL
+  ))
+  expect_identical(seen, FALSE)
 })

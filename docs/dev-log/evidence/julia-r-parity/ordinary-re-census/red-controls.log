@@ -1,0 +1,26 @@
+== RED CONTROL G1: delete the shipped/gaussian_random_slope/REML census row
+   plant: sed -i '' -e "/^430ef64ccca5642c5abebd72194e00895314dfc2	shipped	gaussian_random_slope	[^	]*	REML	/d" census.tsv
+   oracle exit=1: G1 FAIL: expected exactly one row for shipped/gaussian_random_slope/REML, found 0 
+   restored byte-identically (diff -q empty)
+   oracle after restore exit=0: G1 OK: 12 cells (2 layers x 3 shapes x 2 methods); FITS=8 REFUSED=4 DOWNGRADED=0
+== RED CONTROL G2: delete the SE row for ordre_gaussian_random_slope_ml
+   plant: sed -i '' -e "/	ordre_gaussian_random_slope_ml	/d" parity-se-ordinary-re.tsv
+   oracle exit=1: G2 FAIL: no SE row for verified cell ordre_gaussian_random_slope_ml 
+   restored byte-identically (diff -q empty)
+   oracle after restore exit=0: G2 OK: 4 verified cells each carry a fixture row and an SE row (PASS=3 FAIL=1); SE negative control rejects
+== RED CONTROL G3: remove the engine phrase from gaussian_random_slope_mu's claim_boundary
+   plant: sed -i '' -e "/^gaussian_random_slope_mu	/s/method = :REML is not implemented for this model on the generic univariate Gaussian route/REML refused/" ledger.tsv
+   oracle exit=1: G3 FAIL: gaussian_random_slope: engine refused REML but claim_boundary does not quote the engine's message 
+   restored byte-identically (diff -q empty)
+   oracle after restore exit=0: G3 OK: 3 registry-shaped rows; every refused cell's boundary quotes the engine's message; every verified cell is recorded
+== RED CONTROL G4: flip shipped/gaussian_random_slope/REML from UNSUPPORTED to SUPPORTED
+   plant: sed -i '' -e "/^430ef64ccca5642c5abebd72194e00895314dfc2	shipped	gaussian_random_slope	[^	]*	REML	/s/	REFUSED	UNSUPPORTED	/	REFUSED	SUPPORTED	/" census.tsv
+   oracle exit=1: G4 FAIL: 1 cell(s) recorded SUPPORTED without estim_method == requested: shipped gaussian_random_slope REML 
+   restored byte-identically (diff -q empty)
+   oracle after restore exit=0: G4 OK: 8 SUPPORTED cells all have estim_method == requested; 4 non-FITS cells all UNSUPPORTED; no requested-REML/got-ML cell exists
+== RED CONTROL G4: rewrite shipped/gaussian_random_slope/REML as DOWNGRADED with estim_method=ML and ledger SUPPORTED
+   plant: sed -i '' -e "/^430ef64ccca5642c5abebd72194e00895314dfc2	shipped	gaussian_random_slope	[^	]*	REML	/s/	REFUSED	UNSUPPORTED	NA	/	DOWNGRADED	SUPPORTED	ML	/" census.tsv
+   oracle exit=1: G4 FAIL: 1 cell(s) recorded SUPPORTED without estim_method == requested: shipped gaussian_random_slope REML 
+   restored byte-identically (diff -q empty)
+   oracle after restore exit=0: G4 OK: 8 SUPPORTED cells all have estim_method == requested; 4 non-FITS cells all UNSUPPORTED; no requested-REML/got-ML cell exists
+== ALL RED CONTROLS OK

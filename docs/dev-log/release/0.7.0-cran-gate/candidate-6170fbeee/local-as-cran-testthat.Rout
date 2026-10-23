@@ -1,0 +1,91 @@
+
+R version 4.6.0 (2026-04-24) -- "Because it was There"
+Copyright (C) 2026 The R Foundation for Statistical Computing
+Platform: aarch64-apple-darwin23
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(testthat)
+> library(drmTMB)
+
+Attaching package: 'drmTMB'
+
+The following object is masked from 'package:base':
+
+    beta
+
+> 
+> # The complete suite is an evidence programme as well as a package test suite:
+> # it includes simulation, recovery, coverage, numerical-oracle, comparator,
+> # generated-contract, and reader-render audits. Keep all of it in repository CI,
+> # but run a bounded installed-package smoke lane during routine CRAN checks.
+> #
+> # Candidate 6b45164b took 14 minutes in the Windows test stage even after the
+> # existing validation-suite exclusions. An explicit allowlist is fail-closed:
+> # a new evidence suite runs in full CI by default and enters the CRAN lane only
+> # after its runtime and purpose are reviewed.
+> #
+> # The retained contexts cover release identity, formula parsing, ordinary
+> # families, representative structured/missing/meta routes, public methods,
+> # MSPL, and reader/S3 compatibility. Nothing is deleted or weakened. Julia
+> # remains defense-in-depth blocked in the CRAN lane by drm_julia_setup() unless
+> # DRMTMB_JULIA_TESTS=true; its live suite remains repository-CI-only.
+> not_cran <- isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false")))
+> if (not_cran) {
++   test_check("drmTMB")
++ } else {
++   source(file.path("testthat", "helper-cran-lane.R"), local = TRUE)
++   test_check(
++     "drmTMB",
++     filter = drm_cran_test_filter()
++   )
++ }
+<drmTMB Binomial event-probability (logit link) fit>
+observations: 168
+estimator: MSPL
+mu random-effect terms: 2
+standard errors: fixed-effect Wald SEs available via `vcov()` and `summary()`;
+confidence intervals are not implemented for MSPL fits.
+penalized objective: 212.5
+likelihood inference: unavailable for experimental MSPL
+convergence: 0
+[ FAIL 0 | WARN 19 | SKIP 30 | PASS 3501 ]
+
+══ Skipped tests (30) ══════════════════════════════════════════════════════════
+• docs/ is not present in this check tree (excluded via .Rbuildignore) (1):
+  'test-profile-shape-boundary.R:142:3'
+• On CRAN (24): 'test-binomial-links.R:425:3',
+  'test-boundary-surfacing.R:35:3', 'test-boundary-surfacing.R:54:3',
+  'test-boundary-surfacing.R:67:3', 'test-boundary-surfacing.R:87:3',
+  'test-boundary-surfacing.R:110:3', 'test-boundary-surfacing.R:127:3',
+  'test-check-drm.R:904:3', 'test-control.R:567:3', 'test-control.R:627:3',
+  'test-control.R:671:3', 'test-control.R:742:3',
+  'test-formula-double-bar.R:130:3', 'test-formula-double-bar.R:155:3',
+  'test-formula-grouping-guard.R:79:3', 'test-formula-smooth-terms.R:83:3',
+  'test-gaussian-location-scale.R:15:1', 'test-offset-families.R:44:3',
+  'test-offset-families.R:117:3', 'test-offset-families.R:136:3',
+  'test-offset-families.R:157:3', 'test-optimizer-contract.R:41:1',
+  'test-optimizer-contract.R:83:1', 'test-optimizer-contract.R:108:1'
+• source-only development article layout is unavailable (1):
+  'test-release-identity.R:71:3'
+• source-only public release surfaces are unavailable (1):
+  'test-release-identity.R:17:3'
+• The development audit script is not installed with drmTMB (3):
+  'test-reader-journeys.R:26:3', 'test-reader-journeys.R:48:3',
+  'test-reader-journeys.R:153:3'
+
+[ FAIL 0 | WARN 19 | SKIP 30 | PASS 3501 ]
+> 
+> proc.time()
+   user  system elapsed 
+ 41.067   3.639  53.144 

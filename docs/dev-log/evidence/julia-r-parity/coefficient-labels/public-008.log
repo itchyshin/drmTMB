@@ -1,0 +1,45 @@
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+drmTMB_drm_bridge (generic function with 1 method)
+  
+drmTMB_drm_bridge_conditional_gaussian_ri (generic function with 1 method)
+  
+drmTMB_drm_bridge_q2_phylo (generic function with 1 method)
+  
+drmTMB_drm_bridge_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_fixef_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_structured (generic function with 1 method)
+  
+drmTMB_mixed_family (generic function with 1 method)
+  
+coefficient_labels_direct (generic function with 1 method)
+  
+quadratic returned coeferror 3.885781e-15 
+punctuation returned coeferror 6.106227e-16 
+two_factors returned coeferror 4.926615e-16 
+no_intercept returned coeferror 1.665335e-16 
+declared_levels returned coeferror 1.387779e-16 
+transforms returned coeferror 9.436896e-16 
+reversed_two_factors returned coeferror 2.109424e-15 
+unary_plus returned coeferror 4.996004e-16 
+grouped_arithmetic returned coeferror 3.302913e-14 
+decimal_power returned coeferror 6.827872e-15 
+nested_precedence returned coeferror 3.885781e-16 
+nested_parentheses returned coeferror 5.20417e-16 
+nested_scale returned coeferror 4.218847e-14 
+mixed_scalar returned coeferror 4.85445e-13 
+scalar_plain returned coeferror 1.110223e-16 
+conditional_scalar returned coeferror 3.330669e-16 
+negated_scalar returned coeferror 5.551115e-17 
+INFERENCE I(x^2) returned 
+INFERENCE gb returned 
+INFERENCE x:gb returned 
+named logical(0)
+ELAPSED 49.48 STATUS PASS 
+Julia exit.
+  Activating project at `/private/tmp/drm-parity-20260830/label-verification/DRM.jl`

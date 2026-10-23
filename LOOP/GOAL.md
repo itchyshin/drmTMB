@@ -1,43 +1,31 @@
-# GOAL — useful-0.7 user-facing (IMMUTABLE — re-read at the top of EVERY arc)
-
+# GOAL — dinnage-2 (IMMUTABLE — re-read at the top of EVERY arc)
+Read this first, every cycle. Auto-compact eats messages, not this file. Unsure after a compaction?
+Re-read THIS, then checkpoint.md, then continue.
 ## Mission
-
-Land the four first-week user-facing deliverables for a “really useful 0.7”
-programme: (1) default uncertainty story frozen in NEWS + `?confint`;
-(2) onboarding path fit → `profile_targets()` → `confint(method="profile")` →
-`profile.boundary` → when not to trust; (3) parseable family × dpar × RE ×
-interval-tier skim; (4) Ayumi-scale `se_group_sd` advice in `large-data`.
-No packaging, no CRAN upload, no DESCRIPTION bump.
-
+On branch `claude/audit-dinnage-wave1-20260913` (draft PR #1361), land the four owed Dinnage-audit items as
+surgical commits: M1 (eleven non-Bernoulli `mi()` quadrature sites weight the mixture, per-family
+invariance test), M2 (`sigma()`/`predict()`/`residuals()`/`simulate()` report the soft-clamped scale),
+S6 (design note 274, no code), S2 (design note 275 under D-252, then the exact
+`drm_constant_residual_sigma()` fix if Fisher concurs), plus the S3 help page (log-scale MAP told
+truthfully). Close with an after-task report, a Melissa plan-actual row, and a handover.
 ## Headline
-
-Make a new ecology/evolution user productive in week one without reading the
-capability ledger TSV or claiming nominal coverage everywhere.
-
+M1 — the only audit finding that biases a point estimate through the likelihood; eleven sites still do.
 ## Invariants
-
-- One lane: worktree `~/local-scratch/worktrees/drmTMB-useful-07`, branch
-  `cursor/useful-07-user-facing`. Never the dirty primary checkout.
-- Never claim “CRAN ready”. Never bump DESCRIPTION to 0.7.0.
-- No platform-clean, win-builder, R-hub, or CRAN upload.
-- No Totoro / DRAC. No AGHQ / Cox-Reid campaigns.
-- Do **not** touch `tests/testthat/test-guard-branch-continuity.R`, PR #941, or
-  `docs/dev-log/release/` packaging ledgers.
-- Capability-surface edits **cite existing tiers only** — no ledger promotions.
-- Docs restatement of measured behaviour only; no new public claims.
-
+One lane, this worktree only. Builders never run `devtools::document()` (Ada runs it once). No builder
+recompiles `src/` while another runs `load_all` (M1b waits for M2). Every new test is shown RED on the
+pre-fix code, with the output saved. Every diff gets a fresh-context Opus (Fisher) review before it counts.
+Only the orchestrator writes NEWS.md. ≤5 live sub-agents; scouts spawn nothing. No message to Russell.
 ## Authoritative WHAT
-
-→ `LOOP/ultra-plan.md` · `scratchpad/2026-08-07-arc-useful-07-user-facing.md`
-(PR #940 @ ~`8004fc05`)
-
+-> ultra-plan.md (slice table, briefs, decisions locked). This file wins on "what must never be lost".
 ## Definition of done
-
-1. Onboarding path exists and is linked from Getting Started + `drmTMB.Rmd`.
-2. NEWS + `?confint` state the default uncertainty story without
-   nominal-coverage-everywhere.
-3. Users can parse family × dpar × RE × interval tier from README/pkgdown
-   without opening the ledger TSV.
-4. Ayumi-scale `se_group_sd` advice is in `large-data` (and learning-path).
-5. After-task written; draft PR opened; AGHQ remains deferred; STOP (no
-   packaging claim).
+All `.unlazy/dinnage-2` leaf gates green under `--reverify`; `R CMD check --as-cran` on a clean export
+0 errors; branch pushed to PR #1361; after-task + plan-actual + handover written; vault D-entries for
+S3 (= document) and M4 (= confirm) and AGENT_LOG appended.
+## Pre-authorisation
+Scoped edits in this worktree; load_all/test/document; one TMB recompile; as-cran on a clean export; local
+commits; push of this branch to the existing draft PR; status comments on our own issues #1307, #1308,
+#1312, #1315, #1301 drafted to files first.
+## Must stop for
+Merge; release; any public claim beyond those comments; a campaign or run >30 min other than the package
+check; M1 algebra at a site that differs from the template; a Fisher REJECT on M1b/M2/S2b that a bounded
+repair does not clear.

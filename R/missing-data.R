@@ -16,8 +16,12 @@
 #' negative-binomial count, positive continuous lognormal or Gamma, and
 #' exact-zero semi-continuous Tweedie missing predictors can use fixed-effect
 #' predictor models supplied by [impute_model()]. The non-Gaussian response
-#' slices support `poisson()`, `binomial()`, `nbinom2()`, and `beta()` responses,
-#' each with one fixed-effect Bernoulli/logit binary missing predictor.
+#' slices support `poisson()`, `binomial()`, `nbinom2()`, `beta_family()`,
+#' `Gamma(link = "log")`, `lognormal()`, `beta_binomial()`, and
+#' `student()` responses, each with one
+#' fixed-effect Bernoulli/logit binary missing predictor.
+#' `nbinom2()` also admits one fixed-effect Gaussian missing predictor
+#' (k = 1; no grouped/structured predictor model).
 #' EM/profile engines and simulation-based imputation
 #' summaries are reserved for later slices.
 #'
@@ -26,10 +30,12 @@
 #'   response missing is omitted. `"include"` keeps rows with supported missing
 #'   responses and masks their response likelihood contribution.
 #' @param predictor Predictor missingness policy. `"fail"` errors on missing
-#'   predictors. `"model"` enables the current `mi()` predictor-model routes when
+#'   predictors when you pass `missing =` with `predictor = "fail"` or with no
+#'   arguments (`miss_control()`), whether written in the call or stored in an
+#'   object. Leaving `missing` out of the [drmTMB()] call, or setting only
+#'   `response`, keeps complete-case row dropping. `"model"` enables the current `mi()` predictor-model routes when
 #'   paired with a matching `impute` formula or [impute_model()] in [drmTMB()].
-#' @param engine Missing-data engine. Only `"laplace"` is implemented in this
-#'   slice.
+#' @param engine Missing-data engine. Only `"laplace"` is implemented.
 #'
 #' @return A `drm_missing_control` object.
 #' @export
@@ -43,6 +49,9 @@ miss_control <- function(
   predictor = c("fail", "model"),
   engine = "laplace"
 ) {
+  omitted_response <- missing(response)
+  omitted_predictor <- missing(predictor)
+  omitted_engine <- missing(engine)
   response <- match.arg(response)
   predictor <- match.arg(predictor)
 
@@ -68,8 +77,88 @@ miss_control <- function(
       predictor = predictor,
       engine = engine
     ),
+    # Which arguments the caller supplied; drmTMB() reads this so a stored
+    # control behaves like the literal call that created it (#1484).
+    explicit = c(
+      response = !omitted_response,
+      predictor = !omitted_predictor,
+      engine = !omitted_engine
+    ),
     class = "drm_missing_control"
   )
+}
+
+#' Whether `missing =` explicitly requested predictor fail (A-2, #1484)
+#'
+#' The formal default `missing = miss_control()` makes the parsed control alone
+#' ambiguous: `miss_control(response = "include")` also carries the default
+#' `predictor = "fail"` but keeps the complete-case row drop for predictors.
+#' [miss_control()] therefore records which arguments were supplied, and the
+#' check reads that record from the evaluated object. Early validation runs
+#' when `predictor = "fail"` was supplied explicitly, or when no argument was
+#' supplied at all (`miss_control()`). A stored control (`missing = ctl`) or a
+#' value held in a variable (`predictor = pf`) behaves exactly like the literal
+#' call that created it. Anything that is not a `drm_missing_control` object,
+#' such as a plain list, never triggers the early check.
+#'
+#' @param missing The evaluated `missing =` argument.
+#' @noRd
+drm_missing_explicit_predictor_fail <- function(missing) {
+  if (!inherits(missing, "drm_missing_control") ||
+    !identical(missing$predictor, "fail")) {
+    return(FALSE)
+  }
+  explicit <- attr(missing, "explicit", exact = TRUE)
+  if (is.null(explicit)) {
+    return(TRUE)
+  }
+  isTRUE(explicit[["predictor"]]) || !any(explicit)
+}
+
+#' Fail early when predictor missingness is disallowed
+#'
+#' Used when `miss_control(predictor = "fail")` (the default): ordinary model
+#' columns must be complete; response missingness is handled separately.
+#'
+#' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
+#' @param data A data frame containing the model variables.
+#'
+#' @return `NULL`, invisibly, when all required predictors are complete.
+drm_validate_complete_predictors <- function(formula, data) {
+  needed <- tryCatch(
+    drm_julia_needed_columns(formula),
+    error = function(e) character()
+  )
+  if (!length(needed)) {
+    return(invisible(NULL))
+  }
+  present <- intersect(needed, names(data))
+  response_cols <- unique(unlist(
+    lapply(formula$entries, function(entry) {
+      if (!entry$dpar %in% c("mu", "mu1", "mu2") || is.na(entry$response)) {
+        return(character())
+      }
+      drm_julia_expand_response_columns(entry$response)
+    }),
+    use.names = FALSE
+  ))
+  check_cols <- setdiff(present, response_cols)
+  if (!length(check_cols)) {
+    return(invisible(NULL))
+  }
+  na_cols <- check_cols[vapply(
+    check_cols,
+    function(col) anyNA(data[[col]]),
+    logical(1L)
+  )]
+  if (length(na_cols) > 0L) {
+    cli::cli_abort(c(
+      "{.code miss_control(predictor = \"fail\")} requires complete predictors.",
+      "x" = "Missing values in: {.val {na_cols}}.",
+      "i" = "Use {.code missing = miss_control(predictor = \"model\")} with {.fn mi} on supported routes, or complete the data."
+    ))
+  }
+  invisible(NULL)
 }
 
 #' Define a missing-predictor model
@@ -90,8 +179,10 @@ miss_control <- function(
 #' Gamma models for one positive continuous predictor, and fixed-effect
 #' Tweedie models for one non-negative semi-continuous predictor with exact
 #' zeros. Most current non-Gaussian predictor families are fitted inside a
-#' Gaussian response location model; Poisson, binomial, negative-binomial, and
-#' beta responses are currently supported for one binary missing predictor.
+#' Gaussian response location model; Poisson, binomial, negative-binomial,
+#' beta, Gamma, lognormal, beta-binomial, and student responses are
+#' currently supported for one binary missing predictor. `nbinom2()`
+#' also admits one fixed-effect Gaussian missing predictor.
 #'
 #' @param formula Two-sided predictor-model formula. For most families, the
 #'   left-hand side must be the same variable used inside [mi()]. For
@@ -102,7 +193,7 @@ miss_control <- function(
 #'   continuous predictor route. `binomial(link = "logit")` fits the binary
 #'   missing-predictor route. [cumulative_logit()] fits the ordered categorical
 #'   missing-predictor route. [categorical()] fits the unordered categorical
-#'   missing-predictor route. [beta()] fits the strict beta/proportion
+#'   missing-predictor route. [beta_family()] fits the strict beta/proportion
 #'   missing-predictor route. [zero_one_beta()] fits the boundary-proportion
 #'   missing-predictor route. [beta_binomial()] fits a denominator-aware
 #'   success/trial proportion route and requires `trials`. `poisson(link =
@@ -122,7 +213,7 @@ miss_control <- function(
 #' impute_model(treatment ~ z, family = binomial())
 #' impute_model(score ~ z, family = cumulative_logit())
 #' impute_model(habitat ~ z, family = categorical())
-#' impute_model(cover ~ z, family = beta())
+#' impute_model(cover ~ z, family = beta_family())
 #' impute_model(cover ~ z, family = zero_one_beta())
 #' impute_model(success ~ z, family = beta_binomial(), trials = trials)
 #' impute_model(abundance ~ z, family = poisson())
@@ -132,6 +223,7 @@ miss_control <- function(
 #' impute_model(biomass ~ z, family = Gamma(link = "log"))
 #' impute_model(biomass ~ z, family = tweedie())
 impute_model <- function(formula, family = stats::gaussian(), trials = NULL) {
+  family <- drm_eval_family_arg(substitute(family), parent.frame())
   if (!inherits(formula, "formula") || length(formula) != 3L) {
     cli::cli_abort(
       "{.arg formula} must be a two-sided formula such as {.code x ~ z}."
@@ -209,7 +301,7 @@ impute_model <- function(formula, family = stats::gaussian(), trials = NULL) {
 #' categorical predictor used inside [mi()]. It is currently a predictor-model
 #' family for [impute_model()], not a response family for [drmTMB()].
 #'
-#' The first fitted route is fixed-effect and uses the first factor level as
+#' The supported model is fixed-effect and uses the first factor level as
 #' the baseline category. Missing predictor values are integrated by exact
 #' summation over the unordered levels.
 #'
@@ -230,6 +322,9 @@ categorical <- function() {
 }
 
 drm_impute_family_type <- function(family) {
+  if (is.function(family) && identical(family, base::beta)) {
+    drm_abort_base_beta_as_family()
+  }
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
     return("gaussian")
   }
@@ -313,7 +408,7 @@ drm_impute_family_type <- function(family) {
   }
   cli::cli_abort(c(
     "Unsupported missing-predictor family {.val {label}}.",
-    "i" = "The fitted predictor-model families are currently {.code gaussian()}, {.code binomial(link = \"logit\")}, {.fn cumulative_logit}, {.fn categorical}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn lognormal}, {.code Gamma(link = \"log\")}, and {.fn tweedie}."
+    "i" = "The fitted predictor-model families are currently {.code gaussian()}, {.code binomial(link = \"logit\")}, {.fn cumulative_logit}, {.fn categorical}, {.fn beta_family}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn lognormal}, {.code Gamma(link = \"log\")}, and {.fn tweedie}."
   ))
 }
 
@@ -367,7 +462,10 @@ drm_missing_response_families <- function() {
 }
 
 drm_missing_predictor_families <- function() {
-  c("gaussian", "poisson", "binomial", "nbinom2", "beta")
+  c(
+    "gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma",
+    "lognormal", "beta_binomial", "student"
+  )
 }
 
 drm_missing_response_sentinel <- function() {
@@ -608,7 +706,12 @@ drm_find_mi_calls <- function(expr) {
   out
 }
 
-drm_prepare_gaussian_mi_setup <- function(mu_rhs, impute, missing) {
+drm_prepare_gaussian_mi_setup <- function(
+  mu_rhs,
+  impute,
+  missing,
+  allow_k2 = FALSE
+) {
   mi_calls <- drm_find_mi_calls(mu_rhs)
   predictor_model <- identical(missing$predictor, "model")
   if (!predictor_model && length(mi_calls) > 0L) {
@@ -625,17 +728,83 @@ drm_prepare_gaussian_mi_setup <- function(mu_rhs, impute, missing) {
   if (!predictor_model) {
     return(empty_gaussian_mi_setup())
   }
-  if (length(mi_calls) != 1L) {
+  n_mi <- length(mi_calls)
+  if (n_mi == 1L) {
+    return(drm_prepare_one_independent_mi_setup(mi_calls[[1L]], mu_rhs, impute))
+  }
+  if (isTRUE(allow_k2) && n_mi == 2L) {
+    return(drm_prepare_two_independent_gaussian_mi_setup(mi_calls, mu_rhs, impute))
+  }
+  cli::cli_abort(c(
+    "The current missing-predictor routes require exactly one {.fn mi} term in the response location formula.",
+    "x" = "Found {n_mi} {.fn mi} term{?s}.",
+    "i" = if (n_mi == 2L) {
+      "Two independent Gaussian {.fn mi} terms are implemented only for a Gaussian response. Other families still take one {.fn mi} term."
+    } else {
+      "k > 2 independent {.fn mi} terms are not implemented yet."
+    }
+  ))
+}
+
+drm_prepare_one_independent_mi_setup <- function(mi_call, mu_rhs, impute) {
+  variable <- drm_validate_bare_mi_call(mi_call, mu_rhs)
+  impute_spec <- drm_validate_named_impute_entry(impute, variable, n_expected = 1L)
+  drm_mi_setup_from_impute(variable, impute_spec)
+}
+
+drm_prepare_two_independent_gaussian_mi_setup <- function(mi_calls, mu_rhs, impute) {
+  variables <- vapply(
+    mi_calls,
+    function(mi_call) drm_validate_bare_mi_call(mi_call, mu_rhs),
+    character(1)
+  )
+  if (anyDuplicated(variables)) {
+    cli::cli_abort(
+      "Independent {.fn mi} terms must name two distinct predictors."
+    )
+  }
+  first <- drm_validate_named_impute_entry(
+    impute,
+    variables[[1L]],
+    n_expected = 2L,
+    all_variables = variables
+  )
+  second <- drm_validate_named_impute_entry(
+    impute,
+    variables[[2L]],
+    n_expected = 2L,
+    all_variables = variables
+  )
+  if (!identical(first$family, "gaussian") || !identical(second$family, "gaussian")) {
     cli::cli_abort(c(
-      "The current missing-predictor routes require exactly one {.fn mi} term in the response location formula.",
-      "x" = "Found {length(mi_calls)} {.fn mi} term{?s}."
+      "The first two-{.fn mi} slice supports two independent Gaussian predictor models only.",
+      "x" = "Found families {.val {c(first$family, second$family)}}.",
+      "i" = "Use {.code impute = list({variables[[1L]]} = impute_model({variables[[1L]]} ~ ..., family = gaussian()), {variables[[2L]]} = impute_model({variables[[2L]]} ~ ..., family = gaussian()))}."
     ))
   }
-  mi_call <- mi_calls[[1L]]
+  first_setup <- drm_mi_setup_from_impute(variables[[1L]], first)
+  second_setup <- drm_mi_setup_from_impute(variables[[2L]], second)
+  if (
+    isTRUE(first_setup$random$enabled) ||
+      isTRUE(first_setup$structured$enabled) ||
+      isTRUE(second_setup$random$enabled) ||
+      isTRUE(second_setup$structured$enabled)
+  ) {
+    cli::cli_abort(c(
+      "Two independent {.fn mi} terms currently support fixed-effect predictor models only.",
+      "i" = "Drop grouped or structured terms from each {.arg impute} formula."
+    ))
+  }
+  first_setup$n_mi <- 2L
+  first_setup$second <- second_setup
+  first_setup
+}
+
+drm_validate_bare_mi_call <- function(mi_call, mu_rhs) {
   if (length(mi_call) != 2L || !is.symbol(mi_call[[2L]])) {
     cli::cli_abort(c(
       "The current {.fn mi} routes support only a bare predictor, such as {.code mi(x)}.",
-      "x" = "Transformations, interactions inside {.fn mi}, and multiple missing predictors are planned later."
+      "x" = "Transformations, interactions inside {.fn mi}, and more than two missing predictors are planned later."
     ))
   }
   variable <- as.character(mi_call[[2L]])
@@ -653,12 +822,16 @@ drm_prepare_gaussian_mi_setup <- function(mu_rhs, impute, missing) {
       "x" = "Use syntax like {.code y ~ z + mi(x)}, not interactions or transformed {.fn mi} terms."
     ))
   }
-  impute_spec <- drm_validate_single_impute_formula(impute, variable)
+  variable
+}
+
+drm_mi_setup_from_impute <- function(variable, impute_spec) {
   list(
     enabled = TRUE,
+    n_mi = 1L,
     variable = variable,
-    label = mi_label,
-    model_column = mi_label,
+    label = paste0("mi(", variable, ")"),
+    model_column = paste0("mi(", variable, ")"),
     formula = impute_spec$formula,
     raw_formula = impute_spec$raw_formula,
     family = impute_spec$family,
@@ -666,13 +839,33 @@ drm_prepare_gaussian_mi_setup <- function(mu_rhs, impute, missing) {
     trials_variable = impute_spec$trials_variable,
     response_variable = impute_spec$response_variable,
     random = impute_spec$random,
-    structured = impute_spec$structured
+    structured = impute_spec$structured,
+    second = NULL
   )
+}
+
+drm_mi_setup_variables <- function(setup) {
+  vars <- character(0)
+  if (isTRUE(setup$enabled) && length(setup$variable) == 1L) {
+    vars <- setup$variable
+  }
+  if (is.list(setup$second) && isTRUE(setup$second$enabled)) {
+    vars <- c(vars, setup$second$variable)
+  }
+  vars
+}
+
+drm_mi_setup_second <- function(setup) {
+  if (is.list(setup$second) && isTRUE(setup$second$enabled)) {
+    return(setup$second)
+  }
+  NULL
 }
 
 empty_gaussian_mi_setup <- function() {
   list(
     enabled = FALSE,
+    n_mi = 0L,
     variable = character(0),
     label = character(0),
     model_column = character(0),
@@ -683,32 +876,64 @@ empty_gaussian_mi_setup <- function() {
     trials_variable = character(0),
     response_variable = character(0),
     random = NULL,
-    structured = NULL
+    structured = NULL,
+    second = NULL
   )
 }
 
 drm_validate_single_impute_formula <- function(impute, variable) {
+  drm_validate_named_impute_entry(impute, variable, n_expected = 1L)
+}
+
+drm_validate_named_impute_entry <- function(
+  impute,
+  variable,
+  n_expected = 1L,
+  all_variables = variable
+) {
   if (is.null(impute)) {
     cli::cli_abort(c(
       "{.code miss_control(predictor = \"model\")} requires an {.arg impute} formula.",
       "i" = "Use syntax such as {.code impute = list(x = x ~ z)} for a Gaussian predictor, or {.code impute = list(x = impute_model(x ~ z, family = binomial()))} for a finite-state predictor."
     ))
   }
-  if (!is.list(impute) || length(impute) != 1L) {
+  if (!is.list(impute) || length(impute) != n_expected) {
     cli::cli_abort(
-      "{.arg impute} must be a one-element named list for the current missing-predictor routes."
+      "{.arg impute} must be a {n_expected}-element named list for the current missing-predictor routes."
     )
   }
   name <- names(impute)
-  if (
-    !is.null(name) && nzchar(name[[1L]]) && !identical(name[[1L]], variable)
-  ) {
-    cli::cli_abort(c(
-      "{.arg impute} name must match the {.fn mi} predictor.",
-      "x" = "Found {.code impute = list({name[[1L]]} = ...)} for {.code mi({variable})}."
-    ))
+  if (n_expected == 1L) {
+    if (
+      !is.null(name) && nzchar(name[[1L]]) && !identical(name[[1L]], variable)
+    ) {
+      cli::cli_abort(c(
+        "{.arg impute} name must match the {.fn mi} predictor.",
+        "x" = "Found {.code impute = list({name[[1L]]} = ...)} for {.code mi({variable})}."
+      ))
+    }
+    impute_model <- drm_standardize_impute_model(impute[[1L]])
+  } else {
+    if (is.null(name) || any(!nzchar(name))) {
+      cli::cli_abort(
+        "{.arg impute} must be a named list whose names match the {.fn mi} predictors."
+      )
+    }
+    if (!variable %in% name) {
+      cli::cli_abort(c(
+        "{.arg impute} name must match the {.fn mi} predictor.",
+        "x" = "Found {.code impute} names {.val {name}} for {.code mi({variable})}."
+      ))
+    }
+    extra <- setdiff(name, all_variables)
+    if (length(extra) > 0L) {
+      cli::cli_abort(c(
+        "{.arg impute} names must match the {.fn mi} predictors.",
+        "x" = "Unexpected name{?s}: {.val {extra}}."
+      ))
+    }
+    impute_model <- drm_standardize_impute_model(impute[[variable]])
   }
-  impute_model <- drm_standardize_impute_model(impute[[1L]])
   formula <- impute_model$formula
   family <- impute_model$family_type
   trials_expr <- impute_model$trials
@@ -780,7 +1005,7 @@ drm_validate_single_impute_formula <- function(impute, variable) {
     cli::cli_abort(c(
       "Non-Gaussian {.arg impute} models currently support fixed effects only.",
       "x" = "The first finite-state missing-predictor slices do not support grouped or structured covariate effects.",
-      "i" = "Use syntax such as {.code impute = list(x = impute_model(x ~ z, family = binomial()))}, {.code impute_model(x ~ z, family = cumulative_logit())}, {.code impute_model(x ~ z, family = categorical())}, {.code impute_model(x ~ z, family = beta())}, {.code impute_model(x ~ z, family = zero_one_beta())}, {.code impute_model(success ~ z, family = beta_binomial(), trials = trials)}, {.code impute_model(x ~ z, family = poisson())}, {.code impute_model(x ~ z, family = nbinom2())}, {.code impute_model(x ~ z, family = truncated_nbinom2())}, {.code impute_model(x ~ z, family = lognormal())}, {.code impute_model(x ~ z, family = Gamma(link = \"log\"))}, or {.code impute_model(x ~ z, family = tweedie())}."
+      "i" = "Use syntax such as {.code impute = list(x = impute_model(x ~ z, family = binomial()))}, {.code impute_model(x ~ z, family = cumulative_logit())}, {.code impute_model(x ~ z, family = categorical())}, {.code impute_model(x ~ z, family = beta_family())}, {.code impute_model(x ~ z, family = zero_one_beta())}, {.code impute_model(success ~ z, family = beta_binomial(), trials = trials)}, {.code impute_model(x ~ z, family = poisson())}, {.code impute_model(x ~ z, family = nbinom2())}, {.code impute_model(x ~ z, family = truncated_nbinom2())}, {.code impute_model(x ~ z, family = lognormal())}, {.code impute_model(x ~ z, family = Gamma(link = \"log\"))}, or {.code impute_model(x ~ z, family = tweedie())}."
     ))
   }
   rhs_names <- all.names(
@@ -1987,7 +2212,30 @@ drm_beta_missing_predictor_inverse_link <- function(eta) {
   eps + (1 - 2 * eps) * stats::plogis(eta)
 }
 
-drm_beta_mi_quadrature <- function() {
+drm_standard_normal_mi_quadrature <- function(n = 31L) {
+  n <- as.integer(n)
+  if (length(n) != 1L || is.na(n) || n < 2L) {
+    cli::cli_abort("{.fn drm_standard_normal_mi_quadrature} requires n >= 2.")
+  }
+  i <- seq_len(n - 1L)
+  off_diagonal <- sqrt(i / 2)
+  jacobi <- matrix(0, nrow = n, ncol = n)
+  jacobi[cbind(i, i + 1L)] <- off_diagonal
+  jacobi[cbind(i + 1L, i)] <- off_diagonal
+  eig <- eigen(jacobi, symmetric = TRUE)
+  order <- order(eig$values)
+  hermite_nodes <- eig$values[order]
+  hermite_weights <- sqrt(pi) * eig$vectors[1L, order]^2
+  list(
+    nodes = sqrt(2) * hermite_nodes,
+    weights = hermite_weights / sqrt(pi)
+  )
+}
+
+drm_beta_mi_quadrature <- function(n = 15L) {
+  # Frozen 15-node Gauss-Legendre on (0, 1). The n argument is ignored so
+  # callers that still pass n = 15L keep working; do not raise the node
+  # count here (Refs #1476).
   nodes <- c(
     -0.9879925180204854,
     -0.937273392400706,
@@ -2023,6 +2271,150 @@ drm_beta_mi_quadrature <- function() {
     0.03075324199611727
   )
   list(nodes = (nodes + 1) / 2, weights = weights / 2)
+}
+
+drm_gamma_mi_log_integrand <- function(
+  u,
+  mu,
+  sigma,
+  y = NULL,
+  mu_y = 0,
+  sigma_y = 1,
+  beta_x = 0,
+  x_base = 0,
+  response = "none"
+) {
+  x <- exp(u)
+  log_gamma <- stats::dgamma(
+    x,
+    shape = 1 / sigma^2,
+    scale = mu * sigma^2,
+    log = TRUE
+  )
+  log_y <- 0
+  if (!identical(response, "none") && !is.null(y)) {
+    mu_q <- mu_y + beta_x * (x - x_base)
+    log_y <- switch(
+      response,
+      gaussian = stats::dnorm(y, mu_q, sigma_y, log = TRUE),
+      poisson = stats::dpois(y, exp(mu_q), log = TRUE),
+      0
+    )
+  }
+  log_gamma + log_y + u
+}
+
+# Analytic score and Hessian of drm_gamma_mi_log_integrand() on u = log(x),
+# mirroring drm_gamma_mi_newton_grad_hess() in src/drmTMB.cpp. Prior and
+# Jacobian are exact; the response term uses each family's own log-density
+# derivatives in eta, then the chain rule through eta = mu_y + beta_x * (x -
+# x_base).
+drm_gamma_mi_grad_hess <- function(
+  u,
+  mu,
+  sigma,
+  y = NULL,
+  mu_y = 0,
+  sigma_y = 1,
+  beta_x = 0,
+  x_base = 0,
+  response = "none"
+) {
+  shape <- 1 / sigma^2
+  scale <- mu * sigma^2
+  x <- exp(u)
+  g <- shape - x / scale
+  H <- -x / scale
+  if (!is.null(y) && !identical(response, "none")) {
+    mu_q <- mu_y + beta_x * (x - x_base)
+    dmu_du <- beta_x * x
+    if (identical(response, "gaussian")) {
+      inv_s2 <- 1 / sigma_y^2
+      d1 <- (y - mu_q) * inv_s2
+      d2 <- -inv_s2
+    } else {
+      lambda <- exp(mu_q)
+      d1 <- y - lambda
+      d2 <- -lambda
+    }
+    g <- g + d1 * dmu_du
+    H <- H + d2 * dmu_du * dmu_du + d1 * dmu_du
+  }
+  list(g = g, H = H)
+}
+
+drm_gamma_mi_adaptive_nodes <- function(
+  z,
+  w,
+  mu,
+  sigma,
+  y = NULL,
+  mu_y = 0,
+  sigma_y = 1,
+  beta_x = 0,
+  x_base = 0,
+  response = c("gaussian", "poisson", "none")
+) {
+  response <- match.arg(response)
+  if (is.null(y)) {
+    response <- "none"
+  }
+  f <- function(u) {
+    drm_gamma_mi_log_integrand(
+      u, mu, sigma, y, mu_y, sigma_y, beta_x, x_base, response
+    )
+  }
+  grad_hess <- function(u) {
+    drm_gamma_mi_grad_hess(
+      u, mu, sigma, y, mu_y, sigma_y, beta_x, x_base, response
+    )
+  }
+  # Five safeguarded Newton steps on u = log(x), as in
+  # drm_gamma_mi_adaptive_quadrature() in src/drmTMB.cpp: keep the better
+  # (by log integrand) of (A) the clamped log-x Newton step and (B) a Newton
+  # step on G(x) = g / x, x_new / x = (H - 2g) / (H - g). No data-dependent
+  # stop; nodes are placed once, after step 5.
+  safe_f <- function(u) {
+    v <- f(u)
+    if (is.finite(v)) v else -1e300
+  }
+  u <- log(max(mu, 1e-300))
+  for (k in seq_len(5L)) {
+    gh <- grad_hess(u)
+    H_safe <- min(gh$H, -1e-8)
+    u_a <- u - max(min(gh$g / H_safe, 2), -2)
+    Hg <- gh$H - gh$g
+    ratio <- (gh$H - 2 * gh$g) / min(Hg, -1e-12)
+    step_b <- max(min(log(max(ratio, 1e-300)), 2), -8)
+    u_b <- if (isTRUE(Hg < 0 && ratio > 0)) u + step_b else u_a
+    u <- if (safe_f(u_b) > safe_f(u_a)) u_b else u_a
+  }
+  H <- grad_hess(u)$H
+  sigma_u <- 1 / sqrt(max(-H, 1e-8))
+  # Sinh-mapped trapezoid: z are abscissae t, w the trapezoid step.
+  # A node that hits u_max = 500 keeps a finite x for reporting, but the
+  # term is dropped so the full w*cosh weight is not used at the cap.
+  u_raw <- u + sigma_u * sinh(z)
+  u_q <- pmin(u_raw, 500)
+  x <- exp(u_q)
+  log_terms <- log(w) + f(u_q) + log(sigma_u) + log(cosh(z))
+  log_terms[u_raw > 500] <- -1e300
+  log_ll <- drm_logsumexp(log_terms)
+  if (!is.finite(log_ll)) {
+    drm_abort_mi_quadrature_nonfinite()
+  }
+  list(
+    x = x,
+    log_terms = log_terms,
+    mode = u,
+    sigma_u = sigma_u,
+    mode_grad = grad_hess(u)$g
+  )
+}
+
+drm_logsumexp <- function(log_terms) {
+  m <- max(log_terms)
+  m + log(sum(exp(log_terms - m)))
 }
 
 drm_beta_missing_predictor_log_density <- function(x, mu, sigma) {
@@ -2192,18 +2584,15 @@ drm_zero_one_beta_missing_predictor_response <- function(x, variable) {
     cli::cli_abort(c(
       "Zero-one beta/proportion missing-predictor models require observed values in [0, 1].",
       "x" = "Predictor {.val {variable}} contains out-of-range or non-finite observed values.",
-      "i" = "Use {.fn beta} for strict proportions or another predictor family when the support is not bounded by 0 and 1."
+      "i" = "Use {.fn beta_family} for strict proportions or another predictor family when the support is not bounded by 0 and 1."
     ))
   }
   x
 }
 
-drm_zero_one_beta_mi_quadrature <- function() {
+drm_zero_one_beta_mi_quadrature <- function(n = 15L) {
   beta <- drm_beta_mi_quadrature()
-  list(
-    nodes = c(0, beta$nodes, 1),
-    weights = c(1, beta$weights, 1)
-  )
+  list(nodes = c(0, beta$nodes, 1), weights = c(1, beta$weights, 1))
 }
 
 drm_zero_one_beta_missing_predictor_log_density <- function(
@@ -2437,7 +2826,7 @@ drm_beta_binomial_missing_predictor_response <- function(
     cli::cli_abort(c(
       "Observed {.fn mi} proportions cannot be used without matching beta-binomial success counts.",
       "x" = "Predictor {.val {variable}} is observed in row{?s} where success column {.val {success_variable}} is missing.",
-      "i" = "Use {.fn beta} or {.fn zero_one_beta} for proportion-only predictors, or provide success counts and trial counts."
+      "i" = "Use {.fn beta_family} or {.fn zero_one_beta} for proportion-only predictors, or provide success counts and trial counts."
     ))
   }
   if (any(value_observed & observed)) {
@@ -3169,19 +3558,7 @@ drm_lognormal_missing_predictor_response <- function(x, variable) {
 }
 
 drm_lognormal_mi_quadrature <- function(n = 15L) {
-  i <- seq_len(n - 1L)
-  off_diagonal <- sqrt(i / 2)
-  jacobi <- matrix(0, nrow = n, ncol = n)
-  jacobi[cbind(i, i + 1L)] <- off_diagonal
-  jacobi[cbind(i + 1L, i)] <- off_diagonal
-  eig <- eigen(jacobi, symmetric = TRUE)
-  order <- order(eig$values)
-  hermite_nodes <- eig$values[order]
-  hermite_weights <- sqrt(pi) * eig$vectors[1L, order]^2
-  list(
-    nodes = sqrt(2) * hermite_nodes,
-    weights = hermite_weights / sqrt(pi)
-  )
+  drm_standard_normal_mi_quadrature(n)
 }
 
 drm_lognormal_missing_predictor_log_density <- function(x, eta, sigma) {
@@ -3334,21 +3711,17 @@ drm_gamma_missing_predictor_response <- function(x, variable) {
   x
 }
 
-drm_gamma_mi_quadrature <- function(n = 20L) {
-  i <- seq_len(n)
-  jacobi <- matrix(0, nrow = n, ncol = n)
-  diag(jacobi) <- 2 * i - 1
-  if (n > 1L) {
-    off <- seq_len(n - 1L)
-    jacobi[cbind(off, off + 1L)] <- off
-    jacobi[cbind(off + 1L, off)] <- off
+drm_gamma_mi_quadrature <- function(n = 51L) {
+  # Equally spaced abscissae t on [-5, 4] with trapezoid weight h. Production
+  # places u = mode + sigma_u * sinh(t); see drm_gamma_mi_adaptive_nodes().
+  # The wide left span reaches the exp(shape * u) tail at CV >= 1 that a
+  # Gauss-Hermite rule cannot (Refs #1477).
+  n <- as.integer(n)
+  if (length(n) != 1L || is.na(n) || n < 2L) {
+    cli::cli_abort("{.fn drm_gamma_mi_quadrature} requires n >= 2.")
   }
-  eig <- eigen(jacobi, symmetric = TRUE)
-  order <- order(eig$values)
-  list(
-    nodes = eig$values[order],
-    weights = eig$vectors[1L, order]^2
-  )
+  nodes <- seq(-5, 4, length.out = n)
+  list(nodes = nodes, weights = rep(nodes[[2L]] - nodes[[1L]], n))
 }
 
 drm_gamma_missing_predictor_log_density <- function(x, mu, sigma) {
@@ -3749,12 +4122,17 @@ drm_build_gaussian_mi_structured_intercept <- function(
   )
 }
 
-drm_missing_predictor_metadata <- function(model, original_row) {
+drm_missing_predictor_metadata <- function(
+  model,
+  original_row,
+  latent_name = "x_miss"
+) {
   if (!isTRUE(model$enabled)) {
     return(list())
   }
   out <- list(
     variable = model$variable,
+    latent_name = latent_name,
     family = model$family,
     formula = paste(deparse(model$raw_formula), collapse = " "),
     model_row = as.integer(model$missing_index),
@@ -3813,6 +4191,17 @@ drm_tmb_missing_predictor_data <- function(spec) {
   } else {
     drm_empty_missing_predictor_model()
   }
+  if (isTRUE(model$enabled)) {
+    drm_warn_mi_prior_ignores_weights(
+      spec$weights,
+      drm_mi_prior_path_unweighted(model, spec$missing_predictor2)
+    )
+    drm_abort_mi_zero_weight_missing(
+      spec$weights,
+      model$observed,
+      model$variable
+    )
+  }
   dummy_sparse <- Matrix::sparseMatrix(
     i = integer(0),
     j = integer(0),
@@ -3820,7 +4209,7 @@ drm_tmb_missing_predictor_data <- function(spec) {
     dims = c(1L, 1L)
   )
   if (isTRUE(model$enabled)) {
-    return(list(
+    return(c(list(
       has_mi = 1L,
       mi_family = switch(
         model$family,
@@ -3905,7 +4294,7 @@ drm_tmb_missing_predictor_data <- function(spec) {
       } else {
         1
       }
-    ))
+    ), drm_tmb_second_missing_predictor_data(spec)))
   }
   n <- if (!is.null(spec$y)) {
     length(spec$y)
@@ -3914,7 +4303,7 @@ drm_tmb_missing_predictor_data <- function(spec) {
   } else {
     1L
   }
-  list(
+  c(list(
     has_mi = 0L,
     mi_family = 0L,
     mi_col = 0L,
@@ -3935,6 +4324,41 @@ drm_tmb_missing_predictor_data <- function(spec) {
     X_mi_state_mu = matrix(0, nrow = 1L, ncol = 1L),
     mi_quad_nodes = 0,
     mi_quad_weights = 1
+  ), drm_tmb_second_missing_predictor_data(spec))
+}
+
+drm_tmb_second_missing_predictor_data <- function(spec) {
+  model2 <- spec$missing_predictor2
+  if (is.list(model2) && isTRUE(model2$enabled)) {
+    return(list(
+      has_mi2 = 1L,
+      mi_col2 = as.integer(
+        if (length(model2$mu_col) == 1L && !is.na(model2$mu_col)) {
+          model2$mu_col - 1L
+        } else {
+          0L
+        }
+      ),
+      mi_x2 = as.numeric(model2$x),
+      mi_observed2 = as.integer(model2$observed),
+      mi_missing_index2 = as.integer(model2$missing_index - 1L),
+      X_mi2 = model2$X
+    ))
+  }
+  n <- if (!is.null(spec$y)) {
+    length(spec$y)
+  } else if (!is.null(spec$y1)) {
+    length(spec$y1)
+  } else {
+    1L
+  }
+  list(
+    has_mi2 = 0L,
+    mi_col2 = 0L,
+    mi_x2 = rep(0, max(1L, n)),
+    mi_observed2 = rep(1L, max(1L, n)),
+    mi_missing_index2 = 0L,
+    X_mi2 = matrix(0, nrow = 1L, ncol = 1L)
   )
 }
 
@@ -3991,6 +4415,38 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
                 lambda = exp(eta0[rows_y]),
                 log = TRUE
               )
+        } else if (identical(spec$model_type, "zi_poisson")) {
+          # D-23: ZIP mixture, not the Poisson leaf. eta_zi is observed-only.
+          offset_mu <- if (!is.null(spec$offset$mu)) {
+            spec$offset$mu
+          } else {
+            rep(0, length(spec$y))
+          }
+          eta_base <- as.vector(offset_mu + spec$X$mu %*% beta_mu)
+          eta_zi <- as.vector(spec$X$zi %*% as.numeric(par_list$beta_zi))
+          eta1 <- eta_base + beta_x * (1 - x_base)
+          eta0 <- eta_base + beta_x * (0 - x_base)
+          zip_log <- function(y, eta_mu, eta_zi) {
+            mu <- exp(eta_mu)
+            log_zi <- stats::plogis(eta_zi, log.p = TRUE)
+            log_one_minus_zi <- stats::plogis(
+              eta_zi,
+              lower.tail = FALSE,
+              log.p = TRUE
+            )
+            log_pois <- stats::dpois(y, mu, log = TRUE)
+            a <- log_zi
+            b <- log_one_minus_zi - mu
+            m <- pmax(a, b)
+            log_zero <- m + log(exp(a - m) + exp(b - m))
+            ifelse(y == 0, log_zero, log_one_minus_zi + log_pois)
+          }
+          log_p1[rows_y] <- log_p1[rows_y] +
+            spec$weights[rows_y] *
+              zip_log(spec$y[rows_y], eta1[rows_y], eta_zi[rows_y])
+          log_p0[rows_y] <- log_p0[rows_y] +
+            spec$weights[rows_y] *
+              zip_log(spec$y[rows_y], eta0[rows_y], eta_zi[rows_y])
         } else if (identical(spec$model_type, "binomial")) {
           offset_mu <- if (!is.null(spec$offset$mu)) {
             spec$offset$mu
@@ -4260,6 +4716,9 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
                 log = TRUE
               )
         }
+        if (!all(is.finite(log_terms))) {
+          drm_abort_mi_quadrature_nonfinite()
+        }
         max_log <- max(log_terms)
         normalized <- exp(log_terms - max_log)
         normalized <- normalized / sum(normalized)
@@ -4322,6 +4781,9 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
                 sd = sigma[[row]],
                 log = TRUE
               )
+        }
+        if (!all(is.finite(log_terms))) {
+          drm_abort_mi_quadrature_nonfinite()
         }
         max_log <- max(log_terms)
         normalized <- exp(log_terms - max_log)
@@ -4686,19 +5148,31 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
       observed_y <- as.logical(missing_data$observed_y)
       for (row_i in seq_along(missing_index)) {
         row <- missing_index[[row_i]]
-        scale <- mu_x[[row]] * sigma_x^2
-        x_nodes <- scale * nodes
-        log_terms <- log(weights) + (shape_x - 1) * log(nodes) - lgamma(shape_x)
-        if (observed_y[[row]]) {
+        resp <- if (observed_y[[row]]) "gaussian" else "none"
+        quad <- drm_gamma_mi_adaptive_nodes(
+          nodes,
+          weights,
+          mu_x[[row]],
+          sigma_x,
+          y = spec$y[[row]],
+          mu_y = mu_base[[row]],
+          sigma_y = sigma[[row]],
+          beta_x = beta_x,
+          x_base = x_base[[row]],
+          response = resp
+        )
+        x_nodes <- quad$x
+        log_terms <- quad$log_terms
+        if (observed_y[[row]] && !isTRUE(all.equal(spec$weights[[row]], 1))) {
           mu_node <- mu_base[[row]] + beta_x * (x_nodes - x_base[[row]])
-          log_terms <- log_terms +
-            spec$weights[[row]] *
-              stats::dnorm(
-                spec$y[[row]],
-                mean = mu_node,
-                sd = sigma[[row]],
-                log = TRUE
-              )
+          log_y_unit <- stats::dnorm(
+            spec$y[[row]],
+            mean = mu_node,
+            sd = sigma[[row]],
+            log = TRUE
+          )
+          log_terms <- log_terms - log_y_unit +
+            spec$weights[[row]] * log_y_unit
         }
         max_log <- max(log_terms)
         normalized <- exp(log_terms - max_log)
@@ -4797,6 +5271,20 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
   missing_data$predictors[[variable]]$value <- value
   missing_data$predictors[[variable]]$conditional_mode <- x_miss
   missing_data$predictors[[variable]]$summary <- "conditional_mode"
+  model2 <- spec$missing_predictor2
+  if (is.list(model2) && isTRUE(model2$enabled)) {
+    variable2 <- model2$variable
+    if (is.list(missing_data$predictors) && variable2 %in% names(missing_data$predictors)) {
+      x_miss2 <- as.numeric(par_list$x_miss2)
+      if (length(x_miss2) == length(model2$missing_index)) {
+        value2 <- as.numeric(model2$x)
+        value2[model2$missing_index] <- x_miss2
+        missing_data$predictors[[variable2]]$value <- value2
+        missing_data$predictors[[variable2]]$conditional_mode <- x_miss2
+        missing_data$predictors[[variable2]]$summary <- "conditional_mode"
+      }
+    }
+  }
   missing_data
 }
 
@@ -5071,7 +5559,16 @@ drm_imputed_missing_predictor_se <- function(
     return(rep(NA_real_, n_missing))
   }
   random_names <- names(object$sdr$par.random)
-  positions <- which(random_names == "x_miss")
+  latent_name <- predictor$latent_name
+  if (
+    !is.character(latent_name) ||
+      length(latent_name) != 1L ||
+      is.na(latent_name) ||
+      !nzchar(latent_name)
+  ) {
+    latent_name <- "x_miss"
+  }
+  positions <- which(random_names == latent_name)
   if (length(positions) != n_missing) {
     # Summed (finite-state) mi families legitimately have zero x_miss random
     # parameters; fall back to NA in that case rather than mismatching.
@@ -5132,7 +5629,7 @@ drm_imputed_route_conditional_sd <- function(predictor) {
     grid <- if (!is.null(predictor$quadrature_values)) {
       predictor$quadrature_values
     } else if (!is.null(predictor$quadrature_probabilities)) {
-      # The `beta()` route does not store `quadrature_values`; the shared
+      # The `beta_family()` route does not store `quadrature_values`; the shared
       # node grid is only available as the (rounded) column names of
       # `quadrature_probabilities`. This loses precision to the
       # `format(nodes, digits = 4)` rounding applied when those column names

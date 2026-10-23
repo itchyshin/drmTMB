@@ -1,0 +1,9 @@
+M docs/dev-log/dashboard/capability-census/_widget_data.json
+M docs/dev-log/dashboard/capability-ledger/schema.json
+M docs/dev-log/dashboard/capability-surface.html
+M docs/dev-log/dashboard/capability-surface.md
+M tools/capability_ledger.py
+M tools/tests/test_capability_ledger.py
+M vignettes/includes/capability-ledger-family-map.md
+M vignettes/includes/capability-ledger-summary.md
+?? docs/dev-log/after-task/2026-08-27-s6-a7-family-gate-kickoff.md

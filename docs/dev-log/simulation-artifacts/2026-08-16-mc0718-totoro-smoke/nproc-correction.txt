@@ -1,0 +1,2 @@
+nproc_live_correction=384
+note=host-provenance.txt recorded nproc=1 at launch. A live `nproc` before and after the run was 384. The core guard would have refused eight workers if nproc had been 1. GNU parallel job log has 27 jobs, exit 0. Same Wave 1 artefact; provenance file left untouched.

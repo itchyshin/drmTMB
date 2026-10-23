@@ -1,0 +1,95 @@
+{
+ "shared_groups": [
+  {
+   "cells": [
+    "mc-0129",
+    "mc-0151"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0130",
+    "mc-0152"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0135",
+    "mc-0157"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0136",
+    "mc-0158"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0137",
+    "mc-0159"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0138",
+    "mc-0160"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0139",
+    "mc-0161"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0140",
+    "mc-0162"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0145",
+    "mc-0167"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0146",
+    "mc-0168"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0300",
+    "mc-0312"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0407",
+    "mc-0408"
+   ],
+   "n_shared": 1
+  },
+  {
+   "cells": [
+    "mc-0447",
+    "mc-0451"
+   ],
+   "n_shared": 1
+  }
+ ]
+}

@@ -61,29 +61,26 @@
 #'
 #' `drm_family_dpq()` returns the `{d, p, q}` closures and atom metadata for a
 #' fitted model's `model_type`. It is the single source of truth that
-#' [fitted_distribution()] and downstream consumers (planned: quantile
-#' residuals, `predict(type = "quantile")`, `exceedance()`) route through, so
+#' [fitted_distribution()] and downstream consumers such as quantile
+#' residuals, `predict(type = "quantile")`, and `exceedance()` route through, so
 #' the public-to-native parameter conversion is not re-derived in each caller.
 #'
-#' As of DO-T3 batch D, these 18 established fitted `model_type` values are
-#' promoted
+#' These helpers currently cover 18 fitted `model_type` values
 #' (`status = "reference"`): `"gaussian"`, `"student"`, `"skew_normal"`,
 #' `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`,
 #' `"beta_binomial"`, `"binomial"`, `"cumulative_logit"`, `"poisson"`,
 #' `"zi_poisson"`, `"nbinom2"`, `"truncated_nbinom2"`, `"hurdle_nbinom2"`,
 #' `"zi_nbinom2"`, and `"biv_gaussian"`.
-#' **`"skew_normal"` promotion is a distributional-output-axis result only**
-#' (DG2/DG3 for `{d,p,q}` correctness); it does not certify the skew_normal
-#' family's own fit-quality status (`diagnostic_hold` in `check_drmTMB()`),
-#' which is a separate axis and is unchanged -- see the firewall note beside
-#' `drm_family_dpq_skew_normal()`. **`"biv_gaussian"` is MARGINAL-only**: its
+#' For `"skew_normal"`, this support applies only to the density, CDF, and
+#' quantile calculations. It does not establish fit quality; `check_drmTMB()`
+#' continues to return `diagnostic_hold` for skew-normal fits.
+#' **`"biv_gaussian"` is MARGINAL-only**: its
 #' `{d,p,q}` describe one response's marginal `N(mu_k, sigma_k)` (exact,
 #' independent of `rho12`), never the joint bivariate distribution -- see
 #' `drm_family_dpq_biv_gaussian()` and [fitted_distribution()]'s `response`
-#' argument, which selects `k`. The later exact-special development families
-#' `"biv_lognormal"` and `"biv_student"` are deliberately excluded from this
-#' marginal distribution-output registry; their density/CDF/quantile,
-#' residual, and adequacy surfaces require separate validation.
+#' argument, which selects `k`. `"biv_lognormal"` and `"biv_student"` are
+#' not supported by these helpers; their marginal density, CDF, quantile,
+#' residual, and adequacy calculations have not been validated.
 #'
 #' The `d`/`p`/`q` closures take `(y_or_u, params)`, where `params` is a wide,
 #' one-row-per-observation data frame. This signature is **frozen** (CP1): a
@@ -225,6 +222,13 @@ drm_tweedie_dpq <- function(fun) {
     mu <- rep(params$mu, length.out = n)
     phi <- rep(params$sigma, length.out = n)^2
     power <- rep(params$nu, length.out = n)
+    bad <- !is.finite(power) | power <= 1 | power >= 2
+    if (any(bad)) {
+      cli::cli_abort(c(
+        "Tweedie power must lie strictly between 1 and 2.",
+        "x" = "{cli::qty(sum(bad))} value{?s} outside (1, 2)."
+      ))
+    }
     if (length(unique(power)) == 1L) {
       return(fun(y, mu = mu, phi = phi, power = power[1]))
     }
@@ -856,6 +860,19 @@ drm_family_dpq_poisson <- function() {
 # `qpois(0, mu) = 0` and `u = 1` maps to `qpois(1, mu) = Inf` (ordinary
 # `qpois()` boundary behaviour, unchanged).
 
+# Recycle a length-1 `y`/`u` argument to `nrow(params)` before it reaches an
+# ifelse()-based d()/p()/q() closure. ifelse(test, yes, no) returns a result
+# the LENGTH OF `test`, not of the longer `yes`/`no` operand -- so a scalar
+# `y` against a length-n `params$mu` silently returned length 1 (row 1's
+# value) instead of being recycled across rows the way a plain vectorised
+# call (e.g. stats::ppois(y, lambda = params$mu), no ifelse()) already is.
+# Dinnage audit S1. A no-op when `y`/`u` is already length n (or anything
+# other than length 1); genuine length mismatches still error downstream the
+# same way they did before this helper existed.
+drm_recycle_scalar_arg <- function(y, params) {
+  if (length(y) == 1L) rep(y, nrow(params)) else y
+}
+
 drm_family_dpq_zi_poisson <- function() {
   list(
     dpars = c("mu", "zi"),
@@ -864,11 +881,13 @@ drm_family_dpq_zi_poisson <- function() {
     atoms = c(0),
     status = "reference",
     d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       zi <- params$zi
       base <- stats::dpois(y, lambda = params$mu)
       ifelse(y == 0, zi + (1 - zi) * base, (1 - zi) * base)
     },
     p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       zi <- params$zi
       ifelse(
         y < 0,
@@ -953,12 +972,14 @@ drm_family_dpq_truncated_nbinom2 <- function() {
     atoms = numeric(0),
     status = "reference",
     d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       p0 <- stats::dnbinom(0, size = size, mu = params$mu)
       base <- stats::dnbinom(y, size = size, mu = params$mu)
       ifelse(y < 1, 0, base / (1 - p0))
     },
     p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       p0 <- stats::dnbinom(0, size = size, mu = params$mu)
       cdf <- (stats::pnbinom(y, size = size, mu = params$mu) - p0) / (1 - p0)
@@ -1001,12 +1022,14 @@ drm_family_dpq_hurdle_nbinom2 <- function() {
     atoms = c(0),
     status = "reference",
     d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       p0 <- stats::dnbinom(0, size = size, mu = params$mu)
       base <- stats::dnbinom(y, size = size, mu = params$mu)
       ifelse(y == 0, params$hu, (1 - params$hu) * base / (1 - p0))
     },
     p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       hu <- params$hu
       p0 <- stats::dnbinom(0, size = size, mu = params$mu)
@@ -1049,12 +1072,14 @@ drm_family_dpq_zi_nbinom2 <- function() {
     atoms = c(0),
     status = "reference",
     d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       zi <- params$zi
       base <- stats::dnbinom(y, size = size, mu = params$mu)
       ifelse(y == 0, zi + (1 - zi) * base, (1 - zi) * base)
     },
     p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       zi <- params$zi
       ifelse(
@@ -1113,9 +1138,9 @@ drm_family_dpq_biv_gaussian <- function() {
 #' `exceedance()`) are meant to route through this accessor rather than
 #' re-deriving the public-to-native parameter conversion.
 #'
-#' `fitted_distribution()` only supports `model_type`s with a promoted entry
-#' in [drm_family_dpq()]: as of DO-T3 batch D all 18 fitted `model_type`
-#' values are promoted (`status = "reference"`), including bivariate
+#' `fitted_distribution()` only supports `model_type`s with
+#' `status = "reference"` in [drm_family_dpq()]. All 18 currently
+#' fitted `model_type` values are included, including bivariate
 #' `"biv_gaussian"` (see the `response` argument below). `newdata` support
 #' inherits the same limitation as [predict_parameters()]: fixed-effect,
 #' population-level predictions only. For meta-analysis gaussian fits

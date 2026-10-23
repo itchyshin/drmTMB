@@ -66,6 +66,13 @@ phylo_prior_tmb_data <- function(precision) {
       X_mi_state_mu = dummy_matrix,
       mi_quad_nodes = 0,
       mi_quad_weights = 1,
+      # Second independent Gaussian mi() term (S6 / #963). Inert here.
+      has_mi2 = 0L,
+      mi_col2 = 0L,
+      mi_x2 = 0,
+      mi_observed2 = 1L,
+      mi_missing_index2 = 0L,
+      X_mi2 = dummy_matrix,
       trials = numeric(1),
       weights = 1,
       offset_mu = numeric(1),
@@ -195,6 +202,9 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     beta_mi = 0,
     log_sigma_mi = 0,
     x_miss = 0,
+    beta_mi2 = 0,
+    log_sigma_mi2 = 0,
+    x_miss2 = 0,
     u_mi_group = 0,
     log_sd_mi_group = 0,
     u_mi_struct = 0,
@@ -448,6 +458,33 @@ test_that("drm_phylo_augmented_precision matches the dense Brownian comparator",
     drmTMB:::drm_phylo_tip_covariance(tree, correlation = FALSE),
     tolerance = 1e-12
   )
+})
+
+test_that("default phylogenetic covariance is invariant to branch-length units", {
+  tree <- tiny_ultrametric_tree()
+  scaled_tree <- tree
+  scaled_tree$edge.length <- 100 * tree$edge.length
+
+  covariance <- drmTMB:::drm_phylo_tip_covariance(tree)
+  scaled_covariance <- drmTMB:::drm_phylo_tip_covariance(scaled_tree)
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  scaled_precision <- drmTMB:::drm_phylo_augmented_precision(scaled_tree)
+
+  expect_equal(unname(diag(covariance)), rep(1, length(tree$tip.label)))
+  expect_equal(scaled_covariance, covariance, tolerance = 1e-12)
+  expect_equal(scaled_precision$precision, precision$precision, tolerance = 1e-12)
+  expect_equal(scaled_precision$log_det_precision, precision$log_det_precision,
+    tolerance = 1e-12
+  )
+  expect_equal(scaled_precision$height, 100 * precision$height)
+
+  # A raw Brownian covariance is the contrasting convention: its units change.
+  raw_covariance <- drmTMB:::drm_phylo_tip_covariance(tree, correlation = FALSE)
+  scaled_raw_covariance <- drmTMB:::drm_phylo_tip_covariance(
+    scaled_tree, correlation = FALSE
+  )
+  expect_equal(scaled_raw_covariance, 100 * raw_covariance, tolerance = 1e-12)
+  expect_false(isTRUE(all.equal(scaled_raw_covariance, raw_covariance)))
 })
 
 tiny_non_ultrametric_tree <- function() {

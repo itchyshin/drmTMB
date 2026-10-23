@@ -1,0 +1,46 @@
+win-builder R-devel result — candidate 302ac2579 / drmTMB_0.7.0.tar.gz
+=====================================================================
+Collected 2026-08-16 by Cursor from itchyshin@gmail.com (message was in Trash)
+and the public win-builder artifact URL (still live ~72h).
+
+Email
+-----
+From: ligges@statistik.tu-dortmund.de
+To: itchyshin@gmail.com
+Date: 2026-08-16T00:50:26Z
+Subject: winbuilder: Package drmTMB_0.7.0.tar.gz has been checked and built
+Gmail message id: 1a0080c713d427f0 (was in TRASH; body read without untrash)
+
+Dear package maintainer,
+
+this notification has been generated automatically.
+Your package drmTMB_0.7.0.tar.gz has been built (if working) and checked for Windows.
+Please check the log files and (if working) the binary package at:
+https://win-builder.r-project.org/84RS0Yqy5t0Y
+The files will be removed after roughly 72 hours.
+Installation time in seconds: 398
+Check time in seconds: 1476
+Status: 1 NOTE
+R Under development (unstable) (2026-08-15 r90413 ucrt)
+
+All the best,
+Uwe Ligges
+(CRAN maintainer of binary packages for Windows)
+
+Extracted Status / timings
+--------------------------
+Status: 1 NOTE
+R: Under development (unstable) (2026-08-15 r90413 ucrt)
+Installation time: 398 s
+Check time: 1476 s
+checking tests: [13m] OK  (from 00check.log; CRAN-lane testthat)
+CRAN incoming feasibility NOTE: New submission (+ Possibly misspelled words:
+centile, misspecification, uncalibrated)
+
+Exact-bytes binding
+-------------------
+Uploaded file SHA-256 (receipt): 0d150ef38b8d3b8b2d3dca084a62f8242832048b01e60caa4b08c5388b95e075
+Local primary still matches that hash (verified this session).
+Artifact: winbuilder-devel-00check.log (downloaded from the URL above).
+
+Lane mapping: this is R-devel (not R-release / R-oldrelease).

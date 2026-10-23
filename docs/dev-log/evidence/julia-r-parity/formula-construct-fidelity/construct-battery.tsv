@@ -1,0 +1,59 @@
+case	mu	sigma	status	max_abs_coef_diff	r_model_matrix_mu	julia_names_mu	r_model_matrix_sigma	julia_names_sigma	detail
+numeric_baseline	x	1	FAITHFUL	2.13273843030493e-12	(Intercept)|x	(Intercept)|x	(Intercept)	(Intercept)	
+factor_column	g3	1	FAITHFUL	1.11932685342708e-12	(Intercept)|g3b|g3c	(Intercept)|g3b|g3c	(Intercept)	(Intercept)	
+factor_call_int	factor(gi)	1	FAITHFUL	1.11932685342708e-12	(Intercept)|factor(gi)9|factor(gi)10	(Intercept)|factor(gi)9|factor(gi)10	(Intercept)	(Intercept)	
+character_column	gchar	1	FAITHFUL	1.11932685342708e-12	(Intercept)|gcharb|gcharc	(Intercept)|gcharb|gcharc	(Intercept)	(Intercept)	
+logical_column	flag	1	FAITHFUL	3.09197112358106e-14	(Intercept)|flagTRUE	(Intercept)|flagTRUE	(Intercept)	(Intercept)	
+factor_mixed_case	gmix	1	FAITHFUL	1.11932685342708e-12	(Intercept)|gmixB|gmixc	(Intercept)|gmixB|gmixc	(Intercept)	(Intercept)	
+factor_rev_levels	g3rev	1	FAITHFUL	6.10622663543836e-16	(Intercept)|g3revb|g3reva	(Intercept)|g3revb|g3reva	(Intercept)	(Intercept)	
+factor_unused_lvl	gempty	1	JULIA_REFUSE	NA	(Intercept)|gemptyb|gemptyc|gemptyzz	NA	(Intercept)	NA	Error happens in Julia. drm_bridge: coef_labels["mu"] supplies 4 names but the mu formula part has 3 fixed-effect columns (Julia names: ["mu_(Intercept)", "mu_gempty: b", "mu_gempty: c"]); the R side must send exactly one name per column Stacktrace: [1] error(s::String) @ Base ./error.jl:35 [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{...
+ordered_factor	gord	1	JULIA_REFUSE	NA	(Intercept)|gord.L|gord.Q	NA	(Intercept)	NA	`engine = "julia"` fits every factor with treatment contrasts (`contr.treatment()`: dummy columns against the first level), but R would code the `mu` formula's design differently: • gord: an ordered factor (R codes it with contr.poly) ✖ The two engines would then return different coefficients under identical names. ℹ Refit with plain treatment-coded factors (`factor(x, levels = ...)` with `ordered...
+contr_sum_factor	gsum	1	JULIA_REFUSE	NA	(Intercept)|gsum1|gsum2	NA	(Intercept)	NA	`engine = "julia"` fits every factor with treatment contrasts (`contr.treatment()`: dummy columns against the first level), but R would code the `mu` formula's design differently: • gsum: a factor with an explicit `contrasts` attribute ✖ The two engines would then return different coefficients under identical names. ℹ Refit with plain treatment-coded factors (`factor(x, levels = ...)` with `ordere...
+factor_with_NA	gnaf	1	FAITHFUL	3.11417558407356e-14	(Intercept)|gnafb|gnafc	(Intercept)|gnafb|gnafc	(Intercept)	(Intercept)	
+num_by_factor_star	x * g3	1	FAITHFUL	3.08642000845794e-14	(Intercept)|x|g3b|g3c|x:g3b|x:g3c	(Intercept)|x|g3b|g3c|x:g3b|x:g3c	(Intercept)	(Intercept)	
+num_by_factor_colon	x + g3 + x:g3	1	FAITHFUL	3.08642000845794e-14	(Intercept)|x|g3b|g3c|x:g3b|x:g3c	(Intercept)|x|g3b|g3c|x:g3b|x:g3c	(Intercept)	(Intercept)	
+factor_by_factor	g3 * g2	1	FAITHFUL	3.10862446895044e-14	(Intercept)|g3b|g3c|g2q|g3b:g2q|g3c:g2q	(Intercept)|g3b|g3c|g2q|g3b:g2q|g3c:g2q	(Intercept)	(Intercept)	
+I_square	x + I(x^2)	1	FAITHFUL	2.3733237597412e-12	(Intercept)|x|I(x^2)	(Intercept)|x|I(x^2)	(Intercept)	(Intercept)	
+I_product	x + z + I(x * z)	1	FAITHFUL	1.59214863515444e-11	(Intercept)|x|z|I(x * z)	(Intercept)|x|z|I(x * z)	(Intercept)	(Intercept)	
+I_nested_in_log	log(I(x + 2))	1	FAITHFUL	3.10307335382731e-14	(Intercept)|log(I(x + 2))	(Intercept)|log(I(x + 2))	(Intercept)	(Intercept)	
+poly_2	poly(x, 2)	1	FAITHFUL	1.01219033155076e-12	(Intercept)|poly(x, 2)1|poly(x, 2)2	(Intercept)|poly(x, 2)1|poly(x, 2)2	(Intercept)	(Intercept)	
+poly_in_inter	poly(x, 2) * g2	1	FAITHFUL	2.85063639360317e-12	(Intercept)|poly(x, 2)1|poly(x, 2)2|g2q|poly(x, 2)1:g2q|poly(x, 2)2:g2q	(Intercept)|poly(x, 2)1|poly(x, 2)2|g2q|poly(x, 2)1:g2q|poly(x, 2)2:g2q	(Intercept)	(Intercept)	
+scale_x	scale(x)	1	FAITHFUL	2.72171174486857e-12	(Intercept)|scale(x)	(Intercept)|scale(x)	(Intercept)	(Intercept)	
+crossing_power2	(x + z)^2	1	FAITHFUL	1.59214863515444e-11	(Intercept)|x|z|x:z	(Intercept)|x|z|x:z	(Intercept)	(Intercept)	
+minus_removal	x * z - z	1	JULIA_REFUSE	NA	(Intercept)|x|x:z	NA	(Intercept)	NA	Error happens in Julia. ArgumentError: drmTMB(engine="julia"): R term removal `-` combined with unexpanded `*` crossing is unsupported (the removed term could be hiding inside the `*`); expand the crossing explicitly (e.g. `a + b + a&b`) before removing a term. Stacktrace: [1] _bridge_xlate(e::Expr, ctx::DRM._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing) @ DRM ~/local-scratch/parity-j...
+log_call	log(x + 2)	1	FAITHFUL	3.10307335382731e-14	(Intercept)|log(x + 2)	(Intercept)|log(x + 2)	(Intercept)	(Intercept)	
+factor_call_inter	x + factor(gi) + x:factor(gi)	1	FAITHFUL	3.08642000845794e-14	(Intercept)|x|factor(gi)9|factor(gi)10|x:factor(gi)9|x:factor(gi)10	(Intercept)|x|factor(gi)9|factor(gi)10|x:factor(gi)9|x:factor(gi)10	(Intercept)	(Intercept)	
+sqrt_call	sqrt(x + 2)	1	FAITHFUL	1.33226762955019e-15	(Intercept)|sqrt(x + 2)	(Intercept)|sqrt(x + 2)	(Intercept)	(Intercept)	
+sigma_factor	x	g3	FAITHFUL	1.64587232731606e-11	(Intercept)|x	(Intercept)|x	(Intercept)|g3b|g3c	(Intercept)|g3b|g3c	
+sigma_factor_call	x	factor(gi)	FAITHFUL	1.64587232731606e-11	(Intercept)|x	(Intercept)|x	(Intercept)|factor(gi)9|factor(gi)10	(Intercept)|factor(gi)9|factor(gi)10	
+sigma_poly	x	poly(x, 2)	FAITHFUL	3.27163851565615e-11	(Intercept)|x	(Intercept)|x	(Intercept)|poly(x, 2)1|poly(x, 2)2	(Intercept)|poly(x, 2)1|poly(x, 2)2	
+sigma_I	x	I(x^2)	FAITHFUL	1.15059628491565e-11	(Intercept)|x	(Intercept)|x	(Intercept)|I(x^2)	(Intercept)|I(x^2)	
+char_mixed_case	gmixchar	1	MISLABELLED_SILENT	0.178475947293617	(Intercept)|gmixcharB|gmixcharc	(Intercept)|gmixcharB|gmixcharc	(Intercept)	(Intercept)	identical names, coefficients differ by 0.1785
+factor_num_levels	gifac	1	FAITHFUL	1.11932685342708e-12	(Intercept)|gifac9|gifac10	(Intercept)|gifac9|gifac10	(Intercept)	(Intercept)	
+factor_one_level	gone	1	BOTH_REFUSE	NA	NA	NA	(Intercept)	NA	Error happens in Julia. ArgumentError: only one level found: only (need at least two to compute contrasts). Stacktrace: [1] StatsModels.ContrastsMatrix(contrasts::StatsModels.DummyCoding, levels::CategoricalArrays.CategoricalVector{String, UInt32, String, CategoricalArrays.CategoricalValue{String, UInt32}, Union{}}) @ StatsModels ~/.julia/packages/StatsModels/nRZJH/src/contrasts.jl:191 [2] concret...
+factor_case_pair	gcase	1	FAITHFUL	8.32667268468867e-16	(Intercept)|gcaseA|gcaseb	(Intercept)|gcaseA|gcaseb	(Intercept)	(Intercept)	
+empty_lvl_inter	x * gempty	1	JULIA_REFUSE	NA	(Intercept)|x|gemptyb|gemptyc|gemptyzz|x:gemptyb|x:gemptyc|x:gemptyzz	NA	(Intercept)	NA	Error happens in Julia. drm_bridge: coef_labels["mu"] supplies 8 names but the mu formula part has 6 fixed-effect columns (Julia names: ["mu_(Intercept)", "mu_x", "mu_gempty: b", "mu_gempty: c", "mu_x & gempty: b", "mu_x & gempty: c"]); the R side must send exactly one name per column Stacktrace: [1] error(s::String) @ Base ./error.jl:35 [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections...
+I_identity	I(x)	1	FAITHFUL	2.13273843030493e-12	(Intercept)|I(x)	(Intercept)|I(x)	(Intercept)	(Intercept)	
+I_paren	I((x))	1	FAITHFUL	2.13273843030493e-12	(Intercept)|I((x))	(Intercept)|I((x))	(Intercept)	(Intercept)	
+I_logcall	x + I(log(x + 2))	1	JULIA_REFUSE	NA	(Intercept)|x|I(log(x + 2))	NA	(Intercept)	NA	Error happens in Julia. ArgumentError: drmTMB(engine="julia"): `I(...)` only supports the arithmetic operators +, -, *, /, ^ over data columns and numeric literals; got `log`. Stacktrace: [1] _bridge_eval_I(expr::Expr, ctx::DRM._BridgeXlateCtx) @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:1120 [2] (::DRM.var"#1559#1567"{Expr, DRM._BridgeXlateCtx})() @ DRM ~/local-scratch/parity...
+I_sum	I(x^2 + z)	1	FAITHFUL	1.12737597035562e-11	(Intercept)|I(x^2 + z)	(Intercept)|I(x^2 + z)	(Intercept)	(Intercept)	
+poly_3	poly(x, 3)	1	FAITHFUL	3.09752223870419e-14	(Intercept)|poly(x, 3)1|poly(x, 3)2|poly(x, 3)3	(Intercept)|poly(x, 3)1|poly(x, 3)2|poly(x, 3)3	(Intercept)	(Intercept)	
+poly_two_cols	poly(x, 2) + poly(z, 2)	1	FAITHFUL	3.08642000845794e-14	(Intercept)|poly(x, 2)1|poly(x, 2)2|poly(z, 2)1|poly(z, 2)2	(Intercept)|poly(x, 2)1|poly(x, 2)2|poly(z, 2)1|poly(z, 2)2	(Intercept)	(Intercept)	
+scale_both_parts	scale(x) + scale(z)	1	FAITHFUL	2.22044604925031e-16	(Intercept)|scale(x)|scale(z)	(Intercept)|scale(x)|scale(z)	(Intercept)	(Intercept)	
+cross3_power2	(x + z + g2)^2	1	FAITHFUL	2.91433543964104e-16	(Intercept)|x|z|g2q|x:z|x:g2q|z:g2q	(Intercept)|x|z|g2q|x:z|x:g2q|z:g2q	(Intercept)	(Intercept)	
+cross_power3	(x + z + g2)^3	1	FAITHFUL	3.10862446895044e-14	(Intercept)|x|z|g2q|x:z|x:g2q|z:g2q|x:z:g2q	(Intercept)|x|z|g2q|x:z|x:g2q|z:g2q|x:z:g2q	(Intercept)	(Intercept)	
+no_intercept_minus	x - 1	1	FAITHFUL	0	x	x	(Intercept)	(Intercept)	
+no_intercept_zero	0 + x	1	FAITHFUL	0	x	x	(Intercept)	(Intercept)	
+interaction_only	x:z	1	FAITHFUL	2.77555756156289e-17	(Intercept)|x:z	(Intercept)|x:z	(Intercept)	(Intercept)	
+minus_expanded	x + z + x:z - z	1	FAITHFUL	2.42994513399708e-12	(Intercept)|x|x:z	(Intercept)|x|x:z	(Intercept)	(Intercept)	
+minus_from_power	(x + z)^2 - x:z	1	FAITHFUL	1.11022302462516e-16	(Intercept)|x|z	(Intercept)|x|z	(Intercept)	(Intercept)	
+minus_star_inter	x * z - x:z	1	JULIA_REFUSE	NA	(Intercept)|x|z	NA	(Intercept)	NA	Error happens in Julia. ArgumentError: drmTMB(engine="julia"): R term removal `-` combined with unexpanded `*` crossing is unsupported (the removed term could be hiding inside the `*`); expand the crossing explicitly (e.g. `a + b + a&b`) before removing a term. Stacktrace: [1] _bridge_xlate(e::Expr, ctx::DRM._BridgeXlateCtx; scalar_context::Bool, atom_scope::Nothing) @ DRM ~/local-scratch/parity-j...
+log_times_factor	log(x + 2) * g2	1	FAITHFUL	2.46473397247371e-11	(Intercept)|log(x + 2)|g2q|log(x + 2):g2q	(Intercept)|log(x + 2)|g2q|log(x + 2):g2q	(Intercept)	(Intercept)	
+factor_minus	x + g3 - x	1	FAITHFUL	1.11932685342708e-12	(Intercept)|g3b|g3c	(Intercept)|g3b|g3c	(Intercept)	(Intercept)	
+bridge_name_clash	scale(x) + `__bridge_scale_1`	1	JULIA_REFUSE	NA	(Intercept)|scale(x)|`__bridge_scale_1`	NA	(Intercept)	NA	Error happens in Julia. LoadError: ArgumentError: non-call expression encountered: `__bridge_scale_1` Stacktrace: [1] check_call @ ~/.julia/packages/StatsModels/nRZJH/src/formula.jl:18 [inlined] [2] parse!(ex::Expr, protected::Bool) @ StatsModels ~/.julia/packages/StatsModels/nRZJH/src/formula.jl:68 [3] _broadcast_getindex_evalf @ ./broadcast.jl:709 [inlined] [4] _broadcast_getindex @ ./broadcast....
+poly_minus	poly(x, 2) + z - z	1	FAITHFUL	1.01219033155076e-12	(Intercept)|poly(x, 2)1|poly(x, 2)2	(Intercept)|poly(x, 2)1|poly(x, 2)2	(Intercept)	(Intercept)	
+I_in_interaction	I(x^2):g2	1	FAITHFUL	3.10307335382731e-14	(Intercept)|I(x^2):g2p|I(x^2):g2q	(Intercept)|I(x^2):g2p|I(x^2):g2q	(Intercept)	(Intercept)	
+sigma_empty_lvl	x	gempty	JULIA_REFUSE	NA	(Intercept)|x	NA	(Intercept)|gemptyb|gemptyc|gemptyzz	NA	Error happens in Julia. drm_bridge: coef_labels["sigma"] supplies 4 names but the sigma formula part has 3 fixed-effect columns (Julia names: ["sigma_(Intercept)", "sigma_gempty: b", "sigma_gempty: c"]); the R side must send exactly one name per column Stacktrace: [1] error(s::String) @ Base ./error.jl:35 [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_...
+sigma_char_mixed	x	gmixchar	MISLABELLED_SILENT	0.104596665546475	(Intercept)|x	(Intercept)|x	(Intercept)|gmixcharB|gmixcharc	(Intercept)|gmixcharB|gmixcharc	identical names, coefficients differ by 0.1046
+sigma_scale_shared	scale(x)	scale(x)	FAITHFUL	4.59404181363254e-11	(Intercept)|scale(x)	(Intercept)|scale(x)	(Intercept)|scale(x)	(Intercept)|scale(x)	
+sigma_cross	x	(x + z)^2	FAITHFUL	2.6751856285756e-10	(Intercept)|x	(Intercept)|x	(Intercept)|x|z|x:z	(Intercept)|x|z|x:z	

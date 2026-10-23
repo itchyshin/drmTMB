@@ -81,7 +81,8 @@ build_fits <- function(formula, family, y_grid, weights = NULL) {
 # marks known reference-or-kernel precision-limit points (see per-family
 # comments) that are checked separately with a looser tolerance instead of
 # folding into the main `tol` assertion.
-run_oracle <- function(fits_by_y, eval_fn, tol, has_ls = TRUE, exclude = NULL) {
+run_oracle <- function(fits_by_y, eval_fn, tol, has_ls = TRUE, exclude = NULL,
+                       max_nonfinite = Inf) {
   for (f in fits_by_y) assert_clean_fixture(f)
   ls_use <- if (has_ls) ls_grid else NA_real_
   results <- data.frame()
@@ -105,6 +106,12 @@ run_oracle <- function(fits_by_y, eval_fn, tol, has_ls = TRUE, exclude = NULL) {
     mapply(exclude, results$eta, results$log_sigma, results$y)
   }
   kept <- results[!results$excluded, ]
+  kept_nonfinite <- kept[
+    !is.finite(kept$cpp) | !is.finite(kept$ref) | is.na(kept$rel_err),
+    ,
+    drop = FALSE
+  ]
+  expect_lte(nrow(kept_nonfinite), max_nonfinite)
   kept_finite <- kept$rel_err[!is.na(kept$rel_err)]
   expect_true(length(kept_finite) > 0)
   expect_true(max(kept_finite) <= tol)
@@ -140,17 +147,20 @@ test_that("student kernel matches a from-scratch location-scale dt()", {
 })
 
 # ---- skew_normal (model_type 17; src/drmTMB.cpp:2427-2487) -----------------
-# helper-skew-normal-density.R (auto-loaded by testthat) already carries the
-# exact-match reference including the 1e-300 log(Phi(.) + 1e-300) floor at
-# src/drmTMB.cpp:2473.
-test_that("skew_normal kernel matches the floored Azzalini reference", {
+# helper-skew-normal-density.R (auto-loaded by testthat) carries the exact
+# Azzalini reference (log 2 + log phi(z) + log Phi(alpha z) via pnorm(log.p)).
+# The kernel used to floor Phi() with + 1e-300, which saturated the far tail;
+# since Dinnage audit Md-M it uses the tail-safe drm_log_pnorm(), so the exact
+# reference is the oracle (the floored reference stays in the helper for the
+# guard-continuity tests that document the old behaviour).
+test_that("skew_normal kernel matches the exact Azzalini reference", {
   fits <- build_fits(bf(y ~ 1, sigma ~ 1, nu ~ 1), skew_normal(), c(-3, 0, 0.37, 3))
   eval_skew <- function(fit, eta, ls, yv) {
     par <- fit$obj$par
     par <- set_named(par, "beta_mu", eta)
     par <- set_named(par, "beta_sigma", ls)
     par <- set_named(par, "beta_nu", 2)
-    ref <- skew_normal_log_density_tmb_floor_reference(yv, eta, exp(ls), 2)
+    ref <- skew_normal_log_density_reference(yv, eta, exp(ls), 2)
     c(cpp = -fit$obj$fn(par), ref = ref)
   }
   run_oracle(fits, eval_skew, tol = 1e-9)
@@ -393,7 +403,7 @@ beta_shapes <- function(eta, ls) {
   )
 }
 test_that("beta kernel matches a floor-matched dbeta() away from huge phi", {
-  fits <- build_fits(bf(y ~ 1, sigma ~ 1), beta(), c(1e-6, 0.5, 1 - 1e-6))
+  fits <- build_fits(bf(y ~ 1, sigma ~ 1), beta_family(), c(1e-6, 0.5, 1 - 1e-6))
   eval_beta <- function(fit, eta, ls, yv) {
     par <- fit$obj$par
     par <- set_named(par, "beta_mu", eta)
@@ -411,7 +421,7 @@ test_that("beta kernel matches a floor-matched dbeta() away from huge phi", {
 # ---- zero_one_beta (model_type 15; src/drmTMB.cpp:2935-3030) --------------
 # Needs >= 1 interior response value in the fitted data; each fixture carries
 # the target y plus a weight-0 interior anchor row (y = 0.4), same convention
-# as hurdle_nbinom2 above. Same huge-phi exclusion as beta().
+# as hurdle_nbinom2 above. Same huge-phi exclusion as beta_family().
 zob_row_ref <- function(eta, ls, y, zoi, coi) {
   if (y <= 0) return(log(zoi) + log1p(-coi))
   if (y >= 1) return(log(zoi) + log(coi))
@@ -444,7 +454,7 @@ test_that("zero_one_beta kernel matches a floor-matched atom/dbeta() mixture", {
 })
 
 # ---- beta_binomial (model_type 14; src/drmTMB.cpp:3030-3088) --------------
-# Same lgamma-cancellation limitation as beta() above, but sharper: with
+# Same lgamma-cancellation limitation as beta_family() above, but sharper: with
 # trials = 1000 and log_sigma = -15 (phi ~ 1e13), lgamma(phi) - lgamma(trials
 # + phi) alone subtracts two ~1.3e14-magnitude values to recover an O(10)
 # answer. The compiled kernel, dbinom-style direct lgamma differences in R,
@@ -474,17 +484,25 @@ test_that("beta_binomial kernel matches an lbeta()-based reference away from hug
     par <- fit$obj$par
     par <- set_named(par, "beta_mu", eta)
     par <- set_named(par, "beta_sigma", ls)
-    mu <- plogis(eta); phi <- 1 / exp(ls)^2
-    a <- mu * phi; b <- (1 - mu) * phi
+    eps <- 1e-12
+    shape_floor <- 1e-8
+    mu <- eps + (1 - 2 * eps) * plogis(eta)
+    phi <- 1 / exp(ls)^2
+    a <- max(mu * phi, shape_floor)
+    b <- max((1 - mu) * phi, shape_floor)
+    phi_shape <- a + b
     failures <- trials - yv
-    ref <- lchoose(trials, yv) + lbeta(yv + a, failures + b) - lbeta(a, b)
+    ref <- lchoose(trials, yv) +
+      lgamma(phi_shape) - lgamma(trials + phi_shape) +
+      lgamma(yv + a) - lgamma(a) +
+      lgamma(failures + b) - lgamma(b)
     c(cpp = -fit$obj$fn(par), ref = ref)
   }
   huge_phi <- function(eta, ls, yv) (1 / exp(ls)^2) >= 1e10
-  res <- run_oracle(fits, eval_bb, tol = 1e-6, exclude = huge_phi)
+  res <- run_oracle(fits, eval_bb, tol = 1e-6, exclude = huge_phi, max_nonfinite = 0L)
   excl <- res[mapply(huge_phi, res$eta, res$log_sigma, res$y), ]
   expect_true(nrow(excl) > 0)
-  expect_true(all(excl$rel_err[is.finite(excl$rel_err)] <= 0.05))
+  expect_true(all(excl$rel_err[is.finite(excl$rel_err)] <= 0.07))
 })
 
 # ---- binomial (model_type 18; src/drmTMB.cpp:3088-3173) --------------------

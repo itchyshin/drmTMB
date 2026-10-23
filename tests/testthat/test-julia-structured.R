@@ -391,7 +391,10 @@ drm_structured_relmat_fit <- function(n = 30L) {
       if (nzchar(julia_home)) {
         Sys.setenv(JULIA_HOME = julia_home)
       }
-      options(drmTMB.DRM.jl.path = jl_path)
+      # Set the canonical option in the clean child.  The bridge deliberately
+      # gives it precedence over legacy DRM_JL_PATH, so setting only the
+      # legacy option could silently test an inherited DRModels checkout.
+      options(drmTMB.DRModels.jl.path = jl_path)
       suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
 
       # A block-structured relatedness correlation K over n individuals: two
@@ -448,6 +451,7 @@ drm_structured_relmat_fit <- function(n = 30L) {
 }
 
 test_that("Poisson relmat fit via engine = 'julia' is finite and sane", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
@@ -456,15 +460,8 @@ test_that("Poisson relmat fit via engine = 'julia' is finite and sane", {
     "DRM.jl general-covariance engine not available"
   )
 
-  res <- tryCatch(
-    drm_structured_relmat_fit(n = 30L),
-    error = function(e) {
-      testthat::skip(paste(
-        "Poisson relmat round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # Poisson relmat round-trip: run bare (#1127).
+  res <- drm_structured_relmat_fit(n = 30L)
 
   expect_true("drmTMB_julia" %in% res$class)
   expect_equal(res$engine, "julia")

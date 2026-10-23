@@ -11,7 +11,7 @@
 \alias{deviance.drmTMB}
 \title{Extract standard model-fit quantities}
 \usage{
-\method{vcov}{drmTMB}(object, ...)
+\method{vcov}{drmTMB}(object, ..., type = "model", robust = FALSE)
 
 \method{logLik}{drmTMB}(object, ...)
 
@@ -29,6 +29,13 @@
 \item{object}{A \code{drmTMB} fit.}
 
 \item{...}{Reserved for future extractor options.}
+
+\item{type}{For \code{vcov()}, \code{"model"} (the default) for the model-based
+covariance matrix. \code{"robust"} is not implemented and errors rather than
+silently falling back to the model-based matrix.}
+
+\item{robust}{For \code{vcov()}, a \code{TRUE}/\code{FALSE} alias for
+\code{type = "robust"}/\code{type = "model"}; also errors when \code{TRUE}.}
 
 \item{k}{Numeric penalty per parameter for \code{AIC()}; the default is \code{2}.}
 }

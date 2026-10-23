@@ -127,7 +127,7 @@ test_that("Beta q1 admits exact phylogenetic direct-SD regression", {
       sigma ~ x_sigma,
       sd(species, level = "phylogenetic") ~ z_species
     ),
-    family = beta(),
+    family = beta_family(),
     data = sim$data,
     control = drm_control(optimizer = list(eval.max = 1000, iter.max = 1000))
   )
@@ -201,7 +201,7 @@ test_that("Beta direct-SD joint NLL and every gradient match independent oracles
       sigma ~ x_sigma,
       sd(species, level = "phylogenetic") ~ z_species
     ),
-    family = beta(),
+    family = beta_family(),
     data = sim$data,
     control = drm_control(se = FALSE)
   )
@@ -252,7 +252,7 @@ test_that("Beta phylogenetic direct-SD response mask has an oracle and recovers 
     sd(species, level = "phylogenetic") ~ z_species
   )
   fit_masked <- drmTMB(
-    formula, family = beta(), data = dat_masked,
+    formula, family = beta_family(), data = dat_masked,
     missing = miss_control(response = "include"),
     control = drm_control(
       se = FALSE,
@@ -260,7 +260,7 @@ test_that("Beta phylogenetic direct-SD response mask has an oracle and recovers 
     )
   )
   fit_observed <- drmTMB(
-    formula, family = beta(), data = dat_masked[observed, , drop = FALSE],
+    formula, family = beta_family(), data = dat_masked[observed, , drop = FALSE],
     control = drm_control(
       se = FALSE,
       optimizer = list(eval.max = 2000, iter.max = 2000)
@@ -318,7 +318,7 @@ test_that("Beta intercept-only direct SD is equivalent to scalar phylogenetic SD
   tree <- sim$tree
   fit_scalar <- drmTMB(
     bf(y ~ x_mu + phylo(1 | species, tree = tree), sigma ~ x_sigma),
-    family = beta(),
+    family = beta_family(),
     data = dat,
     control = drm_control(
       se = FALSE,
@@ -331,7 +331,7 @@ test_that("Beta intercept-only direct SD is equivalent to scalar phylogenetic SD
       sigma ~ x_sigma,
       sd(species, level = "phylogenetic") ~ 1
     ),
-    family = beta(),
+    family = beta_family(),
     data = dat,
     control = drm_control(
       se = FALSE,
@@ -415,7 +415,7 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
         sigma ~ x_sigma,
         sd(species, level = "phylogenetic") ~ z_bad
       ),
-      family = beta(), data = dat
+      family = beta_family(), data = dat
     ),
     "varies within"
   )
@@ -426,7 +426,7 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
         sigma ~ x_sigma,
         sd(other_species, level = "phylogenetic") ~ z_species
       ),
-      family = beta(), data = dat
+      family = beta_family(), data = dat
     ),
     "does not match"
   )
@@ -437,7 +437,7 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
         sigma ~ x_sigma,
         sd(species, level = "phylogenetic") ~ z_species
       ),
-      family = beta(), data = dat
+      family = beta_family(), data = dat
     ),
     "No phylogenetic location random-effect term matches"
   )
@@ -448,7 +448,7 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
         sigma ~ x_sigma,
         sd(species, level = "phylogenetic") ~ 1 + (1 | block)
       ),
-      family = beta(), data = dat
+      family = beta_family(), data = dat
     ),
     "unsupported model terms"
   )
@@ -462,7 +462,7 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
         sigma ~ x_sigma,
         sd(species, level = "phylogenetic") ~ z_species
       ),
-      family = beta(),
+      family = beta_family(),
       data = dat_mi,
       impute = list(
         treatment = impute_model(treatment ~ x_sigma, family = binomial())
@@ -489,7 +489,7 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
         sigma ~ x_sigma,
         sd(species) ~ z_species
       ),
-      family = beta(), data = dat
+      family = beta_family(), data = dat
     ),
     "Random-effect scale"
   )
@@ -500,7 +500,7 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
         sigma ~ x_sigma,
         sd(species, level = "phylogenetic") ~ z_species
       ),
-      family = beta(), data = dat, REML = TRUE
+      family = beta_family(), data = dat, REML = TRUE
     ),
     "REML.*Gaussian and binomial"
   )

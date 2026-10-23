@@ -1,0 +1,83 @@
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+[91m[1mERROR: [22m[39mLoadError: UndefVarError: `loglogistic` not defined
+[90m   @[39m [90m~/.julia/packages/LogExpFunctions/LITgj/ext/[39m[90m[4mLogExpFunctionsInverseFunctionsExt.jl:19[24m[39m
+[90m   @[39m [90mBase[39m [90m./[39m[90m[4mBase.jl:495[24m[39m[90m [inlined][39m
+[90m   @[39m [90mBase[39m [90m./[39m[90m[4mloading.jl:2216[24m[39m
+[90m   @[39m [90m[4mstdin:3[24m[39m
+drmTMB_drm_bridge (generic function with 1 method)
+  
+drmTMB_drm_bridge_conditional_gaussian_ri (generic function with 1 method)
+  
+drmTMB_drm_bridge_q2_phylo (generic function with 1 method)
+  
+drmTMB_drm_bridge_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_fixef_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_structured (generic function with 1 method)
+  
+drmTMB_mixed_family (generic function with 1 method)
+  
+
+########## CELL 1  REML (Gaussian fixed-effect location-scale)  bf(y ~ x, sigma ~ z), gaussian(), n=60 seed=1 ##########
+coef names tmb   : mu_(Intercept), mu_x, sigma_(Intercept), sigma_z
+coef names julia : mu_(Intercept), mu_x, sigma_(Intercept), sigma_z
+names identical  : TRUE  n_common=4
+  coef mu_(Intercept)         tmb=0.477010504673 julia=0.477010504673 d=6.682987e-13
+  coef mu_x                   tmb=0.828569981984 julia=0.828569981983 d=7.021050e-13
+  coef sigma_(Intercept)      tmb=-0.273171456667 julia=-0.273171456676 d=9.114265e-12
+  coef sigma_z                tmb=0.283407199639 julia=0.283407199630 d=9.466983e-12
+MAX_ABS_COEF_DIFF = 9.466982753281e-12
+logLik REML tmb=-72.439950302880 julia=-72.439950302880  ABS_DIFF=7.105427357601e-14
+logLik ML   tmb=-69.622071438574 julia=-69.622071438574  ABS_DIFF=7.105427357601e-14
+ML_REML_GAP tmb=2.817878864306 julia=2.817878864306
+nobs tmb=60 julia=60 ; df tmb=4 julia=4
+ESTIMATOR HONESTY: tmb$estimator=REML julia$estimator=REML julia$effective_REML=TRUE engine estim_method=REML
+  ML controls: tmb$estimator=ML julia$estimator=ML engine estim_method=ML
+SE finite: tmb=4/4 julia=4/4 (non-finite julia: 0)
+SE: no commonly-finite entries
+
+########## CELL 2  REML with ordinary random effects (Gaussian mean)  bf(y ~ x + (1|g), sigma ~ 1), gaussian(), n=150 15x10 seed=11 ##########
+coef names tmb   : mu_(Intercept), mu_x, sigma_(Intercept)
+coef names julia : mu_(Intercept), mu_x, sigma_(Intercept)
+names identical  : TRUE  n_common=3
+  coef mu_(Intercept)         tmb=0.115413418255 julia=0.115413418257 d=1.548775e-12
+  coef mu_x                   tmb=0.889606554596 julia=0.889606554690 d=9.362755e-11
+  coef sigma_(Intercept)      tmb=-0.730165884621 julia=-0.730165884621 d=6.550316e-15
+MAX_ABS_COEF_DIFF = 9.362755015729e-11
+logLik REML tmb=-127.153393170864 julia=-127.153393170863  ABS_DIFF=1.065814103640e-12
+logLik ML   tmb=-124.041918662515 julia=-124.041918662515  ABS_DIFF=1.278976924368e-13
+ML_REML_GAP tmb=3.111474508349 julia=3.111474508348
+nobs tmb=150 julia=150 ; df tmb=4 julia=4
+ESTIMATOR HONESTY: tmb$estimator=REML julia$estimator=REML julia$effective_REML=TRUE engine estim_method=REML
+  ML controls: tmb$estimator=ML julia$estimator=ML engine estim_method=ML
+SE finite: tmb=3/3 julia=3/3 (non-finite julia: 0)
+SE: no commonly-finite entries
+
+CELL 3 native tmb convergence code: 1 message: singular convergence (7)
+
+########## CELL 3  REML bivariate phylogenetic location-scale (q4, all axes)  dense q4 phylo on mu1,mu2,sigma1,sigma2; rho12 ~ 1; 40 tips x 4 = 160, seed=202 ##########
+coef names tmb   : mu1_(Intercept), mu2_(Intercept), rho12_(Intercept), sigma1_(Intercept), sigma2_(Intercept)
+coef names julia : mu1_(Intercept), mu2_(Intercept), rho12_(Intercept), sigma1_(Intercept), sigma2_(Intercept)
+names identical  : TRUE  n_common=5
+  coef mu1_(Intercept)        tmb=0.498715557437 julia=0.497530153658 d=1.185404e-03
+  coef mu2_(Intercept)        tmb=0.612917080907 julia=0.611226880497 d=1.690200e-03
+  coef sigma1_(Intercept)     tmb=-0.539514994846 julia=-0.537746200944 d=1.768794e-03
+  coef sigma2_(Intercept)     tmb=-0.246954110424 julia=-0.252060318127 d=5.106208e-03
+  coef rho12_(Intercept)      tmb=-0.011297813910 julia=-0.011710005474 d=4.121916e-04
+MAX_ABS_COEF_DIFF = 5.106207703292e-03
+logLik REML tmb=-334.777767848642 julia=-334.835756503863  ABS_DIFF=5.798865522161e-02
+logLik ML   tmb=-330.095838161377 julia=-330.106892715180  ABS_DIFF=1.105455380355e-02
+ML_REML_GAP tmb=4.681929687265 julia=4.728863788683
+nobs tmb=160 julia=160 ; df tmb=15 julia=15
+ESTIMATOR HONESTY: tmb$estimator=REML julia$estimator=REML julia$effective_REML=TRUE engine estim_method=REML
+  ML controls: tmb$estimator=ML julia$estimator=ML engine estim_method=ML
+SE: unavailable on at least one engine
+
+DONE
+Julia exit.
+  Activating project at `~/local-scratch/parity-joint/drmjl-ref-aee371cc`

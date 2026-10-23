@@ -4,7 +4,7 @@ template:
   bootstrap: 5
   bootswatch: flatly
   includes:
-    before_navbar: '<span class="drmtmb-version-note">0.6.0 experimental</span>'
+    before_navbar: '<span class="drmtmb-version-note">0.7.1 development (0.7.0 on CRAN)</span>'
   bslib:
     primary: "#0f7887"
     headings-color: "#112638"
@@ -17,9 +17,6 @@ template:
 development:
   mode: default
 
-redirects:
-  - ["ROADMAP.html", "articles/capability-and-limits.html"]
-
 navbar:
   structure:
     left: [intro, reference, model_guides, tutorials, diagnostics, developer, news]
@@ -30,6 +27,8 @@ navbar:
       menu:
         - text: Overview and first model
           href: articles/drmTMB.html
+        - text: Find the right guide for your question
+          href: articles/source-map.html
         - text: Can I fit and report this?
           href: articles/capability-and-limits.html
         - text: Choose a family
@@ -43,8 +42,6 @@ navbar:
       menu:
         - text: What can I fit today?
           href: articles/model-map.html
-        - text: Detailed implementation status
-          href: articles/implementation-map.html
         - text: Which scale are you modelling?
           href: articles/which-scale.html
         - text: Choosing response families
@@ -59,7 +56,7 @@ navbar:
           href: articles/bivariate-nongaussian.html
         - text: Association between outcome pairs
           href: articles/cross-family.html
-        - text: Julia engine (future support)
+        - text: Optional Julia engine
           href: articles/julia-engine.html
     tutorials:
       text: Tutorials
@@ -108,12 +105,12 @@ navbar:
     developer:
       text: Developer Notes
       menu:
+        - text: Detailed model map for contributors
+          href: articles/implementation-map.html
         - text: Formula grammar
           href: articles/formula-grammar.html
         - text: Adding families
           href: articles/adding-families.html
-        - text: Implemented source map
-          href: articles/source-map.html
         - text: Validating likelihoods and comparators
           href: articles/testing-likelihoods.html
         - text: Simulation evidence plot grammar
@@ -133,7 +130,7 @@ reference:
       - mi
       - impute_model
       - meta_vcov_bivariate
-      - beta
+      - beta_family
       - zero_one_beta
       - beta_binomial
       - cumulative_logit
@@ -170,25 +167,38 @@ reference:
     contents:
       - starts_with("drmTMB")
       - drm_control
+      - drmTMB-parallel
+      - objective_at
       - miss_control
+      - drm_validate_complete_predictors
       - drm_phylo_penalty
       - drm_phylo_penalty_sweep
+      - native_reader_contracts
       - check_drm
+      - convergence_status
+      - drm_provenance
       - is_converged
       - confint.drmTMB
+      - as.matrix.drm_confint
       - profile_targets
       - profile.drmTMB
+      - coevolution-accessors
       - corpairs
       - fitted.drmTMB
       - fixef
+      - heritability
+      - icc
       - imputed
       - model-fit-extractors
       - anova.drmTMB
+      - model-comparison
+      - lrt-boundary
       - marginal_parameters
       - prediction_grid
       - predict_parameters
       - predict.drmTMB
       - ranef
+      - repeatability
       - residuals.drmTMB
       - rho12
       - sigma.drmTMB
@@ -212,12 +222,14 @@ reference:
       - centile_chart
       - worm_plot
       - qq_plot
-  - title: Deferred Julia bridge compatibility
-    desc: Compatibility methods for legacy Julia-engine objects; Julia fitting is not a current analysis route.
+  - title: Julia engine methods
+    desc: Post-fit methods for optional Julia-engine fits; availability depends on the admitted model and inference route.
     contents:
       - confint.drmTMB_julia
       - predict.drmTMB_julia
       - summary.drmTMB_julia
+      - weights.drmTMB_julia
+      - julia-joint-methods
       - rho_latent
       - summary.drmTMB_julia_xfam
       - vcov.drmTMB_julia_xfam
@@ -229,43 +241,78 @@ reference:
       - plot_parameter_surface
 
 articles:
-  - title: Getting Started
+  - title: Where should I start?
+    desc: >
+      Fit a first model, find the guide for your scientific question, and check
+      what you can report. The function map and interval tutorial help you move
+      from a fitted model to interpretation.
     contents:
       - drmTMB
+      - source-map
       - capability-and-limits
-      - function-map-cheatsheet
+      - articles/function-map-cheatsheet
       - first-week-intervals
-  - title: Capability and Model Choice
+  - title: Which model matches my question and data?
+    desc: >
+      Choose a response family, decide which kind of variation to model, and
+      check the available model structures. Read the selection and missing-data
+      guides before comparing fits or deciding how to handle incomplete records.
     contents:
       - which-scale
       - distribution-families
       - model-map
-      - implementation-map
       - model-selection
       - missing-data
-  - title: Location and Scale
+  - title: Do predictors change the mean, the variation, or both?
+    desc: >
+      Start with changes in the expected response and residual variation, then
+      model variation between groups. These two tutorials explain the different
+      roles of residual and group-level standard deviations.
     contents:
       - location-scale
       - location-scale-scale
-  - title: Bivariate Models and Association
+  - title: How are two responses associated?
+    desc: >
+      Model residual correlation between two outcomes and distinguish a joint
+      bivariate distribution from staged association between fitted response
+      models. Each guide states its response-family and inference limits.
     contents:
       - bivariate-coscale
       - bivariate-nongaussian
       - cross-family
-  - title: Applied Family Tutorials
+  - title: How do I model these measurements?
+    desc: >
+      Worked examples cover heavy-tailed continuous responses, counts and extra
+      zeros, proportions and trial counts, and effect sizes with known sampling
+      uncertainty.
     contents:
       - robust-student
       - count-nbinom2
       - proportion-beta-binomial
       - meta-analysis
-  - title: Model Checking and Practical Workflow
+  - title: How do these fits compare with other R packages?
+    desc: >
+      Compare fitted examples with lme4, metafor, ordinal, and glmmTMB.
+      Agreement for these examples does not establish interval calibration
+      or performance for other models.
     contents:
-      - model-workflow
-      - distributional-outputs-and-adequacy
+      - comparing-with-other-packages
+  - title: Can I trust and interpret my fitted model?
+    desc: >
+      Check convergence and residual adequacy, interpret model outputs, and
+      choose useful plots. The large-data guide explains practical fitting
+      considerations as the analysis grows.
+    contents:
+      - articles/model-workflow
+      - articles/distributional-outputs-and-adequacy
       - convergence
       - large-data
-      - figure-gallery
-  - title: Structured Dependence
+      - articles/figure-gallery
+  - title: How should I represent related individuals, species, or sites?
+    desc: >
+      Choose a dependence structure from pedigrees, phylogenies, spatial
+      coordinates, or a supplied covariance or precision matrix. Start with
+      the overview and check each guide's limits before combining structures.
     contents:
       - structural-dependence
       - animal-models
@@ -273,16 +320,28 @@ articles:
       - bipartite-phylogenetic-interactions
       - spatial-models
       - relmat-known-matrices
-      - phylogenetic-spatial
-  - title: Deferred Engine Compatibility
+      - articles/phylogenetic-spatial
+  - title: When should I use the optional Julia engine?
+    desc: >
+      Learn how to set up DRModels.jl and use the supported models through R.
+      The default TMB engine does not require Julia; model and post-fit
+      availability differ between engines, so check the guide before switching.
     contents:
       - julia-engine
-  - title: Simulation and Validation
+  - title: How are likelihoods and simulation results checked?
+    desc: >
+      For contributors and method developers, these guides explain likelihood
+      comparisons and how to present simulation evidence without hiding
+      uncertainty or failed fits.
     contents:
       - testing-likelihoods
-      - simulation-plot-grammar
-  - title: Developer Notes
+      - articles/simulation-plot-grammar
+  - title: How can I understand and extend the implementation?
+    desc: >
+      Contributor guides describe the detailed model map, formula grammar,
+      and the steps for adding a response family. For help choosing an
+      analysis, start with the reader guides above.
     contents:
+      - implementation-map
       - formula-grammar
       - adding-families
-      - source-map

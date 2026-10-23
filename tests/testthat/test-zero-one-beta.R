@@ -1839,7 +1839,7 @@ test_that("zero-one-beta admits only the exact coi random-intercept q1 gate", {
     "atom-probability random effects"
   )
   expect_no_error(
-    simulate(fit, nsim = 1L, seed = 2026081799L, re.form = NA)
+    simulate(fit, nsim = 1L, seed = 2026081799L, re.form = NULL)
   )
 
   target <- subset(profile_targets(fit), parm == "sd:coi:(1 | id)")
@@ -2011,7 +2011,7 @@ test_that("zero-one-beta admits only the exact coi random-slope q1 gate", {
     "atom-probability random effects"
   )
   expect_no_error(
-    simulate(fit, nsim = 1L, seed = 2026081799L, re.form = NA)
+    simulate(fit, nsim = 1L, seed = 2026081799L, re.form = NULL)
   )
 
   target <- subset(profile_targets(fit), parm == "sd:coi:(0 + x | id)")
@@ -2443,7 +2443,7 @@ test_that("zero-one beta validates malformed and neighbouring inputs", {
     )
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1), family = beta(), data = dat),
+    drmTMB(bf(y ~ x, sigma ~ 1), family = beta_family(), data = dat),
     "strictly between 0 and 1"
   )
   expect_error(

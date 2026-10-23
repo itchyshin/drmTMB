@@ -48,7 +48,7 @@ test_that("A5: beta with a live mi() branch keeps log_sigma inside the clamp ban
   margin <- 1
   fit <- suppressWarnings(drmTMB(
     bf(y ~ x + mi(xm), sigma ~ z),
-    family = beta(), data = dat,
+    family = beta_family(), data = dat,
     impute = list(xm = impute_model(xm ~ z, family = binomial())),
     missing = miss_control(predictor = "model"),
     control = drm_control(

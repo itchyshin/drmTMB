@@ -389,12 +389,12 @@ Matching R syntax:
 ```r
 drmTMB(
   bf(prop ~ habitat, sigma ~ treatment),
-  family = beta(),
+  family = beta_family(),
   data = dat
 )
 ```
 
-This parameterization makes `beta()` parallel to `nbinom2()`: both expose
+This parameterization makes `beta_family()` parallel to `nbinom2()`: both expose
 `sigma` as a positive scale and use a reciprocal-squared precision internally.
 It also gives a direct comparator transform for packages that report beta
 precision:

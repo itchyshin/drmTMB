@@ -45,17 +45,18 @@ bivariate Gaussian REML exception requires matching labelled
 \code{relmat(1 | p | line, K = K)} location intercepts in \code{mu1} and \code{mu2}, the
 same named supplied covariance \code{K}, intercept-only residual formulas,
 complete pairs, unit weights, and no additional model layer. This exception
-has \code{point_fit_recovery} evidence only; bivariate \code{Q}, slopes, q4+, intervals,
+has point-estimate recovery evidence only; bivariate \code{Q}, slopes, models
+with more than two structured coefficient axes, intervals,
 and coverage remain outside it. The
 univariate Gaussian \code{mu} path also
 supports one numeric slope, for example \code{relmat(1 + x | line, Q = Q)}, as
 independent intercept and slope fields with separate SDs and no
-intercept-slope correlation. The exact q1 \code{sigma} one-slope route is also
-fitted for \code{K} and \code{Q}. Implemented bivariate labelled ML cells extend
-through the q2, q4, q6, and q12 layouts recorded in the capability ledger;
+intercept-slope correlation. The exact one-axis \code{sigma} one-slope route is also
+fitted for \code{K} and \code{Q}. Bivariate labelled maximum-likelihood models are
+supported with 2, 4, 6, or 12 structured coefficient axes;
 additional structured-slope layouts, structured slope correlations,
 predictor-dependent \code{corpair()} regression, and relatedness \verb{sd*()}
-direct-SD grammar remain planned.
+direct-SD grammar are not supported.
 \code{relmat()} is
 intentionally separate from \code{\link[=meta_V]{meta_V()}}, which adds known sampling covariance
 among observations, and from residual \code{rho12}, which models

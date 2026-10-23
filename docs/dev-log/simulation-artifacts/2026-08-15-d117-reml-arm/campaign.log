@@ -1,0 +1,70 @@
+START 2026-08-15T19:11:57Z  cores=150 nrep=100000 cells=1,4,5,6
+--- cell 1  2026-08-15T19:11:57Z
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+WROTE /home/snakagaw/d117_reml/results/g10_n10_sd05.csv rows 100000 
+  coverage(profile, ML,   all-attempt) = 0.9255 
+  coverage(profile, REML, all-attempt) = 0.9459 
+  paired delta (REML - ML)             = +0.0204 
+  finite intervals ML / REML = 100000 / 100000 of 100000 
+  mean SD estimate ML / REML = 0.4487 / 0.4795  (truth 0.5 )
+  ENGAGEMENT: rows where REML estimate != ML estimate = 100000 of 100000 
+  reml_flag read back from fit (REML arm): TRUE 
+    rc=0  2026-08-15T19:16:30Z
+--- cell 4  2026-08-15T19:16:30Z
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+WROTE /home/snakagaw/d117_reml/results/g10_n04_sd05.csv rows 100000 
+  coverage(profile, ML,   all-attempt) = 0.9229 
+  coverage(profile, REML, all-attempt) = 0.9466 
+  paired delta (REML - ML)             = +0.0237 
+  finite intervals ML / REML = 100000 / 100000 of 100000 
+  mean SD estimate ML / REML = 0.4212 / 0.4618  (truth 0.5 )
+  ENGAGEMENT: rows where REML estimate != ML estimate = 100000 of 100000 
+  reml_flag read back from fit (REML arm): TRUE 
+    rc=0  2026-08-15T19:20:50Z
+--- cell 5  2026-08-15T19:20:50Z
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+WROTE /home/snakagaw/d117_reml/results/g10_n04_sd10.csv rows 100000 
+  coverage(profile, ML,   all-attempt) = 0.9257 
+  coverage(profile, REML, all-attempt) = 0.9466 
+  paired delta (REML - ML)             = +0.0209 
+  finite intervals ML / REML = 100000 / 100000 of 100000 
+  mean SD estimate ML / REML = 0.9069 / 0.9641  (truth 1 )
+  ENGAGEMENT: rows where REML estimate != ML estimate = 100000 of 100000 
+  reml_flag read back from fit (REML arm): TRUE 
+    rc=0  2026-08-15T19:24:49Z
+--- cell 6  2026-08-15T19:24:49Z
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+WROTE /home/snakagaw/d117_reml/results/g10_n10_sd10.csv rows 100000 
+  coverage(profile, ML,   all-attempt) = 0.9251 
+  coverage(profile, REML, all-attempt) = 0.9462 
+  paired delta (REML - ML)             = +0.0211 
+  finite intervals ML / REML = 100000 / 100000 of 100000 
+  mean SD estimate ML / REML = 0.9166 / 0.9693  (truth 1 )
+  ENGAGEMENT: rows where REML estimate != ML estimate = 100000 of 100000 
+  reml_flag read back from fit (REML arm): TRUE 
+    rc=0  2026-08-15T19:29:16Z
+DONE 2026-08-15T19:29:16Z

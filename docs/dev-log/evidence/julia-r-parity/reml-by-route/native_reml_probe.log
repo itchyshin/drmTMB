@@ -1,0 +1,53 @@
+== base_gaussian_location_scale (fixed-effect Gaussian, REML=TRUE) ==
+ outcome=FITS loglik=-50.3636628254098
+ message=
+
+== biv_gaussian_residual (fixed-effect bivariate, REML=TRUE) ==
+ outcome=FITS loglik=-97.0212058183719
+ message=
+
+== gaussian_random_intercept (1|g), REML=TRUE ==
+ outcome=FITS loglik=-51.609343542443
+ message=
+
+== gaussian_random_slope (1+x|g), REML=TRUE ==
+ outcome=FITS loglik=-50.4273340933307
+ message=
+
+== gaussian_sigma_random_intercept sigma~(1|g), REML=TRUE ==
+ outcome=FITS loglik=-53.3331996169121
+ message=
+
+== gaussian_phylo_mean (mean-only phylo, sigma~1), REML=TRUE ==
+ outcome=FITS loglik=-14.6046181689613
+ message=
+
+== gaussian_response_mask (phylo mean, response='include'), REML=TRUE ==
+ outcome=REFUSES loglik=NA
+ message=`REML` is not implemented with explicit missing-data engines yet. | ✖ The model variables contain missing values and `missing` requests a |   non-default engine. | ℹ Use the default `missing = miss_control()`, drop the incomplete rows, or set |   `REML = FALSE`.
+
+== general_covariance_structured Gaussian relmat(1|g,K=K), sigma~1, REML=TRUE ==
+ outcome=FITS loglik=-51.609343542443
+ message=
+
+== phylo_count_large_p: poisson + phylo(1|species), REML=TRUE ==
+ outcome=REFUSES loglik=NA
+ message=`REML` is implemented for univariate/bivariate Gaussian and binomial | models. | ℹ Use `family = gaussian()`, `biv_gaussian()`, or `binomial()`, or set `REML = |   FALSE`.
+
+== plain_binomial_nonphylo (fixed-effect only cbind trials), REML=TRUE ==
+ outcome=REFUSES loglik=NA
+ message=Binomial `REML` requires exactly one admitted ordinary unlabelled `mu` | random-effect term. | ✖ The model has no ordinary `mu` random intercept or independent numeric slope. | ℹ Use exactly one term such as `(1 | group)` or `(0 + x | group)`, or use `REML |   = FALSE` for maximum likelihood.
+
+== cross_family_latent c(gaussian(),poisson()), REML=TRUE ==
+ outcome=REFUSES loglik=NA
+ message=Mixed-response bivariate families are not implemented yet. | ✖ Requested families: "gaussian" and "poisson". | ℹ Only `family = c(gaussian(), gaussian())` or `family = list(gaussian(), |   gaussian())` is currently routed to the bivariate Gaussian engine.
+
+== fe_gamma (fixed-effect only Gamma), REML=TRUE ==
+ outcome=REFUSES loglik=NA
+ message=`REML` is implemented for univariate/bivariate Gaussian and binomial | models. | ℹ Use `family = gaussian()`, `biv_gaussian()`, or `binomial()`, or set `REML = |   FALSE`.
+
+== fe_poisson (fixed-effect only Poisson, zero RE), REML=TRUE ==
+ outcome=REFUSES loglik=NA
+ message=`REML` is implemented for univariate/bivariate Gaussian and binomial | models. | ℹ Use `family = gaussian()`, `biv_gaussian()`, or `binomial()`, or set `REML = |   FALSE`.
+
+ALL NATIVE PROBES DONE
