@@ -42,10 +42,10 @@
 #' Tweedie's atom at `y = 0` and `zero_one_beta`'s atoms at `y = 0` and `y = 1`,
 #' with no epsilon offset (see `drm_atom_left_limit()`).
 #'
-#' `fitted_distribution()$status == "spike"` families (feasibility spikes,
-#' not yet DG2/DG3-verified) still compute a residual, but emit a one-time
-#' [cli::cli_warn()] per `model_type` per session flagging that the residual
-#' is exploratory, not DG-verified. `status == "unimplemented"` families
+#' Families with `fitted_distribution()$status == "spike"` have not been
+#' evaluated for residual diagnostics. They still compute a residual, but emit a
+#' one-time [cli::cli_warn()] per `model_type` per session stating that the result is
+#' exploratory. `status == "unimplemented"` families
 #' already raise a clear error inside `fitted_distribution()`, before this
 #' function's body runs.
 #'

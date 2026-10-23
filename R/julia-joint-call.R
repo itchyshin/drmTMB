@@ -37,6 +37,11 @@ drmTMB_julia_joint_bridge <- function(
   formula, family, data, env, weights_missing, control, impute, missing,
   REML = FALSE, call
 ) {
+  call_weights <- drm_eval_call_weights(call, data, env)
+  drm_abort_julia_mi_nonunit_weights(call_weights)
+  if (drm_weights_are_unit(call_weights)) {
+    weights_missing <- TRUE
+  }
   prepared <- tryCatch(drm_julia_joint_prepare(
     formula = formula, family = family, data = data, env = env,
     weights_missing = weights_missing, control = control, impute = impute,

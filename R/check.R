@@ -204,7 +204,7 @@ check_drm <- function(object, ...) {
 #' Set `include_hessian = TRUE` when the next step needs Wald-style
 #' uncertainty. In that mode, `is_converged()` also requires successful
 #' [TMB::sdreport()] output with `pdHess = TRUE` on top of the default
-#' [convergence_status()] gate. A fit can therefore be `"converged"` while
+#' [convergence_status()] requirements. A fit can therefore be `"converged"` while
 #' still returning `FALSE` with `include_hessian = TRUE`; this marks an
 #' inference-readiness problem, not automatic proof that point estimates are
 #' unusable.
@@ -747,13 +747,22 @@ validate_check_scalar <- function(x, name, lower = -Inf, upper = Inf) {
   invisible(x)
 }
 
+check_optimizer_name <- function(object) {
+  method <- object$optimizer_used[["optimizer"]]
+  if (is.null(method)) {
+    method <- object$control$optimizer_method
+  }
+  if (is.null(method)) "nlminb" else method
+}
+
 check_optimizer_convergence <- function(object) {
   convergence <- object$opt$convergence
   ok <- identical(as.integer(convergence), 0L)
+  method <- check_optimizer_name(object)
   message <- if (ok) {
-    "nlminb convergence code is 0."
+    paste0(method, " convergence code is 0.")
   } else {
-    paste("nlminb convergence message:", object$opt$message)
+    paste(method, "convergence message:", object$opt$message)
   }
   check_row(
     "optimizer_convergence",
@@ -768,27 +777,38 @@ check_optimizer_budget <- function(object) {
   evaluations <- object$opt$evaluations
   function_evaluations <- optimizer_evaluation_count(evaluations, "function")
   gradient_evaluations <- optimizer_evaluation_count(evaluations, "gradient")
-
-  control <- object$control$optimizer
+  control <- object$optimizer_used$control
+  if (is.null(control)) {
+    control <- object$control$optimizer
+  }
   if (is.null(control)) {
     control <- list()
   }
+  value <- paste0(
+    "iterations=", format_optimizer_count(iterations),
+    "; function=", format_optimizer_count(function_evaluations),
+    "; gradient=", format_optimizer_count(gradient_evaluations)
+  )
+  method <- check_optimizer_name(object)
+  if (!identical(method, "nlminb")) {
+    limit <- optimizer_budget_limit(control, "maxit")
+    hit_budget <- identical(as.integer(object$opt$convergence), 1L)
+    message <- if (hit_budget) {
+      paste0(method, " stopped at its maxit budget (optim convergence code 1); ",
+             "inspect gradients and the model before increasing maxit.")
+    } else {
+      paste0(method, " does not report iteration counts; function and gradient ",
+             "evaluations are not iteration counts. Supplied maxit=",
+             format_optimizer_count(limit), ".")
+    }
+    return(check_row("optimizer_budget", if (hit_budget) "warning" else "note", value, message))
+  }
   iter_max <- optimizer_budget_limit(control, "iter.max")
   eval_max <- optimizer_budget_limit(control, "eval.max")
-
   hit_iter <- optimizer_budget_reached(iterations, iter_max)
   hit_eval <- optimizer_budget_reached(function_evaluations, eval_max)
   hit_budget <- hit_iter || hit_eval
   converged <- identical(as.integer(object$opt$convergence), 0L)
-
-  value <- paste0(
-    "iterations=",
-    format_optimizer_count(iterations),
-    "; function=",
-    format_optimizer_count(function_evaluations),
-    "; gradient=",
-    format_optimizer_count(gradient_evaluations)
-  )
   message <- if (hit_budget) {
     paste(
       "Optimizer reached a supplied evaluation or iteration limit;",
@@ -800,16 +820,9 @@ check_optimizer_budget <- function(object) {
   } else {
     "Optimizer evaluation counts recorded; no eval.max or iter.max control was supplied."
   }
-
   check_row(
     "optimizer_budget",
-    if (hit_budget && !converged) {
-      "warning"
-    } else if (hit_budget) {
-      "note"
-    } else {
-      "ok"
-    },
+    if (hit_budget && !converged) "warning" else if (hit_budget) "note" else "ok",
     value,
     message
   )
