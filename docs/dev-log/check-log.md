@@ -388,6 +388,14 @@ Filed: drmTMB#1558; DRModels.jl#1114; comments on DRModels.jl#969, #1050 and #10
 
 Receipt: `sweep-oct16/t2/RECEIPT_t2.md`. Report: `docs/dev-log/after-task/2026-10-16-sweep-oct16-t2-gaussian-ls-recovery.md`.
 
+# 2026-10-18 — rebase #1506 onto main `d89db5097`
+
+Rebased `claude/lane-f-docs-tutorials` onto current main. Conflict was
+check-log only. Docs-only; C17 not recertified. `capability_ledger.py --check`
+passed after rebase. Full `testthat::test_dir()` on `40f1243cd`: passed=46028
+failed=82 error=224 skipped=105 warning=30 (same env-only Julia/Suggests
+band as the other 2026-10-18 rebases).
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
@@ -396,6 +404,15 @@ receipt commits were skipped and recertified once at the end:
 |change| 0 on mc-0568/0569/0576. Touched tests: unused-dots + miss-control +
 predict-character + relmat-numeric 51 pass; `test-simulate-re-form.R` 22 pass
 via pkgload.
+
+# 2026-10-11: rebase #1506 onto main after #1507/#1527
+
+Rebased `claude/lane-f-docs-tutorials` onto `6beb1f2a0`. Docs only; no C17.
+`large-data.Rmd` kept main's Windows `parallel = "cluster"` sentence and the
+lane-F multicore-abort / serial example, then named cluster as the Windows
+worker backend so the two notes do not contradict. Tests: `capability_ledger.py
+--check` OK; `tools/check-reader-contracts.R` OK; `test-release-identity.R`
+20 pass; `test-reader-vignette-contracts.R` 35 pass.
 
 # 2026-10-11: parallel lane follow-up (PSOCK cluster, parallel multi-start, bootstrap shards)
 
