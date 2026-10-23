@@ -236,6 +236,7 @@ test_that("Gamma mi() plus non-unit weights does not emit the Gaussian-prior war
 })
 
 test_that("Beta mi() plus non-unit weights does not emit the Gaussian-prior warning", {
+  skip_on_cran()
   n <- 48
   z <- seq(-1.5, 1.5, length.out = n)
   cover <- stats::plogis(-0.25 + 0.9 * z + 0.08 * sin(seq_len(n)))

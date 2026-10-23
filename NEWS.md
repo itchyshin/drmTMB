@@ -18,6 +18,12 @@
   the fit-time warning. `summary()` also stores the optimizer message as
   `convergence_message` (#1545).
 
+* The post-fit `mi()` quadrature accuracy check no longer drops a NA or NaN
+  Beta/zero-one-Beta missing-row mean, and no longer skips a NA, NaN, or
+  infinite Gamma log CV or an overflowing Gamma CV. Each now stops with class
+  `drmTMB_mi_quadrature_guard_nonfinite` instead of returning the fit with no
+  signal (refs #1532).
+
 * Gamma `mi()` missing-x rows use a 51-node posterior-mode Gauss-Hermite
   rule on `u = log(x)`. Exactly five Newton steps start at the log prior
   mean and use each response family's own log-density gradient and
