@@ -176,19 +176,40 @@ test_that("objective_at errors on MSPL fits, matching logLik()", {
 # N3 2026-09-03). A5's cross-engine receipt found `objective_at()` could not
 # name `biv_gaussian`'s `rho12` fixed effect or the q4 dense phylogenetic
 # covariance block and had to substitute internal TMB parameter names
-# directly. This fixture is a small (16-tip, 3 obs/tip) synthetic dense-q4
+# directly. This fixture is a small (36-tip, 12 obs/tip) synthetic dense-q4
 # biv_gaussian REML fit, matching the shape of the A5/DRM.jl parity fixture
 # but self-contained (no DRM.jl, no `DRM_JL_PATH`).
 objective_at_biv_q4_phylo_fixture <- function() {
   set.seed(575)
-  tree <- ape::rcoal(16L, tip.label = sprintf("sp%02d", seq_len(16L)))
-  species <- factor(rep(tree$tip.label, each = 3L), levels = tree$tip.label)
-  n <- length(species)
+  # The old independent-response fixture drove the dense covariance block to
+  # a near-singular boundary (false convergence, non-PD Hessian). Generate
+  # all four endpoint effects with enough replicated tips to identify them.
+  n_tip <- 36L
+  n_each <- 12L
+  labels <- sprintf("sp%02d", seq_len(n_tip))
+  pairs <- matrix(labels, ncol = 2L, byrow = TRUE)
+  tree <- ape::read.tree(text = paste0(
+    "(", paste0("(", pairs[, 1L], ":1,", pairs[, 2L], ":1):0.2", collapse = ","), ");"
+  ))
+  phylo_correlation <- ape::vcv(tree, corr = TRUE)
+  endpoint_sd <- diag(c(0.7, 0.6, 0.45, 0.4))
+  endpoint_correlation <- matrix(0.15, 4L, 4L)
+  diag(endpoint_correlation) <- 1
+  endpoint_effects <- t(chol(phylo_correlation)) %*%
+    matrix(stats::rnorm(n_tip * 4L), n_tip, 4L) %*%
+    chol(endpoint_sd %*% endpoint_correlation %*% endpoint_sd)
+  tip <- rep(seq_len(n_tip), each = n_each)
+  n <- length(tip)
+  x <- stats::rnorm(n)
+  residual <- matrix(stats::rnorm(n * 2L), n, 2L) %*%
+    chol(matrix(c(1, 0.25, 0.25, 1), 2L))
   dat <- data.frame(
-    y1 = stats::rnorm(n),
-    y2 = stats::rnorm(n),
-    x = stats::rnorm(n),
-    species = species
+    y1 = 0.4 + 0.3 * x + endpoint_effects[tip, 1L] +
+      exp(-0.3 + endpoint_effects[tip, 3L]) * residual[, 1L],
+    y2 = -0.2 + 0.2 * x + endpoint_effects[tip, 2L] +
+      exp(-0.1 + endpoint_effects[tip, 4L]) * residual[, 2L],
+    x = x,
+    species = factor(labels[tip], levels = labels)
   )
   form <- bf(
     mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
@@ -202,14 +223,17 @@ objective_at_biv_q4_phylo_fixture <- function() {
 
 objective_at_biv_q4_phylo_fit <- function() {
   fx <- objective_at_biv_q4_phylo_fixture()
-  suppressWarnings(drmTMB(
+  fit <- drmTMB(
     fx$formula,
     family = biv_gaussian(),
     data = fx$data,
     engine = "tmb",
     REML = TRUE,
     control = drm_control(optimizer_preset = "robust", keep_tmb_object = TRUE)
-  ))
+  )
+  expect_true(is_converged(fit), info = "q4 objective anchor requires a converged fit")
+  expect_true(isTRUE(fit$sdr$pdHess), info = "q4 objective anchor requires a positive-definite Hessian")
+  fit
 }
 
 # Builds the `fixef:rho12:...`/`phylo_sd:...`/`phylo_theta:...` start from a

@@ -2,9 +2,12 @@
 
 S3method("[",drm_check)
 S3method(AIC,drmTMB)
+S3method(AIC,drmTMB_julia)
 S3method(BIC,drmTMB)
+S3method(BIC,drmTMB_julia)
 S3method(aicc,default)
 S3method(aicc,drmTMB)
+S3method(aicc,drmTMB_julia)
 S3method(anova,drmTMB)
 S3method(anova,drmTMB_julia)
 S3method(as.matrix,drm_confint)

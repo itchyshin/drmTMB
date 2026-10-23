@@ -929,12 +929,12 @@ test_that("confint returns Wald intervals for direct random-effect targets", {
   )
   expect_equal(
     cor_ci$lower,
-    0.999999 * tanh(cor_eta - z * cor_se),
+    0.99999999 * tanh(cor_eta - z * cor_se),
     tolerance = 1e-12
   )
   expect_equal(
     cor_ci$upper,
-    0.999999 * tanh(cor_eta + z * cor_se),
+    0.99999999 * tanh(cor_eta + z * cor_se),
     tolerance = 1e-12
   )
   expect_equal(
@@ -1345,7 +1345,7 @@ test_that("confint bootstrap refits structured location-scale dependencies", {
 
   for (case_name in names(cases)) {
     case <- cases[[case_name]]
-    # bootstrap_re_form = NA requests CONDITIONAL simulation: these fits have
+    # bootstrap_re_form = NULL requests CONDITIONAL simulation: these fits have
     # a structured RE on BOTH mu and sigma (q > 1), which marginal simulation
     # does not yet support, so the default would abort. Conditional bootstrap
     # intervals are ANTICONSERVATIVE (between-group variability is not
@@ -1359,7 +1359,7 @@ test_that("confint bootstrap refits structured location-scale dependencies", {
       method = "bootstrap",
       R = 2,
       seed = 20260670,
-      bootstrap_re_form = NA,
+      bootstrap_re_form = NULL,
       refit_control = drm_control(
         se = FALSE,
         optimizer = list(eval.max = 500, iter.max = 500)
@@ -1400,7 +1400,7 @@ test_that("confint bootstrap refits bivariate phylogenetic q2 targets", {
     data = sim$data
   )
 
-  # bootstrap_re_form = NA requests CONDITIONAL simulation: this fit shares one
+  # bootstrap_re_form = NULL requests CONDITIONAL simulation: this fit shares one
   # phylo random effect across mu1 and mu2 (q = 2), which marginal simulation
   # does not yet support, so the default would abort. Conditional bootstrap
   # intervals are ANTICONSERVATIVE (between-group variability is not
@@ -1413,7 +1413,7 @@ test_that("confint bootstrap refits bivariate phylogenetic q2 targets", {
     method = "bootstrap",
     R = 2,
     seed = 20260663,
-    bootstrap_re_form = NA
+    bootstrap_re_form = NULL
   )
 
   expect_equal(
@@ -2034,12 +2034,12 @@ test_that("confint profile intervals transform SD and correlation targets", {
   expect_equal(cor_ci$transformation, "tanh")
   expect_equal(
     cor_ci$lower,
-    0.999999 * tanh(unname(manual_cor_ci[1L, "lower"])),
+    0.99999999 * tanh(unname(manual_cor_ci[1L, "lower"])),
     tolerance = 1e-12
   )
   expect_equal(
     cor_ci$upper,
-    0.999999 * tanh(unname(manual_cor_ci[1L, "upper"])),
+    0.99999999 * tanh(unname(manual_cor_ci[1L, "upper"])),
     tolerance = 1e-12
   )
   expect_true(abs(cor_ci$lower) < 1)
@@ -2442,12 +2442,12 @@ test_that("endpoint profile engine solves ordinary SD and correlation endpoints"
   )
   expect_equal(
     ci$lower[[2L]],
-    0.999999 * tanh(cor_result$link_interval[[1L]]),
+    0.99999999 * tanh(cor_result$link_interval[[1L]]),
     tolerance = 1e-8
   )
   expect_equal(
     ci$upper[[2L]],
-    0.999999 * tanh(cor_result$link_interval[[2L]]),
+    0.99999999 * tanh(cor_result$link_interval[[2L]]),
     tolerance = 1e-8
   )
   expect_gt(ci$lower[[1L]], 0)
@@ -3580,7 +3580,7 @@ test_that("profile target inventory separates random-effect SDs and correlations
   expect_equal(cor_target$profile_note, "ready")
   expect_equal(
     cor_target$link_estimate,
-    drmTMB:::guarded_correlation_link(cor_target$estimate, guard = 0.999999),
+    drmTMB:::guarded_correlation_link(cor_target$estimate, guard = 0.99999999),
     tolerance = 1e-12
   )
 

@@ -300,3 +300,9 @@ association claim. Choose the route whose stated association scale matches the
 biological question, and treat every boundary as part of the model definition.
 For the exact admitted mixed pairs and their output, continue to [Association
 between mixed outcome pairs](cross-family.html).
+
+Working in Julia? The
+[DRModels.jl companion page](https://itchyshin.github.io/DRModels.jl/stable/tutorials/bivariate-nongaussian)
+mirrors this article with Julia syntax and states which parts DRModels.jl
+supports today. DRModels.jl is a separate package with its own fitting and
+inference routes; Julia is optional for `drmTMB` users.

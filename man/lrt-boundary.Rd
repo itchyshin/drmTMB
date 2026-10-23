@@ -60,10 +60,10 @@ At \code{stat = 0} this is \code{0.5}; for \code{stat > 0} it is exactly half th
 this is \code{0.75}.
 }
 
-\code{drmTMB}'s \code{anova()} deliberately implements no likelihood-ratio
-comparison, and \code{confint(method = "wald")} only \emph{flags} a variance
-component at its boundary (\code{conf.status = "wald_at_boundary"}); this pair
-is the first drmTMB tool that computes a p-value that is correct there.
+\code{confint(method = "wald")} only \emph{flags} a variance component at its
+boundary (\code{conf.status = "wald_at_boundary"}); this pair computes a p-value
+that is correct there. \code{\link[=anova.drmTMB]{anova.drmTMB()}} uses \code{lrt_boundary()}'s p-value
+automatically when exactly one or two standard deviations are added.
 }
 \section{Assumptions}{
 
