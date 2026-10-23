@@ -33,64 +33,80 @@ if (!"package:drmTMB" %in% search()) {
 `drmTMB` fits distributional regression models for one or two responses. Start
 here if you have one response and want to ask whether predictors change its
 average, its residual variability, or both. This article fits a small Gaussian
-model, explains the output, and shows what to check before interpretation.
+model, prints and reads its `summary()`, checks the fit with `check_drm()`, and
+points to the next guide for your data.
 
-The central workflow is simple: write one formula for each parameter you want
-to estimate, fit the simplest model that answers the question, and check the
-fit before interpreting it. If you instead have a phylogenetic tree, begin
-with [Phylogenetic mixed models](phylogenetic-models.html). If your response is
-an effect size with known sampling variance or covariance, begin with
+The workflow has three steps: write one formula for each parameter you want to
+estimate, fit the simplest model that answers the question, and check the fit
+before interpreting it. If you instead have a phylogenetic tree, begin with
+[Phylogenetic mixed models](phylogenetic-models.html). If your response is an
+effect size with known sampling variance or covariance, begin with
 [Mean effects and residual heterogeneity](meta-analysis.html). The broader
 map, including other response types, is [What can I fit today?](model-map.html).
 
-The parameter names stay consistent across the site. Location is a
-family-specific centre or location parameter; for Gaussian models it is the
-expected response, but it need not be the unconditional response mean. Scale
-describes residual variability; shape describes distribution features beyond
-location and scale; and coscale means residual correlation such as `rho12`
-between two responses. A family may expose only a subset of these components.
+This vignette describes `drmTMB` 0.7.1, the current development version;
+0.7.0 is on CRAN. Installation instructions, including the compiler toolchain
+TMB needs, are on the [package home page](https://itchyshin.github.io/drmTMB/).
 
-For example, an applied user might ask: do mean trait values and residual
-variability change with an environmental predictor, after accounting for
-repeated measures from the same site or species? In `drmTMB`, that question is
-written as one formula for the mean and one formula for the residual scale.
+## Parameter names used in these guides
 
-## Install
+Each distributional parameter has one formula name and one plain-English name.
+The guides use these names consistently:
 
-This vignette describes `drmTMB` 0.7.1, the current development version.
-`drmTMB` 0.7.0 is the first CRAN release. Install it from CRAN:
+| Formula name | Name in these guides | What it describes |
+| --- | --- | --- |
+| `mu` (`mu1`, `mu2` for two responses) | location | Where the response distribution sits. For a Gaussian response, `mu` is the expected response, and its coefficients read like `lm()` or `lmer()` coefficients. |
+| `sigma` (`sigma1`, `sigma2`) | scale | How far observations spread around `mu`. For a Gaussian response, `sigma` is the residual standard deviation (SD), modelled on the log scale. |
+| `nu` and other family-specific names | shape | Features beyond location and scale, such as Student-t tail weight (`nu`). Gaussian models have none. |
+| `zi`, `hu` | zero inflation, hurdle | The probability of an extra zero (`zi`) or of a zero from a separate hurdle process (`hu`). |
+| `rho12` | residual correlation (coscale) | How two responses vary together within an observation after their `mu` and `sigma` models are accounted for. Only bivariate models have it. |
+
+A family exposes only the parameters it defines: a Gaussian model has `mu`
+and `sigma`, whereas a Poisson model has `mu`, plus `zi` when you model zero
+inflation.
+
+## If you already use lme4 or glmmTMB
+
+The mean formula is written exactly as in `lme4` or `glmmTMB`, including
+random-effect terms such as `(1 | site)`. Each additional parameter gets its
+own formula, named by the parameter. The `sigma` formula plays the role of
+`glmmTMB`'s `dispformula` for a Gaussian model:
 
 ```r
-install.packages("drmTMB")
+# glmmTMB
+glmmTMB::glmmTMB(y ~ x + (1 | site), dispformula = ~ x, data = dat)
+
+# drmTMB: the same model
+drmTMB(bf(y ~ x + (1 | site), sigma ~ x), family = gaussian(), data = dat)
 ```
 
-Or install the current development source from GitHub with `pak`:
-
-```r
-install.packages("pak")
-pak::pak("itchyshin/drmTMB")
-```
-
-You need R 4.1.0 or newer and a working compiler toolchain because TMB models
-are compiled during installation. If installation fails while compiling C++,
-install the usual R build tools for your platform: Rtools on Windows, Xcode
-Command Line Tools on macOS, or the R development toolchain on Linux.
-
-The core runtime dependencies are installed automatically by `pak`: `cli`,
-`Matrix`, `TMB`, and the compiled headers from `RcppEigen` and `TMB`. The
-articles and development checks also use optional packages such as `glmmTMB`,
-`lme4`, `MASS`, `metafor`, `knitr`, `rmarkdown`, `testthat`, `withr`, and
-`pkgdown`.
+`bf()` is a short alias for `drm_formula()`; the name and the
+one-formula-per-parameter layout follow `brms::bf()` (Bürkner 2017). For
+worked side-by-side fits against `lm()`, `lme4`, `glmmTMB`, `metafor`, and
+other packages, see
+[Comparing drmTMB with other packages](comparing-with-other-packages.html).
 
 ## Fit your first model
 
 Start with a Gaussian location-scale model when the response is continuous and
-the scientific question is about both the expected value and predictability.
-In the small example below, habitat and temperature affect mean growth, while
-habitat also changes residual variation:
+the scientific question is about both the expected value and its
+predictability. In the example below, habitat and temperature change mean
+growth, and habitat also changes the residual SD:
+
+```text
+growth_i ~ Normal(mu_i, sigma_i^2)
+mu_i        = beta_0 + beta_1 grassland_i + beta_2 temperature_i
+log(sigma_i) = gamma_0 + gamma_1 grassland_i
+```
+
+Here `i` indexes observations, `grassland_i` is 1 for grassland and 0 for
+forest, the `beta` coefficients belong to the `mu` formula, and the `gamma`
+coefficients belong to the `sigma` formula. The simulation sets
+`beta = (1, 0.6, 0.4)` and `gamma = (-0.5, 0.45)`, so you can check whether
+the fit recovers them:
 
 ```{r first-model-data}
-set.seed(13)
+set.seed(1)
 n <- 120
 dat <- data.frame(
   habitat = factor(rep(c("forest", "grassland"), each = n / 2)),
@@ -101,7 +117,8 @@ sigma <- exp(-0.5 + 0.45 * (dat$habitat == "grassland"))
 dat$growth <- rnorm(n, mean = mu, sd = sigma)
 ```
 
-The fitted model uses one formula for `mu` and one formula for `sigma`:
+The model has one formula for `mu` (the unnamed `growth ~ ...` formula) and one
+for `sigma`:
 
 ```{r first-model-fit}
 fit <- drmTMB(
@@ -109,13 +126,55 @@ fit <- drmTMB(
   family = gaussian(),
   data = dat
 )
+```
 
+### Check the fit
+
+Run `check_drm()` before reading any estimate. It reports one row per check:
+optimizer convergence, the size of the final gradient, whether the Hessian is
+positive definite, whether standard errors are finite, whether rows were
+dropped, whether fitted scales are positive, and, for models with random
+effects, whether groups are replicated enough and whether parameters sit on a
+boundary:
+
+```{r first-model-check}
 check_drm(fit)
 ```
 
-Read the `sigma` coefficient as a log residual-SD contrast. Exponentiating it
-gives an SD ratio; exponentiating twice the coefficient gives a residual
-variance ratio:
+A clean fit looks like the header line above: every check is `ok`, with zero
+notes, warnings, and errors. Read the `message` column of any `note`; resolve a
+`warning` or `error` before treating the estimates as stable. The
+[errors, warnings, and convergence guide](convergence.html) explains what to
+try next.
+
+### Read the summary
+
+```{r first-model-summary}
+summary(fit)
+```
+
+The first table has one row per coefficient, labelled by parameter:
+
+1. Rows beginning with `mu:` are the `beta` coefficients, on the response
+   scale. `mu:temperature` is the change in expected growth per unit of
+   temperature, read exactly like an `lm()` slope.
+2. Rows beginning with `sigma:` are the `gamma` coefficients, on the log-SD
+   scale. `sigma:habitatgrassland` is the log of the ratio of grassland to
+   forest residual SD.
+
+The second table, `fitted:sigma`, gives the mean, minimum, and maximum of the
+fitted residual SDs across observations, on the response scale. `logLik` is
+the maximised log-likelihood, and `convergence: 0` repeats the optimizer code
+that `check_drm()` already inspected.
+
+Compare the estimates with the simulated values: the `mu` rows should be close
+to 1, 0.6, and 0.4, and the `sigma` rows close to -0.5 and 0.45, each within
+about two standard errors. A different seed gives different estimates; the
+truth is a target for the method on average, not for any single data set.
+
+Because `sigma` coefficients are on the log scale, exponentiate them before
+reporting. `exp(gamma_1)` is the ratio of grassland to forest residual SD, and
+`exp(2 * gamma_1)` is the ratio of residual variances:
 
 ```{r first-model-interpret}
 sigma_habitat <- coef(fit, "sigma")["habitatgrassland"]
@@ -125,11 +184,12 @@ data.frame(
 )
 ```
 
-For a fuller walkthrough of fitted means, residual SDs, and residual
-variances, read [When variance carries signal, Part
-1](location-scale.html). Continue to [Part
-2](location-scale-scale.html) when predictors model a grouped or
-phylogenetic random-effect SD through `sd()`.
+For a fuller walkthrough of fitted means, residual SDs, residual variances, and
+intervals, read [When variance carries signal, Part 1](location-scale.html).
+Continue to [Part 2](location-scale-scale.html) when a predictor should change
+the SD of a random effect. That model uses an `sd()` formula: `sd(site) ~ x`
+says that the among-site SD of the `(1 | site)` intercepts depends on the
+site-level predictor `x`.
 
 ## Choose your next guide
 
@@ -141,53 +201,61 @@ when your data require it.
 | --- | --- | --- |
 | Which response family fits continuous, count, proportion, robust, or zero-heavy data? | [Choosing response families](distribution-families.html) | A family determines what `mu`, `sigma`, and any extra parameters mean. |
 | Do related species, sites, animals, or a supplied relationship matrix share deviations? | [Structural dependence overview](structural-dependence.html) | A structured deviation is not the same as residual variation or residual correlation. |
-| Do two responses remain associated after their means and residual SDs are modelled? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` is residual coupling, not a correlation among groups or species. |
+| Do two responses remain correlated after their means and residual SDs are modelled? | [Residual correlation with rho12](bivariate-coscale.html) | `rho12` is a residual correlation, not a correlation among groups or species. |
 | Do effect sizes come with known sampling variances or covariance? | [Mean effects and residual heterogeneity](meta-analysis.html) | This is a Gaussian known-variance analysis, not a family for raw observations. |
 | Is an estimate or interval safe to report? | [Can I fit and report this model?](capability-and-limits.html) | A model that fits can still have weak diagnostics or unsupported uncertainty. |
+| How does my `lme4`, `glmmTMB`, or `metafor` model translate? | [Comparing drmTMB with other packages](comparing-with-other-packages.html) | Side-by-side fits of the same model in both packages. |
 
-Use [What can I fit today?](model-map.html) only when you need a compact
-route-and-limitation map. For any model, run `check_drm()` before interpreting
-coefficients or intervals.
+Use [What can I fit today?](model-map.html) when you need a compact
+route-and-limitation map.
 
-For a first applied analysis, fit the simplest model that answers the question,
-run `check_drm()`, and then read the coefficient table on the parameter scale
-used by the model. For example, `sigma` coefficients are on a log scale in
-Gaussian location-scale models, while `rho12(fit)` returns residual
-correlations on the response scale.
+## Name the quantity before reporting it
 
-For slope and variance-component questions, name the estimand before reporting
-the number. A `mu` slope is an expected-response effect, a `sigma` slope is a
-log residual-SD effect, a random-slope SD is among-group variation in a
-reaction norm, and `sd(group) ~ x_group` is a model for the SD of a group-level
-mean effect. Those four quantities can all involve a predictor, but they answer
-different biological questions.
+Before reporting a number, name the estimand, the quantity the number
+estimates. Four quantities can all involve a predictor `x`, but they answer
+different biological questions:
 
-## Check before interpreting
+- A `mu` slope, from `y ~ x`, is the change in the expected response per unit
+  of `x`.
+- A `sigma` slope, from `sigma ~ x`, is the change in log residual SD per unit
+  of `x`.
+- A random-slope SD, from `(0 + x | group)` in the `mu` formula, is how much
+  the `x` slope (a reaction norm) varies among groups.
+- An `sd()` slope, from `sd(group) ~ x_group`, is how a group-level predictor
+  changes the SD of the group intercepts.
 
-After fitting any model, run `check_drm()` before interpreting the estimates:
+## Keep residual and group-level correlations separate
 
-```r
-check_drm(fit)
-```
+A bivariate residual correlation `rho12` describes how two responses vary
+together within an observation after their `mu` and `sigma` models are
+accounted for.
 
-The diagnostic table checks convergence, gradients, Hessian status, standard
-errors, dropped rows, scale values, random-effect replication, and relevant
-parameter boundaries. Inspect a `note`; resolve a `warning` or `error` before
-treating estimates as stable. The [errors, warnings, and convergence
-guide](convergence.html) explains what to try next.
+A random-effect correlation describes something else: how group-level
+deviations, such as site intercepts and site slopes, vary together.
+Phylogenetic and spatial correlations are further group-level correlations,
+structured by a tree or by coordinates. Report each as its own quantity. If
+correlation is your scientific question, continue with the
+[structural dependence overview](structural-dependence.html) before adding it to
+this introductory model.
 
-Keep correlation layers separate. A bivariate residual `rho12` describes how
-two responses vary together within an observation after their means and
-residual SDs are modelled. A random-effect correlation instead describes how
-group-level deviations vary together. Phylogenetic and spatial structure are
-further kinds of group-level pattern. They answer different biological
-questions and should not be reported as the same quantity. If correlation is
-your scientific question, continue with the [structural dependence
-overview](structural-dependence.html) before adding it to this introductory
-model.
+## Next steps
 
 Use [Can I fit and report this model?](capability-and-limits.html) for the
-current reporting boundary and named fallback; use the [model map](model-map.html)
-when you need syntax detail. Once this first fit is checked, continue with
-[Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html) or choose a scientific
-question from the Learning path table above.
+current reporting boundary for each model, and the [model map](model-map.html)
+for syntax detail. Once this first fit is checked, continue with
+[Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html),
+or choose a scientific question from the "Choose your next guide" table above.
+
+Working in Julia? The DRModels.jl
+[first-model page](https://itchyshin.github.io/DRModels.jl/stable/getting-started)
+is the Julia starting point, and its
+[R and Julia vocabulary page](https://itchyshin.github.io/DRModels.jl/stable/rosetta)
+maps `drmTMB` syntax to Julia syntax. Its first example uses different
+simulated data from this article, so compare syntax rather than numbers. Julia
+is optional for `drmTMB` users.
+
+## References
+
+Bürkner, P.-C. (2017). brms: An R package for Bayesian multilevel models using
+Stan. *Journal of Statistical Software*, 80(1), 1-28.
+<https://doi.org/10.18637/jss.v080.i01>

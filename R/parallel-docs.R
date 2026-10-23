@@ -20,7 +20,7 @@
 #' * `"multicore"` forks worker processes with [parallel::mclapply()]. It is
 #'   cheap to start but available on Unix-alikes only.
 #' * `"cluster"` starts socket (PSOCK) workers with
-#'   [parallel::makePSOCKcluster()] and works on every platform, including
+#' \code{\link[parallel:makeCluster]{parallel::makePSOCKcluster()}} and works on every platform, including
 #'   Windows. Each worker loads the same installed `drmTMB` build. A fitted
 #'   TMB object reaches the worker with a dead external pointer, and TMB
 #'   rebuilds it from the stored data and parameters on first use, so no
