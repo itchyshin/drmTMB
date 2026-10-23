@@ -53,6 +53,7 @@ Suggests:
     palmerpenguins,
     pkgload,
     rmarkdown,
+    roxygen2,
     sf,
     spelling,
     statmod,

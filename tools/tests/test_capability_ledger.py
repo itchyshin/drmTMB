@@ -1409,6 +1409,39 @@ class CapabilityLedgerTests(unittest.TestCase):
         ):
             self.assertNotIn(internal_phrase, structural)
 
+    def test_public_vignettes_are_free_of_internal_route_jargon(self):
+        # Reader pages never carry these internal evidence/bridge phrases; the
+        # reader-facing tier vocabulary lives in capability-and-limits.Rmd
+        # ("point estimate only", "diagnostic only", "fixed spatial range").
+        # structural-dependence.Rmd is covered too: PR #1418 made it clean of
+        # every phrase below, so the earlier temporary exclusion is dropped.
+        public_vignettes = sorted((ROOT / "vignettes").glob("*.Rmd")) + sorted(
+            (ROOT / "vignettes" / "articles").glob("*.Rmd")
+        )
+        self.assertTrue(public_vignettes)
+        for path in public_vignettes:
+            normalized = " ".join(path.read_text().split()).lower()
+            for internal_phrase in (
+                "pedigree/ainv bridge marshalling",
+                "recovery-grade nb2",
+                "fixed-kappa mesh intercept",
+                # Same class, any spelling: the reader must never meet the
+                # internal tier words or the bridge vocabulary on these pages.
+                "bridge marshalling",
+                "bridge marshaling",
+                "bridge claims",
+                "recovery-grade",
+                "recovery grade",
+                "diagnostic-grade",
+                "diagnostic grade",
+                "fixed-kappa",
+                "local-fit level",
+            ):
+                self.assertFalse(
+                    internal_phrase in normalized,
+                    f"{internal_phrase!r} found in {path.relative_to(ROOT)}",
+                )
+
     def test_capability_article_has_reporting_rule_and_stable_terms(self):
         article = (ROOT / "vignettes/capability-and-limits.Rmd").read_text()
         css = (ROOT / "pkgdown" / "extra.css").read_text()
@@ -1824,7 +1857,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["model-map.Rmd"],
         )
         self.assertIn(
-            "separate recovery-grade NB2 q=1 structured `sigma` routes",
+            "separate NB2 q=1 structured `sigma` routes (point estimate only)",
             surfaces["model-map.Rmd"],
         )
         self.assertIn(
@@ -2155,7 +2188,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             normalized = " ".join(surfaces[name].split())
             for gate in (
                 "ordinary Poisson/NB2 q1 spatial `mu`",
-                "recovery-grade NB2 q1 spatial `sigma`",
+                "NB2 q1 spatial `sigma` (point estimate only)",
                 "Student-t spatial `mu`",
                 "Poisson spatial `zi`",
                 "fixed-`zi` NB2 spatial `mu`",

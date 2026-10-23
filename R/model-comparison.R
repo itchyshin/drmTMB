@@ -14,9 +14,9 @@
 # (comparison.jl:162-168, VA vs Laplace) has no counterpart because drmTMB fits
 # carry no variational marginal.
 #
-# `drm_lrtest()` is deliberately NOT exported and NOT wired into
-# `anova.drmTMB()`: that method lives in R/methods.R, outside this file's scope.
-# Wiring it up is a one-line follow-up once that file is in scope.
+# `drm_lrtest()` is deliberately NOT exported. `anova.drmTMB()` (R/methods.R)
+# calls it through `drm_anova_lrt()` below (#1240); `anova()` on an
+# `engine = "julia"` fit still refuses.
 
 #' Corrected Akaike information criterion (AICc)
 #'
@@ -47,7 +47,9 @@
 #' @details
 #' On a REML fit the same caveat as [AIC()] applies and the same warning is
 #' emitted: the restricted likelihood is comparable only across models with
-#' identical fixed effects. Experimental MSPL fits do not expose a likelihood
+#' identical fixed effects. This holds for both engines: `engine = "julia"`
+#' fits have their own `aicc()`, [AIC()] and [BIC()] methods that run the same
+#' REML guard before computing the value. Experimental MSPL fits do not expose a likelihood
 #' and error, as they do for [AIC()].
 #'
 #' @seealso [AIC()], [BIC()], [logLik()]
@@ -85,6 +87,13 @@ aicc.drmTMB <- function(object, ...) {
   drm_abort_mspl_inference(object, "aicc")
   drm_warn_information_criterion(list(object), "AICc")
   drm_aicc_from_loglik(object$logLik, object$df, object$nobs, what = "drmTMB")
+}
+
+#' @rdname model-comparison
+#' @export
+aicc.drmTMB_julia <- function(object, ...) {
+  drm_warn_information_criterion(list(object), "AICc")
+  NextMethod()
 }
 
 # AICc from its three ingredients. DRM.jl comparison.jl:209-215:
@@ -228,6 +237,179 @@ drm_lrtest_boundary_warn <- function(reduced, full, df) {
 }
 
 # ---------------------------------------------------------------------------
+# anova.drmTMB(): likelihood-ratio table (#1240, owner decision 2026-10-11).
+#
+# `anova(reduced, full, ...)` runs `drm_lrtest()` on each consecutive pair of
+# fits ordered by parameter count, so every guard that function carries (same
+# observations, REML mean-structure, MAP) applies. Two additions the pairwise
+# helper does not make:
+#   * ML and REML fits are never mixed (as `lrt_boundary()`);
+#   * when `full` adds one or two variance components (random-effect SDs) and
+#     nothing else, the reported p-value is the chi-bar-square mixture from
+#     `lrt_boundary()`, because the null sits on the boundary; any other
+#     boundary case keeps the naive chi-square p-value and says it is
+#     conservative. A boundary warning is always signalled.
+
+drm_anova_vc_labels <- function(object, slot) {
+  block <- object[[slot]]
+  as.character(unlist(
+    lapply(names(block), function(d) paste0(d, ":", names(block[[d]]))),
+    use.names = FALSE
+  ))
+}
+
+# Which p-value applies to the comparison `reduced` -> `full`: the chi-bar
+# mixture needs exactly q = 1 or 2 added SDs, no added or removed correlation,
+# and an extra-parameter count equal to q (so every other parameter is shared).
+drm_anova_boundary <- function(reduced, full) {
+  added_sd <- setdiff(
+    drm_anova_vc_labels(full, "sdpars"),
+    drm_anova_vc_labels(reduced, "sdpars")
+  )
+  removed_sd <- setdiff(
+    drm_anova_vc_labels(reduced, "sdpars"),
+    drm_anova_vc_labels(full, "sdpars")
+  )
+  changed_cor <- c(
+    setdiff(
+      drm_anova_vc_labels(full, "corpars"),
+      drm_anova_vc_labels(reduced, "corpars")
+    ),
+    setdiff(
+      drm_anova_vc_labels(reduced, "corpars"),
+      drm_anova_vc_labels(full, "corpars")
+    )
+  )
+  q <- length(added_sd)
+  df <- as.numeric(full$df) - as.numeric(reduced$df)
+  list(
+    added_sd = added_sd,
+    q = q,
+    applies = q %in% c(1L, 2L) &&
+      length(removed_sd) == 0L &&
+      length(changed_cor) == 0L &&
+      isTRUE(df == q)
+  )
+}
+
+drm_anova_lrt <- function(fits, labels, test = NULL) {
+  mspl <- vapply(fits, drm_is_mspl, logical(1L))
+  if (any(mspl)) {
+    drm_abort_mspl_inference(fits[[which(mspl)[[1L]]]], "anova")
+  }
+  if (!is.null(test) &&
+      !(is.character(test) && length(test) == 1L && tolower(test) %in% c("chisq", "lrt"))) {
+    cli::cli_abort(c(
+      "{.arg test} must be {.val Chisq}, {.val LRT}, or {.code NULL}.",
+      "i" = "{.fn anova} on {.cls drmTMB} fits only offers the likelihood-ratio test."
+    ))
+  }
+  native <- vapply(fits, inherits, logical(1L), what = "drmTMB")
+  if (!all(native)) {
+    cli::cli_abort(c(
+      "{.fn anova} compares {.cls drmTMB} fits fitted with {.code engine = \"tmb\"}.",
+      "x" = "Argument{?s} {.val {labels[!native]}} {?is/are} not {?a/} native {.cls drmTMB} fit{?s}.",
+      "i" = "Fit every model with the same engine; {.code engine = \"julia\"} fits do not support {.fn anova}."
+    ))
+  }
+  if (length(fits) < 2L) {
+    cli::cli_abort(c(
+      "{.fn anova} needs at least two nested {.cls drmTMB} fits.",
+      "i" = "Call {.code anova(reduced, full)}. For a single fit, or for non-nested models, compare with {.fn AIC} or {.fn BIC}."
+    ))
+  }
+  estimators <- vapply(fits, drm_fit_estimator, character(1L))
+  if (length(unique(estimators)) > 1L) {
+    cli::cli_abort(
+      c(
+        "{.fn anova} cannot mix fits with different estimators ({.val {unique(estimators)}}).",
+        "i" = "Refit all models with the same {.arg REML}/{.arg estimator} setting."
+      ),
+      class = "drmTMB_anova_estimator_error"
+    )
+  }
+
+  npar <- vapply(fits, function(f) as.numeric(f$df), numeric(1L))
+  ord <- order(npar)
+  fits <- fits[ord]
+  labels <- labels[ord]
+  npar <- npar[ord]
+  if (any(diff(npar) <= 0)) {
+    cli::cli_abort(c(
+      "{.fn anova} needs fits with strictly increasing numbers of parameters to form nested comparisons.",
+      "x" = "Models {.val {labels[c(FALSE, diff(npar) <= 0)]}} have as many parameters as the model before {?it/them}.",
+      "i" = "A likelihood-ratio test compares a model with a larger one that contains it; use {.fn AIC} for models of equal size."
+    ))
+  }
+
+  k <- length(fits)
+  loglik <- vapply(fits, function(f) as.numeric(stats::logLik(f)), numeric(1L))
+  chisq <- df <- p <- rep(NA_real_, k)
+  p_method <- rep(NA_character_, k)
+  for (i in seq.int(2L, k)) {
+    reduced <- fits[[i - 1L]]
+    full <- fits[[i]]
+    res <- withCallingHandlers(
+      drm_lrtest(reduced, full),
+      drmTMB_lrtest_boundary_warning = function(w) invokeRestart("muffleWarning")
+    )
+    chisq[[i]] <- res$statistic
+    df[[i]] <- res$df
+    p[[i]] <- res$p.value
+    p_method[[i]] <- "chisq"
+    bd <- drm_anova_boundary(reduced, full)
+    if (length(bd$added_sd) > 0L) {
+      pair <- paste0(labels[[i - 1L]], " -> ", labels[[i]])
+      if (bd$applies) {
+        p[[i]] <- lrt_boundary(full, reduced, q = bd$q)$pvalue
+        p_method[[i]] <- "chibar"
+        cli::cli_warn(
+          c(
+            "{pair}: {.val {labels[[i]]}} adds variance component{?s} {.val {bd$added_sd}}, so the test puts {?a variance/variances} on the boundary at 0.",
+            "i" = "The reported p-value is the chi-bar-square mixture from {.fn lrt_boundary}; the naive chi-square p-value would be too large.",
+            "i" = if (bd$q == 2L) "For two added components it assumes they are independent; confirm with a parametric bootstrap if in doubt."
+          ),
+          class = "drmTMB_anova_boundary_warning"
+        )
+      } else {
+        cli::cli_warn(
+          c(
+            "{pair}: {.val {labels[[i]]}} adds variance component{?s} {.val {bd$added_sd}}, a boundary test, but the chi-bar-square mixture does not apply to this pair.",
+            "x" = "It needs exactly one or two added standard deviations and no other new parameters (here {res$df} extra parameter{?s}).",
+            "i" = "The reported chi-square p-value is conservative (too large). Use a parametric bootstrap for a valid p-value."
+          ),
+          class = "drmTMB_anova_boundary_warning"
+        )
+      }
+    }
+  }
+
+  out <- data.frame(
+    npar = npar,
+    logLik = loglik,
+    deviance = -2 * loglik,
+    Chisq = chisq,
+    Df = df,
+    `Pr(>Chisq)` = p,
+    row.names = labels,
+    check.names = FALSE
+  )
+  structure(
+    out,
+    heading = c(
+      sprintf(
+        "Likelihood-ratio comparison of %d drmTMB fits (%s)",
+        k, estimators[[1L]]
+      ),
+      "Each model is tested against the one before it, ordered by number of parameters."
+    ),
+    p.method = p_method,
+    estimator = estimators[[1L]],
+    class = c("anova", "data.frame")
+  )
+}
+
+# ---------------------------------------------------------------------------
 # engine = "julia" methods (parity leaf `uncited-accessors`, 2026-09-05).
 #
 # What was MEASURED on the bridge axis for this suite (DRM.jl aee371cc9, one
@@ -238,7 +420,8 @@ drm_lrtest_boundary_warn <- function(reduced, full, df) {
 #                because `logLik.drmTMB_julia()` reports both `df` and `nobs`.
 #                It equals DRM.jl's own `aicc(fit)` on the same payload to
 #                0.000e+00 (856.6308350330), and `aicc(tmb_fit)` to 1.9e-11.
-#                No method is needed here; the default is correct.
+#                The value is the default's; `aicc.drmTMB_julia()` (above)
+#                only adds the REML/MAP guard first (#1498).
 #   * `lrtest`   `drm_lrtest()` likewise runs on two `drmTMB_julia` fits and
 #                reproduces DRM.jl's `lrtest(reduced, full)` exactly
 #                (statistic 277.6900074326, df 1, p 2.393265e-62). It stays
@@ -260,6 +443,29 @@ anova.drmTMB_julia <- function(object, ..., test = NULL) {
   cli::cli_abort(
     "{.fn anova} likelihood-ratio comparisons are not implemented for {.cls drmTMB_julia} fits."
   )
+}
+
+# AIC()/BIC() for engine = "julia" fits (#1498). A bridge fit does not inherit
+# "drmTMB", so without these methods AIC()/BIC() fell through to
+# stats::AIC.default()/BIC.default() and skipped the REML/MAP guard that
+# AIC.drmTMB()/BIC.drmTMB() run, although the julia route fits REML and records
+# `estimator = "REML"`. The guard runs first; NextMethod() then computes the
+# values with the stats defaults, which keep the caller's object names as row
+# names. Native fits mixed into `...` are read through their logLik() method.
+
+#' @rdname model-comparison
+#' @param k Penalty per parameter, as in [stats::AIC()].
+#' @export
+AIC.drmTMB_julia <- function(object, ..., k = 2) {
+  drm_warn_information_criterion(c(list(object), list(...)), "AIC")
+  NextMethod()
+}
+
+#' @rdname model-comparison
+#' @export
+BIC.drmTMB_julia <- function(object, ...) {
+  drm_warn_information_criterion(c(list(object), list(...)), "BIC")
+  NextMethod()
 }
 
 #' Prior weights of an `engine = "julia"` fit

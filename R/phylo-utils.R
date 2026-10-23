@@ -361,6 +361,31 @@ drm_phylo_augmented_precision <- function(
   out
 }
 
+# Canonical character labels for relmat()/animal() ids (#1485). R writes a
+# whole-number double id such as 100000 as "1e+05" whenever it coerces it
+# (as.character(), dimnames<-, factor levels), while users and integer ids give
+# "100000". Both spellings must match, so every side -- data ids, matrix
+# dimnames, and pedigree id/dam/sire -- goes through this function: whole-number
+# doubles are written as plain digits, and character labels in scientific
+# notation that denote a whole number are rewritten the same way. Every other
+# label is kept as is.
+drm_id_labels <- function(x) {
+  if (is.double(x) && !is.factor(x)) {
+    out <- as.character(x)
+    whole <- is.finite(x) & x == trunc(x) & abs(x) < 2^53
+    out[whole] <- formatC(x[whole], format = "f", digits = 0L)
+    return(out)
+  }
+  out <- as.character(x)
+  sci <- !is.na(out) & grepl("^[-+]?[0-9.]+[eE][-+]?[0-9]+$", out)
+  if (any(sci)) {
+    num <- suppressWarnings(as.numeric(out[sci]))
+    whole <- is.finite(num) & num == trunc(num) & abs(num) < 2^53
+    out[sci][whole] <- formatC(num[whole], format = "f", digits = 0L)
+  }
+  out
+}
+
 drm_known_relatedness_precision <- function(
   matrix,
   group,
@@ -368,10 +393,14 @@ drm_known_relatedness_precision <- function(
   marker = "relmat",
   object = "Q",
   group_name = "id",
-  tolerance = sqrt(.Machine$double.eps)
+  tolerance = sqrt(.Machine$double.eps),
+  reported_matrix_type = NULL
 ) {
   matrix_type <- match.arg(matrix_type)
-  group <- as.character(group)
+  if (is.null(reported_matrix_type)) {
+    reported_matrix_type <- matrix_type
+  }
+  group <- drm_id_labels(group)
   if (length(group) == 0L || anyNA(group) || any(!nzchar(group))) {
     cli::cli_abort(
       "{.fn {marker}} grouping variable {.field {group_name}} must contain non-missing labels."
@@ -383,6 +412,10 @@ drm_known_relatedness_precision <- function(
     marker = marker,
     object = object
   )
+  canonical <- drm_id_labels(rownames(mat))
+  if (!anyDuplicated(canonical)) {
+    dimnames(mat) <- list(canonical, canonical)
+  }
   labels <- rownames(mat)
   observed <- unique(group)
   missing <- setdiff(observed, labels)
@@ -421,7 +454,7 @@ drm_known_relatedness_precision <- function(
   out <- list(
     precision = precision$precision,
     log_det_precision = precision$log_det_precision,
-    matrix_type = matrix_type,
+    matrix_type = reported_matrix_type,
     object = object,
     node_labels = labels,
     species_levels = observed,
@@ -438,15 +471,298 @@ drm_pedigree_relatedness_precision <- function(
   object = "pedigree",
   group_name = "id"
 ) {
-  A <- drm_pedigree_additive_relationship(pedigree, object = object)
+  Ainv <- drm_pedigree_sparse_precision(pedigree, object = object)
   drm_known_relatedness_precision(
-    A,
+    Ainv,
     group = group,
-    matrix_type = "covariance",
+    matrix_type = "precision",
     marker = "animal",
     object = object,
-    group_name = group_name
+    group_name = group_name,
+    # The caller still supplied a pedigree (a covariance-side input); only the
+    # internal route to A^-1 changed, so the reported label must not move.
+    reported_matrix_type = "covariance"
   )
+}
+
+# Sparse pedigree precision A^-1 via the Henderson (1976) / Quaas (1976) rules.
+#
+# Inbreeding F is Meuwissen & Luo (1992): O(n * ancestors), no dense A.
+# A^-1 is then assembled from the Mendelian sampling variances. The dense
+# chol2inv this originally replaced returned ~n^2 stored nonzeros; the
+# post-#1422 path still formed dense A only to read diag(A) - 1. That step
+# is gone.
+#
+# PROVENANCE: Quaas assembly mirrors gllvmTMB's .gllvm_pedigree_precision()
+# (R/pedigree-precision.R). Meuwissen-Luo F follows HSquared.jl
+# `_meuwissen_luo_inbreeding` (MIT; src/pedigree.jl at
+# eee5f7aa7640abafa6b2efd2b71a66182db77459). See inst/COPYRIGHTS.
+# drm_pedigree_additive_relationship() remains the dense tabular oracle
+# for tests and simulation DGPs; it is not on the fit path.
+drm_pedigree_sparse_precision <- function(pedigree, object = "pedigree") {
+  ped <- drm_standardize_pedigree(pedigree, object = object)
+  order <- drm_pedigree_topological_order(ped, object = object)
+  ped <- ped[order, , drop = FALSE]
+  inbreeding <- drm_pedigree_inbreeding_meuwissen_luo(ped, object = object)
+  drm_pedigree_quaas_ainv(ped, inbreeding, object = object)
+}
+
+# Dense-F oracle used only by tests and the S4 identity ladder. Same Quaas
+# assembly as the fit path; F comes from diag(A) - 1.
+drm_pedigree_sparse_precision_dense_F <- function(
+  pedigree,
+  object = "pedigree"
+) {
+  A <- drm_pedigree_additive_relationship(pedigree, object = object)
+  ids <- rownames(A)
+  ped <- drm_standardize_pedigree(pedigree, object = object)
+  ped <- ped[match(ids, ped$id), , drop = FALSE]
+  drm_pedigree_quaas_ainv(ped, diag(A) - 1, object = object)
+}
+
+# Meuwissen & Luo (1992) inbreeding for a topologically ordered pedigree.
+# Accumulate the T-row of A = T D T' over ancestors, youngest first via a
+# max-heap on row indices: A_ii = sum_j L_ij^2 d_j, so F_i = A_ii - 1, with
+# d_j = 0.5 - 0.25 (F_sire(j) + F_dam(j)) and unknown-parent F_0 = -1.
+# One unknown parent => F_i = 0. Requires parents-before-offspring order.
+#
+# PROVENANCE: method is Meuwissen & Luo, Genet. Sel. Evol. 24:305-313 (1992).
+# The T-row / max-heap walk matches HSquared.jl `_meuwissen_luo_inbreeding`
+# (MIT). The fit path calls src/meuwissen_luo.c after load. The R walk
+# below is a private same-algorithm reference for tests and A/B benches.
+# HSquared.jl source is not vendored. No gllvmTMB or other GPL source is
+# copied.
+drm_pedigree_inbreeding_parent_index <- function(ped, object = "pedigree") {
+  n <- nrow(ped)
+  ids <- ped$id
+  sire <- match(ped$sire, ids)
+  dam <- match(ped$dam, ids)
+  sire[is.na(sire)] <- 0L
+  dam[is.na(dam)] <- 0L
+  storage.mode(sire) <- "integer"
+  storage.mode(dam) <- "integer"
+
+  for (i in seq_len(n)) {
+    s <- sire[[i]]
+    d <- dam[[i]]
+    if ((s != 0L && s >= i) || (d != 0L && d >= i)) {
+      cli::cli_abort(c(
+        "{.fn animal} pedigree {.field {object}} could not be ordered from ancestors to descendants.",
+        "x" = "Individual {.val {ids[[i]]}} has a parent that is not available before the offspring."
+      ))
+    }
+  }
+  list(ids = ids, sire = sire, dam = dam)
+}
+
+drm_pedigree_inbreeding_meuwissen_luo <- function(ped, object = "pedigree") {
+  idx <- drm_pedigree_inbreeding_parent_index(ped, object = object)
+  F <- .Call("drm_meuwissen_luo_inbreeding", idx$sire, idx$dam, PACKAGE = "drmTMB")
+  names(F) <- idx$ids
+  F
+}
+
+# Private R reference of the same walk (bench / identity only).
+drm_pedigree_inbreeding_meuwissen_luo_r <- function(ped, object = "pedigree") {
+  idx <- drm_pedigree_inbreeding_parent_index(ped, object = object)
+  n <- length(idx$ids)
+  ids <- idx$ids
+  sire <- idx$sire
+  dam <- idx$dam
+
+  F <- numeric(n)
+  L <- numeric(n)
+  heap <- integer(64L)
+  heap_n <- 0L
+
+  for (i in seq_len(n)) {
+    s <- sire[[i]]
+    d <- dam[[i]]
+    if (s == 0L || d == 0L) {
+      F[[i]] <- 0
+      next
+    }
+    L[[i]] <- 1
+    heap_n <- heap_n + 1L
+    if (heap_n > length(heap)) {
+      heap <- c(heap, integer(length(heap)))
+    }
+    heap[[heap_n]] <- i
+    hi <- heap_n
+    while (hi > 1L) {
+      p <- hi %/% 2L
+      if (heap[[p]] >= heap[[hi]]) {
+        break
+      }
+      tmp <- heap[[p]]
+      heap[[p]] <- heap[[hi]]
+      heap[[hi]] <- tmp
+      hi <- p
+    }
+    fi <- 0
+    while (heap_n > 0L) {
+      j <- heap[[1L]]
+      last <- heap[[heap_n]]
+      heap_n <- heap_n - 1L
+      if (heap_n >= 1L) {
+        heap[[1L]] <- last
+        hi <- 1L
+        repeat {
+          left <- 2L * hi
+          right <- left + 1L
+          m <- hi
+          if (left <= heap_n && heap[[left]] > heap[[m]]) {
+            m <- left
+          }
+          if (right <= heap_n && heap[[right]] > heap[[m]]) {
+            m <- right
+          }
+          if (m == hi) {
+            break
+          }
+          tmp <- heap[[hi]]
+          heap[[hi]] <- heap[[m]]
+          heap[[m]] <- tmp
+          hi <- m
+        }
+      }
+      lj <- L[[j]]
+      L[[j]] <- 0
+      sj <- sire[[j]]
+      dj_s <- if (sj == 0L) -1 else F[[sj]]
+      dmj <- dam[[j]]
+      dj_d <- if (dmj == 0L) -1 else F[[dmj]]
+      fi <- fi + lj * lj * (0.5 - 0.25 * (dj_s + dj_d))
+      if (sj != 0L) {
+        if (L[[sj]] == 0) {
+          heap_n <- heap_n + 1L
+          if (heap_n > length(heap)) {
+            heap <- c(heap, integer(length(heap)))
+          }
+          heap[[heap_n]] <- sj
+          hi <- heap_n
+          while (hi > 1L) {
+            p <- hi %/% 2L
+            if (heap[[p]] >= heap[[hi]]) {
+              break
+            }
+            tmp <- heap[[p]]
+            heap[[p]] <- heap[[hi]]
+            heap[[hi]] <- tmp
+            hi <- p
+          }
+        }
+        L[[sj]] <- L[[sj]] + 0.5 * lj
+      }
+      if (dmj != 0L) {
+        if (L[[dmj]] == 0) {
+          heap_n <- heap_n + 1L
+          if (heap_n > length(heap)) {
+            heap <- c(heap, integer(length(heap)))
+          }
+          heap[[heap_n]] <- dmj
+          hi <- heap_n
+          while (hi > 1L) {
+            p <- hi %/% 2L
+            if (heap[[p]] >= heap[[hi]]) {
+              break
+            }
+            tmp <- heap[[p]]
+            heap[[p]] <- heap[[hi]]
+            heap[[hi]] <- tmp
+            hi <- p
+          }
+        }
+        L[[dmj]] <- L[[dmj]] + 0.5 * lj
+      }
+    }
+    F[[i]] <- fi - 1
+  }
+  names(F) <- ids
+  F
+}
+
+# Vectorised Henderson / Quaas A^-1 given already-aligned F.
+drm_pedigree_quaas_ainv <- function(ped, inbreeding, object = "pedigree") {
+  ids <- ped$id
+  n <- length(ids)
+  dam_index <- match(ped$dam, ids)
+  sire_index <- match(ped$sire, ids)
+
+  index <- seq_len(n)
+  has_dam <- !is.na(dam_index)
+  has_sire <- !is.na(sire_index)
+  dam_inbreeding <- ifelse(has_dam, inbreeding[dam_index], 0)
+  sire_inbreeding <- ifelse(has_sire, inbreeding[sire_index], 0)
+
+  # Mendelian sampling variance d_i, by how many parents are known.
+  both <- has_dam & has_sire
+  dam_only <- has_dam & !has_sire
+  sire_only <- has_sire & !has_dam
+  mendelian <- rep(1, n)
+  mendelian[both] <- 0.5 -
+    0.25 * (dam_inbreeding[both] + sire_inbreeding[both])
+  mendelian[dam_only] <- 0.75 - 0.25 * dam_inbreeding[dam_only]
+  mendelian[sire_only] <- 0.75 - 0.25 * sire_inbreeding[sire_only]
+
+  invalid <- !is.finite(mendelian) | mendelian <= 0
+  if (any(invalid)) {
+    cli::cli_abort(c(
+      "{.fn animal} pedigree {.field {object}} produced a non-positive Mendelian sampling variance.",
+      "x" = "Individual{?s} {.val {ids[invalid]}} implied an inbreeding coefficient outside {.code [0, 1)}."
+    ))
+  }
+  weight <- 1 / mendelian
+
+  # Each animal contributes at most 9 entries; sparseMatrix sums duplicates.
+  sire_child <- index[has_sire]
+  sire_parent <- sire_index[has_sire]
+  sire_weight <- weight[has_sire]
+  dam_child <- index[has_dam]
+  dam_parent <- dam_index[has_dam]
+  dam_weight <- weight[has_dam]
+  both_sire <- sire_index[both]
+  both_dam <- dam_index[both]
+  both_weight <- weight[both]
+
+  precision <- Matrix::sparseMatrix(
+    i = c(
+      index,
+      sire_child,
+      sire_parent,
+      sire_parent,
+      dam_child,
+      dam_parent,
+      dam_parent,
+      both_sire,
+      both_dam
+    ),
+    j = c(
+      index,
+      sire_parent,
+      sire_child,
+      sire_parent,
+      dam_parent,
+      dam_child,
+      dam_parent,
+      both_dam,
+      both_sire
+    ),
+    x = c(
+      weight,
+      -0.5 * sire_weight,
+      -0.5 * sire_weight,
+      0.25 * sire_weight,
+      -0.5 * dam_weight,
+      -0.5 * dam_weight,
+      0.25 * dam_weight,
+      0.25 * both_weight,
+      0.25 * both_weight
+    ),
+    dims = c(n, n),
+    dimnames = list(ids, ids)
+  )
+  Matrix::drop0(precision)
 }
 
 drm_pedigree_additive_relationship <- function(pedigree, object = "pedigree") {
@@ -514,9 +830,9 @@ drm_standardize_pedigree <- function(pedigree, object = "pedigree") {
   }
 
   ped <- data.frame(
-    id = as.character(pedigree$id),
-    dam = as.character(pedigree$dam),
-    sire = as.character(pedigree$sire),
+    id = drm_id_labels(pedigree$id),
+    dam = drm_id_labels(pedigree$dam),
+    sire = drm_id_labels(pedigree$sire),
     stringsAsFactors = FALSE
   )
   ped$dam <- drm_normalize_pedigree_parent(ped$dam)

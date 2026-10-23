@@ -1,0 +1,3 @@
+| Date | Slice | Evidence | Boundary |
+| --- | --- | --- | --- |
+| 2026-10-11 | E Julia bridge: #1498 REML guard on julia AIC/BIC/aicc; #1157 quiet setup commands | New tests red on installed `main` 75845a3d, green on branch: `test-model-comparison.R` 62 pass / 2 live skips; `test-julia-module-compat.R` quiet-command block passes. C17 recertified (`--label lane-e --tolerance 1e-10`, worst drift 1.322e-11 = pre-existing on main). | No Julia in container or CI; julia methods tested on stub objects. #1450/#1471/#1483 left to PR #1502, #1454 to PR #1504. #1190, #1148 and the #1157 extension-load stacktrace need owner decisions. |

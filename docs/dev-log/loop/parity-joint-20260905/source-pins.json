@@ -21,5 +21,37 @@
   "skip": 0,
   "files": 37,
   "log": "~/local-scratch/parity-joint/a0-sweep.log"
- }
+ },
+ "repins_note": "Top-level drmjl_base, status and a0_sweep are the 2026-09-05 campaign record and stay as written. Each repins[] entry is a later re-pin; the newest entry is the current programme pin.",
+ "repins": [
+  {
+   "date": "2026-09-24",
+   "drmjl_base": "da8b3f8711beb5ef3186b890544c2e7850c7f194",
+   "drmjl_base_note": "DRModels origin/main 2026-09-23 (#808); Project.toml identical to 90fbb0e28; Manifest.toml copied from the 90fbb0e28 receipt worktree (julia_version 1.13.0), following the julia_manifest_source practice",
+   "drmtmb_base": "54df129fe",
+   "receipt_drmjl_ref": "da8b3f8711beb5ef3186b890544c2e7850c7f194",
+   "artefacts_pin_bearing": [
+    "docs/design/parity-matrix.md",
+    "docs/design/parity-scoreboard.md",
+    "docs/design/capability-status-join.md",
+    "docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json"
+   ],
+   "artefacts_pin_independent": [
+    "inst/extdata/julia-capabilities.tsv",
+    "docs/dev-log/dashboard/julia-capabilities.tsv",
+    "inst/extdata/julia-gates.tsv",
+    "docs/dev-log/dashboard/julia-gates.tsv",
+    "inst/extdata/env-skip-census.tsv",
+    "docs/design/261-reml-by-route.md"
+   ],
+   "a0_sweep": "not run at this pin",
+   "after_task": "docs/dev-log/after-task/2026-09-24-parity-repin-da8b3f871.md",
+   "pins_replaced": {
+    "parity-matrix.md": "d2102ab73",
+    "parity-scoreboard.md": "d2102ab73",
+    "capability-status-join.md": "aee371cc9",
+    "lss-tip-identity/public-001.json": "90fbb0e28"
+   }
+  }
+ ]
 }

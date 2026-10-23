@@ -9,8 +9,8 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `f906356a2e855419f321b549faa8b3790750e70d` |
-| DRM.jl `aee371cc9627c24945859f4caa749e0d5b691782`, read with `git show` -- never its working tree | `aee371cc9627c24945859f4caa749e0d5b691782` |
+| drmTMB (this repo, HEAD at generation) | `54df129feb0de63e2f46c6b43878b8161c4049ba` |
+| DRM.jl `da8b3f8711beb5ef3186b890544c2e7850c7f194`, read with `git show` -- never its working tree | `da8b3f8711beb5ef3186b890544c2e7850c7f194` |
 
 The canonical DRM.jl clone normally sits on some lane's branch. Reading its
 working tree would report that lane's in-flight edit as the state of main, so
@@ -42,9 +42,9 @@ drmTMB by themselves -- an estimator or metric with no R counterpart is a
 legitimate Julia-only row -- but each one is a claim the joint closure has to
 either mirror or explicitly decline.
 
-- Conjugate-EM Gaussian phylo-mean (`algorithm = :em`) -- `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:167)
-- Natural-gradient EM (`algorithm = :natgrad`) -- `rejected` (DRM.jl@aee371cc:docs/design/capability-status.md:168)
-- Fisher / observed-info metric (`lc_metric`) -- `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:169)
+- Conjugate-EM Gaussian phylo-mean (`algorithm = :em`) -- `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:178)
+- Natural-gradient EM (`algorithm = :natgrad`) -- `rejected` (DRM.jl@da8b3f87:docs/design/capability-status.md:179)
+- Fisher / observed-info metric (`lc_metric`) -- `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:180)
 
 ## Matched rows whose status word differs
 
@@ -53,19 +53,19 @@ between the twins that a closure statement would otherwise average away.
 
 | capability | drmTMB | DRM.jl |
 |---|---|---|
-| `Gaussian phylogenetic random intercept (mean)` | `scope-limited` (docs/design/capability-status.md:73) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:77) |
-| `Non-Gaussian phylogenetic random intercept (mean)` | `scope-limited` (docs/design/capability-status.md:77) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:82) |
-| `Non-Gaussian phylogenetic location-scale (μ + log σ)` | `scope-limited` (docs/design/capability-status.md:78) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:83) |
-| `REML (Gaussian fixed-effect location-scale)` | `point-fit-recovery` (docs/design/capability-status.md:120) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:164) |
-| `REML with ordinary random effects (Gaussian mean)` | `point-fit-recovery` (docs/design/capability-status.md:121) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:165) |
-| `REML bivariate phylogenetic location-scale (q4, all axes)` | `scope-limited` (docs/design/capability-status.md:122) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:166) |
-| `AGHQ adaptive-quadrature marginal estimator` | `planned` (docs/design/capability-status.md:126) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:173) |
-| `Model comparison suite (LRT/anova/AICc/weights/update)` | `scope-limited` (docs/design/capability-status.md:129) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:176) |
-| `Heritability/repeatability/ICC accessors` | `point-fit-recovery` (docs/design/capability-status.md:130) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:177) |
-| `Bivariate structured random effect on all four axes (q4 PLSM)` | `point-fit-recovery` (docs/design/capability-status.md:242) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:279) |
-| `Cross-family bivariate (different families for y1 y2)` | `planned` (docs/design/capability-status.md:243) | `missing` (DRM.jl@aee371cc:docs/design/capability-status.md:280) |
-| `Missing-response handling (native, per fitted route)` | `implemented` (docs/design/capability-status.md:244) | `missing` (DRM.jl@aee371cc:docs/design/capability-status.md:281) |
-| `Missing-predictor imputation (mi())` | `implemented` (docs/design/capability-status.md:245) | `experimental` (DRM.jl@aee371cc:docs/design/capability-status.md:282) |
+| `Gaussian phylogenetic random intercept (mean)` | `scope-limited` (docs/design/capability-status.md:73) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:77) |
+| `Non-Gaussian phylogenetic random intercept (mean)` | `scope-limited` (docs/design/capability-status.md:77) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:82) |
+| `Non-Gaussian phylogenetic location-scale (μ + log σ)` | `scope-limited` (docs/design/capability-status.md:78) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:83) |
+| `REML (Gaussian fixed-effect location-scale)` | `point-fit-recovery` (docs/design/capability-status.md:120) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:175) |
+| `REML with ordinary random effects (Gaussian mean)` | `point-fit-recovery` (docs/design/capability-status.md:121) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:176) |
+| `REML bivariate phylogenetic location-scale (q4, all axes)` | `scope-limited` (docs/design/capability-status.md:122) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:177) |
+| `AGHQ adaptive-quadrature marginal estimator` | `planned` (docs/design/capability-status.md:126) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:184) |
+| `Model comparison suite (LRT/anova/AICc/weights/update)` | `scope-limited` (docs/design/capability-status.md:129) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:187) |
+| `Heritability/repeatability/ICC accessors` | `point-fit-recovery` (docs/design/capability-status.md:130) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:188) |
+| `Bivariate structured random effect on all four axes (q4 PLSM)` | `point-fit-recovery` (docs/design/capability-status.md:242) | `implemented` (DRM.jl@da8b3f87:docs/design/capability-status.md:290) |
+| `Cross-family bivariate (different families for y1 y2)` | `planned` (docs/design/capability-status.md:243) | `missing` (DRM.jl@da8b3f87:docs/design/capability-status.md:291) |
+| `Missing-response handling (native, per fitted route)` | `implemented` (docs/design/capability-status.md:244) | `missing` (DRM.jl@da8b3f87:docs/design/capability-status.md:292) |
+| `Missing-predictor imputation (mi())` | `implemented` (docs/design/capability-status.md:245) | `experimental` (DRM.jl@da8b3f87:docs/design/capability-status.md:293) |
 
 ## What this file does NOT claim
 
