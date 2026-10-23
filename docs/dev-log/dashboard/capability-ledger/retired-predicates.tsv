@@ -1,0 +1,2 @@
+phrase	retired_by	replacement	reference
+all-1200 interval-usability rule	19e4a1d03c8fa167886b5b13dbbfcda874c1ac56	mr-g5-calibration-v2 interval-availability floor (MR_G5_AVAILABILITY_FLOOR = 0.99 in inst/sim/R/sim_missing_response_g4g5.R)	https://github.com/itchyshin/drmTMB/issues/1011
