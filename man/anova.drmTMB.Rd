@@ -2,22 +2,68 @@
 % Please edit documentation in R/methods.R
 \name{anova.drmTMB}
 \alias{anova.drmTMB}
-\title{Likelihood comparison guard for drmTMB fits}
+\title{Likelihood-ratio comparison of drmTMB fits}
 \usage{
 \method{anova}{drmTMB}(object, ..., test = NULL)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
 
-\item{...}{Additional fitted objects.}
+\item{...}{Further \code{drmTMB} fits to compare with \code{object}.}
 
-\item{test}{Requested test label; currently unsupported.}
+\item{test}{\code{NULL} (the default), \code{"Chisq"} or \code{"LRT"}; only the
+likelihood-ratio test is offered.}
 }
 \value{
-This method always errors.
+An object of class \code{c("anova", "data.frame")} with one row per
+fit, in order of increasing number of parameters.
 }
 \description{
-Experimental MSPL fits do not expose likelihood-ratio comparisons. Ordinary
-drmTMB fits likewise have no package-level \code{anova()} comparison contract;
-compare explicitly supported likelihood quantities instead.
+\code{anova(m0, m1, ...)} tests nested \code{\link[=drmTMB]{drmTMB()}} fits with a likelihood-ratio
+test. The fits are ordered by their number of parameters and each model is
+tested against the one before it, as in \code{lme4} and \code{glmmTMB}. The statistic
+is \eqn{2 (\ell_{\mathrm{full}} - \ell_{\mathrm{reduced}})} with
+\code{df(full) - df(reduced)} degrees of freedom, and the table has columns
+\code{npar}, \code{logLik}, \code{deviance}, \code{Chisq}, \code{Df} and \verb{Pr(>Chisq)}.
+}
+\details{
+Guards, all of which abort with a message saying what to do next:
+\itemize{
+\item the fits must be on the same observations;
+\item ML and REML fits are never mixed, and REML fits must share their
+fixed-effect (mean) structure, because restricted likelihoods are
+comparable only across variance structures;
+\item penalized (MAP) fits abort, as their variance components are shrunk by
+the prior;
+\item experimental MSPL fits abort, as for every likelihood method;
+\item \code{engine = "julia"} fits are not supported, and neither are models with
+the same number of parameters (compare those with \code{\link[=AIC]{AIC()}}).
+}
+
+\strong{Boundary tests.} When the larger model adds a random-effect standard
+deviation, the null value 0 sits on the edge of the parameter space and the
+usual chi-square reference is conservative. A
+\code{drmTMB_anova_boundary_warning} is signalled for such a pair. If exactly one
+or two standard deviations are added and nothing else, \verb{Pr(>Chisq)} is the
+chi-bar-square mixture from \code{\link[=lrt_boundary]{lrt_boundary()}}; the attribute \code{"p.method"}
+records \code{"chibar"} or \code{"chisq"} per row. Otherwise the naive chi-square
+p-value is reported and the warning says it is conservative.
+
+A negative statistic (the smaller model fitted better) is reported as is
+and gives a p-value of 1 (or the boundary value); it signals non-nested
+models or a fit that did not converge.
+}
+\examples{
+\donttest{
+set.seed(1)
+n <- 80
+dat <- data.frame(x = rnorm(n))
+dat$y <- 0.2 + 0.6 * dat$x + rnorm(n)
+m0 <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
+m1 <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+anova(m0, m1)
+}
+}
+\seealso{
+\code{\link[=lrt_boundary]{lrt_boundary()}}, \code{\link[=AIC]{AIC()}}, \link{model-comparison}
 }

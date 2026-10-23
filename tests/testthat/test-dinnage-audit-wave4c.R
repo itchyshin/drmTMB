@@ -22,12 +22,41 @@ test_that("Mi-1: beta_family() is the exported proportion family constructor", {
 test_that("Mi-1: unexported drmTMB:::beta() aliases beta_family()", {
   withr::local_options(lifecycle_verbosity = "warning")
   expect_false("beta" %in% getNamespaceExports("drmTMB"))
+  expect_error(drmTMB::beta(), "not an exported object")
   expect_warning(
     fam <- drmTMB:::beta(),
     "deprecated",
     fixed = FALSE
   )
   expect_equal(fam, drmTMB::beta_family())
+})
+
+test_that("Mi-1: family = beta() names beta_family() instead of missing a", {
+  dat <- data.frame(y = c(0.2, 0.4, 0.6), x = 1:3)
+  err <- tryCatch(
+    drmTMB(bf(y ~ x, sigma ~ 1), family = beta(), data = dat),
+    error = identity
+  )
+  expect_s3_class(err, "drmTMB_base_beta_family_error")
+  expect_match(conditionMessage(err), "beta_family()", fixed = TRUE)
+  expect_false(grepl('argument "a" is missing', conditionMessage(err), fixed = TRUE))
+  err_ns <- tryCatch(
+    drmTMB(bf(y ~ x, sigma ~ 1), family = drmTMB::beta(), data = dat),
+    error = identity
+  )
+  expect_s3_class(err_ns, "drmTMB_base_beta_family_error")
+  expect_match(conditionMessage(err_ns), "beta_family()", fixed = TRUE)
+  err_impute <- tryCatch(
+    impute_model(cover ~ z, family = beta()),
+    error = identity
+  )
+  expect_s3_class(err_impute, "drmTMB_base_beta_family_error")
+  expect_match(conditionMessage(err_impute), "beta_family()", fixed = TRUE)
+  expect_identical(drm_family_type(beta_family()), "beta")
+  expect_s3_class(
+    impute_model(cover ~ z, family = beta_family()),
+    "drm_impute_model"
+  )
 })
 
 test_that("Mi-2: exported fixef and ranef work with drmTMB-only attach", {

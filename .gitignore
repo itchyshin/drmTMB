@@ -99,3 +99,9 @@ scratchpad/*.rds
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
+
+# Local verification gates and campaign scratch (never ship).
+.unlazy/
+
+# Local R library used by this checkout (never ship).
+.Rlib/

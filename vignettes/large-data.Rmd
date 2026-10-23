@@ -269,7 +269,8 @@ On Unix-like systems, `parallel = "multicore"` can split independent profile
 targets across workers. For a single direct endpoint target, it can split the
 lower and upper endpoint searches. When `workers = NULL`, `drmTMB` uses about
 half the detected physical cores, capped at the number of jobs and at 10
-workers:
+workers. On Windows, where forking is unavailable, use
+`parallel = "cluster"` for socket workers; see `?drmTMB-parallel`:
 
 ```{r, purl=FALSE}
 ci_profile_parallel <- confint(
