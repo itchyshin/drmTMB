@@ -106,6 +106,6 @@ The canonical ledger was last updated **2026-08-27**. These counts and permissio
 - Model-surface total: **703 exact model routes**.
 - Runtime: **345 implemented**, **10 not implemented**, and **348 rejected by design**.
 - Evidence among implemented model cells: **0 supported**, **28 inference-ready with caveats**, **159 interval-feasible**, **4 legacy fit-supported (no interval permission)**, **81 point-fit recovery**, and **67 diagnostic-only**.
-- Location checks among the 187 interval-claiming cells (`location_checked`; tiers claim interval SHAPE only — docs/design/255): **164 passed**, **20 unchecked**, **3 failed**, **0 not applicable**.
+- Location checks among the 187 interval-claiming cells (`location_checked`; tiers claim interval shape only; see the [interval-tier design note](https://github.com/itchyshin/drmTMB/blob/main/docs/design/255-interval-feasible-tier-contract.md)): **164 passed**, **20 unchecked**, **3 failed**, **0 not applicable**.
 
 </details>
