@@ -1,3 +1,18 @@
+# 2026-10-22: #1502 merge follow-up (roxygen wording, C17 recertification)
+
+After merging `origin/main` into `cursor/triage-c-bridge-inputs`: (1) the
+`is_converged()` roxygen in `R/check.R` still said "gate" while main's #1588
+reworded it to "requirements"; fixed, and `man/is_converged.Rd` regenerated with
+roxygen2 8.0.0 so `test-man-roxygen-sync.R` passes (2 PASS). (2) The C17
+receipt taken from main pinned main's `R/drmTMB.R` blob, so
+`--check-c14-receipt-equivalence` failed ("current source blob differs"; the
+fingerprint matched, so the receipt was stale, not wrong). Re-ran
+`python3 tools/recertify-c17.py --label pr-1502-main-refresh --tolerance 1e-10`
+on the Mac: `mean_tau_relative_error` unchanged to `0.000e+00` on mc-0568 /
+0569 / 0576, `source_fingerprint` unchanged. `capability_ledger.py --check`,
+`--check-c14-receipt-equivalence` and the seven wired `tools/tests` unittest
+files pass. Full package tests were not run.
+
 # 2026-10-22: retain output from failed or colliding C17 recertification runs (#1591)
 
 `tools/recertify-c17.py` previously deleted partial output in `finally` and
