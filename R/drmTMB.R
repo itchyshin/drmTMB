@@ -121,7 +121,7 @@
 #'   non-Gaussian response route also supports `family = poisson()` with one
 #'   fixed-effect binary `mi()` predictor modelled by `family = binomial()`.
 #' @param missing Missing-data policy created by [miss_control()]. The default
-#'   keeps the existing complete-case behaviour. In the current fitted slices,
+#' keeps the existing complete-case behaviour. Among currently supported models,
 #'   `missing = miss_control(response = "include")` is implemented only for
 #'   univariate Gaussian response masks and bivariate Gaussian partial-response
 #'   rows without dense known covariance. `missing =
@@ -148,11 +148,10 @@
 #'   an additional large-p `phylo()` or coupled location-scale phylo route),
 #'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, and
 #'   `beta_binomial()` on the fixed-effect route only. Each admitted family
-#'   carries a same-target parity receipt against `engine = "tmb"`
+#' has been compared with `engine = "tmb"` on the same fitted target
 #'   (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
 #'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for
-#'   the full family-by-route table, which capability-ledger row documents
-#'   each receipt, and current boundaries. `engine = "julia"` needs a local
+#' the full family-by-route table and current boundaries. `engine = "julia"` needs a local
 #'   DRModels.jl checkout and the optional `JuliaCall` package, and it is not a
 #'   drop-in replacement for every native-TMB workflow.
 #' @param REML Logical; use restricted maximum likelihood where the selected
@@ -167,13 +166,13 @@
 #'   constant residual scale (`sigma ~ 1`, with no sigma random effect).
 #'   Slope-only, labelled, multiple-slope, and matched non-phylogenetic
 #'   mean-scale REML remain outside that route. The two bivariate
-#'   non-phylogenetic exceptions are matching labelled fixed-covariance q2
+#' non-phylogenetic exceptions are matching labelled two-axis (`q = 2`) fixed-covariance
 #'   location intercepts for `spatial(1 | p | site, coords = coords)` and
 #'   `relmat(1 | p | id, K = K)` in `mu1` and `mu2`, with intercept-only
 #'   `sigma1`, `sigma2`, and `rho12`, complete response pairs, unit weights, no
 #'   known [meta_V()] covariance, and no additional ordinary random effect,
-#'   direct-SD formula, or `corpair()` regression. Both have point-fit-recovery
-#'   evidence only; bivariate `relmat(..., Q = Q)` REML remains deferred.
+#' direct-SD formula, or `corpair()` regression. Only point-estimate recovery
+#' has been checked for both; bivariate `relmat(..., Q = Q)` REML is unsupported.
 #'   Aggregation and ordinary direct `sd()` scale formulae also remain
 #'   unsupported under REML. For `binomial()` models, the bounded native route
 #'   requires exactly one ordinary unlabelled `mu` random intercept or exactly
@@ -183,19 +182,18 @@
 #'   use `REML = FALSE` for those models. The binomial route has diagnostic
 #'   parity and finite-uncertainty evidence, not calibrated interval or coverage
 #'   evidence. Every other non-Gaussian family rejects `REML = TRUE`; use
-#'   `REML = FALSE`. The package-private AGHQ plus Cox-Reid (O3) estimator is
+#' `REML = FALSE`. An internal experimental AGHQ plus Cox-Reid estimator is
 #'   not a `drmTMB()` argument and is not what `REML = TRUE` runs. Public
 #'   cumulative-logit random-slope fits remain maximum likelihood
-#'   (`point_fit_recovery`).
+#' and have point-estimate recovery evidence only.
 #'   `engine = "julia"` fits `REML = TRUE` on a route-by-route basis, not
 #'   uniformly: the fixed-effect Gaussian location-scale model, the bivariate
 #'   q = 4 phylogenetic route, the location-scale-scale `sd()`/`sd_phylo()`
 #'   routes, an ordinary Gaussian `mu` random intercept, and large-p Poisson
 #'   `phylo()` (a Cox-Reid Laplace route native `engine = "tmb"` does not have)
 #'   currently fit `REML = TRUE`; every other bridge route refuses it, some
-#'   with a raw DRModels.jl error rather than a `drmTMB`-worded one. See
-#'   `docs/design/261-reml-by-route.md` for the full route-by-route table
-#'   before relying on bridge REML for a model not listed there.
+#' with a raw DRModels.jl error rather than a `drmTMB`-worded one. Do not assume
+#' bridge REML support for models outside this list.
 #'
 #'   Under native `REML = TRUE`, admitted mean fixed-effect coefficients are
 #'   marginalised in the TMB objective rather than estimated as ordinary fixed
@@ -221,16 +219,16 @@
 #'   `"logit"`, `"probit"` and `"cloglog"`. Kosmidis and Firth (2021,
 #'   Theorem 1 and Section 3.1) prove the Jeffreys penalty gives finite
 #'   estimates for any link whose working weight vanishes in both tails, which
-#'   these three do; drmTMB's own TMB-Laplace evidence for them is recorded in
-#'   `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`.
+#' these three do. drmTMB has directly checked the TMB-Laplace implementation
+#' for all three links.
 #'   Three limits are worth stating. The soft-penalty scale below is a *logit*
 #'   delta-method constant, kept unchanged for all three links because using it
 #'   for probit and cloglog was measured to cost about 1% of one standard error
 #'   -- measured at `q = 1` with two fixed-effect columns, and not at `q = 2`.
 #'   Under deep separation with a random slope the standard error is frequently
 #'   unavailable for **every** link, logit included (see the `NA` note below);
-#'   in the most extreme cells measured this affected the large majority of
-#'   converged fits. And the evidence behind the two new links used **Bernoulli**
+#' in the most extreme scenarios measured this affected the large majority of
+#' converged fits. The comparisons for probit and cloglog used **Bernoulli**
 #'   responses with two fixed-effect columns, so grouped-binomial and wider
 #'   designs inherit the `n_eff` extrapolation described next without direct
 #'   measurement, for any link. For grouped binomial data, the
@@ -308,6 +306,9 @@ drmTMB <- function(
   # grouping variables keep their declared level sets: an ordinal response or
   # an imputed ordinal predictor with an empty category must still reach its
   # own "empty category" refusal rather than be silently re-levelled.
+  # `droplevels()` itself rebuilds the factor and drops a contrasts
+  # attribute, so `contrasts(f) <- contr.sum(3)` became treatment columns.
+  # The helper drops unused levels and puts that attribute back (#1495).
   data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
@@ -368,6 +369,7 @@ drmTMB <- function(
     data = data,
     env = parent.frame()
   )
+  drm_abort_mi_zero_weight_missing_in_data(data, weights_full, impute)
 
   family_type <- drm_family_type(family)
   drm_validate_mspl_request(
@@ -687,14 +689,26 @@ drm_fit_spec <- function(
   spec <- drm_apply_start_override(spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
-  obj <- TMB::MakeADFun(
-    data = spec$tmb_data,
-    parameters = spec$start,
-    map = spec$map,
-    random = spec$tmb_random_names,
-    DLL = "drmTMB",
-    silent = TRUE
+  mi_quad_abort <- drm_spec_uses_mi_quadrature_abort(spec)
+  obj <- tryCatch(
+    TMB::MakeADFun(
+      data = spec$tmb_data,
+      parameters = spec$start,
+      map = spec$map,
+      random = spec$tmb_random_names,
+      DLL = "drmTMB",
+      silent = TRUE
+    ),
+    error = function(e) {
+      if (isTRUE(mi_quad_abort)) {
+        drm_rethrow_mi_quadrature_error(e)
+      }
+      stop(e)
+    }
   )
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, obj$par, "starting")
+  }
 
   optimizer <- drm_optimize_with_preset_retry(obj, control)
   opt <- optimizer$opt
@@ -713,6 +727,10 @@ drm_fit_spec <- function(
       opt$message
     }
   }
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, opt$par, "fitted")
+  }
+  drm_warn_mi_quadrature_inaccurate(spec, obj$env$parList())
   drm_warn_if_not_converged(opt)
   drm_warn_if_nonfinite_objective(opt)
   drm_pin_tmb_object_to_optimum(obj, opt)
@@ -12484,7 +12502,7 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
   cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
   for (col in cols) {
     if (is.factor(data[[col]])) {
-      data[[col]] <- droplevels(data[[col]])
+      data[[col]] <- drm_droplevels_keep_contrasts_factor(data[[col]])
     }
   }
   data
