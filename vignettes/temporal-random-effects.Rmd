@@ -125,12 +125,12 @@ parameter_table[
 head(fitted(fit))
 head(residuals(fit))
 simulate(fit, nsim = 2)
-simulate(fit, nsim = 2, re.form = NA)
+simulate(fit, nsim = 2, re.form = NULL)
 ```
 
 `fitted()` and `residuals()` are conditional on the estimated site and temporal
 deviations. The default `simulate()` call draws fresh stable and temporal
-effects, while `re.form = NA` retains the fitted conditional effects. Use the
+effects, while `re.form = NULL` retains the fitted conditional effects. Use the
 first for a new realization from the fitted model and the second to simulate
 around the observations' fitted latent structure.
 

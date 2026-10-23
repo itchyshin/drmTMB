@@ -101,7 +101,7 @@ test_that("homtoep methods use marginal means and correlated residual draws", {
     tolerance = 1e-10
   )
   expect_equal(
-    unname(stats::simulate(fit, nsim = 1L, seed = 202609101L, re.form = NA)[[1L]]),
+    unname(stats::simulate(fit, nsim = 1L, seed = 202609101L, re.form = NULL)[[1L]]),
     expected,
     tolerance = 1e-10
   )

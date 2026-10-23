@@ -364,7 +364,7 @@ gaussian_mu_sigma_joint_nll <- function(fit, par) {
 
   if (re_sigma$n_re > 0L) {
     sd_sigma <- exp(par$log_sd_sigma)
-    rho <- 0.999999 * tanh(par$eta_cor_mu_sigma)
+    rho <- 0.99999999 * tanh(par$eta_cor_mu_sigma)
     for (i in seq_len(length(spec$data$y))) {
       for (j in seq_len(re_sigma$n_terms)) {
         idx <- re_sigma$index[[i, j]]
@@ -1538,7 +1538,7 @@ test_that("Gaussian mu/sigma covariance transforms only matched sigma effects", 
     u_mu = seq(-0.8, 0.7, length.out = spec$random$mu$n_re),
     u_sigma = seq(0.9, -0.6, length.out = re_sigma$n_re),
     log_sd_sigma = log(c(0.25, 0.55)),
-    eta_cor_mu_sigma = atanh(rho / 0.999999)
+    eta_cor_mu_sigma = atanh(rho / 0.99999999)
   )
 
   actual <- drmTMB:::transform_sigma_random_effects(

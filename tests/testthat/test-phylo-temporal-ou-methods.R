@@ -68,7 +68,7 @@ test_that("paired phylogenetic-OU conditional and fresh simulations match compon
   set.seed(202609095L)
   expected_conditional <- conditional_mu + stats::rnorm(n, sd = observation_sigma(fit))
   expect_equal(
-    unname(stats::simulate(fit, nsim = 1L, seed = 202609095L, re.form = NA)[[1L]]),
+    unname(stats::simulate(fit, nsim = 1L, seed = 202609095L, re.form = NULL)[[1L]]),
     expected_conditional,
     tolerance = 1e-10
   )
@@ -82,14 +82,14 @@ test_that("paired phylogenetic-OU conditional and fresh simulations match compon
     sd = observation_sigma(fit)
   )
   fresh <- stats::simulate(fit, nsim = 1L, seed = 202609096L)
-  conditional <- stats::simulate(fit, nsim = 2L, seed = 202609097L, re.form = NA)
+  conditional <- stats::simulate(fit, nsim = 2L, seed = 202609097L, re.form = NULL)
 
   expect_equal(unname(fresh[[1L]]), expected_fresh, tolerance = 1e-10)
   expect_identical(dim(fresh), c(n, 1L))
   expect_identical(dim(conditional), c(n, 2L))
   expect_false(isTRUE(all.equal(
     stats::simulate(fit, nsim = 1L, seed = 202609096L)[[1L]],
-    stats::simulate(fit, nsim = 1L, seed = 202609096L, re.form = NA)[[1L]]
+    stats::simulate(fit, nsim = 1L, seed = 202609096L, re.form = NULL)[[1L]]
   )))
 })
 
