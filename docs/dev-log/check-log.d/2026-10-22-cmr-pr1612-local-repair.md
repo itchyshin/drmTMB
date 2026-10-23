@@ -12,5 +12,6 @@ fingerprint. The reader-vignette contract test first found the CJS page missing
 from the 38-page design map. Added it as a separate specialist route and updated
 the count to 39. The final capability-ledger check passed 31 generated outputs,
 the Python ledger suite passed 81 checks, and the R reader-vignette contract test
-passed 35 expectations. The full R package suite and current-head GitHub checks
-remain unrun.
+passed 35 expectations. The full R package suite was not rerun. This candidate
+was pushed to the existing PR #1612 branch at
+`117f9fcce2270528297e9c0f35f3682c433aee52`; exact-head GitHub checks are pending.

@@ -20,7 +20,7 @@ Assumptions made without asking: the CJS tutorial belongs in the specialist bran
 - `docs/dev-log/check-log.d/2026-10-22-cmr-pr1612-local-repair.md`
 - `docs/dev-log/after-task/2026-10-22-cmr-pr1612-local-repair.md`
 
-The local merge commit is `cdf87f2851f327d55f2d230d20820fc2ed267174`. No remote branch or PR metadata changed.
+The local merge commit is `cdf87f2851f327d55f2d230d20820fc2ed267174`; the evidence and reader-map updates are in `117f9fcce2270528297e9c0f35f3682c433aee52`. After local verification, that commit was pushed to the existing `codex/cmr-page-integration` branch for PR #1612. No PR merge or deployment action occurred.
 
 ## 5. Checks Run
 
@@ -31,7 +31,7 @@ The local merge commit is `cdf87f2851f327d55f2d230d20820fc2ed267174`. No remote 
 - `git diff --check`: passed.
 - `python3 tools/memory_regression.py --selftest`: all Golden Set detectors passed their self-tests.
 
-The full R package suite and current-head GitHub Actions have not been run.
+The full R package suite was not rerun. After local verification, the candidate was pushed to PR #1612; exact-head GitHub checks are pending.
 
 ## 6. Tests of the Tests
 
@@ -41,7 +41,7 @@ The Python ledger test initially failed because the design title said 38 vignett
 
 - Fixed locally: C17/C14 receipt was stale for the CMR candidate's `src/drmTMB.cpp` blob.
 - Fixed locally: CJS tutorial was absent from the reader-map table and the documented total was one short.
-- Still open: drmTMB PR #1612 is unchanged on GitHub. Its updated candidate needs exact-head CI before it can be considered for merge.
+- Still open: drmTMB PR #1612 now points to `117f9fcce2270528297e9c0f35f3682c433aee52`; exact-head CI has not yet returned results.
 - Deferred: interval availability/recovery qualification and all repeated-sample coverage or calibration work.
 
 ## 8. Consistency Audit
