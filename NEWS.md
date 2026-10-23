@@ -2,6 +2,12 @@
 
 ## New features
 
+* `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
+  check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
+  the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
+  tolerance was only reachable via the internal `validate_phylo_tree()` and
+  a tree that missed it by a negligible margin had no override short of
+  editing the tree itself (#1158).
 * Zero-inflated Poisson, zero-inflated `nbinom2()`, and hurdle NB2
   (`truncated_nbinom2()` with `hu ~ 1`) now accept one Gaussian random
   intercept on `mu`, for example
