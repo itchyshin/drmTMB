@@ -626,7 +626,9 @@ failure: `|logLik - log integrate()|` is `4.65e-3` at `mu = 0.10`,
 `mu = 0.10`, `sigma = 0.2` case stays inside `2.6e-5`, so a mu-only
 threshold is conservative there. The check is R-only on the fitted
 `mu`, loops both `mi()` slots, and is not applied before the Julia
-branch (Julia already refuses Beta/Gamma `mi()`). The missing-row
+branch (Julia already refuses Beta/Gamma `mi()`). A NA or NaN fitted
+missing-row mean stops with class `drmTMB_mi_quadrature_guard_nonfinite`
+instead of being dropped from the check (refs #1532). The missing-row
 marginal is still
 
 ```text
@@ -1025,7 +1027,10 @@ and the fitted parameter. The abort watches every `mi()` term (both
 After a successful fit, class `drmTMB_mi_quadrature_inaccurate` warns
 when the estimated Gamma `mi()` CV is at least 3 (12% of an 80-row
 `(mu, y)` scan exceed `1e-4`, worst `1.47`). The same helper also
-warns for Beta / zero-one-Beta missing-row means near 0 or 1.
+warns for Beta / zero-one-Beta missing-row means near 0 or 1. A NA, NaN,
+or infinite fitted log CV, or a CV that overflows `exp()`, stops with class
+`drmTMB_mi_quadrature_guard_nonfinite` rather than skipping the check
+(refs #1532).
 
 The rule is a sinh map rather than Gauss-Hermite because the log-`x` integrand
 has the exponential left tail `exp(shape * u)`, `shape = 1 / CV^2`. A Gaussian
