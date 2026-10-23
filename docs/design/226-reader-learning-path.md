@@ -1,4 +1,4 @@
-# 226 — One canonical reader learning path across 38 vignettes
+# 226 — One canonical reader learning path across 39 vignettes
 
 ## 1. The problem
 
@@ -35,10 +35,11 @@ links from any other vignette (`adding-families`, `convergence`,
 so they are reachable only by guessing a URL or scrolling the reference
 index.
 
-The synchronized placement table below now contains 38 vignettes after the
+The synchronized placement table below now contains 39 vignettes after the
 location-scale tutorial was split into two shorter parts, the first-week
-interval and bivariate non-Gaussian routes were added, and the comparator
-article was placed under stage 5.
+interval and bivariate non-Gaussian routes were added, the comparator article
+was placed under stage 5, and the CJS capture–recapture tutorial was added as
+a specialist route with its own first-capture conditioning contract.
 
 ## 2. The canonical sequence
 
@@ -76,17 +77,19 @@ at that point in the workflow.
    readers need a reporting boundary before they choose syntax, not only after
    they have completed a tutorial.
 
-A **Specialist branch** sits alongside stage 3 for three pages that are
+A **Specialist branch** sits alongside stage 3 for four pages that are
 deliberately off the main line: `meta-analysis`, which uses known sampling
 variances and no raw response data — a different task from picking a family
-for raw data — and, per §9.2, `julia-engine` and `cross-family`, which choose
-a different compute backend rather than answering a modelling question. A
-**Developer track** sits outside the reader path entirely, for the five pages
+for raw data — `julia-engine` and `cross-family`, which choose a different
+compute backend rather than answering a modelling question, and
+`cjs-first-capture`, which uses a dedicated hidden-state model and
+first-capture conditioning rather than an ordinary response-family formula.
+A **Developer track** sits outside the reader path entirely, for the five pages
 that document the package's own internals rather than how to use it.
 
 ## 3. The full placement table
 
-38 rows. Role legend: **tutorial** = worked biological example with fitted
+39 rows. Role legend: **tutorial** = worked biological example with fitted
 output and interpretation; **guide** = orientation/reference, no full worked
 analysis; **route-chooser** = helps the reader pick a family or syntax
 before fitting; **specialist** = correct placement is deliberately outside
@@ -133,13 +136,14 @@ path.
 | 32 | `implementation-map` | 2. Choose your family | guide | **Corrected in §9 — reverted to the applied path.** It opens "This map answers one practical question: what model surface can an applied user…", and `model-map` links to it from four places (`model-map.Rmd:38,53,152,157`). Reclassifying it developer-only would break live cross-links from an applied guide and hide the page readers are explicitly sent to. |
 | 33 | `simulation-plot-grammar` | Developer track | developer | Bias/RMSE/coverage plotting conventions for simulation-based validation; used when writing or reviewing recovery studies, not when applying the package. |
 | 34 | `comparing-with-other-packages` | 5. Uncertainty & inference boundaries | guide | Fits eight models drmTMB shares with `lme4`, `glmmTMB`, `metafor` and `ordinal`, and shows the estimates agreeing on matched scales. Read when the question is "should I trust this package", after the reader can already fit and interpret a model. States which comparisons are independent engines and which share drmTMB's TMB stack. |
+| 35 | `cjs-first-capture` | Specialist branch | specialist | Dedicated Cormack–Jolly–Seber capture–recapture route for first-capture-conditioned histories; its hidden-state likelihood and eligibility assumptions differ from ordinary distributional response families. |
 
-Total: 38 placed. Stage counts **after the §9 corrections**: **1. First fit**
+Total: 39 placed. Stage counts **after the §9 corrections**: **1. First fit**
 = 4 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 9 ·
-**Specialist branch** = 3 · **4. Random & structured effects** = 7 ·
+**Specialist branch** = 4 · **4. Random & structured effects** = 7 ·
 **5. Uncertainty & inference boundaries** = 5 · **6. Honest limitations** = 1
 · **Developer track** = 5.
-4 + 4 + 9 + 3 + 7 + 5 + 1 + 5 = 38.
+4 + 4 + 9 + 4 + 7 + 5 + 1 + 5 = 39.
 
 Two rows deserve a placement note beyond the reason column:
 
