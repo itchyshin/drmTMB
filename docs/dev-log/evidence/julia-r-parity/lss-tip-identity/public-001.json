@@ -16,7 +16,7 @@
     "R/control.R": "1b86ad506f7fcd56f009f2f2b25ba91d13aacdece42af515ceb6c67231217cd9",
     "R/distributional-outputs.R": "94540da0f07768fd159b8178b5312dfe505e5cbb9bfdac26983c7abf12c1cf08",
     "R/drmTMB-package.R": "dec0b5fba6754268176dbdc8d3dfb4ed56b26485c146a39ed6ab0df86ad8395c",
-    "R/drmTMB.R": "4efe8e3de6ae3221e40ad58c1fb3bd37a513012f9f672a61c65baae12afe0c65",
+    "R/drmTMB.R": "8f94a93178848e803536f11b3b5241e08e593ff6b577d9ba2a45731582d19378",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "5f1b5ad3076ebd36e4c668ca98e1c0ddf48c13d7659f6fcd073013bd76de44e0",
     "R/family.R": "c0937f614960bd2c5f233607d4eeccb84260000aa10ca1b89dadb34bae4d2249",
@@ -37,7 +37,7 @@
     "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
     "R/meta-vcov.R": "48cbbcd5ad03689404beda6129e13bac2e80ab5394364b9aca5c982f4a5fb29a",
     "R/methods.R": "75820f5b79943a072c3c09ef06ae0062d5ab8bde891f21508eb6cb533872efec",
-    "R/mi-weights.R": "fb5e5e6fb1ef3c927187f6d2d97b9df1d53b24f9eb4eb97c7c1034b9bc8671cf",
+    "R/mi-weights.R": "763247341c06488d8f373187afe97d885aee18042ef68453e5bea76265468689",
     "R/missing-data.R": "3892df8228590612f7051337905998896c82a220d0d8f6e93d365f01ab6c9916",
     "R/model-comparison.R": "e610916641f3b3b28fc99bcd807b02d81544fb9d6dd7fc70aa44c29adbed03db",
     "R/mspl-estimator.R": "389633693e357910d3ecf0d23472e29dc7310df922e2f150f197dc9f149d40d5",
@@ -692,8 +692,8 @@
       "drmjl_ref": "da8b3f8711beb5ef3186b890544c2e7850c7f194",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpCQINPH/pkgload55cd40277412/drmTMB.so",
-          "sha256": "9a6e610850065bc81feb76045e845bcc36b1e81b5f21ea1f39bdd4eca8472914"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//Rtmp67GSlI/pkgload1290b76a84a1/drmTMB.so",
+          "sha256": "455c34f743d2da5121f6afede1083bbc5e1c1a393a4113f05986cbe196459310"
         }
       }
     },
@@ -732,7 +732,7 @@
     "R/control.R": "1b86ad506f7fcd56f009f2f2b25ba91d13aacdece42af515ceb6c67231217cd9",
     "R/distributional-outputs.R": "94540da0f07768fd159b8178b5312dfe505e5cbb9bfdac26983c7abf12c1cf08",
     "R/drmTMB-package.R": "dec0b5fba6754268176dbdc8d3dfb4ed56b26485c146a39ed6ab0df86ad8395c",
-    "R/drmTMB.R": "4efe8e3de6ae3221e40ad58c1fb3bd37a513012f9f672a61c65baae12afe0c65",
+    "R/drmTMB.R": "8f94a93178848e803536f11b3b5241e08e593ff6b577d9ba2a45731582d19378",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "5f1b5ad3076ebd36e4c668ca98e1c0ddf48c13d7659f6fcd073013bd76de44e0",
     "R/family.R": "c0937f614960bd2c5f233607d4eeccb84260000aa10ca1b89dadb34bae4d2249",
@@ -753,7 +753,7 @@
     "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
     "R/meta-vcov.R": "48cbbcd5ad03689404beda6129e13bac2e80ab5394364b9aca5c982f4a5fb29a",
     "R/methods.R": "75820f5b79943a072c3c09ef06ae0062d5ab8bde891f21508eb6cb533872efec",
-    "R/mi-weights.R": "fb5e5e6fb1ef3c927187f6d2d97b9df1d53b24f9eb4eb97c7c1034b9bc8671cf",
+    "R/mi-weights.R": "763247341c06488d8f373187afe97d885aee18042ef68453e5bea76265468689",
     "R/missing-data.R": "3892df8228590612f7051337905998896c82a220d0d8f6e93d365f01ab6c9916",
     "R/model-comparison.R": "e610916641f3b3b28fc99bcd807b02d81544fb9d6dd7fc70aa44c29adbed03db",
     "R/mspl-estimator.R": "389633693e357910d3ecf0d23472e29dc7310df922e2f150f197dc9f149d40d5",
@@ -870,6 +870,6 @@
     "/private/tmp/drmtmb-parity-drmodels-da8b3f871/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 77.214999999999989,
+  "elapsed": 60.183,
   "status": "PASS"
 }
