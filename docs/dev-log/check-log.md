@@ -1,3 +1,17 @@
+# 2026-10-22: merge main into #1505, recertify C17
+
+Merged `origin/main` (`2fb93b768`) into `cursor/triage-f-convergence` after the
+stacked #1504 work landed as a squash. `src/` is identical to main. The
+rank-check helpers stay in `R/drmTMB.R` and the copies in `R/julia-bridge.R`
+are gone. `print.summary.drmTMB()` keeps both the dispersion boundary line and
+main's not-converged label. `R/drmTMB.R` and `R/methods.R` differ from the old
+receipt, so C17 was recertified (`--label pr1505-main-merge --tolerance 1e-10`):
+`|change|` 0 on mc-0568, mc-0569 and mc-0576. Focused files pass on Totoro
+(R 4.6, `NOT_CRAN=true`): triage-f convergence honesty, julia missing
+alignment, guard branch continuity, student large nu, log1mexp, factor
+contrasts, predict character predictors, NB2 mu random effect, coefficient
+labels, prediction grid, env skip census.
+
 # 2026-10-22: retain output from failed or colliding C17 recertification runs (#1591)
 
 `tools/recertify-c17.py` previously deleted partial output in `finally` and
