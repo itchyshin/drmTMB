@@ -1482,20 +1482,29 @@ class CapabilityLedgerTests(unittest.TestCase):
         ):
             self.assertNotIn(internal_phrase, model_map)
 
+        structural = (ROOT / "vignettes" / "structural-dependence.Rmd").read_text()
+        for reader_marker in (
+            "Choose the structure that matches your scientific question.",
+            "| Your question | A sensible starting point | What to check before reporting | Read next |",
+            "A successful fit does not show that every related model is reliable.",
+        ):
+            self.assertIn(reader_marker, structural)
+        for internal_phrase in (
+            "Pedigree/Ainv bridge marshalling",
+            "recovery-grade NB2",
+            "fixed-kappa mesh intercept",
+        ):
+            self.assertNotIn(internal_phrase, structural)
+
     def test_public_vignettes_are_free_of_internal_route_jargon(self):
         # Reader pages never carry these internal evidence/bridge phrases; the
         # reader-facing tier vocabulary lives in capability-and-limits.Rmd
         # ("point estimate only", "diagnostic only", "fixed spatial range").
-        # 2026-09-21: structural-dependence.Rmd is excluded only until its own
-        # fix (branch codex/structural-reader-decisions-20260921, PR #1418)
-        # lands on main; that version is already clean of every phrase below,
-        # so drop the exclusion in the first commit after #1418 merges.
+        # structural-dependence.Rmd is covered too: PR #1418 made it clean of
+        # every phrase below, so the earlier temporary exclusion is dropped.
         public_vignettes = sorted((ROOT / "vignettes").glob("*.Rmd")) + sorted(
             (ROOT / "vignettes" / "articles").glob("*.Rmd")
         )
-        public_vignettes = [
-            p for p in public_vignettes if p.name != "structural-dependence.Rmd"
-        ]
         self.assertTrue(public_vignettes)
         for path in public_vignettes:
             normalized = " ".join(path.read_text().split()).lower()
