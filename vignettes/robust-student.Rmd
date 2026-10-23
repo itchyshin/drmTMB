@@ -272,9 +272,9 @@ drmTMB(
 
 Student `mu` random intercepts and independent slopes, a spatial `mu` term
 (`spatial(1 | id, coords = coords)`), and a phylogenetic `nu` term are
-implemented, but only at recovery/diagnostic grade: they fit as point
-estimates and are not coverage-validated, so trust the point estimate, not the
-interval, and treat them as exploratory. Correlated slopes, labelled covariance
+implemented, but only as point-estimate-only or diagnostic-only routes: they
+fit as point estimates and are not coverage-validated, so trust the point
+estimate, not the interval, and treat them as exploratory. Correlated slopes, labelled covariance
 blocks, scale (`sigma`) and shape (`nu`) random effects, known sampling
 covariance (`meta_V`), other structured terms, and bivariate Student-t models
 remain planned extensions. Start with this fixed-effect path when you need a
