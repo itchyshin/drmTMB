@@ -1,60 +1,67 @@
 # After task: emmeans preflight contract tests
 
-## Goal
+## 1. Goal
 
-Add direct contract tests for the internal emmeans preflight guards, then sync the PR branch with current main and complete its closeout record. This is a test-only change.
+Refresh draft PR #1602 against current `main`, verify its focused contract tests and skip census, and prepare it for exact-head CI review. This is a test-only change.
 
-## Implemented
+## 2. Implemented
 
-The original test file exercises each targeted helper, supported and unsupported model families, malformed distributional-parameter labels, transformed responses, missing coefficients, and real Gaussian fits where the guard can be reached through a fitted object. The environment-skip census includes six call sites in each of the CRAN-lane and suggested-package categories. The package code and public API are unchanged.
+Merged current `main` at `2fb93b768977330fc9939d86375c37329a539277` into an isolated local worktree. The merge completed without conflicts. The test file is unchanged. The census preserves main's updated `test-mi-weights-1459.R` count and the PR's twelve emmeans skip call sites. Local merge candidate: `a4332c191f20928cb8a0ec9e139d3ea48eb1abca`; it has not been pushed.
 
-The PR branch was merged with current main at `f9bff01b5f3bbbc424402b73d67084dd446d9ff8` in a disposable clone. Git reported no conflict. The test and census files from the original PR were retained unchanged. The original dated after-task note was replaced by this expanded closeout report, and the one-row check-log entry was added. The merge commit is `1287e5c6d5332998a73114f9497e48c3a1bdee72`.
+## 3a. Decisions and Rejected Alternatives
 
-## Mathematical Contract
+- Kept this PR test-only; no implementation or public API change was needed.
+- Synchronized by merge so both histories remain visible and no force-push is required.
+- Assumption: the existing draft can be updated after its exact-head CI passes. If the author intended the draft to remain review-only, leave it unmerged and ask before changing that state.
+- Golden Set: not run. This test-only source sync did not modify an identified known-mistake class.
 
-Not applicable. No model, likelihood, estimator, parameter interpretation, or prediction target changed.
+## 4. Files Touched
 
-## Files Changed
+- `inst/extdata/env-skip-census.tsv` (updated through current-main merge; 914 skip call sites in the combined candidate).
+- `docs/dev-log/check-log.d/2026-10-22-emmeans-preflight-contract-tests.md` (updated local evidence and current-source boundary).
+- `docs/dev-log/after-task/2026-10-22-emmeans-preflight-contract-tests.md` (this report).
 
-- `tests/testthat/test-emmeans-preflight-contract.R` adds the contract tests. SHA-256: `61140ceecad21422083f94d68158af872da86ff3e9ae47b056aa07113c49e134` (verified against the tested branch).
-- `inst/extdata/env-skip-census.tsv` records the new test file's environment-gated call sites.
-- `docs/dev-log/check-log.d/2026-10-22-emmeans-preflight-contract-tests.md` records the focused check and its limits.
-- This report records source sync, exact checks, and remaining limits.
+The PR's added test, `tests/testthat/test-emmeans-preflight-contract.R`, remains unchanged; its SHA-256 is `61140ceecad21422083f94d68158af872da86ff3e9ae47b056aa07113c49e134`.
 
-## Checks Run
+## 5. Checks Run
 
-- `OPENBLAS_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "emmeans-preflight-contract", reporter = "summary")'`: completed with no failures. The live Julia engine was not exercised; the runner reported zero live-engine tests in this configuration.
-- `Rscript tools/write-env-skip-census.R --check`: passed; the census is current at 913 skip call sites.
-- `git diff --check`: passed on the final closeout diff before push.
-- CI run #3507 is historical for the pre-closeout PR head: four checks had passed and shard 1/4 was still running at the last recorded observation. No complete-green CI claim is made here. A fresh run is required for the pushed head.
-- Full `devtools::test()`, `R CMD check`, pkgdown, documentation generation, and Julia parity were not run. This test-only slice does not change package documentation or generated Rd files.
+- `OPENBLAS_NUM_THREADS=1 R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::test(filter = "emmeans-preflight-contract", reporter = "summary")'`: passed with no failures on the synchronized local candidate. The runner reported zero live Julia-engine tests.
+- `Rscript tools/write-env-skip-census.R --check`: passed; 914 skip call sites.
+- `check-after-task.R`: report structure passed. The full `closeout.py check` remains blocked because the shared Shinichi-brain acceptance check reports nine unmet ledgers outside this PR (`leaf-book`, brain-campaign, and brain-visuals gates); no foreign ledger was changed.
+- `git diff --check`: passed after this report update.
+- Exact-head workflow run #3520 for the earlier PR head was incomplete: one release shard was cancelled. No CI result exists yet for this local merge candidate.
+- Full `devtools::test()`, `R CMD check`, pkgdown, documentation generation, and live Julia parity were not run.
 
-## Tests Of The Tests
+## 6. Tests of the Tests
 
-The tests cover both supported and refusal paths, including malformed inputs, unsupported model types, transformed responses, and missing coefficients. They characterize unchanged package behavior; no code fix was needed, so there is no before/after bug-fix comparison. The original focused run passed.
+The test-only PR covers supported and refusal paths for response transforms, distributional-parameter validation, unsupported model classes, retained and recovered model frames, row alignment, link metadata, and real Gaussian fits. An independent read-only review found the assertions coherent with current helper behavior. No before/after bug-fix comparison applies because package implementation is unchanged.
 
-## Consistency Audit
+## 7a. Issue Ledger
 
-This PR changes tests and the census only. The test file matches the existing `R/emmeans-preflight.R` behavior, including retaining factor levels from the fitted model frame. No equation, user-facing example, vignette, or package capability claim changed. Current-main additions were merged without conflict. The census check passed after that merge.
+Searched open drmTMB issues for `emmeans preflight`; no matching issue was identified in the PR record. No issue or PR comment has been posted, and no issue state has changed. PR #1602 remains open and draft pending exact-head checks and review.
 
-The audit searched the PR diff and current test file for model/API/documentation changes; none were present. The broader family/formula status inventory was not applicable.
+## 8. Consistency Audit
 
-## GitHub Issue Maintenance
+Compared the PR paths with current main and merged without conflict. The synchronized census check confirms that the PR's new skip sites and main's later skip-count change are both represented. The test file targets the unchanged `R/emmeans-preflight.R` contract. No family inventory, formula grammar, likelihood, vignette, pkgdown page, or generated Rd file changed.
 
-Searched open drmTMB issues for `emmeans preflight`; no matching open issue was returned. No issue or PR comment was posted, and no issue was opened or closed.
+## 9. What Did Not Go Smoothly
 
-## What Did Not Go Smoothly
+The PR was 30 commits behind current main, and its earlier exact-head run had a cancelled shard. The source sync is local only, so that earlier run cannot certify this candidate. The shared lane-lease registry was busy during the claim attempt; work remained in the dedicated PR worktree and used non-overlapping files from the other active PR lanes.
 
-The PR had fallen behind current main and its earlier CI run was incomplete. The disposable-clone merge completed without conflicts. The earlier CI status cannot certify the new merge commit, so fresh checks remain necessary.
+## 10. Known Residuals
 
-## Team Learning
+The focused tests do not establish full package health, live Julia bridge behavior, CRAN-lane behavior, or interval calibration. Two real-fit test groups intentionally skip on CRAN and when `emmeans` is unavailable. Exact-head CI has not run on the synchronized candidate; it is not ready to merge.
 
-Test-only PRs still need the same source-sync and closeout trail as implementation changes. Record generated census validation and distinguish a passing focused run from full-package acceptance.
+## 11. Team Learning
 
-## Known Limitations
+For test-only PRs, update generated skip inventories from the synchronized source instead of carrying a stale count forward. A clean merge tree and focused test pass still require fresh exact-head CI.
 
-The focused test run does not establish full package health, live Julia bridge behavior, or CRAN-lane behavior. Two real-fit test groups intentionally skip on CRAN and when the suggested `emmeans` package is absent; the environment census records those call sites. CI status for the updated PR head remains pending.
+## 12. Cross-Product Coverage
 
-## Next Actions
+This slice covers only the R package's `emmeans` preflight tests and skip census. It does NOT cover Julia engine execution, full package checks, CMR routes, statistical interval calibration, pkgdown deployment, or public release readiness.
 
-Refresh CI on the pushed head, obtain an independent review, and merge only after the required checks pass.
+## Memory Receipt
+
+Memory receipt: project guidance came from `AGENTS.md` and `docs/design/10-after-task-protocol.md`. The lane preflight reported concurrent PR lanes; this work stayed in its own worktree. The independent reviewer loaded the routed `r-package-engineer` and `validation-harness` instructions. No new durable project decision was made.
+
+Golden Set: not run because this test-only source sync did not modify an identified known-mistake class.
