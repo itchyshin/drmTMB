@@ -299,8 +299,8 @@ test_that("drm_standardize_relatedness_matrix aborts on malformed matrices", {
   expect_error(std(mismatch, "relmat", "K"), "row and column names must match")
 })
 
-test_that("an asymmetric matrix is symmetrised from its upper triangle", {
-  # Characterisation: forceSymmetric(uplo = "U") does not abort on asymmetry.
+test_that("prevalidated covariance conversion symmetrises the upper triangle", {
+  # This internal conversion helper assumes symmetry was checked upstream.
   cov <- known_spd()
   asym <- cov
   asym[4L, 1L] <- 0.9
@@ -310,5 +310,21 @@ test_that("an asymmetric matrix is symmetrised from its upper triangle", {
     diag(4L),
     tolerance = 1e-10,
     ignore_attr = TRUE
+  )
+})
+
+test_that("the model-facing relatedness precision path rejects asymmetry", {
+  asym <- known_spd()
+  asym[4L, 1L] <- 0.9
+
+  expect_error(
+    drmTMB:::drm_known_relatedness_precision(
+      asym,
+      group = rownames(asym),
+      matrix_type = "covariance",
+      marker = "relmat",
+      object = "K"
+    ),
+    "must be symmetric"
   )
 })

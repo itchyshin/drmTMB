@@ -9,8 +9,11 @@ running model fits, so future changes cannot silently alter these contracts.
 
 The existing test-only change adds direct tests for pedigree standardization,
 parent normalization and ordering, Quaas precision construction, covariance to
-precision conversion, and relatedness-matrix validation. No package behavior or
-public API changed.
+precision conversion, and relatedness-matrix validation. The asymmetry cases
+distinguish the internal, prevalidated covariance-to-precision conversion
+helper—which symmetrizes from the upper triangle—from the model-facing
+`drm_known_relatedness_precision()` path, which rejects asymmetric input before
+conversion. No package behavior or public API changed.
 
 ## 3a. Decisions and Rejected Alternatives
 
@@ -33,9 +36,10 @@ Assumptions without asking: none.
 
 ## 5. Checks Run
 
-- On merged candidate `d7f9d1775ed79a29f3d03ec744290682bf68fb8d`,
-  `R_PROFILE_USER=/dev/null Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-pedigree-known-precision-edges.R")'`:
-  PASS, 66 expectations, 0 failures, 0 warnings, 0 skips (29.4 seconds).
+- On the updated local candidate (focused test rerun before this report-only
+  refresh),
+  `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-pedigree-known-precision-edges.R")'`:
+  PASS, 67 expectations, 0 failures, 0 warnings, 0 skips.
 - `python3 tools/capability_ledger.py --check`: PASS, 31 generated outputs.
 - `python3 tools/capability_ledger.py --check-c14-receipt-equivalence`: PASS,
   3 eligible and 7 source-different retained receipts.
@@ -56,15 +60,21 @@ matrices. The Quaas result is checked against the dense inverse obtained by
 checks the inverse calculation, not the relationship-matrix construction. The
 non-positive-definite precision path emits a CHOLMOD warning;
 the test suppresses that expected warning while asserting the helper's error.
+The asymmetry tests now preserve the boundary: the internal
+`drm_covariance_to_known_precision()` helper uses the upper triangle under its
+prevalidated-input contract, while `drm_known_relatedness_precision()` rejects
+asymmetry on the model-facing path.
 
 ## 8. Consistency Audit
 
 The exercised helpers remain in `R/phylo-utils.R`; there is no change to their
 implementation, formula syntax, examples, vignettes, NEWS, or pkgdown
-navigation. The asymmetry test deliberately records current behavior: the
-helpers symmetrize from the upper triangle and do not reject an asymmetric
-matrix. This is a characterization test; the input contract remains unchanged. No
-status inventory update is needed for a tests-only change.
+navigation. `drm_covariance_to_known_precision()` applies
+`forceSymmetric(uplo = "U")` and assumes its input has already been validated;
+it is not the model-facing validation route. `drm_known_relatedness_precision()`
+first calls `drm_standardize_relatedness_matrix()` and then rejects asymmetry
+before dispatching to that conversion helper. The paired tests pin both
+behaviors. No status inventory update is needed for this tests-only change.
 
 ## 7a. Issue Ledger
 
@@ -73,11 +83,11 @@ status remains unchecked. No issue was opened, commented on, or closed.
 
 ## 9. What Did Not Go Smoothly
 
-The PR head at preparation was
+The initial PR head at preparation was
 `ef3bc4690f27644458aa48cdc212fa8061481f15`; its merge base was
 `f9bff01b5f3bbbc424402b73d67084dd446d9ff8`. I merged the exact current-main
 candidate `2fb93b768977330fc9939d86375c37329a539277` into a new local worktree
-without conflicts. The resulting merge candidate is
+without conflicts. The initial merge candidate was
 `d7f9d1775ed79a29f3d03ec744290682bf68fb8d`. The PR's diff against that main
 contains only the test, this report, and the per-slice check-log. No remote
 branch was changed. The prior exact-PR-head workflow run `39856569302` was
@@ -87,10 +97,11 @@ remaining shard's R CMD check did not complete. The PR remains a draft.
 ## 10. Known Residuals
 
 The tests characterize existing behavior and do not demonstrate that all
-pedigree or precision inputs are scientifically appropriate. In particular,
-asymmetric matrices are currently symmetrized from their upper triangle, and
-the precision Cholesky failure can emit a warning before the intended error.
-Those behaviors remain unchanged.
+pedigree or precision inputs are scientifically appropriate. The internal
+prevalidated conversion helper symmetrizes from the upper triangle; the
+model-facing `drm_known_relatedness_precision()` path rejects asymmetric
+matrices. The precision Cholesky failure can emit a warning before the intended
+error. Those behaviors remain unchanged.
 
 ## 11. Team Learning
 
