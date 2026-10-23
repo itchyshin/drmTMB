@@ -200,7 +200,7 @@ test_that("Bartlett identities for a Gaussian random-intercept (Laplace) route",
   # z climbed from 5.36 (nsim = 60) to 10.59 (nsim = 200) as evidence
   # accumulated against a fixed u_hat, and the old expectation
   # (`expect_gt(abs(z_re), 3)`) said so explicitly. That defect is now FIXED:
-  # simulate.drmTMB() gained `re.form`, and the default (`re.form = NULL`)
+  # simulate.drmTMB() gained `re.form`, and the default (`re.form = NA`)
   # draws a fresh random effect per replicate (marginal simulation; see
   # R/methods.R). This test now asserts the identity actually HOLDS.
   #

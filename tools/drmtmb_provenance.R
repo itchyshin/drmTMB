@@ -17,10 +17,11 @@
 # (correctly -- it holds ~300 developer/campaign scripts, and this one is a
 # developer tool per DRM.jl#473, not a shipped component). A shipped
 # `configure` that depended on an unshipped file would silently no-op on a
-# real `R CMD build`/`R CMD INSTALL` from a tarball. So `configure` and
-# `configure.win` re-implement the same few `git rev-parse`/`git status
-# --porcelain` lines directly in shell/batch instead. If you change the git
-# capture logic here, change it there too.
+# real `R CMD build`/`R CMD INSTALL` from a tarball. So `configure`
+# re-implements the same few `git rev-parse`/`git status --porcelain` lines
+# directly in shell instead, and `configure.win` (run by R with the Rtools
+# `sh`) delegates to `configure`. If you change the git capture logic here,
+# change it in `configure` too.
 #
 # When git information genuinely is not available (no git executable, no
 # .git directory -- e.g. installing from a released tarball with .git
