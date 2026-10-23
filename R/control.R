@@ -1,8 +1,9 @@
 #' Control fitting and fitted-object storage
 #'
 #' `drm_control()` collects optimizer settings and storage choices for
-#' [drmTMB()]. Use `optimizer` for settings passed to [stats::nlminb()], or
-#' `optimizer_preset` for named `nlminb()` budgets that keep ordinary defaults
+#' [drmTMB()]. Select `nlminb()` (the default) or a [stats::optim()] method
+#' with `optimizer_method`. Use `optimizer` for that method's control settings,
+#' or `optimizer_preset` for named `nlminb()` budgets that keep ordinary defaults
 #' fast while making complex refits easier to write. Use the storage flags when
 #' a fitted object should keep less R-side state, for
 #' example during large-data experiments where the original data frame and TMB
@@ -39,7 +40,23 @@
 #' in `fit$optimizer_used`.
 #'
 #' @param optimizer Named list passed to the `control` argument of
-#'   [stats::nlminb()].
+#'   [stats::nlminb()] or [stats::optim()], according to `optimizer_method`.
+#'   Direct `optim()` methods use `maxit = 1000L` unless overridden, with their
+#'   native tolerance defaults. `"L-BFGS-B"` uses `factr` and `pgtol`;
+#'   the other methods use `reltol` and `abstol`. Unknown controls and controls
+#'   for other methods are rejected. `fnscale` must be finite and positive:
+#'   fitting minimizes the negative log-likelihood. `lower` and `upper` are not
+#'   control settings and are rejected; model parameters are transformed
+#'   internally, and no user-supplied box bounds are provided.
+#' @param optimizer_method One exact method name: `"nlminb"` (default),
+#'   `"BFGS"`, `"L-BFGS-B"`, `"Nelder-Mead"`, or `"CG"`. A direct `optim()`
+#'   method runs immediately, without the `nlminb()` preset ladder or fallback.
+#'   These methods require `optimizer_preset = "default"` and
+#'   `fallback_optimizer = NULL`. The selected method is recorded in
+#'   `fit$optimizer_used$optimizer` and `fit$optimizer_attempts$optimizer`;
+#'   its attempt has `optimizer_preset = NA` because no preset applies.
+#'   `optim()` evaluation counts are stored in `fit$opt$evaluations`;
+#'   it does not report an iteration count.
 #' @param se Logical; compute standard errors and fixed-effect covariance with
 #'   [TMB::sdreport()] after optimization. Set to `FALSE` to keep fitted
 #'   coefficients, fitted values, residuals, predictions, simulations, and
@@ -84,11 +101,11 @@
 #'   note because it cannot re-evaluate the gradient without `fit$obj`, and
 #'   profile-likelihood confidence intervals will be unavailable.
 #' @param sparse_fixed Logical; opt-in control for sparse fixed-effect
-#'   design matrices. The first fitted path is limited to univariate Gaussian
+#' design matrices. This option is limited to univariate Gaussian
 #'   `mu` fixed effects with no random effects and intercept-only `sigma`.
 #' @param aggregate_gaussian Logical; opt-in control for sufficient-
-#'   statistic row aggregation in univariate Gaussian fixed-effect models. The
-#'   first fitted path rejects random effects, structured effects, known
+#' statistic row aggregation in univariate Gaussian fixed-effect models. This
+#' option rejects random effects, structured effects, known
 #'   sampling covariance, bivariate models, non-Gaussian families, non-unit
 #'   likelihood weights, and combined sparse fixed-effect matrices.
 #' @param logsigma_clamp Numeric `c(lo, hi)` band, or `NULL`. Bounds the
@@ -105,27 +122,29 @@
 #'   optimizer controls, `"careful"` sets `iter.max = 1000` and
 #'   `eval.max = 1000`, and `"robust"` sets `iter.max = 5000` and
 #'   `eval.max = 5000`. The optimizer escalates this ladder automatically when a
-#'   preset does not converge.
+#'   preset does not converge. Presets apply only to `optimizer_method = "nlminb"`.
 #' @param newton_polish Logical (default `TRUE`). [stats::nlminb()]'s own
 #'   `rel.tol`/`x.tol` stopping rules trigger on a relative change in the
 #'   objective or the step, not on the gradient norm, so on a flat or
 #'   weakly-curved surface (for example a variance component identified by
 #'   few groups) `nlminb()` can report convergence while the true gradient at
-#'   that point is still far from zero (issue #1130). Rather than tightening
-#'   `rel.tol`/`x.tol` -- which on the same fixture instead produced a
+#' that point is still far from zero. Rather than tightening
+#' `rel.tol`/`x.tol` -- which in the tested flat-surface case instead produced a
 #'   spurious "singular convergence" code without reliably landing closer to
 #'   the true optimum -- the default fixed `rel.tol`/`x.tol` (`nlminb()`'s
 #'   own) are left alone, and a Newton polish step is applied to whatever
-#'   `nlminb()` returns: the exact TMB gradient plus a finite-differenced
+#'   the selected optimizer returns: the exact TMB gradient plus a finite-differenced
 #'   Hessian of that gradient (`stats::optimHess()`) drive a few Newton steps
 #'   until the gradient's max absolute component is at or below a small
 #'   threshold, accepting a step only if it does not increase the objective.
 #'   Cost is a handful of extra gradient evaluations at the reported optimum
 #'   (skipped entirely once the gradient is already small); set to `FALSE` to
 #'   restore the pre-0.7.1 behaviour of reporting `nlminb()`'s raw optimum
-#'   unpolished.
+#'   unpolished. The same polish applies to direct `optim()` methods; set
+#'   `newton_polish = FALSE` to inspect their raw results.
 #' @param multi_start Whole number `>= 1` (default `1`). With `multi_start > 1`,
-#'   each optimizer preset is run from `multi_start` starting points -- the
+#'   each `nlminb()` preset or the directly selected `optim()` method is run
+#'   from `multi_start` starting points -- the
 #'   principled start plus reproducibly perturbed starts -- and the lowest-
 #'   objective result is kept. Opt-in robustness for weakly identified models;
 #'   `multi_start = 1` is the single-start fit and is unchanged. Joint models
@@ -133,11 +152,22 @@
 #'   together with `zi ~ ...` on Poisson or `nbinom2()` families) can admit
 #'   multiple local optima; when a fit looks unstable or convergence
 #'   checks flag a boundary, try `multi_start > 1` before changing the model.
+#'   The starts run one after another unless `parallel` is set.
+#' @param parallel,workers Backend and worker count for the `multi_start`
+#'   starts only: `"none"` (default) runs them one after another,
+#'   `"multicore"` forks Unix workers, and `"cluster"` uses socket (PSOCK)
+#'   workers on any platform. A single fit, and `multi_start = 1`, always run
+#'   on one core. Parallel starts each begin from the same initial TMB state,
+#'   so with random effects they can differ from the serial run at the inner
+#'   solver's tolerance; fixed-effect fits are identical. `workers = NULL` uses
+#'   about half the detected cores, capped at `multi_start` and at 10. See
+#'   [drmTMB-parallel].
 #' @param fallback_optimizer `NULL` (default) or one [stats::optim()] method
 #'   (`"BFGS"`, `"L-BFGS-B"`, `"Nelder-Mead"`, `"CG"`). When set, and no
 #'   `nlminb()` preset converges, `drmTMB()` tries this optimizer as a final
 #'   attempt; a different algorithm can succeed on a numerically awkward but
 #'   identified problem. Opt-in; `NULL` keeps the `nlminb()`-only ladder.
+#'   Available only with `optimizer_method = "nlminb"`.
 #' @param start `NULL` (default) or a named list of starting values, keyed by
 #'   public start labels. Three label families are supported:
 #'   `"fixef:<dpar>:<column>"` for a fixed-effect coefficient (already on the
@@ -185,14 +215,26 @@ drm_control <- function(
   newton_polish = TRUE,
   multi_start = 1L,
   fallback_optimizer = NULL,
-  start = NULL
+  start = NULL,
+  parallel = c("none", "multicore", "cluster"),
+  workers = NULL,
+  optimizer_method = "nlminb"
 ) {
+  valid_methods <- c("nlminb", "BFGS", "L-BFGS-B", "Nelder-Mead", "CG")
+  if (
+    !is.character(optimizer_method) || length(optimizer_method) != 1L ||
+      is.na(optimizer_method) || !optimizer_method %in% valid_methods
+  ) {
+    cli::cli_abort("{.arg optimizer_method} must be one of {.val {valid_methods}}.")
+  }
+  parallel <- match.arg(parallel)
   optimizer_preset <- match.arg(optimizer_preset)
   newton_polish <- drm_control_flag(newton_polish, "newton_polish")
   if (
     !is.list(optimizer) ||
       (length(optimizer) > 0L &&
-        (is.null(names(optimizer)) || any(names(optimizer) == "")))
+        (is.null(names(optimizer)) || anyNA(names(optimizer)) ||
+           any(names(optimizer) == "")))
   ) {
     cli::cli_abort("{.arg optimizer} must be a named list.")
   }
@@ -203,11 +245,25 @@ drm_control <- function(
   if (length(optimizer_reserved) > 0L) {
     cli::cli_abort(c(
       "{.arg optimizer} contains reserved {.pkg drmTMB} control name{?s}: {.arg {optimizer_reserved}}.",
-      "i" = "Use {.arg optimizer} only for {.fn stats::nlminb} control settings.",
+      "i" = if (identical(optimizer_method, "nlminb")) {
+        "Use {.arg optimizer} only for {.fn stats::nlminb} control settings."
+      } else {
+        "Use {.arg optimizer} only for control settings of the selected optimizer."
+      },
       "i" = "Use {.arg multi_start} for multi-start; future start, warm-start, map, fixed-parameter, and fallback-optimizer controls will use explicit {.pkg drmTMB} arguments after their contract is implemented."
     ))
   }
-  optimizer <- drm_control_optimizer(optimizer, optimizer_preset)
+  if (identical(optimizer_method, "nlminb")) {
+    optimizer <- drm_control_optimizer(optimizer, optimizer_preset)
+  } else {
+    if (!identical(optimizer_preset, "default")) {
+      cli::cli_abort("{.arg optimizer_preset} must be {.val default} when {.arg optimizer_method} selects {.fn stats::optim}.")
+    }
+    if (!is.null(fallback_optimizer)) {
+      cli::cli_abort("{.arg fallback_optimizer} must be NULL when {.arg optimizer_method} selects {.fn stats::optim}.")
+    }
+    optimizer <- drm_control_optim(optimizer, optimizer_method)
+  }
   se <- drm_control_flag(se, "se")
   se_report_covariance <- drm_control_flag(
     se_report_covariance,
@@ -258,6 +314,10 @@ drm_control <- function(
     cli::cli_abort("{.arg multi_start} must be a single whole number >= 1.")
   }
   multi_start <- as.integer(multi_start)
+  if (!is.null(workers)) {
+    # Validate now; NULL stays NULL and is resolved when the starts run.
+    workers <- resolve_parallel_workers(workers, "multicore")
+  }
   if (!is.null(fallback_optimizer)) {
     valid_fallback <- c("BFGS", "L-BFGS-B", "Nelder-Mead", "CG")
     if (
@@ -290,7 +350,10 @@ drm_control <- function(
       newton_polish = newton_polish,
       multi_start = multi_start,
       fallback_optimizer = fallback_optimizer,
-      start = start
+      start = start,
+      parallel = parallel,
+      workers = workers,
+      optimizer_method = optimizer_method
     ),
     class = "drm_control"
   )
@@ -375,6 +438,36 @@ drm_control_reserved_names <- function() {
 drm_control_optimizer <- function(optimizer, optimizer_preset) {
   preset <- drm_control_optimizer_preset(optimizer_preset)
   c(preset[setdiff(names(preset), names(optimizer))], optimizer)
+}
+
+# Keep optim's method-specific tolerance defaults: only its budget is changed.
+drm_control_optim <- function(optimizer, method) {
+  if (anyDuplicated(names(optimizer))) {
+    cli::cli_abort("{.arg optimizer} control names must be unique.")
+  }
+  common <- c("trace", "fnscale", "parscale", "maxit")
+  specific <- switch(
+    method,
+    BFGS = c("abstol", "reltol", "REPORT", "ndeps"),
+    `L-BFGS-B` = c("REPORT", "lmm", "factr", "pgtol", "ndeps"),
+    `Nelder-Mead` = c("abstol", "reltol", "alpha", "beta", "gamma", "warn.1d.NelderMead"),
+    CG = c("abstol", "reltol", "type", "ndeps")
+  )
+  unknown <- setdiff(names(optimizer), c(common, specific))
+  if (length(unknown) > 0L) {
+    cli::cli_abort(c(
+      "{.arg optimizer} contains controls unsupported by {.val {method}}: {.val {unknown}}.",
+      "i" = "Use controls for the selected {.fn stats::optim} method; bounds are not optimizer controls."
+    ))
+  }
+  if ("fnscale" %in% names(optimizer)) {
+    scale <- optimizer$fnscale
+    if (!is.numeric(scale) || length(scale) != 1L ||
+        !is.finite(scale) || scale <= 0) {
+      cli::cli_abort("{.arg optimizer$fnscale} must be a single finite positive number so that the likelihood objective is minimized.")
+    }
+  }
+  c(list(maxit = 1000L)[setdiff("maxit", names(optimizer))], optimizer)
 }
 
 drm_control_optimizer_preset <- function(optimizer_preset) {

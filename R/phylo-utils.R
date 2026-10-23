@@ -361,6 +361,31 @@ drm_phylo_augmented_precision <- function(
   out
 }
 
+# Canonical character labels for relmat()/animal() ids (#1485). R writes a
+# whole-number double id such as 100000 as "1e+05" whenever it coerces it
+# (as.character(), dimnames<-, factor levels), while users and integer ids give
+# "100000". Both spellings must match, so every side -- data ids, matrix
+# dimnames, and pedigree id/dam/sire -- goes through this function: whole-number
+# doubles are written as plain digits, and character labels in scientific
+# notation that denote a whole number are rewritten the same way. Every other
+# label is kept as is.
+drm_id_labels <- function(x) {
+  if (is.double(x) && !is.factor(x)) {
+    out <- as.character(x)
+    whole <- is.finite(x) & x == trunc(x) & abs(x) < 2^53
+    out[whole] <- formatC(x[whole], format = "f", digits = 0L)
+    return(out)
+  }
+  out <- as.character(x)
+  sci <- !is.na(out) & grepl("^[-+]?[0-9.]+[eE][-+]?[0-9]+$", out)
+  if (any(sci)) {
+    num <- suppressWarnings(as.numeric(out[sci]))
+    whole <- is.finite(num) & num == trunc(num) & abs(num) < 2^53
+    out[sci][whole] <- formatC(num[whole], format = "f", digits = 0L)
+  }
+  out
+}
+
 drm_known_relatedness_precision <- function(
   matrix,
   group,
@@ -375,7 +400,7 @@ drm_known_relatedness_precision <- function(
   if (is.null(reported_matrix_type)) {
     reported_matrix_type <- matrix_type
   }
-  group <- as.character(group)
+  group <- drm_id_labels(group)
   if (length(group) == 0L || anyNA(group) || any(!nzchar(group))) {
     cli::cli_abort(
       "{.fn {marker}} grouping variable {.field {group_name}} must contain non-missing labels."
@@ -387,6 +412,10 @@ drm_known_relatedness_precision <- function(
     marker = marker,
     object = object
   )
+  canonical <- drm_id_labels(rownames(mat))
+  if (!anyDuplicated(canonical)) {
+    dimnames(mat) <- list(canonical, canonical)
+  }
   labels <- rownames(mat)
   observed <- unique(group)
   missing <- setdiff(observed, labels)
@@ -801,9 +830,9 @@ drm_standardize_pedigree <- function(pedigree, object = "pedigree") {
   }
 
   ped <- data.frame(
-    id = as.character(pedigree$id),
-    dam = as.character(pedigree$dam),
-    sire = as.character(pedigree$sire),
+    id = drm_id_labels(pedigree$id),
+    dam = drm_id_labels(pedigree$dam),
+    sire = drm_id_labels(pedigree$sire),
     stringsAsFactors = FALSE
   )
   ped$dam <- drm_normalize_pedigree_parent(ped$dam)

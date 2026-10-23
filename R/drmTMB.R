@@ -121,7 +121,7 @@
 #'   non-Gaussian response route also supports `family = poisson()` with one
 #'   fixed-effect binary `mi()` predictor modelled by `family = binomial()`.
 #' @param missing Missing-data policy created by [miss_control()]. The default
-#'   keeps the existing complete-case behaviour. In the current fitted slices,
+#' keeps the existing complete-case behaviour. Among currently supported models,
 #'   `missing = miss_control(response = "include")` is implemented only for
 #'   univariate Gaussian response masks and bivariate Gaussian partial-response
 #'   rows without dense known covariance. `missing =
@@ -148,11 +148,10 @@
 #'   an additional large-p `phylo()` or coupled location-scale phylo route),
 #'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, and
 #'   `beta_binomial()` on the fixed-effect route only. Each admitted family
-#'   carries a same-target parity receipt against `engine = "tmb"`
+#' has been compared with `engine = "tmb"` on the same fitted target
 #'   (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
 #'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for
-#'   the full family-by-route table, which capability-ledger row documents
-#'   each receipt, and current boundaries. `engine = "julia"` needs a local
+#' the full family-by-route table and current boundaries. `engine = "julia"` needs a local
 #'   DRModels.jl checkout and the optional `JuliaCall` package, and it is not a
 #'   drop-in replacement for every native-TMB workflow.
 #' @param REML Logical; use restricted maximum likelihood where the selected
@@ -167,13 +166,13 @@
 #'   constant residual scale (`sigma ~ 1`, with no sigma random effect).
 #'   Slope-only, labelled, multiple-slope, and matched non-phylogenetic
 #'   mean-scale REML remain outside that route. The two bivariate
-#'   non-phylogenetic exceptions are matching labelled fixed-covariance q2
+#' non-phylogenetic exceptions are matching labelled two-axis (`q = 2`) fixed-covariance
 #'   location intercepts for `spatial(1 | p | site, coords = coords)` and
 #'   `relmat(1 | p | id, K = K)` in `mu1` and `mu2`, with intercept-only
 #'   `sigma1`, `sigma2`, and `rho12`, complete response pairs, unit weights, no
 #'   known [meta_V()] covariance, and no additional ordinary random effect,
-#'   direct-SD formula, or `corpair()` regression. Both have point-fit-recovery
-#'   evidence only; bivariate `relmat(..., Q = Q)` REML remains deferred.
+#' direct-SD formula, or `corpair()` regression. Only point-estimate recovery
+#' has been checked for both; bivariate `relmat(..., Q = Q)` REML is unsupported.
 #'   Aggregation and ordinary direct `sd()` scale formulae also remain
 #'   unsupported under REML. For `binomial()` models, the bounded native route
 #'   requires exactly one ordinary unlabelled `mu` random intercept or exactly
@@ -183,19 +182,18 @@
 #'   use `REML = FALSE` for those models. The binomial route has diagnostic
 #'   parity and finite-uncertainty evidence, not calibrated interval or coverage
 #'   evidence. Every other non-Gaussian family rejects `REML = TRUE`; use
-#'   `REML = FALSE`. The package-private AGHQ plus Cox-Reid (O3) estimator is
+#' `REML = FALSE`. An internal experimental AGHQ plus Cox-Reid estimator is
 #'   not a `drmTMB()` argument and is not what `REML = TRUE` runs. Public
 #'   cumulative-logit random-slope fits remain maximum likelihood
-#'   (`point_fit_recovery`).
+#' and have point-estimate recovery evidence only.
 #'   `engine = "julia"` fits `REML = TRUE` on a route-by-route basis, not
 #'   uniformly: the fixed-effect Gaussian location-scale model, the bivariate
 #'   q = 4 phylogenetic route, the location-scale-scale `sd()`/`sd_phylo()`
 #'   routes, an ordinary Gaussian `mu` random intercept, and large-p Poisson
 #'   `phylo()` (a Cox-Reid Laplace route native `engine = "tmb"` does not have)
 #'   currently fit `REML = TRUE`; every other bridge route refuses it, some
-#'   with a raw DRModels.jl error rather than a `drmTMB`-worded one. See
-#'   `docs/design/261-reml-by-route.md` for the full route-by-route table
-#'   before relying on bridge REML for a model not listed there.
+#' with a raw DRModels.jl error rather than a `drmTMB`-worded one. Do not assume
+#' bridge REML support for models outside this list.
 #'
 #'   Under native `REML = TRUE`, admitted mean fixed-effect coefficients are
 #'   marginalised in the TMB objective rather than estimated as ordinary fixed
@@ -221,16 +219,16 @@
 #'   `"logit"`, `"probit"` and `"cloglog"`. Kosmidis and Firth (2021,
 #'   Theorem 1 and Section 3.1) prove the Jeffreys penalty gives finite
 #'   estimates for any link whose working weight vanishes in both tails, which
-#'   these three do; drmTMB's own TMB-Laplace evidence for them is recorded in
-#'   `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`.
+#' these three do. drmTMB has directly checked the TMB-Laplace implementation
+#' for all three links.
 #'   Three limits are worth stating. The soft-penalty scale below is a *logit*
 #'   delta-method constant, kept unchanged for all three links because using it
 #'   for probit and cloglog was measured to cost about 1% of one standard error
 #'   -- measured at `q = 1` with two fixed-effect columns, and not at `q = 2`.
 #'   Under deep separation with a random slope the standard error is frequently
 #'   unavailable for **every** link, logit included (see the `NA` note below);
-#'   in the most extreme cells measured this affected the large majority of
-#'   converged fits. And the evidence behind the two new links used **Bernoulli**
+#' in the most extreme scenarios measured this affected the large majority of
+#' converged fits. The comparisons for probit and cloglog used **Bernoulli**
 #'   responses with two fixed-effect columns, so grouped-binomial and wider
 #'   designs inherit the `n_eff` extrapolation described next without direct
 #'   measurement, for any link. For grouped binomial data, the
@@ -287,9 +285,14 @@ drmTMB <- function(
       "{.arg formula} must be created with {.fn drm_formula} or {.fn bf}."
     )
   }
-  dots <- list(...)
-  if (length(dots) > 0L) {
-    cli::cli_abort("{.fn drmTMB} does not use arguments in {.arg ...} yet.")
+  # Inspect `...` without forcing it: `subset = cyl == 4` must not fail with
+  # "object 'cyl' not found" before this guard can name the argument (#1486).
+  if (...length() > 0L) {
+    drm_abort_unused_dots(
+      names(match.call(expand.dots = FALSE)$...),
+      n_dots = ...length(),
+      call = environment()
+    )
   }
   if (!is.data.frame(data)) {
     cli::cli_abort("{.arg data} must be a data frame.")
@@ -303,6 +306,9 @@ drmTMB <- function(
   # grouping variables keep their declared level sets: an ordinal response or
   # an imputed ordinal predictor with an empty category must still reach its
   # own "empty category" refusal rather than be silently re-levelled.
+  # `droplevels()` itself rebuilds the factor and drops a contrasts
+  # attribute, so `contrasts(f) <- contr.sum(3)` became treatment columns.
+  # The helper drops unused levels and puts that attribute back (#1495).
   data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
@@ -343,12 +349,14 @@ drmTMB <- function(
   }
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
-  # A-2 (#1332): fail on NA predictors only when the caller explicitly passes
-  # `miss_control()` or `miss_control(predictor = "fail")`, not when they only
-  # set `response = "include"` (row drop for incomplete predictors stays).
+  # A-2 (#1332, #1484): fail on NA predictors only when the caller supplies
+  # `missing =` with a control built as `miss_control()` or
+  # `miss_control(predictor = "fail")`, not when they only set
+  # `response = "include"` (row drop for incomplete predictors stays). The
+  # evaluated control decides, so `missing = ctl` behaves like its literal call.
   if (
     "missing" %in% names(as.list(fit_call))[-1L] &&
-      drm_missing_explicit_predictor_fail(fit_call$missing)
+      drm_missing_explicit_predictor_fail(missing)
   ) {
     drm_validate_complete_predictors(formula, data)
   }
@@ -361,6 +369,7 @@ drmTMB <- function(
     data = data,
     env = parent.frame()
   )
+  drm_abort_mi_zero_weight_missing_in_data(data, weights_full, impute)
 
   family_type <- drm_family_type(family)
   drm_validate_mspl_request(
@@ -680,14 +689,26 @@ drm_fit_spec <- function(
   spec <- drm_apply_start_override(spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
-  obj <- TMB::MakeADFun(
-    data = spec$tmb_data,
-    parameters = spec$start,
-    map = spec$map,
-    random = spec$tmb_random_names,
-    DLL = "drmTMB",
-    silent = TRUE
+  mi_quad_abort <- drm_spec_uses_mi_quadrature_abort(spec)
+  obj <- tryCatch(
+    TMB::MakeADFun(
+      data = spec$tmb_data,
+      parameters = spec$start,
+      map = spec$map,
+      random = spec$tmb_random_names,
+      DLL = "drmTMB",
+      silent = TRUE
+    ),
+    error = function(e) {
+      if (isTRUE(mi_quad_abort)) {
+        drm_rethrow_mi_quadrature_error(e)
+      }
+      stop(e)
+    }
   )
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, obj$par, "starting")
+  }
 
   optimizer <- drm_optimize_with_preset_retry(obj, control)
   opt <- optimizer$opt
@@ -697,7 +718,19 @@ drm_fit_spec <- function(
     optimizer$selected$objective <- opt$objective
     optimizer$selected$convergence <- opt$convergence
     optimizer$selected$message <- opt$message
+    selected_attempt <- which(optimizer$attempts$selected)
+    optimizer$attempts$objective[selected_attempt] <- opt$objective
+    optimizer$attempts$convergence[selected_attempt] <- opt$convergence
+    optimizer$attempts$message[selected_attempt] <- if (is.null(opt$message)) {
+      NA_character_
+    } else {
+      opt$message
+    }
   }
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, opt$par, "fitted")
+  }
+  drm_warn_mi_quadrature_inaccurate(spec, obj$env$parList())
   drm_warn_if_not_converged(opt)
   drm_warn_if_nonfinite_objective(opt)
   drm_pin_tmb_object_to_optimum(obj, opt)
@@ -856,12 +889,16 @@ drm_perturbed_starts <- function(par, n_start) {
 # result with the lowest finite objective. With n_start == 1 this is exactly the
 # single-start call, so the default fit is unchanged. If every start errors, the
 # last error is re-raised for the caller's tryCatch to record.
-drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
+drm_optimize_multistart <- function(
+  obj,
+  optimizer,
+  control_opt,
+  n_start,
+  plan = NULL
+) {
   starts <- drm_perturbed_starts(obj$par, n_start)
-  best <- NULL
-  last_error <- NULL
-  for (start in starts) {
-    res <- tryCatch(
+  run_start <- function(start) {
+    tryCatch(
       optimizer(
         start = start,
         objective = obj$fn,
@@ -870,6 +907,19 @@ drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
       ),
       error = function(e) e
     )
+  }
+  parallel_starts <- n_start > 1L && is.list(plan) &&
+    !identical(plan$backend, "none") && isTRUE(plan$workers > 1L)
+  results <- if (parallel_starts) {
+    # Every worker begins from the parent's untouched TMB state (issue #1248).
+    drm_parallel_lapply(starts, run_start, plan)
+  } else {
+    NULL
+  }
+  best <- NULL
+  last_error <- NULL
+  for (k in seq_along(starts)) {
+    res <- if (parallel_starts) results[[k]] else run_start(starts[[k]])
     if (inherits(res, "error")) {
       last_error <- res
       next
@@ -886,7 +936,44 @@ drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
   if (is.null(best)) {
     stop(last_error)
   }
+  if (parallel_starts && length(best$opt$par) == length(obj$par)) {
+    # Workers cannot update the parent's TMB environment, so evaluate the
+    # winning start here: last.par and last.par.best then hold its optimum
+    # (and inner random-effect mode) as they would after a serial run.
+    obj$fn(best$opt$par)
+    obj$gr(best$opt$par)
+  }
   best$opt
+}
+
+drm_multistart_plan <- function(control, n_start) {
+  parallel <- control$parallel
+  if (is.null(parallel) || identical(parallel, "none") || n_start <= 1L) {
+    return(list(backend = "none", workers = 1L))
+  }
+  bootstrap_parallel_plan(n_start, parallel = parallel, workers = control$workers)
+}
+
+# Adapt optim's interface and result names to the nlminb-shaped fit contract.
+drm_optim_adapter <- function(method, optim_fn = stats::optim) {
+  force(method)
+  force(optim_fn)
+  function(start, objective, gradient, control) {
+    result <- optim_fn(
+      par = start,
+      fn = objective,
+      gr = if (identical(method, "Nelder-Mead")) NULL else gradient,
+      method = method,
+      control = control
+    )
+    list(
+      par = result$par,
+      objective = result$value,
+      convergence = result$convergence,
+      message = if (is.null(result$message)) NA_character_ else result$message,
+      evaluations = result$counts
+    )
+  }
 }
 
 drm_optimize_with_preset_retry <- function(
@@ -896,8 +983,34 @@ drm_optimize_with_preset_retry <- function(
   fallback_fn = stats::optim,
   warn = TRUE
 ) {
-  attempt_specs <- drm_optimizer_attempt_specs(control)
   n_start <- if (is.null(control$multi_start)) 1L else control$multi_start
+  multistart_plan <- drm_multistart_plan(control, n_start)
+  method <- control$optimizer_method
+  if (!is.null(method) && !identical(method, "nlminb")) {
+    elapsed_start <- proc.time()[["elapsed"]]
+    opt <- drm_optimize_multistart(
+      obj, drm_optim_adapter(method, fallback_fn), control$optimizer,
+      n_start, plan = multistart_plan
+    )
+    row <- drm_optimizer_attempt_row(
+      attempt = 1L,
+      preset = NA_character_,
+      control = control$optimizer,
+      status = "ok",
+      convergence = opt$convergence,
+      message = opt$message,
+      objective = opt$objective,
+      elapsed_sec = proc.time()[["elapsed"]] - elapsed_start,
+      selected = TRUE,
+      optimizer = method
+    )
+    return(list(
+      opt = opt,
+      selected = drm_optimizer_selected_record(row),
+      attempts = row
+    ))
+  }
+  attempt_specs <- drm_optimizer_attempt_specs(control)
   rows <- vector("list", length(attempt_specs))
   opts <- vector("list", length(attempt_specs))
   last_error <- NULL
@@ -912,7 +1025,8 @@ drm_optimize_with_preset_retry <- function(
           obj,
           optimizer,
           spec$control,
-          n_start
+          n_start,
+          plan = multistart_plan
         )
       ),
       error = function(e) list(ok = FALSE, value = e)
@@ -976,11 +1090,10 @@ drm_optimize_with_preset_retry <- function(
     fb_control <- list(maxit = 1000L)
     fb_start <- proc.time()[["elapsed"]]
     fb_res <- tryCatch(
-      fallback_fn(
-        par = obj$par,
-        fn = obj$fn,
-        gr = obj$gr,
-        method = fallback,
+      drm_optim_adapter(fallback, fallback_fn)(
+        start = obj$par,
+        objective = obj$fn,
+        gradient = obj$gr,
         control = fb_control
       ),
       error = function(e) e
@@ -997,20 +1110,12 @@ drm_optimize_with_preset_retry <- function(
         message = conditionMessage(fb_res),
         objective = NA_real_,
         elapsed_sec = fb_elapsed,
-        selected = FALSE
+        selected = FALSE,
+        optimizer = fallback
       )
     } else {
-      fb_message <- if (is.null(fb_res$message)) {
-        NA_character_
-      } else {
-        fb_res$message
-      }
-      fb_opt <- list(
-        par = fb_res$par,
-        objective = fb_res$value,
-        convergence = fb_res$convergence,
-        message = fb_message
-      )
+      fb_message <- fb_res$message
+      fb_opt <- fb_res
       opts[[fb_attempt]] <- fb_opt
       fb_converged <- identical(as.integer(fb_opt$convergence), 0L) &&
         length(fb_opt$objective) == 1L &&
@@ -1024,7 +1129,8 @@ drm_optimize_with_preset_retry <- function(
         message = fb_message,
         objective = fb_opt$objective,
         elapsed_sec = fb_elapsed,
-        selected = fb_converged
+        selected = fb_converged,
+        optimizer = fallback
       )
       if (fb_converged) {
         attempts <- drm_optimizer_attempts_frame(rows)
@@ -1207,11 +1313,12 @@ drm_optimizer_attempt_row <- function(
   message,
   objective,
   elapsed_sec,
-  selected
+  selected,
+  optimizer = "nlminb"
 ) {
   data.frame(
     attempt = as.integer(attempt),
-    optimizer = "nlminb",
+    optimizer = optimizer,
     optimizer_preset = as.character(preset),
     status = as.character(status),
     convergence = as.integer(convergence),
@@ -1905,7 +2012,7 @@ drm_resolve_public_start_target <- function(spec, parsed, value, label) {
     }
     if (q <= 2L) {
       # Exactly one pair, a single scalar `eta_cor_phylo` on the SAME bounded
-      # tanh scale as the ordinary `cor:` family (0.999999 * tanh(eta); see
+      # tanh scale as the ordinary `cor:` family (now 0.99999999 * tanh(eta), #1190; see
       # `split_tmb_corpars()`).
       drm_check_phylo_cor_start_value(value, label, "a q = 2 phylogenetic block")
       return(list(
@@ -2147,6 +2254,7 @@ drm_qgt2_staged_fit_metrics <- function(
   logLik <- NA_real_
   df <- NA_real_
   nobs <- NA_real_
+  optimizer_method <- NA_character_
   optimizer_preset <- NA_character_
   optimizer_attempt_count <- NA_integer_
   optimizer_selected_attempt <- NA_character_
@@ -2159,6 +2267,7 @@ drm_qgt2_staged_fit_metrics <- function(
   gradient_evaluations <- NA_real_
   iter_max <- NA_real_
   eval_max <- NA_real_
+  maxit <- NA_real_
   budget_status <- NA_character_
   sdreport_status <- NA_character_
   sdreport_message <- NA_character_
@@ -2194,6 +2303,11 @@ drm_qgt2_staged_fit_metrics <- function(
       optimizer_preset <- as.character(fit$optimizer_used$optimizer_preset)
     }
     attempts <- drm_qgt2_optimizer_attempts(fit)
+    optimizer_method <- attempts$optimizer
+    if (is.na(optimizer_method)) {
+      optimizer_method <- drm_qgt2_scalar_character(fit$control$optimizer_method)
+    }
+    if (is.na(optimizer_method)) optimizer_method <- "nlminb"
     optimizer_attempt_count <- attempts$count
     optimizer_selected_attempt <- attempts$selected
     optimizer_retried <- isTRUE(attempts$count > 1L)
@@ -2215,8 +2329,11 @@ drm_qgt2_staged_fit_metrics <- function(
     if (is.na(gradient_evaluations)) {
       gradient_evaluations <- drm_qgt2_named_numeric(fit$opt$counts, "gradient")
     }
-    iter_max <- drm_qgt2_named_numeric(fit$control$optimizer, "iter.max")
-    eval_max <- drm_qgt2_named_numeric(fit$control$optimizer, "eval.max")
+    optimizer_control <- fit$optimizer_used$control
+    if (is.null(optimizer_control)) optimizer_control <- fit$control$optimizer
+    iter_max <- drm_qgt2_named_numeric(optimizer_control, "iter.max")
+    eval_max <- drm_qgt2_named_numeric(optimizer_control, "eval.max")
+    maxit <- drm_qgt2_named_numeric(optimizer_control, "maxit")
     se_requested <- if (!is.null(fit$control$se)) {
       isTRUE(fit$control$se)
     } else {
@@ -2264,7 +2381,9 @@ drm_qgt2_staged_fit_metrics <- function(
       iterations = iterations,
       function_evaluations = function_evaluations,
       iter_max = iter_max,
-      eval_max = eval_max
+      eval_max = eval_max,
+      optimizer_method = optimizer_method,
+      maxit = maxit
     )
     failure <- drm_qgt2_failure_status(
       convergence = convergence,
@@ -2287,6 +2406,7 @@ drm_qgt2_staged_fit_metrics <- function(
     df = df,
     nobs = nobs,
     elapsed_sec = as.numeric(elapsed),
+    optimizer_method = optimizer_method,
     optimizer_preset = optimizer_preset,
     optimizer_attempt_count = optimizer_attempt_count,
     optimizer_selected_attempt = optimizer_selected_attempt,
@@ -2299,6 +2419,7 @@ drm_qgt2_staged_fit_metrics <- function(
     gradient_evaluations = gradient_evaluations,
     iter_max = iter_max,
     eval_max = eval_max,
+    maxit = maxit,
     budget_status = budget_status,
     sdreport_status = sdreport_status,
     sdreport_message = sdreport_message,
@@ -2317,8 +2438,31 @@ drm_qgt2_staged_fit_metrics <- function(
 }
 
 drm_qgt2_optimizer_attempts <- function(fit) {
+  used <- fit$optimizer_used
+  method <- drm_qgt2_scalar_character(used[["optimizer"]])
+  selected <- drm_qgt2_scalar_character(used$optimizer_preset)
+  if (is.na(selected)) selected <- method
   attempts <- fit$optimizer_attempts
   if (is.data.frame(attempts) && nrow(attempts) > 0L) {
+    selected_index <- if ("selected" %in% names(attempts)) {
+      which(attempts$selected %in% TRUE)
+    } else {
+      integer()
+    }
+    if (length(selected_index) != 1L &&
+        "attempt" %in% names(attempts) && length(used$attempt) == 1L) {
+      selected_index <- which(attempts$attempt %in% used$attempt)
+    }
+    if (length(selected_index) != 1L && nrow(attempts) == 1L) {
+      selected_index <- 1L
+    }
+    if (length(selected_index) == 1L) {
+      row <- attempts[selected_index, , drop = FALSE]
+      row_method <- drm_qgt2_scalar_character(row[["optimizer"]])
+      if (!is.na(row_method)) method <- row_method
+      selected <- drm_qgt2_scalar_character(row$optimizer_preset)
+      if (is.na(selected)) selected <- method
+    }
     presets <- if ("optimizer_preset" %in% names(attempts)) {
       paste(attempts$optimizer_preset, collapse = " | ")
     } else {
@@ -2332,21 +2476,14 @@ drm_qgt2_optimizer_attempts <- function(fit) {
       NA_character_
     }
     return(list(
-      count = nrow(attempts),
-      selected = if ("optimizer_preset" %in% names(attempts)) {
-        as.character(utils::tail(attempts$optimizer_preset, 1L))
-      } else {
-        NA_character_
-      },
-      presets = presets,
-      statuses = statuses
+      count = nrow(attempts), selected = selected, presets = presets,
+      statuses = statuses, optimizer = method
     ))
   }
   list(
-    count = 1L,
-    selected = drm_qgt2_scalar_character(fit$optimizer_used$optimizer_preset),
-    presets = drm_qgt2_scalar_character(fit$optimizer_used$optimizer_preset),
-    statuses = NA_character_
+    count = 1L, selected = selected,
+    presets = drm_qgt2_scalar_character(used$optimizer_preset),
+    statuses = NA_character_, optimizer = method
   )
 }
 
@@ -2376,10 +2513,17 @@ drm_qgt2_budget_status <- function(
   iterations,
   function_evaluations,
   iter_max,
-  eval_max
+  eval_max,
+  optimizer_method = "nlminb",
+  maxit = NA_real_
 ) {
   if (identical(convergence, 0L)) {
     return("converged")
+  }
+  if (!identical(optimizer_method, "nlminb")) {
+    # optim reports maxit exhaustion with code 1, but returns no iteration count.
+    if (identical(convergence, 1L)) return("iteration_budget_reached")
+    return("nonconverged_before_budget_or_unknown")
   }
   if (
     is.finite(iterations) &&
@@ -3518,7 +3662,7 @@ drm_warn_if_not_converged <- function(opt) {
   cli::cli_warn(
     c(
       "{.fn drmTMB}: {label}.",
-      "i" = "Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect {.code fit$optimizer_attempts} and run {.fn check_drm} to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit."
+      "i" = "Treat the estimates and standard errors with caution. Inspect {.code fit$optimizer_attempts} and run {.fn check_drm} to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit."
     ),
     class = "drmTMB_convergence_warning"
   )
@@ -3528,8 +3672,8 @@ drm_warn_if_not_converged <- function(opt) {
 # Warn at fit time when the optimized objective is not finite. TMB normally
 # returns a finite objective at the reported optimum, so this is a defensive
 # guard: a non-finite objective means the fit never reached a usable optimum and
-# its log-likelihood, estimates, and SEs are meaningless, but nlminb may not have
-# thrown an error.
+# its log-likelihood, estimates, and SEs are meaningless, but the optimizer may
+# not have thrown an error.
 drm_warn_if_nonfinite_objective <- function(opt) {
   objective <- opt$objective
   if (length(objective) == 1L && is.finite(objective)) {
@@ -3538,7 +3682,7 @@ drm_warn_if_nonfinite_objective <- function(opt) {
   cli::cli_warn(
     c(
       "{.fn drmTMB}: the optimized objective is not finite.",
-      "i" = "The fit did not reach a usable optimum; its log-likelihood, estimates, and standard errors are unreliable. Inspect with {.fn check_drm}, rescale or simplify the model, or refit with {.code control = drm_control(optimizer_preset = \"robust\")}."
+      "i" = "The fit did not reach a usable optimum; its log-likelihood, estimates, and standard errors are unreliable. Inspect {.code fit$optimizer_attempts} and run {.fn check_drm}; rescale or simplify the model before refitting."
     ),
     class = "drmTMB_nonfinite_objective_warning"
   )
@@ -12188,6 +12332,59 @@ validate_beta_binomial_sigma_random_terms <- function(terms) {
   ))
 }
 
+# Name the arguments that reached `drmTMB(...)` instead of evaluating them
+# (#1486). `subset` and `na.action` are common lm()/glm() habits, so they get a
+# concrete next step; misspelt formals (`weigths =`) are visible by name.
+drm_abort_unused_dots <- function(
+  dot_names,
+  n_dots = length(dot_names),
+  call = parent.frame()
+) {
+  if (is.null(dot_names)) {
+    dot_names <- rep("", n_dots)
+  }
+  named <- dot_names[nzchar(dot_names)]
+  n_unnamed <- sum(!nzchar(dot_names))
+  bullets <- c(
+    "{.fn drmTMB} does not use extra arguments in {.arg ...}."
+  )
+  if (length(named) > 0L) {
+    bullets <- c(
+      bullets,
+      "x" = "Unused argument{?s}: {.arg {named}}."
+    )
+  }
+  if (n_unnamed > 0L) {
+    bullets <- c(
+      bullets,
+      "x" = paste0(
+        n_unnamed,
+        " unnamed extra argument", if (n_unnamed > 1L) "s" else "",
+        "; name every argument after {.arg data}."
+      )
+    )
+  }
+  if ("subset" %in% named) {
+    bullets <- c(
+      bullets,
+      "i" = "Subset {.arg data} before fitting, for example {.code data = subset(d, cyl == 4)}."
+    )
+  }
+  if ("na.action" %in% named) {
+    bullets <- c(
+      bullets,
+      "i" = "Use {.arg missing} with {.fn miss_control} to choose how missing values are handled."
+    )
+  }
+  if (length(named) > 0L && !all(named %in% c("subset", "na.action"))) {
+    bullets <- c(
+      bullets,
+      "i" = "Check the spelling against the arguments of {.fn drmTMB}."
+    )
+  }
+  cli::cli_abort(bullets, class = "drmTMB_unused_dots_error", call = call)
+}
+
 # Drop unused levels only from factor columns that appear in plain fixed-effect
 # terms of some distributional-parameter formula (Dinnage audit Md-E). A column
 # is protected -- its levels are left alone -- when it is a response (`lhs` of
@@ -12222,7 +12419,7 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
   cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
   for (col in cols) {
     if (is.factor(data[[col]])) {
-      data[[col]] <- droplevels(data[[col]])
+      data[[col]] <- drm_droplevels_keep_contrasts_factor(data[[col]])
     }
   }
   data
@@ -14536,7 +14733,7 @@ build_known_precision_mu_structure <- function(term, data, env) {
       "x" = "Use syntax like {.code {marker}(1 | id, Q = Q)} where {.field id} is a column in {.arg data}."
     ))
   }
-  group_values <- as.character(data[[group]])
+  group_values <- drm_id_labels(data[[group]])
   if (length(unique(group_values)) < 2L) {
     cli::cli_abort(c(
       "{.fn {marker}} grouping variable {.field {group}} has fewer than two observed levels.",
@@ -22518,7 +22715,7 @@ split_tmb_corpars <- function(par, spec) {
       rho_mu <- if (identical(spec$model_type, "binomial")) {
         tanh(eta_mu)
       } else {
-        0.999999 * tanh(eta_mu)
+        DRM_RE_CORR_GUARD * tanh(eta_mu)
       }
       names(rho_mu) <- spec$random$mu$cor_labels
     }
@@ -22530,13 +22727,13 @@ split_tmb_corpars <- function(par, spec) {
     re_mu_sigma <- empty_mu_sigma_random_covariance(spec$random$sigma$n_re)
   }
   if (re_mu_sigma$n_cors > 0L) {
-    rho_mu_sigma <- 0.999999 *
+    rho_mu_sigma <- DRM_RE_CORR_GUARD *
       tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
     names(rho_mu_sigma) <- re_mu_sigma$cor_labels
     out$mu_sigma <- rho_mu_sigma
   }
   if (spec$random$sigma$n_cors > 0L) {
-    rho_sigma <- 0.999999 *
+    rho_sigma <- DRM_RE_CORR_GUARD *
       tanh(unname(par$eta_cor_sigma[seq_len(spec$random$sigma$n_cors)]))
     names(rho_sigma) <- spec$random$sigma$cor_labels
     out$sigma <- rho_sigma
@@ -22612,7 +22809,10 @@ modelled_corpair_values <- function(par, spec) {
     return(numeric())
   }
   eta <- as.vector(model$X %*% unname(par$beta_cor_mu[seq_len(ncol(model$X))]))
-  0.999999 * tanh(eta)
+  # Group correlations use rho_mu_group (random-effect guard); the modelled
+  # phylogenetic correlation keeps rho_node's 0.999999 (#1190).
+  guard <- if (corpair_model_is_phylogenetic(model)) 0.999999 else DRM_RE_CORR_GUARD
+  guard * tanh(eta)
 }
 
 # Per-level labels for a modelled group mu correlation. Each fitted correlation
@@ -23018,7 +23218,7 @@ transform_mu_random_effects <- function(
   sd_by_index <- mu_sd_by_random_effect(par, re_mu, sd_mu, tmb_data)
   rho <- if (re_mu$n_cors > 0L) {
     eta <- unname(par$eta_cor_mu[seq_len(re_mu$n_cors)])
-    if (isTRUE(binomial_q2)) tanh(eta) else 0.999999 * tanh(eta)
+    if (isTRUE(binomial_q2)) tanh(eta) else DRM_RE_CORR_GUARD * tanh(eta)
   } else {
     numeric()
   }
@@ -23184,7 +23384,7 @@ transform_sigma_random_effects <- function(
 ) {
   sd_by_term <- exp(unname(par$log_sd_sigma[seq_len(re_sigma$n_terms)]))
   rho_mu_sigma <- if (re_mu_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
   } else {
     numeric()
   }
@@ -23213,12 +23413,12 @@ transform_biv_sigma_random_effects <- function(
 ) {
   sd_by_term <- exp(unname(par$log_sd_sigma[seq_len(re_sigma$n_terms)]))
   rho_sigma <- if (re_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_sigma[seq_len(re_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_sigma[seq_len(re_sigma$n_cors)]))
   } else {
     numeric()
   }
   rho_mu_sigma <- if (re_mu_sigma$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
+    DRM_RE_CORR_GUARD * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
   } else {
     numeric()
   }
