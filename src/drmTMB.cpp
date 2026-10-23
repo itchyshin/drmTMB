@@ -3355,7 +3355,20 @@ Type objective_function<Type>::operator()()
     vector<Type> nu(y.size());
     for (int i = 0; i < y.size(); ++i) {
       phi(i) = sigma(i) * sigma(i);
-      nu(i) = Type(1.0) + Type(1.0) / (Type(1.0) + exp(-eta_nu(i)));
+      // Bound the power away from 1 and 2 (#1468). TMB's dtweedie() forms
+      // p - 1 and 2 - p from p, so past |eta_nu| = 36.7 one of them is
+      // exactly 0 and the density is NaN; well before that its finite series
+      // (TWEEDIE_NTERM = 20000 terms) stops covering the peak as p -> 2 and
+      // the log-density falls off a cliff (y = 1, mu = 1, phi = 1: -1.0 at
+      // eta_nu = 14, -4.5 at 16, -33.6 at 20; y = 10, mu = 7.4, phi = 0.018
+      // already at eta_nu = 11). The soft clamp is exactly identity on
+      // [-10, 10] (p within 4.5e-5 of either end) and saturates C1-smoothly
+      // by +/-12, the same shape as the log-sigma clamp and the same limit
+      // as DRModels.jl. It cannot remove the cliff for very small phi, which
+      // is TMB's own series limit (see the tweedie oracle tests).
+      Type eta_nu_safe = drm_softclamp_log_sigma_one(
+        eta_nu(i), Type(-10.0), Type(10.0), Type(2.0));
+      nu(i) = Type(1.0) + Type(1.0) / (Type(1.0) + exp(-eta_nu_safe));
       if (observed_y(i) == 1) {
         nll -= weights(i) * dtweedie(y(i), mu(i), phi(i), nu(i), true);
       }
@@ -3888,18 +3901,10 @@ Type objective_function<Type>::operator()()
       );
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
-        Type failures = trials(i) - y(i);
-        Type phi_shape = alpha(i) + beta_shape(i);
-        Type log_density =
-          lgamma(trials(i) + Type(1.0)) -
-          lgamma(y(i) + Type(1.0)) -
-          lgamma(failures + Type(1.0)) +
-          lgamma(phi_shape) -
-          lgamma(trials(i) + phi_shape) +
-          lgamma(y(i) + alpha(i)) -
-          lgamma(alpha(i)) +
-          lgamma(failures + beta_shape(i)) -
-          lgamma(beta_shape(i));
+        // Cancellation-free form; the plain lgamma sum loses
+        // eps * phi log(phi) per row as sigma -> 0 (#1467).
+        Type log_density = drm_beta_binomial_log_density(
+          y(i), trials(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }

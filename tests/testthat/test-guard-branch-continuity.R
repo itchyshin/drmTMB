@@ -234,7 +234,7 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # drm_log1p_nonnegative(), so each unselected branch stays finite. The
   # selected value is unchanged; continuity at the existing switch points
   # is still the paired check below, and the Hessian at the cloglog and
-  # truncated-NB edge is test-log1mexp-ad.R. n_numeric is therefore 9L.
+  # truncated-NB edge is test-log1mexp-ad.R. n_numeric is 9L before #1467.
   # #1462 adds four clamps in drm_student_log_density() (the lgamma branch,
   # the Stirling branch, the switch, and the kernel cap). Value continuity
   # across nu = 1e4 is test-student-large-nu.R. n_response is therefore 8L.
@@ -254,8 +254,16 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # capped node adds one more CondExp, so n_cpp is 46L. The paired checks
   # are the next two tests: a step-B fallback row and an overflow row that
   # also asserts the capped terms are zeroed.
+  #
+  # The beta-binomial large-phi fix (#1467) adds FIVE drm_numeric.h sites:
+  # three in drm_log1p_accurate() (series/Goldberg switch at x = 1e-4 and the
+  # two per-branch argument clamps) and two in drm_lgamma_ratio() (the
+  # direct/Stirling switch at x = 100 and the Stirling-branch clamp). The
+  # anchor is bumped by five on top of the four sites added by #1472 above,
+  # together with the paired continuity tests for both switch points below,
+  # so n_numeric is therefore 14L.
   expect_equal(n_cpp, 46L)
-  expect_equal(n_numeric, 9L)
+  expect_equal(n_numeric, 14L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)
 })
@@ -718,4 +726,56 @@ test_that("Part D: with the softclamp explicitly disabled, log_sigma = -177 IS r
     expect_false(anyNA(g))
     expect_true(all(is.finite(g)))
   }
+})
+
+# ---------------------------------------------------------------------------
+# Site: drm_log1p_accurate (src/drm_numeric.h), threshold x = 1e-4.
+# Class: C1 expected. Below the threshold a five-term series, above it the
+# Goldberg form log(u) * x / (u - 1), u = 1 + x. Both approximate log1p(x),
+# whose derivative is 1 / (1 + x) on either side.
+# ---------------------------------------------------------------------------
+test_that("drm_log1p_accurate: series and Goldberg branches agree at x = 1e-4", {
+  x0 <- 1e-4
+  series <- function(x) {
+    x * (1 - x * (1 / 2 - x * (1 / 3 - x * (1 / 4 - x / 5))))
+  }
+  goldberg <- function(x) {
+    u <- 1 + x
+    log(u) * x / (u - 1)
+  }
+  expect_lt(rel_diff(series(x0), log1p(x0)), VALUE_TOL)
+  expect_lt(rel_diff(goldberg(x0), log1p(x0)), VALUE_TOL)
+  # Analytic first derivatives: the series derivative is the truncated
+  # geometric sum 1 - x + x^2 - x^3 + x^4; the Goldberg branch equals log1p
+  # exactly in real arithmetic, so its derivative is 1 / (1 + x).
+  series_der <- 1 - x0 + x0^2 - x0^3 + x0^4
+  expect_lt(rel_diff(series_der, 1 / (1 + x0)), DERIV_TOL)
+})
+
+# ---------------------------------------------------------------------------
+# Site: drm_lgamma_ratio (src/drm_numeric.h), threshold x = 100.
+# Class: C1 expected. Below the threshold lgamma(x + m) - lgamma(x) directly,
+# above it the analytically differenced Stirling series
+#   (x - 1/2) log1p(m / x) + m log(x + m) - m + S(x + m) - S(x).
+# The derivative in x is digamma(x + m) - digamma(x) on both sides.
+# ---------------------------------------------------------------------------
+test_that("drm_lgamma_ratio: direct and Stirling branches agree at x = 100", {
+  x0 <- 100
+  s_corr <- function(z) 1 / (12 * z) - 1 / (360 * z^3) + 1 / (1260 * z^5)
+  stirling <- function(x, m) {
+    (x - 0.5) * log1p(m / x) + m * log(x + m) - m + s_corr(x + m) - s_corr(x)
+  }
+  # Derivative of the Stirling branch, written out term by term.
+  s_corr_der <- function(z) -1 / (12 * z^2) + 3 / (360 * z^4) - 5 / (1260 * z^6)
+  stirling_der <- function(x, m) {
+    log1p(m / x) - (x - 0.5) * m / (x * (x + m)) + m / (x + m) +
+      s_corr_der(x + m) - s_corr_der(x)
+  }
+  for (m in c(1, 10, 1000)) {
+    direct <- lgamma(x0 + m) - lgamma(x0)
+    expect_lt(rel_diff(stirling(x0, m), direct), VALUE_TOL)
+    direct_der <- digamma(x0 + m) - digamma(x0)
+    expect_lt(rel_diff(stirling_der(x0, m), direct_der), DERIV_TOL)
+  }
+  expect_identical(stirling(x0, 0), 0)
 })

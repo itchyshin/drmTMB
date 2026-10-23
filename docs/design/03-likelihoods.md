@@ -2074,7 +2074,19 @@ Var[y_i] = sigma_i^2 * mu_i^nu_i
 ```
 
 The TMB branch evaluates `dtweedie(y_i, mu_i, phi_i, nu_i, true)`, which
-includes the Tweedie density normalizing terms. The first comparator remains
+includes the Tweedie density normalizing terms. Since #1468 the power goes
+through a soft clamp before `plogis()`: `nu_i = 1 + plogis(c(eta_nu_i))`,
+where `c()` is exactly the identity on `[-10, 10]` and saturates C1-smoothly
+by `+/-12` (the shape of the residual log-sigma clamp, and the same limit as
+DRModels.jl). Without it, `2 - nu_i` or `nu_i - 1` rounds to exactly zero once
+`|eta_nu_i| > 36.7` and TMB's `dtweedie()` returns NaN; well before that its
+finite series (at most 20000 terms) stops covering the peak as `nu_i -> 2` and
+the log-density falls off a cliff (y = 1, mu = 1, phi = 1: -1.0 at
+`eta_nu = 14`, -33.6 at 20). Inside the identity band nothing changes; the R
+side still reports `nu = 1 + plogis(eta_nu)` from the raw coefficient, which
+differs from the clamped power by less than 4.5e-5 when a fit ends in the
+saturation margin. The clamp cannot remove the same series cliff at very small
+`phi`, which remains a TMB limit (see `test-numeric-kernel-oracle.R`). The first comparator remains
 `glmmTMB::tweedie(link = "log")`, which reports Tweedie dispersion `phi`;
 tests against that scale should compare `sigma_i^2` with `phi_i` and name the
 transform explicitly. The focused test suite also compares an intercept-only
@@ -2301,6 +2313,16 @@ log Pr(y_i | n_i, mu_i, sigma_i) =
   log Gamma(y_i + alpha_i) - log Gamma(alpha_i) +
   log Gamma(n_i - y_i + beta_i) - log Gamma(beta_i)
 ```
+
+The compiled kernel (`drm_beta_binomial_log_density()` in
+`src/drm_numeric.h`) evaluates the same expression as three gamma-function
+ratios `log Gamma(x + m) - log Gamma(x)`. For `x >= 100` each ratio is the
+analytic difference of the Stirling series,
+`(x - 1/2) log1p(m / x) + m log(x + m) - m + S(x + m) - S(x)`, so no term is
+larger than about `m log(x)`. The plain lgamma sum lost about
+`eps * phi log(phi)` per row as `sigma -> 0` (2.5 log-units on 300 rows at
+`log(sigma) = -12`, and above the binomial limit beyond that; #1467); the
+ratio form tends smoothly to the binomial log-likelihood.
 
 Matching R syntax:
 
