@@ -131,6 +131,18 @@ sd(group) ~ x = modelled group-level random-effect scale
   log-likelihood and keep parameter estimates stable.
 - Full dense `meta_V(V = V)` covariance cannot yet be combined with
   non-unit `weights =`, because that path is one joint MVN likelihood block.
+- Until #1459 is decided, the Gaussian `mi()` prior stays unweighted
+  (`src/drmTMB.cpp:1434`, `:1475`, and the nbinom2 x Gaussian copy at
+  `:4678`). Other `mi()` families already weight the prior (M1).
+  `weights = 1` matches the unweighted fit. A Gaussian weight-2 row
+  matches a duplicated row in the response term only. Native TMB warns
+  with `drmTMB_mi_weights_prior_unweighted` on those Gaussian paths
+  only. `engine = "julia"` refuses `mi()` plus non-unit weights for
+  every family. Weight 0 or `NA` on a missing `mi()` covariate is
+  `drmTMB_mi_zero_weight_missing` (named error, not a drop). Weight 0
+  on an observed Gaussian row uses a data-level skip so `y = 1e200`
+  keeps `fn` and `gr` finite. `predict()` / `simulate()` allow
+  `weights = 1` and refuse non-unit `weights` on an `mi()` fit.
 
 ## Open Questions
 
