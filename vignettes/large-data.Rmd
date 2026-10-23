@@ -265,7 +265,7 @@ ci_profile_full <- confint(
 )
 ```
 
-On Unix-like systems, `parallel = "multicore"` can split independent profile
+On macOS and Linux, `parallel = "multicore"` can split independent profile
 targets across workers. For a single direct endpoint target, it can split the
 lower and upper endpoint searches. When `workers = NULL`, `drmTMB` uses about
 half the detected physical cores, capped at the number of jobs and at 10
@@ -279,6 +279,22 @@ ci_profile_parallel <- confint(
   method = "profile",
   parallel = "multicore",
   workers = NULL
+)
+```
+
+`parallel = "multicore"` uses process forking, which Windows does not provide
+(see `?drmTMB-parallel` for the full parallel-execution guide).
+On Windows, `confint()` stops with an error saying that
+`parallel = "multicore"` is not available; it does not fall back to another
+backend. Use `parallel = "cluster"` for socket workers, or keep
+`parallel = "none"` to run the same targets one after another:
+
+```{r, purl=FALSE}
+ci_profile_serial <- confint(
+  fit_final,
+  parm = c("sigma", "sd:mu:phylo(1 | species)"),
+  method = "profile",
+  parallel = "none"
 )
 ```
 
@@ -299,6 +315,11 @@ ci_boot <- confint(
   workers = NULL
 )
 ```
+
+The same Windows restriction applies to bootstrap intervals: do not pass
+`parallel = "multicore"`. Use `parallel = "cluster"` for socket workers, or
+drop `parallel` and `workers` (or set `parallel = "none"`) to run the refits
+serially.
 
 Treat these routes as different evidence, not as interchangeable defaults. Wald
 intervals are the routine first pass, endpoint profiles are likelihood-based
@@ -554,3 +575,9 @@ bivariate large-data readiness, or non-Gaussian large-data readiness.
 - Treat sparse fixed-effect matrices outside fixed-effect Gaussian `mu` models,
   and data aggregation in all models, as future scaling features rather than
   current guarantees.
+
+Working in Julia? The
+[DRModels.jl companion page](https://itchyshin.github.io/DRModels.jl/stable/model-guides/large-data)
+mirrors this article with Julia syntax and states which parts DRModels.jl
+supports today. DRModels.jl is a separate package with its own fitting and
+inference routes; Julia is optional for `drmTMB` users.
