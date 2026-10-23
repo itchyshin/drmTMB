@@ -969,7 +969,7 @@ profile.drmTMB <- function(
       )
     )
   }, plan)
-  out <- do.call(rbind, rows)
+  out <- drm_rbind_profile_rows(rows)
   row.names(out) <- NULL
   attr(out, "level") <- level
   class(out) <- c("profile.drmTMB", class(out))
@@ -1979,7 +1979,7 @@ drm_profile_confint <- function(
     )
   }
   rows <- profile_lapply(seq_len(nrow(targets)), worker, plan)
-  out <- do.call(rbind, rows)
+  out <- drm_rbind_profile_rows(rows)
   row.names(out) <- NULL
   warn_profile_boundary(out)
   drm_as_confint_table(out)
@@ -2150,7 +2150,7 @@ drm_profile_response_newdata_confint <- function(
     )
   }
   rows <- profile_lapply(seq_len(nrow(X)), worker, plan)
-  out <- do.call(rbind, rows)
+  out <- drm_rbind_profile_rows(rows)
   row.names(out) <- NULL
   warn_profile_boundary(out)
   drm_as_confint_table(out)
@@ -2797,7 +2797,11 @@ drm_bootstrap_confint <- function(
       refit_control = refit_control
     )
   }
-  rows <- bootstrap_lapply(seq_len(R), worker, plan)
+  rows <- drm_bootstrap_retain_dead_workers(
+    bootstrap_lapply(seq_len(R), worker, plan),
+    seq_len(R),
+    target_names
+  )
   draws <- do.call(rbind, rows)
   row.names(draws) <- NULL
   draws$bootstrap.requested <- R
@@ -3029,11 +3033,11 @@ bootstrap_refit_control <- function(refit_control) {
 }
 
 profile_lapply <- function(indices, worker, plan) {
-  drm_parallel_lapply(indices, worker, plan)
+  drm_parallel_lapply(indices, worker, plan, on_dead = "error")
 }
 
 bootstrap_lapply <- function(indices, worker, plan) {
-  drm_parallel_lapply(indices, worker, plan)
+  drm_parallel_lapply(indices, worker, plan, on_dead = "record")
 }
 
 # One dispatcher for the "none" | "multicore" | "cluster" backends. Workers
@@ -3042,16 +3046,17 @@ bootstrap_lapply <- function(indices, worker, plan) {
 # a null external pointer; TMB re-tapes it on first use from the serialized
 # data, parameters, and `last.par` state (TMB::MakeADFun's isNullPointer()
 # check), so profile workers reproduce the serial curve without refitting.
-drm_parallel_lapply <- function(indices, worker, plan) {
-  if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
-    return(lapply(indices, worker))
+drm_parallel_lapply <- function(indices, worker, plan, on_dead = "error") {
+  results <- if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
+    lapply(indices, worker)
+  } else if (identical(plan$backend, "cluster")) {
+    drm_cluster_lapply(indices, worker, plan$workers)
+  } else {
+    drm_mclapply_stop_on_error(
+      parallel::mclapply(indices, worker, mc.cores = plan$workers)
+    )
   }
-  if (identical(plan$backend, "cluster")) {
-    return(drm_cluster_lapply(indices, worker, plan$workers))
-  }
-  drm_mclapply_stop_on_error(
-    parallel::mclapply(indices, worker, mc.cores = plan$workers)
-  )
+  drm_check_parallel_results(results, indices, on_dead = on_dead)
 }
 
 drm_cluster_lapply <- function(indices, worker, workers) {
@@ -3083,7 +3088,9 @@ drm_cluster_worker_init <- function(lib_paths) {
 
 # parallel::mclapply() turns a worker error into a "try-error" element and only
 # warns.  The serial lapply() path aborts on the same error, so re-raise the
-# first worker error to keep both paths failing the same way.
+# first worker error to keep both paths failing the same way.  A child that
+# exits without a value (quit(), crash) becomes NULL; that is handled by
+# drm_check_parallel_results(), not here.
 drm_mclapply_stop_on_error <- function(results) {
   failed <- vapply(results, inherits, logical(1L), what = "try-error")
   if (any(failed)) {
@@ -3094,6 +3101,77 @@ drm_mclapply_stop_on_error <- function(results) {
     stop(as.character(results[[which(failed)[[1L]]]]), call. = FALSE)
   }
   results
+}
+
+# A forked child that dies returns NULL. rbind() then drops that element, so a
+# profile target or bootstrap replicate vanishes with no error. Profile paths
+# abort (class drmTMB_parallel_worker_died). Bootstrap paths keep the hole so
+# the caller can record a failed refit and leave bootstrap.n + bootstrap.failed
+# equal to the requested R (#1501).
+drm_check_parallel_results <- function(results, indices, on_dead = "error") {
+  dead <- drm_dead_worker_indices(results, indices)
+  if (!length(dead)) {
+    return(results)
+  }
+  if (identical(on_dead, "record")) {
+    if (length(results) < length(indices)) {
+      results <- c(results, vector("list", length(indices) - length(results)))
+    }
+    return(results)
+  }
+  cli::cli_abort(
+    c(
+      "A forked parallel worker died and returned no result.",
+      i = "{.fn parallel::mclapply} returns {.code NULL} when a child exits without a value.",
+      i = "Re-run with {.code parallel = \"none\"} to see the serial error, or use {.code parallel = \"cluster\"}."
+    ),
+    class = "drmTMB_parallel_worker_died"
+  )
+}
+
+drm_dead_worker_indices <- function(results, indices) {
+  n <- length(indices)
+  if (!is.list(results)) {
+    return(seq_len(n))
+  }
+  missing <- if (length(results) < n) {
+    seq.int(length(results) + 1L, n)
+  } else {
+    integer()
+  }
+  present <- seq_len(min(length(results), n))
+  c(present[vapply(results[present], is.null, logical(1L))], missing)
+}
+
+drm_rbind_profile_rows <- function(rows) {
+  if (any(vapply(rows, is.null, logical(1L)))) {
+    cli::cli_abort(
+      c(
+        "A forked parallel worker died and returned no result.",
+        i = "{.fn rbind} would drop that target silently.",
+        i = "Re-run with {.code parallel = \"none\"} to see the serial error, or use {.code parallel = \"cluster\"}."
+      ),
+      class = "drmTMB_parallel_worker_died"
+    )
+  }
+  do.call(rbind, rows)
+}
+
+# Replace a dead bootstrap worker with an empty failed-refit row so the
+# requested replicate count is unchanged. Ordinary failed refits already
+# take this path through bootstrap_refit_one(); a dead child must too.
+drm_bootstrap_retain_dead_workers <- function(rows, indices, target_names) {
+  if (length(rows) < length(indices)) {
+    rows <- c(rows, vector("list", length(indices) - length(rows)))
+  }
+  dead <- drm_dead_worker_indices(rows, indices)
+  for (i in dead) {
+    out <- bootstrap_empty_draws(indices[[i]], target_names)
+    out$refit_status <- "worker_died"
+    out$refit_message <- "forked worker died"
+    rows[[i]] <- out
+  }
+  rows
 }
 
 bootstrap_refit_one <- function(
