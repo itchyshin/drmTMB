@@ -7,8 +7,13 @@ fixes the #1495 contrast drop with `drm_droplevels_keep_contrasts_factor()`
 with main's data-frame helper in `R/julia-bridge.R`. The branch keeps the
 `predict(newdata)` / `emmeans` contrast carry-over, the #1482 Gaussian-link
 errors and the #1458 incomplete-bootstrap status. `test-silent-input-drops.R`
-now expects `drmTMB_contrasts_dropped`. The C17 capability-ledger rows keep
-main's values; C17 was not re-run here, so recertify before landing.
+now expects `drmTMB_contrasts_dropped`. C17 was recertified on the merge result
+(`python3 tools/recertify-c17.py --label pr-1501-main-refresh --tolerance 1e-10`):
+`|change|` 0.000e+00 on mc-0568 / 0569 / 0576, receipt
+`docs/dev-log/implementation-recovery/2026-10-22-pr-1501-main-refresh-c17c2-c14-final-source-compatibility`.
+`capability_ledger.py --check`, `--check-c14-receipt-equivalence` and the
+`tools/tests` unit tests wired in `R-CMD-check.yaml` pass. Any further `R/` edit
+re-stales this receipt.
 Targeted tests on Totoro pass: `test-silent-input-drops.R`,
 `test-factor-contrasts.R`, `test-profile-targets.R`, `test-biv-lognormal.R`,
 `test-plot-corpairs.R`, `test-plot-parameter-surface.R`,
