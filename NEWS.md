@@ -20,6 +20,17 @@
 
 ## Bug fixes
 
+* `truncated_nbinom2()` now refuses `mi()` in the `mu` formula with a message
+  instead of silently fitting the complete cases (`truncated_poisson()` gets
+  the same refusal).
+* Zero-truncated and hurdle count quantiles (`fitted_distribution()$q`,
+  `predict(type = "quantile")`) and `simulate()` draws for
+  `truncated_nbinom2()` (with or without `hu`) no longer return 0 on the
+  positive part or `Inf` at very small `mu`. The quantile is the exact inverse
+  of the reported CDF, so `q(p(y))` returns `y` at every jump of the CDF, and
+  the CDF is evaluated in whichever tail keeps precision, so it no longer
+  returns `NaN` at very small `mu`.
+
 * `summary()` now flags a non-converged fit as `print()` does. The printed
   summary says "not converged" with the optimizer message, and printing it
   raises a warning of class `drmTMB_convergence_warning`, the same class as
@@ -189,6 +200,16 @@
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
 
 ## New features
+
+* New `truncated_poisson()` family. With an `hu ~ ...` formula it fits a
+  fixed-effect hurdle Poisson model (zero part Bernoulli(`hu`), positive part
+  zero-truncated Poisson), the Poisson analogue of `truncated_nbinom2()` plus
+  `hu`; without `hu` it fits the plain zero-truncated Poisson. `predict()`,
+  `fitted()`, `residuals()`, `simulate()`, `confint()` and
+  `fitted_distribution()` work. Random effects, structured terms, offsets,
+  missing-response masking, `mi()`, `emmeans` and `engine = "julia"` are
+  refused with a message. `poisson()` with `hu` stays refused, and the message
+  now points to `truncated_poisson()` (#1267).
 
 * `drm_control(optimizer_method = "BFGS")` selects BFGS directly, even when
   `nlminb()` would converge. `"L-BFGS-B"`, `"Nelder-Mead"`, and `"CG"` are

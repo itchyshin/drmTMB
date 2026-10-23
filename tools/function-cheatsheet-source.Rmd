@@ -25,7 +25,8 @@ documented_exports <- c(
   "plot_parameter_surface", "predict_parameters", "prediction_grid",
   "profile_targets", "qq_plot", "ranef", "relmat", "rho12", "rho_latent",
   "skew_normal", "spatial", "spatial_coords", "structured_effects", "student",
-  "truncated_nbinom2", "tweedie", "worm_plot", "zero_one_beta"
+  "truncated_nbinom2", "truncated_poisson", "tweedie", "worm_plot",
+  "zero_one_beta"
 )
 deprecated_exports <- c("gr", "meta_known_V")
 stopifnot(setequal(
@@ -334,6 +335,7 @@ Deprecated compatibility markers are deliberately omitted.
 | [`cumulative_logit()`](../reference/cumulative_logit.html) | Ordered categorical responses or ordered missing-predictor models. |
 | [`nbinom2()`](../reference/nbinom2.html) | Negative-binomial count models with quadratic mean-variance scaling. |
 | [`truncated_nbinom2()`](../reference/truncated_nbinom2.html) | Positive or hurdle negative-binomial count models. |
+| [`truncated_poisson()`](../reference/truncated_poisson.html) | Positive or hurdle Poisson count models. |
 | [`biv_gaussian()`](../reference/biv_gaussian.html) | Two Gaussian responses with separate means, scales, and residual `rho12`. |
 | [`biv_lognormal()`](../reference/biv_lognormal.html) | Two lognormal responses with residual `rho12` on the log-response scale. |
 | [`biv_student()`](../reference/biv_student.html) | Two heavy-tailed Student-t responses with a shared degrees-of-freedom parameter. |

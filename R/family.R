@@ -552,6 +552,50 @@ nbinom2 <- function() {
   )
 }
 
+#' Zero-truncated Poisson response family
+#'
+#' `truncated_poisson()` defines a one-response positive-count distribution:
+#' the Poisson distribution conditional on `y > 0`, with a formula for the
+#' untruncated Poisson mean `mu`.
+#'
+#' Adding `hu ~ predictors` to the model formula fits the corresponding hurdle
+#' Poisson model: `hu` is the probability of a hurdle zero, and nonzero counts
+#' are drawn from the zero-truncated Poisson component. This is the Poisson
+#' analogue of the hurdle NB2 route (`truncated_nbinom2()` plus `hu`). Without
+#' `hu`, the response must be strictly positive. The zero-inflated Poisson
+#' model is a different model, fitted with [poisson()] and a `zi` formula.
+#'
+#' The implemented contract is `log(mu) = eta_mu` and, when `hu` is present,
+#' `logit(hu) = eta_hu`. The positive-count log-density is
+#' `y * log(mu) - mu - lgamma(y + 1) - log(1 - exp(-mu))`. The response mean is
+#' `(1 - hu) * mu / (1 - exp(-mu))`, which is what [fitted()] returns;
+#' `predict(dpar = "mu", type = "response")` returns the untruncated component
+#' mean `mu`, as for the other hurdle and zero-inflated count routes. The
+#' Poisson family has no `sigma`; use [truncated_nbinom2()] for overdispersed
+#' positive or hurdle counts.
+#'
+#' This first slice is fixed-effect only: random effects, structured effects,
+#' offsets, missing-response masking, and `mi()` predictors are not
+#' implemented and are refused with a message.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' truncated_poisson()
+truncated_poisson <- function() {
+  structure(
+    list(
+      name = "truncated_poisson",
+      family = "truncated_poisson",
+      n_response = 1L,
+      dpars = "mu",
+      links = c(mu = "log")
+    ),
+    class = "drm_family"
+  )
+}
+
 #' Zero-truncated negative binomial 2 response family
 #'
 #' `truncated_nbinom2()` defines a one-response positive-count distribution
