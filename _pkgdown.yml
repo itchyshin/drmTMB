@@ -61,6 +61,8 @@ navbar:
     tutorials:
       text: Tutorials
       menu:
+        - text: Capture and recapture histories
+          href: articles/cjs-first-capture.html
         - text: Full introductory tutorial
           href: articles/drmTMB.html
         - text: When variance carries signal, Part 1
