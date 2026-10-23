@@ -24,9 +24,12 @@ For study `i`, the sampling block is `[[v1[i], cov12[i]], [cov12[i], v2[i]]]`. W
 
 ## 5. Checks Run
 
-- `Rscript -e 'devtools::test(filter = "meta-vcov")'` on R 4.6.0 and the rebased candidate: 94 expectations, 0 failures, 0 warnings, 0 skips in 1.7 seconds. This runs both `test-meta-vcov-validators.R` and the existing `test-meta-vcov.R`.
-- `git diff --check origin/main...HEAD` and `git diff --check`: passed after rebasing onto current `main` and moving the slice record to `check-log.d`.
-- The original PR head `1f6a556e3cf9bc7c60a1ce8b19d1bb6b44fdc331` had four release shards and the source-tree test job reported passing. That historical run does not certify this rebased candidate. Exact-head GitHub CI remains pending.
+- The local candidate is merge commit `cf067c380f977fccd326f33bb29f3c5fe1c665d4`, with parents PR head `753230efab6f22b5fa047d924f466f8f51fd7b84` and exact `review/main` commit `2fb93b768977330fc9939d86375c37329a539277`. The merge completed without conflicts.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::test(filter = "meta-vcov")'`: 94 passed, 0 failed, 0 warnings, 0 skips. This runs both `test-meta-vcov-validators.R` and `test-meta-vcov.R` on the merged candidate.
+- `python3 tools/capability_ledger.py --check`: passed (31 generated outputs).
+- `python3 -m unittest tools.tests.test_capability_ledger`: 81 tests passed; C14 receipt equivalence passed (3 eligible, 7 source-different receipts retained).
+- `git diff --check review/main...HEAD` and `git diff --check`: passed.
+- GitHub run `39855947658` belongs to the old PR head `753230ef...`, not this local candidate. It completed as cancelled: release shards 3/4 and 4/4 succeeded; shards 1/4 and 2/4 and the source-tree job were cancelled. The combined commit status had no statuses. The local candidate has no GitHub CI result.
 - Full package tests and a fresh `R CMD check` were not run locally. Julia tests are outside this R helper-test change.
 
 ## 6. Tests of the Tests
@@ -43,11 +46,11 @@ The assertions match `R/meta-vcov.R`: variance inputs must be numeric vectors wi
 
 ## 9. What Did Not Go Smoothly
 
-The rebase exposed a conflict in the shared root check log because both `main` and the PR appended records there. I preserved the current `main` version and used the per-slice log directory for this PR's evidence. The focused tests passed after the rebase. Exact-head workflow checks still need to run on GitHub.
+The PR branch was 30 commits behind current `main`. Merging the exact reviewed `main` commit into the isolated candidate produced no conflicts. The earlier shared root check-log conflict had already been resolved by retaining this slice's record under `check-log.d`. All focused local checks pass on the merged candidate.
 
 ## 10. Known Residuals
 
-These tests characterize the current validators; they do not establish full-package health or change validation policy. The historical GitHub result is from an older head. The exact rebased head has not been pushed or checked by GitHub Actions.
+These tests characterize current validators; they do not establish full-package health or change validation policy. The tested merge candidate `cf067c3` and the report-only closeout update remain local. The remote PR remains draft at head `753230ef...`; its only retrieved workflow run was cancelled and does not validate the local merge candidate. Full package tests, a fresh `R CMD check`, and exact-candidate GitHub CI remain outstanding.
 
 ## 11. Team Learning
 
@@ -59,4 +62,4 @@ This change covers the native R `meta-vcov` tests and validators. It does NOT co
 
 ## Next Actions
 
-The candidate is rebased onto current `main`. Push only `claude/meta-vcov-validator-tests-mq5s0y` after scoped review, then confirm exact-head GitHub checks before considering the PR ready. Do not mark it ready or merge it in this task.
+The isolated candidate is on local branch `codex/pr1600-main-sync-20261022`. Its tested implementation tree is merge commit `cf067c380f977fccd326f33bb29f3c5fe1c665d4`, followed only by these source-bound report and check-log updates. No push, ready-for-review transition, or PR merge was performed. Any next PR action requires review of this local candidate and green exact-head checks.
