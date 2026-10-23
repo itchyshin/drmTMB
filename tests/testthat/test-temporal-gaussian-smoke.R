@@ -223,7 +223,7 @@ test_that("temporal fitted values, residuals, and simulation modes use the inten
     nrow(dat), sd = observation_sigma(fit)
   )
   expect_equal(
-    unname(stats::simulate(fit, nsim = 1L, seed = 918, re.form = NA)[[1L]]),
+    unname(stats::simulate(fit, nsim = 1L, seed = 918, re.form = NULL)[[1L]]),
     expected_conditional
   )
 

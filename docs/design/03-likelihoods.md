@@ -7,7 +7,10 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
 - Positive parameters use log links.
 - Unit-interval parameters use logit links.
 - Residual correlations use a Fisher-z-like linear predictor and a guarded
-  `0.999999 * tanh()` response transform.
+  `0.999999 * tanh()` response transform. Random-effect correlations
+  (`rho_mu_re`, `rho_sigma_re`, `rho_mu_sigma_re`, `rho_mu_group`) use the
+  tighter guard `0.99999999 * tanh()`; phylogenetic and pair-association
+  correlations keep `0.999999 * tanh()`.
 - Shape parameters use family-specific stable links.
 
 ## Variability Orientation
@@ -51,6 +54,17 @@ describe the model as the standard transform `rho = tanh(eta)`, then note that
 the implementation multiplies by `0.999999` so covariance matrices stay
 strictly positive definite in floating-point arithmetic near `rho = -1` or
 `rho = 1`.
+
+**Random-effect correlation guard (#1190).** Random-effect correlations were
+bounded at `0.999999`. When the maximum-likelihood estimate sits on the
+boundary (`corr = +1`, which `lme4` reports as a singular fit), that cap held
+the reported log-likelihood below the exact marginal ML by an amount
+proportional to `1 - guard`: `6.75e-5` on `nlme::Soybean` and `2.3e-6` on
+`nlme::Loblolly`. The guard is now `0.99999999` (`DRM_RE_CORR_GUARD` in R,
+`Type(0.99999999)` in `src/drmTMB.cpp`), which leaves `6.8e-7` and `2.6e-8`
+against the exact values `-949.534104140` and `-207.487513730`. The residual
+`rho12` guard stays `0.999999` by owner decision; the Julia bridge back-transform
+now uses that same guard.
 
 ## Notation
 
@@ -634,11 +648,27 @@ x_i ~ Beta(m_i phi, (1 - m_i) phi)
 For observed `cover_i`, the row contributes the beta predictor-model
 likelihood and, when the response is observed, the Gaussian response density.
 For missing `cover_i`, TMB integrates over the possible proportion values with
-fixed Gauss-Legendre quadrature:
+the frozen 15-node Gauss-Legendre rule on `(0, 1)`. The log-sum is the
+unnormalised marginal (no `log_mass`). Mid-range Beta logLik error versus
+`integrate()` is about `2.6e-5`. U-shaped Beta (`mu` 0.02 or 0.10 with
+`sigma = 1`) is a known leftover that refs #1476. After the TMB fit,
+class `drmTMB_mi_quadrature_inaccurate` warns when any enabled `mi()`
+term has an estimated missing-row Beta or zero-one-Beta prior mean at
+or inside `0.10` of 0 or 1. That boundary is the measured 15-node
+failure: `|logLik - log integrate()|` is `4.65e-3` at `mu = 0.10`,
+`sigma = 1` and `4.81e-3` at `mu = 0.02`, `sigma = 1`. The pinched
+`mu = 0.10`, `sigma = 0.2` case stays inside `2.6e-5`, so a mu-only
+threshold is conservative there. The check is R-only on the fitted
+`mu`, loops both `mi()` slots, and is not applied before the Julia
+branch (Julia already refuses Beta/Gamma `mi()`). A NA or NaN fitted
+missing-row mean stops with class `drmTMB_mi_quadrature_guard_nonfinite`
+instead of being dropped from the check (refs #1532). The missing-row
+marginal is still
 
 ```text
-log L_i = log sum_q w_q
-  p_beta(x_q | m_i, sigma_mi)
+x_q = (z_q + 1) / 2
+log L_i = log sum_q
+  w_q p_beta(x_q | m_i, sigma_mi)
   p(y_i | mu_i(x_q), sigma_i) ^ observed_y_i
 ```
 
@@ -701,10 +731,11 @@ log L_i = log sum_q w_q
   p(y_i | mu_i(x_q), sigma_i)
 ```
 
-The zero and one nodes have quadrature weight one because they represent point
-mass. Interior nodes use the same fixed Gauss-Legendre rule as the strict beta
-route. When both the response and the boundary-proportion predictor are
-missing, the row is retained for accounting but contributes no direct
+The zero and one nodes are exact point masses with weights 1. Interior nodes
+are the same frozen 15-node Gauss-Legendre rule as the strict beta route.
+When both the response and the boundary-proportion
+predictor are missing, the row is retained for accounting but contributes no
+direct
 likelihood. `imputed()` reports the fitted conditional quadrature mean for
 missing rows, and `fit$missing_data$predictors[[name]]$quadrature_probabilities`
 stores the normalized zero, interior, and one weights.
@@ -1008,17 +1039,53 @@ log L_i =
   + observed_y_i log Normal(y_i | mu_i(x_i), sigma_i)
 ```
 
-For missing `biomass_i`, TMB integrates over positive predictor states by
-deterministic Gauss-Laguerre quadrature. With Laguerre nodes `t_k` and weights
-`w_k`,
+For missing `biomass_i`, TMB integrates over positive predictor states by a
+51-node posterior-mode sinh-mapped trapezoid rule on `u = log(x)`. The
+integrand, its gradient and its Hessian are all on `u = log(x)` and carry the
+`dx/du` Jacobian. Exactly five safeguarded Newton steps start at
+`log(mu_xi)`. Each step proposes (A) the clamped log-`x` Newton step and (B) a
+Newton step on `G(x) = g / x`, written with the log-`x` derivatives as
+`x_new / x = (H - 2g) / (H - g)`, and keeps the proposal with the larger log
+integrand. B crosses decades of `x` in one step where A moves a fixed 0.5 in
+`u`; five A-only steps stop about 15 score units short of the mode at the
+pole rows. The derivatives use the log Gamma prior plus each response
+family's own log-density gradient and Hessian (analytic Gaussian and Poisson;
+Poisson adds `(y - mu) eta'(x)` and the matching curvature). There is no
+data-dependent stop, and nodes are placed only after step 5. A node with
+`u_q > 500` keeps a finite `x` for reporting and drops its `w cosh(t)` weight
+so the cap is not a quadrature mass. A NaN or `-Inf` row is
+`drmTMB_mi_quadrature_nonfinite`, raised from the C++ tape token through
+`drm_rethrow_mi_quadrature_error` and from non-finite `fn`/`gr` at the start
+and the fitted parameter. The abort watches every `mi()` term (both
+`missing_predictor` slots), not only the first. There is no CV branch (#1477).
+After a successful fit, class `drmTMB_mi_quadrature_inaccurate` warns
+when the estimated Gamma `mi()` CV is at least 3 (12% of an 80-row
+`(mu, y)` scan exceed `1e-4`, worst `1.47`). The same helper also
+warns for Beta / zero-one-Beta missing-row means near 0 or 1. A NA, NaN,
+or infinite fitted log CV, or a CV that overflows `exp()`, stops with class
+`drmTMB_mi_quadrature_guard_nonfinite` rather than skipping the check
+(refs #1532).
+
+The rule is a sinh map rather than Gauss-Hermite because the log-`x` integrand
+has the exponential left tail `exp(shape * u)`, `shape = 1 / CV^2`. A Gaussian
+node rule cannot reach it: at CV 1 the 51-node Gauss-Hermite rule missed the
+tail mass and was `0.28` log units off at the pole. No combination of 51 to
+151 nodes and a 1x to 2x width multiplier that was tried put every CV 1 pole
+row and every Poisson CV 2 row inside `1e-4`.
 
 ```text
-x_ik = scale_xi t_k
+u = log(x)
+t_q equally spaced on [-5, 4], 51 nodes, step h
+u_q = mode + sigma_u sinh(t_q),   sigma_u = 1 / sqrt(-H)
+x_q = exp(min(u_q, 500))
+# if u_q > 500 the term is dropped (log weight -> -1e300)
 
 log L_i =
-  log sum_k
-    w_k t_k^(shape_x - 1) / Gamma(shape_x)
-    p(y_i | mu_i(x_ik), sigma_i) ^ observed_y_i
+  log sum_q
+    h p_gamma(x_q | shape_x, scale_xi)
+    p(y_i | mu_i(x_q), sigma_i) ^ observed_y_i
+    x_q
+    sigma_u cosh(t_q)
 ```
 
 When both the response and the positive predictor are missing, the row is
@@ -1164,6 +1231,27 @@ Known sampling variances or sampling covariance still belong in
 covariance matrix, `weights =` is rejected for now because the likelihood is a
 joint multivariate block rather than a sum of independent row contributions.
 
+Until #1459 is decided, the Gaussian `mi()` prior stays unweighted. That
+is the three C++ paths that do `nll -= dnorm(...)` with no `weights(i)`:
+location-scale Gaussian at `src/drmTMB.cpp:1434`, the second Gaussian
+predictor at `:1475`, and the nbinom2-response copy of the same Gaussian
+prior at `:4678`. Every other `mi()` family block multiplies
+the prior by `weights(i)` (Dinnage M1). Native TMB emits the classed
+warning `drmTMB_mi_weights_prior_unweighted` only on those unweighted
+Gaussian paths. `weights = 1` matches the omitted-weights fit. A Gaussian
+weight-2 row matches a duplicated row in the response term only; the prior
+differs by exactly one unweighted copy of that row. `engine = "julia"`
+refuses `mi()` plus non-unit weights for every family, with
+`drmTMB_julia_mi_weights_unsupported`, because DRModels.jl ignores
+weights on both terms. The weights check runs before the Julia family
+check. Weight 0 or `NA` on a row whose `mi()` covariate is missing is the
+named error `drmTMB_mi_zero_weight_missing`, not a silent drop. A weight-0
+observed-x Gaussian row is skipped with a data-level
+`if (asDouble(weights(i)) > 0)` so `y = 1e200` keeps `fn` and `gr`
+finite. `predict()` and `simulate()` use the fitted coefficients, allow
+`weights = 1`, and refuse non-unit `weights` on an `mi()` fit with
+`drmTMB_mi_weights_predict_unsupported`.
+
 ## Implemented Gaussian Location-Scale
 
 Gaussian location-scale is implemented for fixed-effect models and for
@@ -1258,7 +1346,7 @@ Sigma_g =
 u_g ~ Normal([0, 0]', I)
 b_0,g = sd0 * u_0,g
 b_1,g = sd1 * (rho_re * u_0,g + sqrt(1 - rho_re^2) * u_1,g)
-rho_re = 0.999999 * tanh(eta_cor)
+rho_re = 0.99999999 * tanh(eta_cor)
 ```
 
 Matching R syntax:
@@ -1737,7 +1825,24 @@ sigma_i = exp(eta_sigma_i)
 nu_i = 2 + exp(eta_nu_i)
 ```
 
-The TMB likelihood includes all Student-t normalizing constants:
+The TMB likelihood includes all Student-t normalizing constants. The
+expression below is the density. For `nu < 1e4` the compiled code evaluates
+the lgamma difference directly. For `nu >= 1e4` it uses the Stirling series
+in `a = nu/2`,
+
+```text
+lgamma(a + 1/2) - lgamma(a) - 0.5 log(2 a pi)
+  = -0.5 log(2 pi) - 1/(8a) + 1/(192 a^3) - 1/(640 a^5) + ...
+```
+
+and `drm_log1p_nonnegative(z^2/nu)` for the kernel. Those two substitutions
+are the same function: as `nu` grows the log-density tends to the Gaussian
+log-density, and it no longer climbs above that limit because of lgamma
+cancellation (#1462). `logLik()` reads this TMB objective.
+`fitted_distribution()` uses `stats::dt()`, which was already stable. The
+bivariate Student density (`model_type` 20) is a separate expression: in two
+dimensions the lgamma difference is exactly `-log(2 pi)`, and the kernel
+already uses `drm_log1p_nonnegative`.
 
 ```text
 z_i = (y_i - mu_i) / sigma_i
@@ -2884,7 +2989,7 @@ group-level covariance block:
 L_group =
   [1,          0;
    rho_group, sqrt(1 - rho_group^2)]
-rho_group = 0.999999 * tanh(eta_cor_mu)
+rho_group = 0.99999999 * tanh(eta_cor_mu)
 ```
 
 With matching `phylo(1 | species, tree = tree)` terms in `mu1` and `mu2`,
