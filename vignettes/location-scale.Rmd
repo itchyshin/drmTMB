@@ -317,10 +317,36 @@ data.frame(
 ```
 
 In this fitted example, `exp(sigma:habitatgrassland)` is the estimated ratio of
-grassland residual SD to forest residual SD. A value near 2 means that
-grassland has about twice the residual SD of forest after accounting for mean
-habitat and temperature effects. Because residual variance is SD squared, the
-same fitted coefficient implies about four times the residual variance.
+grassland residual SD to forest residual SD. The estimate here is
+`r sprintf("%.2f", exp(sigma_habitat))`: after accounting for mean habitat and
+temperature effects, grassland growth has about
+`r sprintf("%.1f", exp(sigma_habitat))` times the residual SD of forest
+growth. Because residual variance is SD squared, the same coefficient implies a
+residual-variance ratio of `r sprintf("%.1f", exp(2 * sigma_habitat))`. The
+simulation used a coefficient of 0.55, a true SD ratio of
+`r sprintf("%.2f", exp(0.55))` and a true variance ratio of
+`r sprintf("%.1f", exp(1.1))`; this data set gives a somewhat larger estimate,
+which is ordinary sampling variation at this sample size. Report an interval
+with the ratio rather than the point estimate alone. Exponentiating the ends
+of the Wald interval for the log-SD coefficient gives an interval for the SD
+ratio, and doubling them first gives one for the variance ratio:
+
+```{r location-scale-ratio-interval}
+ci_sigma <- confint(
+  fit_growth,
+  parm = "fixef:sigma:habitatgrassland",
+  method = "wald"
+)
+data.frame(
+  ratio = c("residual SD", "residual variance"),
+  estimate = c(exp(sigma_habitat), exp(2 * sigma_habitat)),
+  lower = c(exp(ci_sigma$lower), exp(2 * ci_sigma$lower)),
+  upper = c(exp(ci_sigma$upper), exp(2 * ci_sigma$upper)),
+  row.names = NULL
+)
+```
+
+Both intervals contain the simulated values.
 
 It is often clearer to report the fitted residual SDs and variances directly:
 
@@ -459,8 +485,8 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 }
 ```
 
-The compact translation table below is the reporting layer Pat should be able
-to read without returning to the equations:
+The compact translation table below is the reporting layer a reader should be
+able to use without returning to the equations:
 
 ```{r location-scale-translation-table}
 growth_translation <- data.frame(

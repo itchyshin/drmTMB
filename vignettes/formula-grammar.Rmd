@@ -463,8 +463,9 @@ bivariate spatial slope blocks, predictor-dependent q=4 phylogenetic or spatial
 correlations, p8 endpoint slope covariance, q8 variants beyond the first
 ordinary diagnostic model, and `rho12` random effects remain planned.
 Double-hierarchical bivariate fits should continue to report correlation pairs
-in a long table, not just as unlabeled matrices. The design note
-`docs/design/20-coscale-correlation-pairs.md` records the planned labels:
+in a long table, not just as unlabeled matrices. The
+[correlation-pairs design note](https://github.com/itchyshin/drmTMB/blob/main/docs/design/20-coscale-correlation-pairs.md)
+in the source repository records the planned labels:
 correlation level, group, covariance block, distributional parameters,
 responses, and random-effect coefficients. The current `corpairs(fit)` helper
 already uses this table shape for residual `rho12`, ordinary univariate

@@ -1055,3 +1055,9 @@ With a checked fit in hand, the next stage in the reader path is choosing a
 response family for your own data: continue with
 [Which scale are you modelling?](which-scale.html) and
 [Choosing response families](distribution-families.html).
+
+Working in Julia? The
+[DRModels.jl companion page](https://itchyshin.github.io/DRModels.jl/stable/model-guides/model-workflow)
+mirrors this article with Julia syntax and states which parts DRModels.jl
+supports today. DRModels.jl is a separate package with its own fitting and
+inference routes; Julia is optional for `drmTMB` users.
