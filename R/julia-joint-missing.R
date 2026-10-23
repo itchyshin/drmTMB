@@ -204,16 +204,21 @@ drm_julia_joint_prepare <- function(
   if (!is.data.frame(data)) {
     cli::cli_abort("The Julia joint missing-predictor adapter requires data to be a data frame.")
   }
+  if (!isTRUE(weights_missing)) {
+    cli::cli_abort(
+      c(
+        "The Julia joint missing-predictor adapter does not support likelihood weights.",
+        x = "DRModels.jl ignores weights on the response term and on the imputation prior.",
+        i = "Use {.code engine = \"tmb\"} for a weighted {.fn mi} fit, or omit {.arg weights}."
+      ),
+      class = "drmTMB_julia_mi_weights_unsupported"
+    )
+  }
   if (!inherits(family, "family") ||
       !identical(family$family, "gaussian") ||
       !identical(family$link, "identity")) {
     cli::cli_abort(
       "The Julia joint missing-predictor adapter currently supports gaussian(link = \"identity\") responses only."
-    )
-  }
-  if (!isTRUE(weights_missing)) {
-    cli::cli_abort(
-      "The Julia joint missing-predictor adapter does not support likelihood weights."
     )
   }
   if (!isFALSE(REML)) {

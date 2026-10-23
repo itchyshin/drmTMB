@@ -238,7 +238,8 @@ test_that("live: a real engine = \"julia\" fit on a route WITHOUT a stored gradi
       "optimizer_convergence",
       "fixed_gradient",
       "bridge_covariance",
-      "bridge_standard_errors"
+      "bridge_standard_errors",
+      "dropped_rows"
     )
   )
   grad_row <- dc[dc$check == "fixed_gradient", ]
@@ -305,7 +306,8 @@ test_that("live: a real engine = \"julia\" fit on a route WITH a stored gradient
       "optimizer_convergence",
       "fixed_gradient",
       "bridge_covariance",
-      "bridge_standard_errors"
+      "bridge_standard_errors",
+      "dropped_rows"
     )
   )
   route_row <- dc[dc$check == "engine_route", ]

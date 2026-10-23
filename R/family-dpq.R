@@ -61,29 +61,26 @@
 #'
 #' `drm_family_dpq()` returns the `{d, p, q}` closures and atom metadata for a
 #' fitted model's `model_type`. It is the single source of truth that
-#' [fitted_distribution()] and downstream consumers (planned: quantile
-#' residuals, `predict(type = "quantile")`, `exceedance()`) route through, so
+#' [fitted_distribution()] and downstream consumers such as quantile
+#' residuals, `predict(type = "quantile")`, and `exceedance()` route through, so
 #' the public-to-native parameter conversion is not re-derived in each caller.
 #'
-#' As of DO-T3 batch D, these 18 established fitted `model_type` values are
-#' promoted
+#' These helpers currently cover 18 fitted `model_type` values
 #' (`status = "reference"`): `"gaussian"`, `"student"`, `"skew_normal"`,
 #' `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`,
 #' `"beta_binomial"`, `"binomial"`, `"cumulative_logit"`, `"poisson"`,
 #' `"zi_poisson"`, `"nbinom2"`, `"truncated_nbinom2"`, `"hurdle_nbinom2"`,
 #' `"zi_nbinom2"`, and `"biv_gaussian"`.
-#' **`"skew_normal"` promotion is a distributional-output-axis result only**
-#' (DG2/DG3 for `{d,p,q}` correctness); it does not certify the skew_normal
-#' family's own fit-quality status (`diagnostic_hold` in `check_drmTMB()`),
-#' which is a separate axis and is unchanged -- see the firewall note beside
-#' `drm_family_dpq_skew_normal()`. **`"biv_gaussian"` is MARGINAL-only**: its
+#' For `"skew_normal"`, this support applies only to the density, CDF, and
+#' quantile calculations. It does not establish fit quality; `check_drmTMB()`
+#' continues to return `diagnostic_hold` for skew-normal fits.
+#' **`"biv_gaussian"` is MARGINAL-only**: its
 #' `{d,p,q}` describe one response's marginal `N(mu_k, sigma_k)` (exact,
 #' independent of `rho12`), never the joint bivariate distribution -- see
 #' `drm_family_dpq_biv_gaussian()` and [fitted_distribution()]'s `response`
-#' argument, which selects `k`. The later exact-special development families
-#' `"biv_lognormal"` and `"biv_student"` are deliberately excluded from this
-#' marginal distribution-output registry; their density/CDF/quantile,
-#' residual, and adequacy surfaces require separate validation.
+#' argument, which selects `k`. `"biv_lognormal"` and `"biv_student"` are
+#' not supported by these helpers; their marginal density, CDF, quantile,
+#' residual, and adequacy calculations have not been validated.
 #'
 #' The `d`/`p`/`q` closures take `(y_or_u, params)`, where `params` is a wide,
 #' one-row-per-observation data frame. This signature is **frozen** (CP1): a
@@ -1141,9 +1138,9 @@ drm_family_dpq_biv_gaussian <- function() {
 #' `exceedance()`) are meant to route through this accessor rather than
 #' re-deriving the public-to-native parameter conversion.
 #'
-#' `fitted_distribution()` only supports `model_type`s with a promoted entry
-#' in [drm_family_dpq()]: as of DO-T3 batch D all 18 fitted `model_type`
-#' values are promoted (`status = "reference"`), including bivariate
+#' `fitted_distribution()` only supports `model_type`s with
+#' `status = "reference"` in [drm_family_dpq()]. All 18 currently
+#' fitted `model_type` values are included, including bivariate
 #' `"biv_gaussian"` (see the `response` argument below). `newdata` support
 #' inherits the same limitation as [predict_parameters()]: fixed-effect,
 #' population-level predictions only. For meta-analysis gaussian fits

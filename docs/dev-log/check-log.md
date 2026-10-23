@@ -1,3 +1,380 @@
+# 2026-10-22: retain output from failed or colliding C17 recertification runs (#1591)
+
+`tools/recertify-c17.py` previously deleted partial output in `finally` and
+could lose a complete run when the dated destination already existed. The
+runner now preserves failed, rejected, and colliding output in unique sibling
+directories while restoring the committed receipt. Four focused Python tests
+pass, including three output-retention regressions and the existing dry-run
+check. The local 12-fit dry-run reproduced all three receipt values exactly
+(`0.000e+00` change) and left the manifest unchanged. Full package tests were
+not run. The exact-head CI and review remain pending; see
+`docs/dev-log/after-task/2026-10-22-recertify-c17-output-retention.md`.
+
+# 2026-10-22: fit-free tests for phylogenetic penalty helpers (#1601)
+
+Synced PR head `6af76a98a86c6db7c757e256147548a4c82cf77f` with live `main`
+`7820315cc904358edbf3635515ebd3a73dbb7f31` in an isolated clone. The merge
+completed without conflict; the test file remained unchanged (Git blob
+`a2a8f08ad5c8309da60fce6406940121f9eb9236`, SHA-256
+`f514b2031745d15392082fc6b08751c2fe8cb79b99f309567f5f674369238e71`).
+
+Focused fit-free check on the synced source: `Rscript -e
+'devtools::test(filter = "phylo-penalty-spec", reporter = "summary")'`
+under R 4.6.0 / macOS Tahoe 26.7.1 / ARM64 completed with 63 successful
+expectations and no failures. No fits were run. The PR's earlier 75-pass
+`filter = "penalty"` result was not rerun and remains historical. Full package
+tests and `R CMD check` were not run. No package code changed.
+
+The PR's original after-task note was expanded to include the source sync,
+checks, test limitations, issue search, consistency audit, and next action.
+No matching open issue was found; the issue tracker was left unchanged.
+
+# 2026-10-18: rebase #1513 onto main after #1504 merged
+
+Rebased `cursor/triage-i-mi` onto `e17921e9b` (#1504 squash-merged). Dropped
+the six copied #1504 commits (`37a90043f` to `af2ee2501`, including the
+`46d125a50` C17 receipt) and both merges of main; the 27 #1513 commits were
+replayed in order. `NEWS.md` and this log had additive conflicts and keep both
+sides; `simulate()` keeps main's lme4 `re.form` default plus the `mi()`
+weights abort; intermediate C17 TSV conflicts took the #1513 side. `git diff
+origin/main -- src/` touches only `src/drmTMB.cpp`, and every hunk is #1513's
+`mi()` work: the Gamma adaptive quadrature helpers and call sites, the
+`drm_abort_mi_quadrature_nonfinite()` abort, and the #1459 weight-0 skip
+(`if (asDouble(weights(i)) > 0.0)`). `src/drm_numeric.h` and
+`src/drm_response_kernels.h` match main.
+
+C17: `python3 tools/recertify-c17.py --label 1513-rebase --tolerance 1e-10`
+on Totoro (R 4.6.1), worst `|change|` 1.264e-12 on mc-0568 / 0569 / 0576,
+source fingerprint unchanged; `--check-c14-receipt-equivalence` OK. Full suite
+on Totoro (12 `devtools::test()` shards): 49,423 pass, 2 fail, 0 error, 106
+skip. Both fails reproduce on `e17921e9b` in the same environment: Arc 1a REML
+spatial one-slope (reference optimiser code 52) and the NB2 sigma mis-wire
+guard (logLik gap 14.5). `devtools::document()` produced only the known #1400
+`.Rd` drift plus a RoxygenNote bump; #1513 changes no roxygen lines, so
+nothing was committed.
+
+# 2026-10-18: #1513 runtime guard drmTMB_mi_quadrature_inaccurate
+
+R-only post-fit warning `drmTMB_mi_quadrature_inaccurate` in
+`drm_fit_spec()` after the fitted `fn`/`gr` probe
+(`R/drmTMB.R:727`). Nothing in `src/`. The helper loops
+`missing_predictor` and `missing_predictor2`.
+
+Thresholds, documented against the measured 15-node leftover:
+- Beta / zero-one-Beta missing-row prior mean at or inside `0.10` of
+  0 or 1 (`4.65e-3` at `mu = 0.10`, `sigma = 1`; `4.81e-3` at
+  `mu = 0.02`, `sigma = 1`). Mid-range `mu = 0.50`, `sigma = 0.5` and
+  the pinched `mu = 0.10`, `sigma = 0.2` case stay inside `2.6e-5`, so
+  the mu-only cut is conservative at that pin.
+- Gamma CV `>= 3` (12% of an 80-row scan exceed `1e-4`, worst `1.47`).
+
+15-node Beta rule and labelled skips kept. No check before the Julia
+branch (Julia already refuses Beta/Gamma `mi()`).
+
+Tests: helper with two `mi()` terms, bad one second (Gaussian first +
+Gamma/Beta second); live two-Gaussian `drmTMB()` then second slot
+relabelled Gamma at CV 3.5; live Beta `mu ~ 0.04` warns; live Gamma
+CV 3 warns; healthy Gamma CV 0.10 does not warn.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail / 175 pass / 2
+labelled skips; `test-env-skip-census.R` 0 fail / 5 pass (cran-lane
+5→9). Unweighted cites stay `:1434`, `:1475`, `:4678`. `n_cpp` untouched.
+
+Full `testthat::test_dir()` (R 4.3.3, `NOT_CRAN=true`): the Summary
+reporter still prints only the first 10 failures, all this VM's missing
+Suggests (`ape`, `emmeans`, `mvtnorm`), the same class as Engine A.
+`test-mi-quadrature-1476-1477.R` in that run: 175 pass / 2 labelled
+skips / 0 fail. Touched mi() files had 0 fail.
+
+C17 `--label mi-quadrature-1513-guard --tolerance 1e-10`: `|change|
+0.000e+00` on mc-0568 / 0569 / 0576. Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-guard-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK. Tracked run-1 moved aside, then restored.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
+# 2026-10-18: #1513 Engine A (merge main, abort every mi() term, C++ notes)
+
+Merged `origin/main` (`d89db5097`) into `cursor/triage-i-mi` as a normal
+merge commit (`5525f0e99`). No force-push. Conflicts were NEWS,
+`R/methods.R` (`simulate()` keeps the `mi()` weights abort and takes
+main's lme4 `re.form` meanings), check-log, and the C17 TSV.
+
+Engine A items:
+1. Merge: done.
+2. `drm_spec_uses_mi_quadrature_abort()` now checks
+   `missing_predictor` and `missing_predictor2`, not only the first
+   slot. Unit test covers Gaussian-first + Gamma-second.
+3. `skip_on_cran()` on the Gamma `weights = 2` fit in
+   `test-mi-weights-1459.R`. Census cran-lane 4→5 on the quadrature
+   file; new cran-lane 1 on the weights file.
+4. Unweighted Gaussian prior sites stay `:1434`, `:1475`, `:4678`.
+5. C++ notes kept: a node with `u_raw > 500` drops its `w cosh(t)`
+   weight (`n_cpp = 46L`, paired huge-mu test expects a floor term);
+   AD vs FD at the pole where Newton branch B wins (`< 1e-5`).
+   Beta low-mu runtime guard was not built.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail / 167 pass / 2 labelled
+skips; `test-guard-branch-continuity.R` 0 fail / 69 pass (`n_cpp = 46L`);
+`test-mi-weights-1459.R` 0 fail / 55 pass.
+
+Full `testthat::test_dir()`: FAIL 67 / WARN 26 / SKIP 343 / PASS 46170.
+All 67 failures are this VM's missing Suggests (`ape`, `emmeans`,
+`mvtnorm`, `tweedie`, `JuliaCall`), the same class as the 2026-10-12
+closeout (julia-fe-only-fence expects a DRM.jl checkout message;
+tweedie oracle needs `{tweedie}`; phylo tests need `{ape}`). Touched
+mi() files had 0 fail.
+
+C17 `--label mi-quadrature-1513-r5-main --tolerance 1e-10` after the
+merge and the cpp edit: `|change| 0.000e+00` on mc-0568 / 0569 / 0576.
+Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-r5-main-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK. Tracked run-1 was moved aside, then restored.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
+# 2026-10-18: #1513 Code Reviewer blockers (live abort, rethrow, 1459, Beta 0.02)
+
+1. Live `drmTMB()` Gamma `mi()` with `y = 1e200` on a missing-x row raises
+   classed `drmTMB_mi_quadrature_nonfinite` (confirmed; test in
+   `test-mi-quadrature-1476-1477.R`).
+2. `drm_rethrow_mi_quadrature_error` is live: `drm_fit_spec()` calls it
+   on MakeADFun errors and `drm_probe_mi_quadrature_objective` calls it
+   on start/fitted `fn`/`gr`. Dead `drm_wrap_mi_quadrature_objective`
+   (C-stack overflow) was removed. New test classifies a C++ tape token.
+3. Beta `mu = 0.02` vs `integrate()` is `4.81e-3` on the frozen 15-node
+   Gauss-Legendre rule (101 GL nodes still `3.0e-4`). Labelled skip,
+   refs #1476 / #1531. Not a Gamma-rule change.
+4. `#1459` warning cites the actual unweighted sites `:1434`, `:1475`,
+   `:4678`. Gamma and Beta `mi()` plus `weights = 2` do not warn.
+   `drm_mi_prior_path_unweighted()` requires a Gaussian family on both
+   slots.
+5. C17 recertify already ran on the final cpp (`--label
+   mi-quadrature-1513-r5`, `|change| 0.000e+00`). This slice does not
+   edit `src/drmTMB.cpp`. Equivalence rechecked.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
+# 2026-10-18: #1513 round 5 closeout (C17 + labelled CV >= 3 skip)
+
+Remeasured the Round 5 tables at `3b4ac1054` (R 4.3.3, TMB 1.9.25). The
+blockers are inside `1e-4`: Gamma pole CV 0.5 `1.05e-8` (was `4.0e-3`),
+CV 1 `1.82e-7` (was `0.28`); Poisson CV 2 `y = 0` `2.12e-5`. Worst
+asserted row remains Gaussian CV 2 `y = 2.2` at `2.48e-5`. Mode residual
+after step 5 at `y = 2.05`: CV 0.5 `1.83e-3`, CV 1 `4.47e-7`, CV 2
+`-3.9e-13`. Integrand, score and Hessian are on `u = log(x)` with
+Jacobian `+u`; nodes sit after the five Newton steps.
+
+Labelled skip for CV `>= 3` names
+`docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md` (refs
+#1477). An 80-row random scan at CV 3 fails 12% (worst `1.47`). Census
+gained one `runtime-conditional` site on `test-mi-quadrature-1476-1477.R`.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail (1 labelled skip);
+`test-guard-branch-continuity.R` 0 fail (`n_cpp = 45L`). Compiled
+per-row vs `integrate()` ran with `NOT_CRAN=true`.
+
+C17 `--label mi-quadrature-1513-r5 --tolerance 1e-10` at `3b4ac1054`:
+`|change| 0.000e+00` on mc-0568 / 0569 / 0576. Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-r5-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK (mc-0568 included). Tracked run-1 was moved aside, then
+restored. The `mi()` sinh map sits outside the authenticated model-15
+anchors. Full suite follows.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1532
+
+# 2026-10-15: #1513 round 5 Gamma mi() pole fix (sinh-mapped trapezoid)
+
+Cause of the CV 0.5 (`4.0e-3`) and CV 1 (`0.28`) pole errors: the five
+clamped log-`x` Newton steps had not reached the mode (score about
+`-15` after step 5 at the pole rows; each step moves `x` by a factor of
+`exp(-0.5)` against a response sd of 0.2 in `x`), and at CV 1 and above
+the Gauss-Hermite nodes could not reach the `exp(shape * u)` left tail.
+The Gaussian-only-derivative suspicion was already fixed at `3ea958fdc`:
+the C++ and R mirror use each family's own `g`/`H`, and
+`drm_gamma_mi_grad_hess()` is now checked against central differences of
+the Jacobian-carrying log integrand for Gaussian and Poisson.
+
+Now: still exactly five steps, each the better (by log integrand) of the
+clamped log-`x` step and a Newton step on `G(x) = g / x` written with the
+log-`x` derivatives; nodes `mode + sigma_u sinh(t)` on 51 equally spaced
+`t` in `[-5, 4]`, weight `h cosh(t) sigma_u`, placed after step 5. `n_cpp`
+is `45L` (ten new CondExp sites, two paired guard tests). The reference
+`integrate()` was also wrong at CV 2: it stopped at `log(mu) - 12` and
+lost about 5% of the mass; the old "`8.3e-2`" and "`4.6e2`" were mostly
+that, plus real failure at `y = 30`.
+
+Per-row `|log marginal - log integrate()|`, R mirror and compiled TMB
+agree to `4e-13`:
+
+| Gaussian y (x*) | CV 0.5 | CV 1 | CV 2 |
+| --- | --- | --- | --- |
+| 2.05 (pole, 0.1) | 1.05e-8 | 1.82e-7 | 9.02e-7 |
+| 2.20 | 4.98e-9 | 8.82e-9 | 2.48e-5 |
+| 2.50 | 9.04e-10 | 1.81e-9 | 5.31e-7 |
+| 3.50 | 7.02e-11 | 7.32e-11 | 7.39e-11 |
+| 12.0 (tail) | 3.8e-12 | 3.8e-12 | 3.8e-12 |
+
+| Poisson y | CV 0.2 | CV 1 | CV 2 |
+| --- | --- | --- | --- |
+| 0 | 7.2e-10 | 1.50e-6 | 2.12e-5 |
+| 1 | 8.7e-10 | 9.02e-7 | 1.26e-5 |
+| 4 | 1.31e-9 | 1.75e-6 | 1.13e-5 |
+| 30 | 2.2e-10 | 6.3e-10 | 6.1e-10 |
+
+Open: CV `>= 3`; Poisson with `exp(eta)` at the prior mean of about `1e3`
+or more (five steps stop short; twelve recover the moderate cases). Julia
+refusals for Beta/Gamma `mi()` and `drmTMB_julia_mi_weights_unsupported`
+are unchanged and tested. C17 and the full suite are not re-run (session 2).
+
+# 2026-10-12: #1513 five fixed family-correct Newton steps
+
+Newton is exactly five steps from `log(mu)` with each family's own
+`g`/`H` (Poisson adds `(y - mu) eta'(x)` and the matching curvature).
+No data-dependent stop. `n_cpp = 35L`.
+
+- Poisson × Gamma CV 1: `5.18e-5` (before `5.4e-4`).
+- Poisson × Gamma CV 2 `y = 0`: finite, vs `integrate()` `8.3e-2`.
+- Poisson × Gamma CV 2 `y = 30`: finite, vs `integrate()` `4.6e2`.
+- Gamma tail `y = 12`: CV 0.05 / 0.5 / 1 all `< 1e-4`.
+- Gamma pole `y = 2.05` CV 0.05: `< 1e-4`. Pole CV 0.5 / 1: `4.0e-3` / `0.28` (not asserted).
+
+Refs #1477
+Refs #1476
+Refs #1459
+
+# 2026-10-12: #1513 Round 4 family-correct Newton and live abort
+
+Newton uses each family's own log-density `g`/`H` wrt `x` (analytic Gaussian and Poisson; otherwise FD of `drm_response_log_density`). A non-negative Hessian skips the step and falls back to the prior mode. Gamma production is 51-node posterior-mode GH. `drm_fit_spec()` rethrows the C++ tape token through `drm_rethrow_mi_quadrature_error` and probes start/fitted `fn`/`gr` for Gamma/Beta/ZOB `mi()` only. `n_cpp = 40L`. Headers and unweighted Gaussian priors unchanged.
+
+Acceptance vs fine-split `integrate()` (R 4.3.3, TMB 1.9.25):
+- Gamma pole `y=2.05`: CV 0.05 `5.7e-14`; 0.5 `1.3e-8`; 1 `2.7e-5` (before: y=7 easy `1e-15`; pole was untested).
+- Gamma tail `y=12`: CV 0.05 `4.1e-12`; 0.5 `2.0e-14`; 1 `2.8e-14`.
+- Poisson × Gamma CV 1: `5.17e-5` (before `5.4e-4`).
+- Poisson × Gamma CV 2 `y=0`: finite (before classed abort).
+- Gamma pole CV 2: `9.51e-2` (labelled skip; issue draft `docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md`, refs #1477).
+- U-shaped Beta shapes `(0.13, 0.31)`, `y` near 0: `0.54` recorded for #1531 (that issue cites `1.6e-2`).
+- Live `drmTMB()` Gamma `mi()` with `y=1e200` on a missing-x row raises `drmTMB_mi_quadrature_nonfinite`.
+
+Focused local: `test-mi-quadrature-1476-1477.R` 0 fail (1 expected skip); `test-guard-branch-continuity.R` 0 fail; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-mi-weights-1459.R` 0 fail.
+
+C17 `--label mi-quadrature-1513 --tolerance 1e-10` at `3ea958fdc`: `|change| 0.000e+00` on mc-0568 / 0569 / 0576. Receipt `docs/dev-log/implementation-recovery/2026-10-12-mi-quadrature-1513-c17c2-c14-final-source-compatibility`. `python3 tools/capability_ledger.py --check-c14-receipt-equivalence` prints OK (mc-0568 included). The `mi()` Newton and live abort sit outside the authenticated model-15 anchors. Full suite follows.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+
+# 2026-10-12: #1513 quadrature restore + adaptive Gamma
+
+Beta / zero-one-Beta `mi()` restored to the frozen 15-node Gauss-Legendre rule, ZOB atoms `c(0, nodes, 1)`. Gamma `mi()` is posterior-mode GH on `u = log(x)` (5 Newton steps from `log(mu)`, analytic Gaussian score/Hessian, CondExp step clamp, unnormalised log-sum, no CV branch). `drmTMB_mi_quadrature_nonfinite` aborts a NaN/`-Inf` marginal. Headers `src/drm_numeric.h` and `src/drm_response_kernels.h` were not edited. Unweighted Gaussian priors stay `:1301`, `:1342`, `:4556`. `n_cpp = 35L` (drop two IS `s_floor`s, add five Newton clamps). C17 not recertified (`R/drmTMB.R` and `R/methods.R` unchanged).
+
+Acceptance (R 4.3.3, TMB 1.9.25):
+- Beta mid-range `mu=0.5`, `sigma=0.5`, `sd_y=0.1`: `integrate()` abs logLik error `9.87e-7` (tolerance `2.6e-5`).
+- Beta mid-range `mu=0.10`, `sigma=0.2`, `sd_y=0.1`: `9.10e-6`.
+- U-shaped Beta `mu=0.02` / `0.10`, `sigma=1`, `y=1`, `sd_y=0.1`, `beta_x=2`: `1.638e-2` / `1.659e-2` (follow-up, refs #1476; GitHub issue create returned 403).
+- Gamma vs log-x `integrate()`, `sd_y=0.1`: CV 0.05 `3.8e-15`; 0.10 `2.2e-15`; 0.50 `1.6e-15`; 1 `5.8e-15`; 2 `1.3e-15` (all `< 1e-4`; CV>1 passed, no skip).
+- Poisson response × Gamma `mi()` helper: `2.87e-13`.
+- `obj$gr` vs FD `h=1e-5` at CV 0.05, 1, 2: all `< 1e-5` after analytic Newton.
+- Classed abort: `drmTMB_mi_quadrature_nonfinite` from the R helper (NaN `y`) and `cli_abort` probe.
+- Weight-0 `y=1e200` pin still passes.
+
+Focused local: `test-mi-quadrature-1476-1477.R` 0 fail; `test-guard-branch-continuity.R` 0 fail (`n_cpp = 35L`); `test-missing-predictor-{beta,gamma,zero-one-beta}.R` 0 fail; `test-mi-weights-1459.R` 0 fail; Dinnage M1 0 fail.
+
+Full `testthat::test_dir()` at `d8d9a41b2` then census refresh: progress-char parse PASS 47785, WARN 58, SKIP 122. Reporter listed 9 failures; `Rscript tools/write-env-skip-census.R` fixed the two in-PR `test-env-skip-census.R` rows (cran-lane 1→2 plus the CV>1 runtime skip site). The other seven are this VM, not the quadrature edit: three `test-julia-fe-only-fence.R` rows that expect a DRM.jl checkout message and see missing `{JuliaCall}`; `test-julia-bridge.R` `fixef()` and `test-julia-joint-call.R` need `{JuliaCall}`; `test-missing-predictor-prediction.R` sparse `crossprod` (same VM defect as 2026-10-09); `test-reml-phylo-location.R` non-convergence. Live Julia: 0 ran, 69 skipped (`DRMODELS_JL_PATH` unset). `test-env-skip-census.R` 0 fail after the refresh.
+
+Refs #1477
+Refs #1476
+Refs #1459
+
+# 2026-10-11: STEP 2 #1459 gates (no quadrature rewrite)
+
+Warning `drmTMB_mi_weights_prior_unweighted` now fires only on the unweighted Gaussian prior paths: `src/drmTMB.cpp:1301`, `:1342`, and the nbinom2 x Gaussian copy at `:4556`. Beta `mi()` plus `weights = 2` does not warn. Weight 0 uses `if (asDouble(weights(i)) > 0)`; the pin is a weight-0 Gaussian row at `y = 1e200` with finite `fn` and `gr`. M1 helper re-polishes weight-2 from the unit-weight MLE and restores the dup-vs-w2 coefficient compare; any leftover gap is Gamma-only. `predict()` / `simulate()` allow `weights = 1`. Julia refuses non-unit weights for every family, including Beta `mi()` with `weights = 2`, before the family check. `.Rlib/` gitignored. Tracked C17 run-1 folder restored. C17 `--label triage-i-mi-r2 --tolerance 1e-10`: `|change| 0.000e+00` on mc-0568 / 0569 / 0576 at `8f6165344`. No quadrature code in this slice.
+
+Focused local: `test-mi-weights-1459.R` 0 fail / 10 tests; `test-julia-mi-weights.R` 0 fail / 5 tests; `test-guard-branch-continuity.R` 0 fail / 15 tests (`n_cpp = 32L`); Dinnage M1 families 0 fail / 11 tests.
+
+STEP 1 estimate only (no rewrite): adaptive posterior-mode GH is a high-invasiveness change across the 13 Gaussian-response `mi_family` blocks plus copied loops; a unimodal Newton proposal may still miss U-shaped Beta. Fallback is revert Beta to the old 15-node GL and pin known `integrate()` failures as follow-ups. See `docs/dev-log/after-task/2026-10-11-triage-i-mi-r2-gates.md`.
+
+Refs #1459
+Refs #1477
+Refs #1476
+
+# 2026-10-11: R reviewer #1459 acceptance
+
+`weights = 1` with `mi()` matches the unweighted fit (coef, logLik, nll to 1e-10) and does not emit `drmTMB_mi_weights_prior_unweighted`. Weight 2 matches a duplicated row in the response term only; `nll_dup - nll_w2 = -prior_row2`. Weight 0 or `NA` on a missing `mi()` covariate is `drmTMB_mi_zero_weight_missing` before the generic NA-weight abort (named error, not a drop). `predict()` / `simulate()` honour fitted coefficients and refuse `weights=` with `drmTMB_mi_weights_predict_unsupported`. Renormalised Beta/Gamma quadrature mass is 1. CondExp anchor in `drmTMB.cpp` is 33L (weight-0 helper + two IS `s_floor`s).
+
+Focused local: `test-mi-weights-1459.R` 0 fail / 44 pass; `test-julia-mi-weights.R` 0 fail / 7 pass; `test-mi-quadrature-1476-1477.R` 0 fail / 41 pass; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-guard-branch-continuity.R` 0 fail / 66 pass.
+
+C17 recertified at `9ed39d074` (`python3 tools/recertify-c17.py --label triage-i-mi --tolerance 1e-10`). Worst `|change|` in mean tau relative error was `0.000e+00` on mc-0568 / mc-0569 / mc-0576. Receipt `docs/dev-log/implementation-recovery/2026-10-11-triage-i-mi-c17c2-c14-final-source-compatibility`. The `mi()` quadrature and weight gates sit outside the authenticated model-15 anchors.
+
+Local `testthat::test_dir()` under `pkgload::load_all()` (R 4.3.3, TMB 1.9.25): the reporter stopped at its 10-failure cap. Failures that belong to this VM, not the `mi()` edit: three `test-julia-fe-only-fence.R` rows that expect a DRM.jl checkout message and instead see missing `{JuliaCall}`; `test-julia-joint-call.R` and `fixef()` on a Julia mock that need `{JuliaCall}`; `test-missing-predictor-prediction.R` sparse `crossprod` (same VM defect as 2026-10-09). One in-PR failure was `test-env-skip-census.R` because `test-mi-quadrature-1476-1477.R` added `skip_on_cran()`; `Rscript tools/write-env-skip-census.R` added that one cran-lane row. CI run 38120371317 (head `e682acb6c`) failed on that census plus Dinnage M1 Gamma: `weights = 2` scales the Gamma IS objective by exactly 2, but nlminb stopped short on the steeper surface. `run_mi_weight_invariance()` now asserts the 2× nll contract and treats a worse `weights = 2` nll as optimizer scale, not a prior-weight change. Focused files after load_all: adequacy 21 pass; Gamma/Beta/ZOB manuals pass; #1459 / Julia-weight / quadrature / guard-branch pass; M1 families 77 pass. Live Julia: 0 ran, 69 skipped (`DRMODELS_JL_PATH` unset).
+
+Refs #1459
+Refs #1477
+Refs #1476
+
+# 2026-10-11: mi() quadrature (#1477, #1476) and #1459 gates
+
+`cursor/triage-i-mi` from `af2ee2501` (#1504). Gamma `mi()` uses a 31-node Gauss-Hermite lognormal proposal with `drm_log1p_nonnegative(CV^2)` and renormalised mass (#1477). Beta / zero-one-Beta interior uses a 31-node logit-normal Gauss-Hermite rule, also renormalised (#1476). Headers `src/drm_numeric.h` and `src/drm_response_kernels.h` were not edited. Continuous `mi()` prior stays unweighted (#1459); `drm_weight_times_logdens` guards `0 * (-Inf)` on the Gaussian response term. Julia `mi()` plus non-unit weights is a classed refusal. `R/methods.R` gained the predict/simulate `weights=` refuse; C17 pending if that edit stays through the full suite.
+
+Refs #1477
+Refs #1476
+Refs #1459
+
+# 2026-10-11: mi() weights gates (#1459) and Julia refusal
+
+R-only first slice on `cursor/triage-i-mi`. `engine = "julia"` plus `mi()` plus non-unit weights is a classed refusal (`drmTMB_julia_mi_weights_unsupported`) before any Julia process starts. Unit weights are treated as omitted. Native TMB emits a classed warning that the imputation prior ignores weights; the prior itself is unchanged. Weight 0 or NA on a missing `mi()` covariate is `drmTMB_mi_zero_weight_missing`. `predict()` / `simulate()` refuse an explicit `weights` argument on an `mi()` fit.
+
+`R/drmTMB.R` was not edited. `R/methods.R` gained the predict/simulate `weights=` refuse only. C17 is pending the next compile slice if the methods.R edit stays.
+
+Refs #1459, #1477, #1476.
+
+# 2026-10-18: #1504 reviewer fixes
+
+`skip_on_cran()` now opens the eight fitted test blocks in
+`test-factor-contrasts.R`, `test-log1mexp-ad.R`, `test-student-large-nu.R`
+and `test-julia-missing-alignment.R`. `R/julia-bridge.R` loses the stale
+"delete these three" comment and the dead
+`exists("drm_abort_rank_deficient_designs")` branch. C17 does not pin that
+file: `capability_ledger.py --check` OK, and
+`recertify-c17.py --label pr-1504 --tolerance 1e-10 --dry-run` gave `|change|`
+0 on all three cells, so the receipt was not rewritten. Full suite on Totoro
+(R 4.6.1, nine processes): 49,146 pass, 4 fail, 0 error, 104 skip. Two fails
+were the env-skip census, regenerated with `tools/write-env-skip-census.R`
+(rerun 5/5). Two are `skip_fragile_recovery()` tests that fail the same way on
+`9c61c8246`: Arc 1a REML spatial one-slope (reference optimiser code 52) and
+the NB2 sigma mis-wire guard. `test-numeric-kernel-oracle.R` passed on Totoro
+(392 expectations). `devtools::document()` produced only the known #1400 `.Rd`
+drift, which was not committed.
+
+# 2026-10-18: rebase #1504 onto main after #1579
+
+Rebased `cursor/triage-e-numeric` onto `95e81e911` (50 commits). `NEWS.md`
+and this log had additive conflicts and keep both sides. The intermediate C17
+receipt commit was skipped, as for #1508, and C17 was recertified once at the
+end: `python3 tools/recertify-c17.py --label pr-1504 --tolerance 1e-10`,
+`|change|` 0 on mc-0568/0569/0576, source fingerprint unchanged. The branch
+also carries the #1495 contrast fix (ordered factors, stored contrast names,
+and a `drmTMB_contrasts_dropped` warning).
+
 # 2026-10-18 — rebase #1502 onto main `d89db5097`
 
 Rebased `cursor/triage-c-bridge-inputs` onto current main. NEWS conflict
@@ -86,6 +463,54 @@ identical apart from `elapsed`). Multicore worker errors now abort. New
 
 Report: `docs/dev-log/after-task/2026-10-11-parallel-perf-lane.md`.
 Branch: `claude/drm-parallel-perf`.
+
+# 2026-10-09: character predictors use the full-frame reference level
+
+`model.frame()` leaves a character or logical predictor as character or logical. The reference-level guard only inspected factors, so `g = c("a", "a", "b", "b", "c", "c")` with the `"a"` rows dropped by the other response rebuilt treatment columns against baseline `b` and kept `gc`. `drm_julia_xfam_design_from_frame()` now calls `factor()` on those columns using the full frame, then applies the same reference check. The response column is left unchanged. `R/drmTMB.R` and `R/methods.R` were not edited, so C17 was not recertified.
+
+Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 71 expectations. `test-xfam-bridge.R`: 0 failures, 43 expectations, 6 skips (live Julia and `{glmmTMB}`). Full `testthat::test_dir()`: PASS 45117, FAIL 4, WARN 77, SKIP 440. The four failures are this VM: two B1 adapter errors because `{ape}` is absent, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. `{JuliaCall}` is installed, so the old fence failure that stopped on a missing JuliaCall message did not recur. Live engine tests still skipped: `DRMODELS_JL_PATH` was unset for the suite (0 live tests ran, 67 skipped).
+
+# 2026-10-09: cross-family contrasts kept, reference level refused
+
+`contrasts(f) <- contr.sum(3)` was becoming treatment columns `fb`, `fc` because `droplevels()` calls `factor()` and drops the contrasts attribute, even when no level was removed. `drm_droplevels_keep_contrasts_factor()` drops unused levels and writes that attribute back. The cross-family rebuild and the TMB pre-fit drop both use it, so a Julia cross-family design and `engine = "tmb"` both keep `f1`, `f2`, with and without dropped rows that leave every level in the data. An ordered factor keeps `o.L` and `o.Q`.
+
+Removing the treatment reference level on a cross-family axis now errors and names the level. The fit no longer keeps a column such as `gc` and silently changes its baseline from `c - a` to `c - b`. A non-reference treatment level that the shared-row drop empties is still removed.
+
+The rank check in `drm_julia_xfam_design_from_frame()` calls `drm_aliased_columns(X, tol = 1e-10)`. A design with predictor noise of `1e-8` still builds. An exact copy of a column errors with class `drmTMB_rank_deficient_design`. `qr()`'s default tolerance is `1e-7`.
+
+`R/drmTMB.R` changed, so C17 was recertified (`--tolerance 1e-10`). On the original branch the worst `|change|` was `1.322e-11` (mc-0569). After the rebase onto `main` it was recertified once more (`--label pr-1504`), with `|change|` 0 on all three cells. `R/methods.R` and `src/drmTMB.cpp` did not change. `lss-tip-identity` hashes every `R/*.R` and will be regenerated once on `main`. It was not rewritten here.
+
+Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 70 expectations. Related files re-run with no failures: coefficient labels, xfam bridge, formula constructs, dinnage wave 1, julia diagnostics, julia bridge, julia structured, julia missing. Full `testthat::test_dir()`: PASS 45044, FAIL 5, WARN 77, SKIP 446. The five failures are this VM, not the contrast change: two B1 adapter errors because `{ape}` is absent, one Julia fence that stops on missing `{JuliaCall}` before the DRM.jl path message, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. Live Julia tests skipped: Julia is not installed on this VM, and `DRMODELS_JL_PATH` / `DRM_JL_PATH` is unset, so the live engine did not start. The column checks call `drm_julia_xfam_axes()` and `drm_julia_xfam_design_from_frame()` in R, which is the design the Julia fit sends.
+
+# 2026-10-08: cross-family cbind, emptied factor levels, offset refusal
+
+Review round on draft PR #1504. R only. `src/drmTMB.cpp`, `R/drmTMB.R`, and `R/methods.R` were not edited, so C17 was not recertified.
+
+- `cbind(successes, failures)` on a cross-family axis errors before the shared-row index is built, with or without `NA`. A single 0/1 column still marshals.
+- Each axis design is rebuilt on the shared rows. An `NA` on `y1` that empties factor level `c` on `mu2` drops that column. One observed level left, or a rank-deficient design, errors.
+- `fitted()` and `residuals()` are indexed like the original data. Dropped rows are `NA`. `kept_rows` stores the fitted positions.
+- `offset()` on a cross-family location or sigma formula errors. `model.matrix()` had been dropping it.
+- `%||%` in `R/zzz.R` matches `if (is.null(x)) y else x` and is defined only when R does not already have it (base since 4.4.0). A rebase against the bridge-inputs copy keeps one definition.
+- The lost-level guard was not extended. The structured payload already errors unless there is exactly one structured term.
+
+Local R 4.3.3, reinstall without recompile. `test-julia-missing-alignment.R` 9 tests, 0 failures, 57 expectations. Also green, no Julia process: `test-xfam-bridge.R` 12/0/6 skip/43, `test-coefficient-labels.R` 44/0/11/100, `test-julia-diagnostics.R` 22/0/2/123, `test-julia-bridge.R` 16/0/2/139, `test-julia-structured.R` 9/0/1/59, `test-julia-missing.R` 8/0/5/5. The related-file union is 182 tests, 0 failures, 17 skips, 1525 expectations.
+
+`lss-tip-identity` hashes every `R/*.R`. This round edits `R/julia-bridge.R` and `R/zzz.R`. That receipt will be regenerated once on `main` after the batch lands. It was not rewritten here.
+
+# 2026-10-08: Student large-nu logLik, log1mexp AD ceiling, Julia NA alignment
+
+Fixed three open bugs on `cursor/triage-e-numeric`.
+
+- #1462: `drm_student_log_density()` keeps the lgamma constant for `nu < 1e4` and uses a three-term Stirling series for `nu >= 1e4`, with `drm_log1p_nonnegative(z^2/nu)`. `logLik()` reads that objective. `fitted_distribution()` already uses `stats::dt()`.
+- #1472: `drm_log1mexp()` and `drm_log1p_nonnegative()` clamp each `CppAD::CondExp` branch into the region where that branch is finite. The selected value is unchanged. Cloglog successes at `eta <= -40` and zero-truncated NB2 at `eta_mu <= -38` now have a finite Hessian.
+- #1454: cross-family Julia axes intersect kept row indices, including sigma designs, so staggered `NA`s stay on one complete-case index. Structured `response = "drop"` drops incomplete rows and errors if a grouping level disappears. q2 structured payloads refuse incomplete modelled columns. `check_drm()` reports the main-route drop count when the bridge recorded one. The Student fix stays inside `drm_student_log_density()`; the three `src/drmTMB.cpp` call sites already call that function and were not patched. `R/drmTMB.R` and `R/methods.R` are unchanged, so C17 was not recertified.
+- Portability: package code defines `%||%`, which base R provides from 4.4.0. `DESCRIPTION` allows R >= 4.1. The review round guards that definition so a rebase keeps one copy.
+
+Local R 4.3.3, drmTMB installed to `/workspace/.Rlib`. Final green union of the related files: 179 tests, 0 failures, 17 skips (live Julia or `NOT_CRAN`), 1488 expectations. New files: `test-student-large-nu.R` (2/23), `test-log1mexp-ad.R` (2/26), `test-julia-missing-alignment.R` (6/20). The first numeric-oracle tweedie case failed only because `{tweedie}` was not installed; after installing it, 19/392 passed. The CondExp enumeration anchor moved from 5/4 to 9/8 in `drm_numeric.h` / `drm_response_kernels.h` and passed.
+
+`R/drmTMB.R`, `R/methods.R`, and `src/drmTMB.cpp` were not edited, so C14/C17 was not recertified. `lss-tip-identity` hashes every `R/*.R`; `R/julia-bridge.R`, `R/julia-diagnostics.R`, and `R/zzz.R` will make that receipt stale on the next push to `main`. It was not rewritten here. Receipt staleness does not run on pull requests.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-e-numeric.md`.
 
 # 2026-10-04: phylogenetic tree-height documentation correction
 
@@ -94896,3 +95321,7 @@ Closeout report:
 | 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
 
 | 2026-09-24 | Sparse Quaas A-inverse for `animal()` pedigrees (#740) | `test-pedigree-sparse-ainv.R` 6 pass/0 fail; `test-animal-relmat-gaussian.R` 479 pass/0 fail; identity vs `chol2inv(chol(A))` < 1e-6 at n in {250,500,1000,2000,4000}; stored nonzeros 16,000,000 -> 27,830 at n=4000 | PASS; no fit-level wall-time claim made (needs a large-n animal cell) | Cursor / Shannon |
+
+| 2026-10-19 | man/*.Rd vs roxygen sync (#1571) | `document()` rewrote 39 Rd files before, 0 after; `test-man-roxygen-sync.R` fails pre-fix, passes post-fix | PASS | Claude |
+
+| 2026-10-22 | Direct Gaussian aggregation helper tests (#1598) | `devtools::test(filter = "gaussian-aggregation")`: PASS 136, FAIL 0, WARN 0, SKIP 0; PR test source SHA-256 unchanged | Focused tests PASS; full package and Julia engine checks not run | Codex |

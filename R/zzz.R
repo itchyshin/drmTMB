@@ -1,8 +1,12 @@
-# Null-coalescing operator already used by the Julia bridge and the MSPL
-# link code. It was called without a definition, so formula marshalling
-# aborted with "could not find function `%||%`" before JuliaCall.
-`%||%` <- function(x, y) {
-  if (is.null(x)) y else x
+# Base R added `%||%` in 4.4.0. DESCRIPTION allows R >= 4.1, and the Julia
+# bridge, its diagnostics, and the MSPL link code already use the operator.
+# The body matches base and the bridge-inputs copy: the right-hand side only
+# when the left-hand side is NULL. The guard leaves a single definition if a
+# rebase applies both copies.
+if (!exists("%||%", mode = "function")) {
+  `%||%` <- function(x, y) {
+    if (is.null(x)) y else x
+  }
 }
 
 .onLoad <- function(libname, pkgname) {
