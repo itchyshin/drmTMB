@@ -2015,17 +2015,9 @@ Type objective_function<Type>::operator()()
         Type n_i = mi_trials(i);
         if (mi_observed(i) == 1) {
           Type k_i = mi_successes(i);
-          Type failure_i = n_i - k_i;
+          // Cancellation-free form, as in the main loop (#1467).
           Type log_density =
-            lgamma(n_i + Type(1.0)) -
-            lgamma(k_i + Type(1.0)) -
-            lgamma(failure_i + Type(1.0)) +
-            lgamma(phi_betabinom_mi) -
-            lgamma(n_i + phi_betabinom_mi) +
-            lgamma(k_i + alpha_i) -
-            lgamma(alpha_i) +
-            lgamma(failure_i + beta_i) -
-            lgamma(beta_i);
+            drm_beta_binomial_log_density(k_i, n_i, alpha_i, beta_i);
           Type x_i = k_i / n_i;
           // (Dinnage audit M1): weights(i) scales the WHOLE row
           // contribution; apply it to the imputation-prior term here and
@@ -2038,18 +2030,9 @@ Type objective_function<Type>::operator()()
           vector<Type> log_terms(n_success + 1);
           for (int k = 0; k <= n_success; ++k) {
             Type k_q = Type(k);
-            Type failure_q = n_i - k_q;
             Type x_q = k_q / n_i;
             Type log_density =
-              lgamma(n_i + Type(1.0)) -
-              lgamma(k_q + Type(1.0)) -
-              lgamma(failure_q + Type(1.0)) +
-              lgamma(phi_betabinom_mi) -
-              lgamma(n_i + phi_betabinom_mi) +
-              lgamma(k_q + alpha_i) -
-              lgamma(alpha_i) +
-              lgamma(failure_q + beta_i) -
-              lgamma(beta_i);
+              drm_beta_binomial_log_density(k_q, n_i, alpha_i, beta_i);
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
@@ -3306,14 +3289,10 @@ Type objective_function<Type>::operator()()
     for (int i = 0; i < y.size(); ++i) {
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
-        Type variance_multiplier = sigma(i) * sigma(i);
-        Type shape = Type(1.0) / variance_multiplier;
-        Type scale = mu(i) * variance_multiplier;
+        // Large-shape-stable form (#1504); same density as
+        // dgamma(y, shape = 1/sigma^2, scale = mu * sigma^2).
         Type log_density =
-          (shape - Type(1.0)) * log(y(i)) -
-          y(i) / scale -
-          lgamma(shape) -
-          shape * log(scale);
+          drm_gamma_log_density(y(i), eta_mu(i), log_sigma(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -3570,11 +3549,7 @@ Type objective_function<Type>::operator()()
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         Type log_density =
-          lgamma(alpha(i) + beta_shape(i)) -
-          lgamma(alpha(i)) -
-          lgamma(beta_shape(i)) +
-          (alpha(i) - Type(1.0)) * log(y(i)) +
-          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+          drm_beta_log_density(y(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -3761,11 +3736,7 @@ Type objective_function<Type>::operator()()
         }
         Type log_density =
           log_one_minus_zoi +
-          lgamma(alpha(i) + beta_shape(i)) -
-          lgamma(alpha(i)) -
-          lgamma(beta_shape(i)) +
-          (alpha(i) - Type(1.0)) * log(y(i)) +
-          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+          drm_beta_log_density(y(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -3888,18 +3859,10 @@ Type objective_function<Type>::operator()()
       );
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
-        Type failures = trials(i) - y(i);
-        Type phi_shape = alpha(i) + beta_shape(i);
-        Type log_density =
-          lgamma(trials(i) + Type(1.0)) -
-          lgamma(y(i) + Type(1.0)) -
-          lgamma(failures + Type(1.0)) +
-          lgamma(phi_shape) -
-          lgamma(trials(i) + phi_shape) +
-          lgamma(y(i) + alpha(i)) -
-          lgamma(alpha(i)) +
-          lgamma(failures + beta_shape(i)) -
-          lgamma(beta_shape(i));
+        // Cancellation-free form; the plain lgamma sum loses
+        // eps * phi log(phi) per row as sigma -> 0 (#1467).
+        Type log_density = drm_beta_binomial_log_density(
+          y(i), trials(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -5621,7 +5584,7 @@ Type objective_function<Type>::operator()()
           log_sigma2(i) -
           Type(0.5) * log(one_minus_rho2) -
           ((nu(i) + Type(2.0)) / Type(2.0)) *
-            drm_log1p_nonnegative(q / nu(i));
+            drm_log1p_pos(q / nu(i));
         nll -= weights(i) * log_density;
       }
     } else if (V_known_type == 2) {
