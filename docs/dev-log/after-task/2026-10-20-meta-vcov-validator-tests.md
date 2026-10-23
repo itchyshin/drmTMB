@@ -1,12 +1,12 @@
-# After Task: `meta_vcov_bivariate()` validator tests
+# After Task: `meta_vcov_bivariate()` validation and zero-variance guard
 
 ## 1. Goal
 
-Characterise the current input checks and covariance construction in the internal validators behind `meta_vcov_bivariate()`. This is a test-only change; package behaviour is unchanged.
+Characterise and enforce the input checks and covariance construction in the internal validators behind `meta_vcov_bivariate()`.
 
 ## 2. Implemented
 
-The added test file calls `validate_meta_variance_vector()`, `validate_meta_pair_vector()`, and `meta_vcov_bivariate()` directly. It covers numeric-vector requirements, finite non-negative variances, length and recycling rules, conversion from `cor12`, row-paired block layout, and positive-definite and positive-semidefinite boundary cases.
+The added test file calls `validate_meta_variance_vector()`, `validate_meta_pair_vector()`, and `meta_vcov_bivariate()` directly. It covers numeric-vector requirements, finite non-negative variances, length and recycling rules, conversion from `cor12`, row-paired block layout, and positive-definite and positive-semidefinite boundary cases. The constructor now rejects every nonzero `cov12` when either marginal sampling variance is zero; this is required for the sampling block to remain positive semidefinite.
 
 ## 3a. Decisions and Rejected Alternatives
 
@@ -14,11 +14,12 @@ The PR originally appended its evidence to the shared root `docs/dev-log/check-l
 
 ## Mathematical Contract
 
-For study `i`, the sampling block is `[[v1[i], cov12[i]], [cov12[i], v2[i]]]`. When supplied, `cov12[i] = cor12[i] * sqrt(v1[i] * v2[i])`. The implementation accepts finite non-negative marginal variances, requires positive-definite blocks when both marginal variances are positive, and permits a zero variance only when the resulting covariance is zero. No likelihood or estimator changed.
+For study `i`, the sampling block is `[[v1[i], cov12[i]], [cov12[i], v2[i]]]`. When supplied, `cov12[i] = cor12[i] * sqrt(v1[i] * v2[i])`. The implementation accepts finite non-negative marginal variances, requires positive-definite blocks when both marginal variances are positive, and permits a zero variance only when the resulting covariance is exactly zero. No likelihood or estimator changed.
 
 ## 4. Files Touched
 
 - `tests/testthat/test-meta-vcov-validators.R`: new characterization tests.
+- `R/meta-vcov.R`: exact zero-covariance guard for a zero marginal sampling variance.
 - `docs/dev-log/check-log.d/2026-10-22-meta-vcov-validator-tests.md`: per-slice check record.
 - `docs/dev-log/after-task/2026-10-20-meta-vcov-validator-tests.md`: this closeout record.
 
@@ -34,7 +35,7 @@ For study `i`, the sampling block is `[[v1[i], cov12[i]], [cov12[i], v2[i]]]`. W
 
 ## 6. Tests of the Tests
 
-The assertions cover valid outputs and malformed input or invalid covariance errors. They pass on unchanged implementation code, as expected for characterization tests; a red-before-green result is not applicable. The new tests and the existing neighboring `meta-vcov` tests both ran in the focused test command above.
+The original characterization assertions cover valid outputs and malformed input or invalid covariance errors. A later regression assertion for a tiny nonzero covariance with a zero marginal variance failed against the old implementation and passed after the guard was corrected. The full new test file and neighboring `meta-vcov` tests ran together.
 
 ## 7a. Issue Ledger
 
@@ -78,3 +79,9 @@ At 08:12 UTC, exact-head GitHub Actions run #3573 (`39896251857`) was still queu
 The refreshed PR candidate is exact head `7a5802db34316e2987eb42aaca9f40633f499195`, based on current `main` `16647cdc2a426e669faa4c750abaddd5a0935d89`. The focused test was run against this source with `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::test(filter = "meta-vcov")'`: 94 passed, 0 failed, 0 warnings, and 0 skips. The transcript is `/private/tmp/drmtmb-pr1600-current-main-focused.log`, SHA-256 `cd9c51fb95cd25682a4b5a1f1d629ee632185e71184656c4afdd195e116b0a3a`. The output reports that no live Julia bridge tests ran.
 
 Exact-head GitHub Actions run #3578 (`39966079139`) was queued at the latest check; it is pending, not passed. The earlier run #3575 (`39923323372`) was queued for prior head `0164c0800aec807d94be5dc7636e429b994b0e7d` and does not certify this candidate. The current focused test does not establish a full package test or `R CMD check`; no recovery, interval availability, calibration, or coverage claim is made. The record-only follow-up requires fresh checks on the resulting commit as well. The PR body was not updated because the GitHub connector returned 403 for an authorized PR-body update and alternate routes were explicitly disallowed. The PR remains open and unmerged.
+
+## Zero-variance correction (2026-10-23, 15:35 UTC)
+
+Review found that the prior absolute tolerance accepted `cov12 = 1e-9` when `v1 = 0` and `v2 = 4`, yielding a block with determinant `-1e-18`. That contradicts the documented positive-semidefinite contract. A regression assertion failed against the unchanged implementation (1 failure, 94 passes). The guard now requires exact zero covariance whenever either marginal variance is zero. The focused suite passed 95 assertions with no failures, warnings, or skips on the local candidate. Log: `/private/tmp/pr1600-meta-vcov-final-20261023.log`, SHA-256 `9a55db5e588b8be04122c80154cd3632ac1cad977026aa633d12c5ca7ce3619d`.
+
+I also applied the same patch to the exact-main overlay at `51825f3856eaeca6769e5edc4b9bf1d2cdabbf97`, adding only the PR's validator test file and source correction. The strict focused command passed 95 assertions with no failures, warnings, or skips. Log: `/private/tmp/pr1600-main-51825-final.log`, SHA-256 `fdf584d5fa06551b222dfa70dbaea299390df70174ccbc3e40bcdc7bb245bf85`. These are focused tests only; no full package suite or `R CMD check` was run. At this report revision, the source and report updates are local to an isolated clone and have not been pushed to the PR branch.

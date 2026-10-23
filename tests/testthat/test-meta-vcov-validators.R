@@ -117,6 +117,12 @@ test_that("meta_vcov_bivariate() rejects bad cov12 / cor12 values", {
     meta_vcov_bivariate(v1 = 1, v2 = 0, cor12 = 0.5),
     NA
   )
+  # A zero marginal variance requires an exactly zero covariance; allowing a
+  # tiny non-zero value can still make the block indefinite.
+  expect_error(
+    meta_vcov_bivariate(v1 = 0, v2 = 4, cov12 = 1e-9),
+    "positive semidefinite"
+  )
 })
 
 test_that("cor12 converts to cov12 = cor12 * sqrt(v1 * v2) per study", {
