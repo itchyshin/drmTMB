@@ -1,0 +1,19 @@
+"engine","cell","cell_order","n","re","reps_run","errors","converged","conv_rate","statuses","median_time_s","pass_conv"
+"DRModels","n0050_none",1,50,"none",500,0,500,1,"converged:500",0.000174999237060547,TRUE
+"DRModels","n0200_none",2,200,"none",500,0,500,1,"converged:500",0.000354528427124023,TRUE
+"DRModels","n1000_none",3,1000,"none",500,0,500,1,"converged:500",0.00186216831207275,TRUE
+"DRModels","n0050_G20",4,50,"G20",500,0,493,0.986,"converged:493 not_converged:7",0.000415444374084473,FALSE
+"DRModels","n0200_G20",5,200,"G20",500,0,500,1,"converged:500",0.00102400779724121,TRUE
+"DRModels","n1000_G20",6,1000,"G20",500,0,500,1,"converged:500",0.00444245338439941,TRUE
+"DRModels","n0050_G50",7,50,"G50",500,4,306,0.612,"converged:306 error:4 not_converged:190",0.0011439323425293,FALSE
+"DRModels","n0200_G50",8,200,"G50",500,0,500,1,"converged:500",0.00110411643981934,TRUE
+"DRModels","n1000_G50",9,1000,"G50",500,0,500,1,"converged:500",0.00461101531982422,TRUE
+"drmTMB","n0050_none",1,50,"none",500,0,500,1,"converged:500",0.035999999999996,TRUE
+"drmTMB","n0200_none",2,200,"none",500,0,500,1,"converged:500",0.0390000000000015,TRUE
+"drmTMB","n1000_none",3,1000,"none",500,0,500,1,"converged:500",0.0560000000000027,TRUE
+"drmTMB","n0050_G20",4,50,"G20",500,0,500,1,"boundary:13 converged:487",0.0949999999999989,TRUE
+"drmTMB","n0200_G20",5,200,"G20",500,0,500,1,"converged:500",0.150000000000006,TRUE
+"drmTMB","n1000_G20",6,1000,"G20",500,0,500,1,"converged:500",0.454000000000003,TRUE
+"drmTMB","n0050_G50",7,50,"G50",500,500,0,0,"error:500",0.0200000000000014,FALSE
+"drmTMB","n0200_G50",8,200,"G50",500,0,500,1,"converged:500",0.14200000000001,TRUE
+"drmTMB","n1000_G50",9,1000,"G50",500,0,500,1,"converged:500",0.483499999999999,TRUE
