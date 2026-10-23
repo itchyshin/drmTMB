@@ -134,6 +134,21 @@
   Windows source install and Windows CI build. Build provenance and the
   never-fatal fallbacks are unchanged.
 
+* `student()`, `Gamma()`, `beta_family()` and `beta_binomial()` log-likelihoods
+  are now accurate at large `nu`, small coefficient of variation and large `phi`. The old
+  `lgamma()`-difference forms lost about `eps * x log(x)` per row, so the
+  Student objective could exceed its own Gaussian limit and fits could report
+  false convergence. Each density now agrees with `dt()` (Student) and with an
+  exact reference (Gamma, Beta) to within 1e-12 per observation at `nu`,
+  shape or `phi` of 1e2 to 1e8, and tends to the Gaussian log-density in the
+  limit. The bivariate Student kernel uses the same stable `log(1 + x)`
+  (#1462, #1467, #1504, #1548).
+  With perfectly separated `beta_binomial()` counts (all failures in one
+  group, all successes in another), the maximum-likelihood `mu` lies on the
+  boundary. On macOS the fit now reaches a fitted `mu` of exactly 0 and 1
+  (link about -3348 and +3348); on Linux it stops just inside. `logLik()`,
+  the coefficients and `sigma()` stay finite on both (#1547).
+
 * `family = student()` no longer reports a log-likelihood above the Gaussian
   maximum when `nu` is huge. The compiled density evaluates
   `lgamma((nu+1)/2) - lgamma(nu/2)` with a Stirling series for `nu >= 1e4`,

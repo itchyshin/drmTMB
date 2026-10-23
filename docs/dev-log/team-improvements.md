@@ -800,3 +800,19 @@ scouting belongs to Jason).
 - Trigger: the first linked map generated `reference/bf.html`, but `bf()` is an
   alias documented on the `drm_formula` topic. The page rendered cleanly while
   the most prominent first function link was broken.
+
+## 2026-10-16 - Attribute `document()` Output Before Committing It
+
+- Improvement implemented: when a lane rule says to run `devtools::document()`
+  and commit its output, first compare the changed `man/` files with the
+  branch's own `R/` changes. Output in files the branch did not touch is
+  attributed with `git log -S` on the changed text and is not committed with
+  the lane's work.
+- Trigger: on lane f8b, which changes no R code, `document()` rewrote 40 help
+  pages. 102 of its 109 hunks undid #1400, which edited `man/*.Rd` directly
+  while the roxygen comments in `R/` kept the old wording; the other 7 were
+  roxygen2 7.3.1 link and author artifacts (#1140). `2d29f9fe` had already
+  reverted one #1400 page on `main` this way.
+- Boundary: reader wording belongs in the roxygen source. Until the #1400
+  wording is ported into the 19 affected `R/` files, every `document()` run on
+  `main` reverts it.
