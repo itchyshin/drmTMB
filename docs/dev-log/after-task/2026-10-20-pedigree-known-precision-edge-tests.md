@@ -47,7 +47,10 @@ Assumptions without asking: none.
 - `git diff --check`: PASS.
 - After-task structure check: PASS. The closeout wrapper reaches the global
   Brain acceptance ledger and stops on nine unrelated unmet gates; those gates
-  were left untouched.
+  were left untouched. The earlier prose check reported 0 findings on the
+  previous wording; manual source review for this update caught and corrected
+  the overbroad asymmetry statement. No automated prose checker was available
+  for this revision.
 - The full package suite and current-candidate `R CMD check` were not run.
 
 ## 6. Tests of the Tests
