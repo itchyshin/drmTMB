@@ -8,10 +8,9 @@
 #' An installed package has no `.git` directory to consult, so the git
 #' commit SHA and working-tree dirty flag are never read at call time.
 #' Instead they are captured once, at build time, by
-#' `tools/drmtmb_provenance.R` (invoked from `configure`/`configure.win`
-#' before `inst/` is copied into the installed package) and baked into
-#' `inst/build-provenance.dcf`. `drm_provenance()` only reads that baked
-#' file. When it is missing -- for example under `devtools::load_all()`, or
+#' the package's configure step and stored with the installed package.
+#' `drm_provenance()` only reads that stored record. When it is missing -- for
+#' example under `devtools::load_all()`, or
 #' a build whose `configure` step did not run -- the git fields are `NA`
 #' with `source = "unavailable"` and a stated `reason`, rather than a guess.
 #' When `configure` ran but git information itself was unavailable at build

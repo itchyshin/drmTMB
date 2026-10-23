@@ -21,6 +21,7 @@ student_large_nu_par <- function(fit, beta_mu, log_sigma, eta_nu) {
 }
 
 test_that("student density at huge nu matches dt() and stays finite in the Hessian (#1462)", {
+  skip_on_cran()
   dat <- student_large_nu_data()
   fit <- drmTMB(
     bf(y ~ x, sigma ~ 1, nu ~ 1),
@@ -57,6 +58,7 @@ test_that("student density at huge nu matches dt() and stays finite in the Hessi
 })
 
 test_that("a Student fit of Gaussian data does not report a logLik above the Gaussian maximum (#1462)", {
+  skip_on_cran()
   dat <- student_large_nu_data()
   gauss <- drmTMB(
     bf(y ~ x, sigma ~ 1),

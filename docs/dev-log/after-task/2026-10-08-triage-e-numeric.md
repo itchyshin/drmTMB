@@ -41,7 +41,7 @@ Cross-family Julia axes each record the original rows their own `model.frame()` 
 - `tests/testthat/test-guard-branch-continuity.R`, `test-julia-diagnostics.R`
 - `docs/design/03-likelihoods.md`, `NEWS.md`, this report, `docs/dev-log/check-log.md`
 
-`src/drmTMB.cpp` and `R/methods.R` were not edited. The first two rounds did not edit `R/drmTMB.R`. The contrast round does, so C17 is recertified for that edit. The header edits are outside the C17 hash.
+`src/drmTMB.cpp` and `R/methods.R` were not edited. The first two rounds did not edit `R/drmTMB.R`. The contrast round does, so C17 was recertified with `--tolerance 1e-10`: worst `|change|` `1.322e-11` (mc-0569) on the original branch, and `|change|` 0 on all three cells after the 2026-10-18 rebase onto `main` (`--label pr-1504`). The header edits are outside the C17 hash.
 
 ## Checks
 
@@ -148,6 +148,28 @@ The rank check is `drm_aliased_columns(X, tol = 1e-10)`, not `qr()` at its defau
 Reader: someone who passes a character grouping column, not a factor, into a cross-family formula.
 
 `model.frame()` on this R keeps that column as character. The reference guard skipped it, subset the rows, and let `model.matrix()` build a new factor from what remained. With `g = c("a", "a", "b", "b", "c", "c")` and the `"a"` rows removed because `y1` is `NA`, the rebuilt column was `gc` and the baseline had moved from `a` to `b`. The same function now converts character and logical predictors with `factor()` on the full frame before the row subset, then runs the existing reference check. The response column is not converted. The character case errors and names level `"a"`.
+
+## Contrast helper: remaining drops (2026-10-18, lane a-L4)
+
+Reader: someone who sets contrasts on a factor that also has an unused level, then fits with `engine = "tmb"`.
+
+`drm_droplevels_keep_contrasts_factor()` still called bare `droplevels()` in two cases, and that call drops the contrasts. First, an ordered factor with a stored matrix such as `contr.treatment(4)` and one unused level went back to `contr.poly`. Second, a contrast name stored as a string (`contrasts(f) <- "contr.helmert"`) became treatment coding. Ordered factors now go through the same row subset as unordered ones. A stored name is written back as it is, so it is rebuilt on the levels that remain. A matrix whose remaining rows are not a contrast basis (`contr.sum(4)` on three levels) used to fall back to treatment coding with no message. It now gives the default coding plus a warning of class `drmTMB_contrasts_dropped`. `model.frame()` does the same when `lm()` drops a level. The cross-family route still refuses that case before this helper runs.
+
+`tests/testthat/test-factor-contrasts.R` has the #1495 reproduction (`set.seed(1)`, 30 rows, `contr.sum(3)`), which checks columns `g1`, `g2` and the estimates against `lm()` to 1e-6. It also tests the ordered matrix, the stored name, the warning, and a `drmTMB()` fit where `"contr.sum"` is set and one level is unused. Before the fix, 8 expectations failed. With the fix, all 17 pass. The change is in `R/julia-bridge.R` only. `R/drmTMB.R`, `R/methods.R`, `R/mi-weights.R` and `src/` were not edited, so C17 was not recertified.
+
+`devtools::document()` rewrote 38 `man/*.Rd` files back to their text from before #1400. That PR edited the `.Rd` files directly and did not change the roxygen sources (for example `R/formula-markers.R:137`). `origin/main` has the same drift. Those rewrites were not committed, because they would undo #1400. The roxygen sources need a separate fix.
+
+## Reviewer fixes (2026-10-18, lane a-L4)
+
+Reader: a reviewer checking that this PR adds no CRAN time and leaves no dead code behind.
+
+The eight `test_that()` blocks that fit a model now start with `skip_on_cran()`. There are two each in `test-factor-contrasts.R`, `test-log1mexp-ad.R`, `test-student-large-nu.R` and `test-julia-missing-alignment.R`. The other blocks in those files call pure-R helpers and still run everywhere. None of the four files is in the CRAN allowlist in `helper-cran-lane.R`, so the skips are a second fence and do not change what the CRAN lane runs.
+
+In `R/julia-bridge.R` the comment above the three rank-check helpers, which said to delete them after a rebase, is gone. So is the `exists("drm_abort_rank_deficient_designs")` branch in the cross-family rank check. That function is not defined on this branch or on `main`, so the branch never ran, and `exists()` would have picked up a user's global function of that name. A rank-deficient cross-family design now goes straight to the `drmTMB_rank_deficient_design` error. Open PR #1505 defines the same three helpers and `drm_abort_rank_deficient_designs()` in `R/drmTMB.R`. Whichever of #1504 and #1505 merges second must delete the copies in `R/julia-bridge.R`. That file is collated after `R/drmTMB.R`, so its copies would replace the others without a message.
+
+C17 does not pin `R/julia-bridge.R`, and `python3 tools/capability_ledger.py --check` stayed OK after the edit. `python3 tools/recertify-c17.py --label pr-1504 --tolerance 1e-10 --dry-run`, run on a copy of the edited tree, reproduced mc-0568, mc-0569 and mc-0576 with `|change|` 0. The receipt was not rewritten.
+
+With `NOT_CRAN=true` the four edited files pass 137 expectations. With `NOT_CRAN=false` each file skips exactly its two fitted blocks. The full suite ran on Totoro (R 4.6.1, TMB 1.9.25) as 452 files in nine processes: 3,303 tests, 49,146 passing expectations, 4 failures, 0 errors and 104 skips. Two failures came from the skip census, which the new skip sites made stale. `Rscript tools/write-env-skip-census.R` added the four `cran-lane` rows, and the census test then passed. The other two are `skip_fragile_recovery()` tests that CI skips: the Arc 1a REML spatial one-slope case, where the reference optimiser returns code 52, and the NB2 sigma mis-wire guard. Both fail the same way on the unpatched head `9c61c8246`. `test-numeric-kernel-oracle.R` passed on Totoro (19 tests, 392 expectations). It was not run on the Mac, where its one-row Tweedie case is reported to hang on `main` as well. `test-julia-tmb-parity.R` skips at file level when Julia is absent. `devtools::document()` again rewrote only the #1400 `.Rd` drift above (39 files this time) and nothing from this round. Those files were not committed.
 
 ## Known limitations
 

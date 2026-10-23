@@ -42,6 +42,7 @@ from __future__ import annotations
 import argparse
 import csv
 import datetime as _dt
+import re
 import shutil
 import subprocess
 import sys
@@ -85,6 +86,17 @@ def summary_by_cell(path: Path) -> dict[str, float]:
     }
 
 
+def preserved_output_path(kind: str, label: str) -> Path:
+    """Return an unused sibling path without nesting or overwriting a run."""
+    base = RUNNER_OUT.with_name(f"{RUNNER_OUT.name}.{kind}-{label}")
+    candidate = base
+    suffix = 2
+    while candidate.exists():
+        candidate = base.with_name(f"{base.name}-{suffix}")
+        suffix += 1
+    return candidate
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -97,6 +109,11 @@ def main() -> int:
                     help="run and verify, but do not rename or rewire")
     args = ap.parse_args()
 
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", args.label):
+        print("label must be a 1-64 character slug using letters, digits, '.', '_' or '-' "
+              "and starting with a letter or digit", file=sys.stderr)
+        return 2
+
     if not MANIFEST.is_file():
         print(f"manifest not found: {MANIFEST}", file=sys.stderr)
         return 2
@@ -107,12 +124,33 @@ def main() -> int:
     for c in CELLS:
         print(f"    {c}  mean_tau_relative_error {before[c]!r}")
 
-    if RUNNER_OUT.exists():
-        print(f"\nrefusing to run: {RUNNER_OUT.relative_to(ROOT)} already exists.\n"
-              "The runner hardcodes that directory; move or remove it first.",
+    # The runner hardcodes RUNNER_OUT, which is also the committed receipt, so
+    # park the committed folder beside it for the run and always put it back
+    # (issue #1591: refusing here made the tool unusable on every branch).
+    aside = RUNNER_OUT.with_name(RUNNER_OUT.name + ".pre-recertify")
+    if aside.exists():
+        print(f"\nrefusing to run: {aside.relative_to(ROOT)} already exists "
+              "(a previous run was interrupted).\n"
+              "Restore it over the run folder, or remove it, first.",
               file=sys.stderr)
         return 2
+    parked = RUNNER_OUT.exists()
+    if parked:
+        RUNNER_OUT.rename(aside)
+    try:
+        return _run_and_rewire(args, rows, before)
+    finally:
+        if RUNNER_OUT.exists():  # preserve partial output from a failed or interrupted run
+            failed = preserved_output_path("failed", args.label)
+            RUNNER_OUT.rename(failed)
+            print(f"partial runner output preserved at {failed.relative_to(ROOT)}",
+                  file=sys.stderr)
+        if parked:
+            aside.rename(RUNNER_OUT)
 
+
+def _run_and_rewire(args: argparse.Namespace, rows: list[dict],
+                    before: dict[str, float]) -> int:
     print(f"\nrunning {RUNNER} (~80 s) ...")
     subprocess.run(
         ["Rscript", "--no-init-file", RUNNER],
@@ -131,12 +169,14 @@ def main() -> int:
 
     worst = max(drift.values())
     if worst > args.tolerance:
+        rejected = preserved_output_path("rejected", args.label)
+        RUNNER_OUT.rename(rejected)
         print(
             "\nREFUSING TO REWIRE: the measured behaviour moved.\n"
             f"  worst |change| {worst:.3e} exceeds tolerance {args.tolerance:.3e}\n"
             "  This is the signal the guard exists for. Do NOT raise the tolerance to\n"
             "  make it pass -- investigate what changed model-15 behaviour. The new\n"
-            f"  receipt is left in place at {RUNNER_OUT.relative_to(ROOT)} for inspection.",
+            f"  receipt is left at {rejected.relative_to(ROOT)} for inspection.",
             file=sys.stderr,
         )
         return 1
@@ -144,13 +184,18 @@ def main() -> int:
     print(f"\nbehaviour reproduced within tolerance ({worst:.3e} <= {args.tolerance:.3e}).")
 
     if args.dry_run:
-        print(f"--dry-run: leaving {RUNNER_OUT.relative_to(ROOT)} in place, manifest untouched.")
+        shutil.rmtree(RUNNER_OUT)
+        print("--dry-run: fresh run folder discarded, committed receipt and manifest untouched.")
         return 0
 
     stamp = _dt.date.today().isoformat()
     dest = RUNNER_OUT.parent / f"{stamp}-{args.label}-c17c2-c14-final-source-compatibility"
     if dest.exists():
-        print(f"destination already exists: {dest.relative_to(ROOT)}", file=sys.stderr)
+        collision = preserved_output_path("collision", args.label)
+        RUNNER_OUT.rename(collision)
+        print(f"destination already exists: {dest.relative_to(ROOT)}; "
+              f"new runner output preserved at {collision.relative_to(ROOT)}",
+              file=sys.stderr)
         return 2
     shutil.move(str(RUNNER_OUT), str(dest))
     rel = dest.relative_to(ROOT).as_posix()
