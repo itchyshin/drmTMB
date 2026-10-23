@@ -18,6 +18,8 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 from response_mask_formula_inventory import build as build_response_mask_formula_inventory
 from response_mask_formula_inventory import render as render_response_mask_formula_inventory
 
@@ -2178,9 +2180,13 @@ def c14_model15_source_fingerprint() -> str:
     ))
   }
 '''
-    if c17_diagnostic not in r_source:
-        raise SystemExit("C17-B diagnostic normalization anchor is unavailable")
-    r_source = r_source.replace(c17_diagnostic, c14_diagnostic, 1)
+    # The response-mask lane removes this abort entirely (missing responses are
+    # then admitted for zero-one-beta random-effect gates). That is a real change
+    # to the model-15 spec builder, so the fingerprint must differ from the C14
+    # target and clear only through the C17 bridge after re-measuring; hence an
+    # absent block is not an error here, it simply is not normalized.
+    if c17_diagnostic in r_source:
+        r_source = r_source.replace(c17_diagnostic, c14_diagnostic, 1)
 
     def section(source: str, start: str, end: str, label: str) -> str:
         start_index = source.find(start)
