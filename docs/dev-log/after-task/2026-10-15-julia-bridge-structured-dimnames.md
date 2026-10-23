@@ -19,12 +19,13 @@ row i with the i-th group in that order and never sees names.
 aligned matrix; numeric ids; refusals; unlabelled warning. Pure R, no Julia.
 
 ## Review round (2026-10-16)
-- Levels come from the rows actually sent: both structured bridges
-  (`drmTMB_julia_structured_bridge`, `drmTMB_julia_biv_known_structured_bridge`)
-  now drop incomplete rows before the payload, as the non-structured bridge does
-  (#694). Previously a row dropped for `NA` left its group level in the
-  alignment. Side effect: the stored `data`/`nobs` of a structured Julia fit are
-  the complete cases, as for the non-structured route.
+- Levels come from the rows actually sent. After the rebase onto main (#1504)
+  the missing-data rule is main's: the structured bridge drops incomplete rows
+  through `drm_julia_drop_structured_missing()` and aborts if that would empty a
+  grouping level (#1454); the bivariate q2 bridge refuses incomplete rows. This
+  PR no longer drops rows itself, so the K / A alignment sees the levels of the
+  rows sent, and a lost level is an error rather than a shrunken matrix. The
+  stored `data`/`nobs` of a structured Julia fit are the complete cases.
 - The aligned matrix's row names cross as `K_labels` / `A_labels` with
   `structured_group` (`drm_julia_call_structured()` -> `drmTMB_drm_bridge_structured`),
   so DRModels.jl re-aligns by name or refuses (DRModels.jl#1068). Spatial

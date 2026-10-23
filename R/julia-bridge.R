@@ -7589,10 +7589,8 @@ drmTMB_julia_biv_known_structured_bridge <- function(
   # is the intended target. `new_drmTMB_julia()` still cross-checks the label
   # against the engine's own `estim_method` before the fit is called REML.
   reml_effective <- isTRUE(REML) && drm_julia_biv_q2_reml_supported(formula)
-  # response = "drop" is required above. Drop incomplete rows BEFORE the payload
-  # so the grouping levels the K / A matrix is aligned to are those of the rows
-  # actually sent (#1512), exactly as the non-structured bridge does (#694).
-  data <- drm_julia_drop_missing_rows(data, formula)
+  # Incomplete rows were refused above (#1454), so the rows sent are the rows
+  # the K / A matrix is aligned to (#1512); no row drop is needed here.
   payload <- drm_julia_biv_known_structured_payload(
     formula = formula,
     family_type = family_type,
@@ -7859,12 +7857,10 @@ drmTMB_julia_structured_bridge <- function(
   }
 
   family_tag <- drm_julia_structured_family_tag(family_type)
-  # As in the non-structured bridge (#694): with response = "drop", drop the
-  # incomplete rows before marshalling, so the K / A matrix is aligned to the
-  # grouping levels of the rows actually sent (#1512).
-  if (identical(missing_control$response, "drop")) {
-    data <- drm_julia_drop_missing_rows(data, formula)
-  }
+  # Under response = "drop" the incomplete rows were already dropped above by
+  # drm_julia_drop_structured_missing() (#1454), which aborts if a grouping level
+  # would be lost. The K / A matrix is therefore aligned (#1512) to the levels of
+  # the rows actually sent.
   payload <- drm_julia_structured_payload(
     formula = formula,
     family_type = family_type,
