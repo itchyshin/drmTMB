@@ -325,7 +325,7 @@ test_that("q2 MSPL uses the paper Cholesky coordinates and permits point output 
     stats::plogis(conditional_link),
     tolerance = 1e-12
   )
-  expect_s3_class(simulate(fit, nsim = 1L, seed = 8L, re.form = NULL), "data.frame")
+  expect_s3_class(simulate(fit, nsim = 1L, seed = 8L, re.form = NA), "data.frame")
   expect_error(logLik(fit), class = "drmTMB_mspl_inference_unsupported")
   expect_error(AIC(fit), class = "drmTMB_mspl_inference_unsupported")
   expect_error(BIC(fit), class = "drmTMB_mspl_inference_unsupported")

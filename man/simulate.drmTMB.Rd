@@ -4,7 +4,7 @@
 \alias{simulate.drmTMB}
 \title{Simulate from a fitted model}
 \usage{
-\method{simulate}{drmTMB}(object, nsim = 1, seed = NULL, re.form = NULL, ...)
+\method{simulate}{drmTMB}(object, nsim = 1, seed = NULL, re.form = NA, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -14,9 +14,11 @@
 \item{seed}{Optional random-number seed. The previous \code{.Random.seed} state
 is restored after simulation.}
 
-\item{re.form}{\code{NULL} (the default) draws fresh random effects for every
-replicate (marginal simulation). \code{NA} holds every random effect fixed at
-its fitted conditional-mode estimate (conditional simulation).}
+\item{re.form}{\code{NA} (the default) or \code{~0} draws fresh random effects for
+every replicate (marginal simulation). \code{NULL} holds every random effect
+fixed at its fitted conditional-mode estimate (conditional simulation).
+These meanings match \code{lme4::simulate.merMod()}; earlier drmTMB versions
+reversed them (see Details).}
 
 \item{...}{Reserved for future simulation options.}
 }
@@ -62,14 +64,14 @@ chi-squared scale-mixture draw per response pair together with the fitted
 shared \code{nu}; independent marginal t draws would be a different model.
 }
 \details{
-By default (\code{re.form = NULL}), models with ordinary grouped random effects
-draw a \strong{fresh} random-effect realization for every replicate, so
-replicate-to-replicate variability reflects both the between-group and the
-residual sources of variance (matching the lme4/glmmTMB \code{re.form}
-convention). Pass \code{re.form = NA} to simulate conditionally on the fitted
-random effects instead (holding every random effect fixed at its
-conditional-mode estimate, the behaviour this function had before
-\code{re.form} was added). Marginal simulation also redraws a single-endpoint
+\code{re.form} follows the \code{lme4::simulate.merMod()} convention. By default
+(\code{re.form = NA}, or equivalently \code{re.form = ~0}), models with ordinary
+grouped random effects draw a \strong{fresh} random-effect realization for every
+replicate, so replicate-to-replicate variability reflects both the
+between-group and the residual sources of variance. Pass \code{re.form = NULL}
+to simulate conditionally on the fitted random effects instead (holding
+every random effect fixed at its conditional-mode estimate). Marginal
+simulation also redraws a single-endpoint
 (\code{q == 1}) phylogenetic, spatial, relatedness-matrix (\code{relmat}),
 animal-model, or \code{phylo_interaction} structured \code{mu} random effect from its
 fitted covariance \code{sd^2 * Q^-1}. It does not yet support a structured mu
@@ -79,8 +81,14 @@ correlated covariance-block random effects, predictor-dependent
 random-effect correlation (\code{corpair}) regression, or a modelled
 (heteroscedastic) random-effect scale; \code{simulate()} throws an informative
 error naming the unsupported structure for those models and directs the
-user to \code{re.form = NA}. Models without random effects are unaffected by
+user to \code{re.form = NULL}. Models without random effects are unaffected by
 \code{re.form}.
+
+Earlier versions of drmTMB gave the explicit values the reverse meaning
+(\code{NULL} drew fresh random effects and \code{NA} held them fixed; #1487). The default output is
+unchanged, but code that passed \code{re.form} explicitly now runs the other
+simulation, so the first explicit \code{re.form} in a session prints a one-time
+message (class \code{drmTMB_re_form_semantics_message}).
 
 For a fit made with \code{missing = miss_control(response = "include")},
 \code{simulate()} returns \code{NA} at masked rows for every family, matching

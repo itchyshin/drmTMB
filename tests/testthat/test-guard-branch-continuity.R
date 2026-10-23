@@ -229,10 +229,89 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # A3 response-kernel parity brings drm_response_kernels.h to four
   # shape-floor guards: two for beta and two for beta-binomial. These mirror
   # the already-audited beta_shape_floor C0 contract below.
-  expect_equal(n_cpp, 30L)
-  expect_equal(n_numeric, 5L)
+  #
+  # #1472 adds two argument clamps inside drm_log1mexp() and two inside
+  # drm_log1p_nonnegative(), so each unselected branch stays finite. The
+  # selected value is unchanged; continuity at the existing switch points
+  # is still the paired check below, and the Hessian at the cloglog and
+  # truncated-NB edge is test-log1mexp-ad.R. n_numeric is therefore 9L.
+  # #1462 adds four clamps in drm_student_log_density() (the lgamma branch,
+  # the Stirling branch, the switch, and the kernel cap). Value continuity
+  # across nu = 1e4 is test-student-large-nu.R. n_response is therefore 8L.
+  #
+  # #1476 / #1477 drop the two IS s_floor CondExps and add Newton clamps
+  # in drm_gamma_mi_adaptive_quadrature (mu floor, Hessian floor, two
+  # step clamps, and -H floor). Five steps, no data-dependent stop.
+  # Weight 0 stays a data-level `if (asDouble(weights(i)) > 0)`.
+  #
+  # #1477 (round 5) replaces the Gauss-Hermite node rule with a sinh-mapped
+  # trapezoid and makes each of the five Newton steps a safeguarded choice
+  # between the clamped log-x step and a Newton step on G(x) = g / x. That
+  # adds ten CondExp sites to drm_gamma_mi_adaptive_quadrature: the (H - g)
+  # floor, the ratio floor, two log-step clamps, two validity selects, two
+  # non-finite-loses floors on the candidate log integrands, the candidate
+  # select, and the node clamp u_q <= 500. Dropping the w*cosh weight on a
+  # capped node adds one more CondExp, so n_cpp is 46L. The paired checks
+  # are the next two tests: a step-B fallback row and an overflow row that
+  # also asserts the capped terms are zeroed.
+  expect_equal(n_cpp, 46L)
+  expect_equal(n_numeric, 9L)
   expect_equal(n_count, 1L)
-  expect_equal(n_response, 4L)
+  expect_equal(n_response, 8L)
+})
+
+# ---------------------------------------------------------------------------
+# Site: drm_gamma_mi_adaptive_quadrature Newton clamps.
+# Class: C0 floor. Tiny CV would send the posterior Hessian toward 0.
+# Five Newton steps stay on the tape; CondExp clamps the step and -H.
+# ---------------------------------------------------------------------------
+test_that("Gamma adaptive GH Newton clamps keep nodes finite at tiny CV", {
+  z <- 0
+  w <- 1
+  gamma_tiny <- drmTMB:::drm_gamma_mi_adaptive_nodes(
+    z, w, mu = 10, sigma = 1e-12, response = "none"
+  )
+  expect_true(is.finite(gamma_tiny$x))
+  expect_true(all(is.finite(gamma_tiny$log_terms)))
+  expect_gt(gamma_tiny$x, 0)
+})
+
+# ---------------------------------------------------------------------------
+# Site: drm_gamma_mi_adaptive_quadrature step B (Newton on G(x) = g / x).
+# Class: C0 selection. When H - g >= 0 or the ratio is not positive, step B
+# is invalid and step A is used; when both are valid the better log integrand
+# wins. Poisson with beta_x < 0 and a response that wants x < 0 sends the
+# ratio negative on the first steps, so the fallback runs on the tape.
+# ---------------------------------------------------------------------------
+test_that("Gamma Newton step B falls back to step A when its ratio is invalid (#1477)", {
+  quad <- drmTMB:::drm_gamma_mi_quadrature()
+  nodes <- drmTMB:::drm_gamma_mi_adaptive_nodes(
+    quad$nodes, quad$weights, mu = 100, sigma = 0.5,
+    y = 10, mu_y = 1.2, sigma_y = 1, beta_x = -0.05, x_base = 0,
+    response = "poisson"
+  )
+  expect_true(is.finite(drmTMB:::drm_logsumexp(nodes$log_terms)))
+  ref <- drm_gamma_mi_reference_loglik(
+    10, 1.2, 1, -0.05, 0, 100, 0.5, response = "poisson"
+  )
+  expect_lt(
+    abs(drmTMB:::drm_logsumexp(nodes$log_terms) - log(ref)),
+    1e-4
+  )
+})
+
+# Site: u_q clamp at 500 in the node placement. Class: C0 floor. A huge prior
+# mean with a flat curvature floor (-H -> 1e-8) would send exp(u_q) to Inf.
+# The clamped node keeps a finite x; the log-term is dropped so the full
+# w*cosh weight is not used at the cap.
+test_that("Gamma node clamp keeps x finite at a huge prior mean (#1477)", {
+  quad <- drmTMB:::drm_gamma_mi_quadrature()
+  nodes <- drmTMB:::drm_gamma_mi_adaptive_nodes(
+    quad$nodes, quad$weights, mu = 1e200, sigma = 2, response = "none"
+  )
+  expect_true(all(is.finite(nodes$x)))
+  expect_true(all(is.finite(nodes$log_terms)))
+  expect_true(any(nodes$log_terms <= -1e299))
 })
 
 # ---------------------------------------------------------------------------
@@ -495,54 +574,29 @@ test_that("prior_norm floor: REPORT(mi_x_full) stays finite and continuous as pr
       optimizer = list(eval.max = 1, iter.max = 1)
     )
   ))
-  mp <- fit$model$missing_predictor
-  nodes <- mp$quad_nodes
-  weights <- mp$quad_weights
   target_row <- both_missing[[1]]
-  z_row <- dat$z[[target_row]]
-
   par0 <- fit$obj$par
-  beta_mi_idx <- which(names(par0) == "beta_mi")
   log_sigma_mi_idx <- which(names(par0) == "log_sigma_mi")
-  b0 <- unname(par0[beta_mi_idx[[1]]])
-  bz <- unname(par0[beta_mi_idx[[2]]])
 
-  # Mirror of the C++ prior_norm computation (src/drmTMB.cpp:1419-1432),
-  # used only to LOCATE the crossing coefficient; the actual continuity
-  # assertion below reads TMB's own REPORT(mi_x_full), not this mirror.
-  prior_norm_r <- function(log_sigma_mi) {
-    eta <- b0 + bz * z_row
-    eps <- 1e-12
-    mu <- eps + (1 - 2 * eps) * stats::plogis(eta)
-    phi <- 1 / exp(log_sigma_mi)^2
-    floor_ <- 1e-8
-    alpha <- pmax(mu * phi, floor_)
-    beta_ <- pmax((1 - mu) * phi, floor_)
-    log_dens <- lgamma(alpha + beta_) - lgamma(alpha) - lgamma(beta_) +
-      (alpha - 1) * log(nodes) + (beta_ - 1) * log(1 - nodes)
-    sum(weights * exp(log_dens))
-  }
-  root_fn <- function(ls) log(prior_norm_r(ls) + 1e-320) - log(1e-300)
-  target <- stats::uniroot(root_fn, c(-20, 5), tol = 1e-10)$root
-
-  # This region is hyper-exponentially steep in log_sigma_mi (the underlying
-  # beta density concentrates), so a coarse fixed-width grid can straddle the
-  # whole 0 -> nonzero transition inside a single step and look like a jump
-  # when it is not one. Zoom to a window narrow enough to resolve it: a real
-  # discontinuity stays a hard 2-level step no matter how much the grid is
-  # refined, whereas a steep-but-smooth transition resolves into a continuum
-  # of intermediate values.
-  win <- 0.035
-  grid <- seq(target - win, target + win, length.out = 41)
+  # Restored 15-node Gauss-Legendre: sweep log_sigma_mi and read
+  # REPORT(mi_x_full). The plug-in mean must stay finite and must not
+  # jump between two values when the 1e-300 prior_norm floor engages.
+  grid <- seq(-8, 2, length.out = 41)
   reported <- vapply(grid, function(ls) {
     par <- par0
     par[log_sigma_mi_idx] <- ls
     fit$obj$report(par)$mi_x_full[[target_row]]
   }, numeric(1))
   expect_true(all(is.finite(reported)))
-  expect_true(all(diff(reported) >= -1e-12)) # monotone in this window, no oscillation
+  # Tiny sigma underflows every 15-node term, so the 1e-300 floor
+  # returns 0. After the floor releases, the plug-in mean is a
+  # continuum in (0, 1), not a two-level step.
+  released <- reported[reported > 0]
+  expect_true(all(released > 0 & released < 1))
+  expect_gt(length(released), 20)
+  expect_lt(max(abs(diff(released))), 0.05)
   n_interior <- sum(reported > min(reported) + 1e-15 & reported < max(reported) - 1e-15)
-  expect_gt(n_interior, 10) # a real continuum of intermediate values, not a 2-level step
+  expect_gt(n_interior, 10)
 })
 
 # ---------------------------------------------------------------------------
