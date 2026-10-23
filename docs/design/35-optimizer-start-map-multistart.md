@@ -2,10 +2,9 @@
 
 ## Purpose
 
-`drmTMB` currently exposes optimizer controls through `drm_control()` and passes
-them to `stats::nlminb()`. Slice 80 records the stricter contract needed before
-the package exposes user starts, fixed parameters, fallback optimizers, or
-multi-start fitting.
+`drmTMB` exposes optimizer selection and controls through `drm_control()`.
+The selected optimum must drive every reported estimate and interval. The
+dated design sections below retain the decisions that led to the public API.
 
 The central invariant is simple:
 
@@ -20,7 +19,28 @@ must re-pin that object to `fit$opt$par` before launching a profile.
 
 ## Current Public Contract
 
-The only public optimizer entry point is:
+As of 18 October 2026, `optimizer_method` selects `"nlminb"` (the default),
+`"BFGS"`, `"L-BFGS-B"`, `"Nelder-Mead"`, or `"CG"`. Direct `optim()` methods
+run without first trying `nlminb()` and accept their own controls through
+`optimizer = list(...)`, with `maxit = 1000L` unless overridden. A direct
+method requires the default preset and `fallback_optimizer = NULL`. Unknown
+or method-incompatible controls are rejected, as are nonpositive `fnscale`
+and misplaced bounds. No public box-bound interface is added.
+
+The method is recorded in `optimizer_used$optimizer` and
+`optimizer_attempts$optimizer`. Evaluation counts are retained; iteration
+counts from `optim()` remain unavailable. Public labelled `start`,
+reproducible `multi_start`, parallel starts, and optional Newton polishing
+apply to the selected method. Profile endpoint refits retain separate
+`nlminb()` controls. Julia routes reject these native controls.
+
+`fallback_optimizer` remains the opt-in method tried after unsuccessful
+`nlminb()` attempts. `start_from` and raw TMB maps remain unsupported.
+See `?drm_control` and the convergence article for executable syntax.
+
+### Earlier nlminb preset contract
+
+The original public optimizer entry point was:
 
 ```r
 control = drm_control(

@@ -17,7 +17,7 @@ latent_normal <- function() {
 #'
 #' `associate_pairs()` estimates a named within-row association after fitting
 #' two marginal models. It never refits, updates, profiles, or otherwise alters
-#' either margin. The reviewed Arc 6 slices implement fixed-effect Gaussian
+#' either margin. Supported pairs include fixed-effect Gaussian
 #' margins paired with literal Bernoulli `binomial(link = "logit")` or ordinary
 #' `nbinom2()` margins, literal Bernoulli paired with ordinary `nbinom2()`,
 #' two literal Bernoulli margins, and two ordinary `nbinom2()` margins, on the
@@ -29,9 +29,10 @@ latent_normal <- function() {
 #' The stage-2 Hessian treats the margins as fixed and is not used for
 #' uncertainty. For every admitted pair route, [vcov()] and [confint()] instead
 #' use a two-stage Godambe covariance that propagates fitted-margin uncertainty
-#' when the fit-specific calculation succeeds. These alpha-scale routes are
-#' interval-feasible. The retained Bernoulli x ordinary-NB2 intercept campaign
-#' supports the stronger inference-ready-with-caveats tier. Intercept-only
+#' when the fit-specific calculation succeeds. These alpha-scale intervals are
+#' computable, but their coverage has not been measured for every supported pair.
+#' For the Bernoulli x ordinary-NB2 intercept-only model, simulation supports
+#' interval use with caveats. Intercept-only
 #' associations also expose bounded eta intervals through
 #' `confint(object, type = "eta")`; [predict.drm_pair_association()] supplies
 #' delta-method eta standard errors and pointwise transformed intervals.
@@ -39,9 +40,9 @@ latent_normal <- function() {
 #'
 #' @param fit_1,fit_2 Two fitted `drmTMB` marginal models. They must use the
 #'   identical complete analysis data, in the same order.
-#' @param kernel A named association kernel. Arc 6 accepts only
+#' @param kernel A named association kernel. The current implementation accepts only
 #'   `latent_normal()`.
-#' @param association Association formula. Most Arc 6 pair classes accept only
+#' @param association Association formula. Most supported pair classes accept only
 #'   `~ 1`. The beta Bernoulli x ordinary-NB2 route accepts an intercept-bearing
 #'   fixed-effect formula, including multiple predictors, factors,
 #'   interactions, and explicit transformations. Random effects, offsets,
@@ -268,7 +269,7 @@ associate_pairs <- function(
 
 #' Fit two margins and construct a frozen-margin association in one call
 #'
-#' `biv_associate()` is the convenience front end for the reviewed Arc 6
+#' `biv_associate()` is the convenience front end for the supported
 #' frozen-margin route. It fits two univariate margins to the supplied data and
 #' then calls [associate_pairs()] without refitting either margin. It is one R
 #' call, but it is not a jointly fitted bivariate model: stage 2 treats the fitted
@@ -286,8 +287,8 @@ associate_pairs <- function(
 #' @param family A two-element list of marginal family objects.
 #' @param data A data frame containing both responses and every predictor used
 #'   by either margin.
-#' @param kernel Association kernel. Arc 6 accepts only [latent_normal()].
-#' @param association Association formula. Most Arc 6 pair classes accept only
+#' @param kernel Association kernel. The current implementation accepts only [latent_normal()].
+#' @param association Association formula. Most supported pair classes accept only
 #'   `~ 1`, which estimates one constant association parameter. The beta
 #'   Bernoulli x ordinary-NB2 route accepts an intercept-bearing fixed-effect
 #'   model-matrix formula, including multiple predictors, factors,

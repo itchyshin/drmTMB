@@ -154,7 +154,26 @@ revisit condition.
   `miss_control(predictor = "model")` fits one explicit `mi()` missing
   predictor at a time in univariate Gaussian location models, with fixed-effect
   family-aware predictor models plus the grouped and structured Gaussian
-  covariate routes. Poisson, binomial, NB2, and beta response models separately
+  covariate routes.   Beta and zero-one-Beta `mi()` use the frozen 15-node
+  Gauss-Legendre rule; U-shaped Beta (`mu` 0.02 or 0.10 with `sigma = 1`)
+  still has an `integrate()` logLik error of about `1.64e-2` (refs #1476).
+  The worse U-shaped case with Beta shapes `(0.13, 0.31)` and `y` near
+  the 0 pole is about `0.54` log units (#1531 cites `1.6e-2`, which
+  understates that pole case). A successful TMB fit now warns with
+  class `drmTMB_mi_quadrature_inaccurate` when any `mi()` term's
+  estimated missing-row Beta / zero-one-Beta prior mean is within
+  `0.10` of 0 or 1 (15-node error `4.65e-3` at `mu = 0.10`, `sigma = 1`
+  and `4.81e-3` at `mu = 0.02`, `sigma = 1`). Gamma `mi()` uses a posterior-mode
+  sinh-mapped trapezoid rule on `log(x)` at every CV. Against a log-space
+  `integrate()` reference the per-row logLik error is under `1e-4` for
+  Gaussian responses at CV 0.05 to 2 (worst `2.5e-5`, near the mode at
+  CV 2) and for Poisson responses at CV 0.2 to 2 with `y` = 0, 1, 4, 30.
+  Still open (refs #1477): CV `>= 3` (12% of an 80-row random `(mu, y)`
+  scan exceed `1e-4`, worst `1.47`; the same classed warning fires at
+  fitted CV `>= 3`),
+  and a Poisson response whose mean at the prior mean is far above `y`
+  (`exp(eta)` at `x = mu` of about `1e3` or more), where five Newton steps
+  stop short of the mode; twelve steps recover the moderate cases. Poisson, binomial, NB2, and beta response models separately
   support one fixed-effect binary `mi()` predictor when the response is
   complete. Beta-binomial masking requires a complete success/failure pair per
   observed row; cumulative-logit masking requires an ordered factor and every
