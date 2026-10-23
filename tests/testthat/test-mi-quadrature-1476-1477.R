@@ -534,6 +534,49 @@ test_that("quadrature inaccuracy warning watches the second mi() term", {
   ))
 })
 
+# Refs #1532: the accuracy guard used to drop a non-finite Beta mean and
+# skip a non-finite Gamma log CV or CV, so the fit returned with no signal.
+test_that("quadrature accuracy guard errors on a non-finite Beta missing-row mean", {
+  term <- mi_enabled_term("beta", "x", mu = 0.5)
+  for (bad in c(NA_real_, NaN)) {
+    par <- mi_inaccurate_par(term)
+    par$beta_mi <- bad
+    expect_error(
+      drmTMB:::drm_warn_mi_quadrature_inaccurate(mi_inaccurate_spec(term), par),
+      class = "drmTMB_mi_quadrature_guard_nonfinite"
+    )
+  }
+})
+
+test_that("quadrature accuracy guard errors on a non-finite Gamma log CV", {
+  term <- mi_enabled_term("gamma", "x", mu = 10, cv = 0.5)
+  for (bad in c(NA_real_, NaN, Inf, -Inf)) {
+    par <- mi_inaccurate_par(term)
+    par$log_sigma_mi <- bad
+    expect_error(
+      drmTMB:::drm_warn_mi_quadrature_inaccurate(mi_inaccurate_spec(term), par),
+      class = "drmTMB_mi_quadrature_guard_nonfinite"
+    )
+  }
+  first <- mi_enabled_term("gaussian", "x1", mu = 0, cv = 0.4)
+  par <- mi_inaccurate_par(first, term)
+  par$log_sigma_mi2 <- NaN
+  expect_error(
+    drmTMB:::drm_warn_mi_quadrature_inaccurate(mi_inaccurate_spec(first, term), par),
+    class = "drmTMB_mi_quadrature_guard_nonfinite"
+  )
+})
+
+test_that("quadrature accuracy guard errors when the Gamma CV overflows", {
+  term <- mi_enabled_term("gamma", "x", mu = 10, cv = 0.5)
+  par <- mi_inaccurate_par(term)
+  par$log_sigma_mi <- 710
+  expect_error(
+    drmTMB:::drm_warn_mi_quadrature_inaccurate(mi_inaccurate_spec(term), par),
+    class = "drmTMB_mi_quadrature_guard_nonfinite"
+  )
+})
+
 test_that("a live drmTMB() two-mi fit warns when the second term is inaccurate", {
   skip_on_cran()
   # Two live mi() terms are Gaussian+Gaussian. Relabel the fitted second

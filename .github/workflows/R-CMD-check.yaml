@@ -145,6 +145,7 @@ jobs:
           python3 -m unittest tools/tests/test_b4_ci_guard.py
           python3 -m unittest tools/tests/test_b4_ci_c1.py
           python3 -m unittest tools/tests/test_profile_truth_gate.py
+          python3 -m unittest tools/tests/test_recertify_c17.py
           Rscript --no-init-file tools/emit-profile-truth-manifest.R --check
           Rscript --no-init-file tools/check-capability-runtime.R
 
