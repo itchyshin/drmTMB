@@ -50,7 +50,7 @@ At initial reconciliation, the PR branch was 30 commits behind `main` at `2fb93b
 
 ## 10. Known Residuals
 
-These tests characterize current validators; they do not establish a validation-policy change. GitHub run `39887324310` completed successfully on exact prior head `ef77e158...`, with all six jobs passing. The current isolated branch also merges live `main` `12ec50f...` without conflicts, but that resulting commit has not completed its own checks. The PR remains draft; no merge or release claim is made.
+These tests characterize current validators; they do not establish a validation-policy change. GitHub run `39887324310` completed successfully on exact prior head `ef77e158...`, with all six jobs passing. The current PR head `4b5b365e...` includes a conflict-free merge of live `main` `12ec50f...`. Run `39894191617` is queued on that head for the OS matrix and source-tree tests; it has not completed. No full package check is recorded on this main-synced candidate. The PR remains draft; no merge or release claim is made.
 
 ## 11. Team Learning
 
@@ -62,4 +62,4 @@ This change covers the native R `meta-vcov` tests and validators. It does NOT co
 
 ## Next Actions
 
-The isolated candidate is on local branch `codex/refresh-pr1600`, now at merge commit `37ef40ad0309bf913056816b25d939394986e2a4`. It contains current `main` `12ec50f82d7bff1459756d79005321423f0c4e35` and the test-only PR change; conflict resolution was unnecessary. Run `39887324310` passed all six jobs on prior exact head `ef77e158...`. The current isolated head has not been pushed or checked; publish this reconciled candidate and wait for its exact-head checks before considering merge.
+The isolated candidate is on local branch `codex/refresh-pr1600`; the current remote PR head is `4b5b365e1c30262cbb471ed3aba1e5ca41216d08`. It includes merge commit `37ef40ad0309bf913056816b25d939394986e2a4`, which joined evidence commit `18451c06...` to live `main` `12ec50f...` without conflicts. Run `39887324310` passed all six jobs on prior exact head `ef77e158...`. Run `39894191617` is queued on current head `4b5b365e...`; wait for those jobs before considering merge.
