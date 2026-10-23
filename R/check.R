@@ -202,7 +202,7 @@ check_drm <- function(object, ...) {
 #' Set `include_hessian = TRUE` when the next step needs Wald-style
 #' uncertainty. In that mode, `is_converged()` also requires a
 #' positive-definite Hessian on top of the default
-#' [convergence_status()] gate. A native fit reads [TMB::sdreport()]
+#' [convergence_status()] requirements. A native fit reads [TMB::sdreport()]
 #' `pdHess`. An `engine = "julia"` fit has no `sdreport` object; it
 #' requires the coefficient covariance stored on the fit (`vcov()`) to
 #' be finite and positive definite. A legacy cross-family Julia fit does

@@ -39,15 +39,14 @@ uncertainty diagnostics are degenerate; use \code{\link[=check_drm]{check_drm()}
 Set \code{include_hessian = TRUE} when the next step needs Wald-style
 uncertainty. In that mode, \code{is_converged()} also requires a
 positive-definite Hessian on top of the default
-\code{\link[=convergence_status]{convergence_status()}} requirements. A native fit reads
-\code{\link[TMB:sdreport]{TMB::sdreport()}} \code{pdHess}. An \code{engine = "julia"} fit has no
-\code{sdreport} object; it requires the coefficient covariance stored on the
-fit (\code{vcov()}) to be finite and positive definite. A legacy cross-family
-Julia fit does not store that covariance, so \code{include_hessian = TRUE}
-returns \code{FALSE}. A fit can therefore be \code{"converged"} while still
-returning \code{FALSE} with \code{include_hessian = TRUE}; this marks an
-inference-readiness problem, not automatic proof that point estimates are
-unusable.
+\code{\link[=convergence_status]{convergence_status()}} requirements. A native fit reads \code{\link[TMB:sdreport]{TMB::sdreport()}}
+\code{pdHess}. An \code{engine = "julia"} fit has no \code{sdreport} object; it
+requires the coefficient covariance stored on the fit (\code{vcov()}) to
+be finite and positive definite. A legacy cross-family Julia fit does
+not store that covariance, so \code{include_hessian = TRUE} returns \code{FALSE}.
+A fit can therefore be \code{"converged"} while still returning \code{FALSE}
+with \code{include_hessian = TRUE}; this marks an inference-readiness
+problem, not automatic proof that point estimates are unusable.
 
 Use \code{\link[=check_drm]{check_drm()}} when you need the full diagnostic table and messages.
 }
