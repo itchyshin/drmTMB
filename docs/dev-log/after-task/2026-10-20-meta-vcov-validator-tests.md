@@ -64,10 +64,17 @@ This change covers the native R `meta-vcov` tests and validators. It does NOT co
 
 The isolated candidate is on local branch `codex/refresh-pr1600`; the current remote PR head is `4b5b365e1c30262cbb471ed3aba1e5ca41216d08`. It includes merge commit `37ef40ad0309bf913056816b25d939394986e2a4`, which joined evidence commit `18451c06...` to live `main` `12ec50f...` without conflicts. Run `39887324310` passed all six jobs on prior exact head `ef77e158...`. Run `39894191617` is queued on current head `4b5b365e...`; wait for those jobs before considering merge.
 
-## Current-head follow-up (2026-10-23)
+## Earlier current-head follow-up (2026-10-23, 08:12 UTC; historical)
 
 The earlier sections above preserve the receipts and next actions recorded for their then-current PR heads. At 2026-10-23 08:12 UTC, the live PR head was `f76fe80ad17c7c130206f35fe69a188df7a9dae5`. The PR still targeted `main` at base SHA `12ec50f82d7bff1459756d79005321423f0c4e35`; live `main` was `8f550660ba011db5f880588d1e1976cc345d682f`. The head was 18 commits behind `main`. The PR's three changed paths did not overlap paths changed on `main`, `git merge-tree --write-tree origin/main refs/remotes/origin/pr1600-head` returned clean tree `2ac2968f70b05fe0de42c822ca2c5b9316e191d1`, and GitHub reported the PR mergeable. No sync commit was pushed.
 
 I reran the focused tests from an isolated checkout at exact head `f76fe80ad17c7c130206f35fe69a188df7a9dae5` with `R_PROFILE_USER=/dev/null` and `--no-init-file`, using `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::test(filter = "meta-vcov")'`. The output was 94 passed, 0 failures, 0 warnings, and 0 skips. The console transcript is `/private/tmp/drmtmb-pr1600-meta-vcov-20261023.log`, SHA-256 `609d8457177394d66f07f4bde174c4f160e6f8e91a2932f8dee70a9b71887b20`. The output also states that no live Julia bridge tests ran. The run covered the focused validator tests. No full package test or `R CMD check` ran.
 
 At 08:12 UTC, exact-head GitHub Actions run #3573 (`39896251857`) was still queued. It has not passed in the evidence recorded here. Scope: validator characterization only. Recovery, interval availability, interval calibration, and coverage remain untested. The PR remained open and draft; no merge or readiness claim is made. The current record edits pass `git diff --check`, the after-task structure check, the one-row check-log parser, and the prose checker (0 findings).
+
+
+## Current-head follow-up (2026-10-23, 14:10 UTC)
+
+The refreshed PR candidate is exact head `7a5802db34316e2987eb42aaca9f40633f499195`, based on current `main` `16647cdc2a426e669faa4c750abaddd5a0935d89`. The focused test was run against this source with `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::test(filter = "meta-vcov")'`: 94 passed, 0 failed, 0 warnings, and 0 skips. The transcript is `/private/tmp/drmtmb-pr1600-current-main-focused.log`, SHA-256 `cd9c51fb95cd25682a4b5a1f1d629ee632185e71184656c4afdd195e116b0a3a`. The output reports that no live Julia bridge tests ran.
+
+Exact-head GitHub Actions run #3578 (`39966079139`) was queued at the latest check; it is pending, not passed. The earlier run #3575 (`39923323372`) was queued for prior head `0164c0800aec807d94be5dc7636e429b994b0e7d` and does not certify this candidate. The current focused test does not establish a full package test or `R CMD check`; no recovery, interval availability, calibration, or coverage claim is made. The record-only follow-up requires fresh checks on the resulting commit as well. The PR body was not updated because the GitHub connector returned 403 for an authorized PR-body update and alternate routes were explicitly disallowed. The PR remains open and unmerged.
