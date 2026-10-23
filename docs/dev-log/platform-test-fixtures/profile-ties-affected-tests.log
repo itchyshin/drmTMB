@@ -1,0 +1,31 @@
+optimizer-selection-downstream: ..............................................................................
+phase18-count-mu-random-effect-pilot: .......................
+profile-interpolation-ties: ...........
+profile-targets: ..........................................................................................................................................................................................................`simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+.....................................................................................................................................................................................................................................................................................................................................................................................................WWWWWW...........................................................................................................................................................................................................................................................................................................................................................................................................
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. profile target inventory covers bivariate sd_phylo coefficients ('test-profile-targets.R:2879:3') - `sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+
+2. profile target inventory covers bivariate sd_phylo coefficients ('test-profile-targets.R:2879:3') - `sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+
+3. profile target inventory covers bivariate sd_phylo coefficients ('test-profile-targets.R:2879:3') - `sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+
+4. profile target inventory covers bivariate sd_phylo coefficients ('test-profile-targets.R:2879:3') - `sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+
+5. profile target inventory covers bivariate sd_phylo coefficients ('test-profile-targets.R:2879:3') - `sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+
+6. profile target inventory covers bivariate sd_phylo coefficients ('test-profile-targets.R:2879:3') - `sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

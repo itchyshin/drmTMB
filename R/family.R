@@ -74,10 +74,10 @@ biv_lognormal <- function() {
 #' fitted transform enforces `nu > 2`; its marginal standard deviations are
 #' `sigma_j * sqrt(nu / (nu - 2))`.
 #'
-#' The first implementation allows fixed effects in `mu1` and `mu2`, with
+#' The current model allows fixed effects in `mu1` and `mu2`, with
 #' intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. Random effects,
 #' parameter predictors outside the locations, missing response pairs, and
-#' interval inference are deferred.
+#' interval inference are not supported.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -124,9 +124,8 @@ biv_student <- function() {
 #' approaches the boundary at 2, where the slant of the likelihood in `nu` is
 #' weakly identified.
 #' Ordinary `mu` random intercepts and independent numeric slopes such as
-#' `(1 | id)` and `(0 + x | id)` are supported in the first Student-t
-#' mixed-model slice; correlated slopes, `sigma` random effects, and `nu`
-#' random effects remain separate planned gates.
+#' `(1 | id)` and `(0 + x | id)` are supported. Correlated slopes,
+#' `sigma` random effects, and `nu` random effects are not supported.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -194,12 +193,13 @@ skew_normal <- function() {
 #' `log(y) ~ Normal(mu, sigma^2)`. The fitted distributional parameter `mu` is
 #' therefore the mean of `log(y)`, not the arithmetic mean of `y`.
 #' Ordinary `mu` random intercepts such as `(1 | id)` are supported in the
-#' first positive-continuous mixed-model slice; the independent numeric slope
+#' current positive-continuous mixed model; the independent numeric slope
 #' `(0 + x | id)` also fits but is a recovery-grade route only (trust the
 #' point estimate, not the interval). One complete-data ordinary unlabelled
-#' correlated intercept-slope block `(1 + x | id)` is also fitted at
-#' `point_fit_recovery` (`mc-0720`) under the design-17 map for group-level
-#' `sd0`, `sd1`, and `rho_re` (never residual `rho12`).
+#' correlated intercept-slope block `(1 + x | id)` is also supported. Only its
+#' point-estimate recovery has been checked; do not treat its intervals as
+#' coverage-validated. It estimates group-level `sd0`, `sd1`, and `rho_re`
+#' (never residual `rho12`).
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -387,14 +387,14 @@ drm_eval_family_arg <- function(expr, env) {
 #' `fitted()` returns the unconditional response mean
 #' `(1 - zoi) * mu + zoi * coi`. Ordinary unlabelled random intercepts and
 #' independent numeric slopes such as `(1 | id)` and `(0 + x | id)` may enter
-#' `mu`. The point-fit-only q1 gates additionally admit one ordinary
+#' `mu`. Point-estimate-only support additionally includes one ordinary
 #' intercept-only random effect in `sigma`, `zoi`, or `coi`, separately, plus
 #' one ordinary slope-only effect in any one of those parameters when the fixed
 #' and random terms use the same raw symbol. Examples are
 #' `zoi ~ x + (0 + x | id)` and `coi ~ x + (0 + x | id)`. The exact `coi`
 #' admissions are that slope form and `coi ~ 1 + (1 | id)`, both with fixed
-#' `sigma ~ 1` and `zoi ~ 1`. All of these routes carry point-fit recovery
-#' evidence only. The two `sigma` routes now admit direct profiling, so
+#' `sigma ~ 1` and `zoi ~ 1`. All of these routes have point-estimate
+#' recovery evidence only. The two `sigma` routes now admit direct profiling, so
 #' `confint(method = "profile")` reaches their SD target; that makes an
 #' interval computable, not calibrated, and no interval, coverage, or broader
 #' recovery claim is established for them. For the `zoi` and `coi` routes,
@@ -446,13 +446,13 @@ zero_one_beta <- function() {
 #' follow `Binomial(trials_i, p_i)`. Larger `sigma` means more extra-binomial
 #' variation around the mean probability.
 #'
-#' The first mixed-model slice supports ordinary `mu` random intercepts and
+#' Mixed-model support includes ordinary `mu` random intercepts and
 #' independent numeric slopes such as
 #' `bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id),
 #' sigma ~ z)`. Correlated slopes, labelled covariance blocks, `sigma` random
 #' effects, `zoi`/`coi`, `meta_V(V = V)`, phylogenetic or spatial terms,
 #' bivariate beta-binomial models, and a `successes/trials` response alias are
-#' planned but not implemented.
+#' not implemented.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -550,12 +550,13 @@ cumulative_logit <- function() {
 #' extra-Poisson variation. Internally this is equivalent to the usual NB2
 #' size parameter `size = 1 / sigma^2`. Ordinary non-zero-inflated NB2 models
 #' also support one complete-data unlabelled `(1 + x | id)` ML-Laplace
-#' correlated intercept-slope block on the log-mean (`mc-0719`), and
-#' first-slice random intercepts on the log-`sigma` predictor,
+#' correlated intercept-slope block on the log-mean. Only point-estimate recovery
+#' has been checked for this block; do not treat its intervals as
+#' coverage-validated. Random intercepts on the log-`sigma` predictor are supported,
 #' such as `bf(count ~ x, sigma ~ z + (1 | id))`. Structured `sigma` effects
 #' (`phylo`/`spatial`/`animal`/`relmat`) also fit as a point-recovery route
 #' (trust the point estimate, not the interval; not yet coverage-verified).
-#' NB2 `sigma` random slopes remain planned. Zero-inflated NB2 supports only
+#' NB2 `sigma` random slopes are not supported. Zero-inflated NB2 supports only
 #' the point-fit-only IID control `bf(count ~ fixed_effects, sigma ~ 1 +
 #' (1 | group), zi ~ 1)` under ML with complete responses; zero-inflated
 #' sigma predictors, slopes, labels, and other random-effect combinations
@@ -595,11 +596,11 @@ nbinom2 <- function() {
 #' NB2 variance is `Var(y) = mu + sigma^2 * mu^2`, with internal
 #' `size = 1 / sigma^2`.
 #'
-#' Ordinary zero-truncated NB2 models support first-slice random intercepts and
+#' Ordinary zero-truncated NB2 models support unlabelled random intercepts and
 #' independent numeric slopes in the log-mean predictor, such as
 #' `bf(count ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. Hurdle NB2 random
 #' effects, correlated zero-truncated slopes, structured effects, and
-#' overdispersion-side random effects remain planned.
+#' overdispersion-side random effects are not supported.
 #'
 #' @return A `drm_family` object.
 #' @export
