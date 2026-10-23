@@ -959,7 +959,7 @@ def location_summary_line(rows: list[dict[str, str]]) -> str:
     counts = Counter(row.get("location_checked", "") for row in claiming)
     return (
         f"- Location checks among the {len(claiming)} interval-claiming cells "
-        f"(`location_checked`; tiers claim interval SHAPE only — docs/design/255): "
+        f"(`location_checked`; tiers claim interval shape only; see the [interval-tier design note](https://github.com/itchyshin/drmTMB/blob/main/docs/design/255-interval-feasible-tier-contract.md)): "
         f"**{counts.get('passed', 0)} passed**, "
         f"**{counts.get('unchecked', 0)} unchecked**, "
         f"**{counts.get('failed', 0)} failed**, "
