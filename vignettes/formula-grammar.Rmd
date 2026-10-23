@@ -351,8 +351,9 @@ Additional multiple or labelled phylogenetic-slope layouts outside the exact
 fitted forms described here, richer residual-scale structured slopes beyond the exact
 q1 routes, partial or mismatched bivariate phylogenetic scale terms,
 structured effects in `rho12`, multiple animal-model slopes, multiple
-lower-level `relmat()` slopes, multiple spatial slopes, and mesh-based spatial
-terms are still planned:
+lower-level `relmat()` slopes, multiple spatial slopes, and mesh spatial terms
+outside the Gaussian `mu` intercept with a fixed spatial range and
+`sigma ~ 1` are still planned:
 
 ```r
 # planned; drmTMB() will currently reject these
@@ -365,6 +366,9 @@ drm_formula(y ~ x + relmat(1 + x | p | id, K = K), sigma ~ z)
 drm_formula(y ~ x + spatial(1 + x | p | site, coords = coords), sigma ~ z)
 drm_formula(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 ```
+
+The last line is rejected only because of `sigma ~ z`; the same mesh term with
+`sigma ~ 1` is the fitted route (with a fixed spatial range).
 
 The first fitted `spatial()` paths use coordinates directly for univariate
 Gaussian `mu` coefficient fields:

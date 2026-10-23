@@ -5390,8 +5390,15 @@ vcov.drmTMB_julia <- function(object, ...) {
 #' @param method `"wald"` (default), `"profile"`, or `"bootstrap"`.
 #' @param R Bootstrap replicate count (used only when `method = "bootstrap"`).
 #' @param seed Optional bootstrap seed.
-#' @param threads Logical; request Julia-side threaded inference for the
-#'   profile / bootstrap path.
+#' @param threads Logical; request Julia-side threaded refits for the
+#'   profile / bootstrap path. `threads = TRUE` uses the threads Julia already
+#'   has; it cannot start more. Set `JULIA_NUM_THREADS` (for example
+#'   `Sys.setenv(JULIA_NUM_THREADS = "8")`) before the first
+#'   `engine = "julia"` call in a fresh R session. If Julia is running
+#'   single-threaded, refits run serially and a one-time message says so.
+#'   Setting `JULIA_NUM_THREADS` alone does not parallelise refits either,
+#'   because `threads` defaults to `FALSE`. Avoid combining many Julia threads
+#'   with many BLAS threads.
 #' @param ... Unused.
 #'
 #' @return A confidence-interval data frame with the shared `parm`, `level`,
