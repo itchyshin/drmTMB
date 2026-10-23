@@ -255,7 +255,17 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # are the next two tests: a step-B fallback row and an overflow row that
   # also asserts the capped terms are zeroed.
   expect_equal(n_cpp, 46L)
-  expect_equal(n_numeric, 9L)
+  # #1504 (f12) adds eleven sites for the large-argument helpers in
+  # drm_numeric.h: three each in drm_expm1_minus_x() (|w| = 0.5),
+  # drm_log1p_pos() (x = 0.01) and drm_stirling_remainder() (x = 30), and two
+  # in drm_x_minus_log1p() (|u| = 0.1). The paired value, gradient and Hessian
+  # checks either side of every switch are in test-large-argument-kernels.R.
+  # The Student switch moves to nu = 100 with the same four clamps, so
+  # n_response stays 8L. The beta-binomial helpers shared with #1514 add five more:
+  # three in drm_log1p_accurate() (x = 1e-4) and two in drm_lgamma_ratio()
+  # (x = 100), with their gradient checks in test-large-argument-kernels.R.
+  # n_numeric is therefore 25L.
+  expect_equal(n_numeric, 25L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)
 })
