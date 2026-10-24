@@ -4151,17 +4151,29 @@ Type objective_function<Type>::operator()()
       }
     }
     int n_categories = theta_ord.size() + 1;
+    // Discrimination submodel (#966): Pr(y <= k) = logit^-1(disc * (theta_k - mu)),
+    // log(disc) = X_sigma * beta_sigma with no intercept (the latent scale is
+    // fixed at disc = 1 for the reference row). Without `disc ~ z` X_sigma is
+    // the 1x1 dummy and disc stays exactly 1.
+    vector<Type> disc(y.size());
+    disc.fill(Type(1.0));
+    if (X_sigma.rows() == y.size()) {
+      disc = exp(X_sigma * beta_sigma);
+      REPORT(disc);
+    }
     for (int i = 0; i < y.size(); ++i) {
       if (observed_y(i) == 1) {
         int yi = (int) asDouble(y(i));
         Type log_prob;
         if (yi == 1) {
-          log_prob = drm_log_inv_logit(cutpoints(0) - mu(i));
+          log_prob = drm_log_inv_logit(disc(i) * (cutpoints(0) - mu(i)));
         } else if (yi == n_categories) {
-          log_prob = drm_log1m_inv_logit(cutpoints(n_categories - 2) - mu(i));
+          log_prob = drm_log1m_inv_logit(
+            disc(i) * (cutpoints(n_categories - 2) - mu(i))
+          );
         } else {
-          Type upper = cutpoints(yi - 1) - mu(i);
-          Type lower = cutpoints(yi - 2) - mu(i);
+          Type upper = disc(i) * (cutpoints(yi - 1) - mu(i));
+          Type lower = disc(i) * (cutpoints(yi - 2) - mu(i));
           log_prob = drm_log_inv_logit_diff(upper, lower);
         }
         nll -= weights(i) * log_prob;
