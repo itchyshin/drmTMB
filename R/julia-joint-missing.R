@@ -6,10 +6,9 @@
 # atomic vectors and numeric matrices to the Julia primitive bridge.
 
 drm_julia_joint_default_control <- function(control) {
-  if (inherits(control, "drm_control")) {
-    return(identical(control, drm_control()))
-  }
-  is.null(control) || (is.list(control) && length(control) == 0L)
+  # Same predicate as the other all-or-nothing Julia routes, including the
+  # numeric-type and empty-start normalisation (#1471).
+  drm_julia_default_control(control)
 }
 
 drm_julia_joint_formula_entries <- function(formula) {
