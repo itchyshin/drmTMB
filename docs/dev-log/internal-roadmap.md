@@ -1163,11 +1163,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   slope gates remain post-preview work unless they are implemented with tests before the
   version bump. The fixed-effect `zero_one_beta()` family is now implemented
   separately for structural exact-boundary continuous proportions.
-- Decide whether the next ordinal scale formula is exposed as `sigma ~ ...` or
-  a family-specific discrimination parameter before coding starts; the
-  direction of interpretation must be unambiguous. The current design note
-  prefers `sigma ~ ...` with discrimination reported as derived
-  `zeta = 1 / sigma`.
+- Decided (owner decision 24(a), 11 Oct 2026, #966): the ordinal scale
+  formula is the family-specific discrimination parameter `disc ~ z`, with an
+  intercept-free log link; `sigma(fit)` reports the derived latent scale
+  `1 / disc`. Fixed effects only so far.
 - Keep `cbind(successes, failures)` as the canonical denominator response for
   plain binomial and beta-binomial models until the denominator-helper design
   note is implemented with tests. Do not use `weights = trials` as denominator
