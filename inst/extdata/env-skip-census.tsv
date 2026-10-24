@@ -66,6 +66,7 @@ test-control.R	cran-lane	environment	runs	4
 test-count-structured-mu.R	suggests-package	environment	runs	8
 test-cran-lane-filter.R	cran-lane	environment	runs	1
 test-cran-lane-filter.R	engine-drm-jl	environment	skips	3
+test-cumulative-logit-disc.R	suggests-package	environment	runs	1
 test-cumulative-logit.R	suggests-package	environment	runs	1
 test-dinnage-audit-a3-misc.R	suggests-package	environment	runs	1
 test-dinnage-audit-s2.R	suggests-package	environment	runs	2
@@ -94,6 +95,8 @@ test-formula-smooth-terms.R	cran-lane	environment	runs	1
 test-function-map-cheatsheet.R	build-premise	build	skips	2
 test-heritability.R	suggests-package	environment	runs	1
 test-julia-admission-census.R	build-premise	build	skips	1
+test-julia-admission-docs.R	build-premise	build	skips	2
+test-julia-admission-docs.R	runtime-conditional	runtime	depends	1
 test-julia-biv-confint.R	suggests-package	environment	runs	7
 test-julia-biv-inference.R	build-premise	build	skips	1
 test-julia-biv-inference.R	engine-drm-jl	environment	skips	1
@@ -281,7 +284,7 @@ test-positive-continuous-structured-mu.R	build-premise	build	skips	1
 test-positive-continuous-structured-mu.R	suggests-package	environment	runs	4
 test-profile-parallel.R	build-premise	build	skips	1
 test-profile-parallel.R	cran-lane	environment	runs	2
-test-profile-parallel.R	os	environment	runs	4
+test-profile-parallel.R	os	environment	runs	5
 test-profile-parallel.R	runtime-conditional	runtime	depends	1
 test-profile-plots.R	suggests-package	environment	runs	3
 test-profile-shape-boundary.R	build-premise	build	skips	1
