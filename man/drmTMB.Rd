@@ -113,7 +113,10 @@ has been compared with \code{engine = "tmb"} on the same fitted target
 relative); see \code{vignette("julia-engine", package = "drmTMB")} for
 the full family-by-route table and current boundaries. \code{engine = "julia"} needs a local
 DRModels.jl checkout and the optional \code{JuliaCall} package, and it is not a
-drop-in replacement for every native-TMB workflow.}
+drop-in replacement for every native-TMB workflow. \code{engine = "julia"} is
+exported but \strong{experimental}: the first call in an R session prints a
+one-time notice, and the bridge is not being widened beyond the families
+and routes listed above.}
 
 \item{REML}{Logical; use restricted maximum likelihood where the selected
 engine supports it. Native \code{engine = "tmb"} restricts the likelihood by

@@ -4225,6 +4225,21 @@ drm_julia_cran_lane_blocked <- function(
     nzchar(env_value("_R_CHECK_PACKAGE_NAME_"))
 }
 
+# Once-per-session notice that the Julia route is experimental (#1328, Dinnage
+# audit Md-K). `engine = "julia"` stays exported, but its status is fenced:
+# experimental, with no widening of the bridge surface.
+drm_julia_experimental_notice <- function() {
+  if (isTRUE(drm_julia_setup_state$experimental_noticed)) {
+    return(invisible(NULL))
+  }
+  drm_julia_setup_state$experimental_noticed <- TRUE
+  cli::cli_inform(c(
+    i = "{.code engine = \"julia\"} is experimental: it fits only the families and routes listed in {.code vignette(\"julia-engine\", package = \"drmTMB\")}, and it is not a drop-in replacement for the default {.code engine = \"tmb\"}.",
+    i = "This notice is shown once per R session."
+  ))
+  invisible(NULL)
+}
+
 # One-time hint when parallel refits were requested but Julia was started
 # single-threaded (JULIA_NUM_THREADS must be set BEFORE the first julia call,
 # so the only remedy is a restart -- worth saying once, not per call).
