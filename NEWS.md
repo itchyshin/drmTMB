@@ -9,7 +9,13 @@
   a tree that missed it by a negligible margin had no override short of
   editing the tree itself (#1158).
 
+* `simulate()` and `predict_parameters()` on an `engine = "julia"` fit now stop
+  with a drmTMB error that points to `engine = "tmb"` (or `vcov()`/`confint()`
+  for coefficient SEs) instead of base R's "no applicable method" (#1570).
+
 ## Documentation fixes
+
+* The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
 
 * `?phylo` now correctly describes the existing unit-height convention:
   drmTMB divides the Brownian covariance by tree height, so multiplying all
@@ -124,6 +130,12 @@
 * Multicore profile workers that error now abort `confint()` and `profile()`
   with the worker's error, as the serial path does, instead of returning a
   `try-error` element.
+* A forked worker that dies and returns `NULL` (for example after `quit()`)
+  no longer vanishes inside `rbind()`. `profile()` and
+  `confint(method = "profile")` abort with class
+  `drmTMB_parallel_worker_died`. `confint(method = "bootstrap")` records the
+  missing replicate as a failed refit so `bootstrap.n + bootstrap.failed`
+  still equals the requested `R` (#1232, #1254, #1236).
 * Retained bootstrap shards now record a forked worker that dies without a
   result as a `worker_died` attempt instead of silently dropping the
   replicate, as `confint(method = "bootstrap")` does. Replicates queued on
