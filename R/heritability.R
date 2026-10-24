@@ -62,6 +62,8 @@
 #'   structured component; ignored (and unnecessary) when the fit has exactly
 #'   one.
 #' @param level Confidence level for the Wald interval. Default `0.95`.
+#'   Must be one number strictly between 0 and 1; values such as `95` or `0`
+#'   error rather than returning `NaN` or inverted bounds.
 #' @param method Either `"delta"` (default) or `"profile"`. `"profile"` is
 #' not implemented and always aborts.
 #' @param ... Reserved for future extractor options.
@@ -279,6 +281,7 @@ drm_variance_ratio <- function(
   level,
   method
 ) {
+  validate_profile_level(level)
   if (method == "profile") {
     cli::cli_abort(
       "{.arg method} = {.val profile} is not implemented for {.fn {quantity}}; use {.code method = \"delta\"}."

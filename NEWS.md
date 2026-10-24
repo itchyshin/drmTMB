@@ -2,12 +2,23 @@
 
 ## New features
 
+* `update()` now has an `update.drmTMB()` method. It refits from the stored
+  call with a new `bf()` / `drm_formula()` object, or with named arguments
+  such as `data` or `family`, and reuses the original defaults. An unnamed
+  argument in `...` now errors instead of being silently ignored (#1241).
+
 * `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
   check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
   the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
   tolerance was only reachable via the internal `validate_phylo_tree()` and
   a tree that missed it by a negligible margin had no override short of
   editing the tree itself (#1158).
+
+## Bug fixes
+
+* `heritability()`, `icc()`, and `repeatability()` now reject a `level`
+  that is not one number strictly between 0 and 1, matching `confint()`
+  instead of returning `NaN` or inverted bounds (#1480).
 
 ## Documentation fixes
 

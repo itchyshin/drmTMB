@@ -191,7 +191,8 @@ than `implemented` because the rest of the named suite is deliberately absent:
 now returns a likelihood-ratio table built on it (#1240), with the REML/MAP
 guards, a boundary warning, and `lrt_boundary()`'s chi-bar-square p-value when
 exactly one or two random-effect SDs are added, while `anova()` on an
-`engine = "julia"` fit still refuses; there is no `update.drmTMB()` method in `NAMESPACE`; and `weights.drmTMB()`
+`engine = "julia"` fit still refuses; `update.drmTMB()` (`R/methods.R`, #1241)
+now refits from the stored call; and `weights.drmTMB()`
 returns the prior per-observation weights, not Akaike model weights -- DRM.jl's
 `weights(fit)` returns `ones(nobs(fit))`, so this is a shared naming boundary
 rather than an R-side gap.

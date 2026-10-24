@@ -247,6 +247,15 @@ test_that("documented label: the roxygen @examples phylo component label matches
 # So this is "not wired", not "not possible"; the refusal says so and says what
 # to do instead. Evidence:
 # docs/dev-log/evidence/julia-r-parity/uncited-accessors/.
+test_that("heritability()/icc()/repeatability() reject out-of-range level (#1480)", {
+  dummy <- structure(list(), class = "drmTMB")
+  for (fn in list(heritability, icc, repeatability)) {
+    expect_error(fn(dummy, level = 95), "between 0 and 1")
+    expect_error(fn(dummy, level = 0), "between 0 and 1")
+    expect_error(fn(dummy, level = -1), "between 0 and 1")
+  }
+})
+
 test_that("heritability/icc/repeatability refuse an engine = 'julia' fit by name", {
   stub <- structure(list(nobs = 10L, df = 4L), class = "drmTMB_julia")
   for (fn in list(heritability, icc, repeatability)) {
