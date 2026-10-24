@@ -8,12 +8,22 @@
   tolerance was only reachable via the internal `validate_phylo_tree()` and
   a tree that missed it by a negligible margin had no override short of
   editing the tree itself (#1158).
+* `cumulative_logit()` gains a fixed-effect discrimination formula,
+  `bf(score ~ x, disc ~ z)`, with
+  `Pr(y <= k) = logit^-1(disc * (theta_k - mu))` and `log(disc) = z' gamma`.
+  The `disc` intercept is fixed at 0 because the latent scale is not
+  identifiable alongside free cutpoints; this matches the `scale` formula of
+  `ordinal::clm()`, whose coefficients equal `-gamma`. `disc ~ 1` reproduces
+  the location-only fit exactly, and `sigma()` returns the latent scale
+  `1 / disc` (#966).
 
 * `simulate()` and `predict_parameters()` on an `engine = "julia"` fit now stop
   with a drmTMB error that points to `engine = "tmb"` (or `vcov()`/`confint()`
   for coefficient SEs) instead of base R's "no applicable method" (#1570).
 
 ## Documentation fixes
+
+* The `missing-data` article gains a recipe for a mediator that is also a response: build `impute_model()` from the fitted node's formula and family, with an explicit statement that estimates are not shared and what that means for standard errors (#964).
 
 * The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
 
