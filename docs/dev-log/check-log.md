@@ -1,3 +1,27 @@
+# 2026-10-19: rebase #1575 onto #1563 head f0771de99
+
+Rebased `codex/fix-pr1563-skip-census` onto `f0771de99`, the #1563 head after
+its own rebase onto main. The six pre-rebase #1563 commits (`3180adfd5` to
+`75a2a870a`) were dropped and #1575's three commits replayed. This log had an
+additive conflict and keeps both sides. `git diff f0771de99` touches only the
+`test-anova-lrt.R` census row, `test-env-skip-census.R`, this log and the
+after-task note. `Rscript tools/write-env-skip-census.R --check` passes with
+897 sites. #1563's run
+[39217446206](https://github.com/itchyshin/drmTMB/actions/runs/39217446206)
+at `f0771de99` fails only `test-env-skip-census.R:48,50` on Linux shard 3/4,
+which is the mismatch this branch repairs.
+
+Full local `devtools::test()` (R 4.6.0, TMB 1.9.21, macOS arm64, compiled,
+`NOT_CRAN=true`): 454 of 455 files completed, 49,131 passed, 3 failed, 96
+skipped. `test-env-skip-census.R` passes (9). The failures are outside this
+branch's files: `test-associate-pairs-bernoulli-bernoulli.R:40` (symmetric
+`eta` differs by 2e-8) and `test-nbinom2-sigma-structured-recovery.R:52-53`
+(log-likelihood gain 9.0; CI skips it through `skip_fragile_recovery()`).
+`test-numeric-kernel-oracle.R:551` did not finish (#1585). A stack sample
+placed it in TMB's `tweedie_logW` upper-bound loop (`tweedie.cpp:46`); it was
+stopped after about 50 minutes and again under a 10-minute isolated cap, and
+the remaining 185 files were run separately.
+
 # 2026-10-22: retain output from failed or colliding C17 recertification runs (#1591)
 
 `tools/recertify-c17.py` previously deleted partial output in `finally` and
@@ -430,6 +454,71 @@ Rebased `cursor/dead-forked-worker-7717` onto current main. Conflict was
 check-log only. `R/drmTMB.R` and `R/methods.R` were not touched, so C17
 was not recertified. Full `testthat::test_dir()` on `a59a66be8`:
 passed=44952 failed=81 error=213 skipped=241 warning=20.
+
+# 2026-10-17: repair PR #1563 environment-skip census
+
+PR #1563 head `75a2a870a6ea769d986eb6cc6b74e07a0818f750` failed
+[run 38991160731](https://github.com/itchyshin/drmTMB/actions/runs/38991160731)
+because three `skip_on_cran()` sites in `test-anova-lrt.R` were absent from
+`inst/extdata/env-skip-census.tsv`. Regeneration adds exactly one aggregate row;
+no skip sites or model code changed. The existing guard reproduced both CI
+failures before regeneration and passed afterward (9 assertions, including
+4 new fixture assertions). `Rscript tools/write-env-skip-census.R --check`
+passes with 876 sites. Independent patch review found no correctness issues.
+Local tests used prebuilt R 4.6.0 and `pkgload::load_all(compile = FALSE)`;
+the missing-DLL warning means this is pure-logic evidence only. Xcode's
+pending license was neither accepted nor bypassed.
+
+Current main `d89db50975d96d9c2bcb13046453ae34c7fcf49b` already passes the
+census check (873 sites). Its README badge uses the default-branch workflow
+result, which remained the failed September 6 run `34054841475` because
+push-to-main checks were deliberately removed. Logs for that old run return
+HTTP 410. Fresh main [run 39056559935](https://github.com/itchyshin/drmTMB/actions/runs/39056559935)
+is running (source-tree job passed); this PR-specific fix must not be presented
+as a fix to main's code. Automatic approval review denied the new-branch push
+as external publication requiring explicit user authorization. It did not
+execute and was not retried while pending. The owner subsequently explicitly
+approved publication, remote checks, and integration of the narrow repair.
+The repair PR targets `cursor/fx6-boundary-lrt-3f95`, not main; the broader
+statistical feature remains outside this authorization.
+
+# 2026-10-16: FX6b parametric bootstrap LRT (#1559, #1560)
+
+`anova(..., test = "bootstrap")` and `drm_lrtest(..., test = "bootstrap")`
+simulate from the reduced fit, refit both models, and return the p-value
+with `nsim`, `seed`, and failed refits. Default remains 50:50 chi-bar.
+That default is conservative with few groups: type-I at most 5%, no
+lower bound; t10 3.0% / 3.4% recorded as expected. Red-proof: on
+`132a0490` `test = "bootstrap"` aborted; after the change
+`test-anova-lrt.R` is 85 pass (`NOT_CRAN=true`). Sibling:
+`test-model-comparison.R` 68 pass, `test-lrt-boundary.R` 66 pass.
+C17 recertified after the `R/methods.R` `anova()` edit
+(`python3 tools/recertify-c17.py --label fx6b-bootstrap --tolerance 1e-10`):
+`|change| 0.000e+00` on mc-0568 / mc-0569 / mc-0576, receipt
+`docs/dev-log/implementation-recovery/2026-10-17-fx6b-bootstrap-c17c2-c14-final-source-compatibility`,
+source sha `28474c624`. FX6b lands on PR #1563
+(`cursor/fx6-boundary-lrt-3f95`), not a stacked draft. Julia twin
+push 403; patch
+`docs/dev-log/after-task/2026-10-16-fx6b-DRModels.jl.patch`.
+t10 bootstrap (`nsim = 99`, 500 official seeds): NB2 type-I
+`p < 0.05` 3.8% (19/500), `p <= 0.05` 4.8% (24/500); RE `p < 0.05`
+3.0% (15/500). Chi-bar still 3.0% / 3.4%. Receipt:
+`docs/dev-log/after-task/fx6b-t10-logs/RECEIPT_fx6b_t10.md`.
+Report: `docs/dev-log/after-task/2026-10-16-fx6b-bootstrap-null.md`.
+
+# 2026-10-16: FX6 Poisson vs NB2 boundary LRT (#1557)
+
+`anova(poisson, nbinom2)` now warns and reports `lrt_boundary(..., q = 1)`
+when the only extra parameter is the NB2 `sigma` intercept. `drm_lrtest()`
+warns and keeps naive χ². Red-proof: `test-anova-lrt.R` #1557 tests failed
+on `ca3ddef` (silent `p.method = "chisq"`, p = 1 vs chi-bar 0.5) and pass
+after the detector. Sibling suites: `test-model-comparison.R` 68 pass,
+`test-lrt-boundary.R` 62 pass. Type-I issues #1559 / #1560 are not closed
+(chi-bar 3.0% / 3.4% on the t10 500-rep grids). C17 recertified (`python3 tools/recertify-c17.py --label fx6-1557
+--tolerance 1e-10`): |change| 0.000e+00 on mc-0568/0569/0576, receipt
+`docs/dev-log/implementation-recovery/2026-10-16-fx6-1557-c17c2-c14-final-source-compatibility`,
+source sha `3180adfd5`. Report:
+`docs/dev-log/after-task/2026-10-16-fx6-poisson-nb2-boundary-lrt.md`.
 
 # 2026-10-18 — rebase #1506 onto main `d89db5097`
 

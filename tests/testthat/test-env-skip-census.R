@@ -13,6 +13,36 @@
 
 source(testthat::test_path("helper-env-skip-census.R"))
 
+test_that("the census detects added and removed CRAN skip sites", {
+  fixture <- tempfile("skip-census-")
+  dir.create(fixture)
+  on.exit(unlink(fixture, recursive = TRUE), add = TRUE)
+  path <- file.path(fixture, "test-boundary.R")
+  writeLines(rep("testthat::skip_on_cran()", 3L), path)
+
+  census <- drm_skip_census(fixture)
+  recorded <- drm_env_skip_census_tsv(census)
+  expect_equal(nrow(census), 3L)
+  expect_identical(
+    recorded[-1L],
+    "test-boundary.R\tcran-lane\tenvironment\truns\t3"
+  )
+
+  # A stale count must differ even when the file and gate class stay the same.
+  # Each suite scan is cached by directory for the duration of a test run.
+  next_fixture <- tempfile("skip-census-")
+  dir.create(next_fixture)
+  on.exit(unlink(next_fixture, recursive = TRUE), add = TRUE)
+  writeLines(rep("testthat::skip_on_cran()", 2L),
+             file.path(next_fixture, "test-boundary.R"))
+  changed <- drm_env_skip_census_tsv(drm_skip_census(next_fixture))
+  expect_false(identical(changed, recorded))
+  expect_identical(
+    changed[-1L],
+    "test-boundary.R\tcran-lane\tenvironment\truns\t2"
+  )
+})
+
 census_path <- function() {
   system.file("extdata", "env-skip-census.tsv", package = "drmTMB")
 }
