@@ -214,6 +214,12 @@ census_family_dpars <- function(family, fam_obj) {
   if (family %in% c("poisson", "binomial")) {
     return("mu")
   }
+  # cumulative_logit gained a native-only `disc` dpar (#966); the Julia bridge
+  # refuses any `disc` formula by design (drm_julia_refuse_cumulative_logit_disc),
+  # so the census keeps the family location-only, as the grid was built.
+  if (identical(family, "cumulative_logit")) {
+    return("mu")
+  }
   fam_obj$dpars
 }
 
