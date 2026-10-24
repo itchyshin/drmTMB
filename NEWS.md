@@ -95,6 +95,10 @@
   and refuse non-unit `weights` on an `mi()` fit
   (`drmTMB_mi_weights_predict_unsupported`) (Refs #1459).
 
+* Dropping unused levels of a fixed-effect factor predictor now emits an
+  informative message (class `drmTMB_dropped_factor_levels`) naming the column
+  and the dropped levels, instead of being silent (#1584).
+
 * Profile confidence intervals now explicitly average parameter coordinates
   at tied objective values. This preserves the existing interpolation result
   while avoiding a spurious "collapsing to unique 'x' values" warning from

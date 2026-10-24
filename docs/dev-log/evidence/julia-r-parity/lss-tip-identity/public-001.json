@@ -10,13 +10,13 @@
     "R/associate-pairs-sandwich.R": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c",
     "R/associate-pairs.R": "00407cac834fa167922e831b13cb69be12bda24fdb13d79a93ab78aca35f128b",
     "R/bf.R": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd",
-    "R/bootstrap-shards.R": "4df1c49ff6f99ae70e773c1e4c929c13807762535ece09eef1716ac30a75adca",
+    "R/bootstrap-shards.R": "25d6dd5da40e5191ce977a19feb2bcd40f1f2c4901e7615b34156c23e7d72062",
     "R/check.R": "7ee55a3c408c98e3927024a153b6b73db5361a1e2b1bb9485448bdc6c9c8a3ec",
     "R/coevolution-accessors.R": "26d1d924d07748a4803d925d9c44111ec7a8a19c0aff20f3944c38131d8ec88b",
     "R/control.R": "1b86ad506f7fcd56f009f2f2b25ba91d13aacdece42af515ceb6c67231217cd9",
     "R/distributional-outputs.R": "94540da0f07768fd159b8178b5312dfe505e5cbb9bfdac26983c7abf12c1cf08",
     "R/drmTMB-package.R": "dec0b5fba6754268176dbdc8d3dfb4ed56b26485c146a39ed6ab0df86ad8395c",
-    "R/drmTMB.R": "4efe8e3de6ae3221e40ad58c1fb3bd37a513012f9f672a61c65baae12afe0c65",
+    "R/drmTMB.R": "8f94a93178848e803536f11b3b5241e08e593ff6b577d9ba2a45731582d19378",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "5f1b5ad3076ebd36e4c668ca98e1c0ddf48c13d7659f6fcd073013bd76de44e0",
     "R/family.R": "c0937f614960bd2c5f233607d4eeccb84260000aa10ca1b89dadb34bae4d2249",
@@ -51,7 +51,7 @@
     "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
     "R/predict-parameters.R": "e9df0ff4fc086b93ab67546e158e91920cb3af5f71bb0d0606371f4c01b4eab2",
     "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
-    "R/profile.R": "3948be97c96baa55a46d2514c5f336a2f81988cb0c0782fb6608e28974feaa73",
+    "R/profile.R": "0a3098b371e35a2e23951b88b541571de1b836394017a57a860b38139807041f",
     "R/provenance.R": "3211cf0b8417c36b0bd8c3656ac255e77ca06f4a2998f3faa362f2885b3ba43d",
     "R/random-effect-scale-formulas.R": "62706496fbfd24404fed30d6837c8c068b6f4015bcc5c17b759f4962b47e9d1a",
     "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
@@ -692,8 +692,8 @@
       "drmjl_ref": "da8b3f8711beb5ef3186b890544c2e7850c7f194",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpkMcCzb/pkgloadf47e1539f5a7/drmTMB.so",
-          "sha256": "840a8fca83d87589560b476146643a955159162dec8a92143f431a908b0fb106"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//Rtmp67GSlI/pkgload1290b76a84a1/drmTMB.so",
+          "sha256": "455c34f743d2da5121f6afede1083bbc5e1c1a393a4113f05986cbe196459310"
         }
       }
     },
@@ -726,13 +726,13 @@
     "R/associate-pairs-sandwich.R": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c",
     "R/associate-pairs.R": "00407cac834fa167922e831b13cb69be12bda24fdb13d79a93ab78aca35f128b",
     "R/bf.R": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd",
-    "R/bootstrap-shards.R": "4df1c49ff6f99ae70e773c1e4c929c13807762535ece09eef1716ac30a75adca",
+    "R/bootstrap-shards.R": "25d6dd5da40e5191ce977a19feb2bcd40f1f2c4901e7615b34156c23e7d72062",
     "R/check.R": "7ee55a3c408c98e3927024a153b6b73db5361a1e2b1bb9485448bdc6c9c8a3ec",
     "R/coevolution-accessors.R": "26d1d924d07748a4803d925d9c44111ec7a8a19c0aff20f3944c38131d8ec88b",
     "R/control.R": "1b86ad506f7fcd56f009f2f2b25ba91d13aacdece42af515ceb6c67231217cd9",
     "R/distributional-outputs.R": "94540da0f07768fd159b8178b5312dfe505e5cbb9bfdac26983c7abf12c1cf08",
     "R/drmTMB-package.R": "dec0b5fba6754268176dbdc8d3dfb4ed56b26485c146a39ed6ab0df86ad8395c",
-    "R/drmTMB.R": "4efe8e3de6ae3221e40ad58c1fb3bd37a513012f9f672a61c65baae12afe0c65",
+    "R/drmTMB.R": "8f94a93178848e803536f11b3b5241e08e593ff6b577d9ba2a45731582d19378",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "5f1b5ad3076ebd36e4c668ca98e1c0ddf48c13d7659f6fcd073013bd76de44e0",
     "R/family.R": "c0937f614960bd2c5f233607d4eeccb84260000aa10ca1b89dadb34bae4d2249",
@@ -767,7 +767,7 @@
     "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
     "R/predict-parameters.R": "e9df0ff4fc086b93ab67546e158e91920cb3af5f71bb0d0606371f4c01b4eab2",
     "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
-    "R/profile.R": "3948be97c96baa55a46d2514c5f336a2f81988cb0c0782fb6608e28974feaa73",
+    "R/profile.R": "0a3098b371e35a2e23951b88b541571de1b836394017a57a860b38139807041f",
     "R/provenance.R": "3211cf0b8417c36b0bd8c3656ac255e77ca06f4a2998f3faa362f2885b3ba43d",
     "R/random-effect-scale-formulas.R": "62706496fbfd24404fed30d6837c8c068b6f4015bcc5c17b759f4962b47e9d1a",
     "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
@@ -870,6 +870,6 @@
     "/private/tmp/drmtmb-parity-drmodels-da8b3f871/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 66.189000000000007,
+  "elapsed": 60.183,
   "status": "PASS"
 }
