@@ -73,6 +73,7 @@ print.drmTMB <- function(x, ...) {
   } else {
     cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
   }
+  cli::cli_text("  convergence_status: {convergence_status(x)}")
   if (is.null(drm_convergence_label(x$opt$convergence, x$opt$message))) {
     cli::cli_text("  convergence: {x$opt$convergence}")
   } else {
@@ -4527,6 +4528,7 @@ summary.drmTMB <- function(
     mspl = if (drm_is_mspl(object)) object$mspl else NULL,
     estimator = object$estimator,
     estimator_exact = object$estimator_exact,
+    convergence_status = convergence_status(object),
     convergence = object$opt$convergence,
     convergence_message = object$opt$message,
     conf.int = conf.int,
@@ -4644,6 +4646,9 @@ print.summary.drmTMB <- function(x, ...) {
     }
   } else {
     cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
+  }
+  if (!is.null(x$convergence_status)) {
+    cli::cli_text("convergence_status: {x$convergence_status}")
   }
   convergence_label <- drm_convergence_label(
     x$convergence,
