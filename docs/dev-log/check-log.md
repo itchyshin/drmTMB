@@ -1,3 +1,11 @@
+# 2026-10-18 — rebase #1525 onto main `d89db5097`
+
+Rebased `claude/lane-n2-ordinal-disc` onto current main. Conflicts were
+check-log and a stale C17 TSV (skipped). `src/drmTMB.cpp` changed (`disc`
+uses the unused `X_sigma` slot of model type 13; +16/−4, C++ TMB
+reviewer). Full `testthat::test_dir()` on `ff1eda1b2`: passed=45004
+failed=81 error=213 skipped=240 warning=20.
+
 # 2026-10-22: retain output from failed or colliding C17 recertification runs (#1591)
 
 `tools/recertify-c17.py` previously deleted partial output in `finally` and
@@ -375,6 +383,48 @@ end: `python3 tools/recertify-c17.py --label pr-1504 --tolerance 1e-10`,
 also carries the #1495 contrast fix (ordered factors, stored contrast names,
 and a `drmTMB_contrasts_dropped` warning).
 
+# 2026-10-16: sweep-oct16 lane t2, Gaussian location-scale simulation recovery (receipt)
+
+Lane t2 of the 2026-10-16 sweep. drmTMB `ca3ddef` and DRModels.jl `f71b292` were each fitted to the same 9 cells × 500 reps, plus 2,000 confirmatory reps for every n ≥ 200 cell, on identical R-generated data. The run used a cloud session, not the shared box.
+
+The two engines agree to ≤ 2e-11 in logLik and ≤ 4e-10 in estimates on all 15,000 shared datasets at n ≥ 200. The formal verdict is FAIL:
+- Coverage fails in 5 of 28 gate rows. The two σ-intercept rows at n = 1000 are Monte Carlo noise. Three are real: on the pooled 2,500 reps, G = 20 sd(g) is 92.40% and the mean intercept 92.56%, both z-Wald under-coverage, and the n = 200 no-RE mean intercept is 92.96%, a small under-coverage.
+- Convergence fails only in the two n = 50 cells.
+- Bias passes everywhere.
+
+Filed: drmTMB#1558; DRModels.jl#1114; comments on DRModels.jl#969, #1050 and #1059, and on drmTMB#1554 (the sd(g) boundary label depends on the units of y). No package code changed; `.Rbuildignore` gains `^sweep-oct16$`.
+
+Receipt: `sweep-oct16/t2/RECEIPT_t2.md`. Report: `docs/dev-log/after-task/2026-10-16-sweep-oct16-t2-gaussian-ls-recovery.md`.
+# 2026-10-18 — rebase #1530 onto main `d89db5097`
+
+Rebased `cursor/dead-forked-worker-7717` onto current main. Conflict was
+check-log only. `R/drmTMB.R` and `R/methods.R` were not touched, so C17
+was not recertified. Full `testthat::test_dir()` on `a59a66be8`:
+passed=44952 failed=81 error=213 skipped=241 warning=20.
+
+# 2026-10-18 — rebase #1506 onto main `d89db5097`
+
+Rebased `claude/lane-f-docs-tutorials` onto current main. Conflict was
+check-log only. Docs-only; C17 not recertified. `capability_ledger.py --check`
+passed after rebase. Full `testthat::test_dir()` on `40f1243cd`: passed=46028
+failed=82 error=224 skipped=105 warning=30 (same env-only Julia/Suggests
+band as the other 2026-10-18 rebases).
+
+# 2026-10-16: lane f8 — retired gate predicates scanned in every ledger row (#1011, #1007)
+
+`validate_retired_predicates()` now fails `--check` when a phrase in the new
+`capability-ledger/retired-predicates.tsv` appears in any cell's
+`claim_boundary` or `next_gate` or any evidence `claim_boundary`, not only in
+the three keyed G5 rows. Seeded with the all-1200 interval-usability rule
+(retired by `19e4a1d03`). Forcing tests fail at `368eff52` (2 AttributeError)
+and pass after; `python3 -m unittest tools/tests/test_capability_ledger.py`
+86 OK; `capability_ledger.py --check` OK (31 outputs); the rest of the CI
+ledger step passes locally. #1007 needs no code. `devtools::document()` was
+run but not committed: its 40-file `man/` diff reverts #1400 and adds
+roxygen2 7.3.1 link drift; nothing in it comes from this branch.
+
+Report: `docs/dev-log/after-task/2026-10-16-lane-f8-ledger-retired-predicates.md`.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
@@ -383,6 +433,25 @@ receipt commits were skipped and recertified once at the end:
 |change| 0 on mc-0568/0569/0576. Touched tests: unused-dots + miss-control +
 predict-character + relmat-numeric 51 pass; `test-simulate-re-form.R` 22 pass
 via pkgload.
+
+# 2026-10-11: dead forked worker is a classed error or recorded failure
+
+`mclapply()` NULL children no longer vanish in `rbind()`. Profile paths
+abort with `drmTMB_parallel_worker_died`; bootstrap records `worker_died`
+so `bootstrap.n + bootstrap.failed` still equals `R`. Follow-up to merged
+#1510. `test-profile-parallel.R` 12 tests / 0 fail. C17 not recertified
+(`R/drmTMB.R` and `R/methods.R` untouched). `R/julia-bridge.R` untouched.
+
+Report: `docs/dev-log/after-task/2026-10-11-dead-forked-worker.md`.
+
+# 2026-10-11: rebase #1506 onto main after #1507/#1527
+
+Rebased `claude/lane-f-docs-tutorials` onto `6beb1f2a0`. Docs only; no C17.
+`large-data.Rmd` kept main's Windows `parallel = "cluster"` sentence and the
+lane-F multicore-abort / serial example, then named cluster as the Windows
+worker backend so the two notes do not contradict. Tests: `capability_ledger.py
+--check` OK; `tools/check-reader-contracts.R` OK; `test-release-identity.R`
+20 pass; `test-reader-vignette-contracts.R` 35 pass.
 
 # 2026-10-11: parallel lane follow-up (PSOCK cluster, parallel multi-start, bootstrap shards)
 
@@ -407,6 +476,31 @@ identical apart from `elapsed`). Multicore worker errors now abort. New
 
 Report: `docs/dev-log/after-task/2026-10-11-parallel-perf-lane.md`.
 Branch: `claude/drm-parallel-perf`.
+
+# 2026-10-11: cumulative_logit `disc ~ z` discrimination submodel (#966)
+
+Added a fixed-effect discrimination formula to `cumulative_logit()`
+(owner decision 24(a)): `Pr(y <= k) = logit^-1(disc * (theta_k - mu))`,
+`log(disc) = Z gamma`, with the `disc` intercept fixed at 0 because the latent
+scale is not identifiable alongside free cutpoints (same constraint as
+`ordinal::clm(scale = ~ z)`, whose `zeta = -gamma`). `disc` rides the
+`X_sigma`/`beta_sigma` slot of model_type 13; `disc ~ 1` is byte-identical to
+the location-only fit. `engine = "julia"` refuses `disc`.
+
+Environment: R 4.3.3 from Ubuntu apt (TMB 1.9.10, ordinal 2023.12.4); CRAN
+blocked. New test file `test-cumulative-logit-disc.R` was committed failing
+first (6 errors), then 51 expectations pass: exact `disc ~ 1` equality,
+recovery (n = 3000), `ordinal::clm` comparator (continuous and factor `z`;
+`ordinal::wine` logLik -86.43946 on both engines), hand-built probabilities.
+
+Full `devtools::test()` on `origin/main` @ `75845a3d` (435 files, 3195 tests,
+47568 expectations): 14 failed, 134 errors, 110 skipped. Same suite on this
+branch before the census row (436 files, 3202 tests, 47631 expectations): 16
+failed, 134 errors, 109 skipped. 146 failing tests are identical on both
+(R 4.3.3 lacks `%||%`, no Julia, snapshot drift); the only branch-only failure
+was `test-env-skip-census.R`, fixed by adding the
+`test-cumulative-logit-disc.R` row to `inst/extdata/env-skip-census.tsv`.
+Rebased onto `origin/main` @ `cb030402` (only `NEWS.md` overlapped).
 
 # 2026-10-09: character predictors use the full-frame reference level
 
@@ -471,6 +565,18 @@ release checks, deployment and Ayumi's empirical fits were not checked.
 
 Report: `docs/dev-log/after-task/2026-10-04-phylo-tree-height-docs.md`.
 Local branch: `codex/phylo-height-docs`; original checkout preserved.
+
+# 2026-10-01 — nbinom2 sigma~phylo recovery test: platform-deterministic data (#1444)
+
+**Lane:** Claude · `claude/nb2-sigma-test-data-1444` (draft PR; test-only).
+
+**Change:** `tests/testthat/test-nbinom2-sigma-structured-recovery.R` draws the phylogenetic effect with `t(chol(sd_u^2 * V)) %*% rnorm(n_sp)` instead of `MASS::mvrnorm()` (eigen-based, BLAS-dependent). Scale case moves to seed 1; the mean-case guard becomes `gain(mu~phylo) - gain(sigma~phylo) > 20` (was `gain(sigma~phylo) < 3`, which correctly-wired fits exceed on 28 of 32 seeds). `MASS` skips removed; `inst/extdata/env-skip-census.tsv` regenerated.
+
+**Evidence:** 32 seeds x 2 cases on macOS arm64 (R 4.6.0) and Linux x86 Totoro (R 4.6.1): identical `sum(y)`, `sum(|u|)` and gains to 3 dp; every `fS` convergence 0. Chosen seeds (scale seed chosen post hoc; 22/32 seeds pass `> 10`, 31/32 pass the mean guard `> 20`): scale seed 1 (gain 47.3 vs threshold 15; sigma-minus-mean 47.3 vs 10; cor 0.951 vs 0.6), mean seed 101 (mean gain 57.1 vs 5; mean-minus-sigma 57.1 vs 20). File passes on both platforms; `Rscript tools/write-env-skip-census.R --check` clean.
+
+**Non-claims:** Windows not measured, so `skip_fragile_recovery()` stays. No package code changed.
+
+---
 
 # 2026-09-17 — Dinnage arc3 Wave C MERGED + tip-identity receipt (#1380)
 
@@ -95263,6 +95369,56 @@ Closeout report:
 `docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.
 
 | 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
+
+## 2026-09-21 — structural-dependence reader repair (PR #1418)
+
+Rewrote the `## Pick the route` table and `## Fitted versus planned` section
+of `vignettes/structural-dependence.Rmd` so the deliberately failing
+`test_reader_navigation_redirect_and_public_language_contract` (added on this
+branch as `8401f134b`) goes green: opening sentence "Choose the structure
+that matches your scientific question.", the required four-column table
+header, and the sentence "A successful fit does not show that every related
+model is reliable." are now present; the three banned internal phrases
+(`Pedigree/Ainv bridge marshalling`, `recovery-grade NB2`,
+`fixed-kappa mesh intercept`) are removed. Confirmed the red test failed for
+exactly the missing opening sentence before editing, and re-ran the full
+80-test `tools/tests/test_capability_ledger.py` module after editing (not
+only the target test) because two other tests in the same file require exact
+gate-name substrings (for example "NB2 q1 phylogenetic `sigma`") to remain in
+this file; all 80 pass. `Rscript tools/check-reader-contracts.R` reports
+`Reader vignette contract: OK`; the article renders with `rmarkdown::render()`
+and its first table parses to 4 header cells and 5 data rows of 4 cells each.
+PR #1418 stays in draft; not merged. Report:
+`docs/dev-log/after-task/2026-09-21-structural-dependence-reader.md`.
+
+## 2026-09-21 (later) — structural-dependence reader repair, review pass
+
+An independent Fable (Pat + Rose) read of the rendered page (recorded at
+`scratchpad/S4-drmtmb-findings.md`) found 1 BLOCKING, 9 SHOULD-FIX, 5 NIT
+against commit `b1c3ecd1f`. The BLOCKING item: the animal row's replacement
+for `Pedigree/Ainv bridge marshalling` had turned an interval-inheritance
+limit into a false "assembling the pedigree ... is not available yet,"
+contradicting the same row's own starting point
+(`animal(1 | individual, pedigree = pedigree)`) and `animal-models.Rmd`'s
+"Fitted first slice." Restored the true limit: pedigree/`Ainv` inputs are
+fitted, but interval results checked with an `A` matrix do not carry over to
+them for the one-slope `sigma` route. Applied all 9 SHOULD-FIX items (linked
+`capability-and-limits.html`; moved "A successful fit does not show..." above
+the table; added a "how to read this table" line for `q1`/`q2`/`q4`/`zi`/`hu`
+/"diagnostic-only"; restored "Gaussian" twice in `## Fitted versus planned`;
+added "exact Gaussian" to the one-slope `sigma` sentence; replaced five
+vaguer tier words with the site's own "point estimate only" label; restored
+"sensitivity" in the combined row; labelled the relmat `hu` route
+diagnostic-only) and 4 of 5 NIT items (four-parameter block wording; mesh
+"fixed-kappa"/"local-fit level" jargon; relmat "bridge claims" jargon;
+this report's own two malformed sentences and a wrong count). Declined the
+fifth NIT (the same phrasing elsewhere in `model-map.Rmd`, `which-scale.Rmd`,
+`animal-models.Rmd`, and `articles/phylogenetic-spatial.Rmd`) as out of this
+lease's scope and flagged it as a background task instead
+(`task_9fbe201a`). Full 80-test module, both renders, the reader-contract
+checker, and `git diff --check` all re-run clean. Report addendum:
+`docs/dev-log/after-task/2026-09-21-structural-dependence-reader.md` Section
+13.
 
 | 2026-09-24 | Sparse Quaas A-inverse for `animal()` pedigrees (#740) | `test-pedigree-sparse-ainv.R` 6 pass/0 fail; `test-animal-relmat-gaussian.R` 479 pass/0 fail; identity vs `chol2inv(chol(A))` < 1e-6 at n in {250,500,1000,2000,4000}; stored nonzeros 16,000,000 -> 27,830 at n=4000 | PASS; no fit-level wall-time claim made (needs a large-n animal cell) | Cursor / Shannon |
 

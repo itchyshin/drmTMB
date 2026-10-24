@@ -2,6 +2,7 @@ file	gate_class	axis	ci_status	sites
 helper-fragile-recovery.R	env-var-optin	environment	skips	1
 helper-julia-bridge-path.R	cran-lane	environment	runs	2
 helper-julia-bridge-path.R	engine-drm-jl	environment	skips	1
+test-071-four-fixture-summary.R	build-premise	build	skips	1
 test-adequacy.R	suggests-package	environment	runs	4
 test-aghq-coxreid.R	cran-lane	environment	runs	1
 test-aghq-coxreid.R	suggests-package	environment	runs	2
@@ -46,7 +47,8 @@ test-biv-lognormal-rho12-coverage-driver.R	build-premise	build	skips	1
 test-biv-lognormal-rho12-coverage-driver.R	suggests-package	environment	runs	1
 test-biv-lognormal.R	suggests-package	environment	runs	6
 test-biv-student.R	suggests-package	environment	runs	4
-test-bootstrap-shards.R	os	environment	runs	1
+test-bootstrap-shards.R	cran-lane	environment	runs	5
+test-bootstrap-shards.R	os	environment	runs	5
 test-boundary-surfacing.R	cran-lane	environment	runs	6
 test-check-conditioning.R	platform-numeric	runtime	depends	3
 test-check-drm.R	cran-lane	environment	runs	1
@@ -64,6 +66,7 @@ test-control.R	cran-lane	environment	runs	4
 test-count-structured-mu.R	suggests-package	environment	runs	8
 test-cran-lane-filter.R	cran-lane	environment	runs	1
 test-cran-lane-filter.R	engine-drm-jl	environment	skips	3
+test-cumulative-logit-disc.R	suggests-package	environment	runs	1
 test-cumulative-logit.R	suggests-package	environment	runs	1
 test-dinnage-audit-a3-misc.R	suggests-package	environment	runs	1
 test-dinnage-audit-s2.R	suggests-package	environment	runs	2
@@ -75,6 +78,8 @@ test-dinnage-audit-wave4c.R	suggests-package	environment	runs	2
 test-distributional-outputs.R	cran-lane	environment	runs	3
 test-distributional-outputs.R	suggests-package	environment	runs	2
 test-emmeans-methods.R	suggests-package	environment	runs	19
+test-emmeans-preflight-contract.R	cran-lane	environment	runs	6
+test-emmeans-preflight-contract.R	suggests-package	environment	runs	6
 test-env-skip-census.R	build-premise	build	skips	1
 test-env-skip-census.R	runtime-conditional	runtime	depends	1
 test-estimator-surface-conformance.R	build-premise	build	skips	1
@@ -89,6 +94,9 @@ test-formula-grouping-guard.R	cran-lane	environment	runs	1
 test-formula-smooth-terms.R	cran-lane	environment	runs	1
 test-function-map-cheatsheet.R	build-premise	build	skips	2
 test-heritability.R	suggests-package	environment	runs	1
+test-julia-admission-census.R	build-premise	build	skips	1
+test-julia-admission-docs.R	build-premise	build	skips	2
+test-julia-admission-docs.R	runtime-conditional	runtime	depends	1
 test-julia-biv-confint.R	suggests-package	environment	runs	7
 test-julia-biv-inference.R	build-premise	build	skips	1
 test-julia-biv-inference.R	engine-drm-jl	environment	skips	1
@@ -181,6 +189,7 @@ test-julia-workflow-g.R	engine-drm-jl	environment	skips	3
 test-julia-workflow-g.R	suggests-package	environment	runs	3
 test-julia-zi-poisson.R	engine-drm-jl	environment	skips	1
 test-julia-zi-poisson.R	suggests-package	environment	runs	3
+test-large-argument-kernels.R	cran-lane	environment	runs	1
 test-log1mexp-ad.R	cran-lane	environment	runs	2
 test-lognormal-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-logsigma-clamp.R	cran-lane	environment	runs	2
@@ -208,7 +217,9 @@ test-mspl-link-general.R	suggests-package	environment	runs	1
 test-nbinom2-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-nbinom2-sigma-structured-recovery.R	cran-lane	environment	runs	2
 test-nbinom2-sigma-structured-recovery.R	env-var-optin	environment	skips	2
-test-nbinom2-sigma-structured-recovery.R	suggests-package	environment	runs	4
+test-nbinom2-sigma-structured-recovery.R	suggests-package	environment	runs	2
+test-newton-polish-guard.R	cran-lane	environment	runs	1
+test-newton-polish-guard.R	suggests-package	environment	runs	1
 test-nongaussian-structured-boundary.R	build-premise	build	skips	1
 test-nongaussian-structured-boundary.R	cran-lane	environment	runs	1
 test-nongaussian-structured-boundary.R	external-tool	environment	runs	1
@@ -221,9 +232,13 @@ test-offset-families.R	cran-lane	environment	runs	4
 test-optimizer-selection-downstream.R	suggests-package	environment	runs	1
 test-optimizer-tolerance.R	suggests-package	environment	runs	1
 test-parity-fenced-boundaries.R	build-premise	build	skips	2
+test-parity-honesty.R	build-premise	build	skips	13
 test-parity-matrix.R	build-premise	build	skips	3
 test-parity-matrix.R	engine-drm-jl	environment	skips	2
-test-parity-matrix.R	runtime-conditional	runtime	depends	1
+test-parity-pin.R	build-premise	build	skips	2
+test-parity-pin.R	external-tool	environment	runs	1
+test-parity-scoreboard.R	build-premise	build	skips	13
+test-parity-scoreboard.R	engine-drm-jl	environment	skips	3
 test-phase18-actions-runner.R	build-premise	build	skips	3
 test-phase18-actions-runner.R	runtime-conditional	runtime	depends	1
 test-phase18-animal-relmat-q2-grid-writer.R	cran-lane	environment	runs	1
@@ -269,7 +284,7 @@ test-positive-continuous-structured-mu.R	build-premise	build	skips	1
 test-positive-continuous-structured-mu.R	suggests-package	environment	runs	4
 test-profile-parallel.R	build-premise	build	skips	1
 test-profile-parallel.R	cran-lane	environment	runs	2
-test-profile-parallel.R	os	environment	runs	4
+test-profile-parallel.R	os	environment	runs	5
 test-profile-parallel.R	runtime-conditional	runtime	depends	1
 test-profile-plots.R	suggests-package	environment	runs	3
 test-profile-shape-boundary.R	build-premise	build	skips	1

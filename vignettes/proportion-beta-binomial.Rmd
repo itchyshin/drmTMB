@@ -167,7 +167,8 @@ The original plain-binomial slice was fixed-effect only. The current R engine
 also fits ordinary unlabelled `mu` random intercepts and independent numeric
 slopes (point estimate only). It still rejects non-logit links, factor responses,
 proportions with trial weights, correlated or labelled slopes, structured
-effects, bivariate or mixed responses, and `engine = "julia"`.
+effects, or bivariate or mixed responses. `engine = "julia"` fits plain binomial
+fixed-effect models only.
 
 ## Beta-Binomial Equation And Syntax
 
@@ -593,3 +594,9 @@ Do not teach the following as fitted proportion examples yet:
 Most of those are useful future routes that still need likelihood code,
 simulation recovery, diagnostics, and [source-map](source-map.html) evidence
 before they become tutorial syntax.
+
+Working in Julia? The
+[DRModels.jl companion page](https://itchyshin.github.io/DRModels.jl/stable/tutorials/proportion-beta-binomial)
+mirrors this article with Julia syntax and states which parts DRModels.jl
+supports today. DRModels.jl is a separate package with its own fitting and
+inference routes; Julia is optional for `drmTMB` users.

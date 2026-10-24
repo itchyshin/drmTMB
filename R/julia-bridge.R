@@ -715,6 +715,7 @@ drmTMB_julia_bridge <- function(
   drm_julia_refuse_fe_only_random_effects(formula, family_type)
   drm_julia_refuse_biv_student_beyond_native(formula, family_type)
   drm_julia_refuse_unadmitted_predictor_dpars(formula, family_type)
+  drm_julia_refuse_cumulative_logit_disc(formula, family_type)
   # REML forwards to DRM.jl's `drm(...; method = :REML)` for univariate
   # Gaussian cells: the fixed-effect location-scale model, Gaussian
   # location-scale models with a phylo term on sigma (with or without a matching
@@ -3853,9 +3854,18 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
     }
     groups <- vapply(phylo_terms, `[[`, character(1L), "group")
     trees <- vapply(phylo_terms, `[[`, character(1L), "tree")
-    if (length(unique(groups)) != 1L || length(unique(trees)) != 1L) {
+    tolerances <- vapply(
+      phylo_terms,
+      function(t) if (is.null(t$tolerance)) sqrt(.Machine$double.eps) else t$tolerance,
+      double(1L)
+    )
+    if (
+      length(unique(groups)) != 1L ||
+        length(unique(trees)) != 1L ||
+        length(unique(tolerances)) != 1L
+    ) {
       cli::cli_abort(c(
-        "{.code engine = \"julia\"} requires all bivariate {.fn phylo} terms to share one tree and grouping factor.",
+        "{.code engine = \"julia\"} requires all bivariate {.fn phylo} terms to share one tree, grouping factor, and tolerance.",
         i = "Use native {.code engine = \"tmb\"} for heterogeneous phylogenetic structure across axes."
       ))
     }
@@ -3876,6 +3886,11 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   }
 
   tree <- get(rep_term$tree, envir = env, inherits = TRUE)
+  tolerance <- if (is.null(rep_term$tolerance)) {
+    sqrt(.Machine$double.eps)
+  } else {
+    rep_term$tolerance
+  }
   species <- as.character(data[[rep_term$group]])
   cache <- drm_julia_phylo_payload_cache
   if (
@@ -3887,12 +3902,13 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       identical(cache$full_family_type, family_type) &&
       identical(cache$full_locscale_mode, locscale_mode) &&
       identical(cache$full_coupled_phylo_tag, coupled_phylo_tag) &&
-      identical(cache$full_species, species)
+      identical(cache$full_species, species) &&
+      identical(cache$full_tolerance, tolerance)
   ) {
     return(cache$full_payload)
   }
 
-  info <- validate_phylo_tree(tree, species = species)
+  info <- validate_phylo_tree(tree, species = species, tolerance = tolerance)
   tree_payload <- drm_julia_phylo_tree_payload(tree, info = info)
   row_order <- order(
     match(species, tree_payload$tip_order),
@@ -3921,6 +3937,7 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   cache$full_locscale_mode <- locscale_mode
   cache$full_coupled_phylo_tag <- coupled_phylo_tag
   cache$full_species <- species
+  cache$full_tolerance <- tolerance
   cache$full_payload <- payload
   payload
 }
@@ -9312,5 +9329,50 @@ confint.drmTMB_julia_xfam <- function(
     method = method,
     stringsAsFactors = FALSE,
     row.names = NULL
+  )
+}
+
+# Refusals for generics a bridge fit has no method for (#1570). A
+# `drmTMB_julia` object does not inherit from `drmTMB`, so `simulate()` and
+# `predict_parameters()` used to fail with base R's "no applicable method"
+# error, which names neither the engine nor an alternative. These two methods
+# are REFUSALS, not wirings: they mirror the `heritability()` fence
+# (`drm_variance_ratio_julia_fence()`), and wiring either is the owner's call
+# (#1328). Coefficient SEs on a bridge fit remain available through `vcov()`
+# and `confint()`.
+drm_julia_method_fence <- function(fn, what, class) {
+  cli::cli_abort(
+    c(
+      "{.fn {fn}} is not available for an {.code engine = \"julia\"} fit yet.",
+      "x" = "A {.cls drmTMB_julia} fit has no {.fn {fn}} method, so {what} is not supported on the bridge.",
+      "i" = "Refit the same model with {.code engine = \"tmb\"} and call {.fn {fn}} on that fit.",
+      "i" = "For coefficient standard errors and intervals on the bridge fit itself, use {.fn vcov} and {.fn confint}."
+    ),
+    class = class
+  )
+}
+
+#' @rdname simulate.drmTMB
+#' @export
+simulate.drmTMB_julia <- function(object, nsim = 1, seed = NULL, ...) {
+  drm_julia_method_fence(
+    "simulate",
+    "simulating new responses",
+    "drmTMB_simulate_julia_unsupported"
+  )
+}
+
+#' @rdname predict_parameters
+#' @export
+predict_parameters.drmTMB_julia <- function(object, ...) {
+  # `drm_julia_predict_quantile()` appends "drmTMB" to the class for one call
+  # so the native method is reached; pass that call through.
+  if (inherits(object, "drmTMB")) {
+    return(NextMethod())
+  }
+  drm_julia_method_fence(
+    "predict_parameters",
+    "distributional-parameter prediction with standard errors",
+    "drmTMB_predict_parameters_julia_unsupported"
   )
 }

@@ -1,5 +1,25 @@
 # drmTMB (development)
 
+## New features
+
+* `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
+  check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
+  the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
+  tolerance was only reachable via the internal `validate_phylo_tree()` and
+  a tree that missed it by a negligible margin had no override short of
+  editing the tree itself (#1158).
+* `cumulative_logit()` gains a fixed-effect discrimination formula,
+  `bf(score ~ x, disc ~ z)`, with
+  `Pr(y <= k) = logit^-1(disc * (theta_k - mu))` and `log(disc) = z' gamma`.
+  The `disc` intercept is fixed at 0 because the latent scale is not
+  identifiable alongside free cutpoints; this matches the `scale` formula of
+  `ordinal::clm()`, whose coefficients equal `-gamma`. `disc ~ 1` reproduces
+  the location-only fit exactly, and `sigma()` returns the latent scale
+  `1 / disc` (#966).
+
+* `simulate()` and `predict_parameters()` on an `engine = "julia"` fit now stop
+  with a drmTMB error that points to `engine = "tmb"` (or `vcov()`/`confint()`
+  for coefficient SEs) instead of base R's "no applicable method" (#1570).
 ## Test infrastructure
 
 * The numeric-kernel extreme-value oracle's `run_oracle()` helper
@@ -15,6 +35,10 @@
 
 ## Documentation fixes
 
+* The `missing-data` article gains a recipe for a mediator that is also a response: build `impute_model()` from the fitted node's formula and family, with an explicit statement that estimates are not shared and what that means for standard errors (#964).
+
+* The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
+
 * `?phylo` now correctly describes the existing unit-height convention:
   drmTMB divides the Brownian covariance by tree height, so multiplying all
   branch lengths by the same positive constant leaves the normalized
@@ -22,6 +46,14 @@
   the earlier claim of preserving the supplied absolute branch-length scale;
   no fitting behavior or numerical default changed (Ayumi-495/
   LS_ecogeographical-rules#49).
+
+* `?heritability` no longer describes the `heritability()`/`icc()`/
+  `repeatability()` point estimate as "relative to a denominator on the
+  working (log-SD) scale". The estimate is a variance-share ratio in
+  `[0, 1]` on the natural (variance) scale; only its standard error and
+  confidence interval use a delta method on the working (log-SD) scale, as
+  the next paragraph already said. The computation itself was already
+  correct (verified numerically); only the description was wrong (#1231).
 
 ## Bug fixes
 
@@ -107,11 +139,38 @@
 * Multicore profile workers that error now abort `confint()` and `profile()`
   with the worker's error, as the serial path does, instead of returning a
   `try-error` element.
+* A forked worker that dies and returns `NULL` (for example after `quit()`)
+  no longer vanishes inside `rbind()`. `profile()` and
+  `confint(method = "profile")` abort with class
+  `drmTMB_parallel_worker_died`. `confint(method = "bootstrap")` records the
+  missing replicate as a failed refit so `bootstrap.n + bootstrap.failed`
+  still equals the requested `R` (#1232, #1254, #1236).
+* Retained bootstrap shards now record a forked worker that dies without a
+  result as a `worker_died` attempt instead of silently dropping the
+  replicate, as `confint(method = "bootstrap")` does. Replicates queued on
+  the same worker are recorded the same way. The shard ledger gains a
+  `worker_died` count, so usable plus failed refits still equal the
+  replicates attempted, also after shards are combined (#1537).
 * `configure.win` is now a POSIX shell script that runs `./configure`.
   R CMD INSTALL runs `configure.win` with the Rtools `sh`, so the previous
   cmd batch file failed at `@echo: command not found` and stopped every
   Windows source install and Windows CI build. Build provenance and the
   never-fatal fallbacks are unchanged.
+
+* `student()`, `Gamma()`, `beta_family()` and `beta_binomial()` log-likelihoods
+  are now accurate at large `nu`, small coefficient of variation and large `phi`. The old
+  `lgamma()`-difference forms lost about `eps * x log(x)` per row, so the
+  Student objective could exceed its own Gaussian limit and fits could report
+  false convergence. Each density now agrees with `dt()` (Student) and with an
+  exact reference (Gamma, Beta) to within 1e-12 per observation at `nu`,
+  shape or `phi` of 1e2 to 1e8, and tends to the Gaussian log-density in the
+  limit. The bivariate Student kernel uses the same stable `log(1 + x)`
+  (#1462, #1467, #1504, #1548).
+  With perfectly separated `beta_binomial()` counts (all failures in one
+  group, all successes in another), the maximum-likelihood `mu` lies on the
+  boundary. On macOS the fit now reaches a fitted `mu` of exactly 0 and 1
+  (link about -3348 and +3348); on Linux it stops just inside. `logLik()`,
+  the coefficients and `sigma()` stay finite on both (#1547).
 
 * `family = student()` no longer reports a log-likelihood above the Gaussian
   maximum when `nu` is huge. The compiled density evaluates
@@ -172,6 +231,16 @@
   when a modelled column contains `NA` instead of sending it to Julia.
   The main bridge records how many rows it dropped, and `check_drm()`
   reports that count. `response = "include"` is unchanged.
+
+* `drm_newton_polish()` (the default `newton_polish = TRUE` post-fit polish)
+  now caps its Newton step to a trust radius and backtracks (halving, up to
+  a few times) before falling back to the unpolished optimum, instead of
+  taking an unguarded full step. On a Tweedie fixture with a tiny response
+  (`y = 0.01`), the previous unguarded step moved `beta_sigma` from -6.35 to
+  -23.6 and `beta_nu` from 2.44 to -24.4 -- into a region where TMB's
+  `dtweedie` bound-search loops for roughly 1e9 iterations, hanging the fit
+  indefinitely. Behaviour on well-conditioned fits, where the step never
+  approaches the trust radius, is unchanged (#1441).
 
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
