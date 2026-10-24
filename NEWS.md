@@ -23,6 +23,7 @@
 
 ## Documentation fixes
 
+* The `missing-data` article gains a recipe for a mediator that is also a response: build `impute_model()` from the fitted node's formula and family, with an explicit statement that estimates are not shared and what that means for standard errors (#964).
 * `heritability()`, `icc()`, `repeatability()` and the `summary()$derived` variance share are documented as Gaussian-only for now; a non-Gaussian fit is refused with a message that points to `docs/design/275-repeatability-scale-and-residual-variance.md` and the de Villemereuil et al. (2016) three-scale framework (#1301).
 
 * The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
