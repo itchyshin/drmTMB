@@ -61,6 +61,8 @@ navbar:
     tutorials:
       text: Tutorials
       menu:
+        - text: Capture and recapture histories
+          href: articles/cjs-first-capture.html
         - text: Full introductory tutorial
           href: articles/drmTMB.html
         - text: When variance carries signal, Part 1
@@ -212,6 +214,17 @@ reference:
       - vcov.drm_pair_association
       - confint.drm_pair_association
       - predict.drm_pair_association
+  - title: Capture-recapture CJS models
+    desc: First-capture-conditional capture-recapture data and model methods.
+    contents:
+      - cmr_data
+      - drm_cjs
+      - coef.drm_cjs
+      - confint.drm_cjs
+      - logLik.drm_cjs
+      - predict.drm_cjs
+      - simulate.drm_cjs
+      - vcov.drm_cjs
   - title: Distributional outputs and adequacy
     desc: >
       A first-class fitted distribution for every family, plus the adequacy
@@ -241,6 +254,13 @@ reference:
       - plot_parameter_surface
 
 articles:
+  - title: Capture and recapture histories
+    desc: >
+      Fit and interpret first-capture-conditional Cormack–Jolly–Seber models,
+      including the limits of apparent survival, conditioning, prediction,
+      simulation, and supported heterogeneity routes.
+    contents:
+      - cjs-first-capture
   - title: Where should I start?
     desc: >
       Fit a first model, find the guide for your scientific question, and check

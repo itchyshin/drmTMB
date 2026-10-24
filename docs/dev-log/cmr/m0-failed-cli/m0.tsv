@@ -1,0 +1,3 @@
+slice	role	routing_class	model	effort	sandbox	cwd	brief	result	events	justification	tier_escalation_code	effort_exception_code	effort_exception_reason
+recon	Shannon	scout	gpt-6-luna	low	workspace-write	/Users/z3437171/.codex/worktrees/cmr-cjs/DRM.jl	/private/tmp/cmr-programme/recon-brief.md	/private/tmp/cmr-programme/recon-result.md	/private/tmp/cmr-programme/recon-events.jsonl				
+ranga	Ranga	build	gpt-6-luna	medium	workspace-write	/Users/z3437171/.codex/worktrees/cmr-cjs/DRM.jl	/private/tmp/cmr-programme/ranga-brief.md	/private/tmp/cmr-programme/ranga-result.md	/private/tmp/cmr-programme/ranga-events.jsonl				

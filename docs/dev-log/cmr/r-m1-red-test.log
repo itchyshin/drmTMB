@@ -1,0 +1,7 @@
+Test-first evidence, captured before `R/cmr-data.R` existed.
+
+Command:
+
+    Rscript -e 'testthat::test_file("tests/testthat/test-cmr-data.R")'
+
+Result: expected red. Two failures, both at `cmr_data(...)`: `could not find function "cmr_data"`. No test skipped; no warning. The constructor and CJS source files were added only after this result.

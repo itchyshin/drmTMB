@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "7e757fd756dd8fba8b6f17520cea7848d526484b9e03c3bd3a5a6d754399fd66",
+  "draft_version": "parent-m1-final",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Ada parent",
+  "method": "Separate saved-draft read against native execution logs, production source, frozen contract and leaf receipts",
+  "genre": "Scoped technical implementation report",
+  "coverage": "Whole saved draft",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "Specific APIs, errors and measured checks make scope clear; mandatory headings repeat some limits.",
+  "confidence": "moderate",
+  "confidence_reason": "Parent self-review; no independent human prose assessment.",
+  "examples": [
+    {
+      "location": "Cross-product coverage",
+      "cue": "Explicit remaining scope",
+      "impact": "Prevents fixed-effects numerical checks from becoming a full programme claim",
+      "repair": "no change needed",
+      "line": 58,
+      "quote": "Coverage is limited to CJS history construction, predictor joins/design schemas, and terminal identification. This leaf **does NOT cover** the likelihood kernel, fitting accuracy, simulation/recovery, predictions, random effects, reference selection, inference calibration, the R-to-Julia bridge, or release readiness."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Numerical CJS likelihood and derivative claims have independent fixtures and measured comparisons; calibration and later model classes are excluded.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Accepted gate results and source behavior checked. Leaf environment failures and unretained observations are labelled, not used to establish acceptance. Parent repairs have retained passing logs.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external scientific claim requiring reference verification in these receipts; local evidence and comparator provenance are identified.",
+  "date": "2026-10-06",
+  "calibration_status": "No calibration controls were consulted during this assessment",
+  "interpretation": "perceived_style_not_authorship"
+}

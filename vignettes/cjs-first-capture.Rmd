@@ -1,0 +1,401 @@
+---
+title: "First-capture-conditional capture-recapture"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{First-capture-conditional capture-recapture}
+  %\VignetteEngine{ knitr::rmarkdown }
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+if (identical(Sys.getenv("DRMTMB_CMR_SOURCE"), "true")) {
+  devtools::load_all(".", quiet = TRUE)
+} else {
+  library(drmTMB)
+}
+```
+
+`drm_cjs()` fits a fixed-effects Cormack–Jolly–Seber model conditional on each
+animal's first capture. The survival formula models logit unit-time apparent
+survival. Over an interval of length $\Delta$, survival is
+$\phi_{\mathrm{unit}}^{\Delta}$; the
+detection formula models detection conditional on being alive and surveyed.
+This route does not estimate abundance or unseen animals.
+
+Apparent survival combines mortality and permanent emigration; this model
+cannot separate them. The contract also excludes all-zero histories, unknown
+entry, recruitment, tag loss, temporary emigration, and behavioural trap
+dependence. A history whose first capture is its final observation contributes
+likelihood one because it has no post-capture information.
+
+## Fit a model
+
+```{r fit}
+y <- rbind(
+  c(1, 0, 0, 0), c(1, 0, 1, 0), c(1, 1, 0, 0), c(1, 1, 1, 0),
+  c(1, 0, 0, 1), c(1, 0, 1, 1), c(1, 1, 0, 1), c(1, 1, 1, 1)
+)
+d <- cmr_data(y, id = seq_len(nrow(y)), occasions = 1:4, units = "years",
+              frequency = c(12, 4, 8, 4, 4, 4, 4, 4))
+fit <- drm_cjs(d, phi = ~1, p = ~1)
+coef(fit)
+```
+
+## Predict and simulate conditionally
+
+Training predictions return only keyed interval and occasion rows that
+contribute to the objective.
+
+```{r predict}
+pred <- predict(fit)
+head(pred$phi[c("id", "interval_start", "phi_unit", "phi_interval")])
+head(pred$p)
+```
+
+Simulation retains the observed first-capture times, survey masks, and
+administrative endpoints. It conditions on the first-capture emission and
+keeps death absorbing. Supplying a seed gives reproducible data without
+changing the caller's random-number stream.
+
+```{r simulate}
+simulated <- simulate(
+  fit, nsim = 1L, seed = 20261006
+)[[1L]]
+refit <- drm_cjs(
+  simulated$data, phi = ~1, p = ~1,
+  phi_data = simulated$phi_data, p_data = simulated$p_data
+)
+coef(refit)
+```
+
+## Inspect fixed-effect intervals
+
+Wald and profile intervals use the CJS-specific observed likelihood curvature
+and constrained CJS refits, respectively. The parametric bootstrap retains
+every attempt and its status when the original fit passes admission; an
+ineligible original fit can be rejected before an interval result is returned.
+Returned results expose a status for each coefficient.
+These methods have not passed repeated-sample interval-availability or coverage
+qualification. Phase A reports only target-specific single-fit endpoint
+capability and status; Phase B will assess repeated-sample availability and
+calibration. An available interval does not establish nominal calibration.
+
+```{r intervals}
+ci <- confint(fit, method = "wald")
+attr(ci, "target_status")
+```
+
+## Allow survival to vary among sites
+
+The native R implementation also fits shared site or year effects. This
+example uses the same keyed survival-data layout and shared-site formula as the
+Julia companion tutorial. The terminal survival constraint resolves the final
+survival/detection confounding in this four-occasion example.
+
+```{r shared-site}
+n <- 24L
+nt <- 4L
+ids <- sprintf("animal-%02d", seq_len(n))
+sites <- rep(c("north", "south", "east", "marsh", "ridge", "valley"), each = 4L)
+y_site <- matrix(0L, n, nt)
+y_site[, 1L] <- 1L
+for (i in seq_len(n)) for (t in 2:nt)
+  y_site[i, t] <- as.integer((i + 2L * t) %% 5L == 0L)
+site_data <- cmr_data(y_site, id = ids, occasions = seq_len(nt), units = "years")
+phi_data <- data.frame(
+  id = rep(ids, each = nt - 1L),
+  interval_start = rep(seq_len(nt - 1L), times = n),
+  interval_end = rep(2:nt, times = n),
+  site = rep(sites, each = nt - 1L)
+)
+p_data <- data.frame(
+  id = rep(ids, each = nt),
+  occasion = rep(seq_len(nt), times = n),
+  site = rep(sites, each = nt)
+)
+site_fit <- drm_cjs(
+  site_data, phi = ~1 + (1 | site), p = ~1,
+  phi_data = phi_data, p_data = p_data,
+  terminal_constraint = list(phi = 0.82)
+)
+coef(site_fit, process = "sd_phi")
+site_profile <- confint(
+  site_fit, method = "profile", parm = c("phi:(Intercept)", "sd:phi")
+)
+attr(site_profile, "target_status")
+```
+
+## Allow persistent differences among animals
+
+An individual intercept is drawn once for each animal and retained through its
+history. This separate R example illustrates a process-specific SD predictor;
+the Julia package page uses a compact individual-effects example with different
+data and constraints. The shared site-effect example above uses the same
+history layout, survival formula, and terminal constraint in both languages.
+
+```{r individual-effects}
+set.seed(8102)
+n <- 400L
+nt <- 5L
+ids <- sprintf("bird-%03d", seq_len(n))
+z <- rep(c(-1, 0, 1), length.out = n)
+phi_sd <- exp(-0.25 + 0.25 * z)
+phi_i <- stats::plogis(stats::qlogis(0.82) + stats::rnorm(n, sd = phi_sd))
+p_i <- rep(0.58, n)
+y_individual <- matrix(0L, n, nt)
+y_individual[, 1L] <- 1L
+for (i in seq_len(n)) {
+  alive <- TRUE
+  for (t in 2:nt) {
+    survival <- if (t == nt) 0.82 else phi_i[[i]]
+    alive <- alive && stats::rbinom(1L, 1L, survival) == 1L
+    y_individual[i, t] <- if (alive) stats::rbinom(1L, 1L, p_i[[i]]) else 0L
+  }
+}
+individual_data <- cmr_data(y_individual, id = ids, occasions = seq_len(nt),
+                            units = "years")
+individual_phi_data <- data.frame(
+  id = rep(ids, each = nt - 1L),
+  interval_start = rep(seq_len(nt - 1L), times = n),
+  interval_end = rep(2:nt, times = n),
+  z = rep(z, each = nt - 1L)
+)
+individual_fit <- drm_cjs(
+  individual_data, phi = ~1 + (1 | id), p = ~1,
+  phi_data = individual_phi_data, sd_phi = ~z,
+  terminal_constraint = list(phi = 0.82)
+)
+coef(individual_fit, process = "sd_phi")
+individual_profile <- confint(
+  individual_fit, method = "profile",
+  parm = c("phi:(Intercept)", "sd_phi:z")
+)
+attr(individual_profile, "target_status")
+c(convergence = individual_fit$convergence,
+  gradient_norm = individual_fit$gradient_norm)
+pred_individual <- predict(individual_fit, target = "integrated")
+head(pred_individual$phi[c("id", "interval_start", "phi_unit", "phi_interval")])
+sim_individual <- simulate(individual_fit, nsim = 1L, seed = 8103)[[1L]]
+head(sim_individual$data$y)
+```
+
+For an integrated interval prediction of length $\Delta$, the target is the
+average of conditional survival probabilities raised to that interval length,
+$\mathbb{E}_b[s(b)^{\Delta}]$. It is not the marginal unit-time survival
+raised to $\Delta$, $\{\mathbb{E}_b[s(b)]\}^{\Delta}$.
+
+The `sd_phi` formula models the log SD of the individual survival effects.
+It must use covariates that are known for every contributing interval and
+constant within individual. The fitted route can report an SD profile, but
+parameter-recovery qualification for this predictor remains open; repeated-sample
+interval availability and calibration are deferred to Phase B.
+For this fixed demonstration seed, the fitted log-SD coefficients land near the
+zero-heterogeneity boundary even though the simulated data use nonzero
+heterogeneity. The same likelihood has a nearby interior mode whose minimized
+objective is slightly worse. Treat this example as an interface demonstration, not
+evidence that the SD predictor was recovered; the programme's paired recovery
+design is needed to measure how often this occurs.
+
+The corresponding `sd_p` formula models the log SD of persistent detection
+effects. This compact example varies detection heterogeneity by an individual
+covariate while keeping survival fixed apart from the terminal constraint.
+
+```{r detection-sd-predictor}
+set.seed(8106)
+n_detection <- 240L
+nt_detection <- 5L
+detection_ids <- sprintf("bird-%03d", seq_len(n_detection))
+z_detection <- rep(c(-1, 1), length.out = n_detection)
+detection_sd <- exp(-0.35 + 0.25 * z_detection)
+detection_effect <- stats::rnorm(n_detection, sd = detection_sd)
+p_i <- stats::plogis(stats::qlogis(0.58) + detection_effect)
+y_detection <- matrix(0L, n_detection, nt_detection)
+y_detection[, 1L] <- 1L
+for (i in seq_len(n_detection)) {
+  alive <- TRUE
+  for (t in 2:nt_detection) {
+    survival <- if (t == nt_detection) 0.82 else 0.84
+    alive <- alive && stats::rbinom(1L, 1L, survival) == 1L
+    y_detection[i, t] <- if (alive) stats::rbinom(1L, 1L, p_i[[i]]) else 0L
+  }
+}
+detection_data <- cmr_data(y_detection, id = detection_ids,
+                           occasions = seq_len(nt_detection), units = "years")
+detection_p_data <- data.frame(
+  id = rep(detection_ids, each = nt_detection),
+  occasion = rep(seq_len(nt_detection), times = n_detection),
+  z = rep(z_detection, each = nt_detection)
+)
+detection_fit <- drm_cjs(
+  detection_data, phi = ~1, p = ~1 + (1 | id), p_data = detection_p_data,
+  sd_p = ~z, terminal_constraint = list(phi = 0.82)
+)
+coef(detection_fit, process = "sd_p")
+detection_prediction <- predict(detection_fit, target = "integrated")
+head(detection_prediction$p[c("id", "occasion", "p")])
+```
+
+The fitted SD coefficients describe the detection log-SD model. This example
+checks the public fitting and integrated-prediction route; it does not establish
+recovery or interval calibration for detection heterogeneity.
+
+## Correct for first-capture selection
+
+When animals enter a declared alive-and-available reference cohort before they
+are first captured, `selection` adds the probability of each observed
+first-capture event and divides by its reference-cohort probability. It uses
+complete pre-capture survey and covariate histories. The same survival and
+detection coefficients govern the pre- and post-capture periods. This
+conditional correction describes the declared reference cohort; it does not
+estimate unseen animals or abundance.
+
+For individual `i`, the selection-conditioned contribution is the ratio
+
+\[
+L_i =
+\frac{\int w_i(b) H_i(b) g_{\mathrm{ref}}(b)\,db}
+     {\int w_i(b) g_{\mathrm{ref}}(b)\,db},
+\]
+
+where `w_i(b)` is the probability of its observed first-capture event from its
+declared eligibility occasion, `H_i(b)` is its post-capture CJS history
+likelihood, and `g_ref(b)` is the random-effect distribution in the declared
+reference cohort. The denominator normalizes by the probability that an
+eligible animal is captured, using the same effect distribution as the
+numerator.
+
+```{r reference-selection}
+set.seed(20261017L)
+n_selected <- 144L
+nt_selected <- 5L
+selected_ids <- sprintf("selected-%03d", seq_len(n_selected))
+selected_z <- rep(c(-1, 1), length.out = n_selected)
+sigma_phi <- exp(-0.25 + 0.28 * selected_z)
+sigma_p <- exp(-0.50 + 0.22 * selected_z)
+selected_end <- sample(4:5, n_selected, replace = TRUE)
+y_selected <- matrix(0L, n_selected, nt_selected)
+first_selected <- integer(n_selected)
+for (i in seq_len(n_selected)) {
+  repeat {
+    phi_effect <- stats::rnorm(1L)
+    p_effect <- stats::rnorm(1L)
+    history <- integer(nt_selected)
+    alive <- TRUE
+    for (t in seq_len(selected_end[[i]])) {
+      if (t > 1L) {
+        alive <- alive && stats::rbinom(
+          1L, 1L,
+          stats::plogis(stats::qlogis(0.82) + sigma_phi[[i]] * phi_effect)
+        ) == 1L
+      }
+      if (alive) history[[t]] <- stats::rbinom(
+        1L, 1L,
+        stats::plogis(stats::qlogis(0.56) + sigma_p[[i]] * p_effect)
+      )
+    }
+    captures <- which(history == 1L)
+    if (length(captures)) {
+      first_selected[[i]] <- captures[[1L]]
+      break
+    }
+  }
+  y_selected[i, ] <- history
+}
+selected_observed <- matrix(TRUE, n_selected, nt_selected)
+for (i in seq_len(n_selected)) {
+  if (first_selected[[i]] > 2L && y_selected[i, 2L] == 0L)
+    selected_observed[i, 2L] <- FALSE
+  post_mask <- first_selected[[i]] + 2L
+  if (post_mask <= selected_end[[i]] && y_selected[i, post_mask] == 0L)
+    selected_observed[i, post_mask] <- FALSE
+}
+y_selected[!selected_observed] <- NA_integer_
+selected_data <- cmr_data(
+  y_selected, id = selected_ids, observed = selected_observed,
+  occasions = seq_len(nt_selected), end = selected_end, units = "years"
+)
+selected_phi_data <- data.frame(
+  id = rep(selected_ids, each = nt_selected - 1L),
+  interval_start = rep(seq_len(nt_selected - 1L), times = n_selected),
+  interval_end = rep(2:nt_selected, times = n_selected),
+  z = rep(selected_z, each = nt_selected - 1L)
+)
+selected_p_data <- data.frame(
+  id = rep(selected_ids, each = nt_selected),
+  occasion = rep(seq_len(nt_selected), times = n_selected),
+  z = rep(selected_z, each = nt_selected)
+)
+selected_fit <- drm_cjs(
+  selected_data, phi = ~1 + (1 | id), p = ~1 + (1 | id),
+  phi_data = selected_phi_data, p_data = selected_p_data,
+  sd_phi = ~1 + z, sd_p = ~1 + z,
+  selection = list(eligibility = rep(1L, n_selected),
+                   assumption = "alive_available"),
+  terminal_constraint = list(phi = 0.82)
+)
+coef(selected_fit, process = "sd_phi")
+coef(selected_fit, process = "sd_p")
+pred_selected <- predict(selected_fit, target = "integrated")
+selected_profile <- confint(
+  selected_fit, method = "profile",
+  parm = c("phi:(Intercept)", "sd_phi:(Intercept)", "sd_p:(Intercept)")
+)
+attr(selected_profile, "target_status")
+attr(pred_selected, "prediction")$target
+head(pred_selected$p[c("id", "occasion", "p")])
+sim_selected <- simulate(selected_fit, nsim = 1L, seed = 8105L)[[1L]]
+attr(sim_selected, "simulation")$target
+identical(sim_selected$data$first, selected_data$first)
+identical(sim_selected$data$observed, selected_data$observed)
+identical(sim_selected$data$end, selected_data$end)
+```
+
+Prediction and simulation from this fit retain the reference-selection target.
+The selection quadrature integrates its numerator and denominator with the same
+random-effect law. Integrated predictions average over the selection-weighted
+effect distribution given the supplied complete pre-capture history; new data
+must provide that history and its survey mask. Correlated random components,
+random slopes, structured effects, shared-plus-individual effects, and
+shared-effect selection are outside the current contract; unknown entry is
+unsupported. Parameter-recovery qualification for this route remains open;
+repeated-sample interval studies are deferred to Phase B.
+
+For this fixed seed, the survival and detection SD profile targets are
+unavailable, and the survival-intercept profile is partial. The fitted SD
+coefficients are extreme in this example, so the output illustrates guarded
+status reporting rather than evidence that either SD predictor is identified.
+
+Shared-effect intervals are profile-only; individual-effect coefficient
+intervals include profile and parametric-bootstrap methods, while SD formula
+coefficients are profile-only. Wald intervals require eligible interior
+curvature, and bootstrap can reject a fit before returning attempt records if
+it fails admission. Route-specific checks and statuses do not qualify every
+route. Phase A reports single-fit endpoint capability and target status only.
+Repeated-sample interval availability and coverage/calibration are deferred to
+Phase B, so interval availability does not establish nominal calibration. The
+`engine = "julia"` bridge remains fixed-effects-only.
+
+## How the R and Julia examples correspond
+
+Read this vignette alongside the Julia pages by scientific task:
+
+| Task | R `drmTMB` section | Julia `DRModels.jl` page |
+|---|---|---|
+| First-capture conditioning, fixed-effects fit, keyed prediction, conditional simulation, and fixed-effect intervals | “Fit a model”; “Predict and simulate conditionally”; “Inspect fixed-effect intervals” | `cjs.md` |
+| Shared site or year variation | “Allow survival to vary among sites” | `cjs-shared-effects.md` |
+| Persistent individual effects and process-specific SD predictors | “Allow persistent differences among animals” | `cjs-individual-effects.md` |
+| Reference-cohort selection correction | “Correct for first-capture selection” | `cjs-individual-effects.md`, “Predictor-dependent SDs and reference selection” |
+
+The examples implement the same first-capture-conditional estimands and
+describe the same exclusions; the table is a reading map, not a claim of
+route-wide numerical parity. The shared-site survival example uses the same
+histories, formula, and terminal constraint in both packages. Other
+demonstrations use package-specific data or API details: R labels its selected
+integrated prediction `target = "integrated"`, while Julia uses
+`target = :reference_selected`; the R individual-effects example separates
+survival and detection SD predictors, while the Julia selection example
+demonstrates both together. Interval methods and eligibility rules also differ
+by route. Use each package's status output. Phase A does not establish recovery
+or repeated-sample interval availability or nominal coverage; those validation
+studies are deferred to Phase B.

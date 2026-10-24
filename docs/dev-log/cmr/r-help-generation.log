@@ -1,0 +1,9 @@
+[1] TRUE TRUE
+First time using roxygen2. Upgrading automatically...
+ℹ Setting Config/roxygen2/version to "8.0.0"
+✖ roxygen2 requires "Encoding: UTF-8"
+ℹ Current encoding is NA
+ℹ Loading cmrdocs
+Writing 'drm_cjs.Rd'
+Writing 'cmr_data.Rd'
+Writing 'NAMESPACE'

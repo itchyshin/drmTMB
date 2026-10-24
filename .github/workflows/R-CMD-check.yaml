@@ -293,8 +293,12 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgload, any::testthat
-          needs: check
+          # The source-tree suite loads the package from the checkout, so its
+          # runtime dependencies are enough; installing every Suggests package
+          # here pulled in unrelated geospatial system libraries and timed out
+          # before any of these tests ran.
+          dependencies: '"hard"'
+          extra-packages: any::pkgload, any::testthat, any::withr, any::ape, any::lme4
 
       # Fails in milliseconds, before the compile, if the derived set and the
       # committed manifest disagree -- a stale manifest is how this guard would

@@ -1,0 +1,209 @@
+{
+  "datasets": [
+    {
+      "cell": "m5_sd_pair_nonzero_slopes_info_N800",
+      "n": 800,
+      "replicate": 1,
+      "rows": {
+        "eligibility": 0,
+        "histories": 4800,
+        "p_predictors": 2804,
+        "phi_predictors": 2004,
+        "truth": 9600
+      },
+      "seed": 120900001,
+      "sha256": {
+        "eligibility.csv": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories.csv": "52231a658d2594505d92f0512dc1e32ea9f10ed5c69b86116eef213150758735",
+        "p_predictors.csv": "1a973bd54b35e7c5164c5832494e4534a4fd74a54fe592ac04c822d53ed7e35a",
+        "phi_predictors.csv": "b31f4a78918f47da66b9acbaefd10095424816fab836a52b71c29b3f2d50b04d",
+        "truth.csv": "da51ffb8f2cd6cc663a37f2e92e364050f68da0ede1d6d324b7a755ea6c69022"
+      }
+    },
+    {
+      "cell": "m5_sd_pair_nonzero_slopes_info_N800",
+      "n": 800,
+      "replicate": 2,
+      "rows": {
+        "eligibility": 0,
+        "histories": 4800,
+        "p_predictors": 2804,
+        "phi_predictors": 2004,
+        "truth": 9600
+      },
+      "seed": 120900002,
+      "sha256": {
+        "eligibility.csv": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories.csv": "5696bc0d5e4b9c2a275a4abc72f7bb649c84a1398070367fd617b21d4f5662cf",
+        "p_predictors.csv": "fd1c8298321bde09f9003b1c36106587d9c69dfa4be4fdd408b6a9d71b5b0163",
+        "phi_predictors.csv": "9c14d7fee34ebefbf194f56dd199cc3d031522199953ddfc1540ed9b99dab7f2",
+        "truth.csv": "be2926a4530c1bceb1c20649bb59de54ab0b5de76d62841cf2e12d15ad11c410"
+      }
+    },
+    {
+      "cell": "m5_sd_pair_nonzero_slopes_info_N800",
+      "n": 800,
+      "replicate": 3,
+      "rows": {
+        "eligibility": 0,
+        "histories": 4800,
+        "p_predictors": 2804,
+        "phi_predictors": 2004,
+        "truth": 9600
+      },
+      "seed": 120900003,
+      "sha256": {
+        "eligibility.csv": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories.csv": "4e65ac309f1c59b8ec49ea51d61d848f58bc6d42f77d6967146de9b0ee7f3187",
+        "p_predictors.csv": "a1266c584d3af03979f35824f1e31e5e3e5f8fa5925dd6648f429bf74c9f18ad",
+        "phi_predictors.csv": "127bd94dc1d4ed6147c8cf1bbd4a93018121e18704febb39d4a273b4b92dd920",
+        "truth.csv": "8ae09b23b649cbd55e0b7a52b1baa57bc9d61fd01098f0e951bebbbc2537eb89"
+      }
+    },
+    {
+      "cell": "m5_sd_pair_nonzero_slopes_info_N800",
+      "n": 800,
+      "replicate": 4,
+      "rows": {
+        "eligibility": 0,
+        "histories": 4800,
+        "p_predictors": 2804,
+        "phi_predictors": 2004,
+        "truth": 9600
+      },
+      "seed": 120900004,
+      "sha256": {
+        "eligibility.csv": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories.csv": "e8ad5816d8827e5b05f79256556c12e454a28ba1f92991b2050c2bcf88e41ad1",
+        "p_predictors.csv": "28ae8c2c66740b960e89005bb4d954e89fdbcd334c5d7946c588e94da4bbc40b",
+        "phi_predictors.csv": "381f0c630b423595cbd0396d1aa14a6cfc355a29377119b9ce44c835a74d47f9",
+        "truth.csv": "cc256a366cd013e5478e5713ad49b45977e46feb6bab0ffdbbc62cdf6854250e"
+      }
+    },
+    {
+      "cell": "m5_sd_pair_nonzero_slopes_info_N800",
+      "n": 800,
+      "replicate": 5,
+      "rows": {
+        "eligibility": 0,
+        "histories": 4800,
+        "p_predictors": 2804,
+        "phi_predictors": 2004,
+        "truth": 9600
+      },
+      "seed": 120900005,
+      "sha256": {
+        "eligibility.csv": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories.csv": "51b7123fe283851458a19115ba9775fa827d8d357b545e9aede21479f17d62eb",
+        "p_predictors.csv": "f07d004f4ea647edf936f0f91b84be57151960fccdee61beca755275fdc67966",
+        "phi_predictors.csv": "fbfcda0b9c51cac476d98b8cb48961543d929628afa64bf6b428dea7fc342e6d",
+        "truth.csv": "2aba155374cb07fec17d9e298d54a9f3996010f651567916bd9cd37cfc495dd1"
+      }
+    },
+    {
+      "cell": "m5_sd_pair_nonzero_slopes_info_N1600",
+      "n": 1600,
+      "replicate": 1,
+      "rows": {
+        "eligibility": 0,
+        "histories": 9600,
+        "p_predictors": 5604,
+        "phi_predictors": 4004,
+        "truth": 19200
+      },
+      "seed": 120900006,
+      "sha256": {
+        "eligibility.csv": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories.csv": "d1e8462f2681e217b200cda06ca2a5ca0d0251752364f016c142b30f9350acca",
+        "p_predictors.csv": "4274ed7a9e0f14d092d539effb150b13bc55b96713c75cbc95e9a3e9016c9d52",
+        "phi_predictors.csv": "b0fb61388d6dd09cc3f8f4116dc3547b8f42e6313d553667e9c23a49b5b41d69",
+        "truth.csv": "0369f374e2e2dc2956c1cd2d25d9e685d361fb19331612c5534af8947665a14e"
+      }
+    },
+    {
+      "cell": "m5_sd_pair_nonzero_slopes_info_N1600",
+      "n": 1600,
+      "replicate": 2,
+      "rows": {
+        "eligibility": 0,
+        "histories": 9600,
+        "p_predictors": 5604,
+        "phi_predictors": 4004,
+        "truth": 19200
+      },
+      "seed": 120900007,
+      "sha256": {
+        "eligibility.csv": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories.csv": "fd6010f8c36af47704b9aeff4bdfafe7e7acf2699730e51d9aca5cc1b960d639",
+        "p_predictors.csv": "5aa100b89b577f472cc2b606a249f55a521c0ca72b34b1afd8ddd1d9cdd2c38b",
+        "phi_predictors.csv": "31612148d797d07e9c698e60d8356ab47beadebb44b6349ef0a8c16ba7aac565",
+        "truth.csv": "6304541e9a90b12bff2d2b8ade6d8aad026cb49cb6826bbaef19eedcb8c12734"
+      }
+    },
+    {
+      "cell": "m5_sd_pair_nonzero_slopes_info_N1600",
+      "n": 1600,
+      "replicate": 3,
+      "rows": {
+        "eligibility": 0,
+        "histories": 9600,
+        "p_predictors": 5604,
+        "phi_predictors": 4004,
+        "truth": 19200
+      },
+      "seed": 120900008,
+      "sha256": {
+        "eligibility.csv": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories.csv": "7803b3b1990fae56f5629e873647d359073d3feab2f9fff64bc66939ca45c646",
+        "p_predictors.csv": "523ce512f1f6a88645517e0c318c5ec346d2a8b94e0ee9416d8fdab4c73d406c",
+        "phi_predictors.csv": "ab4eb5b4f6b685d67269dac4cfa9526a63d815968a01cd23b430d4106554b72e",
+        "truth.csv": "c2b8cd9600d3eab4760645524687190bc1c09fd7d8c1304777a122a85c532c97"
+      }
+    },
+    {
+      "cell": "m5_sd_pair_nonzero_slopes_info_N1600",
+      "n": 1600,
+      "replicate": 4,
+      "rows": {
+        "eligibility": 0,
+        "histories": 9600,
+        "p_predictors": 5604,
+        "phi_predictors": 4004,
+        "truth": 19200
+      },
+      "seed": 120900009,
+      "sha256": {
+        "eligibility.csv": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories.csv": "a886bc8a547746f42d45d1acf2542f432e0017cfd52b22a0bf38e744b8347437",
+        "p_predictors.csv": "199e229708f5d8a472de690b48abac5a83362bfcdef50b32c830f6cde56f91a3",
+        "phi_predictors.csv": "0c5be8d9df702c2cb6d6905e0d6aa235f9750e8715744195339941dced8ecf11",
+        "truth.csv": "c1e18f6f7bd4311e618ea551fb859a81073afe73fbffacd01217d06d187ae00e"
+      }
+    },
+    {
+      "cell": "m5_sd_pair_nonzero_slopes_info_N1600",
+      "n": 1600,
+      "replicate": 5,
+      "rows": {
+        "eligibility": 0,
+        "histories": 9600,
+        "p_predictors": 5604,
+        "phi_predictors": 4004,
+        "truth": 19200
+      },
+      "seed": 120900010,
+      "sha256": {
+        "eligibility.csv": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories.csv": "2933e535ae81e7cb9c03e7176ebc08187007b7d29ac5e6a0f880f28fe43dea8f",
+        "p_predictors.csv": "d342e007e473031391535419600bf695bd74ac7ffe0758b175010dace9382914",
+        "phi_predictors.csv": "3b3387d25cec4f250cbbb4cc3ec2330dfa157d69fc6f6085bd68208aa48855b8",
+        "truth.csv": "144e6281a713c44e7792531b1d4933629c8d285aec22325fe3b9ef7b01a59a17"
+      }
+    }
+  ],
+  "diagnostic_seed_rule": "120000000 + 100000*9 + diagnostic_index; index 1:10, N=800 indices 1:5 then N=1600 indices 6:10",
+  "generator": "SplitMix64-v1",
+  "generator_source_sha256": "2c1878154fcddddc17c3d55926dfc8b6aa8cbb2c94c7fe792e69576cf8eb1b70",
+  "manifest_sha256": "5dbce920b0de7e89460edd68a49fcea07afb612ff75d32ae11680cc07de8171d",
+  "status": "generated_data_only_no_fits"
+}

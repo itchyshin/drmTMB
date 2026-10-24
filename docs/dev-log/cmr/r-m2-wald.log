@@ -1,0 +1,4 @@
+/Users/z3437171/.zprofile:26: nice(5) failed: operation not permitted
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+CMR_M2_WALD_OK
+
