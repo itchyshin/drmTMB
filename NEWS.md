@@ -113,6 +113,12 @@
 * Multicore profile workers that error now abort `confint()` and `profile()`
   with the worker's error, as the serial path does, instead of returning a
   `try-error` element.
+* A forked worker that dies and returns `NULL` (for example after `quit()`)
+  no longer vanishes inside `rbind()`. `profile()` and
+  `confint(method = "profile")` abort with class
+  `drmTMB_parallel_worker_died`. `confint(method = "bootstrap")` records the
+  missing replicate as a failed refit so `bootstrap.n + bootstrap.failed`
+  still equals the requested `R` (#1232, #1254, #1236).
 * Retained bootstrap shards now record a forked worker that dies without a
   result as a `worker_died` attempt instead of silently dropping the
   replicate, as `confint(method = "bootstrap")` does. Replicates queued on
