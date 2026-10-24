@@ -3287,3 +3287,30 @@ Implementation notes:
 
 Every likelihood must have simulation recovery tests before being treated as
 implemented.
+
+## Zero-inflated and hurdle count `mu` random intercept (issue #1451)
+
+Reader: a method developer porting the likelihood (DRModels.jl#940) or checking
+it against `glmmTMB`.
+
+Owner decision 1(a) admits exactly one Gaussian random intercept on `mu` in
+model types 8 (zero-inflated Poisson), 9 (zero-inflated NB2), and 12 (hurdle
+NB2). For observation `i` in group `g(i)`:
+
+```text
+eta_mu[i] = x_mu[i]' beta_mu + sd_mu * u[g(i)],    u[g] ~ N(0, 1)
+mu[i]     = exp(eta_mu[i])
+```
+
+The response density is unchanged and conditional on `u`:
+zero-inflated models use `pi_i * 1(y_i = 0) + (1 - pi_i) * f(y_i | mu_i)`
+with `pi_i = logit^-1(beta_zi)`, and the hurdle model uses `hu_i` for `y_i = 0`
+and `(1 - hu_i) * f(y_i | mu_i, sigma) / (1 - f(0 | mu_i, sigma))` otherwise.
+The marginal likelihood integrates `u` by the Laplace approximation in TMB
+(`random = "u_mu"`); the `N(0, 1)` prior on `u` is added to the negative
+log-likelihood. `zi`/`hu` stay intercept-only, so `u` does not enter the zero
+part. R syntax: `bf(count ~ x + (1 | site), sigma ~ 1, zi ~ 1)`. The
+`glmmTMB` comparator is `glmmTMB(count ~ x + (1 | site), zi = ~ 1, ...)`;
+`test-zi-hurdle-mu-random-intercept.R` matches log-likelihood, fixed effects,
+and the random-intercept SD on Salamanders. The `sigma` here is drmTMB's NB2
+scale, `sigma = 1 / sqrt(theta)` for glmmTMB's size `theta`.

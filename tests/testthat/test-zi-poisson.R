@@ -269,11 +269,11 @@ test_that("zero-inflated Poisson rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + (1 | id), zi ~ 1),
+      bf(y ~ x + (1 | id), zi ~ x),
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "Zero-inflated Poisson random effects"
+    "intercept-only"
   )
   expect_error(
     drmTMB(
