@@ -376,10 +376,21 @@ plot_corpairs_interval_data <- function(data) {
 
 plot_corpairs_interval_available <- function(data) {
   # bootstrap is a legitimate interval source (see interval_source_levels()), so
-  # keep it in the available whitelist alongside wald and profile.
+  # keep it in the available whitelist alongside wald and profile. Incomplete
+  # and at-boundary bootstrap rows stay plottable (#1458); their conf.status
+  # already marks the caveat.
   unavailable_status <- c(
     "",
-    setdiff(interval_status_levels(), c("wald", "profile", "bootstrap"))
+    setdiff(
+      interval_status_levels(),
+      c(
+        "wald",
+        "profile",
+        "bootstrap",
+        "bootstrap_incomplete",
+        "bootstrap_at_boundary"
+      )
+    )
   )
   status <- as.character(data$.drmTMB_conf_status)
   source <- as.character(data$.drmTMB_interval_source)

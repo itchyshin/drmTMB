@@ -1,8 +1,17 @@
-drm_fixed_effect_matrix <- function(terms, data, sparse = FALSE) {
+drm_fixed_effect_matrix <- function(
+  terms,
+  data,
+  sparse = FALSE,
+  contrasts.arg = NULL
+) {
   if (isTRUE(sparse)) {
-    return(Matrix::sparse.model.matrix(terms, data))
+    return(Matrix::sparse.model.matrix(
+      terms,
+      data,
+      contrasts.arg = contrasts.arg
+    ))
   }
-  stats::model.matrix(terms, data)
+  stats::model.matrix(terms, data, contrasts.arg = contrasts.arg)
 }
 
 drm_fixed_effect_is_sparse <- function(object, dpar) {

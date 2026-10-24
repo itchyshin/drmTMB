@@ -4560,7 +4560,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "        end",
       "        row = drmTMB_pick_fixef_row(result.summary)",
       "        return drmTMB_backend._bridge_inference_flatten(row; method = \"bootstrap\",",
-      "            status = result.used >= 2 ? \"bootstrap\" : \"bootstrap_unavailable\",",
+      "            status = result.used >= 2 ? (result.failed > 0 ? \"bootstrap_incomplete\" : \"bootstrap\") : \"bootstrap_unavailable\",",
       "            attempted = result.attempted, used = result.used, failed = result.failed,",
       "            elapsed = result.elapsed, threaded = result.threaded, worker_threads = result.worker_threads,",
       "            julia_threads = result.julia_threads, blas_threads = result.blas_threads,",
@@ -6100,6 +6100,7 @@ drm_julia_inference_confint_row <- function(target, result, level, method) {
       "none"
     }
     out$bootstrap.workers <- as.integer(result[["worker_threads"]])
+    out <- bootstrap_reconcile_status(out)
   }
   row.names(out) <- NULL
   out
@@ -6156,6 +6157,7 @@ drm_julia_fixef_inference_confint_row <- function(target, result, level, method)
       "none"
     }
     out$bootstrap.workers <- as.integer(result[["worker_threads"]])
+    out <- bootstrap_reconcile_status(out)
   }
   row.names(out) <- NULL
   out
@@ -6300,6 +6302,9 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   }
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
+  if (identical(method, "bootstrap")) {
+    out <- bootstrap_reconcile_status(out)
+  }
   out
 }
 
@@ -8145,6 +8150,7 @@ drm_julia_xfam_family_tag <- function(family) {
     return(NULL)
   }
   if (identical(family$family, "gaussian")) {
+    drm_require_gaussian_identity_link(family)
     return("gaussian")
   }
   if (identical(family$family, "poisson")) {
