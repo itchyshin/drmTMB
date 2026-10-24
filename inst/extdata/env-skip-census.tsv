@@ -94,6 +94,8 @@ test-formula-smooth-terms.R	cran-lane	environment	runs	1
 test-function-map-cheatsheet.R	build-premise	build	skips	2
 test-heritability.R	suggests-package	environment	runs	1
 test-julia-admission-census.R	build-premise	build	skips	1
+test-julia-admission-docs.R	build-premise	build	skips	2
+test-julia-admission-docs.R	runtime-conditional	runtime	depends	1
 test-julia-biv-confint.R	suggests-package	environment	runs	7
 test-julia-biv-inference.R	build-premise	build	skips	1
 test-julia-biv-inference.R	engine-drm-jl	environment	skips	1

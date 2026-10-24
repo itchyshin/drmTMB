@@ -105,8 +105,9 @@ predictor (k = 1; no grouped/structured predictor model, no k = 2).}
 bridge: Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson,
 NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
 an additional large-p \code{phylo()} or coupled location-scale phylo route),
-plus \code{truncated_nbinom2()}, \code{zero_one_beta()}, \code{tweedie()}, and
-\code{beta_binomial()} on the fixed-effect route only. Each admitted family
+plus \code{truncated_nbinom2()}, \code{zero_one_beta()}, \code{tweedie()},
+\code{beta_binomial()}, \code{skew_normal()}, \code{cumulative_logit()},
+\code{biv_student()}, and \code{biv_lognormal()} on the fixed-effect route only. Each admitted family
 has been compared with \code{engine = "tmb"} on the same fitted target
 (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
 relative); see \code{vignette("julia-engine", package = "drmTMB")} for
