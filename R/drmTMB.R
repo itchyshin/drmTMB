@@ -146,8 +146,9 @@
 #'   bridge: Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson,
 #'   NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
 #'   an additional large-p `phylo()` or coupled location-scale phylo route),
-#'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, and
-#'   `beta_binomial()` on the fixed-effect route only. Each admitted family
+#'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`,
+#'   `beta_binomial()`, `skew_normal()`, `cumulative_logit()`,
+#'   `biv_student()`, and `biv_lognormal()` on the fixed-effect route only. Each admitted family
 #' has been compared with `engine = "tmb"` on the same fitted target
 #'   (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
 #'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for
@@ -7986,12 +7987,12 @@ drm_build_cumulative_logit_spec <- function(
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
 
-  unsupported <- setdiff(dpars[!is_sd_dpar], "mu")
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "disc"))
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
-      "{.fn cumulative_logit} models currently support only a {.code mu} location formula.",
+      "{.fn cumulative_logit} models support only a {.code mu} location formula and a {.code disc} discrimination formula.",
       "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
-      "i" = "Ordinal scale/discrimination formulas are planned after the identifiability contract is finalized."
+      "i" = "Model the latent scale with {.code disc ~ z}; the latent residual scale is {.code 1 / disc}."
     ))
   }
   if (any(is_sd_dpar)) {
@@ -8005,8 +8006,14 @@ drm_build_cumulative_logit_spec <- function(
       "A {.fn cumulative_logit} model requires exactly one location formula."
     )
   }
+  if (sum(dpars == "disc") > 1L) {
+    cli::cli_abort(
+      "A {.fn cumulative_logit} model accepts at most one {.code disc} formula."
+    )
+  }
 
   mu_entry <- entries[[which(dpars == "mu")]]
+  disc_entry <- if (any(dpars == "disc")) entries[[which(dpars == "disc")]]
   if (is.na(mu_entry$response)) {
     cli::cli_abort(
       "The {.code mu} formula must include an ordinal response on the left-hand side."
@@ -8049,9 +8056,14 @@ drm_build_cumulative_logit_spec <- function(
     ))
   }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
+  f_disc <- ordinal_disc_formula(disc_entry)
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
-  vars <- unique(c(all.vars(f_mu), random_effect_vars(mu_re$terms)))
+  vars <- unique(c(
+    all.vars(f_mu),
+    random_effect_vars(mu_re$terms),
+    if (!is.null(f_disc)) all.vars(f_disc)
+  ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
@@ -8116,6 +8128,7 @@ drm_build_cumulative_logit_spec <- function(
   }
 
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  disc <- ordinal_disc_design(f_disc, data_model)
 
   spec <- list(
     model_type = "cumulative_logit",
@@ -8151,12 +8164,25 @@ drm_build_cumulative_logit_spec <- function(
       re_mu = re_mu,
       observed_y = observed_y
     ),
-    map = cumulative_logit_map(phylo_mu, re_mu),
+    map = cumulative_logit_map(phylo_mu, re_mu, has_disc = disc$has),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
+  if (disc$has) {
+    # `disc ~ z` (#966) rides the otherwise-unused beta_sigma slot, as hurdle
+    # `hu` rides beta_zi; `disc ~ 1` leaves `disc$has` FALSE so the spec, and
+    # hence the fit, is byte-identical to the location-only model.
+    spec$X$disc <- disc$X
+    spec$terms$disc <- disc$terms
+    spec$model_frame$disc <- disc$model_frame
+    spec$dpars <- c("mu", "disc")
+    spec$start$beta_sigma <- stats::setNames(
+      rep(0, ncol(disc$X)),
+      colnames(disc$X)
+    )
+  }
   spec$missing_data <- if (include_missing_response) {
     new_drm_missing_data(
       control = missing,
@@ -18344,6 +18370,46 @@ validate_ordinal_codes <- function(y, levels, response) {
   )
 }
 
+# Discrimination submodel for cumulative_logit() (#966):
+# Pr(y <= k) = logit^-1(disc * (theta_k - mu)), log(disc) = Z gamma. The disc
+# intercept is fixed at log(1) = 0 (dropped from Z): rescaling every cutpoint,
+# every location coefficient, and 1 / disc by one constant leaves the
+# likelihood unchanged, so only relative discrimination is identified. This is
+# the same constraint as ordinal::clm(scale = ~ z), whose zeta equals -gamma.
+ordinal_disc_formula <- function(disc_entry) {
+  if (is.null(disc_entry)) {
+    return(NULL)
+  }
+  if (!is.na(disc_entry$response)) {
+    cli::cli_abort(
+      "The {.code disc} formula must be one-sided, for example {.code disc ~ z}."
+    )
+  }
+  drm_reject_phase1_terms(disc_entry$rhs, "disc", allow_offset = FALSE)
+  f_disc <- drm_entry_formula(disc_entry, response = FALSE)
+  if (identical(attr(stats::terms(f_disc), "intercept"), 0L)) {
+    cli::cli_abort(c(
+      "The {.code disc} formula cannot remove the intercept.",
+      "x" = "The {.code disc} intercept is already fixed at {.code log(disc) = 0}: the latent scale of a cumulative-link model is not identifiable alongside free cutpoints.",
+      "i" = "Write {.code disc ~ z}; coefficients are log-discrimination contrasts relative to the reference {.code z = 0} or the first factor level."
+    ))
+  }
+  f_disc
+}
+
+ordinal_disc_design <- function(f_disc, data) {
+  if (is.null(f_disc)) {
+    return(list(has = FALSE))
+  }
+  mf <- stats::model.frame(f_disc, data = data, na.action = stats::na.pass)
+  terms <- stats::terms(mf)
+  X <- ordinal_mu_model_matrix(terms, mf)
+  if (ncol(X) == 0L) {
+    return(list(has = FALSE))
+  }
+  list(has = TRUE, X = X, terms = terms, model_frame = mf)
+}
+
 ordinal_mu_model_matrix <- function(terms, data) {
   X <- stats::model.matrix(terms, data)
   if ("(Intercept)" %in% colnames(X)) {
@@ -19849,7 +19915,8 @@ ordinal_cutpoints_from_raw <- function(theta_ord) {
 
 cumulative_logit_map <- function(
   phylo_mu = empty_phylo_mu_structure(),
-  re_mu = empty_random_mu_structure(1L)
+  re_mu = empty_random_mu_structure(1L),
+  has_disc = FALSE
 ) {
   out <- list(
     beta_sigma = factor(NA),
@@ -19867,6 +19934,9 @@ cumulative_logit_map <- function(
     log_sd_sigma = factor(NA),
     eta_cor_phylo = factor(NA)
   )
+  if (has_disc) {
+    out$beta_sigma <- NULL
+  }
   if (re_mu$n_re == 0L) {
     out$u_mu <- factor(NA)
     out$log_sd_mu <- factor(NA)
@@ -21601,7 +21671,8 @@ make_tmb_data_core <- function(spec) {
       y1 = numeric(1),
       y2 = numeric(1),
       X_mu = spec$X$mu,
-      X_sigma = dummy_matrix,
+      # The disc design rides X_sigma (#966); the 1x1 dummy means disc = 1.
+      X_sigma = if (is.null(spec$X$disc)) dummy_matrix else spec$X$disc,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,
       X_sd_mu = dummy_matrix,
@@ -22269,7 +22340,12 @@ split_tmb_parameters <- function(par, spec) {
   if (identical(spec$model_type, "cumulative_logit")) {
     beta_mu <- unname(par$beta_mu)
     names(beta_mu) <- colnames(spec$X$mu)
-    return(list(mu = beta_mu))
+    if (is.null(spec$X$disc)) {
+      return(list(mu = beta_mu))
+    }
+    beta_disc <- unname(par$beta_sigma)
+    names(beta_disc) <- colnames(spec$X$disc)
+    return(list(mu = beta_mu, disc = beta_disc))
   }
   if (identical(spec$model_type, "zero_one_beta")) {
     beta_mu <- unname(par$beta_mu)
