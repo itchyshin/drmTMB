@@ -95,6 +95,14 @@
   and refuse non-unit `weights` on an `mi()` fit
   (`drmTMB_mi_weights_predict_unsupported`) (Refs #1459).
 
+* `simulate(fit, newdata = nd)` no longer ignores `newdata` and returns draws
+  for the training rows. `simulate.drmTMB()` now has an explicit `newdata`
+  formal and stops with a message pointing to `predict_parameters()`, because
+  drawing for new rows is not implemented. `simulate()` and `predict()` also
+  refuse any other unused argument in `...` (for example `predict(fit,
+  se.fit = TRUE)`, which `predict()` does not compute) instead of silently
+  dropping it (#1536).
+
 * Profile confidence intervals now explicitly average parameter coordinates
   at tied objective values. This preserves the existing interpolation result
   while avoiding a spurious "collapsing to unique 'x' values" warning from
