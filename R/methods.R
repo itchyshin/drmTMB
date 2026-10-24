@@ -4294,7 +4294,11 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' identity-link mean, where the latent, expected-data, and observed-data
 #' scales of de Villemereuil, Schielzeth, Nakagawa & Morrissey (2016,
 #' *Genetics* 204:1281-1294) coincide, so there is no separate latent- or
-#' liability-scale value to distinguish. `residual_variance` is `sigma^2`
+#' liability-scale value to distinguish. These derived rows are Gaussian-only
+#' for now: non-Gaussian fits get no derived variance-share row (and
+#' `heritability()`, `icc()` and `repeatability()` refuse them); see
+#' `docs/design/275-repeatability-scale-and-residual-variance.md`.
+#' `residual_variance` is `sigma^2`
 #' when `sigma`'s fixed part reduces to a single log-link intercept; when
 #' `sigma` additionally carries an ordinary random intercept, or a
 #' phylogenetic random intercept with a unit-diagonal correlation (the
