@@ -1,6 +1,9 @@
-# 262: Non-Gaussian Precision Bar  -  Owner Decision Draft
+# 262: Non-Gaussian Precision Bar  -  Owner Decision Record
 
-STATUS: OWNER DECISION PENDING (drafted 2026-09-05)
+STATUS: DECIDED on 2026-10-23 (decision D-335): split bar adopted, `1e-5` for
+non-Gaussian and `4e-6` for Gaussian point parity (Option B below). Originally
+drafted 2026-09-05. Open leaves: categorical theta and Gaussian `training_mean`
+(see Section 7).
 
 Cross-reference: DRM.jl #606 <-> drmTMB #1129. Drafted from the
 `parity-joint-20260905` ultra-plan's fog ticket (`docs/dev-log/loop/parity-joint-20260905/ultra-plan.md:139`)
@@ -37,9 +40,9 @@ and first two comments, `gh issue view 606 -R itchyshin/DRM.jl --comments`).
 Pattern stated by the reporting session in issue #606, comment 1: "Every
 non-Gaussian (Bernoulli / ordinal / categorical) cell lands at ~1e-5 while
 Gaussian cells sit under 4e-6: the two optimisers stop at slightly different
-points on discrete-outcome likelihoods." No Gaussian native-fit cell in this
-set exceeds `4e-6` in the evidence read for this document; every cell that
-exceeds it is non-Gaussian.
+points on discrete-outcome likelihoods." One Gaussian native-fit cell does exceed `4e-6`: `S10 matched-native:G1`
+Gaussian `training_mean` at `5.31e-6`. Every other cell that exceeds `4e-6`
+is non-Gaussian, so the pattern holds for all but that one cell.
 
 **Axis B  -  bridge coefficient parity** (`engine="julia"` bridge output vs
 native R fit; a different, looser gate at `tol = 1e-4`, not the `4e-6` bar,
@@ -124,15 +127,19 @@ this document per the task brief.
 
 - **What the ledger/gates would say.** Every Axis-A cell in Table 2 above
   (Bernoulli `1.0015e-5`, ordinal `7.56e-6`/`5.12e-6`, categorical `1.74e-5`,
-  Bernoulli `theta` `1.00e-5`) passes immediately under a `1e-5` non-Gaussian
-  bar, except categorical theta (`1.74e-5`), which would still fail and need
-  its own look. Gaussian `training_mean` (`5.31e-6`) is Gaussian, so it would
-  **not** be covered by a non-Gaussian carve-out and stays FAIL against
-  `4e-6` under this option  -  it is not currently explained by anything in
-  the evidence read here, and adopting Option B does not resolve it. This
-  document does not paper over that: **Option B closes 4 of the 6 measured
-  non-Gaussian/mixed Axis-A failures, not all of them**, and it does not
-  touch the categorical-theta or Gaussian-`training_mean` cells.
+  Bernoulli `theta` `1.00e-5`) is compared with a `1e-5` non-Gaussian bar as
+  follows. Ordinal prediction (`7.56e-6`) and ordinal imputation (`5.12e-6`)
+  pass. The Bernoulli coefficient delta (`1.0015e-5`) is marginally ABOVE
+  `1e-5` and so does not strictly pass; the Bernoulli `theta` delta is
+  reported as `1.00e-5`, too coarsely rounded to say which side it falls on.
+  Both Bernoulli cells sit on the bar and need re-measurement at full
+  precision before they are called PASS. Categorical theta (`1.74e-5`) still
+  fails. Gaussian `training_mean` (`5.31e-6`) is Gaussian, so a non-Gaussian
+  carve-out does not cover it and it stays FAIL against `4e-6`; nothing in the
+  evidence read here explains it. **Option B clearly closes 2 of the 6
+  measured Axis-A failures (the two ordinal cells), leaves the two Bernoulli
+  cells on the bar pending full-precision values, and does not touch the
+  categorical-theta or Gaussian-`training_mean` cells.**
 - **Cost.** Editing and documenting the tolerance constant in each of the
   gate files enumerated in Section 6, re-running the affected receipts, and
   writing the two-tier rule into the programme's public tolerance
@@ -175,11 +182,11 @@ Why:
   optimization, not a parity defect.
 - It does not hide the shortfall: categorical `theta` (`1.74e-5`) and
   Gaussian `training_mean` (`5.31e-6`) both stay FAIL under this
-  recommendation and must be tracked as open leaves, not silently absorbed.
+  recommendation and are tracked as open leaves (Section 7), not silently absorbed.
 
 ## 5. Drafted decision entry (owner can paste)
 
-> **D-NNN placeholder (2026-09-05): Non-Gaussian precision bar.** The
+> **D-335 (2026-10-23): Non-Gaussian precision bar.** The
 > drmTMB/DRM.jl parity programme's cross-engine native-fit agreement bar is
 > split: Gaussian families are held to `4e-6`; non-Gaussian families
 > (Bernoulli, ordinal, categorical, and other discrete-outcome likelihoods)
@@ -241,6 +248,20 @@ untouched and adding a family-scoped constant only where a non-Gaussian
 fixture is checked  -  a per-file decision this document does not make, since
 it depends on which fixture each checker exercises today (not verified line
 by line here; flagged as the first task if Option B is adopted).
+
+## 7. Open leaves after the decision
+
+The split bar is adopted, but these cells still fail their assigned bar and
+are named open leaves, each to be tracked on its own issue:
+
+1. **Categorical theta**, `leaf-S9-finite-state-evidence:G4`, `1.74e-5`
+   against the `1e-5` non-Gaussian bar.
+2. **Gaussian `training_mean`**, `S10 matched-native:G1`, `5.31e-6` against
+   the `4e-6` Gaussian bar.
+
+Also to re-measure at full precision (not decided here): the Bernoulli
+coefficient delta (`1.0015e-5`) and Bernoulli `theta` (`1.00e-5`), which sit
+on the `1e-5` bar.
 
 ## Not covered by this document
 

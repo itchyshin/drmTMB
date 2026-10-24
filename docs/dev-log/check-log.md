@@ -1,3 +1,10 @@
+# 2026-10-18 — rebase #1525 onto main `d89db5097`
+
+Rebased `claude/lane-n2-ordinal-disc` onto current main. Conflicts were
+check-log and a stale C17 TSV (skipped). `src/drmTMB.cpp` changed (`disc`
+uses the unused `X_sigma` slot of model type 13; +16/−4, C++ TMB
+reviewer). Full `testthat::test_dir()` on `ff1eda1b2`: passed=45004
+failed=81 error=213 skipped=240 warning=20.
 # 2026-10-22: merge main into #1501 (contrast helper superseded)
 
 Merged `origin/main` into `cursor/triage-pilot-inputs`. Main's #1504 already
@@ -408,6 +415,12 @@ The two engines agree to ≤ 2e-11 in logLik and ≤ 4e-10 in estimates on all 1
 Filed: drmTMB#1558; DRModels.jl#1114; comments on DRModels.jl#969, #1050 and #1059, and on drmTMB#1554 (the sd(g) boundary label depends on the units of y). No package code changed; `.Rbuildignore` gains `^sweep-oct16$`.
 
 Receipt: `sweep-oct16/t2/RECEIPT_t2.md`. Report: `docs/dev-log/after-task/2026-10-16-sweep-oct16-t2-gaussian-ls-recovery.md`.
+# 2026-10-18 — rebase #1530 onto main `d89db5097`
+
+Rebased `cursor/dead-forked-worker-7717` onto current main. Conflict was
+check-log only. `R/drmTMB.R` and `R/methods.R` were not touched, so C17
+was not recertified. Full `testthat::test_dir()` on `a59a66be8`:
+passed=44952 failed=81 error=213 skipped=241 warning=20.
 # 2026-10-07: at-boundary incomplete warning names the row status (#1501)
 
 `warn_bootstrap_incomplete()` now prints the flagged row's
@@ -483,6 +496,16 @@ receipt commits were skipped and recertified once at the end:
 predict-character + relmat-numeric 51 pass; `test-simulate-re-form.R` 22 pass
 via pkgload.
 
+# 2026-10-11: dead forked worker is a classed error or recorded failure
+
+`mclapply()` NULL children no longer vanish in `rbind()`. Profile paths
+abort with `drmTMB_parallel_worker_died`; bootstrap records `worker_died`
+so `bootstrap.n + bootstrap.failed` still equals `R`. Follow-up to merged
+#1510. `test-profile-parallel.R` 12 tests / 0 fail. C17 not recertified
+(`R/drmTMB.R` and `R/methods.R` untouched). `R/julia-bridge.R` untouched.
+
+Report: `docs/dev-log/after-task/2026-10-11-dead-forked-worker.md`.
+
 # 2026-10-11: rebase #1506 onto main after #1507/#1527
 
 Rebased `claude/lane-f-docs-tutorials` onto `6beb1f2a0`. Docs only; no C17.
@@ -515,6 +538,31 @@ identical apart from `elapsed`). Multicore worker errors now abort. New
 
 Report: `docs/dev-log/after-task/2026-10-11-parallel-perf-lane.md`.
 Branch: `claude/drm-parallel-perf`.
+
+# 2026-10-11: cumulative_logit `disc ~ z` discrimination submodel (#966)
+
+Added a fixed-effect discrimination formula to `cumulative_logit()`
+(owner decision 24(a)): `Pr(y <= k) = logit^-1(disc * (theta_k - mu))`,
+`log(disc) = Z gamma`, with the `disc` intercept fixed at 0 because the latent
+scale is not identifiable alongside free cutpoints (same constraint as
+`ordinal::clm(scale = ~ z)`, whose `zeta = -gamma`). `disc` rides the
+`X_sigma`/`beta_sigma` slot of model_type 13; `disc ~ 1` is byte-identical to
+the location-only fit. `engine = "julia"` refuses `disc`.
+
+Environment: R 4.3.3 from Ubuntu apt (TMB 1.9.10, ordinal 2023.12.4); CRAN
+blocked. New test file `test-cumulative-logit-disc.R` was committed failing
+first (6 errors), then 51 expectations pass: exact `disc ~ 1` equality,
+recovery (n = 3000), `ordinal::clm` comparator (continuous and factor `z`;
+`ordinal::wine` logLik -86.43946 on both engines), hand-built probabilities.
+
+Full `devtools::test()` on `origin/main` @ `75845a3d` (435 files, 3195 tests,
+47568 expectations): 14 failed, 134 errors, 110 skipped. Same suite on this
+branch before the census row (436 files, 3202 tests, 47631 expectations): 16
+failed, 134 errors, 109 skipped. 146 failing tests are identical on both
+(R 4.3.3 lacks `%||%`, no Julia, snapshot drift); the only branch-only failure
+was `test-env-skip-census.R`, fixed by adding the
+`test-cumulative-logit-disc.R` row to `inst/extdata/env-skip-census.tsv`.
+Rebased onto `origin/main` @ `cb030402` (only `NEWS.md` overlapped).
 
 # 2026-10-09: character predictors use the full-frame reference level
 
