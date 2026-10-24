@@ -193,6 +193,9 @@ prediction target, such as `predict(..., dpar = "sd(species)")`.
 The bridge has methods for `summary()`, `coef()`, `vcov()`, `logLik()`,
 `predict()` and `confint()`. Availability depends on the fitted route and target;
 a `drmTMB_julia` object does not automatically inherit every native-TMB diagnostic.
+`simulate()` and `predict_parameters()` are not available for a bridge fit yet:
+both stop with a message that points to `engine = "tmb"`. Use `vcov()` and
+`confint()` for coefficient standard errors on a bridge fit.
 
 ```{r julia-intervals, eval=FALSE}
 vcov(fit_julia)

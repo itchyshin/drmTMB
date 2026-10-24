@@ -9,6 +9,10 @@
   a tree that missed it by a negligible margin had no override short of
   editing the tree itself (#1158).
 
+* `simulate()` and `predict_parameters()` on an `engine = "julia"` fit now stop
+  with a drmTMB error that points to `engine = "tmb"` (or `vcov()`/`confint()`
+  for coefficient SEs) instead of base R's "no applicable method" (#1570).
+
 ## Documentation fixes
 
 * The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
