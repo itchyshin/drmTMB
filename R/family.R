@@ -475,18 +475,35 @@ beta_binomial <- function() {
 #' Cumulative logit ordinal response family
 #'
 #' `cumulative_logit()` defines a one-response ordinal model for ordered
-#' categories. The first implemented path uses a location formula `mu ~ ...`
-#' and ordered cutpoints with a fixed latent logistic scale. The location
+#' categories, with a location formula `mu ~ ...`, ordered cutpoints, and an
+#' optional discrimination (scale) formula `disc ~ ...`. The location
 #' intercept is dropped internally, as in standard cumulative-link models,
 #' because a free location intercept and free cutpoints are not jointly
 #' identifiable.
 #'
 #' The implemented contract is
-#' `Pr(y_i <= k) = logit^-1(theta_k - mu_i)`, with
-#' `mu_i = X_mu[i, ] beta_mu` and
-#' `theta[1] < theta[2] < ... < theta[K - 1]`. `fitted()` returns the expected
-#' ordered-category score, `sum_k k * Pr(y_i = k)`. Ordinal scale or
-#' discrimination formulas are not supported.
+#' `Pr(y_i <= k) = logit^-1(disc_i * (theta_k - mu_i))`, with
+#' `mu_i = X_mu[i, ] beta_mu`, `log(disc_i) = Z[i, ] gamma`, and
+#' `theta[1] < theta[2] < ... < theta[K - 1]`. Without a `disc` formula, or
+#' with `disc ~ 1`, `disc_i = 1` and the model is the proportional-odds
+#' cumulative logit model exactly. `fitted()` returns the expected
+#' ordered-category score, `sum_k k * Pr(y_i = k)`.
+#'
+#' @section Identifiability of `disc`:
+#' The intercept of the `disc` formula is fixed at `log(disc) = 0` and dropped
+#' from `Z`. The latent logistic variable behind a cumulative-link model has
+#' no natural unit: multiplying every cutpoint, every location coefficient,
+#' and the latent scale `1 / disc` by the same positive constant leaves every
+#' category probability unchanged. Fixing the reference discrimination at 1
+#' removes that one degree of freedom, so each `disc` coefficient is a
+#' log-ratio of discrimination relative to the reference row (`z = 0`, or the
+#' first level of a factor). A `disc` coefficient of `0.4` means the
+#' categories are `exp(0.4) = 1.49` times more sharply separated per unit of
+#' `z`; equivalently, the latent residual scale returned by `sigma()` is
+#' `1 / disc`. This is the same constraint as the `scale` formula of
+#' `ordinal::clm()`, whose scale coefficients equal `-gamma`. The `disc`
+#' formula cannot remove its intercept (`disc ~ 0 + z`) and does not yet
+#' accept random effects, structured terms, or offsets.
 #'
 #' The response may be an ordered factor or an integer-coded category. Integer
 #' codes are used at face value in increasing numeric order; `drmTMB` cannot
@@ -498,14 +515,25 @@ beta_binomial <- function() {
 #'
 #' @examples
 #' cumulative_logit()
+#'
+#' set.seed(1)
+#' dat <- data.frame(x = rnorm(300), z = rnorm(300))
+#' latent <- 0.8 * dat$x + rlogis(300) / exp(0.4 * dat$z)
+#' dat$score <- cut(latent, c(-Inf, -1, 0, 1, Inf), ordered_result = TRUE)
+#' fit <- drmTMB(
+#'   bf(score ~ x, disc ~ z),
+#'   family = cumulative_logit(),
+#'   data = dat
+#' )
+#' coef(fit, "disc")
 cumulative_logit <- function() {
   structure(
     list(
       name = "cumulative_logit",
       family = "cumulative_logit",
       n_response = 1L,
-      dpars = c("mu"),
-      links = c(mu = "identity")
+      dpars = c("mu", "disc"),
+      links = c(mu = "identity", disc = "log")
     ),
     class = "drm_family"
   )
