@@ -23,6 +23,8 @@
 
 ## Documentation fixes
 
+* The `missing-data` article gains a recipe for a mediator that is also a response: build `impute_model()` from the fitted node's formula and family, with an explicit statement that estimates are not shared and what that means for standard errors (#964).
+
 * The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
 
 * `?phylo` now correctly describes the existing unit-height convention:
