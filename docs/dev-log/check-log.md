@@ -395,6 +395,12 @@ The two engines agree to ≤ 2e-11 in logLik and ≤ 4e-10 in estimates on all 1
 Filed: drmTMB#1558; DRModels.jl#1114; comments on DRModels.jl#969, #1050 and #1059, and on drmTMB#1554 (the sd(g) boundary label depends on the units of y). No package code changed; `.Rbuildignore` gains `^sweep-oct16$`.
 
 Receipt: `sweep-oct16/t2/RECEIPT_t2.md`. Report: `docs/dev-log/after-task/2026-10-16-sweep-oct16-t2-gaussian-ls-recovery.md`.
+# 2026-10-18 — rebase #1530 onto main `d89db5097`
+
+Rebased `cursor/dead-forked-worker-7717` onto current main. Conflict was
+check-log only. `R/drmTMB.R` and `R/methods.R` were not touched, so C17
+was not recertified. Full `testthat::test_dir()` on `a59a66be8`:
+passed=44952 failed=81 error=213 skipped=241 warning=20.
 
 # 2026-10-18 — rebase #1506 onto main `d89db5097`
 
@@ -427,6 +433,16 @@ receipt commits were skipped and recertified once at the end:
 |change| 0 on mc-0568/0569/0576. Touched tests: unused-dots + miss-control +
 predict-character + relmat-numeric 51 pass; `test-simulate-re-form.R` 22 pass
 via pkgload.
+
+# 2026-10-11: dead forked worker is a classed error or recorded failure
+
+`mclapply()` NULL children no longer vanish in `rbind()`. Profile paths
+abort with `drmTMB_parallel_worker_died`; bootstrap records `worker_died`
+so `bootstrap.n + bootstrap.failed` still equals `R`. Follow-up to merged
+#1510. `test-profile-parallel.R` 12 tests / 0 fail. C17 not recertified
+(`R/drmTMB.R` and `R/methods.R` untouched). `R/julia-bridge.R` untouched.
+
+Report: `docs/dev-log/after-task/2026-10-11-dead-forked-worker.md`.
 
 # 2026-10-11: rebase #1506 onto main after #1507/#1527
 
