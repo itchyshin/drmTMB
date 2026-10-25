@@ -1,3 +1,11 @@
+# 2026-10-25: pre-fit rank check for every fixed-effect design (#1478)
+
+`drm_validate_fixed_design_rank()` now walks `spec$X` at estimator-apply
+time so ML and non-`mu` designs abort on exact aliasing. Focused tests
+are in `tests/testthat/test-fixed-design-rank.R`. The REML-only `mu`
+strings in `drm_validate_reml_spec()` remain. No lineage or C17 files
+changed.
+
 # 2026-10-18 — rebase #1525 onto main `d89db5097`
 
 Rebased `claude/lane-n2-ordinal-disc` onto current main. Conflicts were

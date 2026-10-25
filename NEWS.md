@@ -58,6 +58,11 @@
 
 ## Bug fixes
 
+* Collinear fixed-effect designs abort at spec-build time for every
+  distributional parameter and for ML as well as REML. A `sigma ~ x + xdup`
+  model (or any other aliased non-`mu` or ML design) no longer fits, reports
+  converged, and only fails later in `vcov()` (#1478).
+
 * `engine = "julia"` stays exported but is now fenced as experimental: the
   first call in an R session prints a one-time notice, and the bridge will not
   be widened further. Reported by Russell Dinnage's independent evaluation
