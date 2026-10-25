@@ -318,9 +318,14 @@ not evidence that a complete fit or interval calculation takes the same time.
 There is no single speedup factor for all Julia-backed models.
 
 To make multiple Julia threads available, set `JULIA_NUM_THREADS` before Julia
-starts (for example in the shell launching R). A multi-threaded runtime does not
-make every fit parallel automatically. Use the documented options for the
-specific workflow, and avoid combining many Julia workers with many BLAS threads.
+starts (for example in the shell launching R, or with
+`Sys.setenv(JULIA_NUM_THREADS = "8")` before the first `engine = "julia"` call in
+a fresh R session). A multi-threaded runtime does not make every fit parallel
+automatically: profile and bootstrap refits run in parallel only when you also
+pass `threads = TRUE`, for example
+`confint(fit, method = "bootstrap", R = 199, threads = TRUE)`. Without enough
+Julia threads, `threads = TRUE` runs the refits serially and prints a one-time
+message. Avoid combining many Julia workers with many BLAS threads.
 
 ## Current boundaries
 
