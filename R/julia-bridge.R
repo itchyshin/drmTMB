@@ -65,7 +65,9 @@ drm_julia_intentional_gates <- function() {
       "xfam_dispersionless_sigma",
       "structured_marker_slope",
       "fe_only_random_effects",
-      "unadmitted_predictor_dpar"
+      "unadmitted_predictor_dpar",
+      "ordinary_mean_re_unlabelled",
+      "gaussian_ordinary_re_factor_fe"
     ),
     route = c(
       rep("base", 5),
@@ -74,7 +76,9 @@ drm_julia_intentional_gates <- function() {
       rep("cross_family", 3),
       "structured",
       "fe_only",
-      "dpar_scope"
+      "dpar_scope",
+      "ordinary_re",
+      "ordinary_re"
     ),
     guard = c(
       "weights",
@@ -92,7 +96,9 @@ drm_julia_intentional_gates <- function() {
       "cross-family dispersion",
       "structured marker non-intercept slope",
       "fe-only random effect / sd submodel",
-      "predictor on an undeclared dpar"
+      "predictor on an undeclared dpar",
+      "ordinary mean (1 | g) without a resd label",
+      "Gaussian ordinary (1 | g) with a factor fixed effect"
     ),
     family_type = c(
       "gaussian",
@@ -110,7 +116,9 @@ drm_julia_intentional_gates <- function() {
       "gaussian+poisson",
       "gamma",
       paste(drm_julia_fe_only_fence_families(), collapse = "+"),
-      paste(drm_julia_narrowed_predictor_dpar_families(), collapse = "+")
+      paste(drm_julia_narrowed_predictor_dpar_families(), collapse = "+"),
+      paste(drm_julia_ordinary_mean_re_unlabelled_families(), collapse = "+"),
+      "gaussian"
     ),
     syntax = c(
       "weights = ...",
@@ -128,7 +136,9 @@ drm_julia_intentional_gates <- function() {
       "cross-family sigma formula on dispersionless axis",
       "phylo(1 + x | g) / relmat(1 + x | g) / animal(1 + x | g) / spatial(1 + x | g)",
       "(1 | g) / (1 + x | g) / sd(g) ~ ... on a fe = TRUE, non-phylo_only/locscale_phylo/slope_phylo/structured registry family",
-      "<dpar> ~ <predictor> on a dpar outside the family's registry predictor_dpars declaration (e.g. tweedie nu ~ z)"
+      "<dpar> ~ <predictor> on a dpar outside the family's registry predictor_dpars declaration (e.g. tweedie nu ~ z)",
+      "(1 | g) on mu for a phylo_only/structured/locscale family that is not gaussian",
+      "y ~ x + f + (1 | g) with f a factor, family = gaussian()"
     ),
     r_bridge_status = "intentional_error",
     drmjl_status = c(
@@ -147,7 +157,9 @@ drm_julia_intentional_gates <- function() {
       "dispersionless axis",
       "univariate routes refuse a non-intercept marker lhs (DRM.jl#621)",
       "fixed-effect-only family; no random-effect or sd()/sd_phylo() route in the R bridge yet",
-      "DRM.jl accepts a design matrix for the dpar and fits; the NATIVE drmTMB engine refuses the same cell"
+      "DRM.jl accepts a design matrix for the dpar and fits; the NATIVE drmTMB engine refuses the same cell",
+      "DRM.jl echo requires a resd label the R payload does not send for ordinary mean (1 | g)",
+      "conditional-components entry omits labels=true, so factor names come back as f: b instead of fb"
     ),
     message_pattern = c(
       "weights",
@@ -174,7 +186,9 @@ drm_julia_intentional_gates <- function() {
       "only on the .fe.\\s+\\(fixed-effect\\)",
       # `\\s+` for the same reason as the row above: cli wraps at 80 columns and
       # turns the spaces inside this phrase into newlines plus indent.
-      "must\\s+be\\s+intercept-only"
+      "must\\s+be\\s+intercept-only",
+      "does not yet send a residual-SD label",
+      "does not yet match factor coefficient names"
     ),
     review_due = "before 0.2.0 bridge promotion",
     evidence_url = c(
@@ -182,7 +196,9 @@ drm_julia_intentional_gates <- function() {
       rep("https://github.com/itchyshin/gllvmTMB/issues/488", 3),
       "https://github.com/itchyshin/drmTMB/issues/1146",
       "https://github.com/itchyshin/drmTMB/issues/544",
-      "https://github.com/itchyshin/drmTMB/issues/1224"
+      "https://github.com/itchyshin/drmTMB/issues/1224",
+      "https://github.com/itchyshin/drmTMB/issues/1551",
+      "https://github.com/itchyshin/drmTMB/issues/1567"
     ),
     action = "error",
     evidence = c(
@@ -202,7 +218,9 @@ drm_julia_intentional_gates <- function() {
       "Verified live at the pin (430ef64cc, 2026-09-05): bf(y ~ phylo(1 + x | species, tree = tree)), family = Gamma(link = \"log\"), engine = \"julia\" reaches DRM.jl and DRM.jl's own _check_phylo_re_lhs throws \"phylo(1 + x | species) is not implemented on the univariate routes -- only phylo(1 | species) (intercept) is\" (DRM.jl#620/#621). This R-side gate moves that same refusal before Julia boots, defense-in-depth (drmTMB#1146), so it holds even if a future change to the more specific per-route checks reopens the gap. RE-MEASURED 2026-09-05 at DRM.jl 345892520 (origin/main): the DRM.jl half of that sentence is NOW STALE FOR GAUSSIAN. DRM.jl 1a041d089 (its #644) implements the Gaussian two-SD phylogenetic random slope and widens _bridge_render_formula_block (src/bridge.jl); its test/test_phylo_slope_two_sd.jl was re-run in that session and passes 51 of 51 assertions in 21.5 s, including a same-target drmTMB oracle. So for family = gaussian() this gate is drmTMB's OWN fence, not the engine's: drm_julia_marker_slope_pin_supports() is still FALSE and drm_julia_phylo_payload() admits the slope shape only for drm_julia_slope_phylo_families() (nbinom2, poisson, gamma, beta), which route to DRM.jl's CORRELATED _fit_corr_locscale rather than the INDEPENDENT two-SD model #620 added. Lifting it is a route-widening (registry column + a family-aware pin switch + sdpars/corpars translation for the two-SD block), not a one-line flip. Measured refusal, with a positive control that fitted, at DRM.jl@345892520:docs/dev-log/evidence/parity-classc.tsv (cell_id gaussian_phylo_slope_fence).",
       "Measured 2026-09-05 with DRM_JL_PATH unset: student(), lognormal(), truncated_nbinom2(), zero_one_beta(), and beta_binomial() random-effect shapes (a mean-side and a scale-side (1 | g), and truncated_nbinom2's (1 + x | g) slope) all reached drm_julia_setup() on origin/main -- the fe = TRUE registry column admits the family before phylo_only/locscale_phylo/slope_phylo/structured are ever checked, so those columns being FALSE for this cohort did not stop the family tag. relmat()/animal()/spatial() markers are NOT part of this gate: they are already refused upstream by drm_julia_structured_family_tag() (measured: student() + relmat(1 | g, K = K) aborts there, before this fence's call site, since drm_julia_has_structured_term() dispatches before drm_julia_family_tag() runs)."
 ,
-      "Measured 2026-09-05 (drmTMB 2fcbb0fbf, DRM.jl aee371cc9, n = 200, seed 20260905): bf(y ~ x, sigma ~ 1, nu ~ z) with family = tweedie() FIT through engine = \"julia\" at logLik -259.84074955 while engine = \"tmb\" REFUSED it (\"tweedie() currently supports only intercept-only nu ~ 1\"). The same class had already been measured on two bivariate families the same night -- biv_student sigma1 ~ z at -466.43141436 (drmTMB#1217) and biv_lognormal sigma1 ~ x at -71.4056477 (drmTMB#1216), both refused natively -- because the fe-only fence exempted bivariate families by NAME PREFIX. The exemption is now declared per family (predictor_dpars in R/julia-family-registry.R) and enforced for every family at once, before Julia starts. Control: tweedie nu ~ 1 still fits at -260.40627451, and biv_gaussian sigma1 ~ z / rho12 ~ z fit identically on both engines (-581.96907656 / -583.57416739, n = 200 seed 6401)."
+      "Measured 2026-09-05 (drmTMB 2fcbb0fbf, DRM.jl aee371cc9, n = 200, seed 20260905): bf(y ~ x, sigma ~ 1, nu ~ z) with family = tweedie() FIT through engine = \"julia\" at logLik -259.84074955 while engine = \"tmb\" REFUSED it (\"tweedie() currently supports only intercept-only nu ~ 1\"). The same class had already been measured on two bivariate families the same night -- biv_student sigma1 ~ z at -466.43141436 (drmTMB#1217) and biv_lognormal sigma1 ~ x at -71.4056477 (drmTMB#1216), both refused natively -- because the fe-only fence exempted bivariate families by NAME PREFIX. The exemption is now declared per family (predictor_dpars in R/julia-family-registry.R) and enforced for every family at once, before Julia starts. Control: tweedie nu ~ 1 still fits at -260.40627451, and biv_gaussian sigma1 ~ z / rho12 ~ z fit identically on both engines (-581.96907656 / -583.57416739, n = 200 seed 6401).",
+      "Measured sweep-oct16 t5/t6 (drmTMB#1551): poisson(), Gamma(), nbinom2(), beta_family(), and binomial() with an ordinary mean (1 | g) pass admission, run the Julia fit, then abort at the resd coef_labels echo. Gaussian (1 | g) keeps the conditional-components route. Option 1 of the issue refuses in R before Julia starts. Sending resd plus marginal = Laplace would widen the experimental Julia engine and is left out.",
+      "Measured sweep-oct16 t6 (drmTMB#1567): Gaussian y ~ x + f + (1 | g) with f a factor runs the Julia fit on the conditional-components route, then aborts because DRM.jl returns f: b / f: c while drmTMB expects fb / fc. Numeric-only Gaussian (1 | g) and Gaussian factor FE without a bar still reach setup. Option 1 of the issue refuses in R before Julia starts. Sending labels=true plus a resd label would widen the experimental Julia engine and is left out."
     ),
     issue = "drmTMB#544",
     stringsAsFactors = FALSE
@@ -713,6 +731,8 @@ drmTMB_julia_bridge <- function(
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
   drm_julia_refuse_fe_only_random_effects(formula, family_type)
+  drm_julia_refuse_ordinary_mean_re_unlabelled(formula, family_type)
+  drm_julia_refuse_gaussian_ordinary_re_factor_fe(formula, family_type, data)
   drm_julia_refuse_biv_student_beyond_native(formula, family_type)
   drm_julia_refuse_unadmitted_predictor_dpars(formula, family_type)
   drm_julia_refuse_cumulative_logit_disc(formula, family_type)
@@ -1649,6 +1669,81 @@ drm_julia_refuse_fe_only_random_effects <- function(formula, family_type) {
     "{.code engine = \"julia\"} admits {.val {family_type}} only on the {.code fe} (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet.",
     x = "Found {offense}.",
     i = "Use native {.code engine = \"tmb\"} for {.val {family_type}} random-effect models."
+  ))
+}
+
+# #1551: families that escape the fe-only fence (phylo_only / locscale_phylo /
+# slope_phylo / structured) still run an ordinary mean `(1 | g)` through
+# Julia and then abort at the `resd` coef_labels echo. Gaussian keeps the
+# working conditional-components route. This fence refuses the broken
+# ordinary-mean bar before Julia starts. Structured phylo/relmat/animal/
+# spatial markers are not checked here; they keep their existing routes.
+drm_julia_ordinary_mean_re_unlabelled_families <- function() {
+  admitted <- unique(c(
+    drm_julia_registry_families("phylo_only"),
+    drm_julia_registry_families("locscale_phylo"),
+    drm_julia_registry_families("slope_phylo"),
+    drm_julia_registry_families("structured")
+  ))
+  setdiff(admitted, c("gaussian", "biv_gaussian"))
+}
+
+drm_julia_refuse_ordinary_mean_re_unlabelled <- function(formula, family_type) {
+  if (!(family_type %in% drm_julia_ordinary_mean_re_unlabelled_families())) {
+    return(invisible(NULL))
+  }
+  if (!drm_julia_dpar_has_ordinary_bar(formula, "mu")) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} does not yet send a residual-SD label for an ordinary mean {.code (1 | g)} term on {.val {family_type}}.",
+    x = "Found a random-effect bar term in the {.code mu} formula.",
+    i = "Use native {.code engine = \"tmb\"} for this model. Structured {.fn phylo} / {.fn relmat} / {.fn animal} / {.fn spatial} terms keep their existing routes."
+  ))
+}
+
+# #1567: Gaussian ordinary (1 | g) uses the conditional-components entry,
+# which calls DRM.jl without labels = true. A factor fixed effect then
+# comes back as "f: b" while drmTMB expects "fb", and the label check
+# aborts after the Julia fit. Numeric-only Gaussian (1 | g) still works.
+# This fence refuses the broken factor cell before Julia starts.
+drm_julia_mu_has_factor_fe <- function(formula, data) {
+  vars <- character()
+  for (entry in formula$entries) {
+    if (!identical(entry$dpar, "mu") || is.null(entry$rhs)) {
+      next
+    }
+    for (term in flatten_plus_terms(entry$rhs)) {
+      if (is_random_bar_call(term)) {
+        next
+      }
+      vars <- c(vars, all.vars(term))
+    }
+  }
+  vars <- unique(intersect(vars, names(data)))
+  if (length(vars) == 0L) {
+    return(FALSE)
+  }
+  any(vapply(vars, function(nm) {
+    x <- data[[nm]]
+    is.factor(x) || is.character(x) || is.logical(x)
+  }, logical(1L)))
+}
+
+drm_julia_refuse_gaussian_ordinary_re_factor_fe <- function(formula, family_type, data) {
+  if (!identical(family_type, "gaussian")) {
+    return(invisible(NULL))
+  }
+  if (!drm_julia_dpar_has_ordinary_bar(formula, "mu")) {
+    return(invisible(NULL))
+  }
+  if (!is.data.frame(data) || !drm_julia_mu_has_factor_fe(formula, data)) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} does not yet match factor coefficient names for a Gaussian ordinary mean {.code (1 | g)}.",
+    x = "Found a factor, character, or logical predictor in the {.code mu} formula.",
+    i = "Use native {.code engine = \"tmb\"} for this model. Numeric-only Gaussian {.code (1 | g)} keeps the existing route."
   ))
 }
 
@@ -4590,10 +4685,19 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   # crosses as a Julia array (or `nothing`) and is forwarded to DRM.drm_bridge.
   # Gaussian spatial coords are converted to native drmTMB's fixed-range K target
   # before crossing, then reconstructed under the user's spatial() label.
+  # Row-name labels (`K_labels` / `A_labels` + `structured_group`, #1512) are
+  # forwarded only when present, so a DRM.jl without those keywords still works
+  # for unlabelled matrices.
   drm_julia_setup_command(
     paste(
-      "drmTMB_drm_bridge_structured(formula, family, data, K, A, coords, options) =",
-      "drmTMB_backend.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options)"
+      "function drmTMB_drm_bridge_structured(formula, family, data, K, A, coords, options, K_labels = nothing, A_labels = nothing, structured_group = nothing)",
+      "    extra = Pair{Symbol,Any}[]",
+      "    K_labels === nothing || push!(extra, :K_labels => K_labels)",
+      "    A_labels === nothing || push!(extra, :A_labels => A_labels)",
+      "    structured_group === nothing || push!(extra, :structured_group => structured_group)",
+      "    return drmTMB_backend.drm_bridge(; formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options, extra...)",
+      "end",
+      sep = "\n"
     )
   )
   # DRM.jl's `drm_bridge_objective_at` (DRM.jl#590, `src/bridge.jl`, exported,
@@ -7649,6 +7753,8 @@ drmTMB_julia_biv_known_structured_bridge <- function(
   # is the intended target. `new_drmTMB_julia()` still cross-checks the label
   # against the engine's own `estim_method` before the fit is called REML.
   reml_effective <- isTRUE(REML) && drm_julia_biv_q2_reml_supported(formula)
+  # Incomplete rows were refused above (#1454), so the rows sent are the rows
+  # the K / A matrix is aligned to (#1512); no row drop is needed here.
   payload <- drm_julia_biv_known_structured_payload(
     formula = formula,
     family_type = family_type,
@@ -7662,7 +7768,9 @@ drmTMB_julia_biv_known_structured_bridge <- function(
     data = payload$data,
     matrix = payload$matrix,
     kwarg = payload$kwarg,
-    options = payload$options
+    options = payload$options,
+    matrix_labels = payload$matrix_labels,
+    structured_group = payload$structured_group
   )
   new_drmTMB_julia(
     result = result,
@@ -7798,7 +7906,9 @@ drm_julia_biv_known_structured_payload <- function(
   formula_spec <- drm_julia_formula_spec(formula)
   matrix <- resolved$matrix
   kwarg <- resolved$kwarg
+  matrix_labels <- resolved$labels
   if (identical(type, "spatial")) {
+    matrix_labels <- NULL
     native_spatial <- drm_spatial_coords_precision(
       matrix,
       site = data[[groups[[1L]]]],
@@ -7852,6 +7962,8 @@ drm_julia_biv_known_structured_payload <- function(
     coef_labels = coef_labels,
     matrix = matrix,
     kwarg = kwarg,
+    matrix_labels = matrix_labels,
+    structured_group = if (is.null(matrix_labels)) NULL else groups[[1L]],
     options = options,
     row_order = NULL,
     structured_sd_scales = stats::setNames(rep(1, length(labels)), labels),
@@ -7909,6 +8021,10 @@ drmTMB_julia_structured_bridge <- function(
   }
 
   family_tag <- drm_julia_structured_family_tag(family_type)
+  # Under response = "drop" the incomplete rows were already dropped above by
+  # drm_julia_drop_structured_missing() (#1454), which aborts if a grouping level
+  # would be lost. The K / A matrix is therefore aligned (#1512) to the levels of
+  # the rows actually sent.
   payload <- drm_julia_structured_payload(
     formula = formula,
     family_type = family_type,
@@ -7922,7 +8038,9 @@ drmTMB_julia_structured_bridge <- function(
     data = payload$data,
     matrix = payload$matrix,
     kwarg = payload$kwarg,
-    options = payload$options
+    options = payload$options,
+    matrix_labels = payload$matrix_labels,
+    structured_group = payload$structured_group
   )
   new_drmTMB_julia(
     result = result,
@@ -8007,7 +8125,9 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
   formula_spec <- drm_julia_formula_spec(formula)
   matrix <- resolved$matrix
   kwarg <- resolved$kwarg
+  matrix_labels <- resolved$labels
   if (identical(term$type, "spatial") && identical(family_type, "gaussian")) {
+    matrix_labels <- NULL
     native_spatial <- drm_spatial_coords_precision(
       matrix,
       site = data[[term$group]],
@@ -8048,6 +8168,8 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
     coef_labels = coef_labels,
     matrix = matrix,
     kwarg = kwarg,
+    matrix_labels = matrix_labels,
+    structured_group = if (is.null(matrix_labels)) NULL else term$group,
     options = options,
     structured_sd_scales = stats::setNames(1, term$label)
   )
@@ -8105,10 +8227,24 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
     ))
   }
   matrix <- drm_julia_as_matrix(value)
+  labels <- NULL
   if (!all(is.finite(matrix))) {
     cli::cli_abort(
       "{.code engine = \"julia\"} requires finite values in the {.fn {type}} {.arg {slot}} matrix."
     )
+  }
+  if (!identical(kwarg, "coords") && nrow(matrix) == ncol(matrix)) {
+    # DRModels.jl pairs row i of K / A with the i-th group in first-appearance
+    # order and never sees names, so align by name here (drmTMB#1512).
+    aligned <- drm_julia_align_structured_matrix(
+      matrix = matrix,
+      dimnames = dimnames(as.matrix(value)),
+      group = data[[term$group]],
+      type = type,
+      slot = slot
+    )
+    matrix <- aligned$matrix
+    labels <- aligned$labels
   }
   if (identical(kwarg, "coords")) {
     if (ncol(matrix) < 1L) {
@@ -8122,7 +8258,87 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
       x = "Got a {nrow(matrix)} x {ncol(matrix)} matrix."
     ))
   }
-  list(matrix = matrix, kwarg = kwarg)
+  list(matrix = matrix, kwarg = kwarg, labels = labels)
+}
+
+# Reorder a labelled square K / A matrix to the first-appearance order of the
+# grouping variable, the order DRModels.jl assumes. Names are matched as
+# character, so numeric and factor ids behave like the native engine.
+# - labelled, alignable: rows and columns reordered (extra labels are dropped);
+# - labelled but not alignable (duplicated, row/column names disagree, or a
+#   group level missing): classed error `drmTMB_julia_structured_labels`;
+# - unlabelled: unchanged, with the classed warning
+#   `drmTMB_julia_unlabelled_structured_matrix`, because the order cannot be
+#   checked.
+drm_julia_align_structured_matrix <- function(
+  matrix,
+  dimnames,
+  group,
+  type,
+  slot
+) {
+  rn <- dimnames[[1L]]
+  cn <- dimnames[[2L]]
+  levels_in_data <- unique(drm_julia_group_key(group[!is.na(group)]))
+  if (is.null(rn) && is.null(cn)) {
+    cli::cli_warn(
+      c(
+        "{.code engine = \"julia\"} cannot check the order of the unlabelled {.fn {type}} {.arg {slot}} matrix.",
+        i = "Rows are paired with the grouping levels in order of first appearance in {.arg data}. Give {.arg {slot}} row and column names to match by name."
+      ),
+      class = "drmTMB_julia_unlabelled_structured_matrix"
+    )
+    return(list(matrix = matrix, labels = NULL))
+  }
+  if (is.null(rn) || is.null(cn) || !identical(rn, cn)) {
+    cli::cli_abort(
+      c(
+        "{.code engine = \"julia\"} requires the {.fn {type}} {.arg {slot}} matrix to have identical row and column names.",
+        i = "Set {.code rownames({slot}) <- colnames({slot})}, or drop both to use first-appearance order."
+      ),
+      class = "drmTMB_julia_structured_labels"
+    )
+  }
+  if (anyDuplicated(rn) > 0L) {
+    dup <- unique(rn[duplicated(rn)])
+    cli::cli_abort(
+      c(
+        "{.fn {type}} {.arg {slot}} matrix has duplicated names: {.val {utils::head(dup, 5L)}}.",
+        i = "Row and column names must identify each individual once."
+      ),
+      class = "drmTMB_julia_structured_labels"
+    )
+  }
+  absent <- setdiff(levels_in_data, rn)
+  if (length(absent) > 0L) {
+    cli::cli_abort(
+      c(
+        "{.fn {type}} {.arg {slot}} matrix has no row for {length(absent)} grouping level{?s}: {.val {utils::head(absent, 5L)}}.",
+        i = "Every level of the grouping variable must appear in the matrix names."
+      ),
+      class = "drmTMB_julia_structured_labels"
+    )
+  }
+  idx <- match(levels_in_data, rn)
+  list(matrix = matrix[idx, idx, drop = FALSE], labels = rn[idx])
+}
+
+# Character key for a grouping vector, the form K / A row names are matched in
+# and the form DRModels.jl re-derives from the column it receives. Integer-valued
+# doubles are written without a decimal point or exponent (R's as.character()
+# gives "1e+05" for 100000 and DRModels.jl's string(1.0) gives "1.0"; both sides
+# normalise to "100000" / "1").
+drm_julia_group_key <- function(x) {
+  if (is.factor(x)) {
+    return(as.character(x))
+  }
+  if (is.double(x)) {
+    whole <- is.finite(x) & x == trunc(x) & abs(x) < 1e15
+    out <- as.character(x)
+    out[whole] <- sprintf("%.0f", x[whole])
+    return(out)
+  }
+  as.character(x)
 }
 
 drm_julia_structured_reject_slot <- function(type, slot, expected, kind) {
@@ -8139,7 +8355,9 @@ drm_julia_call_structured <- function(
   data,
   matrix,
   kwarg,
-  options = list()
+  options = list(),
+  matrix_labels = NULL,
+  structured_group = NULL
 ) {
   if (!requireNamespace("JuliaCall", quietly = TRUE)) {
     cli::cli_abort(c(
@@ -8152,6 +8370,12 @@ drm_julia_call_structured <- function(
   K <- if (identical(kwarg, "K")) matrix else NULL
   A <- if (identical(kwarg, "A")) matrix else NULL
   coords <- if (identical(kwarg, "coords")) matrix else NULL
+  # Row names of the K / A matrix cross as `K_labels` / `A_labels` (a list of
+  # single strings, so JuliaCall never unboxes a length-1 vector) together with
+  # the grouping column, and DRModels.jl re-aligns by name or refuses (#1512).
+  has_labels <- length(matrix_labels) > 0L && !is.null(structured_group)
+  K_labels <- if (has_labels && identical(kwarg, "K")) as.list(matrix_labels)
+  A_labels <- if (has_labels && identical(kwarg, "A")) as.list(matrix_labels)
   JuliaCall::julia_call(
     "drmTMB_drm_bridge_structured",
     formula,
@@ -8160,7 +8384,10 @@ drm_julia_call_structured <- function(
     K,
     A,
     coords,
-    if (length(options) == 0L) NULL else options
+    if (length(options) == 0L) NULL else options,
+    K_labels,
+    A_labels,
+    if (has_labels) structured_group
   )
 }
 
