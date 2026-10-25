@@ -38,10 +38,14 @@ test-beta-phylo-q1-sd-coverage-runner.R	build-premise	build	skips	1
 test-beta-phylo-q1-sd-interior-recovery-runner.R	build-premise	build	skips	1
 test-beta-phylo-q1-sd-regression-runner.R	build-premise	build	skips	1
 test-beta-phylo-q1-successor-runners.R	build-premise	build	skips	1
+test-beta-relmat.R	cran-lane	environment	runs	5
+test-beta-relmat.R	suggests-package	environment	runs	1
 test-binomial-correlated-re-mspl-prereq.R	suggests-package	environment	runs	1
 test-binomial-links.R	cran-lane	environment	runs	1
 test-binomial-phylo.R	cran-lane	environment	runs	5
 test-binomial-phylo.R	suggests-package	environment	runs	1
+test-binomial-relmat.R	cran-lane	environment	runs	6
+test-binomial-relmat.R	suggests-package	environment	runs	1
 test-biv-lognormal-rho12-coverage-docs.R	build-premise	build	skips	1
 test-biv-lognormal-rho12-coverage-driver.R	build-premise	build	skips	1
 test-biv-lognormal-rho12-coverage-driver.R	suggests-package	environment	runs	1
@@ -107,6 +111,9 @@ test-julia-bridge-coef-labels.R	suggests-package	environment	runs	1
 test-julia-bridge-summary.R	engine-drm-jl	environment	skips	2
 test-julia-bridge.R	engine-drm-jl	environment	skips	4
 test-julia-bridge.R	suggests-package	environment	runs	2
+test-julia-convergence-status-parity.R	cran-lane	environment	runs	2
+test-julia-convergence-status-parity.R	engine-drm-jl	environment	skips	2
+test-julia-convergence-status-parity.R	suggests-package	environment	runs	2
 test-julia-cumlogit-predict.R	engine-drm-jl	environment	skips	1
 test-julia-cumlogit-predict.R	suggests-package	environment	runs	3
 test-julia-diagnostics.R	build-premise	build	skips	1
@@ -218,6 +225,7 @@ test-nbinom2-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-nbinom2-sigma-structured-recovery.R	cran-lane	environment	runs	2
 test-nbinom2-sigma-structured-recovery.R	env-var-optin	environment	skips	2
 test-nbinom2-sigma-structured-recovery.R	suggests-package	environment	runs	2
+test-nbinom2-underdispersion-docs.R	build-premise	build	skips	1
 test-newton-polish-guard.R	cran-lane	environment	runs	1
 test-newton-polish-guard.R	suggests-package	environment	runs	1
 test-nongaussian-structured-boundary.R	build-premise	build	skips	1
@@ -273,6 +281,10 @@ test-phylo-interaction.R	cran-lane	environment	runs	4
 test-phylo-penalized-map.R	cran-lane	environment	runs	3
 test-phylo-penalty-sweep.R	cran-lane	environment	runs	3
 test-phylo-penalty-sweep.R	suggests-package	environment	runs	4
+test-phylo-temporal-ou-gate-runner.R	build-premise	build	skips	2
+test-phylo-temporal-ou-gate-runner.R	external-tool	environment	runs	1
+test-phylo-temporal-ou-gate-runner.R	suggests-package	environment	runs	1
+test-phylo-temporal-ou-methods.R	suggests-package	environment	runs	1
 test-pkgdown-public-surface.R	build-premise	build	skips	2
 test-pkgdown-public-surface.R	external-tool	environment	runs	2
 test-pkgdown-reference-index.R	build-premise	build	skips	1
@@ -331,6 +343,10 @@ test-structured-re-conversion-contracts.R	build-premise	build	skips	2
 test-structured-re-conversion-contracts.R	external-tool	environment	runs	4
 test-student-large-nu.R	cran-lane	environment	runs	2
 test-summary-nonconverged.R	cran-lane	environment	runs	2
+test-temporal-homtoep-identifiability.R	build-premise	build	skips	1
+test-temporal-homtoep-map.R	build-premise	build	skips	1
+test-temporal-homtoep-parser.R	build-premise	build	skips	1
+test-temporal-ou-profile-campaign-assessment.R	build-premise	build	skips	1
 test-tweedie-location-scale.R	suggests-package	environment	runs	1
 test-xfam-bridge.R	engine-drm-jl	environment	skips	8
 test-xfam-bridge.R	suggests-package	environment	runs	14

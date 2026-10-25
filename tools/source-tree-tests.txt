@@ -32,6 +32,7 @@ test-parity-matrix.R
 test-parity-pin.R
 test-parity-scoreboard.R
 test-phase18-actions-runner.R
+test-phylo-temporal-ou-gate-runner.R
 test-pkgdown-public-surface.R
 test-pkgdown-reference-index.R
 test-positive-continuous-structured-mu.R
@@ -44,3 +45,7 @@ test-reml-route-table.R
 test-spatial-q2-confidence-eye-contract.R
 test-structured-re-ademp-scaffold.R
 test-structured-re-conversion-contracts.R
+test-temporal-homtoep-identifiability.R
+test-temporal-homtoep-map.R
+test-temporal-homtoep-parser.R
+test-temporal-ou-profile-campaign-assessment.R
