@@ -48,9 +48,10 @@ test_that("an OU decay that runs to zero is reported as a boundary fit", {
   expect_match(row$value, "decay_x_max_span=")
   if (identical(as.integer(fit$opt$convergence), 0L) && isTRUE(fit$sdr$pdHess)) {
     # The reference path (Linux CI): optimizer and Hessian look regular, so
-    # only the temporal_boundary row can flag the fit.
+    # the temporal_boundary row flags the fit. is_converged() is FALSE for
+    # "boundary", matching the twin-convergence contract on main.
     expect_identical(convergence_status(fit), "boundary")
-    expect_true(is_converged(fit))
+    expect_false(is_converged(fit))
   } else {
     # Another optimizer path may also leave the Hessian irregular at the same
     # boundary; the fit must still never read as cleanly converged.
