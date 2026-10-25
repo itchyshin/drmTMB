@@ -2476,6 +2476,45 @@ drm_has_sdreport_covariance_matrix <- function(object) {
     is.matrix(object$sdr$cov.fixed)
 }
 
+# REML mean-block SE convention label (#1201, owner decision 2026-10-11).
+# The two engines report different, both legitimate, REML SEs for the mean
+# block: native TMB reports `sdreport` SEs over a random set that contains
+# beta_mu ("sdreport-inflated": variance-parameter uncertainty is propagated
+# into that block), DRM.jl reports the closed-form `(Xmu' Vhat^-1 Xmu)^-1`
+# ("canonical GLS"). Neither engine changes; the SEs are labelled instead, and
+# the mean-block REML SE comparison is excluded from cross-engine parity gates.
+drm_reml_se_convention <- function(object) {
+  if (!identical(object$estimator, "REML")) {
+    return(NA_character_)
+  }
+  if (inherits(object, "drmTMB_julia")) "canonical GLS" else "sdreport-inflated"
+}
+
+drm_reml_se_convention_note <- function(convention) {
+  if (is.null(convention) || length(convention) != 1L || is.na(convention)) {
+    return(NULL)
+  }
+  detail <- switch(
+    convention,
+    "sdreport-inflated" = paste0(
+      "TMB sdreport over a random set containing beta_mu, so ",
+      "variance-parameter uncertainty is propagated into the mean block; ",
+      "not directly comparable with engine = \"julia\" REML SEs"
+    ),
+    "canonical GLS" = paste0(
+      "DRM.jl closed-form (Xmu' Vhat^-1 Xmu)^-1 at the estimated variance ",
+      "parameters; not directly comparable with engine = \"tmb\" REML SEs"
+    ),
+    NULL
+  )
+  if (is.null(detail)) {
+    return(NULL)
+  }
+  paste0(
+    "REML mean-block standard errors: ", convention, " convention (", detail, ")"
+  )
+}
+
 drm_uncertainty_status <- function(object) {
   state <- object$uncertainty
   if (
@@ -4667,6 +4706,7 @@ summary.drmTMB <- function(
     mspl = if (drm_is_mspl(object)) object$mspl else NULL,
     estimator = object$estimator,
     estimator_exact = object$estimator_exact,
+    se_convention = drm_reml_se_convention(object),
     convergence_status = convergence_status(object),
     convergence = object$opt$convergence,
     convergence_message = object$opt$message,
@@ -4728,6 +4768,8 @@ print.summary.drmTMB <- function(x, ...) {
       cli::cli_text(
         "standard errors: unavailable; coefficient and parameter tables are point estimates only ({drm_uncertainty_message(x)})"
       )
+    } else if (!is.null(se_note <- drm_reml_se_convention_note(x$se_convention))) {
+      cli::cli_text("{se_note}")
     }
   }
   print(x$coefficients)

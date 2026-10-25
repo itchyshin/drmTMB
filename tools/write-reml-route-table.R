@@ -74,7 +74,7 @@ drm_reml_route_table_rows <- function(pkg_root = ".") {
         "FITS", "measured this run: logLik=-14.6046181690 (native_reml_probe.R, row 6 fixture, re-measured 2026-09-05 on the leaf-reml-phylo-mean worktree); corroborated by tests/testthat/test-reml-phylo-location.R",
         "FITS", "CLOSED 2026-09-05 (DRM.jl #624 item (c)): drm(...; method = :REML) now fits this cell on the sparse location-only spine, nll_REML = nll_ML + 0.5*logdet(Xmu' V^-1 Xmu) - 0.5*p_mu*log(2*pi) via _loconly_reml_components; estim_method = :REML, ML untouched (test/test_reml_reml_phylo_mean.jl)",
         "FITS", "measured this run: bridge fit succeeded on the row-6 fixture, estim_method=REML, logLik=-14.6046181684 (6.0e-10 from native TMB). Same-target receipt on the committed test fixture (n=90, 30 tips): logLik -76.000977125105 vs -76.000977125761 (6.56e-10), coefficients to 3.71e-08, SEs 4.84e-05 / 1.50e-03 / 1.42e-07 relative -- docs/dev-log/evidence/julia-r-parity/reml/reml-phylo-mean-receipt.md",
-        "YES", "AGREE, all three FIT. Same integrated-out set {u_phylo, beta_mu} and the same +0.5*p_mu*log(2*pi) constant on both engines, so the REML log-likelihoods are directly comparable with no offset removed. Coefficients, logLik, nobs and df agree. ONE documented convention difference remains, engine-dependent BY CONSTRUCTION, not by error: drmTMB's REML SEs for the mean block come from TMB sdreport over a random set containing beta_mu, so they propagate variance-parameter uncertainty; DRM.jl reports the canonical GLS oracle (Xmu' Vhat^-1 Xmu)^-1 directly. DRM.jl matches an independent hand-built GLS oracle to rtol ~5e-7 (4.5e-08 measured on mu_x); drmTMB's mean-block SEs deviate from that SAME oracle by 1.50e-03 on mu_x. The bar this leaf's test actually asserts and passes is DRM.jl-vs-oracle at rtol 1e-5 and a cross-engine bound of rtol 2.5e-3 (not a bare rtol-1e-3 cross-engine match, which mu_x does not meet and which is not the claim made here)."),
+        "YES", "AGREE, all three FIT. Same integrated-out set {u_phylo, beta_mu} and the same +0.5*p_mu*log(2*pi) constant on both engines, so the REML log-likelihoods are directly comparable with no offset removed. Coefficients, logLik, nobs and df agree. ONE documented convention difference remains, engine-dependent BY CONSTRUCTION, not by error: drmTMB's REML SEs for the mean block come from TMB sdreport over a random set containing beta_mu, so they propagate variance-parameter uncertainty; DRM.jl reports the canonical GLS oracle (Xmu' Vhat^-1 Xmu)^-1 directly. DRM.jl matches an independent hand-built GLS oracle to rtol ~5e-7 (4.5e-08 measured on mu_x); drmTMB's mean-block SEs deviate from that SAME oracle by 1.50e-03 on mu_x. The bar this leaf's test asserts is DRM.jl-vs-oracle at rtol 1e-5; the cross-engine mean-block SE bound (rtol 2.5e-3, originally asserted here) was dropped under the #1201 owner decision (2026-10-11), which labels the convention per engine instead."),
 
     row("gaussian_response_mask", "", "TSV", "inst/extdata/julia-capabilities.tsv",
         "same phylo-mean cell as above, missing=miss_control(response=\"include\")",
@@ -397,7 +397,11 @@ drm_reml_route_table_lines <- function(pkg_root = ".") {
   add("  uncertainty is propagated into that block); DRM.jl reports the canonical")
   add("  `(Xmu' Vhat^-1 Xmu)^-1`. Measured gap 1.50e-03 relative on `mu_x`.")
   add("  Documented, not reconciled -- neither engine is wrong, and no coverage")
-  add("  claim is made either way.")
+  add("  claim is made either way. Resolved by owner decision 2026-10-11 (#1201,")
+  add("  option a): neither engine changes; each fit labels its convention")
+  add("  (`summary(fit)$se_convention`: `sdreport-inflated` for TMB, `canonical GLS`")
+  add("  for DRM.jl) and the mean-block REML SE comparison is excluded from")
+  add("  cross-engine parity gates (DRM.jl-vs-oracle check kept).")
   add("- The four cells sharing the drm_julia_reml_supported() honesty-of-interface")
   add("  gap (`fe_poisson`, `zi_poisson`, `general_covariance_structured`/poisson,")
   add("  `gaussian_random_slope`) are recorded, not fixed. No GitHub issue was")
