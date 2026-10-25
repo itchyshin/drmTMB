@@ -1,0 +1,16 @@
+"fixture","cell","role","seed","n_id","n_time","decay_truth","ordinary_intercept","selected","objective","convergence","fit_elapsed_sec","profile_elapsed_sec","pd_hessian","profile_hessian_status","n_intervals","interval_available","interval_status","warning","error"
+"U1_2026091201","U1","combined_short",2026091201,80,6,0.4,TRUE,TRUE,570.841880729252,0,1.131,37.473,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U1_2026091202","U1","combined_short",2026091202,80,6,0.4,TRUE,TRUE,591.68883566395,0,2.665,36.881,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U1_2026091203","U1","combined_short",2026091203,80,6,0.4,TRUE,TRUE,600.702080451105,0,0.825000000000003,34.764,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U1_2026091204","U1","combined_short",2026091204,80,6,0.4,TRUE,TRUE,591.47962216507,0,0.974999999999994,32.311,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U1_2026091205","U1","combined_short",2026091205,80,6,0.4,TRUE,TRUE,612.073237326017,0,0.933999999999997,31.087,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U2_2026091201","U2","combined_persistent",2026091201,80,12,0.15,TRUE,TRUE,1120.05817001734,0,2.16300000000001,54.891,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U2_2026091202","U2","combined_persistent",2026091202,80,12,0.15,TRUE,TRUE,1173.39440235798,0,1.804,47.502,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U2_2026091203","U2","combined_persistent",2026091203,80,12,0.15,TRUE,TRUE,1152.07388946835,0,1.95699999999999,46.195,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U2_2026091204","U2","combined_persistent",2026091204,80,12,0.15,TRUE,TRUE,1158.94066023124,0,2.00099999999998,47.133,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U2_2026091205","U2","combined_persistent",2026091205,80,12,0.15,TRUE,TRUE,1181.79504741551,0,1.98899999999998,42.669,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U3_2026091201","U3","ou_only",2026091201,80,12,0.7,FALSE,TRUE,1202.88220451748,0,2.83099999999996,53.879,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U3_2026091202","U3","ou_only",2026091202,80,12,0.7,FALSE,TRUE,1237.03153377554,0,2.065,64.638,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U3_2026091203","U3","ou_only",2026091203,80,12,0.7,FALSE,TRUE,1219.31307107976,0,1.87300000000005,60.021,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U3_2026091204","U3","ou_only",2026091204,80,12,0.7,FALSE,TRUE,1211.20510096833,0,1.97899999999993,69.274,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
+"U3_2026091205","U3","ou_only",2026091205,80,12,0.7,FALSE,TRUE,1230.50756784701,0,1.68700000000001,70.211,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA
