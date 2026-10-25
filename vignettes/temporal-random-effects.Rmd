@@ -18,18 +18,18 @@ time, and each observation has independent residual noise. Gaussian temporal
 AR1 and OU models separate those components while estimating the effects of
 treatments or other predictors.
 
-For observation \\(t\\) in series \\(i\\), the model is
+For observation \(t\) in series \(i\), the model is
 
-\\[
-y_{it}=x_{it}^{T}\\beta+b_i+a_{it}+\\epsilon_{it},
-\\]
+\[
+y_{it}=x_{it}^{T}\beta+b_i+a_{it}+\epsilon_{it},
+\]
 
-where \\(b_i\\) is the stable series intercept, \\(a_{it}\\) is a stationary
+where \(b_i\) is the stable series intercept, \(a_{it}\) is a stationary
 temporal process with covariance
-\\(\\operatorname{Cov}(a_{it},a_{is})=s_a^2\\phi^{|t-s|}\\), and
-\\(\\epsilon_{it}\\) is independent residual noise. The process SD \\(s_a\\),
-ordinary-intercept SD \\(s_b\\), and residual SD \\(\\sigma\\) measure different
-sources of variation. Persistence \\(\\phi\\) is the correlation one occasion
+\(\operatorname{Cov}(a_{it},a_{is})=s_a^2\phi^{|t-s|}\), and
+\(\epsilon_{it}\) is independent residual noise. The process SD \(s_a\),
+ordinary-intercept SD \(s_b\), and residual SD \(\sigma\) measure different
+sources of variation. Persistence \(\phi\) is the correlation one occasion
 apart and can be negative or positive.
 
 ## A repeated-site example
