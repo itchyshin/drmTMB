@@ -12,6 +12,12 @@ test_that("@param engine names every family the Julia registry admits (#1569)", 
     )
     expect_true(grepl(fam, engine_doc, fixed = TRUE), info = fam)
   }
+  expect_true(grepl("NEWS", engine_doc, fixed = TRUE))
+  expect_true(grepl("test-julia-family-skew_normal.R", engine_doc, fixed = TRUE))
+  expect_true(grepl("test-julia-family-cumulative_logit.R", engine_doc, fixed = TRUE))
+  expect_true(grepl("test-julia-family-biv_student.R", engine_doc, fixed = TRUE))
+  expect_true(grepl("test-julia-family-biv_lognormal.R", engine_doc, fixed = TRUE))
+  expect_false(grepl("Each admitted family has been compared", engine_doc, fixed = TRUE))
 })
 
 test_that("vignettes do not call admitted Julia families unsupported (#1569)", {

@@ -50,7 +50,8 @@ No likelihood, link, or parameterisation change. The registry in
   re-running `env-skip-census|julia-admission-docs` is green. The third
   fail is `test-reml-phylo-location.R:172` (`fit$opt$convergence` 1 vs
   0) on a matched phylo mean-and-scale REML fit. That path is unchanged
-  by this docs PR.
+  by this docs PR. The same line fails on a clean `main` checkout at
+  `f5791d50a2550aebac77ebfc2eb2fd1d713d8b6b` (FAIL 1, PASS 11).
 - `tools/check-reader-contracts.R`: OK.
 - `tools/run-source-tree-tests.R --check`: 48 files agree.
 - `python3 tools/recertify-c17.py --label 1569-docs --tolerance 1e-10`:

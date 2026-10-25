@@ -1,3 +1,16 @@
+# 2026-10-25: `@param engine` cites Julia same-target receipts (#1569)
+
+`R/drmTMB.R` `@param engine` (and `man/drmTMB.Rd`) now names NEWS and
+`tests/testthat/test-julia-family-{skew_normal,cumulative_logit,biv_student,biv_lognormal}.R`
+as the receipts for the 1e-4 / 1e-3 same-target bar at DRM.jl pin
+430ef64cc. `test-julia-admission-docs.R` 26/26. C17:
+`python3 tools/recertify-c17.py --label 1569-docs-receipts --tolerance 1e-10`.
+Worst `|change|` 0.000e+00. Receipt
+`docs/dev-log/implementation-recovery/2026-10-25-1569-docs-receipts-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence` OK.
+`test-reml-phylo-location.R:172` fails on clean `main` `f5791d50a`
+(convergence 1 vs 0), so that fail is not this docs change.
+
 # 2026-10-25: `engine = "julia"` admission docs match the family registry (#1569)
 
 `@param engine` in `R/drmTMB.R` (and `man/drmTMB.Rd`) keeps `skew_normal()`,

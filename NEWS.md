@@ -40,7 +40,10 @@
   pages now name those families as admitted through `engine = "julia"`
   on the fixed-effect route, matching the Julia family registry and the
   Julia engine guide. Plain binomial is documented as admitted for
-  fixed effects only (#1569).
+  fixed effects only. `@param engine` now cites the NEWS and
+  `tests/testthat/test-julia-family-*.R` same-target receipts at DRM.jl
+  pin 430ef64cc for those four families instead of a blanket unsourced
+  1e-4 / 1e-3 claim (#1569).
 
 * The `missing-data` article gains a recipe for a mediator that is also a response: build `impute_model()` from the fitted node's formula and family, with an explicit statement that estimates are not shared and what that means for standard errors (#964).
 * `?spatial` and the `spatial-models` article now state that the `coords =` route fixes the exponential range at the median positive pairwise distance and estimates only sill and nugget, with `relmat(K =)` as the flexible route (#968).

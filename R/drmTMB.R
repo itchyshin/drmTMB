@@ -149,9 +149,15 @@
 #'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`,
 #'   `beta_binomial()`, `skew_normal()`, `cumulative_logit()`,
 #'   `biv_student()`, and `biv_lognormal()` on the fixed-effect route only.
-#'   Each admitted family has been compared with `engine = "tmb"` on the
-#'   same fitted target (coefficients and log-likelihood within 1e-4, Wald
-#'   SEs within 1e-3 relative); see
+#'   Same-target live tests use coefficients and log-likelihood within
+#'   1e-4 and Wald SEs within 1e-3 relative against `engine = "tmb"`.
+#'   Measured gaps at DRM.jl pin 430ef64cc for `skew_normal()`,
+#'   `cumulative_logit()`, `biv_student()`, and `biv_lognormal()` sit
+#'   inside those bars; see NEWS and
+#'   `tests/testthat/test-julia-family-skew_normal.R`,
+#'   `test-julia-family-cumulative_logit.R`,
+#'   `test-julia-family-biv_student.R`, and
+#'   `test-julia-family-biv_lognormal.R`. See
 #'   \code{vignette("julia-engine", package = "drmTMB")} for the full
 #'   family-by-route table and current boundaries. `engine = "julia"` needs
 #'   a local DRModels.jl checkout and the optional `JuliaCall` package, and
