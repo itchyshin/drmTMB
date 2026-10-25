@@ -5,6 +5,20 @@ check-log and a stale C17 TSV (skipped). `src/drmTMB.cpp` changed (`disc`
 uses the unused `X_sigma` slot of model type 13; +16/−4, C++ TMB
 reviewer). Full `testthat::test_dir()` on `ff1eda1b2`: passed=45004
 failed=81 error=213 skipped=240 warning=20.
+# 2026-10-22: #1502 merge follow-up (roxygen wording, C17 recertification)
+
+After merging `origin/main` into `cursor/triage-c-bridge-inputs`: (1) the
+`is_converged()` roxygen in `R/check.R` still said "gate" while main's #1588
+reworded it to "requirements"; fixed, and `man/is_converged.Rd` regenerated with
+roxygen2 8.0.0 so `test-man-roxygen-sync.R` passes (2 PASS). (2) The C17
+receipt taken from main pinned main's `R/drmTMB.R` blob, so
+`--check-c14-receipt-equivalence` failed ("current source blob differs"; the
+fingerprint matched, so the receipt was stale, not wrong). Re-ran
+`python3 tools/recertify-c17.py --label pr-1502-main-refresh --tolerance 1e-10`
+on the Mac: `mean_tau_relative_error` unchanged to `0.000e+00` on mc-0568 /
+0569 / 0576, `source_fingerprint` unchanged. `capability_ledger.py --check`,
+`--check-c14-receipt-equivalence` and the seven wired `tools/tests` unittest
+files pass. Full package tests were not run.
 
 # 2026-10-22: retain output from failed or colliding C17 recertification runs (#1591)
 
@@ -401,6 +415,70 @@ Rebased `cursor/dead-forked-worker-7717` onto current main. Conflict was
 check-log only. `R/drmTMB.R` and `R/methods.R` were not touched, so C17
 was not recertified. Full `testthat::test_dir()` on `a59a66be8`:
 passed=44952 failed=81 error=213 skipped=241 warning=20.
+# 2026-10-23: merge origin/main into #1502
+
+Merged origin/main into `cursor/triage-c-bridge-inputs`. Conflicts were the
+check log (keep both sides) and the C17 receipt manifest. The manifest was
+rewired by `python3 tools/recertify-c17.py --label pr-1502-main-refresh2
+--tolerance 1e-10`: `|change|` 0 on mc-0568/0569/0576. Tests on Totoro:
+`test-julia-input-handling.R` 101 passed, `test-julia-diagnostics.R` 135 passed
+(2 skipped, Julia engine absent), `test-julia-gate-vs-engine.R` 154 passed.
+
+# 2026-10-18 — rebase #1502 onto main `d89db5097`
+
+Rebased `cursor/triage-c-bridge-inputs` onto current main. NEWS conflict
+only on the first commit. Recertified C17 as `2026-10-18-pr1502-rebase`.
+
+# 2026-10-08: Review repair for Julia weights evaluation and covariance checks
+
+Code review blocked draft PR #1502 on the weights gate. `weights = w` is now
+evaluated in `data` and then in the caller, the same order
+`evaluate_likelihood_weights_arg()` uses. A data column `w` is refused for
+`engine = "julia"` even when a global `w` is `NULL`. `check_drm()` warns on
+the Julia `bridge_covariance` row when `chol()` fails, matching
+`is_converged(include_hessian = TRUE)`. The engine-control claim no longer
+says the gate uses `identical()`.
+
+`tools/recertify-c17.py --label triage-c-bridge-weights --tolerance 1e-10`
+reproduced model 15 with `|change|` 0.000e+00 on mc-0568, mc-0569, and
+mc-0576 versus the earlier 2026-10-08 receipt. The claim records that the
+~1e-11 drift versus the 2026-09-26 receipt (worst 1.322e-11 on mc-0569)
+already exists on main `75845a3d`, which is why `--tolerance 1e-10` was used.
+`source_fingerprint` stayed `5ab7a9640a93…`.
+`python3 tools/capability_ledger.py --check` passed, and
+`python3 -m unittest tools/tests/test_capability_ledger.py` passed (80 tests).
+
+Local re-run on R 4.3.3, Julia absent: `test-julia-input-handling.R`
+passed 101 expectations (0 failed, 0 errors, 0 skipped);
+`test-julia-diagnostics.R` passed 135 (0 failed, 0 errors, 2 skipped);
+`test-julia-gate-vs-engine.R` passed 154 (0 failed, 0 errors, 0 skipped).
+The full `R CMD check` is the pull-request CI job, not a local run.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-c-bridge-inputs.md`.
+
+# 2026-10-08: Julia input gates for weights, control defaults, and Hessian convergence
+
+Fixed three Julia-engine input bugs on branch `cursor/triage-c-bridge-inputs`
+(draft PR #1502). `weights = NULL` is no longer treated as a supplied weight
+vector (#1450). Integer and empty-list spellings of `drm_control()` defaults
+pass the Julia control gate (#1471). `is_converged(include_hessian = TRUE)`
+reads the stored covariance for `drmTMB_julia`, joint fits, and
+`drmTMB_julia_xfam` (#1483). The package now defines `%||%`, which formula
+marshalling and `drm_mspl_link_name()` already called.
+
+No Julia binary was used. `tests/testthat/test-julia-input-handling.R` passed
+92 expectations with JuliaCall absent and again with a local JuliaCall stub
+installed. The 15 `test-missing-response*.R` files passed 1087 expectations
+(1 skip). The 11 mock Julia glue files passed 1211 expectations with a
+JuliaCall namespace stub (0 failures, 0 errors, 12 skips).
+`test-mspl-link-dispatch.R` passed 18 expectations, 0 failures, 0 errors, 0 skips.
+`python3 tools/capability_ledger.py --check` and
+`python3 -m unittest tools/tests/test_capability_ledger.py` passed after
+C17 recertification. Worst `|change|` in `mean_tau_relative_error` was
+1.322e-11 on mc-0569, inside `--tolerance 1e-10`. `source_fingerprint` was
+left at `5ab7a9640a93…`. The full `R CMD check` was not run locally.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-c-bridge-inputs.md`.
 
 # 2026-10-18 — rebase #1506 onto main `d89db5097`
 
