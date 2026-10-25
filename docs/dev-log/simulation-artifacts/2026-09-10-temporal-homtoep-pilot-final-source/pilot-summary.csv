@@ -1,0 +1,4 @@
+"cell","role","n_datasets","selected_finite","profile_available","profile_guarded","median_elapsed_sec","max_elapsed_sec","pd_hessian","warnings","errors"
+"P1_ar1_shaped","ar1_reference",5,5,0,5,0.977,2.416,0,5,0
+"P2_nonexponential","free_lag",5,5,0,5,0.773000000000003,0.801000000000002,0,5,0
+"P3_negative_lag","negative_lag",5,5,0,5,0.775999999999996,0.893000000000001,0,5,0

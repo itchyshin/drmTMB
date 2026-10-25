@@ -1,0 +1,13 @@
+"fixture","cell","replicate","start","status","convergence","objective","elapsed_sec","selected","warning","error"
+"A_ar1_r01","A_ar1",1,1,"ok",0,481.018295912306,0.0130000000000017,TRUE,"",NA
+"A_ar1_r02","A_ar1",2,1,"ok",0,509.703634954143,0.0139999999999993,TRUE,"",NA
+"A_ar1_r03","A_ar1",3,1,"ok",0,502.236588657858,0.032,TRUE,"",NA
+"B_nonexponential_r01","B_nonexponential",1,1,"ok",0,530.851757354711,0.0160000000000018,TRUE,"",NA
+"B_nonexponential_r02","B_nonexponential",2,1,"ok",0,513.323371906912,0.0159999999999982,TRUE,"",NA
+"B_nonexponential_r03","B_nonexponential",3,1,"ok",0,484.632004303945,0.0249999999999986,TRUE,"",NA
+"C_negative_lag_r01","C_negative_lag",1,1,"ok",0,502.674175697516,0.0229999999999997,TRUE,"",NA
+"C_negative_lag_r02","C_negative_lag",2,1,"ok",0,569.705826428102,0.0169999999999995,TRUE,"",NA
+"C_negative_lag_r03","C_negative_lag",3,1,"ok",0,513.199488512869,0.0160000000000018,TRUE,"",NA
+"D_stress_r01","D_stress",1,1,"ok",0,63.616955650367,0.00399999999999778,TRUE,"",NA
+"D_stress_r02","D_stress",2,1,"ok",0,60.3711038063991,0.00400000000000134,TRUE,"",NA
+"D_stress_r03","D_stress",3,1,"ok",0,61.7828215387015,0.00400000000000134,TRUE,"",NA

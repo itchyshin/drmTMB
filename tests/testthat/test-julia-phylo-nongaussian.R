@@ -257,7 +257,9 @@ drm_phylo_binom_fit <- function(n_tip = 24L) {
         coef_julia = unname(cj),
         coef_names = names(cj),
         sd_julia = unname(fj$sdpars$mu[["phylo(1 | species)"]]),
-        converged = drmTMB::is_converged(fj)
+        optimizer_converged = identical(as.integer(fj$opt$convergence), 0L),
+        status = drmTMB::convergence_status(fj),
+        bridge_status = fj$bridge[["convergence_status"]]
       )
     },
     args = list(pkg = pkg, jl_path = jl_path, n_tip = as.integer(n_tip)),
@@ -321,5 +323,10 @@ test_that("Binomial phylo fit via engine = 'julia' is finite and sane", {
   expect_equal(res$coef_names, c("(Intercept)", "x"))
   expect_true(is.finite(res$sd_julia))
   expect_gt(res$sd_julia, 0)
-  expect_true(isTRUE(res$converged))
+  # The phylo SD lands near 2.5e-4 on this draw. The bridge covariance, which
+  # includes the log phylo SD, is singular there, so DRModels.jl classifies the
+  # fit "degenerate" and R reads that through the bridge (drmTMB #1564). The
+  # floor is the optimiser flag plus agreement between the two engines.
+  expect_true(isTRUE(res$optimizer_converged))
+  expect_identical(res$status, res$bridge_status)
 })
