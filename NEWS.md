@@ -58,6 +58,11 @@
 
 ## Bug fixes
 
+* `engine = "julia"` stays exported but is now fenced as experimental: the
+  first call in an R session prints a one-time notice, and the bridge will not
+  be widened further. Reported by Russell Dinnage's independent evaluation
+  (Md-K, #1328).
+
 * `summary()` now flags a non-converged fit as `print()` does. The printed
   summary says "not converged" with the optimizer message, and printing it
   raises a warning of class `drmTMB_convergence_warning`, the same class as
