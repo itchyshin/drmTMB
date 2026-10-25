@@ -298,10 +298,19 @@ phylo_interaction <- function(term, tree1, tree2) {
 #' univariate student `mu` q=1 intercept or one-slope, ordinary Poisson and NB2
 #' `mu` q=1 intercepts or one-slopes, zero-inflated Poisson `zi` q=1 intercept,
 #' and the NB2 `sigma` q=1 one-slope, all at recovery grade: trust the point
-#' estimate, not the interval. Mesh inputs, multiple structured slopes,
-#' residual-scale structured slopes beyond the supported NB2 slope, slope
-#' correlations, and predictor-dependent spatial `corpair()` regression are not
-#' supported.
+#' estimate, not the interval.
+#'
+#' A precomputed mesh from [make_mesh()] is fitted for one route only: a
+#' univariate Gaussian, unlabelled `mu` intercept with constant residual scale,
+#' `bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)`, with kappa fixed at
+#' the value given to [make_mesh()]. Its point estimates have recovery evidence
+#' for the tested designs; intervals, coverage, and the spatial range are not
+#' claimed. Any other mesh use, including `sigma ~ z`, a mesh slope, a labelled
+#' or bivariate mesh term, or a non-Gaussian family, is rejected; use
+#' `coords = coords` for those models where a coordinate route exists.
+#' Multiple structured slopes, residual-scale structured slopes beyond the
+#' supported NB2 slope, slope correlations, and predictor-dependent spatial
+#' `corpair()` regression are not supported.
 #'
 #' The `coords =` route fits an exponential kernel, `exp(-dist / range)`, with
 #' `range` fixed at the median positive pairwise distance between sites (the
@@ -316,7 +325,8 @@ phylo_interaction <- function(term, tree1, tree2) {
 #' @param term Structured random-effect term, such as `1 | site`.
 #' @param coords Coordinate object, such as a data frame or matrix of spatial
 #'   coordinates.
-#' @param mesh Reserved; precomputed mesh inputs are not supported.
+#' @param mesh A fixed-kappa mesh object from [make_mesh()]. Fitted only for the
+#'   univariate Gaussian `mu` intercept with `sigma ~ 1`; see Description.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -332,6 +342,8 @@ phylo_interaction <- function(term, tree1, tree2) {
 #'   sigma2 = ~ 1,
 #'   rho12 = ~ 1
 #' )
+#' # Fixed-kappa mesh intercept (mesh from make_mesh()); requires sigma ~ 1:
+#' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)
 spatial <- function(term, coords = NULL, mesh = NULL) {
   invisible(NULL)
 }
