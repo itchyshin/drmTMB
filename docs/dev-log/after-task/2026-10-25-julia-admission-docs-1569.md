@@ -43,6 +43,13 @@ No likelihood, link, or parameterisation change. The registry in
   failures.
 - Sibling filters `julia-admission|julia-family|julia-fe-only|reader-journeys`:
   pass, with live Julia fits skipped (no DRM.jl in this environment).
+- Full `devtools::test()` on this branch: 3 fail, 0 error. Two fails were
+  the env-skip census after the new README skip; regenerating
+  `inst/extdata/env-skip-census.tsv` (2 to 3 build-premise skips) and
+  re-running `env-skip-census|julia-admission-docs` is green. The third
+  fail is `test-reml-phylo-location.R:172` (`fit$opt$convergence` 1 vs
+  0) on a matched phylo mean-and-scale REML fit. That path is unchanged
+  by this docs PR.
 - `tools/check-reader-contracts.R`: OK.
 - `tools/run-source-tree-tests.R --check`: 48 files agree.
 - `python3 tools/recertify-c17.py --label 1569-docs --tolerance 1e-10`:

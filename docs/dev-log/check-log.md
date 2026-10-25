@@ -15,6 +15,11 @@ Worst `|change|` 3.231e-11 on mc-0568. Receipt
 `python3 tools/capability_ledger.py --check-c14-receipt-equivalence` OK.
 The `@param engine` wrap sits outside the authenticated model-15 anchors.
 
+Full `devtools::test()`: 3 fail, 0 error. Two fails were the env-skip
+census after the new README skip (regenerated; now 3 build-premise
+skips). The remaining fail is `test-reml-phylo-location.R:172`
+(convergence 1 vs 0), outside this docs change.
+
 # 2026-10-18 — rebase #1525 onto main `d89db5097`
 
 Rebased `claude/lane-n2-ordinal-disc` onto current main. Conflicts were
