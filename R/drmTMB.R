@@ -154,7 +154,10 @@
 #'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for
 #' the full family-by-route table and current boundaries. `engine = "julia"` needs a local
 #'   DRModels.jl checkout and the optional `JuliaCall` package, and it is not a
-#'   drop-in replacement for every native-TMB workflow.
+#'   drop-in replacement for every native-TMB workflow. `engine = "julia"` is
+#'   exported but **experimental**: the first call in an R session prints a
+#'   one-time notice, and the bridge is not being widened beyond the families
+#'   and routes listed above.
 #' @param REML Logical; use restricted maximum likelihood where the selected
 #'   engine supports it. Native `engine = "tmb"` restricts the likelihood by
 #'   marginalising the admitted fixed-effect mean coefficients. Validated
@@ -341,6 +344,7 @@ drmTMB <- function(
         "{.arg penalty} is not supported with {.code engine = \"julia\"} yet."
       )
     }
+    drm_julia_experimental_notice()
     return(drmTMB_julia_bridge(
       formula = formula,
       family = family,
