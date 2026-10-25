@@ -46,17 +46,11 @@ test_that("an OU decay that runs to zero is reported as a boundary fit", {
   row <- boundary_row(fit)
   expect_identical(row$status, "warning")
   expect_match(row$value, "decay_x_max_span=")
-  if (identical(as.integer(fit$opt$convergence), 0L) && isTRUE(fit$sdr$pdHess)) {
-    # The reference path (Linux CI): optimizer and Hessian look regular, so
-    # the temporal_boundary row flags the fit. is_converged() is FALSE for
-    # "boundary", matching the twin-convergence contract on main.
-    expect_identical(convergence_status(fit), "boundary")
-    expect_false(is_converged(fit))
-  } else {
-    # Another optimizer path may also leave the Hessian irregular at the same
-    # boundary; the fit must still never read as cleanly converged.
-    expect_false(identical(convergence_status(fit), "converged"))
-  }
+  # The temporal_boundary row always flags this generator. Main's later
+  # MLE-existence and twin-convergence checks can also mark the same fit
+  # degenerate even when the optimizer code is 0 and pdHess is TRUE.
+  expect_false(identical(convergence_status(fit), "converged"))
+  expect_false(is_converged(fit))
 })
 
 test_that("a healthy OU fit has no temporal boundary row warning", {
