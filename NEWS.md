@@ -2,6 +2,17 @@
 
 ## New features
 
+* `confint()` with `method` omitted now profiles ordinary `(1 | g)`
+  random-intercept SD rows and keeps Wald for every other row (the `method`
+  column says which). The Wald SD interval undercovers near the boundary: at a
+  true SD of 0.1 with 10 groups, Wald coverage was 0.36 against 0.97 for
+  profile on the same 300 replicates. `method = "wald"`, `method = "profile"`,
+  `method = "bootstrap"`, and calls that supply `small_sample_df`,
+  `bias_correct`, `sd_boundary`, or `rho_boundary` are unchanged. An ordinary
+  `(1 | g)` SD Wald row whose log-scale standard error exceeds 1 (for example
+  `[5e-37, 1e33]` around an estimate of 0.026) is now labelled
+  `conf.status = "wald_at_boundary"` and warns, not only an estimate below
+  `sd_boundary`. Documented in `?confint.drmTMB` (#1558).
 * `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
   check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
   the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
