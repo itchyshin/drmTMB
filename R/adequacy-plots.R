@@ -1,6 +1,6 @@
 # DO-T1 adequacy plots for the distributional output & adequacy layer
 # (issue #747). Consumes R/adequacy.R's randomized quantile residuals; see
-# that file for the fixed-effect-only honesty note. ggplot2 is Suggests-only
+# that file for the conditional-model honesty note. ggplot2 is Suggests-only
 # (matching R/plot-corpairs.R and R/profile.R's plot.profile.drmTMB()); both
 # functions here guard with requireNamespace().
 #
@@ -25,9 +25,11 @@
 #' randomized draw is not over-read; the first realization's points and
 #' fitted trend are drawn on top.
 #'
-#' This is fixed-effect adequacy only -- see [drm_quantile_residuals()]. A
-#' flat worm plot is "no detectable departure" evidence about the fixed-effect
-#' distributional form, never a general validity or calibration claim.
+#' This is conditional-model adequacy only -- see [drm_quantile_residuals()].
+#' For a random-effect fit the residuals are conditional on the random-effect
+#' modes. A flat worm plot is "no detectable departure" evidence about the
+#' conditional distributional form, never a general validity or calibration
+#' claim.
 #'
 #' **What this detects -- and does not.** A worm plot bends when the
 #' underlying quantile residuals depart from N(0,1); see
@@ -131,9 +133,10 @@ worm_plot <- function(object, seed = NULL, nsim = 1L, response = NULL, ...) {
 #' randomized draw is not over-read; the first realization's points are drawn
 #' on top.
 #'
-#' This is fixed-effect adequacy only -- see [drm_quantile_residuals()]. See
-#' [worm_plot()] for the detrended variant that makes systematic bends easier
-#' to read.
+#' This is conditional-model adequacy only -- see [drm_quantile_residuals()];
+#' for a random-effect fit the residuals are conditional on the random-effect
+#' modes. See [worm_plot()] for the detrended variant that makes systematic
+#' bends easier to read.
 #'
 #' **What this detects -- and does not.** Same scope as [worm_plot()] --
 #' shape/atom mis-specification a family cannot reabsorb through its own

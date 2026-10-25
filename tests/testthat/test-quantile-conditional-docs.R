@@ -55,3 +55,14 @@ test_that("?predict.drmTMB, ?exceedance and ?residuals.drmTMB say fitted rows ar
     expect_false(grepl("at the fitted, fixed-effect distributional parameters", text, fixed = TRUE), info = nm)
   }
 })
+
+test_that("the adequacy help pages no longer say fixed-effect adequacy only (#1568)", {
+  for (nm in c("drm_quantile_residuals", "worm_plot", "qq_plot")) {
+    rd <- test_path("..", "..", "man", paste0(nm, ".Rd"))
+    skip_if_not(file.exists(rd), "man/ is unavailable in an installed-package check.")
+    text <- gsub("\\s+", " ", paste(readLines(rd, warn = FALSE), collapse = " "))
+    expect_true(grepl("conditional on the random-effect modes", text, fixed = TRUE), info = nm)
+    expect_false(grepl("fixed-effect adequacy only", text, fixed = TRUE), info = nm)
+    expect_false(grepl("specified fixed-effect model", text, fixed = TRUE), info = nm)
+  }
+})

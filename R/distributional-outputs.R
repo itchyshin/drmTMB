@@ -7,8 +7,10 @@
 # including reuse of its one-time spike warning, drm_warn_adequacy_spike()).
 #
 # Honesty (Fisher, DO-T0a CP1 / DO-T2 goal): fitted_distribution() evaluates
-# {d,p,q} at predict_parameters()'s FIXED-EFFECT, population-level parameter
-# estimates theta_hat -- these are distributional (plug-in) outputs, not
+# {d,p,q} at predict_parameters()'s parameter estimates theta_hat: on the
+# fitted rows of a random-effect fit these are conditional on the
+# random-effect modes, and with newdata they are fixed-effect, population-level
+# (issue #1568) -- these are distributional (plug-in) outputs, not
 # calibrated-coverage intervals, and they do not propagate theta_hat
 # uncertainty. Every predict(type = "quantile") and exceedance() result
 # carries attr(., "calibrated") <- FALSE. centile_chart() is a

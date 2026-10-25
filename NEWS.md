@@ -35,7 +35,7 @@
 
 ## Documentation fixes
 
-* `?predict.drmTMB`, `?exceedance` and `?residuals.drmTMB` now say what the code does: on the fitted rows (`newdata = NULL`) of a random-effect fit, `predict(type = "quantile")`, `exceedance()` and `residuals(type = "quantile")` are conditional on the random-effect modes, not fixed-effect-only or marginal; with `newdata` they stay population-level. The behaviour is unchanged and is now pinned by a test (Refs #1568).
+* `?predict.drmTMB`, `?exceedance` and `?residuals.drmTMB` now say what the code does: on the fitted rows (`newdata = NULL`) of a random-effect fit, `predict(type = "quantile")`, `exceedance()` and `residuals(type = "quantile")` are conditional on the random-effect modes, not fixed-effect-only or marginal; with `newdata` they stay population-level. The adequacy help pages (`?worm_plot`, `?qq_plot` and the internal `drm_quantile_residuals()` page) now say the same instead of "fixed-effect adequacy only". The behaviour is unchanged and is now pinned by a test (Refs #1568).
 
 * `?nbinom2` now states that NB2 cannot go below the Poisson limit (an underdispersed count fit hits the `sigma` boundary (limit) and returns a degenerate result) and points underdispersed counts to `glmmTMB::compois()` / `glmmTMB::genpois()`. This is a documentation pointer only; no underdispersed count family is added (Refs #1466).
 
