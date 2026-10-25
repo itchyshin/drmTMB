@@ -4,6 +4,7 @@ Gaussian
 GitHub
 Hessian
 Nakagawa
+OpenMP
 RcppEigen
 Shinichi
 TMB
@@ -44,4 +45,5 @@ sdreport
 semicontinuous
 testthat
 uncalibrated
+underdispersed
 univariate

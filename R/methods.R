@@ -2933,7 +2933,12 @@ deviance.drmTMB <- function(object, ...) {
 #' @param type Prediction scale: `"response"`, `"link"`, or `"quantile"`.
 #' @param prob Numeric vector of probabilities in (0, 1), used only when
 #'   `type = "quantile"`.
-#' @param ... Reserved for future prediction options.
+#' @param re.form Must be `NULL` (the default), which is the only behaviour:
+#'   training rows are predicted conditionally on the fitted random effects and
+#'   `newdata` rows at the population level. Any other value is an error.
+#' @param ... Reserved for future prediction options; any value is an error
+#'   (for example `se.fit`, which `predict()` does not compute; use
+#'   [predict_parameters()] with `conf.int = TRUE` for standard errors).
 #'
 #' @return A numeric vector for `type` `"response"`/`"link"`. For
 #'   `type = "quantile"`, a numeric matrix with one row per observation and
@@ -2992,9 +2997,23 @@ predict.drmTMB <- function(
   dpar = NULL,
   type = c("response", "link", "quantile"),
   prob = c(0.025, 0.5, 0.975),
+  re.form = NULL,
   ...
 ) {
-  drm_abort_mi_weights_predict(object, list(...))
+  if (!is.null(re.form)) {
+    cli::cli_abort(c(
+      "{.fn predict} supports only {.code re.form = NULL}.",
+      "i" = "Training rows are predicted conditionally on the fitted random effects; {.arg newdata} rows are predicted at the population level."
+    ))
+  }
+  dots <- list(...)
+  drm_abort_mi_weights_predict(object, dots)
+  if (drm_weights_are_unit(dots[["weights"]])) {
+    dots[["weights"]] <- NULL
+  }
+  if (length(dots) > 0L) {
+    cli::cli_abort("{.arg ...} is reserved for future options.")
+  }
   if (is.null(dpar)) {
     dpar <- object$model$dpars[[1L]]
   }
@@ -3165,7 +3184,12 @@ predict.drmTMB <- function(
 #'   fixed at its fitted conditional-mode estimate (conditional simulation).
 #'   These meanings match `lme4::simulate.merMod()`; earlier drmTMB versions
 #'   reversed them (see Details).
-#' @param ... Reserved for future simulation options.
+#' @param newdata Must be `NULL`. `simulate()` always draws for the training
+#'   rows; drawing for new rows is not implemented, and a non-`NULL` value is an
+#'   error rather than being silently ignored. For new rows, use
+#'   [predict_parameters()] to get the distributional parameters and draw from
+#'   the family's `r*()` function.
+#' @param ... Reserved for future simulation options; any value is an error.
 #'
 #' @return A data frame. Univariate models return one column per simulation.
 #'   Bivariate models return paired columns named `sim_<j>_y1` and
@@ -3176,8 +3200,28 @@ predict.drmTMB <- function(
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' simulate(fit, nsim = 2, seed = 1)
 #' @export
-simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NA, ...) {
-  drm_abort_mi_weights_predict(object, list(...))
+simulate.drmTMB <- function(
+  object,
+  nsim = 1,
+  seed = NULL,
+  re.form = NA,
+  newdata = NULL,
+  ...
+) {
+  if (!is.null(newdata)) {
+    cli::cli_abort(c(
+      "{.fn simulate} does not support {.arg newdata}; it draws for the training rows only.",
+      "i" = "Use {.fn predict_parameters} with {.arg newdata} to get the distributional parameters for new rows, then draw from the family's {.code r*()} function."
+    ))
+  }
+  dots <- list(...)
+  drm_abort_mi_weights_predict(object, dots)
+  if (drm_weights_are_unit(dots[["weights"]])) {
+    dots[["weights"]] <- NULL
+  }
+  if (length(dots) > 0L) {
+    cli::cli_abort("{.arg ...} is reserved for future options.")
+  }
   if (!base::missing(re.form)) {
     drm_simulate_re_form_semantics_message()
   }
