@@ -48,8 +48,7 @@ or bivariate mesh term, or a non-Gaussian family, is rejected; use
 Multiple structured slopes, residual-scale structured slopes beyond the
 supported NB2 slope, slope correlations, and predictor-dependent spatial
 \code{corpair()} regression are not supported.
-}
-\details{
+
 The \verb{coords =} route fits an exponential kernel, \code{exp(-dist / range)}, with
 \code{range} fixed at the median positive pairwise distance between sites (the
 value \code{drm_spatial_coords_precision()} computes). The range is not
