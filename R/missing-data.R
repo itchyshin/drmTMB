@@ -739,7 +739,7 @@ drm_prepare_gaussian_mi_setup <- function(
     "The current missing-predictor routes require exactly one {.fn mi} term in the response location formula.",
     "x" = "Found {n_mi} {.fn mi} term{?s}.",
     "i" = if (n_mi == 2L) {
-      "Two independent Gaussian {.fn mi} terms are implemented only for a Gaussian response. Other families still take one {.fn mi} term."
+      "Two independent {.fn mi} terms (two Gaussian, or one Gaussian plus one binary) are implemented only for a Gaussian response. Other families still take one {.fn mi} term."
     } else {
       "k > 2 independent {.fn mi} terms are not implemented yet."
     }

@@ -5,7 +5,7 @@
 * A Gaussian response can now carry **one Gaussian and one binary** `mi()`
   term with a named `impute` list
   (`y ~ mi(m) + mi(b) + x`, `impute = list(m = impute_model(m ~ x, family = gaussian()), b = impute_model(b ~ x, family = binomial()))`).
-  This is #963 option (a) under independence: the binary term is summed over
+  This is the next #963 cell (owner decision of 11 Oct 2026) under independence: the binary term is summed over
   its two states, the Gaussian term is a latent value, and the formula order
   does not change the likelihood. It is **not** `impute_joint` and **not**
   FIML. `imputed()` for the binary term conditions on the Gaussian term's
