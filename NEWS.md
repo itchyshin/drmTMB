@@ -58,6 +58,12 @@
 
 ## Bug fixes
 
+* `engine = "julia"` now refuses an ordinary mean `(1 | g)` on Poisson,
+  Gamma, NB2, Beta, and Binomial before Julia starts. Those models used to
+  run the full Julia fit and then abort at a missing `resd` coefficient
+  label. Use `engine = "tmb"` for this shape. Gaussian `(1 | g)` is
+  unchanged (#1551).
+
 * `engine = "julia"` stays exported but is now fenced as experimental: the
   first call in an R session prints a one-time notice, and the bridge will not
   be widened further. Reported by Russell Dinnage's independent evaluation
