@@ -217,6 +217,29 @@ phylo <- function(term, tree, tolerance = sqrt(.Machine$double.eps)) {
   invisible(NULL)
 }
 
+#' Temporal random-effect marker
+#'
+#' `temporal()` adds a stationary Gaussian AR1 deviation for repeated
+#' observations within a sampled individual or site.  The first temporal slice
+#' is deliberately narrow: it accepts one intercept-only term, finite integer
+#' occasions, and the `"ar1"` structure.  An ordinary `(1 | id)` may accompany
+#' the marker to represent stable between-series differences separately from
+#' persistent within-series deviations.
+#'
+#' @param term Temporal random-effect term, currently `1 | id`.
+#' @param time Name of the integer occasion variable.
+#' @param structure Temporal covariance structure, currently `"ar1"`.
+#'
+#' @return A formula marker; never evaluated by users.
+#' @export
+#'
+#' @examples
+#' bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),
+#'    sigma ~ 1)
+temporal <- function(term, time, structure = "ar1") {
+  invisible(NULL)
+}
+
 #' Bipartite phylogenetic interaction marker
 #'
 #' `phylo_interaction()` marks a pair-level phylogenetic interaction between two
@@ -275,6 +298,16 @@ phylo_interaction <- function(term, tree1, tree2) {
 #' residual-scale structured slopes beyond the supported NB2 slope, slope
 #' correlations, and predictor-dependent spatial `corpair()` regression are not
 #' supported.
+#'
+#' The `coords =` route fits an exponential kernel, `exp(-dist / range)`, with
+#' `range` fixed at the median positive pairwise distance between sites (the
+#' value `drm_spatial_coords_precision()` computes). The range is not
+#' estimated: only the sill (the spatial SD) and the residual nugget are
+#' estimated, so a fit can have a lower log-likelihood than a model that also
+#' estimates the range. If you need a different range or kernel, build the
+#' covariance yourself and pass it through [relmat()] with `K =`, which is the
+#' more flexible route. `DRModels.jl` (the Julia twin) estimates the range, so
+#' the twin `spatial()` fits of the same formula differ.
 #'
 #' @param term Structured random-effect term, such as `1 | site`.
 #' @param coords Coordinate object, such as a data frame or matrix of spatial

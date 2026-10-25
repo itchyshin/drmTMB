@@ -50,6 +50,18 @@ revisit condition.
   `(1 + x1 + x2 | id)`. Larger q blocks are advanced, sample-size hungry fits;
   q > 2 SDs are direct profile targets, but q > 2 correlations are not direct
   profile interval targets yet.
+- The first temporal route is univariate Gaussian ML only:
+  `temporal(1 | id, time = occasion, structure = "ar1")` fits one stationary
+  temporal intercept process with genuine finite integer gaps, constant
+  residual `sigma`, and optionally one same-ID ordinary `(1 | id)` intercept.
+  It rejects duplicate ID--occasion keys, weights other than one, REML,
+  non-Gaussian families, temporal slopes, additional random effects, and other
+  structured terms. Wald intervals and `vcov()` cover mean coefficients only
+  when the full observed Hessian is positive definite; temporal SD,
+  persistence, ordinary-intercept SD, and residual-SD intervals, forecasting,
+  and `newdata` prediction remain unsupported. The final-source five-seed
+  pilot had 4/5 interval availability in primary C1, so no coverage or
+  scientific-interval calibration claim is available yet.
 - Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
   unlabelled location (`mu`) random intercept (`mc-0060`) or independent
   slope (`mc-0062`). Its joint-Laplace result and uncertainty agree with the
@@ -874,3 +886,23 @@ revisit condition.
   repeated Gaussian rows, and repeated large phylogenetic benchmark runs beyond
   the initial optional harness in
   `bench/large-phylo-location.R`.
+- Fixed-effect binomial, Poisson, and NB2 fits, and continuous
+  location-scale fits whose scale predictor drives an exactly fitted
+  observation onto the lower `log(sigma)` clamp, now return
+  `convergence_status() = "degenerate"` and a warning-level
+  `check_drm()` `mle_existence` row when the screened geometry has no
+  finite maximum-likelihood estimate (Albert and Anderson 1984; Konis
+  2007; Haberman 1974; Santos Silva and Tenreyro 2010). The screen does
+  not change point estimates or `vcov()`. Random-effect, phylogenetic,
+  `mi()` predictor, and MSPL routes are not screened. Zero-inflated
+  Poisson is not screened, because a zero can come from the inflation
+  process rather than the count cone. Both engines now expose
+  `convergence_status()` ∈ {converged, boundary, degenerate} with the
+  numeric cuts in `docs/design/278-twin-convergence-status.md`.
+  `is_converged()` / `converged()` are `TRUE` only for `"converged"`.
+  On the 750-fit t4 grid the engines now agree on the boolean in 716/750
+  fits (was 512/750 on pin `ca3ddefa` / `f71b292`) and on the
+  three-valued status in 689/750. The remaining 61 status disagreements
+  are Julia `g_tol` / pseudo-inverse SEs versus R `nlminb` / Hessian
+  screens (`docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`;
+  #1554).

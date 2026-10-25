@@ -47,7 +47,9 @@ fits with random effects, known sampling covariance, phylogenetic location
 effects, or bivariate residual correlation \code{rho12}.
 }
 \details{
-The current checks cover optimizer convergence, finite objective values,
+The current checks cover the three-valued \code{convergence_status}
+(\code{ok} / \code{note} / \code{warning} for \code{"converged"} / \code{"boundary"} /
+\code{"degenerate"}), optimizer convergence, finite objective values,
 optimizer evaluation counts, fixed-parameter gradients including the largest
 gradient component label, whether
 \code{\link[TMB:sdreport]{TMB::sdreport()}} was computed, skipped, or failed, Hessian status from
@@ -64,7 +66,9 @@ only when \code{sdr$cov.fixed} itself is absent or incomplete (for example
 \code{drm_control(se = FALSE)}, or a failed \code{sdreport()}), finite fixed-effect standard errors, standard errors that
 are finite but inflated relative to the others despite a positive-definite
 Hessian (a weakly identified, near-flat direction such as a boundary
-correlation), dropped rows,
+correlation), whether a fixed-effect binomial, Poisson, or NB2 MLE exists
+and whether a continuous location-scale likelihood is unbounded
+(\code{mle_existence}), dropped rows,
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
 Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks,
