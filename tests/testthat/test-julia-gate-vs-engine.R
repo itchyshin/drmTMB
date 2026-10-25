@@ -82,7 +82,11 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
     # then found on `tweedie` (`nu ~ z` fit through the bridge at logLik
     # -259.84074955 while `engine = "tmb"` refused it), which has no prefix at
     # all. Same reason as the row above for editing this literal vector.
-    "unadmitted_predictor_dpar"
+    "unadmitted_predictor_dpar",
+    # drmTMB#1567: Gaussian ordinary (1 | g) with a factor FE is refused
+    # before Julia starts. The conditional-components entry omits labels,
+    # so the previous path ran the Julia fit and then aborted.
+    "gaussian_ordinary_re_factor_fe"
   )
 
   expect_s3_class(gates, "data.frame")
@@ -616,4 +620,22 @@ test_that("unadmitted_predictor_dpar: tweedie nu ~ z is gated before Julia start
   expect_s3_class(err, "error")
   expect_false(grepl("must\\s+be\\s+intercept-only",
                      conditionMessage(err)))
+})
+
+test_that("gaussian_ordinary_re_factor_fe: factor FE plus (1 | g) is gated before Julia starts", {
+  withr::local_envvar(DRM_JL_PATH = NA, DRM_JL_PHYLO_PATH = NA)
+  n <- 40L
+  g <- factor(rep(seq_len(8), each = 5))
+  x <- stats::rnorm(n)
+  f <- factor(rep(c("a", "b"), length.out = n))
+  dat <- data.frame(y = stats::rnorm(n, mean = 0.3 * x), x = x, f = f, g = g)
+  expect_julia_gate(
+    "gaussian_ordinary_re_factor_fe",
+    drmTMB(
+      bf(y ~ x + f + (1 | g), sigma ~ 1),
+      family = gaussian(),
+      data = dat,
+      engine = "julia"
+    )
+  )
 })
