@@ -129,6 +129,24 @@
   while avoiding a spurious "collapsing to unique 'x' values" warning from
   the implicit interpolation default (#1521).
 
+* `is_converged()` and the new alias `converged()` are `TRUE` only when
+  `convergence_status()` is `"converged"`. `"boundary"` (random-effect
+  SD `< 1e-4` or `|rho12| > 0.98`) and `"degenerate"` both return
+  `FALSE`. Print, `summary()`, and `check_drm()` show the three-valued
+  status. The numeric cuts (rank tolerance `1e-8`, inflated SE `>= 50`
+  and `>= 1000 ×` the sub-50 median, with a min-SE fallback) are the
+  same in DRModels.jl (`docs/design/278-twin-convergence-status.md`;
+  #1554, #1333).
+* Fixed-effect binomial, Poisson, and NB2 fits, and continuous
+  location-scale fits whose scale predictor drives an exactly fitted
+  observation onto the lower `log(sigma)` clamp, no longer report
+  `is_converged() = TRUE` when the maximum-likelihood estimate does not
+  exist. `convergence_status()` is `"degenerate"` and `check_drm()` gains a
+  warning-level `mle_existence` row. The binomial screen is the Albert and
+  Anderson (1984) / Konis (2007) cone; the count screen is the same cone
+  with `s = 1{y > 0}` (Haberman 1974; Santos Silva and Tenreyro 2010).
+  Random-effect, phylogenetic, `mi()` predictor, and MSPL routes are not
+  screened. Point estimates and `vcov()` are unchanged (#1553, #1270, #1469).
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value

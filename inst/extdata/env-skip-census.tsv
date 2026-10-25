@@ -107,6 +107,9 @@ test-julia-bridge-coef-labels.R	suggests-package	environment	runs	1
 test-julia-bridge-summary.R	engine-drm-jl	environment	skips	2
 test-julia-bridge.R	engine-drm-jl	environment	skips	4
 test-julia-bridge.R	suggests-package	environment	runs	2
+test-julia-convergence-status-parity.R	cran-lane	environment	runs	2
+test-julia-convergence-status-parity.R	engine-drm-jl	environment	skips	2
+test-julia-convergence-status-parity.R	suggests-package	environment	runs	2
 test-julia-cumlogit-predict.R	engine-drm-jl	environment	skips	1
 test-julia-cumlogit-predict.R	suggests-package	environment	runs	3
 test-julia-diagnostics.R	build-premise	build	skips	1
