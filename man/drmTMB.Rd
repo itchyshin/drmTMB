@@ -107,16 +107,17 @@ NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
 an additional large-p \code{phylo()} or coupled location-scale phylo route),
 plus \code{truncated_nbinom2()}, \code{zero_one_beta()}, \code{tweedie()},
 \code{beta_binomial()}, \code{skew_normal()}, \code{cumulative_logit()},
-\code{biv_student()}, and \code{biv_lognormal()} on the fixed-effect route only. Each admitted family
-has been compared with \code{engine = "tmb"} on the same fitted target
-(coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
-relative); see \code{vignette("julia-engine", package = "drmTMB")} for
-the full family-by-route table and current boundaries. \code{engine = "julia"} needs a local
-DRModels.jl checkout and the optional \code{JuliaCall} package, and it is not a
-drop-in replacement for every native-TMB workflow. \code{engine = "julia"} is
-exported but \strong{experimental}: the first call in an R session prints a
-one-time notice, and the bridge is not being widened beyond the families
-and routes listed above.}
+\code{biv_student()}, and \code{biv_lognormal()} on the fixed-effect route only.
+Each admitted family has been compared with \code{engine = "tmb"} on the
+same fitted target (coefficients and log-likelihood within 1e-4, Wald
+SEs within 1e-3 relative); see
+\code{vignette("julia-engine", package = "drmTMB")} for the full
+family-by-route table and current boundaries. \code{engine = "julia"} needs
+a local DRModels.jl checkout and the optional \code{JuliaCall} package, and
+it is not a drop-in replacement for every native-TMB workflow.
+\code{engine = "julia"} is exported but \strong{experimental}: the first call in
+an R session prints a one-time notice, and the bridge is not being
+widened beyond the families and routes listed above.}
 
 \item{REML}{Logical; use restricted maximum likelihood where the selected
 engine supports it. Native \code{engine = "tmb"} restricts the likelihood by

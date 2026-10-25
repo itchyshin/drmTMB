@@ -148,16 +148,17 @@
 #'   an additional large-p `phylo()` or coupled location-scale phylo route),
 #'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`,
 #'   `beta_binomial()`, `skew_normal()`, `cumulative_logit()`,
-#'   `biv_student()`, and `biv_lognormal()` on the fixed-effect route only. Each admitted family
-#' has been compared with `engine = "tmb"` on the same fitted target
-#'   (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
-#'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for
-#' the full family-by-route table and current boundaries. `engine = "julia"` needs a local
-#'   DRModels.jl checkout and the optional `JuliaCall` package, and it is not a
-#'   drop-in replacement for every native-TMB workflow. `engine = "julia"` is
-#'   exported but **experimental**: the first call in an R session prints a
-#'   one-time notice, and the bridge is not being widened beyond the families
-#'   and routes listed above.
+#'   `biv_student()`, and `biv_lognormal()` on the fixed-effect route only.
+#'   Each admitted family has been compared with `engine = "tmb"` on the
+#'   same fitted target (coefficients and log-likelihood within 1e-4, Wald
+#'   SEs within 1e-3 relative); see
+#'   \code{vignette("julia-engine", package = "drmTMB")} for the full
+#'   family-by-route table and current boundaries. `engine = "julia"` needs
+#'   a local DRModels.jl checkout and the optional `JuliaCall` package, and
+#'   it is not a drop-in replacement for every native-TMB workflow.
+#'   `engine = "julia"` is exported but **experimental**: the first call in
+#'   an R session prints a one-time notice, and the bridge is not being
+#'   widened beyond the families and routes listed above.
 #' @param REML Logical; use restricted maximum likelihood where the selected
 #'   engine supports it. Native `engine = "tmb"` restricts the likelihood by
 #'   marginalising the admitted fixed-effect mean coefficients. Validated

@@ -1,3 +1,20 @@
+# 2026-10-25: `engine = "julia"` admission docs match the family registry (#1569)
+
+`@param engine` in `R/drmTMB.R` (and `man/drmTMB.Rd`) keeps `skew_normal()`,
+`cumulative_logit()`, `biv_student()`, and `biv_lognormal()` on the
+fixed-effect Julia route. README and `vignettes/julia-engine.Rmd` now name
+those families too. The four family pages say they are admitted through
+`engine = "julia"`. Formula-grammar and known-limitations now say Julia
+admits fixed-effect binomial only, not random-effect or structured
+binomial. `test-julia-admission-docs.R` checks the four names in
+`man/drmTMB.Rd`, the Julia engine vignette, and README.
+
+C17: `python3 tools/recertify-c17.py --label 1569-docs --tolerance 1e-10`.
+Worst `|change|` 3.231e-11 on mc-0568. Receipt
+`docs/dev-log/implementation-recovery/2026-10-25-1569-docs-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence` OK.
+The `@param engine` wrap sits outside the authenticated model-15 anchors.
+
 # 2026-10-18 — rebase #1525 onto main `d89db5097`
 
 Rebased `claude/lane-n2-ordinal-disc` onto current main. Conflicts were

@@ -35,6 +35,13 @@
 
 ## Documentation fixes
 
+* `?drmTMB`, the README engines section, and the `skew_normal()`,
+  `cumulative_logit()`, `biv_student()`, and `biv_lognormal()` family
+  pages now name those families as admitted through `engine = "julia"`
+  on the fixed-effect route, matching the Julia family registry and the
+  Julia engine guide. Plain binomial is documented as admitted for
+  fixed effects only (#1569).
+
 * The `missing-data` article gains a recipe for a mediator that is also a response: build `impute_model()` from the fitted node's formula and family, with an explicit statement that estimates are not shared and what that means for standard errors (#964).
 * `?spatial` and the `spatial-models` article now state that the `coords =` route fixes the exponential range at the median positive pairwise distance and estimates only sill and nugget, with `relmat(K =)` as the flexible route (#968).
 

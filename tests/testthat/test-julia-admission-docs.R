@@ -21,10 +21,23 @@ test_that("vignettes do not call admitted Julia families unsupported (#1569)", {
     paste(readLines(path, warn = FALSE), collapse = " ")
   }
   expect_false(grepl("`skew_normal\\(\\)` or another family", read("vignettes/julia-engine.Rmd")))
+  julia_engine <- read("vignettes/julia-engine.Rmd")
+  for (fam in c("skew_normal", "cumulative_logit", "biv_student", "biv_lognormal")) {
+    expect_true(grepl(fam, julia_engine, fixed = TRUE), info = fam)
+  }
   expect_false(grepl("and `engine = \"julia\"` remain unsupported",
                      gsub("\\s+", " ", read("vignettes/distribution-families.Rmd"))))
   expect_false(grepl("rejects non-logit links.*and `engine = \"julia\"`",
                      gsub("\\s+", " ", read("vignettes/proportion-beta-binomial.Rmd"))))
   expect_false(grepl("binomial structured effects or Julia bridge",
                      read("vignettes/model-map.Rmd")))
+})
+
+test_that("README names every family the Julia registry admits that #1569 listed", {
+  path <- test_path("..", "..", "README.md")
+  skip_if_not(file.exists(path), "README.md is unavailable in an installed-package check.")
+  text <- paste(readLines(path, warn = FALSE), collapse = " ")
+  for (fam in c("skew_normal", "cumulative_logit", "biv_student", "biv_lognormal")) {
+    expect_true(grepl(fam, text, fixed = TRUE), info = fam)
+  }
 })

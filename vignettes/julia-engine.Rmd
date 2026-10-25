@@ -355,7 +355,10 @@ and retain the warning or error when reporting the limitation.
 ## Family and route reference
 
 The table below is a starting point, not a promise that every neighbouring
-formula will work. Choose the listed route, then consult the
+formula will work. The admitted set includes `skew_normal()`,
+`cumulative_logit()`, `biv_student()`, `biv_lognormal()`, and plain
+`stats::binomial(link = "logit")`, along with the other families listed
+here. Choose the listed route, then consult the
 [capability guide](capability-and-limits.html) before adding terms or choosing
 an interval.
 

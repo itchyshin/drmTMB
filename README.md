@@ -228,7 +228,13 @@ shows both steps.
 `DRModels.jl` is an optional Julia companion. For supported models, the
 [Julia engine guide](https://itchyshin.github.io/drmTMB/articles/julia-engine.html)
 shows how to select it from R with `engine = "julia"` and explains its limits.
-Julia is not required to install or use the default R workflow.
+`engine = "julia"` currently admits Gaussian, bivariate Gaussian, Student-t,
+lognormal, Poisson, NB2, Gamma, Beta, and binomial models on the fixed-effect
+route (several also have a large-p `phylo()` or coupled location-scale phylo
+route), plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`,
+`beta_binomial()`, `skew_normal()`, `cumulative_logit()`, `biv_student()`,
+and `biv_lognormal()` on the fixed-effect route only. Julia is not required
+to install or use the default R workflow.
 
 ## Project status
 
