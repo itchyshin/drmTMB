@@ -192,6 +192,7 @@ says which estimates and intervals are ready to report.
 | Meta-analysis | Gaussian `meta_V(V = V)` with diagonal, dense, or bivariate known sampling covariance | Non-Gaussian or sparse known covariance |
 | Two responses | Bivariate Gaussian `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent `rho12`; matching random intercepts across the two responses | Random effects in `rho12`, mixed-family pairs |
 | Phylogenetic, spatial, pedigree, and known-matrix effects | Gaussian `mu` and `sigma` intercepts and one numeric `mu` slope; Poisson and NB2 `mu` intercept plus one slope | Multiple or labelled structured slopes, structured `rho12`, simultaneous phylogenetic and spatial terms |
+| Temporal AR1 effects | One univariate Gaussian ML route: `temporal(1 \| id, time = occasion, structure = "ar1")` in the `mu` formula; see [Temporal AR1 random effects](https://itchyshin.github.io/drmTMB/articles/temporal-random-effects.html) | Mean-coefficient Wald intervals only; no process or persistence intervals, forecasts, or `newdata` prediction |
 | Missing predictors | One missing predictor `mi(x)`, modelled inside the same likelihood | A general missing-data framework |
 | Large data | Memory-light fits, `se = FALSE`, sparse `mu` design matrices, Gaussian aggregation | Speed claims for random-effect, structured, non-Gaussian, or bivariate models |
 

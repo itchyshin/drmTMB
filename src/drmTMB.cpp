@@ -74,6 +74,62 @@ Type drm_log_sech(Type eta) {
   return log(Type(2.0)) - abs_eta - log(Type(1.0) + exp(Type(-2.0) * abs_eta));
 }
 
+// Integer AR1 gaps must preserve a negative persistence sign for odd gaps.
+// Repeated squaring is AD-safe (multiplications only; the exponent is data),
+// avoids log(phi), which is undefined for negative persistence, and costs
+// O(log gap) rather than O(gap) operations.
+template<class Type>
+Type drm_integer_power(Type base, int exponent) {
+  Type out = Type(1.0);
+  Type factor = base;
+  while (exponent > 0) {
+    if (exponent & 1) {
+      out *= factor;
+    }
+    exponent >>= 1;
+    if (exponent > 0) {
+      factor *= factor;
+    }
+  }
+  return out;
+}
+
+// Stable -log|tanh(theta)| = 2 * atanh(exp(-2 * |theta|)) for |theta| >= 1,
+// where a = exp(-2|theta|) <= exp(-2). The odd series a + a^3/3 + a^5/5 is used
+// for a < 1e-3 (truncation below a^7/7, i.e. relative error < 1e-21), so the
+// value stays exact to rounding when tanh(theta) rounds to +/-1. The argument
+// is clamped so the branch CppAD does not select stays finite.
+template<class Type>
+Type drm_neg_log_abs_tanh(Type theta) {
+  Type abs_theta = CppAD::CondExpGe(theta, Type(0.0), theta, -theta);
+  Type a = exp(Type(-2.0) * abs_theta);
+  Type a_safe = CppAD::CondExpLt(a, Type(0.5), a, Type(0.5));
+  Type a2 = a_safe * a_safe;
+  Type series = Type(2.0) * a_safe * (Type(1.0) + a2 * (Type(1.0) / Type(3.0) + a2 / Type(5.0)));
+  Type direct = log((Type(1.0) + a_safe) / (Type(1.0) - a_safe));
+  return CppAD::CondExpLt(a_safe, Type(1e-3), series, direct);
+}
+
+// The transition SD is sqrt(1 - tanh(theta)^(2 * gap)). For |theta| < 1
+// (|phi| < 0.762) the power is small enough that the direct subtraction loses
+// no precision. Otherwise 1 - phi^(2 gap) = -expm1(-x) with
+// x = 2 * gap * (-log|tanh(theta)|), using a third-order Taylor series below
+// x = 1e-5 (relative error < x^3/24 < 1e-16) and the direct form above. Near
+// the unit root this reproduces sech(theta)^2 * sum_{k<gap} phi^(2k) to
+// rounding, with O(log gap) cost. Unselected branches are kept finite.
+template<class Type>
+Type drm_ar1_transition_sd(Type theta, Type phi, int gap) {
+  Type phi_power = drm_integer_power(phi * phi, gap);
+  Type direct = Type(1.0) - phi_power;
+  Type x = Type(2.0) * Type(gap) * drm_neg_log_abs_tanh(theta);
+  Type series = x * (Type(1.0) - x * (Type(0.5) - x / Type(6.0)));
+  Type x_safe = CppAD::CondExpLt(x, Type(700.0), x, Type(700.0));
+  Type expm1_form = CppAD::CondExpLt(x_safe, Type(1e-5), series, Type(1.0) - exp(-x_safe));
+  Type abs_theta = CppAD::CondExpGe(theta, Type(0.0), theta, -theta);
+  Type one_minus = CppAD::CondExpLt(abs_theta, Type(1.0), direct, expm1_form);
+  return sqrt(one_minus);
+}
+
 // Weight-0 rows must keep the log-density off the AD tape. CondExpGt still
 // evaluates both branches, so 0 * (-Inf) and an infinite local partial
 // (d log dnorm / d mu at y = 1e200) become NaN / -Inf in reverse mode.
@@ -640,6 +696,10 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(has_phylo_mu_q2_covariance);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
+  DATA_INTEGER(has_temporal_mu);
+  DATA_IVECTOR(temporal_mu_node_index);
+  DATA_IVECTOR(temporal_mu_series_start);
+  DATA_IVECTOR(temporal_mu_gap);
   // Scoped second structured location field (M5 row 105): its own group
   // precision (spatial coordinate kernel vs relatedness Q), always q = 1
   // intercept-only, so no among-endpoint theta is needed.
@@ -721,6 +781,9 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(u_coi);
   PARAMETER_VECTOR(log_sd_coi);
   PARAMETER_VECTOR(u_phylo);
+  PARAMETER_VECTOR(u_temporal);
+  PARAMETER_VECTOR(log_sd_temporal);
+  PARAMETER_VECTOR(theta_temporal);
   PARAMETER_VECTOR(u_re_cov);
   PARAMETER_VECTOR(log_sd_re_cov);
   PARAMETER_VECTOR(theta_re_cov);
@@ -1218,6 +1281,36 @@ Type objective_function<Type>::operator()()
       for (int j = 0; j < u_sigma.size(); ++j) {
         nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
       }
+    }
+
+    if (has_temporal_mu == 1) {
+      Type phi_temporal = tanh(theta_temporal(0));
+      Type sd_temporal = exp(log_sd_temporal(0));
+      for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
+        int first = temporal_mu_series_start(series);
+        int last_exclusive = temporal_mu_series_start(series + 1);
+        nll -= dnorm(u_temporal(first), Type(0.0), Type(1.0), true);
+        for (int node = first + 1; node < last_exclusive; ++node) {
+          Type transition = drm_integer_power(phi_temporal, temporal_mu_gap(node));
+          Type transition_sd = drm_ar1_transition_sd(
+            theta_temporal(0), phi_temporal, temporal_mu_gap(node)
+          );
+          nll -= dnorm(
+            u_temporal(node),
+            transition * u_temporal(node - 1),
+            transition_sd,
+            true
+          );
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += sd_temporal * u_temporal(temporal_mu_node_index(i));
+      }
+      REPORT(u_temporal);
+      REPORT(log_sd_temporal);
+      REPORT(theta_temporal);
+      REPORT(phi_temporal);
+      REPORT(sd_temporal);
     }
 
     if (has_phylo_mu == 1) {
@@ -2015,17 +2108,9 @@ Type objective_function<Type>::operator()()
         Type n_i = mi_trials(i);
         if (mi_observed(i) == 1) {
           Type k_i = mi_successes(i);
-          Type failure_i = n_i - k_i;
+          // Cancellation-free form, as in the main loop (#1467).
           Type log_density =
-            lgamma(n_i + Type(1.0)) -
-            lgamma(k_i + Type(1.0)) -
-            lgamma(failure_i + Type(1.0)) +
-            lgamma(phi_betabinom_mi) -
-            lgamma(n_i + phi_betabinom_mi) +
-            lgamma(k_i + alpha_i) -
-            lgamma(alpha_i) +
-            lgamma(failure_i + beta_i) -
-            lgamma(beta_i);
+            drm_beta_binomial_log_density(k_i, n_i, alpha_i, beta_i);
           Type x_i = k_i / n_i;
           // (Dinnage audit M1): weights(i) scales the WHOLE row
           // contribution; apply it to the imputation-prior term here and
@@ -2038,18 +2123,9 @@ Type objective_function<Type>::operator()()
           vector<Type> log_terms(n_success + 1);
           for (int k = 0; k <= n_success; ++k) {
             Type k_q = Type(k);
-            Type failure_q = n_i - k_q;
             Type x_q = k_q / n_i;
             Type log_density =
-              lgamma(n_i + Type(1.0)) -
-              lgamma(k_q + Type(1.0)) -
-              lgamma(failure_q + Type(1.0)) +
-              lgamma(phi_betabinom_mi) -
-              lgamma(n_i + phi_betabinom_mi) +
-              lgamma(k_q + alpha_i) -
-              lgamma(alpha_i) +
-              lgamma(failure_q + beta_i) -
-              lgamma(beta_i);
+              drm_beta_binomial_log_density(k_q, n_i, alpha_i, beta_i);
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
@@ -3306,14 +3382,10 @@ Type objective_function<Type>::operator()()
     for (int i = 0; i < y.size(); ++i) {
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
-        Type variance_multiplier = sigma(i) * sigma(i);
-        Type shape = Type(1.0) / variance_multiplier;
-        Type scale = mu(i) * variance_multiplier;
+        // Large-shape-stable form (#1504); same density as
+        // dgamma(y, shape = 1/sigma^2, scale = mu * sigma^2).
         Type log_density =
-          (shape - Type(1.0)) * log(y(i)) -
-          y(i) / scale -
-          lgamma(shape) -
-          shape * log(scale);
+          drm_gamma_log_density(y(i), eta_mu(i), log_sigma(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -3570,11 +3642,7 @@ Type objective_function<Type>::operator()()
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         Type log_density =
-          lgamma(alpha(i) + beta_shape(i)) -
-          lgamma(alpha(i)) -
-          lgamma(beta_shape(i)) +
-          (alpha(i) - Type(1.0)) * log(y(i)) +
-          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+          drm_beta_log_density(y(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -3761,11 +3829,7 @@ Type objective_function<Type>::operator()()
         }
         Type log_density =
           log_one_minus_zoi +
-          lgamma(alpha(i) + beta_shape(i)) -
-          lgamma(alpha(i)) -
-          lgamma(beta_shape(i)) +
-          (alpha(i) - Type(1.0)) * log(y(i)) +
-          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+          drm_beta_log_density(y(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -3888,18 +3952,10 @@ Type objective_function<Type>::operator()()
       );
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
-        Type failures = trials(i) - y(i);
-        Type phi_shape = alpha(i) + beta_shape(i);
-        Type log_density =
-          lgamma(trials(i) + Type(1.0)) -
-          lgamma(y(i) + Type(1.0)) -
-          lgamma(failures + Type(1.0)) +
-          lgamma(phi_shape) -
-          lgamma(trials(i) + phi_shape) +
-          lgamma(y(i) + alpha(i)) -
-          lgamma(alpha(i)) +
-          lgamma(failures + beta_shape(i)) -
-          lgamma(beta_shape(i));
+        // Cancellation-free form; the plain lgamma sum loses
+        // eps * phi log(phi) per row as sigma -> 0 (#1467).
+        Type log_density = drm_beta_binomial_log_density(
+          y(i), trials(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -4144,17 +4200,29 @@ Type objective_function<Type>::operator()()
       }
     }
     int n_categories = theta_ord.size() + 1;
+    // Discrimination submodel (#966): Pr(y <= k) = logit^-1(disc * (theta_k - mu)),
+    // log(disc) = X_sigma * beta_sigma with no intercept (the latent scale is
+    // fixed at disc = 1 for the reference row). Without `disc ~ z` X_sigma is
+    // the 1x1 dummy and disc stays exactly 1.
+    vector<Type> disc(y.size());
+    disc.fill(Type(1.0));
+    if (X_sigma.rows() == y.size()) {
+      disc = exp(X_sigma * beta_sigma);
+      REPORT(disc);
+    }
     for (int i = 0; i < y.size(); ++i) {
       if (observed_y(i) == 1) {
         int yi = (int) asDouble(y(i));
         Type log_prob;
         if (yi == 1) {
-          log_prob = drm_log_inv_logit(cutpoints(0) - mu(i));
+          log_prob = drm_log_inv_logit(disc(i) * (cutpoints(0) - mu(i)));
         } else if (yi == n_categories) {
-          log_prob = drm_log1m_inv_logit(cutpoints(n_categories - 2) - mu(i));
+          log_prob = drm_log1m_inv_logit(
+            disc(i) * (cutpoints(n_categories - 2) - mu(i))
+          );
         } else {
-          Type upper = cutpoints(yi - 1) - mu(i);
-          Type lower = cutpoints(yi - 2) - mu(i);
+          Type upper = disc(i) * (cutpoints(yi - 1) - mu(i));
+          Type lower = disc(i) * (cutpoints(yi - 2) - mu(i));
           log_prob = drm_log_inv_logit_diff(upper, lower);
         }
         nll -= weights(i) * log_prob;
@@ -5561,7 +5629,7 @@ Type objective_function<Type>::operator()()
           log_sigma2(i) -
           Type(0.5) * log(one_minus_rho2) -
           ((nu(i) + Type(2.0)) / Type(2.0)) *
-            drm_log1p_nonnegative(q / nu(i));
+            drm_log1p_pos(q / nu(i));
         nll -= weights(i) * log_density;
       }
     } else if (V_known_type == 2) {

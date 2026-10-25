@@ -193,6 +193,9 @@ prediction target, such as `predict(..., dpar = "sd(species)")`.
 The bridge has methods for `summary()`, `coef()`, `vcov()`, `logLik()`,
 `predict()` and `confint()`. Availability depends on the fitted route and target;
 a `drmTMB_julia` object does not automatically inherit every native-TMB diagnostic.
+`simulate()` and `predict_parameters()` are not available for a bridge fit yet:
+both stop with a message that points to `engine = "tmb"`. Use `vcov()` and
+`confint()` for coefficient standard errors on a bridge fit.
 
 ```{r julia-intervals, eval=FALSE}
 vcov(fit_julia)
@@ -365,17 +368,18 @@ an interval.
 | `Gamma(link = "log")` or `beta_family()` | fixed effects; selected large-phylogeny routes |
 | `stats::binomial(link = "logit")` | fixed effects; selected large-phylogeny mean route |
 | `truncated_nbinom2()` | fixed effects only, including the hurdle model with a fixed-effect `hu ~ ...` formula |
-| `zero_one_beta()`, `tweedie()`, `beta_binomial()`, or `cumulative_logit()` | fixed effects only |
-| `skew_normal()` or another family | not currently available through the Julia engine |
+| `zero_one_beta()`, `tweedie()`, `beta_binomial()`, `cumulative_logit()`, or `skew_normal()` | fixed effects only |
+| `biv_student()` or `biv_lognormal()` | fixed effects only (bivariate residual route) |
+| Any other family | not currently available through the Julia engine |
 
-The `zi` and `hu` dpars are not separate families: they are formula terms
-added to a count family. Zero inflation is written `bf(y ~ x, zi ~ x)` with
-`poisson()` or `nbinom2()`. The hurdle negative binomial model is written
-`bf(y ~ x, sigma ~ 1, hu ~ x)` with `family = truncated_nbinom2()`, and that one
-call fits with both `engine = "tmb"` and `engine = "julia"`; drmTMB has no
-separate `hurdle_nbinom2()` constructor. The bridge still accepts an older
-Julia-only spelling, `nbinom2()` with `hu ~ ...`, but the native engine refuses
-it, so use `truncated_nbinom2()` when the model must move between engines.
+The `zi` and `hu` dpars are formula terms rather than separate families.
+Write zero inflation as `bf(y ~ x, zi ~ x)` with `poisson()` or `nbinom2()`.
+Write the hurdle negative-binomial model as
+`bf(y ~ x, sigma ~ 1, hu ~ x)` with `family = truncated_nbinom2()`; that call
+fits with both `engine = "tmb"` and `engine = "julia"`. There is no separate
+`hurdle_nbinom2()` constructor. The Julia bridge also accepts an older Julia-only
+spelling, `nbinom2()` with `hu ~ ...`, but the native TMB engine refuses it, so
+use `truncated_nbinom2()` when you need the model to move between engines.
 
 ### Controls
 

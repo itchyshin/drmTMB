@@ -384,7 +384,8 @@ drm_known_dpars <- function() {
     "zoi",
     "coi",
     "hu",
-    "rho12"
+    "rho12",
+    "disc"
   )
 }
 
@@ -765,7 +766,7 @@ collect_structured_effects <- function(rhs, dpar) {
 }
 
 structured_marker_names <- function() {
-  c("animal", "phylo", "phylo_interaction", "spatial", "relmat")
+  c("animal", "phylo", "phylo_interaction", "spatial", "relmat", "temporal")
 }
 
 structured_marker_call_name <- function(expr) {
@@ -809,6 +810,55 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
   marker_args <- args[-term_pos]
   marker_arg_names <- arg_names[-term_pos]
 
+  if (identical(marker, "temporal")) {
+    bad <- setdiff(marker_arg_names, c("time", "structure"))
+    if (
+      length(marker_args) != 2L ||
+        length(bad) > 0L ||
+        !all(c("time", "structure") %in% marker_arg_names)
+    ) {
+      cli::cli_abort(c(
+        "{.fn temporal} requires named {.arg time} and {.arg structure} arguments.",
+        "x" = "Use syntax like {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+      ))
+    }
+    if (
+      !identical(term$coef_names, "(Intercept)") ||
+        !is.null(term$covariance_label)
+    ) {
+      cli::cli_abort(c(
+        "{.fn temporal} currently supports one intercept-only unlabelled random effect.",
+        "x" = "Temporal slopes and covariance-block labels are not implemented.",
+        "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+      ))
+    }
+    time_arg <- marker_args[[match("time", marker_arg_names)]]
+    structure_arg <- marker_args[[match("structure", marker_arg_names)]]
+    if (!is.symbol(time_arg)) {
+      cli::cli_abort(c(
+        "{.arg time} in {.fn temporal} must name an occasion variable.",
+        "x" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+      ))
+    }
+    if (
+      !is.character(structure_arg) ||
+        length(structure_arg) != 1L ||
+        is.na(structure_arg) ||
+        !identical(structure_arg, "ar1")
+    ) {
+      cli::cli_abort(c(
+        "{.arg structure} in {.fn temporal} must be {.val ar1}.",
+        "x" = "OU temporal fitting is not implemented.",
+        "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+      ))
+    }
+    return(c(
+      list(type = "temporal", dpar = dpar),
+      term,
+      list(time = as.character(time_arg), structure = structure_arg)
+    ))
+  }
+
   if (identical(marker, "animal")) {
     selected <- marker_arg_names %in% c("pedigree", "A", "Ainv")
     bad <- setdiff(marker_arg_names, c("pedigree", "A", "Ainv"))
@@ -836,28 +886,47 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
   }
 
   if (identical(marker, "phylo")) {
-    extra <- setdiff(marker_arg_names, "tree")
-    if (
-      length(marker_args) != 1L ||
-        !identical(marker_arg_names, "tree") ||
-        length(extra) > 0L
-    ) {
+    extra <- setdiff(marker_arg_names, c("tree", "tolerance"))
+    tree_hits <- which(marker_arg_names == "tree")
+    if (length(tree_hits) != 1L || length(extra) > 0L) {
       cli::cli_abort(c(
-        "{.fn phylo} requires a single named {.arg tree} argument.",
+        "{.fn phylo} requires a single named {.arg tree} argument and an optional {.arg tolerance}.",
         "x" = "Use syntax like {.code phylo(1 | species, tree = tree)}.",
         "i" = "The public phylogeny API will build a sparse A-inverse from an ultrametric tree with branch lengths."
       ))
     }
-    if (!is.symbol(marker_args[[1L]])) {
+    tree_arg <- marker_args[[tree_hits]]
+    if (!is.symbol(tree_arg)) {
       cli::cli_abort(c(
         "{.arg tree} must be the name of a phylogeny object.",
         "x" = "Use syntax like {.code phylo(1 | species, tree = tree)}."
       ))
     }
+    tolerance_hits <- which(marker_arg_names == "tolerance")
+    tolerance <- if (length(tolerance_hits) == 0L) {
+      sqrt(.Machine$double.eps)
+    } else {
+      tolerance_value <- tryCatch(
+        eval(marker_args[[tolerance_hits]], envir = baseenv()),
+        error = function(e) NULL
+      )
+      if (
+        !is.numeric(tolerance_value) ||
+          length(tolerance_value) != 1L ||
+          is.na(tolerance_value) ||
+          tolerance_value <= 0
+      ) {
+        cli::cli_abort(c(
+          "{.arg tolerance} in {.fn phylo} must be a single positive number.",
+          "x" = "Use syntax like {.code phylo(1 | species, tree = tree, tolerance = 1e-4)}."
+        ))
+      }
+      tolerance_value
+    }
     return(c(
       list(type = "phylo", dpar = dpar),
       term,
-      list(tree = as.character(marker_args[[1L]]))
+      list(tree = as.character(tree_arg), tolerance = tolerance)
     ))
   }
 
@@ -1069,6 +1138,15 @@ parse_structured_bar_term <- function(expr, marker) {
     ))
   }
 
+  if (identical(marker, "temporal")) {
+    # temporal() admits no slope at all, so the one-slope advice below would
+    # send the user to a form the temporal-specific check then rejects.
+    cli::cli_abort(c(
+      "{.fn temporal} currently supports one intercept-only unlabelled random effect.",
+      "x" = "Temporal slopes and covariance-block labels are not implemented.",
+      "i" = "Use {.code temporal(1 | id, time = ..., structure = ...)}; see {.help drmTMB::temporal} for the admitted structures."
+    ))
+  }
   cli::cli_abort(c(
     "{.fn {marker}} currently reserves only intercept and one-slope structured terms.",
     "x" = "Use {.code {marker}(1 | group, ...)} or {.code {marker}(1 + x | group, ...)}.",

@@ -73,6 +73,13 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
 
 ## Version 1.0 maturity surface (the milestone, not the next release)
 
+- **Temporal AR1 follow-up remains gated:** the first univariate Gaussian ML
+  `temporal(1 | id, time = occasion, structure = "ar1")` route and optional
+  same-ID ordinary intercept are implemented with fixed-effect Wald output.
+  Final-source recovery and a five-seed timing pilot are retained, but primary
+  C1 had only 4/5 interval availability. Diagnose that boundary before seeking
+  campaign authority; do not reinterpret the pilot as coverage evidence.
+
 - **Arc 3a is recovery-certified:** native univariate ML fits unlabelled
   q1 `mu` intercepts for Gamma-`phylo()`, lognormal-`phylo()`, and
   lognormal-`relmat()` using `K` or `Q`. All three exact cells are
@@ -1163,11 +1170,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   slope gates remain post-preview work unless they are implemented with tests before the
   version bump. The fixed-effect `zero_one_beta()` family is now implemented
   separately for structural exact-boundary continuous proportions.
-- Decide whether the next ordinal scale formula is exposed as `sigma ~ ...` or
-  a family-specific discrimination parameter before coding starts; the
-  direction of interpretation must be unambiguous. The current design note
-  prefers `sigma ~ ...` with discrimination reported as derived
-  `zeta = 1 / sigma`.
+- Decided (owner decision 24(a), 11 Oct 2026, #966): the ordinal scale
+  formula is the family-specific discrimination parameter `disc ~ z`, with an
+  intercept-free log link; `sigma(fit)` reports the derived latent scale
+  `1 / disc`. Fixed effects only so far.
 - Keep `cbind(successes, failures)` as the canonical denominator response for
   plain binomial and beta-binomial models until the denominator-helper design
   note is implemented with tests. Do not use `weights = trials` as denominator

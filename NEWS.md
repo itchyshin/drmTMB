@@ -1,6 +1,44 @@
 # drmTMB (development)
 
+## New features
+
+* `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
+  check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
+  the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
+  tolerance was only reachable via the internal `validate_phylo_tree()` and
+  a tree that missed it by a negligible margin had no override short of
+  editing the tree itself (#1158).
+* `cumulative_logit()` gains a fixed-effect discrimination formula,
+  `bf(score ~ x, disc ~ z)`, with
+  `Pr(y <= k) = logit^-1(disc * (theta_k - mu))` and `log(disc) = z' gamma`.
+  The `disc` intercept is fixed at 0 because the latent scale is not
+  identifiable alongside free cutpoints; this matches the `scale` formula of
+  `ordinal::clm()`, whose coefficients equal `-gamma`. `disc ~ 1` reproduces
+  the location-only fit exactly, and `sigma()` returns the latent scale
+  `1 / disc` (#966).
+
+* `simulate()` and `predict_parameters()` on an `engine = "julia"` fit now stop
+  with a drmTMB error that points to `engine = "tmb"` (or `vcov()`/`confint()`
+  for coefficient SEs) instead of base R's "no applicable method" (#1570).
+## Test infrastructure
+
+* The numeric-kernel extreme-value oracle's `run_oracle()` helper
+  (`tests/testthat/test-numeric-kernel-oracle.R`) now fails closed on
+  non-finite grid points by default (`max_nonfinite = 0L`, was `Inf`), so a
+  family can no longer silently drop grid points from its own strict
+  assertion. This is how the `beta_binomial` guard gap (Md-H) escaped
+  detection: only 51% of its grid was actually asserted. Six existing
+  families (gamma, nbinom2, zi_nbinom2, truncated_nbinom2, hurdle_nbinom2,
+  binomial) have real, characterized non-finite points at the eta = +-700 /
+  +-40 grid boundary (reference-formula overflow, not kernel bugs) and now
+  opt out explicitly with a documented count (#1324).
+
 ## Documentation fixes
+
+* The `missing-data` article gains a recipe for a mediator that is also a response: build `impute_model()` from the fitted node's formula and family, with an explicit statement that estimates are not shared and what that means for standard errors (#964).
+* `?spatial` and the `spatial-models` article now state that the `coords =` route fixes the exponential range at the median positive pairwise distance and estimates only sill and nugget, with `relmat(K =)` as the flexible route (#968).
+
+* The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
 
 * `?phylo` now correctly describes the existing unit-height convention:
   drmTMB divides the Brownian covariance by tree height, so multiplying all
@@ -91,6 +129,24 @@
   while avoiding a spurious "collapsing to unique 'x' values" warning from
   the implicit interpolation default (#1521).
 
+* `is_converged()` and the new alias `converged()` are `TRUE` only when
+  `convergence_status()` is `"converged"`. `"boundary"` (random-effect
+  SD `< 1e-4` or `|rho12| > 0.98`) and `"degenerate"` both return
+  `FALSE`. Print, `summary()`, and `check_drm()` show the three-valued
+  status. The numeric cuts (rank tolerance `1e-8`, inflated SE `>= 50`
+  and `>= 1000 ×` the sub-50 median, with a min-SE fallback) are the
+  same in DRModels.jl (`docs/design/278-twin-convergence-status.md`;
+  #1554, #1333).
+* Fixed-effect binomial, Poisson, and NB2 fits, and continuous
+  location-scale fits whose scale predictor drives an exactly fitted
+  observation onto the lower `log(sigma)` clamp, no longer report
+  `is_converged() = TRUE` when the maximum-likelihood estimate does not
+  exist. `convergence_status()` is `"degenerate"` and `check_drm()` gains a
+  warning-level `mle_existence` row. The binomial screen is the Albert and
+  Anderson (1984) / Konis (2007) cone; the count screen is the same cone
+  with `s = 1{y > 0}` (Haberman 1974; Santos Silva and Tenreyro 2010).
+  Random-effect, phylogenetic, `mi()` predictor, and MSPL routes are not
+  screened. Point estimates and `vcov()` are unchanged (#1553, #1270, #1469).
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value
@@ -102,6 +158,12 @@
 * Multicore profile workers that error now abort `confint()` and `profile()`
   with the worker's error, as the serial path does, instead of returning a
   `try-error` element.
+* A forked worker that dies and returns `NULL` (for example after `quit()`)
+  no longer vanishes inside `rbind()`. `profile()` and
+  `confint(method = "profile")` abort with class
+  `drmTMB_parallel_worker_died`. `confint(method = "bootstrap")` records the
+  missing replicate as a failed refit so `bootstrap.n + bootstrap.failed`
+  still equals the requested `R` (#1232, #1254, #1236).
 * Retained bootstrap shards now record a forked worker that dies without a
   result as a `worker_died` attempt instead of silently dropping the
   replicate, as `confint(method = "bootstrap")` does. Replicates queued on
@@ -113,6 +175,21 @@
   cmd batch file failed at `@echo: command not found` and stopped every
   Windows source install and Windows CI build. Build provenance and the
   never-fatal fallbacks are unchanged.
+
+* `student()`, `Gamma()`, `beta_family()` and `beta_binomial()` log-likelihoods
+  are now accurate at large `nu`, small coefficient of variation and large `phi`. The old
+  `lgamma()`-difference forms lost about `eps * x log(x)` per row, so the
+  Student objective could exceed its own Gaussian limit and fits could report
+  false convergence. Each density now agrees with `dt()` (Student) and with an
+  exact reference (Gamma, Beta) to within 1e-12 per observation at `nu`,
+  shape or `phi` of 1e2 to 1e8, and tends to the Gaussian log-density in the
+  limit. The bivariate Student kernel uses the same stable `log(1 + x)`
+  (#1462, #1467, #1504, #1548).
+  With perfectly separated `beta_binomial()` counts (all failures in one
+  group, all successes in another), the maximum-likelihood `mu` lies on the
+  boundary. On macOS the fit now reaches a fitted `mu` of exactly 0 and 1
+  (link about -3348 and +3348); on Linux it stops just inside. `logLik()`,
+  the coefficients and `sigma()` stay finite on both (#1547).
 
 * `family = student()` no longer reports a log-likelihood above the Gaussian
   maximum when `nu` is huge. The compiled density evaluates
@@ -232,6 +309,20 @@
   when outer workers run, and Windows has no cluster backend because fitted
   TMB objects cannot be copied between R processes (#1232, #1237, #1249,
   #1254, #1236).
+
+## Gaussian temporal AR1 random effects
+
+* Native ML now fits one univariate Gaussian stationary temporal AR1 intercept
+  field with real integer occasion gaps through
+  `temporal(1 | id, time = occasion, structure = "ar1")`. It can be paired
+  with one ordinary `(1 | id)` random intercept using the same ID, separating
+  stable differences, temporal persistence, and residual `sigma`.
+* `vcov()`, `summary(conf.int = TRUE)`, and `confint(method = "wald")` expose
+  mean-coefficient uncertainty only when the full observed Hessian supports
+  it. Variance/persistence intervals, profile/bootstrap inference, forecasts,
+  and `newdata` prediction remain unavailable. The retained pilot found one
+  unavailable primary-cell interval, so this release contains no calibrated
+  coverage claim.
 
 # drmTMB 0.7.1
 
