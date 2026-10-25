@@ -61,6 +61,12 @@
 
 ## Bug fixes
 
+* The `observations_per_parameter` note in `check_drm()` now also tells the
+  user that the likelihood can be multimodal at that size and to refit with
+  `drm_control(multi_start = 10)`, unless `multi_start` was already used.
+  At n = 8 with `sigma ~ x`, a single start can stop on the lower of two
+  maxima with status `"converged"` (#1469).
+
 * `engine = "julia"` now refuses an ordinary mean `(1 | g)` on Poisson,
   Gamma, NB2, Beta, and Binomial before Julia starts. Those models used to
   run the full Julia fit and then abort at a missing `resd` coefficient
