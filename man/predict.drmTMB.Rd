@@ -10,6 +10,7 @@
   dpar = NULL,
   type = c("response", "link", "quantile"),
   prob = c(0.025, 0.5, 0.975),
+  re.form = NULL,
   ...
 )
 }
@@ -33,7 +34,13 @@ marginal quantile to compute (see Details).}
 \item{prob}{Numeric vector of probabilities in (0, 1), used only when
 \code{type = "quantile"}.}
 
-\item{...}{Reserved for future prediction options.}
+\item{re.form}{Must be \code{NULL} (the default), which is the only behaviour:
+training rows are predicted conditionally on the fitted random effects and
+\code{newdata} rows at the population level. Any other value is an error.}
+
+\item{...}{Reserved for future prediction options; any value is an error
+(for example \code{se.fit}, which \code{predict()} does not compute; use
+\code{\link[=predict_parameters]{predict_parameters()}} with \code{conf.int = TRUE} for standard errors).}
 }
 \value{
 A numeric vector for \code{type} \code{"response"}/\code{"link"}. For
@@ -66,7 +73,7 @@ RESPONSE distribution (not of a linear predictor): \code{qnorm}-style inverse
 CDF evaluation via \code{\link[=fitted_distribution]{fitted_distribution()}}\verb{$q()} at \code{\link[=predict_parameters]{predict_parameters()}}'s
 fixed-effect, population-level parameter estimates -- see
 \code{\link[=fitted_distribution]{fitted_distribution()}} for the fixed-effect-only scope and the
-\code{"spike"}/\code{"unimplemented"} status rules this inherits (a \code{"spike"}-status
+\code{"spike"}/\code{"unimplemented"} status gate this inherits (a \code{"spike"}-status
 family emits a one-time warning; an unregistered \code{model_type} raises a
 clear error). For bivariate \code{biv_gaussian} fits, \code{dpar} selects which
 response's MARGINAL quantile to return (\code{"mu1"}/\code{"sigma1"} for response 1,
