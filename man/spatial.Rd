@@ -38,6 +38,17 @@ residual-scale structured slopes beyond the supported NB2 slope, slope
 correlations, and predictor-dependent spatial \code{corpair()} regression are not
 supported.
 }
+\details{
+The \verb{coords =} route fits an exponential kernel, \code{exp(-dist / range)}, with
+\code{range} fixed at the median positive pairwise distance between sites (the
+value \code{drm_spatial_coords_precision()} computes). The range is not
+estimated: only the sill (the spatial SD) and the residual nugget are
+estimated, so a fit can have a lower log-likelihood than a model that also
+estimates the range. If you need a different range or kernel, build the
+covariance yourself and pass it through \code{\link[=relmat]{relmat()}} with \verb{K =}, which is the
+more flexible route. \code{DRModels.jl} (the Julia twin) estimates the range, so
+the twin \code{spatial()} fits of the same formula differ.
+}
 \examples{
 # Fitted for univariate Gaussian mu with coords:
 bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
