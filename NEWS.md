@@ -64,6 +64,12 @@
   label. Use `engine = "tmb"` for this shape. Gaussian `(1 | g)` is
   unchanged (#1551).
 
+* `engine = "julia"` now refuses a Gaussian ordinary mean `(1 | g)` when
+  the mean formula has a factor, character, or logical predictor. Those
+  models used to run the full Julia fit and then abort because DRM.jl
+  returns `f: b` while drmTMB expects `fb`. Use `engine = "tmb"` for this
+  shape. Numeric-only Gaussian `(1 | g)` is unchanged (#1567).
+
 * `engine = "julia"` stays exported but is now fenced as experimental: the
   first call in an R session prints a one-time notice, and the bridge will not
   be widened further. Reported by Russell Dinnage's independent evaluation

@@ -6,7 +6,19 @@ NB2, Beta, and Binomial ordinary mean bars before Julia starts. Gaussian
 `drm_julia_intentional_gates()`. Both `julia-gates.tsv` copies regenerated
 to 17 rows. Focused tests: fence file 24/24; gate-vs-engine 146 pass, 1
 skip (`ape` missing). C17 receipt check PASS. No lineage or C17 files
-changed.
+changed. The admission census test moved the nine ordinary mean
+(1 | g) / (1 + x | g) poisson, NB2, Gamma, Beta, and Binomial cells from
+the S5 unledgered ADMIT list to REFUSE under this gate.
+
+# 2026-10-25: refuse Gaussian ordinary (1 | g) with a factor FE (#1567)
+
+`drm_julia_refuse_gaussian_ordinary_re_factor_fe()` aborts a Gaussian
+ordinary mean bar when the `mu` formula has a factor, character, or
+logical predictor. Numeric-only Gaussian `(1 | g)` and factor FE without
+a bar still reach Julia setup. Gate id `gaussian_ordinary_re_factor_fe`
+added. Both `julia-gates.tsv` copies regenerated to 17 rows. Focused
+tests: fence file 11/11; gate-vs-engine 146 pass, 1 skip (`ape` missing).
+No lineage or C17 files changed.
 
 # 2026-10-18 — rebase #1525 onto main `d89db5097`
 
