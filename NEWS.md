@@ -43,6 +43,8 @@
 
 * The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
 
+* Six more articles now link DRModels.jl pages that are live on the stable site: `capability-and-limits`, `temporal-random-effects`, `cross-family`, `figure-gallery`, `simulation-plot-grammar` and `julia-engine`. Articles whose Julia page is not yet on the stable site (for example `missing-data`) stay unlinked until it is (#1246).
+
 * `?phylo` now correctly describes the existing unit-height convention:
   drmTMB divides the Brownian covariance by tree height, so multiplying all
   branch lengths by the same positive constant leaves the normalized
