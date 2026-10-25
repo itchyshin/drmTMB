@@ -723,6 +723,12 @@ revisit condition.
   release-tag full-OS-matrix check is not red on these recovery-grade
   diagnostics. This is a property of the estimator near the boundary, not a
   defect in the shipped fixed-effect / inference-ready surface.
+  For the nbinom2 file specifically, the gate stays until Windows is
+  measured. The cross-platform failure in #1444 is resolved: it was the TEST
+  DATA, not the optimizer. `MASS::mvrnorm()` draws through `eigen()`, so the
+  same seed gave different data on macOS and Linux; the generator now draws
+  through `chol()`, and data and fitted gains are identical on both platforms
+  over 32 seeds per case.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now
@@ -880,3 +886,23 @@ revisit condition.
   repeated Gaussian rows, and repeated large phylogenetic benchmark runs beyond
   the initial optional harness in
   `bench/large-phylo-location.R`.
+- Fixed-effect binomial, Poisson, and NB2 fits, and continuous
+  location-scale fits whose scale predictor drives an exactly fitted
+  observation onto the lower `log(sigma)` clamp, now return
+  `convergence_status() = "degenerate"` and a warning-level
+  `check_drm()` `mle_existence` row when the screened geometry has no
+  finite maximum-likelihood estimate (Albert and Anderson 1984; Konis
+  2007; Haberman 1974; Santos Silva and Tenreyro 2010). The screen does
+  not change point estimates or `vcov()`. Random-effect, phylogenetic,
+  `mi()` predictor, and MSPL routes are not screened. Zero-inflated
+  Poisson is not screened, because a zero can come from the inflation
+  process rather than the count cone. Both engines now expose
+  `convergence_status()` ∈ {converged, boundary, degenerate} with the
+  numeric cuts in `docs/design/278-twin-convergence-status.md`.
+  `is_converged()` / `converged()` are `TRUE` only for `"converged"`.
+  On the 750-fit t4 grid the engines now agree on the boolean in 716/750
+  fits (was 512/750 on pin `ca3ddefa` / `f71b292`) and on the
+  three-valued status in 689/750. The remaining 61 status disagreements
+  are Julia `g_tol` / pseudo-inverse SEs versus R `nlminb` / Hessian
+  screens (`docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`;
+  #1554).

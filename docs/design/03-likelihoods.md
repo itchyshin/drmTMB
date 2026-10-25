@@ -137,7 +137,7 @@ is the current routing contract:
 | `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, `coi` as the conditional probability of an exact one among boundary observations, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16 and a strictly-interior-generator caveat. The point-fit-only `zoi` q1 routes admit either one unlabelled intercept `(1 | id)` or one slope-only effect when the fixed and random terms use the same raw symbol, such as `zoi ~ x + (0 + x | id)`; `coi` random effects remain unsupported. |
 | `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component and ordinary `mu` random intercepts or independent numeric slopes. |
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate hurdle negative-binomial 2 models, with fixed-effect `mu`, `sigma`, and `hu`, plus the exact diagnostic-only q1 `hu ~ relmat(1 | id, K/Q = ...)` intercept; nonzero counts follow the zero-truncated NB2 component. Other hurdle-side and count-side random effects remain blocked. |
-| `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate cumulative-logit ordinal location models, with ordered cutpoints, fixed latent logistic scale, ordinary recovery-grade `mu` random intercepts and independent numeric slopes, plus the exact local-fit q1 `mu ~ phylo(1 | id, tree = tree)` intercept. |
+| `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate cumulative-logit ordinal location models, with ordered cutpoints, a latent logistic scale fixed at 1 or modelled by an intercept-free fixed-effect `disc ~ z` discrimination formula (#966; rides `X_sigma`/`beta_sigma`), ordinary recovery-grade `mu` random intercepts and independent numeric slopes, plus the exact local-fit q1 `mu ~ phylo(1 | id, tree = tree)` intercept. |
 | `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate beta-binomial models for counted successes out of known trials, with `mu` as success probability, `sigma` as extra-binomial variation, and ordinary `mu` random intercepts or independent numeric slopes on the logit success-probability predictor. |
 | `18` | `family = stats::binomial(link = "logit")` | `drm_build_binomial_spec()` | Univariate Bernoulli/binomial logit models for 0/1 responses or two-column `cbind(successes, failures)` responses, with `mu` as event probability and no public `sigma`, including an ordinary `mu` random intercept `(1 | group)` (Arc 2a; not combinable with missing-predictor `mi()` yet). |
 | `93` | no public route | direct test construction only | Hidden q=4 phylogenetic precision-prior parity branch using `theta_phylo` and `log_sd_phylo`. |
@@ -2412,11 +2412,67 @@ For cumulative-logit fits, `predict(fit, dpar = "mu")` returns the latent
 ordinal location. `fitted(fit)` returns the expected ordered-category score
 `sum_k k * Pr(y_i = k)`, which is useful as a fitted response summary but is
 not a measured continuous outcome. `sigma(fit)` returns a fixed unit vector
-because this path fixes the latent logistic scale. The exact
-`mu ~ phylo(1 | id, tree = tree)` q1 intercept has local point-fit/extractor
-evidence. Ordinal scale or discrimination formulas, correlated or labelled
-ordinary slopes, other structured providers, known sampling covariance,
-bivariate ordinal models, and mixed-response ordinal models are later phases.
+because this path fixes the latent logistic scale (unless a `disc` formula is
+supplied; see below). The exact `mu ~ phylo(1 | id, tree = tree)` q1 intercept
+has local point-fit/extractor evidence. Random effects or structured terms in
+`disc`, correlated or labelled ordinary slopes, other structured providers,
+known sampling covariance, bivariate ordinal models, and mixed-response
+ordinal models are later phases.
+
+### Discrimination (scale) submodel `disc ~ z` (#966)
+
+Owner decision 24(a) (11 Oct 2026, issue #966) adds a fixed-effect
+discrimination formula. It answers questions such as "do observers separate
+the ordered categories more sharply in one habitat than another?" without
+changing what the cutpoints mean:
+
+```text
+Pr(y_i <= k) = logit^{-1}(disc_i * (theta_k - mu_i))
+log(disc_i)  = Z[i, ] gamma        (no intercept column)
+```
+
+Equivalently the latent variable is `y*_i = mu_i + e_i / disc_i` with
+standard-logistic `e_i`, so the latent residual scale is `s_i = 1 / disc_i`;
+`sigma(fit)` returns `1 / disc` for these fits.
+
+**Identifiability contract.** The `disc` intercept is fixed at
+`log(disc) = 0`, i.e. `disc = 1` at the reference row (`z = 0`, or the first
+level of each factor). Reason: for any `c > 0`, replacing `theta` by
+`c * theta`, `beta_mu` by `c * beta_mu`, and `disc` by `disc / c` leaves every
+category probability unchanged, so an intercept for `log(disc)` is aliased
+with the overall unit of the latent variable. This is the same constraint the
+location intercept already imposes on the location side, and the same one
+`ordinal::clm(scale = ~ z)` uses (Christensen, `ordinal` package
+documentation, location-scale cumulative link models); clm models
+`s = 1 / disc`, so its scale coefficients equal `-gamma`. Writing
+`disc ~ 0 + z` is rejected because removing an already-fixed intercept would
+let a full set of factor dummies re-introduce the aliased direction.
+`disc ~ 1` (or no `disc` formula) gives `disc = 1` and reproduces the
+location-only fit bit for bit.
+
+Implementation: `disc` rides the otherwise-unused `X_sigma`/`beta_sigma` slot
+of model_type 13, as hurdle `hu` rides `beta_zi`; `profile_fixef_internal()`
+maps the public `disc` block to `beta_sigma`. When no `disc` design is
+supplied `X_sigma` is the 1x1 dummy and the branch keeps `disc = 1` exactly.
+The `disc` formula does not yet accept random effects, structured terms, or
+offsets, and `engine = "julia"` refuses it (no DRM.jl counterpart).
+
+Evidence (`tests/testthat/test-cumulative-logit-disc.R`): exact equality of
+`disc ~ 1` with the location-only fit (`opt$par`, objective, `cov.fixed`,
+fitted values); recovery of `beta_mu`, `gamma`, and cutpoints at n = 3000
+within 4 SE; agreement with `ordinal::clm(score ~ x, scale = ~ z)` for
+continuous and factor `z` (logLik to 1e-6, coefficients to 1e-4,
+`zeta = -gamma`, SE to 1e-3).
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(score ~ habitat, disc ~ observer_experience),
+  family = cumulative_logit(),
+  data = dat
+)
+```
 
 ## Implemented Poisson Mean
 

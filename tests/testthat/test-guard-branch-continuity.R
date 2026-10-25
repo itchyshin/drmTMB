@@ -260,10 +260,21 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # on the selected branch, where a <= exp(-2)), and a series/direct switch at
   # a = 1e-3. In drm_ar1_transition_sd(): an x < 700 clamp (C0; exp(-700) is
   # below double resolution of 1), a series/expm1 switch at x = 1e-5, an
-  # |theta| select, and a direct/expm1 switch at |theta| = 1. With the seven temporal sites on top of main's 46L, n_cpp is 53L;
-  # it is bumped together with the paired continuity tests below.
+  # |theta| select, and a direct/expm1 switch at |theta| = 1. With those seven
+  # sites on top of main's 46, n_cpp is 53L. It is bumped together with the
+  # paired continuity tests below.
   expect_equal(n_cpp, 53L)
-  expect_equal(n_numeric, 9L)
+  # #1504 (f12) adds eleven sites for the large-argument helpers in
+  # drm_numeric.h: three each in drm_expm1_minus_x() (|w| = 0.5),
+  # drm_log1p_pos() (x = 0.01) and drm_stirling_remainder() (x = 30), and two
+  # in drm_x_minus_log1p() (|u| = 0.1). The paired value, gradient and Hessian
+  # checks either side of every switch are in test-large-argument-kernels.R.
+  # The Student switch moves to nu = 100 with the same four clamps, so
+  # n_response stays 8L. The beta-binomial helpers shared with #1514 add five more:
+  # three in drm_log1p_accurate() (x = 1e-4) and two in drm_lgamma_ratio()
+  # (x = 100), with their gradient checks in test-large-argument-kernels.R.
+  # n_numeric is therefore 25L.
+  expect_equal(n_numeric, 25L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)
 })
