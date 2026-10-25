@@ -217,6 +217,54 @@ phylo <- function(term, tree, tolerance = sqrt(.Machine$double.eps)) {
   invisible(NULL)
 }
 
+#' Temporal structure marker
+#'
+#' @description
+#' `temporal()` adds a Gaussian temporal structure for repeated observations
+#' within a sampled individual or site. `structure = "ar1"` uses finite integer
+#' occasions and permits signed one-occasion persistence. `structure = "ou"`
+#' uses finite numeric elapsed time and estimates a positive decay rate, so
+#' correlation at a gap `d` is `exp(-decay * d)`. `structure = "homtoep"`
+#' uses a common, complete, equally spaced integer schedule and estimates one
+#' correlation for each discrete lag. It is a marginal covariance model: its
+#' `sigma` is the total within-series SD, with no separately estimated iid
+#' residual SD or temporal conditional mode. An ordinary `(1 | id)` may
+#' accompany AR1 or OU to represent stable between-series differences separately
+#' from persistent within-series deviations; it is deferred for homogeneous
+#' Toeplitz covariance. Homogeneous Toeplitz fits provide likelihood-profile
+#' intervals for mean regression coefficients only. Scale and lag-correlation
+#' intervals remain unavailable.
+#'
+#' Development only: with `structure = "ou"`, `temporal()` may be paired with
+#' `phylo(1 | species, tree = tree)` on the same grouping column. That fits a
+#' stable tree-correlated species intercept plus independent within-species OU
+#' deviations, reported as `sd_phylo_stable`, `sd_temporal` and
+#' `decay_temporal`. The paired route refuses an ordinary `(1 | species)`
+#' intercept (the stable component is already the phylogenetic term), needs
+#' tree tips that exactly match the observed species, at least three species,
+#' two distinct times per species and three distinct positive lags, and has
+#' point estimates only: its intervals are not calibrated.
+#'
+#' @param term Temporal structure term, currently `1 | id`.
+#' @param time Name of the integer occasion (`"ar1"` or `"homtoep"`) or
+#'   numeric elapsed-time (`"ou"`) variable.
+#' @param structure Temporal covariance structure: `"ar1"`, `"ou"`, or
+#'   `"homtoep"`.
+#'
+#' @return A formula marker; never evaluated by users.
+#' @export
+#'
+#' @examples
+#' bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),
+#'    sigma ~ 1)
+#' bf(y ~ treatment + temporal(1 | id, time = elapsed, structure = "ou"),
+#'    sigma ~ 1)
+#' bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "homtoep"),
+#'    sigma ~ 1)
+temporal <- function(term, time, structure = "ar1") {
+  invisible(NULL)
+}
+
 #' Bipartite phylogenetic interaction marker
 #'
 #' `phylo_interaction()` marks a pair-level phylogenetic interaction between two
@@ -271,15 +319,35 @@ phylo_interaction <- function(term, tree1, tree2) {
 #' univariate student `mu` q=1 intercept or one-slope, ordinary Poisson and NB2
 #' `mu` q=1 intercepts or one-slopes, zero-inflated Poisson `zi` q=1 intercept,
 #' and the NB2 `sigma` q=1 one-slope, all at recovery grade: trust the point
-#' estimate, not the interval. Mesh inputs, multiple structured slopes,
-#' residual-scale structured slopes beyond the supported NB2 slope, slope
-#' correlations, and predictor-dependent spatial `corpair()` regression are not
-#' supported.
+#' estimate, not the interval.
+#'
+#' A precomputed mesh from [make_mesh()] is fitted for one route only: a
+#' univariate Gaussian, unlabelled `mu` intercept with constant residual scale,
+#' `bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)`, with kappa fixed at
+#' the value given to [make_mesh()]. Its point estimates have recovery evidence
+#' for the tested designs; intervals, coverage, and the spatial range are not
+#' claimed. Any other mesh use, including `sigma ~ z`, a mesh slope, a labelled
+#' or bivariate mesh term, or a non-Gaussian family, is rejected; use
+#' `coords = coords` for those models where a coordinate route exists.
+#' Multiple structured slopes, residual-scale structured slopes beyond the
+#' supported NB2 slope, slope correlations, and predictor-dependent spatial
+#' `corpair()` regression are not supported.
+#'
+#' The `coords =` route fits an exponential kernel, `exp(-dist / range)`, with
+#' `range` fixed at the median positive pairwise distance between sites (the
+#' value `drm_spatial_coords_precision()` computes). The range is not
+#' estimated: only the sill (the spatial SD) and the residual nugget are
+#' estimated, so a fit can have a lower log-likelihood than a model that also
+#' estimates the range. If you need a different range or kernel, build the
+#' covariance yourself and pass it through [relmat()] with `K =`, which is the
+#' more flexible route. `DRModels.jl` (the Julia twin) estimates the range, so
+#' the twin `spatial()` fits of the same formula differ.
 #'
 #' @param term Structured random-effect term, such as `1 | site`.
 #' @param coords Coordinate object, such as a data frame or matrix of spatial
 #'   coordinates.
-#' @param mesh Reserved; precomputed mesh inputs are not supported.
+#' @param mesh A fixed-kappa mesh object from [make_mesh()]. Fitted only for the
+#'   univariate Gaussian `mu` intercept with `sigma ~ 1`; see Description.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -295,6 +363,8 @@ phylo_interaction <- function(term, tree1, tree2) {
 #'   sigma2 = ~ 1,
 #'   rho12 = ~ 1
 #' )
+#' # Fixed-kappa mesh intercept (mesh from make_mesh()); requires sigma ~ 1:
+#' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)
 spatial <- function(term, coords = NULL, mesh = NULL) {
   invisible(NULL)
 }
