@@ -61,6 +61,15 @@
 
 ## Bug fixes
 
+* The first `engine = "julia"` call no longer prints the recovered
+  `Error during loading of extension LogExpFunctionsInverseFunctionsExt` log
+  with its `UndefVarError` stack trace (twice) that some Julia package
+  combinations emit while the backend loads. The session recovers and fits are
+  unaffected, but the red `ERROR` looked like a crash. `drm_julia_setup()` now
+  wraps Julia's logger during setup and drops only that message when its cause
+  is an `UndefVarError`; every other message, including any other extension
+  failure, still shows (#1157).
+
 * `engine = "julia"` now refuses an ordinary mean `(1 | g)` on Poisson,
   Gamma, NB2, Beta, and Binomial before Julia starts. Those models used to
   run the full Julia fit and then abort at a missing `resd` coefficient
