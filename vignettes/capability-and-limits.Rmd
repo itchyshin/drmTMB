@@ -89,7 +89,8 @@ For ordinary fixed-effect models, binomial, Poisson, negative-binomial,
 strict continuous-proportion (`beta_family()`), and Gaussian examples have
 checked Wald intervals in the tested settings. The strict beta family requires
 responses strictly inside `(0, 1)`; use `zero_one_beta()` when exact zeroes or
-ones are meaningful outcomes. These results do not create a universal minimum
+ones are meaningful outcomes and both kinds occur (with only zeroes or only
+ones, its `coi` parameter is unidentified; see `?zero_one_beta`). These results do not create a universal minimum
 sample-size rule, so retain ordinary convergence and diagnostic checks.
 
 Negative-binomial location--scale models (`mu` and `sigma ~ x`) and strict beta

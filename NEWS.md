@@ -20,10 +20,25 @@
 * `simulate()` and `predict_parameters()` on an `engine = "julia"` fit now stop
   with a drmTMB error that points to `engine = "tmb"` (or `vcov()`/`confint()`
   for coefficient SEs) instead of base R's "no applicable method" (#1570).
+## Test infrastructure
+
+* The numeric-kernel extreme-value oracle's `run_oracle()` helper
+  (`tests/testthat/test-numeric-kernel-oracle.R`) now fails closed on
+  non-finite grid points by default (`max_nonfinite = 0L`, was `Inf`), so a
+  family can no longer silently drop grid points from its own strict
+  assertion. This is how the `beta_binomial` guard gap (Md-H) escaped
+  detection: only 51% of its grid was actually asserted. Six existing
+  families (gamma, nbinom2, zi_nbinom2, truncated_nbinom2, hurdle_nbinom2,
+  binomial) have real, characterized non-finite points at the eta = +-700 /
+  +-40 grid boundary (reference-formula overflow, not kernel bugs) and now
+  opt out explicitly with a documented count (#1324).
 
 ## Documentation fixes
 
+* `?nbinom2` now states that NB2 cannot go below the Poisson limit (an underdispersed count fit hits the `sigma` boundary (limit) and returns a degenerate result) and points underdispersed counts to `glmmTMB::compois()` / `glmmTMB::genpois()`. This is a documentation pointer only; no underdispersed count family is added (Refs #1466).
+
 * The `missing-data` article gains a recipe for a mediator that is also a response: build `impute_model()` from the fitted node's formula and family, with an explicit statement that estimates are not shared and what that means for standard errors (#964).
+* `?spatial` and the `spatial-models` article now state that the `coords =` route fixes the exponential range at the median positive pairwise distance and estimates only sill and nugget, with `relmat(K =)` as the flexible route (#968).
 * `heritability()`, `icc()`, `repeatability()` and the `summary()$derived` variance share are documented as Gaussian-only for now; a non-Gaussian fit is refused with a message that points to `docs/design/275-repeatability-scale-and-residual-variance.md` and the de Villemereuil et al. (2016) three-scale framework (#1301).
 
 * The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
@@ -45,6 +60,23 @@
   correct (verified numerically); only the description was wrong (#1231).
 
 ## Bug fixes
+
+* `engine = "julia"` now refuses an ordinary mean `(1 | g)` on Poisson,
+  Gamma, NB2, Beta, and Binomial before Julia starts. Those models used to
+  run the full Julia fit and then abort at a missing `resd` coefficient
+  label. Use `engine = "tmb"` for this shape. Gaussian `(1 | g)` is
+  unchanged (#1551).
+
+* `engine = "julia"` now refuses a Gaussian ordinary mean `(1 | g)` when
+  the mean formula has a factor, character, or logical predictor. Those
+  models used to run the full Julia fit and then abort because DRM.jl
+  returns `f: b` while drmTMB expects `fb`. Use `engine = "tmb"` for this
+  shape. Numeric-only Gaussian `(1 | g)` is unchanged (#1567).
+
+* `engine = "julia"` stays exported but is now fenced as experimental: the
+  first call in an R session prints a one-time notice, and the bridge will not
+  be widened further. Reported by Russell Dinnage's independent evaluation
+  (Md-K, #1328).
 
 * `summary()` now flags a non-converged fit as `print()` does. The printed
   summary says "not converged" with the optimizer message, and printing it
@@ -112,11 +144,37 @@
   and refuse non-unit `weights` on an `mi()` fit
   (`drmTMB_mi_weights_predict_unsupported`) (Refs #1459).
 
+* `simulate(fit, newdata = nd)` no longer ignores `newdata` and returns draws
+  for the training rows. `simulate.drmTMB()` now has an explicit `newdata`
+  formal and stops with a message pointing to `predict_parameters()`, because
+  drawing for new rows is not implemented. `simulate()` and `predict()` also
+  refuse any other unused argument in `...` (for example `predict(fit,
+  se.fit = TRUE)`, which `predict()` does not compute) instead of silently
+  dropping it (#1536).
+
 * Profile confidence intervals now explicitly average parameter coordinates
   at tied objective values. This preserves the existing interpolation result
   while avoiding a spurious "collapsing to unique 'x' values" warning from
   the implicit interpolation default (#1521).
 
+* `is_converged()` and the new alias `converged()` are `TRUE` only when
+  `convergence_status()` is `"converged"`. `"boundary"` (random-effect
+  SD `< 1e-4` or `|rho12| > 0.98`) and `"degenerate"` both return
+  `FALSE`. Print, `summary()`, and `check_drm()` show the three-valued
+  status. The numeric cuts (rank tolerance `1e-8`, inflated SE `>= 50`
+  and `>= 1000 ×` the sub-50 median, with a min-SE fallback) are the
+  same in DRModels.jl (`docs/design/278-twin-convergence-status.md`;
+  #1554, #1333).
+* Fixed-effect binomial, Poisson, and NB2 fits, and continuous
+  location-scale fits whose scale predictor drives an exactly fitted
+  observation onto the lower `log(sigma)` clamp, no longer report
+  `is_converged() = TRUE` when the maximum-likelihood estimate does not
+  exist. `convergence_status()` is `"degenerate"` and `check_drm()` gains a
+  warning-level `mle_existence` row. The binomial screen is the Albert and
+  Anderson (1984) / Konis (2007) cone; the count screen is the same cone
+  with `s = 1{y > 0}` (Haberman 1974; Santos Silva and Tenreyro 2010).
+  Random-effect, phylogenetic, `mi()` predictor, and MSPL routes are not
+  screened. Point estimates and `vcov()` are unchanged (#1553, #1270, #1469).
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value
@@ -234,6 +292,49 @@
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
+
+## Gaussian temporal random effects
+
+* Native ML now fits univariate Gaussian stationary temporal intercept fields:
+  AR1 with real integer occasion gaps through
+  `temporal(1 | id, time = occasion, structure = "ar1")`. It can be paired
+  with one ordinary `(1 | id)` random intercept using the same ID, separating
+  stable differences, temporal persistence, and residual `sigma`. The OU route
+  uses finite numeric elapsed time and a positive exponential decay rate.
+* `vcov()`, `summary(conf.int = TRUE)`, and `confint(method = "wald")` expose
+  mean-coefficient uncertainty only when the full observed Hessian supports
+  it. Both temporal structures also profile fixed mean coefficients through
+  `confint(..., parm = "mu:<coefficient>", method = "profile")`; profile
+  endpoints can remain finite when a fitted Hessian is irregular, so
+  `check_drm()` records that situation. A retained 3,000-fit OU campaign
+  qualified fixed-`mu` profile intervals in its exact U1--U3 cells; this is
+  not a general temporal coverage claim. The OU elapsed-time route uses
+  `structure = "ou"` with a positive decay rate; its Wald intervals remain
+  deferred behind the AR1 calibration blocker. Variance/persistence,
+  bootstrap, forecast, and `newdata` intervals remain unavailable. The
+  retained AR1 pilot found one unavailable primary-cell Wald interval, so AR1
+  has no calibrated coverage claim.
+* `temporal(1 | id, time = occasion, structure = "homtoep")` fits a
+  homogeneous Toeplitz marginal covariance `sigma^2 R` on a complete, equally
+  spaced panel of 3--12 integer occasions, with one free correlation per lag
+  (`cor_lag1`, `cor_lag2`, ...) parameterised by partial autocorrelations.
+  The likelihood uses the Levinson--Durbin prediction-error form, so it stays
+  finite when partial autocorrelations approach +/-1. At least as many series
+  as occasions are required. `sigma` is the total within-series SD; no
+  separate residual SD or `(1 | id)` intercept is estimated. A retained
+  4,000-fit campaign qualified mean-coefficient profile intervals in three
+  predeclared 80-series, six-occasion cells only. `vcov()`, Wald, scale, and
+  lag-correlation intervals are unavailable.
+* `check_drm()` gains a `temporal_boundary` row for temporal fits. It warns
+  when residual `sigma` collapses into the temporal process, AR1 persistence
+  reaches +/-1, or OU correlation is about 1 or about 0 at every observed lag,
+  and `convergence_status()` then reports `"boundary"` for that fit.
+* Development only: `phylo(1 | species, tree = tree) + temporal(1 | species,
+  time = elapsed, structure = "ou")` fits a stable tree-correlated species
+  intercept plus independent within-species OU deviations
+  (`sd_phylo_stable`, `sd_temporal`, `decay_temporal`). A 300-tree study
+  supports point recovery only; no interval method is qualified for this
+  paired model. See `vignette("phylogenetic-temporal-effects")`.
 
 ## New features
 
