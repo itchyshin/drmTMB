@@ -251,7 +251,7 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # floor, the ratio floor, two log-step clamps, two validity selects, two
   # non-finite-loses floors on the candidate log integrands, the candidate
   # select, and the node clamp u_q <= 500. Dropping the w*cosh weight on a
-  # capped node adds one more CondExp, so main's n_cpp is 46L. The paired checks
+  # capped node adds one more CondExp, so n_cpp is 46L before the temporal route. The paired checks
   # are the next two tests: a step-B fallback row and an overflow row that
   # also asserts the capped terms are zeroed.
   #
@@ -260,18 +260,27 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # on the selected branch, where a <= exp(-2)), and a series/direct switch at
   # a = 1e-3. In drm_ar1_transition_sd(): an x < 700 clamp (C0; exp(-700) is
   # below double resolution of 1), a series/expm1 switch at x = 1e-5, an
-  # |theta| select, and a direct/expm1 switch at |theta| = 1. 30L -> 37L is
-  # bumped together with the paired continuity tests below.
+  # |theta| select, and a direct/expm1 switch at |theta| = 1. These sites are
+  # counted together with the paired continuity tests below.
   #
   # The temporal OU route (#1302) adds ONE drmTMB.cpp site,
   # drm_one_minus_exp_neg(): a series/direct switch for 1 - exp(-x) at
-  # x = 1e-5, used for the OU transition variance. 37L -> 38L is bumped
+  # x = 1e-5, used for the OU transition variance. It is counted
   # together with its paired C1 continuity test below.
   #
-  # Combined with the temporal routes above (38L - 30L = 8 sites), n_cpp is
-  # 46L + 8L = 54L.
+  # Main (46L) plus the AR1 (7) and OU (1) sites is 54L.
   expect_equal(n_cpp, 54L)
-  expect_equal(n_numeric, 9L)
+  # #1504 (f12) adds eleven sites for the large-argument helpers in
+  # drm_numeric.h: three each in drm_expm1_minus_x() (|w| = 0.5),
+  # drm_log1p_pos() (x = 0.01) and drm_stirling_remainder() (x = 30), and two
+  # in drm_x_minus_log1p() (|u| = 0.1). The paired value, gradient and Hessian
+  # checks either side of every switch are in test-large-argument-kernels.R.
+  # The Student switch moves to nu = 100 with the same four clamps, so
+  # n_response stays 8L. The beta-binomial helpers shared with #1514 add five more:
+  # three in drm_log1p_accurate() (x = 1e-4) and two in drm_lgamma_ratio()
+  # (x = 100), with their gradient checks in test-large-argument-kernels.R.
+  # n_numeric is therefore 25L.
+  expect_equal(n_numeric, 25L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 8L)
 })

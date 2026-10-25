@@ -94,21 +94,6 @@ Type drm_integer_power(Type base, int exponent) {
   return out;
 }
 
-// Weight-0 rows must keep the log-density off the AD tape. CondExpGt still
-// evaluates both branches, so 0 * (-Inf) and an infinite local partial
-// (d log dnorm / d mu at y = 1e200) become NaN / -Inf in reverse mode.
-// weights is DATA, so a data-level `if (asDouble(weights(i)) > 0)` at each
-// call site skips the term. #1459: the Gaussian mi() prior stays unweighted.
-
-template<class Type>
-Type drm_logspace_sum(const vector<Type>& log_terms) {
-  Type out = log_terms(0);
-  for (int i = 1; i < log_terms.size(); ++i) {
-    out = logspace_add(out, log_terms(i));
-  }
-  return out;
-}
-
 // Stable -log|tanh(theta)| = 2 * atanh(exp(-2 * |theta|)) for |theta| >= 1,
 // where a = exp(-2|theta|) <= exp(-2). The odd series a + a^3/3 + a^5/5 is used
 // for a < 1e-3 (truncation below a^7/7, i.e. relative error < 1e-21), so the
@@ -154,6 +139,21 @@ Type drm_one_minus_exp_neg(Type x) {
   Type direct = Type(1.0) - exp(-x);
   Type series = x * (Type(1.0) - x * (Type(0.5) - x / Type(6.0)));
   return CppAD::CondExpLt(x, Type(1e-5), series, direct);
+}
+
+// Weight-0 rows must keep the log-density off the AD tape. CondExpGt still
+// evaluates both branches, so 0 * (-Inf) and an infinite local partial
+// (d log dnorm / d mu at y = 1e200) become NaN / -Inf in reverse mode.
+// weights is DATA, so a data-level `if (asDouble(weights(i)) > 0)` at each
+// call site skips the term. #1459: the Gaussian mi() prior stays unweighted.
+
+template<class Type>
+Type drm_logspace_sum(const vector<Type>& log_terms) {
+  Type out = log_terms(0);
+  for (int i = 1; i < log_terms.size(); ++i) {
+    out = logspace_add(out, log_terms(i));
+  }
+  return out;
 }
 
 // Unnormalised log integrand for Gamma mi() adaptive GH on u = log(x):
@@ -2132,17 +2132,9 @@ Type objective_function<Type>::operator()()
         Type n_i = mi_trials(i);
         if (mi_observed(i) == 1) {
           Type k_i = mi_successes(i);
-          Type failure_i = n_i - k_i;
+          // Cancellation-free form, as in the main loop (#1467).
           Type log_density =
-            lgamma(n_i + Type(1.0)) -
-            lgamma(k_i + Type(1.0)) -
-            lgamma(failure_i + Type(1.0)) +
-            lgamma(phi_betabinom_mi) -
-            lgamma(n_i + phi_betabinom_mi) +
-            lgamma(k_i + alpha_i) -
-            lgamma(alpha_i) +
-            lgamma(failure_i + beta_i) -
-            lgamma(beta_i);
+            drm_beta_binomial_log_density(k_i, n_i, alpha_i, beta_i);
           Type x_i = k_i / n_i;
           // (Dinnage audit M1): weights(i) scales the WHOLE row
           // contribution; apply it to the imputation-prior term here and
@@ -2155,18 +2147,9 @@ Type objective_function<Type>::operator()()
           vector<Type> log_terms(n_success + 1);
           for (int k = 0; k <= n_success; ++k) {
             Type k_q = Type(k);
-            Type failure_q = n_i - k_q;
             Type x_q = k_q / n_i;
             Type log_density =
-              lgamma(n_i + Type(1.0)) -
-              lgamma(k_q + Type(1.0)) -
-              lgamma(failure_q + Type(1.0)) +
-              lgamma(phi_betabinom_mi) -
-              lgamma(n_i + phi_betabinom_mi) +
-              lgamma(k_q + alpha_i) -
-              lgamma(alpha_i) +
-              lgamma(failure_q + beta_i) -
-              lgamma(beta_i);
+              drm_beta_binomial_log_density(k_q, n_i, alpha_i, beta_i);
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
@@ -3423,14 +3406,10 @@ Type objective_function<Type>::operator()()
     for (int i = 0; i < y.size(); ++i) {
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
-        Type variance_multiplier = sigma(i) * sigma(i);
-        Type shape = Type(1.0) / variance_multiplier;
-        Type scale = mu(i) * variance_multiplier;
+        // Large-shape-stable form (#1504); same density as
+        // dgamma(y, shape = 1/sigma^2, scale = mu * sigma^2).
         Type log_density =
-          (shape - Type(1.0)) * log(y(i)) -
-          y(i) / scale -
-          lgamma(shape) -
-          shape * log(scale);
+          drm_gamma_log_density(y(i), eta_mu(i), log_sigma(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -3687,11 +3666,7 @@ Type objective_function<Type>::operator()()
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         Type log_density =
-          lgamma(alpha(i) + beta_shape(i)) -
-          lgamma(alpha(i)) -
-          lgamma(beta_shape(i)) +
-          (alpha(i) - Type(1.0)) * log(y(i)) +
-          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+          drm_beta_log_density(y(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -3878,11 +3853,7 @@ Type objective_function<Type>::operator()()
         }
         Type log_density =
           log_one_minus_zoi +
-          lgamma(alpha(i) + beta_shape(i)) -
-          lgamma(alpha(i)) -
-          lgamma(beta_shape(i)) +
-          (alpha(i) - Type(1.0)) * log(y(i)) +
-          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+          drm_beta_log_density(y(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -4005,18 +3976,10 @@ Type objective_function<Type>::operator()()
       );
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
-        Type failures = trials(i) - y(i);
-        Type phi_shape = alpha(i) + beta_shape(i);
-        Type log_density =
-          lgamma(trials(i) + Type(1.0)) -
-          lgamma(y(i) + Type(1.0)) -
-          lgamma(failures + Type(1.0)) +
-          lgamma(phi_shape) -
-          lgamma(trials(i) + phi_shape) +
-          lgamma(y(i) + alpha(i)) -
-          lgamma(alpha(i)) +
-          lgamma(failures + beta_shape(i)) -
-          lgamma(beta_shape(i));
+        // Cancellation-free form; the plain lgamma sum loses
+        // eps * phi log(phi) per row as sigma -> 0 (#1467).
+        Type log_density = drm_beta_binomial_log_density(
+          y(i), trials(i), alpha(i), beta_shape(i));
         nll -= weights(i) * log_density;
       }
     }
@@ -4261,17 +4224,29 @@ Type objective_function<Type>::operator()()
       }
     }
     int n_categories = theta_ord.size() + 1;
+    // Discrimination submodel (#966): Pr(y <= k) = logit^-1(disc * (theta_k - mu)),
+    // log(disc) = X_sigma * beta_sigma with no intercept (the latent scale is
+    // fixed at disc = 1 for the reference row). Without `disc ~ z` X_sigma is
+    // the 1x1 dummy and disc stays exactly 1.
+    vector<Type> disc(y.size());
+    disc.fill(Type(1.0));
+    if (X_sigma.rows() == y.size()) {
+      disc = exp(X_sigma * beta_sigma);
+      REPORT(disc);
+    }
     for (int i = 0; i < y.size(); ++i) {
       if (observed_y(i) == 1) {
         int yi = (int) asDouble(y(i));
         Type log_prob;
         if (yi == 1) {
-          log_prob = drm_log_inv_logit(cutpoints(0) - mu(i));
+          log_prob = drm_log_inv_logit(disc(i) * (cutpoints(0) - mu(i)));
         } else if (yi == n_categories) {
-          log_prob = drm_log1m_inv_logit(cutpoints(n_categories - 2) - mu(i));
+          log_prob = drm_log1m_inv_logit(
+            disc(i) * (cutpoints(n_categories - 2) - mu(i))
+          );
         } else {
-          Type upper = cutpoints(yi - 1) - mu(i);
-          Type lower = cutpoints(yi - 2) - mu(i);
+          Type upper = disc(i) * (cutpoints(yi - 1) - mu(i));
+          Type lower = disc(i) * (cutpoints(yi - 2) - mu(i));
           log_prob = drm_log_inv_logit_diff(upper, lower);
         }
         nll -= weights(i) * log_prob;
@@ -5678,7 +5653,7 @@ Type objective_function<Type>::operator()()
           log_sigma2(i) -
           Type(0.5) * log(one_minus_rho2) -
           ((nu(i) + Type(2.0)) / Type(2.0)) *
-            drm_log1p_nonnegative(q / nu(i));
+            drm_log1p_pos(q / nu(i));
         nll -= weights(i) * log_density;
       }
     } else if (V_known_type == 2) {
