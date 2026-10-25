@@ -80,6 +80,7 @@ print.drmTMB <- function(x, ...) {
   } else {
     cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
   }
+  cli::cli_text("  convergence_status: {convergence_status(x)}")
   if (is.null(drm_convergence_label(x$opt$convergence, x$opt$message))) {
     cli::cli_text("  convergence: {x$opt$convergence}")
   } else {
@@ -4307,6 +4308,13 @@ sigma.drmTMB <- function(object, ...) {
     return(predict(object, dpar = "sigma"))
   }
   if (
+    identical(object$model$model_type, "cumulative_logit") &&
+      "disc" %in% names(object$coefficients)
+  ) {
+    # Latent logistic residual scale is 1 / disc (#966).
+    return(1 / predict(object, dpar = "disc"))
+  }
+  if (
     identical(object$model$model_type, "poisson") ||
       identical(object$model$model_type, "zi_poisson") ||
       identical(object$model$model_type, "binomial") ||
@@ -4611,6 +4619,7 @@ summary.drmTMB <- function(
     mspl = if (drm_is_mspl(object)) object$mspl else NULL,
     estimator = object$estimator,
     estimator_exact = object$estimator_exact,
+    convergence_status = convergence_status(object),
     convergence = object$opt$convergence,
     convergence_message = object$opt$message,
     conf.int = conf.int,
@@ -4741,6 +4750,9 @@ print.summary.drmTMB <- function(x, ...) {
     }
   } else {
     cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
+  }
+  if (!is.null(x$convergence_status)) {
+    cli::cli_text("convergence_status: {x$convergence_status}")
   }
   convergence_label <- drm_convergence_label(
     x$convergence,
@@ -6068,7 +6080,7 @@ drm_prediction_matrix <- function(object, newdata, dpar) {
   }
   if (
     identical(object$model$model_type, "cumulative_logit") &&
-      identical(dpar, "mu")
+      dpar %in% c("mu", "disc")
   ) {
     return(ordinal_mu_model_matrix(object$model$terms[[dpar]], newdata))
   }
@@ -6496,6 +6508,9 @@ ordinal_category_probabilities <- function(object, newdata = NULL, eta = NULL) {
     byrow = TRUE
   ) -
     eta
+  if ("disc" %in% names(object$coefficients)) {
+    z <- z * predict(object, newdata = newdata, dpar = "disc")
+  }
   log_cumulative <- stats::plogis(z, log.p = TRUE)
   log_prob <- matrix(NA_real_, nrow = n, ncol = n_categories)
   log_prob[, 1L] <- log_cumulative[, 1L]
@@ -6711,7 +6726,7 @@ drm_dpar_link <- function(object, dpar) {
     ),
     beta_binomial = c(mu = "logit", sigma = "log"),
     binomial = c(mu = if (is.null(object$model$link)) "logit" else object$model$link),
-    cumulative_logit = c(mu = "identity"),
+    cumulative_logit = c(mu = "identity", disc = "log"),
     poisson = c(mu = "log"),
     zi_poisson = c(mu = "log", zi = "logit"),
     nbinom2 = c(mu = "log", sigma = "log"),

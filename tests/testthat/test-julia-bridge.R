@@ -166,6 +166,72 @@ test_that("Julia bridge marshals one phylogenetic tree", {
   ))
 })
 
+test_that("phylo() tolerance is user-facing (#1158): default rejects, a looser value accepts", {
+  # Same balanced tree as above, but one tip edge is perturbed so tip depths
+  # differ by 1e-3 against a tree-height scale of 2 -- above the default
+  # sqrt(.Machine$double.eps) * scale bar, below a 1e-2 * scale bar.
+  tree <- structure(
+    list(
+      edge = matrix(
+        c(7, 5, 7, 6, 5, 1, 5, 2, 6, 3, 6, 4),
+        ncol = 2,
+        byrow = TRUE
+      ),
+      edge.length = c(1, 1, 1, 1 + 1e-3, 1, 1),
+      tip.label = paste0("sp_", 1:4),
+      Nnode = 3L
+    ),
+    class = "phylo"
+  )
+  dat <- data.frame(
+    y = seq_len(6),
+    x = seq(-1, 1, length.out = 6),
+    species = c("sp_3", "sp_1", "sp_4", "sp_2", "sp_1", "sp_3")
+  )
+  cache <- get("drm_julia_phylo_payload_cache", asNamespace("drmTMB"))
+  reset_cache <- function() {
+    rm(list = ls(cache, all.names = TRUE), envir = cache)
+  }
+  reset_cache()
+  on.exit(reset_cache(), add = TRUE)
+
+  default_form <- bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+  expect_error(
+    drmTMB:::drm_julia_phylo_payload(
+      formula = default_form,
+      family_type = "gaussian",
+      data = dat,
+      env = environment()
+    ),
+    class = "rlang_error"
+  )
+  reset_cache()
+
+  loose_form <- bf(
+    y ~ x + phylo(1 | species, tree = tree, tolerance = 1e-2),
+    sigma ~ 1
+  )
+  expect_no_error(
+    drmTMB:::drm_julia_phylo_payload(
+      formula = loose_form,
+      family_type = "gaussian",
+      data = dat,
+      env = environment()
+    )
+  )
+  reset_cache()
+
+  # Invalid tolerance values are rejected at parse time.
+  expect_error(
+    bf(y ~ x + phylo(1 | species, tree = tree, tolerance = -1), sigma ~ 1),
+    class = "rlang_error"
+  )
+  expect_error(
+    bf(y ~ x + phylo(1 | species, tree = tree, tolerance = "loose"), sigma ~ 1),
+    class = "rlang_error"
+  )
+})
+
 test_that("Julia bridge object exposes standard fitted-model methods", {
   result <- list(
     coef_names = c("mu_(Intercept)", "mu_x", "sigma_(Intercept)", "sigma_x"),
@@ -894,4 +960,38 @@ test_that("sdpars, sigma random intercept: the sigma-side random-effect SD is fi
   expect_length(ft$sdpars$mu, 0L)
   expect_true("sigma" %in% names(fj$sdpars))
   expect_true("sigma" %in% names(ft$sdpars))
+})
+
+# Issue #1570: bridge fits (class "drmTMB_julia", no "drmTMB" inheritance) had
+# no simulate() or predict_parameters() method, so both failed with base R's
+# "no applicable method" error. They now refuse by name, as heritability()
+# does, and point at engine = "tmb". A stub object keeps this Julia-free.
+test_that("simulate() and predict_parameters() refuse an engine = 'julia' fit by name", {
+  stub <- structure(list(nobs = 10L, df = 4L), class = "drmTMB_julia")
+  expect_error(
+    simulate(stub, nsim = 2),
+    class = "drmTMB_simulate_julia_unsupported"
+  )
+  expect_error(
+    predict_parameters(stub, newdata = data.frame(x = 1)),
+    class = "drmTMB_predict_parameters_julia_unsupported"
+  )
+  for (msg in list(
+    tryCatch(simulate(stub), error = conditionMessage),
+    tryCatch(predict_parameters(stub), error = conditionMessage)
+  )) {
+    expect_match(msg, "engine = \"julia\"", fixed = TRUE)
+    expect_match(msg, "engine = \"tmb\"", fixed = TRUE)
+  }
+  # The predict_parameters() refusal points at the SE route that does exist.
+  expect_match(
+    tryCatch(predict_parameters(stub), error = conditionMessage),
+    "vcov", fixed = TRUE
+  )
+  # The bridge's own quantile route temporarily appends "drmTMB" to the class
+  # so predict_parameters() reaches the native method; the refusal must not
+  # intercept that call.
+  extended <- structure(list(), class = c("drmTMB_julia", "drmTMB"))
+  err <- tryCatch(predict_parameters(extended), error = identity)
+  expect_false(inherits(err, "drmTMB_predict_parameters_julia_unsupported"))
 })
