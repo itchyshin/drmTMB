@@ -32,6 +32,7 @@ test-parity-matrix.R
 test-parity-pin.R
 test-parity-scoreboard.R
 test-phase18-actions-runner.R
+test-phylo-temporal-ou-gate-runner.R
 test-pkgdown-public-surface.R
 test-pkgdown-reference-index.R
 test-positive-continuous-structured-mu.R

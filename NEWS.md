@@ -348,6 +348,12 @@
   when residual `sigma` collapses into the temporal process, AR1 persistence
   reaches +/-1, or OU correlation is about 1 or about 0 at every observed lag,
   and `convergence_status()` then reports `"boundary"` for that fit.
+* Development only: `phylo(1 | species, tree = tree) + temporal(1 | species,
+  time = elapsed, structure = "ou")` fits a stable tree-correlated species
+  intercept plus independent within-species OU deviations
+  (`sd_phylo_stable`, `sd_temporal`, `decay_temporal`). A 300-tree study
+  supports point recovery only; no interval method is qualified for this
+  paired model. See `vignette("phylogenetic-temporal-effects")`.
 
 # drmTMB 0.7.1
 

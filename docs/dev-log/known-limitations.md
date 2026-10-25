@@ -67,6 +67,16 @@ revisit condition.
   3,000-fit OU campaign qualified those profiles in the exact U1--U3 cells;
   it is not a general temporal coverage claim. OU blocks Wald covariance and
   Wald intervals until the shared AR1 calibration prerequisite is resolved.
+  The paired `phylo(1 | species, tree = tree) + temporal(1 | species,
+  time = elapsed, structure = "ou")` Gaussian ML route is a separate,
+  point-fit development slice: it separates a stable tree-correlated species
+  intercept from independent within-species OU deviations. Its dense-likelihood,
+  methods, and fixed-mean profile identities pass. Its retained 24-fixture
+  recovery study missed the fixed-effect error threshold; the replacement G9b
+  study (24 contrast fixtures plus 300 trees) met its point-recovery criteria.
+  It has no qualified interval, forecast, `newdata`, variance, or
+  decay-inference claim; interval-calibration gates G10--G13 have not run. It is not the future
+  separable phylogeny-by-OU field.
 - Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
   unlabelled location (`mu`) random intercept (`mc-0060`) or independent
   slope (`mc-0062`). Its joint-Laplace result and uncertainty agree with the
