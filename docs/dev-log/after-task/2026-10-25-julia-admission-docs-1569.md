@@ -34,6 +34,7 @@ No likelihood, link, or parameterisation change. The registry in
 - `README.md`, `vignettes/julia-engine.Rmd`
 - `docs/design/01-formula-grammar.md`, `docs/dev-log/known-limitations.md`
 - `tests/testthat/test-julia-admission-docs.R`
+- `inst/extdata/env-skip-census.tsv`
 - `NEWS.md`
 - C17 receipt and ledger TSV
 
