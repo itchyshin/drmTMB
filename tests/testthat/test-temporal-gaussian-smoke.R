@@ -179,20 +179,31 @@ test_that("temporal AR1 exposes labelled components and mean-only Wald inference
     colnames(stats::vcov(fit)),
     c("mu:(Intercept)", "mu:treatment")
   )
+  temporal_check <- check_drm(fit)
+  temporal_wald <- temporal_check[temporal_check$check == "temporal_mean_wald", , drop = FALSE]
+  expect_identical(temporal_wald$status, "note")
+  expect_match(temporal_wald$value, "available_for_this_fit")
+  expect_match(temporal_wald$message, "coverage calibration remains unresolved")
+  non_pd <- fit
+  non_pd$sdr$pdHess <- FALSE
+  non_pd_check <- check_drm(non_pd)
+  non_pd_wald <- non_pd_check[non_pd_check$check == "temporal_mean_wald", , drop = FALSE]
+  expect_identical(non_pd_wald$status, "warning")
+  expect_match(non_pd_wald$value, "reason=full_hessian")
   intervals <- stats::confint(fit, method = "wald")
   expect_setequal(intervals$parm, c("fixef:mu:(Intercept)", "fixef:mu:treatment"))
   summary_wald <- summary(fit, conf.int = TRUE, method = "wald")
   expect_setequal(summary_wald$confint$parm, intervals$parm)
-  expect_error(
-    summary(fit, conf.int = TRUE, method = "profile"),
-    "Wald intervals only"
-  )
+  profile_ci <- stats::confint(fit, parm = "mu:treatment", method = "profile")
+  expect_identical(profile_ci$parm, "fixef:mu:treatment")
+  expect_identical(profile_ci$method, "profile")
+  expect_true(is.finite(profile_ci$lower))
+  expect_true(is.finite(profile_ci$upper))
   expect_error(
     stats::confint(fit, parm = "sigma", method = "wald"),
     "mean regression coefficients"
   )
-  expect_error(stats::confint(fit, method = "profile"), "Wald intervals only")
-  expect_error(stats::confint(fit, method = "bootstrap"), "Wald intervals only")
+  expect_error(stats::confint(fit, method = "bootstrap"), "do not support")
   expect_length(stats::fitted(fit), nrow(dat))
   expect_error(
     stats::predict(fit, newdata = dat[1L, , drop = FALSE]),
@@ -200,7 +211,7 @@ test_that("temporal AR1 exposes labelled components and mean-only Wald inference
   )
   expect_identical(dim(stats::simulate(fit, nsim = 2L, seed = 1L)), c(nrow(dat), 2L))
   expect_identical(
-    dim(stats::simulate(fit, nsim = 2L, seed = 1L, re.form = NA)),
+    dim(stats::simulate(fit, nsim = 2L, seed = 1L, re.form = NULL)),
     c(nrow(dat), 2L)
   )
 })

@@ -101,3 +101,26 @@ test_that("even-lag AR1 designs are told to rescale time by the common gap", {
   expect_identical(drmTMB:::temporal_integer_gcd(12L, 18L), 6L)
   expect_identical(Reduce(drmTMB:::temporal_integer_gcd, c(2L, 4L, 6L), 0L), 2L)
 })
+
+test_that("OU fits with elapsed gaps beyond the integer range do not warn", {
+  set.seed(11)
+  seconds <- c(0, 1, 3, 6) * 1e9
+  dat <- do.call(rbind, lapply(seq_len(20L), function(i) {
+    data.frame(id = sprintf("s%02d", i), t = seconds, x = stats::rnorm(4L))
+  }))
+  dat$y <- 0.3 * dat$x + rep(stats::rnorm(20L), each = 4L) + stats::rnorm(nrow(dat))
+  warnings <- character()
+  fit <- withCallingHandlers(
+    drmTMB(
+      bf(y ~ x + temporal(1 | id, time = t, structure = "ou")),
+      data = dat
+    ),
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_false(any(grepl("coercion to integer", warnings, fixed = TRUE)))
+  expect_true(all(drmTMB:::temporal_mu_tmb_data(fit$model)$temporal_mu_gap == 0L))
+  expect_true(is.finite(as.numeric(logLik(fit))))
+})

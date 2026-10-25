@@ -157,6 +157,8 @@ phylo_prior_tmb_data <- function(precision) {
       temporal_mu_node_index = 0L,
       temporal_mu_series_start = 0L,
       temporal_mu_gap = 0L,
+      temporal_mu_elapsed_gap = 0,
+      temporal_mu_structure = 0L,
       has_phylo_mu2 = 0L,
       phylo_mu2_node_index = 0L,
       phylo_mu2_value = dummy_matrix,

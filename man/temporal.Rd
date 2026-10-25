@@ -9,22 +9,26 @@ temporal(term, time, structure = "ar1")
 \arguments{
 \item{term}{Temporal random-effect term, currently \code{1 | id}.}
 
-\item{time}{Name of the integer occasion variable.}
+\item{time}{Name of the integer occasion (\code{"ar1"}) or numeric elapsed-time
+(\code{"ou"}) variable.}
 
-\item{structure}{Temporal covariance structure, currently \code{"ar1"}.}
+\item{structure}{Temporal covariance structure: \code{"ar1"} or \code{"ou"}.}
 }
 \value{
 A formula marker; never evaluated by users.
 }
 \description{
-\code{temporal()} adds a stationary Gaussian AR1 deviation for repeated
-observations within a sampled individual or site.  The first temporal slice
-is deliberately narrow: it accepts one intercept-only term, finite integer
-occasions, and the \code{"ar1"} structure.  An ordinary \code{(1 | id)} may accompany
-the marker to represent stable between-series differences separately from
-persistent within-series deviations.
+\code{temporal()} adds a stationary Gaussian deviation for repeated observations
+within a sampled individual or site. \code{structure = "ar1"} uses finite integer
+occasions and permits signed one-occasion persistence. \code{structure = "ou"}
+uses finite numeric elapsed time and estimates a positive decay rate, so
+correlation at a gap \code{d} is \code{exp(-decay * d)}. An ordinary \code{(1 | id)} may
+accompany either structure to represent stable between-series differences
+separately from persistent within-series deviations.
 }
 \examples{
 bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),
+   sigma ~ 1)
+bf(y ~ treatment + temporal(1 | id, time = elapsed, structure = "ou"),
    sigma ~ 1)
 }

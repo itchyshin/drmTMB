@@ -54,6 +54,14 @@ test_that("the scanner catches private slots regardless of object name", {
   )
 })
 
+test_that("the OU decay slot is policed like the correlation slot", {
+  root <- contract_fixture(files = list("reader.Rmd" = "ou_fit$decaypars$temporal"))
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Undeclared private access in reader.Rmd.*decaypars"
+  )
+})
+
 test_that("the scanner catches bracket private slots regardless of object name", {
   root <- contract_fixture(files = list("reader.Rmd" = 'x[["sdpars"]][["mu"]]'))
   expect_match(

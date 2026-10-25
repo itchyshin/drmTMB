@@ -31,8 +31,8 @@ test_that("temporal() rejects unsupported declarations at parse time", {
     drm_formula(y ~ temporal(1 | id, structure = "ar1")),
     "time"
   )
-  expect_error(
+  expect_s3_class(
     drm_formula(y ~ temporal(1 | id, time = occasion, structure = "ou")),
-    "ar1"
+    "drm_formula"
   )
 })

@@ -801,6 +801,19 @@ scouting belongs to Jason).
   alias documented on the `drm_formula` topic. The page rendered cleanly while
   the most prominent first function link was broken.
 
+## 2026-09-09 - Retain Campaign Evidence as Immutable Shards When Inodes Are Scarce
+
+- Improvement implemented: run each bounded campaign batch in node-local storage,
+  keep the CSV/RDS/session/error evidence intact, then atomically publish one
+  compressed immutable shard. Reverification extracts all shards and recomputes
+  the complete denominator without fitting again. Do not convert well-audited R
+  artifacts to JSON merely to reduce files.
+- Trigger: the Fir `def-snakagaw` project allocation reached its 500,000-file
+  inode quota despite having 759 GiB of byte capacity. The temporal OU campaign
+  would otherwise create about 24,000 loose worker artifacts plus scheduler logs.
+  The shard route needs about 62 durable files instead, but a full allocation
+  still needs a small inode cleanup before any source archive can be written.
+
 ## 2026-10-16 - Attribute `document()` Output Before Committing It
 
 - Improvement implemented: when a lane rule says to run `devtools::document()`
