@@ -20,6 +20,15 @@
 * `simulate()` and `predict_parameters()` on an `engine = "julia"` fit now stop
   with a drmTMB error that points to `engine = "tmb"` (or `vcov()`/`confint()`
   for coefficient SEs) instead of base R's "no applicable method" (#1570).
+
+* `fitted()` and `residuals()` on an `engine = "julia"` fit now follow
+  `?fitted.drmTMB` instead of the DRModels.jl value in the bridge slot, for
+  three routes where they differed silently from `engine = "tmb"` on the same
+  converged model: `lognormal()` (the mean `exp(mu + sigma^2 / 2)`, not the
+  median), `truncated_nbinom2()` (the truncated mean `mu / (1 - P_NB2(0))`,
+  not `mu`), and Gaussian `(1 | g)` (includes the fitted modes, so `fitted()`
+  now agrees with `predict(dpar = "mu")`). They are recomputed R-side from the
+  bridged distributional parameters (#1566).
 ## Test infrastructure
 
 * The numeric-kernel extreme-value oracle's `run_oracle()` helper
