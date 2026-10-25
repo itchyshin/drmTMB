@@ -413,6 +413,19 @@ drm_eval_family_arg <- function(expr, env) {
 #' q2-plus structured effects, profiling, intervals, coverage, or inference
 #' claims.
 #'
+#' Estimating `coi` needs both kinds of boundary value. If the response has
+#' exact zeroes but no exact ones (or exact ones but no exact zeroes), the
+#' `coi` likelihood is maximised at its boundary: the `coi` coefficient runs
+#' towards minus (or plus) infinity with a huge standard error, [check_drm()]
+#' reports the fit as `degenerate`, and [is_converged()] returns `FALSE`.
+#' `coi` cannot be dropped, because an omitted `coi` formula means `coi ~ 1`.
+#' The likelihood factorises into the interior beta part, the boundary
+#' probability `zoi`, and `coi`, so for such data fit the same model as two
+#' parts instead: `beta_family()` for the values strictly inside `(0, 1)` and
+#' `binomial()` for the indicator of an exact boundary value. The two parts
+#' give the same `mu`, `sigma`, and `zoi` estimates without the unidentified
+#' parameter. drmTMB has no ordered-beta family.
+#'
 #' @return A `drm_family` object.
 #' @export
 #'
@@ -561,6 +574,14 @@ cumulative_logit <- function() {
 #' (1 | group), zi ~ 1)` under ML with complete responses; zero-inflated
 #' sigma predictors, slopes, labels, and other random-effect combinations
 #' remain unsupported.
+#'
+#' NB2 models overdispersion only: `sigma` is positive, so the variance
+#' cannot fall below the Poisson limit `Var(y) = mu`. Counts that are
+#' underdispersed (variance smaller than the mean) push `sigma` to that
+#' boundary (limit), and the fit returns a degenerate result rather than a
+#' sub-Poisson variance. drmTMB has no underdispersed count family. For such
+#' data use `glmmTMB::compois()` (Conway-Maxwell-Poisson) or
+#' `glmmTMB::genpois()` (generalised Poisson).
 #'
 #' @return A `drm_family` object.
 #' @export

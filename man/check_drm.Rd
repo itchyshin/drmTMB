@@ -47,7 +47,9 @@ fits with random effects, known sampling covariance, phylogenetic location
 effects, or bivariate residual correlation \code{rho12}.
 }
 \details{
-The current checks cover optimizer convergence, finite objective values,
+The current checks cover the three-valued \code{convergence_status}
+(\code{ok} / \code{note} / \code{warning} for \code{"converged"} / \code{"boundary"} /
+\code{"degenerate"}), optimizer convergence, finite objective values,
 optimizer evaluation counts, fixed-parameter gradients including the largest
 gradient component label, whether
 \code{\link[TMB:sdreport]{TMB::sdreport()}} was computed, skipped, or failed, Hessian status from
@@ -64,7 +66,9 @@ only when \code{sdr$cov.fixed} itself is absent or incomplete (for example
 \code{drm_control(se = FALSE)}, or a failed \code{sdreport()}), finite fixed-effect standard errors, standard errors that
 are finite but inflated relative to the others despite a positive-definite
 Hessian (a weakly identified, near-flat direction such as a boundary
-correlation), dropped rows,
+correlation), whether a fixed-effect binomial, Poisson, or NB2 MLE exists
+and whether a continuous location-scale likelihood is unbounded
+(\code{mle_existence}), dropped rows,
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
 Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks,
@@ -127,7 +131,17 @@ fixed-gradient check is reported as a note because the TMB
 automatic-differentiation object is not available. If a fit used
 \code{drm_control(se = FALSE)}, the \code{sdreport_status}, Hessian, and
 finite-standard-error checks are reported as notes. If \code{sdreport()} was
-requested but failed, those rows are warnings.
+requested but failed, those rows are warnings. For Gaussian temporal fits,
+\code{temporal_mean_wald} separately records whether mean-coefficient Wald
+inference is available for this fit, unavailable because its full observed
+Hessian is not usable, or intentionally deferred for OU. The separate
+\code{temporal_mean_profile} row records whether fixed-effect profile intervals
+can be computed and whether the fitted Hessian makes their nuisance
+parameters locally irregular. \code{temporal_boundary} warns when residual
+\code{sigma} collapses below 1e-3 of the response SD, an OU decay leaves
+correlation at about 1 or 0 at every observed lag, or AR1 persistence
+exceeds 0.999 in absolute value; such fits report
+\code{convergence_status() == "boundary"}.
 
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as
