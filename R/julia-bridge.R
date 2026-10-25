@@ -4645,10 +4645,19 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   # crosses as a Julia array (or `nothing`) and is forwarded to DRM.drm_bridge.
   # Gaussian spatial coords are converted to native drmTMB's fixed-range K target
   # before crossing, then reconstructed under the user's spatial() label.
+  # Row-name labels (`K_labels` / `A_labels` + `structured_group`, #1512) are
+  # forwarded only when present, so a DRM.jl without those keywords still works
+  # for unlabelled matrices.
   drm_julia_setup_command(
     paste(
-      "drmTMB_drm_bridge_structured(formula, family, data, K, A, coords, options) =",
-      "drmTMB_backend.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options)"
+      "function drmTMB_drm_bridge_structured(formula, family, data, K, A, coords, options, K_labels = nothing, A_labels = nothing, structured_group = nothing)",
+      "    extra = Pair{Symbol,Any}[]",
+      "    K_labels === nothing || push!(extra, :K_labels => K_labels)",
+      "    A_labels === nothing || push!(extra, :A_labels => A_labels)",
+      "    structured_group === nothing || push!(extra, :structured_group => structured_group)",
+      "    return drmTMB_backend.drm_bridge(; formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options, extra...)",
+      "end",
+      sep = "\n"
     )
   )
   # DRM.jl's `drm_bridge_objective_at` (DRM.jl#590, `src/bridge.jl`, exported,
@@ -7704,6 +7713,8 @@ drmTMB_julia_biv_known_structured_bridge <- function(
   # is the intended target. `new_drmTMB_julia()` still cross-checks the label
   # against the engine's own `estim_method` before the fit is called REML.
   reml_effective <- isTRUE(REML) && drm_julia_biv_q2_reml_supported(formula)
+  # Incomplete rows were refused above (#1454), so the rows sent are the rows
+  # the K / A matrix is aligned to (#1512); no row drop is needed here.
   payload <- drm_julia_biv_known_structured_payload(
     formula = formula,
     family_type = family_type,
@@ -7717,7 +7728,9 @@ drmTMB_julia_biv_known_structured_bridge <- function(
     data = payload$data,
     matrix = payload$matrix,
     kwarg = payload$kwarg,
-    options = payload$options
+    options = payload$options,
+    matrix_labels = payload$matrix_labels,
+    structured_group = payload$structured_group
   )
   new_drmTMB_julia(
     result = result,
@@ -7853,7 +7866,9 @@ drm_julia_biv_known_structured_payload <- function(
   formula_spec <- drm_julia_formula_spec(formula)
   matrix <- resolved$matrix
   kwarg <- resolved$kwarg
+  matrix_labels <- resolved$labels
   if (identical(type, "spatial")) {
+    matrix_labels <- NULL
     native_spatial <- drm_spatial_coords_precision(
       matrix,
       site = data[[groups[[1L]]]],
@@ -7907,6 +7922,8 @@ drm_julia_biv_known_structured_payload <- function(
     coef_labels = coef_labels,
     matrix = matrix,
     kwarg = kwarg,
+    matrix_labels = matrix_labels,
+    structured_group = if (is.null(matrix_labels)) NULL else groups[[1L]],
     options = options,
     row_order = NULL,
     structured_sd_scales = stats::setNames(rep(1, length(labels)), labels),
@@ -7964,6 +7981,10 @@ drmTMB_julia_structured_bridge <- function(
   }
 
   family_tag <- drm_julia_structured_family_tag(family_type)
+  # Under response = "drop" the incomplete rows were already dropped above by
+  # drm_julia_drop_structured_missing() (#1454), which aborts if a grouping level
+  # would be lost. The K / A matrix is therefore aligned (#1512) to the levels of
+  # the rows actually sent.
   payload <- drm_julia_structured_payload(
     formula = formula,
     family_type = family_type,
@@ -7977,7 +7998,9 @@ drmTMB_julia_structured_bridge <- function(
     data = payload$data,
     matrix = payload$matrix,
     kwarg = payload$kwarg,
-    options = payload$options
+    options = payload$options,
+    matrix_labels = payload$matrix_labels,
+    structured_group = payload$structured_group
   )
   new_drmTMB_julia(
     result = result,
@@ -8062,7 +8085,9 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
   formula_spec <- drm_julia_formula_spec(formula)
   matrix <- resolved$matrix
   kwarg <- resolved$kwarg
+  matrix_labels <- resolved$labels
   if (identical(term$type, "spatial") && identical(family_type, "gaussian")) {
+    matrix_labels <- NULL
     native_spatial <- drm_spatial_coords_precision(
       matrix,
       site = data[[term$group]],
@@ -8103,6 +8128,8 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
     coef_labels = coef_labels,
     matrix = matrix,
     kwarg = kwarg,
+    matrix_labels = matrix_labels,
+    structured_group = if (is.null(matrix_labels)) NULL else term$group,
     options = options,
     structured_sd_scales = stats::setNames(1, term$label)
   )
@@ -8160,10 +8187,24 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
     ))
   }
   matrix <- drm_julia_as_matrix(value)
+  labels <- NULL
   if (!all(is.finite(matrix))) {
     cli::cli_abort(
       "{.code engine = \"julia\"} requires finite values in the {.fn {type}} {.arg {slot}} matrix."
     )
+  }
+  if (!identical(kwarg, "coords") && nrow(matrix) == ncol(matrix)) {
+    # DRModels.jl pairs row i of K / A with the i-th group in first-appearance
+    # order and never sees names, so align by name here (drmTMB#1512).
+    aligned <- drm_julia_align_structured_matrix(
+      matrix = matrix,
+      dimnames = dimnames(as.matrix(value)),
+      group = data[[term$group]],
+      type = type,
+      slot = slot
+    )
+    matrix <- aligned$matrix
+    labels <- aligned$labels
   }
   if (identical(kwarg, "coords")) {
     if (ncol(matrix) < 1L) {
@@ -8177,7 +8218,87 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
       x = "Got a {nrow(matrix)} x {ncol(matrix)} matrix."
     ))
   }
-  list(matrix = matrix, kwarg = kwarg)
+  list(matrix = matrix, kwarg = kwarg, labels = labels)
+}
+
+# Reorder a labelled square K / A matrix to the first-appearance order of the
+# grouping variable, the order DRModels.jl assumes. Names are matched as
+# character, so numeric and factor ids behave like the native engine.
+# - labelled, alignable: rows and columns reordered (extra labels are dropped);
+# - labelled but not alignable (duplicated, row/column names disagree, or a
+#   group level missing): classed error `drmTMB_julia_structured_labels`;
+# - unlabelled: unchanged, with the classed warning
+#   `drmTMB_julia_unlabelled_structured_matrix`, because the order cannot be
+#   checked.
+drm_julia_align_structured_matrix <- function(
+  matrix,
+  dimnames,
+  group,
+  type,
+  slot
+) {
+  rn <- dimnames[[1L]]
+  cn <- dimnames[[2L]]
+  levels_in_data <- unique(drm_julia_group_key(group[!is.na(group)]))
+  if (is.null(rn) && is.null(cn)) {
+    cli::cli_warn(
+      c(
+        "{.code engine = \"julia\"} cannot check the order of the unlabelled {.fn {type}} {.arg {slot}} matrix.",
+        i = "Rows are paired with the grouping levels in order of first appearance in {.arg data}. Give {.arg {slot}} row and column names to match by name."
+      ),
+      class = "drmTMB_julia_unlabelled_structured_matrix"
+    )
+    return(list(matrix = matrix, labels = NULL))
+  }
+  if (is.null(rn) || is.null(cn) || !identical(rn, cn)) {
+    cli::cli_abort(
+      c(
+        "{.code engine = \"julia\"} requires the {.fn {type}} {.arg {slot}} matrix to have identical row and column names.",
+        i = "Set {.code rownames({slot}) <- colnames({slot})}, or drop both to use first-appearance order."
+      ),
+      class = "drmTMB_julia_structured_labels"
+    )
+  }
+  if (anyDuplicated(rn) > 0L) {
+    dup <- unique(rn[duplicated(rn)])
+    cli::cli_abort(
+      c(
+        "{.fn {type}} {.arg {slot}} matrix has duplicated names: {.val {utils::head(dup, 5L)}}.",
+        i = "Row and column names must identify each individual once."
+      ),
+      class = "drmTMB_julia_structured_labels"
+    )
+  }
+  absent <- setdiff(levels_in_data, rn)
+  if (length(absent) > 0L) {
+    cli::cli_abort(
+      c(
+        "{.fn {type}} {.arg {slot}} matrix has no row for {length(absent)} grouping level{?s}: {.val {utils::head(absent, 5L)}}.",
+        i = "Every level of the grouping variable must appear in the matrix names."
+      ),
+      class = "drmTMB_julia_structured_labels"
+    )
+  }
+  idx <- match(levels_in_data, rn)
+  list(matrix = matrix[idx, idx, drop = FALSE], labels = rn[idx])
+}
+
+# Character key for a grouping vector, the form K / A row names are matched in
+# and the form DRModels.jl re-derives from the column it receives. Integer-valued
+# doubles are written without a decimal point or exponent (R's as.character()
+# gives "1e+05" for 100000 and DRModels.jl's string(1.0) gives "1.0"; both sides
+# normalise to "100000" / "1").
+drm_julia_group_key <- function(x) {
+  if (is.factor(x)) {
+    return(as.character(x))
+  }
+  if (is.double(x)) {
+    whole <- is.finite(x) & x == trunc(x) & abs(x) < 1e15
+    out <- as.character(x)
+    out[whole] <- sprintf("%.0f", x[whole])
+    return(out)
+  }
+  as.character(x)
 }
 
 drm_julia_structured_reject_slot <- function(type, slot, expected, kind) {
@@ -8194,7 +8315,9 @@ drm_julia_call_structured <- function(
   data,
   matrix,
   kwarg,
-  options = list()
+  options = list(),
+  matrix_labels = NULL,
+  structured_group = NULL
 ) {
   if (!requireNamespace("JuliaCall", quietly = TRUE)) {
     cli::cli_abort(c(
@@ -8207,6 +8330,12 @@ drm_julia_call_structured <- function(
   K <- if (identical(kwarg, "K")) matrix else NULL
   A <- if (identical(kwarg, "A")) matrix else NULL
   coords <- if (identical(kwarg, "coords")) matrix else NULL
+  # Row names of the K / A matrix cross as `K_labels` / `A_labels` (a list of
+  # single strings, so JuliaCall never unboxes a length-1 vector) together with
+  # the grouping column, and DRModels.jl re-aligns by name or refuses (#1512).
+  has_labels <- length(matrix_labels) > 0L && !is.null(structured_group)
+  K_labels <- if (has_labels && identical(kwarg, "K")) as.list(matrix_labels)
+  A_labels <- if (has_labels && identical(kwarg, "A")) as.list(matrix_labels)
   JuliaCall::julia_call(
     "drmTMB_drm_bridge_structured",
     formula,
@@ -8215,7 +8344,10 @@ drm_julia_call_structured <- function(
     K,
     A,
     coords,
-    if (length(options) == 0L) NULL else options
+    if (length(options) == 0L) NULL else options,
+    K_labels,
+    A_labels,
+    if (has_labels) structured_group
   )
 }
 
