@@ -105,3 +105,17 @@ test_that("predict(type = 'mean') refuses dpar and leaves other types alone", {
     predict(fit, dpar = "mu", type = "link")
   )
 })
+
+test_that("predict(type = mean) gives a clear error for bivariate fits", {
+  set.seed(20261025)
+  n <- 120
+  dat <- data.frame(x = stats::rnorm(n))
+  dat$y1 <- 0.3 + 0.5 * dat$x + stats::rnorm(n)
+  dat$y2 <- -0.2 - 0.4 * dat$x + stats::rnorm(n)
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    family = biv_gaussian(),
+    data = dat
+  )
+  expect_error(predict(fit, type = "mean"), "Bivariate fits have no single response mean")
+})
