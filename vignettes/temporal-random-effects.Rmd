@@ -1,8 +1,8 @@
 ---
-title: "Temporal AR1 and OU random effects"
+title: "Temporal AR1, OU, and Toeplitz effects"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Temporal AR1 and OU random effects}
+  %\VignetteIndexEntry{Temporal AR1, OU, and Toeplitz effects}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -168,6 +168,91 @@ finite integer time column, retain its real gaps, and ensure that every
 site--occasion pair is unique. If a site was measured more than once at an
 occasion, aggregate those records before fitting. An AR1-only fit omits `(1 | site)` but keeps the
 same `temporal()` term.
+
+## Free correlation by discrete lag with homogeneous Toeplitz
+
+Use homogeneous Toeplitz covariance when every site is measured at the same
+complete, equally spaced set of discrete occasions and the scientific question
+is whether correlation departs from AR1's exponential pattern. It estimates a
+separate correlation for each lag: visits one occasion apart share
+`cor_lag1`, visits two occasions apart share `cor_lag2`, and so on. This is
+more flexible than AR1, so it needs a common panel rather than the irregular
+or incomplete schedules accepted by AR1 and OU, and at least as many series
+as occasions. That is only a floor: the interval evidence below comes from
+80-series panels.
+
+The example below simulates 80 sites, each visited at the same six equally
+spaced occasions. Its lag correlations (0.60, 0.45, 0.40, 0.30, 0.20) decay
+more slowly than an AR1 pattern with the same first-lag value would
+(0.60, 0.36, 0.22, 0.13, 0.08).
+
+```{r}
+set.seed(20261002)
+n_site_toep <- 80
+toep_occasions <- 0:5
+true_cor_lag <- c(0.60, 0.45, 0.40, 0.30, 0.20)
+R_toep <- stats::toeplitz(c(1, true_cor_lag))
+total_sd <- 0.80
+
+complete_regular_panel <- data.frame(
+  site = factor(rep(sprintf("site_%02d", seq_len(n_site_toep)),
+                    each = length(toep_occasions))),
+  occasion = rep(toep_occasions, n_site_toep),
+  treatment = rep(rep(c(0, 1), length.out = length(toep_occasions)),
+                  n_site_toep)
+)
+within_site <- unlist(lapply(seq_len(n_site_toep), function(i) {
+  as.vector(t(chol(R_toep)) %*% rnorm(length(toep_occasions), sd = total_sd))
+}), use.names = FALSE)
+complete_regular_panel$y <- 1.0 + 0.40 * complete_regular_panel$treatment +
+  within_site
+
+toeplitz_fit <- drmTMB(
+  bf(
+    y ~ treatment + temporal(1 | site, time = occasion, structure = "homtoep"),
+    sigma ~ 1
+  ),
+  data = complete_regular_panel,
+  family = gaussian(),
+  REML = FALSE
+)
+
+toeplitz_parameters <- summary(toeplitz_fit)$parameters
+lag_rows <- startsWith(rownames(toeplitz_parameters), "cor:temporal:")
+toeplitz_estimates <- c(
+  logLik = as.numeric(logLik(toeplitz_fit)),
+  coef(toeplitz_fit, "mu"),
+  sigma_total = unname(sigma(toeplitz_fit)[1L]),
+  setNames(
+    toeplitz_parameters$estimate[lag_rows],
+    toeplitz_parameters$term[lag_rows]
+  )
+)
+round(toeplitz_estimates, 4)
+
+confint(
+  toeplitz_fit,
+  parm = "mu:treatment",
+  method = "profile",
+  profile_engine = "tmbprofile"
+)
+check_drm(toeplitz_fit)
+```
+
+Here `sigma` is the total within-site SD of the Toeplitz covariance. The model
+does not separately estimate a temporal-process SD, an independent residual
+SD, or an ordinary `(1 | site)` intercept, because those components are not
+separately identifiable when the correlation at every lag is free. The profile
+interval applies only to mean regression effects such as `mu:treatment`.
+Wald, total-scale, and lag-correlation intervals remain unavailable.
+
+A retained 4,000-fit campaign qualified these mean-effect profiles in three
+predeclared 80-site, six-occasion panels: AR1-shaped, non-exponential, and
+negative first-lag correlation patterns. The 20-site stress panel had lower
+intercept coverage, so this is evidence for those primary panel designs, not a
+coverage claim for every Toeplitz analysis. Use `check_drm(toeplitz_fit)` and
+inspect the profile before reporting an interval. If elapsed gaps are genuinely
+irregular, use OU instead.
 
 ## Irregular elapsed time with OU
 

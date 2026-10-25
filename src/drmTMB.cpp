@@ -1296,34 +1296,41 @@ Type objective_function<Type>::operator()()
       }
     }
 
-    if (has_temporal_mu == 1) {
+    // AR1 and OU retain a latent temporal process. Homogeneous Toeplitz is an
+    // identified *marginal* covariance model: a free Toeplitz correlation plus
+    // a separately estimated iid residual scale has an exact covariance ridge
+    // at one observation per series--occasion, so it is evaluated directly in
+    // the Gaussian likelihood below.
+    if (has_temporal_mu == 1 && temporal_mu_structure != 3) {
       Type sd_temporal = exp(log_sd_temporal(0));
       Type phi_temporal = tanh(theta_temporal(0));
       Type decay_temporal = exp(theta_temporal(0));
-      for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
-        int first = temporal_mu_series_start(series);
-        int last_exclusive = temporal_mu_series_start(series + 1);
-        nll -= dnorm(u_temporal(first), Type(0.0), Type(1.0), true);
-        for (int node = first + 1; node < last_exclusive; ++node) {
-          Type transition;
-          Type transition_sd;
-          if (temporal_mu_structure == 1) {
-            transition = drm_integer_power(phi_temporal, temporal_mu_gap(node));
-            transition_sd = drm_ar1_transition_sd(
-              theta_temporal(0), phi_temporal, temporal_mu_gap(node)
+      {
+        for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
+          int first = temporal_mu_series_start(series);
+          int last_exclusive = temporal_mu_series_start(series + 1);
+          nll -= dnorm(u_temporal(first), Type(0.0), Type(1.0), true);
+          for (int node = first + 1; node < last_exclusive; ++node) {
+            Type transition;
+            Type transition_sd;
+            if (temporal_mu_structure == 1) {
+              transition = drm_integer_power(phi_temporal, temporal_mu_gap(node));
+              transition_sd = drm_ar1_transition_sd(
+                theta_temporal(0), phi_temporal, temporal_mu_gap(node)
+              );
+            } else {
+              transition = exp(-decay_temporal * temporal_mu_elapsed_gap(node));
+              transition_sd = sqrt(drm_one_minus_exp_neg(
+                Type(2.0) * decay_temporal * temporal_mu_elapsed_gap(node)
+              ));
+            }
+            nll -= dnorm(
+              u_temporal(node),
+              transition * u_temporal(node - 1),
+              transition_sd,
+              true
             );
-          } else {
-            transition = exp(-decay_temporal * temporal_mu_elapsed_gap(node));
-            transition_sd = sqrt(drm_one_minus_exp_neg(
-              Type(2.0) * decay_temporal * temporal_mu_elapsed_gap(node)
-            ));
           }
-          nll -= dnorm(
-            u_temporal(node),
-            transition * u_temporal(node - 1),
-            transition_sd,
-            true
-          );
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -2784,6 +2791,67 @@ Type objective_function<Type>::operator()()
       }
       density::MVNORM_t<Type> neg_log_density(Omega);
       nll += neg_log_density(y - mu);
+    } else if (has_temporal_mu == 1 && temporal_mu_structure == 3) {
+      // Marginal homogeneous Toeplitz covariance: beta_sigma is the total
+      // within-series SD and no independent residual component is estimated.
+      //
+      // R is parameterised by partial autocorrelations r_m = tanh(theta_m).
+      // The likelihood is evaluated by the Durbin--Levinson prediction-error
+      // decomposition instead of a Cholesky factor of sigma^2 R: each series
+      // contributes sum_t [log(sigma) + 0.5 log v_t + e_t^2 / (2 sigma^2 v_t)]
+      // with one-step prediction errors e_t and innovation variances
+      // v_t = prod_{m <= t} (1 - r_m^2). log v_t is accumulated from the
+      // stable log(sech(theta)) (1 - r^2 = sech^2), so it stays exact when
+      // tanh(theta) rounds to +/-1, where forming R and factorising it can
+      // lose positive definiteness in floating point.
+      int n_occ = theta_temporal.size() + 1;
+      vector<Type> log_innovation(n_occ);
+      log_innovation(0) = Type(0.0);
+      for (int m = 0; m < n_occ - 1; ++m) {
+        log_innovation(m + 1) = log_innovation(m) +
+          Type(2.0) * drm_log_sech(theta_temporal(m));
+      }
+      // ar_order(t, j): coefficient on lag j + 1 of the order-t predictor.
+      matrix<Type> ar_order(n_occ, n_occ);
+      ar_order.setZero();
+      vector<Type> rho(n_occ);
+      rho(0) = Type(1.0);
+      for (int m = 0; m < n_occ - 1; ++m) {
+        Type reflection = tanh(theta_temporal(m));
+        Type prediction = Type(0.0);
+        for (int j = 0; j < m; ++j) prediction += ar_order(m, j) * rho(m - j);
+        rho(m + 1) = prediction + reflection * exp(log_innovation(m));
+        ar_order(m + 1, m) = reflection;
+        for (int j = 0; j < m; ++j) {
+          ar_order(m + 1, j) = ar_order(m, j) - reflection * ar_order(m, m - 1 - j);
+        }
+      }
+      Type log_sd_total = log(sigma(0));
+      Type variance_total = sigma(0) * sigma(0);
+      const Type half_log_two_pi = Type(0.5) * log(Type(2.0) * Type(M_PI));
+      // The temporal node layout has exactly one observed response per node.
+      // Reverse it once so each series is evaluated in O(K^2), rather than
+      // repeatedly scanning all observations (O(n * number_of_series)).
+      vector<int> observation_for_node(y.size());
+      for (int i = 0; i < y.size(); ++i) {
+        observation_for_node(temporal_mu_node_index(i)) = i;
+      }
+      vector<Type> residual(n_occ);
+      for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
+        int first = temporal_mu_series_start(series);
+        for (int node = 0; node < n_occ; ++node) {
+          int observation = observation_for_node(first + node);
+          residual(node) = y(observation) - mu(observation);
+        }
+        for (int t = 0; t < n_occ; ++t) {
+          Type prediction = Type(0.0);
+          for (int j = 0; j < t; ++j) prediction += ar_order(t, j) * residual(t - 1 - j);
+          Type error = residual(t) - prediction;
+          nll += half_log_two_pi + log_sd_total + Type(0.5) * log_innovation(t) +
+            Type(0.5) * error * error * exp(-log_innovation(t)) / variance_total;
+        }
+      }
+      REPORT(rho);
     } else {
       for (int i = 0; i < y.size(); ++i) {
         if (

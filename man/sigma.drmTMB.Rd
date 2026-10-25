@@ -23,7 +23,9 @@ univariate Gaussian location-scale models this is the fitted residual
 Student-t scale parameter; when \code{nu > 2}, the residual standard deviation is
 \code{sigma * sqrt(nu / (nu - 2))}. For skew-normal models this is the response
 standard deviation under the public moment parameterization, not the native
-Azzalini scale \code{omega}. For lognormal models this is the fitted
+Azzalini scale \code{omega}. For a Gaussian homogeneous Toeplitz temporal model,
+it is the total within-series standard deviation of the marginal covariance
+\verb{sigma^2 R}, rather than an independent residual SD. For lognormal models this is the fitted
 standard deviation of \code{log(y)}. For Gamma models this is the fitted
 coefficient of variation. For Tweedie models this is the public scale
 parameter where internal dispersion is \code{phi = sigma^2}. For beta,

@@ -329,7 +329,7 @@ drmTMB <- function(
   formula_env <- drm_formula_env(formula, parent.frame())
   if (identical(engine, "julia") && drm_formula_has_temporal(formula)) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU effects are implemented only by the native TMB Gaussian route.",
+      "Temporal AR1, OU, and homtoep effects are implemented only by the native TMB Gaussian route.",
       "i" = "Use {.code engine = \"tmb\"} with {.code family = gaussian()}."
     ))
   }
@@ -385,13 +385,13 @@ drmTMB <- function(
   family_type <- drm_family_type(family)
   if (drm_formula_has_temporal(formula) && !identical(family_type, "gaussian")) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU effects are implemented only for univariate Gaussian models.",
+      "Temporal AR1, OU, and homtoep effects are implemented only for univariate Gaussian models.",
       "i" = "Use {.code family = gaussian()} with a temporal term in the {.code mu} formula."
     ))
   }
   if (drm_formula_has_temporal(formula) && isTRUE(REML)) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU Gaussian models currently use maximum likelihood.",
+      "Temporal AR1, OU, and homtoep Gaussian models currently use maximum likelihood.",
       "i" = "Set {.code REML = FALSE}."
     ))
   }
@@ -688,7 +688,7 @@ drm_fit_spec <- function(
       isTRUE(spec$structured$temporal_mu$has)
   ) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU models are currently implemented with maximum likelihood only.",
+      "Temporal AR1, OU, and homtoep models are currently implemented with maximum likelihood only.",
       "i" = "Use {.code REML = FALSE}."
     ))
   }
@@ -778,6 +778,15 @@ drm_fit_spec <- function(
         function(start) tanh(start[[theta_position]]),
         numeric(1L)
       )
+    } else if (identical(temporal_structure, "homtoep")) {
+      theta_positions <- which(names(obj$par) == "theta_temporal")
+      for (lag in seq_along(theta_positions)) {
+        optimizer$start_attempts[[paste0("partial_autocorrelation_lag", lag, "_start")]] <- vapply(
+          temporal_starts,
+          function(start) tanh(start[[theta_positions[[lag]]]]),
+          numeric(1L)
+        )
+      }
     } else {
       optimizer$start_attempts$decay_start <- vapply(
         temporal_starts,
@@ -1078,6 +1087,15 @@ drm_temporal_persistence_starts <- function(obj, temporal) {
     positive[[position]] <- atanh(0.3)
     negative[[position]] <- -atanh(0.3)
     return(list(positive, negative))
+  }
+  if (identical(temporal$structure, "homtoep")) {
+    positions <- which(names(obj$par) == "theta_temporal")
+    if (length(positions) != temporal$n_occasions - 1L) {
+      cli::cli_abort("Internal HOMTOEP start error: the native parameter count does not match the schedule.")
+    }
+    start <- obj$par
+    start[positions] <- atanh(0.3)
+    return(list(start))
   }
   positive_gaps <- temporal$gap[temporal$gap > 0]
   reference_gap <- stats::median(positive_gaps)
@@ -4264,7 +4282,7 @@ drm_build_gaussian_ls_spec <- function(
   validate_temporal_raw_data(mu_temporal$term, data)
   if (!is.null(mu_temporal$term) && !is.null(weights) && any(weights != 1)) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU Gaussian models currently require unit likelihood weights.",
+      "Temporal AR1, OU, and homtoep Gaussian models currently require unit likelihood weights.",
       "i" = "Remove {.arg weights} or supply one weight for every observation while the unweighted marginal covariance route is fitted."
     ))
   }
@@ -4279,7 +4297,7 @@ drm_build_gaussian_ls_spec <- function(
       isTRUE(control$aggregate_gaussian)
   )) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU Gaussian models do not support this additional modelling feature yet.",
+      "Temporal AR1, OU, and homtoep Gaussian models do not support this additional modelling feature yet.",
       "i" = "Use fixed mean predictors and offsets, {.code sigma ~ 1}, and at most one matching {.code (1 | id)} intercept."
     ))
   }
@@ -4289,7 +4307,7 @@ drm_build_gaussian_ls_spec <- function(
     logical(1)
   ))) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU effects are only implemented for the Gaussian {.code mu} formula.",
+      "Temporal AR1, OU, and homtoep effects are only implemented for the Gaussian {.code mu} formula.",
       "i" = "Use {.code y ~ temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code y ~ temporal(1 | id, time = elapsed, structure = \"ou\")}, with {.code sigma ~ 1}."
     ))
   }
@@ -4351,7 +4369,7 @@ drm_build_gaussian_ls_spec <- function(
   if (!is.null(mu_temporal$term) && length(active_structured) > 0L &&
       !isTRUE(paired_phylo_temporal_ou)) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU models cannot be combined with another structured effect in this slice.",
+      "Temporal AR1, OU, and homtoep models cannot be combined with another structured effect in this slice.",
       "x" = "The model also contains {.val {active_structured}}.",
       "i" = "The only admitted combined route is {.code phylo(1 | species, tree = tree) + temporal(1 | species, time = elapsed, structure = \"ou\")}."
     ))
@@ -4820,13 +4838,23 @@ drm_build_gaussian_ls_spec <- function(
       temporal_var <- 1
     }
     component_sd <- sqrt(temporal_var / temporal_components)
-    start$beta_sigma[[1L]] <- log(component_sd)
-    if (length(mu_re$terms) == 1L) {
-      start$log_sd_mu[] <- log(component_sd)
+    if (identical(temporal_mu$structure, "homtoep")) {
+      # Kept at their declared dimensions so TMB can apply the fixed map.
+      start$u_temporal <- numeric(temporal_mu$n_re)
+      start$log_sd_temporal <- 0
+    } else {
+      start$beta_sigma[[1L]] <- log(component_sd)
+      if (length(mu_re$terms) == 1L) {
+        start$log_sd_mu[] <- log(component_sd)
+      }
+      start$u_temporal <- numeric(temporal_mu$n_re)
+      start$log_sd_temporal <- log(component_sd)
     }
-    start$u_temporal <- numeric(temporal_mu$n_re)
-    start$log_sd_temporal <- log(component_sd)
-    start$theta_temporal <- atanh(0.3)
+    start$theta_temporal <- if (identical(temporal_mu$structure, "homtoep")) {
+      rep(atanh(0.3), temporal_mu$n_occasions - 1L)
+    } else {
+      atanh(0.3)
+    }
   }
   if (isTRUE(mesh_spatial_mu$has)) {
     start$u_phylo2 <- numeric(mesh_spatial_mu$n_re)
@@ -4981,7 +5009,7 @@ drm_build_gaussian_ls_spec <- function(
       if (re_cov_blocks$n_qgt2_re > 0L) "u_re_cov",
       if (isTRUE(phylo_mu$has)) "u_phylo",
       if (isTRUE(mesh_spatial_mu$has)) "u_phylo2",
-      if (isTRUE(temporal_mu$has)) "u_temporal",
+      if (isTRUE(temporal_mu$has) && !identical(temporal_mu$structure, "homtoep")) "u_temporal",
       if (
         include_missing_predictor &&
           identical(missing_predictor$family, "gaussian")
@@ -20627,6 +20655,13 @@ gaussian_ls_map <- function(
     out$log_sd_temporal <- factor(NA)
     out$theta_temporal <- factor(NA)
   }
+  if (isTRUE(temporal_mu$has) && identical(temporal_mu$structure, "homtoep")) {
+    # Homogeneous Toeplitz is a direct marginal covariance. Its total SD is
+    # beta_sigma; latent states and a second temporal SD would recreate the
+    # residual/process non-identifiability that this route avoids.
+    out$u_temporal <- factor(rep(NA, temporal_mu$n_re))
+    out$log_sd_temporal <- factor(NA)
+  }
   if (isTRUE(phylo_mu$has) && sd_phylo$n_models > 0L) {
     out$log_sd_phylo <- factor(NA)
   }
@@ -22951,7 +22986,8 @@ split_tmb_sdpars <- function(par, spec) {
   }
   if (
     is.list(spec$structured$temporal_mu) &&
-      isTRUE(spec$structured$temporal_mu$has)
+      isTRUE(spec$structured$temporal_mu$has) &&
+      !identical(spec$structured$temporal_mu$structure, "homtoep")
   ) {
     temporal <- spec$structured$temporal_mu
     out$mu <- c(
@@ -23151,6 +23187,18 @@ split_tmb_corpars <- function(par, spec) {
     temporal <- spec$structured$temporal_mu
     temporal_parameter <- tanh(unname(par$theta_temporal[[1L]]))
     out$temporal <- stats::setNames(temporal_parameter, temporal$label)
+  }
+  if (
+    is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has) &&
+      identical(spec$structured$temporal_mu$structure, "homtoep")
+  ) {
+    temporal <- spec$structured$temporal_mu
+    rho <- temporal_homtoep_correlations(unname(par$theta_temporal))[-1L]
+    out$temporal <- stats::setNames(
+      rho,
+      paste0("cor_lag", seq_along(rho))
+    )
   }
   if (is.list(spec$random$covariance_blocks)) {
     rho_re_cov <- covariance_block_correlations_from_par(
@@ -23414,7 +23462,8 @@ split_tmb_random_effects <- function(par, spec) {
   }
   if (
     is.list(spec$structured$temporal_mu) &&
-      isTRUE(spec$structured$temporal_mu$has)
+      isTRUE(spec$structured$temporal_mu$has) &&
+      !identical(spec$structured$temporal_mu$structure, "homtoep")
   ) {
     temporal <- spec$structured$temporal_mu
     latent <- unname(par$u_temporal[seq_len(temporal$n_re)])

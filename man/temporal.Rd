@@ -2,29 +2,37 @@
 % Please edit documentation in R/formula-markers.R
 \name{temporal}
 \alias{temporal}
-\title{Temporal random-effect marker}
+\title{Temporal structure marker}
 \usage{
 temporal(term, time, structure = "ar1")
 }
 \arguments{
-\item{term}{Temporal random-effect term, currently \code{1 | id}.}
+\item{term}{Temporal structure term, currently \code{1 | id}.}
 
-\item{time}{Name of the integer occasion (\code{"ar1"}) or numeric elapsed-time
-(\code{"ou"}) variable.}
+\item{time}{Name of the integer occasion (\code{"ar1"} or \code{"homtoep"}) or
+numeric elapsed-time (\code{"ou"}) variable.}
 
-\item{structure}{Temporal covariance structure: \code{"ar1"} or \code{"ou"}.}
+\item{structure}{Temporal covariance structure: \code{"ar1"}, \code{"ou"}, or
+\code{"homtoep"}.}
 }
 \value{
 A formula marker; never evaluated by users.
 }
 \description{
-\code{temporal()} adds a stationary Gaussian deviation for repeated observations
+\code{temporal()} adds a Gaussian temporal structure for repeated observations
 within a sampled individual or site. \code{structure = "ar1"} uses finite integer
 occasions and permits signed one-occasion persistence. \code{structure = "ou"}
 uses finite numeric elapsed time and estimates a positive decay rate, so
-correlation at a gap \code{d} is \code{exp(-decay * d)}. An ordinary \code{(1 | id)} may
-accompany either structure to represent stable between-series differences
-separately from persistent within-series deviations.
+correlation at a gap \code{d} is \code{exp(-decay * d)}. \code{structure = "homtoep"}
+uses a common, complete, equally spaced integer schedule and estimates one
+correlation for each discrete lag. It is a marginal covariance model: its
+\code{sigma} is the total within-series SD, with no separately estimated iid
+residual SD or temporal conditional mode. An ordinary \code{(1 | id)} may
+accompany AR1 or OU to represent stable between-series differences separately
+from persistent within-series deviations; it is deferred for homogeneous
+Toeplitz covariance. Homogeneous Toeplitz fits provide likelihood-profile
+intervals for mean regression coefficients only. Scale and lag-correlation
+intervals remain unavailable.
 
 Development only: with \code{structure = "ou"}, \code{temporal()} may be paired with
 \code{phylo(1 | species, tree = tree)} on the same grouping column. That fits a
@@ -40,5 +48,7 @@ point estimates only: its intervals are not calibrated.
 bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),
    sigma ~ 1)
 bf(y ~ treatment + temporal(1 | id, time = elapsed, structure = "ou"),
+   sigma ~ 1)
+bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "homtoep"),
    sigma ~ 1)
 }
