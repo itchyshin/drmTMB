@@ -90,8 +90,9 @@
   `drmTMB_mi_quadrature_guard_nonfinite` instead of returning the fit with no
   signal (refs #1532).
 
-* Gamma `mi()` missing-x rows use a 51-node posterior-mode Gauss-Hermite
-  rule on `u = log(x)`. Exactly five Newton steps start at the log prior
+* Gamma `mi()` missing-x rows use an 81-node posterior-mode sinh-mapped
+  trapezoid rule on `u = log(x)` (span `t` in `[-7, 4]`; it was 51 nodes on
+  `[-5, 4]`). Exactly twelve Newton steps (it was five) start at the log prior
   mean and use each response family's own log-density gradient and
   Hessian (Poisson adds `(y - mu) eta'(x)` and the matching curvature).
   There is no data-dependent stop. Nodes sit at the mode scaled by
@@ -105,8 +106,14 @@
   `stats::integrate()` on the log-x scale the per-row logLik error is
   below `1e-4` near the pole and in the tail at CV 0.05, 0.5, and 1, and
   for Poisson times Gamma at CV 1. Poisson times Gamma at CV 2 with
-  `y = 0` stays finite. CV `> 1` near the pole remains a follow-up
-  (Refs #1477). `obj$gr()` matches a finite-difference gradient to
+  `y = 0` stays finite. At CV 3 and 5 the per-row error is also below
+  `1e-4` over a grid of prior means 1 to 30 and `y` from the pole to the
+  tail (it was up to `7.8e-3` at CV 3), and a Poisson response with
+  `exp(eta)` about `8e3` at the prior mean (`mu = 10`, `beta_x = 1`,
+  `mu_y = -1`, `y = 0`, CV 0.5 and 1.5) is below `1e-4` (it was `4.5e-2`
+  and `1.5`; Refs #1532). The R mirror now evaluates the Gamma prior
+  analytically on `u`, as the C++ does, so a node far in the left tail no
+  longer underflows to `-Inf`. `obj$gr()` matches a finite-difference gradient to
   `1e-5` at CV 0.05, 1, and 2, and at the pole geometry where Newton
   branch B wins (Refs #1477). A fitted Gamma `mi()` with CV at least 3
   also raises `drmTMB_mi_quadrature_inaccurate` (see the Beta `mi()`

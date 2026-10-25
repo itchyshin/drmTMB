@@ -246,9 +246,9 @@ void drm_gamma_mi_newton_grad_hess(
 
 // Posterior-mode sinh-mapped trapezoid rule for Gamma(mean = mu, CV = sigma)
 // on the log-x scale (#1477). Integrand, gradient and Hessian are all on
-// u = log(x) and include the Jacobian (+u). Exactly five safeguarded Newton
+// u = log(x) and include the Jacobian (+u). Exactly twelve safeguarded Newton
 // steps from log(prior mean), then nodes are placed once, from the
-// post-step-5 mode and curvature. There is no data-dependent stop.
+// post-step-12 mode and curvature. There is no data-dependent stop.
 //
 // Each step proposes two points and keeps the one with the larger log
 // integrand: (A) the log-x Newton step, clamped to +/-2; (B) a Newton step
@@ -296,7 +296,7 @@ void drm_gamma_mi_adaptive_quadrature(
   Type u_max = Type(500.0);
   Type g = Type(0.0);
   Type H = Type(0.0);
-  for (int k = 0; k < 5; ++k) {
+  for (int k = 0; k < 12; ++k) {
     drm_gamma_mi_newton_grad_hess(
       u, shape, scale, mu_base, beta_x, x_base,
       model_type, y, log_sigma, V_known, include_y, g, H);

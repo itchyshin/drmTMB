@@ -195,12 +195,13 @@ revisit condition.
   `integrate()` reference the per-row logLik error is under `1e-4` for
   Gaussian responses at CV 0.05 to 2 (worst `2.5e-5`, near the mode at
   CV 2) and for Poisson responses at CV 0.2 to 2 with `y` = 0, 1, 4, 30.
-  Still open (refs #1477): CV `>= 3` (12% of an 80-row random `(mu, y)`
-  scan exceed `1e-4`, worst `1.47`; the same classed warning fires at
-  fitted CV `>= 3`),
-  and a Poisson response whose mean at the prior mean is far above `y`
-  (`exp(eta)` at `x = mu` of about `1e3` or more), where five Newton steps
-  stop short of the mode; twelve steps recover the moderate cases. Poisson, binomial, NB2, and beta response models separately
+  Refs #1532: the rule now takes twelve Newton steps and 81 nodes on
+  `t` in `[-7, 4]`, and meets `1e-4` per row at CV 3 and 5 (Gaussian
+  response, prior mean 1 to 30, `y` from the pole to the tail) and for a
+  Poisson response with `exp(eta)` about `8e3` at the prior mean (CV 0.5 and
+  1.5). The classed warning still fires at fitted CV `>= 3`; its threshold
+  was set from the earlier five-step, 51-node measurements and has not been
+  re-derived. Poisson, binomial, NB2, and beta response models separately
   support one fixed-effect binary `mi()` predictor when the response is
   complete. Beta-binomial masking requires a complete success/failure pair per
   observed row; cumulative-logit masking requires an ordered factor and every
