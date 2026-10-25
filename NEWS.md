@@ -70,6 +70,12 @@
 
 ## Bug fixes
 
+* `engine = "julia"` now refuses an ordinary mean `(1 | g)` on Poisson,
+  Gamma, NB2, Beta, and Binomial before Julia starts. Those models used to
+  run the full Julia fit and then abort at a missing `resd` coefficient
+  label. Use `engine = "tmb"` for this shape. Gaussian `(1 | g)` is
+  unchanged (#1551).
+
 * `engine = "julia"` now refuses a Gaussian ordinary mean `(1 | g)` when
   the mean formula has a factor, character, or logical predictor. Those
   models used to run the full Julia fit and then abort because DRM.jl
