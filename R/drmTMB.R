@@ -981,7 +981,8 @@ drm_perturbed_starts <- function(par, n_start) {
 # last error is re-raised for the caller's tryCatch to record. The per-start
 # table (with wall-clock timings) is attached as the `drm_start_attempts`
 # attribute only when the caller supplied explicit `starts` (temporal fits), so
-# every other fit's `opt` stays exactly as before.
+# every other fit's `opt` stays exactly as before. Explicit starts always run
+# serially so the recorded timings stay per-start wall-clock times.
 drm_optimize_multistart <- function(
   obj,
   optimizer,
