@@ -775,12 +775,24 @@ drm_prepare_two_independent_gaussian_mi_setup <- function(mi_calls, mu_rhs, impu
     n_expected = 2L,
     all_variables = variables
   )
-  if (!identical(first$family, "gaussian") || !identical(second$family, "gaussian")) {
+  families <- c(first$family, second$family)
+  both_gaussian <- all(families == "gaussian")
+  gaussian_binary <- setequal(families, c("gaussian", "bernoulli"))
+  if (!both_gaussian && !gaussian_binary) {
     cli::cli_abort(c(
-      "The first two-{.fn mi} slice supports two independent Gaussian predictor models only.",
-      "x" = "Found families {.val {c(first$family, second$family)}}.",
-      "i" = "Use {.code impute = list({variables[[1L]]} = impute_model({variables[[1L]]} ~ ..., family = gaussian()), {variables[[2L]]} = impute_model({variables[[2L]]} ~ ..., family = gaussian()))}."
+      "Two independent {.fn mi} terms support two Gaussian predictor models, or one Gaussian plus one binary ({.fn binomial}) predictor model.",
+      "x" = "Found families {.val {families}}.",
+      "i" = "Use {.code impute = list({variables[[1L]]} = impute_model({variables[[1L]]} ~ ..., family = gaussian()), {variables[[2L]]} = impute_model({variables[[2L]]} ~ ..., family = gaussian()))}, or give one of the two {.code family = binomial()}."
     ))
+  }
+  if (gaussian_binary && identical(first$family, "gaussian")) {
+    # The binary term takes the primary slot (finite-state mixture in C++) and
+    # the Gaussian term the second slot (latent random effect). Formula order
+    # does not change the likelihood.
+    variables <- rev(variables)
+    swap <- first
+    first <- second
+    second <- swap
   }
   first_setup <- drm_mi_setup_from_impute(variables[[1L]], first)
   second_setup <- drm_mi_setup_from_impute(variables[[2L]], second)
@@ -4363,6 +4375,51 @@ drm_tmb_second_missing_predictor_data <- function(spec) {
 }
 
 drm_finalize_missing_data <- function(missing_data, par_list, spec) {
+  missing_data <- drm_finalize_primary_missing_data(missing_data, par_list, spec)
+  drm_finalize_second_gaussian_missing_data(missing_data, par_list, spec)
+}
+
+# The second slot is always a Gaussian latent-value term, whatever family the
+# primary slot has (two Gaussian terms, or one binary primary plus a Gaussian
+# second), so it is finalized independently of the primary route's early
+# returns.
+drm_finalize_second_gaussian_missing_data <- function(
+  missing_data,
+  par_list,
+  spec
+) {
+  model2 <- spec$missing_predictor2
+  if (is.list(model2) && isTRUE(model2$enabled)) {
+    variable2 <- model2$variable
+    if (is.list(missing_data$predictors) && variable2 %in% names(missing_data$predictors)) {
+      x_miss2 <- as.numeric(par_list$x_miss2)
+      if (length(x_miss2) == length(model2$missing_index)) {
+        value2 <- as.numeric(model2$x)
+        value2[model2$missing_index] <- x_miss2
+        missing_data$predictors[[variable2]]$value <- value2
+        missing_data$predictors[[variable2]]$conditional_mode <- x_miss2
+        missing_data$predictors[[variable2]]$summary <- "conditional_mode"
+      }
+    }
+  }
+  missing_data
+}
+
+# Location shift contributed by the second (Gaussian) mi() term, so the binary
+# primary term's posterior state probability conditions on the second term's
+# fitted latent value exactly as the C++ mixture does. Zero without a second term.
+drm_second_mi_mu_shift <- function(spec, par_list, beta_mu) {
+  model2 <- spec$missing_predictor2
+  n <- nrow(spec$X$mu)
+  if (!is.list(model2) || !isTRUE(model2$enabled)) {
+    return(rep(0, n))
+  }
+  x_full <- as.numeric(model2$x)
+  x_full[model2$missing_index] <- as.numeric(par_list$x_miss2)
+  beta_mu[[model2$mu_col]] * (x_full - spec$X$mu[, model2$mu_col])
+}
+
+drm_finalize_primary_missing_data <- function(missing_data, par_list, spec) {
   if (
     !is.list(missing_data) ||
       !is.list(spec$missing_predictor) ||
@@ -4533,7 +4590,8 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
               )
         } else {
           beta_sigma <- as.numeric(par_list$beta_sigma)
-          mu_base <- as.vector(spec$X$mu %*% beta_mu)
+          mu_base <- as.vector(spec$X$mu %*% beta_mu) +
+            drm_second_mi_mu_shift(spec, par_list, beta_mu)
           log_sigma <- as.vector(spec$X$sigma %*% beta_sigma)
           sigma <- sqrt(spec$V_known_diag + exp(2 * log_sigma))
           mu1 <- mu_base + beta_x * (1 - x_base)
@@ -5271,20 +5329,6 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
   missing_data$predictors[[variable]]$value <- value
   missing_data$predictors[[variable]]$conditional_mode <- x_miss
   missing_data$predictors[[variable]]$summary <- "conditional_mode"
-  model2 <- spec$missing_predictor2
-  if (is.list(model2) && isTRUE(model2$enabled)) {
-    variable2 <- model2$variable
-    if (is.list(missing_data$predictors) && variable2 %in% names(missing_data$predictors)) {
-      x_miss2 <- as.numeric(par_list$x_miss2)
-      if (length(x_miss2) == length(model2$missing_index)) {
-        value2 <- as.numeric(model2$x)
-        value2[model2$missing_index] <- x_miss2
-        missing_data$predictors[[variable2]]$value <- value2
-        missing_data$predictors[[variable2]]$conditional_mode <- x_miss2
-        missing_data$predictors[[variable2]]$summary <- "conditional_mode"
-      }
-    }
-  }
   missing_data
 }
 
