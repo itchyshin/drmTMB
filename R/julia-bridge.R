@@ -65,7 +65,8 @@ drm_julia_intentional_gates <- function() {
       "xfam_dispersionless_sigma",
       "structured_marker_slope",
       "fe_only_random_effects",
-      "unadmitted_predictor_dpar"
+      "unadmitted_predictor_dpar",
+      "gaussian_ordinary_re_factor_fe"
     ),
     route = c(
       rep("base", 5),
@@ -74,7 +75,8 @@ drm_julia_intentional_gates <- function() {
       rep("cross_family", 3),
       "structured",
       "fe_only",
-      "dpar_scope"
+      "dpar_scope",
+      "ordinary_re"
     ),
     guard = c(
       "weights",
@@ -92,7 +94,8 @@ drm_julia_intentional_gates <- function() {
       "cross-family dispersion",
       "structured marker non-intercept slope",
       "fe-only random effect / sd submodel",
-      "predictor on an undeclared dpar"
+      "predictor on an undeclared dpar",
+      "Gaussian ordinary (1 | g) with a factor fixed effect"
     ),
     family_type = c(
       "gaussian",
@@ -110,7 +113,8 @@ drm_julia_intentional_gates <- function() {
       "gaussian+poisson",
       "gamma",
       paste(drm_julia_fe_only_fence_families(), collapse = "+"),
-      paste(drm_julia_narrowed_predictor_dpar_families(), collapse = "+")
+      paste(drm_julia_narrowed_predictor_dpar_families(), collapse = "+"),
+      "gaussian"
     ),
     syntax = c(
       "weights = ...",
@@ -128,7 +132,8 @@ drm_julia_intentional_gates <- function() {
       "cross-family sigma formula on dispersionless axis",
       "phylo(1 + x | g) / relmat(1 + x | g) / animal(1 + x | g) / spatial(1 + x | g)",
       "(1 | g) / (1 + x | g) / sd(g) ~ ... on a fe = TRUE, non-phylo_only/locscale_phylo/slope_phylo/structured registry family",
-      "<dpar> ~ <predictor> on a dpar outside the family's registry predictor_dpars declaration (e.g. tweedie nu ~ z)"
+      "<dpar> ~ <predictor> on a dpar outside the family's registry predictor_dpars declaration (e.g. tweedie nu ~ z)",
+      "y ~ x + f + (1 | g) with f a factor, family = gaussian()"
     ),
     r_bridge_status = "intentional_error",
     drmjl_status = c(
@@ -147,7 +152,8 @@ drm_julia_intentional_gates <- function() {
       "dispersionless axis",
       "univariate routes refuse a non-intercept marker lhs (DRM.jl#621)",
       "fixed-effect-only family; no random-effect or sd()/sd_phylo() route in the R bridge yet",
-      "DRM.jl accepts a design matrix for the dpar and fits; the NATIVE drmTMB engine refuses the same cell"
+      "DRM.jl accepts a design matrix for the dpar and fits; the NATIVE drmTMB engine refuses the same cell",
+      "conditional-components entry omits labels=true, so factor names come back as f: b instead of fb"
     ),
     message_pattern = c(
       "weights",
@@ -174,7 +180,8 @@ drm_julia_intentional_gates <- function() {
       "only on the .fe.\\s+\\(fixed-effect\\)",
       # `\\s+` for the same reason as the row above: cli wraps at 80 columns and
       # turns the spaces inside this phrase into newlines plus indent.
-      "must\\s+be\\s+intercept-only"
+      "must\\s+be\\s+intercept-only",
+      "does not yet match factor coefficient names"
     ),
     review_due = "before 0.2.0 bridge promotion",
     evidence_url = c(
@@ -182,7 +189,8 @@ drm_julia_intentional_gates <- function() {
       rep("https://github.com/itchyshin/gllvmTMB/issues/488", 3),
       "https://github.com/itchyshin/drmTMB/issues/1146",
       "https://github.com/itchyshin/drmTMB/issues/544",
-      "https://github.com/itchyshin/drmTMB/issues/1224"
+      "https://github.com/itchyshin/drmTMB/issues/1224",
+      "https://github.com/itchyshin/drmTMB/issues/1567"
     ),
     action = "error",
     evidence = c(
@@ -202,7 +210,8 @@ drm_julia_intentional_gates <- function() {
       "Verified live at the pin (430ef64cc, 2026-09-05): bf(y ~ phylo(1 + x | species, tree = tree)), family = Gamma(link = \"log\"), engine = \"julia\" reaches DRM.jl and DRM.jl's own _check_phylo_re_lhs throws \"phylo(1 + x | species) is not implemented on the univariate routes -- only phylo(1 | species) (intercept) is\" (DRM.jl#620/#621). This R-side gate moves that same refusal before Julia boots, defense-in-depth (drmTMB#1146), so it holds even if a future change to the more specific per-route checks reopens the gap. RE-MEASURED 2026-09-05 at DRM.jl 345892520 (origin/main): the DRM.jl half of that sentence is NOW STALE FOR GAUSSIAN. DRM.jl 1a041d089 (its #644) implements the Gaussian two-SD phylogenetic random slope and widens _bridge_render_formula_block (src/bridge.jl); its test/test_phylo_slope_two_sd.jl was re-run in that session and passes 51 of 51 assertions in 21.5 s, including a same-target drmTMB oracle. So for family = gaussian() this gate is drmTMB's OWN fence, not the engine's: drm_julia_marker_slope_pin_supports() is still FALSE and drm_julia_phylo_payload() admits the slope shape only for drm_julia_slope_phylo_families() (nbinom2, poisson, gamma, beta), which route to DRM.jl's CORRELATED _fit_corr_locscale rather than the INDEPENDENT two-SD model #620 added. Lifting it is a route-widening (registry column + a family-aware pin switch + sdpars/corpars translation for the two-SD block), not a one-line flip. Measured refusal, with a positive control that fitted, at DRM.jl@345892520:docs/dev-log/evidence/parity-classc.tsv (cell_id gaussian_phylo_slope_fence).",
       "Measured 2026-09-05 with DRM_JL_PATH unset: student(), lognormal(), truncated_nbinom2(), zero_one_beta(), and beta_binomial() random-effect shapes (a mean-side and a scale-side (1 | g), and truncated_nbinom2's (1 + x | g) slope) all reached drm_julia_setup() on origin/main -- the fe = TRUE registry column admits the family before phylo_only/locscale_phylo/slope_phylo/structured are ever checked, so those columns being FALSE for this cohort did not stop the family tag. relmat()/animal()/spatial() markers are NOT part of this gate: they are already refused upstream by drm_julia_structured_family_tag() (measured: student() + relmat(1 | g, K = K) aborts there, before this fence's call site, since drm_julia_has_structured_term() dispatches before drm_julia_family_tag() runs)."
 ,
-      "Measured 2026-09-05 (drmTMB 2fcbb0fbf, DRM.jl aee371cc9, n = 200, seed 20260905): bf(y ~ x, sigma ~ 1, nu ~ z) with family = tweedie() FIT through engine = \"julia\" at logLik -259.84074955 while engine = \"tmb\" REFUSED it (\"tweedie() currently supports only intercept-only nu ~ 1\"). The same class had already been measured on two bivariate families the same night -- biv_student sigma1 ~ z at -466.43141436 (drmTMB#1217) and biv_lognormal sigma1 ~ x at -71.4056477 (drmTMB#1216), both refused natively -- because the fe-only fence exempted bivariate families by NAME PREFIX. The exemption is now declared per family (predictor_dpars in R/julia-family-registry.R) and enforced for every family at once, before Julia starts. Control: tweedie nu ~ 1 still fits at -260.40627451, and biv_gaussian sigma1 ~ z / rho12 ~ z fit identically on both engines (-581.96907656 / -583.57416739, n = 200 seed 6401)."
+      "Measured 2026-09-05 (drmTMB 2fcbb0fbf, DRM.jl aee371cc9, n = 200, seed 20260905): bf(y ~ x, sigma ~ 1, nu ~ z) with family = tweedie() FIT through engine = \"julia\" at logLik -259.84074955 while engine = \"tmb\" REFUSED it (\"tweedie() currently supports only intercept-only nu ~ 1\"). The same class had already been measured on two bivariate families the same night -- biv_student sigma1 ~ z at -466.43141436 (drmTMB#1217) and biv_lognormal sigma1 ~ x at -71.4056477 (drmTMB#1216), both refused natively -- because the fe-only fence exempted bivariate families by NAME PREFIX. The exemption is now declared per family (predictor_dpars in R/julia-family-registry.R) and enforced for every family at once, before Julia starts. Control: tweedie nu ~ 1 still fits at -260.40627451, and biv_gaussian sigma1 ~ z / rho12 ~ z fit identically on both engines (-581.96907656 / -583.57416739, n = 200 seed 6401).",
+      "Measured sweep-oct16 t6 (drmTMB#1567): Gaussian y ~ x + f + (1 | g) with f a factor runs the Julia fit on the conditional-components route, then aborts because DRM.jl returns f: b / f: c while drmTMB expects fb / fc. Numeric-only Gaussian (1 | g) and Gaussian factor FE without a bar still reach setup. Option 1 of the issue refuses in R before Julia starts. Sending labels=true plus a resd label would widen the experimental Julia engine and is left out."
     ),
     issue = "drmTMB#544",
     stringsAsFactors = FALSE
@@ -713,6 +722,7 @@ drmTMB_julia_bridge <- function(
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
   drm_julia_refuse_fe_only_random_effects(formula, family_type)
+  drm_julia_refuse_gaussian_ordinary_re_factor_fe(formula, family_type, data)
   drm_julia_refuse_biv_student_beyond_native(formula, family_type)
   drm_julia_refuse_unadmitted_predictor_dpars(formula, family_type)
   drm_julia_refuse_cumulative_logit_disc(formula, family_type)
@@ -1649,6 +1659,51 @@ drm_julia_refuse_fe_only_random_effects <- function(formula, family_type) {
     "{.code engine = \"julia\"} admits {.val {family_type}} only on the {.code fe} (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet.",
     x = "Found {offense}.",
     i = "Use native {.code engine = \"tmb\"} for {.val {family_type}} random-effect models."
+  ))
+}
+
+# #1567: Gaussian ordinary (1 | g) uses the conditional-components entry,
+# which calls DRM.jl without labels = true. A factor fixed effect then
+# comes back as "f: b" while drmTMB expects "fb", and the label check
+# aborts after the Julia fit. Numeric-only Gaussian (1 | g) still works.
+# This fence refuses the broken factor cell before Julia starts.
+drm_julia_mu_has_factor_fe <- function(formula, data) {
+  vars <- character()
+  for (entry in formula$entries) {
+    if (!identical(entry$dpar, "mu") || is.null(entry$rhs)) {
+      next
+    }
+    for (term in flatten_plus_terms(entry$rhs)) {
+      if (is_random_bar_call(term)) {
+        next
+      }
+      vars <- c(vars, all.vars(term))
+    }
+  }
+  vars <- unique(intersect(vars, names(data)))
+  if (length(vars) == 0L) {
+    return(FALSE)
+  }
+  any(vapply(vars, function(nm) {
+    x <- data[[nm]]
+    is.factor(x) || is.character(x) || is.logical(x)
+  }, logical(1L)))
+}
+
+drm_julia_refuse_gaussian_ordinary_re_factor_fe <- function(formula, family_type, data) {
+  if (!identical(family_type, "gaussian")) {
+    return(invisible(NULL))
+  }
+  if (!drm_julia_dpar_has_ordinary_bar(formula, "mu")) {
+    return(invisible(NULL))
+  }
+  if (!is.data.frame(data) || !drm_julia_mu_has_factor_fe(formula, data)) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} does not yet match factor coefficient names for a Gaussian ordinary mean {.code (1 | g)}.",
+    x = "Found a factor, character, or logical predictor in the {.code mu} formula.",
+    i = "Use native {.code engine = \"tmb\"} for this model. Numeric-only Gaussian {.code (1 | g)} keeps the existing route."
   ))
 }
 
