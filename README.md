@@ -185,7 +185,7 @@ says which estimates and intervals are ready to report.
 
 | Model | Fitted now | Not yet supported |
 | --- | --- | --- |
-| One response, fixed effects | One formula per family parameter for Gaussian, Student-t, skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta, beta-binomial, binomial, Poisson, NB2, zero-inflated Poisson and NB2, truncated NB2, hurdle NB2, and cumulative-logit ordinal responses | Ordinal scale models, ordered beta, predictor-dependent Tweedie power |
+| One response, fixed effects | One formula per family parameter for Gaussian, Student-t, skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta, beta-binomial, binomial, Poisson, NB2, zero-inflated Poisson and NB2, truncated NB2, hurdle NB2, and cumulative-logit ordinal responses | Ordinal scale models, ordered beta, predictor-dependent Tweedie power, censored or interval-censored responses (`Surv()` and `cens()` are refused; use `survival::survreg()` or `brms`) |
 | Gaussian random effects | `mu` and `sigma` random intercepts, independent slopes, and correlated intercept-slope blocks | Covariance between `mu` and `sigma` slopes across formulas |
 | Non-Gaussian random effects | `mu` random intercepts and independent numeric slopes for Student-t, skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta, beta-binomial, binomial, Poisson, NB2, truncated NB2, and cumulative-logit responses | Correlated non-Gaussian slopes |
 | Random-effect SD models | `sd(group) ~ x_group` for Gaussian `mu` random intercepts | Slope-specific `sd()` formulas |

@@ -220,6 +220,46 @@ drm_reject_smooth_terms <- function(formula) {
   ))
 }
 
+# Censored responses (#1455). drmTMB has no censored-response likelihood. A
+# reader arriving from survival or brms types `Surv(time, event)` or a
+# `y | cens(event)` marker and used to get three unrelated failures: an
+# internal model-frame mismatch, `Ops.Surv`, or `could not find function
+# "cens"`. Refuse the markers by name, before the model frame is evaluated,
+# and point at the tools that do fit censored data.
+drm_censoring_marker_names <- function() {
+  c("Surv", "cens")
+}
+
+drm_reject_censored_responses <- function(formula) {
+  markers <- drm_censoring_marker_names()
+  hits <- markers[vapply(
+    markers,
+    function(name) {
+      any(vapply(
+        formula$entries,
+        function(entry) {
+          formula_contains_call(entry$lhs, name) ||
+            formula_contains_call(entry$rhs, name)
+        },
+        logical(1)
+      ))
+    },
+    logical(1)
+  )]
+  if (length(hits) == 0L) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(
+    c(
+      "Censored responses are not supported.",
+      "x" = "The model formula uses {.fn {hits}}.",
+      "i" = "No drmTMB family has a censored-response likelihood, so a censored value cannot be passed as an event or detection-limit marker.",
+      "i" = "Fit right-, left-, or interval-censored responses with {.fn survival::survreg}, or with {.pkg brms} and its {.fn cens} response term."
+    ),
+    class = "drmTMB_censoring_unsupported"
+  )
+}
+
 drm_desugar_double_bars <- function(formula, data) {
   calls <- lapply(formula$calls, desugar_double_bars_in_call, data = data)
   if (identical(calls, formula$calls)) {
