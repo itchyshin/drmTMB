@@ -35,6 +35,7 @@
 
 ## Documentation fixes
 
+* `?mi` now states that U-shaped Beta and zero-one-Beta priors (missing-row mean within 0.10 of 0 or 1) are flagged by the `drmTMB_mi_quadrature_inaccurate` warning, not integrated accurately by the fixed 15-node rule; no adaptive rule is planned (#1531).
 * `?nbinom2` now states that NB2 cannot go below the Poisson limit (an underdispersed count fit hits the `sigma` boundary (limit) and returns a degenerate result) and points underdispersed counts to `glmmTMB::compois()` / `glmmTMB::genpois()`. This is a documentation pointer only; no underdispersed count family is added (Refs #1466).
 
 * The `missing-data` article gains a recipe for a mediator that is also a response: build `impute_model()` from the fitted node's formula and family, with an explicit statement that estimates are not shared and what that means for standard errors (#964).
