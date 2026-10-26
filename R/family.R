@@ -575,6 +575,14 @@ cumulative_logit <- function() {
 #' sigma predictors, slopes, labels, and other random-effect combinations
 #' remain unsupported.
 #'
+#' NB2 models overdispersion only: `sigma` is positive, so the variance
+#' cannot fall below the Poisson limit `Var(y) = mu`. Counts that are
+#' underdispersed (variance smaller than the mean) push `sigma` to that
+#' boundary (limit), and the fit returns a degenerate result rather than a
+#' sub-Poisson variance. drmTMB has no underdispersed count family. For such
+#' data use `glmmTMB::compois()` (Conway-Maxwell-Poisson) or
+#' `glmmTMB::genpois()` (generalised Poisson).
+#'
 #' @return A `drm_family` object.
 #' @export
 #'

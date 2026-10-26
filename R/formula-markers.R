@@ -39,6 +39,16 @@ meta_V <- function(V) {
 #' `beta_family()`, `lognormal()`, `Gamma(link = "log")`, `student()`, and
 #' `beta_binomial()`.
 #'
+#' Strict-proportion and zero-one boundary proportion `mi()` predictors
+#' integrate the Beta prior with a fixed 15-node Gauss-Legendre rule. That rule
+#' is accurate for bell-shaped priors but not for U-shaped ones: when the
+#' estimated prior mean of a missing row is within 0.10 of 0 or 1, the rule can
+#' be off by about `5e-3` in the per-row log-likelihood (and by more when the
+#' observed response sits near the pole). Such priors are flagged, not
+#' integrated accurately. A successful fit warns with class
+#' `drmTMB_mi_quadrature_inaccurate`; treat the fit as approximate when that
+#' warning appears. No adaptive rule is planned for now.
+#'
 #' @param x A predictor in a supported missing-predictor route.
 #'
 #' @return `x`, so standard R model-frame construction can evaluate the marker.

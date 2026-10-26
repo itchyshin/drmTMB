@@ -83,6 +83,10 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
     # -259.84074955 while `engine = "tmb"` refused it), which has no prefix at
     # all. Same reason as the row above for editing this literal vector.
     "unadmitted_predictor_dpar",
+    # drmTMB#1551: ordinary mean (1 | g) on poisson/gamma/nbinom2/beta/
+    # binomial is refused before Julia starts. The payload has no resd
+    # label, so the previous path ran the Julia fit and then aborted.
+    "ordinary_mean_re_unlabelled",
     # drmTMB#1567: Gaussian ordinary (1 | g) with a factor FE is refused
     # before Julia starts. The conditional-components entry omits labels,
     # so the previous path ran the Julia fit and then aborted.
@@ -620,6 +624,23 @@ test_that("unadmitted_predictor_dpar: tweedie nu ~ z is gated before Julia start
   expect_s3_class(err, "error")
   expect_false(grepl("must\\s+be\\s+intercept-only",
                      conditionMessage(err)))
+})
+
+test_that("ordinary_mean_re_unlabelled: poisson (1 | g) is gated before Julia starts", {
+  withr::local_envvar(DRM_JL_PATH = NA, DRM_JL_PHYLO_PATH = NA)
+  n <- 40L
+  g <- factor(rep(seq_len(8), each = 5))
+  x <- stats::rnorm(n)
+  dat <- data.frame(y = stats::rpois(n, exp(0.2 + 0.3 * x)), x = x, g = g)
+  expect_julia_gate(
+    "ordinary_mean_re_unlabelled",
+    drmTMB(
+      bf(y ~ x + (1 | g)),
+      family = stats::poisson(),
+      data = dat,
+      engine = "julia"
+    )
+  )
 })
 
 test_that("gaussian_ordinary_re_factor_fe: factor FE plus (1 | g) is gated before Julia starts", {

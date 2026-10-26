@@ -66,6 +66,7 @@ drm_julia_intentional_gates <- function() {
       "structured_marker_slope",
       "fe_only_random_effects",
       "unadmitted_predictor_dpar",
+      "ordinary_mean_re_unlabelled",
       "gaussian_ordinary_re_factor_fe"
     ),
     route = c(
@@ -76,6 +77,7 @@ drm_julia_intentional_gates <- function() {
       "structured",
       "fe_only",
       "dpar_scope",
+      "ordinary_re",
       "ordinary_re"
     ),
     guard = c(
@@ -95,6 +97,7 @@ drm_julia_intentional_gates <- function() {
       "structured marker non-intercept slope",
       "fe-only random effect / sd submodel",
       "predictor on an undeclared dpar",
+      "ordinary mean (1 | g) without a resd label",
       "Gaussian ordinary (1 | g) with a factor fixed effect"
     ),
     family_type = c(
@@ -114,6 +117,7 @@ drm_julia_intentional_gates <- function() {
       "gamma",
       paste(drm_julia_fe_only_fence_families(), collapse = "+"),
       paste(drm_julia_narrowed_predictor_dpar_families(), collapse = "+"),
+      paste(drm_julia_ordinary_mean_re_unlabelled_families(), collapse = "+"),
       "gaussian"
     ),
     syntax = c(
@@ -133,6 +137,7 @@ drm_julia_intentional_gates <- function() {
       "phylo(1 + x | g) / relmat(1 + x | g) / animal(1 + x | g) / spatial(1 + x | g)",
       "(1 | g) / (1 + x | g) / sd(g) ~ ... on a fe = TRUE, non-phylo_only/locscale_phylo/slope_phylo/structured registry family",
       "<dpar> ~ <predictor> on a dpar outside the family's registry predictor_dpars declaration (e.g. tweedie nu ~ z)",
+      "(1 | g) on mu for a phylo_only/structured/locscale family that is not gaussian",
       "y ~ x + f + (1 | g) with f a factor, family = gaussian()"
     ),
     r_bridge_status = "intentional_error",
@@ -153,6 +158,7 @@ drm_julia_intentional_gates <- function() {
       "univariate routes refuse a non-intercept marker lhs (DRM.jl#621)",
       "fixed-effect-only family; no random-effect or sd()/sd_phylo() route in the R bridge yet",
       "DRM.jl accepts a design matrix for the dpar and fits; the NATIVE drmTMB engine refuses the same cell",
+      "DRM.jl echo requires a resd label the R payload does not send for ordinary mean (1 | g)",
       "conditional-components entry omits labels=true, so factor names come back as f: b instead of fb"
     ),
     message_pattern = c(
@@ -181,6 +187,7 @@ drm_julia_intentional_gates <- function() {
       # `\\s+` for the same reason as the row above: cli wraps at 80 columns and
       # turns the spaces inside this phrase into newlines plus indent.
       "must\\s+be\\s+intercept-only",
+      "does not yet send a residual-SD label",
       "does not yet match factor coefficient names"
     ),
     review_due = "before 0.2.0 bridge promotion",
@@ -190,6 +197,7 @@ drm_julia_intentional_gates <- function() {
       "https://github.com/itchyshin/drmTMB/issues/1146",
       "https://github.com/itchyshin/drmTMB/issues/544",
       "https://github.com/itchyshin/drmTMB/issues/1224",
+      "https://github.com/itchyshin/drmTMB/issues/1551",
       "https://github.com/itchyshin/drmTMB/issues/1567"
     ),
     action = "error",
@@ -211,6 +219,7 @@ drm_julia_intentional_gates <- function() {
       "Measured 2026-09-05 with DRM_JL_PATH unset: student(), lognormal(), truncated_nbinom2(), zero_one_beta(), and beta_binomial() random-effect shapes (a mean-side and a scale-side (1 | g), and truncated_nbinom2's (1 + x | g) slope) all reached drm_julia_setup() on origin/main -- the fe = TRUE registry column admits the family before phylo_only/locscale_phylo/slope_phylo/structured are ever checked, so those columns being FALSE for this cohort did not stop the family tag. relmat()/animal()/spatial() markers are NOT part of this gate: they are already refused upstream by drm_julia_structured_family_tag() (measured: student() + relmat(1 | g, K = K) aborts there, before this fence's call site, since drm_julia_has_structured_term() dispatches before drm_julia_family_tag() runs)."
 ,
       "Measured 2026-09-05 (drmTMB 2fcbb0fbf, DRM.jl aee371cc9, n = 200, seed 20260905): bf(y ~ x, sigma ~ 1, nu ~ z) with family = tweedie() FIT through engine = \"julia\" at logLik -259.84074955 while engine = \"tmb\" REFUSED it (\"tweedie() currently supports only intercept-only nu ~ 1\"). The same class had already been measured on two bivariate families the same night -- biv_student sigma1 ~ z at -466.43141436 (drmTMB#1217) and biv_lognormal sigma1 ~ x at -71.4056477 (drmTMB#1216), both refused natively -- because the fe-only fence exempted bivariate families by NAME PREFIX. The exemption is now declared per family (predictor_dpars in R/julia-family-registry.R) and enforced for every family at once, before Julia starts. Control: tweedie nu ~ 1 still fits at -260.40627451, and biv_gaussian sigma1 ~ z / rho12 ~ z fit identically on both engines (-581.96907656 / -583.57416739, n = 200 seed 6401).",
+      "Measured sweep-oct16 t5/t6 (drmTMB#1551): poisson(), Gamma(), nbinom2(), beta_family(), and binomial() with an ordinary mean (1 | g) pass admission, run the Julia fit, then abort at the resd coef_labels echo. Gaussian (1 | g) keeps the conditional-components route. Option 1 of the issue refuses in R before Julia starts. Sending resd plus marginal = Laplace would widen the experimental Julia engine and is left out.",
       "Measured sweep-oct16 t6 (drmTMB#1567): Gaussian y ~ x + f + (1 | g) with f a factor runs the Julia fit on the conditional-components route, then aborts because DRM.jl returns f: b / f: c while drmTMB expects fb / fc. Numeric-only Gaussian (1 | g) and Gaussian factor FE without a bar still reach setup. Option 1 of the issue refuses in R before Julia starts. Sending labels=true plus a resd label would widen the experimental Julia engine and is left out."
     ),
     issue = "drmTMB#544",
@@ -722,6 +731,7 @@ drmTMB_julia_bridge <- function(
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
   drm_julia_refuse_fe_only_random_effects(formula, family_type)
+  drm_julia_refuse_ordinary_mean_re_unlabelled(formula, family_type)
   drm_julia_refuse_gaussian_ordinary_re_factor_fe(formula, family_type, data)
   drm_julia_refuse_biv_student_beyond_native(formula, family_type)
   drm_julia_refuse_unadmitted_predictor_dpars(formula, family_type)
@@ -1659,6 +1669,36 @@ drm_julia_refuse_fe_only_random_effects <- function(formula, family_type) {
     "{.code engine = \"julia\"} admits {.val {family_type}} only on the {.code fe} (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet.",
     x = "Found {offense}.",
     i = "Use native {.code engine = \"tmb\"} for {.val {family_type}} random-effect models."
+  ))
+}
+
+# #1551: families that escape the fe-only fence (phylo_only / locscale_phylo /
+# slope_phylo / structured) still run an ordinary mean `(1 | g)` through
+# Julia and then abort at the `resd` coef_labels echo. Gaussian keeps the
+# working conditional-components route. This fence refuses the broken
+# ordinary-mean bar before Julia starts. Structured phylo/relmat/animal/
+# spatial markers are not checked here; they keep their existing routes.
+drm_julia_ordinary_mean_re_unlabelled_families <- function() {
+  admitted <- unique(c(
+    drm_julia_registry_families("phylo_only"),
+    drm_julia_registry_families("locscale_phylo"),
+    drm_julia_registry_families("slope_phylo"),
+    drm_julia_registry_families("structured")
+  ))
+  setdiff(admitted, c("gaussian", "biv_gaussian"))
+}
+
+drm_julia_refuse_ordinary_mean_re_unlabelled <- function(formula, family_type) {
+  if (!(family_type %in% drm_julia_ordinary_mean_re_unlabelled_families())) {
+    return(invisible(NULL))
+  }
+  if (!drm_julia_dpar_has_ordinary_bar(formula, "mu")) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} does not yet send a residual-SD label for an ordinary mean {.code (1 | g)} term on {.val {family_type}}.",
+    x = "Found a random-effect bar term in the {.code mu} formula.",
+    i = "Use native {.code engine = \"tmb\"} for this model. Structured {.fn phylo} / {.fn relmat} / {.fn animal} / {.fn spatial} terms keep their existing routes."
   ))
 }
 
@@ -4500,6 +4540,54 @@ drm_julia_setup_command <- function(code) {
   JuliaCall::julia_command(drm_julia_quiet_command(code))
 }
 
+# Julia boot log filter (#1157). On some Julia / LogExpFunctions combinations the
+# first `using` of the backend logs `Error during loading of extension
+# LogExpFunctionsInverseFunctionsExt of LogExpFunctions` with an
+# `UndefVarError` stack trace, twice. The session recovers, the extension is not
+# needed, and fits are correct, but a first-time user cannot tell the red
+# ERROR from a crash. This wraps Julia's global logger for the duration of
+# `drm_julia_setup()` and drops exactly that recovered extension-load log
+# (message prefix AND an `UndefVarError` cause). Every other message, including
+# any other extension failure, is passed to the original logger untouched, and
+# `restore()` puts the original logger back.
+drm_julia_boot_log_source <- function() {
+  paste(
+    sep = "\n",
+    "module DrmTMBBootLog",
+    "import Logging",
+    "struct Filter{L<:Logging.AbstractLogger} <: Logging.AbstractLogger",
+    "    inner::L",
+    "end",
+    "function harmless(message, kwargs)",
+    "    startswith(string(message), \"Error during loading of extension LogExpFunctionsInverseFunctionsExt of LogExpFunctions\") || return false",
+    "    ex = get(kwargs, :exception, nothing)",
+    "    ex isa Tuple && !isempty(ex) && (ex = first(ex))",
+    "    ex isa LoadError && (ex = ex.error)",
+    "    ex isa UndefVarError",
+    "end",
+    "Logging.min_enabled_level(l::Filter) = Logging.min_enabled_level(l.inner)",
+    "Logging.shouldlog(l::Filter, args...) = Logging.shouldlog(l.inner, args...)",
+    "Logging.catch_exceptions(l::Filter) = Logging.catch_exceptions(l.inner)",
+    "function Logging.handle_message(l::Filter, level, message, _module, group, id, file, line; kwargs...)",
+    "    harmless(message, kwargs) && return nothing",
+    "    Logging.handle_message(l.inner, level, message, _module, group, id, file, line; kwargs...)",
+    "end",
+    "const saved = Ref{Any}(nothing)",
+    "function install()",
+    "    saved[] === nothing || return nothing",
+    "    saved[] = Logging.global_logger()",
+    "    Logging.global_logger(Filter(saved[]))",
+    "    nothing",
+    "end",
+    "function restore()",
+    "    saved[] === nothing || Logging.global_logger(saved[])",
+    "    saved[] = nothing",
+    "    nothing",
+    "end",
+    "end"
+  )
+}
+
 drm_julia_setup <- function(path = drm_julia_path()) {
   # Hard stop on the CRAN / win-builder lane. Suggests JuliaCall + host Julia is
   # not enough to justify entering julia_setup(): Ligges R-release hung for
@@ -4551,6 +4639,17 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   drm_julia_setup_command(paste0(
     "import Pkg; Pkg.activate(", drm_julia_quote(normalized_path), ")"
   ))
+  # Defined once per session: a `module` cannot sit inside a guarding `if`, and
+  # redefining it would print a "replacing module" warning.
+  if (!isTRUE(drm_julia_setup_state$boot_log_defined)) {
+    drm_julia_setup_command(drm_julia_boot_log_source())
+    drm_julia_setup_state$boot_log_defined <- TRUE
+  }
+  drm_julia_setup_command("DrmTMBBootLog.install()")
+  on.exit(
+    try(drm_julia_setup_command("DrmTMBBootLog.restore()"), silent = TRUE),
+    add = TRUE
+  )
   drm_julia_setup_state$module <- drm_julia_load_module(normalized_path)
   # Random is Julia's own stdlib (not a DRM.jl addition); the fixed-effect
   # inference wrapper below seeds `bootstrap_result()`'s RNG with it.
@@ -6629,15 +6728,69 @@ deviance.drmTMB_julia <- function(object, ...) {
   -2 * as.numeric(stats::logLik(object))
 }
 
+# fitted() and residuals() on the bridge follow ?fitted.drmTMB, not DRModels.jl
+# (#1566). The bridge slot carries the DRModels.jl fitted definition, which
+# differs from the drmTMB one for three routes on the same converged model:
+#   * lognormal: DRModels.jl returns exp(mu), the median; drmTMB the mean
+#     exp(mu + sigma^2 / 2);
+#   * truncated_nbinom2: DRModels.jl returns mu; drmTMB the truncated mean
+#     mu / (1 - P_NB2(0));
+#   * Gaussian (1 | g): DRModels.jl returns X beta (modes at 0); drmTMB
+#     includes the fitted modes.
+# These are recomputed here from the bridged dpars (the same path
+# predict.drmTMB_julia() uses), through the shared native helpers. Every other
+# route keeps the bridge slot. A fit whose dpars cannot be rebuilt R-side (a
+# random effect without a retained payload, or an offset) also keeps the slot.
+# Returns NULL when the bridge slot is already the documented value.
+drm_julia_fitted_recomputed <- function(object) {
+  model_type <- drm_julia_predict_model_object(object)$model$model_type
+  if (model_type %in% c("lognormal", "truncated_nbinom2")) {
+    for (entry in object$formula$entries) {
+      if (
+        entry$dpar %in% c("mu", "sigma") &&
+          (drm_julia_predict_has_random_effect(entry) ||
+            formula_contains_call(entry$rhs, "offset"))
+      ) {
+        return(NULL)
+      }
+    }
+    mu <- stats::predict(object, dpar = "mu")
+    sigma <- stats::predict(object, dpar = "sigma")
+    if (identical(model_type, "lognormal")) {
+      return(exp(mu + 0.5 * sigma^2))
+    }
+    return(truncated_nbinom2_mean(mu, sigma))
+  }
+  spec <- drm_julia_conditional_gaussian_components_spec(
+    object$formula,
+    model_type
+  )
+  if (!is.null(spec) && is.list(object$conditional_re)) {
+    return(stats::predict(object, dpar = "mu"))
+  }
+  NULL
+}
+
 #' @export
 fitted.drmTMB_julia <- function(object, ...) {
-  object$fitted
+  out <- drm_julia_fitted_recomputed(object)
+  if (is.null(out)) {
+    return(object$fitted)
+  }
+  out
 }
 
 #' @export
 residuals.drmTMB_julia <- function(object, type = c("response"), ...) {
   match.arg(type)
-  object$residuals
+  out <- drm_julia_fitted_recomputed(object)
+  if (is.null(out)) {
+    return(object$residuals)
+  }
+  # The bridge response residual is y - fitted_bridge, so y is recovered
+  # without a stored response and the residual is re-based on the documented
+  # fitted value.
+  object$residuals + object$fitted - out
 }
 
 #' @export

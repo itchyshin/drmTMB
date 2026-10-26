@@ -1311,6 +1311,64 @@ class CapabilityLedgerTests(unittest.TestCase):
         # The notes column also names the policy, but it is history, not a claim.
         self.assertNotIn(".notes:", str(raised.exception))
 
+    def test_g5_route_cross_reference_check_passes_on_the_live_ledger(self):
+        ledger.validate_route_cross_references(self.cells, self.evidence)
+
+    def test_g5_family_map_rows_pin_the_routes_their_prose_names(self):
+        # Issue 1011 item 2: the three threshold-free G5 rows exclude
+        # `cumulative_logit` and disclaim the `beta_binomial` predictor route.
+        # Each named route must carry a route_state contract for that row.
+        contracts = ledger.read_tsv(ledger.LIVE_PROSE_CONTRACTS)
+        pinned = {
+            (c["cell_id"], c["field"], c["reference_id"])
+            for c in contracts if c["reference_kind"] == "route_state"
+        }
+        for cell in ("mr-beta", "mr-tweedie", "mr-skew-normal"):
+            for field in ("cells.claim_boundary", f"evidence:ev-{cell}-g5.claim_boundary"):
+                for reference in ("mr-cumulative-logit-mu-x", "mp-beta-binomial-bernoulli"):
+                    self.assertIn((cell, field, reference), pinned)
+
+    def test_g5_route_cross_reference_rejects_an_unpinned_route_name(self):
+        cells = copy.deepcopy(self.cells)
+        beta = next(row for row in cells if row["cell_id"] == "mr-beta")
+        beta["claim_boundary"] += " It does not extend to `gamma`."
+        with self.assertRaisesRegex(SystemExit, r"mr-beta cells\.claim_boundary.*`gamma`"):
+            ledger.validate_route_cross_references(cells, self.evidence)
+
+    def test_g5_route_cross_reference_rejects_a_dropped_contract(self):
+        original = ledger.LIVE_PROSE_CONTRACTS
+        lines = original.read_text(encoding="utf-8").splitlines(keepends=True)
+        kept = [
+            line for line in lines
+            if not (line.startswith("mr-tweedie\tcells.claim_boundary\troute_state\t"
+                                    "mr-cumulative-logit-mu-x\t"))
+        ]
+        self.assertEqual(len(kept), len(lines) - 1)
+        with tempfile.TemporaryDirectory() as temporary:
+            sidecar = Path(temporary) / "live-prose-contracts.tsv"
+            sidecar.write_text("".join(kept), encoding="utf-8")
+            try:
+                ledger.LIVE_PROSE_CONTRACTS = sidecar
+                with self.assertRaisesRegex(
+                    SystemExit, r"mr-tweedie cells\.claim_boundary.*`cumulative_logit`"
+                ):
+                    ledger.validate_route_cross_references(self.cells, self.evidence)
+            finally:
+                ledger.LIVE_PROSE_CONTRACTS = original
+
+    def test_promoting_a_referenced_route_forces_a_prose_review(self):
+        moves = (
+            ("mr-cumulative-logit-mu-x", "evidence_tier", "supported"),
+            ("mp-beta-binomial-bernoulli", "test_gate", "G4"),
+        )
+        for cell_id, column, value in moves:
+            with self.subTest(cell_id):
+                cells = copy.deepcopy(self.cells)
+                row = next(r for r in cells if r["cell_id"] == cell_id)
+                row[column] = value
+                with self.assertRaisesRegex(SystemExit, "referenced route state drifted"):
+                    ledger.validate_live_prose_contracts(cells, self.evidence)
+
     def test_retired_predicate_scan_folds_case_and_spacing(self):
         cells = copy.deepcopy(self.cells)
         cells[0]["claim_boundary"] += " Under the All-1200\tinterval-usability  RULE."
