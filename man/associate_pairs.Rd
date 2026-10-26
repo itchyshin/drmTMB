@@ -2,9 +2,12 @@
 % Please edit documentation in R/associate-pairs.R
 \name{associate_pairs}
 \alias{associate_pairs}
+\alias{update.drm_pair_association}
 \title{Associate two frozen marginal drmTMB fits}
 \usage{
 associate_pairs(fit_1, fit_2, kernel, association)
+
+\method{update}{drm_pair_association}(object, ...)
 }
 \arguments{
 \item{fit_1, fit_2}{Two fitted \code{drmTMB} marginal models. They must use the
@@ -18,6 +21,12 @@ identical complete analysis data, in the same order.}
 fixed-effect formula, including multiple predictors, factors,
 interactions, and explicit transformations. Random effects, offsets,
 missing values, aliased columns, and \code{.} expansion are not supported.}
+
+\item{object}{A frozen-margin association object. Its \code{update()} method
+always refuses the call; refit the margins and construct a new association.}
+
+\item{...}{Reserved arguments. The association \code{update()} method refuses
+all update requests.}
 }
 \value{
 An object of class \code{drm_pair_association}. \code{fitted(object)} returns
