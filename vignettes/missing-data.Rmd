@@ -48,15 +48,17 @@ For missing predictors, `drmTMB` requires an explicit predictor model through
 `mi()` and `impute`. The predictor model is part of the same likelihood as the
 response model; it is not a preprocessing fill-in step.
 
-The broadest missing-predictor module covers one missing predictor at a time in a
-univariate Gaussian location model. Its predictor families are family-aware:
+For one missing predictor at a time, the broadest family-aware routes are in a
+univariate Gaussian location model. Its predictor families include:
 Gaussian for continuous predictors, Bernoulli/logit for binary predictors,
 cumulative logit for ordered categories, baseline softmax for unordered
 categories, beta and zero-one beta for proportions, beta-binomial for successes
 out of known trials, Poisson/NB2/zero-truncated NB2 for counts, lognormal/Gamma
 for positive continuous predictors, and Tweedie for semi-continuous predictors
-with exact zeros. A Gaussian response also accepts two independent Gaussian
-missing predictors when both predictor models use fixed effects. For
+with exact zeros. A Gaussian response also accepts either two independent
+Gaussian missing predictors or one Gaussian and one binary missing predictor.
+Both predictor models must use fixed effects; the mixed pair is supported on
+the native `drmTMB` route, not by the Julia bridge. For
 non-Gaussian responses, `nbinom2()` accepts one binary or one Gaussian missing
 predictor; `poisson()`, `binomial()`, `beta_family()`, `Gamma(link = "log")`,
 `lognormal()`, `beta_binomial()`, and `student()` accept one binary missing
@@ -96,7 +98,7 @@ family-specific error rather than silently using a different likelihood.
 
 | Response family | `response = "include"` (mask/marginalise) | `predictor = "model"` (`mi()`) |
 | --- | :---: | :---: |
-| `gaussian()` | ✓ | ✓ (broad predictor-family catalogue; up to two independent Gaussian predictors with fixed-effect predictor models) |
+| `gaussian()` | ✓ | ✓ (broad predictor-family catalogue; one predictor, two independent Gaussian predictors, or one Gaussian plus one binary predictor, with fixed-effect predictor models) |
 | bivariate Gaussian | ✓ (partial `y1`/`y2` pairs) | — |
 | `binomial()` | ✓ | ✓ (one binary predictor) |
 | `poisson()` | ✓ | ✓ (one binary predictor) |
@@ -117,10 +119,17 @@ family-specific error rather than silently using a different likelihood.
 
 The table records the response-model combinations currently supported for
 missing responses and predictors. Only the Gaussian response has the broad
-predictor-family catalogue tabulated below. The two-predictor Gaussian response
-route requires independent fixed-effect Gaussian predictor models; each listed
-non-Gaussian route takes one binary (Bernoulli/logit) missing predictor, except
-NB2, which also accepts one Gaussian missing predictor.
+predictor-family catalogue tabulated below. Its two-predictor route accepts
+either two independent fixed-effect Gaussian predictor models or one such
+Gaussian model plus one fixed-effect Bernoulli/logit model. The mixed pair is
+supported on the native `drmTMB` route; the Julia bridge has its own, narrower
+admission boundary. Each listed non-Gaussian response route takes one binary
+(Bernoulli/logit) missing predictor, except NB2, which also accepts one Gaussian
+missing predictor.
+
+For a Gaussian-plus-binary pair, pass both predictor models by name, for
+example: `impute = list(x = impute_model(x ~ z, family = gaussian()),
+treatment = impute_model(treatment ~ z, family = binomial()))`.
 
 ## What is fitted now
 
@@ -135,9 +144,10 @@ missing responses retained in the fitted object; they contribute no direct
 response likelihood. The default `response = "drop"` removes a bivariate
 Gaussian row when either response is missing. Use
 `missing = miss_control(predictor = "model")` only when the response formula
-contains one supported `mi()` term, or two independent Gaussian `mi()` terms
-with a Gaussian response, and `impute` supplies the corresponding predictor
-model or models.
+contains one supported `mi()` term, or two supported independent `mi()` terms
+with a Gaussian response: either two Gaussian predictor models or one Gaussian
+and one binary predictor model. The two-predictor models must use fixed effects,
+and `impute` supplies the corresponding models.
 
 | Missing-data case | Current route | Main boundary |
 | --- | --- | --- |
@@ -150,6 +160,7 @@ model or models.
 | Missing count-mixture response | Add `zi ~ ...` to Poisson/NB2 or `hu ~ ...` to `truncated_nbinom2()` with `missing = miss_control(response = "include")` | The verified masking slice is fixed-effect only; missing zeros and positive counts are tested separately. |
 | One missing numeric predictor | `bf(y ~ z + mi(x), sigma ~ 1)` with `impute = list(x = x ~ z)` | The missing `mi()` variable must be numeric and modelled with one Gaussian predictor model. |
 | Two independent missing numeric predictors | `bf(y ~ mi(x1) + mi(x2) + z, sigma ~ 1)` with separate Gaussian `impute_model()` entries | The response must be Gaussian; both predictor models must be Gaussian and fixed-effect only. Three `mi()` terms, duplicate predictor names, and grouped or structured predictor models on this two-predictor route are refused. |
+| One missing numeric and one missing binary predictor | `bf(y ~ mi(x) + mi(treatment) + z, sigma ~ 1)` with a named `impute` list containing Gaussian and binomial `impute_model()` entries | Native Gaussian-response route only; predictor models are independent and fixed-effect only. The binary term is marginalised over its two states and the Gaussian term is latent. Other two-predictor family pairs are refused. |
 | One missing binary predictor | `bf(y ~ z + mi(treatment), sigma ~ 1)` with `impute = list(treatment = impute_model(treatment ~ z, family = binomial()))` | The missing `mi()` variable must be binary and modelled with one fixed-effect Bernoulli/logit predictor model. |
 | Non-Gaussian response with one missing binary predictor | `bf(y ~ z + mi(treatment))`, with `family = poisson()`/`binomial()`/`nbinom2()`/`beta_family()`/`Gamma(link = "log")`/`lognormal()`/`beta_binomial()`/`student()` and a binomial `impute_model()` | The response must be complete; the missing predictor must be binary; response random or structured effects are refused. Poisson alone permits a separate fixed-effect `zi` formula with complete predictors; `mi()` cannot enter `zi`, and `zi` cannot have random or structured effects. NB2 does not admit `zi` here. |
 | NB2 response with one missing numeric predictor | `bf(y ~ z + mi(x))`, `family = nbinom2()`, with a Gaussian `impute_model()` | This route accepts one fixed-effect Gaussian predictor model and requires fixed-effect `mu`/`sigma`; response random or structured effects, `zi`, and response masking are refused. The two-predictor extension is limited to Gaussian responses. |
@@ -1102,11 +1113,11 @@ calling `impute_model()`, for example
 The current implementation deliberately keeps several features out of scope:
 
 - EM, profile, and REML missing-data engines are not implemented.
-- Two independent Gaussian missing predictors are implemented only for a
-  Gaussian response and fixed-effect Gaussian predictor models. More than two
-  missing predictors, mixed predictor-model families in this two-predictor
-  route, and grouped or structured predictor models in this two-predictor route
-  are not implemented.
+- Two independent `mi()` predictors are supported only for a Gaussian response.
+  Both predictor models must use fixed effects: either both are Gaussian, or
+  one is Gaussian and one is binary (native engine only). More than two missing
+  predictors, other family pairs, and grouped or structured predictor models
+  on this route are not supported.
 - For non-Gaussian response models, one binary (Bernoulli/logit) missing
   predictor is implemented for `poisson()`, `binomial()`, `nbinom2()`,
   `beta_family()`, `Gamma(link = "log")`, `lognormal()`, `beta_binomial()`, and

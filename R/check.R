@@ -30,7 +30,8 @@
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
-#' a flag-only note when more than 1% of quantile residuals lie beyond |3|
+#' a flag-only note when at least two quantile residuals and more than 1% lie
+#' beyond |3|
 #' (`residual_outliers`, a sign of a damaged response such as a sentinel code;
 #' it changes no estimate and never flips `attr(x, "ok")`),
 #' known sampling covariance summaries,

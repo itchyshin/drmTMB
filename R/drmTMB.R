@@ -87,8 +87,12 @@
 #' @param control Optional list passed to [stats::nlminb()], or a
 #'   [drm_control()] object when optimizer settings and fitted-object storage
 #'   choices should be supplied together.
-#' @param impute Optional one-element named list of predictor models for the
-#'   current missing-predictor routes. Bare formulas such as `list(x = x ~ z)`
+#' @param impute Optional named list of predictor models for the current
+#'   missing-predictor routes. Most routes use one entry. The Gaussian response
+#'   also supports two entries for two independent `mi()` predictors: either two
+#'   Gaussian models or one Gaussian and one binary model, both with fixed
+#'   effects. This two-predictor route is available with the native engine, not
+#'   the Julia bridge. Bare formulas such as `list(x = x ~ z)`
 #'   define Gaussian models for numeric missing predictors. Use
 #'   [impute_model()] for explicit predictor families, such as
 #'   `list(treatment = impute_model(treatment ~ z, family = binomial()))` for
@@ -117,7 +121,10 @@
 #'   `list(x = x ~ z + (1 | group))`; structured Gaussian covariate models use
 #'   explicit syntax such as `list(x = x ~ z + relmat(1 | line, Q = Q))`.
 #'   Most fitted routes use a univariate Gaussian formula containing one `mi(x)`
-#'   location term and `missing = miss_control(predictor = "model")`. The first
+#'   location term and `missing = miss_control(predictor = "model")`. That
+#'   Gaussian response also accepts two independent fixed-effect predictor
+#'   models: two Gaussian models or one Gaussian and one binary model, on the
+#'   native engine only. No other two-predictor family pair is supported. The first
 #'   non-Gaussian response route also supports `family = poisson()` with one
 #'   fixed-effect binary `mi()` predictor modelled by `family = binomial()`.
 #' @param missing Missing-data policy created by [miss_control()]. The default
@@ -126,7 +133,11 @@
 #'   univariate Gaussian response masks and bivariate Gaussian partial-response
 #'   rows without dense known covariance. `missing =
 #'   miss_control(predictor = "model")` is implemented for one `mi()`
-#'   missing predictor in a univariate Gaussian location model: numeric
+#'   missing predictor in the documented family-specific routes. A univariate
+#'   Gaussian response also supports two independent `mi()` predictors with
+#'   fixed-effect models: two Gaussian models or one Gaussian plus one binary
+#'   model, on the native engine only. No other two-predictor family pair is
+#'   supported. For one predictor in the Gaussian location model, numeric
 #'   Gaussian predictors may use a
 #'   fixed-effect, one random-intercept, or one intercept-only structured
 #'   Gaussian `impute` formula; binary, ordered categorical, unordered
@@ -140,7 +151,7 @@
 #'   Bernoulli/logit `impute_model()`, complete responses, and no random
 #'   or structured response terms. `nbinom2()` also admits one
 #'   fixed-effect Gaussian `impute_model()` for a continuous missing
-#'   predictor (k = 1; no grouped/structured predictor model, no k = 2).
+#'   predictor (k = 1; no grouped/structured predictor model).
 #' @param engine Computational engine. The default `"tmb"` uses the native
 #'   `drmTMB` TMB backend. `"julia"` routes an admitted model to the DRModels.jl
 #'   bridge: Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson,

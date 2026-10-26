@@ -20,15 +20,17 @@
 * A Gaussian response can now carry **one Gaussian and one binary** `mi()`
   term with a named `impute` list
   (`y ~ mi(m) + mi(b) + x`, `impute = list(m = impute_model(m ~ x, family = gaussian()), b = impute_model(b ~ x, family = binomial()))`).
-  This is the next #963 cell (owner decision of 11 Oct 2026) under independence: the binary term is summed over
-  its two states, the Gaussian term is a latent value, and the formula order
-  does not change the likelihood. It is **not** `impute_joint` and **not**
+  This native-engine route requires independent fixed-effect predictor models;
+  the Julia bridge does not admit this pair. It is the next #963 cell (owner
+  decision of 11 Oct 2026) under independence: the binary term is summed over
+  its two states, the Gaussian term is a latent value, and formula order does
+  not change the likelihood. It is **not** `impute_joint` and **not**
   FIML. `imputed()` for the binary term conditions on the Gaussian term's
   fitted value. Two binary terms, a count or ordinal second term, k > 2, and
   non-Gaussian responses are still refused (#963 stays open for them).
 * `check_drm()` gains a flag-only `residual_outliers` row. It is a `note`
-  when more than 1% of quantile residuals lie beyond |3| (about 0.27% is
-  expected), which is how a sentinel code such as -9999 for missing
+  when at least two quantile residuals and more than 1% lie beyond |3| (about
+  0.27% is expected), which is how a sentinel code such as -9999 for missing
   contaminates a Gaussian response: the scale coefficient attenuates while the
   mean model looks publishable and every optimizer, Hessian and SE row stays
   green. The row changes no estimate and never flips `attr(x, "ok")`.

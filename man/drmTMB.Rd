@@ -48,8 +48,12 @@ formula instead.}
 \code{\link[=drm_control]{drm_control()}} object when optimizer settings and fitted-object storage
 choices should be supplied together.}
 
-\item{impute}{Optional one-element named list of predictor models for the
-current missing-predictor routes. Bare formulas such as \code{list(x = x ~ z)}
+\item{impute}{Optional named list of predictor models for the current
+missing-predictor routes. Most routes use one entry. The Gaussian response
+also supports two entries for two independent \code{mi()} predictors: either two
+Gaussian models or one Gaussian and one binary model, both with fixed
+effects. This two-predictor route is available with the native engine, not
+the Julia bridge. Bare formulas such as \code{list(x = x ~ z)}
 define Gaussian models for numeric missing predictors. Use
 \code{\link[=impute_model]{impute_model()}} for explicit predictor families, such as
 \code{list(treatment = impute_model(treatment ~ z, family = binomial()))} for
@@ -75,7 +79,10 @@ covariate models use syntax such as
 \code{list(x = x ~ z + (1 | group))}; structured Gaussian covariate models use
 explicit syntax such as \code{list(x = x ~ z + relmat(1 | line, Q = Q))}.
 Most fitted routes use a univariate Gaussian formula containing one \code{mi(x)}
-location term and \code{missing = miss_control(predictor = "model")}. The first
+location term and \code{missing = miss_control(predictor = "model")}. That
+Gaussian response also accepts two independent fixed-effect predictor
+models: two Gaussian models or one Gaussian and one binary model, on the
+native engine only. No other two-predictor family pair is supported. The first
 non-Gaussian response route also supports \code{family = poisson()} with one
 fixed-effect binary \code{mi()} predictor modelled by \code{family = binomial()}.}
 
@@ -84,7 +91,11 @@ keeps the existing complete-case behaviour. Among currently supported models,
 \code{missing = miss_control(response = "include")} is implemented only for
 univariate Gaussian response masks and bivariate Gaussian partial-response
 rows without dense known covariance. \code{missing = miss_control(predictor = "model")} is implemented for one \code{mi()}
-missing predictor in a univariate Gaussian location model: numeric
+missing predictor in the documented family-specific routes. A univariate
+Gaussian response also supports two independent \code{mi()} predictors with
+fixed-effect models: two Gaussian models or one Gaussian plus one binary
+model, on the native engine only. No other two-predictor family pair is
+supported. For one predictor in the Gaussian location model, numeric
 Gaussian predictors may use a
 fixed-effect, one random-intercept, or one intercept-only structured
 Gaussian \code{impute} formula; binary, ordered categorical, unordered
@@ -98,7 +109,7 @@ each support one fixed-effect binary missing predictor with a
 Bernoulli/logit \code{impute_model()}, complete responses, and no random
 or structured response terms. \code{nbinom2()} also admits one
 fixed-effect Gaussian \code{impute_model()} for a continuous missing
-predictor (k = 1; no grouped/structured predictor model, no k = 2).}
+predictor (k = 1; no grouped/structured predictor model).}
 
 \item{engine}{Computational engine. The default \code{"tmb"} uses the native
 \code{drmTMB} TMB backend. \code{"julia"} routes an admitted model to the DRModels.jl
