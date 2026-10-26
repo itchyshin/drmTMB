@@ -1,3 +1,14 @@
+# 2026-10-25: audit of drmTMB's own AGHQ, step 1 (#934)
+
+Read-only audit note `docs/dev-log/2026-10-25-aghq-state-audit-934.md`. Verdict: integrator
+correct for the two implemented cases (binomial and cumulative-logit scalar random effect);
+estimator established for one cell only (cumulative-logit `mu` random slope, `mc-0227`); binomial
+O3 has no recovery or coverage campaign; no AGHQ code exists for `sigma` random effects, correlated
+or multi-dimensional latent blocks, other families, or structured effects. Added a fixed-parameter
+integrator spot check under `docs/dev-log/evidence/2026-10-25-aghq-integrator-spot-check/`
+(pure R, seconds). `tests/testthat/test-aghq-coxreid.R` on `f03b0b24a`: 5 tests, 16
+expectations, 0 failures, 0 skips (Totoro, R 4.6.1). No R, C++, test, man or NEWS file changed.
+
 # 2026-10-25: refuse ordinary mean (1 | g) on the Julia bridge (#1551)
 
 `drm_julia_refuse_ordinary_mean_re_unlabelled()` aborts Poisson, Gamma,

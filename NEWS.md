@@ -13,6 +13,15 @@
   `[5e-37, 1e33]` around an estimate of 0.026) is now labelled
   `conf.status = "wald_at_boundary"` and warns, not only an estimate below
   `sd_boundary`. Documented in `?confint.drmTMB` (#1558).
+* A Gaussian response can now carry **one Gaussian and one binary** `mi()`
+  term with a named `impute` list
+  (`y ~ mi(m) + mi(b) + x`, `impute = list(m = impute_model(m ~ x, family = gaussian()), b = impute_model(b ~ x, family = binomial()))`).
+  This is the next #963 cell (owner decision of 11 Oct 2026) under independence: the binary term is summed over
+  its two states, the Gaussian term is a latent value, and the formula order
+  does not change the likelihood. It is **not** `impute_joint` and **not**
+  FIML. `imputed()` for the binary term conditions on the Gaussian term's
+  fitted value. Two binary terms, a count or ordinal second term, k > 2, and
+  non-Gaussian responses are still refused (#963 stays open for them).
 * `predict(fit, type = "mean")` returns the response mean `E[Y]`:
   `exp(mu + sigma^2 / 2)` for lognormal fits, `(1 - zi) * mu` for
   zero-inflated count fits, the hurdle mean for hurdle fits, and the expected
@@ -61,6 +70,8 @@
 * `heritability()`, `icc()`, `repeatability()` and the `summary()$derived` variance share are documented as Gaussian-only for now; a non-Gaussian fit is refused with a message that points to `docs/design/275-repeatability-scale-and-residual-variance.md` and the de Villemereuil et al. (2016) three-scale framework (#1301).
 
 * The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
+
+* Six more articles now link DRModels.jl pages that are live on the stable site: `capability-and-limits`, `temporal-random-effects`, `cross-family`, `figure-gallery`, `simulation-plot-grammar` and `julia-engine`. Articles whose Julia page is not yet on the stable site (for example `missing-data`) stay unlinked until it is (#1246).
 
 * `?phylo` now correctly describes the existing unit-height convention:
   drmTMB divides the Brownian covariance by tree height, so multiplying all
