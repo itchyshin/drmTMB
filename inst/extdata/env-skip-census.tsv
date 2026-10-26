@@ -354,3 +354,5 @@ test-temporal-ou-profile-campaign-assessment.R	build-premise	build	skips	1
 test-tweedie-location-scale.R	suggests-package	environment	runs	1
 test-xfam-bridge.R	engine-drm-jl	environment	skips	8
 test-xfam-bridge.R	suggests-package	environment	runs	14
+test-zi-hurdle-mu-random-intercept.R	cran-lane	environment	runs	2
+test-zi-hurdle-mu-random-intercept.R	suggests-package	environment	runs	1

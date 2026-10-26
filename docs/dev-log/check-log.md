@@ -532,6 +532,12 @@ random-effect routes not screened; shared R/Julia `is_converged` rule
 left to #1554.
 
 ---
+# 2026-10-18 — rebase #1524 onto main `d89db5097`
+
+Rebased `claude/lane-n1-zi-hurdle-re` onto current main. Stale C17 receipt
+commit skipped. `src/drmTMB.cpp` changed (ZI/hurdle mu random intercept;
++60, C++ TMB reviewer). Full `testthat::test_dir()` on `a21ecf343`:
+passed=44951 failed=81 error=215 skipped=243 warning=20.
 
 # 2026-10-18 — rebase #1506 onto main `d89db5097`
 
@@ -95811,6 +95817,8 @@ tools/temporal-homtoep-gates.R T3-7c` emitted
 `TEMPORAL_HOMTOEP_T3_7C_PASS`. This supports M as an identified candidate design;
 it is not a public interface, recovery, interval, calibration, or campaign claim.
 
+
+| 2026-10-11 | ZI/hurdle count `mu` random intercept (#1451, lane N1) | `test-zi-hurdle-mu-random-intercept.R` 70 pass/0 fail; Salamanders ZINB/ZIP/hurdle NB2 `(1 \| site)` vs glmmTMB 1.1.8: logLik 1e-5, fixed effects 1e-3, RE SD 1e-3; zi/hurdle/nbinom2/phylo-interaction/count-structured files green | PASS for the first slice; full-suite counts in the PR | Claude / Gauss |
 
 | 2026-10-19 | man/*.Rd vs roxygen sync (#1571) | `document()` rewrote 39 Rd files before, 0 after; `test-man-roxygen-sync.R` fails pre-fix, passes post-fix | PASS | Claude |
 

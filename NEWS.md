@@ -65,6 +65,14 @@
   binomial) have real, characterized non-finite points at the eta = +-700 /
   +-40 grid boundary (reference-formula overflow, not kernel bugs) and now
   opt out explicitly with a documented count (#1324).
+* Zero-inflated Poisson, zero-inflated `nbinom2()`, and hurdle NB2
+  (`truncated_nbinom2()` with `hu ~ 1`) now accept one Gaussian random
+  intercept on `mu`, for example
+  `bf(count ~ spp + mined + (1 | site), sigma ~ 1, zi ~ 1)`. The zero part
+  must be intercept-only; random slopes, a second grouping factor, and
+  structured or `sigma` random effects remain rejected with a message naming
+  the supported form. On the Salamanders data the log-likelihood, fixed effects,
+  and random-intercept SD match `glmmTMB` (#1451).
 
 ## Documentation fixes
 
