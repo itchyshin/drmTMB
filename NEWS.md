@@ -25,6 +25,10 @@
   green. The row changes no estimate and never flips `attr(x, "ok")`.
   Spike-grade, bivariate and residual-less fits get no row. Reported by
   Russell Dinnage in the independent evaluation of drmTMB 0.7.0 (#1335).
+* `update()` now has an `update.drmTMB()` method. It refits from the stored
+  call with a new `bf()` / `drm_formula()` object, or with named arguments
+  such as `data` or `family`, and reuses the original defaults. An unnamed
+  argument in `...` now errors instead of being silently ignored (#1241).
 
 * `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
   check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
@@ -65,6 +69,12 @@
   binomial) have real, characterized non-finite points at the eta = +-700 /
   +-40 grid boundary (reference-formula overflow, not kernel bugs) and now
   opt out explicitly with a documented count (#1324).
+
+## Bug fixes
+
+* `heritability()`, `icc()`, and `repeatability()` now reject a `level`
+  that is not one number strictly between 0 and 1, matching `confint()`
+  instead of returning `NaN` or inverted bounds (#1480).
 
 ## Documentation fixes
 
