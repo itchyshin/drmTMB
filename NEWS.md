@@ -2,6 +2,29 @@
 
 ## New features
 
+* `confint()` now labels an ordinary `(1 | g)` SD Wald row whose log-scale
+  standard error exceeds 1 (for example `[5e-37, 1e33]` around an estimate of
+  0.026) as `conf.status = "wald_at_boundary"` and warns, not only an estimate
+  below `sd_boundary`. The default `confint(fit)` stays Wald for every row;
+  `?confint.drmTMB` documents the Wald SD undercoverage near the boundary and
+  points to `method = "profile"` for SD rows (#1558).
+* A Gaussian response can now carry **one Gaussian and one binary** `mi()`
+  term with a named `impute` list
+  (`y ~ mi(m) + mi(b) + x`, `impute = list(m = impute_model(m ~ x, family = gaussian()), b = impute_model(b ~ x, family = binomial()))`).
+  This is the next #963 cell (owner decision of 11 Oct 2026) under independence: the binary term is summed over
+  its two states, the Gaussian term is a latent value, and the formula order
+  does not change the likelihood. It is **not** `impute_joint` and **not**
+  FIML. `imputed()` for the binary term conditions on the Gaussian term's
+  fitted value. Two binary terms, a count or ordinal second term, k > 2, and
+  non-Gaussian responses are still refused (#963 stays open for them).
+* `check_drm()` gains a flag-only `residual_outliers` row. It is a `note`
+  when more than 1% of quantile residuals lie beyond |3| (about 0.27% is
+  expected), which is how a sentinel code such as -9999 for missing
+  contaminates a Gaussian response: the scale coefficient attenuates while the
+  mean model looks publishable and every optimizer, Hessian and SE row stays
+  green. The row changes no estimate and never flips `attr(x, "ok")`.
+  Spike-grade, bivariate and residual-less fits get no row. Reported by
+  Russell Dinnage in the independent evaluation of drmTMB 0.7.0 (#1335).
 * `update()` now has an `update.drmTMB()` method. It refits from the stored
   call with a new `bf()` / `drm_formula()` object, or with named arguments
   such as `data` or `family`, and reuses the original defaults. An unnamed
@@ -25,6 +48,15 @@
 * `simulate()` and `predict_parameters()` on an `engine = "julia"` fit now stop
   with a drmTMB error that points to `engine = "tmb"` (or `vcov()`/`confint()`
   for coefficient SEs) instead of base R's "no applicable method" (#1570).
+
+* `fitted()` and `residuals()` on an `engine = "julia"` fit now follow
+  `?fitted.drmTMB` instead of the DRModels.jl value in the bridge slot, for
+  three routes where they differed silently from `engine = "tmb"` on the same
+  converged model: `lognormal()` (the mean `exp(mu + sigma^2 / 2)`, not the
+  median), `truncated_nbinom2()` (the truncated mean `mu / (1 - P_NB2(0))`,
+  not `mu`), and Gaussian `(1 | g)` (includes the fitted modes, so `fitted()`
+  now agrees with `predict(dpar = "mu")`). They are recomputed R-side from the
+  bridged distributional parameters (#1566).
 ## Test infrastructure
 
 * The numeric-kernel extreme-value oracle's `run_oracle()` helper
@@ -46,12 +78,16 @@
 
 ## Documentation fixes
 
+* `?mi` now states that U-shaped Beta and zero-one-Beta priors (missing-row mean within 0.10 of 0 or 1) are flagged by the `drmTMB_mi_quadrature_inaccurate` warning, not integrated accurately by the fixed 15-node rule; no adaptive rule is planned (#1531).
 * `?nbinom2` now states that NB2 cannot go below the Poisson limit (an underdispersed count fit hits the `sigma` boundary (limit) and returns a degenerate result) and points underdispersed counts to `glmmTMB::compois()` / `glmmTMB::genpois()`. This is a documentation pointer only; no underdispersed count family is added (Refs #1466).
 
 * The `missing-data` article gains a recipe for a mediator that is also a response: build `impute_model()` from the fitted node's formula and family, with an explicit statement that estimates are not shared and what that means for standard errors (#964).
 * `?spatial` and the `spatial-models` article now state that the `coords =` route fixes the exponential range at the median positive pairwise distance and estimates only sill and nugget, with `relmat(K =)` as the flexible route (#968).
+* `heritability()`, `icc()`, `repeatability()` and the `summary()$derived` variance share are documented as Gaussian-only for now; a non-Gaussian fit is refused with a message that points to `docs/design/275-repeatability-scale-and-residual-variance.md` and the de Villemereuil et al. (2016) three-scale framework (#1301).
 
 * The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
+
+* Six more articles now link DRModels.jl pages that are live on the stable site: `capability-and-limits`, `temporal-random-effects`, `cross-family`, `figure-gallery`, `simulation-plot-grammar` and `julia-engine`. Articles whose Julia page is not yet on the stable site (for example `missing-data`) stay unlinked until it is (#1246).
 
 * `?phylo` now correctly describes the existing unit-height convention:
   drmTMB divides the Brownian covariance by tree height, so multiplying all
@@ -70,6 +106,20 @@
   correct (verified numerically); only the description was wrong (#1231).
 
 ## Bug fixes
+
+* The first `engine = "julia"` call no longer prints the recovered
+  `Error during loading of extension LogExpFunctionsInverseFunctionsExt` log
+  with its `UndefVarError` stack trace (twice) that some Julia package
+  combinations emit while the backend loads. The session recovers and fits are
+  unaffected, but the red `ERROR` looked like a crash. `drm_julia_setup()` now
+  wraps Julia's logger during setup and drops only that message when its cause
+  is an `UndefVarError`; every other message, including any other extension
+  failure, still shows (#1157).
+* The `observations_per_parameter` note in `check_drm()` now also tells the
+  user that the likelihood can be multimodal at that size and to refit with
+  `drm_control(multi_start = 10)`, unless `multi_start` was already used.
+  At n = 8 with `sigma ~ x`, a single start can stop on the lower of two
+  maxima with status `"converged"` (#1469).
 
 * `engine = "julia"` now refuses an ordinary mean `(1 | g)` on Poisson,
   Gamma, NB2, Beta, and Binomial before Julia starts. Those models used to
@@ -153,6 +203,10 @@
   `fn` and `gr` finite. `predict()` and `simulate()` allow `weights = 1`
   and refuse non-unit `weights` on an `mi()` fit
   (`drmTMB_mi_weights_predict_unsupported`) (Refs #1459).
+
+* Dropping unused levels of a fixed-effect factor predictor now emits an
+  informative message (class `drmTMB_dropped_factor_levels`) naming the column
+  and the dropped levels, instead of being silent (#1584).
 
 * `simulate(fit, newdata = nd)` no longer ignores `newdata` and returns draws
   for the training rows. `simulate.drmTMB()` now has an explicit `newdata`

@@ -22,6 +22,12 @@
 #' a fit has two or more structured components. Their names make the denominator
 #' explicit so that one label does not refer to two different quantities.
 #'
+#' These quantities are Gaussian-only for now: a non-Gaussian fit is refused
+#' with an error rather than given a value on an unstated scale. A
+#' non-Gaussian version would have to say which scale it reports (latent,
+#' liability, or observed data; de Villemereuil et al. 2016, *Genetics*
+#' 204:1281-1294); see `docs/design/275-repeatability-scale-and-residual-variance.md`.
+#'
 #' Fits must be Gaussian, have a constant residual scale (`sigma ~ 1`) or a
 #' closed-form marginal residual variance, and have at least one structured
 #' mean random-effect component (`(1 | group)`, `phylo(...)`, `animal(...)`,
@@ -290,7 +296,8 @@ drm_variance_ratio <- function(
   if (!identical(object$model$model_type, "gaussian")) {
     cli::cli_abort(c(
       "{.fn {quantity}} requires a Gaussian {.field model_type} fit.",
-      "i" = "This fit has {.val {object$model$model_type}}."
+      "i" = "This fit has {.val {object$model$model_type}}.",
+      "i" = "{.fn heritability}, {.fn icc}, {.fn repeatability} and the {.code summary()$derived} variance share are Gaussian-only for now. Non-Gaussian fits need the latent, liability and observed-data scales of de Villemereuil et al. (2016, {.emph Genetics} 204:1281-1294); the planned design is in {.file docs/design/275-repeatability-scale-and-residual-variance.md}."
     ))
   }
   drm_variance_ratio_reject_random_slopes(object, quantity)

@@ -269,3 +269,23 @@ test_that("Md-M: skew_normal's far tail matches pnorm(log.p = TRUE) (Dinnage aud
     stats::pnorm(alpha * z, log.p = TRUE)
   expect_equal(as.numeric(nll_pkg), -log_density_ref, tolerance = 1e-6)
 })
+
+test_that("unused fixed-effect factor levels are dropped with a message naming the column (#1584)", {
+  set.seed(1)
+  d <- data.frame(y = rnorm(30), g = factor(rep(c("a", "b", "c"), 10)))
+  d <- subset(d, g != "c")
+  expect_message(
+    fit <- drmTMB(bf(y ~ g, sigma ~ 1), data = d, family = gaussian()),
+    class = "drmTMB_dropped_factor_levels"
+  )
+  msg <- tryCatch(
+    drmTMB(bf(y ~ g, sigma ~ 1), data = d, family = gaussian()),
+    drmTMB_dropped_factor_levels = function(m) conditionMessage(m)
+  )
+  expect_match(msg, "g", fixed = TRUE)
+  expect_match(msg, "c", fixed = TRUE)
+  # No message when nothing is unused.
+  expect_no_message(
+    drmTMB(bf(y ~ g, sigma ~ 1), data = droplevels(d), family = gaussian())
+  )
+})
