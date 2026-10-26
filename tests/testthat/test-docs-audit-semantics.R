@@ -74,3 +74,36 @@ test_that("convergence help retains the exported generic and Julia method aliase
   expect_true("\\alias{is_converged.drmTMB_julia}" %in% help)
   expect_true("\\alias{is_converged.drmTMB_julia_xfam}" %in% help)
 })
+
+
+test_that("numbered argument anchors are unique and retain incoming targets", {
+  skip_if_not_installed("xml2")
+  script <- test_path("..", "..", "tools", "build-pkgdown.R")
+  skip_if_not(file.exists(script), "documentation builder is not in this build")
+  definitions <- Filter(function(expr) {
+    is.call(expr) && identical(expr[[1]], as.name("<-")) &&
+      identical(expr[[2]], as.name("repair_duplicate_argument_anchors"))
+  }, as.list(parse(script)))
+  expect_length(definitions, 1L)
+  env <- new.env(parent = baseenv())
+  eval(definitions[[1L]], env)
+  site <- tempfile("argument-anchors-")
+  dir.create(site)
+  on.exit(unlink(site, recursive = TRUE), add = TRUE)
+  path <- file.path(site, "reference.html")
+  writeLines(paste0('<html><body><dl>',
+    '<dt id="arg-tree-">tree1<a href="#arg-tree-"></a></dt>',
+    '<dt id="arg-tree-">tree2<a href="#arg-tree-"></a></dt>',
+    '<dt id="arg-tree-2">reserved<a href="#arg-tree-2"></a></dt>',
+    '<dt id="arg-x">x<a href="#arg-x"></a></dt>',
+    '</dl></body></html>'), path)
+  expect_identical(env$repair_duplicate_argument_anchors(site), 1L)
+  page <- xml2::read_html(path)
+  terms <- xml2::xml_find_all(page, ".//dt")
+  ids <- xml2::xml_attr(terms, "id")
+  expect_identical(ids, c("arg-tree-", "arg-tree-3", "arg-tree-2", "arg-x"))
+  expect_identical(anyDuplicated(ids), 0L)
+  expect_identical(xml2::xml_attr(xml2::xml_find_first(terms, "./a"), "href"),
+                   paste0("#", ids))
+  expect_identical(env$repair_duplicate_argument_anchors(site), 0L)
+})

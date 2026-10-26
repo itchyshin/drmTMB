@@ -6,6 +6,8 @@ Repair current R documentation, API help, executable examples, and evidence limi
 
 Correct public examples, document Julia-backed S3 methods, qualify interval and validation claims, restore mathematical rendering, and repair the generated 404 MathJax script tag. Three refusal messages now describe existing restrictions accurately. Diagnostic subsetting now forwards its existing drop argument, fixing a reproduced mismatch between the declared default and the returned single-column result.
 
+The final local site audit also found a duplicated argument anchor for `tree1` and `tree2`. The builder now retains the first target for incoming links and assigns unique targets to later arguments.
+
 ## 3a. Decisions and Rejected Alternatives
 
 Preserve existing numerical algorithms, signatures, and admission boundaries. State the limits of recorded numerical evidence rather than add scientific claims. Keep historical benchmark reports unchanged.
@@ -70,6 +72,8 @@ Preserve existing numerical algorithms, signatures, and admission boundaries. St
 ## 5. Checks Run
 
 The current source passes 27 focused documentation, builder, subsetting, and help regressions. The pre-integration local site build exited zero and produced 241 HTML pages. The final build must include the merged interval default and added method aliases. Public vignette, ordinary-fence, and Rd examples have raw execution receipts in the task audit. The contributor document command completed. The initial source-tree test returned failures because the disposable export omitted tracked design fixtures. The new subsetting regression failed before its one-line fix (four failures) and passed afterward. Independent review caught a missing generic usage line; its new test failed before regeneration and passed afterward. The affected test batch passed 70 assertions. The HTML test dependency and generated skip census are now declared, and the existing subprocess test resolves source paths in Rcheck layouts. The full-source retry and package check found setup defects; the final reruns remain required. Historical fixtures and genuine Git metadata are restored in the disposable source copy. Upstream bf634ab was integrated without conflicts. Its two affected default-interval examples were rerun in their actual article setup; the ordinary SD rows are profile intervals and the remaining rows are Wald. Roxygen configuration now agrees with the contributor pin of 7.3.2.
+
+The argument-anchor regression failed on the duplicate target before the fix. Six source-test assertions now pass, including a reserved-ID collision and idempotence. Applying the postprocessor to the 245-page artifact changes only the affected reference page; all 11,334 internal references resolve and no duplicate IDs remain.
 
 ## 6. Tests of the Tests
 

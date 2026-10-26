@@ -65,3 +65,37 @@ repair_404_mathjax <- function(site_dir) {
 }
 
 repair_404_mathjax(site_dir)
+
+# pkgdown can give numbered arguments the same anchor after stripping digits.
+# Keep the first target for incoming links and give later arguments unique IDs.
+repair_duplicate_argument_anchors <- function(site_dir) {
+  changed <- 0L
+  for (path in list.files(site_dir, pattern = "[.]html$", recursive = TRUE,
+                          full.names = TRUE)) {
+    page <- xml2::read_html(path)
+    nodes <- xml2::xml_find_all(page, ".//dt[starts-with(@id,'arg-')]")
+    ids <- xml2::xml_attr(nodes, "id")
+    repeated <- which(duplicated(ids))
+    if (!length(repeated)) next
+    used <- xml2::xml_attr(xml2::xml_find_all(page, "//*[@id]"), "id")
+    for (i in repeated) {
+      old <- ids[[i]]
+      suffix <- 2L
+      candidate <- paste0(old, suffix)
+      while (candidate %in% used) {
+        suffix <- suffix + 1L
+        candidate <- paste0(old, suffix)
+      }
+      xml2::xml_attr(nodes[[i]], "id") <- candidate
+      anchors <- xml2::xml_find_all(nodes[[i]], ".//a[@href]")
+      self <- xml2::xml_attr(anchors, "href") == paste0("#", old)
+      xml2::xml_attr(anchors[self], "href") <- paste0("#", candidate)
+      used <- c(used, candidate)
+      changed <- changed + 1L
+    }
+    xml2::write_html(page, path)
+  }
+  invisible(changed)
+}
+
+repair_duplicate_argument_anchors(site_dir)

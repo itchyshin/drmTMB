@@ -81,8 +81,8 @@ test-dinnage-audit-wave4c.R	runtime-conditional	runtime	depends	1
 test-dinnage-audit-wave4c.R	suggests-package	environment	runs	2
 test-distributional-outputs.R	cran-lane	environment	runs	3
 test-distributional-outputs.R	suggests-package	environment	runs	2
-test-docs-audit-semantics.R	build-premise	build	skips	1
-test-docs-audit-semantics.R	suggests-package	environment	runs	1
+test-docs-audit-semantics.R	build-premise	build	skips	2
+test-docs-audit-semantics.R	suggests-package	environment	runs	2
 test-emmeans-methods.R	suggests-package	environment	runs	19
 test-emmeans-preflight-contract.R	cran-lane	environment	runs	6
 test-emmeans-preflight-contract.R	suggests-package	environment	runs	6
