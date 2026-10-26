@@ -262,9 +262,9 @@ between them rather than reporting whichever one was fit last.
 
 When `TMB::sdreport()` succeeds, direct response-scale parameter rows such as
 constant `sigma` and `sd:mu:(1 | site)` also include delta-method standard
-errors. By default, `confint()` profiles the ordinary `(1 | site)` SD and uses
-Wald intervals for the other rows. Pass `method = "wald"` to request a Wald
-table throughout. Wald SD intervals are formed on the fitted log-SD scale
+errors. By default, `confint()` uses Wald intervals for every row. To profile
+a supported ordinary `(1 | site)` SD target, select that target and pass
+`method = "profile"` explicitly. Wald SD intervals are formed on the fitted log-SD scale
 and exponentiated; correlation intervals are formed on the fitted guarded
 atanh scale and transformed back with the model's correlation transform.
 Treat Wald rows as local approximations; use additional profile or bootstrap

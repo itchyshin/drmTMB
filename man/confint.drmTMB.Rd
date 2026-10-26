@@ -32,8 +32,7 @@
 \item{object}{A \code{drmTMB} fit.}
 
 \item{parm}{Optional character or integer vector selecting interval targets.
-\code{NULL} selects all direct targets for the default mixed table or explicit
-Wald intervals. Explicit profile intervals usually require target names
+\code{NULL} selects all direct targets for Wald intervals. Explicit profile intervals usually require target names
 or target-set shortcuts;
 for a Gaussian temporal AR1 or OU fit, \code{NULL} selects every mean-model
 coefficient. Temporal profile intervals admit mean coefficients only.
@@ -44,10 +43,8 @@ Supported shortcuts are \code{"fixed_effects"}, \code{"random_effects"},
 
 \item{method}{Interval method: \code{"wald"}, \code{"profile"}, or \code{"bootstrap"}. If
 \code{newdata} is supplied and \code{method} is omitted, \code{method = "profile"} is
-used. If \code{method} is omitted without \code{newdata}, ordinary \code{(1 | g)} SD rows
-are profiled and all other rows are Wald; the \code{method} column of the
-result says which. Pass \code{method = "wald"} to get a Wald interval for every
-row.}
+used. If \code{method} is omitted without \code{newdata}, every row is a Wald
+interval. Pass \code{method = "profile"} to profile random-effect SD rows.}
 
 \item{newdata}{Optional data frame for response-scale profile intervals for
 predictor-dependent \code{sigma}, \code{sigma1}, \code{sigma2}, \code{rho12}, or fitted
@@ -112,9 +109,7 @@ zero, or a correlation within \code{rho_boundary} of \verb{+/-1}, is returned wi
 \code{method = "profile"}. Defaults match \code{\link[=check_drm]{check_drm()}} (\code{1e-4}, \code{0.98}).
 An ordinary \code{(1 | g)} SD whose log-scale Wald standard error exceeds 1 is
 flagged the same way even when its estimate is above \code{sd_boundary}; that
-cut-off is fixed. Supplying either threshold (or \code{small_sample_df} or
-\code{bias_correct}) with \code{method} omitted asks for the Wald table, so no SD row
-is profiled.}
+cut-off is fixed.}
 
 \item{small_sample_df}{Small-sample reference distribution for the
 \code{method = "wald"} interval. \code{"location"} (the default) uses a t-quantile
@@ -188,12 +183,9 @@ For a plain matrix view of the \code{lower} and \code{upper} columns, use
 \code{\link[=as.matrix.drm_confint]{as.matrix.drm_confint()}}.
 }
 \description{
-\code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. When
-\code{method} is omitted, ordinary \code{(1 | g)} random-intercept SD rows are
-\strong{profile-likelihood} intervals and every other row is a Wald interval; see
-the \emph{Default interval for ordinary \code{(1 | g)} SDs} section. Pass
-\code{method = "wald"} for Wald intervals on every requested row.
-Direct targets available to the Wald method include
+\code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. Wald
+intervals are fast and are returned for fixed-effect coefficients and direct
+response-scale parameter targets by default. Direct Wald targets include
 constant residual-scale, random-effect standard-deviation, random-effect
 correlation, and constant residual-correlation rows when the fitted TMB
 parameter and \code{TMB::sdreport()} covariance are available.
@@ -237,9 +229,8 @@ fits with constant
 \code{sigma}, \code{sigma1}, or \code{sigma2}, \code{parm = "sigma"} and friends report
 response-scale intervals.
 
-The routine entry point is \code{confint(fit)}, which uses Wald intervals for
-fixed effects and direct response-scale targets, and profiles only the
-ordinary \code{(1 | g)} SD rows. For long phylogenetic,
+The routine route is \code{confint(fit)}, which uses Wald intervals for
+fixed effects and direct response-scale targets. For long phylogenetic,
 spatial, animal-model, or relatedness fits, profile only the needed
 variance-component or correlation rows with the default
 \code{profile_engine = "auto"} first; direct scalar scale, SD, and correlation
@@ -264,10 +255,7 @@ decay, bootstrap, and \code{newdata} intervals are unavailable.
 Read \code{check_drm(fit)}: a non-positive-definite fitted Hessian does
 not prevent a finite profile endpoint, but it makes the fitted likelihood
 locally irregular and the interval is not coverage-calibrated.
-\item Ordinary \code{(1 | g)} random-intercept SDs: \code{confint(fit)}
-already profiles them (see below); a profile interval at a boundary
-still warns and is not calibrated.
-\item Other random-effect SDs and direct variance-component targets: prefer
+\item Random-effect SDs and other direct variance-component targets: prefer
 \code{confint(fit, parm = ..., method = "profile")} after
 \code{profile_targets(fit)} shows the row is profile-ready. Profile
 re-optimizes nuisance parameters and is slower than Wald.
@@ -286,33 +274,21 @@ For a short applied walkthrough, see the vignette
 \emph{First-week intervals: fit, profile, and boundary}.
 }
 
-\section{Default interval for ordinary \code{(1 | g)} SDs}{
+\section{Wald intervals for ordinary \code{(1 | g)} SDs}{
 
-With \code{method} omitted (and no \code{newdata}), \code{confint()} returns a profile
-interval for each ordinary \code{(1 | g)} random-intercept SD row and a Wald
-interval for every other row, in the usual row order. "Ordinary" means a plain
-grouped intercept SD on \code{mu}, \code{sigma}, \code{zoi} or \code{coi} that
-\code{\link[=profile_targets]{profile_targets()}} lists as profile-ready. Structured SDs (\code{phylo()},
-\code{spatial()}, \code{animal()}, \code{relmat()}), slope and correlated-term SDs, and
-labelled covariance blocks keep the Wald default. The \code{method} and
-\code{profile.engine} columns record which interval each row is. The default is
-profile because the Wald SD interval undercovers near the boundary. In the
+The default \code{confint(fit)} is Wald for every row, including random-effect SD
+rows. The Wald SD interval undercovers near the boundary. In the
 sweep-oct16 t9 design (Gaussian location-scale with \code{(1 | g)}, n_g = 10,
 300 replicates per cell) at a true SD of 0.1, Wald coverage was 0.36 with 10
 groups and 0.42 with 30 groups, with about half of the replicates returning
 an infinite upper limit; profile coverage on the same replicates was 0.97 and
 0.98 there. At a true SD of 0.5, Wald coverage was 0.97 to 0.98 and profile
-coverage 0.93 to 0.957. Profile is slower than Wald, and it is not a repair
-at a boundary (see \emph{Boundary intervals}): it still warns when it reaches one.
+coverage 0.93 to 0.957. When a SD row is labelled \code{wald_at_boundary} (see
+\emph{Boundary intervals}), use \code{confint(fit, parm = ..., method = "profile")}
+for that row. Profile is slower than Wald, and it is not a repair at a
+boundary: it still warns when it reaches one.
 That sweep does not calibrate intervals for other ordinary-SD routes or
 different study designs.
-
-The default falls back to the Wald table when the TMB object was not kept
-(\code{drm_control(keep_tmb_object = FALSE)}), when no requested row is an
-ordinary SD, and when \code{small_sample_df}, \code{bias_correct}, \code{sd_boundary} or
-\code{rho_boundary} is supplied. \code{method = "wald"} always returns Wald for every
-row, \code{method = "profile"} and \code{method = "bootstrap"} are unchanged, and
-\code{engine = "julia"} fits are not affected.
 }
 
 \section{Boundary intervals}{

@@ -982,8 +982,8 @@ direct structured-SD profiles only in their tested discrete domains. Check the
 for the evidence channel attached to a particular row.
 
 A separate retained study measured 95% endpoint profile intervals for one
-fixed-kappa, bivariate-Gaussian spatial q2 intercept block under REML and the
-baseline-ring geometry. It retained 500 datasets at each design rung: L had 12
+bivariate-Gaussian spatial q2 intercept block under REML, holding the spatial
+parameter `kappa` fixed on the baseline-ring geometry. It retained 500 datasets at each design rung: L had 12
 sites with 3 observations per site, M had 36 with 3, and H had 36 with 8. The
 joint gate required all three targets to have all-attempt coverage from 0.925 to
 0.975 and finite profiles in at least 95% of attempts. The measured coverage
@@ -996,8 +996,8 @@ and finite-profile rates were:
 | H | 0.962 / 1.000 | 0.946 / 1.000 | 0.940 / 1.000 | Pass |
 
 The lowest jointly passing rung was M. These results apply only to the tested
-baseline-ring designs, fixed-kappa spatial q2 intercept block, REML estimand,
-and three direct targets. They do not establish intervals for other geometries,
+baseline-ring designs, the spatial q2 intercept block with `kappa` held fixed,
+the REML estimand, and three direct targets. They do not establish intervals for other geometries,
 estimated spatial ranges, slopes, mesh fields, q4 blocks, non-Gaussian models,
 spatial `sigma`, or derived observed correlations.
 
