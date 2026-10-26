@@ -22,6 +22,15 @@
   FIML. `imputed()` for the binary term conditions on the Gaussian term's
   fitted value. Two binary terms, a count or ordinal second term, k > 2, and
   non-Gaussian responses are still refused (#963 stays open for them).
+* `check_drm()` gains a flag-only `residual_outliers` row. It is a `note`
+  when more than 1% of quantile residuals lie beyond |3| (about 0.27% is
+  expected), which is how a sentinel code such as -9999 for missing
+  contaminates a Gaussian response: the scale coefficient attenuates while the
+  mean model looks publishable and every optimizer, Hessian and SE row stays
+  green. The row changes no estimate and never flips `attr(x, "ok")`.
+  Spike-grade, bivariate and residual-less fits get no row. Reported by
+  Russell Dinnage in the independent evaluation of drmTMB 0.7.0 (#1335).
+
 * `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
   check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
   the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
@@ -41,6 +50,14 @@
   with a drmTMB error that points to `engine = "tmb"` (or `vcov()`/`confint()`
   for coefficient SEs) instead of base R's "no applicable method" (#1570).
 
+* `fitted()` and `residuals()` on an `engine = "julia"` fit now follow
+  `?fitted.drmTMB` instead of the DRModels.jl value in the bridge slot, for
+  three routes where they differed silently from `engine = "tmb"` on the same
+  converged model: `lognormal()` (the mean `exp(mu + sigma^2 / 2)`, not the
+  median), `truncated_nbinom2()` (the truncated mean `mu / (1 - P_NB2(0))`,
+  not `mu`), and Gaussian `(1 | g)` (includes the fitted modes, so `fitted()`
+  now agrees with `predict(dpar = "mu")`). They are recomputed R-side from the
+  bridged distributional parameters (#1566).
 * `summary()` of a `REML` fit now labels the mean-block standard-error
   convention (`summary(fit)$se_convention`, printed under the estimator line).
   Native `engine = "tmb"` REML SEs are `"sdreport-inflated"` (TMB `sdreport`
@@ -102,6 +119,11 @@
   wraps Julia's logger during setup and drops only that message when its cause
   is an `UndefVarError`; every other message, including any other extension
   failure, still shows (#1157).
+* The `observations_per_parameter` note in `check_drm()` now also tells the
+  user that the likelihood can be multimodal at that size and to refit with
+  `drm_control(multi_start = 10)`, unless `multi_start` was already used.
+  At n = 8 with `sigma ~ x`, a single start can stop on the lower of two
+  maxima with status `"converged"` (#1469).
 
 * `engine = "julia"` now refuses an ordinary mean `(1 | g)` on Poisson,
   Gamma, NB2, Beta, and Binomial before Julia starts. Those models used to

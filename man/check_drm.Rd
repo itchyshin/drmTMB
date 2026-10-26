@@ -72,6 +72,9 @@ and whether a continuous location-scale likelihood is unbounded
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
 Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks,
+a flag-only note when more than 1\% of quantile residuals lie beyond |3|
+(\code{residual_outliers}, a sign of a damaged response such as a sentinel code;
+it changes no estimate and never flips \code{attr(x, "ok")}),
 known sampling covariance summaries,
 dense known-covariance storage scale, dense fixed-effect design size and
 density, random-effect replication, and random-slope design variation. If a
