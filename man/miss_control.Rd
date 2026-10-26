@@ -52,9 +52,10 @@ predictor models supplied by \code{\link[=impute_model]{impute_model()}}. The no
 slices support \code{poisson()}, \code{binomial()}, \code{nbinom2()}, \code{beta_family()},
 \code{Gamma(link = "log")}, \code{lognormal()}, \code{beta_binomial()}, and
 \code{student()} responses, each with one fixed-effect Bernoulli/logit binary
-missing predictor. \code{nbinom2()} also admits one fixed-effect Gaussian missing
-predictor (k = 1; no grouped/structured predictor model). No other two-predictor
-family pair is currently supported.
+missing predictor.
+\code{nbinom2()} also admits one fixed-effect Gaussian missing predictor (k = 1;
+no grouped/structured predictor model). No other two-predictor family pair
+is currently supported.
 EM/profile engines and simulation-based imputation
 summaries are reserved for later slices.
 }
