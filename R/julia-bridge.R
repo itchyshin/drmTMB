@@ -4540,6 +4540,54 @@ drm_julia_setup_command <- function(code) {
   JuliaCall::julia_command(drm_julia_quiet_command(code))
 }
 
+# Julia boot log filter (#1157). On some Julia / LogExpFunctions combinations the
+# first `using` of the backend logs `Error during loading of extension
+# LogExpFunctionsInverseFunctionsExt of LogExpFunctions` with an
+# `UndefVarError` stack trace, twice. The session recovers, the extension is not
+# needed, and fits are correct, but a first-time user cannot tell the red
+# ERROR from a crash. This wraps Julia's global logger for the duration of
+# `drm_julia_setup()` and drops exactly that recovered extension-load log
+# (message prefix AND an `UndefVarError` cause). Every other message, including
+# any other extension failure, is passed to the original logger untouched, and
+# `restore()` puts the original logger back.
+drm_julia_boot_log_source <- function() {
+  paste(
+    sep = "\n",
+    "module DrmTMBBootLog",
+    "import Logging",
+    "struct Filter{L<:Logging.AbstractLogger} <: Logging.AbstractLogger",
+    "    inner::L",
+    "end",
+    "function harmless(message, kwargs)",
+    "    startswith(string(message), \"Error during loading of extension LogExpFunctionsInverseFunctionsExt of LogExpFunctions\") || return false",
+    "    ex = get(kwargs, :exception, nothing)",
+    "    ex isa Tuple && !isempty(ex) && (ex = first(ex))",
+    "    ex isa LoadError && (ex = ex.error)",
+    "    ex isa UndefVarError",
+    "end",
+    "Logging.min_enabled_level(l::Filter) = Logging.min_enabled_level(l.inner)",
+    "Logging.shouldlog(l::Filter, args...) = Logging.shouldlog(l.inner, args...)",
+    "Logging.catch_exceptions(l::Filter) = Logging.catch_exceptions(l.inner)",
+    "function Logging.handle_message(l::Filter, level, message, _module, group, id, file, line; kwargs...)",
+    "    harmless(message, kwargs) && return nothing",
+    "    Logging.handle_message(l.inner, level, message, _module, group, id, file, line; kwargs...)",
+    "end",
+    "const saved = Ref{Any}(nothing)",
+    "function install()",
+    "    saved[] === nothing || return nothing",
+    "    saved[] = Logging.global_logger()",
+    "    Logging.global_logger(Filter(saved[]))",
+    "    nothing",
+    "end",
+    "function restore()",
+    "    saved[] === nothing || Logging.global_logger(saved[])",
+    "    saved[] = nothing",
+    "    nothing",
+    "end",
+    "end"
+  )
+}
+
 drm_julia_setup <- function(path = drm_julia_path()) {
   # Hard stop on the CRAN / win-builder lane. Suggests JuliaCall + host Julia is
   # not enough to justify entering julia_setup(): Ligges R-release hung for
@@ -4591,6 +4639,17 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   drm_julia_setup_command(paste0(
     "import Pkg; Pkg.activate(", drm_julia_quote(normalized_path), ")"
   ))
+  # Defined once per session: a `module` cannot sit inside a guarding `if`, and
+  # redefining it would print a "replacing module" warning.
+  if (!isTRUE(drm_julia_setup_state$boot_log_defined)) {
+    drm_julia_setup_command(drm_julia_boot_log_source())
+    drm_julia_setup_state$boot_log_defined <- TRUE
+  }
+  drm_julia_setup_command("DrmTMBBootLog.install()")
+  on.exit(
+    try(drm_julia_setup_command("DrmTMBBootLog.restore()"), silent = TRUE),
+    add = TRUE
+  )
   drm_julia_setup_state$module <- drm_julia_load_module(normalized_path)
   # Random is Julia's own stdlib (not a DRM.jl addition); the fixed-effect
   # inference wrapper below seeds `bootstrap_result()`'s RNG with it.
