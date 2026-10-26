@@ -256,3 +256,10 @@ Choose the next worked tutorial from [response families](distribution-families.h
 [structured effects](structural-dependence.html), [bivariate models](bivariate-nongaussian.html),
 or [missing data](missing-data.html). This page is deliberately a reporting
 guide: it tells you what to fit, what to report, and where to stop.
+
+Working in Julia? The DRModels.jl
+[detailed capabilities and limits page](https://itchyshin.github.io/DRModels.jl/stable/capabilities)
+gives the matching map for that package. DRModels.jl is a separate package
+with its own fitting and inference routes, so a route that is supported here
+is not automatically supported there, and the reverse. Julia is optional for
+`drmTMB` users.

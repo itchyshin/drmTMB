@@ -17,6 +17,24 @@
   `[5e-37, 1e33]` around an estimate of 0.026) is now labelled
   `conf.status = "wald_at_boundary"` and warns, not only an estimate below
   `sd_boundary`. Documented in `?confint.drmTMB` (#1558).
+* A Gaussian response can now carry **one Gaussian and one binary** `mi()`
+  term with a named `impute` list
+  (`y ~ mi(m) + mi(b) + x`, `impute = list(m = impute_model(m ~ x, family = gaussian()), b = impute_model(b ~ x, family = binomial()))`).
+  This is the next #963 cell (owner decision of 11 Oct 2026) under independence: the binary term is summed over
+  its two states, the Gaussian term is a latent value, and the formula order
+  does not change the likelihood. It is **not** `impute_joint` and **not**
+  FIML. `imputed()` for the binary term conditions on the Gaussian term's
+  fitted value. Two binary terms, a count or ordinal second term, k > 2, and
+  non-Gaussian responses are still refused (#963 stays open for them).
+* `check_drm()` gains a flag-only `residual_outliers` row. It is a `note`
+  when more than 1% of quantile residuals lie beyond |3| (about 0.27% is
+  expected), which is how a sentinel code such as -9999 for missing
+  contaminates a Gaussian response: the scale coefficient attenuates while the
+  mean model looks publishable and every optimizer, Hessian and SE row stays
+  green. The row changes no estimate and never flips `attr(x, "ok")`.
+  Spike-grade, bivariate and residual-less fits get no row. Reported by
+  Russell Dinnage in the independent evaluation of drmTMB 0.7.0 (#1335).
+
 * `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
   check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
   the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
@@ -59,6 +77,8 @@
 
 * The `spatial-models` and `phylogenetic-spatial` articles now link their DRModels.jl companion pages, completing the R to Julia companion links for every article with a live Julia twin (#1243, #1246).
 
+* Six more articles now link DRModels.jl pages that are live on the stable site: `capability-and-limits`, `temporal-random-effects`, `cross-family`, `figure-gallery`, `simulation-plot-grammar` and `julia-engine`. Articles whose Julia page is not yet on the stable site (for example `missing-data`) stay unlinked until it is (#1246).
+
 * `?phylo` now correctly describes the existing unit-height convention:
   drmTMB divides the Brownian covariance by tree height, so multiplying all
   branch lengths by the same positive constant leaves the normalized
@@ -86,6 +106,11 @@
   wraps Julia's logger during setup and drops only that message when its cause
   is an `UndefVarError`; every other message, including any other extension
   failure, still shows (#1157).
+* The `observations_per_parameter` note in `check_drm()` now also tells the
+  user that the likelihood can be multimodal at that size and to refit with
+  `drm_control(multi_start = 10)`, unless `multi_start` was already used.
+  At n = 8 with `sigma ~ x`, a single start can stop on the lower of two
+  maxima with status `"converged"` (#1469).
 
 * `engine = "julia"` now refuses an ordinary mean `(1 | g)` on Poisson,
   Gamma, NB2, Beta, and Binomial before Julia starts. Those models used to

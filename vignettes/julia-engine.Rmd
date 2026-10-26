@@ -398,3 +398,10 @@ and some structured and multi-response Julia routes accept no extra controls.
 If your analysis depends on a particular `drm_control()` setting, use
 `engine = "tmb"` unless the [capability guide](capability-and-limits.html)
 explicitly lists it for your route.
+
+For the Julia side of this bridge, the DRModels.jl
+[first-model page](https://itchyshin.github.io/DRModels.jl/stable/getting-started)
+starts a fit directly in Julia, and its
+[capabilities page](https://itchyshin.github.io/DRModels.jl/stable/capabilities)
+lists what that package supports today. Those pages are maintained with
+DRModels.jl, so check them against the version you have installed.
