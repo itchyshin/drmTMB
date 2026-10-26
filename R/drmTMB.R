@@ -12817,6 +12817,16 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
   cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
   for (col in cols) {
     if (is.factor(data[[col]])) {
+      dropped <- setdiff(levels(data[[col]]), levels(droplevels(data[[col]])))
+      if (length(dropped) > 0L) {
+        cli::cli_inform(
+          c(
+            "Dropped {length(dropped)} unused factor level{?s} from {.field {col}}: {.val {dropped}}.",
+            "i" = "Call {.code droplevels()} on the data before fitting to silence this message."
+          ),
+          class = "drmTMB_dropped_factor_levels"
+        )
+      }
       data[[col]] <- drm_droplevels_keep_contrasts_factor(data[[col]])
     }
   }
