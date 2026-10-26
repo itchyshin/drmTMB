@@ -4054,11 +4054,31 @@ drm_binomial_links <- function() c("logit", "probit", "cloglog")
 drm_binomial_link_code <- function(link) switch(link, logit = 0L, probit = 1L, cloglog = 2L,
   cli::cli_abort("Internal error: unsupported binomial link {.val {link}}."))
 
+# The TMB Gaussian branch implements identity-mean location only. Accepting
+# `gaussian(link = "log")` or `gaussian(link = "inverse")` used to drop the
+# requested link with no message (#1482). Honouring those links would be a
+# new likelihood; until that exists, fail like Gamma and Poisson.
+drm_require_gaussian_identity_link <- function(family) {
+  if (!inherits(family, "family") || !identical(family$family, "gaussian")) {
+    return(invisible(family))
+  }
+  if (!identical(family$link, "identity")) {
+    cli::cli_abort(c(
+      "{.pkg drmTMB} Gaussian models currently require {.code gaussian()}, identity link.",
+      "x" = "Received Gaussian link {.val {family$link}}.",
+      "i" = "The implemented Gaussian contract is {.code mu = X_mu beta_mu} on the identity scale.",
+      "i" = "Use {.fn lognormal} or {.code Gamma(link = \"log\")} for a log-scale mean on positive data, or transform the response yourself."
+    ))
+  }
+  invisible(family)
+}
+
 drm_family_type <- function(family) {
   if (is.function(family) && identical(family, base::beta)) {
     drm_abort_base_beta_as_family()
   }
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
+    drm_require_gaussian_identity_link(family)
     return("gaussian")
   }
   if (inherits(family, "family") && identical(family$family, "Gamma")) {
@@ -4156,6 +4176,7 @@ drm_family_type <- function(family) {
       ))
     }
     if (identical(family_names, c("gaussian", "gaussian"))) {
+      lapply(composed, drm_require_gaussian_identity_link)
       return("biv_gaussian")
     }
     cli::cli_abort(c(

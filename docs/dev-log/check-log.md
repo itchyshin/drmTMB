@@ -38,6 +38,26 @@ check-log and a stale C17 TSV (skipped). `src/drmTMB.cpp` changed (`disc`
 uses the unused `X_sigma` slot of model type 13; +16/−4, C++ TMB
 reviewer). Full `testthat::test_dir()` on `ff1eda1b2`: passed=45004
 failed=81 error=213 skipped=240 warning=20.
+# 2026-10-22: merge main into #1501 (contrast helper superseded)
+
+Merged `origin/main` into `cursor/triage-pilot-inputs`. Main's #1504 already
+fixes the #1495 contrast drop with `drm_droplevels_keep_contrasts_factor()`
+(warning class `drmTMB_contrasts_dropped`), so this branch's duplicate
+`drm_droplevels_keep_contrasts(x, col)` was removed; it also clashed by name
+with main's data-frame helper in `R/julia-bridge.R`. The branch keeps the
+`predict(newdata)` / `emmeans` contrast carry-over, the #1482 Gaussian-link
+errors and the #1458 incomplete-bootstrap status. `test-silent-input-drops.R`
+now expects `drmTMB_contrasts_dropped`. C17 was recertified on the merge result
+(`python3 tools/recertify-c17.py --label pr-1501-main-refresh --tolerance 1e-10`):
+`|change|` 0.000e+00 on mc-0568 / 0569 / 0576, receipt
+`docs/dev-log/implementation-recovery/2026-10-22-pr-1501-main-refresh-c17c2-c14-final-source-compatibility`.
+`capability_ledger.py --check`, `--check-c14-receipt-equivalence` and the
+`tools/tests` unit tests wired in `R-CMD-check.yaml` pass. Any further `R/` edit
+re-stales this receipt.
+Targeted tests on Totoro pass: `test-silent-input-drops.R`,
+`test-factor-contrasts.R`, `test-profile-targets.R`, `test-biv-lognormal.R`,
+`test-plot-corpairs.R`, `test-plot-parameter-surface.R`,
+`test-julia-inference.R` (4 live-Julia skips).
 
 # 2026-10-22: retain output from failed or colliding C17 recertification runs (#1591)
 
@@ -532,6 +552,48 @@ random-effect routes not screened; shared R/Julia `is_converged` rule
 left to #1554.
 
 ---
+# 2026-10-07: at-boundary incomplete warning names the row status (#1501)
+
+`warn_bootstrap_incomplete()` now prints the flagged row's
+`conf.status` (`bootstrap_at_boundary` when that is the label), instead
+of always saying `bootstrap_incomplete`. `R/drmTMB.R` was not touched;
+C17 receipts were not re-run.
+
+# 2026-10-07: review fixes for #1501 (contrasts, bootstrap, Julia link)
+
+Review of PR #1501 asked for six follow-ups on `cursor/triage-pilot-inputs`.
+`predict(newdata)` and the emmeans basis now carry fitted contrasts, so a
+`contr.sum` fit no longer errors with "Could not align the mu design
+matrix". At-boundary bootstrap rows still warn when refits were dropped,
+and `plot_parameter_surface()` / `plot_corpairs()` keep incomplete and
+at-boundary intervals visible. The Julia mixed-pair tag now runs the same
+Gaussian identity-link check; the error names `Gamma(link = "log")` as
+well as `lognormal()`. C17 model-15 receipts were recertified after
+`R/drmTMB.R` / `R/methods.R` moved.
+
+# 2026-10-18 — rebase #1501 onto main `d89db5097`
+
+Rebased `cursor/triage-pilot-inputs` onto current main. Conflicts were
+NEWS and check-log only. Recertified C17 as `2026-10-18-pr1501-rebase`
+(`--tolerance 1e-10`; worst `|change|` 1.264e-12).
+
+# 2026-10-07: triage pilot — silent input drops (#1495, #1482, #1458)
+
+Stopped three silent input-drop bugs on `cursor/triage-pilot-inputs`.
+User-set factor contrasts are restored after `droplevels()`; unused-level
+drops that invalidate a contrast matrix warn
+(`drmTMB_contrasts_unused_levels`). `gaussian(link = "log")` and
+`gaussian(link = "inverse")` now error like Gamma/Poisson instead of fitting
+identity. `confint(method = "bootstrap")` reports
+`bootstrap_incomplete` and warns when failed refits are dropped.
+
+Regression file: `tests/testthat/test-silent-input-drops.R`. Existing
+allow-lists in `test-profile-targets.R`, `test-julia-inference.R`, and
+`test-biv-lognormal.R` accept the new status. NEWS, `?confint.drmTMB`, and
+`docs/design/03-likelihoods.md` updated.
+
+Targeted tests: `test-silent-input-drops.R` 5/5 pass;
+`test-gamma-location-scale.R` 7/7; `test-biv-lognormal.R` 6/6.
 
 # 2026-10-18 — rebase #1506 onto main `d89db5097`
 

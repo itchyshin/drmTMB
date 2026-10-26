@@ -562,16 +562,21 @@ test_that("confint(method = 'bootstrap') routes an ordinary fixed effect to DRM.
     .package = "drmTMB"
   )
 
-  ci <- stats::confint(
-    fit,
-    parm = "fixef:sigma:(Intercept)",
-    method = "bootstrap",
-    R = 49L
+  ci <- NULL
+  expect_warning(
+    ci <- stats::confint(
+      fit,
+      parm = "fixef:sigma:(Intercept)",
+      method = "bootstrap",
+      R = 49L
+    ),
+    class = "drmTMB_bootstrap_incomplete_warning"
   )
   expect_equal(ci$parm, "fixef:sigma:(Intercept)")
   expect_equal(ci$lower, -0.9)
   expect_equal(ci$upper, 0.1)
   expect_equal(ci$method, "bootstrap")
+  expect_equal(ci$conf.status, "bootstrap_incomplete")
   expect_equal(ci$bootstrap.n, 48L)
   expect_equal(ci$bootstrap.failed, 1L)
 })

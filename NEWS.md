@@ -229,6 +229,23 @@
   with `s = 1{y > 0}` (Haberman 1974; Santos Silva and Tenreyro 2010).
   Random-effect, phylogenetic, `mi()` predictor, and MSPL routes are not
   screened. Point estimates and `vcov()` are unchanged (#1553, #1270, #1469).
+* `predict(newdata)` and the `emmeans` basis now carry the contrasts a fit
+  was made with, so a `contr.sum` fit no longer errors with "Could not align
+  the mu design matrix" on new data (#1495).
+
+* `gaussian(link = "log")` and `gaussian(link = "inverse")` now error
+  instead of silently fitting the identity-link Gaussian model, including
+  a Gaussian member of a Julia mixed pair. Use [lognormal()] or
+  `Gamma(link = "log")` for a log-scale mean on positive data (#1482).
+
+* `confint(..., method = "bootstrap")` no longer reports
+  `conf.status = "bootstrap"` after dropping failed refits. Those rows
+  use `bootstrap_incomplete` and warn
+  (`drmTMB_bootstrap_incomplete_warning`). An at-boundary row that also
+  dropped refits still warns and names `bootstrap_at_boundary`, and
+  `plot_parameter_surface()` / `plot_corpairs()` keep incomplete and
+  at-boundary intervals visible (#1458).
+
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value
