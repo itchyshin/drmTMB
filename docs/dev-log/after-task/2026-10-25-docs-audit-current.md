@@ -93,6 +93,8 @@ Sparse source exports initially omitted needed assets or extensions. Those expor
 
 The final package check exposed a duplicate Julia method usage in the generic rho12 help topic. The dedicated Julia methods topic retains the method signature and alias. Removing the duplicate clears the invalid local usage contract; a regression checks all 102 Rd topics and passed 103 assertions after reproducing the failure. The source-tree test manifest now includes the documentation regression file.
 
+Running the documented roxygen2 7.3.2 command also regenerated seven Rd files. The changes resolve existing aliases to their canonical help topics, rewrap unchanged prose, remove a duplicate author listing, and align the quantile help wording with its source. These generated changes are retained for a clean regeneration comparison.
+
 ## 10. Known Residuals
 
 This report describes a prepared patch, not a completed site audit or publication receipt. Final deployment and full acceptance reconciliation are still required. No package release, scientific calibration, or new capability admission is claimed.
