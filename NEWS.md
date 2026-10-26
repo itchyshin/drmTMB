@@ -1,5 +1,9 @@
 # drmTMB (development)
 
+* Diagnostic-table subsetting now honors its existing `drop = FALSE` default.
+  Selecting one column keeps a diagnostic table; use `drop = TRUE` for a vector.
+  Subsets retain the original overall status and total check count.
+
 ## New features
 
 * `confint()` now labels an ordinary `(1 | g)` SD Wald row whose log-scale
@@ -11,15 +15,17 @@
 * A Gaussian response can now carry **one Gaussian and one binary** `mi()`
   term with a named `impute` list
   (`y ~ mi(m) + mi(b) + x`, `impute = list(m = impute_model(m ~ x, family = gaussian()), b = impute_model(b ~ x, family = binomial()))`).
-  This is the next #963 cell (owner decision of 11 Oct 2026) under independence: the binary term is summed over
-  its two states, the Gaussian term is a latent value, and the formula order
-  does not change the likelihood. It is **not** `impute_joint` and **not**
+  This native-engine route requires independent fixed-effect predictor models;
+  the Julia bridge does not admit this pair. It is the next #963 cell (owner
+  decision of 11 Oct 2026) under independence: the binary term is summed over
+  its two states, the Gaussian term is a latent value, and formula order does
+  not change the likelihood. It is **not** `impute_joint` and **not**
   FIML. `imputed()` for the binary term conditions on the Gaussian term's
   fitted value. Two binary terms, a count or ordinal second term, k > 2, and
   non-Gaussian responses are still refused (#963 stays open for them).
 * `check_drm()` gains a flag-only `residual_outliers` row. It is a `note`
-  when more than 1% of quantile residuals lie beyond |3| (about 0.27% is
-  expected), which is how a sentinel code such as -9999 for missing
+  when at least two quantile residuals and more than 1% lie beyond |3| (about
+  0.27% is expected), which is how a sentinel code such as -9999 for missing
   contaminates a Gaussian response: the scale coefficient attenuates while the
   mean model looks publishable and every optimizer, Hessian and SE row stays
   green. The row changes no estimate and never flips `attr(x, "ok")`.
@@ -53,6 +59,14 @@
   not `mu`), and Gaussian `(1 | g)` (includes the fitted modes, so `fitted()`
   now agrees with `predict(dpar = "mu")`). They are recomputed R-side from the
   bridged distributional parameters (#1566).
+* `drmTMB()` now warns (class `drmTMB_scale_spread_warning`) at fit time when the
+  fitted `log(sigma)` spans more than `log(1e4)` across observations, the same
+  bare unit-free rule as DRModels.jl#1066, whether or not the `log(sigma)` clamp
+  is hit. It applies to every scale-bearing family through the same
+  `drm_warn_if_clamp_active()` hook, so a `sigma ~ x` fit whose scale runs off is
+  no longer silent; `sigma ~ 1` fits have zero spread and never fire. This is a
+  warning only: `is_converged()` and `convergence_status()` are unchanged (#1539).
+
 ## Test infrastructure
 
 * The numeric-kernel extreme-value oracle's `run_oracle()` helper
@@ -101,8 +115,9 @@
   working (log-SD) scale". The estimate is a variance-share ratio in
   `[0, 1]` on the natural (variance) scale; only its standard error and
   confidence interval use a delta method on the working (log-SD) scale, as
-  the next paragraph already said. The computation itself was already
-  correct (verified numerically); only the description was wrong (#1231).
+  the next paragraph already said. This entry corrects the description of
+  that variance-share estimand; later sigma-random-intercept cases received
+  a separate computation correction (#1231).
 
 ## Bug fixes
 
@@ -272,9 +287,11 @@
   `lgamma()`-difference forms lost about `eps * x log(x)` per row, so the
   Student objective could exceed its own Gaussian limit and fits could report
   false convergence. Each density now agrees with `dt()` (Student) and with an
-  exact reference (Gamma, Beta) to within 1e-12 per observation at `nu`,
-  shape or `phi` of 1e2 to 1e8, and tends to the Gaussian log-density in the
-  limit. The bivariate Student kernel uses the same stable `log(1 + x)`
+  exact references (Gamma, Beta) across the tested 1e2 to 1e8 range.
+  Student cases meet the 1e-12 per-observation bar; the shape-1e8 Gamma
+  test allows 1.5e-12 and the phi-1e8 Beta test adds an explicit
+  floating-point conditioning allowance. Their stated Gaussian limits
+  are checked separately. The bivariate Student kernel uses the same stable `log(1 + x)`
   (#1462, #1467, #1504, #1548).
   With perfectly separated `beta_binomial()` counts (all failures in one
   group, all successes in another), the maximum-likelihood `mu` lies on the
@@ -422,8 +439,10 @@
   state, so random-effect estimates agree with the serial run to about
   `1e-7`; fixed-effect fits are identical. Bootstrap refits never start
   their own parallel multi-start inside parallel bootstrap workers.
-* `simulate()` stays serial after a benchmark: per-draw workers were slower
-  than the vectorised draw even at 10,000 rows and 500 draws (#1247).
+* `simulate()` stays serial after a 10,000-row, 500-draw benchmark.
+  Per-draw multicore did not beat serial per-draw calls and changed the
+  random-number stream. The vectorised path was faster for conditional draws;
+  marginal draw timings depended on the implementation (#1247).
 * Internal retained-bootstrap shards (`drm_bootstrap_shard()`,
   `drm_bootstrap_combine()`, `drm_bootstrap_ledger()`) keep every attempted
   refit with its replicate seed and status, draw each replicate from its own
