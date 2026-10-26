@@ -34,9 +34,9 @@ continuous location-scale likelihood are included in that geometry.
 \code{"boundary"} marks an optimizer-converged fit with variance-component,
 residual-correlation, or temporal (residual SD, OU decay, AR1 persistence)
 parameters near an interpretability boundary. \code{\link[=is_converged]{is_converged()}} and
-\code{\link[=converged]{converged()}} are the same plain logical: they are
-\code{TRUE} only for \code{"converged"}. Numeric predicates are identical in
-DRModels.jl (\code{docs/design/278-twin-convergence-status.md}).
+\code{\link[=converged]{converged()}} are the same plain logical: they are \code{TRUE} only for
+\code{"converged"}. Numeric predicates are identical in DRModels.jl
+(\code{docs/design/278-twin-convergence-status.md}).
 }
 \examples{
 set.seed(20260916)

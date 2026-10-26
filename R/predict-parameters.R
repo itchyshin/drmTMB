@@ -37,9 +37,12 @@
 #' selection this implies: whether a row returns an interval depends on where
 #' its *estimate* fell relative to the band, not on where the truth is, so
 #' near the band edge the intervals that are returned are conditioned on that
-#' selection (in the package's own check, coverage of the kept `"wald"` rows
-#' fell from 0.985 to 0.882 as the true predictor approached the edge, against
-#' 0.98 for the unconditional raw interval). Use [check_drm()] to see whether a fit's clamp
+#' selection. In one retained Gaussian location-scale fixture with a soft-clamp
+#' band of `[-1, 1]` and 996 usable replicates, coverage among returned `"wald"`
+#' rows fell from 0.985 at true link predictor 0.88 to 0.882 at 1.12 (68 rows
+#' retained at the latter point); the unconditional raw interval covered about
+#' 0.98 in that fixture. These figures describe that selection check, not
+#' coverage on other families or designs. Use [check_drm()] to see whether a fit's clamp
 #' is active, and rescale the response or widen the band
 #' (`drm_control(logsigma_clamp = )`) before trusting scale-parameter
 #' intervals on a clamp-active fit.
