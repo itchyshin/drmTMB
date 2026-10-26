@@ -1,0 +1,16 @@
+BINOMIAL fixed-parameter marginal; brute integrate() = -105.697409092677 
+  nq= 1  aghq=-105.891142595306  abs.err=1.94e-01
+  nq= 3  aghq=-105.703400150832  abs.err=5.99e-03
+  nq= 5  aghq=-105.697607608272  abs.err=1.99e-04
+  nq= 9  aghq=-105.697409165358  abs.err=7.27e-08
+  nq=15  aghq=-105.697409092665  abs.err=1.14e-11
+  nq=25  aghq=-105.697409092677  abs.err=1.42e-14
+  nq=41  aghq=-105.697409092677  abs.err=7.11e-14
+ORDINAL fixed-parameter marginal; brute integrate() = -298.683797920544 
+  nq= 1  aghq=-298.846955632386  abs.err=1.63e-01
+  nq= 3  aghq=-298.685993936935  abs.err=2.20e-03
+  nq= 5  aghq=-298.683846626548  abs.err=4.87e-05
+  nq= 9  aghq=-298.683797969369  abs.err=4.88e-08
+  nq=15  aghq=-298.683797920548  abs.err=4.32e-12
+  nq=25  aghq=-298.683797920544  abs.err=5.68e-14
+  nq=41  aghq=-298.683797920544  abs.err=1.14e-13

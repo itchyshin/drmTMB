@@ -66,7 +66,8 @@
 #' @param level Confidence level.
 #' @param method Interval method: `"wald"`, `"profile"`, or `"bootstrap"`. If
 #'   `newdata` is supplied and `method` is omitted, `method = "profile"` is
-#'   used.
+#'   used. If `method` is omitted without `newdata`, every row is a Wald
+#'   interval. Pass `method = "profile"` to profile random-effect SD rows.
 #' @param newdata Optional data frame for response-scale profile intervals for
 #'   predictor-dependent `sigma`, `sigma1`, `sigma2`, `rho12`, or fitted
 #'   `corpair()` values. Each row is profiled separately by profiling its
@@ -117,6 +118,9 @@
 #'   zero, or a correlation within `rho_boundary` of `+/-1`, is returned with
 #'   `conf.status = "wald_at_boundary"` and a warning pointing to
 #'   `method = "profile"`. Defaults match [check_drm()] (`1e-4`, `0.98`).
+#'   An ordinary `(1 | g)` SD whose log-scale Wald standard error exceeds 1 is
+#'   flagged the same way even when its estimate is above `sd_boundary`; that
+#'   cut-off is fixed.
 #' @param small_sample_df Small-sample reference distribution for the
 #'   `method = "wald"` interval. `"location"` (the default) references a
 #'   t-quantile with `df = g - 1` -- a group-based, Satterthwaite-style
@@ -231,6 +235,19 @@
 #' For a short applied walkthrough, see the vignette
 #' \emph{First-week intervals: fit, profile, and boundary}.
 #'
+#' @section Wald intervals for ordinary `(1 | g)` SDs:
+#' The default `confint(fit)` is Wald for every row, including random-effect SD
+#' rows. The Wald SD interval undercovers near the boundary. In the
+#' sweep-oct16 t9 design (Gaussian location-scale with `(1 | g)`, n_g = 10,
+#' 300 replicates per cell) at a true SD of 0.1, Wald coverage was 0.36 with 10
+#' groups and 0.42 with 30 groups, with about half of the replicates returning
+#' an infinite upper limit; profile coverage on the same replicates was 0.97 and
+#' 0.98 there. At a true SD of 0.5, Wald coverage was 0.97 to 0.98 and profile
+#' coverage 0.93 to 0.957. When a SD row is labelled `wald_at_boundary` (see
+#' *Boundary intervals*), use `confint(fit, parm = ..., method = "profile")`
+#' for that row. Profile is slower than Wald, and it is not a repair at a
+#' boundary: it still warns when it reaches one.
+#'
 #' @section Boundary intervals:
 #' Every interval method is unreliable when a variance component approaches zero
 #' or a correlation approaches `+/-1`, and each warns about its own case.
@@ -238,7 +255,12 @@
 #' `method = "wald"` flags a row with `conf.status = "wald_at_boundary"` and warns
 #' (class `drmTMB_wald_boundary_warning`), because a symmetric Wald interval
 #' undercovers under boundary (chi-square-mixture) inference. That warning
-#' recommends `method = "profile"`.
+#' recommends `method = "profile"`. For an ordinary `(1 | g)` SD this label is
+#' not limited to an estimate at zero: it is also applied when the log-scale Wald
+#' standard error exceeds 1, because the interval then spans a factor of about 50
+#' or more (for example `[5e-37, 1e33]` or `[0.015, 1.6]` around estimates of
+#' 0.026 to 0.18) and is not a usable `level` interval. Treat any such
+#' `wald_at_boundary` SD row as unreliable.
 #'
 #' `method = "profile"` sets `profile.boundary = TRUE` and warns (class
 #' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
@@ -2459,11 +2481,12 @@ drm_wald_confint <- function(
   # a boundary is a warning, not an auto-discard -- but flag it and point to the
   # profile method. Residual/distributional scale is regular and not flagged.
   at_boundary <- interval_ready &
-    wald_boundary_targets(
+    (wald_boundary_targets(
       targets,
       sd_boundary = sd_boundary,
       rho_boundary = rho_boundary
-    )
+    ) |
+      wald_ordinary_sd_near_boundary(targets, se))
   at_boundary_no_bias <- at_boundary & !bias_applied
   out$conf.status[at_boundary_no_bias] <- "wald_at_boundary"
   is_rho12 <- targets$target_class == "residual-correlation"
@@ -2473,7 +2496,7 @@ drm_wald_confint <- function(
     n_boundary <- sum(at_boundary_profile)
     cli::cli_warn(
       c(
-        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary_profile]}} {?is/are} at a variance-component or correlation boundary.",
+        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary_profile]}} {?is/are} at or near a variance-component or correlation boundary.",
         "i" = "{cli::qty(n_boundary)}Wald coverage is unreliable on the boundary; use {.code confint(method = \"profile\")} for {?this/these} target{?s}."
       ),
       class = "drmTMB_wald_boundary_warning"
@@ -2777,6 +2800,39 @@ profile_sd_boundary_rows <- function(targets) {
       targets$tmb_parameter %in% c("log_sd_mi_group", "log_sd_mi_struct"))
   }
   is_sd
+}
+
+# An ordinary `(1 | g)` random-intercept SD: a direct, plain-group SD target on
+# `mu`, `sigma`, `zoi` or `coi`. Structured (`phylo()`, `spatial()`, `animal()`,
+# `relmat()`), labelled covariance-block, and slope/correlated terms are not
+# ordinary and are never selected here.
+drm_ordinary_sd_rows <- function(targets) {
+  if (nrow(targets) == 0L) {
+    return(logical(0))
+  }
+  !is.na(targets$target_class) &
+    targets$target_class == "random-effect-sd" &
+    !is.na(targets$target_type) &
+    targets$target_type == "direct" &
+    !is.na(targets$tmb_parameter) &
+    targets$tmb_parameter %in%
+      c("log_sd_mu", "log_sd_sigma", "log_sd_zoi", "log_sd_coi") &
+    !is.na(targets$term) &
+    grepl("^\\(1 \\| [^|()]+\\)$", targets$term)
+}
+
+# A Wald SD interval is built on the log-SD scale. When the log-scale standard
+# error exceeds this value the interval spans more than a factor of
+# exp(2 * 1.96) (about 50), the likelihood is flat towards zero, and the
+# symmetric interval is not a usable `level` interval even though the point
+# estimate is above the `sd_boundary` threshold. Measured on the sweep-oct16 t9
+# design (Gaussian, `(1 | g)`, 10 groups of 10, true SD 0.1) this is where
+# estimates of 0.026-0.18 returned intervals such as [5e-37, 1e33] or
+# [0.015, 1.6] labelled as ordinary Wald rows (#1558).
+wald_near_boundary_log_se <- 1
+
+wald_ordinary_sd_near_boundary <- function(targets, se) {
+  drm_ordinary_sd_rows(targets) & is.finite(se) & se > wald_near_boundary_log_se
 }
 
 wald_boundary_targets <- function(

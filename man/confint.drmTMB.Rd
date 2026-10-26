@@ -43,7 +43,8 @@ Supported shortcuts are \code{"fixed_effects"}, \code{"random_effects"},
 
 \item{method}{Interval method: \code{"wald"}, \code{"profile"}, or \code{"bootstrap"}. If
 \code{newdata} is supplied and \code{method} is omitted, \code{method = "profile"} is
-used.}
+used. If \code{method} is omitted without \code{newdata}, every row is a Wald
+interval. Pass \code{method = "profile"} to profile random-effect SD rows.}
 
 \item{newdata}{Optional data frame for response-scale profile intervals for
 predictor-dependent \code{sigma}, \code{sigma1}, \code{sigma2}, \code{rho12}, or fitted
@@ -105,7 +106,10 @@ bootstrap intervals use refit point estimates.}
 unreliable: a variance-component standard deviation within \code{sd_boundary} of
 zero, or a correlation within \code{rho_boundary} of \verb{+/-1}, is returned with
 \code{conf.status = "wald_at_boundary"} and a warning pointing to
-\code{method = "profile"}. Defaults match \code{\link[=check_drm]{check_drm()}} (\code{1e-4}, \code{0.98}).}
+\code{method = "profile"}. Defaults match \code{\link[=check_drm]{check_drm()}} (\code{1e-4}, \code{0.98}).
+An ordinary \code{(1 | g)} SD whose log-scale Wald standard error exceeds 1 is
+flagged the same way even when its estimate is above \code{sd_boundary}; that
+cut-off is fixed.}
 
 \item{small_sample_df}{Small-sample reference distribution for the
 \code{method = "wald"} interval. \code{"location"} (the default) references a
@@ -265,7 +269,7 @@ decay, bootstrap, and \code{newdata} intervals are unavailable.
 Read \code{check_drm(fit)}: a non-positive-definite fitted Hessian does
 not prevent a finite profile endpoint, but it makes the fitted likelihood
 locally irregular and the interval is not coverage-calibrated.
-\item Random-effect SDs and other direct variance-component targets: prefer
+\item Random-effect SDs and direct variance-component targets: prefer
 \code{confint(fit, parm = ..., method = "profile")} after
 \code{profile_targets(fit)} shows the row is profile-ready. Profile
 re-optimizes nuisance parameters and is slower than Wald.
@@ -284,6 +288,21 @@ For a short applied walkthrough, see the vignette
 \emph{First-week intervals: fit, profile, and boundary}.
 }
 
+\section{Wald intervals for ordinary \code{(1 | g)} SDs}{
+
+The default \code{confint(fit)} is Wald for every row, including random-effect SD
+rows. The Wald SD interval undercovers near the boundary. In the
+sweep-oct16 t9 design (Gaussian location-scale with \code{(1 | g)}, n_g = 10,
+300 replicates per cell) at a true SD of 0.1, Wald coverage was 0.36 with 10
+groups and 0.42 with 30 groups, with about half of the replicates returning
+an infinite upper limit; profile coverage on the same replicates was 0.97 and
+0.98 there. At a true SD of 0.5, Wald coverage was 0.97 to 0.98 and profile
+coverage 0.93 to 0.957. When a SD row is labelled \code{wald_at_boundary} (see
+\emph{Boundary intervals}), use \code{confint(fit, parm = ..., method = "profile")}
+for that row. Profile is slower than Wald, and it is not a repair at a
+boundary: it still warns when it reaches one.
+}
+
 \section{Boundary intervals}{
 
 Every interval method is unreliable when a variance component approaches zero
@@ -292,7 +311,12 @@ or a correlation approaches \verb{+/-1}, and each warns about its own case.
 \code{method = "wald"} flags a row with \code{conf.status = "wald_at_boundary"} and warns
 (class \code{drmTMB_wald_boundary_warning}), because a symmetric Wald interval
 undercovers under boundary (chi-square-mixture) inference. That warning
-recommends \code{method = "profile"}.
+recommends \code{method = "profile"}. For an ordinary \code{(1 | g)} SD this label is
+not limited to an estimate at zero: it is also applied when the log-scale Wald
+standard error exceeds 1, because the interval then spans a factor of about 50
+or more (for example \verb{[5e-37, 1e33]} or \verb{[0.015, 1.6]} around estimates of
+0.026 to 0.18) and is not a usable \code{level} interval. Treat any such
+\code{wald_at_boundary} SD row as unreliable.
 
 \code{method = "profile"} sets \code{profile.boundary = TRUE} and warns (class
 \code{drmTMB_profile_boundary_warning}) when it returns a usable interval that
