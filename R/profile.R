@@ -3,9 +3,9 @@
 #' `confint()` returns confidence intervals for a fitted `drmTMB` model. When
 #' `method` is omitted, ordinary `(1 | g)` random-intercept SD rows are
 #' **profile-likelihood** intervals and every other row is a Wald interval; see
-#' the *Default interval for ordinary `(1 | g)` SDs* section. Wald
-#' intervals are fast and are returned for fixed-effect coefficients and direct
-#' response-scale parameter targets by default. Direct Wald targets include
+#' the *Default interval for ordinary `(1 | g)` SDs* section. Pass
+#' `method = "wald"` for Wald intervals on every requested row.
+#' Direct targets available to the Wald method include
 #' constant residual-scale, random-effect standard-deviation, random-effect
 #' correlation, and constant residual-correlation rows when the fitted TMB
 #' parameter and `TMB::sdreport()` covariance are available.
@@ -48,7 +48,7 @@
 #' `sigma`, `sigma1`, or `sigma2`, `parm = "sigma"` and friends report
 #' response-scale intervals.
 #'
-#' The fastest routine route is `confint(fit)`, which uses Wald intervals for
+#' The routine entry point is `confint(fit)`, which uses Wald intervals for
 #' fixed effects and direct response-scale targets, and profiles only the
 #' ordinary `(1 | g)` SD rows. For long phylogenetic,
 #' spatial, animal-model, or relatedness fits, profile only the needed
@@ -61,8 +61,9 @@
 #'
 #' @param object A `drmTMB` fit.
 #' @param parm Optional character or integer vector selecting interval targets.
-#'   `NULL` selects all direct Wald-ready targets for Wald intervals. Profile
-#'   intervals usually require explicit target names or target-set shortcuts;
+#'   `NULL` selects all direct targets for the default mixed table or explicit
+#'   Wald intervals. Explicit profile intervals usually require target names
+#'   or target-set shortcuts;
 #'   for a Gaussian temporal AR1 or OU fit, `NULL` selects every mean-model
 #'   coefficient. Temporal profile intervals admit mean coefficients only.
 #'   Supported shortcuts are `"fixed_effects"`, `"random_effects"`,
@@ -249,6 +250,8 @@
 #' 0.98 there. At a true SD of 0.5, Wald coverage was 0.97 to 0.98 and profile
 #' coverage 0.93 to 0.957. Profile is slower than Wald, and it is not a repair
 #' at a boundary (see *Boundary intervals*): it still warns when it reaches one.
+#' That sweep does not calibrate intervals for other ordinary-SD routes or
+#' different study designs.
 #'
 #' The default falls back to the Wald table when the TMB object was not kept
 #' (`drm_control(keep_tmb_object = FALSE)`), when no requested row is an
@@ -263,12 +266,12 @@
 #'
 #' `method = "wald"` flags a row with `conf.status = "wald_at_boundary"` and warns
 #' (class `drmTMB_wald_boundary_warning`), because a symmetric Wald interval
-#' undercovers under boundary (chi-square-mixture) inference. That warning
+#' is unreliable at a variance-component boundary. That warning
 #' recommends `method = "profile"`. For an ordinary `(1 | g)` SD this label is
 #' not limited to an estimate at zero: it is also applied when the log-scale Wald
-#' standard error exceeds 1, because the interval then spans a factor of about 50
-#' or more (for example `[5e-37, 1e33]` or `[0.015, 1.6]` around estimates of
-#' 0.026 to 0.18) and is not a usable `level` interval. Treat any such
+#' standard error exceeds 1. At the default 95% level, this makes the ratio of
+#' the upper to lower Wald endpoint exceed about 50. This width does not
+#' establish coverage. Treat any such
 #' `wald_at_boundary` SD row as unreliable.
 #'
 #' `method = "profile"` sets `profile.boundary = TRUE` and warns (class

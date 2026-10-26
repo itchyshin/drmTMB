@@ -42,6 +42,7 @@ Preserve existing numerical algorithms, signatures, and admission boundaries. St
 - `man/drm_phylo_penalty.Rd`
 - `man/is_converged.Rd`
 - `man/julia-fit-methods.Rd`
+- `man/mi.Rd`
 - `man/phylo.Rd`
 - `man/predict_parameters.Rd`
 - `man/rho12.Rd`
@@ -51,6 +52,7 @@ Preserve existing numerical algorithms, signatures, and admission boundaries. St
 - `tools/build-pkgdown.R`
 - `vignettes/animal-models.Rmd`
 - `vignettes/articles/distributional-outputs-and-adequacy.Rmd`
+- `vignettes/articles/model-workflow.Rmd`
 - `vignettes/articles/phylogenetic-spatial.Rmd`
 - `vignettes/bipartite-phylogenetic-interactions.Rmd`
 - `vignettes/capability-and-limits.Rmd`
@@ -67,7 +69,7 @@ Preserve existing numerical algorithms, signatures, and admission boundaries. St
 
 ## 5. Checks Run
 
-The current source passes 27 focused documentation, builder, subsetting, and help regressions. The final local site build exited zero and produced 241 HTML pages. Public vignette, ordinary-fence, and Rd examples have raw execution receipts in the task audit. The contributor document command completed. The initial source-tree test returned failures because the disposable export omitted tracked design fixtures. The new subsetting regression failed before its one-line fix (four failures) and passed afterward. Independent review caught a missing generic usage line; its new test failed before regeneration and passed afterward. The affected test batch passed 70 assertions. The HTML test dependency and generated skip census are now declared, and the existing subprocess test resolves source paths in Rcheck layouts. The full-source retry and package check found setup defects; the final reruns remain required. Historical fixtures and genuine Git metadata are restored in the disposable source copy.
+The current source passes 27 focused documentation, builder, subsetting, and help regressions. The pre-integration local site build exited zero and produced 241 HTML pages. The final build must include the merged interval default and added method aliases. Public vignette, ordinary-fence, and Rd examples have raw execution receipts in the task audit. The contributor document command completed. The initial source-tree test returned failures because the disposable export omitted tracked design fixtures. The new subsetting regression failed before its one-line fix (four failures) and passed afterward. Independent review caught a missing generic usage line; its new test failed before regeneration and passed afterward. The affected test batch passed 70 assertions. The HTML test dependency and generated skip census are now declared, and the existing subprocess test resolves source paths in Rcheck layouts. The full-source retry and package check found setup defects; the final reruns remain required. Historical fixtures and genuine Git metadata are restored in the disposable source copy. Upstream bf634ab was integrated without conflicts. Its two affected default-interval examples were rerun in their actual article setup; the ordinary SD rows are profile intervals and the remaining rows are Wald. Roxygen configuration now agrees with the contributor pin of 7.3.2.
 
 ## 6. Tests of the Tests
 
@@ -93,7 +95,7 @@ This report describes a prepared patch, not a completed site audit or publicatio
 
 Memory receipt: exact-source deployment and scoped ownership guidance applied. The task retains raw logs, source hashes, negative controls, and independent review reports outside the package.
 
-Golden Set: the task-owned verifier controls were exercised; they establish checker behavior, not scientific validity.
+Golden Set: the catalog and detector self-tests were checked; the self-tests discriminate their saved good and bad cases. This does not certify the audit transcript or package methods. The task-specific negative controls are recorded separately above.
 
 ## 12. Cross-Product Coverage
 
