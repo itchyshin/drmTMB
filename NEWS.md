@@ -82,6 +82,15 @@
 
 ## Documentation fixes
 
+* `?drmTMB`, the README engines section, and the `skew_normal()`,
+  `cumulative_logit()`, `biv_student()`, and `biv_lognormal()` family
+  pages now name those families as admitted through `engine = "julia"`
+  on the fixed-effect route, matching the Julia family registry and the
+  Julia engine guide. Plain binomial is documented as admitted for
+  fixed effects only. `@param engine` now cites the NEWS and
+  `tests/testthat/test-julia-family-*.R` same-target receipts at DRM.jl
+  pin 430ef64cc for those four families instead of a blanket unsourced
+  1e-4 / 1e-3 claim (#1569).
 * `?mi` now states that U-shaped Beta and zero-one-Beta priors (missing-row mean within 0.10 of 0 or 1) are flagged by the `drmTMB_mi_quadrature_inaccurate` warning, not integrated accurately by the fixed 15-node rule; no adaptive rule is planned (#1531).
 * `?nbinom2` now states that NB2 cannot go below the Poisson limit (an underdispersed count fit hits the `sigma` boundary (limit) and returns a degenerate result) and points underdispersed counts to `glmmTMB::compois()` / `glmmTMB::genpois()`. This is a documentation pointer only; no underdispersed count family is added (Refs #1466).
 

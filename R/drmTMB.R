@@ -160,18 +160,24 @@
 #'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`,
 #'   `beta_binomial()`, `skew_normal()`, `cumulative_logit()`,
 #'   `biv_student()`, and `biv_lognormal()` on the fixed-effect route only.
-#'   Same-target receipts at DRM.jl pin `430ef64cc` cover `skew_normal()`,
-#'   `cumulative_logit()`, `biv_student()`,
-#'   and `biv_lognormal()`: coefficient and log-likelihood differences were
-#'   below 1e-4, and Wald SE relative differences were below 1e-3. These
-#'   comparisons do not establish the same tolerances for every admitted
-#'   family. See \code{vignette("julia-engine", package = "drmTMB")} for
-#' the full family-by-route table and current boundaries. `engine = "julia"` needs a local
-#'   DRModels.jl checkout and the optional `JuliaCall` package, and it is not a
-#'   drop-in replacement for every native-TMB workflow. `engine = "julia"` is
-#'   exported but **experimental**: the first call in an R session prints a
-#'   one-time notice, and the bridge is not being widened beyond the families
-#'   and routes listed above.
+#'   Same-target live tests use coefficients and log-likelihood within
+#'   1e-4 and Wald SEs within 1e-3 relative against `engine = "tmb"`.
+#'   Measured gaps at DRM.jl pin 430ef64cc for `skew_normal()`,
+#'   `cumulative_logit()`, `biv_student()`, and `biv_lognormal()` sit
+#'   inside those bars; see NEWS and
+#'   `tests/testthat/test-julia-family-skew_normal.R`,
+#'   `test-julia-family-cumulative_logit.R`,
+#'   `test-julia-family-biv_student.R`, and
+#'   `test-julia-family-biv_lognormal.R`.
+#'   These comparisons do not establish the same tolerances for every admitted
+#'   family. See
+#'   \code{vignette("julia-engine", package = "drmTMB")} for the full
+#'   family-by-route table and current boundaries. `engine = "julia"` needs
+#'   a local DRModels.jl checkout and the optional `JuliaCall` package, and
+#'   it is not a drop-in replacement for every native-TMB workflow.
+#'   `engine = "julia"` is exported but **experimental**: the first call in
+#'   an R session prints a one-time notice, and the bridge is not being
+#'   widened beyond the families and routes listed above.
 #' @param REML Logical; use restricted maximum likelihood where the selected
 #'   engine supports it. Native `engine = "tmb"` restricts the likelihood by
 #'   marginalising the admitted fixed-effect mean coefficients. Validated
