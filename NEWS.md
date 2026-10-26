@@ -2,17 +2,12 @@
 
 ## New features
 
-* `confint()` with `method` omitted now profiles ordinary `(1 | g)`
-  random-intercept SD rows and keeps Wald for every other row (the `method`
-  column says which). The Wald SD interval undercovers near the boundary: at a
-  true SD of 0.1 with 10 groups, Wald coverage was 0.36 against 0.97 for
-  profile on the same 300 replicates. `method = "wald"`, `method = "profile"`,
-  `method = "bootstrap"`, and calls that supply `small_sample_df`,
-  `bias_correct`, `sd_boundary`, or `rho_boundary` are unchanged. An ordinary
-  `(1 | g)` SD Wald row whose log-scale standard error exceeds 1 (for example
-  `[5e-37, 1e33]` around an estimate of 0.026) is now labelled
-  `conf.status = "wald_at_boundary"` and warns, not only an estimate below
-  `sd_boundary`. Documented in `?confint.drmTMB` (#1558).
+* `confint()` now labels an ordinary `(1 | g)` SD Wald row whose log-scale
+  standard error exceeds 1 (for example `[5e-37, 1e33]` around an estimate of
+  0.026) as `conf.status = "wald_at_boundary"` and warns, not only an estimate
+  below `sd_boundary`. The default `confint(fit)` stays Wald for every row;
+  `?confint.drmTMB` documents the Wald SD undercoverage near the boundary and
+  points to `method = "profile"` for SD rows (#1558).
 * A Gaussian response can now carry **one Gaussian and one binary** `mi()`
   term with a named `impute` list
   (`y ~ mi(m) + mi(b) + x`, `impute = list(m = impute_model(m ~ x, family = gaussian()), b = impute_model(b ~ x, family = binomial()))`).
