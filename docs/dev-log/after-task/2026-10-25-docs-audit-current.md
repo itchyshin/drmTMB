@@ -77,7 +77,7 @@ The argument-anchor regression failed on the duplicate target before the fix. Si
 
 ## 6. Tests of the Tests
 
-The task verification harness passed 19 disposable controls, including missing tutorials, soft 404 responses, malformed tables, missing example logs, stale API defaults, incorrect diagnostics, protected-path changes, and build success without deployment. Julia AST controls reject changed executable code and unrelated string edits. R builder tests reject the malformed script while preserving adjacent scripts and idempotence.
+The task verification harness passed 28 disposable controls, including missing tutorials, soft 404 responses, malformed tables, missing example logs, stale API defaults, incorrect diagnostics, protected-path changes, and build success without deployment. Julia AST controls reject changed executable code and unrelated string edits. R builder tests reject the malformed script while preserving adjacent scripts and idempotence.
 
 ## 7a. Issue Ledger
 
@@ -94,6 +94,8 @@ Sparse source exports initially omitted needed assets or extensions. Those expor
 The final package check exposed a duplicate Julia method usage in the generic rho12 help topic. The dedicated Julia methods topic retains the method signature and alias. Removing the duplicate clears the invalid local usage contract; a regression checks all 102 Rd topics and passed 103 assertions after reproducing the failure. The source-tree test manifest now includes the documentation regression file.
 
 Running the documented roxygen2 7.3.2 command also regenerated seven Rd files. The changes resolve existing aliases to their canonical help topics, rewrap unchanged prose, remove a duplicate author listing, and align the quantile help wording with its source. These generated changes are retained for a clean regeneration comparison.
+
+The current-source build exposed a pkgdown installation warning that did not stop rendering. The task archive extractor had dropped the executable mode from configure. The extractor was corrected, and the package site builder now rejects failed-install warnings before rendering. A disposable real installation failure exits with an error; six targeted assertions cover this failure and an unrelated warning that can safely continue. The earlier rendered artifact is excluded from acceptance evidence.
 
 ## 10. Known Residuals
 

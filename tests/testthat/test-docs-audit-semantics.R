@@ -121,3 +121,31 @@ test_that("documented method usages have an alias in their own help topic", {
     expect_true(all(methods %in% aliases), info = basename(path))
   }
 })
+
+test_that("the actual pkgdown build aborts if installation fails", {
+  script <- test_path("..", "..", "tools", "build-pkgdown.R")
+  skip_if_not(file.exists(script), "documentation builder is not in this build")
+  expressions <- as.list(parse(script))
+  definitions <- Filter(function(expr) {
+    is.call(expr) && identical(expr[[1L]], as.name("<-")) &&
+      identical(expr[[2L]], as.name("fail_on_install_warning"))
+  }, expressions)
+  calls <- Filter(function(expr) {
+    is.call(expr) && identical(expr[[1L]], as.name("withCallingHandlers"))
+  }, expressions)
+  expect_length(definitions, 1L)
+  expect_length(calls, 1L)
+  env <- new.env(parent = baseenv())
+  eval(definitions[[1L]], env)
+  env$continued <- FALSE
+  call <- calls[[1L]]
+  call[[2L]] <- quote({
+    warning("installation of package 'fixture' had non-zero exit status")
+    continued <- TRUE
+  })
+  expect_error(eval(call, env), "pkgdown package installation failed", fixed = TRUE)
+  expect_false(env$continued)
+  call[[2L]] <- quote({ warning("unrelated warning"); continued <- TRUE })
+  expect_warning(eval(call, env), "unrelated warning", fixed = TRUE)
+  expect_true(env$continued)
+})

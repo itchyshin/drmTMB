@@ -39,13 +39,24 @@ if (any(file.exists(file.path(stage_dir, private_root_files)))) {
 site_dir <- file.path(source_dir, "pkgdown-site")
 if (dir.exists(site_dir)) unlink(site_dir, recursive = TRUE, force = TRUE)
 
-pkgdown::build_site(
-  pkg = stage_dir,
-  override = list(destination = site_dir),
-  devel = FALSE,
-  new_process = TRUE,
-  install = TRUE,
-  quiet = FALSE
+fail_on_install_warning <- function(warning) {
+  message <- conditionMessage(warning)
+  if (grepl("installation of package", message, fixed = TRUE) &&
+      grepl("non-zero exit status", message, fixed = TRUE)) {
+    stop("pkgdown package installation failed: ", message, call. = FALSE)
+  }
+}
+
+withCallingHandlers(
+  pkgdown::build_site(
+    pkg = stage_dir,
+    override = list(destination = site_dir),
+    devel = FALSE,
+    new_process = TRUE,
+    install = TRUE,
+    quiet = FALSE
+  ),
+  warning = fail_on_install_warning
 )
 
 # pkgdown can add a synthetic /NA src to the inline MathJax configuration
