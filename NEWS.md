@@ -2,6 +2,17 @@
 
 ## New features
 
+* `confint()` with `method` omitted now profiles ordinary `(1 | g)`
+  random-intercept SD rows and keeps Wald for every other row (the `method`
+  column says which). The Wald SD interval undercovers near the boundary: at a
+  true SD of 0.1 with 10 groups, Wald coverage was 0.36 against 0.97 for
+  profile on the same 300 replicates. `method = "wald"`, `method = "profile"`,
+  `method = "bootstrap"`, and calls that supply `small_sample_df`,
+  `bias_correct`, `sd_boundary`, or `rho_boundary` are unchanged. An ordinary
+  `(1 | g)` SD Wald row whose log-scale standard error exceeds 1 (for example
+  `[5e-37, 1e33]` around an estimate of 0.026) is now labelled
+  `conf.status = "wald_at_boundary"` and warns, not only an estimate below
+  `sd_boundary`. Documented in `?confint.drmTMB` (#1558).
 * `predict(fit, type = "mean")` returns the response mean `E[Y]`:
   `exp(mu + sigma^2 / 2)` for lognormal fits, `(1 - zi) * mu` for
   zero-inflated count fits, the hurdle mean for hurdle fits, and the expected
@@ -42,6 +53,7 @@
 
 ## Documentation fixes
 
+* `?mi` now states that U-shaped Beta and zero-one-Beta priors (missing-row mean within 0.10 of 0 or 1) are flagged by the `drmTMB_mi_quadrature_inaccurate` warning, not integrated accurately by the fixed 15-node rule; no adaptive rule is planned (#1531).
 * `?nbinom2` now states that NB2 cannot go below the Poisson limit (an underdispersed count fit hits the `sigma` boundary (limit) and returns a degenerate result) and points underdispersed counts to `glmmTMB::compois()` / `glmmTMB::genpois()`. This is a documentation pointer only; no underdispersed count family is added (Refs #1466).
 
 * The `missing-data` article gains a recipe for a mediator that is also a response: build `impute_model()` from the fitted node's formula and family, with an explicit statement that estimates are not shared and what that means for standard errors (#964).
@@ -67,6 +79,15 @@
   correct (verified numerically); only the description was wrong (#1231).
 
 ## Bug fixes
+
+* The first `engine = "julia"` call no longer prints the recovered
+  `Error during loading of extension LogExpFunctionsInverseFunctionsExt` log
+  with its `UndefVarError` stack trace (twice) that some Julia package
+  combinations emit while the backend loads. The session recovers and fits are
+  unaffected, but the red `ERROR` looked like a crash. `drm_julia_setup()` now
+  wraps Julia's logger during setup and drops only that message when its cause
+  is an `UndefVarError`; every other message, including any other extension
+  failure, still shows (#1157).
 
 * `engine = "julia"` now refuses an ordinary mean `(1 | g)` on Poisson,
   Gamma, NB2, Beta, and Binomial before Julia starts. Those models used to
@@ -150,6 +171,10 @@
   `fn` and `gr` finite. `predict()` and `simulate()` allow `weights = 1`
   and refuse non-unit `weights` on an `mi()` fit
   (`drmTMB_mi_weights_predict_unsupported`) (Refs #1459).
+
+* Dropping unused levels of a fixed-effect factor predictor now emits an
+  informative message (class `drmTMB_dropped_factor_levels`) naming the column
+  and the dropped levels, instead of being silent (#1584).
 
 * `simulate(fit, newdata = nd)` no longer ignores `newdata` and returns draws
   for the training rows. `simulate.drmTMB()` now has an explicit `newdata`
