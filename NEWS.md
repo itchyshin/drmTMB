@@ -13,6 +13,15 @@
   `[5e-37, 1e33]` around an estimate of 0.026) is now labelled
   `conf.status = "wald_at_boundary"` and warns, not only an estimate below
   `sd_boundary`. Documented in `?confint.drmTMB` (#1558).
+* A Gaussian response can now carry **one Gaussian and one binary** `mi()`
+  term with a named `impute` list
+  (`y ~ mi(m) + mi(b) + x`, `impute = list(m = impute_model(m ~ x, family = gaussian()), b = impute_model(b ~ x, family = binomial()))`).
+  This is the next #963 cell (owner decision of 11 Oct 2026) under independence: the binary term is summed over
+  its two states, the Gaussian term is a latent value, and the formula order
+  does not change the likelihood. It is **not** `impute_joint` and **not**
+  FIML. `imputed()` for the binary term conditions on the Gaussian term's
+  fitted value. Two binary terms, a count or ordinal second term, k > 2, and
+  non-Gaussian responses are still refused (#963 stays open for them).
 * `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
   check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
   the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
