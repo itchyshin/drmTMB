@@ -32,6 +32,7 @@ Full `devtools::test()`: 3 fail, 0 error. Two fails were the env-skip
 census after the new README skip (regenerated; now 3 build-premise
 skips). The remaining fail is `test-reml-phylo-location.R:172`
 (convergence 1 vs 0), outside this docs change.
+
 # 2026-10-25: audit of drmTMB's own AGHQ, step 1 (#934)
 
 Read-only audit note `docs/dev-log/2026-10-25-aghq-state-audit-934.md`. Verdict: integrator
