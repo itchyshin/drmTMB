@@ -3993,7 +3993,7 @@ drm_warn_if_clamp_active <- function(obj, spec) {
   # than raised as a fit-time cli warning here, to avoid warning on every
   # variance-zero boundary fit. Only the upper (runaway-scale) arm warns.
   if (is.null(info) || !identical(info$arm, "upper")) {
-    return(invisible(FALSE))
+    return(drm_warn_if_scale_spread(report))
   }
   cli::cli_warn(
     c(
@@ -4001,6 +4001,45 @@ drm_warn_if_clamp_active <- function(obj, spec) {
       "i" = "The scale ran to the upper clamp, so the fit may have converged artificially: estimates and standard errors near the clamp are unreliable. Rescale the response, widen the band with {.code drm_control(logsigma_clamp = )}, add within-group replication, or use a penalized/MAP fit; {.fn check_drm} reports the fit state."
     ),
     class = "drmTMB_clamp_active_warning"
+  )
+  invisible(TRUE)
+}
+
+# Unit-free scale-spread guard, the same bare rule as DRModels.jl#1066
+# (`_SCALE_RUNOFF_LOG_SPREAD`): flag a fit whose fitted log(sigma) spans more
+# than log(1e4) across observations within one scale. Rescaling the response
+# shifts every log(sigma) equally, so the spread is unit-free. A `sigma ~ 1`
+# fit has zero spread and never fires. Unlike the clamp arms it does not need
+# the clamp to be hit, and it reads only the main-likelihood scales (the
+# missing-predictor `log_sigma_*_mi` scales are excluded).
+drm_logsigma_scale_spread <- function(report, threshold = log(1e4)) {
+  fields <- report[names(report) %in% c("log_sigma", "log_sigma1", "log_sigma2")]
+  spreads <- vapply(
+    fields,
+    function(x) {
+      x <- as.numeric(x)
+      x <- x[is.finite(x)]
+      if (length(x) < 2L) 0 else diff(range(x))
+    },
+    numeric(1L)
+  )
+  if (length(spreads) == 0L || max(spreads) <= threshold) {
+    return(NULL)
+  }
+  list(spread = max(spreads), threshold = threshold)
+}
+
+drm_warn_if_scale_spread <- function(report) {
+  info <- drm_logsigma_scale_spread(report)
+  if (is.null(info)) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(
+    c(
+      "{.fn drmTMB}: the fitted {.code log(sigma)} spans {.val {round(info$spread, 1)}} across observations, more than {.code log(1e4)} = {.val {round(info$threshold, 1)}}.",
+      "i" = "A scale range wider than 10^4 usually means the scale is running off (or the design is extreme), so the reported convergence, estimates and standard errors may be unreliable even when the clamp is not hit. Rescale the response, simplify the {.code sigma} formula, or use a penalized/MAP fit; {.fn check_drm} reports the fit state."
+    ),
+    class = "drmTMB_scale_spread_warning"
   )
   invisible(TRUE)
 }

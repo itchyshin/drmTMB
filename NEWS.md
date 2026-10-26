@@ -53,6 +53,14 @@
   not `mu`), and Gaussian `(1 | g)` (includes the fitted modes, so `fitted()`
   now agrees with `predict(dpar = "mu")`). They are recomputed R-side from the
   bridged distributional parameters (#1566).
+* `drmTMB()` now warns (class `drmTMB_scale_spread_warning`) at fit time when the
+  fitted `log(sigma)` spans more than `log(1e4)` across observations, the same
+  bare unit-free rule as DRModels.jl#1066, whether or not the `log(sigma)` clamp
+  is hit. It applies to every scale-bearing family through the same
+  `drm_warn_if_clamp_active()` hook, so a `sigma ~ x` fit whose scale runs off is
+  no longer silent; `sigma ~ 1` fits have zero spread and never fire. This is a
+  warning only: `is_converged()` and `convergence_status()` are unchanged (#1539).
+
 ## Test infrastructure
 
 * The numeric-kernel extreme-value oracle's `run_oracle()` helper
