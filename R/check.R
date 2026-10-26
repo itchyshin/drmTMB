@@ -30,6 +30,9 @@
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
+#' a flag-only note when more than 1% of quantile residuals lie beyond |3|
+#' (`residual_outliers`, a sign of a damaged response such as a sentinel code;
+#' it changes no estimate and never flips `attr(x, "ok")`),
 #' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
@@ -623,6 +626,7 @@ check_drm.drmTMB <- function(
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
     check_skew_normal_nu(object),
+    check_residual_outliers(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
     check_gaussian_aggregation(object),
@@ -2394,6 +2398,52 @@ check_skew_normal_nu <- function(object) {
     "ok",
     value,
     "All fitted skew-normal nu values are finite."
+  )
+}
+
+# Flag-only response-damage signal (#1335, owner decision of 11 Oct 2026).
+# A response with a sentinel code (e.g. -9999 for missing) or other gross
+# contamination leaves the optimizer, Hessian and SE rows green while the
+# scale model attenuates, so look at the residuals the fit already implies.
+# Under a correctly specified model a quantile residual is N(0, 1), so about
+# 0.27% of rows fall beyond |3|; more than 1% (and at least 2 rows) is read as
+# a damaged response or a badly mis-specified family. Quantile residuals are
+# computed with a fixed seed, which does not touch the caller's RNG. The row is
+# a "note": it changes no estimate and never flips `attr(, "ok")`. Families with
+# no residual route, spike-grade families (their residual warns once per
+# session) and bivariate fits return NULL (no row).
+check_residual_outliers <- function(object) {
+  fd <- tryCatch(fitted_distribution(object), error = function(e) NULL)
+  if (is.null(fd) || !identical(fd$status, "reference")) {
+    return(NULL)
+  }
+  res <- tryCatch(
+    drm_quantile_residuals(object, seed = 1L),
+    error = function(e) NULL
+  )
+  if (is.null(res) || !is.numeric(res) || !is.null(dim(res))) {
+    return(NULL)
+  }
+  res <- res[is.finite(res)]
+  n <- length(res)
+  if (n == 0L) {
+    return(NULL)
+  }
+  n_out <- sum(abs(res) > 3)
+  value <- paste0("n_beyond_3=", n_out, "/", n)
+  if (n_out >= 2L && n_out / n > 0.01) {
+    return(check_row(
+      "residual_outliers",
+      "note",
+      value,
+      "More than 1% of quantile residuals lie beyond |3| (about 0.27% is expected). The response may be damaged, for example by a sentinel code such as -9999 for missing, or the family may be badly mis-specified; inspect the largest residuals and the raw response before trusting the scale model."
+    ))
+  }
+  check_row(
+    "residual_outliers",
+    "ok",
+    value,
+    "No excess of quantile residuals beyond |3|."
   )
 }
 

@@ -22,6 +22,15 @@
   FIML. `imputed()` for the binary term conditions on the Gaussian term's
   fitted value. Two binary terms, a count or ordinal second term, k > 2, and
   non-Gaussian responses are still refused (#963 stays open for them).
+* `check_drm()` gains a flag-only `residual_outliers` row. It is a `note`
+  when more than 1% of quantile residuals lie beyond |3| (about 0.27% is
+  expected), which is how a sentinel code such as -9999 for missing
+  contaminates a Gaussian response: the scale coefficient attenuates while the
+  mean model looks publishable and every optimizer, Hessian and SE row stays
+  green. The row changes no estimate and never flips `attr(x, "ok")`.
+  Spike-grade, bivariate and residual-less fits get no row. Reported by
+  Russell Dinnage in the independent evaluation of drmTMB 0.7.0 (#1335).
+
 * `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
   check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
   the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
