@@ -3489,6 +3489,51 @@ def validate_live_prose_contracts(
             raise SystemExit(f"{label}: unknown live prose reference kind {kind!r}")
 
 
+def validate_route_cross_references(
+    cells: list[dict[str, str]], evidence: list[dict[str, str]]
+) -> None:
+    """Require a route_state contract for every other route a G5 row names.
+
+    Issue 1011 item 2, scoped by the owner to the G5 family-map rows: the cells
+    carrying a ``g5_policy_not_grounded`` contract.  When their live prose names
+    another family route in backticks (for example ``cumulative_logit`` as an
+    explicit exclusion), a ``route_state`` contract for the same cell and field
+    must pin a cell of that route.  Promoting that route then fails
+    ``validate_live_prose_contracts`` until the prose is reviewed.  Every other
+    row is deliberately not scanned here; keyed columns are issue 1011 item 3.
+    """
+    contracts = read_tsv(LIVE_PROSE_CONTRACTS)
+    cells_by_id = {row["cell_id"]: row for row in cells}
+    routes = {row["family_route"] for row in cells}
+    pinned: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for contract in contracts:
+        if contract["reference_kind"] == "route_state" and contract["reference_id"] in cells_by_id:
+            referenced = cells_by_id[contract["reference_id"]]
+            pinned[(contract["cell_id"], contract["field"])].add(referenced["family_route"])
+    targets = sorted({
+        (contract["cell_id"], contract["field"])
+        for contract in contracts
+        if contract["reference_kind"] == "g5_policy_not_grounded"
+    })
+    problems = []
+    for cell_id, field in targets:
+        contract = {"cell_id": cell_id, "field": field}
+        prose = live_prose_contract_value(contract, cells, evidence)
+        own = cells_by_id[cell_id]["family_route"]
+        named = {
+            name for name in re.findall(r"`([A-Za-z0-9_]+)`", prose)
+            if name in routes and name != own
+        }
+        problems.extend(
+            f"{cell_id} {field}: names route `{name}` without a route_state contract "
+            "in live-prose-contracts.tsv; add one so a promotion of that route forces "
+            "a prose review"
+            for name in sorted(named - pinned[(cell_id, field)])
+        )
+    if problems:
+        raise SystemExit("G5 family-map prose names an unpinned route:\n- " + "\n- ".join(problems))
+
+
 def normalised_prose(text: str) -> str:
     """Fold case and runs of whitespace so a phrase matches however it is set."""
     return " ".join(text.split()).casefold()
@@ -4282,6 +4327,7 @@ def load_sources() -> tuple[list[dict[str, str]], list[dict[str, str]], list[dic
     transitions = read_tsv(TRANSITIONS)
     validate(cells, evidence, transitions)
     validate_live_prose_contracts(cells, evidence)
+    validate_route_cross_references(cells, evidence)
     validate_retired_predicates(cells, evidence)
     return cells, evidence, transitions
 

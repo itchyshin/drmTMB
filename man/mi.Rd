@@ -29,6 +29,17 @@ response routes support one binary \code{mi()} predictor modelled by
 \code{beta_family()}, \code{lognormal()}, \code{Gamma(link = "log")}, \code{student()}, and
 \code{beta_binomial()}.
 }
+\details{
+Strict-proportion and zero-one boundary proportion \code{mi()} predictors
+integrate the Beta prior with a fixed 15-node Gauss-Legendre rule. That rule
+is accurate for bell-shaped priors but not for U-shaped ones: when the
+estimated prior mean of a missing row is within 0.10 of 0 or 1, the rule can
+be off by about \code{5e-3} in the per-row log-likelihood (and by more when the
+observed response sits near the pole). Such priors are flagged, not
+integrated accurately. A successful fit warns with class
+\code{drmTMB_mi_quadrature_inaccurate}; treat the fit as approximate when that
+warning appears. No adaptive rule is planned for now.
+}
 \examples{
 bf(y ~ z + mi(x), sigma ~ 1)
 }
