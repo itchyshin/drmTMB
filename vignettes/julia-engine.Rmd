@@ -54,6 +54,14 @@ instead of the environment setting if you prefer to keep the path in your R
 setup. For a new analysis, use one of these two settings. Restart R after
 changing checkouts.
 
+On Linux, if JuliaCall cannot initialize because a Julia shared library cannot
+be loaded, set `R_LD_LIBRARY_PATH` to Julia's `lib/julia` directory before
+starting R, for example `R_LD_LIBRARY_PATH=/path/to/julia/lib/julia R`. The
+setting needs to be present when R starts. See the [JuliaCall troubleshooting
+note](https://github.com/JuliaInterop/JuliaCall#libstdcso6-version-glibcxx34xx-not-found).
+This can address a library-loading setup issue; it does not diagnose every
+Julia initialization failure.
+
 Replace the path with the directory containing the checkout's `Project.toml` and
 `src/`. The bridge initializes Julia when needed. The first fit includes
 startup and compilation, so compare later fits when timing a repeated
@@ -98,16 +106,17 @@ individuals <- data.frame(
   individual = factor(seq_len(40)),
   sex = factor(rep(c("female", "male"), each = 20))
 )
-individuals$b <- rnorm(40, sd = exp(-0.3 + 0.25 * (individuals$sex == "male")))
+individuals$sex_male <- as.numeric(individuals$sex == "male")
+individuals$b <- rnorm(40, sd = exp(-0.3 + 0.25 * individuals$sex_male))
 personality_data <- individuals[rep(seq_len(40), each = 4), ]
 personality_data$exploration_score <-
-  1 + 0.5 * (personality_data$sex == "male") + personality_data$b +
+  1 + 0.5 * personality_data$sex_male + personality_data$b +
   rnorm(nrow(personality_data), sd = 0.5)
 
 formula_lss <- bf(
-  exploration_score ~ sex + (1 | individual),
-  sigma ~ sex,
-  sd(individual) ~ sex
+  exploration_score ~ sex_male + (1 | individual),
+  sigma ~ sex_male,
+  sd(individual) ~ sex_male
 )
 fit_lss <- drmTMB(
   formula_lss, family = gaussian(), data = personality_data,
@@ -355,7 +364,10 @@ and retain the warning or error when reporting the limitation.
 ## Family and route reference
 
 The table below is a starting point, not a promise that every neighbouring
-formula will work. Choose the listed route, then consult the
+formula will work. The admitted set includes `skew_normal()`,
+`cumulative_logit()`, `biv_student()`, `biv_lognormal()`, and plain
+`stats::binomial(link = "logit")`, along with the other families listed
+here. Choose the listed route, then consult the
 [capability guide](capability-and-limits.html) before adding terms or choosing
 an interval.
 

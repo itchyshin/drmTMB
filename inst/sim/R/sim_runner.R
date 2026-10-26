@@ -76,6 +76,7 @@ phase18_run_replicate <- function(
       own <- c(
         "drmTMB_convergence_warning",
         "drmTMB_clamp_active_warning",
+        "drmTMB_scale_spread_warning",
         "drmTMB_nonfinite_objective_warning"
       )
       if (!inherits(w, own)) {

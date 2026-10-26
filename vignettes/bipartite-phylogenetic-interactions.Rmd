@@ -200,7 +200,7 @@ network_dat$pair_id <- interaction(
 )
 
 fit_independent_pair <- drmTMB(
-  visits ~ floral_density + (1 | pair_id),
+  bf(visits ~ floral_density + (1 | pair_id)),
   family = poisson(link = "log"),
   data = network_dat
 )
@@ -218,8 +218,8 @@ data. If the factor is `plant_pollinator`, then the row names and column names o
 
 ```{r relmat-pair-route, eval = FALSE}
 fit_pair_relmat <- drmTMB(
-  visits ~ floral_density +
-    relmat(1 | plant_pollinator, Q = Q_pair),
+  bf(visits ~ floral_density +
+    relmat(1 | plant_pollinator, Q = Q_pair)),
   family = poisson(link = "log"),
   data = network_dat
 )
