@@ -66,7 +66,7 @@ test_that("remaining A1 help pages document Dinnage audit caveats", {
 
   predict_help <- rd_text("predict.drmTMB.Rd")
   expect_match(predict_help, "not always \\code{E[Y]}", fixed = TRUE)
-  expect_match(predict_help, "fitted-row response means", fixed = TRUE)
+  expect_match(predict_help, "Use \\code{type = \"mean\"} for \\code{E[Y]}", fixed = TRUE)
 
   summary_help <- rd_text("summary.drmTMB.Rd")
   expect_match(summary_help, "\\pkg{emmeans}", fixed = TRUE)
