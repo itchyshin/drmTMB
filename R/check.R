@@ -1680,12 +1680,22 @@ check_observations_per_parameter <- function(object) {
       format_check_number(ratio)
     ),
     if (low) {
+      # #1469: with so few observations per parameter the likelihood can have
+      # two maxima, and a single start can stop on the lower one with status
+      # "converged". Point at multi_start unless it was already used.
+      multi_start_used <- isTRUE(object$control$multi_start > 1L)
       paste(
         "Fewer than",
         observations_per_parameter_threshold,
         "observations per estimated parameter; the diagnostic board does not",
         "become more cautious automatically at small n, so inspect effect",
-        "sizes and uncertainty before interpreting tests."
+        "sizes and uncertainty before interpreting tests.",
+        if (!multi_start_used) {
+          paste(
+            "The likelihood can also be multimodal at this size; refit with",
+            "drm_control(multi_start = 10) and compare the logLik values."
+          )
+        }
       )
     } else {
       paste(

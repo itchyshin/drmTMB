@@ -101,6 +101,11 @@
   wraps Julia's logger during setup and drops only that message when its cause
   is an `UndefVarError`; every other message, including any other extension
   failure, still shows (#1157).
+* The `observations_per_parameter` note in `check_drm()` now also tells the
+  user that the likelihood can be multimodal at that size and to refit with
+  `drm_control(multi_start = 10)`, unless `multi_start` was already used.
+  At n = 8 with `sigma ~ x`, a single start can stop on the lower of two
+  maxima with status `"converged"` (#1469).
 
 * `engine = "julia"` now refuses an ordinary mean `(1 | g)` on Poisson,
   Gamma, NB2, Beta, and Binomial before Julia starts. Those models used to
