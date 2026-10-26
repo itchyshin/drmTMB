@@ -6728,15 +6728,69 @@ deviance.drmTMB_julia <- function(object, ...) {
   -2 * as.numeric(stats::logLik(object))
 }
 
+# fitted() and residuals() on the bridge follow ?fitted.drmTMB, not DRModels.jl
+# (#1566). The bridge slot carries the DRModels.jl fitted definition, which
+# differs from the drmTMB one for three routes on the same converged model:
+#   * lognormal: DRModels.jl returns exp(mu), the median; drmTMB the mean
+#     exp(mu + sigma^2 / 2);
+#   * truncated_nbinom2: DRModels.jl returns mu; drmTMB the truncated mean
+#     mu / (1 - P_NB2(0));
+#   * Gaussian (1 | g): DRModels.jl returns X beta (modes at 0); drmTMB
+#     includes the fitted modes.
+# These are recomputed here from the bridged dpars (the same path
+# predict.drmTMB_julia() uses), through the shared native helpers. Every other
+# route keeps the bridge slot. A fit whose dpars cannot be rebuilt R-side (a
+# random effect without a retained payload, or an offset) also keeps the slot.
+# Returns NULL when the bridge slot is already the documented value.
+drm_julia_fitted_recomputed <- function(object) {
+  model_type <- drm_julia_predict_model_object(object)$model$model_type
+  if (model_type %in% c("lognormal", "truncated_nbinom2")) {
+    for (entry in object$formula$entries) {
+      if (
+        entry$dpar %in% c("mu", "sigma") &&
+          (drm_julia_predict_has_random_effect(entry) ||
+            formula_contains_call(entry$rhs, "offset"))
+      ) {
+        return(NULL)
+      }
+    }
+    mu <- stats::predict(object, dpar = "mu")
+    sigma <- stats::predict(object, dpar = "sigma")
+    if (identical(model_type, "lognormal")) {
+      return(exp(mu + 0.5 * sigma^2))
+    }
+    return(truncated_nbinom2_mean(mu, sigma))
+  }
+  spec <- drm_julia_conditional_gaussian_components_spec(
+    object$formula,
+    model_type
+  )
+  if (!is.null(spec) && is.list(object$conditional_re)) {
+    return(stats::predict(object, dpar = "mu"))
+  }
+  NULL
+}
+
 #' @export
 fitted.drmTMB_julia <- function(object, ...) {
-  object$fitted
+  out <- drm_julia_fitted_recomputed(object)
+  if (is.null(out)) {
+    return(object$fitted)
+  }
+  out
 }
 
 #' @export
 residuals.drmTMB_julia <- function(object, type = c("response"), ...) {
   match.arg(type)
-  object$residuals
+  out <- drm_julia_fitted_recomputed(object)
+  if (is.null(out)) {
+    return(object$residuals)
+  }
+  # The bridge response residual is y - fitted_bridge, so y is recovered
+  # without a stored response and the residual is re-based on the documented
+  # fitted value.
+  object$residuals + object$fitted - out
 }
 
 #' @export
