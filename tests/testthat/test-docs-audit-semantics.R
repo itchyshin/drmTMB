@@ -107,3 +107,17 @@ test_that("numbered argument anchors are unique and retain incoming targets", {
                    paste0("#", ids))
   expect_identical(env$repair_duplicate_argument_anchors(site), 0L)
 })
+
+test_that("documented method usages have an alias in their own help topic", {
+  files <- list.files(drm_pkg_path("man"), pattern = "\\.Rd$", full.names = TRUE)
+  expect_gt(length(files), 0L)
+  for (path in files) {
+    text <- paste(readLines(path, warn = FALSE), collapse = "\n")
+    aliases <- regmatches(text, gregexpr("\\\\alias\\{[^}]+\\}", text))[[1L]]
+    aliases <- sub("^\\\\alias\\{([^}]+)\\}$", "\\1", aliases)
+    methods <- regmatches(text,
+      gregexpr("\\\\method\\{[^}]+\\}\\{[^}]+\\}\\(", text))[[1L]]
+    methods <- sub("^\\\\method\\{([^}]+)\\}\\{([^}]+)\\}\\($", "\\1.\\2", methods)
+    expect_true(all(methods %in% aliases), info = basename(path))
+  }
+})

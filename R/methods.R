@@ -795,7 +795,6 @@ weights.drmTMB <- function(object, ...) {
 #' `0.999999 * tanh(eta)`.
 #'
 #' @usage rho12(object, ...)
-#' \method{rho12}{drmTMB_julia}(object, ...)
 #' @details For Julia-backed fits, `rho12()` returns the stored residual
 #'   correlation vector and errors if the fit has no residual `rho12` block.
 #'   This method does not accept `newdata`.

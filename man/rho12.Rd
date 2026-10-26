@@ -6,7 +6,6 @@
 \title{Extract residual correlation rho12}
 \usage{
 rho12(object, ...)
-\method{rho12}{drmTMB_julia}(object, ...)
 
 \method{rho12}{drmTMB}(object, newdata = NULL, type = c("response", "link"), ...)
 }

@@ -91,6 +91,8 @@ Reviewed adjacent reference pages, manual navigation, constructor examples, fami
 
 Sparse source exports initially omitted needed assets or extensions. Those exports were corrected and affected checks rerun. Some task runners initially used the wrong fixture or installed package; corrected runs bind the loaded source and preserve earlier failures. Environment failures do not count as successful execution.
 
+The final package check exposed a duplicate Julia method usage in the generic rho12 help topic. The dedicated Julia methods topic retains the method signature and alias. Removing the duplicate clears the invalid local usage contract; a regression checks all 102 Rd topics and passed 103 assertions after reproducing the failure. The source-tree test manifest now includes the documentation regression file.
+
 ## 10. Known Residuals
 
 This report describes a prepared patch, not a completed site audit or publication receipt. Final deployment and full acceptance reconciliation are still required. No package release, scientific calibration, or new capability admission is claimed.
