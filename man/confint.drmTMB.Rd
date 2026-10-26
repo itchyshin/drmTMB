@@ -108,52 +108,40 @@ zero, or a correlation within \code{rho_boundary} of \verb{+/-1}, is returned wi
 \code{method = "profile"}. Defaults match \code{\link[=check_drm]{check_drm()}} (\code{1e-4}, \code{0.98}).}
 
 \item{small_sample_df}{Small-sample reference distribution for the
-\code{method = "wald"} interval. \code{"location"} (the default) references a
-t-quantile with \code{df = g - 1} -- a group-based, Satterthwaite-style
-between-group degrees of freedom -- for each \emph{location-axis} (\code{mu},
-\code{mu1}, \code{mu2}) structured random-effect SD target (\code{phylo}, \code{spatial},
-\code{animal}, \code{relmat}) with a resolvable group count \code{g}, and keeps the
-ordinary normal quantile \code{z = qnorm((1 + level) / 2)} for every other
-target. This widens only the location-axis structured-RE SD intervals,
-which under-cover at small \code{g} under the normal quantile; the t-quantile
-lifts their coverage and converges back to \code{z} as \code{g} grows. Dispersion
-(\code{sigma}, \code{sigma1}, \code{sigma2}) structured SD targets are deliberately left
-at the normal quantile because they already over-cover; non-structured and
-fixed-effect targets are never widened; and a plain labelled covariance
-block such as \code{(1 + x | p | id)} is also left at the normal quantile by
-default, because the correction magnitude was calibrated for structured
-blocks only. \code{"none"} is the opt-out: it uses the normal quantile for
-\emph{every} target and is byte-identical to the pre-default behaviour.
-\code{"group"} widens \emph{every} resolvable SD target -- structured and
-labelled-covariance, location and dispersion axis alike; use it only when
-you deliberately want to t-reference the dispersion axis or a labelled
-covariance block too. Note
-that the t-quantile only widens the interval; it does not move its centre.
-The residual small-\code{g} gap is ML shrinkage bias in the variance-component
-point estimate (a job for REML), not a quantile problem, so the centre
-shift is handled by \code{bias_correct}.}
+\code{method = "wald"} interval. \code{"location"} (the default) uses a t-quantile
+with \code{df = g - 1} for location-axis (\code{mu}, \code{mu1}, \code{mu2}) structured
+random-effect SD targets (\code{phylo}, \code{spatial}, \code{animal}, \code{relmat}) when a
+unique group count \code{g} is available. Other targets use the normal
+quantile. This changes interval width, not its centre. The retained
+engine coverage check concerns four q2 phylogenetic and relatedness-matrix
+\code{mu1:x}/\code{mu2:x} slope SD cells at \code{g = 8}, with a post-hoc check across
+\verb{g = 8, 16, 32}; the default's broader
+application does not establish nominal coverage for every target.
+Dispersion-axis (\code{sigma}, \code{sigma1}, \code{sigma2}) targets stay at the normal
+quantile by default. Their coverage depends on the model: a replicated
+pure \code{sigma} intercept over-covered in a pilot, whereas some \code{sigma}
+one-slope intercept targets under-covered at \code{g = 8}. Fixed effects and
+plain labelled covariance blocks are also unchanged by the default.
+\code{"none"} uses the normal quantile for every target and recovers the
+earlier behaviour. \code{"group"} widens every resolvable structured or
+labelled-covariance SD target on either axis; this broader choice is
+not covered by the q2 calibration.}
 
-\item{bias_correct}{Small-sample point-estimate bias correction for the
-\code{method = "wald"} interval. \code{"location"} (the default) adds a
-simulation-calibrated shift \code{log(g / (g - 1))} to the log-scale point
-estimate -- before back-transforming -- of each \emph{location-axis} (\code{mu},
-\code{mu1}, \code{mu2}) structured random-effect SD target with a resolvable group
-count \code{g} (the same targets \code{small_sample_df = "location"} widens), and
-leaves every other target unshifted. The ML estimate of a structured-RE
-variance-component SD is biased low on the log scale by about
-\code{log(g / (g - 1))} -- a downward shrinkage that REML, or simply a larger
-\code{g}, removes asymptotically; this shift moves the interval centre up to
-counter that shrinkage. Used together with \code{small_sample_df = "location"},
-the centre shift and the t(\code{df = g - 1}) width act independently, giving
-\verb{exp((log(sigma_hat) + log(g / (g - 1))) +/- qt(p, g - 1) * se_log)} and
-lifting small-\code{g} coverage of location-axis structured-RE SD targets to
-nominal. \code{"none"} is the opt-out: it leaves every centre at the ML estimate
-and is byte-identical to the pre-default behaviour. \code{"group"} shifts
-\emph{every} resolvable SD target -- structured and labelled-covariance, location
-and dispersion axis alike. The default deliberately excludes the dispersion
-axis (\code{sigma} SD intervals already over-cover, so the upward shift would
-push them further conservative) and plain labelled covariance blocks (whose
-correction magnitude is not yet simulation-calibrated).}
+\item{bias_correct}{Small-sample centre adjustment for the
+\code{method = "wald"} interval. \code{"location"} (the default) adds
+\code{log(g / (g - 1))} to the log-SD estimate of each location-axis structured
+random-effect target with a unique group count \code{g}, before back-transforming;
+other targets are unshifted. In the retained q2 phylogenetic and
+relatedness-matrix \code{mu1:x}/\code{mu2:x} slope SD cells at \code{g = 8} and a
+post-hoc cross-\code{g} check, this shift approximated measured ML log-SD shrinkage. Combined with the
+t width, it brought coverage near 0.95 in those cells. Applying the same
+formula to another route is an implemented calculation, not evidence of
+its bias or interval coverage. \code{"none"} leaves every centre unshifted;
+\code{"group"} shifts every resolvable structured or labelled-covariance SD
+target on either axis. Dispersion targets remain unshifted by default
+because their coverage is regime dependent; the magnitude is also not
+calibrated for plain labelled covariance blocks. The shift changes the
+centre only; it does not alter the fitted model or a profile endpoint.}
 
 \item{bootstrap_re_form}{\code{re.form} passed through to \code{\link[stats:simulate]{stats::simulate()}}
 when \code{method = "bootstrap"}, with the same lme4 meanings as
@@ -402,19 +390,17 @@ confint(fit, parm = "sigma", method = "profile")
 # percentiles before back-transforming to the response scale.
 }
 \references{
-The small-sample corrections applied by \code{small_sample_df} and \code{bias_correct}
-(whether the default \code{"location"} scope or the broader \code{"group"} scope) are
-\emph{motivated} by established mixed-model theory but are simulation-calibrated,
-not derived: the \code{log(g / (g - 1))} SD-scale centre
-shift is about \strong{twice} the leading-order REML SD correction
-(\code{0.5 * log(g / (g - 1))}), matching the larger ML shrinkage measured on these
-structured/bivariate models (their effective df is well below \code{g - 1}). The
-magnitude used here comes from separate simulations for each structured or
-bivariate model class, not from a single general correction. Relevant references:
-
-Restricted maximum likelihood and the variance-component bias that motivates
-the centre shift (REML debiases the variance by \code{g/(g-1)}; the shift here is on
-the SD log scale and ~2x the leading-order REML SD term):
+The default correction is motivated by mixed-model variance-component
+bias but its \code{log(g / (g - 1))} log-SD magnitude is empirical, not a
+general consequence of REML. The retained calibration covers q2
+phylogenetic and relatedness-matrix \code{mu1:x}/\code{mu2:x} slope SD cells
+(engine check at \code{g = 8}, post-hoc checks at \verb{g = 8, 16, 32}); neither
+other structured routes nor the broader \code{"group"}
+scope inherit that coverage result. In the elementary independent Gaussian
+variance example, the familiar variance factor is \code{g/(g-1)}, equivalent
+to only \code{0.5 * log(g/(g-1))} on the SD log scale. The cited theory supplies
+context and direction, not a derivation of this package's full shift.
+Relevant references:
 
 Patterson, H. D., & Thompson, R. (1971). Recovery of inter-block information
 when block sizes are unequal. Biometrika, 58(3), 545-554.

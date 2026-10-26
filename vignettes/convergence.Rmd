@@ -667,45 +667,33 @@ accepts one ordinary unlabelled location (`mu`) random intercept or independent
 slope. Fixed-only, multiple-term, correlated, labelled, structured, and missing-response
 binomial REML models remain unavailable.
 
-Why: maximum likelihood estimates a variance component as if the fixed effects
-were known, which biases the variance *downward* by a factor of order `p / n`
-(`p` fixed effects, `n` groups; for a phylogenetic effect `n` is the number of
-tips). REML accounts for the degrees of freedom spent on the fixed effects and
-removes that leading bias. The correction is set by the *ratio* `p / n`, not by
-`n` alone: a rich fixed-effect surface -- several mean covariates plus an
-`sd_phylo(...) ~ x` surface, which all count toward `p` -- can leave a
-noticeable correction even at a few hundred tips. On the standard-deviation
-scale the correction is about half the size of the variance correction (roughly
-`p / 2n`, by the delta method), which is why the SD movements below are modest.
-As `p / n` shrinks toward zero the two estimators converge.
+In the elementary independent Gaussian variance example, ML divides the
+residual sum of squares by `n` after estimating `p` mean coefficients, giving
+an expected variance factor `(n - p) / n`; REML accounts for that lost mean
+information. This textbook `p / n` calculation does not set the bias or the
+ML-to-REML change for a structured, correlated, or location--scale model.
+A phylogenetic tip count is not automatically the number of independent
+observations, and `sd_phylo(...) ~ x` coefficients are variance parameters,
+not extra fixed-mean coefficients in that formula. The fitted model and its
+information determine the change, so compare matched ML and REML fits within
+an admitted route rather than predicting a percentage from `p / n`.
 
-What actually moves: for a Gaussian location-scale model the mean and the
-variance are information-orthogonal, so switching ML to REML leaves the
-**mean-model coefficients essentially unchanged** and adjusts the
-**variance-component estimates** -- the phylogenetic SD and, for an
-`sd_phylo(...) ~ x` surface, its coefficients. In a 16-species fit the mean
-coefficients moved by under 0.005 while the `sd_phylo` intercept and slope moved
-by about 0.04 to 0.06; by a few hundred species even the SD difference is
-negligible.
+In one retained 16-species phylogenetic location--scale comparison, mean
+coefficients differed by less than 0.005 while the `sd_phylo` intercept and
+slope differed by 0.043 and 0.060. These are results for that example, not a
+guarantee that mean coefficients stay fixed or variance-component differences
+vanish at a particular number of tips.
 
-Practical guidance:
-
-- **Small `p / n`** -- hundreds of tips or more against a modest number of fixed
-  effects (a large clade, or a dataset in the thousands of tips): use the
-  default ML. The correction is a fraction of a percent and does not change the
-  conclusions. At Ayumi Mizuno's ~10,440-tip scale it is about 0.05%.
-- **Large `p / n`** -- tens of species, or a small subclade carrying a rich
-  fixed-effect surface: prefer `REML = TRUE`. This is where ML's downward
-  variance bias is largest and REML earns its keep.
-- **If you interpret a variance component, fit both and compare.** If the
-  phylogenetic SD or the `sd_phylo ~ x` coefficients move materially between ML
-  and REML, report that sensitivity; if they barely move, the estimate is
-  robust to the choice.
+Practical guidance: use the default ML fit when it answers the question and
+passes diagnostics. If a variance component matters to the conclusion and the
+exact Gaussian route admits REML, fit both estimators and report material
+sensitivity. At small effective information, REML can reduce ML variance bias;
+it does not by itself certify an interval or resolve weak identification.
 
 ```{r, purl=FALSE}
 fit_ml <- drmTMB(form, data = dat, family = gaussian()) # default (ML)
 fit_reml <- drmTMB(form, data = dat, family = gaussian(), REML = TRUE)
-# Compare the variance-component estimates; the mean coefficients should agree.
+# Compare estimates and diagnostics on the same model and data.
 ```
 
 A Gaussian REML fit is labeled `estimator = "REML"` and goes through the same

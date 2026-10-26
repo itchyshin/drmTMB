@@ -184,9 +184,12 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' non-Gaussian phylogenetic slopes,
 #' zero-inflated phylogenetic effects, and phylogenetic slope correlations
 #' are not supported. The public `phylo()` API requires an ultrametric tree with
-#' branch lengths and normalizes the Brownian covariance by the tree height
-#' when building the Hadfield and Nakagawa A-inverse sparse-precision path.
-#' Thus the latent Brownian field has unit variance at each tip, and the fitted
+#' branch lengths and normalizes the Brownian covariance by the tree height.
+#' It builds a sparse precision over the non-root tips and ancestral nodes
+#' from the tree-edge branch lengths. This augmented-node Brownian
+#' representation follows the sparse \eqn{S^{-1}} approach described by Hadfield
+#' and Nakagawa (2010), rather than forming the dense tip-level \eqn{A^{-1}}
+#' matrix. Thus the latent Brownian field has unit variance at each tip, and the fitted
 #' phylogenetic SD uses this unit-height convention.
 #' Multiplying all branch lengths by a positive constant
 #' leaves the normalized covariance unchanged. The supplied tree object is not

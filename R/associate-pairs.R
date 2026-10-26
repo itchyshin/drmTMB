@@ -36,7 +36,17 @@ latent_normal <- function() {
 #' associations also expose bounded eta intervals through
 #' `confint(object, type = "eta")`; [predict.drm_pair_association()] supplies
 #' delta-method eta standard errors and pointwise transformed intervals.
-#' Profiles remain unavailable.
+#' Profiles remain unavailable. `fitted()` returns the two stored marginal
+#' response values or probabilities, not the fitted latent association.
+#' `simulate()` returns paired outcomes from the fitted marginal predictions
+#' and latent-normal association; it requires a resolved interior or
+#' near-boundary association and cannot be used for an unresolved boundary.
+#' `profile()`, `quantile()`, `residuals()`, `sigma()`, `update()`, `rho12()`,
+#' `corpairs()`, and `emmeans` are unavailable for this frozen-margin object.
+#' Use `association()` and `predict()` for the association estimand, and
+#' `vcov()` and `confint()` for the supported Wald uncertainty summaries.
+#' Refitting requires fitting the margins again and constructing a new
+#' association object.
 #'
 #' @param fit_1,fit_2 Two fitted `drmTMB` marginal models. They must use the
 #'   identical complete analysis data, in the same order.
@@ -48,7 +58,12 @@ latent_normal <- function() {
 #'   interactions, and explicit transformations. Random effects, offsets,
 #'   missing values, aliased columns, and `.` expansion are not supported.
 #'
-#' @return An object of class `drm_pair_association`.
+#' @return An object of class `drm_pair_association`. `fitted(object)` returns
+#'   the two fitted marginal response values or probabilities. `summary(object)`
+#'   returns the association summary, diagnostics, and provenance (or a `NULL`
+#'   association summary when the boundary is unresolved). `simulate(object)`
+#'   returns one paired-response data frame for `nsim = 1`, or a list of such
+#'   data frames for larger `nsim`.
 #' @export
 #'
 #' @examples

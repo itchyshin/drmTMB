@@ -78,6 +78,7 @@ shared_tendency <- rnorm(n)
 
 paired_data <- data.frame(
   habitat_score = habitat_score,
+  season = factor(rep(c("spring", "summer", "autumn"), length.out = n)),
   bred = rbinom(
     n,
     size = 1,

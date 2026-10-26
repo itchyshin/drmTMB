@@ -47,3 +47,21 @@ pkgdown::build_site(
   install = TRUE,
   quiet = FALSE
 )
+
+# pkgdown can add a synthetic /NA src to the inline MathJax configuration
+# while making 404-page URLs absolute. Keep that configuration inline.
+repair_404_mathjax <- function(site_dir) {
+  path <- file.path(site_dir, "404.html")
+  if (!file.exists(path)) return(invisible(0L))
+  page <- xml2::read_html(path)
+  scripts <- xml2::xml_find_all(page, ".//script[@src]")
+  bad <- grepl("(^|/)NA$", xml2::xml_attr(scripts, "src")) &
+    grepl("window.MathJax", xml2::xml_text(scripts), fixed = TRUE)
+  if (any(bad)) {
+    xml2::xml_attr(scripts[bad], "src") <- NULL
+    xml2::write_html(page, path)
+  }
+  invisible(sum(bad))
+}
+
+repair_404_mathjax(site_dir)

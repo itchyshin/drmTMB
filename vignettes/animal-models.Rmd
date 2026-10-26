@@ -176,7 +176,7 @@ For one response, start with the fitted location-intercept route:
 
 ```r
 fit_animal <- drmTMB(
-  y ~ treatment + animal(1 | individual, pedigree = pedigree),
+  bf(y ~ treatment + animal(1 | individual, pedigree = pedigree)),
   data = dat,
   family = gaussian()
 )

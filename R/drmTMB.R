@@ -148,10 +148,13 @@
 #'   an additional large-p `phylo()` or coupled location-scale phylo route),
 #'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`,
 #'   `beta_binomial()`, `skew_normal()`, `cumulative_logit()`,
-#'   `biv_student()`, and `biv_lognormal()` on the fixed-effect route only. Each admitted family
-#' has been compared with `engine = "tmb"` on the same fitted target
-#'   (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
-#'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for
+#'   `biv_student()`, and `biv_lognormal()` on the fixed-effect route only.
+#'   Same-target receipts at DRM.jl pin `430ef64cc` cover `skew_normal()`,
+#'   `cumulative_logit()`, `biv_student()`,
+#'   and `biv_lognormal()`: coefficient and log-likelihood differences were
+#'   below 1e-4, and Wald SE relative differences were below 1e-3. These
+#'   comparisons do not establish the same tolerances for every admitted
+#'   family. See \code{vignette("julia-engine", package = "drmTMB")} for
 #' the full family-by-route table and current boundaries. `engine = "julia"` needs a local
 #'   DRModels.jl checkout and the optional `JuliaCall` package, and it is not a
 #'   drop-in replacement for every native-TMB workflow. `engine = "julia"` is
@@ -190,14 +193,24 @@
 #'   not a `drmTMB()` argument and is not what `REML = TRUE` runs. Public
 #'   cumulative-logit random-slope fits remain maximum likelihood
 #' and have point-estimate recovery evidence only.
-#'   `engine = "julia"` fits `REML = TRUE` on a route-by-route basis, not
-#'   uniformly: the fixed-effect Gaussian location-scale model, the bivariate
-#'   q = 4 phylogenetic route, the location-scale-scale `sd()`/`sd_phylo()`
-#'   routes, an ordinary Gaussian `mu` random intercept, and large-p Poisson
-#'   `phylo()` (a Cox-Reid Laplace route native `engine = "tmb"` does not have)
-#'   currently fit `REML = TRUE`; every other bridge route refuses it, some
-#' with a raw DRModels.jl error rather than a `drmTMB`-worded one. Do not assume
-#' bridge REML support for models outside this list.
+#'   `engine = "julia"` admits `REML = TRUE` only on named routes. Checked
+#'   Gaussian examples include fixed-effect location-scale, an ordinary `mu`
+#'   intercept with numeric-only mean predictors, mean-only and scale-side
+#'   phylogenetic terms, and selected
+#'   `sd()`/`sd_phylo()` location-scale-scale fits. Documented bivariate
+#'   Gaussian shapes include the residual-only model with constant `sigma1`,
+#'   `sigma2`, and `rho12`; matching q = 2 mean intercepts with phylogenetic,
+#'   spatial, or supplied-relatedness structure; and a q = 4 phylogenetic
+#'   route. The residual-only and q = 2 cells have same-target bridge tests;
+#'   the q = 4 route has no same-target R-bridge parity claim.
+#'   The bridge also admits the measured Poisson phylogenetic-intercept
+#'   REML cell. It refuses a Poisson ordinary `mu` `(1 | g)` before REML
+#'   dispatch. A separately tested direct DRM.jl fit for that shape does not
+#'   make it available through the R bridge. Gaussian ordinary mean effects with factor, character, or logical predictors
+#'   are also refused before Julia starts. These are route-specific point-fit
+#'   or same-target checks, not blanket interval or coverage permissions.
+#'   Requests outside the admitted shapes may be refused by the bridge or
+#'   DRModels.jl; do not infer bridge REML support from a family name alone.
 #'
 #'   Under native `REML = TRUE`, admitted mean fixed-effect coefficients are
 #'   marginalised in the TMB objective rather than estimated as ordinary fixed
@@ -221,10 +234,13 @@
 #'   complete Bernoulli or grouped-binomial model with one ordinary
 #'   q = 1 or correlated q = 2 grouping block. Supported links are
 #'   `"logit"`, `"probit"` and `"cloglog"`. Kosmidis and Firth (2021,
-#'   Theorem 1 and Section 3.1) prove the Jeffreys penalty gives finite
-#'   estimates for any link whose working weight vanishes in both tails, which
-#' these three do. drmTMB has directly checked the TMB-Laplace implementation
-#' for all three links.
+#'   Theorem 1 and Section 3.1) establish finiteness for Jeffreys-prior
+#'   penalised binomial fixed-effect GLMs under their conditions, including
+#'   full-rank design and links such as logit, probit, and cloglog. That result
+#'   motivates the fixed-effect penalty; it does not prove finiteness or
+#'   interval calibration for a mixed model fitted through TMB-Laplace.
+#'   drmTMB has directly checked its three link implementations in named
+#'   Bernoulli mixed-model settings.
 #'   Three limits are worth stating. The soft-penalty scale below is a *logit*
 #'   delta-method constant, kept unchanged for all three links because using it
 #'   for probit and cloglog was measured to cost about 1% of one standard error
@@ -249,9 +265,9 @@
 #'   variability. **A standard error is reported; an interval is not claimed.**
 #'   Likelihood comparisons (`logLik()`, `AIC`, `BIC`, `anova()`), profiles, and
 #'   `confint()` remain deliberately unavailable. Do not form
-#'   `coef ± 1.96 * se` by hand: Kosmidis and Firth show that Wald intervals in
-#'   this setting fail to cover regardless of the nominal level, a failure that
-#'   persists even for profile penalized-likelihood intervals. When the
+#'   `coef ± 1.96 * se` by hand: separated binomial GLM results do not
+#'   calibrate an interval for this mixed-model estimator, and the package
+#'   has not admitted one. When the
 #'   information matrix is not positive definite the standard errors are `NA`
 #'   with a `drmTMB_mspl_wald_unavailable` warning rather than a fabricated
 #'   number.
@@ -8020,9 +8036,11 @@ drm_build_binomial_spec <- function(
   # on mu. Phylogenetic logistic regression -- a binary trait on a tree -- is the
   # canonical comparative-methods use of a binary response, and binomial was the
   # only common family without a structured route. Deliberately narrow, matching
-  # how beta and zero-one-beta grew provider by provider: phylo only (no
-  # spatial/animal/relmat yet), intercept only (no slopes, no labels), not
-  # combinable with mi() or with ordinary random effects in this slice.
+  # how beta and zero-one-beta grew provider by provider: beta now admits one
+  # unlabelled q1 relmat intercept alongside its existing provider-specific
+  # routes; zero-one-beta retains its named providers. This binomial slice is
+  # intercept-only (no slopes, no labels), not combinable with mi() or ordinary
+  # random effects.
   #
   # #1283: admit relmat(1 | id, K = K) alongside phylo(), reusing the identical
   # build_structured_mu_structure()/Q_phylo plumbing -- relmat differs from
@@ -10985,7 +11003,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, and {.fn phylo_interaction} (the {.fn spatial} provider is deferred for the {.code zoi}/{.code coi} atoms pending the mesh/SPDE lane), and a binomial q=1 unlabelled {.code mu} intercept slice for {.fn phylo}.",
+      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, and {.fn phylo_interaction} (the {.fn spatial} provider is deferred for the {.code zoi}/{.code coi} atoms pending the mesh/SPDE lane), one strict-Beta q=1 unlabelled {.code mu} intercept slice for {.fn relmat}, and binomial q=1 unlabelled {.code mu} intercept slices for {.fn phylo} or {.fn relmat}.",
       "i" = "Structured non-Gaussian paths beyond those gates, including ordinal, shape, hurdle, labelled count covariance, structured count slope-only routes outside the admitted Poisson fixed-covariance spatial slope-only gate, multiple structured count slopes, structured count scale routes outside the NB2 one-slope gate, and zero-one-beta structured slopes, labels, q>=2 fields, or simultaneous endpoints, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
@@ -12201,7 +12219,7 @@ validate_binomial_mu_random_terms <- function(terms) {
       "Binomial {.code mu} supports independent random intercepts/slopes and one exact complete-data unlabelled correlated intercept-slope block.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use {.code bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id))}.",
-      "i" = "Use the exact complete-data unlabelled (1 + x | id) binomial block for the experimental q = 2 route; additional correlated blocks, labels, and structured effects remain unsupported."
+      "i" = "Use the exact complete-data unlabelled (1 + x | id) binomial block for the experimental q = 2 route; structured effects beyond one unlabelled q = 1 {.fn phylo} or {.fn relmat} {.code mu} intercept, additional correlated blocks, and labels remain unsupported."
     ))
   }
   invisible(terms)
@@ -12345,7 +12363,7 @@ validate_beta_mu_random_terms <- function(terms) {
       "Only independent {.fn beta} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use syntax like {.code bf(prop ~ x + (1 | id) + (0 + x | id), sigma ~ z)} for strict {.code (0, 1)} responses.",
-      "i" = "The row-specific structured beta gates are the unlabelled {.fn animal} routes and one exact unlabelled q1 {.fn phylo} intercept in {.code mu} with fixed-effect family {.code sigma}; correlated beta slopes, labelled covariance blocks, other structured effects, exact-boundary mass, and mixed bounded-response models remain planned until separate recovery tests exist."
+      "i" = "The row-specific structured beta gates are the unlabelled {.fn animal} routes, one exact unlabelled q1 {.fn phylo} intercept, and one exact unlabelled q1 {.fn relmat} intercept in {.code mu}, with family {.code sigma} fixed-effect-only for these structured routes; correlated beta slopes, labelled covariance blocks, other structured effects, exact-boundary mass, and mixed bounded-response models remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
