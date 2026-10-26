@@ -149,3 +149,20 @@ test_that("the actual pkgdown build aborts if installation fails", {
   expect_warning(eval(call, env), "unrelated warning", fixed = TRUE)
   expect_true(env$continued)
 })
+
+test_that("Julia same-target tolerances cite the tested DRModels source", {
+  roxygen <- paste(readLines(drm_pkg_path("R/drmTMB.R"), warn = FALSE),
+    collapse = "\n")
+  help <- paste(readLines(drm_pkg_path("man/drmTMB.Rd"), warn = FALSE),
+    collapse = "\n")
+  news <- paste(readLines(drm_pkg_path("NEWS.md"), warn = FALSE),
+    collapse = "\n")
+
+  expect_match(roxygen, "Measured gaps at DRModels\\.jl source pin 19e5e2fe")
+  expect_match(help, "Measured gaps at DRModels\\.jl source pin 19e5e2fe")
+  expect_true(grepl(
+    "same-target receipts at DRModels\\.jl\\s+source pin 19e5e2fe",
+    news,
+    perl = TRUE
+  ))
+})
