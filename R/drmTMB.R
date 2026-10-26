@@ -21303,6 +21303,41 @@ corpair_model_level_id <- function(model) {
   0L
 }
 
+# Assemble the data list handed to the TMB template for one model family.
+#
+# The template declares ~54 DATA_ fields globally, so every family branch must
+# supply all of them. `defaults` holds every field at its off/empty value, so
+# a branch lists only what is specific to its family. A silently missing or
+# wrongly-off field fits, converges and reports a wrong model (#1048, #1329),
+# which is why the contract lives in one list rather than in one copy per
+# family.
+#
+# Unnamed `...` arguments are blocks (lists of fields shared by several
+# families); named `...` arguments are single fields. Later entries win. Fields
+# are set with `[<-` on a one-element list rather than `modifyList()`, because
+# `modifyList()` deletes a field whose new value is NULL and merges list-valued
+# fields recursively, and neither is wanted for TMB data. TMB resolves data by
+# name, so field order carries no meaning; fields a family adds beyond
+# `defaults` are appended.
+tmb_data_assemble <- function(defaults, ...) {
+  parts <- list(...)
+  part_names <- names(parts)
+  if (is.null(part_names)) {
+    part_names <- rep("", length(parts))
+  }
+  out <- defaults
+  for (i in seq_along(parts)) {
+    if (nzchar(part_names[[i]])) {
+      out[part_names[[i]]] <- list(parts[[i]])
+    } else {
+      for (field in names(parts[[i]])) {
+        out[field] <- list(parts[[i]][[field]])
+      }
+    }
+  }
+  out
+}
+
 make_tmb_data_core <- function(spec) {
   dummy_matrix <- matrix(0, nrow = 1, ncol = 1)
   dummy_sparse <- Matrix::sparseMatrix(
@@ -21324,8 +21359,119 @@ make_tmb_data_core <- function(spec) {
   } else {
     rep(1, length(spec$y))
   }
+  phylo_mu <- spec$structured$phylo_mu
+  # Every field the TMB template reads, at its off/empty value. A family
+  # branch below overrides only the fields it actually uses; `y`, `trials`,
+  # `weights`, `offset_mu`, `V_known`, `X_mu` and `X_sigma` default to the
+  # common observation-level data because they have no meaningful "off" value.
+  defaults <- list(
+    model_type = 0L, # always set by the branch
+    # `link_code` is a global DATA_INTEGER (src/drmTMB.cpp:328), so EVERY
+    # builder branch must supply it, even for families with no link choice.
+    # The bivariate families once shipped without it and every bivariate fit
+    # failed with "Error when reading the variable: 'link_code'".
+    link_code = 0L,
+    y = spec$y,
+    trials = tmb_trials,
+    weights = spec$weights,
+    offset_mu = offset_mu,
+    V_known = spec$V_known_diag,
+    V_known_matrix = dummy_matrix,
+    V_known_type = 0L,
+    y1 = numeric(1),
+    y2 = numeric(1),
+    X_mu = spec$X$mu,
+    X_sigma = spec$X$sigma,
+    X_nu = dummy_matrix,
+    X_zi = dummy_matrix,
+    X_sd_mu = dummy_matrix,
+    has_sd_mu_model = 0L,
+    X_sd_phylo = dummy_matrix,
+    report_group_sd = 0L,
+    has_sd_phylo_model = 0L,
+    sd_phylo_beta_offset = 0L,
+    X_mu1 = dummy_matrix,
+    X_mu2 = dummy_matrix,
+    X_sigma1 = dummy_matrix,
+    X_sigma2 = dummy_matrix,
+    X_rho12 = dummy_matrix,
+    X_cor_mu = dummy_matrix,
+    has_cor_mu_model = 0L,
+    n_mu_re_terms = 0L,
+    n_mu_re_cors = 0L,
+    mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+    mu_re_value = dummy_matrix,
+    mu_re_term = 0L,
+    mu_re_dpar = 0L,
+    mu_re_pos = 0L,
+    mu_re_cor_id = -1L,
+    mu_re_pair_index = -1L,
+    mu_re_sd_row = -1L,
+    n_sigma_re_terms = 0L,
+    n_sigma_re_cors = 0L,
+    n_mu_sigma_re_cors = 0L,
+    sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+    sigma_re_value = dummy_matrix,
+    sigma_re_term = 0L,
+    sigma_re_dpar = 0L,
+    sigma_re_cor_id = -1L,
+    sigma_re_pair_index = -1L,
+    sigma_re_cross_cor = 0L,
+    sigma_re_cross_mu = 0L,
+    has_phylo_mu = 0L,
+    phylo_mu_sd_row = 0L,
+    phylo_mu_node_index = 0L,
+    Q_phylo = dummy_sparse,
+    log_det_Q_phylo = 0
+  )
+  # Blocks shared by several families. A family that does not list a block
+  # keeps the off values from `defaults` for those fields.
+  mu_re_block <- list(
+    X_sd_mu = spec$random_scale$mu$X,
+    n_mu_re_terms = spec$random$mu$n_terms,
+    mu_re_index = spec$random$mu$index0,
+    mu_re_value = spec$random$mu$value,
+    mu_re_term = spec$random$mu$term_id0,
+    mu_re_dpar = spec$random$mu$dpar_id0,
+    mu_re_pos = spec$random$mu$re_pos0,
+    mu_re_cor_id = spec$random$mu$re_cor_id0,
+    mu_re_pair_index = spec$random$mu$re_pair_index0,
+    mu_re_sd_row = spec$random_scale$mu$re_sd_row0
+  )
+  sigma_re_block <- list(
+    n_sigma_re_terms = spec$random$sigma$n_terms,
+    sigma_re_index = spec$random$sigma$index0,
+    sigma_re_value = spec$random$sigma$value,
+    sigma_re_term = spec$random$sigma$term_id0,
+    sigma_re_dpar = spec$random$sigma$dpar_id0,
+    sigma_re_cor_id = spec$random$sigma$re_cor_id0,
+    sigma_re_pair_index = spec$random$sigma$re_pair_index0
+  )
+  # #1048: the first binomial structured slice. These fields used to be
+  # hard-coded to the empty values in the binomial copy, which silently
+  # discarded a parsed phylo() term at the data-assembly step -- the builder
+  # had already validated and stored it, so has_phylo_mu = 0L there was the one
+  # line that turned a real structure into a no-op. A family that supports
+  # phylo() must list this block; one that does not keeps the off values.
+  phylo_block <- list(
+    has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
+    phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+      phylo_mu$observation_node_index0
+    } else {
+      0L
+    },
+    Q_phylo = if (isTRUE(phylo_mu$has)) {
+      phylo_mu$precision$precision
+    } else {
+      dummy_sparse
+    },
+    log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+      phylo_mu$precision$log_det_precision
+    } else {
+      0
+    }
+  )
   if (identical(spec$model_type, "gaussian")) {
-    phylo_mu <- spec$structured$phylo_mu
     gaussian_aggregation <- if (is.list(spec$aggregation)) {
       spec$aggregation$gaussian
     } else {
@@ -21333,14 +21479,15 @@ make_tmb_data_core <- function(spec) {
     }
     use_gaussian_aggregation <- is.list(gaussian_aggregation) &&
       isTRUE(gaussian_aggregation$enabled)
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      sigma_re_block,
+      phylo_block,
       model_type = 1L,
-      link_code = 0L,
       y = if (use_gaussian_aggregation) numeric(1) else spec$y,
       trials = if (use_gaussian_aggregation) numeric(1) else tmb_trials,
       weights = if (use_gaussian_aggregation) numeric(1) else spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
       V_known_matrix = if (identical(spec$V_known_type, "matrix")) {
         spec$V_known
       } else {
@@ -21349,20 +21496,14 @@ make_tmb_data_core <- function(spec) {
       V_known_type = as.integer(
         match(spec$V_known_type, c("none", "diagonal", "matrix")) - 1L
       ),
-      y1 = numeric(1),
-      y2 = numeric(1),
       X_mu = if (isTRUE(spec$sparse_fixed$mu) || use_gaussian_aggregation) {
         dummy_matrix
       } else {
         spec$X$mu
       },
       X_sigma = if (use_gaussian_aggregation) dummy_matrix else spec$X$sigma,
-      X_nu = dummy_matrix,
-      X_zi = dummy_matrix,
-      X_sd_mu = spec$random_scale$mu$X,
       has_sd_mu_model = as.integer(spec$random_scale$mu$n_models > 0L),
       X_sd_phylo = spec$random_scale$phylo$X,
-      report_group_sd = 0L,
       has_sd_phylo_model = as.integer(
         spec$random_scale$phylo$n_models > 0L
       ),
@@ -21371,527 +21512,101 @@ make_tmb_data_core <- function(spec) {
       } else {
         0L
       },
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = spec$random$mu$n_terms,
       n_mu_re_cors = spec$random$mu$n_cors,
-      mu_re_index = spec$random$mu$index0,
-      mu_re_value = spec$random$mu$value,
-      mu_re_term = spec$random$mu$term_id0,
-      mu_re_dpar = spec$random$mu$dpar_id0,
-      mu_re_pos = spec$random$mu$re_pos0,
-      mu_re_cor_id = spec$random$mu$re_cor_id0,
-      mu_re_pair_index = spec$random$mu$re_pair_index0,
-      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
-      n_sigma_re_terms = spec$random$sigma$n_terms,
       n_sigma_re_cors = spec$random$sigma$n_cors,
       n_mu_sigma_re_cors = spec$random$mu_sigma$n_cors,
-      sigma_re_index = spec$random$sigma$index0,
-      sigma_re_value = spec$random$sigma$value,
-      sigma_re_term = spec$random$sigma$term_id0,
-      sigma_re_dpar = spec$random$sigma$dpar_id0,
-      sigma_re_cor_id = spec$random$sigma$re_cor_id0,
-      sigma_re_pair_index = spec$random$sigma$re_pair_index0,
       sigma_re_cross_cor = spec$random$mu_sigma$sigma_cross_cor_id0,
       sigma_re_cross_mu = spec$random$mu_sigma$sigma_cross_mu_index0,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = if (spec$random_scale$phylo$n_models > 0L) {
         spec$random_scale$phylo$observation_sd_row0
       } else {
         0L
-      },
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
       }
     ))
   }
   if (identical(spec$model_type, "student")) {
-    re_mu <- spec$random$mu
-    sd_mu <- spec$random_scale$mu
-    phylo_mu <- spec$structured$phylo_mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      phylo_block,
       model_type = 3L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
-      X_nu = spec$X$nu,
-      X_zi = dummy_matrix,
-      X_sd_mu = sd_mu$X,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = re_mu$n_terms,
-      n_mu_re_cors = 0L,
-      mu_re_index = re_mu$index0,
-      mu_re_value = re_mu$value,
-      mu_re_term = re_mu$term_id0,
-      mu_re_dpar = re_mu$dpar_id0,
-      mu_re_pos = re_mu$re_pos0,
-      mu_re_cor_id = re_mu$re_cor_id0,
-      mu_re_pair_index = re_mu$re_pair_index0,
-      mu_re_sd_row = sd_mu$re_sd_row0,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
-      }
+      X_nu = spec$X$nu
     ))
   }
   if (identical(spec$model_type, "skew_normal")) {
-    re_mu <- spec$random$mu
-    sd_mu <- spec$random_scale$mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
       model_type = 17L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
-      X_nu = spec$X$nu,
-      X_zi = dummy_matrix,
-      X_sd_mu = sd_mu$X,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = re_mu$n_terms,
-      n_mu_re_cors = 0L,
-      mu_re_index = re_mu$index0,
-      mu_re_value = re_mu$value,
-      mu_re_term = re_mu$term_id0,
-      mu_re_dpar = re_mu$dpar_id0,
-      mu_re_pos = re_mu$re_pos0,
-      mu_re_cor_id = re_mu$re_cor_id0,
-      mu_re_pair_index = re_mu$re_pair_index0,
-      mu_re_sd_row = sd_mu$re_sd_row0,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      X_nu = spec$X$nu
     ))
   }
   if (identical(spec$model_type, "lognormal")) {
     re_mu <- spec$random$mu
-    sd_mu <- spec$random_scale$mu
-    phylo_mu <- spec$structured$phylo_mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      sigma_re_block,
+      phylo_block,
       model_type = 4L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
-      X_nu = dummy_matrix,
-      X_zi = dummy_matrix,
-      X_sd_mu = sd_mu$X,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = re_mu$n_terms,
       n_mu_re_cors = re_mu$n_cors,
-      mu_re_index = re_mu$index0,
-      mu_re_value = re_mu$value,
-      mu_re_term = re_mu$term_id0,
-      mu_re_dpar = re_mu$dpar_id0,
-      mu_re_pos = re_mu$re_pos0,
-      mu_re_cor_id = re_mu$re_cor_id0,
-      mu_re_pair_index = re_mu$re_pair_index0,
-      mu_re_sd_row = sd_mu$re_sd_row0,
-      n_sigma_re_terms = spec$random$sigma$n_terms,
       n_sigma_re_cors = spec$random$sigma$n_cors,
       n_mu_sigma_re_cors = spec$random$mu_sigma$n_cors,
-      sigma_re_index = spec$random$sigma$index0,
-      sigma_re_value = spec$random$sigma$value,
-      sigma_re_term = spec$random$sigma$term_id0,
-      sigma_re_dpar = spec$random$sigma$dpar_id0,
-      sigma_re_cor_id = spec$random$sigma$re_cor_id0,
-      sigma_re_pair_index = spec$random$sigma$re_pair_index0,
       sigma_re_cross_cor = spec$random$mu_sigma$sigma_cross_cor_id0,
-      sigma_re_cross_mu = spec$random$mu_sigma$sigma_cross_mu_index0,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
-      }
+      sigma_re_cross_mu = spec$random$mu_sigma$sigma_cross_mu_index0
     ))
   }
   if (identical(spec$model_type, "gamma")) {
-    re_mu <- spec$random$mu
-    sd_mu <- spec$random_scale$mu
-    phylo_mu <- spec$structured$phylo_mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      sigma_re_block,
+      phylo_block,
       model_type = 5L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
-      X_nu = dummy_matrix,
-      X_zi = dummy_matrix,
-      X_sd_mu = sd_mu$X,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = re_mu$n_terms,
-      n_mu_re_cors = 0L,
-      mu_re_index = re_mu$index0,
-      mu_re_value = re_mu$value,
-      mu_re_term = re_mu$term_id0,
-      mu_re_dpar = re_mu$dpar_id0,
-      mu_re_pos = re_mu$re_pos0,
-      mu_re_cor_id = re_mu$re_cor_id0,
-      mu_re_pair_index = re_mu$re_pair_index0,
-      mu_re_sd_row = sd_mu$re_sd_row0,
-      n_sigma_re_terms = spec$random$sigma$n_terms,
       n_sigma_re_cors = spec$random$sigma$n_cors,
       n_mu_sigma_re_cors = spec$random$mu_sigma$n_cors,
-      sigma_re_index = spec$random$sigma$index0,
-      sigma_re_value = spec$random$sigma$value,
-      sigma_re_term = spec$random$sigma$term_id0,
-      sigma_re_dpar = spec$random$sigma$dpar_id0,
-      sigma_re_cor_id = spec$random$sigma$re_cor_id0,
-      sigma_re_pair_index = spec$random$sigma$re_pair_index0,
       sigma_re_cross_cor = spec$random$mu_sigma$sigma_cross_cor_id0,
-      sigma_re_cross_mu = spec$random$mu_sigma$sigma_cross_mu_index0,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
-      }
+      sigma_re_cross_mu = spec$random$mu_sigma$sigma_cross_mu_index0
     ))
   }
   if (identical(spec$model_type, "tweedie")) {
-    re_mu <- spec$random$mu
-    sd_mu <- spec$random_scale$mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
       model_type = 16L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
-      X_nu = spec$X$nu,
-      X_zi = dummy_matrix,
-      X_sd_mu = sd_mu$X,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = re_mu$n_terms,
-      n_mu_re_cors = 0L,
-      mu_re_index = re_mu$index0,
-      mu_re_value = re_mu$value,
-      mu_re_term = re_mu$term_id0,
-      mu_re_dpar = re_mu$dpar_id0,
-      mu_re_pos = re_mu$re_pos0,
-      mu_re_cor_id = re_mu$re_cor_id0,
-      mu_re_pair_index = re_mu$re_pair_index0,
-      mu_re_sd_row = sd_mu$re_sd_row0,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      X_nu = spec$X$nu
     ))
   }
   if (identical(spec$model_type, "beta")) {
-    re_mu <- spec$random$mu
-    sd_mu <- spec$random_scale$mu
     sd_phylo <- spec$random_scale$phylo
-    phylo_mu <- spec$structured$phylo_mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      phylo_block,
       model_type = 10L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
-      X_nu = dummy_matrix,
-      X_zi = dummy_matrix,
-      X_sd_mu = sd_mu$X,
-      has_sd_mu_model = 0L,
       X_sd_phylo = sd_phylo$X,
-      report_group_sd = 0L,
       has_sd_phylo_model = as.integer(sd_phylo$n_models > 0L),
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = re_mu$n_terms,
-      n_mu_re_cors = 0L,
-      mu_re_index = re_mu$index0,
-      mu_re_value = re_mu$value,
-      mu_re_term = re_mu$term_id0,
-      mu_re_dpar = re_mu$dpar_id0,
-      mu_re_pos = re_mu$re_pos0,
-      mu_re_cor_id = re_mu$re_cor_id0,
-      mu_re_pair_index = re_mu$re_pair_index0,
-      mu_re_sd_row = sd_mu$re_sd_row0,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = if (sd_phylo$n_models > 0L) {
         sd_phylo$observation_sd_row0
       } else {
         0L
-      },
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
       }
     ))
   }
   if (identical(spec$model_type, "zero_one_beta")) {
-    phylo_mu <- spec$structured$phylo_mu
     re_sigma <- spec$random$sigma
     re_zoi <- spec$random$zoi
     re_coi <- spec$random$coi
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      sigma_re_block,
+      phylo_block,
       model_type = 15L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
       X_nu = spec$X$coi,
       X_zi = spec$X$zoi,
       X_sd_mu = dummy_matrix,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = spec$random$mu$n_terms,
       n_mu_re_cors = spec$random$mu$n_cors,
-      mu_re_index = spec$random$mu$index0,
-      mu_re_value = spec$random$mu$value,
-      mu_re_term = spec$random$mu$term_id0,
-      mu_re_dpar = spec$random$mu$dpar_id0,
-      mu_re_pos = spec$random$mu$re_pos0,
-      mu_re_cor_id = spec$random$mu$re_cor_id0,
-      mu_re_pair_index = spec$random$mu$re_pair_index0,
-      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
-      n_sigma_re_terms = re_sigma$n_terms,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = re_sigma$index0,
-      sigma_re_value = re_sigma$value,
-      sigma_re_term = re_sigma$term_id0,
-      sigma_re_dpar = re_sigma$dpar_id0,
-      sigma_re_cor_id = re_sigma$re_cor_id0,
-      sigma_re_pair_index = re_sigma$re_pair_index0,
       sigma_re_cross_cor = rep.int(-1L, max(1L, re_sigma$n_re)),
       sigma_re_cross_mu = rep.int(-1L, max(1L, re_sigma$n_re)),
       n_zoi_re_terms = re_zoi$n_terms,
@@ -21902,664 +21617,115 @@ make_tmb_data_core <- function(spec) {
       coi_re_index = re_coi$index0,
       coi_re_value = re_coi$value,
       coi_re_term = re_coi$term_id0,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) phylo_mu$observation_node_index - 1L else 0L,
-      Q_phylo = if (isTRUE(phylo_mu$has)) phylo_mu$precision$precision else dummy_sparse,
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) phylo_mu$precision$log_det_precision else 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) phylo_mu$observation_node_index - 1L else 0L
     ))
   }
   if (identical(spec$model_type, "beta_binomial")) {
-    re_mu <- spec$random$mu
-    sd_mu <- spec$random_scale$mu
-    return(list(
-      model_type = 14L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
-      X_nu = dummy_matrix,
-      X_zi = dummy_matrix,
-      X_sd_mu = sd_mu$X,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = re_mu$n_terms,
-      n_mu_re_cors = 0L,
-      mu_re_index = re_mu$index0,
-      mu_re_value = re_mu$value,
-      mu_re_term = re_mu$term_id0,
-      mu_re_dpar = re_mu$dpar_id0,
-      mu_re_pos = re_mu$re_pos0,
-      mu_re_cor_id = re_mu$re_cor_id0,
-      mu_re_pair_index = re_mu$re_pair_index0,
-      mu_re_sd_row = sd_mu$re_sd_row0,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      model_type = 14L
     ))
   }
   if (identical(spec$model_type, "binomial")) {
-    phylo_mu <- spec$structured$phylo_mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      phylo_block,
       model_type = 18L,
       link_code = drm_binomial_link_code(if (is.null(spec$link)) "logit" else spec$link),
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
       X_sigma = dummy_matrix,
-      X_nu = dummy_matrix,
-      X_zi = dummy_matrix,
       X_sd_mu = dummy_matrix,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = spec$random$mu$n_terms,
-      n_mu_re_cors = spec$random$mu$n_cors,
-      mu_re_index = spec$random$mu$index0,
-      mu_re_value = spec$random$mu$value,
-      mu_re_term = spec$random$mu$term_id0,
-      mu_re_dpar = spec$random$mu$dpar_id0,
-      mu_re_pos = spec$random$mu$re_pos0,
-      mu_re_cor_id = spec$random$mu$re_cor_id0,
-      mu_re_pair_index = spec$random$mu$re_pair_index0,
-      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      # #1048: the first binomial structured slice. These five fields used to be
-      # hard-coded to the empty values, which silently discarded a parsed
-      # phylo() term at the data-assembly step -- the builder had already
-      # validated and stored it, so has_phylo_mu = 0L here was the one line that
-      # turned a real structure into a no-op.
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
-      }
+      n_mu_re_cors = spec$random$mu$n_cors
     ))
   }
   if (identical(spec$model_type, "cumulative_logit")) {
-    phylo_mu <- spec$structured$phylo_mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      phylo_block,
       model_type = 13L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
       # The disc design rides X_sigma (#966); the 1x1 dummy means disc = 1.
       X_sigma = if (is.null(spec$X$disc)) dummy_matrix else spec$X$disc,
-      X_nu = dummy_matrix,
-      X_zi = dummy_matrix,
       X_sd_mu = dummy_matrix,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = spec$random$mu$n_terms,
-      n_mu_re_cors = spec$random$mu$n_cors,
-      mu_re_index = spec$random$mu$index0,
-      mu_re_value = spec$random$mu$value,
-      mu_re_term = spec$random$mu$term_id0,
-      mu_re_dpar = spec$random$mu$dpar_id0,
-      mu_re_pos = spec$random$mu$re_pos0,
-      mu_re_cor_id = spec$random$mu$re_cor_id0,
-      mu_re_pair_index = spec$random$mu$re_pair_index0,
-      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
-      }
+      n_mu_re_cors = spec$random$mu$n_cors
     ))
   }
   if (identical(spec$model_type, "poisson")) {
-    phylo_mu <- spec$structured$phylo_mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      phylo_block,
       model_type = 6L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
       X_sigma = dummy_matrix,
-      X_nu = dummy_matrix,
-      X_zi = dummy_matrix,
-      X_sd_mu = spec$random_scale$mu$X,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = spec$random$mu$n_terms,
-      n_mu_re_cors = spec$random$mu$n_cors,
-      mu_re_index = spec$random$mu$index0,
-      mu_re_value = spec$random$mu$value,
-      mu_re_term = spec$random$mu$term_id0,
-      mu_re_dpar = spec$random$mu$dpar_id0,
-      mu_re_pos = spec$random$mu$re_pos0,
-      mu_re_cor_id = spec$random$mu$re_cor_id0,
-      mu_re_pair_index = spec$random$mu$re_pair_index0,
-      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
-      }
+      n_mu_re_cors = spec$random$mu$n_cors
     ))
   }
   if (identical(spec$model_type, "zi_poisson")) {
-    phylo_mu <- spec$structured$phylo_mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      phylo_block,
       model_type = 8L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
       X_sigma = dummy_matrix,
-      X_nu = dummy_matrix,
-      X_zi = spec$X$zi,
-      X_sd_mu = dummy_matrix,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
-      n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
-      }
+      X_zi = spec$X$zi
     ))
   }
   if (identical(spec$model_type, "nbinom2")) {
     re_mu <- spec$random$mu
     re_sigma <- spec$random$sigma
-    sd_mu <- spec$random_scale$mu
-    phylo_mu <- spec$structured$phylo_mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      sigma_re_block,
+      phylo_block,
       model_type = 7L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
-      X_nu = dummy_matrix,
-      X_zi = dummy_matrix,
-      X_sd_mu = sd_mu$X,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = re_mu$n_terms,
       n_mu_re_cors = re_mu$n_cors,
-      mu_re_index = re_mu$index0,
-      mu_re_value = re_mu$value,
-      mu_re_term = re_mu$term_id0,
-      mu_re_dpar = re_mu$dpar_id0,
-      mu_re_pos = re_mu$re_pos0,
-      mu_re_cor_id = re_mu$re_cor_id0,
-      mu_re_pair_index = re_mu$re_pair_index0,
-      mu_re_sd_row = sd_mu$re_sd_row0,
-      n_sigma_re_terms = re_sigma$n_terms,
-      n_sigma_re_cors = re_sigma$n_cors,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = re_sigma$index0,
-      sigma_re_value = re_sigma$value,
-      sigma_re_term = re_sigma$term_id0,
-      sigma_re_dpar = re_sigma$dpar_id0,
-      sigma_re_cor_id = re_sigma$re_cor_id0,
-      sigma_re_pair_index = re_sigma$re_pair_index0,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
-      }
+      n_sigma_re_cors = re_sigma$n_cors
     ))
   }
   if (identical(spec$model_type, "truncated_nbinom2")) {
-    re_mu <- spec$random$mu
-    sd_mu <- spec$random_scale$mu
-    return(list(
-      model_type = 11L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
-      X_nu = dummy_matrix,
-      X_zi = dummy_matrix,
-      X_sd_mu = sd_mu$X,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = re_mu$n_terms,
-      n_mu_re_cors = 0L,
-      mu_re_index = re_mu$index0,
-      mu_re_value = re_mu$value,
-      mu_re_term = re_mu$term_id0,
-      mu_re_dpar = re_mu$dpar_id0,
-      mu_re_pos = re_mu$re_pos0,
-      mu_re_cor_id = re_mu$re_cor_id0,
-      mu_re_pair_index = re_mu$re_pair_index0,
-      mu_re_sd_row = sd_mu$re_sd_row0,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      model_type = 11L
     ))
   }
   if (identical(spec$model_type, "hurdle_nbinom2")) {
-    phylo_mu <- spec$structured$phylo_mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      phylo_block,
       model_type = 12L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
-      X_nu = dummy_matrix,
-      X_zi = spec$X$hu,
-      X_sd_mu = dummy_matrix,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
-      n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
-      }
+      X_zi = spec$X$hu
     ))
   }
   if (identical(spec$model_type, "zi_nbinom2")) {
-    phylo_mu <- spec$structured$phylo_mu
     re_sigma <- spec$random$sigma
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      sigma_re_block,
+      phylo_block,
       model_type = 9L,
-      link_code = 0L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
-      V_known_matrix = dummy_matrix,
-      V_known_type = 0L,
-      y1 = numeric(1),
-      y2 = numeric(1),
-      X_mu = spec$X$mu,
-      X_sigma = spec$X$sigma,
-      X_nu = dummy_matrix,
       X_zi = spec$X$zi,
-      X_sd_mu = dummy_matrix,
-      has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
-      report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
-      X_mu1 = dummy_matrix,
-      X_mu2 = dummy_matrix,
-      X_sigma1 = dummy_matrix,
-      X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix,
-      X_cor_mu = dummy_matrix,
-      has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
-      n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
-      n_sigma_re_terms = re_sigma$n_terms,
-      n_sigma_re_cors = 0L,
-      n_mu_sigma_re_cors = 0L,
-      sigma_re_index = re_sigma$index0,
-      sigma_re_value = re_sigma$value,
-      sigma_re_term = re_sigma$term_id0,
-      sigma_re_dpar = re_sigma$dpar_id0,
-      sigma_re_cor_id = re_sigma$re_cor_id0,
-      sigma_re_pair_index = re_sigma$re_pair_index0,
       sigma_re_cross_cor = rep.int(-1L, max(1L, re_sigma$n_re)),
-      sigma_re_cross_mu = rep.int(-1L, max(1L, re_sigma$n_re)),
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
-      }
+      sigma_re_cross_mu = rep.int(-1L, max(1L, re_sigma$n_re))
     ))
   }
   if (
     spec$model_type %in% c("biv_gaussian", "biv_lognormal", "biv_student")
   ) {
-    phylo_mu <- spec$structured$phylo_mu
-    return(list(
+    return(tmb_data_assemble(
+      defaults,
+      mu_re_block,
+      sigma_re_block,
+      phylo_block,
       model_type = switch(
         spec$model_type,
         biv_gaussian = 2L,
         biv_lognormal = 19L,
         biv_student = 20L
       ),
-      # `link_code` is a global DATA_INTEGER (src/drmTMB.cpp:328), so EVERY
-      # builder branch must supply it, even for families with no link choice.
-      # This branch declares model_type via switch() rather than a literal
-      # `model_type = <n>L`, so a grep for that literal MISSES it -- which is
-      # exactly how the three bivariate families were left without a link_code
-      # when it was introduced, failing every bivariate fit with
-      # "Error when reading the variable: 'link_code'".
-      link_code = 0L,
       y = numeric(1),
       trials = numeric(1),
-      weights = spec$weights,
-      offset_mu = offset_mu,
-      V_known = spec$V_known_diag,
       V_known_matrix = if (identical(spec$V_known_type, "matrix")) {
         spec$V_known
       } else {
@@ -22577,15 +21743,12 @@ make_tmb_data_core <- function(spec) {
       } else {
         dummy_matrix
       },
-      X_zi = dummy_matrix,
-      X_sd_mu = spec$random_scale$mu$X,
       has_sd_mu_model = as.integer(spec$random_scale$mu$n_models > 0L),
       X_sd_phylo = if (spec$random_scale$phylo$n_models > 0L) {
         spec$random_scale$phylo$X
       } else {
         dummy_matrix
       },
-      report_group_sd = 0L,
       has_sd_phylo_model = as.integer(
         spec$random_scale$phylo$n_models > 0L
       ),
@@ -22595,49 +21758,17 @@ make_tmb_data_core <- function(spec) {
       X_sigma1 = spec$X$sigma1,
       X_sigma2 = spec$X$sigma2,
       X_rho12 = spec$X$rho12,
-      n_mu_re_terms = spec$random$mu$n_terms,
       n_mu_re_cors = spec$random$mu$n_cors,
-      mu_re_index = spec$random$mu$index0,
-      mu_re_value = spec$random$mu$value,
-      mu_re_term = spec$random$mu$term_id0,
-      mu_re_dpar = spec$random$mu$dpar_id0,
-      mu_re_pos = spec$random$mu$re_pos0,
-      mu_re_cor_id = spec$random$mu$re_cor_id0,
-      mu_re_pair_index = spec$random$mu$re_pair_index0,
-      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
       X_cor_mu = spec$random$mu$cor_model$X_tmb,
       has_cor_mu_model = corpair_model_level_id(spec$random$mu$cor_model),
-      n_sigma_re_terms = spec$random$sigma$n_terms,
       n_sigma_re_cors = spec$random$sigma$n_cors,
       n_mu_sigma_re_cors = spec$random$mu_sigma$n_cors,
-      sigma_re_index = spec$random$sigma$index0,
-      sigma_re_value = spec$random$sigma$value,
-      sigma_re_term = spec$random$sigma$term_id0,
-      sigma_re_dpar = spec$random$sigma$dpar_id0,
-      sigma_re_cor_id = spec$random$sigma$re_cor_id0,
-      sigma_re_pair_index = spec$random$sigma$re_pair_index0,
       sigma_re_cross_cor = spec$random$mu_sigma$sigma_cross_cor_id0,
       sigma_re_cross_mu = spec$random$mu_sigma$sigma_cross_mu_index0,
-      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = if (spec$random_scale$phylo$n_models > 0L) {
         spec$random_scale$phylo$node_sd_row0
       } else {
         0L
-      },
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$observation_node_index0
-      } else {
-        0L
-      },
-      Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$precision
-      } else {
-        dummy_sparse
-      },
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
-        phylo_mu$precision$log_det_precision
-      } else {
-        0
       }
     ))
   }

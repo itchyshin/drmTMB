@@ -71,6 +71,18 @@
   +-40 grid boundary (reference-formula overflow, not kernel bugs) and now
   opt out explicitly with a documented count (#1324).
 
+* `make_tmb_data_core()` no longer carries 17 hand-maintained copies of one
+  54-field data literal. Every family now starts from one shared list of
+  defaults (all fields off) and states only what is specific to it, with the
+  random-effect and `phylo()` field groups shared as blocks. This is the
+  structure that let `has_phylo_mu = 0L` turn a validated `phylo()` term into
+  a silent no-op (#1048); a new field is now added in one place. The change is
+  behaviour-preserving: `tests/testthat/test-tmb-data-pin.R` compares every
+  field (name, type, value) of the data list for every model type, and
+  several random-effect, phylogenetic, known-variance and aggregated variants,
+  against a snapshot taken before the refactor. Reported by Russell Dinnage's
+  independent evaluation (Md-L, #1329).
+
 ## Documentation fixes
 
 * `?mi` now states that U-shaped Beta and zero-one-Beta priors (missing-row mean within 0.10 of 0 or 1) are flagged by the `drmTMB_mi_quadrature_inaccurate` warning, not integrated accurately by the fixed 15-node rule; no adaptive rule is planned (#1531).
