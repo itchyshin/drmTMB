@@ -3,6 +3,7 @@
 \name{check_drm}
 \alias{check_drm}
 \alias{check_drm.drmTMB}
+\alias{[.drm_check}
 \alias{check_drm.drmTMB_julia}
 \title{Check convergence and diagnostic flags for a drmTMB fit}
 \usage{
@@ -15,6 +16,8 @@ check_drm(object, ...)
   sd_boundary = 1e-04,
   ...
 )
+
+\method{[}{drm_check}(x, i, j, drop = FALSE)
 
 \method{check_drm}{drmTMB_julia}(object, gradient_tolerance = 0.001, ...)
 }
@@ -32,6 +35,12 @@ which a bivariate Gaussian fit receives a warning.}
 \item{sd_boundary}{Random-effect standard deviation below which a fit
 receives a warning that the variance component is near the lower
 boundary.}
+
+\item{x}{A diagnostic table returned by \code{\link[=check_drm]{check_drm()}}.}
+
+\item{i, j}{Row and column indices, as for data-frame subsetting.}
+
+\item{drop}{Logical; whether to simplify a single selected column.}
 }
 \value{
 A \code{drm_check} data frame. Its stable native reader columns are, in
@@ -72,6 +81,10 @@ and whether a continuous location-scale likelihood is unbounded
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
 Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks,
+a flag-only note when at least two quantile residuals and more than 1\% lie
+beyond |3|
+(\code{residual_outliers}, a sign of a damaged response such as a sentinel code;
+it changes no estimate and never flips \code{attr(x, "ok")}),
 known sampling covariance summaries,
 dense known-covariance storage scale, dense fixed-effect design size and
 density, random-effect replication, and random-slope design variation. If a
@@ -217,6 +230,14 @@ covariance can still carry a negative variance on the diagonal, which
 The \code{gradient_tolerance} argument applies as it does for a native fit; the
 \code{rho_boundary} and \code{sd_boundary} arguments do not, because the
 corresponding rows are not computed for a bridge fit.
+}
+
+\section{Subsetting diagnostics}{
+
+Data-frame subsets retain the \code{drm_check} class and the original overall
+\code{ok} flag. The \code{n_checks_total} attribute retains the original check count,
+using \code{nrow(x)} when that attribute is absent. A simplified non-data-frame
+result is returned unchanged.
 }
 
 \examples{

@@ -24,7 +24,11 @@ The implemented contract is
 \verb{theta[1] < theta[2] < ... < theta[K - 1]}. Without a \code{disc} formula, or
 with \code{disc ~ 1}, \code{disc_i = 1} and the model is the proportional-odds
 cumulative logit model exactly. \code{fitted()} returns the expected
-ordered-category score, \verb{sum_k k * Pr(y_i = k)}.
+ordered-category score, \verb{sum_k k * Pr(y_i = k)}. Fixed-effect
+\code{cumulative_logit()} models without a \code{disc} predictor are admitted
+through \code{engine = "julia"}; see
+\code{vignette("julia-engine", package = "drmTMB")}. The Julia route refuses
+a \code{disc} formula.
 }
 \section{Identifiability of \code{disc}}{
 

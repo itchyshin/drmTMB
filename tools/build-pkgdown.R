@@ -39,11 +39,74 @@ if (any(file.exists(file.path(stage_dir, private_root_files)))) {
 site_dir <- file.path(source_dir, "pkgdown-site")
 if (dir.exists(site_dir)) unlink(site_dir, recursive = TRUE, force = TRUE)
 
-pkgdown::build_site(
-  pkg = stage_dir,
-  override = list(destination = site_dir),
-  devel = FALSE,
-  new_process = TRUE,
-  install = TRUE,
-  quiet = FALSE
+fail_on_install_warning <- function(warning) {
+  message <- conditionMessage(warning)
+  if (grepl("installation of package", message, fixed = TRUE) &&
+      grepl("non-zero exit status", message, fixed = TRUE)) {
+    stop("pkgdown package installation failed: ", message, call. = FALSE)
+  }
+}
+
+withCallingHandlers(
+  pkgdown::build_site(
+    pkg = stage_dir,
+    override = list(destination = site_dir),
+    devel = FALSE,
+    new_process = TRUE,
+    install = TRUE,
+    quiet = FALSE
+  ),
+  warning = fail_on_install_warning
 )
+
+# pkgdown can add a synthetic /NA src to the inline MathJax configuration
+# while making 404-page URLs absolute. Keep that configuration inline.
+repair_404_mathjax <- function(site_dir) {
+  path <- file.path(site_dir, "404.html")
+  if (!file.exists(path)) return(invisible(0L))
+  page <- xml2::read_html(path)
+  scripts <- xml2::xml_find_all(page, ".//script[@src]")
+  bad <- grepl("(^|/)NA$", xml2::xml_attr(scripts, "src")) &
+    grepl("window.MathJax", xml2::xml_text(scripts), fixed = TRUE)
+  if (any(bad)) {
+    xml2::xml_attr(scripts[bad], "src") <- NULL
+    xml2::write_html(page, path)
+  }
+  invisible(sum(bad))
+}
+
+repair_404_mathjax(site_dir)
+
+# pkgdown can give numbered arguments the same anchor after stripping digits.
+# Keep the first target for incoming links and give later arguments unique IDs.
+repair_duplicate_argument_anchors <- function(site_dir) {
+  changed <- 0L
+  for (path in list.files(site_dir, pattern = "[.]html$", recursive = TRUE,
+                          full.names = TRUE)) {
+    page <- xml2::read_html(path)
+    nodes <- xml2::xml_find_all(page, ".//dt[starts-with(@id,'arg-')]")
+    ids <- xml2::xml_attr(nodes, "id")
+    repeated <- which(duplicated(ids))
+    if (!length(repeated)) next
+    used <- xml2::xml_attr(xml2::xml_find_all(page, "//*[@id]"), "id")
+    for (i in repeated) {
+      old <- ids[[i]]
+      suffix <- 2L
+      candidate <- paste0(old, suffix)
+      while (candidate %in% used) {
+        suffix <- suffix + 1L
+        candidate <- paste0(old, suffix)
+      }
+      xml2::xml_attr(nodes[[i]], "id") <- candidate
+      anchors <- xml2::xml_find_all(nodes[[i]], ".//a[@href]")
+      self <- xml2::xml_attr(anchors, "href") == paste0("#", old)
+      xml2::xml_attr(anchors[self], "href") <- paste0("#", candidate)
+      used <- c(used, candidate)
+      changed <- changed + 1L
+    }
+    xml2::write_html(page, path)
+  }
+  invisible(changed)
+}
+
+repair_duplicate_argument_anchors(site_dir)

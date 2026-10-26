@@ -613,7 +613,9 @@ revisit condition.
   block, REML, missing-response, labelled, or mixed `(1 | g) + (1 + x | g)`
   neighbours. Non-logit links, factor response ordering, proportions plus
   `weights`, `weights = trials`, labelled or multiple correlated random slopes, structured effects,
-  bivariate or mixed responses, and `engine = "julia"` remain unsupported.
+  bivariate or mixed responses, and random-effect or structured
+  `engine = "julia"` binomial remain unsupported. The Julia engine admits
+  fixed-effect binomial only.
   Experimental `estimator = "mspl"` is narrower still: one q=1 or q=2 ordinary
   block, full-rank dense fixed design, finite offsets, and positive integer
   frequency weights. Its point estimates and predictions are locally tested;

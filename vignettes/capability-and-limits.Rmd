@@ -153,14 +153,17 @@ the fitted scale is `s_j` and the supplied matrix is `K_h`, the covariance is
 `s_j sqrt(K_h[ii])`. Thus the fitted scale equals a level-specific standard
 deviation only when that matrix diagonal is one.
 
-### Structured models with point estimates only
+### Structured models: route-specific evidence
 
 Structured Poisson and negative-binomial mean models have a useful but narrower
 permission: report the point estimate for the supported single-effect forms,
-but not an interval as if it were calibrated. A small number of named
-structured beta, Student-t, Gamma, and zero-one-beta forms likewise have
-point-estimate support only; use their family article before treating a fit as
-reportable.
+but not an interval as if it were calibrated. Evidence for other structured
+families varies by exact cell. The named beta phylogenetic mean-intercept cell
+has admitted interval evidence; selected beta-animal and Gamma cells have
+feasible target-specific intervals without coverage validation; Student-t
+spatial/phylogenetic cells remain diagnostic, and selected zero-one-beta mean
+intercepts have point-recovery evidence only. Consult the family article and
+its exact route before reporting an estimate or interval.
 
 Matching bivariate Gaussian spatial or supplied-relatedness intercepts in both
 mean formulas also have point-estimate support when the two responses are
