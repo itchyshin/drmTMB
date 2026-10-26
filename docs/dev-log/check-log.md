@@ -32,6 +32,38 @@ Full `devtools::test()`: 3 fail, 0 error. Two fails were the env-skip
 census after the new README skip (regenerated; now 3 build-premise
 skips). The remaining fail is `test-reml-phylo-location.R:172`
 (convergence 1 vs 0), outside this docs change.
+# 2026-10-25: audit of drmTMB's own AGHQ, step 1 (#934)
+
+Read-only audit note `docs/dev-log/2026-10-25-aghq-state-audit-934.md`. Verdict: integrator
+correct for the two implemented cases (binomial and cumulative-logit scalar random effect);
+estimator established for one cell only (cumulative-logit `mu` random slope, `mc-0227`); binomial
+O3 has no recovery or coverage campaign; no AGHQ code exists for `sigma` random effects, correlated
+or multi-dimensional latent blocks, other families, or structured effects. Added a fixed-parameter
+integrator spot check under `docs/dev-log/evidence/2026-10-25-aghq-integrator-spot-check/`
+(pure R, seconds). `tests/testthat/test-aghq-coxreid.R` on `f03b0b24a`: 5 tests, 16
+expectations, 0 failures, 0 skips (Totoro, R 4.6.1). No R, C++, test, man or NEWS file changed.
+
+# 2026-10-25: refuse ordinary mean (1 | g) on the Julia bridge (#1551)
+
+`drm_julia_refuse_ordinary_mean_re_unlabelled()` aborts Poisson, Gamma,
+NB2, Beta, and Binomial ordinary mean bars before Julia starts. Gaussian
+`(1 | g)` is unchanged. Gate id `ordinary_mean_re_unlabelled` added to
+`drm_julia_intentional_gates()`. Both `julia-gates.tsv` copies regenerated
+to 17 rows. Focused tests: fence file 24/24; gate-vs-engine 146 pass, 1
+skip (`ape` missing). C17 receipt check PASS. No lineage or C17 files
+changed. The admission census test moved the nine ordinary mean
+(1 | g) / (1 + x | g) poisson, NB2, Gamma, Beta, and Binomial cells from
+the S5 unledgered ADMIT list to REFUSE under this gate.
+
+# 2026-10-25: refuse Gaussian ordinary (1 | g) with a factor FE (#1567)
+
+`drm_julia_refuse_gaussian_ordinary_re_factor_fe()` aborts a Gaussian
+ordinary mean bar when the `mu` formula has a factor, character, or
+logical predictor. Numeric-only Gaussian `(1 | g)` and factor FE without
+a bar still reach Julia setup. Gate id `gaussian_ordinary_re_factor_fe`
+added. Both `julia-gates.tsv` copies regenerated to 17 rows. Focused
+tests: fence file 11/11; gate-vs-engine 146 pass, 1 skip (`ape` missing).
+No lineage or C17 files changed.
 
 # 2026-10-18 — rebase #1525 onto main `d89db5097`
 
