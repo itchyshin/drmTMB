@@ -102,6 +102,14 @@ test_that("drm_julia_setup aborts before JuliaCall when CRAN-lane blocked", {
     NOT_CRAN = "false", DRMTMB_JULIA_TESTS = NA,
     `_R_CHECK_PACKAGE_NAME_` = "drmTMB"
   ))
+  # In an interactive session, isolate the setup guard from the already-tested
+  # lane predicate; non-interactive sessions exercise the real predicate.
+  if (interactive()) {
+    testthat::local_mocked_bindings(
+      drm_julia_cran_lane_blocked = function(...) TRUE,
+      .package = "drmTMB"
+    )
+  }
   # A marked non-interactive check lane must abort before JuliaCall::julia_setup().
   expect_error(
     drmTMB:::drm_julia_setup(),
