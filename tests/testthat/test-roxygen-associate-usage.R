@@ -1,6 +1,6 @@
 test_that("association update usage is stable with Matrix attached", {
   skip_on_cran()
-  skip_if_not_installed("Matrix")
+  skip_if_not_installed("lme4")
   skip_if_not_installed("roxygen2")
 
   root <- normalizePath(test_path("..", ".."), mustWork = FALSE)
@@ -20,7 +20,7 @@ test_that("association update usage is stable with Matrix attached", {
   method <- get("update.drm_pair_association", envir = ns, inherits = FALSE)
   expect_identical(formals(method), as.pairlist(alist(object = , ... = )))
 
-  if (!"package:Matrix" %in% search()) withr::local_package("Matrix")
+  if (!"package:Matrix" %in% search()) withr::local_package("lme4")
   expect_true("package:Matrix" %in% search())
   tmp <- tempfile("roxy-associate-")
   dir.create(tmp)

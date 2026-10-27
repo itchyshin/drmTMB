@@ -338,6 +338,10 @@ test-reml-route-table.R	build-premise	build	skips	3
 test-reml-scale-structured.R	cran-lane	environment	runs	3
 test-reml-structured-location.R	cran-lane	environment	runs	3
 test-reml-structured-location.R	env-var-optin	environment	skips	2
+test-roxygen-associate-usage.R	build-premise	build	skips	1
+test-roxygen-associate-usage.R	cran-lane	environment	runs	1
+test-roxygen-associate-usage.R	runtime-conditional	runtime	depends	1
+test-roxygen-associate-usage.R	suggests-package	environment	runs	2
 test-scale-phylo-identifiability.R	cran-lane	environment	runs	5
 test-scale-phylo-identifiability.R	runtime-conditional	runtime	depends	3
 test-scale-phylo-identifiability.R	suggests-package	environment	runs	2
