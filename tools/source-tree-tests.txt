@@ -18,6 +18,7 @@ test-beta-phylo-q1-sd-interior-recovery-runner.R
 test-beta-phylo-q1-sd-regression-runner.R
 test-beta-phylo-q1-successor-runners.R
 test-biv-lognormal-rho12-coverage-docs.R
+test-check-log-d-adoption.R
 test-dinnage-audit-wave1.R
 test-docs-audit-semantics.R
 test-estimator-surface-conformance.R

@@ -1,3 +1,9 @@
+# Frozen historical check log
+
+New slices go in `docs/dev-log/check-log.d/` (`YYYY-MM-DD-<slice>.md`).
+See `docs/dev-log/check-log.d/README.md`. Do not append new slices here
+(#1113).
+
 # 2026-10-25: `@param engine` cites Julia same-target receipts (#1569)
 
 `R/drmTMB.R` `@param engine` (and `man/drmTMB.Rd`) now names NEWS and

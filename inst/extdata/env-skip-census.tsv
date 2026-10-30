@@ -56,6 +56,7 @@ test-bootstrap-shards.R	os	environment	runs	5
 test-boundary-surfacing.R	cran-lane	environment	runs	6
 test-check-conditioning.R	platform-numeric	runtime	depends	3
 test-check-drm.R	cran-lane	environment	runs	1
+test-check-log-d-adoption.R	build-premise	build	skips	2
 test-check-phylo-sd-shared-shift.R	suggests-package	environment	runs	5
 test-coefficient-labels.R	engine-drm-jl	environment	skips	10
 test-coefficient-labels.R	suggests-package	environment	runs	5
