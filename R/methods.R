@@ -794,6 +794,10 @@ weights.drmTMB <- function(object, ...) {
 #' linear predictor whose response transform is
 #' `0.999999 * tanh(eta)`.
 #'
+#' @usage rho12(object, ...)
+#' @details For Julia-backed fits, `rho12()` returns the stored residual
+#'   correlation vector and errors if the fit has no residual `rho12` block.
+#'   This method does not accept `newdata`.
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction.
 #' @param type Scale of returned values: `"response"` for correlation values or
@@ -868,9 +872,17 @@ rho12.drmTMB <- function(
 #' relatedness models can contain several scientifically different
 #' correlations. Profile intervals are opt-in and can be slow; filter with
 #' `level`, `group`, `block`, or `class` before requesting `conf.int = TRUE` on
-#' large models. Bootstrap intervals are not a `corpairs()` route.
+#' large models. Bootstrap intervals are not a `corpairs()` route. That
+#' profile-interval guidance applies to native fits. The Julia-backed method
+#' returns point rows with default interval provenance; it supports the
+#' `level`, `group`, `block`, and `class` filters but does not calculate
+#' intervals. Its `...` argument does not apply `conf.int`, `conf.level`,
+#' `method`, or `trace` to a Julia fit.
 #'
-#' @param object A `drmTMB` fit.
+#' @usage corpairs(object, ...)
+#' \method{corpairs}{drmTMB_julia}(object, level = NULL, group = NULL,
+#'   block = NULL, class = NULL, ...)
+#' @param object A `drmTMB` fit or an admitted Julia-backed fit.
 #' @param level Optional character vector of correlation levels to keep, such
 #'   as `"residual"`, `"group"`, `"phylogenetic"`, or `"spatial"`.
 #' @param group Optional character vector of grouping factors to keep, such as
@@ -894,8 +906,9 @@ rho12.drmTMB <- function(
 #'   `"profile"` is currently supported for correlation-pair intervals.
 #' @param trace Logical; passed to [TMB::tmbprofile()] when profile intervals
 #'   are requested.
-#' @param ... Additional arguments passed to [TMB::tmbprofile()] when
-#'   `conf.int = TRUE`.
+#' @param ... On native fits, additional arguments passed to [TMB::tmbprofile()]
+#'   when `conf.int = TRUE`. On Julia-backed fits, `...` must be empty;
+#'   interval controls are unavailable.
 #'
 #' @return A data frame with one row per fitted correlation pair or pair
 #'   summary. Predictor-dependent `rho12` is summarized by its mean, minimum,
@@ -940,6 +953,7 @@ rho12.drmTMB <- function(
 #'
 #' # Profile intervals are opt-in and can be slow for large models.
 #' # corpairs(fit, level = "residual", conf.int = TRUE)
+#' @aliases corpairs.drmTMB_julia
 #' @export
 corpairs <- function(object, ...) {
   UseMethod("corpairs")
@@ -4412,7 +4426,11 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' identity-link mean, where the latent, expected-data, and observed-data
 #' scales of de Villemereuil, Schielzeth, Nakagawa & Morrissey (2016,
 #' *Genetics* 204:1281-1294) coincide, so there is no separate latent- or
-#' liability-scale value to distinguish. `residual_variance` is `sigma^2`
+#' liability-scale value to distinguish. These derived rows are Gaussian-only
+#' for now: non-Gaussian fits get no derived variance-share row (and
+#' `heritability()`, `icc()` and `repeatability()` refuse them); see
+#' `docs/design/275-repeatability-scale-and-residual-variance.md`.
+#' `residual_variance` is `sigma^2`
 #' when `sigma`'s fixed part reduces to a single log-link intercept; when
 #' `sigma` additionally carries an ordinary random intercept, or a
 #' phylogenetic random intercept with a unit-diagonal correlation (the

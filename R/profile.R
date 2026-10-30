@@ -45,7 +45,7 @@
 #' `sigma`, `sigma1`, or `sigma2`, `parm = "sigma"` and friends report
 #' response-scale intervals.
 #'
-#' The fastest routine route is `confint(fit)`, which uses Wald intervals for
+#' The routine route is `confint(fit)`, which uses Wald intervals for
 #' fixed effects and direct response-scale targets. For long phylogenetic,
 #' spatial, animal-model, or relatedness fits, profile only the needed
 #' variance-component or correlation rows with the default
@@ -57,8 +57,8 @@
 #'
 #' @param object A `drmTMB` fit.
 #' @param parm Optional character or integer vector selecting interval targets.
-#'   `NULL` selects all direct Wald-ready targets for Wald intervals. Profile
-#'   intervals usually require explicit target names or target-set shortcuts;
+#'   `NULL` selects all direct targets for Wald intervals. Explicit profile intervals usually require target names
+#'   or target-set shortcuts;
 #'   for a Gaussian temporal AR1 or OU fit, `NULL` selects every mean-model
 #'   coefficient. Temporal profile intervals admit mean coefficients only.
 #'   Supported shortcuts are `"fixed_effects"`, `"random_effects"`,
@@ -66,7 +66,8 @@
 #' @param level Confidence level.
 #' @param method Interval method: `"wald"`, `"profile"`, or `"bootstrap"`. If
 #'   `newdata` is supplied and `method` is omitted, `method = "profile"` is
-#'   used.
+#'   used. If `method` is omitted without `newdata`, every row is a Wald
+#'   interval. Pass `method = "profile"` to profile random-effect SD rows.
 #' @param newdata Optional data frame for response-scale profile intervals for
 #'   predictor-dependent `sigma`, `sigma1`, `sigma2`, `rho12`, or fitted
 #'   `corpair()` values. Each row is profiled separately by profiling its
@@ -117,52 +118,43 @@
 #'   zero, or a correlation within `rho_boundary` of `+/-1`, is returned with
 #'   `conf.status = "wald_at_boundary"` and a warning pointing to
 #'   `method = "profile"`. Defaults match [check_drm()] (`1e-4`, `0.98`).
+#'   An ordinary `(1 | g)` SD whose log-scale Wald standard error exceeds 1 is
+#'   flagged the same way even when its estimate is above `sd_boundary`; that
+#'   cut-off is fixed.
 #' @param small_sample_df Small-sample reference distribution for the
-#'   `method = "wald"` interval. `"location"` (the default) references a
-#'   t-quantile with `df = g - 1` -- a group-based, Satterthwaite-style
-#'   between-group degrees of freedom -- for each *location-axis* (`mu`,
-#'   `mu1`, `mu2`) structured random-effect SD target (`phylo`, `spatial`,
-#'   `animal`, `relmat`) with a resolvable group count `g`, and keeps the
-#'   ordinary normal quantile `z = qnorm((1 + level) / 2)` for every other
-#'   target. This widens only the location-axis structured-RE SD intervals,
-#'   which under-cover at small `g` under the normal quantile; the t-quantile
-#'   lifts their coverage and converges back to `z` as `g` grows. Dispersion
-#'   (`sigma`, `sigma1`, `sigma2`) structured SD targets are deliberately left
-#'   at the normal quantile because they already over-cover; non-structured and
-#'   fixed-effect targets are never widened; and a plain labelled covariance
-#'   block such as `(1 + x | p | id)` is also left at the normal quantile by
-#'   default, because the correction magnitude was calibrated for structured
-#'   blocks only. `"none"` is the opt-out: it uses the normal quantile for
-#'   *every* target and is byte-identical to the pre-default behaviour.
-#'   `"group"` widens *every* resolvable SD target -- structured and
-#'   labelled-covariance, location and dispersion axis alike; use it only when
-#'   you deliberately want to t-reference the dispersion axis or a labelled
-#'   covariance block too. Note
-#'   that the t-quantile only widens the interval; it does not move its centre.
-#'   The residual small-`g` gap is ML shrinkage bias in the variance-component
-#'   point estimate (a job for REML), not a quantile problem, so the centre
-#'   shift is handled by `bias_correct`.
-#' @param bias_correct Small-sample point-estimate bias correction for the
-#'   `method = "wald"` interval. `"location"` (the default) adds a
-#'   simulation-calibrated shift `log(g / (g - 1))` to the log-scale point
-#'   estimate -- before back-transforming -- of each *location-axis* (`mu`,
-#'   `mu1`, `mu2`) structured random-effect SD target with a resolvable group
-#'   count `g` (the same targets `small_sample_df = "location"` widens), and
-#'   leaves every other target unshifted. The ML estimate of a structured-RE
-#'   variance-component SD is biased low on the log scale by about
-#'   `log(g / (g - 1))` -- a downward shrinkage that REML, or simply a larger
-#'   `g`, removes asymptotically; this shift moves the interval centre up to
-#'   counter that shrinkage. Used together with `small_sample_df = "location"`,
-#'   the centre shift and the t(`df = g - 1`) width act independently, giving
-#'   `exp((log(sigma_hat) + log(g / (g - 1))) +/- qt(p, g - 1) * se_log)` and
-#'   lifting small-`g` coverage of location-axis structured-RE SD targets to
-#'   nominal. `"none"` is the opt-out: it leaves every centre at the ML estimate
-#'   and is byte-identical to the pre-default behaviour. `"group"` shifts
-#'   *every* resolvable SD target -- structured and labelled-covariance, location
-#'   and dispersion axis alike. The default deliberately excludes the dispersion
-#'   axis (`sigma` SD intervals already over-cover, so the upward shift would
-#'   push them further conservative) and plain labelled covariance blocks (whose
-#'   correction magnitude is not yet simulation-calibrated).
+#'   `method = "wald"` interval. `"location"` (the default) uses a t-quantile
+#'   with `df = g - 1` for location-axis (`mu`, `mu1`, `mu2`) structured
+#'   random-effect SD targets (`phylo`, `spatial`, `animal`, `relmat`) when a
+#'   unique group count `g` is available. Other targets use the normal
+#'   quantile. This changes interval width, not its centre. The retained
+#'   engine coverage check concerns four q2 phylogenetic and relatedness-matrix
+#'   `mu1:x`/`mu2:x` slope SD cells at `g = 8`, with a post-hoc check across
+#'   `g = 8, 16, 32`; the default's broader
+#'   application does not establish nominal coverage for every target.
+#'   Dispersion-axis (`sigma`, `sigma1`, `sigma2`) targets stay at the normal
+#'   quantile by default. Their coverage depends on the model: a replicated
+#'   pure `sigma` intercept over-covered in a pilot, whereas some `sigma`
+#'   one-slope intercept targets under-covered at `g = 8`. Fixed effects and
+#'   plain labelled covariance blocks are also unchanged by the default.
+#'   `"none"` uses the normal quantile for every target and recovers the
+#'   earlier behaviour. `"group"` widens every resolvable structured or
+#'   labelled-covariance SD target on either axis; this broader choice is
+#'   not covered by the q2 calibration.
+#' @param bias_correct Small-sample centre adjustment for the
+#'   `method = "wald"` interval. `"location"` (the default) adds
+#'   `log(g / (g - 1))` to the log-SD estimate of each location-axis structured
+#'   random-effect target with a unique group count `g`, before back-transforming;
+#'   other targets are unshifted. In the retained q2 phylogenetic and
+#'   relatedness-matrix `mu1:x`/`mu2:x` slope SD cells at `g = 8` and a
+#'   post-hoc cross-`g` check, this shift approximated measured ML log-SD shrinkage. Combined with the
+#'   t width, it brought coverage near 0.95 in those cells. Applying the same
+#'   formula to another route is an implemented calculation, not evidence of
+#'   its bias or interval coverage. `"none"` leaves every centre unshifted;
+#'   `"group"` shifts every resolvable structured or labelled-covariance SD
+#'   target on either axis. Dispersion targets remain unshifted by default
+#'   because their coverage is regime dependent; the magnitude is also not
+#'   calibrated for plain labelled covariance blocks. The shift changes the
+#'   centre only; it does not alter the fitted model or a profile endpoint.
 #' @param bootstrap_re_form `re.form` passed through to [stats::simulate()]
 #'   when `method = "bootstrap"`, with the same lme4 meanings as
 #'   [simulate.drmTMB()]. The default, `NA`, redraws random effects for every
@@ -229,14 +221,34 @@
 #' For a short applied walkthrough, see the vignette
 #' \emph{First-week intervals: fit, profile, and boundary}.
 #'
+#' @section Wald intervals for ordinary `(1 | g)` SDs:
+#' The default `confint(fit)` is Wald for every row, including random-effect SD
+#' rows. The Wald SD interval undercovers near the boundary. In the
+#' sweep-oct16 t9 design (Gaussian location-scale with `(1 | g)`, n_g = 10,
+#' 300 replicates per cell) at a true SD of 0.1, Wald coverage was 0.36 with 10
+#' groups and 0.42 with 30 groups, with about half of the replicates returning
+#' an infinite upper limit; profile coverage on the same replicates was 0.97 and
+#' 0.98 there. At a true SD of 0.5, Wald coverage was 0.97 to 0.98 and profile
+#' coverage 0.93 to 0.957. When a SD row is labelled `wald_at_boundary` (see
+#' *Boundary intervals*), use `confint(fit, parm = ..., method = "profile")`
+#' for that row. Profile is slower than Wald, and it is not a repair at a
+#' boundary: it still warns when it reaches one.
+#' That sweep does not calibrate intervals for other ordinary-SD routes or
+#' different study designs.
+#'
 #' @section Boundary intervals:
 #' Every interval method is unreliable when a variance component approaches zero
 #' or a correlation approaches `+/-1`, and each warns about its own case.
 #'
 #' `method = "wald"` flags a row with `conf.status = "wald_at_boundary"` and warns
 #' (class `drmTMB_wald_boundary_warning`), because a symmetric Wald interval
-#' undercovers under boundary (chi-square-mixture) inference. That warning
-#' recommends `method = "profile"`.
+#' is unreliable at a variance-component boundary. That warning
+#' recommends `method = "profile"`. For an ordinary `(1 | g)` SD this label is
+#' not limited to an estimate at zero: it is also applied when the log-scale Wald
+#' standard error exceeds 1. At the default 95% level, this makes the ratio of
+#' the upper to lower Wald endpoint exceed about 50. This width does not
+#' establish coverage. Treat any such
+#' `wald_at_boundary` SD row as unreliable.
 #'
 #' `method = "profile"` sets `profile.boundary = TRUE` and warns (class
 #' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
@@ -342,19 +354,17 @@
 #' # Bootstrap intervals for positive scale and SD targets use link-scale
 #' # percentiles before back-transforming to the response scale.
 #' @references
-#' The small-sample corrections applied by `small_sample_df` and `bias_correct`
-#' (whether the default `"location"` scope or the broader `"group"` scope) are
-#' *motivated* by established mixed-model theory but are simulation-calibrated,
-#' not derived: the `log(g / (g - 1))` SD-scale centre
-#' shift is about **twice** the leading-order REML SD correction
-#' (`0.5 * log(g / (g - 1))`), matching the larger ML shrinkage measured on these
-#' structured/bivariate models (their effective df is well below `g - 1`). The
-#' magnitude used here comes from separate simulations for each structured or
-#' bivariate model class, not from a single general correction. Relevant references:
-#'
-#' Restricted maximum likelihood and the variance-component bias that motivates
-#' the centre shift (REML debiases the variance by `g/(g-1)`; the shift here is on
-#' the SD log scale and ~2x the leading-order REML SD term):
+#' The default correction is motivated by mixed-model variance-component
+#' bias but its `log(g / (g - 1))` log-SD magnitude is empirical, not a
+#' general consequence of REML. The retained calibration covers q2
+#' phylogenetic and relatedness-matrix `mu1:x`/`mu2:x` slope SD cells
+#' (engine check at `g = 8`, post-hoc checks at `g = 8, 16, 32`); neither
+#' other structured routes nor the broader `"group"`
+#' scope inherit that coverage result. In the elementary independent Gaussian
+#' variance example, the familiar variance factor is `g/(g-1)`, equivalent
+#' to only `0.5 * log(g/(g-1))` on the SD log scale. The cited theory supplies
+#' context and direction, not a derivation of this package's full shift.
+#' Relevant references:
 #'
 #' Patterson, H. D., & Thompson, R. (1971). Recovery of inter-block information
 #' when block sizes are unequal. Biometrika, 58(3), 545-554.
@@ -2446,11 +2456,12 @@ drm_wald_confint <- function(
   # a boundary is a warning, not an auto-discard -- but flag it and point to the
   # profile method. Residual/distributional scale is regular and not flagged.
   at_boundary <- interval_ready &
-    wald_boundary_targets(
+    (wald_boundary_targets(
       targets,
       sd_boundary = sd_boundary,
       rho_boundary = rho_boundary
-    )
+    ) |
+      wald_ordinary_sd_near_boundary(targets, se))
   at_boundary_no_bias <- at_boundary & !bias_applied
   out$conf.status[at_boundary_no_bias] <- "wald_at_boundary"
   is_rho12 <- targets$target_class == "residual-correlation"
@@ -2460,7 +2471,7 @@ drm_wald_confint <- function(
     n_boundary <- sum(at_boundary_profile)
     cli::cli_warn(
       c(
-        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary_profile]}} {?is/are} at a variance-component or correlation boundary.",
+        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary_profile]}} {?is/are} at or near a variance-component or correlation boundary.",
         "i" = "{cli::qty(n_boundary)}Wald coverage is unreliable on the boundary; use {.code confint(method = \"profile\")} for {?this/these} target{?s}."
       ),
       class = "drmTMB_wald_boundary_warning"
@@ -2486,8 +2497,8 @@ drm_wald_confint <- function(
 # when its family is `sigma` (`sigma`, `sigma1`, `sigma2`). The trailing response
 # index is stripped before matching, so q2/q4 endpoints share the family of
 # their univariate counterpart. The DEFAULT small-sample correction is scoped to
-# the location axis only; the dispersion axis already over-covers under the
-# normal quantile and is left raw unless the caller opts in with `"group"`.
+# the location axis only. Dispersion coverage is regime dependent, so the
+# default leaves that axis raw unless the caller opts in with `"group"`.
 wald_sd_target_is_location_axis <- function(target) {
   dpar <- target$dpar[[1L]]
   if (is.na(dpar)) {
@@ -2509,8 +2520,9 @@ wald_sd_target_is_location_axis <- function(target) {
 # `location_only = TRUE` (the path used by the DEFAULT correction) restricts the
 # resolved df to location-axis (mu) *structured* (phylo/spatial/animal/relmat) SD
 # targets: it skips dispersion (sigma) SD targets and the labelled
-# covariance-block registry, so the default widens only the under-covering
-# location-axis structured intervals whose magnitude was simulation-calibrated.
+# covariance-block registry. Calibration of this default width and centre
+# is limited to named q2 phylo/relmat mu-slope cells; other targets are not
+# thereby certified to under-cover or to reach nominal coverage.
 # `location_only = FALSE` reproduces the `small_sample_df = "group"` opt-in scope
 # (every structured and labelled-covariance SD target on either axis).
 #
@@ -2561,9 +2573,9 @@ wald_target_df <- function(object, targets, location_only = FALSE) {
 # Returns a numeric vector, one entry per row of `targets`. For each structured
 # random-effect SD target with a resolvable group count `g` (the SAME targets
 # `wald_target_df()` identifies, via the same g-resolution path), the entry is
-# `log(g / (g - 1))` -- the closed-form centre correction that lifts the
-# downward ML shrinkage of the variance-component SD back toward its expectation
-# on the log scale. Every other target -- and any SD target whose group count
+# `log(g / (g - 1))` -- an empirical centre adjustment calibrated for named
+# q2 phylo/relmat mu-slope cells, not a closed-form correction for all
+# structured SD targets. Every other target -- and any SD target whose group count
 # cannot be matched -- gets `NA_real_`, so the caller leaves its centre
 # unshifted. This never errors: an ambiguous or missing match falls back to NA.
 #
@@ -2684,10 +2696,11 @@ structured_sd_term_signature <- function(term) {
 # `structured_only = TRUE` (the path used by the DEFAULT correction) restricts
 # resolution to the genuinely *structured* RE block (phylo/spatial/animal/relmat,
 # resolved via `log_sd_phylo`) and skips the labelled covariance-block registry.
-# The default is scoped to structured cells because the `log(g/(g-1))` magnitude
-# was simulation-calibrated for those (design doc 219); a plain labelled
-# covariance block such as `(1 + x | p | id)` resolves a registry `g` but its
-# correction is not validated, so the default leaves it at the raw z-interval.
+# The default is scoped to structured cells. Design 219 calibrated the
+# `log(g/(g-1))` magnitude for named q2 phylo/relmat mu-slope cells, not every
+# structured target. A plain labelled covariance block such as
+# `(1 + x | p | id)` resolves a registry `g` but lacks this calibration, so
+# the default leaves it at the raw z-interval.
 # `structured_only = FALSE` reproduces the `"group"` opt-in scope (structured and
 # labelled-covariance blocks alike).
 wald_sd_target_group_count <- function(
@@ -2764,6 +2777,39 @@ profile_sd_boundary_rows <- function(targets) {
       targets$tmb_parameter %in% c("log_sd_mi_group", "log_sd_mi_struct"))
   }
   is_sd
+}
+
+# An ordinary `(1 | g)` random-intercept SD: a direct, plain-group SD target on
+# `mu`, `sigma`, `zoi` or `coi`. Structured (`phylo()`, `spatial()`, `animal()`,
+# `relmat()`), labelled covariance-block, and slope/correlated terms are not
+# ordinary and are never selected here.
+drm_ordinary_sd_rows <- function(targets) {
+  if (nrow(targets) == 0L) {
+    return(logical(0))
+  }
+  !is.na(targets$target_class) &
+    targets$target_class == "random-effect-sd" &
+    !is.na(targets$target_type) &
+    targets$target_type == "direct" &
+    !is.na(targets$tmb_parameter) &
+    targets$tmb_parameter %in%
+      c("log_sd_mu", "log_sd_sigma", "log_sd_zoi", "log_sd_coi") &
+    !is.na(targets$term) &
+    grepl("^\\(1 \\| [^|()]+\\)$", targets$term)
+}
+
+# A Wald SD interval is built on the log-SD scale. When the log-scale standard
+# error exceeds this value the interval spans more than a factor of
+# exp(2 * 1.96) (about 50), the likelihood is flat towards zero, and the
+# symmetric interval is not a usable `level` interval even though the point
+# estimate is above the `sd_boundary` threshold. Measured on the sweep-oct16 t9
+# design (Gaussian, `(1 | g)`, 10 groups of 10, true SD 0.1) this is where
+# estimates of 0.026-0.18 returned intervals such as [5e-37, 1e33] or
+# [0.015, 1.6] labelled as ordinary Wald rows (#1558).
+wald_near_boundary_log_se <- 1
+
+wald_ordinary_sd_near_boundary <- function(targets, se) {
+  drm_ordinary_sd_rows(targets) & is.finite(se) & se > wald_near_boundary_log_se
 }
 
 wald_boundary_targets <- function(

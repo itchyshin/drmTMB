@@ -43,6 +43,8 @@ biv_gaussian <- function() {
 #' `biv_lognormal()` defines an exact two-response lognormal distribution.
 #' Its `rho12` is the residual correlation on the log-response scale, not a
 #' raw-response correlation and not the frozen-margin association `eta`.
+#' Fixed-effect `biv_lognormal()` models are admitted through
+#' `engine = "julia"`; see `vignette("julia-engine", package = "drmTMB")`.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -77,7 +79,9 @@ biv_lognormal <- function() {
 #' The current model allows fixed effects in `mu1` and `mu2`, with
 #' intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. Random effects,
 #' parameter predictors outside the locations, missing response pairs, and
-#' interval inference are not supported.
+#' interval inference are not supported. Fixed-effect `biv_student()` models
+#' are admitted through `engine = "julia"`; see
+#' `vignette("julia-engine", package = "drmTMB")`.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -164,7 +168,9 @@ student <- function() {
 #' `(1 | id)` and `(0 + x | id)` may enter `mu`. Correlated or labelled `mu`
 #' slopes, `sigma` or `nu` random effects, `sd(group)` scale formulas, structured
 #' effects, known sampling covariance, bivariate skew-normal models, residual
-#' `rho12`, and latent `skew(id)` syntax remain unsupported.
+#' `rho12`, and latent `skew(id)` syntax remain unsupported. Fixed-effect
+#' `skew_normal()` models are admitted through `engine = "julia"`; see
+#' `vignette("julia-engine", package = "drmTMB")`.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -500,7 +506,11 @@ beta_binomial <- function() {
 #' `theta[1] < theta[2] < ... < theta[K - 1]`. Without a `disc` formula, or
 #' with `disc ~ 1`, `disc_i = 1` and the model is the proportional-odds
 #' cumulative logit model exactly. `fitted()` returns the expected
-#' ordered-category score, `sum_k k * Pr(y_i = k)`.
+#' ordered-category score, `sum_k k * Pr(y_i = k)`. Fixed-effect
+#' `cumulative_logit()` models without a `disc` predictor are admitted
+#' through `engine = "julia"`; see
+#' `vignette("julia-engine", package = "drmTMB")`. The Julia route refuses
+#' a `disc` formula.
 #'
 #' @section Identifiability of `disc`:
 #' The intercept of the `disc` formula is fixed at `log(disc) = 0` and dropped
@@ -574,6 +584,14 @@ cumulative_logit <- function() {
 #' (1 | group), zi ~ 1)` under ML with complete responses; zero-inflated
 #' sigma predictors, slopes, labels, and other random-effect combinations
 #' remain unsupported.
+#'
+#' NB2 models overdispersion only: `sigma` is positive, so the variance
+#' cannot fall below the Poisson limit `Var(y) = mu`. Counts that are
+#' underdispersed (variance smaller than the mean) push `sigma` to that
+#' boundary (limit), and the fit returns a degenerate result rather than a
+#' sub-Poisson variance. drmTMB has no underdispersed count family. For such
+#' data use `glmmTMB::compois()` (Conway-Maxwell-Poisson) or
+#' `glmmTMB::genpois()` (generalised Poisson).
 #'
 #' @return A `drm_family` object.
 #' @export

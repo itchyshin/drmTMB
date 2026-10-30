@@ -1,3 +1,49 @@
+# 2026-10-25: `@param engine` cites Julia same-target receipts (#1569)
+
+`R/drmTMB.R` `@param engine` (and `man/drmTMB.Rd`) now names NEWS and
+`tests/testthat/test-julia-family-{skew_normal,cumulative_logit,biv_student,biv_lognormal}.R`
+as the receipts for the 1e-4 / 1e-3 same-target bar at DRM.jl pin
+430ef64cc. `test-julia-admission-docs.R` 26/26. C17:
+`python3 tools/recertify-c17.py --label 1569-docs-receipts --tolerance 1e-10`.
+Worst `|change|` 0.000e+00. Receipt
+`docs/dev-log/implementation-recovery/2026-10-25-1569-docs-receipts-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence` OK.
+`test-reml-phylo-location.R:172` fails on clean `main` `f5791d50a`
+(convergence 1 vs 0), so that fail is not this docs change.
+
+# 2026-10-25: `engine = "julia"` admission docs match the family registry (#1569)
+
+`@param engine` in `R/drmTMB.R` (and `man/drmTMB.Rd`) keeps `skew_normal()`,
+`cumulative_logit()`, `biv_student()`, and `biv_lognormal()` on the
+fixed-effect Julia route. README and `vignettes/julia-engine.Rmd` now name
+those families too. The four family pages say they are admitted through
+`engine = "julia"`. Formula-grammar and known-limitations now say Julia
+admits fixed-effect binomial only, not random-effect or structured
+binomial. `test-julia-admission-docs.R` checks the four names in
+`man/drmTMB.Rd`, the Julia engine vignette, and README.
+
+C17: `python3 tools/recertify-c17.py --label 1569-docs --tolerance 1e-10`.
+Worst `|change|` 3.231e-11 on mc-0568. Receipt
+`docs/dev-log/implementation-recovery/2026-10-25-1569-docs-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence` OK.
+The `@param engine` wrap sits outside the authenticated model-15 anchors.
+
+Full `devtools::test()`: 3 fail, 0 error. Two fails were the env-skip
+census after the new README skip (regenerated; now 3 build-premise
+skips). The remaining fail is `test-reml-phylo-location.R:172`
+(convergence 1 vs 0), outside this docs change.
+
+# 2026-10-25: audit of drmTMB's own AGHQ, step 1 (#934)
+
+Read-only audit note `docs/dev-log/2026-10-25-aghq-state-audit-934.md`. Verdict: integrator
+correct for the two implemented cases (binomial and cumulative-logit scalar random effect);
+estimator established for one cell only (cumulative-logit `mu` random slope, `mc-0227`); binomial
+O3 has no recovery or coverage campaign; no AGHQ code exists for `sigma` random effects, correlated
+or multi-dimensional latent blocks, other families, or structured effects. Added a fixed-parameter
+integrator spot check under `docs/dev-log/evidence/2026-10-25-aghq-integrator-spot-check/`
+(pure R, seconds). `tests/testthat/test-aghq-coxreid.R` on `f03b0b24a`: 5 tests, 16
+expectations, 0 failures, 0 skips (Totoro, R 4.6.1). No R, C++, test, man or NEWS file changed.
+
 # 2026-10-25: refuse ordinary mean (1 | g) on the Julia bridge (#1551)
 
 `drm_julia_refuse_ordinary_mean_re_unlabelled()` aborts Poisson, Gamma,

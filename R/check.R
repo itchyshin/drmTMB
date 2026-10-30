@@ -30,6 +30,10 @@
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
+#' a flag-only note when at least two quantile residuals and more than 1% lie
+#' beyond |3|
+#' (`residual_outliers`, a sign of a damaged response such as a sentinel code;
+#' it changes no estimate and never flips `attr(x, "ok")`),
 #' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
@@ -223,9 +227,15 @@ check_drm <- function(object, ...) {
 #'
 #' Use [check_drm()] when you need the full diagnostic table and messages.
 #'
-#' @param object A `drmTMB` fit.
+#' @aliases is_converged.drmTMB_julia is_converged.drmTMB_julia_xfam
+#' @usage is_converged(object, ...)
+#' \method{is_converged}{drmTMB_julia}(object, include_hessian = FALSE, ...)
+#' \method{is_converged}{drmTMB_julia_xfam}(object, include_hessian = FALSE, ...)
+#' @param object A `drmTMB` fit or an existing Julia-backed fit.
 #' @param include_hessian Logical; require a positive-definite
 #'   [TMB::sdreport()] Hessian in addition to optimizer convergence.
+#'   On Julia-backed fits, the method instead requires retained uncertainty
+#'   status `ok` and a positive-definite stored covariance matrix.
 #' @param ... Reserved for future convergence options.
 #'
 #' @return A single logical value.
@@ -623,6 +633,7 @@ check_drm.drmTMB <- function(
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
     check_skew_normal_nu(object),
+    check_residual_outliers(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
     check_gaussian_aggregation(object),
@@ -672,13 +683,24 @@ check_drm.drmTMB <- function(
   out
 }
 
+#' @rdname check_drm
+#' @aliases [.drm_check
+#' @usage \method{[}{drm_check}(x, i, j, drop = FALSE)
+#' @param x A diagnostic table returned by [check_drm()].
+#' @param i,j Row and column indices, as for data-frame subsetting.
+#' @param drop Logical; whether to simplify a single selected column.
+#' @section Subsetting diagnostics:
+#' Data-frame subsets retain the `drm_check` class and the original overall
+#' `ok` flag. The `n_checks_total` attribute retains the original check count,
+#' using `nrow(x)` when that attribute is absent. A simplified non-data-frame
+#' result is returned unchanged.
 #' @export
 `[.drm_check` <- function(x, i, j, drop = FALSE) {
   n_total <- attr(x, "n_checks_total")
   if (is.null(n_total)) {
     n_total <- nrow(x)
   }
-  out <- NextMethod("[")
+  out <- NextMethod("[", drop = drop)
   if (!is.data.frame(out)) {
     return(out)
   }
@@ -1676,12 +1698,22 @@ check_observations_per_parameter <- function(object) {
       format_check_number(ratio)
     ),
     if (low) {
+      # #1469: with so few observations per parameter the likelihood can have
+      # two maxima, and a single start can stop on the lower one with status
+      # "converged". Point at multi_start unless it was already used.
+      multi_start_used <- isTRUE(object$control$multi_start > 1L)
       paste(
         "Fewer than",
         observations_per_parameter_threshold,
         "observations per estimated parameter; the diagnostic board does not",
         "become more cautious automatically at small n, so inspect effect",
-        "sizes and uncertainty before interpreting tests."
+        "sizes and uncertainty before interpreting tests.",
+        if (!multi_start_used) {
+          paste(
+            "The likelihood can also be multimodal at this size; refit with",
+            "drm_control(multi_start = 10) and compare the logLik values."
+          )
+        }
       )
     } else {
       paste(
@@ -2394,6 +2426,52 @@ check_skew_normal_nu <- function(object) {
     "ok",
     value,
     "All fitted skew-normal nu values are finite."
+  )
+}
+
+# Flag-only response-damage signal (#1335, owner decision of 11 Oct 2026).
+# A response with a sentinel code (e.g. -9999 for missing) or other gross
+# contamination leaves the optimizer, Hessian and SE rows green while the
+# scale model attenuates, so look at the residuals the fit already implies.
+# Under a correctly specified model a quantile residual is N(0, 1), so about
+# 0.27% of rows fall beyond |3|; more than 1% (and at least 2 rows) is read as
+# a damaged response or a badly mis-specified family. Quantile residuals are
+# computed with a fixed seed, which does not touch the caller's RNG. The row is
+# a "note": it changes no estimate and never flips `attr(, "ok")`. Families with
+# no residual route, spike-grade families (their residual warns once per
+# session) and bivariate fits return NULL (no row).
+check_residual_outliers <- function(object) {
+  fd <- tryCatch(fitted_distribution(object), error = function(e) NULL)
+  if (is.null(fd) || !identical(fd$status, "reference")) {
+    return(NULL)
+  }
+  res <- tryCatch(
+    drm_quantile_residuals(object, seed = 1L),
+    error = function(e) NULL
+  )
+  if (is.null(res) || !is.numeric(res) || !is.null(dim(res))) {
+    return(NULL)
+  }
+  res <- res[is.finite(res)]
+  n <- length(res)
+  if (n == 0L) {
+    return(NULL)
+  }
+  n_out <- sum(abs(res) > 3)
+  value <- paste0("n_beyond_3=", n_out, "/", n)
+  if (n_out >= 2L && n_out / n > 0.01) {
+    return(check_row(
+      "residual_outliers",
+      "note",
+      value,
+      "More than 1% of quantile residuals lie beyond |3| (about 0.27% is expected). The response may be damaged, for example by a sentinel code such as -9999 for missing, or the family may be badly mis-specified; inspect the largest residuals and the raw response before trusting the scale model."
+    ))
+  }
+  check_row(
+    "residual_outliers",
+    "ok",
+    value,
+    "No excess of quantile residuals beyond |3|."
   )
 }
 

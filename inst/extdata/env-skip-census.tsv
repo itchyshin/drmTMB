@@ -38,10 +38,14 @@ test-beta-phylo-q1-sd-coverage-runner.R	build-premise	build	skips	1
 test-beta-phylo-q1-sd-interior-recovery-runner.R	build-premise	build	skips	1
 test-beta-phylo-q1-sd-regression-runner.R	build-premise	build	skips	1
 test-beta-phylo-q1-successor-runners.R	build-premise	build	skips	1
+test-beta-relmat.R	cran-lane	environment	runs	5
+test-beta-relmat.R	suggests-package	environment	runs	1
 test-binomial-correlated-re-mspl-prereq.R	suggests-package	environment	runs	1
 test-binomial-links.R	cran-lane	environment	runs	1
 test-binomial-phylo.R	cran-lane	environment	runs	5
 test-binomial-phylo.R	suggests-package	environment	runs	1
+test-binomial-relmat.R	cran-lane	environment	runs	6
+test-binomial-relmat.R	suggests-package	environment	runs	1
 test-biv-lognormal-rho12-coverage-docs.R	build-premise	build	skips	1
 test-biv-lognormal-rho12-coverage-driver.R	build-premise	build	skips	1
 test-biv-lognormal-rho12-coverage-driver.R	suggests-package	environment	runs	1
@@ -77,6 +81,8 @@ test-dinnage-audit-wave4c.R	runtime-conditional	runtime	depends	1
 test-dinnage-audit-wave4c.R	suggests-package	environment	runs	2
 test-distributional-outputs.R	cran-lane	environment	runs	3
 test-distributional-outputs.R	suggests-package	environment	runs	2
+test-docs-audit-semantics.R	build-premise	build	skips	3
+test-docs-audit-semantics.R	suggests-package	environment	runs	2
 test-emmeans-methods.R	suggests-package	environment	runs	19
 test-emmeans-preflight-contract.R	cran-lane	environment	runs	6
 test-emmeans-preflight-contract.R	suggests-package	environment	runs	6
@@ -95,7 +101,7 @@ test-formula-smooth-terms.R	cran-lane	environment	runs	1
 test-function-map-cheatsheet.R	build-premise	build	skips	2
 test-heritability.R	suggests-package	environment	runs	1
 test-julia-admission-census.R	build-premise	build	skips	1
-test-julia-admission-docs.R	build-premise	build	skips	2
+test-julia-admission-docs.R	build-premise	build	skips	3
 test-julia-admission-docs.R	runtime-conditional	runtime	depends	1
 test-julia-biv-confint.R	suggests-package	environment	runs	7
 test-julia-biv-inference.R	build-premise	build	skips	1
@@ -137,6 +143,8 @@ test-julia-family-zi_nbinom2.R	engine-drm-jl	environment	skips	3
 test-julia-family-zi_nbinom2.R	suggests-package	environment	runs	6
 test-julia-fe-only-fence.R	runtime-conditional	runtime	depends	3
 test-julia-fe-only-fence.R	suggests-package	environment	runs	4
+test-julia-fitted-definition.R	engine-drm-jl	environment	skips	1
+test-julia-fitted-definition.R	suggests-package	environment	runs	2
 test-julia-formula-constructs-nongaussian.R	engine-drm-jl	environment	skips	5
 test-julia-formula-constructs-nongaussian.R	locale	environment	depends	4
 test-julia-formula-constructs-nongaussian.R	suggests-package	environment	runs	4
@@ -150,8 +158,10 @@ test-julia-missing-alignment.R	cran-lane	environment	runs	2
 test-julia-missing.R	engine-drm-jl	environment	skips	8
 test-julia-missing.R	suggests-package	environment	runs	15
 test-julia-module-compat.R	build-premise	build	skips	1
+test-julia-module-compat.R	cran-lane	environment	runs	1
 test-julia-module-compat.R	env-var-optin	environment	skips	1
-test-julia-module-compat.R	suggests-package	environment	runs	2
+test-julia-module-compat.R	runtime-conditional	runtime	depends	1
+test-julia-module-compat.R	suggests-package	environment	runs	3
 test-julia-noninteractive-lane.R	build-premise	build	skips	1
 test-julia-noninteractive-lane.R	runtime-conditional	runtime	depends	1
 test-julia-objective-at-bridge.R	engine-drm-jl	environment	skips	3
@@ -221,6 +231,7 @@ test-nbinom2-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-nbinom2-sigma-structured-recovery.R	cran-lane	environment	runs	2
 test-nbinom2-sigma-structured-recovery.R	env-var-optin	environment	skips	2
 test-nbinom2-sigma-structured-recovery.R	suggests-package	environment	runs	2
+test-nbinom2-underdispersion-docs.R	build-premise	build	skips	1
 test-newton-polish-guard.R	cran-lane	environment	runs	1
 test-newton-polish-guard.R	suggests-package	environment	runs	1
 test-nongaussian-structured-boundary.R	build-premise	build	skips	1

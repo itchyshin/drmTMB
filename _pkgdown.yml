@@ -1,6 +1,7 @@
 url: https://itchyshin.github.io/drmTMB/
 destination: pkgdown-site
 template:
+  math-rendering: mathjax
   bootstrap: 5
   bootswatch: flatly
   includes:
@@ -231,6 +232,7 @@ reference:
     desc: Post-fit methods for optional Julia-engine fits; availability depends on the admitted model and inference route.
     contents:
       - confint.drmTMB_julia
+      - julia-fit-methods
       - predict.drmTMB_julia
       - summary.drmTMB_julia
       - weights.drmTMB_julia
