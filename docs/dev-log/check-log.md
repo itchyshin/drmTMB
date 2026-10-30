@@ -1,3 +1,11 @@
+# 2026-10-30: merge origin/main into #1648 and recertify C17
+
+Merged `origin/main` into `claude/issue-1568-quantile-conditional-docs`
+(no force-push). Kept fitted-row quantile wording in `man/predict.drmTMB.Rd`.
+`python3 tools/recertify-c17.py --label pr1648-merge-main --tolerance 1e-10`
+reproduced all three cells (`|change| 0.000e+00`). Shard:
+`docs/dev-log/check-log.d/2026-10-30-pr1648-merge-main.md`.
+
 # 2026-10-25: `@param engine` cites Julia same-target receipts (#1569)
 
 `R/drmTMB.R` `@param engine` (and `man/drmTMB.Rd`) now names NEWS and

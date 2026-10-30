@@ -2919,8 +2919,12 @@ deviance.drmTMB <- function(object, ...) {
 #' `type = "quantile"` returns per-row conditional quantiles of the fitted
 #' RESPONSE distribution (not of a linear predictor): `qnorm`-style inverse
 #' CDF evaluation via [fitted_distribution()]`$q()` at [predict_parameters()]'s
-#' fixed-effect, population-level parameter estimates -- see
-#' [fitted_distribution()] for the fixed-effect-only scope and the
+#' parameter estimates. With `newdata = NULL` (the fitted rows) of a
+#' random-effect fit, those estimates are conditional on the random-effect
+#' modes, exactly as the fitted-row predictions above, so the quantiles are
+#' conditional on the modes and are not marginal or fixed-effect-only; with
+#' `newdata` supplied they are fixed-effect, population-level. See
+#' [fitted_distribution()] for the
 #' `"spike"`/`"unimplemented"` status rules this inherits (a `"spike"`-status
 #' family emits a one-time warning; an unregistered `model_type` raises a
 #' clear error). For bivariate `biv_gaussian` fits, `dpar` selects which
@@ -3938,8 +3942,11 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' observation covariance when a dense bivariate known `V` was supplied.
 #'
 #' `type = "quantile"` returns Dunn-Smyth randomized quantile residuals from
-#' [drm_quantile_residuals()]: `qnorm(F(y; theta_hat))` at the fitted,
-#' fixed-effect distributional parameters. All 18 currently fitted
+#' [drm_quantile_residuals()]: `qnorm(F(y; theta_hat))` at the fitted-row
+#' distributional parameters from [predict_parameters()]. For a fit with
+#' random effects these parameters are conditional on the random-effect modes,
+#' as for the fitted-row predictions in [predict.drmTMB()]; they are not
+#' fixed-effect-only and not marginal. All 18 currently fitted
 #' `model_type` values have `status = "reference"` in [drm_family_dpq()], so
 #' `type = "quantile"` is available for every family, including bivariate
 #' `biv_gaussian` (where `response` -- `1` or `2` -- is REQUIRED and selects
@@ -3948,11 +3955,11 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' [fitted_distribution()]). Families whose distributional
 #' diagnostics have not been evaluated by simulation emit a one-time warning
 #' that the residual is exploratory; none currently have this status. See
-#' [drm_quantile_residuals()] for the fixed-effect-only adequacy caveat: for
-#' random-effect or structured fits, these residuals are conditional on the
-#' fixed-effect prediction, not marginal, so a departure (or its absence) is
-#' evidence about fixed-effect adequacy only -- never a general validity
-#' claim. Pass `seed`, `nsim`, and/or `response` through `...` to
+#' [drm_quantile_residuals()] for the adequacy caveat: for random-effect or
+#' structured fits, these residuals are conditional on the random-effect
+#' modes, not marginal, so they are not guaranteed to be marginally N(0,1) and
+#' a departure (or its absence) is evidence about the conditional model only
+#' -- never a general validity claim. Pass `seed`, `nsim`, and/or `response` through `...` to
 #' [drm_quantile_residuals()].
 #'
 #' **What this detects -- and does not.** The evidence used 400 seeds across

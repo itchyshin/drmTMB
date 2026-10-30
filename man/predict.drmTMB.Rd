@@ -71,8 +71,12 @@ predictions for the supplied rows.
 \code{type = "quantile"} returns per-row conditional quantiles of the fitted
 RESPONSE distribution (not of a linear predictor): \code{qnorm}-style inverse
 CDF evaluation via \code{\link[=fitted_distribution]{fitted_distribution()}}\verb{$q()} at \code{\link[=predict_parameters]{predict_parameters()}}'s
-fixed-effect, population-level parameter estimates -- see
-\code{\link[=fitted_distribution]{fitted_distribution()}} for the fixed-effect-only scope and the
+parameter estimates. With \code{newdata = NULL} (the fitted rows) of a
+random-effect fit, those estimates are conditional on the random-effect
+modes, exactly as the fitted-row predictions above, so the quantiles are
+conditional on the modes and are not marginal or fixed-effect-only; with
+\code{newdata} supplied they are fixed-effect, population-level. See
+\code{\link[=fitted_distribution]{fitted_distribution()}} for the
 \code{"spike"}/\code{"unimplemented"} status rules this inherits (a \code{"spike"}-status
 family emits a one-time warning; an unregistered \code{model_type} raises a
 clear error). For bivariate \code{biv_gaussian} fits, \code{dpar} selects which

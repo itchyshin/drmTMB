@@ -72,8 +72,11 @@ fitted residual \code{sigma1}, \code{sigma2}, and \code{rho12}, or using the ful
 observation covariance when a dense bivariate known \code{V} was supplied.
 
 \code{type = "quantile"} returns Dunn-Smyth randomized quantile residuals from
-\code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}: \verb{qnorm(F(y; theta_hat))} at the fitted,
-fixed-effect distributional parameters. All 18 currently fitted
+\code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}: \verb{qnorm(F(y; theta_hat))} at the fitted-row
+distributional parameters from \code{\link[=predict_parameters]{predict_parameters()}}. For a fit with
+random effects these parameters are conditional on the random-effect modes,
+as for the fitted-row predictions in \code{\link[=predict.drmTMB]{predict.drmTMB()}}; they are not
+fixed-effect-only and not marginal. All 18 currently fitted
 \code{model_type} values have \code{status = "reference"} in \code{\link[=drm_family_dpq]{drm_family_dpq()}}, so
 \code{type = "quantile"} is available for every family, including bivariate
 \code{biv_gaussian} (where \code{response} -- \code{1} or \code{2} -- is REQUIRED and selects
@@ -82,11 +85,11 @@ clearly, as does supplying it for a univariate fit; see
 \code{\link[=fitted_distribution]{fitted_distribution()}}). Families whose distributional
 diagnostics have not been evaluated by simulation emit a one-time warning
 that the residual is exploratory; none currently have this status. See
-\code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} for the fixed-effect-only adequacy caveat: for
-random-effect or structured fits, these residuals are conditional on the
-fixed-effect prediction, not marginal, so a departure (or its absence) is
-evidence about fixed-effect adequacy only -- never a general validity
-claim. Pass \code{seed}, \code{nsim}, and/or \code{response} through \code{...} to
+\code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} for the adequacy caveat: for random-effect or
+structured fits, these residuals are conditional on the random-effect
+modes, not marginal, so they are not guaranteed to be marginally N(0,1) and
+a departure (or its absence) is evidence about the conditional model only
+-- never a general validity claim. Pass \code{seed}, \code{nsim}, and/or \code{response} through \code{...} to
 \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}.
 
 \strong{What this detects -- and does not.} The evidence used 400 seeds across
