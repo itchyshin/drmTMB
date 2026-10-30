@@ -1,3 +1,12 @@
+# 2026-10-30: merge origin/main into #1629 and recertify C17
+
+Merged `origin/main` into `claude/issue-1455-censored-refusal` (no
+force-push). README cell keeps main's ordinal `disc ~ z` wording plus
+the censored-refusal note. Recertify
+`--label pr1629-merge-main --tolerance 1e-10` reproduced all three
+cells (`|change| 0.000e+00`). Receipt
+`docs/dev-log/implementation-recovery/2026-10-30-pr1629-merge-main-c17c2-c14-final-source-compatibility`.
+
 # 2026-10-25: `@param engine` cites Julia same-target receipts (#1569)
 
 `R/drmTMB.R` `@param engine` (and `man/drmTMB.Rd`) now names NEWS and
