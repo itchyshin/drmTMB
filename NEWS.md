@@ -140,6 +140,12 @@
   run the full Julia fit and then abort at a missing `resd` coefficient
   label. Use `engine = "tmb"` for this shape. Gaussian `(1 | g)` is
   unchanged (#1551).
+* A censored response now fails early with one classed error
+  (`drmTMB_censoring_unsupported`). A `Surv()` response or a `cens()` marker
+  used to give an internal model-frame mismatch, `Ops.Surv`, or `could not find
+  function "cens"`. The message states that censored responses are not
+  supported and points to `survival::survreg()` or `brms`. The capability
+  page and README list the same not-supported row. No estimate changes (#1455).
 
 * `engine = "julia"` now refuses a Gaussian ordinary mean `(1 | g)` when
   the mean formula has a factor, character, or logical predictor. Those

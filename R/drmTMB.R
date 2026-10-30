@@ -358,6 +358,7 @@ drmTMB <- function(
   # route (src/bivariate_student.jl) fit the same target -- measured at pin
   # 430ef64cc, see tests/testthat/test-julia-family-biv_student.R.
   drm_reject_smooth_terms(formula)
+  drm_reject_censored_responses(formula)
   formula <- drm_desugar_double_bars(formula, data)
   formula_env <- drm_formula_env(formula, parent.frame())
   if (identical(engine, "julia") && drm_formula_has_temporal(formula)) {
