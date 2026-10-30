@@ -77,6 +77,67 @@ repair_404_mathjax <- function(site_dir) {
 
 repair_404_mathjax(site_dir)
 
+# Configure MathJax before loading it; loading first overwrites its runtime
+# when the inline config assigns window.MathJax and breaks lazy extensions.
+repair_mathjax_order_text <- function(text) {
+  pattern <- "(?s)<script\\b[^>]*>.*?</script\\s*>"
+  count_marker <- function(pattern) {
+    matches <- gregexpr(pattern, text, perl = TRUE)[[1L]]
+    if (identical(matches[[1L]], -1L)) 0L else length(matches)
+  }
+  loader_markers <- count_marker("tex-mml-chtml\\.js")
+  config_markers <- count_marker("window\\s*\\.\\s*MathJax\\s*=")
+  positions <- gregexpr(pattern, text, perl = TRUE)[[1L]]
+  if (identical(positions[[1L]], -1L)) {
+    if (loader_markers || config_markers) {
+      stop("Malformed MathJax loader/config markup; refusing to rewrite.", call. = FALSE)
+    }
+    return(text)
+  }
+  lengths <- attr(positions, "match.length")
+  scripts <- regmatches(text, list(positions))[[1L]]
+  loader <- which(grepl("(?i)<script\\b[^>]*\\bsrc=[\"'][^\"']*tex-mml-chtml\\.js(?:\\?[^\"']*)?[\"']", scripts, perl = TRUE))
+  config <- which(grepl("window\\s*\\.\\s*MathJax\\s*=", scripts, perl = TRUE))
+  if (loader_markers != length(loader) || config_markers != length(config)) {
+    stop("Malformed MathJax loader/config markup; refusing to rewrite.", call. = FALSE)
+  }
+  if (!length(loader) && !length(config)) return(text)
+  if (length(loader) != 1L || length(config) != 1L || loader == config) {
+    stop("Ambiguous MathJax loader/config scripts; refusing to rewrite.", call. = FALSE)
+  }
+  if (grepl("(?i)<script\\b[^>]*\\bsrc\\s*=", scripts[[config]], perl = TRUE)) {
+    stop("MathJax configuration is not an inline script.", call. = FALSE)
+  }
+  if (positions[[config]] < positions[[loader]]) return(text)
+  loader_end <- positions[[loader]] + lengths[[loader]] - 1L
+  gap <- substr(text, loader_end + 1L, positions[[config]] - 1L)
+  if (nzchar(trimws(gap))) {
+    stop("Unexpected content between MathJax loader and config; refusing to reorder.", call. = FALSE)
+  }
+  config_end <- positions[[config]] + lengths[[config]] - 1L
+  paste0(substr(text, 1L, positions[[loader]] - 1L), scripts[[config]],
+         substr(text, positions[[loader]], positions[[config]] - 1L),
+         substr(text, config_end + 1L, nchar(text)))
+}
+
+repair_mathjax_order <- function(site_dir) {
+  changed <- 0L
+  for (path in list.files(site_dir, pattern = "[.]html$", recursive = TRUE,
+                          full.names = TRUE)) {
+    bytes <- readBin(path, "raw", n = file.info(path)$size)
+    before <- rawToChar(bytes)
+    after <- repair_mathjax_order_text(before)
+    if (!identical(before, after)) {
+      writeBin(charToRaw(after), path)
+      changed <- changed + 1L
+    }
+  }
+  invisible(changed)
+}
+
+repair_mathjax_order(site_dir)
+
+
 # pkgdown can give numbered arguments the same anchor after stripping digits.
 # Keep the first target for incoming links and give later arguments unique IDs.
 repair_duplicate_argument_anchors <- function(site_dir) {
