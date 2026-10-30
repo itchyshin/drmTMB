@@ -32,8 +32,8 @@
 \item{object}{A \code{drmTMB} fit.}
 
 \item{parm}{Optional character or integer vector selecting interval targets.
-\code{NULL} selects all direct Wald-ready targets for Wald intervals. Profile
-intervals usually require explicit target names or target-set shortcuts;
+\code{NULL} selects all direct targets for Wald intervals. Explicit profile intervals usually require target names
+or target-set shortcuts;
 for a Gaussian temporal AR1 or OU fit, \code{NULL} selects every mean-model
 coefficient. Temporal profile intervals admit mean coefficients only.
 Supported shortcuts are \code{"fixed_effects"}, \code{"random_effects"},
@@ -43,10 +43,8 @@ Supported shortcuts are \code{"fixed_effects"}, \code{"random_effects"},
 
 \item{method}{Interval method: \code{"wald"}, \code{"profile"}, or \code{"bootstrap"}. If
 \code{newdata} is supplied and \code{method} is omitted, \code{method = "profile"} is
-used. If \code{method} is omitted without \code{newdata}, ordinary \code{(1 | g)} SD rows
-are profiled and all other rows are Wald; the \code{method} column of the
-result says which. Pass \code{method = "wald"} to get a Wald interval for every
-row.}
+used. If \code{method} is omitted without \code{newdata}, every row is a Wald
+interval. Pass \code{method = "profile"} to profile random-effect SD rows.}
 
 \item{newdata}{Optional data frame for response-scale profile intervals for
 predictor-dependent \code{sigma}, \code{sigma1}, \code{sigma2}, \code{rho12}, or fitted
@@ -111,57 +109,43 @@ zero, or a correlation within \code{rho_boundary} of \verb{+/-1}, is returned wi
 \code{method = "profile"}. Defaults match \code{\link[=check_drm]{check_drm()}} (\code{1e-4}, \code{0.98}).
 An ordinary \code{(1 | g)} SD whose log-scale Wald standard error exceeds 1 is
 flagged the same way even when its estimate is above \code{sd_boundary}; that
-cut-off is fixed. Supplying either threshold (or \code{small_sample_df} or
-\code{bias_correct}) with \code{method} omitted asks for the Wald table, so no SD row
-is profiled.}
+cut-off is fixed.}
 
 \item{small_sample_df}{Small-sample reference distribution for the
-\code{method = "wald"} interval. \code{"location"} (the default) references a
-t-quantile with \code{df = g - 1} -- a group-based, Satterthwaite-style
-between-group degrees of freedom -- for each \emph{location-axis} (\code{mu},
-\code{mu1}, \code{mu2}) structured random-effect SD target (\code{phylo}, \code{spatial},
-\code{animal}, \code{relmat}) with a resolvable group count \code{g}, and keeps the
-ordinary normal quantile \code{z = qnorm((1 + level) / 2)} for every other
-target. This widens only the location-axis structured-RE SD intervals,
-which under-cover at small \code{g} under the normal quantile; the t-quantile
-lifts their coverage and converges back to \code{z} as \code{g} grows. Dispersion
-(\code{sigma}, \code{sigma1}, \code{sigma2}) structured SD targets are deliberately left
-at the normal quantile because they already over-cover; non-structured and
-fixed-effect targets are never widened; and a plain labelled covariance
-block such as \code{(1 + x | p | id)} is also left at the normal quantile by
-default, because the correction magnitude was calibrated for structured
-blocks only. \code{"none"} is the opt-out: it uses the normal quantile for
-\emph{every} target and is byte-identical to the pre-default behaviour.
-\code{"group"} widens \emph{every} resolvable SD target -- structured and
-labelled-covariance, location and dispersion axis alike; use it only when
-you deliberately want to t-reference the dispersion axis or a labelled
-covariance block too. Note
-that the t-quantile only widens the interval; it does not move its centre.
-The residual small-\code{g} gap is ML shrinkage bias in the variance-component
-point estimate (a job for REML), not a quantile problem, so the centre
-shift is handled by \code{bias_correct}.}
+\code{method = "wald"} interval. \code{"location"} (the default) uses a t-quantile
+with \code{df = g - 1} for location-axis (\code{mu}, \code{mu1}, \code{mu2}) structured
+random-effect SD targets (\code{phylo}, \code{spatial}, \code{animal}, \code{relmat}) when a
+unique group count \code{g} is available. Other targets use the normal
+quantile. This changes interval width, not its centre. The retained
+engine coverage check concerns four q2 phylogenetic and relatedness-matrix
+\code{mu1:x}/\code{mu2:x} slope SD cells at \code{g = 8}, with a post-hoc check across
+\verb{g = 8, 16, 32}; the default's broader
+application does not establish nominal coverage for every target.
+Dispersion-axis (\code{sigma}, \code{sigma1}, \code{sigma2}) targets stay at the normal
+quantile by default. Their coverage depends on the model: a replicated
+pure \code{sigma} intercept over-covered in a pilot, whereas some \code{sigma}
+one-slope intercept targets under-covered at \code{g = 8}. Fixed effects and
+plain labelled covariance blocks are also unchanged by the default.
+\code{"none"} uses the normal quantile for every target and recovers the
+earlier behaviour. \code{"group"} widens every resolvable structured or
+labelled-covariance SD target on either axis; this broader choice is
+not covered by the q2 calibration.}
 
-\item{bias_correct}{Small-sample point-estimate bias correction for the
-\code{method = "wald"} interval. \code{"location"} (the default) adds a
-simulation-calibrated shift \code{log(g / (g - 1))} to the log-scale point
-estimate -- before back-transforming -- of each \emph{location-axis} (\code{mu},
-\code{mu1}, \code{mu2}) structured random-effect SD target with a resolvable group
-count \code{g} (the same targets \code{small_sample_df = "location"} widens), and
-leaves every other target unshifted. The ML estimate of a structured-RE
-variance-component SD is biased low on the log scale by about
-\code{log(g / (g - 1))} -- a downward shrinkage that REML, or simply a larger
-\code{g}, removes asymptotically; this shift moves the interval centre up to
-counter that shrinkage. Used together with \code{small_sample_df = "location"},
-the centre shift and the t(\code{df = g - 1}) width act independently, giving
-\verb{exp((log(sigma_hat) + log(g / (g - 1))) +/- qt(p, g - 1) * se_log)} and
-lifting small-\code{g} coverage of location-axis structured-RE SD targets to
-nominal. \code{"none"} is the opt-out: it leaves every centre at the ML estimate
-and is byte-identical to the pre-default behaviour. \code{"group"} shifts
-\emph{every} resolvable SD target -- structured and labelled-covariance, location
-and dispersion axis alike. The default deliberately excludes the dispersion
-axis (\code{sigma} SD intervals already over-cover, so the upward shift would
-push them further conservative) and plain labelled covariance blocks (whose
-correction magnitude is not yet simulation-calibrated).}
+\item{bias_correct}{Small-sample centre adjustment for the
+\code{method = "wald"} interval. \code{"location"} (the default) adds
+\code{log(g / (g - 1))} to the log-SD estimate of each location-axis structured
+random-effect target with a unique group count \code{g}, before back-transforming;
+other targets are unshifted. In the retained q2 phylogenetic and
+relatedness-matrix \code{mu1:x}/\code{mu2:x} slope SD cells at \code{g = 8} and a
+post-hoc cross-\code{g} check, this shift approximated measured ML log-SD shrinkage. Combined with the
+t width, it brought coverage near 0.95 in those cells. Applying the same
+formula to another route is an implemented calculation, not evidence of
+its bias or interval coverage. \code{"none"} leaves every centre unshifted;
+\code{"group"} shifts every resolvable structured or labelled-covariance SD
+target on either axis. Dispersion targets remain unshifted by default
+because their coverage is regime dependent; the magnitude is also not
+calibrated for plain labelled covariance blocks. The shift changes the
+centre only; it does not alter the fitted model or a profile endpoint.}
 
 \item{bootstrap_re_form}{\code{re.form} passed through to \code{\link[stats:simulate]{stats::simulate()}}
 when \code{method = "bootstrap"}, with the same lme4 meanings as
@@ -199,10 +183,7 @@ For a plain matrix view of the \code{lower} and \code{upper} columns, use
 \code{\link[=as.matrix.drm_confint]{as.matrix.drm_confint()}}.
 }
 \description{
-\code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. When
-\code{method} is omitted, ordinary \code{(1 | g)} random-intercept SD rows are
-\strong{profile-likelihood} intervals and every other row is a Wald interval; see
-the \emph{Default interval for ordinary \code{(1 | g)} SDs} section. Wald
+\code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. Wald
 intervals are fast and are returned for fixed-effect coefficients and direct
 response-scale parameter targets by default. Direct Wald targets include
 constant residual-scale, random-effect standard-deviation, random-effect
@@ -248,9 +229,8 @@ fits with constant
 \code{sigma}, \code{sigma1}, or \code{sigma2}, \code{parm = "sigma"} and friends report
 response-scale intervals.
 
-The fastest routine route is \code{confint(fit)}, which uses Wald intervals for
-fixed effects and direct response-scale targets, and profiles only the
-ordinary \code{(1 | g)} SD rows. For long phylogenetic,
+The routine route is \code{confint(fit)}, which uses Wald intervals for
+fixed effects and direct response-scale targets. For long phylogenetic,
 spatial, animal-model, or relatedness fits, profile only the needed
 variance-component or correlation rows with the default
 \code{profile_engine = "auto"} first; direct scalar scale, SD, and correlation
@@ -275,10 +255,7 @@ decay, bootstrap, and \code{newdata} intervals are unavailable.
 Read \code{check_drm(fit)}: a non-positive-definite fitted Hessian does
 not prevent a finite profile endpoint, but it makes the fitted likelihood
 locally irregular and the interval is not coverage-calibrated.
-\item Ordinary \code{(1 | g)} random-intercept SDs: \code{confint(fit)}
-already profiles them (see below); a profile interval at a boundary
-still warns and is not calibrated.
-\item Other random-effect SDs and direct variance-component targets: prefer
+\item Random-effect SDs and other direct variance-component targets: prefer
 \code{confint(fit, parm = ..., method = "profile")} after
 \code{profile_targets(fit)} shows the row is profile-ready. Profile
 re-optimizes nuisance parameters and is slower than Wald.
@@ -297,31 +274,21 @@ For a short applied walkthrough, see the vignette
 \emph{First-week intervals: fit, profile, and boundary}.
 }
 
-\section{Default interval for ordinary \code{(1 | g)} SDs}{
+\section{Wald intervals for ordinary \code{(1 | g)} SDs}{
 
-With \code{method} omitted (and no \code{newdata}), \code{confint()} returns a profile
-interval for each ordinary \code{(1 | g)} random-intercept SD row and a Wald
-interval for every other row, in the usual row order. "Ordinary" means a plain
-grouped intercept SD on \code{mu}, \code{sigma}, \code{zoi} or \code{coi} that
-\code{\link[=profile_targets]{profile_targets()}} lists as profile-ready. Structured SDs (\code{phylo()},
-\code{spatial()}, \code{animal()}, \code{relmat()}), slope and correlated-term SDs, and
-labelled covariance blocks keep the Wald default. The \code{method} and
-\code{profile.engine} columns record which interval each row is. The default is
-profile because the Wald SD interval undercovers near the boundary. In the
+The default \code{confint(fit)} is Wald for every row, including random-effect SD
+rows. The Wald SD interval undercovers near the boundary. In the
 sweep-oct16 t9 design (Gaussian location-scale with \code{(1 | g)}, n_g = 10,
 300 replicates per cell) at a true SD of 0.1, Wald coverage was 0.36 with 10
 groups and 0.42 with 30 groups, with about half of the replicates returning
 an infinite upper limit; profile coverage on the same replicates was 0.97 and
 0.98 there. At a true SD of 0.5, Wald coverage was 0.97 to 0.98 and profile
-coverage 0.93 to 0.957. Profile is slower than Wald, and it is not a repair
-at a boundary (see \emph{Boundary intervals}): it still warns when it reaches one.
-
-The default falls back to the Wald table when the TMB object was not kept
-(\code{drm_control(keep_tmb_object = FALSE)}), when no requested row is an
-ordinary SD, and when \code{small_sample_df}, \code{bias_correct}, \code{sd_boundary} or
-\code{rho_boundary} is supplied. \code{method = "wald"} always returns Wald for every
-row, \code{method = "profile"} and \code{method = "bootstrap"} are unchanged, and
-\code{engine = "julia"} fits are not affected.
+coverage 0.93 to 0.957. When a SD row is labelled \code{wald_at_boundary} (see
+\emph{Boundary intervals}), use \code{confint(fit, parm = ..., method = "profile")}
+for that row. Profile is slower than Wald, and it is not a repair at a
+boundary: it still warns when it reaches one.
+That sweep does not calibrate intervals for other ordinary-SD routes or
+different study designs.
 }
 
 \section{Boundary intervals}{
@@ -331,12 +298,12 @@ or a correlation approaches \verb{+/-1}, and each warns about its own case.
 
 \code{method = "wald"} flags a row with \code{conf.status = "wald_at_boundary"} and warns
 (class \code{drmTMB_wald_boundary_warning}), because a symmetric Wald interval
-undercovers under boundary (chi-square-mixture) inference. That warning
+is unreliable at a variance-component boundary. That warning
 recommends \code{method = "profile"}. For an ordinary \code{(1 | g)} SD this label is
 not limited to an estimate at zero: it is also applied when the log-scale Wald
-standard error exceeds 1, because the interval then spans a factor of about 50
-or more (for example \verb{[5e-37, 1e33]} or \verb{[0.015, 1.6]} around estimates of
-0.026 to 0.18) and is not a usable \code{level} interval. Treat any such
+standard error exceeds 1. At the default 95\% level, this makes the ratio of
+the upper to lower Wald endpoint exceed about 50. This width does not
+establish coverage. Treat any such
 \code{wald_at_boundary} SD row as unreliable.
 
 \code{method = "profile"} sets \code{profile.boundary = TRUE} and warns (class
@@ -449,19 +416,17 @@ confint(fit, parm = "sigma", method = "profile")
 # percentiles before back-transforming to the response scale.
 }
 \references{
-The small-sample corrections applied by \code{small_sample_df} and \code{bias_correct}
-(whether the default \code{"location"} scope or the broader \code{"group"} scope) are
-\emph{motivated} by established mixed-model theory but are simulation-calibrated,
-not derived: the \code{log(g / (g - 1))} SD-scale centre
-shift is about \strong{twice} the leading-order REML SD correction
-(\code{0.5 * log(g / (g - 1))}), matching the larger ML shrinkage measured on these
-structured/bivariate models (their effective df is well below \code{g - 1}). The
-magnitude used here comes from separate simulations for each structured or
-bivariate model class, not from a single general correction. Relevant references:
-
-Restricted maximum likelihood and the variance-component bias that motivates
-the centre shift (REML debiases the variance by \code{g/(g-1)}; the shift here is on
-the SD log scale and ~2x the leading-order REML SD term):
+The default correction is motivated by mixed-model variance-component
+bias but its \code{log(g / (g - 1))} log-SD magnitude is empirical, not a
+general consequence of REML. The retained calibration covers q2
+phylogenetic and relatedness-matrix \code{mu1:x}/\code{mu2:x} slope SD cells
+(engine check at \code{g = 8}, post-hoc checks at \verb{g = 8, 16, 32}); neither
+other structured routes nor the broader \code{"group"}
+scope inherit that coverage result. In the elementary independent Gaussian
+variance example, the familiar variance factor is \code{g/(g-1)}, equivalent
+to only \code{0.5 * log(g/(g-1))} on the SD log scale. The cited theory supplies
+context and direction, not a derivation of this package's full shift.
+Relevant references:
 
 Patterson, H. D., & Thompson, R. (1971). Recovery of inter-block information
 when block sizes are unequal. Biometrika, 58(3), 545-554.
