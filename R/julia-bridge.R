@@ -5575,7 +5575,8 @@ vcov.drmTMB_julia <- function(object, ...) {
 #' refuses a cutpoint target for every `method` and points at
 #' `engine = "tmb"`, whose constrained cutpoint profile does solve them.
 #'
-#' @param object A `drmTMB_julia` fit.
+#' @param object A `drmTMB_julia` fit, or a legacy `drmTMB_julia_xfam` fit
+#'   for the restricted cross-family interval method.
 #' @param parm Optional target selection. For `"wald"`, compact coefficient
 #'   labels (`"mu:x"`) or full names (`"fixef:mu:x"`); for `"profile"` /
 #'   `"bootstrap"`, either a fixed-effect target such as `"fixef:mu:x"` (or
@@ -9692,6 +9693,14 @@ rho_latent.drmTMB_julia_xfam <- function(object, ...) {
   object$rho_latent
 }
 
+#' @rdname confint.drmTMB_julia
+#' @usage \method{confint}{drmTMB_julia_xfam}(object, parm = "rho_latent",
+#'   level = 0.95, method = c("profile", "wald"), ...)
+#' @details For the legacy experimental `drmTMB_julia_xfam` route, only
+#'   `parm = "rho_latent"` and `level = 0.95` are accepted. The method returns
+#'   the stored latent-correlation interval selected by `method`. This
+#'   inspection route adds no admission, standard-error, calibration, or
+#'   coverage claim.
 #' @export
 confint.drmTMB_julia_xfam <- function(
   object,
