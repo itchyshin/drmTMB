@@ -32,6 +32,13 @@
   Spike-grade, bivariate and residual-less fits get no row. Reported by
   Russell Dinnage in the independent evaluation of drmTMB 0.7.0 (#1335).
 
+* `predict(fit, type = "mean")` returns the response mean `E[Y]`:
+  `exp(mu + sigma^2 / 2)` for lognormal fits, `(1 - zi) * mu` for
+  zero-inflated count fits, the hurdle mean for hurdle fits, and the expected
+  category score for `cumulative_logit()` fits. It works with `newdata` (at
+  the population level) and equals `fitted()` on the fitted rows.
+  `type = "response"` is unchanged and still returns the component
+  distributional parameter, and `type = "mean"` takes no `dpar` (#1320).
 * `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
   check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
   the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative

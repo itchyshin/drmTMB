@@ -8,7 +8,7 @@
   object,
   newdata = NULL,
   dpar = NULL,
-  type = c("response", "link", "quantile"),
+  type = c("response", "link", "quantile", "mean"),
   prob = c(0.025, 0.5, 0.975),
   re.form = NULL,
   ...
@@ -29,7 +29,9 @@ fitted distributional parameter is used. For \code{type = "quantile"} on a
 bivariate \code{biv_gaussian} fit, \code{dpar} instead selects which response's
 marginal quantile to compute (see Details).}
 
-\item{type}{Prediction scale: \code{"response"}, \code{"link"}, or \code{"quantile"}.}
+\item{type}{Prediction scale: \code{"response"}, \code{"link"}, \code{"quantile"}, or
+\code{"mean"}. \code{"mean"} returns the response mean \code{E[Y]} and takes no \code{dpar}
+(see Details).}
 
 \item{prob}{Numeric vector of probabilities in (0, 1), used only when
 \code{type = "quantile"}.}
@@ -43,7 +45,7 @@ training rows are predicted conditionally on the fitted random effects and
 \code{\link[=predict_parameters]{predict_parameters()}} with \code{conf.int = TRUE} for standard errors).}
 }
 \value{
-A numeric vector for \code{type} \code{"response"}/\code{"link"}. For
+A numeric vector for \code{type} \code{"response"}/\code{"link"}/\code{"mean"}. For
 \code{type = "quantile"}, a numeric matrix with one row per observation and
 one column per \code{prob} (columns named as percentages, e.g. \code{"2.5\%"}), with
 \code{attr(., "calibrated") == FALSE}.
@@ -98,9 +100,18 @@ when \code{dpar = "mu"}, not the unconditional mean after structural-zero or
 hurdle mixing. For lognormal fits it returns \code{mu} on the log-response scale,
 not \code{exp(mu + sigma^2 / 2)}. For cumulative-logit fits it returns the
 location linear predictor on its response scale, not an expected ordinal
-score. Use \code{\link[=fitted.drmTMB]{fitted.drmTMB()}} for fitted-row response means or expected
-scores; use explicit distributional-parameter predictions when a new-data
-mean must be assembled outside the fitted rows.
+score. Use \code{type = "mean"} for \code{E[Y]}.
+
+\code{type = "mean"} returns the response mean \code{E[Y]} for each row, so it differs
+from \code{type = "response"} exactly where the two answer different questions:
+\code{exp(mu + sigma^2 / 2)} for lognormal fits; \code{(1 - zi) * mu} for
+zero-inflated count fits; the hurdle mean for hurdle fits; and the expected
+score \code{sum(k * Pr(y = k))} on the category indices \code{1:K} for
+cumulative-logit fits. Truncated and zero-one-beta fits use their own mean
+formulas, and families whose mean is \code{mu} return \code{mu}. With
+\code{newdata = NULL} it equals \code{\link[=fitted.drmTMB]{fitted.drmTMB()}}; with \code{newdata} it uses the
+population-level parameter predictions for the supplied rows. \code{dpar} must be
+left \code{NULL}, and bivariate fits are an error.
 
 Binary predictor labels follow the fitted encoding, regardless of the levels
 present in the new batch. Numeric new values match raw numeric fitted labels;
@@ -128,6 +139,7 @@ predict(fit, dpar = "sigma")
 predict(fit, dpar = "sigma", type = "link")
 predict(fit, newdata = data.frame(x = c(0, 1)), dpar = "mu")
 predict(fit, type = "quantile", prob = c(0.025, 0.5, 0.975))
+predict(fit, type = "mean")
 }
 \seealso{
 \code{\link[=fitted.drmTMB]{fitted.drmTMB()}}, \code{\link[=rho12]{rho12()}}, \code{\link[stats:sigma]{stats::sigma()}}, \code{\link[=fitted_distribution]{fitted_distribution()}},

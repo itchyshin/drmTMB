@@ -2944,7 +2944,9 @@ deviance.drmTMB <- function(object, ...) {
 #'   fitted distributional parameter is used. For `type = "quantile"` on a
 #'   bivariate `biv_gaussian` fit, `dpar` instead selects which response's
 #'   marginal quantile to compute (see Details).
-#' @param type Prediction scale: `"response"`, `"link"`, or `"quantile"`.
+#' @param type Prediction scale: `"response"`, `"link"`, `"quantile"`, or
+#'   `"mean"`. `"mean"` returns the response mean `E[Y]` and takes no `dpar`
+#'   (see Details).
 #' @param prob Numeric vector of probabilities in (0, 1), used only when
 #'   `type = "quantile"`.
 #' @param re.form Must be `NULL` (the default), which is the only behaviour:
@@ -2954,7 +2956,7 @@ deviance.drmTMB <- function(object, ...) {
 #'   (for example `se.fit`, which `predict()` does not compute; use
 #'   [predict_parameters()] with `conf.int = TRUE` for standard errors).
 #'
-#' @return A numeric vector for `type` `"response"`/`"link"`. For
+#' @return A numeric vector for `type` `"response"`/`"link"`/`"mean"`. For
 #'   `type = "quantile"`, a numeric matrix with one row per observation and
 #'   one column per `prob` (columns named as percentages, e.g. `"2.5%"`), with
 #'   `attr(., "calibrated") == FALSE`.
@@ -2972,9 +2974,18 @@ deviance.drmTMB <- function(object, ...) {
 #' hurdle mixing. For lognormal fits it returns `mu` on the log-response scale,
 #' not `exp(mu + sigma^2 / 2)`. For cumulative-logit fits it returns the
 #' location linear predictor on its response scale, not an expected ordinal
-#' score. Use [fitted.drmTMB()] for fitted-row response means or expected
-#' scores; use explicit distributional-parameter predictions when a new-data
-#' mean must be assembled outside the fitted rows.
+#' score. Use `type = "mean"` for `E[Y]`.
+#'
+#' `type = "mean"` returns the response mean `E[Y]` for each row, so it differs
+#' from `type = "response"` exactly where the two answer different questions:
+#' `exp(mu + sigma^2 / 2)` for lognormal fits; `(1 - zi) * mu` for
+#' zero-inflated count fits; the hurdle mean for hurdle fits; and the expected
+#' score `sum(k * Pr(y = k))` on the category indices `1:K` for
+#' cumulative-logit fits. Truncated and zero-one-beta fits use their own mean
+#' formulas, and families whose mean is `mu` return `mu`. With
+#' `newdata = NULL` it equals [fitted.drmTMB()]; with `newdata` it uses the
+#' population-level parameter predictions for the supplied rows. `dpar` must be
+#' left `NULL`, and bivariate fits are an error.
 #'
 #' Binary predictor labels follow the fitted encoding, regardless of the levels
 #' present in the new batch. Numeric new values match raw numeric fitted labels;
@@ -3004,12 +3015,13 @@ deviance.drmTMB <- function(object, ...) {
 #' predict(fit, dpar = "sigma", type = "link")
 #' predict(fit, newdata = data.frame(x = c(0, 1)), dpar = "mu")
 #' predict(fit, type = "quantile", prob = c(0.025, 0.5, 0.975))
+#' predict(fit, type = "mean")
 #' @export
 predict.drmTMB <- function(
   object,
   newdata = NULL,
   dpar = NULL,
-  type = c("response", "link", "quantile"),
+  type = c("response", "link", "quantile", "mean"),
   prob = c(0.025, 0.5, 0.975),
   re.form = NULL,
   ...
@@ -3028,6 +3040,23 @@ predict.drmTMB <- function(
   if (length(dots) > 0L) {
     cli::cli_abort("{.arg ...} is reserved for future options.")
   }
+  type <- match.arg(type)
+  if (identical(type, "mean")) {
+    if (!is.null(dpar)) {
+      cli::cli_abort(c(
+        "{.code type = \"mean\"} does not take {.arg dpar}.",
+        "i" = "It returns the response mean {.code E[Y]}, assembled from several distributional parameters. Use {.code type = \"response\"} with {.arg dpar} for one parameter."
+      ))
+    }
+    if (drm_has_temporal_mu(object) && !is.null(newdata)) {
+      temporal_structure <- toupper(object$model$structured$temporal_mu$structure)
+      cli::cli_abort(c(
+        "Temporal {temporal_structure} prediction is currently available only for the fitted observations.",
+        "i" = "Forecasting and {.arg newdata} prediction are deferred because they require an explicit temporal-state convention."
+      ))
+    }
+    return(drm_predict_mean(object, newdata = newdata))
+  }
   if (is.null(dpar)) {
     dpar <- object$model$dpars[[1L]]
   }
@@ -3039,7 +3068,6 @@ predict.drmTMB <- function(
       "i" = "Forecasting and {.arg newdata} prediction are deferred because they require an explicit temporal-state convention."
     ))
   }
-  type <- match.arg(type)
   if (identical(type, "quantile")) {
     return(drm_predict_quantile(object, newdata = newdata, dpar = dpar, prob = prob))
   }
@@ -6712,6 +6740,41 @@ drm_fitted_response <- function(object) {
   }
   cli::cli_abort(
     "Internal error: no fitted-response rule for model type {.val {object$model$model_type}}."
+  )
+}
+
+# E[Y] for `predict(type = "mean")`. Fitted rows (`newdata = NULL`) use the
+# same conditional parameter predictions as `fitted()`; `newdata` rows use the
+# population-level parameter predictions. Components are always requested with
+# `type = "response"`, so this never changes what `type = "response"` returns.
+drm_predict_mean <- function(object, newdata = NULL) {
+  model_type <- object$model$model_type
+  par <- function(dpar) {
+    predict.drmTMB(object, newdata = newdata, dpar = dpar, type = "response")
+  }
+  switch(
+    model_type,
+    lognormal = exp(par("mu") + 0.5 * par("sigma")^2),
+    zi_poisson = ,
+    zi_nbinom2 = (1 - par("zi")) * par("mu"),
+    hurdle_nbinom2 = hurdle_nbinom2_mean(par("mu"), par("sigma"), par("hu")),
+    truncated_nbinom2 = truncated_nbinom2_mean(par("mu"), par("sigma")),
+    zero_one_beta = zero_one_beta_mean(par("mu"), par("zoi"), par("coi")),
+    cumulative_logit = ordinal_expected_score(object, newdata = newdata),
+    gaussian = ,
+    student = ,
+    skew_normal = ,
+    gamma = ,
+    tweedie = ,
+    beta = ,
+    beta_binomial = ,
+    binomial = ,
+    poisson = ,
+    nbinom2 = par("mu"),
+    cli::cli_abort(c(
+      "{.code type = \"mean\"} is not available for model type {.val {model_type}}.",
+      "i" = "Bivariate fits have no single response mean; use {.fn fitted} for the fitted-row means."
+    ))
   )
 }
 
