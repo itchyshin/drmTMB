@@ -21,7 +21,9 @@ fitted transform enforces \code{nu > 2}; its marginal standard deviations are
 The current model allows fixed effects in \code{mu1} and \code{mu2}, with
 intercept-only \code{sigma1}, \code{sigma2}, shared \code{nu}, and \code{rho12}. Random effects,
 parameter predictors outside the locations, missing response pairs, and
-interval inference are not supported.
+interval inference are not supported. Fixed-effect \code{biv_student()} models
+are admitted through \code{engine = "julia"}; see
+\code{vignette("julia-engine", package = "drmTMB")}.
 }
 \examples{
 biv_student()

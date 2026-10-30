@@ -30,9 +30,9 @@ A \code{ggplot} object.
 plot) of \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} against their N(0,1) order-statistic
 theoretical quantiles: \verb{deviation = sorted residual - theoretical quantile}. A flat scatter around the dotted zero reference line is no
 detectable departure from N(0,1); a systematic bend flags a
-mis-specification of the fitted distributional form (see the
-GAMLSS-Primer Fig-4c contrast: a location-only fit to heteroscedastic data
-bends, the matching location-scale fit is flat).
+mis-specification of the fitted distributional form. With heteroscedastic
+data, a location-only model can leave a systematic pattern that a
+location-scale model can represent.
 }
 \details{
 When \code{nsim > 1}, a pale grey envelope (with a darker outline) overplots the
