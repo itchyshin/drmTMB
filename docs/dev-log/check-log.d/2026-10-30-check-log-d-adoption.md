@@ -18,3 +18,7 @@ No receipt-tracked file changed.
 
 Claim boundary: process docs and one test only. No package default,
 likelihood, or CRAN-byte change.
+
+Follow-up: CI shard 1 failed `test-env-skip-census.R` because the new
+pin file was missing from `inst/extdata/env-skip-census.tsv`. Regenerated
+with `Rscript tools/write-env-skip-census.R` (one build-premise row).
