@@ -162,7 +162,7 @@
 #'   `biv_student()`, and `biv_lognormal()` on the fixed-effect route only.
 #'   Same-target live tests use coefficients and log-likelihood within
 #'   1e-4 and Wald SEs within 1e-3 relative against `engine = "tmb"`.
-#'   Measured gaps at DRM.jl pin 430ef64cc for `skew_normal()`,
+#'   Measured gaps at DRModels.jl source pin 19e5e2fe for `skew_normal()`,
 #'   `cumulative_logit()`, `biv_student()`, and `biv_lognormal()` sit
 #'   inside those bars; see NEWS and
 #'   `tests/testthat/test-julia-family-skew_normal.R`,

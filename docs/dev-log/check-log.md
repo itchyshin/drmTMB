@@ -1,3 +1,12 @@
+# 2026-10-30: merge origin/main into #1651 and recertify C17
+
+Merged `origin/main` into `docs/r-julia-tolerance-source-pin` (no
+force-push). One roxygen line in `R/drmTMB.R` cites Julia source
+`19e5e2fe`. `python3 tools/recertify-c17.py --label pr1651-merge-main
+--tolerance 1e-10` reproduced all three cells (`|change| 0.000e+00`).
+Receipt
+`docs/dev-log/implementation-recovery/2026-10-30-pr1651-merge-main-c17c2-c14-final-source-compatibility`.
+
 # 2026-10-25: `@param engine` cites Julia same-target receipts (#1569)
 
 `R/drmTMB.R` `@param engine` (and `man/drmTMB.Rd`) now names NEWS and

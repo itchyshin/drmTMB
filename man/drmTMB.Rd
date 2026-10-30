@@ -22,12 +22,12 @@ drmTMB(
 \arguments{
 \item{formula}{A \code{drm_formula} object created by \code{\link[=drm_formula]{drm_formula()}} or \code{\link[=bf]{bf()}}.}
 
-\item{family}{A response family, such as \code{\link[stats:family]{stats::gaussian()}}, \code{\link[=student]{student()}},
-\code{\link[=skew_normal]{skew_normal()}}, \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:family]{stats::Gamma()}} with \code{link = "log"},
+\item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
+\code{\link[=skew_normal]{skew_normal()}}, \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"},
 \code{\link[=tweedie]{tweedie()}}, \code{\link[=beta_family]{beta_family()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
-\code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[stats:family]{stats::binomial()}} with \code{link = "logit"}, \code{"probit"},
+\code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[stats:binomial]{stats::binomial()}} with \code{link = "logit"}, \code{"probit"},
 or \code{"cloglog"},
-\code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:family]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
+\code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
 \code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
 \code{zi ~ predictors} to a Poisson or \code{nbinom2()} model fits the corresponding
 zero-inflated count model. Adding \code{hu ~ predictors} to a
@@ -121,7 +121,7 @@ plus \code{truncated_nbinom2()}, \code{zero_one_beta()}, \code{tweedie()},
 \code{biv_student()}, and \code{biv_lognormal()} on the fixed-effect route only.
 Same-target live tests use coefficients and log-likelihood within
 1e-4 and Wald SEs within 1e-3 relative against \code{engine = "tmb"}.
-Measured gaps at DRM.jl pin 430ef64cc for \code{skew_normal()},
+Measured gaps at DRModels.jl source pin 19e5e2fe for \code{skew_normal()},
 \code{cumulative_logit()}, \code{biv_student()}, and \code{biv_lognormal()} sit
 inside those bars; see NEWS and
 \code{tests/testthat/test-julia-family-skew_normal.R},
