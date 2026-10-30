@@ -11,8 +11,10 @@ Commands:
 - Pointed `AGENTS.md` rule 7 at `check-log.d`.
 - Added `tests/testthat/test-check-log-d-adoption.R`.
 
-Results: local file-existence test is the pin. R CMD check was not run
-in this environment. No receipt-tracked file changed.
+Results: local file-existence test is the pin (PASS 5). CI source-tree
+`--check` failed because the new test names `docs/` (build-excluded),
+so `tools/source-tree-tests.txt` now lists `test-check-log-d-adoption.R`.
+No receipt-tracked file changed.
 
 Claim boundary: process docs and one test only. No package default,
 likelihood, or CRAN-byte change.
