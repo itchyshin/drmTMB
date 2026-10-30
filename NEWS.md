@@ -59,6 +59,15 @@
   not `mu`), and Gaussian `(1 | g)` (includes the fitted modes, so `fitted()`
   now agrees with `predict(dpar = "mu")`). They are recomputed R-side from the
   bridged distributional parameters (#1566).
+* `summary()` of a `REML` fit now labels the mean-block standard-error
+  convention (`summary(fit)$se_convention`, printed under the estimator line).
+  Native `engine = "tmb"` REML SEs are `"sdreport-inflated"` (TMB `sdreport`
+  over a random set that contains `beta_mu`, so variance-parameter uncertainty
+  is propagated into the mean block); `engine = "julia"` REML SEs are
+  `"canonical GLS"` (DRM.jl's closed-form `(Xmu' Vhat^-1 Xmu)^-1`). Neither
+  engine changes its convention (owner decision, 2026-10-11), and the
+  mean-block REML SE comparison is no longer a cross-engine parity gate; the
+  DRM.jl-vs-oracle check stays. `summary()` of ML fits is unchanged (#1201).
 * `drmTMB()` now warns (class `drmTMB_scale_spread_warning`) at fit time when the
   fitted `log(sigma)` spans more than `log(1e4)` across observations, the same
   bare unit-free rule as DRModels.jl#1066, whether or not the `log(sigma)` clamp
@@ -1545,9 +1554,9 @@ every item above.
   oracle confirms DRM.jl to `4.5e-08`, and the two engines' SEs differ by
   `4.84e-05`, `1.50e-03` and `1.42e-07` relative on the three coefficients.
   This is a construction difference, not an error on either side: the test
-  asserts DRM.jl-vs-oracle agreement at rtol `~5e-7` and bounds the
-  cross-engine gap at rtol `2.5e-3`, not a bare rtol-`1e-3` cross-engine
-  match. Tracked in #1201.
+  asserts DRM.jl-vs-oracle agreement at rtol `~5e-7`; the cross-engine
+  mean-block SE bound was later dropped and the convention labelled instead
+  (#1201).
   **Scope**: `phylo()` with an intercept-only `sigma` only. A `sigma`
   predictor, an ordinary `(1 | g)` bar alongside the phylo term, `relmat()` /
   `animal()` / `spatial()`, and a non-default `missing` response engine all

@@ -1,3 +1,12 @@
+# 2026-10-30: merge origin/main into #1642 and recertify C17
+
+Merged `origin/main` into `claude/issue-1201-reml-se-convention` (no
+force-push). Kept the #1201 NEWS bullet and main's #1539 scale-spread
+warning. `python3 tools/recertify-c17.py --label pr1642-merge-main
+--tolerance 1e-10` reproduced all three cells (`|change| 0.000e+00`).
+Receipt
+`docs/dev-log/implementation-recovery/2026-10-30-pr1642-merge-main-c17c2-c14-final-source-compatibility`.
+
 # 2026-10-25: `@param engine` cites Julia same-target receipts (#1569)
 
 `R/drmTMB.R` `@param engine` (and `man/drmTMB.Rd`) now names NEWS and
