@@ -95,6 +95,12 @@ denominator, so they can differ from \code{icc()}/\code{repeatability()} here wh
 a fit has two or more structured components. Their names make the denominator
 explicit so that one label does not refer to two different quantities.
 
+These quantities are Gaussian-only for now: a non-Gaussian fit is refused
+with an error rather than given a value on an unstated scale. A
+non-Gaussian version would have to say which scale it reports (latent,
+liability, or observed data; de Villemereuil et al. 2016, \emph{Genetics}
+204:1281-1294); see \code{docs/design/275-repeatability-scale-and-residual-variance.md}.
+
 Fits must be Gaussian, have a constant residual scale (\code{sigma ~ 1}) or a
 closed-form marginal residual variance, and have at least one structured
 mean random-effect component (\code{(1 | group)}, \code{phylo(...)}, \code{animal(...)},

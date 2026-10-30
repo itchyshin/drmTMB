@@ -54,6 +54,14 @@ instead of the environment setting if you prefer to keep the path in your R
 setup. For a new analysis, use one of these two settings. Restart R after
 changing checkouts.
 
+On Linux, if JuliaCall cannot initialize because a Julia shared library cannot
+be loaded, set `R_LD_LIBRARY_PATH` to Julia's `lib/julia` directory before
+starting R, for example `R_LD_LIBRARY_PATH=/path/to/julia/lib/julia R`. The
+setting needs to be present when R starts. See the [JuliaCall troubleshooting
+note](https://github.com/JuliaInterop/JuliaCall#libstdcso6-version-glibcxx34xx-not-found).
+This can address a library-loading setup issue; it does not diagnose every
+Julia initialization failure.
+
 Replace the path with the directory containing the checkout's `Project.toml` and
 `src/`. The bridge initializes Julia when needed. The first fit includes
 startup and compilation, so compare later fits when timing a repeated
@@ -98,16 +106,17 @@ individuals <- data.frame(
   individual = factor(seq_len(40)),
   sex = factor(rep(c("female", "male"), each = 20))
 )
-individuals$b <- rnorm(40, sd = exp(-0.3 + 0.25 * (individuals$sex == "male")))
+individuals$sex_male <- as.numeric(individuals$sex == "male")
+individuals$b <- rnorm(40, sd = exp(-0.3 + 0.25 * individuals$sex_male))
 personality_data <- individuals[rep(seq_len(40), each = 4), ]
 personality_data$exploration_score <-
-  1 + 0.5 * (personality_data$sex == "male") + personality_data$b +
+  1 + 0.5 * personality_data$sex_male + personality_data$b +
   rnorm(nrow(personality_data), sd = 0.5)
 
 formula_lss <- bf(
-  exploration_score ~ sex + (1 | individual),
-  sigma ~ sex,
-  sd(individual) ~ sex
+  exploration_score ~ sex_male + (1 | individual),
+  sigma ~ sex_male,
+  sd(individual) ~ sex_male
 )
 fit_lss <- drmTMB(
   formula_lss, family = gaussian(), data = personality_data,
@@ -193,6 +202,9 @@ prediction target, such as `predict(..., dpar = "sd(species)")`.
 The bridge has methods for `summary()`, `coef()`, `vcov()`, `logLik()`,
 `predict()` and `confint()`. Availability depends on the fitted route and target;
 a `drmTMB_julia` object does not automatically inherit every native-TMB diagnostic.
+`simulate()` and `predict_parameters()` are not available for a bridge fit yet:
+both stop with a message that points to `engine = "tmb"`. Use `vcov()` and
+`confint()` for coefficient standard errors on a bridge fit.
 
 ```{r julia-intervals, eval=FALSE}
 vcov(fit_julia)
@@ -315,9 +327,14 @@ not evidence that a complete fit or interval calculation takes the same time.
 There is no single speedup factor for all Julia-backed models.
 
 To make multiple Julia threads available, set `JULIA_NUM_THREADS` before Julia
-starts (for example in the shell launching R). A multi-threaded runtime does not
-make every fit parallel automatically. Use the documented options for the
-specific workflow, and avoid combining many Julia workers with many BLAS threads.
+starts (for example in the shell launching R, or with
+`Sys.setenv(JULIA_NUM_THREADS = "8")` before the first `engine = "julia"` call in
+a fresh R session). A multi-threaded runtime does not make every fit parallel
+automatically: profile and bootstrap refits run in parallel only when you also
+pass `threads = TRUE`, for example
+`confint(fit, method = "bootstrap", R = 199, threads = TRUE)`. Without enough
+Julia threads, `threads = TRUE` runs the refits serially and prints a one-time
+message. Avoid combining many Julia workers with many BLAS threads.
 
 ## Current boundaries
 
@@ -347,7 +364,10 @@ and retain the warning or error when reporting the limitation.
 ## Family and route reference
 
 The table below is a starting point, not a promise that every neighbouring
-formula will work. Choose the listed route, then consult the
+formula will work. The admitted set includes `skew_normal()`,
+`cumulative_logit()`, `biv_student()`, `biv_lognormal()`, and plain
+`stats::binomial(link = "logit")`, along with the other families listed
+here. Choose the listed route, then consult the
 [capability guide](capability-and-limits.html) before adding terms or choosing
 an interval.
 
@@ -356,21 +376,22 @@ an interval.
 | `gaussian()` | fixed effects; selected `phylo()`, ordinary random-effect, `relmat()`, `spatial()`, and `animal()` routes |
 | `biv_gaussian()` | fixed effects with residual `rho12`; selected coupled phylogenetic route |
 | `student()` or `lognormal()` | fixed effects only |
-| `poisson()` or `nbinom2()` | fixed effects; selected large-phylogeny routes; fixed-effect `zi` terms; `nbinom2()` also has the Julia hurdle spelling below |
-| `gamma()` or `beta_family()` | fixed effects; selected large-phylogeny routes |
+| `poisson()` or `nbinom2()` | fixed effects; selected large-phylogeny routes; fixed-effect `zi` terms |
+| `Gamma(link = "log")` or `beta_family()` | fixed effects; selected large-phylogeny routes |
 | `stats::binomial(link = "logit")` | fixed effects; selected large-phylogeny mean route |
-| `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, `beta_binomial()`, or `cumulative_logit()` | fixed effects only |
-| `skew_normal()` or another family | not currently available through the Julia engine |
+| `truncated_nbinom2()` | fixed effects only, including the hurdle model with a fixed-effect `hu ~ ...` formula |
+| `zero_one_beta()`, `tweedie()`, `beta_binomial()`, `cumulative_logit()`, or `skew_normal()` | fixed effects only |
+| `biv_student()` or `biv_lognormal()` | fixed effects only (bivariate residual route) |
+| Any other family | not currently available through the Julia engine |
 
-The `zi` and `hu` dpars are not separate families: they are formula terms
-(`bf(y ~ x, zi ~ x)` or `bf(y ~ x, hu ~ x)`) added to `poisson()` or
-`nbinom2()`, and the bridge admits them through those families' fixed-effect
-route rather than through a family-specific ledger row. `hu` has a spelling
-mismatch between engines today: native `engine = "tmb"` fits the hurdle model
-as `truncated_nbinom2()` with `hu ~ ...`, while `engine = "julia"` fits it as
-`nbinom2()` with `hu ~ ...` (DRModels.jl reads `hu` on `nbinom2()` as the hurdle
-model). The same call does not fit on both engines yet. Use the TMB spelling
-when you need a model that can move between both engines.
+The `zi` and `hu` dpars are formula terms rather than separate families.
+Write zero inflation as `bf(y ~ x, zi ~ x)` with `poisson()` or `nbinom2()`.
+Write the hurdle negative-binomial model as
+`bf(y ~ x, sigma ~ 1, hu ~ x)` with `family = truncated_nbinom2()`; that call
+fits with both `engine = "tmb"` and `engine = "julia"`. There is no separate
+`hurdle_nbinom2()` constructor. The Julia bridge also accepts an older Julia-only
+spelling, `nbinom2()` with `hu ~ ...`, but the native TMB engine refuses it, so
+use `truncated_nbinom2()` when you need the model to move between engines.
 
 ### Controls
 
@@ -380,3 +401,10 @@ and some structured and multi-response Julia routes accept no extra controls.
 If your analysis depends on a particular `drm_control()` setting, use
 `engine = "tmb"` unless the [capability guide](capability-and-limits.html)
 explicitly lists it for your route.
+
+For the Julia side of this bridge, the DRModels.jl
+[first-model page](https://itchyshin.github.io/DRModels.jl/stable/getting-started)
+starts a fit directly in Julia, and its
+[capabilities page](https://itchyshin.github.io/DRModels.jl/stable/capabilities)
+lists what that package supports today. Those pages are maintained with
+DRModels.jl, so check them against the version you have installed.

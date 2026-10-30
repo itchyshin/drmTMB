@@ -30,6 +30,14 @@ NB2 \code{sigma} random slopes are not supported. Zero-inflated NB2 supports onl
 the point-fit-only IID control \code{bf(count ~ fixed_effects, sigma ~ 1 + (1 | group), zi ~ 1)} under ML with complete responses; zero-inflated
 sigma predictors, slopes, labels, and other random-effect combinations
 remain unsupported.
+
+NB2 models overdispersion only: \code{sigma} is positive, so the variance
+cannot fall below the Poisson limit \code{Var(y) = mu}. Counts that are
+underdispersed (variance smaller than the mean) push \code{sigma} to that
+boundary (limit), and the fit returns a degenerate result rather than a
+sub-Poisson variance. drmTMB has no underdispersed count family. For such
+data use \code{glmmTMB::compois()} (Conway-Maxwell-Poisson) or
+\code{glmmTMB::genpois()} (generalised Poisson).
 }
 \examples{
 nbinom2()

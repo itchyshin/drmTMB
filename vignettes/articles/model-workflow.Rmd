@@ -252,21 +252,23 @@ variance over the TOTAL variance, i.e. every mu random-effect variance plus
 the residual variance) and shows both the random-effect variance and the
 residual variance used in that ratio. This is a different denominator from
 the `icc()`/`repeatability()` accessors, which divide by that component's
-variance plus the residual only.
+variance plus the residual only. Those accessors, and `heritability()`, accept
+Gaussian fits only.
 
-Once you have more than one candidate model fitted to the same data — for
-example this random-intercept model against a simpler fixed-effect version —
+Once you have more than one candidate model fitted to the same data, for
+example this random-intercept model against a simpler fixed-effect version,
 read [Model selection with AIC and BIC](model-selection.html) to choose
 between them rather than reporting whichever one was fit last.
 
 When `TMB::sdreport()` succeeds, direct response-scale parameter rows such as
 constant `sigma` and `sd:mu:(1 | site)` also include delta-method standard
-errors. `confint()` uses those same optimized-parameter covariances for its
-fast default Wald intervals. SD intervals are formed on the fitted log-SD scale
+errors. By default, `confint()` uses Wald intervals for every row. To profile
+a supported ordinary `(1 | site)` SD target, select that target and pass
+`method = "profile"` explicitly. Wald SD intervals are formed on the fitted log-SD scale
 and exponentiated; correlation intervals are formed on the fitted guarded
 atanh scale and transformed back with the model's correlation transform.
-Treat these as quick local approximations, then reserve profile or bootstrap
-work for the SD or correlation rows that need likelihood-shape or refit-based
+Treat Wald rows as local approximations; use additional profile or bootstrap
+work for other SD or correlation rows that need likelihood-shape or refit-based
 uncertainty. `drmTMB` is a frequentist package, so these are confidence
 intervals, not Bayesian credible intervals:
 
@@ -274,7 +276,7 @@ intervals, not Bayesian credible intervals:
 profile_targets(fit_site)
 ```
 
-The fastest fitted-model interval check is the default Wald route:
+The default fitted-model interval table records the method used for each row:
 
 ```{r}
 confint(fit_site)

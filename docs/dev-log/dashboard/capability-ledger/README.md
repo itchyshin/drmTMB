@@ -44,6 +44,22 @@ effects, intervals, or missing-predictor support.
 - `transitions.tsv` is append-only. Every work-state change must name evidence,
   reason, actor, commit, and date.
 - `schema.json` defines fields, enums, denominators, and the verified-tick gate.
+- `retired-predicates.tsv` lists gate phrases that a policy change retired,
+  with the commit that retired each one and its replacement. `--check`,
+  `--write`, and `--summary` fail if a listed phrase, ignoring case and runs
+  of whitespace, appears in any cell's `claim_boundary` or `next_gate` or any
+  evidence row's `claim_boundary`; each failure names the row, the field, and
+  the replacement. `transitions.tsv` and `notes` are history and are not
+  scanned. When a gate predicate is deleted, add its phrase here in the same
+  change.
+- `live-prose-contracts.tsv` binds the three threshold-free G5 family-map
+  rows (`mr-beta`, `mr-tweedie`, `mr-skew-normal`) to the executable G5 policy
+  and to the state of routes their prose names. For those rows only, `--check`
+  also fails if the `claim_boundary` (cell or evidence field) names another
+  family route in backticks without a `route_state` contract for that cell and
+  field. When a pinned route is promoted, its contract fails until the prose is
+  reviewed and the sidecar state is updated. Other rows are not scanned;
+  keyed columns for cross-references are tracked separately (#1011 item 3).
 - `tranches/` contains generated tranche summaries.
 
 ## Missing-response gates

@@ -2,6 +2,7 @@
 % Please edit documentation in R/julia-bridge.R
 \name{confint.drmTMB_julia}
 \alias{confint.drmTMB_julia}
+\alias{confint.drmTMB_julia_xfam}
 \title{Confidence intervals for an \code{engine = "julia"} fit}
 \usage{
 \method{confint}{drmTMB_julia}(
@@ -14,9 +15,13 @@
   threads = FALSE,
   ...
 )
+
+\method{confint}{drmTMB_julia_xfam}(object, parm = "rho_latent",
+  level = 0.95, method = c("profile", "wald"), ...)
 }
 \arguments{
-\item{object}{A \code{drmTMB_julia} fit.}
+\item{object}{A \code{drmTMB_julia} fit, or a legacy \code{drmTMB_julia_xfam} fit
+for the restricted cross-family interval method.}
 
 \item{parm}{Optional target selection. For \code{"wald"}, compact coefficient
 labels (\code{"mu:x"}) or full names (\code{"fixef:mu:x"}); for \code{"profile"} /
@@ -34,8 +39,15 @@ for q = 4 bivariate fits,
 
 \item{seed}{Optional bootstrap seed.}
 
-\item{threads}{Logical; request Julia-side threaded inference for the
-profile / bootstrap path.}
+\item{threads}{Logical; request Julia-side threaded refits for the
+profile / bootstrap path. \code{threads = TRUE} uses the threads Julia already
+has; it cannot start more. Set \code{JULIA_NUM_THREADS} (for example
+\code{Sys.setenv(JULIA_NUM_THREADS = "8")}) before the first
+\code{engine = "julia"} call in a fresh R session. If Julia is running
+single-threaded, refits run serially and a one-time message says so.
+Setting \code{JULIA_NUM_THREADS} alone does not parallelise refits either,
+because \code{threads} defaults to \code{FALSE}. Avoid combining many Julia threads
+with many BLAS threads.}
 
 \item{...}{Unused.}
 }
@@ -80,4 +92,10 @@ so they are discoverable, and the fitted values are on the object in
 bridge inference accepts only fixed-effect and SD targets, so \code{confint()}
 refuses a cutpoint target for every \code{method} and points at
 \code{engine = "tmb"}, whose constrained cutpoint profile does solve them.
+
+For the legacy experimental \code{drmTMB_julia_xfam} route, only
+\code{parm = "rho_latent"} and \code{level = 0.95} are accepted. The method returns
+the stored latent-correlation interval selected by \code{method}. This
+inspection route adds no admission, standard-error, calibration, or
+coverage claim.
 }
