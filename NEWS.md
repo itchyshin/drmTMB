@@ -121,6 +121,14 @@
 
 ## Bug fixes
 
+* `fixef()` on a Julia-bridge fit (`drmTMB_julia` / `drmTMB_julia_xfam`) no
+  longer errors with `no applicable method for 'fixef'` when `nlme` is
+  attached after drmTMB. drmTMB re-exports `nlme::fixef()` and registers its
+  own `fixef.drmTMB` method on nlme's S3 table so attach-order masking
+  cannot break dispatch for native fits, but the two Julia-bridge classes
+  were left off that registration list; only the native `fixef.drmTMB`
+  method was protected. All three classes are now registered.
+
 * The first `engine = "julia"` call no longer prints the recovered
   `Error during loading of extension LogExpFunctionsInverseFunctionsExt` log
   with its `UndefVarError` stack trace (twice) that some Julia package
@@ -368,13 +376,6 @@
   `dtweedie` bound-search loops for roughly 1e9 iterations, hanging the fit
   indefinitely. Behaviour on well-conditioned fits, where the step never
   approaches the trust radius, is unchanged (#1441).
-* `fixef()` on a Julia-bridge fit (`drmTMB_julia` / `drmTMB_julia_xfam`) no
-  longer errors with `no applicable method for 'fixef'` when `nlme` is
-  attached after drmTMB. drmTMB re-exports `nlme::fixef()` and registers its
-  own `fixef.drmTMB` method on nlme's S3 table so attach-order masking
-  cannot break dispatch for native fits, but the two Julia-bridge classes
-  were left off that registration list; only the native `fixef.drmTMB`
-  method was protected. All three classes are now registered.
 
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
