@@ -82,8 +82,8 @@ test_that("Gamma quadrature matches integrate() per row at the pole, near the mo
   }
 })
 
-test_that("five Newton steps land near the posterior mode at the pole (#1477)", {
-  # The mode residual after step 5. With the old clamped log-x Newton step the
+test_that("twelve Newton steps land near the posterior mode at the pole (#1477, #1532)", {
+  # The mode residual after the last step. With the old clamped log-x Newton step the
   # score at the pole rows was about -15 (CV 0.5, 1, 2): the iterate had not
   # reached the mode and the nodes were centred on the wrong point.
   quad <- drmTMB:::drm_gamma_mi_quadrature()
@@ -156,7 +156,7 @@ test_that("compiled Gamma mi() quadrature matches integrate() per row, and the R
     p[nm == "log_sigma_mi"] <- log(cv)
     p
   }
-  for (cv in c(0.5, 1, 2)) {
+  for (cv in c(0.5, 1, 2, 3)) {
     for (y in c(2.05, 2.2, 2.5, 3.5, 12)) {
       fa <- make_obj(y, FALSE)
       fb <- make_obj(y, TRUE)
@@ -210,11 +210,45 @@ test_that("Poisson x Gamma at CV 2 with y = 0 or large y is finite and accurate 
   }
 })
 
-test_that("Gamma adaptive quadrature at CV >= 3 near the pole is a labelled skip (#1477)", {
-  # CV 0.5, 1, and 2 at the asserted rows meet 1e-4. CV >= 3 still misses
-  # the exp(shape * u) left tail on a fraction of the (mu, y) plane
-  # (docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md).
-  skip("Gamma mi() quadrature: CV >= 3 and strong prior/likelihood conflict (refs #1477). See docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md.")
+test_that("Gamma quadrature matches integrate() per row at CV 3 and 5 (#1532)", {
+  # Shape 1/9 (CV 3) and 1/25 (CV 5): the prior left tail exp(shape * u) is
+  # nearly flat on u, so the sinh-mapped span has to reach far left of the
+  # mode. With the earlier span [-5, 4] and 51 nodes this scan missed 1e-4
+  # on most pole rows (worst 7.8e-3 at CV 3). The prior mean mu runs over
+  # 1..30; y runs from the pole (2.05) to the tail (12).
+  rows <- expand.grid(
+    cv = c(3, 5),
+    mu = c(1, 5, 10, 20, 30),
+    y = c(2.05, 2.2, 2.5, 3.5, 12),
+    KEEP.OUT.ATTRS = FALSE
+  )
+  for (i in seq_len(nrow(rows))) {
+    cv <- rows$cv[[i]]
+    mu <- rows$mu[[i]]
+    y <- rows$y[[i]]
+    prod_ll <- drm_gamma_mi_quad_loglik(y, 2, 0.1, 0.5, 0, mu, cv)
+    ref <- drm_gamma_mi_reference_loglik(y, 2, 0.1, 0.5, 0, mu, cv)
+    expect_lt(
+      abs(prod_ll - log(ref)),
+      1e-4,
+      label = sprintf("Gaussian CV=%g mu=%g y=%.2f", cv, mu, y)
+    )
+  }
+})
+
+test_that("Poisson x Gamma matches integrate() where exp(eta) at the prior mean is about 1e3 (#1532)", {
+  # mu = 10, beta_x = 1, mu_y = -1, y = 0: exp(eta) at x = mu is exp(9), about
+  # 8e3, while y = 0, so the mode is far from the start. Five Newton steps
+  # stopped short (4.5e-2 at CV 0.5, 1.5 at CV 1.5); twelve reach the mode.
+  for (cv in c(0.5, 1.5)) {
+    prod_ll <- drm_gamma_mi_quad_loglik(
+      0, -1, 1, 1, 0, 10, cv, response = "poisson"
+    )
+    ref <- drm_gamma_mi_reference_loglik(
+      0, -1, 1, 1, 0, 10, cv, response = "poisson"
+    )
+    expect_lt(abs(prod_ll - log(ref)), 1e-4, label = sprintf("Poisson CV=%.1f", cv))
+  }
 })
 
 test_that("NaN or -Inf Gamma marginal is a classed abort", {
@@ -397,7 +431,7 @@ gamma_mi_newton_b_wins <- function(
   }
   u <- log(max(mu, 1e-300))
   n_b <- 0L
-  for (k in seq_len(5L)) {
+  for (k in seq_len(12L)) {
     gh <- drmTMB:::drm_gamma_mi_grad_hess(
       u, mu, sigma, y, mu_y, sigma_y, beta_x, x_base, response
     )

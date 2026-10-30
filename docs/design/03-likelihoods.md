@@ -1152,18 +1152,20 @@ log L_i =
 ```
 
 For missing `biomass_i`, TMB integrates over positive predictor states by a
-51-node posterior-mode sinh-mapped trapezoid rule on `u = log(x)`. The
+81-node posterior-mode sinh-mapped trapezoid rule on `u = log(x)`. The
 integrand, its gradient and its Hessian are all on `u = log(x)` and carry the
-`dx/du` Jacobian. Exactly five safeguarded Newton steps start at
+`dx/du` Jacobian. Exactly twelve safeguarded Newton steps start at
 `log(mu_xi)`. Each step proposes (A) the clamped log-`x` Newton step and (B) a
 Newton step on `G(x) = g / x`, written with the log-`x` derivatives as
 `x_new / x = (H - 2g) / (H - g)`, and keeps the proposal with the larger log
 integrand. B crosses decades of `x` in one step where A moves a fixed 0.5 in
 `u`; five A-only steps stop about 15 score units short of the mode at the
-pole rows. The derivatives use the log Gamma prior plus each response
-family's own log-density gradient and Hessian (analytic Gaussian and Poisson;
+pole rows, and five steps of either kind stop short when `exp(eta)` at the
+prior mean is about `8e3` or more (#1532 raised the lock to twelve). The
+derivatives use the log Gamma prior plus each response family's own
+log-density gradient and Hessian (analytic Gaussian and Poisson;
 Poisson adds `(y - mu) eta'(x)` and the matching curvature). There is no
-data-dependent stop, and nodes are placed only after step 5. A node with
+data-dependent stop, and nodes are placed only after step 12. A node with
 `u_q > 500` keeps a finite `x` for reporting and drops its `w cosh(t)` weight
 so the cap is not a quadrature mass. A NaN or `-Inf` row is
 `drmTMB_mi_quadrature_nonfinite`, raised from the C++ tape token through
@@ -1171,8 +1173,11 @@ so the cap is not a quadrature mass. A NaN or `-Inf` row is
 and the fitted parameter. The abort watches every `mi()` term (both
 `missing_predictor` slots), not only the first. There is no CV branch (#1477).
 After a successful fit, class `drmTMB_mi_quadrature_inaccurate` warns
-when the estimated Gamma `mi()` CV is at least 3 (12% of an 80-row
-`(mu, y)` scan exceed `1e-4`, worst `1.47`). The same helper also
+when the estimated Gamma `mi()` CV is at least 3. That threshold was set
+from the earlier five-step, 51-node measurements (12% of an 80-row `(mu, y)`
+scan exceeded `1e-4`, worst `1.47`) and has not been re-derived for the
+81-node rule, which meets `1e-4` per row at CV 3 and 5 on the tested grid
+(#1532). The same helper also
 warns for Beta / zero-one-Beta missing-row means near 0 or 1. A NA, NaN,
 or infinite fitted log CV, or a CV that overflows `exp()`, stops with class
 `drmTMB_mi_quadrature_guard_nonfinite` rather than skipping the check
@@ -1181,13 +1186,14 @@ or infinite fitted log CV, or a CV that overflows `exp()`, stops with class
 The rule is a sinh map rather than Gauss-Hermite because the log-`x` integrand
 has the exponential left tail `exp(shape * u)`, `shape = 1 / CV^2`. A Gaussian
 node rule cannot reach it: at CV 1 the 51-node Gauss-Hermite rule missed the
-tail mass and was `0.28` log units off at the pole. No combination of 51 to
-151 nodes and a 1x to 2x width multiplier that was tried put every CV 1 pole
-row and every Poisson CV 2 row inside `1e-4`.
+tail mass and was `0.28` log units off at the pole. At CV 3 and above the
+shape is `1/9` or smaller, so the left tail `exp(u / 9)` needs a wider span
+than `t` in `[-5, 4]`; the rule now uses 81 nodes on `t` in `[-7, 4]`
+(#1532).
 
 ```text
 u = log(x)
-t_q equally spaced on [-5, 4], 51 nodes, step h
+t_q equally spaced on [-7, 4], 81 nodes, step h
 u_q = mode + sigma_u sinh(t_q),   sigma_u = 1 / sqrt(-H)
 x_q = exp(min(u_q, 500))
 # if u_q > 500 the term is dropped (log weight -> -1e300)

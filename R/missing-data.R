@@ -2306,12 +2306,12 @@ drm_gamma_mi_log_integrand <- function(
   response = "none"
 ) {
   x <- exp(u)
-  log_gamma <- stats::dgamma(
-    x,
-    shape = 1 / sigma^2,
-    scale = mu * sigma^2,
-    log = TRUE
-  )
+  shape <- 1 / sigma^2
+  scale <- mu * sigma^2
+  # Analytic on u = log(x), as in drm_gamma_mi_log_integrand() in
+  # src/drmTMB.cpp. stats::dgamma(exp(u), log = TRUE) returns -Inf once
+  # exp(u) underflows, which the wide left span of the trapezoid reaches.
+  log_gamma <- (shape - 1) * u - x / scale - lgamma(shape) - shape * log(scale)
   log_y <- 0
   if (!identical(response, "none") && !is.null(y)) {
     mu_q <- mu_y + beta_x * (x - x_base)
@@ -2390,17 +2390,18 @@ drm_gamma_mi_adaptive_nodes <- function(
       u, mu, sigma, y, mu_y, sigma_y, beta_x, x_base, response
     )
   }
-  # Five safeguarded Newton steps on u = log(x), as in
+  # Twelve safeguarded Newton steps on u = log(x), as in
   # drm_gamma_mi_adaptive_quadrature() in src/drmTMB.cpp: keep the better
   # (by log integrand) of (A) the clamped log-x Newton step and (B) a Newton
   # step on G(x) = g / x, x_new / x = (H - 2g) / (H - g). No data-dependent
-  # stop; nodes are placed once, after step 5.
+  # stop; nodes are placed once, after step 12 (#1532: five steps stopped short
+  # of the mode where exp(eta) at the prior mean is about 1e3 or more).
   safe_f <- function(u) {
     v <- f(u)
     if (is.finite(v)) v else -1e300
   }
   u <- log(max(mu, 1e-300))
-  for (k in seq_len(5L)) {
+  for (k in seq_len(12L)) {
     gh <- grad_hess(u)
     H_safe <- min(gh$H, -1e-8)
     u_a <- u - max(min(gh$g / H_safe, 2), -2)
@@ -3732,16 +3733,18 @@ drm_gamma_missing_predictor_response <- function(x, variable) {
   x
 }
 
-drm_gamma_mi_quadrature <- function(n = 51L) {
-  # Equally spaced abscissae t on [-5, 4] with trapezoid weight h. Production
+drm_gamma_mi_quadrature <- function(n = 81L) {
+  # Equally spaced abscissae t on [-7, 4] with trapezoid weight h. Production
   # places u = mode + sigma_u * sinh(t); see drm_gamma_mi_adaptive_nodes().
   # The wide left span reaches the exp(shape * u) tail at CV >= 1 that a
-  # Gauss-Hermite rule cannot (Refs #1477).
+  # Gauss-Hermite rule cannot (Refs #1477). #1532: the span was [-5, 4] with
+  # 51 nodes; at CV 3 (shape 1/9) that left up to 7.8e-3 of logLik error, and
+  # [-7, 4] with 81 nodes brings the CV 3 scan under 1e-4.
   n <- as.integer(n)
   if (length(n) != 1L || is.na(n) || n < 2L) {
     cli::cli_abort("{.fn drm_gamma_mi_quadrature} requires n >= 2.")
   }
-  nodes <- seq(-5, 4, length.out = n)
+  nodes <- seq(-7, 4, length.out = n)
   list(nodes = nodes, weights = rep(nodes[[2L]] - nodes[[1L]], n))
 }
 
