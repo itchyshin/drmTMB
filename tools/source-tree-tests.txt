@@ -19,6 +19,7 @@ test-beta-phylo-q1-sd-regression-runner.R
 test-beta-phylo-q1-successor-runners.R
 test-biv-lognormal-rho12-coverage-docs.R
 test-dinnage-audit-wave1.R
+test-docs-audit-semantics.R
 test-estimator-surface-conformance.R
 test-function-map-cheatsheet.R
 test-julia-admission-census.R
@@ -32,6 +33,7 @@ test-parity-matrix.R
 test-parity-pin.R
 test-parity-scoreboard.R
 test-phase18-actions-runner.R
+test-phylo-temporal-ou-gate-runner.R
 test-pkgdown-public-surface.R
 test-pkgdown-reference-index.R
 test-positive-continuous-structured-mu.R
@@ -44,3 +46,7 @@ test-reml-route-table.R
 test-spatial-q2-confidence-eye-contract.R
 test-structured-re-ademp-scaffold.R
 test-structured-re-conversion-contracts.R
+test-temporal-homtoep-identifiability.R
+test-temporal-homtoep-map.R
+test-temporal-homtoep-parser.R
+test-temporal-ou-profile-campaign-assessment.R

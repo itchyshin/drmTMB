@@ -5,7 +5,9 @@
 #' fits with random effects, known sampling covariance, phylogenetic location
 #' effects, or bivariate residual correlation `rho12`.
 #'
-#' The current checks cover optimizer convergence, finite objective values,
+#' The current checks cover the three-valued `convergence_status`
+#' (`ok` / `note` / `warning` for `"converged"` / `"boundary"` /
+#' `"degenerate"`), optimizer convergence, finite objective values,
 #' optimizer evaluation counts, fixed-parameter gradients including the largest
 #' gradient component label, whether
 #' [TMB::sdreport()] was computed, skipped, or failed, Hessian status from
@@ -22,10 +24,16 @@
 #' `drm_control(se = FALSE)`, or a failed `sdreport()`), finite fixed-effect standard errors, standard errors that
 #' are finite but inflated relative to the others despite a positive-definite
 #' Hessian (a weakly identified, near-flat direction such as a boundary
-#' correlation), dropped rows,
+#' correlation), whether a fixed-effect binomial, Poisson, or NB2 MLE exists
+#' and whether a continuous location-scale likelihood is unbounded
+#' (`mle_existence`), dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
+#' a flag-only note when at least two quantile residuals and more than 1% lie
+#' beyond |3|
+#' (`residual_outliers`, a sign of a damaged response such as a sentinel code;
+#' it changes no estimate and never flips `attr(x, "ok")`),
 #' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
@@ -85,7 +93,17 @@
 #' automatic-differentiation object is not available. If a fit used
 #' `drm_control(se = FALSE)`, the `sdreport_status`, Hessian, and
 #' finite-standard-error checks are reported as notes. If `sdreport()` was
-#' requested but failed, those rows are warnings.
+#' requested but failed, those rows are warnings. For Gaussian temporal fits,
+#' `temporal_mean_wald` separately records whether mean-coefficient Wald
+#' inference is available for this fit, unavailable because its full observed
+#' Hessian is not usable, or intentionally deferred for OU. The separate
+#' `temporal_mean_profile` row records whether fixed-effect profile intervals
+#' can be computed and whether the fitted Hessian makes their nuisance
+#' parameters locally irregular. `temporal_boundary` warns when residual
+#' `sigma` collapses below 1e-3 of the response SD, an OU decay leaves
+#' correlation at about 1 or 0 at every observed lag, or AR1 persistence
+#' exceeds 0.999 in absolute value; such fits report
+#' `convergence_status() == "boundary"`.
 #'
 #' Use `check_drm()` before interpreting coefficients, fitted values, or
 #' response-scale quantities. A `note` records something to inspect, such as
@@ -192,12 +210,12 @@ check_drm <- function(object, ...) {
 #'
 #' `is_converged()` is a compact programmatic flag for workflows that need a
 #' yes/no answer before comparing, displaying, or post-processing a `drmTMB`
-#' fit. By default it delegates to [convergence_status()]: it returns `TRUE`
-#' when the status is `"converged"` or `"boundary"`, and `FALSE` when the
-#' status is `"degenerate"`. A fit can therefore report optimizer code `0`
-#' while still returning `FALSE` here when the likelihood geometry or
-#' uncertainty diagnostics are degenerate; use [check_drm()] or
-#' [convergence_status()] for detail.
+#' fit. It is `TRUE` exactly when [convergence_status()] is `"converged"`.
+#' `"boundary"` and `"degenerate"` both return `FALSE`; use
+#' [convergence_status()] or [check_drm()] when a three-valued status is
+#' needed. `converged()` is the same predicate under the name DRModels.jl
+#' also exports. A fit can therefore report optimizer code `0` while still
+#' returning `FALSE` here.
 #'
 #' Set `include_hessian = TRUE` when the next step needs Wald-style
 #' uncertainty. In that mode, `is_converged()` also requires successful
@@ -209,9 +227,15 @@ check_drm <- function(object, ...) {
 #'
 #' Use [check_drm()] when you need the full diagnostic table and messages.
 #'
-#' @param object A `drmTMB` fit.
+#' @aliases is_converged.drmTMB_julia is_converged.drmTMB_julia_xfam
+#' @usage is_converged(object, ...)
+#' \method{is_converged}{drmTMB_julia}(object, include_hessian = FALSE, ...)
+#' \method{is_converged}{drmTMB_julia_xfam}(object, include_hessian = FALSE, ...)
+#' @param object A `drmTMB` fit or an existing Julia-backed fit.
 #' @param include_hessian Logical; require a positive-definite
 #'   [TMB::sdreport()] Hessian in addition to optimizer convergence.
+#'   On Julia-backed fits, the method instead requires retained uncertainty
+#'   status `ok` and a positive-definite stored covariance matrix.
 #' @param ... Reserved for future convergence options.
 #'
 #' @return A single logical value.
@@ -222,9 +246,16 @@ check_drm <- function(object, ...) {
 #' dat <- data.frame(y = rnorm(30), x = rnorm(30))
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' is_converged(fit)
+#' converged(fit)
 #' is_converged(fit, include_hessian = TRUE)
 is_converged <- function(object, ...) {
   UseMethod("is_converged")
+}
+
+#' @rdname is_converged
+#' @export
+converged <- function(object, ...) {
+  is_converged(object, ...)
 }
 
 #' @rdname is_converged
@@ -251,7 +282,7 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
   }
 
   status <- convergence_status(object)
-  if (!identical(status, "converged") && !identical(status, "boundary")) {
+  if (!identical(status, "converged")) {
     return(FALSE)
   }
   if (!include_hessian) {
@@ -273,11 +304,15 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' workflows that need more detail than [is_converged()]. A fit can report
 #' optimizer code `0` while the likelihood geometry is degenerate (no proper
 #' maximum or non-finite uncertainty); such fits return `"degenerate"` even
-#' when `multi_start` selected among several starts. `"boundary"` marks an
-#' optimizer-converged fit with variance-component or residual-correlation
-#' parameters near an interpretability boundary. [is_converged()] stays a
-#' plain logical: it is `TRUE` for `"converged"` and `"boundary"`, and
-#' `FALSE` for `"degenerate"`.
+#' when `multi_start` selected among several starts. Fixed-effect binomial
+#' separation, Poisson / NB2 rays with no finite MLE, and an unbounded
+#' continuous location-scale likelihood are included in that geometry.
+#' `"boundary"` marks an optimizer-converged fit with variance-component,
+#' residual-correlation, or temporal (residual SD, OU decay, AR1 persistence)
+#' parameters near an interpretability boundary. [is_converged()] and
+#' [converged()] are the same plain logical: they are `TRUE` only for
+#' `"converged"`. Numeric predicates are identical in DRModels.jl
+#' (`docs/design/278-twin-convergence-status.md`).
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future options.
@@ -298,7 +333,7 @@ convergence_status <- function(object, ...) {
 #' @export
 convergence_status.default <- function(object, ...) {
   cli::cli_abort(
-    "{.fn convergence_status} is implemented for {.cls drmTMB} fits."
+    "{.fn convergence_status} is implemented for {.cls drmTMB} and {.cls drmTMB_julia} fits."
   )
 }
 
@@ -317,11 +352,148 @@ convergence_status.drmTMB <- function(object, ...) {
   if (
     drm_inference_degenerate(object) ||
       drm_fixed_effect_rank_deficient(object) ||
-      drm_standard_errors_pathological(object)
+      drm_standard_errors_pathological(object) ||
+      drm_mle_nonexistent_is_true(object)
   ) {
     return("degenerate")
   }
   if (drm_inference_at_boundary(object)) {
+    return("boundary")
+  }
+  "converged"
+}
+
+#' @rdname convergence_status
+#' @export
+convergence_status.drmTMB_julia <- function(object, ...) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort(
+      "{.arg ...} is reserved for future {.fn convergence_status} options."
+    )
+  }
+  drm_twin_convergence_status_from_parts(
+    optimizer_ok = drm_julia_optimizer_ok(object),
+    loglik = object$logLik,
+    vcov = object$vcov,
+    design_rank_deficient = FALSE,
+    mle_nonexistent = drm_julia_bridge_degenerate(object),
+    re_sd_values = unlist(object$sdpars, use.names = TRUE),
+    rho12_values = tryCatch(
+      as.numeric(drm_julia_rho12_values(object)),
+      error = function(e) numeric()
+    )
+  )
+}
+
+# Twin-contract numeric predicates. Keep bitwise identical to
+# DRModels.jl `src/convergence_status.jl` and
+# `docs/design/278-twin-convergence-status.md`.
+drm_twin_rank_tol <- 1e-8
+drm_twin_inflated_se_floor <- 50
+drm_twin_inflated_se_ratio <- 1000
+drm_twin_re_sd_boundary <- 1e-4
+drm_twin_rho12_boundary <- 0.98
+drm_twin_sentinel_loglik <- -1e15
+
+drm_julia_optimizer_ok <- function(object) {
+  identical(as.integer(object$opt$convergence), 0L) &&
+    isTRUE(is.finite(object$logLik))
+}
+
+# Step 2 for Julia-engine fits. The bridge does not ship `DrmFit.geometry`
+# itself; its `convergence_status` string (DRModels.jl #1129) is the only wire
+# signal for the Julia geometry screen (Poisson / NB2 cone, Gaussian all-sigma
+# collapse), so a Julia "degenerate" fills the geometry slot. The string also
+# carries Julia's covariance steps on the full bridge covariance, including
+# variance-component coordinates that `object$vcov` drops. A bridge without
+# the key (an older DRModels.jl) leaves the slot FALSE.
+drm_julia_bridge_degenerate <- function(object) {
+  identical(as.character(object$bridge[["convergence_status"]]), "degenerate")
+}
+
+drm_standard_errors_from_vcov <- function(vcov) {
+  if (is.null(vcov) || !is.matrix(vcov) || nrow(vcov) == 0L) {
+    return(numeric())
+  }
+  variances <- diag(vcov)
+  standard_errors <- rep(NA_real_, length(variances))
+  non_negative <- is.finite(variances) & variances >= 0
+  standard_errors[non_negative] <- sqrt(variances[non_negative])
+  standard_errors
+}
+
+drm_twin_vcov_positive_definite <- function(vcov) {
+  if (is.null(vcov) || !is.matrix(vcov) || nrow(vcov) == 0L) {
+    return(FALSE)
+  }
+  if (!all(is.finite(vcov))) {
+    return(FALSE)
+  }
+  ev <- tryCatch(
+    eigen(vcov, symmetric = TRUE, only.values = TRUE)$values,
+    error = function(e) NA_real_
+  )
+  isTRUE(all(is.finite(ev)) && min(ev) > 0)
+}
+
+drm_twin_inflated_se_is_true <- function(standard_errors) {
+  finite_standard_errors <- standard_errors[is.finite(standard_errors)]
+  if (length(finite_standard_errors) == 0L) {
+    return(FALSE)
+  }
+  reference_se <- finite_standard_errors[
+    finite_standard_errors < drm_twin_inflated_se_floor
+  ]
+  median_se <- if (length(reference_se) == 0L) {
+    min(finite_standard_errors)
+  } else {
+    stats::median(reference_se)
+  }
+  any(
+    is.finite(standard_errors) &
+      standard_errors >= drm_twin_inflated_se_floor &
+      standard_errors >= drm_twin_inflated_se_ratio * median_se
+  )
+}
+
+drm_twin_convergence_status_from_parts <- function(
+  optimizer_ok,
+  loglik,
+  vcov,
+  design_rank_deficient,
+  mle_nonexistent,
+  re_sd_values,
+  rho12_values
+) {
+  if (
+    !isTRUE(optimizer_ok) ||
+      !isTRUE(is.finite(loglik)) ||
+      isTRUE(loglik <= drm_twin_sentinel_loglik)
+  ) {
+    return("degenerate")
+  }
+  standard_errors <- drm_standard_errors_from_vcov(vcov)
+  if (
+    isTRUE(mle_nonexistent) ||
+      isTRUE(design_rank_deficient) ||
+      !drm_twin_vcov_positive_definite(vcov) ||
+      length(standard_errors) == 0L ||
+      !all(is.finite(standard_errors)) ||
+      drm_twin_inflated_se_is_true(standard_errors)
+  ) {
+    return("degenerate")
+  }
+  re_sd_values <- re_sd_values[is.finite(re_sd_values)]
+  rho12_values <- rho12_values[is.finite(rho12_values)]
+  at_boundary <- (
+    length(re_sd_values) > 0L &&
+      any(re_sd_values < drm_twin_re_sd_boundary)
+  ) || (
+    length(rho12_values) > 0L &&
+      any(abs(rho12_values) > drm_twin_rho12_boundary)
+  )
+  if (isTRUE(at_boundary)) {
     return("boundary")
   }
   "converged"
@@ -347,10 +519,13 @@ drm_inference_degenerate <- function(object) {
   if (identical(object$control$se, FALSE)) {
     return(FALSE)
   }
+  if (identical(object$uncertainty$status, "skipped")) {
+    return(FALSE)
+  }
   if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
     return(TRUE)
   }
-  vcov <- tryCatch(stats::vcov(object), error = function(e) NULL)
+  vcov <- tryCatch(drm_check_covariance(object), error = function(e) NULL)
   if (is.null(vcov) || !is.matrix(vcov) || nrow(vcov) == 0L) {
     return(TRUE)
   }
@@ -382,7 +557,7 @@ drm_fixed_effect_rank_deficient <- function(object) {
     if (is.null(dims) || length(dims) != 2L || dims[[2L]] <= 0L) {
       next
     }
-    block_rank <- qr(block, tol = 1e-8)$rank
+    block_rank <- qr(block, tol = drm_twin_rank_tol)$rank
     if (block_rank < dims[[2L]]) {
       return(TRUE)
     }
@@ -394,12 +569,22 @@ drm_inference_at_boundary <- function(object) {
   if (!drm_optimizer_converged(object) || drm_inference_degenerate(object)) {
     return(FALSE)
   }
-  rho_row <- check_rho12_boundary(object, rho_boundary = 0.98)
+  rho_row <- check_rho12_boundary(
+    object,
+    rho_boundary = drm_twin_rho12_boundary
+  )
   if (!is.null(rho_row) && identical(rho_row$status, "warning")) {
     return(TRUE)
   }
-  sd_row <- check_random_effect_sd_boundary(object, sd_boundary = 1e-4)
-  !is.null(sd_row) && identical(sd_row$status, "warning")
+  sd_row <- check_random_effect_sd_boundary(
+    object,
+    sd_boundary = drm_twin_re_sd_boundary
+  )
+  if (!is.null(sd_row) && identical(sd_row$status, "warning")) {
+    return(TRUE)
+  }
+  temporal_row <- check_temporal_boundary(object)
+  !is.null(temporal_row) && identical(temporal_row$status, "warning")
 }
 
 #' @rdname check_drm
@@ -434,6 +619,7 @@ check_drm.drmTMB <- function(
     check_standard_errors_finite(object),
     check_standard_errors_inflated(object),
     check_weakly_identified_fixed_effects(object),
+    check_mle_existence(object),
     check_observations_per_parameter(object),
     check_fixed_effect_design_collinearity(object),
     check_fixed_effect_rank_deficiency(object),
@@ -441,9 +627,13 @@ check_drm.drmTMB <- function(
     check_scale_positive(object),
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
     check_interval_reliability_scope(object),
+    check_temporal_boundary(object),
+    check_temporal_mean_wald(object),
+    check_temporal_mean_profile(object),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
     check_skew_normal_nu(object),
+    check_residual_outliers(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
     check_gaussian_aggregation(object),
@@ -493,13 +683,24 @@ check_drm.drmTMB <- function(
   out
 }
 
+#' @rdname check_drm
+#' @aliases [.drm_check
+#' @usage \method{[}{drm_check}(x, i, j, drop = FALSE)
+#' @param x A diagnostic table returned by [check_drm()].
+#' @param i,j Row and column indices, as for data-frame subsetting.
+#' @param drop Logical; whether to simplify a single selected column.
+#' @section Subsetting diagnostics:
+#' Data-frame subsets retain the `drm_check` class and the original overall
+#' `ok` flag. The `n_checks_total` attribute retains the original check count,
+#' using `nrow(x)` when that attribute is absent. A simplified non-data-frame
+#' result is returned unchanged.
 #' @export
 `[.drm_check` <- function(x, i, j, drop = FALSE) {
   n_total <- attr(x, "n_checks_total")
   if (is.null(n_total)) {
     n_total <- nrow(x)
   }
-  out <- NextMethod("[")
+  out <- NextMethod("[", drop = drop)
   if (!is.data.frame(out)) {
     return(out)
   }
@@ -1275,8 +1476,27 @@ check_sdreport_status <- function(object) {
   )
 }
 
+# Covariance read by the convergence and standard-error checks. Temporal fits
+# trim vcov() to the mean coefficients (the only Wald target they expose), so
+# reading vcov() there would hide a pathological sigma, SD, or persistence
+# direction. For temporal fits the checks read the full fixed-parameter
+# covariance from sdreport() instead, with unique row names.
+drm_check_covariance <- function(object) {
+  # OU fits refuse vcov() by design (Wald inference is deferred); only that
+  # call is skipped, and the same full covariance feeds the checks.
+  if (!drm_has_temporal_mu(object)) {
+    return(stats::vcov(object))
+  }
+  cov_fixed <- drm_sdreport_cov_fixed(object)
+  labels <- make.unique(names(object$opt$par), sep = "_")
+  if (length(labels) == nrow(cov_fixed)) {
+    dimnames(cov_fixed) <- list(labels, labels)
+  }
+  cov_fixed
+}
+
 check_standard_errors_finite <- function(object) {
-  vcov <- tryCatch(stats::vcov(object), error = function(e) e)
+  vcov <- tryCatch(drm_check_covariance(object), error = function(e) e)
   if (inherits(vcov, "error")) {
     return(check_row(
       "standard_errors_finite",
@@ -1331,14 +1551,14 @@ check_standard_errors_finite <- function(object) {
 # trip it. Non-finite SEs and a non-positive-definite Hessian are owned by
 # `check_standard_errors_finite` and `check_hessian`, so this check defers when
 # those already carry the signal.
-inflated_standard_error_floor <- 50
-inflated_standard_error_ratio <- 1000
+inflated_standard_error_floor <- drm_twin_inflated_se_floor
+inflated_standard_error_ratio <- drm_twin_inflated_se_ratio
 
 check_standard_errors_inflated <- function(object) {
   if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
     return(NULL)
   }
-  vcov <- tryCatch(stats::vcov(object), error = function(e) NULL)
+  vcov <- tryCatch(drm_check_covariance(object), error = function(e) NULL)
   if (is.null(vcov) || !is.matrix(vcov) || nrow(vcov) == 0L) {
     return(NULL)
   }
@@ -1422,7 +1642,7 @@ check_convergence_status <- function(object) {
       status,
       converged = "ok",
       boundary = "note",
-      degenerate = "note",
+      degenerate = "warning",
       "note"
     ),
     status,
@@ -1433,15 +1653,15 @@ check_convergence_status <- function(object) {
         "a proper interior optimum."
       ),
       boundary = paste(
-        "The fit converged but variance-component or residual-correlation",
-        "parameters are near an interpretability boundary; read",
+        "The fit converged but variance-component, residual-correlation, or",
+        "temporal parameters are near an interpretability boundary; read",
         "convergence_status() and boundary rows before inference."
       ),
       degenerate = paste(
         "The optimizer reported success but the likelihood geometry or",
         "uncertainty is degenerate (no reliable maximum or non-finite",
         "standard errors). multi_start cannot clear this state;",
-        "is_converged() is FALSE."
+        "is_converged() and converged() are FALSE."
       ),
       "Convergence status could not be classified."
     )
@@ -1478,12 +1698,22 @@ check_observations_per_parameter <- function(object) {
       format_check_number(ratio)
     ),
     if (low) {
+      # #1469: with so few observations per parameter the likelihood can have
+      # two maxima, and a single start can stop on the lower one with status
+      # "converged". Point at multi_start unless it was already used.
+      multi_start_used <- isTRUE(object$control$multi_start > 1L)
       paste(
         "Fewer than",
         observations_per_parameter_threshold,
         "observations per estimated parameter; the diagnostic board does not",
         "become more cautious automatically at small n, so inspect effect",
-        "sizes and uncertainty before interpreting tests."
+        "sizes and uncertainty before interpreting tests.",
+        if (!multi_start_used) {
+          paste(
+            "The likelihood can also be multimodal at this size; refit with",
+            "drm_control(multi_start = 10) and compare the logLik values."
+          )
+        }
       )
     } else {
       paste(
@@ -1591,7 +1821,7 @@ check_fixed_effect_rank_deficiency <- function(object) {
     if (is.null(dims) || length(dims) != 2L || dims[[2L]] <= 0L) {
       next
     }
-    block_rank <- qr(block, tol = 1e-8)$rank
+    block_rank <- qr(block, tol = drm_twin_rank_tol)$rank
     if (block_rank < dims[[2L]]) {
       name <- names(X)[[i]]
       if (is.null(name) || !nzchar(name)) {
@@ -1895,6 +2125,185 @@ check_interval_reliability_scope <- function(object) {
   )
 }
 
+# Temporal parameters can run to an interpretability boundary while the
+# optimizer, Hessian and standard errors all look regular: the residual SD can
+# collapse into the temporal process, an OU decay can run to zero (the process
+# becomes a per-series constant) or to infinity relative to the sampling gaps
+# (white noise), and AR1 persistence can run to +/-1. None of these is a
+# variance-component SD, so check_random_effect_sd_boundary() never sees them.
+# Thresholds are relative to the data: residual sigma below 1e-3 of the
+# response SD; OU decay * longest within-series span below 1e-4 (correlation
+# above 0.9999 at every observed lag) or decay * shortest positive gap above
+# 30 (correlation below 1e-13 at every observed lag); |AR1 phi| above 0.999.
+temporal_boundary_thresholds <- list(
+  sigma_ratio = 1e-3,
+  decay_span = 1e-4,
+  decay_gap = 30,
+  ar1_phi = 0.999
+)
+
+drm_temporal_boundary_findings <- function(object) {
+  temporal <- object$model$structured$temporal_mu
+  limits <- temporal_boundary_thresholds
+  found <- character()
+  sigma_value <- tryCatch(
+    as.numeric(stats::sigma(object))[[1L]],
+    error = function(e) NA_real_
+  )
+  response_sd <- stats::sd(object$model$y, na.rm = TRUE)
+  if (is.finite(sigma_value) && is.finite(response_sd) && response_sd > 0 &&
+      sigma_value / response_sd < limits$sigma_ratio) {
+    found <- c(found, paste0(
+      "sigma_ratio=", format_check_number(sigma_value / response_sd)
+    ))
+  }
+  if (identical(temporal$structure, "ou")) {
+    decay <- unname(object$decaypars$temporal[[1L]])
+    gap <- as.numeric(temporal$gap)
+    starts <- temporal$series_start0 + 1L
+    spans <- vapply(seq_len(length(starts) - 1L), function(i) {
+      idx <- seq.int(starts[[i]], starts[[i + 1L]] - 1L)
+      sum(gap[idx[-1L]])
+    }, numeric(1L))
+    positive <- gap[gap > 0]
+    if (is.finite(decay) && length(spans) > 0L &&
+        decay * max(spans) < limits$decay_span) {
+      found <- c(found, paste0(
+        "decay_x_max_span=", format_check_number(decay * max(spans))
+      ))
+    }
+    if (is.finite(decay) && length(positive) > 0L &&
+        decay * min(positive) > limits$decay_gap) {
+      found <- c(found, paste0(
+        "decay_x_min_gap=", format_check_number(decay * min(positive))
+      ))
+    }
+  }
+  if (identical(temporal$structure, "ar1")) {
+    phi <- unname(object$corpars$temporal[[1L]])
+    if (is.finite(phi) && abs(phi) > limits$ar1_phi) {
+      found <- c(found, paste0("phi=", format_check_number(phi)))
+    }
+  }
+  found
+}
+
+check_temporal_boundary <- function(object) {
+  if (!drm_has_temporal_mu(object)) {
+    return(NULL)
+  }
+  found <- drm_temporal_boundary_findings(object)
+  if (length(found) == 0L) {
+    return(check_row(
+      "temporal_boundary",
+      "ok",
+      NA_character_,
+      "Residual sigma and the temporal persistence or decay are away from their boundaries."
+    ))
+  }
+  check_row(
+    "temporal_boundary",
+    "warning",
+    paste(found, collapse = "; "),
+    paste(
+      "A temporal parameter is at an interpretability boundary:",
+      "sigma_ratio means the residual SD collapsed into the temporal process;",
+      "decay_x_max_span means OU correlation is ~1 at every observed lag",
+      "(a per-series constant); decay_x_min_gap means OU correlation is ~0 at",
+      "every observed lag (white noise); phi means AR1 persistence is at +/-1.",
+      "Do not read the variance components separately; collect more series or",
+      "occasions, or fit a simpler temporal model."
+    )
+  )
+}
+
+# The Hessian row tells users whether the fitted objective is locally regular.
+# This row states the separate public temporal-inference consequence without
+# changing point-estimate diagnostics or inventing a boundary threshold. A
+# positive-definite AR1 Hessian is sufficient for that fit's existing mean-only
+# Wald method, but not a general coverage claim. OU keeps that Wald route
+# deferred; it exposes fixed-effect likelihood profiles through the separately
+# labelled temporal_mean_profile row below.
+check_temporal_mean_wald <- function(object) {
+  if (!drm_has_temporal_mu(object)) {
+    return(NULL)
+  }
+  structure <- object$model$structured$temporal_mu$structure
+  if (identical(structure, "ou")) {
+    return(check_row(
+      "temporal_mean_wald",
+      "note",
+      "unavailable; reason=calibration_deferred",
+      "OU mean-coefficient Wald intervals are intentionally unavailable while the inherited AR1 calibration prerequisite remains unresolved."
+    ))
+  }
+  if (identical(structure, "homtoep")) {
+    return(check_row(
+      "temporal_mean_wald",
+      "note",
+      "unavailable; reason=toeplitz_calibration_deferred",
+      "Homogeneous Toeplitz mean-coefficient Wald intervals remain unavailable. Fixed-mean likelihood profiles are qualified in the retained primary cells; Wald covariance remains unavailable."
+    ))
+  }
+  covariance_ready <- identical(drm_uncertainty_status(object), "ok") &&
+    !is.null(object$sdr) && isTRUE(object$sdr$pdHess)
+  if (!covariance_ready) {
+    return(check_row(
+      "temporal_mean_wald",
+      "warning",
+      "unavailable; reason=full_hessian",
+      "Temporal AR1 mean-coefficient Wald intervals are unavailable because the full observed marginal-likelihood Hessian is not positive definite or its covariance is unavailable. Inspect variance-boundary and optimizer diagnostics before interpreting intervals."
+    ))
+  }
+  check_row(
+    "temporal_mean_wald",
+    "note",
+    "available_for_this_fit; calibration=unqualified",
+    "Temporal AR1 mean-coefficient Wald intervals are available for this fit. Their general coverage calibration remains unresolved; do not treat this fit-level status as a coverage claim."
+  )
+}
+
+check_temporal_mean_profile <- function(object) {
+  if (!drm_has_temporal_mu(object)) {
+    return(NULL)
+  }
+  structure <- toupper(object$model$structured$temporal_mu$structure)
+  if (is.null(object$obj)) {
+    return(check_row(
+      "temporal_mean_profile",
+      "warning",
+      "unavailable; reason=tmb_object_missing",
+      "Temporal mean-coefficient profile intervals require the retained TMB object. Refit with drm_control(keep_tmb_object = TRUE)."
+    ))
+  }
+  hessian_regular <- identical(drm_uncertainty_status(object), "ok") &&
+    !is.null(object$sdr) && isTRUE(object$sdr$pdHess)
+  if (!hessian_regular) {
+    return(check_row(
+      "temporal_mean_profile",
+      "warning",
+      "available_with_caution; reason=base_hessian_non_pd",
+      "Temporal mean-coefficient profile intervals can be finite, but the fitted full observed Hessian is not positive definite. Treat the fitted likelihood as locally irregular; inspect the profile curve and do not treat the interval as coverage-calibrated."
+    ))
+  }
+  calibration <- if (identical(structure, "HOMTOEP")) {
+    "qualified_primary_cells"
+  } else {
+    "unqualified"
+  }
+  qualification_note <- if (identical(structure, "HOMTOEP")) {
+    "A retained 4,000-fit campaign qualified mean-coefficient profile intervals in its three predeclared 80-series, six-occasion primary cells; this fit-level status does not extend that result to other panel designs."
+  } else {
+    "Their general coverage calibration remains unresolved; do not treat this fit-level status as a coverage claim."
+  }
+  check_row(
+    "temporal_mean_profile",
+    "note",
+    paste0("available_for_this_fit; calibration=", calibration),
+    paste("Temporal mean-coefficient profile intervals are available for this fit.", qualification_note)
+  )
+}
+
 check_rho12_boundary <- function(object, rho_boundary) {
   if (
     !object$model$model_type %in%
@@ -2017,6 +2426,52 @@ check_skew_normal_nu <- function(object) {
     "ok",
     value,
     "All fitted skew-normal nu values are finite."
+  )
+}
+
+# Flag-only response-damage signal (#1335, owner decision of 11 Oct 2026).
+# A response with a sentinel code (e.g. -9999 for missing) or other gross
+# contamination leaves the optimizer, Hessian and SE rows green while the
+# scale model attenuates, so look at the residuals the fit already implies.
+# Under a correctly specified model a quantile residual is N(0, 1), so about
+# 0.27% of rows fall beyond |3|; more than 1% (and at least 2 rows) is read as
+# a damaged response or a badly mis-specified family. Quantile residuals are
+# computed with a fixed seed, which does not touch the caller's RNG. The row is
+# a "note": it changes no estimate and never flips `attr(, "ok")`. Families with
+# no residual route, spike-grade families (their residual warns once per
+# session) and bivariate fits return NULL (no row).
+check_residual_outliers <- function(object) {
+  fd <- tryCatch(fitted_distribution(object), error = function(e) NULL)
+  if (is.null(fd) || !identical(fd$status, "reference")) {
+    return(NULL)
+  }
+  res <- tryCatch(
+    drm_quantile_residuals(object, seed = 1L),
+    error = function(e) NULL
+  )
+  if (is.null(res) || !is.numeric(res) || !is.null(dim(res))) {
+    return(NULL)
+  }
+  res <- res[is.finite(res)]
+  n <- length(res)
+  if (n == 0L) {
+    return(NULL)
+  }
+  n_out <- sum(abs(res) > 3)
+  value <- paste0("n_beyond_3=", n_out, "/", n)
+  if (n_out >= 2L && n_out / n > 0.01) {
+    return(check_row(
+      "residual_outliers",
+      "note",
+      value,
+      "More than 1% of quantile residuals lie beyond |3| (about 0.27% is expected). The response may be damaged, for example by a sentinel code such as -9999 for missing, or the family may be badly mis-specified; inspect the largest residuals and the raw response before trusting the scale model."
+    ))
+  }
+  check_row(
+    "residual_outliers",
+    "ok",
+    value,
+    "No excess of quantile residuals beyond |3|."
   )
 }
 

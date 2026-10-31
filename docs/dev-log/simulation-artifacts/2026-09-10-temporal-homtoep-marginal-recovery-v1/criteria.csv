@@ -1,0 +1,6 @@
+"criterion","observed","threshold","pass"
+"nine selected finite primary fits",9,"9",TRUE
+"twelve retained start attempts",12,"12",TRUE
+"primary mean absolute fixed-effect error <= 0.20",0.0447530482432184,"<= 0.20",TRUE
+"primary median absolute total-SD error <= 0.25",0.0442394865297804,"<= 0.25",TRUE
+"primary median lag RMSE <= 0.35",0.0705213377756472,"<= 0.35",TRUE

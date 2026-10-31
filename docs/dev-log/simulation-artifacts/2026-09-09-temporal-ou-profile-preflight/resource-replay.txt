@@ -1,0 +1,19 @@
+TEMPORAL_OU_PROFILE_PILOT_PASS
+       41.08 real        39.36 user         0.38 sys
+           478789632  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               36125  page reclaims
+                  38  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  94  voluntary context switches
+               19953  involuntary context switches
+        483065679952  instructions retired
+        121944212045  cycles elapsed
+           434258880  peak memory footprint

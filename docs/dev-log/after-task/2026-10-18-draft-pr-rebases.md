@@ -62,3 +62,15 @@ were not closed. Closes/Refs lines on recertify commits match each PR body.
 Watch CI on each force-pushed head. #1509 needs no C++ review. #1524,
 #1525, #1505 (via #1504), and #1529 do change `src/` and should go to the
 C++ TMB reviewer after CI.
+
+## Additions carried from the #1530 branch copy
+
+- #1505's `test-predict-character-predictors.R` was updated so
+  `y ~ chr + I(x * nchar(chr))` is not rank-deficient. A character column used
+  bare and as `nchar(.)` is aliased and now trips the #1505 rank abort.
+- #1505 CI run 39102666708 failed shard 1/4 on the aliased
+  `chr + nchar(chr)` fixture; the follow-up head is green.
+- Later-session full-suite tallies sat in the env-only band of about 81 fail,
+  213 to 226 error, 241 skip (Julia and Suggests).
+- GitHub draft conversion was denied, so #1501, #1506, and #1528 stay
+  non-draft; #1505 needed a second push after CI caught the fixture.

@@ -51,6 +51,19 @@ available: an unlabelled q1 \code{phylo(1 | group, tree = tree)} intercept in
 \code{mu}. It does not license other providers, slopes, labels, covariance,
 q2-plus structured effects, profiling, intervals, coverage, or inference
 claims.
+
+Estimating \code{coi} needs both kinds of boundary value. If the response has
+exact zeroes but no exact ones (or exact ones but no exact zeroes), the
+\code{coi} likelihood is maximised at its boundary: the \code{coi} coefficient runs
+towards minus (or plus) infinity with a huge standard error, \code{\link[=check_drm]{check_drm()}}
+reports the fit as \code{degenerate}, and \code{\link[=is_converged]{is_converged()}} returns \code{FALSE}.
+\code{coi} cannot be dropped, because an omitted \code{coi} formula means \code{coi ~ 1}.
+The likelihood factorises into the interior beta part, the boundary
+probability \code{zoi}, and \code{coi}, so for such data fit the same model as two
+parts instead: \code{beta_family()} for the values strictly inside \verb{(0, 1)} and
+\code{binomial()} for the indicator of an exact boundary value. The two parts
+give the same \code{mu}, \code{sigma}, and \code{zoi} estimates without the unidentified
+parameter. drmTMB has no ordered-beta family.
 }
 \examples{
 zero_one_beta()

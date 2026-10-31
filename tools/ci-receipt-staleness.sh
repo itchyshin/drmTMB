@@ -43,6 +43,22 @@
 # numerical self-consistency, label/permutation checks) is still run, so the
 # receipt's INTERNAL claims are checked by the authoritative implementation.
 #
+# WHICH R/ CHANGES FAIL (narrowed 2026-10-24, owner decision)
+# ----------------------------------------------------------
+# The receipt records one hash per R/ file, but the runner only EXERCISES some of
+# them. Failing on every differing hash turned main red on any roxygen edit in an
+# unrelated file. The guard now fails on a differing, absent or unrecorded R/ file
+# only when that file is on the runner's static call path, computed from the code
+# by tools/receipt-exercised-files.R (rule and its blind spot are documented
+# there). A differing R/ file that is NOT on that path is printed as a NOTE and
+# does not fail. Deliberately unchanged: the receipt JSON, every numeric
+# tolerance, the runner-hash check, the structural validation, the C17 check, and
+# the rule that a recorded R/ file that is now ABSENT fails (it cannot be
+# classified once gone). The path rule over-approximates, so it can fail on a file
+# the run never executes; it is designed not to pass a file the run does execute.
+# A NOTE means "the receipt's sources moved but not where the runner looks"; the
+# next regeneration refreshes the recorded hashes anyway.
+#
 # WHAT IS DELIBERATELY NOT GATED
 # ------------------------------
 # docs/dev-log/evidence/julia-r-parity/phylo-labels/public-00{1,2}.json are
@@ -69,12 +85,25 @@ RECEIPTS=(
 RUNNER=tools/run-julia-phylo-labels-public.R
 CHECKER=tools/check-julia-phylo-labels-receipt.R
 
-for f in "${RECEIPTS[@]}" "$RUNNER" "$CHECKER" tools/capability_ledger.py; do
+for f in "${RECEIPTS[@]}" "$RUNNER" "$CHECKER" tools/capability_ledger.py tools/receipt-exercised-files.R; do
   if [ ! -f "$f" ]; then
     echo "ci-receipt-staleness: missing $f" >&2
     exit 2
   fi
 done
+
+# The R/ files the runner can exercise (see "WHICH R/ CHANGES FAIL" above). Fail
+# closed: if the path cannot be computed, or looks implausible, this is an
+# environment error (exit 2), never a silent pass.
+EXERCISED="$(Rscript --no-init-file tools/receipt-exercised-files.R "$RUNNER" R)" || {
+  echo "ci-receipt-staleness: tools/receipt-exercised-files.R failed" >&2
+  exit 2
+}
+if ! printf '%s\n' "$EXERCISED" | grep -qx 'R/drmTMB.R'; then
+  echo "ci-receipt-staleness: exercised-file list does not contain R/drmTMB.R; refusing to trust it" >&2
+  exit 2
+fi
+export EXERCISED
 
 status=0
 
@@ -84,6 +113,7 @@ import glob, hashlib, json, os, sys
 
 runner, receipts = sys.argv[1], sys.argv[2:]
 drm_jl = os.environ.get("DRM_JL_PATH", "")
+exercised = set(os.environ["EXERCISED"].split())
 stale = 0
 
 def sha256(path):
@@ -102,15 +132,19 @@ for receipt in receipts:
         print(f"STALE  {receipt}: source_before and source_after disagree")
         stale += 1
         continue
-    r_ok = r_bad = jl_ok = jl_bad = jl_unverified = 0
+    r_ok = r_bad = r_note = jl_ok = jl_bad = jl_unverified = 0
     for path, recorded in before.items():
         if path.startswith("R/"):
             if not os.path.isfile(path):
                 print(f"STALE  {receipt}: recorded source path is absent now: {path}")
                 r_bad += 1
             elif sha256(path) != recorded:
-                print(f"STALE  {receipt}: current source hash differs from receipt: {path}")
-                r_bad += 1
+                if path in exercised:
+                    print(f"STALE  {receipt}: current source hash differs from receipt: {path} (on the runner's call path)")
+                    r_bad += 1
+                else:
+                    print(f"NOTE   {receipt}: source hash differs from receipt, not on the runner's call path: {path}")
+                    r_note += 1
             else:
                 r_ok += 1
         else:
@@ -127,14 +161,21 @@ for receipt in receipts:
                 jl_ok += 1
     # A file added under R/ since the receipt was written is in no manifest
     # entry, so the loop above cannot see it; the runner globs R/*.R, so an
-    # unrecorded file means the receipt predates it.
+    # unrecorded file means the receipt predates it. It matters only if the
+    # runner can reach it.
     unrecorded = [p for p in sorted(glob.glob("R/*.R")) if p not in before]
+    unrecorded_bad = 0
     for path in unrecorded:
-        print(f"STALE  {receipt}: R/ file not recorded in receipt (added since): {path}")
+        if path in exercised:
+            print(f"STALE  {receipt}: R/ file not recorded in receipt (added since), on the runner's call path: {path}")
+            unrecorded_bad += 1
+        else:
+            print(f"NOTE   {receipt}: R/ file not recorded in receipt (added since), not on the runner's call path: {path}")
     runner_ok = sha256(runner) == r["runner_sha256"]
     if not runner_ok:
         print(f"STALE  {receipt}: current runner hash differs from receipt: {runner}")
-    r_bad += len(unrecorded) + (0 if runner_ok else 1)
+    on_path_bad = r_bad
+    r_bad += unrecorded_bad + (0 if runner_ok else 1)
     stale += r_bad + jl_bad
     jl_note = (
         f"{jl_ok} of {jl_ok + jl_bad} DRM.jl-side entries match DRM_JL_PATH={drm_jl}" if drm_jl
@@ -142,8 +183,10 @@ for receipt in receipts:
     )
     verdict = "STALE " if (r_bad + jl_bad) else "FRESH "
     print(
-        f"{verdict} {receipt}: {r_ok} of {r_ok + r_bad - len(unrecorded) - (0 if runner_ok else 1)} recorded R/ files match, "
-        f"{len(unrecorded)} unrecorded R/ file(s), runner {'matches' if runner_ok else 'DIFFERS'}; {jl_note}"
+        f"{verdict} {receipt}: {r_ok} recorded R/ files match, {on_path_bad} differ or absent, "
+        f"{unrecorded_bad} unrecorded, all on the call path; {r_note + len(unrecorded) - unrecorded_bad} "
+        f"informational (changed or unrecorded, off the call path); runner {'matches' if runner_ok else 'DIFFERS'}; "
+        f"{len(exercised)} R/ files on the call path; {jl_note}"
     )
 sys.exit(1 if stale else 0)
 PY

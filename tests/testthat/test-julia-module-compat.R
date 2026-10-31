@@ -225,3 +225,72 @@ test_that("an unsupported selected manifest format stops before checkout activat
   expect_length(commands, 0L)
   expect_false(isTRUE(state$ready))
 })
+
+test_that("setup filters only the harmless LogExpFunctions extension-load log (#1157)", {
+  skip_if_not_installed("JuliaCall")
+  root <- withr::local_tempdir()
+  writeLines(c('name = "DRModels"', 'uuid = "00000000-0000-0000-0000-000000000001"'),
+             file.path(root, "Project.toml"))
+  state <- new.env(parent = emptyenv())
+  local_mocked_bindings(drm_julia_setup_state = state,
+                        drm_julia_cran_lane_blocked = function(...) FALSE)
+  commands <- character()
+  local_mocked_bindings(
+    julia_setup = function(...) invisible(NULL),
+    julia_command = function(code) {
+      commands <<- c(commands, code)
+      invisible(NULL)
+    },
+    julia_eval = function(code, ...) {
+      if (grepl("project_file_manifest_path", code, fixed = TRUE)) {
+        return(c(manifest = "", manifest_format = "2.0", runtime = "1.10.0"))
+      }
+      "DRModels"
+    }, .package = "JuliaCall"
+  )
+  drm_julia_setup(root)
+  install_at <- grep("DrmTMBBootLog.install()", commands, fixed = TRUE)
+  restore_at <- grep("DrmTMBBootLog.restore()", commands, fixed = TRUE)
+  activate_at <- grep("Pkg.activate(", commands, fixed = TRUE)
+  expect_length(install_at, 1L)
+  expect_length(restore_at, 1L)
+  # The filter is installed after activation (extensions load with the module)
+  # and removed again once setup has finished.
+  expect_true(activate_at[[1L]] < install_at)
+  expect_true(install_at < restore_at)
+  expect_true(all(endsWith(trimws(commands, "right"), ";")))
+})
+
+test_that("the Julia boot log filter hides the harmless extension error and keeps genuine ones (#1157)", {
+  skip_on_cran()
+  julia <- Sys.which("julia")
+  skip_if(!nzchar(julia), "julia is not on PATH")
+  script <- withr::local_tempfile(fileext = ".jl")
+  writeLines(c(
+    drm_julia_boot_log_source(),
+    "DrmTMBBootLog.install()",
+    "ext = \"LogExpFunctionsInverseFunctionsExt\"",
+    "msg = \"Error during loading of extension $ext of LogExpFunctions, use `Base.retry_load_extensions()` to retry.\"",
+    "harmless = (LoadError(\"ext.jl\", 19, UndefVarError(:loglogistic)), Base.StackTraces.StackFrame[])",
+    "@error msg exception = harmless",
+    "@error \"GENUINE-OTHER-EXTENSION\" exception = harmless",
+    "@error msg exception = (ErrorException(\"a different failure\"), Base.StackTraces.StackFrame[])",
+    "@warn \"GENUINE-WARNING\"",
+    "DrmTMBBootLog.restore()",
+    "@error msg exception = harmless"
+  ), script)
+  out <- suppressWarnings(system2(julia, c("--startup-file=no", shQuote(script)),
+                                  stdout = TRUE, stderr = TRUE))
+  out <- paste(out, collapse = "\n")
+  # While installed, the harmless message is hidden; unrelated errors, warnings
+  # and an extension error with a different cause are all still shown.
+  expect_match(out, "GENUINE-OTHER-EXTENSION", fixed = TRUE)
+  expect_match(out, "GENUINE-WARNING", fixed = TRUE)
+  expect_match(out, "a different failure", fixed = TRUE)
+  # Two extension messages remain: the different-cause one, and the harmless
+  # one logged after restore() has removed the filter.
+  expect_equal(
+    lengths(regmatches(out, gregexpr("Error during loading of extension", out, fixed = TRUE))),
+    2L
+  )
+})

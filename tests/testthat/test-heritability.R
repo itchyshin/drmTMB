@@ -116,6 +116,17 @@ test_that("refuse: non-Gaussian family", {
   expect_error(icc(fit_pois), "Gaussian")
 })
 
+test_that("refuse: non-Gaussian family names Gaussian-only and points to the design doc (#1301)", {
+  set.seed(14)
+  dat_pois <- data.frame(y = rpois(50, 3), grp = factor(rep(1:10, each = 5)))
+  fit_pois <- drmTMB(bf(y ~ 1 + (1 | grp)), data = dat_pois, family = poisson())
+  for (f in list(icc, repeatability, heritability)) {
+    expect_error(f(fit_pois), "Gaussian-only")
+    expect_error(f(fit_pois), "275-repeatability-scale-and-residual-variance", fixed = TRUE)
+    expect_error(f(fit_pois), "de Villemereuil")
+  }
+})
+
 test_that("delta-method se is finite and positive; Wald interval is a sanity check (not a coverage claim)", {
   n_groups <- 300
   n_per <- 10

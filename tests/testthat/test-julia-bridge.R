@@ -961,3 +961,37 @@ test_that("sdpars, sigma random intercept: the sigma-side random-effect SD is fi
   expect_true("sigma" %in% names(fj$sdpars))
   expect_true("sigma" %in% names(ft$sdpars))
 })
+
+# Issue #1570: bridge fits (class "drmTMB_julia", no "drmTMB" inheritance) had
+# no simulate() or predict_parameters() method, so both failed with base R's
+# "no applicable method" error. They now refuse by name, as heritability()
+# does, and point at engine = "tmb". A stub object keeps this Julia-free.
+test_that("simulate() and predict_parameters() refuse an engine = 'julia' fit by name", {
+  stub <- structure(list(nobs = 10L, df = 4L), class = "drmTMB_julia")
+  expect_error(
+    simulate(stub, nsim = 2),
+    class = "drmTMB_simulate_julia_unsupported"
+  )
+  expect_error(
+    predict_parameters(stub, newdata = data.frame(x = 1)),
+    class = "drmTMB_predict_parameters_julia_unsupported"
+  )
+  for (msg in list(
+    tryCatch(simulate(stub), error = conditionMessage),
+    tryCatch(predict_parameters(stub), error = conditionMessage)
+  )) {
+    expect_match(msg, "engine = \"julia\"", fixed = TRUE)
+    expect_match(msg, "engine = \"tmb\"", fixed = TRUE)
+  }
+  # The predict_parameters() refusal points at the SE route that does exist.
+  expect_match(
+    tryCatch(predict_parameters(stub), error = conditionMessage),
+    "vcov", fixed = TRUE
+  )
+  # The bridge's own quantile route temporarily appends "drmTMB" to the class
+  # so predict_parameters() reaches the native method; the refusal must not
+  # intercept that call.
+  extended <- structure(list(), class = c("drmTMB_julia", "drmTMB"))
+  err <- tryCatch(predict_parameters(extended), error = identity)
+  expect_false(inherits(err, "drmTMB_predict_parameters_julia_unsupported"))
+})

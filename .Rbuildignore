@@ -1,6 +1,7 @@
 ^\.agents$
 ^\.claude$
 ^\.codex$
+^\.unlazy$
 ^\.git$
 ^\.github$
 ^scratchpad$

@@ -89,7 +89,8 @@ For ordinary fixed-effect models, binomial, Poisson, negative-binomial,
 strict continuous-proportion (`beta_family()`), and Gaussian examples have
 checked Wald intervals in the tested settings. The strict beta family requires
 responses strictly inside `(0, 1)`; use `zero_one_beta()` when exact zeroes or
-ones are meaningful outcomes. These results do not create a universal minimum
+ones are meaningful outcomes and both kinds occur (with only zeroes or only
+ones, its `coi` parameter is unidentified; see `?zero_one_beta`). These results do not create a universal minimum
 sample-size rule, so retain ordinary convergence and diagnostic checks.
 
 Negative-binomial location--scale models (`mu` and `sigma ~ x`) and strict beta
@@ -152,14 +153,17 @@ the fitted scale is `s_j` and the supplied matrix is `K_h`, the covariance is
 `s_j sqrt(K_h[ii])`. Thus the fitted scale equals a level-specific standard
 deviation only when that matrix diagonal is one.
 
-### Structured models with point estimates only
+### Structured models: route-specific evidence
 
 Structured Poisson and negative-binomial mean models have a useful but narrower
 permission: report the point estimate for the supported single-effect forms,
-but not an interval as if it were calibrated. A small number of named
-structured beta, Student-t, Gamma, and zero-one-beta forms likewise have
-point-estimate support only; use their family article before treating a fit as
-reportable.
+but not an interval as if it were calibrated. Evidence for other structured
+families varies by exact cell. The named beta phylogenetic mean-intercept cell
+has admitted interval evidence; selected beta-animal and Gamma cells have
+feasible target-specific intervals without coverage validation; Student-t
+spatial/phylogenetic cells remain diagnostic, and selected zero-one-beta mean
+intercepts have point-recovery evidence only. Consult the family article and
+its exact route before reporting an estimate or interval.
 
 Matching bivariate Gaussian spatial or supplied-relatedness intercepts in both
 mean formulas also have point-estimate support when the two responses are
@@ -252,3 +256,10 @@ Choose the next worked tutorial from [response families](distribution-families.h
 [structured effects](structural-dependence.html), [bivariate models](bivariate-nongaussian.html),
 or [missing data](missing-data.html). This page is deliberately a reporting
 guide: it tells you what to fit, what to report, and where to stop.
+
+Working in Julia? The DRModels.jl
+[detailed capabilities and limits page](https://itchyshin.github.io/DRModels.jl/stable/capabilities)
+gives the matching map for that package. DRModels.jl is a separate package
+with its own fitting and inference routes, so a route that is supported here
+is not automatically supported there, and the reverse. Julia is optional for
+`drmTMB` users.

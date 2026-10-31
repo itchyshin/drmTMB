@@ -1,0 +1,527 @@
+From ea40557ad1f63ebad3aac8a63167817555479213 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sat, 17 Oct 2026 00:08:46 +0000
+Subject: [PATCH] feat: shared three-valued convergence_status and Poisson MLE
+ guard
+
+convergence_status is :converged, :boundary, or :degenerate with the
+same numeric cuts as drmTMB. is_converged and converged are true only
+for :converged. Fixed-effect Poisson/NB2 MLEs that do not exist warn
+and report Inf SEs (#1109).
+
+Refs itchyshin/drmTMB#1554 itchyshin/drmTMB#1333 #731 #1109
+
+Co-authored-by: Shinichi Nakagawa <snakagaw@ualberta.ca>
+---
+ news/1109-fx3b-convergence-status.md |   1 +
+ src/DRModels.jl                      |   3 +-
+ src/convergence_status.jl            | 107 +++++++++++++++++++++++++++
+ src/gaussian_core.jl                 |   2 +-
+ src/inference.jl                     |   8 +-
+ src/introspection.jl                 |   4 +-
+ src/negbinomial.jl                   |   2 +
+ src/poisson.jl                       |   2 +
+ src/separation.jl                    |  29 ++++++++
+ src/summary.jl                       |  29 ++------
+ src/temporal.jl                      |   2 +-
+ test/test_api_stability.jl           |   2 +-
+ test/test_check_drm.jl               |   7 +-
+ test/test_convergence_status.jl      |  69 +++++++++++++++++
+ test/test_poisson_mle_existence.jl   |  30 ++++++++
+ 15 files changed, 262 insertions(+), 35 deletions(-)
+ create mode 100644 news/1109-fx3b-convergence-status.md
+ create mode 100644 src/convergence_status.jl
+ create mode 100644 test/test_convergence_status.jl
+ create mode 100644 test/test_poisson_mle_existence.jl
+
+diff --git a/news/1109-fx3b-convergence-status.md b/news/1109-fx3b-convergence-status.md
+new file mode 100644
+index 0000000..6689203
+--- /dev/null
++++ b/news/1109-fx3b-convergence-status.md
+@@ -0,0 +1 @@
++- **Shared `convergence_status` with drmTMB, and the all-zero Poisson screen (#1109, FX3b).** `convergence_status(fit)` is `:converged`, `:boundary`, or `:degenerate` with the same numeric cuts as drmTMB (rank tolerance `1e-8`, inflated SE `>= 50` and `>= 1000 ×` the sub-50 median, random-effect SD `< 1e-4`, `|rho12| > 0.98`). `is_converged(fit)` and `converged(fit)` are `true` only for `:converged`. Print, `summary`/`show`, and `check_drm` report the status. Fixed-effect Poisson and NB2 fits whose MLE does not exist (all-zero response, or positives only on a face of the covariate cone) warn, set those SEs to `Inf`, and read `:degenerate`.
+diff --git a/src/DRModels.jl b/src/DRModels.jl
+index a469109..f90c29e 100644
+--- a/src/DRModels.jl
++++ b/src/DRModels.jl
+@@ -140,6 +140,7 @@ include("profile_q4_phylo.jl")   # Ayumi #2: profile-likelihood CIs for the q=4
+ include("bootstrap_q4_phylo.jl") # Ayumi #2: parametric bootstrap of the q=4 among-axis SDs (boundary-honest CIs)
+ include("variational.jl")
+ include("ordinary_laplace.jl")      # Arc 2: marginal = :Laplace on ordinary (1 | g) (TMB convention)
++include("convergence_status.jl")
+ include("summary.jl")
+ include("r2.jl")             # R2 for the constant-sigma Gaussian case ONLY; refuses elsewhere
+ include("visualization.jl")
+@@ -183,7 +184,7 @@ export @formula, bf, drm_formula, drm, Gaussian, Student, SkewNormal, Poisson, N
+        drm_figure, plot_profile, plot_parameter_surface, plot_corpairs,
+        gaussian_locscale_phylo_sds,
+        profile_sigma_a,
+-       is_converged, niterations, deviance, dof_residual,
++       is_converged, converged, convergence_status, niterations, deviance, dof_residual,
+        lrtest, anova, aicc, weights, update,
+        chibar_pvalue, lrt_boundary,
+        bias_correct,
+diff --git a/src/convergence_status.jl b/src/convergence_status.jl
+new file mode 100644
+index 0000000..5c7737d
+--- /dev/null
++++ b/src/convergence_status.jl
+@@ -0,0 +1,107 @@
++# Twin contract: three-valued convergence_status (FX3b / drmTMB #1554).
++# Numeric cuts MUST stay identical to drmTMB R/check.R and
++# docs/design/278-twin-convergence-status.md in itchyshin/drmTMB.
++
++using LinearAlgebra: isposdef, Symmetric
++using Statistics: median
++
++const _TWIN_RANK_TOL = 1e-8
++const _TWIN_INFLATED_SE_FLOOR = 50.0
++const _TWIN_INFLATED_SE_RATIO = 1000.0
++const _TWIN_RE_SD_BOUNDARY = 1e-4
++const _TWIN_RHO12_BOUNDARY = 0.98
++const _TWIN_SENTINEL_LOGLIK = -1e15
++
++function _twin_se(V::AbstractMatrix)
++    n = size(V, 1)
++    n == 0 && return Float64[]
++    se = fill(NaN, n)
++    @inbounds for j in 1:n
++        v = V[j, j]
++        if isfinite(v) && v >= 0
++            se[j] = sqrt(v)
++        end
++    end
++    return se
++end
++
++function _twin_vcov_pd(V::AbstractMatrix)
++    (size(V, 1) == 0 || size(V, 1) != size(V, 2)) && return false
++    all(isfinite, V) || return false
++    return isposdef(Symmetric(Matrix{Float64}(V)))
++end
++
++function _twin_inflated_se(se::AbstractVector)
++    finite = [s for s in se if isfinite(s)]
++    isempty(finite) && return false
++    reference = [s for s in finite if s < _TWIN_INFLATED_SE_FLOOR]
++    median_se = isempty(reference) ? minimum(finite) : median(reference)
++    return any(s -> isfinite(s) && s >= _TWIN_INFLATED_SE_FLOOR &&
++        s >= _TWIN_INFLATED_SE_RATIO * median_se, se)
++end
++
++function _twin_re_sds(fit::DrmFit)
++    try
++        return collect(values(re_sd(fit)))
++    catch
++        return Float64[]
++    end
++end
++
++function _twin_rho12(fit::DrmFit)
++    try
++        r = rho12(fit)
++        return r isa AbstractVector ? collect(Float64, r) : Float64[Float64(r)]
++    catch
++        return Float64[]
++    end
++end
++
++function _count_mle_nonexistent(fit::DrmFit)
++    haskey(fit.scales, :__mle_nonexistent) && return true
++    (fit.family isa Poisson || fit.family isa NegBinomial2) || return false
++    y = get(fit.obs, :mu, nothing)
++    y isa AbstractVector || return false
++    return !isempty(y) && all(iszero, y)
++end
++
++"""
++    convergence_status(fit::DrmFit) -> Symbol
++
++One of `:converged`, `:boundary`, or `:degenerate`. Identical numeric
++predicates to drmTMB (`docs/design/278-twin-convergence-status.md`).
++`is_converged(fit)` and `converged(fit)` are `true` only for `:converged`.
++The raw optimiser flag remains `fit.converged`.
++"""
++function convergence_status(fit::DrmFit)
++    if !fit.converged || !isfinite(fit.loglik) || fit.loglik <= _TWIN_SENTINEL_LOGLIK
++        return :degenerate
++    end
++    if _count_mle_nonexistent(fit) || !_nondegenerate_fit(fit)
++        return :degenerate
++    end
++    V = fit.vcov
++    se = _twin_se(V)
++    if !_twin_vcov_pd(V) || isempty(se) || !all(isfinite, se) || _twin_inflated_se(se)
++        return :degenerate
++    end
++    sds = _twin_re_sds(fit)
++    rhos = _twin_rho12(fit)
++    at_boundary = any(s -> isfinite(s) && s < _TWIN_RE_SD_BOUNDARY, sds) ||
++        any(r -> isfinite(r) && abs(r) > _TWIN_RHO12_BOUNDARY, rhos)
++    return at_boundary ? :boundary : :converged
++end
++
++"""
++    is_converged(fit::DrmFit) -> Bool
++
++`true` exactly when `convergence_status(fit) === :converged`.
++"""
++is_converged(fit::DrmFit) = convergence_status(fit) === :converged
++
++"""
++    converged(fit::DrmFit) -> Bool
++
++Alias for [`is_converged`](@ref). The raw optimiser flag is `fit.converged`.
++"""
++converged(fit::DrmFit) = is_converged(fit)
+diff --git a/src/gaussian_core.jl b/src/gaussian_core.jl
+index ec87aeb..f216aa9 100644
+--- a/src/gaussian_core.jl
++++ b/src/gaussian_core.jl
+@@ -2613,7 +2613,7 @@ fixef(fit::DrmFit) =
+ 
+ function Base.show(io::IO, fit::DrmFit)
+     print(io, "DrmFit (", _family_name(fit.family), ", ", fit.nobs, " obs, ",
+-        fit.converged ? "converged" : "NOT converged",
++        "status=", convergence_status(fit),
+         "; logLik = ", round(fit.loglik, digits = 2), ")")
+     for (p, _) in fit.blocks
+         print(io, "\n  ", p, ": ", join(string.(round.(coef(fit, p), digits = 3)), ", "))
+diff --git a/src/inference.jl b/src/inference.jl
+index 2b47535..7c90854 100644
+--- a/src/inference.jl
++++ b/src/inference.jl
+@@ -2633,7 +2633,7 @@ Returns a `NamedTuple` and logs a short report:
+   `(at_boundary, findings)`, drmTMB's `temporal_boundary` rules: residual σ̂ below
+   1e-3 · sd(y), OU decay × longest series span below 1e-4 or × shortest gap above 30,
+   AR1 |φ̂| above 0.999. drmTMB reports such a fit as `convergence_status() == "boundary"`
+-  (still converged). Does not affect `ok`.
++  (`is_converged` is false). Does not affect `ok`.
+ - `ok` — `true` when converged, the gradient is small, and the covariance is PD.
+   On a penalized fit the gradient criterion is **dropped**: the stored objective
+   is unpenalized, so its gradient is non-zero at the MAP optimum by construction
+@@ -2676,9 +2676,11 @@ function check_drm(fit::DrmFit; grad_tol::Real=1e-3)
+     # #1003: a failed diagnostic warns instead of reading as "not that kind of fit".
+     vb = try _variance_boundary(fit) catch err; _boundary_diagnostic_failed("variance-boundary", err) end
+     tb = try _temporal_boundary(fit) catch err; _boundary_diagnostic_failed("temporal-boundary", err) end
+-    conv = is_converged(fit)   # #949: the trusted accessor, not the raw flag
++    status = convergence_status(fit)
++    conv = is_converged(fit)   # #949 / FX3b: status === :converged
+     ok = conv && (penalized || isnan(mag) || mag <= grad_tol) && pd
+     report = (
++        convergence_status=status,
+         converged=conv,
+         max_abs_grad=mag,
+         grad_source=grad.source,
+@@ -2691,7 +2693,7 @@ function check_drm(fit::DrmFit; grad_tol::Real=1e-3)
+         temporal_boundary=tb === nothing ? nothing : (at_boundary = !isempty(tb), findings = tb),
+         ok=ok,
+     )
+-    @info "check_drm" converged = report.converged max_abs_grad = report.max_abs_grad grad_source =
++    @info "check_drm" convergence_status = report.convergence_status converged = report.converged max_abs_grad = report.max_abs_grad grad_source =
+         report.grad_source vcov_complete = report.vcov_complete vcov_posdef = report.vcov_posdef min_eigval =
+         report.min_eigval cond = report.cond penalized_map = report.penalized_map ok = report.ok
+     vcov_complete || @warn "check_drm: the stored covariance has non-finite entries, so " *
+diff --git a/src/introspection.jl b/src/introspection.jl
+index 0389db9..b70e6e2 100644
+--- a/src/introspection.jl
++++ b/src/introspection.jl
+@@ -160,8 +160,8 @@ fabricated zero or `NaN` standing in for it:
+ - `optimizer` — `"Optim.LBFGS"` when [`niterations`](@ref) recorded an achieved
+   iteration count (see its docstring for exactly which routes that covers);
+   `missing` on a route with no single outer optimiser call to attribute one to.
+-- `converged` — [`is_converged`](@ref)`(fit)` (the optimiser flag AND the
+-  degeneracy bar), the same value as the top-level bridge `converged` (#949).
++- `converged` — [`is_converged`](@ref)`(fit)` (`convergence_status(fit) === :converged`),
++  the same value as the top-level bridge `converged` (#949 / FX3b).
+ - `iterations` — `niterations(fit)`; `missing` when unrecorded (`niterations`
+   returns `-1`).
+ - `max_abs_grad`, `grad_source` — the same `(magnitude, source)` pair
+diff --git a/src/negbinomial.jl b/src/negbinomial.jl
+index 3acb70c..41f6f6f 100644
+--- a/src/negbinomial.jl
++++ b/src/negbinomial.jl
+@@ -452,10 +452,12 @@ function _fit_negbin2(fam::NegBinomial2, y, Xμ, Xσ, nmμ, nmσ, g_tol)
+     θ0[pμ+1] = -0.5 * log(max(m^2 / max(v - m, 0.1 * m + eps()), 0.5))  # MoM dispersion init
+     res = Optim.optimize(nll, θ0, Optim.LBFGS(), Optim.Options(g_tol = g_tol); autodiff = :forward)
+     θ̂ = Optim.minimizer(res); V = _vcov_from_hessian(ForwardDiff.hessian(nll, θ̂))
++    V, mle_nonexistent = _count_mle_existence_guard(Xμ, y, V, nmμ; family = "NegBinomial2")
+     blocks = [:mu => 1:pμ, :sigma => (pμ+1):(pμ+pσ)]
+     names = [:mu => nmμ, :sigma => nmσ]
+     means = Dict(:mu => exp.(Xμ * θ̂[1:pμ])); obs = Dict(:mu => Vector{Float64}(y))  # response-scale μ̂
+     scales = Dict(:sigma => exp.(Xσ * θ̂[(pμ+1):(pμ+pσ)]))
++    mle_nonexistent && (scales[:__mle_nonexistent] = [1.0])
+     return _withiterations(
+         _withnll(DrmFit(fam, blocks, names, θ̂, V, -nll(θ̂), n, Optim.converged(res), means, obs, scales), nll),
+         Optim.iterations(res))
+diff --git a/src/poisson.jl b/src/poisson.jl
+index 3c2d715..23678ca 100644
+--- a/src/poisson.jl
++++ b/src/poisson.jl
+@@ -516,9 +516,11 @@ function _fit_poisson(fam::Poisson, y, Xμ, nmμ, g_tol; offset::AbstractVector{
+     θ0 = zeros(pμ); θ0[1] = log(sum(y) / n + eps()) - (isempty(off) ? 0.0 : sum(off) / n)
+     res = Optim.optimize(nll, θ0, Optim.LBFGS(), Optim.Options(g_tol = g_tol); autodiff = :forward)
+     θ̂ = Optim.minimizer(res); V = _vcov_from_hessian(ForwardDiff.hessian(nll, θ̂))
++    V, mle_nonexistent = _count_mle_existence_guard(Xμ, y, V, nmμ; family = "Poisson")
+     blocks = [:mu => 1:pμ]; names = [:mu => nmμ]
+     means = Dict(:mu => exp.(Xμ * θ̂ .+ off)); obs = Dict(:mu => Vector{Float64}(y))   # response-scale λ
+     scales = Dict{Symbol,Vector{Float64}}()
++    mle_nonexistent && (scales[:__mle_nonexistent] = [1.0])
+     return _withiterations(
+         _withnll(DrmFit(fam, blocks, names, θ̂, V, -nll(θ̂), n, drm_optim_converged(res), means, obs, scales), nll),
+         Optim.iterations(res))
+diff --git a/src/separation.jl b/src/separation.jl
+index 59bd314..b6292c7 100644
+--- a/src/separation.jl
++++ b/src/separation.jl
+@@ -310,3 +310,32 @@ function _separation_guard(X, s, ntr, θ̂, V, μ̂, names; maxiter = nothing)
+     end
+     return V2
+ end
++
++# FX3 / #1109: Poisson / NB2 fixed-effect MLE existence. The binomial cone
++# with s = 1{y > 0} and ntr = 1 + s (Haberman 1974; Santos Silva and Tenreyro
++# 2010). Warns, names the coefficients, and reports SE = Inf. The three-valued
++# status (FX3b) then reads `:degenerate`.
++function _count_mle_existence_guard(X, y, V, names; family::AbstractString = "Poisson")
++    s = Float64.(y .> 0)
++    ntr = 1 .+ s
++    det = _detect_separation(X, s, ntr)
++    det.separated || return V, false
++    flagged = det.flagged
++    quiet = get(task_local_storage(), :drm_quiet_boundary, false)
++    quiet || @warn """
++          $family fixed-effect maximum-likelihood estimate does not exist
++          (all-zero counts, or positives only on a face of the covariate cone;
++          Haberman 1974; Santos Silva and Tenreyro 2010). Reported coefficients
++          are an arbitrary optimiser stop. Affected terms have SE = Inf.
++          """ flagged_coefficients = (isempty(flagged) ? String[] : String.(names[flagged]))
++    V2 = copy(V)
++    p = size(V2, 1)
++    js = isempty(flagged) ? collect(1:p) : flagged
++    for j in js
++        (1 <= j <= p) || continue
++        V2[j, :] .= NaN
++        V2[:, j] .= NaN
++        V2[j, j] = Inf
++    end
++    return V2, true
++end
+diff --git a/src/summary.jl b/src/summary.jl
+index 3429bef..4d3b98b 100644
+--- a/src/summary.jl
++++ b/src/summary.jl
+@@ -126,29 +126,9 @@ function rho12(fit::DrmFit)
+     return fit.scales[:rho12]
+ end
+ 
+-"""
+-    is_converged(fit::DrmFit) -> Bool
+-
+-Whether this fit may be trusted: the optimiser reported convergence **and** the
+-optimum is not degenerate. A `false` here means the reported estimates / standard
+-errors should not be trusted.
+-
+-This is deliberately STRICTER than the raw `fit.converged` flag. The Gaussian
+-log-likelihood is unbounded as the residual scale goes to zero: with one row per
+-group a structured random effect can interpolate the data, so `sigma` collapses and
+-the objective runs away to `+Inf`. `Optim.converged` only asks whether the gradient
+-test was met, and at such a point it returns `true`.
+-
+-For example, a one-row-per-species phylogenetic fit produced
+-`sd_phylo = 22980`, `sigma = 7.5e-15`, `loglik = 6.8e13`, `converged = true` — and
+-25% of parametric-bootstrap replicates in that example reached such a point.
+-Including these invalid fits among successful refits can distort a percentile
+-interval.
+-
+-Use this accessor to check both convergence and degeneracy. `fit.converged`
+-exposes only the raw optimiser flag.
+-"""
+-is_converged(fit::DrmFit) = fit.converged && _nondegenerate_fit(fit)
++# is_converged / converged / convergence_status live in convergence_status.jl
++# (FX3b twin contract). `_nondegenerate_fit` remains the Gaussian
++# all-sigma-collapse / sentinel helper used by that classifier.
+ 
+ # The degeneracy test behind `is_converged`. GAUSSIAN ONLY: for NB2/Beta/Gamma the
+ # `:sigma` slot holds a dispersion or shape, where a genuinely small value is
+@@ -213,10 +193,11 @@ function Base.show(io::IO, ::MIME"text/plain", fit::DrmFit)
+     println(io, "Distributional regression fit (", fam, ")")
+     println(io, "  nobs = ", fit.nobs,
+                 "   logLik = ", @sprintf("%.4f", fit.loglik),
++                "   convergence_status = ", convergence_status(fit),
+                 "   converged = ", is_converged(fit))
+     # #949: show the trusted accessor; say so when the raw optimiser flag disagrees.
+     (fit.converged && !is_converged(fit)) && println(io, "  (the optimiser stopped normally, " *
+-        "but the fit is degenerate -- see `is_converged`)")
++        "but convergence_status is ", convergence_status(fit), " -- see `is_converged`)")
+     _wald_withheld(fit) && println(io, "  Wald SEs withheld (homogeneous Toeplitz, as drmTMB): `sigma` is the " *
+         "TOTAL within-series SD; use profile intervals for mean coefficients.")
+ 
+diff --git a/src/temporal.jl b/src/temporal.jl
+index 44daacb..bbf0859 100644
+--- a/src/temporal.jl
++++ b/src/temporal.jl
+@@ -1174,7 +1174,7 @@ end
+ # σ̂ / sd(y) < 1e-3; OU decay × longest within-series span < 1e-4 (correlation
+ # > 0.9999 at every observed lag) or decay × shortest positive gap > 30
+ # (correlation < 1e-13 at every observed lag); |φ̂| > 0.999. drmTMB then reports
+-# `convergence_status() == "boundary"` (still `is_converged`); DRModels.jl
++# `convergence_status() == "boundary"` (`is_converged` is false); DRModels.jl
+ # warns at fit time and reports the findings in `check_drm(fit).temporal_boundary`.
+ # drmTMB's `drm_inference_at_boundary` also counts its random-effect SD rule
+ # (`check_random_effect_sd_boundary`, sd_boundary = 1e-4: the smallest fitted
+diff --git a/test/test_api_stability.jl b/test/test_api_stability.jl
+index 0e9f62c..79f82e6 100644
+--- a/test/test_api_stability.jl
++++ b/test/test_api_stability.jl
+@@ -37,7 +37,7 @@ const API_STABLE = [
+     "fixef", "re_sd", "vc", "ranef", "sigma", "corpairs", "rho12",
+     "stderror", "confint", "coeftable", "fitted", "residuals",
+     "predict", "predict_parameters", "marginal_parameters", "prediction_grid",
+-    "simulate", "family", "is_converged", "niterations",
++    "simulate", "family", "is_converged", "converged", "convergence_status", "niterations",
+     "estimation_method", "reml_loglik", "ml_loglik",
+     # inference
+     "bootstrap_ci", "bootstrap_summary", "bootstrap_result",
+diff --git a/test/test_check_drm.jl b/test/test_check_drm.jl
+index 4f92feb..c7983ff 100644
+--- a/test/test_check_drm.jl
++++ b/test/test_check_drm.jl
+@@ -32,9 +32,10 @@ import ForwardDiff
+         # `grad_source` added by the AD-safety fix: `max_abs_grad` alone cannot say
+         # whether the number is an exact gradient, a finite-difference stand-in, or
+         # absent, and the last of those silently satisfies `ok`.
+-        @test keys(r) == (:converged, :max_abs_grad, :grad_source, :vcov_complete,
++        @test keys(r) == (:convergence_status, :converged, :max_abs_grad, :grad_source, :vcov_complete,
+                           :vcov_posdef, :min_eigval, :cond, :penalized_map,
+                           :variance_boundary, :temporal_boundary, :ok)
++        @test r.convergence_status === :converged
+         # `variance_boundary` (#724/#697): `nothing` unless a Gaussian fit has a grouped /
+         # structured random effect and a homoscedastic residual
+         @test r.variance_boundary === nothing
+@@ -114,7 +115,9 @@ import ForwardDiff
+         @test isnan(r.min_eigval)
+         @test r.cond == Inf
+         @test !r.ok                             # honestly not-ok, rather than an exception
+-        @test r.converged                       # ...but the FIT itself converged
++        @test fit.converged                     # optimiser stopped
++        @test r.convergence_status === :degenerate  # FX3b: incomplete vcov is not an interior optimum
++        @test !r.converged                      # is_converged := status === :converged
+     end
+ 
+     # ---------------------------------------------------------------------------
+diff --git a/test/test_convergence_status.jl b/test/test_convergence_status.jl
+new file mode 100644
+index 0000000..8b03b9b
+--- /dev/null
++++ b/test/test_convergence_status.jl
+@@ -0,0 +1,69 @@
++# FX3b twin contract: convergence_status ∈ {converged, boundary, degenerate}.
++# is_converged / converged are true only for :converged.
++# Poisson all-zero is the #1109 / FX3 red-proof.
++
++using Test
++using Random
++using DRModels
++using StatsModels: @formula
++
++@testset "twin numeric constants" begin
++    @test DRModels._TWIN_RANK_TOL == 1e-8
++    @test DRModels._TWIN_INFLATED_SE_FLOOR == 50.0
++    @test DRModels._TWIN_INFLATED_SE_RATIO == 1000.0
++    @test DRModels._TWIN_RE_SD_BOUNDARY == 1e-4
++    @test DRModels._TWIN_RHO12_BOUNDARY == 0.98
++    @test DRModels._TWIN_SENTINEL_LOGLIK == -1e15
++    @test !DRModels._twin_inflated_se([0.1, 0.2, 0.15])
++    @test DRModels._twin_inflated_se([0.1, 0.2, 500.0])
++    @test !DRModels._twin_inflated_se([80.0, 90.0, 100.0])
++    @test DRModels._twin_inflated_se([80.0, 90.0, 8e5])
++end
++
++@testset "ordinary Gaussian is converged" begin
++    rng = MersenneTwister(20261016)
++    x = randn(rng, 40)
++    y = 0.2 .+ 0.5 .* x .+ 0.4 .* randn(rng, 40)
++    fit = drm(bf(@formula(y ~ 1 + x), @formula(sigma ~ 1)), Gaussian(); data = (; y, x))
++    @test convergence_status(fit) === :converged
++    @test is_converged(fit)
++    @test converged(fit)
++    text = sprint(show, MIME("text/plain"), fit)
++    @test occursin("convergence_status = converged", text)
++    chk = check_drm(fit)
++    @test chk.convergence_status === :converged
++    @test chk.converged
++end
++
++@testset "all-zero Poisson is degenerate (#1109 red-proof)" begin
++    x = [
++        -0.0292785730789077, -2.07527755306188, -1.26224739973712, -0.135456173606004,
++        -1.05584042635037, 0.218711141103825, 0.915790979674801, 0.0391185640938337
++    ]
++    y = zeros(8)
++    fit = drm(bf(@formula(y ~ 1 + x)), Poisson(); data = (; y, x))
++    @test convergence_status(fit) === :degenerate
++    @test !is_converged(fit)
++    @test !converged(fit)
++    @test haskey(fit.scales, :__mle_nonexistent)
++    se = stderror(fit)
++    @test any(!isfinite, se)
++    text = sprint(show, MIME("text/plain"), fit)
++    @test occursin("convergence_status = degenerate", text)
++    chk = check_drm(fit)
++    @test chk.convergence_status === :degenerate
++    @test !chk.converged
++    @test !chk.ok
++end
++
++@testset "ordinary Poisson stays converged" begin
++    rng = MersenneTwister(20261016)
++    x = randn(rng, 20)
++    y = [Float64(rand(rng, 0:4)) for _ in 1:20]
++    y[1] = 2.0
++    y[end] = 0.0
++    fit = drm(bf(@formula(y ~ 1 + x)), Poisson(); data = (; y, x))
++    @test !haskey(fit.scales, :__mle_nonexistent)
++    @test convergence_status(fit) === :converged
++    @test is_converged(fit)
++end
+diff --git a/test/test_poisson_mle_existence.jl b/test/test_poisson_mle_existence.jl
+new file mode 100644
+index 0000000..8b91238
+--- /dev/null
++++ b/test/test_poisson_mle_existence.jl
+@@ -0,0 +1,30 @@
++# FX3 / #1109: Poisson MLE-existence guard (all-zero and extreme-x).
++
++using Test
++using DRModels
++using StatsModels: @formula
++
++@testset "Poisson cone unit: all-zero, extreme-x, overlap" begin
++    X = hcat(ones(6), [-3.0, -2, -1, 1, 2, 3])
++    d0 = DRModels._detect_separation(X, zeros(6), ones(6))
++    @test d0.separated
++    yp = [0.0, 0, 0, 0, 0, 2]
++    s = Float64.(yp .> 0)
++    dp = DRModels._detect_separation(X, s, 1 .+ s)
++    @test dp.separated
++    yok = [0.0, 1, 0, 2, 1, 3]
++    s = Float64.(yok .> 0)
++    dok = DRModels._detect_separation(X, s, 1 .+ s)
++    @test !dok.separated
++end
++
++@testset "pois_n8_lowmean r27 extreme-x is degenerate" begin
++    x = [
++        0.874179376754336, -1.80802294417958, 1.07582680175277, 1.99152036375555,
++        -0.34920696964089, -0.0158223689737766, 0.928431408635883, 1.09143738410038
++    ]
++    y = [0.0, 0, 0, 2, 0, 0, 0, 0]
++    fit = drm(bf(@formula(y ~ 1 + x)), Poisson(); data = (; y, x))
++    @test convergence_status(fit) === :degenerate
++    @test !is_converged(fit)
++end
+-- 
+2.43.0
+

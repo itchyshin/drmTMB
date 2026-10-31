@@ -52,6 +52,14 @@ effects, intervals, or missing-predictor support.
   the replacement. `transitions.tsv` and `notes` are history and are not
   scanned. When a gate predicate is deleted, add its phrase here in the same
   change.
+- `live-prose-contracts.tsv` binds the three threshold-free G5 family-map
+  rows (`mr-beta`, `mr-tweedie`, `mr-skew-normal`) to the executable G5 policy
+  and to the state of routes their prose names. For those rows only, `--check`
+  also fails if the `claim_boundary` (cell or evidence field) names another
+  family route in backticks without a `route_state` contract for that cell and
+  field. When a pinned route is promoted, its contract fails until the prose is
+  reviewed and the sidecar state is updated. Other rows are not scanned;
+  keyed columns for cross-references are tracked separately (#1011 item 3).
 - `tranches/` contains generated tranche summaries.
 
 ## Missing-response gates
