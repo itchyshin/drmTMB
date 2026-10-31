@@ -642,6 +642,7 @@ drm_family_dpq_zero_one_beta <- function() {
 #   (x - 1/2) log1p(m / x) + m log(x + m) - m + S(x + m) - S(x),
 #   S(z) = 1/(12 z) - 1/(360 z^3) + 1/(1260 z^5),
 # with truncation error below 1/(1680 x^7) = 6e-18 at the switch.
+# Note: x = Inf gives NaN ((Inf - 1/2) * log1p(0) = Inf * 0), as in the C++ twin.
 drm_lgamma_ratio <- function(x, m) {
   n <- max(length(x), length(m))
   x <- rep_len(x, n)
