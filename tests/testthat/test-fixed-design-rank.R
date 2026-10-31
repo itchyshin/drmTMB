@@ -67,3 +67,20 @@ test_that("a full-rank sigma ~ x design still fits (#1478 neighbour)", {
   expect_s3_class(fit, "drmTMB")
   expect_true(is_converged(fit))
 })
+
+test_that("1e-9 near-collinear mu still fits (#1478; abort is exact aliases only)", {
+  set.seed(1)
+  n <- 80L
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = 0.3 + 0.5 * x + stats::rnorm(n, sd = 0.4),
+    x = x,
+    x2 = x + 1e-9 * stats::rnorm(n)
+  )
+  fit <- drmTMB(
+    bf(y ~ x + x2, sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+  expect_s3_class(fit, "drmTMB")
+})

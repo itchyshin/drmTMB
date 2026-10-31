@@ -390,6 +390,10 @@ convergence_status.drmTMB_julia <- function(object, ...) {
 # DRModels.jl `src/convergence_status.jl` and
 # `docs/design/278-twin-convergence-status.md`.
 drm_twin_rank_tol <- 1e-8
+# Pre-fit abort (#1478) uses a tighter tolerance so near-collinear
+# columns still reach the optimiser and check_drm(); only exact
+# aliases (x + xdup, poly(x, 2) + I(x^2)) abort at spec-build time.
+drm_exact_alias_rank_tol <- 1e-12
 drm_twin_inflated_se_floor <- 50
 drm_twin_inflated_se_ratio <- 1000
 drm_twin_re_sd_boundary <- 1e-4

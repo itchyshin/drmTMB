@@ -1623,7 +1623,7 @@ drm_validate_fixed_design_rank <- function(spec) {
     if (is.null(dims) || length(dims) != 2L || dims[[2L]] <= 0L) {
       next
     }
-    block_rank <- qr(as.matrix(block), tol = drm_twin_rank_tol)$rank
+    block_rank <- qr(as.matrix(block), tol = drm_exact_alias_rank_tol)$rank
     if (block_rank < dims[[2L]]) {
       aliased <- c(aliased, nm)
     }

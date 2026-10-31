@@ -1,3 +1,13 @@
+# 2026-10-31: #1623 abort is exact aliases only
+
+CI on `4ed1481eb` failed all four Ubuntu shards because
+`drm_validate_fixed_design_rank()` used `drm_twin_rank_tol` (1e-8). That
+aborted `x + x2` at 1e-9, `poly(x, 2) + I(x^2)`, `chr + nchar(chr)`, a
+zero-column cumulative-logit fixture, and two `prediction_grid()` designs
+whose factors were periodic aliases. Abort now uses
+`drm_exact_alias_rank_tol` (1e-12). Focused tests updated. Near-collinear
+designs still reach the optimiser; `check_drm()` still warns at 1e-8.
+
 # 2026-10-30: merge origin/main and recertify C17 on #1623
 
 Merged `origin/main` (`b535bfbcc`) into `cursor/fixed-design-rank-check-46f8`

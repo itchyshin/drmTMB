@@ -3,9 +3,9 @@ test_that("prediction_grid() builds mean-reference grids for focal terms", {
   dat <- data.frame(
     y = stats::rnorm(90),
     temperature = seq(-2, 2, length.out = 90),
-    habitat = factor(rep(c("reef", "kelp", "sand"), length.out = 90)),
-    season = rep(c("dry", "wet"), length.out = 90),
-    tagged = rep(c(TRUE, FALSE), length.out = 90)
+    habitat = factor(rep(c("reef", "kelp", "sand"), each = 30)),
+    season = rep(c("dry", "wet"), each = 45),
+    tagged = rep(c(TRUE, FALSE), each = 15, length.out = 90)
   )
   fit <- drmTMB(
     bf(y ~ temperature + habitat + season + tagged, sigma ~ temperature),
@@ -99,7 +99,7 @@ test_that("prediction_grid() can cross focal values with empirical rows", {
     y = stats::rnorm(20),
     x = stats::rnorm(20),
     habitat = factor(rep(c("reef", "kelp"), length.out = 20)),
-    site = factor(rep(letters[1:4], length.out = 20))
+    site = factor(rep(letters[1:4], each = 5))
   )
   fit <- drmTMB(
     bf(y ~ x + habitat + site, sigma ~ x),
