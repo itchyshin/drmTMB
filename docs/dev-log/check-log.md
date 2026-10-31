@@ -1,3 +1,22 @@
+# 2026-10-31: #1623 abort is exact aliases only
+
+CI on `4ed1481eb` failed all four Ubuntu shards because
+`drm_validate_fixed_design_rank()` used `drm_twin_rank_tol` (1e-8). That
+aborted `x + x2` at 1e-9, `poly(x, 2) + I(x^2)`, `chr + nchar(chr)`, a
+zero-column cumulative-logit fixture, and two `prediction_grid()` designs
+whose factors were periodic aliases. Abort now uses
+`drm_exact_alias_rank_tol` (1e-12). Focused tests updated. Near-collinear
+designs still reach the optimiser; `check_drm()` still warns at 1e-8.
+
+# 2026-10-30: merge origin/main and recertify C17 on #1623
+
+Merged `origin/main` (`b535bfbcc`) into `cursor/fixed-design-rank-check-46f8`
+with a merge commit (`ee070f14b`). Only conflict was the C17 receipt TSV;
+took main, then `python3 tools/recertify-c17.py --label pr1623-merge-main --tolerance 1e-10`.
+All three cells `|change| 0.000e+00`. Fingerprint left at `4b0b3af78d4e`.
+Receipt `docs/dev-log/implementation-recovery/2026-10-30-pr1623-merge-main-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence` OK.
+
 # 2026-10-25: `@param engine` cites Julia same-target receipts (#1569)
 
 `R/drmTMB.R` `@param engine` (and `man/drmTMB.Rd`) now names NEWS and
@@ -65,6 +84,13 @@ a bar still reach Julia setup. Gate id `gaussian_ordinary_re_factor_fe`
 added. Both `julia-gates.tsv` copies regenerated to 17 rows. Focused
 tests: fence file 11/11; gate-vs-engine 146 pass, 1 skip (`ape` missing).
 No lineage or C17 files changed.
+# 2026-10-25: pre-fit rank check for every fixed-effect design (#1478)
+
+`drm_validate_fixed_design_rank()` now walks `spec$X` at estimator-apply
+time so ML and non-`mu` designs abort on exact aliasing. Focused tests
+are in `tests/testthat/test-fixed-design-rank.R`. The REML-only `mu`
+strings in `drm_validate_reml_spec()` remain. No lineage or C17 files
+changed.
 
 # 2026-10-18 — rebase #1525 onto main `d89db5097`
 

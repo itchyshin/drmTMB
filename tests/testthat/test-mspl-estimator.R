@@ -719,7 +719,7 @@ test_that("MSPL rejects every unvalidated estimator and structure combination", 
       bf(y ~ x + duplicate_x + (1 | group)), binomial(), rank_deficient,
       estimator = "mspl"
     ),
-    "full-column-rank"
+    "rank-deficient|full-column-rank"
   )
   dat$z <- dat$x^2
   expect_error(

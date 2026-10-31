@@ -165,9 +165,18 @@ test_that("fixed-effect formulas support standard R transformations and interact
     0.1 * dat$x1 * dat$x2 +
     stats::rnorm(n, sd = 0.5)
 
+  expect_error(
+    drmTMB(
+      drm_formula(y ~ poly(x, 2) + I(x^2), sigma ~ 1),
+      family = gaussian(),
+      data = dat
+    ),
+    "rank-deficient"
+  )
+
   fit <- drmTMB(
     drm_formula(
-      y ~ poly(x, 2) + I(x^2) + (x1 + x2 + x3)^2,
+      y ~ poly(x, 2) + (x1 + x2 + x3)^2,
       sigma ~ poly(z, 2) + x1:x2
     ),
     family = gaussian(),
@@ -181,7 +190,6 @@ test_that("fixed-effect formulas support standard R transformations and interact
       "(Intercept)",
       "poly(x, 2)1",
       "poly(x, 2)2",
-      "I(x^2)",
       "x1",
       "x2",
       "x3",
@@ -202,7 +210,6 @@ test_that("fixed-effect formulas support standard R transformations and interact
     "(Intercept)" = 1,
     "poly(x, 2)1" = mu_poly_new[, 1],
     "poly(x, 2)2" = mu_poly_new[, 2],
-    "I(x^2)" = newdata$x^2,
     "x1" = newdata$x1,
     "x2" = newdata$x2,
     "x3" = newdata$x3,
