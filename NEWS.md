@@ -121,6 +121,14 @@
 
 ## Bug fixes
 
+* `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
+  `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
+  log-densities that the response kernels gained in #1547. The old inline
+  `lgamma()` forms lost up to 6e-7 per observed predictor at phi or shape
+  1e8. The R-side beta-binomial pmf behind `beta_binomial()` residuals and
+  quantiles, and the R density for beta-binomial `mi()` predictors, now use
+  the same cancellation-free gamma-function ratio as the compiled kernel.
+  Values at ordinary shape are unchanged to rounding (#1548).
 * The first `engine = "julia"` call no longer prints the recovered
   `Error during loading of extension LogExpFunctionsInverseFunctionsExt` log
   with its `UndefVarError` stack trace (twice) that some Julia package

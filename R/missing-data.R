@@ -2875,15 +2875,13 @@ drm_beta_binomial_missing_predictor_log_density <- function(
   alpha <- pmax(mu * phi, 1e-8)
   beta_shape <- pmax((1 - mu) * phi, 1e-8)
   failure <- trials - success
+  # Cancellation-free at large phi (#1548); see drm_lgamma_ratio().
   lgamma(trials + 1) -
     lgamma(success + 1) -
     lgamma(failure + 1) +
-    lgamma(phi) -
-    lgamma(trials + phi) +
-    lgamma(success + alpha) -
-    lgamma(alpha) +
-    lgamma(failure + beta_shape) -
-    lgamma(beta_shape)
+    drm_lgamma_ratio(alpha, success) +
+    drm_lgamma_ratio(beta_shape, failure) -
+    drm_lgamma_ratio(phi, trials)
 }
 
 drm_build_poisson_missing_predictor_model <- function(
