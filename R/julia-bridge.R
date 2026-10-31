@@ -8366,6 +8366,9 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
         "{.code engine = \"julia\"} {.fn spatial} {.arg coords} must have at least one coordinate column."
       )
     }
+    # Keep the row names: standardize_spatial_coords() matches per-site rows to
+    # sites by name, as on the native engine (drmTMB#1512).
+    rownames(matrix) <- rownames(as.matrix(value))
   } else if (nrow(matrix) != ncol(matrix)) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} {.fn {type}} {.arg {slot}} must be a square covariance/relatedness matrix.",
