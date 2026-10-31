@@ -192,8 +192,8 @@ test-julia-sigma-phylo-reml.R	suggests-package	environment	runs	4
 test-julia-slope-nongaussian.R	engine-drm-jl	environment	skips	1
 test-julia-slope-nongaussian.R	suggests-package	environment	runs	3
 test-julia-structured-inference.R	suggests-package	environment	runs	1
-test-julia-structured.R	engine-drm-jl	environment	skips	2
-test-julia-structured.R	suggests-package	environment	runs	3
+test-julia-structured.R	engine-drm-jl	environment	skips	4
+test-julia-structured.R	suggests-package	environment	runs	6
 test-julia-tmb-parity.R	engine-drm-jl	environment	skips	10
 test-julia-tmb-parity.R	runtime-conditional	runtime	depends	1
 test-julia-tmb-parity.R	suggests-package	environment	runs	30
