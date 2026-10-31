@@ -291,6 +291,8 @@ test_that("Gaussian spatial payload matches labelled coords by row name", {
     x = stats::rnorm(4),
     y = stats::rnorm(4)
   )
+  # The coords row order must really differ from first-appearance order.
+  expect_false(identical(rownames(coords), unique(dat$site)))
 
   payload <- drmTMB:::drm_julia_structured_payload(
     bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ 1),
