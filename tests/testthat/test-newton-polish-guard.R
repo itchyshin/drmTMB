@@ -23,7 +23,7 @@
 # subprocess with a hard `timeout`, so a regression here fails the test
 # instead of hanging the test run.
 
-drm_pkg_path <- normalizePath(test_path("..", ".."), mustWork = TRUE)
+drm_guard_pkg_root <- dirname(drm_pkg_path("DESCRIPTION"))
 
 # Runs `expr_fn(pkg)` in a fresh subprocess that loads this package from
 # source (via `pkgload::load_all()`, not the installed copy), under a hard
@@ -32,7 +32,7 @@ drm_pkg_path <- normalizePath(test_path("..", ".."), mustWork = TRUE)
 drm_run_guarded <- function(expr_fn, timeout = 30) {
   callr::r(
     expr_fn,
-    args = list(pkg = drm_pkg_path),
+    args = list(pkg = drm_guard_pkg_root),
     timeout = timeout
   )
 }

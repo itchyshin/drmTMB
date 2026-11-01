@@ -40,14 +40,12 @@ meta_V <- function(V) {
 #' `beta_binomial()`.
 #'
 #' Strict-proportion and zero-one boundary proportion `mi()` predictors
-#' integrate the Beta prior with a fixed 15-node Gauss-Legendre rule. That rule
-#' is accurate for bell-shaped priors but not for U-shaped ones: when the
-#' estimated prior mean of a missing row is within 0.10 of 0 or 1, the rule can
-#' be off by about `5e-3` in the per-row log-likelihood (and by more when the
-#' observed response sits near the pole). Such priors are flagged, not
-#' integrated accurately. A successful fit warns with class
-#' `drmTMB_mi_quadrature_inaccurate`; treat the fit as approximate when that
-#' warning appears. No adaptive rule is planned for now.
+#' integrate the Beta prior with a fixed 15-node Gauss-Legendre rule. This is
+#' not an adaptive rule or an accuracy guarantee for every Beta prior shape.
+#' A successful fit warns with class `drmTMB_mi_quadrature_inaccurate` when the
+#' estimated prior mean of a missing row is within 0.10 of 0 or 1. The warning
+#' flags the limitation without changing the integration rule; treat that fit
+#' as approximate. Absence of this warning does not certify quadrature accuracy.
 #'
 #' @param x A predictor in a supported missing-predictor route.
 #'
@@ -194,9 +192,12 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' non-Gaussian phylogenetic slopes,
 #' zero-inflated phylogenetic effects, and phylogenetic slope correlations
 #' are not supported. The public `phylo()` API requires an ultrametric tree with
-#' branch lengths and normalizes the Brownian covariance by the tree height
-#' when building the Hadfield and Nakagawa A-inverse sparse-precision path.
-#' Thus the latent Brownian field has unit variance at each tip, and the fitted
+#' branch lengths and normalizes the Brownian covariance by the tree height.
+#' It builds a sparse precision over the non-root tips and ancestral nodes
+#' from the tree-edge branch lengths. This augmented-node Brownian
+#' representation follows the sparse \eqn{S^{-1}} approach described by Hadfield
+#' and Nakagawa (2010), rather than forming the dense tip-level \eqn{A^{-1}}
+#' matrix. Thus the latent Brownian field has unit variance at each tip, and the fitted
 #' phylogenetic SD uses this unit-height convention.
 #' Multiplying all branch lengths by a positive constant
 #' leaves the normalized covariance unchanged. The supplied tree object is not
