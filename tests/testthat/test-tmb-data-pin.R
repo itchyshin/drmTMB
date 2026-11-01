@@ -51,11 +51,17 @@ test_that("make_tmb_data_core() list is unchanged field by field", {
     expect_type(got, "list")
     expect_setequal(names(got), names(want))
     for (field in names(want)) {
-      expect_identical(
-        got[[field]],
-        want[[field]],
-        info = paste0(case_name, "$", field)
-      )
+      info <- paste0(case_name, "$", field)
+      if (is.double(want[[field]])) {
+        # The simulated y and design matrices differ in the last bit or two
+        # between platforms (seen on arm64 macOS against the fixture). Type,
+        # dimension and names stay exact; values may differ by 1e-12 relative.
+        # Integer, logical and character fields stay identical.
+        expect_identical(typeof(got[[field]]), typeof(want[[field]]), info = info)
+        expect_equal(got[[field]], want[[field]], tolerance = 1e-12, info = info)
+      } else {
+        expect_identical(got[[field]], want[[field]], info = info)
+      }
     }
   }
 })
