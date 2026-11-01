@@ -68,12 +68,12 @@ test_that("zero-inflated Poisson SD regression assembles a selected mu slope", {
   )
 })
 
-test_that("zero-inflated Poisson does not admit an unscaled mu slope", {
+test_that("zero-inflated Poisson does not admit a correlated mu intercept-slope block", {
   dat <- zi_poisson_sd_assembly_data()
 
   expect_error(
-    drm_build_poisson_spec(bf(y ~ 1 + (0 + x | id), zi ~ 1), dat),
-    "support one ordinary Poisson.*intercept"
+    drm_build_poisson_spec(bf(y ~ 1 + (1 + x | id), zi ~ 1), dat),
+    "Zero-inflated Poisson random effects"
   )
 })
 

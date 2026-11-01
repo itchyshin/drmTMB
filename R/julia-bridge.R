@@ -161,7 +161,7 @@ drm_julia_intentional_gates <- function() {
       "latent rho route only",
       "dispersionless axis",
       "univariate routes refuse a non-intercept marker lhs (DRM.jl#621)",
-      "fixed-effect-only family; no random-effect or sd()/sd_phylo() route in the R bridge yet",
+      "The bridge admits exact family-specific ordinary SD routes for selected families; unsupported random-effect and SD formula shapes remain rejected.",
       "DRM.jl accepts a design matrix for the dpar and fits; the NATIVE drmTMB engine refuses the same cell",
       "DRM.jl echo requires a resd label the R payload does not send for ordinary mean (1 | g)",
       "conditional-components entry omits labels=true, so factor names come back as f: b instead of fb"
@@ -174,7 +174,7 @@ drm_julia_intentional_gates <- function() {
       "missing.*route",
       "requires either q2.*mu1/mu2|q4 all-four-axis|Missing phylogenetic axis",
       "Unsupported phylogenetic axis",
-      "only for univariate Gaussian, Poisson, NB2, or Gamma",
+      "routes general-covariance structured terms for Gaussian, Poisson, NB2, and Gamma",
       "requires .*sigma ~ 1",
       "only with a covariance matrix supplied as .*K",
       "missing.*routes",
@@ -221,7 +221,7 @@ drm_julia_intentional_gates <- function() {
       "Cross-family dependence is latent rho from the engine, not an R rho12 formula.",
       "Poisson and Binomial cross-family axes have no dispersion sub-model.",
       "Verified live at the pin (430ef64cc, 2026-09-05): bf(y ~ phylo(1 + x | species, tree = tree)), family = Gamma(link = \"log\"), engine = \"julia\" reaches DRM.jl and DRM.jl's own _check_phylo_re_lhs throws \"phylo(1 + x | species) is not implemented on the univariate routes -- only phylo(1 | species) (intercept) is\" (DRM.jl#620/#621). This R-side gate moves that same refusal before Julia boots, defense-in-depth (drmTMB#1146), so it holds even if a future change to the more specific per-route checks reopens the gap. RE-MEASURED 2026-09-05 at DRM.jl 345892520 (origin/main): the DRM.jl half of that sentence is NOW STALE FOR GAUSSIAN. DRM.jl 1a041d089 (its #644) implements the Gaussian two-SD phylogenetic random slope and widens _bridge_render_formula_block (src/bridge.jl); its test/test_phylo_slope_two_sd.jl was re-run in that session and passes 51 of 51 assertions in 21.5 s, including a same-target drmTMB oracle. So for family = gaussian() this gate is drmTMB's OWN fence, not the engine's: drm_julia_marker_slope_pin_supports() is still FALSE and drm_julia_phylo_payload() admits the slope shape only for drm_julia_slope_phylo_families() (nbinom2, poisson, gamma, beta), which route to DRM.jl's CORRELATED _fit_corr_locscale rather than the INDEPENDENT two-SD model #620 added. Lifting it is a route-widening (registry column + a family-aware pin switch + sdpars/corpars translation for the two-SD block), not a one-line flip. Measured refusal, with a positive control that fitted, at DRM.jl@345892520:docs/dev-log/evidence/parity-classc.tsv (cell_id gaussian_phylo_slope_fence).",
-      "Measured 2026-09-05 with DRM_JL_PATH unset: student(), lognormal(), truncated_nbinom2(), zero_one_beta(), and beta_binomial() random-effect shapes (a mean-side and a scale-side (1 | g), and truncated_nbinom2's (1 + x | g) slope) all reached drm_julia_setup() on origin/main -- the fe = TRUE registry column admits the family before phylo_only/locscale_phylo/slope_phylo/structured are ever checked, so those columns being FALSE for this cohort did not stop the family tag. relmat()/animal()/spatial() markers are NOT part of this gate: they are already refused upstream by drm_julia_structured_family_tag() (measured: student() + relmat(1 | g, K = K) aborts there, before this fence's call site, since drm_julia_has_structured_term() dispatches before drm_julia_family_tag() runs)."
+      "Measured 2026-09-05 with DRM_JL_PATH unset: student(), lognormal(), truncated_nbinom2(), zero_one_beta(), and beta_binomial() random-effect shapes (a mean-side and a scale-side (1 | g), and truncated_nbinom2's (1 + x | g) slope) all reached drm_julia_setup() on origin/main -- the fe = TRUE registry column admits the family before phylo_only/locscale_phylo/slope_phylo/structured are ever checked, so those columns being FALSE for this cohort did not stop the family tag. relmat()/animal()/spatial() markers are NOT part of this gate: they are already refused upstream by drm_julia_structured_family_tag() (measured: student() + relmat(1 | g, K = K) aborts there, before this fence's call site, since drm_julia_has_structured_term() dispatches before drm_julia_family_tag() runs). On 2026-10-24, a complete-response cumulative-logit numeric-slope SD bridge test passed 16 focused expectations; the exact route and its boundaries are documented in docs/dev-log/after-task/2026-10-24-julia-cumulative-logit-sd-bridge-parity.md."
 ,
       "Measured 2026-09-05 (drmTMB 2fcbb0fbf, DRM.jl aee371cc9, n = 200, seed 20260905): bf(y ~ x, sigma ~ 1, nu ~ z) with family = tweedie() FIT through engine = \"julia\" at logLik -259.84074955 while engine = \"tmb\" REFUSED it (\"tweedie() currently supports only intercept-only nu ~ 1\"). The same class had already been measured on two bivariate families the same night -- biv_student sigma1 ~ z at -466.43141436 (drmTMB#1217) and biv_lognormal sigma1 ~ x at -71.4056477 (drmTMB#1216), both refused natively -- because the fe-only fence exempted bivariate families by NAME PREFIX. The exemption is now declared per family (predictor_dpars in R/julia-family-registry.R) and enforced for every family at once, before Julia starts. Control: tweedie nu ~ 1 still fits at -260.40627451, and biv_gaussian sigma1 ~ z / rho12 ~ z fit identically on both engines (-581.96907656 / -583.57416739, n = 200 seed 6401).",
       "Measured sweep-oct16 t5/t6 (drmTMB#1551): poisson(), Gamma(), nbinom2(), beta_family(), and binomial() with an ordinary mean (1 | g) pass admission, run the Julia fit, then abort at the resd coef_labels echo. Gaussian (1 | g) keeps the conditional-components route. Option 1 of the issue refuses in R before Julia starts. Sending resd plus marginal = Laplace would widen the experimental Julia engine and is left out.",
@@ -641,12 +641,16 @@ drmTMB_julia_bridge <- function(
 ) {
   REML <- drm_control_flag(REML, "REML")
   drm_julia_refuse_binomial_nonlogit_sd(formula, family)
-  drm_julia_refuse_offset_unsupported(
-    formula,
-    family_type = drm_julia_bridge_family_type(family)
-  )
+  # A cross-family pair has no single bridge family type; resolving it here
+  # would abort on the mixed-response check before the xfam bridge is reached.
+  bridge_family_type <- if (drm_julia_is_cross_family(family)) {
+    NULL
+  } else {
+    drm_julia_bridge_family_type(family)
+  }
+  drm_julia_refuse_offset_unsupported(formula, family_type = bridge_family_type)
   drm_julia_refuse_marker_slope_unsupported(
-    formula, family_type = drm_julia_bridge_family_type(family)
+    formula, family_type = bridge_family_type
   )
   if (drm_julia_joint_requested(formula, impute, missing)) {
     return(drmTMB_julia_joint_bridge(

@@ -64,9 +64,21 @@
   ordinary plus `relmat()` intercept pair (which already fitted, now tested)
   match a dense Laplace oracle; the same-group pair has constant-SD equivalence
   and prediction identity only, and its parameter recovery is weak at 50
-  groups, so no recovery claim is made. Gamma ordinary plus animal, phylo or
-  spatial intercepts remain refused. Native TMB only, no Julia parity, not
-  calibrated.
+  groups, so no recovery claim is made. The same-group pair now also matches
+  a dense Laplace oracle that separates the intercept SD formula from the slope
+  SD formula (a swapped formula moves the likelihood by more than 100 units).
+  Gamma ordinary plus one unlabelled `animal()` (A or Ainv), `phylo()` or
+  `spatial()` intercept is now admitted, with predictor-dependent SDs for both
+  terms; each provider matches a dense Laplace oracle with a non-unit-diagonal
+  covariance stored in shuffled order. An ordinary `sd(g)` formula alone beside
+  a structured term stays refused for Gamma. Native TMB only, no Julia parity,
+  not calibrated.
+
+* Native zero-inflated Poisson models now admit one independent `mu` random
+  slope, `bf(y ~ x + (0 + x | id), zi ~ 1)`, without an `sd()` formula, as NB2
+  already did. Previously this shape built only when an `sd()` formula was
+  present. The fit matches a numerical-integration oracle and the constant-SD
+  formula fit. The correlated `(1 + x | id)` block with `zi` stays refused.
 
 * Native Gamma `animal(1 + x | p | id, A = A)` now accepts a correlated
   intercept and numeric slope, with a separate predictor-dependent SD formula

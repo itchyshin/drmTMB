@@ -275,7 +275,7 @@ test_that("zero-inflated Poisson rejects unsupported or invalid inputs", {
   expect_equal(zip_intercept$random$mu$n_re, 2L)
   expect_error(
     drmTMB(
-      bf(y ~ x + (0 + x | id), zi ~ 1),
+      bf(y ~ x + (1 + x | id), zi ~ 1),
       family = stats::poisson(link = "log"),
       data = dat
     ),

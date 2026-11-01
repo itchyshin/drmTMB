@@ -10040,8 +10040,7 @@ drm_build_poisson_spec <- function(
     allow_labelled_intercepts = is.null(mu_structured_term) &&
       !include_missing_response,
     allow_zero_inflated_intercept = TRUE,
-    allow_zero_inflated_independent_slope =
-      !include_missing_response && length(sd_mu_entries) > 0L
+    allow_zero_inflated_independent_slope = !include_missing_response
   )
   if (include_missing_response) {
     has_ordinary_correlated <- any(vapply(
@@ -14011,7 +14010,7 @@ validate_binomial_mu_random_terms <- function(terms) {
       "Binomial {.code mu} supports independent random intercepts/slopes and one exact complete-data unlabelled correlated intercept-slope block.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use {.code bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id))}.",
-      "i" = "Labelled scalar intercepts are supported, as is the exact unlabelled q = 2 intercept-slope route; labelled slopes and labelled correlated blocks remain unsupported."
+      "i" = "Labelled scalar intercepts are supported, as is the exact unlabelled q = 2 intercept-slope route; labelled slopes, labelled correlated blocks, structured effects beyond one unlabelled q = 1 {.fn phylo} or {.fn relmat} {.code mu} intercept, and additional correlated blocks remain unsupported."
     ))
   }
   invisible(terms)
@@ -14341,6 +14340,21 @@ validate_positive_continuous_structured_combinations <- function(
     isTRUE(preserve_gamma_relmat) &&
       identical(family_label, "Gamma") &&
       identical(marker, "relmat")
+  ) {
+    return(invisible(NULL))
+  }
+  # One unlabelled ordinary intercept alongside one unlabelled q1 structured
+  # intercept (animal, phylo or spatial) is admitted for Gamma, as for relmat.
+  if (
+    isTRUE(preserve_gamma_relmat) &&
+      identical(family_label, "Gamma") &&
+      marker %in% c("animal", "phylo", "spatial") &&
+      structured_term_is_intercept_only(term) &&
+      is.null(term$covariance_label) &&
+      length(mu_terms) == 1L &&
+      identical(mu_terms[[1L]]$type, "intercept") &&
+      is.null(mu_terms[[1L]]$covariance_label) &&
+      length(sigma_terms) == 0L
   ) {
     return(invisible(NULL))
   }

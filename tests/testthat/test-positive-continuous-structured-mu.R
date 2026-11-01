@@ -588,7 +588,16 @@ test_that("Arc 3a new routes reject slopes, labels, and extra variance layers", 
     expect_error(
       drmTMB(
         arc3a_formula_from_text(
-          sprintf("y ~ x + (1 | site) + %s", sprintf(marker, "1"))
+          # Gamma now admits one ordinary intercept beside a phylo intercept
+          # (see test-gamma-iid-structured-sd-regression.R); two ordinary
+          # intercepts beside the structured term stay refused.
+          if (identical(case$family, "gamma") &&
+              identical(case$provider, "phylo")) {
+            sprintf("y ~ x + (1 | site) + (1 | species) + %s",
+                    sprintf(marker, "1"))
+          } else {
+            sprintf("y ~ x + (1 | site) + %s", sprintf(marker, "1"))
+          }
         ),
         family = family,
         data = sim$data
