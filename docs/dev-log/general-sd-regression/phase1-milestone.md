@@ -186,3 +186,19 @@ zero-inflated Poisson model with one independent `mu` slope builds only when an
 `drm_build_poisson_spec` requires `length(sd_mu_entries) > 0L`), while NB2 admits it
 without one. The shared refusal message says the slope is supported. Fixing it
 needs fit evidence for the plain zero-inflated Poisson slope first.
+
+## Other-lane uncommitted work preserved during the merge (not committed here)
+
+Eleven files modified by another lane (not this lane) were set aside before the
+merge in stash commit `8f3daba95e22e9c0eb79b0d68edb94e8d76ec1f1`
+(`claude-sd-merge-20261101-otherlane-docs`): `docs/dev-log/known-limitations.md`,
+`docs/dev-log/team-improvements.md` and nine vignettes (count-nbinom2,
+distribution-families, formula-grammar, julia-engine, location-scale-scale,
+model-map, spatial-models, structural-dependence, which-scale). Re-applying them
+after the merge conflicted in seven files, because main rewrote the same files.
+They were not merged by guesswork: the working tree was returned to the committed
+state and the stash is kept intact. The owner can recover them with
+`git stash apply 8f3daba95e22e9c0eb79b0d68edb94e8d76ec1f1` and resolve against the
+new main. Still uncommitted and untouched in this worktree:
+`docs/dev-log/active-lane-split.md`, `vignettes/implementation-map.Rmd`,
+`vignettes/predictor-dependent-random-sd.Rmd`.
