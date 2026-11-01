@@ -13,6 +13,8 @@ A \code{drm_family} object.
 \code{biv_lognormal()} defines an exact two-response lognormal distribution.
 Its \code{rho12} is the residual correlation on the log-response scale, not a
 raw-response correlation and not the frozen-margin association \code{eta}.
+Fixed-effect \code{biv_lognormal()} models are admitted through
+\code{engine = "julia"}; see \code{vignette("julia-engine", package = "drmTMB")}.
 }
 \examples{
 biv_lognormal()

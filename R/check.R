@@ -30,7 +30,8 @@
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
-#' a flag-only note when more than 1% of quantile residuals lie beyond |3|
+#' a flag-only note when at least two quantile residuals and more than 1% lie
+#' beyond |3|
 #' (`residual_outliers`, a sign of a damaged response such as a sentinel code;
 #' it changes no estimate and never flips `attr(x, "ok")`),
 #' known sampling covariance summaries,
@@ -226,9 +227,15 @@ check_drm <- function(object, ...) {
 #'
 #' Use [check_drm()] when you need the full diagnostic table and messages.
 #'
-#' @param object A `drmTMB` fit.
+#' @aliases is_converged.drmTMB_julia is_converged.drmTMB_julia_xfam
+#' @usage is_converged(object, ...)
+#' \method{is_converged}{drmTMB_julia}(object, include_hessian = FALSE, ...)
+#' \method{is_converged}{drmTMB_julia_xfam}(object, include_hessian = FALSE, ...)
+#' @param object A `drmTMB` fit or an existing Julia-backed fit.
 #' @param include_hessian Logical; require a positive-definite
 #'   [TMB::sdreport()] Hessian in addition to optimizer convergence.
+#'   On Julia-backed fits, the method instead requires retained uncertainty
+#'   status `ok` and a positive-definite stored covariance matrix.
 #' @param ... Reserved for future convergence options.
 #'
 #' @return A single logical value.
@@ -676,13 +683,24 @@ check_drm.drmTMB <- function(
   out
 }
 
+#' @rdname check_drm
+#' @aliases [.drm_check
+#' @usage \method{[}{drm_check}(x, i, j, drop = FALSE)
+#' @param x A diagnostic table returned by [check_drm()].
+#' @param i,j Row and column indices, as for data-frame subsetting.
+#' @param drop Logical; whether to simplify a single selected column.
+#' @section Subsetting diagnostics:
+#' Data-frame subsets retain the `drm_check` class and the original overall
+#' `ok` flag. The `n_checks_total` attribute retains the original check count,
+#' using `nrow(x)` when that attribute is absent. A simplified non-data-frame
+#' result is returned unchanged.
 #' @export
 `[.drm_check` <- function(x, i, j, drop = FALSE) {
   n_total <- attr(x, "n_checks_total")
   if (is.null(n_total)) {
     n_total <- nrow(x)
   }
-  out <- NextMethod("[")
+  out <- NextMethod("[", drop = drop)
   if (!is.data.frame(out)) {
     return(out)
   }

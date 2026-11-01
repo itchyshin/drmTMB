@@ -812,8 +812,9 @@ independent slopes cover only specific simulation designs; consult
 [Can I fit and report this model?](capability-and-limits.html) before reporting
 an interval. Correlated or labelled slopes remain unsupported. Factor
 responses, proportions with trial weights, structured effects, bivariate
-responses remain unsupported. `engine = "julia"` fits plain binomial
-fixed-effect models only.
+responses remain unsupported. `engine = "julia"` supports binomial
+fixed-effect models and the selected large-phylogeny mean route; ordinary
+random-effect and other structured binomial routes remain unavailable there.
 
 Use `beta_binomial()` when the response is still counted successes out of known
 trials but the data show extra-binomial variation. It uses the same
@@ -860,7 +861,9 @@ of successes. The tutorial
 [Proportions and success rates](proportion-beta-binomial.html) gives a plain
 event-probability example and a denominator-aware seed-germination example.
 
-Ordinal models are implemented first as fixed-effect univariate models with
+### Cumulative logit (ordinal)
+
+The proportional-odds baseline is a fixed-effect univariate ordinal model with
 ordered cutpoints and a fixed latent logistic scale:
 
 \[
@@ -877,6 +880,15 @@ ordered cutpoints and a fixed latent logistic scale:
 Although the R formula below is `bf(score ~ habitat)`, the cumulative-logit fit
 drops the location intercept internally because a free location intercept and
 free cutpoints are not identifiable together.
+
+The native TMB engine also accepts a discrimination formula, such as
+`bf(score ~ habitat, disc ~ habitat)`, to let predictors change the latent
+scale. The discrimination intercept is fixed internally at zero and removed from
+the design; keep the intercept in the formula (`disc ~ 0 + habitat` is
+refused). This route does not accept random effects, structured effects, or
+offsets. It is unavailable with
+`engine = "julia"`. See `?cumulative_logit` for its identification restrictions
+and a complete example.
 
 ```r
 set.seed(1)

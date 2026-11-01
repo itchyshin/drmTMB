@@ -185,15 +185,15 @@ says which estimates and intervals are ready to report.
 
 | Model | Fitted now | Not yet supported |
 | --- | --- | --- |
-| One response, fixed effects | One formula per family parameter for Gaussian, Student-t, skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta, beta-binomial, binomial, Poisson, NB2, zero-inflated Poisson and NB2, truncated NB2, hurdle NB2, and cumulative-logit ordinal responses | Ordinal scale models, ordered beta, predictor-dependent Tweedie power |
+| One response, fixed effects | One formula per family parameter for Gaussian, Student-t, skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta, beta-binomial, binomial, Poisson, NB2, zero-inflated Poisson and NB2, truncated NB2, hurdle NB2, and cumulative-logit ordinal responses; ordinal `disc ~ z` fixed-effect discrimination | Ordinal random-effect discrimination and cutpoint-specific predictors, ordered beta, predictor-dependent Tweedie power |
 | Gaussian random effects | `mu` and `sigma` random intercepts, independent slopes, and correlated intercept-slope blocks | Covariance between `mu` and `sigma` slopes across formulas |
 | Non-Gaussian random effects | `mu` random intercepts and independent numeric slopes for Student-t, skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta, beta-binomial, binomial, Poisson, NB2, truncated NB2, and cumulative-logit responses | Correlated non-Gaussian slopes |
 | Random-effect SD models | `sd(group) ~ x_group` for Gaussian `mu` random intercepts | Slope-specific `sd()` formulas |
 | Meta-analysis | Gaussian `meta_V(V = V)` with diagonal, dense, or bivariate known sampling covariance | Non-Gaussian or sparse known covariance |
 | Two responses | Bivariate Gaussian `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent `rho12`; matching random intercepts across the two responses | Random effects in `rho12`, mixed-family pairs |
 | Phylogenetic, spatial, pedigree, and known-matrix effects | Gaussian `mu` and `sigma` intercepts and one numeric `mu` slope; Poisson and NB2 `mu` intercept plus one slope | Multiple or labelled structured slopes, structured `rho12`, simultaneous phylogenetic and spatial terms |
-| Temporal AR1, OU, and Toeplitz effects | One univariate Gaussian ML route: `temporal(1 \| id, time = occasion, structure = "ar1")`, `temporal(1 \| id, time = elapsed, structure = "ou")`, or, for a complete equally spaced panel of 3--12 occasions, `temporal(1 \| id, time = occasion, structure = "homtoep")` in the `mu` formula; see [Temporal AR1, OU, and Toeplitz effects](https://itchyshin.github.io/drmTMB/articles/temporal-random-effects.html) | Mean-coefficient Wald (AR1 only) and profile intervals; no process, persistence, decay, total-scale, or lag-correlation intervals, forecasts, or `newdata` prediction |
-| Missing predictors | One missing predictor `mi(x)`, modelled inside the same likelihood | A general missing-data framework |
+| Temporal AR1, OU, and Toeplitz effects | One univariate Gaussian ML route: `temporal(1 \| id, time = occasion, structure = "ar1")`, `temporal(1 \| id, time = elapsed, structure = "ou")`, or, for a complete equally spaced panel of 3--12 occasions, `temporal(1 \| id, time = occasion, structure = "homtoep")` in the `mu` formula. AR1 mean-coefficient Wald intervals can be computed when the full Hessian permits; fixed-mean profiles are computable on named AR1, OU, and Toeplitz routes. OU and Toeplitz profile coverage evidence is confined to the article's exact cells; AR1 has no calibrated coverage claim. See [Temporal AR1, OU, and Toeplitz effects](https://itchyshin.github.io/drmTMB/articles/temporal-random-effects.html) | No process, persistence, decay, total-scale, or lag-correlation intervals, forecasts, or `newdata` prediction; OU and Toeplitz Wald intervals unavailable |
+| Missing predictors | One `mi(x)` in documented family-specific routes; two independent Gaussian predictors, or one independent Gaussian and one binary predictor, in the native Gaussian location model (fixed-effect predictor models) | Three missing predictors, joint imputation of dependent predictors, and a general missing-data framework |
 | Large data | Memory-light fits, `se = FALSE`, sparse `mu` design matrices, Gaussian aggregation | Speed claims for random-effect, structured, non-Gaussian, or bivariate models |
 
 ## Current boundaries
@@ -228,7 +228,13 @@ shows both steps.
 `DRModels.jl` is an optional Julia companion. For supported models, the
 [Julia engine guide](https://itchyshin.github.io/drmTMB/articles/julia-engine.html)
 shows how to select it from R with `engine = "julia"` and explains its limits.
-Julia is not required to install or use the default R workflow.
+`engine = "julia"` currently admits Gaussian, bivariate Gaussian, Student-t,
+lognormal, Poisson, NB2, Gamma, Beta, and binomial models on the fixed-effect
+route (several also have a large-p `phylo()` or coupled location-scale phylo
+route), plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`,
+`beta_binomial()`, `skew_normal()`, `cumulative_logit()`, `biv_student()`,
+and `biv_lognormal()` on the fixed-effect route only. Julia is not required
+to install or use the default R workflow.
 
 ## Project status
 
