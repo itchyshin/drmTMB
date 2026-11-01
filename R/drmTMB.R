@@ -10711,7 +10711,7 @@ drm_build_nbinom2_spec <- function(
     allow_labelled_intercept_slope_structured_mu = TRUE,
     labelled_intercept_slope_structured_mu_types = "phylo",
     allow_slope_only_structured_mu = TRUE,
-    slope_only_structured_mu_types = c("animal", "relmat", "phylo"),
+    slope_only_structured_mu_types = c("spatial", "animal", "relmat", "phylo"),
     family_label = "NB2",
     inflated_label = "Zero-inflated NB2"
   )

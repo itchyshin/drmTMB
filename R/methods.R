@@ -7288,7 +7288,7 @@ drm_simulate_marginal_unsupported <- function(object) {
       )
     supported_q1_structured_sd <-
       object$model$model_type %in% c(
-        "gaussian", "binomial", "poisson", "beta_binomial"
+        "gaussian", "binomial", "poisson", "beta_binomial", "nbinom2"
       ) &&
       isTRUE(phylo_mu$has) &&
       structured_mu_type(phylo_mu) %in% c(

@@ -11421,6 +11421,8 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
       identical(term$coef_names, "(Intercept)") &&
       length(Filter(function(entry) startsWith(entry$dpar, "sd_"),
                     formula$entries)) == 1L
+    poisson_animal_slope <- identical(family_type, "poisson") &&
+      drm_julia_poisson_animal_sd_slope_route_admitted(formula)
     binomial_intercept <- identical(family_type, "binomial") &&
       drm_julia_binomial_animal_sd_intercept_route_admitted(formula)
     binomial_animal_slope <- identical(family_type, "binomial") &&
@@ -11429,7 +11431,8 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
       drm_julia_binomial_animal_q2_sd_route_admitted(formula)
     binomial_animal_iid <- identical(family_type, "binomial") &&
       drm_julia_binomial_animal_iid_sd_route_admitted(formula)
-    if (!poisson_intercept && !binomial_intercept && !binomial_animal_slope &&
+    if (!poisson_intercept && !poisson_animal_slope && !binomial_intercept &&
+        !binomial_animal_slope &&
         !binomial_animal_q2 && !binomial_animal_iid) {
       cli::cli_abort(c(
         "{.code engine = \"julia\"} admits animal {.arg Ainv} only for supported Poisson or Binomial animal SD regression routes.",
