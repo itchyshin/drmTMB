@@ -51,11 +51,12 @@ The #1048-shaped mutation (section 3a) turns the relaxed pin test red.
 ## 9. What Did Not Go Smoothly
 
 - The CI log for the red shard 3/4 run (run 40279955662, head `7051068ef`) had expired (HTTP 410), so the original failure could not be read. Shard 3/4 has 0 failures locally on the merged tree. The next CI run on the pushed head is the check.
-- `tools/recertify-c17.py` refused to rewire the receipt: the measured `mean_tau_relative_error` moved by up to 3.2e-11 against main's recorded value. A dry run on an untouched `origin/main` worktree gave the same three differences, so this is host-level numerical noise, not the PR. The tool is deliberately exact and says not to raise the tolerance, so the receipt was left as main has it. `receipt-staleness` runs only on pushes to main, so it does not gate this PR.
+- `tools/recertify-c17.py` refused to rewire the receipt: the measured `mean_tau_relative_error` moved by up to 3.2e-11 against main's recorded value, with and without `OPENBLAS_NUM_THREADS=1`. A dry run on an untouched `origin/main` worktree gave the same three differences, so this is host-level numerical noise, not the PR. The tool is deliberately exact and says not to raise the tolerance, so the receipt was left as main has it.
+- I first wrote that the staleness guard runs only on main (true of the `receipt-staleness` workflow) and so does not gate this PR. That was wrong: each R-CMD-check shard also runs a receipt guard step before the tests. After the push, all four shards failed at that step with `mc-0568: current source blob differs for R/drmTMB.R` (receipt 8b715877f, current b887d0d00). The tests did not run in CI on this head.
 
 ## 10. Known Residuals
 
-- The C17 receipt pins the whole-file blob of `R/drmTMB.R`, which this PR changes, so it is stale for the merged tree until a recertification passes on a host whose numbers match the recorded ones, or the owner decides on a tolerance.
+- The PR is red on every shard until the C17 receipt is recertified for the merged `R/drmTMB.R`. That needs a host whose numbers match the recorded ones, or an owner decision on a tolerance (NEEDS-DECISION, see the lane NOTES.md).
 - `test-associate-pairs-bernoulli-bernoulli.R` is red on main on this host.
 - No `engine = "julia"` live tests, no `R CMD check`, no pkgdown.
 
