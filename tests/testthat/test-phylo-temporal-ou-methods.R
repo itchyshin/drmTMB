@@ -157,7 +157,8 @@ test_that("a paired fit whose residual SD collapses is reported as a boundary fi
   irregular <- !drmTMB:::drm_optimizer_converged(fit) ||
     drmTMB:::drm_inference_degenerate(fit) ||
     drmTMB:::drm_fixed_effect_rank_deficient(fit) ||
-    drmTMB:::drm_standard_errors_pathological(fit)
+    drmTMB:::drm_standard_errors_pathological(fit) ||
+    drmTMB:::drm_mle_nonexistent_is_true(fit)
   expect_identical(convergence_status(fit), if (irregular) "degenerate" else "boundary")
   expect_false(identical(convergence_status(fit), "converged"))
 })
