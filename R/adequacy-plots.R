@@ -16,9 +16,9 @@
 #' theoretical quantiles: `deviation = sorted residual - theoretical
 #' quantile`. A flat scatter around the dotted zero reference line is no
 #' detectable departure from N(0,1); a systematic bend flags a
-#' mis-specification of the fitted distributional form (see the
-#' GAMLSS-Primer Fig-4c contrast: a location-only fit to heteroscedastic data
-#' bends, the matching location-scale fit is flat).
+#' mis-specification of the fitted distributional form. With heteroscedastic
+#' data, a location-only model can leave a systematic pattern that a
+#' location-scale model can represent.
 #'
 #' When `nsim > 1`, a pale grey envelope (with a darker outline) overplots the
 #' per-rank range across the `nsim` Dunn-Smyth realizations, so a single

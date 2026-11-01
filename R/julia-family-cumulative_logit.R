@@ -278,3 +278,19 @@ drm_julia_ordinal_interval_refusal <- function(object, parm, method) {
     i = "The fitted cutpoints themselves are already on this fit, in `fit$ordinal$cutpoints`."
   ))
 }
+
+# `disc ~ z` (#966) is native-only: DRM.jl has no discrimination submodel and
+# no parity receipt, so any `disc` formula is refused before Julia starts.
+drm_julia_refuse_cumulative_logit_disc <- function(formula, family_type) {
+  if (!identical(family_type, "cumulative_logit")) {
+    return(invisible(NULL))
+  }
+  dpars <- vapply(formula$entries, `[[`, character(1L), "dpar")
+  if (any(dpars == "disc")) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} does not yet fit a {.fn cumulative_logit} {.code disc} formula.",
+      i = "Use the native {.code engine = \"tmb\"} for {.code disc ~ z}."
+    ))
+  }
+  invisible(NULL)
+}

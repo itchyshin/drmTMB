@@ -2,23 +2,32 @@
 % Please edit documentation in R/check.R
 \name{is_converged}
 \alias{is_converged}
+\alias{is_converged.drmTMB_julia}
+\alias{is_converged.drmTMB_julia_xfam}
+\alias{converged}
 \alias{is_converged.default}
 \alias{is_converged.drmTMB}
 \title{Check whether a fit converged}
 \usage{
 is_converged(object, ...)
+\method{is_converged}{drmTMB_julia}(object, include_hessian = FALSE, ...)
+\method{is_converged}{drmTMB_julia_xfam}(object, include_hessian = FALSE, ...)
+
+converged(object, ...)
 
 \method{is_converged}{default}(object, ...)
 
 \method{is_converged}{drmTMB}(object, include_hessian = FALSE, ...)
 }
 \arguments{
-\item{object}{A \code{drmTMB} fit.}
+\item{object}{A \code{drmTMB} fit or an existing Julia-backed fit.}
 
 \item{...}{Reserved for future convergence options.}
 
 \item{include_hessian}{Logical; require a positive-definite
-\code{\link[TMB:sdreport]{TMB::sdreport()}} Hessian in addition to optimizer convergence.}
+\code{\link[TMB:sdreport]{TMB::sdreport()}} Hessian in addition to optimizer convergence.
+On Julia-backed fits, the method instead requires retained uncertainty
+status \code{ok} and a positive-definite stored covariance matrix.}
 }
 \value{
 A single logical value.
@@ -26,12 +35,12 @@ A single logical value.
 \description{
 \code{is_converged()} is a compact programmatic flag for workflows that need a
 yes/no answer before comparing, displaying, or post-processing a \code{drmTMB}
-fit. By default it delegates to \code{\link[=convergence_status]{convergence_status()}}: it returns \code{TRUE}
-when the status is \code{"converged"} or \code{"boundary"}, and \code{FALSE} when the
-status is \code{"degenerate"}. A fit can therefore report optimizer code \code{0}
-while still returning \code{FALSE} here when the likelihood geometry or
-uncertainty diagnostics are degenerate; use \code{\link[=check_drm]{check_drm()}} or
-\code{\link[=convergence_status]{convergence_status()}} for detail.
+fit. It is \code{TRUE} exactly when \code{\link[=convergence_status]{convergence_status()}} is \code{"converged"}.
+\code{"boundary"} and \code{"degenerate"} both return \code{FALSE}; use
+\code{\link[=convergence_status]{convergence_status()}} or \code{\link[=check_drm]{check_drm()}} when a three-valued status is
+needed. \code{converged()} is the same predicate under the name DRModels.jl
+also exports. A fit can therefore report optimizer code \code{0} while still
+returning \code{FALSE} here.
 }
 \details{
 Set \code{include_hessian = TRUE} when the next step needs Wald-style
@@ -49,5 +58,6 @@ set.seed(20260531)
 dat <- data.frame(y = rnorm(30), x = rnorm(30))
 fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 is_converged(fit)
+converged(fit)
 is_converged(fit, include_hessian = TRUE)
 }

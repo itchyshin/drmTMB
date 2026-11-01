@@ -29,6 +29,8 @@ CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
 PARITY_TRIAGE = ROOT / "docs/dev-log/dashboard/parity-triage.tsv"
 READER_SUMMARY = ROOT / "vignettes/includes/capability-ledger-summary.md"
 LIVE_PROSE_CONTRACTS = LEDGER / "live-prose-contracts.tsv"
+RETIRED_PREDICATES = LEDGER / "retired-predicates.tsv"
+RETIRED_PREDICATE_FIELDS = ("phrase", "retired_by", "replacement", "reference")
 G5_POLICY_ANCHOR = ROOT / "inst/sim/R/sim_missing_response_g4g5.R"
 
 # These are deliberately exact ledger cells, not per-family representatives.
@@ -3487,6 +3489,106 @@ def validate_live_prose_contracts(
             raise SystemExit(f"{label}: unknown live prose reference kind {kind!r}")
 
 
+def validate_route_cross_references(
+    cells: list[dict[str, str]], evidence: list[dict[str, str]]
+) -> None:
+    """Require a route_state contract for every other route a G5 row names.
+
+    Issue 1011 item 2, scoped by the owner to the G5 family-map rows: the cells
+    carrying a ``g5_policy_not_grounded`` contract.  When their live prose names
+    another family route in backticks (for example ``cumulative_logit`` as an
+    explicit exclusion), a ``route_state`` contract for the same cell and field
+    must pin a cell of that route.  Promoting that route then fails
+    ``validate_live_prose_contracts`` until the prose is reviewed.  Every other
+    row is deliberately not scanned here; keyed columns are issue 1011 item 3.
+    """
+    contracts = read_tsv(LIVE_PROSE_CONTRACTS)
+    cells_by_id = {row["cell_id"]: row for row in cells}
+    routes = {row["family_route"] for row in cells}
+    pinned: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for contract in contracts:
+        if contract["reference_kind"] == "route_state" and contract["reference_id"] in cells_by_id:
+            referenced = cells_by_id[contract["reference_id"]]
+            pinned[(contract["cell_id"], contract["field"])].add(referenced["family_route"])
+    targets = sorted({
+        (contract["cell_id"], contract["field"])
+        for contract in contracts
+        if contract["reference_kind"] == "g5_policy_not_grounded"
+    })
+    problems = []
+    for cell_id, field in targets:
+        contract = {"cell_id": cell_id, "field": field}
+        prose = live_prose_contract_value(contract, cells, evidence)
+        own = cells_by_id[cell_id]["family_route"]
+        named = {
+            name for name in re.findall(r"`([A-Za-z0-9_]+)`", prose)
+            if name in routes and name != own
+        }
+        problems.extend(
+            f"{cell_id} {field}: names route `{name}` without a route_state contract "
+            "in live-prose-contracts.tsv; add one so a promotion of that route forces "
+            "a prose review"
+            for name in sorted(named - pinned[(cell_id, field)])
+        )
+    if problems:
+        raise SystemExit("G5 family-map prose names an unpinned route:\n- " + "\n- ".join(problems))
+
+
+def normalised_prose(text: str) -> str:
+    """Fold case and runs of whitespace so a phrase matches however it is set."""
+    return " ".join(text.split()).casefold()
+
+
+def retired_predicate_phrases() -> list[tuple[str, str]]:
+    """Return ``(phrase, replacement)`` pairs from ``retired-predicates.tsv``."""
+    rows = read_tsv(RETIRED_PREDICATES)
+    if not rows or tuple(rows[0]) != RETIRED_PREDICATE_FIELDS:
+        raise SystemExit("retired-predicates.tsv has the wrong schema")
+    phrases: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for line, row in enumerate(rows, start=2):
+        if None in row or any(not (row[field] or "").strip() for field in RETIRED_PREDICATE_FIELDS):
+            raise SystemExit(f"retired-predicates.tsv line {line}: every field needs a value")
+        phrase = normalised_prose(row["phrase"])
+        if phrase in seen:
+            raise SystemExit(f"retired-predicates.tsv line {line}: duplicate phrase {row['phrase']!r}")
+        seen.add(phrase)
+        phrases.append((row["phrase"], row["replacement"]))
+    return phrases
+
+
+def validate_retired_predicates(
+    cells: list[dict[str, str]], evidence: list[dict[str, str]]
+) -> None:
+    """Reject a retired gate phrase in the live prose of every ledger row.
+
+    The ``retired_predicate_absent`` contracts guard only the cells they name.
+    Issue 1011 instance 3 put a deleted predicate into ``next_gate`` cells that
+    no contract named, so this scan reads every row. ``transitions.tsv`` and
+    ``notes`` are history, not live claims, and are deliberately not scanned.
+    """
+    phrases = [
+        (phrase, replacement, normalised_prose(phrase))
+        for phrase, replacement in retired_predicate_phrases()
+    ]
+    scanned = [
+        (f"cells:{row['cell_id']}", row, ("claim_boundary", "next_gate")) for row in cells
+    ] + [
+        (f"evidence:{row['evidence_id']}", row, ("claim_boundary",)) for row in evidence
+    ]
+    hits = [
+        f"{label}.{field}: retired predicate {phrase!r}; replaced by {replacement}"
+        for label, row, fields in scanned
+        for field in fields
+        for phrase, replacement, needle in phrases
+        if needle in normalised_prose(row[field])
+    ]
+    if hits:
+        raise SystemExit(
+            "Live ledger prose names a retired gate predicate:\n- " + "\n- ".join(hits)
+        )
+
+
 def reader_summary_markdown(cells: list[dict[str, str]]) -> str:
     """Render the reader summary consumed from ``vignettes/includes``."""
     summary = reader_summary_value(cells)
@@ -4225,6 +4327,8 @@ def load_sources() -> tuple[list[dict[str, str]], list[dict[str, str]], list[dic
     transitions = read_tsv(TRANSITIONS)
     validate(cells, evidence, transitions)
     validate_live_prose_contracts(cells, evidence)
+    validate_route_cross_references(cells, evidence)
+    validate_retired_predicates(cells, evidence)
     return cells, evidence, transitions
 
 

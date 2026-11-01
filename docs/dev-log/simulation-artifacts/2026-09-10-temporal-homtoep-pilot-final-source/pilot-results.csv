@@ -1,0 +1,46 @@
+"fixture","cell","role","seed","n_id","n_time","selected","objective","convergence","elapsed_sec","pd_hessian","profile_available","n_profile_intervals","profile_status","warning","error"
+"P1_ar1_shaped_2026091301","P1_ar1_shaped","ar1_reference",2026091301,80,6,TRUE,594.460715612189,0,0.977,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P1_ar1_shaped_2026091302","P1_ar1_shaped","ar1_reference",2026091302,80,6,TRUE,596.858677252295,0,2.416,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P1_ar1_shaped_2026091303","P1_ar1_shaped","ar1_reference",2026091303,80,6,TRUE,568.070998265265,0,1.103,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P1_ar1_shaped_2026091304","P1_ar1_shaped","ar1_reference",2026091304,80,6,TRUE,615.985037866881,0,0.768000000000001,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P1_ar1_shaped_2026091305","P1_ar1_shaped","ar1_reference",2026091305,80,6,TRUE,575.981853155244,0,0.625,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P2_nonexponential_2026091301","P2_nonexponential","free_lag",2026091301,80,6,TRUE,600.457986194735,0,0.721999999999998,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P2_nonexponential_2026091302","P2_nonexponential","free_lag",2026091302,80,6,TRUE,609.009214594408,0,0.599000000000004,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P2_nonexponential_2026091303","P2_nonexponential","free_lag",2026091303,80,6,TRUE,570.925149085125,0,0.800000000000004,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P2_nonexponential_2026091304","P2_nonexponential","free_lag",2026091304,80,6,TRUE,626.101895364746,0,0.773000000000003,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P2_nonexponential_2026091305","P2_nonexponential","free_lag",2026091305,80,6,TRUE,591.149444129707,0,0.801000000000002,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P3_negative_lag_2026091301","P3_negative_lag","negative_lag",2026091301,80,6,TRUE,607.78958411217,0,0.698,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P3_negative_lag_2026091302","P3_negative_lag","negative_lag",2026091302,80,6,TRUE,598.991879144724,0,0.729999999999997,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P3_negative_lag_2026091303","P3_negative_lag","negative_lag",2026091303,80,6,TRUE,577.533721266062,0,0.775999999999996,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P3_negative_lag_2026091304","P3_negative_lag","negative_lag",2026091304,80,6,TRUE,618.509859657338,0,0.893000000000001,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA
+"P3_negative_lag_2026091305","P3_negative_lag","negative_lag",2026091305,80,6,TRUE,582.161446506189,0,0.856999999999999,FALSE,FALSE,0,"Homogeneous Toeplitz profile intervals are not yet qualified.
+ℹ Toeplitz recovery and profile calibration are pending; profile intervals are
+  deferred.","NaNs produced",NA

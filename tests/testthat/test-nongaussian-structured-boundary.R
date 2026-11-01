@@ -236,6 +236,29 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     dam = NA_character_,
     sire = NA_character_
   )
+  set.seed(2026070406)
+  beta_relmat_levels <- paste0("br", seq_len(8L))
+  beta_relmat_id <- factor(
+    rep(beta_relmat_levels, each = 20L),
+    levels = beta_relmat_levels
+  )
+  beta_relmat_x <- stats::rnorm(length(beta_relmat_id))
+  beta_relmat_field <- stats::rnorm(length(beta_relmat_levels), sd = 0.35)
+  names(beta_relmat_field) <- beta_relmat_levels
+  beta_relmat_mu <- stats::plogis(
+    -0.1 + 0.3 * beta_relmat_x + beta_relmat_field[as.character(beta_relmat_id)]
+  )
+  beta_relmat_phi <- 12
+  dat_beta_relmat <- data.frame(
+    y = stats::rbeta(
+      length(beta_relmat_id), beta_relmat_mu * beta_relmat_phi,
+      (1 - beta_relmat_mu) * beta_relmat_phi
+    ),
+    x = beta_relmat_x,
+    id = beta_relmat_id
+  )
+  K_beta_relmat <- diag(length(beta_relmat_levels))
+  dimnames(K_beta_relmat) <- list(beta_relmat_levels, beta_relmat_levels)
   set.seed(2026070405)
   nb_sigma_levels <- paste0("nbs", seq_len(8L))
   nb_sigma_id <- factor(
@@ -297,13 +320,17 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   expect_true(
     any(grepl("^spatial\\(", names(fit_student_spatial$sdpars$mu)))
   )
-  expect_error(
-    drmTMB(
-      bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1),
-      family = beta_family(),
-      data = dat_beta
-    ),
-    "Structured non-Gaussian paths"
+  fit_beta_relmat <- drmTMB(
+    bf(y ~ x + relmat(1 | id, K = K_beta_relmat), sigma ~ 1),
+    family = beta_family(),
+    data = dat_beta_relmat,
+    control = drm_control(se = FALSE)
+  )
+  expect_s3_class(fit_beta_relmat, "drmTMB")
+  expect_equal(as.integer(fit_beta_relmat$opt$convergence), 0L)
+  expect_true("relmat_mu" %in% names(fit_beta_relmat$random_effects))
+  expect_true(
+    any(grepl("^relmat\\(", names(fit_beta_relmat$sdpars$mu)))
   )
   fit_gamma_relmat <- drmTMB(
     bf(y ~ x + relmat(1 | id, K = K_gamma), sigma ~ 1),

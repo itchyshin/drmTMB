@@ -11,25 +11,59 @@ A \code{drm_family} object.
 }
 \description{
 \code{cumulative_logit()} defines a one-response ordinal model for ordered
-categories. The first implemented path uses a location formula \code{mu ~ ...}
-and ordered cutpoints with a fixed latent logistic scale. The location
+categories, with a location formula \code{mu ~ ...}, ordered cutpoints, and an
+optional discrimination (scale) formula \code{disc ~ ...}. The location
 intercept is dropped internally, as in standard cumulative-link models,
 because a free location intercept and free cutpoints are not jointly
 identifiable.
 }
 \details{
 The implemented contract is
-\code{Pr(y_i <= k) = logit^-1(theta_k - mu_i)}, with
-\verb{mu_i = X_mu[i, ] beta_mu} and
-\verb{theta[1] < theta[2] < ... < theta[K - 1]}. \code{fitted()} returns the expected
-ordered-category score, \verb{sum_k k * Pr(y_i = k)}. Ordinal scale or
-discrimination formulas are not supported.
+\code{Pr(y_i <= k) = logit^-1(disc_i * (theta_k - mu_i))}, with
+\verb{mu_i = X_mu[i, ] beta_mu}, \verb{log(disc_i) = Z[i, ] gamma}, and
+\verb{theta[1] < theta[2] < ... < theta[K - 1]}. Without a \code{disc} formula, or
+with \code{disc ~ 1}, \code{disc_i = 1} and the model is the proportional-odds
+cumulative logit model exactly. \code{fitted()} returns the expected
+ordered-category score, \verb{sum_k k * Pr(y_i = k)}. Fixed-effect
+\code{cumulative_logit()} models without a \code{disc} predictor are admitted
+through \code{engine = "julia"}; see
+\code{vignette("julia-engine", package = "drmTMB")}. The Julia route refuses
+a \code{disc} formula.
+}
+\section{Identifiability of \code{disc}}{
+
+The intercept of the \code{disc} formula is fixed at \code{log(disc) = 0} and dropped
+from \code{Z}. The latent logistic variable behind a cumulative-link model has
+no natural unit: multiplying every cutpoint, every location coefficient,
+and the latent scale \code{1 / disc} by the same positive constant leaves every
+category probability unchanged. Fixing the reference discrimination at 1
+removes that one degree of freedom, so each \code{disc} coefficient is a
+log-ratio of discrimination relative to the reference row (\code{z = 0}, or the
+first level of a factor). A \code{disc} coefficient of \code{0.4} means the
+categories are \code{exp(0.4) = 1.49} times more sharply separated per unit of
+\code{z}; equivalently, the latent residual scale returned by \code{sigma()} is
+\code{1 / disc}. This is the same constraint as the \code{scale} formula of
+\code{ordinal::clm()}, whose scale coefficients equal \code{-gamma}. The \code{disc}
+formula cannot remove its intercept (\code{disc ~ 0 + z}) and does not yet
+accept random effects, structured terms, or offsets.
 
 The response may be an ordered factor or an integer-coded category. Integer
 codes are used at face value in increasing numeric order; \code{drmTMB} cannot
 infer whether those numbers represent the scientific ordering the analyst
 intended. Use an ordered factor when labels carry the biological ordering.
 }
+
 \examples{
 cumulative_logit()
+
+set.seed(1)
+dat <- data.frame(x = rnorm(300), z = rnorm(300))
+latent <- 0.8 * dat$x + rlogis(300) / exp(0.4 * dat$z)
+dat$score <- cut(latent, c(-Inf, -1, 0, 1, Inf), ordered_result = TRUE)
+fit <- drmTMB(
+  bf(score ~ x, disc ~ z),
+  family = cumulative_logit(),
+  data = dat
+)
+coef(fit, "disc")
 }

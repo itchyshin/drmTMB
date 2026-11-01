@@ -912,7 +912,11 @@ mr_g4_run_campaign <- function(target_manifests, registry = NULL, trace = TRUE,
       route_id = cell$route_id, information_multiplier = cell$information_multiplier,
       seed = seed_lookup[[i]], replicate = 1L, trace = trace, target_manifest = target
     )
-    records <- if (is.null(records)) next_record else rbind(records, next_record)
+    # The mask receipt is route-dependent (`biv_gaussian` adds the paired-mask
+    # counts), so a registry spanning routes cannot be combined with a bare
+    # rbind() (#970).  Union the fields and pad, as the G5 path and both
+    # reconcilers already do.
+    records <- if (is.null(records)) next_record else mr_g5_bind_records(records, next_record)
     if (!is.null(checkpoint_path)) {
       dir.create(dirname(checkpoint_path), recursive = TRUE, showWarnings = FALSE)
       saveRDS(records, checkpoint_path)
@@ -1475,7 +1479,8 @@ mr_g5_reconcile_checkpoints <- function(paths, registry) {
 # `mr_g5_run_attempt()` record, and the mask receipt is route-dependent
 # (`biv_gaussian` reports paired-mask fields the other routes do not).  Union the
 # names and pad the gaps with NA so a retained failure never costs the cell.  This
-# is the same rule `mr_g5_reconcile_checkpoints()` applies when merging receipts.
+# is the same rule `mr_g5_reconcile_checkpoints()` applies when merging receipts,
+# and `mr_g4_run_campaign()` uses this helper for the same reason (#970).
 mr_g5_bind_records <- function(...) {
   parts <- Filter(Negate(is.null), list(...))
   if (!length(parts)) return(NULL)
