@@ -41,37 +41,76 @@ predict/extract/save/reload/profile/bootstrap across both engines.
 | Phase | Deliverable | Role/model/effort | Engineering estimate | Depends on |
 |---|---|---|---|---|
 | P0 | Pinned universe, prior-work reconciliation, ownership | Shannon/Jason, Luna medium | 1-2 weeks | approval |
-| P1a | Curated NotebookLM methods synthesis | Ranga, Luna medium | 3-5 days | P0 starts |
+| P1a (complete) | Curated NotebookLM methods synthesis | Ranga, Luna medium | completed 2026-10-20 | P0 starts |
 | P1b | Symbolic/API/kernel/validation contract | Gauss, Sol high, Boole/Noether lenses | 1-2 weeks | P0 and research |
 | P2 | Target descriptors, SD designs/maps/engine contract | Sol high core; Luna medium adapters | 2-4 weeks | contract |
-| P3 | Bernoulli both-engine slice and calibrated intervals | Luna medium builds/tests; Sol high review | 2-4 weeks | P2 minimum |
-| P4 | Other ordinary families/intercepts/slopes | Luna medium; Sol high coupled core | 3-6 weeks | P3 gate |
-| P5 | Correlated/labelled/cross-parameter blocks | Sol high core; Luna medium adapters | 4-8 weeks | P4 |
-| P6 | All structured providers and sparse scaling | Sol high design; Luna medium builds | 8-16 weeks | P5 |
-| P7 | Bivariate and special-family gaps | Luna medium; Sol high inference | 4-8 weeks | relevant predecessors |
-| P8 | Recovery/calibration of advertised domains | Curie Luna medium; Fisher Sol high | 6-12 weeks | rolls with builds |
-| P9 | Docs/examples/full checks | writer/Pat/Grace Luna medium | 2-4 weeks | rolls with builds |
-| P10 | Independent review and reconciliation | 2 Luna medium + 1 Sol high; Melissa | 1-2 weeks | gates pass |
+| P3 | Bernoulli both-engine implementation, light correctness/recovery checks, public outputs and docs | Luna medium builds/tests; Sol high review | 1-2 weeks (provisional) | P2 minimum |
+| P4 | Core ordinary families: Gaussian, Binomial, Poisson, NB2, and Gamma; then Beta and beta-binomial | Luna medium; Sol high coupled core | Re-estimate after route map | P3 |
+| P5 | Extend core families across independent slopes, correlated/labelled blocks, and cross-parameter effects | Sol high core; Luna medium adapters | Re-estimate after route map | P4 |
+| P6 | Extend core and remaining families across structured providers, crossed/nested layouts, and sparse scaling | Sol high design; Luna medium builds | Re-estimate after route map | P4-P5 |
+| P7 | Remaining supported families, endpoints, bivariate routes, and special-family gaps | Luna medium; Sol high inference | Re-estimate after route map | relevant predecessors |
+| P8 | Deferred coverage and uncertainty-calibration follow-up | Curie Luna medium; Fisher Sol high | Re-estimate after implementation breadth | separate follow-up; not a blocker to current implementation closeout |
+| P9 | Docs/examples and full implementation checks; state interval limits plainly | writer/Pat/Grace Luna medium | 2-4 weeks | rolls with implementation |
+| P10 | Independent implementation review and reconciliation | 2 Luna medium + 1 Sol high; Melissa | 1-2 weeks | implementation and regression gates pass |
 
-Full planning range: 40-80 engineer-weeks, about 5-10 elapsed months with 2-3
-sustained contributors; first calibrated Bernoulli milestone 3-6 elapsed weeks.
-These are forecasts, not measured throughput. Re-estimate after inventory and
-pilots. Compute and queue time are separate. At most four live agents including
-Ada. Reuse children; at most six new children and one ceiling child per production
+### Implementation-first sequence (updated 24 October 2026)
+
+Deliver Bernoulli fitting and
+public outputs on both engines with targeted numerical/equivalence checks and a
+small, fixed-seed recovery smoke before starting coverage campaigns. The smoke
+can catch coding, indexing, sign, and gross-recovery errors; it does not validate
+95% interval coverage. Continue the same implementation and light-check pattern
+through the required family/effect/provider/backend rows. Profile and bootstrap
+intervals may be exercised for workflow integrity, but documentation must say
+their coverage is not validated and must not present them as calibrated
+inference. The coverage campaign formerly specified in P8 is deferred until
+after this implementation goal's breadth gate; track it as a separate follow-up
+and do not make it a blocker to implementation closeout. This changes sequencing
+and current acceptance, not the required family/effect/provider/backend scope.
+The Bernoulli calibration gate is active in
+`.unlazy/general-sd-regression/GATES.md`; the archived
+`docs/dev-log/general-sd-regression/deferred/native-calibration-GATES.md` is
+historical evidence only.
+
+### Core-family priority and estimate reset (20 October 2026)
+
+Prioritize Gaussian, Binomial (including Bernoulli), Poisson, NB2, and Gamma
+because they are common mixed-model families in lme4/glmmTMB. Add Beta and
+beta-binomial next as high-value proportion and overdispersed-binomial routes
+for ecological applications. This is sequencing only: every other supported
+family, endpoint, random-effect type/provider/layout, and both engines remain
+in the finish line wherever identifiable. Family availability in lme4 or
+glmmTMB does not imply predictor-dependent random-effect SD support there or
+in drmTMB/DRM.jl.
+
+Withdraw the earlier 4-8 elapsed-month estimate. The 19,118-row ledger is a
+generated candidate superset with thousands of unresolved or blocked rows, not
+19,118 independent implementation tasks. Re-estimate only after a dependency-
+clustered audit separates shared machinery, base random-effect prerequisites,
+family adapters, engine bridges, and already verified slices. The first core
+wave uses targeted numerical/equivalence checks and small fixed-seed recovery
+smokes; interval coverage is deferred to a separately tracked follow-up after
+implementation breadth.
+Compute and queue time are separate. At most four live agents including Ada. Reuse
+children; at most six new children and one ceiling child per production
 checkpoint. Native shared R/TMB files have one writer. Julia has separate
 ownership/worktree. Reviewers do not approve their own implementation.
 
 ## Evidence and compute
 
-Research: curate 12-20 primary/official sources on identifiability, covariance
-scaling, integration and uncertainty. Verify load-bearing claims independently.
-No private material. NotebookLM signed-out state is an explicit dependency;
-source curation and reversible work may continue, but do not claim synthesis done.
+Research: the bounded NotebookLM synthesis of primary/official sources on
+identifiability, covariance scaling, integration and uncertainty is complete.
+Its cited synthesis is in
+`docs/dev-log/general-sd-regression/notebooklm-methods-review-20261020.md`.
+Verify load-bearing claims independently and use no private material.
 
-Every row needs deterministic target/coding/simulation/extraction checks,
-constant-SD regression, save/reload/refit integrity and independent-DGP recovery.
-Calibration is either direct or explicitly reviewed shared-mechanism evidence
-with held-out checks and labelled inference domains. Oracles include exact
+Every implementation row needs targeted deterministic target/coding/simulation/
+extraction checks, constant-SD regression, relevant save/reload/refit checks,
+and a small independent-DGP recovery smoke. Keep every failed attempt visible.
+These checks establish implementation behavior, not interval calibration.
+Calibration is a later gate and is either direct or explicitly reviewed
+shared-mechanism evidence with held-out checks and labelled inference domains.
+Oracles include exact
 Gaussian covariance, scalar-cluster quadrature, sparse/dense and reorder/PD
 checks, matched external estimators and method-aware cross-engine comparisons.
 
@@ -99,11 +138,16 @@ projected >3h requires results plus approval. No campaigns on GitHub Actions.
 ## Gates and closure
 
 G0 baseline/pinned complete universe. G1 reviewed research/alignment contract.
-G2 Bernoulli both-engine numerical/recovery/inference. G3 every breadth row
-implemented or reviewed structural exclusion. G4 output/refit semantics.
-G5 calibrated advertised uncertainty. G6 runnable rendered docs/examples.
-G7 full R/Julia/bridge/platform regression. G8 independent review, reverified
-evidence and Melissa plan-versus-actual reconciliation.
+G2 Bernoulli both-engine implementation, light numerical/recovery checks and
+documented interval limitations. G3 every breadth row implemented or reviewed
+structural exclusion. G4 output/refit semantics. G5 is calibrated coverage and
+uncertainty for every advertised domain; it is explicitly deferred and tracked
+as a separate follow-up, not a blocker to implementation closeout.
+G6 runnable rendered docs/examples. G7 full R/Julia/bridge/platform regression.
+G8 independent implementation review, reverified evidence and Melissa
+plan-versus-actual reconciliation. Do not claim calibrated intervals until G5
+passes; do not launch a campaign until the current source, runtime estimate,
+first-look decision, qualification and required source-bound records are ready.
 
 Unlazy checks precede corresponding work. Keep exact source hashes, seeds,
 environments, all-attempt summaries, check logs, after-task reports and recovery

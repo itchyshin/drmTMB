@@ -1,0 +1,52 @@
+{
+  "evidence_id": "native-gamma-animal-q2-correlated-sd-20261101",
+  "command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"gamma-animal-q2-correlated-sd\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "tree_state": "dirty and shared; uncommitted edits present",
+  "exit_code": 0,
+  "expectations_passed": 15,
+  "failures": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-animal-q2-correlated-sd-20261101/test-console.log",
+  "console_log_sha256": "f800fc74ee16f10ea43e425fb2345a6c11a758115287d8b9c0ab4413990831eb",
+  "test_path": "tests/testthat/test-gamma-animal-q2-correlated-sd.R",
+  "test_sha256": "d93241e63c6320520cc8742f81618a2b314a4f979d44110257db13dcb25325eb",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-gamma-animal-q2-correlated-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "687a22b3e3788c0c3c11bc7f6163cbdde1fbd6c9b4303cc08166a9301bf27b32",
+  "scope": "Native Gamma(log) mu animal(1 + x | p | id, A = A) with dense A, q=2 labelled correlated block, coefficient-specific SD regressions sd(id, level=animal, dpar=mu, coef=...) ~ s0 / s1.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "target_member": "mu:I",
+      "block_rule_id": "A2-animal-within",
+      "link": "log",
+      "ledger_status": "unresolved"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "target_member": "mu:x1",
+      "block_rule_id": "A2-animal-within",
+      "link": "log",
+      "ledger_status": "unresolved"
+    }
+  ],
+  "checks": [
+    "labelled fit converges with no warning; unlabelled fit converges",
+    "named cor(mu:(Intercept),mu:x | p | id) finite, |rho|<1, within 0.4 of simulated rho=0.5 (loose recovery band, one seed)",
+    "rho_phylo report finite",
+    "correlated log-likelihood exceeds nested independent log-likelihood by more than 1e-6",
+    "both coefficient-SD regressions reported with names (Intercept),s0 and (Intercept),s1; s0 slope > 0, s1 slope < 0",
+    "unlabelled animal(1 + x | id) stays independent (corpars$animal NULL); comparator only, not linked"
+  ],
+  "tolerances": "|rho_hat - 0.5| < 0.4; logLik(corr) > logLik(ind) + 1e-6",
+  "limits": [
+    "native engine only",
+    "one fixture per cell",
+    "loose recovery bands",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ]
+}

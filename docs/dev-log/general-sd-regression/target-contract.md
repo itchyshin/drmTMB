@@ -34,20 +34,30 @@ observation's slope design value is applied.
 
 The resolver begins with all actual member descriptors for this spec, filters
 by `group`, then by any supplied `level`, `dpar`, `coef`, and `block`; exactly one
-candidate must remain. On zero or multiple candidates, report the candidate
-tuples and a usable fully qualified `sd(group, dpar = ..., coef = ..., block =
-..., level = ...)` example. An omitted `block` leaves labelled and unlabelled
+candidate must remain. Ordinary group effects use bare `sd(group)` or add only
+the selectors needed to disambiguate them, for example
+`sd(group, dpar = "mu", coef = "x", block = "p")`. Structured effects may add
+their supported dependence level, for example
+`sd(species, level = "phylogenetic")`.
+`level = "group"` is not accepted: ordinary group effects are selected by
+omitting `level`. On zero or multiple candidates, report the candidate tuples
+and a usable fully qualified example using the selectors valid for that target.
+An omitted `block` leaves labelled and unlabelled
 candidates in play; a supplied `block` must match one label exactly. `sd1()`/`sd2()` and
 `sd_phylo*()` are aliases resolved to the same descriptor, with existing
 legacy naming retained for fitted objects. Two identical printed terms still
 need distinct internal identities for fitting; if selectors cannot distinguish
 two same-group, same-provider unlabelled instances, refuse the SD target,
 list the candidates, and tell the user to add unique block labels. No new
-identity syntax is required. The parser currently reserves these strings but
-rejects explicit selectors and non-phylogenetic levels
-(`R/parse-formula.R:554–710`); implementing this contract requires lifting
-those *specific* gates and updating grammar/docs, without admitting a model
-whose base effect is unsupported.
+identity syntax is required. The parser accepts `dpar`, `coef`, and `block` on
+canonical `sd()` syntax together with the supported structured `level`
+selectors (`R/parse-formula.R:590–710`). In the current univariate structured
+location route, `dpar = "mu"`, the sole coefficient name, and an existing
+block label are validated against the fitted structured term; unsupported
+endpoints and selector mismatches fail with an informative error. This does
+not yet resolve multi-coefficient structured blocks, multiple same-group
+structured terms, or bivariate structured targets. Family builders must still
+reject targets whose base random effect or endpoint is unsupported.
 
 Keep four indices distinct: `axis_pos0` addresses a covariance member,
 `latent_pos0` addresses random coefficients, `obs_group_index0` maps an
@@ -61,8 +71,12 @@ new-level policy, never a silently recycled SD row.
 
 ## Covariance and reported SD
 
-Let `W_g alpha_a` be the log amplitude for axis `a` at group `g`, with
-`tau_ga = exp(W_g alpha_a) > 0`. For an ordinary q-axis block, let `R` be its
+Let `W_g alpha_a` be the log-amplitude predictor for axis `a` at group `g`.
+With the default clamp setting, `tau_ga = exp(W_g alpha_a) > 0`. If the
+optional log-SD clamp is enabled, the effective scale is
+`tau_ga = exp(S(W_g alpha_a))`, where `S` is the configured smooth clamp; the
+coefficient `alpha_a` remains on the unclamped linear-predictor scale. For an
+ordinary q-axis block, let `R` be its
 existing positive-definite coefficient correlation matrix. At each group,
 `B_g = D_g R D_g`, `D_g = diag(tau_g1,...,tau_gq)`. Existing correlation
 parameters and predictor-varying q=2 correlation, where admitted, keep their
@@ -177,6 +191,13 @@ merely to make `tau` a marginal SD; that would change the existing baseline.
    Family-specific likelihoods may differ, but target identity and Gaussian
    latent covariance cannot. Run negative controls where a response endpoint
    does not exist or its base random effect is not yet admitted.
+
+Identifiability is conditional on the retained design and data, not guaranteed
+by parsing or target resolution. In particular, the current native SD-design
+path does not apply one uniform full-rank check to every family and effect
+route. Each capability claim must therefore retain its design conditions and
+recovery evidence; do not interpret successful parsing or fitting as proof of
+general identifiability.
 
 These are mathematical and mapping tests, not recovery or interval calibration.
 The latter remain mechanism-specific gates; low-information Bernoulli groups

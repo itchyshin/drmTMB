@@ -1,0 +1,11 @@
+b7e6de85153ffdcc6e2f2d40e47ad6a40e5b694ce249aab16b7c59b416ad0699  tests/testthat/test-julia-beta-sd.R
+e48e5b401f5c36e152c734d27305e0d358b5323ceee61fcc31ee5458a66ac09b  R/julia-bridge.R
+cfa4b4ccd71fbf8b9cfe1bf3a314fe0ee617072356a0a8276e641e3d92632864  R/julia-simulate.R
+646bb79de06de281a9e522182465c1eb96f9b08489386abb1ed10ceb87b41014  R/predict-parameters.R
+b47b4e438c030f6c7d8f17c3508497a8708089e8baa2fee5312a642fa67d6735  R/drmTMB.R
+7c1c005d3e36787f422ee7287498a7847608236473c0ab4627f9e146c8a358e6  R/random-effect-scale-formulas.R
+601194d716c3816b787e4360f438a060bae3dd11292a90002d338da7bbb7a2a6  src/drmTMB.cpp
+5dce57b711cabd3b21b836f74d1affa247f2ed8d40b4320b5966491051a9ef60  ../general-sd-julia/src/bridge.jl
+4f8dd39c56eb7e72497f8ac039136f34680148779138df77b89bb8279c201713  ../general-sd-julia/src/beta.jl
+95668dff99500e1d8ed649f9ead87395389d72bdc00db8ec2912203c01fdd937  ../general-sd-julia/src/inference.jl
+a06b280896284c90164a6991e573f6c6054649b179fe8823332e420820580460  ../general-sd-julia/test/test_beta_sd_regression.jl

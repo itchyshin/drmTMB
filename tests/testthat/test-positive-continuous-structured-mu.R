@@ -533,7 +533,11 @@ test_that("Arc 3a new routes reject slopes, labels, and extra variance layers", 
     }
     family <- arc3a_family(case$family)
 
-    for (lhs in c("0 + x", "1 + x", "1 + x + site")) {
+    rejected_lhs <- c("0 + x", "1 + x", "1 + x + site")
+    if (identical(case$family, "gamma") && identical(case$provider, "phylo")) {
+      rejected_lhs <- setdiff(rejected_lhs, "1 + x")
+    }
+    for (lhs in rejected_lhs) {
       expect_error(
         drmTMB(
           arc3a_formula_from_text(sprintf("y ~ x + %s", sprintf(marker, lhs))),
@@ -623,7 +627,8 @@ test_that("Arc 3a new routes reject multiple and deferred structured providers",
   plant_tree <- tree
   pollinator_tree <- tree
 
-  for (family in list(lognormal(), stats::Gamma(link = "log"))) {
+  for (family_name in c("lognormal", "gamma")) {
+    family <- arc3a_family(family_name)
     expect_error(
       drmTMB(
         arc3a_formula_from_text(
@@ -644,22 +649,24 @@ test_that("Arc 3a new routes reject multiple and deferred structured providers",
       ),
       "one.*phylo|one structured"
     )
-    expect_error(
-      drmTMB(
-        arc3a_formula_from_text("y ~ x + spatial(1 | id, coords = coords)"),
-        family = family,
-        data = sim$data
-      ),
-      "spatial|phylo|relmat|structured"
-    )
-    expect_error(
-      drmTMB(
-        arc3a_formula_from_text("y ~ x + animal(1 | id, pedigree = pedigree)"),
-        family = family,
-        data = sim$data
-      ),
-      "Use an unlabelled intercept with.*remove the\\s+structured term"
-    )
+    if (identical(family_name, "lognormal")) {
+      expect_error(
+        drmTMB(
+          arc3a_formula_from_text("y ~ x + spatial(1 | id, coords = coords)"),
+          family = family,
+          data = sim$data
+        ),
+        "spatial|phylo|relmat|structured"
+      )
+      expect_error(
+        drmTMB(
+          arc3a_formula_from_text("y ~ x + animal(1 | id, pedigree = pedigree)"),
+          family = family,
+          data = sim$data
+        ),
+        "Use an unlabelled intercept with.*remove the\\s+structured term"
+      )
+    }
     expect_error(
       drmTMB(
         arc3a_formula_from_text(paste(

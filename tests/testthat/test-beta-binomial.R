@@ -384,7 +384,7 @@ test_that("beta-binomial rejects malformed and unsupported inputs", {
       family = beta_binomial(),
       data = dat
     ),
-    "Random-effect scale"
+    "No random-effect term matches"
   )
   expect_error(
     drmTMB(

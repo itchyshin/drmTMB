@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "85ba6db447e03f31457bc47daa13a1a747c4ee6269ccf8c852ace388ac8b4ab2",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Read the complete report and compared implementation, test, and documentation claims with the current candidate source and observed command results.",
+  "genre": "software after-task report",
+  "coverage": "Complete 841-word report, including all required sections.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report is specific about code paths, test outcomes, and limits. Its headings are formulaic, but they follow the required after-task structure.",
+  "confidence": "medium",
+  "confidence_reason": "I checked the cited source paths and observed test outputs, but this is a self-review rather than independent editorial review.",
+  "examples": [
+    {
+      "location": "Section 5, first bullet",
+      "cue": "The concrete Julia version, test path, and 9/9 result make the evidence easy to verify.",
+      "impact": "Readers can distinguish direct Julia evidence from the separate R bridge result.",
+      "repair": "no change needed",
+      "line": 33,
+      "quote": "Julia direct synthetic test on Totoro, Julia 1.10.12: `test/test_binomial_relmat_iid_sd.jl` passed 9/9 checks, including convergence, target-specific SD coefficient direction, finite predictions, and binary marginal simulation."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The covariance and predictor equations in section 3a match the implemented independent relmat and IID loadings in the reviewed fitter route; coverage claims are explicitly excluded.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Commit pins, test outcomes, rendering, pkgdown, and issue-search outcomes were checked against current command outputs and repository state.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external references.",
+  "date": "2026-10-29",
+  "calibration_status": "Seen prior repository after-task reports; no held-out controls were used.",
+  "interpretation": "perceived_style_not_authorship"
+}

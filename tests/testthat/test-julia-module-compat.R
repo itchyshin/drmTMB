@@ -132,6 +132,7 @@ test_that("generated Julia helpers use the selected backend", {
 
 test_that("setup activates before importing and registers only shared-alias helpers", {
   skip_if_not_installed("JuliaCall")
+  withr::local_envvar(JULIA_PROJECT = NA_character_)
   root <- withr::local_tempdir()
   for (selected in c("DRModels", "DRM")) {
     writeLines(sprintf('name = "%s"', selected), file.path(root, "Project.toml"))
@@ -139,13 +140,25 @@ test_that("setup activates before importing and registers only shared-alias help
     local_mocked_bindings(drm_julia_setup_state = state,
                           drm_julia_cran_lane_blocked = function(...) FALSE)
     commands <- character()
+    startup_project <- NULL
+    active_project <- NULL
     local_mocked_bindings(
-      julia_setup = function(...) invisible(NULL),
+      julia_setup = function(...) {
+        startup_project <<- Sys.getenv("JULIA_PROJECT", "")
+        active_project <<- file.path(startup_project, "Project.toml")
+        invisible(NULL)
+      },
       julia_command = function(code) {
         commands <<- c(commands, code)
+        if (grepl("Pkg.activate(", code, fixed = TRUE)) {
+          active_project <<- file.path(root, "Project.toml")
+        }
         invisible(NULL)
       },
       julia_eval = function(code, ...) {
+        if (grepl("string(Base.active_project())", code, fixed = TRUE)) {
+          return(active_project)
+        }
         if (grepl("project_file_manifest_path", code, fixed = TRUE)) {
           return(c(manifest = "", manifest_format = "2.0", runtime = "1.10.0"))
         }
@@ -153,6 +166,11 @@ test_that("setup activates before importing and registers only shared-alias help
       }, .package = "JuliaCall"
     )
     expect_message(drm_julia_setup(root), "Starting Julia")
+    expect_true(nzchar(startup_project))
+    expect_false(identical(normalizePath(startup_project, winslash = "/"),
+                           normalizePath(root, winslash = "/")))
+    expect_true(file.exists(file.path(startup_project, "Project.toml")))
+    expect_identical(Sys.getenv("JULIA_PROJECT", NA_character_), NA_character_)
     expect_match(commands[[1L]], "Pkg.activate(", fixed = TRUE)
     expect_identical(state$module, selected)
     expect_true(state$ready)
@@ -206,6 +224,9 @@ test_that("an unsupported selected manifest format stops before checkout activat
       invisible(NULL)
     },
     julia_eval = function(code, ...) {
+      if (grepl("string(Base.active_project())", code, fixed = TRUE)) {
+        return(file.path(Sys.getenv("JULIA_PROJECT"), "Project.toml"))
+      }
       if (grepl("project_file_manifest_path", code, fixed = TRUE)) {
         return(c(
           manifest = file.path(root, "Manifest.toml"),
@@ -224,4 +245,36 @@ test_that("an unsupported selected manifest format stops before checkout activat
   )
   expect_length(commands, 0L)
   expect_false(isTRUE(state$ready))
+})
+
+test_that("setup refuses a JuliaCall session started in another project", {
+  skip_if_not_installed("JuliaCall")
+  withr::local_envvar(JULIA_PROJECT = NA_character_)
+  root <- withr::local_tempdir()
+  writeLines('name = "DRModels"', file.path(root, "Project.toml"))
+  state <- new.env(parent = emptyenv())
+  local_mocked_bindings(
+    drm_julia_setup_state = state,
+    drm_julia_cran_lane_blocked = function(...) FALSE
+  )
+  local_mocked_bindings(
+    julia_setup = function(...) invisible(NULL),
+    julia_command = function(...) invisible(NULL),
+    julia_eval = function(code, ...) {
+      if (grepl("string(Base.active_project())", code, fixed = TRUE)) {
+        return("/other/project/Project.toml")
+      }
+      if (grepl("project_file_manifest_path", code, fixed = TRUE)) {
+        return(c(manifest = "", manifest_format = "2.0", runtime = "1.10.0"))
+      }
+      "unused"
+    },
+    .package = "JuliaCall"
+  )
+
+  expect_error(
+    drm_julia_setup(root),
+    "JuliaCall is already running with a different active project"
+  )
+  expect_identical(Sys.getenv("JULIA_PROJECT", NA_character_), NA_character_)
 })

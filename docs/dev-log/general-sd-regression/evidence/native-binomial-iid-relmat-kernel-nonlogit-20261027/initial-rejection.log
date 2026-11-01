@@ -1,0 +1,18 @@
+ℹ Testing drmTMB
+binomial-iid-relmat-kernel-equivalence-nonlogit-sd: 1
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-binomial-iid-relmat-kernel-equivalence-nonlogit-sd.R:68:5'): 
+Error in `validate_binomial_structured_mu_term(binomial_structured_term, mu_re$terms, allow_ordinary = allow_phylo_with_ordinary, allow_animal_iid = allow_animal_iid, allow_animal_slope = allow_binomial_animal_slope || allow_animal_iid, allow_phylo_slope = allow_binomial_phylo_slope, allow_relmat_slope = allow_binomial_relmat_slope, allow_spatial_slope = allow_binomial_spatial_slope, allow_phylo_interaction = allow_binomial_phylo_interaction, allow_phylo_interaction_slope = allow_binomial_phylo_interaction_slope)`: A binomial `relmat()` term in this route must be fitted without ordinary random effects.
+i Use `relmat(1 | id, K = K)` on its own, or remove the structured term.
+Backtrace:
+    ▆
+ 1. └─drmTMB (local) fit_model(y, link, "K") at test-binomial-iid-relmat-kernel-equivalence-nonlogit-sd.R:80:5
+ 2.   └─drmTMB::drmTMB(...) at test-binomial-iid-relmat-kernel-equivalence-nonlogit-sd.R:68:5
+ 3.     └─drmTMB:::drm_build_binomial_spec(...) at general-sd-regression/R/drmTMB.R:491:3
+ 4.       └─drmTMB:::validate_binomial_structured_mu_term(...) at general-sd-regression/R/drmTMB.R:8538:3
+ 5.         └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:13761:5
+ 6.           └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

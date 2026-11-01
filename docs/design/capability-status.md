@@ -76,8 +76,28 @@ structure providers across the other families.
 | Gaussian relmat random intercept (mean) | implemented |
 | Non-Gaussian phylogenetic random intercept (mean) | scope-limited |
 | Non-Gaussian phylogenetic location-scale (μ + log σ) | scope-limited |
+| Poisson animal slope-only coefficient with predictor-dependent SD | point-fit-recovery |
+| Gaussian correlated q2, same-group, relmat/spatial, and mu + sigma joint predictor-dependent SDs (native only) | point-fit-recovery |
+| Poisson phylo/relmat slope-only, same-group/crossed, and ordinary + structured intercept predictor-dependent SDs (native only) | point-fit-recovery |
+| NB2 relmat/spatial intercept, phylo/relmat slope-only, and ordinary + structured intercept predictor-dependent SDs (native only) | point-fit-recovery |
+| Poisson phylo_interaction intercept and slope-only pair-level predictor-dependent SDs (native only) | point-fit-recovery |
+| Gamma crossed (distinct groups) and ordinary + relmat intercept predictor-dependent SDs (native only) | point-fit-recovery |
+| Gamma animal correlated q2 (intercept + slope) with coefficient-specific SDs (native only) | point-fit-recovery |
 | Tweedie random intercept (mean) | implemented |
 | Gaussian phylogenetic random intercept + slope, two SDs (mean) | implemented |
+
+The native-only SD rows above were added on 2026-11-01. They come from
+focused tests and unreviewed evidence receipts, not from `cells.tsv`, so under
+this file's rule the ledger wins if it disagrees. `point-fit-recovery` here means
+the route fits and matches a likelihood oracle or recovers a simulated value on
+fixed fixtures; it is not an interval, coverage, Julia-parity or
+inference-ready claim. Not listed because their only evidence is constant-SD
+equivalence and prediction identity: Poisson coordinate-spatial SD, and the NB2
+and Gamma independent same-group intercept and slope pairs. The Gamma correlated q2
+row above is listed on fixed-seed fixtures with a loose recovery band only (no
+calibration, no likelihood oracle), and the Poisson animal slope row has no
+independent oracle either; read both as the weakest grade in this table. No
+Julia counterpart exists for these rows.
 
 `Tweedie random intercept (mean)` is `implemented`:
 `validate_tweedie_mu_random_terms()` (`R/drmTMB.R:11640-11662`) admits an

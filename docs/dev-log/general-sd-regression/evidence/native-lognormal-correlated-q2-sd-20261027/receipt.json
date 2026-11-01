@@ -1,0 +1,37 @@
+{
+  "evidence_id": "native-lognormal-correlated-q2-sd-20261027",
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "scope": "Native R/TMB complete-data ordinary lognormal, one unlabelled q=2 intercept-slope block with separate predictor-dependent SD formulas. Hashes describe the dirty candidate files at this receipt.",
+  "implementation": "Enabled the shared correlated-q2 SD target resolver for the ordinary lognormal location block; existing TMB likelihood code applies coefficient-specific group SD rows while retaining the block correlation.",
+  "checks": [
+    {
+      "command": "Rscript -e 'devtools::test(filter = \"lognormal-ordinary-correlated-q2\", reporter = \"summary\", stop_on_failure = TRUE)'",
+      "result": "Focused file passed: 40 expectations; 0 failures, 0 warnings, 0 skips. Julia engine not exercised."
+    },
+    {
+      "command": "Rscript -e 'devtools::load_all(\".\", quiet = TRUE); rmarkdown::render(\"vignettes/predictor-dependent-random-sd.Rmd\", output_file = \"/tmp/predictor-dependent-random-sd-lognormal-q2-final.html\", quiet = TRUE)'",
+      "result": "Final source-bound guide render completed successfully after clarifying that sigma ~ 1 estimates one shared residual scale; existing Pandoc --mathjax deprecation warning only."
+    },
+    {
+      "command": "Rscript -e 'pkgdown::check_pkgdown()'",
+      "result": "No problems found; existing Pandoc --mathml deprecation warnings only."
+    },
+    {
+      "command": "Rscript -e 'pkgdown::build_site()'",
+      "result": "Started but stopped after 6 minutes 46 seconds when the estimate was exceeded; interrupted during unrelated article rendering. Not a pass."
+    }
+  ],
+  "test_scope": "Synthetic point recovery for both log-SD slopes; named group SD predictions for intercept and slope checked against the fitted SD formulas; constant-SD likelihood equivalence to the existing ordinary correlated q2 fit.",
+  "limitations": [
+    "One ordinary unlabelled q=2 lognormal block only.",
+    "No interval coverage calibration.",
+    "No Julia parity.",
+    "No labelled covariance, structured effect, missing-response, or bivariate claim."
+  ],
+  "test_log_path": "docs/dev-log/general-sd-regression/evidence/native-lognormal-correlated-q2-sd-20261027/test-summary.log",
+  "test_log_sha256": "07e3f6f876ac3d88da6c6fba281aeb1e0a713540edf85c96fd42223feba3e0ca",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-lognormal-correlated-q2-sd-20261027/source-manifest.json",
+  "source_manifest_sha256": "3a7b5fffbb23ba262f1ec3f36aadac2f070052fb632df3d1f87eeb649a1267df",
+  "source_hash_scope_note": "The shared R/drmTMB.R digest covers a dirty candidate with unrelated in-flight edits; ownership and the implementation claim are limited to the narrow lognormal resolver admission.",
+  "independent_review": "Independent read-only review found no likelihood or DGP inconsistency. It identified two P2 presentation/test gaps, then confirmed the added prediction-name/value assertions and sigma ~ 1 explanation resolved them."
+}

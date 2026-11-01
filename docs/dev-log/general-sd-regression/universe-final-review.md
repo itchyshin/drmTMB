@@ -1,5 +1,19 @@
 # Independent review of the expanded SD-regression universe
 
+## Follow-up correction (2026-10-29)
+
+The earlier review below predates a newly identified omission: the finite
+mechanism table represented animal intercepts, independent animal slopes, and
+labelled cross-endpoint animal blocks, but omitted a correlated intercept plus
+slope within one animal endpoint. The denominator now represents that shape
+separately as `animal_correlated_block` / `A2-animal-within`. The generated
+ledger has 20,350 rows, 28 mechanism templates, and 150 engine/mechanism rule
+rows. The additional 672 rows are obligations, not blanket support claims;
+the single-endpoint `structural_inapplicable` status still applies only to
+cross-endpoint blocks. The Oct 17 independent review does not review this
+follow-up correction, so G0 and independent review of the revised universe
+remain open.
+
 **Decision (2026-10-17): the correction repairs the identified denominator omissions, but G0 remains open.** I inspected the 18,996-row `required-rows.tsv`, the 148-row `block-rules.tsv`, `universe.py` and its tests, and the correction/root/older contracts. This was a source and mathematical-contract review, not a model fit or a claim of implementation or calibration. The generator is a finite *required-candidate* ledger: its status labels do not establish source admission, estimability, or identifiable SD coefficients.
 
 ## Preservation and the 72 exclusions

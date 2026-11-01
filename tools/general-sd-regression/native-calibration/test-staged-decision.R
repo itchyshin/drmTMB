@@ -84,7 +84,7 @@ test_that("look one fails a gate only when its confidence interval is outside", 
   expect_identical(bad$state, "fail")
 })
 
-test_that("relative exp(a) bias has its own calibrated gate", {
+test_that("relative exp(a) bias is reported without an unvalidated gate", {
   attempts <- staged_attempts(
     1000L,
     c("-0.5" = 950L, "0" = 950L, "0.5" = 950L),
@@ -99,17 +99,10 @@ test_that("relative exp(a) bias has its own calibrated gate", {
     completed_campaign = TRUE
   )
 
-  expect_identical(result$decision, "fail")
-  expect_identical(
-    result$gates$state[result$gates$truth == 0.5 &
-                         result$gates$metric == "log_sd_bias"],
-    "pass"
-  )
-  expect_identical(
-    result$gates$state[result$gates$truth == 0.5 &
-                         result$gates$metric == "relative_exp_a_bias"],
-    "fail"
-  )
+  expect_identical(result$decision, "accept")
+  expect_false(any(result$gates$metric %in% c(
+    "log_sd_bias", "relative_exp_a_bias"
+  )))
   bias <- result$metrics[result$metrics$truth == 0.5 &
                             result$metrics$metric == "log_sd_bias", , drop = FALSE]
   expected <- stats::t.test(
@@ -118,6 +111,32 @@ test_that("relative exp(a) bias has its own calibrated gate", {
   )$conf.int
   expect_equal(bias$ci_lower, unname(expected[[1L]]))
   expect_equal(bias$ci_upper, unname(expected[[2L]]))
+})
+
+test_that("approximate bias intervals are diagnostics, not acceptance gates", {
+  attempts <- staged_attempts(
+    1000L,
+    c("-0.5" = 950L, "0" = 950L, "0.5" = 950L),
+    false_positives = 50L
+  )
+  attempts$estimate <- attempts$estimate + 0.20
+
+  result <- native_sd_staged_decision(
+    attempts, manifest_count = 3000L, look = 1L,
+    completed_campaign = TRUE
+  )
+
+  expect_identical(result$decision, "accept")
+  expect_false(any(result$gates$metric %in% c(
+    "log_sd_bias", "relative_exp_a_bias"
+  )))
+  expect_true(all(c("log_sd_bias", "relative_exp_a_bias") %in%
+                    result$metrics$metric))
+  expect_equal(
+    result$metrics$estimate[result$metrics$truth == 0.5 &
+                               result$metrics$metric == "log_sd_bias"],
+    0.20
+  )
 })
 
 test_that("overlap at look one requests look two and overlap at look two is inconclusive", {
@@ -185,9 +204,12 @@ test_that("failed attempts remain in denominators without automatic health colla
   positive <- result$metrics[result$metrics$truth == 0.5, , drop = FALSE]
   valid_fraction <- positive[positive$metric == "valid_fraction", , drop = FALSE]
   coverage <- positive[positive$metric == "coverage", , drop = FALSE]
+  bias <- positive[positive$metric == "log_sd_bias", , drop = FALSE]
   expect_equal(valid_fraction$success, 999L)
   expect_equal(coverage$success, 950L)
   expect_equal(coverage$n, 1000L)
+  expect_equal(bias$n, 999L)
+  expect_false("log_sd_bias" %in% result$gates$metric)
 })
 
 test_that("contradictory validity and terminal status fail integrity checks", {
@@ -216,4 +238,42 @@ test_that("completed campaign cannot contain unresolved supervisor states", {
     completed_campaign = TRUE
   )
   expect_identical(result$decision, "integrity_failure")
+})
+
+test_that("zero-truth planned coverage, false positives, and validity partition attempts", {
+  attempts <- staged_attempts(
+    1000L,
+    c("-0.5" = 950L, "0" = 900L, "0.5" = 950L),
+    false_positives = 100L
+  )
+  zero_rows <- which(attempts$truth == 0)
+  # Endpoint equality remains coverage and is not a false positive.
+  attempts$lower[zero_rows[[31L]]] <- 0
+  attempts$upper[zero_rows[[31L]]] <- 0.1
+  attempts$lower[zero_rows[[32L]]] <- -0.1
+  attempts$upper[zero_rows[[32L]]] <- 0
+  invalid_rows <- zero_rows[seq_len(30L)]
+  attempts$valid[invalid_rows] <- FALSE
+  attempts$status[invalid_rows] <- "timeout"
+  attempts$estimate[invalid_rows] <- NA_real_
+  attempts$lower[invalid_rows] <- NA_real_
+  attempts$upper[invalid_rows] <- NA_real_
+
+  result <- native_sd_staged_decision(
+    attempts, manifest_count = 3000L, look = 1L,
+    completed_campaign = TRUE
+  )
+  zero_metrics <- result$metrics[result$metrics$truth == 0, , drop = FALSE]
+  coverage <- zero_metrics[zero_metrics$metric == "coverage", , drop = FALSE]
+  false_positive <- zero_metrics[zero_metrics$metric == "false_positive", , drop = FALSE]
+  valid <- zero_metrics[zero_metrics$metric == "valid_fraction", , drop = FALSE]
+
+  expect_equal(coverage$success + false_positive$success, valid$success)
+  expect_equal(coverage$estimate + false_positive$estimate, valid$estimate)
+  expect_equal(
+    coverage$success / valid$success + false_positive$success / valid$success,
+    1
+  )
+  expect_equal(coverage$n, 1000L)
+  expect_equal(valid$n, 1000L)
 })

@@ -120,15 +120,64 @@ drm_resolve_sd_target <- function(target, members) {
   fun <- target$fun
   level <- target$level
   if (is.null(level)) level <- NA_character_
-  if (!is.null(fun) && !fun %in% c("sd", "sd1", "sd2") ||
-      !is.na(level) && !identical(level, "group")) {
-    cli::cli_abort("Structured random-effect SD targets require their own resolver.")
+  if ((!is.null(fun) && !fun %in% c("sd", "sd1", "sd2")) ||
+      length(level) != 1L || (!is.na(level) && !is.character(level))) {
+    cli::cli_abort("Internal error: expected a scalar SD target level and function.")
   }
-  members <- Filter(function(member) identical(member$provider, "ordinary"), members)
+  valid_member_string <- function(value) {
+    is.character(value) && length(value) == 1L && !is.na(value) && nzchar(value)
+  }
+  valid_member_block <- function(value) {
+    is.character(value) && length(value) == 1L &&
+      (is.na(value) || nzchar(value))
+  }
+  malformed_identity <- Filter(function(member) {
+    if (!is.list(member)) return(TRUE)
+    !valid_member_string(member[["provider"]]) ||
+      !valid_member_string(member[["group"]]) ||
+      !valid_member_string(member[["dpar"]]) ||
+      !valid_member_string(member[["coef"]]) ||
+      !valid_member_block(member[["block"]])
+  }, members)
+  if (length(malformed_identity) > 0L) {
+    cli::cli_abort(c(
+      "Random-effect SD members require complete identity metadata.",
+      "x" = "Each member needs scalar {.arg provider}, {.arg group}, {.arg dpar}, and {.arg coef} strings, plus a {.arg block} string or {.code NA_character_}."
+    ))
+  }
+  malformed_levels <- Filter(function(member) {
+    if (identical(member$provider, "ordinary")) return(FALSE)
+    member_level <- member$level
+    is.null(member_level) || !is.character(member_level) ||
+      length(member_level) != 1L || is.na(member_level) ||
+      !nzchar(member_level) || identical(member_level, "group")
+  }, members)
+  if (length(malformed_levels) > 0L) {
+    cli::cli_abort(c(
+      "Structured random-effect SD members require explicit level metadata.",
+      "x" = "At least one structured target has a missing or invalid {.arg level}.",
+      "i" = "Set each structured member's level to its provider level, such as {.val phylogenetic} or {.val spatial}."
+    ))
+  }
+  member_level <- function(member) {
+    if (!is.null(member$level)) return(member$level)
+    if (identical(member$provider, "ordinary")) return("group")
+    NA_character_
+  }
+  members <- Filter(function(member) {
+    current_level <- member_level(member)
+    if (identical(member$provider, "ordinary")) {
+      identical(current_level, "group")
+    } else {
+      is.character(current_level) && length(current_level) == 1L &&
+        !is.na(current_level) && !identical(current_level, "group")
+    }
+  }, members)
   format_member <- function(member) {
     paste0(
       "group=", member$group,
       ", provider=", member$provider,
+      ", level=", member_level(member),
       ", dpar=", member$dpar,
       ", coef=", member$coef,
       ", block=", if (is.na(member$block)) "<unlabelled>" else member$block
@@ -140,6 +189,16 @@ drm_resolve_sd_target <- function(target, members) {
     paste(vapply(members, format_member, character(1L)), collapse = "; ")
   }
   selected <- Filter(function(member) identical(member$group, target$group), members)
+  if (!is.na(level)) {
+    selected <- Filter(function(member) identical(member_level(member), level), selected)
+  }
+  scope <- if (all(vapply(members, function(member) {
+    identical(member$provider, "ordinary")
+  }, logical(1L)))) {
+    "ordinary random-effect SD target"
+  } else {
+    "random-effect SD target"
+  }
 
   selector <- function(value) {
     !is.null(value) && length(value) == 1L && !is.na(value)
@@ -164,35 +223,53 @@ drm_resolve_sd_target <- function(target, members) {
 
   if (length(selected) == 1L) return(selected[[1L]])
   if (length(selected) == 0L) {
+    if (!is.na(level) && !identical(level, "group") &&
+        all(vapply(members, function(member) {
+          identical(member$provider, "ordinary")
+        }, logical(1L)))) {
+      cli::cli_abort("Structured random-effect SD targets require matching structured target metadata.")
+    }
     cli::cli_abort(c(
-      "No ordinary random-effect SD target matches group {.field {target$group}} and its selectors.",
+      "No {scope} matches group {.field {target$group}} and its selectors.",
       "i" = "Available targets: {available}. Check {.arg dpar}, {.arg coef}, and {.arg block}."
     ))
   }
   candidates <- paste(vapply(selected, format_member, character(1L)), collapse = "; ")
   cli::cli_abort(c(
-    "Ambiguous ordinary random-effect SD target for group {.field {target$group}}.",
+    "Ambiguous {scope} for group {.field {target$group}}.",
     "x" = "Matching targets: {candidates}.",
     "i" = "Supply {.arg dpar}, {.arg coef}, or {.arg block} to select one; add unique block labels for otherwise indistinguishable terms."
   ))
 }
 
-# Native binomial admission for the ordinary scalar mu-intercept slice. Keep
-# identity resolution separate from the family-specific shape fence.
+# Native binomial admission for scalar mu targets and members of one ordinary
+# correlated block. Keep identity resolution separate from the family-specific
+# shape fence.
 drm_binomial_sd_mu_targets <- function(entries, terms, re) {
-  drm_scalar_sd_mu_targets(entries, terms, re, family_label = "Binomial")
+  drm_scalar_sd_mu_targets(
+    entries, terms, re,
+    family_label = "Binomial",
+    allow_slopes = TRUE,
+    allow_independent_same_group = TRUE,
+    allow_correlated_q2 = TRUE,
+    allow_correlated_blocks = TRUE
+  )
 }
 
-# Family adapters opt into independently checked scalar coefficient shapes.
-# Identity resolution does not itself admit a correlated or mixed block.
+# Family adapters opt into independently checked coefficient shapes. Identity
+# resolution does not itself admit a correlated or mixed block.
 drm_scalar_sd_mu_targets <- function(entries, terms, re, family_label,
-                                     allow_slopes = FALSE) {
+                                     allow_slopes = FALSE,
+                                     allow_independent_same_group = FALSE,
+                                     allow_correlated_q2 = FALSE,
+                                     allow_correlated_blocks = FALSE,
+                                     target_dpar = "mu") {
   if (length(entries) == 0L) return(list())
-  members <- drm_ordinary_sd_target_members(terms, re, "mu")
+  members <- drm_ordinary_sd_target_members(terms, re, target_dpar)
   if (length(members) == 0L) {
     cli::cli_abort(c(
-      "No random-effect term matches the {family_label} {.code sd()} formula.",
-      "i" = "Add an ordinary {.code (1 | group)} term to {.code mu} or remove the SD formula."
+      "No random-effect term matches the {family_label} {.code sd()} formula for {.code {target_dpar}}.",
+      "i" = "Add an ordinary {.code (1 | group)} term to {.code {target_dpar}} or remove the SD formula."
     ))
   }
   targets <- lapply(entries, function(entry) {
@@ -200,25 +277,85 @@ drm_scalar_sd_mu_targets <- function(entries, terms, re, family_label,
     member <- drm_resolve_sd_target(parsed, members)
     term <- terms[[member$target_term]]
     allowed <- if (isTRUE(allow_slopes)) c("intercept", "slope") else "intercept"
-    scope <- if (isTRUE(allow_slopes)) "intercept or independent slope" else "intercept"
-    if (!term$type %in% allowed || length(term$coef_names) != 1L ||
-        (identical(term$type, "intercept") &&
-           !identical(member$coef, "(Intercept)")) ||
-        (identical(term$type, "slope") &&
-           identical(member$coef, "(Intercept)"))) {
+    correlated_q2_target <-
+      isTRUE(allow_correlated_q2) &&
+      identical(term$type, "correlated_slope") &&
+      length(term$coef_names) == 2L &&
+      identical(term$coef_names[[1L]], "(Intercept)") &&
+      !identical(term$coef_names[[2L]], "(Intercept)") &&
+      is.null(term$covariance_label) &&
+      member$coef %in% term$coef_names
+    correlated_block_target <-
+      isTRUE(allow_correlated_blocks) &&
+      identical(term$type, "correlated_block") &&
+      length(term$coef_names) >= 3L &&
+      identical(term$coef_names[[1L]], "(Intercept)") &&
+      all(term$coef_names[-1L] != "(Intercept)") &&
+      is.null(term$covariance_label) &&
+      member$coef %in% term$coef_names
+    scalar_target <- term$type %in% allowed &&
+      length(term$coef_names) == 1L &&
+      !(identical(term$type, "intercept") &&
+          !identical(member$coef, "(Intercept)")) &&
+      !(identical(term$type, "slope") &&
+          identical(member$coef, "(Intercept)"))
+    if (!scalar_target && !correlated_q2_target && !correlated_block_target) {
       cli::cli_abort(c(
-        "{family_label} random-effect SD regression currently supports scalar {.code mu} {scope} targets only.",
+        "{family_label} random-effect SD regression does not support the selected random-effect shape.",
         "x" = "Selected {.code {entry$dpar}} targets coefficient {.val {member$coef}}.",
-        "i" = "Random-slope and correlated-block SD regression require separate likelihood checks."
+        "i" = if (isTRUE(allow_slopes)) {
+          "Use a scalar intercept or independent slope, or an unlabelled correlated block where the family admits one."
+        } else {
+          "Random-slope and correlated-block SD regression require separate likelihood checks."
+        }
       ))
     }
     same_group <- Filter(function(x) identical(x$group, member$group), members)
-    if (length(same_group) != 1L) {
-      cli::cli_abort(c(
-        "{family_label} scalar SD regression cannot yet combine another random-effect coefficient on the same group.",
-        "x" = "Selected {.code {entry$dpar}} but group {.field {member$group}} has more than one coefficient.",
-        "i" = "Fit one q1 coefficient for this group until mixed intercept/slope SD models have been checked."
-      ))
+    if (length(same_group) > 1L) {
+      same_group_terms <- vapply(
+        same_group, function(x) x$target_term, integer(1L)
+      )
+      independent_same_group <-
+        isTRUE(allow_independent_same_group) &&
+        !anyDuplicated(same_group_terms) &&
+        all(vapply(same_group, function(x) {
+          terms[[x$target_term]]$type %in% c("intercept", "slope") &&
+            length(terms[[x$target_term]]$coef_names) == 1L
+        }, logical(1L)))
+      correlated_q2_same_group <-
+        isTRUE(allow_correlated_q2) &&
+        length(same_group) == 2L &&
+        length(unique(same_group_terms)) == 1L &&
+        identical(term$type, "correlated_slope") &&
+        length(term$coef_names) == 2L &&
+        identical(term$coef_names[[1L]], "(Intercept)") &&
+        !identical(term$coef_names[[2L]], "(Intercept)") &&
+        is.null(term$covariance_label) &&
+        all(vapply(same_group, function(x) {
+          identical(x$target_term, member$target_term) &&
+            x$coef %in% term$coef_names
+        }, logical(1L)))
+      correlated_block_same_group <-
+        isTRUE(allow_correlated_blocks) &&
+        length(same_group) == length(term$coef_names) &&
+        length(unique(same_group_terms)) == 1L &&
+        identical(term$type, "correlated_block") &&
+        length(term$coef_names) >= 3L &&
+        identical(term$coef_names[[1L]], "(Intercept)") &&
+        all(term$coef_names[-1L] != "(Intercept)") &&
+        is.null(term$covariance_label) &&
+        all(vapply(same_group, function(x) {
+          identical(x$target_term, member$target_term) &&
+            x$coef %in% term$coef_names
+        }, logical(1L)))
+      if (!independent_same_group && !correlated_q2_same_group &&
+          !correlated_block_same_group) {
+        cli::cli_abort(c(
+          "{family_label} scalar SD regression cannot yet combine another random-effect coefficient on the same group.",
+          "x" = "Selected {.code {entry$dpar}} but group {.field {member$group}} has more than one coefficient.",
+          "i" = "Fit one q1 coefficient for this group until mixed or correlated SD targets have been checked."
+        ))
+      }
     }
     list(
       dpar = entry$dpar,

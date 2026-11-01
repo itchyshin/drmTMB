@@ -3,11 +3,14 @@
 \name{fitted_distribution}
 \alias{fitted_distribution}
 \alias{fitted_distribution.drmTMB}
+\alias{fitted_distribution.drmTMB_julia}
 \title{Fitted distribution accessor}
 \usage{
 fitted_distribution(object, ...)
 
 \method{fitted_distribution}{drmTMB}(object, newdata = NULL, response = NULL, ...)
+
+\method{fitted_distribution}{drmTMB_julia}(object, newdata = NULL, response = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -39,9 +42,9 @@ consumers (quantile residuals, \code{predict(type = "quantile")},
 re-deriving the public-to-native parameter conversion.
 }
 \details{
-\code{fitted_distribution()} only supports \code{model_type}s with
-\code{status = "reference"} in \code{\link[=drm_family_dpq]{drm_family_dpq()}}. All 18 currently
-fitted \code{model_type} values are included, including bivariate
+\code{fitted_distribution()} only supports \code{model_type}s with a promoted entry
+in \code{\link[=drm_family_dpq]{drm_family_dpq()}}: as of DO-T3 batch D all 18 fitted \code{model_type}
+values are promoted (\code{status = "reference"}), including bivariate
 \code{"biv_gaussian"} (see the \code{response} argument below). \code{newdata} support
 inherits the same limitation as \code{\link[=predict_parameters]{predict_parameters()}}: fixed-effect,
 population-level predictions only. For meta-analysis gaussian fits

@@ -1,0 +1,53 @@
+{
+  "scope": "Native R/TMB complete-data ordinary lognormal, one unlabelled q=2 intercept-slope block with separate predictor-dependent SD formulas. Hashes describe the dirty candidate files at this receipt.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "f423217b9150b6e8d669f323ac02b219262ba54bd787efade4d20cb01b5a1835"
+    },
+    {
+      "file": "tests/testthat/test-lognormal-ordinary-correlated-q2.R",
+      "sha256": "8919967132a9f797e38f49138c5b859c6df41e5996e2dca3c921abb609914d49"
+    },
+    {
+      "file": "NEWS.md",
+      "sha256": "2b42e480c01a58912cf5e9f88a4b6f691716d89a7f59f145bf82789de341a747"
+    },
+    {
+      "file": "README.md",
+      "sha256": "e1281179adf4234984d8e4cf0776466f0affd31f7481ad3ec7b6962cef395601"
+    },
+    {
+      "file": "docs/design/01-formula-grammar.md",
+      "sha256": "2b4c9872335a1cadfe303dac1062e7bbb393640d81ca4fa231eb99fe0ed1dfc0"
+    },
+    {
+      "file": "docs/design/03-likelihoods.md",
+      "sha256": "9ba84bfa0d6ad5fc2df08ccb74284d8bf8febd6dd51f9077282f0a896626828d"
+    },
+    {
+      "file": "docs/design/59-structural-slope-and-non-gaussian-map.md",
+      "sha256": "5d77d873ef19712d292f81e2e655331ec3e153b4d4a3e8795d953bcb89f40cab"
+    },
+    {
+      "file": "docs/dev-log/internal-roadmap.md",
+      "sha256": "571c52e3ac4c8e04f7db9a0bb4c65aa2478431b12782310e92d16d60163927e8"
+    },
+    {
+      "file": "docs/dev-log/known-limitations.md",
+      "sha256": "c88751896839a3033fa00410072b2d6e09a6c91136bc57c554134396552318b1"
+    },
+    {
+      "file": "vignettes/formula-grammar.Rmd",
+      "sha256": "18ed042b908c67f3ad2fcfef9d33570ee8307c4c83be85665bb92e192d145ed5"
+    },
+    {
+      "file": "vignettes/model-map.Rmd",
+      "sha256": "0b0b42851d2c0b491782e523e9c4f29660c1f14b87637ce8607f5d02ae8ac958"
+    },
+    {
+      "file": "vignettes/predictor-dependent-random-sd.Rmd",
+      "sha256": "179b4f58abb96d6966c07de049ed6f285b0802371cff5cbfea63dc3fc58a7be4"
+    }
+  ]
+}

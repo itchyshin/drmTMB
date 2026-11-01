@@ -61,6 +61,36 @@ test_that("Poisson parameter split retains selected SD coefficient slices", {
   }
 })
 
+test_that("Poisson parameter split exposes phylogenetic SD coefficients", {
+  target <- "sd_phylo(species)"
+  X_sd_phylo <- matrix(
+    c(1, 1, -1, 1),
+    ncol = 2L,
+    dimnames = list(NULL, c("(Intercept)", "w"))
+  )
+  spec <- list(
+    model_type = "poisson",
+    X = list(mu = matrix(1, nrow = 1L, dimnames = list(NULL, "(Intercept)"))),
+    random_scale = list(
+      mu = list(n_models = 0L),
+      phylo = list(
+        n_models = 1L,
+        X = X_sd_phylo,
+        dpars = target,
+        coef_index = stats::setNames(list(seq_len(ncol(X_sd_phylo))), target),
+        coef_names_list = stats::setNames(list(colnames(X_sd_phylo)), target)
+      )
+    ),
+    missing_predictor = NULL
+  )
+  par <- list(beta_mu = 0.2, beta_sd_mu = c(-0.4, 0.7))
+
+  split <- split_tmb_parameters(par, spec)
+
+  expect_identical(names(split), c("mu", target))
+  expect_identical(split[[target]], c("(Intercept)" = -0.4, w = 0.7))
+})
+
 test_that("Poisson scalar block labels select the existing latent coefficient", {
   dat <- poisson_sd_fixture(groups = 12L, repeats = 4L)$data
   key <- 'sd(id, dpar = "mu", coef = "(Intercept)", block = "p")'
@@ -104,7 +134,7 @@ test_that("Poisson scalar block labels select the existing latent coefficient", 
 test_that("Poisson SD keeps zi, correlated-block, structure, and mi fences", {
   dat <- poisson_sd_fixture(groups = 12L, repeats = 4L)$data
   expect_error(drm_build_poisson_spec(bf(y ~ x, sd(id) ~ w), dat),
-               "No random-effect term")
+               "matching Poisson")
   expect_error(drm_build_poisson_spec(bf(y ~ x + (1 + x | id),
                                        sd(id, coef = "x") ~ w), dat),
                "correlated")
@@ -112,9 +142,11 @@ test_that("Poisson SD keeps zi, correlated-block, structure, and mi fences", {
   expect_error(drm_build_poisson_spec(bf(
     y ~ x + (1 | id) + (0 + x | site), sd(id) ~ w
   ), dat), "random slopes")
-  expect_error(drm_build_poisson_spec(bf(y ~ x + (1 | id),
-                                       zi ~ 1, sd(id) ~ w), dat),
-               "zero-inflated|zi")
+  zi_spec <- drm_build_poisson_spec(bf(
+    y ~ x + (1 | id), zi ~ 1, sd(id) ~ w
+  ), dat)
+  expect_identical(zi_spec$model_type, "zi_poisson")
+  expect_identical(zi_spec$random_scale$mu$dpars, "sd(id)")
   expect_error(drm_build_poisson_spec(
     bf(y ~ x + (1 | id), sd(id) ~ w), dat,
     missing = miss_control(response = "include")

@@ -22,14 +22,14 @@ OUTPUT_PATH = INPUT_DIR / "required-rows.tsv"
 SUMMARY_PATH = INPUT_DIR / "required-universe.md"
 ENGINES = ("native", "Julia")
 EXPECTED_ENDPOINTS = 54
-EXPECTED_MECHANISMS = 25
-EXPECTED_BLOCK_RULE_ROWS = 148
+EXPECTED_MECHANISMS = 28
+EXPECTED_BLOCK_RULE_ROWS = 150
 EXPECTED_BLOCK_RULE_IDS = {
     "J-biv-structured2", "J-biv-structured4-tagged-partitions", "J-biv-structured4-untagged",
     "O-biv-all4-I", "O-biv-all4-q8", "O-biv-mean-m", "O-biv-mean-m-q4-anchor",
     "O-biv-mean-m-q6-anchor", "O-biv-mean2-I", "O-biv-mean2-x", "O-biv-scale2-I",
     "O-biv-scale2-x", "O-cross-LS-I", "O-cross-LS-x", "O-multi-within",
-    "O-multi-within-q3-anchor", "O2-within", "S-biv-all4-I",
+    "O-multi-within-q3-anchor", "O2-within", "A2-animal-within", "S-biv-all4-I",
     "S-biv-all4-blockdiag-mu", "S-biv-all4-blockdiag-sigma", "S-biv-all4-m",
     "S-biv-all4-m-q12-anchor", "S-biv-all4-m-q8-anchor", "S-biv-mean-I",
     "S-biv-mean-m", "S-biv-mean-m-q4-anchor", "S-biv-mean-m-q6-anchor",
@@ -105,6 +105,7 @@ INPUTS = {
     "phylo_labelled_block": ["tree"],
     "animal_intercept": ["pedigree", "A_covariance", "Ainv_precision"],
     "animal_numeric_slope": ["pedigree", "A_covariance", "Ainv_precision"],
+    "animal_correlated_block": ["pedigree", "A_covariance", "Ainv_precision"],
     "animal_labelled_block": ["pedigree", "A_covariance", "Ainv_precision"],
     "relmat_intercept": ["K_covariance", "Q_precision"],
     "relmat_numeric_slope": ["K_covariance", "Q_precision"],
@@ -113,7 +114,9 @@ INPUTS = {
     "spatial_coordinate_slope": ["coordinates", "mesh_precision"],
     "spatial_coordinate_labelled_block": ["coordinates", "mesh_precision"],
     "spatial_mesh_intercept": ["mesh_precision_fixed_kappa"],
+    "spatial_mesh_slope": ["mesh_precision_fixed_kappa"],
     "phylo_interaction_intercept": ["tree_pair"],
+    "phylo_interaction_numeric_slope": ["tree_pair"],
     "temporal_ar1": ["integer_time_series"],
     "temporal_ou": ["elapsed_time_series"],
     "temporal_homtoep": ["complete_equal_panel"],
@@ -127,9 +130,10 @@ LAYOUTS = {
     "paired_phylo_temporal_ou": ("same_species_group_additive_pair",),
 }
 
-# These are the only provider pairs named by the pinned source union. Julia's
-# structured fitter accepts phylo/animal/relmat pairs; native grammar names the
-# phylo + coordinate-spatial pair. The Julia spatial refusal is retained.
+# These provider pairs are the explicit finite candidate set currently named
+# by the source union and implemented routes. The native Binomial builder now
+# also admits animal + coordinate-spatial pairs; Julia's spatial refusal is
+# retained as an unresolved/blocked obligation rather than advertised support.
 PAIRS = {
     "simultaneous_iid_structured": (
         ("iid", "group_factor", "phylo", "tree"),
@@ -151,6 +155,9 @@ PAIRS = {
         ("animal", "A_covariance", "relmat", "Q_precision"),
         ("animal", "Ainv_precision", "relmat", "K_covariance"),
         ("animal", "Ainv_precision", "relmat", "Q_precision"),
+        ("animal", "pedigree", "spatial", "coordinates"),
+        ("animal", "A_covariance", "spatial", "coordinates"),
+        ("animal", "Ainv_precision", "spatial", "coordinates"),
         ("phylo", "tree", "spatial", "coordinates"),
     ),
 }
@@ -352,6 +359,176 @@ def _build_rows(
                    qvalue, partition, status, reason, evidence):
         link_info = link_registry[(engine, family, link)]
         link_status = link_info["base_link_status"]
+        specialized_binomial_phylo_slope = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id == "phylo_numeric_slope"
+            and provider == "phylo" and provider_input == "tree"
+        )
+        specialized_binomial_phylo_intercept = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id == "phylo_intercept"
+            and provider == "phylo" and provider_input == "tree"
+        )
+        specialized_binomial_iid_phylo_pair = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id == "simultaneous_iid_structured"
+            and provider == "iid:group_factor+phylo:tree"
+            and provider_input == "iid:group_factor+phylo:tree"
+        )
+        specialized_binomial_spatial = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id in {
+                "spatial_coordinate_intercept", "spatial_coordinate_slope"
+            }
+            and provider == "spatial" and provider_input == "coordinates"
+        )
+        specialized_binomial_phylo_interaction_intercept = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id == "phylo_interaction_intercept"
+            and block_rule == "S1/P-temporal"
+            and provider == "phylo_interaction" and provider_input == "tree_pair"
+            and layout == "phylogenetic interaction field"
+            and shape == "q=1" and qvalue == "1"
+            and partition == "independent"
+            and member_coefs == "I" and target_member == "mu:I"
+        )
+        specialized_binomial_phylo_interaction_slope = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id == "phylo_interaction_numeric_slope"
+            and provider == "phylo_interaction" and provider_input == "tree_pair"
+        )
+        specialized_binomial_iid_effect = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id in {"iid_intercept", "iid_numeric_slope"}
+            and provider == "iid" and provider_input == "group_factor"
+        )
+        specialized_binomial_iid_correlated_q2 = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id == "iid_correlated_block"
+            and block_rule == "O2-within"
+            and provider == "iid" and provider_input == "group_factor"
+            and layout == "labelled_cross_parameter_block"
+            and shape == "q=2;partition=one_correlated_term"
+            and qvalue == "2" and partition == "one_correlated_term"
+            and member_coefs == "I,x1"
+            and target_member in {"mu:I", "mu:x1"}
+        )
+        specialized_binomial_iid_correlated_q3 = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id == "iid_correlated_block"
+            and block_rule == "O-multi-within-q3-anchor"
+            and provider == "iid" and provider_input == "group_factor"
+            and layout == "labelled_cross_parameter_block"
+            and shape == "q=3;partition=one_correlated_term"
+            and qvalue == "3" and partition == "one_correlated_term"
+            and member_coefs == "I,x1,x2"
+            and target_member in {"mu:I", "mu:x1", "mu:x2"}
+        )
+        specialized_binomial_crossed_iid_terms = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id == "iid_additive_terms"
+            and block_rule == "O1"
+            and provider == "iid" and provider_input == "group_factors"
+            and layout == "crossed"
+            and shape == "q=1" and qvalue == "1"
+            and partition == "independent"
+            and member_coefs == "I" and target_member == "mu:I"
+        )
+        specialized_binomial_nested_iid_terms = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id == "iid_additive_terms"
+            and block_rule == "O1"
+            and provider == "iid" and provider_input == "group_factors"
+            and layout == "nested"
+            and shape == "q=1" and qvalue == "1"
+            and partition == "independent"
+            and member_coefs == "I" and target_member == "mu:I"
+        )
+        specialized_binomial_animal_effect = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id in {"animal_intercept", "animal_numeric_slope"}
+            and provider == "animal"
+            and provider_input in {"A_covariance", "Ainv_precision"}
+        )
+        specialized_binomial_animal_correlated_q2 = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id == "animal_correlated_block"
+            and block_rule == "A2-animal-within"
+            and provider == "animal" and provider_input == "A_covariance"
+            and layout == "within_endpoint_structured_correlated_block"
+            and shape == "q=2;partition=one_correlated_term"
+            and qvalue == "2" and partition == "one_correlated_term"
+        )
+        specialized_binomial_relmat_effect = (
+            engine == "Julia" and family == "binomial"
+            and link in {"probit", "cloglog"}
+            and template_id in {"relmat_intercept", "relmat_numeric_slope"}
+            and provider == "relmat" and provider_input == "K_covariance"
+        )
+        if (specialized_binomial_phylo_slope or specialized_binomial_phylo_intercept or
+                specialized_binomial_iid_phylo_pair or specialized_binomial_spatial or
+                specialized_binomial_phylo_interaction_intercept or
+                specialized_binomial_phylo_interaction_slope or
+                specialized_binomial_iid_effect or
+                specialized_binomial_iid_correlated_q2 or
+                specialized_binomial_iid_correlated_q3 or
+                specialized_binomial_crossed_iid_terms or
+                specialized_binomial_nested_iid_terms or
+                specialized_binomial_animal_effect or
+                specialized_binomial_animal_correlated_q2 or
+                specialized_binomial_relmat_effect):
+            # These exact Julia non-logit Binomial rows have focused tests,
+            # even though the family-level link registry remains blocked.
+            # Keep the exception scoped to the fitted provider/effect/input.
+            link_status = "admitted"
+            status = "required"
+            route = (
+                "tree-backed phylogenetic slope"
+                if specialized_binomial_phylo_slope
+                else "tree-backed phylogenetic intercept"
+                if specialized_binomial_phylo_intercept
+                else "tree plus IID provider pair"
+                if specialized_binomial_iid_phylo_pair
+                else "coordinate spatial intercept or slope"
+                if specialized_binomial_spatial
+                else "tree-pair phylogenetic-interaction intercept"
+                if specialized_binomial_phylo_interaction_intercept
+                else "tree-pair phylogenetic-interaction slope"
+                if specialized_binomial_phylo_interaction_slope
+                else "ordinary correlated intercept and slope q2 block"
+                if specialized_binomial_iid_correlated_q2
+                else "ordinary correlated intercept and two-slope q3 block"
+                if specialized_binomial_iid_correlated_q3
+                else "crossed independent Binomial random effects"
+                if specialized_binomial_crossed_iid_terms
+                else "nested independent Binomial random effects"
+                if specialized_binomial_nested_iid_terms
+                else "A/A-inverse animal intercept or slope"
+                if specialized_binomial_animal_effect
+                else "A-covariance animal correlated intercept-slope block"
+                if specialized_binomial_animal_correlated_q2
+                else "K-matrix related-effect intercept or slope"
+                if specialized_binomial_relmat_effect
+                else "ordinary independent intercept or slope"
+            )
+            reason = (
+                f"specialized {route} Binomial route is admitted for this link; "
+                "other non-logit Julia Binomial ledger rows remain blocked "
+                "pending row-specific review"
+            )
         if link_status == "blocked_base_link" and status != "structural_inapplicable":
             status = "blocked_base_plumbing"
             reason = (
@@ -372,7 +549,22 @@ def _build_rows(
             "status_reason": reason, "source_evidence": evidence,
             "direct_sd_claim": "none",
             "base_link_status": link_status,
-            "link_union_origin": link_info["union_origin"],
+            "link_union_origin": (
+                "specialized_engine_admitted_route"
+                if (specialized_binomial_phylo_slope or specialized_binomial_phylo_intercept or
+                    specialized_binomial_iid_phylo_pair or specialized_binomial_spatial or
+                    specialized_binomial_phylo_interaction_intercept or
+                    specialized_binomial_phylo_interaction_slope or
+                    specialized_binomial_iid_effect or
+                    specialized_binomial_iid_correlated_q2 or
+                    specialized_binomial_iid_correlated_q3 or
+                    specialized_binomial_crossed_iid_terms or
+                    specialized_binomial_nested_iid_terms or
+                    specialized_binomial_animal_effect or
+                    specialized_binomial_animal_correlated_q2 or
+                    specialized_binomial_relmat_effect)
+                else link_info["union_origin"]
+            ),
         })
         row["row_key"] = row_key(row)
         rows.append(row)
@@ -407,6 +599,9 @@ def _build_rows(
                                 if template_id == "iid_correlated_block":
                                     rule_instances.extend((rule, ep, inst) for inst in _rule_instances(rule, family_endpoints)
                                                           for ep in [inst[5]])
+                                elif template_id == "animal_correlated_block":
+                                    rule_instances.extend((rule, ep, inst) for inst in _rule_instances(rule, family_endpoints)
+                                                          for ep in [inst[5]])
                                 continue
                             if set(rule["member_dpars"].split(",")).issubset(family_endpoints):
                                 rule_instances.extend((rule, inst[5], inst) for inst in _rule_instances(rule, family_endpoints))
@@ -414,6 +609,15 @@ def _build_rows(
                             # Wildcard ordinary rules target each declared dpar independently.
                             rule_instances = []
                             for rule in applicable:
+                                for inst in _rule_instances(rule, family_endpoints):
+                                    rule_instances.append((rule, inst[5], inst))
+                        if template_id == "animal_correlated_block":
+                            # This q2 block has one endpoint and two correlated
+                            # coefficients; it is not a labelled cross-dpar block.
+                            rule_instances = []
+                            for rule in applicable:
+                                if rule["member_dpars"] != "*":
+                                    continue
                                 for inst in _rule_instances(rule, family_endpoints):
                                     rule_instances.append((rule, inst[5], inst))
                         if template_id in CROSS_ENDPOINT_BLOCKS and len(family_endpoints) > 1:
@@ -509,7 +713,9 @@ def _build_rows(
                                 append_row(engine, family, endpoint_by_name[target], target, member_set,
                                     f"{target}:{coef}", ",".join(coef_values), link, template_id,
                                     rule["rule_id"], provider, effect, inp,
-                                    "labelled_cross_parameter_block", shape, qdomain, qvalue,
+                                    ("within_endpoint_structured_correlated_block"
+                                     if template_id == "animal_correlated_block"
+                                     else "labelled_cross_parameter_block"), shape, qdomain, qvalue,
                                     partition, row_status, row_reason,
                                     evidence + " || block_rule_source=" + rule["source_pin"])
                         continue
@@ -529,10 +735,12 @@ def _build_rows(
                                 status = "blocked_base_plumbing"; reason = "pinned Julia phylo public route requires a tree; matrix-input sibling retained but blocked"
                             elif inp in {"mesh_precision", "mesh_precision_fixed_kappa"} and engine == "Julia":
                                 status = "blocked_base_plumbing"; reason = "pinned Julia route does not admit mesh spatial input"
-                            elif inp in {"mesh_precision", "mesh_precision_fixed_kappa"} and template_id != "spatial_mesh_intercept":
+                            elif inp in {"mesh_precision", "mesh_precision_fixed_kappa"} and template_id not in {"spatial_mesh_intercept", "spatial_mesh_slope"}:
                                 status = "blocked_base_plumbing"; reason = "pinned native mesh evidence is limited to q1 Gaussian mu intercept"
-                            elif inp == "mesh_precision_fixed_kappa" and (family != "gaussian" or ep != "mu"):
-                                status = "blocked_base_plumbing"; reason = "pinned native mesh route is Gaussian mu intercept only"
+                            elif inp == "mesh_precision_fixed_kappa" and template_id == "spatial_mesh_intercept" and not (family in {"gaussian", "binomial"} and ep == "mu"):
+                                status = "blocked_base_plumbing"; reason = "pinned native mesh intercept route is limited to Gaussian or Binomial mu"
+                            elif inp == "mesh_precision_fixed_kappa" and template_id == "spatial_mesh_slope" and not (family == "binomial" and ep == "mu"):
+                                status = "blocked_base_plumbing"; reason = "pinned native mesh slope SD route is Binomial mu only"
                             elif template_id.startswith("temporal_") and engine == "native":
                                 status = "blocked_base_plumbing"; reason = "native pinned grammar excludes temporal formula syntax"
                             elif template_id == "paired_phylo_temporal_ou" and engine == "native":
@@ -606,7 +814,7 @@ def summary_markdown(rows: list[dict[str, str]]) -> str:
             f"- Endpoint source rows: {EXPECTED_ENDPOINTS} across {len(FAMILY_LINKS)} family routes.",
             f"- Explicit family/link rows: {sum(len(v) for v in EXPECTED_LINKS.values())} (42 base-admitted engine-link rows plus 2 blocked Julia union obligations; no implicit default-link rows).",
             f"- Finite mechanism templates: {len(by_mechanism)}.",
-            f"- Machine-readable source block rule rows: {EXPECTED_BLOCK_RULE_ROWS} across 30 named rules; rows also carry target_member, member_coefs, q_domain, q_value, and partition_rule.",
+            f"- Machine-readable source block rule rows: {EXPECTED_BLOCK_RULE_ROWS} across 31 named rules; rows also carry target_member, member_coefs, q_domain, q_value, and partition_rule.",
             f"- Old-to-new mapping: the prior 5,438-row snapshot comprised 4,950 non-block rows and 488 block-related rows. This revision retains {non_block} non-block rows and has {block_rows} block rows ({block_rows-candidate_rows} source-shaped/fallback rows plus {candidate_rows} explicit unresolved candidate rows), for {len(rows)} total rows ({len(rows)-5438:+d} versus that snapshot). The 1,440 Julia tagged-q4 rows have {tagged_native} exact native union counterparts marked blocked.",
             f"- Required rows: {len(rows)}.",
             f"- By engine: {', '.join(f'{key}={by_engine[key]}' for key in sorted(by_engine))}.",
@@ -618,14 +826,26 @@ def summary_markdown(rows: list[dict[str, str]]) -> str:
             "",
             "Animal rows distinguish pedigree, A covariance, and Ainv precision inputs. Related-matrix rows distinguish K covariance and Q precision. Spatial rows distinguish coordinate and mesh inputs. Phylogenetic intercept rows distinguish tree input from covariance/precision matrix candidates; native grammar calls matrix-input phylo a planned sibling (drmTMB `docs/design/01-formula-grammar.md:1100`), while Julia's pinned `_structured_group_index` requires a tree and its resolver calls `_phylo_correlation(tree)` (DRM.jl `src/gaussian_structured.jl:196-220`). No separate public Julia matrix-input phylo route was found; those required rows remain `blocked_base_plumbing`. Animal A/Ainv and phylo matrix inputs are separate providers and are never conflated. Matrix-input phylo is only expanded for the explicitly named intercept sibling.",
             "",
-            "Additive iid terms are split into crossed and nested layouts. Simultaneous provider rows list explicit pinned pair labels; they do not generate arbitrary provider combinations. The `block-rules.tsv` source table enumerates source-shaped endpoint tuples, finite q classes, symbolic coefficient-count domains, and Julia tagged q4 partitions; Julia tagged partitions are mirrored into the native denominator as `blocked_base_plumbing`. In addition, each actual family endpoint set is expanded into finite canonical size-two-or-larger member subsets for cross-endpoint block mechanisms. Exact source-shaped rows retain their source rule ID; other member sets use a `candidate-` rule ID and remain unresolved (or blocked where a provider input is absent). This includes special endpoint candidates such as nu/zi/hu/zoi/coi/rho12 where declared; it makes no compatibility or identifiability claim. Single-endpoint families have no cross-endpoint block. The q1-only native mesh limit is recorded as blocked base plumbing, not structural inapplicability.",
+            "Additive iid terms are split into crossed and nested layouts. Simultaneous provider rows list explicit source-named or implemented pair labels; they do not generate arbitrary provider combinations. The native Binomial animal+coordinate-spatial pair was added to this finite candidate set when its fitted route and recovery checks were implemented; matching Julia rows remain obligations and do not imply Julia admission. The `block-rules.tsv` source table enumerates source-shaped endpoint tuples, finite q classes, symbolic coefficient-count domains, and Julia tagged q4 partitions; Julia tagged partitions are mirrored into the native denominator as `blocked_base_plumbing`. In addition, each actual family endpoint set is expanded into finite canonical size-two-or-larger member subsets for cross-endpoint block mechanisms. Exact source-shaped rows retain their source rule ID; other member sets use a `candidate-` rule ID and remain unresolved (or blocked where a provider input is absent). This includes special endpoint candidates such as nu/zi/hu/zoi/coi/rho12 where declared; it makes no compatibility or identifiability claim. Single-endpoint families have no cross-endpoint block. The q1-only native mesh limit is recorded as blocked base plumbing, not structural inapplicability.",
             "",
             "## Review limits",
             "",
-            "The initial statuses remain `required`, `unresolved`, `blocked_base_plumbing`, or explicit single-endpoint `structural_inapplicable`; no code path assigns `supported`. The 30 named block rules (148 engine/mechanism/domain rows) are expanded by provider into finite q anchors plus symbolic domains where the contract admits arbitrary numeric slopes. Cross-endpoint candidate rows are finite over each family's actual endpoint set and remain unresolved absent source admission. Base plumbing is still not fully classified per family/endpoint/provider/layout; spatial mesh slope/block math, native combined-provider fitted routes, estimator prerequisites, and source disagreements remain open. Julia's two-structured-provider fitter is Gaussian and supports phylo/animal/relmat pairs (DRM.jl `src/gaussian_structured.jl:203-224,236-260`); spatial pairings are refused (`src/gaussian_structured.jl:217-219,510-514`). Native temporal rows lack fitted base plumbing at the pinned snapshot (drmTMB `docs/design/01-formula-grammar.md:1226-1230`); Julia has AR1, OU, homogeneous Toeplitz, and one phylo+OU layout (DRM.jl `src/temporal.jl:1-20,53-78`). G0 remains open.",
+            "The initial statuses remain `required`, `unresolved`, `blocked_base_plumbing`, or explicit single-endpoint `structural_inapplicable`; no code path assigns `supported`. The 31 named block rules (150 engine/mechanism/domain rows) are expanded by provider into finite q anchors plus symbolic domains where the contract admits arbitrary numeric slopes. Cross-endpoint candidate rows are finite over each family's actual endpoint set and remain unresolved absent source admission. Base plumbing is still not fully classified per family/endpoint/provider/layout; native combined-provider fitted routes, estimator prerequisites, and source disagreements remain open. Julia's two-structured-provider fitter is Gaussian and supports phylo/animal/relmat pairs (DRM.jl `src/gaussian_structured.jl:203-224,236-260`); spatial pairings are refused (`src/gaussian_structured.jl:217-219,510-514`). Native temporal rows lack fitted base plumbing at the pinned snapshot (drmTMB `docs/design/01-formula-grammar.md:1226-1230`); Julia has AR1, OU, homogeneous Toeplitz, and one phylo+OU layout (DRM.jl `src/temporal.jl:1-20,53-78`). G0 remains open.",
             "",
         ]
     )
+
+
+def validate_artifacts(
+    rows: list[dict[str, str]],
+    output_path: Path = OUTPUT_PATH,
+    summary_path: Path = SUMMARY_PATH,
+) -> None:
+    """Fail if generated denominator artifacts differ from the source expansion."""
+    if read_tsv(output_path) != rows:
+        raise ValueError(f"required-row artifact differs from source expansion: {output_path}")
+    if summary_path.read_text(encoding="utf-8") != summary_markdown(rows):
+        raise ValueError(f"universe summary differs from source expansion: {summary_path}")
 
 
 def main() -> None:
@@ -641,6 +861,7 @@ def main() -> None:
     )
     write_tsv(input_dir / "required-rows.tsv", rows)
     (input_dir / "required-universe.md").write_text(summary_markdown(rows), encoding="utf-8")
+    validate_artifacts(rows, input_dir / "required-rows.tsv", input_dir / "required-universe.md")
     print(f"wrote {len(rows)} required rows to {input_dir / 'required-rows.tsv'}")
 
 

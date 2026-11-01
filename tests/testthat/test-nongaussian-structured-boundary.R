@@ -277,13 +277,10 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   tree$tip.label <- levels_id
   tree$edge.length <- rep(1, nrow(tree$edge))
 
-  expect_error(
-    drmTMB(
-      bf(y ~ x + phylo(0 + x | id, tree = tree)),
-      family = stats::poisson(link = "log"),
-      data = dat_count
-    ),
-    "intercept-only or one-slope"
+  # Poisson phylogenetic slope-only is now admitted (fit evidence:
+  # test-poisson-phylo-relmat-slope-sd-regression.R); it must still assemble.
+  expect_no_error(
+    drm_build_poisson_spec(bf(y ~ x + phylo(0 + x | id, tree = tree)), dat_count)
   )
   fit_student_spatial <- drmTMB(
     bf(y ~ x + spatial(1 | id, coords = coords_student), sigma ~ 1),

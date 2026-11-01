@@ -413,21 +413,19 @@ test_that("nbinom2 phylogenetic mu keeps planned neighboring routes closed", {
   )
   tree <- nbinom2_balanced_ultrametric_tree(n_tip = 4L)
 
-  expect_error(
-    drmTMB(
-      bf(count ~ x + phylo(0 + x | species, tree = tree), sigma ~ z),
-      family = nbinom2(),
-      data = dat
-    ),
-    "intercept-only or one-slope"
+  # A phylogenetic slope-only mu term is now admitted for NB2 (fit evidence:
+  # test-nbinom2-phylo-relmat-slope-sd-regression.R); it must still assemble.
+  expect_no_error(
+    drm_build_nbinom2_spec(
+      bf(count ~ x + phylo(0 + x | species, tree = tree), sigma ~ z), dat
+    )
   )
-  expect_error(
-    drmTMB(
-      bf(count ~ x + phylo(1 | species, tree = tree) + (1 | id), sigma ~ z),
-      family = nbinom2(),
-      data = dat
-    ),
-    "cannot be combined"
+  # One ordinary intercept plus one q1 phylogenetic intercept is now admitted
+  # for NB2 (fit evidence: test-nbinom2-batch5-sd-regression.R).
+  expect_no_error(
+    drm_build_nbinom2_spec(
+      bf(count ~ x + phylo(1 | species, tree = tree) + (1 | id), sigma ~ z), dat
+    )
   )
   expect_error(
     drmTMB(
@@ -751,14 +749,11 @@ test_that("nbinom2 rejects unsupported or invalid inputs", {
     ),
     "Offset terms"
   )
-  expect_error(
-    drmTMB(
-      bf(y ~ x + (1 | id), sigma ~ 1, zi ~ 1),
-      family = nbinom2(),
-      data = dat
-    ),
-    "Zero-inflated NB2 random effects"
+  zi_intercept_spec <- drm_build_nbinom2_spec(
+    bf(y ~ x + (1 | id), sigma ~ 1, zi ~ 1), dat
   )
+  expect_identical(zi_intercept_spec$model_type, "zi_nbinom2")
+  expect_true("u_mu" %in% zi_intercept_spec$random_names)
   expect_error(
     drmTMB(
       bf(y ~ x + (1 + x | p | id), sigma ~ 1),
@@ -777,7 +772,7 @@ test_that("nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ 1, sd(id) ~ 1), family = nbinom2(), data = dat),
-    "Random-effect scale"
+    "No random-effect term matches"
   )
   expect_error(
     drmTMB(bf(mvbind(y, y) ~ x, sigma ~ 1), family = nbinom2(), data = dat),

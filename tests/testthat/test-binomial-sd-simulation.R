@@ -44,7 +44,7 @@ test_that("Bernoulli SD models allow marginal simulation", {
   expect_true(any(diagnostics$refit_status == "ok"))
 })
 
-test_that("marginal simulation keeps other modelled SD routes closed", {
+test_that("marginal simulation admits ordinary SDs and keeps structured scales closed", {
   base_object <- list(
     model = list(
       model_type = "binomial",
@@ -69,10 +69,7 @@ test_that("marginal simulation keeps other modelled SD routes closed", {
   base_object$model$random_scale$mu$n_models <- 1L
   expect_null(drm_simulate_marginal_unsupported(base_object))
   base_object$model$model_type <- "gaussian"
-  expect_match(
-    drm_simulate_marginal_unsupported(base_object),
-    "modelled.*random-effect scale"
-  )
+  expect_null(drm_simulate_marginal_unsupported(base_object))
 })
 
 test_that("binomial SD registry rows map to per-effect scales", {

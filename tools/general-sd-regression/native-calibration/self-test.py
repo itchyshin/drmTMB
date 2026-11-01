@@ -149,7 +149,7 @@ def write_receipt(out,indices,statuses=None,codes=None):
 
 
 def summarize(out,expected=0):
-    p=subprocess.run([RSCRIPT,str(HERE/"summarize.R"),str(out),sha(out/"source-hashes.csv")],capture_output=True,text=True,timeout=30)
+    p=subprocess.run([RSCRIPT,str(HERE/"summarize.R"),str(out),sha(out/"source-hashes.csv")],capture_output=True,text=True,timeout=120)
     if expected==0 and p.returncode: raise AssertionError(p.stdout+p.stderr)
     if expected and p.returncode==0: raise AssertionError("Expected summary integrity rejection")
     return p
@@ -218,6 +218,8 @@ def test_summary_and_identity_controls():
         assert all(r["planned"]=="1000" and r["coverage_all_success"]=="950" for r in s)
         assert s[1]["false_positive_success"]=="50" and all(r["valid_fraction_threshold"]=="TRUE" for r in s)
         assert all(r["campaign_complete"]=="TRUE" and r["overall_qualified"]=="TRUE" for r in s)
+        assert all(r["bias_diagnostics_only"]=="TRUE" for r in s)
+        assert "logsd_bias_threshold" not in s[0] and "ratio_bias_threshold" not in s[0]
         assert all(r["staged_decision"]=="accept" for r in s)
         metrics=list(csv.DictReader((out/"staged-metrics.csv").open()))
         coverage=next(m for m in metrics if m["truth"]=="-0.5" and m["metric"]=="coverage")

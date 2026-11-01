@@ -22,17 +22,74 @@ particular, \code{sd(group) ~ predictors} does not replace \code{stats::sd()}.
 The currently documented syntax is:
 \itemize{
 \item \code{sd(group) ~ predictors} for univariate Gaussian location random-effect
-scale models and a native Bernoulli/binomial or Poisson ordinary random-intercept
-slice; predictors must be constant within each retained group;
-\item \code{sd(group, dpar = "mu", coef = "(Intercept)", block = "p")}
-selects an ordinary scalar intercept in a native Bernoulli/binomial
-model, including \code{(1 | p | group)}; omit selectors when the target is unique;
-native Poisson supports \code{dpar} and \code{coef} selectors for unlabelled
-ordinary intercepts; its labelled-block base route remains planned;
+scale models and ordinary Bernoulli/binomial intercepts or independent
+numeric slopes in the native R/TMB development branch; a Julia candidate
+has been tested only with a matching local DRM.jl source checkout. That
+route is not in the current shared or released DRM.jl companion. Predictors
+must be constant within each retained group;
+\item \code{sd(group, dpar = "sigma") ~ predictors} for a native Gaussian model with
+one ordinary random intercept on the \code{sigma} predictor, or
+\code{sd(group, dpar = "sigma", coef = "x") ~ predictors} for one independent
+numeric random slope. Both development routes require a fixed-effects-only
+\code{mu} formula, complete unaggregated data, and a predictor that is constant
+within each group. Julia parity and other \code{sigma} random-effect structures
+remain under development;
+\item native complete-data LogNormal models also support one independent
+numeric random slope on the \code{sigma} predictor with
+\code{sd(group, dpar = "sigma", coef = "x") ~ predictors}. The \code{mu} formula
+must be fixed-effect-only, and the SD predictor must be constant within
+each group. Other LogNormal \code{sigma} random-effect structures and Julia
+parity remain under development;
+\item native complete-data, non-inflated NB2 also supports one independent
+random slope on the \code{sigma} predictor with
+\code{sd(group, dpar = "sigma", coef = "x") ~ predictors}. The \code{mu} formula
+must be fixed-effect-only, and the SD predictor must be constant within
+each group. Zero-inflated NB2 and other \code{sigma} random-effect structures
+remain under development;
+\item \code{sd(group, dpar = "mu", coef = "x") ~ predictors} selects an ordinary
+coefficient-specific target in Bernoulli/binomial models, including the
+intercept and slope members of one unlabelled correlated block; omit
+selectors when the target is unique. The native engine also supports a
+matching \code{block} selector for labelled scalar intercepts;
+\item native Bernoulli/binomial models also support a single relatedness-matrix
+intercept with \code{sd(group, level = "relmat") ~ predictors};
+\item native Bernoulli/binomial models support supplied animal-model q1
+intercepts and one unlabelled intercept-plus-slope block with separate
+coefficient-specific SD formulas. The q2 SD route currently supports
+complete, unweighted 0/1 responses under logit, probit, or cloglog links,
+with \code{A}, \code{Ainv}, or pedigree inputs, and no other random effects;
+predictors must be constant within each animal ID. Julia parity and
+interval coverage for this q2 route have not been established;
+\item native Bernoulli/binomial models also support one fixed-kappa mesh
+spatial location intercept, written
+\code{spatial(1 | site, mesh = mesh)} with
+\code{sd(site, level = "spatial") ~ predictors}. This initial route requires
+complete responses, one location SD formula, and no other random effects;
+it is ML-only. The SD formula is a multiplier on the supplied mesh field,
+so the marginal SD after mesh projection also depends on the mesh
+covariance. R-to-Julia bridge parity and interval calibration are not
+established;
+\item native non-inflated Poisson models support one complete-data,
+supplied-\code{A} animal-model intercept or slope-only coefficient with this
+\code{level = "animal"} syntax; intercept-plus-slope animal blocks are not part
+of this direct-SD route;
+\item native complete-data NB2 models support one animal location intercept or
+one slope-only coefficient with a predictor-dependent SD when \code{sigma ~ 1};
+the animal model cannot be combined with other random or structured terms;
+\item native complete-data Gamma models support one animal location intercept
+or one slope-only coefficient with a group-level SD predictor and fixed
+\code{sigma}; multi-coefficient animal blocks remain unsupported;
+\item native Poisson supports ordinary intercept SD regression, with \code{dpar}
+and \code{coef} selectors for an unlabelled intercept;
 \item \code{sd1(group) ~ predictors} and \code{sd2(group) ~ predictors} for bivariate
 Gaussian location random-effect scale models targeting \code{mu1} and \code{mu2};
 \item \code{sd(group, level = "phylogenetic") ~ predictors} for univariate Gaussian
 phylogenetic location random-effect scale models;
+\item \code{sd(pair_id, level = "phylogenetic_interaction") ~ predictors} for a
+native Binomial location SD regression on an existing q1
+\code{phylo_interaction()} field. The pair identifier must map one-to-one to
+observed partner pairs, and each SD predictor must be constant within a
+pair. Julia direct fitting and the R-to-Julia bridge remain unsupported;
 \item \code{sd1(group, level = "phylogenetic") ~ predictors} and
 \code{sd2(group, level = "phylogenetic") ~ predictors} for bivariate Gaussian
 phylogenetic location random-effect scale models targeting \code{mu1} and
@@ -44,23 +101,29 @@ generic spelling for these targets. The historical spellings
 \code{sd_phylo(species) ~ predictors}, \code{sd_phylo1(species) ~ predictors}, and
 \code{sd_phylo2(species) ~ predictors} are \strong{deprecated (soft)}: they still
 parse and fit identically, but emit a one-time deprecation warning per
-session and should not be used in new formulas. Future spatial,
-animal-model, and user-supplied relatedness direct-SD routes are planned
-to use the same \verb{level = } grammar, such as \code{sd(group, level = "spatial")}
+session and should not be used in new formulas. Other spatial direct-SD
+routes should use the same \verb{level = } grammar, such as
+\code{sd(group, level = "spatial")}
 or \code{sd1(group, level = "animal")}, rather than adding parallel
 \verb{sd_spatial*()}, \verb{sd_animal*()}, and \verb{sd_relmat*()} families.
 
 These formulas model the standard deviation of a latent random-effect block.
 They are distinct from residual scale formulas such as \code{sigma ~ predictors}
 and from latent correlation formulas such as \code{\link[=corpair]{corpair()}}. Bernoulli/binomial
-and Poisson SDs are on the response link scale; no free residual \code{sigma}
-is introduced.
-The native intercept slice has point-fit and workflow checks; interval
-calibration and Julia integration remain open. A separate narrow beta
-phylogenetic direct-SD route also exists. Remaining non-Gaussian direct-SD
-formulas, spatial/animal/relmat direct-SD formulas, and
-explicit slope-specific targets such as
-\code{sd(group, dpar = "mu", coef = "slope") ~ predictors} remain planned.
+and Poisson SDs are on the response-link scale; they do not add a free
+residual \code{sigma}. Synthetic Bernoulli/binomial point-recovery, public-output,
+simulation, and profile/bootstrap-refit checks cover native R/TMB and the
+Julia candidate with a matching local DRM.jl checkout. These tests do not
+establish cross-engine parity or interval calibration. The Julia q2
+correlated-block smoke tests include a near-singular Hessian warning, so
+they do not establish reliable Wald intervals. A separate narrow beta
+phylogenetic direct-SD route
+also exists. Other family/effect combinations and spatial direct-SD
+structures beyond the initial Binomial mesh intercept,
+animal-model SDs outside the native Bernoulli/binomial and Poisson
+intercept and slope-only slices,
+relatedness-matrix SDs outside the native Bernoulli/binomial
+intercept slice, and interval calibration remain under development.
 }
 \examples{
 bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ habitat)
@@ -80,6 +143,11 @@ bf(
 bf(
   y ~ x + phylo(1 | species, tree = tree),
   sd(species, level = "phylogenetic") ~ ecology
+)
+
+bf(
+  y ~ x + animal(1 | id, A = A),
+  sd(id, level = "animal") ~ habitat
 )
 
 }

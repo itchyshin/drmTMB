@@ -22,6 +22,10 @@ binomial_sd_fixture <- function(groups = 160L, repeats = 16L,
 # An independent scalar-cluster Laplace calculation. This does not call TMB,
 # drmTMB's likelihood, or its simulation machinery.
 binomial_sd_laplace_oracle <- function(data, beta, alpha) {
+  if (!"failure" %in% names(data)) {
+    stop("`data` must include a `failure` column with binomial failure counts.",
+         call. = FALSE)
+  }
   group_rows <- split(seq_len(nrow(data)), data$id)
   sum(vapply(group_rows, function(rows) {
     eta <- as.vector(cbind(1, data$x[rows]) %*% beta)

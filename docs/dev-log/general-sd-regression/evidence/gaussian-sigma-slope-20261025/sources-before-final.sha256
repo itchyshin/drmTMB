@@ -1,0 +1,6 @@
+5ac1e307fcc3d79506b4a971f32bd9873449b0b5f6bebdd06c25109b0d278b5d  R/drmTMB.R
+601194d716c3816b787e4360f438a060bae3dd11292a90002d338da7bbb7a2a6  src/drmTMB.cpp
+f031582036e262332591de39b46f654d07c6bdf64954e09f1b47a3cbd26ed62f  R/random-effect-targets.R
+a333adb2993b16a0857b19d48e5e5ea559070726b3b80c98478f0af2a75e3945  R/random-effect-scale-formulas.R
+c173ae9012ef9079e83a2d858fa9494e763083e60286968b5625b6bee7202d64  tests/testthat/test-gaussian-sigma-sd-regression.R
+54b4288f13b0b481c7f15a07ccccf954c17882b1ef4cc24c54e39ce7844e28ee  tests/testthat/test-gaussian-sigma-sd-slope-regression.R

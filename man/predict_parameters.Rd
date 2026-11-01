@@ -3,11 +3,23 @@
 \name{predict_parameters}
 \alias{predict_parameters}
 \alias{predict_parameters.drmTMB}
+\alias{predict_parameters.drmTMB_julia}
 \title{Predict distributional parameters in long format}
 \usage{
 predict_parameters(object, ...)
 
 \method{predict_parameters}{drmTMB}(
+  object,
+  newdata = NULL,
+  dpar = NULL,
+  type = c("response", "link"),
+  include_newdata = TRUE,
+  conf.int = FALSE,
+  conf.level = 0.95,
+  ...
+)
+
+\method{predict_parameters}{drmTMB_julia}(
   object,
   newdata = NULL,
   dpar = NULL,

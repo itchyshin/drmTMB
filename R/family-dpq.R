@@ -93,7 +93,7 @@
 #' column inside `fitted_distribution_params()`, never by changing the
 #' closure signature.
 #'
-#' @param object A `drmTMB` fit.
+#' @param object A native `drmTMB` fit or a Julia-engine `drmTMB_julia` fit.
 #' @return A list with elements `dpars`, `d`, `p`, `q`, `discrete`,
 #'   `has_atom`, `atoms`, `status`.
 #' @keywords internal
@@ -1224,6 +1224,16 @@ fitted_distribution.drmTMB <- function(object, newdata = NULL, response = NULL, 
       q = function(u) dpq$q(u, params)
     ),
     class = "drm_fitted_distribution"
+  )
+}
+
+#' @rdname fitted_distribution
+#' @export
+fitted_distribution.drmTMB_julia <- function(
+  object, newdata = NULL, response = NULL, ...
+) {
+  fitted_distribution.drmTMB(
+    object, newdata = newdata, response = response, ...
   )
 }
 

@@ -35,7 +35,7 @@ test_that("Bernoulli SD-regression coefficients profile their beta_sd_mu slots",
   ci <- stats::confint(
     fit,
     parm = "fixef:sd(id):w",
-    level = 0.80,
+    level = 0.975,
     method = "profile",
     trace = FALSE
   )
@@ -48,4 +48,24 @@ test_that("Bernoulli SD-regression coefficients profile their beta_sd_mu slots",
   expect_lt(ci$lower, alpha_w)
   expect_gt(ci$upper, alpha_w)
   expect_lt(ci$lower, ci$upper)
+
+  limited <- stats::confint(
+    fit,
+    parm = "fixef:sd(id):w",
+    level = 0.975,
+    method = "profile",
+    trace = FALSE,
+    ytol = 2
+  )
+  expect_equal(limited$conf.status, "profile_failed")
+  expect_equal(limited$profile.message, "nonfinite_interval")
+  expect_true(all(is.na(c(limited$lower, limited$upper))))
+
+  curve <- profile(
+    fit,
+    parm = "fixef:sd(id):w",
+    level = 0.975,
+    trace = FALSE
+  )
+  expect_true(any(curve$delta_deviance >= stats::qchisq(0.975, df = 1)))
 })

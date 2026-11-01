@@ -80,7 +80,7 @@ non-Gaussian response route also supports \code{family = poisson()} with one
 fixed-effect binary \code{mi()} predictor modelled by \code{family = binomial()}.}
 
 \item{missing}{Missing-data policy created by \code{\link[=miss_control]{miss_control()}}. The default
-keeps the existing complete-case behaviour. Among currently supported models,
+keeps the existing complete-case behaviour. In the current fitted slices,
 \code{missing = miss_control(response = "include")} is implemented only for
 univariate Gaussian response masks and bivariate Gaussian partial-response
 rows without dense known covariance. \code{missing = miss_control(predictor = "model")} is implemented for one \code{mi()}
@@ -107,10 +107,11 @@ NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
 an additional large-p \code{phylo()} or coupled location-scale phylo route),
 plus \code{truncated_nbinom2()}, \code{zero_one_beta()}, \code{tweedie()}, and
 \code{beta_binomial()} on the fixed-effect route only. Each admitted family
-has been compared with \code{engine = "tmb"} on the same fitted target
+carries a same-target parity receipt against \code{engine = "tmb"}
 (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
 relative); see \code{vignette("julia-engine", package = "drmTMB")} for
-the full family-by-route table and current boundaries. \code{engine = "julia"} needs a local
+the full family-by-route table, which capability-ledger row documents
+each receipt, and current boundaries. \code{engine = "julia"} needs a local
 DRModels.jl checkout and the optional \code{JuliaCall} package, and it is not a
 drop-in replacement for every native-TMB workflow.}
 
@@ -126,13 +127,13 @@ intercept or independent intercept-plus-one-numeric-slope term with a
 constant residual scale (\code{sigma ~ 1}, with no sigma random effect).
 Slope-only, labelled, multiple-slope, and matched non-phylogenetic
 mean-scale REML remain outside that route. The two bivariate
-non-phylogenetic exceptions are matching labelled two-axis (\code{q = 2}) fixed-covariance
+non-phylogenetic exceptions are matching labelled fixed-covariance q2
 location intercepts for \code{spatial(1 | p | site, coords = coords)} and
 \code{relmat(1 | p | id, K = K)} in \code{mu1} and \code{mu2}, with intercept-only
 \code{sigma1}, \code{sigma2}, and \code{rho12}, complete response pairs, unit weights, no
 known \code{\link[=meta_V]{meta_V()}} covariance, and no additional ordinary random effect,
-direct-SD formula, or \code{corpair()} regression. Only point-estimate recovery
-has been checked for both; bivariate \code{relmat(..., Q = Q)} REML is unsupported.
+direct-SD formula, or \code{corpair()} regression. Both have point-fit-recovery
+evidence only; bivariate \code{relmat(..., Q = Q)} REML remains deferred.
 Aggregation and ordinary direct \code{sd()} scale formulae also remain
 unsupported under REML. For \code{binomial()} models, the bounded native route
 requires exactly one ordinary unlabelled \code{mu} random intercept or exactly
@@ -142,18 +143,19 @@ missing-data engines, and other extensions are not admitted under REML;
 use \code{REML = FALSE} for those models. The binomial route has diagnostic
 parity and finite-uncertainty evidence, not calibrated interval or coverage
 evidence. Every other non-Gaussian family rejects \code{REML = TRUE}; use
-\code{REML = FALSE}. An internal experimental AGHQ plus Cox-Reid estimator is
+\code{REML = FALSE}. The package-private AGHQ plus Cox-Reid (O3) estimator is
 not a \code{drmTMB()} argument and is not what \code{REML = TRUE} runs. Public
 cumulative-logit random-slope fits remain maximum likelihood
-and have point-estimate recovery evidence only.
+(\code{point_fit_recovery}).
 \code{engine = "julia"} fits \code{REML = TRUE} on a route-by-route basis, not
 uniformly: the fixed-effect Gaussian location-scale model, the bivariate
 q = 4 phylogenetic route, the location-scale-scale \code{sd()}/\code{sd_phylo()}
 routes, an ordinary Gaussian \code{mu} random intercept, and large-p Poisson
 \code{phylo()} (a Cox-Reid Laplace route native \code{engine = "tmb"} does not have)
 currently fit \code{REML = TRUE}; every other bridge route refuses it, some
-with a raw DRModels.jl error rather than a \code{drmTMB}-worded one. Do not assume
-bridge REML support for models outside this list.
+with a raw DRModels.jl error rather than a \code{drmTMB}-worded one. See
+\code{docs/design/261-reml-by-route.md} for the full route-by-route table
+before relying on bridge REML for a model not listed there.
 
 Under native \code{REML = TRUE}, admitted mean fixed-effect coefficients are
 marginalised in the TMB objective rather than estimated as ordinary fixed
@@ -181,16 +183,16 @@ q = 1 or correlated q = 2 grouping block. Supported links are
 \code{"logit"}, \code{"probit"} and \code{"cloglog"}. Kosmidis and Firth (2021,
 Theorem 1 and Section 3.1) prove the Jeffreys penalty gives finite
 estimates for any link whose working weight vanishes in both tails, which
-these three do. drmTMB has directly checked the TMB-Laplace implementation
-for all three links.
+these three do; drmTMB's own TMB-Laplace evidence for them is recorded in
+\verb{docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/}.
 Three limits are worth stating. The soft-penalty scale below is a \emph{logit}
 delta-method constant, kept unchanged for all three links because using it
 for probit and cloglog was measured to cost about 1\% of one standard error
 -- measured at \code{q = 1} with two fixed-effect columns, and not at \code{q = 2}.
 Under deep separation with a random slope the standard error is frequently
 unavailable for \strong{every} link, logit included (see the \code{NA} note below);
-in the most extreme scenarios measured this affected the large majority of
-converged fits. The comparisons for probit and cloglog used \strong{Bernoulli}
+in the most extreme cells measured this affected the large majority of
+converged fits. And the evidence behind the two new links used \strong{Bernoulli}
 responses with two fixed-effect columns, so grouped-binomial and wider
 designs inherit the \code{n_eff} extrapolation described next without direct
 measurement, for any link. For grouped binomial data, the
@@ -271,14 +273,21 @@ location formulas, Gaussian \code{mu} animal-model and user-supplied relatedness
 random intercepts and one numeric random slope, matching
 bivariate Gaussian \code{mu1}/\code{mu2} location formulas, and matching labelled
 bivariate Gaussian \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} phylogenetic
-location-scale blocks, coordinate-based spatial random intercepts and one
-numeric coordinate-spatial slope in univariate Gaussian \code{mu},
+location-scale blocks, and coordinate-based spatial random intercepts and
+one numeric coordinate-spatial slope in univariate Gaussian \code{mu},
 fixed-effect bivariate Gaussian distributional models, and matched labelled
 bivariate Gaussian \code{mu1}/\code{mu2}, \code{sigma1}/\code{sigma2}, and same-response
 \code{mu}/\code{sigma} random-intercept covariance blocks, including the first
 matching slope-only \code{mu1}/\code{mu2} covariance block, the first all-four q=4
 ordinary random-intercept covariance blocks, and
 predictor-dependent q=2 ordinary or phylogenetic \code{corpair()} regressions.
+The development branch also includes complete-response Bernoulli spatial
+location intercepts or slope-only effects with a matching formula such as
+\code{sd(site, level = "spatial") ~ z}, for logit, probit,
+or complementary-log-log links. For a slope, the random-effect predictor
+must vary within sites; the SD-formula predictors must be constant within
+sites. These Bernoulli spatial SD routes have focused recovery and output
+checks, but their interval coverage and R-to-Julia parity are not established.
 Bivariate Gaussian location formulas may be written explicitly as
 \code{mu1 = y1 ~ ...}, \code{mu2 = y2 ~ ...}, or with \code{mvbind(y1, y2) ~ ...} shorthand
 when both responses share the same location predictors.

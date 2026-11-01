@@ -1,0 +1,35 @@
+ℹ Testing drmTMB
+gamma-relmat-q2-sd-regression: 12
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-gamma-relmat-q2-sd-regression.R:92:3'): Gamma relmat q2 admit
+Error in `evaluate_known_relatedness_matrix(term$object, env, marker)`: Could not find `relmat()` matrix object K.
+x `relmat()` terms use matrix objects from the calling environment, for example `relmat(1 | id, Q = Q)`.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_gamma_ls_spec(...) at test-gamma-relmat-q2-sd-regression.R:92:3
+ 2.   └─drmTMB:::build_structured_mu_structure(...) at general-sd-regression/R/drmTMB.R:6302:3
+ 3.     └─drmTMB:::build_known_precision_mu_structure(term, data, env) at general-sd-regression/R/drmTMB.R:15816:3
+ 4.       └─drmTMB:::evaluate_known_relatedness_matrix(term$object, env, marker) at general-sd-regression/R/drmTMB.R:16328:5
+ 5.         └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:16493:5
+ 6.           └─rlang::abort(...)
+
+── 2. Error ('test-gamma-relmat-q2-sd-regression.R:113:3'): Gamma relmat q2 SD f
+Error in `FUN(X[[i]], ...)`: Structured random-effect scale formulas currently require one structured coefficient.
+x `sd_relmat(id)` targets `relmat(1 + x | id)`, which has multiple structured coefficients.
+i Use one intercept or slope coefficient per structured term; predictor-dependent scales for multi-coefficient structured blocks remain unsupported.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-gamma-relmat-q2-sd-regression.R:113:3
+ 2.   └─drmTMB:::drm_build_gamma_ls_spec(...) at general-sd-regression/R/drmTMB.R:491:3
+ 3.     └─drmTMB:::parse_sd_phylo_entries(...) at general-sd-regression/R/drmTMB.R:6317:3
+ 4.       └─base::lapply(...) at general-sd-regression/R/drmTMB.R:16842:3
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:16774:5
+ 7.             └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

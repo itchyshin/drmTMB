@@ -100,7 +100,11 @@ test_that("ordinary resolver excludes structured metadata and respects response 
   expect_error(drm_resolve_sd_target(ordinary_target(fun = "sd2"), members), "No ordinary")
   structured <- members[[1L]]
   structured$provider <- "phylo"
-  expect_error(drm_resolve_sd_target(ordinary_target(), list(structured)), "No ordinary")
+  structured$level <- "phylogenetic"
+  expect_error(
+    drm_resolve_sd_target(ordinary_target(level = "group"), list(structured)),
+    "No random-effect SD target"
+  )
 
   terms <- fixture$terms
   terms[[1L]]$type <- "phylo"

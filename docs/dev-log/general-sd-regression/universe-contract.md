@@ -17,20 +17,33 @@ marginals cannot be crossed to manufacture family × endpoint × block rows.
 The pinned constructor/spec enumeration now appears in
 [family-endpoints.tsv](family-endpoints.tsv): 20 family routes and 54 declared
 endpoint rows. It is the endpoint side of the universe only; latent mechanism
-templates now appear in [mechanism-templates.tsv](mechanism-templates.tsv): 25
+templates now appear in [mechanism-templates.tsv](mechanism-templates.tsv): 28
 finite templates from ordinary, structured, provider-combination, and temporal
-source labels. The generated [required-rows.tsv](required-rows.tsv) is now a
-finite 19,118-row required-candidate ledger. It contains 4,950 non-block rows,
-7,296 source-shaped or fallback block rows, and 6,750 broader endpoint-subset
-candidate rows. It also includes 1,440 native rows mirroring Julia's finite
-tagged-q4 partitions. The candidate ledger preserves obligations; it is not a
-claim that each row has an admitted or identifiable base model.
+source labels. The animal mechanism set now distinguishes independent q1
+fields, same-endpoint correlated intercept-slope q2 blocks, and labelled
+cross-endpoint blocks. The generated [required-rows.tsv](required-rows.tsv) is
+now a finite 20,350-row required-candidate ledger. Its current breakdown is
+5,600 non-block rows, 8,000 source-shaped or fallback block rows, and 6,750
+broader endpoint-subset candidate rows. An earlier revision expanded the
+19,342-row snapshot by 336 animal plus coordinate-spatial obligations for
+pedigree, A covariance, and A-inverse precision inputs. The native Binomial
+logit slice fits the phylo-tree plus relmat K-covariance/Q-precision
+intercept pair, and the animal plus coordinate-spatial pair with pedigree,
+A-covariance, and A-inverse precision inputs.
+The other rows remain obligations and do not imply admission. The ledger also
+includes 1,440 native rows mirroring Julia's finite tagged-q4 partitions.
+The new 672 rows encode a single-endpoint animal q2 mechanism across the
+declared endpoints, provider inputs, links, and engines; they do not claim
+those cells are all implemented. These are candidate obligations, not 20,350
+independent implementation tasks
+or a claim that each row has an admitted or identifiable base model. Earlier
+denominator snapshots and their correction receipts remain historical.
 
 Binomial also needs a link dimension. The pinned native family admits logit,
 probit, and cloglog; the pinned Julia `Binomial()` constructor is logit-only.
 [family-links.tsv](family-links.tsv) distinguishes 42 admitted engine-link rows
 from two union obligations for Julia probit/cloglog, whose base links are
-blocked. The required-row generator expands these into 122 additional rows: 18
+blocked. The earlier link-only expansion added 122 rows: 18
 retain the existing structural cross-endpoint exclusion and 104 remain
 `blocked_base_plumbing` for missing Julia link admission. Those rows remain in scope and expand to `blocked_base_plumbing` unless
 the exact cell is structurally inapplicable. The table keeps SD evidence
@@ -123,8 +136,8 @@ cross every family with Gaussian REML or AI-REML options.
 ## Remaining G0 review
 
 The mechanical candidate expansion is present, but G0 remains open. The
-19,118 rows are not yet a reviewed family × endpoint × provider/input × layout
-base-route classification. In particular, the 4,399 `required` rows need
+20,350 rows are not yet a reviewed family × endpoint × provider/input × layout
+base-route classification. In particular, the 4,893 `required` rows need
 source admission review, and the 6,750 endpoint-subset candidates need
 mathematical and identifiability review. Retain uncertain rows as unresolved;
 do not promote rows from candidate presence or source-shaped q rules alone.
@@ -136,6 +149,16 @@ without asserting that every member set is a fitted or identifiable block.
 The 1,440 native tagged-q4 mirrors are marked `blocked_base_plumbing`, not
 native support. The 90 structural exclusions apply only to cross-endpoint
 blocks where the family declares a single endpoint.
+
+Several exact Julia Binomial rows have been verified despite the family-level
+probit/cloglog link registry remaining blocked: a tree-backed phylogenetic
+numeric slope, and coordinate-spatial intercept and numeric-slope routes. The
+generated rows for these link/provider/effect cells are marked `required` with
+`base_link_status=admitted`. Their test receipts cover the phylogenetic slope
+through the R bridge and both spatial effects in the direct Julia suite.
+Other non-logit Julia Binomial ledger rows remain blocked pending row-specific
+review. These exceptions do not declare general probit or cloglog support
+across Binomial effect types.
 
 The remaining gates are family/engine/provider/input/layout base-route
 classification, review of endpoint-subset compatibility and identifiability,

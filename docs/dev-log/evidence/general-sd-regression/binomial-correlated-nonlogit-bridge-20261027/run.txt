@@ -1,0 +1,14 @@
+Command:
+  DRMTMB_JULIA_TESTS=true DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRM_JL_JULIA_HOME=/Users/z3437171/.juliaup/bin JULIA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PATH=/Users/z3437171/.juliaup/bin:$PATH Rscript -e 'devtools::test(filter = "julia-binomial-nonlogit-correlated-sd-bridge", reporter = "summary", stop_on_failure = TRUE)'
+
+Result:
+  The focused bridge test completed and printed the testthat `DONE` marker.
+  One live Julia test ran. No failed expectation or warning was displayed. The
+  installed reporter emitted progress dots but no numeric assertion total.
+
+Coverage:
+  The same fixed-seed probit and cloglog q2 data are fitted with native TMB
+  and Julia. Assertions compare convergence, coefficient names, SD slope
+  directions and broad point recovery, coefficient and correlation estimates,
+  and group-level predicted SD values. This is selected-cell same-data bridge
+  evidence only, not interval coverage or broad q2 parity.

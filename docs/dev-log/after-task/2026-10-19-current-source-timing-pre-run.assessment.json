@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "f17921527101bb6a8b3e7498d8c97baa56b11214ecec7e7ecf9a81de28143f11",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Manual post-draft review under protocols/writing-naturalness.md; factual and scientific statements checked against the retained Totoro timing receipts, v4 source audit, and independent hash readback.",
+  "genre": "Technical after-task report",
+  "coverage": "Whole draft, including the 45-fit timing result, retained hashes, no-fit regression outcome, limitations, and cross-product coverage.",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report uses concrete measurements and source-bound limits. Its required template creates some repeated structure, but the wording is specific to the run and avoids generic claims.",
+  "confidence": "medium",
+  "confidence_reason": "The report is technical and source-heavy; style judgment is subjective, while the factual checks are supported by retained receipts.",
+  "examples": [
+    {
+      "location": "Section 1, paragraph 1",
+      "cue": "The sentence names the 45-fit timing-only scope and states recovery, coverage, and calibration were outside it.",
+      "impact": "It gives readers a clear boundary on what the result supports.",
+      "repair": "no change needed",
+      "line": 5,
+      "quote": "Measure runtime and fit health for the current dirty drmTMB source snapshot on Totoro before using its timings to plan recovery work. This was a 45-fit timing-only pre-run; recovery, coverage, and calibration were outside its scope."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Interpretation is limited to runtime and fit checks; the report explicitly withholds recovery, bias, false-positive, and coverage claims.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Fit counts, timing summaries, checks, source hashes, and the expected negative-control outcome were compared with retained attempt data, logs, source receipts, and independent hash readback.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no bibliographic citations or external reference claims.",
+  "date": "2026-10-19",
+  "calibration_status": "Relevant internal technical reports and the run's own evidence were seen; no held-out style controls were used.",
+  "interpretation": "perceived_style_not_authorship"
+}

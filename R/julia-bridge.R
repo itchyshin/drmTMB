@@ -18,6 +18,11 @@ drm_julia_split_coef_name <- function(nm) {
   dpar <- character(length(nm))
   term <- character(length(nm))
   for (i in seq_along(nm)) {
+    if (grepl("^sdtarget_[[:xdigit:]]+_", nm[[i]])) {
+      dpar[[i]] <- sub("^(sdtarget_[[:xdigit:]]+)_.*$", "\\1", nm[[i]])
+      term[[i]] <- substring(nm[[i]], nchar(dpar[[i]]) + 2L)
+      next
+    }
     hit <- blocks[startsWith(nm[i], paste0(blocks, "_"))]
     if (length(hit) > 0L) {
       dpar[i] <- hit[[1L]]
@@ -507,7 +512,7 @@ drm_julia_capability_comparison <- function() {
       "Ordinary Gaussian correlated (1 + x | g) on mu. ML: SUPPORTED (estim_method=ML, ml_loglik=-178.282455842465); same-target tmb-vs-julia parity coef 4.122e-11, logLik 2.046e-12, SE 2.140e-08 abs / 3.311e-07 rel (SE_PASS, 3 fixed-effect SEs), and the random-effect block agrees to 9.613e-11 (intercept SD 0.515495, slope SD 0.380979, correlation 0.312629 on both engines). REPORTING GAP: the Julia fit's sdpars and corpars are EMPTY for this shape -- the bridge returns the block as raw log-Cholesky coefficients recov_g:L11, recov_g:L22, recov_g:L21 and drm_julia_structured_parameters() translates a recov_ block only for the phylo mu+sigma pair; the block comparison above was derived from those raw coefficients (parity_ordinary_re.R, inspect_slope.log). REML: UNSUPPORTED -- refused by the ENGINE at the pin with: \"ArgumentError: drm: method = :REML is not implemented for this model on the generic univariate Gaussian route (random slopes, a random effect on sigma, a structured mean marker  --  phylo/relmat/animal/spatial  --  without a matching sd() submodel, and meta_V() all land here). REML IS available for: the fixed-effect Gaussian location-scale model; a single Gaussian mean random intercept `(1 | g)`; every sd() LSS route (`sd(g)`, `sd_phylo` dense and sparse, and the multi-component sd() router); the bivariate structured routes (q=2 and q=4, both native and via drm_bridge); and Poisson `(1 | g)` and Poisson `phylo(1 | species)`. Use method = :ML (the default) for this model.\" GATE DEFECT (report to #1155's follow-up, not fixed here): drm_julia_reml_supported() has no random-slope predicate, so the shipped bridge forwards method = \"REML\" and the user receives DRM.jl's raw ArgumentError plus a JuliaCall trace instead of a drmTMB refusal naming REML = FALSE / engine = \"tmb\". No ML fit was ever labelled REML (the engine throws rather than downgrading). Measured 2026-09-05 through drmTMB(engine = \"julia\") at DRM.jl 430ef64ccca5642c5abebd72194e00895314dfc2 with the #625 estim_method oracle (docs/dev-log/evidence/julia-r-parity/ordinary-re-census/: census.tsv, parity-fixtures-ordinary-re.tsv, parity-se-ordinary-re.tsv; comparator build stamped in those TSVs' drmtmb_code_hash column -- the digest deparses this very function, so it cannot be quoted here without moving). One draw per shape (n=150, 15 groups x 10, seed 20260904); result-shape and point/SE parity only, NOT interval coverage. RECEIPT BANKED 2026-09-05 (leaf uncited-random-effects). The numbers this row already quoted lived in DRM.jl's docs/dev-log/evidence/julia-r-parity/ordinary-re-census/, a table no generator joins -- which is why the parity scoreboard read this capability UNCITED on its bridge axis. Re-measured at DRM.jl 345892520 (origin/main, NOT the dead 430ef64cc pin) against drmTMB 2fcbb0fbf, comparator build 3bbe615e, and banked into a table the scoreboard DOES join by capability_id: DRM.jl docs/dev-log/evidence/parity-classc.tsv, written by tools/parity_ranef.R. Cell gaussian_rs_mu_ml (PARITY_PASS: coef 8.457e-12, logLik 1.421e-13, SE_PASS 3.290e-07 relative over 3 fixed-effect SEs). The sdpars REPORTING GAP named above REPRODUCES at this DRM.jl sha -- the Julia fit's sdpars is empty for this shape, so the receipt row records the random-effect SD as julia=NA rather than filling it in; the fixed-effect comparison is unaffected. That gap is still the open defect, and it is why this row stays partial. The interval_status fences are unchanged.",
       "Ordinary Gaussian random intercept on sigma. ML: SUPPORTED as a FIT (estim_method=ML, ml_loglik=-185.86575807551) but NOT same-target parity at the 1e-4 bar: tmb-vs-julia coef 6.440e-04, logLik 2.850e-02, sigma-RE SD 4.056e-03 (0.349674 tmb vs 0.35373 julia), SE 8.178e-04 abs / 7.461e-03 rel (PARITY_FAIL, SE_FAIL). CAUSE ESTABLISHED, NOT A DEFECT: the two engines integrate the sigma-side random intercept differently -- drmTMB by Laplace, DRM.jl by 32-node Gauss-Hermite quadrature (src/gaussian_ranef.jl). Both are converged (TMB max|outer gradient| 1.51e-12; Julia converged=TRUE and unchanged at g_tol = 1e-10), and an R transcription of DRM.jl's GHQ marginal evaluated at Julia's estimate reproduces Julia's logLik to 0 (-185.86575807551; K=64 moves it by 3.52e-06, so K=32 is converged in K) -- ghq_check.R / ghq-check.tsv. The gap is the approximation on the same model, not a wrong answer. REML: UNSUPPORTED. The shipped bridge refuses before Julia starts with drmTMB's own message: \"`engine = \"julia\"` does not support `method = \"REML\"` with a random intercept on `sigma`.\" With that pre-check disabled the ENGINE refuses with: \"ArgumentError: drm: method = :REML is not implemented for this model on the generic univariate Gaussian route (random slopes, a random effect on sigma, a structured mean marker  --  phylo/relmat/animal/spatial  --  without a matching sd() submodel, and meta_V() all land here). REML IS available for: the fixed-effect Gaussian location-scale model; a single Gaussian mean random intercept `(1 | g)`; every sd() LSS route (`sd(g)`, `sd_phylo` dense and sparse, and the multi-component sd() router); the bivariate structured routes (q=2 and q=4, both native and via drm_bridge); and Poisson `(1 | g)` and Poisson `phylo(1 | species)`. Use method = :ML (the default) for this model.\" Measured 2026-09-05 through drmTMB(engine = \"julia\") at DRM.jl 430ef64ccca5642c5abebd72194e00895314dfc2 with the #625 estim_method oracle (docs/dev-log/evidence/julia-r-parity/ordinary-re-census/: census.tsv, parity-fixtures-ordinary-re.tsv, parity-se-ordinary-re.tsv; comparator build stamped in those TSVs' drmtmb_code_hash column -- the digest deparses this very function, so it cannot be quoted here without moving). One draw per shape (n=150, 15 groups x 10, seed 20260904); result-shape and point/SE parity only, NOT interval coverage. RECEIPT BANKED 2026-09-05 (leaf uncited-random-effects). The numbers this row already quoted lived in DRM.jl's docs/dev-log/evidence/julia-r-parity/ordinary-re-census/, a table no generator joins -- which is why the parity scoreboard read this capability UNCITED on its bridge axis. Re-measured at DRM.jl 345892520 (origin/main, NOT the dead 430ef64cc pin) against drmTMB 2fcbb0fbf, comparator build 3bbe615e, and banked into a table the scoreboard DOES join by capability_id: DRM.jl docs/dev-log/evidence/parity-classc.tsv, written by tools/parity_ranef.R. Cell gaussian_sigma_ri_ml (PARITY_FAIL: coef 4.743e-04, logLik 1.009e-01, sigma-RE SD 0.518257 tmb vs 0.522453 julia, SE_FAIL 1.762e-02 relative). The Laplace-vs-32-node-GHQ diagnosis above REPRODUCES at a different DRM.jl sha, on a different draw, with the same sign and order of magnitude -- so it is the integrator, not a seed. This row is a CITED NEGATIVE control: it is the proof the parity harness can report a failure, and it must not be promoted on parity. The interval_status fences are unchanged.",
       "ADMITTED 2026-09-05 (A4, one registry row: spec(\"beta_binomial\", fe = TRUE)). Receipts measured on the A4 worktree (drmTMB 0.7.0 at c062a2285 == origin/main ea3156d73 content, load_all; drmtmb_code_hash 63d269e3 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, comparator code taken verbatim from DRM.jl tools/parity_fixture.R and tools/parity_se.R (rows in docs/dev-log/after-task/2026-09-05-a4-beta_binomial.md): engine='tmb' vs engine='julia' on the tests/testthat/test-beta-binomial.R draw (n=1200, seed 20260510, cbind(success, failure) ~ x, sigma ~ z), coefficients 7.772e-15 (4/4 name-matched), logLik -2888.851317 on both engines (diff 2.574e-10), SE 6.177e-09 abs / 1.725e-07 rel over 4 SEs; estimator ML on both (fit$estimator == DRM.jl estim_method). The negative control in the same table (cell 1 with se_julia[1]*1.10) reads NEGATIVE_CONTROL_OK at rel 9.091e-02. Same sigma parameterisation on both engines (phi = 1/sigma^2); trials cross as per-row context, not a dpar. BOUNDARY: fixed effects only, one fixture; phylo() with this family refuses before Julia (registry phylo_only = FALSE on purpose: DRM.jl BetaBinomial phylo is constant-sigma only, no receipt); no (1 | g) claim (A5), no structured markers, no interval-coverage claim; bridge-side profile/bootstrap inference is unqualified (G3).",
-      "Fixed-effect route only, dpar mu (ordered-factor response, cutpoints kept out of coef()/vcov() in fit$ordinal). Receipts measured by the cumulative_logit leaf (#1174) on its worktree (drmTMB HEAD 67703f541) against the DRM.jl pin 430ef64cc on the tests/testthat/test-cumulative-logit.R draw (n=900, seed 20260509, bf(score ~ x), 3 ordered levels), banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id cumulative_logit, carried into the G11 evidence PR as fe_cumulative_logit) and parity-se.tsv (cell_id se_cumulative_logit): engine='tmb' vs engine='julia', max|d coef| 2.198e-14 (1/1: mu_x, the intercept is dropped by design), logLik -903.275348750815 vs -903.275348750827 (diff 1.125e-11), cutpoints (fit$ordinal, not coef) max|d| 8.982e-13, theta_raw max|d| 6.242e-13, SE max|d| 3.988e-10 abs / 5.758e-09 rel over 1 SE; estimator ML on both; negative control (se_julia[1]*1.10) read NEGATIVE_CONTROL_OK at rel 9.091e-02. Comparator build drmtmb_code_hash 2300400cb1bef76fedd0084d3cd23674b95c3c7f7d37f2489c2952297e96e1f0. KNOWN GAP, TRACKED NOT FIXED HERE: predict(fit, dpar = \"mu\", type = \"response\"/\"link\") on the Julia object aborts (\"could not align the `stored` design with the fitted `mu` coefficients\") because drm_julia_predict_fixed_eta() rebuilds mu's design with model.matrix(), which restores \"(Intercept)\", while the fitted block has only x -- the native engine's ordinal_mu_model_matrix() projection is not mirrored on the Julia predict path; closed by drmTMB#1195 (merges after this integration PR, not yet in this branch). predict(fit, type = \"quantile\") through the bridge is a separate, family-general gap tracked as drmTMB#1198, not specific to cumulative_logit. fitted() is unaffected (it comes from DRM.jl and matches native). BOUNDARY: fixed effects only; no phylogenetic, structured, or random-effect route (a bare (1 | g) on mu fails CLOSED at DRM.jl's echo, coef_labels missing dpar \"resd\"); no interval-coverage claim; predict() is a declared, unclaimed gap (see above); bridge-side profile/bootstrap inference is unqualified (G3).",
+      "The family-level registry row remains fixed-effect-only, dpar mu (ordered-factor response, cutpoints kept out of coef()/vcov() in fit$ordinal); the development bridge separately admits one ordinary intercept or one numeric slope with its matching sd() formula. Receipts measured by the cumulative_logit leaf (#1174) on its worktree (drmTMB HEAD 67703f541) against the DRM.jl pin 430ef64cc on the tests/testthat/test-cumulative-logit.R draw (n=900, seed 20260509, bf(score ~ x), 3 ordered levels), banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id cumulative_logit, carried into the G11 evidence PR as fe_cumulative_logit) and parity-se.tsv (cell_id se_cumulative_logit): engine='tmb' vs engine='julia', max|d coef| 2.198e-14 (1/1: mu_x, the intercept is dropped by design), logLik -903.275348750815 vs -903.275348750827 (diff 1.125e-11), cutpoints (fit$ordinal, not coef) max|d| 8.982e-13, theta_raw max|d| 6.242e-13, SE max|d| 3.988e-10 abs / 5.758e-09 rel over 1 SE; estimator ML on both; negative control (se_julia[1]*1.10) read NEGATIVE_CONTROL_OK at rel 9.091e-02. Comparator build drmtmb_code_hash 2300400cb1bef76fedd0084d3cd23674b95c3c7f7d37f2489c2952297e96e1f0. KNOWN GAP, TRACKED NOT FIXED HERE: predict(fit, dpar = \"mu\", type = \"response\"/\"link\") on the Julia object aborts (\"could not align the `stored` design with the fitted `mu` coefficients\") because drm_julia_predict_fixed_eta() rebuilds mu's design with model.matrix(), which restores \"(Intercept)\", while the fitted block has only x -- the native engine's ordinal_mu_model_matrix() projection is not mirrored on the Julia predict path; closed by drmTMB#1195 (merges after this integration PR, not yet in this branch). predict(fit, type = \"quantile\") through the bridge is a separate, family-general gap tracked as drmTMB#1198, not specific to cumulative_logit. fitted() is unaffected (it comes from DRM.jl and matches native). BOUNDARY: one ordinary intercept or one numeric-slope SD-regression bridge exception is admitted only with an exact matching formula; bare random effects without SD regression, phylogenetic, and other structured routes remain refused (a bare (1 | g) on mu fails CLOSED at DRM.jl's echo, coef_labels missing dpar \"resd\"); no interval-coverage claim; predict() is a declared, unclaimed gap (see above); bridge-side profile/bootstrap inference is unqualified (G3).",
       "Fixed-effect route only, dpars mu/sigma/nu (public moment parameterisation mu=mean, sigma=SD, nu=Azzalini slant, identical on both engines). DRM.jl's _bridge_family() case for this tag is DRM.jl PR #641 -- the pin 430ef64cc alone lacks it and aborts at the Julia boundary with \"drm_bridge: unsupported family `skew_normal`\"; measured with #641 applied (the A4 skew_normal leaf's DRM.jl worktree). Receipts measured by the skew_normal leaf (#1176) on the tests/testthat/test-skew-normal-location-scale.R draw (n=500, seed 20260608, nu=1.6, bf(y ~ x, sigma ~ z, nu ~ 1)), banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id skew_normal, carried into the G11 evidence PR as fe_skew_normal) and parity-se.tsv (cell_id se_skew_normal): engine='tmb' vs engine='julia', max|d coef| 1.890e-11 (5/5 name-matched), logLik -532.154369983715 vs -532.154369983717 (diff 2.160e-12), SE max|d| 5.478e-08 abs / 1.045e-06 rel over 5 SEs; estimator ML on both; negative control read NEGATIVE_CONTROL_OK at rel 9.091e-02. Comparator build drmtmb_code_hash cc1f91b5303ac9b49aa351f90dd3c0a30cc29ea576ef291c07fa549da44dda5b. A predictor-dependent nu ~ z shape ALSO parity-passes on the same fixture (native -531.719807046535, Julia -531.719807046538). THE NU-DEFAULTING GAP THIS ROW'S LEAF NAMED IS NOW CLOSED BY THIS SAME PR: drm_julia_bridge_default_dpar_labels() (G1/G2/G3 above) now defaults `nu` for skew_normal exactly as it does for tweedie and student, so bf(y ~ x, sigma ~ z) (nu omitted) also fits; re-measurement of that specific bare-nu shape against a live #641 DRM.jl checkout was attempted here and BLOCKED -- not by #641, but because the skew_normal registry row (#1176) is not yet merged into this branch and this leaf's OWNS does not include R/julia-family-registry.R, so drm_julia_family_tag() refuses the call before Julia is reached; the label-defaulting mechanism itself is verified offline (tests/testthat/test-julia-bridge-default-labels.R) and live end-to-end for the identical code path on tweedie (G2). BOUNDARY: fixed effects only; DRM.jl's SkewNormal() refuses every random effect (measured: \"SkewNormal() supports fixed effects only\", DRM.jl-attributed, post-boot, not an R-side pre-refusal); no phylogenetic or structured route; REML refused on the R side before Julia by the existing non-Gaussian REML rule; no interval-coverage claim; bridge-side profile/bootstrap inference is unqualified (G3). PROMOTED partial -> supported 2026-09-07 on the #1187 gate ladder, at DRM.jl #767 with drmTMB built from 566a56815. G3 (a non-empty ready set, every member profiling to a finite interval): profile through engine = \"julia\" agrees with engine = \"tmb\" at rel 1.92e-06, inside the 1e-4 bar; Wald agrees in the same run. G4 bootstrap is DISTRIBUTIONAL OVERLAP ONLY, never endpoint equality -- R = 99, seed 20260824, tmb [0.386063, 0.495429] vs julia [0.372009, 0.499304], overlapping. THIS ROW WAS BLOCKED BY A REAL ENGINE BUG, not by missing evidence: DRM.jl _simulate_once had no SkewNormal branch, so the parametric bootstrap threw (simulate: not yet supported for SkewNormal) on EVERY replicate and surfaced through the bridge as the unhelpful (Error happens in Julia). Fixed in DRM.jl #767, whose simulator reuses the same moment-to-internal mapping the fitter uses so the two cannot drift; verified by simulate-then-refit recovery at N = 1e5 against a deliberate mis-parameterisation control showing about 1000x the needed power, plus a KS test against Distributions.SkewNormal (0.00264 vs 0.00515 critical). NOT COVERED: fixed-effect route only, one seed, a mean-and-scale-intercept model. Nothing here speaks to random effects, phylo(), spatial structure, or a modelled sigma slope -- none were fitted. NOT interval coverage (D-181 #2).",
       "Fixed-effect route only, dpars mu/sigma/nu (log mu, log sigma, logit12 nu link; the Tweedie power parameter is fixed, not a free dpar). Receipts measured by the tweedie leaf (#1169) on its worktree against the DRM.jl pin 430ef64cc on the tests/testthat/test-tweedie-location-scale.R draw (n=500, seed 20260701, bf(y ~ x, sigma ~ z, nu ~ 1)), banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id fe_tweedie) and parity-se.tsv (cell_id se_tweedie_locscale_power): engine='tmb' vs engine='julia', max|d coef| 2.767e-11, logLik -463.227431798281 on both engines (diff 0), SE max|d| 1.029e-07 abs / 3.273e-06 rel over 5 SEs; estimator ML on both; negative control (se_julia[1]*1.10) read NEGATIVE_CONTROL_OK at rel 9.091e-02. Comparator build drmtmb_code_hash f5ac6e47abc3f8ce76fecc37ecbe5ade1359f704a89b0b2a28c29129aacb28ca. R_BRIDGE_STATUS PROMOTED TO PARTIAL: tools/validate-mission-control.py's R_BRIDGE_STATUSES vocabulary gained \"partial\" via #1172, merged into main and carried into this integration; this row and the other four A4 rows (fe_cumulative_logit, fe_skew_normal, fe_zero_one_beta, fe_truncated_nbinom2) are promoted together, meeting the same wave-1 point+SE parity bar. KNOWN JULIA-AHEAD GAP, NOT FIXED HERE (outside this leaf's two-function OWNS; recorded as G16 in the integration ledger): a formula omitting nu previously aborted at DRM.jl's echo because drm_julia_bridge_default_dpar_labels() defaulted nu for student only; this leaf's default-label fix (G1-G3) closes that gap for tweedie too, so bf(y ~ x, sigma ~ z) (nu omitted) now also fits. A predictor-dependent nu ~ z shape ALSO fits through engine=\"julia\" while native drmTMB refuses it (\"tweedie currently supports only intercept-only nu ~ 1\", no native comparator); the bridge now emits one cli_inform naming that shape as Julia-ahead and unverified (G16) rather than accepting it silently. BOUNDARY: fixed effects only; no phylogenetic, structured, or random-effect route (a bare (1 | g) fails CLOSED at DRM.jl's echo, scope held); no interval-coverage claim; bridge-side profile/bootstrap inference is unqualified (G3). PROMOTED partial -> supported 2026-09-07 on the #1187 gate ladder, at DRM.jl #767 with drmTMB built from 566a56815. G3 (a non-empty ready set, every member profiling to a finite interval): profile through engine = \"julia\" agrees with engine = \"tmb\" at rel 1.33e-06, inside the 1e-4 bar; Wald agrees in the same run. G4 bootstrap is DISTRIBUTIONAL OVERLAP ONLY, never endpoint equality -- R = 99, seed 20260824, tmb [0.284941, 0.634064] vs julia [0.284678, 0.596606], overlapping. NOT COVERED: fixed-effect route only, one seed, a mean-and-scale-intercept model. Nothing here speaks to random effects, phylo(), spatial structure, or a modelled sigma slope -- none were fitted. NOT interval coverage (D-181 #2).",
       "Fixed-effect route only, dpars mu/sigma/zoi/coi (zero-one-inflated beta; zoi = zero-or-one inflation probability, coi = conditional one-vs-zero probability given inflation, identical parameterisation on both engines). Receipts measured by the zero_one_beta leaf (#1171) on its worktree against the DRM.jl pin 430ef64cc on the tests/testthat/test-zero-one-beta.R draw (n=1600, seed 20260620, bf(y ~ x, sigma ~ z, zoi ~ w, coi ~ v)), banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id zero_one_beta, carried into the G11 evidence PR as fe_zero_one_beta) and parity-se.tsv (cell_id se_zero_one_beta): engine='tmb' vs engine='julia', max|d coef| 3.979e-11 (8/8 name-matched), logLik -811.772322246398 vs -811.772322246396 (diff 1.933e-12), df 8/8, max|d fitted| 9.08e-12, SE max|d| 1.763e-08 abs / 9.759e-07 rel over 8 SEs; estimator ML on both; negative control (se_julia[1]*1.10) read NEGATIVE_CONTROL_OK at rel 9.091e-02. Comparator build drmtmb_code_hash 4f1641cf40009fc5d0577f7436a7e6f37a6462afdcc1719bff855bd8ce2279f4. R_BRIDGE_STATUS PROMOTED TO PARTIAL, for the identical validator-vocabulary reason recorded on the fe_tweedie row above (#1172 has landed the vocabulary fix). KNOWN HOLE CLOSED BY THIS SAME PR: the zero_one_beta leaf's own commit named an open hole -- omitting zoi/coi from the formula aborted at DRM.jl's label echo because the R-side defaulter only defaulted sigma; drm_julia_bridge_default_dpar_labels() (G1-G3 above) now defaults zoi and coi for this family too, so bf(prop ~ x, sigma ~ z) (zoi/coi omitted) fits through engine=\"julia\" (measured logLik -425.0937691, replacing tests/testthat/test-julia-family-zero_one_beta.R's stale KNOWN-HOLE test with a fit assertion in this same leaf). BOUNDARY: fixed effects only; DRM.jl refuses every random effect on this family; no phylogenetic or structured route; no interval-coverage claim; bridge-side profile/bootstrap inference is unqualified (G3). PROMOTED partial -> supported 2026-09-07 on the #1187 gate ladder, at DRM.jl #767 with drmTMB built from 566a56815. G3 (a non-empty ready set, every member profiling to a finite interval): profile through engine = \"julia\" agrees with engine = \"tmb\" at rel 3.76e-06, inside the 1e-4 bar; Wald agrees in the same run. G4 bootstrap is DISTRIBUTIONAL OVERLAP ONLY, never endpoint equality -- R = 99, seed 20260824, tmb [0.696469, 0.869503] vs julia [0.696153, 0.891627], overlapping. NOT COVERED: fixed-effect route only, one seed, a mean-and-scale-intercept model. Nothing here speaks to random effects, phylo(), spatial structure, or a modelled sigma slope -- none were fitted. NOT interval coverage (D-181 #2).",
@@ -617,7 +622,14 @@ drmTMB_julia_bridge <- function(
   call
 ) {
   REML <- drm_control_flag(REML, "REML")
-  drm_julia_refuse_marker_slope_unsupported(formula)
+  drm_julia_refuse_binomial_nonlogit_sd(formula, family)
+  drm_julia_refuse_offset_unsupported(
+    formula,
+    family_type = drm_julia_bridge_family_type(family)
+  )
+  drm_julia_refuse_marker_slope_unsupported(
+    formula, family_type = drm_julia_bridge_family_type(family)
+  )
   if (drm_julia_joint_requested(formula, impute, missing)) {
     return(drmTMB_julia_joint_bridge(
       formula = formula, family = family, data = data, env = env,
@@ -641,6 +653,17 @@ drmTMB_julia_bridge <- function(
     ))
   }
   family_type <- drm_julia_bridge_family_type(family)
+  if (identical(family_type, "binomial") &&
+      drm_julia_binomial_phylo_interaction_sd_route_admitted(formula)) {
+    drm_julia_refuse_reml_unsupported(
+      REML, "Binomial phylogenetic-interaction SD"
+    )
+    return(drmTMB_julia_binomial_phylo_interaction_sd_bridge(
+      formula = formula, family = family, data = data, env = env,
+      weights_missing = weights_missing, control = control, impute = impute,
+      missing = missing, REML = REML, call = call
+    ))
+  }
   drm_julia_check_ordinary_sigma_ranef_route_limits(
     formula = formula,
     family_type = family_type,
@@ -710,8 +733,19 @@ drmTMB_julia_bridge <- function(
   control_overrides <- drm_julia_translate_control(control)
 
   has_phylo <- drm_julia_has_phylo_term(formula)
-  family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
-  drm_julia_refuse_fe_only_random_effects(formula, family_type)
+  family_tag <- if (
+    identical(family_type, "binomial") &&
+      family$link %in% c("probit", "cloglog")
+  ) {
+    paste0("binomial_", family$link)
+  } else {
+    drm_julia_family_tag(family_type, has_phylo = has_phylo)
+  }
+  drm_julia_refuse_fe_only_random_effects(
+    formula,
+    family_type,
+    data = data
+  )
   drm_julia_refuse_biv_student_beyond_native(formula, family_type)
   drm_julia_refuse_unadmitted_predictor_dpars(formula, family_type)
   # REML forwards to DRM.jl's `drm(...; method = :REML)` for univariate
@@ -763,6 +797,8 @@ drmTMB_julia_bridge <- function(
   # rows through returns NaN / non-convergence instead of the dropped-case fit
   # native TMB gives. Dropping here also keeps the fit's stored data, nobs, and
   # phylo row_order / species consistent on the complete-case data.
+  # The dropped count is stored on the data and copied onto the fit so
+  # check_drm() can report it (#1454). response = "include" does not drop.
   if (identical(missing_control$response, "drop")) {
     data <- drm_julia_drop_missing_rows(data, formula)
   }
@@ -1157,10 +1193,11 @@ drm_julia_missing_supported <- function(missing_control, family_type) {
 # Bridge-local family classifier. drmTMB's native `drm_family_type()` is the
 # source of truth for every family the TMB engine fits, but it has no branch for
 # a plain base-R `binomial()` (native binomial support is via `beta_binomial()`).
-# DRM.jl DOES fit a univariate Binomial phylo model, so the bridge recognizes a
-# `binomial(link = "logit")` object here and maps it to the "binomial" tag;
-# every other family defers to `drm_family_type()`. The logit-link guard mirrors
-# DRM.jl's Binomial likelihood, which is logit-mean ONLY.
+# DRM.jl fits the logit Binomial route, plus probit/cloglog for the exact
+# ordinary intercept, independent numeric-slope, or matched intercept-plus-
+# slope SD routes. The same three links admit the phylogenetic intercept and
+# slope-only SD routes gated below. Link-specific tags keep these models
+# distinct at the Julia boundary.
 #
 # DO NOT go back to relying on `drm_family_type()` to reject a non-logit
 # binomial. It used to do so, and this function leaned on that: the previous
@@ -1169,26 +1206,352 @@ drm_julia_missing_supported <- function(missing_control, family_type) {
 # logit-only, which made a NATIVE-engine admissibility check double as this
 # bridge's safety net by accident.
 #
-# drmTMB now admits `probit` and `cloglog` natively. Were this function still
-# deferring, such a fit would fall through and reach DRM.jl tagged plainly as
-# "binomial" -- and DRM.jl would fit it as LOGIT. That is a silently wrong model
-# that runs and returns plausible numbers, which is far worse than a loud
-# failure. The rejection is therefore explicit and local, and must stay that way
-# whatever the native guard admits in future.
-# (Emmy, Arc D review; docs/design/252-binomial-link-generalisation.md sec 5.)
+# Non-logit fixed-effect routes stay refused. Structured admission is limited
+# to the exact Binomial SD routes supported by DRM.jl.
 drm_julia_bridge_family_type <- function(family) {
   if (inherits(family, "family") && identical(family$family, "binomial")) {
-    if (identical(family$link, "logit")) {
+    if (family$link %in% c("logit", "probit", "cloglog")) {
       return("binomial")
     }
     cli::cli_abort(c(
-      "The {.pkg DRM.jl} bridge supports {.code binomial(link = \"logit\")} only.",
+      "The {.pkg DRM.jl} bridge does not support binomial link {.val {family$link}}.",
       "x" = "Received binomial link {.val {family$link}}.",
-      "i" = "{.pkg drmTMB} fits this link natively; use {.code engine = \"tmb\"}.",
-      "i" = "DRM.jl's Binomial likelihood is logit-mean only, so routing this model to the bridge would silently fit a different model."
+      "i" = "Use {.code logit}, {.code probit}, or {.code cloglog} with {.code engine = \"tmb\"} or the admitted Julia route."
     ))
   }
   drm_family_type(family)
+}
+
+drm_julia_binomial_sd_link_route_admitted <- function(
+  formula,
+  data = NULL,
+  link = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) < 1L ||
+      length(mu_idx) != 1L || anyDuplicated(dpars) ||
+      !setequal(dpars[!startsWith(dpars, "sd")], "mu")) {
+    return(FALSE)
+  }
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  mu_structured <- entries[[mu_idx]]$structured
+  sd_structured <- unlist(lapply(entries[sd_idx], `[[`, "structured"),
+                          recursive = FALSE)
+  if (length(sd_structured) > 0L) return(FALSE)
+  phylo <- length(mu_structured) > 0L
+  has_correlated_block <- FALSE
+  if (phylo) {
+    if ((!is.null(link) && !link %in% c("logit", "probit", "cloglog")) ||
+        length(mu_structured) != 1L || length(sd_idx) != 1L ||
+        !identical(mu_structured[[1L]]$type, "phylo") ||
+        any(vapply(mu_terms, is_random_bar_call, logical(1L)))) {
+      return(FALSE)
+    }
+    phylo_term <- mu_structured[[1L]]
+    if (identical(phylo_term$coef_names, "(Intercept)")) {
+      random <- list(list(type = "intercept", group = phylo_term$group))
+    } else if (
+      length(phylo_term$coef_names) == 1L &&
+        length(phylo_term$variables) == 1L &&
+        identical(phylo_term$coef_names, phylo_term$variables)
+    ) {
+      random <- list(list(
+        type = "slope",
+        variable = phylo_term$variables[[1L]],
+        group = phylo_term$group
+      ))
+    } else {
+      return(FALSE)
+    }
+  } else {
+    if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                   logical(1L)))) {
+      return(FALSE)
+    }
+    bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+    parsed_random <- lapply(bar_idx, function(i) {
+      bar <- strip_parens(mu_terms[[i]])
+      if (length(bar) != 3L || !is.symbol(bar[[3L]])) return(NULL)
+      group <- as.character(bar[[3L]])
+      parsed <- tryCatch(
+        parse_random_mu_lhs(bar[[2L]], "mu", group),
+        error = function(e) NULL
+      )
+      if (is.null(parsed) || !parsed$type %in% c(
+        "intercept", "slope", "correlated_slope", "correlated_block"
+      )) {
+        return(NULL)
+      }
+      parsed$group <- group
+      parsed
+    })
+    if (any(vapply(parsed_random, is.null, logical(1L)))) return(FALSE)
+    has_correlated_q2 <- length(parsed_random) == 1L &&
+      identical(parsed_random[[1L]]$type, "correlated_slope") &&
+      is.null(parsed_random[[1L]]$covariance_label) &&
+      length(parsed_random[[1L]]$coef_names) == 2L &&
+      identical(parsed_random[[1L]]$coef_names[[1L]], "(Intercept)") &&
+      length(parsed_random[[1L]]$variables) == 1L
+    has_correlated_block <- length(parsed_random) == 1L &&
+      identical(parsed_random[[1L]]$type, "correlated_block") &&
+      is.null(parsed_random[[1L]]$covariance_label) &&
+      length(parsed_random[[1L]]$coef_names) >= 3L &&
+      identical(parsed_random[[1L]]$coef_names[[1L]], "(Intercept)") &&
+      length(parsed_random[[1L]]$variables) ==
+        length(parsed_random[[1L]]$coef_names) - 1L
+    if (has_correlated_q2 || has_correlated_block) {
+      q <- if (has_correlated_q2) 2L else
+        length(parsed_random[[1L]]$coef_names)
+      if (length(sd_idx) != q) return(FALSE)
+      correlated <- parsed_random[[1L]]
+      random <- c(
+        list(list(type = "intercept", group = correlated$group)),
+        lapply(correlated$variables, function(variable) {
+          list(type = "slope", variable = variable, group = correlated$group)
+        })
+      )
+    } else {
+      if (length(parsed_random) != length(sd_idx) ||
+          any(!vapply(parsed_random, function(term) {
+            term$type %in% c("intercept", "slope")
+          }, logical(1L)))) {
+        return(FALSE)
+      }
+      random <- parsed_random
+    }
+  }
+  if (any(vapply(random, is.null, logical(1L)))) {
+    return(FALSE)
+  }
+  if ((length(random) %in% 2L:3L || has_correlated_block) &&
+      (sum(vapply(random, function(term) identical(term$type, "intercept"),
+                  logical(1L))) != 1L ||
+        sum(vapply(random, function(term) identical(term$type, "slope"),
+                   logical(1L))) != length(random) - 1L ||
+        length(unique(vapply(random, `[[`, character(1L), "group"))) != 1L)) {
+    return(FALSE)
+  }
+
+  targets <- lapply(sd_idx, function(i) {
+    tryCatch(parse_sd_lhs(entries[[i]]$lhs), error = function(e) NULL)
+  })
+  if (any(vapply(targets, is.null, logical(1L)))) return(FALSE)
+  if (length(random) > 1L && any(vapply(targets, function(target) {
+    is.na(target$target_coef)
+  }, logical(1L)))) {
+    return(FALSE)
+  }
+
+  matches <- lapply(random, function(term) {
+    expected_coef <- if (identical(term$type, "intercept")) {
+      "(Intercept)"
+    } else {
+      term$variable
+    }
+    which(vapply(targets, function(target) {
+      identical(target$fun, if (phylo) "sd_phylo" else "sd") &&
+        identical(target$group, term$group) &&
+        (is.na(target$target_dpar) ||
+          identical(target$target_dpar, "mu")) &&
+        is.na(target$target_block) &&
+        (if (phylo) identical(target$level, "phylogenetic") else
+          is.na(target$level)) &&
+        (is.na(target$target_coef) ||
+          identical(target$target_coef, expected_coef))
+    }, logical(1L)))
+  })
+  if (any(lengths(matches) != 1L)) return(FALSE)
+  matched_idx <- vapply(matches, `[[`, integer(1L), 1L)
+  if (length(unique(matched_idx)) != length(targets)) return(FALSE)
+
+  for (term in random) {
+    if (identical(term$type, "slope") && !is.null(data) &&
+        (!is.data.frame(data) || !term$variable %in% names(data) ||
+          !is.numeric(data[[term$variable]]))) {
+      return(FALSE)
+    }
+  }
+  !any(vapply(sd_idx, function(i) {
+    any(vapply(flatten_plus_terms(entries[[i]]$rhs),
+               is_random_bar_call, logical(1L)))
+  }, logical(1L)))
+}
+
+drm_julia_binomial_phylo_ordinary_sd_route_admitted <- function(
+  formula,
+  link = NULL
+) {
+  if (!is.null(link) && !link %in% c("probit", "cloglog")) return(FALSE)
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  mu_idx <- which(dpars == "mu")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  if (length(mu_idx) != 1L || length(sd_idx) != 2L ||
+      anyDuplicated(dpars) ||
+      !setequal(dpars[!startsWith(dpars, "sd")], "mu")) {
+    return(FALSE)
+  }
+  structured_sd <- unlist(lapply(entries[sd_idx], `[[`, "structured"),
+                          recursive = FALSE)
+  if (length(structured_sd) > 0L) return(FALSE)
+
+  mu <- entries[[mu_idx]]
+  if (length(mu$structured) != 1L ||
+      !identical(mu$structured[[1L]]$type, "phylo") ||
+      !identical(mu$structured[[1L]]$coef_names, "(Intercept)")) {
+    return(FALSE)
+  }
+  terms <- flatten_plus_terms(mu$rhs)
+  bar_idx <- which(vapply(terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) return(FALSE)
+  bar <- strip_parens(terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) return(FALSE)
+  group <- as.character(bar[[3L]])
+  ordinary <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(ordinary) || !identical(ordinary$type, "intercept")) {
+    return(FALSE)
+  }
+
+  targets <- lapply(sd_idx, function(i) {
+    tryCatch(parse_sd_lhs(entries[[i]]$lhs), error = function(e) NULL)
+  })
+  if (any(vapply(targets, is.null, logical(1L)))) return(FALSE)
+  phylo_group <- mu$structured[[1L]]$group
+  target_is_plain <- function(target) {
+    is.na(target$target_coef) && is.na(target$target_block) &&
+      (is.na(target$target_dpar) || identical(target$target_dpar, "mu"))
+  }
+  ordinary_target <- which(vapply(targets, function(target) {
+    identical(target$fun, "sd") && identical(target$group, group) &&
+      is.na(target$level) && target_is_plain(target)
+  }, logical(1L)))
+  phylo_target <- which(vapply(targets, function(target) {
+    identical(target$fun, "sd_phylo") &&
+      identical(target$group, phylo_group) &&
+      identical(target$level, "phylogenetic") && target_is_plain(target)
+  }, logical(1L)))
+  if (length(ordinary_target) != 1L || length(phylo_target) != 1L ||
+      identical(ordinary_target, phylo_target)) {
+    return(FALSE)
+  }
+  !any(vapply(sd_idx, function(i) {
+    any(vapply(flatten_plus_terms(entries[[i]]$rhs),
+               is_random_bar_call, logical(1L)))
+  }, logical(1L)))
+}
+
+drm_julia_binomial_phylo_sd_slope_route_admitted <- function(
+  formula,
+  data = NULL,
+  link = NULL
+) {
+  structured <- unlist(
+    lapply(formula$entries, `[[`, "structured"),
+    recursive = FALSE
+  )
+  phylo_slopes <- Filter(function(term) {
+    identical(term$type, "phylo") && identical(term$dpar, "mu") &&
+      length(term$coef_names) == 1L &&
+      length(term$variables) == 1L &&
+      identical(term$coef_names, term$variables)
+  }, structured)
+  length(phylo_slopes) == 1L &&
+    drm_julia_binomial_sd_link_route_admitted(
+      formula, data = data, link = link
+    )
+}
+
+drm_julia_binomial_correlated_q3_sd_route <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  if (sum(startsWith(dpars, "sd")) != 3L) return(FALSE)
+  mu_idx <- which(dpars == "mu")
+  if (length(mu_idx) != 1L) return(FALSE)
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) return(FALSE)
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) return(FALSE)
+  parsed <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", as.character(bar[[3L]])),
+    error = function(e) NULL
+  )
+  !is.null(parsed) && identical(parsed$type, "correlated_block") &&
+    length(parsed$coef_names) == 3L
+}
+
+drm_julia_refuse_binomial_nonlogit_sd <- function(formula, family) {
+  if (!inherits(family, "family") || !identical(family$family, "binomial")) {
+    return(invisible(NULL))
+  }
+  if (identical(family$link, "logit")) return(invisible(NULL))
+  if (!family$link %in% c("probit", "cloglog")) {
+    return(invisible(NULL))
+  }
+  if (family$link %in% c("probit", "cloglog")) {
+    ordinary_or_phylo <- drm_julia_binomial_sd_link_route_admitted(
+      formula, link = family$link
+    )
+    phylo_ordinary <- drm_julia_binomial_phylo_ordinary_sd_route_admitted(
+      formula, link = family$link
+    )
+    structured_route_admitted <- any(vapply(
+      list(
+        drm_julia_binomial_animal_sd_intercept_route_admitted,
+        drm_julia_binomial_animal_iid_sd_route_admitted,
+        drm_julia_binomial_animal_sd_slope_route_admitted,
+        drm_julia_binomial_animal_q2_sd_route_admitted,
+        drm_julia_binomial_relmat_sd_route_admitted,
+        drm_julia_binomial_relmat_iid_sd_route_admitted,
+        drm_julia_binomial_spatial_sd_route_admitted,
+        drm_julia_binomial_phylo_interaction_sd_route_admitted
+      ),
+      function(admit) admit(formula),
+      logical(1L)
+    )) || phylo_ordinary
+    if (structured_route_admitted) {
+      structured_terms <- drm_julia_collect_structured_terms(formula)
+      structured_slots_admitted <- all(vapply(
+        structured_terms,
+        function(term) {
+          if (identical(term$type, "animal")) {
+            if (term$structure %in% c("A", "pedigree")) return(TRUE)
+            return(
+              identical(term$structure, "Ainv") &&
+                (drm_julia_binomial_animal_q2_sd_route_admitted(formula) ||
+                 drm_julia_binomial_animal_sd_slope_route_admitted(formula) ||
+                 (identical(term$coef_names, "(Intercept)") &&
+                  drm_julia_binomial_animal_sd_intercept_route_admitted(formula)))
+            )
+          }
+          if (identical(term$type, "spatial")) {
+            return(identical(term$structure, "coords") &&
+              drm_julia_binomial_spatial_sd_route_admitted(formula))
+          }
+          if (identical(term$type, "phylo")) {
+            return(phylo_ordinary)
+          }
+          identical(term$type, "relmat") && identical(term$structure, "K")
+        },
+        logical(1L)
+      ))
+      structured_route_admitted <- structured_slots_admitted
+    }
+    if (ordinary_or_phylo || structured_route_admitted) {
+      return(invisible(NULL))
+    }
+  }
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} admits non-logit Binomial links for its documented ordinary, animal, animal-plus-IID, related-matrix, fixed-coordinate spatial, phylogenetic, and mixed phylogenetic-plus-IID SD routes.",
+    "x" = "The requested formula does not match that route.",
+    "i" = "Use {.code engine = \"tmb\"} for other probit or cloglog random-effect models."
+  ))
 }
 
 # The NATIVE model_type for a bridge fit, which is not always the family tag.
@@ -1459,7 +1822,10 @@ drm_julia_fe_only_fence_families <- function() {
 # `stats::terms()` reports an intercept, no term labels, and no offset. A
 # literal `~ 1` and a redundantly parenthesised `~ (1)` are both intercept-only,
 # while `~ 0 + z` is not -- which the naive `drm_julia_is_intercept_rhs()`
-# (an `identical(rhs, quote(1))` test) gets wrong in both directions.
+# (an `identical(rhs, quote(1))` test) gets wrong in both directions. Shared by
+# the dpar-scope fence and the biv_student constant-dpar check, which both match
+# `drm_build_biv_student_spec()` (measured: `sigma1 = ~ (1)` fits identically on
+# both engines, logLik -466.44449865).
 drm_julia_rhs_is_intercept_only <- function(rhs) {
   tt <- tryCatch(
     stats::terms(stats::as.formula(call("~", rhs), env = baseenv())),
@@ -1617,8 +1983,1018 @@ drm_julia_refuse_biv_lognormal_unsupported <- function(formula, family_type) {
   ))
 }
 
-drm_julia_refuse_fe_only_random_effects <- function(formula, family_type) {
+drm_julia_student_scalar_sd_route_admitted <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L) {
+    return(FALSE)
+  }
+  if (any(!dpars %in% c("mu", "sigma", "nu", dpars[[sd_idx]]))) {
+    return(FALSE)
+  }
+  if (anyDuplicated(dpars[dpars %in% c("sigma", "nu")])) {
+    return(FALSE)
+  }
+  fixed_shape_idx <- which(dpars %in% c("sigma", "nu"))
+  if (any(!vapply(
+    entries[fixed_shape_idx],
+    function(entry) identical(entry$rhs, 1),
+    logical(1L)
+  ))) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) {
+    return(FALSE)
+  }
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) {
+    return(FALSE)
+  }
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope")) {
+    return(FALSE)
+  }
+
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block) || !is.na(target$level)) {
+    return(FALSE)
+  }
+  target_coef <- target$target_coef
+  if (random$type == "slope") {
+    return(identical(target_coef, random$coef_names[[1L]]))
+  }
+  is.na(target_coef) || identical(target_coef, "(Intercept)")
+}
+
+# NB2's sigma-side SD route admits fixed-effect-only mu and one ordinary
+# intercept or independent numeric slope on sigma, paired with its matching
+# `sd(group, dpar = "sigma")` target. Keep this bridge label exception exact:
+# DRM.jl exposes the SD coefficients in its canonical `sd` block.
+drm_julia_negbin2_sigma_sd_route_admitted <- function(formula, data = NULL) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  sigma_idx <- which(dpars == "sigma")
+  zi_idx <- which(dpars == "zi")
+  # The SD endpoint is named sd_<target> in the parsed formula; validate its
+  # prefix separately while keeping the optional zi axis explicit.
+  expected <- c("mu", "sigma", if (length(zi_idx) == 1L) "zi")
+  actual <- dpars[!startsWith(dpars, "sd")]
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      length(sigma_idx) != 1L || length(zi_idx) > 1L ||
+      anyDuplicated(dpars) || !setequal(actual, expected)) {
+    return(FALSE)
+  }
+  if (length(zi_idx) == 1L &&
+      !drm_julia_rhs_is_intercept_only(entries[[zi_idx]]$rhs)) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  if (any(vapply(mu_terms, is_random_bar_call, logical(1L)))) {
+    return(FALSE)
+  }
+  sigma_terms <- flatten_plus_terms(entries[[sigma_idx]]$rhs)
+  bar_idx <- which(vapply(sigma_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) {
+    return(FALSE)
+  }
+  bar <- strip_parens(sigma_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) {
+    return(FALSE)
+  }
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "sigma", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope")) {
+    return(FALSE)
+  }
+  target <- tryCatch(parse_sd_lhs(entries[[sd_idx]]$lhs), error = function(e) NULL)
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !identical(target$target_dpar, "sigma") ||
+      !is.na(target$target_block) || !is.na(target$level)) {
+    return(FALSE)
+  }
+  if (random$type == "intercept") {
+    if (!(is.na(target$target_coef) ||
+          identical(target$target_coef, "(Intercept)"))) {
+      return(FALSE)
+    }
+  } else {
+    if (!identical(target$target_coef, random$coef_names[[1L]])) {
+      return(FALSE)
+    }
+    if (!is.null(data) && (!is.data.frame(data) ||
+        !random$variable %in% names(data) ||
+        !is.numeric(data[[random$variable]]))) {
+      return(FALSE)
+    }
+  }
+  !any(vapply(flatten_plus_terms(entries[[sd_idx]]$rhs),
+              is_random_bar_call, logical(1L)))
+}
+
+# SkewNormal's Julia registry row remains fixed-effect-only by default. Admit
+# only the scalar ordinary mu intercept/slope route that has matching native
+# and Julia likelihood implementations; shape parameters stay fixed.
+drm_julia_skew_normal_scalar_sd_route_admitted <- function(
+  formula,
+  data = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L || anyDuplicated(dpars)) {
+    return(FALSE)
+  }
+  if (any(!dpars %in% c("mu", "sigma", "nu", dpars[[sd_idx]]))) {
+    return(FALSE)
+  }
+  for (pname in c("sigma", "nu")) {
+    p_idx <- which(dpars == pname)
+    if (length(p_idx) == 1L &&
+        !drm_julia_rhs_is_intercept_only(entries[[p_idx]]$rhs)) {
+      return(FALSE)
+    }
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) {
+    return(FALSE)
+  }
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) {
+    return(FALSE)
+  }
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope")) {
+    return(FALSE)
+  }
+
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block) || !is.na(target$level)) {
+    return(FALSE)
+  }
+  sd_terms <- flatten_plus_terms(entries[[sd_idx]]$rhs)
+  if (any(vapply(sd_terms, is_random_bar_call, logical(1L)))) {
+    return(FALSE)
+  }
+
+  if (random$type == "slope") {
+    variable <- random$variable
+    numeric_slope <- is.null(data) || (
+      is.data.frame(data) && variable %in% names(data) &&
+        is.numeric(data[[variable]])
+    )
+    return(
+      numeric_slope &&
+        identical(target$target_coef, random$coef_names[[1L]])
+    )
+  }
+  is.na(target$target_coef) || identical(target$target_coef, "(Intercept)")
+}
+
+drm_julia_zero_one_beta_scalar_sd_route_admitted <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L) {
+    return(FALSE)
+  }
+  if (any(!dpars %in% c("mu", "sigma", "zoi", "coi", dpars[[sd_idx]]))) {
+    return(FALSE)
+  }
+  shape_dpars <- c("sigma", "zoi", "coi")
+  if (anyDuplicated(dpars[dpars %in% shape_dpars])) {
+    return(FALSE)
+  }
+  shape_idx <- which(dpars %in% shape_dpars)
+  if (any(!vapply(
+    entries[shape_idx],
+    function(entry) identical(entry$rhs, 1),
+    logical(1L)
+  ))) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) {
+    return(FALSE)
+  }
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) {
+    return(FALSE)
+  }
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope")) {
+    return(FALSE)
+  }
+
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block) || !is.na(target$level)) {
+    return(FALSE)
+  }
+  if (random$type == "slope") {
+    return(identical(target$target_coef, random$coef_names[[1L]]))
+  }
+  is.na(target$target_coef) || identical(target$target_coef, "(Intercept)")
+}
+
+drm_julia_tweedie_scalar_sd_route_admitted <- function(formula, data = NULL) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L || anyDuplicated(dpars)) {
+    return(FALSE)
+  }
+  if (any(!dpars %in% c("mu", "sigma", "nu", dpars[[sd_idx]]))) {
+    return(FALSE)
+  }
+  nu_idx <- which(dpars == "nu")
+  if (length(nu_idx) == 1L &&
+      !drm_julia_rhs_is_intercept_only(entries[[nu_idx]]$rhs)) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) {
+    return(FALSE)
+  }
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) {
+    return(FALSE)
+  }
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope")) {
+    return(FALSE)
+  }
+
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block) || !is.na(target$level)) {
+    return(FALSE)
+  }
+  sd_terms <- flatten_plus_terms(entries[[sd_idx]]$rhs)
+  if (any(vapply(sd_terms, is_random_bar_call, logical(1L)))) {
+    return(FALSE)
+  }
+  for (pname in c("sigma", "nu")) {
+    p_idx <- which(dpars == pname)
+    if (length(p_idx) == 1L) {
+      p_terms <- flatten_plus_terms(entries[[p_idx]]$rhs)
+      if (any(vapply(p_terms, is_random_bar_call, logical(1L)))) {
+        return(FALSE)
+      }
+    }
+  }
+
+  if (random$type == "slope") {
+    variable <- random$variable
+    numeric_slope <- is.null(data) || (
+      is.data.frame(data) && variable %in% names(data) &&
+        is.numeric(data[[variable]])
+    )
+    return(
+      numeric_slope &&
+        identical(target$target_coef, random$coef_names[[1L]])
+    )
+  }
+  is.na(target$target_coef) || identical(target$target_coef, "(Intercept)")
+}
+
+# LogNormal's Julia location-SD fitter has a narrower contract than the native
+# route: one ordinary mean intercept or independent numeric slope, one matching
+# sd() target, and a fixed scalar sigma. Keep all other LogNormal random shapes
+# behind the registry's fixed-effect fence.
+drm_julia_lognormal_scalar_sd_route_admitted <- function(
+  formula,
+  data = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L || anyDuplicated(dpars)) {
+    return(FALSE)
+  }
+  sd_dpar <- dpars[[sd_idx]]
+  if (any(!dpars %in% c("mu", "sigma", sd_dpar))) {
+    return(FALSE)
+  }
+  sigma_idx <- which(dpars == "sigma")
+  if (length(sigma_idx) == 1L &&
+      !drm_julia_rhs_is_intercept_only(entries[[sigma_idx]]$rhs)) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) {
+    return(FALSE)
+  }
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) {
+    return(FALSE)
+  }
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope")) {
+    return(FALSE)
+  }
+
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block) || !is.na(target$level)) {
+    return(FALSE)
+  }
+
+  sd_terms <- flatten_plus_terms(entries[[sd_idx]]$rhs)
+  if (any(vapply(sd_terms, is_random_bar_call, logical(1L)))) {
+    return(FALSE)
+  }
+
+  if (random$type == "slope") {
+    variable <- random$variable
+    numeric_slope <- is.null(data) || (
+      is.data.frame(data) && variable %in% names(data) &&
+        is.numeric(data[[variable]])
+    )
+    return(
+      numeric_slope &&
+        identical(target$target_coef, random$coef_names[[1L]])
+    )
+  }
+  is.na(target$target_coef) || identical(target$target_coef, "(Intercept)")
+}
+
+# BetaBinomial's Julia SD fitter is narrower than its ordinary random-effect
+# fitter: it admits either one ordinary mean intercept or independent numeric
+# slope with fixed overdispersion, or one ordinary sigma intercept with a fixed-
+# effect-only mean. Keep every other random shape behind the family registry's
+# fixed-effect fence.
+drm_julia_beta_binomial_scalar_sd_route_admitted <- function(
+  formula,
+  data = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  sigma_idx <- which(dpars == "sigma")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      length(sigma_idx) != 1L || anyDuplicated(dpars)) {
+    return(FALSE)
+  }
+  sd_dpar <- dpars[[sd_idx]]
+  if (any(!dpars %in% c("mu", "sigma", sd_dpar)) ||
+      !drm_julia_rhs_is_intercept_only(entries[[sigma_idx]]$rhs)) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) {
+    return(FALSE)
+  }
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) {
+    return(FALSE)
+  }
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope") ||
+      length(random$coef_names) != 1L) {
+    return(FALSE)
+  }
+
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block) || !is.na(target$level)) {
+    return(FALSE)
+  }
+  sd_terms <- flatten_plus_terms(entries[[sd_idx]]$rhs)
+  if (any(vapply(sd_terms, is_random_bar_call, logical(1L)))) {
+    return(FALSE)
+  }
+
+  if (random$type == "slope") {
+    variable <- random$variable
+    numeric_slope <- !is.null(data) && is.data.frame(data) &&
+      variable %in% names(data) && is.numeric(data[[variable]])
+    return(
+      numeric_slope &&
+        identical(target$target_coef, random$coef_names[[1L]])
+    )
+  }
+  is.na(target$target_coef) || identical(target$target_coef, "(Intercept)")
+}
+
+# The direct Julia BetaBinomial sigma-SD route is a separate model from its
+# mean-side SD route: mu is fixed, sigma has one matching ordinary random
+# intercept or independent numeric slope, and the SD formula targets that
+# coefficient's log-sigma scale.
+drm_julia_beta_binomial_sigma_sd_route_admitted <- function(
+  formula,
+  data = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  sigma_idx <- which(dpars == "sigma")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      length(sigma_idx) != 1L || anyDuplicated(dpars)) {
+    return(FALSE)
+  }
+  sd_dpar <- dpars[[sd_idx]]
+  if (any(!dpars %in% c("mu", "sigma", sd_dpar)) ||
+      any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  if (any(vapply(mu_terms, is_random_bar_call, logical(1L)))) {
+    return(FALSE)
+  }
+  sigma_terms <- flatten_plus_terms(entries[[sigma_idx]]$rhs)
+  bar_idx <- which(vapply(sigma_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) {
+    return(FALSE)
+  }
+  bar <- strip_parens(sigma_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) {
+    return(FALSE)
+  }
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "sigma", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope") ||
+      length(random$coef_names) != 1L) {
+    return(FALSE)
+  }
+
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target)) {
+    return(FALSE)
+  }
+  target_coef_matches <- if (identical(random$type, "slope")) {
+    numeric_slope <- is.null(data) || (
+      is.data.frame(data) && random$variable %in% names(data) &&
+        is.numeric(data[[random$variable]])
+    )
+    numeric_slope &&
+      identical(target$target_coef, random$coef_names[[1L]])
+  } else {
+    is.na(target$target_coef) ||
+      identical(target$target_coef, "(Intercept)")
+  }
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !identical(target$target_dpar, "sigma") ||
+      !target_coef_matches || !is.na(target$target_block) ||
+      !is.na(target$level)) {
+    return(FALSE)
+  }
+  sd_terms <- flatten_plus_terms(entries[[sd_idx]]$rhs)
+  !any(vapply(sd_terms, is_random_bar_call, logical(1L)))
+}
+
+# Cumulative-logit's bridge admits one ordinary location intercept or numeric
+# slope with its matching predictor-dependent SD. Keep additional dpars,
+# structured effects, and unmatched SD targets behind the fixed-effect fence.
+drm_julia_cumulative_logit_slope_sd_route_admitted <- function(
+  formula,
+  data = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      anyDuplicated(dpars) || !all(dpars %in% c("mu", dpars[[sd_idx]]))) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) {
+    return(FALSE)
+  }
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) {
+    return(FALSE)
+  }
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !identical(random$type, "slope") ||
+      length(random$coef_names) != 1L) {
+    return(FALSE)
+  }
+
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block) || !is.na(target$level) ||
+      !identical(target$target_coef, random$coef_names[[1L]])) {
+    return(FALSE)
+  }
+  sd_terms <- flatten_plus_terms(entries[[sd_idx]]$rhs)
+  if (any(vapply(sd_terms, is_random_bar_call, logical(1L)))) {
+    return(FALSE)
+  }
+  variable <- random$variable
+  !is.null(data) && is.data.frame(data) && variable %in% names(data) &&
+    is.numeric(data[[variable]])
+}
+
+drm_julia_cumulative_logit_intercept_sd_route_admitted <- function(
+  formula
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      anyDuplicated(dpars) || !all(dpars %in% c("mu", dpars[[sd_idx]]))) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) {
+    return(FALSE)
+  }
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) {
+    return(FALSE)
+  }
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !identical(random$type, "intercept")) {
+    return(FALSE)
+  }
+
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block) || !is.na(target$level) ||
+      !(is.na(target$target_coef) ||
+        identical(target$target_coef, "(Intercept)"))) {
+    return(FALSE)
+  }
+  sd_terms <- flatten_plus_terms(entries[[sd_idx]]$rhs)
+  !any(vapply(sd_terms, is_random_bar_call, logical(1L)))
+}
+
+# The truncated-NB2 fitter also handles Hurdle NB2 when `hu` is supplied.
+# Its direct fitter admits one ordinary mean intercept or numeric slope with
+# one matching SD model, fixed `sigma`, and fixed-effect-only `hu`.
+drm_julia_hurdle_nbinom2_scalar_sd_route_admitted <- function(
+  formula,
+  data = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  sigma_idx <- which(dpars == "sigma")
+  hu_idx <- which(dpars == "hu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      length(sigma_idx) != 1L || length(hu_idx) != 1L ||
+      anyDuplicated(dpars) ||
+      any(!dpars %in% c("mu", "sigma", "hu", dpars[[sd_idx]]))) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L))) ||
+      !drm_julia_rhs_is_intercept_only(entries[[sigma_idx]]$rhs)) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) {
+    return(FALSE)
+  }
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) {
+    return(FALSE)
+  }
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope")) {
+    return(FALSE)
+  }
+
+  hu_terms <- flatten_plus_terms(entries[[hu_idx]]$rhs)
+  sigma_terms <- flatten_plus_terms(entries[[sigma_idx]]$rhs)
+  sd_terms <- flatten_plus_terms(entries[[sd_idx]]$rhs)
+  if (any(vapply(c(hu_terms, sigma_terms, sd_terms), is_random_bar_call,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block) || !is.na(target$level)) {
+    return(FALSE)
+  }
+
+  if (random$type == "slope") {
+    numeric_slope <- is.null(data) || (
+      is.data.frame(data) && random$variable %in% names(data) &&
+        is.numeric(data[[random$variable]])
+    )
+    return(numeric_slope &&
+      identical(target$target_coef, random$coef_names[[1L]]))
+  }
+  is.na(target$target_coef) || identical(target$target_coef, "(Intercept)")
+}
+
+# Zero-truncated NB2 without `hu`: admit the ordinary scalar `mu` SD shapes
+# already supported by both engine fitters. Keep the bridge exception limited
+# to one intercept or one numeric slope, fixed dispersion, and one matching SD
+# target. The separate Hurdle route below additionally requires `hu`.
+drm_julia_truncated_nbinom2_scalar_sd_route_admitted <- function(
+  formula,
+  data = NULL
+) {
+  entries <- formula$entries
+  if (any(vapply(
+    entries,
+    function(entry) formula_contains_call(entry$rhs, "offset"),
+    logical(1L)
+  ))) {
+    return(FALSE)
+  }
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  sigma_idx <- which(dpars == "sigma")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      length(sigma_idx) != 1L || anyDuplicated(dpars) ||
+      any(!dpars %in% c("mu", "sigma", dpars[[sd_idx]]))) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L))) ||
+      !drm_julia_rhs_is_intercept_only(entries[[sigma_idx]]$rhs)) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) return(FALSE)
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) return(FALSE)
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope")) {
+    return(FALSE)
+  }
+
+  sd_terms <- flatten_plus_terms(entries[[sd_idx]]$rhs)
+  if (any(vapply(sd_terms, is_random_bar_call, logical(1L)))) return(FALSE)
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block) || !is.na(target$level)) {
+    return(FALSE)
+  }
+  if (random$type == "slope") {
+    numeric_slope <- is.null(data) || (
+      is.data.frame(data) && random$variable %in% names(data) &&
+        is.numeric(data[[random$variable]])
+    )
+    return(numeric_slope &&
+      identical(target$target_coef, random$coef_names[[1L]]))
+  }
+  is.na(target$target_coef) || identical(target$target_coef, "(Intercept)")
+}
+
+# Gaussian scalar direct-SD fits return one canonical `sd` block in DRM.jl.
+# Keep that label mapping limited to matching ordinary `mu` targets with fixed
+# residual scale so unrelated Gaussian formula shapes retain their own keys.
+drm_julia_gaussian_scalar_sd_route_admitted <- function(formula, data = NULL) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  sigma_idx <- which(dpars == "sigma")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      anyDuplicated(dpars) ||
+      any(!dpars %in% c("mu", "sigma", dpars[[sd_idx]]))) {
+    return(FALSE)
+  }
+  if (length(sigma_idx) > 1L ||
+      (length(sigma_idx) == 1L &&
+        !drm_julia_rhs_is_intercept_only(entries[[sigma_idx]]$rhs)) ||
+      any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  bar_idx <- which(vapply(mu_terms, is_random_bar_call, logical(1L)))
+  if (length(bar_idx) != 1L) return(FALSE)
+  bar <- strip_parens(mu_terms[[bar_idx]])
+  if (length(bar) != 3L || !is.symbol(bar[[3L]])) return(FALSE)
+  group <- as.character(bar[[3L]])
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "mu", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope")) {
+    return(FALSE)
+  }
+
+  target <- tryCatch(
+    parse_sd_lhs(entries[[sd_idx]]$lhs),
+    error = function(e) NULL
+  )
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block) || !is.na(target$level)) {
+    return(FALSE)
+  }
+  sd_terms <- flatten_plus_terms(entries[[sd_idx]]$rhs)
+  if (any(vapply(sd_terms, is_random_bar_call, logical(1L)))) return(FALSE)
+
+  if (random$type == "slope") {
+    numeric_slope <- is.null(data) || (
+      is.data.frame(data) && random$variable %in% names(data) &&
+        is.numeric(data[[random$variable]])
+    )
+    return(numeric_slope &&
+      identical(target$target_coef, random$coef_names[[1L]]))
+  }
+  is.na(target$target_coef) || identical(target$target_coef, "(Intercept)")
+}
+
+# Gamma sigma SD regression uses its `sd()` block for the dispersion of one
+# sigma-side random coefficient. It must not also advertise the ordinary
+# `resd` block used when sigma has a constant random-effect SD.
+drm_julia_gamma_sigma_sd_route_admitted <- function(formula, data = NULL) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(startsWith(dpars, "sd"))
+  mu_idx <- which(dpars == "mu")
+  sigma_idx <- which(dpars == "sigma")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      length(sigma_idx) != 1L || length(entries) != 3L ||
+      anyDuplicated(dpars)) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(entry) length(entry$structured) > 0L,
+                 logical(1L)))) {
+    return(FALSE)
+  }
+  mu_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  if (any(vapply(mu_terms, is_random_bar_call, logical(1L)))) return(FALSE)
+  sigma_terms <- flatten_plus_terms(entries[[sigma_idx]]$rhs)
+  bars <- Filter(is_random_bar_call, sigma_terms)
+  if (length(bars) != 1L) return(FALSE)
+  bar <- strip_parens(bars[[1L]])
+  if (length(bar) != 3L || !is.symbol(strip_parens(bar[[3L]]))) {
+    return(FALSE)
+  }
+  group <- as.character(strip_parens(bar[[3L]]))
+  random <- tryCatch(
+    parse_random_mu_lhs(bar[[2L]], "sigma", group),
+    error = function(e) NULL
+  )
+  if (is.null(random) || !random$type %in% c("intercept", "slope")) {
+    return(FALSE)
+  }
+  target <- tryCatch(parse_sd_lhs(entries[[sd_idx]]$lhs),
+                     error = function(e) NULL)
+  if (is.null(target) || !identical(target$fun, "sd") ||
+      !identical(target$group, group) ||
+      !identical(target$target_dpar, "sigma") ||
+      !is.na(target$target_block) ||
+      !is.na(target$level)) {
+    return(FALSE)
+  }
+  if (random$type == "slope") {
+    numeric_slope <- is.null(data) || (
+      is.data.frame(data) && random$variable %in% names(data) &&
+        is.numeric(data[[random$variable]])
+    )
+    return(numeric_slope &&
+      identical(target$target_coef, random$coef_names[[1L]]))
+  }
+  if (!(is.na(target$target_coef) ||
+        identical(target$target_coef, "(Intercept)"))) {
+    return(FALSE)
+  }
+  sd_terms <- flatten_plus_terms(entries[[sd_idx]]$rhs)
+  !any(vapply(sd_terms, is_random_bar_call, logical(1L)))
+}
+
+drm_julia_refuse_fe_only_random_effects <- function(
+  formula,
+  family_type,
+  data = NULL
+) {
   if (!(family_type %in% drm_julia_fe_only_fence_families())) {
+    return(invisible(NULL))
+  }
+  # Student-t now has one matching native and Julia SD-regression route for an
+  # ordinary scalar mu intercept or independent slope. Keep the exception
+  # exact here: random sigma/nu, correlated blocks, structured effects, and
+  # unmatched or multiple SD targets remain behind this generic FE fence.
+  if (
+    identical(family_type, "student") &&
+      drm_julia_student_scalar_sd_route_admitted(formula)
+  ) {
+    return(invisible(NULL))
+  }
+  if (
+    identical(family_type, "skew_normal") &&
+      drm_julia_skew_normal_scalar_sd_route_admitted(formula, data = data)
+  ) {
+    return(invisible(NULL))
+  }
+  if (
+    identical(family_type, "zero_one_beta") &&
+      drm_julia_zero_one_beta_scalar_sd_route_admitted(formula)
+  ) {
+    return(invisible(NULL))
+  }
+  if (
+    identical(family_type, "tweedie") &&
+      drm_julia_tweedie_scalar_sd_route_admitted(formula, data = data)
+  ) {
+    return(invisible(NULL))
+  }
+  if (
+    identical(family_type, "lognormal") &&
+      drm_julia_lognormal_scalar_sd_route_admitted(formula, data = data)
+  ) {
+    return(invisible(NULL))
+  }
+  if (
+    identical(family_type, "beta_binomial") &&
+      (drm_julia_beta_binomial_scalar_sd_route_admitted(formula, data = data) ||
+        drm_julia_beta_binomial_sigma_sd_route_admitted(formula, data = data))
+  ) {
+    return(invisible(NULL))
+  }
+  if (
+    identical(family_type, "cumulative_logit") &&
+      (drm_julia_cumulative_logit_slope_sd_route_admitted(formula, data = data) ||
+        drm_julia_cumulative_logit_intercept_sd_route_admitted(formula))
+  ) {
+    return(invisible(NULL))
+  }
+  if (
+    identical(family_type, "truncated_nbinom2") &&
+      (drm_julia_truncated_nbinom2_scalar_sd_route_admitted(
+        formula, data = data
+      ) || drm_julia_hurdle_nbinom2_scalar_sd_route_admitted(
+        formula, data = data
+      ))
+  ) {
     return(invisible(NULL))
   }
 
@@ -1673,25 +3049,6 @@ drm_julia_refuse_fe_only_random_effects <- function(formula, family_type) {
 # those would move messages this file's siblings pin by name.
 drm_julia_biv_student_constant_dpars <- function() {
   c("sigma1", "sigma2", "nu", "rho12")
-}
-
-# Intercept-only in the SAME sense `drm_build_biv_student_spec()` means it:
-# `stats::terms()` reports an intercept, no term labels, and no offset. A literal
-# `~ 1` and a redundantly parenthesised `~ (1)` are both intercept-only (measured:
-# `sigma1 = ~ (1)` fits identically on both engines, logLik -466.44449865), while
-# `~ 0 + z` is not -- which a bare `identical(rhs, quote(1))` test would get wrong
-# in both directions.
-drm_julia_rhs_is_intercept_only <- function(rhs) {
-  tt <- tryCatch(
-    stats::terms(stats::as.formula(call("~", rhs), env = baseenv())),
-    error = function(e) NULL
-  )
-  if (is.null(tt)) {
-    return(drm_julia_is_intercept_rhs(rhs))
-  }
-  identical(attr(tt, "intercept"), 1L) &&
-    length(attr(tt, "term.labels")) == 0L &&
-    length(attr(tt, "offset")) == 0L
 }
 
 drm_julia_refuse_biv_student_beyond_native <- function(formula, family_type) {
@@ -2198,6 +3555,10 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
     }
   }
   labels <- list()
+  sd_entries <- Filter(function(candidate) {
+    !is.null(candidate$lhs) && is_random_scale_lhs(candidate$lhs)
+  }, formula$entries)
+  disambiguate_sd_targets <- length(sd_entries) > 1L
   for (entry in formula$entries) {
     dpar <- entry$dpar
     # A location-scale-scale `sd(group)`/`sd_phylo(group)` dpar (design 258's
@@ -2214,9 +3575,96 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
     # RHS (e.g. `~z`) is an ordinary formula RHS, so the SAME
     # strip-structured-terms + `model.matrix()` reduction below applies
     # unchanged once the dpar/key split is done.
-    is_sd_dpar <- grepl("^sd(_phylo)?\\([^()]+\\)$", dpar)
+    sd_target <- if (!is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)) {
+      parse_sd_lhs(entry$lhs)
+    } else {
+      NULL
+    }
+    is_sd_dpar <- !is.null(sd_target)
     if (!(dpar %in% julia_bridge_supported_dpars()) && !is_sd_dpar) next
-    label_key <- if (is_sd_dpar) sub("\\(.*$", "", dpar) else dpar
+    label_key <- if (is_sd_dpar) {
+      if (family_type %in% c("beta", "cumulative_logit") ||
+          (identical(family_type, "binomial") &&
+            drm_julia_binomial_phylo_ordinary_sd_route_admitted(
+              formula
+            )) ||
+          (identical(family_type, "binomial") &&
+            drm_julia_binomial_phylo_interaction_sd_route_admitted(
+              formula, data = data
+            )) ||
+          (identical(family_type, "binomial") &&
+            drm_julia_binomial_relmat_sd_route_admitted(formula)) ||
+          (identical(family_type, "gamma") &&
+            drm_julia_gamma_sigma_sd_route_admitted(formula, data = data)) ||
+          (identical(family_type, "nbinom2") &&
+            drm_julia_negbin2_sigma_sd_route_admitted(formula, data = data)) ||
+          (identical(family_type, "beta_binomial") &&
+            drm_julia_beta_binomial_sigma_sd_route_admitted(
+              formula, data = data
+            )) ||
+          (identical(family_type, "student") &&
+            drm_julia_student_scalar_sd_route_admitted(formula)) ||
+          (identical(family_type, "gaussian") &&
+            drm_julia_gaussian_scalar_sd_route_admitted(
+              formula, data = data
+            )) ||
+          (identical(family_type, "skew_normal") &&
+            drm_julia_skew_normal_scalar_sd_route_admitted(
+              formula, data = data
+            )) ||
+          (identical(family_type, "truncated_nbinom2") &&
+            (drm_julia_truncated_nbinom2_scalar_sd_route_admitted(
+              formula, data = data
+            ) || drm_julia_hurdle_nbinom2_scalar_sd_route_admitted(
+              formula, data = data
+            )))) {
+        # These single-target SD fitters expose a canonical `sd` block, even
+        # when the R formula explicitly selects an intercept or slope.
+        if (identical(family_type, "binomial") &&
+            drm_julia_binomial_phylo_ordinary_sd_route_admitted(
+              formula
+            )) {
+          if (identical(sd_target$level, "phylogenetic")) {
+            "sd_phylo"
+          } else {
+            "sd"
+          }
+        } else {
+          "sd"
+        }
+      } else if (disambiguate_sd_targets) {
+        drm_julia_sd_target_block(sd_target, disambiguate = TRUE)
+      } else if (
+        identical(sd_target$fun, "sd") && is.na(sd_target$level) &&
+          all(is.na(c(
+            sd_target$target_dpar, sd_target$target_coef,
+            sd_target$target_block
+          )))
+      ) {
+        ordinary_sd_entries <- Filter(function(candidate) {
+          !is.null(candidate$lhs) && is_random_scale_lhs(candidate$lhs) &&
+            identical(parse_sd_lhs(candidate$lhs)$fun, "sd") &&
+            is.na(parse_sd_lhs(candidate$lhs)$level)
+        }, formula$entries)
+        # DRM.jl exposes one unselected ordinary SD formula through its stable
+        # `sd` block. Explicit target selectors, including a single selected
+        # coefficient, use the hashed internal target key sent by the Julia
+        # fitter; otherwise its coefficient-label echo rejects the payload.
+        if (length(ordinary_sd_entries) == 1L) "sd" else
+          drm_julia_sd_target_block(sd_target)
+      } else if (sd_target$fun %in% c("sd", "sd_phylo") &&
+               identical(sd_target$level, "phylogenetic")) {
+      # Julia's phylogenetic route keeps the public block name `sd_phylo`;
+      # DRM.jl's bridge aliases that single target to its internal `sd` block.
+      "sd_phylo"
+      } else {
+      # Other structured q1 SD routes (animal, relmat, spatial) are fitted in
+      # DRM.jl's `sd` block. Selected coefficients retain their descriptor key.
+      drm_julia_sd_target_block(sd_target)
+      }
+    } else {
+      dpar
+    }
     rhs <- drm_strip_structured_terms(entry$rhs)
     f <- stats::as.formula(paste("~", deparse1(rhs)), env = env)
     mf <- tryCatch(stats::model.frame(f, data = data), error = function(e) NULL)
@@ -2345,7 +3793,30 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
   # orthogonal to the phylo case just above, which uses a different marker
   # type and never reaches here.
   structured_terms <- drm_julia_collect_structured_terms(formula)
-  if (length(structured_terms) == 1L && identical(structured_terms[[1L]]$dpar, "mu")) {
+  sd_entries <- Filter(function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, formula$entries)
+  sd_matches_structured_term <- function(term) {
+    any(vapply(sd_entries, function(entry) {
+      target <- parse_sd_lhs(entry$lhs)
+      coefficient_matches <- if (is.na(target$target_coef)) {
+        length(term$coef_names) == 1L
+      } else {
+        target$target_coef %in% term$coef_names
+      }
+      block_matches <- is.na(target$target_block) ||
+        identical(target$target_block, term$covariance_label)
+      !is.na(target$level) && identical(target$level, term$type) &&
+        identical(target$group, term$group) && coefficient_matches &&
+        block_matches &&
+        (is.na(target$target_dpar) || identical(target$target_dpar, term$dpar))
+    }, logical(1L)))
+  }
+  if (length(structured_terms) == 1L && identical(structured_terms[[1L]]$dpar, "mu") &&
+      !drm_julia_binomial_animal_sd_slope_route_admitted(formula) &&
+      !drm_julia_binomial_relmat_sd_route_admitted(formula) &&
+      !drm_julia_binomial_relmat_iid_sd_route_admitted(formula) &&
+      !sd_matches_structured_term(structured_terms[[1L]])) {
     # `drm_julia_structured_payload()` (R#5290): the univariate general-
     # covariance sparse-Laplace route names its single random-effect SD
     # coefficient "resd_<group>" -- verified by fitting
@@ -2458,7 +3929,6 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
     entry_dpars <- vapply(formula$entries, `[[`, character(1L), "dpar")
     is_lss_dpar <- grepl("^sd(_phylo)?\\([^()]+\\)$", entry_dpars)
     lss_groups <- sub("^sd(_phylo)?\\(([^()]+)\\)$", "\\2", entry_dpars[is_lss_dpar])
-
     mu_phylo_terms <- Filter(function(term) identical(term$dpar, "mu"), phylo_terms)
     mu_ri_groups <- unique(vapply(
       Filter(function(term) identical(term$coef_names, "(Intercept)"), mu_phylo_terms),
@@ -2526,14 +3996,33 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
   #
   # Restricted to `sigma` (the only non-`mu` univariate dpar measured here --
   # `mu1`/`mu2`/`sigma1`/`sigma2`/`rho12` are bivariate names, a different
-  # code path not reached by this check) and to a random-INTERCEPT term
-  # (`(1 | g)`, not `(1 + x | g)`) -- a random-SLOPE ordinary term on
-  # `sigma`, or the same bare-intercept shape on another non-`mu` dpar such
-  # as `nu`, is a different shape, not measured, and left alone rather than
-  # guessed at.
-  ordinary_resd <- drm_julia_ordinary_nonmu_resd_map(formula)
+  # code path not reached by this check) and to one ordinary random intercept
+  # or independent numeric slope. Correlated blocks and random effects on
+  # another non-`mu` dpar such as `nu` remain outside the measured route.
+  sd_dispersion_route <- (
+    identical(family_type, "beta_binomial") &&
+      drm_julia_beta_binomial_sigma_sd_route_admitted(formula, data = data)
+  ) || (
+    identical(family_type, "gamma") &&
+      drm_julia_gamma_sigma_sd_route_admitted(formula, data = data)
+  ) || (
+    identical(family_type, "nbinom2") &&
+      drm_julia_negbin2_sigma_sd_route_admitted(formula, data = data)
+  )
+  ordinary_resd <- if (sd_dispersion_route) {
+    list()
+  } else {
+    drm_julia_ordinary_nonmu_resd_map(formula)
+  }
   if (length(ordinary_resd) > 0L) {
     labels[["resd"]] <- names(ordinary_resd)[[1L]]
+  }
+  ordinary_binomial_recov <- drm_julia_ordinary_binomial_recov_label(
+    formula = formula,
+    family_type = family_type
+  )
+  if (!is.null(ordinary_binomial_recov)) {
+    labels[["recov"]] <- ordinary_binomial_recov
   }
   if (!is.null(family_type)) {
     labels <- drm_julia_bridge_default_dpar_labels(labels, formula, family_type)
@@ -2574,6 +4063,64 @@ drm_julia_ordinary_nonmu_resd_map <- function(formula) {
     map[[suffix]] <- list(dpar = entry$dpar, label = paste0("(1 | ", group, ")"))
   }
   map
+}
+
+# DRM.jl reports ordinary Binomial correlation coordinates in `recov`. Supply
+# the exact coefficient suffixes expected by the bridge echo for the
+# intercept-plus-slopes block's row-major partial-correlation coordinates.
+drm_julia_ordinary_binomial_recov_label <- function(formula, family_type) {
+  if (!identical(family_type, "binomial")) return(NULL)
+  mu_entries <- Filter(
+    function(entry) identical(entry$dpar, "mu"),
+    formula$entries
+  )
+  if (length(mu_entries) != 1L) return(NULL)
+  random_terms <- extract_random_mu_terms(mu_entries[[1L]]$rhs, "mu")$terms
+  structured_terms <- mu_entries[[1L]]$structured
+  if (length(random_terms) == 0L && length(structured_terms) == 1L) {
+    term <- structured_terms[[1L]]
+    # The Binomial animal q2 fitter also estimates the correlation between
+    # its intercept and slope. DRM.jl reports this as `recov_<group>` with
+    # the same label convention as an ordinary correlated (1 + x | g) block.
+    if (identical(term$type, "animal") &&
+        length(term$coef_names) == 2L &&
+        identical(term$coef_names[[1L]], "(Intercept)") &&
+        length(term$variables) == 1L &&
+        identical(term$coef_names[[2L]], term$variables[[1L]])) {
+      return(paste0(term$group, ":atanh_rho"))
+    }
+    return(NULL)
+  }
+  if (length(random_terms) != 1L) return(NULL)
+  term <- random_terms[[1L]]
+  if (!is.null(term$covariance_label)) {
+    return(NULL)
+  }
+  if (identical(term$type, "correlated_slope") &&
+      length(term$variables) == 1L) {
+    return(paste0(term$group, ":atanh_rho"))
+  }
+  if (identical(term$type, "correlated_block") &&
+      length(term$coef_names) >= 3L &&
+      length(term$variables) == length(term$coef_names) - 1L &&
+      identical(term$coef_names[[1L]], "(Intercept)")) {
+    q <- length(term$coef_names)
+    suffixes <- character()
+    for (i in seq.int(2L, q)) {
+      for (j in seq_len(i - 1L)) {
+        conditioning <- if (j == 1L) {
+          ""
+        } else {
+          paste0("_given_", paste(seq_len(j - 1L), collapse = "_"))
+        }
+        suffixes <- c(suffixes, paste0(
+          "atanh_partial_rho_", i, j, conditioning
+        ))
+      }
+    }
+    return(paste0(term$group, ":", suffixes))
+  }
+  NULL
 }
 
 # DRM.jl fits certain dispersion/shape dpars even when the R formula never
@@ -2950,14 +4497,82 @@ drm_julia_expand_response_columns <- function(response) {
 drm_julia_drop_missing_rows <- function(data, formula, phylo_payload = NULL) {
   needed <- drm_julia_needed_columns(formula, phylo_payload = phylo_payload)
   present <- intersect(needed, names(data))
+  n_input <- nrow(data)
   if (length(present) == 0L) {
+    attr(data, "drm_julia_n_dropped") <- 0L
+    attr(data, "drm_julia_n_input") <- n_input
     return(data)
   }
   keep <- stats::complete.cases(data[, present, drop = FALSE])
-  if (all(keep)) {
+  n_dropped <- sum(!keep)
+  if (n_dropped == 0L) {
+    attr(data, "drm_julia_n_dropped") <- 0L
+    attr(data, "drm_julia_n_input") <- n_input
     return(data)
   }
-  data[keep, , drop = FALSE]
+  out <- data[keep, , drop = FALSE]
+  attr(out, "drm_julia_n_dropped") <- as.integer(n_dropped)
+  attr(out, "drm_julia_n_input") <- as.integer(n_input)
+  out
+}
+
+# Rows the structured bridge may drop under response = "drop" (#1454).
+# A grouping level that disappears would leave the user-supplied covariance
+# aligned to levels the reduced data no longer contains, so that case errors
+# instead of subsetting the matrix.
+drm_julia_drop_structured_missing <- function(data, formula) {
+  terms <- drm_julia_collect_structured_terms(formula)
+  group <- if (length(terms) == 1L) terms[[1L]]$group else NA_character_
+  levels_before <- NULL
+  if (!is.na(group) && group %in% names(data)) {
+    levels_before <- unique(as.character(data[[group]]))
+    levels_before <- levels_before[!is.na(levels_before)]
+  }
+  dropped <- drm_julia_drop_missing_rows(data, formula)
+  if (!is.null(levels_before) && group %in% names(dropped)) {
+    levels_after <- unique(as.character(dropped[[group]]))
+    levels_after <- levels_after[!is.na(levels_after)]
+    lost <- setdiff(levels_before, levels_after)
+    if (length(lost) > 0L) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} structured models cannot drop every row of a grouping level.",
+        x = "{.field {group}} would lose {length(lost)} level{?s}, including {.val {lost[[1L]]}}.",
+        i = "The covariance is aligned to the levels in {.arg data}. Remove that level from the data and from the covariance, or use {.code engine = \"tmb\"}."
+      ))
+    }
+  }
+  dropped
+}
+
+# q2 structured payloads require complete modelled columns (#1454). The bridge
+# already rejects include/impute controls; this checks the data themselves.
+drm_julia_require_complete_rows <- function(data, formula, route) {
+  needed <- drm_julia_needed_columns(formula)
+  present <- intersect(needed, names(data))
+  if (length(present) == 0L) {
+    return(invisible(NULL))
+  }
+  keep <- stats::complete.cases(data[, present, drop = FALSE])
+  if (all(keep)) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} {route} require complete responses and predictors.",
+    x = "{sum(!keep)} row{?s} have a missing response or predictor.",
+    i = "Drop those rows before calling {.fn drmTMB}, or use native {.code engine = \"tmb\"} for missing-data routes."
+  ))
+}
+
+drm_julia_missing_rows_slot <- function(data) {
+  n_dropped <- attr(data, "drm_julia_n_dropped", exact = TRUE)
+  if (is.null(n_dropped)) {
+    return(NULL)
+  }
+  n_input <- attr(data, "drm_julia_n_input", exact = TRUE)
+  list(
+    n_dropped = as.integer(n_dropped),
+    n_input = as.integer(if (is.null(n_input)) NA_integer_ else n_input)
+  )
 }
 
 drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
@@ -3217,8 +4832,8 @@ drm_julia_refuse_reml_unsupported <- function(REML, cell) {
 # 51 assertions in 21.5 s there, including a same-target native-drmTMB oracle,
 # and the same commit widened `_bridge_render_formula_block` (src/bridge.jl).
 # For `family = gaussian()` this guard is therefore drmTMB's OWN fence, not the
-# engine's. Every other family and marker is still refused by DRM.jl itself
-# (its #621), so the switch stays FALSE.
+# engine's. The Gamma animal slope-only direct-SD route is another family-
+# specific exception, admitted below; the remaining routes are still refused.
 #
 # WHAT LIFTING IT WOULD TAKE (it is not a one-line flip, which is why this leaf
 # wrote the boundary instead of widening the route): (a) make this switch
@@ -3257,8 +4872,75 @@ drm_julia_collect_marker_slope_terms <- function(formula) {
   )
 }
 
-drm_julia_refuse_marker_slope_unsupported <- function(formula) {
+# R's `offset()` needs a fixed (non-estimated) coefficient, which the formula
+# translation to DRM.jl cannot express; DRM.jl rejects it from Julia with an
+# error that does not name the drmTMB alternative (#1572). Refuse in R, before
+# Julia starts, for every dpar and every bridge route.
+drm_julia_refuse_offset_unsupported <- function(formula, family_type = NULL) {
+  entries <- formula$entries
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(invisible(FALSE))
+  }
+  hit <- vapply(
+    entries,
+    function(entry) formula_contains_call(entry$rhs, "offset"),
+    logical(1L)
+  )
+  if (!any(hit)) {
+    return(invisible(FALSE))
+  }
+  dpars <- vapply(entries[hit], `[[`, character(1L), "dpar")
+  if (identical(family_type, "poisson") && all(dpars == "mu")) {
+    return(invisible(FALSE))
+  }
+  cli::cli_abort(
+    c(
+      "{.code engine = \"julia\"} does not support {.fn offset} in the {.field {dpars}} formula{?s}.",
+      x = "{.fn offset} fixes a coefficient at 1, and the R to Julia bridge cannot pass a fixed (non-estimated) coefficient to DRM.jl.",
+      i = "Use native {.code engine = \"tmb\"}, which supports {.fn offset} on the location formula and shifts the log-link intercept by exactly the offset."
+    ),
+    class = "drmTMB_julia_offset_unsupported"
+  )
+}
+
+drm_julia_refuse_marker_slope_unsupported <- function(formula, family_type = NULL) {
   if (isTRUE(drm_julia_marker_slope_pin_supports())) {
+    return(invisible(FALSE))
+  }
+  # Exact family-specific animal-slope SD routes, plus the Binomial
+  # phylogenetic slope-only route, are handled by the structured payload below.
+  # Their family and target checks remain separate admission gates.
+  if (drm_julia_binomial_animal_sd_slope_route_admitted(formula)) {
+    return(invisible(FALSE))
+  }
+  if (identical(family_type, "binomial") &&
+      drm_julia_binomial_animal_q2_sd_route_admitted(formula)) {
+    return(invisible(FALSE))
+  }
+  if (identical(family_type, "binomial") &&
+      drm_julia_binomial_phylo_sd_slope_route_admitted(formula)) {
+    return(invisible(FALSE))
+  }
+  if (identical(family_type, "binomial") &&
+      drm_julia_binomial_relmat_sd_route_admitted(formula)) {
+    return(invisible(FALSE))
+  }
+  if (identical(family_type, "binomial") &&
+      drm_julia_binomial_relmat_iid_sd_route_admitted(formula)) {
+    return(invisible(FALSE))
+  }
+  if (identical(family_type, "binomial") &&
+      drm_julia_binomial_spatial_sd_route_admitted(formula)) {
+    return(invisible(FALSE))
+  }
+  if (identical(family_type, "binomial") &&
+      drm_julia_binomial_animal_iid_sd_route_admitted(formula)) {
+    return(invisible(FALSE))
+  }
+  if (drm_julia_gamma_animal_sd_slope_route_admitted(formula, family_type)) {
+    return(invisible(FALSE))
+  }
+  if (drm_julia_poisson_animal_sd_slope_route_admitted(formula)) {
     return(invisible(FALSE))
   }
   terms <- drm_julia_collect_marker_slope_terms(formula)
@@ -3270,18 +4952,667 @@ drm_julia_refuse_marker_slope_unsupported <- function(formula) {
   cli::cli_abort(c(
     "{.code engine = \"julia\"} cannot fit a random slope inside a {.fn {term$type}} marker.",
     x = "{.code {term$label}} asks for slope{?s} {.val {slope_vars}} on the {.field {term$dpar}} {.fn {term$type}} covariance structure, which this bridge does not marshal (DRM.jl#620/#621).",
-    i = "For a Gaussian two-SD phylogenetic slope this is drmTMB's own fence, not the engine's: DRM.jl fits that model since its #620. Every other family and marker is refused by DRM.jl as well.",
+    i = "Some family-specific animal-slope SD routes are admitted separately; other structured random-slope routes remain unsupported by this bridge.",
     i = "Use native {.code engine = \"tmb\"} for structured random slopes.",
-    i = "Only an intercept-only marker routes through {.code engine = \"julia\"} today: {.code {term$type}(1 | {term$group}, ...)}."
+    i = "Use a family-specific admission only when its exact marker, coefficient, and SD target are supported."
   ))
+}
+
+drm_julia_gamma_animal_sd_slope_route_admitted <- function(formula, family_type) {
+  if (!identical(family_type, "gamma")) return(FALSE)
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  mu_idx <- which(dpars == "mu")
+  sigma_idx <- which(dpars == "sigma")
+  if (!length(sd_idx) %in% 1:2 || length(mu_idx) != 1L ||
+      length(sigma_idx) != 1L || length(entries) != length(sd_idx) + 2L) {
+    return(FALSE)
+  }
+  sd_entries <- entries[sd_idx]
+  targets <- lapply(sd_entries, function(entry) {
+    tryCatch(parse_sd_lhs(entry$lhs), error = function(e) NULL)
+  })
+  if (any(vapply(targets, is.null, logical(1L))) ||
+      any(!vapply(targets, function(target) {
+        identical(target$fun, "sd_animal") &&
+          identical(target$level, "animal") &&
+          (is.na(target$target_dpar) || identical(target$target_dpar, "mu")) &&
+          is.na(target$target_block)
+      }, logical(1L)))) {
+    return(FALSE)
+  }
+  if (!identical(entries[[sigma_idx]]$rhs, 1) ||
+      !setequal(dpars, c("mu", "sigma", vapply(sd_entries, `[[`, character(1L), "dpar")))) {
+    return(FALSE)
+  }
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 1L) return(FALSE)
+  term <- terms[[1L]]
+  if (!identical(term$type, "animal") || !identical(term$dpar, "mu") ||
+      !all(vapply(targets, function(target) identical(term$group, target$group), logical(1L))) ||
+      length(term$coef_names) != length(targets)) {
+    return(FALSE)
+  }
+  if (length(targets) == 1L) {
+    target_coef <- targets[[1L]]$target_coef
+    target_coef_matches <- is.na(target_coef) ||
+      identical(target_coef, term$coef_names[[1L]])
+    return(
+      !identical(term$coef_names, "(Intercept)") && target_coef_matches &&
+        length(entries[[mu_idx]]$structured) == 1L &&
+        length(extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms) == 0L
+    )
+  }
+  target_coefs <- vapply(targets, `[[`, character(1L), "target_coef")
+  length(term$coef_names) == 2L &&
+    "(Intercept)" %in% term$coef_names &&
+    all(!is.na(target_coefs)) &&
+    !anyDuplicated(target_coefs) &&
+    setequal(target_coefs, term$coef_names) &&
+    length(entries[[mu_idx]]$structured) == 1L &&
+    length(extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms) == 0L
+}
+
+drm_julia_binomial_animal_sd_slope_route_admitted <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L) return(FALSE)
+  sd_entry <- entries[[sd_idx]]
+  target <- tryCatch(parse_sd_lhs(sd_entry$lhs), error = function(e) NULL)
+  if (is.null(target) || !identical(target$fun, "sd_animal") ||
+      !identical(target$level, "animal") || !is.na(target$target_dpar) ||
+      !is.na(target$target_coef) || !is.na(target$target_block)) return(FALSE)
+  if (length(entries) != 2L || !setequal(dpars, c("mu", sd_entry$dpar))) {
+    return(FALSE)
+  }
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 1L) return(FALSE)
+  term <- terms[[1L]]
+  if (!identical(term$type, "animal") || !identical(term$dpar, "mu") ||
+      !identical(term$group, target$group) || length(term$coef_names) != 1L ||
+      identical(term$coef_names, "(Intercept)")) return(FALSE)
+  length(entries[[mu_idx]]$structured) == 1L &&
+    length(extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms) == 0L
+}
+
+drm_julia_binomial_animal_q2_sd_route_admitted <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 2L || length(mu_idx) != 1L ||
+      length(entries) != 3L ||
+      !setequal(dpars[!startsWith(dpars, "sd")], "mu")) {
+    return(FALSE)
+  }
+
+  targets <- lapply(sd_idx, function(i) {
+    tryCatch(parse_sd_lhs(entries[[i]]$lhs), error = function(e) NULL)
+  })
+  if (any(vapply(targets, is.null, logical(1L))) ||
+      any(!vapply(targets, function(target) {
+        identical(target$fun, "sd_animal") &&
+          identical(target$level, "animal") &&
+          (is.na(target$target_dpar) || identical(target$target_dpar, "mu")) &&
+          !is.na(target$target_coef) && is.na(target$target_block)
+      }, logical(1L)))) {
+    return(FALSE)
+  }
+  groups <- vapply(targets, `[[`, character(1L), "group")
+  target_coefs <- vapply(targets, `[[`, character(1L), "target_coef")
+  if (length(unique(groups)) != 1L || anyDuplicated(target_coefs) ||
+      sum(target_coefs == "(Intercept)") != 1L ||
+      length(setdiff(target_coefs, "(Intercept)")) != 1L) {
+    return(FALSE)
+  }
+
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 1L) return(FALSE)
+  term <- terms[[1L]]
+  identical(term$type, "animal") && identical(term$dpar, "mu") &&
+    identical(term$group, groups[[1L]]) &&
+    length(term$coef_names) == 2L &&
+    identical(term$coef_names[[1L]], "(Intercept)") &&
+    length(term$variables) == 1L &&
+    identical(term$coef_names[[2L]], term$variables[[1L]]) &&
+    setequal(target_coefs, term$coef_names) &&
+    length(entries[[mu_idx]]$structured) == 1L &&
+    length(extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms) == 0L
+}
+
+drm_julia_binomial_animal_sd_intercept_route_admitted <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      length(entries) != 2L) {
+    return(FALSE)
+  }
+  sd_entry <- entries[[sd_idx]]
+  target <- tryCatch(parse_sd_lhs(sd_entry$lhs), error = function(e) NULL)
+  if (is.null(target) || !identical(target$fun, "sd_animal") ||
+      !identical(target$level, "animal") || !is.na(target$target_dpar) ||
+      !is.na(target$target_coef) || !is.na(target$target_block) ||
+      !setequal(dpars, c("mu", sd_entry$dpar))) {
+    return(FALSE)
+  }
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 1L) return(FALSE)
+  term <- terms[[1L]]
+  if (!identical(term$type, "animal") || !identical(term$dpar, "mu") ||
+      !identical(term$group, target$group) ||
+      !identical(term$coef_names, "(Intercept)")) {
+    return(FALSE)
+  }
+  length(entries[[mu_idx]]$structured) == 1L &&
+    length(extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms) == 0L
+}
+
+drm_julia_binomial_animal_iid_sd_route_admitted <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  mu_idx <- which(dpars == "mu")
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  sigma_idx <- which(dpars == "sigma")
+  if (length(mu_idx) != 1L || length(sd_idx) != 2L ||
+      length(sigma_idx) > 1L ||
+      length(entries) != length(mu_idx) + length(sd_idx) + length(sigma_idx)) {
+    return(FALSE)
+  }
+  if (length(sigma_idx) == 1L &&
+      !drm_julia_is_intercept_rhs(entries[[sigma_idx]]$rhs)) {
+    return(FALSE)
+  }
+
+  targets <- lapply(sd_idx, function(i) {
+    tryCatch(parse_sd_lhs(entries[[i]]$lhs), error = function(e) NULL)
+  })
+  if (any(vapply(targets, is.null, logical(1L)))) return(FALSE)
+  animal_idx <- which(vapply(targets, function(target) {
+    identical(target$fun, "sd_animal") && identical(target$level, "animal")
+  }, logical(1L)))
+  iid_idx <- which(vapply(targets, function(target) {
+    identical(target$fun, "sd") && is.na(target$level)
+  }, logical(1L)))
+  if (length(animal_idx) != 1L || length(iid_idx) != 1L) return(FALSE)
+  animal_target <- targets[[animal_idx]]
+  iid_target <- targets[[iid_idx]]
+  for (target in list(animal_target, iid_target)) {
+    if (!is.na(target$target_dpar) || !is.na(target$target_coef) ||
+        !is.na(target$target_block)) return(FALSE)
+  }
+  if (identical(animal_target$group, iid_target$group)) return(FALSE)
+
+  structured <- drm_julia_collect_structured_terms(formula)
+  if (length(structured) != 1L) return(FALSE)
+  animal_term <- structured[[1L]]
+  if (!identical(animal_term$type, "animal") ||
+      !identical(animal_term$dpar, "mu") ||
+      !identical(animal_term$group, animal_target$group) ||
+      !(identical(animal_term$coef_names, "(Intercept)") ||
+        (length(animal_term$coef_names) == 1L &&
+          length(animal_term$variables) == 1L &&
+          identical(animal_term$coef_names, animal_term$variables)))) return(FALSE)
+  if (length(entries[[mu_idx]]$structured) != 1L) return(FALSE)
+
+  ordinary <- extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms
+  length(ordinary) == 1L &&
+    identical(ordinary[[1L]]$type, "intercept") &&
+    identical(ordinary[[1L]]$group, iid_target$group) &&
+    identical(ordinary[[1L]]$coef_names, "(Intercept)")
+}
+
+# This is a shape-only exception for the early marker-slope guard. The
+# structured payload rechecks that the family is Poisson before admitting it.
+drm_julia_poisson_animal_sd_slope_route_admitted <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      length(entries) != 2L) {
+    return(FALSE)
+  }
+  sd_entry <- entries[[sd_idx]]
+  target <- tryCatch(parse_sd_lhs(sd_entry$lhs), error = function(e) NULL)
+  if (is.null(target) || !identical(target$fun, "sd_animal") ||
+      !identical(target$level, "animal") ||
+      !(is.na(target$target_dpar) || identical(target$target_dpar, "mu")) ||
+      !is.na(target$target_block)) {
+    return(FALSE)
+  }
+  if (!setequal(dpars, c("mu", sd_entry$dpar))) return(FALSE)
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 1L) return(FALSE)
+  term <- terms[[1L]]
+  if (!identical(term$type, "animal") || !identical(term$dpar, "mu") ||
+      !identical(term$group, target$group) || length(term$coef_names) != 1L ||
+      identical(term$coef_names, "(Intercept)")) {
+    return(FALSE)
+  }
+  target_coef_matches <- is.na(target$target_coef) ||
+    identical(target$target_coef, term$coef_names[[1L]])
+  target_coef_matches &&
+    length(entries[[mu_idx]]$structured) == 1L &&
+    length(extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms) == 0L
+}
+
+# DRM.jl's Binomial general-covariance route admits one q=1 relmat intercept
+# or slope-only member paired with an explicit direct-SD regression. Keep this
+# admission narrower than the family-level structured route: the engine does
+# not implement arbitrary Binomial relmat/animal/spatial combinations.
+drm_julia_binomial_relmat_sd_route_admitted <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L || length(entries) != 2L) {
+    return(FALSE)
+  }
+  sd_entry <- entries[[sd_idx]]
+  target <- tryCatch(parse_sd_lhs(sd_entry$lhs), error = function(e) NULL)
+  if (is.null(target) || !identical(target$fun, "sd_relmat") ||
+      !identical(target$level, "relmat") || !is.na(target$target_dpar) ||
+      !is.na(target$target_block)) {
+    return(FALSE)
+  }
+  if (!setequal(dpars, c("mu", sd_entry$dpar))) return(FALSE)
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 1L) return(FALSE)
+  term <- terms[[1L]]
+  if (!identical(term$type, "relmat") || !identical(term$dpar, "mu") ||
+      !identical(term$group, target$group)) return(FALSE)
+  intercept <- identical(term$coef_names, "(Intercept)")
+  slope_only <- length(term$coef_names) == 1L &&
+    length(term$variables) == 1L &&
+    identical(term$coef_names, term$variables) &&
+    identical(target$target_coef, term$coef_names[[1L]])
+  intercept <- intercept && is.na(target$target_coef)
+  if (!intercept && !slope_only) return(FALSE)
+  length(entries[[mu_idx]]$structured) == 1L &&
+    length(extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms) == 0L
+}
+
+drm_julia_binomial_relmat_iid_sd_route_admitted <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  mu_idx <- which(dpars == "mu")
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  sigma_idx <- which(dpars == "sigma")
+  if (length(mu_idx) != 1L || length(sd_idx) != 2L ||
+      length(sigma_idx) > 1L ||
+      length(entries) != length(mu_idx) + length(sd_idx) + length(sigma_idx)) {
+    return(FALSE)
+  }
+  if (length(sigma_idx) == 1L &&
+      !drm_julia_is_intercept_rhs(entries[[sigma_idx]]$rhs)) return(FALSE)
+  targets <- lapply(sd_idx, function(i) {
+    tryCatch(parse_sd_lhs(entries[[i]]$lhs), error = function(e) NULL)
+  })
+  if (any(vapply(targets, is.null, logical(1L)))) return(FALSE)
+  rel_idx <- which(vapply(targets, function(target) {
+    identical(target$fun, "sd_relmat") && identical(target$level, "relmat")
+  }, logical(1L)))
+  iid_idx <- which(vapply(targets, function(target) {
+    identical(target$fun, "sd") && is.na(target$level)
+  }, logical(1L)))
+  if (length(rel_idx) != 1L || length(iid_idx) != 1L) return(FALSE)
+  rel_target <- targets[[rel_idx]]
+  iid_target <- targets[[iid_idx]]
+  for (target in list(rel_target, iid_target)) {
+    if (!is.na(target$target_dpar) || !is.na(target$target_coef) ||
+        !is.na(target$target_block)) return(FALSE)
+  }
+  if (identical(rel_target$group, iid_target$group)) return(FALSE)
+  structured <- drm_julia_collect_structured_terms(formula)
+  if (length(structured) != 1L) return(FALSE)
+  term <- structured[[1L]]
+  if (!identical(term$type, "relmat") || !identical(term$dpar, "mu") ||
+      !identical(term$group, rel_target$group) ||
+      !identical(term$coef_names, "(Intercept)") ||
+      length(entries[[mu_idx]]$structured) != 1L) return(FALSE)
+  ordinary <- extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms
+  length(ordinary) == 1L &&
+    identical(ordinary[[1L]]$type, "intercept") &&
+    identical(ordinary[[1L]]$group, iid_target$group) &&
+    identical(ordinary[[1L]]$coef_names, "(Intercept)")
+}
+
+# The bridge represents a fixed-range spatial covariance as K so the R and
+# Julia fits use the same native drmTMB covariance. Admit only one Binomial
+# spatial intercept or slope-only term paired with its matching SD regression.
+drm_julia_binomial_spatial_sd_route_admitted <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  mu_idx <- which(dpars == "mu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L || length(entries) != 2L) {
+    return(FALSE)
+  }
+  sd_entry <- entries[[sd_idx]]
+  target <- tryCatch(parse_sd_lhs(sd_entry$lhs), error = function(e) NULL)
+  if (is.null(target) || !identical(target$fun, "sd_spatial") ||
+      !identical(target$level, "spatial") || !is.na(target$target_dpar) ||
+      !is.na(target$target_coef) || !is.na(target$target_block) ||
+      !setequal(dpars, c("mu", sd_entry$dpar))) {
+    return(FALSE)
+  }
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 1L) return(FALSE)
+  term <- terms[[1L]]
+  if (!identical(term$type, "spatial") || !identical(term$dpar, "mu") ||
+      !identical(term$group, target$group) ||
+      !identical(term$structure, "coords")) {
+    return(FALSE)
+  }
+  intercept <- identical(term$coef_names, "(Intercept)")
+  slope_only <- length(term$coef_names) == 1L &&
+    length(term$variables) == 1L &&
+    identical(term$coef_names, term$variables)
+  (intercept || slope_only) &&
+    length(entries[[mu_idx]]$structured) == 1L &&
+    length(extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms) == 0L
+}
+
+# Re-express one Binomial phylogenetic-interaction intercept or slope as a
+# related-matrix route for DRM.jl. The supplied K is the observed pair
+# submatrix of the Kronecker product of the two native tip covariances.
+drm_julia_binomial_phylo_interaction_sd_route_admitted <- function(
+  formula, data = NULL
+) {
+  entries <- formula$entries
+  if (!is.list(entries) || length(entries) != 2L) return(FALSE)
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  mu_idx <- which(dpars == "mu")
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  if (length(mu_idx) != 1L || length(sd_idx) != 1L) return(FALSE)
+  sd_entry <- entries[[sd_idx]]
+  target <- tryCatch(parse_sd_lhs(sd_entry$lhs), error = function(e) NULL)
+  if (is.null(target) || !identical(target$fun, "sd_phylo") ||
+      !identical(target$level, "phylogenetic_interaction") ||
+      !is.na(target$target_dpar) || !is.na(target$target_block) ||
+      !setequal(dpars, c("mu", sd_entry$dpar))) return(FALSE)
+  structured <- unlist(lapply(entries, `[[`, "structured"), recursive = FALSE)
+  if (length(structured) != 1L) return(FALSE)
+  term <- structured[[1L]]
+  if (!identical(term$type, "phylo_interaction") ||
+      !identical(term$dpar, "mu") ||
+      !(identical(term$coef_names, "(Intercept)") &&
+        is.na(target$target_coef)) &&
+      !(length(term$coef_names) == 1L &&
+        !identical(term$coef_names, "(Intercept)") &&
+        identical(target$target_coef, term$coef_names[[1L]]))) return(FALSE)
+  mu_entry <- entries[[mu_idx]]
+  marker_terms <- Filter(function(x) {
+    is_structured_marker_call(x, name = "phylo_interaction")
+  }, flatten_plus_terms(mu_entry$rhs))
+  if (length(marker_terms) != 1L ||
+      length(mu_entry$structured) != 1L ||
+      length(extract_random_mu_terms(mu_entry$rhs, "mu")$terms) != 0L) {
+    return(FALSE)
+  }
+  if (!is.null(data)) {
+    required <- c(term$group1, term$group2, target$group)
+    if (!is.data.frame(data) || anyNA(match(required, names(data))) ||
+        anyNA(data[[term$group1]]) || anyNA(data[[term$group2]]) ||
+        anyNA(data[[target$group]])) return(FALSE)
+    pair <- as.character(data[[target$group]])
+    first <- as.character(data[[term$group1]])
+    second <- as.character(data[[term$group2]])
+    pair_key <- paste0(nchar(first), ":", first, "|",
+                       nchar(second), ":", second)
+    pair_map <- unique(data.frame(pair, pair_key, stringsAsFactors = FALSE))
+    if (anyDuplicated(pair_map$pair) || anyDuplicated(pair_map$pair_key)) {
+      return(FALSE)
+    }
+    sd_frame <- tryCatch(stats::model.frame(
+      stats::reformulate(deparse1(sd_entry$rhs)), data = data,
+      na.action = stats::na.pass
+    ), error = function(e) NULL)
+    if (is.null(sd_frame)) return(FALSE)
+    sd_design <- tryCatch(stats::model.matrix(
+      stats::terms(sd_frame), sd_frame
+    ), error = function(e) NULL)
+    if (is.null(sd_design) || anyNA(sd_design) || any(!is.finite(sd_design))) {
+      return(FALSE)
+    }
+    for (group in unique(pair)) {
+      rows <- which(pair == group)
+      if (length(rows) > 1L && any(sd_design[rows, , drop = FALSE] !=
+          matrix(sd_design[rows[[1L]], ], nrow = length(rows),
+                 ncol = ncol(sd_design), byrow = TRUE))) return(FALSE)
+    }
+  }
+  TRUE
+}
+
+drm_julia_binomial_phylo_interaction_sd_formula <- function(formula) {
+  if (!drm_julia_binomial_phylo_interaction_sd_route_admitted(formula)) {
+    cli::cli_abort(
+      "The formula is outside the admitted Binomial phylogenetic-interaction SD route."
+    )
+  }
+  out <- formula
+  entries <- out$entries
+  mu_idx <- which(vapply(entries, function(entry) identical(entry$dpar, "mu"),
+                         logical(1L)))
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  term <- entries[[mu_idx]]$structured[[1L]]
+  target <- parse_sd_lhs(entries[[sd_idx]]$lhs)
+  slope <- if (identical(term$coef_names, "(Intercept)")) {
+    NULL
+  } else {
+    term$coef_names[[1L]]
+  }
+  re_lhs <- if (is.null(slope)) {
+    1
+  } else {
+    call("+", 0, as.name(slope))
+  }
+  replacement <- call("relmat", call("|", re_lhs, as.name(target$group)))
+  rhs_terms <- flatten_plus_terms(entries[[mu_idx]]$rhs)
+  rhs_terms <- lapply(rhs_terms, function(x) {
+    if (is_structured_marker_call(x, name = "phylo_interaction")) {
+      replacement
+    } else {
+      x
+    }
+  })
+  entries[[mu_idx]]$rhs <- rebuild_plus_terms(rhs_terms)
+  term$type <- "relmat"
+  term$group <- target$group
+  term$structure <- "K"
+  term$object <- "K"
+  term$label <- if (is.null(slope)) {
+    paste0("relmat(1 | ", target$group, ")")
+  } else {
+    paste0("relmat(0 + ", slope, " | ", target$group, ")")
+  }
+  term$variables <- if (is.null(slope)) NA_character_ else slope
+  term$coef_names <- if (is.null(slope)) "(Intercept)" else slope
+  term$covariance_label <- NULL
+  entries[[mu_idx]]$structured <- list(term)
+  entries[[sd_idx]]$lhs <- if (is.null(slope)) {
+    call("sd", as.name(target$group), level = "relmat")
+  } else {
+    call("sd", as.name(target$group), level = "relmat",
+         coef = slope)
+  }
+  entries[[sd_idx]]$dpar <- paste0("sd_relmat(", target$group, ")")
+  out$entries <- entries
+  out
+}
+
+drm_julia_binomial_phylo_interaction_sd_payload <- function(
+  formula, data, env
+) {
+  if (!drm_julia_binomial_phylo_interaction_sd_route_admitted(formula, data)) {
+    cli::cli_abort(
+      "Binomial phylogenetic-interaction SD bridge requires one-to-one observed pair IDs and pair-constant SD predictors."
+    )
+  }
+  converted_formula <- drm_julia_binomial_phylo_interaction_sd_formula(formula)
+  entries <- formula$entries
+  term <- unlist(lapply(entries, `[[`, "structured"), recursive = FALSE)[[1L]]
+  target <- parse_sd_lhs(Filter(function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, entries)[[1L]]$lhs)
+  tree1 <- evaluate_phylo_tree(term$tree1, env)
+  tree2 <- evaluate_phylo_tree(term$tree2, env)
+  cov1 <- drm_phylo_tip_covariance(tree1)
+  cov2 <- drm_phylo_tip_covariance(tree2)
+  pair_rows <- data[!duplicated(as.character(data[[target$group]])), , drop = FALSE]
+  pair_levels <- as.character(pair_rows[[target$group]])
+  i1 <- match(as.character(pair_rows[[term$group1]]), rownames(cov1))
+  i2 <- match(as.character(pair_rows[[term$group2]]), rownames(cov2))
+  if (anyNA(i1) || anyNA(i2)) {
+    cli::cli_abort(
+      "Observed phylogenetic-interaction partners must occur in their corresponding trees."
+    )
+  }
+  K <- cov1[i1, i1, drop = FALSE] * cov2[i2, i2, drop = FALSE]
+  dimnames(K) <- list(pair_levels, pair_levels)
+  payload_env <- new.env(parent = env)
+  assign("K", K, envir = payload_env)
+  payload <- drm_julia_structured_payload(
+    converted_formula, "binomial", data, payload_env
+  )
+  converted_sd_idx <- which(vapply(converted_formula$entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  julia_sd_name <- drm_julia_formula_lhs(
+    converted_formula$entries[[converted_sd_idx]]
+  )
+  sd_idx <- match(julia_sd_name, names(payload$formula))
+  if (is.na(sd_idx)) {
+    cli::cli_abort(
+      "Could not locate the pair-level SD formula while preparing the Julia covariance route."
+    )
+  }
+  payload$formula[[sd_idx]] <- sub(
+    "sd_relmat", "sd", payload$formula[[sd_idx]], fixed = TRUE
+  )
+  payload$structured_sd_scales <- stats::setNames(1, term$label)
+  payload
+}
+
+drmTMB_julia_binomial_phylo_interaction_sd_bridge <- function(
+  formula, family, data, env, weights_missing, control, impute, missing,
+  REML = FALSE, call
+) {
+  if (!isTRUE(weights_missing) || !is.null(impute)) {
+    cli::cli_abort(c(
+      "The Julia Binomial phylogenetic-interaction SD route does not support weights or imputation.",
+      i = "Use native {.code engine = \"tmb\"} for weighted or imputed fits."
+    ))
+  }
+  missing_control <- drm_parse_missing_control(missing)
+  if (!drm_julia_missing_supported(missing_control, "binomial")) {
+    cli::cli_abort("The Julia Binomial phylogenetic-interaction SD route requires response dropping and complete predictors.")
+  }
+  if (!drm_julia_default_control(control)) {
+    drm_julia_abort_nondefault_control(
+      route = "Binomial phylogenetic-interaction SD",
+      advice = "Use default optimizer controls for this Julia route."
+    )
+  }
+  if (identical(missing_control$response, "drop")) {
+    data <- drm_julia_drop_structured_missing(data, formula)
+  }
+  payload <- drm_julia_binomial_phylo_interaction_sd_payload(
+    formula, data, env
+  )
+  family_tag <- drm_julia_structured_family_tag(
+    "binomial", formula, link = family$link
+  )
+  result <- drm_julia_call_structured(
+    formula = payload$formula, family = family_tag, data = payload$data,
+    matrix = payload$matrix, kwarg = payload$kwarg,
+    options = payload$options
+  )
+  new_drmTMB_julia(
+    result = result, call = call, formula = formula, family = family,
+    data = data, family_type = "binomial",
+    structured_sd_scales = payload$structured_sd_scales,
+    bridge_payload = payload, requested_REML = isTRUE(REML),
+    effective_REML = FALSE
+  )
+}
+
+# DRM.jl's Tweedie relmat SD route admits one mean random intercept with its
+# matching predictor-dependent SD, fixed sigma and fixed power. Keep this
+# separate from the ordinary Tweedie route and the general structured-family
+# set so other Tweedie structured shapes remain refused.
+drm_julia_tweedie_relmat_sd_route_admitted <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  sd_idx <- which(vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L)))
+  mu_idx <- which(dpars == "mu")
+  sigma_idx <- which(dpars == "sigma")
+  nu_idx <- which(dpars == "nu")
+  if (length(sd_idx) != 1L || length(mu_idx) != 1L ||
+      length(sigma_idx) != 1L || length(nu_idx) != 1L ||
+      length(entries) != 4L || anyDuplicated(dpars)) {
+    return(FALSE)
+  }
+  sd_entry <- entries[[sd_idx]]
+  target <- tryCatch(parse_sd_lhs(sd_entry$lhs), error = function(e) NULL)
+  if (is.null(target) || !identical(target$fun, "sd_relmat") ||
+      !identical(target$level, "relmat") || !is.na(target$target_dpar) ||
+      !is.na(target$target_coef) || !is.na(target$target_block)) {
+    return(FALSE)
+  }
+  if (!setequal(dpars, c("mu", "sigma", "nu", sd_entry$dpar)) ||
+      !drm_julia_is_intercept_rhs(entries[[sigma_idx]]$rhs) ||
+      !drm_julia_is_intercept_rhs(entries[[nu_idx]]$rhs)) {
+    return(FALSE)
+  }
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 1L) return(FALSE)
+  term <- terms[[1L]]
+  identical(term$type, "relmat") && identical(term$dpar, "mu") &&
+    identical(term$group, target$group) &&
+    identical(term$coef_names, "(Intercept)") &&
+    length(entries[[mu_idx]]$structured) == 1L &&
+    length(extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms) == 0L
 }
 
 drm_julia_formula_spec <- function(formula, phylo_payload = NULL) {
   dpars <- vapply(formula$entries, `[[`, character(1L), "dpar")
-  # Location-scale-scale parts carry the grouping in the dpar name itself
-  # ("sd(id)", "sd_phylo(species)"), so they are matched by shape, not listed.
-  # DRM.jl accepts exactly this spelling positionally (DRM.jl #546).
-  is_lss <- grepl("^sd(_phylo)?\\([^()]+\\)$", dpars)
+  # Location-scale-scale parts are identified from their parsed LHS. Their
+  # canonical dpar labels may contain quoted selectors, so string-shape
+  # matching loses valid target identity (and rejects nested Julia markers).
+  is_lss <- vapply(formula$entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L))
   bad <- setdiff(dpars[!is_lss], julia_bridge_supported_dpars())
   if (length(bad) > 0L) {
     cli::cli_abort(c(
@@ -3297,10 +5628,43 @@ drm_julia_formula_spec <- function(formula, phylo_payload = NULL) {
   coupled_phylo_tag <- phylo_payload$coupled_phylo_tag %||% NULL
   for (i in seq_along(formula$entries)) {
     entry <- formula$entries[[i]]
+    if (!is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)) {
+      target <- parse_sd_lhs(entry$lhs)
+      if (identical(target$fun, "sd_animal") &&
+          identical(target$level, "animal")) {
+        # The Julia bridge treats this as a marker-keyed LSS entry, not a
+        # regression dpar named `sd_animal(id)`.
+        # Preserve coefficient selectors so independent animal intercept and
+        # slope SD formulas remain distinct when the Julia formula is marshalled.
+        names(out)[[i]] <- drm_julia_formula_lhs(entry)
+      } else if (identical(target$fun, "sd_relmat") &&
+                 identical(target$level, "relmat")) {
+        names(out)[[i]] <- drm_julia_formula_lhs(entry)
+      }
+    }
     out[[i]] <- drm_julia_formula_entry(
       entry,
       coupled_phylo_tag = coupled_phylo_tag
     )
+  }
+  # A selector-bearing ordinary SD target cannot be marshalled as a keyed
+  # formula part: DRM.jl's bridge recognises LSS keys such as `sd(id)`, while
+  # `sd(id, coef(x)) = ...` is parsed as a Julia function definition. Send the
+  # univariate mu + ordinary iid SD route as positional formula parts instead;
+  # DRM.jl identifies each SD target from its formula LHS, including `coef()`.
+  # This also permits several coefficient-specific SD formulas for one group.
+  ordinary_sd_selector_route <- length(dpars[!is_lss]) == 1L &&
+    identical(dpars[!is_lss], "mu") &&
+    all(vapply(which(is_lss), function(i) {
+      target <- tryCatch(parse_sd_lhs(formula$entries[[i]]$lhs),
+                         error = function(e) NULL)
+      !is.null(target) && identical(target$fun, "sd") &&
+        is.na(target$level) && identical(target$target_dpar, "mu") &&
+        !is.na(target$target_coef) && is.na(target$target_block)
+    }, logical(1L))) &&
+    length(which(is_lss)) > 0L
+  if (ordinary_sd_selector_route) {
+    return(unname(vapply(out, identity, character(1L))))
   }
   out
 }
@@ -3320,7 +5684,181 @@ drm_julia_formula_entry <- function(entry, coupled_phylo_tag = NULL) {
   if (!is.na(entry$response)) {
     return(paste(entry$response, "~", rhs))
   }
-  paste(entry$dpar, "~", rhs)
+  paste(drm_julia_formula_lhs(entry), "~", rhs)
+}
+
+# R's public selector is string-valued, whereas StatsModels' Julia formula
+# grammar needs a syntactic marker. `coef(intercept)` names the intercept and
+# `coef(x)` names a simple slope term; the Julia parser treats this FunctionTerm
+# as metadata and never evaluates it as a coefficient extractor.
+drm_julia_formula_lhs <- function(entry) {
+  if (is.null(entry$lhs) || !is_random_scale_lhs(entry$lhs)) {
+    return(entry$dpar)
+  }
+  target <- parse_sd_lhs(entry$lhs)
+  if (identical(target$fun, "sd_animal") &&
+      identical(target$level, "animal")) {
+    if (!is.na(target$target_coef)) {
+      member <- if (identical(target$target_coef, "(Intercept)")) {
+        "intercept"
+      } else {
+        target$target_coef
+      }
+      if (!grepl("^[A-Za-z.][A-Za-z0-9._]*$", member)) {
+        cli::cli_abort(c(
+          "The Julia bridge can only marshal simple random-effect coefficient selectors.",
+          "x" = "The selected term {.val {target$target_coef}} cannot be represented as {.code coef(term)} in a Julia formula."
+        ))
+      }
+      return(paste0("sd(", target$group, ", animal, coef(", member, "))"))
+    }
+    return(paste0("sd(", target$group, ", animal)"))
+  }
+  if (identical(target$fun, "sd_relmat") &&
+      identical(target$level, "relmat")) {
+    if (is.na(target$target_coef)) {
+      return(paste0("sd(", target$group, ", relmat)"))
+    }
+    member <- target$target_coef
+    if (!grepl("^[A-Za-z.][A-Za-z0-9._]*$", member)) {
+      cli::cli_abort(c(
+        "The Julia bridge can only marshal simple random-effect coefficient selectors.",
+        "x" = "The selected term {.val {member}} cannot be represented as {.code coef(term)} in a Julia formula."
+      ))
+    }
+    return(paste0("sd(", target$group, ", relmat, coef(", member, "))"))
+  }
+  if (!identical(target$fun, "sd") || !is.na(target$level)) {
+    return(entry$dpar)
+  }
+  if (!is.na(target$target_block)) {
+    cli::cli_abort("The Julia bridge does not yet marshal labelled SD blocks.")
+  }
+  if (identical(target$target_dpar, "sigma")) {
+    if (is.na(target$target_coef) ||
+        identical(target$target_coef, "(Intercept)")) {
+      return(paste0("sd(", target$group, ", sigma)"))
+    }
+    member <- target$target_coef
+    if (!grepl("^[A-Za-z.][A-Za-z0-9._]*$", member)) {
+      cli::cli_abort(c(
+        "The Julia bridge can only marshal simple random-effect coefficient selectors.",
+        "x" = "The selected term {.val {target$target_coef}} cannot be represented as {.code coef(term)} in a Julia formula."
+      ))
+    }
+    # The family-specific admission checks decide which sigma targets are
+    # supported. Preserve a selected coefficient here so Gamma sigma slopes
+    # reach Julia as `sd(group, sigma, coef(term))`.
+    return(paste0("sd(", target$group, ", sigma, coef(", member, "))"))
+  }
+  if (is.na(target$target_coef)) {
+    return(paste0("sd(", target$group, ")"))
+  }
+  member <- target$target_coef
+  if (identical(member, "(Intercept)")) {
+    member <- "intercept"
+  }
+  if (!grepl("^[A-Za-z.][A-Za-z0-9._]*$", member)) {
+    cli::cli_abort(c(
+      "The Julia bridge can only marshal simple random-effect coefficient selectors.",
+      "x" = "The selected term {.val {target$target_coef}} cannot be represented as {.code coef(term)} in a Julia formula."
+    ))
+  }
+  paste0("sd(", target$group, ", coef(", member, "))")
+}
+
+# Keep target-specific Julia parameter blocks stable across formula order and
+# suitable for bridge coefficient names. This is the hex encoding of the same
+# `(group, level, dpar, member, block)` tuple stored in DRM.jl's SD descriptor.
+drm_julia_sd_target_block <- function(target, disambiguate = FALSE) {
+  if (
+    all(is.na(c(
+      target$target_dpar, target$target_coef, target$target_block
+    ))) &&
+      !isTRUE(disambiguate)
+  ) {
+    return("sd")
+  }
+  member <- if (is.na(target$target_coef)) {
+    "none"
+  } else if (identical(target$target_coef, "(Intercept)")) {
+    "intercept"
+  } else {
+    target$target_coef
+  }
+  level <- if (is.na(target$level)) "iid" else target$level
+  dpar <- if (is.na(target$target_dpar)) "mu" else target$target_dpar
+  block <- if (is.na(target$target_block)) "none" else target$target_block
+  identity <- enc2utf8(paste(target$group, level, dpar, member, block, sep = "|"))
+  bytes <- as.integer(charToRaw(identity))
+  paste0("sdtarget_", paste(sprintf("%02x", bytes), collapse = ""))
+}
+
+# Structured selectors are metadata on the parsed target, while `target$dpar`
+# intentionally retains its legacy base name. Give multi-coefficient structured
+# fits the same selector-qualified public key used by native fits.
+drm_julia_sd_public_dpar <- function(target) {
+  if (any(!is.na(c(target$target_dpar, target$target_coef,
+                   target$target_block)))) {
+    return(format_sd_lhs_dpar(
+      target$fun, target$group, target$target_dpar,
+      target$target_coef, target$target_block
+    ))
+  }
+  target$dpar
+}
+
+# Resolve the formula's stable target identity to the block name this fitted
+# Julia object actually exposes. A sole ordinary SD target uses `sd`; multiple
+# targets retain their descriptor-derived keys.
+drm_julia_sd_fit_block <- function(object, target) {
+  if (identical(target$fun, "sd") && is.na(target$level) &&
+      drm_julia_binomial_phylo_ordinary_sd_route_admitted(
+        object$formula
+      )) {
+    return("sd")
+  }
+  if (identical(target$fun, "sd_phylo") &&
+      identical(target$level, "phylogenetic_interaction") &&
+      is.list(object$coefficients) && "sd" %in% names(object$coefficients)) {
+    return("sd")
+  }
+  if (
+    target$fun %in% c("sd", "sd_phylo") &&
+      identical(target$level, "phylogenetic")
+  ) {
+    return("sd_phylo")
+  }
+  if (identical(target$fun, "sd_animal") &&
+      identical(target$level, "animal") &&
+      is.list(object$coefficients) && "sd" %in% names(object$coefficients)) {
+    return("sd")
+  }
+  if (identical(target$fun, "sd_relmat") && identical(target$level, "relmat") &&
+      is.list(object$coefficients) && "sd" %in% names(object$coefficients)) {
+    return("sd")
+  }
+  if (identical(target$fun, "sd_spatial") && identical(target$level, "spatial") &&
+      is.list(object$coefficients) && "sd" %in% names(object$coefficients)) {
+    return("sd")
+  }
+  entries <- object$formula$entries
+  sd_targets <- Filter(function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, entries)
+  key <- drm_julia_sd_target_block(
+    target,
+    disambiguate = length(sd_targets) > 1L
+  )
+  if (!identical(target$fun, "sd") || !is.na(target$level)) return(key)
+  has_sd <- if (is.list(object$coefficients)) {
+    "sd" %in% names(object$coefficients)
+  } else if (is.atomic(object$coefficients) && !is.null(names(object$coefficients))) {
+    any(drm_julia_split_coef_name(names(object$coefficients))$dpar == "sd")
+  } else {
+    FALSE
+  }
+  if (has_sd && length(sd_targets) == 1L) "sd" else key
 }
 
 # DRM.jl's StatsModels parser accepts positional `meta_V(v)` (Workflow G
@@ -3671,7 +6209,8 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
           "drmTMB_phylo_locscale"
       }
     } else {
-      # Standard intercept-only phylo on mu (mean-only or simple sigma ~ 1).
+      # Standard intercept-only phylo on mu, plus the Binomial slope-only
+      # direct-SD route admitted below.
       if (length(phylo_terms) != 1L) {
         cli::cli_abort(c(
           "{.code engine = \"julia\"} currently supports one {.fn phylo} term.",
@@ -3687,16 +6226,21 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
         length(term$coef_names) == 2L &&
         identical(term$coef_names[[1L]], "(Intercept)") &&
         family_type %in% slope_families
+      binomial_slope_only <- identical(family_type, "binomial") &&
+        drm_julia_binomial_phylo_sd_slope_route_admitted(
+          formula, data = data
+        )
       if (
         !identical(term$dpar, "mu") ||
-          (!identical(term$coef_names, "(Intercept)") && !is_slope)
+          (!identical(term$coef_names, "(Intercept)") && !is_slope &&
+            !binomial_slope_only)
       ) {
         cli::cli_abort(c(
-          "{.code engine = \"julia\"} currently supports {.code phylo(1 | group, tree = tree)} or {.code phylo(1+x | group, tree = tree)} in the {.code mu} formula.",
-          i = "Use native {.code engine = \"tmb\"} for residual-scale phylogenetic effects or direct-SD formulas."
+          "{.code engine = \"julia\"} currently supports {.code phylo(1 | group, tree = tree)} on Binomial models only with a matching phylogenetic {.fn sd} formula, and {.code phylo(1+x | group, tree = tree)} on the documented count and continuous-family routes.",
+          i = "For a Binomial random slope, use one numeric slope-only {.code phylo(0 + x | group, tree = tree)} term with a matching {.code sd(group, level = \"phylogenetic\") ~ ...} formula. Use native {.code engine = \"tmb\"} for other phylogenetic slope shapes."
         ))
       }
-      if (!is_slope) {
+      if (!is_slope && !binomial_slope_only) {
         sigma_entries <- Filter(
           function(entry) identical(entry$dpar, "sigma"),
           formula$entries
@@ -4375,12 +6919,56 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   cli::cli_inform(c(
     i = "Starting Julia (first call in a session takes ~30-60 s; later calls are fast)..."
   ))
-  JuliaCall::julia_setup(installJulia = FALSE)
+  # JuliaCall installs RCall and Suppressor into the active Julia project.
+  # Start it in a disposable project so setup never edits the user's DRM.jl
+  # Project.toml / Manifest.toml. Activating the selected checkout afterwards
+  # lets its manifest determine package versions before DRM.jl is imported.
+  previous_project <- Sys.getenv("JULIA_PROJECT", unset = NA_character_)
+  bootstrap_project <- drm_julia_setup_state$bootstrap_project
+  if (!isTRUE(drm_julia_setup_state$julia_call_initialized)) {
+    bootstrap_project <- tempfile("drmTMB-juliacall-")
+    if (!dir.create(bootstrap_project)) {
+      cli::cli_abort("Could not create a temporary JuliaCall bootstrap project.")
+    }
+    writeLines("[deps]", file.path(bootstrap_project, "Project.toml"))
+    Sys.setenv(JULIA_PROJECT = bootstrap_project)
+    on.exit({
+      if (is.na(previous_project)) {
+        Sys.unsetenv("JULIA_PROJECT")
+      } else {
+        Sys.setenv(JULIA_PROJECT = previous_project)
+      }
+    }, add = TRUE)
+    JuliaCall::julia_setup(installJulia = FALSE, install = TRUE)
+    drm_julia_setup_state$bootstrap_project <- normalizePath(
+      bootstrap_project, winslash = "/", mustWork = TRUE
+    )
+    expected_active_project <- file.path(
+      drm_julia_setup_state$bootstrap_project, "Project.toml"
+    )
+  } else {
+    JuliaCall::julia_setup(installJulia = FALSE, install = FALSE)
+    expected_active_project <- file.path(
+      drm_julia_setup_state$active_project, "Project.toml"
+    )
+  }
+  active_project <- JuliaCall::julia_eval("string(Base.active_project())")
+  if (!identical(
+    normalizePath(active_project, winslash = "/", mustWork = FALSE),
+    normalizePath(expected_active_project, winslash = "/", mustWork = FALSE)
+  )) {
+    cli::cli_abort(c(
+      "JuliaCall is already running with a different active project.",
+      i = "Restart R, then call {.code drmTMB(..., engine = \"julia\")} before initializing JuliaCall in another project."
+    ))
+  }
+  drm_julia_setup_state$julia_call_initialized <- TRUE
   drm_julia_setup_state$ready <- FALSE
   drm_julia_check_manifest_runtime(normalized_path)
   drm_julia_setup_command(paste0(
     "import Pkg; Pkg.activate(", drm_julia_quote(normalized_path), ")"
   ))
+  drm_julia_setup_state$active_project <- normalized_path
   drm_julia_setup_state$module <- drm_julia_load_module(normalized_path)
   # Random is Julia's own stdlib (not a DRM.jl addition); the fixed-effect
   # inference wrapper below seeds `bootstrap_result()`'s RNG with it.
@@ -4471,14 +7059,14 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "end"
     )
   )
-  # General-covariance structured route: the user-supplied K / A / coords matrix
+  # General-covariance structured route: the user-supplied K / A / Ainv / coords matrix
   # crosses as a Julia array (or `nothing`) and is forwarded to DRM.drm_bridge.
   # Gaussian spatial coords are converted to native drmTMB's fixed-range K target
   # before crossing, then reconstructed under the user's spatial() label.
   drm_julia_setup_command(
     paste(
-      "drmTMB_drm_bridge_structured(formula, family, data, K, A, coords, options) =",
-      "drmTMB_backend.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options)"
+      "drmTMB_drm_bridge_structured(formula, family, data, K, A, coords, options, Ainv = nothing) =",
+      "drmTMB_backend.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, Ainv = Ainv, coords = coords, options = options)"
     )
   )
   # DRM.jl's `drm_bridge_objective_at` (DRM.jl#590, `src/bridge.jl`, exported,
@@ -4552,6 +7140,34 @@ new_drmTMB_julia <- function(
     formula = formula,
     sd_scales = structured_sd_scales
   )
+  sd_regression_offsets <- drm_julia_sd_regression_offsets(
+    formula = formula,
+    structured_sd_scales = structured_sd_scales
+  )
+  if (length(sd_regression_offsets) > 0L) {
+    coefficient_names <- names(coefficients)
+    coefficient_axes <- drm_julia_split_coef_name(coefficient_names)
+    for (block in names(sd_regression_offsets)) {
+      intercept <- which(
+        coefficient_axes$dpar == block &
+          coefficient_axes$term == "(Intercept)"
+      )
+      if (length(intercept) == 1L) {
+        coefficients[[intercept]] <-
+          coefficients[[intercept]] + sd_regression_offsets[[block]]
+      }
+    }
+  }
+  sdpars <- structured_parameters$sdpars
+  ordinary_sdpars <- drm_julia_sdpars(
+    coefficients = coefficients,
+    formula = formula,
+    data = data,
+    sd_regression_offsets = sd_regression_offsets
+  )
+  for (target in names(ordinary_sdpars)) {
+    sdpars[[target]] <- ordinary_sdpars[[target]]
+  }
   # Structured (non-fixed-effect) coefficients that must NOT appear in the
   # fixed-effect coefficient table / Wald CIs: `resd_`/`recov_` SD & residual
   # correlation working parameters, and the q2/q4 bivariate among-axis
@@ -4662,7 +7278,8 @@ new_drmTMB_julia <- function(
     coefficients = coefficient_blocks,
     coef_vector = fixed_coefficients,
     phylocov = phylocov_slot,
-    sdpars = structured_parameters$sdpars,
+    sdpars = sdpars,
+    sd_regression_offsets = sd_regression_offsets,
     structured_sd_scales = structured_sd_scales,
     corpars = structured_parameters$corpars,
     vcov = V,
@@ -4671,6 +7288,7 @@ new_drmTMB_julia <- function(
     bic = as.numeric(result[["bic"]]),
     df = as.integer(result[["df"]]),
     nobs = as.integer(result[["nobs"]]),
+    missing_rows = drm_julia_missing_rows_slot(data),
     fitted = drm_julia_plain(result[["fitted"]]),
     conditional_re = drm_julia_conditional_re_plain(result[["conditional_re"]]),
     residuals = drm_julia_plain(result[["residuals"]]),
@@ -4735,6 +7353,7 @@ new_drmTMB_julia <- function(
   )
   if (identical(family_type, "cumulative_logit")) out <- drm_julia_cumulative_logit_ordinal_slot(out)
   class(out) <- "drmTMB_julia"
+  out <- drm_julia_reconstruct_trials(out, newdata = NULL)
   out
 }
 
@@ -4838,6 +7457,63 @@ drm_julia_profile_targets <- function(object) {
   }
   length(rows) == 0L && return(empty_profile_targets())
   out <- do.call(rbind, rows); row.names(out) <- NULL; validate_profile_targets(out)
+}
+
+# Julia stores the ordinary Bernoulli q = 2 working correlation as the
+# `:recov` coefficient `<group>:atanh_rho`. Keep it out of `coef()` and the
+# fixed-effect vcov table, but expose it as a response-scale inference target.
+# The existing coefficient inference bridge can select this coordinate by its
+# block and exact name; this admission stays limited to the unlabelled ordinary
+# Binomial intercept-slope route.
+drm_julia_binomial_q2_correlation_targets <- function(object) {
+  payload <- object$bridge_payload
+  formula <- object$formula
+  if (
+    is.null(payload) || is.null(formula) ||
+      !identical(object$model$model_type, "binomial")
+  ) {
+    return(empty_profile_targets())
+  }
+  recov_name <- drm_julia_ordinary_binomial_recov_label(
+    formula,
+    "binomial"
+  )
+  values <- object$corpars$mu
+  if (
+    is.null(recov_name) || length(recov_name) != 1L ||
+      is.null(values) || length(values) != 1L ||
+      is.null(names(values)) || length(names(values)) != 1L
+  ) {
+    return(empty_profile_targets())
+  }
+  rho_name <- names(values)[[1L]]
+  rho <- unname(values[[1L]])
+  link_estimate <- if (
+    !is.finite(rho) || abs(rho) >= DRM_RE_CORR_GUARD
+  ) {
+    NA_real_
+  } else {
+    atanh(rho / DRM_RE_CORR_GUARD)
+  }
+  new_profile_target_row(
+    parm = paste0("cor:mu:", rho_name),
+    target_class = "random-effect-correlation",
+    dpar = "recov",
+    term = recov_name,
+    tmb_parameter = "eta_cor_mu",
+    index = 1L,
+    estimate = rho,
+    link_estimate = link_estimate,
+    scale = "response",
+    transformation = "tanh",
+    target_type = "direct",
+    profile_ready = is.finite(link_estimate),
+    profile_note = if (is.finite(link_estimate)) {
+      "ready"
+    } else {
+      "correlation_at_transform_boundary"
+    }
+  )
 }
 
 # Bivariate profile targets: one row per axis (mu1, mu2, sigma1, sigma2).
@@ -5041,6 +7717,112 @@ drm_julia_structured_parameters <- function(
   }
 
   corpars <- empty_corpars
+  # Ordinary Bernoulli q = 2 uses one atanh-correlation coefficient. Expose
+  # its response-scale value with the same name and open-bound clamp as TMB.
+  # Keep the three-coefficient structured phylogenetic route below unchanged.
+  ordinary_binomial_recov <- drm_julia_ordinary_binomial_recov_label(
+    formula,
+    "binomial"
+  )
+  if (
+    length(recov) == 1L &&
+      !is.null(ordinary_binomial_recov) &&
+      identical(names(recov), paste0("recov_", ordinary_binomial_recov))
+  ) {
+    mu_entry <- Filter(
+      function(entry) identical(entry$dpar, "mu"),
+      formula$entries
+    )[[1L]]
+    if (length(mu_entry$structured) == 1L &&
+        identical(mu_entry$structured[[1L]]$type, "animal")) {
+      structured_term <- mu_entry$structured[[1L]]
+      term <- list(
+        variable = structured_term$variables[[1L]],
+        group = structured_term$group
+      )
+    } else {
+      random_terms <- extract_random_mu_terms(mu_entry$rhs, "mu")$terms
+      term <- random_terms[[1L]]
+    }
+    correlation <- 0.99999999 * tanh(as.numeric(recov[[1L]]))
+    correlation_name <- paste0(
+      "cor((Intercept),",
+      term$variable,
+      " | ",
+      term$group,
+      ")"
+    )
+    corpars$mu <- stats::setNames(correlation, correlation_name)
+  }
+
+  if (
+    length(recov) == 3L &&
+      length(ordinary_binomial_recov) == 3L &&
+      identical(names(recov), paste0("recov_", ordinary_binomial_recov))
+  ) {
+    mu_entry <- Filter(
+      function(entry) identical(entry$dpar, "mu"),
+      formula$entries
+    )[[1L]]
+    term <- extract_random_mu_terms(mu_entry$rhs, "mu")$terms[[1L]]
+    partial <- tanh(as.numeric(recov))
+    p21 <- partial[[1L]]
+    p31 <- partial[[2L]]
+    p32_given_1 <- partial[[3L]]
+    rho23 <- p21 * p31 + sqrt(1 - p21^2) * sqrt(1 - p31^2) * p32_given_1
+    correlations <- c(p21, p31, rho23)
+    correlation_names <- c(
+      paste0("cor((Intercept),", term$variables[[1L]], " | ", term$group, ")"),
+      paste0("cor((Intercept),", term$variables[[2L]], " | ", term$group, ")"),
+      paste0("cor(", term$variables[[1L]], ",", term$variables[[2L]],
+             " | ", term$group, ")")
+    )
+    corpars$mu <- stats::setNames(correlations, correlation_names)
+  }
+
+  if (!is.null(ordinary_binomial_recov) &&
+      !drm_julia_binomial_animal_q2_sd_route_admitted(formula)) {
+    mu_entry <- Filter(
+      function(entry) identical(entry$dpar, "mu"),
+      formula$entries
+    )[[1L]]
+    term <- extract_random_mu_terms(mu_entry$rhs, "mu")$terms[[1L]]
+    q <- length(term$coef_names)
+    n_cor <- q * (q - 1L) / 2L
+    if (q >= 4L && length(recov) == n_cor &&
+        length(ordinary_binomial_recov) == n_cor &&
+        identical(names(recov), paste0("recov_", ordinary_binomial_recov))) {
+      eta <- as.numeric(recov)
+      partial <- tanh(eta)
+      L <- matrix(0, nrow = q, ncol = q)
+      L[1L, 1L] <- 1
+      position <- 0L
+      stable_sech <- function(value) {
+        2 * exp(-abs(value)) / (1 + exp(-2 * abs(value)))
+      }
+      for (i in seq.int(2L, q)) {
+        row_scale <- 1
+        for (j in seq_len(i - 1L)) {
+          position <- position + 1L
+          L[i, j] <- row_scale * partial[[position]]
+          row_scale <- row_scale * stable_sech(eta[[position]])
+        }
+        L[i, i] <- row_scale
+      }
+      marginal <- tcrossprod(L)
+      diag(marginal) <- 1
+      pairs <- utils::combn(seq_len(q), 2L)
+      correlations <- vapply(seq_len(ncol(pairs)), function(i) {
+        marginal[pairs[1L, i], pairs[2L, i]]
+      }, numeric(1L))
+      correlation_names <- paste0(
+        "cor(", term$coef_names[pairs[1L, ]], ",",
+        term$coef_names[pairs[2L, ]], " | ", term$group, ")"
+      )
+      corpars$mu <- stats::setNames(correlations, correlation_names)
+    }
+  }
+
   if (length(recov) == 3L) {
     recov_labels <- sub("^recov_", "", names(recov))
     recov <- stats::setNames(as.numeric(unname(recov)), recov_labels)
@@ -5099,6 +7881,248 @@ drm_julia_structured_parameters <- function(
   }
 
   list(sdpars = sdpars, corpars = corpars)
+}
+
+# Translate modeled random-effect SD coefficients into the same group-level
+# response-scale values exposed by native-TMB `sdpars`. Constant structured
+# scales continue through the provider-specific route above.
+drm_julia_sd_regression_offsets <- function(
+  formula,
+  structured_sd_scales = NULL
+) {
+  out <- numeric()
+  entries <- formula$entries
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(out)
+  }
+  terms <- unlist(lapply(formula$entries, function(entry) {
+    Filter(function(term) identical(term$type, "phylo"), entry$structured)
+  }), recursive = FALSE)
+  for (entry in entries) {
+    if (is.null(entry$lhs) || !is_random_scale_lhs(entry$lhs)) {
+      next
+    }
+    target <- parse_sd_lhs(entry$lhs)
+    is_phylogenetic_sd <- target$fun %in% c("sd", "sd_phylo") &&
+      identical(target$level, "phylogenetic")
+    if (!is_phylogenetic_sd) {
+      next
+    }
+    matching_terms <- Filter(function(term) {
+      identical(term$type, "phylo") && identical(term$group, target$group)
+    }, terms)
+    if (length(matching_terms) != 1L) {
+      cli::cli_abort(c(
+        "The Julia bridge could not resolve one phylogenetic covariance scale for {.val {target$dpar}}.",
+        "x" = "Found {length(matching_terms)} phylogenetic terms for grouping variable {.field {target$group}}."
+      ))
+    }
+    scale <- drm_julia_structured_sd_scale(
+      list(structured_sd_scales = structured_sd_scales),
+      matching_terms[[1L]]$label
+    )
+    if (length(scale) != 1L || !is.numeric(scale) ||
+        !is.finite(scale) || scale <= 0) {
+      cli::cli_abort(
+        "The Julia bridge requires a finite positive scale for phylogenetic target {.val {target$dpar}}."
+      )
+    }
+    block <- "sd_phylo"
+    offset <- log(scale)
+    if (block %in% names(out) &&
+        !isTRUE(all.equal(unname(out[[block]]), offset))) {
+      cli::cli_abort(c(
+        "Julia phylogenetic SD targets sharing coefficient block {.val {block}} require the same tree scale.",
+        "x" = "The bridge cannot map different covariance scales onto one fixed-effect coefficient block."
+      ))
+    }
+    out[[block]] <- offset
+  }
+  out
+}
+
+drm_julia_sd_regression_offset <- function(object, block) {
+  offsets <- object$sd_regression_offsets
+  if (is.null(offsets) || !block %in% names(offsets)) {
+    return(0)
+  }
+  unname(offsets[[block]])
+}
+
+drm_julia_sdpars <- function(
+  coefficients,
+  formula,
+  data,
+  sd_regression_offsets = numeric()
+) {
+  out <- list()
+  entries <- formula$entries
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(out)
+  }
+  for (entry in entries) {
+    if (is.null(entry$lhs) || !is_random_scale_lhs(entry$lhs)) {
+      next
+    }
+    target <- parse_sd_lhs(entry$lhs)
+    is_ordinary_sd <- identical(target$fun, "sd") && is.na(target$level)
+    is_phylogenetic_sd <- target$fun %in% c("sd", "sd_phylo") &&
+      identical(target$level, "phylogenetic")
+    is_animal_sd <- identical(target$fun, "sd_animal") &&
+      identical(target$level, "animal")
+    is_relmat_sd <- identical(target$fun, "sd_relmat") &&
+      identical(target$level, "relmat")
+    if (!is_ordinary_sd && !is_phylogenetic_sd && !is_animal_sd &&
+        !is_relmat_sd) {
+      next
+    }
+    target_dpar <- drm_julia_sd_public_dpar(target)
+    values <- drm_julia_predict_sd(
+      list(
+        formula = formula,
+        data = data,
+        coefficients = coefficients,
+        sd_regression_offsets = sd_regression_offsets
+      ),
+      target_dpar,
+      type = "response"
+    )
+    out[[target_dpar]] <- values
+  }
+  out
+}
+
+
+# Population-level SD prediction for ordinary or phylogenetic random-effect
+# scale regression. Predictors must be constant within each grouping level;
+# taking the first row is safe only after this equality check.
+drm_julia_predict_sd <- function(
+  object,
+  dpar,
+  newdata = NULL,
+  type = c("response", "link")
+) {
+  type <- match.arg(type)
+  entries <- object$formula$entries
+  matches <- Filter(function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs) &&
+      identical(drm_julia_sd_public_dpar(parse_sd_lhs(entry$lhs)), dpar)
+  }, entries)
+  if (length(matches) != 1L) {
+    cli::cli_abort(
+      "{.fn predict} could not resolve exactly one random-effect SD target {.val {dpar}}."
+    )
+  }
+  entry <- matches[[1L]]
+  target <- parse_sd_lhs(entry$lhs)
+  is_ordinary_sd <- identical(target$fun, "sd") && is.na(target$level)
+  is_phylogenetic_sd <- target$fun %in% c("sd", "sd_phylo") &&
+    identical(target$level, "phylogenetic")
+  is_phylogenetic_interaction_sd <- identical(target$fun, "sd_phylo") &&
+    identical(target$level, "phylogenetic_interaction")
+  is_animal_sd <- identical(target$fun, "sd_animal") &&
+    identical(target$level, "animal")
+  is_relmat_sd <- identical(target$fun, "sd_relmat") &&
+    identical(target$level, "relmat")
+  is_spatial_sd <- identical(target$fun, "sd_spatial") &&
+    identical(target$level, "spatial")
+  if (!is_ordinary_sd && !is_phylogenetic_sd &&
+      !is_phylogenetic_interaction_sd && !is_animal_sd &&
+      !is_relmat_sd && !is_spatial_sd) {
+    cli::cli_abort(
+      "{.fn predict} on the Julia bridge currently supports ordinary, phylogenetic, phylogenetic-interaction, animal, relmat, and admitted fixed-coordinate spatial random-effect SD targets."
+    )
+  }
+  dat <- if (is.null(newdata)) object$data else newdata
+  if (!is.data.frame(dat)) {
+    cli::cli_abort("{.arg newdata} must be a data frame.")
+  }
+  group <- target$group
+  if (!group %in% names(dat)) {
+    cli::cli_abort(
+      "{.fn predict} requires grouping column {.field {group}} for {.val {dpar}}."
+    )
+  }
+  group_value <- as.character(dat[[group]])
+  if (anyNA(group_value)) {
+    cli::cli_abort(
+      "{.fn predict} requires non-missing grouping values for {.val {dpar}}."
+    )
+  }
+  train <- object$data
+  if (!is.data.frame(train)) {
+    cli::cli_abort(
+      "{.fn predict} needs the original {.arg data} to rebuild the SD design."
+    )
+  }
+  fixed_formula <- stats::reformulate(deparse1(entry$rhs))
+  train_frame <- stats::model.frame(fixed_formula, data = train)
+  train_terms <- stats::terms(train_frame)
+  xlev <- stats::.getXlevels(train_terms, train_frame)
+  new_frame <- stats::model.frame(
+    train_terms,
+    data = dat,
+    na.action = stats::na.pass,
+    xlev = xlev
+  )
+  X <- stats::model.matrix(train_terms, new_frame, xlev = xlev)
+  if (anyNA(X) || any(!is.finite(X))) {
+    cli::cli_abort(
+      "{.fn predict} requires finite, non-missing SD predictors."
+    )
+  }
+  block <- drm_julia_sd_fit_block(object, target)
+  beta <- if (is.list(object$coefficients)) {
+    object$coefficients[[block]]
+  } else {
+    parsed <- drm_julia_split_coef_name(names(object$coefficients))
+    selected <- which(parsed$dpar == block)
+    stats::setNames(object$coefficients[selected], parsed$term[selected])
+  }
+  if (is.null(beta) || length(beta) == 0L) {
+    cli::cli_abort(
+      "The Julia bridge fit has no coefficient block for {.val {dpar}}."
+    )
+  }
+  common <- intersect(colnames(X), names(beta))
+  if (length(common) != ncol(X) || length(common) != length(beta)) {
+    cli::cli_abort(
+      "The SD design columns do not match the fitted {.val {dpar}} coefficients."
+    )
+  }
+  groups <- unique(group_value)
+  first <- match(groups, group_value)
+  X_group <- X[first, common, drop = FALSE]
+  for (i in seq_along(groups)) {
+    rows <- which(group_value == groups[[i]])
+    if (length(rows) > 1L && any(X[rows, common, drop = FALSE] !=
+                                 matrix(X_group[i, ], nrow = length(rows),
+                                        ncol = ncol(X_group), byrow = TRUE))) {
+      cli::cli_abort(c(
+        "SD predictors must be constant within each random-effect group.",
+        "x" = "The supplied {.arg data} give different SD-design rows for group {.val {groups[[i]]}}.",
+        "i" = "Supply one group-level predictor value per {.val {group}}."
+      ))
+    }
+  }
+  eta_group <- as.numeric(X_group[, common, drop = FALSE] %*% beta[common])
+  offset <- drm_julia_sd_regression_offset(object, block)
+  if (length(offset) != 1L || !is.finite(offset) ||
+      "(Intercept)" %in% names(beta)) {
+    offset <- 0
+  }
+  eta_group <- eta_group + offset
+  if (is.null(newdata)) {
+    eta <- stats::setNames(eta_group, paste0(dpar, ":", groups))
+  } else {
+    eta <- eta_group[match(group_value, groups)]
+    row_labels <- row.names(dat)
+    if (is.null(row_labels) || length(row_labels) != length(eta)) {
+      row_labels <- as.character(seq_along(eta))
+    }
+    names(eta) <- row_labels
+  }
+  if (identical(type, "link")) eta else stats::setNames(exp(eta), names(eta))
 }
 
 drm_julia_vcov <- function(x, coef_names) {
@@ -5246,11 +8270,15 @@ coef.drmTMB_julia <- function(object, dpar = NULL, ...) {
   if (is.null(dpar)) {
     return(object$coefficients)
   }
+  aliases <- drm_julia_lss_dpar_aliases(object)
+  if (length(dpar) == 1L && dpar %in% names(aliases)) {
+    dpar <- unname(aliases[[dpar]])
+  }
   dpar <- match.arg(dpar, names(object$coefficients))
   object$coefficients[[dpar]]
 }
 
-#' @export
+#' @exportS3Method nlme::fixef
 fixef.drmTMB_julia <- function(object, ...) {
   coef.drmTMB_julia(object, ...)
 }
@@ -5363,6 +8391,24 @@ confint.drmTMB_julia <- function(
     drm_julia_ordinal_interval_refusal(object, parm, method)
   }
 
+  if (identical(method, "wald") && !is.null(parm)) {
+    correlation_targets <- drm_julia_binomial_q2_correlation_targets(object)
+    correlation_match <- tryCatch(
+      profile_match_confint_targets(
+        correlation_targets,
+        parm,
+        fixed_only = FALSE
+      ),
+      error = function(cnd) empty_profile_targets()
+    )
+    if (nrow(correlation_match) > 0L) {
+      cli::cli_abort(c(
+        "Wald intervals for Julia Bernoulli random-effect correlations are not available.",
+        i = "The correlation coordinate is excluded from the fixed-effect {.fn vcov} table; use {.code method = \"profile\"} or {.code method = \"bootstrap\"}."
+      ))
+    }
+  }
+
   if (identical(method, "wald")) {
     return(drm_julia_wald_confint(object, parm = parm, level = level))
   }
@@ -5377,7 +8423,8 @@ confint.drmTMB_julia <- function(
 
   full_targets <- rbind(
     drm_julia_profile_targets(object),
-    drm_julia_wald_targets(object)
+    drm_julia_wald_targets(object),
+    drm_julia_binomial_q2_correlation_targets(object)
   )
   # rbind()ing the SD inventory with the fixed-effect inventory means a
   # no-parm call now sees every row at once; profile_match_confint_targets()
@@ -5405,7 +8452,10 @@ confint.drmTMB_julia <- function(
   # drm_julia_call_inference() / drm_julia_inference_confint_row(), which stay
   # exactly as they were for the SD target (no change to already-verified
   # numerics).
-  if (identical(targets$target_class[[1L]], "fixed-effect")) {
+  if (targets$target_class[[1L]] %in% c(
+    "fixed-effect",
+    "random-effect-correlation"
+  )) {
     target <- targets[1L, , drop = FALSE]
     result <- drm_julia_call_fixef_inference(
       object = object,
@@ -5422,7 +8472,15 @@ confint.drmTMB_julia <- function(
       target = target,
       result = result,
       level = level,
-      method = method
+      method = method,
+      link_offset = if (
+        identical(target$target_class[[1L]], "fixed-effect") &&
+          identical(target$term[[1L]], "(Intercept)")
+      ) {
+        drm_julia_sd_regression_offset(object, target$dpar[[1L]])
+      } else {
+        0
+      }
     ))
   }
 
@@ -5578,15 +8636,23 @@ drm_julia_wald_targets <- function(object) {
     "julia_bridge_payload_required"
   }
   rows <- list()
+  sd_aliases <- drm_julia_lss_dpar_aliases(object)
   for (dpar in names(blocks)) {
     beta <- blocks[[dpar]]
     if (length(beta) == 0L) {
       next
     }
     terms <- names(beta)
+    public_dpar <- dpar
+    if (grepl("^sdtarget_[[:xdigit:]]+$", dpar)) {
+      alias_index <- match(dpar, unname(sd_aliases))
+      if (!is.na(alias_index)) public_dpar <- names(sd_aliases)[[alias_index]]
+    }
     for (i in seq_along(beta)) {
       rows[[length(rows) + 1L]] <- new_profile_target_row(
-        parm = paste0("fixef:", dpar, ":", terms[[i]]),
+        # Keep private block identity in `dpar`/`tmb_parameter` for dispatch,
+        # while exposing the parsed target selector in the public parm name.
+        parm = paste0("fixef:", public_dpar, ":", terms[[i]]),
         target_class = "fixed-effect",
         dpar = dpar,
         term = terms[[i]],
@@ -5686,39 +8752,70 @@ drm_julia_wald_scale_targets <- function(object) {
 # `coef(fit)`, `vcov(fit)` and `profile_targets(fit)`, and renaming those is a
 # far wider change than a target-name alias -- but it now ACCEPTS the
 # canonical form wherever a target name is taken, and resolves it to the row
-# it reports. This returns the map from canonical native dpar to bridge block
+# it reports. This returns the map from public SD-target label to bridge block
 # key, derived from the fit's own formula rather than guessed.
 drm_julia_lss_dpar_aliases <- function(object) {
   entries <- object$formula$entries
   if (!is.list(entries) || length(entries) == 0L) {
     return(character(0))
   }
-  dpars <- vapply(
-    entries,
-    function(entry) {
-      value <- entry$dpar
-      if (is.null(value) || length(value) == 0L) {
-        return(NA_character_)
+  canonical <- character()
+  keys <- character()
+  ordinary_unselected <- 0L
+  for (entry in entries) {
+    if (is.null(entry$lhs) || !is_random_scale_lhs(entry$lhs)) next
+    target <- parse_sd_lhs(entry$lhs)
+    if (identical(target$fun, "sd") && is.na(target$level)) {
+      key <- drm_julia_sd_fit_block(object, target)
+      if (identical(key, "sd") && is.na(target$target_coef)) {
+        ordinary_unselected <- ordinary_unselected + 1L
       }
-      as.character(value)[[1L]]
-    },
-    character(1L)
-  )
-  canonical <- dpars[!is.na(dpars) & grepl("^sd(_phylo)?\\([^()]+\\)$", dpars)]
-  canonical <- canonical[!duplicated(canonical)]
-  if (length(canonical) == 0L) {
-    return(character(0))
+      if (key %in% names(object$coefficients)) {
+        canonical <- c(canonical, drm_julia_sd_public_dpar(target))
+        keys <- c(keys, key)
+      }
+    } else if (identical(target$fun, "sd_animal") &&
+               identical(target$level, "animal")) {
+      key <- drm_julia_sd_fit_block(object, target)
+      if (key %in% names(object$coefficients)) {
+        canonical <- c(canonical, drm_julia_sd_public_dpar(target))
+        keys <- c(keys, key)
+      }
+    } else if (identical(target$fun, "sd_relmat") &&
+               identical(target$level, "relmat")) {
+      key <- drm_julia_sd_fit_block(object, target)
+      if (key %in% names(object$coefficients)) {
+        canonical <- c(canonical, drm_julia_sd_public_dpar(target))
+        keys <- c(keys, key)
+      }
+    } else if (identical(target$fun, "sd_spatial") &&
+               identical(target$level, "spatial")) {
+      key <- drm_julia_sd_fit_block(object, target)
+      if (key %in% names(object$coefficients)) {
+        canonical <- c(canonical, drm_julia_sd_public_dpar(target))
+        keys <- c(keys, key)
+      }
+    } else if (identical(target$fun, "sd_phylo") &&
+               identical(target$level, "phylogenetic_interaction")) {
+      key <- drm_julia_sd_fit_block(object, target)
+      if (key %in% names(object$coefficients)) {
+        canonical <- c(canonical, drm_julia_sd_public_dpar(target))
+        keys <- c(keys, key)
+      }
+    } else if (grepl("^sd_phylo\\([^()]+\\)$", target$dpar)) {
+      key <- "sd_phylo"
+      if (key %in% names(object$coefficients)) {
+        canonical <- c(canonical, drm_julia_sd_public_dpar(target))
+        keys <- c(keys, key)
+      }
+    }
   }
-  keys <- sub("\\(.*$", "", canonical)
-  keep <- keys %in% names(object$coefficients) & keys != canonical
-  # Fail closed on an AMBIGUOUS key. Two submodels on different groups --
-  # `sd(g1) ~ z` and `sd(g2) ~ z` -- both reduce to the block key `sd`, so a
-  # canonical name could not be resolved to one coefficient. Drop those rather
-  # than silently answer for whichever group came first.
-  keep <- keep & !(keys %in% keys[duplicated(keys)])
-  if (!any(keep)) {
-    return(character(0))
-  }
+  if (length(canonical) == 0L) return(character(0))
+  keep <- !duplicated(canonical)
+  # Multiple bare sd(group) formulas still share the legacy `sd` block and are
+  # ambiguous. Explicit coef() targets receive distinct stable parameter keys.
+  keep <- keep & !(keys == "sd" & ordinary_unselected > 1L)
+  if (!any(keep)) return(character(0))
   stats::setNames(keys[keep], canonical[keep])
 }
 
@@ -5739,14 +8836,26 @@ drm_julia_canonicalise_parm <- function(object, parm, targets) {
   for (i in seq_along(aliases)) {
     from <- paste0("fixef:", names(aliases)[[i]], ":")
     to <- paste0("fixef:", aliases[[i]], ":")
-    hit <- which(!is.na(parm) & startsWith(parm, from))
-    if (length(hit) == 0L) {
-      next
+    suffix_for <- function(value, prefix) {
+      if (is.na(value) || !startsWith(value, prefix)) return(NA_character_)
+      substring(value, nchar(prefix) + 1L)
     }
-    rewritten <- paste0(to, substring(parm[hit], nchar(from) + 1L))
-    ok <- rewritten %in% known & !(parm[hit] %in% known)
-    if (any(ok)) {
-      parm[hit[ok]] <- rewritten[ok]
+    # Older bare `sd(group)` fits expose the short `sd` block; keep accepting
+    # their canonical formula target. Explicit selectors expose the canonical
+    # formula target publicly and retain the stable hash only in the internal
+    # `dpar` field used for dispatch. Also accept the hash spelling emitted by
+    # early development builds when it does not collide with a public target.
+    hit_from <- which(!is.na(parm) & startsWith(parm, from))
+    for (j in hit_from) {
+      suffix <- suffix_for(parm[[j]], from)
+      rewritten <- paste0(to, suffix)
+      if (rewritten %in% known && !(parm[[j]] %in% known)) parm[[j]] <- rewritten
+    }
+    hit_to <- which(!is.na(parm) & startsWith(parm, to))
+    for (j in hit_to) {
+      suffix <- suffix_for(parm[[j]], to)
+      rewritten <- paste0(from, suffix)
+      if (rewritten %in% known && !(parm[[j]] %in% known)) parm[[j]] <- rewritten
     }
   }
   parm
@@ -5895,6 +9004,20 @@ drm_julia_validate_inference_targets <- function(targets) {
     return(invisible(NULL))
   }
 
+  is_binomial_q2_correlation <- nrow(targets) == 1L &&
+    identical(targets$target_class[[1L]], "random-effect-correlation") &&
+    identical(targets$dpar[[1L]], "recov") &&
+    grepl(":atanh_rho$", targets$term[[1L]])
+  if (is_binomial_q2_correlation) {
+    if (!isTRUE(targets$profile_ready[[1L]])) {
+      cli::cli_abort(c(
+        "Julia-engine target {.val {targets$parm[[1L]]}} is not ready for profile or bootstrap intervals.",
+        i = "Inventory note: {.val {targets$profile_note[[1L]]}}."
+      ))
+    }
+    return(invisible(NULL))
+  }
+
   # Univariate SD case: exactly one phylogenetic mean or scale axis.
   if (
     nrow(targets) != 1L ||
@@ -6011,9 +9134,19 @@ drm_julia_inference_confint_row <- function(target, result, level, method) {
 # own linear-predictor (link) scale -- no exp() transform, no tree-height
 # rescale -- so this mirrors drm_julia_inference_confint_row() but drops that
 # SD-specific step.
-drm_julia_fixef_inference_confint_row <- function(target, result, level, method) {
+drm_julia_fixef_inference_confint_row <- function(
+  target,
+  result,
+  level,
+  method,
+  link_offset = 0
+) {
   result <- as.list(result)
   interval <- c(as.numeric(result[["lower"]]), as.numeric(result[["upper"]]))
+  if (identical(target$target_class[[1L]], "random-effect-correlation")) {
+    interval <- profile_transform_values(interval, target)
+  }
+  interval <- interval + link_offset
   diagnostics <- profile_interval_diagnostics(
     interval,
     transformation = target$transformation[[1L]]
@@ -6818,7 +9951,7 @@ drm_julia_predict_design <- function(object, entry, newdata) {
 drm_strip_structured_terms <- function(rhs) {
   rhs_terms <- stats::terms(stats::reformulate(deparse1(rhs)))
   labels <- attr(rhs_terms, "term.labels")
-  markers <- c("phylo", "spatial", "relmat", "animal")
+  markers <- c("phylo", "phylo_interaction", "spatial", "relmat", "animal")
   is_structured <- vapply(
     labels,
     function(lab) {
@@ -7154,7 +10287,7 @@ drm_julia_tag_linkinv <- function(tag) {
 #      column on both engines (native `drm_newdata_trials()`), unchanged here.
 drm_julia_predict_quantile <- function(object, newdata, dpar, prob) {
   drm_julia_quantile_refuse_meta_v(object)
-  object <- drm_julia_quantile_trials(object, newdata)
+  object <- drm_julia_reconstruct_trials(object, newdata)
   class(object) <- c(class(object), "drmTMB")
   drm_predict_quantile(object, newdata = newdata, dpar = dpar, prob = prob)
 }
@@ -7196,7 +10329,7 @@ drm_julia_quantile_refuse_meta_v <- function(object) {
 # stored rows. Returns the object unchanged for every other family, for
 # `newdata` rows (the native newdata rule owns those), and when a caller-built
 # object already carries the slot.
-drm_julia_quantile_trials <- function(object, newdata) {
+drm_julia_reconstruct_trials <- function(object, newdata) {
   model_type <- object$model$model_type
   if (!model_type %in% c("binomial", "beta_binomial")) {
     return(object)
@@ -7270,7 +10403,7 @@ drm_julia_quantile_trials <- function(object, newdata) {
 #' observation and one column per `prob`, columns named as percentages,
 #' `attr(., "calibrated") == FALSE` (a distributional plug-in interval at the
 #' point estimate, not a calibrated-coverage interval), and the
-#' `"spike"`/`"unimplemented"` family status gate. Because the parameters come
+#' `"spike"`/`"unimplemented"` family status rules. Because the parameters come
 #' from this method's own reconstruction, the quantiles are FIXED-EFFECT,
 #' population-level for `newdata` rows and carry the same conditional
 #' random-effect scope as `type = "response"` for stored rows. For a bivariate
@@ -7321,6 +10454,43 @@ predict.drmTMB_julia <- function(
   object <- drm_julia_predict_model_object(object)
   if (is.null(dpar)) {
     dpar <- names(object$coefficients)[[1L]]
+  }
+  sd_aliases <- drm_julia_lss_dpar_aliases(object)
+  sd_target <- if (length(dpar) == 1L && dpar %in% names(sd_aliases)) {
+    dpar
+  } else {
+    NA_character_
+  }
+  if (!is.na(sd_target)) {
+    if (identical(type, "quantile")) {
+      cli::cli_abort(
+        "Quantile prediction is not defined for random-effect SD target {.val {sd_target}}."
+      )
+    }
+    values <- drm_julia_predict_sd(
+      object,
+      sd_target,
+      newdata = newdata,
+      type = type
+    )
+    if (is.null(newdata)) {
+      sd_entries <- Filter(function(entry) {
+        !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+      }, object$formula$entries)
+      target_entry <- Filter(function(entry) {
+        identical(
+          drm_julia_sd_public_dpar(parse_sd_lhs(entry$lhs)), sd_target
+        )
+      }, sd_entries)
+      if (length(target_entry) == 1L) {
+        prefix <- paste0(sd_target, ":")
+        output_names <- names(values)
+        if (!is.null(output_names) && all(startsWith(output_names, prefix))) {
+          names(values) <- substring(output_names, nchar(prefix) + 1L)
+        }
+      }
+    }
+    return(values)
   }
   dpar <- match.arg(dpar, names(object$coefficients))
   drm_julia_predict_check_dpar(object, dpar)
@@ -7401,15 +10571,19 @@ predict.drmTMB_julia <- function(
 # passes `data` unreordered, so no row permutation is applied.
 #
 # Supported families are exactly DRM.jl's general-covariance set: Gaussian,
-# Poisson, NB2, and Gamma. Beta / Binomial support only `phylo()` in DRM.jl and
-# are rejected here. `Q` (precision), `Ainv`, `pedigree`, and `mesh` marker forms
-# are rejected because `drm()` consumes only K / A / coords for these routes.
+# Poisson, NB2, and Gamma, plus Binomial `relmat()` intercept SDs and
+# animal-intercept/slope SDs, including Binomial animal SD models from pedigree
+# input. Beta has no general-covariance route. Binomial's other general-
+# covariance models are rejected. `Q` (precision) and
+# mesh marker forms are rejected; animal `Ainv` is admitted for the Poisson
+# intercept and the explicitly supported Binomial intercept, slope, q2, and
+# animal-plus-IID SD routes.
 # ---------------------------------------------------------------------------
 
 # Families that route through the Julia engine with a general-covariance
-# structured term (relmat / animal / spatial). This is DRM.jl's user-supplied
-# covariance set and is DISTINCT from the phylo-only set: Beta and Binomial fit
-# phylo but have no relmat/animal/spatial `drm()` route, so they are excluded.
+# structured term (relmat / animal / spatial). The registry lists the general
+# family set. Binomial's narrow relmat-SD exception is formula-gated below;
+# it does not admit other Binomial or Beta structured fits.
 drm_julia_structured_families <- function() {
   drm_julia_registry_families("structured")
 }
@@ -7474,6 +10648,14 @@ drmTMB_julia_biv_known_structured_bridge <- function(
       i = "Use {.code missing = miss_control(response = \"drop\", predictor = \"fail\")}, or use native {.code engine = \"tmb\"} for missing-data routes."
     ))
   }
+  # The control gate above accepts the default drop policy. It does not look
+  # at the data, so NA rows used to reach Julia (#1454). This route does not
+  # subset the shared covariance, so incomplete rows are refused.
+  drm_julia_require_complete_rows(
+    data,
+    formula,
+    "bivariate q2 structured models"
+  )
   if (!drm_julia_default_control(control)) {
     drm_julia_abort_nondefault_control(
       route = "bivariate q2 structured models",
@@ -7524,6 +10706,13 @@ drm_julia_biv_known_structured_payload <- function(
   env,
   method = "ML"
 ) {
+  # #1454: the bridge's miss_control gate does not look at the rows. Refuse
+  # here as well so a direct payload call cannot forward NA responses.
+  drm_julia_require_complete_rows(
+    data,
+    formula,
+    "bivariate q2 structured models"
+  )
   if (!identical(family_type, "biv_gaussian")) {
     cli::cli_abort(
       "{.code engine = \"julia\"} bivariate q2 structured payloads require {.fn biv_gaussian}."
@@ -7726,6 +10915,12 @@ drmTMB_julia_structured_bridge <- function(
       i = "Supported: {.code response = \"drop\"}, or {.code response = \"include\"} for Gaussian (observed-data fit, tree kept whole). Use {.code engine = \"tmb\"} otherwise."
     ))
   }
+  # response = "drop" is the supported default, but this route used to forward
+  # data unchanged (#1454). Drop the same complete-case rows as the main
+  # bridge. response = "include" still passes the supplied rows through.
+  if (identical(missing_control$response, "drop")) {
+    data <- drm_julia_drop_structured_missing(data, formula)
+  }
   if (!drm_julia_default_control(control)) {
     drm_julia_abort_nondefault_control(
       route = "structured models",
@@ -7734,7 +10929,9 @@ drmTMB_julia_structured_bridge <- function(
     )
   }
 
-  family_tag <- drm_julia_structured_family_tag(family_type)
+  family_tag <- drm_julia_structured_family_tag(
+    family_type, formula, link = family$link
+  )
   payload <- drm_julia_structured_payload(
     formula = formula,
     family_type = family_type,
@@ -7767,21 +10964,55 @@ drmTMB_julia_structured_bridge <- function(
 # Gate which families route with a general-covariance structured term. Mirrors
 # `drm_julia_family_tag` but for the relmat/animal/spatial set; structured terms
 # never appear in a bivariate bridge fit, so only the univariate tags pass.
-drm_julia_structured_family_tag <- function(family_type) {
+drm_julia_structured_family_tag <- function(
+  family_type, formula = NULL, link = NULL
+) {
   structured_families <- drm_julia_structured_families()
   if (family_type %in% structured_families) {
     return(family_type)
   }
+  if (identical(family_type, "binomial") && !is.null(link) &&
+      link %in% c("probit", "cloglog") && !is.null(formula)) {
+    nonlogit_routes <- list(
+      drm_julia_binomial_animal_sd_intercept_route_admitted,
+      drm_julia_binomial_animal_iid_sd_route_admitted,
+      drm_julia_binomial_animal_sd_slope_route_admitted,
+      drm_julia_binomial_animal_q2_sd_route_admitted,
+      drm_julia_binomial_relmat_sd_route_admitted,
+      drm_julia_binomial_relmat_iid_sd_route_admitted,
+      drm_julia_binomial_spatial_sd_route_admitted,
+      drm_julia_binomial_phylo_interaction_sd_route_admitted
+    )
+    if (any(vapply(nonlogit_routes, function(admit) admit(formula),
+                    logical(1L)))) {
+      return(paste0("binomial_", link))
+    }
+  }
+  if (identical(family_type, "tweedie") && !is.null(formula) &&
+      drm_julia_tweedie_relmat_sd_route_admitted(formula)) {
+    return(family_type)
+  }
+  if (identical(family_type, "binomial") && !is.null(formula) &&
+      (drm_julia_binomial_animal_sd_intercept_route_admitted(formula) ||
+       drm_julia_binomial_animal_iid_sd_route_admitted(formula) ||
+       drm_julia_binomial_animal_sd_slope_route_admitted(formula) ||
+       drm_julia_binomial_animal_q2_sd_route_admitted(formula) ||
+       drm_julia_binomial_relmat_sd_route_admitted(formula) ||
+       drm_julia_binomial_relmat_iid_sd_route_admitted(formula) ||
+       drm_julia_binomial_spatial_sd_route_admitted(formula) ||
+       drm_julia_binomial_phylo_interaction_sd_route_admitted(formula))) {
+    return(family_type)
+  }
   cli::cli_abort(c(
-    "{.code engine = \"julia\"} routes {.fn relmat} / {.fn animal} / {.fn spatial} structured terms only for univariate Gaussian, Poisson, NB2, or Gamma fits.",
-    i = "DRM.jl fits these general-covariance random intercepts for those families; use {.code engine = \"tmb\"} for {.val {family_type}} structured models."
+    "{.code engine = \"julia\"} routes general-covariance structured terms for Gaussian, Poisson, NB2, and Gamma, plus explicitly admitted Binomial animal, related-matrix, fixed-coordinate spatial, and phylogenetic-interaction SD models.",
+    i = "Use {.code engine = \"tmb\"} for other {.val {family_type}} structured combinations."
   ))
 }
 
 # Validate the single structured term and marshal its user-supplied matrix.
 # Returns the DRM.jl formula spec (marker matrix kwarg stripped), the column
 # table, the numeric matrix, the `drm()` keyword it maps to ("K" / "A" /
-# "coords"), the structured SD scale (always 1 here), and the options list.
+# "Ainv" / "coords"), the structured SD scale (always 1 here), and options.
 drm_julia_structured_payload <- function(formula, family_type, data, env) {
   terms <- drm_julia_collect_structured_terms(formula)
   if (length(terms) != 1L) {
@@ -7792,13 +11023,52 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
   }
   term <- terms[[1L]]
 
-  if (
-    !identical(term$dpar, "mu") ||
-      !identical(term$coef_names, "(Intercept)")
-  ) {
+  binomial_animal_slope <- identical(family_type, "binomial") &&
+    drm_julia_binomial_animal_sd_slope_route_admitted(formula)
+  binomial_animal_q2_sd <- identical(family_type, "binomial") &&
+    drm_julia_binomial_animal_q2_sd_route_admitted(formula)
+  binomial_animal_iid_slope <- identical(family_type, "binomial") &&
+    drm_julia_binomial_animal_iid_sd_route_admitted(formula) &&
+    length(term$coef_names) == 1L &&
+    !identical(term$coef_names, "(Intercept)")
+  poisson_animal_slope <- identical(family_type, "poisson") &&
+    drm_julia_poisson_animal_sd_slope_route_admitted(formula)
+  gamma_animal_slope <- identical(family_type, "gamma") &&
+    drm_julia_gamma_animal_sd_slope_route_admitted(formula, family_type)
+  gamma_animal_intercept_slope <- gamma_animal_slope &&
+    length(term$coef_names) == 2L && "(Intercept)" %in% term$coef_names
+  binomial_relmat_sd <- identical(family_type, "binomial") &&
+    (drm_julia_binomial_relmat_sd_route_admitted(formula) ||
+       drm_julia_binomial_relmat_iid_sd_route_admitted(formula))
+  binomial_relmat_slope <- binomial_relmat_sd &&
+    length(term$coef_names) == 1L &&
+    !identical(term$coef_names, "(Intercept)")
+  binomial_spatial_sd <- identical(family_type, "binomial") &&
+    drm_julia_binomial_spatial_sd_route_admitted(formula)
+  binomial_spatial_slope <- binomial_spatial_sd &&
+    length(term$coef_names) == 1L &&
+    !identical(term$coef_names, "(Intercept)")
+  tweedie_relmat_sd <- identical(family_type, "tweedie") &&
+    drm_julia_tweedie_relmat_sd_route_admitted(formula)
+  supported_coefficient <- identical(term$coef_names, "(Intercept)") ||
+    ((binomial_relmat_slope || binomial_spatial_slope || binomial_animal_slope ||
+      binomial_animal_iid_slope ||
+      poisson_animal_slope || gamma_animal_slope) &&
+       length(term$coef_names) == 1L) ||
+    gamma_animal_intercept_slope ||
+    (binomial_animal_q2_sd && length(term$coef_names) == 2L &&
+       "(Intercept)" %in% term$coef_names)
+  if (!identical(term$dpar, "mu") || !supported_coefficient ||
+      ((binomial_animal_slope || binomial_animal_iid_slope ||
+        binomial_animal_q2_sd ||
+        poisson_animal_slope || gamma_animal_slope) &&
+         !identical(term$type, "animal")) ||
+      ((binomial_relmat_sd || tweedie_relmat_sd) &&
+         !identical(term$type, "relmat")) ||
+      (binomial_spatial_sd && !identical(term$type, "spatial"))) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} currently supports only {.code {term$type}(1 | group, ...)} in the {.code mu} formula.",
-      i = "Use native {.code engine = \"tmb\"} for structured slopes, residual-scale structured effects, or direct-SD formulas."
+      "{.code engine = \"julia\"} supports structured {.code mu} intercepts and explicitly admitted animal-, relmat-, or fixed-coordinate spatial-slope SD routes.",
+      i = "The direct-SD exceptions include a Poisson or Binomial animal slope (Binomial may pair it with one IID intercept), Binomial relmat or fixed-coordinate spatial intercept and slope-only terms, and a Gamma animal slope or intercept-plus-slope pair with coefficient-specific SD targets and fixed {.code sigma ~ 1}; use native {.code engine = \"tmb\"} for other structured slopes or direct-SD combinations."
     ))
   }
   sigma_entries <- Filter(
@@ -7818,6 +11088,19 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
       i = "Use native {.code engine = \"tmb\"} for structured models with predictor-dependent residual scale."
     ))
   }
+  if (tweedie_relmat_sd) {
+    nu_entries <- Filter(
+      function(entry) identical(entry$dpar, "nu"),
+      formula$entries
+    )
+    if (length(nu_entries) != 1L ||
+        !drm_julia_is_intercept_rhs(nu_entries[[1L]]$rhs)) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} Tweedie relmat SD regression requires fixed {.code nu ~ 1}.",
+        i = "Use native {.code engine = \"tmb\"} for predictor-dependent Tweedie power with a related-matrix random effect."
+      ))
+    }
+  }
   if (!term$group %in% names(data)) {
     cli::cli_abort(
       "Structured grouping variable {.field {term$group}} was not found in {.arg data}."
@@ -7830,10 +11113,33 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
     env = env,
     data = data
   )
+  if (identical(resolved$kwarg, "Ainv")) {
+    poisson_intercept <- identical(family_type, "poisson") &&
+      identical(term$type, "animal") &&
+      identical(term$coef_names, "(Intercept)") &&
+      length(Filter(function(entry) startsWith(entry$dpar, "sd_"),
+                    formula$entries)) == 1L
+    binomial_intercept <- identical(family_type, "binomial") &&
+      drm_julia_binomial_animal_sd_intercept_route_admitted(formula)
+    binomial_animal_slope <- identical(family_type, "binomial") &&
+      drm_julia_binomial_animal_sd_slope_route_admitted(formula)
+    binomial_animal_q2 <- identical(family_type, "binomial") &&
+      drm_julia_binomial_animal_q2_sd_route_admitted(formula)
+    binomial_animal_iid <- identical(family_type, "binomial") &&
+      drm_julia_binomial_animal_iid_sd_route_admitted(formula)
+    if (!poisson_intercept && !binomial_intercept && !binomial_animal_slope &&
+        !binomial_animal_q2 && !binomial_animal_iid) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} admits animal {.arg Ainv} only for supported Poisson or Binomial animal SD regression routes.",
+        i = "Use {.code animal(1 | group, Ainv = Q)} or {.code animal(0 + x | group, Ainv = Q)} with a matching admitted animal SD formula, or use {.code engine = \"tmb\"} for other precision-matrix routes."
+      ))
+    }
+  }
   formula_spec <- drm_julia_formula_spec(formula)
   matrix <- resolved$matrix
   kwarg <- resolved$kwarg
-  if (identical(term$type, "spatial") && identical(family_type, "gaussian")) {
+  if (identical(term$type, "spatial") &&
+      (identical(family_type, "gaussian") || binomial_spatial_sd)) {
     native_spatial <- drm_spatial_coords_precision(
       matrix,
       site = data[[term$group]],
@@ -7847,6 +11153,21 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
       formula_spec[[term$dpar]],
       fixed = TRUE
     )
+    if (binomial_spatial_sd) {
+      spatial_sd_key <- paste0("sd_spatial(", term$group, ")")
+      spatial_sd_idx <- match(spatial_sd_key, names(formula_spec))
+      if (is.na(spatial_sd_idx)) {
+        cli::cli_abort("Could not find the spatial SD formula while preparing the Julia covariance route.")
+      }
+      formula_spec[[spatial_sd_idx]] <- sub(
+        paste0("sd_spatial(", term$group, ")"),
+        paste0("sd(", term$group, ", relmat)"),
+        formula_spec[[spatial_sd_idx]],
+        fixed = TRUE
+      )
+      names(formula_spec)[[spatial_sd_idx]] <-
+        paste0("sd(", term$group, ", relmat)")
+    }
   }
 
   data_out <- drm_julia_bridge_data(data, formula)
@@ -7883,8 +11204,10 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
 # `drm()` keyword) pair the Julia bridge needs. The parser stores the marker's
 # matrix slot as `structure` (the keyword the USER wrote: "K"/"Q"/"A"/"Ainv"/
 # "coords"/"mesh") and `object` (the symbol to look up in `env`). Only the slots
-# DRM.jl's `drm()` consumes for these routes are accepted; precision ("Q",
-# "Ainv"), pedigree, and mesh forms are rejected with a pointer to `engine="tmb"`.
+# DRM.jl's `drm()` consumes for these routes are accepted; precision ("Q"),
+# mesh forms are rejected with a pointer to `engine="tmb"`. Pedigrees are
+# converted to additive relationship covariance and subset to observed groups.
+# Animal `Ainv` is separately gated to the family-specific routes that consume it.
 drm_julia_structured_matrix <- function(term, family_type, env, data) {
   type <- term$type
   slot <- term$structure
@@ -7896,20 +11219,20 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
     }
     kwarg <- "K"
   } else if (identical(type, "animal")) {
-    if (!identical(slot, "A")) {
+    if (!slot %in% c("A", "Ainv", "pedigree")) {
       drm_julia_structured_reject_slot(type, slot, "A", "relatedness")
     }
-    kwarg <- "A"
+    kwarg <- if (identical(slot, "pedigree")) "A" else slot
   } else {
     # spatial: native drmTMB fixes the coordinate-spatial range at the median
     # positive distance. The bridge preserves that target by converting Gaussian
     # spatial coords to a fixed covariance K in `drm_julia_structured_payload`.
     # Non-Gaussian spatial has no native-compatible bridge form here; pass a
     # precomputed spatial covariance through `relmat(1 | g, K = K)` instead.
-    if (!family_type %in% c("gaussian", "biv_gaussian")) {
+    if (!family_type %in% c("gaussian", "biv_gaussian", "binomial")) {
       cli::cli_abort(c(
-        "{.code engine = \"julia\"} routes {.fn spatial} only for Gaussian fits (coordinate-based range estimation is Gaussian-only in DRM.jl).",
-        i = "For a {.val {family_type}} spatial random intercept, pass a precomputed spatial covariance as {.code relmat(1 | {term$group}, K = K)}, or use {.code engine = \"tmb\"}."
+        "{.code engine = \"julia\"} routes {.fn spatial} only for Gaussian or explicitly admitted Binomial coordinate models.",
+        i = "For a {.val {family_type}} spatial model, pass a precomputed covariance as {.code relmat(1 | {term$group}, K = K)}, or use {.code engine = \"tmb\"}."
       ))
     }
     if (!identical(slot, "coords")) {
@@ -7923,17 +11246,30 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
   }
 
   value <- get(obj_name, envir = env, inherits = TRUE)
+  if (identical(type, "animal") && identical(slot, "pedigree")) {
+    value <- drm_pedigree_additive_relationship(value, object = obj_name)
+  }
   if (!is.matrix(value) && !is.data.frame(value)) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} could not marshal {.fn {type}} {.arg {slot}} object {.val {obj_name}}.",
       x = "Expected a numeric matrix or data frame, got {.cls {class(value)}}.",
-      i = "Sparse precision objects, pedigrees, and meshes are not marshalled by this route yet."
+      i = "Sparse precision objects and meshes are not marshalled by this route. Pedigree input is converted only for supported animal SD routes."
     ))
   }
   matrix <- drm_julia_as_matrix(value)
   if (!all(is.finite(matrix))) {
     cli::cli_abort(
       "{.code engine = \"julia\"} requires finite values in the {.fn {type}} {.arg {slot}} matrix."
+    )
+  }
+  if (kwarg %in% c("K", "A", "Ainv")) {
+    matrix <- drm_julia_align_labelled_matrix(
+      matrix,
+      dimnames_in = dimnames(value),
+      group_values = data[[term$group]],
+      type = type,
+      slot = slot,
+      group = term$group
     )
   }
   if (identical(kwarg, "coords")) {
@@ -7944,18 +11280,51 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
     }
   } else if (nrow(matrix) != ncol(matrix)) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} {.fn {type}} {.arg {slot}} must be a square covariance/relatedness matrix.",
+      "{.code engine = \"julia\"} {.fn {type}} {.arg {slot}} matrix must be square.",
       x = "Got a {nrow(matrix)} x {ncol(matrix)} matrix."
     ))
   }
   list(matrix = matrix, kwarg = kwarg)
 }
 
+# DRM.jl pairs rows of K/A/Ainv with first-appearance group order and
+# does not receive matrix dimnames. Align labelled matrices here so a permuted
+# input still describes the same covariance as it does in native TMB.
+drm_julia_align_labelled_matrix <- function(
+  matrix,
+  dimnames_in,
+  group_values,
+  type,
+  slot,
+  group
+) {
+  rn <- dimnames_in[[1L]]
+  cn <- dimnames_in[[2L]]
+  if (is.null(rn) || is.null(cn) || nrow(matrix) != ncol(matrix)) {
+    return(matrix)
+  }
+  if (is.null(group_values)) {
+    return(matrix)
+  }
+  lev <- as.character(unique(group_values[!is.na(group_values)]))
+  ri <- match(lev, rn)
+  ci <- match(lev, cn)
+  if (anyNA(ri) || anyNA(ci)) {
+    missing_lev <- lev[is.na(ri) | is.na(ci)]
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} {.fn {type}} {.arg {slot}} matrix is missing rows or columns for grouping levels of {.field {group}}.",
+      x = "Not found in the matrix dimnames: {.val {utils::head(missing_lev, 5L)}}.",
+      i = "Label rows and columns with the levels of {.field {group}} (as character)."
+    ))
+  }
+  matrix[ri, ci, drop = FALSE]
+}
+
 drm_julia_structured_reject_slot <- function(type, slot, expected, kind) {
   cli::cli_abort(c(
     "{.code engine = \"julia\"} routes {.fn {type}} only with a {kind} matrix supplied as {.arg {expected}}.",
     x = "Got {.code {type}(1 | group, {slot} = ...)}.",
-    i = "Precision / inverse forms ({.arg Q}, {.arg Ainv}) and pedigrees are not marshalled by the bridge; supply the {kind} matrix as {.arg {expected}}, or use {.code engine = \"tmb\"}."
+    i = "Precision {.arg Q} and mesh inputs are not marshalled by the bridge. Animal {.arg Ainv} is admitted only for supported Poisson and Binomial animal SD routes; otherwise supply the supported {.arg {expected}} matrix or use {.code engine = \"tmb\"}."
   ))
 }
 
@@ -7977,6 +11346,7 @@ drm_julia_call_structured <- function(
   drm_julia_setup()
   K <- if (identical(kwarg, "K")) matrix else NULL
   A <- if (identical(kwarg, "A")) matrix else NULL
+  Ainv <- if (identical(kwarg, "Ainv")) matrix else NULL
   coords <- if (identical(kwarg, "coords")) matrix else NULL
   JuliaCall::julia_call(
     "drmTMB_drm_bridge_structured",
@@ -7986,7 +11356,8 @@ drm_julia_call_structured <- function(
     K,
     A,
     coords,
-    if (length(options) == 0L) NULL else options
+    if (length(options) == 0L) NULL else options,
+    Ainv
   )
 }
 
@@ -8163,17 +11534,20 @@ drmTMB_julia_xfam_bridge <- function(
 # Build the (y, X) design for the mu1 / mu2 location formulas and the optional
 # Xsigma1 / Xsigma2 dispersion (log-sigma sub-model) designs. Mirrors the native
 # biv_gaussian extraction: each location entry carries a response and an RHS,
-# which we turn into `response ~ rhs` and pass through model.frame / model.matrix
-# on complete cases.
+# which we turn into `response ~ rhs` and pass through model.frame on complete
+# cases. The design matrix is built only after every axis has been cut to the
+# same original-row index, so a factor level emptied by that cut is not left
+# as an all-zero column.
 #
 # A `sigma_k` entry carries only an RHS (no response), so we pair it with its
-# axis's mu response to build `mu_response ~ sigma_rhs`; na.omit then drops the
-# SAME rows the mu axis dropped, keeping the dispersion design row-aligned with
-# its location design. An absent `sigma_k` formula yields an intercept-only
-# Xsigma (the current scalar-dispersion behaviour). `tags` is the per-axis DRM
-# family tag (e.g. "gaussian", "poisson"); a `sigma_k` formula on a
-# dispersionless axis (Poisson / Binomial) is rejected, since DRM.jl carries no
-# dispersion sub-model there.
+# axis's mu response to build `mu_response ~ sigma_rhs`. na.omit on that frame
+# can drop extra rows when a sigma covariate is missing. An absent `sigma_k`
+# formula yields an intercept-only Xsigma (the current scalar-dispersion
+# behaviour). `tags` is the per-axis DRM family tag (e.g. "gaussian",
+# "poisson"); a `sigma_k` formula on a dispersionless axis (Poisson / Binomial)
+# is rejected, since DRM.jl carries no dispersion sub-model there.
+# `cbind(successes, failures)` and `offset()` are refused here: model.matrix
+# would otherwise drop the failures column or the offset with no message.
 drm_julia_xfam_axes <- function(formula, data, env, tags) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1L), "dpar")
@@ -8206,13 +11580,11 @@ drm_julia_xfam_axes <- function(formula, data, env, tags) {
 
   mu1 <- drm_julia_xfam_axis(entries[[which(dpars == "mu1")]], data, env, "mu1")
   mu2 <- drm_julia_xfam_axis(entries[[which(dpars == "mu2")]], data, env, "mu2")
-  if (length(mu1$y) != length(mu2$y)) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} cross-family responses must have equal length after dropping missing rows.",
-      x = "{.code mu1} has {length(mu1$y)} complete row{?s}; {.code mu2} has {length(mu2$y)}.",
-      i = "Cross-family fits do not yet support per-axis missingness."
-    ))
-  }
+  # Each axis records the original rows its own model.frame kept. A length
+  # check is not alignment (#1454): y1 missing on row 3 and y2 missing on row
+  # 7 both leave n - 1 rows of different observations. The intersection below
+  # is the shared complete case, in the original row order. Designs are built
+  # from those shared rows, not from each axis's own complete cases.
 
   sigma1 <- drm_julia_xfam_sigma(
     entry = if (any(dpars == "sigma1")) {
@@ -8238,24 +11610,25 @@ drm_julia_xfam_axes <- function(formula, data, env, tags) {
     env = env,
     dpar = "sigma2"
   )
+  # An intercept-only sigma design has no covariate missingness of its own.
+  # Tie it to its location rows so it does not widen the shared index.
+  if (is.null(sigma1$rows)) {
+    sigma1$rows <- mu1$rows
+  }
+  if (is.null(sigma2$rows)) {
+    sigma2$rows <- mu2$rows
+  }
 
-  list(mu1 = mu1, mu2 = mu2, sigma1 = sigma1, sigma2 = sigma2)
+  drm_julia_xfam_align_axes(mu1, mu2, sigma1, sigma2)
 }
 
-# Build one axis's Xsigma design (the log-sigma sub-model regressors). An absent
-# `entry` (no sigma_k formula) returns an intercept-only design over the mu
-# axis's rows, reproducing the scalar-dispersion default. A present entry must
-# land on a dispersion-carrying axis (Gaussian / NB2 / Beta / Gamma); on a
-# dispersionless axis (Poisson / Binomial) it is rejected. The design is built
-# from `mu_response ~ sigma_rhs` so na.omit drops the same rows the mu axis did,
-# keeping Xsigma row-aligned with X.
+# Record one axis's model frame and the original rows it kept. The design
+# matrix is not built here: shared-row alignment can empty a factor level, and
+# a matrix built before that cut would keep an all-zero column (#1454).
 drm_julia_xfam_sigma <- function(entry, mu, tag, data, env, dpar) {
   dispersionless <- drm_julia_dispersionless_families()
   if (is.null(entry)) {
-    return(list(
-      X = matrix(1, nrow = length(mu$y), ncol = 1L),
-      coef_names = "(Intercept)"
-    ))
+    return(list(rows = NULL))
   }
   if (tag %in% dispersionless) {
     cli::cli_abort(c(
@@ -8268,24 +11641,19 @@ drm_julia_xfam_sigma <- function(entry, mu, tag, data, env, dpar) {
       "The {.code {dpar}} formula must be one-sided (no response on the left-hand side)."
     )
   }
+  drm_julia_xfam_refuse_offset(entry$rhs, dpar)
   rhs <- deparse1(entry$rhs)
   f <- stats::as.formula(
     paste(mu$response, "~", rhs),
     env = env
   )
   mf <- stats::model.frame(f, data = data, na.action = stats::na.omit)
-  X <- stats::model.matrix(
-    stats::delete.response(stats::terms(mf)),
-    mf
-  )
-  if (nrow(X) != length(mu$y)) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} cross-family {.code {dpar}} design must align row-for-row with its {.code mu} axis.",
-      x = "{.code {dpar}} has {nrow(X)} complete row{?s}; its {.code mu} axis has {length(mu$y)}.",
-      i = "Cross-family fits do not yet support per-axis missingness."
-    ))
-  }
-  list(X = X, coef_names = colnames(X))
+  drm_julia_xfam_refuse_offset_terms(mf, dpar)
+  rows <- drm_julia_model_frame_rows(mf, nrow(data))
+  # Do not require rows == mu$rows here. A sigma covariate can be missing on
+  # a row the location axis kept. drm_julia_xfam_align_axes() drops that row
+  # from every axis so the designs stay paired (#1454).
+  list(mf = mf, rows = rows)
 }
 
 drm_julia_xfam_axis <- function(entry, data, env, dpar) {
@@ -8294,17 +11662,23 @@ drm_julia_xfam_axis <- function(entry, data, env, dpar) {
       "The {.code {dpar}} formula must include a response on the left-hand side."
     )
   }
+  # Refuse before the shared-row index is chosen. A complete cbind() fit and a
+  # cbind() fit with NA rows both hit this gate. The old length check aborted
+  # the same fits only because as.numeric() had turned the two columns into 2n
+  # values; subsetting that vector then kept the successes and dropped the
+  # failures (#1454).
+  drm_julia_xfam_refuse_cbind(entry$response, dpar)
+  drm_julia_xfam_refuse_offset(entry$rhs, dpar)
   rhs <- deparse1(entry$rhs)
   f <- stats::as.formula(
     paste(entry$response, "~", rhs),
     env = env
   )
   mf <- stats::model.frame(f, data = data, na.action = stats::na.omit)
-  y <- as.numeric(stats::model.response(mf))
-  X <- stats::model.matrix(
-    stats::delete.response(stats::terms(mf)),
-    mf
-  )
+  drm_julia_xfam_refuse_offset_terms(mf, dpar)
+  y <- stats::model.response(mf)
+  drm_julia_xfam_refuse_matrix_response(y, dpar)
+  y <- as.numeric(y)
   if (length(y) == 0L) {
     cli::cli_abort(
       "No complete observations remain for {.code {dpar}} after dropping missing rows."
@@ -8313,9 +11687,418 @@ drm_julia_xfam_axis <- function(entry, data, env, dpar) {
   list(
     response = entry$response,
     y = y,
-    X = X,
-    coef_names = colnames(X)
+    mf = mf,
+    rows = drm_julia_model_frame_rows(mf, nrow(data))
   )
+}
+
+drm_julia_xfam_refuse_cbind <- function(response, dpar) {
+  response <- as.character(response)
+  if (length(response) != 1L || is.na(response)) {
+    return(invisible(NULL))
+  }
+  if (grepl("^cbind\\s*\\(", response)) {
+    drm_julia_xfam_cbind_abort(dpar)
+  }
+  invisible(NULL)
+}
+
+drm_julia_xfam_refuse_matrix_response <- function(y, dpar) {
+  if (is.matrix(y)) {
+    drm_julia_xfam_cbind_abort(dpar)
+  }
+  invisible(NULL)
+}
+
+drm_julia_xfam_cbind_abort <- function(dpar) {
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} cross-family models cannot take a {.code cbind()} response on {.code {dpar}}.",
+    x = "Flattening {.code cbind(successes, failures)} and then keeping the first {.code n} entries drops the failures on every fit, with or without missing values.",
+    i = "Use a single 0/1 column, or {.code engine = \"tmb\"} for binomial trials."
+  ))
+}
+
+drm_julia_xfam_refuse_offset <- function(rhs, dpar) {
+  if (formula_contains_call(rhs, "offset")) {
+    drm_julia_xfam_offset_abort(dpar)
+  }
+  invisible(NULL)
+}
+
+drm_julia_xfam_refuse_offset_terms <- function(mf, dpar) {
+  if (!is.null(attr(stats::terms(mf), "offset"))) {
+    drm_julia_xfam_offset_abort(dpar)
+  }
+  invisible(NULL)
+}
+
+drm_julia_xfam_offset_abort <- function(dpar) {
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} cross-family models cannot include {.fn offset} on {.code {dpar}}.",
+    x = "{.fn model.matrix} drops {.fn offset}, so the fit would ignore that term.",
+    i = "Move the offset into the linear predictor as a covariate, or use {.code engine = \"tmb\"}."
+  ))
+}
+
+drm_julia_xfam_used_levels <- function(col) {
+  if (!is.factor(col)) {
+    return(character())
+  }
+  lv <- levels(col)
+  lv[tabulate(as.integer(col), nbins = length(lv)) > 0L]
+}
+
+# Treatment reference: the contrast row that is all zeros. `contr.sum` and
+# `contr.poly` have no such row. `NA` means "do not treat any level as the
+# baseline that other columns are compared with".
+drm_factor_reference_level <- function(col) {
+  if (!is.factor(col) || nlevels(col) < 2L) {
+    return(NA_character_)
+  }
+  ctr <- tryCatch(stats::contrasts(col), error = function(e) NULL)
+  if (!is.matrix(ctr) || is.null(rownames(ctr))) {
+    return(NA_character_)
+  }
+  zero <- which(apply(abs(ctr) < 1e-8, 1L, all))
+  if (length(zero) == 1L) rownames(ctr)[zero] else NA_character_
+}
+
+# Rows of a stored contrast matrix for the levels that remain. NULL when the
+# stored coding cannot be kept (the remaining columns would not be a full
+# contrast basis). Callers then refuse, instead of letting `factor()` invent
+# treatment columns.
+drm_contrast_subset <- function(col, levels_keep) {
+  ctr <- attr(col, "contrasts")
+  if (!is.matrix(ctr) || is.null(rownames(ctr))) {
+    return(NULL)
+  }
+  if (!all(levels_keep %in% rownames(ctr))) {
+    return(NULL)
+  }
+  sub <- ctr[levels_keep, , drop = FALSE]
+  if (ncol(sub) == 0L) {
+    return(NULL)
+  }
+  alive <- colSums(abs(sub)) > 1e-8
+  sub <- sub[, alive, drop = FALSE]
+  if (ncol(sub) != length(levels_keep) - 1L || nrow(sub) != length(levels_keep)) {
+    return(NULL)
+  }
+  sub
+}
+
+# `droplevels.factor()` calls `factor()`, which drops a contrasts attribute.
+# `contrasts(f) <- contr.sum(3)` then becomes treatment columns `fb`, `fc`
+# even when every level is still present (#1495). This helper drops unused
+# levels and writes the stored contrasts back, for ordered factors too. A
+# contrast function name (`contrasts(f) <- "contr.sum"`) is kept as is. A
+# matrix keeps its rows for the levels that remain. When those rows are not a
+# contrast basis (`contr.sum(4)` on three levels), the default coding is used
+# with a warning, as `model.frame()` does.
+drm_droplevels_keep_contrasts_factor <- function(col, name = NULL) {
+  if (!is.factor(col)) {
+    return(col)
+  }
+  used <- levels(col)[tabulate(as.integer(col), nbins = nlevels(col)) > 0L]
+  if (length(used) == nlevels(col)) {
+    return(col)
+  }
+  ctr <- attr(col, "contrasts")
+  new <- droplevels(col)
+  if (is.null(ctr) || nlevels(new) < 2L) {
+    return(new)
+  }
+  if (is.character(ctr)) {
+    stats::contrasts(new) <- ctr
+    return(new)
+  }
+  sub <- drm_contrast_subset(col, used)
+  if (!is.null(sub)) {
+    stats::contrasts(new) <- sub
+    return(new)
+  }
+  lost <- setdiff(levels(col), used)
+  target <- if (is.null(name)) "a fixed-effect factor" else paste0("factor `", name, "`")
+  cli::cli_warn(
+    c(
+      "The contrasts set on {target} could not be kept after dropping {cli::qty(length(lost))}unused level{?s} {.val {lost}}.",
+      x = "Their rows for the {length(used)} levels that remain are not a contrast basis, so the default coding is used and the coefficients change meaning.",
+      i = "Drop the unused levels first ({.code droplevels()}), then set the contrasts on the levels that remain."
+    ),
+    class = "drmTMB_contrasts_dropped"
+  )
+  new
+}
+
+drm_droplevels_keep_contrasts <- function(data) {
+  if (!is.data.frame(data)) {
+    return(data)
+  }
+  for (nm in names(data)) {
+    if (is.factor(data[[nm]])) {
+      data[[nm]] <- drm_droplevels_keep_contrasts_factor(data[[nm]], name = nm)
+    }
+  }
+  data
+}
+
+# Rank check used by the cross-family design.
+drm_complete_case_design <- function(X) {
+    if (!anyNA(X)) {
+      return(X)
+    }
+    if (inherits(X, "Matrix")) {
+      keep <- Matrix::rowSums(is.na(X)) == 0
+      return(X[keep, , drop = FALSE])
+    }
+    X[stats::complete.cases(X), , drop = FALSE]
+  }
+
+  drm_qr_rank_and_pivot <- function(q, tol) {
+    dollar <- tryCatch(
+      list(rank = q$rank, pivot = q$pivot),
+      error = function(e) NULL
+    )
+    if (!is.null(dollar) && !is.null(dollar$rank)) {
+      return(dollar)
+    }
+    if (!isS4(q) || !methods::is(q, "sparseQR")) {
+      return(list(rank = NULL, pivot = NULL))
+    }
+    Rdiag <- tryCatch(
+      abs(diag(as.matrix(qr.R(q)))),
+      error = function(e) NULL
+    )
+    if (is.null(Rdiag) || length(Rdiag) == 0L || !any(is.finite(Rdiag))) {
+      return(list(rank = NULL, pivot = NULL))
+    }
+    scale <- max(Rdiag, na.rm = TRUE)
+    rank <- if (!is.finite(scale) || scale <= 0) {
+      0L
+    } else {
+      as.integer(sum(Rdiag > tol * scale))
+    }
+    pivot <- if (methods::.hasSlot(q, "q")) as.integer(q@q) + 1L else NULL
+    list(rank = rank, pivot = pivot)
+  }
+
+  drm_aliased_columns <- function(X, tol = 1e-10) {
+    if (is.null(X) || (!is.matrix(X) && !inherits(X, "Matrix"))) {
+      return(character())
+    }
+    n_col <- ncol(X)
+    if (is.null(n_col) || n_col < 2L || nrow(X) < 1L) {
+      return(character())
+    }
+    X <- drm_complete_case_design(X)
+    n_col <- ncol(X)
+    if (is.null(n_col) || n_col < 2L || nrow(X) < 1L) {
+      return(character())
+    }
+    design <- X
+    info <- tryCatch(
+      drm_qr_rank_and_pivot(qr(design, tol = tol), tol),
+      error = function(e) NULL
+    )
+    if (
+      (is.null(info) || is.null(info$rank)) &&
+        inherits(design, "Matrix") &&
+        nrow(design) * n_col <= 200000L
+    ) {
+      design <- as.matrix(design)
+      info <- tryCatch(
+        drm_qr_rank_and_pivot(qr(design, tol = tol), tol),
+        error = function(e) NULL
+      )
+    }
+    if (is.null(info) || is.null(info$rank)) {
+      if (inherits(X, "Matrix") && nrow(X) * n_col > 200000L) {
+        cli::cli_warn(
+          c(
+            "The rank check could not factor a large sparse design, so aliased columns were not identified.",
+            "i" = "The fit continues. If standard errors are missing, drop linearly dependent columns and refit."
+          ),
+          class = "drmTMB_rank_check_skipped"
+        )
+      }
+      return(character())
+    }
+    if (info$rank >= n_col) {
+      return(character())
+    }
+    cols <- colnames(X)
+    if (is.null(cols) || length(cols) != n_col) {
+      cols <- paste0("column_", seq_len(n_col))
+    }
+    pivot <- info$pivot
+    if (is.null(pivot) || length(pivot) != n_col) {
+      return(cols)
+    }
+    cols[pivot[seq.int(info$rank + 1L, n_col)]]
+  }
+
+# Rebuild one design on the shared rows. Unused factor levels are dropped
+# without discarding a contrasts attribute, so `contr.sum` stays `f1`, `f2`
+# and an ordered factor stays on `contr.poly`. Character and logical
+# predictors are factored from the full frame first: `model.frame()` leaves
+# them as character or logical, and `model.matrix()` would otherwise build
+# levels from the rows that remain and move the treatment baseline.
+# Emptying the treatment reference level is refused: `droplevels()` would
+# keep the column name and change the baseline. Fewer than two observed
+# levels, a contrast coding that cannot be kept, or any other aliased
+# column (tolerance 1e-10) is refused.
+drm_julia_xfam_design_from_frame <- function(mf, pos, dpar) {
+  resp <- attr(stats::terms(mf), "response")
+  resp_name <- if (!is.null(resp) && resp > 0L) names(mf)[[resp]] else NA_character_
+  for (nm in names(mf)) {
+    if (!is.na(resp_name) && identical(nm, resp_name)) {
+      next
+    }
+    col <- mf[[nm]]
+    if (is.character(col) || is.logical(col)) {
+      mf[[nm]] <- factor(col)
+    }
+  }
+  after <- mf[pos, , drop = FALSE]
+  for (nm in names(mf)) {
+    col <- mf[[nm]]
+    if (!is.factor(col)) {
+      next
+    }
+    used_before <- drm_julia_xfam_used_levels(col)
+    used_after <- drm_julia_xfam_used_levels(after[[nm]])
+    lost <- setdiff(used_before, used_after)
+    ref <- drm_factor_reference_level(col)
+    if (!is.na(ref) && !(ref %in% used_after)) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} cross-family alignment removed the reference level {.val {ref}} of {.field {nm}} on {.code {dpar}}.",
+        x = "Refitting would keep a column such as {.code {nm}c} and change its baseline. The fit stops instead of switching the reference silently.",
+        i = "Set the reference to a level that still has rows, then refit."
+      ))
+    }
+    if (length(lost) > 0L && length(used_after) < 2L) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} cross-family alignment removed every shared row of a factor level on {.code {dpar}}.",
+        x = "{.field {nm}} would keep {length(used_after)} observed level{?s}, so the design is no longer identifiable. Lost level{?s}: {.val {lost}}.",
+        i = "Drop that level from the data and refit, or use {.code engine = \"tmb\"}."
+      ))
+    }
+    if (length(lost) > 0L && is.matrix(attr(col, "contrasts"))) {
+      if (is.null(drm_contrast_subset(col, used_after))) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} cross-family alignment removed level{?s} {.val {lost}} of {.field {nm}} on {.code {dpar}}, and that contrast coding cannot be kept.",
+          i = "Drop those levels and set the contrasts again on the levels that remain, or use {.code engine = \"tmb\"}."
+        ))
+      }
+    }
+  }
+  after <- drm_droplevels_keep_contrasts(after)
+  tt <- stats::terms(after)
+  attr(tt, "xlev") <- NULL
+  X <- tryCatch(
+    stats::model.matrix(stats::delete.response(tt), after),
+    error = function(e) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} could not rebuild the {.code {dpar}} design on the shared rows.",
+        x = conditionMessage(e),
+        i = "A missing value on another axis can empty a factor level. Drop that level, or use {.code engine = \"tmb\"}."
+      ))
+    }
+  )
+  aliased <- drm_aliased_columns(X, tol = 1e-10)
+  if (
+    length(aliased) == 0L &&
+      ncol(X) < 2L &&
+      nrow(X) > 0L &&
+      max(abs(X)) == 0
+  ) {
+    aliased <- if (is.null(colnames(X))) "column_1" else colnames(X)
+  }
+  if (length(aliased) > 0L) {
+    cli::cli_abort(
+      c(
+        "{.code engine = \"julia\"} cross-family alignment made the {.code {dpar}} design rank deficient.",
+        x = "Aliased columns: {.val {aliased}}.",
+        i = "An {.code NA} on another axis removed the rows that identified a column. Drop that level or covariate pattern, or use {.code engine = \"tmb\"}."
+      ),
+      class = "drmTMB_rank_deficient_design"
+    )
+  }
+  X
+}
+
+# Row positions kept by model.frame(..., na.action = na.omit). The omitted
+# index is into the data passed to model.frame, which is the user's data.
+drm_julia_model_frame_rows <- function(mf, n) {
+  dropped <- attr(mf, "na.action")
+  if (is.null(dropped) || length(dropped) == 0L) {
+    return(seq_len(n))
+  }
+  seq_len(n)[-as.integer(dropped)]
+}
+
+# One complete-case index for every cross-family design (#1454). `rows` on
+# each piece are original data positions. The result keeps those positions
+# that every piece kept, in increasing order, subsets y to match, and builds
+# each design matrix on that shared frame.
+drm_julia_xfam_align_axes <- function(mu1, mu2, sigma1, sigma2) {
+  common <- Reduce(
+    intersect,
+    list(mu1$rows, mu2$rows, sigma1$rows, sigma2$rows)
+  )
+  if (length(common) == 0L) {
+    cli::cli_abort(c(
+      "No complete observations remain for {.code engine = \"julia\"} cross-family models after aligning missing rows.",
+      i = "Each response and modelled predictor has to be observed together on at least one row. Drop the incomplete rows yourself, or use {.code engine = \"tmb\"}."
+    ))
+  }
+  list(
+    mu1 = drm_julia_xfam_finalize_axis(mu1, common, "mu1"),
+    mu2 = drm_julia_xfam_finalize_axis(mu2, common, "mu2"),
+    sigma1 = drm_julia_xfam_finalize_axis(sigma1, common, "sigma1"),
+    sigma2 = drm_julia_xfam_finalize_axis(sigma2, common, "sigma2")
+  )
+}
+
+drm_julia_xfam_finalize_axis <- function(axis, rows, dpar) {
+  pos <- match(rows, axis$rows)
+  if (anyNA(pos)) {
+    cli::cli_abort(
+      "Cross-family row alignment lost a shared row while subsetting a design."
+    )
+  }
+  if (!is.null(axis$y)) {
+    axis$y <- axis$y[pos]
+  }
+  if (is.null(axis$mf)) {
+    axis$X <- matrix(
+      1,
+      nrow = length(rows),
+      ncol = 1L,
+      dimnames = list(NULL, "(Intercept)")
+    )
+    axis$coef_names <- "(Intercept)"
+  } else {
+    axis$X <- drm_julia_xfam_design_from_frame(axis$mf, pos, dpar)
+    axis$coef_names <- colnames(axis$X)
+    axis$mf <- NULL
+  }
+  axis$rows <- rows
+  axis
+}
+
+# Place reduced-row fitted values and residuals back onto the original data.
+# Dropped rows stay NA, so position i of fitted() is row i of data.
+drm_julia_xfam_place_rows <- function(values, rows, n) {
+  values <- as.numeric(values)
+  if (length(rows) != length(values)) {
+    cli::cli_abort(
+      "Cross-family fitted values and kept rows have different lengths."
+    )
+  }
+  out <- rep(NA_real_, n)
+  out[rows] <- values
+  out
 }
 
 drm_julia_call_xfam <- function(
@@ -8443,17 +12226,38 @@ new_drmTMB_julia_xfam <- function(
     sigma1 = sigma_coef_axis(result[["sigma_coef1"]], axes$sigma1$coef_names),
     sigma2 = sigma_coef_axis(result[["sigma_coef2"]], axes$sigma2$coef_names)
   )
-  fitted_link <- list(
+  kept_rows <- axes$mu1$rows
+  n_data <- nrow(data)
+  link_kept <- list(
     mu1 = as.numeric(axes$mu1$X %*% coefficients$mu1),
     mu2 = as.numeric(axes$mu2$X %*% coefficients$mu2)
   )
+  fitted_kept <- list(
+    mu1 = drm_julia_tag_linkinv(families[[1L]])(link_kept$mu1),
+    mu2 = drm_julia_tag_linkinv(families[[2L]])(link_kept$mu2)
+  )
+  # fitted() and residuals() use the original row positions. A row dropped
+  # by the shared complete case is NA, including a row the other response
+  # still observed.
+  fitted_link <- list(
+    mu1 = drm_julia_xfam_place_rows(link_kept$mu1, kept_rows, n_data),
+    mu2 = drm_julia_xfam_place_rows(link_kept$mu2, kept_rows, n_data)
+  )
   fitted <- list(
-    mu1 = drm_julia_tag_linkinv(families[[1L]])(fitted_link$mu1),
-    mu2 = drm_julia_tag_linkinv(families[[2L]])(fitted_link$mu2)
+    mu1 = drm_julia_xfam_place_rows(fitted_kept$mu1, kept_rows, n_data),
+    mu2 = drm_julia_xfam_place_rows(fitted_kept$mu2, kept_rows, n_data)
   )
   residuals <- list(
-    mu1 = as.numeric(axes$mu1$y) - fitted$mu1,
-    mu2 = as.numeric(axes$mu2$y) - fitted$mu2
+    mu1 = drm_julia_xfam_place_rows(
+      as.numeric(axes$mu1$y) - fitted_kept$mu1,
+      kept_rows,
+      n_data
+    ),
+    mu2 = drm_julia_xfam_place_rows(
+      as.numeric(axes$mu2$y) - fitted_kept$mu2,
+      kept_rows,
+      n_data
+    )
   )
   coefficient_blocks <- c(coefficients, sigma_coef)
   coefficient_blocks <- coefficient_blocks[vapply(
@@ -8504,6 +12308,7 @@ new_drmTMB_julia_xfam <- function(
     fitted_link = fitted_link,
     fitted = fitted,
     residuals = residuals,
+    kept_rows = kept_rows,
     loadings = c(
       lambda1 = scalar(result[["lambda1"]]),
       lambda2 = scalar(result[["lambda2"]])
@@ -8520,6 +12325,10 @@ new_drmTMB_julia_xfam <- function(
     bic = bic,
     df = df,
     nobs = length(axes$mu1$y),
+    missing_rows = list(
+      n_input = nrow(data),
+      n_dropped = as.integer(nrow(data) - length(axes$mu1$rows))
+    ),
     opt = drm_julia_opt_slot(result),
     uncertainty = list(
       status = "unavailable",
@@ -8563,7 +12372,7 @@ coef.drmTMB_julia_xfam <- function(object, dpar = NULL, ...) {
   blocks[[dpar]]
 }
 
-#' @export
+#' @exportS3Method nlme::fixef
 fixef.drmTMB_julia_xfam <- function(object, ...) {
   coef.drmTMB_julia_xfam(object, ...)
 }
@@ -8607,12 +12416,9 @@ df.residual.drmTMB_julia_xfam <- function(object, ...) {
 
 #' Summary for a cross-family Julia fit
 #'
-#' The cross-family route (`drmTMB(bf(...), c(fam1, fam2), engine = "julia")`,
-#' via `drm_julia_call_xfam()` -> DRM.fit_mixed_family) is reachable from R
-#' and tested (`tests/testthat/test-xfam-bridge.R`), but its
-#' capability-ledger status is `experimental`/`partial`
-#' (`inst/extdata/julia-capabilities.tsv`, `cross_family_latent`). This
-#' summary reports point estimates only: the bridge does not retain a named
+#' The cross-family route
+#' `drmTMB(bf(...), c(fam1, fam2), engine = "julia")` is experimental and
+#' partial. This summary reports point estimates only: the bridge does not retain a named
 #' covariance matrix, so standard errors and Wald intervals are deliberately
 #' unavailable.
 #'
@@ -8717,10 +12523,10 @@ is_converged.drmTMB_julia_xfam <- function(
 
 #' Extract a latent-scale correlation from a cross-family Julia fit
 #'
-#' The cross-family route is reachable from R (`engine = "julia"` with a
-#' `c(family1, family2)` pair) and tested, but its capability-ledger status
-#' is `experimental`/`partial` (`inst/extdata/julia-capabilities.tsv`,
-#' `cross_family_latent`). This extractor reads `rho_latent` off an existing
+#' The cross-family route is experimental and partial. It is reachable from R
+#' with `engine = "julia"` and a `c(family1, family2)` pair, but it currently
+#' provides point estimates without standard errors or confidence intervals.
+#' This extractor reads `rho_latent` from an existing
 #' `drmTMB_julia_xfam` object.
 #'
 #' @param object A `drmTMB_julia_xfam` cross-family fit.

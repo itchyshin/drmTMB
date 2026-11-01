@@ -26,9 +26,11 @@ test_that("Poisson slope SD keeps selector and unvalidated-combination boundarie
   expect_error(drm_build_poisson_spec(bf(
     y ~ x + (1 | id) + (0 + x | id), sd(id) ~ w
   ), dat), "Ambiguous")
-  expect_error(drm_build_poisson_spec(bf(
+  # Independent same-group intercept + slope with a selected coefficient SD is
+  # now admitted (fit evidence: test-poisson-additive-ordinary-sd-regression.R).
+  expect_no_error(drm_build_poisson_spec(bf(
     y ~ x + (1 | id) + (0 + x | id), sd(id, coef = "x") ~ w
-  ), dat), "same group|more than one coefficient")
+  ), dat))
   expect_error(drm_build_poisson_spec(bf(
     y ~ x + (1 + x | id), sd(id, coef = "x") ~ w
   ), dat), "correlated")

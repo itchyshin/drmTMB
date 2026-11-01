@@ -11,7 +11,9 @@
 #   spatial(1 | g, coords) -> native fixed-range K -> drm(...; K = K)
 #
 # Supported families are DRM.jl's general-covariance set: Gaussian, Poisson, NB2,
-# Gamma. (Beta / Binomial fit only `phylo()` in DRM.jl and are rejected here.)
+# Gamma. Binomial has a separate exact exception for one relmat intercept with
+# its matching direct SD regression; it is tested in
+# `test-julia-binomial-relmat-sd-parity.R`. Beta remains phylo-only here.
 # Precision / inverse marker forms (relmat `Q`, animal `Ainv`), pedigrees, meshes,
 # and non-Gaussian `spatial()` have no bridge route and are rejected with a
 # pointer to `engine = "tmb"` or to `relmat(1 | g, K = K)`.
@@ -33,11 +35,11 @@ test_that("structured family set is Gaussian/Poisson/NB2/Gamma, gated as such", 
   for (fam in c("gaussian", "poisson", "nbinom2", "gamma")) {
     expect_equal(drmTMB:::drm_julia_structured_family_tag(fam), fam)
   }
-  # Beta / Binomial fit phylo() but have no relmat/animal/spatial drm() route.
+  # Without its exact direct-SD formula, Binomial and Beta remain refused.
   for (fam in c("beta", "binomial", "student")) {
     expect_error(
       drmTMB:::drm_julia_structured_family_tag(fam),
-      "relmat.*animal.*spatial"
+      "general-covariance"
     )
   }
 })
@@ -240,7 +242,7 @@ test_that("structured payload requires intercept-only mu and sigma ~ 1", {
       dat,
       env
     ),
-    "1 \\| group"
+    "only explicitly admitted animal-slope SD routes"
   )
 })
 

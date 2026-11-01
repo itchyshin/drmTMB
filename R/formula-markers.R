@@ -266,12 +266,20 @@ phylo_interaction <- function(term, tree1, tree2) {
 #' estimate, not the interval. Mesh inputs, multiple structured slopes,
 #' residual-scale structured slopes beyond the NB2 one-slope gate, slope
 #' correlations, and predictor-dependent spatial `corpair()` regression remain
-#' planned.
+#' planned. The fixed-kappa mesh route supports a univariate Gaussian `mu`
+#' intercept with `sigma ~ 1`, plus native Binomial `mu` spatial intercepts
+#' across logit, probit, and complementary log-log links. Native Binomial mesh
+#' slopes also support coefficient-specific predictor-dependent SD formulas
+#' for logit, probit, and complementary log-log links,
+#' for example `spatial(0 + x | site, mesh = mesh)` with
+#' `sd(site, level = "spatial", coef = "x") ~ z`. All three links have focused
+#' point-recovery checks; the logit route also has output-workflow checks. No
+#' interval-coverage or Julia parity claim is made.
 #'
 #' @param term Structured random-effect term, such as `1 | site`.
 #' @param coords Coordinate object, such as a data frame or matrix of spatial
 #'   coordinates.
-#' @param mesh Planned precomputed mesh object.
+#' @param mesh Precomputed `drmTMBmesh` object created by [make_mesh()].
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -287,8 +295,13 @@ phylo_interaction <- function(term, tree1, tree2) {
 #'   sigma2 = ~ 1,
 #'   rho12 = ~ 1
 #' )
-#' # Planned:
-#' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
+#' # Fitted Gaussian mesh intercept:
+#' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)
+#' # Native Binomial logit mesh slope with a predictor-dependent SD:
+#' bf(
+#'   y ~ x + spatial(0 + x | site, mesh = mesh),
+#'   sd(site, level = "spatial", coef = "x") ~ z
+#' )
 spatial <- function(term, coords = NULL, mesh = NULL) {
   invisible(NULL)
 }

@@ -72,8 +72,13 @@
 #'   response scale.
 #' @param trace Logical; passed to [TMB::tmbprofile()] when the `tmbprofile`
 #'   profile engine is used.
-#' @param profile_precision Profile-control shortcut. `"default"` leaves
-#'   [TMB::tmbprofile()] controls unchanged. `"fast"` supplies
+#' @param profile_precision Profile-control shortcut. `"default"` leaves the
+#'   TMB profile step size unchanged and sets `ytol` to at least 0.5 above the
+#'   requested likelihood cutoff, with a minimum of 2, when omitted. This gives
+#'   the profile room to reach the cutoff; endpoint finding can still fail for
+#'   other reasons.
+#'   An explicit `ytol` remains in force.
+#'   `"fast"` supplies
 #'   `ystep = 0.5` and `ytol = 2` unless the caller supplies those controls in
 #'   `...`, giving a quicker first-pass profile for long variance-component or
 #'   correlation targets.
@@ -755,8 +760,13 @@ profile_targets <- function(object, ready_only = FALSE) {
 #' @param level Confidence level used for the likelihood-ratio cutoff and
 #'   interval endpoint annotations.
 #' @param trace Logical; passed to [TMB::tmbprofile()].
-#' @param profile_precision Profile-control shortcut. `"default"` leaves
-#'   [TMB::tmbprofile()] controls unchanged. `"fast"` supplies
+#' @param profile_precision Profile-control shortcut. `"default"` leaves the
+#'   TMB profile step size unchanged and sets `ytol` to at least 0.5 above the
+#'   requested likelihood cutoff, with a minimum of 2, when omitted. This gives
+#'   the profile room to reach the cutoff; endpoint finding can still fail for
+#'   other reasons.
+#'   An explicit `ytol` remains in force.
+#'   `"fast"` supplies
 #'   `ystep = 0.5` and `ytol = 2` unless the caller supplies those controls in
 #'   `...`.
 #' @param profile_maxit Optional positive whole number passed to
@@ -847,6 +857,9 @@ profile.drmTMB <- function(
     list(...),
     profile_maxit = profile_maxit
   )
+  if (!"ytol" %in% names(profile_args)) {
+    profile_args$ytol <- drm_profile_ytol_for_level(level)
+  }
   profile_check_tmbprofile_dots_list(profile_args)
   compare <- validate_profile_plot_flag(compare, "compare")
   first_pass_args <- profile_first_pass_args(
@@ -1532,6 +1545,7 @@ drm_julia_profile_target_union <- function(object) {
     drm_julia_wald_targets(object),
     drm_julia_wald_scale_targets(object),
     drm_julia_profile_targets(object),
+    drm_julia_binomial_q2_correlation_targets(object),
     # #1144: the ordinal rows of a `cumulative_logit()` bridge fit. Same
     # discoverable-but-not-ready treatment as the `sigma` alias row above --
     # the cutpoints are on the fit (`object$ordinal`) and the native engine
@@ -3045,7 +3059,16 @@ bootstrap_refit_one <- function(
         control = refit_control
       )
       if (!object$model$model_type %in% c("biv_lognormal", "biv_student")) {
-        arguments$weights <- bootstrap_weights
+        # The fitted object stores implicit unweighted rows as an all-one
+        # vector. Omitting it on refit preserves the original unweighted input
+        # for routes that reject explicitly supplied weights, including when
+        # those weights would leave the likelihood unchanged.
+        if (
+          !is.null(bootstrap_weights) &&
+            !isTRUE(all(bootstrap_weights == 1))
+        ) {
+          arguments$weights <- bootstrap_weights
+        }
       }
       # Replicates now carry the seed fit's response NA mask (#1188), so they
       # must also be refitted under the seed fit's response policy. Under the
@@ -3172,7 +3195,7 @@ bootstrap_response_data <- function(object, simulations, index) {
     )
     return(data)
   }
-  if (identical(object$model$model_type, "binomial")) {
+  if (object$model$model_type %in% c("binomial", "beta_binomial")) {
     denominator <- object$model$denominator
     if (
       is.list(denominator) &&
@@ -3586,6 +3609,14 @@ drm_tmbprofile_bracket_overflow <- function(
   }, logical(1L)))
 }
 
+drm_profile_ytol_for_level <- function(level) {
+  # TMB's default ytol (2) can stop before the likelihood-ratio cutoff for a
+  # 97.5% interval. Keep a half-unit of log-likelihood range beyond the cutoff
+  # to give the adaptive profile room to reach it. Other profile failures remain
+  # possible, including optimizer failures and exhausted iteration limits.
+  max(2, stats::qchisq(level, df = 1) / 2 + 0.5)
+}
+
 drm_profile_target_tmbprofile_confint <- function(
   object,
   target,
@@ -3594,12 +3625,21 @@ drm_profile_target_tmbprofile_confint <- function(
   ...
 ) {
   lincomb <- profile_lincomb(object, target)
-  prof <- drm_tmbprofile(
-    object = object,
-    target_name = target$parm,
-    lincomb = lincomb,
-    trace = trace,
-    ...
+  profile_args <- list(...)
+  if (!"ytol" %in% names(profile_args)) {
+    profile_args$ytol <- drm_profile_ytol_for_level(level)
+  }
+  prof <- do.call(
+    drm_tmbprofile,
+    c(
+      list(
+        object = object,
+        target_name = target$parm,
+        lincomb = lincomb,
+        trace = trace
+      ),
+      profile_args
+    )
   )
   clamp_trace <- drm_profile_direct_sd_clamp_trace(object, prof)
   if (!identical(clamp_trace$status, "not_applicable")) {
@@ -5017,6 +5057,19 @@ profile_fixef_internal <- function(dpar, object = NULL) {
     if (is.character(variable) && length(variable) == 1L &&
         !is.na(variable) && identical(dpar, paste0("mi_", variable))) {
       return(if (slot == 1L) "beta_mi" else "beta_mi2")
+    }
+  }
+  random_scale <- object$model$random_scale
+  if (is.list(random_scale)) {
+    scale_hits <- names(random_scale)[vapply(random_scale, function(scale) {
+      is.list(scale) && dpar %in% scale$dpars
+    }, logical(1L))]
+    if (length(scale_hits) == 1L) {
+      return(if (identical(scale_hits, "sigma")) {
+        "beta_sd_sigma"
+      } else {
+        "beta_sd_mu"
+      })
     }
   }
   if (

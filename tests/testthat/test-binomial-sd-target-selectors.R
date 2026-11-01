@@ -57,21 +57,53 @@ test_that("two independent q1 groups keep distinct latent row and coefficient ma
   expect_equal(nrow(sd_re$X_list[["sd(site)"]]), nlevels(dat$site))
 })
 
+test_that("binomial SD selectors distinguish independent coefficients on one group", {
+  dat <- binomial_sd_fixture(groups = 12L, repeats = 4L)$data
+  key_intercept <- 'sd(id, dpar = "mu", coef = "(Intercept)")'
+  key_slope <- 'sd(id, dpar = "mu", coef = "x")'
+  spec <- drm_build_binomial_spec(bf(
+    y ~ x + (1 | id) + (0 + x | id),
+    sd(id, dpar = "mu", coef = "(Intercept)") ~ w,
+    sd(id, dpar = "mu", coef = "x") ~ w
+  ), dat)
+
+  sd_re <- spec$random_scale$mu
+  expect_identical(sd_re$dpars, c(key_intercept, key_slope))
+  expect_identical(sd_re$target_identity[[key_intercept]]$coef, "(Intercept)")
+  expect_identical(sd_re$target_identity[[key_slope]]$coef, "x")
+  expect_identical(sd_re$target_identity[[key_intercept]]$group, "id")
+  expect_identical(sd_re$target_identity[[key_slope]]$group, "id")
+  expect_equal(length(sd_re$re_sd_row0), spec$random$mu$n_re)
+  expect_true(all(sd_re$re_sd_row0 >= 0L))
+  expect_equal(length(unique(sd_re$re_sd_row0)), 2L * nlevels(dat$id))
+})
+
 test_that("binomial scalar selectors fail closed on ambiguity, mismatch and duplicates", {
   dat <- binomial_sd_fixture(groups = 12L, repeats = 4L)$data
   expect_error(drm_build_binomial_spec(bf(
     y ~ x + (1 | id) + (0 + x | id), sd(id) ~ w
   ), dat), "Ambiguous.*id")
-  expect_error(drm_build_binomial_spec(bf(
+  selected_intercept <- drm_build_binomial_spec(bf(
     y ~ x + (1 | id) + (0 + x | id),
     sd(id, coef = "(Intercept)") ~ w
-  ), dat), "random-slope|intercept|q1", ignore.case = TRUE)
+  ), dat)
+  expect_identical(
+    selected_intercept$random_scale$mu$target_identity[[1L]]$coef,
+    "(Intercept)"
+  )
   expect_error(drm_build_binomial_spec(bf(
     y ~ x + (1 | p | id), sd(id, block = "q") ~ w
   ), dat), "Available targets")
   expect_error(drm_build_binomial_spec(bf(
     y ~ x + (1 | id), sd(id, coef = "x") ~ w
   ), dat), "Available targets")
+  selected_slope <- drm_build_binomial_spec(bf(
+    y ~ x + (1 + x | id), sd(id, coef = "x") ~ w
+  ), dat)
+  expect_identical(
+    selected_slope$random_scale$mu$target_identity[[1L]]$coef,
+    "x"
+  )
   expect_error(drm_build_binomial_spec(bf(
     y ~ x + (1 | id), sd(id) ~ w,
     sd(id, dpar = "mu", coef = "(Intercept)") ~ 1
@@ -80,4 +112,17 @@ test_that("binomial scalar selectors fail closed on ambiguity, mismatch and dupl
     y ~ x + (1 | p | id) + (1 | q | id),
     sd(id, block = "p") ~ w
   ), dat), "Overlapping random-effect terms")
+})
+
+test_that("Bernoulli SD predictors must be constant within each group", {
+  dat <- binomial_sd_fixture(groups = 12L, repeats = 4L)$data
+  dat$w[[1L]] <- dat$w[[1L]] + 0.25
+
+  expect_error(
+    drm_build_binomial_spec(
+      bf(y ~ x + (1 | id), sd(id) ~ w),
+      dat
+    ),
+    "Predictor w varies within id level"
+  )
 })

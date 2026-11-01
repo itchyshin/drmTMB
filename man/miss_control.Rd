@@ -23,7 +23,8 @@ object. Leaving \code{missing} out of the \code{\link[=drmTMB]{drmTMB()}} call, 
 \code{response}, keeps complete-case row dropping. \code{"model"} enables the current \code{mi()} predictor-model routes when
 paired with a matching \code{impute} formula or \code{\link[=impute_model]{impute_model()}} in \code{\link[=drmTMB]{drmTMB()}}.}
 
-\item{engine}{Missing-data engine. Only \code{"laplace"} is implemented.}
+\item{engine}{Missing-data engine. Only \code{"laplace"} is implemented in this
+slice.}
 }
 \value{
 A \code{drm_missing_control} object.

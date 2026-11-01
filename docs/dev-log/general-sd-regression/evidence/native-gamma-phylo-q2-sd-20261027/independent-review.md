@@ -1,0 +1,5 @@
+# Independent review
+
+The parent coordinator and read-only Gamma scout found a P1 nesting error in an intermediate shared-validator edit, before accepting any result. After restoration from the owned before snapshot, a complete standalone Gamma phylo branch precedes unchanged relmat/animal siblings. The scout removed only the new flag and branch and verified the rest of the shared validator was byte-identical to the before snapshot. No remaining P0/P1 was found in the corrected scoped patch and mathematical contract. Reviewers ran no fits; corrected-source runtime logs and source hashes are separate evidence.
+
+The independent normalized shared-ancestry covariance, augmented-Q inverse tip block, Gamma latent score/Hessian, Gaussian constants and Laplace correction agree. Unused-tip checks establish assembly/extraction only. The Julia Gamma phylo slope route remains refused before setup: its Gamma exception requires animal targets and animal structure. This is a source audit, not live parity evidence.

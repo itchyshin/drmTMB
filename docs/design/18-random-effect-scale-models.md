@@ -1,10 +1,183 @@
 # Random-Effect Scale Models
 
 This note is the design contract for random-effect scale formulae such as
-`sd(id) ~ x_group`. The univariate Gaussian implementation supports one or
-more distinct unlabelled `mu` random-intercept targets; the same document also
-records future extensions so math, R syntax, tests, and user explanations stay
-aligned.
+`sd(id) ~ x_group`. The univariate Gaussian route supports one or more distinct
+unlabelled `mu` random-intercept targets. Native TMB also supports a q1
+Gaussian animal-model location intercept with a predictor-dependent SD using a
+pedigree, labelled covariance matrix `A`, or its precision matrix `Ainv`. Its
+synthetic checks cover point recovery, named SD prediction, marginal simulation,
+save/reload, constant-SD equivalence, and within-animal predictor validation.
+The pedigree test leaves sires and dams unobserved and verifies that the fitted
+route retains them as latent relationship nodes. A separate comparison confirms
+matching likelihoods, SD coefficients, and named predictions for equivalent
+`A` and `Ainv` inputs;
+Julia parity and interval calibration remain unverified. Native TMB also supports Bernoulli
+ordinary random-intercept SD regression, one independent numeric random-slope
+SD, and an ordinary intercept plus one phylogenetic intercept. A native Gamma
+q1 phylogenetic location-intercept route also has a focused synthetic
+point-recovery, named-prediction, and constant-SD-equivalence test; its
+intervals and Julia parity remain unverified.
+
+For ordinary Bernoulli SD targets on the Julia candidate, `predict()` names
+stored group predictions with the group labels, matching native TMB. The
+fitted `sdpars` vectors retain target-qualified names. The focused crossed
+two-group test checks this distinction and compares the target coefficients,
+likelihood, and `predict_parameters()` output with native TMB; it does not
+establish wider Julia parity or calibrated uncertainty.
+The corresponding q1 Gamma `relmat()` location-intercept route has the same
+native point-fit evidence, including a reordered-kernel test; its intervals and
+Julia parity are also unverified.
+Non-Gaussian Julia SD-regression routes described in this note are
+development-candidate-only. They require a local DRM.jl candidate source
+checkout paired with this drmTMB candidate; current shared/released DRM.jl
+provides the Gaussian `sd()` route but not these family routes. Julia bridge
+checks therefore establish candidate workflow behavior only, not release
+support or general cross-engine parity. The Bernoulli candidate accepts separate
+SD formulas for independent scalar Bernoulli coefficients on the same group
+when each formula selects its coefficient explicitly. In Julia, the candidate
+syntax is `sd(group, coef(intercept))` for the intercept and
+`sd(group, coef(x))` for the `x` slope. The two latent terms must be separate
+independent terms, such as `(1 | group) + (0 + x | group)`. A correlated
+`(1 + x | group)` block is not part of that independent-coefficient route; one
+q=2 correlated block has separate, narrowly tested candidate coverage below.
+The live bridge check covers recovery, coefficient-specific prediction, and
+profile/bootstrap refit routing. Those interval checks are plumbing evidence,
+not calibration; the current synthetic fit also produced singular-Hessian
+warnings during refits.
+Native complete-data ordinary `mu` random-intercept slices are also
+implemented for NB2, Gamma, Tweedie, Beta, beta-binomial, cumulative-logit,
+Student-t, skew-normal, zero-truncated NB2, and zero-inflated NB2. The
+zero-inflated NB2 slice requires complete responses, one ordinary `mu`
+intercept, and fixed-effect intercepts for `sigma` and `zi`; its recovery and
+independent groupwise Laplace check are not interval-calibration evidence.
+NB2 additionally supports one complete-data ordinary independent numeric `mu`
+slope with `sigma ~ 1` in native TMB and the development Julia candidate. The
+candidate route requires matched local source checkouts and is absent from the
+current shared/released DRM.jl companion. Synthetic recovery, an independent
+slope-loading likelihood oracle, public SD outputs, and one matched-data
+coefficient comparison pass; that single comparison does not establish general
+engine parity or interval calibration. Outside the explicit Poisson,
+Bernoulli, Gamma, NB2, and Student-t ordinary slope routes, the documented
+structured-intercept SD cells, plus the Poisson, NB2, and Gamma q1 animal slope-only SD routes,
+other random slopes, structured effects, and random-effect targets remain
+separate work. The
+cumulative-logit slice requires complete responses and one ordinary `mu`
+intercept. Its synthetic recovery, independent groupwise Gaussian integration,
+wrong-index control, constant-SD equivalence, prediction, simulation, and
+save/reload checks pass; this is not interval-calibration evidence. The
+zero-truncated NB2 slice also requires complete responses and one ordinary `mu`
+intercept with no hurdle formula;
+synthetic recovery, independent truncated-likelihood integration,
+wrong-index control, constant-SD equivalence, prediction, simulation, and
+save/reload checks pass, without interval-calibration evidence. A separate native `zero_one_beta()` slice admits one ordinary
+`mu` intercept or one independent numeric slope with a matching selected SD
+formula when responses are complete and all other endpoints have no
+random effects. Its synthetic recovery, independent marginal-likelihood
+quadrature, wrong-index control, constant-SD equivalence, prediction,
+simulation, save/reload, profile, and bootstrap-refit checks pass; these are
+not interval-calibration results. One seeded fit with `se = TRUE` converged
+with `pdHess = TRUE`, which checks fit health but does not establish interval
+coverage. The matching selected-slope route also fits through the Julia
+development candidate and R bridge, with same-data recovery-direction and
+group-SD output checks; interval calibration remains open. Hurdle NB2 separately admits one ordinary `mu` intercept with an
+optional group-level SD regression when responses are complete, `sigma` is
+fixed-effect only, and no structured location effect is present. The intercept
+acts only in the positive-count component; recovery and workflow checks pass,
+but interval calibration remains open. Gamma intercept and independent-slope SD regression each have one
+synthetic recovery fit; Gamma intercept and Tweedie also have a constant-SD
+equivalence check. Beta has one higher-information recovery fit
+and a constant-SD equivalence check; beta-binomial has one synthetic recovery
+fit, independent one-dimensional marginal-likelihood quadrature, constant-SD
+equivalence, and profile/bootstrap routing checks; Student-t and skew-normal
+each have one synthetic recovery fit. Native Student-t also supports one
+complete-data ordinary independent location-slope SD target, with a
+slope-loading Laplace oracle, wrong-group control, target-aware
+profile/bootstrap routing, prediction, simulation, save/reload, and
+constant-SD equivalence. The development Julia candidate also has a separate
+ordinary Student-t intercept or independent-slope route with fixed
+`sigma ~ 1` and `nu ~ 1`; it requires a matching local DRM.jl candidate
+checkout and is absent from current shared/released DRM.jl. Its live R bridge
+has not yet been checked for the slope. These checks are not interval
+calibration. Other family and random-effect combinations remain separate work.
+
+The Gamma route currently requires complete responses, fixed-effect `sigma`,
+and one location random-effect layer. Alongside ordinary random intercepts and
+independent numeric slopes, it admits a q1 animal-model intercept with a
+predictor-dependent scale using pedigree, covariance (`A`), or precision
+(`Ainv`) input, for example `animal(1 | id, pedigree = pedigree)` with
+`sd(id, level = "animal") ~ z`. The animal scale retains the existing
+relationship scaling without normalizing its diagonal. Synthetic fits check
+recovery with pedigree input, while covariance and precision forms are checked
+for matching likelihoods. One live same-data comparison with the development
+Julia candidate checks SD coefficients and group-level SD predictions for a
+unit-diagonal supplied covariance. It is one point-parity fixture: non-unit
+covariance scaling, interval calibration, and other animal layouts remain
+unverified. A separate complete-data route also supports one q1
+animal slope-only coefficient, for example
+`animal(0 + x | id, pedigree = pedigree)` with `sd(id, level = "animal") ~ z`.
+Its fixed-seed test checks slope recovery, name-keyed SD prediction,
+constant-SD equivalence, and rejection of within-animal variation and
+multi-coefficient blocks. Interval calibration and Julia parity remain open.
+Native Gamma also admits one complete-data q2 animal location term containing
+an intercept and one numeric slope as two independent latent fields. Give each
+field its own SD formula with an explicit coefficient selector:
+
+```r
+bf(
+  y ~ x + animal(1 + x | id, pedigree = pedigree),
+  sigma ~ 1,
+  sd(id, level = "animal", dpar = "mu", coef = "(Intercept)") ~ z0,
+  sd(id, level = "animal", dpar = "mu", coef = "x") ~ z1
+)
+```
+
+The model is `u0, u1 ~ N(0, A)` independently and adds
+`tau0_g * u0_g + x_i * tau1_g * u1_g` to the log mean. Thus its latent
+covariance is `A[g, h] * (tau0_g * tau0_h + x_i * x_j * tau1_g * tau1_h)`;
+the two animal fields are not a correlated intercept-slope block unless the
+term is written in the labelled `animal(1 + x | p | id)` form, which adds one
+estimated correlation (native only; see the end of this note). The focused
+synthetic test checks separate SD-slope recovery, coefficient-specific group
+predictions, simulation, save/reload, constant-SD equivalence, and refusal of
+an identically zero slope loading or a globally constant slope with identical
+constant SD designs. The combined q2 evidence currently uses a unit-diagonal
+pedigree covariance; it does not close the separate Gamma q1 animal slope-only
+`A`/`Ainv` provider
+rows. Interval calibration and Julia parity remain open.
+For Gamma, a separate complete-data route allows one ordinary `sigma`
+random intercept or one independent numeric random slope with a matching
+`sd(group, dpar = "sigma") ~ predictors` formula while `mu` is
+fixed-effect-only. The SD predictor must be constant within group. Here the
+formula models the SD of the latent effect on `log(sigma)`, where Gamma
+`sigma` is the coefficient of variation. Seeded recovery, finite coefficient
+covariance, group SD prediction, conditional sigma output, save/reload,
+within-group validation, and constant-SD equivalence are checked for the
+intercept route. The independent-slope route has focused synthetic recovery,
+finite SD-coefficient covariance, and group-SD prediction checks. Both are
+native TMB point-fit evidence, not interval calibration. The route does not
+combine with existing Gamma `mu` SD
+routes; Julia parity remains open. Other structured providers, correlated
+coefficients, and combinations with additional random-effect layers remain
+separate work.
+The Tweedie route has the same ordinary-intercept and complete-response limits;
+both `sigma` and `nu` must remain fixed-effect formulas. The Beta route also
+requires complete responses, one ordinary `mu` intercept, and fixed-effect
+`sigma`; it cannot be combined with Beta's separate phylogenetic direct-SD
+formula in this slice. Its synthetic recovery and constant-SD checks do not
+establish interval calibration.
+
+The beta-binomial ordinary route requires complete responses and one ordinary
+`mu` random-effect target. Its `sd(group)` predictors must be constant within
+group. A separate native TMB route supports one q1 animal intercept with
+`sd(id, level = "animal") ~ z`, using pedigree, covariance `A`, or precision
+`Ainv` inputs. The predictor changes the animal field's group-level SD on the
+logit success-probability scale. All routes keep `sigma` fixed-effect-only, and
+`sigma` continues to describe within-observation extra-binomial variation. The
+synthetic tests check pedigree recovery, constant-SD equivalence, group-named
+predictions and marginal simulation; A/Ainv fits check recovery, prediction,
+and likelihood agreement with pedigree after a joint label permutation. Julia
+parity, interval calibration, correlated or labelled blocks, structured slopes,
+and missing-predictor imputation remain open.
 
 ## Core Distinction
 
@@ -15,7 +188,8 @@ word.
 |---|---|---|---|
 | `sigma_i` | residual or within-observation standard deviation | `sigma ~ x1` | implemented for Gaussian |
 | `a_g` | residual-scale random effect added to `log(sigma_i)` | `sigma ~ x1 + (1 | id)` or `sigma ~ x1 + (0 + w | id)` | implemented for univariate Gaussian random intercepts and independent random slopes |
-| `sd_mu_id` | standard deviation of a `mu` random effect | `sd(id) ~ x_group` | implemented for one or more distinct unlabelled Gaussian `mu` random intercepts |
+| `sd_sigma_id` | standard deviation of a random effect on the `sigma` linear predictor | `sigma ~ 1 + (1 | id)` or `sigma ~ 1 + (0 + x | id)`, with a matching `sd(id, dpar = "sigma")` or coefficient-selected SD formula | Focused native checks cover Gaussian, LogNormal, Gamma, and NB2 independent `sigma` random slopes; the Gamma case uses fixed `mu` and complete responses. Beta-binomial supports one ordinary `sigma` random intercept or one independent numeric slope, each with a matching SD regression, complete responses, and fixed-effect-only `mu`. These are point-recovery/output checks, not general family parity or calibrated uncertainty; the development Julia bridge has one same-data point-estimate check each for the Gamma `sigma` intercept and independent slope |
+| `sd_mu_id` | standard deviation of a `mu` random effect | `sd(id) ~ x_group` | Gaussian ordinary intercepts and one ordinary independent numeric location slope now have focused native TMB recovery and same-data Julia point-parity checks. Native Bernoulli ordinary intercepts and independent numeric slopes, plus coefficient-selected SD formulas for separate independent terms on one group; Poisson ordinary intercepts and one independent numeric slope; Gamma ordinary intercepts and one independent numeric slope; Student-t ordinary intercepts and one independent numeric slope; skew-normal ordinary intercepts and one independent numeric slope; and ordinary NB2 independent numeric slopes in native TMB. Matching non-Gaussian Julia SD routes for Bernoulli, Poisson, Gamma, Student-t, NB2, and LogNormal exist only in the development candidate and require paired local drmTMB/DRM.jl candidate sources; current shared/released DRM.jl does not include them. LogNormal evidence is limited to ordinary `mu` intercept and independent numeric slope routes with fixed `sigma ~ 1`, checked in two same-data point-parity fixtures. One matched-data Student-t slope comparison is a single-cell check, not general engine parity. Complete-data ordinary NB2, zero-inflated NB2, zero-inflated Poisson, Tweedie, Beta, beta-binomial, cumulative-logit, zero-truncated NB2, hurdle NB2 (one ordinary `mu` intercept), and zero-one beta intercept and selected independent numeric `mu` slope SD regressions in native TMB and Julia are supported; skew-normal also has an independent-slope SD route. |
 | `sd_mu1_id`, `sd_mu2_id` | response-specific standard deviations of bivariate location random effects | `sd1(id) ~ x_group`, `sd2(id) ~ x_group` | implemented for labelled bivariate Gaussian `mu1`/`mu2` location random intercepts |
 | `rho_re` | group-level random-effect correlation | `(1 + x1 | id)` | implemented for one `mu` slope |
 | `rho12_i` | residual correlation between two responses | `rho12 ~ x1` | implemented for fixed-effect bivariate Gaussian |
@@ -229,14 +403,270 @@ make the location-effect SDs predictor-dependent while keeping the four-way
 covariance block constant. That hybrid is not an implemented model family, so
 the builder rejects it before fitting.
 
+## First Discrete-Response Slice: Bernoulli
+
+For an ordinary Bernoulli random intercept, the group-level SD regression is
+on the latent logit scale:
+
+```text
+y_ig ~ Bernoulli(p_ig)
+logit(p_ig) = X_mu[i, ] beta_mu + b_g
+b_g = sd_g u_g
+u_g ~ Normal(0, 1)
+log(sd_g) = W_g alpha
+```
+
+Use the existing formula interface:
+
+```r
+fit <- drmTMB(
+  bf(y ~ x + (1 | id), sd(id) ~ habitat),
+  family = binomial(),
+  data = dat,
+  engine = "tmb"
+)
+```
+
+The `sd(id)` predictors must be fixed-effect terms that are constant within
+each retained `id`. The fitted SD coefficients are on the log-SD scale;
+`fit$sdpars[["sd(id)"]]` and `predict(fit, dpar = "sd(id)")` report positive
+group SDs. With fresh `newdata`, `predict()` returns one value per supplied row
+and repeats the group SD for rows from the same group. A Bernoulli model has no
+free residual `sigma`.
+
+The Bernoulli route also supports one independent numeric random slope. If
+`x` is the random-effect covariate, the model is
+
+```text
+logit(p_ig) = X_mu[i, ] beta_mu + x_ig b_g
+b_g = sd_g u_g,   u_g ~ Normal(0, 1)
+log(sd_g) = W_g alpha
+```
+
+Use `(0 + x | id)` when the random effect is slope-only:
+
+```r
+fit_slope <- drmTMB(
+  bf(y ~ x + (0 + x | id), sd(id) ~ habitat),
+  family = binomial(),
+  data = dat,
+  engine = "tmb"
+)
+```
+
+Here `sd(id)` is the SD of the random coefficient per unit of `x`; the
+observation-specific contribution is `x_ig b_g`. A predictor that changes
+within group is not valid on the right-hand side of `sd()`. The route has an
+independent scalar likelihood oracle, synthetic recovery, constant-SD
+equivalence, prediction, simulation, profile, and save/reload checks. One
+seeded synthetic slope fit compares the public Julia-candidate and TMB
+coefficient and group-SD predictions at absolute tolerances 0.35 and 0.45,
+respectively. That isolated comparison does not establish general cross-engine
+parity or interval calibration. In native TMB, separate
+independent intercept and slope terms on one group can each have a selected
+scale model:
+
+```r
+bf(
+  present ~ temperature + (1 | group) + (0 + temperature | group),
+  sd(group, dpar = "mu", coef = "(Intercept)") ~ habitat,
+  sd(group, dpar = "mu", coef = "temperature") ~ latitude
+)
+```
+
+Each right-hand predictor must be constant within `group`. The selectors
+distinguish the two independent terms. Native TMB fits this two-formula
+extension. The matching Julia syntax and route are available only in the
+development candidate and have been exercised with matched local source
+checkouts. One separate ordinary correlated q2 intercept-slope slice has
+narrow candidate test coverage; its contract and boundaries follow below.
+Other correlated blocks and structured effects remain outside this
+SD-regression slice.
+
+The live Julia bridge check uses matched local candidate source checkouts. It
+covers fitting and public point outputs, including group-level SD extraction,
+fresh-data prediction, and save/reload. It also checks recovery of one seeded
+intercept/slope truth at 300 groups, and checks that an SD slope keeps its
+canonical target through one profile interval and a three-refit
+parametric-bootstrap smoke test. Together with the direct Julia candidate
+random-slope fit and independent integral checks, these are bounded recovery
+and output checks. They do not establish release support, recovery across a
+grid, interval reliability, coverage, or a calibrated uncertainty method.
+Those remain open alongside other distribution families, same-data numerical
+parity for the correlated q2 route, and structured effects.
+
+### Correlated Bernoulli q2 block
+
+One unlabelled logit Bernoulli `(1 + x | id)` block has separate fixed-effect
+SD-formula coverage for its intercept and numeric slope in the native TMB
+branch and the development Julia candidate. The candidate requires matched
+local drmTMB and DRM.jl source checkouts; it is not present in the current
+shared/released DRM.jl companion. This is a narrow tested slice, not general
+cross-engine parity. Its contract is
+
+```text
+log(tau[g, k]) = W[g, k] alpha[k]
+b[g] ~ Normal(0, D[g] R D[g])
+D[g] = diag(tau[g, 0], tau[g, 1])
+R = [[1, rho], [rho, 1]]
+rho = tanh(eta_rho)
+```
+
+The correlation `rho` is constant across groups. A formula may target either
+member or both; an untargeted member keeps its constant SD.
+
+The native R selectors are
+`sd(id, dpar = "mu", coef = "(Intercept)")` and
+`sd(id, dpar = "mu", coef = "x")`. The development Julia candidate DSL uses
+`sd(id, coef(intercept))` and `sd(id, coef(x))`. Native TMB and the
+development Julia candidate have focused checks for the two-target likelihood
+against independent quadrature, partial-target fitting, covariance
+reconstruction, and simulator transforms; the candidate also has a slope-only
+bootstrap-refit check. The Julia objective is still non-finite at Fisher-z
+`20`. A live R-to-Julia smoke test with matched local candidate source
+checkouts covers fitting, target extraction, group-SD prediction, and exact
+save/reload preservation for one synthetic dataset. It emitted a
+singular-Hessian warning and does not establish reliable standard errors,
+release support, or same-data engine parity. No interval calibration is
+established.
+This evidence does not cover other response families, structured providers,
+labelled or higher-dimensional blocks, random effects inside the SD formula,
+or predictor-dependent correlation.
+
+### Ordinary and phylogenetic Bernoulli intercepts
+
+Native TMB permits an ordinary random intercept and a phylogenetic random
+intercept in the same Bernoulli location predictor. Their latent contributions
+are independent, and either or both SDs may have predictor-dependent formulas:
+
+```text
+logit(p_ig) = X_ig beta + b_g + a_s
+b_g ~ Normal(0, tau_g^2)
+a ~ Normal(0, D K D)
+log(tau_g) = W_g alpha
+log(D_ss) = Z_s gamma
+```
+
+For example, with groups `id` nested within phylogenetic tips `species`, use
+`bf(y ~ x + (1 | id) + phylo(1 | species, tree = tree), sd(id) ~ w,
+sd(species, level = "phylogenetic") ~ z)`. Each SD predictor must be constant
+within its own latent group. The two target names remain distinct in coefficient
+extraction, prediction, and stored fits. A seeded nested-group simulation
+recovers both positive SD slopes in one fit and tests target-specific prediction,
+binary response simulation, and save/reload. This is point-recovery evidence
+for one design, not interval calibration or broad identifiability evidence.
+Constant-SD equivalence is also tested for the combined model. Julia
+joint-provider parity is not established.
+
+## NB2 Ordinary-Intercept Slice
+
+Native TMB also supports predictor-dependent SDs for ordinary NB2 location
+intercepts when the response and predictors are complete:
+
+```text
+y_ig ~ NB2(mu_ig, sigma)
+log(mu_ig) = X_ig beta + b_g
+b_g = sd_g u_g,   u_g ~ Normal(0, 1)
+log(sd_g) = W_g alpha
+```
+
+For example, `bf(count ~ treatment + (1 | site), sigma ~ 1, sd(site) ~
+habitat)` lets habitat predict between-site variation on the log link scale.
+The NB2 overdispersion parameter `sigma` remains distinct from the latent
+intercept SD. The `habitat` value must be constant within each site.
+
+The ordinary NB2 slice requires complete data and an ordinary, unstructured,
+independent scalar `mu` intercept. A separate native TMB slice supports one q1
+animal location intercept with `sd(id, level = "animal") ~ z`, using pedigree,
+covariance `A`, or precision `Ainv` input. The intercept slice requires complete
+data and does not combine with ordinary random effects, zero inflation,
+correlated blocks, or a random effect on `sigma`. Both SD formulas
+accept fixed-effect terms; random-effect bars, offsets and structured terms in
+the SD formula are rejected. The ordinary and animal routes have synthetic
+point-recovery tests and constant-SD equivalence checks. The animal route also
+checks group-level SD predictions and rejects predictors that vary within an
+animal. These checks are not a coverage study and do not establish calibrated
+uncertainty or Julia parity.
+
+A separate native NB2 sigma-endpoint slice allows one independent random
+intercept on `sigma` to have a group-predictor-dependent SD:
+
+```r
+bf(count ~ x, sigma ~ 1 + (1 | site),
+   sd(site, dpar = "sigma") ~ habitat)
+```
+
+Here `habitat` predicts the SD of the latent site effect added to
+`log(sigma)`. The NB2 overdispersion parameter remains on its existing link
+scale. This route requires complete data, fixed-effect `mu`, and one
+unstructured, independent `sigma` random intercept; in non-inflated NB2 it does
+not combine with other random or structured effects or a predictor-dependent
+`mu` random-effect SD. The SD predictor must be constant within each site.
+The focused synthetic test checks coefficient recovery, group-level SD
+prediction, the conditional `sigma` link contribution, constant-SD
+equivalence, and rejection of within-site predictor variation. These are
+point-fit checks, not interval-calibration evidence or Julia parity.
+
+The native zero-inflated NB2 route also admits one ordinary `sigma` random
+intercept with a predictor-dependent SD, while `mu` and `zi` remain fixed
+effects:
+
+```r
+bf(count ~ x, sigma ~ 1 + (1 | site), zi ~ 1,
+   sd(site, dpar = "sigma") ~ habitat)
+```
+
+This route requires complete data and a habitat value that is constant within
+each site. It does not combine with `mu` random effects, structured effects,
+or a second random-effect target. The focused synthetic test checks SD
+coefficient recovery, named group-SD prediction, the conditional `sigma` link,
+constant-SD likelihood equivalence, and refusal of within-site predictor
+variation. This is point-fit evidence, not interval calibration or Julia
+parity.
+
+The native LogNormal route supports one independent numeric random slope on
+the residual `sigma` predictor when its coefficient has a matching SD formula:
+
+```r
+bf(y ~ 1, sigma ~ 1 + (0 + x | site),
+   sd(site, dpar = "sigma", coef = "x") ~ habitat)
+```
+
+Here `habitat` predicts the SD of the latent slope added to `log(sigma)`. The
+route requires complete data, fixed-effect `mu`, one `sigma` slope, and a
+`habitat` value that is constant within each site. A sigma slope without the
+matching SD formula remains refused. The synthetic test checks point recovery,
+coefficient targeting, and group-level SD prediction. It does not establish
+interval calibration or Julia parity.
+
+Native NB2 also supports one unlabelled animal location slope-only coefficient,
+`animal(0 + x | id, pedigree = pedigree)`, with `sigma ~ 1` and
+`sd(id, level = "animal") ~ z`. This single-coefficient route uses the same
+group-level SD surface as the intercept route. It requires complete data and
+does not combine with other random effects, zero inflation, random `sigma`
+effects, or a multi-coefficient structured block. A seeded independent
+synthetic test checks recovery of the SD slope, named group predictions,
+constant-SD likelihood equivalence, and rejection of `z` that varies within
+animal. Interval calibration and Julia parity remain unverified.
+
 ## Structured Direct-SD Targets
 
 The univariate `sd_phylo(species)` target is implemented as the first
 structured Family B direct-SD model. Bivariate `sd_phylo1(species)` and
 `sd_phylo2(species)` are implemented for matching phylogenetic location effects
-in `mu1` and `mu2`. Names such as `sd_spatial(site)` remain planned. These
+in `mu1` and `mu2`. The exact native Gamma coordinate-spatial q1 intercept also accepts `sd(site, level = "spatial") ~ z`. Native Binomial mesh routes admit intercept and coefficient-specific slope SD regression across logit, probit, and cloglog links. The slope route has focused point-recovery and workflow checks, not interval coverage or Julia parity. These
 direct-SD models are not scalar replacements for every fitted `log_sd_phylo`
 parameter.
+
+Native TMB also supports one exact crossed Bernoulli configuration with a
+phylogenetic q1 intercept and a coordinate-spatial q1 intercept in the same
+model. Each field has its own group-level SD formula, for example
+`sd(species, level = "phylogenetic") ~ z_tree` and
+`sd(site, level = "spatial") ~ z_site`. Its synthetic point-fit test checks
+both coefficient trends, group SD predictions, the combined conditional
+predictor, simulation, structured-effect extraction, and save/reload. This
+does not establish other pairs, other Binomial links, Julia parity, or
+interval calibration.
 
 A future generic alias could spell the same target as
 `sd(species, level = "phylogenetic") ~ z_species`. The current implemented
@@ -385,22 +815,52 @@ The parser must reject ambiguous shorthand. For example, if `id` has both a
 random intercept and a random slope, then `sd(id) ~ x1` is ambiguous because it
 does not say whether the intercept SD or slope SD is being modelled.
 
-Explicit coefficient-specific syntax is now reserved but not fitted:
+Explicit selectors are accepted when the selected family route supports the
+target shape. For example, native complete-data Student-t accepts an
+explicitly selected ordinary location intercept or independent slope; the
+skew-normal route accepts an intercept or one independent location slope:
 
 ```r
 sd(id, dpar = "mu", coef = "(Intercept)") ~ x1
 sd(id, dpar = "mu", coef = "x1") ~ x2
 ```
 
-`drm_formula()` parses that grammar and stores the target, but `drmTMB()`
-rejects it before fitting. The likelihood still needs a covariance contract for
-predictor-dependent intercept and slope SDs, and tests must cover how constant
-or predictor-dependent correlations are handled when the SDs vary by group.
+The same selector fields are used by the shared resolver for other admitted
+families. They do not make every coefficient shape available: predictor-
+dependent independent random-slope SDs are currently limited to the separately
+checked Poisson, Bernoulli, Gamma, NB2, Lognormal, Student-t, and skew-normal
+routes. Selector support does not admit correlated or structured targets by
+itself.
 
-The current implementation accepts `sd(id) ~ x1` only when there is exactly one
-matching univariate Gaussian `mu` random-intercept term for `id`, but it can
-accept several distinct targets in the same model, such as `sd(site) ~ x3` and
-`sd(species) ~ 1`.
+Target support depends on the family adapter. Gaussian supports multiple
+distinct ordinary `mu` intercept targets; selected native Bernoulli and Poisson
+routes support one independent numeric slope in addition to their documented
+intercepts; native Student-t supports one independent numeric location slope
+in addition to its intercept; skew-normal supports one such location slope as
+an SD target. The development Julia candidate also supports
+one separate Student-t intercept or slope SD route with fixed `sigma ~ 1` and
+`nu ~ 1`; it requires a paired local source checkout and is absent from current
+shared/released DRM.jl. Selected native NB2 supports its documented scalar
+intercept and independent-slope cells. Native lognormal supports its
+documented scalar intercept and one complete-data independent numeric
+location-slope SD target with fixed-effect `sigma`; correlated blocks and
+structured providers remain outside this slice. A separate complete-data
+LogNormal route admits one independent `sigma` random intercept with
+`sd(id, dpar = "sigma") ~ predictors` and fixed-effect `mu`; that formula
+models the SD of the latent effect on `log(sigma)`, not residual `sigma`.
+The native Gaussian route admits one ordinary `sigma` random intercept or one
+independent numeric random slope with that syntax. For a slope, select its
+coefficient explicitly, for example
+`sd(id, dpar = "sigma", coef = "z") ~ w` with
+`sigma ~ 1 + (0 + z | id)`. It requires complete unaggregated data,
+fixed-effect `mu`, no other random or structured effects, and predictors
+constant within the grouping factor. The formula models variation in the
+latent `log(sigma)` coefficient, not residual `sigma`. Julia parity and
+interval calibration remain open. Other non-location
+endpoint/family combinations remain unsupported. The current Student-t and
+skew-normal cells require complete responses. A family-specific target
+resolver checks identity first, then the adapter applies its own
+coefficient-shape and data fences.
 
 ## Random Slopes
 
@@ -419,7 +879,7 @@ correlation. Predictor-dependent correlation formulae should be reserved for
 residual `rho12` until simulation evidence supports more complex group-level
 correlation models.
 
-Planned explicit scale syntax for random slopes:
+Targeted random-slope SD syntax:
 
 ```r
 drmTMB(
@@ -434,7 +894,11 @@ drmTMB(
 )
 ```
 
-This is not the first implementation target.
+The first validated non-Gaussian slope cells are the ordinary independent
+Poisson and Bernoulli routes. Native Bernoulli also supports distinct
+coefficient-specific SD formulas for separate independent terms on one group;
+Julia parity for that shape remains open. This does not admit a correlated
+intercept-slope SD model or arbitrary family/backend combinations.
 
 ## Bivariate Boundary
 
@@ -509,12 +973,13 @@ The implemented `sd(group) ~ x` and bivariate `sd1(group) ~ x` / `sd2(group) ~
 x` paths should:
 
 1. support Gaussian models first;
-2. target one or more distinct unlabelled univariate `mu` random intercepts
-   such as `(1 | id)` and `(1 | site)`;
+2. target one or more distinct unlabelled univariate Gaussian `mu` random
+   intercepts such as `(1 | id)` and `(1 | site)`, with family-specific scalar
+   coefficient targets admitted only after separate validation;
 3. target labelled bivariate Gaussian location random intercepts through
    `sd1(group)` for `mu1` and `sd2(group)` for `mu2`;
-4. reject random slopes, duplicate targets, mismatched grouping factors, and
-   names such as `sd_sigma1()` / `sd_sigma2()`;
+4. reject unsupported random slopes, correlated blocks, duplicate targets,
+   mismatched grouping factors, and names such as `sd_sigma1()` / `sd_sigma2()`;
 5. require right-hand-side predictors to be constant within target groups;
 6. use a non-centered TMB parameterization with standardized `u_j`;
 7. replace each targeted scalar `log_sd_mu` with a group-level linear
@@ -542,3 +1007,136 @@ Tests for the first implementation should include:
 
 Long simulations should explore group count, within-group replication,
 unbalanced sampling, sparse groups, and boundary standard deviations.
+
+## Native Bernoulli Relatedness-Matrix Intercept
+
+The native R/TMB Bernoulli route also supports one intercept-only
+`relmat(1 | group, K = K)` term with a group-level predictor-dependent SD:
+
+```r
+bf(
+  y ~ x + relmat(1 | group, K = K),
+  sd(group, level = "relmat") ~ z
+)
+```
+
+The fitted covariance is `D K D`, where `D` contains the group-specific SDs
+`exp(W alpha)` and `K` is the supplied relationship matrix. `z` must be
+constant within each retained group. This is one native Bernoulli intercept
+cell; it does not establish Julia parity, other response families, correlated
+coefficient blocks, or general structured-effect support. Its seeded synthetic
+test checks recovery of both SD coefficients and the fitted group-SD surface,
+public group-level SD predictions, and marginal Bernoulli simulation. This is
+point-recovery evidence for one design, not interval calibration.
+
+## Native Bernoulli Animal-Model Intercept and Slope
+
+The native R/TMB Bernoulli route supports one unlabelled q1 animal intercept
+with a predictor-dependent SD. It also supports one animal slope-only
+coefficient with the ordinary constant SD or with a group-level SD regression.
+For the predictor-dependent slope, write:
+
+```r
+bf(
+  y ~ x + animal(0 + x | id, A = A),
+  sd(id, level = "animal") ~ z
+)
+```
+
+The animal coefficient has covariance `D A D`, where `D` contains
+`exp(W alpha)` and `A` is the supplied relationship matrix. The model keeps
+the existing matrix scaling. Each SD predictor must be constant within its
+retained animal ID. The slope-only route uses complete responses, one
+unlabelled animal coefficient, and no additional random-effect terms. Its
+seeded synthetic check exercises coefficient and name-keyed group-SD
+predictions, marginal simulation, profile-target construction, save/reload,
+recovery of a nonzero SD slope, equivalence to the constant-SD animal-slope
+fit, and rejection of within-ID predictor variation. The intercept and slope
+checks are native Bernoulli point-recovery cells. They do not establish Julia
+parity, pedigree or precision-matrix parity under these SD formulas, other
+response families, interval calibration, or coverage.
+
+## Native Bernoulli Animal Intercept and Slope with Separate SD Regressions
+
+The native R/TMB Binomial route supports one unlabelled animal intercept and
+numeric slope with a separate predictor-dependent SD for each coefficient:
+
+```r
+bf(
+  y ~ x + animal(1 + x | id, A = A),
+  sd(id, level = "animal", coef = "(Intercept)") ~ z0,
+  sd(id, level = "animal", coef = "x") ~ z1
+)
+```
+
+The route also accepts a supplied precision matrix with `Ainv = Q`, or a
+pedigree table. The coefficient fields are independent; each supplied animal
+matrix keeps its existing scale, and each SD predictor must be constant within
+animal ID. This route requires complete, unweighted 0/1 responses, one
+intercept and one numeric slope, and no additional random effects. It supports
+logit, probit, and cloglog links. Fixed-seed synthetic tests check recovery
+under all three links and selected output and simulation workflows. They
+establish point-recovery evidence for those designs, not interval coverage or
+Julia parity.
+
+## Native Poisson Animal-Model Intercept
+
+The native R/TMB Poisson route also supports one complete-data q1
+`animal(1 | id, A = A)` intercept with a predictor-dependent SD:
+
+```r
+bf(
+  count ~ x + animal(1 | id, A = A),
+  sd(id, level = "animal") ~ z
+)
+```
+
+Its covariance is `D A D`; the supplied relationship matrix and its scaling
+are preserved, and `z` must be constant within each animal ID. The seeded
+synthetic check uses a non-invariant interleaved covariance order and checks
+SD-slope recovery, group-level predictions, simulation, save/reload, and
+constant-SD equivalence. This establishes one native Poisson point-recovery
+cell. A separate native precision-input test fits the same q1 animal intercept
+with `animal(1 | id, Ainv = Q)`, using `Q = solve(A)` for the synthetic
+relationship covariance. It checks point recovery, group-SD prediction, and
+constant-SD equivalence. This does not cover pedigree-built inputs, other
+animal effect shapes, Julia parity, or interval calibration. A third native
+test uses a nontrivial synthetic pedigree and compares the sparse pedigree fit
+with data generated from its dense additive relationship matrix. It checks
+point recovery, group-SD predictions keyed by animal name, and constant-SD
+equivalence. Output labels follow the structured group registry; callers can
+match predictions by name even when pedigree and factor-level orders differ.
+
+## Native SD Routes Admitted on 2026-11-01
+
+These routes are native R/TMB only. None has Julia parity, interval
+calibration, or a coverage claim; each has fixed-fixture point-fit checks, and
+the evidence differs by route. All use complete responses and a predictor that
+is constant within its group. Oracle means a dense or exact likelihood computed
+independently at the fitted values; "equivalence" means the constant-SD fit
+reproduces the plain fit and `predict()` equals `exp(W alpha)`.
+
+| Family | Route | Evidence |
+|---|---|---|
+| Gaussian | unlabelled correlated `(1 + x \| id)` with `coef`-selected SDs (or the slope alone) | per-group multivariate-normal oracle; equivalence; q3 stays refused |
+| Gaussian | same-group `(1 \| id) + (0 + x \| id)` with `coef`-selected SDs | exact oracle; equivalence |
+| Gaussian | `relmat()` and coordinate `spatial()` intercepts | dense oracle; animal slope-only already worked |
+| Gaussian | `mu` intercept with a `sigma` intercept or slope, each with an SD formula | dense Laplace oracle; equivalence |
+| Poisson | same-group pair and crossed intercepts, separate SDs | exact Laplace oracle |
+| Poisson | slope-only `phylo()` and `relmat()` (`K` and `Q`) | dense Laplace oracle; these shapes also fit without `sd()` |
+| Poisson | one ordinary plus one q1 `relmat()`, `animal()` or `phylo()` intercept, no `zi` | dense Laplace oracle; shape also fits without `sd()` |
+| Poisson | coordinate `spatial()` intercept and slope-only | no oracle; equivalence, nesting, prediction identity only |
+| Poisson | `animal(0 + x \| id)` with `Ainv` or `pedigree` | likelihood equals the `A =` fit; equivalence; no independent oracle yet |
+| Poisson | `phylo_interaction()` intercept and slope-only, pair-level SD | dense Laplace oracle over the Kronecker pair field; `test-poisson-batch5-sd-regression.R` |
+| NB2 | `relmat()` and coordinate `spatial()` intercepts | dense Laplace oracle |
+| NB2 | slope-only `phylo()` and `relmat()` | dense Laplace oracle; shapes also fit without `sd()`; marginal simulation refused |
+| NB2 | one ordinary intercept plus one `relmat()` (`K`, `Q`), `animal()` (`A`, `Ainv`) or `phylo()` intercept, separate SDs; crossed ordinary intercepts | dense Laplace oracle; `test-nbinom2-batch5-sd-regression.R` (150 expectations) |
+| NB2 | independent same-group pair | no oracle; equivalence and prediction identity only |
+| Gamma | crossed intercepts on distinct groups; ordinary plus `relmat()` intercepts | dense Laplace oracle; crossed slopes and chains of three or more terms refused |
+| Gamma | independent same-group pair | no oracle; equivalence only; recovery weak at 50 groups |
+| Gamma | labelled `animal(1 + x \| p \| id)` correlated q2 | fixed-seed fixtures, loose band, no calibration; no oracle |
+
+Not admitted: NB2 `sigma`-side phylogenetic SD (held for a decision, because it
+opens the public base route `sigma ~ phylo(1 | sp)`); NB2 spatial slope-only;
+Gamma ordinary plus animal, phylo or spatial intercepts. Missing implementation
+here is not a claim of non-identifiability.

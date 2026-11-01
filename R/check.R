@@ -366,8 +366,10 @@ drm_standard_errors_pathological <- function(object) {
   !is.null(row) && grepl("n_inflated=[1-9]", row$value, perl = TRUE)
 }
 
+drm_twin_rank_tol <- 1e-8
+
 drm_fixed_effect_rank_deficient <- function(object) {
-  X <- object$model$X
+  X <- drm_fixed_effect_design_matrices(object)
   if (is.null(X) || length(X) == 0L) {
     return(FALSE)
   }
@@ -382,12 +384,37 @@ drm_fixed_effect_rank_deficient <- function(object) {
     if (is.null(dims) || length(dims) != 2L || dims[[2L]] <= 0L) {
       next
     }
-    block_rank <- qr(block, tol = 1e-8)$rank
+    block_rank <- qr(block, tol = drm_twin_rank_tol)$rank
     if (block_rank < dims[[2L]]) {
       return(TRUE)
     }
   }
   FALSE
+}
+
+drm_fixed_effect_design_matrices <- function(object) {
+  X <- object$model$X
+  if (is.null(X) || length(X) == 0L || is.null(names(X))) {
+    return(X)
+  }
+  random_scale <- object$model$random_scale
+  if (!is.list(random_scale)) {
+    return(X)
+  }
+  for (dpar in c("mu", "sigma")) {
+    design_name <- paste0("sd_", dpar)
+    sd_model <- random_scale[[dpar]]
+    if (
+      design_name %in% names(X) &&
+        is.list(sd_model) &&
+        length(sd_model$n_models) == 1L &&
+        !is.na(sd_model$n_models) &&
+        sd_model$n_models == 0L
+    ) {
+      X[[design_name]] <- NULL
+    }
+  }
+  X
 }
 
 drm_inference_at_boundary <- function(object) {
@@ -1584,7 +1611,7 @@ check_fixed_effect_design_collinearity <- function(
 }
 
 check_fixed_effect_rank_deficiency <- function(object) {
-  X <- object$model$X
+  X <- drm_fixed_effect_design_matrices(object)
   if (is.null(X) || length(X) == 0L) {
     return(NULL)
   }
@@ -1601,7 +1628,7 @@ check_fixed_effect_rank_deficiency <- function(object) {
     if (is.null(dims) || length(dims) != 2L || dims[[2L]] <= 0L) {
       next
     }
-    block_rank <- qr(block, tol = 1e-8)$rank
+    block_rank <- qr(block, tol = drm_twin_rank_tol)$rank
     if (block_rank < dims[[2L]]) {
       name <- names(X)[[i]]
       if (is.null(name) || !nzchar(name)) {

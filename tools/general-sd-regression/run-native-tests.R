@@ -20,6 +20,9 @@ if (file.exists("tests/testthat/helper-poisson-sd-regression.R")) {
 if (file.exists("tests/testthat/helper-poisson-slope-sd-reference.R")) {
   sys.source("tests/testthat/helper-poisson-slope-sd-reference.R", envir = test_env)
 }
+if (file.exists("tests/testthat/helper-lognormal-sd-reference.R")) {
+  sys.source("tests/testthat/helper-lognormal-sd-reference.R", envir = test_env)
+}
 paths <- commandArgs(trailingOnly = TRUE)
 if (!length(paths)) {
   paths <- file.path("tests", "testthat", c(
@@ -32,4 +35,9 @@ for (path in paths) {
   testthat::test_file(path, reporter = "summary", env = test_env,
                       stop_on_failure = TRUE)
 }
-cat("NATIVE_BINOMIAL_SD_PASS\n")
+tested_files <- unique(basename(paths))
+cat("NATIVE_SD_TESTS_PASS files=", paste(tested_files, collapse = ","), "\n", sep = "")
+if (any(grepl("^test-binomial-", basename(paths)))) {
+  # Retain the established gate marker only when binomial tests actually ran.
+  cat("NATIVE_BINOMIAL_SD_PASS\n")
+}

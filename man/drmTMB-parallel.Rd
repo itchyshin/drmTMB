@@ -27,7 +27,7 @@ Parallelism in \code{drmTMB} is across independent jobs, selected with
 \item \code{"multicore"} forks worker processes with \code{\link[parallel:mclapply]{parallel::mclapply()}}. It is
 cheap to start but available on Unix-alikes only.
 \item \code{"cluster"} starts socket (PSOCK) workers with
-\code{\link[parallel:makeCluster]{parallel::makePSOCKcluster()}} and works on every platform, including
+\code{\link[parallel:makePSOCKcluster]{parallel::makePSOCKcluster()}} and works on every platform, including
 Windows. Each worker loads the same installed \code{drmTMB} build. A fitted
 TMB object reaches the worker with a dead external pointer, and TMB
 rebuilds it from the stored data and parameters on first use, so no

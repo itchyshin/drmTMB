@@ -51,6 +51,37 @@ test_that("Julia bridge serializes drm_formula() objects", {
   )
 })
 
+test_that("Julia bridge preserves coefficient-selected random-effect SD targets", {
+  form <- bf(
+    y ~ x + (1 | id) + (0 + x | id),
+    sd(id, dpar = "mu", coef = "(Intercept)") ~ w_intercept,
+    sd(id, dpar = "mu", coef = "x") ~ w_slope
+  )
+
+  spec <- drmTMB:::drm_julia_formula_spec(form)
+
+  expect_identical(
+    unname(spec[[form$entries[[2L]]$dpar]]),
+    "sd(id, coef(intercept)) ~ w_intercept"
+  )
+  expect_identical(
+    unname(spec[[form$entries[[3L]]$dpar]]),
+    "sd(id, coef(x)) ~ w_slope"
+  )
+  targets <- lapply(form$entries[2:3], function(entry) {
+    drmTMB:::parse_sd_lhs(entry$lhs)
+  })
+  blocks <- vapply(targets, drmTMB:::drm_julia_sd_target_block, character(1L))
+  expect_length(unique(blocks), 2L)
+  mock <- list(
+    formula = form,
+    coefficients = stats::setNames(list(c(0, 1), c(0, 1)), blocks)
+  )
+  aliases <- drmTMB:::drm_julia_lss_dpar_aliases(mock)
+  sd_dpars <- vapply(form$entries[2:3], function(entry) entry$dpar, character(1L))
+  expect_identical(unname(aliases[sd_dpars]), blocks)
+})
+
 test_that("bivariate parameter aliases are not required data columns", {
   form <- bf(
     mu1 = y1 ~ x,

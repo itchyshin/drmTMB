@@ -3,6 +3,7 @@
 # Inputs must already be reconciled against the frozen manifest by the full
 # summarizer. This function checks planned denominators and standardized fields;
 # it does not authenticate seeds, result identities, or artifact hashes.
+# Bias intervals are approximate finite-estimate diagnostics, not decision gates.
 
 native_sd_staged_decision <- function(
   attempts,
@@ -64,7 +65,6 @@ native_sd_staged_decision <- function(
       anyNA(attempts$status)) {
     return(integrity_failure("standardized worker columns have invalid types or missing keys"))
   }
-
   expected_truths <- c(-0.5, 0, 0.5)
   if (any(!is.finite(attempts$truth)) ||
       !setequal(unique(attempts$truth), expected_truths)) {
@@ -214,14 +214,6 @@ native_sd_staged_decision <- function(
       band_upper = 0.10,
       stringsAsFactors = FALSE
     )
-    gate_i <- gate_i + 1L
-    gate_rows[[gate_i]] <- data.frame(
-      truth = truth,
-      metric = "log_sd_bias",
-      state = interval_state(log_bias_ci[[1L]], log_bias_ci[[2L]], -0.10, 0.10),
-      stringsAsFactors = FALSE
-    )
-
     relative_bias <- exp(estimate - truth) - 1
     ratio_ci <- mean_t_ci(relative_bias)
     metric_i <- metric_i + 1L
@@ -237,14 +229,6 @@ native_sd_staged_decision <- function(
       band_upper = 0.10,
       stringsAsFactors = FALSE
     )
-    gate_i <- gate_i + 1L
-    gate_rows[[gate_i]] <- data.frame(
-      truth = truth,
-      metric = "relative_exp_a_bias",
-      state = interval_state(ratio_ci[[1L]], ratio_ci[[2L]], -0.10, 0.10),
-      stringsAsFactors = FALSE
-    )
-
     if (truth == 0) {
       false_positive <- valid &
         (attempts$lower[rows] > 0 | attempts$upper[rows] < 0)

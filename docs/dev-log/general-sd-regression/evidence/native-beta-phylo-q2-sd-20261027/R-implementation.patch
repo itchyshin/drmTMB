@@ -1,0 +1,88 @@
+--- /tmp/beta-phylo-q2-R-before.R	2026-10-27 23:47:11
++++ R/drmTMB.R	2026-10-27 23:47:45
+@@ -6959,11 +6959,14 @@
+   } else {
+     beta_mu_structured_term
+   }
++  beta_phylo_q2 <- !is.null(mu_phylo$term) &&
++    structured_term_is_intercept_one_slope(mu_phylo$term)
+   allow_beta_structured_q2_sd <- length(sd_phylo_entries) > 0L &&
+     !is.null(beta_mu_structured_term) &&
+-    structured_mu_type(beta_mu_structured_term) %in% c("animal", "relmat") &&
++    structured_mu_type(beta_mu_structured_term) %in% c("animal", "relmat", "phylo") &&
+     structured_term_is_intercept_one_slope(beta_mu_structured_term)
+   if (allow_beta_structured_q2_sd &&
++      !identical(structured_mu_type(beta_mu_structured_term), "phylo") &&
+       !(beta_mu_structured_term$structure %in%
+         c("A", "Ainv", "pedigree", "K", "Q"))) {
+     cli::cli_abort(c(
+@@ -7013,11 +7016,11 @@
+   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+   sigma_entry$rhs <- sigma_re$rhs
+   validate_beta_sigma_random_terms(sigma_re$terms)
+-  if ((allow_beta_structured_q2_sd || !is.null(mu_relmat$term)) &&
++  if ((allow_beta_structured_q2_sd || beta_phylo_q2 || !is.null(mu_relmat$term)) &&
+       (length(mu_re$terms) > 0L || length(sigma_re$terms) > 0L)) {
+     cli::cli_abort(c(
+       "Beta structured intercept-slope regression requires fixed sigma regression and no other random effects.",
+-      "i" = "Keep one unlabelled animal or relmat intercept-plus-slope term in mu; SD regression needs two matching group-level formulas."
++      "i" = "Keep one unlabelled animal, relmat or phylo intercept-plus-slope term in mu; SD regression needs two matching group-level formulas."
+     ))
+   }
+ 
+@@ -7063,9 +7066,9 @@
+       "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+     ))
+   }
+-  if (!is.null(mu_relmat$term) &&
++  if ((!is.null(mu_relmat$term) || beta_phylo_q2) &&
+       (include_missing_response || include_missing_predictor)) {
+-    cli::cli_abort("Beta relmat intercept-slope regression requires complete responses and predictors.")
++    cli::cli_abort("Beta structured intercept-slope regression requires complete responses and predictors.")
+   }
+   if (
+     length(sd_phylo_entries) > 0L &&
+@@ -13733,16 +13736,17 @@
+   }
+   if (!is.null(term$covariance_label)) {
+     cli::cli_abort(c(
+-      "{.fn beta} {.fn phylo} {.code mu} effects currently support only an unlabelled q1 intercept.",
++      "{.fn beta} {.fn phylo} {.code mu} effects currently support only unlabelled intercept or intercept-plus-one-slope terms.",
+       "x" = "Requested labelled structured term: {.code {term$label}}.",
+-      "i" = "Use {.code phylo(1 | id, tree = tree)}; labelled covariance and q2/q4 beta models remain deferred."
++      "i" = "Use {.code phylo(1 | id, tree = tree)}; labelled covariance and wider beta blocks remain deferred."
+     ))
+   }
+-  if (!structured_term_is_intercept_only(term)) {
+-    cli::cli_abort(c(
+-      "{.fn beta} {.fn phylo} {.code mu} effects currently support only an intercept-only q1 term.",
++  if (!structured_term_is_intercept_only(term) &&
++      !structured_term_is_intercept_one_slope(term)) {
++    cli::cli_abort(c(
++      "{.fn beta} {.fn phylo} {.code mu} effects currently support only an intercept or an intercept plus one numeric slope.",
+       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+-      "i" = "Use {.code phylo(1 | id, tree = tree)}; phylogenetic slopes remain deferred."
++      "i" = "Use {.code phylo(1 | id, tree = tree)} or {.code phylo(1 + x | id, tree = tree)}; slope-only and multiple-slope terms remain deferred."
+     ))
+   }
+   invisible(NULL)
+@@ -24353,12 +24357,14 @@
+   phylo_mu <- spec$structured$phylo_mu
+   sd_phylo <- spec$random_scale$phylo
+   if (
+-    (identical(spec$model_type, "gamma") ||
+-       (identical(spec$model_type, "beta") &&
+-          phylo_mu$type %in% c("animal", "relmat") &&
+-          phylo_mu$structure %in% c("A", "Ainv", "pedigree", "K", "Q"))) &&
++    ((identical(spec$model_type, "gamma") &&
++        phylo_mu$type %in% c("animal", "relmat")) ||
++       (identical(spec$model_type, "beta") &&
++          (identical(phylo_mu$type, "phylo") ||
++           (phylo_mu$type %in% c("animal", "relmat") &&
++            phylo_mu$structure %in% c("A", "Ainv", "pedigree", "K", "Q"))))) &&
+       is.list(phylo_mu) && isTRUE(phylo_mu$has) &&
+-      phylo_mu$type %in% c("animal", "relmat") &&
++      phylo_mu$type %in% c("animal", "relmat", "phylo") &&
+       identical(phylo_mu$q, 2L) &&
+       is.list(sd_phylo) && sd_phylo$n_models == 2L &&
+       ncol(sd_phylo$observation_sd_row0_by_coef) == 2L &&

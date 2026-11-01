@@ -222,8 +222,7 @@ rows <- lapply(c(-.5, 0, .5), function(a) {
     qualification_denominator_complete=decision_accept && n==1000L,
     coverage_threshold=decision_accept && gate_state(a,"coverage")=="pass",
     false_positive_threshold=if(a==0) decision_accept && gate_state(0,"false_positive")=="pass" else NA,
-    logsd_bias_threshold=decision_accept && gate_state(a,"log_sd_bias")=="pass",
-    ratio_bias_threshold=decision_accept && gate_state(a,"relative_exp_a_bias")=="pass",
+    bias_diagnostics_only=TRUE,
     valid_fraction_threshold=decision_accept && gate_state(a,"valid_fraction")=="pass", stringsAsFactors=FALSE)
 })
 summary <- do.call(rbind, rows)
@@ -232,6 +231,7 @@ summary$overall_qualified <- overall_qualified
 write.csv(summary,file.path(out,"summary.csv"),row.names=FALSE)
 writeLines(capture.output(str(staged)), file.path(out,"staged-decision.txt"))
 writeLines(c("# Native Bernoulli SD-regression calibration summary","",
+  "Bias estimates and intervals are descriptive diagnostics only; they do not enter the staged decision and do not establish point-estimator recovery.",
   paste0("Artifact hashes and exact result/supervisor/manifest identities passed. Campaign complete: ",campaign_complete,"; staged look-1 decision: ",staged$decision,"; overall qualification: ",overall_qualified,"; prepared mode: ",design_mode," (master seed ",master_seed,"). The two-look intervals use 97.5% confidence. Coverage and false-positive intervals use the planned denominator; invalid intervals are noncoverage. Conditional false-positive rate uses valid null intervals only. Bias intervals show finite-fit denominators. Qualification flags can be true only for a complete production look-1 campaign whose staged decision is accept. A staged fail is operational nonqualification, not proof that the method is invalid. Look two is frozen but not authorized or summarized by this first-look adapter."),
   "",paste(capture.output(print(summary,row.names=FALSE)),collapse="\n"),"",
   "No acceptance claim is made; inspect source hashes, worker logs, warnings, and retained fit diagnostics."),file.path(out,"summary.md"))

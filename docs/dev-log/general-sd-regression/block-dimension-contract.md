@@ -65,7 +65,8 @@ this *block grammar* is not a blanket mathematical non-identifiability claim.
 
 | Rule ID | Ordered members and q domain | Actual source boundary |
 | --- | --- | --- |
-| `S1` | One structured endpoint/coef field, `q=1`; tree phylo, pedigree/A/Ainv animal, K/Q relmat, coordinate spatial, mesh spatial, or two-tree `phylo_interaction` remain distinct input/provider rows. An unlabelled intercept-plus-one-slope path is two **independent q1 fields** where admitted, not an inferred correlated q2. | Structured source gates `R/drmTMB.R:12770–13010`; mesh `:14560–14690` and `src/drmTMB.cpp:1157–1173`; input/route distinctions in `R/formula-markers.R:150–360`. |
+| `S1` | One structured endpoint/coef field, `q=1`; tree phylo, pedigree/A/Ainv animal, K/Q relmat, coordinate spatial, mesh spatial, or two-tree `phylo_interaction` remain distinct input/provider rows. Independent structured intercept-plus-slope paths remain two **independent q1 fields** where admitted. The animal-specific correlated exception is recorded separately as `A2-animal-within`. | Structured source gates `R/drmTMB.R:12770–13010`; mesh `:14560–14690` and `src/drmTMB.cpp:1157–1173`; input/route distinctions in `R/formula-markers.R:150–360`. |
+| `A2-animal-within` | One animal endpoint with a correlated intercept and one numeric slope, `q=2`; the two coefficient SDs are distinct targets. This is a within-endpoint block and does not use endpoint-member matching. | The native Binomial and Gamma routes and the Julia Binomial route are represented by the animal q2 mechanism in `block-rules.tsv`; the Julia bridge evidence currently covers supplied A covariance. Other family/provider rows remain obligations and must not be inferred from this shape. |
 | `S-uni-LS` | Matching structured `(mu,sigma)` **intercepts** form a correlated q2 pair on the branches that carry `eta_cor_phylo`. Matching one-slope terms produce four axes `((mu,I),(mu,x),(sigma,I),(sigma,x))` but the current `covariance_mode="scalar"` is four independent q1 fields, **not** a full q4 covariance block. | `R/drmTMB.R:12985–13055` requires matching coefficient sets/source/label and sets scalar mode; `:13072–13086` defines the one-slope limit. The native C++ q2 cross-dpar covariance branch is `src/drmTMB.cpp:1020–1078`; other axes take scalar priors. |
 | `S-biv-mean` | Matching `(mu1,mu2)` intercept or one matched slope-only coefficient `q=2`; matching **labelled** intercept-plus-`p`-slope terms use `q=2(1+p)`, `p>=1` in the native source grammar. q4 and q6 are pinned examples, not proof for every p's numerical health. | `R/drmTMB.R:13878–13978` validates equal coefficient sets and shared labels; `:13960–13982` expands `2*length(coef_names)` members. Provider-specific guards follow at `:13982–14160`. |
 | `S-biv-scale2` | Matching labelled `(sigma1,sigma2)` **intercepts**, `q=2`; no slope-series inference from this branch. | `R/drmTMB.R:13604–13717` scale-only branch insists on intercept-only terms and shared source/label. |
@@ -141,9 +142,10 @@ source helper accepts a term.
    justified; do not turn the generic TMB covariance matrix into an admission
    claim.
 
-The generator now records 19,118 rows, including 6,750 endpoint-subset
-candidates and 1,440 native counterparts for Julia's finite tagged-q4
-partitions. Its 90 `structural_inapplicable` rows are limited to cross-endpoint
+The generator now records 20,350 rows, including 6,750 endpoint-subset
+candidates, 1,440 native counterparts for Julia's finite tagged-q4
+partitions, and 672 rows for the animal within-endpoint q2 mechanism. Its 90
+`structural_inapplicable` rows are limited to cross-endpoint
 blocks in single-endpoint families: `binomial`, `cumulative_logit`, and
 `poisson`. They do not exclude within-endpoint covariance or additive q1
 fields.
