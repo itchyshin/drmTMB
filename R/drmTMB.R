@@ -6638,6 +6638,15 @@ drm_build_gamma_ls_spec <- function(
           identical(term$type, "intercept")
         }, logical(1L))) &&
           !anyDuplicated(gamma_mu_groups)))
+    # An ordinary SD formula alone beside one unlabelled q1 structured
+    # intercept and one ordinary intercept (the structured SD stays a scalar).
+    gamma_iid_structured_ordinary_sd <- length(sd_mu_entries) > 0L &&
+      length(sd_sigma_entries) == 0L && !is.null(mu_structured_term) &&
+      structured_term_is_intercept_only(mu_structured_term) &&
+      is.null(mu_structured_term$covariance_label) &&
+      length(mu_re$terms) == 1L &&
+      identical(mu_re$terms[[1L]]$type, "intercept") &&
+      is.null(mu_re$terms[[1L]]$covariance_label)
     if ((length(sd_mu_entries) > 0L && length(sd_sigma_entries) > 0L) ||
         (length(sd_mu_entries) > 0L &&
           ((length(mu_re$terms) > 1L && !gamma_same_group_pair) ||
@@ -6648,7 +6657,8 @@ drm_build_gamma_ls_spec <- function(
             !sigma_re$terms[[1L]]$type %in% c("intercept", "slope") ||
             length(sigma_re$terms[[1L]]$coef_names) != 1L ||
             !is.null(sigma_re$terms[[1L]]$covariance_label))) ||
-        (!is.null(mu_structured_term) && length(sd_phylo_entries) == 0L)) {
+        (!is.null(mu_structured_term) && length(sd_phylo_entries) == 0L &&
+          !gamma_iid_structured_ordinary_sd)) {
       cli::cli_abort(c(
         "Gamma random-effect SD regression currently supports one endpoint at a time: ordinary {.code mu} intercept or independent slope with fixed sigma, structured mu targets, or one ordinary sigma intercept or independent slope with fixed mu.",
         "i" = "For sigma-endpoint SD regression, use one {.code (1 | group)} or {.code (0 + x | group)} term in {.code sigma}, no random or structured terms in {.code mu}, and a group-constant SD predictor."

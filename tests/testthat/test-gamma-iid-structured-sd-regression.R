@@ -223,11 +223,23 @@ gis_check_provider <- function(provider, fx) {
 
   # The structured SD may be modelled alone (ordinary SD a scalar); the nested
   # model cannot beat the full one. The ordinary SD alone beside a structured
-  # term stays refused, as for relmat.
+  # term is admitted (test-gamma-ordinary-sd-beside-structured.R); a structured
+  # SD formula for a sigma-side endpoint beside it stays refused.
   p_only <- gis_fit(fx, provider, sd_g = NULL)
   expect_equal(p_only$opt$convergence, 0L, info = provider)
   expect_lt(as.numeric(logLik(p_only)), as.numeric(logLik(fit)) + 1e-3)
-  expect_error(gis_fit(fx, provider, sd_p = NULL), "one endpoint at a time")
+  ordinary_only <- gis_fit(fx, provider, sd_p = NULL)
+  expect_equal(ordinary_only$opt$convergence, 0L, info = provider)
+  expect_lt(as.numeric(logLik(ordinary_only)), as.numeric(logLik(fit)) + 1e-3)
+  A <- fx$K
+  dat_h <- transform(fx$data, h = g)
+  expect_error(
+    drmTMB(bf(y ~ x + (1 | g) + animal(1 | p, A = A), sigma ~ 1,
+              sd(g) ~ zg, sd(h, dpar = "sigma") ~ zg),
+           family = Gamma(link = "log"), data = dat_h,
+           control = drm_control(se = FALSE)),
+    "one endpoint at a time"
+  )
 
   # Term order is immaterial.
   swapped <- gis_fit(fx, provider, ordinary_first = FALSE)
