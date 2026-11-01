@@ -2509,8 +2509,25 @@ equivalence and prediction identity (its recovery is weak at 50 groups, so none
 is claimed). The ordinary guard admits only those two shapes (crossed
 intercepts on distinct groups, or one same-group intercept plus slope pair):
 crossed slopes, a slope on a second group and chains of three or more terms are
-refused. Gamma ordinary plus animal, phylo or spatial intercepts stay
 refused. Julia parity and interval calibration remain open.
+
+Native Gamma `mu` SD regression also admits one unlabelled ordinary intercept
+`(1 | g)` beside one unlabelled q1 `animal()`, `phylo()` or `spatial()`
+intercept, each with its own SD formula, with fixed `sigma` and complete
+responses. The two latent effects enter the same log-mean predictor, with the
+structured field's covariance scaled by its per-row SD. For each provider the
+fitted log-likelihood matches a dense independent Laplace oracle at the fitted
+values (tolerance 1e-5 absolute, non-unit-diagonal `K` stored in shuffled order),
+and the constant-SD limit reproduces the additive fit
+(`tests/testthat/test-gamma-iid-structured-sd-regression.R`). The ordinary
+same-group intercept and slope pair, with a different SD predictor for each
+coefficient, is also checked against a dense Laplace oracle at the fitted point
+(`tests/testthat/test-nbinom2-gamma-same-group-sd-oracle.R`). This checks the
+likelihood assembly only, not the optimiser or standard errors. Two ordinary
+intercepts, an ordinary correlated block, an ordinary `sigma` random effect,
+missing responses, and a structured slope beside an ordinary intercept stay
+refused. Native TMB only: Julia parity is not claimed and no interval
+calibration, coverage or simulation campaign exists.
 
 For complete univariate data, a separate ordinary `sigma` random-intercept
 route allows the SD of its latent log-CV effect to depend on group-level fixed

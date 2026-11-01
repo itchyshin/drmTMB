@@ -1131,12 +1131,40 @@ reproduces the plain fit and `predict()` equals `exp(W alpha)`.
 | NB2 | `relmat()` and coordinate `spatial()` intercepts | dense Laplace oracle |
 | NB2 | slope-only `phylo()` and `relmat()` | dense Laplace oracle; shapes also fit without `sd()`; marginal simulation refused |
 | NB2 | one ordinary intercept plus one `relmat()` (`K`, `Q`), `animal()` (`A`, `Ainv`) or `phylo()` intercept, separate SDs; crossed ordinary intercepts | dense Laplace oracle; `test-nbinom2-batch5-sd-regression.R` (150 expectations) |
-| NB2 | independent same-group pair | no oracle; equivalence and prediction identity only |
+| NB2 | independent same-group pair | equivalence and prediction identity in the regression file; the `coef`-selected form has the oracle in the Gamma, NB2 row below |
 | Gamma | crossed intercepts on distinct groups; ordinary plus `relmat()` intercepts | dense Laplace oracle; crossed slopes and chains of three or more terms refused |
-| Gamma | independent same-group pair | no oracle; equivalence only; recovery weak at 50 groups |
+| Gamma | one ordinary `(1 \| g)` plus one q1 `animal()` (`A`, `Ainv`), `phylo()` or `spatial()` intercept, separate SDs | dense Laplace oracle with non-unit-diagonal `K` in shuffled order; `test-gamma-iid-structured-sd-regression.R` |
+| Gamma, NB2 | same-group `(1 \| id) + (0 + x \| id)` with `coef`-selected SDs on different predictors | dense Laplace oracle at the fitted point, 1e-4 absolute; `test-nbinom2-gamma-same-group-sd-oracle.R` |
+| Gamma | independent same-group pair | equivalence checks in the regression file; the oracle row above covers the `coef`-selected form; recovery weak at 50 groups |
+| Poisson | plain independent slope `(0 + x \| id)` with `zi ~ 1`, no `sd()` formula | per-cluster quadrature oracle and equality with the constant-SD fit, one synthetic dataset; `test-zi-poisson-plain-slope.R`; correlated `(1 + x \| id)` with `zi` stays refused |
 | Gamma | labelled `animal(1 + x \| p \| id)` correlated q2 | fixed-seed fixtures, loose band, no calibration; no oracle |
 
 Not admitted: NB2 `sigma`-side phylogenetic SD (held for a decision, because it
-opens the public base route `sigma ~ phylo(1 | sp)`); NB2 spatial slope-only;
-Gamma ordinary plus animal, phylo or spatial intercepts. Missing implementation
-here is not a claim of non-identifiability.
+opens the public base route `sigma ~ phylo(1 | sp)`). NB2 spatial slope-only
+was admitted on 2026-11-01 (`test-nbinom2-spatial-slope-sd-regression.R`, dense
+Laplace oracle).
+Gamma ordinary plus animal, phylo or spatial intercepts moved to the admitted
+table above on 2026-11-01. Beside an ordinary intercept, Gamma still refuses a
+second ordinary intercept, an ordinary correlated block, a `sigma` random
+effect, missing responses, a structured slope, and `sd(g)` alone beside a
+structured term. Missing implementation here is not a claim of
+non-identifiability.
+
+Two test-only checks add alignment and covariance-scale evidence for structured
+SD routes, without changing any route's status.
+`tests/testthat/test-structured-sd-asymmetric-alignment.R` fits five routes
+(Poisson spatial, NB2 relmat, NB2 spatial, Gaussian relmat, Gaussian spatial)
+with irregular coordinates or a dense, non-Toeplitz, unequal-diagonal kernel, all
+supplied in a different shuffled order from the data levels. The fitted
+log-likelihood matches a hand-built by-name oracle to relative 1e-6 (observed
+about 1e-13). A positional reading of the kernel would move the oracle by 0.67
+to 28 log-likelihood units, so the check can fail; the Poisson spatial margin
+(0.67) is the smallest. `tests/testthat/test-structured-sd-nonunit-k-and-missing.R`
+uses non-unit-diagonal `K` (NB2 and Gaussian relmat, binomial animal with `A`
+and `Ainv`, and an inbred pedigree) against oracles built from the unconverted
+`K`; each fit differs from the `cov2cor(K)` oracle by more than 0.05, so an
+accidental correlation conversion would be caught. The same file pins that
+slope-only structured SD under `miss_control(response = "include")` is refused
+for Poisson and NB2 on all seven routes probed. Oracles are evaluated at the
+fitted parameters, so they check the likelihood surface and not the optimiser.
+Native TMB only; no Julia parity, no calibration, one fixture per route.

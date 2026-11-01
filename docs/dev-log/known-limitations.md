@@ -518,10 +518,16 @@ revisit condition.
   combining them is rejected.
   The existing `relmat()` intercept/one-slope route remains recovery grade.
   Arc 3a also fits one recovery-grade unlabelled q1 `phylo()` intercept in `mu`.
+  Native TMB also admits one unlabelled ordinary intercept `(1 | g)` beside one
+  unlabelled q1 `animal()`, `phylo()` or `spatial()` intercept, with or without
+  `sd()` formulas, for complete responses and fixed `sigma`; the evidence is a
+  dense Laplace oracle on one fixture seed per provider, with no calibration and
+  no Julia parity
+  (`tests/testthat/test-gamma-iid-structured-sd-regression.R`).
   Non-log Gamma links, new-route slopes,
-  labels, `sigma` structure, joint `mu`/`sigma`, simultaneous structured providers,
-  spatial/animal, REML, intervals/coverage, and bivariate or mixed Gamma remain
-  rejected.
+  labels, `sigma` structure, joint `mu`/`sigma`, other simultaneous structured
+  providers and other spatial/animal shapes, REML, intervals/coverage, and
+  bivariate or mixed Gamma remain rejected.
 - Fixed-effect univariate Poisson mean models are implemented for
   non-negative integer counts with `family = poisson(link = "log")`.
   The `mu` formula supports standard R exposure offsets such as

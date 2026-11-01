@@ -83,6 +83,9 @@ structure providers across the other families.
 | Poisson phylo_interaction intercept and slope-only pair-level predictor-dependent SDs (native only) | point-fit-recovery |
 | Gamma crossed (distinct groups) and ordinary + relmat intercept predictor-dependent SDs (native only) | point-fit-recovery |
 | Gamma animal correlated q2 (intercept + slope) with coefficient-specific SDs (native only) | point-fit-recovery |
+| Gamma ordinary + animal/phylo/spatial intercept predictor-dependent SDs (native only) | point-fit-recovery |
+| Gamma and NB2 same-group intercept + slope with `coef`-selected SDs (native only) | point-fit-recovery |
+| Zero-inflated Poisson plain independent slope without `sd()` (native only) | point-fit-recovery |
 | Tweedie random intercept (mean) | implemented |
 | Gaussian phylogenetic random intercept + slope, two SDs (mean) | implemented |
 
@@ -91,9 +94,14 @@ focused tests and unreviewed evidence receipts, not from `cells.tsv`, so under
 this file's rule the ledger wins if it disagrees. `point-fit-recovery` here means
 the route fits and matches a likelihood oracle or recovers a simulated value on
 fixed fixtures; it is not an interval, coverage, Julia-parity or
-inference-ready claim. Not listed because their only evidence is constant-SD
-equivalence and prediction identity: Poisson coordinate-spatial SD, and the NB2
-and Gamma independent same-group intercept and slope pairs. The Gamma correlated q2
+inference-ready claim. The three rows added after batch 6 cite
+`tests/testthat/test-gamma-iid-structured-sd-regression.R` (dense Laplace
+oracle, one fixture seed per provider),
+`tests/testthat/test-nbinom2-gamma-same-group-sd-oracle.R` (dense Laplace
+oracle at the fitted point, one fixture per family) and
+`tests/testthat/test-zi-poisson-plain-slope.R` (per-cluster quadrature oracle,
+one synthetic dataset). Not listed because their only evidence is constant-SD
+equivalence and prediction identity: Poisson coordinate-spatial SD. The Gamma correlated q2
 row above is listed on fixed-seed fixtures with a loose recovery band only (no
 calibration, no likelihood oracle), and the Poisson animal slope row has no
 independent oracle either; read both as the weakest grade in this table. No
