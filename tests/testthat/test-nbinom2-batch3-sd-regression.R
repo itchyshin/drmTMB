@@ -89,6 +89,7 @@ nb2_sigma_fit <- function(formula, fx) {
 }
 
 test_that("NB2 structured sigma phylo q1 intercept accepts a predictor-dependent SD and matches a dense Laplace oracle", {
+  testthat::skip("Held route: NB2 sigma-endpoint phylogenetic SD would admit a new public base route sigma ~ phylo(1 | sp), pending a decision; recorded in docs/dev-log/general-sd-regression/phase1-milestone.md")
   skip_on_cran()
   skip_if_not_installed("ape")
   skip_if_not_installed("numDeriv")
@@ -150,6 +151,7 @@ test_that("NB2 structured sigma phylo q1 intercept accepts a predictor-dependent
 })
 
 test_that("NB2 structured sigma phylo SD formula `~ 1` equals the constant-SD fit", {
+  testthat::skip("Held route: NB2 sigma-endpoint phylogenetic SD would admit a new public base route sigma ~ phylo(1 | sp), pending a decision; recorded in docs/dev-log/general-sd-regression/phase1-milestone.md")
   skip_on_cran()
   skip_if_not_installed("ape")
   fx <- nb2_sigma_phylo_sd_fixture()
@@ -175,6 +177,7 @@ test_that("NB2 structured sigma phylo SD formula `~ 1` equals the constant-SD fi
 })
 
 test_that("NB2 structured sigma phylo SD regression keeps its input guards", {
+  testthat::skip("Held route: NB2 sigma-endpoint phylogenetic SD would admit a new public base route sigma ~ phylo(1 | sp), pending a decision; recorded in docs/dev-log/general-sd-regression/phase1-milestone.md")
   skip_on_cran()
   skip_if_not_installed("ape")
   fx <- nb2_sigma_phylo_sd_fixture()

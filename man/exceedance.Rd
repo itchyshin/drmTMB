@@ -58,7 +58,7 @@ This is a distributional (plug-in) output at \code{\link[=predict_parameters]{pr
 fixed-effect, population-level parameter estimates \code{theta_hat}: the result
 carries \code{attr(., "calibrated") <- FALSE} and does not propagate \code{theta_hat}
 uncertainty. See \code{\link[=fitted_distribution]{fitted_distribution()}} for the \code{"spike"}/\code{"unimplemented"}
-status gate this inherits (a \code{"spike"}-status family emits a one-time
+status rules this inherits (a \code{"spike"}-status family emits a one-time
 warning) and for the \code{response} argument's contract on a bivariate
 \code{biv_gaussian} fit (REQUIRED there: \code{1} or \code{2}, selecting which response's
 MARGINAL exceedance to return; \code{rho12} and any joint tail structure are

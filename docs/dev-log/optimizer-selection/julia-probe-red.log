@@ -1,0 +1,25 @@
+julia-optimizer-controls: ...........................1..................2..............
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-julia-optimizer-controls.R:232:3'): every non-optimizer drm
+Expected `sort(names(probes))` to equal `sort(fields)`.
+Differences:
+     actual                  | expected
+ [7] "logsigma_clamp_margin" | "logsigma_clamp_margin" [7]
+ [8] "multi_start"           | "multi_start"           [8]
+ [9] "newton_polish"         | "newton_polish"         [9]
+                             - "optimizer_method"      [10]
+[10] "optimizer_preset"      | "optimizer_preset"      [11]
+[11] "parallel"              | "parallel"              [12]
+[12] "se"                    | "se"                    [13]
+
+
+── 2. Failure ('test-julia-optimizer-controls.R:234:5'): every non-optimizer drm
+Expected drm_control(optimizer_method = <non-default>) to throw a error.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+No one gets it right on their first try
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

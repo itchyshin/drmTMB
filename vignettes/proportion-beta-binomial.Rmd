@@ -165,9 +165,10 @@ data.frame(
 
 The original plain-binomial slice was fixed-effect only. The current R engine
 also fits ordinary unlabelled `mu` random intercepts and independent numeric
-slopes at recovery grade. It still rejects non-logit links, factor responses,
+slopes (point estimate only). It still rejects non-logit links, factor responses,
 proportions with trial weights, correlated or labelled slopes, structured
-effects, bivariate or mixed responses, and `engine = "julia"`.
+effects, or bivariate or mixed responses. `engine = "julia"` fits plain binomial
+fixed-effect models only.
 
 ## Beta-Binomial Equation And Syntax
 
@@ -541,6 +542,16 @@ exactly 1. `fitted(fit)` returns the unconditional mean
 `(1 - zoi) * mu + zoi * coi`, which is usually the response-scale summary an
 applied reader expects.
 
+`zero_one_beta()` needs both kinds of boundary value to estimate `coi`. If the
+response has exact zeroes but no exact ones (or the reverse), `coi` runs to its
+boundary, `check_drm()` reports the fit as degenerate, and `is_converged()`
+returns `FALSE`; an omitted `coi` formula still means `coi ~ 1`, so it cannot be
+dropped. For such data fit two parts instead: `beta_family()` for the values
+strictly inside `(0, 1)` and `stats::binomial(link = "logit")` for the indicator
+of an exact boundary value. Because the zero-one beta likelihood factorises,
+the two parts give the same `mu`, `sigma`, and `zoi` estimates without the
+unidentified `coi`. drmTMB has no ordered-beta family.
+
 ## Current Boundary
 
 The implemented bounded-response path is univariate. Use
@@ -580,9 +591,9 @@ Do not teach the following as fitted proportion examples yet:
 - `phylo()`, `spatial()`, `animal()`, or `relmat()` bounded-response models,
   with one exception: `beta_family()` already accepts a single unlabelled `animal()`
   term -- an intercept or one-slope on `mu`, or an intercept on `sigma`, one
-  endpoint at a time -- but only at recovery grade (trust the point estimate,
-  not the interval), so it is held back here on tier grounds, not for want of
-  likelihood code;
+  endpoint at a time -- but that route is point estimate only (trust the point
+  estimate, not the interval), so it is held back here on tier grounds, not for
+  want of likelihood code;
 - bivariate or mixed-response bounded models such as
   `family = c(beta_family(), gaussian())`;
 - ordered beta or beta-binomial zero-inflation;
@@ -593,3 +604,9 @@ Do not teach the following as fitted proportion examples yet:
 Most of those are useful future routes that still need likelihood code,
 simulation recovery, diagnostics, and [source-map](source-map.html) evidence
 before they become tutorial syntax.
+
+Working in Julia? The
+[DRModels.jl companion page](https://itchyshin.github.io/DRModels.jl/stable/tutorials/proportion-beta-binomial)
+mirrors this article with Julia syntax and states which parts DRModels.jl
+supports today. DRModels.jl is a separate package with its own fitting and
+inference routes; Julia is optional for `drmTMB` users.

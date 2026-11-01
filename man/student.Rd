@@ -33,9 +33,8 @@ the floor, which is not implemented. \code{check_drm()} warns when the fitted \c
 approaches the boundary at 2, where the slant of the likelihood in \code{nu} is
 weakly identified.
 Ordinary \code{mu} random intercepts and independent numeric slopes such as
-\code{(1 | id)} and \code{(0 + x | id)} are supported in the first Student-t
-mixed-model slice; correlated slopes, \code{sigma} random effects, and \code{nu}
-random effects remain separate planned gates.
+\code{(1 | id)} and \code{(0 + x | id)} are supported. Correlated slopes,
+\code{sigma} random effects, and \code{nu} random effects are not supported.
 }
 \examples{
 student()

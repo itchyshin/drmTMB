@@ -289,6 +289,9 @@ test_that("beta-binomial supports default sigma and complete-case filtering", {
 })
 
 test_that("beta-binomial boundary count patterns remain finite", {
+  # Perfectly separated: the MLE of mu is 0 and 1, so only finiteness is
+  # checked. On macOS the optimiser reaches mu exactly 0 and 1 in double
+  # precision (link about -/+3348); on Linux it stops short of them.
   dat <- data.frame(
     success = c(rep(0, 10), rep(10, 10)),
     failure = c(rep(10, 10), rep(0, 10)),
@@ -304,9 +307,31 @@ test_that("beta-binomial boundary count patterns remain finite", {
   expect_true(is.finite(as.numeric(logLik(fit))))
   expect_true(all(is.finite(unlist(coef(fit), use.names = FALSE))))
   expect_true(all(is.finite(predict(fit, dpar = "mu", type = "link"))))
-  expect_true(all(predict(fit, dpar = "mu") > 0))
-  expect_true(all(predict(fit, dpar = "mu") < 1))
   expect_true(all(is.finite(sigma(fit))))
+})
+
+test_that("beta-binomial nearly separated counts keep mu inside (0, 1)", {
+  # One success in the low group and one failure in the high group put the
+  # MLE of mu at 0.01 and 0.99, so mu must stay strictly inside (0, 1). With
+  # the high group still all successes, its mu would run to the boundary.
+  dat <- data.frame(
+    success = c(1, rep(0, 9), 9, rep(10, 9)),
+    failure = c(9, rep(10, 9), 1, rep(0, 9)),
+    x = rep(c(-1, 1), each = 10)
+  )
+
+  fit <- suppressWarnings(drmTMB(
+    bf(cbind(success, failure) ~ x, sigma ~ 1),
+    family = beta_binomial(),
+    data = dat
+  ))
+
+  mu <- predict(fit, dpar = "mu")
+  expect_true(is.finite(as.numeric(logLik(fit))))
+  expect_true(all(is.finite(unlist(coef(fit), use.names = FALSE))))
+  expect_true(all(is.finite(sigma(fit))))
+  expect_true(all(mu > 0))
+  expect_true(all(mu < 1))
 })
 
 test_that("beta-binomial rejects malformed and unsupported inputs", {
@@ -370,13 +395,23 @@ test_that("beta-binomial rejects malformed and unsupported inputs", {
     ),
     "random intercepts"
   )
+  # A sigma random intercept on fixed mu is now admitted (evidence:
+  # docs/dev-log/after-task/2026-10-24-beta-binomial-sigma-sd-regression.md;
+  # fit tests in test-beta-binomial-sigma-sd-regression.R), so assert assembly.
+  # The remaining sigma-random-effect fences stay refused.
+  sigma_re_spec <- drm_build_beta_binomial_spec(
+    bf(cbind(success, failure) ~ x, sigma ~ 1 + (1 | id)),
+    dat
+  )
+  expect_identical(sigma_re_spec$random$sigma$n_terms, 1L)
+  expect_true("u_sigma" %in% sigma_re_spec$random_names)
   expect_error(
     drmTMB(
-      bf(cbind(success, failure) ~ x, sigma ~ 1 + (1 | id)),
+      bf(cbind(success, failure) ~ x + (1 | id), sigma ~ 1 + (1 | id)),
       family = beta_binomial(),
       data = dat
     ),
-    "sigma.*random effects"
+    "sigma random effects currently require fixed mu"
   )
   expect_error(
     drmTMB(

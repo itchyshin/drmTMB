@@ -43,6 +43,8 @@ biv_gaussian <- function() {
 #' `biv_lognormal()` defines an exact two-response lognormal distribution.
 #' Its `rho12` is the residual correlation on the log-response scale, not a
 #' raw-response correlation and not the frozen-margin association `eta`.
+#' Fixed-effect `biv_lognormal()` models are admitted through
+#' `engine = "julia"`; see `vignette("julia-engine", package = "drmTMB")`.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -74,10 +76,12 @@ biv_lognormal <- function() {
 #' fitted transform enforces `nu > 2`; its marginal standard deviations are
 #' `sigma_j * sqrt(nu / (nu - 2))`.
 #'
-#' The first implementation allows fixed effects in `mu1` and `mu2`, with
+#' The current model allows fixed effects in `mu1` and `mu2`, with
 #' intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. Random effects,
 #' parameter predictors outside the locations, missing response pairs, and
-#' interval inference are deferred.
+#' interval inference are not supported. Fixed-effect `biv_student()` models
+#' are admitted through `engine = "julia"`; see
+#' `vignette("julia-engine", package = "drmTMB")`.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -124,9 +128,8 @@ biv_student <- function() {
 #' approaches the boundary at 2, where the slant of the likelihood in `nu` is
 #' weakly identified.
 #' Ordinary `mu` random intercepts and independent numeric slopes such as
-#' `(1 | id)` and `(0 + x | id)` are supported in the first Student-t
-#' mixed-model slice; correlated slopes, `sigma` random effects, and `nu`
-#' random effects remain separate planned gates.
+#' `(1 | id)` and `(0 + x | id)` are supported. Correlated slopes,
+#' `sigma` random effects, and `nu` random effects are not supported.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -165,7 +168,9 @@ student <- function() {
 #' `(1 | id)` and `(0 + x | id)` may enter `mu`. Correlated or labelled `mu`
 #' slopes, `sigma` or `nu` random effects, `sd(group)` scale formulas, structured
 #' effects, known sampling covariance, bivariate skew-normal models, residual
-#' `rho12`, and latent `skew(id)` syntax remain unsupported.
+#' `rho12`, and latent `skew(id)` syntax remain unsupported. Fixed-effect
+#' `skew_normal()` models are admitted through `engine = "julia"`; see
+#' `vignette("julia-engine", package = "drmTMB")`.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -194,12 +199,13 @@ skew_normal <- function() {
 #' `log(y) ~ Normal(mu, sigma^2)`. The fitted distributional parameter `mu` is
 #' therefore the mean of `log(y)`, not the arithmetic mean of `y`.
 #' Ordinary `mu` random intercepts such as `(1 | id)` are supported in the
-#' first positive-continuous mixed-model slice; the independent numeric slope
+#' current positive-continuous mixed model; the independent numeric slope
 #' `(0 + x | id)` also fits but is a recovery-grade route only (trust the
 #' point estimate, not the interval). One complete-data ordinary unlabelled
-#' correlated intercept-slope block `(1 + x | id)` is also fitted at
-#' `point_fit_recovery` (`mc-0720`) under the design-17 map for group-level
-#' `sd0`, `sd1`, and `rho_re` (never residual `rho12`).
+#' correlated intercept-slope block `(1 + x | id)` is also supported. Only its
+#' point-estimate recovery has been checked; do not treat its intervals as
+#' coverage-validated. It estimates group-level `sd0`, `sd1`, and `rho_re`
+#' (never residual `rho12`).
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -387,14 +393,14 @@ drm_eval_family_arg <- function(expr, env) {
 #' `fitted()` returns the unconditional response mean
 #' `(1 - zoi) * mu + zoi * coi`. Ordinary unlabelled random intercepts and
 #' independent numeric slopes such as `(1 | id)` and `(0 + x | id)` may enter
-#' `mu`. The point-fit-only q1 gates additionally admit one ordinary
+#' `mu`. Point-estimate-only support additionally includes one ordinary
 #' intercept-only random effect in `sigma`, `zoi`, or `coi`, separately, plus
 #' one ordinary slope-only effect in any one of those parameters when the fixed
 #' and random terms use the same raw symbol. Examples are
 #' `zoi ~ x + (0 + x | id)` and `coi ~ x + (0 + x | id)`. The exact `coi`
 #' admissions are that slope form and `coi ~ 1 + (1 | id)`, both with fixed
-#' `sigma ~ 1` and `zoi ~ 1`. All of these routes carry point-fit recovery
-#' evidence only. The two `sigma` routes now admit direct profiling, so
+#' `sigma ~ 1` and `zoi ~ 1`. All of these routes have point-estimate
+#' recovery evidence only. The two `sigma` routes now admit direct profiling, so
 #' `confint(method = "profile")` reaches their SD target; that makes an
 #' interval computable, not calibrated, and no interval, coverage, or broader
 #' recovery claim is established for them. For the `zoi` and `coi` routes,
@@ -412,6 +418,19 @@ drm_eval_family_arg <- function(expr, env) {
 #' `mu`. It does not license other providers, slopes, labels, covariance,
 #' q2-plus structured effects, profiling, intervals, coverage, or inference
 #' claims.
+#'
+#' Estimating `coi` needs both kinds of boundary value. If the response has
+#' exact zeroes but no exact ones (or exact ones but no exact zeroes), the
+#' `coi` likelihood is maximised at its boundary: the `coi` coefficient runs
+#' towards minus (or plus) infinity with a huge standard error, [check_drm()]
+#' reports the fit as `degenerate`, and [is_converged()] returns `FALSE`.
+#' `coi` cannot be dropped, because an omitted `coi` formula means `coi ~ 1`.
+#' The likelihood factorises into the interior beta part, the boundary
+#' probability `zoi`, and `coi`, so for such data fit the same model as two
+#' parts instead: `beta_family()` for the values strictly inside `(0, 1)` and
+#' `binomial()` for the indicator of an exact boundary value. The two parts
+#' give the same `mu`, `sigma`, and `zoi` estimates without the unidentified
+#' parameter. drmTMB has no ordered-beta family.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -446,13 +465,13 @@ zero_one_beta <- function() {
 #' follow `Binomial(trials_i, p_i)`. Larger `sigma` means more extra-binomial
 #' variation around the mean probability.
 #'
-#' The first mixed-model slice supports ordinary `mu` random intercepts and
+#' Mixed-model support includes ordinary `mu` random intercepts and
 #' independent numeric slopes such as
 #' `bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id),
 #' sigma ~ z)`. Correlated slopes, labelled covariance blocks, `sigma` random
 #' effects, `zoi`/`coi`, `meta_V(V = V)`, phylogenetic or spatial terms,
 #' bivariate beta-binomial models, and a `successes/trials` response alias are
-#' planned but not implemented.
+#' not implemented.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -475,19 +494,39 @@ beta_binomial <- function() {
 #' Cumulative logit ordinal response family
 #'
 #' `cumulative_logit()` defines a one-response ordinal model for ordered
-#' categories. The first implemented path uses a location formula `mu ~ ...`
-#' and ordered cutpoints with a fixed latent logistic scale. The location
+#' categories, with a location formula `mu ~ ...`, ordered cutpoints, and an
+#' optional discrimination (scale) formula `disc ~ ...`. The location
 #' intercept is dropped internally, as in standard cumulative-link models,
 #' because a free location intercept and free cutpoints are not jointly
 #' identifiable.
 #'
 #' The implemented contract is
-#' `Pr(y_i <= k) = logit^-1(theta_k - mu_i)`, with
-#' `mu_i = X_mu[i, ] beta_mu` and
-#' `theta[1] < theta[2] < ... < theta[K - 1]`. `fitted()` returns the expected
-#' ordered-category score, `sum_k k * Pr(y_i = k)`. Ordinal scale or
-#' discrimination formulas are planned but not exposed in this first
-#' implementation.
+#' `Pr(y_i <= k) = logit^-1(disc_i * (theta_k - mu_i))`, with
+#' `mu_i = X_mu[i, ] beta_mu`, `log(disc_i) = Z[i, ] gamma`, and
+#' `theta[1] < theta[2] < ... < theta[K - 1]`. Without a `disc` formula, or
+#' with `disc ~ 1`, `disc_i = 1` and the model is the proportional-odds
+#' cumulative logit model exactly. `fitted()` returns the expected
+#' ordered-category score, `sum_k k * Pr(y_i = k)`. Fixed-effect
+#' `cumulative_logit()` models without a `disc` predictor are admitted
+#' through `engine = "julia"`; see
+#' `vignette("julia-engine", package = "drmTMB")`. The Julia route refuses
+#' a `disc` formula.
+#'
+#' @section Identifiability of `disc`:
+#' The intercept of the `disc` formula is fixed at `log(disc) = 0` and dropped
+#' from `Z`. The latent logistic variable behind a cumulative-link model has
+#' no natural unit: multiplying every cutpoint, every location coefficient,
+#' and the latent scale `1 / disc` by the same positive constant leaves every
+#' category probability unchanged. Fixing the reference discrimination at 1
+#' removes that one degree of freedom, so each `disc` coefficient is a
+#' log-ratio of discrimination relative to the reference row (`z = 0`, or the
+#' first level of a factor). A `disc` coefficient of `0.4` means the
+#' categories are `exp(0.4) = 1.49` times more sharply separated per unit of
+#' `z`; equivalently, the latent residual scale returned by `sigma()` is
+#' `1 / disc`. This is the same constraint as the `scale` formula of
+#' `ordinal::clm()`, whose scale coefficients equal `-gamma`. The `disc`
+#' formula cannot remove its intercept (`disc ~ 0 + z`) and does not yet
+#' accept random effects, structured terms, or offsets.
 #'
 #' The response may be an ordered factor or an integer-coded category. Integer
 #' codes are used at face value in increasing numeric order; `drmTMB` cannot
@@ -499,14 +538,25 @@ beta_binomial <- function() {
 #'
 #' @examples
 #' cumulative_logit()
+#'
+#' set.seed(1)
+#' dat <- data.frame(x = rnorm(300), z = rnorm(300))
+#' latent <- 0.8 * dat$x + rlogis(300) / exp(0.4 * dat$z)
+#' dat$score <- cut(latent, c(-Inf, -1, 0, 1, Inf), ordered_result = TRUE)
+#' fit <- drmTMB(
+#'   bf(score ~ x, disc ~ z),
+#'   family = cumulative_logit(),
+#'   data = dat
+#' )
+#' coef(fit, "disc")
 cumulative_logit <- function() {
   structure(
     list(
       name = "cumulative_logit",
       family = "cumulative_logit",
       n_response = 1L,
-      dpars = c("mu"),
-      links = c(mu = "identity")
+      dpars = c("mu", "disc"),
+      links = c(mu = "identity", disc = "log")
     ),
     class = "drm_family"
   )
@@ -523,16 +573,25 @@ cumulative_logit <- function() {
 #' extra-Poisson variation. Internally this is equivalent to the usual NB2
 #' size parameter `size = 1 / sigma^2`. Ordinary non-zero-inflated NB2 models
 #' also support one complete-data unlabelled `(1 + x | id)` ML-Laplace
-#' correlated intercept-slope block on the log-mean (`mc-0719`), and
-#' first-slice random intercepts on the log-`sigma` predictor,
+#' correlated intercept-slope block on the log-mean. Only point-estimate recovery
+#' has been checked for this block; do not treat its intervals as
+#' coverage-validated. Random intercepts on the log-`sigma` predictor are supported,
 #' such as `bf(count ~ x, sigma ~ z + (1 | id))`. Structured `sigma` effects
 #' (`phylo`/`spatial`/`animal`/`relmat`) also fit as a point-recovery route
 #' (trust the point estimate, not the interval; not yet coverage-verified).
-#' NB2 `sigma` random slopes remain planned. Zero-inflated NB2 supports only
+#' NB2 `sigma` random slopes are not supported. Zero-inflated NB2 supports only
 #' the point-fit-only IID control `bf(count ~ fixed_effects, sigma ~ 1 +
 #' (1 | group), zi ~ 1)` under ML with complete responses; zero-inflated
 #' sigma predictors, slopes, labels, and other random-effect combinations
 #' remain unsupported.
+#'
+#' NB2 models overdispersion only: `sigma` is positive, so the variance
+#' cannot fall below the Poisson limit `Var(y) = mu`. Counts that are
+#' underdispersed (variance smaller than the mean) push `sigma` to that
+#' boundary (limit), and the fit returns a degenerate result rather than a
+#' sub-Poisson variance. drmTMB has no underdispersed count family. For such
+#' data use `glmmTMB::compois()` (Conway-Maxwell-Poisson) or
+#' `glmmTMB::genpois()` (generalised Poisson).
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -568,11 +627,11 @@ nbinom2 <- function() {
 #' NB2 variance is `Var(y) = mu + sigma^2 * mu^2`, with internal
 #' `size = 1 / sigma^2`.
 #'
-#' Ordinary zero-truncated NB2 models support first-slice random intercepts and
+#' Ordinary zero-truncated NB2 models support unlabelled random intercepts and
 #' independent numeric slopes in the log-mean predictor, such as
 #' `bf(count ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. Hurdle NB2 random
 #' effects, correlated zero-truncated slopes, structured effects, and
-#' overdispersion-side random effects remain planned.
+#' overdispersion-side random effects are not supported.
 #'
 #' @return A `drm_family` object.
 #' @export

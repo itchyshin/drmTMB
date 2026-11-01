@@ -1,0 +1,4 @@
+| Date | Slice | Evidence | Boundary |
+| --- | --- | --- | --- |
+| 2026-10-11 | F README and tutorial-vignette reader fixes | All changed vignettes render with `rmarkdown::render()` on an installed build; `tools/check-reader-contracts.R` OK; `tools/capability_ledger.py --check` OK and 80 unit tests pass; seed sweep (1..200) for the getting-started example: seed 13 `sigma` contrast at the 1.5th percentile, replaced by seed 1; `sleepstudy` REML `drmTMB` vs `lmer` logLik -871.8141 both. | Docs only; no R, src, grammar, or likelihood change. Spatial-article companion links left to the reference-docs lane. |
+| 2026-10-11 | F rebase onto `6beb1f2a0` | Rebase of 3 unique commits onto main after #1507/#1527; `large-data.Rmd` keeps cluster + multicore-abort/serial; `capability_ledger.py --check` OK; reader-contracts OK; `test-release-identity.R` 20 pass; `test-reader-vignette-contracts.R` 35 pass. | Docs only; no C17. |

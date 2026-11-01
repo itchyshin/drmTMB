@@ -1,0 +1,6 @@
+"criterion","observed","threshold","pass"
+"twelve selected finite fits",12,"12",TRUE
+"twenty-four retained positive-decay-start attempts",24,"24",TRUE
+"mean absolute fixed-effect error <= 0.20",0.0757623466253684,"<= 0.20",TRUE
+"median absolute SD error <= 0.35",0.0373673697774381,"<= 0.35",TRUE
+"median absolute decay error <= 0.40",0.040027459918355,"<= 0.40",TRUE

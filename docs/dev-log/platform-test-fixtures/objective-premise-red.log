@@ -1,0 +1,7 @@
+Error: Expected `is_converged(f)` to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+q4 anchor fixture must converge before testing its own optimum
+Execution halted

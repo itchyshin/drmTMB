@@ -1,4 +1,4 @@
-# #1583: `drm_julia_rhs_is_intercept_only()` was defined twice in
+# #1583 -- `drm_julia_rhs_is_intercept_only()` was defined twice in
 # R/julia-bridge.R; the second silently shadowed the first.
 
 test_that("drm_julia_rhs_is_intercept_only() is defined exactly once (#1583)", {

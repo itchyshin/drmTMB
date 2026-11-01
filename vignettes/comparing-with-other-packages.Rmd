@@ -283,29 +283,29 @@ convention, `logit P(Y <= j) = alpha_j - x'beta`, and the two log-likelihoods
 agree to five decimal places with matching-sign coefficients. Warm serving
 and skin contact both push ratings toward "more bitter."
 
-The comparison that makes this pair valuable runs the other way. `ordinal`
-can add a scale formula to this same model, and it fits:
+`ordinal` can also add a scale formula to this same model, and since #966
+`drmTMB` fits the same location-scale model through a discrimination formula
+`disc ~ ...`:
 
 ```{r comparison4-scale-comparator, eval = has_ordinal}
 cmp4_scale <- ordinal::clm(rating ~ temp + contact, scale = ~ temp, data = wine)
-as.numeric(logLik(cmp4_scale))
-```
-
-`cumulative_logit()` does not accept the equivalent formula in `drmTMB` 0.7.0:
-
-```{r comparison4-drmtmb-scale, eval = has_ordinal, error = TRUE}
-drmTMB(
-  bf(mu = rating ~ temp + contact, sigma = ~ temp),
+fit4_disc <- drmTMB(
+  bf(rating ~ temp + contact, disc ~ temp),
   data = wine, family = cumulative_logit()
 )
+c(
+  ordinal = as.numeric(logLik(cmp4_scale)),
+  drmTMB = as.numeric(logLik(fit4_disc))
+)
+c(ordinal_zeta = unname(cmp4_scale$zeta), drmTMB_disc = unname(coef(fit4_disc, "disc")))
 ```
 
-`cumulative_logit()` currently fits only a `mu` location formula; a scale or
-discrimination formula for this family is not yet implemented. If you need
-that, `ordinal::clm(scale = ~ ...)` is the tool that already has it. This
-asymmetry is worth sitting with: the two packages' surfaces do not coincide,
-and they fail to coincide in the direction that costs `drmTMB` something,
-which is the direction worth believing.
+The conversion is a sign flip. `ordinal::clm()` models the latent scale
+`s = exp(z'zeta)`, while `drmTMB` models discrimination
+`disc = 1 / s = exp(z'gamma)`, so `gamma = -zeta`. Both fix the reference
+scale at 1, because the latent unit is not identifiable alongside free
+cutpoints. A `sigma ~` formula is still rejected for this family; use
+`disc ~` and read `sigma(fit)` as the derived latent scale `1 / disc`.
 
 **Independence:** `ordinal` is not yet classified in `drmTMB`'s design
 documents.
@@ -373,16 +373,46 @@ call reaches. The `drmTMB::` prefixes below are for the same reason, not style.
 
 ### Comparison 6: does reaction-time variability grow with sleep deprivation?
 
-If you already fit `lme4::lmer(Reaction ~ Days + (Days | Subject))` on
-`lme4::sleepstudy`, this asks a further question: does the spread of
-reaction times widen with each day of deprivation, on top of the mean?
+Start with the model you probably already know. The classic `lme4` mixed
+model for `lme4::sleepstudy` gives each subject its own intercept and `Days`
+slope, with one residual SD for every observation. In `drmTMB` the same model
+is a `mu` formula with no `sigma` formula; `REML = TRUE` matches `lmer()`'s
+default estimator:
+
+```{r comparison6-classic-drmtmb, eval = has_lme4}
+data(sleepstudy, package = "lme4")
+fit6_lmm <- drmTMB(
+  bf(Reaction ~ Days + (1 + Days | Subject)),
+  data = sleepstudy, family = gaussian(), REML = TRUE
+)
+coef(fit6_lmm, "mu")
+summary(fit6_lmm)$parameters[, c("estimate", "std_error")]
+```
+
+```{r comparison6-classic-lmer, eval = has_lme4}
+cmp6_lmm <- lme4::lmer(
+  Reaction ~ Days + (Days | Subject), data = sleepstudy, REML = TRUE
+)
+lme4::fixef(cmp6_lmm)
+as.data.frame(lme4::VarCorr(cmp6_lmm))[, c("grp", "var1", "var2", "sdcor")]
+c(drmTMB = as.numeric(logLik(fit6_lmm)), lme4 = as.numeric(logLik(cmp6_lmm)))
+```
+
+The fixed effects, the two subject-level SDs, their correlation, the residual
+SD (`sigma` in `drmTMB`, the `Residual` row in `lme4`), and the REML
+log-likelihood agree to at least four significant digits. `lme4` reports the subject-level
+rows in `VarCorr()`; `drmTMB` reports them as `sd:mu:` and `cor:mu:` rows in
+`summary(fit)$parameters`. Use `REML = FALSE`, the `drmTMB` default, when you
+compare models that differ in their fixed effects.
+
+The distributional question comes next: does the spread of reaction times
+widen with each day of deprivation, on top of the mean?
 
 The scale conversion is checked first on a fixed-effect variant of the
 model, where the likelihood is exact and no Laplace step intervenes on
 either side:
 
 ```{r comparison6-fe-check, eval = has_lme4}
-data(sleepstudy, package = "lme4")
 fit6_fe <- drmTMB(
   bf(mu = Reaction ~ Days, sigma = ~ Days), data = sleepstudy, family = gaussian()
 )

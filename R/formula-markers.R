@@ -39,6 +39,14 @@ meta_V <- function(V) {
 #' `beta_family()`, `lognormal()`, `Gamma(link = "log")`, `student()`, and
 #' `beta_binomial()`.
 #'
+#' Strict-proportion and zero-one boundary proportion `mi()` predictors
+#' integrate the Beta prior with a fixed 15-node Gauss-Legendre rule. This is
+#' not an adaptive rule or an accuracy guarantee for every Beta prior shape.
+#' A successful fit warns with class `drmTMB_mi_quadrature_inaccurate` when the
+#' estimated prior mean of a missing row is within 0.10 of 0 or 1. The warning
+#' flags the limitation without changing the integration rule; treat that fit
+#' as approximate. Absence of this warning does not certify quadrature accuracy.
+#'
 #' @param x A predictor in a supported missing-predictor route.
 #'
 #' @return `x`, so standard R model-frame construction can evaluate the marker.
@@ -129,17 +137,18 @@ gr <- function(group, cov) {
 #' Large-pedigree sparse precision construction, multiple structured slopes,
 #' slope correlations, predictor-dependent `corpair()` regression,
 #' residual-scale structured slopes, and animal-model `sd*()` direct-SD grammar
-#' remain planned.
+#' are not supported.
 #'
 #' @param term Structured random-effect term, such as `1 | id` or
 #'   `1 + x | id`.
 #' @param pedigree Pedigree data frame with columns `id`, `dam`, and `sire`.
-#'   Unknown parents can be `NA`, `""`, or `"0"`. The first fitted route builds
+#' Unknown parents can be `NA`, `""`, or `"0"`. When a pedigree is supplied,
+#' drmTMB builds
 #'   a dense additive relationship matrix for Gaussian `mu` animal effects.
-#' @param A Additive relatedness or covariance matrix for the first fitted
+#' @param A Additive relatedness or covariance matrix for the supported
 #'   univariate Gaussian `mu` path.
-#' @param Ainv Sparse or dense inverse additive relatedness matrix for the first
-#'   fitted univariate Gaussian `mu` path.
+#' @param Ainv Sparse or dense inverse additive relatedness matrix for the supported
+#' univariate Gaussian `mu` path.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -183,9 +192,12 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' non-Gaussian phylogenetic slopes,
 #' zero-inflated phylogenetic effects, and phylogenetic slope correlations
 #' are not supported. The public `phylo()` API requires an ultrametric tree with
-#' branch lengths and normalizes the Brownian covariance by the tree height
-#' when building the Hadfield and Nakagawa A-inverse sparse-precision path.
-#' Thus the latent Brownian field has unit variance at each tip, and the fitted
+#' branch lengths and normalizes the Brownian covariance by the tree height.
+#' It builds a sparse precision over the non-root tips and ancestral nodes
+#' from the tree-edge branch lengths. This augmented-node Brownian
+#' representation follows the sparse \eqn{S^{-1}} approach described by Hadfield
+#' and Nakagawa (2010), rather than forming the dense tip-level \eqn{A^{-1}}
+#' matrix. Thus the latent Brownian field has unit variance at each tip, and the fitted
 #' phylogenetic SD uses this unit-height convention.
 #' Multiplying all branch lengths by a positive constant
 #' leaves the normalized covariance unchanged. The supplied tree object is not
@@ -196,6 +208,13 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' @param tree Ultrametric phylogeny input with branch lengths. Relative branch
 #'   lengths determine the phylogenetic covariance; absolute tree height is
 #'   normalized internally.
+#' @param tolerance Relative tolerance for the ultrametricity check, applied as
+#'   `tolerance * scale` where `scale` is the tree height (see
+#'   `validate_phylo_tree()`). Defaults to `sqrt(.Machine$double.eps)`. Raise
+#'   it only after confirming with
+#'   `range(ape::node.depth.edgelength(tree)[seq_len(ape::Ntip(tree))])` that
+#'   the tip-depth spread is genuinely negligible for the tree, not a real
+#'   problem with it.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -204,7 +223,56 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
 #' bf(count ~ x + phylo(1 | species, tree = tree))
 #' bf(count ~ x + phylo(1 + x | species, tree = tree))
-phylo <- function(term, tree) {
+#' bf(y ~ x + phylo(1 | species, tree = tree, tolerance = 1e-4))
+phylo <- function(term, tree, tolerance = sqrt(.Machine$double.eps)) {
+  invisible(NULL)
+}
+
+#' Temporal structure marker
+#'
+#' @description
+#' `temporal()` adds a Gaussian temporal structure for repeated observations
+#' within a sampled individual or site. `structure = "ar1"` uses finite integer
+#' occasions and permits signed one-occasion persistence. `structure = "ou"`
+#' uses finite numeric elapsed time and estimates a positive decay rate, so
+#' correlation at a gap `d` is `exp(-decay * d)`. `structure = "homtoep"`
+#' uses a common, complete, equally spaced integer schedule and estimates one
+#' correlation for each discrete lag. It is a marginal covariance model: its
+#' `sigma` is the total within-series SD, with no separately estimated iid
+#' residual SD or temporal conditional mode. An ordinary `(1 | id)` may
+#' accompany AR1 or OU to represent stable between-series differences separately
+#' from persistent within-series deviations; it is deferred for homogeneous
+#' Toeplitz covariance. Homogeneous Toeplitz fits provide likelihood-profile
+#' intervals for mean regression coefficients only. Scale and lag-correlation
+#' intervals remain unavailable.
+#'
+#' Development only: with `structure = "ou"`, `temporal()` may be paired with
+#' `phylo(1 | species, tree = tree)` on the same grouping column. That fits a
+#' stable tree-correlated species intercept plus independent within-species OU
+#' deviations, reported as `sd_phylo_stable`, `sd_temporal` and
+#' `decay_temporal`. The paired route refuses an ordinary `(1 | species)`
+#' intercept (the stable component is already the phylogenetic term), needs
+#' tree tips that exactly match the observed species, at least three species,
+#' two distinct times per species and three distinct positive lags, and has
+#' point estimates only: its intervals are not calibrated.
+#'
+#' @param term Temporal structure term, currently `1 | id`.
+#' @param time Name of the integer occasion (`"ar1"` or `"homtoep"`) or
+#'   numeric elapsed-time (`"ou"`) variable.
+#' @param structure Temporal covariance structure: `"ar1"`, `"ou"`, or
+#'   `"homtoep"`.
+#'
+#' @return A formula marker; never evaluated by users.
+#' @export
+#'
+#' @examples
+#' bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),
+#'    sigma ~ 1)
+#' bf(y ~ treatment + temporal(1 | id, time = elapsed, structure = "ou"),
+#'    sigma ~ 1)
+#' bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "homtoep"),
+#'    sigma ~ 1)
+temporal <- function(term, time, structure = "ar1") {
   invisible(NULL)
 }
 
@@ -213,18 +281,17 @@ phylo <- function(term, tree) {
 #' `phylo_interaction()` marks a pair-level phylogenetic interaction between two
 #' partner clades. It is the friendly route for bipartite ecological-network
 #' effects where rows are plant-pollinator, host-symbiont, predator-prey, or
-#' other two-partner interactions. The first fitted slice is a single q=1
+#' other two-partner interactions. The currently supported model has a single
 #' location random intercept whose latent precision is the sparse Kronecker
 #' product of the two phylogenetic augmented precisions. Use
 #' `relmat(1 | pair, Q = Q_pair)` as the lower-level user-supplied precision
 #' escape hatch.
 #'
-#' The fitted first slice supports ordinary Gaussian, ordinary Poisson, and
-#' ordinary NB2 location models wherever the existing q=1 structured `mu`
+#' This random-intercept model supports ordinary Gaussian, ordinary Poisson, and
+#' ordinary NB2 location responses wherever a single structured `mu`
 #' machinery is active. Binary/Bernoulli incidence models and additive models
-#' that combine partner main phylogenies and the pair-level interaction are
-#' planned after the corresponding likelihood and multi-layer structured
-#' recovery tests are in place.
+#' that combine partner main phylogenies with the pair-level interaction are not
+#' supported.
 #'
 #' @param term Structured pair random-effect term, currently
 #'   `1 | partner1:partner2`.
@@ -248,38 +315,60 @@ phylo_interaction <- function(term, tree1, tree2) {
 
 #' Spatial structured-effect marker
 #'
-#' `spatial()` marks structured spatial dependence. The first fitted path is
+#' `spatial()` marks structured spatial dependence. The supported base model is
 #' the univariate Gaussian location random intercept
 #' `spatial(1 | site, coords = coords)`, where `coords` is a matrix or data
 #' frame with one row per site or one row per observation. The univariate
 #' Gaussian location path also supports one numeric slope,
 #' `spatial(1 + x | site, coords = coords)`, as independent intercept and slope
 #' fields with separate SDs and no intercept-slope correlation. Matching
-#' labelled bivariate Gaussian `mu1`/`mu2` terms fit the first q=2
+#' labelled bivariate Gaussian `mu1`/`mu2` terms fit the supported q=2
 #' coordinate-spatial location covariance, matching univariate Gaussian `mu` and
 #' `sigma` intercept terms fit one spatial mean-scale correlation, and matching
-#' labelled all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms fit the first constant
+#' labelled all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms fit the supported constant
 #' q=4 location-scale block. Fitted non-Gaussian spatial routes cover the
 #' univariate student `mu` q=1 intercept or one-slope, ordinary Poisson and NB2
 #' `mu` q=1 intercepts or one-slopes, zero-inflated Poisson `zi` q=1 intercept,
 #' and the NB2 `sigma` q=1 one-slope, all at recovery grade: trust the point
-#' estimate, not the interval. Mesh inputs, multiple structured slopes,
-#' residual-scale structured slopes beyond the NB2 one-slope gate, slope
-#' correlations, and predictor-dependent spatial `corpair()` regression remain
-#' planned. The fixed-kappa mesh route supports a univariate Gaussian `mu`
-#' intercept with `sigma ~ 1`, plus native Binomial `mu` spatial intercepts
-#' across logit, probit, and complementary log-log links. Native Binomial mesh
-#' slopes also support coefficient-specific predictor-dependent SD formulas
-#' for logit, probit, and complementary log-log links,
-#' for example `spatial(0 + x | site, mesh = mesh)` with
+#' estimate, not the interval.
+#'
+#' A precomputed mesh from [make_mesh()] is fitted for two routes only, with
+#' kappa fixed at the value given to [make_mesh()]. The first is a univariate
+#' Gaussian, unlabelled `mu` intercept with constant residual scale,
+#' `bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)`; its point estimates
+#' have recovery evidence for the tested designs, and intervals, coverage, and
+#' the spatial range are not claimed. The second is the native Binomial `mu`
+#' spatial intercept across logit, probit, and complementary log-log links.
+#' Native Binomial mesh slopes also support coefficient-specific
+#' predictor-dependent SD formulas for logit, probit, and complementary log-log
+#' links, for example `spatial(0 + x | site, mesh = mesh)` with
 #' `sd(site, level = "spatial", coef = "x") ~ z`. All three links have focused
 #' point-recovery checks; the logit route also has output-workflow checks. No
-#' interval-coverage or Julia parity claim is made.
+#' interval-coverage or Julia parity claim is made. Any other mesh use,
+#' including `sigma ~ z` with a Gaussian mesh term, a Gaussian mesh slope, a
+#' labelled or bivariate mesh term, or another non-Gaussian family, is
+#' rejected; use `coords = coords` for those models where a coordinate route
+#' exists.
+#' Multiple structured slopes, residual-scale structured slopes beyond the
+#' supported NB2 slope, slope correlations, and predictor-dependent spatial
+#' `corpair()` regression are not supported.
+#'
+#' The `coords =` route fits an exponential kernel, `exp(-dist / range)`, with
+#' `range` fixed at the median positive pairwise distance between sites (the
+#' value `drm_spatial_coords_precision()` computes). The range is not
+#' estimated: only the sill (the spatial SD) and the residual nugget are
+#' estimated, so a fit can have a lower log-likelihood than a model that also
+#' estimates the range. If you need a different range or kernel, build the
+#' covariance yourself and pass it through [relmat()] with `K =`, which is the
+#' more flexible route. `DRModels.jl` (the Julia twin) estimates the range, so
+#' the twin `spatial()` fits of the same formula differ.
 #'
 #' @param term Structured random-effect term, such as `1 | site`.
 #' @param coords Coordinate object, such as a data frame or matrix of spatial
 #'   coordinates.
-#' @param mesh Precomputed `drmTMBmesh` object created by [make_mesh()].
+#' @param mesh A fixed-kappa mesh object from [make_mesh()]. Fitted only for the
+#'   univariate Gaussian `mu` intercept with `sigma ~ 1` and the native Binomial
+#'   `mu` spatial intercept or slope routes; see Description.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -287,7 +376,7 @@ phylo_interaction <- function(term, tree1, tree2) {
 #' @examples
 #' # Fitted for univariate Gaussian mu with coords:
 #' bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
-#' # Fitted first q=2 bivariate spatial location block:
+#' # Supported q=2 bivariate spatial location block:
 #' bf(
 #'   mu1 = y1 ~ x + spatial(1 | p | site, coords = coords),
 #'   mu2 = y2 ~ x + spatial(1 | p | site, coords = coords),
@@ -295,7 +384,7 @@ phylo_interaction <- function(term, tree1, tree2) {
 #'   sigma2 = ~ 1,
 #'   rho12 = ~ 1
 #' )
-#' # Fitted Gaussian mesh intercept:
+#' # Fixed-kappa mesh intercept (mesh from make_mesh()); requires sigma ~ 1:
 #' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)
 #' # Native Binomial logit mesh slope with a predictor-dependent SD:
 #' bf(
@@ -331,17 +420,18 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' `relmat(1 | p | line, K = K)` location intercepts in `mu1` and `mu2`, the
 #' same named supplied covariance `K`, intercept-only residual formulas,
 #' complete pairs, unit weights, and no additional model layer. This exception
-#' has `point_fit_recovery` evidence only; bivariate `Q`, slopes, q4+, intervals,
+#' has point-estimate recovery evidence only; bivariate `Q`, slopes, models
+#' with more than two structured coefficient axes, intervals,
 #' and coverage remain outside it. The
 #' univariate Gaussian `mu` path also
 #' supports one numeric slope, for example `relmat(1 + x | line, Q = Q)`, as
 #' independent intercept and slope fields with separate SDs and no
-#' intercept-slope correlation. The exact q1 `sigma` one-slope route is also
-#' fitted for `K` and `Q`. Implemented bivariate labelled ML cells extend
-#' through the q2, q4, q6, and q12 layouts recorded in the capability ledger;
+#' intercept-slope correlation. The exact one-axis `sigma` one-slope route is also
+#' fitted for `K` and `Q`. Bivariate labelled maximum-likelihood models are
+#' supported with 2, 4, 6, or 12 structured coefficient axes;
 #' additional structured-slope layouts, structured slope correlations,
 #' predictor-dependent `corpair()` regression, and relatedness `sd*()`
-#' direct-SD grammar remain planned.
+#' direct-SD grammar are not supported.
 #' `relmat()` is
 #' intentionally separate from [meta_V()], which adds known sampling covariance
 #' among observations, and from residual `rho12`, which models
@@ -376,15 +466,15 @@ relmat <- function(term, K = NULL, Q = NULL) {
 #'
 #' `corpair()` marks predictor-dependent latent random-effect correlations. It
 #' is distinct from residual `rho12` and from the [corpairs()] extractor. The
-#' first fitted paths are q=2 location-location cases for matching labelled
+#' Current support covers q=2 location-location models with matching labelled
 #' `mu1`/`mu2` random intercepts:
 #' `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x`
 #' and
 #' `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology`.
 #' Predictors must be constant within the grouping factor. Spatial
 #' `corpair()` regressions, location-scale `corpair()` regressions,
-#' scale-scale `corpair()` regressions, and q=4 `corpair()` regressions remain
-#' planned.
+#' scale-scale `corpair()` regressions, and q=4 `corpair()` regressions are
+#' not supported.
 #' The phylogenetic q=2 route uses a positive-definite two-field loading
 #' contract for the whole tree-coupled species block.
 #'
@@ -394,10 +484,10 @@ relmat <- function(term, K = NULL, Q = NULL) {
 #' @param block Optional covariance-block label, such as `"p"`.
 #' @param class Optional latent correlation class: `"location-location"`,
 #'   `"location-scale"`, or `"scale-scale"`. This is an extraction-oriented
-#'   shorthand and is not the first fitted q=4 correlation-regression target.
+#' shorthand and does not select a q=4 correlation-regression model.
 #' @param from,to Optional endpoint-specific distributional parameters, such as
-#'   `"mu1"` and `"mu2"` for the first fitted q=2 targets, or
-#'   `"mu1"` and `"sigma2"` for later location-scale targets.
+#' `"mu1"` and `"mu2"` for the supported q=2 targets. Other endpoint
+#' combinations are not supported.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export

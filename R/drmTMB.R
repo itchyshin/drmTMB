@@ -94,8 +94,12 @@
 #' @param control Optional list passed to [stats::nlminb()], or a
 #'   [drm_control()] object when optimizer settings and fitted-object storage
 #'   choices should be supplied together.
-#' @param impute Optional one-element named list of predictor models for the
-#'   current missing-predictor routes. Bare formulas such as `list(x = x ~ z)`
+#' @param impute Optional named list of predictor models for the current
+#'   missing-predictor routes. Most routes use one entry. The Gaussian response
+#'   also supports two entries for two independent `mi()` predictors: either two
+#'   Gaussian models or one Gaussian and one binary model, both with fixed
+#'   effects. This two-predictor route is available with the native engine, not
+#'   the Julia bridge. Bare formulas such as `list(x = x ~ z)`
 #'   define Gaussian models for numeric missing predictors. Use
 #'   [impute_model()] for explicit predictor families, such as
 #'   `list(treatment = impute_model(treatment ~ z, family = binomial()))` for
@@ -124,16 +128,23 @@
 #'   `list(x = x ~ z + (1 | group))`; structured Gaussian covariate models use
 #'   explicit syntax such as `list(x = x ~ z + relmat(1 | line, Q = Q))`.
 #'   Most fitted routes use a univariate Gaussian formula containing one `mi(x)`
-#'   location term and `missing = miss_control(predictor = "model")`. The first
+#'   location term and `missing = miss_control(predictor = "model")`. That
+#'   Gaussian response also accepts two independent fixed-effect predictor
+#'   models: two Gaussian models or one Gaussian and one binary model, on the
+#'   native engine only. No other two-predictor family pair is supported. The first
 #'   non-Gaussian response route also supports `family = poisson()` with one
 #'   fixed-effect binary `mi()` predictor modelled by `family = binomial()`.
 #' @param missing Missing-data policy created by [miss_control()]. The default
-#'   keeps the existing complete-case behaviour. In the current fitted slices,
+#' keeps the existing complete-case behaviour. Among currently supported models,
 #'   `missing = miss_control(response = "include")` is implemented only for
 #'   univariate Gaussian response masks and bivariate Gaussian partial-response
 #'   rows without dense known covariance. `missing =
 #'   miss_control(predictor = "model")` is implemented for one `mi()`
-#'   missing predictor in a univariate Gaussian location model: numeric
+#'   missing predictor in the documented family-specific routes. A univariate
+#'   Gaussian response also supports two independent `mi()` predictors with
+#'   fixed-effect models: two Gaussian models or one Gaussian plus one binary
+#'   model, on the native engine only. No other two-predictor family pair is
+#'   supported. For one predictor in the Gaussian location model, numeric
 #'   Gaussian predictors may use a
 #'   fixed-effect, one random-intercept, or one intercept-only structured
 #'   Gaussian `impute` formula; binary, ordered categorical, unordered
@@ -147,21 +158,33 @@
 #'   Bernoulli/logit `impute_model()`, complete responses, and no random
 #'   or structured response terms. `nbinom2()` also admits one
 #'   fixed-effect Gaussian `impute_model()` for a continuous missing
-#'   predictor (k = 1; no grouped/structured predictor model, no k = 2).
+#'   predictor (k = 1; no grouped/structured predictor model).
 #' @param engine Computational engine. The default `"tmb"` uses the native
 #'   `drmTMB` TMB backend. `"julia"` routes an admitted model to the DRModels.jl
 #'   bridge: Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson,
 #'   NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
 #'   an additional large-p `phylo()` or coupled location-scale phylo route),
-#'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, and
-#'   `beta_binomial()` on the fixed-effect route only. Each admitted family
-#'   carries a same-target parity receipt against `engine = "tmb"`
-#'   (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
-#'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for
-#'   the full family-by-route table, which capability-ledger row documents
-#'   each receipt, and current boundaries. `engine = "julia"` needs a local
-#'   DRModels.jl checkout and the optional `JuliaCall` package, and it is not a
-#'   drop-in replacement for every native-TMB workflow.
+#'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`,
+#'   `beta_binomial()`, `skew_normal()`, `cumulative_logit()`,
+#'   `biv_student()`, and `biv_lognormal()` on the fixed-effect route only.
+#'   Same-target live tests use coefficients and log-likelihood within
+#'   1e-4 and Wald SEs within 1e-3 relative against `engine = "tmb"`.
+#'   Measured gaps at DRM.jl pin 430ef64cc for `skew_normal()`,
+#'   `cumulative_logit()`, `biv_student()`, and `biv_lognormal()` sit
+#'   inside those bars; see NEWS and
+#'   `tests/testthat/test-julia-family-skew_normal.R`,
+#'   `test-julia-family-cumulative_logit.R`,
+#'   `test-julia-family-biv_student.R`, and
+#'   `test-julia-family-biv_lognormal.R`.
+#'   These comparisons do not establish the same tolerances for every admitted
+#'   family. See
+#'   \code{vignette("julia-engine", package = "drmTMB")} for the full
+#'   family-by-route table and current boundaries. `engine = "julia"` needs
+#'   a local DRModels.jl checkout and the optional `JuliaCall` package, and
+#'   it is not a drop-in replacement for every native-TMB workflow.
+#'   `engine = "julia"` is exported but **experimental**: the first call in
+#'   an R session prints a one-time notice, and the bridge is not being
+#'   widened beyond the families and routes listed above.
 #' @param REML Logical; use restricted maximum likelihood where the selected
 #'   engine supports it. Native `engine = "tmb"` restricts the likelihood by
 #'   marginalising the admitted fixed-effect mean coefficients. Validated
@@ -174,13 +197,13 @@
 #'   constant residual scale (`sigma ~ 1`, with no sigma random effect).
 #'   Slope-only, labelled, multiple-slope, and matched non-phylogenetic
 #'   mean-scale REML remain outside that route. The two bivariate
-#'   non-phylogenetic exceptions are matching labelled fixed-covariance q2
+#' non-phylogenetic exceptions are matching labelled two-axis (`q = 2`) fixed-covariance
 #'   location intercepts for `spatial(1 | p | site, coords = coords)` and
 #'   `relmat(1 | p | id, K = K)` in `mu1` and `mu2`, with intercept-only
 #'   `sigma1`, `sigma2`, and `rho12`, complete response pairs, unit weights, no
 #'   known [meta_V()] covariance, and no additional ordinary random effect,
-#'   direct-SD formula, or `corpair()` regression. Both have point-fit-recovery
-#'   evidence only; bivariate `relmat(..., Q = Q)` REML remains deferred.
+#' direct-SD formula, or `corpair()` regression. Only point-estimate recovery
+#' has been checked for both; bivariate `relmat(..., Q = Q)` REML is unsupported.
 #'   Aggregation and ordinary direct `sd()` scale formulae also remain
 #'   unsupported under REML. For `binomial()` models, the bounded native route
 #'   requires exactly one ordinary unlabelled `mu` random intercept or exactly
@@ -190,19 +213,28 @@
 #'   use `REML = FALSE` for those models. The binomial route has diagnostic
 #'   parity and finite-uncertainty evidence, not calibrated interval or coverage
 #'   evidence. Every other non-Gaussian family rejects `REML = TRUE`; use
-#'   `REML = FALSE`. The package-private AGHQ plus Cox-Reid (O3) estimator is
+#' `REML = FALSE`. An internal experimental AGHQ plus Cox-Reid estimator is
 #'   not a `drmTMB()` argument and is not what `REML = TRUE` runs. Public
 #'   cumulative-logit random-slope fits remain maximum likelihood
-#'   (`point_fit_recovery`).
-#'   `engine = "julia"` fits `REML = TRUE` on a route-by-route basis, not
-#'   uniformly: the fixed-effect Gaussian location-scale model, the bivariate
-#'   q = 4 phylogenetic route, the location-scale-scale `sd()`/`sd_phylo()`
-#'   routes, an ordinary Gaussian `mu` random intercept, and large-p Poisson
-#'   `phylo()` (a Cox-Reid Laplace route native `engine = "tmb"` does not have)
-#'   currently fit `REML = TRUE`; every other bridge route refuses it, some
-#'   with a raw DRModels.jl error rather than a `drmTMB`-worded one. See
-#'   `docs/design/261-reml-by-route.md` for the full route-by-route table
-#'   before relying on bridge REML for a model not listed there.
+#' and have point-estimate recovery evidence only.
+#'   `engine = "julia"` admits `REML = TRUE` only on named routes. Checked
+#'   Gaussian examples include fixed-effect location-scale, an ordinary `mu`
+#'   intercept with numeric-only mean predictors, mean-only and scale-side
+#'   phylogenetic terms, and selected
+#'   `sd()`/`sd_phylo()` location-scale-scale fits. Documented bivariate
+#'   Gaussian shapes include the residual-only model with constant `sigma1`,
+#'   `sigma2`, and `rho12`; matching q = 2 mean intercepts with phylogenetic,
+#'   spatial, or supplied-relatedness structure; and a q = 4 phylogenetic
+#'   route. The residual-only and q = 2 cells have same-target bridge tests;
+#'   the q = 4 route has no same-target R-bridge parity claim.
+#'   The bridge also admits the measured Poisson phylogenetic-intercept
+#'   REML cell. It refuses a Poisson ordinary `mu` `(1 | g)` before REML
+#'   dispatch. A separately tested direct DRM.jl fit for that shape does not
+#'   make it available through the R bridge. Gaussian ordinary mean effects with factor, character, or logical predictors
+#'   are also refused before Julia starts. These are route-specific point-fit
+#'   or same-target checks, not blanket interval or coverage permissions.
+#'   Requests outside the admitted shapes may be refused by the bridge or
+#'   DRModels.jl; do not infer bridge REML support from a family name alone.
 #'
 #'   Under native `REML = TRUE`, admitted mean fixed-effect coefficients are
 #'   marginalised in the TMB objective rather than estimated as ordinary fixed
@@ -226,18 +258,21 @@
 #'   complete Bernoulli or grouped-binomial model with one ordinary
 #'   q = 1 or correlated q = 2 grouping block. Supported links are
 #'   `"logit"`, `"probit"` and `"cloglog"`. Kosmidis and Firth (2021,
-#'   Theorem 1 and Section 3.1) prove the Jeffreys penalty gives finite
-#'   estimates for any link whose working weight vanishes in both tails, which
-#'   these three do; drmTMB's own TMB-Laplace evidence for them is recorded in
-#'   `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`.
+#'   Theorem 1 and Section 3.1) establish finiteness for Jeffreys-prior
+#'   penalised binomial fixed-effect GLMs under their conditions, including
+#'   full-rank design and links such as logit, probit, and cloglog. That result
+#'   motivates the fixed-effect penalty; it does not prove finiteness or
+#'   interval calibration for a mixed model fitted through TMB-Laplace.
+#'   drmTMB has directly checked its three link implementations in named
+#'   Bernoulli mixed-model settings.
 #'   Three limits are worth stating. The soft-penalty scale below is a *logit*
 #'   delta-method constant, kept unchanged for all three links because using it
 #'   for probit and cloglog was measured to cost about 1% of one standard error
 #'   -- measured at `q = 1` with two fixed-effect columns, and not at `q = 2`.
 #'   Under deep separation with a random slope the standard error is frequently
 #'   unavailable for **every** link, logit included (see the `NA` note below);
-#'   in the most extreme cells measured this affected the large majority of
-#'   converged fits. And the evidence behind the two new links used **Bernoulli**
+#' in the most extreme scenarios measured this affected the large majority of
+#' converged fits. The comparisons for probit and cloglog used **Bernoulli**
 #'   responses with two fixed-effect columns, so grouped-binomial and wider
 #'   designs inherit the `n_eff` extrapolation described next without direct
 #'   measurement, for any link. For grouped binomial data, the
@@ -254,9 +289,9 @@
 #'   variability. **A standard error is reported; an interval is not claimed.**
 #'   Likelihood comparisons (`logLik()`, `AIC`, `BIC`, `anova()`), profiles, and
 #'   `confint()` remain deliberately unavailable. Do not form
-#'   `coef ± 1.96 * se` by hand: Kosmidis and Firth show that Wald intervals in
-#'   this setting fail to cover regardless of the nominal level, a failure that
-#'   persists even for profile penalized-likelihood intervals. When the
+#'   `coef ± 1.96 * se` by hand: separated binomial GLM results do not
+#'   calibrate an interval for this mixed-model estimator, and the package
+#'   has not admitted one. When the
 #'   information matrix is not positive definite the standard errors are `NA`
 #'   with a `drmTMB_mspl_wald_unavailable` warning rather than a fabricated
 #'   number.
@@ -315,6 +350,9 @@ drmTMB <- function(
   # grouping variables keep their declared level sets: an ordinal response or
   # an imputed ordinal predictor with an empty category must still reach its
   # own "empty category" refusal rather than be silently re-levelled.
+  # `droplevels()` itself rebuilds the factor and drops a contrasts
+  # attribute, so `contrasts(f) <- contr.sum(3)` became treatment columns.
+  # The helper drops unused levels and puts that attribute back (#1495).
   data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
@@ -329,6 +367,12 @@ drmTMB <- function(
   drm_reject_smooth_terms(formula)
   formula <- drm_desugar_double_bars(formula, data)
   formula_env <- drm_formula_env(formula, parent.frame())
+  if (identical(engine, "julia") && drm_formula_has_temporal(formula)) {
+    cli::cli_abort(c(
+      "Temporal AR1, OU, and homtoep effects are implemented only by the native TMB Gaussian route.",
+      "i" = "Use {.code engine = \"tmb\"} with {.code family = gaussian()}."
+    ))
+  }
   if (identical(engine, "julia")) {
     if (drm_is_mspl(estimator)) {
       cli::cli_abort(
@@ -340,6 +384,7 @@ drmTMB <- function(
         "{.arg penalty} is not supported with {.code engine = \"julia\"} yet."
       )
     }
+    drm_julia_experimental_notice()
     return(drmTMB_julia_bridge(
       formula = formula,
       family = family,
@@ -375,8 +420,21 @@ drmTMB <- function(
     data = data,
     env = parent.frame()
   )
+  drm_abort_mi_zero_weight_missing_in_data(data, weights_full, impute)
 
   family_type <- drm_family_type(family)
+  if (drm_formula_has_temporal(formula) && !identical(family_type, "gaussian")) {
+    cli::cli_abort(c(
+      "Temporal AR1, OU, and homtoep effects are implemented only for univariate Gaussian models.",
+      "i" = "Use {.code family = gaussian()} with a temporal term in the {.code mu} formula."
+    ))
+  }
+  if (drm_formula_has_temporal(formula) && isTRUE(REML)) {
+    cli::cli_abort(c(
+      "Temporal AR1, OU, and homtoep Gaussian models currently use maximum likelihood.",
+      "i" = "Set {.code REML = FALSE}."
+    ))
+  }
   drm_validate_mspl_request(
     estimator = estimator,
     engine = engine,
@@ -663,6 +721,18 @@ drm_fit_spec <- function(
     fit_call <- match.call()
   }
 
+  if (
+    isTRUE(REML) &&
+      is.list(spec$structured) &&
+      is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has)
+  ) {
+    cli::cli_abort(c(
+      "Temporal AR1, OU, and homtoep models are currently implemented with maximum likelihood only.",
+      "i" = "Use {.code REML = FALSE}."
+    ))
+  }
+
   spec$response_names <- drm_spec_response_names(spec)
   spec <- add_covariance_probe_parameter(spec)
   drm_validate_binomial_q2_context(spec, REML = REML)
@@ -694,16 +764,77 @@ drm_fit_spec <- function(
   spec <- drm_apply_start_override(spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
-  obj <- TMB::MakeADFun(
-    data = spec$tmb_data,
-    parameters = spec$start,
-    map = spec$map,
-    random = spec$tmb_random_names,
-    DLL = "drmTMB",
-    silent = TRUE
+  mi_quad_abort <- drm_spec_uses_mi_quadrature_abort(spec)
+  obj <- tryCatch(
+    TMB::MakeADFun(
+      data = spec$tmb_data,
+      parameters = spec$start,
+      map = spec$map,
+      random = spec$tmb_random_names,
+      DLL = "drmTMB",
+      silent = TRUE
+    ),
+    error = function(e) {
+      if (isTRUE(mi_quad_abort)) {
+        drm_rethrow_mi_quadrature_error(e)
+      }
+      stop(e)
+    }
   )
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, obj$par, "starting")
+  }
 
-  optimizer <- drm_optimize_with_preset_retry(obj, control)
+  temporal_starts <- if (
+    is.list(spec$structured) &&
+      is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has)
+  ) {
+    drm_temporal_persistence_starts(obj, spec$structured$temporal_mu)
+  } else {
+    NULL
+  }
+  if (
+    !is.null(temporal_starts) &&
+      !is.null(control$multi_start) &&
+      control$multi_start > 1L
+  ) {
+    cli::cli_warn(c(
+      "{.code drm_control(multi_start = {control$multi_start})} is not used for temporal fits.",
+      "i" = "Temporal fits use fixed structure-specific starting values instead; inspect {.code fit$temporal_start_attempts}."
+    ))
+  }
+  optimizer <- drm_optimize_with_preset_retry(
+    obj,
+    control,
+    starts = temporal_starts
+  )
+  if (!is.null(temporal_starts) && is.data.frame(optimizer$start_attempts)) {
+    temporal_structure <- spec$structured$temporal_mu$structure
+    theta_position <- match("theta_temporal", names(obj$par))
+    if (identical(temporal_structure, "ar1")) {
+      optimizer$start_attempts$persistence_start <- vapply(
+        temporal_starts,
+        function(start) tanh(start[[theta_position]]),
+        numeric(1L)
+      )
+    } else if (identical(temporal_structure, "homtoep")) {
+      theta_positions <- which(names(obj$par) == "theta_temporal")
+      for (lag in seq_along(theta_positions)) {
+        optimizer$start_attempts[[paste0("partial_autocorrelation_lag", lag, "_start")]] <- vapply(
+          temporal_starts,
+          function(start) tanh(start[[theta_positions[[lag]]]]),
+          numeric(1L)
+        )
+      }
+    } else {
+      optimizer$start_attempts$decay_start <- vapply(
+        temporal_starts,
+        function(start) exp(start[[theta_position]]),
+        numeric(1L)
+      )
+    }
+  }
   opt <- optimizer$opt
   if (isTRUE(control$newton_polish)) {
     opt <- drm_newton_polish(opt, obj$fn, obj$gr)
@@ -711,7 +842,19 @@ drm_fit_spec <- function(
     optimizer$selected$objective <- opt$objective
     optimizer$selected$convergence <- opt$convergence
     optimizer$selected$message <- opt$message
+    selected_attempt <- which(optimizer$attempts$selected)
+    optimizer$attempts$objective[selected_attempt] <- opt$objective
+    optimizer$attempts$convergence[selected_attempt] <- opt$convergence
+    optimizer$attempts$message[selected_attempt] <- if (is.null(opt$message)) {
+      NA_character_
+    } else {
+      opt$message
+    }
   }
+  if (isTRUE(mi_quad_abort)) {
+    drm_probe_mi_quadrature_objective(obj, opt$par, "fitted")
+  }
+  drm_warn_mi_quadrature_inaccurate(spec, obj$env$parList())
   drm_warn_if_not_converged(opt)
   drm_warn_if_nonfinite_objective(opt)
   drm_pin_tmb_object_to_optimum(obj, opt)
@@ -792,6 +935,7 @@ drm_fit_spec <- function(
     coefficients = par,
     sdpars = split_tmb_sdpars(par_list, spec),
     corpars = split_tmb_corpars(par_list, spec),
+    decaypars = split_tmb_decaypars(par_list, spec),
     random_effects = split_tmb_random_effects(par_list, spec),
     ordinal = ordinal_fit_info(par_list, spec),
     missing_data = missing_data,
@@ -806,10 +950,15 @@ drm_fit_spec <- function(
     REML = isTRUE(REML),
     optimizer_used = optimizer$selected,
     optimizer_attempts = optimizer$attempts,
+    temporal_start_attempts = optimizer$start_attempts,
     gradient = fit_gradient$gradient,
     gradient_max_component = fit_gradient$max_component,
     provenance = drm_provenance()
   )
+  if (is.null(temporal_starts)) {
+    # Only temporal fits carry a start-attempt table.
+    fit$temporal_start_attempts <- NULL
+  }
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
 }
@@ -871,17 +1020,26 @@ drm_perturbed_starts <- function(par, n_start) {
 # Run a single optimizer preset from `n_start` starting points and return the
 # result with the lowest finite objective. With n_start == 1 this is exactly the
 # single-start call, so the default fit is unchanged. If every start errors, the
-# last error is re-raised for the caller's tryCatch to record.
+# last error is re-raised for the caller's tryCatch to record. The per-start
+# table (with wall-clock timings) is attached as the `drm_start_attempts`
+# attribute only when the caller supplied explicit `starts` (temporal fits), so
+# every other fit's `opt` stays exactly as before. Explicit starts always run
+# serially so the recorded timings stay per-start wall-clock times.
 drm_optimize_multistart <- function(
   obj,
   optimizer,
   control_opt,
   n_start,
-  plan = NULL
+  plan = NULL,
+  starts = NULL
 ) {
-  starts <- drm_perturbed_starts(obj$par, n_start)
+  record_starts <- !is.null(starts)
+  if (is.null(starts)) {
+    starts <- drm_perturbed_starts(obj$par, n_start)
+  }
   run_start <- function(start) {
-    tryCatch(
+    elapsed_start <- proc.time()[["elapsed"]]
+    res <- tryCatch(
       optimizer(
         start = start,
         objective = obj$fn,
@@ -890,8 +1048,10 @@ drm_optimize_multistart <- function(
       ),
       error = function(e) e
     )
+    attr(res, "drm_elapsed") <- proc.time()[["elapsed"]] - elapsed_start
+    res
   }
-  parallel_starts <- n_start > 1L && is.list(plan) &&
+  parallel_starts <- n_start > 1L && !record_starts && is.list(plan) &&
     !identical(plan$backend, "none") && isTRUE(plan$workers > 1L)
   results <- if (parallel_starts) {
     # Every worker begins from the parent's untouched TMB state (issue #1248).
@@ -901,10 +1061,26 @@ drm_optimize_multistart <- function(
   }
   best <- NULL
   last_error <- NULL
-  for (k in seq_along(starts)) {
-    res <- if (parallel_starts) results[[k]] else run_start(starts[[k]])
+  start_rows <- vector("list", length(starts))
+  for (start_index in seq_along(starts)) {
+    res <- if (parallel_starts) {
+      results[[start_index]]
+    } else {
+      run_start(starts[[start_index]])
+    }
+    elapsed <- attr(res, "drm_elapsed")
+    attr(res, "drm_elapsed") <- NULL
     if (inherits(res, "error")) {
       last_error <- res
+      start_rows[[start_index]] <- data.frame(
+        start = as.integer(start_index),
+        status = "error",
+        convergence = NA_integer_,
+        objective = NA_real_,
+        elapsed_sec = elapsed,
+        selected = FALSE,
+        stringsAsFactors = FALSE
+      )
       next
     }
     obj_value <- if (length(res$objective) == 1L && is.finite(res$objective)) {
@@ -912,8 +1088,17 @@ drm_optimize_multistart <- function(
     } else {
       Inf
     }
+    start_rows[[start_index]] <- data.frame(
+      start = as.integer(start_index),
+      status = "ok",
+      convergence = as.integer(res$convergence),
+      objective = as.numeric(res$objective),
+      elapsed_sec = elapsed,
+      selected = FALSE,
+      stringsAsFactors = FALSE
+    )
     if (is.null(best) || obj_value < best$value) {
-      best <- list(opt = res, value = obj_value)
+      best <- list(opt = res, value = obj_value, index = start_index)
     }
   }
   if (is.null(best)) {
@@ -926,7 +1111,44 @@ drm_optimize_multistart <- function(
     obj$fn(best$opt$par)
     obj$gr(best$opt$par)
   }
+  if (record_starts) {
+    start_rows[[best$index]]$selected <- TRUE
+    attr(best$opt, "drm_start_attempts") <- do.call(rbind, start_rows)
+  }
   best$opt
+}
+
+drm_temporal_persistence_starts <- function(obj, temporal) {
+  position <- match("theta_temporal", names(obj$par))
+  if (is.na(position)) {
+    cli::cli_abort("Internal temporal start error: theta_temporal is not an outer TMB parameter.")
+  }
+  if (identical(temporal$structure, "ar1")) {
+    positive <- obj$par
+    negative <- obj$par
+    positive[[position]] <- atanh(0.3)
+    negative[[position]] <- -atanh(0.3)
+    return(list(positive, negative))
+  }
+  if (identical(temporal$structure, "homtoep")) {
+    positions <- which(names(obj$par) == "theta_temporal")
+    if (length(positions) != temporal$n_occasions - 1L) {
+      cli::cli_abort("Internal HOMTOEP start error: the native parameter count does not match the schedule.")
+    }
+    start <- obj$par
+    start[positions] <- atanh(0.3)
+    return(list(start))
+  }
+  positive_gaps <- temporal$gap[temporal$gap > 0]
+  reference_gap <- stats::median(positive_gaps)
+  if (!is.finite(reference_gap) || reference_gap <= 0) {
+    cli::cli_abort("Internal temporal OU start error: a positive elapsed-time gap is required.")
+  }
+  lapply(c(0.3, 0.7), function(reference_correlation) {
+    start <- obj$par
+    start[[position]] <- log(-log(reference_correlation) / reference_gap)
+    start
+  })
 }
 
 drm_multistart_plan <- function(control, n_start) {
@@ -937,16 +1159,66 @@ drm_multistart_plan <- function(control, n_start) {
   bootstrap_parallel_plan(n_start, parallel = parallel, workers = control$workers)
 }
 
+# Adapt optim's interface and result names to the nlminb-shaped fit contract.
+drm_optim_adapter <- function(method, optim_fn = stats::optim) {
+  force(method)
+  force(optim_fn)
+  function(start, objective, gradient, control) {
+    result <- optim_fn(
+      par = start,
+      fn = objective,
+      gr = if (identical(method, "Nelder-Mead")) NULL else gradient,
+      method = method,
+      control = control
+    )
+    list(
+      par = result$par,
+      objective = result$value,
+      convergence = result$convergence,
+      message = if (is.null(result$message)) NA_character_ else result$message,
+      evaluations = result$counts
+    )
+  }
+}
+
+
 drm_optimize_with_preset_retry <- function(
   obj,
   control,
   optimizer = stats::nlminb,
   fallback_fn = stats::optim,
-  warn = TRUE
+  warn = TRUE,
+  starts = NULL
 ) {
-  attempt_specs <- drm_optimizer_attempt_specs(control)
   n_start <- if (is.null(control$multi_start)) 1L else control$multi_start
   multistart_plan <- drm_multistart_plan(control, n_start)
+  method <- control$optimizer_method
+  if (!is.null(method) && !identical(method, "nlminb")) {
+    elapsed_start <- proc.time()[["elapsed"]]
+    opt <- drm_optimize_multistart(
+      obj, drm_optim_adapter(method, fallback_fn), control$optimizer,
+      n_start, plan = multistart_plan, starts = starts
+    )
+    row <- drm_optimizer_attempt_row(
+      attempt = 1L,
+      preset = NA_character_,
+      control = control$optimizer,
+      status = "ok",
+      convergence = opt$convergence,
+      message = opt$message,
+      objective = opt$objective,
+      elapsed_sec = proc.time()[["elapsed"]] - elapsed_start,
+      selected = TRUE,
+      optimizer = method
+    )
+    return(list(
+      opt = opt,
+      selected = drm_optimizer_selected_record(row),
+      attempts = row,
+      start_attempts = attr(opt, "drm_start_attempts")
+    ))
+  }
+  attempt_specs <- drm_optimizer_attempt_specs(control)
   rows <- vector("list", length(attempt_specs))
   opts <- vector("list", length(attempt_specs))
   last_error <- NULL
@@ -962,7 +1234,8 @@ drm_optimize_with_preset_retry <- function(
           optimizer,
           spec$control,
           n_start,
-          plan = multistart_plan
+          plan = multistart_plan,
+          starts = starts
         )
       ),
       error = function(e) list(ok = FALSE, value = e)
@@ -995,7 +1268,12 @@ drm_optimize_with_preset_retry <- function(
             "i" = "An earlier preset errored or did not converge; inspect {.code fit$optimizer_attempts}."
           ))
         }
-        return(list(opt = opt, selected = selected, attempts = attempts))
+        return(list(
+          opt = opt,
+          selected = selected,
+          attempts = attempts,
+          start_attempts = attr(opt, "drm_start_attempts")
+        ))
       }
       # A non-converged result (false convergence or non-finite objective) is not
       # accepted: escalate to the next preset in the ladder, keeping this attempt
@@ -1026,11 +1304,10 @@ drm_optimize_with_preset_retry <- function(
     fb_control <- list(maxit = 1000L)
     fb_start <- proc.time()[["elapsed"]]
     fb_res <- tryCatch(
-      fallback_fn(
-        par = obj$par,
-        fn = obj$fn,
-        gr = obj$gr,
-        method = fallback,
+      drm_optim_adapter(fallback, fallback_fn)(
+        start = obj$par,
+        objective = obj$fn,
+        gradient = obj$gr,
         control = fb_control
       ),
       error = function(e) e
@@ -1047,20 +1324,12 @@ drm_optimize_with_preset_retry <- function(
         message = conditionMessage(fb_res),
         objective = NA_real_,
         elapsed_sec = fb_elapsed,
-        selected = FALSE
+        selected = FALSE,
+        optimizer = fallback
       )
     } else {
-      fb_message <- if (is.null(fb_res$message)) {
-        NA_character_
-      } else {
-        fb_res$message
-      }
-      fb_opt <- list(
-        par = fb_res$par,
-        objective = fb_res$value,
-        convergence = fb_res$convergence,
-        message = fb_message
-      )
+      fb_message <- fb_res$message
+      fb_opt <- fb_res
       opts[[fb_attempt]] <- fb_opt
       fb_converged <- identical(as.integer(fb_opt$convergence), 0L) &&
         length(fb_opt$objective) == 1L &&
@@ -1074,7 +1343,8 @@ drm_optimize_with_preset_retry <- function(
         message = fb_message,
         objective = fb_opt$objective,
         elapsed_sec = fb_elapsed,
-        selected = fb_converged
+        selected = fb_converged,
+        optimizer = fallback
       )
       if (fb_converged) {
         attempts <- drm_optimizer_attempts_frame(rows)
@@ -1115,7 +1385,12 @@ drm_optimize_with_preset_retry <- function(
     attempts <- drm_optimizer_attempts_frame(rows)
     selected_row <- attempts[attempts$attempt == best_i, , drop = FALSE]
     selected <- drm_optimizer_selected_record(selected_row)
-    return(list(opt = opts[[best_i]], selected = selected, attempts = attempts))
+    return(list(
+      opt = opts[[best_i]],
+      selected = selected,
+      attempts = attempts,
+      start_attempts = attr(opts[[best_i]], "drm_start_attempts")
+    ))
   }
 
   attempts <- drm_optimizer_attempts_frame(rows)
@@ -1166,7 +1441,15 @@ drm_optimize_with_preset_retry <- function(
 # would bias a profile-likelihood comparison between the two (#1130 CI
 # follow-up): the polished side reaches a lower nll for free, which the
 # unpolished side cannot match, artificially narrowing the interval.
-drm_newton_polish <- function(opt, fn, gr, grad_tol = 1e-8, max_iter = 3L) {
+drm_newton_polish <- function(
+  opt,
+  fn,
+  gr,
+  grad_tol = 1e-8,
+  max_iter = 3L,
+  trust_radius = 1,
+  max_backtrack = 4L
+) {
   par <- opt$par
   grad <- tryCatch(as.numeric(gr(par)), error = function(e) NULL)
   if (is.null(grad) || !all(is.finite(grad))) {
@@ -1189,23 +1472,49 @@ drm_newton_polish <- function(opt, fn, gr, grad_tol = 1e-8, max_iter = 3L) {
     if (is.null(step) || !all(is.finite(step))) {
       break
     }
-    par_new <- par - step
-    grad_new <- tryCatch(as.numeric(gr(par_new)), error = function(e) NULL)
-    # `fn()` (TMB's `obj$fn`) returns a value carrying a stray `logarithm`
-    # attribute that nlminb's own `$objective` never has. Assigning it
-    # unstripped leaked the attribute through `stored_loglik` into the public
-    # `logLik()` object and broke test-animal-relmat-gaussian.R (Rose f3 pass,
-    # 2026-09-03). Strip it at the source, where the value enters the polish.
-    objective_new <- tryCatch(
-      as.numeric(fn(par_new)),
-      error = function(e) NA_real_
-    )
-    if (
-      is.null(grad_new) ||
-        !all(is.finite(grad_new)) ||
-        !is.finite(objective_new) ||
-        objective_new > objective + 1e-8
-    ) {
+    # #1441: a plain Newton step on an ill-conditioned Hessian can overshoot
+    # badly. On a Tweedie y = 0.01 fixture
+    # (tests/testthat/test-numeric-kernel-oracle.R:552) the unguarded step
+    # moved beta_sigma from -6.35 to -23.6 and beta_nu from 2.44 to -24.4 --
+    # about 27x `trust_radius` below -- landing at a point where TMB's
+    # dtweedie bound-search loops for ~1e9 iterations and fn()/gr() never
+    # return (docs/dev-log; see test-newton-polish-guard.R). Cap the step's
+    # max-abs component to `trust_radius`, then backtrack (halve, up to
+    # `max_backtrack` times) if it does not improve the objective, before
+    # giving up on this iteration. `trust_radius = 1` is generous for a
+    # *polish* step -- nlminb has already converged approximately, so a
+    # well-conditioned polish step is empirically far smaller than 1 on
+    # every existing fixture (test-newton-polish-guard.R) -- while still
+    # well inside the ~27x overshoot that caused the hang.
+    step_max <- max(abs(step))
+    if (is.finite(step_max) && step_max > trust_radius) {
+      step <- step * (trust_radius / step_max)
+    }
+    accepted <- FALSE
+    grad_new <- NULL
+    objective_new <- NA_real_
+    for (bt in seq_len(max_backtrack + 1L)) {
+      par_new <- par - step
+      # `fn()` (TMB's `obj$fn`) returns a value carrying a stray `logarithm`
+      # attribute that nlminb's own `$objective` never has. Assigning it
+      # unstripped leaked the attribute through `stored_loglik` into the
+      # public `logLik()` object and broke test-animal-relmat-gaussian.R
+      # (Rose f3 pass, 2026-09-03). Strip it at the source, where the value
+      # enters the polish.
+      objective_new <- tryCatch(
+        as.numeric(fn(par_new)),
+        error = function(e) NA_real_
+      )
+      if (is.finite(objective_new) && objective_new <= objective + 1e-8) {
+        grad_new <- tryCatch(as.numeric(gr(par_new)), error = function(e) NULL)
+        if (!is.null(grad_new) && all(is.finite(grad_new))) {
+          accepted <- TRUE
+          break
+        }
+      }
+      step <- step / 2
+    }
+    if (!accepted) {
       break
     }
     par <- par_new
@@ -1257,11 +1566,12 @@ drm_optimizer_attempt_row <- function(
   message,
   objective,
   elapsed_sec,
-  selected
+  selected,
+  optimizer = "nlminb"
 ) {
   data.frame(
     attempt = as.integer(attempt),
-    optimizer = "nlminb",
+    optimizer = optimizer,
     optimizer_preset = as.character(preset),
     status = as.character(status),
     convergence = as.integer(convergence),
@@ -2223,6 +2533,7 @@ drm_qgt2_staged_fit_metrics <- function(
   logLik <- NA_real_
   df <- NA_real_
   nobs <- NA_real_
+  optimizer_method <- NA_character_
   optimizer_preset <- NA_character_
   optimizer_attempt_count <- NA_integer_
   optimizer_selected_attempt <- NA_character_
@@ -2235,6 +2546,7 @@ drm_qgt2_staged_fit_metrics <- function(
   gradient_evaluations <- NA_real_
   iter_max <- NA_real_
   eval_max <- NA_real_
+  maxit <- NA_real_
   budget_status <- NA_character_
   sdreport_status <- NA_character_
   sdreport_message <- NA_character_
@@ -2270,6 +2582,11 @@ drm_qgt2_staged_fit_metrics <- function(
       optimizer_preset <- as.character(fit$optimizer_used$optimizer_preset)
     }
     attempts <- drm_qgt2_optimizer_attempts(fit)
+    optimizer_method <- attempts$optimizer
+    if (is.na(optimizer_method)) {
+      optimizer_method <- drm_qgt2_scalar_character(fit$control$optimizer_method)
+    }
+    if (is.na(optimizer_method)) optimizer_method <- "nlminb"
     optimizer_attempt_count <- attempts$count
     optimizer_selected_attempt <- attempts$selected
     optimizer_retried <- isTRUE(attempts$count > 1L)
@@ -2291,8 +2608,11 @@ drm_qgt2_staged_fit_metrics <- function(
     if (is.na(gradient_evaluations)) {
       gradient_evaluations <- drm_qgt2_named_numeric(fit$opt$counts, "gradient")
     }
-    iter_max <- drm_qgt2_named_numeric(fit$control$optimizer, "iter.max")
-    eval_max <- drm_qgt2_named_numeric(fit$control$optimizer, "eval.max")
+    optimizer_control <- fit$optimizer_used$control
+    if (is.null(optimizer_control)) optimizer_control <- fit$control$optimizer
+    iter_max <- drm_qgt2_named_numeric(optimizer_control, "iter.max")
+    eval_max <- drm_qgt2_named_numeric(optimizer_control, "eval.max")
+    maxit <- drm_qgt2_named_numeric(optimizer_control, "maxit")
     se_requested <- if (!is.null(fit$control$se)) {
       isTRUE(fit$control$se)
     } else {
@@ -2340,7 +2660,9 @@ drm_qgt2_staged_fit_metrics <- function(
       iterations = iterations,
       function_evaluations = function_evaluations,
       iter_max = iter_max,
-      eval_max = eval_max
+      eval_max = eval_max,
+      optimizer_method = optimizer_method,
+      maxit = maxit
     )
     failure <- drm_qgt2_failure_status(
       convergence = convergence,
@@ -2363,6 +2685,7 @@ drm_qgt2_staged_fit_metrics <- function(
     df = df,
     nobs = nobs,
     elapsed_sec = as.numeric(elapsed),
+    optimizer_method = optimizer_method,
     optimizer_preset = optimizer_preset,
     optimizer_attempt_count = optimizer_attempt_count,
     optimizer_selected_attempt = optimizer_selected_attempt,
@@ -2375,6 +2698,7 @@ drm_qgt2_staged_fit_metrics <- function(
     gradient_evaluations = gradient_evaluations,
     iter_max = iter_max,
     eval_max = eval_max,
+    maxit = maxit,
     budget_status = budget_status,
     sdreport_status = sdreport_status,
     sdreport_message = sdreport_message,
@@ -2393,8 +2717,31 @@ drm_qgt2_staged_fit_metrics <- function(
 }
 
 drm_qgt2_optimizer_attempts <- function(fit) {
+  used <- fit$optimizer_used
+  method <- drm_qgt2_scalar_character(used[["optimizer"]])
+  selected <- drm_qgt2_scalar_character(used$optimizer_preset)
+  if (is.na(selected)) selected <- method
   attempts <- fit$optimizer_attempts
   if (is.data.frame(attempts) && nrow(attempts) > 0L) {
+    selected_index <- if ("selected" %in% names(attempts)) {
+      which(attempts$selected %in% TRUE)
+    } else {
+      integer()
+    }
+    if (length(selected_index) != 1L &&
+        "attempt" %in% names(attempts) && length(used$attempt) == 1L) {
+      selected_index <- which(attempts$attempt %in% used$attempt)
+    }
+    if (length(selected_index) != 1L && nrow(attempts) == 1L) {
+      selected_index <- 1L
+    }
+    if (length(selected_index) == 1L) {
+      row <- attempts[selected_index, , drop = FALSE]
+      row_method <- drm_qgt2_scalar_character(row[["optimizer"]])
+      if (!is.na(row_method)) method <- row_method
+      selected <- drm_qgt2_scalar_character(row$optimizer_preset)
+      if (is.na(selected)) selected <- method
+    }
     presets <- if ("optimizer_preset" %in% names(attempts)) {
       paste(attempts$optimizer_preset, collapse = " | ")
     } else {
@@ -2408,21 +2755,14 @@ drm_qgt2_optimizer_attempts <- function(fit) {
       NA_character_
     }
     return(list(
-      count = nrow(attempts),
-      selected = if ("optimizer_preset" %in% names(attempts)) {
-        as.character(utils::tail(attempts$optimizer_preset, 1L))
-      } else {
-        NA_character_
-      },
-      presets = presets,
-      statuses = statuses
+      count = nrow(attempts), selected = selected, presets = presets,
+      statuses = statuses, optimizer = method
     ))
   }
   list(
-    count = 1L,
-    selected = drm_qgt2_scalar_character(fit$optimizer_used$optimizer_preset),
-    presets = drm_qgt2_scalar_character(fit$optimizer_used$optimizer_preset),
-    statuses = NA_character_
+    count = 1L, selected = selected,
+    presets = drm_qgt2_scalar_character(used$optimizer_preset),
+    statuses = NA_character_, optimizer = method
   )
 }
 
@@ -2452,10 +2792,17 @@ drm_qgt2_budget_status <- function(
   iterations,
   function_evaluations,
   iter_max,
-  eval_max
+  eval_max,
+  optimizer_method = "nlminb",
+  maxit = NA_real_
 ) {
   if (identical(convergence, 0L)) {
     return("converged")
+  }
+  if (!identical(optimizer_method, "nlminb")) {
+    # optim reports maxit exhaustion with code 1, but returns no iteration count.
+    if (identical(convergence, 1L)) return("iteration_budget_reached")
+    return("nonconverged_before_budget_or_unknown")
   }
   if (
     is.finite(iterations) &&
@@ -3594,7 +3941,7 @@ drm_warn_if_not_converged <- function(opt) {
   cli::cli_warn(
     c(
       "{.fn drmTMB}: {label}.",
-      "i" = "Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect {.code fit$optimizer_attempts} and run {.fn check_drm} to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit."
+      "i" = "Treat the estimates and standard errors with caution. Inspect {.code fit$optimizer_attempts} and run {.fn check_drm} to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit."
     ),
     class = "drmTMB_convergence_warning"
   )
@@ -3604,8 +3951,8 @@ drm_warn_if_not_converged <- function(opt) {
 # Warn at fit time when the optimized objective is not finite. TMB normally
 # returns a finite objective at the reported optimum, so this is a defensive
 # guard: a non-finite objective means the fit never reached a usable optimum and
-# its log-likelihood, estimates, and SEs are meaningless, but nlminb may not have
-# thrown an error.
+# its log-likelihood, estimates, and SEs are meaningless, but the optimizer may
+# not have thrown an error.
 drm_warn_if_nonfinite_objective <- function(opt) {
   objective <- opt$objective
   if (length(objective) == 1L && is.finite(objective)) {
@@ -3614,7 +3961,7 @@ drm_warn_if_nonfinite_objective <- function(opt) {
   cli::cli_warn(
     c(
       "{.fn drmTMB}: the optimized objective is not finite.",
-      "i" = "The fit did not reach a usable optimum; its log-likelihood, estimates, and standard errors are unreliable. Inspect with {.fn check_drm}, rescale or simplify the model, or refit with {.code control = drm_control(optimizer_preset = \"robust\")}."
+      "i" = "The fit did not reach a usable optimum; its log-likelihood, estimates, and standard errors are unreliable. Inspect {.code fit$optimizer_attempts} and run {.fn check_drm}; rescale or simplify the model before refitting."
     ),
     class = "drmTMB_nonfinite_objective_warning"
   )
@@ -3747,7 +4094,7 @@ drm_warn_if_clamp_active <- function(obj, spec) {
   # than raised as a fit-time cli warning here, to avoid warning on every
   # variance-zero boundary fit. Only the upper (runaway-scale) arm warns.
   if (is.null(info) || !identical(info$arm, "upper")) {
-    return(invisible(FALSE))
+    return(drm_warn_if_scale_spread(report))
   }
   if (identical(info$kind, "latent random-effect SD")) {
     cli::cli_warn(
@@ -3765,6 +4112,45 @@ drm_warn_if_clamp_active <- function(obj, spec) {
       "i" = "The scale ran to the upper clamp, so the fit may have converged artificially: estimates and standard errors near the clamp are unreliable. Rescale the response, widen the band with {.code drm_control(logsigma_clamp = )}, add within-group replication, or use a penalized/MAP fit; {.fn check_drm} reports the fit state."
     ),
     class = "drmTMB_clamp_active_warning"
+  )
+  invisible(TRUE)
+}
+
+# Unit-free scale-spread guard, the same bare rule as DRModels.jl#1066
+# (`_SCALE_RUNOFF_LOG_SPREAD`): flag a fit whose fitted log(sigma) spans more
+# than log(1e4) across observations within one scale. Rescaling the response
+# shifts every log(sigma) equally, so the spread is unit-free. A `sigma ~ 1`
+# fit has zero spread and never fires. Unlike the clamp arms it does not need
+# the clamp to be hit, and it reads only the main-likelihood scales (the
+# missing-predictor `log_sigma_*_mi` scales are excluded).
+drm_logsigma_scale_spread <- function(report, threshold = log(1e4)) {
+  fields <- report[names(report) %in% c("log_sigma", "log_sigma1", "log_sigma2")]
+  spreads <- vapply(
+    fields,
+    function(x) {
+      x <- as.numeric(x)
+      x <- x[is.finite(x)]
+      if (length(x) < 2L) 0 else diff(range(x))
+    },
+    numeric(1L)
+  )
+  if (length(spreads) == 0L || max(spreads) <= threshold) {
+    return(NULL)
+  }
+  list(spread = max(spreads), threshold = threshold)
+}
+
+drm_warn_if_scale_spread <- function(report) {
+  info <- drm_logsigma_scale_spread(report)
+  if (is.null(info)) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(
+    c(
+      "{.fn drmTMB}: the fitted {.code log(sigma)} spans {.val {round(info$spread, 1)}} across observations, more than {.code log(1e4)} = {.val {round(info$threshold, 1)}}.",
+      "i" = "A scale range wider than 10^4 usually means the scale is running off (or the design is extreme), so the reported convergence, estimates and standard errors may be unreliable even when the clamp is not hit. Rescale the response, simplify the {.code sigma} formula, or use a penalized/MAP fit; {.fn check_drm} reports the fit state."
+    ),
+    class = "drmTMB_scale_spread_warning"
   )
   invisible(TRUE)
 }
@@ -4057,6 +4443,40 @@ drm_build_gaussian_ls_spec <- function(
 
   meta <- extract_meta_known_v(mu_entry$rhs)
   mu_entry$rhs <- meta$rhs
+  mu_temporal <- extract_gaussian_mu_temporal_term(mu_entry)
+  mu_entry$rhs <- mu_temporal$rhs
+  validate_temporal_raw_data(mu_temporal$term, data)
+  if (!is.null(mu_temporal$term) && !is.null(weights) && any(weights != 1)) {
+    cli::cli_abort(c(
+      "Temporal AR1, OU, and homtoep Gaussian models currently require unit likelihood weights.",
+      "i" = "Remove {.arg weights} or supply one weight for every observation while the unweighted marginal covariance route is fitted."
+    ))
+  }
+  if (!is.null(mu_temporal$term) && (
+    !is.null(meta$V) ||
+      length(sd_mu_entries) > 0L ||
+      length(sd_phylo_entries) > 0L ||
+      !is.null(impute) ||
+      include_missing_response ||
+      identical(missing$predictor, "model") ||
+      isTRUE(control$sparse_fixed) ||
+      isTRUE(control$aggregate_gaussian)
+  )) {
+    cli::cli_abort(c(
+      "Temporal AR1, OU, and homtoep Gaussian models do not support this additional modelling feature yet.",
+      "i" = "Use fixed mean predictors and offsets, {.code sigma ~ 1}, and at most one matching {.code (1 | id)} intercept."
+    ))
+  }
+  if (any(vapply(
+    sigma_entry$structured,
+    function(term) identical(term$type, "temporal"),
+    logical(1)
+  ))) {
+    cli::cli_abort(c(
+      "Temporal AR1, OU, and homtoep effects are only implemented for the Gaussian {.code mu} formula.",
+      "i" = "Use {.code y ~ temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code y ~ temporal(1 | id, time = elapsed, structure = \"ou\")}, with {.code sigma ~ 1}."
+    ))
+  }
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
   mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(mu_entry)
@@ -4109,6 +4529,17 @@ drm_build_gaussian_ls_spec <- function(
       "i" = "Fit one structured layer at a time until multiple structured layers have their own identifiability checks."
     ))
   }
+  paired_phylo_temporal_ou <- validate_phylo_temporal_ou_pair(
+    mu_temporal$term, mu_phylo$term, data, env
+  )
+  if (!is.null(mu_temporal$term) && length(active_structured) > 0L &&
+      !isTRUE(paired_phylo_temporal_ou)) {
+    cli::cli_abort(c(
+      "Temporal AR1, OU, and homtoep models cannot be combined with another structured effect in this slice.",
+      "x" = "The model also contains {.val {active_structured}}.",
+      "i" = "The only admitted combined route is {.code phylo(1 | species, tree = tree) + temporal(1 | species, time = elapsed, structure = \"ou\")}."
+    ))
+  }
   structured_terms <- lapply(
     names(raw_structured_terms),
     function(marker) {
@@ -4147,6 +4578,14 @@ drm_build_gaussian_ls_spec <- function(
   mu_entry$rhs <- mu_re$rhs
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
+  validate_temporal_gaussian_terms(
+    mu_temporal$term,
+    mu_re,
+    sigma_re,
+    sigma_entry$rhs,
+    data,
+    paired_phylo_stable = paired_phylo_temporal_ou
+  )
   if (!is.null(mesh_spatial_term) && length(mu_re$terms) > 0L) {
     cli::cli_abort(
       "The first mesh spatial route cannot yet be combined with ordinary random effects."
@@ -4310,6 +4749,9 @@ drm_build_gaussian_ls_spec <- function(
     unlist(lapply(f_sd_phylo, all.vars), use.names = FALSE),
     structured_mu_vars(structured_term),
     structured_mu_vars(mesh_spatial_term),
+    if (!is.null(mu_temporal$term)) {
+      c(mu_temporal$term$group, mu_temporal$term$time)
+    },
     vapply(
       sd_mu_entries,
       function(entry) parse_sd_lhs(entry$lhs)$group,
@@ -4554,6 +4996,15 @@ drm_build_gaussian_ls_spec <- function(
     data_model
   )
   phylo_mu <- build_structured_mu_structure(structured_term, data_model, env)
+  if (isTRUE(paired_phylo_temporal_ou)) {
+    phylo_mu$paired_temporal_ou <- TRUE
+  }
+  temporal_mu <- build_temporal_mu_structure(
+    mu_temporal$term,
+    data_model,
+    has_ordinary_intercept = length(mu_re$terms) == 1L,
+    paired_phylo_stable = paired_phylo_temporal_ou
+  )
   if (!is.null(mesh_spatial_term) &&
       (include_missing_response || include_missing_predictor)) {
     cli::cli_abort(c(
@@ -4598,6 +5049,35 @@ drm_build_gaussian_ls_spec <- function(
     observed_y = observed_y
   )
   start <- c(start, gaussian_ls_dummy_start(phylo_mu, y = y[observed_y]))
+  if (isTRUE(temporal_mu$has)) {
+    temporal_components <- if (length(mu_re$terms) == 1L) 3 else 2
+    temporal_var <- stats::var(
+      y[observed_y] - as.vector(
+        X_mu[observed_y, , drop = FALSE] %*% start$beta_mu
+      )
+    )
+    if (!is.finite(temporal_var) || temporal_var <= 0) {
+      temporal_var <- 1
+    }
+    component_sd <- sqrt(temporal_var / temporal_components)
+    if (identical(temporal_mu$structure, "homtoep")) {
+      # Kept at their declared dimensions so TMB can apply the fixed map.
+      start$u_temporal <- numeric(temporal_mu$n_re)
+      start$log_sd_temporal <- 0
+    } else {
+      start$beta_sigma[[1L]] <- log(component_sd)
+      if (length(mu_re$terms) == 1L) {
+        start$log_sd_mu[] <- log(component_sd)
+      }
+      start$u_temporal <- numeric(temporal_mu$n_re)
+      start$log_sd_temporal <- log(component_sd)
+    }
+    start$theta_temporal <- if (identical(temporal_mu$structure, "homtoep")) {
+      rep(atanh(0.3), temporal_mu$n_occasions - 1L)
+    } else {
+      atanh(0.3)
+    }
+  }
   if (isTRUE(mesh_spatial_mu$has)) {
     start$u_phylo2 <- numeric(mesh_spatial_mu$n_re)
     start$log_sd_phylo2 <- log(mesh_spatial_field_scale_start(
@@ -4718,7 +5198,11 @@ drm_build_gaussian_ls_spec <- function(
     ),
     aggregation = list(gaussian = gaussian_aggregation),
     random_scale = list(mu = sd_mu, sigma = sd_sigma, phylo = sd_phylo),
-    structured = list(phylo_mu = phylo_mu, mesh_spatial_mu = mesh_spatial_mu),
+    structured = list(
+      phylo_mu = phylo_mu,
+      mesh_spatial_mu = mesh_spatial_mu,
+      temporal_mu = temporal_mu
+    ),
     missing_predictor = missing_predictor,
     missing_predictor2 = missing_predictor2,
     data = data_model,
@@ -4734,7 +5218,8 @@ drm_build_gaussian_ls_spec <- function(
         phylo_mu,
         re_mu_sigma,
         sd_phylo,
-        sd_sigma = sd_sigma
+        sd_sigma = sd_sigma,
+        temporal_mu = temporal_mu
       )
       if (
         include_missing_predictor &&
@@ -4750,6 +5235,7 @@ drm_build_gaussian_ls_spec <- function(
       if (re_cov_blocks$n_qgt2_re > 0L) "u_re_cov",
       if (isTRUE(phylo_mu$has)) "u_phylo",
       if (isTRUE(mesh_spatial_mu$has)) "u_phylo2",
+      if (isTRUE(temporal_mu$has) && !identical(temporal_mu$structure, "homtoep")) "u_temporal",
       if (
         include_missing_predictor &&
           identical(missing_predictor$family, "gaussian")
@@ -7068,10 +7554,10 @@ drm_build_beta_ls_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_beta_mu_random_terms(mu_re$terms)
-  if (!is.null(mu_phylo$term) && length(mu_re$terms) > 0L) {
+  if (!is.null(beta_mu_structured_term) && length(mu_re$terms) > 0L) {
     cli::cli_abort(c(
-      "A {.fn beta} phylogenetic {.code mu} effect cannot yet be combined with an ordinary {.code mu} random effect.",
-      "i" = "Use either {.code phylo(1 | id, tree = tree)} or an ordinary {.code (1 | id)} term for this q1 prerequisite."
+      "A {.fn beta} {.fn {structured_mu_type(beta_mu_structured_term)}} {.code mu} effect cannot yet be combined with an ordinary {.code mu} random effect.",
+      "i" = "Use either the structured term or an ordinary {.code (1 | id)} term for this q1 prerequisite, not both."
     ))
   }
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
@@ -8813,8 +9299,8 @@ drm_build_binomial_spec <- function(
   }
   if (include_missing_predictor && !is.null(binomial_structured_term)) {
     cli::cli_abort(c(
-      "A binomial structured effect cannot yet be combined with missing-predictor {.fn mi}.",
-      "i" = "Fit the phylogenetic slice without {.code miss_control(predictor = \"model\")}."
+      "A binomial {.fn {structured_mu_type(binomial_structured_term)}} effect cannot yet be combined with missing-predictor {.fn mi}.",
+      "i" = "Fit the structured slice without {.code miss_control(predictor = \"model\")}."
     ))
   }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
@@ -9170,12 +9656,12 @@ drm_build_cumulative_logit_spec <- function(
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
 
-  unsupported <- setdiff(dpars[!is_sd_dpar], "mu")
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "disc"))
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
-      "{.fn cumulative_logit} models currently support only a {.code mu} location formula.",
+      "{.fn cumulative_logit} models support only a {.code mu} location formula and a {.code disc} discrimination formula.",
       "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
-      "i" = "Ordinal scale/discrimination formulas are planned after the identifiability contract is finalized."
+      "i" = "Model the latent scale with {.code disc ~ z}; the latent residual scale is {.code 1 / disc}."
     ))
   }
   sd_mu_entries <- entries[is_sd_dpar]
@@ -9184,8 +9670,14 @@ drm_build_cumulative_logit_spec <- function(
       "A {.fn cumulative_logit} model requires exactly one location formula."
     )
   }
+  if (sum(dpars == "disc") > 1L) {
+    cli::cli_abort(
+      "A {.fn cumulative_logit} model accepts at most one {.code disc} formula."
+    )
+  }
 
   mu_entry <- entries[[which(dpars == "mu")]]
+  disc_entry <- if (any(dpars == "disc")) entries[[which(dpars == "disc")]]
   if (is.na(mu_entry$response)) {
     cli::cli_abort(
       "The {.code mu} formula must include an ordinal response on the left-hand side."
@@ -9253,6 +9745,7 @@ drm_build_cumulative_logit_spec <- function(
   for (entry in sd_mu_entries) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
+  f_disc <- ordinal_disc_formula(disc_entry)
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sd_mu <- lapply(sd_mu_entries, drm_entry_formula, response = FALSE)
@@ -9261,7 +9754,8 @@ drm_build_cumulative_logit_spec <- function(
     unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
     vapply(sd_mu_entries, function(entry) parse_sd_lhs(entry$lhs)$group,
            character(1)),
-    random_effect_vars(mu_re$terms)
+    random_effect_vars(mu_re$terms),
+    if (!is.null(f_disc)) all.vars(f_disc)
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
@@ -9335,6 +9829,7 @@ drm_build_cumulative_logit_spec <- function(
     allow_slopes = TRUE
   )
   sd_mu <- build_sd_mu_structure(sd_mu_entries, sd_mu_targets, re_mu, data_model)
+  disc <- ordinal_disc_design(f_disc, data_model)
 
   spec <- list(
     model_type = "cumulative_logit",
@@ -9371,12 +9866,28 @@ drm_build_cumulative_logit_spec <- function(
       sd_mu = sd_mu,
       observed_y = observed_y
     ),
-    map = cumulative_logit_map(phylo_mu, re_mu, sd_mu),
+    map = cumulative_logit_map(
+      phylo_mu, re_mu, sd_mu,
+      has_disc = disc$has
+    ),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
+  if (disc$has) {
+    # `disc ~ z` (#966) rides the otherwise-unused beta_sigma slot, as hurdle
+    # `hu` rides beta_zi; `disc ~ 1` leaves `disc$has` FALSE so the spec, and
+    # hence the fit, is byte-identical to the location-only model.
+    spec$X$disc <- disc$X
+    spec$terms$disc <- disc$terms
+    spec$model_frame$disc <- disc$model_frame
+    spec$dpars <- c("mu", sd_mu$dpars, "disc")
+    spec$start$beta_sigma <- stats::setNames(
+      rep(0, ncol(disc$X)),
+      colnames(disc$X)
+    )
+  }
   spec$missing_data <- if (include_missing_response) {
     new_drm_missing_data(
       control = missing,
@@ -12250,7 +12761,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, and {.fn phylo_interaction} (the {.fn spatial} provider is deferred for the {.code zoi}/{.code coi} atoms pending the mesh/SPDE lane), and a binomial q=1 unlabelled {.code mu} intercept slice for {.fn phylo}.",
+      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, and {.fn phylo_interaction} (the {.fn spatial} provider is deferred for the {.code zoi}/{.code coi} atoms pending the mesh/SPDE lane), one strict-Beta q=1 unlabelled {.code mu} intercept slice for {.fn relmat}, and binomial q=1 unlabelled {.code mu} intercept slices for {.fn phylo} or {.fn relmat}.",
       "i" = "Structured non-Gaussian paths beyond those gates, including ordinal, shape, hurdle, labelled count covariance, structured count slope-only routes outside the admitted Poisson animal direct-SD and fixed-covariance spatial gates, multiple structured count slopes, structured count scale routes outside the NB2 one-slope gate, and zero-one-beta structured slopes, labels, q>=2 fields, or simultaneous endpoints, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
@@ -13653,7 +14164,7 @@ validate_beta_mu_random_terms <- function(terms) {
       "Only independent {.fn beta} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use syntax like {.code bf(prop ~ x + (1 | id) + (0 + x | id), sigma ~ z)} for strict {.code (0, 1)} responses.",
-      "i" = "The row-specific structured beta gates are the unlabelled {.fn animal} routes and one exact unlabelled q1 {.fn phylo} intercept in {.code mu} with fixed-effect family {.code sigma}; correlated beta slopes, labelled covariance blocks, other structured effects, exact-boundary mass, and mixed bounded-response models remain planned until separate recovery tests exist."
+      "i" = "The row-specific structured beta gates are the unlabelled {.fn animal} routes, one exact unlabelled q1 {.fn phylo} intercept, and one exact unlabelled q1 {.fn relmat} intercept in {.code mu}, with family {.code sigma} fixed-effect-only for these structured routes; correlated beta slopes, labelled covariance blocks, other structured effects, exact-boundary mass, and mixed bounded-response models remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -14234,7 +14745,17 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
   cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
   for (col in cols) {
     if (is.factor(data[[col]])) {
-      data[[col]] <- droplevels(data[[col]])
+      dropped <- setdiff(levels(data[[col]]), levels(droplevels(data[[col]])))
+      if (length(dropped) > 0L) {
+        cli::cli_inform(
+          c(
+            "Dropped {length(dropped)} unused factor level{?s} from {.field {col}}: {.val {dropped}}.",
+            "i" = "Call {.code droplevels()} on the data before fitting to silence this message."
+          ),
+          class = "drmTMB_dropped_factor_levels"
+        )
+      }
+      data[[col]] <- drm_droplevels_keep_contrasts_factor(data[[col]])
     }
   }
   data
@@ -15319,6 +15840,12 @@ phylo_mu_has_labelled_mu_intercept_slope_q2 <- function(phylo_mu) {
 }
 
 phylo_mu_sd_labels <- function(phylo_mu, model_type) {
+  # The paired phylogenetic-temporal OU model exposes scientific component
+  # names rather than a formula echo: it is a stable phylogenetic SD, distinct
+  # from the within-species temporal SD.
+  if (isTRUE(phylo_mu$paired_temporal_ou)) {
+    return("sd_phylo_stable")
+  }
   if (identical(model_type, "biv_gaussian")) {
     return(paste0(
       phylo_mu_dpars(phylo_mu),
@@ -20321,6 +20848,46 @@ validate_ordinal_codes <- function(y, levels, response) {
   )
 }
 
+# Discrimination submodel for cumulative_logit() (#966):
+# Pr(y <= k) = logit^-1(disc * (theta_k - mu)), log(disc) = Z gamma. The disc
+# intercept is fixed at log(1) = 0 (dropped from Z): rescaling every cutpoint,
+# every location coefficient, and 1 / disc by one constant leaves the
+# likelihood unchanged, so only relative discrimination is identified. This is
+# the same constraint as ordinal::clm(scale = ~ z), whose zeta equals -gamma.
+ordinal_disc_formula <- function(disc_entry) {
+  if (is.null(disc_entry)) {
+    return(NULL)
+  }
+  if (!is.na(disc_entry$response)) {
+    cli::cli_abort(
+      "The {.code disc} formula must be one-sided, for example {.code disc ~ z}."
+    )
+  }
+  drm_reject_phase1_terms(disc_entry$rhs, "disc", allow_offset = FALSE)
+  f_disc <- drm_entry_formula(disc_entry, response = FALSE)
+  if (identical(attr(stats::terms(f_disc), "intercept"), 0L)) {
+    cli::cli_abort(c(
+      "The {.code disc} formula cannot remove the intercept.",
+      "x" = "The {.code disc} intercept is already fixed at {.code log(disc) = 0}: the latent scale of a cumulative-link model is not identifiable alongside free cutpoints.",
+      "i" = "Write {.code disc ~ z}; coefficients are log-discrimination contrasts relative to the reference {.code z = 0} or the first factor level."
+    ))
+  }
+  f_disc
+}
+
+ordinal_disc_design <- function(f_disc, data) {
+  if (is.null(f_disc)) {
+    return(list(has = FALSE))
+  }
+  mf <- stats::model.frame(f_disc, data = data, na.action = stats::na.pass)
+  terms <- stats::terms(mf)
+  X <- ordinal_mu_model_matrix(terms, mf)
+  if (ncol(X) == 0L) {
+    return(list(has = FALSE))
+  }
+  list(has = TRUE, X = X, terms = terms, model_frame = mf)
+}
+
 ordinal_mu_model_matrix <- function(terms, data) {
   X <- stats::model.matrix(terms, data)
   if ("(Intercept)" %in% colnames(X)) {
@@ -22103,7 +22670,8 @@ ordinal_cutpoints_from_raw <- function(theta_ord) {
 cumulative_logit_map <- function(
   phylo_mu = empty_phylo_mu_structure(),
   re_mu = empty_random_mu_structure(1L),
-  sd_mu = empty_sd_mu_structure(re_mu$n_re)
+  sd_mu = empty_sd_mu_structure(re_mu$n_re),
+  has_disc = FALSE
 ) {
   out <- list(
     beta_sigma = factor(NA),
@@ -22120,6 +22688,9 @@ cumulative_logit_map <- function(
     log_sd_sigma = factor(NA),
     eta_cor_phylo = factor(NA)
   )
+  if (has_disc) {
+    out$beta_sigma <- NULL
+  }
   if (re_mu$n_re == 0L) {
     out$u_mu <- factor(NA)
     out$log_sd_mu <- factor(NA)
@@ -22542,7 +23113,8 @@ gaussian_ls_map <- function(
   phylo_mu = empty_phylo_mu_structure(),
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
   sd_phylo = empty_sd_phylo_structure(),
-  sd_sigma = empty_sd_mu_structure(re_sigma$n_re)
+  sd_sigma = empty_sd_mu_structure(re_sigma$n_re),
+  temporal_mu = empty_temporal_mu_structure()
 ) {
   out <- list(
     beta_mu1 = factor(NA),
@@ -22558,6 +23130,18 @@ gaussian_ls_map <- function(
   if (!isTRUE(phylo_mu$has)) {
     out$u_phylo <- factor(NA)
     out$log_sd_phylo <- factor(NA)
+  }
+  if (!isTRUE(temporal_mu$has)) {
+    out$u_temporal <- factor(NA)
+    out$log_sd_temporal <- factor(NA)
+    out$theta_temporal <- factor(NA)
+  }
+  if (isTRUE(temporal_mu$has) && identical(temporal_mu$structure, "homtoep")) {
+    # Homogeneous Toeplitz is a direct marginal covariance. Its total SD is
+    # beta_sigma; latent states and a second temporal SD would recreate the
+    # residual/process non-identifiability that this route avoids.
+    out$u_temporal <- factor(rep(NA, temporal_mu$n_re))
+    out$log_sd_temporal <- factor(NA)
   }
   if (isTRUE(phylo_mu$has) && sd_phylo$n_models > 0L) {
     out$log_sd_phylo <- factor(rep(NA_integer_, length(
@@ -22743,6 +23327,7 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
     structured_mu_tmb_data(spec),
     structured_mu2_tmb_data(spec),
     structured_mu2_sd_tmb_data(spec),
+    temporal_mu_tmb_data(spec),
     drm_sparse_fixed_tmb_data(spec),
     drm_gaussian_aggregation_tmb_data(spec),
     drm_tmb_missing_predictor_data(spec),
@@ -22972,6 +23557,9 @@ add_covariance_probe_parameter <- function(spec) {
   has_mi_struct <- has_mi &&
     is.list(spec$missing_predictor$structured) &&
     isTRUE(spec$missing_predictor$structured$enabled)
+  has_temporal_mu <- is.list(spec$structured) &&
+    is.list(spec$structured$temporal_mu) &&
+    isTRUE(spec$structured$temporal_mu$has)
   if (is.null(spec$start$u_re_cov)) {
     spec$start$u_re_cov <- 0
   }
@@ -22990,11 +23578,29 @@ add_covariance_probe_parameter <- function(spec) {
   if (is.null(spec$start$beta_coi)) {
     spec$start$beta_coi <- 0
   }
+  if (is.null(spec$start$u_temporal)) {
+    spec$start$u_temporal <- 0
+  }
+  if (is.null(spec$start$log_sd_temporal)) {
+    spec$start$log_sd_temporal <- 0
+  }
+  if (is.null(spec$start$theta_temporal)) {
+    spec$start$theta_temporal <- 0
+  }
   if (is.null(spec$map)) {
     spec$map <- list()
   }
   if (is.null(spec$map$beta_cor_mu) && !has_cor_mu_model) {
     spec$map$beta_cor_mu <- factor(NA)
+  }
+  if (is.null(spec$map$u_temporal) && !has_temporal_mu) {
+    spec$map$u_temporal <- factor(NA)
+  }
+  if (is.null(spec$map$log_sd_temporal) && !has_temporal_mu) {
+    spec$map$log_sd_temporal <- factor(NA)
+  }
+  if (is.null(spec$map$theta_temporal) && !has_temporal_mu) {
+    spec$map$theta_temporal <- factor(NA)
   }
   if (
     is.null(spec$map$beta_zoi) &&
@@ -23961,7 +24567,8 @@ make_tmb_data_core <- function(spec) {
       y1 = numeric(1),
       y2 = numeric(1),
       X_mu = spec$X$mu,
-      X_sigma = dummy_matrix,
+      # The disc design rides X_sigma (#966); the 1x1 dummy means disc = 1.
+      X_sigma = if (is.null(spec$X$disc)) dummy_matrix else spec$X$disc,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,
       X_sd_mu = spec$random_scale$mu$X,
@@ -24778,7 +25385,14 @@ split_tmb_parameters <- function(par, spec) {
   if (identical(spec$model_type, "cumulative_logit")) {
     beta_mu <- unname(par$beta_mu)
     names(beta_mu) <- colnames(spec$X$mu)
-    return(split_tmb_mu_random_scale_parameters(list(mu = beta_mu), par, spec))
+    if (is.null(spec$X$disc)) {
+      return(split_tmb_mu_random_scale_parameters(list(mu = beta_mu), par, spec))
+    }
+    beta_disc <- unname(par$beta_sigma)
+    names(beta_disc) <- colnames(spec$X$disc)
+    return(split_tmb_mu_random_scale_parameters(
+      list(mu = beta_mu, disc = beta_disc), par, spec
+    ))
   }
   if (identical(spec$model_type, "zero_one_beta")) {
     beta_mu <- unname(par$beta_mu)
@@ -25148,6 +25762,20 @@ split_tmb_sdpars <- function(par, spec) {
     }
   }
   if (
+    is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has) &&
+      !identical(spec$structured$temporal_mu$structure, "homtoep")
+  ) {
+    temporal <- spec$structured$temporal_mu
+    out$mu <- c(
+      out$mu,
+      stats::setNames(
+        exp(unname(par$log_sd_temporal[[1L]])),
+        temporal_mu_sd_label(temporal)
+      )
+    )
+  }
+  if (
     identical(spec$model_type, "zero_one_beta") &&
       is.list(spec$random$zoi) && spec$random$zoi$n_re > 0L
   ) {
@@ -25371,6 +25999,27 @@ split_tmb_corpars <- function(par, spec) {
     names(rho_sigma) <- spec$random$sigma$cor_labels
     out$sigma <- rho_sigma
   }
+  if (
+    is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has) &&
+      identical(spec$structured$temporal_mu$structure, "ar1")
+  ) {
+    temporal <- spec$structured$temporal_mu
+    temporal_parameter <- tanh(unname(par$theta_temporal[[1L]]))
+    out$temporal <- stats::setNames(temporal_parameter, temporal$label)
+  }
+  if (
+    is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has) &&
+      identical(spec$structured$temporal_mu$structure, "homtoep")
+  ) {
+    temporal <- spec$structured$temporal_mu
+    rho <- temporal_homtoep_correlations(unname(par$theta_temporal))[-1L]
+    out$temporal <- stats::setNames(
+      rho,
+      paste0("cor_lag", seq_along(rho))
+    )
+  }
   if (is.list(spec$random$covariance_blocks)) {
     rho_re_cov <- covariance_block_correlations_from_par(
       par,
@@ -25434,6 +26083,19 @@ split_tmb_corpars <- function(par, spec) {
   }
 
   out
+}
+
+# OU has a positive decay rate, rather than a correlation parameter.  Keep it
+# out of `corpars` so generic correlation methods cannot silently apply tanh.
+split_tmb_decaypars <- function(par, spec) {
+  temporal <- spec$structured$temporal_mu
+  if (!is.list(temporal) || !isTRUE(temporal$has) ||
+      !identical(temporal$structure, "ou")) {
+    return(list())
+  }
+  list(temporal = stats::setNames(
+    exp(unname(par$theta_temporal[[1L]])), temporal_mu_decay_label(temporal)
+  ))
 }
 
 modelled_corpair_values <- function(par, spec) {
@@ -25618,6 +26280,22 @@ split_tmb_random_effects <- function(par, spec) {
       )
     }
     out$sigma <- format_random_effect_values(latent, values, spec$random$sigma)
+  }
+  if (
+    is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has) &&
+      !identical(spec$structured$temporal_mu$structure, "homtoep")
+  ) {
+    temporal <- spec$structured$temporal_mu
+    latent <- unname(par$u_temporal[seq_len(temporal$n_re)])
+    names(latent) <- temporal$node_labels
+    values <- exp(unname(par$log_sd_temporal[[1L]])) * latent
+    names(values) <- names(latent)
+    out$temporal <- list(
+      values = values,
+      latent = latent,
+      terms = stats::setNames(list(values), temporal$structure)
+    )
   }
   if (
     identical(spec$model_type, "zero_one_beta") &&

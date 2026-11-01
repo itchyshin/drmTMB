@@ -59,7 +59,14 @@ print.drmTMB <- function(x, ...) {
     }
   } else {
     uncertainty <- drm_uncertainty_status(x)
-    if (!identical(uncertainty, "ok")) {
+    temporal_wald_deferred <- is.data.frame(x$coefficients) &&
+      "std_error.status" %in% names(x$coefficients) &&
+      any(x$coefficients$std_error.status == "temporal_wald_unqualified")
+    if (temporal_wald_deferred) {
+      cli::cli_text(
+        "standard errors: unavailable; OU coefficient table is point estimates only (OU Wald inference is deferred pending the inherited AR1 calibration prerequisite)"
+      )
+    } else if (!identical(uncertainty, "ok")) {
       cli::cli_text(
         "  standard errors: unavailable; point estimates only ({drm_uncertainty_message(x)})"
       )
@@ -73,6 +80,7 @@ print.drmTMB <- function(x, ...) {
   } else {
     cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
   }
+  cli::cli_text("  convergence_status: {convergence_status(x)}")
   if (is.null(drm_convergence_label(x$opt$convergence, x$opt$message))) {
     cli::cli_text("  convergence: {x$opt$convergence}")
   } else {
@@ -787,6 +795,10 @@ weights.drmTMB <- function(object, ...) {
 #' linear predictor whose response transform is
 #' `0.999999 * tanh(eta)`.
 #'
+#' @usage rho12(object, ...)
+#' @details For Julia-backed fits, `rho12()` returns the stored residual
+#'   correlation vector and errors if the fit has no residual `rho12` block.
+#'   This method does not accept `newdata`.
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction.
 #' @param type Scale of returned values: `"response"` for correlation values or
@@ -861,9 +873,17 @@ rho12.drmTMB <- function(
 #' relatedness models can contain several scientifically different
 #' correlations. Profile intervals are opt-in and can be slow; filter with
 #' `level`, `group`, `block`, or `class` before requesting `conf.int = TRUE` on
-#' large models. Bootstrap intervals are not a `corpairs()` route.
+#' large models. Bootstrap intervals are not a `corpairs()` route. That
+#' profile-interval guidance applies to native fits. The Julia-backed method
+#' returns point rows with default interval provenance; it supports the
+#' `level`, `group`, `block`, and `class` filters but does not calculate
+#' intervals. Its `...` argument does not apply `conf.int`, `conf.level`,
+#' `method`, or `trace` to a Julia fit.
 #'
-#' @param object A `drmTMB` fit.
+#' @usage corpairs(object, ...)
+#' \method{corpairs}{drmTMB_julia}(object, level = NULL, group = NULL,
+#'   block = NULL, class = NULL, ...)
+#' @param object A `drmTMB` fit or an admitted Julia-backed fit.
 #' @param level Optional character vector of correlation levels to keep, such
 #'   as `"residual"`, `"group"`, `"phylogenetic"`, or `"spatial"`.
 #' @param group Optional character vector of grouping factors to keep, such as
@@ -887,8 +907,9 @@ rho12.drmTMB <- function(
 #'   `"profile"` is currently supported for correlation-pair intervals.
 #' @param trace Logical; passed to [TMB::tmbprofile()] when profile intervals
 #'   are requested.
-#' @param ... Additional arguments passed to [TMB::tmbprofile()] when
-#'   `conf.int = TRUE`.
+#' @param ... On native fits, additional arguments passed to [TMB::tmbprofile()]
+#'   when `conf.int = TRUE`. On Julia-backed fits, `...` must be empty;
+#'   interval controls are unavailable.
 #'
 #' @return A data frame with one row per fitted correlation pair or pair
 #'   summary. Predictor-dependent `rho12` is summarized by its mean, minimum,
@@ -933,6 +954,7 @@ rho12.drmTMB <- function(
 #'
 #' # Profile intervals are opt-in and can be slow for large models.
 #' # corpairs(fit, level = "residual", conf.int = TRUE)
+#' @aliases corpairs.drmTMB_julia
 #' @export
 corpairs <- function(object, ...) {
   UseMethod("corpairs")
@@ -2344,6 +2366,22 @@ vcov.drmTMB <- function(object, ..., type = "model", robust = FALSE) {
   if (drm_is_mspl(object)) {
     return(drm_mspl_vcov(object))
   }
+  if (drm_has_temporal_mu(object) && identical(
+    object$model$structured$temporal_mu$structure, "ou"
+  )) {
+    cli::cli_abort(c(
+      "OU coefficient covariance is not yet qualified.",
+      "i" = "The inherited AR1 calibration prerequisite remains unresolved; OU Wald inference is deferred."
+    ))
+  }
+  if (drm_has_temporal_mu(object) && identical(
+    object$model$structured$temporal_mu$structure, "homtoep"
+  )) {
+    cli::cli_abort(c(
+      "Homogeneous Toeplitz Wald coefficient covariance is unavailable.",
+      "i" = "Mean-coefficient likelihood profiles are qualified in the retained primary panel cells; Wald covariance and intervals remain deferred."
+    ))
+  }
   cov_primary <- drm_sdreport_cov_coefficients(object)
   labels <- coefficient_labels(object)
   targets <- drm_profile_targets(object)
@@ -2399,6 +2437,10 @@ vcov.drmTMB <- function(object, ..., type = "model", robust = FALSE) {
   # used above; their (co)variances live in `cov.fixed` / `opt$par`. Fill those gaps.
   if (isTRUE(object$REML) && anyNA(diag(out))) {
     out <- fill_from(out, object$sdr$cov.fixed, names(object$opt$par))
+  }
+  if (drm_has_temporal_mu(object)) {
+    mean_labels <- labels[startsWith(labels, "mu:")]
+    return(out[mean_labels, mean_labels, drop = FALSE])
   }
   out
 }
@@ -2524,6 +2566,16 @@ drm_uncertainty_check_status <- function(object) {
 }
 
 drm_standard_error_status <- function(object) {
+  if (drm_has_temporal_mu(object) && identical(
+    object$model$structured$temporal_mu$structure, "ou"
+  )) {
+    return("temporal_wald_unqualified")
+  }
+  if (drm_has_temporal_mu(object) && identical(
+    object$model$structured$temporal_mu$structure, "homtoep"
+  )) {
+    return("temporal_inference_deferred")
+  }
   if (
     identical(drm_uncertainty_status(object), "ok") &&
       !is.null(object$sdr) &&
@@ -2870,7 +2922,7 @@ deviance.drmTMB <- function(object, ...) {
 #' CDF evaluation via [fitted_distribution()]`$q()` at [predict_parameters()]'s
 #' fixed-effect, population-level parameter estimates -- see
 #' [fitted_distribution()] for the fixed-effect-only scope and the
-#' `"spike"`/`"unimplemented"` status gate this inherits (a `"spike"`-status
+#' `"spike"`/`"unimplemented"` status rules this inherits (a `"spike"`-status
 #' family emits a one-time warning; an unregistered `model_type` raises a
 #' clear error). For bivariate `biv_gaussian` fits, `dpar` selects which
 #' response's MARGINAL quantile to return (`"mu1"`/`"sigma1"` for response 1,
@@ -2896,7 +2948,12 @@ deviance.drmTMB <- function(object, ...) {
 #' @param type Prediction scale: `"response"`, `"link"`, or `"quantile"`.
 #' @param prob Numeric vector of probabilities in (0, 1), used only when
 #'   `type = "quantile"`.
-#' @param ... Reserved for future prediction options.
+#' @param re.form Must be `NULL` (the default), which is the only behaviour:
+#'   training rows are predicted conditionally on the fitted random effects and
+#'   `newdata` rows at the population level. Any other value is an error.
+#' @param ... Reserved for future prediction options; any value is an error
+#'   (for example `se.fit`, which `predict()` does not compute; use
+#'   [predict_parameters()] with `conf.int = TRUE` for standard errors).
 #'
 #' @return A numeric vector for `type` `"response"`/`"link"`. For
 #'   `type = "quantile"`, a numeric matrix with one row per observation and
@@ -2955,12 +3012,34 @@ predict.drmTMB <- function(
   dpar = NULL,
   type = c("response", "link", "quantile"),
   prob = c(0.025, 0.5, 0.975),
+  re.form = NULL,
   ...
 ) {
+  if (!is.null(re.form)) {
+    cli::cli_abort(c(
+      "{.fn predict} supports only {.code re.form = NULL}.",
+      "i" = "Training rows are predicted conditionally on the fitted random effects; {.arg newdata} rows are predicted at the population level."
+    ))
+  }
+  dots <- list(...)
+  drm_abort_mi_weights_predict(object, dots)
+  if (drm_weights_are_unit(dots[["weights"]])) {
+    dots[["weights"]] <- NULL
+  }
+  if (length(dots) > 0L) {
+    cli::cli_abort("{.arg ...} is reserved for future options.")
+  }
   if (is.null(dpar)) {
     dpar <- object$model$dpars[[1L]]
   }
   dpar <- match.arg(dpar, names(object$coefficients))
+  if (drm_has_temporal_mu(object) && !is.null(newdata)) {
+    temporal_structure <- toupper(object$model$structured$temporal_mu$structure)
+    cli::cli_abort(c(
+      "Temporal {temporal_structure} prediction is currently available only for the fitted observations.",
+      "i" = "Forecasting and {.arg newdata} prediction are deferred because they require an explicit temporal-state convention."
+    ))
+  }
   type <- match.arg(type)
   if (identical(type, "quantile")) {
     return(drm_predict_quantile(object, newdata = newdata, dpar = dpar, prob = prob))
@@ -2981,6 +3060,13 @@ predict.drmTMB <- function(
       has_ordinary_mu_random_effects(object)
   ) {
     eta <- eta + mu_random_effect_contribution(object, dpar = dpar)
+  }
+  if (
+    is.null(newdata) &&
+      identical(dpar, "mu") &&
+      drm_has_temporal_mu(object)
+  ) {
+    eta <- eta + temporal_mu_contribution(object)
   }
   if (
     is.null(newdata) &&
@@ -3131,7 +3217,12 @@ predict.drmTMB <- function(
 #'   fixed at its fitted conditional-mode estimate (conditional simulation).
 #'   These meanings match `lme4::simulate.merMod()`; earlier drmTMB versions
 #'   reversed them (see Details).
-#' @param ... Reserved for future simulation options.
+#' @param newdata Must be `NULL`. `simulate()` always draws for the training
+#'   rows; drawing for new rows is not implemented, and a non-`NULL` value is an
+#'   error rather than being silently ignored. For new rows, use
+#'   [predict_parameters()] to get the distributional parameters and draw from
+#'   the family's `r*()` function.
+#' @param ... Reserved for future simulation options; any value is an error.
 #'
 #' @return A data frame. Univariate models return one column per simulation.
 #'   Bivariate models return paired columns named `sim_<j>_y1` and
@@ -3142,7 +3233,28 @@ predict.drmTMB <- function(
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' simulate(fit, nsim = 2, seed = 1)
 #' @export
-simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NA, ...) {
+simulate.drmTMB <- function(
+  object,
+  nsim = 1,
+  seed = NULL,
+  re.form = NA,
+  newdata = NULL,
+  ...
+) {
+  if (!is.null(newdata)) {
+    cli::cli_abort(c(
+      "{.fn simulate} does not support {.arg newdata}; it draws for the training rows only.",
+      "i" = "Use {.fn predict_parameters} with {.arg newdata} to get the distributional parameters for new rows, then draw from the family's {.code r*()} function."
+    ))
+  }
+  dots <- list(...)
+  drm_abort_mi_weights_predict(object, dots)
+  if (drm_weights_are_unit(dots[["weights"]])) {
+    dots[["weights"]] <- NULL
+  }
+  if (length(dots) > 0L) {
+    cli::cli_abort("{.arg ...} is reserved for future options.")
+  }
   if (!base::missing(re.form)) {
     drm_simulate_re_form_semantics_message()
   }
@@ -3629,6 +3741,18 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NA, ...) {
   }
 
   if (identical(object$model$model_type, "gaussian")) {
+    if (drm_has_temporal_mu(object) && identical(
+      object$model$structured$temporal_mu$structure, "homtoep"
+    )) {
+      mu <- predict(object, dpar = "mu")
+      sims <- replicate(
+        nsim,
+        temporal_homtoep_marginal_draw(object, mu)
+      )
+      sims <- as.data.frame(sims)
+      names(sims) <- paste0("sim_", seq_len(nsim))
+      return(sims)
+    }
     if (marginal) {
       if (identical(object$model$V_known_type, "matrix")) {
         sims <- replicate(nsim, {
@@ -3835,15 +3959,15 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #'
 #' `type = "quantile"` returns Dunn-Smyth randomized quantile residuals from
 #' [drm_quantile_residuals()]: `qnorm(F(y; theta_hat))` at the fitted,
-#' fixed-effect distributional parameters. As of DO-T3 batch D, all 18 fitted
-#' `model_type` values have a promoted entry in [drm_family_dpq()], so
+#' fixed-effect distributional parameters. All 18 currently fitted
+#' `model_type` values have `status = "reference"` in [drm_family_dpq()], so
 #' `type = "quantile"` is available for every family, including bivariate
 #' `biv_gaussian` (where `response` -- `1` or `2` -- is REQUIRED and selects
 #' which response's MARGINAL residuals to compute; omitting it errors
 #' clearly, as does supplying it for a univariate fit; see
-#' [fitted_distribution()]). Spike-status families (feasibility-only, not yet
-#' DG2/DG3-verified) emit a one-time warning that the residual is
-#' exploratory, not DG-verified; none currently have this status. See
+#' [fitted_distribution()]). Families whose distributional
+#' diagnostics have not been evaluated by simulation emit a one-time warning
+#' that the residual is exploratory; none currently have this status. See
 #' [drm_quantile_residuals()] for the fixed-effect-only adequacy caveat: for
 #' random-effect or structured fits, these residuals are conditional on the
 #' fixed-effect prediction, not marginal, so a departure (or its absence) is
@@ -3851,19 +3975,17 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' claim. Pass `seed`, `nsim`, and/or `response` through `...` to
 #' [drm_quantile_residuals()].
 #'
-#' **What this detects -- and does not.** Evidence: a 400-seed gated
-#' simulation campaign across all 18 fitted families (tweedie: 99 of 400
-#' seeds locally, 66/99 dispersion-arm non-convergence, full run deferred to
-#' Totoro)
-#' (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`).
-#' Under a correctly specified fixed-effect model, type-I error stays at or
+#' **What this detects -- and does not.** The evidence used 400 seeds across
+#' 18 fitted families. Tweedie evidence is incomplete: 99 of 400 intended seeds
+#' were run, and 66 of the 99 dispersion-arm fits did not converge. For the
+#' completed family scenarios, type-I error stays at or
 #' below the nominal rate (0.0025-0.025 at alpha = 0.05 across families); the
 #' underlying KS+PIT statistic is conservative, so power is understated, not
 #' overstated. `type = "quantile"` **detects** distributional shape and atom
 #' mis-specification that a family cannot reabsorb through its own free
 #' parameters -- heavy tails fit as Gaussian, overdispersion or
 #' zero-inflation ignored by a family with no free dispersion parameter,
-#' truncation ignored, a missing zero/one atom -- with gated power >= 0.8 at
+#' truncation ignored, a missing zero/one atom -- with power >= 0.8 at
 #' n = 300-400 per arm (commonly 0.9-1.0). It has a genuine **structural
 #' blind spot**, not a bug: a mis-specification that a fitted family's own
 #' free nuisance/dispersion/inflation parameter absorbs leaves the
@@ -3886,9 +4008,9 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' wrong-family detection is sample-size limited rather than structurally
 #' blind: power rises from about 0.19 at n = 300 to 0.79 at n = 1000 and 1.0
 #' at n = 3000, so that specific mis-specification needs n well above 1000 to
-#' be reliably caught. A distributional-output/adequacy tick on a family
-#' never changes or implies anything about that family's own inference-tier
-#' status; see `tests/testthat/test-dg-firewall.R`.
+#' be reliably caught. A distributional-output/adequacy result for a family
+#' does not establish interval coverage or other inferential performance for
+#' that family.
 #'
 #' @param object A `drmTMB` fit.
 #' @param type Residual type: `"response"`, `"pearson"`, or `"quantile"`.
@@ -4119,6 +4241,14 @@ residuals.drmTMB <- function(
     if (type == "response") {
       return(drm_mask_missing_response_values(object, response))
     }
+    if (drm_has_temporal_mu(object) && identical(
+      object$model$structured$temporal_mu$structure, "homtoep"
+    )) {
+      return(drm_mask_missing_response_values(
+        object,
+        temporal_homtoep_marginal_whiten(object, response)
+      ))
+    }
     if (identical(object$model$V_known_type, "matrix")) {
       return(drm_mask_missing_response_values(
         object,
@@ -4184,7 +4314,9 @@ residuals.drmTMB <- function(
 #' Student-t scale parameter; when `nu > 2`, the residual standard deviation is
 #' `sigma * sqrt(nu / (nu - 2))`. For skew-normal models this is the response
 #' standard deviation under the public moment parameterization, not the native
-#' Azzalini scale `omega`. For lognormal models this is the fitted
+#' Azzalini scale `omega`. For a Gaussian homogeneous Toeplitz temporal model,
+#' it is the total within-series standard deviation of the marginal covariance
+#' `sigma^2 R`, rather than an independent residual SD. For lognormal models this is the fitted
 #' standard deviation of `log(y)`. For Gamma models this is the fitted
 #' coefficient of variation. For Tweedie models this is the public scale
 #' parameter where internal dispersion is `phi = sigma^2`. For beta,
@@ -4254,6 +4386,13 @@ sigma.drmTMB <- function(object, ...) {
     return(predict(object, dpar = "sigma"))
   }
   if (
+    identical(object$model$model_type, "cumulative_logit") &&
+      "disc" %in% names(object$coefficients)
+  ) {
+    # Latent logistic residual scale is 1 / disc (#966).
+    return(1 / predict(object, dpar = "disc"))
+  }
+  if (
     identical(object$model$model_type, "poisson") ||
       identical(object$model$model_type, "zi_poisson") ||
       identical(object$model$model_type, "binomial") ||
@@ -4302,13 +4441,16 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' ingredients are unambiguous. Both divide by the TOTAL variance (every mu
 #' random-effect variance plus the residual variance), which is a different
 #' denominator from the `icc()`/`repeatability()` accessors (focal component
-#' variance over that component plus the residual only); see
-#' `?heritability` and `docs/design/259-heritability-icc-repeatability.md`
+#' variance over that component plus the residual only); see `?heritability`
 #' for the distinction. Both rows are computed only for Gaussian fits with an
 #' identity-link mean, where the latent, expected-data, and observed-data
 #' scales of de Villemereuil, Schielzeth, Nakagawa & Morrissey (2016,
 #' *Genetics* 204:1281-1294) coincide, so there is no separate latent- or
-#' liability-scale value to distinguish. `residual_variance` is `sigma^2`
+#' liability-scale value to distinguish. These derived rows are Gaussian-only
+#' for now: non-Gaussian fits get no derived variance-share row (and
+#' `heritability()`, `icc()` and `repeatability()` refuse them); see
+#' `docs/design/275-repeatability-scale-and-residual-variance.md`.
+#' `residual_variance` is `sigma^2`
 #' when `sigma`'s fixed part reduces to a single log-link intercept; when
 #' `sigma` additionally carries an ordinary random intercept, or a
 #' phylogenetic random intercept with a unit-diagonal correlation (the
@@ -4324,8 +4466,7 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' closed-form marginal residual variance here and is
 #' refused (a `residual_variance.message` attribute on the empty result names
 #' the reason, and is also shown under the (empty) derived table when
-#' printed); see
-#' `docs/design/275-repeatability-scale-and-residual-variance.md`. Derived
+#' printed). Derived
 #' confidence intervals are marked as unavailable until a nonlinear interval
 #' method is implemented.
 #' The derived table's `residual_sd` column is `sqrt(residual_variance)` --
@@ -4380,11 +4521,11 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #'
 #' @return An object of class `summary.drmTMB`.
 #'
-#' @seealso The tier definitions and per-cell evidence behind these interval
-#'   targets, including random-effect standard-deviation rows, are curated in
-#'   \code{vignette("capability-and-limits", package = "drmTMB")}: `summary()`
-#'   computes intervals generically for any target, and the tier a given cell
-#'   belongs to is a documentation-level curation, not a runtime guard.
+#' @seealso The model-specific evidence behind these interval targets, including
+#'   random-effect standard-deviation rows, is summarized in
+#'   \code{vignette("capability-and-limits", package = "drmTMB")}. `summary()`
+#'   can compute intervals for targets whose coverage has not been measured, so a
+#'   successful computation is not by itself evidence of calibrated coverage.
 #'   The optional \pkg{emmeans} package can compute estimated marginal means
 #'   from supported fixed-effect `drmTMB` fits using the package registration
 #'   installed at load time.
@@ -4431,6 +4572,13 @@ summary.drmTMB <- function(
   validate_summary_trace(trace)
   validate_profile_level(level)
   method <- validate_interval_method(method, c("wald", "profile"), "summary()")
+  if (drm_has_temporal_mu(object) && conf.int) {
+    ci_parm <- if (identical(method, "wald")) {
+      validate_temporal_wald_parm(object, ci_parm)
+    } else {
+      validate_temporal_profile_parm(object, ci_parm)
+    }
+  }
   profile_precision <- resolve_profile_precision(
     profile_precision,
     missing_arg = profile_precision_missing
@@ -4477,6 +4625,9 @@ summary.drmTMB <- function(
         profile_precision = profile_precision,
         ...
       )
+      if (drm_has_temporal_mu(object)) {
+        warn_temporal_profile_hessian(object)
+      }
       coefficient_ci <- summary_profile_coefficient_ci(
         object,
         parameter_ci,
@@ -4543,18 +4694,22 @@ summary.drmTMB <- function(
     derived = derived,
     sdpars = object$sdpars,
     corpars = object$corpars,
+    decaypars = object$decaypars,
     ordinal = object$ordinal,
     uncertainty = object$uncertainty,
     logLik = if (drm_is_mspl(object)) NA_real_ else stats::logLik(object),
     mspl = if (drm_is_mspl(object)) object$mspl else NULL,
     estimator = object$estimator,
     estimator_exact = object$estimator_exact,
+    convergence_status = convergence_status(object),
     convergence = object$opt$convergence,
+    convergence_message = object$opt$message,
     conf.int = conf.int,
     conf.level = if (conf.int) level else NA_real_,
     conf.method = if (conf.int) method else NA_character_,
     confint = ci
   )
+  out$temporal_parameters_point_only <- drm_has_temporal_mu(object)
   class(out) <- "summary.drmTMB"
   out
 }
@@ -4596,7 +4751,14 @@ print.summary.drmTMB <- function(x, ...) {
     }
   } else {
     uncertainty <- drm_uncertainty_status(x)
-    if (!identical(uncertainty, "ok")) {
+    temporal_wald_deferred <- is.data.frame(x$coefficients) &&
+      "std_error.status" %in% names(x$coefficients) &&
+      any(x$coefficients$std_error.status == "temporal_wald_unqualified")
+    if (temporal_wald_deferred) {
+      cli::cli_text(
+        "standard errors: unavailable; OU coefficient table is point estimates only (OU Wald inference is deferred pending the inherited AR1 calibration prerequisite)"
+      )
+    } else if (!identical(uncertainty, "ok")) {
       cli::cli_text(
         "standard errors: unavailable; coefficient and parameter tables are point estimates only ({drm_uncertainty_message(x)})"
       )
@@ -4608,6 +4770,11 @@ print.summary.drmTMB <- function(x, ...) {
       "Distributional, random-effect, scale, and correlation parameters:"
     )
     print(drm_summary_print_parameters(x$parameters))
+    if (isTRUE(x$temporal_parameters_point_only)) {
+      cli::cli_text(
+        "Temporal fit: sigma, SD, persistence, decay, and lag-correlation rows are point estimates only; their standard errors are withheld."
+      )
+    }
   }
   if (is.data.frame(x$covariance) && nrow(x$covariance) > 0L) {
     cli::cli_text("Random-effect covariance summaries:")
@@ -4666,7 +4833,24 @@ print.summary.drmTMB <- function(x, ...) {
   } else {
     cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
   }
-  cli::cli_text("convergence: {x$convergence}")
+  if (!is.null(x$convergence_status)) {
+    cli::cli_text("convergence_status: {x$convergence_status}")
+  }
+  convergence_label <- drm_convergence_label(
+    x$convergence,
+    x$convergence_message
+  )
+  if (is.null(convergence_label)) {
+    cli::cli_text("convergence: {x$convergence}")
+  } else {
+    cli::cli_text(
+      "convergence: {x$convergence} (not converged; {convergence_label}; see {.fn check_drm})"
+    )
+    cli::cli_warn(
+      "The fit did not converge: {convergence_label}. Treat estimates and standard errors with caution.",
+      class = "drmTMB_convergence_warning"
+    )
+  }
   invisible(x)
 }
 
@@ -4722,7 +4906,14 @@ drm_summary_coefficients <- function(object) {
     attr(out, "std_error.message") <- conditionMessage(vcov)
     return(out)
   }
-  variances <- diag(vcov)
+  variances <- rep(NA_real_, length(est))
+  if (drm_has_temporal_mu(object)) {
+    matched <- match(labels, rownames(vcov))
+    available <- !is.na(matched)
+    variances[available] <- diag(vcov)[matched[available]]
+  } else {
+    variances <- diag(vcov)
+  }
   se <- rep(NA_real_, length(variances))
   ok <- is.finite(variances) & variances >= 0
   se[ok] <- sqrt(variances[ok])
@@ -5210,7 +5401,8 @@ drm_summary_direct_parameters <- function(object) {
       "distributional-scale",
       "residual-correlation",
       "random-effect-sd",
-      "random-effect-correlation"
+      "random-effect-correlation",
+      "temporal-decay"
     )
   targets <- targets[keep, , drop = FALSE]
   if (nrow(targets) == 0L) {
@@ -5234,6 +5426,15 @@ drm_summary_direct_parameters <- function(object) {
     stringsAsFactors = FALSE,
     check.names = FALSE
   )
+  temporal <- object$model$structured$temporal_mu
+  if (is.list(temporal) && isTRUE(temporal$has) &&
+      identical(temporal$structure, "homtoep")) {
+    toeplitz_rows <- out$dpar == "temporal" &
+      out$component == "random-effect-correlation"
+    out$component[toeplitz_rows] <- "temporal-correlation"
+    out$profile_ready[toeplitz_rows] <- FALSE
+    out$profile_note[toeplitz_rows] <- "toeplitz_correlation_intervals_deferred"
+  }
   row.names(out) <- NULL
   out
 }
@@ -5314,6 +5515,11 @@ drm_summary_add_parameter_standard_errors <- function(object, parameters) {
   if (nrow(parameters) == 0L || !drm_has_sdreport_covariance(object)) {
     return(summary_parameter_order_columns(parameters))
   }
+  if (drm_has_temporal_mu(object)) {
+    # Temporal fits report sigma, SD, persistence, and decay as point
+    # estimates only; their uncertainty is not qualified.
+    return(summary_parameter_order_columns(parameters))
+  }
 
   targets <- drm_profile_targets(object)
   matched <- match(parameters$parm, targets$parm)
@@ -5325,6 +5531,9 @@ drm_summary_add_parameter_standard_errors <- function(object, parameters) {
       next
     }
     target <- targets[target_row, , drop = FALSE]
+    if (identical(target$target_class[[1L]], "temporal-decay")) {
+      next
+    }
     if (!identical(target$target_type[[1L]], "direct")) {
       next
     }
@@ -5596,6 +5805,7 @@ interval_status_from_profile_note <- function(profile_ready, profile_note) {
     derived_target = "derived_interval_unavailable",
     derived_unstructured_correlation = "derived_interval_unavailable",
     fitted_range_only = "target_unavailable",
+    temporal_nonmean_intervals_deferred = "temporal_nonmean_intervals_deferred",
     profile_note
   )
 }
@@ -5952,7 +6162,7 @@ drm_prediction_matrix <- function(object, newdata, dpar) {
   }
   if (
     identical(object$model$model_type, "cumulative_logit") &&
-      identical(dpar, "mu")
+      dpar %in% c("mu", "disc")
   ) {
     return(ordinal_mu_model_matrix(object$model$terms[[dpar]], newdata))
   }
@@ -6380,6 +6590,9 @@ ordinal_category_probabilities <- function(object, newdata = NULL, eta = NULL) {
     byrow = TRUE
   ) -
     eta
+  if ("disc" %in% names(object$coefficients)) {
+    z <- z * predict(object, newdata = newdata, dpar = "disc")
+  }
   log_cumulative <- stats::plogis(z, log.p = TRUE)
   log_prob <- matrix(NA_real_, nrow = n, ncol = n_categories)
   log_prob[, 1L] <- log_cumulative[, 1L]
@@ -6598,7 +6811,7 @@ drm_dpar_link <- function(object, dpar) {
     ),
     beta_binomial = c(mu = "logit", sigma = "log"),
     binomial = c(mu = if (is.null(object$model$link)) "logit" else object$model$link),
-    cumulative_logit = c(mu = "identity"),
+    cumulative_logit = c(mu = "identity", disc = "log"),
     poisson = c(mu = "log"),
     zi_poisson = c(mu = "log", zi = "logit"),
     nbinom2 = c(mu = "log", sigma = "log"),
@@ -6664,6 +6877,7 @@ coefficient_labels <- function(object) {
 
 has_mu_random_effects <- function(object) {
   has_ordinary_mu_random_effects(object) ||
+    drm_has_temporal_mu(object) ||
     (has_structured_mu_effect(object) &&
       any(sub("[0-9]+$", "", phylo_mu_endpoint_dpars(
         object$model$structured$phylo_mu
@@ -6707,6 +6921,7 @@ has_structured_mu_effect <- function(object) {
 n_mu_random_effect_terms <- function(object) {
   length(object$model$random$mu$labels) +
     n_mu_covariance_block_random_effect_terms(object) +
+    as.integer(drm_has_temporal_mu(object)) +
     if (has_structured_mu_effect(object) &&
       any(sub("[0-9]+$", "", phylo_mu_endpoint_dpars(
         object$model$structured$phylo_mu
@@ -7582,7 +7797,8 @@ drm_ordinary_random_effect_draws <- function(object) {
   has_structured <- isTRUE(object$model$structured$phylo_mu$has) ||
     isTRUE(object$model$structured$phylo_mu2$has) ||
     isTRUE(object$model$structured$mesh_spatial_mu$has)
-  if (!has_mu && !has_sig && !has_structured) {
+  has_temporal <- drm_has_temporal_mu(object)
+  if (!has_mu && !has_sig && !has_structured && !has_temporal) {
     return(out)
   }
   mu_latent <- NULL
@@ -7653,6 +7869,10 @@ drm_ordinary_random_effect_draws <- function(object) {
         out[[dpar]] + structured_draws[[dpar]]
       }
     }
+  }
+  if (has_temporal) {
+    temporal_draw <- drm_fresh_temporal_mu_values(object)
+    out$mu <- if (is.null(out$mu)) temporal_draw else out$mu + temporal_draw
   }
   out
 }

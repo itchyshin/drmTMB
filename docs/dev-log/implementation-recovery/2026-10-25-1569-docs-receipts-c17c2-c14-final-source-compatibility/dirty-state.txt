@@ -1,0 +1,12 @@
+M NEWS.md
+M R/drmTMB.R
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/dirty-state.txt
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/provenance.tsv
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/raw-attempts.tsv
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/summary.tsv
+M man/drmTMB.Rd
+M tests/testthat/test-julia-admission-docs.R
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.pre-recertify/dirty-state.txt
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.pre-recertify/provenance.tsv
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.pre-recertify/raw-attempts.tsv
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.pre-recertify/summary.tsv

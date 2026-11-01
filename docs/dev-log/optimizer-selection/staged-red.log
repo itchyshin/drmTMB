@@ -1,0 +1,82 @@
+optimizer-selection: ...................................................................................................................................................................................................123...4567...89ab...cdef...g..hijk.lm
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-optimizer-selection.R:247:5'): staged-fit metrics report di
+Expected `metrics$optimizer_method` to be identical to `method`.
+Differences:
+`actual` is NULL
+`expected` is a character vector ('BFGS')
+
+
+── 2. Failure ('test-optimizer-selection.R:248:5'): staged-fit metrics report di
+Expected `metrics$maxit` to be identical to 7.
+Differences:
+`actual` is NULL
+`expected` is a double vector (7)
+
+
+── 3. Failure ('test-optimizer-selection.R:249:5'): staged-fit metrics report di
+Expected `metrics$optimizer_selected_attempt` to be identical to `method`.
+Differences:
+`actual`:   NA
+`expected`: "BFGS"
+
+
+── 4. Failure ('test-optimizer-selection.R:253:5'): staged-fit metrics report di
+Expected `metrics$budget_status` to be identical to "iteration_budget_reached".
+Differences:
+`actual`:   "nonconverged_before_budget_or_unknown"
+`expected`: "iteration_budget_reached"
+
+
+── 5. Failure ('test-optimizer-selection.R:247:5'): staged-fit metrics report di
+Expected `metrics$optimizer_method` to be identical to `method`.
+Differences:
+`actual` is NULL
+`expected` is a character vector ('L-BFGS-B')
+
+
+── 6. Failure ('test-optimizer-selection.R:248:5'): staged-fit metrics report di
+Expected `metrics$maxit` to be identical to 7.
+Differences:
+`actual` is NULL
+`expected` is a double vector (7)
+
+
+── 7. Failure ('test-optimizer-selection.R:249:5'): staged-fit metrics report di
+Expected `metrics$optimizer_selected_attempt` to be identical to `method`.
+Differences:
+`actual`:   NA
+`expected`: "L-BFGS-B"
+
+
+── 8. Failure ('test-optimizer-selection.R:253:5'): staged-fit metrics report di
+Expected `metrics$budget_status` to be identical to "iteration_budget_reached".
+Differences:
+`actual`:   "nonconverged_before_budget_or_unknown"
+`expected`: "iteration_budget_reached"
+
+
+── 9. Failure ('test-optimizer-selection.R:247:5'): staged-fit metrics report di
+Expected `metrics$optimizer_method` to be identical to `method`.
+Differences:
+`actual` is NULL
+`expected` is a character vector ('Nelder-Mead')
+
+
+── 10. Failure ('test-optimizer-selection.R:248:5'): staged-fit metrics report d
+Expected `metrics$maxit` to be identical to 7.
+Differences:
+`actual` is NULL
+`expected` is a double vector (7)
+
+  ... and 12 more
+
+
+Maximum number of 10 failures reached, some test results may be missing.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

@@ -111,7 +111,7 @@ test_that("Beta-binomial sigma SD regression recovers a group-level trend", {
   expect_equal(sigma_link, fixed_sigma + sigma_re, tolerance = 1e-8)
   expect_equal(sigma(fit), exp(sigma_link), tolerance = 1e-8)
 
-  simulated <- simulate(fit, nsim = 2L, marginal = TRUE, seed = 20261025L)
+  simulated <- simulate(fit, nsim = 2L, re.form = NA, seed = 20261025L)
   expect_equal(nrow(simulated), nrow(sim$data))
   expect_equal(ncol(simulated), 2L)
 
@@ -215,7 +215,7 @@ test_that("Beta-binomial sigma SD regression recovers an independent slope", {
   )
   expect_true(all(is.finite(sigma(fit))))
 
-  simulated <- simulate(fit, nsim = 1L, marginal = TRUE, seed = 20261030L)
+  simulated <- simulate(fit, nsim = 1L, re.form = NA, seed = 20261030L)
   expect_equal(nrow(simulated), nrow(dat))
   expect_equal(ncol(simulated), 1L)
 

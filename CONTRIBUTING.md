@@ -30,4 +30,12 @@ devtools::test()
 devtools::check()
 ```
 
+Regenerate documentation with exactly roxygen2 7.3.2, the version recorded as
+`RoxygenNote` in `DESCRIPTION` (decision of 25 October 2026, issue #1140). Do
+not regenerate `man/*.Rd` or `NAMESPACE` with a newer roxygen2, and do not bump
+`RoxygenNote`: a newer version rewrites many unrelated help files. Check the
+installed version first with `packageVersion("roxygen2")`; if it differs,
+install 7.3.2 (for example `remotes::install_version("roxygen2", "7.3.2")`)
+before running `devtools::document()`.
+
 Long simulation studies should live outside CRAN-time tests.

@@ -73,15 +73,15 @@ observation covariance when a dense bivariate known \code{V} was supplied.
 
 \code{type = "quantile"} returns Dunn-Smyth randomized quantile residuals from
 \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}: \verb{qnorm(F(y; theta_hat))} at the fitted,
-fixed-effect distributional parameters. As of DO-T3 batch D, all 18 fitted
-\code{model_type} values have a promoted entry in \code{\link[=drm_family_dpq]{drm_family_dpq()}}, so
+fixed-effect distributional parameters. All 18 currently fitted
+\code{model_type} values have \code{status = "reference"} in \code{\link[=drm_family_dpq]{drm_family_dpq()}}, so
 \code{type = "quantile"} is available for every family, including bivariate
 \code{biv_gaussian} (where \code{response} -- \code{1} or \code{2} -- is REQUIRED and selects
 which response's MARGINAL residuals to compute; omitting it errors
 clearly, as does supplying it for a univariate fit; see
-\code{\link[=fitted_distribution]{fitted_distribution()}}). Spike-status families (feasibility-only, not yet
-DG2/DG3-verified) emit a one-time warning that the residual is
-exploratory, not DG-verified; none currently have this status. See
+\code{\link[=fitted_distribution]{fitted_distribution()}}). Families whose distributional
+diagnostics have not been evaluated by simulation emit a one-time warning
+that the residual is exploratory; none currently have this status. See
 \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} for the fixed-effect-only adequacy caveat: for
 random-effect or structured fits, these residuals are conditional on the
 fixed-effect prediction, not marginal, so a departure (or its absence) is
@@ -89,19 +89,17 @@ evidence about fixed-effect adequacy only -- never a general validity
 claim. Pass \code{seed}, \code{nsim}, and/or \code{response} through \code{...} to
 \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}.
 
-\strong{What this detects -- and does not.} Evidence: a 400-seed gated
-simulation campaign across all 18 fitted families (tweedie: 99 of 400
-seeds locally, 66/99 dispersion-arm non-convergence, full run deferred to
-Totoro)
-(\verb{docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/}).
-Under a correctly specified fixed-effect model, type-I error stays at or
+\strong{What this detects -- and does not.} The evidence used 400 seeds across
+18 fitted families. Tweedie evidence is incomplete: 99 of 400 intended seeds
+were run, and 66 of the 99 dispersion-arm fits did not converge. For the
+completed family scenarios, type-I error stays at or
 below the nominal rate (0.0025-0.025 at alpha = 0.05 across families); the
 underlying KS+PIT statistic is conservative, so power is understated, not
 overstated. \code{type = "quantile"} \strong{detects} distributional shape and atom
 mis-specification that a family cannot reabsorb through its own free
 parameters -- heavy tails fit as Gaussian, overdispersion or
 zero-inflation ignored by a family with no free dispersion parameter,
-truncation ignored, a missing zero/one atom -- with gated power >= 0.8 at
+truncation ignored, a missing zero/one atom -- with power >= 0.8 at
 n = 300-400 per arm (commonly 0.9-1.0). It has a genuine \strong{structural
 blind spot}, not a bug: a mis-specification that a fitted family's own
 free nuisance/dispersion/inflation parameter absorbs leaves the
@@ -124,9 +122,9 @@ an absorbed mis-specification. Separately, \code{gamma}-vs-\code{lognormal}
 wrong-family detection is sample-size limited rather than structurally
 blind: power rises from about 0.19 at n = 300 to 0.79 at n = 1000 and 1.0
 at n = 3000, so that specific mis-specification needs n well above 1000 to
-be reliably caught. A distributional-output/adequacy tick on a family
-never changes or implies anything about that family's own inference-tier
-status; see \code{tests/testthat/test-dg-firewall.R}.
+be reliably caught. A distributional-output/adequacy result for a family
+does not establish interval coverage or other inferential performance for
+that family.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

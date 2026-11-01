@@ -31,17 +31,35 @@ test_that("Poisson slope SD keeps selector and unvalidated-combination boundarie
   expect_no_error(drm_build_poisson_spec(bf(
     y ~ x + (1 | id) + (0 + x | id), sd(id, coef = "x") ~ w
   ), dat))
-  expect_error(drm_build_poisson_spec(bf(
+  # One unlabelled correlated q2 block with a selected coefficient SD is now
+  # admitted (evidence: docs/dev-log/after-task/2026-10-27-native-poisson-
+  # correlated-q2-sd.md).
+  q2 <- drm_build_poisson_spec(bf(
     y ~ x + (1 + x | id), sd(id, coef = "x") ~ w
-  ), dat), "correlated")
+  ), dat)
+  expect_identical(q2$random_scale$mu$dpars, 'sd(id, coef = "x")')
+  expect_identical(q2$random$mu$n_cors, 1L)
   binary <- dat
   binary$y <- as.integer(binary$y > 0)
-  expect_error(drm_build_binomial_spec(bf(
+  # Binomial slope-only SD is now admitted (evidence: docs/dev-log/after-task/
+  # 2026-10-18-binomial-same-group-coefficient-sd.md and 2026-10-27-binomial-
+  # nonlogit-ordinary-slope-sd.md; fit test test-binomial-nonlogit-ordinary-
+  # slope-sd.R).
+  bin_slope <- drm_build_binomial_spec(bf(
     y ~ x + (0 + x | id), sd(id, coef = "x") ~ w
-  ), binary), "intercept")
-  expect_error(drm_build_poisson_spec(bf(
+  ), binary)
+  expect_identical(bin_slope$model_type, "binomial")
+  expect_identical(bin_slope$random_scale$mu$dpars, 'sd(id, coef = "x")')
+  expect_identical(bin_slope$random$mu$n_cors, 0L)
+  # Zero-inflated Poisson plus one independent slope with a selected SD is now
+  # admitted (evidence: docs/dev-log/after-task/2026-10-24-poisson-zi-slope-
+  # cross-engine.md). The same model without an sd() formula is still refused,
+  # which is a source inconsistency with NB2 (see report); not asserted here.
+  zi_slope <- drm_build_poisson_spec(bf(
     y ~ x + (0 + x | id), zi ~ 1, sd(id, coef = "x") ~ w
-  ), dat), "zero-inflated|zi")
+  ), dat)
+  expect_identical(zi_slope$model_type, "zi_poisson")
+  expect_identical(zi_slope$random_scale$mu$dpars, 'sd(id, coef = "x")')
   expect_error(drm_build_poisson_spec(bf(
     y ~ x + (0 + x | id), sd(id, coef = "x") ~ w
   ), dat, missing = miss_control(response = "include")), "complete data")

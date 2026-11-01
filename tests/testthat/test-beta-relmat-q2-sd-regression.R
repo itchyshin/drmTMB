@@ -174,7 +174,7 @@ test_that("Beta relmat intercept-slope SDs map both coefficient targets", {
   expect_error(drmTMB:::drm_build_beta_ls_spec(
     bf(y ~ x + relmat(1 + x | id, K = K) + (1 | other), sigma ~ 1,
        sd(id, level = "relmat", coef = "(Intercept)") ~ z0,
-       sd(id, level = "relmat", coef = "x") ~ z1), bad), "no other random")
+       sd(id, level = "relmat", coef = "x") ~ z1), bad), "cannot yet be combined with an ordinary")
 })
 
 test_that("Beta relmat coefficient SD extraction preserves latent values", {

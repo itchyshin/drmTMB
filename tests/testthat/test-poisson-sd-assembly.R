@@ -135,9 +135,17 @@ test_that("Poisson SD keeps zi, correlated-block, structure, and mi fences", {
   dat <- poisson_sd_fixture(groups = 12L, repeats = 4L)$data
   expect_error(drm_build_poisson_spec(bf(y ~ x, sd(id) ~ w), dat),
                "matching Poisson")
+  # One unlabelled correlated q2 block with a selected coefficient SD is now
+  # admitted (evidence: docs/dev-log/after-task/2026-10-27-native-poisson-
+  # correlated-q2-sd.md; fit tests in test-poisson-correlated-q2-sd.R).
+  q2_spec <- drm_build_poisson_spec(bf(y ~ x + (1 + x | id),
+                                       sd(id, coef = "x") ~ w), dat)
+  expect_identical(q2_spec$model_type, "poisson")
+  expect_identical(q2_spec$random_scale$mu$dpars, 'sd(id, coef = "x")')
+  expect_identical(q2_spec$random$mu$n_cors, 1L)
+  # A bare sd(id) stays ambiguous for the two-coefficient block.
   expect_error(drm_build_poisson_spec(bf(y ~ x + (1 + x | id),
-                                       sd(id, coef = "x") ~ w), dat),
-               "correlated")
+                                       sd(id) ~ w), dat), "Ambiguous")
   dat$site <- factor(rep(seq_len(6L), length.out = nrow(dat)))
   expect_error(drm_build_poisson_spec(bf(
     y ~ x + (1 | id) + (0 + x | site), sd(id) ~ w

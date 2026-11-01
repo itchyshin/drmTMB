@@ -1,6 +1,7 @@
 # Test files whose premise is a path .Rbuildignore removes from the
 # tarball, so R CMD check can only ever SKIP them. Derived by
 # tools/run-source-tree-tests.R --update; do not hand-edit.
+test-071-four-fixture-summary.R
 test-arc1b-s2r-relmat-q2-recovery-runner.R
 test-arc1b-spatial-q2-reml-recovery.R
 test-arc4c-drac-dispatch.R
@@ -18,15 +19,21 @@ test-beta-phylo-q1-sd-regression-runner.R
 test-beta-phylo-q1-successor-runners.R
 test-biv-lognormal-rho12-coverage-docs.R
 test-dinnage-audit-wave1.R
+test-docs-audit-semantics.R
 test-estimator-surface-conformance.R
 test-function-map-cheatsheet.R
+test-julia-admission-census.R
 test-julia-gate-vs-engine.R
 test-mesh-recovery-v3-contract.R
 test-missing-predictor-prediction.R
 test-nongaussian-structured-boundary.R
 test-parity-fenced-boundaries.R
+test-parity-honesty.R
 test-parity-matrix.R
+test-parity-pin.R
+test-parity-scoreboard.R
 test-phase18-actions-runner.R
+test-phylo-temporal-ou-gate-runner.R
 test-pkgdown-public-surface.R
 test-pkgdown-reference-index.R
 test-positive-continuous-structured-mu.R
@@ -39,3 +46,7 @@ test-reml-route-table.R
 test-spatial-q2-confidence-eye-contract.R
 test-structured-re-ademp-scaffold.R
 test-structured-re-conversion-contracts.R
+test-temporal-homtoep-identifiability.R
+test-temporal-homtoep-map.R
+test-temporal-homtoep-parser.R
+test-temporal-ou-profile-campaign-assessment.R

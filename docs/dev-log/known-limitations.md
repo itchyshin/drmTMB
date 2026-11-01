@@ -61,6 +61,33 @@ revisit condition.
   `(1 + x1 + x2 | id)`. Larger q blocks are advanced, sample-size hungry fits;
   q > 2 SDs are direct profile targets, but q > 2 correlations are not direct
   profile interval targets yet.
+- The first temporal route is univariate Gaussian ML only:
+  `temporal(1 | id, time = occasion, structure = "ar1")` and
+  `temporal(1 | id, time = elapsed, structure = "ou")` fit one stationary
+  temporal intercept process with genuine gaps (integer for AR1, numeric for OU), constant
+  residual `sigma`, and optionally one same-ID ordinary `(1 | id)` intercept.
+  It rejects duplicate ID--occasion keys, weights other than one, REML,
+  non-Gaussian families, temporal slopes, additional random effects, and other
+  structured terms. Wald intervals and `vcov()` cover mean coefficients only
+  when the full observed Hessian is positive definite; temporal SD,
+  persistence, ordinary-intercept SD, and residual-SD intervals, forecasting,
+  and `newdata` prediction remain unsupported. The final-source five-seed
+  pilot had 4/5 interval availability in primary C1, so AR1 has no coverage
+  or scientific-interval calibration claim yet. Both structures provide
+  fixed-`mu` profile intervals with an irregular-Hessian warning. A retained
+  3,000-fit OU campaign qualified those profiles in the exact U1--U3 cells;
+  it is not a general temporal coverage claim. OU blocks Wald covariance and
+  Wald intervals until the shared AR1 calibration prerequisite is resolved.
+  The paired `phylo(1 | species, tree = tree) + temporal(1 | species,
+  time = elapsed, structure = "ou")` Gaussian ML route is a separate,
+  point-fit development slice: it separates a stable tree-correlated species
+  intercept from independent within-species OU deviations. Its dense-likelihood,
+  methods, and fixed-mean profile identities pass. Its retained 24-fixture
+  recovery study missed the fixed-effect error threshold; the replacement G9b
+  study (24 contrast fixtures plus 300 trees) met its point-recovery criteria.
+  It has no qualified interval, forecast, `newdata`, variance, or
+  decay-inference claim; interval-calibration gates G10--G13 have not run. It is not the future
+  separable phylogeny-by-OU field.
 - Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
   unlabelled location (`mu`) random intercept (`mc-0060`) or independent
   slope (`mc-0062`). Its joint-Laplace result and uncertainty agree with the
@@ -174,7 +201,26 @@ revisit condition.
   `miss_control(predictor = "model")` fits one explicit `mi()` missing
   predictor at a time in univariate Gaussian location models, with fixed-effect
   family-aware predictor models plus the grouped and structured Gaussian
-  covariate routes. Poisson, binomial, NB2, and beta response models separately
+  covariate routes.   Beta and zero-one-Beta `mi()` use the frozen 15-node
+  Gauss-Legendre rule; U-shaped Beta (`mu` 0.02 or 0.10 with `sigma = 1`)
+  still has an `integrate()` logLik error of about `1.64e-2` (refs #1476).
+  The worse U-shaped case with Beta shapes `(0.13, 0.31)` and `y` near
+  the 0 pole is about `0.54` log units (#1531 cites `1.6e-2`, which
+  understates that pole case). A successful TMB fit now warns with
+  class `drmTMB_mi_quadrature_inaccurate` when any `mi()` term's
+  estimated missing-row Beta / zero-one-Beta prior mean is within
+  `0.10` of 0 or 1 (15-node error `4.65e-3` at `mu = 0.10`, `sigma = 1`
+  and `4.81e-3` at `mu = 0.02`, `sigma = 1`). Gamma `mi()` uses a posterior-mode
+  sinh-mapped trapezoid rule on `log(x)` at every CV. Against a log-space
+  `integrate()` reference the per-row logLik error is under `1e-4` for
+  Gaussian responses at CV 0.05 to 2 (worst `2.5e-5`, near the mode at
+  CV 2) and for Poisson responses at CV 0.2 to 2 with `y` = 0, 1, 4, 30.
+  Still open (refs #1477): CV `>= 3` (12% of an 80-row random `(mu, y)`
+  scan exceed `1e-4`, worst `1.47`; the same classed warning fires at
+  fitted CV `>= 3`),
+  and a Poisson response whose mean at the prior mean is far above `y`
+  (`exp(eta)` at `x = mu` of about `1e3` or more), where five Newton steps
+  stop short of the mode; twelve steps recover the moderate cases. Poisson, binomial, NB2, and beta response models separately
   support one fixed-effect binary `mi()` predictor when the response is
   complete. Beta-binomial masking requires a complete success/failure pair per
   observed row; cumulative-logit masking requires an ordered factor and every
@@ -586,7 +632,9 @@ revisit condition.
   block, REML, missing-response, labelled, or mixed `(1 | g) + (1 + x | g)`
   neighbours. Non-logit links, factor response ordering, proportions plus
   `weights`, `weights = trials`, labelled or multiple correlated random slopes, structured effects,
-  bivariate or mixed responses, and `engine = "julia"` remain unsupported.
+  bivariate or mixed responses, and random-effect or structured
+  `engine = "julia"` binomial remain unsupported. The Julia engine admits
+  fixed-effect binomial only.
   Experimental `estimator = "mspl"` is narrower still: one q=1 or q=2 ordinary
   block, full-rank dense fixed design, finite offsets, and positive integer
   frequency weights. Its point estimates and predictions are locally tested;
@@ -715,6 +763,12 @@ revisit condition.
   release-tag full-OS-matrix check is not red on these recovery-grade
   diagnostics. This is a property of the estimator near the boundary, not a
   defect in the shipped fixed-effect / inference-ready surface.
+  For the nbinom2 file specifically, the gate stays until Windows is
+  measured. The cross-platform failure in #1444 is resolved: it was the TEST
+  DATA, not the optimizer. `MASS::mvrnorm()` draws through `eigen()`, so the
+  same seed gave different data on macOS and Linux; the generator now draws
+  through `chol()`, and data and fitted gains are identical on both platforms
+  over 32 seeds per case.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now
@@ -872,3 +926,23 @@ revisit condition.
   repeated Gaussian rows, and repeated large phylogenetic benchmark runs beyond
   the initial optional harness in
   `bench/large-phylo-location.R`.
+- Fixed-effect binomial, Poisson, and NB2 fits, and continuous
+  location-scale fits whose scale predictor drives an exactly fitted
+  observation onto the lower `log(sigma)` clamp, now return
+  `convergence_status() = "degenerate"` and a warning-level
+  `check_drm()` `mle_existence` row when the screened geometry has no
+  finite maximum-likelihood estimate (Albert and Anderson 1984; Konis
+  2007; Haberman 1974; Santos Silva and Tenreyro 2010). The screen does
+  not change point estimates or `vcov()`. Random-effect, phylogenetic,
+  `mi()` predictor, and MSPL routes are not screened. Zero-inflated
+  Poisson is not screened, because a zero can come from the inflation
+  process rather than the count cone. Both engines now expose
+  `convergence_status()` ∈ {converged, boundary, degenerate} with the
+  numeric cuts in `docs/design/278-twin-convergence-status.md`.
+  `is_converged()` / `converged()` are `TRUE` only for `"converged"`.
+  On the 750-fit t4 grid the engines now agree on the boolean in 716/750
+  fits (was 512/750 on pin `ca3ddefa` / `f71b292`) and on the
+  three-valued status in 689/750. The remaining 61 status disagreements
+  are Julia `g_tol` / pseudo-inverse SEs versus R `nlminb` / Hessian
+  screens (`docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`;
+  #1554).

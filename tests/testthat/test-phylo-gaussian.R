@@ -1933,7 +1933,7 @@ test_that("phylogenetic mu terms participate in missingness and validation", {
       family = gaussian(),
       data = sim$data
     ),
-    "scale formulas with structured slopes"
+    "Structured random-effect scale formulas currently require one structured coefficient"
   )
   expect_error(
     drmTMB(

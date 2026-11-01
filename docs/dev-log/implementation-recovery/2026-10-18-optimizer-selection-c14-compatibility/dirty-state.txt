@@ -1,0 +1,6 @@
+M docs/dev-log/optimizer-selection/2026-10-18-check-log.md
+M docs/dev-log/optimizer-selection/check-layout-green.log
+M docs/dev-log/optimizer-selection/legacy-diagnostic-red.log
+M docs/dev-log/optimizer-selection/rcmdcheck-first.log
+M docs/dev-log/optimizer-selection/staged-red.log
+M docs/dev-log/optimizer-selection/test-red.log

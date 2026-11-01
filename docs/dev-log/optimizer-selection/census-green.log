@@ -1,0 +1,25 @@
+env-skip census up to date: 874 skip call sites
+
+
+                      depends runs skips
+  build-premise             0    0    67
+  cran-lane                 0  130     0
+  engine-drm-jl             0    0   130
+  env-var-optin             0    0    10
+  external-tool             0   22     0
+  history-premise           0    0     1
+  locale                    8    0     0
+  os                        0   12     0
+  platform-numeric          3    0     0
+  runtime-conditional      17    0     0
+  suggests-package          0  474     0
+
+874 skip call sites total
+  786 environment-axis (the runner could satisfy them)
+  68 build-axis (only the build can satisfy them -- PR #1222)
+  20 runtime-axis (the run's own data decides)
+
+140 ENVIRONMENT-PERMANENT sites: the drmTMB CI runner never satisfies
+these, in 51 test files. They are as permanent as a build skip.
+  engine-drm-jl    130 sites in 46 files
+  env-var-optin     10 sites in  5 files

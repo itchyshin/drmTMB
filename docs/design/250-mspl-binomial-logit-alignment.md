@@ -135,7 +135,11 @@ Bernoulli count.  The q1 unweighted Bernoulli case has `f_i = m_i = 1` and
 reduces to the paper's `n`.  Grouping, finite fixed offsets, and integer
 frequency replication are algebraic extensions of the logit likelihood; this
 is not an asymptotic proof for arbitrary survey or fractional
-pseudo-likelihoods.
+pseudo-likelihoods.  The paper's `n` counts observations, so `n_eff`
+matches it only for unweighted single-trial Bernoulli data. Grouped binomial
+counts and integer frequency weights are already accepted; the paper does not
+license their scaling, so it is an algebraic extension, not a result the paper
+proves.
 
 At `beta = 0`, the grouped fixed-only information is
 

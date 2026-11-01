@@ -28,8 +28,7 @@
 #' location-scale model whose four axes `mu1`, `mu2`, `sigma1`, `sigma2` share
 #' one structured random effect (`phylo()`, `animal()`, `relmat()`, or
 #' `spatial()`) with a dense 4 x 4 among-axis covariance `Sigma_a`. They are
-#' ported term-for-term from `DRM.jl`'s `src/coevo_accessors.jl` (#1118) and
-#' return the same quantities:
+#' defined for the following quantities:
 #'
 #' * `coevolution_cor()`: the 4 x 4 among-axis **correlation** matrix
 #'   `R = D^{-1/2} Sigma_a D^{-1/2}`. Its off-diagonals are the coevolutionary
@@ -96,7 +95,7 @@
 #' \donttest{
 #' if (requireNamespace("ape", quietly = TRUE)) {
 #'   set.seed(1)
-#'   n_tip <- 16L
+#'   n_tip <- 64L
 #'   tree <- ape::compute.brlen(ape::stree(n_tip, type = "balanced"), 1)
 #'   tree$tip.label <- paste0("t", seq_len(n_tip))
 #'   C <- ape::vcv(tree, corr = TRUE)
@@ -104,7 +103,7 @@
 #'     matrix(c(1, 0.6, 0, 0, 0.6, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), 4) %*%
 #'     diag(c(0.8, 0.7, 0.4, 0.4))
 #'   A <- t(chol(C)) %*% matrix(rnorm(n_tip * 4), n_tip, 4) %*% chol(Sigma_a)
-#'   rows <- rep(seq_len(n_tip), each = 4)
+#'   rows <- rep(seq_len(n_tip), each = 8)
 #'   x <- rnorm(length(rows))
 #'   dat <- data.frame(
 #'     species = tree$tip.label[rows],

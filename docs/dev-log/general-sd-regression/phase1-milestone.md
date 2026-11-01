@@ -161,3 +161,28 @@ spatial, NB2 relmat/spatial, Gaussian structured providers); the receipt schema
 is uneven; and the plausible items (Gaussian sigma-endpoint untested mixes,
 slope-only structured terms under `miss_control(response = "include")`,
 unit-diagonal K fixtures, Poisson correlated q2 tolerance 0.5).
+
+## Decision during the origin/main merge: what `log_sd_mu_group` reports
+
+Two tests pinned opposite contracts for the TMB report `log_sd_mu_group`. The lane
+(2026-10-18, `test-zi-poisson-sd-regression.R`) stored the soft-clamped value so
+the report matched predictions. Main (63a703e61, `test-arc-d-sd-overflow-guard.R`)
+needs the raw linear predictor, because the R fit-time clamp-hit check
+(`R/drmTMB.R`, the `log_sd_mu_group` field scan) fires only when a reported value
+leaves the clamp band; a soft-clamped value never does, so under the lane's
+version that warning could never fire for SD regression.
+
+Decision: main's contract. All 18 C++ branches now store the raw value in
+`log_sd_mu_group` and apply `drm_softclamp_log_sd()` inside `sd_mu_group`; the one
+likelihood read of `log_sd_mu_group` (the Poisson branch `log_sd` term) applies the
+clamp explicitly, so fitted likelihoods are unchanged. The ZIP test now asserts the
+raw report and the clamped SD and predictions. Checked: arc-d, ZIP, Gaussian
+random-effect scale, Poisson correlated q2, NB2, Gamma, Gamma correlated q2, Poisson
+iid plus structured, Binomial SD integration and lognormal location-scale files pass.
+
+Open inconsistency found during the merge (pre-existing, not changed): a
+zero-inflated Poisson model with one independent `mu` slope builds only when an
+`sd()` formula is present (`allow_zero_inflated_independent_slope` in
+`drm_build_poisson_spec` requires `length(sd_mu_entries) > 0L`), while NB2 admits it
+without one. The shared refusal message says the slope is supported. Fixing it
+needs fit evidence for the plain zero-inflated Poisson slope first.

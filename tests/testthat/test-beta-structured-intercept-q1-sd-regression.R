@@ -149,7 +149,7 @@ test_that("Beta q1 structured-intercept SD specs admit only complete independent
     "intercept-only or intercept-plus-one-slope")
   expect_error(drmTMB:::drm_build_beta_ls_spec(
     bf(y ~ x + spatial(1 | id, coords = coords) + (1 | id), sigma ~ 1,
-       sd(id, level = "spatial") ~ z), spatial$data), "no other random")
+       sd(id, level = "spatial") ~ z), spatial$data), "cannot yet be combined with an ordinary")
   expect_error(drmTMB:::drm_build_beta_ls_spec(
     bf(y ~ x + spatial(1 | p | id, coords = coords), sigma ~ 1,
        sd(id, level = "spatial") ~ z), spatial$data), "unlabelled")

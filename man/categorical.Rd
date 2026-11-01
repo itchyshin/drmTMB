@@ -15,7 +15,7 @@ categorical predictor used inside \code{\link[=mi]{mi()}}. It is currently a pre
 family for \code{\link[=impute_model]{impute_model()}}, not a response family for \code{\link[=drmTMB]{drmTMB()}}.
 }
 \details{
-The first fitted route is fixed-effect and uses the first factor level as
+The supported model is fixed-effect and uses the first factor level as
 the baseline category. Missing predictor values are integrated by exact
 summation over the unordered levels.
 }

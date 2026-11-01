@@ -12,44 +12,67 @@ spatial(term, coords = NULL, mesh = NULL)
 \item{coords}{Coordinate object, such as a data frame or matrix of spatial
 coordinates.}
 
-\item{mesh}{Precomputed \code{drmTMBmesh} object created by \code{\link[=make_mesh]{make_mesh()}}.}
+\item{mesh}{A fixed-kappa mesh object from \code{\link[=make_mesh]{make_mesh()}}. Fitted only for the
+univariate Gaussian \code{mu} intercept with \code{sigma ~ 1} and the native Binomial
+\code{mu} spatial intercept or slope routes; see Description.}
 }
 \value{
 A formula marker; never evaluated by users.
 }
 \description{
-\code{spatial()} marks structured spatial dependence. The first fitted path is
+\code{spatial()} marks structured spatial dependence. The supported base model is
 the univariate Gaussian location random intercept
 \code{spatial(1 | site, coords = coords)}, where \code{coords} is a matrix or data
 frame with one row per site or one row per observation. The univariate
 Gaussian location path also supports one numeric slope,
 \code{spatial(1 + x | site, coords = coords)}, as independent intercept and slope
 fields with separate SDs and no intercept-slope correlation. Matching
-labelled bivariate Gaussian \code{mu1}/\code{mu2} terms fit the first q=2
+labelled bivariate Gaussian \code{mu1}/\code{mu2} terms fit the supported q=2
 coordinate-spatial location covariance, matching univariate Gaussian \code{mu} and
 \code{sigma} intercept terms fit one spatial mean-scale correlation, and matching
-labelled all-four \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} terms fit the first constant
+labelled all-four \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} terms fit the supported constant
 q=4 location-scale block. Fitted non-Gaussian spatial routes cover the
 univariate student \code{mu} q=1 intercept or one-slope, ordinary Poisson and NB2
 \code{mu} q=1 intercepts or one-slopes, zero-inflated Poisson \code{zi} q=1 intercept,
 and the NB2 \code{sigma} q=1 one-slope, all at recovery grade: trust the point
-estimate, not the interval. Mesh inputs, multiple structured slopes,
-residual-scale structured slopes beyond the NB2 one-slope gate, slope
-correlations, and predictor-dependent spatial \code{corpair()} regression remain
-planned. The fixed-kappa mesh route supports a univariate Gaussian \code{mu}
-intercept with \code{sigma ~ 1}, plus native Binomial \code{mu} spatial intercepts
-across logit, probit, and complementary log-log links. Native Binomial mesh
-slopes also support coefficient-specific predictor-dependent SD formulas
-for logit, probit, and complementary log-log links,
-for example \code{spatial(0 + x | site, mesh = mesh)} with
+estimate, not the interval.
+}
+\details{
+A precomputed mesh from \code{\link[=make_mesh]{make_mesh()}} is fitted for two routes only, with
+kappa fixed at the value given to \code{\link[=make_mesh]{make_mesh()}}. The first is a univariate
+Gaussian, unlabelled \code{mu} intercept with constant residual scale,
+\code{bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)}; its point estimates
+have recovery evidence for the tested designs, and intervals, coverage, and
+the spatial range are not claimed. The second is the native Binomial \code{mu}
+spatial intercept across logit, probit, and complementary log-log links.
+Native Binomial mesh slopes also support coefficient-specific
+predictor-dependent SD formulas for logit, probit, and complementary log-log
+links, for example \code{spatial(0 + x | site, mesh = mesh)} with
 \code{sd(site, level = "spatial", coef = "x") ~ z}. All three links have focused
 point-recovery checks; the logit route also has output-workflow checks. No
-interval-coverage or Julia parity claim is made.
+interval-coverage or Julia parity claim is made. Any other mesh use,
+including \code{sigma ~ z} with a Gaussian mesh term, a Gaussian mesh slope, a
+labelled or bivariate mesh term, or another non-Gaussian family, is
+rejected; use \code{coords = coords} for those models where a coordinate route
+exists.
+Multiple structured slopes, residual-scale structured slopes beyond the
+supported NB2 slope, slope correlations, and predictor-dependent spatial
+\code{corpair()} regression are not supported.
+
+The \verb{coords =} route fits an exponential kernel, \code{exp(-dist / range)}, with
+\code{range} fixed at the median positive pairwise distance between sites (the
+value \code{drm_spatial_coords_precision()} computes). The range is not
+estimated: only the sill (the spatial SD) and the residual nugget are
+estimated, so a fit can have a lower log-likelihood than a model that also
+estimates the range. If you need a different range or kernel, build the
+covariance yourself and pass it through \code{\link[=relmat]{relmat()}} with \verb{K =}, which is the
+more flexible route. \code{DRModels.jl} (the Julia twin) estimates the range, so
+the twin \code{spatial()} fits of the same formula differ.
 }
 \examples{
 # Fitted for univariate Gaussian mu with coords:
 bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
-# Fitted first q=2 bivariate spatial location block:
+# Supported q=2 bivariate spatial location block:
 bf(
   mu1 = y1 ~ x + spatial(1 | p | site, coords = coords),
   mu2 = y2 ~ x + spatial(1 | p | site, coords = coords),
@@ -57,7 +80,7 @@ bf(
   sigma2 = ~ 1,
   rho12 = ~ 1
 )
-# Fitted Gaussian mesh intercept:
+# Fixed-kappa mesh intercept (mesh from make_mesh()); requires sigma ~ 1:
 bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)
 # Native Binomial logit mesh slope with a predictor-dependent SD:
 bf(

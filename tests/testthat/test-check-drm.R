@@ -1221,6 +1221,8 @@ test_that("check_drm() reports mutated diagnostic failure branches", {
   nonconverged$opt$iterations <- 10L
   nonconverged$opt$evaluations["function"] <- 10L
   nonconverged$control$optimizer <- list(iter.max = 10, eval.max = 10)
+  # Budget diagnostics read the controls recorded for the selected attempt.
+  nonconverged$optimizer_used$control <- nonconverged$control$optimizer
   convergence <- check_drm(nonconverged)
   convergence <- convergence[convergence$check == "optimizer_convergence", ]
   expect_equal(convergence$status, "warning")
@@ -1443,4 +1445,51 @@ test_that("check_drm() spatial weak_sd guards an unavailable residual scale (#71
   expect_equal(spatial$status, "ok")
   expect_match(spatial$value, "sd_ratio=\\s*NA")
   expect_false(grepl("tiny", spatial$message, fixed = TRUE))
+})
+
+test_that("check_drm() flags a sentinel-contaminated response (#1335)", {
+  set.seed(1335)
+  n <- 400
+  x <- stats::rnorm(n)
+  y <- 0.5 + 0.4 * x + exp(0.3 + 0.4 * x) * stats::rnorm(n)
+  clean <- data.frame(y = y, x = x)
+  damaged <- clean
+  damaged$y[sample.int(n, 40)] <- -5
+  form <- bf(y ~ x, sigma ~ x)
+
+  fit_clean <- drmTMB(form, data = clean)
+  fit_damaged <- drmTMB(form, data = damaged)
+
+  clean_row <- check_drm(fit_clean)
+  clean_row <- clean_row[clean_row$check == "residual_outliers", ]
+  expect_equal(nrow(clean_row), 1L)
+  expect_equal(clean_row$status, "ok")
+
+  damaged_row <- check_drm(fit_damaged)
+  damaged_row <- damaged_row[damaged_row$check == "residual_outliers", ]
+  expect_equal(nrow(damaged_row), 1L)
+  expect_equal(damaged_row$status, "note")
+  expect_match(damaged_row$value, "^n_beyond_3=[0-9]+/400$")
+  expect_match(damaged_row$message, "sentinel", ignore.case = TRUE)
+
+  # Flag-only: the note must not flip the overall ok flag by itself.
+  other_bad <- check_drm(fit_damaged)
+  other_bad <- other_bad[other_bad$check != "residual_outliers", ]
+  expect_identical(
+    attr(check_drm(fit_damaged), "ok"),
+    !any(other_bad$status %in% c("warning", "error"))
+  )
+})
+
+test_that("residual_outliers row does not touch the RNG (#1335)", {
+  set.seed(1)
+  dat <- data.frame(y = stats::rpois(80, 3), x = stats::rnorm(80))
+  fit <- drmTMB(bf(y ~ x), family = poisson(), data = dat)
+  set.seed(42)
+  before <- stats::runif(1)
+  set.seed(42)
+  row <- check_drm(fit)
+  after <- stats::runif(1)
+  expect_identical(before, after)
+  expect_true("residual_outliers" %in% row$check)
 })

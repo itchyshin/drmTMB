@@ -1,0 +1,70 @@
+bootstrap-shards: `simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+......................
+check-drm: ..........................................................................................WW...............WW..........WWWWWW............WWW...............................................................................................................................................
+control: .................................................................WW............................................................................................
+julia-control-refusal-names: ..................................................................................................................
+missing-data-control: ...............
+multi-start: ...............
+optimizer-contract: ........................................................................................................................................................................................................
+optimizer-escalation: ...................
+optimizer-selection-downstream: ..............................................................................
+optimizer-selection: ..........................................................................................................................................................................................................................................
+start-contract: ..........................W...............
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. check_drm() records sd_phylo direct-SD diagnostics ('test-check-drm.R:699:3') - `sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+
+2. check_drm() records sd_phylo direct-SD diagnostics ('test-check-drm.R:699:3') - `sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+
+3. check_drm() summarises the sd_phylo surface in phylo_mu_diagnostics ('test-check-drm.R:758:3') - `sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+
+4. check_drm() summarises the sd_phylo surface in phylo_mu_diagnostics ('test-check-drm.R:758:3') - `sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+
+5. check_drm() records bivariate sd_phylo direct-SD diagnostics ('test-check-drm.R:793:3') - `sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+
+6. check_drm() records bivariate sd_phylo direct-SD diagnostics ('test-check-drm.R:793:3') - `sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+
+7. check_drm() records bivariate sd_phylo direct-SD diagnostics ('test-check-drm.R:793:3') - `sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+
+8. check_drm() records bivariate sd_phylo direct-SD diagnostics ('test-check-drm.R:793:3') - `sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+
+9. check_drm() records bivariate sd_phylo direct-SD diagnostics ('test-check-drm.R:793:3') - `sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+
+10. check_drm() records bivariate sd_phylo direct-SD diagnostics ('test-check-drm.R:793:3') - `sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+
+11. check_drm() records bivariate sd_phylo direct-SD diagnostics ('test-check-drm.R:823:3') - `sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+
+12. check_drm() records bivariate sd_phylo direct-SD diagnostics ('test-check-drm.R:823:3') - `sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+
+13. check_drm() records bivariate sd_phylo direct-SD diagnostics ('test-check-drm.R:823:3') - `sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+
+14. memory-light storage drops direct-SD phylogenetic model frames ('test-control.R:281:3') - `sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+
+15. memory-light storage drops direct-SD phylogenetic model frames ('test-control.R:281:3') - `sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+
+16. a fixef:sigma: start outside the log-sigma clamp band warns instead of silently reporting a clean convergence (defect A2-D1) ('test-start-contract.R:311:3') - `drmTMB()`: the `log(sigma)` clamp is active at the optimum (the fitted `log(sigma)` reached 15, above the band upper bound 12).
+i The scale ran to the upper clamp, so the fit may have converged artificially: estimates and standard errors near the clamp are unreliable. Rescale the response, widen the band with `drm_control(logsigma_clamp = )`, add within-group replication, or use a penalized/MAP fit; `check_drm()` reports the fit state.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+
+TOTAL: 139 tests; 1165 passed expectations; 0 failures; 0 errors

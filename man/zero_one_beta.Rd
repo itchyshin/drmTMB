@@ -26,14 +26,14 @@ the same beta mean-scale contract as \code{\link[=beta_family]{beta_family()}}, 
 \code{fitted()} returns the unconditional response mean
 \code{(1 - zoi) * mu + zoi * coi}. Ordinary unlabelled random intercepts and
 independent numeric slopes such as \code{(1 | id)} and \code{(0 + x | id)} may enter
-\code{mu}. The point-fit-only q1 gates additionally admit one ordinary
+\code{mu}. Point-estimate-only support additionally includes one ordinary
 intercept-only random effect in \code{sigma}, \code{zoi}, or \code{coi}, separately, plus
 one ordinary slope-only effect in any one of those parameters when the fixed
 and random terms use the same raw symbol. Examples are
 \code{zoi ~ x + (0 + x | id)} and \code{coi ~ x + (0 + x | id)}. The exact \code{coi}
 admissions are that slope form and \code{coi ~ 1 + (1 | id)}, both with fixed
-\code{sigma ~ 1} and \code{zoi ~ 1}. All of these routes carry point-fit recovery
-evidence only. The two \code{sigma} routes now admit direct profiling, so
+\code{sigma ~ 1} and \code{zoi ~ 1}. All of these routes have point-estimate
+recovery evidence only. The two \code{sigma} routes now admit direct profiling, so
 \code{confint(method = "profile")} reaches their SD target; that makes an
 interval computable, not calibrated, and no interval, coverage, or broader
 recovery claim is established for them. For the \code{zoi} and \code{coi} routes,
@@ -51,6 +51,19 @@ available: an unlabelled q1 \code{phylo(1 | group, tree = tree)} intercept in
 \code{mu}. It does not license other providers, slopes, labels, covariance,
 q2-plus structured effects, profiling, intervals, coverage, or inference
 claims.
+
+Estimating \code{coi} needs both kinds of boundary value. If the response has
+exact zeroes but no exact ones (or exact ones but no exact zeroes), the
+\code{coi} likelihood is maximised at its boundary: the \code{coi} coefficient runs
+towards minus (or plus) infinity with a huge standard error, \code{\link[=check_drm]{check_drm()}}
+reports the fit as \code{degenerate}, and \code{\link[=is_converged]{is_converged()}} returns \code{FALSE}.
+\code{coi} cannot be dropped, because an omitted \code{coi} formula means \code{coi ~ 1}.
+The likelihood factorises into the interior beta part, the boundary
+probability \code{zoi}, and \code{coi}, so for such data fit the same model as two
+parts instead: \code{beta_family()} for the values strictly inside \verb{(0, 1)} and
+\code{binomial()} for the indicator of an exact boundary value. The two parts
+give the same \code{mu}, \code{sigma}, and \code{zoi} estimates without the unidentified
+parameter. drmTMB has no ordered-beta family.
 }
 \examples{
 zero_one_beta()

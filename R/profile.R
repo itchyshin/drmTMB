@@ -24,7 +24,7 @@
 #' response-scale value for each supplied row. Row-specific `rho12` profile
 #' intervals from a regression `rho12` formula are computable this way, but no
 #' simulation has measured their coverage; treat them as interval-feasible,
-#' not as a calibrated `level` interval (tracked as issue #802).
+#' not as calibrated `level` intervals.
 #'
 #' Modelled missing-predictor bootstrap is not yet implemented: it requires
 #' joint predictor simulation and refits that preserve the imputation model and
@@ -45,7 +45,7 @@
 #' `sigma`, `sigma1`, or `sigma2`, `parm = "sigma"` and friends report
 #' response-scale intervals.
 #'
-#' The fastest routine route is `confint(fit)`, which uses Wald intervals for
+#' The routine route is `confint(fit)`, which uses Wald intervals for
 #' fixed effects and direct response-scale targets. For long phylogenetic,
 #' spatial, animal-model, or relatedness fits, profile only the needed
 #' variance-component or correlation rows with the default
@@ -57,14 +57,17 @@
 #'
 #' @param object A `drmTMB` fit.
 #' @param parm Optional character or integer vector selecting interval targets.
-#'   `NULL` selects all direct Wald-ready targets for Wald intervals. Profile
-#'   intervals require explicit target names or target-set shortcuts. Supported
-#'   shortcuts are `"fixed_effects"`, `"random_effects"`,
+#'   `NULL` selects all direct targets for Wald intervals. Explicit profile intervals usually require target names
+#'   or target-set shortcuts;
+#'   for a Gaussian temporal AR1 or OU fit, `NULL` selects every mean-model
+#'   coefficient. Temporal profile intervals admit mean coefficients only.
+#'   Supported shortcuts are `"fixed_effects"`, `"random_effects"`,
 #'   `"variance_components"`, and `"correlations"`.
 #' @param level Confidence level.
 #' @param method Interval method: `"wald"`, `"profile"`, or `"bootstrap"`. If
 #'   `newdata` is supplied and `method` is omitted, `method = "profile"` is
-#'   used.
+#'   used. If `method` is omitted without `newdata`, every row is a Wald
+#'   interval. Pass `method = "profile"` to profile random-effect SD rows.
 #' @param newdata Optional data frame for response-scale profile intervals for
 #'   predictor-dependent `sigma`, `sigma1`, `sigma2`, `rho12`, or fitted
 #'   `corpair()` values. Each row is profiled separately by profiling its
@@ -120,52 +123,43 @@
 #'   zero, or a correlation within `rho_boundary` of `+/-1`, is returned with
 #'   `conf.status = "wald_at_boundary"` and a warning pointing to
 #'   `method = "profile"`. Defaults match [check_drm()] (`1e-4`, `0.98`).
+#'   An ordinary `(1 | g)` SD whose log-scale Wald standard error exceeds 1 is
+#'   flagged the same way even when its estimate is above `sd_boundary`; that
+#'   cut-off is fixed.
 #' @param small_sample_df Small-sample reference distribution for the
-#'   `method = "wald"` interval. `"location"` (the default) references a
-#'   t-quantile with `df = g - 1` -- a group-based, Satterthwaite-style
-#'   between-group degrees of freedom -- for each *location-axis* (`mu`,
-#'   `mu1`, `mu2`) structured random-effect SD target (`phylo`, `spatial`,
-#'   `animal`, `relmat`) with a resolvable group count `g`, and keeps the
-#'   ordinary normal quantile `z = qnorm((1 + level) / 2)` for every other
-#'   target. This widens only the location-axis structured-RE SD intervals,
-#'   which under-cover at small `g` under the normal quantile; the t-quantile
-#'   lifts their coverage and converges back to `z` as `g` grows. Dispersion
-#'   (`sigma`, `sigma1`, `sigma2`) structured SD targets are deliberately left
-#'   at the normal quantile because they already over-cover; non-structured and
-#'   fixed-effect targets are never widened; and a plain labelled covariance
-#'   block such as `(1 + x | p | id)` is also left at the normal quantile by
-#'   default, because the correction magnitude was calibrated for structured
-#'   blocks only. `"none"` is the opt-out: it uses the normal quantile for
-#'   *every* target and is byte-identical to the pre-default behaviour.
-#'   `"group"` widens *every* resolvable SD target -- structured and
-#'   labelled-covariance, location and dispersion axis alike; use it only when
-#'   you deliberately want to t-reference the dispersion axis or a labelled
-#'   covariance block too. Note
-#'   that the t-quantile only widens the interval; it does not move its centre.
-#'   The residual small-`g` gap is ML shrinkage bias in the variance-component
-#'   point estimate (a job for REML), not a quantile problem, so the centre
-#'   shift is handled by `bias_correct`.
-#' @param bias_correct Small-sample point-estimate bias correction for the
-#'   `method = "wald"` interval. `"location"` (the default) adds a
-#'   simulation-calibrated shift `log(g / (g - 1))` to the log-scale point
-#'   estimate -- before back-transforming -- of each *location-axis* (`mu`,
-#'   `mu1`, `mu2`) structured random-effect SD target with a resolvable group
-#'   count `g` (the same targets `small_sample_df = "location"` widens), and
-#'   leaves every other target unshifted. The ML estimate of a structured-RE
-#'   variance-component SD is biased low on the log scale by about
-#'   `log(g / (g - 1))` -- a downward shrinkage that REML, or simply a larger
-#'   `g`, removes asymptotically; this shift moves the interval centre up to
-#'   counter that shrinkage. Used together with `small_sample_df = "location"`,
-#'   the centre shift and the t(`df = g - 1`) width act independently, giving
-#'   `exp((log(sigma_hat) + log(g / (g - 1))) +/- qt(p, g - 1) * se_log)` and
-#'   lifting small-`g` coverage of location-axis structured-RE SD targets to
-#'   nominal. `"none"` is the opt-out: it leaves every centre at the ML estimate
-#'   and is byte-identical to the pre-default behaviour. `"group"` shifts
-#'   *every* resolvable SD target -- structured and labelled-covariance, location
-#'   and dispersion axis alike. The default deliberately excludes the dispersion
-#'   axis (`sigma` SD intervals already over-cover, so the upward shift would
-#'   push them further conservative) and plain labelled covariance blocks (whose
-#'   correction magnitude is not yet simulation-calibrated).
+#'   `method = "wald"` interval. `"location"` (the default) uses a t-quantile
+#'   with `df = g - 1` for location-axis (`mu`, `mu1`, `mu2`) structured
+#'   random-effect SD targets (`phylo`, `spatial`, `animal`, `relmat`) when a
+#'   unique group count `g` is available. Other targets use the normal
+#'   quantile. This changes interval width, not its centre. The retained
+#'   engine coverage check concerns four q2 phylogenetic and relatedness-matrix
+#'   `mu1:x`/`mu2:x` slope SD cells at `g = 8`, with a post-hoc check across
+#'   `g = 8, 16, 32`; the default's broader
+#'   application does not establish nominal coverage for every target.
+#'   Dispersion-axis (`sigma`, `sigma1`, `sigma2`) targets stay at the normal
+#'   quantile by default. Their coverage depends on the model: a replicated
+#'   pure `sigma` intercept over-covered in a pilot, whereas some `sigma`
+#'   one-slope intercept targets under-covered at `g = 8`. Fixed effects and
+#'   plain labelled covariance blocks are also unchanged by the default.
+#'   `"none"` uses the normal quantile for every target and recovers the
+#'   earlier behaviour. `"group"` widens every resolvable structured or
+#'   labelled-covariance SD target on either axis; this broader choice is
+#'   not covered by the q2 calibration.
+#' @param bias_correct Small-sample centre adjustment for the
+#'   `method = "wald"` interval. `"location"` (the default) adds
+#'   `log(g / (g - 1))` to the log-SD estimate of each location-axis structured
+#'   random-effect target with a unique group count `g`, before back-transforming;
+#'   other targets are unshifted. In the retained q2 phylogenetic and
+#'   relatedness-matrix `mu1:x`/`mu2:x` slope SD cells at `g = 8` and a
+#'   post-hoc cross-`g` check, this shift approximated measured ML log-SD shrinkage. Combined with the
+#'   t width, it brought coverage near 0.95 in those cells. Applying the same
+#'   formula to another route is an implemented calculation, not evidence of
+#'   its bias or interval coverage. `"none"` leaves every centre unshifted;
+#'   `"group"` shifts every resolvable structured or labelled-covariance SD
+#'   target on either axis. Dispersion targets remain unshifted by default
+#'   because their coverage is regime dependent; the magnitude is also not
+#'   calibrated for plain labelled covariance blocks. The shift changes the
+#'   centre only; it does not alter the fitted model or a profile endpoint.
 #' @param bootstrap_re_form `re.form` passed through to [stats::simulate()]
 #'   when `method = "bootstrap"`, with the same lme4 meanings as
 #'   [simulate.drmTMB()]. The default, `NA`, redraws random effects for every
@@ -206,6 +200,14 @@
 #'   \item Fixed effects and other routine Wald-ready targets: start with
 #'     \code{confint(fit)} (\code{method = "wald"}). It is the fastest
 #'     fitted-object route when \code{TMB::sdreport()} succeeded.
+#'   \item Gaussian temporal AR1, OU, and homogeneous Toeplitz mean effects: use
+#'     \code{confint(fit, parm = "mu:<coefficient>", method = "profile")}
+#'     (or omit \code{parm} for every mean coefficient). Temporal Wald output
+#'     remains restricted or deferred, and temporal variance, persistence,
+#'     decay, bootstrap, and \code{newdata} intervals are unavailable.
+#'     Read \code{check_drm(fit)}: a non-positive-definite fitted Hessian does
+#'     not prevent a finite profile endpoint, but it makes the fitted likelihood
+#'     locally irregular and the interval is not coverage-calibrated.
 #'   \item Random-effect SDs and other direct variance-component targets: prefer
 #'     \code{confint(fit, parm = ..., method = "profile")} after
 #'     \code{profile_targets(fit)} shows the row is profile-ready. Profile
@@ -216,13 +218,28 @@
 #'     that interval as indicative of scale, not as a calibrated
 #'     \code{level} interval (see Boundary intervals below).
 #'   \item A computable interval is not coverage certification. Check the
-#'     exact cell in
+#' exact model and parameter combination in
 #'     \href{https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html}{Capabilities and limits}
-#'     before reporting a route as inference-ready.
+#' before reporting its intervals as coverage-validated.
 #' }
 #'
 #' For a short applied walkthrough, see the vignette
 #' \emph{First-week intervals: fit, profile, and boundary}.
+#'
+#' @section Wald intervals for ordinary `(1 | g)` SDs:
+#' The default `confint(fit)` is Wald for every row, including random-effect SD
+#' rows. The Wald SD interval undercovers near the boundary. In the
+#' sweep-oct16 t9 design (Gaussian location-scale with `(1 | g)`, n_g = 10,
+#' 300 replicates per cell) at a true SD of 0.1, Wald coverage was 0.36 with 10
+#' groups and 0.42 with 30 groups, with about half of the replicates returning
+#' an infinite upper limit; profile coverage on the same replicates was 0.97 and
+#' 0.98 there. At a true SD of 0.5, Wald coverage was 0.97 to 0.98 and profile
+#' coverage 0.93 to 0.957. When a SD row is labelled `wald_at_boundary` (see
+#' *Boundary intervals*), use `confint(fit, parm = ..., method = "profile")`
+#' for that row. Profile is slower than Wald, and it is not a repair at a
+#' boundary: it still warns when it reaches one.
+#' That sweep does not calibrate intervals for other ordinary-SD routes or
+#' different study designs.
 #'
 #' @section Boundary intervals:
 #' Every interval method is unreliable when a variance component approaches zero
@@ -230,19 +247,24 @@
 #'
 #' `method = "wald"` flags a row with `conf.status = "wald_at_boundary"` and warns
 #' (class `drmTMB_wald_boundary_warning`), because a symmetric Wald interval
-#' undercovers under boundary (chi-square-mixture) inference. That warning
-#' recommends `method = "profile"`.
+#' is unreliable at a variance-component boundary. That warning
+#' recommends `method = "profile"`. For an ordinary `(1 | g)` SD this label is
+#' not limited to an estimate at zero: it is also applied when the log-scale Wald
+#' standard error exceeds 1. At the default 95% level, this makes the ratio of
+#' the upper to lower Wald endpoint exceed about 50. This width does not
+#' establish coverage. Treat any such
+#' `wald_at_boundary` SD row as unreliable.
 #'
 #' `method = "profile"` sets `profile.boundary = TRUE` and warns (class
 #' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
 #' reaches a boundary. **A profile interval is not a repair for a boundary.**
-#' Conditional on that flag, a seeded 10-group random-effect SD gate measured
+#' Conditional on that flag, a seeded 10-group random-effect SD simulation measured
 #' coverage at 0.1021, 0.2387, and 0.8683 against a nominal 0.95, and 0 of 89 in a
-#' fourth cell where boundary hits are rare (0.09% of fits). The mechanism is a
+#' fourth scenario where boundary hits are rare (0.09% of fits). The mechanism is a
 #' maximum likelihood random-effect SD biased 8.3%-15.8% low at small group counts,
 #' which anchors the interval low so that it misses from above.
 #'
-#' Unconditionally -- across all fits, flagged or not -- the same gate measured
+#' Unconditionally -- across all fits, flagged or not -- the same simulation measured
 #' 0.9248 against a nominal 0.95 over 400,000 attempts. A flagged interval is the
 #' bad case, not the typical one, and the flag is returned in the table so you can
 #' tell which case you are in.
@@ -294,16 +316,16 @@
 #' `relmat()`, `spatial()`, or `phylo_interaction()` is computable for
 #' `zero_one_beta()`, `nbinom2()`, and `zi_nbinom2()`, but the maximum
 #' likelihood point estimate it is built around is **biased low** for this
-#' class of cell: eleven of twelve retained ML estimates fell below truth in
-#' the sibling `nbinom2` provider cells (fit-level one-sided sign test
-#' `p = 0.0032`; `p = 0.0625` at cell level, once the shared data-generating
+#' model class: eleven of twelve retained ML estimates fell below truth in
+#' the sibling `nbinom2` provider scenarios (fit-level one-sided sign test
+#' `p = 0.0032`; `p = 0.0625` at scenario level, once the shared data-generating
 #' process and random-number stream are respected). Two corrections that exist
 #' elsewhere for this bias do not reach these routes: `bias_correct` shifts
 #' only the `method = "wald"` centre and never a profile endpoint, and native
 #' scale-side REML is unavailable here because `drm_validate_reml_spec()`
 #' admits only Gaussian and binomial models. The profile interval therefore
-#' inherits the bias of its centre uncorrected. These routes carry point-fit
-#' recovery evidence only, and no seeded campaign has yet measured the
+#' inherits the bias of its centre uncorrected. Only point-estimate recovery has
+#' been checked for these routes, and no simulation study has yet measured the
 #' coverage of a profile interval built on them, so treat the endpoints as a
 #' computed profile rather than calibrated inference.
 #'
@@ -337,20 +359,17 @@
 #' # Bootstrap intervals for positive scale and SD targets use link-scale
 #' # percentiles before back-transforming to the response scale.
 #' @references
-#' The small-sample corrections applied by `small_sample_df` and `bias_correct`
-#' (whether the default `"location"` scope or the broader `"group"` scope) are
-#' *motivated* by established mixed-model theory but are simulation-calibrated,
-#' not derived: the `log(g / (g - 1))` SD-scale centre
-#' shift is about **twice** the leading-order REML SD correction
-#' (`0.5 * log(g / (g - 1))`), matching the larger ML shrinkage measured on these
-#' structured/bivariate cells (their effective df is well below `g - 1`). The
-#' magnitude's authority is the per-model-class simulation in
-#' `docs/design/219-structured-re-small-sample-bias-correction.md`, not a single
-#' source. Relevant references:
-#'
-#' Restricted maximum likelihood and the variance-component bias that motivates
-#' the centre shift (REML debiases the variance by `g/(g-1)`; the shift here is on
-#' the SD log scale and ~2x the leading-order REML SD term):
+#' The default correction is motivated by mixed-model variance-component
+#' bias but its `log(g / (g - 1))` log-SD magnitude is empirical, not a
+#' general consequence of REML. The retained calibration covers q2
+#' phylogenetic and relatedness-matrix `mu1:x`/`mu2:x` slope SD cells
+#' (engine check at `g = 8`, post-hoc checks at `g = 8, 16, 32`); neither
+#' other structured routes nor the broader `"group"`
+#' scope inherit that coverage result. In the elementary independent Gaussian
+#' variance example, the familiar variance factor is `g/(g-1)`, equivalent
+#' to only `0.5 * log(g/(g-1))` on the SD log scale. The cited theory supplies
+#' context and direction, not a derivation of this package's full shift.
+#' Relevant references:
 #'
 #' Patterson, H. D., & Thompson, R. (1971). Recovery of inter-block information
 #' when block sizes are unequal. Biometrika, 58(3), 545-554.
@@ -413,11 +432,11 @@
 #' Wolak, M. E., Fairbairn, D. J., & Paulsen, Y. R. (2012). Guidelines for
 #' estimating repeatability. Methods in Ecology and Evolution, 3(1), 129-137.
 #' \doi{10.1111/j.2041-210X.2011.00125.x}
-#' @seealso The tier definitions and per-cell evidence behind these interval
-#'   targets, including random-effect standard-deviation rows, are curated in
-#'   \code{vignette("capability-and-limits", package = "drmTMB")}: `confint()`
-#'   computes generically for any target, and the tier a given cell belongs to
-#'   is a documentation-level curation, not a runtime guard.
+#' @seealso The model-specific evidence behind these interval targets, including
+#'   random-effect standard-deviation rows, is summarized in
+#'   \code{vignette("capability-and-limits", package = "drmTMB")}. `confint()`
+#'   can compute intervals for targets whose coverage has not been measured, so a
+#'   successful computation is not by itself evidence of calibrated coverage.
 #' @export
 confint.drmTMB <- function(
   object,
@@ -459,6 +478,75 @@ confint.drmTMB <- function(
     c("wald", "profile", "bootstrap"),
     "confint()"
   )
+  if (drm_has_temporal_mu(object)) {
+    temporal_structure <- toupper(object$model$structured$temporal_mu$structure)
+    if (identical(method, "bootstrap")) {
+      cli::cli_abort(c(
+        "Temporal {temporal_structure} confidence intervals do not support {.code method = \"bootstrap\"}.",
+        "i" = "Mean-coefficient profile intervals are available; bootstrap, variance-component, and persistence or decay intervals are deferred."
+      ))
+    }
+    if (!is.null(newdata)) {
+      cli::cli_abort(
+        "Temporal {temporal_structure} confidence intervals do not support {.arg newdata}."
+      )
+    }
+    if (identical(method, "wald")) {
+      temporal_parm <- validate_temporal_wald_parm(object, parm)
+      return(drm_wald_confint(
+        object,
+        parm = temporal_parm,
+        level = level,
+        sd_boundary = sd_boundary,
+        rho_boundary = rho_boundary,
+        small_sample_df = small_sample_df,
+        bias_correct = bias_correct
+      ))
+    }
+    if (identical(profile_engine, "endpoint")) {
+      cli::cli_abort(c(
+        "Temporal {temporal_structure} mean-coefficient profiles require {.code profile_engine = \"tmbprofile\"} or {.code \"auto\"}.",
+        "i" = "The scalar endpoint engine does not profile fixed-effect coefficients."
+      ))
+    }
+    if (!is.null(profile_endpoint_max_eval)) {
+      cli::cli_abort(c(
+        "Temporal {temporal_structure} mean-coefficient profiles do not use {.arg profile_endpoint_max_eval}.",
+        "i" = "The endpoint-evaluation budget applies only to direct scalar profile targets."
+      ))
+    }
+    temporal_parm <- validate_temporal_profile_parm(object, parm)
+    profile_precision <- resolve_profile_precision(
+      profile_precision,
+      missing_arg = profile_precision_missing
+    )
+    profile_maxit <- validate_profile_maxit(profile_maxit)
+    profile_args <- profile_precision_args(
+      profile_precision,
+      list(...),
+      profile_maxit = profile_maxit
+    )
+    out <- do.call(
+      drm_profile_confint,
+      c(
+        list(
+          object = object,
+          parm = temporal_parm,
+          level = level,
+          trace = trace,
+          parallel = resolve_bootstrap_parallel(
+            parallel,
+            missing_arg = parallel_missing
+          ),
+          workers = workers,
+          profile_engine = profile_engine
+        ),
+        profile_args
+      )
+    )
+    warn_temporal_profile_hessian(object)
+    return(out)
+  }
   if (!is.null(newdata) && method_missing) {
     method <- "profile"
   }
@@ -701,6 +789,10 @@ confint.drmTMB <- function(
 #'   profiling: the zi-nbinom2 note covers the ordinary q1 scale route, and the
 #'   zero-one-beta notes cover that bounded family's structured q1 mean route
 #'   and its zero- and one-inflation routes.
+#'   Gaussian temporal AR1, OU, and homogeneous Toeplitz fits use
+#'   `"temporal_nonmean_intervals_deferred"` for every non-mean target and
+#'   `"temporal_decay_intervals_deferred"` for the OU decay target; only their
+#'   mean regression coefficients are profile-ready.
 #'   Derived variance-ratio summaries such as `total_variance_share` and
 #'   `phylo_total_variance_share` are listed as point-estimate targets with
 #'   `profile_ready = FALSE`.
@@ -754,7 +846,8 @@ profile_targets <- function(object, ready_only = FALSE) {
 #'
 #' @param fitted A `drmTMB` fit.
 #' @param parm Character or integer vector selecting direct profile targets.
-#'   Use [profile_targets()] to inspect available names. Unlike
+#'   Use [profile_targets()] to inspect available names. Gaussian temporal AR1
+#'   and OU fits accept mean-model coefficient targets only. Unlike
 #'   [confint.drmTMB()], this helper always uses the full
 #'   [TMB::tmbprofile()] curve because the curve itself is the diagnostic.
 #' @param level Confidence level used for the likelihood-ratio cutoff and
@@ -868,7 +961,14 @@ profile.drmTMB <- function(
     ytol = first_pass_ytol
   )
 
-  targets <- profile_match_targets(drm_profile_targets(fitted), parm)
+  targets <- if (drm_has_temporal_mu(fitted)) {
+    profile_match_targets(
+      drm_profile_targets(fitted),
+      validate_temporal_profile_parm(fitted, parm)
+    )
+  } else {
+    profile_match_targets(drm_profile_targets(fitted), parm)
+  }
   if (any(targets$target_class == "ordinal-cutpoint")) {
     cli::cli_abort(c(
       "Full profile curves for ordered cutpoints are not yet exported.",
@@ -929,10 +1029,11 @@ profile.drmTMB <- function(
       )
     )
   }, plan)
-  out <- do.call(rbind, rows)
+  out <- drm_rbind_profile_rows(rows)
   row.names(out) <- NULL
   attr(out, "level") <- level
   class(out) <- c("profile.drmTMB", class(out))
+  warn_temporal_profile_hessian(fitted)
   out
 }
 
@@ -1734,6 +1835,26 @@ drm_profile_targets <- function(object) {
   registry_cor_rows <- profile_registry_cor_targets(object)
   add_rows(registry_cor_rows)
   add_rows(profile_derived_summary_targets(object))
+  temporal <- object$model$structured$temporal_mu
+  if (is.list(temporal) && isTRUE(temporal$has) &&
+      identical(temporal$structure, "ou")) {
+    value <- object$decaypars$temporal[[temporal_mu_decay_label(temporal)]]
+    add_rows(list(new_profile_target_row(
+      parm = paste0("decay:temporal:", temporal_mu_decay_label(temporal)),
+      target_class = "temporal-decay",
+      dpar = "temporal",
+      term = temporal_mu_decay_label(temporal),
+      tmb_parameter = "theta_temporal",
+      index = 1L,
+      estimate = unname(value),
+      link_estimate = log(unname(value)),
+      scale = "response",
+      transformation = "exp",
+      target_type = "direct",
+      profile_ready = FALSE,
+      profile_note = "temporal_decay_intervals_deferred"
+    )))
+  }
   registry_cor_keys <- covariance_block_corpars_keys(
     object$model$random$covariance_blocks
   )
@@ -1882,7 +2003,22 @@ drm_profile_targets <- function(object) {
     empty_profile_targets()
   }
   row.names(out) <- NULL
+  out <- restrict_temporal_profile_targets(object, out)
   validate_profile_targets(out)
+}
+
+restrict_temporal_profile_targets <- function(object, targets) {
+  if (!drm_has_temporal_mu(object) || nrow(targets) == 0L) {
+    return(targets)
+  }
+  mean_targets <- targets$target_class == "fixed-effect" &
+    targets$dpar == "mu"
+  deferred <- !mean_targets
+  targets$profile_ready[deferred] <- FALSE
+  non_decay <- deferred & targets$target_class != "temporal-decay"
+  targets$profile_note[non_decay] <-
+    "temporal_nonmean_intervals_deferred"
+  targets
 }
 
 drm_profile_confint <- function(
@@ -1935,7 +2071,7 @@ drm_profile_confint <- function(
     )
   }
   rows <- profile_lapply(seq_len(nrow(targets)), worker, plan)
-  out <- do.call(rbind, rows)
+  out <- drm_rbind_profile_rows(rows)
   row.names(out) <- NULL
   warn_profile_boundary(out)
   drm_as_confint_table(out)
@@ -2106,7 +2242,7 @@ drm_profile_response_newdata_confint <- function(
     )
   }
   rows <- profile_lapply(seq_len(nrow(X)), worker, plan)
-  out <- do.call(rbind, rows)
+  out <- drm_rbind_profile_rows(rows)
   row.names(out) <- NULL
   warn_profile_boundary(out)
   drm_as_confint_table(out)
@@ -2146,6 +2282,35 @@ warn_profile_boundary <- function(out) {
     )
   }
   invisible(out)
+}
+
+warn_temporal_profile_hessian <- function(object) {
+  if (!drm_has_temporal_mu(object)) {
+    return(invisible(object))
+  }
+  if (isTRUE(object$model$structured$temporal_mu$paired_phylo_stable)) {
+    cli::cli_warn(
+      c(
+        "Profile intervals from the paired {.fn phylo} plus OU {.fn temporal} model are not calibrated.",
+        "!" = "This development route has point-recovery evidence only; no interval-calibration study has been run.",
+        "i" = "Do not report these intervals as confidence intervals."
+      ),
+      class = "drmTMB_paired_phylo_temporal_profile_warning"
+    )
+  }
+  hessian_regular <- identical(drm_uncertainty_status(object), "ok") &&
+    !is.null(object$sdr) && isTRUE(object$sdr$pdHess)
+  if (!hessian_regular) {
+    cli::cli_warn(
+      c(
+        "The temporal fit has no positive-definite full observed Hessian.",
+        "!" = "Mean-coefficient profile endpoints can still be finite, but the fitted likelihood is locally irregular and coverage is unqualified.",
+        "i" = "Inspect {.code check_drm(fit)} and the profile curve before reporting this interval."
+      ),
+      class = "drmTMB_temporal_profile_hessian_warning"
+    )
+  }
+  invisible(object)
 }
 
 skew_normal_slant_targets <- function(object, targets) {
@@ -2305,11 +2470,12 @@ drm_wald_confint <- function(
   # a boundary is a warning, not an auto-discard -- but flag it and point to the
   # profile method. Residual/distributional scale is regular and not flagged.
   at_boundary <- interval_ready &
-    wald_boundary_targets(
+    (wald_boundary_targets(
       targets,
       sd_boundary = sd_boundary,
       rho_boundary = rho_boundary
-    )
+    ) |
+      wald_ordinary_sd_near_boundary(targets, se))
   at_boundary_no_bias <- at_boundary & !bias_applied
   out$conf.status[at_boundary_no_bias] <- "wald_at_boundary"
   is_rho12 <- targets$target_class == "residual-correlation"
@@ -2319,7 +2485,7 @@ drm_wald_confint <- function(
     n_boundary <- sum(at_boundary_profile)
     cli::cli_warn(
       c(
-        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary_profile]}} {?is/are} at a variance-component or correlation boundary.",
+        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary_profile]}} {?is/are} at or near a variance-component or correlation boundary.",
         "i" = "{cli::qty(n_boundary)}Wald coverage is unreliable on the boundary; use {.code confint(method = \"profile\")} for {?this/these} target{?s}."
       ),
       class = "drmTMB_wald_boundary_warning"
@@ -2345,8 +2511,8 @@ drm_wald_confint <- function(
 # when its family is `sigma` (`sigma`, `sigma1`, `sigma2`). The trailing response
 # index is stripped before matching, so q2/q4 endpoints share the family of
 # their univariate counterpart. The DEFAULT small-sample correction is scoped to
-# the location axis only; the dispersion axis already over-covers under the
-# normal quantile and is left raw unless the caller opts in with `"group"`.
+# the location axis only. Dispersion coverage is regime dependent, so the
+# default leaves that axis raw unless the caller opts in with `"group"`.
 wald_sd_target_is_location_axis <- function(target) {
   dpar <- target$dpar[[1L]]
   if (is.na(dpar)) {
@@ -2368,8 +2534,9 @@ wald_sd_target_is_location_axis <- function(target) {
 # `location_only = TRUE` (the path used by the DEFAULT correction) restricts the
 # resolved df to location-axis (mu) *structured* (phylo/spatial/animal/relmat) SD
 # targets: it skips dispersion (sigma) SD targets and the labelled
-# covariance-block registry, so the default widens only the under-covering
-# location-axis structured intervals whose magnitude was simulation-calibrated.
+# covariance-block registry. Calibration of this default width and centre
+# is limited to named q2 phylo/relmat mu-slope cells; other targets are not
+# thereby certified to under-cover or to reach nominal coverage.
 # `location_only = FALSE` reproduces the `small_sample_df = "group"` opt-in scope
 # (every structured and labelled-covariance SD target on either axis).
 #
@@ -2420,9 +2587,9 @@ wald_target_df <- function(object, targets, location_only = FALSE) {
 # Returns a numeric vector, one entry per row of `targets`. For each structured
 # random-effect SD target with a resolvable group count `g` (the SAME targets
 # `wald_target_df()` identifies, via the same g-resolution path), the entry is
-# `log(g / (g - 1))` -- the closed-form centre correction that lifts the
-# downward ML shrinkage of the variance-component SD back toward its expectation
-# on the log scale. Every other target -- and any SD target whose group count
+# `log(g / (g - 1))` -- an empirical centre adjustment calibrated for named
+# q2 phylo/relmat mu-slope cells, not a closed-form correction for all
+# structured SD targets. Every other target -- and any SD target whose group count
 # cannot be matched -- gets `NA_real_`, so the caller leaves its centre
 # unshifted. This never errors: an ambiguous or missing match falls back to NA.
 #
@@ -2543,10 +2710,11 @@ structured_sd_term_signature <- function(term) {
 # `structured_only = TRUE` (the path used by the DEFAULT correction) restricts
 # resolution to the genuinely *structured* RE block (phylo/spatial/animal/relmat,
 # resolved via `log_sd_phylo`) and skips the labelled covariance-block registry.
-# The default is scoped to structured cells because the `log(g/(g-1))` magnitude
-# was simulation-calibrated for those (design doc 219); a plain labelled
-# covariance block such as `(1 + x | p | id)` resolves a registry `g` but its
-# correction is not validated, so the default leaves it at the raw z-interval.
+# The default is scoped to structured cells. Design 219 calibrated the
+# `log(g/(g-1))` magnitude for named q2 phylo/relmat mu-slope cells, not every
+# structured target. A plain labelled covariance block such as
+# `(1 + x | p | id)` resolves a registry `g` but lacks this calibration, so
+# the default leaves it at the raw z-interval.
 # `structured_only = FALSE` reproduces the `"group"` opt-in scope (structured and
 # labelled-covariance blocks alike).
 wald_sd_target_group_count <- function(
@@ -2623,6 +2791,39 @@ profile_sd_boundary_rows <- function(targets) {
       targets$tmb_parameter %in% c("log_sd_mi_group", "log_sd_mi_struct"))
   }
   is_sd
+}
+
+# An ordinary `(1 | g)` random-intercept SD: a direct, plain-group SD target on
+# `mu`, `sigma`, `zoi` or `coi`. Structured (`phylo()`, `spatial()`, `animal()`,
+# `relmat()`), labelled covariance-block, and slope/correlated terms are not
+# ordinary and are never selected here.
+drm_ordinary_sd_rows <- function(targets) {
+  if (nrow(targets) == 0L) {
+    return(logical(0))
+  }
+  !is.na(targets$target_class) &
+    targets$target_class == "random-effect-sd" &
+    !is.na(targets$target_type) &
+    targets$target_type == "direct" &
+    !is.na(targets$tmb_parameter) &
+    targets$tmb_parameter %in%
+      c("log_sd_mu", "log_sd_sigma", "log_sd_zoi", "log_sd_coi") &
+    !is.na(targets$term) &
+    grepl("^\\(1 \\| [^|()]+\\)$", targets$term)
+}
+
+# A Wald SD interval is built on the log-SD scale. When the log-scale standard
+# error exceeds this value the interval spans more than a factor of
+# exp(2 * 1.96) (about 50), the likelihood is flat towards zero, and the
+# symmetric interval is not a usable `level` interval even though the point
+# estimate is above the `sd_boundary` threshold. Measured on the sweep-oct16 t9
+# design (Gaussian, `(1 | g)`, 10 groups of 10, true SD 0.1) this is where
+# estimates of 0.026-0.18 returned intervals such as [5e-37, 1e33] or
+# [0.015, 1.6] labelled as ordinary Wald rows (#1558).
+wald_near_boundary_log_se <- 1
+
+wald_ordinary_sd_near_boundary <- function(targets, se) {
+  drm_ordinary_sd_rows(targets) & is.finite(se) & se > wald_near_boundary_log_se
 }
 
 wald_boundary_targets <- function(
@@ -2751,7 +2952,11 @@ drm_bootstrap_confint <- function(
       refit_control = refit_control
     )
   }
-  rows <- bootstrap_lapply(seq_len(R), worker, plan)
+  rows <- drm_bootstrap_retain_dead_workers(
+    bootstrap_lapply(seq_len(R), worker, plan),
+    seq_len(R),
+    target_names
+  )
   draws <- do.call(rbind, rows)
   row.names(draws) <- NULL
   draws$bootstrap.requested <- R
@@ -2973,11 +3178,11 @@ bootstrap_refit_control <- function(refit_control) {
 }
 
 profile_lapply <- function(indices, worker, plan) {
-  drm_parallel_lapply(indices, worker, plan)
+  drm_parallel_lapply(indices, worker, plan, on_dead = "error")
 }
 
 bootstrap_lapply <- function(indices, worker, plan) {
-  drm_parallel_lapply(indices, worker, plan)
+  drm_parallel_lapply(indices, worker, plan, on_dead = "record")
 }
 
 # One dispatcher for the "none" | "multicore" | "cluster" backends. Workers
@@ -2986,16 +3191,17 @@ bootstrap_lapply <- function(indices, worker, plan) {
 # a null external pointer; TMB re-tapes it on first use from the serialized
 # data, parameters, and `last.par` state (TMB::MakeADFun's isNullPointer()
 # check), so profile workers reproduce the serial curve without refitting.
-drm_parallel_lapply <- function(indices, worker, plan) {
-  if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
-    return(lapply(indices, worker))
+drm_parallel_lapply <- function(indices, worker, plan, on_dead = "error") {
+  results <- if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
+    lapply(indices, worker)
+  } else if (identical(plan$backend, "cluster")) {
+    drm_cluster_lapply(indices, worker, plan$workers)
+  } else {
+    drm_mclapply_stop_on_error(
+      parallel::mclapply(indices, worker, mc.cores = plan$workers)
+    )
   }
-  if (identical(plan$backend, "cluster")) {
-    return(drm_cluster_lapply(indices, worker, plan$workers))
-  }
-  drm_mclapply_stop_on_error(
-    parallel::mclapply(indices, worker, mc.cores = plan$workers)
-  )
+  drm_check_parallel_results(results, indices, on_dead = on_dead)
 }
 
 drm_cluster_lapply <- function(indices, worker, workers) {
@@ -3027,7 +3233,9 @@ drm_cluster_worker_init <- function(lib_paths) {
 
 # parallel::mclapply() turns a worker error into a "try-error" element and only
 # warns.  The serial lapply() path aborts on the same error, so re-raise the
-# first worker error to keep both paths failing the same way.
+# first worker error to keep both paths failing the same way.  A child that
+# exits without a value (quit(), crash) becomes NULL; that is handled by
+# drm_check_parallel_results(), not here.
 drm_mclapply_stop_on_error <- function(results) {
   failed <- vapply(results, inherits, logical(1L), what = "try-error")
   if (any(failed)) {
@@ -3038,6 +3246,77 @@ drm_mclapply_stop_on_error <- function(results) {
     stop(as.character(results[[which(failed)[[1L]]]]), call. = FALSE)
   }
   results
+}
+
+# A forked child that dies returns NULL. rbind() then drops that element, so a
+# profile target or bootstrap replicate vanishes with no error. Profile paths
+# abort (class drmTMB_parallel_worker_died). Bootstrap paths keep the hole so
+# the caller can record a failed refit and leave bootstrap.n + bootstrap.failed
+# equal to the requested R (#1501).
+drm_check_parallel_results <- function(results, indices, on_dead = "error") {
+  dead <- drm_dead_worker_indices(results, indices)
+  if (!length(dead)) {
+    return(results)
+  }
+  if (identical(on_dead, "record")) {
+    if (length(results) < length(indices)) {
+      results <- c(results, vector("list", length(indices) - length(results)))
+    }
+    return(results)
+  }
+  cli::cli_abort(
+    c(
+      "A forked parallel worker died and returned no result.",
+      i = "{.fn parallel::mclapply} returns {.code NULL} when a child exits without a value.",
+      i = "Re-run with {.code parallel = \"none\"} to see the serial error, or use {.code parallel = \"cluster\"}."
+    ),
+    class = "drmTMB_parallel_worker_died"
+  )
+}
+
+drm_dead_worker_indices <- function(results, indices) {
+  n <- length(indices)
+  if (!is.list(results)) {
+    return(seq_len(n))
+  }
+  missing <- if (length(results) < n) {
+    seq.int(length(results) + 1L, n)
+  } else {
+    integer()
+  }
+  present <- seq_len(min(length(results), n))
+  c(present[vapply(results[present], is.null, logical(1L))], missing)
+}
+
+drm_rbind_profile_rows <- function(rows) {
+  if (any(vapply(rows, is.null, logical(1L)))) {
+    cli::cli_abort(
+      c(
+        "A forked parallel worker died and returned no result.",
+        i = "{.fn rbind} would drop that target silently.",
+        i = "Re-run with {.code parallel = \"none\"} to see the serial error, or use {.code parallel = \"cluster\"}."
+      ),
+      class = "drmTMB_parallel_worker_died"
+    )
+  }
+  do.call(rbind, rows)
+}
+
+# Replace a dead bootstrap worker with an empty failed-refit row so the
+# requested replicate count is unchanged. Ordinary failed refits already
+# take this path through bootstrap_refit_one(); a dead child must too.
+drm_bootstrap_retain_dead_workers <- function(rows, indices, target_names) {
+  if (length(rows) < length(indices)) {
+    rows <- c(rows, vector("list", length(indices) - length(rows)))
+  }
+  dead <- drm_dead_worker_indices(rows, indices)
+  for (i in dead) {
+    out <- bootstrap_empty_draws(indices[[i]], target_names)
+    out$refit_status <- "worker_died"
+    out$refit_message <- "forked worker died"
+    rows[[i]] <- out
+  }
+  rows
 }
 
 bootstrap_refit_one <- function(
@@ -3821,12 +4100,7 @@ drm_profile_endpoint_result <- function(
   nll_hat <- unname(object$opt$objective)
   cutoff <- stats::qchisq(level, df = 1) / 2
   curvature_se <- profile_endpoint_curvature_se(object, position)
-  control <- if (is.list(object$control) && is.list(object$control$optimizer)) {
-    object$control$optimizer
-  } else {
-    list()
-  }
-  control <- profile_endpoint_inner_control(control)
+  control <- profile_endpoint_inner_control(profile_fit_nlminb_control(object))
 
   endpoint_worker <- function(direction) {
     evaluator <- profile_endpoint_evaluator(
@@ -4011,8 +4285,7 @@ drm_profile_ordinal_cutpoint_confint <- function(object, target, level) {
     ))
   }
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
-  control <- if (is.list(object$control) && is.list(object$control$optimizer)) object$control$optimizer else list()
-  control <- profile_endpoint_inner_control(control)
+  control <- profile_endpoint_inner_control(profile_fit_nlminb_control(object))
   evaluator <- ordinal_cutpoint_profile_evaluator(object, target, control)
   cutoff <- stats::qchisq(level, df = 1) / 2
   nll_hat <- unname(object$opt$objective)
@@ -4118,6 +4391,21 @@ PROFILE_ENDPOINT_GRADIENT_TOL <- 1e-3
 # caller's (possibly speed-tuned) iteration budget: keep any tolerances but use a
 # generous iteration/evaluation budget so profile-CI reliability does not depend
 # on the original fit's iter.max / eval.max choice (issue #710.5).
+# Constrained profile solves use nlminb independently of the outer fit's
+# method. An optim control list cannot be forwarded to those solves. Legacy
+# fitted objects without optimizer_method retain their nlminb controls.
+profile_fit_nlminb_control <- function(object) {
+  control <- object$control
+  if (!is.list(control) || !is.list(control$optimizer)) {
+    return(list())
+  }
+  method <- control$optimizer_method
+  if (!is.null(method) && !identical(method, "nlminb")) {
+    return(list())
+  }
+  control$optimizer
+}
+
 profile_endpoint_inner_control <- function(control) {
   if (!is.list(control)) {
     control <- list()
@@ -4662,7 +4950,26 @@ drm_profile_direct_sd_clamp_trace <- function(object, profile) {
 
 drm_tmbprofile_confint <- function(profile, target_name, level) {
   tryCatch(
-    stats::confint(profile, level = level),
+    {
+      if (!inherits(profile, "tmbprofile")) {
+        return(stats::confint(profile, level = level))
+      }
+      # Invert each side of the profile separately. Equal objective values
+      # have the same mean aggregation used by TMB's confint method; naming
+      # ties explicitly prevents approx() from warning about that choice.
+      # Preserve TMB's first-minimum split: only the left side includes it.
+      minimum <- which.min(profile$value)
+      cutoff <- profile$value[[minimum]] + stats::qchisq(level, df = 1) / 2
+      rows <- seq_len(nrow(profile))
+      sides <- list(lower = rows[rows <= minimum], upper = rows[rows > minimum])
+      endpoints <- vapply(sides, function(index) {
+        stats::approx(
+          x = profile$value[index], y = profile[[1L]][index],
+          xout = cutoff, ties = mean
+        )$y
+      }, numeric(1))
+      matrix(endpoints, nrow = 1L, dimnames = list(names(profile)[[1L]], names(sides)))
+    },
     error = function(err) {
       cli::cli_abort(
         c(
@@ -4977,7 +5284,9 @@ validate_profile_targets <- function(targets) {
     # `profile_targets()` so it is discoverable, never ready -- DRM.jl's
     # bridge inference has no cutpoint target, so `confint()` refuses it and
     # names `engine = "tmb"` (R/julia-family-cumulative_logit.R).
-    "julia_ordinal_cutpoint_native_only"
+    "julia_ordinal_cutpoint_native_only",
+    "temporal_decay_intervals_deferred",
+    "temporal_nonmean_intervals_deferred"
   )
   bad_note <- !targets$profile_note %in% allowed_notes
   if (any(bad_note)) {
@@ -5082,6 +5391,10 @@ profile_fixef_internal <- function(dpar, object = NULL) {
   }
   if (identical(dpar, "hu")) {
     return("beta_zi")
+  }
+  if (identical(dpar, "disc")) {
+    # cumulative_logit() discrimination rides the beta_sigma slot (#966).
+    return("beta_sigma")
   }
   if (startsWith(dpar, "corpair(")) {
     return("beta_cor_mu")

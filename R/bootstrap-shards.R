@@ -89,7 +89,16 @@ drm_bootstrap_shard <- function(
     out$replicate_seed <- seed
     out
   }
-  attempts <- do.call(rbind, drm_parallel_lapply(indices, worker, plan))
+  # A forked child that dies returns NULL, and rbind() would drop that
+  # replicate. Record it as a `worker_died` attempt instead, as
+  # confint(method = "bootstrap") does, so the ledger keeps every index (#1537).
+  rows <- drm_parallel_lapply(indices, worker, plan, on_dead = "record")
+  rows <- drm_bootstrap_retain_dead_workers(rows, indices, target_names)
+  rows <- lapply(rows, function(row) {
+    if (is.null(row$replicate_seed)) row$replicate_seed <- seed
+    row
+  })
+  attempts <- do.call(rbind, rows)
   row.names(attempts) <- NULL
   structure(
     list(
@@ -164,7 +173,8 @@ drm_bootstrap_combine <- function(...) {
 }
 
 # Internal. Per-target denominators of a shard: attempted, usable, and failed
-# refits, with failures split by terminal status. Nothing is dropped.
+# refits, with failures split by terminal status (a forked worker that died
+# is `worker_died`). Nothing is dropped.
 drm_bootstrap_ledger <- function(shard) {
   if (!inherits(shard, "drm_bootstrap_shard")) {
     cli::cli_abort("{.arg shard} must be a {.cls drm_bootstrap_shard}.")
@@ -179,6 +189,7 @@ drm_bootstrap_ledger <- function(shard) {
       refit_error = sum(a$refit_status == "refit_error"),
       refit_nonconverged = sum(a$refit_status == "refit_nonconverged"),
       target_missing = sum(a$refit_status == "target_missing"),
+      worker_died = sum(a$refit_status == "worker_died"),
       stringsAsFactors = FALSE
     )
   })
@@ -209,6 +220,7 @@ drm_bootstrap_shard_header <- function(
     seed = seed,
     re_form = if (is.null(re_form)) "NULL" else paste(deparse(re_form), collapse = " "),
     refit = list(
+      optimizer_method = refit_control$optimizer_method,
       optimizer_preset = refit_control$optimizer_preset,
       se = refit_control$se,
       multi_start = refit_control$multi_start

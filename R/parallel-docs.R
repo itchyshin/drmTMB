@@ -20,7 +20,7 @@
 #' * `"multicore"` forks worker processes with [parallel::mclapply()]. It is
 #'   cheap to start but available on Unix-alikes only.
 #' * `"cluster"` starts socket (PSOCK) workers with
-#'   [parallel::makePSOCKcluster()] and works on every platform, including
+#' \code{\link[parallel:makeCluster]{parallel::makePSOCKcluster()}} and works on every platform, including
 #'   Windows. Each worker loads the same installed `drmTMB` build. A fitted
 #'   TMB object reaches the worker with a dead external pointer, and TMB
 #'   rebuilds it from the stored data and parameters on first use, so no
@@ -70,6 +70,14 @@
 #' that can matter for a single `drmTMB` fit, through dense matrix work in
 #' [TMB::sdreport()] and in large fixed-effect designs; it is the layer to pin
 #' when you parallelise across jobs.
+#'
+#' @section Dead forked workers:
+#' [parallel::mclapply()] returns `NULL` for a child that exits without a
+#' value, for example after `quit()` or a crash. `rbind()` would then drop
+#' that element. [profile.drmTMB()] and `confint(method = "profile")` abort
+#' with class `drmTMB_parallel_worker_died` instead. `confint(method =
+#' "bootstrap")` records the missing replicate as a failed refit, so
+#' `bootstrap.n + bootstrap.failed` still equals the requested `R`.
 #'
 #' @section Windows:
 #' `parallel = "multicore"` is not available on Windows because it relies on

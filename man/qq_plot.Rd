@@ -44,7 +44,8 @@ to read.
 
 \strong{What this detects -- and does not.} Same scope as \code{\link[=worm_plot]{worm_plot()}} --
 shape/atom mis-specification a family cannot reabsorb through its own
-free parameters is detected with gated power >= 0.8 (heavy tails, ignored
+free parameters was detected with power >= 0.8 in the evaluated scenarios
+(heavy tails, ignored
 overdispersion or zero-inflation in a no-free-dispersion family, ignored
 truncation, a missing zero/one atom); a mis-specification a free
 nuisance/dispersion/inflation parameter absorbs (heteroscedasticity via
@@ -54,9 +55,7 @@ constant-vs-covariate inflation mechanism for \code{hurdle_nbinom2}/
 adequacy; the same mechanism mis-spec for \code{zi_poisson}/\code{zi_nbinom2} is
 sample-size-limited rather than structurally blind but stays far below
 0.8 even at n = 3000. See \code{residuals.drmTMB()}'s Details for the
-full gated-campaign breakdown (tweedie: 99 of 400 seeds locally, full run
-deferred to Totoro)
-(\verb{docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/}).
+numerical evidence and its incomplete Tweedie boundary.
 }
 \examples{
 set.seed(20260712)

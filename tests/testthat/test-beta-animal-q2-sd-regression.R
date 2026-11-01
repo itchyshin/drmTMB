@@ -160,7 +160,7 @@ test_that("Beta animal intercept-slope SDs map both coefficient targets", {
   expect_error(drmTMB:::drm_build_beta_ls_spec(
     bf(y ~ x + animal(1 + x | id, A = A) + (1 | other), sigma ~ 1,
        sd(id, level = "animal", coef = "(Intercept)") ~ z0,
-       sd(id, level = "animal", coef = "x") ~ z1), bad), "no other random")
+       sd(id, level = "animal", coef = "x") ~ z1), bad), "cannot yet be combined with an ordinary")
 })
 
 test_that("Beta animal coefficient SD extraction preserves latent values", {

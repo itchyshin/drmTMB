@@ -417,6 +417,74 @@ one candidate fixture, not broad parity or interval calibration. GitHub issue
 lookup could not reach the API. Details:
 `docs/dev-log/check-log.d/2026-10-22-julia-gamma-animal-sd-bridge-parity.md`.
 
+# 2026-10-25: `@param engine` cites Julia same-target receipts (#1569)
+
+`R/drmTMB.R` `@param engine` (and `man/drmTMB.Rd`) now names NEWS and
+`tests/testthat/test-julia-family-{skew_normal,cumulative_logit,biv_student,biv_lognormal}.R`
+as the receipts for the 1e-4 / 1e-3 same-target bar at DRM.jl pin
+430ef64cc. `test-julia-admission-docs.R` 26/26. C17:
+`python3 tools/recertify-c17.py --label 1569-docs-receipts --tolerance 1e-10`.
+Worst `|change|` 0.000e+00. Receipt
+`docs/dev-log/implementation-recovery/2026-10-25-1569-docs-receipts-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence` OK.
+`test-reml-phylo-location.R:172` fails on clean `main` `f5791d50a`
+(convergence 1 vs 0), so that fail is not this docs change.
+
+# 2026-10-25: `engine = "julia"` admission docs match the family registry (#1569)
+
+`@param engine` in `R/drmTMB.R` (and `man/drmTMB.Rd`) keeps `skew_normal()`,
+`cumulative_logit()`, `biv_student()`, and `biv_lognormal()` on the
+fixed-effect Julia route. README and `vignettes/julia-engine.Rmd` now name
+those families too. The four family pages say they are admitted through
+`engine = "julia"`. Formula-grammar and known-limitations now say Julia
+admits fixed-effect binomial only, not random-effect or structured
+binomial. `test-julia-admission-docs.R` checks the four names in
+`man/drmTMB.Rd`, the Julia engine vignette, and README.
+
+C17: `python3 tools/recertify-c17.py --label 1569-docs --tolerance 1e-10`.
+Worst `|change|` 3.231e-11 on mc-0568. Receipt
+`docs/dev-log/implementation-recovery/2026-10-25-1569-docs-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence` OK.
+The `@param engine` wrap sits outside the authenticated model-15 anchors.
+
+Full `devtools::test()`: 3 fail, 0 error. Two fails were the env-skip
+census after the new README skip (regenerated; now 3 build-premise
+skips). The remaining fail is `test-reml-phylo-location.R:172`
+(convergence 1 vs 0), outside this docs change.
+
+# 2026-10-25: audit of drmTMB's own AGHQ, step 1 (#934)
+
+Read-only audit note `docs/dev-log/2026-10-25-aghq-state-audit-934.md`. Verdict: integrator
+correct for the two implemented cases (binomial and cumulative-logit scalar random effect);
+estimator established for one cell only (cumulative-logit `mu` random slope, `mc-0227`); binomial
+O3 has no recovery or coverage campaign; no AGHQ code exists for `sigma` random effects, correlated
+or multi-dimensional latent blocks, other families, or structured effects. Added a fixed-parameter
+integrator spot check under `docs/dev-log/evidence/2026-10-25-aghq-integrator-spot-check/`
+(pure R, seconds). `tests/testthat/test-aghq-coxreid.R` on `f03b0b24a`: 5 tests, 16
+expectations, 0 failures, 0 skips (Totoro, R 4.6.1). No R, C++, test, man or NEWS file changed.
+
+# 2026-10-25: refuse ordinary mean (1 | g) on the Julia bridge (#1551)
+
+`drm_julia_refuse_ordinary_mean_re_unlabelled()` aborts Poisson, Gamma,
+NB2, Beta, and Binomial ordinary mean bars before Julia starts. Gaussian
+`(1 | g)` is unchanged. Gate id `ordinary_mean_re_unlabelled` added to
+`drm_julia_intentional_gates()`. Both `julia-gates.tsv` copies regenerated
+to 17 rows. Focused tests: fence file 24/24; gate-vs-engine 146 pass, 1
+skip (`ape` missing). C17 receipt check PASS. No lineage or C17 files
+changed. The admission census test moved the nine ordinary mean
+(1 | g) / (1 + x | g) poisson, NB2, Gamma, Beta, and Binomial cells from
+the S5 unledgered ADMIT list to REFUSE under this gate.
+
+# 2026-10-25: refuse Gaussian ordinary (1 | g) with a factor FE (#1567)
+
+`drm_julia_refuse_gaussian_ordinary_re_factor_fe()` aborts a Gaussian
+ordinary mean bar when the `mu` formula has a factor, character, or
+logical predictor. Numeric-only Gaussian `(1 | g)` and factor FE without
+a bar still reach Julia setup. Gate id `gaussian_ordinary_re_factor_fe`
+added. Both `julia-gates.tsv` copies regenerated to 17 rows. Focused
+tests: fence file 11/11; gate-vs-engine 146 pass, 1 skip (`ape` missing).
+No lineage or C17 files changed.
+
 # 2026-10-21: Native Gamma sigma-endpoint SD regression
 
 The complete-data Gamma route now supports `sd(group, dpar = "sigma") ~ z`
@@ -958,6 +1026,533 @@ rg "simple.*mu random|sigma.*Later|currently.*only.*mu|optional simple.*location
 rg -n 'lognormal.*SD|Bernoulli.*SD|binomial.*SD|structured scale|marginal.*simulation' NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md docs/dev-log/internal-roadmap.md vignettes/formula-grammar.Rmd
 ```
 
+# 2026-10-18 — rebase #1525 onto main `d89db5097`
+
+Rebased `claude/lane-n2-ordinal-disc` onto current main. Conflicts were
+check-log and a stale C17 TSV (skipped). `src/drmTMB.cpp` changed (`disc`
+uses the unused `X_sigma` slot of model type 13; +16/−4, C++ TMB
+reviewer). Full `testthat::test_dir()` on `ff1eda1b2`: passed=45004
+failed=81 error=213 skipped=240 warning=20.
+
+# 2026-10-22: retain output from failed or colliding C17 recertification runs (#1591)
+
+`tools/recertify-c17.py` previously deleted partial output in `finally` and
+could lose a complete run when the dated destination already existed. The
+runner now preserves failed, rejected, and colliding output in unique sibling
+directories while restoring the committed receipt. Four focused Python tests
+pass, including three output-retention regressions and the existing dry-run
+check. The local 12-fit dry-run reproduced all three receipt values exactly
+(`0.000e+00` change) and left the manifest unchanged. Full package tests were
+not run. The exact-head CI and review remain pending; see
+`docs/dev-log/after-task/2026-10-22-recertify-c17-output-retention.md`.
+
+# 2026-10-22: fit-free tests for phylogenetic penalty helpers (#1601)
+
+Synced PR head `6af76a98a86c6db7c757e256147548a4c82cf77f` with live `main`
+`7820315cc904358edbf3635515ebd3a73dbb7f31` in an isolated clone. The merge
+completed without conflict; the test file remained unchanged (Git blob
+`a2a8f08ad5c8309da60fce6406940121f9eb9236`, SHA-256
+`f514b2031745d15392082fc6b08751c2fe8cb79b99f309567f5f674369238e71`).
+
+Focused fit-free check on the synced source: `Rscript -e
+'devtools::test(filter = "phylo-penalty-spec", reporter = "summary")'`
+under R 4.6.0 / macOS Tahoe 26.7.1 / ARM64 completed with 63 successful
+expectations and no failures. No fits were run. The PR's earlier 75-pass
+`filter = "penalty"` result was not rerun and remains historical. Full package
+tests and `R CMD check` were not run. No package code changed.
+
+The PR's original after-task note was expanded to include the source sync,
+checks, test limitations, issue search, consistency audit, and next action.
+No matching open issue was found; the issue tracker was left unchanged.
+
+# 2026-10-18: rebase #1513 onto main after #1504 merged
+
+Rebased `cursor/triage-i-mi` onto `e17921e9b` (#1504 squash-merged). Dropped
+the six copied #1504 commits (`37a90043f` to `af2ee2501`, including the
+`46d125a50` C17 receipt) and both merges of main; the 27 #1513 commits were
+replayed in order. `NEWS.md` and this log had additive conflicts and keep both
+sides; `simulate()` keeps main's lme4 `re.form` default plus the `mi()`
+weights abort; intermediate C17 TSV conflicts took the #1513 side. `git diff
+origin/main -- src/` touches only `src/drmTMB.cpp`, and every hunk is #1513's
+`mi()` work: the Gamma adaptive quadrature helpers and call sites, the
+`drm_abort_mi_quadrature_nonfinite()` abort, and the #1459 weight-0 skip
+(`if (asDouble(weights(i)) > 0.0)`). `src/drm_numeric.h` and
+`src/drm_response_kernels.h` match main.
+
+C17: `python3 tools/recertify-c17.py --label 1513-rebase --tolerance 1e-10`
+on Totoro (R 4.6.1), worst `|change|` 1.264e-12 on mc-0568 / 0569 / 0576,
+source fingerprint unchanged; `--check-c14-receipt-equivalence` OK. Full suite
+on Totoro (12 `devtools::test()` shards): 49,423 pass, 2 fail, 0 error, 106
+skip. Both fails reproduce on `e17921e9b` in the same environment: Arc 1a REML
+spatial one-slope (reference optimiser code 52) and the NB2 sigma mis-wire
+guard (logLik gap 14.5). `devtools::document()` produced only the known #1400
+`.Rd` drift plus a RoxygenNote bump; #1513 changes no roxygen lines, so
+nothing was committed.
+
+# 2026-10-18: #1513 runtime guard drmTMB_mi_quadrature_inaccurate
+
+R-only post-fit warning `drmTMB_mi_quadrature_inaccurate` in
+`drm_fit_spec()` after the fitted `fn`/`gr` probe
+(`R/drmTMB.R:727`). Nothing in `src/`. The helper loops
+`missing_predictor` and `missing_predictor2`.
+
+Thresholds, documented against the measured 15-node leftover:
+- Beta / zero-one-Beta missing-row prior mean at or inside `0.10` of
+  0 or 1 (`4.65e-3` at `mu = 0.10`, `sigma = 1`; `4.81e-3` at
+  `mu = 0.02`, `sigma = 1`). Mid-range `mu = 0.50`, `sigma = 0.5` and
+  the pinched `mu = 0.10`, `sigma = 0.2` case stay inside `2.6e-5`, so
+  the mu-only cut is conservative at that pin.
+- Gamma CV `>= 3` (12% of an 80-row scan exceed `1e-4`, worst `1.47`).
+
+15-node Beta rule and labelled skips kept. No check before the Julia
+branch (Julia already refuses Beta/Gamma `mi()`).
+
+Tests: helper with two `mi()` terms, bad one second (Gaussian first +
+Gamma/Beta second); live two-Gaussian `drmTMB()` then second slot
+relabelled Gamma at CV 3.5; live Beta `mu ~ 0.04` warns; live Gamma
+CV 3 warns; healthy Gamma CV 0.10 does not warn.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail / 175 pass / 2
+labelled skips; `test-env-skip-census.R` 0 fail / 5 pass (cran-lane
+5→9). Unweighted cites stay `:1434`, `:1475`, `:4678`. `n_cpp` untouched.
+
+Full `testthat::test_dir()` (R 4.3.3, `NOT_CRAN=true`): the Summary
+reporter still prints only the first 10 failures, all this VM's missing
+Suggests (`ape`, `emmeans`, `mvtnorm`), the same class as Engine A.
+`test-mi-quadrature-1476-1477.R` in that run: 175 pass / 2 labelled
+skips / 0 fail. Touched mi() files had 0 fail.
+
+C17 `--label mi-quadrature-1513-guard --tolerance 1e-10`: `|change|
+0.000e+00` on mc-0568 / 0569 / 0576. Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-guard-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK. Tracked run-1 moved aside, then restored.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
+# 2026-10-18: #1513 Engine A (merge main, abort every mi() term, C++ notes)
+
+Merged `origin/main` (`d89db5097`) into `cursor/triage-i-mi` as a normal
+merge commit (`5525f0e99`). No force-push. Conflicts were NEWS,
+`R/methods.R` (`simulate()` keeps the `mi()` weights abort and takes
+main's lme4 `re.form` meanings), check-log, and the C17 TSV.
+
+Engine A items:
+1. Merge: done.
+2. `drm_spec_uses_mi_quadrature_abort()` now checks
+   `missing_predictor` and `missing_predictor2`, not only the first
+   slot. Unit test covers Gaussian-first + Gamma-second.
+3. `skip_on_cran()` on the Gamma `weights = 2` fit in
+   `test-mi-weights-1459.R`. Census cran-lane 4→5 on the quadrature
+   file; new cran-lane 1 on the weights file.
+4. Unweighted Gaussian prior sites stay `:1434`, `:1475`, `:4678`.
+5. C++ notes kept: a node with `u_raw > 500` drops its `w cosh(t)`
+   weight (`n_cpp = 46L`, paired huge-mu test expects a floor term);
+   AD vs FD at the pole where Newton branch B wins (`< 1e-5`).
+   Beta low-mu runtime guard was not built.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail / 167 pass / 2 labelled
+skips; `test-guard-branch-continuity.R` 0 fail / 69 pass (`n_cpp = 46L`);
+`test-mi-weights-1459.R` 0 fail / 55 pass.
+
+Full `testthat::test_dir()`: FAIL 67 / WARN 26 / SKIP 343 / PASS 46170.
+All 67 failures are this VM's missing Suggests (`ape`, `emmeans`,
+`mvtnorm`, `tweedie`, `JuliaCall`), the same class as the 2026-10-12
+closeout (julia-fe-only-fence expects a DRM.jl checkout message;
+tweedie oracle needs `{tweedie}`; phylo tests need `{ape}`). Touched
+mi() files had 0 fail.
+
+C17 `--label mi-quadrature-1513-r5-main --tolerance 1e-10` after the
+merge and the cpp edit: `|change| 0.000e+00` on mc-0568 / 0569 / 0576.
+Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-r5-main-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK. Tracked run-1 was moved aside, then restored.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
+# 2026-10-18: #1513 Code Reviewer blockers (live abort, rethrow, 1459, Beta 0.02)
+
+1. Live `drmTMB()` Gamma `mi()` with `y = 1e200` on a missing-x row raises
+   classed `drmTMB_mi_quadrature_nonfinite` (confirmed; test in
+   `test-mi-quadrature-1476-1477.R`).
+2. `drm_rethrow_mi_quadrature_error` is live: `drm_fit_spec()` calls it
+   on MakeADFun errors and `drm_probe_mi_quadrature_objective` calls it
+   on start/fitted `fn`/`gr`. Dead `drm_wrap_mi_quadrature_objective`
+   (C-stack overflow) was removed. New test classifies a C++ tape token.
+3. Beta `mu = 0.02` vs `integrate()` is `4.81e-3` on the frozen 15-node
+   Gauss-Legendre rule (101 GL nodes still `3.0e-4`). Labelled skip,
+   refs #1476 / #1531. Not a Gamma-rule change.
+4. `#1459` warning cites the actual unweighted sites `:1434`, `:1475`,
+   `:4678`. Gamma and Beta `mi()` plus `weights = 2` do not warn.
+   `drm_mi_prior_path_unweighted()` requires a Gaussian family on both
+   slots.
+5. C17 recertify already ran on the final cpp (`--label
+   mi-quadrature-1513-r5`, `|change| 0.000e+00`). This slice does not
+   edit `src/drmTMB.cpp`. Equivalence rechecked.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+Refs #1532
+
+# 2026-10-18: #1513 round 5 closeout (C17 + labelled CV >= 3 skip)
+
+Remeasured the Round 5 tables at `3b4ac1054` (R 4.3.3, TMB 1.9.25). The
+blockers are inside `1e-4`: Gamma pole CV 0.5 `1.05e-8` (was `4.0e-3`),
+CV 1 `1.82e-7` (was `0.28`); Poisson CV 2 `y = 0` `2.12e-5`. Worst
+asserted row remains Gaussian CV 2 `y = 2.2` at `2.48e-5`. Mode residual
+after step 5 at `y = 2.05`: CV 0.5 `1.83e-3`, CV 1 `4.47e-7`, CV 2
+`-3.9e-13`. Integrand, score and Hessian are on `u = log(x)` with
+Jacobian `+u`; nodes sit after the five Newton steps.
+
+Labelled skip for CV `>= 3` names
+`docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md` (refs
+#1477). An 80-row random scan at CV 3 fails 12% (worst `1.47`). Census
+gained one `runtime-conditional` site on `test-mi-quadrature-1476-1477.R`.
+
+Focused: `test-mi-quadrature-1476-1477.R` 0 fail (1 labelled skip);
+`test-guard-branch-continuity.R` 0 fail (`n_cpp = 45L`). Compiled
+per-row vs `integrate()` ran with `NOT_CRAN=true`.
+
+C17 `--label mi-quadrature-1513-r5 --tolerance 1e-10` at `3b4ac1054`:
+`|change| 0.000e+00` on mc-0568 / 0569 / 0576. Receipt
+`docs/dev-log/implementation-recovery/2026-10-18-mi-quadrature-1513-r5-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check-c14-receipt-equivalence`
+prints OK (mc-0568 included). Tracked run-1 was moved aside, then
+restored. The `mi()` sinh map sits outside the authenticated model-15
+anchors. Full suite follows.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1532
+
+# 2026-10-15: #1513 round 5 Gamma mi() pole fix (sinh-mapped trapezoid)
+
+Cause of the CV 0.5 (`4.0e-3`) and CV 1 (`0.28`) pole errors: the five
+clamped log-`x` Newton steps had not reached the mode (score about
+`-15` after step 5 at the pole rows; each step moves `x` by a factor of
+`exp(-0.5)` against a response sd of 0.2 in `x`), and at CV 1 and above
+the Gauss-Hermite nodes could not reach the `exp(shape * u)` left tail.
+The Gaussian-only-derivative suspicion was already fixed at `3ea958fdc`:
+the C++ and R mirror use each family's own `g`/`H`, and
+`drm_gamma_mi_grad_hess()` is now checked against central differences of
+the Jacobian-carrying log integrand for Gaussian and Poisson.
+
+Now: still exactly five steps, each the better (by log integrand) of the
+clamped log-`x` step and a Newton step on `G(x) = g / x` written with the
+log-`x` derivatives; nodes `mode + sigma_u sinh(t)` on 51 equally spaced
+`t` in `[-5, 4]`, weight `h cosh(t) sigma_u`, placed after step 5. `n_cpp`
+is `45L` (ten new CondExp sites, two paired guard tests). The reference
+`integrate()` was also wrong at CV 2: it stopped at `log(mu) - 12` and
+lost about 5% of the mass; the old "`8.3e-2`" and "`4.6e2`" were mostly
+that, plus real failure at `y = 30`.
+
+Per-row `|log marginal - log integrate()|`, R mirror and compiled TMB
+agree to `4e-13`:
+
+| Gaussian y (x*) | CV 0.5 | CV 1 | CV 2 |
+| --- | --- | --- | --- |
+| 2.05 (pole, 0.1) | 1.05e-8 | 1.82e-7 | 9.02e-7 |
+| 2.20 | 4.98e-9 | 8.82e-9 | 2.48e-5 |
+| 2.50 | 9.04e-10 | 1.81e-9 | 5.31e-7 |
+| 3.50 | 7.02e-11 | 7.32e-11 | 7.39e-11 |
+| 12.0 (tail) | 3.8e-12 | 3.8e-12 | 3.8e-12 |
+
+| Poisson y | CV 0.2 | CV 1 | CV 2 |
+| --- | --- | --- | --- |
+| 0 | 7.2e-10 | 1.50e-6 | 2.12e-5 |
+| 1 | 8.7e-10 | 9.02e-7 | 1.26e-5 |
+| 4 | 1.31e-9 | 1.75e-6 | 1.13e-5 |
+| 30 | 2.2e-10 | 6.3e-10 | 6.1e-10 |
+
+Open: CV `>= 3`; Poisson with `exp(eta)` at the prior mean of about `1e3`
+or more (five steps stop short; twelve recover the moderate cases). Julia
+refusals for Beta/Gamma `mi()` and `drmTMB_julia_mi_weights_unsupported`
+are unchanged and tested. C17 and the full suite are not re-run (session 2).
+
+# 2026-10-12: #1513 five fixed family-correct Newton steps
+
+Newton is exactly five steps from `log(mu)` with each family's own
+`g`/`H` (Poisson adds `(y - mu) eta'(x)` and the matching curvature).
+No data-dependent stop. `n_cpp = 35L`.
+
+- Poisson × Gamma CV 1: `5.18e-5` (before `5.4e-4`).
+- Poisson × Gamma CV 2 `y = 0`: finite, vs `integrate()` `8.3e-2`.
+- Poisson × Gamma CV 2 `y = 30`: finite, vs `integrate()` `4.6e2`.
+- Gamma tail `y = 12`: CV 0.05 / 0.5 / 1 all `< 1e-4`.
+- Gamma pole `y = 2.05` CV 0.05: `< 1e-4`. Pole CV 0.5 / 1: `4.0e-3` / `0.28` (not asserted).
+
+Refs #1477
+Refs #1476
+Refs #1459
+
+# 2026-10-12: #1513 Round 4 family-correct Newton and live abort
+
+Newton uses each family's own log-density `g`/`H` wrt `x` (analytic Gaussian and Poisson; otherwise FD of `drm_response_log_density`). A non-negative Hessian skips the step and falls back to the prior mode. Gamma production is 51-node posterior-mode GH. `drm_fit_spec()` rethrows the C++ tape token through `drm_rethrow_mi_quadrature_error` and probes start/fitted `fn`/`gr` for Gamma/Beta/ZOB `mi()` only. `n_cpp = 40L`. Headers and unweighted Gaussian priors unchanged.
+
+Acceptance vs fine-split `integrate()` (R 4.3.3, TMB 1.9.25):
+- Gamma pole `y=2.05`: CV 0.05 `5.7e-14`; 0.5 `1.3e-8`; 1 `2.7e-5` (before: y=7 easy `1e-15`; pole was untested).
+- Gamma tail `y=12`: CV 0.05 `4.1e-12`; 0.5 `2.0e-14`; 1 `2.8e-14`.
+- Poisson × Gamma CV 1: `5.17e-5` (before `5.4e-4`).
+- Poisson × Gamma CV 2 `y=0`: finite (before classed abort).
+- Gamma pole CV 2: `9.51e-2` (labelled skip; issue draft `docs/dev-log/2026-10-12-gamma-mi-cv-gt1-pole-follow-up-issue.md`, refs #1477).
+- U-shaped Beta shapes `(0.13, 0.31)`, `y` near 0: `0.54` recorded for #1531 (that issue cites `1.6e-2`).
+- Live `drmTMB()` Gamma `mi()` with `y=1e200` on a missing-x row raises `drmTMB_mi_quadrature_nonfinite`.
+
+Focused local: `test-mi-quadrature-1476-1477.R` 0 fail (1 expected skip); `test-guard-branch-continuity.R` 0 fail; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-mi-weights-1459.R` 0 fail.
+
+C17 `--label mi-quadrature-1513 --tolerance 1e-10` at `3ea958fdc`: `|change| 0.000e+00` on mc-0568 / 0569 / 0576. Receipt `docs/dev-log/implementation-recovery/2026-10-12-mi-quadrature-1513-c17c2-c14-final-source-compatibility`. `python3 tools/capability_ledger.py --check-c14-receipt-equivalence` prints OK (mc-0568 included). The `mi()` Newton and live abort sit outside the authenticated model-15 anchors. Full suite follows.
+
+Refs #1477
+Refs #1476
+Refs #1459
+Refs #1531
+
+# 2026-10-12: #1513 quadrature restore + adaptive Gamma
+
+Beta / zero-one-Beta `mi()` restored to the frozen 15-node Gauss-Legendre rule, ZOB atoms `c(0, nodes, 1)`. Gamma `mi()` is posterior-mode GH on `u = log(x)` (5 Newton steps from `log(mu)`, analytic Gaussian score/Hessian, CondExp step clamp, unnormalised log-sum, no CV branch). `drmTMB_mi_quadrature_nonfinite` aborts a NaN/`-Inf` marginal. Headers `src/drm_numeric.h` and `src/drm_response_kernels.h` were not edited. Unweighted Gaussian priors stay `:1301`, `:1342`, `:4556`. `n_cpp = 35L` (drop two IS `s_floor`s, add five Newton clamps). C17 not recertified (`R/drmTMB.R` and `R/methods.R` unchanged).
+
+Acceptance (R 4.3.3, TMB 1.9.25):
+- Beta mid-range `mu=0.5`, `sigma=0.5`, `sd_y=0.1`: `integrate()` abs logLik error `9.87e-7` (tolerance `2.6e-5`).
+- Beta mid-range `mu=0.10`, `sigma=0.2`, `sd_y=0.1`: `9.10e-6`.
+- U-shaped Beta `mu=0.02` / `0.10`, `sigma=1`, `y=1`, `sd_y=0.1`, `beta_x=2`: `1.638e-2` / `1.659e-2` (follow-up, refs #1476; GitHub issue create returned 403).
+- Gamma vs log-x `integrate()`, `sd_y=0.1`: CV 0.05 `3.8e-15`; 0.10 `2.2e-15`; 0.50 `1.6e-15`; 1 `5.8e-15`; 2 `1.3e-15` (all `< 1e-4`; CV>1 passed, no skip).
+- Poisson response × Gamma `mi()` helper: `2.87e-13`.
+- `obj$gr` vs FD `h=1e-5` at CV 0.05, 1, 2: all `< 1e-5` after analytic Newton.
+- Classed abort: `drmTMB_mi_quadrature_nonfinite` from the R helper (NaN `y`) and `cli_abort` probe.
+- Weight-0 `y=1e200` pin still passes.
+
+Focused local: `test-mi-quadrature-1476-1477.R` 0 fail; `test-guard-branch-continuity.R` 0 fail (`n_cpp = 35L`); `test-missing-predictor-{beta,gamma,zero-one-beta}.R` 0 fail; `test-mi-weights-1459.R` 0 fail; Dinnage M1 0 fail.
+
+Full `testthat::test_dir()` at `d8d9a41b2` then census refresh: progress-char parse PASS 47785, WARN 58, SKIP 122. Reporter listed 9 failures; `Rscript tools/write-env-skip-census.R` fixed the two in-PR `test-env-skip-census.R` rows (cran-lane 1→2 plus the CV>1 runtime skip site). The other seven are this VM, not the quadrature edit: three `test-julia-fe-only-fence.R` rows that expect a DRM.jl checkout message and see missing `{JuliaCall}`; `test-julia-bridge.R` `fixef()` and `test-julia-joint-call.R` need `{JuliaCall}`; `test-missing-predictor-prediction.R` sparse `crossprod` (same VM defect as 2026-10-09); `test-reml-phylo-location.R` non-convergence. Live Julia: 0 ran, 69 skipped (`DRMODELS_JL_PATH` unset). `test-env-skip-census.R` 0 fail after the refresh.
+
+Refs #1477
+Refs #1476
+Refs #1459
+
+# 2026-10-11: STEP 2 #1459 gates (no quadrature rewrite)
+
+Warning `drmTMB_mi_weights_prior_unweighted` now fires only on the unweighted Gaussian prior paths: `src/drmTMB.cpp:1301`, `:1342`, and the nbinom2 x Gaussian copy at `:4556`. Beta `mi()` plus `weights = 2` does not warn. Weight 0 uses `if (asDouble(weights(i)) > 0)`; the pin is a weight-0 Gaussian row at `y = 1e200` with finite `fn` and `gr`. M1 helper re-polishes weight-2 from the unit-weight MLE and restores the dup-vs-w2 coefficient compare; any leftover gap is Gamma-only. `predict()` / `simulate()` allow `weights = 1`. Julia refuses non-unit weights for every family, including Beta `mi()` with `weights = 2`, before the family check. `.Rlib/` gitignored. Tracked C17 run-1 folder restored. C17 `--label triage-i-mi-r2 --tolerance 1e-10`: `|change| 0.000e+00` on mc-0568 / 0569 / 0576 at `8f6165344`. No quadrature code in this slice.
+
+Focused local: `test-mi-weights-1459.R` 0 fail / 10 tests; `test-julia-mi-weights.R` 0 fail / 5 tests; `test-guard-branch-continuity.R` 0 fail / 15 tests (`n_cpp = 32L`); Dinnage M1 families 0 fail / 11 tests.
+
+STEP 1 estimate only (no rewrite): adaptive posterior-mode GH is a high-invasiveness change across the 13 Gaussian-response `mi_family` blocks plus copied loops; a unimodal Newton proposal may still miss U-shaped Beta. Fallback is revert Beta to the old 15-node GL and pin known `integrate()` failures as follow-ups. See `docs/dev-log/after-task/2026-10-11-triage-i-mi-r2-gates.md`.
+
+Refs #1459
+Refs #1477
+Refs #1476
+
+# 2026-10-11: R reviewer #1459 acceptance
+
+`weights = 1` with `mi()` matches the unweighted fit (coef, logLik, nll to 1e-10) and does not emit `drmTMB_mi_weights_prior_unweighted`. Weight 2 matches a duplicated row in the response term only; `nll_dup - nll_w2 = -prior_row2`. Weight 0 or `NA` on a missing `mi()` covariate is `drmTMB_mi_zero_weight_missing` before the generic NA-weight abort (named error, not a drop). `predict()` / `simulate()` honour fitted coefficients and refuse `weights=` with `drmTMB_mi_weights_predict_unsupported`. Renormalised Beta/Gamma quadrature mass is 1. CondExp anchor in `drmTMB.cpp` is 33L (weight-0 helper + two IS `s_floor`s).
+
+Focused local: `test-mi-weights-1459.R` 0 fail / 44 pass; `test-julia-mi-weights.R` 0 fail / 7 pass; `test-mi-quadrature-1476-1477.R` 0 fail / 41 pass; `test-missing-predictor-{gamma,beta,zero-one-beta}.R` 0 fail; `test-guard-branch-continuity.R` 0 fail / 66 pass.
+
+C17 recertified at `9ed39d074` (`python3 tools/recertify-c17.py --label triage-i-mi --tolerance 1e-10`). Worst `|change|` in mean tau relative error was `0.000e+00` on mc-0568 / mc-0569 / mc-0576. Receipt `docs/dev-log/implementation-recovery/2026-10-11-triage-i-mi-c17c2-c14-final-source-compatibility`. The `mi()` quadrature and weight gates sit outside the authenticated model-15 anchors.
+
+Local `testthat::test_dir()` under `pkgload::load_all()` (R 4.3.3, TMB 1.9.25): the reporter stopped at its 10-failure cap. Failures that belong to this VM, not the `mi()` edit: three `test-julia-fe-only-fence.R` rows that expect a DRM.jl checkout message and instead see missing `{JuliaCall}`; `test-julia-joint-call.R` and `fixef()` on a Julia mock that need `{JuliaCall}`; `test-missing-predictor-prediction.R` sparse `crossprod` (same VM defect as 2026-10-09). One in-PR failure was `test-env-skip-census.R` because `test-mi-quadrature-1476-1477.R` added `skip_on_cran()`; `Rscript tools/write-env-skip-census.R` added that one cran-lane row. CI run 38120371317 (head `e682acb6c`) failed on that census plus Dinnage M1 Gamma: `weights = 2` scales the Gamma IS objective by exactly 2, but nlminb stopped short on the steeper surface. `run_mi_weight_invariance()` now asserts the 2× nll contract and treats a worse `weights = 2` nll as optimizer scale, not a prior-weight change. Focused files after load_all: adequacy 21 pass; Gamma/Beta/ZOB manuals pass; #1459 / Julia-weight / quadrature / guard-branch pass; M1 families 77 pass. Live Julia: 0 ran, 69 skipped (`DRMODELS_JL_PATH` unset).
+
+Refs #1459
+Refs #1477
+Refs #1476
+
+# 2026-10-11: mi() quadrature (#1477, #1476) and #1459 gates
+
+`cursor/triage-i-mi` from `af2ee2501` (#1504). Gamma `mi()` uses a 31-node Gauss-Hermite lognormal proposal with `drm_log1p_nonnegative(CV^2)` and renormalised mass (#1477). Beta / zero-one-Beta interior uses a 31-node logit-normal Gauss-Hermite rule, also renormalised (#1476). Headers `src/drm_numeric.h` and `src/drm_response_kernels.h` were not edited. Continuous `mi()` prior stays unweighted (#1459); `drm_weight_times_logdens` guards `0 * (-Inf)` on the Gaussian response term. Julia `mi()` plus non-unit weights is a classed refusal. `R/methods.R` gained the predict/simulate `weights=` refuse; C17 pending if that edit stays through the full suite.
+
+Refs #1477
+Refs #1476
+Refs #1459
+
+# 2026-10-11: mi() weights gates (#1459) and Julia refusal
+
+R-only first slice on `cursor/triage-i-mi`. `engine = "julia"` plus `mi()` plus non-unit weights is a classed refusal (`drmTMB_julia_mi_weights_unsupported`) before any Julia process starts. Unit weights are treated as omitted. Native TMB emits a classed warning that the imputation prior ignores weights; the prior itself is unchanged. Weight 0 or NA on a missing `mi()` covariate is `drmTMB_mi_zero_weight_missing`. `predict()` / `simulate()` refuse an explicit `weights` argument on an `mi()` fit.
+
+`R/drmTMB.R` was not edited. `R/methods.R` gained the predict/simulate `weights=` refuse only. C17 is pending the next compile slice if the methods.R edit stays.
+
+Refs #1459, #1477, #1476.
+
+# 2026-10-18: #1504 reviewer fixes
+
+`skip_on_cran()` now opens the eight fitted test blocks in
+`test-factor-contrasts.R`, `test-log1mexp-ad.R`, `test-student-large-nu.R`
+and `test-julia-missing-alignment.R`. `R/julia-bridge.R` loses the stale
+"delete these three" comment and the dead
+`exists("drm_abort_rank_deficient_designs")` branch. C17 does not pin that
+file: `capability_ledger.py --check` OK, and
+`recertify-c17.py --label pr-1504 --tolerance 1e-10 --dry-run` gave `|change|`
+0 on all three cells, so the receipt was not rewritten. Full suite on Totoro
+(R 4.6.1, nine processes): 49,146 pass, 4 fail, 0 error, 104 skip. Two fails
+were the env-skip census, regenerated with `tools/write-env-skip-census.R`
+(rerun 5/5). Two are `skip_fragile_recovery()` tests that fail the same way on
+`9c61c8246`: Arc 1a REML spatial one-slope (reference optimiser code 52) and
+the NB2 sigma mis-wire guard. `test-numeric-kernel-oracle.R` passed on Totoro
+(392 expectations). `devtools::document()` produced only the known #1400 `.Rd`
+drift, which was not committed.
+
+# 2026-10-18: rebase #1504 onto main after #1579
+
+Rebased `cursor/triage-e-numeric` onto `95e81e911` (50 commits). `NEWS.md`
+and this log had additive conflicts and keep both sides. The intermediate C17
+receipt commit was skipped, as for #1508, and C17 was recertified once at the
+end: `python3 tools/recertify-c17.py --label pr-1504 --tolerance 1e-10`,
+`|change|` 0 on mc-0568/0569/0576, source fingerprint unchanged. The branch
+also carries the #1495 contrast fix (ordered factors, stored contrast names,
+and a `drmTMB_contrasts_dropped` warning).
+
+# 2026-10-16: sweep-oct16 lane t2, Gaussian location-scale simulation recovery (receipt)
+
+Lane t2 of the 2026-10-16 sweep. drmTMB `ca3ddef` and DRModels.jl `f71b292` were each fitted to the same 9 cells × 500 reps, plus 2,000 confirmatory reps for every n ≥ 200 cell, on identical R-generated data. The run used a cloud session, not the shared box.
+
+The two engines agree to ≤ 2e-11 in logLik and ≤ 4e-10 in estimates on all 15,000 shared datasets at n ≥ 200. The formal verdict is FAIL:
+- Coverage fails in 5 of 28 gate rows. The two σ-intercept rows at n = 1000 are Monte Carlo noise. Three are real: on the pooled 2,500 reps, G = 20 sd(g) is 92.40% and the mean intercept 92.56%, both z-Wald under-coverage, and the n = 200 no-RE mean intercept is 92.96%, a small under-coverage.
+- Convergence fails only in the two n = 50 cells.
+- Bias passes everywhere.
+
+Filed: drmTMB#1558; DRModels.jl#1114; comments on DRModels.jl#969, #1050 and #1059, and on drmTMB#1554 (the sd(g) boundary label depends on the units of y). No package code changed; `.Rbuildignore` gains `^sweep-oct16$`.
+
+Receipt: `sweep-oct16/t2/RECEIPT_t2.md`. Report: `docs/dev-log/after-task/2026-10-16-sweep-oct16-t2-gaussian-ls-recovery.md`.
+
+# 2026-10-18 — rebase #1530 onto main `d89db5097`
+
+Rebased `cursor/dead-forked-worker-7717` onto current main. Conflict was
+check-log only. `R/drmTMB.R` and `R/methods.R` were not touched, so C17
+was not recertified. Full `testthat::test_dir()` on `a59a66be8`:
+passed=44952 failed=81 error=213 skipped=241 warning=20.
+
+# 2026-10-18: FX3b pairing, Julia-engine status reads the bridge (#1564 with DRModels.jl #1129)
+
+**Lane:** Claude Code · branch `cursor/fx3-silent-mle-b05e` (PR #1564), paired with DRModels.jl `cursor/fx3-drm` (PR #1129).
+
+**Change:** `convergence_status.drmTMB_julia()` passes
+`drm_julia_bridge_degenerate()` (bridge `convergence_status == "degenerate"`)
+as `mle_nonexistent` instead of `FALSE`. DRModels.jl 493c639 sends the bridge
+`converged` key only when `fit.geometry === :ok`. New
+`test-julia-convergence-status-parity.R`: a bridge-stub unit test (red on
+3fd68189e), an all-zero Poisson test, and a three-fit parity test (rho12
+boundary, inflated SE, all-zero Poisson) against DRModels.jl itself.
+
+**Evidence:** full `NOT_CRAN=true` suite in two parts (files 1 to 266: FAIL 5,
+of which env-skip-census 2 fixed by the census rows and 3 pre-existing on
+3fd68189e; files 268 to 448: FAIL 0, PASS 34354). `test-numeric-kernel-oracle.R`
+hangs in TMB `tweedie_logW` on this head and on 3fd68189e. Live Julia from R:
+81 files; every failure matches 3fd68189e except the binomial phylo floor in
+`test-julia-phylo-nongaussian.R`, now `"degenerate"` on both engines and
+updated (35/35). DRModels.jl 493c639 on Totoro: Julia 1.12.6 15,884 passed,
+1 failed (known `test_reml_q4_missing_response.jl:210`), shard-12 tail 83
+passed; Julia 1.10.10 15,949 passed, 0 failed.
+
+**Non-claims:** step 2 for Julia fits cannot separate the count cone from the
+Gaussian collapse or from Julia's covariance steps; R still does not skip
+steps 3 to 5 when the bridge withholds the covariance (q4 phylo route).
+After-task: `docs/dev-log/after-task/2026-10-18-fx3b-bridge-convergence-status.md`.
+
+---
+
+# 2026-10-16 — FX3b: shared three-valued convergence_status (#1554, #1333, #731, #1109)
+
+**Lane:** Cursor · branch `cursor/fx3b-convergence-status-1f29` stacked on FX3 #1564 (DRAFT PR).
+
+**Change:** `convergence_status()` is `"converged"` / `"boundary"` /
+`"degenerate"` with identical numeric cuts in drmTMB `R/check.R` and
+DRModels.jl `src/convergence_status.jl` (rank `1e-8`, inflated SE
+`>= 50` and `>= 1000 ×` sub-50 median, RE SD `< 1e-4`, `|rho12| > 0.98`,
+sentinel logLik `-1e15`). `is_converged()` and `converged()` are
+`TRUE` only for `"converged"`. Print, summary, and `check_drm()` show
+the status. Julia also keeps the FX3 Poisson/NB2 cone guard.
+`R/methods.R` changed (print/summary), so C17 was recertified
+(`python3 tools/recertify-c17.py --label fx3b --tolerance 1e-10`;
+mc-0568/0569/0576 `|change| 0.000e+00`; receipt
+`docs/dev-log/implementation-recovery/2026-10-17-fx3b-c17c2-c14-final-source-compatibility`;
+`current_source_sha=2b547487f`). `R/drmTMB.R`, `R/mi-weights.R`, and
+`src/` were not edited.
+
+**Evidence:** red-proof `test-convergence-status-twin.R` 32 pass
+(FX3 semantics TRUE on mutated RE-SD `1e-8`; after FALSE).
+`test-mle-existence.R` 39 pass; `test-summary.R` 14 pass;
+`test-dinnage-audit-wave4b1.R` 6 pass; `test-julia-diagnostics.R`
+20 pass / 2 skip. Full `NOT_CRAN=true` `tests/testthat.R`:
+FAIL 175 | WARN 71 | SKIP 322 | PASS 45953 (48.5 min); the two FX3b
+schema failures in that run were re-run green after the test patch.
+Julia: constants + Gaussian + all-zero Poisson 28 pass;
+`test_poisson_mle_existence.jl` 5 pass; `test_check_drm.jl` 82 pass;
+binomial separation 86 pass; API freeze 198 pass. t4 rescore 750/750:
+boolean agree 716/750 (was 512/750); status agree 689/750; 61 remaining
+listed in `docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`.
+
+DRModels.jl push returned 403; patch saved as
+`docs/dev-log/patches/2026-10-16-fx3b-DRModels.jl.patch` (SHA
+`ea40557ad`).
+
+**Non-claims:** no Firth/MSPL default; no Inf-SE masking in `vcov()`;
+shape-at-limit stays degenerate via inflated SE (#1535); does not
+close #1554.
+
+---
+
+# 2026-10-16 — FX3: fail-closed MLE existence (#1553, #1270, #1469)
+
+**Lane:** Cursor · branch `cursor/fx3-silent-mle-b05e` (DRAFT PR).
+
+**Change:** `R/mle-existence.R` screens fixed-effect binomial separation,
+Poisson / NB2 rays with no finite MLE, and unbounded continuous
+location-scale (lower `log(sigma)` clamp + exact Pearson residual +
+spread > log(1e4)). `convergence_status()` returns `"degenerate"` and
+`check_drm()` adds a warning `mle_existence` row. No change to
+`R/drmTMB.R`, `R/methods.R`, `R/mi-weights.R`, or `src/`; C17 was not
+recertified. The 238/750 twin-flag contract (#1554) is not decided here.
+
+**Evidence:** `test-mle-existence.R` failed on installed pin `ca3ddefa`
+(bin_complete / pois_n8_lowmean r03 / gauss_n8 r06 all `is_converged`
+TRUE) and passed after `pkgload::load_all` (39 pass / 0 fail). Sibling
+files: `test-check-drm.R` 263 pass / 1 skip, `test-fit-convergence-warning.R` 16
+pass, `test-binomial-response.R` 60 pass, `test-poisson-mean.R` 138 pass,
+`test-gaussian-location-scale.R` 79 pass / 1 skip, `test-nbinom2-location-scale.R`
+157 pass. Julia `test/test_poisson_mle_existence.jl` at pin `f71b292`:
+all-zero Poisson `is_converged=true`, SE ≈ 2.62e7, `check_drm.ok=true`;
+after the guard, 17 pass / 0 fail (warn + Inf SE; `is_converged` stays
+true). Sibling `test_binomial_separation.jl` 86 pass.
+
+**Non-claims:** no Firth/MSPL default; no Inf-SE masking in `vcov()`;
+random-effect routes not screened; shared R/Julia `is_converged` rule
+left to #1554.
+
+---
+
+# 2026-10-18 — rebase #1506 onto main `d89db5097`
+
+Rebased `claude/lane-f-docs-tutorials` onto current main. Conflict was
+check-log only. Docs-only; C17 not recertified. `capability_ledger.py --check`
+passed after rebase. Full `testthat::test_dir()` on `40f1243cd`: passed=46028
+failed=82 error=224 skipped=105 warning=30 (same env-only Julia/Suggests
+band as the other 2026-10-18 rebases).
+
+# 2026-10-16: lane f8 — retired gate predicates scanned in every ledger row (#1011, #1007)
+
+`validate_retired_predicates()` now fails `--check` when a phrase in the new
+`capability-ledger/retired-predicates.tsv` appears in any cell's
+`claim_boundary` or `next_gate` or any evidence `claim_boundary`, not only in
+the three keyed G5 rows. Seeded with the all-1200 interval-usability rule
+(retired by `19e4a1d03`). Forcing tests fail at `368eff52` (2 AttributeError)
+and pass after; `python3 -m unittest tools/tests/test_capability_ledger.py`
+86 OK; `capability_ledger.py --check` OK (31 outputs); the rest of the CI
+ledger step passes locally. #1007 needs no code. `devtools::document()` was
+run but not committed: its 40-file `man/` diff reverts #1400 and adds
+roxygen2 7.3.1 link drift; nothing in it comes from this branch.
+
+Report: `docs/dev-log/after-task/2026-10-16-lane-f8-ledger-retired-predicates.md`.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
@@ -966,6 +1561,25 @@ receipt commits were skipped and recertified once at the end:
 |change| 0 on mc-0568/0569/0576. Touched tests: unused-dots + miss-control +
 predict-character + relmat-numeric 51 pass; `test-simulate-re-form.R` 22 pass
 via pkgload.
+
+# 2026-10-11: dead forked worker is a classed error or recorded failure
+
+`mclapply()` NULL children no longer vanish in `rbind()`. Profile paths
+abort with `drmTMB_parallel_worker_died`; bootstrap records `worker_died`
+so `bootstrap.n + bootstrap.failed` still equals `R`. Follow-up to merged
+#1510. `test-profile-parallel.R` 12 tests / 0 fail. C17 not recertified
+(`R/drmTMB.R` and `R/methods.R` untouched). `R/julia-bridge.R` untouched.
+
+Report: `docs/dev-log/after-task/2026-10-11-dead-forked-worker.md`.
+
+# 2026-10-11: rebase #1506 onto main after #1507/#1527
+
+Rebased `claude/lane-f-docs-tutorials` onto `6beb1f2a0`. Docs only; no C17.
+`large-data.Rmd` kept main's Windows `parallel = "cluster"` sentence and the
+lane-F multicore-abort / serial example, then named cluster as the Windows
+worker backend so the two notes do not contradict. Tests: `capability_ledger.py
+--check` OK; `tools/check-reader-contracts.R` OK; `test-release-identity.R`
+20 pass; `test-reader-vignette-contracts.R` 35 pass.
 
 # 2026-10-11: parallel lane follow-up (PSOCK cluster, parallel multi-start, bootstrap shards)
 
@@ -991,6 +1605,79 @@ identical apart from `elapsed`). Multicore worker errors now abort. New
 Report: `docs/dev-log/after-task/2026-10-11-parallel-perf-lane.md`.
 Branch: `claude/drm-parallel-perf`.
 
+# 2026-10-11: cumulative_logit `disc ~ z` discrimination submodel (#966)
+
+Added a fixed-effect discrimination formula to `cumulative_logit()`
+(owner decision 24(a)): `Pr(y <= k) = logit^-1(disc * (theta_k - mu))`,
+`log(disc) = Z gamma`, with the `disc` intercept fixed at 0 because the latent
+scale is not identifiable alongside free cutpoints (same constraint as
+`ordinal::clm(scale = ~ z)`, whose `zeta = -gamma`). `disc` rides the
+`X_sigma`/`beta_sigma` slot of model_type 13; `disc ~ 1` is byte-identical to
+the location-only fit. `engine = "julia"` refuses `disc`.
+
+Environment: R 4.3.3 from Ubuntu apt (TMB 1.9.10, ordinal 2023.12.4); CRAN
+blocked. New test file `test-cumulative-logit-disc.R` was committed failing
+first (6 errors), then 51 expectations pass: exact `disc ~ 1` equality,
+recovery (n = 3000), `ordinal::clm` comparator (continuous and factor `z`;
+`ordinal::wine` logLik -86.43946 on both engines), hand-built probabilities.
+
+Full `devtools::test()` on `origin/main` @ `75845a3d` (435 files, 3195 tests,
+47568 expectations): 14 failed, 134 errors, 110 skipped. Same suite on this
+branch before the census row (436 files, 3202 tests, 47631 expectations): 16
+failed, 134 errors, 109 skipped. 146 failing tests are identical on both
+(R 4.3.3 lacks `%||%`, no Julia, snapshot drift); the only branch-only failure
+was `test-env-skip-census.R`, fixed by adding the
+`test-cumulative-logit-disc.R` row to `inst/extdata/env-skip-census.tsv`.
+Rebased onto `origin/main` @ `cb030402` (only `NEWS.md` overlapped).
+
+# 2026-10-09: character predictors use the full-frame reference level
+
+`model.frame()` leaves a character or logical predictor as character or logical. The reference-level guard only inspected factors, so `g = c("a", "a", "b", "b", "c", "c")` with the `"a"` rows dropped by the other response rebuilt treatment columns against baseline `b` and kept `gc`. `drm_julia_xfam_design_from_frame()` now calls `factor()` on those columns using the full frame, then applies the same reference check. The response column is left unchanged. `R/drmTMB.R` and `R/methods.R` were not edited, so C17 was not recertified.
+
+Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 71 expectations. `test-xfam-bridge.R`: 0 failures, 43 expectations, 6 skips (live Julia and `{glmmTMB}`). Full `testthat::test_dir()`: PASS 45117, FAIL 4, WARN 77, SKIP 440. The four failures are this VM: two B1 adapter errors because `{ape}` is absent, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. `{JuliaCall}` is installed, so the old fence failure that stopped on a missing JuliaCall message did not recur. Live engine tests still skipped: `DRMODELS_JL_PATH` was unset for the suite (0 live tests ran, 67 skipped).
+
+# 2026-10-09: cross-family contrasts kept, reference level refused
+
+`contrasts(f) <- contr.sum(3)` was becoming treatment columns `fb`, `fc` because `droplevels()` calls `factor()` and drops the contrasts attribute, even when no level was removed. `drm_droplevels_keep_contrasts_factor()` drops unused levels and writes that attribute back. The cross-family rebuild and the TMB pre-fit drop both use it, so a Julia cross-family design and `engine = "tmb"` both keep `f1`, `f2`, with and without dropped rows that leave every level in the data. An ordered factor keeps `o.L` and `o.Q`.
+
+Removing the treatment reference level on a cross-family axis now errors and names the level. The fit no longer keeps a column such as `gc` and silently changes its baseline from `c - a` to `c - b`. A non-reference treatment level that the shared-row drop empties is still removed.
+
+The rank check in `drm_julia_xfam_design_from_frame()` calls `drm_aliased_columns(X, tol = 1e-10)`. A design with predictor noise of `1e-8` still builds. An exact copy of a column errors with class `drmTMB_rank_deficient_design`. `qr()`'s default tolerance is `1e-7`.
+
+`R/drmTMB.R` changed, so C17 was recertified (`--tolerance 1e-10`). On the original branch the worst `|change|` was `1.322e-11` (mc-0569). After the rebase onto `main` it was recertified once more (`--label pr-1504`), with `|change|` 0 on all three cells. `R/methods.R` and `src/drmTMB.cpp` did not change. `lss-tip-identity` hashes every `R/*.R` and will be regenerated once on `main`. It was not rewritten here.
+
+Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 70 expectations. Related files re-run with no failures: coefficient labels, xfam bridge, formula constructs, dinnage wave 1, julia diagnostics, julia bridge, julia structured, julia missing. Full `testthat::test_dir()`: PASS 45044, FAIL 5, WARN 77, SKIP 446. The five failures are this VM, not the contrast change: two B1 adapter errors because `{ape}` is absent, one Julia fence that stops on missing `{JuliaCall}` before the DRM.jl path message, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. Live Julia tests skipped: Julia is not installed on this VM, and `DRMODELS_JL_PATH` / `DRM_JL_PATH` is unset, so the live engine did not start. The column checks call `drm_julia_xfam_axes()` and `drm_julia_xfam_design_from_frame()` in R, which is the design the Julia fit sends.
+
+# 2026-10-08: cross-family cbind, emptied factor levels, offset refusal
+
+Review round on draft PR #1504. R only. `src/drmTMB.cpp`, `R/drmTMB.R`, and `R/methods.R` were not edited, so C17 was not recertified.
+
+- `cbind(successes, failures)` on a cross-family axis errors before the shared-row index is built, with or without `NA`. A single 0/1 column still marshals.
+- Each axis design is rebuilt on the shared rows. An `NA` on `y1` that empties factor level `c` on `mu2` drops that column. One observed level left, or a rank-deficient design, errors.
+- `fitted()` and `residuals()` are indexed like the original data. Dropped rows are `NA`. `kept_rows` stores the fitted positions.
+- `offset()` on a cross-family location or sigma formula errors. `model.matrix()` had been dropping it.
+- `%||%` in `R/zzz.R` matches `if (is.null(x)) y else x` and is defined only when R does not already have it (base since 4.4.0). A rebase against the bridge-inputs copy keeps one definition.
+- The lost-level guard was not extended. The structured payload already errors unless there is exactly one structured term.
+
+Local R 4.3.3, reinstall without recompile. `test-julia-missing-alignment.R` 9 tests, 0 failures, 57 expectations. Also green, no Julia process: `test-xfam-bridge.R` 12/0/6 skip/43, `test-coefficient-labels.R` 44/0/11/100, `test-julia-diagnostics.R` 22/0/2/123, `test-julia-bridge.R` 16/0/2/139, `test-julia-structured.R` 9/0/1/59, `test-julia-missing.R` 8/0/5/5. The related-file union is 182 tests, 0 failures, 17 skips, 1525 expectations.
+
+`lss-tip-identity` hashes every `R/*.R`. This round edits `R/julia-bridge.R` and `R/zzz.R`. That receipt will be regenerated once on `main` after the batch lands. It was not rewritten here.
+
+# 2026-10-08: Student large-nu logLik, log1mexp AD ceiling, Julia NA alignment
+
+Fixed three open bugs on `cursor/triage-e-numeric`.
+
+- #1462: `drm_student_log_density()` keeps the lgamma constant for `nu < 1e4` and uses a three-term Stirling series for `nu >= 1e4`, with `drm_log1p_nonnegative(z^2/nu)`. `logLik()` reads that objective. `fitted_distribution()` already uses `stats::dt()`.
+- #1472: `drm_log1mexp()` and `drm_log1p_nonnegative()` clamp each `CppAD::CondExp` branch into the region where that branch is finite. The selected value is unchanged. Cloglog successes at `eta <= -40` and zero-truncated NB2 at `eta_mu <= -38` now have a finite Hessian.
+- #1454: cross-family Julia axes intersect kept row indices, including sigma designs, so staggered `NA`s stay on one complete-case index. Structured `response = "drop"` drops incomplete rows and errors if a grouping level disappears. q2 structured payloads refuse incomplete modelled columns. `check_drm()` reports the main-route drop count when the bridge recorded one. The Student fix stays inside `drm_student_log_density()`; the three `src/drmTMB.cpp` call sites already call that function and were not patched. `R/drmTMB.R` and `R/methods.R` are unchanged, so C17 was not recertified.
+- Portability: package code defines `%||%`, which base R provides from 4.4.0. `DESCRIPTION` allows R >= 4.1. The review round guards that definition so a rebase keeps one copy.
+
+Local R 4.3.3, drmTMB installed to `/workspace/.Rlib`. Final green union of the related files: 179 tests, 0 failures, 17 skips (live Julia or `NOT_CRAN`), 1488 expectations. New files: `test-student-large-nu.R` (2/23), `test-log1mexp-ad.R` (2/26), `test-julia-missing-alignment.R` (6/20). The first numeric-oracle tweedie case failed only because `{tweedie}` was not installed; after installing it, 19/392 passed. The CondExp enumeration anchor moved from 5/4 to 9/8 in `drm_numeric.h` / `drm_response_kernels.h` and passed.
+
+`R/drmTMB.R`, `R/methods.R`, and `src/drmTMB.cpp` were not edited, so C14/C17 was not recertified. `lss-tip-identity` hashes every `R/*.R`; `R/julia-bridge.R`, `R/julia-diagnostics.R`, and `R/zzz.R` will make that receipt stale on the next push to `main`. It was not rewritten here. Receipt staleness does not run on pull requests.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-e-numeric.md`.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing
@@ -1006,6 +1693,18 @@ release checks, deployment and Ayumi's empirical fits were not checked.
 
 Report: `docs/dev-log/after-task/2026-10-04-phylo-tree-height-docs.md`.
 Local branch: `codex/phylo-height-docs`; original checkout preserved.
+
+# 2026-10-01 — nbinom2 sigma~phylo recovery test: platform-deterministic data (#1444)
+
+**Lane:** Claude · `claude/nb2-sigma-test-data-1444` (draft PR; test-only).
+
+**Change:** `tests/testthat/test-nbinom2-sigma-structured-recovery.R` draws the phylogenetic effect with `t(chol(sd_u^2 * V)) %*% rnorm(n_sp)` instead of `MASS::mvrnorm()` (eigen-based, BLAS-dependent). Scale case moves to seed 1; the mean-case guard becomes `gain(mu~phylo) - gain(sigma~phylo) > 20` (was `gain(sigma~phylo) < 3`, which correctly-wired fits exceed on 28 of 32 seeds). `MASS` skips removed; `inst/extdata/env-skip-census.tsv` regenerated.
+
+**Evidence:** 32 seeds x 2 cases on macOS arm64 (R 4.6.0) and Linux x86 Totoro (R 4.6.1): identical `sum(y)`, `sum(|u|)` and gains to 3 dp; every `fS` convergence 0. Chosen seeds (scale seed chosen post hoc; 22/32 seeds pass `> 10`, 31/32 pass the mean guard `> 20`): scale seed 1 (gain 47.3 vs threshold 15; sigma-minus-mean 47.3 vs 10; cor 0.951 vs 0.6), mean seed 101 (mean gain 57.1 vs 5; mean-minus-sigma 57.1 vs 20). File passes on both platforms; `Rscript tools/write-env-skip-census.R --check` clean.
+
+**Non-claims:** Windows not measured, so `skip_fragile_recovery()` stays. No package code changed.
+
+---
 
 # 2026-09-17 — Dinnage arc3 Wave C MERGED + tip-identity receipt (#1380)
 
@@ -1239,6 +1938,23 @@ entered `JuliaCall::julia_setup()` and hung Ligges R-release (`v57uv6zakfKO`,
 ---
 
 # Check Log
+
+## 2026-09-10 — homogeneous Toeplitz calibrated mean-profile interface
+
+Lane: Codex, `codex/temporal-homtoep-v1-20260910`. The retained 4,000-fit
+campaign qualifies likelihood-profile intervals for mean regression effects in
+the three predeclared 80-series, six-occasion primary cells. It does not
+qualify Wald, total-scale, lag-correlation, ordinary-intercept, forecasting, or
+`newdata` inference.
+
+| Check | Result |
+| --- | --- |
+| Public interval surface | `confint(..., parm = "mu:<coefficient>", method = "profile")` and the matching `summary(..., method = "profile")` route now work for homogeneous Toeplitz mean coefficients only; Wald and non-mean profile targets still fail clearly. |
+| Review repairs and focused tests | Independent Noether and Pat review found stale profile-refusal expectations, ambiguous Wald-deferral text, and numeric internal IDs in incomplete-panel errors. The repaired native, parser, and profile tests pass: public fixed-mean profiles return finite endpoints; `vcov()` and Wald intervals remain unavailable with an explicit profile/Wald distinction; incomplete factor IDs retain their supplied labels. |
+| Reader acceptance | `Rscript --vanilla tools/temporal-homtoep-gates.R T3-11` rendered the temporal vignette, regenerated and checked `man/temporal.Rd`, and emitted `TEMPORAL_HOMTOEP_T3_11_PASS`. |
+| Scope | The documentation sends genuinely irregular elapsed time to OU and retains the 20-site stress intercept coverage of 0.916 as a limit on the claim. |
+| Independent review | Noether cleared the marginal likelihood, PACF map, normalization, and profile/Wald boundary after the repair. Pat cleared the applied workflow, retained scope, label-aware error, and rendered help. |
+| Local package verification | The repaired source built with `R CMD build .`. The final `R CMD check --no-manual` completed installation, examples, documentation, full tests, and vignette rebuilding. Its two warnings are the known source-layout result of omitting generated `inst/doc` outputs from the tarball; they are retained as warnings rather than described as clean verification. |
 
 ## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
 
@@ -87357,7 +88073,7 @@ Evidence:
 - `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
   then passed with 4,096 assertions, 0 failures, 0 warnings, and 0 skips.
 - `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
-  passed with 4,812 assertions, 0 failures, 0 warnings, and 0 skips.
+  passed with 4,813 assertions, 0 failures, 0 warnings, and 0 skips.
 - `python3 -m py_compile tools/validate-mission-control.py` passed.
 - `python3 tools/validate-mission-control.py` passed and reported 16
   structured RE q4 intercept denominator-precheck rows.
@@ -95799,7 +96515,75 @@ Closeout report:
 
 | 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
 
+## 2026-09-21 — structural-dependence reader repair (PR #1418)
+
+Rewrote the `## Pick the route` table and `## Fitted versus planned` section
+of `vignettes/structural-dependence.Rmd` so the deliberately failing
+`test_reader_navigation_redirect_and_public_language_contract` (added on this
+branch as `8401f134b`) goes green: opening sentence "Choose the structure
+that matches your scientific question.", the required four-column table
+header, and the sentence "A successful fit does not show that every related
+model is reliable." are now present; the three banned internal phrases
+(`Pedigree/Ainv bridge marshalling`, `recovery-grade NB2`,
+`fixed-kappa mesh intercept`) are removed. Confirmed the red test failed for
+exactly the missing opening sentence before editing, and re-ran the full
+80-test `tools/tests/test_capability_ledger.py` module after editing (not
+only the target test) because two other tests in the same file require exact
+gate-name substrings (for example "NB2 q1 phylogenetic `sigma`") to remain in
+this file; all 80 pass. `Rscript tools/check-reader-contracts.R` reports
+`Reader vignette contract: OK`; the article renders with `rmarkdown::render()`
+and its first table parses to 4 header cells and 5 data rows of 4 cells each.
+PR #1418 stays in draft; not merged. Report:
+`docs/dev-log/after-task/2026-09-21-structural-dependence-reader.md`.
+
+## 2026-09-21 (later) — structural-dependence reader repair, review pass
+
+An independent Fable (Pat + Rose) read of the rendered page (recorded at
+`scratchpad/S4-drmtmb-findings.md`) found 1 BLOCKING, 9 SHOULD-FIX, 5 NIT
+against commit `b1c3ecd1f`. The BLOCKING item: the animal row's replacement
+for `Pedigree/Ainv bridge marshalling` had turned an interval-inheritance
+limit into a false "assembling the pedigree ... is not available yet,"
+contradicting the same row's own starting point
+(`animal(1 | individual, pedigree = pedigree)`) and `animal-models.Rmd`'s
+"Fitted first slice." Restored the true limit: pedigree/`Ainv` inputs are
+fitted, but interval results checked with an `A` matrix do not carry over to
+them for the one-slope `sigma` route. Applied all 9 SHOULD-FIX items (linked
+`capability-and-limits.html`; moved "A successful fit does not show..." above
+the table; added a "how to read this table" line for `q1`/`q2`/`q4`/`zi`/`hu`
+/"diagnostic-only"; restored "Gaussian" twice in `## Fitted versus planned`;
+added "exact Gaussian" to the one-slope `sigma` sentence; replaced five
+vaguer tier words with the site's own "point estimate only" label; restored
+"sensitivity" in the combined row; labelled the relmat `hu` route
+diagnostic-only) and 4 of 5 NIT items (four-parameter block wording; mesh
+"fixed-kappa"/"local-fit level" jargon; relmat "bridge claims" jargon;
+this report's own two malformed sentences and a wrong count). Declined the
+fifth NIT (the same phrasing elsewhere in `model-map.Rmd`, `which-scale.Rmd`,
+`animal-models.Rmd`, and `articles/phylogenetic-spatial.Rmd`) as out of this
+lease's scope and flagged it as a background task instead
+(`task_9fbe201a`). Full 80-test module, both renders, the reader-contract
+checker, and `git diff --check` all re-run clean. Report addendum:
+`docs/dev-log/after-task/2026-09-21-structural-dependence-reader.md` Section
+13.
+
 | 2026-09-24 | Sparse Quaas A-inverse for `animal()` pedigrees (#740) | `test-pedigree-sparse-ainv.R` 6 pass/0 fail; `test-animal-relmat-gaussian.R` 479 pass/0 fail; identity vs `chol2inv(chol(A))` < 1e-6 at n in {250,500,1000,2000,4000}; stored nonzeros 16,000,000 -> 27,830 at n=4000 | PASS; no fit-level wall-time claim made (needs a large-n animal cell) | Cursor / Shannon |
+| 2026-09-08 | Gaussian temporal AR1 implementation | Unlazy G1--G14 met; dense objective/score/Hessian/covariance oracle; retained final-source 12-fit recovery and 25-fit pilot; isolated `R CMD check` Status OK | Implemented native ML AR1 with optional same-ID intercept and fixed-effect Wald path. G16--G18 remain pending: C1 pilot interval availability 4/5, no campaign or coverage claim. | Codex / Noether / Pat / Rose |
+| 2026-09-08 | Gaussian temporal OU review repairs | Temporal suites pass; G2/G10/G11 pass; source build and `R CMD check --no-manual` Status OK; independent mathematical and reader reviews approved | OU is an elapsed-time positive-decay point-fit route. `decaypars$temporal` replaces the misleading correlation extractor; public OU covariance and Wald inference remain deliberately unavailable while the inherited AR1 C1 boundary is unresolved. No campaign launched. | Codex / Noether / Pat |
+| 2026-09-09 | AR1 C1 residual-boundary diagnosis | Independent dense marginal likelihood: all 40 fixed-SD profile fits and 4 free-SD fits converged; native and dense objective agree at fixed `sigma = 0.1`; installed glmmTMB 1.1.14 boundary guidance cross-checked | The frozen C1 likelihood is active or practically flat at residual SD zero. The non-PD covariance is not a latent-state TMB artifact, and no nearby positive-definite candidate is an ML inference repair. glmmTMB supports the diagnostic posture, but its profile examples do not qualify drmTMB mean-effect Wald intervals. G7 remains closed; OU Wald inference stays guarded. | Codex |
+| 2026-09-09 | Gaussian temporal OU point-recovery fixture | 12 predeclared irregular-time OU data sets, 24 retained optimizer starts; mean absolute fixed-effect error 0.0758, median SD error 0.0374, median decay error 0.0400; G8 PASS | OU point recovery passes for both admitted forms. One ordinary-plus-OU selection has false convergence but remains explicitly retained; this does not qualify covariance, Wald intervals, or coverage. | Codex |
+| 2026-09-09 | Gaussian temporal OU timed pilot | 15 finite selected fits, 30 retained starts, 30.33 s wall time, 569 MB peak resident memory, no optimizer warnings; G9 PASS | Every pilot Hessian was positive definite, but public Wald availability was intentionally 0/15 because the shared AR1 calibration prerequisite remains open. This is timing and completeness evidence, not campaign authority. | Codex |
+| 2026-09-09 | Temporal Wald-status diagnostic | Focused temporal suite PASS; roxygen regenerated; AR1 regular/non-PD and OU deferred states each asserted | `check_drm()` now makes the temporal interval consequence explicit without presenting a fit-level PD Hessian as a general coverage claim. G7 remains open. | Codex |
+| 2026-09-09 | AR1 C1 Wald-availability replication | Five new fixed-seed C1 fits and ten retained starts; 4/5 finite covariance and Wald interval sets; one near-zero residual-SD non-PD boundary | The original pilot predates the transition-stability repair and is not pooled here. The fresh failure remains current-source evidence, pending dense confirmation. | Codex |
+| 2026-09-09 | AR1 C1 current-source reconciliation | Historical five-seed recheck: 5/5 covariance and interval sets; fresh-seed dense oracle: 40 fixed and 4 free fits, flat through residual SD 1e-4 | Historical seed `2026091002` non-PD was numerical and is repaired. Fresh seed `2026091101` remains a real residual-variance boundary. Current-source bounded availability is 9/10, not a calibration estimate; G7 stays open. | Codex |
+| 2026-09-09 | Temporal AR1/OU fixed-effect profile interface | Focused temporal OU suite passed; public profile aliases, deferred-target rejections, irregular-Hessian warning, and three independent dense profile locations asserted; G7 PASS | Gaussian temporal AR1 and OU now profile fixed `mu` effects only. A finite endpoint is not a coverage claim; variance, persistence/decay, bootstrap, forecast, and `newdata` intervals remain deferred, while OU Wald inference remains guarded. | Codex |
+| 2026-09-09 | Temporal profile interface review repairs | Focused temporal OU suite passed after independent mathematical and reader review; G7, G10, G11, and G12 reverified; `R CMD check --no-manual` Status: OK | Generic `profile()` and `profile_targets()` now enforce the same mean-`mu` boundary as `confint()`, including combined ordinary-intercept-plus-temporal fits. An irregular fitted Hessian warns at both public entry points; finite profile endpoints still carry no coverage claim. The retained profile pilot was stopped after exceeding its 5–10 minute estimate before it wrote artifacts. | Codex / Noether / Pat |
+| 2026-09-09 | Temporal OU fixed-effect profile pilot | G16 PASS: 15 finite selected fits, 30 retained starts, 15/15 three-coefficient profile interval sets, all positive-definite fitted Hessians; 759.24 s wall and 664 MB maximum resident memory | This measured timing and output-completeness pilot is not coverage evidence and does not authorize a campaign. G14/G15 remain open. | Codex |
+| 2026-09-09 | Temporal OU campaign-worker Totoro smoke | Archived source `0e3c792c` task 1 passed with two retained starts and a valid source/runner provenance record under one BLAS thread and a 10-minute timeout | Validates staging and fail-closed worker inputs only. Fir remains the retained 3,000-task campaign target; no coverage denominator was claimed. | Codex |
+| 2026-09-09 | Temporal OU campaign verifier and exact-source check | G8, G9, G10, G16 PASS; native/provider gates G2--G7 passed in one continuous run; `R CMD check --no-manual` returned `Status: OK` at `4d1fcc10055ea3f619afc36169e4d91dd28fac32` | G15 now re-verifies immutable 3,000-task campaign shards without running fits. It remains pending until retained Fir outputs exist. | Codex |
+| 2026-09-09 | Temporal OU endpoint-artifact worker smoke | Totoro archived-source task 1 passed at `e6387ce9`; two starts and three finite retained profile endpoint rows carry matching source and worker fingerprints | Confirms the Fir worker artifact contract. This one-task smoke is not a calibration denominator; G15 remains pending retained Fir outputs. | Codex |
+| 2026-09-09 | Temporal OU campaign provenance verifier | Parser PASS; fail-closed missing-shard test PASS; each reverify now requires all shards to share a commit and an MD5 that matches the worker extracted from that commit | G15 cannot accept agreeing but fabricated provenance. It remains read-only and awaits retained Fir outputs. | Codex |
+| 2026-09-09 | Temporal OU campaign calibration assessment | Focused assessment test PASS: one qualified reference row and four distinct criterion failures; campaign summarizer parser PASS | The immutable campaign summary now records availability, MCSE-bounded coverage, bias, and profile-width SE-analogue qualification for every cell-coefficient. G15 remains an integrity gate; failed calibration stays retained and requires an explicit decision. | Codex |
+| 2026-09-09 | Temporal OU storage-consolidating shard route | `bash -n` passed for source stager and 60-shard Fir template; G15 shard-reader parsed; temporary source archive contained `DESCRIPTION` and the campaign worker | Keeps raw CSV/RDS evidence inside immutable tarballs. It reduces inode use but changes array granularity and remains pending revised G14 authorization plus freed project inodes. | Codex |
+| 2026-09-09 | Temporal OU 50-task shard contract | Synthetic node-local worker completed 50 task calls, wrote one immutable `shard-001.tar.gz`, and retained the status ledger plus worker log; `TEMPORAL_OU_SHARD_CONTRACT_PASS` | Validates batch staging and atomic publication only; it does not fit a model or revise G14 authority. | Codex |
 | 2026-10-17 | Predictor-dependent random-effect SD research recheck | NotebookLM follow-up challenged; Joe (2008) publisher abstract and Stringer (2024) arXiv preprint checked directly; research note slop check 0 findings and `git diff --check` clean | PASS for scoped source synthesis; identifiability and interval calibration for SD-regression coefficients remain open | Codex |
 | 2026-10-17 | Predictor-dependent random-effect SD NotebookLM session recheck | Authenticated connector query against the existing 13-source notebook; excluded fetch-block pages; Joe (2008), Stringer (2024), and Lee & Noh (2012) claims bounded against primary pages/abstract | Synthesis recorded; no general identifiability or SD-slope calibration evidence established; CLI token fetch remains unverified | Codex |
 | 2026-10-17 | Julia Bernoulli random-effect SD bridge and inference routing | `test-julia-binomial-sd.R`: adapter checks and live synthetic Julia fit PASS for coefficient alias, one 300-group seeded SD-coefficient recovery example, group SD extraction, stored/fresh prediction, empty Bernoulli `sigma()`, RDS round-trip, an SD-slope profile interval, and a three-refit bootstrap smoke check | One higher-information recovery example and canonical interval/refit target routing verified; a 120-group diagnostic had a 0.30 slope error (2.2 SE), so it is retained as evidence of finite-sample variability. Interval calibration and broader family/effect support remain open | Codex |
@@ -97030,3 +97814,229 @@ The focused mesh-slope fixture now tests logit, probit, and cloglog. The current
 - The formula-grammar vignette rendered, `pkgdown::check_pkgdown()` reported no problems, and scoped `git diff --check` passed. Only existing Pandoc math deprecation warnings appeared.
 - The after-task structure check passed. Thirteen acceptance ledgers were not runnable because Node or `gate-check` was unavailable; their state remains UNKNOWN.
 - This is a candidate-only point/output slice. Coverage calibration, broader structured-provider parity, other families, slopes, and release support remain open. Full report: `docs/dev-log/after-task/2026-10-29-julia-binomial-relmat-iid-sd.md`.
+
+## 2026-09-09: Temporal OU Fir sealed-shard smoke and node-local build
+
+- Fir project storage was inode-full and nearline was not visible from a compute
+  node. The campaign route therefore uses Fir home only as transient staging and
+  checksum-verified Totoro copies as durable evidence.
+- Smoke job `58907593` at source `e46bf2e702c08383e1883de34b07163a5d9ba896`
+  completed one U1 campaign data set after a node-local `R CMD INSTALL`; it took
+  2:30 elapsed, used 4,183,676 KiB peak RSS, and sealed
+  `shard-001.tar.gz` (SHA-256
+  `20a6bf2fa205fb3815cf4746850cba3c26cfd6684266e37b5a3bfcd58ff8b49d`).
+- The archive contains the package-install log, runtime receipt, task status
+  `1,0`, all two starts, three finite fixed-effect profile intervals, and exact
+  source/runner provenance. The preceding 2 GiB smoke failed during C++
+  compilation, so the production script now requests 6 GiB and builds once per
+  shard before 50 worker calls.
+- The smoke source and shard were streamed through existing ControlMaster
+  sockets to Totoro, where their SHA-256 values matched their Fir values. The
+  verified Fir smoke directory was then removed. The reusable
+  `tools/mirror-temporal-ou-shard-to-totoro.sh` helper implements the same
+  non-overwriting, checksum-first route for campaign artifacts.
+
+| 2026-09-09 | Temporal OU G15 standalone-verifier repair | Focused assessment suite PASS; standalone missing-input invocation now reaches its documented fail-closed diagnostic | The summarizer now sources its pure assessment helper in the script environment rather than R's base environment. This prevents a startup crash before immutable-shard verification. | Codex |
+| 2026-09-09 | Temporal OU retained profile campaign | Fir array `58908599`: 60 sealed shards, 180 `COMPLETED|0:0` Slurm records; Totoro checksum mirror and G15 reverify PASS | All nine 1,000-data-set cell-coefficient rows meet availability, MCSE-bounded coverage, bias, and profile-width SE-analogue criteria. The durable immutable-summary SHA-256 is `e303d8c3c688baf5ea3655a459d8f8215d8e85326eb6db86aa5dfb353b191cc5`; U1 retains 999/1,000 availability rather than omitting its one unavailable interval. | Codex |
+| 2026-09-09 | Temporal OU calibration wording synchronization | G10 reader-content and G11 source-faithful vignette render pass; documentation scope rechecked | Public temporal documentation now distinguishes the qualified 3,000-fit OU fixed-`mu` profile campaign (exact U1--U3 scenarios) from uncalibrated AR1 and broader temporal claims. No estimator, campaign artifact, threshold, or Wald-inference boundary changed. | Codex |
+| 2026-09-09 | Phylogenetic stable-intercept plus independent-OU Ultra Plan | Prior-work sweep, official glmmTMB covariance source map, NotebookLM connection preflight, two independent plan reviews, and Unlazy ledger parse completed | First slice is explicitly `phylo()` stable intercept plus independent same-species OU. The wrong separable field is mutation-gated; profile calibration is predeclared but not authorized or run. | Codex / Noether / Pat / Rose |
+
+| 2026-09-09 | Phylogenetic-temporal OU Phase 0 bootstrap | P1 and source-map runner self-tests; G1; M01-bootstrap; M02; M03; focused testthat 6 passes | P1 execution is anchored to a1d01dab3. Source map is cited and separates a blocked Toeplitz parameterisation lead; no estimator, fit, campaign, or public capability changed. | Codex |
+
+| 2026-09-09 | Phylogenetic stable-intercept plus independent OU parser/layout | G2 PASS; paired parser 13 assertions; existing temporal parser 6; OU 64; runner 6 | Admits only same-ID `phylo(1 | species, tree = tree)` plus OU and checks raw and retained support. A successful point fit is not oracle or inference evidence. | Codex |
+
+| 2026-09-09 | Phylogenetic stable-intercept plus independent OU dense oracle | G3-G6 PASS; 19 independent dense-oracle assertions; 6 gate-runner assertions | Direct `ape::vcv()` covariance matches objective, score and Hessian; reductions and all six wrong-model mutations are retained. This is deterministic evidence, not inference or campaign evidence. | Codex |
+
+## 2026-09-09 — phylogenetic-temporal OU methods gate
+
+G7 now reconstructs the combined model's conditional fitted values/residuals and both
+simulation modes from separate phylogenetic-stable and independent OU contributions.
+The runner returned `PHYLO_TEMPORAL_OU_G7_PASS`; focused paired parser, dense oracle,
+methods, existing temporal parser/OU, and runner tests passed. The suite uses a
+non-boundary deterministic fixture and keeps Wald covariance, non-mean intervals and
+newdata prediction unavailable. Evidence:
+`docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-methods.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU dense profile gate
+
+G8 independently re-optimized the paired model's dense marginal likelihood under fixed
+mean slope values. Its 90% likelihood-ratio endpoints (0.17577, 0.59428) agree with the
+public TMB-profile endpoints (0.17544, 0.59399), and the gate also fences deferred
+interval targets plus the irregular-Hessian warning. `PHYLO_TEMPORAL_OU_G8_PASS` is
+retained in `docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-profile.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU G9 retained recovery failure
+
+G9 is unmet. The corrected 50-species 24-fixture denominator retained all 24 selected
+fits and 48 starts, and passed SD/decay criteria, but fixed-effect error was 0.182 >
+0.150. A separate 80-species diagnostic under the same seeds/thresholds reduced it to
+0.165 but also failed. Earlier immutable directories retain formula/list/provenance
+runner failures and the ordered-treatment confounding diagnosis. No threshold, seed or
+failure was changed or suppressed. See
+`docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-recovery-failure.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU reader workflow
+
+G14 and G15 now pass. The source-built article `phylogenetic-temporal-effects.Rmd`
+uses irregular elapsed times and separates `sd_phylo_stable`, `sd_temporal`,
+`decay_temporal`, and residual `sigma`. It is deliberately navigation-marked
+**development**: the retained G9 recovery failure means that no paired-model
+interval or forecasting claim is made. The G15 runner loads the local package,
+renders the article in an isolated temporary directory, and verifies the
+rendered reader-facing boundary text.
+
+## 2026-09-09 — phylogenetic-temporal OU recovery diagnosis and runner repair
+
+The retained G9 denominators isolate the failure to intercept MAE: v4 has
+intercept/between/within MAEs 0.339/0.131/0.077 and v6 has
+0.336/0.104/0.055. The current aggregate criterion remains failed. The future
+recovery runner now reads the paired public `decay_temporal` label through its
+helper; a disposable six-species, 24-fixture smoke retained 24 finite decay
+estimates, then was removed because it is not evidence. A revised recovery
+contract still requires an explicit decision.
+
+
+## 2026-09-10 — G9b full phylogenetic-stable plus independent OU point recovery
+
+`Rscript --vanilla -e 'pkgload::load_all(quiet=TRUE); testthat::test_file("tests/testthat/test-phylo-temporal-ou-gate-runner.R", reporter="summary")'` passed before the frozen v5 runner checkpoint. `Rscript --vanilla tools/run-phylo-temporal-ou-g9b-full.R` retained 24 contrast fits/48 starts and 300 independent-tree fits/600 starts. `Rscript --vanilla tools/phylo-temporal-ou-gates.R G9b-full` returned `PHYLO_TEMPORAL_OU_G9B_FULL_PASS`. The v5 criteria passed between/within contrast MAE 0.123/0.071, median absolute log-SD/decay errors 0.163/0.280, and standardized ensemble intercept bias 0.032/0.072/0.063. G9 remains failed; G10--G13 and all interval claims remain pending.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S0 parameter map
+
+The approved P2 lane was corrected before provider work because its first base named
+but did not contain the direct-OU gate runner required by the child fingerprint. The
+new lane base `c6ff7c47e` contains direct-OU closeout `73a440c3b`; fresh calls to
+`Rscript --vanilla tools/temporal-ou-gates.R` for G1--G11 and G16 each emitted its
+expected pass receipt. `Rscript --vanilla tools/temporal-homtoep-gates.R T3-2` now
+returns `TEMPORAL_HOMTOEP_T3_2_PASS`. It selects the inverse-Levinson
+reflection-coefficient map, validates 480 deterministic matrices for K=1--12,
+checks inverse reconstruction and two finite-difference steps, matches both the
+independent `stats::toeplitz()` construction and the local dense construction, and
+retains counterexamples for lag-wise squashing (indefinite R) and generic Cholesky
+(non-Toeplitz R). No formula grammar, native provider, public documentation, or
+calibration claim changed; T3-1 remains the next gate.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S1 grammar and layout
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-1` returned
+`TEMPORAL_HOMTOEP_T3_1_PASS`. `homtoep` is now the sole admitted new temporal
+keyword: it requires finite integer occasions, a common complete equally spaced
+retained schedule of 3--12 occasions, and stores both schedule levels and the
+original-row-to-occasion index mapping. Raw duplicate ID--occasion keys still fail
+before response omission. Irregular or incomplete panels receive an error directing
+the user to OU or AR1. The direct fit path stops explicitly until T3-3 supplies the
+native provider, preventing an accidental fall-through to OU. Targeted regressions
+passed for `test-temporal-parser.R`, `test-temporal-gaussian-smoke.R`,
+`test-temporal-identities.R`, `test-temporal-ou.R`,
+`test-temporal-ou-dense-oracle.R`, the Toeplitz map, and the new parser suite.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S2 native provider
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-3` emitted
+`TEMPORAL_HOMTOEP_T3_3_PASS`; T3-1 and T3-2 were then reverified with their
+expected receipts. The provider represents every standardized series path with
+a positive-definite Toeplitz covariance built from inverse-Levinson
+partial-autocorrelation coordinates, and applies a full normalized MVN density
+per independent series. The independent dense oracle matches the optimized
+objective, score, two finite-difference Hessian steps (1e-4 and 1e-5), and
+conditional temporal modes. The oracle initially used the wrong triangular
+Cholesky solve; the corrected `forwardsolve(t(chol(V)), residual)` calculation
+was independently reconciled with the native objective before the gate passed.
+The provider now reports `cor_lag*` correlations and correctly labels its one
+starting vector as partial autocorrelations rather than an OU decay. It is
+still a point-fit validation slice: recovery, simulation, prediction, reader
+workflow, and all interval or calibration claims remain pending.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S3 methods and simulation
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-4` emitted
+`TEMPORAL_HOMTOEP_T3_4_PASS`. `fitted()` and `residuals()` use the conditional
+Toeplitz modes in original input-row order. `simulate(re.form = NA)` holds those
+modes fixed, while the default simulation redraws an independent dense Toeplitz
+path for each series before residual noise. Seeded conditional and fresh draws
+match an independent dense Cholesky construction. `vcov()`, Wald summaries, and
+both Wald and profile interval entry points now reject this uncalibrated
+provider explicitly; `check_drm()` records the same calibration-deferred reason.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-5 reductions and mutations
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-5` emitted
+`TEMPORAL_HOMTOEP_T3_5_PASS`. With only the first partial autocorrelation
+nonzero, the native provider matches the independent dense AR1 covariance; with
+all partial autocorrelations zero, it matches the diagonal temporal covariance.
+The deterministic mutation test rejects an indefinite direct-lag matrix and an
+irregular schedule, and distinguishes the correct independent-series covariance
+and normalized likelihood from deliberately shared-series and no-normalizer
+variants.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-6 retained point recovery
+
+`Rscript --vanilla tools/run-temporal-homtoep-recovery.R` emitted
+`TEMPORAL_HOMTOEP_RECOVERY_PASS` under committed source `b9dacf42d`; the
+read-only verifier then emitted `TEMPORAL_HOMTOEP_T3_6_PASS`. The final-source
+artifact retains twelve frozen fits and twelve starts: three AR1, three
+non-exponential, three negative-lag primary fits, and three low-information
+stress fits. All nine primary fits were finite. Primary mean absolute
+fixed-effect error was 0.0611, median absolute SD error 0.0933, and median lag
+RMSE 0.1098, all within their frozen point-recovery criteria. The stress cell is
+retained but excluded from those primary thresholds. This is not interval or
+coverage evidence.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7 timed pilot
+
+The source-faithful five-seed-per-cell pilot at `0cb70fe7f` retained 15 finite
+selected fits and 15 starts across AR1-shaped, non-exponential, and negative-lag
+six-occasion cells. `/usr/bin/time -l` measured 39.42 seconds wall time and
+438 MB peak memory; total fitting time inside the runner was 13.538 seconds.
+All 15 profile requests produced the deliberate not-yet-qualified error and no
+profile intervals. All fits converged but each recorded `NaNs produced` and a
+non-positive-definite Hessian flag. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7` emitted
+`TEMPORAL_HOMTOEP_T3_7_PASS` because the gate checks retained measurement and
+denominator completeness, not inferential qualification. Those diagnostics
+block T3-8/T3-9 campaign progression until a bounded inference diagnosis and
+qualification slice resolves them.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7a identifiability diagnosis
+
+The pilot's false Hessians arise from an exact covariance ridge. For a free
+Toeplitz correlation matrix, `V = s_a^2 R + sigma^2 I` is unchanged by choosing
+an admissible scale factor `c`, setting `s_a,new^2 = c s_a^2`,
+`rho_new(d) = rho(d) / c` for every positive lag, and
+`sigma_new^2 = sigma^2 + (1 - c) s_a^2`. The new correlation matrix remains
+positive definite for an open range of `c`; the executable test confirms exact
+dense covariance and likelihood equality and valid inverse-Levinson
+coordinates. Thus one response per series--occasion cannot separately identify
+the temporal SD, residual SD, and all free lag correlations. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7a` emitted
+`TEMPORAL_HOMTOEP_T3_7A_PASS`. The current direct provider is retained as a
+point-fit research artifact only; calibration and campaign gates require a
+model-redesign decision.
+
+## 2026-09-10 — temporal homogeneous Toeplitz redesign decision brief
+
+T3-7a's exact covariance ridge changes the next delivery action. The original
+provider cannot separately estimate `sd_temporal`, `sigma`, and all free
+Toeplitz lag correlations with one row per series--occasion. The scoped brief
+`T3-8-REDESIGN-DECISION.md` records the two identified replacements: M, a
+marginal Toeplitz covariance with one total within-series SD for ordinary CSV
+panels; or R, a replicated latent Toeplitz process with an explicit replicate
+key. It recommends M while preserving AR1/OU as the routes that separately
+interpret temporal and residual variance. T3-7b is a manual semantic-interface
+gate; it must be selected explicitly before T3-8 calibration, a campaign, or
+reader-facing promotion proceeds.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7c marginal candidate spike
+
+An independent pure-R marginal Toeplitz likelihood was fitted to one simulated
+80-series by six-occasion panel. The likelihood uses one total within-series SD
+and free PACF-derived lag correlations, with no separately estimated residual
+SD. It converged with objective 507.260020 and a minimum numerical observed-
+information eigenvalue of 47.771361. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7c` emitted
+`TEMPORAL_HOMTOEP_T3_7C_PASS`. This supports M as an identified candidate design;
+it is not a public interface, recovery, interval, calibration, or campaign claim.
+
+
+| 2026-10-19 | man/*.Rd vs roxygen sync (#1571) | `document()` rewrote 39 Rd files before, 0 after; `test-man-roxygen-sync.R` fails pre-fix, passes post-fix | PASS | Claude |
+
+| 2026-10-22 | Direct Gaussian aggregation helper tests (#1598) | `devtools::test(filter = "gaussian-aggregation")`: PASS 136, FAIL 0, WARN 0, SKIP 0; PR test source SHA-256 unchanged | Focused tests PASS; full package and Julia engine checks not run | Codex |

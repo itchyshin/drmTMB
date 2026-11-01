@@ -61,17 +61,15 @@ manual_beta_mi_loglik <- function(fit) {
       next
     }
     log_terms <- log(weights) +
-      stats::dbeta(
+      drmTMB:::drm_beta_missing_predictor_log_density(
         nodes,
-        shape1 = mu_mi[[row]] / sigma_mi^2,
-        shape2 = (1 - mu_mi[[row]]) / sigma_mi^2,
-        log = TRUE
+        mu = mu_mi[[row]],
+        sigma = sigma_mi
       )
     mu_node <- mu_observed[[row]] + beta_cover * (nodes - x_base[[row]])
     log_terms <- log_terms +
       stats::dnorm(dat$y[[row]], mu_node, sigma, log = TRUE)
-    max_log <- max(log_terms)
-    out[[row]] <- max_log + log(sum(exp(log_terms - max_log)))
+    out[[row]] <- drmTMB:::drm_logsumexp(log_terms)
   }
   sum(out)
 }

@@ -39,8 +39,7 @@ the among-axis structure of a q = 4 "coevolution" fit: a bivariate Gaussian
 location-scale model whose four axes \code{mu1}, \code{mu2}, \code{sigma1}, \code{sigma2} share
 one structured random effect (\code{phylo()}, \code{animal()}, \code{relmat()}, or
 \code{spatial()}) with a dense 4 x 4 among-axis covariance \code{Sigma_a}. They are
-ported term-for-term from \code{DRM.jl}'s \code{src/coevo_accessors.jl} (#1118) and
-return the same quantities:
+defined for the following quantities:
 }
 \details{
 \itemize{
@@ -97,7 +96,7 @@ coincide.
 \donttest{
 if (requireNamespace("ape", quietly = TRUE)) {
   set.seed(1)
-  n_tip <- 16L
+  n_tip <- 64L
   tree <- ape::compute.brlen(ape::stree(n_tip, type = "balanced"), 1)
   tree$tip.label <- paste0("t", seq_len(n_tip))
   C <- ape::vcv(tree, corr = TRUE)
@@ -105,7 +104,7 @@ if (requireNamespace("ape", quietly = TRUE)) {
     matrix(c(1, 0.6, 0, 0, 0.6, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), 4) \%*\%
     diag(c(0.8, 0.7, 0.4, 0.4))
   A <- t(chol(C)) \%*\% matrix(rnorm(n_tip * 4), n_tip, 4) \%*\% chol(Sigma_a)
-  rows <- rep(seq_len(n_tip), each = 4)
+  rows <- rep(seq_len(n_tip), each = 8)
   x <- rnorm(length(rows))
   dat <- data.frame(
     species = tree$tip.label[rows],

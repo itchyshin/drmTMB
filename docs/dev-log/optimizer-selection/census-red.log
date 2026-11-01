@@ -1,0 +1,2 @@
+Error: inst/extdata/env-skip-census.tsv is out of date; regenerate with Rscript tools/write-env-skip-census.R
+Execution halted

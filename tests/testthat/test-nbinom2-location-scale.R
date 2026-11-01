@@ -311,14 +311,15 @@ test_that("nbinom2 sigma random intercepts keep planned neighbours closed", {
   sim <- new_nbinom2_sigma_random_intercept_data(n_id = 8, n_each = 4)
   dat <- sim$data
 
-  expect_error(
-    drmTMB(
-      bf(count ~ x, sigma ~ z + (0 + z | id)),
-      family = nbinom2(),
-      data = dat
-    ),
-    "Only independent NB2.*sigma.*random intercepts"
+  # One independent numeric sigma slope is now admitted (evidence:
+  # docs/dev-log/after-task/2026-10-25-nbinom2-sigma-slope-sd.md), so assert
+  # assembly instead of a refusal.
+  slope_spec <- drm_build_nbinom2_spec(
+    bf(count ~ x, sigma ~ z + (0 + z | id)),
+    dat
   )
+  expect_identical(slope_spec$random$sigma$n_terms, 1L)
+  expect_true("u_sigma" %in% slope_spec$random_names)
   expect_error(
     drmTMB(
       bf(count ~ x + (1 | id), sigma ~ z + (1 | id)),
@@ -341,7 +342,7 @@ test_that("nbinom2 sigma random intercepts keep planned neighbours closed", {
       family = nbinom2(),
       data = dat
     ),
-    "Only independent NB2.*sigma.*random intercepts"
+    "NB2.*sigma.*random effects currently allow independent intercepts"
   )
 })
 

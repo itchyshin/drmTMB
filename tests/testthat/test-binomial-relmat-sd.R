@@ -151,6 +151,8 @@ test_that("binomial relmat SD regression fits and returns target-specific SDs", 
 
 test_that("Binomial relmat SD regression supports probit and cloglog links", {
   skip_on_cran()
+  # Native checks always run; the Julia cross-check needs a DRModels.jl checkout.
+  julia_live <- tryCatch(isTRUE(drm_skip_live_julia()), skip = function(cnd) FALSE)
   for (link in c("probit", "cloglog")) {
     fx <- binomial_relmat_sd_fixture(
       seed = if (link == "probit") 6201030L else 6201031L,
@@ -183,26 +185,31 @@ test_that("Binomial relmat SD regression supports probit and cloglog links", {
     simulated <- simulate(fit, nsim = 1L, seed = 6201032L)
     expect_true(all(simulated[[1L]] %in% 0:1))
 
-    julia_fit <- drmTMB(
-      bf(
-        y ~ x + relmat(1 | id, K = K),
-        sd(id, level = "relmat") ~ z
-      ),
-      family = stats::binomial(link = link),
-      data = fx$data,
-      engine = "julia"
-    )
-    expect_equal(julia_fit$opt$convergence, 0)
-    julia_coef <- coef(julia_fit, dpar = "sd_relmat(id)")
-    native_coef <- coef(fit, dpar = "sd_relmat(id)")
-    expect_named(julia_coef, names(native_coef))
-    expect_equal(unname(julia_coef), unname(native_coef), tolerance = 0.15)
-    julia_sd <- predict(julia_fit, dpar = "sd_relmat(id)")
-    native_sd <- predict(fit, dpar = "sd_relmat(id)")
-    names(julia_sd) <- sub("^sd_relmat\\(id\\):", "", names(julia_sd))
-    names(native_sd) <- sub("^sd_relmat\\(id\\):", "", names(native_sd))
-    expect_setequal(names(julia_sd), names(native_sd))
-    expect_equal(unname(julia_sd[names(native_sd)]), unname(native_sd),
-                 tolerance = 0.15)
+    if (julia_live) {
+      julia_fit <- drmTMB(
+        bf(
+          y ~ x + relmat(1 | id, K = K),
+          sd(id, level = "relmat") ~ z
+        ),
+        family = stats::binomial(link = link),
+        data = fx$data,
+        engine = "julia"
+      )
+      expect_equal(julia_fit$opt$convergence, 0)
+      julia_coef <- coef(julia_fit, dpar = "sd_relmat(id)")
+      native_coef <- coef(fit, dpar = "sd_relmat(id)")
+      expect_named(julia_coef, names(native_coef))
+      expect_equal(unname(julia_coef), unname(native_coef), tolerance = 0.15)
+      julia_sd <- predict(julia_fit, dpar = "sd_relmat(id)")
+      native_sd <- predict(fit, dpar = "sd_relmat(id)")
+      names(julia_sd) <- sub("^sd_relmat\\(id\\):", "", names(julia_sd))
+      names(native_sd) <- sub("^sd_relmat\\(id\\):", "", names(native_sd))
+      expect_setequal(names(julia_sd), names(native_sd))
+      expect_equal(unname(julia_sd[names(native_sd)]), unname(native_sd),
+                   tolerance = 0.15)
+    }
+  }
+  if (!julia_live) {
+    testthat::skip("DRModels.jl / DRM.jl engine not available; Julia cross-check skipped")
   }
 })

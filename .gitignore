@@ -102,3 +102,8 @@ scratchpad/*.rds
 
 # Local verification gates and campaign scratch (never ship).
 .unlazy/
+
+# Local R library used by this checkout (never ship).
+.Rlib/
+
+.unlazy/

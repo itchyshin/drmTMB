@@ -77,7 +77,7 @@ test_that("zero-inflated Poisson does not admit an unscaled mu slope", {
   )
 })
 
-test_that("zero-inflated Poisson reports the effective clamped log SD", {
+test_that("zero-inflated Poisson reports the raw log SD and uses the clamped SD", {
   dat <- zi_poisson_sd_assembly_data()
   fit <- suppressWarnings(drmTMB(
     bf(y ~ 1 + (1 | id), zi ~ 1, sd(id) ~ w),
@@ -95,8 +95,10 @@ test_that("zero-inflated Poisson reports the effective clamped log SD", {
   eta <- as.vector(fit$model$random_scale$mu$X_list[["sd(id)"]] %*% c(4, 0))
   effective_log_sd <- drm_softclamp_log_sd(eta, fit$model$tmb_data)
   expect_true(any(eta > 2))
-  expect_equal(as.numeric(report$log_sd_mu_group), effective_log_sd,
-               tolerance = 1e-10)
+  # log_sd_mu_group reports the raw linear predictor so the fit-time clamp-hit
+  # check (main 63a703e61) can see it leave the band; the SD itself, the
+  # likelihood and public predictions use the clamped value.
+  expect_equal(as.numeric(report$log_sd_mu_group), eta, tolerance = 1e-10)
   expect_equal(as.numeric(report$sd_mu_group), exp(effective_log_sd),
                tolerance = 1e-10)
   expect_equal(as.numeric(predict(fit, dpar = "sd(id)", type = "link")),

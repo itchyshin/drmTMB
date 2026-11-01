@@ -24,9 +24,9 @@ and second response margins.}
 \item{data}{A data frame containing both responses and every predictor used
 by either margin.}
 
-\item{kernel}{Association kernel. Arc 6 accepts only \code{\link[=latent_normal]{latent_normal()}}.}
+\item{kernel}{Association kernel. The current implementation accepts only \code{\link[=latent_normal]{latent_normal()}}.}
 
-\item{association}{Association formula. Most Arc 6 pair classes accept only
+\item{association}{Association formula. Most supported pair classes accept only
 \code{~ 1}, which estimates one constant association parameter. The beta
 Bernoulli x ordinary-NB2 route accepts an intercept-bearing fixed-effect
 model-matrix formula, including multiple predictors, factors,
@@ -48,7 +48,7 @@ eta-scale standard errors and pointwise confidence intervals. No profile
 is available.
 }
 \description{
-\code{biv_associate()} is the convenience front end for the reviewed Arc 6
+\code{biv_associate()} is the convenience front end for the supported
 frozen-margin route. It fits two univariate margins to the supplied data and
 then calls \code{\link[=associate_pairs]{associate_pairs()}} without refitting either margin. It is one R
 call, but it is not a jointly fitted bivariate model: stage 2 treats the fitted

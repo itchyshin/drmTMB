@@ -72,6 +72,152 @@ In mathematical prose, `Normal(a, b)` uses variance as the second argument.
 The corresponding R density call uses standard deviation, as in
 `dnorm(y, mean = a, sd = sqrt(b), log = TRUE)`.
 
+## Gaussian temporal AR1 and OU effects
+
+The first temporal route is a univariate Gaussian location model with optional
+ordinary, stable series differences:
+
+\[
+y_{it} = x_{it}^{T}\beta + b_i + a_{it} + \epsilon_{it},
+\qquad
+b_i \sim N(0, s_b^2),\quad
+\epsilon_{it} \sim N(0, \sigma^2).
+\]
+
+For the temporal field, `temporal(1 | id, time = occasion, structure =
+"ar1")` estimates a stationary process SD `s_a` and one-occasion persistence
+`phi`:
+
+\[
+\operatorname{Cov}(a_{it}, a_{is}) = s_a^2\phi^{|t-s|}.
+\]
+
+Thus, within one series, the marginal covariance is
+\(s_b^2\mathbf{1}\mathbf{1}^{T} + s_a^2R(\phi) + \sigma^2I\). The native
+likelihood uses the stationary first-state density and, for an observed integer
+gap \(d\), the standardized transition \(u_t \mid u_{t-d}\sim
+N(\phi^d u_{t-d}, 1-\phi^{2d})\). It preserves the supplied integer times:
+it never converts them to ranks. The unconstrained persistence coordinate is
+transformed by `tanh()`, so both negative and positive persistence are
+possible.
+
+`s_a` is the stationary temporal-process SD, not an innovation SD. When an
+ordinary intercept is included, `s_b` describes stable differences between
+series; `sigma` remains independent observation-level residual SD. These three
+sources of variability are mutually independent.
+
+### Ornstein--Uhlenbeck elapsed-time effects
+
+`temporal(1 | id, time = elapsed, structure = "ou")` uses the same Gaussian
+location model and variance components, but treats `elapsed` as finite numeric
+time. It estimates a positive decay rate `lambda` and has covariance
+
+\[
+\operatorname{Cov}(a_{it}, a_{is}) = s_a^2\exp(-\lambda |t-s|).
+\]
+
+For an observed positive gap \(d\), its standardized stationary transition is
+\(u_t \mid u_{t-d}\sim N(\exp(-\lambda d)u_{t-d},
+1-\exp(-2\lambda d))\). The first-state density and all transition
+normalizers remain in the native likelihood. Rows may be supplied in any order;
+the fit sorts states within series and returns fitted values in the supplied row
+order. Duplicate series--time keys are rejected before response omission.
+
+OU cannot express negative correlation. Its reported temporal decay
+parameter is the positive decay rate, not a one-unit correlation or an
+innovation SD. OU Wald inference through `vcov()`, `confint(method = "wald")`,
+and `summary(..., method = "wald")` remains deferred because the inherited AR1
+interval calibration prerequisite is unresolved. Fixed `mu` coefficients can
+instead use likelihood profiles through
+`confint(..., parm = "mu:<coefficient>", method = "profile")`. The profile
+route excludes decay and variance parameters, warns if the fitted Hessian is
+irregular, and has deterministic dense-oracle checks but no general coverage
+claim.
+
+### Homogeneous Toeplitz discrete-occasion effects
+
+`temporal(1 | id, time = occasion, structure = "homtoep")` is a direct
+Gaussian ML **marginal covariance** provider for a common, complete, equally
+spaced integer schedule with 3--12 occasions. It has no ordinary random
+intercept in this first slice, and it needs at least as many series as
+occasions (a floor for estimability, not a design recommendation). For every series,
+
+\[
+y_i \sim N(X_i\beta, \sigma^2 R),\qquad
+R = \operatorname{Toeplitz}(1, r_1, \ldots, r_{K-1}).
+\]
+
+The fitted `cor_lag1`, ..., `cor_lag(K-1)` values are correlations, not free
+unconstrained parameters. The native provider maps unconstrained partial
+autocorrelations through `tanh()` and the inverse-Levinson recursion. In exact
+arithmetic every finite partial autocorrelation vector gives a positive-definite
+`R`; in floating point `R` can be numerically singular once several `|r_m|` are
+close to 1 (its determinant is the product of the innovation variances
+`1 - r_m^2`). The native likelihood therefore never factorises `R`: it uses the
+Levinson--Durbin prediction-error decomposition, with each innovation variance
+accumulated as `log(sech(theta)^2)` in a form that stays exact when `tanh`
+rounds to +/-1. This equals the full multivariate-normal density, including its
+normalizer, and stays finite where a Cholesky factor of `sigma^2 R` fails. This is a discrete-lag
+model: irregular time and unequal retained schedules are rejected and directed
+to OU.
+
+`sigma` is the total within-series SD. A latent process SD plus an independently
+estimated iid residual SD is intentionally absent: with one response per
+series--occasion and a free lag correlation at every distance, those components
+have an exact covariance-preserving ridge. AR1 and OU retain that separate
+process/residual interpretation because their restricted correlation functions
+identify it.
+
+The current provider has deterministic dense-covariance, score, two-step
+Hessian, residual-whitening, and correlated-residual simulation agreement. A
+retained 4,000-fit campaign qualified likelihood-profile intervals for mean
+regression coefficients in its three predeclared primary cells: 80 series on
+six common occasions with AR1-shaped, non-exponential, and negative first-lag
+correlations. Use
+`confint(fit, parm = "mu:<coefficient>", method = "profile")` for that
+profile-only route. The retained 20-series stress cell had lower intercept
+coverage (0.916), and the campaign does not establish coverage for arbitrary
+panel sizes or correlation patterns.
+
+Wald, total-scale, and lag-correlation intervals remain unavailable. So do
+prediction on `newdata`, forecasting, and ordinary-intercept composition.
+
+For fitted observations, `fitted()` returns the marginal mean and `residuals()`
+returns `y - fitted`. Pearson residuals are the standardized one-step
+prediction errors, which equal the Cholesky whitening of the block Toeplitz
+covariance. Both simulation modes draw one correlated residual
+vector per series because this model has no conditional temporal random effect.
+
+### Phylogenetic stable intercept plus independent OU deviations
+
+The development-only paired route combines `phylo(1 | species, tree = tree)`
+with `temporal(1 | species, time = elapsed, structure = "ou")` in the same
+univariate Gaussian ML location formula. Its marginal covariance for rows
+\(r,q\) is
+
+\[
+V_{rq}=s_b^2A_{i_ri_q}+\mathbb{1}_{i_r=i_q}s_a^2
+\exp\{-\lambda|t_r-t_q|\}+\mathbb{1}_{r=q}\sigma^2.
+\]
+
+The phylogenetic term therefore represents stable, tree-correlated differences
+among species; the OU term represents independent temporal paths within each
+species. This is additive, not the later separable field
+\(s_a^2A_{ij}\exp\{-\lambda|t-s|\}\). The parser enforces a shared species ID,
+matching tree tips, finite numeric time, unique raw species--time keys, at
+least three species, at least two times per species, and three positive distinct
+lags. It rejects ordinary intercepts, slopes, other structured terms, REML,
+non-Gaussian families, non-unit weights, forecasting, and `newdata`.
+
+Independent dense likelihood, score, Hessian, conditional-mode, simulation,
+and fixed-mean profile tests pass. The retained 24-fixture point-recovery
+study did not meet its predeclared mean fixed-effect error threshold; the
+replacement G9b study (24 contrast fixtures plus 300 independently generated
+trees) met its predeclared point-recovery criteria. Until an
+interval-calibration campaign is retained, this is a
+point-fit development route: all interval methods,
+variance/decay inference, forecast, and `newdata` prediction are unavailable.
+
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,
@@ -103,7 +249,7 @@ is the current routing contract:
 | `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component and `zoi`/`coi` describing exact-boundary probabilities. Ordinary `mu` random intercepts and independent numeric slopes have separate admitted routes; the exact Arc 4c slope cell is inference-ready with caveats for true SD 0.50 and M>=16 and a strictly-interior-generator caveat. One additional complete-response direct-SD route admits `sd(group) ~ predictors` for a single ordinary `mu` intercept while `sigma`, `zoi`, and `coi` have fixed effects only; its recovery and independent marginal quadrature checks are not interval calibration. The point-fit-only `zoi` q1 routes admit either one unlabelled intercept `(1 | id)` or one slope-only effect when the fixed and random terms use the same raw symbol, such as `zoi ~ x + (0 + x | id)`; `coi` random effects remain unsupported. |
 | `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component and ordinary `mu` random intercepts or independent numeric slopes. A separate complete-response direct-SD slice admits one ordinary `mu` intercept with `sd(group) ~ predictors`; hurdle models, other random effects, and interval-calibration claims are excluded. The group-specific effect enters both the NB2 count likelihood and its zero-truncation normalizer. |
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate hurdle negative-binomial 2 models, with fixed-effect `sigma` and `hu`, plus the exact diagnostic-only q1 `hu ~ relmat(1 | id, K/Q = ...)` intercept; nonzero counts follow the zero-truncated NB2 component. Complete-response count-side `mu` direct-SD routes admit one ordinary intercept or one independent numeric slope with a matching `sd()` formula in native TMB and the development Julia bridge. Correlated or structured count-side blocks, random `sigma` or `hu`, and interval-calibration claims remain unsupported or unverified. |
-| `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate cumulative-logit ordinal location models, with ordered cutpoints, fixed latent logistic scale, ordinary recovery-grade `mu` random intercepts and independent numeric slopes, plus the exact local-fit q1 `mu ~ phylo(1 | id, tree = tree)` intercept. A separate complete-response direct-SD slice admits one ordinary `mu` intercept or one independent numeric slope selected by `sd(group, coef = "x") ~ predictors`; it does not combine with other random or structured effects. A seeded high-information fit recovers the SD slope and predicts increasing group SDs, but public interval calibration remains open. |
+| `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate cumulative-logit ordinal location models, with ordered cutpoints, a latent logistic scale fixed at 1 or modelled by an intercept-free fixed-effect `disc ~ z` discrimination formula (#966; rides `X_sigma`/`beta_sigma`), ordinary recovery-grade `mu` random intercepts and independent numeric slopes, plus the exact local-fit q1 `mu ~ phylo(1 | id, tree = tree)` intercept. A separate complete-response direct-SD slice admits one ordinary `mu` intercept or one independent numeric slope selected by `sd(group, coef = "x") ~ predictors`; it does not combine with other random or structured effects. A seeded high-information fit recovers the SD slope and predicts increasing group SDs, but public interval calibration remains open. |
 | `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate beta-binomial models for counted successes out of known trials, with `mu` as success probability, `sigma` as extra-binomial variation, and ordinary `mu` random intercepts or independent numeric slopes on the logit success-probability predictor. Its complete-response direct-SD routes include one ordinary `mu` intercept or one selected independent numeric slope, plus one q1 animal-pedigree intercept with `sd(id, level = "animal") ~ z` and fixed `sigma`. The animal route has synthetic recovery, prediction-name and founder checks, constant-SD equivalence, and marginal-simulation checks for pedigree input. Covariance `A` and precision `Ainv` inputs also pass recovery and group-prediction checks and match the pedigree likelihood under a joint matrix-label permutation. Julia parity and interval calibration remain open. |
 | `18` | `family = stats::binomial(link = "logit")` | `drm_build_binomial_spec()` | Univariate Bernoulli/binomial logit models for 0/1 responses or two-column `cbind(successes, failures)` responses, with `mu` as event probability and no public `sigma`, including ordinary random effects and supported q1 structured effects. Native TMB also admits a complete-response q1 `phylo_interaction()` location field with `sd(pair_id, level = "phylogenetic_interaction") ~ predictors`; pair IDs must map one-to-one to observed partner pairs and predictors must be pair-constant. Julia and R-to-Julia parity for this route remain open. Missing-predictor `mi()` cannot yet be combined with random effects. |
 | `93` | no public route | direct test construction only | Hidden q=4 phylogenetic precision-prior parity branch using `theta_phylo` and `log_sd_phylo`. |
@@ -754,11 +900,27 @@ x_i ~ Beta(m_i phi, (1 - m_i) phi)
 For observed `cover_i`, the row contributes the beta predictor-model
 likelihood and, when the response is observed, the Gaussian response density.
 For missing `cover_i`, TMB integrates over the possible proportion values with
-fixed Gauss-Legendre quadrature:
+the frozen 15-node Gauss-Legendre rule on `(0, 1)`. The log-sum is the
+unnormalised marginal (no `log_mass`). Mid-range Beta logLik error versus
+`integrate()` is about `2.6e-5`. U-shaped Beta (`mu` 0.02 or 0.10 with
+`sigma = 1`) is a known leftover that refs #1476. After the TMB fit,
+class `drmTMB_mi_quadrature_inaccurate` warns when any enabled `mi()`
+term has an estimated missing-row Beta or zero-one-Beta prior mean at
+or inside `0.10` of 0 or 1. That boundary is the measured 15-node
+failure: `|logLik - log integrate()|` is `4.65e-3` at `mu = 0.10`,
+`sigma = 1` and `4.81e-3` at `mu = 0.02`, `sigma = 1`. The pinched
+`mu = 0.10`, `sigma = 0.2` case stays inside `2.6e-5`, so a mu-only
+threshold is conservative there. The check is R-only on the fitted
+`mu`, loops both `mi()` slots, and is not applied before the Julia
+branch (Julia already refuses Beta/Gamma `mi()`). A NA or NaN fitted
+missing-row mean stops with class `drmTMB_mi_quadrature_guard_nonfinite`
+instead of being dropped from the check (refs #1532). The missing-row
+marginal is still
 
 ```text
-log L_i = log sum_q w_q
-  p_beta(x_q | m_i, sigma_mi)
+x_q = (z_q + 1) / 2
+log L_i = log sum_q
+  w_q p_beta(x_q | m_i, sigma_mi)
   p(y_i | mu_i(x_q), sigma_i) ^ observed_y_i
 ```
 
@@ -821,10 +983,11 @@ log L_i = log sum_q w_q
   p(y_i | mu_i(x_q), sigma_i)
 ```
 
-The zero and one nodes have quadrature weight one because they represent point
-mass. Interior nodes use the same fixed Gauss-Legendre rule as the strict beta
-route. When both the response and the boundary-proportion predictor are
-missing, the row is retained for accounting but contributes no direct
+The zero and one nodes are exact point masses with weights 1. Interior nodes
+are the same frozen 15-node Gauss-Legendre rule as the strict beta route.
+When both the response and the boundary-proportion
+predictor are missing, the row is retained for accounting but contributes no
+direct
 likelihood. `imputed()` reports the fitted conditional quadrature mean for
 missing rows, and `fit$missing_data$predictors[[name]]$quadrature_probabilities`
 stores the normalized zero, interior, and one weights.
@@ -1128,17 +1291,53 @@ log L_i =
   + observed_y_i log Normal(y_i | mu_i(x_i), sigma_i)
 ```
 
-For missing `biomass_i`, TMB integrates over positive predictor states by
-deterministic Gauss-Laguerre quadrature. With Laguerre nodes `t_k` and weights
-`w_k`,
+For missing `biomass_i`, TMB integrates over positive predictor states by a
+51-node posterior-mode sinh-mapped trapezoid rule on `u = log(x)`. The
+integrand, its gradient and its Hessian are all on `u = log(x)` and carry the
+`dx/du` Jacobian. Exactly five safeguarded Newton steps start at
+`log(mu_xi)`. Each step proposes (A) the clamped log-`x` Newton step and (B) a
+Newton step on `G(x) = g / x`, written with the log-`x` derivatives as
+`x_new / x = (H - 2g) / (H - g)`, and keeps the proposal with the larger log
+integrand. B crosses decades of `x` in one step where A moves a fixed 0.5 in
+`u`; five A-only steps stop about 15 score units short of the mode at the
+pole rows. The derivatives use the log Gamma prior plus each response
+family's own log-density gradient and Hessian (analytic Gaussian and Poisson;
+Poisson adds `(y - mu) eta'(x)` and the matching curvature). There is no
+data-dependent stop, and nodes are placed only after step 5. A node with
+`u_q > 500` keeps a finite `x` for reporting and drops its `w cosh(t)` weight
+so the cap is not a quadrature mass. A NaN or `-Inf` row is
+`drmTMB_mi_quadrature_nonfinite`, raised from the C++ tape token through
+`drm_rethrow_mi_quadrature_error` and from non-finite `fn`/`gr` at the start
+and the fitted parameter. The abort watches every `mi()` term (both
+`missing_predictor` slots), not only the first. There is no CV branch (#1477).
+After a successful fit, class `drmTMB_mi_quadrature_inaccurate` warns
+when the estimated Gamma `mi()` CV is at least 3 (12% of an 80-row
+`(mu, y)` scan exceed `1e-4`, worst `1.47`). The same helper also
+warns for Beta / zero-one-Beta missing-row means near 0 or 1. A NA, NaN,
+or infinite fitted log CV, or a CV that overflows `exp()`, stops with class
+`drmTMB_mi_quadrature_guard_nonfinite` rather than skipping the check
+(refs #1532).
+
+The rule is a sinh map rather than Gauss-Hermite because the log-`x` integrand
+has the exponential left tail `exp(shape * u)`, `shape = 1 / CV^2`. A Gaussian
+node rule cannot reach it: at CV 1 the 51-node Gauss-Hermite rule missed the
+tail mass and was `0.28` log units off at the pole. No combination of 51 to
+151 nodes and a 1x to 2x width multiplier that was tried put every CV 1 pole
+row and every Poisson CV 2 row inside `1e-4`.
 
 ```text
-x_ik = scale_xi t_k
+u = log(x)
+t_q equally spaced on [-5, 4], 51 nodes, step h
+u_q = mode + sigma_u sinh(t_q),   sigma_u = 1 / sqrt(-H)
+x_q = exp(min(u_q, 500))
+# if u_q > 500 the term is dropped (log weight -> -1e300)
 
 log L_i =
-  log sum_k
-    w_k t_k^(shape_x - 1) / Gamma(shape_x)
-    p(y_i | mu_i(x_ik), sigma_i) ^ observed_y_i
+  log sum_q
+    h p_gamma(x_q | shape_x, scale_xi)
+    p(y_i | mu_i(x_q), sigma_i) ^ observed_y_i
+    x_q
+    sigma_u cosh(t_q)
 ```
 
 When both the response and the positive predictor are missing, the row is
@@ -1283,6 +1482,27 @@ Known sampling variances or sampling covariance still belong in
 `meta_V(V = V)`. When `meta_V(V = V)` supplies a full dense
 covariance matrix, `weights =` is rejected for now because the likelihood is a
 joint multivariate block rather than a sum of independent row contributions.
+
+Until #1459 is decided, the Gaussian `mi()` prior stays unweighted. That
+is the three C++ paths that do `nll -= dnorm(...)` with no `weights(i)`:
+location-scale Gaussian at `src/drmTMB.cpp:1434`, the second Gaussian
+predictor at `:1475`, and the nbinom2-response copy of the same Gaussian
+prior at `:4678`. Every other `mi()` family block multiplies
+the prior by `weights(i)` (Dinnage M1). Native TMB emits the classed
+warning `drmTMB_mi_weights_prior_unweighted` only on those unweighted
+Gaussian paths. `weights = 1` matches the omitted-weights fit. A Gaussian
+weight-2 row matches a duplicated row in the response term only; the prior
+differs by exactly one unweighted copy of that row. `engine = "julia"`
+refuses `mi()` plus non-unit weights for every family, with
+`drmTMB_julia_mi_weights_unsupported`, because DRModels.jl ignores
+weights on both terms. The weights check runs before the Julia family
+check. Weight 0 or `NA` on a row whose `mi()` covariate is missing is the
+named error `drmTMB_mi_zero_weight_missing`, not a silent drop. A weight-0
+observed-x Gaussian row is skipped with a data-level
+`if (asDouble(weights(i)) > 0)` so `y = 1e200` keeps `fn` and `gr`
+finite. `predict()` and `simulate()` use the fitted coefficients, allow
+`weights = 1`, and refuse non-unit `weights` on an `mi()` fit with
+`drmTMB_mi_weights_predict_unsupported`.
 
 ## Implemented Gaussian Location-Scale
 
@@ -1890,7 +2110,24 @@ sigma_i = exp(eta_sigma_i)
 nu_i = 2 + exp(eta_nu_i)
 ```
 
-The TMB likelihood includes all Student-t normalizing constants:
+The TMB likelihood includes all Student-t normalizing constants. The
+expression below is the density. For `nu < 1e4` the compiled code evaluates
+the lgamma difference directly. For `nu >= 1e4` it uses the Stirling series
+in `a = nu/2`,
+
+```text
+lgamma(a + 1/2) - lgamma(a) - 0.5 log(2 a pi)
+  = -0.5 log(2 pi) - 1/(8a) + 1/(192 a^3) - 1/(640 a^5) + ...
+```
+
+and `drm_log1p_nonnegative(z^2/nu)` for the kernel. Those two substitutions
+are the same function: as `nu` grows the log-density tends to the Gaussian
+log-density, and it no longer climbs above that limit because of lgamma
+cancellation (#1462). `logLik()` reads this TMB objective.
+`fitted_distribution()` uses `stats::dt()`, which was already stable. The
+bivariate Student density (`model_type` 20) is a separate expression: in two
+dimensions the lgamma difference is exactly `-log(2 pi)`, and the kernel
+already uses `drm_log1p_nonnegative`.
 
 ```text
 z_i = (y_i - mu_i) / sigma_i
@@ -2683,11 +2920,67 @@ For cumulative-logit fits, `predict(fit, dpar = "mu")` returns the latent
 ordinal location. `fitted(fit)` returns the expected ordered-category score
 `sum_k k * Pr(y_i = k)`, which is useful as a fitted response summary but is
 not a measured continuous outcome. `sigma(fit)` returns a fixed unit vector
-because this path fixes the latent logistic scale. The exact
-`mu ~ phylo(1 | id, tree = tree)` q1 intercept has local point-fit/extractor
-evidence. Ordinal scale or discrimination formulas, correlated or labelled
-ordinary slopes, other structured providers, known sampling covariance,
-bivariate ordinal models, and mixed-response ordinal models are later phases.
+because this path fixes the latent logistic scale (unless a `disc` formula is
+supplied; see below). The exact `mu ~ phylo(1 | id, tree = tree)` q1 intercept
+has local point-fit/extractor evidence. Random effects or structured terms in
+`disc`, correlated or labelled ordinary slopes, other structured providers,
+known sampling covariance, bivariate ordinal models, and mixed-response
+ordinal models are later phases.
+
+### Discrimination (scale) submodel `disc ~ z` (#966)
+
+Owner decision 24(a) (11 Oct 2026, issue #966) adds a fixed-effect
+discrimination formula. It answers questions such as "do observers separate
+the ordered categories more sharply in one habitat than another?" without
+changing what the cutpoints mean:
+
+```text
+Pr(y_i <= k) = logit^{-1}(disc_i * (theta_k - mu_i))
+log(disc_i)  = Z[i, ] gamma        (no intercept column)
+```
+
+Equivalently the latent variable is `y*_i = mu_i + e_i / disc_i` with
+standard-logistic `e_i`, so the latent residual scale is `s_i = 1 / disc_i`;
+`sigma(fit)` returns `1 / disc` for these fits.
+
+**Identifiability contract.** The `disc` intercept is fixed at
+`log(disc) = 0`, i.e. `disc = 1` at the reference row (`z = 0`, or the first
+level of each factor). Reason: for any `c > 0`, replacing `theta` by
+`c * theta`, `beta_mu` by `c * beta_mu`, and `disc` by `disc / c` leaves every
+category probability unchanged, so an intercept for `log(disc)` is aliased
+with the overall unit of the latent variable. This is the same constraint the
+location intercept already imposes on the location side, and the same one
+`ordinal::clm(scale = ~ z)` uses (Christensen, `ordinal` package
+documentation, location-scale cumulative link models); clm models
+`s = 1 / disc`, so its scale coefficients equal `-gamma`. Writing
+`disc ~ 0 + z` is rejected because removing an already-fixed intercept would
+let a full set of factor dummies re-introduce the aliased direction.
+`disc ~ 1` (or no `disc` formula) gives `disc = 1` and reproduces the
+location-only fit bit for bit.
+
+Implementation: `disc` rides the otherwise-unused `X_sigma`/`beta_sigma` slot
+of model_type 13, as hurdle `hu` rides `beta_zi`; `profile_fixef_internal()`
+maps the public `disc` block to `beta_sigma`. When no `disc` design is
+supplied `X_sigma` is the 1x1 dummy and the branch keeps `disc = 1` exactly.
+The `disc` formula does not yet accept random effects, structured terms, or
+offsets, and `engine = "julia"` refuses it (no DRM.jl counterpart).
+
+Evidence (`tests/testthat/test-cumulative-logit-disc.R`): exact equality of
+`disc ~ 1` with the location-only fit (`opt$par`, objective, `cov.fixed`,
+fitted values); recovery of `beta_mu`, `gamma`, and cutpoints at n = 3000
+within 4 SE; agreement with `ordinal::clm(score ~ x, scale = ~ z)` for
+continuous and factor `z` (logLik to 1e-6, coefficients to 1e-4,
+`zeta = -gamma`, SE to 1e-3).
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(score ~ habitat, disc ~ observer_experience),
+  family = cumulative_logit(),
+  data = dat
+)
+```
 
 ## Implemented Poisson Mean
 

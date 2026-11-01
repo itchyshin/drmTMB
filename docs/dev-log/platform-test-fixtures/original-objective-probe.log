@@ -1,0 +1,46 @@
+q4 initial stored_nll= 123.64954002518765 pdHess= FALSE convergence= 1 
+q4 evaluation 1 = 123.64954002468708 stored= 123.64954002518765 
+q4 evaluation 2 = 123.64954002468708 stored= 123.64954002518765 
+q4 evaluation 3 = 123.64954002468708 stored= 123.64954002518765 
+$objective
+[1] 123.64954002518765
+
+$convergence
+[1] 1
+
+$message
+[1] "false convergence (8)"
+
+$`fixef:rho12:(Intercept)`
+[1] 0.22850736340697225
+
+$`phylo_sd:mu1`
+[1] 0.26922738428404797
+
+$`phylo_sd:mu2`
+[1] 0.10035845108110893
+
+$`phylo_sd:sigma1`
+[1] 0.055163056176899573
+
+$`phylo_sd:sigma2`
+[1] 0.12090339946669026
+
+$`phylo_theta:mu1:mu2`
+[1] 223.28982672242716
+
+$`phylo_theta:mu1:sigma1`
+[1] 201.17530478896313
+
+$`phylo_theta:mu2:sigma1`
+[1] 2.0611675059728771
+
+$`phylo_theta:mu1:sigma2`
+[1] -256.73409710025658
+
+$`phylo_theta:mu2:sigma2`
+[1] -9.1606145017016658
+
+$`phylo_theta:sigma1:sigma2`
+[1] -0.45052377411132521
+

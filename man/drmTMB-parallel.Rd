@@ -27,7 +27,7 @@ Parallelism in \code{drmTMB} is across independent jobs, selected with
 \item \code{"multicore"} forks worker processes with \code{\link[parallel:mclapply]{parallel::mclapply()}}. It is
 cheap to start but available on Unix-alikes only.
 \item \code{"cluster"} starts socket (PSOCK) workers with
-\code{\link[parallel:makePSOCKcluster]{parallel::makePSOCKcluster()}} and works on every platform, including
+\code{\link[parallel:makeCluster]{parallel::makePSOCKcluster()}} and works on every platform, including
 Windows. Each worker loads the same installed \code{drmTMB} build. A fitted
 TMB object reaches the worker with a dead external pointer, and TMB
 rebuilds it from the stored data and parameters on first use, so no
@@ -83,6 +83,15 @@ reads them only at load time. A multithreaded BLAS is the one inner layer
 that can matter for a single \code{drmTMB} fit, through dense matrix work in
 \code{\link[TMB:sdreport]{TMB::sdreport()}} and in large fixed-effect designs; it is the layer to pin
 when you parallelise across jobs.
+}
+
+\section{Dead forked workers}{
+
+\code{\link[parallel:mclapply]{parallel::mclapply()}} returns \code{NULL} for a child that exits without a
+value, for example after \code{quit()} or a crash. \code{rbind()} would then drop
+that element. \code{\link[=profile.drmTMB]{profile.drmTMB()}} and \code{confint(method = "profile")} abort
+with class \code{drmTMB_parallel_worker_died} instead. \code{confint(method = "bootstrap")} records the missing replicate as a failed refit, so
+\code{bootstrap.n + bootstrap.failed} still equals the requested \code{R}.
 }
 
 \section{Windows}{

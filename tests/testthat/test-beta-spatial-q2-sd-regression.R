@@ -108,7 +108,7 @@ test_that("Beta spatial q2 maps coefficient SDs and preserves raw coordinate ker
   expect_error(drmTMB:::drm_build_beta_ls_spec(bf(y~x+spatial(1+x|p|id,coords=coords),sigma~1),fx$data),"unlabelled")
   expect_error(drmTMB:::drm_build_beta_ls_spec(bf(y~x+spatial(0+x|id,coords=coords),sigma~1),fx$data),"intercept.*slope")
   expect_error(drmTMB:::drm_build_beta_ls_spec(bf(y~x+spatial(1+x+z0|id,coords=coords),sigma~1),fx$data),"intercept.*slope")
-  expect_error(drmTMB:::drm_build_beta_ls_spec(bf(y~x+spatial(1+x|id,coords=coords)+(1|id),sigma~1),fx$data),"no other random")
+  expect_error(drmTMB:::drm_build_beta_ls_spec(bf(y~x+spatial(1+x|id,coords=coords)+(1|id),sigma~1),fx$data),"cannot yet be combined with an ordinary")
   expect_error(drmTMB:::drm_build_beta_ls_spec(bf(y~x+spatial(1+x|id,coords=coords),sigma~1+(1|id)),fx$data),"sigma.*random effects")
   expect_error(drmTMB:::drm_build_beta_ls_spec(bf(y~x+spatial(1+x|id,coords=coords),sigma~1),fx$data,missing=miss_control(response="include")),"complete")
   A <- fx$K

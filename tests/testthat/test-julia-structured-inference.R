@@ -162,3 +162,93 @@ test_that("generated bootstrap refits retain every structured provider", {
     2L
   )
 })
+
+# drmTMB#1512: the K / A matrix must be aligned to the rows the bridge actually
+# sends. Row 1 has y = NA but its level "c" also appears in a complete row, so no
+# level is lost: the matrix must be ordered by the first appearance of the levels
+# in the rows that remain (a, b, c, not the full-data order c, a, b), with labels
+# and grouping column sent so DRModels.jl can refuse a mismatch. A level that
+# loses every row aborts instead (the #1454 / #1504 rule, kept as main has it).
+test_that("structured K / A is aligned to the complete-case rows that are sent", {
+  dat <- data.frame(
+    id = c("c", "a", "b", "a", "c"),
+    x = c(-1, 0, 1, -1, 0),
+    y = c(NA, 0.5, 1.1, 0.4, 0.8)
+  )
+  ids <- c("b", "a", "c") # labelled, deliberately not in any data order
+  K <- matrix(
+    c(1, 0.1, 0.2, 0.1, 1, 0.3, 0.2, 0.3, 1),
+    3L,
+    3L,
+    dimnames = list(ids, ids)
+  )
+  A <- K
+  for (provider in c("relmat", "animal")) {
+    form <- if (identical(provider, "relmat")) {
+      drmTMB::bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1)
+    } else {
+      drmTMB::bf(y ~ x + animal(1 | id, A = A), sigma ~ 1)
+    }
+    captured <- NULL
+    testthat::local_mocked_bindings(
+      drm_julia_call_structured = function(...) {
+        captured <<- list(...)
+        drm_julia_structured_inference_result(4L)
+      },
+      .package = "drmTMB"
+    )
+    drmTMB:::drmTMB_julia_structured_bridge(
+      formula = form,
+      family = stats::gaussian(),
+      data = dat,
+      env = environment(),
+      weights_missing = TRUE,
+      control = NULL,
+      impute = NULL,
+      missing = list(),
+      call = quote(drmTMB(form, data = dat, engine = "julia"))
+    )
+    # Remaining rows: a, b, a, c -> levels a, b, c (row 1 only removed one "c").
+    expect_identical(nrow(as.data.frame(captured$data)), 4L)
+    expect_identical(captured$matrix_labels, c("a", "b", "c"))
+    expect_identical(captured$structured_group, "id")
+    expect_equal(
+      captured$matrix,
+      unname(K[c("a", "b", "c"), c("a", "b", "c")])
+    )
+    expect_identical(captured$kwarg, if (provider == "relmat") "K" else "A")
+  }
+})
+
+test_that("structured bridge still aborts when NA rows empty a grouping level", {
+  # Row 1 is the only row of level "a": main's rule (#1454) is to refuse, not to
+  # shrink the covariance to the surviving levels.
+  dat <- data.frame(
+    id = c("a", "c", "b", "c", "b"),
+    x = c(-1, 0, 1, -1, 0),
+    y = c(NA, 0.5, 1.1, 0.4, 0.8)
+  )
+  ids <- c("a", "b", "c")
+  K <- diag(3)
+  dimnames(K) <- list(ids, ids)
+  testthat::local_mocked_bindings(
+    drm_julia_call_structured = function(...) {
+      stop("must not reach Julia")
+    },
+    .package = "drmTMB"
+  )
+  expect_error(
+    drmTMB:::drmTMB_julia_structured_bridge(
+      formula = drmTMB::bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1),
+      family = stats::gaussian(),
+      data = dat,
+      env = environment(),
+      weights_missing = TRUE,
+      control = NULL,
+      impute = NULL,
+      missing = list(),
+      call = quote(drmTMB(form, data = dat, engine = "julia"))
+    ),
+    "cannot drop every row of a grouping level"
+  )
+})

@@ -1,0 +1,35 @@
+elapsed 1.206 converged TRUE pdHess TRUE code 0 message converged (Newton polish; max |gradient| = 1.47e-09) 
+anchor 1246.053904050063 1246.053904050063 gap 0 
+$`fixef:rho12:(Intercept)`
+[1] 0.18851715578471
+
+$`phylo_sd:mu1`
+[1] 0.7523889236818251
+
+$`phylo_sd:mu2`
+[1] 0.4977978007188538
+
+$`phylo_sd:sigma1`
+[1] 0.4483766607179155
+
+$`phylo_sd:sigma2`
+[1] 0.5633981555481021
+
+$`phylo_theta:mu1:mu2`
+[1] 0.4904448272285401
+
+$`phylo_theta:mu1:sigma1`
+[1] 0.1560915446496501
+
+$`phylo_theta:mu2:sigma1`
+[1] 0.04575026970268044
+
+$`phylo_theta:mu1:sigma2`
+[1] 0.2286968711298984
+
+$`phylo_theta:mu2:sigma2`
+[1] 0.4160387228443955
+
+$`phylo_theta:sigma1:sigma2`
+[1] -0.02284032473494332
+

@@ -1,0 +1,12 @@
+check-conditioning: .............WS......................
+objective-at: ..................................
+phase18-count-mu-random-effect-pilot: .......................
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. check_drm() reports a stable, non-warning hessian_conditioning row for round-off-scale near-singular collinearity ('test-check-conditioning.R:210:3') - Reason: platform LAPACK resolved the 1e-9 collinearity as non-PD; the round-off-scale case is not reproducible here
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. check_drm() reports a stable, non-warning hessian_conditioning row for round-off-scale near-singular collinearity ('test-check-conditioning.R:201:3') - NaNs produced
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

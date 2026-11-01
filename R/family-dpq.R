@@ -61,29 +61,26 @@
 #'
 #' `drm_family_dpq()` returns the `{d, p, q}` closures and atom metadata for a
 #' fitted model's `model_type`. It is the single source of truth that
-#' [fitted_distribution()] and downstream consumers (planned: quantile
-#' residuals, `predict(type = "quantile")`, `exceedance()`) route through, so
+#' [fitted_distribution()] and downstream consumers such as quantile
+#' residuals, `predict(type = "quantile")`, and `exceedance()` route through, so
 #' the public-to-native parameter conversion is not re-derived in each caller.
 #'
-#' As of DO-T3 batch D, these 18 established fitted `model_type` values are
-#' promoted
+#' These helpers currently cover 18 fitted `model_type` values
 #' (`status = "reference"`): `"gaussian"`, `"student"`, `"skew_normal"`,
 #' `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`,
 #' `"beta_binomial"`, `"binomial"`, `"cumulative_logit"`, `"poisson"`,
 #' `"zi_poisson"`, `"nbinom2"`, `"truncated_nbinom2"`, `"hurdle_nbinom2"`,
 #' `"zi_nbinom2"`, and `"biv_gaussian"`.
-#' **`"skew_normal"` promotion is a distributional-output-axis result only**
-#' (DG2/DG3 for `{d,p,q}` correctness); it does not certify the skew_normal
-#' family's own fit-quality status (`diagnostic_hold` in `check_drmTMB()`),
-#' which is a separate axis and is unchanged -- see the firewall note beside
-#' `drm_family_dpq_skew_normal()`. **`"biv_gaussian"` is MARGINAL-only**: its
+#' For `"skew_normal"`, this support applies only to the density, CDF, and
+#' quantile calculations. It does not establish fit quality; `check_drmTMB()`
+#' continues to return `diagnostic_hold` for skew-normal fits.
+#' **`"biv_gaussian"` is MARGINAL-only**: its
 #' `{d,p,q}` describe one response's marginal `N(mu_k, sigma_k)` (exact,
 #' independent of `rho12`), never the joint bivariate distribution -- see
 #' `drm_family_dpq_biv_gaussian()` and [fitted_distribution()]'s `response`
-#' argument, which selects `k`. The later exact-special development families
-#' `"biv_lognormal"` and `"biv_student"` are deliberately excluded from this
-#' marginal distribution-output registry; their density/CDF/quantile,
-#' residual, and adequacy surfaces require separate validation.
+#' argument, which selects `k`. `"biv_lognormal"` and `"biv_student"` are
+#' not supported by these helpers; their marginal density, CDF, quantile,
+#' residual, and adequacy calculations have not been validated.
 #'
 #' The `d`/`p`/`q` closures take `(y_or_u, params)`, where `params` is a wide,
 #' one-row-per-observation data frame. This signature is **frozen** (CP1): a
@@ -762,8 +759,10 @@ drm_family_dpq_binomial <- function() {
 # columns `CP1`..`CP(K-1)` inside [fitted_distribution_params()] (the
 # CP1-sanctioned column-attachment pattern, same shape as binomial `trials`).
 # Matches the compiled density exactly (src/drmTMB.cpp,
-# model_type == 13): `logit(P(Y <= k)) = cutpoints[k] - mu`, i.e.
-# `F(k) = plogis(cutpoints[k] - mu)` for `k = 1..K-1`, `F(K) = 1`, `F(0) = 0`;
+# model_type == 13): `logit(P(Y <= k)) = disc * (cutpoints[k] - mu)`, i.e.
+# `F(k) = plogis(disc * (cutpoints[k] - mu))` for `k = 1..K-1`, `F(K) = 1`,
+# `F(0) = 0`, where `disc = 1` unless the fit has a `disc ~ z` formula (#966)
+# and then rides in an extra `disc` params column;
 # `d(k) = F(k) - F(k - 1)`. `drm_cumulative_logit_cutpoints()` reads the CPk
 # columns back out of `params` (rather than needing the fitted `object`, kept
 # out of the frozen `(y_or_u, params)` closure signature) so the same
@@ -785,8 +784,17 @@ drm_cumulative_logit_p <- function(y, params) {
   ifelse(
     k <= 0,
     0,
-    ifelse(k >= n_categories, 1, stats::plogis(cp_at_k - params$mu))
+    ifelse(
+      k >= n_categories,
+      1,
+      stats::plogis(drm_cumulative_logit_disc(params) * (cp_at_k - params$mu))
+    )
   )
+}
+
+# Discrimination (#966): `disc` column when the fit has `disc ~ z`, else 1.
+drm_cumulative_logit_disc <- function(params) {
+  if (is.null(params$disc)) 1 else params$disc
 }
 
 # Right-inverse quantile: the smallest category k in 1:n_categories with
@@ -798,7 +806,9 @@ drm_cumulative_logit_q <- function(u, params) {
   u <- rep(u, length.out = n)
   cdf <- matrix(1, nrow = n, ncol = n_categories)
   if (ncol(cp) > 0L) {
-    cdf[, seq_len(ncol(cp))] <- stats::plogis(cp - params$mu)
+    cdf[, seq_len(ncol(cp))] <- stats::plogis(
+      drm_cumulative_logit_disc(params) * (cp - params$mu)
+    )
   }
   vapply(seq_len(n), function(i) which(cdf[i, ] >= u[i])[1], integer(1))
 }
@@ -1141,9 +1151,9 @@ drm_family_dpq_biv_gaussian <- function() {
 #' `exceedance()`) are meant to route through this accessor rather than
 #' re-deriving the public-to-native parameter conversion.
 #'
-#' `fitted_distribution()` only supports `model_type`s with a promoted entry
-#' in [drm_family_dpq()]: as of DO-T3 batch D all 18 fitted `model_type`
-#' values are promoted (`status = "reference"`), including bivariate
+#' `fitted_distribution()` only supports `model_type`s with
+#' `status = "reference"` in [drm_family_dpq()]. All 18 currently
+#' fitted `model_type` values are included, including bivariate
 #' `"biv_gaussian"` (see the `response` argument below). `newdata` support
 #' inherits the same limitation as [predict_parameters()]: fixed-effect,
 #' population-level predictions only. For meta-analysis gaussian fits
@@ -1321,6 +1331,9 @@ fitted_distribution_params <- function(object, newdata, dpars, response = NULL) 
     cutpoints <- unname(object$ordinal$cutpoints)
     for (j in seq_along(cutpoints)) {
       params[[paste0("CP", j)]] <- rep(cutpoints[[j]], nrow(params))
+    }
+    if ("disc" %in% names(object$coefficients)) {
+      params$disc <- predict(object, newdata = newdata, dpar = "disc")
     }
   }
   params
