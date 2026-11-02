@@ -13,6 +13,17 @@ remaining family/effect/provider combinations are still required by the active
 general SD-regression programme. See `general-sd-regression/` for exact evidence.
 
 
+Julia scalar iid SD-regression routes integrate each group with a fixed or
+adaptive Gauss-Hermite rule, not an exact marginal (2026-11-02, batch 31
+review). Against an exact per-group integral the Julia log-likelihood is off by
+1e-3 to 1e-2 for most families, by up to 3.07 for ZeroOneBeta on a draw with
+responses near the boundary, and by up to 0.12 for the zero-inflated Poisson
+slope route. The Binomial iid correlated q2 route uses a 5-node adaptive rule
+per axis and sits 0.009 to 0.082 below the 15-node value. Evidence for these
+routes is scoped to likelihood assembly and selector alignment at the tested
+fixtures; the ZeroOneBeta iid rows and the zero-inflated Poisson iid slope row
+are not linked. Native TMB uses the Laplace approximation and is unaffected.
+
 Read this ledger together with
 `docs/design/168-r-julia-finish-capability-matrix.md`; when a status boundary
 differs, the stricter fitted, planned, or unsupported row governs public claims.

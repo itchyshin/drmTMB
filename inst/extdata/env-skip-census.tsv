@@ -1,4 +1,7 @@
 file	gate_class	axis	ci_status	sites
+helper-b31jo-oracle.R	cran-lane	environment	runs	1
+helper-b31jo-oracle.R	engine-drm-jl	environment	skips	2
+helper-b31jo-oracle.R	suggests-package	environment	runs	1
 helper-fragile-recovery.R	env-var-optin	environment	skips	1
 helper-julia-bridge-path.R	cran-lane	environment	runs	2
 helper-julia-bridge-path.R	engine-drm-jl	environment	skips	1
@@ -6,6 +9,7 @@ test-071-four-fixture-summary.R	build-premise	build	skips	1
 test-adequacy.R	suggests-package	environment	runs	4
 test-aghq-coxreid.R	cran-lane	environment	runs	1
 test-aghq-coxreid.R	suggests-package	environment	runs	2
+test-animal-count-gamma-slope-oracle-b31no.R	cran-lane	environment	runs	6
 test-animal-relmat-gaussian.R	cran-lane	environment	runs	2
 test-arc-c-clamp-hardening.R	cran-lane	environment	runs	1
 test-arc1b-s2r-relmat-q2-recovery-runner.R	build-premise	build	skips	1
@@ -62,6 +66,7 @@ test-binomial-animal-relmat-nonlogit-sd.R	cran-lane	environment	runs	1
 test-binomial-animal-relmat-q-nonlogit-sd.R	cran-lane	environment	runs	1
 test-binomial-animal-relmat-q-precision-sd.R	cran-lane	environment	runs	1
 test-binomial-animal-relmat-sd-oracle-b29b.R	cran-lane	environment	runs	1
+test-binomial-animal-relmat-single-oracle-b31nb.R	cran-lane	environment	runs	3
 test-binomial-animal-sd-regression.R	cran-lane	environment	runs	1
 test-binomial-animal-slope-sd-regression.R	cran-lane	environment	runs	2
 test-binomial-animal-spatial-nonlogit-pair-sd.R	cran-lane	environment	runs	1
@@ -84,6 +89,8 @@ test-binomial-iid-phylo-crossed-sd-oracle-b29b.R	cran-lane	environment	runs	3
 test-binomial-iid-phylo-crossed-sd-oracle-b29b.R	suggests-package	environment	runs	2
 test-binomial-iid-structured-sd-oracle-b29b.R	cran-lane	environment	runs	2
 test-binomial-links.R	cran-lane	environment	runs	1
+test-binomial-mesh-oracle-b31nb.R	cran-lane	environment	runs	2
+test-binomial-mesh-oracle-b31nb.R	suggests-package	environment	runs	4
 test-binomial-mesh-sd-regression.R	cran-lane	environment	runs	4
 test-binomial-mesh-sd-regression.R	suggests-package	environment	runs	8
 test-binomial-nonlogit-animal-iid-sd-regression.R	cran-lane	environment	runs	2
@@ -100,6 +107,8 @@ test-binomial-phylo-animal-pedigree-sd.R	cran-lane	environment	runs	1
 test-binomial-phylo-animal-pedigree-sd.R	suggests-package	environment	runs	1
 test-binomial-phylo-animal-sd.R	cran-lane	environment	runs	1
 test-binomial-phylo-animal-sd.R	suggests-package	environment	runs	1
+test-binomial-phylo-interaction-oracle-b31nb.R	cran-lane	environment	runs	1
+test-binomial-phylo-interaction-oracle-b31nb.R	suggests-package	environment	runs	1
 test-binomial-phylo-interaction-sd.R	cran-lane	environment	runs	1
 test-binomial-phylo-interaction-slope-sd.R	cran-lane	environment	runs	2
 test-binomial-phylo-relmat-q-nonlogit-sd.R	cran-lane	environment	runs	1
@@ -120,6 +129,8 @@ test-binomial-phylo-structured-sd-oracle-b29b.R	cran-lane	environment	runs	4
 test-binomial-phylo-structured-sd-oracle-b29b.R	suggests-package	environment	runs	4
 test-binomial-phylo.R	cran-lane	environment	runs	5
 test-binomial-phylo.R	suggests-package	environment	runs	1
+test-binomial-q2-block-oracle-b31nb.R	cran-lane	environment	runs	3
+test-binomial-q2-block-oracle-b31nb.R	suggests-package	environment	runs	2
 test-binomial-relmat-precision-sd.R	cran-lane	environment	runs	1
 test-binomial-relmat-q2-sd.R	cran-lane	environment	runs	2
 test-binomial-relmat-q2-sd.R	env-var-optin	environment	skips	4
@@ -152,6 +163,7 @@ test-comparators-phase19.R	suggests-package	environment	runs	12
 test-comparators.R	suggests-package	environment	runs	18
 test-control.R	cran-lane	environment	runs	4
 test-count-correlated-q2-sd-oracle-b29b.R	cran-lane	environment	runs	2
+test-count-gamma-correlated-q2-oracle-b31no.R	cran-lane	environment	runs	5
 test-count-iid-slope-sd-missing-include.R	cran-lane	environment	runs	4
 test-count-iid-slope-sd-missing-include.R	suggests-package	environment	runs	2
 test-count-labelled-relmat-q2-sd.R	cran-lane	environment	runs	5
@@ -230,6 +242,7 @@ test-gamma-structured-slope-sd.R	suggests-package	environment	runs	2
 test-gaussian-animal-sd-regression.R	cran-lane	environment	runs	3
 test-gaussian-batch5-sd-regression.R	cran-lane	environment	runs	10
 test-gaussian-batch5-sd-regression.R	runtime-conditional	runtime	depends	2
+test-gaussian-beta-relmat-animal-oracle-b31no.R	cran-lane	environment	runs	3
 test-gaussian-correlated-q2-sd.R	cran-lane	environment	runs	1
 test-gaussian-correlated-q2-sensitivity-b26.R	cran-lane	environment	runs	1
 test-gaussian-iid-slope-sigma-sd-oracle-b29.R	cran-lane	environment	runs	3
@@ -251,6 +264,7 @@ test-gaussian-structured-direct-sd-providers.R	cran-lane	environment	runs	3
 test-gaussian-structured-q2-sd.R	cran-lane	environment	runs	6
 test-gaussian-structured-q2-sd.R	suggests-package	environment	runs	1
 test-heritability.R	suggests-package	environment	runs	1
+test-iid-sd-noncanonical-families-oracle-b31no.R	cran-lane	environment	runs	2
 test-julia-admission-census.R	build-premise	build	skips	1
 test-julia-admission-docs.R	build-premise	build	skips	3
 test-julia-admission-docs.R	runtime-conditional	runtime	depends	1
@@ -298,9 +312,15 @@ test-julia-binomial-animal-iid-sd-parity.R	suggests-package	environment	runs	1
 test-julia-binomial-animal-iid-sensitivity-b29.R	cran-lane	environment	runs	1
 test-julia-binomial-animal-iid-sensitivity-b29.R	engine-drm-jl	environment	skips	2
 test-julia-binomial-animal-iid-sensitivity-b29.R	suggests-package	environment	runs	1
+test-julia-binomial-animal-intercept-oracle-b31ja.R	cran-lane	environment	runs	1
+test-julia-binomial-animal-intercept-oracle-b31ja.R	engine-drm-jl	environment	skips	2
+test-julia-binomial-animal-intercept-oracle-b31ja.R	suggests-package	environment	runs	1
 test-julia-binomial-animal-pedigree-sd-bridge.R	cran-lane	environment	runs	1
 test-julia-binomial-animal-pedigree-sd-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-binomial-animal-pedigree-sd-bridge.R	suggests-package	environment	runs	1
+test-julia-binomial-animal-q2-oracle-b31ja.R	cran-lane	environment	runs	1
+test-julia-binomial-animal-q2-oracle-b31ja.R	engine-drm-jl	environment	skips	2
+test-julia-binomial-animal-q2-oracle-b31ja.R	suggests-package	environment	runs	1
 test-julia-binomial-animal-q2-pedigree.R	cran-lane	environment	runs	1
 test-julia-binomial-animal-q2-pedigree.R	engine-drm-jl	environment	skips	2
 test-julia-binomial-animal-q2-pedigree.R	suggests-package	environment	runs	1
@@ -323,6 +343,9 @@ test-julia-binomial-animal-slope-Ainv-logit-sd-bridge.R	suggests-package	environ
 test-julia-binomial-animal-slope-iid-sd-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-binomial-animal-slope-iid-sd-bridge.R	env-var-optin	environment	skips	1
 test-julia-binomial-animal-slope-iid-sd-bridge.R	suggests-package	environment	runs	1
+test-julia-binomial-animal-slope-oracle-b31ja.R	cran-lane	environment	runs	1
+test-julia-binomial-animal-slope-oracle-b31ja.R	engine-drm-jl	environment	skips	2
+test-julia-binomial-animal-slope-oracle-b31ja.R	suggests-package	environment	runs	1
 test-julia-binomial-correlated-q3-cloglog-sd-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-binomial-correlated-q3-cloglog-sd-bridge.R	env-var-optin	environment	skips	1
 test-julia-binomial-correlated-q3-cloglog-sd-bridge.R	suggests-package	environment	runs	1
@@ -337,6 +360,15 @@ test-julia-binomial-correlated-q4-sd-bridge.R	env-var-optin	environment	skips	1
 test-julia-binomial-correlated-q4-sd-bridge.R	suggests-package	environment	runs	1
 test-julia-binomial-crossed-sd.R	engine-drm-jl	environment	skips	2
 test-julia-binomial-crossed-sd.R	suggests-package	environment	runs	1
+test-julia-binomial-iid-correlated-oracle-b31ja.R	cran-lane	environment	runs	1
+test-julia-binomial-iid-correlated-oracle-b31ja.R	engine-drm-jl	environment	skips	2
+test-julia-binomial-iid-correlated-oracle-b31ja.R	suggests-package	environment	runs	1
+test-julia-binomial-iid-correlated-q3-oracle-b31ja.R	cran-lane	environment	runs	1
+test-julia-binomial-iid-correlated-q3-oracle-b31ja.R	engine-drm-jl	environment	skips	2
+test-julia-binomial-iid-correlated-q3-oracle-b31ja.R	suggests-package	environment	runs	1
+test-julia-binomial-iid-oracle-b31jb.R	cran-lane	environment	runs	2
+test-julia-binomial-iid-oracle-b31jb.R	engine-drm-jl	environment	skips	4
+test-julia-binomial-iid-oracle-b31jb.R	suggests-package	environment	runs	2
 test-julia-binomial-nonlogit-correlated-sd-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-binomial-nonlogit-correlated-sd-bridge.R	env-var-optin	environment	skips	1
 test-julia-binomial-nonlogit-correlated-sd-bridge.R	suggests-package	environment	runs	1
@@ -349,12 +381,18 @@ test-julia-binomial-nonlogit-structured-sd-bridge.R	env-var-optin	environment	sk
 test-julia-binomial-nonlogit-structured-sd-bridge.R	suggests-package	environment	runs	3
 test-julia-binomial-phylo-iid-sd-bridge.R	engine-drm-jl	environment	skips	1
 test-julia-binomial-phylo-iid-sd-bridge.R	suggests-package	environment	runs	1
+test-julia-binomial-phylo-interaction-oracle-b31jb.R	cran-lane	environment	runs	1
+test-julia-binomial-phylo-interaction-oracle-b31jb.R	engine-drm-jl	environment	skips	2
+test-julia-binomial-phylo-interaction-oracle-b31jb.R	suggests-package	environment	runs	2
 test-julia-binomial-phylo-interaction-sd-bridge.R	cran-lane	environment	runs	1
 test-julia-binomial-phylo-interaction-sd-bridge.R	engine-drm-jl	environment	skips	1
 test-julia-binomial-phylo-interaction-sd-bridge.R	suggests-package	environment	runs	2
 test-julia-binomial-phylo-interaction-slope-sd-bridge.R	cran-lane	environment	runs	1
 test-julia-binomial-phylo-interaction-slope-sd-bridge.R	engine-drm-jl	environment	skips	1
 test-julia-binomial-phylo-interaction-slope-sd-bridge.R	suggests-package	environment	runs	2
+test-julia-binomial-phylo-oracle-b31jb.R	cran-lane	environment	runs	1
+test-julia-binomial-phylo-oracle-b31jb.R	engine-drm-jl	environment	skips	2
+test-julia-binomial-phylo-oracle-b31jb.R	suggests-package	environment	runs	2
 test-julia-binomial-phylo-sd.R	engine-drm-jl	environment	skips	3
 test-julia-binomial-phylo-sd.R	suggests-package	environment	runs	3
 test-julia-binomial-phylo-slope-sd.R	engine-drm-jl	environment	skips	1
@@ -364,6 +402,9 @@ test-julia-binomial-relmat-iid-sd-bridge.R	engine-drm-jl	environment	skips	1
 test-julia-binomial-relmat-nonlogit-sd-bridge.R	cran-lane	environment	runs	1
 test-julia-binomial-relmat-nonlogit-sd-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-binomial-relmat-nonlogit-sd-bridge.R	suggests-package	environment	runs	1
+test-julia-binomial-relmat-oracle-b31jb.R	cran-lane	environment	runs	1
+test-julia-binomial-relmat-oracle-b31jb.R	engine-drm-jl	environment	skips	2
+test-julia-binomial-relmat-oracle-b31jb.R	suggests-package	environment	runs	1
 test-julia-binomial-relmat-sd-parity.R	cran-lane	environment	runs	1
 test-julia-binomial-relmat-sd-parity.R	engine-drm-jl	environment	skips	2
 test-julia-binomial-relmat-sd-parity.R	suggests-package	environment	runs	1
@@ -373,6 +414,12 @@ test-julia-binomial-relmat-slope-sd-bridge.R	suggests-package	environment	runs	1
 test-julia-binomial-sd-links-bridge.R	engine-drm-jl	environment	skips	1
 test-julia-binomial-sd.R	engine-drm-jl	environment	skips	10
 test-julia-binomial-sd.R	suggests-package	environment	runs	5
+test-julia-binomial-simultaneous-iid-structured-oracle-b31ja.R	cran-lane	environment	runs	1
+test-julia-binomial-simultaneous-iid-structured-oracle-b31ja.R	engine-drm-jl	environment	skips	2
+test-julia-binomial-simultaneous-iid-structured-oracle-b31ja.R	suggests-package	environment	runs	2
+test-julia-binomial-spatial-oracle-b31jb.R	cran-lane	environment	runs	1
+test-julia-binomial-spatial-oracle-b31jb.R	engine-drm-jl	environment	skips	2
+test-julia-binomial-spatial-oracle-b31jb.R	suggests-package	environment	runs	1
 test-julia-binomial-spatial-sd-bridge.R	cran-lane	environment	runs	1
 test-julia-binomial-spatial-sd-bridge.R	engine-drm-jl	environment	skips	1
 test-julia-binomial-spatial-sd-bridge.R	suggests-package	environment	runs	1
@@ -440,6 +487,7 @@ test-julia-gaussian-sd-parity.R	engine-drm-jl	environment	skips	4
 test-julia-gaussian-sd-parity.R	suggests-package	environment	runs	2
 test-julia-hurdle-nbinom2-sd-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-hurdle-nbinom2-sd-bridge.R	suggests-package	environment	runs	1
+test-julia-iid-discrete-sd-oracle-b31jo.R	suggests-package	environment	runs	1
 test-julia-inference.R	engine-drm-jl	environment	skips	7
 test-julia-inference.R	suggests-package	environment	runs	30
 test-julia-lognormal-sd-parity.R	engine-drm-jl	environment	skips	4
@@ -512,6 +560,7 @@ test-julia-skewnormal-sd-bridge.R	suggests-package	environment	runs	1
 test-julia-slope-nongaussian.R	engine-drm-jl	environment	skips	1
 test-julia-slope-nongaussian.R	suggests-package	environment	runs	3
 test-julia-structured-inference.R	suggests-package	environment	runs	1
+test-julia-structured-slope-sd-oracle-b31jo.R	suggests-package	environment	runs	1
 test-julia-structured.R	engine-drm-jl	environment	skips	2
 test-julia-structured.R	suggests-package	environment	runs	3
 test-julia-student-sd.R	engine-drm-jl	environment	skips	4
@@ -567,6 +616,7 @@ test-nbinom2-batch5-sd-regression.R	cran-lane	environment	runs	5
 test-nbinom2-batch5-sd-regression.R	suggests-package	environment	runs	1
 test-nbinom2-gamma-same-group-sd-oracle.R	cran-lane	environment	runs	2
 test-nbinom2-gamma-same-group-sd-regression.R	cran-lane	environment	runs	2
+test-nbinom2-iid-phylo-interaction-oracle-b31no.R	cran-lane	environment	runs	5
 test-nbinom2-iid-structured-sensitivity-b26.R	cran-lane	environment	runs	3
 test-nbinom2-iid-structured-sensitivity-b26.R	suggests-package	environment	runs	1
 test-nbinom2-ordinary-correlated-q2.R	suggests-package	environment	runs	1

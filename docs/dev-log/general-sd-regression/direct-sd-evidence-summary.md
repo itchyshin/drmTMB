@@ -1,6 +1,6 @@
 # Direct-SD implementation evidence reconciliation
 
-Frozen candidate rows: 21246. Evidence receipt records: 636. Distinct candidate rows with at least one hash-verified receipt: 354. Candidate rows without linked receipts: 20892.
+Frozen candidate rows: 21246. Evidence receipt records: 765. Distinct candidate rows with at least one hash-verified receipt: 354. Candidate rows without linked receipts: 20892.
 
 This is an evidence-only join. A receipt does not establish general support, identifiability, admission, or calibrated interval coverage; no candidate row is promoted by this report.
 

@@ -1,0 +1,8 @@
+gaussian-beta-relmat-animal-oracle-b31no: ...........GAP gaussian relmat Q | ll-ref -3.13e-12 | min gap 2.246 (K_x2_intercept)
+...........GAP beta relmat K | ll-ref -2.69e-09 | min gap 2.035 (K_x2_intercept)
+...........GAP beta animal A | ll-ref -4.05e-09 | min gap 1.321 (cov2cor_K_intercept)
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+COUNTS tests=3 expectations=33 failed=0 errors=0 skipped=0 warnings=0
