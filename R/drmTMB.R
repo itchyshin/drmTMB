@@ -856,6 +856,23 @@ drm_fit_spec <- function(
       opt$message
     }
   }
+  restarted <- drm_restart_false_convergence(
+    opt,
+    obj,
+    control = optimizer$selected$control,
+    method = control$optimizer_method
+  )
+  if (!identical(restarted, opt)) {
+    opt <- restarted
+    optimizer$opt <- opt
+    optimizer$selected$objective <- opt$objective
+    optimizer$selected$convergence <- opt$convergence
+    optimizer$selected$message <- opt$message
+    selected_attempt <- which(optimizer$attempts$selected)
+    optimizer$attempts$objective[selected_attempt] <- opt$objective
+    optimizer$attempts$convergence[selected_attempt] <- opt$convergence
+    optimizer$attempts$message[selected_attempt] <- opt$message
+  }
   if (isTRUE(mi_quad_abort)) {
     drm_probe_mi_quadrature_objective(obj, opt$par, "fitted")
   }
@@ -1542,6 +1559,69 @@ drm_newton_polish <- function(
       max(abs(grad))
     )
   }
+  opt
+}
+
+# nlminb can stop with "false convergence (8)" on a point that is already a
+# stationary point: its step-acceptance test cannot find an objective decrease,
+# although the exact TMB gradient there is ~1e-8 (bivariate q2 phylo REML in
+# tests/testthat/test-julia-biv-q2-reml.R: false convergence with
+# max |gradient| = 2.7e-8 and a positive-definite Hessian, from the same start
+# in all three presets, so the preset ladder cannot clear it; a restart of
+# nlminb from its own endpoint returns code 0 at the identical point). This
+# helper makes that one restart and accepts it only when ALL of the following
+# hold: nlminb itself reports code 0, the objective did not increase, and the
+# exact gradient `obj$gr()` at the restarted point is at most `grad_tol`. It
+# never changes `rel.tol`, `x.tol` or any other convergence criterion, and it
+# leaves a result with a larger gradient (a genuinely non-converged fit) as
+# nlminb reported it.
+drm_restart_false_convergence <- function(
+  opt,
+  obj,
+  control = list(),
+  method = NULL,
+  grad_tol = 1e-6
+) {
+  if (!is.null(method) && !identical(method, "nlminb")) {
+    return(opt)
+  }
+  if (
+    !identical(as.integer(opt$convergence), 1L) ||
+      !grepl("false convergence", as.character(opt$message)[1L], fixed = TRUE)
+  ) {
+    return(opt)
+  }
+  restart <- tryCatch(
+    stats::nlminb(
+      start = opt$par,
+      objective = obj$fn,
+      gradient = obj$gr,
+      control = if (is.null(control)) list() else control
+    ),
+    error = function(e) NULL
+  )
+  if (
+    is.null(restart) ||
+      !identical(as.integer(restart$convergence), 0L) ||
+      length(restart$objective) != 1L ||
+      !is.finite(restart$objective) ||
+      restart$objective > as.numeric(opt$objective) + 1e-8
+  ) {
+    return(opt)
+  }
+  grad <- tryCatch(as.numeric(obj$gr(restart$par)), error = function(e) NULL)
+  if (is.null(grad) || !all(is.finite(grad)) || max(abs(grad)) > grad_tol) {
+    return(opt)
+  }
+  opt$par <- restart$par
+  opt$objective <- restart$objective
+  opt$convergence <- 0L
+  opt$iterations <- restart$iterations
+  opt$evaluations <- restart$evaluations
+  opt$message <- sprintf(
+    "converged (nlminb restart after false convergence; max |gradient| = %.3g)",
+    max(abs(grad))
+  )
   opt
 }
 
