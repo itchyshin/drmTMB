@@ -1,3 +1,10 @@
+# 2026-10-30: merge origin/main into #1435
+
+Merged `origin/main` (`b535bfbcc`) into `claude/drmtmb-fixef-nlme` (no
+force-push). NEWS bullet relocated from historical `#1441` text to the
+current development Bug fixes section. Shard:
+`docs/dev-log/check-log.d/2026-10-30-pr1435-merge-main.md`.
+
 # 2026-10-25: `@param engine` cites Julia same-target receipts (#1569)
 
 `R/drmTMB.R` `@param engine` (and `man/drmTMB.Rd`) now names NEWS and
