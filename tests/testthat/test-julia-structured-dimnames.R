@@ -37,10 +37,16 @@ test_that("labelled matrix missing a group level errors; unlabelled passes", {
   term <- list(type = "relmat", structure = "K", object = "K", group = "g")
   expect_error(
     drmTMB:::drm_julia_structured_matrix(term, "gaussian", list2env(list(K = K)), dat),
-    "missing rows or columns"
+    "has no row for 1 grouping level",
+    class = "drmTMB_julia_structured_labels"
   )
   Ku <- unname(K)
   dat2 <- data.frame(g = c("b", "a"))
-  out <- drmTMB:::drm_julia_structured_matrix(term, "gaussian", list2env(list(K = Ku)), dat2)
+  expect_warning(
+    out <- drmTMB:::drm_julia_structured_matrix(
+      term, "gaussian", list2env(list(K = Ku)), dat2
+    ),
+    class = "drmTMB_julia_unlabelled_structured_matrix"
+  )
   expect_equal(out$matrix, Ku)
 })

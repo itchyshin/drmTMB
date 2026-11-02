@@ -83,7 +83,7 @@ gsd_prov_expect_dense_oracle <- function(fit, dat, group, K, z_group,
   opt <- stats::optim(
     start, obj, method = "L-BFGS-B",
     lower = c(-Inf, -Inf, -5, -5, -3), upper = c(Inf, Inf, 2, 2, 3),
-    control = list(maxit = 500L, factr = 10)
+    control = list(maxit = 500L, factr = 1e3) # 2e-13; factr = 10 can end in code 52, see test-gaussian-batch5-sd-regression.R
   )
   expect_equal(opt$convergence, 0L)
   expect_equal(as.numeric(stats::logLik(fit)), -opt$value, tolerance = 1e-5)

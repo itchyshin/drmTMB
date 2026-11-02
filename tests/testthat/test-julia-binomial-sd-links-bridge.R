@@ -29,8 +29,14 @@ test_that("Julia bridge admits matching ordinary routes and probit phylogenetic 
   expect_true(drmTMB:::drm_julia_binomial_sd_link_route_admitted(
     structured, data = dat, link = "probit"
   ))
-  expect_false(drmTMB:::drm_julia_binomial_sd_link_route_admitted(
+  # The cloglog phylogenetic SD route is admitted since the 2026-10-26 cloglog
+  # slice (docs/dev-log/after-task/2026-10-26-julia-binomial-cloglog-phylo-bridge.md);
+  # a link with no Julia route (cauchit) is the still-refused case.
+  expect_true(drmTMB:::drm_julia_binomial_sd_link_route_admitted(
     structured, data = dat, link = "cloglog"
+  ))
+  expect_false(drmTMB:::drm_julia_binomial_sd_link_route_admitted(
+    structured, data = dat, link = "cauchit"
   ))
 })
 

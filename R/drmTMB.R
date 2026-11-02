@@ -14020,7 +14020,7 @@ validate_binomial_mu_random_terms <- function(terms) {
       "Binomial {.code mu} supports independent random intercepts/slopes and one exact complete-data unlabelled correlated intercept-slope block.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use {.code bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id))}.",
-      "i" = "Labelled scalar intercepts are supported, as is the exact unlabelled q = 2 intercept-slope route; labelled slopes, labelled correlated blocks, structured effects beyond one unlabelled q = 1 {.fn phylo} or {.fn relmat} {.code mu} intercept, and additional correlated blocks remain unsupported."
+      "i" = "Labelled scalar intercepts are supported, as is the exact unlabelled q = 2 intercept-slope route; labelled slopes, labelled correlated blocks, and additional correlated blocks remain unsupported. Structured {.fn phylo}, {.fn relmat}, {.fn animal} and {.fn spatial} {.code mu} terms are checked by their own routes."
     ))
   }
   invisible(terms)

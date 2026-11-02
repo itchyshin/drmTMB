@@ -60,14 +60,11 @@ test_that("Julia bridge preserves coefficient-selected random-effect SD targets"
 
   spec <- drmTMB:::drm_julia_formula_spec(form)
 
-  expect_identical(
-    unname(spec[[form$entries[[2L]]$dpar]]),
-    "sd(id, coef(intercept)) ~ w_intercept"
-  )
-  expect_identical(
-    unname(spec[[form$entries[[3L]]$dpar]]),
-    "sd(id, coef(x)) ~ w_slope"
-  )
+  # Selector-bearing ordinary SD targets are sent as positional (unnamed) parts;
+  # DRM.jl reads each SD target from its formula LHS (b87566680).
+  expect_null(names(spec))
+  expect_identical(spec[[2L]], "sd(id, coef(intercept)) ~ w_intercept")
+  expect_identical(spec[[3L]], "sd(id, coef(x)) ~ w_slope")
   targets <- lapply(form$entries[2:3], function(entry) {
     drmTMB:::parse_sd_lhs(entry$lhs)
   })
@@ -995,34 +992,39 @@ test_that("sdpars, sigma random intercept: the sigma-side random-effect SD is fi
 
 # Issue #1570: bridge fits (class "drmTMB_julia", no "drmTMB" inheritance) had
 # no simulate() or predict_parameters() method, so both failed with base R's
-# "no applicable method" error. They now refuse by name, as heritability()
-# does, and point at engine = "tmb". A stub object keeps this Julia-free.
-test_that("simulate() and predict_parameters() refuse an engine = 'julia' fit by name", {
-  stub <- structure(list(nobs = 10L, df = 4L), class = "drmTMB_julia")
-  expect_error(
-    simulate(stub, nsim = 2),
-    class = "drmTMB_simulate_julia_unsupported"
+# "no applicable method" error. Both generics were later wired (simulate() in
+# R/julia-simulate.R, predict_parameters() in R/predict-parameters.R), so the
+# by-name engine fences are gone. The refusals that remain are route-specific:
+# an ordinary Gamma random intercept has no marginal simulator, and
+# predict_parameters() rejects unknown distributional parameters and stray
+# options. Stub objects keep this Julia-free.
+test_that("simulate() and predict_parameters() refuse unsupported engine = 'julia' routes", {
+  gamma_ordinary_re <- structure(
+    list(
+      model = list(model_type = "gamma"),
+      formula = list(entries = list(list(
+        dpar = "mu",
+        rhs = quote(x + (1 | g)),
+        structured = list()
+      )))
+    ),
+    class = "drmTMB_julia"
   )
   expect_error(
-    predict_parameters(stub, newdata = data.frame(x = 1)),
-    class = "drmTMB_predict_parameters_julia_unsupported"
+    simulate(gamma_ordinary_re, nsim = 2),
+    "Marginal simulation is not implemented for this Julia random-effect model",
+    fixed = TRUE
   )
-  for (msg in list(
-    tryCatch(simulate(stub), error = conditionMessage),
-    tryCatch(predict_parameters(stub), error = conditionMessage)
-  )) {
-    expect_match(msg, "engine = \"julia\"", fixed = TRUE)
-    expect_match(msg, "engine = \"tmb\"", fixed = TRUE)
-  }
-  # The predict_parameters() refusal points at the SE route that does exist.
-  expect_match(
-    tryCatch(predict_parameters(stub), error = conditionMessage),
-    "vcov", fixed = TRUE
+  stub <- structure(
+    list(coefficients = list(mu = c(`(Intercept)` = 0)), formula = list(entries = list())),
+    class = "drmTMB_julia"
   )
-  # The bridge's own quantile route temporarily appends "drmTMB" to the class
-  # so predict_parameters() reaches the native method; the refusal must not
-  # intercept that call.
-  extended <- structure(list(), class = c("drmTMB_julia", "drmTMB"))
-  err <- tryCatch(predict_parameters(extended), error = identity)
-  expect_false(inherits(err, "drmTMB_predict_parameters_julia_unsupported"))
+  expect_error(
+    predict_parameters(stub, dpar = "nope"),
+    "Unknown distributional parameter"
+  )
+  expect_error(
+    predict_parameters(stub, nonsense = 1),
+    "reserved for future options"
+  )
 })

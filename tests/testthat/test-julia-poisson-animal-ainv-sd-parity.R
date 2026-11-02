@@ -35,7 +35,7 @@ test_that("animal Ainv is aligned and preserved by the Julia structured payload"
     drm_julia_structured_payload(
       no_sd_formula, "poisson", data, environment()
     ),
-    "only for Poisson or Binomial animal-intercept SD models"
+    "only for supported Poisson or Binomial animal SD regression routes"
   )
 })
 

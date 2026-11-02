@@ -173,14 +173,18 @@ test_that("unsupported structured forms are rejected with a tmb pointer", {
     ),
     "relmat.*K"
   )
+  # `drm_julia_structured_matrix()` now marshals an animal `Ainv` (the gate moved
+  # to `drm_julia_structured_payload()` in b87566680 so that the Poisson and
+  # Binomial animal SD routes can consume it), so the Gaussian refusal is
+  # asserted at the payload, which still refuses it.
   expect_error(
-    drmTMB:::drm_julia_structured_matrix(
-      term(bf(y ~ x + animal(1 | id, Ainv = Ainv))),
+    drmTMB:::drm_julia_structured_payload(
+      bf(y ~ x + animal(1 | id, Ainv = Ainv)),
       "gaussian",
-      env,
-      dat
+      dat,
+      env
     ),
-    "animal.*A"
+    "animal.*Ainv.*Poisson or Binomial"
   )
   # spatial() is coordinate-based and Gaussian-only; a count spatial fit must use
   # relmat(1 | g, K = K) instead.
@@ -243,7 +247,7 @@ test_that("structured payload requires intercept-only mu and sigma ~ 1", {
       dat,
       env
     ),
-    "only explicitly admitted animal-slope SD routes"
+    "explicitly admitted animal-, relmat-, or fixed-coordinate spatial-slope SD routes"
   )
 })
 

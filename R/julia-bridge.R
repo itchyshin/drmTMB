@@ -5344,7 +5344,8 @@ drm_julia_binomial_relmat_sd_route_admitted <- function(formula) {
   slope_only <- length(term$coef_names) == 1L &&
     length(term$variables) == 1L &&
     identical(term$coef_names, term$variables) &&
-    identical(target$target_coef, term$coef_names[[1L]])
+    (is.na(target$target_coef) ||
+       identical(target$target_coef, term$coef_names[[1L]]))
   intercept <- intercept && is.na(target$target_coef)
   if (!intercept && !slope_only) return(FALSE)
   length(entries[[mu_idx]]$structured) == 1L &&
@@ -12996,50 +12997,5 @@ confint.drmTMB_julia_xfam <- function(
     method = method,
     stringsAsFactors = FALSE,
     row.names = NULL
-  )
-}
-
-# Refusals for generics a bridge fit has no method for (#1570). A
-# `drmTMB_julia` object does not inherit from `drmTMB`, so `simulate()` and
-# `predict_parameters()` used to fail with base R's "no applicable method"
-# error, which names neither the engine nor an alternative. These two methods
-# are REFUSALS, not wirings: they mirror the `heritability()` fence
-# (`drm_variance_ratio_julia_fence()`), and wiring either is the owner's call
-# (#1328). Coefficient SEs on a bridge fit remain available through `vcov()`
-# and `confint()`.
-drm_julia_method_fence <- function(fn, what, class) {
-  cli::cli_abort(
-    c(
-      "{.fn {fn}} is not available for an {.code engine = \"julia\"} fit yet.",
-      "x" = "A {.cls drmTMB_julia} fit has no {.fn {fn}} method, so {what} is not supported on the bridge.",
-      "i" = "Refit the same model with {.code engine = \"tmb\"} and call {.fn {fn}} on that fit.",
-      "i" = "For coefficient standard errors and intervals on the bridge fit itself, use {.fn vcov} and {.fn confint}."
-    ),
-    class = class
-  )
-}
-
-#' @rdname simulate.drmTMB
-#' @export
-simulate.drmTMB_julia <- function(object, nsim = 1, seed = NULL, ...) {
-  drm_julia_method_fence(
-    "simulate",
-    "simulating new responses",
-    "drmTMB_simulate_julia_unsupported"
-  )
-}
-
-#' @rdname predict_parameters
-#' @export
-predict_parameters.drmTMB_julia <- function(object, ...) {
-  # `drm_julia_predict_quantile()` appends "drmTMB" to the class for one call
-  # so the native method is reached; pass that call through.
-  if (inherits(object, "drmTMB")) {
-    return(NextMethod())
-  }
-  drm_julia_method_fence(
-    "predict_parameters",
-    "distributional-parameter prediction with standard errors",
-    "drmTMB_predict_parameters_julia_unsupported"
   )
 }

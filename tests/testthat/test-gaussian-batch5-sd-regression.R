@@ -98,7 +98,12 @@ gb5_expect_dense_max <- function(fit, dat, make_blocks, z_list) {
     start, obj, method = "L-BFGS-B",
     lower = c(-Inf, -Inf, -5, rep(c(-5, -3), nb)),
     upper = c(Inf, Inf, 2, rep(c(2, 3), nb)),
-    control = list(maxit = 500L, factr = 10)
+    # factr = 10 asks for a relative reduction of 2e-15, below what the dense
+    # objective resolves once BLAS threading changes the rounding order; L-BFGS-B
+    # then stops with code 52 (abnormal line search) at the same optimum.
+    # factr = 1e3 (2e-13) is the optimiser stopping rule only: the comparison
+    # with the fitted logLik below keeps its 1e-5 tolerance.
+    control = list(maxit = 500L, factr = 1e3)
   )
   expect_equal(opt$convergence, 0L)
   expect_equal(as.numeric(stats::logLik(fit)), -opt$value, tolerance = 1e-5)

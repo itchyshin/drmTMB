@@ -9,15 +9,20 @@ test_that("non-logit Binomial guard defers only supported structured SD routes",
     y ~ x + animal(0 + x | id, Ainv = Ainv),
     sd(id, level = "animal") ~ z
   )
-  unsupported_animal_pedigree <- bf(
-    y ~ animal(1 | id, pedigree = pedigree),
-    sd(id, level = "animal") ~ z
+  # A pedigree animal SD route is now admitted on probit and cloglog (see
+  # test-julia-binomial-animal-pedigree-sd-bridge.R), so the still-refused
+  # precision-matrix slot of the same kind is pinned here: relmat Q has no
+  # Julia route (docs/dev-log/after-task/2026-10-27-julia-binomial-nonlogit-animal-sd.md).
+  Q <- Ainv
+  unsupported_relmat_precision <- bf(
+    y ~ x + relmat(1 | id, Q = Q),
+    sd(id, level = "relmat") ~ z
   )
 
   for (link in c("probit", "cloglog")) {
     for (formula in list(
       unsupported_animal_block,
-      unsupported_animal_pedigree
+      unsupported_relmat_precision
     )) {
       expect_error(
         drm_julia_refuse_binomial_nonlogit_sd(
