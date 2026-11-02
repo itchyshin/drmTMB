@@ -28,7 +28,9 @@ Ordinary unlabelled random intercepts and independent numeric slopes such as
 \code{(1 | id)} and \code{(0 + x | id)} may enter \code{mu}. Correlated or labelled \code{mu}
 slopes, \code{sigma} or \code{nu} random effects, \code{sd(group)} scale formulas, structured
 effects, known sampling covariance, bivariate skew-normal models, residual
-\code{rho12}, and latent \code{skew(id)} syntax remain unsupported.
+\code{rho12}, and latent \code{skew(id)} syntax remain unsupported. Fixed-effect
+\code{skew_normal()} models are admitted through \code{engine = "julia"}; see
+\code{vignette("julia-engine", package = "drmTMB")}.
 }
 \examples{
 skew_normal()

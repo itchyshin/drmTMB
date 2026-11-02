@@ -6,8 +6,12 @@
 #' fitted response route and for bivariate Gaussian partial-response rows
 #' without dense known covariance. It uses an observed-response mask: a missing
 #' response contributes no direct response likelihood. `predictor = "model"`
-#' is implemented mainly for one `mi()`
-#' missing predictor at a time in a univariate Gaussian location model:
+#' supports one `mi()` missing predictor in the documented family-specific
+#' routes. A Gaussian response also supports two independent predictor models:
+#' either two Gaussian models or one Gaussian and one binary model. These
+#' two-predictor models use fixed effects only, and the mixed pair is available
+#' on the native engine, not the Julia bridge. In the one-predictor Gaussian
+#' location model:
 #' numeric missing predictors can use Gaussian fixed-effect, grouped, or
 #' structured predictor models. Binary,
 #' ordered categorical, unordered categorical, strict beta/proportion,
@@ -18,10 +22,11 @@
 #' predictor models supplied by [impute_model()]. The non-Gaussian response
 #' slices support `poisson()`, `binomial()`, `nbinom2()`, `beta_family()`,
 #' `Gamma(link = "log")`, `lognormal()`, `beta_binomial()`, and
-#' `student()` responses, each with one
-#' fixed-effect Bernoulli/logit binary missing predictor.
-#' `nbinom2()` also admits one fixed-effect Gaussian missing predictor
-#' (k = 1; no grouped/structured predictor model).
+#' `student()` responses, each with one fixed-effect Bernoulli/logit binary
+#' missing predictor.
+#' `nbinom2()` also admits one fixed-effect Gaussian missing predictor (k = 1;
+#' no grouped/structured predictor model). No other two-predictor family pair
+#' is currently supported.
 #' EM/profile engines and simulation-based imputation
 #' summaries are reserved for later slices.
 #'
@@ -178,7 +183,11 @@ drm_validate_complete_predictors <- function(formula, data) {
 #' negative-binomial models for one count predictor, fixed-effect lognormal or
 #' Gamma models for one positive continuous predictor, and fixed-effect
 #' Tweedie models for one non-negative semi-continuous predictor with exact
-#' zeros. Most current non-Gaussian predictor families are fitted inside a
+#' zeros. A Gaussian response also accepts one Gaussian and one binary
+#' predictor with independent fixed-effect models. No other two-predictor
+#' family pair is supported; this mixed pair is available on the native engine,
+#' not the Julia bridge. Most current
+#' non-Gaussian predictor families are fitted inside a
 #' Gaussian response location model; Poisson, binomial, negative-binomial,
 #' beta, Gamma, lognormal, beta-binomial, and student responses are
 #' currently supported for one binary missing predictor. `nbinom2()`
