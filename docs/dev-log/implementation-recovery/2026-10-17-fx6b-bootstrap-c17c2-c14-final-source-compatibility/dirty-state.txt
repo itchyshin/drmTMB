@@ -1,0 +1,6 @@
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/dirty-state.txt
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/provenance.tsv
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/raw-attempts.tsv
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/summary.tsv
+?? docs/dev-log/after-task/fx6b-t10-logs/r_nb2_bootstrap.csv
+?? docs/dev-log/after-task/fx6b-t10-logs/r_re_bootstrap.csv
