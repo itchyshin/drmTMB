@@ -115,7 +115,15 @@ unavailable for Julia Laplace fits.
 A native Bernoulli \code{relmat()} model with one intercept, one numeric slope,
 and a separate predictor-dependent SD formula for each coefficient also
 supports marginal simulation; the two fields are drawn independently with
-their fitted group-specific covariance scales.
+their fitted group-specific covariance scales. Native structured
+intercept-plus-slope (\code{q = 2}) fits with one SD formula per coefficient also
+support marginal simulation for the Binomial, Poisson, NB2, Gaussian and
+Gamma families and the \code{relmat}, \code{animal}, \code{phylo} and \code{spatial} providers.
+Each replicate draws the two unit-scale fields from \code{R (x) K}, where \code{R}
+holds the fitted cross-coefficient correlation of a labelled
+\code{(1 + x | p | id)} block (zero for an unlabelled block), and scales each
+coefficient's field by its fitted group-specific SD. Any other fitted
+correlation alongside the structured block is refused.
 
 It also redraws a single-endpoint
 (\code{q == 1}) phylogenetic, spatial, relatedness-matrix (\code{relmat}),

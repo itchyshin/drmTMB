@@ -1,0 +1,30 @@
+{
+  "evidence_id": "native-gamma-relmat-q2-sd-20261027-20261101e",
+  "refresh_of_evidence_ids": [
+    "native-gamma-relmat-q2-sd-20261027"
+  ],
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gamma-relmat-q2-sd-regression.R\", reporter = \"summary\")'",
+  "git_head": "d97caf070dfae99cd475f592fcc656ddc10478ea",
+  "branch": "codex/general-sd-regression",
+  "tree_state": "staged uncommitted batch 17 edits; unreviewed",
+  "run_started_utc": "2026-11-02T05:29:47Z",
+  "run_ended_utc": "2026-11-02T05:30:47Z",
+  "exit_code": 0,
+  "expectations_passed": 42,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-relmat-q2-sd-refresh-20261101e/test-console.log",
+  "console_log_sha256": "0198e982faf7fffca75fe08af02df0557e511ec998de0f6aeaf441cf6a04ef55",
+  "test_path": "tests/testthat/test-gamma-relmat-q2-sd-regression.R",
+  "test_sha256": "542cdd0419099134fa1a2609349b422099d5b023302924ee271347637dd98e21",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-gamma-relmat-q2-sd-refresh-20261101e/source-manifest.json",
+  "source_manifest_sha256": "84c6e827d459709cf6d845b839b05daf4f960cfb7b19a46defa8527eb41fe031",
+  "evidence_grade": "focused_test",
+  "not_covered": [
+    "Julia parity",
+    "interval calibration",
+    "coverage"
+  ],
+  "review_status": "unreviewed"
+}

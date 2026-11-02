@@ -168,5 +168,11 @@ test_that("Gamma phylo q2 SD fit matches independent observed-tip likelihood", {
   simulated <- simulate(fit,nsim=1L,seed=2026102714L,re.form=NULL)$sim_1
   set.seed(2026102714L);phi <- exp(-2*coef(fit,"sigma")[[1]])
   expect_equal(simulated,rgamma(nrow(fx$data),shape=phi,rate=phi/report$mu),tolerance=1e-8)
-  expect_error(simulate(fit,nsim=1L,re.form=NA),"Marginal simulation.*does not yet support")
+  # Marginal simulation is admitted for this route (see
+  # test-q2-sd-marginal-simulate.R); a fitted correlation that is not the
+  # structured cross-coefficient one stays refused.
+  extra_cor <- fit
+  extra_cor$corpars <- list(mu = c(`cor(mu:(Intercept),mu:x | id)` = 0.3))
+  expect_error(simulate(extra_cor, nsim = 1L, re.form = NA),
+               "Marginal simulation.*does not yet support")
 })

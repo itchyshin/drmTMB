@@ -368,7 +368,14 @@ test_that("Binomial phylo q2 and spatial q2 match a dense Laplace oracle", {
       expect_equal(unname(sd_by_node[ids, 1L]), unname(sc$s0), tolerance = 1e-8)
       expect_equal(unname(sd_by_node[ids, 2L]), unname(sc$s1), tolerance = 1e-8)
     } else {
-      expect_error(simulate(fit, nsim = 1L, re.form = NA),
+      # Phylo q2 marginal simulation is admitted (see
+      # test-q2-sd-marginal-simulate.R); an unreconstructed correlation stays
+      # refused.
+      expect_s3_class(simulate(fit, nsim = 1L, seed = 2026110105L),
+                      "data.frame")
+      extra_cor <- fit
+      extra_cor$corpars <- list(mu = c(`cor(mu:(Intercept),mu:x | id)` = 0.3))
+      expect_error(simulate(extra_cor, nsim = 1L, re.form = NA),
                    "does not yet support")
     }
   }

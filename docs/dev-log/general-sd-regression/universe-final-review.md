@@ -14,6 +14,10 @@ cross-endpoint blocks. The Oct 17 independent review does not review this
 follow-up correction, so G0 and independent review of the revised universe
 remain open.
 
+A second correction (2026-11-01) added `phylo_correlated_block`,
+`relmat_correlated_block` and `spatial_correlated_block` (21,246 rows, 31
+templates, 156 rule rows). It is likewise not covered by the Oct 17 review.
+
 **Decision (2026-10-17): the correction repairs the identified denominator omissions, but G0 remains open.** I inspected the 18,996-row `required-rows.tsv`, the 148-row `block-rules.tsv`, `universe.py` and its tests, and the correction/root/older contracts. This was a source and mathematical-contract review, not a model fit or a claim of implementation or calibration. The generator is a finite *required-candidate* ledger: its status labels do not establish source admission, estimability, or identifiable SD coefficients.
 
 ## Preservation and the 72 exclusions

@@ -39,11 +39,17 @@ class RequiredUniverseTests(unittest.TestCase):
 
     def test_universe_input_tables_match_pinned_hashes(self):
         """Require deliberate review when the finite universe inputs change."""
+        # Deliberate universe correction, 2026-11-01 (mirrors the 2026-10-29
+        # animal correction): mechanism-templates.tsv and block-rules.tsv gained
+        # the phylo_, relmat_ and spatial_correlated_block templates and their
+        # P2/R2/SP2 within-endpoint q2 rules. Existing row keys are unchanged;
+        # 896 new obligation rows were added. Hashes were updated with that
+        # change, not loosened.
         expected = {
             universe.ENDPOINTS_PATH: "1acdb0bf0999e3bcc5a9b3ca181c08d03ddf81b25cfd62751b3d6636ae98170f",
-            universe.MECHANISMS_PATH: "e35d34ce29c2684b3332d40c92e00b977222cea7be684907b5cd8f7f8a48dd7d",
+            universe.MECHANISMS_PATH: "26984b388e31b290af03ea1ba4290523d442c2f9a39356d9fb3c260f83f111cd",
             universe.LINKS_PATH: "88823d705e5002ee7bbeaac6295be6807d128afc8ebe32f6101566a017de5d3c",
-            universe.BLOCK_RULES_PATH: "0d4034546b7a85332b610425d4732ef3b0ce7e2e448d642e5ee0a6c36a07c314",
+            universe.BLOCK_RULES_PATH: "83100edea47096b1cbb4b94893c993b590163ce2673c36f475bc2d68c521bdb5",
         }
         for path, digest in expected.items():
             observed = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -206,7 +212,9 @@ class RequiredUniverseTests(unittest.TestCase):
             universe.check_inputs(self.endpoints, self.mechanisms, incomplete, self.block_rules)
         self.assertFalse(any(row["link_variant"] == "single_or_family_default" for row in self.rows))
         added = [r for r in self.rows if r["engine"] == "Julia" and r["family_route"] == "binomial" and r["link_variant"] in {"probit", "cloglog"}]
-        self.assertEqual(len(added), 144)
+        # 144 before the 2026-11-01 correlated-block correction; the 16 extra
+        # rows are unresolved or blocked phylo/relmat/spatial q2 obligations.
+        self.assertEqual(len(added), 160)
         admitted_phylo_slopes = [
             r for r in added
             if r["mechanism_id"] == "phylo_numeric_slope"
@@ -428,7 +436,10 @@ class RequiredUniverseTests(unittest.TestCase):
         )
         still_blocked = [r for r in added if r not in specialized_rows]
         self.assertEqual(sum(r["status"] == "structural_inapplicable" for r in still_blocked), 18)
-        self.assertEqual(sum(r["status"] == "blocked_base_plumbing" for r in still_blocked), 78)
+        # 78 before the 2026-11-01 correlated-block correction; the 16 extra rows
+        # are Julia binomial probit/cloglog phylo/relmat/spatial q2 obligations,
+        # blocked because no non-logit base route is admitted for them.
+        self.assertEqual(sum(r["status"] == "blocked_base_plumbing" for r in still_blocked), 94)
         self.assertTrue(all("base link route is not admitted" in r["status_reason"]
                             for r in still_blocked if r["status"] != "structural_inapplicable"))
         promoted_link = copy.deepcopy(self.rows)
@@ -516,7 +527,7 @@ class RequiredUniverseTests(unittest.TestCase):
         self.assertTrue(all(row["status"] == "blocked_base_plumbing" for row in native_temporal))
 
     def test_missing_block_dimension_rule_fails_closed(self):
-        with self.assertRaisesRegex(ValueError, "expected 150 block-dimension rules"):
+        with self.assertRaisesRegex(ValueError, "expected 156 block-dimension rules"):
             universe.check_inputs(self.endpoints, self.mechanisms, self.links,
                                   self.block_rules[:-1])
 
@@ -576,6 +587,30 @@ class RequiredUniverseTests(unittest.TestCase):
         self.assertTrue(cross_endpoint)
         self.assertTrue(all(r["status"] == "structural_inapplicable"
                             for r in cross_endpoint))
+
+    def test_phylo_relmat_spatial_within_endpoint_correlated_q2_rows(self):
+        expected_rules = {
+            "phylo_correlated_block": "P2-phylo-within",
+            "relmat_correlated_block": "R2-relmat-within",
+            "spatial_correlated_block": "SP2-spatial-within",
+        }
+        for template, rule in expected_rules.items():
+            rows = [r for r in self.rows if r["mechanism_id"] == template]
+            self.assertTrue(rows, template)
+            self.assertEqual({r["block_rule_id"] for r in rows}, {rule})
+            self.assertEqual({r["target_member"] for r in rows}, {"mu:I", "mu:x1"}
+                             | {r["target_member"] for r in rows if r["endpoint"] != "mu"})
+            self.assertTrue(all(r["layout"] == "within_endpoint_structured_correlated_block"
+                                and r["q_value"] == "2"
+                                and r["block_shape"] == "q=2;partition=one_correlated_term"
+                                and r["endpoint_members"] == r["endpoint"]
+                                and r["status"] in {"unresolved", "blocked_base_plumbing"}
+                                and r["direct_sd_claim"] == "none"
+                                for r in rows), template)
+        # The spatial template covers coordinates only; mesh is q1-only.
+        self.assertEqual({r["provider_input"] for r in self.rows
+                          if r["mechanism_id"] == "spatial_correlated_block"},
+                         {"coordinates"})
 
     def test_cross_engine_tagged_q4_partitions_are_mirrored_as_blocked_native_rows(self):
         mirror_rules = [r for r in self.block_rules

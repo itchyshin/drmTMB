@@ -379,6 +379,46 @@ oracle over the Kronecker pair field `K = A2 (x) A1`, with
 (`test-poisson-batch5-sd-regression.R`) also checks constant-SD equivalence and
 row-order invariance.
 
+### Predictor-dependent SD routes added late on 2026-11-01
+
+Native TMB only. Each form below was checked against a likelihood written
+independently of drmTMB, evaluated at the fitted parameters; the files and
+tolerances are in `docs/design/18-random-effect-scale-models.md`. In all of them
+the SD predictor is constant within its group, `s_g = exp(W_g alpha)`, and each
+latent field is a unit-scale draw multiplied by its SD. No calibration or Julia
+parity claim is made.
+
+- Structured q2 (Poisson, NB2, Gaussian, Binomial). With an intercept field `u0`
+  and a slope field `u1`, the linear predictor adds `s0_g u0_g + x_i s1_g u1_g`.
+  Unlabelled terms draw `u0` and `u1` independently from `N(0, K)`. Labelled
+  terms (NB2 animal, Gaussian) draw `(u0, u1)` from `N(0, R kron K)` with one
+  estimated correlation. The Gaussian likelihood is exact:
+  `y ~ N(X beta, sigma^2 I + sum_{a,b} R_ab l_a l_b' (elementwise) K_obs)`, with
+  loadings `l_0 = s0` and `l_1 = x s1`. The count and Binomial likelihoods use a
+  Laplace approximation, with the exact count information
+  (`size mu (size + y) / (size + mu)^2` for NB2). `K` is the supplied
+  covariance, or the inverse of the supplied precision, kept raw and aligned by
+  level name; trees enter as correlation matrices.
+- Gamma slope-only structured: `eta_i = X beta + x_i s_g u_g`, `u ~ N(0, K)`,
+  with the exact Gamma log-link score and curvature in the Laplace check.
+- `phylo_interaction()` for Gaussian (slope-only) and NB2: `eta = X beta + J f`,
+  `f ~ N(0, A2 kron A1)`, `J = diag(s_pair * value)[pair, ]`, `value = 1` for the
+  intercept and `x` for the slope-only field. Both trees are standardised to
+  correlation matrices, so the effective kernel has unit diagonal. Gaussian is
+  exact; NB2 uses the Laplace check.
+- Gaussian structured `sigma` intercept: `log sigma_i = Z_i gamma + s_g u_g`,
+  `u ~ N(0, K)`. The residual SD depends on `u`, so the marginal is not Gaussian
+  and the check is a Laplace oracle over the structured `sigma` effects.
+- Joint ordinary `mu` and `sigma` intercepts (NB2, Gamma):
+  `eta_mu = X beta + s_id u_id`, `log sigma = Z gamma + t_g v_g`, with all `u` and
+  `v` independent unit-scale effects, including the same-factor case. The check is
+  a Laplace oracle over the joint vector of all `id` and `g` effects. For NB2,
+  `size = 1 / sigma^2`.
+
+Refused neighbours include labelled q2 for Poisson and for the NB2 relmat, phylo
+and spatial providers, Gaussian spatial q2, ordinary q3 with `sd()`, a sigma
+structured slope, and the formula-free joint `mu`/`sigma` model.
+
 ### Predictor-dependent Bernoulli/binomial random-intercept SD
 
 The native ordinary-intercept slice additionally accepts
@@ -2518,9 +2558,19 @@ section 5):
   refused, so "the base correlated fit is recovered when the SD slopes are
   zero" cannot be shown. The oracle and the independent unlabelled fit
   (`rho = 0`) stand in for it.
-- There is no simulate-then-refit identity. Marginal simulation is refused for
-  correlated q2 structured fits, so the route is evidenced by the likelihood
-  oracle and fixed-seed recovery only.
+- There is no simulate-then-refit identity. Marginal simulation (`re.form = NA`)
+  is admitted for native structured q2 fits with one SD formula per
+  coefficient (Binomial, Poisson, NB2, Gaussian and Gamma; relmat, animal, phylo
+  and spatial), including the labelled correlated block: each replicate draws
+  unit-scale fields from `R (x) K` with the fitted `rho` and scales each
+  coefficient's field by its fitted group SD. This is checked by moment
+  comparisons in `tests/testthat/test-q2-sd-marginal-simulate.R` (exact
+  Gaussian marginal covariance; sampled latent covariance against
+  `D R (x) K D` for the other families), not by a simulate-then-refit recovery
+  study. The route is still evidenced by the likelihood oracle and fixed-seed
+  recovery. A fitted correlation other than the single structured
+  cross-coefficient one, and families outside that list (for example Beta),
+  stay refused.
 - The identifiability fence refuses an identically zero slope loading and the
   case of a constant slope loading with identical constant SD designs. It does
   not refuse a constant slope loading `c` with the same non-constant SD design
@@ -3078,8 +3128,10 @@ a1 ~ Normal(0, sd_structured_slope^2 A_structured)
 where `A_structured` is the tree, pair-of-trees Kronecker field, coordinate,
 animal-model, or user-supplied relatedness covariance implied by `phylo()`,
 `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`. The
-`phylo_interaction()` count route remains intercept-only; the one-slope count
-route is currently for `phylo()`, `spatial()`, `animal()`, and `relmat()`. The TMB template
+`phylo_interaction()` count route is intercept-only in the plain route, except
+for the slope-only Poisson and NB2 pair-level SD routes (see the predictor-dependent SD
+sections); the one-slope count route is currently for `phylo()`, `spatial()`,
+`animal()`, and `relmat()`. The TMB template
 still uses the sparse precision `Q_phylo`, the latent vector `u_phylo`, and the
 direct SD target `log_sd_phylo` for this shared
 q=1 count route. This route is implemented for ordinary non-zero-inflated
@@ -3318,10 +3370,14 @@ dense Laplace oracle for the joint latent field `f = (f_ord, f_struct)` with
 information `size mu (size + y) / (size + mu)^2`
 (`test-nbinom2-batch5-sd-regression.R`, 150 expectations); crossed ordinary
 intercepts, already admitted, are checked against the same oracle there. An
-independent same-group intercept and slope with one selected SD
-formula each is checked only by constant-SD equivalence and prediction identity.
-NB2 `sigma`-side phylogenetic SD is not admitted, and marginal simulation
-(`re.form = NA`) for NB2 slope SDs is refused. Julia parity and interval
+independent same-group intercept and slope with one `coef`-selected SD
+formula each matches a dense Laplace oracle at the fitted point
+(`test-nbinom2-gamma-same-group-sd-oracle.R`); the unselected form is checked only by
+constant-SD equivalence and prediction identity.
+NB2 `sigma`-side phylogenetic SD is not admitted. Marginal simulation
+(`re.form = NA`) for NB2 structured slope SDs was admitted on 2026-11-01
+(`test-nbinom2-structured-slope-marginal-simulate.R`), and for NB2 structured
+q2 blocks in `test-q2-sd-marginal-simulate.R`. Julia parity and interval
 calibration remain open.
 
 ## Implemented Zero-Truncated Negative Binomial 2

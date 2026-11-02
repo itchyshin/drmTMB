@@ -155,3 +155,8 @@ base-route audit and independent mathematical/identifiability review of the
 candidate endpoint sets. Row statuses do not prove admission, support,
 estimability, or identifiability. G0 remains open; implementation, recovery,
 and uncertainty calibration are later gates.
+
+Update 2026-11-01: the generator now records 21,246 rows after adding the
+phylo, relmat and spatial within-endpoint q2 templates (896 rows); see the
+2026-11-01 follow-up in [universe-contract.md](universe-contract.md). The
+counts above are historical.

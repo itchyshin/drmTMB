@@ -4,12 +4,12 @@ Generated from the pinned `family-endpoints.tsv`, `mechanism-templates.tsv`, and
 
 - Endpoint source rows: 54 across 20 family routes.
 - Explicit family/link rows: 44 (42 base-admitted engine-link rows plus 2 blocked Julia union obligations; no implicit default-link rows).
-- Finite mechanism templates: 28.
-- Machine-readable source block rule rows: 150 across 31 named rules; rows also carry target_member, member_coefs, q_domain, q_value, and partition_rule.
-- Old-to-new mapping: the prior 5,438-row snapshot comprised 4,950 non-block rows and 488 block-related rows. This revision retains 5600 non-block rows and has 14750 block rows (8000 source-shaped/fallback rows plus 6750 explicit unresolved candidate rows), for 20350 total rows (+14912 versus that snapshot). The 1,440 Julia tagged-q4 rows have 1440 exact native union counterparts marked blocked.
-- Required rows: 20350.
-- By engine: Julia=10247, native=10103.
-- By initial status: blocked_base_plumbing=3509, required=4893, structural_inapplicable=90, unresolved=11858.
+- Finite mechanism templates: 31.
+- Machine-readable source block rule rows: 156 across 34 named rules; rows also carry target_member, member_coefs, q_domain, q_value, and partition_rule.
+- Old-to-new mapping: the prior 5,438-row snapshot comprised 4,950 non-block rows and 488 block-related rows. This revision retains 5600 non-block rows and has 15646 block rows (8896 source-shaped/fallback rows plus 6750 explicit unresolved candidate rows), for 21246 total rows (+15808 versus that snapshot). The 1,440 Julia tagged-q4 rows have 1440 exact native union counterparts marked blocked.
+- Required rows: 21246.
+- By engine: Julia=10695, native=10551.
+- By initial status: blocked_base_plumbing=3525, required=4893, structural_inapplicable=90, unresolved=12738.
 - Direct-SD support promotions: 0; every row has `direct_sd_claim=none`.
 - Explicit input-level simultaneous provider pairs: 21; the separate phylo+OU temporal layout is one additional named pair template.
 
@@ -21,4 +21,4 @@ Additive iid terms are split into crossed and nested layouts. Simultaneous provi
 
 ## Review limits
 
-The initial statuses remain `required`, `unresolved`, `blocked_base_plumbing`, or explicit single-endpoint `structural_inapplicable`; no code path assigns `supported`. The 31 named block rules (150 engine/mechanism/domain rows) are expanded by provider into finite q anchors plus symbolic domains where the contract admits arbitrary numeric slopes. Cross-endpoint candidate rows are finite over each family's actual endpoint set and remain unresolved absent source admission. Base plumbing is still not fully classified per family/endpoint/provider/layout; native combined-provider fitted routes, estimator prerequisites, and source disagreements remain open. Julia's two-structured-provider fitter is Gaussian and supports phylo/animal/relmat pairs (DRM.jl `src/gaussian_structured.jl:203-224,236-260`); spatial pairings are refused (`src/gaussian_structured.jl:217-219,510-514`). Native temporal rows lack fitted base plumbing at the pinned snapshot (drmTMB `docs/design/01-formula-grammar.md:1226-1230`); Julia has AR1, OU, homogeneous Toeplitz, and one phylo+OU layout (DRM.jl `src/temporal.jl:1-20,53-78`). G0 remains open.
+The initial statuses remain `required`, `unresolved`, `blocked_base_plumbing`, or explicit single-endpoint `structural_inapplicable`; no code path assigns `supported`. The 34 named block rules (156 engine/mechanism/domain rows) are expanded by provider into finite q anchors plus symbolic domains where the contract admits arbitrary numeric slopes. Cross-endpoint candidate rows are finite over each family's actual endpoint set and remain unresolved absent source admission. Base plumbing is still not fully classified per family/endpoint/provider/layout; native combined-provider fitted routes, estimator prerequisites, and source disagreements remain open. Julia's two-structured-provider fitter is Gaussian and supports phylo/animal/relmat pairs (DRM.jl `src/gaussian_structured.jl:203-224,236-260`); spatial pairings are refused (`src/gaussian_structured.jl:217-219,510-514`). Native temporal rows lack fitted base plumbing at the pinned snapshot (drmTMB `docs/design/01-formula-grammar.md:1226-1230`); Julia has AR1, OU, homogeneous Toeplitz, and one phylo+OU layout (DRM.jl `src/temporal.jl:1-20,53-78`). G0 remains open.

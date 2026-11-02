@@ -202,3 +202,95 @@ state and the stash is kept intact. The owner can recover them with
 new main. Still uncommitted and untouched in this worktree:
 `docs/dev-log/active-lane-split.md`, `vignettes/implementation-map.Rmd`,
 `vignettes/predictor-dependent-random-sd.Rmd`.
+
+## Status at the evening of 2026-11-01
+
+Written after commits 53504dd39, b6629f435, 6a7bfbc79, 33e4e966a and a3e0a5b16
+(branch HEAD d97caf070). This section closes no gate and promotes no ledger row.
+Every route below is native TMB only, has an oracle computed independently of
+drmTMB at the fitted point on fixed fixtures, and carries no calibration, coverage
+or Julia parity claim. Counts are expectations from each after-task report.
+
+### Routes admitted since the earlier status updates, by family
+
+- Gaussian: unlabelled and labelled structured q2 for animal, relmat and phylo
+  with one SD per coefficient (`test-gaussian-structured-q2-sd.R`, 64); one
+  structured `sigma` intercept for phylo, animal, relmat and spatial
+  (`test-gaussian-sigma-structured-sd.R`, 92); slope-only `phylo_interaction()`
+  (`test-gaussian-phylo-interaction-slope-sd.R`, 52). A stronger case (a) fixture
+  in `test-gaussian-sigma-endpoint-mixes-sd.R` now varies the slope SD by more
+  than a factor of two with a clearly nonzero correlation. Test-only checks:
+  crossed ordinary intercepts and ordinary plus animal `Ainv` intercepts
+  (`test-sd-crossed-and-site-quickwins.R`, `test-structured-sd-q-ainv-quickwins.R`).
+- Poisson and NB2: unlabelled structured q2 for animal
+  (`test-poisson-structured-q2-sd-regression.R`, 45;
+  `test-nbinom2-structured-q2-sd-regression.R`, 75), then relmat (`K`, `Q`), phylo and
+  coordinate spatial (`test-count-structured-q2-more-providers-sd.R`, 165). NB2
+  labelled animal q2 with two SD formulas is also admitted.
+- NB2: `phylo_interaction()` intercept and slope-only pair-level SD
+  (`test-nbinom2-phylo-interaction-sd.R`, 55); joint ordinary `mu` plus `sigma`
+  intercepts (`test-nbinom2-mu-sigma-joint-sd.R`) with a same-group oracle
+  (`test-nbinom2-mu-sigma-same-group-sd.R`).
+- Gamma: slope-only phylo, spatial and relmat (`test-gamma-structured-slope-sd.R`,
+  87); joint ordinary `mu` plus `sigma` intercepts (`test-gamma-mu-sigma-joint-sd.R`,
+  26); the plain slope-only fits and plain NB2 `phylo_interaction()` slope fit were
+  checked against constant-SD oracles in `test-structured-plain-fits-no-sd-oracle.R`.
+- Binomial: structured q2 for phylo and coordinate spatial
+  (`test-binomial-phylo-spatial-q2-sd.R`, 127).
+- Julia bridge: ordinary mean bars with an `sd()` formula are exempt from the #1551
+  fence for Poisson, NB2, Gamma, Beta and Binomial (static tests,
+  `test-julia-ordinary-sd-fence-exemption.R`); the selected-coefficient label check
+  maps a sole `sdtarget_` key to the engine `sd` block, and the live Poisson file
+  passed 30 and 0 on the Mac (Poisson only).
+- Design only, not admitted: ordinary q3 with `sd()` for Gaussian, Poisson and NB2
+  (`test-ordinary-q3-sd.R`, 9 expectations of boundary pins).
+
+Stale refusal pins for admitted routes were swapped to still-refused routes of the
+same kind; no assertion was deleted and no tolerance was changed.
+
+### CI-failure sweep
+
+A full `R CMD check` of 7309d3cd8 on Totoro found 28 test failures, 3 of them
+environmental. The 25 caused by this branch were fixed in 175e87560 (stale
+refusal pins swapped, `R/julia-simulate.R` committed, the Binomial relmat
+slope-only Julia gate corrected, the env-skip census regenerated, the Gaussian
+batch5 optimiser setting fixed). A later full check of the tree at 33e4e966a on
+Totoro gave FAIL 4, PASS 36571; the failures are the env-skip census, which was
+regenerated in that commit, and two environmental tests.
+
+### G1 joint contract review
+
+The independent review (`g1-joint-contract-review-20261101.md`) accepted all five
+areas with seven conditions. C1 to C7 were closed in 33e4e966a: group-level SD
+design rank and size check; selector contract with exact `predict(dpar = )`
+matching; provider-by-engine kernel scaling table; clamp-field registry and raw
+log SD reporting; `predict()` documentation of the SD semantics; Gamma q2
+oracle with a non-unit-diagonal shuffled `A`; explicit SD registry check for
+structured random-effect draws. The review itself is one reviewer's reading, not
+a calibration or support result.
+
+### Receipts
+
+The ledger reconciler passes with 305 linked rows and 394 records (commit
+d97caf070). Eleven stale receipts were refreshed and 61 new rows link receipts for
+the day's new tests. All rows are `unreviewed`; linked is not reviewed and is not
+support. Tests whose content has no matching required row are listed in
+`receipts-20261101d.md`.
+
+### Still open
+
+- Model-15 CI gate recertification: waiting for Shinichi.
+- Julia counterparts for every native route above; the live Julia run covered
+  Poisson only.
+- NB2 Julia raw-A parity row: native keeps the supplied raw `A`, the Julia NB2
+  animal route rescales to a correlation matrix (design 18, "Kernel scaling by
+  provider and engine"); the 0.25 native-versus-Julia tolerance is a smoke check.
+- G4 semantics.
+- G0 mechanism-universe classification: no `phylo_`, `relmat_` or
+  `spatial_correlated_block` mechanism rows exist, and no row for Gaussian
+  unlabelled `1 + x` structured q2.
+- NB2 sigma-endpoint phylogenetic SD (held for a decision).
+- Labelled structured q2 beyond the routes above, Gaussian spatial q2, ordinary q3
+  with `sd()`, and independent review of every receipt.
+- G5 interval calibration is deferred; no calibration is claimed anywhere in this
+  section.

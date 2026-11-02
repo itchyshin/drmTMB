@@ -3206,7 +3206,15 @@ predict.drmTMB <- function(
 #' A native Bernoulli `relmat()` model with one intercept, one numeric slope,
 #' and a separate predictor-dependent SD formula for each coefficient also
 #' supports marginal simulation; the two fields are drawn independently with
-#' their fitted group-specific covariance scales.
+#' their fitted group-specific covariance scales. Native structured
+#' intercept-plus-slope (`q = 2`) fits with one SD formula per coefficient also
+#' support marginal simulation for the Binomial, Poisson, NB2, Gaussian and
+#' Gamma families and the `relmat`, `animal`, `phylo` and `spatial` providers.
+#' Each replicate draws the two unit-scale fields from `R (x) K`, where `R`
+#' holds the fitted cross-coefficient correlation of a labelled
+#' `(1 + x | p | id)` block (zero for an unlabelled block), and scales each
+#' coefficient's field by its fitted group-specific SD. Any other fitted
+#' correlation alongside the structured block is refused.
 #'
 #' It also redraws a single-endpoint
 #' (`q == 1`) phylogenetic, spatial, relatedness-matrix (`relmat`),
@@ -7569,15 +7577,33 @@ drm_binomial_q2_structured_sd_by_node <- function(object, phylo_mu) {
     relmat = "sd_relmat",
     animal = "sd_animal",
     spatial = "sd_spatial",
+    phylo = "sd_phylo",
     NULL
   )
   if (
-    !identical(object$model$model_type, "binomial") ||
+    !object$model$model_type %in% c(
+      "binomial", "poisson", "nbinom2", "gaussian", "gamma"
+    ) ||
       is.null(expected_sd_fun) ||
-      structured_mu_q(phylo_mu) != 2L ||
-      length(object$corpars) > 0L
+      structured_mu_q(phylo_mu) != 2L
   ) {
     return(NULL)
+  }
+  # One labelled `(1 + x | p | id)` block stores a single cross-coefficient
+  # correlation under the provider's own key. Any other fitted correlation
+  # (for example an ordinary correlated block) is not reconstructed here.
+  cor_key <- structured_mu_correlation_key(phylo_mu)
+  rho <- 0
+  if (length(object$corpars) > 0L) {
+    fitted_rho <- object$corpars[[cor_key]]
+    if (
+      !identical(names(object$corpars), cor_key) ||
+        length(fitted_rho) != 1L || !is.finite(fitted_rho) ||
+        abs(fitted_rho) > 1
+    ) {
+      return(NULL)
+    }
+    rho <- unname(as.numeric(fitted_rho))
   }
   sd_registry <- object$model$random_scale$phylo
   if (
@@ -7619,15 +7645,26 @@ drm_binomial_q2_structured_sd_by_node <- function(object, phylo_mu) {
     scale_by_group <- predict_random_scale_dpar(object, scale_dpar)
     node_index <- match(node_labels, names(scale_by_group))
     if (anyNA(node_index)) {
-      return(NULL)
+      # A phylogenetic latent vector also holds internal nodes. They carry no
+      # observation, so their scale never reaches a row; 1 keeps the draw
+      # covariance equal to the fitted tree covariance (as the q1 route does).
+      if (
+        !identical(provider, "phylo") ||
+          !all(names(scale_by_group) %in% node_labels)
+      ) {
+        return(NULL)
+      }
     }
-    sd_by_node[, coefficient[[i]]] <- unname(scale_by_group[node_index])
+    column <- unname(scale_by_group[node_index])
+    if (identical(provider, "phylo")) column[is.na(column)] <- 1
+    sd_by_node[, coefficient[[i]]] <- column
   }
   if (any(!is.finite(sd_by_node)) || any(sd_by_node <= 0)) {
     cli::cli_abort(
       "Internal error: predictor-dependent q2 structured SDs do not align with the latent fields."
     )
   }
+  attr(sd_by_node, "rho") <- rho
   sd_by_node
 }
 
@@ -7648,7 +7685,15 @@ drm_fresh_structured_mu_values <- function(phylo_mu, sd) {
     }
     root <- chol(as.matrix(phylo_mu$precision$precision))
     z <- matrix(stats::rnorm(length(sd)), nrow = phylo_mu$n_re)
-    return(as.vector(backsolve(root, z) * sd))
+    fields <- backsolve(root, z)
+    # Unit-scale fields (f0, f1) ~ N(0, R kron Q^-1) with R = [[1, rho],
+    # [rho, 1]]: mix the second independent draw with the first. rho is 0 for
+    # an unlabelled (independent-coefficient) block.
+    rho <- attr(sd, "rho")
+    if (!is.null(rho) && rho != 0) {
+      fields[, 2L] <- rho * fields[, 1L] + sqrt(1 - rho^2) * fields[, 2L]
+    }
+    return(as.vector(fields * sd))
   }
   if (length(sd) != 1L && length(sd) != phylo_mu$n_re) {
     cli::cli_abort(

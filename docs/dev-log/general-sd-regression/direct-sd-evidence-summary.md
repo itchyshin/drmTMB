@@ -1,6 +1,6 @@
 # Direct-SD implementation evidence reconciliation
 
-Frozen candidate rows: 20350. Evidence receipt records: 394. Distinct candidate rows with at least one hash-verified receipt: 305. Candidate rows without linked receipts: 20045.
+Frozen candidate rows: 21246. Evidence receipt records: 398. Distinct candidate rows with at least one hash-verified receipt: 309. Candidate rows without linked receipts: 20937.
 
 This is an evidence-only join. A receipt does not establish general support, identifiability, admission, or calibrated interval coverage; no candidate row is promoted by this report.
 
@@ -10,33 +10,33 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 
 | Value | Receipted rows | Candidate rows |
 |---|---:|---:|
-| Julia | 93 | 10247 |
-| native | 212 | 10103 |
+| Julia | 93 | 10695 |
+| native | 216 | 10551 |
 
 ## family_route
 
 | Value | Receipted rows | Candidate rows |
 |---|---:|---:|
-| beta | 11 | 292 |
-| beta_binomial | 4 | 292 |
-| binomial | 170 | 432 |
-| biv_gaussian | 0 | 3808 |
-| biv_lognormal | 0 | 3808 |
-| biv_student | 0 | 5932 |
-| cumulative_logit | 4 | 144 |
-| gamma | 23 | 292 |
-| gaussian | 21 | 292 |
-| hurdle_nbinom2 | 4 | 544 |
-| lognormal | 5 | 292 |
-| nbinom2 | 27 | 292 |
-| poisson | 27 | 144 |
-| skew_normal | 0 | 544 |
-| student | 0 | 544 |
-| truncated_nbinom2 | 1 | 292 |
-| tweedie | 2 | 544 |
-| zero_one_beta | 2 | 1012 |
-| zi_nbinom2 | 0 | 544 |
-| zi_poisson | 4 | 306 |
+| beta | 11 | 324 |
+| beta_binomial | 4 | 324 |
+| binomial | 170 | 480 |
+| biv_gaussian | 0 | 3888 |
+| biv_lognormal | 0 | 3888 |
+| biv_student | 0 | 6028 |
+| cumulative_logit | 4 | 160 |
+| gamma | 23 | 324 |
+| gaussian | 25 | 324 |
+| hurdle_nbinom2 | 4 | 592 |
+| lognormal | 5 | 324 |
+| nbinom2 | 27 | 324 |
+| poisson | 27 | 160 |
+| skew_normal | 0 | 592 |
+| student | 0 | 592 |
+| truncated_nbinom2 | 1 | 324 |
+| tweedie | 2 | 592 |
+| zero_one_beta | 2 | 1076 |
+| zi_nbinom2 | 0 | 592 |
+| zi_poisson | 4 | 338 |
 
 ## mechanism_id
 
@@ -52,11 +52,13 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | iid_labelled_cross_parameter | 0 | 1070 |
 | iid_numeric_slope | 25 | 112 |
 | paired_phylo_temporal_ou | 0 | 112 |
+| phylo_correlated_block | 2 | 224 |
 | phylo_interaction_intercept | 8 | 112 |
 | phylo_interaction_numeric_slope | 6 | 112 |
 | phylo_intercept | 8 | 336 |
 | phylo_labelled_block | 0 | 1528 |
 | phylo_numeric_slope | 7 | 112 |
+| relmat_correlated_block | 2 | 448 |
 | relmat_intercept | 13 | 224 |
 | relmat_labelled_block | 0 | 3056 |
 | relmat_numeric_slope | 10 | 224 |
@@ -65,6 +67,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | spatial_coordinate_intercept | 7 | 112 |
 | spatial_coordinate_labelled_block | 0 | 3056 |
 | spatial_coordinate_slope | 7 | 224 |
+| spatial_correlated_block | 0 | 224 |
 | spatial_mesh_intercept | 3 | 112 |
 | spatial_mesh_slope | 3 | 112 |
 | temporal_ar1 | 0 | 112 |
@@ -92,7 +95,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | iid:group_factor+phylo:tree | 9 | 112 |
 | iid:group_factor+relmat:K_covariance | 5 | 112 |
 | iid:group_factor+relmat:Q_precision | 4 | 112 |
-| phylo | 15 | 1976 |
+| phylo | 17 | 2200 |
 | phylo plus temporal | 0 | 112 |
 | phylo:tree+animal:A_covariance | 3 | 112 |
 | phylo:tree+animal:Ainv_precision | 3 | 112 |
@@ -101,8 +104,8 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | phylo:tree+relmat:Q_precision | 3 | 112 |
 | phylo:tree+spatial:coordinates | 3 | 112 |
 | phylo_interaction | 14 | 224 |
-| relmat | 23 | 3504 |
-| spatial | 20 | 3616 |
+| relmat | 25 | 3952 |
+| spatial | 20 | 3840 |
 | temporal | 0 | 336 |
 
 ## effect_type
@@ -125,6 +128,6 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | structured mesh field | 3 | 112 |
 | structured mesh random slope | 3 | 112 |
 | structured random intercept | 48 | 1008 |
-| within-endpoint correlated intercept and one numeric slope | 26 | 672 |
+| within-endpoint correlated intercept and one numeric slope | 30 | 1568 |
 
 Rows with multiple receipts are counted once. Candidate rows remain obligations until separately reviewed against the implementation contract and the complete required scope.

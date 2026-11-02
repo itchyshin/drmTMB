@@ -188,7 +188,12 @@ test_that("Gamma relmat q2 SD fitting matches an independent dense oracle", {
                predict(fit, type = "link", re.form = NULL))
   expect_true(all(is.finite(simulate(fit, nsim = 1L, seed = 2026102704L,
                                    re.form = NULL)$sim_1)))
-  expect_error(simulate(fit, nsim = 1L, re.form = NA),
+  # Marginal simulation is admitted for this route (see
+  # test-q2-sd-marginal-simulate.R); a fitted correlation that is not the
+  # structured cross-coefficient one stays refused.
+  extra_cor <- fit
+  extra_cor$corpars <- list(mu = c(`cor(mu:(Intercept),mu:x | id)` = 0.3))
+  expect_error(simulate(extra_cor, nsim = 1L, re.form = NA),
                "Marginal simulation.*does not yet support")
   # The existing Gamma animal route must apply the same coefficient SD scales
   # in conditional predictions and extraction.

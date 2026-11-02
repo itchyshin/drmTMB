@@ -5,8 +5,10 @@
 Native ordinary scalar location-intercept SD formulas are point-checked for
 Bernoulli/binomial and non-zero-inflated Poisson, with selector-aware outputs
 and refitting checks. Native Poisson also has focused checks for one independent
-unlabelled numeric slope SD, whose output is per unit of its covariate. Mixed
-and crossed slope layouts remain required. Interval calibration, Julia public dispatch and the
+unlabelled numeric slope SD, whose output is per unit of its covariate. Same-group
+intercept-plus-slope pairs and crossed ordinary intercepts are admitted for the routes in
+`docs/design/18-random-effect-scale-models.md`; other mixed or crossed slope layouts remain
+required. Interval calibration, Julia public dispatch and the
 remaining family/effect/provider combinations are still required by the active
 general SD-regression programme. See `general-sd-regression/` for exact evidence.
 
@@ -965,3 +967,45 @@ raw `A`. This is an open parity row, not a convention; it is recorded in
 `docs/design/18-random-effect-scale-models.md` (section "Kernel scaling by
 provider and engine"). The existing native-versus-Julia Gamma q2 comparison
 uses relative tolerance 0.25 and is a smoke check, not a tight scaling check.
+
+# Native SD regression: state at the evening of 2026-11-01
+
+Admitted natively on 2026-11-01 (each with an independent oracle at the fitted
+point; full table in `docs/design/18-random-effect-scale-models.md`): structured q2
+with coefficient SDs for Poisson and NB2 (animal, relmat, phylo, spatial),
+Gaussian (animal, relmat, phylo, unlabelled and labelled) and Binomial (phylo,
+spatial); NB2 labelled animal q2; Gamma slope-only phylo, spatial and relmat;
+Gaussian and NB2 `phylo_interaction()` pair-level SDs; a Gaussian structured
+`sigma` intercept; and joint ordinary `mu` plus `sigma` intercepts for NB2 and
+Gamma. Test files are `test-gaussian-structured-q2-sd.R`,
+`test-count-structured-q2-more-providers-sd.R`,
+`test-poisson-structured-q2-sd-regression.R`,
+`test-nbinom2-structured-q2-sd-regression.R`,
+`test-binomial-phylo-spatial-q2-sd.R`, `test-gamma-structured-slope-sd.R`,
+`test-gaussian-phylo-interaction-slope-sd.R`, `test-nbinom2-phylo-interaction-sd.R`,
+`test-gaussian-sigma-structured-sd.R`, `test-gamma-mu-sigma-joint-sd.R`,
+`test-nbinom2-mu-sigma-joint-sd.R` and `test-nbinom2-mu-sigma-same-group-sd.R`.
+These are fixed-fixture likelihood-agreement checks, not calibration, coverage or
+parity evidence.
+
+Still limited or open:
+
+- No Julia counterpart exists for any route above. The Julia bridge exempts
+  ordinary mean bars that carry an `sd()` formula from the #1551 fence for Poisson,
+  NB2, Gamma, Beta and Binomial (`test-julia-ordinary-sd-fence-exemption.R`, static
+  tests only). The selected-coefficient label check was fixed for a sole `sd(id,
+  coef = ...)` target (`test-julia-selected-sd-coef-label.R`); the live Poisson file
+  `test-julia-poisson-sd.R` passed 30 and 0 on the Mac, and no other family was run live.
+- NB2 `sigma`-side phylogenetic SD stays held for a decision, because it opens the
+  public base route `sigma ~ phylo(1 | sp)`.
+- Still refused: labelled structured q2 for Poisson and for the NB2 relmat, phylo and
+  spatial providers; Gaussian spatial q2; Gaussian, Poisson and NB2 ordinary q3 with
+  `sd()` (design report only, `test-ordinary-q3-sd.R`); a sigma structured slope; a
+  structured Gamma slope beside an ordinary intercept; zero inflation and
+  `miss_control(response = "include")` for the new structured q2 and slope shapes.
+- Marginal `simulate()` is refused for the labelled Gaussian q2 block and for
+  Binomial phylo q2. Use `re.form = NULL` for the labelled Gaussian block.
+- Kernel scaling is raw `A` natively; the NB2 Julia animal route rescales to a
+  correlation matrix. The parity row is open (previous section).
+- The phylo and tree-based q2 oracles have unit-diagonal kernels, because trees enter
+  as correlation matrices; non-unit-diagonal q2 is exercised for relmat and animal.

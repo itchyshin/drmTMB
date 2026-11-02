@@ -86,6 +86,13 @@ structure providers across the other families.
 | Gamma ordinary + animal/phylo/spatial intercept predictor-dependent SDs (native only) | point-fit-recovery |
 | Gamma and NB2 same-group intercept + slope with `coef`-selected SDs (native only) | point-fit-recovery |
 | Zero-inflated Poisson plain independent slope without `sd()` (native only) | point-fit-recovery |
+| Gaussian structured q2 (animal, relmat, phylo; unlabelled and labelled) with coefficient-specific SDs (native only) | point-fit-recovery |
+| Gaussian structured `sigma` intercept (phylo, animal, relmat, spatial) with predictor-dependent SD (native only) | point-fit-recovery |
+| Gaussian and NB2 phylo_interaction pair-level predictor-dependent SDs (Gaussian slope-only; NB2 intercept and slope-only) (native only) | point-fit-recovery |
+| Poisson and NB2 structured q2 (animal, relmat, phylo, spatial) with coefficient-specific SDs; NB2 labelled animal q2 (native only) | point-fit-recovery |
+| Gamma slope-only phylo, spatial and relmat predictor-dependent SDs (native only) | point-fit-recovery |
+| Binomial phylo and spatial q2 with coefficient-specific SDs (native only) | point-fit-recovery |
+| NB2 and Gamma joint ordinary `mu` plus `sigma` intercepts, each with an SD formula (native only) | point-fit-recovery |
 | Tweedie random intercept (mean) | implemented |
 | Gaussian phylogenetic random intercept + slope, two SDs (mean) | implemented |
 
@@ -102,9 +109,23 @@ oracle at the fitted point, one fixture per family) and
 `tests/testthat/test-zi-poisson-plain-slope.R` (per-cluster quadrature oracle,
 one synthetic dataset). Not listed because their only evidence is constant-SD
 equivalence and prediction identity: Poisson coordinate-spatial SD. The Gamma correlated q2
-row above is listed on fixed-seed fixtures with a loose recovery band only (no
-calibration, no likelihood oracle), and the Poisson animal slope row has no
-independent oracle either; read both as the weakest grade in this table. No
+row above has a joint-objective oracle at 1e-6 (including a raw non-unit-diagonal
+`A` case) and a loose 0.4 recovery band, with no calibration; the Poisson animal
+slope row has no independent oracle; read the Poisson animal slope row as the
+weakest grade in this table. The seven rows added in batches 9 to 15 cite
+`tests/testthat/test-gaussian-structured-q2-sd.R`,
+`tests/testthat/test-gaussian-sigma-structured-sd.R`,
+`tests/testthat/test-gaussian-phylo-interaction-slope-sd.R`,
+`tests/testthat/test-nbinom2-phylo-interaction-sd.R`,
+`tests/testthat/test-poisson-structured-q2-sd-regression.R`,
+`tests/testthat/test-nbinom2-structured-q2-sd-regression.R`,
+`tests/testthat/test-count-structured-q2-more-providers-sd.R`,
+`tests/testthat/test-gamma-structured-slope-sd.R`,
+`tests/testthat/test-binomial-phylo-spatial-q2-sd.R`,
+`tests/testthat/test-gamma-mu-sigma-joint-sd.R`,
+`tests/testthat/test-nbinom2-mu-sigma-joint-sd.R` and
+`tests/testthat/test-nbinom2-mu-sigma-same-group-sd.R`; each fits a dense or exact
+oracle at the fitted point on one fixture per provider. No
 Julia counterpart exists for these rows.
 
 `Tweedie random intercept (mean)` is `implemented`:

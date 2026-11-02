@@ -166,3 +166,22 @@ and the later implementation, recovery, and uncertainty-calibration work.
 Estimator prerequisites remain family-specific; do not cross a global
 estimator list into every family. No fits were used to construct this
 contract.
+
+## Follow-up correction (2026-11-01): correlated q2 blocks for phylo, relmat and spatial
+
+The 2026-10-29 correction covered the animal provider only. The same
+same-endpoint correlated intercept-slope shape (a labelled `(1 + x | p | id)`
+term with a shared rho) now has its own template for the other structured
+providers: `phylo_correlated_block` / `P2-phylo-within`,
+`relmat_correlated_block` / `R2-relmat-within` and `spatial_correlated_block` /
+`SP2-spatial-within` (coordinates only; mesh is q1-only). The generated ledger
+now has 21,246 rows (896 new, all `unresolved` or `blocked_base_plumbing`),
+31 mechanism templates and 156 engine/mechanism rule rows. All 20,350 earlier
+row keys are unchanged. The unlabelled `(1 + x | id)` form is two independent
+fields with prior blockdiag(K, K) and stays under the existing `*_numeric_slope`
+templates, so the Poisson, NB2, Binomial, Gamma and Beta phylo, relmat and
+spatial q2 tests (independent fields) were not linked to the new rows. The
+only native correlated routes for these providers at the pin are Gaussian
+relmat and phylo (`tests/testthat/test-gaussian-structured-q2-sd.R`); the
+native spatial q2 SD route is refused there, so the spatial template is a pure
+obligation. Figures above in this file that say 20,350 rows are historical.

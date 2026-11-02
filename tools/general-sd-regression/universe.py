@@ -22,19 +22,26 @@ OUTPUT_PATH = INPUT_DIR / "required-rows.tsv"
 SUMMARY_PATH = INPUT_DIR / "required-universe.md"
 ENGINES = ("native", "Julia")
 EXPECTED_ENDPOINTS = 54
-EXPECTED_MECHANISMS = 28
-EXPECTED_BLOCK_RULE_ROWS = 150
+EXPECTED_MECHANISMS = 31
+EXPECTED_BLOCK_RULE_ROWS = 156
 EXPECTED_BLOCK_RULE_IDS = {
     "J-biv-structured2", "J-biv-structured4-tagged-partitions", "J-biv-structured4-untagged",
     "O-biv-all4-I", "O-biv-all4-q8", "O-biv-mean-m", "O-biv-mean-m-q4-anchor",
     "O-biv-mean-m-q6-anchor", "O-biv-mean2-I", "O-biv-mean2-x", "O-biv-scale2-I",
     "O-biv-scale2-x", "O-cross-LS-I", "O-cross-LS-x", "O-multi-within",
-    "O-multi-within-q3-anchor", "O2-within", "A2-animal-within", "S-biv-all4-I",
+    "O-multi-within-q3-anchor", "O2-within", "A2-animal-within", "P2-phylo-within",
+    "R2-relmat-within", "SP2-spatial-within", "S-biv-all4-I",
     "S-biv-all4-blockdiag-mu", "S-biv-all4-blockdiag-sigma", "S-biv-all4-m",
     "S-biv-all4-m-q12-anchor", "S-biv-all4-m-q8-anchor", "S-biv-mean-I",
     "S-biv-mean-m", "S-biv-mean-m-q4-anchor", "S-biv-mean-m-q6-anchor",
     "S-biv-mean-x", "S-biv-scale-I", "S-uni-LS-I",
 }
+# Within-endpoint structured q2 blocks: one endpoint, a correlated intercept
+# and one numeric slope. They are not labelled cross-endpoint blocks.
+WITHIN_ENDPOINT_Q2_BLOCKS = (
+    "animal_correlated_block", "phylo_correlated_block",
+    "relmat_correlated_block", "spatial_correlated_block",
+)
 CROSS_ENDPOINT_BLOCKS = (
     "iid_labelled_cross_parameter", "phylo_labelled_block",
     "animal_labelled_block", "relmat_labelled_block",
@@ -103,6 +110,7 @@ INPUTS = {
     "phylo_intercept": ["tree", "phylo_covariance_matrix", "phylo_precision_matrix"],
     "phylo_numeric_slope": ["tree"],
     "phylo_labelled_block": ["tree"],
+    "phylo_correlated_block": ["tree"],
     "animal_intercept": ["pedigree", "A_covariance", "Ainv_precision"],
     "animal_numeric_slope": ["pedigree", "A_covariance", "Ainv_precision"],
     "animal_correlated_block": ["pedigree", "A_covariance", "Ainv_precision"],
@@ -110,9 +118,11 @@ INPUTS = {
     "relmat_intercept": ["K_covariance", "Q_precision"],
     "relmat_numeric_slope": ["K_covariance", "Q_precision"],
     "relmat_labelled_block": ["K_covariance", "Q_precision"],
+    "relmat_correlated_block": ["K_covariance", "Q_precision"],
     "spatial_coordinate_intercept": ["coordinates"],
     "spatial_coordinate_slope": ["coordinates", "mesh_precision"],
     "spatial_coordinate_labelled_block": ["coordinates", "mesh_precision"],
+    "spatial_correlated_block": ["coordinates"],
     "spatial_mesh_intercept": ["mesh_precision_fixed_kappa"],
     "spatial_mesh_slope": ["mesh_precision_fixed_kappa"],
     "phylo_interaction_intercept": ["tree_pair"],
@@ -599,7 +609,7 @@ def _build_rows(
                                 if template_id == "iid_correlated_block":
                                     rule_instances.extend((rule, ep, inst) for inst in _rule_instances(rule, family_endpoints)
                                                           for ep in [inst[5]])
-                                elif template_id == "animal_correlated_block":
+                                elif template_id in WITHIN_ENDPOINT_Q2_BLOCKS:
                                     rule_instances.extend((rule, ep, inst) for inst in _rule_instances(rule, family_endpoints)
                                                           for ep in [inst[5]])
                                 continue
@@ -611,7 +621,7 @@ def _build_rows(
                             for rule in applicable:
                                 for inst in _rule_instances(rule, family_endpoints):
                                     rule_instances.append((rule, inst[5], inst))
-                        if template_id == "animal_correlated_block":
+                        if template_id in WITHIN_ENDPOINT_Q2_BLOCKS:
                             # This q2 block has one endpoint and two correlated
                             # coefficients; it is not a labelled cross-dpar block.
                             rule_instances = []
@@ -714,7 +724,7 @@ def _build_rows(
                                     f"{target}:{coef}", ",".join(coef_values), link, template_id,
                                     rule["rule_id"], provider, effect, inp,
                                     ("within_endpoint_structured_correlated_block"
-                                     if template_id == "animal_correlated_block"
+                                     if template_id in WITHIN_ENDPOINT_Q2_BLOCKS
                                      else "labelled_cross_parameter_block"), shape, qdomain, qvalue,
                                     partition, row_status, row_reason,
                                     evidence + " || block_rule_source=" + rule["source_pin"])
@@ -814,7 +824,7 @@ def summary_markdown(rows: list[dict[str, str]]) -> str:
             f"- Endpoint source rows: {EXPECTED_ENDPOINTS} across {len(FAMILY_LINKS)} family routes.",
             f"- Explicit family/link rows: {sum(len(v) for v in EXPECTED_LINKS.values())} (42 base-admitted engine-link rows plus 2 blocked Julia union obligations; no implicit default-link rows).",
             f"- Finite mechanism templates: {len(by_mechanism)}.",
-            f"- Machine-readable source block rule rows: {EXPECTED_BLOCK_RULE_ROWS} across 31 named rules; rows also carry target_member, member_coefs, q_domain, q_value, and partition_rule.",
+            f"- Machine-readable source block rule rows: {EXPECTED_BLOCK_RULE_ROWS} across {len(EXPECTED_BLOCK_RULE_IDS)} named rules; rows also carry target_member, member_coefs, q_domain, q_value, and partition_rule.",
             f"- Old-to-new mapping: the prior 5,438-row snapshot comprised 4,950 non-block rows and 488 block-related rows. This revision retains {non_block} non-block rows and has {block_rows} block rows ({block_rows-candidate_rows} source-shaped/fallback rows plus {candidate_rows} explicit unresolved candidate rows), for {len(rows)} total rows ({len(rows)-5438:+d} versus that snapshot). The 1,440 Julia tagged-q4 rows have {tagged_native} exact native union counterparts marked blocked.",
             f"- Required rows: {len(rows)}.",
             f"- By engine: {', '.join(f'{key}={by_engine[key]}' for key in sorted(by_engine))}.",
@@ -830,7 +840,7 @@ def summary_markdown(rows: list[dict[str, str]]) -> str:
             "",
             "## Review limits",
             "",
-            "The initial statuses remain `required`, `unresolved`, `blocked_base_plumbing`, or explicit single-endpoint `structural_inapplicable`; no code path assigns `supported`. The 31 named block rules (150 engine/mechanism/domain rows) are expanded by provider into finite q anchors plus symbolic domains where the contract admits arbitrary numeric slopes. Cross-endpoint candidate rows are finite over each family's actual endpoint set and remain unresolved absent source admission. Base plumbing is still not fully classified per family/endpoint/provider/layout; native combined-provider fitted routes, estimator prerequisites, and source disagreements remain open. Julia's two-structured-provider fitter is Gaussian and supports phylo/animal/relmat pairs (DRM.jl `src/gaussian_structured.jl:203-224,236-260`); spatial pairings are refused (`src/gaussian_structured.jl:217-219,510-514`). Native temporal rows lack fitted base plumbing at the pinned snapshot (drmTMB `docs/design/01-formula-grammar.md:1226-1230`); Julia has AR1, OU, homogeneous Toeplitz, and one phylo+OU layout (DRM.jl `src/temporal.jl:1-20,53-78`). G0 remains open.",
+            "The initial statuses remain `required`, `unresolved`, `blocked_base_plumbing`, or explicit single-endpoint `structural_inapplicable`; no code path assigns `supported`. The 34 named block rules (156 engine/mechanism/domain rows) are expanded by provider into finite q anchors plus symbolic domains where the contract admits arbitrary numeric slopes. Cross-endpoint candidate rows are finite over each family's actual endpoint set and remain unresolved absent source admission. Base plumbing is still not fully classified per family/endpoint/provider/layout; native combined-provider fitted routes, estimator prerequisites, and source disagreements remain open. Julia's two-structured-provider fitter is Gaussian and supports phylo/animal/relmat pairs (DRM.jl `src/gaussian_structured.jl:203-224,236-260`); spatial pairings are refused (`src/gaussian_structured.jl:217-219,510-514`). Native temporal rows lack fitted base plumbing at the pinned snapshot (drmTMB `docs/design/01-formula-grammar.md:1226-1230`); Julia has AR1, OU, homogeneous Toeplitz, and one phylo+OU layout (DRM.jl `src/temporal.jl:1-20,53-78`). G0 remains open.",
             "",
         ]
     )
