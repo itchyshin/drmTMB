@@ -94,7 +94,9 @@ rows without dense known covariance, and the documented count and
 positive-continuous routes (including Poisson, NB2, Gamma and Binomial
 ordinary \code{mu} random effects with \code{sd()} formulas, and Poisson, NB2 and
 Gamma with one structured animal, relmat, phylo or spatial intercept that
-has its own \code{sd(group, level = ...)} formula). \code{missing = miss_control(predictor = "model")} is implemented for one \code{mi()}
+has its own \code{sd(group, level = ...)} formula, or with one animal
+intercept-plus-slope block that has one \code{sd()} formula per coefficient).
+\code{missing = miss_control(predictor = "model")} is implemented for one \code{mi()}
 missing predictor in the documented family-specific routes. A univariate
 Gaussian response also supports two independent \code{mi()} predictors with
 fixed-effect models: two Gaussian models or one Gaussian plus one binary

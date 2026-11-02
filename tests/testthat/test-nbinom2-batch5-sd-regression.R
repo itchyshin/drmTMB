@@ -390,15 +390,16 @@ test_that("NB2 IID plus structured SD keeps its other gates closed", {
       family = zi_nbinom2(), data = dat, control = ctl
     )
   )
-  # Missing-response integration is not part of this slice.
-  expect_error(
-    drmTMB(
-      bf(y ~ x + relmat(1 | id, K = K) + (1 | site), sigma ~ 1,
-         sd(id, level = "relmat") ~ z_id, sd(site) ~ z_site),
-      family = nbinom2(), data = dat,
-      missing = miss_control(response = "include"), control = ctl
-    )
+  # Missing-response integration is admitted since batch 23; fitted evidence is
+  # in test-count-iid-slope-sd-missing-include.R. The builder keeps every row.
+  d_miss <- dat
+  d_miss$y[c(3L, 40L)] <- NA
+  spec_inc <- drm_build_nbinom2_spec(
+    bf(y ~ x + relmat(1 | id, K = K) + (1 | site), sigma ~ 1,
+       sd(id, level = "relmat") ~ z_id, sd(site) ~ z_site),
+    d_miss, missing = miss_control(response = "include")
   )
+  expect_identical(length(spec_inc$y), nrow(d_miss))
 })
 
 # ---- (B) crossed ordinary intercepts ----------------------------------------

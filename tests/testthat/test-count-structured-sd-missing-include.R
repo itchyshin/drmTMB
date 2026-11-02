@@ -30,13 +30,9 @@
 # include vs complete-case logLik 1e-8, oracle 1e-6 (relative), bug-sensitivity
 # gap > 0.05.
 #
-# Fences pinned here: slope-only, q2 (intercept + slope), ordinary-plus-
-# structured (iid) and zero-inflated structured SD routes stay refused with
-# include (the receipted pins in test-structured-sd-nonunit-k-and-missing.R,
-# test-count-structured-q2-more-providers-sd.R,
-# test-poisson-iid-structured-sd-regression.R,
-# test-nbinom2-batch5-sd-regression.R and test-structured-sd-q-ainv-quickwins.R
-# are untouched).
+# Fences pinned here: q2 (intercept + slope) and zero-inflated structured SD
+# routes stay refused with include. Slope-only and ordinary-plus-structured
+# (iid) shapes are admitted in test-count-iid-slope-sd-missing-include.R.
 
 smi_levels <- function(n_id) sprintf("id%02d", seq_len(n_id))
 
@@ -310,16 +306,6 @@ test_that("structured SD include fences stay closed for count families", {
   expect_no_error(drm_build_nbinom2_spec(
     bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1, sd_id), dat, missing = inc))
 
-  # Slope-only structured SD stays refused.
-  slope_sd <- sd(id, level = "relmat") ~ z
-  expect_error(drm_build_poisson_spec(
-    bf(y ~ x + relmat(0 + x | id, K = K), slope_sd), dat, missing = inc),
-    "complete\\s+responses")
-  expect_error(drm_build_nbinom2_spec(
-    bf(y ~ x + relmat(0 + x | id, K = K), sigma ~ 1, slope_sd), dat,
-    missing = inc),
-    "complete\\s+data")
-
   # Intercept-plus-slope (q2) structured SD stays refused.
   sd_a <- sd(id, level = "relmat", coef = "(Intercept)") ~ z
   sd_b <- sd(id, level = "relmat", coef = "x") ~ z
@@ -331,16 +317,8 @@ test_that("structured SD include fences stay closed for count families", {
     missing = inc),
     "complete\\s+data")
 
-  # Ordinary-plus-structured (iid) SD stays refused.
-  sd_site <- sd(site) ~ z_site
-  expect_error(drm_build_poisson_spec(
-    bf(y ~ x + relmat(1 | id, K = K) + (1 | site), sd_id, sd_site), dat,
-    missing = inc),
-    "complete\\s+responses")
-  expect_error(drm_build_nbinom2_spec(
-    bf(y ~ x + relmat(1 | id, K = K) + (1 | site), sigma ~ 1, sd_id, sd_site),
-    dat, missing = inc),
-    "complete\\s+data")
+  # Slope-only and ordinary-plus-structured (iid) shapes are admitted in
+  # test-count-iid-slope-sd-missing-include.R.
 
   # Zero-inflated structured SD stays refused.
   expect_error(drm_build_poisson_spec(

@@ -353,7 +353,7 @@ nuk_missing_fixture <- function(seed = 20261205L, n_id = 30L, n_each = 16L) {
   list(pois = pois, nb2 = nb2, K = K, Q = Q, ids = ids)
 }
 
-test_that("Poisson and NB2 slope-only structured SD refuse missing responses", {
+test_that("Poisson and NB2 slope-only structured SD admit missing responses and refuse zero inflation", {
   skip_on_cran()
   skip_if_not_installed("ape")
   fx <- nuk_missing_fixture()
@@ -380,17 +380,21 @@ test_that("Poisson and NB2 slope-only structured SD refuse missing responses", {
   for (route in routes) {
     mu_f <- route$f
     sd_f <- stats::as.formula(sprintf('sd(id, level = "%s") ~ z', route$lev))
+    # Admitted since batch 23; fitted evidence (include equals complete-case
+    # and a dense Laplace oracle) is in test-count-iid-slope-sd-missing-include.R.
+    inc <- miss_control(response = "include")
+    expect_no_error(drm_build_poisson_spec(bf(mu_f, sd_f), fx$pois, missing = inc))
+    expect_no_error(drm_build_nbinom2_spec(bf(mu_f, sigma_rhs, sd_f), fx$nb2,
+                                           missing = inc))
+    # Zero inflation stays refused under include.
     expect_error(
-      drmTMB(bf(mu_f, sd_f), family = poisson(), data = fx$pois,
-             missing = miss_control(response = "include"),
-             control = drm_control(se = FALSE)),
-      "complete responses"
+      drm_build_poisson_spec(bf(mu_f, zi ~ 1, sd_f), fx$pois, missing = inc),
+      "non-inflated\\s+model\\s+with\\s+complete\\s+responses"
     )
     expect_error(
-      drmTMB(bf(mu_f, sigma_rhs, sd_f), family = nbinom2(), data = fx$nb2,
-             missing = miss_control(response = "include"),
-             control = drm_control(se = FALSE)),
-      "complete data"
+      drm_build_nbinom2_spec(bf(mu_f, sigma_rhs, zi ~ 1, sd_f), fx$nb2,
+                             missing = inc),
+      "complete\\s+data"
     )
   }
 })

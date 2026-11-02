@@ -139,6 +139,8 @@ test-comparators-external-oracle.R	suggests-package	environment	runs	7
 test-comparators-phase19.R	suggests-package	environment	runs	12
 test-comparators.R	suggests-package	environment	runs	18
 test-control.R	cran-lane	environment	runs	4
+test-count-iid-slope-sd-missing-include.R	cran-lane	environment	runs	4
+test-count-iid-slope-sd-missing-include.R	suggests-package	environment	runs	2
 test-count-labelled-relmat-q2-sd.R	cran-lane	environment	runs	5
 test-count-labelled-relmat-q2-sd.R	suggests-package	environment	runs	1
 test-count-structured-mu.R	suggests-package	environment	runs	8
@@ -214,6 +216,7 @@ test-gaussian-independent-pair-sd.R	cran-lane	environment	runs	1
 test-gaussian-mu-sigma-joint-sd.R	cran-lane	environment	runs	3
 test-gaussian-phylo-interaction-slope-sd.R	cran-lane	environment	runs	4
 test-gaussian-phylo-interaction-slope-sd.R	suggests-package	environment	runs	3
+test-gaussian-q3-per-coef-sd.R	cran-lane	environment	runs	3
 test-gaussian-sigma-endpoint-mixes-sd.R	cran-lane	environment	runs	7
 test-gaussian-sigma-structured-sd.R	cran-lane	environment	runs	3
 test-gaussian-sigma-structured-sd.R	suggests-package	environment	runs	4
@@ -635,6 +638,7 @@ test-provenance.R	external-tool	environment	runs	2
 test-provenance.R	runtime-conditional	runtime	depends	1
 test-q2-sd-marginal-simulate.R	cran-lane	environment	runs	5
 test-q2-sd-marginal-simulate.R	suggests-package	environment	runs	2
+test-q2-sd-missing-include.R	cran-lane	environment	runs	4
 test-reader-journeys.R	build-premise	build	skips	2
 test-reader-journeys.R	suggests-package	environment	runs	1
 test-reader-vignette-contracts.R	build-premise	build	skips	1

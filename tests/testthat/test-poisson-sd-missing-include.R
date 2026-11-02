@@ -210,13 +210,21 @@ test_that("Poisson SD include keeps its other fences closed", {
   expect_error(drm_build_poisson_spec(
     bf(y ~ x + (1 + x | id), sd(id, coef = "x") ~ w0), dat, missing = inc),
     "missing-response integration")
-  # A structured relmat intercept plus an ordinary random effect stays refused
-  # (the structured validator fires before the SD gate).
+  # One ordinary intercept beside a relmat intercept is the iid shape; it is
+  # admitted with include since batch 23
+  # (test-count-iid-slope-sd-missing-include.R). Two ordinary random effects
+  # beside a structured intercept stay refused (the structured validator fires
+  # before the SD gate).
   K <- diag(nlevels(dat$id))
   rownames(K) <- colnames(K) <- levels(dat$id)
   dat$site <- factor(rep(seq_len(4L), length.out = nrow(dat)))
-  expect_error(drm_build_poisson_spec(
+  dat$site2 <- factor(rep(seq_len(3L), length.out = nrow(dat)))
+  expect_no_error(drm_build_poisson_spec(
     bf(y ~ x + relmat(1 | id, K = K) + (1 | site), sd(site) ~ 1),
+    dat, missing = inc))
+  expect_error(drm_build_poisson_spec(
+    bf(y ~ x + relmat(1 | id, K = K) + (1 | site) + (1 | site2),
+       sd(site) ~ 1),
     dat, missing = inc),
     "cannot be combined with ordinary")
   # Without include, NA responses are still dropped (complete-case default).

@@ -142,8 +142,9 @@
 #'   positive-continuous routes (including Poisson, NB2, Gamma and Binomial
 #'   ordinary `mu` random effects with `sd()` formulas, and Poisson, NB2 and
 #'   Gamma with one structured animal, relmat, phylo or spatial intercept that
-#'   has its own `sd(group, level = ...)` formula). `missing =
-#'   miss_control(predictor = "model")` is implemented for one `mi()`
+#'   has its own `sd(group, level = ...)` formula, or with one animal
+#'   intercept-plus-slope block that has one `sd()` formula per coefficient).
+#'   `missing = miss_control(predictor = "model")` is implemented for one `mi()`
 #'   missing predictor in the documented family-specific routes. A univariate
 #'   Gaussian response also supports two independent `mi()` predictors with
 #'   fixed-effect models: two Gaussian models or one Gaussian plus one binary
@@ -4625,11 +4626,22 @@ drm_build_gaussian_ls_spec <- function(
     )
   }
   active_mu_terms <- remove_qgt2_random_mu_terms(mu_re$terms)
+  # q3 and q4 unlabelled correlated blocks admit per-coefficient sd() formulas
+  # through the re_cov registry; larger blocks remain refused.
+  gaussian_re_cov_sd_terms <- Filter(function(term) {
+    length(term$coef_names) >= 3L
+  }, mu_re$terms)
+  gaussian_re_cov_sd <- length(sd_mu_entries) > 0L &&
+    length(gaussian_re_cov_sd_terms) == 1L &&
+    length(gaussian_re_cov_sd_terms[[1L]]$coef_names) %in% 3:4 &&
+    identical(gaussian_re_cov_sd_terms[[1L]]$type, "correlated_block") &&
+    is.null(gaussian_re_cov_sd_terms[[1L]]$covariance_label)
   if (length(sd_mu_entries) > 0L &&
-      length(active_mu_terms) < length(mu_re$terms)) {
+      length(active_mu_terms) < length(mu_re$terms) &&
+      !gaussian_re_cov_sd) {
     cli::cli_abort(c(
-      "Gaussian ordinary {.code sd()} regression cannot be combined with a correlated random-effect block of three or more coefficients.",
-      "i" = "Use independent terms or an unlabelled {.code (1 + x | group)} block of two coefficients with {.code sd()} formulas."
+      "Gaussian ordinary {.code sd()} regression cannot be combined with a correlated random-effect block of five or more coefficients, a labelled block, or more than one such block.",
+      "i" = "Use independent terms, an unlabelled {.code (1 + x | group)} block of two coefficients, or one unlabelled block of three or four coefficients with {.code sd()} formulas."
     ))
   }
   allow_gaussian_structured_q2_sd <-
@@ -5042,12 +5054,26 @@ drm_build_gaussian_ls_spec <- function(
   sd_mu_targets <- drm_scalar_sd_mu_targets(
     sd_mu_entries,
     mu_re$terms,
-    re_mu,
+    if (gaussian_re_cov_sd) re_mu_registry else re_mu,
     family_label = "Gaussian",
     allow_slopes = TRUE,
     allow_independent_same_group = TRUE,
-    allow_correlated_q2 = TRUE
+    allow_correlated_q2 = TRUE,
+    allow_correlated_blocks = gaussian_re_cov_sd
   )
+  if (gaussian_re_cov_sd) {
+    block_term <- which(vapply(mu_re$terms, function(term) {
+      length(term$coef_names) >= 3L
+    }, logical(1L)))
+    if (!all(vapply(sd_mu_targets, function(target) {
+      identical(target$identity$target_term, block_term)
+    }, logical(1L)))) {
+      cli::cli_abort(c(
+        "Gaussian per-coefficient SD regression for a correlated block of three or four coefficients can only target that block.",
+        "i" = "Remove {.code sd()} formulas that target other random-effect terms, or fit them without the q3 block."
+      ))
+    }
+  }
   sd_sigma_targets <- drm_scalar_sd_mu_targets(
     sd_sigma_entries,
     sigma_re$terms,
@@ -5067,9 +5093,12 @@ drm_build_gaussian_ls_spec <- function(
   sd_mu <- build_sd_mu_structure(
     sd_mu_entries,
     sd_mu_targets,
-    re_mu,
+    if (gaussian_re_cov_sd) re_mu_registry else re_mu,
     data_model
   )
+  if (gaussian_re_cov_sd) {
+    sd_mu <- drm_attach_re_cov_sd_rows(sd_mu, re_cov_blocks, re_mu$n_re)
+  }
   sd_sigma <- build_sd_mu_structure(
     sd_sigma_entries,
     sd_sigma_targets,
@@ -5307,6 +5336,14 @@ drm_build_gaussian_ls_spec <- function(
         sd_sigma = sd_sigma,
         temporal_mu = temporal_mu
       )
+      if (!is.null(sd_mu$re_cov_sd_row0)) {
+        qgt2_members <- qgt2_covariance_members(re_cov_blocks)
+        modelled <- qgt2_members$source_term_id0 %in%
+          (unname(sd_mu$target_coef) - 1L)
+        sd_map <- seq_len(nrow(qgt2_members))
+        sd_map[modelled] <- NA_integer_
+        map$log_sd_re_cov <- factor(sd_map)
+      }
       if (
         include_missing_predictor &&
           identical(missing_predictor$family, "ordinal")
@@ -6728,8 +6765,17 @@ drm_build_gamma_ls_spec <- function(
       structured_term_is_intercept_only(mu_structured_term) &&
       is.null(mu_structured_term$covariance_label) &&
       length(mu_re$terms) == 0L && length(sigma_re$terms) == 0L
+    # Animal intercept plus one slope (q = 2), one SD formula per coefficient.
+    gamma_include_structured_q2_sd <- length(sd_phylo_entries) == 2L &&
+      length(sd_mu_entries) == 0L && length(sd_sigma_entries) == 0L &&
+      !is.null(mu_structured_term) &&
+      identical(structured_mu_type(mu_structured_term), "animal") &&
+      length(mu_structured_term$coef_names) == 2L &&
+      identical(mu_structured_term$coef_names[[1L]], "(Intercept)") &&
+      length(mu_re$terms) == 0L && length(sigma_re$terms) == 0L
     if (include_missing_response &&
         !gamma_include_structured_q1_sd &&
+        !gamma_include_structured_q2_sd &&
         (length(sd_sigma_entries) > 0L || length(sd_phylo_entries) > 0L ||
           !is.null(mu_structured_term))) {
       cli::cli_abort(c(
@@ -10206,24 +10252,36 @@ drm_build_poisson_spec <- function(
     length(mu_re_probe$terms) == 1L &&
     identical(mu_re_probe$terms[[1L]]$type, "intercept") &&
     is.null(mu_re_probe$terms[[1L]]$covariance_label) &&
-    is.null(zi_entry) && !include_missing_response
+    is.null(zi_entry)
   # Missing responses (miss_control(response = "include")) are admitted for one
-  # unlabelled q1 structured intercept with its own SD formula and nothing else
-  # in mu: the C++ observed_y mask drops only the masked row's density, and the
-  # latent field keeps its prior for every node.
+  # unlabelled q1 structured intercept or slope-only term with its own SD
+  # formula, optionally with one ordinary intercept and its own SD formula
+  # beside a relmat, animal or phylo intercept: the C++ observed_y mask drops
+  # only the masked row's density, and the latent field keeps its prior for
+  # every node.
   poisson_structured_include_ok <- !is.null(mu_structured_term) &&
     structured_mu_type(mu_structured_term) %in%
       c("relmat", "animal", "phylo", "spatial") &&
-    structured_term_is_intercept_only(mu_structured_term) &&
+    (structured_term_is_intercept_only(mu_structured_term) ||
+       (structured_term_is_slope_only(mu_structured_term) &&
+          length(mu_re_probe$terms) == 0L)) &&
     is.null(mu_structured_term$covariance_label) &&
     length(sd_phylo_entries) == 1L &&
-    length(sd_mu_entries) == 0L && is.null(zi_entry)
+    (length(sd_mu_entries) == 0L || poisson_iid_structured) &&
+    is.null(zi_entry)
+  # The animal intercept-plus-slope (q = 2) block with one SD formula per
+  # coefficient is admitted too: the q2 prior does not depend on y either.
+  poisson_structured_include_ok <- poisson_structured_include_ok ||
+    (allow_poisson_structured_q2_sd &&
+       identical(structured_mu_type(mu_structured_term), "animal") &&
+       length(sd_phylo_entries) == 2L &&
+       length(sd_mu_entries) == 0L && is.null(zi_entry))
   if (length(sd_phylo_entries) > 0L &&
       (!is.null(zi_entry) ||
        (length(sd_mu_entries) > 0L && !poisson_iid_structured) ||
        (include_missing_response && !poisson_structured_include_ok))) {
     cli::cli_abort(c(
-      "Poisson structured SD regression currently requires a non-inflated model with complete responses. An ordinary {.code sd()} formula is allowed only for one ordinary intercept beside one relmat, animal or phylogenetic intercept. Missing responses are allowed only for one structured intercept with its own {.code sd()} formula.",
+      "Poisson structured SD regression currently requires a non-inflated model with complete responses. An ordinary {.code sd()} formula is allowed only for one ordinary intercept beside one relmat, animal or phylogenetic intercept. Missing responses are allowed only for one structured intercept or slope-only term with its own {.code sd()} formula (optionally with one ordinary intercept beside a relmat, animal or phylogenetic intercept), or one animal intercept-plus-slope block with one {.code sd()} formula per coefficient.",
       "i" = "Fit one structured SD target at a time, using {.code sd(group, level = \"phylogenetic\")}, {.code sd(group, level = \"animal\")}, or {.code sd(group, level = \"relmat\")}."
     ))
   }
@@ -10833,20 +10891,30 @@ drm_build_nbinom2_spec <- function(
     NULL
   }
   # Structured SD regression accepts missing responses only for one unlabelled
-  # q1 structured intercept with its own SD formula and nothing else in mu or
-  # zi (the C++ observed_y mask drops only the masked row's density; the
-  # latent field keeps its prior for every node).
+  # q1 structured intercept or slope-only term with its own SD formula, plus
+  # at most one ordinary SD formula (the ordinary-plus-structured iid shape is
+  # checked again below against nb2_iid_structured), and no zero inflation
+  # (the C++ observed_y mask drops only the masked row's density; the latent
+  # field keeps its prior for every node).
   if (include_missing_response && length(sd_phylo_entries) > 0L &&
       !(!is.null(mu_structured_term) && is.null(mu_structured_term2) &&
           structured_mu_type(mu_structured_term) %in%
             c("relmat", "animal", "phylo", "spatial") &&
-          structured_term_is_intercept_only(mu_structured_term) &&
+          (structured_term_is_intercept_only(mu_structured_term) ||
+             (structured_term_is_slope_only(mu_structured_term) &&
+                length(sd_mu_entries) == 0L)) &&
           is.null(mu_structured_term$covariance_label) &&
-          length(sd_phylo_entries) == 1L && length(sd_mu_entries) == 0L &&
+          length(sd_phylo_entries) == 1L && length(sd_mu_entries) <= 1L &&
+          is.null(zi_entry)) &&
+      !(!is.null(mu_structured_term) && is.null(mu_structured_term2) &&
+          identical(structured_mu_type(mu_structured_term), "animal") &&
+          length(mu_structured_term$coef_names) == 2L &&
+          identical(mu_structured_term$coef_names[[1L]], "(Intercept)") &&
+          length(sd_phylo_entries) == 2L && length(sd_mu_entries) == 0L &&
           is.null(zi_entry))) {
     cli::cli_abort(c(
       "NB2 ordinary {.code sd()} regression currently requires complete data.",
-      "i" = "Missing responses are allowed only for one structured intercept with its own {.code sd()} formula and no other random or zero-inflation terms."
+      "i" = "Missing responses are allowed only for one structured intercept or slope-only term with its own {.code sd()} formula, optionally with one ordinary intercept beside a relmat, animal or phylogenetic intercept, and no zero-inflation terms."
     ))
   }
   sigma_phylo <- extract_gaussian_mu_phylo_term(sigma_entry, dpar = "sigma")
@@ -10906,7 +10974,7 @@ drm_build_nbinom2_spec <- function(
     length(mu_re$terms) == 1L &&
     identical(mu_re$terms[[1L]]$type, "intercept") &&
     is.null(mu_re$terms[[1L]]$covariance_label) &&
-    is.null(zi_entry) && !include_missing_response
+    is.null(zi_entry)
   if (include_missing_response) {
     has_ordinary_correlated <- any(vapply(
       mu_re$terms,
@@ -19373,6 +19441,7 @@ empty_labelled_covariance_block_tmb_data <- function() {
     re_cov_member_coef_pos = 0L,
     re_cov_member_latent_index = matrix(0L, nrow = 1L, ncol = 1L),
     re_cov_member_design_value = matrix(0, nrow = 1L, ncol = 1L),
+    re_cov_member_sd_row = matrix(-1L, nrow = 1L, ncol = 1L),
     re_cov_pair_from_member = 0L,
     re_cov_pair_to_member = 0L,
     re_cov_pair_parameter = 0L,
@@ -19437,6 +19506,7 @@ labelled_covariance_block_tmb_data <- function(
     re_cov_member_coef_pos = members$coef_pos0,
     re_cov_member_latent_index = do.call(cbind, members$latent_index0),
     re_cov_member_design_value = do.call(cbind, members$design_value),
+    re_cov_member_sd_row = matrix(-1L, nrow = 1L, ncol = 1L),
     re_cov_pair_from_member = pairs$from_member_id0,
     re_cov_pair_to_member = pairs$to_member_id0,
     re_cov_pair_parameter = as.integer(pair_parameter),
@@ -20316,6 +20386,34 @@ build_sd_mu_structure <- function(entries, targets, re_mu, data) {
     ),
     class = "drm_sd_mu_structure"
   )
+}
+
+# Per-coefficient SD rows for a q3/q4 correlated block carried by the re_cov
+# registry. Rows index the sd() design (X_sd_mu); -1 keeps the constant SD.
+drm_attach_re_cov_sd_rows <- function(sd_mu, registry, n_active_re) {
+  members <- registry$members
+  n_group_max <- max(members$n_groups)
+  sd_row <- matrix(-1L, nrow = n_group_max, ncol = nrow(members))
+  for (dpar in sd_mu$dpars) {
+    coef_axis <- sd_mu$target_coef[[dpar]]
+    cols <- which(members$source_term_id0 == coef_axis - 1L)
+    if (length(cols) != 1L) {
+      cli::cli_abort(
+        "Internal error: {.code sd()} target {.code {dpar}} did not match one correlated-block member."
+      )
+    }
+    rows0 <- sd_mu$row_index[[dpar]] - 1L
+    if (length(rows0) != members$n_groups[[cols]]) {
+      cli::cli_abort(
+        "Internal error: {.code sd()} rows do not align with the correlated-block groups."
+      )
+    }
+    sd_row[seq_along(rows0), cols] <- as.integer(rows0)
+  }
+  sd_mu$re_sd_row0 <- rep.int(-1L, n_active_re)
+  sd_mu$re_cov_sd_row0 <- sd_row
+  sd_mu$re_cov_modelled_member <- colSums(sd_row >= 0L) > 0L
+  sd_mu
 }
 
 build_sd_phylo_structure <- function(entries, targets, phylo_mu, data) {
@@ -21420,7 +21518,9 @@ gaussian_ls_start <- function(
     }
   }
   beta_sd_mu <- c(
-    if (sd_mu$n_models > 0L) {
+    if (sd_mu$n_models > 0L && !is.null(sd_mu$re_cov_sd_row0)) {
+      gaussian_sd_mu_re_cov_start(re_cov_start, re_cov_blocks, sd_mu)
+    } else if (sd_mu$n_models > 0L) {
       gaussian_sd_mu_start(mu_re_start, sd_mu)
     },
     gaussian_sd_phylo_start(y_scale, sd_phylo)
@@ -23251,6 +23351,18 @@ gaussian_sigma_re_start <- function(re_sigma) {
   )
 }
 
+gaussian_sd_mu_re_cov_start <- function(re_cov_start, registry, sd_mu) {
+  out <- numeric(ncol(sd_mu$X))
+  qgt2 <- qgt2_covariance_members(registry)
+  for (dpar in sd_mu$dpars) {
+    member <- which(qgt2$source_term_id0 == sd_mu$target_coef[[dpar]] - 1L)
+    out[[sd_mu$coef_index[[dpar]][[1L]]]] <-
+      re_cov_start$log_sd_re_cov[[member]]
+  }
+  names(out) <- colnames(sd_mu$X)
+  out
+}
+
 gaussian_sd_mu_start <- function(mu_re_start, sd_mu) {
   if (sd_mu$n_models == 0L) {
     return(0)
@@ -23541,7 +23653,8 @@ gaussian_ls_map <- function(
     out$u_mu <- factor(NA)
     out$log_sd_mu <- factor(NA)
   }
-  if (re_mu$n_re > 0L && sd_mu$n_models > 0L) {
+  if (re_mu$n_re > 0L && sd_mu$n_models > 0L &&
+      is.null(sd_mu$re_cov_sd_row0)) {
     log_sd_map <- seq_len(re_mu$n_terms)
     log_sd_map[unname(sd_mu$target_coef)] <- NA_integer_
     out$log_sd_mu <- factor(log_sd_map)
@@ -23704,6 +23817,10 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
     cov_blocks$tmb_data
   } else {
     empty_labelled_covariance_block_tmb_data()
+  }
+  if (is.list(spec$random_scale$mu) &&
+      is.matrix(spec$random_scale$mu$re_cov_sd_row0)) {
+    cov_tmb_data$re_cov_member_sd_row <- spec$random_scale$mu$re_cov_sd_row0
   }
   c(
     tmb_data,
@@ -26110,9 +26227,26 @@ split_tmb_sdpars <- function(par, spec) {
     return(list())
   }
   out <- list()
+  re_cov_sd <- !is.null(spec$random_scale$mu$re_cov_sd_row0)
+  if (re_cov_sd) {
+    for (dpar in spec$random_scale$mu$dpars) {
+      sd_group <- sd_mu_group_values(
+        par,
+        spec$random_scale$mu,
+        dpar = dpar,
+        tmb_data = spec$tmb_data
+      )
+      names(sd_group) <- paste0(
+        dpar,
+        ":",
+        spec$random_scale$mu$group_levels_list[[dpar]]
+      )
+      out[[dpar]] <- sd_group
+    }
+  }
   if (spec$random$mu$n_re > 0L) {
     unmodelled <- seq_len(spec$random$mu$n_terms)
-    if (spec$random_scale$mu$n_models > 0L) {
+    if (spec$random_scale$mu$n_models > 0L && !re_cov_sd) {
       unmodelled <- setdiff(
         unmodelled,
         unname(spec$random_scale$mu$target_coef)
@@ -26196,6 +26330,10 @@ split_tmb_sdpars <- function(par, spec) {
     if (nrow(qgt2_members) > 0L) {
       sd_re_cov <- exp(unname(par$log_sd_re_cov[seq_len(nrow(qgt2_members))]))
       for (i in seq_len(nrow(qgt2_members))) {
+        if (re_cov_sd && qgt2_members$source_term_id0[[i]] %in%
+            (unname(spec$random_scale$mu$target_coef) - 1L)) {
+          next
+        }
         key <- covariance_registry_member_sd_key(qgt2_members[
           i,
           ,
@@ -26718,7 +26856,9 @@ split_tmb_random_effects <- function(par, spec) {
   if (is.list(spec$random$covariance_blocks)) {
     qgt2_re <- transform_covariance_block_random_effects(
       par,
-      spec$random$covariance_blocks
+      spec$random$covariance_blocks,
+      sd_mu = spec$random_scale$mu,
+      tmb_data = spec$tmb_data
     )
     if (!is.null(qgt2_re)) {
       out$covariance_blocks <- qgt2_re
@@ -26874,7 +27014,9 @@ split_tmb_random_effects <- function(par, spec) {
   out
 }
 
-transform_covariance_block_random_effects <- function(par, registry) {
+transform_covariance_block_random_effects <- function(
+  par, registry, sd_mu = NULL, tmb_data = NULL
+) {
   blocks <- qgt2_covariance_blocks(registry)
   members <- qgt2_covariance_members(registry)
   if (nrow(blocks) == 0L) {
@@ -26892,6 +27034,13 @@ transform_covariance_block_random_effects <- function(par, registry) {
     ncol = nrow(members)
   )
   colnames(contribution) <- members$label
+  # Per-group SDs from sd() formulas, by group row of the sd design.
+  sd_group_all <- if (!is.null(sd_mu) && !is.null(sd_mu$re_cov_sd_row0)) {
+    unname(sd_mu_group_values(par, sd_mu, tmb_data = tmb_data))
+  } else {
+    NULL
+  }
+  all_members <- registry$members
 
   theta_offset <- 0L
   sd_offset <- 0L
@@ -26907,9 +27056,20 @@ transform_covariance_block_random_effects <- function(par, registry) {
     member_cols <- seq.int(member_offset + 1L, length.out = q)
     for (g in seq_len(n_groups)) {
       z_index <- seq.int(u_offset + (g - 1L) * q + 1L, length.out = q)
+      sd_g <- sd_block
+      if (!is.null(sd_group_all)) {
+        for (m in seq_len(q)) {
+          col_all <- which(
+            all_members$block_id0 == members$block_id0[[member_cols[[m]]]] &
+              all_members$member_id0 == members$member_id0[[member_cols[[m]]]]
+          )
+          row_g <- sd_mu$re_cov_sd_row0[g, col_all]
+          if (row_g >= 0L) sd_g[[m]] <- sd_group_all[[row_g + 1L]]
+        }
+      }
       latent <- tmb_vecscale_sqrt_cov_scale(
         theta_block,
-        sd_block,
+        sd_g,
         latent_standard[z_index]
       )
       values[z_index] <- latent

@@ -762,6 +762,7 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(re_cov_member_coef_pos);
   DATA_IMATRIX(re_cov_member_latent_index);
   DATA_MATRIX(re_cov_member_design_value);
+  DATA_IMATRIX(re_cov_member_sd_row);
   DATA_IVECTOR(re_cov_pair_from_member);
   DATA_IVECTOR(re_cov_pair_to_member);
   DATA_IVECTOR(re_cov_pair_parameter);
@@ -838,6 +839,7 @@ Type objective_function<Type>::operator()()
   (void)re_cov_member_coef_pos;
   (void)re_cov_member_latent_index;
   (void)re_cov_member_design_value;
+  (void)re_cov_member_sd_row;
   (void)log_det_Q_mesh_spatial;
   (void)re_cov_pair_from_member;
   (void)re_cov_pair_to_member;
@@ -1146,6 +1148,24 @@ Type objective_function<Type>::operator()()
             re_cov_member_design_value.cols()
           );
           re_cov_contribution.setZero();
+          // Per-coefficient SD regression for a q >= 3 block: a member with a
+          // non-negative re_cov_member_sd_row(g, member) takes its SD for group g
+          // from the sd() formula rows (X_sd_mu * beta_sd_mu); other members keep
+          // their constant SD.
+          vector<Type> sd_re_cov_group(X_sd_mu.rows());
+          sd_re_cov_group.setZero();
+          if (has_sd_mu_model == 1) {
+            for (int g = 0; g < X_sd_mu.rows(); ++g) {
+              Type eta_sd = Type(0.0);
+              for (int k = 0; k < X_sd_mu.cols(); ++k) {
+                eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+              }
+              sd_re_cov_group(g) = drm_exp_sd_logscale_guarded(
+                drm_softclamp_log_sd(
+                  eta_sd, use_logsigma_clamp, logsigma_clamp),
+                sd_logscale_overflow_guard_hit);
+            }
+          }
 
           for (int b = 0; b < n_re_cov_blocks; ++b) {
             int block_size = re_cov_block_size(b);
@@ -1178,9 +1198,20 @@ Type objective_function<Type>::operator()()
               for (int m = 0; m < block_size; ++m) {
                 z(m) = u_re_cov(u_offset + g * block_size + m);
               }
+              vector<Type> sd_g = sd_block;
+              if (has_sd_mu_model == 1 &&
+                  g < re_cov_member_sd_row.rows()) {
+                for (int m = 0; m < block_size; ++m) {
+                  int member_col = member_start + m;
+                  if (member_col < re_cov_member_sd_row.cols() &&
+                      re_cov_member_sd_row(g, member_col) >= 0) {
+                    sd_g(m) = sd_re_cov_group(re_cov_member_sd_row(g, member_col));
+                  }
+                }
+              }
               vector<Type> latent = density::VECSCALE(
                 re_cov_density,
-                sd_block
+                sd_g
               ).sqrt_cov_scale(z);
               for (int m = 0; m < block_size; ++m) {
                 int member_col = member_start + m;

@@ -1833,7 +1833,9 @@ covariance_registry_member_by_id <- function(registry, block_id0, member_id0) {
 covariance_registry_member_sd <- function(object, member) {
   sd_key <- covariance_registry_member_sd_key(member)
   sd_values <- object$sdpars[[sd_key]]
-  if (is.null(sd_values)) {
+  if (is.null(sd_values) || !member$label[[1L]] %in% names(sd_values)) {
+    # A member with an sd() formula has group-specific SDs (reported under its
+    # own sd() key), so there is no single SD to summarise.
     return(NA_real_)
   }
   value <- sd_values[[member$label[[1L]]]]

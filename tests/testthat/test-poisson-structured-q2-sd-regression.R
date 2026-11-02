@@ -260,8 +260,12 @@ test_that("neighbouring Poisson structured q2 SD routes stay refused", {
   )
   d_miss <- d
   d_miss$y[c(3L, 40L)] <- NA
+  # The animal q2 block with coefficient SDs now admits include (see
+  # test-q2-sd-missing-include.R); the relmat q2 block stays closed.
   expect_error(
-    drmTMB(bf(y ~ x + animal(1 + x | id, A = A), sd_int, sd_x),
+    drmTMB(bf(y ~ x + relmat(1 + x | id, K = K),
+              sd(id, level = "relmat", dpar = "mu", coef = "(Intercept)") ~ w,
+              sd(id, level = "relmat", dpar = "mu", coef = "x") ~ v),
            family = pois, data = d_miss,
            missing = miss_control(response = "include")),
     "non-inflated\\s+model\\s+with\\s+complete\\s+responses"

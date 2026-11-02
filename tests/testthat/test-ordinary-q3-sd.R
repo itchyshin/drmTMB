@@ -1,8 +1,9 @@
-# Boundary pins for ordinary q = 3 correlated blocks with sd() formulas.
-# The route is NOT admitted (2026-11-01 probe): Gaussian q3 uses the separate
-# re_cov registry with constant per-coefficient SDs, and Poisson/NB2 refuse any
-# q3 block even without sd(). These tests pin the designed refusals so that an
-# accidental partial admission fails loudly.
+# Boundary pins for ordinary q >= 3 correlated blocks with sd() formulas.
+# Gaussian q3 and q4 blocks with per-coefficient sd() formulas are admitted
+# (2026-11-02, see test-gaussian-q3-per-coef-sd.R); Gaussian blocks of five or
+# more coefficients stay refused. Poisson/NB2 refuse any q3 block even without
+# sd(). These tests pin the designed refusals so that an accidental partial
+# admission fails loudly.
 
 ordinary_q3_sd_fixture <- function(groups = 24L, repeats = 8L,
                                    seed = 20261101L) {
@@ -33,19 +34,21 @@ test_that("Gaussian q3 block without sd() still fits (constant SDs only)", {
   expect_true(is.finite(as.numeric(logLik(fit))))
 })
 
-test_that("Gaussian q3 block with sd() on any coefficient is refused cleanly", {
+test_that("Gaussian q5 block with sd() on any coefficient is refused cleanly", {
   dat <- ordinary_q3_sd_fixture()
-  pattern <- "correlated random-effect block of three or more coefficients"
+  dat$u <- stats::rnorm(nrow(dat))
+  dat$v <- stats::rnorm(nrow(dat))
+  pattern <- "correlated random-effect block of five or more coefficients"
   fit_with <- function(sd_formula) {
     drmTMB(
-      bf(y ~ x + z + (1 + x + z | id), sigma ~ 1, sd_formula),
+      bf(y ~ x + z + (1 + x + z + u + v | id), sigma ~ 1, sd_formula),
       family = stats::gaussian(), data = dat,
       control = drm_control(se = FALSE)
     )
   }
   expect_error(fit_with(sd(id, coef = "(Intercept)") ~ w), pattern)
   expect_error(fit_with(sd(id, coef = "x") ~ w), pattern)
-  expect_error(fit_with(sd(id, coef = "z") ~ w), pattern)
+  expect_error(fit_with(sd(id, coef = "v") ~ w), pattern)
 })
 
 test_that("Poisson and NB2 q3 blocks are refused with or without sd()", {

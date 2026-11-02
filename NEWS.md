@@ -1,5 +1,17 @@
 # drmTMB (development)
 
+* Gaussian ordinary correlated blocks of three or four coefficients, such as
+  `(1 + x + z | id)`, now accept one `sd(id, coef = ...)` formula per
+  coefficient (2026-11-02, native TMB only, no Julia route). The block keeps one
+  unstructured correlation matrix `R` and uses group-specific SDs, so the
+  covariance of group `g` is `D_g R D_g`; a coefficient without a formula keeps
+  one constant SD. Checked against an exact dense Gaussian marginal likelihood
+  at the fitted parameters on fixed fixtures (not calibrated, no coverage
+  claim). Blocks of five or more coefficients, labelled blocks, sd() on other
+  terms beside the block, and Poisson and NB2 q3 blocks stay refused.
+  Marginal `simulate(re.form = NA)` still does not draw correlated blocks; use
+  `re.form = NULL`.
+
 * Predictor-dependent random-effect SD routes added on 2026-11-01, second half
   (native routes checked against a drmTMB-independent oracle at the fitted
   parameters; Julia bridge routes checked against the native TMB fit on one

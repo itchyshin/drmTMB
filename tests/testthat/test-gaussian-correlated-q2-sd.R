@@ -108,15 +108,19 @@ test_that("Gaussian correlated q2 SD regression recovers both coefficient scales
 
 })
 
-test_that("Gaussian correlated q3 SD regression stays closed", {
+test_that("Gaussian correlated q5 SD regression stays closed", {
   sim <- gaussian_correlated_q2_sd_fixture(groups = 30L, repeats = 8L)
   dat <- sim$data
   dat$z <- stats::rnorm(nrow(dat))
-  # Designed refusal (active_mu_terms check in the Gaussian spec builder).
+  dat$u <- stats::rnorm(nrow(dat))
+  dat$v <- stats::rnorm(nrow(dat))
+  # q3 and q4 blocks are admitted (test-gaussian-q3-per-coef-sd.R); blocks of
+  # five or more coefficients keep the designed refusal (active_mu_terms check
+  # in the Gaussian spec builder).
   expect_error(
     drmTMB(
       bf(
-        y ~ x + z + (1 + x + z | id),
+        y ~ x + z + (1 + x + z + u + v | id),
         sigma ~ 1,
         sd(id, coef = "(Intercept)") ~ w0,
         sd(id, coef = "x") ~ w1,
@@ -125,7 +129,7 @@ test_that("Gaussian correlated q3 SD regression stays closed", {
       family = stats::gaussian(), data = dat,
       control = drm_control(se = FALSE)
     ),
-    "correlated random-effect block of three or more coefficients"
+    "correlated random-effect block of five or more coefficients"
   )
 })
 

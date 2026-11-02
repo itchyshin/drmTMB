@@ -337,20 +337,19 @@ test_that("Poisson IID plus structured SD keeps its other gates closed", {
   skip_on_cran()
   fx <- pis_fixture("relmat", n_id = 24L, n_site = 12L, n_each = 4L)
   K <- fx$K
-  # Missing-response integration is not part of this slice.
-  expect_error(
-    drmTMB(
-      bf(
-        y ~ x + relmat(1 | id, K = K) + (1 | site),
-        sd(id, level = "relmat") ~ z_id,
-        sd(site) ~ z_site
-      ),
-      family = stats::poisson(), data = fx$data,
-      missing = miss_control(response = "include"),
-      control = drm_control(se = FALSE)
+  # Missing-response integration is admitted since batch 23; fitted evidence is
+  # in test-count-iid-slope-sd-missing-include.R. The builder keeps every row.
+  d_miss <- fx$data
+  d_miss$y[c(3L, 40L)] <- NA
+  spec_inc <- drm_build_poisson_spec(
+    bf(
+      y ~ x + relmat(1 | id, K = K) + (1 | site),
+      sd(id, level = "relmat") ~ z_id,
+      sd(site) ~ z_site
     ),
-    "non-inflated model"
+    d_miss, missing = miss_control(response = "include")
   )
+  expect_identical(length(spec_inc$y), nrow(d_miss))
   # Zero inflation is not part of this slice.
   expect_error(
     drmTMB(
