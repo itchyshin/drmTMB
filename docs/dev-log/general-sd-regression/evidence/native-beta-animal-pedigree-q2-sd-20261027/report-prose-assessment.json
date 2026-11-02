@@ -1,0 +1,29 @@
+{
+  "mode": "independent",
+  "genre": "technical after-task report",
+  "coverage": "whole exact saved draft",
+  "version": "v2",
+  "sha256": "4cf7deee9b74be4844c33bcc6d7a90ee81e64e249166c5e44bbee5450809301d",
+  "score": 3,
+  "confidence": "medium",
+  "method": "self review after draft; parent technical review separate",
+  "date": "2026-10-27",
+  "evidence": [
+    {
+      "section": "3a",
+      "phrase": "A submatrix of full precision would condition on ancestors",
+      "effect": "explains why the oracle uses observed covariance",
+      "repair": "none needed"
+    },
+    {
+      "section": "10",
+      "phrase": "Constant-SD pedigree equivalence was not freshly fitted",
+      "effect": "separates current checks from neighboring evidence",
+      "repair": "none needed"
+    }
+  ],
+  "science_gate": "pass within saved ordinary-fixture numerical checks; no interval claim",
+  "facts_gate": "pass against focused/regression/example logs and scoped diff",
+  "references_gate": "not applicable; no external citations",
+  "seen_controls": "previous Beta A/Ainv report and parent review seen"
+}

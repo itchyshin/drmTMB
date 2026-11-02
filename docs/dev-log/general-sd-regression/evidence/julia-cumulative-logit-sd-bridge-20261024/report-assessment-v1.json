@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "3a41b0900fe520d1040cc7f18a79146dd07f795ae9ba4f2f89d754f12c98feb0",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Self-review using writing-naturalness protocol and prose-style-review checklist; facts checked against exact test output, receipt, reconciler, and source changes.",
+  "genre": "Technical after-task implementation report",
+  "coverage": "Entire report, all 13 numbered sections.",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report is specific and bounded; its fixed section structure is somewhat repetitive but fits the required audit record.",
+  "confidence": "medium",
+  "confidence_reason": "The source and checks are locally verifiable; stylistic judgment is subjective and not independently rated.",
+  "examples": [
+    {
+      "location": "10. Known Residuals",
+      "line": 54,
+      "quote": "This is one complete-response synthetic design and one fitted numeric location slope through the R bridge.",
+      "cue": "Specific implementation boundary and observed evidence.",
+      "impact": "Keeps the supported cell and its limit together.",
+      "repair": "No change needed."
+    },
+    {
+      "location": "9. What Did Not Go Smoothly",
+      "line": 51,
+      "quote": "The focused live run first exposed the fixed-effect-only guard, then the test fixture's repeated-group prediction rows, and finally an R temporary-library collision.",
+      "cue": "Specific implementation boundary and observed evidence.",
+      "impact": "Names the actual repair sequence, though the list is dense.",
+      "repair": "No change needed; the exact failures are recorded in the test and run logs."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The scalar SD equation, fixed ordinal residual scale, and comparison limits were checked against the tested formulas and engine approximations.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Counts, runtime, failures, and successful rerun were compared with retained test logs and reconciliation output.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external literature claims or citations.",
+  "date": "2026-10-24",
+  "calibration_status": "Prior local after-task reports have been seen; no blinded calibration controls were used.",
+  "interpretation": "perceived_style_not_authorship"
+}

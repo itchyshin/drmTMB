@@ -441,7 +441,7 @@ test_that("skew-normal first slice rejects unsupported neighbours clearly", {
       family = skew_normal(),
       data = dat
     ),
-    "Random-effect scale formulae"
+    "No random-effect term matches the Skew-normal"
   )
   expect_error(
     drmTMB(

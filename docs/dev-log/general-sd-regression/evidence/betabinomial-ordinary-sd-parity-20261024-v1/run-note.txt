@@ -1,0 +1,14 @@
+Beta-binomial ordinary random-effect SD cross-engine bridge
+Observed date: 2026-10-24
+Native source HEAD: 425bee81572c625a634b2b083050c5c57c1dc1f1
+Paired Julia source HEAD: 70dbf564eb670144c63c08f61ea099084d95add2
+Both worktrees were dirty; exact relevant source hashes are in source-manifest.json.
+
+Initial bridge attempt failed before the Julia fitter because the R registry classified beta_binomial as fixed-effect-only. Direct Julia verification then passed 25/25 ordinary-intercept assertions and 8/8 independent-slope assertions using `OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=4 OMP_NUM_THREADS=1 julia --project=. --compiled-modules=no -e 'using Test; include("test/test_betabinomial_sd_regression.jl")'`.
+
+After adding the narrow bridge admission predicate and negative admission tests, the source-pinned focused R command was:
+`DRM_JL_PATH="/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia" DRM_JL_JULIA_HOME="/Users/z3437171/.juliaup/bin" OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=4 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "julia-beta-binomial-sd-parity|julia-family-beta_binomial")'`
+
+Final result: exit 0; 70 expectations passed, 0 failures, 0 warnings, and 0 skips; three live Julia bridge fits ran. The two new same-data comparisons exercise the ordinary q1 intercept and independent numeric slope, seeded SD-predictor direction/point recovery, fitted group SDs, `predict_parameters()` row-label alignment, and TMB/Julia coefficient agreement. Total focused test time was 58.2 seconds.
+
+Scope limits: this is candidate-only point-recovery and public-output evidence for two complete-response ordinary q1 cells with fixed `sigma ~ 1`. It does not qualify other Beta-binomial effects, providers, covariance blocks, interval coverage, or broad engine parity.

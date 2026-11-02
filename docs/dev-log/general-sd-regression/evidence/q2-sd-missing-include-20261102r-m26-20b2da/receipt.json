@@ -1,0 +1,35 @@
+{
+  "evidence_id": "native-q2-sd-missing-include-20261102r-m26",
+  "rerecord_of_evidence_id": "native-q2-sd-missing-include-20261102r",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/q2-sd-missing-include-20261102r/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); r<-as.data.frame(testthat::test_file(\"\"tests/testthat/test-q2-sd-missing-include.R\"\", reporter=\"\"silent\"\")); print(colSums(r[c(\"\"passed\"\",\"\"failed\"\",\"\"error\"\",\"\"skipped\"\")]))'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-q2-sd-missing-include.R",
+      "test_sha256": "a40b2303a828933971dfc04ac8edf2d608c6ce9903b0947d9eacaa123823bcec",
+      "started_utc": "2026-11-02T13:18:39Z",
+      "ended_utc": "2026-11-02T13:18:56Z",
+      "exit_code": 0,
+      "expectations_passed": 158,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/q2-sd-missing-include-20261102r-m26-20b2da/test-console-test-q2-sd-missing-include.log",
+      "console_log_sha256": "aa858df58465d6b73084ba8f12faf83a5c730d8db1d34d12befdb5c0d883e54d"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/q2-sd-missing-include-20261102r-m26-20b2da/source-manifest.json",
+  "source_manifest_sha256": "e675ded175dbfdc9b28192580867743ccf008d545d539e4e9423d7e2d2d3f538",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "animal_labelled_block cross mu/sigma rows (labelled form here is within mu only)",
+    "Poisson labelled animal q2 with SDs: refused, not linked",
+    "relmat q2 refusals under include: not linked"
+  ]
+}

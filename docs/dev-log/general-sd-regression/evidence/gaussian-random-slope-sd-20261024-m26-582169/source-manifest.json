@@ -1,0 +1,31 @@
+{
+  "scope": "Source identity for gaussian-julia-independent-slope-sd-parity-20261024, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-random-slope-sd-20261024/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "472d9de4db223c925df61a683bfd06448e8b9891f32ae2bc386191c6f6098be5"
+    },
+    {
+      "file": "R/julia-family-registry.R",
+      "sha256": "de0dc16fbe870b0450a4925b7960ff55efa4a5cacfce8da8347a74e49a4619b9"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-gaussian-sd-slope-regression.R",
+      "sha256": "a4a6f0d08c6cff902aa23cdadff35c47229b3eecbdb15e9c29a015ac9e1626b8"
+    },
+    {
+      "file": "tests/testthat/test-julia-gaussian-sd-parity.R",
+      "sha256": "1987789bb6949f38ebb702b8195b39fc13a5a150285d84508021c3a35b8a03ee"
+    }
+  ]
+}

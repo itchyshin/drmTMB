@@ -1,0 +1,21 @@
+julia-binomial-phylo-oracle-b31jb: .i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+..........b31jb phylo intercept logit: ll=-628.967411 oracle=-628.967405 agreement=5.72e-06 min_gap=0.8562 (x856); gaps: selector_swap=-47.841, sd_slope_sign=-72.933, reversed_sd_vector=-73.722, sd_intercept_plus_log2=-3.282, K_scale_2=-0.856, raw_vcv_not_correlation=-1.474, K_by_position=-61.319
+...................b31jb phylo intercept probit: ll=-472.829029 oracle=-472.829020 agreement=8.75e-06 min_gap=0.9811 (x981); gaps: selector_swap=-69.902, sd_slope_sign=-110.881, reversed_sd_vector=-113.177, sd_intercept_plus_log2=-3.713, K_scale_2=-0.981, raw_vcv_not_correlation=-1.682, K_by_position=-120.325
+...................b31jb phylo intercept cloglog: ll=-441.309076 oracle=-441.309070 agreement=6.17e-06 min_gap=0.7840 (x784); gaps: selector_swap=-93.889, sd_slope_sign=-105.115, reversed_sd_vector=-106.138, sd_intercept_plus_log2=-2.957, K_scale_2=-0.784, raw_vcv_not_correlation=-1.339, K_by_position=-86.260
+...................b31jb phylo slope logit: ll=-738.427443 oracle=-738.427440 agreement=3.34e-06 min_gap=1.0107 (x1011); gaps: selector_swap=-10.902, sd_slope_sign=-36.165, reversed_sd_vector=-36.450, sd_intercept_plus_log2=-3.886, K_scale_2=-1.011, raw_vcv_not_correlation=-1.745, K_by_position=-27.948
+...................b31jb phylo slope probit: ll=-665.012032 oracle=-665.012028 agreement=3.89e-06 min_gap=1.1639 (x1164); gaps: selector_swap=-23.876, sd_slope_sign=-55.021, reversed_sd_vector=-58.396, sd_intercept_plus_log2=-4.339, K_scale_2=-1.164, raw_vcv_not_correlation=-1.988, K_by_position=-38.000
+...................b31jb phylo slope cloglog: ll=-629.232786 oracle=-629.232782 agreement=3.79e-06 min_gap=0.9839 (x984); gaps: selector_swap=-36.097, sd_slope_sign=-51.044, reversed_sd_vector=-55.025, sd_intercept_plus_log2=-3.847, K_scale_2=-0.984, raw_vcv_not_correlation=-1.707, K_by_position=-31.563
+........
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 2 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=114 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+┌ Warning: drm: this tree's maximum tip height is 2.5, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.581139 = sqrt(2.5) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/2.5 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/sparse_phy.jl:713

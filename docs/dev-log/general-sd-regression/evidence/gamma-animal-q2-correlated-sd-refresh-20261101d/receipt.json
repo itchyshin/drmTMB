@@ -1,0 +1,71 @@
+{
+  "evidence_id": "native-gamma-animal-q2-correlated-sd-20261101-20261101d",
+  "refresh_of_evidence_ids": [
+    "native-gamma-animal-q2-correlated-sd-20261101"
+  ],
+  "command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gamma-animal-q2-correlated-sd.R\", reporter = \"summary\")'",
+  "command_note": "The R expression actually run additionally captured the test_file result as a data frame, printed a final DRM_RECEIPT_COUNTS line and set a nonzero exit status on any failure, error or skip; the test_file(...) call is as above.",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "branch": "codex/general-sd-regression",
+  "tree_state": "dirty and shared; uncommitted edits present; unreviewed",
+  "run_started_utc": "not recorded (temp file removed); see run_ended_utc",
+  "run_ended_utc": "2026-11-02T04:32:41Z (log mtime)",
+  "exit_code": 0,
+  "test_blocks": 8,
+  "expectations_passed": 56,
+  "failures": 0,
+  "skips": 0,
+  "errors": 0,
+  "warnings": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-correlated-sd-refresh-20261101d/test-console.log",
+  "console_log_sha256": "412a870d1cb204937ccb4b6212963b91aaf4c2ca350a7241547291c4fce6365b",
+  "test_path": "tests/testthat/test-gamma-animal-q2-correlated-sd.R",
+  "test_sha256": "4ac71dfb9b6c3f18255333cc700b027944305916deb82ec7851ffd60cb28a05a",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-correlated-sd-refresh-20261101d/source-manifest.json",
+  "source_manifest_sha256": "26f7e1efb84624e680b5ab5de9ab997b824f9cab8a3f86ca5899b2e4c86a68d8",
+  "evidence_grade": "recovery",
+  "evidence_grade_basis": "inherited from replaced ledger rows (native-gamma-animal-q2-correlated-sd-20261101)",
+  "scope": "Same row_keys as the replaced ledger lines for native-gamma-animal-q2-correlated-sd-20261101; see candidate_rows. Fresh run of the current test source.",
+  "tolerances_note": "Tolerances are those in the test source at the recorded sha256; none were loosened. Numeric tolerance tokens found by regex in the test file (informational): 1e-8",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    }
+  ],
+  "not_covered": [
+    "rows the test only uses as comparators",
+    "interval calibration or coverage",
+    "provider inputs the test does not fit (not tested; not asserted to be fenced)",
+    "Julia parity (native engine only)"
+  ],
+  "live_julia": "not applicable; log states 0 live Julia tests ran",
+  "limits": [
+    "dirty shared tree",
+    "unreviewed",
+    "a receipt does not promote any row; direct_sd_claim stays none"
+  ],
+  "supersedes_note": "Refresh: the test file changed after the earlier receipt, so the earlier digest no longer matches the live test. Old evidence directories are untouched.",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent mathematical review confirmed the oracle: a plain-R joint (data + latent prior) objective using stats::dgamma and the dense raw A (log det A, A^-1, bivariate prior with rho and per-coefficient SD multipliers), sharing no code with the C++ objective or Q_phylo/log_det_Q, agrees with the TMB joint objective to 1e-6 at three seeds. It supports both rows (mu:I and mu:x1 of the intercept-plus-one-slope A_covariance q=2 correlated block, Gamma log link, per-coefficient SD formulas on s0 and s1). Emulated-bug sensitivity exists and exceeds 1e-3 for logdet_once, cross_sign, drop_rho, swap_sd_formulas and swap_fields, plus a non-unit-diagonal, shuffled A that fails if A were normalised to a correlation; the unlabelled rho=0 fit is checked against the same oracle and the constant log_sd_phylo is confirmed mapped off. Manifest: 3 of 9 entries differ (R/drmTMB.R, R/methods.R, src/drmTMB.cpp); all are explained by later commits (post-33e4e966a q3/q4 admission, which is additive to the q>=3 path, and the nlminb restart). The focused test was rerun on current source, 56 passed with 0 failed/errors/skipped. Covers the joint objective at fitted parameters, not the Laplace-marginal logLik; does not establish calibration, rho recovery beyond the loose 0.4 band, Julia parity, or other providers.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gamma-animal-q2-correlated-sd.R",
+    "test_sha256": "4ac71dfb9b6c3f18255333cc700b027944305916deb82ec7851ffd60cb28a05a",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:14:26Z",
+    "ended_utc": "2026-11-02T18:15:30Z",
+    "expectations_passed": 56,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-correlated-sd-refresh-20261101d/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "820265cee1052c47df474e9a92f90f22661a6462f9cdb071929c775c03e71692",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "7d14e48d4c4ee5944e35e7ee18a88a00932a3ec5faf3b1fb85bd92802f90c8eb",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex root post-draft review",
+  "method": "Manual full-draft review after retained build/test/guide evidence readback and mechanical prose lint.",
+  "genre": "Development checkpoint report",
+  "coverage": "Entire label-and-guide checkpoint report; excludes in-progress production inference.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "Specific implementation, scope and evidence make the report readable. Required audit headings add formality.",
+  "confidence": "medium",
+  "confidence_reason": "Full-draft self-review against exact manifests/logs; no independent style rating.",
+  "examples": [
+    {
+      "location": "Team Learning",
+      "cue": "An admission-only edit can expose an untested combined route even when it changes",
+      "impact": "Names a concrete lesson exposed by the boundary negative control.",
+      "repair": "no change needed",
+      "line": 96,
+      "quote": "An admission-only edit can expose an untested combined route even when it changes"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Scalar label preserves the same link-scale latent SD; recovery and calibration remain explicitly separate.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Counts39/154, capsule/hash,60second build, source-negative controls and executed guide checked against retained evidence.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external literature claim; numerical/source claims point to local receipts.",
+  "date": "2026-10-17",
+  "calibration_status": "Self-review, not a held-out style assessment.",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,33 @@
+{
+  "scope": "Source identity for tests/testthat/test-julia-b25-gamma-nb2-slope-bridge.R, receipt julia-b25-gamma-nb2-slope-bridge-20261102c (HEAD 7fd8acec3; hashes identify run-time files)",
+  "files": [
+    {
+      "file": "tests/testthat/test-julia-b25-gamma-nb2-slope-bridge.R",
+      "sha256": "7409710e0e4ffb14203ed420bb4f041b510fa35f59c110ff9e7eeec7b1b51b97"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "47a5e0f1357a9df10ef3293e5cf2f17b53b794f4c574bce5e53b5c9952cbea49"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/julia-b25-gamma-nb2-slope-bridge-20261102c/test-console.log",
+      "sha256": "b7fe3fdc2944ebf83a5889c3ad406f41d8dbd2cd1e3726763b8a4c2afeaa345e"
+    }
+  ]
+}

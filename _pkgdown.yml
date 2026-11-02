@@ -1,6 +1,7 @@
 url: https://itchyshin.github.io/drmTMB/
 destination: pkgdown-site
 template:
+  math-rendering: mathjax
   bootstrap: 5
   bootswatch: flatly
   includes:
@@ -67,6 +68,8 @@ navbar:
           href: articles/location-scale.html
         - text: When variance carries signal, Part 2
           href: articles/location-scale-scale.html
+        - text: When group variation changes with a predictor
+          href: articles/predictor-dependent-random-sd.html
         - text: Robust continuous responses
           href: articles/robust-student.html
         - text: Count abundance and extra zeros
@@ -232,6 +235,7 @@ reference:
     desc: Post-fit methods for optional Julia-engine fits; availability depends on the admitted model and inference route.
     contents:
       - confint.drmTMB_julia
+      - julia-fit-methods
       - predict.drmTMB_julia
       - summary.drmTMB_julia
       - weights.drmTMB_julia
@@ -277,6 +281,7 @@ articles:
     contents:
       - location-scale
       - location-scale-scale
+      - predictor-dependent-random-sd
   - title: How are two responses associated?
     desc: >
       Model residual correlation between two outcomes and distinguish a joint

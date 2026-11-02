@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "file": "tests/testthat/test-nbinom2-mu-sigma-same-group-sd.R",
+      "sha256": "19d3dbd2cf9dcba1e4b2544a078f576b4a2d8d04aad86bb2de76b72fa8cfade0"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-same-group-sd-20261101d/test-console.log",
+      "sha256": "8592b88f136b4666b28e6cdacf45c6f90d1d53d7c6a69db430bce85add3bda49"
+    }
+  ],
+  "note": "dirty shared worktree at HEAD 33e4e966a; hashes identify the test-time files",
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/drmTMB.R', 'src/drmTMB.cpp']"
+}

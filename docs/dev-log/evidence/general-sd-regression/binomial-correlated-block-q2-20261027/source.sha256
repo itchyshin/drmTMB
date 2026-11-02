@@ -1,0 +1,3 @@
+2ad62bec8b700d504dd1f34dbaf088e01eeff17fc3b9ca365e5a14227ab588cd  tests/testthat/test-binomial-correlated-sd.R
+5ed7523481d50e05adf1567507add8f39185cb7c16d47065d70c8426ad85f451  R/drmTMB.R
+6f31fbec4db84555f628572d2906858d132a6e4b7997aa8381f75d166f8569ae  src/drmTMB.cpp

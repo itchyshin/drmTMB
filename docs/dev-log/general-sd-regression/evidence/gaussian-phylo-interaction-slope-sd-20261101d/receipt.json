@@ -1,0 +1,67 @@
+{
+  "evidence_id": "native-gaussian-phylo-interaction-slope-sd-20261101d",
+  "evidence_grade": "focused_test",
+  "slice": "gaussian-phylo-interaction-slope-sd",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"phylo_interaction_intercept\",\"S1/P-temporal\",\"phylo_interaction\",\"pair-level structured intercept\",\"tree_pair\",\"phylogenetic interaction field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "identity",
+      "ledger_status": "required",
+      "mechanism_id": "phylo_interaction_intercept",
+      "provider_input": "tree_pair",
+      "target_member": "mu:I",
+      "endpoint": "mu"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"identity\",\"phylo_interaction_numeric_slope\",\"S1/P-temporal\",\"phylo_interaction\",\"pair-level structured numeric slope\",\"tree_pair\",\"independent phylogenetic interaction slope field\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "identity",
+      "ledger_status": "required",
+      "mechanism_id": "phylo_interaction_numeric_slope",
+      "provider_input": "tree_pair",
+      "target_member": "mu:x1..xp",
+      "endpoint": "mu"
+    }
+  ],
+  "test_command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gaussian-phylo-interaction-slope-sd.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "test_path": "tests/testthat/test-gaussian-phylo-interaction-slope-sd.R",
+  "test_sha256": "db3af88add986228414058d5417e27acaef0e0ea1ee6cbdac6c950c2849f34a3",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-phylo-interaction-slope-sd-20261101d/source-manifest.json",
+  "source_manifest_sha256": "61cff7813e406355bd052c36dec2f38218c63ea756a175e87e93ac473d5fd2f4",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-phylo-interaction-slope-sd-20261101d/test-console.log",
+  "console_log_sha256": "00782cc83549bd2ef1ac6dd8b1f97c0a69001ea8378ae46c73b6930dacfe3b8b",
+  "result": {
+    "exit_code": 0,
+    "summary_dots_passed": 52,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": "not run; Julia bridge reported 0 live tests, native TMB engine only"
+  },
+  "result_summary": "Gaussian phylo_interaction intercept and slope-only SD (sd(pair, level=phylogenetic_interaction) ~ z_pair) match the exact Gaussian marginal oracle (1e-6 relative logLik); emulated-bug sensitivity > 1e-2; constant-SD equivalence; row-order invariance; ordinary plant intercept beside slope; predict round trip; neighbours closed.",
+  "not_covered": [
+    "sigma-endpoint phylo_interaction rows (asserted closed)",
+    "intercept-plus-slope interaction block (asserted refused)",
+    "no recovery/coverage/calibration; no Julia"
+  ],
+  "limits": "dirty shared candidate tree; no calibration; no Julia parity; unreviewed; tolerances as written in the test file header, not loosened; receipt links rows and does not promote direct_sd_claim",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent mathematical review confirmed the oracle is the exact Gaussian marginal, y ~ N(X beta, sigma^2 I + J K J'), with K = kronecker(cov2cor(vcv(tree2)), cov2cor(vcv(tree1))) built from ape::vcv and the fitted SD coefficients applied to the data-generating predictor, using no drmTMB code and no Laplace approximation; agreement is 1e-6 relative. Both rows are run through the same oracle: phylo_interaction intercept (mu:I) and slope-only (mu:x1..xp), identity link, tree_pair input. Emulated-bug sensitivity exists and exceeds 1e-2: reversed, shuffled and swapped SD vectors, a constant mean SD, and the raw non-standardised K. The test also covers constant-SD equivalence, row-order invariance, an ordinary plant intercept beside the slope (exact marginal with extra V), a different-predictor likelihood change, save/reload and refusals. Manifest: 2 of 5 entries differ (R/drmTMB.R, src/drmTMB.cpp); explained by later commits (the q>=3 per-coefficient SD addition and the nlminb restart). The focused test was rerun on current source, 52 passed with 0 failed/errors/skipped. Covers native Gaussian phylogenetic-interaction mean SD on synthetic fixtures; does not establish calibration, recovery beyond the 0.5 band, Julia parity, the sigma endpoint, or the intercept-plus-slope block (refused).",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-phylo-interaction-slope-sd.R",
+    "test_sha256": "db3af88add986228414058d5417e27acaef0e0ea1ee6cbdac6c950c2849f34a3",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:16:05Z",
+    "ended_utc": "2026-11-02T18:16:28Z",
+    "expectations_passed": 52,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-phylo-interaction-slope-sd-20261101d/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "e6c2e48afad4ba8f774843f2e13633a6490a99bba2d61d870e12a10133e25121",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+  }
+}

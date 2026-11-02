@@ -1,0 +1,13 @@
+julia-binomial-animal-slope-Ainv-logit-sd-bridge: .W..S
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. Julia Binomial animal-slope SD regression accepts Ainv with logit ('test-julia-binomial-animal-slope-Ainv-logit-sd-bridge.R:23:3') - Reason: Julia bridge tests are opt-in
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. Julia Binomial animal-slope SD regression accepts Ainv with logit ('test-julia-binomial-animal-slope-Ainv-logit-sd-bridge.R:17:3') - `engine = "julia"` cannot check the order of the unlabelled `animal()` `Ainv` matrix.
+i Rows are paired with the grouping levels in order of first appearance in `data`. Give `Ainv` row and column names to match by name.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=3 failed=0 errors=0 skipped=1
+DRM_RUN start=2026-11-02T13:18:24Z end=2026-11-02T13:18:30Z rc=0

@@ -1,0 +1,16 @@
+{
+  "observed_at_utc": "2026-10-25",
+  "result": "PASS",
+  "test_file": "tests/testthat/test-gaussian-sigma-sd-slope-regression.R",
+  "test_sha256": "54b4288f13b0b481c7f15a07ccccf954c17882b1ef4cc24c54e39ce7844e28ee",
+  "test_command": "Rscript -e 'devtools::test(filter = \"gaussian-sigma-sd-(regression|slope-regression)\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "test_exit_code": 0,
+  "failures": 0,
+  "skips": 0,
+  "source_file_count": 6,
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-slope-20261025/sources-after-final.sha256",
+  "source_manifest_sha256": "aec5164994387ec273eb812db2addb134bc0fc4a3c036cb35603996466448422",
+  "source_manifest_stable_before_after": true,
+  "warnings": "None reported by this focused test run.",
+  "scope": "Native Gaussian sigma endpoint with one independent numeric random slope and fixed predictor-dependent log-SD. Focused checks cover seeded point recovery, target and prediction mapping, constant-SD equivalence, and refusal of unsupported/mismatched designs. No Julia parity, interval calibration, profile/bootstrap workflow, or broad Gaussian capability claim."
+}

@@ -1,0 +1,52 @@
+{
+  "evidence_id": "native-poisson-spatial-sd-r2-20261101",
+  "kind": "REFRESH of existing ledger rows (rows are recorded under other evidence dirs; this receipt does not add or change rows)",
+  "existing_evidence_ids_for_test_path": [
+    "native-poisson-spatial-sd-20261101"
+  ],
+  "existing_row_keys_for_test_path": [
+    "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "engine": "native R/TMB",
+  "family": "poisson (log)",
+  "description": "Poisson coordinate-spatial SD ~ z, intercept field and slope-only field",
+  "rows_not_linked": [
+    "spatial_coordinate_slope / mesh_precision (not tested; status blocked_base_plumbing)",
+    "spatial_coordinate_slope row is linked via a slope-ONLY field spatial(0 + x | site); no intercept-plus-slope spatial fit is in this file"
+  ],
+  "command": "cd <worktree>; NOT_CRAN=true OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'suppressMessages(devtools::load_all(\".\", quiet=TRUE)); testthat::test_file(\"tests/testthat/test-poisson-spatial-sd-regression.R\", reporter=\"summary\")' > docs/dev-log/general-sd-regression/evidence/native-poisson-spatial-sd-r2-20261101/test-console.log",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "b87566680778831c2bae38d66399c3ca667e29fc",
+  "branch": "codex/general-sd-regression",
+  "dirty_shared_tree_entries": 63,
+  "test_path": "tests/testthat/test-poisson-spatial-sd-regression.R",
+  "test_sha256": "50e031ea15a4d91d665dac2b2a3a08b14323a2e7d87ddee021cfdb4420de115c",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-spatial-sd-r2-20261101/source-manifest.json",
+  "source_manifest_sha256": "53406345a1a3deb32040cfac98b154084d860dd91df164da143eb1cd6463474a",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-spatial-sd-r2-20261101/test-console.log",
+  "console_log_sha256": "8735509feb14c85ddbe0aa3984d4523d6c09b1312c8c63018f972a7537a9d305",
+  "result": {
+    "exit_code": 0,
+    "expectations": 42,
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0,
+    "test_blocks": 2,
+    "start_utc": "2026-11-01T18:06:40Z",
+    "end_utc": "2026-11-01T18:06:51Z"
+  },
+  "tolerances_copied_from_test": "convergence==0 (~z, ~1, scalar fits); predict()==exp(X alpha) tol 1e-8; dense-Laplace logLik match tol 1e-6 relative at fitted parameters; kernel rebuild tol 1e-8; positional-vs-named precision max abs diff > 0.5; positional oracle differs from named by > 1000*1e-6*|logLik|; constant-SD vs scalar logLik tol 2e-5; constant-SD intercept vs log(scalar SD) tol 1e-4; logLik(~z) >= logLik(~1) - 1e-6; z slope > 0 and |z slope - 0.4| < 0.6",
+  "oracle": "Dense Laplace marginal likelihood at the fitted parameters, written in the test file. NOT fully independent of the code under test: the dense-Laplace oracle and the data-generating covariance are built with drmTMB:::drm_spatial_coords_precision (helper under test); only the name alignment is checked against a kernel rebuilt in the test from the unshuffled ring (formula mirrored, not independent). Also constant-SD equivalence, nesting and link algebra.",
+  "evidence_grade": "focused_test",
+  "review_status": "unreviewed",
+  "limits": [
+    "native engine only",
+    "fixed-seed fixtures with loose recovery bands where applicable",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "scope": "Source identity for beta-julia-ordinary-intercept-sd-bridge-20261024, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/beta-ordinary-sd-bridge-20261024/source-after.sha256",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "472d9de4db223c925df61a683bfd06448e8b9891f32ae2bc386191c6f6098be5"
+    },
+    {
+      "file": "R/julia-simulate.R",
+      "sha256": "17ff8f0abe08abb539f50a31c91a0b9d8a4c128623fcab2c19628bf83ee474cb"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "ef79299d4dd607be50067752c643027af55e9814d1e220a37dcdee94957dd8a9"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-julia-beta-sd.R",
+      "sha256": "b7e6de85153ffdcc6e2f2d40e47ad6a40e5b694ce249aab16b7c59b416ad0699"
+    }
+  ]
+}

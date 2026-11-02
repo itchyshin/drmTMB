@@ -30,7 +30,8 @@
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
-#' a flag-only note when more than 1% of quantile residuals lie beyond |3|
+#' a flag-only note when at least two quantile residuals and more than 1% lie
+#' beyond |3|
 #' (`residual_outliers`, a sign of a damaged response such as a sentinel code;
 #' it changes no estimate and never flips `attr(x, "ok")`),
 #' known sampling covariance summaries,
@@ -226,9 +227,15 @@ check_drm <- function(object, ...) {
 #'
 #' Use [check_drm()] when you need the full diagnostic table and messages.
 #'
-#' @param object A `drmTMB` fit.
+#' @aliases is_converged.drmTMB_julia is_converged.drmTMB_julia_xfam
+#' @usage is_converged(object, ...)
+#' \method{is_converged}{drmTMB_julia}(object, include_hessian = FALSE, ...)
+#' \method{is_converged}{drmTMB_julia_xfam}(object, include_hessian = FALSE, ...)
+#' @param object A `drmTMB` fit or an existing Julia-backed fit.
 #' @param include_hessian Logical; require a positive-definite
 #'   [TMB::sdreport()] Hessian in addition to optimizer convergence.
+#'   On Julia-backed fits, the method instead requires retained uncertainty
+#'   status `ok` and a positive-definite stored covariance matrix.
 #' @param ... Reserved for future convergence options.
 #'
 #' @return A single logical value.
@@ -534,8 +541,10 @@ drm_standard_errors_pathological <- function(object) {
   !is.null(row) && grepl("n_inflated=[1-9]", row$value, perl = TRUE)
 }
 
+drm_twin_rank_tol <- 1e-8
+
 drm_fixed_effect_rank_deficient <- function(object) {
-  X <- object$model$X
+  X <- drm_fixed_effect_design_matrices(object)
   if (is.null(X) || length(X) == 0L) {
     return(FALSE)
   }
@@ -556,6 +565,31 @@ drm_fixed_effect_rank_deficient <- function(object) {
     }
   }
   FALSE
+}
+
+drm_fixed_effect_design_matrices <- function(object) {
+  X <- object$model$X
+  if (is.null(X) || length(X) == 0L || is.null(names(X))) {
+    return(X)
+  }
+  random_scale <- object$model$random_scale
+  if (!is.list(random_scale)) {
+    return(X)
+  }
+  for (dpar in c("mu", "sigma")) {
+    design_name <- paste0("sd_", dpar)
+    sd_model <- random_scale[[dpar]]
+    if (
+      design_name %in% names(X) &&
+        is.list(sd_model) &&
+        length(sd_model$n_models) == 1L &&
+        !is.na(sd_model$n_models) &&
+        sd_model$n_models == 0L
+    ) {
+      X[[design_name]] <- NULL
+    }
+  }
+  X
 }
 
 drm_inference_at_boundary <- function(object) {
@@ -676,13 +710,24 @@ check_drm.drmTMB <- function(
   out
 }
 
+#' @rdname check_drm
+#' @aliases [.drm_check
+#' @usage \method{[}{drm_check}(x, i, j, drop = FALSE)
+#' @param x A diagnostic table returned by [check_drm()].
+#' @param i,j Row and column indices, as for data-frame subsetting.
+#' @param drop Logical; whether to simplify a single selected column.
+#' @section Subsetting diagnostics:
+#' Data-frame subsets retain the `drm_check` class and the original overall
+#' `ok` flag. The `n_checks_total` attribute retains the original check count,
+#' using `nrow(x)` when that attribute is absent. A simplified non-data-frame
+#' result is returned unchanged.
 #' @export
 `[.drm_check` <- function(x, i, j, drop = FALSE) {
   n_total <- attr(x, "n_checks_total")
   if (is.null(n_total)) {
     n_total <- nrow(x)
   }
-  out <- NextMethod("[")
+  out <- NextMethod("[", drop = drop)
   if (!is.data.frame(out)) {
     return(out)
   }
@@ -940,12 +985,13 @@ check_finite_objective <- function(object) {
 # converged artificially on the flat saturated tail.
 check_logsigma_clamp_active <- function(object) {
   spec <- object$model
-  if (!isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
+  fields <- drm_active_logsigma_clamp_fields(spec)
+  if (length(fields) == 0L) {
     return(check_row(
       "logsigma_clamp_active",
       "ok",
       NA,
-      "The log(sigma) clamp does not apply to this family."
+      "The log-scale clamp does not apply to this model."
     ))
   }
   # This runs post-hoc on a stored fit, whose `obj$env$last.par` was left a
@@ -968,13 +1014,35 @@ check_logsigma_clamp_active <- function(object) {
       "Cannot check the log(sigma) clamp without the TMB object (keep_tmb_object = FALSE)."
     ))
   }
-  info <- drm_logsigma_clamp_active(report, spec$tmb_data)
+  info <- drm_logsigma_clamp_active(report, spec$tmb_data, fields = fields)
   if (is.null(info)) {
     return(check_row(
       "logsigma_clamp_active",
       "ok",
       NA,
-      "The log(sigma) clamp is not active at the optimum."
+      "The log-scale clamp is not active at the optimum."
+    ))
+  }
+  if (identical(info$kind, "latent random-effect SD")) {
+    if (identical(info$arm, "lower")) {
+      return(check_row(
+        "logsigma_clamp_active",
+        "note",
+        format_check_number(info$value),
+        sprintf(
+          "The fitted latent random-effect SD log predictor reached %.2f, below the clamp band lower bound %g; the SD may be near zero or weakly identified. Inspect the group-level design, replication, and SD profile before interpreting the scale contrast.",
+          info$value, info$lo
+        )
+      ))
+    }
+    return(check_row(
+      "logsigma_clamp_active",
+      "warning",
+      format_check_number(info$value),
+      sprintf(
+        "The fitted latent random-effect SD log predictor reached %.2f, above the clamp band upper bound %g; the scale fit may have converged artificially and estimates and SEs near the clamp are unreliable.",
+        info$value, info$hi
+      )
     ))
   }
   # Both clamp arms are reported (Dinnage audit C1). The upper arm keeps
@@ -1786,7 +1854,7 @@ check_fixed_effect_design_collinearity <- function(
 }
 
 check_fixed_effect_rank_deficiency <- function(object) {
-  X <- object$model$X
+  X <- drm_fixed_effect_design_matrices(object)
   if (is.null(X) || length(X) == 0L) {
     return(NULL)
   }

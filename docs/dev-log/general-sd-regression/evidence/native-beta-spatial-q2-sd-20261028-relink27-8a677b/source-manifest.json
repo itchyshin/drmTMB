@@ -1,0 +1,19 @@
+{
+  "scope": "Source identity for native-beta-spatial-q2-sd-20261028, relinked to the live test at drmTMB 7fd8acec3",
+  "commit": "7fd8acec3",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/source-manifest-linked.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-beta-spatial-q2-sd-regression.R",
+      "sha256": "db9e7c11e7ac122c53aa4faa5a8bbb2d0fe73b73de8ecbf3181f9b5d181c7dcb"
+    }
+  ]
+}

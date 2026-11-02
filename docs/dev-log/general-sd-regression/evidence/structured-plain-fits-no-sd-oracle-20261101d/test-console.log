@@ -1,0 +1,6 @@
+ℹ Loading drmTMB
+structured-plain-fits-no-sd-oracle: .......................................................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e   60.54s user 0.46s system 96% cpu 1:03.01 total

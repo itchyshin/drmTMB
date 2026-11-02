@@ -1,0 +1,38 @@
+{
+  "receipt_scope": "Native test run for test-nbinom2-gamma-same-group-sd-regression.R",
+  "drmTMB": {
+    "candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+    "branch": "codex/general-sd-regression",
+    "worktree_state": "dirty shared candidate; hashes below identify test-time files"
+  },
+  "files": [
+    {
+      "file": "tests/testthat/test-nbinom2-gamma-same-group-sd-regression.R",
+      "sha256": "9bdde93740bac69e324781959cec42d98f94c2d99369bdd95f05a9178c43a37a"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "949036ae0f57a78b1c9e57175539550b844222b504db73891c4efe2ebc3cb776"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "646bb79de06de281a9e522182465c1eb96f9b08489386abb1ed10ceb87b41014"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "8d42bc8c6e3a6140293f39e1abd85d6c777ee1856a937807e0e66657310f3cac"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-20261101/test-console.log",
+      "sha256": "8362d7e588c37e93091634fe41310c6258f4d3cef091106792381f6406e16068"
+    }
+  ]
+}

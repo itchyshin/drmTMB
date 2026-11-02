@@ -174,7 +174,7 @@ For one response, start with a coordinate-spatial location intercept:
 
 ```r
 fit_spatial <- drmTMB(
-  y ~ treatment + spatial(1 | site, coords = coords),
+  bf(y ~ treatment + spatial(1 | site, coords = coords)),
   data = dat,
   family = gaussian()
 )
@@ -240,7 +240,7 @@ variation in that slope:
 
 ```r
 fit_spatial_slope <- drmTMB(
-  y ~ treatment + depth + spatial(1 + depth | site, coords = coords),
+  bf(y ~ treatment + depth + spatial(1 + depth | site, coords = coords)),
   data = dat,
   family = gaussian()
 )
@@ -273,10 +273,12 @@ correlation with `corpairs()`:
 
 ```r
 fit_spatial_q2 <- drmTMB(
-  mu1 = trait1 ~ treatment +
-    spatial(1 | p | site, coords = coords),
-  mu2 = trait2 ~ treatment +
-    spatial(1 | p | site, coords = coords),
+  bf(
+    mu1 = trait1 ~ treatment +
+      spatial(1 | p | site, coords = coords),
+    mu2 = trait2 ~ treatment +
+      spatial(1 | p | site, coords = coords)
+  ),
   data = dat,
   family = biv_gaussian()
 )
@@ -319,15 +321,17 @@ term in all four bivariate Gaussian endpoints:
 
 ```r
 fit_spatial_q4 <- drmTMB(
-  mu1 = trait1 ~ treatment +
-    spatial(1 | p | site, coords = coords),
-  mu2 = trait2 ~ treatment +
-    spatial(1 | p | site, coords = coords),
-  sigma1 = ~ treatment +
-    spatial(1 | p | site, coords = coords),
-  sigma2 = ~ treatment +
-    spatial(1 | p | site, coords = coords),
-  rho12 = ~ 1,
+  bf(
+    mu1 = trait1 ~ treatment +
+      spatial(1 | p | site, coords = coords),
+    mu2 = trait2 ~ treatment +
+      spatial(1 | p | site, coords = coords),
+    sigma1 = ~ treatment +
+      spatial(1 | p | site, coords = coords),
+    sigma2 = ~ treatment +
+      spatial(1 | p | site, coords = coords),
+    rho12 = ~ 1
+  ),
   data = dat,
   family = biv_gaussian()
 )

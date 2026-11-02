@@ -1,0 +1,17 @@
+{
+  "scope": "native Binomial logit q1 animal A-inverse precision plus relmat K covariance, compared with equivalent animal A covariance",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "4d1b7b52bc2ef9b7cf16060342116df7dacb79c3e76a5a6f30484f24cefbac12"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-animal-ainv-relmat-sd.R",
+      "sha256": "e322afa5ffe5d02ae46a6b620113a7560f23d9c4cce301a158347f5c0d8ca59f"
+    }
+  ]
+}

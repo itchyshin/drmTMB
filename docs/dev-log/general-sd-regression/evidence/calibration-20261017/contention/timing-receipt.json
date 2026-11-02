@@ -1,0 +1,16 @@
+{
+  "operational_stress": "PASS",
+  "repeated_attempts": 15,
+  "independent_replicates": false,
+  "peak_simultaneous_worker_intervals": 15,
+  "maximum_worker_wall_seconds": 13.149663209915161,
+  "orchestrator_wall_seconds": 13.222827506950125,
+  "production_waves": 188,
+  "additional_overhead_allowance_seconds": 180,
+  "projected_production_seconds": 2652.1366834640503,
+  "planning_gate_seconds": 3000,
+  "campaign_cap_seconds": 3600,
+  "timing_gate": true,
+  "risk": "Three repeated seeds measure contention, not rare runtime tails; hard per-case/campaign caps remain required.",
+  "calibration_claim": false
+}

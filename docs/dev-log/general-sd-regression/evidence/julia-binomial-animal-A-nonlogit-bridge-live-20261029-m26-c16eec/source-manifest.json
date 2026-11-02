@@ -1,0 +1,27 @@
+{
+  "scope": "Source identity for binomial-animal-A-cloglog-20261029, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-A-nonlogit-bridge-live-20261029/source-manifest.sha256",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "472d9de4db223c925df61a683bfd06448e8b9891f32ae2bc386191c6f6098be5"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/helper-binomial-sd-regression.R",
+      "sha256": "acd2153d99bc46d4094cbf5d9a1abd05febd00cb9e9e2a3619d3325925df9018"
+    },
+    {
+      "file": "tests/testthat/test-julia-binomial-animal-A-nonlogit-sd-bridge.R",
+      "sha256": "4b4ebc9412e4df39a0331db295c5ad107c9f0acd2d9ac936c49da52af6e2c13d"
+    }
+  ]
+}

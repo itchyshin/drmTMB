@@ -1,0 +1,19 @@
+{
+  "scope": "Source identity for native-binomial-phylo-relmat-q-cloglog-20261027, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-relmat-q-nonlogit-sd-20261027/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-binomial-phylo-relmat-q-nonlogit-sd.R",
+      "sha256": "48bc80a66b423629b9592ac04d941fd6b54a5de6c641b38ada83f31f93af5fec"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "scope": "Native R/TMB complete-data ordinary lognormal, one unlabelled q=2 intercept-slope block with separate predictor-dependent SD formulas. Hashes describe the dirty candidate files at this receipt.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "tests/testthat/test-lognormal-ordinary-correlated-q2.R",
+      "sha256": "8919967132a9f797e38f49138c5b859c6df41e5996e2dca3c921abb609914d49"
+    },
+    {
+      "file": "NEWS.md",
+      "sha256": "6796a6e1135e3a9bd5a12ab31fbaf725cdfacfeb5e14959ecd2f4ecc20af03fe"
+    },
+    {
+      "file": "README.md",
+      "sha256": "be02f6b2266da9e43e489eb12d881468e55c4bd65216e85ffa31163e49862e67"
+    },
+    {
+      "file": "docs/design/01-formula-grammar.md",
+      "sha256": "43b0a384b2a612c7dc187b85a764ff6c9312bfdfc822fdbfe6cab5fb81d9ee2d"
+    },
+    {
+      "file": "docs/design/03-likelihoods.md",
+      "sha256": "56e39c6377f49b0d942f746fe5564e5ff06b672cd6eb56a89a4ffec0953f012b"
+    },
+    {
+      "file": "docs/design/59-structural-slope-and-non-gaussian-map.md",
+      "sha256": "5d77d873ef19712d292f81e2e655331ec3e153b4d4a3e8795d953bcb89f40cab"
+    },
+    {
+      "file": "docs/dev-log/internal-roadmap.md",
+      "sha256": "f27acce460fb37362eb2db90dd88cf0371c895266eda169e9f46c733897043da"
+    },
+    {
+      "file": "docs/dev-log/known-limitations.md",
+      "sha256": "fb0de1dcea5c0c282566a3d2e5d8dd5eb924422c267e1d14655b949546c17276"
+    },
+    {
+      "file": "vignettes/formula-grammar.Rmd",
+      "sha256": "5e3d6353caaf7776b67ce0670978556b5eed067d7201513b0a46b74ebb8e2535"
+    },
+    {
+      "file": "vignettes/model-map.Rmd",
+      "sha256": "58da4f428b8c572dcc4a9c6b145e5d16e7e6a68482f0f36d12718f657025a81b"
+    },
+    {
+      "file": "vignettes/predictor-dependent-random-sd.Rmd",
+      "sha256": "179b4f58abb96d6966c07de049ed6f285b0802371cff5cbfea63dc3fc58a7be4"
+    }
+  ],
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/drmTMB.R', 'NEWS.md', 'README.md', 'docs/design/01-formula-grammar.md', 'docs/design/03-likelihoods.md', 'docs/dev-log/internal-roadmap.md', 'docs/dev-log/known-limitations.md', 'vignettes/formula-grammar.Rmd', 'vignettes/model-map.Rmd']"
+}

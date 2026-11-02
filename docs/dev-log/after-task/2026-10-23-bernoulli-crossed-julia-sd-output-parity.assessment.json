@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "c993d428e8f16161bafd103456798490977a8afca06eee2c49470edef1c36ba1",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Self-review against writing-naturalness protocol and comparison with the focused test, source, and check outputs; no style-model call.",
+  "genre": "After-task technical report",
+  "coverage": "Entire saved report, 12 numbered sections.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report uses concrete files, model terms, limits, and test evidence. The required section scaffold creates some repeated status phrasing.",
+  "confidence": "medium",
+  "confidence_reason": "I checked the claims against the candidate code and focused live test, but this is a single self-reviewed technical report.",
+  "examples": [
+    {
+      "location": "Section 1, line 5",
+      "line": 5,
+      "quote": "Repair the candidate R-to-Julia bridge for two crossed ordinary Bernoulli",
+      "cue": "Names the exact engine boundary, response family, and crossed model shape.",
+      "impact": "Gives the reader a specific scope before describing the implementation.",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Section 12, line 154",
+      "line": 154,
+      "quote": "for this one fixed-seed fixture. This fixture does NOT cover conditional",
+      "cue": "States the evidence boundary beside the concrete checks.",
+      "impact": "Makes clear that one successful fixture does not prove broad parity.",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The model equations and simulator claims match the independent crossed random-intercept DGP and seeded oracle in the focused test; conclusions are limited to that fixture.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The 30-assertion live test, one JuliaCall warning, documentation generation, pkgdown check, and open programme gates were checked against current outputs.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no literature or external citation claims.",
+  "date": "2026-10-23",
+  "calibration_status": "No calibration examples were consulted; the score is an uncalibrated self-review, not an authorship judgment.",
+  "interpretation": "perceived_style_not_authorship"
+}

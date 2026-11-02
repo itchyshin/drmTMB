@@ -1,0 +1,33 @@
+{
+  "scope": "Source identity for tests/testthat/test-gaussian-correlated-q2-sensitivity-b26.R, receipt gaussian-correlated-q2-sensitivity-b26-20261102c (HEAD 7fd8acec3; hashes identify run-time files)",
+  "files": [
+    {
+      "file": "tests/testthat/test-gaussian-correlated-q2-sensitivity-b26.R",
+      "sha256": "8578f19a174760f7be6e2ac6f00c8f2d78db24a15ec857c4ba05767ad08208b8"
+    },
+    {
+      "file": "tests/testthat/helper-b26sa-oracles.R",
+      "sha256": "86297736404a5f49f9e8c498b1513919bc9ddf9b3adf143a76625fe0e16fde5b"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sensitivity-b26-20261102c/test-console.log",
+      "sha256": "166b4c5578f2a73159db163113e413a3258be5dcd2818bdc6a7de66710aa2316"
+    }
+  ]
+}

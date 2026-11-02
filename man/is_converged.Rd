@@ -2,12 +2,16 @@
 % Please edit documentation in R/check.R
 \name{is_converged}
 \alias{is_converged}
+\alias{is_converged.drmTMB_julia}
+\alias{is_converged.drmTMB_julia_xfam}
 \alias{converged}
 \alias{is_converged.default}
 \alias{is_converged.drmTMB}
 \title{Check whether a fit converged}
 \usage{
 is_converged(object, ...)
+\method{is_converged}{drmTMB_julia}(object, include_hessian = FALSE, ...)
+\method{is_converged}{drmTMB_julia_xfam}(object, include_hessian = FALSE, ...)
 
 converged(object, ...)
 
@@ -16,12 +20,14 @@ converged(object, ...)
 \method{is_converged}{drmTMB}(object, include_hessian = FALSE, ...)
 }
 \arguments{
-\item{object}{A \code{drmTMB} fit.}
+\item{object}{A \code{drmTMB} fit or an existing Julia-backed fit.}
 
 \item{...}{Reserved for future convergence options.}
 
 \item{include_hessian}{Logical; require a positive-definite
-\code{\link[TMB:sdreport]{TMB::sdreport()}} Hessian in addition to optimizer convergence.}
+\code{\link[TMB:sdreport]{TMB::sdreport()}} Hessian in addition to optimizer convergence.
+On Julia-backed fits, the method instead requires retained uncertainty
+status \code{ok} and a positive-definite stored covariance matrix.}
 }
 \value{
 A single logical value.

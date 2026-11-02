@@ -1,0 +1,30 @@
+ℹ Testing drmTMB
+beta-phylo-q2-sd-regression: 12
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-beta-phylo-q2-sd-regression.R:102:3'): Beta phylo q2 maps coe
+Error in `validate_beta_phylo_mu_structured_term(mu_phylo$term)`: `beta()` `phylo()` `mu` effects currently support only an intercept-only q1 term.
+x Requested structured coefficients: "(Intercept)" and "x".
+i Use `phylo(1 | id, tree = tree)`; phylogenetic slopes remain deferred.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_beta_ls_spec(...) at test-beta-phylo-q2-sd-regression.R:102:3
+ 2.   └─drmTMB:::validate_beta_phylo_mu_structured_term(mu_phylo$term) at general-sd-regression/R/drmTMB.R:6911:3
+ 3.     └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:13742:5
+ 4.       └─rlang::abort(...)
+
+── 2. Error ('test-beta-phylo-q2-sd-regression.R:138:3'): Beta phylo q2 SD fit m
+Error in `validate_beta_phylo_mu_structured_term(mu_phylo$term)`: `beta()` `phylo()` `mu` effects currently support only an intercept-only q1 term.
+x Requested structured coefficients: "(Intercept)" and "x".
+i Use `phylo(1 | id, tree = tree)`; phylogenetic slopes remain deferred.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-beta-phylo-q2-sd-regression.R:138:3
+ 2.   └─drmTMB:::drm_build_beta_ls_spec(...) at general-sd-regression/R/drmTMB.R:491:3
+ 3.     └─drmTMB:::validate_beta_phylo_mu_structured_term(mu_phylo$term) at general-sd-regression/R/drmTMB.R:6911:3
+ 4.       └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:13742:5
+ 5.         └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+PASSED 0 FAILED 0 ERRORS 2 SECONDS 4.919 

@@ -1,0 +1,93 @@
+{
+  "evidence_id": "binomial-phylo-structured-sd-oracle-b29b-20261102d",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c <1 core of 210-214> Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-binomial-phylo-structured-sd-oracle-b29b.R', reporter='summary')); cat(sprintf('DRM_RECEIPT_COUNTS passed=%d failed=%d errors=%d skipped=%d\\n', sum(r$passed), sum(r$failed), sum(r$error), sum(r$skipped)))\"",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/exp-9d229de68 (R/, src/ and tests/ verified identical to the worktree by checksum), 1 pinned core; five b29b files ran in parallel on cores 210-214",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "9d229de6836cfc876bf3fcf12f982a3eae38a8fa",
+  "tree_state": "HEAD 9d229de68; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T18:15:41Z",
+  "run_ended_utc": "2026-11-02T18:16:56Z",
+  "exit_code": 0,
+  "expectations_passed": 220,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 4,
+  "test_blocks_note": "count of top-level test_that() calls in the test file",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-phylo-structured-sd-oracle-b29b-20261102d/test-console.log",
+  "console_log_sha256": "f3086d4843660ba01e684c25f6bcb1f36bc477079b2f0ebbc75a4d5231695bef",
+  "test_path": "tests/testthat/test-binomial-phylo-structured-sd-oracle-b29b.R",
+  "test_sha256": "f67055e98f33908a9eb9bf70fef7b565b65fdc80b675d2ca7c5fd833c636a4c8",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-phylo-structured-sd-oracle-b29b-20261102d/source-manifest.json",
+  "source_manifest_sha256": "2f8a1b6d3c716de75f6448149acf424f980350e0839903f054b3d7e835c2cb65",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [
+    "native-binomial-phylo-relmat-k-cloglog-20261027-m26",
+    "native-binomial-phylo-relmat-q-cloglog-20261027-m26",
+    "native-binomial-phylo-spatial-cloglog-20261027-m26",
+    "native-binomial-phylo-animal-logit-20261027-m26",
+    "native-binomial-phylo-animal-ainv-logit-20261027-m26",
+    "native-binomial-phylo-animal-pedigree-logit-20261027-m26",
+    "native-binomial-phylo-relmat-k-logit-20261027-m26",
+    "native-binomial-phylo-relmat-q-logit-20261027-m26",
+    "native-binomial-phylo-spatial-logit-20261027-m26",
+    "native-binomial-phylo-relmat-k-probit-20261027-m26",
+    "native-binomial-phylo-relmat-q-probit-20261027-m26",
+    "native-binomial-phylo-spatial-probit-20261027-m26"
+  ],
+  "strengthens_note": "Companion to the parent id(s); closes reviewer-listed gaps (independent oracle and emulated-bug sensitivity) for the linked rows. Only parent ids whose row is exactly fitted by this file are listed. The base ids carry the -m26 suffix as recorded in the ledger.",
+  "scope": "Binomial phylo(tree) + animal (A, Ainv, pedigree; logit only), phylo + relmat (K, Q; logit, probit, cloglog) and phylo + coordinate spatial (logit, probit, cloglog), each with predictor-dependent SDs on both fields. Dense Laplace oracle (1e-4 on logLik) with cov2cor(ape::vcv) tree kernel, Henderson A, hand relmat and spatial kernels; emulated-bug sensitivity (>0.1); provider inputs agree to 1e-6.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+animal:A_covariance\",\"additive independent latent fields\",\"phylo:tree+animal:A_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+animal:Ainv_precision\",\"additive independent latent fields\",\"phylo:tree+animal:Ainv_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+animal:pedigree\",\"additive independent latent fields\",\"phylo:tree+animal:pedigree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+relmat:K_covariance\",\"additive independent latent fields\",\"phylo:tree+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+relmat:Q_precision\",\"additive independent latent fields\",\"phylo:tree+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+relmat:K_covariance\",\"additive independent latent fields\",\"phylo:tree+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+relmat:Q_precision\",\"additive independent latent fields\",\"phylo:tree+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+relmat:K_covariance\",\"additive independent latent fields\",\"phylo:tree+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+relmat:Q_precision\",\"additive independent latent fields\",\"phylo:tree+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+spatial:coordinates\",\"additive independent latent fields\",\"phylo:tree+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+spatial:coordinates\",\"additive independent latent fields\",\"phylo:tree+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+spatial:coordinates\",\"additive independent latent fields\",\"phylo:tree+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery or estimator-accuracy claims",
+    "any family, link, provider or provider combination not listed in candidate_rows",
+    "probit and cloglog phylo + animal (covered by test-binomial-batch3-sensitivity-b26.R, not repeated)",
+    "single-field phylo rows"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Read the test and helpers. Independent base-R dense Laplace oracle with ape::vcv through cov2cor for the tree (package helper compared with it at 1e-8 on all three phylo fixtures), Henderson tabular A from an inbred pedigree, a hand relmat kernel (Ainv and Q by solve) and a hand spatial kernel. logLik agrees within 1e-4 for each fit, and provider oracle values agree within 1e-6 (A, Ainv and pedigree; K and Q). Each emulated bug (swap, reversed SD, raw vcv for phylo, cov2cor(K) and K x 2 for animal or relmat, kernel read by position) is asserted to move the oracle by more than 0.1. All 12 row_keys are fitted: logit phylo+animal for A, Ainv and pedigree; phylo+relmat K and Q for the three links; phylo+spatial for the three links. Each field is an intercept with sd ~ covariate on its own factor, so there is no slope-member issue. Hashes match, and the console shows 220 passed, 0 failed, 0 skipped, exit 0, with no Julia. Does NOT establish: probit or cloglog phylo+animal (not fitted here); slope, labelled or correlated blocks; calibration, coverage, SE or recovery; Julia parity; any seed beyond the fixed ones (one per block or link); kernel-scale sensitivity for the phylo and spatial fields beyond raw vcv and position reading; behaviour away from the fitted optimum.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+}

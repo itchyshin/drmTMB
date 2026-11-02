@@ -1,0 +1,32 @@
+{
+  "evidence_id": "julia-truncated-nbinom2-mu-iid-numeric-slope-bridge-20261025",
+  "evidence_grade": "focused_test",
+  "command": "env TMPDIR=/private/tmp DRMTMB_JULIA_TESTS=true NOT_CRAN=true DRM_JL_PATH=\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia\" DRM_JL_JULIA_HOME=\"/Users/z3437171/.juliaup/bin\" JULIA_DEPOT_PATH=\"/private/tmp/julia-depot:/Users/z3437171/.julia\" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = \"julia-truncated-nbinom2-sd-bridge\", reporter = \"summary\", stop_on_failure = TRUE)' 2>&1 | tee docs/dev-log/general-sd-regression/evidence/truncated-nbinom2-sd-julia-bridge-20261025/test-console.log",
+  "shell_pipeline_exit_status": 0,
+  "test_console": {
+    "path": "docs/dev-log/general-sd-regression/evidence/truncated-nbinom2-sd-julia-bridge-20261025/test-console.log",
+    "sha256": "b246ed32197bc34ecba1917061a550045ec973e1b34321a144ba5775b71eb8bc"
+  },
+  "expectations": 22,
+  "failures": 0,
+  "skips": 0,
+  "live_julia_tests": 1,
+  "candidate_revisions": {
+    "drmTMB": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+    "DRM.jl": "70dbf564eb670144c63c08f61ea099084d95add2",
+    "DRM.jl_worktree_dirty": true
+  },
+  "runtime": {
+    "R": "4.6.0",
+    "Julia": "1.10.0"
+  },
+  "claim": "One fixed-seed same-data point-recovery/output check for a complete-positive-count zero-truncated NB2 independent numeric mu slope with matching SD regression and fixed sigma. It checks convergence, positive fitted SD trends within fixture-specific bounds, target labels, and finite positive group SD outputs from each engine.",
+  "limitations": [
+    "one synthetic data set",
+    "TMB Laplace and Julia adaptive quadrature differ",
+    "no numerical group-SD parity claim",
+    "no interval calibration",
+    "no general family/effect/provider promotion",
+    "both candidate worktrees are dirty development trees"
+  ]
+}

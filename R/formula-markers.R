@@ -40,14 +40,12 @@ meta_V <- function(V) {
 #' `beta_binomial()`.
 #'
 #' Strict-proportion and zero-one boundary proportion `mi()` predictors
-#' integrate the Beta prior with a fixed 15-node Gauss-Legendre rule. That rule
-#' is accurate for bell-shaped priors but not for U-shaped ones: when the
-#' estimated prior mean of a missing row is within 0.10 of 0 or 1, the rule can
-#' be off by about `5e-3` in the per-row log-likelihood (and by more when the
-#' observed response sits near the pole). Such priors are flagged, not
-#' integrated accurately. A successful fit warns with class
-#' `drmTMB_mi_quadrature_inaccurate`; treat the fit as approximate when that
-#' warning appears. No adaptive rule is planned for now.
+#' integrate the Beta prior with a fixed 15-node Gauss-Legendre rule. This is
+#' not an adaptive rule or an accuracy guarantee for every Beta prior shape.
+#' A successful fit warns with class `drmTMB_mi_quadrature_inaccurate` when the
+#' estimated prior mean of a missing row is within 0.10 of 0 or 1. The warning
+#' flags the limitation without changing the integration rule; treat that fit
+#' as approximate. Absence of this warning does not certify quadrature accuracy.
 #'
 #' @param x A predictor in a supported missing-predictor route.
 #'
@@ -194,9 +192,12 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' non-Gaussian phylogenetic slopes,
 #' zero-inflated phylogenetic effects, and phylogenetic slope correlations
 #' are not supported. The public `phylo()` API requires an ultrametric tree with
-#' branch lengths and normalizes the Brownian covariance by the tree height
-#' when building the Hadfield and Nakagawa A-inverse sparse-precision path.
-#' Thus the latent Brownian field has unit variance at each tip, and the fitted
+#' branch lengths and normalizes the Brownian covariance by the tree height.
+#' It builds a sparse precision over the non-root tips and ancestral nodes
+#' from the tree-edge branch lengths. This augmented-node Brownian
+#' representation follows the sparse \eqn{S^{-1}} approach described by Hadfield
+#' and Nakagawa (2010), rather than forming the dense tip-level \eqn{A^{-1}}
+#' matrix. Thus the latent Brownian field has unit variance at each tip, and the fitted
 #' phylogenetic SD uses this unit-height convention.
 #' Multiplying all branch lengths by a positive constant
 #' leaves the normalized covariance unchanged. The supplied tree object is not
@@ -331,14 +332,23 @@ phylo_interaction <- function(term, tree1, tree2) {
 #' and the NB2 `sigma` q=1 one-slope, all at recovery grade: trust the point
 #' estimate, not the interval.
 #'
-#' A precomputed mesh from [make_mesh()] is fitted for one route only: a
-#' univariate Gaussian, unlabelled `mu` intercept with constant residual scale,
-#' `bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)`, with kappa fixed at
-#' the value given to [make_mesh()]. Its point estimates have recovery evidence
-#' for the tested designs; intervals, coverage, and the spatial range are not
-#' claimed. Any other mesh use, including `sigma ~ z`, a mesh slope, a labelled
-#' or bivariate mesh term, or a non-Gaussian family, is rejected; use
-#' `coords = coords` for those models where a coordinate route exists.
+#' A precomputed mesh from [make_mesh()] is fitted for two routes only, with
+#' kappa fixed at the value given to [make_mesh()]. The first is a univariate
+#' Gaussian, unlabelled `mu` intercept with constant residual scale,
+#' `bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)`; its point estimates
+#' have recovery evidence for the tested designs, and intervals, coverage, and
+#' the spatial range are not claimed. The second is the native Binomial `mu`
+#' spatial intercept across logit, probit, and complementary log-log links.
+#' Native Binomial mesh slopes also support coefficient-specific
+#' predictor-dependent SD formulas for logit, probit, and complementary log-log
+#' links, for example `spatial(0 + x | site, mesh = mesh)` with
+#' `sd(site, level = "spatial", coef = "x") ~ z`. All three links have focused
+#' point-recovery checks; the logit route also has output-workflow checks. No
+#' interval-coverage or Julia parity claim is made. Any other mesh use,
+#' including `sigma ~ z` with a Gaussian mesh term, a Gaussian mesh slope, a
+#' labelled or bivariate mesh term, or another non-Gaussian family, is
+#' rejected; use `coords = coords` for those models where a coordinate route
+#' exists.
 #' Multiple structured slopes, residual-scale structured slopes beyond the
 #' supported NB2 slope, slope correlations, and predictor-dependent spatial
 #' `corpair()` regression are not supported.
@@ -357,7 +367,8 @@ phylo_interaction <- function(term, tree1, tree2) {
 #' @param coords Coordinate object, such as a data frame or matrix of spatial
 #'   coordinates.
 #' @param mesh A fixed-kappa mesh object from [make_mesh()]. Fitted only for the
-#'   univariate Gaussian `mu` intercept with `sigma ~ 1`; see Description.
+#'   univariate Gaussian `mu` intercept with `sigma ~ 1` and the native Binomial
+#'   `mu` spatial intercept or slope routes; see Description.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -375,6 +386,11 @@ phylo_interaction <- function(term, tree1, tree2) {
 #' )
 #' # Fixed-kappa mesh intercept (mesh from make_mesh()); requires sigma ~ 1:
 #' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)
+#' # Native Binomial logit mesh slope with a predictor-dependent SD:
+#' bf(
+#'   y ~ x + spatial(0 + x | site, mesh = mesh),
+#'   sd(site, level = "spatial", coef = "x") ~ z
+#' )
 spatial <- function(term, coords = NULL, mesh = NULL) {
   invisible(NULL)
 }

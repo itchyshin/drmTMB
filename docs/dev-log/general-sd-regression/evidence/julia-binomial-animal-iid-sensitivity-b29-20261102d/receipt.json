@@ -1,0 +1,51 @@
+{
+  "evidence_id": "julia-binomial-animal-iid-sensitivity-b29-20261102d",
+  "evidence_grade": "focused_test",
+  "command": "NOT_CRAN=true JULIA_HOME=$HOME/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin DRM_JL_PATH=/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia OPENBLAS_NUM_THREADS=1 Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-julia-binomial-animal-iid-sensitivity-b29.R', reporter='summary')); <count line>\"",
+  "execution_host": "Mac Studio, live Julia 1.10.0, one R process, OPENBLAS_NUM_THREADS=1; DRModels.jl worktree at d5e3e6b11",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "9d229de6836cfc876bf3fcf12f982a3eae38a8fa",
+  "tree_state": "HEAD 9d229de68; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T18:16:18Z",
+  "run_ended_utc": "2026-11-02T18:17:05Z",
+  "exit_code": 0,
+  "expectations_passed": 35,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 1,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-sensitivity-b29-20261102d/test-console.log",
+  "console_log_sha256": "7fc4b3584254927cd45fccd654bdff06983040572a2fd29a6f1993c7767afe1f",
+  "test_path": "tests/testthat/test-julia-binomial-animal-iid-sensitivity-b29.R",
+  "test_sha256": "b3355ef279878efaf371e3c9a9bdb36d3f346f60ec4cf98efa42231ab88c82e8",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-sensitivity-b29-20261102d/source-manifest.json",
+  "source_manifest_sha256": "0375ad1ea6015f384bd24028db7b600e2c69f8b1d130ec014bca61e0d6e78bc8",
+  "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
+  "strengthens_evidence_ids": [
+    "binomial-animal-iid-julia-independent-laplace-20261024-m26"
+  ],
+  "strengthens_note": "Companion test closing reviewer-listed gaps (batch 27 review) for the linked rows; ids listed are those named in the test header.",
+  "scope": "Live Julia (via the drmTMB R bridge, engine = 'julia') Binomial logit animal(1 | animal_id, A or Ainv) plus (1 | site), with sd(animal_id, level = 'animal') ~ z and sd(site) ~ w. One fixture (seed 20261024). Julia logLik agrees with a base-R dense joint-Newton Laplace oracle at the Julia estimates to 1e-3 absolute (achieved 3.5e-5); nine emulated bugs (selector swap, two slope-sign flips, two reversed SD vectors, A x2, A x1.1, cov2cor(A), reversed A dimnames) each move the oracle by at least 0.047 (47x the tolerance); coefficient shifts of +-0.1 do not raise the oracle logLik; Ainv and A fits agree to 1e-4. The Ainv_precision row is linked because the fit_Ainv fit is checked against the oracle at the same 1e-3 and gaps; the evidence id strengthened is the A_covariance parity id named in the header.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:A_covariance\",\"additive independent latent fields\",\"iid:group_factor+animal:A_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive independent latent fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "native (TMB) engine rows: no native fit is run in this file",
+    "logit-only: no probit or cloglog",
+    "pedigree provider input",
+    "broad Julia parity beyond this one fixture and seed",
+    "recovery or estimator-accuracy claims"
+  ],
+  "tolerances": "as fixed in the test file; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Read the test line by line. The oracle is base R and independent of drmTMB: hand-built A and design matrices, dense joint Newton mode, Laplace logLik. Julia (live, engine='julia') logLik agrees with the oracle at the Julia estimates to 3.48e-5 against a 1e-3 absolute tolerance, asserted for both the A fit and the Ainv fit (the Ainv fit is given solve(A) and checked against the oracle on A, so both linked rows are oracle-checked). Nine emulated bugs are each asserted to move the oracle by more than 20x the tolerance; the smallest, A x1.1, is 0.047 (47x). The logged gaps match: selector swap 61.0, site slope sign 87.4, A x2 2.34, cov2cor(A) 0.80, reversed dimnames 8.09. A shift of +-0.1 in any coefficient is asserted not to raise the oracle logLik. Both linked row_keys are fitted: (1|site) plus animal(1|animal_id, A or Ainv), with sd(animal) ~ z and sd(site) ~ w, so this is the two-field additive pair. Hashes: receipt, manifest, test and console log match the fragment, and all 7 manifest files check OK. Console shows 35 passed, 0 failed, 0 errors, 0 skipped, and 'Julia bridge: 1 live test ran'. Linking the Ainv_precision row is justified because that fit is itself checked against the oracle. The strengthens id binomial-animal-iid-julia-independent-laplace-20261024-m26 is the one named in the header; do not also strengthen julia-binomial-animal-iid-Ainv-bridge-20261029-relink27 without a separate reviewer decision. Does NOT establish: any native (TMB) row; pedigree or Q_precision routes; other links (probit and cloglog are covered by the companion file); calibration, coverage, SEs or recovery; more than one fixture (seed 20261024, 36 animals x 30 sites x 4 repeats); correlated or slope (1 + x | id) structures; and the Julia source state, since the DRModels.jl worktree was dirty at d5e3e6b11 and the manifest hashes only the drmTMB files.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+}

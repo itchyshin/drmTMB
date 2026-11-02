@@ -1,0 +1,38 @@
+{
+  "evidence_id": "native-binomial-relmat-q2-sd-20261028-relink27",
+  "relink_of_evidence_id": "native-binomial-relmat-q2-sd-20261028",
+  "prior_receipt_path": "tools/general-sd-regression/bernoulli-relmat-q2/main-test.log",
+  "prior_test_path": "tools/general-sd-regression/bernoulli-relmat-q2/test-snapshot/tests/testthat/test-binomial-relmat-q2-sd.R",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "host": "Totoro",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 NOT_CRAN=true taskset -c 240 Rscript -e 'pkgload::load_all(\".\", quiet = TRUE); testthat::test_file(\"tests/testthat/test-binomial-relmat-q2-sd.R\", reporter = \"summary\")' (Totoro, package copy rsynced from this worktree at 7fd8acec3, cwd = package root)",
+  "live_test_path": "tests/testthat/test-binomial-relmat-q2-sd.R",
+  "live_test_origin": "tests/testthat/test-binomial-relmat-q2-sd.R",
+  "row_key_support": "live test differs from the frozen snapshot: live differs from the snapshot in one refusal pin that flipped to admission (Binomial animal q2 spec now builds and is checked); the relmat numeric-slope q2 fit and oracle are unchanged",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-relmat-q2-sd.R",
+      "test_sha256": "680a5017f7aea31b196428aa297ae30fb58c805aa631a722c8a838ebf2bbc8d0",
+      "started_utc": "2026-11-02T14:10:53Z",
+      "ended_utc": "2026-11-02T14:12:21Z",
+      "exit_code": 0,
+      "expectations_passed": 98,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/bernoulli-relmat-q2-relink27-dd6b18/test-console.log",
+      "console_log_sha256": "858c02e9199956c641ac51de386ee7244f8e701b60f3c937bb1aaa2fd1215756"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/bernoulli-relmat-q2-relink27-dd6b18/source-manifest.json",
+  "source_manifest_sha256": "8816bf7663ff0fb12d6208d8c51f61fb1aacdee91fd959d942c07f31bbf8e694",
+  "review_status": "reviewed_narrow_claim",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ],
+  "review_note": "Native Binomial logit relmat(1 + x | id) (unlabelled, two independent relatedness fields) with SD formulas z0 on the intercept and z1 on the slope, 160 groups x 32, raw non-unit-diagonal K. Independent oracle: hand-built K, base-R dense Laplace (nlminb, analytic score and Hessian, finite-difference checks, two starts) matching -logLik to 1e-4 (observed 8.0e-10) and eta to 1e-4. Reviewer scratch run (Totoro, core 155): swapped selectors gap 62.8, reversed SD vectors 179.6, reversed slope SD only 43.2, no SD predictor 44.7, cov2cor(K) 1.70, kernel row/col order reversed 4.50 (all at least 1.7e4 times tolerance). K rows are supplied in a permuted order and the data factor is reversed, so alignment by label is exercised. The Q_precision row is supported only through K-vs-Q (differently permuted) equality on a smaller 32x12 fit (loglik 1e-4, coefficients 1e-3), not by a separate Q oracle. Manifest 3/3 match; log 98 pass, 0 failures, 0 skips. Both members fitted, so the slope-member row is supported together with the intercept field. Does NOT establish: a dedicated Q-input oracle, labelled or correlated relmat blocks, non-logit links (the test asserts probit is refused), q2 profile or bootstrap intervals (two-replicate smoke only), or coverage.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
+}

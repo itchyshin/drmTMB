@@ -1,0 +1,28 @@
+ℹ Testing drmTMB
+beta-animal-pedigree-q2-sd-regression: 12
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-beta-animal-pedigree-q2-sd-regression.R:113:3'): Beta pedigre
+Error in `drmTMB:::drm_build_beta_ls_spec(beta_pedigree_q2_sd_form(pedigree), fx$data)`: Beta animal intercept-slope SD regression currently requires a supplied A or Ainv matrix.
+i Use `animal(1 + x | id, A = A)` or `Ainv = Ainv`; pedigree SD routes for two fields remain unimplemented.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_beta_ls_spec(beta_pedigree_q2_sd_form(pedigree), fx$data) at test-beta-animal-pedigree-q2-sd-regression.R:113:3
+ 2.   └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:6954:5
+ 3.     └─rlang::abort(...)
+
+── 2. Error ('test-beta-animal-pedigree-q2-sd-regression.R:132:3'): Beta pedigre
+Error in `drm_build_beta_ls_spec(formula, data, env = formula_env, weights = weights_full, impute = impute, missing = missing_control)`: Beta animal intercept-slope SD regression currently requires a supplied A or Ainv matrix.
+i Use `animal(1 + x | id, A = A)` or `Ainv = Ainv`; pedigree SD routes for two fields remain unimplemented.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-beta-animal-pedigree-q2-sd-regression.R:132:3
+ 2.   └─drmTMB:::drm_build_beta_ls_spec(...) at general-sd-regression/R/drmTMB.R:491:3
+ 3.     └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:6954:5
+ 4.       └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

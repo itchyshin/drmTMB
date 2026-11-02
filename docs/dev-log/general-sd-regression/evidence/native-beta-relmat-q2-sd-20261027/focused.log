@@ -1,0 +1,30 @@
+ℹ Testing drmTMB
+beta-relmat-q2-sd-regression: ................1......................................`simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+..
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-beta-relmat-q2-sd-regression.R:151:3'): Beta relmat intercept
+Error in `validate_beta_sigma_random_terms(sigma_re$terms)`: Non-Gaussian `sigma` random effects are not implemented for `beta()`.
+x Unsupported random-effect term: `(1 | id)`.
+i Use the row-specific known-covariance gate `sigma ~ animal(1 | id, ...)` for the beta scale recovery smoke; ordinary beta scale random effects and other scale routes need separate recovery tests.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-beta-relmat-q2-sd-regression.R:151:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. └─drmTMB:::drm_build_beta_ls_spec(...)
+  8.   └─drmTMB:::validate_beta_sigma_random_terms(sigma_re$terms) at general-sd-regression/R/drmTMB.R:7015:3
+  9.     └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:13876:3
+ 10.       └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+I believe in you!
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+PASSED 56 FAILED 0 ERRORS 1 SECONDS 57.006 

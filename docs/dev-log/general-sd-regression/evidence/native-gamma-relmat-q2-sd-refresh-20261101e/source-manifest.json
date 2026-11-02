@@ -1,0 +1,27 @@
+{
+  "scope": "Source identity for tests/testthat/test-gamma-relmat-q2-sd-regression.R re-run on 2026-11-01 (stale-row refresh after the q2 marginal-simulate edit)",
+  "note": "Shared candidate tree, branch codex/general-sd-regression; hashes identify test-time files.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-gamma-relmat-q2-sd-regression.R",
+      "sha256": "542cdd0419099134fa1a2609349b422099d5b023302924ee271347637dd98e21"
+    }
+  ],
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/drmTMB.R', 'R/methods.R', 'src/drmTMB.cpp']"
+}

@@ -1,0 +1,35 @@
+{
+  "evidence_id": "native-sd-crossed-and-site-quickwins-20261101d-m26",
+  "rerecord_of_evidence_id": "native-sd-crossed-and-site-quickwins-20261101d",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/sd-crossed-and-site-quickwins-20261101d/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"cd \"\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\"\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); testthat::test_file(\"\"tests/testthat/test-sd-crossed-and-site-quickwins.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-sd-crossed-and-site-quickwins.R",
+      "test_sha256": "be0ff68371710d0475c68a6f2a4d5410c95bc704d157e1ccc7d694695bd6d6d6",
+      "started_utc": "2026-11-02T13:18:41Z",
+      "ended_utc": "2026-11-02T13:18:57Z",
+      "exit_code": 0,
+      "expectations_passed": 36,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/sd-crossed-and-site-quickwins-20261101d-m26-325fb0/test-console-test-sd-crossed-and-site-quickwins.log",
+      "console_log_sha256": "2b0bb94dcca39ce463d9206dc79ce7f3b38375362a4f29fb08c2647c09750783"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/sd-crossed-and-site-quickwins-20261101d-m26-325fb0/source-manifest.json",
+  "source_manifest_sha256": "720b20adadc7d5235f4ea861643a0e1f97c971e6c1f348f5cd70e133bd3a92e1",
+  "review_status": "reviewed_narrow_claim",
+  "not_covered": [
+    "iid_additive_terms nested row (not tested)",
+    "sigma iid_additive_terms rows (not tested)",
+    "NB2 site quickwins deliberately not retested here (per file header)",
+    "no se=TRUE inference, coverage or calibration; no Julia"
+  ],
+  "review_note": "Reviewer 1, 2026-11-02. Native Gaussian y ~ x + (1|g) + (1|h) with sd(g) ~ w and sd(h) ~ v, the single linked row (crossed iid_additive_terms). The oracle is an exact dense multivariate-normal marginal in plain R, with V = Zg diag(tau_g^2) Zg' + Zh diag(tau_h^2) Zh' + sigma^2 I, built from hand-made indicator matrices. It matches logLik to 1e-6 relative at the fitted parameters. An independent L-BFGS-B optimisation of the same dense likelihood reaches the same maximum (1e-5). Emulated-bug sensitivity is in the test, each case required to move the oracle by more than 1e-2: reversed tau_g (position instead of name), reversed tau_h, sign-flipped slope, SD formula ignored, and SD of the wrong term. Level order is shuffled and the two SD predictors have opposite signs, so a selector swap is visible. Both SD formulas are fitted. Rerun: 36 passed, 0 failed, 0 skipped. Test, console log, manifest and all 4 manifest entries hash-match current files. Does NOT establish: se = TRUE inference, simulate(), calibration or coverage, structured providers, the Julia engine, non-Gaussian crossed fits (NB2 crossed is in another test), or any fixture beyond this seed and design.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
+}

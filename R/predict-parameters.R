@@ -37,9 +37,12 @@
 #' selection this implies: whether a row returns an interval depends on where
 #' its *estimate* fell relative to the band, not on where the truth is, so
 #' near the band edge the intervals that are returned are conditioned on that
-#' selection (in the package's own check, coverage of the kept `"wald"` rows
-#' fell from 0.985 to 0.882 as the true predictor approached the edge, against
-#' 0.98 for the unconditional raw interval). Use [check_drm()] to see whether a fit's clamp
+#' selection. In one retained Gaussian location-scale fixture with a soft-clamp
+#' band of `[-1, 1]` and 996 usable replicates, coverage among returned `"wald"`
+#' rows fell from 0.985 at true link predictor 0.88 to 0.882 at 1.12 (68 rows
+#' retained at the latter point); the unconditional raw interval covered about
+#' 0.98 in that fixture. These figures describe that selection check, not
+#' coverage on other families or designs. Use [check_drm()] to see whether a fit's clamp
 #' is active, and rescale the response or widen the band
 #' (`drm_control(logsigma_clamp = )`) before trusting scale-parameter
 #' intervals on a clamp-active fit.
@@ -157,7 +160,9 @@ predict_parameters.drmTMB <- function(
     )
     out <- data.frame(
       row = seq_len(n),
-      row_label = predict_parameters_row_labels(newdata, n),
+      row_label = predict_parameters_row_labels(
+        newdata, n, object = object, dpar = one_dpar
+      ),
       dpar = one_dpar,
       component = drm_dpar_component(one_dpar),
       type = type,
@@ -187,6 +192,168 @@ predict_parameters.drmTMB <- function(
     )
   }
   out
+}
+
+#' @rdname predict_parameters
+#' @export
+predict_parameters.drmTMB_julia <- function(
+  object,
+  newdata = NULL,
+  dpar = NULL,
+  type = c("response", "link"),
+  include_newdata = TRUE,
+  conf.int = FALSE,
+  conf.level = 0.95,
+  ...
+) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort("{.arg ...} is reserved for future options.")
+  }
+  type <- match.arg(type)
+  validate_predict_parameters_newdata(newdata)
+  validate_predict_parameters_include_newdata(include_newdata)
+  validate_predict_parameters_conf_int(conf.int)
+  validate_predict_parameters_conf_level(conf.level)
+
+  available <- drm_julia_predict_parameters_dpars(object)
+  if (is.null(dpar)) {
+    dpar <- available
+  } else if (
+    !is.character(dpar) || length(dpar) < 1L || anyNA(dpar)
+  ) {
+    cli::cli_abort(
+      "{.arg dpar} must be a non-empty character vector of fitted distributional parameters."
+    )
+  }
+  unknown <- setdiff(dpar, available)
+  if (length(unknown) > 0L) {
+    cli::cli_abort(c(
+      "Unknown distributional parameter{?s}: {.val {unknown}}.",
+      i = "Available parameters: {.val {available}}."
+    ))
+  }
+
+  rows <- lapply(dpar, function(one_dpar) {
+    is_random_scale <- one_dpar %in%
+      drm_julia_predict_parameters_random_scale_dpars(object)
+    stored_dpar <- object$bridge$dpars[[one_dpar]]
+    if (is.null(newdata) && !is_random_scale &&
+        identical(type, "response") && !is.null(stored_dpar) &&
+        !is.null(object$data) && length(stored_dpar) == nrow(object$data)) {
+      # The Julia bridge retains per-row family parameters on the response
+      # scale. Reuse them for fitted distribution summaries; calling predict()
+      # with newdata = NULL instead asks for conditional predictions and can
+      # require random-effect modes that this bridge route does not store.
+      estimate <- as.numeric(stored_dpar)
+    } else {
+      estimate <- predict(
+        object,
+        newdata = if (is.null(newdata) && !is_random_scale) {
+          object$data
+        } else {
+          newdata
+        },
+        dpar = one_dpar,
+        type = type
+      )
+    }
+    n <- length(estimate)
+    interval <- if (
+      isTRUE(conf.int) && !is.null(newdata) &&
+        one_dpar %in% drm_julia_predict_parameters_random_scale_dpars(object)
+    ) {
+      predict_parameters_interval_unavailable(
+        n, status = "wald_unavailable", conf.level = conf.level
+      )
+    } else {
+      predict_parameters_interval(
+        object = object,
+        newdata = newdata,
+        dpar = one_dpar,
+        type = type,
+        estimate = as.numeric(estimate),
+        conf.int = conf.int,
+        conf.level = conf.level
+      )
+    }
+    out <- data.frame(
+      row = seq_len(n),
+      row_label = drm_julia_predict_parameters_row_labels(
+        object, newdata, one_dpar, n
+      ),
+      dpar = one_dpar,
+      component = drm_dpar_component(one_dpar),
+      type = type,
+      estimate = as.numeric(estimate),
+      conf.status = interval$conf.status,
+      interval_source = interval$interval_source,
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+    if (isTRUE(conf.int)) {
+      out$std.error <- interval$std.error
+      out$conf.low <- interval$conf.low
+      out$conf.high <- interval$conf.high
+      out$conf.level <- interval$conf.level
+      out <- predict_parameters_order_columns(out)
+    }
+    out
+  })
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  if (isTRUE(include_newdata) && !is.null(newdata)) {
+    out <- cbind(
+      out,
+      predict_parameters_newdata_columns(newdata, length(dpar)),
+      stringsAsFactors = FALSE
+    )
+  }
+  out
+}
+
+drm_julia_predict_parameters_random_scale_dpars <- function(object) {
+  entries <- object$formula$entries
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(character())
+  }
+  is_scale <- vapply(entries, function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, logical(1L))
+  entries <- entries[is_scale]
+  if (length(entries) == 0L) {
+    return(character())
+  }
+  unique(vapply(entries, function(entry) {
+    target <- parse_sd_lhs(entry$lhs)
+    as.character(drm_julia_sd_public_dpar(target))[[1L]]
+  }, character(1L)))
+}
+
+drm_julia_predict_parameters_dpars <- function(object) {
+  available <- names(object$coefficients)
+  random_scale_dpars <- drm_julia_predict_parameters_random_scale_dpars(object)
+  if (length(random_scale_dpars) > 0L) {
+    internal_blocks <- sub("\\(.*$", "", random_scale_dpars)
+    available <- setdiff(available, internal_blocks)
+    available <- c(available, random_scale_dpars)
+  }
+  available
+}
+
+drm_julia_predict_parameters_row_labels <- function(
+  object, newdata, dpar, n
+) {
+  if (is.null(newdata) && dpar %in% drm_julia_predict_parameters_random_scale_dpars(object)) {
+    values <- object$sdpars[[dpar]]
+    labels <- names(values)
+    prefix <- paste0(dpar, ":")
+    if (length(values) == n && !is.null(labels) &&
+        all(startsWith(labels, prefix))) {
+      return(substring(labels, nchar(prefix) + 1L))
+    }
+  }
+  predict_parameters_row_labels(newdata, n, object = object, dpar = dpar)
 }
 
 predict_parameters_dpars <- function(object, dpar) {
@@ -488,8 +655,14 @@ predict_parameters_order_columns <- function(data) {
   ]
 }
 
-predict_parameters_row_labels <- function(newdata, n) {
+predict_parameters_row_labels <- function(newdata, n, object = NULL, dpar = NULL) {
   if (is.null(newdata)) {
+    group_labels <- predict_parameters_random_scale_group_labels(
+      object, dpar, n
+    )
+    if (!is.null(group_labels)) {
+      return(group_labels)
+    }
     return(as.character(seq_len(n)))
   }
   labels <- row.names(newdata)
@@ -497,6 +670,42 @@ predict_parameters_row_labels <- function(newdata, n) {
     return(as.character(seq_len(n)))
   }
   labels
+}
+
+predict_parameters_random_scale_group_labels <- function(object, dpar, n) {
+  if (is.null(object) || is.null(dpar) || length(dpar) != 1L ||
+      is.na(dpar)) {
+    return(NULL)
+  }
+  random_scale <- object$model$random_scale
+  if (!is.list(random_scale)) {
+    return(NULL)
+  }
+  candidates <- random_scale[c("mu", "phylo")]
+  matches <- which(vapply(candidates, function(candidate) {
+    is.list(candidate) && dpar %in% candidate$dpars
+  }, logical(1L)))
+  if (length(matches) == 0L) {
+    return(NULL)
+  }
+  if (length(matches) != 1L) {
+    cli::cli_abort(
+      "Internal error: random-scale parameter {.val {dpar}} has multiple group-label registries."
+    )
+  }
+  group_levels_list <- candidates[[matches[[1L]]]]$group_levels_list
+  labels <- if (is.list(group_levels_list)) {
+    group_levels_list[[dpar]]
+  } else {
+    NULL
+  }
+  if (is.null(labels) || length(labels) != n || anyNA(labels)) {
+    cli::cli_abort(c(
+      "Internal error: registered group labels for {.val {dpar}} do not match the prediction length.",
+      "i" = "The scale registry must provide exactly one non-missing group label per prediction row."
+    ))
+  }
+  as.character(labels)
 }
 
 predict_parameters_newdata_columns <- function(newdata, n_dpar) {

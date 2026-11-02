@@ -1,0 +1,26 @@
+{
+  "evidence_id": "cumlogit-native-iid_numeric_slope-sd-bridge-20261025-rerun-m26",
+  "rerecord_of_evidence_id": "cumlogit-native-iid_numeric_slope-sd-bridge-20261025-rerun",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/cumulative-logit-sd-bridge-20261025/pass-restored-tests/console.log",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"DRMTMB_JULIA_TESTS=true NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 JULIA_HOME=<Julia 1.10.0 bin> DRM_JL_PATH=<paired DRM.jl candidate> DRMODELS_JL_PATH=<paired DRM.jl candidate> Rscript -e devtools::test(filter=\"\"julia-cumulative-logit-sd-(intercept|slope)-parity\"\", reporter=\"\"summary\"\", stop_on_failure=TRUE)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-cumulative-logit-sd-slope-parity.R",
+      "test_sha256": "7290adee483903aa85ed764aad3f5b46fcdfbc12c0d92c16936a9ab9da88d290",
+      "started_utc": "2026-11-02T13:22:37Z",
+      "ended_utc": "2026-11-02T13:22:43Z",
+      "exit_code": 0,
+      "expectations_passed": 0,
+      "failures": 0,
+      "errors": 0,
+      "skips": 1,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/cumulative-logit-sd-bridge-20261025/pass-restored-tests-m26-400a54/test-console-test-julia-cumulative-logit-sd-slope-parity.log",
+      "console_log_sha256": "1598caa126f0d3b82fd04be784442fd6f2e24994d16e5a45ed0daa7ed2880373"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/cumulative-logit-sd-bridge-20261025/pass-restored-tests-m26-400a54/source-manifest.json",
+  "source_manifest_sha256": "68840e5e0f4cdf2f88cf016905e15768a432affb9443536ee948f4b10920045e",
+  "review_status": "unreviewed"
+}

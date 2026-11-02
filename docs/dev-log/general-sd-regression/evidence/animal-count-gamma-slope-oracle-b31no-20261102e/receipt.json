@@ -1,0 +1,47 @@
+{
+  "evidence_id": "animal-count-gamma-slope-oracle-b31no-20261102e",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c 236-241 Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-animal-count-gamma-slope-oracle-b31no.R', reporter='summary'))\" (Totoro, ~/hsq_work/exp-9d229de68; B31NO_SHOW_GAPS=1)",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/exp-9d229de68, cores 236-241",
+  "git_head": "4f2d9ba01172657766a25b62f0dd98835f0a28ab",
+  "tree_state": "HEAD 4f2d9ba01; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes; new untracked b31no test files and helper; R/ and src/ unchanged; unreviewed",
+  "counts": {
+    "test_blocks": 6,
+    "expectations": 124,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "warnings": 2
+  },
+  "console_log": "docs/dev-log/general-sd-regression/evidence/animal-count-gamma-slope-oracle-b31no-20261102e/test-console.log",
+  "console_log_sha256": "ccb996e5b254faa32f7daca669f3b9807cce45a109bf84d28e31f08dc2d97109",
+  "test_path": "tests/testthat/test-animal-count-gamma-slope-oracle-b31no.R",
+  "test_sha256": "1803474ff0d0f3c0a46fb1b548b6040a5456858e53e79be02888bec9d13b4719",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/animal-count-gamma-slope-oracle-b31no-20261102e/source-manifest.json",
+  "source_manifest_sha256": "f6dce139207632ab504d48d17bcadec439467f2243f7c47178869f572a44301c",
+  "rows_claimed": [
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"pedigree\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"pedigree\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"pedigree\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"A_covariance\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": "No calibration, coverage, recovery or broad parity claim; likelihood assembly, selector and kernel alignment at one seed per route only. Warnings (if any) are optimiser NA/NaN function evaluations.",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Read the test and helper-b31no-oracle.R line by line. The oracle is independent: hand-built Henderson tabular A of an inbred pedigree (diag up to ~1.7), base-R dense Laplace (helper-sb26) at the fitted parameters, SD vectors built by hand from fitted coefficients and non-palindromic selector grids; the pedigree provider is compared with the hand A, so it is a real independent construction. Slope rows are fitted as unlabelled animal(1 + x | id) with one SD formula per coefficient, which is exactly the 'independent animal fields' layout the rows name (no correlation claimed). Gamma intercept row is animal(1 | id, pedigree) with sd ~ w0. Each of the six row_keys has a matching test (Poisson A and Ainv, NB2 Ainv and pedigree, Gamma I and Ix pedigree). Sensitivity: swapped coefficient sets, reversed SD, flipped selector, K by position, K x2, cov2cor(K) each asserted > 0.1 against 1e-4 agreement; observed min gaps 0.19 to 3.8, agreement 1e-9 or better. Hashes of test, helpers, R/src sources, console log, manifest and receipt all recompute correctly (receipt sha matches the fragment). Console log: 6 blocks, 124 expectations, 0 failures, 0 skips, 2 optimiser NA/NaN warnings. Rerun on Totoro cores 280-285 reproduced 6/124/0/0/0 with 2 warnings. Does NOT establish: calibration, coverage, recovery or Julia parity; any estimated cross-coefficient correlation (labelled animal blocks); behaviour beyond one seed per route; the Gamma shape/NB2 size are taken at fitted values, not checked as estimates.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+}

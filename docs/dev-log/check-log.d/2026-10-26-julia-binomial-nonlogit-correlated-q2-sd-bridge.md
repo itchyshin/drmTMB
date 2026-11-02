@@ -1,0 +1,3 @@
+## Bernoulli correlated q2 probit and cloglog Julia bridge
+
+The opt-in live `julia-binomial-nonlogit-correlated-sd-bridge` test passed for both probit and complementary log-log, with 30 live expectations and no warnings, failures, or skips. Each fixture compared same-data TMB and paired-candidate Julia fits for a correlated intercept-and-slope block with separate SD regressions. It checked recovery direction, correlation recovery, convergence, coefficient/correlation agreement, and group-SD predictions. This is point-recovery evidence for one synthetic fixture per link, not interval calibration. Receipt: `docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-sd-bridge-20261026/receipt.md`.

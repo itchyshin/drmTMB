@@ -1,0 +1,70 @@
+{
+  "evidence_id": "gamma-animal-q2-correlated-sd-r2-20261101",
+  "refresh_of_evidence_ids": [
+    "native-gamma-animal-q2-correlated-sd-20261101"
+  ],
+  "command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && NOT_CRAN=true OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'suppressMessages(devtools::load_all(\".\", quiet=TRUE)); testthat::test_file(\"tests/testthat/test-gamma-animal-q2-correlated-sd.R\", reporter=\"summary\")' > docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-correlated-sd-r2-20261101/test-console.log",
+  "command_note": "The R expression actually run additionally captured the test_file result as a data frame and printed a final DRM_RECEIPT_COUNTS line (blocks, expectations, failed, skipped, errors, warnings) and set a nonzero exit status on any failure, error or skip; the test_file(...) call itself is as above.",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "b87566680778831c2bae38d66399c3ca667e29fc",
+  "branch": "codex/general-sd-regression",
+  "tree_state": "dirty and shared; uncommitted edits present; unreviewed",
+  "run_started_utc": "2026-11-01T18:05:54Z",
+  "run_ended_utc": "2026-11-01T18:06:11Z",
+  "exit_code": 0,
+  "test_blocks": 6,
+  "expectations_passed": 46,
+  "failures": 0,
+  "skips": 0,
+  "errors": 0,
+  "warnings": 0,
+  "expectation_count_note": "Counted by testthat (sum of nb over test_that blocks, loops counted per expectation call); earlier reports quoted a different count and were not relied on.",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-correlated-sd-r2-20261101/test-console.log",
+  "console_log_sha256": "9cfbbe190cd29c54b9f9891ec975d4bcd47fe235b683eef30c0ca2a81e019be9",
+  "test_path": "tests/testthat/test-gamma-animal-q2-correlated-sd.R",
+  "test_sha256": "a69b3cded6e82b1e439eb170bafac330acf8e1fcfb637b1cd436905eb4e40b9f",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-correlated-sd-r2-20261101/source-manifest.json",
+  "source_manifest_sha256": "4fe995d01c856333c9a1f6222f910031db435c83d3aaf4907e3b1918f63e1980",
+  "scope": "Native Gamma(log) mu animal(1 + x | p | id, A = A), dense A, q=2 labelled correlated block, coefficient-specific SD regressions sd(id, level=animal, dpar=mu, coef=...) ~ s0 / s1; also the unlabelled independent comparator, three fixed seeds and the designed-error refusals.",
+  "oracle": "Independent R re-computation of the joint (data + latent prior) negative log likelihood from the fitted coefficients and latent fields, using dense A (solve/determinant) and stats::dgamma; shares no code with the C++ objective (not Q_phylo, not log_det_Q). Compared with the TMB joint objective to 1e-6 absolute on seeds 20261101-20261103, plus the unlabelled rho=0 fit. Five emulated bugs (logdet_once, cross_sign, drop_rho, swap_sd_formulas, swap_fields) must each move the oracle by more than 1e-3 (non-vacuity). The oracle is evaluated at the fitted parameters, so it checks likelihood assembly, not the optimiser. It is independent of the code under test as an implementation, but the fitted parameters and latent fields come from the code under test. Recovery of rho is a loose band, not an oracle.",
+  "tolerances": "oracle vs joint objective < 1e-6 absolute; each emulated bug moves oracle > 1e-3; |rho_hat - 0.5| < 0.4 on seeds 20261101, 20261102, 20261103; logLik(correlated) > logLik(independent) + 1e-6; rho report vs corpars equal to 1e-8",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "target_member": "mu:I",
+      "link": "log",
+      "mechanism_id": "animal_correlated_block",
+      "provider_input": "A_covariance",
+      "ledger_status": "unresolved"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "target_member": "mu:x1",
+      "link": "log",
+      "mechanism_id": "animal_correlated_block",
+      "provider_input": "A_covariance",
+      "ledger_status": "unresolved"
+    }
+  ],
+  "checks": [
+    "labelled fit converges, no warning; unlabelled fit converges",
+    "named cor(mu:(Intercept),mu:x | p | id) finite, |rho|<1, loose band around simulated rho=0.5",
+    "correlated logLik exceeds nested independent logLik by more than 1e-6",
+    "coefficient-SD regressions reported with names (Intercept),s0 and (Intercept),s1; signs as simulated",
+    "joint objective equals independent dense-A R oracle on three fixed seeds, with five emulated bugs detected",
+    "recovery within 0.4 band on three fixed seeds",
+    "designed errors for labelled fit without sd() formulas, slope-only label, q>2 label, one-sided sd() formulas",
+    "unlabelled animal(1 + x | id) stays independent (comparator only, not linked)"
+  ],
+  "evidence_grade_suggested": "recovery",
+  "limits": [
+    "native engine only",
+    "fixed-seed fixtures with loose recovery bands where applicable",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed",
+    "a receipt does not promote any row; direct_sd_claim stays none"
+  ],
+  "supersedes_note": "Refresh: the test file changed after the earlier receipts for the same rows (digest differs), so the earlier receipt digests no longer match the live test. Old evidence directories are untouched."
+}
