@@ -1,0 +1,29 @@
+{
+  "evidence_id": "native-gaussian-structured-q2-sd-20261101d-20261102a",
+  "refresh_of_evidence_ids": [
+    "native-gaussian-structured-q2-sd-20261101d"
+  ],
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gaussian-structured-q2-sd.R\", reporter = \"summary\")'",
+  "git_head": "3cfc6c2eb743c2f86f0bdedcb706274952563b57",
+  "tree_state": "uncommitted staged edits; unreviewed",
+  "run_started_utc": "2026-11-02T06:22:27Z",
+  "run_ended_utc": "2026-11-02T06:22:47Z",
+  "exit_code": 0,
+  "expectations_passed": 64,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-q2-sd-refresh-20261102a/test-console.log",
+  "console_log_sha256": "e5b6aa2e6bdc46563bc37fb8e1f56812e45bb48f7989165e51393d77be80c2e0",
+  "test_path": "tests/testthat/test-gaussian-structured-q2-sd.R",
+  "test_sha256": "0e9600f5e43e27cd65bfb5ab415b72ea566795dbf33f12aca42fa3fa04c6d4e7",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-q2-sd-refresh-20261102a/source-manifest.json",
+  "source_manifest_sha256": "1fddae536325a3d29b8045495a9609b97c5a19e3399098f1d49398021754aaaf",
+  "live_julia": "not run unless the console log says live tests ran",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity unless stated"
+  ],
+  "review_status": "unreviewed"
+}

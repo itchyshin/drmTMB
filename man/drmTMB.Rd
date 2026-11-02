@@ -88,9 +88,11 @@ fixed-effect binary \code{mi()} predictor modelled by \code{family = binomial()}
 
 \item{missing}{Missing-data policy created by \code{\link[=miss_control]{miss_control()}}. The default
 keeps the existing complete-case behaviour. Among currently supported models,
-\code{missing = miss_control(response = "include")} is implemented only for
-univariate Gaussian response masks and bivariate Gaussian partial-response
-rows without dense known covariance. \code{missing = miss_control(predictor = "model")} is implemented for one \code{mi()}
+\code{missing = miss_control(response = "include")} is implemented for
+univariate Gaussian response masks, bivariate Gaussian partial-response
+rows without dense known covariance, and the documented count and
+positive-continuous routes (including Poisson, NB2 and Gamma ordinary
+\code{mu} random effects with \code{sd()} formulas). \code{missing = miss_control(predictor = "model")} is implemented for one \code{mi()}
 missing predictor in the documented family-specific routes. A univariate
 Gaussian response also supports two independent \code{mi()} predictors with
 fixed-effect models: two Gaussian models or one Gaussian plus one binary

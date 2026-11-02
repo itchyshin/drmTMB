@@ -363,15 +363,23 @@ test_that("neighbouring count q2 SD routes stay refused with designed errors", {
     "intercept\\s+plus\\s+one\\s+slope\\s+with\\s+one\\s+SD\\s+formula\\s+per\\s+coefficient|requires\\s+one\\s+SD\\s+formula\\s+for\\s+each\\s+coefficient"
   )
 
-  # Labelled covariance block with coefficient SDs on a non-animal provider.
+  # Labelled covariance block with coefficient SDs on the spatial provider
+  # (the labelled relmat route is admitted; see
+  # test-count-labelled-relmat-q2-sd.R).
+  fx_sp <- more_q2_fixture("spatial", "poisson", 20261111L)
+  coords <- fx_sp$supplied$coords
+  sd_sp0 <- sd(id, level = "spatial", dpar = "mu", coef = "(Intercept)") ~ w
+  sd_sp1 <- sd(id, level = "spatial", dpar = "mu", coef = "x") ~ v
   expect_error(
-    drmTMB(bf(y ~ x + relmat(1 + x | p | id, K = K), sd_int, sd_x),
-           family = stats::poisson(), data = d),
+    drmTMB(bf(y ~ x + spatial(1 + x | p | id, coords = coords),
+              sd_sp0, sd_sp1),
+           family = stats::poisson(), data = fx_sp$data),
     "require\\s+one\\s+structured\\s+coefficient"
   )
   expect_error(
-    drmTMB(bf(y ~ x + relmat(1 + x | p | id, K = K), sigma ~ 1, sd_int, sd_x),
-           family = nbinom2(), data = d),
+    drmTMB(bf(y ~ x + spatial(1 + x | p | id, coords = coords), sigma ~ 1,
+              sd_sp0, sd_sp1),
+           family = nbinom2(), data = fx_sp$data),
     "only\\s+the\\s+implemented\\s+labelled\\s+covariance\\s+forms"
   )
 

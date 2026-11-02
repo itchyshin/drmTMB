@@ -155,10 +155,12 @@ test_that("Poisson SD keeps zi, correlated-block, structure, and mi fences", {
   ), dat)
   expect_identical(zi_spec$model_type, "zi_poisson")
   expect_identical(zi_spec$random_scale$mu$dpars, "sd(id)")
+  # Ordinary non-inflated include is admitted (test-poisson-sd-missing-include.R);
+  # the zero-inflated include route stays refused.
   expect_error(drm_build_poisson_spec(
-    bf(y ~ x + (1 | id), sd(id) ~ w), dat,
+    bf(y ~ x + (1 | id), zi ~ 1, sd(id) ~ w), dat,
     missing = miss_control(response = "include")
-  ), "complete data")
+  ), "complete predictors")
   dat$w[1L] <- dat$w[1L] + 0.2
   expect_error(drm_build_poisson_spec(bf(y ~ x + (1 | id), sd(id) ~ w), dat),
                "constant within")

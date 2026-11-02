@@ -404,15 +404,15 @@ test_that("Gaussian structured q2 SD refusals are designed errors", {
         sd(id, level = "animal", coef = "z") ~ 1),
     "reserves\\s+only\\s+intercept\\s+and\\s+one-slope"
   )
-  # Spatial q2 SD regression stays refused.
+  # Spatial q2 SD regression was admitted on 2026-11-01; its exact-marginal
+  # oracle lives in test-gaussian-spatial-q2-sd.R. Here it only has to build.
   coords <- data.frame(
     a = cos(seq_len(12L)), b = sin(seq_len(12L)),
     row.names = levels(d$id)
   )
-  expect_error(
+  expect_no_error(
     fit(y ~ x + spatial(1 + x | id, coords = coords), sigma ~ 1,
         sd(id, level = "spatial", coef = "(Intercept)") ~ s0,
-        sd(id, level = "spatial", coef = "x") ~ s1),
-    "require\\s+one\\s+structured\\s+coefficient"
+        sd(id, level = "spatial", coef = "x") ~ s1)
   )
 })

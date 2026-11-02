@@ -60,9 +60,12 @@ test_that("Poisson slope SD keeps selector and unvalidated-combination boundarie
   ), dat)
   expect_identical(zi_slope$model_type, "zi_poisson")
   expect_identical(zi_slope$random_scale$mu$dpars, 'sd(id, coef = "x")')
+  # Non-inflated include is admitted (test-poisson-sd-missing-include.R); the
+  # correlated (1 + x | id) block with include stays refused.
   expect_error(drm_build_poisson_spec(bf(
-    y ~ x + (0 + x | id), sd(id, coef = "x") ~ w
-  ), dat, missing = miss_control(response = "include")), "complete data")
+    y ~ x + (1 + x | id), sd(id, coef = "x") ~ w
+  ), dat, missing = miss_control(response = "include")),
+  "missing-response integration")
   expect_error(drm_build_poisson_spec(bf(
     y ~ x + (0 + x | p | id), sd(id, coef = "x", block = "p") ~ w
   ), dat), "Unsupported random-effect term")
