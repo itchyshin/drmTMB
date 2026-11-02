@@ -139,8 +139,10 @@
 #'   `missing = miss_control(response = "include")` is implemented for
 #'   univariate Gaussian response masks, bivariate Gaussian partial-response
 #'   rows without dense known covariance, and the documented count and
-#'   positive-continuous routes (including Poisson, NB2 and Gamma ordinary
-#'   `mu` random effects with `sd()` formulas). `missing =
+#'   positive-continuous routes (including Poisson, NB2, Gamma and Binomial
+#'   ordinary `mu` random effects with `sd()` formulas, and Poisson, NB2 and
+#'   Gamma with one structured animal, relmat, phylo or spatial intercept that
+#'   has its own `sd(group, level = ...)` formula). `missing =
 #'   miss_control(predictor = "model")` is implemented for one `mi()`
 #'   missing predictor in the documented family-specific routes. A univariate
 #'   Gaussian response also supports two independent `mi()` predictors with
@@ -6713,15 +6715,26 @@ drm_build_gamma_ls_spec <- function(
 
   if (length(sd_mu_entries) > 0L || length(sd_sigma_entries) > 0L ||
       length(sd_phylo_entries) > 0L) {
-    # Ordinary mu-target SD regression masks missing responses in the C++
-    # likelihood (observed_y guard, model_type 5). Sigma-target, structured and
-    # joint routes still require complete responses.
+    # Ordinary mu-target SD regression and one unlabelled q1 structured
+    # intercept (animal, relmat, phylo or coordinate-spatial) with its own SD
+    # formula mask missing responses in the C++ likelihood (observed_y guard,
+    # model_type 5; the structured prior does not depend on y, so a group with
+    # no observed response stays in the field prior). Sigma-target, joint,
+    # slope, q2, labelled and ordinary-beside-structured routes still require
+    # complete responses.
+    gamma_include_structured_q1_sd <- length(sd_phylo_entries) > 0L &&
+      length(sd_mu_entries) == 0L && length(sd_sigma_entries) == 0L &&
+      !is.null(mu_structured_term) &&
+      structured_term_is_intercept_only(mu_structured_term) &&
+      is.null(mu_structured_term$covariance_label) &&
+      length(mu_re$terms) == 0L && length(sigma_re$terms) == 0L
     if (include_missing_response &&
+        !gamma_include_structured_q1_sd &&
         (length(sd_sigma_entries) > 0L || length(sd_phylo_entries) > 0L ||
           !is.null(mu_structured_term))) {
       cli::cli_abort(c(
         "Gamma random-effect SD regression currently requires complete responses.",
-        "i" = "Remove {.code miss_control(response = \"include\")} for this model; only ordinary {.code mu} intercept or independent-slope SD regression accepts missing responses."
+        "i" = "Remove {.code miss_control(response = \"include\")} for this model; only ordinary {.code mu} intercept or independent-slope SD regression, or one structured intercept with its own SD formula, accepts missing responses."
       ))
     }
     gamma_scalar_terms <- length(mu_re$terms) > 1L &&
@@ -10194,12 +10207,23 @@ drm_build_poisson_spec <- function(
     identical(mu_re_probe$terms[[1L]]$type, "intercept") &&
     is.null(mu_re_probe$terms[[1L]]$covariance_label) &&
     is.null(zi_entry) && !include_missing_response
+  # Missing responses (miss_control(response = "include")) are admitted for one
+  # unlabelled q1 structured intercept with its own SD formula and nothing else
+  # in mu: the C++ observed_y mask drops only the masked row's density, and the
+  # latent field keeps its prior for every node.
+  poisson_structured_include_ok <- !is.null(mu_structured_term) &&
+    structured_mu_type(mu_structured_term) %in%
+      c("relmat", "animal", "phylo", "spatial") &&
+    structured_term_is_intercept_only(mu_structured_term) &&
+    is.null(mu_structured_term$covariance_label) &&
+    length(sd_phylo_entries) == 1L &&
+    length(sd_mu_entries) == 0L && is.null(zi_entry)
   if (length(sd_phylo_entries) > 0L &&
       (!is.null(zi_entry) ||
        (length(sd_mu_entries) > 0L && !poisson_iid_structured) ||
-       include_missing_response)) {
+       (include_missing_response && !poisson_structured_include_ok))) {
     cli::cli_abort(c(
-      "Poisson structured SD regression currently requires a non-inflated model with complete responses. An ordinary {.code sd()} formula is allowed only for one ordinary intercept beside one relmat, animal or phylogenetic intercept.",
+      "Poisson structured SD regression currently requires a non-inflated model with complete responses. An ordinary {.code sd()} formula is allowed only for one ordinary intercept beside one relmat, animal or phylogenetic intercept. Missing responses are allowed only for one structured intercept with its own {.code sd()} formula.",
       "i" = "Fit one structured SD target at a time, using {.code sd(group, level = \"phylogenetic\")}, {.code sd(group, level = \"animal\")}, or {.code sd(group, level = \"relmat\")}."
     ))
   }
@@ -10710,7 +10734,7 @@ drm_build_nbinom2_spec <- function(
   # Ordinary mu-target SD regression masks missing responses in the C++
   # likelihood (observed_y guard). Sigma-target, structured and zero-inflated
   # SD routes still require complete data.
-  if ((length(sd_sigma_entries) > 0L || length(sd_phylo_entries) > 0L ||
+  if ((length(sd_sigma_entries) > 0L ||
        (length(sd_mu_entries) > 0L && "zi" %in% dpars)) &&
       include_missing_response) {
     cli::cli_abort(
@@ -10807,6 +10831,23 @@ drm_build_nbinom2_spec <- function(
     mu_structured_pair$secondary
   } else {
     NULL
+  }
+  # Structured SD regression accepts missing responses only for one unlabelled
+  # q1 structured intercept with its own SD formula and nothing else in mu or
+  # zi (the C++ observed_y mask drops only the masked row's density; the
+  # latent field keeps its prior for every node).
+  if (include_missing_response && length(sd_phylo_entries) > 0L &&
+      !(!is.null(mu_structured_term) && is.null(mu_structured_term2) &&
+          structured_mu_type(mu_structured_term) %in%
+            c("relmat", "animal", "phylo", "spatial") &&
+          structured_term_is_intercept_only(mu_structured_term) &&
+          is.null(mu_structured_term$covariance_label) &&
+          length(sd_phylo_entries) == 1L && length(sd_mu_entries) == 0L &&
+          is.null(zi_entry))) {
+    cli::cli_abort(c(
+      "NB2 ordinary {.code sd()} regression currently requires complete data.",
+      "i" = "Missing responses are allowed only for one structured intercept with its own {.code sd()} formula and no other random or zero-inflation terms."
+    ))
   }
   sigma_phylo <- extract_gaussian_mu_phylo_term(sigma_entry, dpar = "sigma")
   sigma_entry$rhs <- sigma_phylo$rhs

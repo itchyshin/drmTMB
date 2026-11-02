@@ -1206,7 +1206,7 @@ reproduces the plain fit and `predict()` equals `exp(W alpha)`.
 | Gamma | independent same-group pair | equivalence checks in the regression file; the oracle row above covers the `coef`-selected form; recovery weak at 50 groups |
 | Poisson | plain independent slope `(0 + x \| id)` with `zi ~ 1`, no `sd()` formula | per-cluster quadrature oracle and equality with the constant-SD fit, one synthetic dataset; `test-zi-poisson-plain-slope.R`; correlated `(1 + x \| id)` with `zi` stays refused |
 | Gamma | labelled `animal(1 + x \| p \| id)` correlated q2 | joint-objective oracle at 1e-6 with five emulated bugs and a raw non-unit-diagonal `A` case in shuffled order (`test-gamma-animal-q2-correlated-sd.R`); loose 0.4 recovery band, no calibration; no base nesting fit, no simulate-refit identity, `rho` bound `0.999999` (ordinary blocks `0.99999999`); constant-loading near-aliasing with identical non-constant SD designs is documented, not fenced (design 03) |
-| Gaussian | `animal()`, `relmat()` or `phylo()` `(1 + x \| id)`, unlabelled or labelled `(1 + x \| p \| id)`, one `coef`-selected SD per coefficient | exact Gaussian marginal oracle at 1e-6 relative with shuffled non-unit-diagonal kernels and seven emulated bugs; constant-SD equivalence; `test-gaussian-structured-q2-sd.R` (64 expectations). Spatial q2 stays refused; marginal `simulate()` of the labelled block is refused (use `re.form = NULL`) |
+| Gaussian | `animal()`, `relmat()` or `phylo()` `(1 + x \| id)`, unlabelled or labelled `(1 + x \| p \| id)`, one `coef`-selected SD per coefficient | exact Gaussian marginal oracle at 1e-6 relative with shuffled non-unit-diagonal kernels and seven emulated bugs; constant-SD equivalence; `test-gaussian-structured-q2-sd.R` (64 expectations). Spatial q2 is admitted separately (see the Gaussian spatial row below). Marginal `simulate(re.form = NA)` of the labelled block was admitted on 2026-11-01 (`test-q2-sd-marginal-simulate.R`); the earlier refusal is gone |
 | Gaussian | `sigma ~ 1 + phylo()`, `animal()`, `relmat()` or `spatial()` intercept with `sd(id, level = ..., dpar = "sigma") ~ z` | dense Laplace oracle at 1e-4 over the structured `sigma` effects; `test-gaussian-sigma-structured-sd.R` (92 expectations). Refused beside ordinary `mu` or `sigma` random effects, `meta_V()`, missing data and aggregation; a sigma structured slope and a mu-plus-sigma structured pair with SD formulas stay refused; only `K`, `A`, tree and coordinate inputs were exercised |
 | Gaussian | slope-only `phylo_interaction(0 + x \| pair, tree1, tree2)` with a pair-level SD; the intercept form and an ordinary `(1 \| plant)` beside the field were also checked | exact marginal oracle at 1e-6 relative; `test-gaussian-phylo-interaction-slope-sd.R` (52 expectations). Intercept plus slope in one block, `sigma` interaction fields and a second structured provider stay refused |
 | Gaussian, Poisson, NB2 | ordinary `(1 \| site)` plus `animal(1 \| id, Ainv = Ainv)` intercepts; Poisson and NB2 slope-only `relmat(0 + x \| id, Q = Q)`; Gaussian crossed ordinary intercepts | test-only dense or exact oracles at 1e-4 (Gaussian 1e-6); `test-structured-sd-q-ainv-quickwins.R` (92 expectations), `test-sd-crossed-and-site-quickwins.R` (36 expectations). No source change was needed |
@@ -1216,21 +1216,26 @@ reproduces the plain fit and `predict()` equals `exp(W alpha)`.
 | NB2 | `phylo_interaction(1 \| pair, tree1, tree2)` and slope-only `phylo_interaction(0 + x \| pair, ...)` with a pair-level SD | dense Laplace oracle with exact NB2 information at 1e-4; `test-nbinom2-phylo-interaction-sd.R` (55 expectations). The plain slope-only fit without `sd()` also builds and matches a constant-SD oracle (`test-structured-plain-fits-no-sd-oracle.R`) |
 | Gamma | slope-only `phylo(0 + x \| g)`, `spatial(0 + x \| g)`, `relmat(0 + x \| g, K or Q)`, with or without an SD formula | dense Laplace oracle at 1e-4 with a non-unit-diagonal kernel, shuffled levels; `test-gamma-structured-slope-sd.R` (87 expectations). An ordinary `(1 \| id)` beside the structured slope stays refused |
 | Gamma, NB2 | one ordinary `mu` intercept plus one ordinary `sigma` intercept, each with its own SD formula, on distinct groups or (for both families) the same factor | dense Laplace oracle over the joint random-effect vector at 1e-4 (Gamma) or 1e-3 (NB2, observed gap about 1e-9), swapped-formula and misalignment checks; `test-gamma-mu-sigma-joint-sd.R`, `test-nbinom2-mu-sigma-joint-sd.R`, `test-nbinom2-mu-sigma-same-group-sd.R`. Requires both SD formulas, complete data, no zero inflation and no structured provider; the formula-free joint model stays refused |
-| Binomial | `phylo(1 + x \| id, tree)` and coordinate `spatial(1 + x \| id, coords)` (logit, 0/1 responses), one `coef`-selected SD per coefficient, or no SD formulas | dense Laplace oracle at 1e-4 with unit-diagonal kernels (tree correlation form, exponential kernel); `test-binomial-phylo-spatial-q2-sd.R` (127 expectations). Spatial marginal simulation works; phylo marginal simulation is refused. Probit and cloglog links, weights, trial counts above one, meshes and provider pairs stay refused |
+| Binomial | `phylo(1 + x \| id, tree)` and coordinate `spatial(1 + x \| id, coords)` (logit, 0/1 responses), one `coef`-selected SD per coefficient, or no SD formulas | dense Laplace oracle at 1e-4 with unit-diagonal kernels (tree correlation form, exponential kernel); `test-binomial-phylo-spatial-q2-sd.R` (127 expectations). Spatial and, since 2026-11-01, phylo marginal simulation work (`test-q2-sd-marginal-simulate.R`). Probit and cloglog links, weights, trial counts above one, meshes and provider pairs stay refused |
+| Gaussian | `spatial(1 + x \| id, coords)` and labelled `spatial(1 + x \| p \| id, coords)`, one `coef`-selected SD per coefficient (2026-11-01, late) | exact Gaussian marginal oracle from irregular coordinates at 1e-6 relative and an independent dense optimum at 1e-5; `test-gaussian-spatial-q2-sd.R` (52 expectations). The spatial kernel has diagonal `1 + 1e-6`, so there is no non-unit-diagonal check. Slope-only block and a third coefficient stay refused |
+| Poisson, NB2 | labelled `relmat(1 + x \| p \| id, K or Q)` with two SD formulas, estimating one cross-coefficient correlation (prior `R kron K`) | dense Laplace oracle at 1e-4 with a shuffled non-unit-diagonal `K`, true rho 0.8, rho sensitivity; `test-count-labelled-relmat-q2-sd.R`. Labelled Poisson `animal()`, labelled phylo and spatial, and labelled NB2 relmat without SD formulas stay refused |
+| Poisson, NB2, Gamma | `miss_control(response = "include")` with one ordinary `(1 \| id)` or `(0 + x \| id)` `mu` term and `sd(id) ~ w`; Poisson also the same-group intercept and slope pair with `coef`-selected SDs | log-likelihood equals the complete-case fit to 1e-8 and a dense per-group Laplace oracle on the observed rows (1e-6 Poisson, 1e-4 NB2 and Gamma); predictions for masked rows; `test-poisson-sd-missing-include.R` (37), `test-nb2-gamma-sd-missing-include.R` (114). Sigma-target, structured, correlated-block and zero-inflated shapes stay refused under `include` |
 
 Not admitted: NB2 `sigma`-side phylogenetic SD (held for a decision, because it
 opens the public base route `sigma ~ phylo(1 | sp)`). NB2 spatial slope-only
 was admitted on 2026-11-01 (`test-nbinom2-spatial-slope-sd-regression.R`, dense
 Laplace oracle).
-Also not admitted after the second half of 2026-11-01: labelled structured q2
-for Poisson and for the NB2 relmat, phylo and spatial providers; Gaussian
-spatial q2; Gaussian, Poisson and NB2 ordinary q3 blocks with `sd()` (design
+Also not admitted after the late 2026-11-01 batches: labelled structured q2
+for Poisson animal and for the labelled phylo and spatial providers of Poisson
+and NB2 (labelled relmat for both families and Gaussian spatial q2 are now
+admitted, see the table); Gaussian, Poisson and NB2 ordinary q3 blocks with `sd()` (design
 report and refusal pins only, `test-ordinary-q3-sd.R`; only Binomial has a
 per-coefficient q3 block); structured q2 or structured slopes together with an
 ordinary random layer, zero inflation or `miss_control(response = "include")`
-for the shapes in the table above; sigma structured slopes and q2 sigma blocks;
+for the shapes in the table above (the ordinary Poisson, NB2 and Gamma `mu` SD
+routes in the last table row are the exception); sigma structured slopes and q2 sigma blocks;
 a structured Gamma slope beside an ordinary intercept; two or more slopes in one
-structured block; phylo marginal simulation for Binomial q2. Julia counterparts
+structured block. Julia counterparts
 do not exist for any row in this section.
 Gamma ordinary plus animal, phylo or spatial intercepts moved to the admitted
 table above on 2026-11-01. Beside an ordinary intercept, Gamma still refuses a
@@ -1299,7 +1304,7 @@ from source; it is not a measurement. Native rows come from
 |---|---|---|
 | `phylo()` | 1 by construction (ultrametric tree divided by height, `R/formula-markers.R:190-215`) | normalised (`normalize = kind !== :animal`) |
 | `animal()` with `A`, `Ainv` or pedigree | raw, `A_gg` (1 plus inbreeding) | Gamma and Poisson: raw (`gamma.jl:147`, `685`; `poisson.jl:244`, `266`, `566`). NB2: rescaled to a correlation matrix (`negbinomial.jl:81-84`) |
-| `relmat()` with `K` or `Q` | raw, `K_gg` or `(Q^-1)_gg` | Gamma: normalised (`normalize = kind !== :animal`, `gamma.jl:147`). Stated explicitly here because the programme invariant only says "established conventions" |
+| `relmat()` with `K` or `Q` | raw, `K_gg` or `(Q^-1)_gg` | Gamma: normalised (`normalize = kind !== :animal`, `gamma.jl:147`). Stated explicitly here because the programme invariant only says "established conventions". Poisson (slope-only bridge route): rescaled to a correlation matrix, measured 2026-11-01; the R bridge refuses non-unit-diagonal `K` for it. NB2 relmat: reported by the Julia side as still correlation-normalised, not measured here and not admitted |
 | coordinate `spatial()` | `1 + 1e-6` (fixed diagonal jitter, `R/drmTMB.R:17359-17379`) | not reviewed |
 | mesh `spatial()` | raw sparse GMRF; no constant marginal SD (`R/drmTMB.R:25916-25925`) | not reviewed |
 | `phylo_interaction()` | not verified | not reviewed |
@@ -1324,6 +1329,24 @@ superseded.
 | Route | Native | Julia | Status |
 |---|---|---|---|
 | NB2 animal intercept with SD formula, non-unit-diagonal `A` | raw `A` | `A` rescaled to a correlation matrix | OPEN. A real engine mismatch, not a convention. It needs either a Julia change to raw `A` or a documented refusal of non-unit-diagonal `A` under `engine = "julia"`. Neither is done. |
+
+### Open parity row: Poisson relmat kernel scaling
+
+| Route | Native | Julia | Status |
+|---|---|---|---|
+| Poisson `relmat(0 + x \| g, K)` slope-only with SD formula, non-unit-diagonal `K` | raw `K` | `K` rescaled to a correlation matrix | OPEN. Measured 2026-11-01 on one fixture (`K = outer(s, s) * corr`, `s` in 0.8 to 1.4): native logLik -2268.343, Julia -2271.155, gap 2.81; mu slope 0.152 versus 0.096; SD intercept -0.474 versus -0.334. A different model, not an optimiser gap, because a group SD regression does not absorb group-specific kernel scaling. R-side handling: the bridge refuses the route unless `diag(K)` is 1 (`R/julia-bridge.R`, error naming the correlation-matrix rescaling). With a unit-diagonal `K` (0.4^|i-j|) the engines agree: coefficients within 1.5e-8, logLik gap 1.5e-5, one fixture, one seed. The Binomial relmat slope bridge probably has the same mismatch; its existing test uses tolerance 0.1 on a non-unit-diagonal `K`, which would hide it. Not checked, not changed. |
+
+### Julia bridge admissions, 2026-11-01 (b18)
+
+The R bridge now admits two routes for `engine = "julia"`, paired with
+DRM.jl `f0566fb5b`: Poisson `relmat(0 + x | g)` slope-only SD (unit-diagonal `K`
+only, per the row above) and NB2 `animal(0 + x | g)` slope-only SD with `sigma ~ 1`
+(supplied `A` only; the `Ainv` and pedigree forms stay refused). On one fixture
+each, the live bridge fit matched native TMB (coefficients within 1.1e-7, logLik
+within 1.5e-5; Poisson relmat -2264.9054 both, NB2 animal -2731.1966 both, the NB2
+fixture with a non-unit-diagonal `A`). This is one fixture and one seed per
+route. No SE, interval, coverage or broad parity claim, and no Julia
+counterpart exists for the native-only rows above.
 
 ### Status of the existing native-versus-Julia tolerance
 

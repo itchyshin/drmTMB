@@ -968,6 +968,19 @@ raw `A`. This is an open parity row, not a convention; it is recorded in
 provider and engine"). The existing native-versus-Julia Gamma q2 comparison
 uses relative tolerance 0.25 and is a smoke check, not a tight scaling check.
 
+# Poisson relmat kernel scaling differs between engines
+
+For a Poisson `relmat(0 + x | g)` slope-only SD model with a non-unit-diagonal
+`K`, native TMB uses the supplied `K`, while DRM.jl rescales `K` to a
+correlation matrix. On one fixture (`K = outer(s, s) * corr`) the logLik gap was
+2.81 (native -2268.343, Julia -2271.155) and the SD intercept differed by 0.14.
+The group SD regression does not absorb group-specific kernel scaling, so these
+are different models. The R bridge refuses the route for a non-unit-diagonal `K`
+and admits it for a unit-diagonal `K` (0.4^|i-j|, logLik gap 1.5e-5, one fixture).
+The Binomial relmat slope bridge probably has the same mismatch and is unchecked.
+NB2 relmat is reported correlation-normalised on the Julia side and is not
+admitted. Recorded in `docs/design/18-random-effect-scale-models.md`.
+
 # Native SD regression: state at the evening of 2026-11-01
 
 Admitted natively on 2026-11-01 (each with an independent oracle at the fitted
@@ -998,13 +1011,21 @@ Still limited or open:
   `test-julia-poisson-sd.R` passed 30 and 0 on the Mac, and no other family was run live.
 - NB2 `sigma`-side phylogenetic SD stays held for a decision, because it opens the
   public base route `sigma ~ phylo(1 | sp)`.
-- Still refused: labelled structured q2 for Poisson and for the NB2 relmat, phylo and
-  spatial providers; Gaussian spatial q2; Gaussian, Poisson and NB2 ordinary q3 with
+- Update, later on 2026-11-01: labelled relmat q2 for Poisson and NB2, Gaussian spatial
+  q2 (unlabelled and labelled), and `miss_control(response = "include")` for Poisson, NB2 and
+  Gamma ordinary `mu` SD routes are now admitted natively (design 18 table); marginal
+  `simulate()` of labelled q2 blocks was added. The Julia bridge also admits Poisson relmat
+  slope-only (unit-diagonal `K`) and NB2 animal slope-only SD.
+- Still refused: labelled structured q2 for Poisson animal and for labelled phylo and
+  spatial providers of Poisson and NB2; Gaussian, Poisson and NB2 ordinary q3 with
   `sd()` (design report only, `test-ordinary-q3-sd.R`); a sigma structured slope; a
   structured Gamma slope beside an ordinary intercept; zero inflation and
-  `miss_control(response = "include")` for the new structured q2 and slope shapes.
-- Marginal `simulate()` is refused for the labelled Gaussian q2 block and for
-  Binomial phylo q2. Use `re.form = NULL` for the labelled Gaussian block.
+  `miss_control(response = "include")` for the structured q2 and slope shapes, sigma-target
+  SD and zero-inflated SD routes.
+- Marginal `simulate(re.form = NA)` of structured q2 SD fits was admitted later on
+  2026-11-01 for Gaussian, Poisson, NB2, Gamma and Binomial, labelled blocks included
+  (`test-q2-sd-marginal-simulate.R`); the earlier refusals for the labelled Gaussian block
+  and Binomial phylo q2 no longer apply. Beta q2 stays refused.
 - Kernel scaling is raw `A` natively; the NB2 Julia animal route rescales to a
   correlation matrix. The parity row is open (previous section).
 - The phylo and tree-based q2 oracles have unit-diagonal kernels, because trees enter

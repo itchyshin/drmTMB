@@ -93,6 +93,10 @@ structure providers across the other families.
 | Gamma slope-only phylo, spatial and relmat predictor-dependent SDs (native only) | point-fit-recovery |
 | Binomial phylo and spatial q2 with coefficient-specific SDs (native only) | point-fit-recovery |
 | NB2 and Gamma joint ordinary `mu` plus `sigma` intercepts, each with an SD formula (native only) | point-fit-recovery |
+| Gaussian spatial q2 (unlabelled and labelled) with coefficient-specific SDs (native only) | point-fit-recovery |
+| Poisson and NB2 labelled relmat q2 with coefficient-specific SDs (native only) | point-fit-recovery |
+| Poisson, NB2 and Gamma ordinary `mu` SD regression with `miss_control(response = "include")` (native only) | point-fit-recovery |
+| Julia bridge: Poisson relmat slope-only SD (unit-diagonal `K`) and NB2 animal slope-only SD (supplied `A`) | point-fit-recovery |
 | Tweedie random intercept (mean) | implemented |
 | Gaussian phylogenetic random intercept + slope, two SDs (mean) | implemented |
 
@@ -126,7 +130,17 @@ weakest grade in this table. The seven rows added in batches 9 to 15 cite
 `tests/testthat/test-nbinom2-mu-sigma-joint-sd.R` and
 `tests/testthat/test-nbinom2-mu-sigma-same-group-sd.R`; each fits a dense or exact
 oracle at the fitted point on one fixture per provider. No
-Julia counterpart exists for these rows.
+Julia counterpart exists for these rows, apart from the Julia bridge row above.
+The four rows added on 2026-11-02 cite `tests/testthat/test-gaussian-spatial-q2-sd.R`
+(exact marginal oracle), `tests/testthat/test-count-labelled-relmat-q2-sd.R`
+(dense Laplace oracle), `tests/testthat/test-poisson-sd-missing-include.R` and
+`tests/testthat/test-nb2-gamma-sd-missing-include.R` (complete-case equality and
+dense Laplace oracles), and `tests/testthat/test-julia-b18-relmat-nb2-slope-sd-bridge.R`
+(one live fixture per route against native TMB; the live blocks need a Julia
+install). The Julia bridge row is `point-fit-recovery` on the bridge axis for one
+fixture only, with a refusal for non-unit-diagonal `K`; the engines scale a
+relmat `K` differently (design 18, "Open parity row: Poisson relmat kernel
+scaling"), so no broader parity is claimed.
 
 `Tweedie random intercept (mean)` is `implemented`:
 `validate_tweedie_mu_random_terms()` (`R/drmTMB.R:11640-11662`) admits an

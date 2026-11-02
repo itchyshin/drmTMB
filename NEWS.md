@@ -1,5 +1,25 @@
 # drmTMB (development)
 
+* Predictor-dependent random-effect SD routes added on 2026-11-01, second half
+  (native routes checked against a drmTMB-independent oracle at the fitted
+  parameters; Julia bridge routes checked against the native TMB fit on one
+  fixture each; fixed fixtures, not calibrated, no coverage claim).
+  Native TMB: `miss_control(response = "include")` now works for Poisson, NB2
+  and Gamma ordinary `mu` SD regression (one `(1 | id)` or `(0 + x | id)` term,
+  plus the Poisson same-group intercept and slope pair); the log-likelihood
+  equals the complete-case fit and masked rows get predictions. Sigma-target,
+  structured, correlated-block and zero-inflated shapes stay refused under
+  `include`. Gaussian coordinate `spatial(1 + x | id)` and labelled
+  `spatial(1 + x | p | id)` accept one SD formula per coefficient. Poisson and
+  NB2 labelled `relmat(1 + x | p | id)` accept two SD formulas and estimate one
+  cross-coefficient correlation. `simulate(re.form = NA)` now draws labelled q2
+  structured fields with the fitted correlation.
+  Julia engine: the R bridge admits Poisson `relmat(0 + x | g)` slope-only SD and
+  NB2 `animal(0 + x | g)` slope-only SD (supplied `A` only). On one fixture each
+  the bridge fit matched native TMB within the stated tolerance. The Julia
+  engine refuses Poisson `relmat` with a non-unit-diagonal `K`, because DRM.jl
+  rescales `K` to a correlation matrix while native TMB uses `K` as given.
+
 * More native predictor-dependent random-effect SD routes (2026-11-01, each
   checked against a drmTMB-independent dense Laplace or exact marginal
   likelihood at the fitted parameters; native TMB only, no Julia parity, not

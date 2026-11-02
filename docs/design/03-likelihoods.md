@@ -415,9 +415,25 @@ parity claim is made.
   a Laplace oracle over the joint vector of all `id` and `g` effects. For NB2,
   `size = 1 / sigma^2`.
 
-Refused neighbours include labelled q2 for Poisson and for the NB2 relmat, phylo
-and spatial providers, Gaussian spatial q2, ordinary q3 with `sd()`, a sigma
-structured slope, and the formula-free joint `mu`/`sigma` model.
+Gaussian coordinate `spatial(1 + x | id)` and labelled `spatial(1 + x | p | id)`
+use the same Gaussian marginal as the other structured q2 routes, with the
+spatial precision (exponential kernel, diagonal `1 + 1e-6`) in place of the
+animal, relmat or phylo kernel; the check is the exact marginal on irregular
+coordinates. Poisson and NB2 labelled `relmat(1 + x | p | id)` use the prior
+`R kron K` with `R = [1 rho; rho 1]` and a dense Laplace oracle that includes the
+fitted `rho`; the unlabelled block keeps two independent fields.
+For Poisson, NB2 and Gamma ordinary `mu` SD regression,
+`miss_control(response = "include")` is admitted: a row with a missing response
+contributes no response density (the observed-response mask already in the C++
+branches), keeps its model-matrix row, and the log-likelihood equals the
+complete-case fit. Marginal `simulate(re.form = NA)` of labelled q2 structured
+fields draws `rho f0 + sqrt(1 - rho^2) f1` with the fitted `rho` before the
+per-coefficient SD scaling. All of this is native TMB only, on fixed fixtures.
+
+Refused neighbours include labelled q2 for Poisson animal and for the labelled
+phylo and spatial providers of Poisson and NB2, ordinary q3 with `sd()`, a sigma
+structured slope, `include` with structured, sigma-target, correlated-block or
+zero-inflated SD shapes, and the formula-free joint `mu`/`sigma` model.
 
 ### Predictor-dependent Bernoulli/binomial random-intercept SD
 

@@ -71,6 +71,8 @@ test-binomial-cloglog-phylo-sd-regression.R	suggests-package	environment	runs	1
 test-binomial-correlated-re-mspl-prereq.R	suggests-package	environment	runs	1
 test-binomial-crossed-nonlogit-sd.R	cran-lane	environment	runs	1
 test-binomial-crossed-sd-regression.R	cran-lane	environment	runs	1
+test-binomial-gamma-sd-missing-include.R	cran-lane	environment	runs	8
+test-binomial-gamma-sd-missing-include.R	suggests-package	environment	runs	4
 test-binomial-links.R	cran-lane	environment	runs	1
 test-binomial-mesh-sd-regression.R	cran-lane	environment	runs	4
 test-binomial-mesh-sd-regression.R	suggests-package	environment	runs	8
@@ -142,6 +144,8 @@ test-count-labelled-relmat-q2-sd.R	suggests-package	environment	runs	1
 test-count-structured-mu.R	suggests-package	environment	runs	8
 test-count-structured-q2-more-providers-sd.R	cran-lane	environment	runs	11
 test-count-structured-q2-more-providers-sd.R	suggests-package	environment	runs	4
+test-count-structured-sd-missing-include.R	cran-lane	environment	runs	2
+test-count-structured-sd-missing-include.R	suggests-package	environment	runs	2
 test-cran-lane-filter.R	cran-lane	environment	runs	1
 test-cran-lane-filter.R	engine-drm-jl	environment	skips	3
 test-cumulative-logit-disc.R	suggests-package	environment	runs	1

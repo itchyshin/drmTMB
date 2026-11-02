@@ -294,3 +294,28 @@ support. Tests whose content has no matching required row are listed in
   with `sd()`, and independent review of every receipt.
 - G5 interval calibration is deferred; no calibration is claimed anywhere in this
   section.
+
+## Status at 2026-11-02, early morning
+
+Commits since the evening status: `b300610ce` (G0 correlated-block rows, q2
+marginal simulation, docs sync), `3cfc6c2eb` (Julia bridge admissions) and
+`95c8a58dc` (missing-response include, Gaussian spatial q2, labelled count relmat
+q2, G4 semantics tests). Docs and NEWS synced for them in this slice; the
+receipts for the new test files are not part of this slice.
+
+- Native, newly admitted: `miss_control(response = "include")` for Poisson, NB2
+  and Gamma ordinary `mu` SD routes (complete-case logLik equality to 1e-8, dense
+  oracles); Gaussian spatial q2, unlabelled and labelled (exact marginal oracle,
+  52 expectations); Poisson and NB2 labelled `relmat(1 + x | p | id)` (dense
+  Laplace oracle with fitted rho). G4 semantics: 210 expectations over five
+  routes (save, update, refit, confint, stored SD design); Wald works everywhere,
+  profile gives NA with a message for Binomial relmat and NB2 animal.
+- Julia bridge: Poisson relmat slope-only and NB2 animal slope-only admitted, one
+  fixture each, within tolerance (coefficients 1.1e-7, logLik 1.5e-5). Poisson
+  relmat with non-unit-diagonal `K` is refused: DRM.jl rescales `K` to a
+  correlation matrix, native TMB does not (logLik gap 2.81). New open parity row
+  in design 18; the Binomial relmat slope bridge is suspected, unchecked.
+- Still open: Julia counterparts for the native-only rows; the NB2 animal and
+  Poisson relmat kernel-scaling parity rows; ordinary q3 with `sd()`; labelled
+  Poisson animal, phylo and spatial q2; independent review and receipts for the
+  new files; G5 interval calibration (deferred, no calibration claimed).

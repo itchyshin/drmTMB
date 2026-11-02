@@ -314,9 +314,13 @@ test_that("sigma-target, joint, and structured SD regression stay refused under 
     K <- 1.7 * 0.45^abs(outer(seq_len(n_id), seq_len(n_id), `-`))
     dimnames(K) <- list(ids, ids)
     K <- K[rev(ids), rev(ids)]
+    # NB2 and Gamma both admit a single structured intercept with include
+    # (test-count-structured-sd-missing-include.R and
+    # test-binomial-gamma-sd-missing-include.R), so the structured pin uses the
+    # still-refused slope-only shape for both families.
     expect_error(
       drmTMB(
-        bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1,
+        bf(y ~ x + relmat(0 + x | id, K = K), sigma ~ 1,
            sd(id, level = "relmat") ~ w),
         family = fam, data = dat, missing = inc, control = ctl
       ),
