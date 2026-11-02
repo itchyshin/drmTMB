@@ -11645,19 +11645,6 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
       ))
     }
   }
-  if (poisson_relmat_slope &&
-      !isTRUE(all(abs(diag(as.matrix(resolved$matrix)) - 1) < 1e-8))) {
-    # Measured 2026-11-01 (drmTMB batch 18): DRM.jl rescales a relmat K to a
-    # correlation matrix, native TMB uses K as given. With a unit diagonal the
-    # two engines agree to optimiser precision; with a non-unit diagonal and a
-    # predictor-dependent SD they fit different models (logLik gap 2.8 on the
-    # test fixture). Refuse rather than fit a different model silently.
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} admits the Poisson {.fn relmat} slope SD route only for a unit-diagonal {.arg K} (a correlation matrix).",
-      i = "DRM.jl rescales {.arg K} to a correlation matrix, which changes the model when {.code sd(id, level = \"relmat\")} is predictor-dependent and diag(K) is not 1.",
-      i = "Pass {.code cov2cor(K)} or use native {.code engine = \"tmb\"}."
-    ))
-  }
   formula_spec <- drm_julia_formula_spec(formula)
   matrix <- resolved$matrix
   kwarg <- resolved$kwarg

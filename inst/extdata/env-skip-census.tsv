@@ -251,6 +251,9 @@ test-julia-b25-gamma-nb2-slope-bridge.R	suggests-package	environment	runs	1
 test-julia-b26-nb2-spatial-slope-bridge.R	cran-lane	environment	runs	1
 test-julia-b26-nb2-spatial-slope-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-b26-nb2-spatial-slope-bridge.R	suggests-package	environment	runs	1
+test-julia-b28-relmat-raw-k-bridge.R	cran-lane	environment	runs	1
+test-julia-b28-relmat-raw-k-bridge.R	engine-drm-jl	environment	skips	2
+test-julia-b28-relmat-raw-k-bridge.R	suggests-package	environment	runs	1
 test-julia-beta-binomial-sd-parity.R	engine-drm-jl	environment	skips	4
 test-julia-beta-binomial-sd-parity.R	suggests-package	environment	runs	2
 test-julia-beta-binomial-sigma-sd-bridge.R	engine-drm-jl	environment	skips	4

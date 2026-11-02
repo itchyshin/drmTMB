@@ -1,5 +1,20 @@
 # drmTMB (development)
 
+* The Julia engine now uses a `relmat()` kernel `K` exactly as supplied for
+  Poisson, NB2 and Gamma, as native drmTMB does (2026-11-02). Before, Julia
+  silently rescaled `K` to a correlation matrix on the intercept routes and on
+  the Poisson slope route, so a `K` whose diagonal is not 1 gave a different
+  model from native TMB. The R bridge no longer refuses a non-unit-diagonal `K`
+  for the Poisson `relmat(0 + x | id)` slope SD route. On one fixture per route,
+  with a non-unit-diagonal `K`, Julia and native TMB agree for the `relmat(1 | id)`
+  intercept and the `relmat(0 + x | id)` slope with `sd(id, level = "relmat") ~ z`
+  for all three families (coefficients within 1e-6 and log-likelihood within
+  3e-6 on those fixtures; fixed fixtures, not calibrated, no coverage claim). `phylo()` still uses the
+  correlation form (as native does) and `animal()` was already raw. Still open:
+  Julia Beta and zero-one-beta `relmat()`/`animal()` rescale `K` or `A`, the
+  Binomial constant-SD relmat and Tweedie routes were not re-measured here, and
+  hurdle, cumulative-logit and zero-inflated relmat/animal routes stay refused.
+
 * Gaussian ordinary correlated blocks of three or four coefficients, such as
   `(1 + x + z | id)`, now accept one `sd(id, coef = ...)` formula per
   coefficient (2026-11-02, native TMB only, no Julia route). The block keeps one

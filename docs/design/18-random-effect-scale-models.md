@@ -1302,9 +1302,9 @@ from source; it is not a measurement. Native rows come from
 
 | Provider | Native TMB `C_gg` | Julia `C_gg` |
 |---|---|---|
-| `phylo()` | 1 by construction (ultrametric tree divided by height, `R/formula-markers.R:190-215`) | normalised (`normalize = kind !== :animal`) |
-| `animal()` with `A`, `Ainv` or pedigree | raw, `A_gg` (1 plus inbreeding) | Gamma and Poisson: raw (`gamma.jl:147`, `685`; `poisson.jl:244`, `266`, `566`). NB2: rescaled to a correlation matrix (`negbinomial.jl:81-84`) |
-| `relmat()` with `K` or `Q` | raw, `K_gg` or `(Q^-1)_gg` | Gamma: normalised (`normalize = kind !== :animal`, `gamma.jl:147`). Stated explicitly here because the programme invariant only says "established conventions". Poisson (slope-only bridge route): rescaled to a correlation matrix, measured 2026-11-01; the R bridge refuses non-unit-diagonal `K` for it. NB2 relmat: reported by the Julia side as still correlation-normalised, not measured here and not admitted |
+| `phylo()` | 1 by construction (ultrametric tree divided by height, `R/formula-markers.R:190-215`) | normalised: the tree route uses the correlation form for the count families (unchanged 2026-11-02) |
+| `animal()` with `A`, `Ainv` or pedigree | raw, `A_gg` (1 plus inbreeding) | Poisson, NB2 and Gamma: raw (`poisson.jl` animal routes; `negbinomial.jl` `_fit_nb2_animal_sd_laplace` called with `normalize = false`; `gamma.jl` structured SD route). The earlier NB2 "rescaled to a correlation matrix" statement (`negbinomial.jl:81-84`) is superseded |
+| `relmat()` with `K` or `Q` | raw, `K_gg` or `(Q^-1)_gg` | Poisson, NB2 and Gamma: raw on every route (intercept, slope-only, SD regression, marginal simulation, bootstrap), DRM.jl commit `36517ec8c` (2026-11-02, batch 28). Before that, the intercept routes and the Poisson slope route rescaled `K` to a correlation matrix. Not changed: Beta, zero-one-beta and the Gaussian location-scale routes still rescale (open rows below) |
 | coordinate `spatial()` | `1 + 1e-6` (fixed diagonal jitter, `R/drmTMB.R:17359-17379`) | not reviewed |
 | mesh `spatial()` | raw sparse GMRF; no constant marginal SD (`R/drmTMB.R:25916-25925`) | not reviewed |
 | `phylo_interaction()` | not verified | not reviewed |
@@ -1324,23 +1324,38 @@ follows it (`R/julia-simulate.R:307-309` keeps the raw matrix), and the
 in `.unlazy/general-sd-regression/GATES.md` ("Julia normalizes `A`") is
 superseded.
 
-### Open parity row: NB2 animal kernel scaling
+### Parity rows resolved 2026-11-02 (batch 28)
 
-| Route | Native | Julia | Status |
+The NB2 animal row and the Poisson relmat row that were open here are closed by
+the Julia change to raw `K`. The NB2 animal route already passed `normalize =
+false` in the SD routine; the stale "rescaled" statement came from a comment.
+The Poisson relmat slope refusal for a non-unit-diagonal `K` is removed from
+`R/julia-bridge.R`. Evidence is the live native-versus-Julia block in
+`tests/testthat/test-julia-b28-relmat-raw-k-bridge.R` (non-unit-diagonal `K`,
+coefficients within 1e-3 and logLik within 1e-2, native `se = FALSE`; one
+fixture per route, no coverage claim) and the Julia dense-Laplace oracle test
+`test/test_relmat_raw_k_regression.jl`.
+
+### Open parity rows after batch 28
+
+Read from Julia source at DRM.jl `36517ec8c`, not measured live. None is promoted.
+
+| Julia route | Julia scale of a supplied `K` or `A` | Native | Status |
 |---|---|---|---|
-| NB2 animal intercept with SD formula, non-unit-diagonal `A` | raw `A` | `A` rescaled to a correlation matrix | OPEN. A real engine mismatch, not a convention. It needs either a Julia change to raw `A` or a documented refusal of non-unit-diagonal `A` under `engine = "julia"`. Neither is done. |
-
-### Open parity row: Poisson relmat kernel scaling
-
-| Route | Native | Julia | Status |
-|---|---|---|---|
-| Poisson `relmat(0 + x \| g, K)` slope-only with SD formula, non-unit-diagonal `K` | raw `K` | `K` rescaled to a correlation matrix | OPEN. Measured 2026-11-01 on one fixture (`K = outer(s, s) * corr`, `s` in 0.8 to 1.4): native logLik -2268.343, Julia -2271.155, gap 2.81; mu slope 0.152 versus 0.096; SD intercept -0.474 versus -0.334. A different model, not an optimiser gap, because a group SD regression does not absorb group-specific kernel scaling. R-side handling: the bridge refuses the route unless `diag(K)` is 1 (`R/julia-bridge.R`, error naming the correlation-matrix rescaling). With a unit-diagonal `K` (0.4^|i-j|) the engines agree: coefficients within 1.5e-8, logLik gap 1.5e-5, one fixture, one seed. The Binomial relmat slope bridge probably has the same mismatch; its existing test uses tolerance 0.1 on a non-unit-diagonal `K`, which would hide it. Not checked, not changed. |
+| Beta `relmat`/`animal` intercept, constant SD, and `sd(g, animal)` (`beta.jl:243`, `_general_cov_setup(A, gidx)`) | rescaled to a correlation matrix | raw | OPEN. The same mismatch Poisson, NB2 and Gamma had. |
+| ZeroOneBeta `relmat`/`animal`/`spatial` intercept (`zeroonebeta.jl:508`) | rescaled | raw | OPEN |
+| Gaussian location-scale structured routes (`locscale_fit.jl:353`) | rescaled | raw | OPEN, not reviewed here |
+| Binomial relmat and animal SD routes (`binomial_sd_regression.jl`, `_checked_relmat_chol`) | raw (no rescaling found) | raw | No mismatch found in source. The Binomial relmat slope bridge test uses tolerance 0.1, so a tight non-unit-diagonal check is still unwritten. A Binomial constant-SD relmat intercept route without an SD formula was not found by `grep` in `src/binomial.jl` and was not checked. |
+| Tweedie relmat SD (`tweedie.jl`, `_tweedie_relmat_cov_setup`) | raw (no rescaling) | raw | No mismatch found in source; not measured live here. |
+| Hurdle NB2, hurdle Poisson, `zi` with relmat or animal | refused in Julia (`negbinomial.jl:332`, `poisson.jl:235`, `poisson.jl:483`) | supported | Refusal, not a parity row. |
+| CumulativeLogit relmat/animal/spatial | refused in Julia (`cumulative.jl:160-162`) | supported | Refusal, not a parity row. |
+| Precomputed-`K` spatial intercept for Poisson, NB2, Gamma | still rescaled (left as it was) | native fixed kernel has diagonal `1 + 1e-6`, so scaling is immaterial there | Left unchanged on purpose. |
 
 ### Julia bridge admissions, 2026-11-01 (b18)
 
 The R bridge now admits two routes for `engine = "julia"`, paired with
 DRM.jl `f0566fb5b`: Poisson `relmat(0 + x | g)` slope-only SD (unit-diagonal `K`
-only, per the row above) and NB2 `animal(0 + x | g)` slope-only SD with `sigma ~ 1`
+only at that time; the restriction was removed in batch 28) and NB2 `animal(0 + x | g)` slope-only SD with `sigma ~ 1`
 (supplied `A` only; the `Ainv` and pedigree forms stay refused). On one fixture
 each, the live bridge fit matched native TMB (coefficients within 1.1e-7, logLik
 within 1.5e-5; Poisson relmat -2264.9054 both, NB2 animal -2731.1966 both, the NB2

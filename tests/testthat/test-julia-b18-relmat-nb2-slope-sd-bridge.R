@@ -46,10 +46,12 @@ test_that("Poisson relmat slope-only SD gate admits only its shape", {
     y ~ x + relmat(0 + x | id, K = K_scaled),
     sd(id, level = "relmat") ~ z
   )
-  expect_error(
-    drm_julia_structured_payload(scaled, "poisson", data, environment()),
-    "unit-diagonal"
+  # Batch 28: DRM.jl now uses relmat K as supplied (raw), as native does, so the
+  # old unit-diagonal refusal is gone and a non-unit K is sent unchanged.
+  expect_no_error(
+    scaled_payload <- drm_julia_structured_payload(scaled, "poisson", data, environment())
   )
+  expect_equal(unname(scaled_payload$matrix), unname(K_scaled))
 
   intercept <- bf(
     y ~ x + relmat(1 | id, K = K),
@@ -164,7 +166,7 @@ test_that("Poisson relmat slope-only SD agrees across engines (one fixture)", {
   x_n <- 24L
   id_levels <- paste0("g", seq_len(n_id))
   corr <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.4^abs(i - j))
-  K <- corr  # unit diagonal: the only K the Poisson relmat route admits
+  K <- corr  # unit diagonal here; the non-unit case is covered in b28
   dimnames(K) <- list(id_levels, id_levels)
   dat <- b18_fixture_data(n_id, id_levels, x_n)
   z_group <- sample(rep(c(-1, 1), each = n_id / 2L))
