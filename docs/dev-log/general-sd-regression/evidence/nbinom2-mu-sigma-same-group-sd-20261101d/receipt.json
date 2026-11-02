@@ -46,5 +46,9 @@
     "no calibration or coverage claim",
     "native R/TMB only; no Julia parity claim",
     "direct_sd_claim stays none; receipt is a staleness seal, not a promotion"
-  ]
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent mathematical review confirmed the oracle is a base-R dense 2G-dimensional Laplace (nbinom with size = exp(-2 log sigma_i), mu = exp(eta); analytic gradient, finite-difference Hessian; no drmTMB/TMB code) at the fitted parameters, agreeing with logLik to 1e-3, with oracle gradient below 1e-2 at the fitted optimum. It supports both rows (mu:I and sigma:I iid_intercept on the same grouping factor id, log links, separate SD formulas sd(id)~w and sd(id, dpar='sigma')~z). Emulated-bug sensitivity exists and exceeds 0.1 for four bugs: mu/sigma SD formulas swapped, SD predictors misassigned to groups, sigma effect dropped, and sigma tied to the mu draw. The constant-SD fit matches an independently optimised oracle MLE (logLik 1e-3, coefficients 2e-2), and the refusals are tested. Manifest: 2 of 6 entries differ (R/drmTMB.R, src/drmTMB.cpp); explained by later commits (the q>=3 SD addition and the nlminb restart). The focused test was rerun on current source, 22 passed with 0 failed/errors/skipped. The claim is limited to the same-group fixture with independent mu and sigma effects (no mu-sigma correlation); it does not establish different-group mu/sigma layouts, calibration, or Julia parity. The oracle tolerance is looser (1e-3) than most.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
 }

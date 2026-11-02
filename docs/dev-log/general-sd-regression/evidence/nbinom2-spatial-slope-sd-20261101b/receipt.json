@@ -89,5 +89,9 @@
     "no Julia parity claim",
     "a receipt does not promote a row; direct_sd_claim stays none",
     "review_status unreviewed"
-  ]
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent review confirmed a base-R dense Laplace oracle for NB2(log) with a slope-only coordinate field (weight w = x, observed information size*mu*(size+y)/(size+mu)^2, size = 1/sigma^2) for the single linked row: native nbinom2 mu, spatial(0+x|site, coords), sd(site, level='spatial') ~ z. Agreement is 1e-6 relative. The covariance is the package spatial helper, so the kernel itself is not an independent definition. The test discloses this and rebuilds the exponential / median-distance / 1e-6 kernel by hand from the unshuffled ring (1e-8 match). This confirms implementation, not the kernel convention. Emulated-bug sensitivity exists: coordinate rows are passed in a shuffled order, reading them by position changes the precision matrix (>0.5) and the oracle by more than 1000x tolerance. Constant-SD equivalence, nesting, prediction identity and the refusal of a within-site z are also tested. Focused test rerun on the current worktree: 23 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 3 of 10 entries differ (R/drmTMB.R, R/methods.R, src/drmTMB.cpp). They were changed by later lane commits, so the old states could not be reproduced. The current-file rerun is the evidence. Does not establish the mesh_precision provider, se=TRUE inference, calibration, coverage or Julia parity. 24 sites, loose recovery band 0.6. The receipt manifest needs a refresh. Scope note (2026-11-02, after verifier): every linked fit is slope-only; the claim covers the slope-member SD of the unlabelled structured field only. Per mechanism-templates.tsv the unlabelled intercept and slope are independent fields (blockdiag(K, K)), so no companion structured intercept is exercised or claimed.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
 }

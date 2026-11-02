@@ -48,5 +48,9 @@
     "no Julia parity",
     "review_status unreviewed",
     "tolerances as written in the test, not loosened"
-  ]
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent mathematical review confirmed the oracle: a dense Laplace approximation over the joint random-effect vector (all id and g levels), written without drmTMB internals, with exact Gamma log-link score and information in (log mu, log sigma) via digamma and trigamma, Newton mode search with positive-definiteness damping, and tolerance 1e-4. Both linked rows are supported (mu:I via sd(id) ~ w and sigma:I via sd(g, dpar = 'sigma') ~ z), on crossed groups and on one shared grouping factor, with levels and rows shuffled so alignment is by label. Emulated-bug sensitivity exists: swap_coef, misalign and wrong_dpar each move the oracle by more than 1 log-likelihood unit. Constant-SD and nesting checks are also present. Manifest rehash: 2 of 8 entries mismatch (R/drmTMB.R and src/drmTMB.cpp), both matching commit 33e4e966a exactly. I read the 33e4e966a..HEAD diffs: Gaussian q3/q4 re_cov SD (gated), missing-response include relaxations (the test still asserts that the joint sigma route refuses missing responses, and it passes), and the false-convergence nlminb restart. None changes the complete-response Gamma joint ordinary SD likelihood. The test hash is unchanged and the focused test was rerun on the current tree with the receipt's count of 26 expectations. Scope: native Gamma log link, ordinary intercepts for mu and sigma with SD regressions. It does not establish calibration or coverage, structured providers, or Julia parity.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
 }

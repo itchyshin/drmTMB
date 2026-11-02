@@ -36,7 +36,7 @@ test_that("Poisson relmat slope-only SD gate admits only its shape", {
 
   # Family guard: the payload refuses the same shape for other count families.
   expect_error(
-    drm_julia_structured_payload(slope, "gamma", data, environment()),
+    drm_julia_structured_payload(slope, "student", data, environment()),
     "supports structured"
   )
 

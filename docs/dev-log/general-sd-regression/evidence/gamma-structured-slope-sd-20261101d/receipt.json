@@ -73,5 +73,9 @@
     "no Julia parity",
     "review_status unreviewed",
     "tolerances as written in the test, not loosened"
-  ]
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent mathematical review confirmed the oracle is a dense, drmTMB-independent Gamma-log Laplace with stats::dgamma, shape 1/sigma^2, score k(y/mu - 1), W = k y/mu (sd x)^2, and value ll(u*) - u*'K^-1u*/2 - log det(I+KW)/2; agreement is 1e-4 on the logLik. It supports all five rows: relmat K (K_covariance), relmat Q (Q_precision, oracle on K), animal Ainv (oracle on A), phylo tree, and spatial coordinates (oracle on exp(-d/range)+1e-6 I), with the slope-only sd(g, level) ~ z, log link and q=1. Emulated-bug sensitivity exists and exceeds 0.05 (reversed level order and a sign-flipped predictor) for every provider. The test also covers K versus Q agreement within 1e-4, constant-SD equivalence, simulate/save-reload and closed neighbours. Manifest: 2 of 9 entries differ (R/drmTMB.R, src/drmTMB.cpp); explained by later commits (the q>=3 SD addition and the nlminb restart). The focused test was rerun on current source, 87 passed with 0 failed/errors/skipped. The receipt recorded 88; the 1-count difference is runner/reporter accounting, not a failure. Covers native Gamma slope-only structured SDs, one fixed-seed design per provider, with loose 0.6 recovery. Does not establish animal A_covariance or pedigree slope rows, mesh spatial, calibration, or Julia parity. Scope note (2026-11-02, after verifier): every linked fit is slope-only; the claim covers the slope-member SD of the unlabelled structured field only. Per mechanism-templates.tsv the unlabelled intercept and slope are independent fields (blockdiag(K, K)), so no companion structured intercept is exercised or claimed.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
 }

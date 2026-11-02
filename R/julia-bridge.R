@@ -3747,6 +3747,10 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
           (identical(family_type, "gaussian") &&
             drm_julia_gaussian_structured_sd_slope_route_admitted(formula)) ||
           (identical(family_type, "gamma") &&
+            drm_julia_gamma_structured_sd_slope_route_admitted(formula)) ||
+          (identical(family_type, "nbinom2") &&
+            drm_julia_nbinom2_relmat_sd_slope_route_admitted(formula)) ||
+          (identical(family_type, "gamma") &&
             drm_julia_gamma_sigma_sd_route_admitted(formula, data = data)) ||
           (identical(family_type, "nbinom2") &&
             drm_julia_negbin2_sigma_sd_route_admitted(formula, data = data)) ||
@@ -3970,6 +3974,10 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
       !drm_julia_binomial_relmat_iid_sd_route_admitted(formula) &&
       !(identical(family_type, "poisson") &&
           drm_julia_poisson_relmat_sd_slope_route_admitted(formula)) &&
+      !(identical(family_type, "gamma") &&
+          drm_julia_gamma_structured_sd_slope_route_admitted(formula)) &&
+      !(identical(family_type, "nbinom2") &&
+          drm_julia_nbinom2_relmat_sd_slope_route_admitted(formula)) &&
       !sd_matches_structured_term(structured_terms[[1L]])) {
     # `drm_julia_structured_payload()` (R#5290): the univariate general-
     # covariance sparse-Laplace route names its single random-effect SD
@@ -5109,6 +5117,14 @@ drm_julia_refuse_marker_slope_unsupported <- function(formula, family_type = NUL
       drm_julia_gaussian_structured_sd_slope_route_admitted(formula)) {
     return(invisible(FALSE))
   }
+  if (identical(family_type, "gamma") &&
+      drm_julia_gamma_structured_sd_slope_route_admitted(formula)) {
+    return(invisible(FALSE))
+  }
+  if (identical(family_type, "nbinom2") &&
+      drm_julia_nbinom2_relmat_sd_slope_route_admitted(formula)) {
+    return(invisible(FALSE))
+  }
   terms <- drm_julia_collect_marker_slope_terms(formula)
   if (length(terms) == 0L) {
     return(invisible(FALSE))
@@ -5470,6 +5486,31 @@ drm_julia_gaussian_structured_sd_slope_route_admitted <- function(formula) {
   drm_julia_gaussian_animal_sd_slope_route_admitted(formula) ||
     drm_julia_gaussian_relmat_sd_slope_route_admitted(formula) ||
     drm_julia_gaussian_spatial_sd_slope_route_admitted(formula)
+}
+
+# DRM.jl 53b992349 / 2ffbbcb5a (batch 25) admit Gamma relmat(0 + x | g, K) and
+# coordinate spatial(0 + x | g) slope-only SD regression, and NB2
+# relmat(0 + x | g, K), each with its matching `sd(g, <level>) ~ z`. K enters raw
+# in DRM.jl for these (as in native); coordinate spatial reaches Julia as the
+# native fixed kernel re-expressed as a relmat K by the payload. Shape-only
+# gates; the payload checks the family. Gamma/NB2 phylogenetic slope-only SD is
+# NOT admitted: the Julia route uses the raw tree covariance while native uses
+# the correlation matrix, and Gamma phylogenetic SD is not marshalled here.
+drm_julia_nbinom2_relmat_sd_slope_route_admitted <- function(formula) {
+  drm_julia_poisson_relmat_sd_slope_route_admitted(formula)
+}
+
+drm_julia_gamma_relmat_sd_slope_route_admitted <- function(formula) {
+  drm_julia_poisson_relmat_sd_slope_route_admitted(formula)
+}
+
+drm_julia_gamma_spatial_sd_slope_route_admitted <- function(formula) {
+  drm_julia_gaussian_spatial_sd_slope_route_admitted(formula)
+}
+
+drm_julia_gamma_structured_sd_slope_route_admitted <- function(formula) {
+  drm_julia_gamma_relmat_sd_slope_route_admitted(formula) ||
+    drm_julia_gamma_spatial_sd_slope_route_admitted(formula)
 }
 
 drm_julia_binomial_relmat_iid_sd_route_admitted <- function(formula) {
@@ -11472,6 +11513,12 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
     drm_julia_gaussian_spatial_sd_slope_route_admitted(formula)
   gamma_animal_slope <- identical(family_type, "gamma") &&
     drm_julia_gamma_animal_sd_slope_route_admitted(formula, family_type)
+  gamma_relmat_slope <- identical(family_type, "gamma") &&
+    drm_julia_gamma_relmat_sd_slope_route_admitted(formula)
+  gamma_spatial_slope <- identical(family_type, "gamma") &&
+    drm_julia_gamma_spatial_sd_slope_route_admitted(formula)
+  nbinom2_relmat_slope <- identical(family_type, "nbinom2") &&
+    drm_julia_nbinom2_relmat_sd_slope_route_admitted(formula)
   gamma_animal_intercept_slope <- gamma_animal_slope &&
     length(term$coef_names) == 2L && "(Intercept)" %in% term$coef_names
   binomial_relmat_sd <- identical(family_type, "binomial") &&
@@ -11492,7 +11539,8 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
       binomial_animal_iid_slope ||
       poisson_animal_slope || nbinom2_animal_slope || poisson_relmat_slope ||
       gaussian_animal_slope || gaussian_relmat_slope ||
-      gaussian_spatial_slope || gamma_animal_slope) &&
+      gaussian_spatial_slope || gamma_animal_slope || gamma_relmat_slope ||
+      gamma_spatial_slope || nbinom2_relmat_slope) &&
        length(term$coef_names) == 1L) ||
     gamma_animal_intercept_slope ||
     (binomial_animal_q2_sd && length(term$coef_names) == 2L &&
@@ -11504,9 +11552,9 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
         gaussian_animal_slope) &&
          !identical(term$type, "animal")) ||
       ((binomial_relmat_sd || tweedie_relmat_sd || poisson_relmat_slope ||
-        gaussian_relmat_slope) &&
+        gaussian_relmat_slope || gamma_relmat_slope || nbinom2_relmat_slope) &&
          !identical(term$type, "relmat")) ||
-      ((binomial_spatial_sd || gaussian_spatial_slope) &&
+      ((binomial_spatial_sd || gaussian_spatial_slope || gamma_spatial_slope) &&
          !identical(term$type, "spatial"))) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} supports structured {.code mu} intercepts and explicitly admitted animal-, relmat-, or fixed-coordinate spatial-slope SD routes.",
@@ -11598,7 +11646,8 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
   kwarg <- resolved$kwarg
   matrix_labels <- resolved$labels
   if (identical(term$type, "spatial") &&
-      (identical(family_type, "gaussian") || binomial_spatial_sd)) {
+      (identical(family_type, "gaussian") || binomial_spatial_sd ||
+         gamma_spatial_slope)) {
     matrix_labels <- NULL
     native_spatial <- drm_spatial_coords_precision(
       matrix,
@@ -11613,7 +11662,7 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
       formula_spec[[term$dpar]],
       fixed = TRUE
     )
-    if (binomial_spatial_sd || gaussian_spatial_slope) {
+    if (binomial_spatial_sd || gaussian_spatial_slope || gamma_spatial_slope) {
       spatial_sd_key <- paste0("sd_spatial(", term$group, ")")
       spatial_sd_idx <- match(spatial_sd_key, names(formula_spec))
       if (is.na(spatial_sd_idx)) {
@@ -11691,7 +11740,10 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
     # spatial coords to a fixed covariance K in `drm_julia_structured_payload`.
     # Non-Gaussian spatial has no native-compatible bridge form here; pass a
     # precomputed spatial covariance through `relmat(1 | g, K = K)` instead.
-    if (!family_type %in% c("gaussian", "biv_gaussian", "binomial")) {
+    gamma_spatial_slope_term <- identical(family_type, "gamma") &&
+      !identical(term$coef_names, "(Intercept)")
+    if (!family_type %in% c("gaussian", "biv_gaussian", "binomial") &&
+        !gamma_spatial_slope_term) {
       cli::cli_abort(c(
         "{.code engine = \"julia\"} routes {.fn spatial} only for Gaussian or explicitly admitted Binomial coordinate models.",
         i = "For a {.val {family_type}} spatial model, pass a precomputed covariance as {.code relmat(1 | {term$group}, K = K)}, or use {.code engine = \"tmb\"}."

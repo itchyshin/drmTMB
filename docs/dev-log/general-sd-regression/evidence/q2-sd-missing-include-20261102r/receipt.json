@@ -1,0 +1,76 @@
+{
+  "evidence_id": "native-q2-sd-missing-include-20261102r",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); r<-as.data.frame(testthat::test_file(\"tests/testthat/test-q2-sd-missing-include.R\", reporter=\"silent\")); print(colSums(r[c(\"passed\",\"failed\",\"error\",\"skipped\")]))'",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "427a9a40198d588409a350843ef7fe8c788454a9",
+  "tree_state": "dirty shared candidate (uncommitted edits present); unreviewed",
+  "run_started_utc": "2026-11-02T11:21:22Z",
+  "run_ended_utc": "2026-11-02T11:21:58Z",
+  "exit_code": 0,
+  "expectations_passed": 158,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/q2-sd-missing-include-20261102r/test-console.log",
+  "console_log_sha256": "cd45a990c0c05b79e4088f9a10ce62f57c8cb552857762a7a0205747da3c8f3b",
+  "test_path": "tests/testthat/test-q2-sd-missing-include.R",
+  "test_sha256": "a40b2303a828933971dfc04ac8edf2d608c6ce9903b0947d9eacaa123823bcec",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/q2-sd-missing-include-20261102r/source-manifest.json",
+  "source_manifest_sha256": "7e0d8d981758731a8d5edeff3d0adabc5ee11cd7c642c9e52b40b1426b3eba7b",
+  "live_julia": "not run; native R engine only",
+  "scope": "Gaussian ordinary q2 (exact marginal oracle) and Poisson/NB2/Gamma (log) animal q2, unlabelled (independent fields) and, for NB2/Gamma, labelled with rho, under miss_control(response='include'): include equals complete-case (1e-8) and oracle (1e-6/exact), including all-NA groups.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"identity\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "identity",
+      "ledger_status": "unresolved"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"identity\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "identity",
+      "ledger_status": "unresolved"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved"
+    }
+  ],
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "animal_labelled_block cross mu/sigma rows (labelled form here is within mu only)",
+    "Poisson labelled animal q2 with SDs: refused, not linked",
+    "relmat q2 refusals under include: not linked"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "unreviewed"
+}

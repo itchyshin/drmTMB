@@ -26,5 +26,8 @@
     "interval calibration",
     "coverage"
   ],
-  "review_status": "unreviewed"
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent review confirmed a dense Gamma(log) oracle with an independently optimised latent mode (nlminb with analytic gradient and Hessian, kronecker(diag(2), K^-1) precision, shape = exp(-2 log sigma)). It supports both linked rows: native Gamma log, relmat(1+x|id) with K and with Q, with per-coefficient sd(id, level='relmat', coef=...) formulas on the intercept and slope fields (independent blockdiag(K,K) fields, q=1 per coefficient). Oracle agreement is 1e-5, with mode gradient < 1e-5 and the linear predictor matched. K is permuted relative to the data factor levels, with a non-unit diagonal. The Q fit and the reversed-formula-order fit reproduce the K fit's logLik (1e-5) and SD coefficients (1e-4). The test has no emulated-bug block. A scratch check (no files edited) swapping the w0 and w1 covariates in the oracle moved the oracle by 64.4 log-lik units. The constant-SD limit matches the base fit (1e-5), and refusals and extraction checks are included. Focused test rerun on the current worktree: 42 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 3 of 5 entries differ (R/drmTMB.R, R/methods.R, src/drmTMB.cpp). They were changed by later lane commits, so the old states could not be reproduced. The current-file rerun is the evidence. Does not establish the animal route beyond a link-scale prediction check, calibration, coverage or Julia parity. Recovery band 0.3, one fixture. The receipt manifest needs a refresh.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
 }

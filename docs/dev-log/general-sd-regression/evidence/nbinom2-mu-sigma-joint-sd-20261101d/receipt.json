@@ -48,5 +48,9 @@
     "no calibration or coverage claim",
     "native R/TMB only; no Julia parity claim",
     "direct_sd_claim stays none; receipt is a staleness seal, not a promotion"
-  ]
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent review confirmed a base-R dense Laplace oracle for crossed id (mu) and g (sigma) random intercepts. The oracle has an analytic gradient, a finite-difference Hessian, a joint (G+H)-dimensional mode, NB2 size = exp(-2 log sigma), and does not call drmTMB or TMB. It supports both linked rows: native nbinom2 log, iid intercept, mu:I via sd(id) ~ w and sigma:I via sd(g, dpar='sigma') ~ z. Oracle agreement is 1e-3 (loose), with the oracle surface stationary at the fitted optimum (max |grad| < 1e-2) and pdHess true. Emulated-bug sensitivity exists and is explicit: swapped mu and sigma SD blocks, scrambled level assignment and a dropped sigma random effect each move the oracle by more than 0.1. A cold-start independent oracle MLE of the constant-SD fit matches (logLik 1e-3, coefficients 2e-2). Neighbouring routes (one SD formula only, slopes, zero-inflated, missing include, two mean intercepts) are asserted refused. Focused test rerun on the current worktree: 29 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 2 of 6 entries differ (R/drmTMB.R, src/drmTMB.cpp). They were changed by later lane commits, so the old states could not be reproduced. The current-file rerun is the evidence. Does not establish cross-parameter mu-sigma correlation or labelled blocks, slopes, calibration, coverage or Julia parity. The 1e-3 oracle tolerance is loose, one fixture. The receipt manifest needs a refresh.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
 }

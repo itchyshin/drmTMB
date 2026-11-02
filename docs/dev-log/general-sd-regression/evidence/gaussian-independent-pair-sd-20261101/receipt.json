@@ -44,5 +44,9 @@
     "no Julia parity",
     "dirty shared tree",
     "unreviewed"
-  ]
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent review confirmed the exact per-group multivariate-normal marginal likelihood (Z diag(tau0^2,tau1^2) Z' + s^2 I, Cholesky; no drmTMB code) as an oracle for the single linked row: native Gaussian mu, iid numeric slope member x, identity link, ordinary group factor, q=1 per coefficient, with (1|id)+(0+x|id) and separate sd(id, coef=...) formulas. Oracle agreement is tol 1e-4 at fitted parameters, and the constant-SD limit matches the plain two-term fit at 2e-5. The test has no emulated-bug block. A scratch check (no files edited) swapping which covariate each SD formula sees moved the oracle by 8.39 log-lik units against a 1e-4 tolerance. Focused test rerun on the current worktree: 10 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 5 of 9 entries differ (R/drmTMB.R, R/random-effect-targets.R, R/formula-markers.R, R/parse-formula.R, src/drmTMB.cpp). These shared implementation files were changed by later lane commits (386543c70, fe12743c8 and others), and the receipt records a dirty shared tree, so the old file states could not be reproduced. The rerun on the current files is the evidence that the claim still holds. Does not establish calibration, interval coverage, Julia parity, or any other family, provider or q. Recovery bands are loose (0.5/0.6). The receipt manifest needs a refresh to be hash-sealed to the current files.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
 }

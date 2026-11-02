@@ -25,5 +25,8 @@
     "coverage",
     "Julia parity unless stated"
   ],
-  "review_status": "unreviewed"
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent mathematical review confirmed the dense exact Gaussian marginal oracle, y ~ N(X beta, sigma^2 I + sum R_ab l_a l_b' o K_obs), with K indexed by level name. It shares no code with the TMB template. It covers all six rows: animal (A), relmat (K) and phylo (tree, K = cov2cor(ape::vcv(tree))), each with the labelled (1 + x | p | id) block and a separate SD formula for the intercept and for the slope. K has a non-unit diagonal for animal and relmat and is passed in shuffled order. The likelihood is matched at 1e-6 and an independent L-BFGS-B optimum at 1e-5. Emulated-bug sensitivity exists: unit_diag, positional_K, swap_sd_formulas, shared_sd, no_slope_loading, drop_rho and cross_sign each move the oracle by more than 1e-3, plus a raw-versus-correlation phylo check. Manifest rehash: 2 of 5 entries match; 3 mismatch (R/drmTMB.R vs 95c8a58dc, R/methods.R vs b300610ce, src/drmTMB.cpp vs 33e4e966a). The later diffs are gated: Gaussian q3/q4 re_cov SD (needs an ordinary correlated block with sd_mu entries), missing-response include relaxations, simulate/summary changes, and the false-convergence nlminb restart; none changes this structured q2 likelihood path. The focused test was rerun on the current tree and matches the receipt count. Covers only native Gaussian identity-link structured q2 labelled blocks with one correlation. It does not establish calibration, coverage, Julia parity, or non-Gaussian families. Recommend regenerating the manifest at the current head.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
 }

@@ -25,5 +25,8 @@
     "coverage",
     "Julia parity unless stated"
   ],
-  "review_status": "unreviewed"
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent review confirmed the exact per-group multivariate-normal marginal likelihood (Z (D R D) Z' + s^2 I with D = diag of the per-group SD vectors and R the fitted 2x2 correlation) as an oracle. It supports both linked rows: native Gaussian mu, identity link, correlated (1+x|id) block with q=2 and sd(id, coef='(Intercept)') ~ w0 and sd(id, coef='x') ~ w1 (rows mu:I and mu:x1). The slope-only SD formula with a constant intercept SD is also oracle-checked. Oracle agreement is 1e-8 in the two-formula case and 1e-6 in the slope-only case, and the constant-SD limit matches the plain fit at 1e-6. The test has no emulated-bug block. The SD covariates differ across the two coefficients (continuous w0, +/-1 w1), and the exact likelihood at 1e-8 would fail on any swap or misalignment, but this was argued from the design and not measured. The q5 correlated block is asserted closed. Focused test rerun on the current worktree: 17 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 1 of 5 entries differs (R/drmTMB.R). The mismatch is fully explained. The manifest hash equals the blob at commit 386543c70, the file was changed afterwards by fe12743c8 (restart nlminb once after false convergence), and src/drmTMB.cpp matches the current file. Does not establish q3 or q4 blocks, other families, calibration, coverage or Julia parity. Correlation recovery band 0.3.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
 }

@@ -39,7 +39,7 @@
   "tolerances_copied_from_test": "convergence==0; z slopes sign correct and within 0.6 of truth; predict()==exp(X alpha) tol 1e-7; logLik vs exact Laplace oracle tol 1e-6 (relative); swapped-oracle differs >0.1; constant-SD vs base logLik abs < 1e-4; mu coef tol 1e-3",
   "oracle": "exact Laplace marginal likelihood (Newton mode, log-det Hessian) at the fitted coefficients",
   "evidence_grade": "focused_test",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "limits": [
     "native engine only",
     "one fixture per cell",
@@ -48,5 +48,8 @@
     "no Julia parity",
     "dirty shared tree",
     "unreviewed"
-  ]
+  ],
+  "review_note": "Independent mathematical review of the Laplace oracle (Newton mode with line search, -0.5 log det(Z' diag(mu) Z + diag(1/tau^2)), plain-R Poisson log-link joint density; no drmTMB/TMB code) confirmed it supports both rows: the crossed (1|g)+(1|h) test with sd(g)~w, sd(h)~v covers mu:I iid_additive_terms group_factors/crossed, and the same-group (1|id)+(0+x|id) test with coef-selected SDs covers mu:x1..xp iid_numeric_slope. logLik agrees with relative tolerance 1e-6. Emulated-bug sensitivity exists: swapped SD formulas (same-group) and reversed per-level predictors (crossed) each move the oracle by more than 0.1. Constant-SD limit matches the base fit within 1e-4 and the no-coef refusal is tested. Manifest: 6 of 10 entries differ (R/drmTMB.R, R/random-effect-targets.R, R/parse-formula.R, R/predict-parameters.R, R/methods.R, src/drmTMB.cpp); all are explained by later commits after head 425bee81 (missing-response include admissions, the nlminb restart, q3/q4 Gaussian SD). The focused test was rerun on the current files, 33 passed with 0 failed/errors/skipped, so the claim is verified against current source. Covers only native Poisson log-link ordinary intercept/slope SDs on one fixture each; does not establish calibration, interval coverage, Julia parity, nested designs, or the single-field iid_intercept row.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
 }

@@ -101,8 +101,9 @@ test_that("Tweedie relmat SD fit crosses the public Julia bridge with K", {
   group_sd <- predict(fit_julia, dpar = dpar)
   tmb_group_sd <- predict(fit_tmb, dpar = dpar)
   expect_length(group_sd, groups)
-  expect_identical(names(group_sd), paste0(dpar, ":", levels(group)))
-  expect_setequal(sub("^.*:", "", names(group_sd)), names(tmb_group_sd))
+  # Group-level SD predictions are named by bare group level on both engines.
+  expect_setequal(names(group_sd), levels(group))
+  expect_setequal(names(group_sd), names(tmb_group_sd))
   expect_equal(unname(group_sd),
                unname(tmb_group_sd[sub("^.*:", "", names(group_sd))]),
                tolerance = 0.15)
