@@ -52,9 +52,21 @@ simulate.drmTMB_julia <- function(
           ))
         }
       }
+      if (identical(object$model$model_type, "nbinom2")) {
+        nb2_spec <- drm_julia_nbinom2_animal_sd_slope_simulation_spec(object)
+        if (!is.null(nb2_spec)) {
+          return(drm_julia_simulate_nbinom2_animal_sd_slope(
+            object = object,
+            spec = nb2_spec,
+            nsim = nsim,
+            seed = seed,
+            marginal = marginal
+          ))
+        }
+      }
       cli::cli_abort(c(
         "Marginal simulation is not implemented for this Julia random-effect model.",
-        "i" = "The current routes are the documented Binomial SD cases and complete-data Gamma animal intercept or intercept-plus-slope SD models."
+        "i" = "The current routes are the documented Binomial SD cases, complete-data Gamma animal intercept or intercept-plus-slope SD models, and the NB2 animal slope-only SD model."
       ))
     }
     if (base::missing(re.form)) {
@@ -441,6 +453,132 @@ drm_julia_simulate_gamma_animal_sd <- function(
       shape = gamma_parameters$shape,
       scale = gamma_parameters$scale
     )
+  })
+  draws <- as.data.frame(draws)
+  names(draws) <- paste0("sim_", seq_len(nsim))
+  draws[] <- lapply(draws, function(col) drm_mask_missing_response_values(object, col))
+  draws
+}
+
+# NB2 animal slope-only SD fits (DRM.jl 61a6dcdbd; raw A). Marginal simulation
+# draws u = chol(A) z, scales it by the fitted group SD, and adds x * u to the
+# fixed linear predictor, as the Gamma animal route does. A only; the bridge
+# refuses Ainv for NB2, so no other matrix form is retained.
+drm_julia_nbinom2_animal_sd_slope_simulation_spec <- function(object) {
+  formula <- object$formula
+  if (!drm_julia_nbinom2_animal_sd_slope_route_admitted(formula)) {
+    return(NULL)
+  }
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 1L) return(NULL)
+  term <- terms[[1L]]
+  data <- object$data
+  group <- term$group
+  slope <- term$coef_names[[1L]]
+  if (!is.data.frame(data) || !group %in% names(data) || anyNA(data[[group]])) {
+    cli::cli_abort(
+      "Julia NB2 animal simulation requires complete stored grouping values."
+    )
+  }
+  loading <- data[[slope]]
+  if (!is.numeric(loading) || length(loading) != nrow(data) ||
+      any(!is.finite(loading))) {
+    cli::cli_abort(
+      "Julia NB2 animal SD simulation requires finite numeric slope values for {.field {slope}}."
+    )
+  }
+  groups <- unique(as.character(data[[group]]))
+  payload <- object$bridge_payload
+  covariance <- payload$matrix
+  if (!identical(payload$kwarg, "A") || is.null(covariance)) {
+    cli::cli_abort(
+      "The Julia NB2 animal fit does not retain the supplied relationship matrix needed for simulation."
+    )
+  }
+  covariance <- as.matrix(covariance)
+  if (!identical(dim(covariance), c(length(groups), length(groups))) ||
+      any(!is.finite(covariance)) ||
+      !isTRUE(all.equal(covariance, t(covariance))) ||
+      any(diag(covariance) <= 0) ||
+      inherits(tryCatch(chol(covariance), error = function(e) e), "error")) {
+    cli::cli_abort(
+      "The saved Julia NB2 animal relationship matrix is invalid or not aligned with the fitted group order."
+    )
+  }
+  sd_entry <- Filter(function(entry) {
+    !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
+  }, formula$entries)
+  list(
+    group = group,
+    groups = groups,
+    group_index = match(as.character(data[[group]]), groups),
+    covariance = covariance,
+    loading = as.numeric(loading),
+    target = parse_sd_lhs(sd_entry[[1L]]$lhs)
+  )
+}
+
+drm_julia_simulate_nbinom2_animal_sd_slope <- function(
+  object, spec, nsim, seed, marginal
+) {
+  if (!marginal) {
+    cli::cli_abort(c(
+      "Conditional simulation is unavailable for this Julia NB2 fit.",
+      "x" = "The Laplace fit integrates random effects and does not retain conditional modes.",
+      "i" = "Use the default marginal simulation or {.code re.form = NA}."
+    ))
+  }
+  if (length(nsim) != 1L || is.na(nsim) || nsim < 1L ||
+      nsim != as.integer(nsim)) {
+    cli::cli_abort("{.arg nsim} must be one positive whole number.")
+  }
+  nsim <- as.integer(nsim)
+  if (!is.null(seed)) {
+    had_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+    old_seed <- if (had_seed) {
+      get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+    } else {
+      NULL
+    }
+    on.exit({
+      if (had_seed) {
+        assign(".Random.seed", old_seed, envir = .GlobalEnv)
+      } else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+        rm(".Random.seed", envir = .GlobalEnv)
+      }
+    }, add = TRUE)
+    set.seed(seed)
+  }
+
+  data <- object$data
+  eta_fixed <- as.numeric(predict(
+    object, newdata = data, dpar = "mu", type = "link"
+  ))
+  sigma <- as.numeric(predict(
+    object, newdata = data, dpar = "sigma", type = "response"
+  ))
+  if (length(eta_fixed) != nrow(data) || length(sigma) != nrow(data)) {
+    cli::cli_abort(
+      "The Julia NB2 bridge did not retain row-aligned mean and dispersion predictors for simulation."
+    )
+  }
+  dpar <- as.character(drm_julia_sd_public_dpar(spec$target))[[1L]]
+  sd_value <- predict(object, dpar = dpar)
+  # The single-target NB2 route returns group-named SD predictions; accept the
+  # `dpar:group` spelling the multi-target routes use as well.
+  if (!identical(names(sd_value), spec$groups) &&
+      !identical(names(sd_value), paste0(dpar, ":", spec$groups))) {
+    cli::cli_abort(
+      "Julia NB2 SD predictions do not align with animal groups."
+    )
+  }
+  group_sd <- as.numeric(sd_value)[spec$group_index]
+  chol_covariance <- t(chol(spec$covariance))
+  draws <- replicate(nsim, {
+    latent <- as.vector(chol_covariance %*% stats::rnorm(length(spec$groups)))
+    eta <- eta_fixed + spec$loading * group_sd * latent[spec$group_index]
+    mu <- drm_inverse_link(object, "mu", eta)
+    stats::rnbinom(nrow(data), size = drm_nbinom2_size(sigma), mu = mu)
   })
   draws <- as.data.frame(draws)
   names(draws) <- paste0("sim_", seq_len(nsim))

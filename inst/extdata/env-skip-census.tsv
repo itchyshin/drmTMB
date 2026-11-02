@@ -224,6 +224,9 @@ test-julia-admission-docs.R	runtime-conditional	runtime	depends	1
 test-julia-b18-relmat-nb2-slope-sd-bridge.R	cran-lane	environment	runs	2
 test-julia-b18-relmat-nb2-slope-sd-bridge.R	engine-drm-jl	environment	skips	4
 test-julia-b18-relmat-nb2-slope-sd-bridge.R	suggests-package	environment	runs	2
+test-julia-b20-gaussian-slope-binomial-relmat-bridge.R	cran-lane	environment	runs	1
+test-julia-b20-gaussian-slope-binomial-relmat-bridge.R	engine-drm-jl	environment	skips	2
+test-julia-b20-gaussian-slope-binomial-relmat-bridge.R	suggests-package	environment	runs	1
 test-julia-beta-binomial-sd-parity.R	engine-drm-jl	environment	skips	4
 test-julia-beta-binomial-sd-parity.R	suggests-package	environment	runs	2
 test-julia-beta-binomial-sigma-sd-bridge.R	engine-drm-jl	environment	skips	4
