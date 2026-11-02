@@ -410,7 +410,7 @@ test_that("cumulative-logit objective handles extreme middle-category probabilit
       c("low", "medium", "high"),
       levels = c("low", "medium", "high")
     ),
-    x = c(0, 0, 0)
+    x = c(-1, 0, 1)
   )
   fit <- drmTMB(bf(score ~ x), family = cumulative_logit(), data = dat)
 
