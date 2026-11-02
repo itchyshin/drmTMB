@@ -1,0 +1,54 @@
+ℹ Testing drmTMB
+✔ | F W  S  OK | Context
+
+⠏ |          0 | julia-tweedie-relmat-sd                                        
+⠋ |          1 | julia-tweedie-relmat-sd                                        
+⠼ |          5 | julia-tweedie-relmat-sd                                        i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+
+⠇ |   1      8 | julia-tweedie-relmat-sd                                        sh: NA: command not found
+
+⠏ | 1 1      8 | julia-tweedie-relmat-sd                                        
+✖ | 1 1      8 | julia-tweedie-relmat-sd [2.3s]
+────────────────────────────────────────────────────────────────────────────────
+Warning ('test-julia-tweedie-relmat-sd.R:87:3'): Tweedie relmat SD fit crosses the public Julia bridge with K
+running command ''bash' -l -c 'which julia'' had status 1
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(form, family = tweedie(), data = dat, engine = "julia") at test-julia-tweedie-relmat-sd.R:87:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::drmTMB_julia_structured_bridge(...) at general-sd-regression/R/julia-bridge.R:686:5
+ 4.       └─drmTMB:::drm_julia_call_structured(...) at general-sd-regression/R/julia-bridge.R:9086:3
+ 5.         └─drmTMB:::drm_julia_setup() at general-sd-regression/R/julia-bridge.R:9412:3
+ 6.           └─JuliaCall::julia_setup(installJulia = FALSE, install = TRUE) at general-sd-regression/R/julia-bridge.R:5187:5
+ 7.             └─JuliaCall:::julia_locate(JULIA_HOME)
+ 8.               └─base::system2("bash", "-l -c 'which julia'", stdout = TRUE)
+
+Error ('test-julia-tweedie-relmat-sd.R:87:3'): Tweedie relmat SD fit crosses the public Julia bridge with K
+Error in `JuliaCall::julia_setup(installJulia = FALSE, install = TRUE)`: Julia is not found.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(form, family = tweedie(), data = dat, engine = "julia") at test-julia-tweedie-relmat-sd.R:87:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::drmTMB_julia_structured_bridge(...) at general-sd-regression/R/julia-bridge.R:686:5
+ 4.       └─drmTMB:::drm_julia_call_structured(...) at general-sd-regression/R/julia-bridge.R:9086:3
+ 5.         └─drmTMB:::drm_julia_setup() at general-sd-regression/R/julia-bridge.R:9412:3
+ 6.           └─JuliaCall::julia_setup(installJulia = FALSE, install = TRUE) at general-sd-regression/R/julia-bridge.R:5187:5
+────────────────────────────────────────────────────────────────────────────────
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 2.4 s
+
+── Failed tests ────────────────────────────────────────────────────────────────
+Error ('test-julia-tweedie-relmat-sd.R:87:3'): Tweedie relmat SD fit crosses the public Julia bridge with K
+Error in `JuliaCall::julia_setup(installJulia = FALSE, install = TRUE)`: Julia is not found.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(form, family = tweedie(), data = dat, engine = "julia") at test-julia-tweedie-relmat-sd.R:87:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::drmTMB_julia_structured_bridge(...) at general-sd-regression/R/julia-bridge.R:686:5
+ 4.       └─drmTMB:::drm_julia_call_structured(...) at general-sd-regression/R/julia-bridge.R:9086:3
+ 5.         └─drmTMB:::drm_julia_setup() at general-sd-regression/R/julia-bridge.R:9412:3
+ 6.           └─JuliaCall::julia_setup(installJulia = FALSE, install = TRUE) at general-sd-regression/R/julia-bridge.R:5187:5
+
+[ FAIL 1 | WARN 1 | SKIP 0 | PASS 8 ]
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.

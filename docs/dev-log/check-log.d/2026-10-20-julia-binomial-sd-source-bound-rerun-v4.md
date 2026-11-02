@@ -1,0 +1,9 @@
+# Source-bound Julia Bernoulli SD bridge rerun (v4)
+
+- Command: `DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRMODELS_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRMTMB_JULIA_TESTS=true NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "julia-binomial-sd", reporter = "summary", stop_on_failure = TRUE)'`.
+- Result: the command completed through `══ DONE ══`; five live Julia bridge tests ran, with no test failures or skips. Wall time was 131.45 seconds (114.95 seconds user CPU).
+- Source binding: before/after SHA-256 manifests match byte-for-byte for 167 R, native C/C++, Julia source, and focused test files. Both manifest hashes are `34456976d2d9fbd59a5d998bb8bbce4b2718b2202388ecad2b2c9b74131b35f7`. The manifest includes the updated `R/random-effect-targets.R` that differed from v3. The paired source pins are drmTMB `425bee81572c625a634b2b083050c5c57c1dc1f1` and DRM.jl `70dbf564eb670144c63c08f61ea099084d95add2`.
+- Raw console log: `docs/dev-log/general-sd-regression/evidence/julia-bridge-source-bound-20261020-v4/test-console.log`; SHA-256 `6eb11ce34f5d961621e8bbb5c096c4fd3b656a3d37998bf13e85ed04628cfa9b`.
+- Both manifests are in `docs/dev-log/general-sd-regression/evidence/julia-bridge-source-bound-20261020-v4/`.
+- Independent inference review supports the tested Bernoulli vertical slice: ordinary intercepts and independent slopes, plus the tested unlabelled correlated q2 case, with point/recovery checks and cross-engine outputs. This does not establish all Bernoulli providers or full programme parity.
+- Julia emitted two near-singular-Hessian diagnostics at variance/dispersion boundaries (`rcond=9.23265335367337e-10`, coordinate 7; `rcond=3.879150990279055e-17`, no flat coordinate identified). Wald standard errors for affected fits are not trustworthy. No interval-coverage claim is made.

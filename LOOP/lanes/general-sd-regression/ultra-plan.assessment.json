@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "5e4967e5f2dcc249edc79ed7ab704ccf830eca1dadf74b6c5f70ef1070866221",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Post-draft self-review against writing-naturalness.md and repository evidence",
+  "genre": "Technical programme plan",
+  "coverage": "Whole draft",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The plan uses concrete phases, scope limits, and decision boundaries. Its table and repeated gate vocabulary are somewhat formulaic but suit an execution plan.",
+  "confidence": "medium",
+  "confidence_reason": "The whole plan was reviewed, but this is a self-assessment and the forecast remains provisional.",
+  "examples": [
+    {
+      "location": "Implementation-first sequence, paragraph 1",
+      "cue": "Explicitly separates recovery smoke from coverage evidence.",
+      "impact": "Prevents readers from mistaking a small recovery check for interval calibration.",
+      "repair": "no change needed",
+      "line": 61,
+      "quote": "can catch coding, indexing, sign, and gross-recovery errors; it does not validate"
+    },
+    {
+      "location": "Implementation-first sequence, paragraph 2",
+      "cue": "The delivery ranges are labelled provisional.",
+      "impact": "Signals that inventory reconciliation can move the estimate.",
+      "repair": "no change needed",
+      "line": 68,
+      "quote": "The first Bernoulli implementation milestone is provisionally 1-2 elapsed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "No likelihood or inference claim was changed. The plan explicitly states that a small recovery smoke does not validate 95% interval coverage.",
+  "facts_gate": "unknown",
+  "facts_gate_reason": "The completed NotebookLM review was verified. Timeline ranges are planning estimates pending reconciliation of the live capability inventory and existing work.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The plan adds no external references or literature claims.",
+  "date": "2026-10-20",
+  "calibration_status": "Not a calibrated style benchmark; related project scope and methods notes were reviewed.",
+  "interpretation": "perceived_style_not_authorship"
+}

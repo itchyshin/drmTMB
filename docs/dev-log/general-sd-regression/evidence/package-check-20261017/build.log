@@ -1,0 +1,8 @@
+* checking for file ‘/private/tmp/drmTMB-package-check-47262cd45/source/drmTMB/DESCRIPTION’ ... OK
+* preparing ‘drmTMB’:
+* checking DESCRIPTION meta-information ... OK
+* cleaning src
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+* building ‘drmTMB_0.7.1.tar.gz’
+

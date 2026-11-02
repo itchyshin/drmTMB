@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "c9783c1d0c5be6568e8b7f4936258366fc9c9a29a5c2bc2117700c71d260f4a5",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Manual post-draft review against the exact test outputs, fixture source, candidate bridge implementation, and active G0-G8 ledger.",
+  "genre": "Short software verification after-task report",
+  "coverage": "Whole report; claims checked against the test commands and source fixtures run in this turn.",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report names exact formulas, fit checks, assertion counts, skip reason, and limits; its headings follow the required report template.",
+  "confidence": "medium",
+  "confidence_reason": "Test outcomes and fixture behavior are directly observed; perceived style is an editorial judgment.",
+  "examples": [
+    {
+      "location": "Section 12, first paragraph",
+      "cue": "Separates native recovery evidence from the skipped live Julia check and names the unclosed claims.",
+      "impact": "Prevents synthetic bridge tests from being mistaken for engine parity or calibration.",
+      "repair": "no change needed",
+      "line": 62,
+      "quote": "The R bridge's synthetic output mapping passes, but a live Julia phylogenetic fit was skipped."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report preserves the covariance contract and does not generalize one seeded recovery fit into calibration.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Assertion counts and the live-engine skip match the exact command outputs; formulas and the constant-SD comparison match the tested source.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No literature references appear in this report.",
+  "date": "2026-10-19",
+  "calibration_status": "General-SD calibration notes and candidate source artifacts were visible; no style benchmark controls were consulted.",
+  "interpretation": "perceived_style_not_authorship"
+}

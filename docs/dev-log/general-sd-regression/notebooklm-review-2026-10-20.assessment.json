@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "f2a5f6417e2ffa7bee0e2dea37eaa1d420e9e78111e15b943578ad339d6757dc",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Manual post-draft review against the exact NotebookLM source list, primary source pages, and local model derivation; no independent style model call.",
+  "genre": "Technical methods review memo",
+  "coverage": "Whole 61-line memo",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The memo names the scope and sources, keeps mathematical inference separate from literature evidence, and gives concrete implementation consequences. The source caveats make some paragraphs dense, but the qualifications are needed.",
+  "confidence": "medium",
+  "confidence_reason": "The cited source identities and the mathematical derivations were checked; the style score remains a subjective editorial judgment.",
+  "examples": [
+    {
+      "location": "Evidence boundary, paragraph 5, line 17",
+      "cue": "The Stringer full text is credited with a Bernoulli coverage result and bounded to the paper's setting.",
+      "impact": "A reader can use the relevant precedent without mistaking it for evidence about predictor-dependent SDs.",
+      "repair": "no change needed",
+      "line": 17,
+      "quote": "Stringer’s full text gives a useful but narrow calibration precedent: Bernoulli logit models with a random intercept and slope, a common correlated 2 × 2 Gaussian covariance, and many small groups. Its simulations vary group count, group size, and quadrature order; Laplace performs poorly for some small-group cases, while larger quadrature orders improve bias and interval coverage. In one applied example, results level off around 17 nodes, but that is not a universal threshold. The paper does not evaluate predictor-dependent SD regression, crossed effects, or the package’s current routes."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The structured covariance identity follows from b = D u. The probit one-observation example is explicitly limited to its intercept-only special case. External claims are bounded to the verified source records.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Notebook identity and source count were checked in CLI output; the article titles and cited claims were checked against the source pages, with the ScienceDirect 403 disclosed.",
+  "references_gate": "pass",
+  "references_gate_reason": "The linked source identities match their article or documentation pages. The Joe abstract is labelled as a search-result abstract because direct page retrieval returned 403.",
+  "date": "2026-10-20",
+  "calibration_status": "No held-out style controls were assessed; project technical memos and report conventions have been seen.",
+  "interpretation": "perceived_style_not_authorship"
+}

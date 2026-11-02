@@ -1,0 +1,33 @@
+{
+  "scope": "Source identity for tests/testthat/test-julia-b26-nb2-spatial-slope-bridge.R, receipt julia-b26-nb2-spatial-slope-bridge-20261102c (HEAD 7fd8acec3; hashes identify run-time files)",
+  "files": [
+    {
+      "file": "tests/testthat/test-julia-b26-nb2-spatial-slope-bridge.R",
+      "sha256": "827b87e57925671d4afca11f531072dfbc37d0f9d6c5a7d3098ba40dd1f630ef"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "47a5e0f1357a9df10ef3293e5cf2f17b53b794f4c574bce5e53b5c9952cbea49"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/julia-b26-nb2-spatial-slope-bridge-20261102c/test-console.log",
+      "sha256": "640f53b9649dbeb4d3464698095277252e7b4d9fdf9aaa52f4759639eaa9dcb0"
+    }
+  ]
+}

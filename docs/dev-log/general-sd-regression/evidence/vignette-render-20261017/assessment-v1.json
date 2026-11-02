@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "98a48f893610bae0a404c82518fd6cb30c4621b7273bed4478b13f908a647334",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex subagent self-review",
+  "method": "Manual whole-draft review using prose-style-review and source comparison; no model call.",
+  "genre": "Applied statistical methods vignette",
+  "coverage": "Entire vignettes/predictor-dependent-random-sd.Rmd; source prose and code syntax, not fit execution or rendered layout.",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The draft is specific to a reader question, pairs equations and formulas, and avoids generic filler. Confidence is moderate because the code has not been run or rendered.",
+  "confidence": "medium",
+  "confidence_reason": "I reviewed the complete draft against the approved native scope and matching source/docs; no independent reader review or fit execution was performed.",
+  "examples": [
+    {
+      "location": "The model, paragraph below the equations, line 49",
+      "cue": "It does not multiply the variance by that amount; the variance ratio is exp(2 * alpha_1).",
+      "impact": "This directly prevents confusing a log-SD coefficient with a variance ratio.",
+      "repair": "no change needed",
+      "line": 49,
+      "quote": "the random-intercept SD by `exp(alpha_1)`. It does not multiply the variance by"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The Bernoulli and Poisson equations use a link-scale random intercept with group SD exp(alpha0 + alpha1*w), matching the implemented native scalar-intercept model contract. This does not validate fit recovery or interval calibration.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Formula scope, prediction link/response behavior, check_drm diagnostics, and open calibration/Julia limits were compared with the current package source and general-SD status notes. Fit chunks were not executed.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The vignette makes no external literature claims and includes no citations.",
+  "date": "2026-10-17",
+  "calibration_status": "Previously seen examples include the Gaussian location-scale-scale vignette and focused package tests; this is not a held-out style assessment and was not independently reviewed.",
+  "interpretation": "perceived_style_not_authorship"
+}

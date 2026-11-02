@@ -1,0 +1,392 @@
+{
+  "scope": "Source identity for native-beta-phylo-q2-sd-20261027, re-recorded at commit e9c72ab3e",
+  "commit": "b718863e7319af143896614e823d44e488be0653",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/source-manifest.json",
+  "files": [
+    {
+      "file": "R/adequacy-plots.R",
+      "sha256": "7cc880509221b4c7859a583ab0c5f5dc71d4cae16a48de29db4b6c553e55ab94"
+    },
+    {
+      "file": "R/adequacy.R",
+      "sha256": "b9ab7b82aa8d5ca5bf5a23f30826ad32d306668b6801dfbdd8b120896e955d57"
+    },
+    {
+      "file": "R/aghq-coxreid.R",
+      "sha256": "d7f20896bd1f2701c353084f4f7c908d644447300eadd222c07b71511c9bd200"
+    },
+    {
+      "file": "R/associate-pairs-sandwich-bernoulli-bernoulli.R",
+      "sha256": "d6ccc65580d7e0700ab2aed7c49c8369e21f3a441eb6ee8b25c8543d411fd8b3"
+    },
+    {
+      "file": "R/associate-pairs-sandwich-gaussian-bernoulli.R",
+      "sha256": "2129bbe7278b0912ba436aa71d9fc80cb5cbdf4822af20fb618ce4baefbc8860"
+    },
+    {
+      "file": "R/associate-pairs-sandwich-gaussian-nbinom2.R",
+      "sha256": "578751c099044dc943cbadc144deaa403ff5340eaefba49aaa1f3e21de5e43fd"
+    },
+    {
+      "file": "R/associate-pairs-sandwich-nbinom2-nbinom2.R",
+      "sha256": "bbbf3d78813b32fe8a61e4589bd9ecf1f7fdf6d8841995f52fd3ff5dbb5b0a43"
+    },
+    {
+      "file": "R/associate-pairs-sandwich.R",
+      "sha256": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c"
+    },
+    {
+      "file": "R/associate-pairs.R",
+      "sha256": "424b524e481e3831954c15f3fb91fe30e746628bd99cf2142b2dc2762127640a"
+    },
+    {
+      "file": "R/bf.R",
+      "sha256": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd"
+    },
+    {
+      "file": "R/bootstrap-shards.R",
+      "sha256": "4df1c49ff6f99ae70e773c1e4c929c13807762535ece09eef1716ac30a75adca"
+    },
+    {
+      "file": "R/check.R",
+      "sha256": "340325bbf9957fcc83e061a9edeb34460bbe899ff0107af14f5c3a55d19788de"
+    },
+    {
+      "file": "R/coevolution-accessors.R",
+      "sha256": "3f47f2f9388d6b51fcc9fcee25fece85d5b7ec7c98821d0ec0159ec798280666"
+    },
+    {
+      "file": "R/control.R",
+      "sha256": "1b86ad506f7fcd56f009f2f2b25ba91d13aacdece42af515ceb6c67231217cd9"
+    },
+    {
+      "file": "R/distributional-outputs.R",
+      "sha256": "94540da0f07768fd159b8178b5312dfe505e5cbb9bfdac26983c7abf12c1cf08"
+    },
+    {
+      "file": "R/drmTMB-package.R",
+      "sha256": "dec0b5fba6754268176dbdc8d3dfb4ed56b26485c146a39ed6ab0df86ad8395c"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/emmeans-preflight.R",
+      "sha256": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3"
+    },
+    {
+      "file": "R/family-dpq.R",
+      "sha256": "10f689a8737e4cf7893f37a5c322c7926c675b9a66099201439aad561da5241e"
+    },
+    {
+      "file": "R/family.R",
+      "sha256": "8869dbb68756133e7cdee017332dbfdd707053ab099716eb0e8705abb7616784"
+    },
+    {
+      "file": "R/formula-markers.R",
+      "sha256": "a724d3e9238ab0d6318bbb8ea337b69c88807311c6939ee20bb8609ae4d136b3"
+    },
+    {
+      "file": "R/gaussian-aggregation.R",
+      "sha256": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629"
+    },
+    {
+      "file": "R/heritability.R",
+      "sha256": "64fd77a2ad6bd3998c1c93e3cd1b5a3f859ad4a6e2f2bd7df5c48f83a4b3d5ce"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "12bbd1a92780418d8638b3f15f41ba3d44a4df89950a76018ca66d228b00b042"
+    },
+    {
+      "file": "R/julia-coefficient-labels.R",
+      "sha256": "1c2814a197c8d296c2b120646d3576c8e95213ea4ca2848dad1279c2b29832ad"
+    },
+    {
+      "file": "R/julia-diagnostics.R",
+      "sha256": "7f60faae8fd3460ca143917ee2ff20067e0db5a8c08927b50f83eb5a0d30bc06"
+    },
+    {
+      "file": "R/julia-family-cumulative_logit.R",
+      "sha256": "c9c164d3abcf6878d5424c500120d63558e6bf4b05d49f7747f36ad1721663d7"
+    },
+    {
+      "file": "R/julia-family-registry.R",
+      "sha256": "de0dc16fbe870b0450a4925b7960ff55efa4a5cacfce8da8347a74e49a4619b9"
+    },
+    {
+      "file": "R/julia-joint-call.R",
+      "sha256": "fcdaa6f048b18b4660ee6674bfd62d6f7a7100f20c3b0a83975bbc551483c2d2"
+    },
+    {
+      "file": "R/julia-joint-finite.R",
+      "sha256": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d"
+    },
+    {
+      "file": "R/julia-joint-methods.R",
+      "sha256": "6d5898a8bd21aaf8c71ac20f3b73e71dcdad364d4f31b7b680f961d29ec9dcc8"
+    },
+    {
+      "file": "R/julia-joint-missing.R",
+      "sha256": "03a95e1e120588961cb6e22639741ef6c6ab3ac756118529f3f1e83a8da81569"
+    },
+    {
+      "file": "R/julia-simulate.R",
+      "sha256": "17ff8f0abe08abb539f50a31c91a0b9d8a4c128623fcab2c19628bf83ee474cb"
+    },
+    {
+      "file": "R/lrt-boundary.R",
+      "sha256": "bddf0f4cb35a44904ba3d78bc922c418669c51429d69f996504e929ef5877a9a"
+    },
+    {
+      "file": "R/marginal-parameters.R",
+      "sha256": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea"
+    },
+    {
+      "file": "R/mesh.R",
+      "sha256": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb"
+    },
+    {
+      "file": "R/meta-vcov.R",
+      "sha256": "a433c378acd76a880bbb302192d21151c2a4e4f808122925c2f27cbda280a5cf"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "R/missing-data.R",
+      "sha256": "909e0da5023a5bdae074e05b8211e918599ae7964b34c93ba961a9e3a13d4171"
+    },
+    {
+      "file": "R/model-comparison.R",
+      "sha256": "e610916641f3b3b28fc99bcd807b02d81544fb9d6dd7fc70aa44c29adbed03db"
+    },
+    {
+      "file": "R/mspl-estimator.R",
+      "sha256": "4213ecd424c5cd02bd886d799b5e3ad0746711ab6c8d8d4b7d95848e632c74d1"
+    },
+    {
+      "file": "R/mspl.R",
+      "sha256": "6f394409ab1cff8e72f73c2a01626de8177d75794c03cb5d489bf4502a33719e"
+    },
+    {
+      "file": "R/objective-at.R",
+      "sha256": "a1311ffe4f121316f4c730dcc74ffa419df12ef9c17f9d6710ff53013c6b7ea1"
+    },
+    {
+      "file": "R/parallel-docs.R",
+      "sha256": "82e84fe0843ef7230b6823ad870601c138aebc46612e262ce6dcb055df7764ce"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "aa0aedad162c3018790ead4350dbb2e68efc8203037f8ad923db4cdd0f4c61f5"
+    },
+    {
+      "file": "R/penalty.R",
+      "sha256": "ebab55d1bf9257ea973d5c9eded45d8988f6a1ba22b162800e64bf442b6bda83"
+    },
+    {
+      "file": "R/phylo-utils.R",
+      "sha256": "512195e7c8eab314a876ead4e5a2537b511e2c4acbd5f86900cea5d46b20a0c4"
+    },
+    {
+      "file": "R/plot-corpairs.R",
+      "sha256": "23fd048ab1c152ee325ba203210f67d5c96b88c516cff4ec7c887448a805137c"
+    },
+    {
+      "file": "R/plot-parameter-surface.R",
+      "sha256": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "ef79299d4dd607be50067752c643027af55e9814d1e220a37dcdee94957dd8a9"
+    },
+    {
+      "file": "R/prediction-grid.R",
+      "sha256": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647"
+    },
+    {
+      "file": "R/profile.R",
+      "sha256": "a1d4d5aa4f16e5870a250c8edeb4d73a06d7988e32b118aa78ca64394e8686a5"
+    },
+    {
+      "file": "R/provenance.R",
+      "sha256": "3211cf0b8417c36b0bd8c3656ac255e77ca06f4a2998f3faa362f2885b3ba43d"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "R/reader-contracts.R",
+      "sha256": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f"
+    },
+    {
+      "file": "R/sparse-fixed.R",
+      "sha256": "eb38f9a4281aeb652f392eb4f4bb075fd733195b665aa666a96d2fc3c8364bfd"
+    },
+    {
+      "file": "R/zzz.R",
+      "sha256": "10521dcc0b9f5bea053bc2dd490b6efa4edd7e571228ec28cd0f34ba226daaa1"
+    },
+    {
+      "file": "inst/examples/beta-animal-pedigree-q2-sd.R",
+      "sha256": "99a6e396361976a0447682a617f8bb4ebbf3c551d89cb7c5c458deb3dddb8409"
+    },
+    {
+      "file": "inst/examples/beta-animal-q2-sd.R",
+      "sha256": "0890bda66840379bb82e6b6f8335e83f7195f5d35ff51e8c812961d629f86cce"
+    },
+    {
+      "file": "inst/examples/beta-phylo-q2-sd.R",
+      "sha256": "c6f5b8e7ccf3a740107cfe45aba141953cb3da5318fdb393d6495c414255ab63"
+    },
+    {
+      "file": "inst/examples/beta-relmat-q2-sd.R",
+      "sha256": "76346c77b1bafb26781ed90d21066d0fae4cd1493fb155dadf9913991c9f6aae"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "src/drm_count_kernels.h",
+      "sha256": "ccc6faa0f61e391770ca9611646ea694189a7588a50fe31f437cf1c511fc8047"
+    },
+    {
+      "file": "src/drm_numeric.h",
+      "sha256": "bb088a59031d4970cfc61866e85d2c7e154406eb8da575cf2f75e9203ffa526c"
+    },
+    {
+      "file": "src/drm_response_kernels.h",
+      "sha256": "6795dbcde5366676e2a110ffe5bf98e4754bde2360f2e7b4af1dbcb37a25b616"
+    },
+    {
+      "file": "tests/testthat/helper-binomial-sd-regression.R",
+      "sha256": "acd2153d99bc46d4094cbf5d9a1abd05febd00cb9e9e2a3619d3325925df9018"
+    },
+    {
+      "file": "tests/testthat/helper-convergence-warning.R",
+      "sha256": "271702d82d76a3b8ee39b13ed39aac78d4ffbf8d5cb9d43bfa2b72ec9e7a014a"
+    },
+    {
+      "file": "tests/testthat/helper-covariance-blocks.R",
+      "sha256": "e6f8cc72127ae169e4952542b2026fbc38750a01c2188be08353d0e2e6505fb2"
+    },
+    {
+      "file": "tests/testthat/helper-cran-lane.R",
+      "sha256": "f9013e083ec1f4338135ac74b7ca31cb98879135b32ee460534f9a32566cae13"
+    },
+    {
+      "file": "tests/testthat/helper-drm-pkg-path.R",
+      "sha256": "00439ef023a02a15ba2567252b9c9c7512ba19bf89dd14fc99e5a641f4947bda"
+    },
+    {
+      "file": "tests/testthat/helper-env-skip-census.R",
+      "sha256": "8a463c46604daac4af4f5bb5b85eb442892cf0d17435a0dd8806c94ef431a796"
+    },
+    {
+      "file": "tests/testthat/helper-fragile-recovery.R",
+      "sha256": "5213332ddff74ab3244603bb1a681ef3bc3ca160cfa5435171dc6763604923ee"
+    },
+    {
+      "file": "tests/testthat/helper-gaussian-random-effect-scale.R",
+      "sha256": "5dadefbddae5a83004548782e238321f2918492d79aada9527487c01ed578d91"
+    },
+    {
+      "file": "tests/testthat/helper-julia-bridge-path.R",
+      "sha256": "be788198cabc6624e6ce8e37d6d45db9bae963cc5adb1ce244e80edc5f29e093"
+    },
+    {
+      "file": "tests/testthat/helper-julia-options-shape.R",
+      "sha256": "c2c16a8bcf5d866a4345864b7aa9fc4a225f201e8d9fbb21f0e16e8f8de2abfe"
+    },
+    {
+      "file": "tests/testthat/helper-lognormal-sd-reference.R",
+      "sha256": "57286d91c8bec5fb9216bacdccca491f39dae5dca4439f9018e6c3884eb9cb6e"
+    },
+    {
+      "file": "tests/testthat/helper-missing-response.R",
+      "sha256": "74b6d6a84ad351e92d71e0dcdfc65ecc7bf84c75ca59bb9c173c3d9baaff8345"
+    },
+    {
+      "file": "tests/testthat/helper-nbinom2-sd-regression.R",
+      "sha256": "a32c23f6912bcd1555a0c2a25a48260fbd949a9d0ca9bff0aca75b0b265a1bb7"
+    },
+    {
+      "file": "tests/testthat/helper-poisson-sd-regression.R",
+      "sha256": "613f239147ca73d902db690a54a902bd383f23adb81aa67e38bfb8dcfac50438"
+    },
+    {
+      "file": "tests/testthat/helper-poisson-slope-sd-reference.R",
+      "sha256": "c80a32eeb7d272a30d3a04270f850e31683517f5182b214f1b54b91d5fbd5b2d"
+    },
+    {
+      "file": "tests/testthat/helper-reml-uncited.R",
+      "sha256": "aab312663f0e80825e44a07223e6cf3866c74fbddb6401ca0195629e1b4f4777"
+    },
+    {
+      "file": "tests/testthat/helper-selected-tmb-state.R",
+      "sha256": "001ef6a303fc303457f023bdc23260cfa9d472095aff3f5dba6de2feccb5a91c"
+    },
+    {
+      "file": "tests/testthat/helper-shard-util.R",
+      "sha256": "1c51e0de2e4805b8e38ae3cd90929a85c686621c494000570183a4252a8e81c8"
+    },
+    {
+      "file": "tests/testthat/helper-skew-normal-density.R",
+      "sha256": "6e05c615a18fb4af9645340014a872ac4b0f14054363c3fb70c24f8949566a91"
+    },
+    {
+      "file": "tests/testthat/helper-tweedie-density.R",
+      "sha256": "1476c8b4a706b713dcc5646d3c331adcf7d51c81ae40b3e182e64aa4cf2a8f3e"
+    },
+    {
+      "file": "tests/testthat/test-beta-animal-pedigree-q2-sd-regression.R",
+      "sha256": "6e47849a707cba724c613081ccdf52104c9317ccc425fe766889e6a0a56e6569"
+    },
+    {
+      "file": "tests/testthat/test-beta-animal-pedigree-sd-regression.R",
+      "sha256": "97693717c9351d7532b880a72ced5218d8250e2cd7e35093b7f9eca7291105b0"
+    },
+    {
+      "file": "tests/testthat/test-beta-animal-q2-sd-regression.R",
+      "sha256": "e3d8e079b63247be1fee4623a3acf45bf3fe6bfd5a54377e633d245eaac5280c"
+    },
+    {
+      "file": "tests/testthat/test-beta-location-scale.R",
+      "sha256": "c5a2f462409c2adb9b8b00f7f0d4134a1af892939264d7fcbbaa930780ca36fd"
+    },
+    {
+      "file": "tests/testthat/test-beta-phylo-direct-sd.R",
+      "sha256": "fb97874c5d7f19cbf0d901151a5432c10f932af1bdcf986f099ff496ee7db901"
+    },
+    {
+      "file": "tests/testthat/test-beta-phylo-q2-sd-regression.R",
+      "sha256": "852a76570a852ee8b1aa9937f2fa1df579efb82328b567b97edf914740d0cd1f"
+    },
+    {
+      "file": "tests/testthat/test-beta-relmat-q2-sd-regression.R",
+      "sha256": "5750ff41016d746db40a086e5e2cda8c152e5fc536f1ee5fb3fa5c24edd1f444"
+    },
+    {
+      "file": "tests/testthat/test-beta-sd-regression.R",
+      "sha256": "89c6d84ef0180e88873f24c2424ee2bfcd6865d1d4886d0ee037d7690aa0e1f9"
+    },
+    {
+      "file": "tests/testthat/test-gamma-relmat-q2-sd-regression.R",
+      "sha256": "542cdd0419099134fa1a2609349b422099d5b023302924ee271347637dd98e21"
+    },
+    {
+      "file": "tests/testthat/test-nongaussian-structured-mu-slope.R",
+      "sha256": "7aaa3adc92c2dd40cbbc7350bcfb678acaa698a41aee6701d8782be0c0124a8a"
+    }
+  ],
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/julia-bridge.R']"
+}

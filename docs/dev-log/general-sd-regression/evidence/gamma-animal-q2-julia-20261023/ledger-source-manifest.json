@@ -1,0 +1,12 @@
+{
+  "schema": "general-sd-ledger-source-binding-v1",
+  "engine": "Julia",
+  "receipt_source_manifest": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-julia-20261023/source-manifest.json",
+  "receipt_source_manifest_sha256": "cb46fa4cf366027a62b7051a4057d434b500ba844ef97a3f9ae82519a34d8925",
+  "source_archive_sha256": "2fd6765a663c59948572aa95b2b6383186eff03c6952a2431b82d427b167bf74",
+  "focused_test": {
+    "file": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-julia-20261023/test_gamma_animal_intercept_slope_sd.jl",
+    "sha256": "1f7bd590b37dd46b79b9426a5f8dd9931731b480df8c913bc4e5c92b94b5b12b"
+  },
+  "scope": "Gamma animal q2 intercept-plus-independent-slope focused test; component-level evidence only."
+}

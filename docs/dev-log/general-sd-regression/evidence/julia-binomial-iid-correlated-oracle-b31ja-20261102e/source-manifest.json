@@ -1,0 +1,37 @@
+{
+  "scope": "Source identity for tests/testthat/test-julia-binomial-iid-correlated-oracle-b31ja.R, evidence julia-binomial-iid-correlated-oracle-b31ja-20261102e. Julia side: DRModels.jl worktree /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia at d5e3e6b11 (working tree not clean); the manifest hashes only drmTMB files.",
+  "files": [
+    {
+      "file": "tests/testthat/test-julia-binomial-iid-correlated-oracle-b31ja.R",
+      "sha256": "6fdd7ba076859fe4bf5aabc81dcec69b84a1d0a41b9c5d60c30e729056531cca"
+    },
+    {
+      "file": "tests/testthat/helper-b31ja-oracle.R",
+      "sha256": "41abed59c3b70053a57c70cd6e826f075de19d6db31946bb5460fdd7557418e7"
+    },
+    {
+      "file": "tests/testthat/helper-julia-bridge-path.R",
+      "sha256": "be788198cabc6624e6ce8e37d6d45db9bae963cc5adb1ce244e80edc5f29e093"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "12bbd1a92780418d8638b3f15f41ba3d44a4df89950a76018ca66d228b00b042"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "evidence_id": "poisson-animal-intercept-current-candidate-tmb-julia-parity-20261023",
+  "candidate_rows": [
+    "[\"Julia\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+  ],
+  "test_command": "DRM_JL_PATH and DRMODELS_JL_PATH point to paired Julia worktree; DRM_JULIA_TESTS=true NOT_CRAN=true; scratch Julia depot; Rscript --vanilla -e devtools::load_all(); testthat::test_file(test-julia-poisson-animal-sd-parity.R)",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_file": "tests/testthat/test-julia-poisson-animal-sd-parity.R",
+  "test_file_sha256": "6cc2972137a4727763ca0791d44d5802d578130a49729000ee819aa9958bdf44",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-animal-intercept-parity-20261023/source-manifest.json",
+  "source_manifest_sha256": "774107301c11303d9202cbc093f40bc7bde5cdda322733dbcf35c478aa880a74",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-animal-intercept-parity-20261023/test-console.log",
+  "console_log_sha256": "981b7a143cf43eb2ebed662c5ec5dafc42fcc2f89b974cbd196f17022f73e84a",
+  "result": "One focused live test passed across TMB and Julia. Both fits converged; native Hessian positive definite; log likelihoods, SD coefficients and group SD predictions agreed at test tolerances; named predict_parameters outputs agreed.",
+  "limits": "One seeded synthetic Poisson animal-intercept supplied-A cell only. No broad family/type support, repeated recovery performance, interval calibration, or JuliaCall dependency cleanliness claim. JuliaCall printed a non-fatal LogExpFunctions extension warning; the live bridge and test completed."
+}

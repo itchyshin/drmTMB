@@ -1,0 +1,20 @@
+julia-beta-sd: W......i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+....................
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. Julia Beta SD payload labels use the canonical engine block ('test-julia-beta-sd.R:18:5') - `beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+i The deprecated feature was likely used in the drmTMB package.
+  Please report the issue at <https://github.com/itchyshin/drmTMB/issues>.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 2 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=26 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-02T13:14:16Z end=2026-11-02T13:15:49Z rc=0

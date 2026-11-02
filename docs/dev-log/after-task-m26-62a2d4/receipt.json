@@ -1,0 +1,26 @@
+{
+  "evidence_id": "julia-binomial-phylo-interaction-cloglog-20261027-m26",
+  "rerecord_of_evidence_id": "julia-binomial-phylo-interaction-cloglog-20261027",
+  "prior_receipt_path": "docs/dev-log/after-task/2026-10-27-binomial-phylo-interaction-sd-julia-bridge.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"PATH=\"\"$HOME/.juliaup/bin:$PATH\"\" DRM_JL_PATH=\"\"../general-sd-julia\"\" OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e devtools::test(filter=\"\"julia-binomial-phylo-interaction-sd-bridge\"\", reporter=\"\"summary\"\", stop_on_failure=TRUE)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-phylo-interaction-sd-bridge.R",
+      "test_sha256": "f3aa6d8fb4e5c586cd5f4680014418dcf1cc02b09f8984335f38d2176b16db45",
+      "started_utc": "2026-11-02T13:19:26Z",
+      "ended_utc": "2026-11-02T13:20:22Z",
+      "exit_code": 0,
+      "expectations_passed": 27,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/after-task-m26-62a2d4/test-console-test-julia-binomial-phylo-interaction-sd-bridge.log",
+      "console_log_sha256": "15473e7666ba655edbad252fc2f2a68dc5059132aa1a4ed9053db3e5c42118e6"
+    }
+  ],
+  "source_manifest": "docs/dev-log/after-task-m26-62a2d4/source-manifest.json",
+  "source_manifest_sha256": "b09b41ac9e4d7d46707d06a313cba78f59e0ba760d154b8a596d9d35a3a196e2",
+  "review_status": "unreviewed"
+}

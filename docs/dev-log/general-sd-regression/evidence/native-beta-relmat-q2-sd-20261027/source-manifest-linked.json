@@ -1,0 +1,12 @@
+{
+  "note": "Derived binding file. Lists the receipted test bytes recovered from source-capsule.tar.gz in this directory; the digest equals the digest in source-manifest.json. The tests/testthat copy has since changed.",
+  "original_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/source-manifest.json",
+  "original_manifest_sha256": "baeb7c837a230f8275fd7121e375aecc99fdd5571ce99e2eada969179c367576",
+  "files": [
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/test-snapshot/tests/testthat/test-beta-relmat-q2-sd-regression.R",
+      "sha256": "4e87f0de61e09107168a7d56c906152407d2eda0ed53994d6a772103d8f0213a",
+      "bytes": 14330
+    }
+  ]
+}

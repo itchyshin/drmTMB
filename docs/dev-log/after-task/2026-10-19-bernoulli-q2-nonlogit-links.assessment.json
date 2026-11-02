@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "b3df17cd6a002310f6414cf17d1242d6df9d096787b83283ea3c9f6a46f13c2b",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Read the exact report and cross-check its claims against the focused test output, current source/docs, and the after-task and prose-style-review checklists.",
+  "genre": "technical after-task report",
+  "coverage": "Entire report, lines 1-125; did not assess unrelated package documentation.",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report uses concrete model terms, commands, outcomes, and explicit scope limits; it has little generic framing. The numbered headings are procedural but appropriate for the repository template.",
+  "confidence": "medium",
+  "confidence_reason": "The style judgment is based on the complete short report. Scientific and factual checks used the local candidate, test results, and current docs; this is not an independent review.",
+  "examples": [
+    {
+      "location": "Known Limitations, paragraph 1",
+      "cue": "This evidence covers two seeded native R/TMB q2 fixtures in a dirty development candidate.",
+      "impact": "The opening sentence of the limitation section identifies both the tested scope and candidate-source status before listing unsupported claims.",
+      "repair": "no change needed",
+      "line": 112,
+      "quote": "This evidence covers two seeded native R/TMB q2 fixtures in a dirty development"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report limits its inference to link-specific native q2 fitting and an independent likelihood oracle; it explicitly disclaims recovery and calibration.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The focused test exited 0; the synthetic smoke output recorded convergence 0, positive-definite Hessians, finite predictions, and 13.97 seconds total. Remaining docs and Julia limits are stated.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external literature references or quotations.",
+  "date": "2026-10-19",
+  "calibration_status": "Informal self-review; no control examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

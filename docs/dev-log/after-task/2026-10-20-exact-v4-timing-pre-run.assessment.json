@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "58e98be3f5e3cad597cd67fdf517b63862332b805fa883c6b030b16b6c30836a",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Manual review against the retained timing capsule and check outputs, followed by the project prose lint.",
+  "genre": "Technical after-task report",
+  "coverage": "Full report, all 12 required sections",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report names the worker, measured counts, calculation, limits, and next gate. Its section structure is formal but the prose is concrete and tied to the timing result.",
+  "confidence": "medium",
+  "confidence_reason": "The timing artifacts and hash values were checked directly; this is a self-review rather than an independent reader assessment.",
+  "examples": [
+    {
+      "location": "5. Checks Run, runtime projection",
+      "cue": "The estimate shows its inputs and separates projection from authorization.",
+      "impact": "Readers can reproduce the 100.7-minute estimate and see why it does not authorize the production run.",
+      "repair": "No change needed.",
+      "line": 32,
+      "quote": "The conservative projection uses the largest observed fit time (9.757 seconds), 16 workers, 188 waves per 3,000-fit batch, and 180 seconds of overhead: 2,014.316 seconds per batch and 6,042.948 seconds (100.7 minutes) total."
+    },
+    {
+      "location": "12. Cross-Product Coverage",
+      "cue": "The report names excluded engines, families, effects, and inferential work.",
+      "impact": "A later reader cannot confuse one native timing capsule with programme parity or calibration.",
+      "repair": "No change needed.",
+      "line": 62,
+      "quote": "This timing run covers one native Bernoulli route on Totoro. It does NOT cover Julia, other response families, other random-effect types, recovery, or calibrated inference."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report makes no new statistical inference claim and identifies the run as timing-only.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Counts, elapsed times, statuses, hashes, and the projection arithmetic were checked against the retained capsule.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report uses local evidence and contains no external literature references.",
+  "date": "2026-10-20",
+  "calibration_status": "No prose calibration controls assessed. Prior adapter and timing notes were seen and are not style controls.",
+  "interpretation": "perceived_style_not_authorship"
+}

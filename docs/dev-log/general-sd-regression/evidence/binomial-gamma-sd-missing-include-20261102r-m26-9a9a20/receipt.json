@@ -1,0 +1,37 @@
+{
+  "evidence_id": "native-binomial-gamma-sd-missing-include-20261102r-m26",
+  "rerecord_of_evidence_id": "native-binomial-gamma-sd-missing-include-20261102r",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/binomial-gamma-sd-missing-include-20261102r/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); r<-as.data.frame(testthat::test_file(\"\"tests/testthat/test-binomial-gamma-sd-missing-include.R\"\", reporter=\"\"silent\"\")); print(colSums(r[c(\"\"passed\"\",\"\"failed\"\",\"\"error\"\",\"\"skipped\"\")]))'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-gamma-sd-missing-include.R",
+      "test_sha256": "0b13f3d09c21566b6d194b5da4cf39b58745c3dd0195d574506bc856a3e7791f",
+      "started_utc": "2026-11-02T13:15:54Z",
+      "ended_utc": "2026-11-02T13:17:35Z",
+      "exit_code": 0,
+      "expectations_passed": 241,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-gamma-sd-missing-include-20261102r-m26-9a9a20/test-console-test-binomial-gamma-sd-missing-include.log",
+      "console_log_sha256": "23bd77ff5df6a6297c6af8aaa2511963585d5ab21e4f7e98a54cff4f256aa111"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-gamma-sd-missing-include-20261102r-m26-9a9a20/source-manifest.json",
+  "source_manifest_sha256": "49017be4f3acc5fe5ab4e92813e13a0998055e99a708528baedf18512f995989",
+  "review_status": "reviewed_narrow_claim",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "Binomial correlated SD and Gamma routes outside structured q1 intercept: refused under include, not linked",
+    "Gamma structured Q/Ainv/pedigree inputs: not tested"
+  ],
+  "review_note": "Reviewer 1, 2026-11-02. All six linked rows are fitted under miss_control(response=include). Binomial logit (1|id) and (0 + x|id) with sd(id) ~ w, Bernoulli and trials, each against a base-R per-group scalar Laplace oracle. Gamma(log) relmat K, animal A, phylo and coordinate-spatial q1 intercepts with a structured SD formula, each against a base-R dense Newton and logdet(I + K W) oracle on the full kernel, including the empty-group layout. Kernels are independent of the package: hand Toeplitz K with diagonal 1.7, object order reversed and data level order shuffled; cov2cor(ape::vcv(tree)) for phylo; and a hand rebuild of the documented exp(-d/median) + 1e-6 I for spatial. Include fits equal complete-case fits to 1e-8, and the oracle agrees at 1e-4. Emulated bugs must move the oracle by more than 0.05: masked rows scored as placeholders, the SD slope silently dropped, and for relmat and animal K converted to a correlation. Rerun: 241 passed, 0 failed, 0 skipped. Test, console log, manifest and all 5 manifest entries hash-match current files. Does NOT establish: calibration or coverage; simulate or Julia parity; Gamma structured slope, q2 or Q routes (these stay refused under include); explicit perturbation tests that K alignment is by name for phylo and spatial (there only the oracle agreement and the SD-slope-dropped bug are tested); the spatial kernel convention beyond the documented formula; non-logit Binomial links.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
+}

@@ -1,0 +1,43 @@
+{
+  "scope": "Source identity for tests/testthat/test-gamma-animal-q2-correlated-sd.R re-run on 2026-11-01 (stale-row refresh)",
+  "note": "Dirty shared candidate tree (branch codex/general-sd-regression, HEAD 33e4e966a05f4381ee790b238b41d6d12fa3032c plus uncommitted edits); hashes identify test-time files. Test file hash unchanged before and after the run. File list inherited from gamma-animal-q2-correlated-sd-r2-20261101 manifest.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "aa0aedad162c3018790ead4350dbb2e68efc8203037f8ad923db4cdd0f4c61f5"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "ef79299d4dd607be50067752c643027af55e9814d1e220a37dcdee94957dd8a9"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-gamma-animal-q2-correlated-sd.R",
+      "sha256": "4ac71dfb9b6c3f18255333cc700b027944305916deb82ec7851ffd60cb28a05a"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-correlated-sd-refresh-20261101d/test-console.log",
+      "sha256": "412a870d1cb204937ccb4b6212963b91aaf4c2ca350a7241547291c4fce6365b"
+    }
+  ],
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/drmTMB.R', 'R/methods.R', 'src/drmTMB.cpp']"
+}

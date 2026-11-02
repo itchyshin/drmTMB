@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "0bbd2953e77947dc4114284929c156711133a657bd008ebfa86fed473fa57311",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex GPT-6",
+  "method": "Separate review of the saved report against the test source and live test log, source manifest, evidence reconciler, issue search, and current diffs.",
+  "genre": "technical after-task report",
+  "coverage": "whole saved report",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "The report names the tested route, mathematical scale, exact checks, and limitations. The required headings make its structure regular, while the details remain tied to this specific bridge change.",
+  "confidence": "medium",
+  "confidence_reason": "The short report was checked against local source and run evidence; the style rating is an editorial judgment and is not independently calibrated.",
+  "examples": [
+    {
+      "location": "line 63",
+      "cue": "bounded cross-engine coverage statement",
+      "impact": "Readers can see the exact response, random-effect shape, matrix input, links, and excluded scope in one place.",
+      "repair": "no change needed",
+      "line": 63,
+      "quote": "This slice covers current R/TMB and R/Julia point fits for one complete-data Binomial animal slope-only SD model with supplied `Ainv` under probit and cloglog. It does not cover interval calibration, pedigree input, other animal layouts, other providers, or other families."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The synthetic covariance construction, link-scale SD model, and stated point-fit limits were checked against the test source and receipt. No interval calibration claim is made.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The reported links, assertions, run count, package checks, evidence counts, and issue search were compared with their command outputs and source files.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external literature claims.",
+  "date": "2026-10-29",
+  "calibration_status": "Earlier repository after-task assessments were seen as format examples; no human ratings or calibrated controls were used.",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,68 @@
+{
+  "evidence_id": "nbinom2-gamma-same-group-sd-r2-20261101",
+  "refresh_of_evidence_ids": [
+    "nbinom2-gamma-same-group-sd-20261101"
+  ],
+  "command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && NOT_CRAN=true OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'suppressMessages(devtools::load_all(\".\", quiet=TRUE)); testthat::test_file(\"tests/testthat/test-nbinom2-gamma-same-group-sd-regression.R\", reporter=\"summary\")' > docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-r2-20261101/test-console.log",
+  "command_note": "The R expression actually run additionally captured the test_file result as a data frame and printed a final DRM_RECEIPT_COUNTS line (blocks, expectations, failed, skipped, errors, warnings) and set a nonzero exit status on any failure, error or skip; the test_file(...) call itself is as above.",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "b87566680778831c2bae38d66399c3ca667e29fc",
+  "branch": "codex/general-sd-regression",
+  "tree_state": "dirty and shared; uncommitted edits present; unreviewed",
+  "run_started_utc": "2026-11-01T18:06:11Z",
+  "run_ended_utc": "2026-11-01T18:06:25Z",
+  "exit_code": 0,
+  "test_blocks": 2,
+  "expectations_passed": 38,
+  "failures": 0,
+  "skips": 0,
+  "errors": 0,
+  "warnings": 0,
+  "expectation_count_note": "Counted by testthat (sum of nb over test_that blocks, loops counted per expectation call); earlier reports quoted a different count and were not relied on.",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-r2-20261101/test-console.log",
+  "console_log_sha256": "df80aa0938da26098e6698a0afaa9fdf373436c92a67efe38ebf4fc343a13509",
+  "test_path": "tests/testthat/test-nbinom2-gamma-same-group-sd-regression.R",
+  "test_sha256": "cf319ea7e5ac740a194bbf5375aee6070ca1ef1003221e1b40dcd3443f39ab36",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-r2-20261101/source-manifest.json",
+  "source_manifest_sha256": "baabafa511cdbb2aea7b6353d2f8c7129f52d2a3fe781356e80e29e05f8af925",
+  "scope": "Native NB2(log) and Gamma(log) mu with same-group independent intercept and slope, y ~ x + (1 | id) + (0 + x | id), separate coefficient-specific SD formulas sd(id, dpar=mu, coef=(Intercept)) ~ w0 and sd(id, dpar=mu, coef=x) ~ w1.",
+  "oracle": "Independent per-group Laplace marginal likelihood written in the test file (damped Newton for the mode, observed information in log mu, stats::dnbinom / stats::dgamma), evaluated at the fitted coefficients and compared with logLik(fit) to relative 1e-6. A swapped-selector oracle must differ by more than 1 log-likelihood unit (non-vacuity). The oracle shares no code with the C++ objective, but the fitted coefficients come from the code under test; it checks likelihood assembly, not the optimiser. Constant-SD equivalence, nesting and prediction-identity checks are not oracles.",
+  "tolerances": "logLik(fit) vs per-group Laplace oracle relative 1e-6; swapped selector differs by > 1; coarse |w0_hat - 0.4| < 1 and |w1_hat + 0.5| < 1 (loose recovery); constant-SD logLik vs base fit 1e-4; constant-SD mu and sigma coefficients vs base fit 5e-3; SD-regression logLik >= constant-SD logLik - 1e-4; predicted SD vs exp(linear predictor) 1e-8",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "target_member": "mu:x1..xp",
+      "link": "log",
+      "mechanism_id": "iid_numeric_slope",
+      "provider_input": "group_factor",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "target_member": "mu:x1..xp",
+      "link": "log",
+      "mechanism_id": "iid_numeric_slope",
+      "provider_input": "group_factor",
+      "ledger_status": "required"
+    }
+  ],
+  "checks": [
+    "NB2 and Gamma fits converge; sdpars named for intercept and slope SD; coefficient names (Intercept),w0 and (Intercept),w1",
+    "coarse recovery of w0 and w1 slopes within 1 (cannot detect a swap; fixed seed 20261102, 50 groups of 12)",
+    "logLik equals independent Laplace oracle at fitted coefficients; swapped selector detected",
+    "predicted SDs equal exp(X alpha) from fitted alphas",
+    "constant-SD limit reproduces plain two-term fit",
+    "SD regression nests constant-SD fit"
+  ],
+  "evidence_grade_suggested": "focused_test",
+  "limits": [
+    "native engine only",
+    "fixed-seed fixtures with loose recovery bands where applicable",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed",
+    "a receipt does not promote any row; direct_sd_claim stays none"
+  ],
+  "supersedes_note": "Refresh: the test file changed after the earlier receipts for the same rows (digest differs), so the earlier receipt digests no longer match the live test. Old evidence directories are untouched."
+}

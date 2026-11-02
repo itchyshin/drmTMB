@@ -1,0 +1,8 @@
+d81ef23c0409922816e09c41e00e031e9d09624d0f8c0211f11d4d9eef5c401c  R/drmTMB.R
+2eb971378841edebc1bb3f217d3436bee47d0fe2a23727de7ceca236e9580600  R/methods.R
+54f635fd488b0887ea6d2e1f619cdcd80d196587b8d770214b5b4594c5ddeb77  src/drmTMB.cpp
+9bb4cb48d3a07dd3fa598888628f7b84c98b992cea87b2f5128b7ac953906b34  R/julia-bridge.R
+69177fed96998939c56c825b3a567074cc11104b2e51cb5699f87c0162462b6c  tests/testthat/test-julia-binomial-phylo-sd.R
+70f03e0651e6994151a80b6db76579ab478d143ee2ebf6665af97ebb78a557c0  ../general-sd-julia/src/binomial_sd_regression.jl
+71c23b8db4f70fe6a58da8a064cd001a279c1f2413925fb98fe01e3a0ce2712c  ../general-sd-julia/src/sparse_laplace_glmm.jl
+c595db76da3397ae4d068d5c6bc6cbe7636babfc722cd8becc261781ed15278a  ../general-sd-julia/src/binomial.jl

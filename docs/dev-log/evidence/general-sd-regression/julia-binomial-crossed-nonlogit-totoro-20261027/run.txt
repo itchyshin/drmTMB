@@ -1,0 +1,7 @@
+Host: Totoro, connected through the existing ControlMaster socket
+Julia: 1.10.12
+Threads: 1
+Command: julia --project=. test/test_binomial_nonlogit_crossed_sd_regression.jl
+Result: PASS, 44/44 assertions, probit and cloglog crossed independent intercept/numeric-slope SD fits.
+Snapshot verification: 107 project, manifest, source and focused-test SHA-256 entries matched on Totoro before execution.
+Scope: focused synthetic point-recovery and workflow check. No interval-coverage or native R/TMB parity claim.

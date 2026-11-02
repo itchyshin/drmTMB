@@ -1,0 +1,38 @@
+{
+  "evidence_id": "native-beta-spatial-q2-sd-20261028-relink27",
+  "relink_of_evidence_id": "native-beta-spatial-q2-sd-20261028",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/receipt.json",
+  "prior_test_path": "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/test-snapshot/tests/testthat/test-beta-spatial-q2-sd-regression.R",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "host": "Totoro",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 NOT_CRAN=true taskset -c 242 Rscript -e 'pkgload::load_all(\".\", quiet = TRUE); testthat::test_file(\"tests/testthat/test-beta-spatial-q2-sd-regression.R\", reporter = \"summary\")' (Totoro, package copy rsynced from this worktree at 7fd8acec3, cwd = package root)",
+  "live_test_path": "tests/testthat/test-beta-spatial-q2-sd-regression.R",
+  "live_test_origin": "tests/testthat/test-beta-spatial-q2-sd-regression.R",
+  "row_key_support": "live test differs from the frozen snapshot: live differs from the snapshot by one removed refusal pin (spatial(1|id) intercept/slope message) and a reworded combination-refusal message; the fits and oracles are unchanged",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-beta-spatial-q2-sd-regression.R",
+      "test_sha256": "db9e7c11e7ac122c53aa4faa5a8bbb2d0fe73b73de8ecbf3181f9b5d181c7dcb",
+      "started_utc": "2026-11-02T14:07:00Z",
+      "ended_utc": "2026-11-02T14:10:59Z",
+      "exit_code": 0,
+      "expectations_passed": 47,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028-relink27-8a677b/test-console.log",
+      "console_log_sha256": "b83958d36199822f01e492b9a2a13bc5d618fc999064a6d5a3bf309b05020706"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028-relink27-8a677b/source-manifest.json",
+  "source_manifest_sha256": "c0a58b372f715b239a0508625275896fc934600213d609bc6f1cb3d6e7f444db",
+  "review_status": "reviewed_narrow_claim",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ],
+  "review_note": "Granted narrowly. Live native test test-beta-spatial-q2-sd-regression.R: 47 expectations, 0 failures, 0 skips on Totoro; the 3 manifest entries and the console-log hash match the current files. Oracle: a base-R dense Laplace (analytic score and Hessian, two starts of nlminb, finite-difference checks of score and Hessian) with a hand-built coordinate kernel K = exp(-distance/range) plus 1e-6 on the diagonal. K is built in the test from the raw 8x8 coordinates, and the test also compares the package's precision to solve(K) at 1e-10 and checks the range. The hand-built SD vectors exp(a + b*z) use z0 and z1 from the test. Both members are fitted (spatial intercept SD ~ z0 and spatial slope SD ~ z1, labelled coef selectors, independent fields). The oracle is compared with the logLik at 1e-4, and eta within 1e-4. My Totoro scratch run (R, taskset 166-167, pkgload at the worktree) reproduced the logLik difference of 8.9e-11 and gave these oracle gaps for emulated bugs: swapped z0/z1 selectors 100.8, reversed intercept SD 217.8, reversed slope SD 23.2, slope SD shifted 1 group 1.97, shifted 8 groups 11.8, kernel doubled 5.4, range doubled 4.9, kernel rows and columns shifted by 1 9.0 and by 8 20.0. All are at least 2e4 times the 1e-4 tolerance. Two perturbations are invisible by construction: cov2cor(K) (the diagonal is 1 + 1e-6, so the gap is 1e-11) and a reversal of kernel labels (the 8x8 grid kernel is point-symmetric, gap 0). The perturbations are from my scratch run, not asserted in the test. Does NOT establish: the optimiser optimum beyond the oracle comparison at the fitted parameters, recovery accuracy (the slope recovery is only within 0.4 on one seed), that cov2cor on the kernel is detected, a spatial range estimated rather than fixed, a mesh (SPDE) kernel, a correlated intercept-slope block, Julia parity, or interval coverage.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
+}

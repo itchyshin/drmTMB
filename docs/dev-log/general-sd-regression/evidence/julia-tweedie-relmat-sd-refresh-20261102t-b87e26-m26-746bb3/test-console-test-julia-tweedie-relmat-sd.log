@@ -1,0 +1,18 @@
+julia-tweedie-relmat-sd: ..W......i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+................
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. Tweedie relmat SD bridge admits and marshals only its fitted cell ('test-julia-tweedie-relmat-sd.R:20:3') - `engine = "julia"` cannot check the order of the unlabelled `relmat()` `K` matrix.
+i Rows are paired with the grouping levels in order of first appearance in `data`. Give `K` row and column names to match by name.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=24 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-02T13:36:27Z end=2026-11-02T13:45:11Z rc=0

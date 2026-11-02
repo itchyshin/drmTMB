@@ -1,0 +1,53 @@
+{
+  "evidence_id": "gaussian-q3-per-coef-sd-all-coefs-b29-20261102d",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c 222-227 Rscript -e 'pkgload::load_all(\".\", quiet=TRUE); r <- as.data.frame(testthat::test_file(\"tests/testthat/test-gaussian-q3-per-coef-sd-all-coefs-b29.R\", reporter=\"summary\")); cat(sprintf(\"DRM_RECEIPT_COUNTS passed=%d failed=%d errors=%d skipped=%d\\n\", sum(r$passed), sum(r$failed), sum(r$error), sum(r$skipped)))'",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/exp-9d229de68 of HEAD 9d229de68 (R/, src/, tests/ identical to the worktree; test and helper sha256 compared), cores 222-227",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "9d229de6836cfc876bf3fcf12f982a3eae38a8fa",
+  "tree_state": "HEAD 9d229de68; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T18:15:40Z",
+  "run_ended_utc": "2026-11-02T18:15:48Z",
+  "exit_code": 0,
+  "expectations_passed": 16,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 1,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-q3-per-coef-sd-all-coefs-b29-20261102d/test-console.log",
+  "console_log_sha256": "3e262b4f2dba6f4d8f27839a7df05cc235719fe120b2e15b5045daa00de41a19",
+  "test_path": "tests/testthat/test-gaussian-q3-per-coef-sd-all-coefs-b29.R",
+  "test_sha256": "f52e4797987695692a27676e0d3ef4d830ba50130c55facfbad4e2e0d537e95f",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-q3-per-coef-sd-all-coefs-b29-20261102d/source-manifest.json",
+  "source_manifest_sha256": "ec54d15cf5358b72f3112e101cc3382b6faf10bd287e67f51312fff3829c9aa5",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [
+    "native-gaussian-q3-per-coef-sd-20261102r"
+  ],
+  "strengthens_note": "Companion to the parent id(s); closes reviewer-listed gaps (independent oracle and/or emulated-bug sensitivity) for the linked rows. The parent receipts are recorded in the ledger with the -m26 suffix; the base ids are the ones named in the test header.",
+  "scope": "Gaussian q = 3 iid correlated block (1 + x + z | id) with sd() formulas on all three coefficients (distinct w slopes and signs); exact Gaussian marginal in base R (1e-6 on logLik) with D_g built by hand and R parsed from fitted correlation names; swapped-column (each pair), reversed-z, per-column sign-flip, identity-R and constant-z-SD sensitivity above a floor of 1. Rows mu:I, mu:x1, mu:x2 are all fitted.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1,x2\",\"identity\",\"iid_correlated_block\",\"O-multi-within-q3-anchor\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=3;partition=one_correlated_term\",\"anchor\",\"3\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1,x2\",\"identity\",\"iid_correlated_block\",\"O-multi-within-q3-anchor\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=3;partition=one_correlated_term\",\"anchor\",\"3\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x2\",\"I,x1,x2\",\"identity\",\"iid_correlated_block\",\"O-multi-within-q3-anchor\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=3;partition=one_correlated_term\",\"anchor\",\"3\",\"one_correlated_term\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery or estimator-accuracy claims",
+    "q other than 3, or structured providers",
+    "any family, link, provider or endpoint not listed in candidate_rows"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Reviewed line by line. (1) Oracle: exact Gaussian marginal in base R, per group y_g ~ N(X_g b, Z_g D_g R D_g Z_g' + s^2 I), with D_g built by hand from the three fitted sd() curves and R parsed by coefficient name from the fitted cor() names. It is independent of the TMB objective and of predict(); tolerance is 1e-6 on logLik. The test also asserts each SD column varies (sd of log SD > 0.25) and that |R| off-diagonals are non-trivial. (2) Bug sensitivity: floor 1. My Totoro rerun gaps were swap I/x 198, swap I/z 6.3, swap x/z 377, reversed z only 81, flip-w for I/x/z 125/40/457, identity R 19 and constant z SD 37, all far above 1e-6. (3) All three selectors are fitted: (1 + x + z | id) with sd(id, coef='(Intercept)') ~ w, sd(id, coef='x') ~ w and sd(id, coef='z') ~ w, with distinct slopes and signs (0.5, -0.4, 0.7), so mu:I, mu:x1 and mu:x2 all have regressed SDs. This closes the earlier gap where z kept a constant SD. (4) All 5 manifest sha256 values and the log, manifest and test hashes match. The console log shows 16 passed, 0 failed, 0 errors, 0 skipped. Does NOT establish: calibration, coverage, Julia parity, recovery or estimator accuracy; q other than 3; structured providers; other families or links; or anything beyond likelihood agreement at the fitted parameters for a single fixture and seed.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+}

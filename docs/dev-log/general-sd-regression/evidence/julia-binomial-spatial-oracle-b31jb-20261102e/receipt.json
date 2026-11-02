@@ -1,0 +1,43 @@
+{
+  "evidence_id": "julia-binomial-spatial-oracle-b31jb-20261102e",
+  "evidence_grade": "focused_test",
+  "command": "NOT_CRAN=true JULIA_HOME=$HOME/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin DRM_JL_PATH=<worktree>/.worktrees/general-sd-julia OPENBLAS_NUM_THREADS=1 Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-julia-binomial-spatial-oracle-b31jb.R', reporter='summary')); cat(sprintf('DRM_RECEIPT_COUNTS passed=%d failed=%d errors=%d skipped=%d\\n', sum(r$passed), sum(r$failed), sum(r$error), sum(r$skipped)))\" (live R-to-Julia on the Mac, worktree root)",
+  "execution_host": "Mac (live Julia 1.10.0 via JuliaCall), one R process at a time",
+  "git_head": "4f2d9ba01172657766a25b62f0dd98835f0a28ab",
+  "tree_state": "HEAD 4f2d9ba01; new untracked files tests/testthat/helper-b31jb-oracle.R and test-julia-binomial-*-oracle-b31jb.R only; R/ and src/ unchanged; unreviewed",
+  "exit_code": 0,
+  "expectations_passed": 114,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 2,
+  "counts": "passed=114 failed=0 errors=0 skipped=0",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-spatial-oracle-b31jb-20261102e/test-console.log",
+  "console_log_sha256": "13ca77da23a754634314d30589c27e01d3406038f1169c5d11ca230be5b0c751",
+  "test_path": "tests/testthat/test-julia-binomial-spatial-oracle-b31jb.R",
+  "test_sha256": "a8f12bdba7d21f3d14664d460ad52b6423e14fe9178ad05ceede224e109e3147",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-spatial-oracle-b31jb-20261102e/source-manifest.json",
+  "source_manifest_sha256": "7d505d7b0aa944206df553a60e881911248df4bfaf7fb203fda158df4470fef1",
+  "live_julia": "run; live R-to-Julia fits via drmTMB(..., engine = \"julia\")",
+  "scope": "spatial coordinate intercept and slope SD, dense Laplace oracle with hand exponential coordinate kernel. Oracle evaluated at the live Julia estimates; agreement asserted to 1e-3 absolute on logLik; every emulated bug must move the oracle by more than 20x that.",
+  "rows_claimed": [
+    "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"cloglog\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"probit\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"cloglog\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"probit\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "recovery or estimator-accuracy claims",
+    "broad Julia/native parity",
+    "any row, link, mechanism or layout not listed in rows_claimed",
+    "behaviour on seeds other than the fixed ones"
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Read the test and helper line by line. Hashes (receipt, manifest, test, all manifest files) match. The Mac console log shows 114 passed, 0 failed, 0 skipped, with all 6 'b31jb spatial' lines present. Totoro native run only skips (live test), so counts rest on the Mac log. Oracle: base-R dense Laplace with a hand-built exponential kernel (Euclidean distance, range equal to the median positive distance, 1e-6 jitter) from random irregular coordinates given in permuted row order. The package precision inverse is compared with the hand kernel at 1e-8. Agreement is 1.8e-6 to 3.9e-6 at the Julia estimates. Bug sensitivity: selector swap, SD sign, reversed SD, SD intercept shift, K x 2, max-distance range, and kernel by position all move the oracle. The smallest gap is 0.630 (logit intercept, max-distance range) against 1e-3, about x630. The optimum check passes. Rows: the three spatial_coordinate_intercept rows (logit, probit, cloglog) are supported. They fit spatial(1 | site, coords) with sd(site, level='spatial') ~ z, which is one structured field. The three spatial_coordinate_slope rows are NOT supported on the literal layout reading. The row layout is 'structured intercept plus one independent numeric slope' (independent coordinate fields), but the test fits only spatial(0 + x | site, coords), a slope-only field with no structured intercept field. The slope-only fit is oracle-correct. Earlier native slope-only tests were reviewed as covering this row label, so the orchestrator may overrule me by precedent. Does NOT establish: an intercept-plus-slope spatial layout (two independent fields), a correlated spatial block, mesh/SPDE kernels (this is the coordinate kernel only), calibration or coverage, other coordinate layouts, sizes or seeds, or native-engine behaviour. Lane rule (review-20261102.md, slope-only fits): the slope rows are linked as the slope member only; the verifier or reviewer objected that no structured intercept field is fitted in the same model, which is recorded here.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+}

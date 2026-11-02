@@ -1,0 +1,17 @@
+{
+  "R/drmTMB.R": "5e2107f3496ad8268222177ed6e5a766f264d12b57301c5984add0cb42118346",
+  "R/methods.R": "715c33cee6aa222274c57f984c7148a736e86a0662067fcb7dd800b01ce35f3a",
+  "R/profile.R": "12467e807eb50068cb306a9d36526a2b70cd07478db6d4a7d7d0faa63d106791",
+  "man/simulate.drmTMB.Rd": "4e14b37ff5a232009dd20b75901f248c9369ee50a2c0b9648f2e2eaa6e962062",
+  "src/drmTMB.cpp": "54f635fd488b0887ea6d2e1f619cdcd80d196587b8d770214b5b4594c5ddeb77",
+  "src/drm_count_kernels.h": "ccc6faa0f61e391770ca9611646ea694189a7588a50fe31f437cf1c511fc8047",
+  "src/drm_numeric.h": "089b5b084eae9ab276a3e3746fdd220a5ce3a20ea2cc1c791157cc4828f6600f",
+  "src/drm_response_kernels.h": "d7d75fe2346b7b0ff51ec5d9a77eacc4bf18e2aae06091501e3f52e83a02884d",
+  "src/init.c": "4ce218bc4d080bc2f0d179aa96f248c5d99dc7dc3ea542d848e1782673c913c3",
+  "src/meuwissen_luo.c": "75c46ada4abebc419e019bf1d6e64d5a04cde120c9c0ed6d7072691afa5aa487",
+  "tests/testthat/test-binomial-relmat-q2-sd.R": "0f4a73467e2792268a74b5cb529fcee705c0dbe9f68d51a53af06d44a3a383c0",
+  "tools/general-sd-regression/bernoulli-relmat-q2/PLAN.md": "441a8fd06b8208f1f6fd30bd23fa29fc04774939e7c0c35073a3bbcede217443",
+  "tools/general-sd-regression/bernoulli-relmat-q2/design-advisory.md": "536975d851ea1259f78eba31648d178fe288b8395293eaef4004888c6a065db1",
+  "tools/general-sd-regression/bernoulli-relmat-q2/example.R": "26e48377a2d0dda8adee453fdf630f2aafda16fd536714e599bc80a2bc45955a",
+  "tools/general-sd-regression/bernoulli-relmat-q2/make-capsule.py": "f0678578c29349f3fa1e1e0788a145ee6978cac5405b9f7a30cbd6e08cf5d5eb"
+}

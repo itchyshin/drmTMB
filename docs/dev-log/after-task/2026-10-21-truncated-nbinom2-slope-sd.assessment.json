@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "8e168d4c00774d50a3ee899702bb98a69d980da1e6d0da6cafc055510c54674a",
+  "draft_version": "2026-10-21-v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Separate post-draft read for clarity, factual support, and scientific scope; compared claims with recorded focused test outputs and reviewer caveat.",
+  "genre": "technical after-task report",
+  "coverage": "full report",
+  "score": 3,
+  "style_status": "low",
+  "score_reason": "Concrete file and test details; compact technical prose, with a few dense sections and repeated scope qualifications.",
+  "confidence": "medium",
+  "confidence_reason": "Focused test counts and documented limitations were available; full programme and Julia status were not independently reverified in this assessment.",
+  "examples": [
+    {
+      "location": "section 6",
+      "cue": "The broad five-log-likelihood-unit Laplace/oracle threshold is a sanity check only; the one-seed fixture does not establish repeated-recovery performance.",
+      "impact": "Clearly limits the strength of the numerical evidence.",
+      "repair": "no change needed",
+      "line": 79,
+      "quote": "Laplace/oracle threshold is a sanity check only; the one-seed fixture does not"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report distinguishes a single-seed recovery/oracle sanity check from repeated recovery and calibrated uncertainty.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Reported test counts, render checks, and reviewer limitation match the recorded task evidence; broader parity is not claimed.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external literature or citation claims.",
+  "date": "2026-10-21",
+  "calibration_status": "not_calibrated",
+  "interpretation": "perceived_style_not_authorship"
+}

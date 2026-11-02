@@ -1,0 +1,231 @@
+---
+title: "When group variation changes with a predictor"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{When group variation changes with a predictor}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+if (!"package:drmTMB" %in% search()) {
+  library(drmTMB)
+}
+```
+
+This guide shows how to ask whether groups differ in their typical spread, and
+whether that spread changes with a group-level predictor. It uses synthetic
+Bernoulli and Poisson data so the data-generating values are known. The fitted
+models estimate a random-intercept standard deviation; they do not estimate a
+separate residual `sigma` for either response.
+
+## The model
+
+For a binary response, the group effect shifts the log odds:
+
+\[
+Y_{ig} \mid b_g \sim \operatorname{Bernoulli}\!\left[
+  \operatorname{logit}^{-1}(\beta_0 + \beta_1 x_{ig} + b_g)
+\right], \qquad
+b_g \sim \operatorname{Normal}(0, s_g^2), \qquad
+\log(s_g) = \alpha_0 + \alpha_1 w_g.
+\]
+
+For counts, the same random effect shifts the log expected count:
+
+\[
+Y_{ig} \mid b_g \sim \operatorname{Poisson}\!\left[
+  \exp(\beta_0 + \beta_1 x_{ig} + b_g)
+\right], \qquad
+b_g \sim \operatorname{Normal}(0, s_g^2), \qquad
+\log(s_g) = \alpha_0 + \alpha_1 w_g.
+\]
+
+Here, `x` varies among observations and `w` is constant within each group.
+The fixed-effect coefficient for `x` describes a change in the mean predictor.
+The coefficient `alpha_1` describes how the spread of group effects changes:
+because the log link is used for `s_g`, a one-unit increase in `w` multiplies
+the random-intercept SD by `exp(alpha_1)`. It does not multiply the variance by
+that amount; the variance ratio is `exp(2 * alpha_1)`.
+
+The R formula keeps those questions separate. For example,
+`y ~ x + (1 | group)` models the response predictor, while
+`sd(group) ~ w` models the SD of the latent group intercept. The group-level
+predictor must have one value per group; a within-group predictor belongs in
+the mean formula in this scalar-intercept example. More general random-
+regression models can use within-group predictors to define random slopes;
+that is a different model structure from the intercept-only examples here.
+
+## Make two small synthetic data sets
+
+The examples use 60 groups with 10 observations per group. The two values of
+`w` differ by one unit, so exponentiating its fitted coefficient gives the
+high-`w` to low-`w` random-intercept SD ratio.
+
+```{r simulate-data}
+set.seed(20261017)
+n_group <- 60L
+n_per_group <- 10L
+group_info <- data.frame(
+  group = factor(seq_len(n_group)),
+  w = rep(c(-0.5, 0.5), each = n_group / 2)
+)
+group_index <- rep(seq_len(n_group), each = n_per_group)
+
+bernoulli_data <- group_info[group_index, , drop = FALSE]
+bernoulli_data$x <- stats::rnorm(nrow(bernoulli_data))
+bernoulli_b <- exp(-0.4 + 0.45 * group_info$w) *
+  stats::rnorm(n_group)
+bernoulli_data$y <- stats::rbinom(
+  nrow(bernoulli_data),
+  size = 1,
+  prob = stats::plogis(
+    -0.25 + 0.5 * bernoulli_data$x + bernoulli_b[group_index]
+  )
+)
+
+poisson_data <- group_info[group_index, , drop = FALSE]
+poisson_data$x <- stats::rnorm(nrow(poisson_data))
+poisson_b <- exp(-0.4 + 0.45 * group_info$w) *
+  stats::rnorm(n_group)
+poisson_data$y <- stats::rpois(
+  nrow(poisson_data),
+  lambda = exp(-0.2 + 0.3 * poisson_data$x + poisson_b[group_index])
+)
+```
+
+Each data set has a binary group-level predictor and an observation-level
+predictor. The latent effects are generated with an SD that increases with
+`w`. The response-specific intercept and slope values differ between the two
+examples, so the Bernoulli and Poisson fits are independent illustrations.
+
+## Fit a Bernoulli model
+
+The Bernoulli likelihood has no free residual `sigma`. The fitted random
+intercept is on the logit scale, and `sd(group) ~ w` describes its group-level
+standard deviation on that same latent scale.
+
+```{r fit-bernoulli}
+fit_bernoulli <- drmTMB(
+  bf(y ~ x + (1 | group), sd(group) ~ w),
+  family = stats::binomial(link = "logit"),
+  data = bernoulli_data
+)
+
+bernoulli_checks <- check_drm(fit_bernoulli)
+data.frame(check = bernoulli_checks$check, status = bernoulli_checks$status)
+coef(fit_bernoulli, "sd(group)")
+exp(coef(fit_bernoulli, "sd(group)")["w"])
+```
+
+The final value is the estimated ratio of random-intercept SDs between the
+two `w` groups. It is not a ratio of event probabilities. Compare it with the
+known ratio from the data-generating model, `exp(0.45)`, as a check that the
+example behaves as intended; a single generated data set need not recover the
+truth exactly.
+
+## Fit a Poisson model
+
+In the Poisson model, the latent intercept is on the log-mean scale. The
+Poisson sampling distribution already determines the observation-level
+variance from its mean; `sd(group)` describes additional variation among
+group-specific log means.
+
+```{r fit-poisson}
+fit_poisson <- drmTMB(
+  bf(y ~ x + (1 | group), sd(group) ~ w),
+  family = stats::poisson(link = "log"),
+  data = poisson_data
+)
+
+poisson_checks <- check_drm(fit_poisson)
+data.frame(check = poisson_checks$check, status = poisson_checks$status)
+coef(fit_poisson, "sd(group)")
+exp(coef(fit_poisson, "sd(group)")["w"])
+```
+
+This ratio also targets the change in random-intercept SD between the two
+values of `w`. It does not describe a change in Poisson residual dispersion.
+
+The fixed seed gives these particular estimates. The table keeps their
+departure from the known ratio visible; it is not a parameter-recovery or
+calibration result.
+
+| Response | True high/low SD ratio | Estimated ratio in this draw |
+|:--|--:|--:|
+| Bernoulli | `exp(0.45) = 1.568` | 1.607 |
+| Poisson | `exp(0.45) = 1.568` | 2.443 |
+
+## Predict the group-level standard deviations
+
+With no `newdata`, `predict()` returns one predicted SD for each fitted group.
+`type = "link"` returns the log SD; `type = "response"` returns the SD after
+exponentiation. These are model-implied group-level scales, not the fitted
+conditional random intercepts themselves.
+
+```{r predict-group-scales}
+bernoulli_log_sd <- predict(
+  fit_bernoulli, dpar = "sd(group)", type = "link"
+)
+bernoulli_sd <- predict(
+  fit_bernoulli, dpar = "sd(group)", type = "response"
+)
+bernoulli_sd_table <- data.frame(
+  group = names(bernoulli_sd),
+  log_sd = unname(bernoulli_log_sd),
+  sd = unname(bernoulli_sd)
+)
+bernoulli_sd_table$w <- group_info$w[
+  match(bernoulli_sd_table$group, as.character(group_info$group))
+]
+head(bernoulli_sd_table)
+
+poisson_sd <- predict(fit_poisson, dpar = "sd(group)")
+head(data.frame(group = names(poisson_sd), sd = unname(poisson_sd)))
+```
+
+The default response-scale predictions are positive SDs. The `w` coefficient
+summarises their systematic change; the group-level values also reflect the
+observed design matrix and should not be read as one estimate of the realised
+random effect in each group.
+
+## Check the fit before interpreting it
+
+The compact tables above show every check name and status without printing
+long diagnostic messages. The complete objects remain available as
+`bernoulli_checks` and `poisson_checks`; inspect, for example,
+`bernoulli_checks[bernoulli_checks$status %in% c("warning", "error"), ]`
+to read full details for warning and error rows. The checks cover optimizer,
+gradient, Hessian, standard-error, and random-effect boundary diagnostics
+where available. Investigate any warning or error before interpreting the
+coefficients. A clean diagnostic table does not establish that the SD
+coefficient is well identified in every design, and it does not assess
+repeated-sampling interval coverage.
+
+These are likelihood-based fits. `confint()` returns frequentist confidence
+intervals; it does not return Bayesian credible intervals. This guide shows
+point estimates and group-level predictions only. It makes no calibrated
+interval claim for these examples, so do not report nominal confidence
+interval coverage as established by running this vignette.
+
+## Scope of this example
+
+The demonstrated non-Gaussian slice is limited to native TMB Bernoulli/binomial
+and ordinary Poisson models with one unlabelled random intercept and a
+group-constant predictor in `sd(group)`. It does not establish support for
+other distributions, random slopes, structured covariance providers, or the
+Julia engine. Native Bernoulli/binomial also has a narrow explicit selector
+form when a scalar intercept must be named:
+
+```r
+bf(
+  y ~ x + (1 | p | group),
+  sd(group, dpar = "mu", coef = "(Intercept)", block = "p") ~ w
+)
+```
+
+That selector names one ordinary mean intercept; it does not extend the
+example to random slopes or structured effects. For current family-by-family
+limits and new evidence, see [What can I fit today?](capability-and-limits.html)
+and [the formula grammar](formula-grammar.html).

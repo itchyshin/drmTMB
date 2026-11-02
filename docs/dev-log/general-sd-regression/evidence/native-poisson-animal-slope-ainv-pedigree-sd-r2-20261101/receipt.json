@@ -1,0 +1,51 @@
+{
+  "evidence_id": "native-poisson-animal-slope-ainv-pedigree-sd-r2-20261101",
+  "kind": "REFRESH of existing ledger rows (rows are recorded under other evidence dirs; this receipt does not add or change rows)",
+  "existing_evidence_ids_for_test_path": [
+    "native-poisson-animal-slope-ainv-pedigree-sd-20261101"
+  ],
+  "existing_row_keys_for_test_path": [
+    "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"pedigree\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "engine": "native R/TMB",
+  "family": "poisson (log)",
+  "description": "Poisson animal slope-only SD ~ z, Ainv provider and pedigree provider",
+  "rows_not_linked": [
+    "animal_numeric_slope / A_covariance (A = fit is only a comparator inside this test)"
+  ],
+  "command": "cd <worktree>; NOT_CRAN=true OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'suppressMessages(devtools::load_all(\".\", quiet=TRUE)); testthat::test_file(\"tests/testthat/test-poisson-animal-slope-ainv-pedigree-sd-regression.R\", reporter=\"summary\")' > docs/dev-log/general-sd-regression/evidence/native-poisson-animal-slope-ainv-pedigree-sd-r2-20261101/test-console.log",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "b87566680778831c2bae38d66399c3ca667e29fc",
+  "branch": "codex/general-sd-regression",
+  "dirty_shared_tree_entries": 63,
+  "test_path": "tests/testthat/test-poisson-animal-slope-ainv-pedigree-sd-regression.R",
+  "test_sha256": "1c382a76c3e3555a2552df96f095b3d0891c6bda853b69553af1c4167fee9657",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-animal-slope-ainv-pedigree-sd-r2-20261101/source-manifest.json",
+  "source_manifest_sha256": "84039f587d08d2d8171f182fd357ba6da04ecbaec0fffcf4e323093817f64b5a",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-animal-slope-ainv-pedigree-sd-r2-20261101/test-console.log",
+  "console_log_sha256": "92221301720110a71c72487c975cfc116928e25ce93ffacc894da96ec62eb538",
+  "result": {
+    "exit_code": 0,
+    "expectations": 26,
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0,
+    "test_blocks": 2,
+    "start_utc": "2026-11-01T18:06:01Z",
+    "end_utc": "2026-11-01T18:06:12Z"
+  },
+  "tolerances_copied_from_test": "convergence==0; dense-Laplace oracle |logLik - oracle| < 1e-4 absolute (Ainv and pedigree fits, and the A comparator fit); |z slope - 0.35| < 0.4; predict(sd_animal(id)) == exp(X alpha) tol 1e-8 (name-aligned); logLik(Ainv or pedigree fit) vs logLik(A fit) tol 1e-4 relative; constant-SD vs scalar logLik tol 2e-5 relative; pedigree A diag max == 1.25 tol 1e-12",
+  "oracle": "Dense Laplace marginal likelihood written in the test file (prs_dense_laplace_loglik), computed from the fixture's own K matrix and group predictor looked up by level name, not from predict(). Independent of the package likelihood code for the Ainv fit (K = hand-built 1.7*0.35^|i-j|). Only partly independent for the pedigree fit: K there comes from drmTMB:::drm_pedigree_additive_relationship (helper under test). The A-covariance fit is a comparator, not linked.",
+  "evidence_grade": "focused_test",
+  "review_status": "unreviewed",
+  "limits": [
+    "native engine only",
+    "fixed-seed fixtures with loose recovery bands where applicable",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "receipt_scope": "Native test run for test-binomial-animal-provider-pairs-nonlogit-sd.R",
+  "drmTMB": {
+    "candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+    "branch": "codex/general-sd-regression",
+    "worktree_state": "dirty shared candidate; hashes below identify test-time files"
+  },
+  "files": [
+    {
+      "file": "tests/testthat/test-binomial-animal-provider-pairs-nonlogit-sd.R",
+      "sha256": "033c86d7b5459fdcc5f13dd4fdee1ace7d3c3bd26cf4a1686c3fbac5ba95b84f"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "ef79299d4dd607be50067752c643027af55e9814d1e220a37dcdee94957dd8a9"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/test-console.log",
+      "sha256": "90783019bdeed1a20a41a36e00d3f69bc297cc7193a5de3150824635df25f40e"
+    }
+  ],
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/drmTMB.R', 'R/random-effect-targets.R', 'R/predict-parameters.R', 'src/drmTMB.cpp']"
+}

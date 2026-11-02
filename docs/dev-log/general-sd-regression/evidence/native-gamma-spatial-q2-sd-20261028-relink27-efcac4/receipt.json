@@ -1,0 +1,38 @@
+{
+  "evidence_id": "native-gamma-spatial-q2-sd-20261028-relink27",
+  "relink_of_evidence_id": "native-gamma-spatial-q2-sd-20261028",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/receipt.json",
+  "prior_test_path": "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/test-snapshot/tests/testthat/test-gamma-spatial-q2-sd-regression.R",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "host": "Totoro",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 NOT_CRAN=true taskset -c 242 Rscript -e 'pkgload::load_all(\".\", quiet = TRUE); testthat::test_file(\"tests/testthat/test-gamma-spatial-q2-sd-regression.R\", reporter = \"summary\")' (Totoro, package copy rsynced from this worktree at 7fd8acec3, cwd = package root)",
+  "live_test_path": "tests/testthat/test-gamma-spatial-q2-sd-regression.R",
+  "live_test_origin": "tests/testthat/test-gamma-spatial-q2-sd-regression.R",
+  "row_key_support": "live test differs from the frozen snapshot: live differs from the snapshot in two refusal pins (spec-builder refusal fixture changed to spatial(0+x+z0|id); marginal simulation now admitted and refusal re-pinned on altered corpars); the fits and oracles are unchanged",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-gamma-spatial-q2-sd-regression.R",
+      "test_sha256": "8b97064fa8636037f707c83dbbf9bcdee281ce052d4f05a6bd39d5f26ddd8f86",
+      "started_utc": "2026-11-02T14:06:13Z",
+      "ended_utc": "2026-11-02T14:07:00Z",
+      "exit_code": 0,
+      "expectations_passed": 47,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028-relink27-efcac4/test-console.log",
+      "console_log_sha256": "b834a0c7ec707853c3a24ac0649ea6fe82712da6cc8aa4da0bc695172ad55aa8"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028-relink27-efcac4/source-manifest.json",
+  "source_manifest_sha256": "c9cf759ce493fe99f755e460c536dbad07ebd08521bf9b0e9c0eed2ecb7f99b7",
+  "review_status": "reviewed_narrow_claim",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ],
+  "review_note": "Native Gamma log spatial(1 + x | id, coords) (unlabelled, two independent coordinate fields) with coef-selected SD formulas (z0 for the intercept, z1 for the slope). Independent oracle: hand-built exponential Euclidean kernel (range = median distance, 1e-6 ridge) compared with the package precision inverse at 1e-10, plus a base-R dense Laplace (nlminb with analytic score and Hessian, finite-difference checks, two starts), matching -logLik to 1e-4 (observed 4.3e-11) and eta to 1e-4. Reviewer scratch run (Totoro, core 154, test helpers reused): swapped selectors gap 169.4, reversed SD vectors by site 372.0, reversed intercept SD 348.9, no SD predictor 81.0, kernel range doubled 8.32, kernel shifted by one site 9.09, random kernel permutation 182.3 (all at least 8e4 times the 1e-4 tolerance). Blind spot: site order reversal leaves this 8x8 lattice kernel invariant (K[rev,rev] equals K), so only non-reversal misalignments are detected. The test also checks reordered coords and reversed SD-formula order invariance. Manifest 3/3 match; log 47 pass, 0 failures, 0 skips. Slope and intercept members are both fitted as independent fields. Does NOT establish: unit-correlation or labelled (cross-coefficient) spatial blocks, estimated spatial range (range is fixed), mesh spatial, the Julia comparator (not run), interval coverage, or reversal-misalignment on this symmetric lattice.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
+}

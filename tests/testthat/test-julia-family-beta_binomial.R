@@ -1,5 +1,7 @@
 # A4 (2026-09-05): `beta_binomial()` admitted through `engine = "julia"` on the
 # fixed-effect (Workflow G) route -- ONE row in R/julia-family-registry.R.
+# A5 adds a narrow ordinary mean SD-regression exception in the bridge fence;
+# the family registry row remains fixed-effect-only for all other random shapes.
 #
 # What this file pins, in two tiers (validation-harness discipline):
 #   * no-Julia tests: the registry row, the family-tag admission, the payload
@@ -17,10 +19,11 @@
 # engine is already known to complete -- a malformed call looks identical to a
 # missing capability, so the shape is never invented here.
 #
-# NOT covered here, on purpose (the leaf's scope fence): random effects
-# `(1 | g)` and `phylo()` with this family. phylo() refuses pre-Julia (tested
-# below). Ordinary `(1 | g)` is NOT refused by the bridge for any fixed-effect
-# family and is NOT claimed for this one -- it is A5's measurement, not A4's.
+# NOT covered here, on purpose (the leaf's scope fence): ordinary random
+# intercepts or slopes with this family. A separate A5 fixture now tests the
+# narrow predictor-dependent SD routes. `phylo()` still refuses pre-Julia
+# (tested below); correlated blocks and other random-effect shapes remain
+# unadmitted.
 
 a4_beta_binomial_data <- function(n = 1200, seed = 20260510) {
   set.seed(seed)
@@ -40,14 +43,15 @@ a4_beta_binomial_data <- function(n = 1200, seed = 20260510) {
 
 a4_beta_binomial_formula <- function() bf(cbind(success, failure) ~ x, sigma ~ z)
 
-test_that("beta_binomial has exactly one registry row, fixed-effect route only", {
+test_that("beta_binomial has one fixed-effect registry row and a narrow SD exception", {
   reg <- drmTMB:::drm_julia_family_registry()
   rows <- Filter(function(s) identical(s$family, "beta_binomial"), reg)
   expect_length(rows, 1L)
   row <- rows[[1L]]
   expect_true(row$fe)
   expect_identical(row$drmjl_tag, "beta_binomial")
-  # scope fence: nothing beyond fixed effects is claimed by this row
+  # The row retains fixed-effect registry semantics. The bridge fence admits
+  # only separately checked scalar ordinary SD formulas for this family.
   expect_false(row$phylo_only)
   expect_false(row$locscale_phylo)
   expect_false(row$slope_phylo)

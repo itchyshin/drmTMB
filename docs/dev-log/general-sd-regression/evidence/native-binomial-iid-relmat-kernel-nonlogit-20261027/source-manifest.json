@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "7d1f4ca356413a07214673a7ba8b6aa79af673c5d4c078d528bf60b08e95c39a"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-iid-relmat-kernel-equivalence-nonlogit-sd.R",
+      "sha256": "609361036aac7f6a27a8f43523dace1c1150e24bc39d78db49f10d0afc45cb34"
+    }
+  ]
+}

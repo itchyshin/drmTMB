@@ -1,0 +1,38 @@
+{
+  "evidence_id": "native-beta-relmat-q2-sd-20261027-relink27",
+  "relink_of_evidence_id": "native-beta-relmat-q2-sd-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/receipt.json",
+  "prior_test_path": "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/test-snapshot/tests/testthat/test-beta-relmat-q2-sd-regression.R",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "host": "Totoro",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 NOT_CRAN=true taskset -c 240 Rscript -e 'pkgload::load_all(\".\", quiet = TRUE); testthat::test_file(\"tests/testthat/test-beta-relmat-q2-sd-regression.R\", reporter = \"summary\")' (Totoro, package copy rsynced from this worktree at 7fd8acec3, cwd = package root)",
+  "live_test_path": "tests/testthat/test-beta-relmat-q2-sd-regression.R",
+  "live_test_origin": "tests/testthat/test-beta-relmat-q2-sd-regression.R",
+  "row_key_support": "live test differs from the frozen snapshot: live differs from the snapshot by one removed refusal pin (relmat(1|id) intercept/slope message) and a reworded combination-refusal message; the fits and oracles are unchanged",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-beta-relmat-q2-sd-regression.R",
+      "test_sha256": "5750ff41016d746db40a086e5e2cda8c152e5fc536f1ee5fb3fa5c24edd1f444",
+      "started_utc": "2026-11-02T14:06:50Z",
+      "ended_utc": "2026-11-02T14:10:53Z",
+      "exit_code": 0,
+      "expectations_passed": 64,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027-relink27-7a031b/test-console.log",
+      "console_log_sha256": "6b2996a8a60a2da311ffe4631a079fa1fa7e625f9c0394b7d7f7b567e59c5d3d"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027-relink27-7a031b/source-manifest.json",
+  "source_manifest_sha256": "2746ed41256730c8029966e1620cb6cad606970ba40f0e93487c478820ceb635",
+  "review_status": "reviewed_narrow_claim",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ],
+  "review_note": "Native Beta (logit, eps = 1e-12) mu with relmat(1 + x | id) as two independent fields (intercept and slope), each with its own SD regression (z0 and z1); both fields are fitted, so both row_keys (K and Q input) are supported. Oracle: a base-R dense Laplace in the test itself (stats::dbeta, hand-built Kronecker precision from solve(K), analytic score/Hessian checked against finite differences, nlminb with two starts), on a fixture with non-unit K diagonal (0.8-1.3), permuted K labels and reversed factor levels. Fit -logLik agrees with it to 4e-12 in my scratch run (tolerance 1e-4). Emulated-bug scratch run, oracle against the unchanged fit, tolerance 1e-4: swapped selectors z0/z1 gap 32.8; reversed z0 vector 77.0; reversed z1 vector 26.4; cov2cor(K) 1.89; K scaled by 1.5 gives 3.26; K labels reversed 4.85 (all at least 1.9e4 times the tolerance). The Q (precision) row is supported transitively: the Q fit with reversed labels agrees with the K fit to 1e-4 in logLik, coefficients and SDs, and the K fit matches the oracle. Manifest (3 files) matches current files (0 mismatches); receipt console log shows 64 passed, 0 failed, 0 errors, 0 skipped. I reran the whole file on Totoro at current source: 64 pass, 0 fail, 0 skip. Does NOT establish: interval coverage or calibration, Julia parity, new-data or simulation correctness (the simulate check reuses the package's own mu), the Beta density (the oracle and the package both use the standard beta density), behaviour on other K structures or seeds, or the removed relmat(1|id) refusal pin.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
+}

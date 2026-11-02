@@ -1,0 +1,71 @@
+{
+  "evidence_id": "native-poisson-correlated-q2-sd-oracle-20261101d",
+  "evidence_grade": "focused_test",
+  "claim": "Poisson native correlated (1 + x | id) q2 block with two group-constant SD predictors, drmTMB-independent Laplace oracle at 1e-4 over two seeds, emulated-bug sensitivity > 1 log-lik unit",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-poisson-correlated-q2-sd-oracle.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "tree_state": "dirty shared candidate",
+  "test_path": "tests/testthat/test-poisson-correlated-q2-sd-oracle.R",
+  "test_sha256": "2006e4ee760fc442a066368e61d1a50f9f645d51bc49b03a106a3c5f6d2938b5",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/poisson-correlated-q2-sd-oracle-20261101d/source-manifest.json",
+  "source_manifest_sha256": "3ac4a5d5701a7d8709885ee098b1d7233114f31ddc1817b83c181350fb4cd4ae",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/poisson-correlated-q2-sd-oracle-20261101d/test-console.log",
+  "console_log_sha256": "8a1e2311b991154b28d50cd55b990041b5268567db9c00d5d756f42d9505798e",
+  "result": {
+    "exit_code": 0,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": false,
+    "note": "summary reporter: no failure or skip section; Julia bridge reported 0 live tests"
+  },
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"log\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved",
+      "mechanism_id": "iid_correlated_block",
+      "provider_input": "group_factor",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"log\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved",
+      "mechanism_id": "iid_correlated_block",
+      "provider_input": "group_factor",
+      "target_member": "mu:x1"
+    }
+  ],
+  "not_covered": [
+    "q3 and general-q correlated blocks",
+    "sigma endpoint",
+    "recovery, calibration, Julia parity",
+    "two testthat warnings: expect_equal(scale = 1) is an unused argument, so the 1e-4 tolerance is relative, not absolute as the file header states"
+  ],
+  "limits": [
+    "unreviewed",
+    "no calibration or coverage claim",
+    "native R/TMB only; no Julia parity claim",
+    "direct_sd_claim stays none; receipt is a staleness seal, not a promotion"
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent mathematical review confirmed the dense per-group Laplace oracle for the Poisson log-link correlated q2 block (1 + x | id) with Sigma = D R D. It is written in plain R with a damped Newton mode search, analytic Hessian Z' diag(mu) Z + Sigma^-1, and log|Sigma| and log|H| terms, and shares nothing with TMB. It is evaluated at the fitted beta, rho and predict()-derived group SDs, and matched at 1e-4 over seeds 20261027 and 20261101. Both linked rows are supported (mu:I via sd(coef = '(Intercept)') ~ w, and mu:x1 via sd(coef = 'x') ~ v, distinct predictors that genuinely vary). Emulated-bug sensitivity exists: swapped SD targets, flipped rho sign and one-level misalignment each move the oracle by more than 1 log-likelihood unit. Manifest rehash: 2 of 5 entries mismatch (R/drmTMB.R and src/drmTMB.cpp), both matching commit 33e4e966a exactly. I read the full 33e4e966a..HEAD diff of both files and of R/methods.R. The changes are Gaussian q3/q4 per-coefficient SD (gated on re_cov_sd_row0 and has_sd_mu_model), missing-response include relaxations (inactive for complete responses), the false-convergence nlminb restart, and q2 simulate and summary changes. None alters the complete-response Poisson ordinary q2 likelihood. The test file hash is unchanged and the focused test was rerun on the current tree with the receipt's count. Scope: native Poisson, log link, one unlabelled q2 intercept-slope block with two group-constant SD predictors. It does not establish calibration or coverage, other families or providers, or Julia parity.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-poisson-correlated-q2-sd-oracle.R",
+    "test_sha256": "2006e4ee760fc442a066368e61d1a50f9f645d51bc49b03a106a3c5f6d2938b5",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:17:13Z",
+    "ended_utc": "2026-11-02T18:17:34Z",
+    "expectations_passed": 14,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-correlated-q2-sd-oracle-20261101d/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "c138260a8015568f2c93491b415ba4e8f46231b9bf12b62be41dd1a62670b08f",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+  }
+}

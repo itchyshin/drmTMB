@@ -1,0 +1,94 @@
+{
+  "evidence_id": "native-nbinom2-batch5-sd-regression-r2-20261101",
+  "existing_evidence_ids_for_test_path": [],
+  "test_command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'suppressMessages(devtools::load_all(\".\", quiet=TRUE)); testthat::test_file(\"tests/testthat/test-nbinom2-batch5-sd-regression.R\", reporter=\"summary\")'",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "b87566680778831c2bae38d66399c3ca667e29fc",
+  "test_path": "tests/testthat/test-nbinom2-batch5-sd-regression.R",
+  "test_sha256": "26e16ed0cb96b0a6970a13fb456595aed9fdf46af64906a59b978bcc04f15300",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-batch5-sd-regression-r2-20261101/source-manifest.json",
+  "source_manifest_sha256": "5a17606ebd9c3a767963b3e0c1891cae9c2194d158876597b684b1c808f699ff",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-batch5-sd-regression-r2-20261101/test-console.log",
+  "console_log_sha256": "23f11bcb2a1ac4a07f1fd0b22f8258f51bb67540fe5280d7e8dfd56b476e9b72",
+  "result": {
+    "observed_exit_status": 0,
+    "expectations_passed": 150,
+    "failures": 0,
+    "skips": 0,
+    "count_method": "count of passing-expectation dots on the summary-reporter line of the console log; no failure or skip markers present"
+  },
+  "oracle": "Dense R Laplace marginal likelihood over the joint latent f=(f_1..f_B), eta=X beta+J f, y|f~NB2(mu=exp(eta), size=1/sigma^2), evaluated at the fitted parameters. Written in the test file, uses stats::dnbinom and base linear algebra, no drmTMB code or TMB objective, so it is independent of the likelihood code under test. Not fully independent in fixtures: the phylo covariance is built with drmTMB:::drm_phylo_tip_covariance, and predict()/coef() values from the fit supply the SDs and mu coefficients. It checks likelihood assembly at fitted parameters, not the optimiser.",
+  "checks": [
+    "convergence 0 and finite logLik",
+    "coefficient names per SD target",
+    "SD-slope recovery within 0.6 (wiring check)",
+    "name-aligned SD predictions equal exp(X alpha) to 1e-8",
+    "logLik within 1e-4 of dense Laplace oracle",
+    "reversed-SD sensitivity (crossed only)",
+    "constant-SD equivalence 2e-5 relative",
+    "K vs Q and A vs Ainv logLik 1e-4",
+    "nested model bound 1e-3",
+    "term-order invariance 1e-5",
+    "save/reload predict identity",
+    "closed-gate refusals"
+  ],
+  "tolerances_copied_from_test": "oracle 1e-4 absolute logLik; constant-SD 2e-5 relative logLik, 1e-4 mu coef; K/Q and A/Ainv 1e-4 relative; predicted SD vs exp(X alpha) 1e-8; term order 1e-5; SD-slope recovery within 0.6; nested bound 1e-3",
+  "linked_rows": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+relmat:K_covariance\",\"additive independent latent fields\",\"iid:group_factor+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "what_exercised": "fit in test: iid:group_factor+relmat:K_covariance"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+relmat:Q_precision\",\"additive independent latent fields\",\"iid:group_factor+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "what_exercised": "fit in test: iid:group_factor+relmat:Q_precision"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:A_covariance\",\"additive independent latent fields\",\"iid:group_factor+animal:A_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "what_exercised": "fit in test: iid:group_factor+animal:A_covariance"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive independent latent fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "what_exercised": "fit in test: iid:group_factor+animal:Ainv_precision"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+phylo:tree\",\"additive independent latent fields\",\"iid:group_factor+phylo:tree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "what_exercised": "fit in test: iid:group_factor+phylo:tree"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_additive_terms\",\"O1\",\"iid\",\"multiple independent intercept/slope fields\",\"group_factors\",\"crossed\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "what_exercised": "crossed ordinary intercepts (1|g1)+(1|g2), sd(g1)~z1, sd(g2)~z2"
+    }
+  ],
+  "not_linked_not_tested": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:pedigree\",\"additive independent latent fields\",\"iid:group_factor+animal:pedigree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "reason": "pedigree provider: never used in the test (not tested; not a claim it is fenced)"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_additive_terms\",\"O1\",\"iid\",\"multiple independent intercept/slope fields\",\"group_factors\",\"nested\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "reason": "nested ordinary intercepts: only crossed is fitted"
+    }
+  ],
+  "limits": [
+    "native engine only",
+    "fixed-seed fixtures with loose recovery bands where applicable (wiring checks, not calibration)",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree (hashes identify test-time files; R/ and src/ tracked files are unmodified relative to HEAD, other files in the tree are in flux)",
+    "unreviewed"
+  ],
+  "review_status": "unreviewed",
+  "direct_sd_claim_change": "none (a receipt never promotes a row)"
+}

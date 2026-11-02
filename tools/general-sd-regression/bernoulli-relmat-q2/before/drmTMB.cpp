@@ -1,0 +1,6626 @@
+// R 4.5's Apple clang headers currently use a diagnostic pragma for
+// -Wfixed-enum-extension that this local clang does not recognize. Including
+// Boolean.h through the legacy branch before TMB avoids a package-check
+// installation warning without shipping non-portable compiler flags.
+#include <Rconfig.h>
+#ifdef HAVE_ENUM_BASE_TYPE
+#define DRMTMB_RESTORE_HAVE_ENUM_BASE_TYPE 1
+#undef HAVE_ENUM_BASE_TYPE
+#endif
+#include <R_ext/Boolean.h>
+#ifdef DRMTMB_RESTORE_HAVE_ENUM_BASE_TYPE
+#define HAVE_ENUM_BASE_TYPE 1
+#endif
+#include <TMB.hpp>
+#include "drm_count_kernels.h"
+#include "drm_response_kernels.h"
+
+// Smooth clamp of a log-sigma linear predictor. EXACTLY identity inside the band
+// [lo, hi] (so a well-posed fit, whose log-sigma lies in the band, is unchanged
+// to the bit), and saturating C1-smoothly within a margin beyond each bound
+// (overall range (lo - margin, hi + margin)). A runaway per-observation scale --
+// e.g. a per-group scale random effect estimated from one observation per group
+// -- is therefore bounded and cannot overflow the Gaussian density or break the
+// inner Laplace solve, while ordinary fits see no change at all.
+// See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
+template<class Type>
+Type drm_softclamp_log_sigma_one(Type x, Type lo, Type hi, Type margin) {
+  Type above = hi + margin * tanh((x - hi) / margin); // used only when x > hi
+  Type below = lo - margin * tanh((lo - x) / margin); // used only when x < lo
+  Type y = CppAD::CondExpGt(x, hi, above, x);
+  return CppAD::CondExpLt(x, lo, below, y);
+}
+
+template<class Type>
+void drm_softclamp_log_sigma(vector<Type>& v, Type lo, Type hi, Type margin) {
+  for (int i = 0; i < v.size(); ++i) {
+    v(i) = drm_softclamp_log_sigma_one(v(i), lo, hi, margin);
+  }
+}
+
+// Direct-SD regression values use the configured log-scale clamp before
+// exponentiation. Family branches that report log_sd_mu_group expose this
+// effective clamped value; beta_sd_mu remains the coefficient-scale report.
+// The profile layer separately traces the raw linear predictor.
+template<class Type>
+Type drm_softclamp_log_sd(Type eta, int use_logsigma_clamp,
+                          const vector<Type>& logsigma_clamp) {
+  if (use_logsigma_clamp == 1) {
+    return drm_softclamp_log_sigma_one(
+      eta, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+  }
+  return eta;
+}
+
+// Overflow-only guard for regression-predicted random-effect log-SDs. This is
+// deliberately NOT the residual log-sigma soft clamp: it is exactly identity
+// until exp() approaches double overflow. A guard hit makes the likelihood
+// non-finite below, so a profile cannot turn this artificial boundary into a
+// finite endpoint.
+template<class Type>
+Type drm_exp_sd_logscale_guarded(Type eta, Type& guard_hit) {
+  const Type log_double_max = Type(700.0);
+  Type hit = CppAD::CondExpGt(eta, log_double_max, Type(1.0), Type(0.0));
+  guard_hit += hit;
+  Type safe_eta = CppAD::CondExpGt(eta, log_double_max, log_double_max, eta);
+  return exp(safe_eta);
+}
+
+// Stable log(sech(eta)) for the binomial q = 2 ordinary random-effect block.
+// This avoids the cancellation in log(sqrt(1 - tanh(eta)^2)) and remains
+// finite when eta is far enough from zero that tanh(eta) rounds to +/-1.
+template<class Type>
+Type drm_log_sech(Type eta) {
+  Type abs_eta = CppAD::CondExpGe(eta, Type(0.0), eta, -eta);
+  return log(Type(2.0)) - abs_eta - log(Type(1.0) + exp(Type(-2.0) * abs_eta));
+}
+
+// Paper-sign negative Huber function D(x): zero at the origin, quadratic in
+// [-1, 1], and linear in the tails. MSPL adds D to the maximized criterion.
+template<class Type>
+Type drm_mspl_negative_huber(Type x) {
+  Type abs_x = CppAD::CondExpGe(x, Type(0.0), x, -x);
+  Type quadratic = Type(-0.5) * x * x;
+  Type linear = -abs_x + Type(0.5);
+  return CppAD::CondExpLe(abs_x, Type(1.0), quadratic, linear);
+}
+
+// PC-prior penalty (negative log-prior) for an optional penalized/MAP fit: an
+// exponential prior on each phylogenetic SD = exp(log_sd_phylo) with the
+// log-Jacobian, plus an optional mean-zero normal on the live phylogenetic
+// correlation parameter (eta_cor_phylo for q == 2, theta_phylo for q > 2).
+// See docs/design/172-phylo-penalized-map.md.
+template<class Type>
+Type drm_phylo_penalty_value(const vector<Type>& log_sd_phylo,
+                             int q_phylo,
+                             Type eta_cor_phylo,
+                             const vector<Type>& theta_phylo,
+                             const vector<Type>& sd_penalty_rate,
+                             const vector<Type>& cor_penalty_sd) {
+  Type pen = Type(0.0);
+  for (int k = 0; k < q_phylo; ++k) {
+    if (k < sd_penalty_rate.size()) {
+      Type lam = sd_penalty_rate(k);
+      if (lam > Type(0.0)) {
+        Type sd_k = exp(log_sd_phylo(k));
+        pen += lam * sd_k - log_sd_phylo(k) - log(lam);
+      }
+    }
+  }
+  if (cor_penalty_sd.size() > 0) {
+    Type s = cor_penalty_sd(0);
+    if (s > Type(0.0)) {
+      Type half_log_2pi = Type(0.5) * log(Type(2.0) * M_PI);
+      if (q_phylo == 2) {
+        Type z = eta_cor_phylo / s;
+        pen += Type(0.5) * z * z + log(s) + half_log_2pi;
+      } else if (q_phylo > 2) {
+        for (int t = 0; t < theta_phylo.size(); ++t) {
+          Type z = theta_phylo(t) / s;
+          pen += Type(0.5) * z * z + log(s) + half_log_2pi;
+        }
+      }
+    }
+  }
+  return pen;
+}
+
+// Shared per-observation analytic negative log-likelihood accumulator for the
+// diagonal (non-Kronecker/no-V_known) bivariate Gaussian, factored out so the
+// primary bivariate Gaussian (model_type 2) and the covariance-block probe
+// (model_type 95) share ONE implementation. Behaviour is identical to the two
+// previously duplicated loop bodies: for a jointly observed pair it uses the
+// standardized bivariate density; for a singleton it uses the marginal. rho12
+// is assumed already bounded (0.999999 * tanh(eta)). See design doc 176.
+template<class Type>
+void drm_bivariate_gaussian_diag_nll(
+    Type& nll,
+    const vector<Type>& y1,
+    const vector<Type>& y2,
+    const vector<Type>& mu1,
+    const vector<Type>& mu2,
+    const vector<Type>& log_sigma1,
+    const vector<Type>& log_sigma2,
+    const vector<Type>& sigma1,
+    const vector<Type>& sigma2,
+    const vector<Type>& rho12,
+    const vector<Type>& weights,
+    const vector<int>& observed_y1,
+    const vector<int>& observed_y2) {
+  Type log2pi = log(Type(2.0) * M_PI);
+  for (int i = 0; i < y1.size(); ++i) {
+    if (observed_y1(i) == 1 && observed_y2(i) == 1) {
+      Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+      Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+      Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
+      Type row_nll = log2pi + log_sigma1(i) + log_sigma2(i);
+      row_nll += Type(0.5) * log(one_minus_rho2);
+      row_nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
+      nll += weights(i) * row_nll;
+    } else if (observed_y1(i) == 1) {
+      Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+      Type row_nll = Type(0.5) * log2pi + log_sigma1(i);
+      row_nll += Type(0.5) * z1 * z1;
+      nll += weights(i) * row_nll;
+    } else if (observed_y2(i) == 1) {
+      Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+      Type row_nll = Type(0.5) * log2pi + log_sigma2(i);
+      row_nll += Type(0.5) * z2 * z2;
+      nll += weights(i) * row_nll;
+    }
+  }
+}
+
+template<class Type>
+matrix<Type> drm_partial_correlation_cholesky_corr(const vector<Type>& eta,
+                                                   int q) {
+  matrix<Type> lower(q, q);
+  lower.setZero();
+  lower(0, 0) = Type(1.0);
+
+  int pos = 0;
+  for (int row = 1; row < q; ++row) {
+    Type remaining = Type(1.0);
+    for (int col = 0; col < row; ++col) {
+      Type partial = tanh(eta(pos));
+      lower(row, col) = partial * sqrt(remaining);
+      remaining *= Type(1.0) - partial * partial;
+      pos += 1;
+    }
+    lower(row, row) = sqrt(remaining);
+  }
+
+  matrix<Type> corr(q, q);
+  corr.setZero();
+  for (int row = 0; row < q; ++row) {
+    for (int col = 0; col < q; ++col) {
+      int max_k = row < col ? row : col;
+      for (int k = 0; k <= max_k; ++k) {
+        corr(row, col) += lower(row, k) * lower(col, k);
+      }
+    }
+  }
+  for (int row = 0; row < q; ++row) {
+    corr(row, row) = Type(1.0);
+  }
+  return corr;
+}
+
+template<class Type>
+matrix<Type> drm_qgt2_corr_matrix(const vector<Type>& theta,
+                                  int q,
+                                  int parameterization) {
+  if (parameterization == 1) {
+    return drm_partial_correlation_cholesky_corr(theta, q);
+  }
+  density::UNSTRUCTURED_CORR_t<Type> density(theta);
+  return density.cov();
+}
+
+// Cholesky-based separable-covariance density kernel for a q x q symmetric
+// positive-definite covariance S and a symmetric quadratic matrix
+// QM = t(effect) %*% Q %*% effect. Computes log-det(S) = 2 * sum(log(diag(L)))
+// and the quadratic form sum_{a,b} S^{-1}(a,b) * QM(a,b) = trace(S^{-1} QM)
+// via triangular solves against the Cholesky factor L (S = L L^T), never
+// forming an explicit inverse or a determinant. This keeps both the value and
+// the AD gradient finite as a pairwise (partial) correlation approaches +/-1;
+// the direct S.inverse() / log(S.determinant()) path amplifies near-singular
+// entries and yields a non-finite gradient in that regime.
+// A tiny relative ridge guards exact singularity so the Cholesky stays defined
+// (it is negligible for well-posed fits). See design doc 176.
+template<class Type>
+void drm_separable_cov_logdet_quad(const matrix<Type>& covariance,
+                                   const matrix<Type>& quadratic_matrix,
+                                   int q,
+                                   Type& log_det,
+                                   Type& quadratic) {
+  matrix<Type> S = covariance;
+  Type trace_scale = Type(0.0);
+  for (int a = 0; a < q; ++a) {
+    trace_scale += S(a, a);
+  }
+  Type ridge = Type(1e-12) * (trace_scale / Type(q));
+  for (int a = 0; a < q; ++a) {
+    S(a, a) += ridge;
+  }
+
+  // Lower Cholesky factor L with S = L L^T (AD-safe: +, -, *, /, sqrt only).
+  matrix<Type> L(q, q);
+  L.setZero();
+  for (int a = 0; a < q; ++a) {
+    for (int b = 0; b <= a; ++b) {
+      Type sum = S(a, b);
+      for (int k = 0; k < b; ++k) {
+        sum -= L(a, k) * L(b, k);
+      }
+      if (a == b) {
+        L(a, a) = sqrt(sum);
+      } else {
+        L(a, b) = sum / L(b, b);
+      }
+    }
+  }
+
+  log_det = Type(0.0);
+  for (int a = 0; a < q; ++a) {
+    log_det += Type(2.0) * log(L(a, a));
+  }
+
+  // W = S^{-1} QM via two triangular solves: L Y = QM, then L^T W = Y.
+  // trace(S^{-1} QM) = sum_a W(a, a).
+  matrix<Type> Y(q, q);
+  Y.setZero();
+  for (int col = 0; col < q; ++col) {
+    for (int a = 0; a < q; ++a) {
+      Type sum = quadratic_matrix(a, col);
+      for (int k = 0; k < a; ++k) {
+        sum -= L(a, k) * Y(k, col);
+      }
+      Y(a, col) = sum / L(a, a);
+    }
+  }
+  matrix<Type> W(q, q);
+  W.setZero();
+  for (int col = 0; col < q; ++col) {
+    for (int a = q - 1; a >= 0; --a) {
+      Type sum = Y(a, col);
+      for (int k = a + 1; k < q; ++k) {
+        sum -= L(k, a) * W(k, col);
+      }
+      W(a, col) = sum / L(a, a);
+    }
+  }
+  quadratic = Type(0.0);
+  for (int a = 0; a < q; ++a) {
+    quadratic += W(a, a);
+  }
+}
+
+template<class Type>
+Type objective_function<Type>::operator()()
+{
+  DATA_VECTOR(y);
+  DATA_IVECTOR(observed_y);
+  DATA_IVECTOR(observed_y1);
+  DATA_IVECTOR(observed_y2);
+  DATA_INTEGER(has_mi);
+  DATA_INTEGER(mi_family);
+  DATA_INTEGER(mi_col);
+  DATA_VECTOR(mi_x);
+  DATA_VECTOR(mi_successes);
+  DATA_VECTOR(mi_trials);
+  DATA_IVECTOR(mi_observed);
+  DATA_IVECTOR(mi_missing_index);
+  DATA_INTEGER(has_mi_group);
+  DATA_IVECTOR(mi_group_index);
+  DATA_INTEGER(has_mi_struct);
+  DATA_IVECTOR(mi_struct_index);
+  DATA_VECTOR(mi_struct_value);
+  DATA_SPARSE_MATRIX(Q_mi_struct);
+  DATA_SCALAR(log_det_Q_mi_struct);
+  DATA_MATRIX(X_mi);
+  DATA_INTEGER(mi_n_state);
+  DATA_MATRIX(X_mi_state_mu);
+  DATA_VECTOR(mi_quad_nodes);
+  DATA_VECTOR(mi_quad_weights);
+  DATA_INTEGER(has_mi2);
+  DATA_INTEGER(mi_col2);
+  DATA_VECTOR(mi_x2);
+  DATA_IVECTOR(mi_observed2);
+  DATA_IVECTOR(mi_missing_index2);
+  DATA_MATRIX(X_mi2);
+  DATA_VECTOR(trials);
+  DATA_VECTOR(weights);
+  DATA_VECTOR(offset_mu);
+  DATA_INTEGER(use_gaussian_aggregation);
+  DATA_INTEGER(n_agg);
+  DATA_VECTOR(agg_n);
+  DATA_VECTOR(agg_mean_y);
+  DATA_VECTOR(agg_css);
+  DATA_MATRIX(X_mu_agg);
+  DATA_MATRIX(X_sigma_agg);
+  DATA_VECTOR(offset_mu_agg);
+  DATA_VECTOR(offset_sigma_agg);
+  DATA_VECTOR(V_known);
+  DATA_MATRIX(V_known_matrix);
+  DATA_INTEGER(V_known_type);
+  DATA_VECTOR(y1);
+  DATA_VECTOR(y2);
+  DATA_INTEGER(model_type);
+  DATA_INTEGER(use_mspl);
+  DATA_SCALAR(mspl_c_n);
+  DATA_INTEGER(mspl_q);
+  // Binomial link (model_type == 18 only): 0 = logit, 1 = probit, 2 = cloglog.
+  // Every other model_type ignores this field; it defaults to 0 in R so no
+  // existing call site needs to change. model_type itself stays the single
+  // family+link tag; this does not mint a new model_type.
+  DATA_INTEGER(link_code);
+  DATA_MATRIX(X_mu);
+  DATA_INTEGER(use_sparse_X_mu);
+  DATA_SPARSE_MATRIX(X_mu_sparse);
+  DATA_MATRIX(X_sigma);
+  DATA_MATRIX(X_nu);
+  DATA_MATRIX(X_zi);
+  DATA_MATRIX(X_sd_mu);
+  DATA_INTEGER(has_sd_mu_model);
+  DATA_MATRIX(X_sd_sigma);
+  DATA_INTEGER(has_sd_sigma_model);
+  DATA_MATRIX(X_sd_phylo);
+  DATA_INTEGER(has_sd_phylo_model);
+  DATA_MATRIX(X_sd_phylo2);
+  DATA_INTEGER(has_sd_phylo2_model);
+  DATA_IVECTOR(phylo_mu2_sd_row);
+  DATA_INTEGER(sd_phylo2_beta_offset);
+  // Gamma animal intercept + independent slope may use separate predictor
+  // designs. Each column gives the row in X_sd_phylo for that field's SD.
+  DATA_IMATRIX(phylo_mu_sd_row_coef);
+  DATA_INTEGER(has_sd_phylo_coef_model);
+  // Report the PER-GROUP direct-SD surface through ADREPORT (delta method)?
+  // `sd_phylo_group` carries one entry per group, so ADREPORTing it makes the
+  // joint ADREPORT covariance n_group x n_group. Under REML the fixed effects
+  // live in the Laplace `random` block, so `vcov()` reads exactly that joint
+  // covariance -- and a 10,440-tip bivariate fit needs ~14 GB for it
+  // (reported by A. Mizuno, 2026-07-08). Default 0: the values are still
+  // REPORT()ed (free) and are recomputed in R by `sd_phylo_group_values()`;
+  // only their delta-method standard errors are opt-in.
+  DATA_INTEGER(report_group_sd);
+  DATA_INTEGER(sd_phylo_beta_offset);
+  DATA_MATRIX(X_mu1);
+  DATA_MATRIX(X_mu2);
+  DATA_MATRIX(X_sigma1);
+  DATA_MATRIX(X_sigma2);
+  DATA_MATRIX(X_rho12);
+  DATA_INTEGER(n_mu_re_terms);
+  DATA_INTEGER(n_mu_re_cors);
+  DATA_IMATRIX(mu_re_index);
+  DATA_MATRIX(mu_re_value);
+  DATA_IVECTOR(mu_re_term);
+  DATA_IVECTOR(mu_re_dpar);
+  DATA_IVECTOR(mu_re_pos);
+  DATA_IVECTOR(mu_re_cor_id);
+  DATA_IVECTOR(mu_re_pair_index);
+  DATA_IVECTOR(mu_re_sd_row);
+  DATA_MATRIX(X_cor_mu);
+  DATA_INTEGER(has_cor_mu_model);
+  DATA_INTEGER(n_sigma_re_terms);
+  DATA_INTEGER(n_sigma_re_cors);
+  DATA_INTEGER(n_mu_sigma_re_cors);
+  DATA_IMATRIX(sigma_re_index);
+  DATA_MATRIX(sigma_re_value);
+  DATA_IVECTOR(sigma_re_term);
+  DATA_IVECTOR(sigma_re_sd_row);
+  DATA_IVECTOR(sigma_re_dpar);
+  DATA_IVECTOR(sigma_re_cor_id);
+  DATA_IVECTOR(sigma_re_pair_index);
+  DATA_IVECTOR(sigma_re_cross_cor);
+  DATA_IVECTOR(sigma_re_cross_mu);
+  DATA_INTEGER(n_zoi_re_terms);
+  DATA_IMATRIX(zoi_re_index);
+  DATA_MATRIX(zoi_re_value);
+  DATA_IVECTOR(zoi_re_term);
+  DATA_INTEGER(n_coi_re_terms);
+  DATA_IMATRIX(coi_re_index);
+  DATA_MATRIX(coi_re_value);
+  DATA_IVECTOR(coi_re_term);
+  DATA_INTEGER(has_phylo_mu);
+  DATA_IVECTOR(phylo_mu_sd_row);
+  DATA_IVECTOR(phylo_mu_node_index);
+  DATA_MATRIX(phylo_mu_value);
+  DATA_IVECTOR(phylo_mu_block_id);
+  DATA_IVECTOR(phylo_mu_dpar);
+  DATA_IVECTOR(phylo_mu_response);
+  DATA_INTEGER(phylo_mu_n_blocks);
+  DATA_INTEGER(has_phylo_mu_q2_covariance);
+  DATA_SPARSE_MATRIX(Q_phylo);
+  DATA_SCALAR(log_det_Q_phylo);
+  // Scoped second structured location field (M5 row 105): its own group
+  // precision (spatial coordinate kernel vs relatedness Q), always q = 1
+  // intercept-only, so no among-endpoint theta is needed.
+  DATA_INTEGER(has_phylo_mu2);
+  DATA_IVECTOR(phylo_mu2_node_index);
+  DATA_MATRIX(phylo_mu2_value);
+  DATA_SPARSE_MATRIX(Q_phylo2);
+  DATA_SCALAR(log_det_Q_phylo2);
+  // Fixed-kappa mesh/SPDE Gaussian location field.  This is intentionally not
+  // the existing node-indexed coordinate/relatedness route: A contains one
+  // barycentric observation-to-vertex row per retained observation.
+  DATA_INTEGER(has_mesh_spatial_mu);
+  DATA_SPARSE_MATRIX(A_mesh_spatial);
+  DATA_SPARSE_MATRIX(Q_mesh_spatial);
+  DATA_VECTOR(mesh_spatial_value);
+  // Retained as R-side validated mesh metadata. The normalized density below
+  // obtains the log determinant from Q directly.
+  DATA_SCALAR(log_det_Q_mesh_spatial);
+  DATA_INTEGER(penalize_phylo);
+  DATA_VECTOR(phylo_sd_penalty_rate);
+  DATA_VECTOR(phylo_cor_penalty_sd);
+  DATA_INTEGER(use_logsigma_clamp);
+  DATA_VECTOR(logsigma_clamp);
+  DATA_INTEGER(qgt2_corr_parameterization);
+  DATA_INTEGER(n_re_cov_blocks);
+  DATA_IVECTOR(re_cov_block_size);
+  DATA_IVECTOR(re_cov_block_group_count);
+  DATA_IVECTOR(re_cov_block_member_start);
+  DATA_IVECTOR(re_cov_block_pair_start);
+  DATA_IVECTOR(re_cov_member_component);
+  DATA_IVECTOR(re_cov_member_dpar);
+  DATA_IVECTOR(re_cov_member_response);
+  DATA_IVECTOR(re_cov_member_source_term);
+  DATA_IVECTOR(re_cov_member_coef_pos);
+  DATA_IMATRIX(re_cov_member_latent_index);
+  DATA_MATRIX(re_cov_member_design_value);
+  DATA_IVECTOR(re_cov_pair_from_member);
+  DATA_IVECTOR(re_cov_pair_to_member);
+  DATA_IVECTOR(re_cov_pair_parameter);
+  DATA_IVECTOR(re_cov_pair_parameter_index);
+  DATA_VECTOR(re_cov_probe_theta);
+  DATA_VECTOR(re_cov_probe_sd);
+  DATA_VECTOR(re_cov_probe_x);
+  DATA_VECTOR(re_cov_probe_z);
+  DATA_MATRIX(re_cov_probe_covariance);
+
+  PARAMETER_VECTOR(beta_mu);
+  PARAMETER_VECTOR(beta_sigma);
+  PARAMETER_VECTOR(beta_nu);
+  PARAMETER_VECTOR(beta_zi);
+  PARAMETER_VECTOR(beta_zoi);
+  PARAMETER_VECTOR(beta_coi);
+  PARAMETER_VECTOR(theta_ord);
+  PARAMETER_VECTOR(beta_sd_mu);
+  PARAMETER_VECTOR(beta_sd_sigma);
+  PARAMETER_VECTOR(beta_mu1);
+  PARAMETER_VECTOR(beta_mu2);
+  PARAMETER_VECTOR(beta_sigma1);
+  PARAMETER_VECTOR(beta_sigma2);
+  PARAMETER_VECTOR(beta_rho12);
+  PARAMETER_VECTOR(beta_cor_mu);
+  PARAMETER_VECTOR(beta_mi);
+  PARAMETER_VECTOR(log_sigma_mi);
+  PARAMETER_VECTOR(x_miss);
+  PARAMETER_VECTOR(beta_mi2);
+  PARAMETER_VECTOR(log_sigma_mi2);
+  PARAMETER_VECTOR(x_miss2);
+  PARAMETER_VECTOR(u_mi_group);
+  PARAMETER_VECTOR(log_sd_mi_group);
+  PARAMETER_VECTOR(u_mi_struct);
+  PARAMETER_VECTOR(log_sd_mi_struct);
+  PARAMETER_VECTOR(u_mu);
+  PARAMETER_VECTOR(log_sd_mu);
+  PARAMETER_VECTOR(eta_cor_mu);
+  PARAMETER_VECTOR(eta_cor_mu_sigma);
+  PARAMETER_VECTOR(eta_cor_sigma);
+  PARAMETER_VECTOR(u_sigma);
+  PARAMETER_VECTOR(log_sd_sigma);
+  PARAMETER_VECTOR(u_zoi);
+  PARAMETER_VECTOR(log_sd_zoi);
+  PARAMETER_VECTOR(u_coi);
+  PARAMETER_VECTOR(log_sd_coi);
+  PARAMETER_VECTOR(u_phylo);
+  PARAMETER_VECTOR(u_re_cov);
+  PARAMETER_VECTOR(log_sd_re_cov);
+  PARAMETER_VECTOR(theta_re_cov);
+  PARAMETER_VECTOR(u_re_cov_probe);
+  PARAMETER_VECTOR(log_sd_phylo);
+  PARAMETER_VECTOR(theta_phylo);
+  PARAMETER(eta_cor_phylo);
+  PARAMETER_VECTOR(u_phylo2);
+  PARAMETER_VECTOR(log_sd_phylo2);
+
+  Type nll = 0;
+  Type phylo_penalty = Type(0.0);
+  Type sd_logscale_overflow_guard_hit = Type(0.0);
+  (void)mi_observed;
+  (void)n_re_cov_blocks;
+  (void)re_cov_block_size;
+  (void)re_cov_block_group_count;
+  (void)re_cov_block_member_start;
+  (void)re_cov_block_pair_start;
+  (void)re_cov_member_component;
+  (void)re_cov_member_dpar;
+  (void)re_cov_member_response;
+  (void)re_cov_member_source_term;
+  (void)re_cov_member_coef_pos;
+  (void)re_cov_member_latent_index;
+  (void)re_cov_member_design_value;
+  (void)log_det_Q_mesh_spatial;
+  (void)re_cov_pair_from_member;
+  (void)re_cov_pair_to_member;
+  (void)re_cov_pair_parameter;
+  (void)re_cov_pair_parameter_index;
+  if (model_type == 93) {
+    int n_phylo = Q_phylo.rows();
+    int q = log_sd_phylo.size();
+    matrix<Type> effect(n_phylo, q);
+    for (int j = 0; j < q; ++j) {
+      for (int i = 0; i < n_phylo; ++i) {
+        int pos = j * n_phylo + i;
+        effect(i, j) = u_re_cov_probe(pos);
+      }
+    }
+    matrix<Type> phylo_q4_corr = drm_qgt2_corr_matrix(
+      theta_phylo,
+      q,
+      qgt2_corr_parameterization
+    );
+    vector<Type> sd_phylo = exp(log_sd_phylo);
+    matrix<Type> phylo_q4_covariance(q, q);
+    for (int a = 0; a < q; ++a) {
+      for (int b = 0; b < q; ++b) {
+        phylo_q4_covariance(a, b) =
+          sd_phylo(a) * phylo_q4_corr(a, b) * sd_phylo(b);
+      }
+    }
+    matrix<Type> quadratic_matrix(q, q);
+    quadratic_matrix.setZero();
+    for (int b = 0; b < q; ++b) {
+      vector<Type> effect_b(n_phylo);
+      for (int i = 0; i < n_phylo; ++i) {
+        effect_b(i) = effect(i, b);
+      }
+      vector<Type> Q_effect_b = Q_phylo * effect_b;
+      for (int a = 0; a < q; ++a) {
+        for (int i = 0; i < n_phylo; ++i) {
+          quadratic_matrix(a, b) += effect(i, a) * Q_effect_b(i);
+        }
+      }
+    }
+    Type log_det_covariance = Type(0.0);
+    Type quadratic = Type(0.0);
+    drm_separable_cov_logdet_quad(
+      phylo_q4_covariance, quadratic_matrix, q, log_det_covariance, quadratic);
+    nll += Type(0.5) * (
+      Type(n_phylo * q) * log(Type(2.0) * M_PI) +
+      Type(n_phylo) * log_det_covariance -
+      Type(q) * log_det_Q_phylo +
+      quadratic
+    );
+    REPORT(quadratic);
+    REPORT(log_det_covariance);
+    REPORT(quadratic_matrix);
+    REPORT(sd_phylo);
+    REPORT(theta_phylo);
+    REPORT(phylo_q4_corr);
+    REPORT(phylo_q4_covariance);
+  } else if (model_type == 94) {
+    int n_phylo = Q_phylo.rows();
+    int q = re_cov_probe_covariance.rows();
+    matrix<Type> effect(n_phylo, q);
+    for (int j = 0; j < q; ++j) {
+      for (int i = 0; i < n_phylo; ++i) {
+        int pos = j * n_phylo + i;
+        effect(i, j) = u_re_cov_probe(pos);
+      }
+    }
+    matrix<Type> quadratic_matrix(q, q);
+    quadratic_matrix.setZero();
+    for (int b = 0; b < q; ++b) {
+      vector<Type> effect_b(n_phylo);
+      for (int i = 0; i < n_phylo; ++i) {
+        effect_b(i) = effect(i, b);
+      }
+      vector<Type> Q_effect_b = Q_phylo * effect_b;
+      for (int a = 0; a < q; ++a) {
+        for (int i = 0; i < n_phylo; ++i) {
+          quadratic_matrix(a, b) += effect(i, a) * Q_effect_b(i);
+        }
+      }
+    }
+    Type log_det_covariance = Type(0.0);
+    Type quadratic = Type(0.0);
+    drm_separable_cov_logdet_quad(
+      re_cov_probe_covariance, quadratic_matrix, q, log_det_covariance, quadratic);
+    nll += Type(0.5) * (
+      Type(n_phylo * q) * log(Type(2.0) * M_PI) +
+      Type(n_phylo) * log_det_covariance -
+      Type(q) * log_det_Q_phylo +
+      quadratic
+    );
+    REPORT(quadratic);
+    REPORT(log_det_covariance);
+    REPORT(quadratic_matrix);
+  } else if (model_type == 95 || model_type == 96 || model_type == 97) {
+    density::UNSTRUCTURED_CORR_t<Type> re_cov_probe_density(re_cov_probe_theta);
+    matrix<Type> re_cov_probe_corr = re_cov_probe_density.cov();
+    matrix<Type> re_cov_probe_contribution(
+      re_cov_member_design_value.rows(),
+      re_cov_member_design_value.cols()
+    );
+    re_cov_probe_contribution.setZero();
+    for (int b = 0; b < n_re_cov_blocks; ++b) {
+      int block_size = re_cov_block_size(b);
+      int n_groups = re_cov_block_group_count(b);
+      int member_start = re_cov_block_member_start(b);
+      for (int g = 0; g < n_groups; ++g) {
+        vector<Type> z(block_size);
+        for (int m = 0; m < block_size; ++m) {
+          int z_pos = g * block_size + m;
+          z(m) = Type(0.0);
+          if (z_pos < u_re_cov_probe.size()) {
+            z(m) = u_re_cov_probe(z_pos);
+          } else if (z_pos < re_cov_probe_z.size()) {
+            z(m) = re_cov_probe_z(z_pos);
+          }
+        }
+        vector<Type> latent(block_size);
+        if (re_cov_probe_sd.size() == block_size) {
+          latent = density::VECSCALE(
+            re_cov_probe_density,
+            re_cov_probe_sd
+          ).sqrt_cov_scale(z);
+        } else {
+          latent = re_cov_probe_density.sqrt_cov_scale(z);
+        }
+        for (int m = 0; m < block_size; ++m) {
+          int member_col = member_start + m;
+          for (int i = 0; i < re_cov_member_design_value.rows(); ++i) {
+            if (re_cov_member_latent_index(i, member_col) == g) {
+              re_cov_probe_contribution(i, member_col) =
+                re_cov_member_design_value(i, member_col) * latent(m);
+            }
+          }
+        }
+      }
+    }
+    for (int j = 0; j < u_re_cov_probe.size(); ++j) {
+      nll -= dnorm(u_re_cov_probe(j), Type(0.0), Type(1.0), true);
+    }
+    if (model_type == 95) {
+      vector<Type> mu1 = X_mu1 * beta_mu1;
+      vector<Type> mu2 = X_mu2 * beta_mu2;
+      vector<Type> log_sigma1 = X_sigma1 * beta_sigma1;
+      vector<Type> log_sigma2 = X_sigma2 * beta_sigma2;
+      vector<Type> eta_rho12 = X_rho12 * beta_rho12;
+      vector<Type> rho12 = Type(0.999999) * tanh(eta_rho12);
+      for (int i = 0; i < y1.size(); ++i) {
+        if (i < re_cov_probe_contribution.rows()) {
+          for (int m = 0; m < re_cov_probe_contribution.cols(); ++m) {
+            int dpar_code = re_cov_member_dpar(m);
+            if (dpar_code == 2) {
+              mu1(i) += re_cov_probe_contribution(i, m);
+            } else if (dpar_code == 3) {
+              mu2(i) += re_cov_probe_contribution(i, m);
+            } else if (dpar_code == 4) {
+              log_sigma1(i) += re_cov_probe_contribution(i, m);
+            } else if (dpar_code == 5) {
+              log_sigma2(i) += re_cov_probe_contribution(i, m);
+            }
+          }
+        }
+      }
+      vector<Type> sigma1 = exp(log_sigma1);
+      vector<Type> sigma2 = exp(log_sigma2);
+      drm_bivariate_gaussian_diag_nll(
+        nll, y1, y2, mu1, mu2, log_sigma1, log_sigma2,
+        sigma1, sigma2, rho12, weights, observed_y1, observed_y2);
+      REPORT(mu1);
+      REPORT(mu2);
+      REPORT(log_sigma1);
+      REPORT(log_sigma2);
+      REPORT(sigma1);
+      REPORT(sigma2);
+      REPORT(eta_rho12);
+      REPORT(rho12);
+    } else if (model_type == 96) {
+      vector<Type> mu = X_mu * beta_mu;
+      vector<Type> log_sigma = X_sigma * beta_sigma;
+      for (int i = 0; i < y.size(); ++i) {
+        if (i < re_cov_probe_contribution.rows()) {
+          for (int m = 0; m < re_cov_probe_contribution.cols(); ++m) {
+            if (re_cov_member_component(m) == 0) {
+              mu(i) += re_cov_probe_contribution(i, m);
+            } else if (re_cov_member_component(m) == 1) {
+              log_sigma(i) += re_cov_probe_contribution(i, m);
+            }
+          }
+        }
+      }
+      vector<Type> sigma = exp(log_sigma);
+      vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
+      for (int i = 0; i < y.size(); ++i) {
+        nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
+      }
+      REPORT(mu);
+      REPORT(log_sigma);
+      REPORT(sigma);
+      REPORT(obs_sigma);
+    }
+    REPORT(re_cov_probe_corr);
+    REPORT(re_cov_probe_contribution);
+  } else if (model_type == 98) {
+    density::UNSTRUCTURED_CORR_t<Type> re_cov_probe_density(re_cov_probe_theta);
+    matrix<Type> re_cov_probe_corr = re_cov_probe_density.cov();
+    vector<Type> re_cov_probe_latent(re_cov_probe_z.size());
+    if (re_cov_probe_z.size() > 0) {
+      if (re_cov_probe_sd.size() == re_cov_probe_z.size()) {
+        re_cov_probe_latent = density::VECSCALE(
+          re_cov_probe_density,
+          re_cov_probe_sd
+        ).sqrt_cov_scale(re_cov_probe_z);
+      } else {
+        re_cov_probe_latent = re_cov_probe_density.sqrt_cov_scale(re_cov_probe_z);
+      }
+    }
+    if (re_cov_probe_x.size() > 0) {
+      if (re_cov_probe_sd.size() == re_cov_probe_x.size()) {
+        nll += density::VECSCALE(
+          re_cov_probe_density,
+          re_cov_probe_sd
+        )(re_cov_probe_x);
+      } else {
+        nll += re_cov_probe_density(re_cov_probe_x);
+      }
+    }
+    REPORT(re_cov_probe_corr);
+    REPORT(re_cov_probe_latent);
+  } else if (model_type == 99) {
+    int n_phylo = u_phylo.size();
+    vector<Type> Q_u = Q_phylo * u_phylo;
+    Type quadratic = Type(0.0);
+    for (int i = 0; i < n_phylo; ++i) {
+      quadratic += u_phylo(i) * Q_u(i);
+    }
+    nll += Type(0.5) * (
+      Type(n_phylo) * log(Type(2.0) * M_PI) +
+      Type(2.0) * Type(n_phylo) * log_sd_phylo(0) -
+      log_det_Q_phylo +
+      exp(Type(-2.0) * log_sd_phylo(0)) * quadratic
+    );
+    REPORT(quadratic);
+    REPORT(log_det_Q_phylo);
+  } else if (model_type == 1) {
+    if (use_gaussian_aggregation == 1) {
+      vector<Type> mu = offset_mu_agg + X_mu_agg * beta_mu;
+      vector<Type> log_sigma = offset_sigma_agg + X_sigma_agg * beta_sigma;
+      if (use_logsigma_clamp == 1) {
+        drm_softclamp_log_sigma(
+          log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+      }
+      vector<Type> sigma = exp(log_sigma);
+      for (int g = 0; g < n_agg; ++g) {
+        Type variance = sigma(g) * sigma(g);
+        // Centered quadratic css + n (mean_y - mu)^2 avoids the catastrophic
+        // cancellation of the expanded second-moment form (#701).
+        Type dev = agg_mean_y(g) - mu(g);
+        Type quadratic = agg_css(g) + agg_n(g) * dev * dev;
+        nll += Type(0.5) * agg_n(g) * log(Type(2.0) * M_PI) +
+          agg_n(g) * log_sigma(g) +
+          Type(0.5) * quadratic / variance;
+      }
+      REPORT(mu);
+      REPORT(log_sigma);
+      REPORT(sigma);
+      REPORT(agg_n);
+      REPORT(agg_mean_y);
+      REPORT(agg_css);
+      ADREPORT(beta_mu);
+      ADREPORT(beta_sigma);
+    } else {
+      vector<Type> fixed_mu(y.size());
+      if (use_sparse_X_mu == 1) {
+        fixed_mu = X_mu_sparse * beta_mu;
+      } else {
+        fixed_mu = X_mu * beta_mu;
+      }
+      vector<Type> mu = offset_mu + fixed_mu;
+      vector<Type> log_sigma = X_sigma * beta_sigma;
+      vector<Type> log_sd_sigma_group(X_sd_sigma.rows());
+      vector<Type> sd_sigma_group(X_sd_sigma.rows());
+
+      if (n_re_cov_blocks > 0) {
+        int n_re_cov_qgt2_blocks = 0;
+        for (int b = 0; b < n_re_cov_blocks; ++b) {
+          if (re_cov_block_size(b) > 2) {
+            n_re_cov_qgt2_blocks += 1;
+          }
+        }
+        if (n_re_cov_qgt2_blocks > 0) {
+          int theta_offset = 0;
+          int sd_offset = 0;
+          int u_offset = 0;
+          int rho_offset = 0;
+          vector<Type> sd_re_cov(log_sd_re_cov.size());
+          for (int j = 0; j < log_sd_re_cov.size(); ++j) {
+            sd_re_cov(j) = exp(log_sd_re_cov(j));
+          }
+          vector<Type> rho_re_cov(theta_re_cov.size());
+          matrix<Type> re_cov_contribution(
+            re_cov_member_design_value.rows(),
+            re_cov_member_design_value.cols()
+          );
+          re_cov_contribution.setZero();
+
+          for (int b = 0; b < n_re_cov_blocks; ++b) {
+            int block_size = re_cov_block_size(b);
+            int n_groups = re_cov_block_group_count(b);
+            int member_start = re_cov_block_member_start(b);
+            int pair_start = re_cov_block_pair_start(b);
+            int n_pairs = block_size * (block_size - 1) / 2;
+            if (block_size <= 2) {
+              continue;
+            }
+
+            vector<Type> theta_block(n_pairs);
+            for (int p = 0; p < n_pairs; ++p) {
+              theta_block(p) = theta_re_cov(theta_offset + p);
+            }
+            density::UNSTRUCTURED_CORR_t<Type> re_cov_density(theta_block);
+            matrix<Type> re_cov_corr = re_cov_density.cov();
+            vector<Type> sd_block(block_size);
+            for (int m = 0; m < block_size; ++m) {
+              sd_block(m) = sd_re_cov(sd_offset + m);
+            }
+            for (int p = 0; p < n_pairs; ++p) {
+              int from = re_cov_pair_from_member(pair_start + p);
+              int to = re_cov_pair_to_member(pair_start + p);
+              rho_re_cov(rho_offset + p) = re_cov_corr(from, to);
+            }
+
+            for (int g = 0; g < n_groups; ++g) {
+              vector<Type> z(block_size);
+              for (int m = 0; m < block_size; ++m) {
+                z(m) = u_re_cov(u_offset + g * block_size + m);
+              }
+              vector<Type> latent = density::VECSCALE(
+                re_cov_density,
+                sd_block
+              ).sqrt_cov_scale(z);
+              for (int m = 0; m < block_size; ++m) {
+                int member_col = member_start + m;
+                for (int i = 0; i < y.size(); ++i) {
+                  if (re_cov_member_latent_index(i, member_col) == g) {
+                    Type contribution =
+                      re_cov_member_design_value(i, member_col) * latent(m);
+                    re_cov_contribution(i, member_col) = contribution;
+                    int dpar_code = re_cov_member_dpar(member_col);
+                    if (dpar_code == 0) {
+                      mu(i) += contribution;
+                    } else if (dpar_code == 1) {
+                      log_sigma(i) += contribution;
+                    }
+                  }
+                }
+              }
+            }
+
+            theta_offset += n_pairs;
+            sd_offset += block_size;
+            u_offset += n_groups * block_size;
+            rho_offset += n_pairs;
+          }
+          for (int j = 0; j < u_re_cov.size(); ++j) {
+            nll -= dnorm(u_re_cov(j), Type(0.0), Type(1.0), true);
+          }
+          if (theta_re_cov.size() > 0) {
+            REPORT(u_re_cov);
+            REPORT(log_sd_re_cov);
+            REPORT(sd_re_cov);
+            REPORT(theta_re_cov);
+            REPORT(rho_re_cov);
+            REPORT(re_cov_contribution);
+            ADREPORT(log_sd_re_cov);
+            ADREPORT(sd_re_cov);
+            ADREPORT(theta_re_cov);
+            ADREPORT(rho_re_cov);
+          }
+        }
+      }
+
+      if (n_mu_re_terms > 0) {
+        vector<Type> sd_mu_re = exp(log_sd_mu);
+        vector<Type> sd_mu_group(X_sd_mu.rows());
+        if (has_sd_mu_model == 1) {
+          for (int g = 0; g < X_sd_mu.rows(); ++g) {
+            Type eta_sd = Type(0.0);
+            for (int k = 0; k < X_sd_mu.cols(); ++k) {
+              eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+            }
+            sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+              drm_softclamp_log_sd(
+                eta_sd, use_logsigma_clamp, logsigma_clamp),
+              sd_logscale_overflow_guard_hit);
+          }
+        }
+        vector<Type> rho_mu_re(n_mu_re_cors);
+        for (int j = 0; j < n_mu_re_cors; ++j) {
+          rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
+        }
+        for (int i = 0; i < y.size(); ++i) {
+          for (int j = 0; j < n_mu_re_terms; ++j) {
+            int idx = mu_re_index(i, j);
+            int cor_id = mu_re_cor_id(idx);
+            int sd_row = mu_re_sd_row(idx);
+            Type sd_current = sd_mu_re(mu_re_term(idx));
+            if (sd_row >= 0) {
+              sd_current = sd_mu_group(sd_row);
+            }
+            Type u_cond = u_mu(idx);
+            if (cor_id >= 0 && mu_re_pos(idx) == 1) {
+              Type rho = rho_mu_re(cor_id);
+              int pair_idx = mu_re_pair_index(idx);
+              u_cond = rho * u_mu(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_mu(idx);
+            }
+            mu(i) += mu_re_value(i, j) * sd_current * u_cond;
+          }
+        }
+        for (int j = 0; j < u_mu.size(); ++j) {
+          nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+        }
+      }
+
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      if (has_sd_sigma_model == 1) {
+        for (int g = 0; g < X_sd_sigma.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_sigma.cols(); ++k) {
+            eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
+          }
+          log_sd_sigma_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      // Same-dpar residual-scale correlations: a correlated intercept+slope block
+      // such as `sigma ~ x + (1 + x | id)`. Mirrors the bivariate loop's ordering.
+      vector<Type> rho_sigma_re(n_sigma_re_cors);
+      for (int j = 0; j < n_sigma_re_cors; ++j) {
+        rho_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_sigma(j));
+      }
+      vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
+      for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+        rho_mu_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_mu_sigma(j));
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          Type u_cond = u_sigma(idx);
+          // (1) same-dpar (sigma intercept <-> sigma slope) conditioning FIRST.
+          // `sigma_re_cor_id` marks correlation-GROUP MEMBERSHIP (it is >= 0 on the
+          // base intercept rows too); `sigma_re_pair_index` is -1 on the base rows and
+          // points at the paired intercept on the slope rows. Only the paired (slope)
+          // rows are conditioned -- this mirrors the mu loop's
+          // `cor_id >= 0 && mu_re_pos(idx) == 1` guard without needing a sigma_re_pos
+          // DATA vector. Guarding on pair_idx also protects the u_sigma(pair_idx)
+          // dereference directly.
+          int cor_id = sigma_re_cor_id(idx);
+          int pair_idx = sigma_re_pair_index(idx);
+          if (cor_id >= 0 && pair_idx >= 0) {
+            Type rho = rho_sigma_re(cor_id);
+            u_cond = rho * u_sigma(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_sigma(idx);
+          }
+          // (2) cross-dpar (mu <-> sigma) conditioning applied to the ALREADY
+          // conditioned u_cond. When no same-dpar conditioning fires this is identical
+          // to the previous behaviour (u_cond == u_sigma(idx)), so existing fits are
+          // unchanged.
+          int cross_cor_id = sigma_re_cross_cor(idx);
+          if (cross_cor_id >= 0) {
+            Type rho = rho_mu_sigma_re(cross_cor_id);
+            int mu_idx = sigma_re_cross_mu(idx);
+            u_cond = rho * u_mu(mu_idx) + sqrt(Type(1.0) - rho * rho) * u_cond;
+          }
+          int sd_row = sigma_re_sd_row(idx);
+          Type sd_current = sd_sigma_re(sigma_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_sigma_group(sd_row);
+          }
+          log_sigma(i) += sigma_re_value(i, j) * sd_current * u_cond;
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+    }
+
+    if (has_phylo_mu == 1) {
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      if (has_sd_phylo_model == 1) {
+        for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+            eta_sd += X_sd_phylo(g, k) *
+              beta_sd_mu(sd_phylo_beta_offset + k);
+          }
+          log_sd_phylo_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_phylo_group(g),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      bool has_cross_dpar_phylo =
+        q_phylo == 2 && phylo_mu_dpar(0) != phylo_mu_dpar(1);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type field_effect = u_phylo(effect_index);
+          if (has_sd_phylo_model == 1) {
+            field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+          }
+          Type contribution = phylo_mu_value(i, k) * field_effect;
+          if (phylo_mu_dpar(k) == 1) {
+            log_sigma(i) += contribution;
+          } else {
+            mu(i) += contribution;
+          }
+        }
+      }
+      Type quadratic = Type(0.0);
+      if (has_cross_dpar_phylo && has_sd_phylo_model == 0) {
+        Type rho_phylo = Type(0.999999) * tanh(eta_cor_phylo);
+        vector<Type> u1(n_phylo);
+        vector<Type> u2(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          u1(j) = u_phylo(j);
+          u2(j) = u_phylo(n_phylo + j);
+        }
+        vector<Type> Q_u1 = Q_phylo * u1;
+        vector<Type> Q_u2 = Q_phylo * u2;
+        Type q11 = Type(0.0);
+        Type q12 = Type(0.0);
+        Type q22 = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          q11 += u1(j) * Q_u1(j);
+          q12 += u1(j) * Q_u2(j);
+          q22 += u2(j) * Q_u2(j);
+        }
+        Type one_minus_rho2 = Type(1.0) - rho_phylo * rho_phylo;
+        Type sd1 = sd_phylo(0);
+        Type sd2 = sd_phylo(1);
+        Type inv11 = Type(1.0) / (sd1 * sd1 * one_minus_rho2);
+        Type inv22 = Type(1.0) / (sd2 * sd2 * one_minus_rho2);
+        Type inv12 = -rho_phylo / (sd1 * sd2 * one_minus_rho2);
+        Type log_det_cov = Type(2.0) * log_sd_phylo(0) +
+          Type(2.0) * log_sd_phylo(1) +
+          log(one_minus_rho2);
+        Type quadratic_phylo =
+          inv11 * q11 + Type(2.0) * inv12 * q12 + inv22 * q22;
+        quadratic = quadratic_phylo;
+        nll += Type(0.5) * (
+          Type(2 * n_phylo) * log(Type(2.0) * M_PI) +
+          Type(n_phylo) * log_det_cov -
+          Type(2.0) * log_det_Q_phylo +
+          quadratic_phylo
+        );
+        REPORT(eta_cor_phylo);
+        REPORT(rho_phylo);
+        ADREPORT(eta_cor_phylo);
+        ADREPORT(rho_phylo);
+      } else {
+        for (int k = 0; k < q_phylo; ++k) {
+          vector<Type> effect_k(n_phylo);
+          for (int j = 0; j < n_phylo; ++j) {
+            effect_k(j) = u_phylo(k * n_phylo + j);
+          }
+          vector<Type> Q_u = Q_phylo * effect_k;
+          Type quadratic_k = Type(0.0);
+          for (int j = 0; j < n_phylo; ++j) {
+            quadratic_k += effect_k(j) * Q_u(j);
+          }
+          quadratic += quadratic_k;
+          if (has_sd_phylo_model == 1) {
+            nll += Type(0.5) * (
+              Type(n_phylo) * log(Type(2.0) * M_PI) -
+              log_det_Q_phylo +
+              quadratic_k
+            );
+          } else {
+            nll += Type(0.5) * (
+              Type(n_phylo) * log(Type(2.0) * M_PI) +
+              Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+              log_det_Q_phylo +
+              exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+            );
+          }
+        }
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      if (has_sd_phylo_model == 1) {
+        REPORT(log_sd_phylo_group);
+        REPORT(sd_phylo_group);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_phylo_group);
+          ADREPORT(sd_phylo_group);
+        }
+      } else {
+        ADREPORT(log_sd_phylo);
+        REPORT(sd_phylo);
+        ADREPORT(sd_phylo);
+      }
+      if (penalize_phylo == 1) {
+        phylo_penalty = drm_phylo_penalty_value(
+          log_sd_phylo, q_phylo, eta_cor_phylo, theta_phylo,
+          phylo_sd_penalty_rate, phylo_cor_penalty_sd);
+        nll += phylo_penalty;
+        REPORT(phylo_penalty);
+      }
+    }
+
+    if (has_phylo_mu2 == 1) {
+      int n_phylo2 = Q_phylo2.rows();
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += phylo_mu2_value(i, 0) * u_phylo2(phylo_mu2_node_index(i));
+      }
+      vector<Type> Q_u2 = Q_phylo2 * u_phylo2;
+      Type quadratic2 = Type(0.0);
+      for (int j = 0; j < n_phylo2; ++j) {
+        quadratic2 += u_phylo2(j) * Q_u2(j);
+      }
+      nll += Type(0.5) * (
+        Type(n_phylo2) * log(Type(2.0) * M_PI) +
+        Type(2.0) * Type(n_phylo2) * log_sd_phylo2(0) -
+        log_det_Q_phylo2 +
+        exp(Type(-2.0) * log_sd_phylo2(0)) * quadratic2
+      );
+      REPORT(u_phylo2);
+      REPORT(log_sd_phylo2);
+      REPORT(quadratic2);
+      ADREPORT(log_sd_phylo2);
+      vector<Type> sd_phylo2 = exp(log_sd_phylo2);
+      REPORT(sd_phylo2);
+      ADREPORT(sd_phylo2);
+    }
+
+    if (has_mesh_spatial_mu == 1) {
+      vector<Type> mesh_effect = A_mesh_spatial * u_phylo2;
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += mesh_spatial_value(i) * mesh_effect(i);
+      }
+      Type mesh_field_scale = exp(log_sd_phylo2(0));
+      nll += density::SCALE(
+        density::GMRF(Q_mesh_spatial, true), mesh_field_scale
+      )(u_phylo2);
+      REPORT(mesh_effect);
+      REPORT(u_phylo2);
+      REPORT(log_sd_phylo2);
+      ADREPORT(log_sd_phylo2);
+      vector<Type> sd_mesh_spatial = exp(log_sd_phylo2);
+      REPORT(sd_mesh_spatial);
+      ADREPORT(sd_mesh_spatial);
+    }
+
+    if (has_mi == 1 && mi_family == 0) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type sigma_mi = exp(log_sigma_mi(0));
+      Type sd_mi_group = Type(0.0);
+      Type sd_mi_struct = Type(0.0);
+      if (has_mi_group == 1) {
+        sd_mi_group = exp(log_sd_mi_group(0));
+        for (int i = 0; i < mi_eta.size(); ++i) {
+          mi_eta(i) += sd_mi_group * u_mi_group(mi_group_index(i));
+        }
+        for (int g = 0; g < u_mi_group.size(); ++g) {
+          nll -= dnorm(u_mi_group(g), Type(0.0), Type(1.0), true);
+        }
+      }
+      if (has_mi_struct == 1) {
+        sd_mi_struct = exp(log_sd_mi_struct(0));
+        for (int i = 0; i < mi_eta.size(); ++i) {
+          mi_eta(i) +=
+            mi_struct_value(i) * u_mi_struct(mi_struct_index(i));
+        }
+        vector<Type> Q_u_mi_struct = Q_mi_struct * u_mi_struct;
+        Type quadratic_mi_struct = Type(0.0);
+        for (int j = 0; j < u_mi_struct.size(); ++j) {
+          quadratic_mi_struct += u_mi_struct(j) * Q_u_mi_struct(j);
+        }
+        nll += Type(0.5) * (
+          Type(u_mi_struct.size()) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(u_mi_struct.size()) * log_sd_mi_struct(0) -
+          log_det_Q_mi_struct +
+          exp(Type(-2.0) * log_sd_mi_struct(0)) * quadratic_mi_struct
+        );
+      }
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_x.size(); ++i) {
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int j = 0; j < mi_missing_index.size(); ++j) {
+        int row = mi_missing_index(j);
+        mi_x_full(row) = x_miss(j);
+      }
+      for (int i = 0; i < mi_x_full.size(); ++i) {
+        nll -= dnorm(mi_x_full(i), mi_eta(i), sigma_mi, true);
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_mi);
+      REPORT(x_miss);
+      if (has_mi_group == 1) {
+        REPORT(u_mi_group);
+        REPORT(log_sd_mi_group);
+        REPORT(sd_mi_group);
+        ADREPORT(log_sd_mi_group);
+        ADREPORT(sd_mi_group);
+      }
+      if (has_mi_struct == 1) {
+        REPORT(u_mi_struct);
+        REPORT(log_sd_mi_struct);
+        REPORT(sd_mi_struct);
+        ADREPORT(log_sd_mi_struct);
+        ADREPORT(sd_mi_struct);
+      }
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_mi);
+    }
+
+    if (has_mi2 == 1) {
+      vector<Type> mi_eta2 = X_mi2 * beta_mi2;
+      Type sigma_mi2 = exp(log_sigma_mi2(0));
+      vector<Type> mi_x_full2(mi_x2.size());
+      for (int i = 0; i < mi_x2.size(); ++i) {
+        mi_x_full2(i) = mi_x2(i);
+      }
+      for (int j = 0; j < mi_missing_index2.size(); ++j) {
+        int row = mi_missing_index2(j);
+        mi_x_full2(row) = x_miss2(j);
+      }
+      for (int i = 0; i < mi_x_full2.size(); ++i) {
+        nll -= dnorm(mi_x_full2(i), mi_eta2(i), sigma_mi2, true);
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += beta_mu(mi_col2) * (mi_x_full2(i) - X_mu(i, mi_col2));
+      }
+      REPORT(mi_x_full2);
+      REPORT(beta_mi2);
+      REPORT(log_sigma_mi2);
+      REPORT(sigma_mi2);
+      REPORT(x_miss2);
+      ADREPORT(beta_mi2);
+      ADREPORT(log_sigma_mi2);
+      ADREPORT(sigma_mi2);
+    }
+
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          // weights(i) scales the WHOLE row contribution (row i represents
+          // weights(i) duplicate observations), so it applies to the
+          // imputation-prior term too, not just the response density
+          // (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
+          mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type mu1 = mu(i) + beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type mu0 = mu(i) + beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+          // weights(i) is applied OUTSIDE the two-point mixture, not to each
+          // leaf before logspace_add() combines them: multiplying inside
+          // computes log(p1*f1^w + p0*f0^w) rather than the correct
+          // w*log(p1*f1 + p0*f0) (Dinnage audit M1).
+          Type log_y1 = observed_y(i) == 1 ?
+            drm_response_log_density(model_type, y(i), mu1, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            drm_response_log_density(model_type, y(i), mu0, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
+          nll -= weights(i) * logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          mi_x_full(i) = mi_probability(i);
+          mu(i) += beta_mu(mi_col) * (mi_probability(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 2) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_cutpoints(theta_ord.size());
+      if (theta_ord.size() > 0) {
+        mi_cutpoints(0) = theta_ord(0);
+        for (int j = 1; j < theta_ord.size(); ++j) {
+          mi_cutpoints(j) = mi_cutpoints(j - 1) + exp(theta_ord(j));
+        }
+      }
+      int n_state = mi_n_state;
+      matrix<Type> mi_state_probability(mi_x.size(), n_state);
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_x.size(); ++i) {
+        mi_x_full(i) = mi_x(i);
+        for (int state = 0; state < n_state; ++state) {
+          Type log_prob;
+          if (state == 0) {
+            log_prob = drm_log_inv_logit(mi_cutpoints(0) - mi_eta(i));
+          } else if (state == n_state - 1) {
+            log_prob = drm_log1m_inv_logit(
+              mi_cutpoints(n_state - 2) - mi_eta(i)
+            );
+          } else {
+            Type upper = mi_cutpoints(state) - mi_eta(i);
+            Type lower = mi_cutpoints(state - 1) - mi_eta(i);
+            log_prob = drm_log_inv_logit_diff(upper, lower);
+          }
+          mi_state_probability(i, state) = exp(log_prob);
+        }
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        if (mi_observed(i) == 1) {
+          int state = (int) asDouble(mi_x(i)) - 1;
+          Type log_prob;
+          if (state == 0) {
+            log_prob = drm_log_inv_logit(mi_cutpoints(0) - mi_eta(i));
+          } else if (state == n_state - 1) {
+            log_prob = drm_log1m_inv_logit(
+              mi_cutpoints(n_state - 2) - mi_eta(i)
+            );
+          } else {
+            Type upper = mi_cutpoints(state) - mi_eta(i);
+            Type lower = mi_cutpoints(state - 1) - mi_eta(i);
+            log_prob = drm_log_inv_logit_diff(upper, lower);
+          }
+          // (Dinnage audit M1): weights(i) scales the WHOLE row
+          // contribution; apply it to the imputation-prior term here and
+          // move it OUTSIDE the mixture/quadrature sum below (log_denom),
+          // not to each leaf before logspace_add() combines them.
+          nll -= weights(i) * log_prob;
+        } else {
+          vector<Type> log_terms(n_state);
+          for (int state = 0; state < n_state; ++state) {
+            Type log_prob;
+            if (state == 0) {
+              log_prob = drm_log_inv_logit(mi_cutpoints(0) - mi_eta(i));
+            } else if (state == n_state - 1) {
+              log_prob = drm_log1m_inv_logit(
+                mi_cutpoints(n_state - 2) - mi_eta(i)
+              );
+            } else {
+              Type upper = mi_cutpoints(state) - mi_eta(i);
+              Type lower = mi_cutpoints(state - 1) - mi_eta(i);
+              log_prob = drm_log_inv_logit_diff(upper, lower);
+            }
+            Type state_fixed_mu = Type(0.0);
+            int state_row = i * n_state + state;
+            for (int col = 0; col < X_mi_state_mu.cols(); ++col) {
+              state_fixed_mu += X_mi_state_mu(state_row, col) * beta_mu(col);
+            }
+            Type mu_state = mu(i) - fixed_mu(i) + state_fixed_mu;
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = observed_y(i) == 1 ?
+              drm_response_log_density(model_type, y(i), mu_state, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
+            log_terms(state) = log_prob + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int state = 1; state < n_state; ++state) {
+            log_denom = logspace_add(log_denom, log_terms(state));
+          }
+          nll -= weights(i) * log_denom;
+          Type expected_score = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int state = 0; state < n_state; ++state) {
+            Type posterior = exp(log_terms(state) - log_denom);
+            mi_state_probability(i, state) = posterior;
+            expected_score += Type(state + 1) * posterior;
+            Type state_fixed_mu = Type(0.0);
+            int state_row = i * n_state + state;
+            for (int col = 0; col < X_mi_state_mu.cols(); ++col) {
+              state_fixed_mu += X_mi_state_mu(state_row, col) * beta_mu(col);
+            }
+            expected_mu += (mu(i) - fixed_mu(i) + state_fixed_mu) * posterior;
+          }
+          mi_x_full(i) = expected_score;
+          mu(i) = expected_mu;
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_cutpoints);
+      REPORT(mi_state_probability);
+      ADREPORT(beta_mi);
+      ADREPORT(mi_cutpoints);
+    }
+
+    if (has_mi == 1 && mi_family == 3) {
+      int n_state = mi_n_state;
+      int n_coef = X_mi.cols();
+      matrix<Type> mi_state_probability(mi_x.size(), n_state);
+      vector<Type> mi_x_full(mi_x.size());
+      matrix<Type> mi_log_prior(mi_x.size(), n_state);
+      for (int i = 0; i < mi_x.size(); ++i) {
+        vector<Type> eta_state(n_state);
+        eta_state(0) = Type(0.0);
+        for (int state = 1; state < n_state; ++state) {
+          Type eta = Type(0.0);
+          int offset = (state - 1) * n_coef;
+          for (int col = 0; col < n_coef; ++col) {
+            eta += X_mi(i, col) * beta_mi(offset + col);
+          }
+          eta_state(state) = eta;
+        }
+        Type max_eta = eta_state(0);
+        for (int state = 1; state < n_state; ++state) {
+          max_eta = CppAD::CondExpGt(eta_state(state), max_eta, eta_state(state), max_eta);
+        }
+        Type denom = Type(0.0);
+        for (int state = 0; state < n_state; ++state) {
+          denom += exp(eta_state(state) - max_eta);
+        }
+        Type log_denom = max_eta + log(denom);
+        mi_x_full(i) = mi_x(i);
+        for (int state = 0; state < n_state; ++state) {
+          mi_log_prior(i, state) = eta_state(state) - log_denom;
+          mi_state_probability(i, state) = exp(mi_log_prior(i, state));
+        }
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        if (mi_observed(i) == 1) {
+          int state = (int) asDouble(mi_x(i)) - 1;
+          // (Dinnage audit M1): weights(i) scales the WHOLE row
+          // contribution; apply it to the imputation-prior term here and
+          // move it OUTSIDE the mixture/quadrature sum below (log_denom),
+          // not to each leaf before logspace_add() combines them.
+          nll -= weights(i) * mi_log_prior(i, state);
+        } else {
+          vector<Type> log_terms(n_state);
+          for (int state = 0; state < n_state; ++state) {
+            Type state_fixed_mu = Type(0.0);
+            int state_row = i * n_state + state;
+            for (int col = 0; col < X_mi_state_mu.cols(); ++col) {
+              state_fixed_mu += X_mi_state_mu(state_row, col) * beta_mu(col);
+            }
+            Type mu_state = mu(i) - fixed_mu(i) + state_fixed_mu;
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = observed_y(i) == 1 ?
+              drm_response_log_density(model_type, y(i), mu_state, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
+            log_terms(state) = mi_log_prior(i, state) + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int state = 1; state < n_state; ++state) {
+            log_denom = logspace_add(log_denom, log_terms(state));
+          }
+          nll -= weights(i) * log_denom;
+          Type expected_score = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int state = 0; state < n_state; ++state) {
+            Type posterior = exp(log_terms(state) - log_denom);
+            mi_state_probability(i, state) = posterior;
+            expected_score += Type(state + 1) * posterior;
+            Type state_fixed_mu = Type(0.0);
+            int state_row = i * n_state + state;
+            for (int col = 0; col < X_mi_state_mu.cols(); ++col) {
+              state_fixed_mu += X_mi_state_mu(state_row, col) * beta_mu(col);
+            }
+            expected_mu += (mu(i) - fixed_mu(i) + state_fixed_mu) * posterior;
+          }
+          mi_x_full(i) = expected_score;
+          mu(i) = expected_mu;
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_state_probability);
+      ADREPORT(beta_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 4) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_beta_mi = log_sigma_mi(0);
+      Type sigma_beta_mi = exp(log_sigma_beta_mi);
+      Type phi_beta_mi = exp(Type(-2.0) * log_sigma_beta_mi);
+      Type beta_mi_eps = Type(1e-12);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type mu_raw = exp(drm_log_inv_logit(mi_eta(i)));
+        mi_mean(i) = beta_mi_eps +
+          (Type(1.0) - Type(2.0) * beta_mi_eps) * mu_raw;
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type alpha_i = mi_mean(i) * phi_beta_mi;
+        Type beta_i = (Type(1.0) - mi_mean(i)) * phi_beta_mi;
+        Type shape_floor = Type(1e-8);
+        alpha_i = CppAD::CondExpLt(
+          alpha_i,
+          shape_floor,
+          shape_floor,
+          alpha_i
+        );
+        beta_i = CppAD::CondExpLt(
+          beta_i,
+          shape_floor,
+          shape_floor,
+          beta_i
+        );
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density =
+            lgamma(alpha_i + beta_i) -
+            lgamma(alpha_i) -
+            lgamma(beta_i) +
+            (alpha_i - Type(1.0)) * log(x_i) +
+            (beta_i - Type(1.0)) * log(Type(1.0) - x_i);
+          // (Dinnage audit M1): weights(i) scales the WHOLE row
+          // contribution; apply it to the imputation-prior term here and
+          // move it OUTSIDE the mixture/quadrature sum below (log_denom),
+          // not to each leaf before logspace_add() combines them.
+          nll -= weights(i) * log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              lgamma(alpha_i + beta_i) -
+              lgamma(alpha_i) -
+              lgamma(beta_i) +
+              (alpha_i - Type(1.0)) * log(x_q) +
+              (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
+            log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= weights(i) * log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              lgamma(alpha_i + beta_i) -
+              lgamma(alpha_i) -
+              lgamma(beta_i) +
+              (alpha_i - Type(1.0)) * log(x_q) +
+              (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+            Type term = mi_quad_weights(q) * exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_beta_mi);
+      REPORT(phi_beta_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_beta_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 10) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_zob_mi = log_sigma_mi(0);
+      Type sigma_zob_mi = exp(log_sigma_zob_mi);
+      Type phi_zob_mi = exp(Type(-2.0) * log_sigma_zob_mi);
+      Type eta_zoi_mi = beta_zoi(0);
+      Type eta_coi_mi = beta_coi(0);
+      Type log_zoi_mi = -logspace_add(Type(0.0), -eta_zoi_mi);
+      Type log_one_minus_zoi_mi = -logspace_add(Type(0.0), eta_zoi_mi);
+      Type log_coi_mi = -logspace_add(Type(0.0), -eta_coi_mi);
+      Type log_one_minus_coi_mi = -logspace_add(Type(0.0), eta_coi_mi);
+      Type zoi_mi = Type(1.0) / (Type(1.0) + exp(-eta_zoi_mi));
+      Type coi_mi = Type(1.0) / (Type(1.0) + exp(-eta_coi_mi));
+      Type beta_mi_eps = Type(1e-12);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type mu_raw = exp(drm_log_inv_logit(mi_eta(i)));
+        mi_mean(i) = beta_mi_eps +
+          (Type(1.0) - Type(2.0) * beta_mi_eps) * mu_raw;
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type alpha_i = mi_mean(i) * phi_zob_mi;
+        Type beta_i = (Type(1.0) - mi_mean(i)) * phi_zob_mi;
+        Type shape_floor = Type(1e-8);
+        alpha_i = CppAD::CondExpLt(
+          alpha_i,
+          shape_floor,
+          shape_floor,
+          alpha_i
+        );
+        beta_i = CppAD::CondExpLt(
+          beta_i,
+          shape_floor,
+          shape_floor,
+          beta_i
+        );
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density;
+          // ON-GRID CONTRACT: mi_x is DATA (no AD derivative), so the asDouble()
+          // boundary test below is AD-safe. It relies on observed zero/one values
+          // being passed EXACTLY as 0.0 / 1.0 (and interior values strictly in
+          // (0, 1)); a boundary point represented as e.g. 1e-300 would take the
+          // interior branch and mis-score it. The R interface must supply on-grid
+          // MI values for the zero-one-inflated beta. See design doc 176.
+          if (asDouble(x_i) <= 0.0) {
+            log_density = log_zoi_mi + log_one_minus_coi_mi;
+          } else if (asDouble(x_i) >= 1.0) {
+            log_density = log_zoi_mi + log_coi_mi;
+          } else {
+            log_density =
+              log_one_minus_zoi_mi +
+              lgamma(alpha_i + beta_i) -
+              lgamma(alpha_i) -
+              lgamma(beta_i) +
+              (alpha_i - Type(1.0)) * log(x_i) +
+              (beta_i - Type(1.0)) * log(Type(1.0) - x_i);
+          }
+          // (Dinnage audit M1): weights(i) scales the WHOLE row
+          // contribution; apply it to the imputation-prior term here and
+          // move it OUTSIDE the mixture/quadrature sum below (log_denom),
+          // not to each leaf before logspace_add() combines them.
+          nll -= weights(i) * log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density;
+            if (asDouble(x_q) <= 0.0) {
+              log_density = log_zoi_mi + log_one_minus_coi_mi;
+            } else if (asDouble(x_q) >= 1.0) {
+              log_density = log_zoi_mi + log_coi_mi;
+            } else {
+              log_density =
+                log_one_minus_zoi_mi +
+                lgamma(alpha_i + beta_i) -
+                lgamma(alpha_i) -
+                lgamma(beta_i) +
+                (alpha_i - Type(1.0)) * log(x_q) +
+                (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+            }
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
+            log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= weights(i) * log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density;
+            if (asDouble(x_q) <= 0.0) {
+              log_density = log_zoi_mi + log_one_minus_coi_mi;
+            } else if (asDouble(x_q) >= 1.0) {
+              log_density = log_zoi_mi + log_coi_mi;
+            } else {
+              log_density =
+                log_one_minus_zoi_mi +
+                lgamma(alpha_i + beta_i) -
+                lgamma(alpha_i) -
+                lgamma(beta_i) +
+                (alpha_i - Type(1.0)) * log(x_q) +
+                (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+            }
+            Type term = mi_quad_weights(q) * exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_zob_mi);
+      REPORT(phi_zob_mi);
+      REPORT(zoi_mi);
+      REPORT(coi_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_zob_mi);
+      ADREPORT(beta_zoi);
+      ADREPORT(beta_coi);
+    }
+
+    if (has_mi == 1 && mi_family == 12) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_betabinom_mi = log_sigma_mi(0);
+      Type sigma_betabinom_mi = exp(log_sigma_betabinom_mi);
+      Type phi_betabinom_mi = exp(Type(-2.0) * log_sigma_betabinom_mi);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_mean(i) = Type(1.0) / (Type(1.0) + exp(-mi_eta(i)));
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type alpha_i = mi_mean(i) * phi_betabinom_mi;
+        Type beta_i = (Type(1.0) - mi_mean(i)) * phi_betabinom_mi;
+        Type shape_floor = Type(1e-8);
+        alpha_i = CppAD::CondExpLt(
+          alpha_i,
+          shape_floor,
+          shape_floor,
+          alpha_i
+        );
+        beta_i = CppAD::CondExpLt(
+          beta_i,
+          shape_floor,
+          shape_floor,
+          beta_i
+        );
+        Type n_i = mi_trials(i);
+        if (mi_observed(i) == 1) {
+          Type k_i = mi_successes(i);
+          Type failure_i = n_i - k_i;
+          Type log_density =
+            lgamma(n_i + Type(1.0)) -
+            lgamma(k_i + Type(1.0)) -
+            lgamma(failure_i + Type(1.0)) +
+            lgamma(phi_betabinom_mi) -
+            lgamma(n_i + phi_betabinom_mi) +
+            lgamma(k_i + alpha_i) -
+            lgamma(alpha_i) +
+            lgamma(failure_i + beta_i) -
+            lgamma(beta_i);
+          Type x_i = k_i / n_i;
+          // (Dinnage audit M1): weights(i) scales the WHOLE row
+          // contribution; apply it to the imputation-prior term here and
+          // move it OUTSIDE the mixture/quadrature sum below (log_denom),
+          // not to each leaf before logspace_add() combines them.
+          nll -= weights(i) * log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          int n_success = (int) asDouble(n_i);
+          vector<Type> log_terms(n_success + 1);
+          for (int k = 0; k <= n_success; ++k) {
+            Type k_q = Type(k);
+            Type failure_q = n_i - k_q;
+            Type x_q = k_q / n_i;
+            Type log_density =
+              lgamma(n_i + Type(1.0)) -
+              lgamma(k_q + Type(1.0)) -
+              lgamma(failure_q + Type(1.0)) +
+              lgamma(phi_betabinom_mi) -
+              lgamma(n_i + phi_betabinom_mi) +
+              lgamma(k_q + alpha_i) -
+              lgamma(alpha_i) +
+              lgamma(failure_q + beta_i) -
+              lgamma(beta_i);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
+            log_terms(k) = log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int k = 1; k <= n_success; ++k) {
+            log_denom = logspace_add(log_denom, log_terms(k));
+          }
+          nll -= weights(i) * log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int k = 0; k <= n_success; ++k) {
+            Type posterior = exp(log_terms(k) - log_denom);
+            Type x_q = Type(k) / n_i;
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          mi_x_full(i) = mi_mean(i);
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(mi_mean);
+      REPORT(sigma_betabinom_mi);
+      REPORT(phi_betabinom_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_betabinom_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 5) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_lambda(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_lambda(i) = exp(mi_eta(i));
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_lambda_i = mi_eta(i);
+        Type lambda_i = mi_lambda(i);
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density = x_i * log_lambda_i - lambda_i -
+            lgamma(x_i + Type(1.0));
+          // (Dinnage audit M1): weights(i) scales the WHOLE row
+          // contribution; apply it to the imputation-prior term here and
+          // move it OUTSIDE the mixture/quadrature sum below (log_denom),
+          // not to each leaf before logspace_add() combines them.
+          nll -= weights(i) * log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density = x_q * log_lambda_i - lambda_i -
+              lgamma(x_q + Type(1.0));
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
+            log_terms(q) = log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= weights(i) * log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density = x_q * log_lambda_i - lambda_i -
+              lgamma(x_q + Type(1.0));
+            Type term = exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_lambda);
+      ADREPORT(beta_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 8) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_nbinom2_mi = log_sigma_mi(0);
+      Type sigma_nbinom2_mi = exp(log_sigma_nbinom2_mi);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_mean(i) = exp(mi_eta(i));
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_mu_i = mi_eta(i);
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density =
+            drm_nbinom2_log_density(
+              x_i,
+              log_mu_i,
+              log_sigma_nbinom2_mi
+            );
+          // (Dinnage audit M1): weights(i) scales the WHOLE row
+          // contribution; apply it to the imputation-prior term here and
+          // move it OUTSIDE the mixture/quadrature sum below (log_denom),
+          // not to each leaf before logspace_add() combines them.
+          nll -= weights(i) * log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              drm_nbinom2_log_density(
+                x_q,
+                log_mu_i,
+                log_sigma_nbinom2_mi
+              );
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
+            log_terms(q) = log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= weights(i) * log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              drm_nbinom2_log_density(
+                x_q,
+                log_mu_i,
+                log_sigma_nbinom2_mi
+              );
+            Type term = exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(mi_mean);
+      REPORT(sigma_nbinom2_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_nbinom2_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 11) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_trunc_nbinom2_mi = log_sigma_mi(0);
+      Type sigma_trunc_nbinom2_mi = exp(log_sigma_trunc_nbinom2_mi);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_positive_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_mean(i) = exp(mi_eta(i));
+        Type log_p0 = drm_nbinom2_log_p0(
+          mi_eta(i),
+          log_sigma_trunc_nbinom2_mi
+        );
+        Type log_trunc_prob = drm_log1mexp(log_p0);
+        mi_positive_mean(i) = mi_mean(i) / exp(log_trunc_prob);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_mu_i = mi_eta(i);
+        Type log_p0 = drm_nbinom2_log_p0(
+          log_mu_i,
+          log_sigma_trunc_nbinom2_mi
+        );
+        Type log_trunc_prob = drm_log1mexp(log_p0);
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density =
+            drm_nbinom2_log_density(
+              x_i,
+              log_mu_i,
+              log_sigma_trunc_nbinom2_mi
+            ) -
+            log_trunc_prob;
+          // (Dinnage audit M1): weights(i) scales the WHOLE row
+          // contribution; apply it to the imputation-prior term here and
+          // move it OUTSIDE the mixture/quadrature sum below (log_denom),
+          // not to each leaf before logspace_add() combines them.
+          nll -= weights(i) * log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              drm_nbinom2_log_density(
+                x_q,
+                log_mu_i,
+                log_sigma_trunc_nbinom2_mi
+              ) -
+              log_trunc_prob;
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
+            log_terms(q) = log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= weights(i) * log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              drm_nbinom2_log_density(
+                x_q,
+                log_mu_i,
+                log_sigma_trunc_nbinom2_mi
+              ) -
+              log_trunc_prob;
+            Type term = exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(mi_mean);
+      REPORT(mi_positive_mean);
+      REPORT(sigma_trunc_nbinom2_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_trunc_nbinom2_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 6) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_lognormal_mi = log_sigma_mi(0);
+      Type sigma_lognormal_mi = exp(log_sigma_lognormal_mi);
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_x.size(); ++i) {
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_x_i = log(x_i);
+          Type log_density =
+            dnorm(log_x_i, mi_eta(i), sigma_lognormal_mi, true) - log_x_i;
+          // (Dinnage audit M1): weights(i) scales the WHOLE row
+          // contribution; apply it to the imputation-prior term here and
+          // move it OUTSIDE the mixture/quadrature sum below (log_denom),
+          // not to each leaf before logspace_add() combines them.
+          nll -= weights(i) * log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type z_q = mi_quad_nodes(q);
+            Type x_q = exp(mi_eta(i) + sigma_lognormal_mi * z_q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
+            // (Dinnage audit M1, lognormal only): this quadrature has no
+            // separate "+ log_density" prior term because mi_quad_nodes(q) is
+            // a Gauss-Hermite abscissa z_q and x_q = exp(eta + sigma*z_q) --
+            // the standard-normal density that would multiply the leaf is
+            // already folded into the Gauss-Hermite weight mi_quad_weights(q)
+            // (the classical trick for E[f(X)] under X ~ Normal). The prior IS
+            // present, just carried by the node placement and quadrature
+            // weight rather than by an explicit log-density term; do not add
+            // one here.
+            log_terms(q) = log(mi_quad_weights(q)) + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= weights(i) * log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type z_q = mi_quad_nodes(q);
+            Type x_q = exp(mi_eta(i) + sigma_lognormal_mi * z_q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type z_q = mi_quad_nodes(q);
+            Type x_q = exp(mi_eta(i) + sigma_lognormal_mi * z_q);
+            Type term = mi_quad_weights(q);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_lognormal_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_lognormal_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 7) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_gamma_mi = log_sigma_mi(0);
+      Type sigma_gamma_mi = exp(log_sigma_gamma_mi);
+      Type shape_gamma_mi = exp(Type(-2.0) * log_sigma_gamma_mi);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_mean(i) = exp(mi_eta(i));
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type scale_i = mi_mean(i) * sigma_gamma_mi * sigma_gamma_mi;
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density =
+            (shape_gamma_mi - Type(1.0)) * log(x_i) -
+            x_i / scale_i -
+            lgamma(shape_gamma_mi) -
+            shape_gamma_mi * log(scale_i);
+          // (Dinnage audit M1): weights(i) scales the WHOLE row
+          // contribution; apply it to the imputation-prior term here and
+          // move it OUTSIDE the mixture/quadrature sum below (log_denom),
+          // not to each leaf before logspace_add() combines them.
+          nll -= weights(i) * log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type t_q = mi_quad_nodes(q);
+            Type x_q = scale_i * t_q;
+            Type log_prior =
+              log(mi_quad_weights(q)) +
+              (shape_gamma_mi - Type(1.0)) * log(t_q) -
+              lgamma(shape_gamma_mi);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
+            log_terms(q) = log_prior + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= weights(i) * log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = scale_i * mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type t_q = mi_quad_nodes(q);
+            Type x_q = scale_i * t_q;
+            Type term =
+              mi_quad_weights(q) *
+              exp(
+                (shape_gamma_mi - Type(1.0)) * log(t_q) -
+                lgamma(shape_gamma_mi)
+              );
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_gamma_mi);
+      REPORT(shape_gamma_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_gamma_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 9) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_tweedie_mi = log_sigma_mi(0);
+      Type sigma_tweedie_mi = exp(log_sigma_tweedie_mi);
+      Type phi_tweedie_mi = sigma_tweedie_mi * sigma_tweedie_mi;
+      Type power_tweedie_mi = Type(1.5);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_mean(i) = exp(mi_eta(i));
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density = dtweedie(
+            x_i,
+            mi_mean(i),
+            phi_tweedie_mi,
+            power_tweedie_mi,
+            true
+          );
+          // (Dinnage audit M1): weights(i) scales the WHOLE row
+          // contribution; apply it to the imputation-prior term here and
+          // move it OUTSIDE the mixture/quadrature sum below (log_denom),
+          // not to each leaf before logspace_add() combines them.
+          nll -= weights(i) * log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density = dtweedie(
+              x_q,
+              mi_mean(i),
+              phi_tweedie_mi,
+              power_tweedie_mi,
+              true
+            );
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
+            log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= weights(i) * log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density = dtweedie(
+              x_q,
+              mi_mean(i),
+              phi_tweedie_mi,
+              power_tweedie_mi,
+              true
+            );
+            Type term = mi_quad_weights(q) * exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(mi_mean);
+      REPORT(sigma_tweedie_mi);
+      REPORT(phi_tweedie_mi);
+      REPORT(power_tweedie_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_tweedie_mi);
+    }
+
+    // Guard the Gaussian scale against a runaway per-observation log-sigma.
+    // See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
+
+    if (V_known_type == 2) {
+      int n = y.size();
+      matrix<Type> Omega(n, n);
+      for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+          Omega(i, j) = V_known_matrix(i, j);
+        }
+        Omega(i, i) += sigma(i) * sigma(i);
+      }
+      density::MVNORM_t<Type> neg_log_density(Omega);
+      nll += neg_log_density(y - mu);
+    } else {
+      for (int i = 0; i < y.size(); ++i) {
+        if (
+          observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)
+        ) {
+          nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
+        }
+      }
+    }
+
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(obs_sigma);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
+      vector<Type> rho_mu_re(n_mu_re_cors);
+      for (int j = 0; j < n_mu_re_cors; ++j) {
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        ADREPORT(log_sd_mu_group);
+        ADREPORT(sd_mu_group);
+      }
+      if (n_mu_re_cors > 0) {
+        REPORT(eta_cor_mu);
+        REPORT(rho_mu_re);
+        ADREPORT(eta_cor_mu);
+        ADREPORT(rho_mu_re);
+      }
+    }
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+      if (has_sd_sigma_model == 1) {
+        REPORT(beta_sd_sigma);
+        REPORT(log_sd_sigma_group);
+        REPORT(sd_sigma_group);
+        ADREPORT(beta_sd_sigma);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_sigma_group);
+          ADREPORT(sd_sigma_group);
+        }
+      }
+      if (n_sigma_re_cors > 0) {
+        vector<Type> rho_sigma_re(n_sigma_re_cors);
+        for (int j = 0; j < n_sigma_re_cors; ++j) {
+          rho_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_sigma(j));
+        }
+        REPORT(eta_cor_sigma);
+        REPORT(rho_sigma_re);
+        ADREPORT(eta_cor_sigma);
+        ADREPORT(rho_sigma_re);
+      }
+      if (n_mu_sigma_re_cors > 0) {
+        vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
+        for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+          rho_mu_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_mu_sigma(j));
+        }
+        REPORT(eta_cor_mu_sigma);
+        REPORT(rho_mu_sigma_re);
+        ADREPORT(eta_cor_mu_sigma);
+        ADREPORT(rho_mu_sigma_re);
+      }
+    }
+    }
+  } else if (model_type == 3) {
+    vector<Type> mu = offset_mu + X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_nu = X_nu * beta_nu;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) sd_current = sd_mu_group(sd_row);
+          mu(i) += mu_re_value(i, j) * sd_current * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_mu_group);
+          ADREPORT(sd_mu_group);
+        }
+      }
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+    }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
+          int code = phylo_mu_dpar(k);
+          if (code == 2) {
+            eta_nu(i) += contribution;
+          } else if (code == 1) {
+            log_sigma(i) += contribution;
+          } else if (code == 0) {
+            mu(i) += contribution;
+          } else {
+            error(
+              "student: unsupported structured endpoint code for "
+              "phylo_mu_dpar (expected 0=mu, 1=sigma, 2=nu)");
+          }
+        }
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+    }
+    // Clamp BEFORE the mi() 2-point sum so the helper and the main loop
+    // see the same log_sigma (beta lesson; #962 / S6 A7).
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
+          mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type mu1 = mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type mu0 = mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
+          Type log_y1 = observed_y(i) == 1 ?
+            drm_student_log_density(
+              y(i), mu1, log_sigma(i), eta_nu(i)) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            drm_student_log_density(
+              y(i), mu0, log_sigma(i), eta_nu(i)) :
+            Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= weights(i) * log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> nu = Type(2.0) + exp(eta_nu);
+    for (int i = 0; i < y.size(); ++i) {
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        nll -= weights(i) * drm_student_log_density(
+          y(i), mu(i), log_sigma(i), eta_nu(i));
+      }
+    }
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(eta_nu);
+    REPORT(nu);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_nu);
+  } else if (model_type == 17) {
+    vector<Type> mu = offset_mu + X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_nu = X_nu * beta_nu;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) sd_current = sd_mu_group(sd_row);
+          mu(i) += mu_re_value(i, j) * sd_current * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        ADREPORT(log_sd_mu_group);
+        ADREPORT(sd_mu_group);
+      }
+    }
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> nu = eta_nu;
+    vector<Type> xi(y.size());
+    vector<Type> omega(y.size());
+    Type log_two = log(Type(2.0));
+    Type sqrt_two_over_pi = sqrt(Type(2.0) / Type(M_PI));
+    for (int i = 0; i < y.size(); ++i) {
+      Type alpha = eta_nu(i);
+      Type delta = alpha / sqrt(Type(1.0) + alpha * alpha);
+      Type mean_shift = delta * sqrt_two_over_pi;
+      Type variance_factor = Type(1.0) - mean_shift * mean_shift;
+      omega(i) = sigma(i) / sqrt(variance_factor);
+      xi(i) = mu(i) - omega(i) * mean_shift;
+      if (observed_y(i) == 1) {
+        Type z = (y(i) - xi(i)) / omega(i);
+        // Use the package's own tail-safe log Phi() (drm_log_pnorm(), also
+        // used by the binomial probit link) instead of flooring pnorm() with
+        // + 1e-300: the floor saturates the far tail to a constant, giving a
+        // gradient wrong by orders of magnitude and a plateau a maximiser can
+        // sit on (Dinnage audit Md-M).
+        Type log_skew_cdf = drm_log_pnorm(alpha * z);
+        Type log_density =
+          log_two -
+          log(omega(i)) +
+          dnorm(z, Type(0.0), Type(1.0), true) +
+          log_skew_cdf;
+        nll -= weights(i) * log_density;
+      }
+    }
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(eta_nu);
+    REPORT(nu);
+    REPORT(xi);
+    REPORT(omega);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_nu);
+  } else if (model_type == 4) {
+    // Lognormal log-location. Ordinary correlated (1 + x | g) reuses the
+    // design-17 map already used by Poisson/NB2 (rho = 0.99999999 tanh(eta);
+    // u_cond,slope = rho u_int + sqrt(1-rho^2) u_slope). Report symbols are
+    // eta_cor_mu / rho_mu_re; do not inherit the binomial log-sech factorisation.
+    vector<Type> mu = offset_mu + X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      vector<Type> rho_mu_re(n_mu_re_cors);
+      for (int j = 0; j < n_mu_re_cors; ++j) {
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int cor_id = mu_re_cor_id(idx);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          Type u_cond = u_mu(idx);
+          if (cor_id >= 0 && mu_re_pos(idx) == 1) {
+            Type rho = rho_mu_re(cor_id);
+            int pair_idx = mu_re_pair_index(idx);
+            u_cond = rho * u_mu(pair_idx) +
+              sqrt(Type(1.0) - rho * rho) * u_mu(idx);
+          }
+          mu(i) += mu_re_value(i, j) * sd_current * u_cond;
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_mu_group);
+          ADREPORT(sd_mu_group);
+        }
+      }
+      if (n_mu_re_cors > 0) {
+        REPORT(eta_cor_mu);
+        REPORT(rho_mu_re);
+      }
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (n_mu_re_cors > 0) {
+        ADREPORT(eta_cor_mu);
+        ADREPORT(rho_mu_re);
+      }
+    }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          mu(i) += phylo_mu_value(i, k) * u_phylo(effect_index);
+        }
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+    }
+    // Arc 2c: independent sigma random intercept only. Unlike the gaussian block
+    // (model_type 1), this omits sigma_re_cor_id / sigma_re_cross_cor conditioning
+    // by design -- the R-side validator keeps lognormal/Gamma sigma-RE to a single
+    // uncorrelated intercept, not combinable with a mu RE. Relaxing that R gate to
+    // correlated or cross-dpar blocks REQUIRES adding that conditioning here too.
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> log_sd_sigma_group(X_sd_sigma.rows());
+      vector<Type> sd_sigma_group(X_sd_sigma.rows());
+      if (has_sd_sigma_model == 1) {
+        for (int g = 0; g < X_sd_sigma.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_sigma.cols(); ++k) {
+            eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
+          }
+          log_sd_sigma_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          int sd_row = sigma_re_sd_row(idx);
+          Type sd_current = sd_sigma_re(sigma_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_sigma_group(sd_row);
+          }
+          log_sigma(i) +=
+            sigma_re_value(i, j) * sd_current * u_sigma(idx);
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      if (has_sd_sigma_model == 1) {
+        REPORT(beta_sd_sigma);
+        REPORT(log_sd_sigma_group);
+        REPORT(sd_sigma_group);
+        ADREPORT(beta_sd_sigma);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_sigma_group);
+          ADREPORT(sd_sigma_group);
+        }
+      }
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+    }
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    // Clamp BEFORE the mi() 2-point sum so the leaf and the main loop
+    // see the same log_sigma (beta lesson; #962 / S6 A7).
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
+          mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type mu1 = mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type mu0 = mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
+          Type log_y1 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), mu1, log_sigma(i), Type(0.0), Type(0.0), 0) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), mu0, log_sigma(i), Type(0.0), Type(0.0), 0) :
+            Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= weights(i) * log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+    vector<Type> sigma = exp(log_sigma);
+    for (int i = 0; i < y.size(); ++i) {
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        Type log_y = log(y(i));
+        nll -= weights(i) * (dnorm(log_y, mu(i), sigma(i), true) - log_y);
+      }
+    }
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+  } else if (model_type == 5) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          eta_mu(i) +=
+            mu_re_value(i, j) * sd_current * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        ADREPORT(log_sd_mu_group);
+        ADREPORT(sd_mu_group);
+      }
+    }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      if (has_sd_phylo_model == 1) {
+        for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+            eta_sd += X_sd_phylo(g, k) *
+              beta_sd_mu(sd_phylo_beta_offset + k);
+          }
+          log_sd_phylo_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_phylo_group(g),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type field_effect = u_phylo(effect_index);
+          if (has_sd_phylo_model == 1) {
+            if (has_sd_phylo_coef_model == 1) {
+              int sd_row = phylo_mu_sd_row_coef(i, k);
+              if (sd_row >= 0) {
+                field_effect *= sd_phylo_group(sd_row);
+              }
+            } else {
+              field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+            }
+          }
+          Type contribution = phylo_mu_value(i, k) * field_effect;
+          if (phylo_mu_dpar(k) == 1) {
+            log_sigma(i) += contribution;
+          } else {
+            eta_mu(i) += contribution;
+          }
+        }
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        if (has_sd_phylo_model == 1) {
+          nll += Type(0.5) * (
+            Type(n_phylo) * log(Type(2.0) * M_PI) -
+            log_det_Q_phylo + quadratic_k
+          );
+        } else {
+          nll += Type(0.5) * (
+            Type(n_phylo) * log(Type(2.0) * M_PI) +
+            Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+            log_det_Q_phylo +
+            exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+          );
+        }
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      if (has_sd_phylo_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_phylo_group);
+        REPORT(sd_phylo_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_phylo_group);
+          ADREPORT(sd_phylo_group);
+        }
+      } else {
+        ADREPORT(log_sd_phylo);
+        vector<Type> sd_phylo = exp(log_sd_phylo);
+        REPORT(sd_phylo);
+        ADREPORT(sd_phylo);
+      }
+    }
+    // Arc 2c: independent sigma random intercept only (see the model_type 4 note).
+    // Omits cor_id / cross-dpar conditioning by design; guarded R-side.
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> log_sd_sigma_group(X_sd_sigma.rows());
+      vector<Type> sd_sigma_group(X_sd_sigma.rows());
+      if (has_sd_sigma_model == 1) {
+        for (int g = 0; g < X_sd_sigma.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_sigma.cols(); ++k) {
+            eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
+          }
+          log_sd_sigma_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          int sd_row = sigma_re_sd_row(idx);
+          Type sd_current = sd_sigma_re(sigma_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_sigma_group(sd_row);
+          }
+          log_sigma(i) +=
+            sigma_re_value(i, j) * sd_current * u_sigma(idx);
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      if (has_sd_sigma_model == 1) {
+        REPORT(beta_sd_sigma);
+        REPORT(log_sd_sigma_group);
+        REPORT(sd_sigma_group);
+        ADREPORT(beta_sd_sigma);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_sigma_group);
+          ADREPORT(sd_sigma_group);
+        }
+      }
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+    }
+    // Clamp BEFORE the mi() 2-point sum so the leaf and the main loop
+    // see the same log_sigma (beta lesson; #962 / S6 A7).
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
+          Type log_y1 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0), 0) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0), 0) :
+            Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= weights(i) * log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          eta_mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+    vector<Type> mu = exp(eta_mu);
+    vector<Type> sigma = exp(log_sigma);
+    for (int i = 0; i < y.size(); ++i) {
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        Type variance_multiplier = sigma(i) * sigma(i);
+        Type shape = Type(1.0) / variance_multiplier;
+        Type scale = mu(i) * variance_multiplier;
+        Type log_density =
+          (shape - Type(1.0)) * log(y(i)) -
+          y(i) / scale -
+          lgamma(shape) -
+          shape * log(scale);
+        nll -= weights(i) * log_density;
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+  } else if (model_type == 16) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_nu = X_nu * beta_nu;
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      if (has_sd_phylo_model == 1) {
+        for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+            eta_sd += X_sd_phylo(g, k) *
+              beta_sd_mu(sd_phylo_beta_offset + k);
+          }
+          log_sd_phylo_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type field_effect = u_phylo(effect_index);
+          if (has_sd_phylo_model == 1) {
+            field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+          }
+          Type contribution = phylo_mu_value(i, k) * field_effect;
+          if (phylo_mu_dpar(k) == 1) {
+            log_sigma(i) += contribution;
+          } else {
+            eta_mu(i) += contribution;
+          }
+        }
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        if (has_sd_phylo_model == 1) {
+          nll += Type(0.5) * (
+            Type(n_phylo) * log(Type(2.0) * M_PI) -
+            log_det_Q_phylo + quadratic_k
+          );
+        } else {
+          nll += Type(0.5) * (
+            Type(n_phylo) * log(Type(2.0) * M_PI) +
+            Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+            log_det_Q_phylo +
+            exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+          );
+        }
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      if (has_sd_phylo_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_phylo_group);
+        REPORT(sd_phylo_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_phylo_group);
+          ADREPORT(sd_phylo_group);
+        }
+      } else {
+        ADREPORT(log_sd_phylo);
+        vector<Type> sd_phylo = exp(log_sd_phylo);
+        REPORT(sd_phylo);
+        ADREPORT(sd_phylo);
+      }
+    }
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          eta_mu(i) +=
+            mu_re_value(i, j) * sd_current * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        ADREPORT(log_sd_mu_group);
+        ADREPORT(sd_mu_group);
+      }
+    }
+    vector<Type> mu = exp(eta_mu);
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> phi(y.size());
+    vector<Type> nu(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      phi(i) = sigma(i) * sigma(i);
+      nu(i) = Type(1.0) + Type(1.0) / (Type(1.0) + exp(-eta_nu(i)));
+      if (observed_y(i) == 1) {
+        nll -= weights(i) * dtweedie(y(i), mu(i), phi(i), nu(i), true);
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(phi);
+    REPORT(eta_nu);
+    REPORT(nu);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_nu);
+  } else if (model_type == 10) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    // Arc B finding A5: this clamp MUST precede the mi() 2-point sum below. The
+    // mi() leaf evaluates the same response density as the main loop, so if the
+    // main loop sees clamped log_sigma while the leaf sees raw log_sigma, the
+    // two halves of one likelihood disagree about the dispersion. Every other
+    // mi()-capable family already clamps first (model_type 1 at :690, 7 at
+    // :3606); beta was the sole outlier, clamping only at the main loop.
+    // See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    // Missing-predictor mi() 2-point sum for a binary predictor (fixed-effect
+    // slice, so this runs before any RE); response density via the shared leaf
+    // carrying the dispersion log_sigma.
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
+          Type log_y1 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0), 0) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0), 0) :
+            Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= weights(i) * log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          eta_mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          eta_mu(i) +=
+            mu_re_value(i, j) * sd_current * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        ADREPORT(log_sd_mu_group);
+        ADREPORT(sd_mu_group);
+      }
+    }
+    if (has_phylo_mu == 1) {
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      if (has_sd_phylo_model == 1) {
+        for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+            eta_sd += X_sd_phylo(g, k) *
+              beta_sd_mu(sd_phylo_beta_offset + k);
+          }
+          log_sd_phylo_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_phylo_group(g),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type field_effect = u_phylo(effect_index);
+          if (has_sd_phylo_model == 1) {
+            if (has_sd_phylo_coef_model == 1) {
+              int sd_row = phylo_mu_sd_row_coef(i, k);
+              if (sd_row >= 0) {
+                field_effect *= sd_phylo_group(sd_row);
+              }
+            } else {
+              field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+            }
+          }
+          Type contribution = phylo_mu_value(i, k) * field_effect;
+          if (phylo_mu_dpar(k) == 1) {
+            log_sigma(i) += contribution;
+          } else {
+            eta_mu(i) += contribution;
+          }
+        }
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        if (has_sd_phylo_model == 1) {
+          nll += Type(0.5) * (
+            Type(n_phylo) * log(Type(2.0) * M_PI) -
+            log_det_Q_phylo +
+            quadratic_k
+          );
+        } else {
+          nll += Type(0.5) * (
+            Type(n_phylo) * log(Type(2.0) * M_PI) +
+            Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+            log_det_Q_phylo +
+            exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+          );
+        }
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      if (has_sd_phylo_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_phylo_group);
+        REPORT(sd_phylo_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_phylo_group);
+          ADREPORT(sd_phylo_group);
+        }
+      } else {
+        ADREPORT(log_sd_phylo);
+        vector<Type> sd_phylo = exp(log_sd_phylo);
+        REPORT(sd_phylo);
+        ADREPORT(sd_phylo);
+      }
+    }
+    vector<Type> mu(y.size());
+    Type beta_mu_eps = Type(1e-12);
+    for (int i = 0; i < mu.size(); ++i) {
+      Type mu_raw = exp(drm_log_inv_logit(eta_mu(i)));
+      mu(i) = beta_mu_eps +
+        (Type(1.0) - Type(2.0) * beta_mu_eps) * mu_raw;
+    }
+    // A5: the clamp now runs ONCE, at the top of this branch, before mi().
+    // It is deliberately NOT repeated here: drm_softclamp_log_sigma is exactly
+    // identity inside the band but saturating outside it, so applying it a
+    // second time would compress an already-clamped value again rather than
+    // acting as a no-op.
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> phi(y.size());
+    vector<Type> alpha(y.size());
+    vector<Type> beta_shape(y.size());
+    Type beta_shape_floor = Type(1e-8);
+    for (int i = 0; i < y.size(); ++i) {
+      phi(i) = exp(Type(-2.0) * log_sigma(i));
+      Type alpha_raw = mu(i) * phi(i);
+      Type beta_raw = (Type(1.0) - mu(i)) * phi(i);
+      alpha(i) = CppAD::CondExpLt(
+        alpha_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        alpha_raw
+      );
+      beta_shape(i) = CppAD::CondExpLt(
+        beta_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        beta_raw
+      );
+      // Missing-response mask (MD): plain data-if; also skip missing-predictor
+      // rows, whose likelihood is added by the mi() 2-point sum above.
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        Type log_density =
+          lgamma(alpha(i) + beta_shape(i)) -
+          lgamma(alpha(i)) -
+          lgamma(beta_shape(i)) +
+          (alpha(i) - Type(1.0)) * log(y(i)) +
+          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+        nll -= weights(i) * log_density;
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(phi);
+    REPORT(alpha);
+    REPORT(beta_shape);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+  } else if (model_type == 15) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_zoi = X_zi * beta_zoi;
+    vector<Type> eta_coi = X_nu * beta_coi;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd = sd_row >= 0 ? sd_mu_group(sd_row) :
+            sd_mu_re(mu_re_term(idx));
+          eta_mu(i) +=
+            mu_re_value(i, j) * sd * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_mu_group);
+          ADREPORT(sd_mu_group);
+        }
+      }
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+    }
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> log_sd_sigma_group(X_sd_sigma.rows());
+      vector<Type> sd_sigma_group(X_sd_sigma.rows());
+      if (has_sd_sigma_model == 1) {
+        for (int g = 0; g < X_sd_sigma.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_sigma.cols(); ++k) {
+            eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
+          }
+          log_sd_sigma_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          Type sd_current = sd_sigma_re(sigma_re_term(idx));
+          if (has_sd_sigma_model == 1) {
+            int sd_row = sigma_re_sd_row(idx);
+            if (sd_row >= 0) {
+              sd_current = sd_sigma_group(sd_row);
+            }
+          }
+          log_sigma(i) +=
+            sigma_re_value(i, j) * sd_current * u_sigma(idx);
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+      if (has_sd_sigma_model == 1) {
+        REPORT(beta_sd_sigma);
+        REPORT(log_sd_sigma_group);
+        REPORT(sd_sigma_group);
+        ADREPORT(beta_sd_sigma);
+        ADREPORT(log_sd_sigma_group);
+        ADREPORT(sd_sigma_group);
+      }
+    }
+    if (n_zoi_re_terms > 0) {
+      vector<Type> sd_zoi_re = exp(log_sd_zoi);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_zoi_re_terms; ++j) {
+          int idx = zoi_re_index(i, j);
+          eta_zoi(i) +=
+            zoi_re_value(i, j) * sd_zoi_re(zoi_re_term(idx)) * u_zoi(idx);
+        }
+      }
+      for (int j = 0; j < u_zoi.size(); ++j) {
+        nll -= dnorm(u_zoi(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_zoi);
+      REPORT(log_sd_zoi);
+      REPORT(sd_zoi_re);
+      ADREPORT(log_sd_zoi);
+      ADREPORT(sd_zoi_re);
+    }
+    if (n_coi_re_terms > 0) {
+      vector<Type> sd_coi_re = exp(log_sd_coi);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_coi_re_terms; ++j) {
+          int idx = coi_re_index(i, j);
+          eta_coi(i) +=
+            coi_re_value(i, j) * sd_coi_re(coi_re_term(idx)) * u_coi(idx);
+        }
+      }
+      for (int j = 0; j < u_coi.size(); ++j) {
+        nll -= dnorm(u_coi(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_coi);
+      REPORT(log_sd_coi);
+      REPORT(sd_coi_re);
+      ADREPORT(log_sd_coi);
+      ADREPORT(sd_coi_re);
+    }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      // Block 15 is written for q1 only (no k-loop, single log_sd_phylo,
+      // single u_phylo field). See design doc 248 S3.4 / F2.
+      if (log_sd_phylo.size() != 1) {
+        error(
+          "zero_one_beta: structured atom effects support exactly one "
+          "field (q1); log_sd_phylo must have size 1");
+      }
+      if (u_phylo.size() != n_phylo) {
+        error(
+          "zero_one_beta: structured atom effects support exactly one "
+          "field (q1); u_phylo must have length Q_phylo.rows()");
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        Type contribution = phylo_mu_value(i, 0) * u_phylo(phylo_mu_node_index(i));
+        int code = phylo_mu_dpar(0);
+        if (code == 0) {
+          eta_mu(i) += contribution;
+        } else if (code == 1) {
+          log_sigma(i) += contribution;
+        } else if (code == 5) {
+          eta_zoi(i) += contribution;
+        } else if (code == 6) {
+          eta_coi(i) += contribution;
+        } else {
+          error(
+            "zero_one_beta: unsupported structured endpoint code for "
+            "phylo_mu_dpar (expected 0=mu, 1=sigma, 5=zoi, 6=coi)");
+        }
+      }
+      vector<Type> Q_u = Q_phylo * u_phylo;
+      Type quadratic = Type(0.0);
+      for (int j = 0; j < n_phylo; ++j) quadratic += u_phylo(j) * Q_u(j);
+      nll += Type(0.5) * (
+        Type(n_phylo) * log(Type(2.0) * M_PI) +
+        Type(2.0) * Type(n_phylo) * log_sd_phylo(0) - log_det_Q_phylo +
+        exp(Type(-2.0) * log_sd_phylo(0)) * quadratic
+      );
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+    }
+    vector<Type> mu(y.size());
+    Type beta_mu_eps = Type(1e-12);
+    for (int i = 0; i < mu.size(); ++i) {
+      Type mu_raw = exp(drm_log_inv_logit(eta_mu(i)));
+      mu(i) = beta_mu_eps +
+        (Type(1.0) - Type(2.0) * beta_mu_eps) * mu_raw;
+    }
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> zoi = Type(1.0) / (Type(1.0) + exp(-eta_zoi));
+    vector<Type> coi = Type(1.0) / (Type(1.0) + exp(-eta_coi));
+    vector<Type> phi(y.size());
+    vector<Type> alpha(y.size());
+    vector<Type> beta_shape(y.size());
+    Type beta_shape_floor = Type(1e-8);
+    for (int i = 0; i < y.size(); ++i) {
+      Type log_zoi = -logspace_add(Type(0.0), -eta_zoi(i));
+      Type log_one_minus_zoi = -logspace_add(Type(0.0), eta_zoi(i));
+      Type log_coi = -logspace_add(Type(0.0), -eta_coi(i));
+      Type log_one_minus_coi = -logspace_add(Type(0.0), eta_coi(i));
+      phi(i) = exp(Type(-2.0) * log_sigma(i));
+      Type alpha_raw = mu(i) * phi(i);
+      Type beta_raw = (Type(1.0) - mu(i)) * phi(i);
+      alpha(i) = CppAD::CondExpLt(
+        alpha_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        alpha_raw
+      );
+      beta_shape(i) = CppAD::CondExpLt(
+        beta_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        beta_raw
+      );
+      if (observed_y(i) == 1) {
+        if (asDouble(y(i)) <= 0.0) {
+          nll -= weights(i) * (log_zoi + log_one_minus_coi);
+          continue;
+        }
+        if (asDouble(y(i)) >= 1.0) {
+          nll -= weights(i) * (log_zoi + log_coi);
+          continue;
+        }
+        Type log_density =
+          log_one_minus_zoi +
+          lgamma(alpha(i) + beta_shape(i)) -
+          lgamma(alpha(i)) -
+          lgamma(beta_shape(i)) +
+          (alpha(i) - Type(1.0)) * log(y(i)) +
+          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+        nll -= weights(i) * log_density;
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(eta_zoi);
+    REPORT(zoi);
+    REPORT(eta_coi);
+    REPORT(coi);
+    REPORT(phi);
+    REPORT(alpha);
+    REPORT(beta_shape);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_zoi);
+    ADREPORT(beta_coi);
+  } else if (model_type == 14) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd = sd_row >= 0 ? sd_mu_group(sd_row) :
+            sd_mu_re(mu_re_term(idx));
+          eta_mu(i) +=
+            mu_re_value(i, j) * sd * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_mu_group);
+          ADREPORT(sd_mu_group);
+        }
+      }
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+    }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      if (log_sd_phylo.size() != 1 || u_phylo.size() != n_phylo) {
+        error("beta_binomial animal effects require one q1 field");
+      }
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      if (has_sd_phylo_model == 1) {
+        for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+            eta_sd += X_sd_phylo(g, k) *
+              beta_sd_mu(sd_phylo_beta_offset + k);
+          }
+          log_sd_phylo_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        int node = phylo_mu_node_index(i);
+        Type field = u_phylo(node);
+        if (has_sd_phylo_model == 1) {
+          int sd_row = phylo_mu_sd_row(i);
+          if (sd_row >= 0) field *= sd_phylo_group(sd_row);
+        } else {
+          field *= exp(log_sd_phylo(0));
+        }
+        eta_mu(i) += phylo_mu_value(i, 0) * field;
+      }
+      vector<Type> Q_u = Q_phylo * u_phylo;
+      Type quadratic = Type(0.0);
+      for (int j = 0; j < n_phylo; ++j) {
+        quadratic += u_phylo(j) * Q_u(j);
+      }
+      if (has_sd_phylo_model == 1) {
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) - log_det_Q_phylo +
+          quadratic
+        );
+      } else {
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(0) -
+          log_det_Q_phylo + exp(Type(-2.0) * log_sd_phylo(0)) * quadratic
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      if (has_sd_phylo_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_phylo_group);
+        REPORT(sd_phylo_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_phylo_group);
+          ADREPORT(sd_phylo_group);
+        }
+      }
+    }
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> log_sd_sigma_group(X_sd_sigma.rows());
+      vector<Type> sd_sigma_group(X_sd_sigma.rows());
+      if (has_sd_sigma_model == 1) {
+        for (int g = 0; g < X_sd_sigma.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_sigma.cols(); ++k) {
+            eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
+          }
+          log_sd_sigma_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          int sd_row = sigma_re_sd_row(idx);
+          Type sd = sd_row >= 0 ? sd_sigma_group(sd_row) :
+            sd_sigma_re(sigma_re_term(idx));
+          log_sigma(i) += sigma_re_value(i, j) * sd * u_sigma(idx);
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      if (has_sd_sigma_model == 1) {
+        REPORT(beta_sd_sigma);
+        REPORT(log_sd_sigma_group);
+        REPORT(sd_sigma_group);
+        ADREPORT(beta_sd_sigma);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_sigma_group);
+          ADREPORT(sd_sigma_group);
+        }
+      }
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+    }
+    // Clamp BEFORE the mi() 2-point sum so the leaf and the main loop
+    // see the same log_sigma (beta lesson; #962 / S6 A7).
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
+          Type log_y1 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), eta1, log_sigma(i), Type(0.0), trials(i),
+              0) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), eta0, log_sigma(i), Type(0.0), trials(i),
+              0) :
+            Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= weights(i) * log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          eta_mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+    Type beta_mu_eps = Type(1e-12);
+    Type beta_shape_floor = Type(1e-8);
+    vector<Type> mu(y.size());
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> phi(y.size());
+    vector<Type> alpha(y.size());
+    vector<Type> beta_shape(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      Type mu_raw = exp(drm_log_inv_logit(eta_mu(i)));
+      mu(i) = beta_mu_eps +
+        (Type(1.0) - Type(2.0) * beta_mu_eps) * mu_raw;
+      phi(i) = exp(Type(-2.0) * log_sigma(i));
+      Type alpha_raw = mu(i) * phi(i);
+      Type beta_raw = (Type(1.0) - mu(i)) * phi(i);
+      alpha(i) = CppAD::CondExpLt(
+        alpha_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        alpha_raw
+      );
+      beta_shape(i) = CppAD::CondExpLt(
+        beta_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        beta_raw
+      );
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        Type failures = trials(i) - y(i);
+        Type phi_shape = alpha(i) + beta_shape(i);
+        Type log_density =
+          lgamma(trials(i) + Type(1.0)) -
+          lgamma(y(i) + Type(1.0)) -
+          lgamma(failures + Type(1.0)) +
+          lgamma(phi_shape) -
+          lgamma(trials(i) + phi_shape) +
+          lgamma(y(i) + alpha(i)) -
+          lgamma(alpha(i)) +
+          lgamma(failures + beta_shape(i)) -
+          lgamma(beta_shape(i));
+        nll -= weights(i) * log_density;
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(phi);
+    REPORT(alpha);
+    REPORT(beta_shape);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+  } else if (model_type == 18) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
+      // Binomial q = 2 keeps its historical correlation parameterization.
+      // Blocks with q >= 3 use row-major modified-Cholesky partial correlations:
+      // (rho21, rho31, rho32|1, rho41, rho42|1, rho43|1,2, ...).
+      vector<Type> rho_mu_re(n_mu_re_cors);
+      vector<Type> logsech_mu_re(n_mu_re_cors);
+      std::vector<int> mu_re_block_q(n_mu_re_cors, 0);
+      for (int j = 0; j < n_mu_re_cors; ++j) {
+        rho_mu_re(j) = tanh(eta_cor_mu(j));
+        logsech_mu_re(j) = drm_log_sech(eta_cor_mu(j));
+      }
+      for (int r = 0; r < mu_re_cor_id.size(); ++r) {
+        int cor_id = mu_re_cor_id(r);
+        if (cor_id >= 0 && mu_re_pos(r) + 1 > mu_re_block_q[cor_id]) {
+          mu_re_block_q[cor_id] = mu_re_pos(r) + 1;
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int cor_id = mu_re_cor_id(idx);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd = sd_row >= 0 ? sd_mu_group(sd_row) :
+            sd_mu_re(mu_re_term(idx));
+          Type contribution;
+          if (cor_id >= 0 && mu_re_block_q[cor_id] >= 3) {
+            int block_q = mu_re_block_q[cor_id];
+            std::vector<int> idx_by_pos(block_q, -1);
+            for (int k = 0; k < n_mu_re_terms; ++k) {
+              int candidate = mu_re_index(i, k);
+              if (mu_re_cor_id(candidate) == cor_id) {
+                int position = mu_re_pos(candidate);
+                if (position >= 0 && position < block_q) {
+                  idx_by_pos[position] = candidate;
+                }
+              }
+            }
+            int position = mu_re_pos(idx);
+            Type row_value = Type(0.0);
+            Type row_scale = Type(1.0);
+            for (int k = 0; k < position; ++k) {
+              int partial_index = cor_id + position * (position - 1) / 2 + k;
+              row_value += row_scale * rho_mu_re(partial_index) *
+                u_mu(idx_by_pos[k]);
+              row_scale *= exp(logsech_mu_re(partial_index));
+            }
+            row_value += row_scale * u_mu(idx_by_pos[position]);
+            contribution = sd * row_value;
+          } else if (cor_id >= 0 && mu_re_pos(idx) == 1) {
+            int pair_idx = mu_re_pair_index(idx);
+            Type log_sd = sd_row >= 0 ? log_sd_mu_group(sd_row) :
+              log_sd_mu(mu_re_term(idx));
+            Type l21 = sd * rho_mu_re(cor_id);
+            Type l22 = exp(log_sd + logsech_mu_re(cor_id));
+            contribution = l21 * u_mu(pair_idx) + l22 * u_mu(idx);
+          } else {
+            contribution = sd * u_mu(idx);
+          }
+          eta_mu(i) += mu_re_value(i, j) * contribution;
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_mu_group);
+          ADREPORT(sd_mu_group);
+        }
+      }
+      if (n_mu_re_cors > 0) {
+        REPORT(eta_cor_mu);
+        REPORT(rho_mu_re);
+        REPORT(logsech_mu_re);
+      }
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (n_mu_re_cors > 0) {
+        ADREPORT(eta_cor_mu);
+        ADREPORT(rho_mu_re);
+      }
+    }
+    // Structured phylogenetic mu field (#1048) -- the same Gaussian-field
+    // contribution and prior the ordinal (model 13) branch carries. Added to
+    // eta_mu BEFORE the mi() block so any downstream 2-point sum sees the full
+    // linear predictor (the R gate refuses mi + phylo in this slice, but the
+    // ordering keeps the invariant true by construction rather than by gate).
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      if (has_sd_phylo_model == 1) {
+        for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+            eta_sd += X_sd_phylo(g, k) *
+              beta_sd_mu(sd_phylo_beta_offset + k);
+          }
+          log_sd_phylo_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        Type phylo_effect = Type(0.0);
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type field_effect = u_phylo(effect_index);
+          if (has_sd_phylo_model == 1) {
+            field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+          }
+          phylo_effect += phylo_mu_value(i, k) * field_effect;
+        }
+        eta_mu(i) += phylo_effect;
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+      if (has_sd_phylo_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_phylo_group);
+        REPORT(sd_phylo_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_phylo_group);
+          ADREPORT(sd_phylo_group);
+        }
+      }
+    }
+    if (has_mesh_spatial_mu == 1) {
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+        Type eta_sd = Type(0.0);
+        for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+          eta_sd += X_sd_phylo(g, k) *
+            beta_sd_mu(sd_phylo_beta_offset + k);
+        }
+        log_sd_phylo_group(g) = drm_softclamp_log_sd(
+          eta_sd, use_logsigma_clamp, logsigma_clamp);
+        sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+          log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+      }
+      vector<Type> mesh_effect = A_mesh_spatial * u_phylo2;
+      for (int i = 0; i < y.size(); ++i) {
+        eta_mu(i) += mesh_effect(i) *
+          mesh_spatial_value(i) * sd_phylo_group(phylo_mu_sd_row(i));
+      }
+      nll += density::GMRF(Q_mesh_spatial, true)(u_phylo2);
+      REPORT(mesh_effect);
+      REPORT(u_phylo2);
+      REPORT(beta_sd_mu);
+      REPORT(log_sd_phylo_group);
+      REPORT(sd_phylo_group);
+      ADREPORT(beta_sd_mu);
+      if (report_group_sd == 1) {
+        ADREPORT(log_sd_phylo_group);
+        ADREPORT(sd_phylo_group);
+      }
+    }
+    if (has_phylo_mu2 == 1) {
+      int n_phylo2 = Q_phylo2.rows();
+      vector<Type> log_sd_phylo2_group(X_sd_phylo2.rows());
+      vector<Type> sd_phylo2_group(X_sd_phylo2.rows());
+      if (has_sd_phylo2_model == 1) {
+        for (int g = 0; g < X_sd_phylo2.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo2.cols(); ++k) {
+            eta_sd += X_sd_phylo2(g, k) *
+              beta_sd_mu(sd_phylo2_beta_offset + k);
+          }
+          log_sd_phylo2_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_phylo2_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_phylo2_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        Type field_effect = u_phylo2(phylo_mu2_node_index(i));
+        if (has_sd_phylo2_model == 1) {
+          field_effect *= sd_phylo2_group(phylo_mu2_sd_row(i));
+        }
+        eta_mu(i) += phylo_mu2_value(i, 0) * field_effect;
+      }
+      if (has_sd_phylo2_model == 1) {
+        nll += density::GMRF(Q_phylo2, true)(u_phylo2);
+        REPORT(log_sd_phylo2_group);
+        REPORT(sd_phylo2_group);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_phylo2_group);
+          ADREPORT(sd_phylo2_group);
+        }
+      } else {
+        vector<Type> Q_u2 = Q_phylo2 * u_phylo2;
+        Type quadratic2 = Type(0.0);
+        for (int j = 0; j < n_phylo2; ++j) {
+          quadratic2 += u_phylo2(j) * Q_u2(j);
+        }
+        nll += Type(0.5) * (
+          Type(n_phylo2) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo2) * log_sd_phylo2(0) -
+          log_det_Q_phylo2 +
+          exp(Type(-2.0) * log_sd_phylo2(0)) * quadratic2
+        );
+      }
+      REPORT(u_phylo2);
+      REPORT(log_sd_phylo2);
+      ADREPORT(log_sd_phylo2);
+    }
+    // Missing-predictor mi() 2-point sum for a binary predictor (mirrors the
+    // poisson MD9a); the response density is the shared leaf.
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
+          Type log_y1 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), eta1, Type(0.0), Type(0.0), trials(i),
+              link_code) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), eta0, Type(0.0), Type(0.0), trials(i),
+              link_code) :
+            Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= weights(i) * log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          // plug the posterior-mean predictor into eta for REPORT/prediction
+          eta_mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+    vector<Type> mu(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      DrmBinomLogMu<Type> log_mu = drm_binom_log_mu(eta_mu(i), link_code);
+      Type log_p1 = log_mu.log_mu;
+      Type log_p0 = log_mu.log_one_minus_mu;
+      mu(i) = exp(log_p1);
+      // Missing-response mask (MD): plain data-if; also skip missing-predictor
+      // rows, whose likelihood is already added by the mi() 2-point sum above.
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        Type failures = trials(i) - y(i);
+        Type log_choose =
+          lgamma(trials(i) + Type(1.0)) -
+          lgamma(y(i) + Type(1.0)) -
+          lgamma(failures + Type(1.0));
+        nll -= weights(i) *
+          (log_choose + y(i) * log_p1 + failures * log_p0);
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    ADREPORT(beta_mu);
+  } else if (model_type == 13) {
+    vector<Type> mu = offset_mu + X_mu * beta_mu;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          mu(i) +=
+            mu_re_value(i, j) * sd_current * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        ADREPORT(log_sd_mu_group);
+        ADREPORT(sd_mu_group);
+      }
+    }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      for (int i = 0; i < y.size(); ++i) {
+        Type phylo_effect = Type(0.0);
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          phylo_effect += phylo_mu_value(i, k) * u_phylo(effect_index);
+        }
+        mu(i) += phylo_effect;
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+    }
+    vector<Type> cutpoints(theta_ord.size());
+    if (theta_ord.size() > 0) {
+      cutpoints(0) = theta_ord(0);
+      for (int j = 1; j < theta_ord.size(); ++j) {
+        cutpoints(j) = cutpoints(j - 1) + exp(theta_ord(j));
+      }
+    }
+    int n_categories = theta_ord.size() + 1;
+    for (int i = 0; i < y.size(); ++i) {
+      if (observed_y(i) == 1) {
+        int yi = (int) asDouble(y(i));
+        Type log_prob;
+        if (yi == 1) {
+          log_prob = drm_log_inv_logit(cutpoints(0) - mu(i));
+        } else if (yi == n_categories) {
+          log_prob = drm_log1m_inv_logit(cutpoints(n_categories - 2) - mu(i));
+        } else {
+          Type upper = cutpoints(yi - 1) - mu(i);
+          Type lower = cutpoints(yi - 2) - mu(i);
+          log_prob = drm_log_inv_logit_diff(upper, lower);
+        }
+        nll -= weights(i) * log_prob;
+      }
+    }
+    REPORT(mu);
+    REPORT(cutpoints);
+    ADREPORT(beta_mu);
+    ADREPORT(cutpoints);
+  } else if (model_type == 6) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
+      vector<Type> rho_mu_re(n_mu_re_cors);
+      for (int j = 0; j < n_mu_re_cors; ++j) {
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int cor_id = mu_re_cor_id(idx);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          Type u_cond = u_mu(idx);
+          if (cor_id >= 0 && mu_re_pos(idx) == 1) {
+            Type rho = rho_mu_re(cor_id);
+            int pair_idx = mu_re_pair_index(idx);
+            u_cond = rho * u_mu(pair_idx) +
+              sqrt(Type(1.0) - rho * rho) * u_mu(idx);
+          }
+          eta_mu(i) += mu_re_value(i, j) * sd_current * u_cond;
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_mu_group);
+          ADREPORT(sd_mu_group);
+        }
+      }
+      if (n_mu_re_cors > 0) {
+        REPORT(eta_cor_mu);
+        REPORT(rho_mu_re);
+      }
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (n_mu_re_cors > 0) {
+        ADREPORT(eta_cor_mu);
+        ADREPORT(rho_mu_re);
+      }
+    }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      if (has_sd_phylo_model == 1) {
+        for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+            eta_sd += X_sd_phylo(g, k) *
+              beta_sd_mu(sd_phylo_beta_offset + k);
+          }
+          log_sd_phylo_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        Type phylo_effect = Type(0.0);
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type field_effect = u_phylo(effect_index);
+          if (has_sd_phylo_model == 1) {
+            field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+          }
+          phylo_effect += phylo_mu_value(i, k) * field_effect;
+        }
+        eta_mu(i) += phylo_effect;
+      }
+      Type quadratic = Type(0.0);
+      if (has_phylo_mu_q2_covariance == 1) {
+        Type rho_phylo = Type(0.999999) * tanh(eta_cor_phylo);
+        vector<Type> u1(n_phylo);
+        vector<Type> u2(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          u1(j) = u_phylo(j);
+          u2(j) = u_phylo(n_phylo + j);
+        }
+        vector<Type> Q_u1 = Q_phylo * u1;
+        vector<Type> Q_u2 = Q_phylo * u2;
+        Type q11 = Type(0.0);
+        Type q12 = Type(0.0);
+        Type q22 = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          q11 += u1(j) * Q_u1(j);
+          q12 += u1(j) * Q_u2(j);
+          q22 += u2(j) * Q_u2(j);
+        }
+        Type one_minus_rho2 = Type(1.0) - rho_phylo * rho_phylo;
+        Type sd1 = exp(log_sd_phylo(0));
+        Type sd2 = exp(log_sd_phylo(1));
+        Type inv11 = Type(1.0) / (sd1 * sd1 * one_minus_rho2);
+        Type inv22 = Type(1.0) / (sd2 * sd2 * one_minus_rho2);
+        Type inv12 = -rho_phylo / (sd1 * sd2 * one_minus_rho2);
+        Type log_det_cov = Type(2.0) * log_sd_phylo(0) +
+          Type(2.0) * log_sd_phylo(1) + log(one_minus_rho2);
+        quadratic = inv11 * q11 + Type(2.0) * inv12 * q12 + inv22 * q22;
+        nll += Type(0.5) * (
+          Type(2 * n_phylo) * log(Type(2.0) * M_PI) +
+          Type(n_phylo) * log_det_cov -
+          Type(2.0) * log_det_Q_phylo + quadratic
+        );
+        REPORT(eta_cor_phylo);
+        REPORT(rho_phylo);
+        ADREPORT(eta_cor_phylo);
+        ADREPORT(rho_phylo);
+      } else {
+        for (int k = 0; k < q_phylo; ++k) {
+          vector<Type> effect_k(n_phylo);
+          for (int j = 0; j < n_phylo; ++j) {
+            effect_k(j) = u_phylo(k * n_phylo + j);
+          }
+          vector<Type> Q_u = Q_phylo * effect_k;
+          Type quadratic_k = Type(0.0);
+          for (int j = 0; j < n_phylo; ++j) {
+            quadratic_k += effect_k(j) * Q_u(j);
+          }
+          quadratic += quadratic_k;
+          nll += Type(0.5) * (
+            Type(n_phylo) * log(Type(2.0) * M_PI) +
+            Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+            log_det_Q_phylo +
+            exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+          );
+        }
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+      if (has_sd_phylo_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_phylo_group);
+        REPORT(sd_phylo_group);
+        ADREPORT(beta_sd_mu);
+      }
+    }
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
+          Type log_y1 = observed_y(i) == 1 ?
+            drm_response_log_density(model_type, y(i), eta1, Type(0.0), Type(0.0), Type(0.0), 0) : Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            drm_response_log_density(model_type, y(i), eta0, Type(0.0), Type(0.0), Type(0.0), 0) : Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= weights(i) * log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          Type expected_mu =
+            posterior_p1 * exp(eta1) +
+            (Type(1.0) - posterior_p1) * exp(eta0);
+          eta_mu(i) = log(expected_mu);
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+    vector<Type> mu = exp(eta_mu);
+    for (int i = 0; i < y.size(); ++i) {
+      // Missing-response mask (MD) composes with the mi-imputation filter:
+      // observed_y is integer DATA, so the masked row's dpois is never taped.
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        nll -= weights(i) * dpois(y(i), mu(i), true);
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    ADREPORT(beta_mu);
+  } else if (model_type == 8) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    vector<Type> eta_zi = X_zi * beta_zi;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) sd_current = sd_mu_group(sd_row);
+          eta_mu(i) += mu_re_value(i, j) * sd_current * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_mu_group);
+          ADREPORT(sd_mu_group);
+        }
+      }
+    }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
+          int code = phylo_mu_dpar(k);
+          if (code == 3) {
+            eta_zi(i) += contribution;
+          } else if (code == 0) {
+            eta_mu(i) += contribution;
+          } else {
+            error(
+              "zi_poisson: unsupported structured endpoint code for "
+              "phylo_mu_dpar (expected 0=mu, 3=zi)");
+          }
+        }
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+    }
+    // ZIP × Bernoulli mi() (D-23 / #962). Inline the mixture density.
+    // Do not call drm_response_log_density (no eta_zi; case 8 is absent;
+    // the Poisson leaf would treat structural zeros as Poisson zeros).
+    // eta_zi is observed-only: it is not shifted by missing x.
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
+        Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
+        if (mi_observed(i) == 1) {
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type mu1 = exp(eta1);
+          Type mu0 = exp(eta0);
+          Type log_y1 = Type(0.0);
+          Type log_y0 = Type(0.0);
+          if (observed_y(i) == 1) {
+            if (asDouble(y(i)) == 0.0) {
+              log_y1 = logspace_add(log_zi, log_one_minus_zi - mu1);
+              log_y0 = logspace_add(log_zi, log_one_minus_zi - mu0);
+            } else {
+              log_y1 = log_one_minus_zi + dpois(y(i), mu1, true);
+              log_y0 = log_one_minus_zi + dpois(y(i), mu0, true);
+            }
+          }
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= weights(i) * log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          Type expected_mu =
+            posterior_p1 * mu1 +
+            (Type(1.0) - posterior_p1) * mu0;
+          eta_mu(i) = log(expected_mu);
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+    vector<Type> mu = exp(eta_mu);
+    vector<Type> zi = Type(1.0) / (Type(1.0) + exp(-eta_zi));
+    for (int i = 0; i < y.size(); ++i) {
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
+        Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
+        if (asDouble(y(i)) == 0.0) {
+          nll -= weights(i) * logspace_add(log_zi, log_one_minus_zi - mu(i));
+        } else {
+          nll -= weights(i) * (log_one_minus_zi + dpois(y(i), mu(i), true));
+        }
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(eta_zi);
+    REPORT(zi);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_zi);
+  } else if (model_type == 7) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
+      vector<Type> rho_mu_re(n_mu_re_cors);
+      for (int j = 0; j < n_mu_re_cors; ++j) {
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int cor_id = mu_re_cor_id(idx);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          Type u_cond = u_mu(idx);
+          if (cor_id >= 0 && mu_re_pos(idx) == 1) {
+            Type rho = rho_mu_re(cor_id);
+            int pair_idx = mu_re_pair_index(idx);
+            u_cond = rho * u_mu(pair_idx) +
+              sqrt(Type(1.0) - rho * rho) * u_mu(idx);
+          }
+          eta_mu(i) += mu_re_value(i, j) * sd_current * u_cond;
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(log_sd_mu_group);
+      }
+      if (n_mu_re_cors > 0) {
+        REPORT(eta_cor_mu);
+        REPORT(rho_mu_re);
+      }
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (n_mu_re_cors > 0) {
+        ADREPORT(eta_cor_mu);
+        ADREPORT(rho_mu_re);
+      }
+    }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      if (has_sd_phylo_model == 1) {
+        if (q_phylo != 1 || has_phylo_mu_q2_covariance == 1) {
+          error("nbinom2 structured SD regression currently requires one animal coefficient");
+        }
+        for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+            eta_sd += X_sd_phylo(g, k) *
+              beta_sd_mu(sd_phylo_beta_offset + k);
+          }
+          log_sd_phylo_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type field_effect = u_phylo(effect_index);
+          if (has_sd_phylo_model == 1) {
+            field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+          }
+          Type contribution = phylo_mu_value(i, k) * field_effect;
+          if (phylo_mu_dpar(k) == 1) {
+            log_sigma(i) += contribution;
+          } else {
+            eta_mu(i) += contribution;
+          }
+        }
+      }
+      Type quadratic = Type(0.0);
+      if (has_phylo_mu_q2_covariance == 1) {
+        Type rho_phylo = Type(0.999999) * tanh(eta_cor_phylo);
+        vector<Type> u1(n_phylo);
+        vector<Type> u2(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          u1(j) = u_phylo(j);
+          u2(j) = u_phylo(n_phylo + j);
+        }
+        vector<Type> Q_u1 = Q_phylo * u1;
+        vector<Type> Q_u2 = Q_phylo * u2;
+        Type q11 = Type(0.0);
+        Type q12 = Type(0.0);
+        Type q22 = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          q11 += u1(j) * Q_u1(j);
+          q12 += u1(j) * Q_u2(j);
+          q22 += u2(j) * Q_u2(j);
+        }
+        Type one_minus_rho2 = Type(1.0) - rho_phylo * rho_phylo;
+        Type sd1 = exp(log_sd_phylo(0));
+        Type sd2 = exp(log_sd_phylo(1));
+        Type inv11 = Type(1.0) / (sd1 * sd1 * one_minus_rho2);
+        Type inv22 = Type(1.0) / (sd2 * sd2 * one_minus_rho2);
+        Type inv12 = -rho_phylo / (sd1 * sd2 * one_minus_rho2);
+        Type log_det_cov = Type(2.0) * log_sd_phylo(0) +
+          Type(2.0) * log_sd_phylo(1) + log(one_minus_rho2);
+        quadratic = inv11 * q11 + Type(2.0) * inv12 * q12 + inv22 * q22;
+        nll += Type(0.5) * (
+          Type(2 * n_phylo) * log(Type(2.0) * M_PI) +
+          Type(n_phylo) * log_det_cov -
+          Type(2.0) * log_det_Q_phylo + quadratic
+        );
+        REPORT(eta_cor_phylo);
+        REPORT(rho_phylo);
+        ADREPORT(eta_cor_phylo);
+        ADREPORT(rho_phylo);
+      } else {
+        for (int k = 0; k < q_phylo; ++k) {
+          vector<Type> effect_k(n_phylo);
+          for (int j = 0; j < n_phylo; ++j) {
+            effect_k(j) = u_phylo(k * n_phylo + j);
+          }
+          vector<Type> Q_u = Q_phylo * effect_k;
+          Type quadratic_k = Type(0.0);
+          for (int j = 0; j < n_phylo; ++j) {
+            quadratic_k += effect_k(j) * Q_u(j);
+          }
+          quadratic += quadratic_k;
+          if (has_sd_phylo_model == 1) {
+            nll += Type(0.5) * (
+              Type(n_phylo) * log(Type(2.0) * M_PI) -
+              log_det_Q_phylo + quadratic_k
+            );
+          } else {
+            nll += Type(0.5) * (
+              Type(n_phylo) * log(Type(2.0) * M_PI) +
+              Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+              log_det_Q_phylo +
+              exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+            );
+          }
+        }
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+      if (has_sd_phylo_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_phylo_group);
+        REPORT(sd_phylo_group);
+        ADREPORT(beta_sd_mu);
+        ADREPORT(log_sd_phylo_group);
+        ADREPORT(sd_phylo_group);
+      }
+    }
+    if (has_phylo_mu2 == 1) {
+      int n_phylo2 = Q_phylo2.rows();
+      for (int i = 0; i < y.size(); ++i) {
+        eta_mu(i) += phylo_mu2_value(i, 0) * u_phylo2(phylo_mu2_node_index(i));
+      }
+      vector<Type> Q_u2 = Q_phylo2 * u_phylo2;
+      Type quadratic2 = Type(0.0);
+      for (int j = 0; j < n_phylo2; ++j) {
+        quadratic2 += u_phylo2(j) * Q_u2(j);
+      }
+      nll += Type(0.5) * (
+        Type(n_phylo2) * log(Type(2.0) * M_PI) +
+        Type(2.0) * Type(n_phylo2) * log_sd_phylo2(0) -
+        log_det_Q_phylo2 +
+        exp(Type(-2.0) * log_sd_phylo2(0)) * quadratic2
+      );
+      REPORT(u_phylo2);
+      REPORT(log_sd_phylo2);
+      REPORT(quadratic2);
+      ADREPORT(log_sd_phylo2);
+      vector<Type> sd_phylo2 = exp(log_sd_phylo2);
+      REPORT(sd_phylo2);
+      ADREPORT(sd_phylo2);
+    }
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> log_sd_sigma_group(X_sd_sigma.rows());
+      vector<Type> sd_sigma_group(X_sd_sigma.rows());
+      if (has_sd_sigma_model == 1) {
+        for (int g = 0; g < X_sd_sigma.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_sigma.cols(); ++k) {
+            eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
+          }
+          log_sd_sigma_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          int sd_row = sigma_re_sd_row(idx);
+          Type sd_current = sd_sigma_re(sigma_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_sigma_group(sd_row);
+          }
+          log_sigma(i) += sigma_re_value(i, j) * sd_current * u_sigma(idx);
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+      if (has_sd_sigma_model == 1) {
+        REPORT(beta_sd_sigma);
+        REPORT(log_sd_sigma_group);
+        REPORT(sd_sigma_group);
+        ADREPORT(beta_sd_sigma);
+        ADREPORT(log_sd_sigma_group);
+        ADREPORT(sd_sigma_group);
+      }
+    }
+    // Missing-predictor mi() Gaussian predictor: latent x_miss (Laplace),
+    // then the shared nbinom2 leaf on the updated log-mean. No group/struct
+    // on this first nbinom2 x gaussian slice (R aborts those).
+    if (has_mi == 1 && mi_family == 0) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type sigma_mi = exp(log_sigma_mi(0));
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_x.size(); ++i) {
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int j = 0; j < mi_missing_index.size(); ++j) {
+        int row = mi_missing_index(j);
+        mi_x_full(row) = x_miss(j);
+      }
+      for (int i = 0; i < mi_x_full.size(); ++i) {
+        nll -= dnorm(mi_x_full(i), mi_eta(i), sigma_mi, true);
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        eta_mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_mi);
+      REPORT(x_miss);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_mi);
+    }
+    vector<Type> mu = exp(eta_mu);
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    // Missing-predictor mi() 2-point sum for a binary predictor; the response
+    // density is the shared leaf, carrying the dispersion log_sigma(i).
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
+          Type log_y1 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0), 0) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            drm_response_log_density(
+              model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0), 0) :
+            Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= weights(i) * log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          eta_mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+    vector<Type> sigma = exp(log_sigma);
+    for (int i = 0; i < y.size(); ++i) {
+      // Missing-response mask (MD): plain data-if; also skip missing-predictor
+      // rows for non-Gaussian predictors, whose likelihood is already added
+      // by the mi() 2-point sum above. mi_family == 0 (Gaussian) keeps the
+      // nbinom2 leaf: missing x is a latent x_miss, not a finite-state sum.
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        Type log_density =
+          drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
+        nll -= weights(i) * log_density;
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+  } else if (model_type == 11) {
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          eta_mu(i) +=
+            mu_re_value(i, j) * sd_current * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        ADREPORT(log_sd_mu_group);
+        ADREPORT(sd_mu_group);
+      }
+    }
+    vector<Type> mu = exp(eta_mu);
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> trunc_prob(y.size());
+    vector<Type> positive_mean(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      Type log_p0 = drm_nbinom2_log_p0(eta_mu(i), log_sigma(i));
+      Type log_trunc_prob = drm_log1mexp(log_p0);
+      trunc_prob(i) = exp(log_trunc_prob);
+      positive_mean(i) = mu(i) / trunc_prob(i);
+      if (observed_y(i) == 1) {
+        Type log_density =
+          drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
+        nll -= weights(i) * (log_density - log_trunc_prob);
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(trunc_prob);
+    REPORT(positive_mean);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+  } else if (model_type == 12) {
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_hu = X_zi * beta_zi;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          eta_mu(i) += mu_re_value(i, j) * sd_current * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_mu_group);
+          ADREPORT(sd_mu_group);
+        }
+      }
+    }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
+          int code = phylo_mu_dpar(k);
+          if (code == 4) {
+            eta_hu(i) += contribution;
+          } else if (code == 0) {
+            eta_mu(i) += contribution;
+          } else {
+            error(
+              "hurdle_nbinom2: unsupported structured endpoint code for "
+              "phylo_mu_dpar (expected 0=mu, 4=hu)");
+          }
+        }
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+    }
+    vector<Type> mu = exp(eta_mu);
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> hu = Type(1.0) / (Type(1.0) + exp(-eta_hu));
+    vector<Type> trunc_prob(y.size());
+    vector<Type> positive_mean(y.size());
+    vector<Type> fitted_mean(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      Type log_p0 = drm_nbinom2_log_p0(eta_mu(i), log_sigma(i));
+      Type log_trunc_prob = drm_log1mexp(log_p0);
+      trunc_prob(i) = exp(log_trunc_prob);
+      positive_mean(i) = mu(i) / trunc_prob(i);
+      fitted_mean(i) = (Type(1.0) - hu(i)) * positive_mean(i);
+      if (observed_y(i) == 1) {
+        Type log_hu = -logspace_add(Type(0.0), -eta_hu(i));
+        Type log_one_minus_hu = -logspace_add(Type(0.0), eta_hu(i));
+        Type log_density =
+          drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
+        int yi = (int) asDouble(y(i));
+        if (yi == 0) {
+          nll -= weights(i) * log_hu;
+        } else {
+          nll -=
+            weights(i) * (log_one_minus_hu + log_density - log_trunc_prob);
+        }
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(eta_hu);
+    REPORT(hu);
+    REPORT(trunc_prob);
+    REPORT(positive_mean);
+    REPORT(fitted_mean);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_zi);
+  } else if (model_type == 9) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_zi = X_zi * beta_zi;
+    // Non-centred ordinary mu effects.  A supplied sd() design replaces the
+    // constant log-SD for its resolved random-effect target only.
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          eta_mu(i) += mu_re_value(i, j) * sd_current * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        ADREPORT(log_sd_mu_group);
+        ADREPORT(sd_mu_group);
+      }
+    }
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> log_sd_sigma_group(X_sd_sigma.rows());
+      vector<Type> sd_sigma_group(X_sd_sigma.rows());
+      if (has_sd_sigma_model == 1) {
+        for (int g = 0; g < X_sd_sigma.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_sigma.cols(); ++k) {
+            eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
+          }
+          log_sd_sigma_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          int sd_row = sigma_re_sd_row(idx);
+          Type sd_current = sd_sigma_re(sigma_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_sigma_group(sd_row);
+          }
+          log_sigma(i) += sigma_re_value(i, j) * sd_current * u_sigma(idx);
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+      if (has_sd_sigma_model == 1) {
+        REPORT(beta_sd_sigma);
+        REPORT(log_sd_sigma_group);
+        REPORT(sd_sigma_group);
+        ADREPORT(beta_sd_sigma);
+        ADREPORT(log_sd_sigma_group);
+        ADREPORT(sd_sigma_group);
+      }
+    }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
+          if (phylo_mu_dpar(k) == 1) {
+            log_sigma(i) += contribution;
+          } else {
+            eta_mu(i) += contribution;
+          }
+        }
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+    }
+    vector<Type> mu = exp(eta_mu);
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> zi = Type(1.0) / (Type(1.0) + exp(-eta_zi));
+    for (int i = 0; i < y.size(); ++i) {
+      if (observed_y(i) == 1) {
+        Type log_density =
+          drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
+        int yi = (int) asDouble(y(i));
+        Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
+        Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
+        if (yi == 0) {
+          nll -=
+            weights(i) * logspace_add(log_zi, log_one_minus_zi + log_density);
+        } else {
+          nll -= weights(i) * (log_one_minus_zi + log_density);
+        }
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(eta_zi);
+    REPORT(zi);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_zi);
+  } else if (model_type == 2 || model_type == 19 || model_type == 20) {
+    vector<Type> mu1 = X_mu1 * beta_mu1;
+    vector<Type> mu2 = X_mu2 * beta_mu2;
+    vector<Type> log_sigma1 = X_sigma1 * beta_sigma1;
+    vector<Type> log_sigma2 = X_sigma2 * beta_sigma2;
+    vector<Type> eta_rho12 = X_rho12 * beta_rho12;
+    vector<Type> rho12 = Type(0.999999) * tanh(eta_rho12);
+    vector<Type> eta_nu(1);
+    vector<Type> nu(1);
+    if (model_type == 20) {
+      eta_nu = X_nu * beta_nu;
+      nu.resize(eta_nu.size());
+      for (int i = 0; i < eta_nu.size(); ++i) {
+        nu(i) = Type(2.0) + exp(eta_nu(i));
+      }
+    }
+
+    if (n_re_cov_blocks > 0) {
+      int n_re_cov_qgt2_blocks = 0;
+      for (int b = 0; b < n_re_cov_blocks; ++b) {
+        if (re_cov_block_size(b) > 2) {
+          n_re_cov_qgt2_blocks += 1;
+        }
+      }
+      if (n_re_cov_qgt2_blocks > 0) {
+        int theta_offset = 0;
+        int sd_offset = 0;
+        int u_offset = 0;
+        int rho_offset = 0;
+        vector<Type> sd_re_cov(log_sd_re_cov.size());
+        for (int j = 0; j < log_sd_re_cov.size(); ++j) {
+          sd_re_cov(j) = exp(log_sd_re_cov(j));
+        }
+        vector<Type> rho_re_cov(theta_re_cov.size());
+        matrix<Type> re_cov_contribution(
+          re_cov_member_design_value.rows(),
+          re_cov_member_design_value.cols()
+        );
+        re_cov_contribution.setZero();
+
+        for (int b = 0; b < n_re_cov_blocks; ++b) {
+          int block_size = re_cov_block_size(b);
+          int n_groups = re_cov_block_group_count(b);
+          int member_start = re_cov_block_member_start(b);
+          int pair_start = re_cov_block_pair_start(b);
+          int n_pairs = block_size * (block_size - 1) / 2;
+          if (block_size <= 2) {
+            continue;
+          }
+
+          vector<Type> theta_block(n_pairs);
+          for (int p = 0; p < n_pairs; ++p) {
+            theta_block(p) = theta_re_cov(theta_offset + p);
+          }
+          density::UNSTRUCTURED_CORR_t<Type> re_cov_density(theta_block);
+          matrix<Type> re_cov_corr = re_cov_density.cov();
+          vector<Type> sd_block(block_size);
+          for (int m = 0; m < block_size; ++m) {
+            sd_block(m) = sd_re_cov(sd_offset + m);
+          }
+          for (int p = 0; p < n_pairs; ++p) {
+            int from = re_cov_pair_from_member(pair_start + p);
+            int to = re_cov_pair_to_member(pair_start + p);
+            rho_re_cov(rho_offset + p) = re_cov_corr(from, to);
+          }
+
+          for (int g = 0; g < n_groups; ++g) {
+            vector<Type> z(block_size);
+            for (int m = 0; m < block_size; ++m) {
+              z(m) = u_re_cov(u_offset + g * block_size + m);
+            }
+            vector<Type> latent = density::VECSCALE(
+              re_cov_density,
+              sd_block
+            ).sqrt_cov_scale(z);
+            for (int m = 0; m < block_size; ++m) {
+              int member_col = member_start + m;
+              for (int i = 0; i < y1.size(); ++i) {
+                if (re_cov_member_latent_index(i, member_col) == g) {
+                  Type contribution =
+                    re_cov_member_design_value(i, member_col) * latent(m);
+                  re_cov_contribution(i, member_col) = contribution;
+                  int dpar_code = re_cov_member_dpar(member_col);
+                  if (dpar_code == 2) {
+                    mu1(i) += contribution;
+                  } else if (dpar_code == 3) {
+                    mu2(i) += contribution;
+                  } else if (dpar_code == 4) {
+                    log_sigma1(i) += contribution;
+                  } else if (dpar_code == 5) {
+                    log_sigma2(i) += contribution;
+                  }
+                }
+              }
+            }
+          }
+
+          theta_offset += n_pairs;
+          sd_offset += block_size;
+          u_offset += n_groups * block_size;
+          rho_offset += n_pairs;
+        }
+        for (int j = 0; j < u_re_cov.size(); ++j) {
+          nll -= dnorm(u_re_cov(j), Type(0.0), Type(1.0), true);
+        }
+        if (theta_re_cov.size() > 0) {
+          REPORT(u_re_cov);
+          REPORT(log_sd_re_cov);
+          REPORT(sd_re_cov);
+          REPORT(theta_re_cov);
+          REPORT(rho_re_cov);
+          REPORT(re_cov_contribution);
+          ADREPORT(log_sd_re_cov);
+          ADREPORT(sd_re_cov);
+          ADREPORT(theta_re_cov);
+          ADREPORT(rho_re_cov);
+        }
+      }
+    }
+
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            drm_softclamp_log_sd(
+              eta_sd, use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
+      vector<Type> rho_mu_re(n_mu_re_cors);
+      for (int j = 0; j < n_mu_re_cors; ++j) {
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
+      }
+      vector<Type> rho_mu_group(X_cor_mu.rows());
+      if (has_cor_mu_model == 1) {
+        for (int g = 0; g < X_cor_mu.rows(); ++g) {
+          Type eta_cor = Type(0.0);
+          for (int k = 0; k < X_cor_mu.cols(); ++k) {
+            eta_cor += X_cor_mu(g, k) * beta_cor_mu(k);
+          }
+          rho_mu_group(g) = Type(0.99999999) * tanh(eta_cor);
+        }
+      }
+      for (int i = 0; i < y1.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int cor_id = mu_re_cor_id(idx);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          Type u_cond = u_mu(idx);
+          if (cor_id >= 0 && mu_re_pos(idx) == 1) {
+            int pair_idx = mu_re_pair_index(idx);
+            Type rho = rho_mu_re(cor_id);
+            if (has_cor_mu_model == 1 && pair_idx >= 0) {
+              rho = rho_mu_group(pair_idx);
+            }
+            u_cond = rho * u_mu(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_mu(idx);
+          }
+          int dpar_id = mu_re_dpar(idx);
+          if (dpar_id == 0) {
+            mu1(i) += mu_re_value(i, j) * sd_current * u_cond;
+          } else if (dpar_id == 1) {
+            mu2(i) += mu_re_value(i, j) * sd_current * u_cond;
+          }
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+    }
+
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> rho_sigma_re(n_sigma_re_cors);
+      for (int j = 0; j < n_sigma_re_cors; ++j) {
+        rho_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_sigma(j));
+      }
+      vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
+      for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+        rho_mu_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_mu_sigma(j));
+      }
+      for (int i = 0; i < y1.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          Type u_cond = u_sigma(idx);
+          int cor_id = sigma_re_cor_id(idx);
+          if (cor_id >= 0) {
+            Type rho = rho_sigma_re(cor_id);
+            int pair_idx = sigma_re_pair_index(idx);
+            u_cond = rho * u_sigma(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_sigma(idx);
+          }
+          int cross_cor_id = sigma_re_cross_cor(idx);
+          if (cross_cor_id >= 0) {
+            Type rho = rho_mu_sigma_re(cross_cor_id);
+            int mu_idx = sigma_re_cross_mu(idx);
+            u_cond = rho * u_mu(mu_idx) + sqrt(Type(1.0) - rho * rho) * u_cond;
+          }
+          int dpar_id = sigma_re_dpar(idx);
+          if (dpar_id == 0) {
+            log_sigma1(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_cond;
+          } else if (dpar_id == 1) {
+            log_sigma2(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_cond;
+          }
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+    }
+
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      bool has_phylo_cor_model = has_cor_mu_model == 2;
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      if (has_sd_phylo_model == 1) {
+        for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+            eta_sd += X_sd_phylo(g, k) *
+              beta_sd_mu(sd_phylo_beta_offset + k);
+          }
+          log_sd_phylo_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_phylo_group(g),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
+      for (int i = 0; i < y1.size(); ++i) {
+        int node = phylo_mu_node_index(i);
+        Type phylo_effect1 = u_phylo(node);
+        Type phylo_effect2 = u_phylo(n_phylo + node);
+        if (has_phylo_cor_model && q_phylo == 2) {
+          Type eta_cor = Type(0.0);
+          for (int k = 0; k < X_cor_mu.cols(); ++k) {
+            eta_cor += X_cor_mu(node, k) * beta_cor_mu(k);
+          }
+          Type rho_node = Type(0.999999) * tanh(eta_cor);
+          Type c_node = sqrt((Type(1.0) + rho_node) / Type(2.0));
+          Type d_node = sqrt((Type(1.0) - rho_node) / Type(2.0));
+          Type z1 = u_phylo(node);
+          Type z2 = u_phylo(n_phylo + node);
+          phylo_effect1 = sd_phylo(0) * (c_node * z1 + d_node * z2);
+          phylo_effect2 = sd_phylo(1) * (c_node * z1 - d_node * z2);
+        } else if (has_sd_phylo_model == 1 && q_phylo == 2) {
+          int row1 = phylo_mu_sd_row(node);
+          int row2 = phylo_mu_sd_row(n_phylo + node);
+          if (row1 >= 0) {
+            phylo_effect1 *= sd_phylo_group(row1);
+          } else {
+            phylo_effect1 *= sd_phylo(0);
+          }
+          if (row2 >= 0) {
+            phylo_effect2 *= sd_phylo_group(row2);
+          } else {
+            phylo_effect2 *= sd_phylo(1);
+          }
+        }
+        if (q_phylo == 2) {
+          for (int k = 0; k < q_phylo; ++k) {
+            Type effect = k == 0 ? phylo_effect1 : phylo_effect2;
+            Type contribution = phylo_mu_value(i, k) * effect;
+            int family = phylo_mu_dpar(k);
+            int response = phylo_mu_response(k);
+            if (family == 0 && response == 1) {
+              mu1(i) += contribution;
+            } else if (family == 0 && response == 2) {
+              mu2(i) += contribution;
+            } else if (family == 1 && response == 1) {
+              log_sigma1(i) += contribution;
+            } else if (family == 1 && response == 2) {
+              log_sigma2(i) += contribution;
+            }
+          }
+        } else {
+          for (int k = 0; k < q_phylo; ++k) {
+            Type contribution = phylo_mu_value(i, k) *
+              u_phylo(k * n_phylo + node);
+            int family = phylo_mu_dpar(k);
+            int response = phylo_mu_response(k);
+            if (family == 0 && response == 1) {
+              mu1(i) += contribution;
+            } else if (family == 0 && response == 2) {
+              mu2(i) += contribution;
+            } else if (family == 1 && response == 1) {
+              log_sigma1(i) += contribution;
+            } else if (family == 1 && response == 2) {
+              log_sigma2(i) += contribution;
+            }
+          }
+        }
+      }
+      if (q_phylo == 2) {
+        Type rho_phylo = Type(0.999999) * tanh(eta_cor_phylo);
+        vector<Type> u1(n_phylo);
+        vector<Type> u2(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          u1(j) = u_phylo(j);
+          u2(j) = u_phylo(n_phylo + j);
+        }
+        vector<Type> Q_u1 = Q_phylo * u1;
+        vector<Type> Q_u2 = Q_phylo * u2;
+        Type q11 = Type(0.0);
+        Type q12 = Type(0.0);
+        Type q22 = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          q11 += u1(j) * Q_u1(j);
+          q12 += u1(j) * Q_u2(j);
+          q22 += u2(j) * Q_u2(j);
+        }
+        if (has_phylo_cor_model) {
+          vector<Type> eta_phylo_group(X_cor_mu.rows());
+          vector<Type> rho_phylo_group(X_cor_mu.rows());
+          for (int g = 0; g < X_cor_mu.rows(); ++g) {
+            eta_phylo_group(g) = Type(0.0);
+            for (int k = 0; k < X_cor_mu.cols(); ++k) {
+              eta_phylo_group(g) += X_cor_mu(g, k) * beta_cor_mu(k);
+            }
+            rho_phylo_group(g) = Type(0.999999) * tanh(eta_phylo_group(g));
+          }
+          Type quadratic_phylo = q11 + q22;
+          nll += Type(0.5) * (
+            Type(2 * n_phylo) * log(Type(2.0) * M_PI) -
+            Type(2.0) * log_det_Q_phylo +
+            quadratic_phylo
+          );
+          REPORT(eta_phylo_group);
+          REPORT(rho_phylo_group);
+          REPORT(quadratic_phylo);
+          ADREPORT(rho_phylo_group);
+        } else {
+          Type one_minus_rho2 = Type(1.0) - rho_phylo * rho_phylo;
+          Type inv11;
+          Type inv22;
+          Type inv12;
+          Type log_det_cov;
+          if (has_sd_phylo_model == 1) {
+            inv11 = Type(1.0) / one_minus_rho2;
+            inv22 = Type(1.0) / one_minus_rho2;
+            inv12 = -rho_phylo / one_minus_rho2;
+            log_det_cov = log(one_minus_rho2);
+          } else {
+            Type sd1 = sd_phylo(0);
+            Type sd2 = sd_phylo(1);
+            inv11 = Type(1.0) / (sd1 * sd1 * one_minus_rho2);
+            inv22 = Type(1.0) / (sd2 * sd2 * one_minus_rho2);
+            inv12 = -rho_phylo / (sd1 * sd2 * one_minus_rho2);
+            log_det_cov = Type(2.0) * log_sd_phylo(0) +
+              Type(2.0) * log_sd_phylo(1) +
+              log(one_minus_rho2);
+          }
+          Type quadratic_phylo = inv11 * q11 + Type(2.0) * inv12 * q12 + inv22 * q22;
+          nll += Type(0.5) * (
+            Type(2 * n_phylo) * log(Type(2.0) * M_PI) +
+            Type(n_phylo) * log_det_cov -
+            Type(2.0) * log_det_Q_phylo +
+            quadratic_phylo
+          );
+          REPORT(eta_cor_phylo);
+          REPORT(rho_phylo);
+          REPORT(quadratic_phylo);
+          ADREPORT(eta_cor_phylo);
+          ADREPORT(rho_phylo);
+        }
+      } else {
+        matrix<Type> effect(n_phylo, q_phylo);
+        for (int j = 0; j < q_phylo; ++j) {
+          for (int i = 0; i < n_phylo; ++i) {
+            effect(i, j) = u_phylo(j * n_phylo + i);
+          }
+        }
+        matrix<Type> quadratic_matrix(q_phylo, q_phylo);
+        quadratic_matrix.setZero();
+        for (int b = 0; b < q_phylo; ++b) {
+          vector<Type> effect_b(n_phylo);
+          for (int i = 0; i < n_phylo; ++i) {
+            effect_b(i) = effect(i, b);
+          }
+          vector<Type> Q_effect_b = Q_phylo * effect_b;
+          for (int a = 0; a < q_phylo; ++a) {
+            for (int i = 0; i < n_phylo; ++i) {
+              quadratic_matrix(a, b) += effect(i, a) * Q_effect_b(i);
+            }
+          }
+        }
+        if (phylo_mu_n_blocks > 1) {
+          matrix<Type> phylo_q4_corr(q_phylo, q_phylo);
+          matrix<Type> phylo_q4_covariance(q_phylo, q_phylo);
+          phylo_q4_corr.setZero();
+          phylo_q4_covariance.setZero();
+          for (int a = 0; a < q_phylo; ++a) {
+            phylo_q4_corr(a, a) = Type(1.0);
+            phylo_q4_covariance(a, a) = sd_phylo(a) * sd_phylo(a);
+          }
+          Type quadratic_phylo = Type(0.0);
+          Type log_det_covariance = Type(0.0);
+          int theta_pos = 0;
+          for (int block = 0; block < phylo_mu_n_blocks; ++block) {
+            int first = -1;
+            int second = -1;
+            int block_size = 0;
+            for (int endpoint = 0; endpoint < q_phylo; ++endpoint) {
+              if (phylo_mu_block_id(endpoint) == block) {
+                if (block_size == 0) {
+                  first = endpoint;
+                } else if (block_size == 1) {
+                  second = endpoint;
+                }
+                block_size += 1;
+              }
+            }
+            if (block_size == 1) {
+              Type sd1 = sd_phylo(first);
+              Type block_quadratic =
+                quadratic_matrix(first, first) / (sd1 * sd1);
+              log_det_covariance += Type(2.0) * log_sd_phylo(first);
+              quadratic_phylo += block_quadratic;
+              nll += Type(0.5) * (
+                Type(n_phylo) * log(Type(2.0) * M_PI) +
+                Type(n_phylo) * Type(2.0) * log_sd_phylo(first) -
+                log_det_Q_phylo +
+                block_quadratic
+              );
+            } else if (block_size == 2) {
+              Type rho_block = Type(0.999999) * tanh(theta_phylo(theta_pos));
+              theta_pos += 1;
+              Type one_minus_rho2 =
+                Type(1.0) - rho_block * rho_block;
+              Type sd1 = sd_phylo(first);
+              Type sd2 = sd_phylo(second);
+              Type log_det_block =
+                Type(2.0) * log_sd_phylo(first) +
+                Type(2.0) * log_sd_phylo(second) +
+                log(one_minus_rho2);
+              Type inv11 = Type(1.0) / (sd1 * sd1 * one_minus_rho2);
+              Type inv22 = Type(1.0) / (sd2 * sd2 * one_minus_rho2);
+              Type inv12 = -rho_block / (sd1 * sd2 * one_minus_rho2);
+              Type block_quadratic =
+                inv11 * quadratic_matrix(first, first) +
+                Type(2.0) * inv12 * quadratic_matrix(first, second) +
+                inv22 * quadratic_matrix(second, second);
+              phylo_q4_corr(first, second) = rho_block;
+              phylo_q4_corr(second, first) = rho_block;
+              phylo_q4_covariance(first, second) = sd1 * rho_block * sd2;
+              phylo_q4_covariance(second, first) = sd1 * rho_block * sd2;
+              log_det_covariance += log_det_block;
+              quadratic_phylo += block_quadratic;
+              nll += Type(0.5) * (
+                Type(2 * n_phylo) * log(Type(2.0) * M_PI) +
+                Type(n_phylo) * log_det_block -
+                Type(2.0) * log_det_Q_phylo +
+                block_quadratic
+              );
+            }
+          }
+          REPORT(theta_phylo);
+          REPORT(phylo_q4_corr);
+          REPORT(phylo_q4_covariance);
+          REPORT(quadratic_phylo);
+          REPORT(log_det_covariance);
+          REPORT(quadratic_matrix);
+          ADREPORT(theta_phylo);
+        } else {
+          matrix<Type> phylo_q4_corr = drm_qgt2_corr_matrix(
+            theta_phylo,
+            q_phylo,
+            qgt2_corr_parameterization
+          );
+          matrix<Type> phylo_q4_covariance(q_phylo, q_phylo);
+          for (int a = 0; a < q_phylo; ++a) {
+            for (int b = 0; b < q_phylo; ++b) {
+              phylo_q4_covariance(a, b) =
+                sd_phylo(a) * phylo_q4_corr(a, b) * sd_phylo(b);
+            }
+          }
+          Type log_det_covariance = Type(0.0);
+          Type quadratic_phylo = Type(0.0);
+          drm_separable_cov_logdet_quad(
+            phylo_q4_covariance, quadratic_matrix, q_phylo,
+            log_det_covariance, quadratic_phylo);
+          nll += Type(0.5) * (
+            Type(n_phylo * q_phylo) * log(Type(2.0) * M_PI) +
+            Type(n_phylo) * log_det_covariance -
+            Type(q_phylo) * log_det_Q_phylo +
+            quadratic_phylo
+          );
+          REPORT(theta_phylo);
+          REPORT(phylo_q4_corr);
+          REPORT(phylo_q4_covariance);
+          REPORT(quadratic_phylo);
+          ADREPORT(theta_phylo);
+        }
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(sd_phylo);
+      if (has_sd_phylo_model == 1) {
+        REPORT(log_sd_phylo_group);
+        REPORT(sd_phylo_group);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_phylo_group);
+          ADREPORT(sd_phylo_group);
+        }
+      }
+      ADREPORT(log_sd_phylo);
+      ADREPORT(sd_phylo);
+      if (penalize_phylo == 1) {
+        phylo_penalty = drm_phylo_penalty_value(
+          log_sd_phylo, q_phylo, eta_cor_phylo, theta_phylo,
+          phylo_sd_penalty_rate, phylo_cor_penalty_sd);
+        nll += phylo_penalty;
+        REPORT(phylo_penalty);
+      }
+    }
+
+    // Guard the bivariate Gaussian scales against runaway per-observation
+    // log-sigma (e.g. a scale-side phylogenetic field; Ayumi's q4 "Model E").
+    // See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma1, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+      drm_softclamp_log_sigma(
+        log_sigma2, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
+    vector<Type> sigma1 = exp(log_sigma1);
+    vector<Type> sigma2 = exp(log_sigma2);
+
+    if (model_type == 20) {
+      for (int i = 0; i < y1.size(); ++i) {
+        Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+        Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+        Type one_minus_rho2 =
+          Type(1.0) - rho12(i) * rho12(i);
+        Type q =
+          (
+            z1 * z1 -
+            Type(2.0) * rho12(i) * z1 * z2 +
+            z2 * z2
+          ) / one_minus_rho2;
+        // In exactly two dimensions,
+        // lgamma((nu + 2) / 2) - lgamma(nu / 2) - log(nu * pi)
+        // simplifies to -log(2 * pi). This avoids catastrophic cancellation
+        // on the Gaussian (large-nu) boundary.
+        Type log_density =
+          -log(Type(2.0) * Type(M_PI)) -
+          log_sigma1(i) -
+          log_sigma2(i) -
+          Type(0.5) * log(one_minus_rho2) -
+          ((nu(i) + Type(2.0)) / Type(2.0)) *
+            drm_log1p_nonnegative(q / nu(i));
+        nll -= weights(i) * log_density;
+      }
+    } else if (V_known_type == 2) {
+      int n = y1.size();
+      int m = 2 * n;
+      vector<Type> y_stack(m);
+      vector<Type> mu_stack(m);
+      matrix<Type> Omega(m, m);
+      for (int r = 0; r < m; ++r) {
+        for (int c = 0; c < m; ++c) {
+          Omega(r, c) = V_known_matrix(r, c);
+        }
+      }
+      for (int i = 0; i < n; ++i) {
+        int i1 = 2 * i;
+        int i2 = i1 + 1;
+        Type cov12 = rho12(i) * sigma1(i) * sigma2(i);
+        y_stack(i1) = y1(i);
+        y_stack(i2) = y2(i);
+        mu_stack(i1) = mu1(i);
+        mu_stack(i2) = mu2(i);
+        Omega(i1, i1) += sigma1(i) * sigma1(i);
+        Omega(i2, i2) += sigma2(i) * sigma2(i);
+        Omega(i1, i2) += cov12;
+        Omega(i2, i1) += cov12;
+      }
+      density::MVNORM_t<Type> neg_log_density(Omega);
+      nll += neg_log_density(y_stack - mu_stack);
+    } else {
+      drm_bivariate_gaussian_diag_nll(
+        nll, y1, y2, mu1, mu2, log_sigma1, log_sigma2,
+        sigma1, sigma2, rho12, weights, observed_y1, observed_y2);
+      if (model_type == 19) {
+        for (int i = 0; i < y1.size(); ++i) {
+          if (observed_y1(i) == 1 && observed_y2(i) == 1) {
+            nll += weights(i) * (y1(i) + y2(i));
+          }
+        }
+      }
+    }
+
+    REPORT(mu1);
+    REPORT(mu2);
+    REPORT(log_sigma1);
+    REPORT(log_sigma2);
+    REPORT(sigma1);
+    REPORT(sigma2);
+    REPORT(eta_rho12);
+    REPORT(rho12);
+    if (model_type == 20) {
+      REPORT(eta_nu);
+      REPORT(nu);
+      ADREPORT(beta_nu);
+    }
+    ADREPORT(beta_mu1);
+    ADREPORT(beta_mu2);
+    ADREPORT(beta_sigma1);
+    ADREPORT(beta_sigma2);
+    ADREPORT(beta_rho12);
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = drm_softclamp_log_sd(
+            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            log_sd_mu_group(g),
+            sd_logscale_overflow_guard_hit);
+        }
+      }
+      vector<Type> rho_mu_re(n_mu_re_cors);
+      for (int j = 0; j < n_mu_re_cors; ++j) {
+        rho_mu_re(j) = Type(0.99999999) * tanh(eta_cor_mu(j));
+      }
+      vector<Type> rho_mu_group(X_cor_mu.rows());
+      if (has_cor_mu_model == 1) {
+        for (int g = 0; g < X_cor_mu.rows(); ++g) {
+          Type eta_cor = Type(0.0);
+          for (int k = 0; k < X_cor_mu.cols(); ++k) {
+            eta_cor += X_cor_mu(g, k) * beta_cor_mu(k);
+          }
+          rho_mu_group(g) = Type(0.99999999) * tanh(eta_cor);
+        }
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        ADREPORT(log_sd_mu_group);
+        ADREPORT(sd_mu_group);
+      }
+      if (n_mu_re_cors > 0) {
+        REPORT(eta_cor_mu);
+        REPORT(rho_mu_re);
+        ADREPORT(eta_cor_mu);
+        ADREPORT(rho_mu_re);
+      }
+      if (has_cor_mu_model == 1) {
+        REPORT(beta_cor_mu);
+        REPORT(rho_mu_group);
+        ADREPORT(beta_cor_mu);
+        ADREPORT(rho_mu_group);
+      }
+    }
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+      if (n_sigma_re_cors > 0) {
+        vector<Type> rho_sigma_re(n_sigma_re_cors);
+        for (int j = 0; j < n_sigma_re_cors; ++j) {
+          rho_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_sigma(j));
+        }
+        REPORT(eta_cor_sigma);
+        REPORT(rho_sigma_re);
+        ADREPORT(eta_cor_sigma);
+        ADREPORT(rho_sigma_re);
+      }
+      if (n_mu_sigma_re_cors > 0) {
+        vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
+        for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+          rho_mu_sigma_re(j) = Type(0.99999999) * tanh(eta_cor_mu_sigma(j));
+        }
+        REPORT(eta_cor_mu_sigma);
+        REPORT(rho_mu_sigma_re);
+        ADREPORT(eta_cor_mu_sigma);
+        ADREPORT(rho_mu_sigma_re);
+      }
+    }
+  }
+
+  REPORT(sd_logscale_overflow_guard_hit);
+  if (use_mspl == 1) {
+    // Fixed-only Jeffreys information. The predictor includes the finite
+    // offset but deliberately excludes random effects. Scale the weights by
+    // their largest log value before the cross-product, then restore the
+    // determinant analytically; this avoids probability underflow along a
+    // separation ray without changing the exact criterion.
+    int p_mspl = beta_mu.size();
+    vector<Type> eta_fixed_mspl = offset_mu + X_mu * beta_mu;
+    vector<Type> log_weight_mspl(eta_fixed_mspl.size());
+    // The weight is the EXPECTED-information weight w = n (dmu/deta)^2 /
+    // (mu (1 - mu)), which is link-dependent.  The logit branch below is the
+    // algebraic collapse of that form under the canonical link and is kept
+    // VERBATIM so the shipped logit route is bit-identical to before this
+    // block learned about links; drm_numeric.h documents why the collapse does
+    // not generalise by substituting log_mu / log_one_minus_mu.  Every other
+    // link goes through the per-link stable primitives, whose log-scale
+    // branches are correct in BOTH tails (the cloglog negative tail in
+    // particular: log(1 - mu) = -exp(eta) exactly, and log(mu) via log1mexp,
+    // so the weight tends to zero rather than to the +Inf a naive form gives).
+    for (int i = 0; i < eta_fixed_mspl.size(); ++i) {
+      if (link_code == 0) {
+        log_weight_mspl(i) =
+          log(weights(i) * trials(i)) -
+          logspace_add(Type(0.0), eta_fixed_mspl(i)) -
+          logspace_add(Type(0.0), -eta_fixed_mspl(i));
+      } else {
+        DrmBinomLogMu<Type> mspl_log_mu =
+          drm_binom_log_mu(eta_fixed_mspl(i), link_code);
+        log_weight_mspl(i) =
+          log(weights(i) * trials(i)) +
+          Type(2.0) * drm_binom_log_mu_eta(eta_fixed_mspl(i), link_code) -
+          mspl_log_mu.log_mu - mspl_log_mu.log_one_minus_mu;
+      }
+    }
+    Type log_weight_scale_mspl = log_weight_mspl(0);
+    for (int i = 1; i < log_weight_mspl.size(); ++i) {
+      log_weight_scale_mspl = CppAD::CondExpGt(
+        log_weight_mspl(i), log_weight_scale_mspl,
+        log_weight_mspl(i), log_weight_scale_mspl);
+    }
+    matrix<Type> information_scaled_mspl(p_mspl, p_mspl);
+    information_scaled_mspl.setZero();
+    for (int i = 0; i < X_mu.rows(); ++i) {
+      Type w_scaled = exp(log_weight_mspl(i) - log_weight_scale_mspl);
+      for (int a = 0; a < p_mspl; ++a) {
+        for (int b = 0; b < p_mspl; ++b) {
+          information_scaled_mspl(a, b) +=
+            w_scaled * X_mu(i, a) * X_mu(i, b);
+        }
+      }
+    }
+    Type logdet_scaled_mspl = atomic::logdet(information_scaled_mspl);
+    Type mspl_jeffreys = Type(0.5) *
+      (logdet_scaled_mspl + Type(p_mspl) * log_weight_scale_mspl);
+
+    Type mspl_variance_negative_huber = Type(0.0);
+    Type mspl_rho = Type(0.0);
+    Type mspl_sech = Type(1.0);
+    Type mspl_log_sech = Type(0.0);
+    Type mspl_L11 = exp(log_sd_mu(0));
+    Type mspl_L21 = Type(0.0);
+    Type mspl_L22 = mspl_L11;
+    if (mspl_q == 1) {
+      mspl_variance_negative_huber =
+        drm_mspl_negative_huber(log_sd_mu(0));
+    } else if (mspl_q == 2) {
+      Type z = eta_cor_mu(0);
+      mspl_rho = tanh(z);
+      mspl_log_sech = drm_log_sech(z);
+      mspl_sech = exp(mspl_log_sech);
+      mspl_L11 = exp(log_sd_mu(0));
+      mspl_L21 = exp(log_sd_mu(1)) * mspl_rho;
+      mspl_L22 = exp(log_sd_mu(1) + mspl_log_sech);
+      // The paper penalty coordinates are (log L11, log L22, L21),
+      // not drmTMB's native (log SD1, log SD2, correlation eta).
+      mspl_variance_negative_huber =
+        drm_mspl_negative_huber(log_sd_mu(0)) +
+        drm_mspl_negative_huber(log_sd_mu(1) + mspl_log_sech) +
+        drm_mspl_negative_huber(mspl_L21);
+    }
+    Type mspl_log_objective_bonus = mspl_c_n *
+      (mspl_jeffreys + mspl_variance_negative_huber);
+    Type mspl_nll_penalty = -mspl_log_objective_bonus;
+    nll += mspl_nll_penalty;
+
+    REPORT(mspl_jeffreys);
+    REPORT(mspl_variance_negative_huber);
+    REPORT(mspl_log_objective_bonus);
+    REPORT(mspl_nll_penalty);
+    REPORT(mspl_rho);
+    REPORT(mspl_sech);
+    REPORT(mspl_log_sech);
+    REPORT(mspl_L11);
+    REPORT(mspl_L21);
+    REPORT(mspl_L22);
+    REPORT(information_scaled_mspl);
+    REPORT(log_weight_scale_mspl);
+  }
+  nll = CppAD::CondExpGt(
+    sd_logscale_overflow_guard_hit, Type(0.0), Type(R_PosInf), nll);
+  return nll;
+}

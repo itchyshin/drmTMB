@@ -1,0 +1,58 @@
+{
+  "evidence_id": "poisson-iid-structured-sensitivity-b26-20261102c",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c <1 core of 100-103> Rscript -e \"pkgload::load_all('.'); r<-as.data.frame(testthat::test_file('tests/testthat/test-poisson-iid-structured-sensitivity-b26.R', reporter='silent')); print(colSums(r[c('passed','failed','error','skipped')])); print(nrow(r))\"",
+  "execution_host": "Totoro, rsync copy of the worktree at HEAD (R/, src/, tests/ verified identical by checksum), 1 pinned core",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "7fd8acec38a3466cab97a543abdf13f8a634a9d9",
+  "tree_state": "HEAD 7fd8acec3; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T13:55:19Z",
+  "run_ended_utc": "2026-11-02T13:55:36Z",
+  "exit_code": 0,
+  "expectations_passed": 52,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 3,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-iid-structured-sensitivity-b26-20261102c/test-console.log",
+  "console_log_sha256": "382f53493afa3c9e1311086321c7f63a7d4464b1a5137497f93f5a7dd46b277f",
+  "test_path": "tests/testthat/test-poisson-iid-structured-sensitivity-b26.R",
+  "test_sha256": "9ae46f86e929c115eb0ed3339796df4c8a9d098519199acc98e29dd4b9011197",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-iid-structured-sensitivity-b26-20261102c/source-manifest.json",
+  "source_manifest_sha256": "b2c91ca3bd53b8f07d2ff7c7a49eba9f7b0fa721b7f6e704c026fdf9ef66c2b5",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [
+    "native-poisson-iid-structured-sd-20261101-20261102b-m26"
+  ],
+  "strengthens_note": "Companion to the parent id(s); closes reviewer-listed gaps (independent oracle and/or emulated-bug sensitivity) for the linked rows. The parent receipts were re-recorded as -m26 at e9c72ab3e; the base ids without the -m26 suffix are the ones named in the test header.",
+  "scope": "Poisson (log) ordinary iid intercept plus one structured intercept (relmat K, relmat Q, animal A, animal Ainv, phylo), each with its own SD predictor and coefficient set; base-R dense Laplace oracle (hand kernel, Henderson A with inbreeding, cov2cor(ape::vcv); 1e-4 on logLik) with reversed-SD, swapped-coefficient and wrong-K-scale sensitivity; K/Q and A/Ainv logLik equality within 1e-3.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:A_covariance\",\"additive independent latent fields\",\"iid:group_factor+animal:A_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive independent latent fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+phylo:tree\",\"additive independent latent fields\",\"iid:group_factor+phylo:tree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+relmat:K_covariance\",\"additive independent latent fields\",\"iid:group_factor+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+relmat:Q_precision\",\"additive independent latent fields\",\"iid:group_factor+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery or estimator-accuracy claims",
+    "any family, link, provider or endpoint not listed in candidate_rows"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Poisson iid (site) plus one structured intercept (id), each with its own SD predictor and coefficient set: relmat K, relmat Q, animal A, animal Ainv, phylo (5 provider-pair rows, all fitted). The oracle is a base-R dense Laplace with hand kernels, a Henderson A with inbreeding, and cov2cor(ape::vcv). The package phylo tip covariance is compared with ape::vcv in-test, which closes the earlier phylo-row kernel blocker. Tolerance is 1e-4. Four bugs (reversed structured SD, reversed iid SD, swapped selector coefficients, wrong K scale) each move it by more than 0.1 and pass, which closes the earlier no-sensitivity blocker. Manifest 7/7 match, and the rerun shows 52 expectations, 0 failures, 0 skips. Does NOT establish: calibration or coverage, Julia parity, missing-response behaviour, or providers and families not listed.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
+}

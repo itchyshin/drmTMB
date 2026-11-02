@@ -1,0 +1,6 @@
+ℹ Testing drmTMB
+beta-animal-pedigree-q2-sd-regression: ................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+PASSED 32 FAILED 0 ERROR 0 SECONDS 31.088 

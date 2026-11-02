@@ -1,0 +1,3 @@
+Command: PATH="$HOME/.juliaup/bin:$PATH" JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=2 julia --project=. -e 'using Test; include("test/test_binomial_crossed_sd_regression.jl")'
+Julia version: 1.10.0
+Test Summary: Crossed Bernoulli intercepts have separate predictor-dependent SDs | 20 passed, 20 total, 20.2 seconds.

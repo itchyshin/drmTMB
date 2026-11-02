@@ -1,0 +1,8 @@
+Host: Totoro, connected through the existing ControlMaster socket
+Julia: 1.10.12
+Threads: 1
+Command: julia --project=. test/test_binomial_phylo_interaction_sd.jl
+Result: PASS, 47/47 total assertions (10 formula-target, 37 fit/output). Probit and cloglog use link-matched Bernoulli synthetic DGPs; both recover a positive SD slope within the predeclared broad tolerance, return pair-indexed SDs, and simulate valid binary responses.
+Elapsed: 21.87 seconds.
+Snapshot verification: 107 project, manifest, source and focused-test SHA-256 entries matched on Totoro before execution.
+Scope: focused point-recovery and workflow evidence. No interval-coverage or native R/TMB parity claim; no independent dense covariance oracle was added in this slice.

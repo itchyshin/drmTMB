@@ -102,14 +102,12 @@ drm_julia_family_registry <- function() {
     # refuses random effects itself: "currently supports fixed effects only").
     # No phylo/RE/structured admission here -- that is a later row.
     spec("truncated_nbinom2", predictor_dpars = "*", fe = TRUE),
-    # zero_one_beta (A4, 2026-09-05): fixed effects only, dpars mu (logit) +
-    # sigma (log, phi = 1/sigma^2) + zoi (logit) + coi (logit) -- the SAME
-    # three-part mixture on both sides (DRM.jl src/zeroonebeta.jl
-    # `ZeroOneBeta`, pin 430ef64cc, which refuses random effects itself:
-    # "currently supports fixed effects only"). No phylo/RE/structured
-    # admission here -- that is a later row. No family-specific payload or
-    # label code is needed: `julia_bridge_supported_dpars()` and
-    # `drm_julia_bridge_blocks()` already carry zoi/coi.
+    # zero_one_beta (A4, 2026-09-05): fixed effects for mu (logit) + sigma
+    # (log, phi = 1/sigma^2) + zoi (logit) + coi (logit), with one narrow
+    # complete-data mean random-intercept SD-regression route. That route
+    # requires sigma, zoi, and coi to be fixed intercepts; slopes, structured
+    # effects, and random effects on the mixture parameters remain fenced.
+    # The common payload and coefficient-label machinery carry this route.
     # zero_one_beta: measured 2026-09-05, `zoi ~ z` FITS on both engines at
     # logLik -80.36706785 (identical), so no dpar needs fencing.
     spec("zero_one_beta", predictor_dpars = "*", fe = TRUE),
@@ -141,8 +139,10 @@ drm_julia_family_registry <- function() {
     # label defaulter must NOT invent a `sigma` block and a user-written
     # `sigma ~` formula is refused. Cutpoints are NOT a dpar on the R side --
     # R/julia-family-cumulative_logit.R moves DRM.jl's `cutpoints` block into
-    # `fit$ordinal` (design 258 section 8.9). Fixed effects only: no phylo, RE,
-    # or structured route (a later row's job).
+    # `fit$ordinal` (design 258 section 8.9). The family stays on the `fe`
+    # registry row; exact bridge gates separately admit one ordinary `mu`
+    # intercept or one numeric slope with a matching `sd()` formula. Phylo,
+    # correlated, and other structured routes remain outside those exceptions.
     spec("cumulative_logit", predictor_dpars = "*",
                          fe = TRUE, dispersionless = TRUE),
     # biv_student (A4, 2026-09-05): drmTMB's exact shared-nu bivariate
@@ -158,10 +158,13 @@ drm_julia_family_registry <- function() {
     # design ("residual-only"), and native drmTMB defers them too.
     spec("biv_student", predictor_dpars = c("mu1", "mu2"), fe = TRUE),
     # ---- A4 admissions, one row per PR ---------------------------------------
-    # skew_normal (dpars mu, sigma, nu): fixed effects only -- DRM.jl's
-    # SkewNormal() refuses every random effect and structured marker, and the
-    # public moment parameterisation (mu = E[y], sigma = SD[y], nu = slant)
-    # is the same on both sides, so bridged coefficients are the native ones.
+    # skew_normal (dpars mu, sigma, nu): the registry row keeps the ordinary
+    # fixed-effect route open. The bridge has a separate, exact exception for
+    # one ordinary mu intercept or independent numeric slope with its matching
+    # sd() target and fixed sigma/nu; correlated and structured terms remain
+    # fenced. The public moment parameterisation (mu = E[y], sigma = SD[y],
+    # nu = slant) is the same on both sides, so bridged coefficients share the
+    # native scale.
     # DRM.jl's _bridge_family() case for the "skew_normal" tag is DRM.jl
     # PR #641 (A4, 2026-09-05); pin 430ef64cc lacks it and refuses at the
     # Julia boundary ("drm_bridge: unsupported family `skew_normal`").

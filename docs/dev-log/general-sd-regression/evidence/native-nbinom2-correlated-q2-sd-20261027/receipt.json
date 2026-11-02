@@ -1,0 +1,39 @@
+{
+  "evidence_id": "native-nbinom2-correlated-q2-sd-20261027",
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "scope": "Native R/TMB; complete-data ordinary NB2; one unlabelled q=2 intercept-slope block; separate group-constant SD predictors for intercept and slope.",
+  "implementation": "Enabled the existing correlated-q2 SD target resolver for ordinary NB2 and removed the stale independent-only gate. The TMB family branch already consumes coefficient-specific group SD rows and preserves the q2 correlation.",
+  "checks": [
+    {
+      "command": "Rscript -e 'devtools::test(filter = \"nbinom2-correlated-q2-sd\")'",
+      "result": "12 expectations passed; 0 failures, 0 warnings, 0 skips; 48.0 seconds."
+    },
+    {
+      "command": "Rscript -e 'devtools::test(filter = \"nbinom2-(ordinary-correlated-q2|correlated-q2-sd)\")'",
+      "result": "37 expectations passed; 0 failures, 0 warnings, 0 skips; 51.1 seconds."
+    },
+    {
+      "command": "Rscript -e 'pkgdown::check_pkgdown()'",
+      "result": "No problems; existing Pandoc --mathml deprecation warnings."
+    },
+    {
+      "command": "Rscript -e 'devtools::load_all(\".\", quiet = TRUE); rmarkdown::render(\"vignettes/predictor-dependent-random-sd.Rmd\", output_file = \"/tmp/predictor-dependent-random-sd-nbinom2-q2.html\", quiet = TRUE)'",
+      "result": "Completed; new NB2 section present. Existing Pandoc --mathjax deprecation warning."
+    },
+    {
+      "command": "Rscript -e 'pkgdown::build_site()'",
+      "result": "Full package site completed successfully, including formula grammar and predictor-dependent SD articles; existing Pandoc deprecation warnings."
+    }
+  ],
+  "test_scope": "Fixed-seed synthetic point recovery for the two log-SD slopes; named group prediction lengths and finite values; constant-SD likelihood equivalence to the existing ordinary NB2 q2 fit.",
+  "limitations": [
+    "No independent NB2 marginal-likelihood oracle in this slice.",
+    "No interval coverage calibration.",
+    "No Julia parity.",
+    "No structured or labelled correlated block support.",
+    "No claim for zero-inflated, truncated, missing-response, or sigma-random-effect combinations."
+  ],
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-nbinom2-correlated-q2-sd-20261027/source-manifest.json",
+  "source_manifest_sha256": "b35a231d1ae6ee5c4b7e5d6ae08f4844e09cb19f328a69013f735a727097d462",
+  "source_hash_scope_note": "The shared R/drmTMB.R digest covers a dirty candidate with unrelated in-flight edits; ownership is limited to the narrow NB2 target-admission change."
+}

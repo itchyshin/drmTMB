@@ -1,0 +1,29 @@
+{
+  "evidence_id": "tweedie-relmat-tmb-julia-current-source-parity-20261023-v2-20261102t",
+  "refresh_of_evidence_ids": [
+    "tweedie-relmat-tmb-julia-current-source-parity-20261023-v2"
+  ],
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-julia-tweedie-relmat-sd.R\", reporter = \"summary\")'",
+  "git_head": "427a9a40198d588409a350843ef7fe8c788454a9",
+  "tree_state": "uncommitted staged edits; unreviewed",
+  "run_started_utc": "2026-11-02T12:58:21Z",
+  "run_ended_utc": "2026-11-02T13:07:29Z",
+  "exit_code": 0,
+  "expectations_passed": 24,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-tweedie-relmat-sd-refresh-20261102t-b87e26/test-console.log",
+  "console_log_sha256": "a334b6c4f98bbfb1f41d5f8e366ae393222757f9718fbe654376fa821e9c0c8f",
+  "test_path": "tests/testthat/test-julia-tweedie-relmat-sd.R",
+  "test_sha256": "ea61166884e5e465e390566d97f09179efd89907d4da965af68797fcbd6d8b28",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-tweedie-relmat-sd-refresh-20261102t-b87e26/source-manifest.json",
+  "source_manifest_sha256": "d4b64c3a81bc5af06c0752468deec16b6d715c30a619cea84ad1fbbe15a2fdec",
+  "live_julia": "not run unless the console log says live tests ran",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity unless stated"
+  ],
+  "review_status": "unreviewed"
+}
