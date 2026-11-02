@@ -10690,7 +10690,7 @@ drm_build_nbinom2_spec <- function(
   mu_entry$rhs <- meta$rhs
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
-  mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(mu_entry)
+  mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(mu_entry, allow_slope = TRUE)
   mu_entry$rhs <- mu_phylo_interaction$rhs
   mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry)
   mu_entry$rhs <- mu_spatial$rhs
@@ -10814,7 +10814,9 @@ drm_build_nbinom2_spec <- function(
       if (length(sd_phylo_entries) > 0L) "animal"
     ),
     allow_slope_only_structured_mu = TRUE,
-    slope_only_structured_mu_types = c("spatial", "animal", "relmat", "phylo"),
+    slope_only_structured_mu_types = c(
+      "spatial", "animal", "relmat", "phylo", "phylo_interaction"
+    ),
     family_label = "NB2",
     inflated_label = "Zero-inflated NB2"
   )
@@ -10888,7 +10890,7 @@ drm_build_nbinom2_spec <- function(
       !is.null(sigma_structured_term) ||
       is.null(mu_structured_term) ||
       !structured_mu_type(mu_structured_term) %in%
-        c("animal", "phylo", "relmat", "spatial")
+        c("animal", "phylo", "relmat", "spatial", "phylo_interaction")
   )) {
     cli::cli_abort(c(
       "NB2 structured SD regression currently supports one animal, phylogenetic, related-matrix or spatial location coefficient, or an {.code animal(1 + x | id)} intercept plus one slope with one SD formula per coefficient.",

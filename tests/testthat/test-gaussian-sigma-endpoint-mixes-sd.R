@@ -45,6 +45,37 @@ gsem_fixture <- function(seed = 20261201L, n_id = 40L, n_each = 25L,
   )
 }
 
+# Case (a) fixture: strengthened so the slope SD varies strongly with w and
+# the intercept-slope correlation is clearly nonzero (true rho = 0.7). Used by
+# case (a) only; the shared gsem_fixture() is unchanged for every other case.
+gsem_fixture_a <- function(seed = 20261203L, n_id = 80L, n_each = 30L,
+                           n_g = 60L, rho = 0.7) {
+  set.seed(seed)
+  n <- n_id * n_each
+  row <- seq_len(n)
+  id <- factor(sprintf("id%02d", (row - 1L) %/% n_each + 1L))
+  g <- factor(sprintf("g%02d", (row - 1L) %% n_g + 1L))
+  w_id <- seq(-2, 2, length.out = n_id)
+  z_g <- seq(-1, 1, length.out = n_g)
+  x <- stats::rnorm(n)
+  gi <- as.integer(id)
+  gg <- as.integer(g)
+  sd0 <- 0.5
+  sd1 <- exp(log(0.4) + 0.8 * w_id)
+  e0 <- stats::rnorm(n_id)
+  e1 <- rho * e0 + sqrt(1 - rho^2) * stats::rnorm(n_id)
+  a0 <- sd0 * e0
+  a1 <- sd1 * e1
+  b_g <- stats::rnorm(n_g, sd = exp(log(0.45) + 0.5 * z_g))
+  y <- 0.2 + 0.5 * x + a0[gi] + a1[gi] * x +
+    stats::rnorm(n, sd = exp(log(0.5) + b_g[gg]))
+  list(
+    data = data.frame(y = y, x = x, id = id, g = g, w = w_id[gi],
+                      z = z_g[gg], V = rep(0.1, n)),
+    n_id = n_id, n_g = n_g
+  )
+}
+
 # Dense Laplace marginal log likelihood. Per observation
 #   r_i = y_i - X_i beta - (Zm u)_i,  eta_i = s0 + (Zs u)_i,
 #   T_i = exp(2 eta_i) + V_i,  nll_i = 0.5 log(2 pi) + 0.5 log T_i + 0.5 r_i^2 / T_i,
@@ -102,7 +133,11 @@ gsem_indicator <- function(index, n_level) {
 
 # Case (a) and its meta_V twin: u = (a0, a1, b); q2 block on id, sigma
 # intercept on g.
-gsem_oracle_a <- function(fit, fx, response, use_V) {
+# Optional sensitivity switches (defaults leave the oracle unchanged):
+# sd1_shift cyclically misaligns the slope-SD vector against the levels,
+# rho_flip flips the sign of the fitted correlation.
+gsem_oracle_a <- function(fit, fx, response, use_V, sd1_shift = 0L,
+                          rho_flip = FALSE) {
   d <- fx$data
   gi <- as.integer(d$id)
   gg <- as.integer(d$g)
@@ -110,6 +145,8 @@ gsem_oracle_a <- function(fit, fx, response, use_V) {
   sd1 <- unname(stats::predict(fit, dpar = 'sd(id, coef = "x")', type = "response"))
   sdb <- unname(stats::predict(fit, dpar = 'sd(g, dpar = "sigma")', type = "response"))
   rho <- unname(fit$corpars$mu[[1L]])
+  if (rho_flip) rho <- -rho
+  if (sd1_shift != 0L) sd1 <- sd1[(seq_along(sd1) + sd1_shift - 1L) %% length(sd1) + 1L]
   ni <- fx$n_id
   ng <- fx$n_g
   Ii <- gsem_indicator(gi, ni)
@@ -191,7 +228,7 @@ gsem_fit <- function(formula, data) {
 
 test_that("(a) mu correlated q2 SD plus a sigma intercept SD matches the joint Laplace oracle", {
   skip_on_cran()
-  fx <- gsem_fixture()
+  fx <- gsem_fixture_a()
   fit <- gsem_fit(
     bf(y ~ x + (1 + x | id), sigma ~ 1 + (1 | g),
        sd(id, coef = "x") ~ w, sd(g, dpar = "sigma") ~ z),
@@ -199,7 +236,19 @@ test_that("(a) mu correlated q2 SD plus a sigma intercept SD matches the joint L
   )
   expect_named(fit$sdpars, c('sd(id, coef = "x")', "mu", 'sd(g, dpar = "sigma")'),
                ignore.order = TRUE)
-  gsem_expect_oracle(fit, gsem_oracle_a(fit, fx, "y", use_V = FALSE))
+  oracle <- gsem_oracle_a(fit, fx, "y", use_V = FALSE)
+  gsem_expect_oracle(fit, oracle)
+  # The design must actually exercise the slope-SD mapping and the correlation.
+  sd1 <- unname(stats::predict(fit, dpar = 'sd(id, coef = "x")', type = "response"))
+  expect_gt(max(sd1) / min(sd1), 2)
+  expect_gt(abs(unname(fit$corpars$mu[[1L]])), 0.3)
+  # Sensitivity: a misaligned slope-SD mapping and a flipped rho sign each
+  # move the oracle log likelihood away from the fit by more than 1.
+  ll <- as.numeric(stats::logLik(fit))
+  mis <- gsem_oracle_a(fit, fx, "y", use_V = FALSE, sd1_shift = 20L)
+  expect_gt(abs(ll - mis$loglik), 1)
+  flip <- gsem_oracle_a(fit, fx, "y", use_V = FALSE, rho_flip = TRUE)
+  expect_gt(abs(ll - flip$loglik), 1)
 })
 
 test_that("(b) same-group mu and sigma intercept SDs match the joint Laplace oracle", {

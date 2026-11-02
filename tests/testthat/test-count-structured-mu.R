@@ -1366,16 +1366,17 @@ test_that("count structured mu keeps planned neighboring routes closed", {
     "spatial",
     "site"
   )
-  # NB2 coordinate-spatial slope-only terms are admitted (8dcb17f81), so the
-  # neighbouring refusal is pinned on Gamma, which keeps structured slopes closed.
-  dat_slope_only$gamma_y <- dat_slope_only$nb2_spatial + 1
+  # NB2 (8dcb17f81) and Gamma (2026-11-01) coordinate-spatial slope-only terms
+  # are admitted, so the neighbouring refusal is pinned on Beta, which keeps
+  # spatial slope-only terms closed.
+  dat_slope_only$beta_y <- stats::plogis(scale(dat_slope_only$nb2_spatial)[, 1])
   expect_error(
     drmTMB(
-      bf(gamma_y ~ x + spatial(0 + x | site, coords = coords_slope_only)),
-      family = Gamma(link = "log"),
+      bf(beta_y ~ x + spatial(0 + x | site, coords = coords_slope_only)),
+      family = beta_family(),
       data = dat_slope_only
     ),
-    "intercept-only\\s+in\\s+this\\s+q=1\\s+route"
+    "slope-only"
   )
   fit_labelled_scalar <- drmTMB(
     bf(poisson_spatial ~ x + spatial(1 | p | site, coords = coords)),
