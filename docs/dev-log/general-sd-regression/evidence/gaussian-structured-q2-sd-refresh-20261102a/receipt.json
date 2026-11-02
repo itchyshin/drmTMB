@@ -18,7 +18,7 @@
   "test_path": "tests/testthat/test-gaussian-structured-q2-sd.R",
   "test_sha256": "0e9600f5e43e27cd65bfb5ab415b72ea566795dbf33f12aca42fa3fa04c6d4e7",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-q2-sd-refresh-20261102a/source-manifest.json",
-  "source_manifest_sha256": "1fddae536325a3d29b8045495a9609b97c5a19e3399098f1d49398021754aaaf",
+  "source_manifest_sha256": "c3957479f5a86171b406679667bab897885c976b5eaf38df0eb0cb1cc7336c00",
   "live_julia": "not run unless the console log says live tests ran",
   "not_covered": [
     "interval calibration",
@@ -28,5 +28,20 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Independent mathematical review confirmed the dense exact Gaussian marginal oracle, y ~ N(X beta, sigma^2 I + sum R_ab l_a l_b' o K_obs), with K indexed by level name. It shares no code with the TMB template. It covers all six rows: animal (A), relmat (K) and phylo (tree, K = cov2cor(ape::vcv(tree))), each with the labelled (1 + x | p | id) block and a separate SD formula for the intercept and for the slope. K has a non-unit diagonal for animal and relmat and is passed in shuffled order. The likelihood is matched at 1e-6 and an independent L-BFGS-B optimum at 1e-5. Emulated-bug sensitivity exists: unit_diag, positional_K, swap_sd_formulas, shared_sd, no_slope_loading, drop_rho and cross_sign each move the oracle by more than 1e-3, plus a raw-versus-correlation phylo check. Manifest rehash: 2 of 5 entries match; 3 mismatch (R/drmTMB.R vs 95c8a58dc, R/methods.R vs b300610ce, src/drmTMB.cpp vs 33e4e966a). The later diffs are gated: Gaussian q3/q4 re_cov SD (needs an ordinary correlated block with sd_mu entries), missing-response include relaxations, simulate/summary changes, and the false-convergence nlminb restart; none changes this structured q2 likelihood path. The focused test was rerun on the current tree and matches the receipt count. Covers only native Gaussian identity-link structured q2 labelled blocks with one correlation. It does not establish calibration, coverage, Julia parity, or non-Gaussian families. Recommend regenerating the manifest at the current head.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-structured-q2-sd.R",
+    "test_sha256": "0e9600f5e43e27cd65bfb5ab415b72ea566795dbf33f12aca42fa3fa04c6d4e7",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:16:28Z",
+    "ended_utc": "2026-11-02T18:17:04Z",
+    "expectations_passed": 64,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-q2-sd-refresh-20261102a/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "d6462a224dd66ae7d2312b07b3c43ddf8ee1e021e7472de28cf2d302cec2fcc6",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+  }
 }

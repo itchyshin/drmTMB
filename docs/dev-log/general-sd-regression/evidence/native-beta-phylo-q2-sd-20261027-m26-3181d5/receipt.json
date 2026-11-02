@@ -21,7 +21,7 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027-m26-3181d5/source-manifest.json",
-  "source_manifest_sha256": "2e4a238ed46bd2c55295126f8bb650951ba9e4f5a1a6130a19cee7ba6433b93d",
+  "source_manifest_sha256": "5dcbd70ad29e5af1ef3197085357b36fddc92bbd9a678a5de1bc1b11e925f00c",
   "review_status": "reviewed_narrow_claim",
   "review_note": "Reviewer 1, 2026-11-02. Native Beta (logit) phylo(1 + x | id) with sd(coef=(Intercept)) ~ z0 and sd(coef=x) ~ z1: both members are fitted, so the single linked row is exercised. The oracle is independent of the package: the tree kernel is hand-built from a bit-mismatch recursion (not the package helper) and is checked equal to the package-derived covariance to 1e-10. A base-R dense Laplace marginal (nlminb with analytic score and Hessian, finite-difference checked) is evaluated at the fitted parameters and must match logLik to 1e-4. In my scratch run on Totoro, no files edited, the match was 1.2e-9. Sensitivity, same scratch run: swapped z0/z1 selectors move the oracle nll by 98.0, reversed SD covariates by 161.2, kernel scale x2 by 8.70, a random permutation of K labels by 0.54, a cyclic shift by 0.35, all far above 1e-4. Rerun: 46 passed, 0 failed, 0 skipped. Test, console log, manifest and 95 of 96 manifest entries hash-match current files. The one mismatch is R/julia-bridge.R, which HEAD 7fd8acec3 changed after e9c72ab3e in NB2-only Julia selector hunks, not on this native Beta path. So the premise that R/ is identical to e9c72ab3e is false for that one file. Does NOT establish: calibration or coverage; Julia parity; detection of a pure K-reversal or positional-alignment bug, because the balanced 64-tip kernel is reversal-invariant (the oracle moved 1e-9 under reversal), so the test's reversed-level and reversed-tip-label checks are blind to that bug class; marginal simulation (it is refused); other links or families; non-balanced trees.",
   "reviewed_at": "2026-11-02",
@@ -32,5 +32,20 @@
     "manifest_entries_that_differed": [
       "R/julia-bridge.R"
     ]
+  },
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-beta-phylo-q2-sd-regression.R",
+    "test_sha256": "852a76570a852ee8b1aa9937f2fa1df579efb82328b567b97edf914740d0cd1f",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:14:26Z",
+    "ended_utc": "2026-11-02T18:17:21Z",
+    "expectations_passed": 46,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027-m26-3181d5/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "604eb9854433ddf541a3e87d96d3e5d411750da0b874e9531928ae9d21d48843",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
   }
 }

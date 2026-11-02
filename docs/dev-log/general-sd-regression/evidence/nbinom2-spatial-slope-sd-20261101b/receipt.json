@@ -21,7 +21,7 @@
   "test_path": "tests/testthat/test-nbinom2-spatial-slope-sd-regression.R",
   "test_sha256": "9b672d56292ba593fbf4e8ee29d478dff62b15e143979947441864e6a453d4dc",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-spatial-slope-sd-20261101b/source-manifest.json",
-  "source_manifest_sha256": "5695cf1b117ccb00ade8e8b4479c71dcb40cdcbb28993b4ca524f4ee98744397",
+  "source_manifest_sha256": "d7f09b861ec6c58d3457e860e8c056058dbf45d57c6ed32e282641f838912b14",
   "scope": "Native NB2(log) mu with a coordinate-spatial slope-only field, spatial(0 + x | site, coords = coords), and sd(site, level = 'spatial') ~ z.",
   "oracle": "Dense Laplace marginal likelihood at the fitted parameters, built from drmTMB:::drm_spatial_coords_precision (the helper under test, disclosed in the test), plus a kernel rebuilt by hand from the unshuffled ring for the name-alignment check. Constant-SD equivalence, nesting and prediction identity are not oracles.",
   "checks": [
@@ -93,5 +93,20 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Independent review confirmed a base-R dense Laplace oracle for NB2(log) with a slope-only coordinate field (weight w = x, observed information size*mu*(size+y)/(size+mu)^2, size = 1/sigma^2) for the single linked row: native nbinom2 mu, spatial(0+x|site, coords), sd(site, level='spatial') ~ z. Agreement is 1e-6 relative. The covariance is the package spatial helper, so the kernel itself is not an independent definition. The test discloses this and rebuilds the exponential / median-distance / 1e-6 kernel by hand from the unshuffled ring (1e-8 match). This confirms implementation, not the kernel convention. Emulated-bug sensitivity exists: coordinate rows are passed in a shuffled order, reading them by position changes the precision matrix (>0.5) and the oracle by more than 1000x tolerance. Constant-SD equivalence, nesting, prediction identity and the refusal of a within-site z are also tested. Focused test rerun on the current worktree: 23 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 3 of 10 entries differ (R/drmTMB.R, R/methods.R, src/drmTMB.cpp). They were changed by later lane commits, so the old states could not be reproduced. The current-file rerun is the evidence. Does not establish the mesh_precision provider, se=TRUE inference, calibration, coverage or Julia parity. 24 sites, loose recovery band 0.6. The receipt manifest needs a refresh. Scope note (2026-11-02, after verifier): every linked fit is slope-only; the claim covers the slope-member SD of the unlabelled structured field only. Per mechanism-templates.tsv the unlabelled intercept and slope are independent fields (blockdiag(K, K)), so no companion structured intercept is exercised or claimed.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-nbinom2-spatial-slope-sd-regression.R",
+    "test_sha256": "9b672d56292ba593fbf4e8ee29d478dff62b15e143979947441864e6a453d4dc",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:16:58Z",
+    "ended_utc": "2026-11-02T18:17:14Z",
+    "expectations_passed": 23,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-spatial-slope-sd-20261101b/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "4de23249a54f436424150ebc09a5e957da530b530d7c23e62f33ad2392f5b6c3",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+  }
 }

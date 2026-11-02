@@ -25,7 +25,7 @@
   "test_path": "tests/testthat/test-poisson-phylo-relmat-slope-sd-regression.R",
   "test_sha256": "f5d3a75a806fc27dc54a4eed264085da40efdc284d4aa080dfe83a910f9c7863",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-phylo-relmat-slope-sd-20261101/source-manifest.json",
-  "source_manifest_sha256": "1cc8841866204d2a023b0f3505215810808b78c3e5917b6bf9e76e7c94eba517",
+  "source_manifest_sha256": "757fab70c844ca15541e36efa36ba5b48e3563a87ee70b24599199c5f64c21ff",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-phylo-relmat-slope-sd-20261101/test-console.log",
   "console_log_sha256": "d36440eac116d31bf3500fa6d794e7f82884fa5df848b4316e96de8a7f39bc4a",
   "result": {
@@ -52,5 +52,20 @@
   ],
   "review_note": "Independent review confirmed a drmTMB-independent dense Laplace oracle for a slope-only structured field (eta = b0 + b1 x + sd_i x u_i, u ~ N(0,K), W = sum mu (sd x)^2, log|I+KW|, line-searched Newton mode). It supports the 3 linked rows: native Poisson log, relmat(0+x|id) with K, relmat(0+x|id) with Q, and phylo(0+x|species, tree), each with sd(id, level=...) ~ z. Oracle agreement is 1e-4. The relmat test uses a non-unit-diagonal K in a permuted level order. Q is checked against its own oracle and against the K fit. The phylo K comes from the package helper; I verified it equals ape::vcv(corr=TRUE) to 3e-16, so it is independent in substance. The test has no emulated-bug block. A scratch check (no files edited) on the relmat fit gave oracle gaps of 0.98 for reversed SD levels or a flipped slope sign and 0.24 for constant SD, against 1e-4 tolerance. Focused test rerun on the current worktree: 38 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 6 of 10 entries differ (R/drmTMB.R, R/random-effect-targets.R, R/parse-formula.R, R/predict-parameters.R, R/methods.R, src/drmTMB.cpp). They were changed by later lane commits, so the old states could not be reproduced. The current-file rerun is the evidence. Limits: the ledger template label reads 'structured intercept plus slope', but the test fits the slope field alone (0 + x), so the claim is the slope-member SD only. Does not establish a companion structured intercept field, calibration, coverage or Julia parity. Recovery band 0.5. The receipt manifest needs a refresh. Scope note (2026-11-02, after verifier): every linked fit is slope-only; the claim covers the slope-member SD of the unlabelled structured field only. Per mechanism-templates.tsv the unlabelled intercept and slope are independent fields (blockdiag(K, K)), so no companion structured intercept is exercised or claimed.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-poisson-phylo-relmat-slope-sd-regression.R",
+    "test_sha256": "f5d3a75a806fc27dc54a4eed264085da40efdc284d4aa080dfe83a910f9c7863",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:17:14Z",
+    "ended_utc": "2026-11-02T18:17:30Z",
+    "expectations_passed": 38,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-poisson-phylo-relmat-slope-sd-20261101/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "07b5482d8c6eaf489b99b14a0bf3615e8ddb708af9654202ab809e805e88f3aa",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+  }
 }

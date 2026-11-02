@@ -50,7 +50,7 @@
   "test_path": "tests/testthat/test-gamma-structured-slope-sd.R",
   "test_sha256": "99c9e72a95c26c2b412b321e2c76ff8a442459c05c13aed535ea7b26252e750c",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gamma-structured-slope-sd-20261101d/source-manifest.json",
-  "source_manifest_sha256": "32a94a4a06397aad9f5d6c9ddedb32802ecc112e9133fe27b21ebc33ec2a6527",
+  "source_manifest_sha256": "4e0f6fd25c69ecf7a67610b101c5341e7296a4b7581717022dd556e3b9cd8c0a",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/gamma-structured-slope-sd-20261101d/test-console.log",
   "console_log_sha256": "2654f18ec51a1a47356a2b2ba0e7248ba72b881f86d7bd5ef60328a9c7990dbe",
   "result": {
@@ -77,5 +77,20 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Independent mathematical review confirmed the oracle is a dense, drmTMB-independent Gamma-log Laplace with stats::dgamma, shape 1/sigma^2, score k(y/mu - 1), W = k y/mu (sd x)^2, and value ll(u*) - u*'K^-1u*/2 - log det(I+KW)/2; agreement is 1e-4 on the logLik. It supports all five rows: relmat K (K_covariance), relmat Q (Q_precision, oracle on K), animal Ainv (oracle on A), phylo tree, and spatial coordinates (oracle on exp(-d/range)+1e-6 I), with the slope-only sd(g, level) ~ z, log link and q=1. Emulated-bug sensitivity exists and exceeds 0.05 (reversed level order and a sign-flipped predictor) for every provider. The test also covers K versus Q agreement within 1e-4, constant-SD equivalence, simulate/save-reload and closed neighbours. Manifest: 2 of 9 entries differ (R/drmTMB.R, src/drmTMB.cpp); explained by later commits (the q>=3 SD addition and the nlminb restart). The focused test was rerun on current source, 87 passed with 0 failed/errors/skipped. The receipt recorded 88; the 1-count difference is runner/reporter accounting, not a failure. Covers native Gamma slope-only structured SDs, one fixed-seed design per provider, with loose 0.6 recovery. Does not establish animal A_covariance or pedigree slope rows, mesh spatial, calibration, or Julia parity. Scope note (2026-11-02, after verifier): every linked fit is slope-only; the claim covers the slope-member SD of the unlabelled structured field only. Per mechanism-templates.tsv the unlabelled intercept and slope are independent fields (blockdiag(K, K)), so no companion structured intercept is exercised or claimed.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gamma-structured-slope-sd.R",
+    "test_sha256": "99c9e72a95c26c2b412b321e2c76ff8a442459c05c13aed535ea7b26252e750c",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:15:18Z",
+    "ended_utc": "2026-11-02T18:16:58Z",
+    "expectations_passed": 87,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-structured-slope-sd-20261101d/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "39466ca16c1efbabf2bfbb0fdf1512efcdd8b3a250be02d188a29ad2613faac1",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+  }
 }

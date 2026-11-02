@@ -9,7 +9,7 @@
   "test_path": "tests/testthat/test-nbinom2-mu-sigma-same-group-sd.R",
   "test_sha256": "19d3dbd2cf9dcba1e4b2544a078f576b4a2d8d04aad86bb2de76b72fa8cfade0",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-same-group-sd-20261101d/source-manifest.json",
-  "source_manifest_sha256": "15734442e6903a7b74a50bc4a253e9b9355780223589302507680162f5ef5c41",
+  "source_manifest_sha256": "2d15ecf6c41d8a5359d9ac5ea7a4a5c92d6359e8d86d841c71465b17cc633808",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-same-group-sd-20261101d/test-console.log",
   "console_log_sha256": "8592b88f136b4666b28e6cdacf45c6f90d1d53d7c6a69db430bce85add3bda49",
   "result": {
@@ -50,5 +50,20 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Independent mathematical review confirmed the oracle is a base-R dense 2G-dimensional Laplace (nbinom with size = exp(-2 log sigma_i), mu = exp(eta); analytic gradient, finite-difference Hessian; no drmTMB/TMB code) at the fitted parameters, agreeing with logLik to 1e-3, with oracle gradient below 1e-2 at the fitted optimum. It supports both rows (mu:I and sigma:I iid_intercept on the same grouping factor id, log links, separate SD formulas sd(id)~w and sd(id, dpar='sigma')~z). Emulated-bug sensitivity exists and exceeds 0.1 for four bugs: mu/sigma SD formulas swapped, SD predictors misassigned to groups, sigma effect dropped, and sigma tied to the mu draw. The constant-SD fit matches an independently optimised oracle MLE (logLik 1e-3, coefficients 2e-2), and the refusals are tested. Manifest: 2 of 6 entries differ (R/drmTMB.R, src/drmTMB.cpp); explained by later commits (the q>=3 SD addition and the nlminb restart). The focused test was rerun on current source, 22 passed with 0 failed/errors/skipped. The claim is limited to the same-group fixture with independent mu and sigma effects (no mu-sigma correlation); it does not establish different-group mu/sigma layouts, calibration, or Julia parity. The oracle tolerance is looser (1e-3) than most.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-nbinom2-mu-sigma-same-group-sd.R",
+    "test_sha256": "19d3dbd2cf9dcba1e4b2544a078f576b4a2d8d04aad86bb2de76b72fa8cfade0",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:16:56Z",
+    "ended_utc": "2026-11-02T18:17:45Z",
+    "expectations_passed": 22,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-same-group-sd-20261101d/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "1d97e7edf3449873e15bb07541c85790fc9ed2d79bfff43ba9ca09d1b8a52727",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+  }
 }

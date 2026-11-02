@@ -9,7 +9,7 @@
   "test_path": "tests/testthat/test-nbinom2-mu-sigma-joint-sd.R",
   "test_sha256": "08f40179370fe34b7114cc44d64db8dc22380b335ce8502233c84bc363fcca55",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-joint-sd-20261101d/source-manifest.json",
-  "source_manifest_sha256": "067091a764766da636ee4834f1037762a0ce667ce2f25c826f12ba947e895eee",
+  "source_manifest_sha256": "4bdf73a47eef60ad0720b863803e6345767f261c6446ceb8993a304ec93e629f",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-joint-sd-20261101d/test-console.log",
   "console_log_sha256": "026006b6b9ac2c5cafe2b3ae8cabbc5cc6d8dedbb9fc5a89f76ceb8657652bce",
   "result": {
@@ -52,5 +52,20 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Independent review confirmed a base-R dense Laplace oracle for crossed id (mu) and g (sigma) random intercepts. The oracle has an analytic gradient, a finite-difference Hessian, a joint (G+H)-dimensional mode, NB2 size = exp(-2 log sigma), and does not call drmTMB or TMB. It supports both linked rows: native nbinom2 log, iid intercept, mu:I via sd(id) ~ w and sigma:I via sd(g, dpar='sigma') ~ z. Oracle agreement is 1e-3 (loose), with the oracle surface stationary at the fitted optimum (max |grad| < 1e-2) and pdHess true. Emulated-bug sensitivity exists and is explicit: swapped mu and sigma SD blocks, scrambled level assignment and a dropped sigma random effect each move the oracle by more than 0.1. A cold-start independent oracle MLE of the constant-SD fit matches (logLik 1e-3, coefficients 2e-2). Neighbouring routes (one SD formula only, slopes, zero-inflated, missing include, two mean intercepts) are asserted refused. Focused test rerun on the current worktree: 29 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 2 of 6 entries differ (R/drmTMB.R, src/drmTMB.cpp). They were changed by later lane commits, so the old states could not be reproduced. The current-file rerun is the evidence. Does not establish cross-parameter mu-sigma correlation or labelled blocks, slopes, calibration, coverage or Julia parity. The 1e-3 oracle tolerance is loose, one fixture. The receipt manifest needs a refresh.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-nbinom2-mu-sigma-joint-sd.R",
+    "test_sha256": "08f40179370fe34b7114cc44d64db8dc22380b335ce8502233c84bc363fcca55",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:16:48Z",
+    "ended_utc": "2026-11-02T18:17:37Z",
+    "expectations_passed": 29,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-joint-sd-20261101d/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "e43cb5f628c13b9730e1ddded108887ef55f5524a1deb7b5f44388e691145255",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+  }
 }

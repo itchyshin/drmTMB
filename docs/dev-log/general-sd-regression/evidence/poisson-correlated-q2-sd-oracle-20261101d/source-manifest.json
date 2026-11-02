@@ -6,7 +6,7 @@
     },
     {
       "file": "R/drmTMB.R",
-      "sha256": "04858b361162fb58e15188e5498ecace25330c18c2a92e9e22260601d335377a"
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
     },
     {
       "file": "R/random-effect-targets.R",
@@ -14,12 +14,13 @@
     },
     {
       "file": "src/drmTMB.cpp",
-      "sha256": "a0fd4f4d613467f13064c2512f10587316a78ae5ff776251180c17d36ce9e783"
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
     },
     {
       "file": "docs/dev-log/general-sd-regression/evidence/poisson-correlated-q2-sd-oracle-20261101d/test-console.log",
       "sha256": "8a1e2311b991154b28d50cd55b990041b5268567db9c00d5d756f42d9505798e"
     }
   ],
-  "note": "dirty shared worktree at HEAD 33e4e966a; hashes identify the test-time files"
+  "note": "dirty shared worktree at HEAD 33e4e966a; hashes identify the test-time files",
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/drmTMB.R', 'src/drmTMB.cpp']"
 }

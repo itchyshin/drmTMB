@@ -1,0 +1,55 @@
+{
+  "evidence_id": "julia-b29-beta-zob-raw-k-bridge-20261102d",
+  "evidence_grade": "focused_test",
+  "command": "NOT_CRAN=true JULIA_HOME=$HOME/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin DRM_JL_PATH=/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia OPENBLAS_NUM_THREADS=1 Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-julia-b29-beta-zob-raw-k-bridge.R', reporter='summary')); <count line>\"",
+  "execution_host": "Mac Studio, live Julia 1.10.0, one R process, OPENBLAS_NUM_THREADS=1; DRModels.jl worktree at d5e3e6b11",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "9d229de6836cfc876bf3fcf12f982a3eae38a8fa",
+  "tree_state": "HEAD 9d229de68; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T18:17:59Z",
+  "run_ended_utc": "2026-11-02T18:19:00Z",
+  "exit_code": 0,
+  "expectations_passed": 27,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 6,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b29-beta-zob-raw-k-bridge-20261102d/test-console.log",
+  "console_log_sha256": "6b4c6283200be7817c0c772a05f81ac246bec2ba013b92a7b03fe8ecc81db97b",
+  "test_path": "tests/testthat/test-julia-b29-beta-zob-raw-k-bridge.R",
+  "test_sha256": "ae637ef2e0e2d6db6be48f23e43c7a599dec4793c843e5e05466b0ba775238c8",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-b29-beta-zob-raw-k-bridge-20261102d/source-manifest.json",
+  "source_manifest_sha256": "b62e36b38b47b4b6a5bbfb6e585bf100150ab9d34c40690b1acc7963a2c3b129",
+  "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
+  "strengthens_evidence_ids": [],
+  "strengthens_note": "The test header names no ledger id; nothing is claimed as strengthened. Rows are linked directly.",
+  "scope": "Native (engine = 'tmb', se = FALSE) fits of beta_family() relmat and animal intercepts, zero_one_beta() relmat (K) and animal (Ainv = solve(K)) intercepts, and beta animal sd(id, level = 'animal') ~ z, on non-unit-diagonal K, each compared with the DRM.jl engine called directly through JuliaCall on the same data and K: every coefficient within 1e-3 and logLik within 1e-2 (achieved 5e-8 and 3.6e-10). The drmTMB R bridge does not route structured Beta/ZeroOneBeta terms, so the Julia side is not the bridge. Native rows are linked because native fits are run; Julia rows are not linked. Parity only, no independent oracle.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"zero_one_beta\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"zero_one_beta\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"Ainv_precision\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia bridge rows (the R bridge refuses structured Beta/ZeroOneBeta; Julia is called directly)",
+    "independent-oracle or perturbation sensitivity",
+    "sigma, zoi or coi structured random effects",
+    "pedigree or Q_precision provider inputs",
+    "phylo providers",
+    "SE or Hessian agreement (se = FALSE)",
+    "environment robustness of the Beta animal SD route in a clean DRM.jl dependency resolution (open item in review-20261102c)",
+    "broad parity beyond one fixture per route"
+  ],
+  "tolerances": "as fixed in the test file; none loosened",
+  "review_status": "unreviewed"
+}

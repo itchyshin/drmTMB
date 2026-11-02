@@ -3,7 +3,7 @@
   "files": [
     {
       "file": "R/drmTMB.R",
-      "sha256": "f423217b9150b6e8d669f323ac02b219262ba54bd787efade4d20cb01b5a1835"
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
     },
     {
       "file": "tests/testthat/test-lognormal-ordinary-correlated-q2.R",
@@ -11,19 +11,19 @@
     },
     {
       "file": "NEWS.md",
-      "sha256": "2b42e480c01a58912cf5e9f88a4b6f691716d89a7f59f145bf82789de341a747"
+      "sha256": "6796a6e1135e3a9bd5a12ab31fbaf725cdfacfeb5e14959ecd2f4ecc20af03fe"
     },
     {
       "file": "README.md",
-      "sha256": "e1281179adf4234984d8e4cf0776466f0affd31f7481ad3ec7b6962cef395601"
+      "sha256": "be02f6b2266da9e43e489eb12d881468e55c4bd65216e85ffa31163e49862e67"
     },
     {
       "file": "docs/design/01-formula-grammar.md",
-      "sha256": "2b4c9872335a1cadfe303dac1062e7bbb393640d81ca4fa231eb99fe0ed1dfc0"
+      "sha256": "43b0a384b2a612c7dc187b85a764ff6c9312bfdfc822fdbfe6cab5fb81d9ee2d"
     },
     {
       "file": "docs/design/03-likelihoods.md",
-      "sha256": "9ba84bfa0d6ad5fc2df08ccb74284d8bf8febd6dd51f9077282f0a896626828d"
+      "sha256": "56e39c6377f49b0d942f746fe5564e5ff06b672cd6eb56a89a4ffec0953f012b"
     },
     {
       "file": "docs/design/59-structural-slope-and-non-gaussian-map.md",
@@ -31,23 +31,24 @@
     },
     {
       "file": "docs/dev-log/internal-roadmap.md",
-      "sha256": "571c52e3ac4c8e04f7db9a0bb4c65aa2478431b12782310e92d16d60163927e8"
+      "sha256": "f27acce460fb37362eb2db90dd88cf0371c895266eda169e9f46c733897043da"
     },
     {
       "file": "docs/dev-log/known-limitations.md",
-      "sha256": "c88751896839a3033fa00410072b2d6e09a6c91136bc57c554134396552318b1"
+      "sha256": "fb0de1dcea5c0c282566a3d2e5d8dd5eb924422c267e1d14655b949546c17276"
     },
     {
       "file": "vignettes/formula-grammar.Rmd",
-      "sha256": "18ed042b908c67f3ad2fcfef9d33570ee8307c4c83be85665bb92e192d145ed5"
+      "sha256": "5e3d6353caaf7776b67ce0670978556b5eed067d7201513b0a46b74ebb8e2535"
     },
     {
       "file": "vignettes/model-map.Rmd",
-      "sha256": "0b0b42851d2c0b491782e523e9c4f29660c1f14b87637ce8607f5d02ae8ac958"
+      "sha256": "58da4f428b8c572dcc4a9c6b145e5d16e7e6a68482f0f36d12718f657025a81b"
     },
     {
       "file": "vignettes/predictor-dependent-random-sd.Rmd",
       "sha256": "179b4f58abb96d6966c07de049ed6f285b0802371cff5cbfea63dc3fc58a7be4"
     }
-  ]
+  ],
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/drmTMB.R', 'NEWS.md', 'README.md', 'docs/design/01-formula-grammar.md', 'docs/design/03-likelihoods.md', 'docs/dev-log/internal-roadmap.md', 'docs/dev-log/known-limitations.md', 'vignettes/formula-grammar.Rmd', 'vignettes/model-map.Rmd']"
 }

@@ -3,7 +3,7 @@
   "files": [
     {
       "file": "R/drmTMB.R",
-      "sha256": "883f4f2335b1257c8c1acbfaad049bb037082c930f357fe55f37ea820fa50415"
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
     },
     {
       "file": "R/methods.R",
@@ -21,5 +21,6 @@
       "file": "tests/testthat/test-gaussian-correlated-q2-sd.R",
       "sha256": "dc5ba77171cf3e0e7c502c24ab6dd81b82c111bab102ee043bd36f14ef873ee6"
     }
-  ]
+  ],
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/drmTMB.R']"
 }

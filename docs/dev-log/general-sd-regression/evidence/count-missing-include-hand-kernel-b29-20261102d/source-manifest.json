@@ -1,0 +1,37 @@
+{
+  "scope": "Source identity for tests/testthat/test-count-missing-include-hand-kernel-b29.R, receipt count-missing-include-hand-kernel-b29-20261102d (HEAD 9d229de68; hashes identify run-time files)",
+  "files": [
+    {
+      "file": "tests/testthat/test-count-missing-include-hand-kernel-b29.R",
+      "sha256": "99ee4c9ddbcb5fe37918585479cd99178e7e33d7baba0474985e58eb3e1aace2"
+    },
+    {
+      "file": "tests/testthat/helper-sb26-oracle.R",
+      "sha256": "ebfce0c5517493513d984bd1279ed1f952e7a292830614ad5ecc9578d5c192c5"
+    },
+    {
+      "file": "tests/testthat/helper-b26sa-oracles.R",
+      "sha256": "86297736404a5f49f9e8c498b1513919bc9ddf9b3adf143a76625fe0e16fde5b"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "R/phylo-utils.R",
+      "sha256": "512195e7c8eab314a876ead4e5a2537b511e2c4acbd5f86900cea5d46b20a0c4"
+    }
+  ]
+}

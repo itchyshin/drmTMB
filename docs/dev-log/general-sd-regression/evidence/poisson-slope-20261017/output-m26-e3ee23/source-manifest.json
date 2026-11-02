@@ -97,7 +97,7 @@
     },
     {
       "file": "R/julia-bridge.R",
-      "sha256": "85dfa58bc85739171228a689240f7e049b75a7012b17afbcaca80dd75c785c68"
+      "sha256": "12bbd1a92780418d8638b3f15f41ba3d44a4df89950a76018ca66d228b00b042"
     },
     {
       "file": "R/julia-coefficient-labels.R",
@@ -241,7 +241,7 @@
     },
     {
       "file": "inst/extdata/env-skip-census.tsv",
-      "sha256": "0507f4f76663d4232dfbe20d904c8421f0aecbb55d3e675f4cf4037a2ccb3b8f"
+      "sha256": "477923b79cea1423e3ca74986133df98ce6ebaebc0b601be1ab82532e202e7fd"
     },
     {
       "file": "inst/extdata/julia-capabilities.tsv",
@@ -257,7 +257,7 @@
     },
     {
       "file": "inst/reader-contracts/vignette-manifest.csv",
-      "sha256": "1f9c08e2d2915f95ec44bd512bf99f18a7837cc4aabe9cb20db09d1114c8dbad"
+      "sha256": "f47c03bc900387cf0b6971b8cf54726ae316db1dcad63ce83e268ac15026633c"
     },
     {
       "file": "inst/sim/R/sim_aggregate.R",
@@ -1420,5 +1420,5 @@
       "sha256": "22ce26b72fc5bf01356c01d4d8a6a4d3ccb65241bab20457957ada9a8635a651"
     }
   ],
-  "re_recorded": "2026-11-02 at b718863e7; entries that differed from the first record: ['R/julia-bridge.R', 'inst/extdata/env-skip-census.tsv']"
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/julia-bridge.R', 'inst/extdata/env-skip-census.tsv', 'inst/reader-contracts/vignette-manifest.csv']"
 }

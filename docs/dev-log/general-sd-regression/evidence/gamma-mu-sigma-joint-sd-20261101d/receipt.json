@@ -26,7 +26,7 @@
   "test_path": "tests/testthat/test-gamma-mu-sigma-joint-sd.R",
   "test_sha256": "3feb47c6ef16417488edceb6ef220de2335ef2bcf882b52b6c18066c95404a6e",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gamma-mu-sigma-joint-sd-20261101d/source-manifest.json",
-  "source_manifest_sha256": "7fc18019ae9891c39f3f939cd81484a3c7e4e147d09489dae22deb82f88d011e",
+  "source_manifest_sha256": "eb50bc856c013cfccf3c87caf25cb8d136afab424fca1959e0f2b486a2a915f8",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/gamma-mu-sigma-joint-sd-20261101d/test-console.log",
   "console_log_sha256": "31231751ddffca90d36fbbcc9ba3c23db1c054a3940f9540c010f7d1761d8325",
   "result": {
@@ -52,5 +52,20 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Independent mathematical review confirmed the oracle: a dense Laplace approximation over the joint random-effect vector (all id and g levels), written without drmTMB internals, with exact Gamma log-link score and information in (log mu, log sigma) via digamma and trigamma, Newton mode search with positive-definiteness damping, and tolerance 1e-4. Both linked rows are supported (mu:I via sd(id) ~ w and sigma:I via sd(g, dpar = 'sigma') ~ z), on crossed groups and on one shared grouping factor, with levels and rows shuffled so alignment is by label. Emulated-bug sensitivity exists: swap_coef, misalign and wrong_dpar each move the oracle by more than 1 log-likelihood unit. Constant-SD and nesting checks are also present. Manifest rehash: 2 of 8 entries mismatch (R/drmTMB.R and src/drmTMB.cpp), both matching commit 33e4e966a exactly. I read the 33e4e966a..HEAD diffs: Gaussian q3/q4 re_cov SD (gated), missing-response include relaxations (the test still asserts that the joint sigma route refuses missing responses, and it passes), and the false-convergence nlminb restart. None changes the complete-response Gamma joint ordinary SD likelihood. The test hash is unchanged and the focused test was rerun on the current tree with the receipt's count of 26 expectations. Scope: native Gamma log link, ordinary intercepts for mu and sigma with SD regressions. It does not establish calibration or coverage, structured providers, or Julia parity.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gamma-mu-sigma-joint-sd.R",
+    "test_sha256": "3feb47c6ef16417488edceb6ef220de2335ef2bcf882b52b6c18066c95404a6e",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:14:26Z",
+    "ended_utc": "2026-11-02T18:15:18Z",
+    "expectations_passed": 26,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-mu-sigma-joint-sd-20261101d/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "b57d4f53490227c4c382a7339661ead0f5ab2a59a6af2dad7e8171ac3cd87d6a",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+  }
 }

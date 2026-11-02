@@ -97,7 +97,7 @@
     },
     {
       "file": "R/julia-bridge.R",
-      "sha256": "85dfa58bc85739171228a689240f7e049b75a7012b17afbcaca80dd75c785c68"
+      "sha256": "12bbd1a92780418d8638b3f15f41ba3d44a4df89950a76018ca66d228b00b042"
     },
     {
       "file": "R/julia-coefficient-labels.R",
@@ -388,5 +388,5 @@
       "sha256": "7aaa3adc92c2dd40cbbc7350bcfb678acaa698a41aee6701d8782be0c0124a8a"
     }
   ],
-  "re_recorded": "2026-11-02 at b718863e7; entries that differed from the first record: ['R/julia-bridge.R']"
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/julia-bridge.R']"
 }

@@ -6,11 +6,11 @@
   "files": [
     {
       "file": "R/drmTMB.R",
-      "sha256": "949036ae0f57a78b1c9e57175539550b844222b504db73891c4efe2ebc3cb776"
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
     },
     {
       "file": "R/random-effect-targets.R",
-      "sha256": "605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c"
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
     },
     {
       "file": "R/random-effect-scale-formulas.R",
@@ -18,19 +18,19 @@
     },
     {
       "file": "R/parse-formula.R",
-      "sha256": "c56533272cf2b6e2085de0994ea132011e5cec51ac9cf4f8c5270cbd89f755dc"
+      "sha256": "aa0aedad162c3018790ead4350dbb2e68efc8203037f8ad923db4cdd0f4c61f5"
     },
     {
       "file": "R/predict-parameters.R",
-      "sha256": "646bb79de06de281a9e522182465c1eb96f9b08489386abb1ed10ceb87b41014"
+      "sha256": "ef79299d4dd607be50067752c643027af55e9814d1e220a37dcdee94957dd8a9"
     },
     {
       "file": "R/methods.R",
-      "sha256": "2eb971378841edebc1bb3f217d3436bee47d0fe2a23727de7ceca236e9580600"
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
     },
     {
       "file": "src/drmTMB.cpp",
-      "sha256": "8d42bc8c6e3a6140293f39e1abd85d6c777ee1856a937807e0e66657310f3cac"
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
     },
     {
       "file": "tests/testthat/test-poisson-additive-ordinary-sd-regression.R",
@@ -44,5 +44,6 @@
       "file": "docs/dev-log/general-sd-regression/evidence/native-poisson-additive-ordinary-sd-20261101/run_one.sh",
       "sha256": "3568b4a7cc5e481d7a571d8f802693a6844a9e61abd55d8b687674f64a1d06bb"
     }
-  ]
+  ],
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/drmTMB.R', 'R/random-effect-targets.R', 'R/parse-formula.R', 'R/predict-parameters.R', 'R/methods.R', 'src/drmTMB.cpp']"
 }

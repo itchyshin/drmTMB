@@ -2,7 +2,7 @@
   "files": [
     {
       "file": "R/drmTMB.R",
-      "sha256": "04858b361162fb58e15188e5498ecace25330c18c2a92e9e22260601d335377a"
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
     },
     {
       "file": "R/random-effect-targets.R",
@@ -10,7 +10,7 @@
     },
     {
       "file": "src/drmTMB.cpp",
-      "sha256": "a0fd4f4d613467f13064c2512f10587316a78ae5ff776251180c17d36ce9e783"
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
     },
     {
       "file": "tests/testthat/test-gaussian-sigma-structured-sd.R",
@@ -21,5 +21,6 @@
       "sha256": "eb4f3545d6f2ee0713997fe8ad2472ec9caa976b1ac6e21f602ac98082558191"
     }
   ],
-  "note": "dirty shared candidate; hashes identify test-time files at HEAD 33e4e966a05f4381ee790b238b41d6d12fa3032c"
+  "note": "dirty shared candidate; hashes identify test-time files at HEAD 33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/drmTMB.R', 'src/drmTMB.cpp']"
 }

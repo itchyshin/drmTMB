@@ -1,0 +1,59 @@
+{
+  "evidence_id": "count-correlated-q2-sd-oracle-b29b-20261102d",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c <1 core of 216-221> Rscript -e \"pkgload::load_all('.', quiet=TRUE); r<-as.data.frame(testthat::test_file('tests/testthat/test-count-correlated-q2-sd-oracle-b29b.R', reporter='summary')); print colSums of passed/failed/error/skipped\"",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/exp-9d229de68 of HEAD (R/, src/ and tests/ b29b files verified identical by checksum), 1 pinned core",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "9d229de6836cfc876bf3fcf12f982a3eae38a8fa",
+  "tree_state": "HEAD 9d229de68; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD on the run host; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T18:15:51Z",
+  "run_ended_utc": "2026-11-02T18:16:15Z",
+  "exit_code": 0,
+  "expectations_passed": 28,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 2,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/count-correlated-q2-sd-oracle-b29b-20261102d/test-console.log",
+  "console_log_sha256": "52001a30f34f03779790fdfbb739b90234f51584ad1159191f6c9bbcae4ea301",
+  "test_path": "tests/testthat/test-count-correlated-q2-sd-oracle-b29b.R",
+  "test_sha256": "7dabd304d97bd68f1bd63c99c1c77727799b81f819b75a69b8cdbfe29749cf51",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/count-correlated-q2-sd-oracle-b29b-20261102d/source-manifest.json",
+  "source_manifest_sha256": "13fe27eaf38385363503ff5f6398d13206431ffc9cd0b08634ec4c1afc0d8810",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [
+    "native-poisson-correlated-q2-sd-20261027-m26",
+    "native-nbinom2-correlated-q2-sd-20261027-m26"
+  ],
+  "strengthens_note": "Companion to the parent id(s); closes reviewer-listed gaps (independent oracle and/or emulated-bug sensitivity) for the linked rows.",
+  "scope": "Poisson and NB2 iid (1 + x | id) correlated q=2 block with distinct group-level selectors on the intercept SD (continuous) and slope SD (two-valued); dense per-group Laplace oracle in base R at 1e-6 on logLik; sensitivity to swapped coefficient sets, swapped SD vectors, reversed SD vectors, flipped rho, rho=0.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"log\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"log\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"log\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"log\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery or estimator-accuracy claims",
+    "NB2 sigma modelled with a predictor (sigma ~ 1 only)",
+    "q>=3 blocks",
+    "structured providers",
+    "more than one seed per family"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Read line by line. Oracle is independent: base-R dense per-group Laplace with hand-written Poisson and NB2 derivatives (sb26 helper), SD vectors computed by hand as exp(intercept+slope*selector), rho taken from fitted corpars, logLik agreement at 1e-6. Intercept and slope SDs use distinct selectors (continuous w0, two-valued w1), and a by-hand SD is compared with predict(). Emulated bugs (swapped coefficient sets, swapped SD vectors, reversed sd0, reversed sd1, flipped rho, rho=0) each asserted >0.1 away, with |rho|>0.15 required so the rho bugs are live. Fit is one correlated (1+x|id) q=2 block with an sd() formula on both coefficients, so mu:I and mu:x1 are both fitted for Poisson and NB2. Hashes match; console log 28 passed, 0 failed, 0 skipped over 2 blocks. Minor gap: helper-sb26-oracle.R not in manifest (tracked, identical on Totoro). Does NOT establish: calibration, coverage, recovery, Julia parity (not run), NB2 with a modelled sigma (sigma fixed at ~1 in the NB2 fit, so no NB2 sigma rows), q>=3, structured providers, or more than one seed per family; the oracle is evaluated at fitted parameters.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+}

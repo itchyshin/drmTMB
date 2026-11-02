@@ -49,7 +49,7 @@
   "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/test-snapshot/test-binomial-animal-provider-pairs-nonlogit-sd.R",
   "test_file_sha256": "033c86d7b5459fdcc5f13dd4fdee1ace7d3c3bd26cf4a1686c3fbac5ba95b84f",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/source-manifest.json",
-  "source_manifest_sha256": "846c65a55b0a7ec083c6e9976b360908869d312ab72c62c9f759a0c5c476d8d3",
+  "source_manifest_sha256": "60c37d0d60edc928c106aa10457b56c85e09c0c695264f2bccfa773d21f56762",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/test-console.log",
   "console_log_sha256": "90783019bdeed1a20a41a36e00d3f69bc297cc7193a5de3150824635df25f40e",
   "test_result": "Fresh run exit 0: 6 test_that blocks, 94 expectations, 0 failed, 0 skipped, 0 errors, 0 warnings. Dense Laplace oracle logLik agreement (abs 1e-4) for animal A + iid, relmat K/Q + iid, and phylo-interaction intercept, probit and cloglog.",
@@ -67,5 +67,20 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Independent review confirmed a plain-R dense Laplace oracle (damped Newton mode, observed Hessian, log|I+Sigma Z'WZ|, hand-written probit and cloglog derivatives) that does not call drmTMB. It supports all 8 linked rows: native Binomial probit and cloglog; iid(site or group) plus animal(A), relmat(K) or relmat(Q), each with separate sd() formulas on both fields; and the phylo_interaction intercept with an SD regression. Oracle agreement is 1e-4 at fitted parameters. The relmat-Q fit has its own oracle built from solve(Q). The phylo-interaction pair covariance kronecker(A2,A1) uses the package tip-covariance helper. I checked that helper separately against ape::vcv (max difference 3e-16 on rcoal, 0 on the balanced 8-tip tree up to depth scaling), so it is not circular. The test has no emulated-bug block. A scratch check (no files edited) on animal+iid probit gave oracle gaps of 24.5 (swapped SD curves), 15.4 (reversed animal SDs) and 4.0 (constant SD), against 1e-4 tolerance. Focused test rerun on the current worktree: 94 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 4 of 7 entries differ (R/drmTMB.R, R/random-effect-targets.R, R/predict-parameters.R, src/drmTMB.cpp). They were changed by later lane commits and the receipt records a dirty tree, so the old states could not be reproduced. The current-file rerun is the evidence. Does not establish logit, other provider layouts (e.g. Ainv or pedigree), calibration, coverage or Julia parity. Recovery bands are loose (0.5). One fixture per cell. The receipt manifest needs a refresh.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent workflow reviewer (Claude), 2026-11-02"
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-animal-provider-pairs-nonlogit-sd.R",
+    "test_sha256": "033c86d7b5459fdcc5f13dd4fdee1ace7d3c3bd26cf4a1686c3fbac5ba95b84f",
+    "rerun_at_commit": "9d229de68",
+    "started_utc": "2026-11-02T18:14:26Z",
+    "ended_utc": "2026-11-02T18:16:36Z",
+    "expectations_passed": 94,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/test-console-rerun-9d229de68.log",
+    "console_log_sha256": "1aa3955817258b64491b9c7e6c315e53b28e5572fa833eaa0b467a2552d2b9c8",
+    "where": "Totoro, clean git archive export of the commit",
+    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+  }
 }
