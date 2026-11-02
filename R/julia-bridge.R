@@ -11487,20 +11487,6 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
     !identical(term$coef_names, "(Intercept)")
   tweedie_relmat_sd <- identical(family_type, "tweedie") &&
     drm_julia_tweedie_relmat_sd_route_admitted(formula)
-  if (gaussian_relmat_slope || gaussian_spatial_slope) {
-    # Measured 2026-11-02 (drmTMB batch 20): DRModels.jl 40da69c72 fits these
-    # Gaussian slopes, but its bridge label renderer
-    # (_bridge_rendered_regression_blocks, src/bridge.jl) admits a relmat
-    # slope only for Binomial and Poisson, so the call aborts after the fit
-    # with "typed schema labels do not match fitted raw columns". A Gaussian
-    # spatial slope reaches Julia as a relmat slope (see below), so it hits
-    # the same abort. Refuse here until that one line is widened in DRM.jl.
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} does not yet admit a Gaussian {.fn {term$type}} slope SD route through the bridge.",
-      i = "DRModels.jl fits it, but its bridge cannot label the Gaussian relmat-form slope (a coordinate {.fn spatial} slope is sent as a relmat slope).",
-      i = "Use {.code animal(0 + x | id, A = A)} with {.code sd(id, level = \"animal\")}, or native {.code engine = \"tmb\"}."
-    ))
-  }
   supported_coefficient <- identical(term$coef_names, "(Intercept)") ||
     ((binomial_relmat_slope || binomial_spatial_slope || binomial_animal_slope ||
       binomial_animal_iid_slope ||
@@ -11733,6 +11719,15 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
     ))
   }
   matrix <- drm_julia_as_matrix(value)
+  if (identical(kwarg, "coords") && !is.null(rownames(as.matrix(value)))) {
+    # Measured 2026-11-02 (drmTMB batch 22): stripping the coordinate rownames
+    # made drm_spatial_coords_precision() treat the rows as already in
+    # first-seen group order, so named coords listed in any other order paired
+    # the wrong kernel rows with groups on the Julia side (logLik gap 24 on a
+    # shuffled Gaussian spatial slope fixture). Keep the rownames so the
+    # native by-name reordering applies.
+    rownames(matrix) <- rownames(as.matrix(value))
+  }
   labels <- NULL
   if (!all(is.finite(matrix))) {
     cli::cli_abort(

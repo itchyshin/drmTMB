@@ -92,7 +92,7 @@ test_that("Gaussian animal slope-only SD gate admits its shape", {
   )
 })
 
-test_that("Gaussian relmat and spatial slope SD are refused before Julia", {
+test_that("Gaussian relmat and spatial slope SD payloads are admitted", {
   id_levels <- paste0("id", 1:4)
   K <- diag(4L)
   dimnames(K) <- list(id_levels, id_levels)
@@ -114,18 +114,94 @@ test_that("Gaussian relmat and spatial slope SD are refused before Julia", {
   )
   expect_true(drm_julia_gaussian_relmat_sd_slope_route_admitted(relmat))
   expect_true(drm_julia_gaussian_spatial_sd_slope_route_admitted(spatial))
-  expect_error(
-    drm_julia_structured_payload(relmat, "gaussian", data, environment()),
-    "does not yet admit a Gaussian"
+  rp <- drm_julia_structured_payload(relmat, "gaussian", data, environment())
+  expect_identical(rp$kwarg, "K")
+  expect_identical(rp$formula[[2L]], "sd(id, relmat) ~ z")
+  sp <- drm_julia_structured_payload(spatial, "gaussian", data, environment())
+  expect_identical(sp$kwarg, "K")  # coordinate kernel sent as a covariance K
+  expect_equal(dim(sp$matrix), c(4L, 4L))
+
+  # Named coords listed in a different order than the first-seen group order
+  # are reordered by name (the kernel rows follow the data's first-seen groups).
+  shuffled <- data[c(5:8, 1:4), ]
+  coords_rev <- coords[4:1, ]
+  spatial_rev <- bf(
+    y ~ x + spatial(0 + x | id, coords = coords_rev),
+    sd(id, level = "spatial") ~ z
   )
-  expect_error(
-    drm_julia_structured_payload(spatial, "gaussian", data, environment()),
-    "does not yet admit a Gaussian"
+  sp_rev <- drm_julia_structured_payload(spatial_rev, "gaussian", shuffled, environment())
+  d <- as.matrix(stats::dist(coords[c("id3", "id4", "id1", "id2"), ]))
+  expected <- exp(-d / stats::median(d[upper.tri(d)])) + 1e-6 * diag(4L)
+  expect_equal(unname(sp_rev$matrix), unname(expected), tolerance = 1e-8)
+})
+
+test_that("Gaussian relmat slope SD agrees across engines (non-unit K)", {
+  b20_live_setup()
+
+  set.seed(20261102L)
+  n_group <- 40L
+  n_each <- 16L
+  id_levels <- paste0("g", seq_len(n_group))
+  marginal_scale <- seq(0.7, 1.6, length.out = n_group)
+  correlation <- outer(seq_len(n_group), seq_len(n_group), function(i, j) {
+    0.4^abs(i - j)
+  })
+  K <- outer(marginal_scale, marginal_scale) * correlation
+  dimnames(K) <- list(id_levels, id_levels)
+  expect_gt(max(abs(diag(K) - 1)), 0.5)
+  z_group <- rep(c(-1, 1), length.out = n_group)
+  slope_sd <- exp(-0.5 + 0.5 * z_group)
+  u <- slope_sd * as.vector(t(chol(K)) %*% stats::rnorm(n_group))
+  id_index <- rep(seq_len(n_group), each = n_each)
+  x <- stats::rnorm(n_group * n_each)
+  dat <- data.frame(
+    id = factor(id_levels[id_index], levels = id_levels),
+    x = x, z = z_group[id_index]
   )
-  # The refusal is Gaussian-only: the Poisson relmat slope keeps its own route.
-  expect_no_error(
-    drm_julia_structured_payload(relmat, "poisson", data, environment())
+  dat$y <- 0.3 + 0.2 * x + x * u[id_index] +
+    stats::rnorm(nrow(dat), 0, 0.5)
+  form <- bf(
+    y ~ x + relmat(0 + x | id, K = K),
+    sd(id, level = "relmat") ~ z
   )
+  native <- drmTMB(form, family = gaussian(), data = dat, engine = "tmb",
+                   control = drm_control(se = FALSE))
+  julia <- drmTMB(form, family = gaussian(), data = dat, engine = "julia")
+  b20_compare(julia, native, c("mu", "sigma", "sd_relmat(id)"))
+})
+
+test_that("Gaussian coordinate spatial slope SD agrees across engines", {
+  b20_live_setup()
+
+  set.seed(20261103L)
+  n_group <- 40L
+  n_each <- 16L
+  id_levels <- paste0("s", seq_len(n_group))
+  coords <- cbind(east = stats::rnorm(n_group), north = stats::rnorm(n_group))
+  rownames(coords) <- id_levels
+  distance <- as.matrix(stats::dist(coords))
+  range <- stats::median(distance[upper.tri(distance)])
+  C <- exp(-distance / range) + 1e-6 * diag(n_group)
+  z_group <- rep(c(-1, 1), length.out = n_group)
+  u <- exp(-0.5 + 0.5 * z_group) * as.vector(t(chol(C)) %*% stats::rnorm(n_group))
+  # Rows are shuffled so the first-seen group order differs from the row
+  # order of `coords`; the bridge must reorder coordinates by name.
+  id_index <- sample(rep(seq_len(n_group), each = n_each))
+  x <- stats::rnorm(length(id_index))
+  dat <- data.frame(
+    id = factor(id_levels[id_index], levels = id_levels),
+    x = x, z = z_group[id_index]
+  )
+  dat$y <- 0.3 + 0.2 * x + x * u[id_index] + stats::rnorm(nrow(dat), 0, 0.5)
+  expect_false(identical(unique(as.character(dat$id)), id_levels))
+  form <- bf(
+    y ~ x + spatial(0 + x | id, coords = coords),
+    sd(id, level = "spatial") ~ z
+  )
+  native <- drmTMB(form, family = gaussian(), data = dat, engine = "tmb",
+                   control = drm_control(se = FALSE))
+  julia <- drmTMB(form, family = gaussian(), data = dat, engine = "julia")
+  b20_compare(julia, native, c("mu", "sigma", "sd_spatial(id)"))
 })
 
 test_that("Binomial relmat SD agrees across engines for a non-unit-diagonal K", {

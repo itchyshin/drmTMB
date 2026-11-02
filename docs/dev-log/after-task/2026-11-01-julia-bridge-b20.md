@@ -104,3 +104,57 @@ Poisson animal slope parity, Binomial animal-iid bridge.
 - Docs (julia-engine vignette, capability and parity registry) not updated;
   the docs lane should add the Gaussian animal slope route, the Gaussian
   relmat/spatial hold, and NB2 animal simulate.
+
+## Batch 22 addendum (2026-11-02): Gaussian relmat and spatial slope SD admitted
+
+DRModels.jl 5ac051eed (branch `codex/general-sd-regression`) widens the bridge
+label allowance: `binomial_relmat_sd_slope_only` now covers Gaussian, and a
+Gaussian-only spatial slope allowance is passed through
+`_bridge_render_formula_block` (the spatial slope needs `allow_spatial_slope`
+in `_split_ranef`, not only the relmat union). The `src/inference.jl` union
+(`_marginal_simulator_build`) is the non-Gaussian marginal simulator and was
+left unchanged. New Julia test
+`test/test_bridge_gaussian_relmat_spatial_slope_sd.jl` fails before (typed
+schema labels mismatch) and passes after (6/6). All 40 bridge and Gaussian
+test files passed on Totoro (Julia 1.10.12, 1 thread, 6 processes, exit 0).
+
+R side, this batch:
+
+1. Removed the Gaussian relmat/spatial refusal block in
+   `drm_julia_structured_payload()`; the refusal assertion in
+   `test-julia-b20-gaussian-slope-binomial-relmat-bridge.R` is now an
+   admission check.
+2. Live parity (tolerances fixed beforehand: 1e-3 coefficients, 1e-2 logLik,
+   native TMB `se = FALSE`), DRM_JL_PATH at the pushed worktree:
+   - relmat, non-unit-diagonal K (diag 0.49-2.56, 40 groups): max coefficient
+     diff mu 2.7e-14, sigma 5.2e-14, sd 5.3e-14; logLik diff 1.4e-11.
+   - coordinate spatial, shuffled rows and coords not in first-seen order:
+     mu 3.7e-12, sigma 1.2e-12, sd 5.5e-11; logLik diff 2.7e-11.
+3. **Bug found by the spatial fixture (existing, not specific to Gaussian
+   slopes).** `drm_julia_structured_matrix()` stripped the coordinate rownames
+   (`drm_julia_as_matrix()` sets `dimnames` to NULL), so
+   `drm_spatial_coords_precision()` assumed the rows were already in first-seen
+   group order. Named coords listed in any other order paired the wrong kernel
+   rows with groups: before the fix the shuffled Gaussian spatial slope fit had
+   logLik -547.5 (Julia) against -523.8 (native). The fix keeps the rownames
+   for `coords` only; the unit test checks that the payload kernel follows the
+   data's first-seen order. This affects every Gaussian and Binomial spatial
+   route through the bridge with unordered named coords; I did not re-measure
+   the other spatial routes live beyond the existing test files below.
+4. Unnamed coords are still taken as already in first-seen order (same as
+   native), so no refusal was needed.
+
+Not covered: one fixture and seed per route; no SE, coverage or profile claim;
+Gaussian ML with `sigma ~ 1` only; docs and registry rows not updated.
+
+## Coordinator rerun of live Julia tests touching coords (2026-11-02)
+
+After applying the coords rownames fix, every live Julia test file that uses
+`coords` was rerun on the Mac against DRModels.jl `5ac051eed` with
+`NOT_CRAN=true`: b20 (67 pass), binomial spatial SD bridge (37), biv
+inference (57), marker-slope guard (41), structured inference (59), structured
+(86). Two files fail one convergence expectation each,
+`test-julia-biv-q2-reml.R:259` (bivariate phylo q2 REML) and
+`test-julia-tmb-parity.R:661`. Both fail identically at the pre-patch commit
+`a63b56e6e`, so they predate this fix; they are open live-Julia convergence
+items, not regressions from the coords change.
