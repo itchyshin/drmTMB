@@ -42,6 +42,17 @@
   (DRM.jl `87a371a66`); on one fixture it matched native TMB within 1.5e-7 on
   coefficients and 2e-6 on the log-likelihood.
 
+* `drmTMB()` now restarts `nlminb` once when it stops with "false convergence
+  (8)" at a point that is already stationary (2026-11-02). The restart is
+  accepted only if `nlminb` itself returns code 0, the objective does not
+  rise, and the exact TMB gradient is at most 1e-6; no convergence tolerance
+  changed. A fit that used to warn about false convergence at such a point now
+  reports as converged, and `fit$opt$message` names the restart. A fit whose
+  restart fails any of the three checks keeps the original result and warning.
+  Each of the checks has its own test. This is shared optimizer behaviour, not
+  specific to SD regression, and it does not change any estimate beyond the
+  last optimizer step.
+
 * More native predictor-dependent random-effect SD routes (2026-11-01, each
   checked against a drmTMB-independent dense Laplace or exact marginal
   likelihood at the fitted parameters; native TMB only, no Julia parity, not
