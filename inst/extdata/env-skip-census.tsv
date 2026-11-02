@@ -138,6 +138,8 @@ test-comparators-phase19.R	suggests-package	environment	runs	12
 test-comparators.R	suggests-package	environment	runs	18
 test-control.R	cran-lane	environment	runs	4
 test-count-structured-mu.R	suggests-package	environment	runs	8
+test-count-structured-q2-more-providers-sd.R	cran-lane	environment	runs	11
+test-count-structured-q2-more-providers-sd.R	suggests-package	environment	runs	4
 test-cran-lane-filter.R	cran-lane	environment	runs	1
 test-cran-lane-filter.R	engine-drm-jl	environment	skips	3
 test-cumulative-logit-disc.R	suggests-package	environment	runs	1
@@ -210,6 +212,8 @@ test-gaussian-sigma-endpoint-mixes-sd.R	cran-lane	environment	runs	7
 test-gaussian-sigma-structured-sd.R	cran-lane	environment	runs	3
 test-gaussian-sigma-structured-sd.R	suggests-package	environment	runs	4
 test-gaussian-structured-direct-sd-providers.R	cran-lane	environment	runs	3
+test-gaussian-structured-q2-sd.R	cran-lane	environment	runs	6
+test-gaussian-structured-q2-sd.R	suggests-package	environment	runs	1
 test-heritability.R	suggests-package	environment	runs	1
 test-julia-admission-census.R	build-premise	build	skips	1
 test-julia-admission-docs.R	build-premise	build	skips	3
@@ -644,6 +648,8 @@ test-sd-crossed-and-site-quickwins.R	cran-lane	environment	runs	3
 test-shard-selection.R	runtime-conditional	runtime	depends	1
 test-simulate-re-form-phylo-interaction.R	cran-lane	environment	runs	1
 test-spatial-gaussian.R	cran-lane	environment	runs	1
+test-structured-plain-fits-no-sd-oracle.R	cran-lane	environment	runs	8
+test-structured-plain-fits-no-sd-oracle.R	suggests-package	environment	runs	3
 test-structured-re-ademp-scaffold.R	build-premise	build	skips	1
 test-structured-re-conversion-contracts.R	build-premise	build	skips	2
 test-structured-re-conversion-contracts.R	external-tool	environment	runs	4

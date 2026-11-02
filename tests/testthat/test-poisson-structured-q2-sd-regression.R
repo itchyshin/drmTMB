@@ -240,10 +240,11 @@ test_that("neighbouring Poisson structured q2 SD routes stay refused", {
     "non-inflated\\s+model\\s+with\\s+complete\\s+responses"
   )
 
-  # Relmat q2 with coefficient SDs is a different provider and stays closed.
+  # Labelled relmat q2 with coefficient SDs stays closed (the unlabelled relmat
+  # route is admitted; see test-count-structured-q2-more-providers-sd.R).
   expect_error(
     drmTMB(
-      bf(y ~ x + relmat(1 + x | id, K = K),
+      bf(y ~ x + relmat(1 + x | p | id, K = K),
          sd(id, level = "relmat", dpar = "mu", coef = "(Intercept)") ~ w,
          sd(id, level = "relmat", dpar = "mu", coef = "x") ~ v),
       family = pois, data = d

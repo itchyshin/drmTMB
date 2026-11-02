@@ -4549,7 +4549,9 @@ drm_build_gaussian_ls_spec <- function(
       combine_univariate_structured_terms(
         raw_structured_terms[[marker]]$mu,
         raw_structured_terms[[marker]]$sigma,
-        marker = marker
+        marker = marker,
+        allow_labelled_mu_q2_sd = length(sd_phylo_entries) > 0L &&
+          marker %in% c("animal", "relmat", "phylo")
       )
     }
   )
@@ -4602,11 +4604,45 @@ drm_build_gaussian_ls_spec <- function(
       "i" = "Use independent terms or an unlabelled {.code (1 + x | group)} block of two coefficients with {.code sd()} formulas."
     ))
   }
+  allow_gaussian_structured_q2_sd <-
+    !is.null(structured_term) &&
+    structured_mu_type(structured_term) %in% c("animal", "relmat", "phylo") &&
+    length(structured_term$coef_names) == 2L &&
+    identical(structured_term$coef_names[[1L]], "(Intercept)") &&
+    identical(phylo_mu_endpoint_dpars(structured_term), c("mu", "mu")) &&
+    length(sd_phylo_entries) > 0L
   sd_phylo_targets <- parse_sd_phylo_entries(
     sd_phylo_entries,
     structured_term,
+    allow_multiple_coefficients = allow_gaussian_structured_q2_sd,
     allow_sigma_endpoint = TRUE
   )
+  if (allow_gaussian_structured_q2_sd) {
+    selected_coefficients <- vapply(
+      sd_phylo_targets, `[[`, integer(1L), "target_coef"
+    )
+    if (anyDuplicated(selected_coefficients) ||
+        !setequal(selected_coefficients, seq_along(structured_term$coef_names))) {
+      cli::cli_abort(c(
+        "Gaussian {structured_mu_type(structured_term)} intercept-slope SD regression requires one SD formula for each coefficient.",
+        "x" = "Select exactly {.val {structured_term$coef_names}} with separate {.code coef} selectors.",
+        "i" = "Each latent structured field has its own SD regression."
+      ))
+    }
+    if (anyDuplicated(vapply(sd_phylo_entries, `[[`, character(1L), "dpar"))) {
+      for (i in seq_along(sd_phylo_entries)) {
+        coef_name <- structured_term$coef_names[[
+          sd_phylo_targets[[i]]$target_coef
+        ]]
+        sd_phylo_entries[[i]]$dpar <- format_sd_lhs_dpar(
+          paste0("sd_", structured_mu_type(structured_term)),
+          sd_phylo_targets[[i]]$group, "mu", coef_name,
+          NA_character_
+        )
+        sd_phylo_targets[[i]]$dpar <- sd_phylo_entries[[i]]$dpar
+      }
+    }
+  }
   mi_setup <- drm_prepare_gaussian_mi_setup(
     mu_entry$rhs,
     impute,
@@ -5038,6 +5074,11 @@ drm_build_gaussian_ls_spec <- function(
     phylo_mu,
     data_model
   )
+  if (allow_gaussian_structured_q2_sd) {
+    validate_gamma_animal_q2_sd_identifiability(
+      phylo_mu, sd_phylo, family_label = "Gaussian"
+    )
+  }
 
   if (length(y) != nrow(X_sigma)) {
     cli::cli_abort(
@@ -10073,7 +10114,8 @@ drm_build_poisson_spec <- function(
   # fields each carry their own predictor-dependent SD formula (animal route).
   allow_poisson_structured_q2_sd <-
     !is.null(mu_structured_term) &&
-    structured_mu_type(mu_structured_term) %in% "animal" &&
+    structured_mu_type(mu_structured_term) %in%
+      c("animal", "relmat", "phylo", "spatial") &&
     is.null(mu_structured_term$covariance_label) &&
     length(mu_structured_term$coef_names) == 2L &&
     identical(mu_structured_term$coef_names[[1L]], "(Intercept)") &&
@@ -10877,7 +10919,10 @@ drm_build_nbinom2_spec <- function(
   # Animal intercept plus one slope (q2): one SD formula per coefficient.
   allow_nb2_structured_q2_sd <- length(sd_phylo_entries) > 0L &&
     !is.null(mu_structured_term) &&
-    structured_mu_type(mu_structured_term) %in% c("animal") &&
+    (structured_mu_type(mu_structured_term) %in% "animal" ||
+       (structured_mu_type(mu_structured_term) %in%
+          c("relmat", "phylo", "spatial") &&
+          is.null(mu_structured_term$covariance_label))) &&
     length(mu_structured_term$coef_names) == 2L &&
     identical(mu_structured_term$coef_names[[1L]], "(Intercept)")
   if (length(sd_phylo_entries) > 0L && (
@@ -15504,7 +15549,9 @@ extract_gaussian_mu_phylo_interaction_term <- function(
   )
 }
 
-combine_univariate_structured_terms <- function(mu_term, sigma_term, marker) {
+combine_univariate_structured_terms <- function(
+  mu_term, sigma_term, marker, allow_labelled_mu_q2_sd = FALSE
+) {
   if (is.null(mu_term) && is.null(sigma_term)) {
     return(NULL)
   }
@@ -15515,6 +15562,13 @@ combine_univariate_structured_terms <- function(mu_term, sigma_term, marker) {
     mu = structured_term_has_labelled_intercept_plus_slopes(mu_term),
     sigma = structured_term_has_labelled_intercept_plus_slopes(sigma_term)
   )
+  # A labelled mu intercept + one numeric slope is admitted when the model
+  # carries structured sd() formulas (one per coefficient, checked by the
+  # Gaussian builder); the correlation rho then links the two unit-scale fields.
+  if (isTRUE(allow_labelled_mu_q2_sd) && is.null(sigma_term) &&
+      structured_term_is_intercept_one_slope(mu_term)) {
+    labelled_one_slope[["mu"]] <- FALSE
+  }
   if (any(labelled_one_slope)) {
     marker_title <- structured_marker_title(marker)
     bad <- names(labelled_one_slope)[labelled_one_slope]
@@ -23554,6 +23608,8 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
       has_phylo_mu_q2_covariance = as.integer(
         (
           spec$model_type %in% c("nbinom2", "poisson") ||
+            (identical(spec$model_type, "gaussian") &&
+              spec$random_scale$phylo$n_models > 0L) ||
             (identical(spec$model_type, "gamma") &&
               spec$random_scale$phylo$n_models > 0L)
         ) &&
@@ -25421,10 +25477,13 @@ make_tmb_data <- function(spec) {
   if (
     ((identical(spec$model_type, "gamma") &&
         phylo_mu$type %in% c("animal", "relmat", "phylo", "spatial")) ||
+       (identical(spec$model_type, "gaussian") &&
+          phylo_mu$type %in% c("animal", "relmat", "phylo") &&
+          identical(phylo_mu_endpoint_dpars(phylo_mu), c("mu", "mu"))) ||
        (identical(spec$model_type, "poisson") &&
-          identical(phylo_mu$type, "animal")) ||
+          phylo_mu$type %in% c("animal", "relmat", "phylo", "spatial")) ||
        (identical(spec$model_type, "nbinom2") &&
-          identical(phylo_mu$type, "animal")) ||
+          phylo_mu$type %in% c("animal", "relmat", "phylo", "spatial")) ||
        (identical(spec$model_type, "beta") &&
           (identical(phylo_mu$type, "phylo") ||
            (identical(phylo_mu$type, "spatial") &&
@@ -26129,6 +26188,8 @@ split_tmb_sdpars <- function(par, spec) {
 split_tmb_corpars <- function(par, spec) {
   count_phylo_q2 <- (
     spec$model_type %in% c("nbinom2", "poisson") ||
+      (identical(spec$model_type, "gaussian") &&
+        spec$random_scale$phylo$n_models > 0L) ||
       (identical(spec$model_type, "gamma") &&
         spec$random_scale$phylo$n_models > 0L)
   ) &&

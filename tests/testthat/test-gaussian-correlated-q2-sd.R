@@ -112,10 +112,7 @@ test_that("Gaussian correlated q3 SD regression stays closed", {
   sim <- gaussian_correlated_q2_sd_fixture(groups = 30L, repeats = 8L)
   dat <- sim$data
   dat$z <- stats::rnorm(nrow(dat))
-  # The q>2 Gaussian block is stripped from the active random-effect structure
-  # (remove_qgt2_random_mu_terms), so today this aborts with an internal
-  # metadata error rather than a designed refusal. The pattern is therefore
-  # left open; tighten it when a clean q3 message exists.
+  # Designed refusal (active_mu_terms check in the Gaussian spec builder).
   expect_error(
     drmTMB(
       bf(
@@ -127,7 +124,8 @@ test_that("Gaussian correlated q3 SD regression stays closed", {
       ),
       family = stats::gaussian(), data = dat,
       control = drm_control(se = FALSE)
-    )
+    ),
+    "correlated random-effect block of three or more coefficients"
   )
 })
 

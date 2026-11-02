@@ -284,15 +284,17 @@ test_that("NB2 animal q2 refusals are designed errors", {
     ),
     "requires\\s+one\\s+SD\\s+formula\\s+for\\s+each\\s+coefficient"
   )
-  # Neighbours that stay closed: relmat q2 with SD formulas.
+  # Neighbours that stay closed: labelled relmat q2 with SD formulas (the
+  # unlabelled relmat route is admitted; see
+  # test-count-structured-q2-more-providers-sd.R).
   expect_error(
     drmTMB(
-      bf(y ~ x + relmat(1 + x | id, K = K), sigma ~ 1,
+      bf(y ~ x + relmat(1 + x | p | id, K = K), sigma ~ 1,
          sd(id, level = "relmat", dpar = "mu", coef = "(Intercept)") ~ s0,
          sd(id, level = "relmat", dpar = "mu", coef = "x") ~ s1),
       family = nb, data = d, engine = "tmb"
     ),
-    "currently\\s+supports\\s+one\\s+animal"
+    "only\\s+the\\s+implemented\\s+labelled\\s+covariance\\s+forms"
   )
   # Ordinary random effect beside the animal q2 block.
   expect_error(

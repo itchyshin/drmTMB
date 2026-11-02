@@ -1924,11 +1924,18 @@ test_that("phylogenetic mu terms participate in missingness and validation", {
     ),
     "Could not find phylogeny object"
   )
+  # phylo(1 + x | species) now admits coefficient-specific SD formulas (see
+  # test-gaussian-structured-q2-sd.R), so this pin moved to the still-refused
+  # spatial intercept-plus-slope route.
+  spatial_coords <- data.frame(
+    a = seq_len(8L), b = rev(seq_len(8L))^2,
+    row.names = sprintf("sp%d", seq_len(8L))
+  )
   expect_error(
     drmTMB(
       bf(
-        y ~ x + phylo(1 + x | species, tree = tree),
-        sd_phylo(species) ~ x
+        y ~ x + spatial(1 + x | species, coords = spatial_coords),
+        sd(species, level = "spatial") ~ x
       ),
       family = gaussian(),
       data = sim$data
