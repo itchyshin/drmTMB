@@ -95,7 +95,7 @@
 #' \donttest{
 #' if (requireNamespace("ape", quietly = TRUE)) {
 #'   set.seed(1)
-#'   n_tip <- 16L
+#'   n_tip <- 64L
 #'   tree <- ape::compute.brlen(ape::stree(n_tip, type = "balanced"), 1)
 #'   tree$tip.label <- paste0("t", seq_len(n_tip))
 #'   C <- ape::vcv(tree, corr = TRUE)
@@ -103,7 +103,7 @@
 #'     matrix(c(1, 0.6, 0, 0, 0.6, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), 4) %*%
 #'     diag(c(0.8, 0.7, 0.4, 0.4))
 #'   A <- t(chol(C)) %*% matrix(rnorm(n_tip * 4), n_tip, 4) %*% chol(Sigma_a)
-#'   rows <- rep(seq_len(n_tip), each = 4)
+#'   rows <- rep(seq_len(n_tip), each = 8)
 #'   x <- rnorm(length(rows))
 #'   dat <- data.frame(
 #'     species = tree$tip.label[rows],
