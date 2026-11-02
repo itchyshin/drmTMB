@@ -5204,7 +5204,15 @@ Type objective_function<Type>::operator()()
           int effect_index = k * n_phylo + phylo_mu_node_index(i);
           Type field_effect = u_phylo(effect_index);
           if (has_sd_phylo_model == 1) {
-            field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+            if (has_sd_phylo_coef_model == 1) {
+              // Coefficient-specific SD surface for each structured field.
+              int sd_row = phylo_mu_sd_row_coef(i, k);
+              if (sd_row >= 0) {
+                field_effect *= sd_phylo_group(sd_row);
+              }
+            } else {
+              field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+            }
           }
           phylo_effect += phylo_mu_value(i, k) * field_effect;
         }
@@ -5579,8 +5587,8 @@ Type objective_function<Type>::operator()()
       vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
       vector<Type> sd_phylo_group(X_sd_phylo.rows());
       if (has_sd_phylo_model == 1) {
-        if (q_phylo != 1 || has_phylo_mu_q2_covariance == 1) {
-          error("nbinom2 structured SD regression currently requires one animal coefficient");
+        if (q_phylo != 1 && !(q_phylo == 2 && has_sd_phylo_coef_model == 1)) {
+          error("nbinom2 structured SD regression requires one coefficient or two coefficient SD formulas");
         }
         for (int g = 0; g < X_sd_phylo.rows(); ++g) {
           Type eta_sd = Type(0.0);
@@ -5599,7 +5607,14 @@ Type objective_function<Type>::operator()()
           int effect_index = k * n_phylo + phylo_mu_node_index(i);
           Type field_effect = u_phylo(effect_index);
           if (has_sd_phylo_model == 1) {
-            field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+            if (has_sd_phylo_coef_model == 1) {
+              int sd_row = phylo_mu_sd_row_coef(i, k);
+              if (sd_row >= 0) {
+                field_effect *= sd_phylo_group(sd_row);
+              }
+            } else {
+              field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+            }
           }
           Type contribution = phylo_mu_value(i, k) * field_effect;
           if (phylo_mu_dpar(k) == 1) {
@@ -5629,6 +5644,19 @@ Type objective_function<Type>::operator()()
           q22 += u2(j) * Q_u2(j);
         }
         Type one_minus_rho2 = Type(1.0) - rho_phylo * rho_phylo;
+        if (has_sd_phylo_model == 1) {
+          // Unit-scale fields N(0, R (x) A); the per-row coefficient SDs are
+          // applied multiplicatively above (same contract as Gamma).
+          if (q_phylo != 2 || has_sd_phylo_coef_model != 1) {
+            error("NB2 correlated structured q2 requires two coefficient SD formulas.");
+          }
+          quadratic = (q11 - Type(2.0) * rho_phylo * q12 + q22) / one_minus_rho2;
+          nll += Type(0.5) * (
+            Type(2 * n_phylo) * log(Type(2.0) * M_PI) +
+            Type(n_phylo) * log(one_minus_rho2) -
+            Type(2.0) * log_det_Q_phylo + quadratic
+          );
+        } else {
         Type sd1 = exp(log_sd_phylo(0));
         Type sd2 = exp(log_sd_phylo(1));
         Type inv11 = Type(1.0) / (sd1 * sd1 * one_minus_rho2);
@@ -5642,6 +5670,7 @@ Type objective_function<Type>::operator()()
           Type(n_phylo) * log_det_cov -
           Type(2.0) * log_det_Q_phylo + quadratic
         );
+        }
         REPORT(eta_cor_phylo);
         REPORT(rho_phylo);
         ADREPORT(eta_cor_phylo);

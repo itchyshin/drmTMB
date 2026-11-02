@@ -535,7 +535,9 @@ test_that("Arc 3a new routes reject slopes, labels, and extra variance layers", 
 
     rejected_lhs <- c("0 + x", "1 + x", "1 + x + site")
     if (identical(case$family, "gamma") && identical(case$provider, "phylo")) {
-      rejected_lhs <- setdiff(rejected_lhs, "1 + x")
+      # Gamma phylo admits `1 + x` and the slope-only `0 + x` (batch 9); the
+      # two-slope slope-only block stays refused.
+      rejected_lhs <- c(setdiff(rejected_lhs, c("1 + x", "0 + x")), "0 + x + site")
     }
     for (lhs in rejected_lhs) {
       expect_error(

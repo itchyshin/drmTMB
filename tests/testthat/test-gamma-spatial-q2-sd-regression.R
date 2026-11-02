@@ -96,7 +96,7 @@ test_that("Gamma spatial q2 maps coefficient SDs and preserves raw coordinate ke
   expect_true(all(spec$tmb_data$phylo_mu_sd_row_coef[,1]!=spec$tmb_data$phylo_mu_sd_row_coef[,2]))
   expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+spatial(1+x|id,coords=coords),sigma~1,sd(id,level="spatial",coef="x")~z1),fx$data),"one SD formula")
   expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+spatial(1+x|p|id,coords=coords),sigma~1),fx$data),"unlabelled")
-  expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+spatial(0+x|id,coords=coords),sigma~1),fx$data),"intercept-only")
+  expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+spatial(0+x+z0|id,coords=coords),sigma~1),fx$data),"intercept-only")
   expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+spatial(1+x+z0|id,coords=coords),sigma~1),fx$data),"intercept-only")
   expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+spatial(1+x|id,coords=coords)+(1|id),sigma~1),fx$data),"cannot be combined")
   expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+spatial(1+x|id,coords=coords),sigma~1+(1|id)),fx$data),"fixed-effect")

@@ -3062,11 +3062,59 @@ drm_julia_ordinary_mean_re_unlabelled_families <- function() {
   setdiff(admitted, c("gaussian", "biv_gaussian"))
 }
 
+# TRUE when every ordinary mean bar group has an ordinary `sd(<group>)` entry
+# (generic `sd`, no structured `level`, `dpar` unset or "mu"). A bar whose
+# group is not a plain name, or has no such entry, returns FALSE, so the fence
+# stays closed for it. Outside Binomial, correlated bars also return FALSE.
+drm_julia_ordinary_mean_bars_have_sd <- function(formula, family_type) {
+  bar_groups <- character()
+  for (entry in formula$entries) {
+    if (!identical(entry$dpar, "mu")) next
+    for (term in Filter(is_random_bar_call, flatten_plus_terms(entry$rhs))) {
+      group <- strip_parens(strip_parens(term)[[3L]])
+      if (!is.name(group)) return(FALSE)
+      bar_groups <- c(bar_groups, as.character(group))
+    }
+  }
+  if (length(bar_groups) == 0L) {
+    return(FALSE)
+  }
+  # Only Binomial has Julia receipts for ordinary correlated blocks with
+  # sd(); for the other families a correlated bar stays fenced.
+  if (!identical(family_type, "binomial")) {
+    for (entry in formula$entries) {
+      if (!identical(entry$dpar, "mu")) next
+      types <- vapply(
+        extract_random_mu_terms(entry$rhs, "mu")$terms,
+        function(term) term$type, character(1L)
+      )
+      if (any(!(types %in% c("intercept", "slope")))) return(FALSE)
+    }
+  }
+  sd_groups <- character()
+  for (entry in formula$entries) {
+    if (is.null(entry$lhs) || !is_random_scale_lhs(entry$lhs)) next
+    target <- parse_sd_lhs(entry$lhs)
+    if (identical(target$fun, "sd") && is.na(target$level) &&
+        (is.na(target$target_dpar) || identical(target$target_dpar, "mu"))) {
+      sd_groups <- c(sd_groups, target$group)
+    }
+  }
+  all(bar_groups %in% sd_groups)
+}
+
 drm_julia_refuse_ordinary_mean_re_unlabelled <- function(formula, family_type) {
   if (!(family_type %in% drm_julia_ordinary_mean_re_unlabelled_families())) {
     return(invisible(NULL))
   }
   if (!drm_julia_dpar_has_ordinary_bar(formula, "mu")) {
+    return(invisible(NULL))
+  }
+  # The #1551 fence targets a BARE ordinary mean bar. A bar whose group has a
+  # matching ordinary `sd(<group>)` formula is an admitted SD-regression
+  # route: its payload is not the bare bar, and the downstream route gates
+  # still decide the exact shape.
+  if (drm_julia_ordinary_mean_bars_have_sd(formula, family_type)) {
     return(invisible(NULL))
   }
   cli::cli_abort(c(

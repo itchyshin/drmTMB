@@ -243,7 +243,7 @@ test_that("sd(species, level = 'phylogenetic') fits identically to sd_phylo(spec
       ),
       family = gaussian(), data = dat
     ),
-    "targets the `mu` endpoint only"
+    "own endpoint of the structured term only"
   )
   expect_error(
     drmTMB(

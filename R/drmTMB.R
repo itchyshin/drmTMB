@@ -4479,7 +4479,10 @@ drm_build_gaussian_ls_spec <- function(
   }
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
-  mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(mu_entry)
+  mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(
+    mu_entry,
+    allow_slope = TRUE
+  )
   mu_entry$rhs <- mu_phylo_interaction$rhs
   mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry, allow_mesh = TRUE)
   mu_entry$rhs <- mu_spatial$rhs
@@ -4601,7 +4604,8 @@ drm_build_gaussian_ls_spec <- function(
   }
   sd_phylo_targets <- parse_sd_phylo_entries(
     sd_phylo_entries,
-    structured_term
+    structured_term,
+    allow_sigma_endpoint = TRUE
   )
   mi_setup <- drm_prepare_gaussian_mi_setup(
     mu_entry$rhs,
@@ -4623,6 +4627,19 @@ drm_build_gaussian_ls_spec <- function(
     cli::cli_abort(c(
       "Gaussian sigma-endpoint SD regression currently supports one independent sigma random intercept or numeric random slope, no structured terms, and complete unaggregated data.",
       "i" = "Use one {.code (1 | group)} or {.code (0 + x | group)} term in {.code sigma}, no structured terms, and a group-constant SD predictor."
+    ))
+  }
+  if (any(vapply(
+    sd_phylo_targets,
+    function(target) identical(target$target_dpar, "sigma"),
+    logical(1L)
+  )) && (include_missing_response || include_missing_predictor ||
+         !is.null(meta$V) || length(mu_re$terms) > 0L ||
+         length(sigma_re$terms) > 0L)) {
+    cli::cli_abort(c(
+      "Gaussian sigma-endpoint structured SD regression is implemented for one structured sigma intercept alone.",
+      "x" = "It cannot yet be combined with ordinary random effects, {.fn meta_V}, or missing-data models.",
+      "i" = "Use {.code y ~ x}, {.code sigma ~ 1 + phylo(1 | group, tree = tree)} (or {.fn animal}, {.fn relmat}, {.fn spatial}) and {.code sd(group, level = ..., dpar = \"sigma\") ~ z}."
     ))
   }
   if (include_missing_predictor && sparse_mu) {
@@ -6593,7 +6610,8 @@ drm_build_gamma_ls_spec <- function(
   )
   if (include_missing_response && !is.null(mu_structured_term) &&
       structured_mu_type(mu_structured_term) %in% c("phylo", "spatial") &&
-      structured_term_is_intercept_one_slope(mu_structured_term)) {
+      (structured_term_is_intercept_one_slope(mu_structured_term) ||
+        structured_term_is_slope_only(mu_structured_term))) {
     cli::cli_abort("Gamma tree or coordinate-spatial intercept-slope regression requires complete responses.")
   }
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
@@ -9153,8 +9171,28 @@ drm_build_binomial_spec <- function(
     length(sd_mu_entries) == 0L &&
     is.null(binomial_structured_term2) &&
     !include_missing_response
+  allow_binomial_phylo_q2_base <-
+    identical(link, "logit") &&
+    identical(structured_mu_type(binomial_structured_term), "phylo") &&
+    structured_term_is_intercept_one_slope(binomial_structured_term) &&
+    is.null(binomial_structured_term$covariance_label) &&
+    length(mu_re$terms) == 0L &&
+    length(sd_mu_entries) == 0L &&
+    is.null(binomial_structured_term2) &&
+    !include_missing_response
+  allow_binomial_spatial_q2_base <-
+    identical(link, "logit") &&
+    identical(structured_mu_type(binomial_structured_term), "spatial") &&
+    identical(binomial_structured_term$structure, "coords") &&
+    structured_term_is_intercept_one_slope(binomial_structured_term) &&
+    is.null(binomial_structured_term$covariance_label) &&
+    length(mu_re$terms) == 0L &&
+    length(sd_mu_entries) == 0L &&
+    is.null(binomial_structured_term2) &&
+    !include_missing_response
   allow_binomial_relmat_q2_sd <-
-    allow_binomial_relmat_q2_base && length(sd_phylo_entries) > 0L
+    (allow_binomial_relmat_q2_base || allow_binomial_phylo_q2_base ||
+       allow_binomial_spatial_q2_base) && length(sd_phylo_entries) > 0L
   allow_binomial_animal_q2_base <-
     identical(structured_mu_type(binomial_structured_term), "animal") &&
     binomial_structured_term$structure %in% c("A", "Ainv", "pedigree") &&
@@ -9226,6 +9264,8 @@ drm_build_binomial_spec <- function(
     allow_phylo_slope = allow_binomial_phylo_slope,
     allow_relmat_slope = allow_binomial_relmat_slope,
     allow_relmat_q2_base = allow_binomial_relmat_q2_base,
+    allow_phylo_q2_base = allow_binomial_phylo_q2_base,
+    allow_spatial_q2_base = allow_binomial_spatial_q2_base,
     allow_animal_q2_base = allow_binomial_animal_q2_sd,
     allow_spatial_slope = allow_binomial_spatial_slope,
     allow_phylo_interaction = allow_binomial_phylo_interaction,
@@ -9281,11 +9321,8 @@ drm_build_binomial_spec <- function(
     }
     for (i in seq_along(sd_primary_entries)) {
       sd_primary_entries[[i]]$dpar <- format_sd_lhs_dpar(
-        if (identical(structured_mu_type(binomial_structured_term), "animal")) {
-          "sd_animal"
-        } else {
-          "sd_relmat"
-        }, sd_primary_targets[[i]]$group, "mu",
+        paste0("sd_", structured_mu_type(binomial_structured_term)),
+        sd_primary_targets[[i]]$group, "mu",
         binomial_structured_term$coef_names[[selected[[i]]]], NA_character_
       )
       sd_primary_targets[[i]]$dpar <- sd_primary_entries[[i]]$dpar
@@ -9427,7 +9464,8 @@ drm_build_binomial_spec <- function(
     response = mu_entry$response,
     has_weights = !is.null(weights)
   )
-  if ((allow_binomial_relmat_q2_base || allow_binomial_animal_q2_sd) &&
+  if ((allow_binomial_relmat_q2_base || allow_binomial_animal_q2_sd ||
+       allow_binomial_phylo_q2_base || allow_binomial_spatial_q2_base) &&
       (!is.null(dim(raw_response)) || !is.numeric(raw_response) ||
        any(!raw_response %in% c(0, 1)) ||
        any(response$trials != 1) || !is.null(weights))) {
@@ -10031,10 +10069,46 @@ drm_build_poisson_spec <- function(
     ),
     family_label = "Poisson"
   )
+  # Unlabelled structured intercept-plus-slope (q = 2) block whose two latent
+  # fields each carry their own predictor-dependent SD formula (animal route).
+  allow_poisson_structured_q2_sd <-
+    !is.null(mu_structured_term) &&
+    structured_mu_type(mu_structured_term) %in% "animal" &&
+    is.null(mu_structured_term$covariance_label) &&
+    length(mu_structured_term$coef_names) == 2L &&
+    identical(mu_structured_term$coef_names[[1L]], "(Intercept)") &&
+    length(sd_phylo_entries) > 0L
   sd_phylo_targets <- parse_sd_phylo_entries(
     sd_phylo_entries,
-    mu_structured_term
+    mu_structured_term,
+    allow_multiple_coefficients = allow_poisson_structured_q2_sd
   )
+  if (allow_poisson_structured_q2_sd) {
+    selected_coefficients <- vapply(
+      sd_phylo_targets, `[[`, integer(1L), "target_coef"
+    )
+    if (anyDuplicated(selected_coefficients) ||
+        !setequal(selected_coefficients, seq_along(mu_structured_term$coef_names))) {
+      cli::cli_abort(c(
+        "Poisson {structured_mu_type(mu_structured_term)} intercept-slope SD regression requires one SD formula for each coefficient.",
+        "x" = "Select exactly {.val {mu_structured_term$coef_names}} with separate {.code coef} selectors.",
+        "i" = "Each latent structured field has its own independent SD regression."
+      ))
+    }
+    if (anyDuplicated(vapply(sd_phylo_entries, `[[`, character(1L), "dpar"))) {
+      for (i in seq_along(sd_phylo_entries)) {
+        coef_name <- mu_structured_term$coef_names[[
+          sd_phylo_targets[[i]]$target_coef
+        ]]
+        sd_phylo_entries[[i]]$dpar <- format_sd_lhs_dpar(
+          paste0("sd_", structured_mu_type(mu_structured_term)),
+          sd_phylo_targets[[i]]$group, "mu", coef_name,
+          NA_character_
+        )
+        sd_phylo_targets[[i]]$dpar <- sd_phylo_entries[[i]]$dpar
+      }
+    }
+  }
   # One unlabelled ordinary intercept alongside one unlabelled q1 structured
   # intercept (relmat, animal or phylo) may carry separate SD formulas.
   mu_re_probe <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
@@ -10363,6 +10437,11 @@ drm_build_poisson_spec <- function(
     phylo_mu,
     data_model
   )
+  if (allow_poisson_structured_q2_sd) {
+    validate_gamma_animal_q2_sd_identifiability(
+      phylo_mu, sd_phylo, family_label = "Poisson"
+    )
+  }
   start <- if (has_zi && include_missing_response) {
     zi_poisson_start(
       y[observed_y],
@@ -10730,7 +10809,10 @@ drm_build_nbinom2_spec <- function(
     allow_zero_inflated_structured_mu = TRUE,
     zero_inflated_structured_mu_types = "spatial",
     allow_labelled_intercept_slope_structured_mu = TRUE,
-    labelled_intercept_slope_structured_mu_types = "phylo",
+    labelled_intercept_slope_structured_mu_types = c(
+      "phylo",
+      if (length(sd_phylo_entries) > 0L) "animal"
+    ),
     allow_slope_only_structured_mu = TRUE,
     slope_only_structured_mu_types = c("spatial", "animal", "relmat", "phylo"),
     family_label = "NB2",
@@ -10790,8 +10872,14 @@ drm_build_nbinom2_spec <- function(
       is.null(mu_structured_term) && is.null(mu_structured_term2) &&
       is.null(sigma_structured_term)
   )
+  # Animal intercept plus one slope (q2): one SD formula per coefficient.
+  allow_nb2_structured_q2_sd <- length(sd_phylo_entries) > 0L &&
+    !is.null(mu_structured_term) &&
+    structured_mu_type(mu_structured_term) %in% c("animal") &&
+    length(mu_structured_term$coef_names) == 2L &&
+    identical(mu_structured_term$coef_names[[1L]], "(Intercept)")
   if (length(sd_phylo_entries) > 0L && (
-    length(sd_phylo_entries) != 1L ||
+    length(sd_phylo_entries) != (if (allow_nb2_structured_q2_sd) 2L else 1L) ||
       (length(sd_mu_entries) > 0L && !nb2_iid_structured) ||
       (length(mu_re$terms) > 0L && !nb2_iid_structured) ||
       length(sigma_re$terms) > 0L ||
@@ -10803,14 +10891,41 @@ drm_build_nbinom2_spec <- function(
         c("animal", "phylo", "relmat", "spatial")
   )) {
     cli::cli_abort(c(
-      "NB2 structured SD regression currently supports one animal, phylogenetic, related-matrix or spatial location coefficient.",
+      "NB2 structured SD regression currently supports one animal, phylogenetic, related-matrix or spatial location coefficient, or an {.code animal(1 + x | id)} intercept plus one slope with one SD formula per coefficient.",
       "i" = "Use one q1 {.code animal()} or {.code phylo()} location term with a matching structured {.code sd(group, level = ...)} formula; remove other random, structured, sigma, or zero-inflation terms."
     ))
   }
   sd_phylo_targets <- parse_sd_phylo_entries(
     sd_phylo_entries,
-    mu_structured_term
+    mu_structured_term,
+    allow_multiple_coefficients = allow_nb2_structured_q2_sd
   )
+  if (allow_nb2_structured_q2_sd) {
+    selected_coefficients <- vapply(
+      sd_phylo_targets, `[[`, integer(1L), "target_coef"
+    )
+    if (anyDuplicated(selected_coefficients) ||
+        !setequal(selected_coefficients, seq_along(mu_structured_term$coef_names))) {
+      cli::cli_abort(c(
+        "NB2 {structured_mu_type(mu_structured_term)} intercept-slope SD regression requires one SD formula for each coefficient.",
+        "x" = "Select exactly {.val {mu_structured_term$coef_names}} with separate {.code coef} selectors.",
+        "i" = "Each latent structured field has its own independent SD regression."
+      ))
+    }
+    if (anyDuplicated(vapply(sd_phylo_entries, `[[`, character(1L), "dpar"))) {
+      for (i in seq_along(sd_phylo_entries)) {
+        coef_name <- mu_structured_term$coef_names[[
+          sd_phylo_targets[[i]]$target_coef
+        ]]
+        sd_phylo_entries[[i]]$dpar <- format_sd_lhs_dpar(
+          paste0("sd_", structured_mu_type(mu_structured_term)),
+          sd_phylo_targets[[i]]$group, "mu", coef_name,
+          NA_character_
+        )
+        sd_phylo_targets[[i]]$dpar <- sd_phylo_entries[[i]]$dpar
+      }
+    }
+  }
 
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
@@ -11145,6 +11260,11 @@ drm_build_nbinom2_spec <- function(
     phylo_mu,
     data_model
   )
+  if (allow_nb2_structured_q2_sd) {
+    validate_gamma_animal_q2_sd_identifiability(
+      phylo_mu, sd_phylo, family_label = "NB2"
+    )
+  }
 
   spec <- list(
     model_type = if (has_zi) "zi_nbinom2" else "nbinom2",
@@ -14295,7 +14415,8 @@ validate_positive_continuous_mu_structured_term <- function(
   marker <- structured_mu_type(term)
   if (isTRUE(allow_gamma_spatial_slope) && identical(family_label, "Gamma") &&
       identical(marker, "spatial") && identical(term$structure, "coords") &&
-      structured_term_is_intercept_one_slope(term)) {
+      (structured_term_is_intercept_one_slope(term) ||
+        structured_term_is_slope_only(term))) {
     if (!is.null(term$covariance_label)) {
       cli::cli_abort(c(
         "Gamma coordinate-spatial mu effects support only unlabelled independent coefficients.",
@@ -14305,7 +14426,9 @@ validate_positive_continuous_mu_structured_term <- function(
     return(invisible(NULL))
   }
   if (isTRUE(allow_gamma_phylo_slope) && identical(family_label, "Gamma") &&
-      identical(marker, "phylo") && structured_term_is_intercept_one_slope(term)) {
+      identical(marker, "phylo") &&
+      (structured_term_is_intercept_one_slope(term) ||
+        structured_term_is_slope_only(term))) {
     if (!is.null(term$covariance_label)) {
       cli::cli_abort(c(
         "Gamma phylogenetic mu effects support only unlabelled independent coefficients.",
@@ -14389,7 +14512,8 @@ validate_positive_continuous_structured_combinations <- function(
   if (
     isTRUE(preserve_gamma_relmat) &&
       identical(family_label, "Gamma") &&
-      identical(marker, "relmat")
+      identical(marker, "relmat") &&
+      !structured_term_is_slope_only(term)
   ) {
     return(invisible(NULL))
   }
@@ -14444,10 +14568,11 @@ validate_gamma_relmat_mu_structured_term <- function(term) {
   }
   if (
     !structured_term_is_intercept_only(term) &&
-      !structured_term_is_intercept_one_slope(term)
+      !structured_term_is_intercept_one_slope(term) &&
+      !structured_term_is_slope_only(term)
   ) {
     cli::cli_abort(c(
-      "{.fn Gamma} {.fn relmat} {.code mu} effects currently support only unlabelled intercept-only or one-slope structured terms.",
+      "{.fn Gamma} {.fn relmat} {.code mu} effects currently support only unlabelled intercept-only, one-slope, or slope-only structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
       "i" = "Use {.code relmat(1 | id, K = K)} or the {.code 1 + x} one-slope form; multiple or labelled Gamma slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
     ))
@@ -14548,6 +14673,8 @@ validate_binomial_structured_mu_term <- function(
   allow_phylo_slope = FALSE,
   allow_relmat_slope = FALSE,
   allow_relmat_q2_base = FALSE,
+  allow_phylo_q2_base = FALSE,
+  allow_spatial_q2_base = FALSE,
   allow_animal_q2_base = FALSE,
   allow_spatial_slope = FALSE,
   allow_phylo_interaction = FALSE,
@@ -14592,6 +14719,14 @@ validate_binomial_structured_mu_term <- function(
     isTRUE(allow_relmat_q2_base) &&
     identical(marker, "relmat") &&
     structured_term_is_intercept_one_slope(term)
+  supported_phylo_q2_base <-
+    isTRUE(allow_phylo_q2_base) &&
+    identical(marker, "phylo") &&
+    structured_term_is_intercept_one_slope(term)
+  supported_spatial_q2_base <-
+    isTRUE(allow_spatial_q2_base) &&
+    identical(marker, "spatial") &&
+    structured_term_is_intercept_one_slope(term)
   supported_animal_q2_base <-
     isTRUE(allow_animal_q2_base) &&
     identical(marker, "animal") &&
@@ -14614,6 +14749,7 @@ validate_binomial_structured_mu_term <- function(
       !supported_animal_slope && !supported_phylo_slope &&
       !supported_relmat_slope && !supported_spatial_slope &&
       !supported_relmat_q2_base && !supported_animal_q2_base &&
+      !supported_phylo_q2_base && !supported_spatial_q2_base &&
       !supported_phylo_interaction && !supported_phylo_interaction_slope) {
     cli::cli_abort(c(
       "Binomial {.fn {marker}} {.code mu} effects currently support only an intercept-only q1 term.",
@@ -17607,7 +17743,8 @@ parse_sd_mu_entries <- function(entries, mu_terms) {
 parse_sd_phylo_entry <- function(
   entry,
   phylo_term,
-  allow_multiple_coefficients = FALSE
+  allow_multiple_coefficients = FALSE,
+  allow_sigma_endpoint = FALSE
 ) {
   target <- parse_sd_lhs(entry$lhs)
   target_level <- if (identical(target$level, "phylogenetic_interaction")) {
@@ -17642,19 +17779,31 @@ parse_sd_phylo_entry <- function(
   selector_supplied <- function(value) {
     !is.null(value) && length(value) == 1L && !is.na(value)
   }
+  endpoint_dpars <- phylo_mu_endpoint_dpars(phylo_term)
+  sigma_q1_endpoint <- isTRUE(allow_sigma_endpoint) &&
+    identical(endpoint_dpars, "sigma") &&
+    identical(phylo_term$coef_names, "(Intercept)")
+  sd_endpoint <- if (sigma_q1_endpoint) "sigma" else "mu"
   if (selector_supplied(target$target_dpar) &&
-      !identical(target$target_dpar, "mu")) {
+      !identical(target$target_dpar, sd_endpoint)) {
     cli::cli_abort(c(
-      "Structured random-effect SD regression currently targets the {.code mu} endpoint only.",
-      "x" = "The requested endpoint {.val {target$target_dpar}} does not identify the structured location effect.",
-      "i" = "Use {.code dpar = \"mu\"} or omit {.arg dpar}."
+      "Structured random-effect SD regression currently targets the own endpoint of the structured term only.",
+      "x" = "The requested endpoint {.val {target$target_dpar}} does not identify the structured effect, which sits in {.code {unique(endpoint_dpars)}}.",
+      "i" = "Use {.code dpar = \"{sd_endpoint}\"}; {.arg dpar} may be omitted only for a {.code mu} structured effect."
     ))
   }
-  if (!all(phylo_mu_endpoint_dpars(phylo_term) == "mu")) {
+  if (sigma_q1_endpoint && !selector_supplied(target$target_dpar)) {
+    cli::cli_abort(c(
+      "A structured random-effect SD formula on a {.code sigma} structured effect must name its endpoint.",
+      "x" = "{.code {entry$dpar}} omits {.arg dpar}, which defaults to {.code mu}.",
+      "i" = "Use {.code sd({target$group}, level = \"{target_level}\", dpar = \"sigma\")}."
+    ))
+  }
+  if (!sigma_q1_endpoint && !all(endpoint_dpars == "mu")) {
     cli::cli_abort(c(
       "Structured random-effect SD formulas are not implemented with residual-scale effects.",
       "x" = "{.code {entry$dpar}} was combined with a {.code sigma ~ phylo(...)} endpoint.",
-      "i" = "Fit the constant phylogenetic location-scale block first, or remove the {.fn sd_phylo} formula."
+      "i" = "Only a structured intercept in {.code sigma} alone admits an SD formula; fit the constant phylogenetic location-scale block first, or remove the {.fn sd_phylo} formula."
     ))
   }
   if (length(phylo_term$coef_names) != 1L &&
@@ -17712,7 +17861,7 @@ parse_sd_phylo_entry <- function(
   list(
     dpar = entry$dpar,
     group = target$group,
-    target_dpar = "mu",
+    target_dpar = sd_endpoint,
     target_term = 1L,
     target_coef = as.integer(match(selected_coef, phylo_term$coef_names)),
     label = phylo_term$label
@@ -17722,7 +17871,8 @@ parse_sd_phylo_entry <- function(
 parse_sd_phylo_entries <- function(
   entries,
   phylo_term,
-  allow_multiple_coefficients = FALSE
+  allow_multiple_coefficients = FALSE,
+  allow_sigma_endpoint = FALSE
 ) {
   if (length(entries) == 0L) {
     return(list())
@@ -17731,7 +17881,8 @@ parse_sd_phylo_entries <- function(
     entries,
     parse_sd_phylo_entry,
     phylo_term = phylo_term,
-    allow_multiple_coefficients = allow_multiple_coefficients
+    allow_multiple_coefficients = allow_multiple_coefficients,
+    allow_sigma_endpoint = allow_sigma_endpoint
   )
   dpars <- vapply(targets, `[[`, character(1), "dpar")
   if (anyDuplicated(dpars) && !isTRUE(allow_multiple_coefficients)) {
@@ -25255,19 +25406,23 @@ make_tmb_data <- function(spec) {
   sd_phylo <- spec$random_scale$phylo
   if (identical(spec$model_type, "binomial") &&
       identical(spec$link, "logit") &&
-      identical(phylo_mu$type, "relmat") &&
+      phylo_mu$type %in% c("relmat", "phylo", "spatial") &&
       identical(phylo_mu$q, 2L) &&
       identical(sd_phylo$n_models, 2L) &&
       (nrow(sd_phylo$observation_sd_row0_by_coef) != length(spec$y) ||
        ncol(sd_phylo$observation_sd_row0_by_coef) != 2L ||
        any(sd_phylo$observation_sd_row0_by_coef < 0L))) {
     cli::cli_abort(
-      "Binomial relmat intercept-slope SD data must map every observation to both selected coefficient scales."
+      "Binomial structured intercept-slope SD data must map every observation to both selected coefficient scales."
     )
   }
   if (
     ((identical(spec$model_type, "gamma") &&
         phylo_mu$type %in% c("animal", "relmat", "phylo", "spatial")) ||
+       (identical(spec$model_type, "poisson") &&
+          identical(phylo_mu$type, "animal")) ||
+       (identical(spec$model_type, "nbinom2") &&
+          identical(phylo_mu$type, "animal")) ||
        (identical(spec$model_type, "beta") &&
           (identical(phylo_mu$type, "phylo") ||
            (identical(phylo_mu$type, "spatial") &&
@@ -25276,8 +25431,11 @@ make_tmb_data <- function(spec) {
             phylo_mu$structure %in% c("A", "Ainv", "pedigree", "K", "Q")))) ||
        (identical(spec$model_type, "binomial") &&
           (((identical(spec$link, "logit") &&
-               identical(phylo_mu$type, "relmat") &&
-               phylo_mu$structure %in% c("K", "Q")) ||
+               ((identical(phylo_mu$type, "relmat") &&
+                   phylo_mu$structure %in% c("K", "Q")) ||
+                  identical(phylo_mu$type, "phylo") ||
+                  (identical(phylo_mu$type, "spatial") &&
+                     identical(phylo_mu$structure, "coords")))) ||
               (identical(phylo_mu$type, "animal") &&
                  phylo_mu$structure %in% c("A", "Ainv", "pedigree")))) &&
           is.null(phylo_mu$covariance_label))) &&

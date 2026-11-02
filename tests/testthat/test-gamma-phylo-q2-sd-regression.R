@@ -104,7 +104,7 @@ test_that("Gamma phylo q2 maps coefficient SDs and integrates tree nodes", {
   expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+phylo(1+x|id,tree=tree),sigma~1,sd(id,level="phylogenetic")~z0),fx$data),"select a coefficient")
   expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+phylo(1+x|id,tree=tree),sigma~1,sd(id,level="phylogenetic",coef="x")~z1),fx$data),"one SD formula")
   expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+phylo(1+x|p|id,tree=tree),sigma~1),fx$data),"unlabelled")
-  expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+phylo(0+x|id,tree=tree),sigma~1),fx$data),"intercept")
+  expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+phylo(0+x+z0|id,tree=tree),sigma~1),fx$data),"intercept")
   expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+phylo(1+x+z0|id,tree=tree),sigma~1),fx$data),"intercept")
   expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+phylo(1+x|id,tree=tree)+(1|id),sigma~1),fx$data),"cannot be combined")
   expect_error(drmTMB:::drm_build_gamma_ls_spec(bf(y~x+phylo(1+x|id,tree=tree),sigma~1+(1|id)),fx$data),"scale random effects|sigma.*random|cannot be combined")

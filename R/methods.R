@@ -7539,6 +7539,7 @@ drm_binomial_q2_structured_sd_by_node <- function(object, phylo_mu) {
     provider,
     relmat = "sd_relmat",
     animal = "sd_animal",
+    spatial = "sd_spatial",
     NULL
   )
   if (
@@ -7576,6 +7577,7 @@ drm_binomial_q2_structured_sd_by_node <- function(object, phylo_mu) {
     return(NULL)
   }
   node_labels <- phylo_mu$precision$node_labels
+  if (is.null(node_labels)) node_labels <- phylo_mu$node_labels
   if (length(node_labels) != phylo_mu$n_re || anyNA(node_labels)) {
     return(NULL)
   }

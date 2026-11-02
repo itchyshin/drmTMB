@@ -1,5 +1,21 @@
 # drmTMB (development)
 
+* More native predictor-dependent random-effect SD routes (2026-11-01, each
+  checked against a drmTMB-independent dense Laplace or exact marginal
+  likelihood at the fitted parameters; native TMB only, no Julia parity, not
+  calibrated):
+  Binomial `phylo()` and `spatial()` intercept-plus-slope blocks with separate
+  coefficient SD formulas; Poisson and NB2 `animal(1 + x | id)` correlated
+  blocks with coefficient SD formulas; Gaussian `sigma` structured intercepts
+  (`animal`, `phylo`, `relmat`, `spatial`) with `sd(..., dpar = "sigma")`
+  formulas; Gamma slope-only `phylo()`, `spatial()` and `relmat()` terms; the
+  Gaussian `phylo_interaction()` slope-only route; and NB2 and Gamma joint
+  `mu` plus `sigma` ordinary intercepts, each with its own SD formula.
+* The Julia bridge no longer refuses ordinary `(1 | g)` or `(0 + x | g)` mean
+  terms that carry an `sd()` formula for Poisson, NB2, Gamma, Beta and
+  Binomial. This reopens the admission gate only; selected-coefficient
+  `sd(id, coef = ...)` routes still fail later in the Julia bridge.
+
 * Native Gaussian models now admit more predictor-dependent random-effect SD
   routes. (a) An unlabelled correlated `(1 + x | id)` block takes a separate
   `sd(id, coef = ...)` formula for each coefficient, or for the slope alone
