@@ -285,3 +285,55 @@ test_that("unlabelled Gamma animal q2 SD regression stays independent", {
   expect_true(is_converged(fit))
   expect_null(fit$corpars$animal)
 })
+
+test_that("Gamma animal q2 joint objective uses the raw non-unit-diagonal A", {
+  skip_on_cran()
+  # G1 review C6: the fixtures above use a unit-diagonal A, so a refactor that
+  # normalised A to a correlation matrix would pass them. Here A = D A0 D with
+  # a visibly non-unit diagonal, passed to drmTMB in shuffled row/column order
+  # while the oracle indexes latent nodes in the supplied A order (the fitted
+  # u_phylo follows the rows of A, observations map by name). Tolerances fixed before the
+  # first run: agreement 1e-6 absolute; the "normalised A" bug must move the
+  # oracle by more than 1e-3; the diagonal must differ from 1 by more than 0.3.
+  tol_exact <- 1e-6
+  tol_sensitive <- 1e-3
+  sim <- gamma_animal_correlated_data(20261101L)
+  n <- nlevels(sim$data$id)
+  set.seed(77L)
+  scale_d <- exp(stats::runif(n, log(0.6), log(1.8)))
+  A_ord <- sim$A * outer(scale_d, scale_d)
+  expect_gt(max(abs(diag(A_ord) - 1)), 0.3)
+  perm <- sample.int(n)
+  expect_false(identical(perm, seq_len(n)))
+  A_shuf <- A_ord[perm, perm]
+  expect_identical(rownames(A_shuf), rownames(A_ord)[perm])
+
+  fit <- drmTMB(
+    gamma_animal_corr_formula(A_shuf, label = "p"),
+    family = stats::Gamma(link = "log"), data = sim$data, engine = "tmb"
+  )
+  expect_true(is_converged(fit))
+  env <- fit$obj$env
+  joint <- env$f(env$last.par.best)
+  rho <- fit$obj$report(env$last.par.best)$rho_phylo
+  d_node <- sim$data
+  d_node$id <- factor(as.character(d_node$id), levels = rownames(A_shuf))
+  sim_raw <- list(data = d_node, A = A_shuf)
+  expect_lt(abs(gamma_animal_joint_oracle(fit, sim_raw, rho) - joint), tol_exact)
+  sim_norm <- list(data = d_node, A = stats::cov2cor(A_shuf))
+  expect_gt(
+    abs(gamma_animal_joint_oracle(fit, sim_norm, rho) - joint), tol_sensitive
+  )
+})
+
+test_that("Gamma animal q2 SD route has no constant structured SD parameter free", {
+  skip_on_cran()
+  # G1 review C6: with per-coefficient SD formulas the constant log_sd_phylo
+  # must be mapped off (src/drmTMB.cpp reads only beta_sd_mu rows), for both
+  # the labelled and the unlabelled q2 fit.
+  for (label in list("p", NULL)) {
+    fit <- gamma_animal_fit(20261101L, label)$fit
+    expect_false("log_sd_phylo" %in% names(fit$obj$par))
+    expect_true("beta_sd_mu" %in% names(fit$obj$par))
+  }
+})

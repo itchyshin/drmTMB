@@ -83,14 +83,15 @@ test_that("Gamma phylogenetic SD regression recovers tip-level scale effects", {
   perturbed[beta_sd_idx] <- c(4, 0)
   clamp_report <- fit$obj$report(perturbed)
   expected_log_sd <- 2 + 3 * tanh((4 - 2) / 3)
+  # G1 C4: log_sd_phylo_group is the raw predictor; sd_phylo_group is clamped.
   expect_equal(
     clamp_report$log_sd_phylo_group,
-    rep(expected_log_sd, n_tip),
+    rep(4, n_tip),
     tolerance = 1e-10
   )
   expect_equal(
     log(clamp_report$sd_phylo_group),
-    clamp_report$log_sd_phylo_group,
+    rep(expected_log_sd, n_tip),
     tolerance = 1e-10
   )
   fit_perturbed <- fit
@@ -102,7 +103,7 @@ test_that("Gamma phylogenetic SD regression recovers tip-level scale effects", {
       dpar = "sd_phylo(species)",
       type = "link"
     )),
-    unname(clamp_report$log_sd_phylo_group),
+    unname(log(clamp_report$sd_phylo_group)),
     tolerance = 1e-10
   )
 })

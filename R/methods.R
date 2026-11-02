@@ -2991,6 +2991,21 @@ deviance.drmTMB <- function(object, ...) {
 #' evaluated. When `check_drm()` reports the clamp active, this makes the
 #' fit's own diagnostics honest, not correct: the estimate itself is still
 #' unreliable near the clamp (see the rescaling advice there).
+#'
+#' For predictor-dependent random-effect SD parameters (for example
+#' `dpar = "sd(id)"` or `"sd_animal(id)"`), the value is the SD multiplier
+#' `exp(W beta)` on the latent effect, not a marginal SD. When the effect is
+#' structured (`animal()`, `relmat()`, `phylo()`, `spatial()`), the multiplier
+#' applies to the supplied kernel as given, so the marginal SD of group `g` is
+#' `multiplier * sqrt(C_gg)`; `predict()` never returns that product. For a
+#' unit-diagonal kernel the two agree. `type = "link"` is the log SD after the
+#' same soft clamp the likelihood applies (the identity inside `[-12, 12]`,
+#' saturating towards `[-15, 15]`), not the raw `W beta`; `type = "response"`
+#' is its exponential. With `newdata = NULL` the result has one value per fitted
+#' group, named by group level. With `newdata`, each row is one group-level row
+#' (not an observation row): the result has one value per row, named by
+#' `rownames(newdata)`, and a structured SD for such a row is a population
+#' multiplier with no kernel node and no `sqrt(C_gg)` factor.
 #' @seealso [fitted.drmTMB()], [rho12()], [stats::sigma()], [fitted_distribution()],
 #'   [exceedance()]
 #'
@@ -3032,7 +3047,18 @@ predict.drmTMB <- function(
   if (is.null(dpar)) {
     dpar <- object$model$dpars[[1L]]
   }
-  dpar <- match.arg(dpar, names(object$coefficients))
+  # Exact match only: SD keys such as `sd(id, coef = "x")` share prefixes, so
+  # partial matching could silently resolve to a different SD formula.
+  if (
+    !is.character(dpar) ||
+      length(dpar) != 1L ||
+      !dpar %in% names(object$coefficients)
+  ) {
+    cli::cli_abort(c(
+      "{.arg dpar} must exactly match one fitted parameter name.",
+      "i" = "Available names: {.val {names(object$coefficients)}}."
+    ))
+  }
   if (drm_has_temporal_mu(object) && !is.null(newdata)) {
     temporal_structure <- toupper(object$model$structured$temporal_mu$structure)
     cli::cli_abort(c(
@@ -3172,8 +3198,8 @@ predict.drmTMB <- function(
 #' (`relmat`) intercepts, it applies each tip or group's fitted SD to the fresh
 #' structured draw. Julia Gamma animal models also support marginal simulation
 #' for a complete-data animal intercept or an animal intercept plus one numeric
-#' slope, with separate coefficient-specific SD formulas. The Julia fitter
-#' normalizes the supplied relationship matrix to a correlation matrix, and
+#' slope, with separate coefficient-specific SD formulas. The Julia fitter uses
+#' the supplied relationship matrix at its raw scale, as native TMB does, and
 #' simulation follows that same convention. These Gamma routes use location
 #' SDs and fixed `sigma ~ 1`; conditional simulation with `re.form = NULL` is
 #' unavailable for Julia Laplace fits.
@@ -7061,10 +7087,13 @@ predict_random_scale_dpar <- function(
   }
   eta <- as.vector(X %*% object$coefficients[[dpar]])
   # The kernel soft-clamps this same log(sd) predictor before exponentiating
-  # it (src/drmTMB.cpp ~2482-2485, drm_softclamp_log_sd), and the fit's own
-  # summary agrees: sd_mu_group_values()/sd_phylo_group_values()
-  # (R/drmTMB.R:23062-23092) apply drm_softclamp_log_sd() then
-  # drm_exp_sd_logscale_guarded() to the identical eta. Without the same
+  # it (drm_softclamp_log_sd() in src/drmTMB.cpp, called where each SD block
+  # forms sd_*_group), and the fit's own summary agrees: sd_mu_group_values(),
+  # sd_phylo_group_values() and the sigma and second-field siblings in
+  # R/drmTMB.R apply drm_softclamp_log_sd() then
+  # drm_exp_sd_logscale_guarded() to the identical eta. The kernel REPORTs the
+  # raw eta as log_sd_*_group in every block, so link-scale prediction is the
+  # clamped value while the reported log_sd_*_group is not. Without the same
   # clamp here, predict(dpar = "sd(...)") reported the raw, unclamped
   # predictor and disagreed with fit$sdpars by up to ~25x on a fixture where
   # the clamp band binds (Dinnage audit M2 review, item 2).
@@ -7655,24 +7684,25 @@ drm_structured_mu_random_effect_draws <- function(object) {
   sd_key <- if (identical(model_type, "biv_gaussian")) "mu" else dpar
   label <- phylo_mu_sd_labels(phylo_mu, model_type)
   sd_matrix <- drm_binomial_q2_structured_sd_by_node(object, phylo_mu)
+  # The SD registry, not the presence of a `sdpars` entry, decides whether this
+  # endpoint's SD is modelled (G1 C7). `split_tmb_sdpars()` stores modelled SDs
+  # under the SD-formula key, so a constant entry filed under `sd_key` and
+  # `label` for another endpoint must never shadow a modelled per-node SD.
+  sd_registry <- object$model$random_scale$phylo
+  modeled_scale_dpars <- if (
+    is.list(sd_registry) && isTRUE(sd_registry$n_models > 0L)
+  ) {
+    Filter(function(scale_dpar) {
+      target <- sd_registry$target_dpar[[scale_dpar]]
+      if (is.null(target) || is.na(target)) target <- "mu"
+      target %in% dpar
+    }, sd_registry$dpars)
+  } else {
+    character()
+  }
   sd_val <- if (!is.null(sd_matrix)) {
     sd_matrix
-  } else {
-    unname(object$sdpars[[sd_key]][label])
-  }
-  if (length(sd_val) == 0L || anyNA(sd_val)) {
-    sd_registry <- object$model$random_scale$phylo
-    modeled_scale_dpars <- if (
-      is.list(sd_registry) && isTRUE(sd_registry$n_models > 0L)
-    ) {
-      Filter(function(scale_dpar) {
-        target <- sd_registry$target_dpar[[scale_dpar]]
-        if (is.null(target) || is.na(target)) target <- "mu"
-        target %in% dpar
-      }, sd_registry$dpars)
-    } else {
-      character()
-    }
+  } else if (length(modeled_scale_dpars) > 0L) {
     if (length(modeled_scale_dpars) != 1L) {
       cli::cli_abort(c(
         "Marginal simulation could not find a unique fitted structured-effect SD for {.field {label}}.",
@@ -7687,15 +7717,24 @@ drm_structured_mu_random_effect_draws <- function(object) {
     direct <- node_sd_row0 >= 0L
     local_row <- match(node_sd_row0[direct] + 1L, modeled_rows)
     node_sd[direct] <- unname(scale_by_level[local_row])
-    sd_val <- node_sd
     if (
-      length(sd_val) != phylo_mu$n_re || anyNA(sd_val) ||
-        any(!is.finite(sd_val)) || any(sd_val <= 0)
+      length(node_sd) != phylo_mu$n_re || anyNA(node_sd) ||
+        any(!is.finite(node_sd)) || any(node_sd <= 0)
     ) {
       cli::cli_abort(
         "Internal error: modeled structured-effect SDs do not align with the latent-effect nodes."
       )
     }
+    node_sd
+  } else {
+    constant_sd <- unname(object$sdpars[[sd_key]][label])
+    if (length(constant_sd) == 0L || anyNA(constant_sd)) {
+      cli::cli_abort(c(
+        "Marginal simulation could not find a unique fitted structured-effect SD for {.field {label}}.",
+        "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
+      ))
+    }
+    constant_sd
   }
   key <- structured_mu_random_effect_key(phylo_mu, model_type)
   draw_object <- object

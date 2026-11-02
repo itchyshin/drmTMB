@@ -10,8 +10,8 @@
 #' blocks with separate coefficient-specific SD formulas use the fitted animal
 #' covariance and coefficient correlation for marginal simulation. For both
 #' Gamma routes, simulation uses
-#' the unit-diagonal correlation matrix used by the Julia fitter, including
-#' when the supplied relationship matrix has a non-unit diagonal. The
+#' the supplied relationship matrix `A` at its raw scale, as the Julia fitter
+#' and native TMB do, including when `A` has a non-unit diagonal. The
 #' Julia Laplace route integrates these random effects and does not return
 #' conditional modes, so `re.form = NULL` is refused.
 #' Structured simulation uses the saved covariance and its fitted scale. A

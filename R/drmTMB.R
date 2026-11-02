@@ -1979,8 +1979,8 @@ drm_warn_if_start_saturates_logsigma_clamp <- function(spec, override) {
     )
   }
   if (
-    "beta_sd_mu" %in% names(override) &&
-      any(fields %in% c("log_sd_mu_group", "log_sd_phylo_group"))
+    any(c("beta_sd_mu", "beta_sd_sigma") %in% names(override)) &&
+      any(fields %in% drm_latent_sd_clamp_fields())
   ) {
     par <- utils::modifyList(spec$start, override)
     direct_values <- drm_direct_sd_logscale_values(par, spec)
@@ -3996,6 +3996,18 @@ drm_clamped_scale_families <- function() {
   )
 }
 
+# REPORT names of the raw log(SD) group predictors, one per direct-SD block.
+# Every block reports the raw linear predictor; the clamp is applied where the
+# likelihood exponentiates it (src/drmTMB.cpp, drm_softclamp_log_sd).
+drm_latent_sd_clamp_fields <- function() {
+  c(
+    "log_sd_mu_group",
+    "log_sd_phylo_group",
+    "log_sd_phylo2_group",
+    "log_sd_sigma_group"
+  )
+}
+
 drm_active_logsigma_clamp_fields <- function(spec) {
   fields <- if (isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
     c("log_sigma", "log_sigma1", "log_sigma2")
@@ -4015,6 +4027,18 @@ drm_active_logsigma_clamp_fields <- function(spec) {
         isTRUE(random_scale$phylo$n_models > 0L)
     ) {
       fields <- c(fields, "log_sd_phylo_group")
+    }
+    if (
+      is.list(random_scale$phylo2) &&
+        isTRUE(random_scale$phylo2$n_models > 0L)
+    ) {
+      fields <- c(fields, "log_sd_phylo2_group")
+    }
+    if (
+      is.list(random_scale$sigma) &&
+        isTRUE(random_scale$sigma$n_models > 0L)
+    ) {
+      fields <- c(fields, "log_sd_sigma_group")
     }
   }
   unique(fields)
@@ -4066,7 +4090,7 @@ drm_logsigma_clamp_active <- function(
     value = values[[chosen]],
     arm = if (hit_hi) "upper" else "lower",
     field = field,
-    kind = if (field %in% c("log_sd_mu_group", "log_sd_phylo_group")) {
+    kind = if (field %in% drm_latent_sd_clamp_fields()) {
       "latent random-effect SD"
     } else {
       "residual sigma"
@@ -20162,6 +20186,7 @@ build_sd_mu_structure <- function(entries, targets, re_mu, data) {
     mf_group <- mf_sd[group_first, , drop = FALSE]
     X <- stats::model.matrix(stats::terms(mf_sd), mf_group)
     rownames(X) <- levels(group)
+    check_sd_design_rank(X, entry$dpar, target$group)
 
     p <- ncol(X)
     r <- nrow(X)
@@ -20335,6 +20360,7 @@ build_sd_phylo_structure <- function(entries, targets, phylo_mu, data) {
     mf_group <- mf_sd[group_first, , drop = FALSE]
     X_i <- stats::model.matrix(stats::terms(mf_sd), mf_group)
     rownames(X_i) <- levels(group)
+    check_sd_design_rank(X_i, dpar, target$group)
 
     observation_sd_row0 <- match(
       sd_group_values,
@@ -20457,6 +20483,33 @@ block_diagonal_matrices <- function(mats, names = names(mats)) {
   }
   dimnames(out) <- list(row_names, col_names)
   out
+}
+
+check_sd_design_rank <- function(X, dpar, group_name) {
+  p <- ncol(X)
+  n_groups <- nrow(X)
+  if (p == 0L) {
+    return(invisible(X))
+  }
+  if (n_groups < p) {
+    cli::cli_abort(c(
+      "The group-level SD design for {.code {dpar}} has more columns than groups.",
+      "x" = "{.field {group_name}} has {n_groups} group(s) but the SD design has {p} column(s): {.field {colnames(X)}}.",
+      "i" = "Drop SD predictors or use more groups so the SD regression has at least as many groups as coefficients."
+    ))
+  }
+  decomposition <- qr(X)
+  if (decomposition$rank < p) {
+    aliased <- colnames(X)[decomposition$pivot[
+      seq.int(decomposition$rank + 1L, p)
+    ]]
+    cli::cli_abort(c(
+      "The group-level SD design for {.code {dpar}} is rank deficient.",
+      "x" = "Aliased column(s) across the {n_groups} {.field {group_name}} group(s): {.field {aliased}}.",
+      "i" = "Remove collinear or constant-duplicate group-level predictors from the SD formula."
+    ))
+  }
+  invisible(X)
 }
 
 validate_sd_mu_group_constant <- function(
@@ -25505,7 +25558,8 @@ make_tmb_data <- function(spec) {
       identical(phylo_mu$q, 2L) &&
       is.list(sd_phylo) && sd_phylo$n_models == 2L &&
       ncol(sd_phylo$observation_sd_row0_by_coef) == 2L &&
-      all(colSums(sd_phylo$observation_sd_row0_by_coef >= 0L) > 0L)
+      nrow(sd_phylo$observation_sd_row0_by_coef) == length(spec$y) &&
+      all(sd_phylo$observation_sd_row0_by_coef >= 0L)
   ) {
     out$phylo_mu_sd_row_coef <- sd_phylo$observation_sd_row0_by_coef
     out$has_sd_phylo_coef_model <- 1L

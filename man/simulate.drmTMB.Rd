@@ -46,8 +46,8 @@ coefficient-specific SD formulas. Binomial animal intercept-plus-slope
 blocks with separate coefficient-specific SD formulas use the fitted animal
 covariance and coefficient correlation for marginal simulation. For both
 Gamma routes, simulation uses
-the unit-diagonal correlation matrix used by the Julia fitter, including
-when the supplied relationship matrix has a non-unit diagonal. The
+the supplied relationship matrix \code{A} at its raw scale, as the Julia fitter
+and native TMB do, including when \code{A} has a non-unit diagonal. The
 Julia Laplace route integrates these random effects and does not return
 conditional modes, so \code{re.form = NULL} is refused.
 Structured simulation uses the saved covariance and its fitted scale. A
@@ -107,8 +107,8 @@ link-scale draw. For native Bernoulli phylogenetic and relatedness-matrix
 (\code{relmat}) intercepts, it applies each tip or group's fitted SD to the fresh
 structured draw. Julia Gamma animal models also support marginal simulation
 for a complete-data animal intercept or an animal intercept plus one numeric
-slope, with separate coefficient-specific SD formulas. The Julia fitter
-normalizes the supplied relationship matrix to a correlation matrix, and
+slope, with separate coefficient-specific SD formulas. The Julia fitter uses
+the supplied relationship matrix at its raw scale, as native TMB does, and
 simulation follows that same convention. These Gamma routes use location
 SDs and fixed \code{sigma ~ 1}; conditional simulation with \code{re.form = NULL} is
 unavailable for Julia Laplace fits.

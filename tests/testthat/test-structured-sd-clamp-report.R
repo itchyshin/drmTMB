@@ -51,14 +51,16 @@ expect_phylo_sd_clamp_reports <- function(fit, n_tip) {
   perturbed[beta_sd_idx] <- c(4, 0)
   report <- fit$obj$report(perturbed)
   expected <- 2 + 3 * tanh((4 - 2) / 3)
+  # G1 C4: log_sd_phylo_group is the RAW linear predictor (so the clamp-hit
+  # check can see it); the clamp is applied where sd_phylo_group is formed.
   expect_equal(
     report$log_sd_phylo_group,
-    rep(expected, n_tip),
+    rep(4, n_tip),
     tolerance = 1e-10
   )
   expect_equal(
     log(report$sd_phylo_group),
-    report$log_sd_phylo_group,
+    rep(expected, n_tip),
     tolerance = 1e-10
   )
 
@@ -66,7 +68,7 @@ expect_phylo_sd_clamp_reports <- function(fit, n_tip) {
   fit_perturbed$coefficients[[dpar]] <- c(`(Intercept)` = 4, z = 0)
   expect_equal(
     unname(predict(fit_perturbed, dpar = dpar, type = "link")),
-    unname(report$log_sd_phylo_group),
+    unname(log(report$sd_phylo_group)),
     tolerance = 1e-10
   )
 }
@@ -137,14 +139,15 @@ test_that("bivariate phylogenetic SD reports use the effective clamped scale", {
   perturbed[beta_sd_idx] <- c(4, 0, 4, 0)
   report <- fit$obj$report(perturbed)
   expected <- 2 + 3 * tanh((4 - 2) / 3)
+  # G1 C4: raw log_sd_phylo_group, clamp applied in sd_phylo_group.
   expect_equal(
     report$log_sd_phylo_group,
-    rep(expected, length(report$log_sd_phylo_group)),
+    rep(4, length(report$log_sd_phylo_group)),
     tolerance = 1e-10
   )
   expect_equal(
     log(report$sd_phylo_group),
-    report$log_sd_phylo_group,
+    rep(expected, length(report$log_sd_phylo_group)),
     tolerance = 1e-10
   )
   fit_perturbed <- fit

@@ -39,9 +39,10 @@ void drm_softclamp_log_sigma(vector<Type>& v, Type lo, Type hi, Type margin) {
 }
 
 // Direct-SD regression values use the configured log-scale clamp before
-// exponentiation. log_sd_mu_group reports the raw linear predictor, so the R
-// fit-time clamp-hit check can see values outside the band; sd_mu_group and the
-// likelihood use the clamped value. beta_sd_mu remains the coefficient-scale report.
+// exponentiation. Every log_sd_{mu,sigma,phylo,phylo2}_group reports the raw
+// linear predictor, so the R fit-time clamp-hit check can see values outside the
+// band; the matching sd_*_group and the likelihood use the clamped value.
+// beta_sd_mu and beta_sd_sigma remain the coefficient-scale reports.
 template<class Type>
 Type drm_softclamp_log_sd(Type eta, int use_logsigma_clamp,
                           const vector<Type>& logsigma_clamp) {
@@ -1272,10 +1273,11 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_sd_sigma.cols(); ++k) {
             eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
           }
-          log_sd_sigma_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_sigma_group(g) = eta_sd;
           sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_sigma_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       // Same-dpar residual-scale correlations: a correlated intercept+slope block
@@ -1388,10 +1390,10 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_phylo(g, k) *
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
-          log_sd_phylo_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_phylo_group(g) = eta_sd;
           sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_phylo_group(g),
+            drm_softclamp_log_sd(
+              log_sd_phylo_group(g), use_logsigma_clamp, logsigma_clamp),
             sd_logscale_overflow_guard_hit);
         }
       }
@@ -3400,10 +3402,11 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_sd_sigma.cols(); ++k) {
             eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
           }
-          log_sd_sigma_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_sigma_group(g) = eta_sd;
           sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_sigma_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -3562,10 +3565,10 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_phylo(g, k) *
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
-          log_sd_phylo_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_phylo_group(g) = eta_sd;
           sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_phylo_group(g),
+            drm_softclamp_log_sd(
+              log_sd_phylo_group(g), use_logsigma_clamp, logsigma_clamp),
             sd_logscale_overflow_guard_hit);
         }
       }
@@ -3686,10 +3689,11 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_sd_sigma.cols(); ++k) {
             eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
           }
-          log_sd_sigma_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_sigma_group(g) = eta_sd;
           sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_sigma_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -3810,10 +3814,11 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_phylo(g, k) *
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
-          log_sd_phylo_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_phylo_group(g) = eta_sd;
           sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_phylo_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -4063,10 +4068,10 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_phylo(g, k) *
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
-          log_sd_phylo_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_phylo_group(g) = eta_sd;
           sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_phylo_group(g),
+            drm_softclamp_log_sd(
+              log_sd_phylo_group(g), use_logsigma_clamp, logsigma_clamp),
             sd_logscale_overflow_guard_hit);
         }
       }
@@ -4250,10 +4255,11 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_sd_sigma.cols(); ++k) {
             eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
           }
-          log_sd_sigma_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_sigma_group(g) = eta_sd;
           sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_sigma_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -4499,10 +4505,11 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_phylo(g, k) *
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
-          log_sd_phylo_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_phylo_group(g) = eta_sd;
           sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_phylo_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -4558,10 +4565,11 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_sd_sigma.cols(); ++k) {
             eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
           }
-          log_sd_sigma_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_sigma_group(g) = eta_sd;
           sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_sigma_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -4814,10 +4822,11 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_phylo(g, k) *
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
-          log_sd_phylo_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_phylo_group(g) = eta_sd;
           sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_phylo_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -4885,10 +4894,11 @@ Type objective_function<Type>::operator()()
           eta_sd += X_sd_phylo(g, k) *
             beta_sd_mu(sd_phylo_beta_offset + k);
         }
-        log_sd_phylo_group(g) = drm_softclamp_log_sd(
-          eta_sd, use_logsigma_clamp, logsigma_clamp);
+        log_sd_phylo_group(g) = eta_sd;
         sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
-          log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_phylo_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
       }
       vector<Type> mesh_effect = A_mesh_spatial * u_phylo2;
       for (int i = 0; i < y.size(); ++i) {
@@ -4918,10 +4928,11 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_phylo2(g, k) *
               beta_sd_mu(sd_phylo2_beta_offset + k);
           }
-          log_sd_phylo2_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_phylo2_group(g) = eta_sd;
           sd_phylo2_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_phylo2_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_phylo2_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -5234,10 +5245,11 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_phylo(g, k) *
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
-          log_sd_phylo_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_phylo_group(g) = eta_sd;
           sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_phylo_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -5638,10 +5650,11 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_phylo(g, k) *
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
-          log_sd_phylo_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_phylo_group(g) = eta_sd;
           sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_phylo_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_phylo_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -5794,10 +5807,11 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_sd_sigma.cols(); ++k) {
             eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
           }
-          log_sd_sigma_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_sigma_group(g) = eta_sd;
           sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_sigma_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -6200,10 +6214,11 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_sd_sigma.cols(); ++k) {
             eta_sd += X_sd_sigma(g, k) * beta_sd_sigma(k);
           }
-          log_sd_sigma_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_sigma_group(g) = eta_sd;
           sd_sigma_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_sigma_group(g), sd_logscale_overflow_guard_hit);
+            drm_softclamp_log_sd(
+              log_sd_sigma_group(g), use_logsigma_clamp, logsigma_clamp),
+            sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -6539,10 +6554,10 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_phylo(g, k) *
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
-          log_sd_phylo_group(g) = drm_softclamp_log_sd(
-            eta_sd, use_logsigma_clamp, logsigma_clamp);
+          log_sd_phylo_group(g) = eta_sd;
           sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
-            log_sd_phylo_group(g),
+            drm_softclamp_log_sd(
+              log_sd_phylo_group(g), use_logsigma_clamp, logsigma_clamp),
             sd_logscale_overflow_guard_hit);
         }
       }

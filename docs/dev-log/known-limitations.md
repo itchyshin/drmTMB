@@ -952,3 +952,16 @@ revisit condition.
   are Julia `g_tol` / pseudo-inverse SEs versus R `nlminb` / Hessian
   screens (`docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`;
   #1554).
+
+# NB2 animal kernel scaling differs between engines
+
+For an NB2 `animal()` SD model with a non-unit-diagonal `A`, native TMB keeps
+the supplied raw `A`, while `engine = "julia"` rescales `A` to a correlation
+matrix before applying the SD multipliers
+(`../general-sd-julia/src/negbinomial.jl:81-84`). The same formula therefore
+has a different latent covariance in the two engines, and SD coefficients shift
+by about `log sqrt(A_gg)` per node. Julia Gamma and Poisson animal routes use
+raw `A`. This is an open parity row, not a convention; it is recorded in
+`docs/design/18-random-effect-scale-models.md` (section "Kernel scaling by
+provider and engine"). The existing native-versus-Julia Gamma q2 comparison
+uses relative tolerance 0.25 and is a smoke check, not a tight scaling check.

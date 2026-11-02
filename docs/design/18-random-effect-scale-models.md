@@ -317,6 +317,19 @@ predictor varies within `id`, the user should use `sigma ~ predictor` for
 residual scale or aggregate/define a group-level predictor before fitting
 `sd(id) ~ predictor`.
 
+The group-level SD design must also be identifiable on its face. The shared
+builders `build_sd_mu_structure()` (ordinary and sigma-side SD blocks) and
+`build_sd_phylo_structure()` (structured providers) call
+`check_sd_design_rank()` on the group-first design matrix. It refuses a design
+with fewer groups than columns, and a design with `qr(X)$rank < ncol(X)`, and
+the message names the SD target (for example `sd(id)` or `sd_phylo(species)`)
+and the aliased columns. A design with exactly as many groups as columns and
+full rank is accepted. For structured routes the groups counted are the observed
+provider levels, not the size of the kernel. This is a necessary condition only:
+full rank does not make a q2 coefficient SD design well identified when groups
+are few, and the Hessian diagnostic remains the guard for weak information.
+Tests: `tests/testthat/test-sd-design-rank-check.R`.
+
 When users supply `newdata` to `predict(fit, dpar = "sd(id)")`, the raw
 predictors required by the `sd(id)` right-hand side must be present and
 complete. Required numeric predictors must be finite before random-effect scale
@@ -783,6 +796,61 @@ Unsupported combinations should fail before optimization:
   for the same species level;
 - any `sd_sigma1()`, `sd_sigma2()`, or scale-random-effect SD target.
 
+## Selector and key contract
+
+This section fixes what `sd(group, level =, dpar =, coef =, block =)` means and
+how it names a fitted parameter. It records the G1 review condition C2
+(`docs/dev-log/general-sd-regression/g1-joint-contract-review-20261101.md`,
+section 1). Parser: `parse_sd_lhs()` in `R/parse-formula.R`; resolver:
+`drm_resolve_sd_target()` in `R/random-effect-targets.R`. Tests:
+`tests/testthat/test-sd-selector-contract.R`.
+
+Identity versus key.
+
+- The identity of a latent coefficient is the tuple (group, level, `dpar`,
+  `coef`, `block`). The resolver matches on this tuple and either returns one
+  member or aborts with the list of candidates.
+- The public key is a string, and it is the user's spelling. `format_sd_lhs_dpar()`
+  writes only the selectors the user supplied, always in the order `dpar`,
+  `coef`, `block`. Call order does not matter: `sd(id, coef = "x", dpar = "mu")`
+  and `sd(id, dpar = "mu", coef = "x")` give one key, and `group = id` gives the
+  same key as the unnamed `id`.
+- The key is therefore not canonicalised. `sd(id) ~ w` and
+  `sd(id, coef = "(Intercept)") ~ w` name the same latent coefficient but are
+  two keys (`"sd(id)"` and `"sd(id, coef = \"(Intercept)\")"`). They fit the
+  same model, and each key works only in the fit that used that spelling. This
+  is a documented property, not a bug: a script that adds a second same-group
+  SD formula must switch to `coef =` spellings and re-key its `coef()`,
+  `predict()` and profile targets. Canonicalising to the longest spelling would
+  rename existing fitted coefficients, so it is deferred and not implemented.
+- Structured keys are the exception. For `sd_phylo`, `sd_animal`, `sd_relmat`
+  and `sd_spatial`, selectors and `level` are parsed but stripped from the key
+  (`R/parse-formula.R`, end of `parse_sd_lhs()`), so `sd(id, level = "animal")`
+  and `sd(id, level = "animal", coef = "x")` both give `"sd_animal(id)"`. The
+  admitted q2 builders (Gamma, Beta, Binomial) re-key their entries with
+  `dpar = "mu", coef = ...`, so such a key can change when a second formula is
+  added.
+
+The `level = "group"` alias rule. `level = "group"` is the internal label of an
+ordinary (unstructured) random effect in the identity map. It is not a public
+spelling and `sd(id, level = "group")` is refused. An ordinary term is selected
+by omitting `level`. Accepted public levels are `"phylogenetic"`,
+`"phylogenetic_interaction"`, `"spatial"`, `"animal"` and `"relmat"`. If this
+alias is ever exposed, it must select the ordinary term only and must give the
+same key as the spelling without `level`.
+
+`block` is reserved. It is parsed and checked against the fitted block label,
+but every admitted ordinary route requires an unlabelled block, and the labelled
+Gamma q2 route selects by `coef`. A `block` selector therefore has no admitted
+live use and currently only improves error messages.
+
+Prediction. `predict(fit, dpar = key)` matches `key` exactly against
+`names(fit$coefficients)`. Partial matching was removed because SD keys share
+long prefixes and a typo could resolve to a different SD formula. A prefix, a
+vector, `NA` or a non-string aborts with the available names.
+`coef.drmTMB()` and `fixef()` still use `match.arg()` and so still partial-match;
+this is recorded as a known limit and is not part of C2.
+
 ## Multiple Random-Effect Scale Components
 
 When there are several random-effect components, each scale formula must name
@@ -1137,7 +1205,7 @@ reproduces the plain fit and `predict()` equals `exp(W alpha)`.
 | Gamma, NB2 | same-group `(1 \| id) + (0 + x \| id)` with `coef`-selected SDs on different predictors | dense Laplace oracle at the fitted point, 1e-4 absolute; `test-nbinom2-gamma-same-group-sd-oracle.R` |
 | Gamma | independent same-group pair | equivalence checks in the regression file; the oracle row above covers the `coef`-selected form; recovery weak at 50 groups |
 | Poisson | plain independent slope `(0 + x \| id)` with `zi ~ 1`, no `sd()` formula | per-cluster quadrature oracle and equality with the constant-SD fit, one synthetic dataset; `test-zi-poisson-plain-slope.R`; correlated `(1 + x \| id)` with `zi` stays refused |
-| Gamma | labelled `animal(1 + x \| p \| id)` correlated q2 | fixed-seed fixtures, loose band, no calibration; no oracle |
+| Gamma | labelled `animal(1 + x \| p \| id)` correlated q2 | joint-objective oracle at 1e-6 with five emulated bugs and a raw non-unit-diagonal `A` case in shuffled order (`test-gamma-animal-q2-correlated-sd.R`); loose 0.4 recovery band, no calibration; no base nesting fit, no simulate-refit identity, `rho` bound `0.999999` (ordinary blocks `0.99999999`); constant-loading near-aliasing with identical non-constant SD designs is documented, not fenced (design 03) |
 
 Not admitted: NB2 `sigma`-side phylogenetic SD (held for a decision, because it
 opens the public base route `sigma ~ phylo(1 | sp)`). NB2 spatial slope-only
@@ -1168,3 +1236,80 @@ slope-only structured SD under `miss_control(response = "include")` is refused
 for Poisson and NB2 on all seven routes probed. Oracles are evaluated at the
 fitted parameters, so they check the likelihood surface and not the optimiser.
 Native TMB only; no Julia parity, no calibration, one fixture per route.
+
+### What the extractors return for a predictor-dependent SD (G1 C5 audit, 2026-11-01)
+
+This records what each public surface returns today. It is an audit of
+existing behaviour, not a new contract, and it comes before any marginal-SD
+name is introduced (condition C5 of
+`docs/dev-log/general-sd-regression/g1-joint-contract-review-20261101.md`).
+
+| Surface | Result for `sd(id) ~ w` or a structured SD key | Citation |
+| --- | --- | --- |
+| `predict(fit, dpar = "sd(...)")` | Per-group multiplier `exp(W beta)` on the latent effect, after the likelihood's soft clamp. `type = "link"` is the clamped log value, `type = "response"` is its exponential. Without `newdata`, one value per fitted group named by level. With `newdata`, one value per row (rows are group-level rows), named by `rownames(newdata)`. For a structured effect the value multiplies the supplied kernel as given and is never `multiplier * sqrt(C_gg)`. A `newdata` row has no kernel node, so it is a population multiplier. | `predict_random_scale_dpar()`, `R/methods.R:7035-7095`; roxygen `R/methods.R:2993-3006`; pinned by `tests/testthat/test-sd-predict-semantics.R` |
+| `predict_parameters(fit, dpar = "sd(...)")` | The same per-group multiplier, one row per group (or per `newdata` row), because it calls `predict()` per `dpar`. No average and no marginal SD. Intervals are refused: `conf.status = "newdata_required"` without `newdata`, `"wald_unavailable"` with it. | `R/predict-parameters.R:150`, `444-452` |
+| `predict_parameters()` row labels, no `newdata` | Group levels for `mu` and `phylo` SD keys only. For the `sigma` and second structured (`phylo2`) SD keys the registry lookup is skipped and rows are labelled `"1"`, `"2"`, and so on. This is a labelling gap, not a value error, and is left as is. | `R/predict-parameters.R:684`, `666` |
+| `VarCorr()` | Not defined. drmTMB exports no `VarCorr` method, so there is nothing to return for an SD-regression fit; the call is a refusal by absence (`NAMESPACE` has no entry). | `NAMESPACE`, `R/*.R` (no match) |
+| `fit$sdpars` | Named per-group vectors of the clamped multiplier, one vector per SD key. This is the stored form that `predict()` is checked against. | `sd_mu_group_values()` and siblings, `R/drmTMB.R:26973-27060` |
+| `summary()` derived rows (bivariate phylo `corpairs()` SD columns) | The only average anywhere: for a direct-SD phylo endpoint the reported SD is the median of the per-group multipliers, labelled `sd:<dpar>:(median)`. | `phylo_mu_sd_summary()`, `R/methods.R:1602-1611`, used at `1511-1520` |
+
+Consequences for naming. No surface returns the marginal SD
+`multiplier * sqrt(C_gg)`. For `phylo()` the kernel is unit-diagonal by
+construction, so the multiplier is the marginal SD; for `animal()` and
+`relmat()` with a non-unit diagonal, and for mesh spatial, it is not. A new
+public marginal-SD accessor must therefore (1) take the kernel diagonal from
+the stored kernel rather than assume 1, (2) say which group set it covers
+(fitted groups only, since a new group has no `C_gg`), and (3) not reuse the
+name `predict()` or the `"sd"` rows of `summary()`, which already mean the
+multiplier. Any median or mean over groups, as in the `corpairs()` columns
+above, is a summary of multipliers and must keep the `(median)` label.
+
+## Kernel scaling by provider and engine (G1 condition C3, 2026-11-01)
+
+The SD multiplier `s_g` scales a latent effect with covariance `s_g C_gh s_h`,
+so the marginal SD of node `g` is `s_g sqrt(C_gg)`. Whether `C_gg = 1` depends
+on the provider and the engine. The table states what each route does, read
+from source; it is not a measurement. Native rows come from
+`docs/dev-log/general-sd-regression/g1-joint-contract-review-20261101.md`
+(section 3) and the cited code. Julia rows come from the sibling worktree
+`../general-sd-julia` (head `70dbf564e`) and have not been re-run here.
+
+| Provider | Native TMB `C_gg` | Julia `C_gg` |
+|---|---|---|
+| `phylo()` | 1 by construction (ultrametric tree divided by height, `R/formula-markers.R:190-215`) | normalised (`normalize = kind !== :animal`) |
+| `animal()` with `A`, `Ainv` or pedigree | raw, `A_gg` (1 plus inbreeding) | Gamma and Poisson: raw (`gamma.jl:147`, `685`; `poisson.jl:244`, `266`, `566`). NB2: rescaled to a correlation matrix (`negbinomial.jl:81-84`) |
+| `relmat()` with `K` or `Q` | raw, `K_gg` or `(Q^-1)_gg` | Gamma: normalised (`normalize = kind !== :animal`, `gamma.jl:147`). Stated explicitly here because the programme invariant only says "established conventions" |
+| coordinate `spatial()` | `1 + 1e-6` (fixed diagonal jitter, `R/drmTMB.R:17359-17379`) | not reviewed |
+| mesh `spatial()` | raw sparse GMRF; no constant marginal SD (`R/drmTMB.R:25916-25925`) | not reviewed |
+| `phylo_interaction()` | not verified | not reviewed |
+
+Consequences. Native `relmat()` and `animal()` fits keep the supplied scale, so
+for a non-unit diagonal the multiplier and the marginal SD differ by
+`sqrt(C_gg)`. `predict(dpar = "sd(...)")` returns the multiplier. Under
+`engine = "julia"`, an NB2 animal fit with a non-unit-diagonal `A` has a
+different latent covariance from the native fit of the same formula. SD
+coefficients shift by about `log sqrt(A_gg)` per node, and the intercept
+absorbs the average, so slopes can look equal while the intercept differs.
+
+The 2026-10-24 decision (`LOOP/lanes/general-sd-regression/GOAL.md`) moved Julia
+Gamma animal to the supplied raw `A`. The Julia Gamma animal simulator already
+follows it (`R/julia-simulate.R:307-309` keeps the raw matrix), and the
+`simulate()` roxygen has been corrected to say so. The 2026-10-22 Poisson line
+in `.unlazy/general-sd-regression/GATES.md` ("Julia normalizes `A`") is
+superseded.
+
+### Open parity row: NB2 animal kernel scaling
+
+| Route | Native | Julia | Status |
+|---|---|---|---|
+| NB2 animal intercept with SD formula, non-unit-diagonal `A` | raw `A` | `A` rescaled to a correlation matrix | OPEN. A real engine mismatch, not a convention. It needs either a Julia change to raw `A` or a documented refusal of non-unit-diagonal `A` under `engine = "julia"`. Neither is done. |
+
+### Status of the existing native-versus-Julia tolerance
+
+The Gamma q2 native-versus-Julia comparison
+(`tests/testthat/test-gamma-animal-q2-nonunit-kernel-parity.R`) compares SD
+coefficients and group SDs at relative tolerance 0.25 and needs a live Julia.
+It is a smoke check that the raw-`A` route runs and agrees to within gross
+error. It is not a tight check of the scaling decision. This slice adds no live
+Julia parity test; a tight non-unit-diagonal native-versus-Julia test remains
+unwritten.

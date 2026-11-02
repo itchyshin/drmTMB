@@ -2496,9 +2496,42 @@ contributes to the negative log likelihood
 The SDs do not appear in this term, because they enter only through the
 per-row multipliers in the linear predictor. The correlation is reported as
 `cor(mu:(Intercept),mu:x | p | id)`. A labelled term without `sd()` formulas is
-refused. The test file uses fixed-seed fixtures with a loose recovery band and
-no likelihood oracle, so it is a wiring check, not calibration. Native TMB only:
-Julia Gamma remains independent, and interval coverage is open.
+refused. `tests/testthat/test-gamma-animal-q2-correlated-sd.R` checks the joint
+objective (data plus latent prior, random effects as parameters) against an
+independent dense-`A` R computation to 1e-6 on three fixed seeds, with five
+emulated bugs that each move it by more than 1e-3, and a second case with a
+raw non-unit-diagonal `A` in shuffled order that a correlation-normalised `A`
+would fail. Recovery of `rho` uses a loose 0.4 band on three seeds, so the
+fixtures are wiring and likelihood-assembly checks, not calibration. Native TMB
+only: Julia Gamma remains independent, and interval coverage is open.
+
+Limits of this route, stated because the G1 contract review asked for them
+(`docs/dev-log/general-sd-regression/g1-joint-contract-review-20261101.md`,
+section 5):
+
+- The structured-field correlation is bounded at `0.999999`
+  (`src/drmTMB.cpp`), whereas ordinary correlated random-effect blocks use
+  `0.99999999`. The difference is deliberate (the phylogenetic and pair
+  association guard was left unchanged), so the reported `rho` and its Wald or
+  profile behaviour near the boundary differ between the two kinds of block.
+- There is no base nesting fit. A labelled term without `sd()` formulas is
+  refused, so "the base correlated fit is recovered when the SD slopes are
+  zero" cannot be shown. The oracle and the independent unlabelled fit
+  (`rho = 0`) stand in for it.
+- There is no simulate-then-refit identity. Marginal simulation is refused for
+  correlated q2 structured fits, so the route is evidenced by the likelihood
+  oracle and fixed-seed recovery only.
+- The identifiability fence refuses an identically zero slope loading and the
+  case of a constant slope loading with identical constant SD designs. It does
+  not refuse a constant slope loading `c` with the same non-constant SD design
+  `w` on both coefficients. There the marginal contribution is
+  `tau0(w) u0 + c tau1(w) u1`, identified only through the variation of `w`,
+  and with few groups it is close to unidentified. Only the generic Hessian
+  diagnostic reports this; full-rank SD designs are necessary, not sufficient.
+- The constant `log_sd_phylo` is mapped off whenever SD formulas are present
+  (`R/drmTMB.R`, random-effect map), and the coefficient-model gate now
+  requires every observation to map to both selected SD rows, as the Binomial
+  gate does. The test file asserts that `log_sd_phylo` is not a free parameter.
 
 Native Gamma `mu` SD regression also admits crossed ordinary intercepts
 `(1 | g) + (1 | h)` on distinct groups and an ordinary plus `relmat()` intercept

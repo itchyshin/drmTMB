@@ -172,7 +172,7 @@ test-formula-grouping-guard.R	cran-lane	environment	runs	1
 test-formula-smooth-terms.R	cran-lane	environment	runs	1
 test-function-map-cheatsheet.R	build-premise	build	skips	2
 test-gamma-animal-pedigree-sd-regression.R	cran-lane	environment	runs	2
-test-gamma-animal-q2-correlated-sd.R	cran-lane	environment	runs	6
+test-gamma-animal-q2-correlated-sd.R	cran-lane	environment	runs	8
 test-gamma-animal-q2-cross-engine-sd.R	cran-lane	environment	runs	1
 test-gamma-animal-q2-cross-engine-sd.R	engine-drm-jl	environment	skips	2
 test-gamma-animal-q2-cross-engine-sd.R	suggests-package	environment	runs	1
@@ -644,7 +644,10 @@ test-reml-structured-location.R	env-var-optin	environment	skips	2
 test-scale-phylo-identifiability.R	cran-lane	environment	runs	5
 test-scale-phylo-identifiability.R	runtime-conditional	runtime	depends	3
 test-scale-phylo-identifiability.R	suggests-package	environment	runs	2
+test-sd-clamp-fields-registry.R	cran-lane	environment	runs	4
+test-sd-clamp-fields-registry.R	suggests-package	environment	runs	1
 test-sd-crossed-and-site-quickwins.R	cran-lane	environment	runs	3
+test-sd-predict-semantics.R	cran-lane	environment	runs	2
 test-shard-selection.R	runtime-conditional	runtime	depends	1
 test-simulate-re-form-phylo-interaction.R	cran-lane	environment	runs	1
 test-spatial-gaussian.R	cran-lane	environment	runs	1
