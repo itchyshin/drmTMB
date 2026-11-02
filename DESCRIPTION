@@ -7,10 +7,11 @@ Authors@R: c(
            comment = c(ORCID = "0000-0002-7765-5182"))
   )
 Description: Fast distributional regression models for one or two responses
-    using Template Model Builder. Predictors can change an outcome's average,
-    residual variability, shape, or probability of zero. Begin with the
-    documented tutorials; check the fitted model and the model-specific limits
-    before reporting results.
+    using Template Model Builder, plus a separate experimental first-capture-
+    conditional Cormack-Jolly-Seber interface. Predictors can change an
+    outcome's average, residual variability, shape, or probability of zero.
+    Begin with the documented tutorials; check the fitted model and the
+    model-specific limits before reporting results.
 License: GPL (>= 3)
 URL: https://itchyshin.github.io/drmTMB/, https://github.com/itchyshin/drmTMB
 BugReports: https://github.com/itchyshin/drmTMB/issues

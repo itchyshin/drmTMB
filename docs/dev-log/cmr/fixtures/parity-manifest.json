@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "status": "accepted fixed-parameter native parity and marked comparator; parent executed both adapters",
+  "conditioning": "ordinary first-capture-conditional CJS; first-capture emission and earlier history omitted",
+  "occasions": [
+    0,
+    1,
+    2.5,
+    4.5,
+    5.5
+  ],
+  "intervals": [
+    1,
+    1.5,
+    2,
+    1
+  ],
+  "units": "years",
+  "files": {
+    "histories": "parity-histories.csv",
+    "survival_predictors": "parity-phi.csv",
+    "detection_predictors": "parity-p.csv",
+    "survival_literal_design": "parity-phi-design.csv",
+    "detection_literal_design": "parity-p-design.csv",
+    "coefficients": "parity-coefficients.csv",
+    "row_orders": "parity-orders.csv",
+    "enumeration_truth": "parity-truth.csv",
+    "marked_comparator": "parity-marked.csv",
+    "marked_receipt": "parity-marked-reference.json"
+  },
+  "case_coverage": {
+    "base": [
+      "irregular intervals",
+      "masked survey emission",
+      "administrative end",
+      "different first captures",
+      "final-first history",
+      "integer frequency",
+      "factor predictor",
+      "link-scale offset"
+    ],
+    "permuted": [
+      "same literal individuals and coefficients with history and predictor rows permuted to test keyed alignment"
+    ],
+    "marked_constant": [
+      "matched external comparator subset; fully observed, equal intervals, intercept-only survival and detection"
+    ]
+  },
+  "formulas": {
+    "phi": "logit unit-time apparent survival = intercept + x + habitat_B + offset",
+    "p": "logit detection conditional alive = intercept + x + method_B + offset"
+  },
+  "coefficient_order": {
+    "phi": [
+      "intercept",
+      "x",
+      "habitat_B"
+    ],
+    "p": [
+      "intercept",
+      "x",
+      "method_B"
+    ]
+  },
+  "factor_levels": {
+    "habitat": [
+      "A",
+      "B"
+    ],
+    "method": [
+      "A",
+      "B"
+    ],
+    "coding": "treatment/dummy coding with A as reference"
+  },
+  "tolerances": {
+    "native_R_vs_native_Julia": 1e-08,
+    "native_each_vs_independent_full_path_truth": 1e-10,
+    "design_and_offset_vs_literal": 1e-13
+  },
+  "oracle": "The frozen log likelihood was computed by explicit enumeration of every alive/dead state path from each first capture through administrative end. The R adapter independently recomputes this oracle from the literal design tables; native objectives are evaluated separately.",
+  "fit_parity": "Native objectives evaluated at literal coefficients and marked MLE. Native optimizer equivalence and parameter recovery are not claimed.",
+  "license_boundary": "Only generated numerical outputs from marked are retained. No marked implementation source is copied into either package.",
+  "measured": {
+    "R_loglik": -14.007848332069448,
+    "Julia_loglik": -14.007848332069447,
+    "maximum_cross_language_difference": 1.7763568394002505e-15,
+    "marked_native_difference_R": 0,
+    "marked_native_difference_Julia": 0
+  },
+  "sha256": {
+    "parity-coefficients.csv": "52a8ecda2206e27f63e8412725911407487bfe80863f5df6918cbd65f470b915",
+    "parity-histories.csv": "4ba75e1f022f3edf4e1f7162ae2d9f5eb1dad02936e299907467f371c4f5edb6",
+    "parity-marked-reference.csv": "f6217a1ca55ac7e2d1c5da92a36d576bb739e3bf1d741abfc47d5385e8c0f65b",
+    "parity-marked.csv": "1dccf94207e56dcd13a73791ab064f6a4797deaf9742870fa523c6d225d294b0",
+    "parity-orders.csv": "579230700cb6998b15c29b24fd9f623722de598225abf0616dace6d797d983ff",
+    "parity-p-design.csv": "540e03aa7ecf2abf5e41133caf4230c77d06f79851779be5adaa3f0d82518338",
+    "parity-p.csv": "592611b55d5fe8a4bc6ddb20370b242d7954423c66c31f1d65ab37b7b98ee878",
+    "parity-phi-design.csv": "c92636a0b9ef98a9f7bdce4db6043c929b5cd3a0a10ce7ce24b7dc4268ca26df",
+    "parity-phi.csv": "10d998dca5f9ebc88a1617c7a82f2423421820eb738bfc52b69e6a39090526e2",
+    "parity-truth.csv": "9742976c13f09eded7d6a24ace482c43d49b9dd31830eab58f039b2078094b25"
+  }
+}

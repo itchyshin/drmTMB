@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "f409e3338175a0083f7c9f9a7568f49d1117474b01a5333cbb8b727ecec1a96d",
+  "draft_version": "parent-m1-final",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Ada parent",
+  "method": "Separate saved-draft read against native execution logs, production source, frozen contract and leaf receipts",
+  "genre": "Milestone implementation report",
+  "coverage": "Whole saved draft",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "Specific APIs, errors and measured checks make scope clear; mandatory headings repeat some limits.",
+  "confidence": "moderate",
+  "confidence_reason": "Parent self-review; no independent human prose assessment.",
+  "examples": [
+    {
+      "location": "Cross-product coverage",
+      "cue": "Explicit remaining scope",
+      "impact": "Prevents fixed-effects numerical checks from becoming a full programme claim",
+      "repair": "no change needed",
+      "line": 49,
+      "quote": "M1 covers data, fixed-effects exact likelihoods, ML fit preparation, diagnostics and fixed-parameter parity. It does NOT cover prediction, simulation, profile/Wald/bootstrap calibration, shared or persistent heterogeneity, SD predictors, reference selection, bridge admission, full regression, docs builds or publication. Full population modelling remains deferred by the approved plan."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Numerical CJS likelihood and derivative claims have independent fixtures and measured comparisons; calibration and later model classes are excluded.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Both native ledgers, fixed examples and comparator logs checked; full programme remains four met and ten unmet. Source and protected-state scope agree with current git status.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external scientific claim requiring reference verification in these receipts; local evidence and comparator provenance are identified.",
+  "date": "2026-10-06",
+  "calibration_status": "No calibration controls were consulted during this assessment",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,32 @@
+{
+  "stage": "M1",
+  "scope": "exact native fixed-effects CJS; full programme pending",
+  "base_main": "75845a3d0f7a8031013875b35dea03160a2663a2",
+  "preimplementation_commit": "a49d26869d3affa7e877ab18cd493e48a6016a39",
+  "root": "/private/tmp/cmr-drmtmb-20261006",
+  "source_sha256": {
+    "R/cmr-data.R": "f8ba8b0d95c7e84055b7babbc2584338a685aba9bafe6246af538992c84de500",
+    "R/cjs.R": "fcd720f08e979a21acde8584286f0774f44dfb2c9f14829e9e14a6e8fb1a63b7",
+    "src/cjs_kernel.hpp": "34700609f990da9e38c402df45a79a78de7acfa3d429c5c674c7e1d8c21d636e",
+    "src/drmTMB.cpp": "1abaee42750e73c85abf975ecb46e58ad935121b822a23730d7e676d10f01d4e",
+    "NAMESPACE": "561d520b966b1a35c7ab2c384ad0496680ac2c54871df6609c0a1d2c715d46dc",
+    "man/cmr_data.Rd": "d2de8bfd468063669750f3c3517dabd217b599689a60903efc16eac3f063cb9a",
+    "man/drm_cjs.Rd": "3f553075b5573711e596d7ebac5c2eaa6efd070f03afb237c99d6e401a94edd4",
+    "tools/check-cmr.R": "050a53088aa465656ce747a6fc1d2f69a1e1876b8e725027140e5f75411ccfcc",
+    "tools/check-cmr-parity.R": "2a716fa704e94d4494014586d163de1fa750ba259edea39af7df795f6bfc16f2",
+    "tests/testthat/test-cmr-contract.R": "923cdef6cc4b5283d9778d6d3d9e98906c1e6f3a2a3eae417b336a9aec69a734",
+    "tests/testthat/test-cmr-data.R": "d0f7cd6b718545d4a045d2353b22d6023b26447df6a7ab5933ed55c81c62b205",
+    "tests/testthat/test-cmr-derivatives.R": "26cee3d050fb926eaf6da8befcfd257bfff161dfe07d1fab641eedb14b58cd1e",
+    "tests/testthat/test-cmr-exact.R": "eab04a6dbecace5acaf44d01563a71672bdfee621ed9f783259132161ce46e88"
+  },
+  "gates": {
+    "M1_met": 3,
+    "M1_unmet": 0,
+    "programme_met": 4,
+    "programme_unmet": 10,
+    "abandoned": 0
+  },
+  "remote_authority": "none; local-only commit",
+  "efficiency": "Current parent receipt reports two compactions against the limit of one. Global historical guardian failures also exist. Fresh continuation is required; no efficiency pass is claimed.",
+  "handoff_gate": "Executed before continuation checkpoint; exit 1. Unpublished current branch is explicitly CARRIED-OVER because remote authority is absent. Full programme has ten unmet gates; unrelated historical branch states are PROTECTED."
+}

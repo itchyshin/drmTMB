@@ -1,0 +1,1 @@
+| 2026-10-06 | **Fixed-effects CJS prediction, simulation, and guarded intervals** | `tools/check-cmr-m2.R --gate integration` plus the seven-gate M2 ledger | ✅ 7/7 gates reverified; four smoke fits usable, with no recovery or calibration claim; source-checkout vignette rendered | Codex |

@@ -1,0 +1,6 @@
+process,id,interval_start,interval_end,interval_length,occasion,x,group,off,eta_expected,unit_probability_expected,probability_expected
+phi,newbird,1,2,1,,0.5,B,0.2,0.15,0.5374298453437495,0.5374298453437495
+phi,newbird,2,3.5,1.5,,1,B,-0.1,-0.1,0.47502081252106,0.32739267415819795
+phi,newbird,3.5,4,0.5,,-1,A,0.3,1.0986122886681098,0.75,0.8660254037844386
+p,newbird,,,,2,0.5,B,-0.1,0.7,0.6681877721681662,0.6681877721681662
+p,newbird,,,,4,-1,A,0.05,0.75,0.679178699175393,0.679178699175393

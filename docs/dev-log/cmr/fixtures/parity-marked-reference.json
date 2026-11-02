@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "created_local_date": "2026-10-06",
+  "purpose": "Separate matched conditional CJS comparator from the masked/admin-end parity fixture.",
+  "dataset": "parity-marked.csv",
+  "history_rows": 8,
+  "frequency_expanded_individuals": 44,
+  "model": "marked::crm CJS with Phi ~ 1 and p ~ 1, unit intervals, accumulate=FALSE, use.tmb=TRUE, compile=FALSE, hessian=FALSE, itnmax=50",
+  "package": {
+    "name": "marked",
+    "version": "1.2.8",
+    "library": "/private/tmp/cmr-marked-library"
+  },
+  "runtime": {
+    "R": "R version 4.6.0 (2026-04-24)",
+    "first_compile_plus_fit_seconds": 2.222,
+    "warm_fit_seconds": 0.219,
+    "fit_status": "converged; results$neg2lnl finite"
+  },
+  "fit": {
+    "beta_phi": 1.994167124587083,
+    "beta_p": 0.025222358853901627,
+    "neg2lnl": 173.9974755153457,
+    "loglik": -86.99873775767286
+  },
+  "provenance": {
+    "marked_source_path": "/private/tmp/cmr-marked-library/marked/cjsre_tmb.cpp",
+    "marked_source_md5": "477a36fb8c0720afe416fb69a2e88fa6",
+    "loaded_dll_at_fit": "/private/tmp/cmr-drmtmb-20261006/cjsre_tmb.so",
+    "loaded_dll_md5": "5a98d4be9c7423217e82d36ca7fba7d1",
+    "retained_transient_backend": "/private/tmp/cmr-programme/marked-backend/"
+  },
+  "comparison_rule": "Evaluate drmTMB and DRModels native likelihoods at these exact marked MLE coefficients and compare the full conditional log likelihood at absolute tolerance 1e-8. Do not remove constants or parameter terms to force equality; record any convention difference.",
+  "scope_limit": "One small fixed-effects ML comparator only. It is not inference calibration or recovery evidence."
+}

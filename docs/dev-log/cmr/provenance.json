@@ -1,0 +1,14 @@
+{
+  "language": "R",
+  "root": "/private/tmp/cmr-drmtmb-20261006",
+  "base_sha": "75845a3d0f7a8031013875b35dea03160a2663a2",
+  "approved_on": "2026-10-06",
+  "remote_authority": "none",
+  "adaptation": "Managed Julia worktree plus tmp R worktree replaces launcher to preserve existing configuration; LOOP kit is scoped and committed independently.",
+  "routing_adaptation": {
+    "reason": "enforced CLI rejected gpt-6-luna for the current ChatGPT account despite local catalogue",
+    "fallback": "native spawn_agent with explicit models/efforts, fresh briefs",
+    "failed_receipts": "m0-failed-cli/",
+    "credentials_changed": false
+  }
+}

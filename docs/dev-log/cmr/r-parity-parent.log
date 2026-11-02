@@ -1,0 +1,47 @@
+CMR_PARITY_ROW,language=R,case=base,loglik=-14.007848332069448,oracle=-14.007848332069448
+CMR_PARITY_ROW,language=R,case=permuted,loglik=-14.007848332069448,oracle=-14.007848332069448
+
+running TMB program
+outer mgc:  28.71741 
+outer mgc:  5.219034 
+outer mgc:  7.408553 
+outer mgc:  1.484507 
+outer mgc:  0.6273491 
+outer mgc:  0.1594047 
+outer mgc:  0.1121694 
+outer mgc:  0.05199637 
+outer mgc:  0.004958834 
+outer mgc:  2.343813e-05 
+outer mgc:  0.001329039 
+outer mgc:  0.001294716 
+outer mgc:  6.404607e-05 
+outer mgc:  4.003084e-05 
+outer mgc:  0.0006730974 
+outer mgc:  0.0006387804 
+outer mgc:  4.060183e-05 
+outer mgc:  3.173448e-05 
+outer mgc:  0.0003451273 
+outer mgc:  0.0003108116 
+outer mgc:  2.887971e-05 
+outer mgc:  2.758631e-05 
+outer mgc:  0.0001811424 
+outer mgc:  0.0001493918 
+outer mgc:  2.301864e-05 
+outer mgc:  2.551222e-05 
+outer mgc:  2.343813e-05 
+outer mgc:  2.346105e-05 
+outer mgc:  0.006595771 
+outer mgc:  0.006561377 
+outer mgc:  0.01860219 
+outer mgc:  0.01857793 
+
+Elapsed time in minutes:  0.0036 
+
+CMR_MARKED_ROW,language=marked,version=1.2.8,loglik=-86.998737757672856,beta_phi=1.9941671245870829,beta_p=0.025222358853901627
+CMR_MARKED_NATIVE_ROW,language=R,loglik=-86.998737757672856,marked_loglik=-86.998737757672856,difference=0
+CMR_PARITY_OK
+Warning messages:
+1: the ‘nobars’ function has moved to the reformulas package. Please update your imports, or ask an upstream package maintainer to do so.
+This warning is displayed once per session. 
+2: the ‘findbars’ function has moved to the reformulas package. Please update your imports, or ask an upstream package maintainer to do so.
+This warning is displayed once per session. 

@@ -1,0 +1,3 @@
+case,loglik,truth_method,tolerance
+base,-14.007848332069448,independent-full-state-path-enumeration,1e-10
+permuted,-14.007848332069448,independent-full-state-path-enumeration,1e-10
