@@ -1,0 +1,27 @@
+{
+  "evidence_id": "native-poisson-spatial-sd-20261101-m26",
+  "rerecord_of_evidence_id": "native-poisson-spatial-sd-20261101",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-spatial-sd-r2-20261101/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e devtools::test(filter = '^poisson-spatial-sd-regression$', reporter = 'summary', stop_on_failure = FALSE) [wrapper run_one.sh in the evidence directory adds counts and exit status]",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-poisson-spatial-sd-regression.R",
+      "test_sha256": "50e031ea15a4d91d665dac2b2a3a08b14323a2e7d87ddee021cfdb4420de115c",
+      "started_utc": "2026-11-02T13:18:37Z",
+      "ended_utc": "2026-11-02T13:18:42Z",
+      "exit_code": 0,
+      "expectations_passed": 42,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-poisson-spatial-sd-r2-20261101-m26-7b74aa/test-console-test-poisson-spatial-sd-regression.log",
+      "console_log_sha256": "faef030bfbdf8f6f02310eb4e25278c3baced070a52d9c03de67e2c5743ad895"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-poisson-spatial-sd-r2-20261101-m26-7b74aa/source-manifest.json",
+  "source_manifest_sha256": "e28089b77afaf823a0e4b3843e05aa18409b129f3c8016f414d830acb1191330",
+  "review_status": "unreviewed",
+  "oracle": "Dense Laplace marginal likelihood at the fitted parameters, written in the test file. NOT fully independent of the code under test: the dense-Laplace oracle and the data-generating covariance are built with drmTMB:::drm_spatial_coords_precision (helper under test); only the name alignment is checked against a kernel rebuilt in the test from the unshuffled ring (formula mirrored, not independent). Also constant-SD equivalence, nesting and link algebra."
+}

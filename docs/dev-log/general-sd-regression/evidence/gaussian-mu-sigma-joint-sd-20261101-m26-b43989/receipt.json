@@ -1,0 +1,26 @@
+{
+  "evidence_id": "gaussian-native-mu-sigma-joint-sd-20261101-m26",
+  "rerecord_of_evidence_id": "gaussian-native-mu-sigma-joint-sd-20261101",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/gaussian-mu-sigma-joint-sd-20261101/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript docs/dev-log/general-sd-regression/evidence/gaussian-mu-sigma-joint-sd-20261101/run-test.R gaussian-mu-sigma-joint-sd  # run-test.R: devtools::test(filter=\"\"gaussian-mu-sigma-joint-sd\"\", reporter=\"\"summary\"\", stop_on_failure=FALSE), exit 1 on any failure/error/skip; actually invoked from a byte-identical scratch copy\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-gaussian-mu-sigma-joint-sd.R",
+      "test_sha256": "f6199220e10d8be7f4f9284a90c51ac9906b08b494fb9817d465f8e3f04f843a",
+      "started_utc": "2026-11-02T13:17:51Z",
+      "ended_utc": "2026-11-02T13:18:06Z",
+      "exit_code": 0,
+      "expectations_passed": 29,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-mu-sigma-joint-sd-20261101-m26-b43989/test-console-test-gaussian-mu-sigma-joint-sd.log",
+      "console_log_sha256": "91d3027a69c3db4ab534ee2803d4c30eb9f2b198cc6ded7b44f10deb045ed7c4"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-mu-sigma-joint-sd-20261101-m26-b43989/source-manifest.json",
+  "source_manifest_sha256": "642362c395115d9d430713a509044d7234722bdb897f9c5ced2ac62a02425371",
+  "review_status": "unreviewed"
+}

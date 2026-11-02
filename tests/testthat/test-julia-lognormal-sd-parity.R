@@ -44,10 +44,8 @@ test_that("LogNormal random-intercept SD outputs agree across engines", {
   expect_length(fit_julia$sdpars[[dpar]], groups)
   julia_group_sd <- predict(fit_julia, dpar = dpar)
   tmb_group_sd <- predict(fit_tmb, dpar = dpar)
-  prefix <- paste0(dpar, ":")
-  expect_true(all(startsWith(names(julia_group_sd), prefix)))
-  julia_group_labels <- substring(names(julia_group_sd), nchar(prefix) + 1L)
-  names(julia_group_sd) <- julia_group_labels
+  # Group-level SD predictions are named by bare group level on both engines.
+  expect_false(any(startsWith(names(julia_group_sd), paste0(dpar, ":"))))
   expect_setequal(names(julia_group_sd), names(tmb_group_sd))
   expect_equal(
     unname(julia_group_sd[names(tmb_group_sd)]),
@@ -121,10 +119,8 @@ test_that("LogNormal random-slope SD outputs agree across engines", {
   expect_length(fit_julia$sdpars[[dpar]], groups)
   julia_group_sd <- predict(fit_julia, dpar = dpar)
   tmb_group_sd <- predict(fit_tmb, dpar = dpar)
-  prefix <- paste0(dpar, ":")
-  expect_true(all(startsWith(names(julia_group_sd), prefix)))
-  julia_group_labels <- substring(names(julia_group_sd), nchar(prefix) + 1L)
-  names(julia_group_sd) <- julia_group_labels
+  # Group-level SD predictions are named by bare group level on both engines.
+  expect_false(any(startsWith(names(julia_group_sd), paste0(dpar, ":"))))
   expect_setequal(names(julia_group_sd), names(tmb_group_sd))
   expect_equal(unname(julia_group_sd[names(tmb_group_sd)]),
                unname(tmb_group_sd), tolerance = 1e-4)

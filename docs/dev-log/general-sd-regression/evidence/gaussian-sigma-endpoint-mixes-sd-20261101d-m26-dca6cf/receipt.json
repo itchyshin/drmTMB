@@ -1,0 +1,32 @@
+{
+  "evidence_id": "native-gaussian-sigma-endpoint-mixes-sd-20261101d-m26",
+  "rerecord_of_evidence_id": "native-gaussian-sigma-endpoint-mixes-sd-20261101d",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-endpoint-mixes-sd-20261101d/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"cd \"\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\"\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); testthat::test_file(\"\"tests/testthat/test-gaussian-sigma-endpoint-mixes-sd.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-gaussian-sigma-endpoint-mixes-sd.R",
+      "test_sha256": "058ffba20cd6f0dcf4abce6b9da432fe0be560ad56827d5f093147b29bc62f87",
+      "started_utc": "2026-11-02T13:17:59Z",
+      "ended_utc": "2026-11-02T13:18:32Z",
+      "exit_code": 0,
+      "expectations_passed": 30,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-endpoint-mixes-sd-20261101d-m26-dca6cf/test-console-test-gaussian-sigma-endpoint-mixes-sd.log",
+      "console_log_sha256": "639e8fd3b45844808bce651a924087eed69cf89a58f9c9080a8b6085e392a7d0"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-endpoint-mixes-sd-20261101d-m26-dca6cf/source-manifest.json",
+  "source_manifest_sha256": "b02a8e7d8ad5979cb9f69c165c88f49ec37433515e814230434c6445403a2f69",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "mu:I member of the iid_correlated_block q2 row (test (a) gives only sd(id, coef=\"x\") ~ w; the intercept SD is constant, so not claimed)",
+    "sigma-endpoint iid_correlated_block rows (no sigma q2 block tested)",
+    "iid_additive_terms sigma crossed/nested rows (not tested)",
+    "no recovery/coverage/calibration; no Julia"
+  ]
+}

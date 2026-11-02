@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-beta-animal-pedigree-q2-sd-20261027-m26",
+  "rerecord_of_evidence_id": "native-beta-animal-pedigree-q2-sd-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"beta-animal-pedigree-q2-sd-regression\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-beta-animal-pedigree-q2-sd-regression.R",
+      "test_sha256": "6e47849a707cba724c613081ccdf52104c9317ccc425fe766889e6a0a56e6569",
+      "started_utc": "2026-11-02T13:15:21Z",
+      "ended_utc": "2026-11-02T13:17:35Z",
+      "exit_code": 0,
+      "expectations_passed": 32,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027-m26-3e5a45/test-console-test-beta-animal-pedigree-q2-sd-regression.log",
+      "console_log_sha256": "307275c3765cb5873c49c84a3fb4c8724dc54455e2db39369aa8158b5c122980"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027-m26-3e5a45/source-manifest.json",
+  "source_manifest_sha256": "f71e931300868971d3337dfd8850fd7be723e3a8d2075de62309616d33f62274",
+  "review_status": "unreviewed"
+}

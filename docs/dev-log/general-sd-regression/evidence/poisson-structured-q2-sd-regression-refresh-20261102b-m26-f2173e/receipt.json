@@ -1,0 +1,31 @@
+{
+  "evidence_id": "native-poisson-structured-q2-sd-regression-20261101d-20261102a-20261102b-m26",
+  "rerecord_of_evidence_id": "native-poisson-structured-q2-sd-regression-20261101d-20261102a-20261102b",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/poisson-structured-q2-sd-regression-refresh-20261102b/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); testthat::test_file(\"\"tests/testthat/test-poisson-structured-q2-sd-regression.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-poisson-structured-q2-sd-regression.R",
+      "test_sha256": "d9201ae7f250929fc8f3ecc7bdf02cb65b16d1eec7f121e4e7e163aa118e329d",
+      "started_utc": "2026-11-02T13:18:37Z",
+      "ended_utc": "2026-11-02T13:18:43Z",
+      "exit_code": 0,
+      "expectations_passed": 45,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-structured-q2-sd-regression-refresh-20261102b-m26-f2173e/test-console-test-poisson-structured-q2-sd-regression.log",
+      "console_log_sha256": "95362da260554f0e6c38c7698e7fbc4adc6fb7a6faee2e31de920dbc87d9bea8"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-structured-q2-sd-regression-refresh-20261102b-m26-f2173e/source-manifest.json",
+  "source_manifest_sha256": "8e84534774c26c2113d3ff194bb0202f6ec1123373fa6d537005270321ee5ae6",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity unless stated"
+  ]
+}

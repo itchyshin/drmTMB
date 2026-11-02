@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-beta-phylo-q2-sd-20261027-m26",
+  "rerecord_of_evidence_id": "native-beta-phylo-q2-sd-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"beta-phylo-q2-sd-regression\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-beta-phylo-q2-sd-regression.R",
+      "test_sha256": "852a76570a852ee8b1aa9937f2fa1df579efb82328b567b97edf914740d0cd1f",
+      "started_utc": "2026-11-02T13:15:21Z",
+      "ended_utc": "2026-11-02T13:17:51Z",
+      "exit_code": 0,
+      "expectations_passed": 46,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027-m26-3181d5/test-console-test-beta-phylo-q2-sd-regression.log",
+      "console_log_sha256": "e74573e731740428712015137aa2b86e53e29b197d589a6de78302b1977766a0"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027-m26-3181d5/source-manifest.json",
+  "source_manifest_sha256": "1d70b96971f31ebafd222a3e41ed88e21409b0dcc9860a0b01ffa1c2919f54a2",
+  "review_status": "unreviewed"
+}

@@ -1,0 +1,38 @@
+{
+  "evidence_id": "structured-sd-asymmetric-alignment-20261101b-m26",
+  "rerecord_of_evidence_id": "structured-sd-asymmetric-alignment-20261101b",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/structured-sd-asymmetric-alignment-20261101b/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"cd \"\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\"\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'res <- devtools::test(filter = \"\"^structured-sd-asymmetric-alignment$\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)' > docs/dev-log/general-sd-regression/evidence/structured-sd-asymmetric-alignment-20261101b/test-console.log 2>&1\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-structured-sd-asymmetric-alignment.R",
+      "test_sha256": "5b52133a560dec428e319a784f3c79ef214ced1d8fca9eb5583a11ee4afe3bc4",
+      "started_utc": "2026-11-02T13:18:42Z",
+      "ended_utc": "2026-11-02T13:18:48Z",
+      "exit_code": 0,
+      "expectations_passed": 52,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/structured-sd-asymmetric-alignment-20261101b-m26-62fdb5/test-console-test-structured-sd-asymmetric-alignment.log",
+      "console_log_sha256": "45abe5b2703341b8cd9acabaa0dd46f56782c83d852626fa136d40b3faabf7f7"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/structured-sd-asymmetric-alignment-20261101b-m26-62fdb5/source-manifest.json",
+  "source_manifest_sha256": "dc6d8b8ba907d53c24541bb829fc9ac9843f47a3e4a6873b6595b3a0fba7bde8",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "slope-only fields",
+    "Toeplitz, phylo and animal providers",
+    "Q or Ainv inputs",
+    "se = TRUE inference",
+    "Julia parity"
+  ],
+  "oracle": "Hand-built asymmetric kernels (dist() and median(), non-Toeplitz non-unit-diagonal K) indexed by level name; Gaussian exact marginal, Poisson and NB2 dense Laplace. A positional-reading oracle must differ.",
+  "checks": [
+    "logLik matches oracle with correct name alignment",
+    "positional (misaligned) oracle differs by a pre-set gap"
+  ]
+}

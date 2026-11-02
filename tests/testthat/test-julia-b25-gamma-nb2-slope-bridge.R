@@ -117,11 +117,7 @@ test_that("Gamma and NB2 slope-only SD gates admit only their shapes", {
     ),
     "spatial"
   )
-  # NB2 spatial slope has no Julia route.
-  expect_error(
-    drm_julia_structured_payload(spatial, "nbinom2", s$data, environment()),
-    "spatial"
-  )
+  # NB2 spatial slope is admitted in batch 26 (see test-julia-b26-*).
   tr <- ape::rtree(4L, tip.label = levels(s$data$id))
   phylo <- bf(
     y ~ x + phylo(0 + x | id, tree = tr),

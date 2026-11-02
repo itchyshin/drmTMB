@@ -1,0 +1,1423 @@
+{
+  "scope": "Source identity for native-poisson-sd-intercept-oracle-workflow-20261017, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-slope-20261017/source-manifest.json",
+  "files": [
+    {
+      "file": "R/adequacy-plots.R",
+      "sha256": "7cc880509221b4c7859a583ab0c5f5dc71d4cae16a48de29db4b6c553e55ab94"
+    },
+    {
+      "file": "R/adequacy.R",
+      "sha256": "b9ab7b82aa8d5ca5bf5a23f30826ad32d306668b6801dfbdd8b120896e955d57"
+    },
+    {
+      "file": "R/aghq-coxreid.R",
+      "sha256": "d7f20896bd1f2701c353084f4f7c908d644447300eadd222c07b71511c9bd200"
+    },
+    {
+      "file": "R/associate-pairs-sandwich-bernoulli-bernoulli.R",
+      "sha256": "d6ccc65580d7e0700ab2aed7c49c8369e21f3a441eb6ee8b25c8543d411fd8b3"
+    },
+    {
+      "file": "R/associate-pairs-sandwich-gaussian-bernoulli.R",
+      "sha256": "2129bbe7278b0912ba436aa71d9fc80cb5cbdf4822af20fb618ce4baefbc8860"
+    },
+    {
+      "file": "R/associate-pairs-sandwich-gaussian-nbinom2.R",
+      "sha256": "578751c099044dc943cbadc144deaa403ff5340eaefba49aaa1f3e21de5e43fd"
+    },
+    {
+      "file": "R/associate-pairs-sandwich-nbinom2-nbinom2.R",
+      "sha256": "bbbf3d78813b32fe8a61e4589bd9ecf1f7fdf6d8841995f52fd3ff5dbb5b0a43"
+    },
+    {
+      "file": "R/associate-pairs-sandwich.R",
+      "sha256": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c"
+    },
+    {
+      "file": "R/associate-pairs.R",
+      "sha256": "424b524e481e3831954c15f3fb91fe30e746628bd99cf2142b2dc2762127640a"
+    },
+    {
+      "file": "R/bf.R",
+      "sha256": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd"
+    },
+    {
+      "file": "R/bootstrap-shards.R",
+      "sha256": "4df1c49ff6f99ae70e773c1e4c929c13807762535ece09eef1716ac30a75adca"
+    },
+    {
+      "file": "R/check.R",
+      "sha256": "340325bbf9957fcc83e061a9edeb34460bbe899ff0107af14f5c3a55d19788de"
+    },
+    {
+      "file": "R/coevolution-accessors.R",
+      "sha256": "3f47f2f9388d6b51fcc9fcee25fece85d5b7ec7c98821d0ec0159ec798280666"
+    },
+    {
+      "file": "R/control.R",
+      "sha256": "1b86ad506f7fcd56f009f2f2b25ba91d13aacdece42af515ceb6c67231217cd9"
+    },
+    {
+      "file": "R/distributional-outputs.R",
+      "sha256": "94540da0f07768fd159b8178b5312dfe505e5cbb9bfdac26983c7abf12c1cf08"
+    },
+    {
+      "file": "R/drmTMB-package.R",
+      "sha256": "dec0b5fba6754268176dbdc8d3dfb4ed56b26485c146a39ed6ab0df86ad8395c"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/emmeans-preflight.R",
+      "sha256": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3"
+    },
+    {
+      "file": "R/family-dpq.R",
+      "sha256": "10f689a8737e4cf7893f37a5c322c7926c675b9a66099201439aad561da5241e"
+    },
+    {
+      "file": "R/family.R",
+      "sha256": "8869dbb68756133e7cdee017332dbfdd707053ab099716eb0e8705abb7616784"
+    },
+    {
+      "file": "R/formula-markers.R",
+      "sha256": "a724d3e9238ab0d6318bbb8ea337b69c88807311c6939ee20bb8609ae4d136b3"
+    },
+    {
+      "file": "R/gaussian-aggregation.R",
+      "sha256": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629"
+    },
+    {
+      "file": "R/heritability.R",
+      "sha256": "64fd77a2ad6bd3998c1c93e3cd1b5a3f859ad4a6e2f2bd7df5c48f83a4b3d5ce"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "472d9de4db223c925df61a683bfd06448e8b9891f32ae2bc386191c6f6098be5"
+    },
+    {
+      "file": "R/julia-coefficient-labels.R",
+      "sha256": "1c2814a197c8d296c2b120646d3576c8e95213ea4ca2848dad1279c2b29832ad"
+    },
+    {
+      "file": "R/julia-diagnostics.R",
+      "sha256": "7f60faae8fd3460ca143917ee2ff20067e0db5a8c08927b50f83eb5a0d30bc06"
+    },
+    {
+      "file": "R/julia-family-cumulative_logit.R",
+      "sha256": "c9c164d3abcf6878d5424c500120d63558e6bf4b05d49f7747f36ad1721663d7"
+    },
+    {
+      "file": "R/julia-family-registry.R",
+      "sha256": "de0dc16fbe870b0450a4925b7960ff55efa4a5cacfce8da8347a74e49a4619b9"
+    },
+    {
+      "file": "R/julia-joint-call.R",
+      "sha256": "fcdaa6f048b18b4660ee6674bfd62d6f7a7100f20c3b0a83975bbc551483c2d2"
+    },
+    {
+      "file": "R/julia-joint-finite.R",
+      "sha256": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d"
+    },
+    {
+      "file": "R/julia-joint-methods.R",
+      "sha256": "6d5898a8bd21aaf8c71ac20f3b73e71dcdad364d4f31b7b680f961d29ec9dcc8"
+    },
+    {
+      "file": "R/julia-joint-missing.R",
+      "sha256": "03a95e1e120588961cb6e22639741ef6c6ab3ac756118529f3f1e83a8da81569"
+    },
+    {
+      "file": "R/lrt-boundary.R",
+      "sha256": "bddf0f4cb35a44904ba3d78bc922c418669c51429d69f996504e929ef5877a9a"
+    },
+    {
+      "file": "R/marginal-parameters.R",
+      "sha256": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea"
+    },
+    {
+      "file": "R/mesh.R",
+      "sha256": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb"
+    },
+    {
+      "file": "R/meta-vcov.R",
+      "sha256": "a433c378acd76a880bbb302192d21151c2a4e4f808122925c2f27cbda280a5cf"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "R/missing-data.R",
+      "sha256": "909e0da5023a5bdae074e05b8211e918599ae7964b34c93ba961a9e3a13d4171"
+    },
+    {
+      "file": "R/model-comparison.R",
+      "sha256": "e610916641f3b3b28fc99bcd807b02d81544fb9d6dd7fc70aa44c29adbed03db"
+    },
+    {
+      "file": "R/mspl-estimator.R",
+      "sha256": "4213ecd424c5cd02bd886d799b5e3ad0746711ab6c8d8d4b7d95848e632c74d1"
+    },
+    {
+      "file": "R/mspl.R",
+      "sha256": "6f394409ab1cff8e72f73c2a01626de8177d75794c03cb5d489bf4502a33719e"
+    },
+    {
+      "file": "R/objective-at.R",
+      "sha256": "a1311ffe4f121316f4c730dcc74ffa419df12ef9c17f9d6710ff53013c6b7ea1"
+    },
+    {
+      "file": "R/parallel-docs.R",
+      "sha256": "82e84fe0843ef7230b6823ad870601c138aebc46612e262ce6dcb055df7764ce"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "aa0aedad162c3018790ead4350dbb2e68efc8203037f8ad923db4cdd0f4c61f5"
+    },
+    {
+      "file": "R/penalty.R",
+      "sha256": "ebab55d1bf9257ea973d5c9eded45d8988f6a1ba22b162800e64bf442b6bda83"
+    },
+    {
+      "file": "R/phylo-utils.R",
+      "sha256": "512195e7c8eab314a876ead4e5a2537b511e2c4acbd5f86900cea5d46b20a0c4"
+    },
+    {
+      "file": "R/plot-corpairs.R",
+      "sha256": "23fd048ab1c152ee325ba203210f67d5c96b88c516cff4ec7c887448a805137c"
+    },
+    {
+      "file": "R/plot-parameter-surface.R",
+      "sha256": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "ef79299d4dd607be50067752c643027af55e9814d1e220a37dcdee94957dd8a9"
+    },
+    {
+      "file": "R/prediction-grid.R",
+      "sha256": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647"
+    },
+    {
+      "file": "R/profile.R",
+      "sha256": "a1d4d5aa4f16e5870a250c8edeb4d73a06d7988e32b118aa78ca64394e8686a5"
+    },
+    {
+      "file": "R/provenance.R",
+      "sha256": "3211cf0b8417c36b0bd8c3656ac255e77ca06f4a2998f3faa362f2885b3ba43d"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "R/reader-contracts.R",
+      "sha256": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f"
+    },
+    {
+      "file": "R/sparse-fixed.R",
+      "sha256": "eb38f9a4281aeb652f392eb4f4bb075fd733195b665aa666a96d2fc3c8364bfd"
+    },
+    {
+      "file": "R/zzz.R",
+      "sha256": "10521dcc0b9f5bea053bc2dd490b6efa4edd7e571228ec28cd0f34ba226daaa1"
+    },
+    {
+      "file": "inst/dg3-power-arm/families.R",
+      "sha256": "49dba8efbfb8e082b04e0f21525a0d139c5ada00ec2c4cce9c28b279fa368df1"
+    },
+    {
+      "file": "inst/dg3-power-arm/harness.R",
+      "sha256": "d94bc5efc28c71a5a8dc596f57766c655dcd7ccbf4a15a13c38f3a5400217f34"
+    },
+    {
+      "file": "inst/extdata/env-skip-census.tsv",
+      "sha256": "71134aea21b667be7dd1a2e01afe73e3329dd37ada6cda00fd3d033b858a960a"
+    },
+    {
+      "file": "inst/extdata/julia-capabilities.tsv",
+      "sha256": "5fd9c69a72caf6c11299ce14b7d1f45d1eede6a71a8f36b75f3d06e24fcc7d8e"
+    },
+    {
+      "file": "inst/extdata/julia-gates.tsv",
+      "sha256": "e52fbe8d80e76d77ce75c577d3106b3d7f3c89cc66de62f79f01e5c8d68ccad4"
+    },
+    {
+      "file": "inst/reader-contracts/private-access-exceptions.csv",
+      "sha256": "0175c1230cfa30ffdb35591c3b8a6ce6d6946ab62045a960e35693720a47ae1e"
+    },
+    {
+      "file": "inst/reader-contracts/vignette-manifest.csv",
+      "sha256": "1f9c08e2d2915f95ec44bd512bf99f18a7837cc4aabe9cb20db09d1114c8dbad"
+    },
+    {
+      "file": "inst/sim/R/sim_aggregate.R",
+      "sha256": "7d2f810e06977245b33317d75bd3f3c9ca0fce8949c0479b04374ab0052b7e25"
+    },
+    {
+      "file": "inst/sim/R/sim_bootstrap.R",
+      "sha256": "e92551ca57b8d710612eb0b9b0a57bf25e3e9e5ccecbe56e89e46859d2ee669b"
+    },
+    {
+      "file": "inst/sim/R/sim_correlation_targets.R",
+      "sha256": "a0be66b17efcd9395f2fab5ae2b0f811f5aab315ed5687f55d9101c2e77e765f"
+    },
+    {
+      "file": "inst/sim/R/sim_gallery.R",
+      "sha256": "9fecfac2868bd04cbb233cc425110543753a17fa28877e79b15b8df7bc4a5e96"
+    },
+    {
+      "file": "inst/sim/R/sim_gallery_grain.R",
+      "sha256": "6fa8657b4c6fae0ac091f616f7450d34e0c902b2606eca1769c553336b6deb50"
+    },
+    {
+      "file": "inst/sim/R/sim_missing_response_g4g5.R",
+      "sha256": "5cd28fac5a7cf5a5cb5a2e532c9aed3dd5b0b07b22197725e16b965aa4737ebc"
+    },
+    {
+      "file": "inst/sim/R/sim_plot_data.R",
+      "sha256": "5617085a7ac2eb704b2b9509cdc8b50fafaf14d36c873f974a68099af27bddfa"
+    },
+    {
+      "file": "inst/sim/R/sim_power.R",
+      "sha256": "46d0faaeadf6b9c684150bf4cf0952d178a769e66ed57aeb9dc201b5bdbfe915"
+    },
+    {
+      "file": "inst/sim/R/sim_registry.R",
+      "sha256": "6c384fe60a1328e7de48878686c180f80413afd0685b2835bbf45cb715e4c267"
+    },
+    {
+      "file": "inst/sim/R/sim_runner.R",
+      "sha256": "aa5bf072e49dfad4697a62169a24b839c34416bc8c1fb4ea2f2e878527d35309"
+    },
+    {
+      "file": "inst/sim/R/sim_structured_re_ademp.R",
+      "sha256": "f705372795b43450f623499c2b879376f88479c42751de71b0137d14d91d4ba1"
+    },
+    {
+      "file": "inst/sim/R/sim_structured_re_bridge_fixtures.R",
+      "sha256": "81fe341898b35edf09d17c59ccb01e58a04c3202ebdfe013b08a790abd9253d4"
+    },
+    {
+      "file": "inst/sim/R/sim_uncertainty.R",
+      "sha256": "4eb2b89951610ccdba9fb7b277bc4e3fe80fba6bb60fe20a32b3ba6b83d8e86b"
+    },
+    {
+      "file": "inst/sim/R/sim_utils.R",
+      "sha256": "a6950d9ac8e3e5dbffba5cc42f6926167ed86b9e5a406e64d06ba9edd4aa5158"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_animal_mu_slope.R",
+      "sha256": "3bda32c154db6c86b798e2ef9fdebc4ad5bb715afbcc7b7637d74b8b04957bc1"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_animal_relmat_q2.R",
+      "sha256": "f4690f7dd36577c8df98370a2b3cfe9ce9421784bb86ed69b0a8b7ada7ab766d"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_animal_relmat_q4.R",
+      "sha256": "6917a3c2203097a4e631ec9fccfa375b0607a53b9b16c66474dadbcfcb0b45a7"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_binomial_fixed_effect.R",
+      "sha256": "21bfcd1efc555cb27f25708b894f3fbfc4ad8a3977e1dccdbc363d8bc6ce012a"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_biv_gaussian_mu_sigma_slope.R",
+      "sha256": "c8e39e1f03a3ab80a1be4beb0b80650ce580a7a607114776236ef3f7823e643c"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_biv_gaussian_mu_slope.R",
+      "sha256": "9cba352f8e3141b34b8e16f7dbd7852d0fa877adb4f52f4f6d2d91e719223596"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_biv_gaussian_q2_scale.R",
+      "sha256": "8134237457c409c6c71d819c0b10b6a56e2c34214d371c39dc8fc7490183944a"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_biv_gaussian_q2_scale_slope.R",
+      "sha256": "f4a571cd568aff731984eed5da090df9aeb7a252be1d02e76148f12c1fae210a"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_biv_gaussian_q4_location.R",
+      "sha256": "cc917c3cba40ebb352707223a472810d6194dfeeb1fd8ed91fcfc62b12c35053"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_biv_gaussian_q6_location.R",
+      "sha256": "82ff8bce935e866880ac9c710f181ea508b1e69f45a78a3f0037a4e5ed21c255"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R",
+      "sha256": "cc380048889b10e6c9de60ddb87dba1e3f85a8f710392b42ee2ed4a38679536d"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_biv_rho12.R",
+      "sha256": "ac1d36b11894779565dd1d54d1598f5aa825192dd18c6173376ae537cee140e6"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_bounded_response_mu_random_intercept.R",
+      "sha256": "59ace995436988c0cc6888eb870ac816ccf9b3c0568b593313b706db0d738738"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_count_structured_q1.R",
+      "sha256": "02896d6640661904ae790bd30e54e265bde37ca2e47ecf513cedff7af9a0d2a3"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_gaussian_ls.R",
+      "sha256": "173782df0b94a367717657a857f4eca130ed69a52f88c77107a5a8bb22d9d7ae"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_gaussian_mu_random_slope.R",
+      "sha256": "3cc0c0bd02f2bee99e1f45c15aa9816216b86297ee3821854da8b9496c147998"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_gaussian_sigma_random_slope.R",
+      "sha256": "0b3b7a279839ced6e4585e814c5c11c932a2fe8cabcf7f770397e2123d083098"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_meta_v.R",
+      "sha256": "fb9acd339f2bb4629f394af1c7e1ce0f26f9439337f873789b1ec85cdb8b321a"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_meta_v_lss.R",
+      "sha256": "41704f0505b50aa2238ef53df42458bdaa72f09d2866878c843f1d3e5d5105ef"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_model_selection.R",
+      "sha256": "8fdac0da6318873388a89192e7e668bbab65f29af7f561e11999ad5f72ee8b71"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_nbinom2_mu_random_effect.R",
+      "sha256": "64d8e6b8a2396473e8869a6f39037cb86541cdecbf0bba8cfe8e40611f3eb945"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_nbinom2_phylo_q1.R",
+      "sha256": "d624db3b9e9ff372d814c59a6209e4bbc7171399e91a12a1e78105310fa1ed54"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_nbinom2_sigma_random_effect.R",
+      "sha256": "047b402d399ae05719975657aaba652dfd83ac8f0b29fed7716608ebd226989b"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_ordinal_fixed_effect.R",
+      "sha256": "a9cf0618ec86ec0c39df1245de1e2b3a17f1b053cd1d3a7b4fc723e82b64bb26"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_phylo_mu_slope.R",
+      "sha256": "46927fe15cff2c86bf787825b802b3e277f89d0ae43c56aa158b97865d119f98"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_poisson_mu_random_effect.R",
+      "sha256": "c69f56a2592610ad7ce7cb846386913380baf51cb1ff4793fbde1b4b01f2e01f"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_poisson_phylo_q1.R",
+      "sha256": "72b461933723b1f697878aa32ad4b7d700e981b3f9d6a4070e9d4e4d6bb86189"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_positive_continuous_fixed_effect.R",
+      "sha256": "8f4128add55718388dc7e58ea7792b403cb2305f11107507720cedda77a4f506"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_positive_continuous_mu_random_intercept.R",
+      "sha256": "42c5900e0663182be400086d62fe304154d755ef52870afe57ce9e5b800f6440"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_proportion_fixed_effect.R",
+      "sha256": "39b7e63badefe03986979de942329a92f92f7761e1c1adc2f2e8989bdaabf5a5"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_relmat_mu_slope.R",
+      "sha256": "74f813171675ac3c80adf3b9f1dc8192161c912ca3e6a1cb0c12847be80dfae4"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_skew_normal_fixed_effect.R",
+      "sha256": "fd85b7dccbd5e41631378bfce14c36e5aeff12cb1438c98d06ef1a56ca17fd58"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_spatial_mu_slope.R",
+      "sha256": "c61e9e18e2c79e9132a4bfb88bbdf47c4717541f876e497b21283ce778587b20"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_spatial_q2.R",
+      "sha256": "f2639a3740e5d3c0dd9de3573f9293adbf32653441c9cbdf5c2f7106912c2b43"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_student_mu_random_intercept.R",
+      "sha256": "67f1f7ca65162fa3a0c2f6c0b27311d8acccad764fd7476d54b3255e84dc6541"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_student_shape.R",
+      "sha256": "41d3e326e8f1ec9687ae63dfdc56defd6b94ab7ca7b283685a3aa629e9edb361"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_truncated_nbinom2_mu_random_intercept.R",
+      "sha256": "7a2e65c79afb827cc926d827eb25186dd76408132156e40c1dfebe38e07bf4f3"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_tweedie_fixed_effect.R",
+      "sha256": "eecc339d243ab3b34ed642850a24b86509ec5dce527e677bc8b0161232cc3d95"
+    },
+    {
+      "file": "inst/sim/dgp/sim_dgp_zero_one_beta_fixed_effect.R",
+      "sha256": "16c8e66b79be230a6f6ac335e946e1fcb089f2ae11a3d262c014ea6bde1ecae8"
+    },
+    {
+      "file": "inst/sim/fit/sim_meta_v_lss_oracle.R",
+      "sha256": "fcf15fb1fd8996e8220dbe99a820297f2a7bf46920671ea686b4c2eed2639c5a"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_animal_mu_slope.R",
+      "sha256": "31df6b72388f769ff733264703dc0cbc73cd7615eaad69a150ed612bbb448c16"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_animal_relmat_q2.R",
+      "sha256": "0fc5e856cbccd181cfe4bb31117de0fcb4199a0db6281bdc9b07bfabc953ce2e"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_animal_relmat_q4.R",
+      "sha256": "21a0a5ef3002de1f3e2ec3d24322f936de0e7b4015cfd95890a83e2b8bad55ca"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_binomial_fixed_effect.R",
+      "sha256": "f1f72db00556a0b6e173e049be57d171bbe8ec311ffc9ed46b2b8742b240ea30"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_biv_gaussian_mu_sigma_slope.R",
+      "sha256": "374719afc70dea9ec208c912dc756cb165117d586d733f48fb911cf0a7994cee"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_biv_gaussian_mu_slope.R",
+      "sha256": "2d53dc4b4b6b3d1655ec11564db21bebe9f63f628b7e07426d4a9e9a4e2eb15f"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_biv_gaussian_q2_scale.R",
+      "sha256": "f464bcf0e49b7570e4c64eec710b36f8abefff568a675827cb5e4cd0599b9763"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_biv_gaussian_q2_scale_slope.R",
+      "sha256": "0a3319cd67f8125f302c4167827dc4b5d0be5ebae9f12e36624201b33c4705fc"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_biv_gaussian_q4_location.R",
+      "sha256": "f40497f255db0cac6473e4b506965e49c2f9e1bd4c2d25e93418066c29fbf9f0"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_biv_gaussian_q6_location.R",
+      "sha256": "862b9de92ca364ce8b1af2df017bf39932400528b4746442c236e9a5e23e98f2"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_biv_gaussian_q8_endpoint.R",
+      "sha256": "521359bb5fc87c4a12701bf82bb7800fe37069c8c071bb5b6d351117c63bd618"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_biv_rho12.R",
+      "sha256": "7c53abe3021e8d4a9656ecfe68e72db220849890d6b3f30fd547b2c31b45e0ba"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_bounded_response_mu_random_intercept.R",
+      "sha256": "e5e303553b6e36d8e96820df4cac948cecd4c873eb021128cd17fa2208802646"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_count_structured_q1.R",
+      "sha256": "d51f4e7e0ba46136431053289b76b5a8b0c7576f6c842e51422b092635644c21"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_gaussian_ls.R",
+      "sha256": "40c0df1a81d67ac3f033b3ec1b271d1d79b1ad5b8f62d3be54b8832ba90b661c"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_gaussian_mu_random_slope.R",
+      "sha256": "a80bdd3d1e7ce049af858c915624bc4f810da478d4c0886b8904bb404047801b"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_gaussian_sigma_random_slope.R",
+      "sha256": "02cacc2f81f00b68becf6cfd4f870f4daacbcf9217438570ba2d31c6f5112b77"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_meta_v.R",
+      "sha256": "8bad3c93d76d898d62e2d8ccf101555f2f2c8a2592096e672a863b64c177fad4"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_meta_v_lss.R",
+      "sha256": "b443d8de4cf3bc61843708668a23e91a7c9b971f5eb7f14bcbeada0ea177f42c"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_model_selection.R",
+      "sha256": "3a4005a76acf64872bf8ba3ebc9f5fedf6f73fb75a14f79a8cca8638f4ee0561"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_nbinom2_mu_random_effect.R",
+      "sha256": "f1c3956f694744137f93152612a4a5280ca8a93cd522bbf39f6988afd7c1e9c2"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_nbinom2_phylo_q1.R",
+      "sha256": "e76a3212866b51195a5e5f370d7267f84a82c8f8de4edf7a652fbba2430d2144"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_nbinom2_sigma_random_effect.R",
+      "sha256": "b813a0e3bbc66fd5c16b37e209d735abf615e38279d3863f66796eb6f099d2d0"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_ordinal_fixed_effect.R",
+      "sha256": "dbfbce56e7eddd1bee03e75f1240be92eb8d1722f46a6f48ec3a0ad748570da8"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_phylo_mu_slope.R",
+      "sha256": "159107a56e73ca329e8b67617c9355f7b2f4daad14117b410d8a7bc22dcaf6ec"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_poisson_mu_random_effect.R",
+      "sha256": "fd5e42738ab70882aa36003a80a1027a01ca0f4053df13942c9eac9a37cd6759"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_poisson_phylo_q1.R",
+      "sha256": "941065938265fff641a34b8672089f60d8c9dd28dfefdfaee6eaf4365cc7bf55"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_positive_continuous_fixed_effect.R",
+      "sha256": "3f4978310e7164f79fab44dc2024040eeb7c29e977619e1db1e29b623c9cd30b"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_positive_continuous_mu_random_intercept.R",
+      "sha256": "e07d34d89a1194d65990a887a93ff674dc9cacff142a4fefc79bb0c9d79581bc"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_proportion_fixed_effect.R",
+      "sha256": "48d3d0e10aa0916969ae362ca2f1e1809182ba7cc82da86468c7373e3a791ca4"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_relmat_mu_slope.R",
+      "sha256": "6a61c75b552da47fd8fb13bc4db026a1438eed81f24e7aa67f13a99f19a46376"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_skew_normal_fixed_effect.R",
+      "sha256": "8883c741a190700dfefcf505d9a1799a88d0668e321968c4b8c7080b43741471"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_spatial_mu_slope.R",
+      "sha256": "1ed871a9e0fb83003ac449ea6c3804bb69b9613b54f8414bae17cf9f3f14d2ec"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_spatial_q2.R",
+      "sha256": "2b885c3ee8dc9e0c7c1612e16cc488c442d9327af52e01c88f0d7ee757cc4f8d"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_student_mu_random_intercept.R",
+      "sha256": "2c53a3adef870c3f9e81b0a641ca42e6ffec1b0295df0bb73a841d6fff9570ba"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_student_shape.R",
+      "sha256": "0217def0c0e27b8c2249bd2acb576a2c2956b4a2f7f9fc0893911d87e0164a9f"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_truncated_nbinom2_mu_random_intercept.R",
+      "sha256": "6e079a72744c9f64f0ad7aeb48e1c3d12310e7b8354854c6e836283121525ab9"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_tweedie_fixed_effect.R",
+      "sha256": "86618111875a16fe3d21c186df214e0b40d760b12758799a6548442ce593ba4a"
+    },
+    {
+      "file": "inst/sim/fit/sim_summarise_zero_one_beta_fixed_effect.R",
+      "sha256": "c0524580e83592ad2dfb5b5af0c9b1005386a87e17eae08ec89360655d7c98d0"
+    },
+    {
+      "file": "inst/sim/registry/phase18_actions_task_seeds.csv",
+      "sha256": "0e3564319ef736782c4481ed5ff72a96010a215386cdc9afa68688f8cc68b0b3"
+    },
+    {
+      "file": "inst/sim/registry/phase18_structured_workflow_registry.csv",
+      "sha256": "869f9cf07d661c02213481137f3d93be75161c60ba0d032cad2b3d049223634d"
+    },
+    {
+      "file": "inst/sim/reports/model-selection-article-summary.csv",
+      "sha256": "c56c9e7e4f70269112d62540ec051062d0bdf3b3063539aa879f585bf22f3512"
+    },
+    {
+      "file": "inst/sim/run/ayumi_model_a_plus_evidence.R",
+      "sha256": "75594bb6468807da9521072bfbd036ce8a298d4d5532be795b248769ea143704"
+    },
+    {
+      "file": "inst/sim/run/phylo_penalty_q4_recovery.R",
+      "sha256": "6a3fba7be79322a19671cb7dc9e3d1c9127fa758ec5972ee4b7a6ba78795944e"
+    },
+    {
+      "file": "inst/sim/run/sim_audit_biv_gaussian_mu_sigma_slope_hardening.R",
+      "sha256": "ceab39d217aac8a85515f73563927c0bae2666c8a9b101b43e6fbc14f0d667f1"
+    },
+    {
+      "file": "inst/sim/run/sim_interval_coverage_smoke.R",
+      "sha256": "acb92425833ea133ce3daa544d679eb8eef357d1944a27917d6bfee4dada5d0e"
+    },
+    {
+      "file": "inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R",
+      "sha256": "0c962abba4da618759495c8c2407c5195b0014cecc24a29070277c1325bd5033"
+    },
+    {
+      "file": "inst/sim/run/sim_phase18_structured_workflow_registry.R",
+      "sha256": "2f48889d2ab232c82c7ccf5408c2646c61120729d5b899c9cd53700ff5ab0125"
+    },
+    {
+      "file": "inst/sim/run/sim_render_count_mu_gallery_smoke.R",
+      "sha256": "050fb5e0f226223838a020e0ba530a1d551fe0d118654f98b835c4254100a4d8"
+    },
+    {
+      "file": "inst/sim/run/sim_render_first_wave_summary_report.R",
+      "sha256": "18747048e7e01b38ada2592c190aabf1b86e56d5a009f4ba5e05b50da800330d"
+    },
+    {
+      "file": "inst/sim/run/sim_run_actions_cell.R",
+      "sha256": "81b01885746cba91132bd3d8ec1a07973eeed791644f7e46f121d9693512912c"
+    },
+    {
+      "file": "inst/sim/run/sim_run_animal_mu_slope_smoke.R",
+      "sha256": "099998ebd89dc227b81ca6c988b479114e5f217d7a4778e9d901c1ac5fa02a67"
+    },
+    {
+      "file": "inst/sim/run/sim_run_animal_relmat_q2_smoke.R",
+      "sha256": "b7e367a3470ca0826dcbeebc96f7295243ae3e89b53e504d856eaf4350db7df5"
+    },
+    {
+      "file": "inst/sim/run/sim_run_animal_relmat_q4_smoke.R",
+      "sha256": "34010320ab52300d195e950d7e1c54653a6fdaf7ecfe20a94cbef0ea02bd6a82"
+    },
+    {
+      "file": "inst/sim/run/sim_run_binomial_fixed_effect_smoke.R",
+      "sha256": "fcc770218343251f087aef24a2e107f6ba086a99632f8462213b323c966d6822"
+    },
+    {
+      "file": "inst/sim/run/sim_run_biv_gaussian_mu_sigma_slope_smoke.R",
+      "sha256": "2373b4e49859b9cf99f96a0b2738062942fe8ee74ffa49c531f882a72a597abe"
+    },
+    {
+      "file": "inst/sim/run/sim_run_biv_gaussian_mu_slope_smoke.R",
+      "sha256": "9277cccd4a60678db5e3e2e9f8c2e43e7402906927b55511c4f6a00e24509b09"
+    },
+    {
+      "file": "inst/sim/run/sim_run_biv_gaussian_q2_scale_slope_smoke.R",
+      "sha256": "055fb3155847b8afee3869e70de4bd83cd330e880d4db244dae4bd8bfe9b67a5"
+    },
+    {
+      "file": "inst/sim/run/sim_run_biv_gaussian_q2_scale_smoke.R",
+      "sha256": "d7e1254bda1230da90224f573cad25e02dc1448defe3e43daa9212346ad1815f"
+    },
+    {
+      "file": "inst/sim/run/sim_run_biv_gaussian_q4_location_smoke.R",
+      "sha256": "b35a8b5763f6f8439eeac927be064a3f4774fcb24e8468d6d815d1283bab9196"
+    },
+    {
+      "file": "inst/sim/run/sim_run_biv_gaussian_q6_location_smoke.R",
+      "sha256": "2a5db781bf8dd83344474b5860701f33cdd77da66ab19fb24d78b3bafff7cf0e"
+    },
+    {
+      "file": "inst/sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R",
+      "sha256": "a7e722f186fd1e833b4897baff95443a679b22fb5f51241f2a4c44eb4be67671"
+    },
+    {
+      "file": "inst/sim/run/sim_run_biv_lognormal_rho12_coverage.R",
+      "sha256": "9786c9a39db3049c767a2f8e2dafa1547214e6f383b653194d9abd37da8e9044"
+    },
+    {
+      "file": "inst/sim/run/sim_run_biv_lognormal_rho12_smoke.R",
+      "sha256": "cf82228e2e2e506369516d1c76d594b95db47b74fe2bff9e4c8d26a6413fe741"
+    },
+    {
+      "file": "inst/sim/run/sim_run_biv_rho12_smoke.R",
+      "sha256": "10e416531ac55388eeb1330dd1b8efce1203ac581193d127130d946e31a42122"
+    },
+    {
+      "file": "inst/sim/run/sim_run_bounded_response_mu_random_intercept_smoke.R",
+      "sha256": "f6797826b45d85f58a8f90c13ce2ca43527901aaa45cc45730c5487dbe00c09d"
+    },
+    {
+      "file": "inst/sim/run/sim_run_count_structured_q1_smoke.R",
+      "sha256": "af08347080d13c525afef2322f8c45dffcaf83229f61c43baf1d3a6c0914f875"
+    },
+    {
+      "file": "inst/sim/run/sim_run_first_wave_summary_smoke.R",
+      "sha256": "673ebc91d4c928e67336df79c956d7dcb1b43cd05c596d767bc8266bb5997f68"
+    },
+    {
+      "file": "inst/sim/run/sim_run_gaussian_ls_power_smoke.R",
+      "sha256": "259ef3402f253c74cd247b8719de480d10e113ca78787a9cac7310112ba7c2c7"
+    },
+    {
+      "file": "inst/sim/run/sim_run_gaussian_ls_smoke.R",
+      "sha256": "da74b6a6f8e955d6902e743b798ef13f69c14a20690fedaa6dcb068d2bffc84c"
+    },
+    {
+      "file": "inst/sim/run/sim_run_gaussian_mu_random_slope_smoke.R",
+      "sha256": "4573b2c6afe6342a9d4ede736333e5adc5aa4546ba55bc3311fd8ea4abf869b0"
+    },
+    {
+      "file": "inst/sim/run/sim_run_gaussian_sigma_random_slope_smoke.R",
+      "sha256": "fcf23fa9cc3a6730673f4c2dc04d8fd13aaccc7024e9b6a2b7df274bbb090b72"
+    },
+    {
+      "file": "inst/sim/run/sim_run_interval_heavy_summary_smoke.R",
+      "sha256": "e9a46cb257c5ba776b50893e346caaafe03a1ea53c7152cfb61458ab26fa1a0b"
+    },
+    {
+      "file": "inst/sim/run/sim_run_meta_v_lss_smoke.R",
+      "sha256": "2e96eb3de69c4c671f49c6f34af5e63b1064bc581a14acf520047f86ace0a0d3"
+    },
+    {
+      "file": "inst/sim/run/sim_run_meta_v_power_smoke.R",
+      "sha256": "4df8886c86169a3df167657c9f766694a0efc33caf3f2dabd042717f5844bd66"
+    },
+    {
+      "file": "inst/sim/run/sim_run_meta_v_smoke.R",
+      "sha256": "eb9b3b33f352e553b1aef0ac5ea1ea2b122ad5bc8e9b6b8b373dfe4d28e7ef35"
+    },
+    {
+      "file": "inst/sim/run/sim_run_model_selection_smoke.R",
+      "sha256": "c8435c598f6e8d44fb851311cd92b2627b2b7138badc2179e51c3c567fbf685b"
+    },
+    {
+      "file": "inst/sim/run/sim_run_nbinom2_mu_random_effect_smoke.R",
+      "sha256": "33bf08c319eb2b5df6ca25a92adae92d71ed2aab7bf3130d66ce1de72ebdd27d"
+    },
+    {
+      "file": "inst/sim/run/sim_run_nbinom2_phylo_q1_smoke.R",
+      "sha256": "901308193cabc02e30ce3fc5647c25a18345c6d26d5e0459fdc2f5fcb9185f3c"
+    },
+    {
+      "file": "inst/sim/run/sim_run_nbinom2_sigma_random_effect_smoke.R",
+      "sha256": "3aca7e7d9b6dc8ca92afb15455e04f81d839699ccb2f0dc5284c95f5b721c958"
+    },
+    {
+      "file": "inst/sim/run/sim_run_ordinal_fixed_effect_smoke.R",
+      "sha256": "363bc5e66cd675336957a4e214b4e2c9a337114d9030b8152c3424b712342f3f"
+    },
+    {
+      "file": "inst/sim/run/sim_run_phylo_mu_slope_smoke.R",
+      "sha256": "fe4406e782b6394bb98e785dbfc869e1135a0d82fe14383126300e5f03495024"
+    },
+    {
+      "file": "inst/sim/run/sim_run_poisson_mu_random_effect_smoke.R",
+      "sha256": "746eff70328bf30a847edecc440d8ede24818d620656bb310951f91f57c7ed94"
+    },
+    {
+      "file": "inst/sim/run/sim_run_poisson_mu_re_power_smoke.R",
+      "sha256": "06a5b5569dcb77a8ad9e300e0db6363df74ce339bfa286270acc228003cf8ca8"
+    },
+    {
+      "file": "inst/sim/run/sim_run_poisson_phylo_q1_smoke.R",
+      "sha256": "cffdf562e3b7b989b4e35909acfdead9172e9ebc804f4b13f85e240b3b6fb8fa"
+    },
+    {
+      "file": "inst/sim/run/sim_run_positive_continuous_fixed_effect_smoke.R",
+      "sha256": "4cb791b2b3e3ff24a179ef8a62a88eef13c4113ee6d6f78562d009fc883283fc"
+    },
+    {
+      "file": "inst/sim/run/sim_run_positive_continuous_mu_random_intercept_smoke.R",
+      "sha256": "cad38f46c4c700f4b890106957edeecf2f21ba90b172ce0dd6ca1abd5f77377d"
+    },
+    {
+      "file": "inst/sim/run/sim_run_power_grid.R",
+      "sha256": "6af7e0300c91d7334d9d0de11e9f9155bdccba0fe2907c3a58ebcc1b29a3916c"
+    },
+    {
+      "file": "inst/sim/run/sim_run_proportion_fixed_effect_smoke.R",
+      "sha256": "576ad3170652c8f8377027f4a89bffa852221912ad8929fe2b04dbdb0a59b82f"
+    },
+    {
+      "file": "inst/sim/run/sim_run_relmat_mu_slope_smoke.R",
+      "sha256": "379507c2509c596ca85fdda746eae06823492b4ae95fac503f77eb014395f85b"
+    },
+    {
+      "file": "inst/sim/run/sim_run_skew_normal_fixed_effect_smoke.R",
+      "sha256": "5806a85f536fa27dafd7ed641c0e931b1ec61a0c17f050a49468f9d05a4d7847"
+    },
+    {
+      "file": "inst/sim/run/sim_run_spatial_mu_slope_smoke.R",
+      "sha256": "c1942a972c8756ec5255801a6f6939b20bcb7a117e0b7ba1361b9926fcb8db9a"
+    },
+    {
+      "file": "inst/sim/run/sim_run_spatial_q2_smoke.R",
+      "sha256": "49322ef089e25db202f88ee3cec51f447099df885190aa22c07d9f07fec7c915"
+    },
+    {
+      "file": "inst/sim/run/sim_run_student_mu_random_intercept_smoke.R",
+      "sha256": "0e8ad926afeacaba881908a8979c76cce5edf69e45695c2db383a88db86d003a"
+    },
+    {
+      "file": "inst/sim/run/sim_run_student_shape_smoke.R",
+      "sha256": "fc64a40a4d07e2132a75db21e903241192b7907f0b0340cefee8744f915957de"
+    },
+    {
+      "file": "inst/sim/run/sim_run_truncated_nbinom2_mu_random_intercept_smoke.R",
+      "sha256": "5ae891ae7ae898281a22a01e1e0a97e88b2e63e8e5fb73d1c79bd0b91b69c076"
+    },
+    {
+      "file": "inst/sim/run/sim_run_tweedie_fixed_effect_smoke.R",
+      "sha256": "c881fff80148c95baa243385753c2d4e74a682c0fd8acb35f0428701029f6ca7"
+    },
+    {
+      "file": "inst/sim/run/sim_run_zero_one_beta_fixed_effect_smoke.R",
+      "sha256": "4cdb464fadeb56f1c97d76c3257803e069824daaa657c58ff6dab73ad4f3bf77"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_animal_mu_slope_smoke.R",
+      "sha256": "0b1e56785ec30a50c4b335ea28fb989927f3c99c72cfae7f13e92f2513bd0fe4"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_animal_relmat_q2_smoke.R",
+      "sha256": "effae2622c3d5b0b7c94f5b5986e58e78d5b36a211d45781ac5b589d938bcd20"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_animal_relmat_q4_smoke.R",
+      "sha256": "27dae319310a408db771cea45f6d8cc5def1547881fd824fe95182b650a819ef"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_binomial_fixed_effect_smoke.R",
+      "sha256": "d38a46716df453566b97a08d35cba2f34f00908f76b657dc4ff3ec95905740a0"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_mu_sigma_slope_recovery.R",
+      "sha256": "68b384c1c98c11d13c5dbf30f0245a177bf1e6ecdb4fa95cfc425bf5ced0a2c2"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_mu_sigma_slope_smoke.R",
+      "sha256": "865ef9cc54a938624c05ad43273b876ba7af8b5ba4b6ec68e60f334cec90292c"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_mu_slope_recovery.R",
+      "sha256": "0407b0e783dfaa1d8452ff6729dd037b788caf6282482f7ee504d2a9682204b5"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_mu_slope_smoke.R",
+      "sha256": "587da44f5c28416c9dacdfb58a5462af4057471738449d4a8149decf83f2ab39"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_q2_scale_recovery.R",
+      "sha256": "7144d2ca8c4481c45a45b093909fcabb6a52389893c2e1e495cb953fa8eade1b"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_q2_scale_slope_recovery.R",
+      "sha256": "822fb33e89c4ec4275b055b89c0242baf27688ab276d174ad30e5dbee1ee4250"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_q2_scale_slope_smoke.R",
+      "sha256": "ebf11278ff8e68f3c65728d4865a25d2cab3c124e15caae6c8776a5ad4cffb34"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_q2_scale_smoke.R",
+      "sha256": "9e581650fe843552324f4d2d5eed66e32407c4fa2824426c30cce4c40884ae67"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_q4_location_recovery.R",
+      "sha256": "173d46c8ea38a0687bee42a5d065509ed61f10863bf82808d41c443a349a2cd5"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_q4_location_smoke.R",
+      "sha256": "8e0b5d2625b4ee8f49b157f621601258867a8f812a2443d54edcc5cbb4d3c3b8"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_q6_location_recovery.R",
+      "sha256": "69cf737e2922b2b207e5347c093e796f85d60adbad7a973dddf2bc5fabc83bbb"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_q6_location_smoke.R",
+      "sha256": "f6ff94cd1e81ef914240411ff0913cec677815bd19fbc02623c6471ffa96e6e3"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_q8_endpoint_recovery.R",
+      "sha256": "a5abf06b85a215caade85f178c19313ac60b780b0fd67e843130586e05746a24"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_gaussian_q8_endpoint_smoke.R",
+      "sha256": "fd7ef068b5b306438f5a93a592f6c4794c8eb135b507c8dad6ca9ff2592abbc6"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_biv_rho12_smoke.R",
+      "sha256": "883f02c1156b8d5d7b4b2aba5ff55a4811e3ce906687e22670c54289feea7223"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_bounded_response_mu_random_intercept_smoke.R",
+      "sha256": "fc240d8653b293e334df62910f272ecd5a7374c2079aa8463f4058c06442cf94"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_count_mu_random_effect_pilot.R",
+      "sha256": "889637a74b7c849ab4318511cc859d53ce644adb4721b73943d9dbbbb137b2e8"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_count_structured_q1_smoke.R",
+      "sha256": "e1717921c02201583275bfdfd808160eb5618f7bd6380454d91cf5636e9ba514"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_gaussian_ls_smoke.R",
+      "sha256": "18f637af58b9c15e17b2e59b50d9346a5ecac2d802eeed01e97e95351711423f"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_gaussian_mu_random_slope_smoke.R",
+      "sha256": "aae9c1dbee0e281178db575880ebe2307799f59ce30ed54975dacd4bfa15f518"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_gaussian_sigma_random_slope_smoke.R",
+      "sha256": "017b902138c213d328137b85db4e4c7a3cd23af8d5ac518b5a4416a1ce02cb4b"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_meta_v_smoke.R",
+      "sha256": "a5f5da46f5002773a89f1683b4b8e920f6ba7381a6764a0764d33128af7658b0"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R",
+      "sha256": "c92f6f55a707070c570cf2903241a30a0c72ca3c0ff274ed511c196aaa054c67"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_nbinom2_phylo_q1_smoke.R",
+      "sha256": "19c16ef4b137daef0b0449f8308a01347b7b8b9348d1540f5e367209ea2a081b"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_nbinom2_sigma_random_effect_smoke.R",
+      "sha256": "bba12734b82e0c58fc546db315d1b2d0ec8971ae02dbeb63933dab67a8422927"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_ordinal_fixed_effect_smoke.R",
+      "sha256": "86ec876104ffd2c0b994ba3b2d3e9706bb7a5d7215315fc2e1c81c111d1a0816"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_phylo_mu_slope_smoke.R",
+      "sha256": "da3e33dc0ff0b7295e8b2ca2869c9eaec4d76abfb1202ca0cffff693dcee4188"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R",
+      "sha256": "fe04a6f85cb86c6d758dcb7a1bf06d3307d88bc9b06b618f62edd1489943dc27"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_poisson_phylo_q1_smoke.R",
+      "sha256": "e67a9d32e9d34a53698fef80f2ff702cd72e7ae6328e218516beaabdfb7215e8"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_positive_continuous_fixed_effect_smoke.R",
+      "sha256": "03fb19573b6c263b8401c132a82075c71c0d4497175649440643fb1b5d9d5f53"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_positive_continuous_mu_random_intercept_smoke.R",
+      "sha256": "a2f5a4a4d79b6f6c3264f01857328ce3e31dd1c920c871086c767cd49c71feff"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_proportion_fixed_effect_smoke.R",
+      "sha256": "c482771063e24235f31c4ec52e1a3c4fcd79c8e118609448f53cf0dca92e0879"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_relmat_mu_slope_smoke.R",
+      "sha256": "f7a521f814c55772967a35b52a45d94d9f59a6a2f18747d4f46614e51161d730"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_skew_normal_fixed_effect_smoke.R",
+      "sha256": "69228255b73d6208ada4dd357dafe8ae988f6b4f5d6ef7158614592dcb183110"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_spatial_mu_slope_smoke.R",
+      "sha256": "4ed2eddb3239df938c9777845ec4d32ef037ebdf187ca14273b3107e1aa9843b"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_spatial_q2_smoke.R",
+      "sha256": "614521b9c04f1bfa828fc7792a0134ba4459a1aa6bb8827d75de17ae06b45b48"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_student_mu_random_intercept_smoke.R",
+      "sha256": "4055238c3c1a5dd3ff05d9f813e94d6a944e367e3243f82a73ce4aba146606ab"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_student_shape_smoke.R",
+      "sha256": "2b8a204af37ee747667f983e8d8d73e7f4d19a49f9ec790a4a4cb1ad95c9f58b"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_truncated_nbinom2_mu_random_intercept_smoke.R",
+      "sha256": "cf2dc800b351ae4d0ac7513d2dead50e96e48a26e54df5aa20fb777f9065f264"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_tweedie_fixed_effect_smoke.R",
+      "sha256": "a4e18858235e09c335fdc9ba06957813b0f641d1251a199328b7c03ca4c969d0"
+    },
+    {
+      "file": "inst/sim/run/sim_summary_zero_one_beta_fixed_effect_smoke.R",
+      "sha256": "4ad86cc128e377fc05ca76be2bc26b29b6a07ae64ad35e7aa273e1985ff4b002"
+    },
+    {
+      "file": "inst/sim/run/sim_write_animal_mu_slope_grid.R",
+      "sha256": "e3bc98c47a68f3986a6959c2c5257fb269a648d4eb7471b9b2c31e31af49da37"
+    },
+    {
+      "file": "inst/sim/run/sim_write_animal_relmat_q2_grid.R",
+      "sha256": "47753ca049aefe6c07a979e222fe5be60ec7b43a3f702905ad079d89154c8c0b"
+    },
+    {
+      "file": "inst/sim/run/sim_write_animal_relmat_q4_grid.R",
+      "sha256": "5c84a6bceb2fdad23ceff223ac5d1d46d24fdb9fbbb92794662114dd9af3917b"
+    },
+    {
+      "file": "inst/sim/run/sim_write_binomial_fixed_effect_grid.R",
+      "sha256": "0da7b1204b4305fea4bafe9800ad7b8bf6688da787ca41b8f7cf4b02d6eafd2d"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_mu_sigma_slope_grid.R",
+      "sha256": "7e1eca2945463d9ca2559393b864c2a14567f64d893fa5b27f24de05b4546535"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_mu_sigma_slope_recovery_grid.R",
+      "sha256": "189cbebde7db1250405edb08dc6993b86a9d8912a204435a2235a8467683c6bf"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_mu_slope_grid.R",
+      "sha256": "b7d9aa6a7319e2f5fb45af9142937cd1beaa18a7ee3292e890e2e411550307df"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_mu_slope_recovery_grid.R",
+      "sha256": "4a2b25d5c3642fdb6b1b123d50c55161a5713c0339c664fa2733190cea0b2666"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_q2_scale_grid.R",
+      "sha256": "128bf2a0eace78c808c7fe7ea6b647836f3d5a11bce7dca8d6fb197d45012428"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_q2_scale_recovery_grid.R",
+      "sha256": "a0f4b5b48f507558f1d8fecdeca7dcf574b9656e8fca12b53fbe2b802eaae467"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_q2_scale_slope_grid.R",
+      "sha256": "519a8b6574f3e1cec95f5a04d0338a2fade3db166cb8146bc6b1a2378e92a71a"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_q2_scale_slope_recovery_grid.R",
+      "sha256": "c8b2168042e095535d231e82f769115e728b29615391c9cfa873c3cd99d5f543"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_q4_location_grid.R",
+      "sha256": "21e653422d7ec84da3ff0d9f56424de998e704ced87d21f1c300b8b20497632e"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_q4_location_recovery_grid.R",
+      "sha256": "3fd485024228a20f9718b2cf72ce979989f2fe64c1948b2aacff81df2bb9b8bf"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_q6_location_grid.R",
+      "sha256": "1983b200aa4a1baa53c12efcaa0f0c9c26caf95f4047332b9d522bc5c6d00b05"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_q6_location_recovery_grid.R",
+      "sha256": "1bab386e9515d2e7986b31acb1646163dee930bb14b16e86c77a052b6c9c4ce8"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_q8_endpoint_grid.R",
+      "sha256": "ee1943be334407cfb2137caefa482dc3a6acb171f676e3aa6dbbd9ddd2250f4d"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R",
+      "sha256": "2de151fcd729399edd336d833a7b6b1dab4517eac98df7c5d7ede140750d52f7"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid.R",
+      "sha256": "c15d15a51cf72dcbc1b0609ba9cd330858989496be4c188b8d18ca5fd15a6d29"
+    },
+    {
+      "file": "inst/sim/run/sim_write_biv_rho12_grid.R",
+      "sha256": "a92b9c290d5752b065a56795b75f20b1e33497561479e11720cb0135aa102697"
+    },
+    {
+      "file": "inst/sim/run/sim_write_bounded_response_mu_random_intercept_grid.R",
+      "sha256": "dd4f37702acae693a9b62785f2d037f477dbad82b84ca10c22d4154768c2f00f"
+    },
+    {
+      "file": "inst/sim/run/sim_write_correlation_block_status.R",
+      "sha256": "3f1759fb350c522424ea959975c9fb52cc8a74a83fce1b51d9874922c9c97e5d"
+    },
+    {
+      "file": "inst/sim/run/sim_write_count_mu_random_effect_grid.R",
+      "sha256": "9a08697223a3d64631ced597adccb92559dcc43283e25ff5d77d2ccf8aa3f2e4"
+    },
+    {
+      "file": "inst/sim/run/sim_write_count_structured_q1_grid.R",
+      "sha256": "643d7de1e8ce7ef056646f523491c5429523cbd304300e2a45241bcdcccf9657"
+    },
+    {
+      "file": "inst/sim/run/sim_write_first_wave_artifact_status.R",
+      "sha256": "f101cfb966c60fb4adcf6ef369b52cd4ff702169b00f2faeffb09aee690245a4"
+    },
+    {
+      "file": "inst/sim/run/sim_write_first_wave_table_bundle.R",
+      "sha256": "768e24fbfab1fe395c8e256c8c556b1dbe8eaf610212df7c4739532479e2c015"
+    },
+    {
+      "file": "inst/sim/run/sim_write_gaussian_ls_grid.R",
+      "sha256": "11c8c80eeb605dfe4925dfd471464d0f746bee24ea38ae9f75c77617df3f3fa0"
+    },
+    {
+      "file": "inst/sim/run/sim_write_gaussian_mu_random_slope_grid.R",
+      "sha256": "0859a3576245fe6d50eb29ab6db2b033e7a623239a1437492d9990fa43b07da5"
+    },
+    {
+      "file": "inst/sim/run/sim_write_gaussian_sigma_random_slope_grid.R",
+      "sha256": "2010941b81ff082cc78edaf96f122ca916454a7cbeaa7154c74edcaea55fa10f"
+    },
+    {
+      "file": "inst/sim/run/sim_write_meta_v_grid.R",
+      "sha256": "f254fa484a30dc3432fd1b1c69b1844c95492163a331c4e0b2e388d50cfce738"
+    },
+    {
+      "file": "inst/sim/run/sim_write_model_selection_smoke.R",
+      "sha256": "a665ea1d9f40a5b6e4ee35309f27a12769017711d9f0dee417dd63d68db2c31a"
+    },
+    {
+      "file": "inst/sim/run/sim_write_nbinom2_mu_re_recovery_grid.R",
+      "sha256": "225f87815969b29d001b13d9aba95f49aba64a7dd7f5315aaf336d83f387fa22"
+    },
+    {
+      "file": "inst/sim/run/sim_write_nbinom2_phylo_q1_grid.R",
+      "sha256": "5d83f1164ef20a982aa9d1afd4cb6e8c7e59654d522753127596866e4a87a328"
+    },
+    {
+      "file": "inst/sim/run/sim_write_nbinom2_sigma_random_effect_grid.R",
+      "sha256": "c9fef36289656826eadcc242c681133aba379347dc6b075eee9328cc664f0fc5"
+    },
+    {
+      "file": "inst/sim/run/sim_write_ordinal_fixed_effect_grid.R",
+      "sha256": "1e81b2bfd94bed3317214f00d0e67b64a3cb9ce684b17fc533f904104a892480"
+    },
+    {
+      "file": "inst/sim/run/sim_write_phylo_mu_slope_grid.R",
+      "sha256": "122b7f63e9473fed5ab527139b9b5fb1aac47a13f9ca5c42c099b75df6fdb538"
+    },
+    {
+      "file": "inst/sim/run/sim_write_poisson_mu_re_recovery_grid.R",
+      "sha256": "3a55f99cbf81374387b215b95338839c4215ae32481674a1eaf15a0ef433f81c"
+    },
+    {
+      "file": "inst/sim/run/sim_write_poisson_phylo_q1_grid.R",
+      "sha256": "eb6550fb19cc3b8fffa7950eeb3af75d31904278d834c2500725df4662d5da9f"
+    },
+    {
+      "file": "inst/sim/run/sim_write_positive_continuous_fixed_effect_grid.R",
+      "sha256": "9d8653dcf80f62a7f79882e11dfc26748f93b5b34a5d3854d7ff465712e9c7d9"
+    },
+    {
+      "file": "inst/sim/run/sim_write_positive_continuous_mu_random_intercept_grid.R",
+      "sha256": "cd379d6f62552930060705853328f89f7eda478336f525d87f49573da9ff3cc2"
+    },
+    {
+      "file": "inst/sim/run/sim_write_power_grid.R",
+      "sha256": "3d1a05f40d694f27e47a2b6fe3ceeeb3715cff868381b06ee698249a4027d0be"
+    },
+    {
+      "file": "inst/sim/run/sim_write_proportion_fixed_effect_grid.R",
+      "sha256": "8c69dacd8a3050234a62c948cd6efcdbd8b247180ae5e92a6cc0b25283cfda69"
+    },
+    {
+      "file": "inst/sim/run/sim_write_relmat_mu_slope_grid.R",
+      "sha256": "0941f62f469573f28b3e95a2fe67173c70682490e6a7eca35f985536994c7b63"
+    },
+    {
+      "file": "inst/sim/run/sim_write_skew_normal_fixed_effect_grid.R",
+      "sha256": "f0aadce8cdee73b58f1c63b007106b37f9b4fb10d9d4808fb231ee37e79db40c"
+    },
+    {
+      "file": "inst/sim/run/sim_write_spatial_mu_slope_grid.R",
+      "sha256": "22d337048702a71dcc6b3c6fa32a4f499a9ccf2b7c7cf7c2508528b60a9193a8"
+    },
+    {
+      "file": "inst/sim/run/sim_write_spatial_q2_grid.R",
+      "sha256": "e186f1bb66ff443c76cc42a954f7e570689b748b1546fdc81bb1f1030910769f"
+    },
+    {
+      "file": "inst/sim/run/sim_write_structured_re_ademp_scaffold.R",
+      "sha256": "0026396b91a39e95786c1098bc6894648b8c8a618ece8ae44b3b3b213bfa0145"
+    },
+    {
+      "file": "inst/sim/run/sim_write_student_mu_random_intercept_grid.R",
+      "sha256": "13c4e4e5d92534a784f5b00075d0aa3325ab918374f744c6fc8f3a68e2602a0b"
+    },
+    {
+      "file": "inst/sim/run/sim_write_student_shape_grid.R",
+      "sha256": "ffcc15ad643ec1f573c155b3c00c656802b928bc4c8b42d135c1cdcd52be6004"
+    },
+    {
+      "file": "inst/sim/run/sim_write_truncated_nbinom2_mu_random_intercept_grid.R",
+      "sha256": "231b5a0067dde9cab76ee2b6920f2fd383f35ea6e6e028be3ce3c51f873a31f1"
+    },
+    {
+      "file": "inst/sim/run/sim_write_tweedie_fixed_effect_grid.R",
+      "sha256": "b2a9724eb382a75fc0aecab66f00343c63d0e97a672c6f404deda680587a9b85"
+    },
+    {
+      "file": "inst/sim/run/sim_write_zero_one_beta_fixed_effect_grid.R",
+      "sha256": "6e092091fc7fda24d72bd868d255d8e45a5eb72f968fd5e23697c676eabf734f"
+    },
+    {
+      "file": "inst/trust-dossier/R/s1_multilevel.R",
+      "sha256": "9cb3f7956b3bebb4b2fdcc549a96c7e36a08ac7402ba20f0fbebd81757019255"
+    },
+    {
+      "file": "inst/trust-dossier/R/s2_bivariate.R",
+      "sha256": "0b1fcda5a5749812561612c286e963c22101dcbd85842b3014abdca5885e81c4"
+    },
+    {
+      "file": "inst/trust-dossier/R/s3_location_scale.R",
+      "sha256": "c964e9f418e9d1e3831c822370ff447366f66d7580cc490e1439f5f57fb82ad1"
+    },
+    {
+      "file": "inst/trust-dossier/R/s4_coverage_smoke.R",
+      "sha256": "1e243f7503b1d703932056ef60226f2dc76f2d61e0ee44ccfcde58c58db0da71"
+    },
+    {
+      "file": "inst/trust-dossier/results-grid/grid-coverage-bycell.csv",
+      "sha256": "dabe9279d23d3c002bb2e90df7e12d58819ba1d28be3b5f77fc83984a19e7b51"
+    },
+    {
+      "file": "inst/trust-dossier/results-grid/grid-coverage-summary.csv",
+      "sha256": "9bfa86e0b3f6c57bc6260416870409e4500d67378aad9588a54e2833009dc4cc"
+    },
+    {
+      "file": "inst/trust-dossier/results/measured_tolerances.csv",
+      "sha256": "3d6be1de7511baf8461a0fa32928dd5e17ba300a4fc0ce0aff1e12c96df65494"
+    },
+    {
+      "file": "inst/trust-dossier/results/s1_multilevel_parity.csv",
+      "sha256": "02372fa99e1a8643bf71f197f7489b44af792ee58d812b2e96ce22beb7a7740f"
+    },
+    {
+      "file": "inst/trust-dossier/results/s2_bivariate_parity.csv",
+      "sha256": "1e99402e033dce82032a53da53320c531731bb6a6bd010b22107471cbc8c9937"
+    },
+    {
+      "file": "inst/trust-dossier/results/s3a_location_scale_parity.csv",
+      "sha256": "9d74955f9072bcecfd95914558ff79f54227461dd691c0c1ec4170e37f64f42d"
+    },
+    {
+      "file": "inst/trust-dossier/results/s3b_re_dispersion_recovery.csv",
+      "sha256": "9f08bc0efcfe44cb701eed32bfcd199ebdddcc60ed20529173fc78268b86eb1d"
+    },
+    {
+      "file": "inst/trust-dossier/results/s4_coverage_smoke.csv",
+      "sha256": "afbac6d7799d2d35258dc292e90cb72d9cd3706497d0d2a612028d5587cc53c2"
+    },
+    {
+      "file": "inst/trust-dossier/run.R",
+      "sha256": "57f32ff53c2c3d53e1574dad279277056dd02c04b39e0eea6f10129f2608ecba"
+    },
+    {
+      "file": "inst/trust-dossier/totoro/run_grid.R",
+      "sha256": "01b80ae32ef914b07e942e6a723efd62f956f7eefcf714e368e1922048f9c243"
+    },
+    {
+      "file": "inst/trust-dossier/totoro/summarise_grid.R",
+      "sha256": "2131aaec73afa631afc4b7b36807223c3a6f748199db15eeac57767c6ab720b1"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "src/drm_count_kernels.h",
+      "sha256": "ccc6faa0f61e391770ca9611646ea694189a7588a50fe31f437cf1c511fc8047"
+    },
+    {
+      "file": "src/drm_numeric.h",
+      "sha256": "bb088a59031d4970cfc61866e85d2c7e154406eb8da575cf2f75e9203ffa526c"
+    },
+    {
+      "file": "src/drm_response_kernels.h",
+      "sha256": "6795dbcde5366676e2a110ffe5bf98e4754bde2360f2e7b4af1dbcb37a25b616"
+    },
+    {
+      "file": "tests/testthat/helper-binomial-sd-regression.R",
+      "sha256": "acd2153d99bc46d4094cbf5d9a1abd05febd00cb9e9e2a3619d3325925df9018"
+    },
+    {
+      "file": "tests/testthat/helper-convergence-warning.R",
+      "sha256": "271702d82d76a3b8ee39b13ed39aac78d4ffbf8d5cb9d43bfa2b72ec9e7a014a"
+    },
+    {
+      "file": "tests/testthat/helper-gaussian-random-effect-scale.R",
+      "sha256": "5dadefbddae5a83004548782e238321f2918492d79aada9527487c01ed578d91"
+    },
+    {
+      "file": "tests/testthat/helper-poisson-sd-regression.R",
+      "sha256": "613f239147ca73d902db690a54a902bd383f23adb81aa67e38bfb8dcfac50438"
+    },
+    {
+      "file": "tests/testthat/helper-poisson-slope-sd-reference.R",
+      "sha256": "c80a32eeb7d272a30d3a04270f850e31683517f5182b214f1b54b91d5fbd5b2d"
+    },
+    {
+      "file": "tests/testthat/test-binomial-random-effect-scale.R",
+      "sha256": "098aa6c710a9200bec4c6e14ef7bf51b314bfb22ab65a2505b331f2d545184b5"
+    },
+    {
+      "file": "tests/testthat/test-binomial-sd-clamp.R",
+      "sha256": "f1d347c43bdcdfc7df07f2c4d4f61a2b2f6b8f72d11b6e966bd7362143fa7f7c"
+    },
+    {
+      "file": "tests/testthat/test-binomial-sd-integration.R",
+      "sha256": "afc4a14d3ec43a1fdae3405384f9fa7262b18b35da7b1668a0373100bfb8bfe9"
+    },
+    {
+      "file": "tests/testthat/test-binomial-sd-links.R",
+      "sha256": "10babbf7a70138a859b5e54b53662bfba35b20941e7c04942cea3bc41254e32b"
+    },
+    {
+      "file": "tests/testthat/test-binomial-sd-profile.R",
+      "sha256": "3eec2f4fbb583f865ec2b925d684215bc53fd7c4eb5f603fc254030138c337cc"
+    },
+    {
+      "file": "tests/testthat/test-binomial-sd-simulation.R",
+      "sha256": "2a927714c97eccf5f2aea6bc611d64833402d30e74baac5652f5df717ac855fe"
+    },
+    {
+      "file": "tests/testthat/test-binomial-sd-target-selectors-integration.R",
+      "sha256": "f366bfc5c31e938469d614255628b1c1569f54c93b122a2062d367d700b72767"
+    },
+    {
+      "file": "tests/testthat/test-binomial-sd-target-selectors.R",
+      "sha256": "3efd472b395c8ff82eedfc17b87dd469d1e39530410944eb05c1809d25b8a54c"
+    },
+    {
+      "file": "tests/testthat/test-binomial-sd-target-workflows.R",
+      "sha256": "b586d710c8134630d6c6f588eec1ec220c7ac54b62427167166f6ae79b6eebda"
+    },
+    {
+      "file": "tests/testthat/test-clamp-active-guard.R",
+      "sha256": "1cb556ca15b6b3c5040625a905be5b348f13a7adf8bd53a1cf8af6b04ba0c1e9"
+    },
+    {
+      "file": "tests/testthat/test-gaussian-random-effect-scale.R",
+      "sha256": "3c0bb29d7a77f372cf9ffe12900087a5999845538619a568096a18201ed2427e"
+    },
+    {
+      "file": "tests/testthat/test-poisson-sd-assembly.R",
+      "sha256": "be307a8d87b6e75cd1a70620a41f75aa64061e2c0eb97dceb1b519fca023c49f"
+    },
+    {
+      "file": "tests/testthat/test-poisson-sd-integration.R",
+      "sha256": "08121b2d0efaffbe7ba32f9cb6b5344ae973a98f95dda93b6f2b947a929077af"
+    },
+    {
+      "file": "tests/testthat/test-poisson-slope-sd-assembly.R",
+      "sha256": "d5a1f3614e8c2d18bfa4f0ce8645c18d31046024bbe5f1bcee9046d6e3ce9274"
+    },
+    {
+      "file": "tests/testthat/test-poisson-slope-sd-integration.R",
+      "sha256": "4954063fad5261482c1392cc30641f62cf59a8e1368dcce0f9ee2292697d693e"
+    },
+    {
+      "file": "tests/testthat/test-poisson-slope-sd-reference.R",
+      "sha256": "e8cd666c0ba9288fcef0bcffeb93ef27ffe2d9978148db950ddbc29b56abecd2"
+    },
+    {
+      "file": "tests/testthat/test-random-scale-prediction-labels.R",
+      "sha256": "22ce26b72fc5bf01356c01d4d8a6a4d3ccb65241bab20457957ada9a8635a651"
+    }
+  ]
+}

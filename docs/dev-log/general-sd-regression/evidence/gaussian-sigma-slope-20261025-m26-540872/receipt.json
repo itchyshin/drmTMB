@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-gaussian-sigma-iid-slope-20261025-m26",
+  "rerecord_of_evidence_id": "native-gaussian-sigma-iid-slope-20261025",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-slope-20261025/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"Rscript -e 'devtools::test(filter = \"\"gaussian-sigma-sd-(regression|slope-regression)\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-gaussian-sigma-sd-slope-regression.R",
+      "test_sha256": "54b4288f13b0b481c7f15a07ccccf954c17882b1ef4cc24c54e39ce7844e28ee",
+      "started_utc": "2026-11-02T13:18:00Z",
+      "ended_utc": "2026-11-02T13:18:17Z",
+      "exit_code": 0,
+      "expectations_passed": 11,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-slope-20261025-m26-540872/test-console-test-gaussian-sigma-sd-slope-regression.log",
+      "console_log_sha256": "21bf4c7e02f6b189722ff5d8915caaf546d3443281a39eab74900c07f076161d"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-slope-20261025-m26-540872/source-manifest.json",
+  "source_manifest_sha256": "aebd1df369cdb1f7219dabb09f62befd0904eb958182e72b961e57fa21b28472",
+  "review_status": "unreviewed"
+}

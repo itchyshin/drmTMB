@@ -1,0 +1,27 @@
+{
+  "evidence_id": "nbinom2-relmat-spatial-intercept-sd-20261101-m26",
+  "rerecord_of_evidence_id": "nbinom2-relmat-spatial-intercept-sd-20261101",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-r2-20261101/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"\"devtools::test(filter = 'nbinom2-relmat-spatial-intercept-sd-regression', reporter = 'summary', stop_on_failure = FALSE)\"\" (wrapper also prints expectation counts and exits non-zero on any failure, error or skip)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-nbinom2-relmat-spatial-intercept-sd-regression.R",
+      "test_sha256": "9bba69c183c726d701f861f9d5d7fff610dabd7504cd7f28d4f713ceb31fecf1",
+      "started_utc": "2026-11-02T13:18:18Z",
+      "ended_utc": "2026-11-02T13:18:26Z",
+      "exit_code": 0,
+      "expectations_passed": 34,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-r2-20261101-m26-a10c20/test-console-test-nbinom2-relmat-spatial-intercept-sd-regression.log",
+      "console_log_sha256": "6edb3429a7ba6ded46d4741eb21337d41903ced58e68cd4add5a9155b7ceaac4"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-r2-20261101-m26-a10c20/source-manifest.json",
+  "source_manifest_sha256": "6f7a150f5d5d22b4769cc8d6b00566fa71aaa379879fb1295ba774762c6d4339",
+  "review_status": "unreviewed",
+  "oracle": "Dense Laplace approximation of the marginal likelihood evaluated at the fitted parameters, computed in the test (Newton inner loop on the full Sigma). Independence: partly independent of the engine (separate dense implementation, no TMB), but the spatial oracle and data-generating covariance use drmTMB:::drm_spatial_coords_precision (the helper under test), checked only against a kernel rebuilt with the same formula (mirrored); the relmat kernel is analytic and independent."
+}

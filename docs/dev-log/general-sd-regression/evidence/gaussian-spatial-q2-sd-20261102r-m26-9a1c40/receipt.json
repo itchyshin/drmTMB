@@ -1,0 +1,33 @@
+{
+  "evidence_id": "native-gaussian-spatial-q2-sd-20261102r-m26",
+  "rerecord_of_evidence_id": "native-gaussian-spatial-q2-sd-20261102r",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/gaussian-spatial-q2-sd-20261102r/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); r<-as.data.frame(testthat::test_file(\"\"tests/testthat/test-gaussian-spatial-q2-sd.R\"\", reporter=\"\"silent\"\")); print(colSums(r[c(\"\"passed\"\",\"\"failed\"\",\"\"error\"\",\"\"skipped\"\")]))'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-gaussian-spatial-q2-sd.R",
+      "test_sha256": "2c287989acd98d5b399d08b3fb869e59cda426003fe225d361696b7ea7d00818",
+      "started_utc": "2026-11-02T13:18:02Z",
+      "ended_utc": "2026-11-02T13:18:14Z",
+      "exit_code": 0,
+      "expectations_passed": 52,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-spatial-q2-sd-20261102r-m26-9a1c40/test-console-test-gaussian-spatial-q2-sd.log",
+      "console_log_sha256": "e75125b198e11379e9c910123282d5d7855b2de07b79075003af3ead2a1d011f"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-spatial-q2-sd-20261102r-m26-9a1c40/source-manifest.json",
+  "source_manifest_sha256": "47d6eaca83206d46f8a528edddb41bc86a4f714e8c263d3656177f15bf7d6b20",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "Gaussian spatial q2 mesh/other provider inputs: not tested"
+  ]
+}

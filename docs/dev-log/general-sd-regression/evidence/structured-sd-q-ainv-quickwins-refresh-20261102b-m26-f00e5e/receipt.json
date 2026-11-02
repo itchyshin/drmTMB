@@ -1,0 +1,31 @@
+{
+  "evidence_id": "native-structured-sd-q-ainv-quickwins-20261101d-20261102b-m26",
+  "rerecord_of_evidence_id": "native-structured-sd-q-ainv-quickwins-20261101d-20261102b",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/structured-sd-q-ainv-quickwins-refresh-20261102b/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); testthat::test_file(\"\"tests/testthat/test-structured-sd-q-ainv-quickwins.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-structured-sd-q-ainv-quickwins.R",
+      "test_sha256": "2ddae6f8efe3bc1f33d72294db0fe234912c935390063c7280e81a98c73d058c",
+      "started_utc": "2026-11-02T13:18:42Z",
+      "ended_utc": "2026-11-02T13:18:59Z",
+      "exit_code": 0,
+      "expectations_passed": 92,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/structured-sd-q-ainv-quickwins-refresh-20261102b-m26-f00e5e/test-console-test-structured-sd-q-ainv-quickwins.log",
+      "console_log_sha256": "908685ea1c847b9a4f52f0880696ac50c2377d284679fa87c30f6bfd8256d9df"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/structured-sd-q-ainv-quickwins-refresh-20261102b-m26-f00e5e/source-manifest.json",
+  "source_manifest_sha256": "24cba2a90fb1b4fff4d671ab5071426716aa65e46e4c2e9bd9536e89f38d3d8a",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity unless stated"
+  ]
+}

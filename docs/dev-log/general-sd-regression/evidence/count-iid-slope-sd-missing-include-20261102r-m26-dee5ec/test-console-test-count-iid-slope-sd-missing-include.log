@@ -1,0 +1,14 @@
+count-iid-slope-sd-missing-include: ...........................................................................Pruning 2 phylogeny tips absent from the data.
+i The fit uses the subtree induced by the observed species.
+.................................................................................Pruning 2 phylogeny tips absent from the data.
+i The fit uses the subtree induced by the observed species.
+..............................................................................Pruning 2 phylogeny tips absent from the data.
+i The fit uses the subtree induced by the observed species.
+........................................................................................................Pruning 2 phylogeny tips absent from the data.
+i The fit uses the subtree induced by the observed species.
+.......................................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=409 failed=0 errors=0 skipped=0
+DRM_RUN start=2026-11-02T13:17:31Z end=2026-11-02T13:17:57Z rc=0

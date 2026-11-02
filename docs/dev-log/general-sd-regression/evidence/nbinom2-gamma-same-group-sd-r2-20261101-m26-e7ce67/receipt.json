@@ -1,0 +1,35 @@
+{
+  "evidence_id": "nbinom2-gamma-same-group-sd-20261101-m26",
+  "rerecord_of_evidence_id": "nbinom2-gamma-same-group-sd-20261101",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-r2-20261101/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"\"devtools::test(filter = 'nbinom2-gamma-same-group-sd-regression', reporter = 'summary', stop_on_failure = FALSE)\"\" (wrapper also prints expectation counts and exits non-zero on any failure, error or skip)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-nbinom2-gamma-same-group-sd-regression.R",
+      "test_sha256": "cf319ea7e5ac740a194bbf5375aee6070ca1ef1003221e1b40dcd3443f39ab36",
+      "started_utc": "2026-11-02T13:18:12Z",
+      "ended_utc": "2026-11-02T13:18:28Z",
+      "exit_code": 0,
+      "expectations_passed": 38,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-r2-20261101-m26-e7ce67/test-console-test-nbinom2-gamma-same-group-sd-regression.log",
+      "console_log_sha256": "6b2970fe9fc653c78b11901911188d04ec3d5fb98f0f391ee2069021e2f51c23"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-r2-20261101-m26-e7ce67/source-manifest.json",
+  "source_manifest_sha256": "d5a3a98b5bd0802e5d78cb3a24bf565c35862a7188366b5246f10cdda29ed987",
+  "review_status": "unreviewed",
+  "oracle": "Independent per-group Laplace marginal likelihood written in the test file (damped Newton for the mode, observed information in log mu, stats::dnbinom / stats::dgamma), evaluated at the fitted coefficients and compared with logLik(fit) to relative 1e-6. A swapped-selector oracle must differ by more than 1 log-likelihood unit (non-vacuity). The oracle shares no code with the C++ objective, but the fitted coefficients come from the code under test; it checks likelihood assembly, not the optimiser. Constant-SD equivalence, nesting and prediction-identity checks are not oracles.",
+  "checks": [
+    "NB2 and Gamma fits converge; sdpars named for intercept and slope SD; coefficient names (Intercept),w0 and (Intercept),w1",
+    "coarse recovery of w0 and w1 slopes within 1 (cannot detect a swap; fixed seed 20261102, 50 groups of 12)",
+    "logLik equals independent Laplace oracle at fitted coefficients; swapped selector detected",
+    "predicted SDs equal exp(X alpha) from fitted alphas",
+    "constant-SD limit reproduces plain two-term fit",
+    "SD regression nests constant-SD fit"
+  ]
+}

@@ -36,8 +36,11 @@
   slope-only SD (2026-11-02). For these routes DRM.jl uses `K` as given,
   including a non-unit diagonal. On one fixture each the bridge fit matched
   native TMB within 3e-7 on coefficients and 2e-5 on the log-likelihood. Gamma
-  and NB2 phylogenetic slope-only SD, NB2 spatial slope SD, relmat `Q` input,
+  and NB2 phylogenetic slope-only SD, relmat `Q` input,
   and marginal simulation of these fits stay refused on the Julia engine.
+  NB2 coordinate `spatial(0 + x | g)` slope-only SD is also admitted
+  (DRM.jl `87a371a66`); on one fixture it matched native TMB within 1.5e-7 on
+  coefficients and 2e-6 on the log-likelihood.
 
 * More native predictor-dependent random-effect SD routes (2026-11-01, each
   checked against a drmTMB-independent dense Laplace or exact marginal

@@ -1,0 +1,26 @@
+{
+  "evidence_id": "julia-lognormal-iid-numeric-slope-20261022-v1-m26",
+  "rerecord_of_evidence_id": "julia-lognormal-iid-numeric-slope-20261022-v1",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/lognormal-julia-sd-20261022/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time; except ['tests/testthat/test-julia-lognormal-sd-parity.R'], edited after e9c72ab3e and committed together with this receipt (run used the edited content hashed in the manifest)",
+  "command": "\"DRM_JL_PATH=<paired DRM.jl candidate> DRMTMB_JULIA_TESTS=true JULIA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"julia-lognormal-sd-(parity|gate)\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-lognormal-sd-parity.R",
+      "test_sha256": "2e21465785b84694f03072abf22a1a6bc27e4749c509195dc60d4875272264e9",
+      "started_utc": "2026-11-02T13:35:08Z",
+      "ended_utc": "2026-11-02T13:35:54Z",
+      "exit_code": 0,
+      "expectations_passed": 32,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/lognormal-julia-sd-20261022-m26-52edd0/test-console-test-julia-lognormal-sd-parity.log",
+      "console_log_sha256": "4d39aea45722cf4e400edc96bc2299fc836196a98bd53eb9576df67a8b3cd723"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/lognormal-julia-sd-20261022-m26-52edd0/source-manifest.json",
+  "source_manifest_sha256": "cf72a62f2ecdc24fae5cc89d69335861df094440f3445658c51b9aabdb76c12b",
+  "review_status": "unreviewed"
+}

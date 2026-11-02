@@ -1,0 +1,31 @@
+{
+  "evidence_id": "gaussian-native-correlated-q2-sd-20261101-20261101d-20261102b-20261102c-m26",
+  "rerecord_of_evidence_id": "gaussian-native-correlated-q2-sd-20261101-20261101d-20261102b-20261102c",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-refresh-20261102c-028b23/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); testthat::test_file(\"\"tests/testthat/test-gaussian-correlated-q2-sd.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-gaussian-correlated-q2-sd.R",
+      "test_sha256": "dc5ba77171cf3e0e7c502c24ab6dd81b82c111bab102ee043bd36f14ef873ee6",
+      "started_utc": "2026-11-02T13:17:48Z",
+      "ended_utc": "2026-11-02T13:17:59Z",
+      "exit_code": 0,
+      "expectations_passed": 17,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-refresh-20261102c-028b23-m26-6de1c8/test-console-test-gaussian-correlated-q2-sd.log",
+      "console_log_sha256": "0c30758c3c0f91c95e456263ae85639a031c64ab1e3a9dd301bf000c1812a2b9"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-refresh-20261102c-028b23-m26-6de1c8/source-manifest.json",
+  "source_manifest_sha256": "539ce79ab52356503d12fe047acf8fed9f4f6e56c4bd63ce7a145c49eed48edd",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity unless stated"
+  ]
+}

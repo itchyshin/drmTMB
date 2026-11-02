@@ -1,0 +1,6 @@
+gamma-iid-structured-sd-regression: ..................................................................................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=114 failed=0 errors=0 skipped=0
+DRM_RUN start=2026-11-02T13:17:38Z end=2026-11-02T13:19:27Z rc=0

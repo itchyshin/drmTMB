@@ -1,0 +1,37 @@
+{
+  "evidence_id": "nbinom2-gamma-same-group-sd-oracle-20261101b-m26",
+  "rerecord_of_evidence_id": "nbinom2-gamma-same-group-sd-oracle-20261101b",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-oracle-20261101b/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"cd \"\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\"\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'res <- devtools::test(filter = \"\"^nbinom2-gamma-same-group-sd-oracle$\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)' > docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-oracle-20261101b/test-console.log 2>&1\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-nbinom2-gamma-same-group-sd-oracle.R",
+      "test_sha256": "c5270713731353a0cfd79c4b36d69cb36951145a52cb3f416bfee16454086e26",
+      "started_utc": "2026-11-02T13:18:12Z",
+      "ended_utc": "2026-11-02T13:18:20Z",
+      "exit_code": 0,
+      "expectations_passed": 10,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-oracle-20261101b-m26-256d3a/test-console-test-nbinom2-gamma-same-group-sd-oracle.log",
+      "console_log_sha256": "6dcf3dfc967e5364087d4bc9df04cbf6704999ee183bdf9d2f420a9249673461"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-oracle-20261101b-m26-256d3a/source-manifest.json",
+  "source_manifest_sha256": "2d51d7d238990c65a0c1c45867522e1e24066e2688074adb11906fab9175f91d",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "iid_additive_terms (crossed and nested)",
+    "recovery or coverage",
+    "Julia parity"
+  ],
+  "oracle": "Independent per-group Laplace marginal written in the test without drmTMB internals; swapped-SD, swapped-predictor and misaligned oracles must each differ by more than 1 log-likelihood unit.",
+  "checks": [
+    "fit converges",
+    "logLik equals the Laplace oracle to 1e-4 absolute",
+    "three emulated bugs are detected"
+  ]
+}

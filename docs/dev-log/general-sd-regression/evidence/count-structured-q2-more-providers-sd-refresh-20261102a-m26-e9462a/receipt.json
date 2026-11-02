@@ -1,0 +1,31 @@
+{
+  "evidence_id": "native-count-structured-q2-more-providers-sd-20261101d-20261102a-m26",
+  "rerecord_of_evidence_id": "native-count-structured-q2-more-providers-sd-20261101d-20261102a",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/count-structured-q2-more-providers-sd-refresh-20261102a/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); testthat::test_file(\"\"tests/testthat/test-count-structured-q2-more-providers-sd.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-count-structured-q2-more-providers-sd.R",
+      "test_sha256": "c5a76b118041a9303a299bb5cca2bba36483c37242cc8f9f932bb67a2e3e0cec",
+      "started_utc": "2026-11-02T13:17:35Z",
+      "ended_utc": "2026-11-02T13:18:12Z",
+      "exit_code": 0,
+      "expectations_passed": 165,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/count-structured-q2-more-providers-sd-refresh-20261102a-m26-e9462a/test-console-test-count-structured-q2-more-providers-sd.log",
+      "console_log_sha256": "eb63d66757157c9472c628f6aeb2ee8febc41bb293886a016dbc5dfa2c2bfd2d"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/count-structured-q2-more-providers-sd-refresh-20261102a-m26-e9462a/source-manifest.json",
+  "source_manifest_sha256": "f1b87e8d466e0c839929b93bc1994d879303a21e79c98b052198210de97ce7a9",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity unless stated"
+  ]
+}

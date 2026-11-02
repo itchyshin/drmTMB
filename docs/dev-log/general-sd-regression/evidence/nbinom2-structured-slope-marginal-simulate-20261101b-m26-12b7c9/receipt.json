@@ -1,0 +1,38 @@
+{
+  "evidence_id": "nbinom2-structured-slope-marginal-simulate-20261101b-m26",
+  "rerecord_of_evidence_id": "nbinom2-structured-slope-marginal-simulate-20261101b",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-structured-slope-marginal-simulate-20261101b/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"cd \"\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\"\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'res <- devtools::test(filter = \"\"^nbinom2-structured-slope-marginal-simulate$\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)' > docs/dev-log/general-sd-regression/evidence/nbinom2-structured-slope-marginal-simulate-20261101b/test-console.log 2>&1\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-nbinom2-structured-slope-marginal-simulate.R",
+      "test_sha256": "14f6516311a781c69f4ca93206b385301062b1b93f7945869b10d55431454c61",
+      "started_utc": "2026-11-02T13:18:26Z",
+      "ended_utc": "2026-11-02T13:18:35Z",
+      "exit_code": 0,
+      "expectations_passed": 42,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-structured-slope-marginal-simulate-20261101b-m26-12b7c9/test-console-test-nbinom2-structured-slope-marginal-simulate.log",
+      "console_log_sha256": "91a4601c8a6bcdbbbc401e21260b4e420df540ab5a54aa28d9658939865bd7dd"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-structured-slope-marginal-simulate-20261101b-m26-12b7c9/source-manifest.json",
+  "source_manifest_sha256": "3838b427e6a7d5bb75fbd8976ed8e5a03a5380f5e5601e90684518f656604cbd",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "likelihood correctness of the SD regression (no oracle in this file; linked rows have other evidence)",
+    "spatial, animal and Q provider inputs",
+    "se = TRUE inference",
+    "Julia parity"
+  ],
+  "oracle": "None for the likelihood. Simulation checks are public-contract checks (shape, finite non-negative integers, seed reproducibility, re.form = NULL still works) and Monte Carlo moments of the fresh linear-predictor effect against x_r^2 sd_i^2 K_ii and x_r x_s sd_i sd_j K_ij.",
+  "checks": [
+    "fit converges",
+    "marginal simulate contract",
+    "Monte Carlo variance and covariance of the structured effect match the K-scaled targets"
+  ]
+}
