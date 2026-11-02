@@ -21,11 +21,12 @@ residuals, \code{predict(type = "quantile")}, and \code{exceedance()} route thro
 the public-to-native parameter conversion is not re-derived in each caller.
 }
 \details{
-These helpers currently cover 18 fitted \code{model_type} values
+These helpers currently cover 20 fitted \code{model_type} values
 (\code{status = "reference"}): \code{"gaussian"}, \code{"student"}, \code{"skew_normal"},
 \code{"lognormal"}, \code{"gamma"}, \code{"tweedie"}, \code{"beta"}, \code{"zero_one_beta"},
 \code{"beta_binomial"}, \code{"binomial"}, \code{"cumulative_logit"}, \code{"poisson"},
 \code{"zi_poisson"}, \code{"nbinom2"}, \code{"truncated_nbinom2"}, \code{"hurdle_nbinom2"},
+\code{"truncated_poisson"}, \code{"hurdle_poisson"},
 \code{"zi_nbinom2"}, and \code{"biv_gaussian"}.
 For \code{"skew_normal"}, this support applies only to the density, CDF, and
 quantile calculations. It does not establish fit quality; \code{check_drmTMB()}
