@@ -100,6 +100,8 @@ test-binomial-phylo-sd-simulation.R	cran-lane	environment	runs	1
 test-binomial-phylo-sd-simulation.R	suggests-package	environment	runs	1
 test-binomial-phylo-slope-sd.R	cran-lane	environment	runs	1
 test-binomial-phylo-slope-sd.R	suggests-package	environment	runs	1
+test-binomial-phylo-spatial-q2-sd.R	cran-lane	environment	runs	1
+test-binomial-phylo-spatial-q2-sd.R	suggests-package	environment	runs	3
 test-binomial-phylo-spatial-sd.R	cran-lane	environment	runs	5
 test-binomial-phylo-spatial-sd.R	suggests-package	environment	runs	2
 test-binomial-phylo.R	cran-lane	environment	runs	5
@@ -183,6 +185,7 @@ test-gamma-batch3-sd-regression.R	cran-lane	environment	runs	1
 test-gamma-batch4-sd-regression.R	cran-lane	environment	runs	3
 test-gamma-iid-structured-sd-regression.R	cran-lane	environment	runs	4
 test-gamma-iid-structured-sd-regression.R	suggests-package	environment	runs	1
+test-gamma-mu-sigma-joint-sd.R	cran-lane	environment	runs	4
 test-gamma-ordinary-sd-beside-structured.R	cran-lane	environment	runs	4
 test-gamma-ordinary-sd-beside-structured.R	suggests-package	environment	runs	1
 test-gamma-phylo-q2-sd-regression.R	cran-lane	environment	runs	1
@@ -193,13 +196,19 @@ test-gamma-spatial-q2-sd-regression.R	cran-lane	environment	runs	1
 test-gamma-spatial-sd-regression.R	cran-lane	environment	runs	1
 test-gamma-spatial-sd-regression.R	engine-drm-jl	environment	skips	2
 test-gamma-spatial-sd-regression.R	suggests-package	environment	runs	1
+test-gamma-structured-slope-sd.R	cran-lane	environment	runs	4
+test-gamma-structured-slope-sd.R	suggests-package	environment	runs	2
 test-gaussian-animal-sd-regression.R	cran-lane	environment	runs	3
 test-gaussian-batch5-sd-regression.R	cran-lane	environment	runs	10
 test-gaussian-batch5-sd-regression.R	runtime-conditional	runtime	depends	2
 test-gaussian-correlated-q2-sd.R	cran-lane	environment	runs	1
 test-gaussian-independent-pair-sd.R	cran-lane	environment	runs	1
 test-gaussian-mu-sigma-joint-sd.R	cran-lane	environment	runs	3
+test-gaussian-phylo-interaction-slope-sd.R	cran-lane	environment	runs	4
+test-gaussian-phylo-interaction-slope-sd.R	suggests-package	environment	runs	3
 test-gaussian-sigma-endpoint-mixes-sd.R	cran-lane	environment	runs	7
+test-gaussian-sigma-structured-sd.R	cran-lane	environment	runs	3
+test-gaussian-sigma-structured-sd.R	suggests-package	environment	runs	4
 test-gaussian-structured-direct-sd-providers.R	cran-lane	environment	runs	3
 test-heritability.R	suggests-package	environment	runs	1
 test-julia-admission-census.R	build-premise	build	skips	1
@@ -497,6 +506,7 @@ test-nbinom2-batch5-sd-regression.R	suggests-package	environment	runs	1
 test-nbinom2-gamma-same-group-sd-oracle.R	cran-lane	environment	runs	2
 test-nbinom2-gamma-same-group-sd-regression.R	cran-lane	environment	runs	2
 test-nbinom2-ordinary-correlated-q2.R	suggests-package	environment	runs	1
+test-nbinom2-phylo-interaction-sd.R	cran-lane	environment	runs	3
 test-nbinom2-phylo-relmat-slope-sd-regression.R	cran-lane	environment	runs	2
 test-nbinom2-phylo-relmat-slope-sd-regression.R	suggests-package	environment	runs	1
 test-nbinom2-relmat-spatial-intercept-sd-regression.R	cran-lane	environment	runs	3
@@ -504,6 +514,7 @@ test-nbinom2-sigma-structured-recovery.R	cran-lane	environment	runs	2
 test-nbinom2-sigma-structured-recovery.R	env-var-optin	environment	skips	2
 test-nbinom2-sigma-structured-recovery.R	suggests-package	environment	runs	2
 test-nbinom2-spatial-slope-sd-regression.R	cran-lane	environment	runs	2
+test-nbinom2-structured-q2-sd-regression.R	cran-lane	environment	runs	6
 test-nbinom2-structured-slope-marginal-simulate.R	cran-lane	environment	runs	2
 test-nbinom2-structured-slope-marginal-simulate.R	suggests-package	environment	runs	1
 test-nbinom2-underdispersion-docs.R	build-premise	build	skips	1
@@ -585,6 +596,7 @@ test-poisson-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-poisson-phylo-relmat-slope-sd-regression.R	cran-lane	environment	runs	2
 test-poisson-phylo-relmat-slope-sd-regression.R	suggests-package	environment	runs	1
 test-poisson-phylo-sd-regression.R	suggests-package	environment	runs	1
+test-poisson-structured-q2-sd-regression.R	cran-lane	environment	runs	4
 test-positive-continuous-structured-mu.R	build-premise	build	skips	1
 test-positive-continuous-structured-mu.R	suggests-package	environment	runs	4
 test-profile-parallel.R	build-premise	build	skips	1
@@ -628,6 +640,7 @@ test-reml-structured-location.R	env-var-optin	environment	skips	2
 test-scale-phylo-identifiability.R	cran-lane	environment	runs	5
 test-scale-phylo-identifiability.R	runtime-conditional	runtime	depends	3
 test-scale-phylo-identifiability.R	suggests-package	environment	runs	2
+test-sd-crossed-and-site-quickwins.R	cran-lane	environment	runs	3
 test-shard-selection.R	runtime-conditional	runtime	depends	1
 test-simulate-re-form-phylo-interaction.R	cran-lane	environment	runs	1
 test-spatial-gaussian.R	cran-lane	environment	runs	1
@@ -638,6 +651,7 @@ test-structured-sd-asymmetric-alignment.R	cran-lane	environment	runs	5
 test-structured-sd-clamp-report.R	suggests-package	environment	runs	3
 test-structured-sd-nonunit-k-and-missing.R	cran-lane	environment	runs	6
 test-structured-sd-nonunit-k-and-missing.R	suggests-package	environment	runs	1
+test-structured-sd-q-ainv-quickwins.R	cran-lane	environment	runs	7
 test-student-large-nu.R	cran-lane	environment	runs	2
 test-summary-nonconverged.R	cran-lane	environment	runs	2
 test-temporal-homtoep-identifiability.R	build-premise	build	skips	1
