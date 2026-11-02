@@ -6601,10 +6601,21 @@ drm_build_gamma_ls_spec <- function(
   validate_positive_continuous_mu_random_terms(mu_re$terms, "{.fn Gamma}")
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
+  # Joint ordinary mu + sigma random intercepts are admitted only when BOTH
+  # carry their own SD formula (model_type 5 builds both blocks independently).
+  gamma_joint_ordinary_sd <- length(sd_mu_entries) > 0L &&
+    length(sd_sigma_entries) > 0L && length(sd_phylo_entries) == 0L &&
+    is.null(mu_structured_term) &&
+    length(mu_re$terms) == 1L &&
+    identical(mu_re$terms[[1L]]$type, "intercept") &&
+    is.null(mu_re$terms[[1L]]$covariance_label) &&
+    length(sigma_re$terms) == 1L &&
+    identical(sigma_re$terms[[1L]]$type, "intercept") &&
+    is.null(sigma_re$terms[[1L]]$covariance_label)
   validate_positive_continuous_sigma_random_terms(
     sigma_re$terms,
     "{.fn Gamma}",
-    mu_terms = mu_re$terms,
+    mu_terms = if (gamma_joint_ordinary_sd) list() else mu_re$terms,
     allow_slopes = length(sd_sigma_entries) > 0L
   )
   validate_positive_continuous_structured_combinations(
@@ -6647,11 +6658,12 @@ drm_build_gamma_ls_spec <- function(
       length(mu_re$terms) == 1L &&
       identical(mu_re$terms[[1L]]$type, "intercept") &&
       is.null(mu_re$terms[[1L]]$covariance_label)
-    if ((length(sd_mu_entries) > 0L && length(sd_sigma_entries) > 0L) ||
-        (length(sd_mu_entries) > 0L &&
+    if ((!gamma_joint_ordinary_sd &&
+          length(sd_mu_entries) > 0L && length(sd_sigma_entries) > 0L) ||
+        (!gamma_joint_ordinary_sd && length(sd_mu_entries) > 0L &&
           ((length(mu_re$terms) > 1L && !gamma_same_group_pair) ||
             length(sigma_re$terms) > 0L)) ||
-        (length(sd_sigma_entries) > 0L &&
+        (!gamma_joint_ordinary_sd && length(sd_sigma_entries) > 0L &&
           (!is.null(mu_structured_term) || length(mu_re$terms) > 0L ||
             length(sigma_re$terms) != 1L ||
             !sigma_re$terms[[1L]]$type %in% c("intercept", "slope") ||
@@ -10765,7 +10777,18 @@ drm_build_nbinom2_spec <- function(
       identical(sigma_re$terms[[1L]]$type, "slope") &&
       is.null(sigma_re$terms[[1L]]$covariance_label) &&
       length(mu_re$terms) == 0L && is.null(mu_structured_term) &&
-      is.null(mu_structured_term2) && is.null(sigma_structured_term)
+      is.null(mu_structured_term2) && is.null(sigma_structured_term),
+    allow_joint_ordinary_mu = is.null(zi_entry) &&
+      !include_missing_response &&
+      length(sd_mu_entries) == 1L && length(sd_sigma_entries) == 1L &&
+      length(mu_re$terms) == 1L &&
+      identical(mu_re$terms[[1L]]$type, "intercept") &&
+      is.null(mu_re$terms[[1L]]$covariance_label) &&
+      length(sigma_re$terms) == 1L &&
+      identical(sigma_re$terms[[1L]]$type, "intercept") &&
+      is.null(sigma_re$terms[[1L]]$covariance_label) &&
+      is.null(mu_structured_term) && is.null(mu_structured_term2) &&
+      is.null(sigma_structured_term)
   )
   if (length(sd_phylo_entries) > 0L && (
     length(sd_phylo_entries) != 1L ||
@@ -11031,7 +11054,21 @@ drm_build_nbinom2_spec <- function(
   has_zi <- !is.null(X_zi)
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
-  if (length(sd_sigma_entries) > 0L && (
+  # Scoped joint ordinary gate: one independent mu random intercept with its own
+  # SD formula plus one independent sigma random intercept with its own SD
+  # formula, complete data, no zi, no structured fields.
+  nb2_joint_ordinary_sd <- is.null(zi_entry) &&
+    !include_missing_response && !include_missing_predictor &&
+    length(sd_mu_entries) == 1L && length(sd_sigma_entries) == 1L &&
+    length(mu_re$terms) == 1L &&
+    identical(mu_re$terms[[1L]]$type, "intercept") &&
+    is.null(mu_re$terms[[1L]]$covariance_label) &&
+    length(sigma_re$terms) == 1L &&
+    identical(sigma_re$terms[[1L]]$type, "intercept") &&
+    is.null(sigma_re$terms[[1L]]$covariance_label) &&
+    is.null(mu_structured_term) && is.null(mu_structured_term2) &&
+    is.null(sigma_structured_term)
+  if (length(sd_sigma_entries) > 0L && !nb2_joint_ordinary_sd && (
     include_missing_response || include_missing_predictor ||
       length(sd_mu_entries) > 0L ||
       length(mu_re$terms) > 0L || !is.null(mu_structured_term) ||
@@ -11046,7 +11083,8 @@ drm_build_nbinom2_spec <- function(
       "i" = "Use one {.code (1 | group)} or {.code (0 + x | group)} term in {.code sigma}, no other random effects, and a group-constant SD predictor."
     ))
   }
-  if (length(sd_mu_entries) > 0L && length(sigma_re$terms) > 0L) {
+  if (length(sd_mu_entries) > 0L && length(sigma_re$terms) > 0L &&
+      !nb2_joint_ordinary_sd) {
     cli::cli_abort(
       "NB2 ordinary {.code sd()} regression is not yet admitted with random effects on {.code sigma}."
     )
@@ -13343,7 +13381,8 @@ validate_nbinom2_sigma_random_terms <- function(
   has_zi = FALSE,
   zi_is_intercept_only = FALSE,
   sigma_is_intercept_only = FALSE,
-  allow_independent_slope = FALSE
+  allow_independent_slope = FALSE,
+  allow_joint_ordinary_mu = FALSE
 ) {
   if (length(terms) == 0L) {
     return(invisible(terms))
@@ -13362,7 +13401,8 @@ validate_nbinom2_sigma_random_terms <- function(
       "i" = "Remove sigma slopes, labels, structured terms, and mu random effects."
     ))
   }
-  if (length(mu_terms) > 0L || !is.null(structured_term)) {
+  if ((length(mu_terms) > 0L && !isTRUE(allow_joint_ordinary_mu)) ||
+      !is.null(structured_term)) {
     cli::cli_abort(c(
       "NB2 {.code sigma} random intercepts cannot be combined with {.code mu} random effects in this first gate.",
       "x" = "The formula contains a {.code sigma} random effect plus an ordinary or structured {.code mu} random effect.",
