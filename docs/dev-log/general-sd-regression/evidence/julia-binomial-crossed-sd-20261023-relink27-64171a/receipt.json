@@ -1,0 +1,38 @@
+{
+  "evidence_id": "julia-binomial-crossed-sd-20261023-relink27",
+  "relink_of_evidence_id": "julia-binomial-crossed-sd-20261023",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-sd-20261023/receipt.json",
+  "prior_test_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-sd-20261023/test_binomial_crossed_sd_regression.jl",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "drmodels_jl_commit": "87a371a667e8823e8f5aca75ed1344145982c532",
+  "drmodels_jl_tree_state": "src/, test/, ext/, Project.toml, Manifest.toml clean at that commit (only docs modified)",
+  "host": "Totoro",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 taskset -c 242 julia +1.10.12 --startup-file=no --project=. test/test_binomial_crossed_sd_regression.jl (Totoro, cwd = copy of DRModels.jl at 87a371a667e8823e8f5aca75ed1344145982c532, src/test/ext/Project/Manifest hashes identical to the Mac worktree)",
+  "live_test_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-sd-20261023-relink27-64171a/test-snapshot/test/test_binomial_crossed_sd_regression.jl",
+  "live_test_origin": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_binomial_crossed_sd_regression.jl",
+  "row_key_support": "live test is byte-identical to the frozen snapshot",
+  "runs": [
+    {
+      "test_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-sd-20261023-relink27-64171a/test-snapshot/test/test_binomial_crossed_sd_regression.jl",
+      "test_sha256": "d924f2fd764a0686e5cb1358d3a912b8dbb97129d941226c5b51e38f8aeebb5f",
+      "started_utc": "2026-11-02T13:59:46Z",
+      "ended_utc": "2026-11-02T14:00:55Z",
+      "exit_code": 0,
+      "expectations_passed": 20,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-sd-20261023-relink27-64171a/test-console.log",
+      "console_log_sha256": "ab2a900be376103ceb671874fe808850f8f4ef6fd399d3cbd32815574d6cf105"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-sd-20261023-relink27-64171a/source-manifest.json",
+  "source_manifest_sha256": "75508e253380aef4368dd72484776bc5983b901540735517381037a0ef17da5b",
+  "review_status": "unreviewed",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ],
+  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared)."
+}

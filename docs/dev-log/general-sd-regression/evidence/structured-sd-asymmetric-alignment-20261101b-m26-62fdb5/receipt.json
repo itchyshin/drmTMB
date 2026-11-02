@@ -22,7 +22,7 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/structured-sd-asymmetric-alignment-20261101b-m26-62fdb5/source-manifest.json",
   "source_manifest_sha256": "dc6d8b8ba907d53c24541bb829fc9ac9843f47a3e4a6873b6595b3a0fba7bde8",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "slope-only fields",
     "Toeplitz, phylo and animal providers",
@@ -34,5 +34,8 @@
   "checks": [
     "logLik matches oracle with correct name alignment",
     "positional (misaligned) oracle differs by a pre-set gap"
-  ]
+  ],
+  "review_note": "All five linked rows (Poisson spatial, NB2 relmat, NB2 spatial, Gaussian relmat, Gaussian spatial intercept SD) are fitted. Kernels are hand-built in the test (irregular non-symmetric coordinates with dist()/median(); K = D R D with non-unit unequal diagonal) and never taken from the package helper; oracles are the exact Gaussian marginal and a base-R dense Laplace for count families, matching fitted logLik to 1e-6 relative. Emulated-bug sensitivity: with data levels, supplied kernel and rows each in different shuffled orders, reading the supplied kernel by position moves the oracle by more than 0.5 log-likelihood units and 1000x tolerance on every route. Manifest 9/9 hashes match current files (shasum); rerun at e9c72ab3e: 52 pass, 0 fail, 0 skip. Intercept-only fields; the spatial kernel formula is the documented one, mirrored. Does NOT establish: slope fields, Toeplitz/phylo/animal providers, Q or Ainv inputs, se=TRUE inference, selector-swap sensitivity, calibration or coverage, Julia parity.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

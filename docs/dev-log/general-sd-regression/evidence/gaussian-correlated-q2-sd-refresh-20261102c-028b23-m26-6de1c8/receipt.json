@@ -22,10 +22,13 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-refresh-20261102c-028b23-m26-6de1c8/source-manifest.json",
   "source_manifest_sha256": "539ce79ab52356503d12fe047acf8fed9f4f6e56c4bd63ce7a145c49eed48edd",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "interval calibration",
     "coverage",
     "Julia parity unless stated"
-  ]
+  ],
+  "review_note": "Independent review of the native Gaussian ordinary correlated (1 + x | id) block with separate sd(id, coef='(Intercept)') ~ w0 and sd(id, coef='x') ~ w1, sigma ~ 1 (rows mu:I and mu:x1). The oracle is an exact dense multivariate-normal marginal in base R (cov = Z D R D Z' + sigma^2 I, chol/backsolve), no kernels, independent of TMB. Evaluated at fitted mu, sigma, rho and package-predicted group SDs it matched logLik to 8.8e-11 absolute in a Totoro scratch run (test tolerance 1e-8 relative is about 1e-5 absolute). The test file has no perturbations, so I demonstrated sensitivity in scratch: swapping the intercept and slope SD vectors moves the oracle 58.0, reversing group order 18.9, flipping rho 15.5, feeding the slope SD the wrong covariate 2.5, all far above tolerance. Both linked rows are exercised: the main fit regresses both SDs, and the third test regresses the slope SD only with a constant intercept SD, against the same oracle at 1e-6. All 5 manifest hashes match current files; rerun 17 pass, 0 failures, 0 skips. Does NOT establish: calibration or coverage, SD-slope recovery beyond loose bands (0.3), blocks with q>2 or labelled cross-parameter blocks, other families, Julia parity, the sensitivity being enforced inside the test file (only shown in my scratch run).",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

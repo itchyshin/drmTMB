@@ -22,5 +22,8 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-mu-sigma-joint-sd-20261101-m26-b43989/source-manifest.json",
   "source_manifest_sha256": "642362c395115d9d430713a509044d7234722bdb897f9c5ced2ac62a02425371",
-  "review_status": "unreviewed"
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Oracle is a base-R dense Laplace marginal about the exact mode (own gradient, Hessian and Newton polish), independent of drmTMB; at fitted parameters the fit agrees to 1.8e-10 and 3.1e-11 (tolerance 1e-4). All three rows are fitted: mu iid intercept SD (both fits), sigma iid intercept SD (test 2), sigma iid numeric slope SD (test 1, (0+z|site)). Sensitivity demonstrated in a scratch run on Totoro without editing files: reversing or shifting the w/v group predictors or flipping an SD coefficient moves the oracle by 0.066 to 42.6 log-lik units against the 1e-4 tolerance (smallest case: shift of w by one level, 0.066 on the slope fixture, 0.66 on the intercept fixture). Manifest: all 7 entries rehash to current files (verified); my own rerun on Totoro gave 29/0/0/0 and the receipt rerun at e9c72ab3e gave 29/0/0/0, 0 skips. Sensitivity is from my scratch run, not an in-test assertion. Does NOT establish: Julia parity, calibration or coverage, other families or providers, correlated or structured blocks, sigma-side SD with multiple slopes.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

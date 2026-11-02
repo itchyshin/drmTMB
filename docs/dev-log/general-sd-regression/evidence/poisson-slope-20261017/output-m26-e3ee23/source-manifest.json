@@ -1,6 +1,6 @@
 {
   "scope": "Source identity for native-poisson-sd-intercept-oracle-workflow-20261017, re-recorded at commit e9c72ab3e",
-  "commit": "e9c72ab3e",
+  "commit": "b718863e7319af143896614e823d44e488be0653",
   "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-slope-20261017/source-manifest.json",
   "files": [
     {
@@ -97,7 +97,7 @@
     },
     {
       "file": "R/julia-bridge.R",
-      "sha256": "472d9de4db223c925df61a683bfd06448e8b9891f32ae2bc386191c6f6098be5"
+      "sha256": "85dfa58bc85739171228a689240f7e049b75a7012b17afbcaca80dd75c785c68"
     },
     {
       "file": "R/julia-coefficient-labels.R",
@@ -241,7 +241,7 @@
     },
     {
       "file": "inst/extdata/env-skip-census.tsv",
-      "sha256": "71134aea21b667be7dd1a2e01afe73e3329dd37ada6cda00fd3d033b858a960a"
+      "sha256": "0507f4f76663d4232dfbe20d904c8421f0aecbb55d3e675f4cf4037a2ccb3b8f"
     },
     {
       "file": "inst/extdata/julia-capabilities.tsv",
@@ -1419,5 +1419,6 @@
       "file": "tests/testthat/test-random-scale-prediction-labels.R",
       "sha256": "22ce26b72fc5bf01356c01d4d8a6a4d3ccb65241bab20457957ada9a8635a651"
     }
-  ]
+  ],
+  "re_recorded": "2026-11-02 at b718863e7; entries that differed from the first record: ['R/julia-bridge.R', 'inst/extdata/env-skip-census.tsv']"
 }

@@ -1,0 +1,38 @@
+{
+  "evidence_id": "julia-nb2-animal-ainv-sd-20261023-relink27",
+  "relink_of_evidence_id": "julia-nb2-animal-ainv-sd-20261023",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-20261023/receipt.json",
+  "prior_test_path": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-20261023/test_nb2_animal_sd_regression.jl",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "drmodels_jl_commit": "87a371a667e8823e8f5aca75ed1344145982c532",
+  "drmodels_jl_tree_state": "src/, test/, ext/, Project.toml, Manifest.toml clean at that commit (only docs modified)",
+  "host": "Totoro",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 taskset -c 242 julia +1.10.12 --startup-file=no --project=. test/test_nb2_animal_sd_regression.jl (Totoro, cwd = copy of DRModels.jl at 87a371a667e8823e8f5aca75ed1344145982c532, src/test/ext/Project/Manifest hashes identical to the Mac worktree)",
+  "live_test_path": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-20261023-relink27-db2146/test-snapshot/test/test_nb2_animal_sd_regression.jl",
+  "live_test_origin": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_nb2_animal_sd_regression.jl",
+  "row_key_support": "live test differs from the frozen snapshot: live file keeps the original NB2 animal intercept SD testset unchanged and appends a raw-A dense-Laplace oracle testset",
+  "runs": [
+    {
+      "test_path": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-20261023-relink27-db2146/test-snapshot/test/test_nb2_animal_sd_regression.jl",
+      "test_sha256": "c082c7090e312eb2049b1ffa548e505ec4933beb8e7a424d322eba97c2205c73",
+      "started_utc": "2026-11-02T14:02:56Z",
+      "ended_utc": "2026-11-02T14:03:47Z",
+      "exit_code": 0,
+      "expectations_passed": 28,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-20261023-relink27-db2146/test-console.log",
+      "console_log_sha256": "969d612f129300bb8a229713b1cf7a6749e609802b8a14f4483b610568ede541"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-20261023-relink27-db2146/source-manifest.json",
+  "source_manifest_sha256": "3e91f3bb7cc4811467a9b812159998eeae02ac50791e57273cbabb3236d349f6",
+  "review_status": "unreviewed",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ],
+  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared)."
+}

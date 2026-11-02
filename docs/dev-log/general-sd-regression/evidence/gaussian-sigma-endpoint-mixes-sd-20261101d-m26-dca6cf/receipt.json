@@ -22,11 +22,14 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-endpoint-mixes-sd-20261101d-m26-dca6cf/source-manifest.json",
   "source_manifest_sha256": "b02a8e7d8ad5979cb9f69c165c88f49ec37433515e814230434c6445403a2f69",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "mu:I member of the iid_correlated_block q2 row (test (a) gives only sd(id, coef=\"x\") ~ w; the intercept SD is constant, so not claimed)",
     "sigma-endpoint iid_correlated_block rows (no sigma q2 block tested)",
     "iid_additive_terms sigma crossed/nested rows (not tested)",
     "no recovery/coverage/calibration; no Julia"
-  ]
+  ],
+  "review_note": "Independent review of the m26 re-record. The oracle is a dense base-R joint Laplace over the mu and sigma random effects (nlminb mode, gradient below 1e-8, positive-definite Hessian, 1e-4 on logLik), with no package helper. Case (a), the q2 block with sd(id, coef='x') ~ w plus a sigma (1|g) SD, has built-in sensitivity: a misaligned slope SD and a flipped rho each move the oracle by more than 1. Cases (b) and (c1) cover the iid mu-intercept and sigma-intercept rows. Case (b) had no in-test perturbation, so I ran one on Totoro without editing files. At the fit, the oracle equals logLik to 4 decimals (-708.8206). Swapping the mu and sigma SD vectors moves it by 0.51, about 5000 times the 1e-4 tolerance. Reversing the mu SDs moves it by 17.8. The third row (mu:x1 of the iid correlated block) is exercised by case (a). Its intercept-SD member is constant there and is not claimed. All 4 manifest files rehash with 0 mismatches, and the rerun shows 30 expectations, 0 failures, 0 skips. This does NOT establish the mu:I member of the q2 block, sigma-endpoint q2 blocks, crossed or nested sigma rows, interval calibration or coverage, or Julia parity. The swap sensitivity for (b) was shown in a scratch run, not in the test, and is evaluated at fitted parameters only.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

@@ -22,7 +22,7 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-gamma-batch3-sd-regression-20261101-m26-9d12a3/source-manifest.json",
   "source_manifest_sha256": "6b9d7194854413c7dfe7ba945873bb11bc64189188be42be82b7752f09e18220",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "checks": [
     "spec assembly: model_type gamma, two SD design blocks sd(g), sd(h), re_sd_row0 0..21",
     "duplicate or unmatched sd() targets refused",
@@ -30,5 +30,8 @@
     "predict(dpar = sd(g)/sd(h)) equals exp(linear predictor) at 1e-7",
     "exact dense Laplace oracle: logLik equals oracle at relative 1e-6; swapped-level sensitivity > 0.1",
     "constant-SD limit equals plain crossed Gamma fit: logLik 1e-4, mu and sigma coefs 1e-3"
-  ]
+  ],
+  "review_note": "Reviewer 2, 2026-11-02. Test checks native Gamma(log) y ~ x + (1|g) + (1|h), sigma ~ 1, sd(g) ~ w, sd(h) ~ v against an exact base-R Laplace marginal (Newton mode, observed information, group indicators built with model.matrix, no drmTMB kernel code) at relative tolerance 1e-6 at the fitted parameters; the oracle is independent. Emulated bug: attaching the SDs to reversed predictor vectors (rev(zg), rev(zh)) must move the oracle by more than 0.1 (400x the tolerance); the SD predictors differ in length so the two levels cannot be silently swapped. The single linked row (gamma, log, iid crossed additive terms) is exercised by the fit. Also constant-SD limit versus the plain crossed fit (1e-4). Rerun 21/0/0 skips; all 8 manifest files match current files. Does NOT establish: structured providers; calibration or coverage; Julia parity; that a swap of the coefficient sets between sd(g) and sd(h) is detected (only the predictor reversal is tested); non-Gamma families; sigma-side SDs.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

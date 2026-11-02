@@ -22,7 +22,7 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-gamma-batch4-sd-regression-20261101-m26-7e2d0b/source-manifest.json",
   "source_manifest_sha256": "6895462ed95a72cc545e8c962b42327ffc1e2ef883aef75b189ddc55bde9f69d",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "checks": [
     "spec assembly and refused duplicate or unmatched sd() targets",
     "fit convergence 0, named SD coefficient sets, signed SD slopes within 0.6 of truth (loose, one seed)",
@@ -30,5 +30,8 @@
     "exact dense Laplace oracle with Sigma = blockdiag(diag(tau_g^2), D K D): logLik absolute 1e-5; level-swap and positional-K sensitivities > 0.1",
     "K, Q (K = solve(Q)) and term-order fits agree: logLik 1e-5, SD coefs 1e-3 (K fit is the oracle-checked fit; the Q fit is checked only against it)",
     "constant-SD limit equals plain additive fit: logLik 1e-4, coefs 1e-3"
-  ]
+  ],
+  "review_note": "Independent review of the single native Gamma(log) row: ordinary (1 | g) plus relmat(1 | p, K = K) with separate sd(g) ~ zg and sd(p, level = 'relmat') ~ zp, sigma ~ 1. The test builds its own AR(0.5) kernel K, stored in a shuffled level order, and a base-R dense Laplace oracle (Newton mode, observed-information Hessian, Sigma = blockdiag(diag(tau_g^2), D K D)) that uses no TMB or drmTMB likelihood, simulation or kernel helper. Oracle is evaluated at the fitted coefficients. A Totoro scratch run reproduced logLik -522.7251 against oracle -522.7251 (abs diff 1.6e-11; test tolerance 1e-5 relative is about 5e-3 absolute). The test already contains emulated-bug checks: reversing zg moves the oracle 1.81, reversing zp 0.26, positional rather than name-based K alignment 10.6 (each asserted > 0.1). My scratch run also showed a 1.3x kernel-scale error moves it 0.30. The one linked row is exercised by the K-input fit. All 8 manifest hashes match current files; rerun 30 pass, 0 failures, 0 skips. Does NOT establish: Q-precision input (Q fit is only compared with the K fit and no row links it), calibration or coverage, recovery beyond loose bands (0.6, one seed), other families or provider pairs, Julia parity.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

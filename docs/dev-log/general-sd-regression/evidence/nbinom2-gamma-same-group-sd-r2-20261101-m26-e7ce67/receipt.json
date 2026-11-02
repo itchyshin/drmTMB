@@ -22,7 +22,7 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-r2-20261101-m26-e7ce67/source-manifest.json",
   "source_manifest_sha256": "d5a3a98b5bd0802e5d78cb3a24bf565c35862a7188366b5246f10cdda29ed987",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "oracle": "Independent per-group Laplace marginal likelihood written in the test file (damped Newton for the mode, observed information in log mu, stats::dnbinom / stats::dgamma), evaluated at the fitted coefficients and compared with logLik(fit) to relative 1e-6. A swapped-selector oracle must differ by more than 1 log-likelihood unit (non-vacuity). The oracle shares no code with the C++ objective, but the fitted coefficients come from the code under test; it checks likelihood assembly, not the optimiser. Constant-SD equivalence, nesting and prediction-identity checks are not oracles.",
   "checks": [
     "NB2 and Gamma fits converge; sdpars named for intercept and slope SD; coefficient names (Intercept),w0 and (Intercept),w1",
@@ -31,5 +31,8 @@
     "predicted SDs equal exp(X alpha) from fitted alphas",
     "constant-SD limit reproduces plain two-term fit",
     "SD regression nests constant-SD fit"
-  ]
+  ],
+  "review_note": "Independent review of the m26 re-record. The test carries its own base-R per-group Laplace marginal likelihood (damped Newton mode, observed information, stats::dnbinom/dgamma) for NB2 and Gamma with an independent intercept and an independent slope SD on the same group. It matches logLik(fit) to 1e-6 relative at the fitted coefficients. A swapped-selector oracle (slope formula attached to the intercept latent coefficient and vice versa) must differ by more than 1 log-likelihood unit, so emulated-bug sensitivity is in the test. Both linked iid_numeric_slope rows (NB2, Gamma) are exercised by fits with (1|id)+(0+x|id) and a separate sd() formula for each. All 8 manifest files rehash to the current files with 0 mismatches, the test sha matches, and the console log shows 38 expectations, 0 failures, 0 skips. The stale phrase 'No exact oracle' in the ledger result_summary is wrong and is superseded by the receipt's oracle field. This does NOT establish interval calibration or coverage, Julia parity, other providers, other families, or optimiser correctness (the oracle is evaluated at the fitted coefficients, so it checks likelihood assembly only).",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

@@ -2,25 +2,36 @@
   "evidence_id": "native-poisson-sd-intercept-oracle-workflow-20261017-m26",
   "rerecord_of_evidence_id": "native-poisson-sd-intercept-oracle-workflow-20261017",
   "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/poisson-slope-20261017/output/corrected-tests.log",
-  "git_head": "e9c72ab3e",
-  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "git_head": "b718863e7319af143896614e823d44e488be0653",
+  "tree_state": "R/, src/ and the test file committed and unmodified at b718863e7; receipt re-recorded after the first record at e9c72ab3e",
   "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"poisson-sd-integration\"\")'\"",
   "runs": [
     {
       "test_path": "tests/testthat/test-poisson-sd-integration.R",
       "test_sha256": "08121b2d0efaffbe7ba32f9cb6b5344ae973a98f95dda93b6f2b947a929077af",
-      "started_utc": "2026-11-02T13:18:34Z",
-      "ended_utc": "2026-11-02T13:18:42Z",
+      "started_utc": "2026-11-02T15:21:14Z",
+      "ended_utc": "2026-11-02T15:21:28Z",
       "exit_code": 0,
       "expectations_passed": 43,
       "failures": 0,
       "errors": 0,
       "skips": 0,
-      "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-slope-20261017/output-m26-e3ee23/test-console-test-poisson-sd-integration.log",
-      "console_log_sha256": "6f6771d227843bd7a663e57f1e7ff1ee1b5fd390aea0d96e6b8ce598ba747b34"
+      "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-slope-20261017/output-m26-e3ee23/test-console-rerun-b718863e7.log",
+      "console_log_sha256": "2c662eead7fcc254b2802572a75e80db3de5c954b7495c0a46db1baace3ec0d2"
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-slope-20261017/output-m26-e3ee23/source-manifest.json",
-  "source_manifest_sha256": "601330fd57887ac22b2486c701822ba42244ec2308cacde3305926b8ce4cd35b",
-  "review_status": "unreviewed"
+  "source_manifest_sha256": "e9df777ae356b5fb7f7daae0c91f06131bedb23826ad41504d78001a7133fdcd",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Reviewer 2, 2026-11-02. test-poisson-sd-integration.R (helper-poisson-sd-regression.R) compares logLik of Poisson (1|id) with sd(id) ~ w against a per-group scalar Laplace marginal written in base R (optimize + curvature, no drmTMB code) at relative tolerance 1e-6; reverse_group_w (sign-flipped group predictor) moves the oracle by more than 0.01 versus that tolerance; the row (native, poisson, log, iid intercept) is exercised by the fit. Also constant-SD equivalence (logLik 1e-5), prediction mapping, simulation variance ratio and bootstrap refit. Rerun 43/0/0 skips; the 354-file manifest includes the test and helper, both hashes match. Two entries differ at HEAD: R/julia-bridge.R (NB2 spatial-slope route only) and inst/extdata/env-skip-census.tsv (new census rows); neither is used by this native test. Does NOT establish: slope or structured Poisson SD routes; calibration or coverage; Julia parity; that perturbations other than the sign flip (e.g. swapped selector sets) are detected; the simulation variance-ratio check is a loose 0.2 relative tolerance.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27",
+  "re_recorded": {
+    "at": "2026-11-02",
+    "reason": "source manifest listed R/julia-bridge.R (and for one id the env-skip census), which changed after the first record; test is native-only. Rerun at the new HEAD, manifest rehashed.",
+    "manifest_entries_that_differed": [
+      "R/julia-bridge.R",
+      "inst/extdata/env-skip-census.tsv"
+    ]
+  }
 }

@@ -22,7 +22,7 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-batch5-sd-regression-r2-20261101-m26-fe7041/source-manifest.json",
   "source_manifest_sha256": "bdd4e2016dc659cf5ff68074943058747d72c8d1cc2f1567062fb5aa40bdf216",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "oracle": "Dense R Laplace marginal likelihood over the pair latent f~N(0,K), K=kronecker(A2,A1), eta=X beta+J f, J=diag(sd_pair*value)[pair,], y~Poisson(exp(eta)), evaluated at fitted parameters. Written in the test file with stats::dpois and base linear algebra, no drmTMB objective, so independent of the likelihood code under test. Not fully independent in fixtures: A1 and A2 come from drmTMB:::drm_phylo_tip_covariance, and predict()/coef() supply SDs and mu coefficients. Checks likelihood assembly at fitted parameters, not the optimiser.",
   "checks": [
     "convergence 0 and finite logLik",
@@ -37,5 +37,8 @@
     "simulate() count draws reproducible",
     "save/reload predict identity",
     "closed-gate refusals"
-  ]
+  ],
+  "review_note": "Reviewer 2, 2026-11-02. The test fits native Poisson phylo_interaction(1 | plant:pollinator) (intercept) and phylo_interaction(0 + x | plant:pollinator) (slope-only) with sd(pair, level = phylogenetic_interaction) ~ z_pair and compares logLik to a base-R dense Laplace over the pair field (tol 1e-4). Two review conditions were demonstrated by a scratch run on Totoro (test helper functions, nothing edited): (a) the K = kronecker(A2, A1) built via drmTMB:::drm_phylo_tip_covariance equals cov2cor(ape::vcv) per tree and the Kronecker product with max abs difference 0, and the oracle with the independently built K agrees with logLik to 2e-13 (intercept) and 2e-10 (slope); (b) sensitivity, with tolerance 1e-4: reversed SD vector shifts the oracle by 19.6 (intercept) / 69.1 (slope); kernel x2 by 3.2 / 3.5; flat (intercept-only) SD by 15.7 / 31.7; misaligned pair index by 427 / 287. The slope row is SLOPE MEMBER ONLY: the slope-only fit supports the phylo_interaction numeric-slope SD row, not a companion structured intercept. The intercept row is supported by the intercept-only fit. Rerun 45/0/0 skips; all 13 manifest files match. Does NOT establish: calibration or coverage; Julia parity; that swapping tree1 and tree2 is detected (both fixture trees are identical balanced topologies, so the kernel order change shifted the oracle by 0.0000); a correlated intercept+slope pair field; other families. The kernel independence and the sensitivity are reviewer-demonstrated, not asserted inside the test.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

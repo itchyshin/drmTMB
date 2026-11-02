@@ -22,12 +22,15 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/nb2-gamma-sd-missing-include-20261102r-m26-36e556/source-manifest.json",
   "source_manifest_sha256": "8097cb42f4d314d6111a96025399b13b30a3e1ce0830c36cc3d1cde63cd3af33",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "interval calibration",
     "coverage",
     "Julia parity",
     "recovery beyond the stated oracle/equivalence checks",
     "structured providers under include: refused in this file, not linked"
-  ]
+  ],
+  "review_note": "Reviewer 2, 2026-11-02. Test fits native NB2 and Gamma(log) ordinary (1 | id) and slope-only (0 + x | id) with sd(id) ~ w under miss_control(response = 'include'), and checks: include equals the complete-case fit (logLik 1e-8, coefficients 1e-6), and logLik equals a per-group scalar Laplace oracle written in base R with no drmTMB code (optimize + curvature; tol 1e-4) at the fitted parameters. Group levels and rows are shuffled, one group has no observed response. Emulated bugs: masked rows treated as placeholder responses, and the SD slope dropped (flat SD); both move the oracle by more than 0.05 (500x tolerance). All four linked rows (gamma intercept, gamma slope, nb2 intercept, nb2 slope; ordinary independent fields, so no slope-only caveat) are fitted. Rerun 114/0/0 skips; all 5 manifest files match. Does NOT establish: structured providers (the test pins them as refused under include); calibration or coverage; Julia parity; sigma-side or joint SDs; swapped-selector perturbations; the 0.05 sensitivity bound is for the two stated bugs only.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

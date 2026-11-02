@@ -22,12 +22,15 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-sd-missing-include-20261102r-m26-e9abe1/source-manifest.json",
   "source_manifest_sha256": "604a5cf124445bfd0ef385eb446e499b798176258514a417f5454cdb0ae0a89b",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "interval calibration",
     "coverage",
     "Julia parity",
     "recovery beyond the stated oracle/equivalence checks",
     "other Poisson SD routes under include: fences pinned, not linked"
-  ]
+  ],
+  "review_note": "Independent review of two native Poisson ordinary rows, iid intercept SD (sd(id) ~ w0) and iid numeric slope SD (slope member only: sd(id, coef='x') ~ w1 from the slope-only (0 + x | id) fit, plus the same-group intercept and slope fit), under miss_control(response = 'include'). Oracle: a base-R per-group dense Laplace (Newton mode, exact Hessian, no kernels) evaluated at the fitted coefficients on observed rows only; it matched logLik to about 1e-12 in a Totoro scratch run (test tolerance 1e-6 relative is about 4e-4 absolute). Sensitivity: the test asserts masked-rows-as-zeros (> 0.05), wrong-sign intercept SD (> 0.05) and swapped intercept/slope SDs in the same-group fit (> 0.05). In scratch I added slope-only perturbations: sign-flipped slope SD moves the oracle 0.048 and a misaligned w1 0.122 (about 100 to 300 times the tolerance), and a misaligned w0 for the intercept fit moves it 74.8. Include equals complete-case logLik at 1e-8 relative, including a group with all responses NA. All 5 manifest hashes match current files; rerun 38 pass, 0 failures, 0 skips. Does NOT establish: calibration or coverage, correlated (q>=2) blocks (the test confirms they stay refused), structured providers, zi-Poisson with SD (stays refused), recovery of the SD slopes, an intercept-plus-slope correlated field.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

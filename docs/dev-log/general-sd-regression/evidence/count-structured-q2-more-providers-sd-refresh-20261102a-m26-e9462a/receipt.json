@@ -22,10 +22,13 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/count-structured-q2-more-providers-sd-refresh-20261102a-m26-e9462a/source-manifest.json",
   "source_manifest_sha256": "f1b87e8d466e0c839929b93bc1994d879303a21e79c98b052198210de97ce7a9",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "interval calibration",
     "coverage",
     "Julia parity unless stated"
-  ]
+  ],
+  "review_note": "Oracle is a base-R dense Laplace marginal (own Newton mode, dpois/dnbinom score and weight) with kernels built in the test: analytic non-unit-diagonal relmat K, ape::vcv-based phylo K (a test asserts it equals the package's tip covariance at 1e-8) and an independently coded spatial exponential kernel; fits agree to 1e-4. Sensitivity is asserted in the test: swapped SDs, shifted SDs, positionally unaligned K and one-SD-for-both each move the oracle by more than 1 log-lik unit. The fits are unlabelled (1 + x | id) with separate SD formulas for the intercept and slope, which is two independent fields, so the 8 slope rows and the 8 intercept rows are supported as the intercept member and slope member of that independent two-field block; there is no intercept-only fit. The Q rows rest on the K-vs-Q logLik equality (1e-4, one seed, both families) with the K fit oracle-checked, not on a separate Q oracle. Manifest: all 5 entries rehash to current files; receipt 165/0/0/0 and my Totoro rerun 165/0/0/0, 0 skips (ape tests ran). Does NOT establish: an intercept-only single-field fit, a separate Q-input oracle, the animal provider, correlated (labelled) blocks, Julia parity, calibration.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

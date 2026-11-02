@@ -22,11 +22,14 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-refresh-20261101d-m26-186269/source-manifest.json",
   "source_manifest_sha256": "d77c26ffdbe22826ee674efec430c7a07f6594ccee6807c3e9ec3f50e4d66ae6",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "rows the test only uses as comparators",
     "interval calibration or coverage",
     "provider inputs the test does not fit (not tested; not asserted to be fenced)",
     "Julia parity (native engine only)"
-  ]
+  ],
+  "review_note": "Oracle is a dense exact Gaussian marginal in base R (Cholesky of Z cov_u Z' + sigma^2 I) plus an independent L-BFGS-B optimum; the relmat kernel is the analytic Toeplitz (K_true), the animal kernel the analytic geometric A, both handed to the fit in shuffled level order. The spatial kernel is helper-built, but the test compares it by name with a hand-rebuilt ring kernel at 1e-8; that rebuild mirrors the helper's formula (disclosed in the test), so it confirms alignment and the rebuild, not the kernel convention. Sensitivity: asserted positional-misread checks move kernel and oracle logLik by more than 1000 times the tolerance; in my Totoro scratch run, shifting the z predictor moved the oracle by 39.1 (relmat) and 7.1 (animal), reversing 50.1, flipping sign 163.9, loading the intercept instead of the slope 446.8, against 1.5e-4 tolerance. Rows exercised: relmat K intercept, spatial coordinate intercept, and animal A slope; the animal fit is animal(0 + x | id), so it supports the slope-member SD only. Manifest: all 8 entries rehash to current files; receipt 60/0/0/0 and my Totoro rerun 60/0/0/0, 0 skips. Does NOT establish: Q/Ainv/pedigree inputs, spatial slope or relmat slope SDs, the spatial kernel convention, Julia parity, calibration, non-Gaussian families.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

@@ -1,6 +1,6 @@
 {
   "scope": "Source identity for native-beta-phylo-q2-sd-20261027, re-recorded at commit e9c72ab3e",
-  "commit": "e9c72ab3e",
+  "commit": "b718863e7319af143896614e823d44e488be0653",
   "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/source-manifest.json",
   "files": [
     {
@@ -97,7 +97,7 @@
     },
     {
       "file": "R/julia-bridge.R",
-      "sha256": "472d9de4db223c925df61a683bfd06448e8b9891f32ae2bc386191c6f6098be5"
+      "sha256": "85dfa58bc85739171228a689240f7e049b75a7012b17afbcaca80dd75c785c68"
     },
     {
       "file": "R/julia-coefficient-labels.R",
@@ -387,5 +387,6 @@
       "file": "tests/testthat/test-nongaussian-structured-mu-slope.R",
       "sha256": "7aaa3adc92c2dd40cbbc7350bcfb678acaa698a41aee6701d8782be0c0124a8a"
     }
-  ]
+  ],
+  "re_recorded": "2026-11-02 at b718863e7; entries that differed from the first record: ['R/julia-bridge.R']"
 }

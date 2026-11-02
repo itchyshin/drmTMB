@@ -1,0 +1,49 @@
+{
+  "evidence_id": "julia-b25-gamma-nb2-slope-bridge-20261102c",
+  "evidence_grade": "focused_test",
+  "command": "cd <worktree>; NOT_CRAN=true JULIA_HOME=$HOME/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin DRM_JL_PATH=<general-sd-julia worktree> OPENBLAS_NUM_THREADS=1 Rscript -e \"pkgload::load_all('.'); r<-as.data.frame(testthat::test_file('tests/testthat/test-julia-b25-gamma-nb2-slope-bridge.R', reporter='silent')); print(colSums(r[c('passed','failed','error','skipped')])); print(nrow(r))\"",
+  "execution_host": "Mac Studio (live Julia 1.10.0, DRModels.jl 87a371a66, JuliaCall)",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "7fd8acec38a3466cab97a543abdf13f8a634a9d9",
+  "tree_state": "HEAD 7fd8acec3; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T13:59:52Z",
+  "run_ended_utc": "2026-11-02T14:00:47Z",
+  "exit_code": 0,
+  "expectations_passed": 45,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 4,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b25-gamma-nb2-slope-bridge-20261102c/test-console.log",
+  "console_log_sha256": "b7fe3fdc2944ebf83a5889c3ad406f41d8dbd2cd1e3726763b8a4c2afeaa345e",
+  "test_path": "tests/testthat/test-julia-b25-gamma-nb2-slope-bridge.R",
+  "test_sha256": "7409710e0e4ffb14203ed420bb4f041b510fa35f59c110ff9e7eeec7b1b51b97",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-b25-gamma-nb2-slope-bridge-20261102c/source-manifest.json",
+  "source_manifest_sha256": "010d46a992200e7a7e5eae92d2feab3f156c6a3f87da2c6d178e666447498b76",
+  "live_julia": "run live: Julia 1.10.0 with DRM_JL_PATH at DRModels.jl 87a371a66 (src/ and test/ clean)",
+  "strengthens_evidence_ids": [],
+  "strengthens_note": "No parent evidence id; new Julia bridge admission (batch 25/26). These rows were not previously linked to a Julia bridge receipt.",
+  "scope": "Live native (TMB, se = FALSE) versus Julia (DRM.jl 87a371a66) parity for slope-only SD: Gamma relmat K (non-unit diagonal), Gamma coordinate spatial (native kernel sent as K), NB2 relmat K; coefficients within 1e-3, logLik within 1e-2, one fixture per route; plus non-live gate/payload/refusal pins. Slope-member SD only.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"Julia\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"K_covariance\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"K_covariance\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "SE agreement",
+    "broad cross-engine parity beyond the stated fixtures",
+    "accuracy of either engine against a truth (parity is not an oracle)",
+    "Julia sigma-endpoint or Q-precision relmat rows",
+    "Gamma phylogenetic slope-only SD (not admitted)"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "unreviewed"
+}

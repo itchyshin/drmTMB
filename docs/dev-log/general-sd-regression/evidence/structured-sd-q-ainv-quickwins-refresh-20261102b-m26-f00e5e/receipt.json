@@ -22,10 +22,13 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/structured-sd-q-ainv-quickwins-refresh-20261102b-m26-f00e5e/source-manifest.json",
   "source_manifest_sha256": "24cba2a90fb1b4fff4d671ab5071426716aa65e46e4c2e9bd9536e89f38d3d8a",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "interval calibration",
     "coverage",
     "Julia parity unless stated"
-  ]
+  ],
+  "review_note": "Independent review of the m26 re-record. The test builds its own dense base-R oracle from solve(Q) and a hand-built Toeplitz kernel with a non-unit diagonal, not from package helpers. It uses a Laplace oracle for Poisson/NB2 and an exact marginal for Gaussian, at 1e-4 (1e-6 Gaussian). It has emulated-bug sensitivity beyond 0.05: reversed level SDs, a sign-flipped z, precision-as-covariance, and reversed site SDs. The two relmat_numeric_slope Q rows (Poisson, NB2) are fitted slope-only with relmat(0 + x | id, Q = Q), so they support the slope member SD only (slope member only), not a companion structured intercept. The two provider_pair rows (ordinary (1|site) plus animal Ainv, Poisson and NB2) are exercised by fits with both SD formulas. All 5 manifest files rehash with 0 mismatches, and the rerun shows 92 expectations, 0 failures, 0 skips. This does NOT establish interval calibration or coverage, Julia parity, missing responses, se=TRUE inference, or a structured intercept SD beside the slope. Recovery checks are loose, and the oracle is evaluated at fitted parameters.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }

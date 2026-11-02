@@ -22,10 +22,13 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-structured-q2-sd-regression-refresh-20261102a-m26-962e16/source-manifest.json",
   "source_manifest_sha256": "bae236d63f250316b3e67daee00f8ca444ec3587258a12f41fb9b4ec07d6a19a",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "interval calibration",
     "coverage",
     "Julia parity unless stated"
-  ]
+  ],
+  "review_note": "Independent review of the native NB2 animal (1 + x | id) routes. Oracle: dense A built by hand (D C D, non-unit diagonal, factor levels shuffled against A), stats::dnbinom and an analytic dense Hessian, computed from the fitted latent fields in plain R (no TMB likelihood, no helper-built kernel). On three seeds the joint objective matches to 1e-6 absolute and the Laplace objective to 1e-5 absolute (test uses expect_lt on absolute differences). The test asserts six emulated bugs (logdet_once, cross_sign, drop_rho, swap_sd_formulas, swap_fields, misaligned_levels) each move both quantities by more than 1e-3. The two correlated rows (mu:I, mu:x1; labelled p) are fitted by the labelled fits. The q=1 rows animal_intercept and animal_numeric_slope are supported ONLY as the intercept member and slope member of the unlabelled animal(1 + x | id) fit, which is two independent fields, each with its own SD formula, checked against the same oracle at rho = 0; no intercept-only or slope-only fit exists. In a Totoro scratch run I verified that unlabelled fit: oracle agrees to 1.1e-11, and swap_sd_formulas moves it by 51.3, swap_fields 130.2, misaligned_levels 263.0, logdet_once 5.3 (drop_rho and cross_sign are inert at rho = 0). All 5 manifest hashes match current files; rerun 75 pass, 0 failures, 0 skips. Does NOT establish: calibration or coverage, standalone single-field (q=1) fits, recovery beyond bands (rho within 0.5), inputs other than dense A (no Ainv/pedigree), Julia parity, correlated-block recovery.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27"
 }
