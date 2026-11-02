@@ -4,6 +4,10 @@
   Selecting one column keeps a diagnostic table; use `drop = TRUE` for a vector.
   Subsets retain the original overall status and total check count.
 
+* `vcov()` no longer tells you to refit with `drm_control(se = TRUE)` when
+  `se = TRUE` was already set and the Hessian is not positive definite; it now
+  points to a boundary or aliased/collinear column and `check_drm()` (#1470).
+
 ## New features
 
 * `confint()` now labels an ordinary `(1 | g)` SD Wald row whose log-scale
