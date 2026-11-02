@@ -1,6 +1,7 @@
 ^\.agents$
 ^\.claude$
 ^\.codex$
+^\.unlazy$
 ^\.git$
 ^\.github$
 ^scratchpad$
@@ -34,3 +35,4 @@
 ^graft$
 ^\.scratch$
 ^tools-scratch$
+^sweep-oct16$

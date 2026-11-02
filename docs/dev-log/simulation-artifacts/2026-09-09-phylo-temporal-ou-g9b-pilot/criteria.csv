@@ -1,0 +1,5 @@
+"criterion","observed","threshold","pass"
+"five selected fixtures",5,"5",TRUE
+"two starts per finite fixture",5,"5",TRUE
+"finite contrast estimates",5,"5",TRUE
+"finite decay estimates",5,"5",TRUE

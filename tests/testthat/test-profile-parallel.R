@@ -37,6 +37,63 @@ test_that("profile() validates its parallel arguments", {
   )
 })
 
+test_that("a dead forked worker is a classed error, not a dropped profile row", {
+  plan <- list(backend = "none", workers = 1L)
+  worker <- function(i) {
+    if (i == 2L) {
+      return(NULL)
+    }
+    data.frame(i = i)
+  }
+  expect_error(
+    drmTMB:::profile_lapply(1:3, worker, plan),
+    class = "drmTMB_parallel_worker_died"
+  )
+  expect_error(
+    drmTMB:::drm_rbind_profile_rows(list(data.frame(i = 1), NULL, data.frame(i = 3))),
+    class = "drmTMB_parallel_worker_died"
+  )
+})
+
+test_that("a dead forked mclapply child is a classed profile error", {
+  testthat::skip_on_os("windows")
+  plan <- list(backend = "multicore", workers = 2L)
+  expect_error(
+    suppressWarnings(drmTMB:::profile_lapply(1:3, function(i) {
+      if (i == 2L) quit("no", status = 1L, runLast = FALSE)
+      data.frame(i = i)
+    }, plan)),
+    class = "drmTMB_parallel_worker_died"
+  )
+})
+
+test_that("a dead bootstrap worker is a recorded failure, not a dropped row", {
+  target <- "fixef:mu:x"
+  rows <- list(
+    drmTMB:::bootstrap_empty_draws(1L, target),
+    NULL,
+    drmTMB:::bootstrap_empty_draws(3L, target)
+  )
+  dropped <- do.call(rbind, rows)
+  expect_equal(nrow(dropped), 2L)
+
+  filled <- drmTMB:::drm_bootstrap_retain_dead_workers(rows, 1:3, target)
+  bound <- do.call(rbind, filled)
+  expect_equal(nrow(bound), 3L)
+  expect_equal(bound$bootstrap, 1:3)
+  expect_equal(bound$refit_status[bound$bootstrap == 2L], "worker_died")
+  expect_false(any(bound$refit_ok[bound$bootstrap == 2L]))
+  expect_equal(length(unique(bound$bootstrap)), 3L)
+
+  plan <- list(backend = "none", workers = 1L)
+  collected <- drmTMB:::bootstrap_lapply(1:3, function(i) {
+    if (i == 2L) NULL else drmTMB:::bootstrap_empty_draws(i, target)
+  }, plan)
+  retained <- drmTMB:::drm_bootstrap_retain_dead_workers(collected, 1:3, target)
+  expect_equal(length(retained), 3L)
+  expect_equal(retained[[2L]]$refit_status, "worker_died")
+})
+
 test_that("multicore worker errors abort like the serial path", {
   testthat::skip_on_os("windows")
   plan <- list(backend = "multicore", workers = 2L)

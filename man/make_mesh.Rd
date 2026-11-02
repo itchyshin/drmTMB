@@ -20,7 +20,7 @@ it is reprojected onto \code{coords} and validated rather than rebuilt.}
 \item{crs}{A projected CRS for plain planar coordinate inputs. Geographic CRS
 values are rejected.}
 
-\item{...}{Additional arguments passed to \code{\link[fmesher:fm_mesh_2d_inla]{fmesher::fm_mesh_2d_inla()}} when a
+\item{...}{Additional arguments passed to \code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d_inla()}} when a
 mesh is built.}
 }
 \value{

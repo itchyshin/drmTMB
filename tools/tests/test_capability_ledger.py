@@ -1268,6 +1268,151 @@ class CapabilityLedgerTests(unittest.TestCase):
         finally:
             ledger.MISSING_G5_ROUTE_SUMMARIES["beta"] = original
 
+    def test_retired_predicate_scan_covers_uncontracted_rows(self):
+        ledger.validate_retired_predicates(self.cells, self.evidence)
+        contracted = {"mr-beta", "mr-tweedie", "mr-skew-normal"}
+        cells = copy.deepcopy(self.cells)
+        row = next(r for r in cells if r["cell_id"] not in contracted)
+        row["next_gate"] += " Blocked by the all-1200 interval-usability rule."
+        with self.assertRaisesRegex(SystemExit, "retired predicate"):
+            ledger.validate_retired_predicates(cells, self.evidence)
+        # The keyed contracts alone cannot see this row (issue 1011).
+        ledger.validate_live_prose_contracts(cells, self.evidence)
+
+    def test_retired_predicate_scan_covers_evidence_prose(self):
+        evidence = copy.deepcopy(self.evidence)
+        evidence[0]["claim_boundary"] += " Under the ALL-1200 interval-usability rule."
+        with self.assertRaisesRegex(SystemExit, "retired predicate"):
+            ledger.validate_retired_predicates(self.cells, evidence)
+
+    def test_check_path_fails_when_live_prose_names_a_newly_retired_phrase(self):
+        # --check, --write, and --summary all read through load_sources(). Retiring
+        # the current policy name, as the next policy bump would, must stop all
+        # three until every row that still names it is rewritten. The
+        # g5_policy_not_grounded contract requires mr-beta's claim_boundary to
+        # name the active policy, so that row must be among the hits.
+        policy = ledger.active_g5_policy_version()
+        original = ledger.RETIRED_PREDICATES
+        with tempfile.TemporaryDirectory() as temporary:
+            sidecar = Path(temporary) / "retired-predicates.tsv"
+            sidecar.write_text(
+                original.read_text(encoding="utf-8")
+                + f"{policy}\tdeadbeef\ta later policy\tissue 1011\n",
+                encoding="utf-8",
+            )
+            try:
+                ledger.RETIRED_PREDICATES = sidecar
+                with self.assertRaisesRegex(
+                    SystemExit, r"cells:mr-beta\.claim_boundary: retired predicate"
+                ) as raised:
+                    ledger.load_sources()
+            finally:
+                ledger.RETIRED_PREDICATES = original
+        # The notes column also names the policy, but it is history, not a claim.
+        self.assertNotIn(".notes:", str(raised.exception))
+
+    def test_g5_route_cross_reference_check_passes_on_the_live_ledger(self):
+        ledger.validate_route_cross_references(self.cells, self.evidence)
+
+    def test_g5_family_map_rows_pin_the_routes_their_prose_names(self):
+        # Issue 1011 item 2: the three threshold-free G5 rows exclude
+        # `cumulative_logit` and disclaim the `beta_binomial` predictor route.
+        # Each named route must carry a route_state contract for that row.
+        contracts = ledger.read_tsv(ledger.LIVE_PROSE_CONTRACTS)
+        pinned = {
+            (c["cell_id"], c["field"], c["reference_id"])
+            for c in contracts if c["reference_kind"] == "route_state"
+        }
+        for cell in ("mr-beta", "mr-tweedie", "mr-skew-normal"):
+            for field in ("cells.claim_boundary", f"evidence:ev-{cell}-g5.claim_boundary"):
+                for reference in ("mr-cumulative-logit-mu-x", "mp-beta-binomial-bernoulli"):
+                    self.assertIn((cell, field, reference), pinned)
+
+    def test_g5_route_cross_reference_rejects_an_unpinned_route_name(self):
+        cells = copy.deepcopy(self.cells)
+        beta = next(row for row in cells if row["cell_id"] == "mr-beta")
+        beta["claim_boundary"] += " It does not extend to `gamma`."
+        with self.assertRaisesRegex(SystemExit, r"mr-beta cells\.claim_boundary.*`gamma`"):
+            ledger.validate_route_cross_references(cells, self.evidence)
+
+    def test_g5_route_cross_reference_rejects_a_dropped_contract(self):
+        original = ledger.LIVE_PROSE_CONTRACTS
+        lines = original.read_text(encoding="utf-8").splitlines(keepends=True)
+        kept = [
+            line for line in lines
+            if not (line.startswith("mr-tweedie\tcells.claim_boundary\troute_state\t"
+                                    "mr-cumulative-logit-mu-x\t"))
+        ]
+        self.assertEqual(len(kept), len(lines) - 1)
+        with tempfile.TemporaryDirectory() as temporary:
+            sidecar = Path(temporary) / "live-prose-contracts.tsv"
+            sidecar.write_text("".join(kept), encoding="utf-8")
+            try:
+                ledger.LIVE_PROSE_CONTRACTS = sidecar
+                with self.assertRaisesRegex(
+                    SystemExit, r"mr-tweedie cells\.claim_boundary.*`cumulative_logit`"
+                ):
+                    ledger.validate_route_cross_references(self.cells, self.evidence)
+            finally:
+                ledger.LIVE_PROSE_CONTRACTS = original
+
+    def test_promoting_a_referenced_route_forces_a_prose_review(self):
+        moves = (
+            ("mr-cumulative-logit-mu-x", "evidence_tier", "supported"),
+            ("mp-beta-binomial-bernoulli", "test_gate", "G4"),
+        )
+        for cell_id, column, value in moves:
+            with self.subTest(cell_id):
+                cells = copy.deepcopy(self.cells)
+                row = next(r for r in cells if r["cell_id"] == cell_id)
+                row[column] = value
+                with self.assertRaisesRegex(SystemExit, "referenced route state drifted"):
+                    ledger.validate_live_prose_contracts(cells, self.evidence)
+
+    def test_retired_predicate_scan_folds_case_and_spacing(self):
+        cells = copy.deepcopy(self.cells)
+        cells[0]["claim_boundary"] += " Under the All-1200\tinterval-usability  RULE."
+        with self.assertRaisesRegex(SystemExit, "retired predicate"):
+            ledger.validate_retired_predicates(cells, self.evidence)
+
+    def test_retired_predicate_sidecar_rejects_rows_without_provenance(self):
+        original = ledger.RETIRED_PREDICATES
+        valid = original.read_text(encoding="utf-8")
+        cases = {
+            "blank field": valid + "old gate rule\tdeadbeef\t\tissue 1011\n",
+            "short row": valid + "old gate rule\tdeadbeef\n",
+            "extra column": valid + "old gate rule\tdeadbeef\tnew rule\tissue 1011\textra\n",
+        }
+        try:
+            with tempfile.TemporaryDirectory() as temporary:
+                for name, text in cases.items():
+                    with self.subTest(name):
+                        sidecar = Path(temporary) / f"{name.replace(' ', '-')}.tsv"
+                        sidecar.write_text(text, encoding="utf-8")
+                        ledger.RETIRED_PREDICATES = sidecar
+                        with self.assertRaisesRegex(
+                            SystemExit, r"line \d+: every field needs a value"
+                        ):
+                            ledger.retired_predicate_phrases()
+        finally:
+            ledger.RETIRED_PREDICATES = original
+
+    def test_retired_predicate_sidecar_rejects_duplicate_phrases(self):
+        original = ledger.RETIRED_PREDICATES
+        with tempfile.TemporaryDirectory() as temporary:
+            sidecar = Path(temporary) / "retired-predicates.tsv"
+            sidecar.write_text(
+                original.read_text(encoding="utf-8")
+                + "ALL-1200  Interval-Usability rule\tdeadbeef\tnone\tissue 1011\n",
+                encoding="utf-8",
+            )
+            try:
+                ledger.RETIRED_PREDICATES = sidecar
+                with self.assertRaisesRegex(SystemExit, "duplicate phrase"):
+                    ledger.retired_predicate_phrases()
+            finally:
+                ledger.RETIRED_PREDICATES = original
+
     def test_live_prose_contract_excludes_historical_phrases(self):
         with tempfile.TemporaryDirectory() as temporary:
             historical = Path(temporary) / "2025-old-panel.md"
@@ -1395,20 +1540,29 @@ class CapabilityLedgerTests(unittest.TestCase):
         ):
             self.assertNotIn(internal_phrase, model_map)
 
+        structural = (ROOT / "vignettes" / "structural-dependence.Rmd").read_text()
+        for reader_marker in (
+            "Choose the structure that matches your scientific question.",
+            "| Your question | A sensible starting point | What to check before reporting | Read next |",
+            "A successful fit does not show that every related model is reliable.",
+        ):
+            self.assertIn(reader_marker, structural)
+        for internal_phrase in (
+            "Pedigree/Ainv bridge marshalling",
+            "recovery-grade NB2",
+            "fixed-kappa mesh intercept",
+        ):
+            self.assertNotIn(internal_phrase, structural)
+
     def test_public_vignettes_are_free_of_internal_route_jargon(self):
         # Reader pages never carry these internal evidence/bridge phrases; the
         # reader-facing tier vocabulary lives in capability-and-limits.Rmd
         # ("point estimate only", "diagnostic only", "fixed spatial range").
-        # 2026-09-21: structural-dependence.Rmd is excluded only until its own
-        # fix (branch codex/structural-reader-decisions-20260921, PR #1418)
-        # lands on main; that version is already clean of every phrase below,
-        # so drop the exclusion in the first commit after #1418 merges.
+        # structural-dependence.Rmd is covered too: PR #1418 made it clean of
+        # every phrase below, so the earlier temporary exclusion is dropped.
         public_vignettes = sorted((ROOT / "vignettes").glob("*.Rmd")) + sorted(
             (ROOT / "vignettes" / "articles").glob("*.Rmd")
         )
-        public_vignettes = [
-            p for p in public_vignettes if p.name != "structural-dependence.Rmd"
-        ]
         self.assertTrue(public_vignettes)
         for path in public_vignettes:
             normalized = " ".join(path.read_text().split()).lower()

@@ -133,6 +133,7 @@ drm_alignment_julia_fit <- function() {
 
 test_that("bivariate q2 structured payloads refuse incomplete rows (#1454)", {
   K <- diag(2)
+  dimnames(K) <- list(c("a", "b"), c("a", "b"))
   dat <- data.frame(
     id = c("a", "a", "b", "b"),
     x = c(1, 2, 3, 4),
