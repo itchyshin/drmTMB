@@ -1,5 +1,17 @@
 # drmTMB (development)
 
+* The Julia engine now also uses a `relmat()` kernel `K` and an `animal()` matrix `A`
+  exactly as supplied for `beta_family()` and `zero_one_beta()` intercepts and for the
+  Beta `sd(id, level = "animal")` route (2026-11-02, DRM.jl commit `d5e3e6b11`), as
+  native drmTMB does. Before, Julia rescaled them to a correlation matrix. The R bridge
+  (`engine = "julia"`) does not route structured terms for these two families, so no
+  bridge change was needed; the check calls the Julia engine directly. On one fixture
+  per route with a non-unit-diagonal `K` (Beta relmat and animal, zero-one-beta relmat
+  and animal, Beta animal SD ~ z), Julia and native TMB agree to coefficients within
+  5e-8 and log-likelihood within 4e-10 (fixed fixtures, not calibrated, no coverage
+  claim). `phylo()` keeps the correlation form, and the precomputed `spatial()` kernel
+  keeps its rescaling.
+
 * The Julia engine now uses a `relmat()` kernel `K` exactly as supplied for
   Poisson, NB2 and Gamma, as native drmTMB does (2026-11-02). Before, Julia
   silently rescaled `K` to a correlation matrix on the intercept routes and on
@@ -56,6 +68,12 @@
   NB2 coordinate `spatial(0 + x | g)` slope-only SD is also admitted
   (DRM.jl `87a371a66`); on one fixture it matched native TMB within 1.5e-7 on
   coefficients and 2e-6 on the log-likelihood.
+
+* `engine = "julia"` refuses `offset()` in R again for every family,
+  including Poisson SD regression (2026-11-02). An earlier change on this
+  branch let Poisson `mu` offsets through to Julia, but the DRModels.jl bridge
+  translator refuses `offset()` on every route, so users got a Julia-side error
+  instead of the drmTMB refusal that points to `engine = "tmb"`.
 
 * `drmTMB()` now restarts `nlminb` once when it stops with "false convergence
   (8)" at a point that is already stationary (2026-11-02). The restart is

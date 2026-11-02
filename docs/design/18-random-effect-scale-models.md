@@ -1304,7 +1304,7 @@ from source; it is not a measurement. Native rows come from
 |---|---|---|
 | `phylo()` | 1 by construction (ultrametric tree divided by height, `R/formula-markers.R:190-215`) | normalised: the tree route uses the correlation form for the count families (unchanged 2026-11-02) |
 | `animal()` with `A`, `Ainv` or pedigree | raw, `A_gg` (1 plus inbreeding) | Poisson, NB2 and Gamma: raw (`poisson.jl` animal routes; `negbinomial.jl` `_fit_nb2_animal_sd_laplace` called with `normalize = false`; `gamma.jl` structured SD route). The earlier NB2 "rescaled to a correlation matrix" statement (`negbinomial.jl:81-84`) is superseded |
-| `relmat()` with `K` or `Q` | raw, `K_gg` or `(Q^-1)_gg` | Poisson, NB2 and Gamma: raw on every route (intercept, slope-only, SD regression, marginal simulation, bootstrap), DRM.jl commit `36517ec8c` (2026-11-02, batch 28). Before that, the intercept routes and the Poisson slope route rescaled `K` to a correlation matrix. Not changed: Beta, zero-one-beta and the Gaussian location-scale routes still rescale (open rows below) |
+| `relmat()` with `K` or `Q` | raw, `K_gg` or `(Q^-1)_gg` | Poisson, NB2 and Gamma: raw on every route (intercept, slope-only, SD regression, marginal simulation, bootstrap), DRM.jl commit `36517ec8c` (2026-11-02, batch 28). Before that, the intercept routes and the Poisson slope route rescaled `K` to a correlation matrix. Beta and zero-one-beta intercepts and the Beta `sd(g, animal)` route: raw, DRM.jl commit `d5e3e6b11` (2026-11-02, batch 29). Not changed: the Gaussian location-scale routes still rescale (open row below) |
 | coordinate `spatial()` | `1 + 1e-6` (fixed diagonal jitter, `R/drmTMB.R:17359-17379`) | not reviewed |
 | mesh `spatial()` | raw sparse GMRF; no constant marginal SD (`R/drmTMB.R:25916-25925`) | not reviewed |
 | `phylo_interaction()` | not verified | not reviewed |
@@ -1342,14 +1342,28 @@ Read from Julia source at DRM.jl `36517ec8c`, not measured live. None is promote
 
 | Julia route | Julia scale of a supplied `K` or `A` | Native | Status |
 |---|---|---|---|
-| Beta `relmat`/`animal` intercept, constant SD, and `sd(g, animal)` (`beta.jl:243`, `_general_cov_setup(A, gidx)`) | rescaled to a correlation matrix | raw | OPEN. The same mismatch Poisson, NB2 and Gamma had. |
-| ZeroOneBeta `relmat`/`animal`/`spatial` intercept (`zeroonebeta.jl:508`) | rescaled | raw | OPEN |
 | Gaussian location-scale structured routes (`locscale_fit.jl:353`) | rescaled | raw | OPEN, not reviewed here |
 | Binomial relmat and animal SD routes (`binomial_sd_regression.jl`, `_checked_relmat_chol`) | raw (no rescaling found) | raw | No mismatch found in source. The Binomial relmat slope bridge test uses tolerance 0.1, so a tight non-unit-diagonal check is still unwritten. A Binomial constant-SD relmat intercept route without an SD formula was not found by `grep` in `src/binomial.jl` and was not checked. |
 | Tweedie relmat SD (`tweedie.jl`, `_tweedie_relmat_cov_setup`) | raw (no rescaling) | raw | No mismatch found in source; not measured live here. |
 | Hurdle NB2, hurdle Poisson, `zi` with relmat or animal | refused in Julia (`negbinomial.jl:332`, `poisson.jl:235`, `poisson.jl:483`) | supported | Refusal, not a parity row. |
 | CumulativeLogit relmat/animal/spatial | refused in Julia (`cumulative.jl:160-162`) | supported | Refusal, not a parity row. |
 | Precomputed-`K` spatial intercept for Poisson, NB2, Gamma | still rescaled (left as it was) | native fixed kernel has diagonal `1 + 1e-6`, so scaling is immaterial there | Left unchanged on purpose. |
+
+### Parity rows resolved 2026-11-02 (batch 29)
+
+The Beta `relmat`/`animal` intercept, the Beta `sd(g, animal)` route and the
+ZeroOneBeta `relmat`/`animal` intercept rows are closed by DRM.jl commit `d5e3e6b11`
+(raw `K` and `A`; the Beta animal bootstrap simulator also draws from the raw matrix).
+The R bridge does not route structured terms for `beta_family()` or `zero_one_beta()`
+(`drm_julia_structured_family_tag()`), so there was no non-unit-`K` refusal to remove
+and `R/julia-bridge.R` is unchanged. Evidence is the live native-versus-Julia block in
+`tests/testthat/test-julia-b29-beta-zob-raw-k-bridge.R`, which calls the Julia engine
+directly through JuliaCall (non-unit-diagonal `K`, coefficients within 1e-3 and logLik
+within 1e-2, native `se = FALSE`; measured maxima 5e-8 and 4e-10; one fixture per
+route, no coverage claim), and the Julia dense-Laplace oracle test
+`test/test_beta_zob_raw_k_regression.jl`. Not covered: Beta relmat SD regression
+(not implemented in Julia), spatial intercepts (Julia still rescales the precomputed
+kernel), Beta/ZeroOneBeta through `engine = "julia"` (refused by the bridge).
 
 ### Julia bridge admissions, 2026-11-01 (b18)
 

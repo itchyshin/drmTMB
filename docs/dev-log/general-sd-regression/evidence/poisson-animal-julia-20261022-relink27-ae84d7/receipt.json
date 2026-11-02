@@ -29,10 +29,13 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-animal-julia-20261022-relink27-ae84d7/source-manifest.json",
   "source_manifest_sha256": "235e0035ce28c994010d3e446df2b0a8f1909438f6376d0066dcec27b5e77f12",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "does_not_establish": [
     "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
     "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
   ],
-  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared)."
+  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared).",
+  "review_note": "Granted narrowly. Live Julia test test_poisson_animal_sd_regression.jl: 38 expectations, 0 failures, 0 skips; the 108 manifest entries (checked against a git archive of DRModels.jl at 87a371a66) and the console-log hash match. Oracle: a base-R/Optim dense Laplace objective (_poisson_animal_sd_dense_laplace) with a hand-built A (scaled AR(1) correlation) and a hand-built SD vector exp(alpha0 + alpha1*z) per animal. It is compared with fit.nll(theta) at the true parameters (atol 3e-4), once for the fixture and once for a raw-scale A in a second testset. My Totoro scratch run (Julia 1.10.12, taskset core 164) found fit.nll(theta) minus the oracle of -1.6e-11 against tolerance 3e-4, and oracle gaps of: reversed SD vector 2.9, 1-z flip 4.5, sign-flipped slope 7.1, cov2cor(A) 2.6, 2A 3.7. All are at least about 8,000 times the tolerance. These perturbations are from my scratch run, not asserted in the test. Row support is animal_intercept with A as covariance (the test also checks Ainv equals A, which is only internal parity and is not claimed here). Recovery is sign plus within 0.55 only. Does NOT establish: that the optimiser lands at the oracle optimum (the oracle is evaluated at the true theta), Ainv-precision correctness beyond A-versus-Ainv self-agreement, recovery accuracy beyond one seed, native parity, a slope SD, or interval coverage.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
 }

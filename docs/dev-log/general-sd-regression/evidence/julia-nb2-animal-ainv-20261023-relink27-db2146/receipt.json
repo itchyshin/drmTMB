@@ -29,10 +29,13 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-20261023-relink27-db2146/source-manifest.json",
   "source_manifest_sha256": "3e91f3bb7cc4811467a9b812159998eeae02ac50791e57273cbabb3236d349f6",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "does_not_establish": [
     "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
     "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
   ],
-  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared)."
+  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared).",
+  "review_note": "Julia NB2 animal(1 | g) with sd(g, animal) ~ z, scrambled row and group order. The live test adds a raw-A dense Laplace oracle (own LBFGS mode and ForwardDiff Hessian, non-unit-diagonal A) matching fit.nll at the fitted theta to 2e-3 (observed 4.5e-13), and asserts the cov2cor kernel moves the oracle by more than 0.5 (observed 3.65, about 1800 times the tolerance). Reviewer scratch run (Totoro, 87a371a66): flipping the SD slope gap 27.3, reversing the predictor by observation 32.2, zeroing the SD slope 6.5, reversing kernel order 6.4. The Ainv row is supported through equality with the A fit (coefficients atol 1e-4, loglik atol 1e-4, same group order after scrambling), not by a separate Ainv oracle. Manifest 108/108 match; log 19+9=28 pass, 0 failures. Does NOT establish: a direct Ainv-route oracle (only A-vs-Ainv equality), slope fields, interval coverage, the simulator or bootstrap beyond construction, or native parity; the first testset's 0.55 recovery bound is not evidence.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
 }

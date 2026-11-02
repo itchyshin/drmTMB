@@ -29,10 +29,13 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-sd-20261023-relink27-64171a/source-manifest.json",
   "source_manifest_sha256": "75508e253380aef4368dd72484776bc5983b901540735517381037a0ef17da5b",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "does_not_establish": [
     "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
     "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
   ],
-  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared)."
+  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared).",
+  "review_note": "Julia Binomial (logit/Bernoulli) crossed (1|g)+(1|h), each with its own SD formula (sd(g)~w, sd(h)~v), fitted at DRModels.jl 87a371a66. The test compares fit.loglik, per observation, with a hand-written Newton/dense-Hessian Laplace oracle at fixed coefficients and the fitted group SD vectors (tolerance 1e-7 per obs; observed 1.8e-8). The oracle code is independent of the package Laplace code. Reviewer scratch run on Totoro (copy of the test, perturbations appended; DRModels.jl at 87a371a66, core 150): swapped selectors gap 3.39e-3 per obs, reversed tau_g 2.6e-3, reversed tau_h 1.0e-3, both reversed 3.6e-3, constant SD 8.1e-4, i.e. 1e4 to 3e4 times the tolerance. Both intercept fields are fitted. Manifest: 108/108 entries match (Julia source re-hashed from 87a371a66 plus test and project files); receipt and ledger shas match; log shows 20/20, 0 failures, no skips. Does NOT establish: any other link or slope fields, interval coverage or calibration, native-engine or cross-engine parity, behaviour at non-fixture sizes, or that the fitted coefficients are optimal (the oracle checks the objective at the fitted point; recovery is only atol 0.45).",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
 }

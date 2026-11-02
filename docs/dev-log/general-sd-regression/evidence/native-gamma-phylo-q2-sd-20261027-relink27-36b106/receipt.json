@@ -27,9 +27,12 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027-relink27-36b106/source-manifest.json",
   "source_manifest_sha256": "b98c7c8b9f1e45bddb5cb50cd0f3f6ae919ee3e992e1f3ed0f0fa3e99d13b77e",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "does_not_establish": [
     "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
     "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
-  ]
+  ],
+  "review_note": "Native Gamma(log) mu phylo(1 + x | id) with an SD formula on each coefficient (unlabelled, so two independent fields; the slope row is the slope member with SD ~ z1, and the intercept member also has SD ~ z0). Oracle is independent: the tip kernel K is hand-built from binary-split tree mismatches (not ape, not the package helper) and compared with the package augmented-precision tip covariance at 1e-10; the test then evaluates a base-R dense Laplace NLL (own gradient/Hessian checked by finite differences, two starts) and requires agreement with -logLik and the linear predictor at 1e-4. Manifest (R/drmTMB.R, src/drmTMB.cpp, test) matches current files; receipt log shows 48 passed, 0 failed, 0 skipped. Sensitivity was shown by my scratch run (Totoro cores 168-173, not asserted in the test), nll gap against a 1e-4 tolerance: swap selectors z0<->z1 65.2; swap the two coefficient SD sets 143; reverse z0 over tips 29.9; reverse z1 91.1; sign flip 120.9; K x1.5 4.05; K off-diagonals halved 0.83; random K label permutation 1.5-3.7. Blind spot: the balanced tree kernel is invariant to exactly reversing labels (gap 1e-9), so reversal-based alignment bugs are not caught; random permutations are. Does NOT establish: calibration or coverage, recovery beyond one seed (SD slopes only within 0.4 of truth), a correlated intercept-slope block (fields are independent), non-balanced or non-ultrametric trees, or that the in-test file would still fail if its checks were weakened, since the perturbations live in my scratch run, not the test.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
 }

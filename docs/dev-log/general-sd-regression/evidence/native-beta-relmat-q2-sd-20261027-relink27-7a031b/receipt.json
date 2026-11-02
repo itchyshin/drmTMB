@@ -27,9 +27,12 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027-relink27-7a031b/source-manifest.json",
   "source_manifest_sha256": "2746ed41256730c8029966e1620cb6cad606970ba40f0e93487c478820ceb635",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "does_not_establish": [
     "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
     "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
-  ]
+  ],
+  "review_note": "Native Beta (logit, eps = 1e-12) mu with relmat(1 + x | id) as two independent fields (intercept and slope), each with its own SD regression (z0 and z1); both fields are fitted, so both row_keys (K and Q input) are supported. Oracle: a base-R dense Laplace in the test itself (stats::dbeta, hand-built Kronecker precision from solve(K), analytic score/Hessian checked against finite differences, nlminb with two starts), on a fixture with non-unit K diagonal (0.8-1.3), permuted K labels and reversed factor levels. Fit -logLik agrees with it to 4e-12 in my scratch run (tolerance 1e-4). Emulated-bug scratch run, oracle against the unchanged fit, tolerance 1e-4: swapped selectors z0/z1 gap 32.8; reversed z0 vector 77.0; reversed z1 vector 26.4; cov2cor(K) 1.89; K scaled by 1.5 gives 3.26; K labels reversed 4.85 (all at least 1.9e4 times the tolerance). The Q (precision) row is supported transitively: the Q fit with reversed labels agrees with the K fit to 1e-4 in logLik, coefficients and SDs, and the K fit matches the oracle. Manifest (3 files) matches current files (0 mismatches); receipt console log shows 64 passed, 0 failed, 0 errors, 0 skipped. I reran the whole file on Totoro at current source: 64 pass, 0 fail, 0 skip. Does NOT establish: interval coverage or calibration, Julia parity, new-data or simulation correctness (the simulate check reuses the package's own mu), the Beta density (the oracle and the package both use the standard beta density), behaviour on other K structures or seeds, or the removed relmat(1|id) refusal pin.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
 }

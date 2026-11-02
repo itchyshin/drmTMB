@@ -29,10 +29,13 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-julia-20261023-relink27-76e8e3/source-manifest.json",
   "source_manifest_sha256": "01e53b6aeb06f5e3b7f40cd4829e96480543263afdd030b2186122d70c1e69d4",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "does_not_establish": [
     "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
     "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
   ],
-  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared)."
+  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared).",
+  "review_note": "Julia Gamma log animal(1 + x | g) (unlabelled, so two independent additive-genetic fields) with coef(intercept)~z0 and coef(x)~z1 SD formulas, raw non-unit-diagonal A. The test compares fit.nll at the true parameter vector with a hand-written dense Laplace oracle (own LBFGS mode solve, ForwardDiff Hessian, Kronecker-free Qjoint) at atol 5e-3 (observed gap 1.5e-12), and a constant-SD variant likewise. Reviewer scratch run (Totoro, 87a371a66): swap z0/z1 selectors gap 31.3, swap coefficient blocks 10.9, reversed z1 by group 6.6, reversed z0 by group 21.5, cov2cor(A) 4.9, constant SD 13.1, i.e. 1000 to 6000 times tolerance. The row (animal_intercept, q=1) is supported only as the intercept member of this unlabelled two-field fit; the slope member is the same joint objective. Manifest 108/108 match; log 35/35, 0 failures. Does NOT establish: a separate intercept-only animal fit, the A_covariance route is covered but not Ainv, that the optimiser reaches the optimum (the oracle is evaluated at the true theta; recovery is only within 0.6), correlated (labelled) intercept-slope blocks, interval coverage, or native parity.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
 }

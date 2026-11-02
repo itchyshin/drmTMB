@@ -5052,9 +5052,9 @@ drm_julia_refuse_offset_unsupported <- function(formula, family_type = NULL) {
     return(invisible(FALSE))
   }
   dpars <- vapply(entries[hit], `[[`, character(1L), "dpar")
-  if (identical(family_type, "poisson") && all(dpars == "mu")) {
-    return(invisible(FALSE))
-  }
+  # No family is exempt: the DRM.jl bridge translator refuses `offset(...)` on
+  # every route, including Poisson SD regression, so an R-side exemption only
+  # moved the refusal into Julia with a less helpful message.
   cli::cli_abort(
     c(
       "{.code engine = \"julia\"} does not support {.fn offset} in the {.field {dpars}} formula{?s}.",

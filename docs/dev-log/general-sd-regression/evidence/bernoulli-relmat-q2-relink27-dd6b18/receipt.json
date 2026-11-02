@@ -27,9 +27,12 @@
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/bernoulli-relmat-q2-relink27-dd6b18/source-manifest.json",
   "source_manifest_sha256": "8816bf7663ff0fb12d6208d8c51f61fb1aacdee91fd959d942c07f31bbf8e694",
-  "review_status": "unreviewed",
+  "review_status": "reviewed_narrow_claim",
   "does_not_establish": [
     "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
     "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
-  ]
+  ],
+  "review_note": "Native Binomial logit relmat(1 + x | id) (unlabelled, two independent relatedness fields) with SD formulas z0 on the intercept and z1 on the slope, 160 groups x 32, raw non-unit-diagonal K. Independent oracle: hand-built K, base-R dense Laplace (nlminb, analytic score and Hessian, finite-difference checks, two starts) matching -logLik to 1e-4 (observed 8.0e-10) and eta to 1e-4. Reviewer scratch run (Totoro, core 155): swapped selectors gap 62.8, reversed SD vectors 179.6, reversed slope SD only 43.2, no SD predictor 44.7, cov2cor(K) 1.70, kernel row/col order reversed 4.50 (all at least 1.7e4 times tolerance). K rows are supplied in a permuted order and the data factor is reversed, so alignment by label is exercised. The Q_precision row is supported only through K-vs-Q (differently permuted) equality on a smaller 32x12 fit (loglik 1e-4, coefficients 1e-3), not by a separate Q oracle. Manifest 3/3 match; log 98 pass, 0 failures, 0 skips. Both members fitted, so the slope-member row is supported together with the intercept field. Does NOT establish: a dedicated Q-input oracle, labelled or correlated relmat blocks, non-logit links (the test asserts probit is refused), q2 profile or bootstrap intervals (two-replicate smoke only), or coverage.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
 }

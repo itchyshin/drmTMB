@@ -1,12 +1,11 @@
-test_that("Poisson SD regression applies the fixed offset once in both engines", {
-  skip_on_cran()
-  skip_if_not_installed("JuliaCall")
-  drm_skip_live_julia()
-  jl_path <- drm_test_drmjl_path("DRM_JL_PATH")
-  skip_if(!nzchar(jl_path) || !dir.exists(jl_path), "DRM_JL_PATH not available")
-  drm_test_local_drmjl_path(jl_path)
-  drm_test_local_julia_home()
+# A Poisson SD-regression fit with an offset is not admitted through
+# engine = "julia": the DRM.jl bridge translator refuses `offset(...)` on every
+# route (it needs a fixed, non-estimated coefficient). An earlier version of
+# this file asserted native-vs-Julia parity for this route; it could not pass,
+# because the Julia side always refused. The refusal now happens in R, before
+# Julia starts, with the classed condition used for every other offset.
 
+test_that("Poisson SD regression with an offset is refused in R before Julia starts", {
   set.seed(20261023L)
   groups <- 32L
   repeats <- 20L
@@ -28,37 +27,15 @@ test_that("Poisson SD regression applies the fixed offset once in both engines",
     sd(id, coef = "(Intercept)") ~ z
   )
 
-  fit_tmb <- drmTMB(
-    formula,
-    family = stats::poisson(),
-    data = dat,
-    engine = "tmb",
-    control = drm_control(se = FALSE)
+  expect_error(
+    drmTMB(formula, family = poisson(), data = dat, engine = "julia"),
+    class = "drmTMB_julia_offset_unsupported"
   )
-  fit_julia <- drmTMB(
-    formula,
-    family = stats::poisson(),
-    data = dat,
-    engine = "julia"
+  # The refusal points to the native engine, which does fit this model.
+  expect_error(
+    drmTMB(formula, family = poisson(), data = dat, engine = "julia"),
+    "engine = \"tmb\""
   )
-
-  sd_dpar <- grep("^sd\\(", names(fit_tmb$coefficients), value = TRUE)
-  expect_length(sd_dpar, 1L)
+  fit_tmb <- drmTMB(formula, family = poisson(), data = dat)
   expect_true(is_converged(fit_tmb))
-  expect_true(is_converged(fit_julia))
-  expect_equal(
-    unname(coef(fit_julia, dpar = sd_dpar)),
-    unname(coef(fit_tmb, dpar = sd_dpar)),
-    tolerance = 1e-3
-  )
-  expect_equal(
-    as.numeric(logLik(fit_julia)),
-    as.numeric(logLik(fit_tmb)),
-    tolerance = 1e-3
-  )
-  expect_equal(
-    unname(predict(fit_julia, newdata = dat)),
-    unname(predict(fit_tmb, newdata = dat)),
-    tolerance = 1e-3
-  )
 })
