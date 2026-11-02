@@ -24,7 +24,7 @@
 #' @importFrom stats AIC BIC ave coef complete.cases delete.response deviance df.residual
 #' @importFrom stats gaussian logLik nobs
 #' @importFrom stats lm.fit model.frame model.matrix model.response na.omit
-#' @importFrom stats nlminb predict residuals rnorm sd sigma simulate terms vcov
+#' @importFrom stats nlminb predict residuals rnorm sd sigma simulate terms update vcov
 #' @importFrom utils packageVersion
 #' @importFrom nlme fixef ranef
 #' @useDynLib drmTMB, .registration = TRUE
