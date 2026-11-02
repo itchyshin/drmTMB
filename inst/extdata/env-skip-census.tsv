@@ -218,6 +218,9 @@ test-heritability.R	suggests-package	environment	runs	1
 test-julia-admission-census.R	build-premise	build	skips	1
 test-julia-admission-docs.R	build-premise	build	skips	3
 test-julia-admission-docs.R	runtime-conditional	runtime	depends	1
+test-julia-b18-relmat-nb2-slope-sd-bridge.R	cran-lane	environment	runs	2
+test-julia-b18-relmat-nb2-slope-sd-bridge.R	engine-drm-jl	environment	skips	4
+test-julia-b18-relmat-nb2-slope-sd-bridge.R	suggests-package	environment	runs	2
 test-julia-beta-binomial-sd-parity.R	engine-drm-jl	environment	skips	4
 test-julia-beta-binomial-sd-parity.R	suggests-package	environment	runs	2
 test-julia-beta-binomial-sigma-sd-bridge.R	engine-drm-jl	environment	skips	4

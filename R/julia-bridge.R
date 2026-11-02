@@ -3742,6 +3742,8 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
             )) ||
           (identical(family_type, "binomial") &&
             drm_julia_binomial_relmat_sd_route_admitted(formula)) ||
+          (identical(family_type, "poisson") &&
+            drm_julia_poisson_relmat_sd_slope_route_admitted(formula)) ||
           (identical(family_type, "gamma") &&
             drm_julia_gamma_sigma_sd_route_admitted(formula, data = data)) ||
           (identical(family_type, "nbinom2") &&
@@ -3964,6 +3966,8 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
       !drm_julia_binomial_animal_sd_slope_route_admitted(formula) &&
       !drm_julia_binomial_relmat_sd_route_admitted(formula) &&
       !drm_julia_binomial_relmat_iid_sd_route_admitted(formula) &&
+      !(identical(family_type, "poisson") &&
+          drm_julia_poisson_relmat_sd_slope_route_admitted(formula)) &&
       !sd_matches_structured_term(structured_terms[[1L]])) {
     # `drm_julia_structured_payload()` (R#5290): the univariate general-
     # covariance sparse-Laplace route names its single random-effect SD
@@ -5091,6 +5095,14 @@ drm_julia_refuse_marker_slope_unsupported <- function(formula, family_type = NUL
   if (drm_julia_poisson_animal_sd_slope_route_admitted(formula)) {
     return(invisible(FALSE))
   }
+  if (identical(family_type, "nbinom2") &&
+      drm_julia_nbinom2_animal_sd_slope_route_admitted(formula)) {
+    return(invisible(FALSE))
+  }
+  if (identical(family_type, "poisson") &&
+      drm_julia_poisson_relmat_sd_slope_route_admitted(formula)) {
+    return(invisible(FALSE))
+  }
   terms <- drm_julia_collect_marker_slope_terms(formula)
   if (length(terms) == 0L) {
     return(invisible(FALSE))
@@ -5398,6 +5410,33 @@ drm_julia_binomial_relmat_sd_route_admitted <- function(formula) {
   if (!intercept && !slope_only) return(FALSE)
   length(entries[[mu_idx]]$structured) == 1L &&
     length(extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms) == 0L
+}
+
+# DRM.jl 61a6dcdbd admits the NB2 animal slope-only SD route (raw A, Poisson
+# animal-slope shape plus a fixed `sigma ~ 1`, explicit or implicit). Only the
+# `A` matrix form is admitted from R; `Ainv` and `pedigree` forms are refused
+# for NB2 by the structured payload.
+drm_julia_nbinom2_animal_sd_slope_route_admitted <- function(formula) {
+  entries <- formula$entries
+  keep <- !vapply(entries, function(entry) {
+    identical(entry$dpar, "sigma") && drm_julia_is_intercept_rhs(entry$rhs)
+  }, logical(1L))
+  formula$entries <- entries[keep]
+  drm_julia_poisson_animal_sd_slope_route_admitted(formula)
+}
+
+# DRM.jl's R-bridge Poisson general-covariance route admits one q=1 relmat
+# slope-only member paired with an explicit direct-SD regression (DRM.jl
+# f0566fb5b widened its `binomial_relmat_sd_slope_only` payload to Poisson).
+# Same shape as the Binomial relmat SD admission, restricted to slope-only;
+# the structured payload rechecks the family is Poisson. The Poisson relmat
+# intercept route is not widened here.
+drm_julia_poisson_relmat_sd_slope_route_admitted <- function(formula) {
+  if (!drm_julia_binomial_relmat_sd_route_admitted(formula)) return(FALSE)
+  terms <- drm_julia_collect_structured_terms(formula)
+  length(terms) == 1L &&
+    length(terms[[1L]]$coef_names) == 1L &&
+    !identical(terms[[1L]]$coef_names, "(Intercept)")
 }
 
 drm_julia_binomial_relmat_iid_sd_route_admitted <- function(formula) {
@@ -11388,6 +11427,10 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
     !identical(term$coef_names, "(Intercept)")
   poisson_animal_slope <- identical(family_type, "poisson") &&
     drm_julia_poisson_animal_sd_slope_route_admitted(formula)
+  nbinom2_animal_slope <- identical(family_type, "nbinom2") &&
+    drm_julia_nbinom2_animal_sd_slope_route_admitted(formula)
+  poisson_relmat_slope <- identical(family_type, "poisson") &&
+    drm_julia_poisson_relmat_sd_slope_route_admitted(formula)
   gamma_animal_slope <- identical(family_type, "gamma") &&
     drm_julia_gamma_animal_sd_slope_route_admitted(formula, family_type)
   gamma_animal_intercept_slope <- gamma_animal_slope &&
@@ -11408,7 +11451,8 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
   supported_coefficient <- identical(term$coef_names, "(Intercept)") ||
     ((binomial_relmat_slope || binomial_spatial_slope || binomial_animal_slope ||
       binomial_animal_iid_slope ||
-      poisson_animal_slope || gamma_animal_slope) &&
+      poisson_animal_slope || nbinom2_animal_slope || poisson_relmat_slope ||
+      gamma_animal_slope) &&
        length(term$coef_names) == 1L) ||
     gamma_animal_intercept_slope ||
     (binomial_animal_q2_sd && length(term$coef_names) == 2L &&
@@ -11416,9 +11460,9 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
   if (!identical(term$dpar, "mu") || !supported_coefficient ||
       ((binomial_animal_slope || binomial_animal_iid_slope ||
         binomial_animal_q2_sd ||
-        poisson_animal_slope || gamma_animal_slope) &&
+        poisson_animal_slope || nbinom2_animal_slope || gamma_animal_slope) &&
          !identical(term$type, "animal")) ||
-      ((binomial_relmat_sd || tweedie_relmat_sd) &&
+      ((binomial_relmat_sd || tweedie_relmat_sd || poisson_relmat_slope) &&
          !identical(term$type, "relmat")) ||
       (binomial_spatial_sd && !identical(term$type, "spatial"))) {
     cli::cli_abort(c(
@@ -11492,6 +11536,19 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
         i = "Use {.code animal(1 | group, Ainv = Q)} or {.code animal(0 + x | group, Ainv = Q)} with a matching admitted animal SD formula, or use {.code engine = \"tmb\"} for other precision-matrix routes."
       ))
     }
+  }
+  if (poisson_relmat_slope &&
+      !isTRUE(all(abs(diag(as.matrix(resolved$matrix)) - 1) < 1e-8))) {
+    # Measured 2026-11-01 (drmTMB batch 18): DRM.jl rescales a relmat K to a
+    # correlation matrix, native TMB uses K as given. With a unit diagonal the
+    # two engines agree to optimiser precision; with a non-unit diagonal and a
+    # predictor-dependent SD they fit different models (logLik gap 2.8 on the
+    # test fixture). Refuse rather than fit a different model silently.
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} admits the Poisson {.fn relmat} slope SD route only for a unit-diagonal {.arg K} (a correlation matrix).",
+      i = "DRM.jl rescales {.arg K} to a correlation matrix, which changes the model when {.code sd(id, level = \"relmat\")} is predictor-dependent and diag(K) is not 1.",
+      i = "Pass {.code cov2cor(K)} or use native {.code engine = \"tmb\"}."
+    ))
   }
   formula_spec <- drm_julia_formula_spec(formula)
   matrix <- resolved$matrix
