@@ -1,0 +1,70 @@
+{
+  "evidence_id": "native-gaussian-sigma-structured-sd-20261101d",
+  "evidence_grade": "focused_test",
+  "slice": "gaussian-sigma-structured-sd",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"sigma\",\"sigma\",\"sigma:I\",\"I\",\"identity\",\"phylo_intercept\",\"S1/P-temporal\",\"phylo\",\"structured random intercept\",\"tree\",\"single phylogenetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "identity",
+      "ledger_status": "required",
+      "mechanism_id": "phylo_intercept",
+      "provider_input": "tree",
+      "target_member": "sigma:I",
+      "endpoint": "sigma"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"sigma\",\"sigma\",\"sigma:I\",\"I\",\"identity\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "identity",
+      "ledger_status": "required",
+      "mechanism_id": "animal_intercept",
+      "provider_input": "A_covariance",
+      "target_member": "sigma:I",
+      "endpoint": "sigma"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"sigma\",\"sigma\",\"sigma:I\",\"I\",\"identity\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "identity",
+      "ledger_status": "required",
+      "mechanism_id": "relmat_intercept",
+      "provider_input": "K_covariance",
+      "target_member": "sigma:I",
+      "endpoint": "sigma"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"sigma\",\"sigma\",\"sigma:I\",\"I\",\"identity\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "identity",
+      "ledger_status": "required",
+      "mechanism_id": "spatial_coordinate_intercept",
+      "provider_input": "coordinates",
+      "target_member": "sigma:I",
+      "endpoint": "sigma"
+    }
+  ],
+  "test_command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gaussian-sigma-structured-sd.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "test_path": "tests/testthat/test-gaussian-sigma-structured-sd.R",
+  "test_sha256": "8b7d548a65063ac49682ad3a65d2e528519a4aca99165f472128efba4fb4c357",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-structured-sd-20261101d/source-manifest.json",
+  "source_manifest_sha256": "2d9114fb5c8855220485d2ebcb1efe9f37e7c22ffadb4ca7c4af0d7684f69c5e",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-structured-sd-20261101d/test-console.log",
+  "console_log_sha256": "eb4f3545d6f2ee0713997fe8ad2472ec9caa976b1ac6e21f602ac98082558191",
+  "result": {
+    "exit_code": 0,
+    "summary_dots_passed": 92,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": "not run; Julia bridge reported 0 live tests, native TMB engine only"
+  },
+  "result_summary": "Gaussian sigma-endpoint q1 structured intercept (phylo tree, animal A=K, relmat K, spatial coords) with sd() ~ z matches a dense Laplace oracle (abs logLik 1e-4); constant-SD limit 1e-5; swapped-formula and misaligned-level sensitivity; neighbours closed.",
+  "not_covered": [
+    "animal Ainv_precision and pedigree sigma rows (not used; animal fit supplies A = K)",
+    "relmat Q_precision sigma row (no Q fit)",
+    "phylo covariance/precision-matrix sigma rows",
+    "spatial mesh_precision rows",
+    "any slope or q2 sigma structured SD (asserted closed)",
+    "no recovery/coverage/calibration; no Julia"
+  ],
+  "limits": "dirty shared candidate tree; no calibration; no Julia parity; unreviewed; tolerances as written in the test file header, not loosened; receipt links rows and does not promote direct_sd_claim",
+  "review_status": "unreviewed"
+}

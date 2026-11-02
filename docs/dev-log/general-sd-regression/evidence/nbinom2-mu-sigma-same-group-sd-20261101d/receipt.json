@@ -1,0 +1,50 @@
+{
+  "evidence_id": "native-nbinom2-mu-sigma-same-group-sd-20261101d",
+  "evidence_grade": "focused_test",
+  "claim": "NB2 mu (1 | id) and sigma (1 | id) on the SAME grouping factor with independent effects and separate SD formulas, dense 2G-dimensional Laplace oracle (logLik 1e-3)",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-nbinom2-mu-sigma-same-group-sd.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "tree_state": "dirty shared candidate",
+  "test_path": "tests/testthat/test-nbinom2-mu-sigma-same-group-sd.R",
+  "test_sha256": "19d3dbd2cf9dcba1e4b2544a078f576b4a2d8d04aad86bb2de76b72fa8cfade0",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-same-group-sd-20261101d/source-manifest.json",
+  "source_manifest_sha256": "15734442e6903a7b74a50bc4a253e9b9355780223589302507680162f5ef5c41",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-same-group-sd-20261101d/test-console.log",
+  "console_log_sha256": "8592b88f136b4666b28e6cdacf45c6f90d1d53d7c6a69db430bce85add3bda49",
+  "result": {
+    "exit_code": 0,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": false,
+    "note": "summary reporter: no failure or skip section; Julia bridge reported 0 live tests"
+  },
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "iid_intercept",
+      "provider_input": "group_factor",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"sigma\",\"sigma\",\"sigma:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "iid_intercept",
+      "provider_input": "group_factor",
+      "target_member": "sigma:I"
+    }
+  ],
+  "not_covered": [
+    "labelled cross-parameter rows (no mu-sigma correlation is modelled)",
+    "calibration, Julia parity"
+  ],
+  "limits": [
+    "unreviewed",
+    "no calibration or coverage claim",
+    "native R/TMB only; no Julia parity claim",
+    "direct_sd_claim stays none; receipt is a staleness seal, not a promotion"
+  ]
+}

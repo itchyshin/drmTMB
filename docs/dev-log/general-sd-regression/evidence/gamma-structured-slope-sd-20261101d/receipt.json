@@ -1,0 +1,77 @@
+{
+  "evidence_id": "native-gamma-structured-slope-sd-20261101d",
+  "evidence_grade": "focused_test",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"K_covariance\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link": "log",
+      "endpoint": "mu",
+      "mechanism_id": "relmat_numeric_slope",
+      "provider_input": "K_covariance",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"Q_precision\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link": "log",
+      "endpoint": "mu",
+      "mechanism_id": "relmat_numeric_slope",
+      "provider_input": "Q_precision",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link": "log",
+      "endpoint": "mu",
+      "mechanism_id": "animal_numeric_slope",
+      "provider_input": "Ainv_precision",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link": "log",
+      "endpoint": "mu",
+      "mechanism_id": "phylo_numeric_slope",
+      "provider_input": "tree",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link": "log",
+      "endpoint": "mu",
+      "mechanism_id": "spatial_coordinate_slope",
+      "provider_input": "coordinates",
+      "ledger_status": "required"
+    }
+  ],
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gamma-structured-slope-sd.R\", reporter = \"summary\")'",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "tree_state": "dirty shared candidate",
+  "test_path": "tests/testthat/test-gamma-structured-slope-sd.R",
+  "test_sha256": "99c9e72a95c26c2b412b321e2c76ff8a442459c05c13aed535ea7b26252e750c",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gamma-structured-slope-sd-20261101d/source-manifest.json",
+  "source_manifest_sha256": "32a94a4a06397aad9f5d6c9ddedb32802ecc112e9133fe27b21ebc33ec2a6527",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gamma-structured-slope-sd-20261101d/test-console.log",
+  "console_log_sha256": "2654f18ec51a1a47356a2b2ba0e7248ba72b881f86d7bd5ef60328a9c7990dbe",
+  "result": {
+    "exit_code": 0,
+    "expectations_passed": 88,
+    "failures": 0,
+    "skips": 0,
+    "julia_live_tests": "0 ran (live Julia not exercised; native R/TMB only)"
+  },
+  "summary": "Gamma(log) native slope-only structured SD regression sd(g,level=...)~z for relmat (K and Q), animal (Ainv), phylo and spatial coordinates; dense Laplace oracle 1e-4, constant-SD equivalence, K vs Q, SD recovery within 0.6, save/reload round trip, neighbouring routes closed; all expectations pass.",
+  "not_covered": [
+    "animal A_covariance and pedigree slope rows not exercised (Ainv only)",
+    "spatial mesh_precision slope not exercised",
+    "single fixed-seed design per provider; recovery tolerance 0.6 is broad; no calibration",
+    "no Julia parity (live Julia did not run)",
+    "review_status unreviewed"
+  ],
+  "limits": [
+    "no calibration",
+    "no Julia parity",
+    "review_status unreviewed",
+    "tolerances as written in the test, not loosened"
+  ]
+}

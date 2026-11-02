@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "04858b361162fb58e15188e5498ecace25330c18c2a92e9e22260601d335377a"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "a0fd4f4d613467f13064c2512f10587316a78ae5ff776251180c17d36ce9e783"
+    },
+    {
+      "file": "tests/testthat/test-gaussian-phylo-interaction-slope-sd.R",
+      "sha256": "db3af88add986228414058d5417e27acaef0e0ea1ee6cbdac6c950c2849f34a3"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gaussian-phylo-interaction-slope-sd-20261101d/test-console.log",
+      "sha256": "00782cc83549bd2ef1ac6dd8b1f97c0a69001ea8378ae46c73b6930dacfe3b8b"
+    }
+  ],
+  "note": "dirty shared candidate; hashes identify test-time files at HEAD 33e4e966a05f4381ee790b238b41d6d12fa3032c"
+}

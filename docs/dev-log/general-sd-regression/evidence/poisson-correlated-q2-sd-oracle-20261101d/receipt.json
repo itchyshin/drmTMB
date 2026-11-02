@@ -1,0 +1,52 @@
+{
+  "evidence_id": "native-poisson-correlated-q2-sd-oracle-20261101d",
+  "evidence_grade": "focused_test",
+  "claim": "Poisson native correlated (1 + x | id) q2 block with two group-constant SD predictors, drmTMB-independent Laplace oracle at 1e-4 over two seeds, emulated-bug sensitivity > 1 log-lik unit",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-poisson-correlated-q2-sd-oracle.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "tree_state": "dirty shared candidate",
+  "test_path": "tests/testthat/test-poisson-correlated-q2-sd-oracle.R",
+  "test_sha256": "2006e4ee760fc442a066368e61d1a50f9f645d51bc49b03a106a3c5f6d2938b5",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/poisson-correlated-q2-sd-oracle-20261101d/source-manifest.json",
+  "source_manifest_sha256": "2d56bb0507f6135f87497c2bffe902cff62e3b826a39c964061ace79a8975d36",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/poisson-correlated-q2-sd-oracle-20261101d/test-console.log",
+  "console_log_sha256": "8a1e2311b991154b28d50cd55b990041b5268567db9c00d5d756f42d9505798e",
+  "result": {
+    "exit_code": 0,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": false,
+    "note": "summary reporter: no failure or skip section; Julia bridge reported 0 live tests"
+  },
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"log\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved",
+      "mechanism_id": "iid_correlated_block",
+      "provider_input": "group_factor",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"log\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved",
+      "mechanism_id": "iid_correlated_block",
+      "provider_input": "group_factor",
+      "target_member": "mu:x1"
+    }
+  ],
+  "not_covered": [
+    "q3 and general-q correlated blocks",
+    "sigma endpoint",
+    "recovery, calibration, Julia parity",
+    "two testthat warnings: expect_equal(scale = 1) is an unused argument, so the 1e-4 tolerance is relative, not absolute as the file header states"
+  ],
+  "limits": [
+    "unreviewed",
+    "no calibration or coverage claim",
+    "native R/TMB only; no Julia parity claim",
+    "direct_sd_claim stays none; receipt is a staleness seal, not a promotion"
+  ]
+}
