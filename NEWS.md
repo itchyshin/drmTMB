@@ -69,11 +69,11 @@
   (DRM.jl `87a371a66`); on one fixture it matched native TMB within 1.5e-7 on
   coefficients and 2e-6 on the log-likelihood.
 
-* `engine = "julia"` refuses `offset()` in R again for every family,
-  including Poisson SD regression (2026-11-02). An earlier change on this
-  branch let Poisson `mu` offsets through to Julia, but the DRModels.jl bridge
-  translator refuses `offset()` on every route, so users got a Julia-side error
-  instead of the drmTMB refusal that points to `engine = "tmb"`.
+* `engine = "julia"` again refuses `offset()` in R before Julia starts,
+  including on the Poisson SD-regression route (2026-11-02). An earlier change
+  on this branch let Poisson `mu` offsets through to Julia, but the DRModels.jl
+  bridge translator refuses `offset()` on each route, so users got a Julia-side
+  error instead of the drmTMB refusal that points to `engine = "tmb"`.
 
 * `drmTMB()` now restarts `nlminb` once when it stops with "false convergence
   (8)" at a point that is already stationary (2026-11-02). The restart is
