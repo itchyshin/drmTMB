@@ -262,14 +262,17 @@ test_that("Gaussian coordinate spatial intercept SD agrees across engines", {
                    control = drm_control(se = FALSE))
   julia <- drmTMB(form, family = gaussian(), data = dat, engine = "julia")
   b32g_compare(julia, native, c("mu", "sigma", "sd_spatial(id)"))
-  # fitted() contract on the structured bridge routes (batch 32 audit): the
-  # bridge slot is the population-level value X beta (modes at zero), in data
-  # row order even though the coordinate rows are named in a different order
-  # from first appearance. It is NOT the conditional mean native fitted()
-  # returns, so the two engines differ here by design of the slot; this block
-  # pins the row order and the definition, it does not claim parity.
+  # fitted() contract on the structured bridge routes (batch 34): the conditional
+  # mean, as native fitted() returns, in data row order even though the
+  # coordinate rows are named in a different order from first appearance. The
+  # population-level value X beta (what the slot held before batch 34) is far
+  # from it, so this also pins that the old definition is gone. Tolerance fixed
+  # beforehand: relative 1e-4 on fitted() and residuals().
   b <- coef(julia, dpar = "mu")
   xb <- as.vector(cbind(1, dat$x) %*% b[c("(Intercept)", "x")])
-  expect_equal(as.numeric(fitted(julia)), xb, tolerance = 1e-8)
-  expect_equal(as.numeric(residuals(julia)), dat$y - xb, tolerance = 1e-8)
+  fn <- as.numeric(fitted(native))
+  expect_lt(max(abs(as.numeric(fitted(julia)) - fn)) / max(abs(fn)), 1e-4)
+  rn <- as.numeric(residuals(native))
+  expect_lt(max(abs(as.numeric(residuals(julia)) - rn)) / max(abs(rn)), 1e-4)
+  expect_gt(max(abs(xb - fn)) / max(abs(fn)), 1e-2)
 })

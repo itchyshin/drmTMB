@@ -97,7 +97,7 @@
     },
     {
       "file": "R/julia-bridge.R",
-      "sha256": "71a3fa79a97764bbae390ad771d4300688d1d58783d49fb5bf93a6d7bfa82c0d"
+      "sha256": "0803f791a8c237df11d9d6cc6a20183137ada7cb7bea15053bfa950a2101eac3"
     },
     {
       "file": "R/julia-coefficient-labels.R",
@@ -241,7 +241,7 @@
     },
     {
       "file": "inst/extdata/env-skip-census.tsv",
-      "sha256": "f6ef3677ebf9d0b17ea6db343c409da28fedeea54ddd2e723b603c82b97264d6"
+      "sha256": "17fe92091b19b48dbf78cbeac604f6e5c42298ed75af81e7010511e88ad73da2"
     },
     {
       "file": "inst/extdata/julia-capabilities.tsv",
@@ -1420,5 +1420,5 @@
       "sha256": "22ce26b72fc5bf01356c01d4d8a6a4d3ccb65241bab20457957ada9a8635a651"
     }
   ],
-  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'R/julia-bridge.R', 'R/methods.R', 'inst/extdata/env-skip-census.tsv', 'src/drmTMB.cpp']"
+  "re_recorded": "2026-11-03 on 91a56224f plus uncommitted batch 34 changes, after a test rerun at 91a56224f-b34; entries that differed: ['inst/extdata/env-skip-census.tsv']"
 }

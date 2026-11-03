@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-animal-iid-nonlogit-sensitivity-b29.R",
   "test_sha256": "9f419e80f88b0661ee046175a440b6c3ffe5660b169f3cb1a85d061c7c152692",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-nonlogit-sensitivity-b29-20261102d/source-manifest.json",
-  "source_manifest_sha256": "7e2a43dc504624fed26029379aa90fa8fd127228e5594432b7e5c1918330e427",
+  "source_manifest_sha256": "7fa437b7fca5f71d45f1735211c2fa84f9b1ec68bfe1addd9ba921c2e678e49c",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "strengthens_evidence_ids": [],
   "strengthens_note": "The test header names no ledger id; nothing is claimed as strengthened. Rows are linked directly.",
@@ -50,15 +50,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-julia-binomial-animal-iid-nonlogit-sensitivity-b29.R",
     "test_sha256": "9f419e80f88b0661ee046175a440b6c3ffe5660b169f3cb1a85d061c7c152692",
-    "rerun_at_commit": "81553915d",
-    "started_utc": "2026-11-03T01:07:00Z",
-    "ended_utc": "2026-11-03T01:07:42Z",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T03:54:46Z",
+    "ended_utc": "2026-11-03T03:55:28Z",
     "expectations_passed": 32,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-nonlogit-sensitivity-b29-20261102d/test-console-rerun-81553915d.log",
-    "console_log_sha256": "b4738d8138caf0682f929795d1e03e781b1965179f8ee2dbb91ed594d91c8311",
-    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-nonlogit-sensitivity-b29-20261102d/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "97655763a50b1f558e0a5f8a8fa4669be75bd4965648edd9466f5839f0daf2d6",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

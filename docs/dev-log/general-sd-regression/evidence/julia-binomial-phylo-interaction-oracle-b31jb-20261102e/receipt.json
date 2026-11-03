@@ -17,7 +17,7 @@
   "test_path": "tests/testthat/test-julia-binomial-phylo-interaction-oracle-b31jb.R",
   "test_sha256": "c571890a721383f348d5e85c7a0cd0e6e289f24dafe9dbd9adc28c8a92716697",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-interaction-oracle-b31jb-20261102e/source-manifest.json",
-  "source_manifest_sha256": "08fe710ed6123a7e763c9e59049d14e2d587b517678e7944b6c4e90dc92e64b2",
+  "source_manifest_sha256": "890f0fdbba122ea527b9e4dc87c0c295ab9f63d4f0c5a5493231c5bd82561ab2",
   "live_julia": "run; live R-to-Julia fits via drmTMB(..., engine = \"julia\")",
   "scope": "phylo_interaction intercept SD, dense Laplace oracle with hand kronecker of cov2cor(ape::vcv) of two trees. Oracle evaluated at the live Julia estimates; agreement asserted to 1e-3 absolute on logLik; every emulated bug must move the oracle by more than 20x that.",
   "rows_claimed": [
@@ -40,15 +40,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-julia-binomial-phylo-interaction-oracle-b31jb.R",
     "test_sha256": "c571890a721383f348d5e85c7a0cd0e6e289f24dafe9dbd9adc28c8a92716697",
-    "rerun_at_commit": "81553915d",
-    "started_utc": "2026-11-03T01:17:18Z",
-    "ended_utc": "2026-11-03T01:17:47Z",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T04:04:56Z",
+    "ended_utc": "2026-11-03T04:05:25Z",
     "expectations_passed": 66,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-interaction-oracle-b31jb-20261102e/test-console-rerun-81553915d.log",
-    "console_log_sha256": "845863b07d8b7fee1bd81a3eca8742b910057c33246eece1ee3b0be2df9fbc01",
-    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-interaction-oracle-b31jb-20261102e/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "2b46d6bd42f14510ef350a0eb6de4ecc8e377da4327bb019832019129049abb3",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

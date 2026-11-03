@@ -266,15 +266,18 @@ for (b32c_family_type in c("poisson", "nbinom2", "gamma")) {
       julia <- drmTMB(form, family = fam, data = fx$dat, engine = "julia")
       dpars <- c("mu", "sd_spatial(id)", if (family_type != "poisson") "sigma")
       b32c_compare(julia, native, dpars)
-      # fitted() contract (batch 32 audit): the bridge slot is the
-      # population-level value exp(X beta) in data row order, with the random
-      # effect modes at zero. Native fitted() is the conditional mean, so the
-      # engines differ here by definition; this pins the row order and the
-      # definition and claims no parity. The fixture's coordinate rows are named
-      # in a different order from first appearance.
+      # fitted() contract (batch 34): the conditional mean, as native fitted()
+      # returns, in data row order. The fixture's coordinate rows are named in a
+      # different order from first appearance. The population-level value
+      # exp(X beta) (what the slot held before batch 34) is far from it.
+      # Tolerance fixed beforehand: relative 1e-4.
       b <- coef(julia, dpar = "mu")
       xb <- as.vector(cbind(1, fx$dat$x) %*% b[c("(Intercept)", "x")])
-      expect_equal(as.numeric(fitted(julia)), exp(xb), tolerance = 1e-6)
+      fn <- as.numeric(fitted(native))
+      expect_lt(max(abs(as.numeric(fitted(julia)) - fn)) / max(abs(fn)), 1e-4)
+      rn <- as.numeric(residuals(native))
+      expect_lt(max(abs(as.numeric(residuals(julia)) - rn)) / max(abs(rn)), 1e-4)
+      expect_gt(max(abs(exp(xb) - fn)) / max(abs(fn)), 1e-2)
     })
     test_that(paste(family_type, "relmat intercept SD agrees across engines (non-unit K)"), {
       b32c_live_setup()

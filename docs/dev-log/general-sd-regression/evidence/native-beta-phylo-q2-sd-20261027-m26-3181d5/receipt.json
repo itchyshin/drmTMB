@@ -21,7 +21,7 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027-m26-3181d5/source-manifest.json",
-  "source_manifest_sha256": "baca4daa8ac8248efcd199323a87af084b10ccc4caf29daf3f75040b6f7634c6",
+  "source_manifest_sha256": "caa64def49307570ebfbf64fd0d2e23c5440bd144ff7a8664347058195b970c6",
   "review_status": "reviewed_narrow_claim",
   "review_note": "Reviewer 1, 2026-11-02. Native Beta (logit) phylo(1 + x | id) with sd(coef=(Intercept)) ~ z0 and sd(coef=x) ~ z1: both members are fitted, so the single linked row is exercised. The oracle is independent of the package: the tree kernel is hand-built from a bit-mismatch recursion (not the package helper) and is checked equal to the package-derived covariance to 1e-10. A base-R dense Laplace marginal (nlminb with analytic score and Hessian, finite-difference checked) is evaluated at the fitted parameters and must match logLik to 1e-4. In my scratch run on Totoro, no files edited, the match was 1.2e-9. Sensitivity, same scratch run: swapped z0/z1 selectors move the oracle nll by 98.0, reversed SD covariates by 161.2, kernel scale x2 by 8.70, a random permutation of K labels by 0.54, a cyclic shift by 0.35, all far above 1e-4. Rerun: 46 passed, 0 failed, 0 skipped. Test, console log, manifest and 95 of 96 manifest entries hash-match current files. The one mismatch is R/julia-bridge.R, which HEAD 7fd8acec3 changed after e9c72ab3e in NB2-only Julia selector hunks, not on this native Beta path. So the premise that R/ is identical to e9c72ab3e is false for that one file. Does NOT establish: calibration or coverage; Julia parity; detection of a pure K-reversal or positional-alignment bug, because the balanced 64-tip kernel is reversal-invariant (the oracle moved 1e-9 under reversal), so the test's reversed-level and reversed-tip-label checks are blind to that bug class; marginal simulation (it is refused); other links or families; non-balanced trees.",
   "reviewed_at": "2026-11-02",
@@ -36,15 +36,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-beta-phylo-q2-sd-regression.R",
     "test_sha256": "852a76570a852ee8b1aa9937f2fa1df579efb82328b567b97edf914740d0cd1f",
-    "rerun_at_commit": "81553915d",
-    "started_utc": "2026-11-03T01:05:34Z",
-    "ended_utc": "2026-11-03T01:09:50Z",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T03:48:06Z",
+    "ended_utc": "2026-11-03T03:50:12Z",
     "expectations_passed": 46,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027-m26-3181d5/test-console-rerun-81553915d.log",
-    "console_log_sha256": "d19e3c4edc1dd42fb5a3f4b56fb38a1b35cceb3e0a6867fd6430643290a7b8b9",
-    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027-m26-3181d5/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "b317e229a1c982f8b132510f57cf71732bfd31da4cf79625ed149251d378fed3",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

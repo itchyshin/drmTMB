@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-animal-iid-sensitivity-b29.R",
   "test_sha256": "b3355ef279878efaf371e3c9a9bdb36d3f346f60ec4cf98efa42231ab88c82e8",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-sensitivity-b29-20261102d/source-manifest.json",
-  "source_manifest_sha256": "b5eb7bada7fc61e07c9508d26916bb590254e1b40f8692e6796f717f0691e215",
+  "source_manifest_sha256": "96c3c3e17f47ce2173f4ece084c04f8ac2e1ec37f70c0b55c7109627d08e411d",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "strengthens_evidence_ids": [
     "binomial-animal-iid-julia-independent-laplace-20261024-m26"
@@ -51,15 +51,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-julia-binomial-animal-iid-sensitivity-b29.R",
     "test_sha256": "b3355ef279878efaf371e3c9a9bdb36d3f346f60ec4cf98efa42231ab88c82e8",
-    "rerun_at_commit": "81553915d",
-    "started_utc": "2026-11-03T01:07:42Z",
-    "ended_utc": "2026-11-03T01:08:20Z",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T03:55:28Z",
+    "ended_utc": "2026-11-03T03:56:06Z",
     "expectations_passed": 35,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-sensitivity-b29-20261102d/test-console-rerun-81553915d.log",
-    "console_log_sha256": "52e7c004d15bf8fed8e51ef3cbab43c4217fd44edb7545dd13ec399de2279a92",
-    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-sensitivity-b29-20261102d/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "e8cd55a6a4092638c8fa514b4524df9cb9cb89f256c67fefece8bc7e480d2b8c",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

@@ -22,7 +22,7 @@
   "test_path": "tests/testthat/test-julia-iid-continuous-sd-oracle-b31jo.R",
   "test_sha256": "f02c4e30482b4de978fba70f821d5991bb23dfc15efd6c4e22f8a473e2491cfb",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-iid-continuous-sd-oracle-b31jo-20261102e/source-manifest.json",
-  "source_manifest_sha256": "bcbc282cd18736e8c6fc62ed4ac3363f906ba0ed4f5d56320a0928948e72c727",
+  "source_manifest_sha256": "811215ff2839b7e3dc81e4159af0413b9809beb9187ed52cee8f0b3c9e7908fc",
   "live_julia": "yes; engine=\"julia\" fits, logLik compared with the independent oracle at the Julia estimates",
   "scope": "Live engine=\"julia\" ordinary iid-group predictor-dependent SD, mean random intercept and independent mean random slope, for Beta, Gamma, Gaussian, lognormal and ZeroOneBeta. Independent oracle at the Julia estimates: exact Gaussian marginal (Gaussian) or exact per-group one-dimensional integral on a fine trapezoid grid, hand-written densities. Agreement asserted below 1e-3 (achieved 1.6e-12 to 5.5e-4); every emulated bug (swapped, sign-flipped, dropped selector coefficients, reversed non-palindromic per-level SD vector, SD times 2, slope SD on the intercept field) moves the oracle by at least 0.75.",
   "rows_claimed": [
@@ -55,15 +55,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-julia-iid-continuous-sd-oracle-b31jo.R",
     "test_sha256": "f02c4e30482b4de978fba70f821d5991bb23dfc15efd6c4e22f8a473e2491cfb",
-    "rerun_at_commit": "81553915d",
-    "started_utc": "2026-11-03T01:19:56Z",
-    "ended_utc": "2026-11-03T01:21:22Z",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T04:07:31Z",
+    "ended_utc": "2026-11-03T04:08:54Z",
     "expectations_passed": 140,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-iid-continuous-sd-oracle-b31jo-20261102e/test-console-rerun-81553915d.log",
-    "console_log_sha256": "97ae2e7e23073af867d855e57850c6f67852db358d9056a3865ed701c39702a7",
-    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-iid-continuous-sd-oracle-b31jo-20261102e/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "854cfe75f8722a99d97638d75dfe558849df8373e5b43f94afc59b2a81ea0dae",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

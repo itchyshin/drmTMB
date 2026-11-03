@@ -2,6 +2,9 @@ file	gate_class	axis	ci_status	sites
 helper-b31jo-oracle.R	cran-lane	environment	runs	1
 helper-b31jo-oracle.R	engine-drm-jl	environment	skips	2
 helper-b31jo-oracle.R	suggests-package	environment	runs	1
+helper-b34-julia-oracles.R	cran-lane	environment	runs	1
+helper-b34-julia-oracles.R	engine-drm-jl	environment	skips	2
+helper-b34-julia-oracles.R	suggests-package	environment	runs	1
 helper-fragile-recovery.R	env-var-optin	environment	skips	1
 helper-julia-bridge-path.R	cran-lane	environment	runs	2
 helper-julia-bridge-path.R	engine-drm-jl	environment	skips	1
@@ -297,6 +300,9 @@ test-julia-b32-count-gamma-spatial-intercept-bridge.R	suggests-package	environme
 test-julia-b32-gaussian-structured-intercept-bridge.R	cran-lane	environment	runs	1
 test-julia-b32-gaussian-structured-intercept-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-b32-gaussian-structured-intercept-bridge.R	suggests-package	environment	runs	1
+test-julia-b34-structured-fitted-bridge.R	cran-lane	environment	runs	1
+test-julia-b34-structured-fitted-bridge.R	engine-drm-jl	environment	skips	2
+test-julia-b34-structured-fitted-bridge.R	suggests-package	environment	runs	1
 test-julia-beta-binomial-sd-parity.R	engine-drm-jl	environment	skips	4
 test-julia-beta-binomial-sd-parity.R	suggests-package	environment	runs	2
 test-julia-beta-binomial-sigma-sd-bridge.R	engine-drm-jl	environment	skips	4

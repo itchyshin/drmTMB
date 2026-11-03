@@ -1,0 +1,76 @@
+{
+  "evidence_id": "julia-b34-iid-quadrature-oracle-20261103c",
+  "evidence_grade": "focused_test",
+  "command": "NOT_CRAN=true JULIA_HOME=$HOME/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin DRM_JL_PATH=<private DRModels.jl copy: git archive HEAD ab8b67127 plus worktree Manifest.toml> OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-julia-b34-iid-quadrature-oracle.R', reporter='summary'))\"",
+  "execution_host": "Mac Studio, live Julia 1.10.0, one R process at a time, from a private git-archive copy of the drmTMB worktree at HEAD (R/, src/ identical to HEAD) with DRM_JL_PATH at a private git-archive copy of DRModels.jl ab8b67127",
+  "working_directory": "private copy of /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression (git archive HEAD plus the batch 34 files)",
+  "git_head": "81553915db8b422982b277a0d50c1521f3596ab4",
+  "tree_state": "HEAD 81553915d; the evidence run used a git-archive copy of HEAD (tracked R/, src/ and tests/ identical to HEAD) plus the new batch 34 helper and test files; unreviewed",
+  "run_started_utc": "2026-11-03T01:58:34Z",
+  "run_ended_utc": "2026-11-03T02:00:19Z",
+  "exit_code": 0,
+  "counts": {
+    "test_blocks": 6,
+    "expectations": 106,
+    "passed": 106,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "warnings": 0
+  },
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b34-iid-quadrature-oracle-20261103c/test-console.log",
+  "console_log_sha256": "979add26579d8a31879f219de9f8aa7d11c0d89d0d970a3c386f6029ac849cc6",
+  "test_path": "tests/testthat/test-julia-b34-iid-quadrature-oracle.R",
+  "test_sha256": "4b286526ed7b364118fae00458c466750ae9493a16ff48460cbe5be7b662aaa4",
+  "helper_path": "tests/testthat/helper-b34-julia-oracles.R",
+  "helper_sha256": "39d763f004d17cd9d4a020625a730a629c0d3e165fb114597aa987964050d199",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-b34-iid-quadrature-oracle-20261103c/source-manifest.json",
+  "source_manifest_sha256": "ad6ad512a073101a5d0bf889441b7646fe42d74b406b7c5d38b8eee1e0adca91",
+  "live_julia": "run live on the Mac; the live blocks ran (skips 0)",
+  "drmodels_jl": "DRModels.jl worktree general-sd-julia HEAD ab8b67127 via git archive (tracked src unmodified) plus the worktree Manifest.toml",
+  "strengthens_evidence_ids": [],
+  "scope": "Live Julia (DRModels.jl ab8b67127, engine='julia') ZeroOneBeta iid intercept SD (sd(id) ~ z), ZeroOneBeta iid numeric-slope SD (sd(id, coef = 'x') ~ z) and zero-inflated Poisson iid numeric-slope SD (zi ~ 1, sd(id, dpar = 'mu', coef = 'x') ~ z) at the default iid SD level, evaluated against an independent base-R exact per-group one-dimensional integral (4001-point trapezoid grid over [-10, 10], hand ZeroOneBeta and ZIP densities) at the Julia estimates. Three ordinary seeds per route plus two boundary-heavy ZeroOneBeta seeds per route (more than 40 percent exact 0 or 1). Observed agreement 1.0e-10 or better. Emulated bugs (reversed SD vector, SD intercept shifted by log 2, sign-flipped SD slope, scrambled group predictor, slope read as intercept, atoms swapped, zi halved) move the oracle by at least 0.019 (19000 times the 1e-6 tolerance).",
+  "candidate_rows": [
+    {
+      "row_key": "[\"Julia\",\"zero_one_beta\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"zero_one_beta\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"zi_poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "standard-error or Hessian parity",
+    "recovery or estimator-accuracy claims",
+    "calibration or broad parity beyond the fixtures and seeds run",
+    "any family, link, provider or endpoint not listed in candidate_rows",
+    "fitted() or residuals() parity",
+    "engine = 'julia' behaviour on any family not named here"
+  ],
+  "tolerances": "logLik within 1e-6 absolute of an exact per-group integral oracle on every seed (tightened from a first-draft 1e-4 by the independent verifier, because the pre-ab8b67127 quadrature passes the ZeroOneBeta slope fixtures at 1e-4 but fails at 1e-6); every emulated bug gap above 20 times 1e-6; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "known_julia_limitation": "ZeroOneBeta iid slope seeds 20261409 and 20261412 (boundary-heavy draws) raise 'ArgumentError: matrix contains Infs or NaNs' in the Julia standard-error Hessian (_vcov_from_hessian) because one interior response is about 1e-56; the estimates converge with gradient near 1e-10 and the Hessian is finite once that response is clamped to 1e-8. Those seeds are not asserted. Not a mismatch with the oracle; a Julia SE-step error on extreme interior responses.",
+  "relink_note": "Rows were unlinked in batch 31; this receipt is a candidate to relink them. Earlier linked evidence ids for the same routes: julia-zeroonebeta-iid-intercept-20261022-v1-m26, julia-zeroonebeta-iid-numeric-slope-20261022-v1-m26, julia-zi-poisson-mu-iid-numeric-slope-20261024-m26.",
+  "verifier_note": "Independent verifier reran all 13 fits (agreement 1.0e-10 or better) and ran the same test against DRModels.jl e7dbc3f79 (parent of ab8b67127): 13 expectations fail there (ZeroOneBeta intercept, slope and ZIP slope), so the test detects the quadrature fix on every route.",
+  "review_note": "Checked: helper, test and log read line by line; SHA-256 of test and helper match the receipt; the 3 linked row_keys equal the receipt candidate_rows verbatim. Oracle: b34_iid_exact() integrates each group's effect exactly in base R (4001-point trapezoid on [-10, 10], log-sum-exp, hand ZeroOneBeta and ZIP densities), with no Laplace and no Gauss-Hermite and no drmTMB code. A non-live block checks the grid against stats::integrate (rel.tol 1e-12) at 1e-9 for ZOB intercept, ZOB slope and ZIP slope. Evaluated at the live Julia estimates (5 live blocks, skips 0). Fits: ZeroOneBeta iid intercept (1 | id) with sd(id) ~ z; ZeroOneBeta (0 + x | id) with sd(id, coef='x') ~ z; ZIP (0 + x | id), zi ~ 1, sd(id, dpar='mu', coef='x') ~ z. Agreement 1.9e-11 or better on 13 fits (3 ordinary seeds per route, plus 2 boundary-heavy seeds per ZeroOneBeta route with more than 40 percent exact 0 or 1 asserted), tolerance 1e-6, tightened from 1e-4 because the earlier quadrature passes at 1e-4 but fails at 1e-6; the verifier reports 13 expectations fail on e7dbc3f79, so the test discriminates the fix. Emulated bugs all above 20 x tol: reversed SD vector 5.9 to 25, SD intercept +log 2 8.8 to 14, sign-flipped SD slope 12 to 49, wrong group predictor 2.3 to 24, slope read as intercept 40 to 4779, atoms swapped 0.019 to 54 (smallest, ZOB slope seed 20261402, 19,000 x tol), zi halved 5.7 to 8. Console log clean (106 passed, 0 failures, errors, skips; the summary line omits the warnings field but no warning text appears). Slope-only scope: the two slope rows are supported for the slope-member SD only, because the fits are (0 + x | id) with no companion intercept field; this follows the lane rule that an unlabelled structured (1 + x | id) is two independent fields. What this does NOT establish: the boundary-heavy ZeroOneBeta slope seeds 20261409 and 20261412 were excluded after Julia raised 'matrix contains Infs or NaNs' in its SE Hessian on an interior response near 1e-56, so the boundary-heavy slope claim covers only the two seeds that fit (a post hoc choice), and this Julia failure is not yet in known-limitations.md. ZIP has no boundary-heavy draw and only zi ~ 1. A few seeds per route; no calibration, coverage, SE or Hessian parity, or recovery; no claim for any other family's iid route; fitted()/residuals() not covered. The oracle is accurate at these fixtures; it does not show the quadrature is accurate for larger SDs or other designs. The manifest is stale against R/julia-bridge.R and will be re-recorded after the rerun; rerun on the current files is the evidence.",
+  "reviewed_at": "2026-11-03",
+  "reviewer": "independent reviewer, batch 34, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-b34-iid-quadrature-oracle.R",
+    "test_sha256": "4b286526ed7b364118fae00458c466750ae9493a16ff48460cbe5be7b662aaa4",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T03:53:06Z",
+    "ended_utc": "2026-11-03T03:54:46Z",
+    "expectations_passed": 106,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b34-iid-quadrature-oracle-20261103c/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "b784f90d26f7989b01bbe36c0bbfeafeb70b2daba7a98bac5e573a30aeb491a7",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

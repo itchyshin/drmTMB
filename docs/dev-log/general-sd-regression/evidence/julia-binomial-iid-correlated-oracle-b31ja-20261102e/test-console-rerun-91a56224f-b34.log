@@ -1,0 +1,20 @@
+julia-binomial-iid-correlated-oracle-b31ja: ..................i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+..............b31ja iid q2 logit: ll=-1264.603275 oracle=-1264.603275 agreement=2.27e-13; min gap=3.0630 (R_identity); gaps: rotated_coef_sets=-44.240, reversed_sd_(Intercept)=-12.044, reversed_sd_x1=-10.961, flipped_cor_first=-12.244, R_identity=-3.063
+b31ja iid q2 logit: 15-node oracle -1264.5948 (5-node -1264.6033, Julia -1264.6033)
+..............b31ja iid q2 probit: ll=-1177.569739 oracle=-1177.569739 agreement=2.27e-13; min gap=4.0976 (reversed_sd_x1); gaps: rotated_coef_sets=-47.617, reversed_sd_(Intercept)=-27.356, reversed_sd_x1=-4.098, flipped_cor_first=-33.534, R_identity=-7.938
+b31ja iid q2 probit: 15-node oracle -1177.5554 (5-node -1177.5697, Julia -1177.5697)
+..............b31ja iid q2 cloglog: ll=-1082.084774 oracle=-1082.084774 agreement=2.27e-13; min gap=6.8930 (R_identity); gaps: rotated_coef_sets=-80.152, reversed_sd_(Intercept)=-27.724, reversed_sd_x1=-14.120, flipped_cor_first=-27.281, R_identity=-6.893
+b31ja iid q2 cloglog: 15-node oracle -1082.0033 (5-node -1082.0848, Julia -1082.0848)
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=60 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T03:57:39Z end=2026-11-03T03:58:33Z rc=0

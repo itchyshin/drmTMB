@@ -11,7 +11,7 @@
     },
     {
       "file": "NEWS.md",
-      "sha256": "8f9e0cc54c2aaec932cb9cbba217bdcc0a2219610ca6db84991f5dcb172421ee"
+      "sha256": "e7cce6337bc91005fe800a5d3897989282ffb6157bb695fcc807ba70cb168691"
     },
     {
       "file": "README.md",
@@ -35,7 +35,7 @@
     },
     {
       "file": "docs/dev-log/known-limitations.md",
-      "sha256": "d378bbc768a723201230de43c35f22da39f23fb2a99f941ada8dfd1ca7eb3e60"
+      "sha256": "11cf6fd1813e05f8dadfce4a23e45d5ef489cde7ceef9d1154db6c555a082ce3"
     },
     {
       "file": "vignettes/formula-grammar.Rmd",
@@ -50,5 +50,5 @@
       "sha256": "179b4f58abb96d6966c07de049ed6f285b0802371cff5cbfea63dc3fc58a7be4"
     }
   ],
-  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'NEWS.md', 'README.md', 'docs/dev-log/known-limitations.md']"
+  "re_recorded": "2026-11-03 on 91a56224f plus uncommitted batch 34 changes, after a test rerun at 91a56224f-b34; entries that differed: ['docs/dev-log/known-limitations.md']"
 }
