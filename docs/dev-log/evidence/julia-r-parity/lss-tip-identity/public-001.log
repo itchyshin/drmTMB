@@ -7,6 +7,6 @@
 Julia version 1.13.0 at location /Users/z3437171/.julia/juliaup/julia-1.13.0+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/bin will be used.
 Loading setup script for JuliaCall...
 Finish loading setup script for JuliaCall.
-PHYLO_LABEL_PUBLIC_PASS elapsed=66.75
+PHYLO_LABEL_PUBLIC_PASS elapsed=89.53
 Julia exit.
   Activating project at `/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main`
