@@ -107,7 +107,11 @@ new_biv_sigma_q2_response_mask_data <- function(
 }
 
 manual_biv_labelled_sigma_prior_loglik <- function(fit) {
-  sum(stats::dnorm(fit$obj$env$parList(fit$opt$par)$u_sigma, log = TRUE))
+  # Use the fit's stored modes (last.par.best), the same random-effect values
+  # that predict() and the reported fit use; parList(opt$par) alone can return
+  # the inner optimiser's last-evaluated state, which differs at ~1e-3.
+  par_list <- fit$obj$env$parList(fit$opt$par, par = fit$tmb_state$last.par.best)
+  sum(stats::dnorm(par_list$u_sigma, log = TRUE))
 }
 
 test_that("default missing policy matches complete-pair bivariate Gaussian fits", {
@@ -318,7 +322,7 @@ test_that("labelled bivariate sigma block has response-mask oracle and recovery"
     missing = miss_control(response = "include"),
     control = list(eval.max = 1200, iter.max = 1200)
   )
-  full_parameters <- fit$obj$env$parList(fit$opt$par)
+  full_parameters <- fit$obj$env$parList(fit$opt$par, par = fit$tmb_state$last.par.best)
   joint <- TMB::MakeADFun(
     data = fit$model$tmb_data, parameters = full_parameters,
     map = fit$model$map, DLL = "drmTMB", silent = TRUE
