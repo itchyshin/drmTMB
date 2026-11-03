@@ -1055,8 +1055,10 @@ Still limited or open:
 - Marginal `simulate(re.form = NA)` for Gamma q1 structured SD fits is refused by the
   family gate in `R/methods.R` (Gaussian, Binomial, Poisson, beta-binomial and NB2 only);
   no test pins this refusal yet.
-- Still refused: labelled structured q2 for Poisson animal and for labelled phylo and
-  spatial providers of Poisson and NB2; Poisson and NB2 ordinary q3 with
+- Still refused: labelled structured q2 for the phylo provider of Poisson, the spatial
+  provider of NB2 and Gamma, and the relmat and spatial providers of Binomial (labelled
+  Poisson animal and spatial, NB2 phylo, Gamma relmat and phylo, and Binomial animal and
+  phylo were admitted in batch 32, design 18); Poisson and NB2 ordinary q3 with
   `sd()` (refusal pins, `test-ordinary-q3-sd.R`; Gaussian q3 and q4 now take one SD per coefficient); a sigma structured slope; a
   structured Gamma slope beside an ordinary intercept; zero inflation and
   `miss_control(response = "include")` for the structured q2 and slope shapes, sigma-target
