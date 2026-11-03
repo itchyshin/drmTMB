@@ -194,6 +194,9 @@ test-distributional-outputs.R	cran-lane	environment	runs	3
 test-distributional-outputs.R	suggests-package	environment	runs	2
 test-docs-audit-semantics.R	build-premise	build	skips	3
 test-docs-audit-semantics.R	suggests-package	environment	runs	2
+test-drmjl-parity-fixtures.R	engine-drm-jl	environment	skips	1
+test-drmjl-parity-fixtures.R	runtime-conditional	runtime	depends	1
+test-drmjl-parity-fixtures.R	suggests-package	environment	runs	3
 test-emmeans-methods.R	suggests-package	environment	runs	19
 test-emmeans-preflight-contract.R	cran-lane	environment	runs	6
 test-emmeans-preflight-contract.R	suggests-package	environment	runs	6
