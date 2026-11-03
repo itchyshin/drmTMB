@@ -24,7 +24,7 @@
     "R/formula-markers.R": "a724d3e9238ab0d6318bbb8ea337b69c88807311c6939ee20bb8609ae4d136b3",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
     "R/heritability.R": "64fd77a2ad6bd3998c1c93e3cd1b5a3f859ad4a6e2f2bd7df5c48f83a4b3d5ce",
-    "R/julia-bridge.R": "71a3fa79a97764bbae390ad771d4300688d1d58783d49fb5bf93a6d7bfa82c0d",
+    "R/julia-bridge.R": "0803f791a8c237df11d9d6cc6a20183137ada7cb7bea15053bfa950a2101eac3",
     "R/julia-coefficient-labels.R": "1c2814a197c8d296c2b120646d3576c8e95213ea4ca2848dad1279c2b29832ad",
     "R/julia-diagnostics.R": "7f60faae8fd3460ca143917ee2ff20067e0db5a8c08927b50f83eb5a0d30bc06",
     "R/julia-family-cumulative_logit.R": "c9c164d3abcf6878d5424c500120d63558e6bf4b05d49f7747f36ad1721663d7",
@@ -717,8 +717,8 @@
       "drmjl_ref": "973bbb675dc6a10b436acf86175e089e38ec467e",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpNfQR7s/pkgloadd835f5dc26b/drmTMB.so",
-          "sha256": "99f6531f527c6de09b2fe001560eb840a91ca63ec73d665f120d56394cf3167c"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpjipAhq/pkgload12c4b1aab043e/drmTMB.so",
+          "sha256": "698c0c6f330d519b270d5484ada8a6fda44cb48ff0900805ee0a5f78c0baa674"
         }
       }
     },
@@ -765,7 +765,7 @@
     "R/formula-markers.R": "a724d3e9238ab0d6318bbb8ea337b69c88807311c6939ee20bb8609ae4d136b3",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
     "R/heritability.R": "64fd77a2ad6bd3998c1c93e3cd1b5a3f859ad4a6e2f2bd7df5c48f83a4b3d5ce",
-    "R/julia-bridge.R": "71a3fa79a97764bbae390ad771d4300688d1d58783d49fb5bf93a6d7bfa82c0d",
+    "R/julia-bridge.R": "0803f791a8c237df11d9d6cc6a20183137ada7cb7bea15053bfa950a2101eac3",
     "R/julia-coefficient-labels.R": "1c2814a197c8d296c2b120646d3576c8e95213ea4ca2848dad1279c2b29832ad",
     "R/julia-diagnostics.R": "7f60faae8fd3460ca143917ee2ff20067e0db5a8c08927b50f83eb5a0d30bc06",
     "R/julia-family-cumulative_logit.R": "c9c164d3abcf6878d5424c500120d63558e6bf4b05d49f7747f36ad1721663d7",
@@ -920,6 +920,6 @@
     "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/zeroonebeta.jl": "7262cee0e592a9c516ea9343ebe9d256072e72be3caec48f01ee1b9458bb9bc1"
   },
   "source_unchanged": true,
-  "elapsed": 89.530000000000001,
+  "elapsed": 57.591000000000001,
   "status": "PASS"
 }
