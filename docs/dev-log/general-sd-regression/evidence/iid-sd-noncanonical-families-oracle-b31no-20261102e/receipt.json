@@ -18,7 +18,7 @@
   "test_path": "tests/testthat/test-iid-sd-noncanonical-families-oracle-b31no.R",
   "test_sha256": "b00b239a032f8167c9d543a3f4f845091d9011b2c0a815bbc22178f3fd1d1c2e",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/iid-sd-noncanonical-families-oracle-b31no-20261102e/source-manifest.json",
-  "source_manifest_sha256": "cdbffe879ee278b62b13fa09ee2f712915467d6c637b12cf1081845deeab01d7",
+  "source_manifest_sha256": "8fdf433c96d026c54829b4e58cae41a43354b661490724ee24976c0a102676ed",
   "rows_claimed": [
     {
       "row_key": "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
@@ -55,5 +55,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helpers line by line. For each of beta, beta_binomial, cumulative_logit, hurdle NB2 and ZIP the file fits (1 | id) with sd(id) ~ w and (0 + x | id) with sd(id, coef = 'x') ~ w, and compares logLik with a base-R dense Laplace at the fitted parameters (fixed effects, sigma, hu or zi, cutpoints from fit$ordinal), with hand densities and a five-point stencil for eta-derivatives. Hand densities are checked in b31no_check_densities against references sharing no code (numerical integration of binomial x beta mixture, dnbinom-based truncation and sum to one over 0:4000, dpois-based ZIP and sum to one, integral of dlogis between cutpoints, dbeta); that check executes in the NB2 file of the same batch, so the iid file relies on it being run with the group. Row mapping verified: the hurdle_nbinom2 row is truncated_nbinom2() with sigma ~ 1, hu ~ 1 (docs family-endpoints.tsv and family-links.tsv name exactly this route, and the oracle takes hu = P(0) from coef(fit, 'hu') through plogis, agreeing to 1e-10), and zi_poisson is stats::poisson() with zi ~ 1 (same ledger mapping, agreement ~1e-8). Selectors are non-palindromic permutation grids; only reversed-SD and flipped-selector bugs are emulated (iid has no kernel), each asserted > 0.1, observed min gaps 1.4 to 150 vs 1e-4. Hashes recompute; log 10 blocks, 72 expectations, 0 failures, 0 skips, 0 warnings; Totoro rerun reproduced 10/72/0/0/0. All 10 linked rows are supported. Does NOT establish: calibration, coverage, recovery, Julia parity, ZeroOneBeta, hu or zi regression formulas beyond ~1, ordinal models with more than 4 categories, hand-density correctness beyond the stated references, or behaviour at more than one seed per route.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-iid-sd-noncanonical-families-oracle-b31no.R",
+    "test_sha256": "b00b239a032f8167c9d543a3f4f845091d9011b2c0a815bbc22178f3fd1d1c2e",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:09Z",
+    "ended_utc": "2026-11-03T01:11:16Z",
+    "expectations_passed": 72,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/iid-sd-noncanonical-families-oracle-b31no-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "c159bae4baa36e20f86d85c497b45b3986cc2479f0edf266b496069aa157c72d",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

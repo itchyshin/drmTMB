@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-gamma-iid-structured-both-sd-sensitivity-b26.R",
   "test_sha256": "84feac99600a8d5bcbca6cc01a7546b2a9974994e84032284ea4ace6495fece2",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gamma-iid-structured-both-sd-sensitivity-b26-20261102c/source-manifest.json",
-  "source_manifest_sha256": "4f769f4132e1c1c22822e2cf362ea9cfb5a0227d555c248b7ba02de234cd12fa",
+  "source_manifest_sha256": "e8c5472aca2a13ecd8c84595fca3e2b68608d6b826beba9a498e5a253009709e",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-gamma-ordinary-sd-beside-structured-20261101d-m26"
@@ -48,5 +48,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Gamma (log), iid group (1 | g) plus animal(A), animal(Ainv) or phylo, with SD regressions on BOTH fields (sd(g) ~ zg, sd(p) ~ zp). The three rows are each exercised by a fit with SDs on both providers, which closes the earlier criterion 3 failure of the ordinary-SD-only parent. The oracle is a base-R dense Laplace, independent of the package. A is Henderson (inbred pedigree), phylo K is ape::vcv divided by tree height with a check that the unscaled vcv differs, and levels are shuffled. logLik tolerance 1e-4. Bugs (swapped selectors, reversed SDs, cov2cor(A) or raw vcv, K by position) each move it by more than 0.1 and pass. This also supplies the ape::vcv kernel independence the parent lacked for the phylo row. Manifest 7/7 match, and the rerun shows 44 expectations, 0 failures, 0 skips. Does NOT establish: calibration or coverage, Julia parity, a modelled-sigma Gamma, or other providers or families.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gamma-iid-structured-both-sd-sensitivity-b26.R",
+    "test_sha256": "84feac99600a8d5bcbca6cc01a7546b2a9974994e84032284ea4ace6495fece2",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:08:23Z",
+    "ended_utc": "2026-11-03T01:09:17Z",
+    "expectations_passed": 44,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-iid-structured-both-sd-sensitivity-b26-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "1cc3a00a0dbfba679f83753756a1dffc08734a003422d56025485ee77ae404cc",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

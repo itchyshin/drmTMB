@@ -82,12 +82,10 @@ test_that("NB2 spatial slope neighbours stay refused", {
     y ~ x + spatial(1 | id, coords = coords),
     sd(id, level = "spatial") ~ z
   )
-  expect_error(
-    drm_julia_structured_payload(
-      spatial_intercept, "nbinom2", s$data, environment()
-    ),
-    "spatial"
-  )
+  # The NB2 spatial intercept is admitted by its own gate in batch 32 (see
+  # test-julia-b32-count-gamma-spatial-intercept-bridge.R); the slope-only gate
+  # stays false for it (pinned in the first block above).
+  expect_true(drm_julia_spatial_sd_intercept_route_admitted(spatial_intercept))
   # Other non-admitted families keep the spatial refusal.
   spatial <- bf(
     y ~ x + spatial(0 + x | id, coords = coords),

@@ -23,6 +23,20 @@ per axis and sits 0.009 to 0.082 below the 15-node value. Evidence for these
 routes is scoped to likelihood assembly and selector alignment at the tested
 fixtures; the ZeroOneBeta iid rows and the zero-inflated Poisson iid slope row
 are not linked. Native TMB uses the Laplace approximation and is unaffected.
+Update (2026-11-02, DRModels.jl `ab8b67127`): the ZeroOneBeta intercept route and plain
+`(1 | g)` route are now adaptive, and the default adaptive node count is 41 for the
+Beta, Gamma, beta-binomial, NB2, hurdle and truncated routes and 81 for the
+zero-inflated Poisson slope. A new Julia test compares each family with an exact
+per-group integral on several seeds, including the draws that failed before, at 1e-4.
+The unlinked ledger rows can be relinked after a fresh review.
+
+`fitted()` and `residuals()` on `engine = "julia"` fits with a structured
+`relmat()`, `animal()` or `spatial()` term return the population-level value (random
+effects at zero), not the conditional mean native `fitted()` returns (2026-11-02,
+batch 32). Coefficients and the log-likelihood agree with native; fitted values
+differ by up to 47 on the response scale in the measured fixtures. A fix needs
+DRModels.jl to export the conditional modes for these routes and the R bridge to
+rebuild the conditional mean from them.
 
 Read this ledger together with
 `docs/design/168-r-julia-finish-capability-matrix.md`; when a status boundary
@@ -966,7 +980,11 @@ revisit condition.
   screens (`docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`;
   #1554).
 
-# NB2 animal kernel scaling differs between engines
+# NB2 animal kernel scaling differs between engines (resolved 2026-11-02)
+
+Resolved: the NB2 animal SD routine already passed `normalize = false`, so Julia uses the
+supplied raw `A`; the rescaling statement below came from a stale comment (design 18, "Parity
+rows resolved 2026-11-02 (batch 28)"). The text below is the historical record.
 
 For an NB2 `animal()` SD model with a non-unit-diagonal `A`, native TMB keeps
 the supplied raw `A`, while `engine = "julia"` rescales `A` to a correlation
@@ -979,7 +997,12 @@ raw `A`. This is an open parity row, not a convention; it is recorded in
 provider and engine"). The existing native-versus-Julia Gamma q2 comparison
 uses relative tolerance 0.25 and is a smoke check, not a tight scaling check.
 
-# Poisson relmat kernel scaling differs between engines
+# Poisson relmat kernel scaling differs between engines (resolved 2026-11-02)
+
+Resolved: DRM.jl now uses a supplied `K` as given for Poisson, NB2 and Gamma relmat routes, and the
+R bridge no longer refuses a non-unit-diagonal `K` (design 18, "Parity rows resolved 2026-11-02
+(batch 28)"; `tests/testthat/test-julia-b28-relmat-raw-k-bridge.R`, one fixture per route, no
+coverage claim). The text below is the historical record.
 
 For a Poisson `relmat(0 + x | g)` slope-only SD model with a non-unit-diagonal
 `K`, native TMB uses the supplied `K`, while DRM.jl rescales `K` to a
@@ -1014,22 +1037,29 @@ parity evidence.
 
 Still limited or open:
 
-- No Julia counterpart exists for any route above. The Julia bridge exempts
+- Most routes above have no Julia counterpart; the exceptions are the slope-only Julia bridge
+  routes named below. The Julia bridge exempts
   ordinary mean bars that carry an `sd()` formula from the #1551 fence for Poisson,
   NB2, Gamma, Beta and Binomial (`test-julia-ordinary-sd-fence-exemption.R`, static
   tests only). The selected-coefficient label check was fixed for a sole `sd(id,
   coef = ...)` target (`test-julia-selected-sd-coef-label.R`); the live Poisson file
-  `test-julia-poisson-sd.R` passed 30 and 0 on the Mac, and no other family was run live.
+  `test-julia-poisson-sd.R` passed 30 and 0 on the Mac when this entry was written; live Julia
+  blocks for other families have run since (see the evidence ledger).
 - NB2 `sigma`-side phylogenetic SD stays held for a decision, because it opens the
   public base route `sigma ~ phylo(1 | sp)`.
 - Update, later on 2026-11-01: labelled relmat q2 for Poisson and NB2, Gaussian spatial
   q2 (unlabelled and labelled), and `miss_control(response = "include")` for Poisson, NB2 and
   Gamma ordinary `mu` SD routes are now admitted natively (design 18 table); marginal
   `simulate()` of labelled q2 blocks was added. The Julia bridge also admits Poisson relmat
-  slope-only (unit-diagonal `K`) and NB2 animal slope-only SD.
-- Still refused: labelled structured q2 for Poisson animal and for labelled phylo and
-  spatial providers of Poisson and NB2; Gaussian, Poisson and NB2 ordinary q3 with
-  `sd()` (design report only, `test-ordinary-q3-sd.R`); a sigma structured slope; a
+  slope-only SD (`K` used as supplied) and NB2 animal slope-only SD.
+- Marginal `simulate(re.form = NA)` for Gamma q1 structured SD fits is refused by the
+  family gate in `R/methods.R` (Gaussian, Binomial, Poisson, beta-binomial and NB2 only);
+  no test pins this refusal yet.
+- Still refused: labelled structured q2 for the phylo provider of Poisson, the spatial
+  provider of NB2 and Gamma, and the relmat and spatial providers of Binomial (labelled
+  Poisson animal and spatial, NB2 phylo, Gamma relmat and phylo, and Binomial animal and
+  phylo were admitted in batch 32, design 18); Poisson and NB2 ordinary q3 with
+  `sd()` (refusal pins, `test-ordinary-q3-sd.R`; Gaussian q3 and q4 now take one SD per coefficient); a sigma structured slope; a
   structured Gamma slope beside an ordinary intercept; zero inflation and
   `miss_control(response = "include")` for the structured q2 and slope shapes, sigma-target
   SD and zero-inflated SD routes.
@@ -1037,7 +1067,8 @@ Still limited or open:
   2026-11-01 for Gaussian, Poisson, NB2, Gamma and Binomial, labelled blocks included
   (`test-q2-sd-marginal-simulate.R`); the earlier refusals for the labelled Gaussian block
   and Binomial phylo q2 no longer apply. Beta q2 stays refused.
-- Kernel scaling is raw `A` natively; the NB2 Julia animal route rescales to a
-  correlation matrix. The parity row is open (previous section).
+- Kernel scaling is raw `A` natively and raw `A` or `K` on the Julia Poisson, NB2, Gamma, Beta and
+  zero-one-beta routes (design 18, kernel scaling section). Still rescaled in Julia: Gaussian
+  location-scale structured routes and the precomputed spatial kernel.
 - The phylo and tree-based q2 oracles have unit-diagonal kernels, because trees enter
   as correlation matrices; non-unit-diagonal q2 is exercised for relmat and animal.

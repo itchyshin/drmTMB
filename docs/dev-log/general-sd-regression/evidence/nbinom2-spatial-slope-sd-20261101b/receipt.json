@@ -21,7 +21,7 @@
   "test_path": "tests/testthat/test-nbinom2-spatial-slope-sd-regression.R",
   "test_sha256": "9b672d56292ba593fbf4e8ee29d478dff62b15e143979947441864e6a453d4dc",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-spatial-slope-sd-20261101b/source-manifest.json",
-  "source_manifest_sha256": "d7f09b861ec6c58d3457e860e8c056058dbf45d57c6ed32e282641f838912b14",
+  "source_manifest_sha256": "88cf66b9820382ffc712d24ef5d2c947bad664eb9f7737705e57f4ced130064e",
   "scope": "Native NB2(log) mu with a coordinate-spatial slope-only field, spatial(0 + x | site, coords = coords), and sd(site, level = 'spatial') ~ z.",
   "oracle": "Dense Laplace marginal likelihood at the fitted parameters, built from drmTMB:::drm_spatial_coords_precision (the helper under test, disclosed in the test), plus a kernel rebuilt by hand from the unshuffled ring for the name-alignment check. Constant-SD equivalence, nesting and prediction identity are not oracles.",
   "checks": [
@@ -97,16 +97,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-nbinom2-spatial-slope-sd-regression.R",
     "test_sha256": "9b672d56292ba593fbf4e8ee29d478dff62b15e143979947441864e6a453d4dc",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:16:58Z",
-    "ended_utc": "2026-11-02T18:17:14Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:45Z",
+    "ended_utc": "2026-11-03T01:11:01Z",
     "expectations_passed": 23,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-spatial-slope-sd-20261101b/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "4de23249a54f436424150ebc09a5e957da530b530d7c23e62f33ad2392f5b6c3",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-spatial-slope-sd-20261101b/test-console-rerun-81553915d.log",
+    "console_log_sha256": "0d59cb5eb6be01a21915ec270e4f88cc965d66568d603d039a41ab5cb63318e0",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

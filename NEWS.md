@@ -1,5 +1,97 @@
 # drmTMB (development)
 
+* The development Julia bridge (`engine = "julia"`) now admits Gaussian structured
+  intercept SD regression (2026-11-02, batch 32; needs DRModels.jl `ab8b67127`):
+  `relmat(1 | id, K = K)`, `animal(1 | id, A = A)` and coordinate
+  `spatial(1 | id, coords = coords)` with the matching `sd(id, level = ...) ~ z`,
+  exact maximum likelihood, `K` and `A` entering as supplied and a fixed
+  `sigma ~ 1`. The coordinate route sends the native fixed kernel
+  `exp(-d / median positive distance) + 1e-6 I` as a relmat `K`. On one fixed
+  fixture per route (non-unit-diagonal `K`, shuffled rows, named coordinates), the
+  tests assert agreement with native TMB within 1e-3 on coefficients and 1e-2 on
+  the log-likelihood; measured maxima on one run were within 1e-11 and 2e-11. The
+  same DRModels.jl change fixes the NB2 relmat, animal and spatial SD fitters,
+  which could stop on a flat part of the dispersion likelihood and report
+  convergence far below the interior optimum (33 log-likelihood units on the live
+  relmat parity fixture before the fix); the fit now restarts once from a
+  mid-range dispersion and keeps the better optimum (two stalling seeds are pinned
+  in the Julia tests). Not covered: standard errors, interval coverage,
+  calibration, `simulate()` and stored conditional `predict()` (both still
+  refused), REML, `sigma` regression, `Ainv` and `Q` input.
+
+* The development Julia bridge also admits coordinate `spatial(1 | id, coords =
+  coords)` with `sd(id, level = "spatial") ~ z` for Poisson, NB2 and Gamma
+  (2026-11-02, batch 32; needs DRModels.jl `ab8b67127`, because the NB2 relmat route
+  it uses needs the dispersion restart). The bridge sends the native fixed kernel as
+  a raw relmat `K` into the relmat intercept SD route these families already had,
+  and `relmat(1 | id, K = K)` with `sd(id, level = "relmat") ~ z` gets a live
+  parity block in the same change. On one fixed fixture per route the tests assert
+  1e-3 on coefficients and 1e-2 on the log-likelihood; measured maxima on one run
+  were 7e-8 and 7e-6. Not covered: standard errors, interval coverage, calibration,
+  `simulate()` and stored conditional `predict()`, a modelled `sigma`, Poisson
+  `spatial(0 + x | id)` and NB2 phylogenetic SD.
+
+* `fitted()` and `residuals()` on `engine = "julia"` fits with a structured
+  `relmat()`, `animal()` or `spatial()` term return the population-level value
+  (inverse link of the fixed-effect linear predictor, random-effect modes at zero),
+  while native `fitted()` returns the conditional mean, so they differ from
+  `engine = "tmb"` (measured gaps from 0.2 to 47 on the response scale). Coefficients
+  and the log-likelihood are not affected. This is documented, not yet changed.
+
+* Native Binomial `animal(1 + x | p | id, A = A)` (logit, probit and cloglog links) and
+  `phylo(1 + x | p | id, tree = tree)` (logit) now fit the labelled intercept-plus-slope
+  block with one `sd(id, level = ..., coef = ...)` formula per coefficient and one
+  estimated intercept-slope correlation (2026-11-02), as the NB2 and Gamma labelled
+  blocks do. Before, the labelled form was refused for these two providers; the
+  unlabelled form, which fixes the correlation at 0, is unchanged. The correlation
+  appears in `fit$corpars`, `predict(fit, dpar = ...)` returns the fitted SD curves, and
+  `simulate(fit)` draws the fields with the fitted correlation. On fixed-seed fixtures
+  (Henderson `A` from an inbred pedigree, `cov2cor(ape::vcv(tree))`, kernel rows in a
+  different order from the data levels) the log-likelihood matches a dense base-R
+  Laplace oracle evaluated at the fitted correlation to within 1e-4; this checks the
+  likelihood assembly and alignment only, not calibration or coverage. Binomial
+  labelled `relmat()` and `spatial()` blocks, non-logit labelled `phylo()`, and labelled
+  blocks without two SD formulas stay refused.
+
+* Native Poisson `animal(1 + x | p | id, A = A)` and `spatial(1 + x | p | id, coords = coords)`
+  now fit with one `sd(id, level = ..., coef = ...)` formula per coefficient (2026-11-02). The label
+  adds one estimated correlation between the intercept and slope fields, reported in `corpars`,
+  so the latent prior is R kron K with `rho = 0.999999 tanh(eta)`. The gate was the only change;
+  the template already carried this prior for Poisson. Checked at fixed fixtures against a dense
+  Laplace likelihood computed in base R at the fitted parameters including the fitted correlation
+  (an inbred-pedigree Henderson A and an irregular-coordinate kernel, agreement within 3e-10 on the
+  log-likelihood); fitted SDs, `predict(dpar = ...)` and marginal `simulate()` agree with it. This
+  is a likelihood-evaluation check, not a recovery, calibration or parity claim. Missing-response
+  integration and zero inflation stay refused for the labelled block.
+
+* The Julia coupled location-scale `(1 | tag | relmat(g))` engine (Beta,
+  beta-binomial, NB2, Gamma) now uses `relmat()` and `animal()` matrices as
+  supplied, as native does (DRM.jl `2c32dd535`, 2026-11-02), and the Julia Beta
+  animal `sd(g) ~ z` fit no longer stops short of the optimum while reporting
+  convergence (DRM.jl `e7dbc3f79`). Gaussian Julia location-scale structured
+  routes still rescale the matrix. Fixed fixtures, not calibrated, no coverage
+  claim; the `engine = "julia"` bridge does not route these structured shapes.
+
+* The Julia bridge admits Gaussian structured slope-only SD regression for one
+  `animal(0 + x | g, A)`, `relmat(0 + x | g, K)` or coordinate `spatial(0 + x | g)`
+  term with its matching `sd(g, ...) ~ z` formula and fixed `sigma ~ 1` (DRM.jl
+  `40da69c72`; `test-julia-b20-gaussian-slope-binomial-relmat-bridge.R`, one
+  live fixture per route against native TMB, tolerances 1e-3 on coefficients and
+  1e-2 on the log-likelihood fixed beforehand; not calibrated, no coverage claim).
+
+* Native NB2 now fits the labelled `phylo(1 + x | p | id, tree)` intercept-plus-slope
+  block, and native Gamma (log link) now fits the labelled
+  `relmat(1 + x | p | id, K)` and `phylo(1 + x | p | id, tree)` blocks, each with one
+  `sd()` formula per coefficient (2026-11-02). The label adds one estimated
+  cross-coefficient correlation (the latent prior is `R kron K`, with `K` as supplied for
+  `relmat()` and `cov2cor(ape::vcv(tree))` for `phylo()`), reported in `corpars` and used
+  by `predict(dpar = ...)` and by `simulate(re.form = NA)` as for the labelled animal and
+  Poisson/NB2 relmat routes. The C++ templates already carried this prior; only the R
+  gates changed. Checked against an independent dense Laplace likelihood at the fitted
+  parameters including the fitted correlation, on fixed fixtures; this is not a
+  calibration or parity claim. Labelled blocks without `sd()` formulas, slope-only
+  labelled blocks, labelled Gamma spatial and the Julia engine are unchanged.
+
 * `engine = "julia"` Gaussian phylogenetic SD regression (`sd(g, level =
   "phylogenetic") ~ z`) reported its SD intercept shifted by log(sqrt(tree
   height)) on trees whose height is not 1 (2026-11-02). DRModels.jl already
@@ -15,9 +107,9 @@
   (`engine = "julia"`) does not route structured terms for these two families, so no
   bridge change was needed; the check calls the Julia engine directly. On one fixture
   per route with a non-unit-diagonal `K` (Beta relmat and animal, zero-one-beta relmat
-  and animal, Beta animal SD ~ z), Julia and native TMB agree to coefficients within
-  5e-8 and log-likelihood within 4e-10 (fixed fixtures, not calibrated, no coverage
-  claim). `phylo()` keeps the correlation form, and the precomputed `spatial()` kernel
+  and animal, Beta animal SD ~ z), the test asserts agreement with native TMB within
+  1e-3 on coefficients and 1e-2 on the log-likelihood; the measured maxima on one run
+  were 5e-8 and 4e-10 (fixed fixtures, not calibrated, no coverage claim). `phylo()` keeps the correlation form, and the precomputed `spatial()` kernel
   keeps its rescaling.
 
 * The Julia engine now uses a `relmat()` kernel `K` exactly as supplied for
@@ -28,11 +120,13 @@
   for the Poisson `relmat(0 + x | id)` slope SD route. On one fixture per route,
   with a non-unit-diagonal `K`, Julia and native TMB agree for the `relmat(1 | id)`
   intercept and the `relmat(0 + x | id)` slope with `sd(id, level = "relmat") ~ z`
-  for all three families (coefficients within 1e-6 and log-likelihood within
-  3e-6 on those fixtures; fixed fixtures, not calibrated, no coverage claim). `phylo()` still uses the
-  correlation form (as native does) and `animal()` was already raw. Still open:
-  Julia Beta and zero-one-beta `relmat()`/`animal()` rescale `K` or `A`, the
-  Binomial constant-SD relmat and Tweedie routes were not re-measured here, and
+  for all three families (the tests assert 1e-3 on coefficients and 1e-2 on the
+  log-likelihood; measured maxima on one run were 1e-6 and 3e-6; fixed fixtures, not
+  calibrated, no coverage claim). `phylo()` still uses the
+  correlation form (as native does) and `animal()` was already raw. Julia Beta
+  and zero-one-beta `relmat()`/`animal()` were moved to the supplied matrix in a
+  later change (the first entry above). Still open: the Binomial constant-SD
+  relmat and Tweedie routes were not re-measured here, and
   hurdle, cumulative-logit and zero-inflated relmat/animal routes stay refused.
 
 * Gaussian ordinary correlated blocks of three or four coefficients, such as
@@ -44,8 +138,13 @@
   at the fitted parameters on fixed fixtures (not calibrated, no coverage
   claim). Blocks of five or more coefficients, labelled blocks, sd() on other
   terms beside the block, and Poisson and NB2 q3 blocks stay refused.
-  Marginal `simulate(re.form = NA)` still does not draw correlated blocks; use
-  `re.form = NULL`.
+  Marginal `simulate(re.form = NA)` draws these blocks natively (2026-11-02):
+  each group gets a fresh standard-normal latent, the fitted `R` is applied
+  first and the group-specific SD vector second, so the simulated covariance
+  is `D_g R D_g`. Checked as a Monte Carlo moment match (4000 replicates, 60
+  groups, q = 3 and 4) against a hand-built covariance, with `R = I` and a
+  reversed SD vector detected; not a calibration claim. Plain q3/q4 blocks
+  without `sd()` formulas still need `re.form = NULL`.
 
 * Predictor-dependent random-effect SD routes added on 2026-11-01, second half
   (native routes checked against a drmTMB-independent oracle at the fitted
@@ -63,9 +162,9 @@
   structured fields with the fitted correlation.
   Julia engine: the R bridge admits Poisson `relmat(0 + x | g)` slope-only SD and
   NB2 `animal(0 + x | g)` slope-only SD (supplied `A` only). On one fixture each
-  the bridge fit matched native TMB within the stated tolerance. The Julia
-  engine refuses Poisson `relmat` with a non-unit-diagonal `K`, because DRM.jl
-  rescales `K` to a correlation matrix while native TMB uses `K` as given.
+  the bridge fit matched native TMB within the stated tolerance. At that point
+  the bridge refused Poisson `relmat` with a non-unit-diagonal `K`; that refusal
+  was removed later on 2026-11-02 (see the entry on `relmat()` kernels above).
   The Julia bridge also admits Gamma `relmat(0 + x | g, K = K)` and coordinate
   `spatial(0 + x | g)` slope-only SD, and NB2 `relmat(0 + x | g, K = K)`
   slope-only SD (2026-11-02). For these routes DRM.jl uses `K` as given,
@@ -107,8 +206,10 @@
   `mu` plus `sigma` ordinary intercepts, each with its own SD formula.
 * The Julia bridge no longer refuses ordinary `(1 | g)` or `(0 + x | g)` mean
   terms that carry an `sd()` formula for Poisson, NB2, Gamma, Beta and
-  Binomial. This reopens the admission gate only; selected-coefficient
-  `sd(id, coef = ...)` routes still fail later in the Julia bridge.
+  Binomial. This reopens the admission gate only. The label mapping for a sole
+  selected-coefficient `sd(id, coef = ...)` target was fixed afterwards and is
+  pinned by a static test (`test-julia-selected-sd-coef-label.R`); only the
+  Poisson route has been fitted live for this shape.
 
 * Native Gaussian models now admit more predictor-dependent random-effect SD
   routes. (a) An unlabelled correlated `(1 + x | id)` block takes a separate
@@ -134,11 +235,14 @@
   `animal(0 + x | id)` with supplied `Ainv` or a `pedigree`. Evidence differs by
   route. A dense or exact Laplace oracle checks the additive ordinary pairs (c),
   the ordinary-plus-structured intercept pair (d), and the phylo and relmat
-  slopes (b). Spatial (a) has no likelihood oracle: only constant-SD
-  equivalence, nesting and prediction identity. The `Ainv`/`pedigree` animal
-  slope (e) has no oracle yet: its likelihood is compared with the `A =` fit
-  and the constant-SD fit only. Native TMB only, no Julia parity, not
-  calibrated.
+  slopes (b). Spatial (a) was first checked only by constant-SD equivalence,
+  nesting and prediction identity; a later companion test
+  (`test-poisson-spatial-sd-sensitivity-b26.R`) adds a hand-built kernel and a
+  dense Laplace oracle for the intercept and slope fields. The `pedigree` animal
+  slope (e) likewise has an independent Henderson-matrix dense Laplace oracle
+  (`test-poisson-animal-pedigree-sensitivity-b26.R`); the supplied-`Ainv` form
+  is still compared only with the `A =` fit and the constant-SD fit. Native TMB
+  only, no Julia parity, not calibrated.
 
 * Native Poisson models now admit a `phylo_interaction()` intercept and a
   slope-only `phylo_interaction(0 + x | ...)` field with a pair-level
@@ -153,9 +257,11 @@
   `phylo(0 + x | g)` and `relmat(0 + x | g)` (these two shapes now also fit
   without `sd()`); and an independent same-group intercept and slope with one
   selected SD formula each. The intercept routes have a dense Laplace oracle;
-  the same-group pair has only constant-SD equivalence and prediction
-  identity. Marginal simulation (`re.form = NA`) for NB2 slope SDs is still
-  refused, and NB2 `sigma`-side phylogenetic SD is not admitted. Native TMB
+  the same-group pair first had only constant-SD equivalence and prediction
+  identity; the `coef`-selected form now has a dense Laplace oracle
+  (`test-nbinom2-gamma-same-group-sd-oracle.R`). Marginal simulation
+  (`re.form = NA`) is admitted for the NB2 slope-only `phylo()` and `relmat()`
+  SD fits (`test-nbinom2-structured-slope-marginal-simulate.R`), and NB2 `sigma`-side phylogenetic SD is not admitted. Native TMB
   only, no Julia parity, not calibrated.
 
 * Native NB2 models now also admit one ordinary intercept plus one
@@ -197,8 +303,10 @@
   `animal(1 + x | id, A = A)` keeps its independent-coefficient meaning, and a
   labelled term without `sd()` formulas is refused. The test file
   uses fixed-seed fixtures and a loose recovery band; it is a wiring check, not
-  calibration, and has no likelihood oracle. This is a native TMB route only:
-  Julia Gamma remains independent, and interval coverage is not calibrated.
+  calibration. A later companion check compares the joint objective with an
+  independent oracle (`test-gamma-animal-q2-correlated-sd.R`, design 18). This
+  is a native TMB route only: Julia Gamma remains independent, and interval
+  coverage is not calibrated.
 
 * The development Julia bridge now fits a complete-data Binomial location model
   with one related-matrix random intercept and one independent ordinary

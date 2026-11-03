@@ -1,0 +1,48 @@
+{
+  "files": [
+    {
+      "file": "tests/testthat/test-julia-b32-gaussian-structured-intercept-bridge.R",
+      "sha256": "8f4234b4b82a1653607bc1c5dcec28309111c106eedb4a3bde00b6867543d862"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "71a3fa79a97764bbae390ad771d4300688d1d58783d49fb5bf93a6d7bfa82c0d"
+    },
+    {
+      "file": "tests/testthat/helper-julia-bridge-path.R",
+      "sha256": "be788198cabc6624e6ce8e37d6d45db9bae963cc5adb1ce244e80edc5f29e093"
+    },
+    {
+      "file": "DRModels.jl worktree general-sd-julia (HEAD ab8b67127 plus uncommitted working-tree edits): src/gaussian_core.jl",
+      "sha256": "429de9a27e459430121a7e3bc6a791602750f205ff4a7bebc816b6db0671dee8"
+    },
+    {
+      "file": "DRModels.jl worktree general-sd-julia (HEAD ab8b67127 plus uncommitted working-tree edits): src/gaussian_lss.jl",
+      "sha256": "9e59ecde6e814ad28e358ac103b44f14cfb804b9c3405b20ccd68b186d2b0c15"
+    },
+    {
+      "file": "DRModels.jl worktree general-sd-julia (HEAD ab8b67127 plus uncommitted working-tree edits): src/negbinomial.jl",
+      "sha256": "ea16ba7861c19b94bee646bf134b0aed0705be910d6a968ec585a28da6c4779c"
+    },
+    {
+      "file": "DRModels.jl worktree general-sd-julia (HEAD ab8b67127 plus uncommitted working-tree edits): src/bridge.jl",
+      "sha256": "9aa9a44da552a9a3e34e25aefa3c811c98d1b3afa17db0191870e4f732dc0596"
+    }
+  ]
+}

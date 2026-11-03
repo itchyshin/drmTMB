@@ -28,7 +28,7 @@
   "test_path": "tests/testthat/test-gaussian-phylo-interaction-slope-sd.R",
   "test_sha256": "db3af88add986228414058d5417e27acaef0e0ea1ee6cbdac6c950c2849f34a3",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-phylo-interaction-slope-sd-20261101d/source-manifest.json",
-  "source_manifest_sha256": "61cff7813e406355bd052c36dec2f38218c63ea756a175e87e93ac473d5fd2f4",
+  "source_manifest_sha256": "e3df0f6fbceb797a4a609a070525bc5711c92ce82d4b63054f8fcf71aa989bb0",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-phylo-interaction-slope-sd-20261101d/test-console.log",
   "console_log_sha256": "00782cc83549bd2ef1ac6dd8b1f97c0a69001ea8378ae46c73b6930dacfe3b8b",
   "result": {
@@ -52,16 +52,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-gaussian-phylo-interaction-slope-sd.R",
     "test_sha256": "db3af88add986228414058d5417e27acaef0e0ea1ee6cbdac6c950c2849f34a3",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:16:05Z",
-    "ended_utc": "2026-11-02T18:16:28Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:46Z",
+    "ended_utc": "2026-11-03T01:10:10Z",
     "expectations_passed": 52,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-phylo-interaction-slope-sd-20261101d/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "e6c2e48afad4ba8f774843f2e13633a6490a99bba2d61d870e12a10133e25121",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-phylo-interaction-slope-sd-20261101d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "67ecb2c356e156bfb0e46b409e522956b555ba2084ad848979f0e0310c39b88e",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

@@ -370,11 +370,12 @@ test_that("neighbouring count q2 SD routes stay refused with designed errors", {
   coords <- fx_sp$supplied$coords
   sd_sp0 <- sd(id, level = "spatial", dpar = "mu", coef = "(Intercept)") ~ w
   sd_sp1 <- sd(id, level = "spatial", dpar = "mu", coef = "x") ~ v
+  # Poisson with both SD formulas is admitted (see
+  # test-poisson-labelled-q2-sd-b32.R); with one SD formula it stays refused.
   expect_error(
-    drmTMB(bf(y ~ x + spatial(1 + x | p | id, coords = coords),
-              sd_sp0, sd_sp1),
+    drmTMB(bf(y ~ x + spatial(1 + x | p | id, coords = coords), sd_sp0),
            family = stats::poisson(), data = fx_sp$data),
-    "require\\s+one\\s+structured\\s+coefficient"
+    "requires\\s+one\\s+SD\\s+formula\\s+for\\s+each\\s+coefficient"
   )
   expect_error(
     drmTMB(bf(y ~ x + spatial(1 + x | p | id, coords = coords), sigma ~ 1,

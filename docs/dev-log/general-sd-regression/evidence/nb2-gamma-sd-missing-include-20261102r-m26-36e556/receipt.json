@@ -21,7 +21,7 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/nb2-gamma-sd-missing-include-20261102r-m26-36e556/source-manifest.json",
-  "source_manifest_sha256": "8097cb42f4d314d6111a96025399b13b30a3e1ce0830c36cc3d1cde63cd3af33",
+  "source_manifest_sha256": "82c5592517690d1751990ace109e9d500a04bb2a1beba2c722c60e80665e0158",
   "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "interval calibration",
@@ -32,5 +32,19 @@
   ],
   "review_note": "Reviewer 2, 2026-11-02. Test fits native NB2 and Gamma(log) ordinary (1 | id) and slope-only (0 + x | id) with sd(id) ~ w under miss_control(response = 'include'), and checks: include equals the complete-case fit (logLik 1e-8, coefficients 1e-6), and logLik equals a per-group scalar Laplace oracle written in base R with no drmTMB code (optimize + curvature; tol 1e-4) at the fitted parameters. Group levels and rows are shuffled, one group has no observed response. Emulated bugs: masked rows treated as placeholder responses, and the SD slope dropped (flat SD); both move the oracle by more than 0.05 (500x tolerance). All four linked rows (gamma intercept, gamma slope, nb2 intercept, nb2 slope; ordinary independent fields, so no slope-only caveat) are fitted. Rerun 114/0/0 skips; all 5 manifest files match. Does NOT establish: structured providers (the test pins them as refused under include); calibration or coverage; Julia parity; sigma-side or joint SDs; swapped-selector perturbations; the 0.05 sensitivity bound is for the two stated bugs only.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-nb2-gamma-sd-missing-include.R",
+    "test_sha256": "674d1c2f78dc2effd2a7b5a850838617ba22d113fa61e43eb7ae9f2cafa178bd",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:19Z",
+    "ended_utc": "2026-11-03T01:11:39Z",
+    "expectations_passed": 114,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nb2-gamma-sd-missing-include-20261102r-m26-36e556/test-console-rerun-81553915d.log",
+    "console_log_sha256": "6a0ef2475bd36485255270d9e6049cb98572b7a38197821be70787ae983e0600",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

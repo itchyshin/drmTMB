@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-binomial-animal-spatial-sd-sensitivity-b26.R",
   "test_sha256": "81e31f4afb54854575274e6a34537e59a1f9b22cd874db00a570e778f5f9bf85",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-animal-spatial-sd-sensitivity-b26-20261102c/source-manifest.json",
-  "source_manifest_sha256": "12e7e5d2c608d1265deccbf09224693fd8f977b4904faec898a85471f7e2bfe7",
+  "source_manifest_sha256": "abd614df6794b504229d09c8e7775071fe386bef49aa08b8eac34a196bd8508e",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "binomial-batch4-sd-20261101-m26"
@@ -57,5 +57,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Probit and cloglog, animal(A, Ainv, pedigree) plus spatial(coords), each with its own SD formula (6 rows, all fitted: 2 links x 3 animal inputs). The oracle is a base-R dense Laplace with a Henderson tabular A from an inbred pedigree (diag 1.25) and a hand-built exp(-d/median)+1e-6 I spatial kernel, none from drmTMB helpers. The pedigree fit is checked against that independent A, which closes the earlier helper-under-test gap. logLik tolerance is 1e-4. Five emulated bugs (swapped selector coefficient sets, reversed SDs, cov2cor(A), A by position, coordinates by position) must each move the oracle by more than 0.1, and they pass. Manifest 7/7 hashes match current files, test and console hashes match, and the rerun shows 82 expectations, 0 failures, 0 errors, 0 skips. Narrow claim: likelihood agreement at the fitted parameters on one seed per link. Does NOT establish: interval calibration or coverage, Julia parity, logit rows, recovery or accuracy, or other families, links or providers.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-animal-spatial-sd-sensitivity-b26.R",
+    "test_sha256": "81e31f4afb54854575274e6a34537e59a1f9b22cd874db00a570e778f5f9bf85",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:34Z",
+    "ended_utc": "2026-11-03T01:06:07Z",
+    "expectations_passed": 82,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-spatial-sd-sensitivity-b26-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "5fd887a785a30f7f9016334bd38c17c72a2f4e1a8ca9d9acff041dbcc6999c6f",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

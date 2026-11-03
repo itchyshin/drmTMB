@@ -20,7 +20,7 @@
   "test_path": "tests/testthat/test-binomial-iid-phylo-crossed-sd-oracle-b29b.R",
   "test_sha256": "31bdc52cbd79038cf0f2c4d6e07539b7e363b4e740a46d4a98d552f9cecba6ff",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-iid-phylo-crossed-sd-oracle-b29b-20261102d/source-manifest.json",
-  "source_manifest_sha256": "04c49192f7d69ef76866fa58f945038d24db480f190a44ec389d5a149ecc4dd7",
+  "source_manifest_sha256": "55187d5956c9149d998448937a45cadd4ef37f5b4377188f64fe51bfa6032ab6",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-binomial-iid-phylo-cloglog-20261027-m26",
@@ -61,5 +61,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helpers. Independent oracle: base-R dense Laplace with a kernel from ape::vcv through cov2cor on a shuffled-label tree of height 3, and the package tip-covariance helper is compared with ape::vcv at 1e-8 (both cov2cor and raw forms). Fitted logLik matches the oracle within 1e-4 for every fit. Sensitivity assertions, each above 0.1, cover swapped selector coefficients, reversed SD for each field, raw vcv in place of cov2cor, and phylo kernel read by position. Linked row_keys are all fitted: iid+phylo for logit, probit and cloglog; (1 | g) + (1 | h) crossed for probit and cloglog, where the two factors are sampled independently so the layout is crossed. Each field is an intercept with sd ~ covariate, so no slope-member issue. Hashes match, and the console shows 73 passed, 0 failed, 0 skipped, exit 0, with no Julia. Does NOT establish: nested layout (the fixtures are crossed only); logit crossed (not fitted); sensitivity of K scale for the iid or iid2 members, since K = I has no scale or kernel emulation and only the reversed-SD and swap emulations apply to them; calibration, coverage, SE, recovery or parity; any seed other than the fixed ones; slope or correlated terms; behaviour away from the fitted optimum.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-iid-phylo-crossed-sd-oracle-b29b.R",
+    "test_sha256": "31bdc52cbd79038cf0f2c4d6e07539b7e363b4e740a46d4a98d552f9cecba6ff",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:06:22Z",
+    "ended_utc": "2026-11-03T01:06:47Z",
+    "expectations_passed": 73,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-iid-phylo-crossed-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "7868b4698d294ad19842caf010901c0e4cd4822248453c4850838814c4559a4d",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

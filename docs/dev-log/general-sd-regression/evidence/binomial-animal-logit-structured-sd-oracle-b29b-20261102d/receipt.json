@@ -20,7 +20,7 @@
   "test_path": "tests/testthat/test-binomial-animal-logit-structured-sd-oracle-b29b.R",
   "test_sha256": "30b9ea55f129c05cdda99988b6bdd129231f33ab855f6a595212cc0677be8102",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-animal-logit-structured-sd-oracle-b29b-20261102d/source-manifest.json",
-  "source_manifest_sha256": "c19bffaafe63d0cdb55db15be742b6d19ef34a477389fe1727144b9327a15f31",
+  "source_manifest_sha256": "db117f5ad6a2bee0ec5c38d84036b70876c3c8f75564106e414192be4d162a63",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-binomial-animal-relmat-logit-20261027-m26",
@@ -82,5 +82,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helpers line by line. Oracle is independent of drmTMB: base-R dense Laplace (sb26_laplace, own Newton loop and log-det) on hand-built kernels (Henderson tabular A from a 3-family full-sib pedigree with diag(A) > 1.6, hand relmat kernel at scale 1.6, hand exponential spatial kernel; Ainv and Q are solve() of those). The pedigree provider is checked against the hand A, not against package code. Each fit's logLik matches the oracle at the fitted parameters within 1e-4, and the oracle values agree across providers within 1e-6. Emulated bugs (swapped selector coefficient sets, reversed per-level SD, cov2cor(K), K x 2, kernel read by position) are each asserted to move the oracle by more than 0.1, which is 1000x the tolerance, in every b29b_check call; the file passed these. Every linked row_key is fitted: logit animal+relmat for A+K, A+Q, Ainv+K and pedigree+K; animal+spatial for A, Ainv and pedigree; animal-only A, Ainv and pedigree. Each field is an intercept-only term on its own grouping factor with sd(.) ~ z, so there is no unlabelled (1 + x | id) concern. All 9 sha256 values in the manifest and the receipt, manifest and test hashes in the fragment match the current files. Console shows 160 passed, 0 failed, 0 skipped, exit 0, and no live-Julia claim. Does NOT establish: animal Ainv+Q or pedigree+Q for logit (only A+Q is fitted); anything for probit or cloglog; slope, labelled or correlated blocks; calibration, coverage, SE, recovery or Julia parity; any seed other than the fixed ones (one seed per block); behaviour away from the fitted parameters, since the check is likelihood assembly and selector alignment at the optimum.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-animal-logit-structured-sd-oracle-b29b.R",
+    "test_sha256": "30b9ea55f129c05cdda99988b6bdd129231f33ab855f6a595212cc0677be8102",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:34Z",
+    "ended_utc": "2026-11-03T01:06:22Z",
+    "expectations_passed": 160,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-logit-structured-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "4f531cd3e63379c52fe3f30005f4745d513f52f337e00227ec2ae621cb2a6f50",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

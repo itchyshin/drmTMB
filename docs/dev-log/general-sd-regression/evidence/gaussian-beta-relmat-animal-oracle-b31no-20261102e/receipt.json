@@ -18,7 +18,7 @@
   "test_path": "tests/testthat/test-gaussian-beta-relmat-animal-oracle-b31no.R",
   "test_sha256": "4151b93886e4a92a76c228a0013c7eaf8d0331d48a1b519a262a8a928bdf7ef7",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-beta-relmat-animal-oracle-b31no-20261102e/source-manifest.json",
-  "source_manifest_sha256": "ee57d74fd6e6153d189313f4b2aef3a3325034524db78e1acb7270c23f8023eb",
+  "source_manifest_sha256": "897b242cbeb6d5159eebac014c683eb6422997c560a8b5126eca02f1d23959dd",
   "rows_claimed": [
     {
       "row_key": "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
@@ -34,5 +34,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read test and helpers line by line. Gaussian relmat(1 | id, Q = Q): exact Gaussian marginal N(X beta, sigma^2 I + Z K Z') in base R. Beta relmat K and Beta animal A: base-R dense Laplace with a hand Beta mean-precision density (phi = 1/sigma^2) whose eta-derivatives come from a five-point stencil; the hand Beta density is checked against stats::dbeta and a numerical integral of the zero-one-inflated variant in b31no_check_densities (which runs in the NB2 test file of this batch, not this file). Kernels hand-built (relmat D K D with diag in [0.8, 1.6]; Henderson A with inbreeding), supplied in reverse order. All three linked rows (Gaussian Q_precision, Beta K_covariance, Beta animal A_covariance) are q=1 independent structured intercepts fitted by exactly that route with sd(id, level=...) ~ w; the Q provider is compared against the hand K, so the precision handling is tested. Sensitivity asserted > 0.1 for reversed SD, flipped selector, K by position, K x2, cov2cor(K); observed min gaps 1.3 to 2.2 vs agreement ~1e-9. Hashes (test, helpers, sources, log, manifest, receipt) recompute; log 3 blocks, 33 expectations, 0 failures, 0 skips, 0 warnings; Totoro rerun reproduced 3/33/0/0/0. The ZeroOneBeta rows are correctly not claimed. Does NOT establish: ZeroOneBeta or any other family, REML behaviour, calibration, recovery, coverage, Julia parity, or more than one seed per route; the Beta density is hand-written so a shared misreading of the mean-precision parameterisation between hand density and package would be caught only by the dbeta check at the parameter level, not by an external package fit.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-beta-relmat-animal-oracle-b31no.R",
+    "test_sha256": "4151b93886e4a92a76c228a0013c7eaf8d0331d48a1b519a262a8a928bdf7ef7",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:17Z",
+    "ended_utc": "2026-11-03T01:10:05Z",
+    "expectations_passed": 33,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-beta-relmat-animal-oracle-b31no-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "4dca51a5ba91ef4d2e01891b70d7c1270f1a7dbd6756262f214dc683d7ace45f",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

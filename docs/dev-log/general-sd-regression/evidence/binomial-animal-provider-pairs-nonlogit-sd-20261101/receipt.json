@@ -49,7 +49,7 @@
   "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/test-snapshot/test-binomial-animal-provider-pairs-nonlogit-sd.R",
   "test_file_sha256": "033c86d7b5459fdcc5f13dd4fdee1ace7d3c3bd26cf4a1686c3fbac5ba95b84f",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/source-manifest.json",
-  "source_manifest_sha256": "60c37d0d60edc928c106aa10457b56c85e09c0c695264f2bccfa773d21f56762",
+  "source_manifest_sha256": "a3f0d2b4f874ac6a6916a23fcdf47fba31b3e8d221416e4084c29de3041bca56",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/test-console.log",
   "console_log_sha256": "90783019bdeed1a20a41a36e00d3f69bc297cc7193a5de3150824635df25f40e",
   "test_result": "Fresh run exit 0: 6 test_that blocks, 94 expectations, 0 failed, 0 skipped, 0 errors, 0 warnings. Dense Laplace oracle logLik agreement (abs 1e-4) for animal A + iid, relmat K/Q + iid, and phylo-interaction intercept, probit and cloglog.",
@@ -71,16 +71,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-binomial-animal-provider-pairs-nonlogit-sd.R",
     "test_sha256": "033c86d7b5459fdcc5f13dd4fdee1ace7d3c3bd26cf4a1686c3fbac5ba95b84f",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:14:26Z",
-    "ended_utc": "2026-11-02T18:16:36Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:34Z",
+    "ended_utc": "2026-11-03T01:08:54Z",
     "expectations_passed": 94,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "1aa3955817258b64491b9c7e6c315e53b28e5572fa833eaa0b467a2552d2b9c8",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/test-console-rerun-81553915d.log",
+    "console_log_sha256": "558c7b185c70a065b43317fc7b37581f548d9142c1b261ba46da3a53d3f6bf8f",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

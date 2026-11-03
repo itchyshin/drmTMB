@@ -21,7 +21,7 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-oracle-20261101b-m26-256d3a/source-manifest.json",
-  "source_manifest_sha256": "2d51d7d238990c65a0c1c45867522e1e24066e2688074adb11906fab9175f91d",
+  "source_manifest_sha256": "5b7ed906df0e14d4d43dc6c02e68b3df861b30af9a9a05afd88c94dda9634a48",
   "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "iid_additive_terms (crossed and nested)",
@@ -36,5 +36,19 @@
   ],
   "review_note": "Oracle is a base-R per-group dense Laplace (own Newton mode, score/information for dnbinom/dgamma), written without drmTMB internals; logLik agrees within 1e-4 absolute. Emulated-bug sensitivity is asserted inside the test: swap_sd, swap_pred and misalign each move the oracle by more than 1 log-lik unit (1e4 times tolerance). Both linked rows (nbinom2 and gamma iid numeric-slope SD) are fitted by the same-group (1 | id) + (0 + x | id) model with separate SD formulas, so the slope-member SD target is exercised (the intercept-member SD is exercised too but is not a linked row here). Manifest: all 9 entries rehash to current files (verified). Rerun: receipt 10/0/0/0 at e9c72ab3e and my own Totoro rerun 10/0/0/0, 0 skips. Does NOT establish: Julia parity, calibration or coverage, structured or non-same-group designs, other families, the correlated q2 block.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-nbinom2-gamma-same-group-sd-oracle.R",
+    "test_sha256": "c5270713731353a0cfd79c4b36d69cb36951145a52cb3f416bfee16454086e26",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:22Z",
+    "ended_utc": "2026-11-03T01:10:41Z",
+    "expectations_passed": 10,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-oracle-20261101b-m26-256d3a/test-console-rerun-81553915d.log",
+    "console_log_sha256": "3ef7e39b59856bb63b191039db04b719cd68b2992f54d03ed0786bd1715e823f",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

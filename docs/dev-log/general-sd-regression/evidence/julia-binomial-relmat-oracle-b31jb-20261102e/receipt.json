@@ -17,7 +17,7 @@
   "test_path": "tests/testthat/test-julia-binomial-relmat-oracle-b31jb.R",
   "test_sha256": "f6241a4ca423423ffc3585307d83a0fc41c691d954467a5166a352af375734f5",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-relmat-oracle-b31jb-20261102e/source-manifest.json",
-  "source_manifest_sha256": "a2de9405faa5d12fa414906dd319ddee5b49e5f52a8c2c44028d02d88b453f73",
+  "source_manifest_sha256": "098fc89544a467854958bf081529c81fda789fe113c5cb2a5f57509b35e8b13d",
   "live_julia": "run; live R-to-Julia fits via drmTMB(..., engine = \"julia\")",
   "scope": "relmat intercept SD, dense Laplace oracle with hand non-constant-diagonal K. Oracle evaluated at the live Julia estimates; agreement asserted to 1e-3 absolute on logLik; every emulated bug must move the oracle by more than 20x that.",
   "rows_claimed": [
@@ -36,5 +36,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helper line by line. Hashes (receipt, manifest, test, all manifest files) match. The Mac console log shows 57 passed, 0 failed, 0 skipped, with all 3 'b31jb relmat' lines present. Totoro native run only skips (live test), so counts rest on the Mac log. Oracle: base-R dense Laplace with a hand-built irregular exponential kernel that has a non-constant diagonal, asserted (diagonal range above 1). It is supplied to drmTMB with rows permuted relative to the data levels, and the oracle aligns it by name. Agreement is 1.5e-6 to 1.7e-6 at the Julia estimates. Bug sensitivity: selector swap, SD sign, reversed SD, SD intercept shift, K x 2, cov2cor(K), and kernel by position all move the oracle. The smallest gap is 0.907 (logit, K x 2) against 1e-3, about x906. The optimum check passes. Row: relmat_intercept (single known-relatedness field, K_covariance) is fitted by relmat(1 | id, K = K_given) with sd(id, level='relmat') ~ z, so all 3 linked rows are exercised by the route named. Does NOT establish: relmat slopes or intercept-plus-slope layouts, a correlated block, calibration or coverage, other K structures, sizes or seeds (one fixture), or native-engine behaviour.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-relmat-oracle-b31jb.R",
+    "test_sha256": "f6241a4ca423423ffc3585307d83a0fc41c691d954467a5166a352af375734f5",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:18:16Z",
+    "ended_utc": "2026-11-03T01:18:45Z",
+    "expectations_passed": 57,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-relmat-oracle-b31jb-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "d45d76e25d7319a997a8fa2072e014a993d1d7c1dcd5a24d7ef9f16b0ea3bb83",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

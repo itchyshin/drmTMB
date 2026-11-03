@@ -9,7 +9,7 @@
   "test_path": "tests/testthat/test-poisson-correlated-q2-sd-oracle.R",
   "test_sha256": "2006e4ee760fc442a066368e61d1a50f9f645d51bc49b03a106a3c5f6d2938b5",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/poisson-correlated-q2-sd-oracle-20261101d/source-manifest.json",
-  "source_manifest_sha256": "3ac4a5d5701a7d8709885ee098b1d7233114f31ddc1817b83c181350fb4cd4ae",
+  "source_manifest_sha256": "f1df717fcafa07cbd2b53e26464b31d076ab7fba9973d3525910bf66ca97abc5",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/poisson-correlated-q2-sd-oracle-20261101d/test-console.log",
   "console_log_sha256": "8a1e2311b991154b28d50cd55b990041b5268567db9c00d5d756f42d9505798e",
   "result": {
@@ -56,16 +56,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-poisson-correlated-q2-sd-oracle.R",
     "test_sha256": "2006e4ee760fc442a066368e61d1a50f9f645d51bc49b03a106a3c5f6d2938b5",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:17:13Z",
-    "ended_utc": "2026-11-02T18:17:34Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:59Z",
+    "ended_utc": "2026-11-03T01:11:21Z",
     "expectations_passed": 14,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-correlated-q2-sd-oracle-20261101d/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "c138260a8015568f2c93491b415ba4e8f46231b9bf12b62be41dd1a62670b08f",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-correlated-q2-sd-oracle-20261101d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "31b892ca148ce80f87c4754f34c6049508889278389a0e609660c04efe9eec42",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

@@ -22,7 +22,7 @@
   "test_path": "tests/testthat/test-julia-iid-discrete-sd-oracle-b31jo.R",
   "test_sha256": "b9a7aa0885a87e49fea78ca19058ca147c5f0aa744611fd84f55f11c70cbfb03",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-iid-discrete-sd-oracle-b31jo-20261102e/source-manifest.json",
-  "source_manifest_sha256": "ea7846326bc923f06d43fc71aab55d8d6f6127aeec02a802cd0ec60413a5a40c",
+  "source_manifest_sha256": "a7f910cc9ec5e96a1debba711aeb5b9f5bea77c3799029503142b9bdd2d92d0f",
   "live_julia": "yes; engine=\"julia\" fits, logLik compared with the independent oracle at the Julia estimates",
   "scope": "Live engine=\"julia\" ordinary iid-group predictor-dependent SD for beta-binomial, cumulative logit, hurdle NB2 (intercept and slope), zero-truncated NB2 (slope), Tweedie (intercept) and zero-inflated Poisson (intercept and slope). Hand-written densities (beta-binomial, cumulative logit, hurdle NB2, truncated NB2, ZIP, Tweedie compound Poisson-gamma series; the Tweedie series is checked against tweedie::dtweedie to 1e-6 and by total mass to 1e-5). Independent exact per-group integral oracle at the Julia estimates; agreement asserted below 1e-3 (achieved 2e-10 to 8.8e-4); every emulated bug moves the oracle by at least 0.72.",
   "rows_claimed": [
@@ -50,5 +50,19 @@
   "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
   "rows_unlinked_by_review": [
     "[\"Julia\", \"zi_poisson\", \"univariate\", \"mu\", \"mu\", \"mu:x1..xp\", \"x1..xp\", \"log\", \"iid_numeric_slope\", \"O1\", \"iid\", \"independent random slope\", \"group_factor\", \"separate q1 field, optionally alongside intercept and other terms\", \"q=1\", \"q=1 per coefficient\", \"1\", \"independent\"]"
-  ]
+  ],
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-iid-discrete-sd-oracle-b31jo.R",
+    "test_sha256": "b9a7aa0885a87e49fea78ca19058ca147c5f0aa744611fd84f55f11c70cbfb03",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:21:22Z",
+    "ended_utc": "2026-11-03T01:23:36Z",
+    "expectations_passed": 164,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-iid-discrete-sd-oracle-b31jo-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "2bd28c202998cadf309247961ed92c06a76449ed11c8b7a1cc35fc362d312464",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

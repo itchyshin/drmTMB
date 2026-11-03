@@ -1,6 +1,6 @@
 # Direct-SD implementation evidence reconciliation
 
-Frozen candidate rows: 21246. Evidence receipt records: 765. Distinct candidate rows with at least one hash-verified receipt: 354. Candidate rows without linked receipts: 20892.
+Frozen candidate rows: 21246. Evidence receipt records: 800. Distinct candidate rows with at least one hash-verified receipt: 369. Candidate rows without linked receipts: 20877.
 
 This is an evidence-only join. A receipt does not establish general support, identifiability, admission, or calibrated interval coverage; no candidate row is promoted by this report.
 
@@ -10,8 +10,8 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 
 | Value | Receipted rows | Candidate rows |
 |---|---:|---:|
-| Julia | 99 | 10695 |
-| native | 255 | 10551 |
+| Julia | 108 | 10695 |
+| native | 261 | 10551 |
 
 ## family_route
 
@@ -19,22 +19,22 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 |---|---:|---:|
 | beta | 13 | 324 |
 | beta_binomial | 4 | 324 |
-| binomial | 178 | 480 |
+| binomial | 182 | 480 |
 | biv_gaussian | 0 | 3888 |
 | biv_lognormal | 0 | 3888 |
 | biv_student | 0 | 6028 |
 | cumulative_logit | 4 | 160 |
-| gamma | 32 | 324 |
-| gaussian | 30 | 324 |
+| gamma | 36 | 324 |
+| gaussian | 33 | 324 |
 | hurdle_nbinom2 | 4 | 592 |
 | lognormal | 5 | 324 |
-| nbinom2 | 37 | 324 |
-| poisson | 36 | 160 |
+| nbinom2 | 39 | 324 |
+| poisson | 40 | 160 |
 | skew_normal | 0 | 592 |
 | student | 0 | 592 |
 | truncated_nbinom2 | 1 | 324 |
 | tweedie | 2 | 592 |
-| zero_one_beta | 4 | 1076 |
+| zero_one_beta | 2 | 1076 |
 | zi_nbinom2 | 0 | 592 |
 | zi_poisson | 4 | 338 |
 
@@ -42,7 +42,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 
 | Value | Receipted rows | Candidate rows |
 |---|---:|---:|
-| animal_correlated_block | 28 | 672 |
+| animal_correlated_block | 34 | 672 |
 | animal_intercept | 24 | 336 |
 | animal_labelled_block | 0 | 4584 |
 | animal_numeric_slope | 25 | 336 |
@@ -58,13 +58,13 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | phylo_intercept | 8 | 336 |
 | phylo_labelled_block | 0 | 1528 |
 | phylo_numeric_slope | 7 | 112 |
-| relmat_correlated_block | 12 | 448 |
-| relmat_intercept | 17 | 224 |
+| relmat_correlated_block | 14 | 448 |
+| relmat_intercept | 20 | 224 |
 | relmat_labelled_block | 0 | 3056 |
 | relmat_numeric_slope | 12 | 224 |
 | simultaneous_iid_structured | 40 | 672 |
 | simultaneous_structured_structured | 43 | 1680 |
-| spatial_coordinate_intercept | 8 | 112 |
+| spatial_coordinate_intercept | 12 | 112 |
 | spatial_coordinate_labelled_block | 0 | 3056 |
 | spatial_coordinate_slope | 9 | 224 |
 | spatial_correlated_block | 4 | 224 |
@@ -78,7 +78,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 
 | Value | Receipted rows | Candidate rows |
 |---|---:|---:|
-| animal | 77 | 5928 |
+| animal | 83 | 5928 |
 | animal:A_covariance+relmat:K_covariance | 3 | 112 |
 | animal:A_covariance+relmat:Q_precision | 3 | 112 |
 | animal:A_covariance+spatial:coordinates | 3 | 112 |
@@ -104,8 +104,8 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | phylo:tree+relmat:Q_precision | 3 | 112 |
 | phylo:tree+spatial:coordinates | 3 | 112 |
 | phylo_interaction | 14 | 224 |
-| relmat | 41 | 3952 |
-| spatial | 27 | 3840 |
+| relmat | 46 | 3952 |
+| spatial | 31 | 3840 |
 | temporal | 0 | 336 |
 
 ## effect_type
@@ -127,7 +127,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | structured intercept plus one independent numeric slope | 53 | 896 |
 | structured mesh field | 3 | 112 |
 | structured mesh random slope | 3 | 112 |
-| structured random intercept | 57 | 1008 |
-| within-endpoint correlated intercept and one numeric slope | 52 | 1568 |
+| structured random intercept | 64 | 1008 |
+| within-endpoint correlated intercept and one numeric slope | 60 | 1568 |
 
 Rows with multiple receipts are counted once. Candidate rows remain obligations until separately reviewed against the implementation contract and the complete required scope.

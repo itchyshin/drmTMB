@@ -17,7 +17,7 @@
   "test_path": "tests/testthat/test-julia-binomial-phylo-oracle-b31jb.R",
   "test_sha256": "b2be6834032f66bfef5bcda190611e78a87f9122ebcaad911a17c50676ef51d5",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-oracle-b31jb-20261102e/source-manifest.json",
-  "source_manifest_sha256": "574662e6d584546f2155e30e74cd079ce1303a5bfe75ab66fbbfce39fa2a48be",
+  "source_manifest_sha256": "cae92daf2445e88e9bd99a1625bfd06b8bbb99017ea64024ddd6a22501d67030",
   "live_julia": "run; live R-to-Julia fits via drmTMB(..., engine = \"julia\")",
   "scope": "phylo intercept and phylo numeric-slope SD, dense Laplace oracle with cov2cor(ape::vcv). Oracle evaluated at the live Julia estimates; agreement asserted to 1e-3 absolute on logLik; every emulated bug must move the oracle by more than 20x that.",
   "rows_claimed": [
@@ -39,5 +39,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helper line by line. Hashes (receipt, manifest, test, all manifest files) match. The Mac console log shows 114 passed, 0 failed, 0 skipped, with all 6 'b31jb phylo' lines present. Totoro native run only skips (live test), so counts rest on the Mac log. Oracle: base-R dense joint-Newton Laplace with hand link functions, K = cov2cor(ape::vcv(tree)) hand-built and also compared with drmTMB:::drm_phylo_tip_covariance at 1e-10, and data levels a permutation of tip order. It is independent of the code under test. Agreement is 3e-6 to 9e-6 at the Julia estimates. Bug sensitivity (min gap 0.78 against 1e-3 tolerance, x784 to x1164): selector swap, sd slope sign, reversed SD vector, SD intercept shift, K x 2, raw vcv instead of correlation, and kernel read by position all move the oracle far beyond tolerance. The optimum check passes. Rows: the three phylo_intercept rows (logit, probit, cloglog) are supported. They fit phylo(1|species, tree) with sd(species, level='phylogenetic') ~ z, which is one structured field, and the oracle uses that single field. The three phylo_numeric_slope rows (cloglog, logit, probit) are NOT supported on the literal layout reading. The row layout is 'structured intercept plus one independent numeric slope' (independent fields), but the test fits only phylo(0 + x | species), a slope-only field with no structured intercept field. The slope-only fit is oracle-correct. Earlier native gamma/poisson slope-only tests were reviewed as covering this row label, so the orchestrator may overrule me by precedent. Does NOT establish: an intercept-plus-slope phylo layout (two independent fields), phylo with a correlated intercept/slope block, any calibration or coverage, other trees, sizes or seeds, or native-engine behaviour. Lane rule (review-20261102.md, slope-only fits): the slope rows are linked as the slope member only; the verifier or reviewer objected that no structured intercept field is fitted in the same model, which is recorded here.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-phylo-oracle-b31jb.R",
+    "test_sha256": "b2be6834032f66bfef5bcda190611e78a87f9122ebcaad911a17c50676ef51d5",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:17:47Z",
+    "ended_utc": "2026-11-03T01:18:16Z",
+    "expectations_passed": 114,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-oracle-b31jb-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "8b380b9c176b5191a2afc8a850ab618b6bf2a93a3640721f463b1f54e870a567",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

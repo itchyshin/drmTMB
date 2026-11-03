@@ -17,7 +17,7 @@
   "test_path": "tests/testthat/test-julia-binomial-phylo-interaction-oracle-b31jb.R",
   "test_sha256": "c571890a721383f348d5e85c7a0cd0e6e289f24dafe9dbd9adc28c8a92716697",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-interaction-oracle-b31jb-20261102e/source-manifest.json",
-  "source_manifest_sha256": "f5ba36cd4dcb919b0ce285cbcc45b386b99042a7ac2e9c36f7902d7a0474d072",
+  "source_manifest_sha256": "08fe710ed6123a7e763c9e59049d14e2d587b517678e7944b6c4e90dc92e64b2",
   "live_julia": "run; live R-to-Julia fits via drmTMB(..., engine = \"julia\")",
   "scope": "phylo_interaction intercept SD, dense Laplace oracle with hand kronecker of cov2cor(ape::vcv) of two trees. Oracle evaluated at the live Julia estimates; agreement asserted to 1e-3 absolute on logLik; every emulated bug must move the oracle by more than 20x that.",
   "rows_claimed": [
@@ -36,5 +36,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helper line by line. Hashes (receipt, manifest, test, all manifest files) match. The Mac console log shows 66 passed, 0 failed, 0 skipped, with all 3 'b31jb phylo_interaction' lines present. Totoro native run only skips (live test), so counts rest on the Mac log. Oracle: base-R dense Laplace. The pair covariance is hand-built as K1[host] x K2[pollinator] from cov2cor(ape::vcv) of two random trees (48 pairs, 25 observations each), and both package tip covariances are checked against the hand kernels at 1e-10. Agreement is 2e-6 to 3e-6 at the Julia estimates. Bug sensitivity: selector swap, SD sign, reversed SD, SD intercept shift, K x 2, raw vcv, each tree ignored in turn, and kernel by position all move the oracle. The smallest gap is 0.193 (logit, kernel by position) against 1e-3, about x193, and other gaps are 0.6 to 164. The optimum check passes. Row: phylo_interaction_intercept (pair-level structured intercept, single phylogenetic interaction field) is fitted by phylo_interaction(1 | host:pollinator, tree1, tree2) with sd(pair, level='phylogenetic_interaction') ~ z, so all 3 linked rows (logit, probit, cloglog) are exercised by the named route. Does NOT establish: calibration or coverage, other trees, sizes or seeds (one fixture), interaction with extra fields or slopes, a pair-level correlation, or native-engine behaviour.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-phylo-interaction-oracle-b31jb.R",
+    "test_sha256": "c571890a721383f348d5e85c7a0cd0e6e289f24dafe9dbd9adc28c8a92716697",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:17:18Z",
+    "ended_utc": "2026-11-03T01:17:47Z",
+    "expectations_passed": 66,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-interaction-oracle-b31jb-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "845863b07d8b7fee1bd81a3eca8742b910057c33246eece1ee3b0be2df9fbc01",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

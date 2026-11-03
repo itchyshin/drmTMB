@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-poisson-iid-structured-sensitivity-b26.R",
   "test_sha256": "9ae46f86e929c115eb0ed3339796df4c8a9d098519199acc98e29dd4b9011197",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-iid-structured-sensitivity-b26-20261102c/source-manifest.json",
-  "source_manifest_sha256": "b2c91ca3bd53b8f07d2ff7c7a49eba9f7b0fa721b7f6e704c026fdf9ef66c2b5",
+  "source_manifest_sha256": "a499aa894b60857a939797a2257015c4b4b1c885321993423a65e10f97ebe933",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-poisson-iid-structured-sd-20261101-20261102b-m26"
@@ -54,5 +54,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Poisson iid (site) plus one structured intercept (id), each with its own SD predictor and coefficient set: relmat K, relmat Q, animal A, animal Ainv, phylo (5 provider-pair rows, all fitted). The oracle is a base-R dense Laplace with hand kernels, a Henderson A with inbreeding, and cov2cor(ape::vcv). The package phylo tip covariance is compared with ape::vcv in-test, which closes the earlier phylo-row kernel blocker. Tolerance is 1e-4. Four bugs (reversed structured SD, reversed iid SD, swapped selector coefficients, wrong K scale) each move it by more than 0.1 and pass, which closes the earlier no-sensitivity blocker. Manifest 7/7 match, and the rerun shows 52 expectations, 0 failures, 0 skips. Does NOT establish: calibration or coverage, Julia parity, missing-response behaviour, or providers and families not listed.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-poisson-iid-structured-sensitivity-b26.R",
+    "test_sha256": "9ae46f86e929c115eb0ed3339796df4c8a9d098519199acc98e29dd4b9011197",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:11:01Z",
+    "ended_utc": "2026-11-03T01:11:15Z",
+    "expectations_passed": 52,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-iid-structured-sensitivity-b26-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "de5b09b59888e175947fa7edce14826012a2ef2adcbf55f58de0acda6f7a289e",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

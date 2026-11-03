@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-gaussian-q3-per-coef-sd-all-coefs-b29.R",
   "test_sha256": "f52e4797987695692a27676e0d3ef4d830ba50130c55facfbad4e2e0d537e95f",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-q3-per-coef-sd-all-coefs-b29-20261102d/source-manifest.json",
-  "source_manifest_sha256": "ec54d15cf5358b72f3112e101cc3382b6faf10bd287e67f51312fff3829c9aa5",
+  "source_manifest_sha256": "ff8c0fc5149e505db0e9550b3154f5309883412ad34600d2add21b6d14bdb7b6",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-gaussian-q3-per-coef-sd-20261102r"
@@ -49,5 +49,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Reviewed line by line. (1) Oracle: exact Gaussian marginal in base R, per group y_g ~ N(X_g b, Z_g D_g R D_g Z_g' + s^2 I), with D_g built by hand from the three fitted sd() curves and R parsed by coefficient name from the fitted cor() names. It is independent of the TMB objective and of predict(); tolerance is 1e-6 on logLik. The test also asserts each SD column varies (sd of log SD > 0.25) and that |R| off-diagonals are non-trivial. (2) Bug sensitivity: floor 1. My Totoro rerun gaps were swap I/x 198, swap I/z 6.3, swap x/z 377, reversed z only 81, flip-w for I/x/z 125/40/457, identity R 19 and constant z SD 37, all far above 1e-6. (3) All three selectors are fitted: (1 + x + z | id) with sd(id, coef='(Intercept)') ~ w, sd(id, coef='x') ~ w and sd(id, coef='z') ~ w, with distinct slopes and signs (0.5, -0.4, 0.7), so mu:I, mu:x1 and mu:x2 all have regressed SDs. This closes the earlier gap where z kept a constant SD. (4) All 5 manifest sha256 values and the log, manifest and test hashes match. The console log shows 16 passed, 0 failed, 0 errors, 0 skipped. Does NOT establish: calibration, coverage, Julia parity, recovery or estimator accuracy; q other than 3; structured providers; other families or links; or anything beyond likelihood agreement at the fitted parameters for a single fixture and seed.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-q3-per-coef-sd-all-coefs-b29.R",
+    "test_sha256": "f52e4797987695692a27676e0d3ef4d830ba50130c55facfbad4e2e0d537e95f",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:50Z",
+    "ended_utc": "2026-11-03T01:09:58Z",
+    "expectations_passed": 16,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-q3-per-coef-sd-all-coefs-b29-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "33958e317a6f8a1e8bc281275966197112374a805411e55933eec8b5d44eca40",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

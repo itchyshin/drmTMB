@@ -24,7 +24,7 @@
   "test_path": "tests/testthat/test-gaussian-independent-pair-sd.R",
   "test_sha256": "1bcf742d5c3309b1b824f1e5f33462c127d90871be0d72d935f4cb1046d27c40",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-independent-pair-sd-20261101/source-manifest.json",
-  "source_manifest_sha256": "476ae75645f1b633c331fec3275f0268c748c2fe6a8a0f0c1ab777ab77b7d9f1",
+  "source_manifest_sha256": "7638ab313ed76a3f516917539867d284352d6d7358465808b8115adb7cd02145",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-independent-pair-sd-20261101/test-console.log",
   "console_log_sha256": "7d301f248313e8347fa155b645ea2987d8c82d655ebe3bf67641e88e541a7723",
   "result": {
@@ -52,16 +52,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-gaussian-independent-pair-sd.R",
     "test_sha256": "1bcf742d5c3309b1b824f1e5f33462c127d90871be0d72d935f4cb1046d27c40",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:15:50Z",
-    "ended_utc": "2026-11-02T18:16:05Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:31Z",
+    "ended_utc": "2026-11-03T01:09:46Z",
     "expectations_passed": 10,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-independent-pair-sd-20261101/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "d3987f717943020efa0f032b1df8ddff64f6d3b8618ba50025d0ec05b8037d51",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-independent-pair-sd-20261101/test-console-rerun-81553915d.log",
+    "console_log_sha256": "5ac96019c81a28a018dc89d1f08341eb4f2a26e1e22ba9b936da3377361fd4a1",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

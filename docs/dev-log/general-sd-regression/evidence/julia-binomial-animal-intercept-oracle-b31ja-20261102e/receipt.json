@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-animal-intercept-oracle-b31ja.R",
   "test_sha256": "abbd4c024a13ea8e1c15da83c099ecafd772f1e06fb446ad70e9a16cfefe0fef",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-intercept-oracle-b31ja-20261102e/source-manifest.json",
-  "source_manifest_sha256": "2dc74314df6c8fdf28540dc32e05a9083e6b59e64199e9f44e0baca4d227fbb6",
+  "source_manifest_sha256": "09d1d9f9193d6a7bd6806c647c2ee13e2920a6e2ab96b726f075c39df079883e",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "scope": "Live Julia Binomial animal(1 | id) structured intercept with sd(id, level = 'animal') ~ z, providers A and Ainv, links logit, probit, cloglog. Independent base-R dense Laplace oracle with hand-built inbred Henderson A, random non-palindromic selector, A row order different from factor level order; coefficient shifts of +-0.1 do not raise the oracle for the A logit fit.",
   "achieved_oracle_agreement_max_abs": "4.60e-06 (max over 6 fits)",
@@ -180,5 +180,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and the helper b31ja_single_check/oracle. Oracle independent (hand-built inbred Henderson A, row order differing from factor-level order, dense Laplace with hand derivatives, random non-palindromic selector z). All 6 row keys have a matching fit: A and Ainv, each for logit, probit and cloglog, one animal field (q=1, no correlation involved), mu:I. Eight emulated bugs (selector slope sign, reversed SD vector, A x2, A x1.3, cov2cor(A) with non-constant diagonal, A read by position, dimnames reversed, intercept read as slope) are each asserted at more than 20x the 1e-3 tolerance; smallest gap 0.1972 (197x), and the A-logit fit also asserts that +-0.1 shifts of beta and the sd coefficients do not raise the oracle. Agreement 3.75e-06 to 4.60e-06. Hashes of receipt, manifest, test, helper, six source files and console log all match current files; HEAD matches; console log shows 104 passed, 0 failed, 0 errors, 0 skips and the live Julia block ran. Totoro native rerun skips (no live Julia), so counts rest on the Mac log, which I did not rerun. Does NOT establish: that A and Ainv paths are separately sensitive beyond the shared bug set (the A and Ainv fits are on the same fixture and give the same logLik, as they should, so Ainv-only bugs are caught only through the same K emulations); calibration, coverage, SEs, other families, or a pedigree provider (not tested in this file); one fixture and seed per link.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-animal-intercept-oracle-b31ja.R",
+    "test_sha256": "abbd4c024a13ea8e1c15da83c099ecafd772f1e06fb446ad70e9a16cfefe0fef",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:08:20Z",
+    "ended_utc": "2026-11-03T01:08:51Z",
+    "expectations_passed": 104,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-intercept-oracle-b31ja-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "e6549293d7edbbef7f791a74e4d0243b14178b201d24ee4326b17dac065d5285",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

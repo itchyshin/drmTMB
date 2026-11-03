@@ -3,7 +3,7 @@
   "files": [
     {
       "file": "R/drmTMB.R",
-      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
     },
     {
       "file": "tests/testthat/test-lognormal-ordinary-correlated-q2.R",
@@ -11,11 +11,11 @@
     },
     {
       "file": "NEWS.md",
-      "sha256": "6796a6e1135e3a9bd5a12ab31fbaf725cdfacfeb5e14959ecd2f4ecc20af03fe"
+      "sha256": "8f9e0cc54c2aaec932cb9cbba217bdcc0a2219610ca6db84991f5dcb172421ee"
     },
     {
       "file": "README.md",
-      "sha256": "be02f6b2266da9e43e489eb12d881468e55c4bd65216e85ffa31163e49862e67"
+      "sha256": "8dc806fd11289367449dc211fe233de1c3864f8a324987a382ad52604e7617cb"
     },
     {
       "file": "docs/design/01-formula-grammar.md",
@@ -35,7 +35,7 @@
     },
     {
       "file": "docs/dev-log/known-limitations.md",
-      "sha256": "fb0de1dcea5c0c282566a3d2e5d8dd5eb924422c267e1d14655b949546c17276"
+      "sha256": "d378bbc768a723201230de43c35f22da39f23fb2a99f941ada8dfd1ca7eb3e60"
     },
     {
       "file": "vignettes/formula-grammar.Rmd",
@@ -50,5 +50,5 @@
       "sha256": "179b4f58abb96d6966c07de049ed6f285b0802371cff5cbfea63dc3fc58a7be4"
     }
   ],
-  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/drmTMB.R', 'NEWS.md', 'README.md', 'docs/design/01-formula-grammar.md', 'docs/design/03-likelihoods.md', 'docs/dev-log/internal-roadmap.md', 'docs/dev-log/known-limitations.md', 'vignettes/formula-grammar.Rmd', 'vignettes/model-map.Rmd']"
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'NEWS.md', 'README.md', 'docs/dev-log/known-limitations.md']"
 }

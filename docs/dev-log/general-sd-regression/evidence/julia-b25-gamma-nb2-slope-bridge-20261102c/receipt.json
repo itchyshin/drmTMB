@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-b25-gamma-nb2-slope-bridge.R",
   "test_sha256": "7409710e0e4ffb14203ed420bb4f041b510fa35f59c110ff9e7eeec7b1b51b97",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-b25-gamma-nb2-slope-bridge-20261102c/source-manifest.json",
-  "source_manifest_sha256": "010d46a992200e7a7e5eae92d2feab3f156c6a3f87da2c6d178e666447498b76",
+  "source_manifest_sha256": "a5cc5ec3bbe2e0491e0d654165269b896c49f57287366e2ae73cb9f8fb9274c9",
   "live_julia": "run live: Julia 1.10.0 with DRM_JL_PATH at DRModels.jl 87a371a66 (src/ and test/ clean)",
   "strengthens_evidence_ids": [],
   "strengthens_note": "No parent evidence id; new Julia bridge admission (batch 25/26). These rows were not previously linked to a Julia bridge receipt.",
@@ -45,5 +45,19 @@
     "Gamma phylogenetic slope-only SD (not admitted)"
   ],
   "tolerances": "as fixed in the test file header; none loosened",
-  "review_status": "unreviewed"
+  "review_status": "unreviewed",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-b25-gamma-nb2-slope-bridge.R",
+    "test_sha256": "56e22f72bc09cb8472a43afc8bc8320f4682adf7d20f6e86f78241cf4517ab40",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:42Z",
+    "ended_utc": "2026-11-03T01:06:29Z",
+    "expectations_passed": 45,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b25-gamma-nb2-slope-bridge-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "3ac6ebf94451a403588dcbba356cdb0c37f155a06be4fb2f53016837afff2295",
+    "reason": "test file edited (refusal-pin or companion update) and source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

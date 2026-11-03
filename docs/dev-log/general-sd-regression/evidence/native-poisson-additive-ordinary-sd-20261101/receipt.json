@@ -24,7 +24,7 @@
   "test_path": "tests/testthat/test-poisson-additive-ordinary-sd-regression.R",
   "test_sha256": "8076491e6b2ab12adce322fc84785daeb018bcd66491dbc28a85098b0d9e19eb",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-additive-ordinary-sd-20261101/source-manifest.json",
-  "source_manifest_sha256": "fa116d12a486a2408e3be589abc116bef1cfe60be1c0ca979cee161c88fd4097",
+  "source_manifest_sha256": "ca61782c00d5595185637cedf191477d2ebfdd58d2565b994dc13fc87273cf9c",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-additive-ordinary-sd-20261101/test-console.log",
   "console_log_sha256": "d6aeb3152b9c908ba761396bb7e350d68a4ad0cc528fabb8c2fd46bb7321d296",
   "result": {
@@ -55,16 +55,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-poisson-additive-ordinary-sd-regression.R",
     "test_sha256": "8076491e6b2ab12adce322fc84785daeb018bcd66491dbc28a85098b0d9e19eb",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:17:04Z",
-    "ended_utc": "2026-11-02T18:17:21Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:49Z",
+    "ended_utc": "2026-11-03T01:11:06Z",
     "expectations_passed": 33,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/native-poisson-additive-ordinary-sd-20261101/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "864ac45c630b8962014e585c1b9a7920f1154079821c0b19679e9c91a4c78549",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-poisson-additive-ordinary-sd-20261101/test-console-rerun-81553915d.log",
+    "console_log_sha256": "90c01457a9dcb895a2e0bdb207421a18a98baf25b5e317f86d0749c072793781",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

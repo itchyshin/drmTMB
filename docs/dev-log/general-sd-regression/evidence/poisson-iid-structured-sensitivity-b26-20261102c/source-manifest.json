@@ -11,11 +11,11 @@
     },
     {
       "file": "R/drmTMB.R",
-      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
     },
     {
       "file": "R/methods.R",
-      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+      "sha256": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe"
     },
     {
       "file": "R/random-effect-targets.R",
@@ -23,11 +23,12 @@
     },
     {
       "file": "src/drmTMB.cpp",
-      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
     },
     {
       "file": "docs/dev-log/general-sd-regression/evidence/poisson-iid-structured-sensitivity-b26-20261102c/test-console.log",
       "sha256": "382f53493afa3c9e1311086321c7f63a7d4464b1a5137497f93f5a7dd46b277f"
     }
-  ]
+  ],
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'R/methods.R', 'src/drmTMB.cpp']"
 }

@@ -21,11 +21,25 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-structured-q2-sd-regression-refresh-20261102b-m26-f2173e/source-manifest.json",
-  "source_manifest_sha256": "8e84534774c26c2113d3ff194bb0202f6ec1123373fa6d537005270321ee5ae6",
+  "source_manifest_sha256": "052e31d2b9d67b6b3259f58fc9afb7884cee52731b059ad655a1e071ad20cef0",
   "review_status": "unreviewed",
   "not_covered": [
     "interval calibration",
     "coverage",
     "Julia parity unless stated"
-  ]
+  ],
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-poisson-structured-q2-sd-regression.R",
+    "test_sha256": "ad6c29360ae0eb149299b0f3cc635135a49a8ba71236d4bb1c3052fcd94b791b",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:11:16Z",
+    "ended_utc": "2026-11-03T01:11:26Z",
+    "expectations_passed": 45,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-structured-q2-sd-regression-refresh-20261102b-m26-f2173e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "7576b29e62080016c8c5bd98f842ded224b309e1f8b3bd3de547d6ab4a09a05f",
+    "reason": "test file edited (refusal-pin or companion update) and source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

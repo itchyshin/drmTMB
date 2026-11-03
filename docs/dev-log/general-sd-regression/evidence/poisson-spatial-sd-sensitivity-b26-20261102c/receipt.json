@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-poisson-spatial-sd-sensitivity-b26.R",
   "test_sha256": "77afad53e7287dfafe2e6c2b41fb429001bc88f325ec93c6a888efe842a352c3",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-spatial-sd-sensitivity-b26-20261102c/source-manifest.json",
-  "source_manifest_sha256": "5ed61fe3c2a6635b6d17085e09d990343e0db982b2246a23eff44374537c14d3",
+  "source_manifest_sha256": "c89854bc1e276250d2e2e55c6f499eda95988c42f5aec5087b6b84737edd5b58",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-poisson-spatial-sd-20261101-m26"
@@ -46,5 +46,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Poisson spatial(1 | site, coords) intercept with sd(site, level = spatial) ~ z, and spatial(0 + x | site, coords) slope-only with the same SD formula. Row 1 (spatial_coordinate_intercept) is fitted directly. Row 2 (spatial_coordinate_slope) is supported SLOPE MEMBER ONLY, because the fit is slope-only and no intercept field is fitted. The kernel is hand-built with irregular, shuffled coordinates, and data are simulated from it. The oracle is a base-R dense Laplace, tolerance 1e-4, which replaces the parent's helper-derived comparison. Four bugs (reversed SD, flipped predictor, coordinates by position, squared-exp kernel) each move it by more than 0.1 and pass, in both blocks. Manifest 7/7 match, and the rerun shows 18 expectations, 0 failures, 0 skips. Does NOT establish: an intercept-plus-slope spatial pair, mesh or labelled spatial blocks, calibration or coverage, or Julia parity.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-poisson-spatial-sd-sensitivity-b26.R",
+    "test_sha256": "77afad53e7287dfafe2e6c2b41fb429001bc88f325ec93c6a888efe842a352c3",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:11:16Z",
+    "ended_utc": "2026-11-03T01:11:27Z",
+    "expectations_passed": 18,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-spatial-sd-sensitivity-b26-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "68fda14f660b6c260017174d2e7eb1dcef9abeed64d82cd5ba34d509d3786317",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

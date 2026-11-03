@@ -9,7 +9,7 @@
   "test_path": "tests/testthat/test-nbinom2-mu-sigma-same-group-sd.R",
   "test_sha256": "19d3dbd2cf9dcba1e4b2544a078f576b4a2d8d04aad86bb2de76b72fa8cfade0",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-same-group-sd-20261101d/source-manifest.json",
-  "source_manifest_sha256": "2d15ecf6c41d8a5359d9ac5ea7a4a5c92d6359e8d86d841c71465b17cc633808",
+  "source_manifest_sha256": "46adb7ae441273f1faefa260d48fe5400d837044969f6fbd08445a600c9cb8f6",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-same-group-sd-20261101d/test-console.log",
   "console_log_sha256": "8592b88f136b4666b28e6cdacf45c6f90d1d53d7c6a69db430bce85add3bda49",
   "result": {
@@ -54,16 +54,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-nbinom2-mu-sigma-same-group-sd.R",
     "test_sha256": "19d3dbd2cf9dcba1e4b2544a078f576b4a2d8d04aad86bb2de76b72fa8cfade0",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:16:56Z",
-    "ended_utc": "2026-11-02T18:17:45Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:36Z",
+    "ended_utc": "2026-11-03T01:11:28Z",
     "expectations_passed": 22,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-same-group-sd-20261101d/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "1d97e7edf3449873e15bb07541c85790fc9ed2d79bfff43ba9ca09d1b8a52727",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-same-group-sd-20261101d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "d2d7e7b37760ff704c63ba1ceb40ac1652835bac64d64daf820529ab204b4038",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

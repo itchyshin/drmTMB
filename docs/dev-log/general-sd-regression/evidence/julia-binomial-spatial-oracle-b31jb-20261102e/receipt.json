@@ -17,7 +17,7 @@
   "test_path": "tests/testthat/test-julia-binomial-spatial-oracle-b31jb.R",
   "test_sha256": "a8f12bdba7d21f3d14664d460ad52b6423e14fe9178ad05ceede224e109e3147",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-spatial-oracle-b31jb-20261102e/source-manifest.json",
-  "source_manifest_sha256": "7d505d7b0aa944206df553a60e881911248df4bfaf7fb203fda158df4470fef1",
+  "source_manifest_sha256": "55c79fb343dd5f32d512037ee24f29b7303cd65240bfb2d5d668ae1efc96fab9",
   "live_julia": "run; live R-to-Julia fits via drmTMB(..., engine = \"julia\")",
   "scope": "spatial coordinate intercept and slope SD, dense Laplace oracle with hand exponential coordinate kernel. Oracle evaluated at the live Julia estimates; agreement asserted to 1e-3 absolute on logLik; every emulated bug must move the oracle by more than 20x that.",
   "rows_claimed": [
@@ -39,5 +39,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helper line by line. Hashes (receipt, manifest, test, all manifest files) match. The Mac console log shows 114 passed, 0 failed, 0 skipped, with all 6 'b31jb spatial' lines present. Totoro native run only skips (live test), so counts rest on the Mac log. Oracle: base-R dense Laplace with a hand-built exponential kernel (Euclidean distance, range equal to the median positive distance, 1e-6 jitter) from random irregular coordinates given in permuted row order. The package precision inverse is compared with the hand kernel at 1e-8. Agreement is 1.8e-6 to 3.9e-6 at the Julia estimates. Bug sensitivity: selector swap, SD sign, reversed SD, SD intercept shift, K x 2, max-distance range, and kernel by position all move the oracle. The smallest gap is 0.630 (logit intercept, max-distance range) against 1e-3, about x630. The optimum check passes. Rows: the three spatial_coordinate_intercept rows (logit, probit, cloglog) are supported. They fit spatial(1 | site, coords) with sd(site, level='spatial') ~ z, which is one structured field. The three spatial_coordinate_slope rows are NOT supported on the literal layout reading. The row layout is 'structured intercept plus one independent numeric slope' (independent coordinate fields), but the test fits only spatial(0 + x | site, coords), a slope-only field with no structured intercept field. The slope-only fit is oracle-correct. Earlier native slope-only tests were reviewed as covering this row label, so the orchestrator may overrule me by precedent. Does NOT establish: an intercept-plus-slope spatial layout (two independent fields), a correlated spatial block, mesh/SPDE kernels (this is the coordinate kernel only), calibration or coverage, other coordinate layouts, sizes or seeds, or native-engine behaviour. Lane rule (review-20261102.md, slope-only fits): the slope rows are linked as the slope member only; the verifier or reviewer objected that no structured intercept field is fitted in the same model, which is recorded here.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-spatial-oracle-b31jb.R",
+    "test_sha256": "a8f12bdba7d21f3d14664d460ad52b6423e14fe9178ad05ceede224e109e3147",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:19:27Z",
+    "ended_utc": "2026-11-03T01:19:56Z",
+    "expectations_passed": 114,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-spatial-oracle-b31jb-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "2db11b0b1d4fd3d95f0d15224274d069f6b783eba4e5caea1c12841dc703d6d8",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

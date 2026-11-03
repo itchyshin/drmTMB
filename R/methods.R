@@ -7298,7 +7298,10 @@ drm_simulate_marginal_unsupported <- function(object) {
   if (!is.null(structured_reason)) {
     return(structured_reason)
   }
-  if (has_covariance_block_random_effects(object)) {
+  if (
+    has_covariance_block_random_effects(object) &&
+      !drm_gaussian_q34_block_sd_marginal_ok(object)
+  ) {
     return("correlated covariance-block random effects")
   }
   if (
@@ -7886,7 +7889,9 @@ drm_ordinary_random_effect_draws <- function(object) {
     isTRUE(object$model$structured$phylo_mu2$has) ||
     isTRUE(object$model$structured$mesh_spatial_mu$has)
   has_temporal <- drm_has_temporal_mu(object)
-  if (!has_mu && !has_sig && !has_structured && !has_temporal) {
+  has_q34_block <- drm_gaussian_q34_block_sd_marginal_ok(object)
+  if (!has_mu && !has_sig && !has_structured && !has_temporal &&
+      !has_q34_block) {
     return(out)
   }
   mu_latent <- NULL
@@ -7962,7 +7967,56 @@ drm_ordinary_random_effect_draws <- function(object) {
     temporal_draw <- drm_fresh_temporal_mu_values(object)
     out$mu <- if (is.null(out$mu)) temporal_draw else out$mu + temporal_draw
   }
+  if (has_q34_block) {
+    block_draw <- drm_fresh_gaussian_q34_block_contribution(object)
+    out$mu <- if (is.null(out$mu)) block_draw else out$mu + block_draw
+  }
   out
+}
+
+# Marginal simulation for a Gaussian ordinary unlabelled correlated block of
+# three or four coefficients with one `sd()` formula per (or some) coefficient.
+# The block lives in the `re_cov` registry, not in the ordinary `random$mu`
+# registry. It is admitted only when it is the single covariance block, all its
+# members sit on `mu`, and the fit carries the per-coefficient SD row map
+# (`random_scale$mu$re_cov_sd_row0`). Plain q3/q4 blocks without `sd()`
+# formulas and every other covariance-block shape keep their refusal.
+drm_gaussian_q34_block_sd_marginal_ok <- function(object) {
+  registry <- object$model$random$covariance_blocks
+  sd_mu <- object$model$random_scale$mu
+  if (
+    !identical(object$model$model_type, "gaussian") ||
+      !is.list(registry) || !is.list(sd_mu) ||
+      !is.matrix(sd_mu$re_cov_sd_row0) ||
+      !has_covariance_block_random_effects(object)
+  ) {
+    return(FALSE)
+  }
+  blocks <- qgt2_covariance_blocks(registry)
+  members <- qgt2_covariance_members(registry)
+  nrow(blocks) == 1L && blocks$n_members[[1L]] %in% 3:4 &&
+    nrow(members) == blocks$n_members[[1L]] &&
+    all(members$dpar == "mu")
+}
+
+# Fresh draw for that block: standard-normal latent z per group, then the
+# fitted transform (unstructured R from the modified-Cholesky parameters
+# applied first, then the group-specific SD vector), so group g has covariance
+# D_g R D_g. Returns the per-observation contribution to the mean.
+drm_fresh_gaussian_q34_block_contribution <- function(object) {
+  registry <- object$model$random$covariance_blocks
+  par <- object$obj$env$parList(
+    object$opt$par,
+    par = object$tmb_state$last.par.best
+  )
+  par$u_re_cov <- stats::rnorm(length(par$u_re_cov))
+  drawn <- transform_covariance_block_random_effects(
+    par,
+    registry,
+    sd_mu = object$model$random_scale$mu,
+    tmb_data = object$model$tmb_data
+  )
+  unname(rowSums(drawn$contribution))
 }
 
 # Response- or link-scale prediction for one dpar under marginal simulation:

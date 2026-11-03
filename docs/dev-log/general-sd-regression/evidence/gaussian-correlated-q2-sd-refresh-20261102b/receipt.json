@@ -18,7 +18,7 @@
   "test_path": "tests/testthat/test-gaussian-correlated-q2-sd.R",
   "test_sha256": "dc5ba77171cf3e0e7c502c24ab6dd81b82c111bab102ee043bd36f14ef873ee6",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-refresh-20261102b/source-manifest.json",
-  "source_manifest_sha256": "134f3feb0deadc536534ce52bd0a5f55a503a0556e2a4799be649de4bde431dc",
+  "source_manifest_sha256": "d7953738867a4a7cd73e06892679c0b55ffdb58d18b95c40dfa29d97ed9204a6",
   "live_julia": "not run unless the console log says live tests ran",
   "not_covered": [
     "interval calibration",
@@ -32,16 +32,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-gaussian-correlated-q2-sd.R",
     "test_sha256": "dc5ba77171cf3e0e7c502c24ab6dd81b82c111bab102ee043bd36f14ef873ee6",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:15:30Z",
-    "ended_utc": "2026-11-02T18:15:50Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:17Z",
+    "ended_utc": "2026-11-03T01:09:38Z",
     "expectations_passed": 17,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-refresh-20261102b/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "87b29c6d5f731a3cc1d24405f76dc3b4d63d7640502ba92b1917785c870eefc2",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-refresh-20261102b/test-console-rerun-81553915d.log",
+    "console_log_sha256": "a7f55f3d77f01023f76f4435b9e4179605ce5afc91cac7c59bab9385c0a993ba",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

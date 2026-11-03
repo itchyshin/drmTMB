@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-count-structured-intercept-sd-sensitivity-b26.R",
   "test_sha256": "551ddf0f508d10d57b16c3af41527dd0909fd37244a8717219fead8b98b5a560",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/count-structured-intercept-sd-sensitivity-b26-20261102c/source-manifest.json",
-  "source_manifest_sha256": "3e193090876952e06e192fc63c0b91f17c6649f1dbd9015357dbcb57b2b48bc0",
+  "source_manifest_sha256": "e44faaa7e239ecf8f7254d07038ff122c04737fb53fac7ce6a0c37597b67c18c",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-count-structured-q2-more-providers-sd-20261101d-20261102a-m26",
@@ -71,5 +71,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Poisson and NB2 (log link), single-field structured INTERCEPT with sd(id, level = provider) ~ w: animal (A = Ksup), relmat K, relmat Q (Q = solve of the supplied K), phylo, spatial, which makes the 10 rows. Each row has its own q=1 fit, so the earlier objection to the q2-only parents (animal_intercept q=1 not fitted) is closed for these rows. Kernels are independent of the package: Henderson A from an inbred pedigree, a hand non-unit-diagonal relmat K, ape::vcv divided by tree height (the package tip covariance is also compared with it, 1e-10), and a hand spatial kernel. Matrices are supplied in shuffled order. Oracle is a base-R dense Laplace, tolerance 1e-4. Bugs (reversed SD, flipped predictor, K by position, cov2cor or unstandardised vcv or squared-exp kernel) each move it by more than 0.1 and pass. Manifest 7/7 match, and the rerun shows 104 expectations, 0 failures, 0 skips. The relmat Q row is supported through the Q fit matching the K oracle. Does NOT establish: Ainv or pedigree animal intercept rows, any slope or q2 rows, calibration or coverage, or Julia parity.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-count-structured-intercept-sd-sensitivity-b26.R",
+    "test_sha256": "551ddf0f508d10d57b16c3af41527dd0909fd37244a8717219fead8b98b5a560",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:07:41Z",
+    "ended_utc": "2026-11-03T01:08:09Z",
+    "expectations_passed": 104,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/count-structured-intercept-sd-sensitivity-b26-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "2d1f6cfb4bf60762cea814f0bf52429836d3445744c474e314309c8b3d2245d7",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

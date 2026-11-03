@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-gaussian-mu-sigma-joint-sensitivity-b26.R",
   "test_sha256": "8c0a0844a18241dfdf2bb828501e585c4bfb0de51c422e538ba58a6142208b11",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-mu-sigma-joint-sensitivity-b26-20261102c/source-manifest.json",
-  "source_manifest_sha256": "b258c1d7e06725d99253b32efd4fd67de57419023c3106f6c645b14fc489c210",
+  "source_manifest_sha256": "e82a0e80f66ee72e56866661c776eb832cb6bfe695695b92513929c8e375bb47",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "gaussian-native-mu-sigma-joint-sd-20261101-m26"
@@ -48,5 +48,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Joint mu (1 | id) with sd(id) ~ w plus a sigma random effect on site with its own SD predictor. Test 1 fits sigma ~ 1 + (0 + z | site), which supports the sigma:x1..xp slope row, slope member only (pure slope fit, no sigma intercept field). Test 2 fits sigma ~ 1 + (1 | site), which supports sigma:I. Both tests fit mu:I. The oracle is a base-R dense Laplace for the Gaussian with a sigma random effect (no closed form exists), with SD vectors built by hand from the coefficients, tolerance 1e-4, gradient and Hessian sanity checks included. Four bugs (reversed mu SD, reversed sigma SD, swapped selector coefficients, predictor ignored) each move it by more than 0.1 and pass. Manifest 7/7 match, and the rerun shows 20 expectations, 0 failures, 0 skips. Does NOT establish: a sigma intercept-plus-slope pair, calibration or coverage, Julia parity, or the correlated mu/sigma blocks.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-mu-sigma-joint-sensitivity-b26.R",
+    "test_sha256": "8c0a0844a18241dfdf2bb828501e585c4bfb0de51c422e538ba58a6142208b11",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:38Z",
+    "ended_utc": "2026-11-03T01:10:02Z",
+    "expectations_passed": 20,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-mu-sigma-joint-sensitivity-b26-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "7f6487fa138a5b8a531299f82591deefdd0f702819c6748636ffe16d90d23f36",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }
