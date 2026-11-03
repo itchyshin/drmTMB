@@ -4880,6 +4880,43 @@ Type objective_function<Type>::operator()()
         eta_mu(i) += phylo_effect;
       }
       Type quadratic = Type(0.0);
+      if (has_phylo_mu_q2_covariance == 1) {
+        // Labelled intercept-slope q2 block (b32): unit-scale fields
+        // N(0, R (x) K); the per-row coefficient SDs are applied
+        // multiplicatively above. Copy of the NB2 block (same prior).
+        if (q_phylo != 2 || has_sd_phylo_model != 1 ||
+            has_sd_phylo_coef_model != 1) {
+          error("Binomial correlated structured q2 requires two coefficient SD formulas.");
+        }
+        Type rho_phylo = Type(0.999999) * tanh(eta_cor_phylo);
+        vector<Type> u1(n_phylo);
+        vector<Type> u2(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          u1(j) = u_phylo(j);
+          u2(j) = u_phylo(n_phylo + j);
+        }
+        vector<Type> Q_u1 = Q_phylo * u1;
+        vector<Type> Q_u2 = Q_phylo * u2;
+        Type q11 = Type(0.0);
+        Type q12 = Type(0.0);
+        Type q22 = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          q11 += u1(j) * Q_u1(j);
+          q12 += u1(j) * Q_u2(j);
+          q22 += u2(j) * Q_u2(j);
+        }
+        Type one_minus_rho2 = Type(1.0) - rho_phylo * rho_phylo;
+        quadratic = (q11 - Type(2.0) * rho_phylo * q12 + q22) / one_minus_rho2;
+        nll += Type(0.5) * (
+          Type(2 * n_phylo) * log(Type(2.0) * M_PI) +
+          Type(n_phylo) * log(one_minus_rho2) -
+          Type(2.0) * log_det_Q_phylo + quadratic
+        );
+        REPORT(eta_cor_phylo);
+        REPORT(rho_phylo);
+        ADREPORT(eta_cor_phylo);
+        ADREPORT(rho_phylo);
+      } else {
       for (int k = 0; k < q_phylo; ++k) {
         vector<Type> effect_k(n_phylo);
         for (int j = 0; j < n_phylo; ++j) {
@@ -4897,6 +4934,7 @@ Type objective_function<Type>::operator()()
           log_det_Q_phylo +
           exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
         );
+      }
       }
       REPORT(u_phylo);
       REPORT(log_sd_phylo);

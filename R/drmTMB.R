@@ -9386,7 +9386,8 @@ drm_build_binomial_spec <- function(
     identical(link, "logit") &&
     identical(structured_mu_type(binomial_structured_term), "phylo") &&
     structured_term_is_intercept_one_slope(binomial_structured_term) &&
-    is.null(binomial_structured_term$covariance_label) &&
+    (is.null(binomial_structured_term$covariance_label) ||
+       drm_binomial_labelled_q2_ok(binomial_structured_term, sd_phylo_entries, link)) &&
     length(mu_re$terms) == 0L &&
     length(sd_mu_entries) == 0L &&
     is.null(binomial_structured_term2) &&
@@ -9408,7 +9409,8 @@ drm_build_binomial_spec <- function(
     identical(structured_mu_type(binomial_structured_term), "animal") &&
     binomial_structured_term$structure %in% c("A", "Ainv", "pedigree") &&
     structured_term_is_intercept_one_slope(binomial_structured_term) &&
-    is.null(binomial_structured_term$covariance_label) &&
+    (is.null(binomial_structured_term$covariance_label) ||
+       drm_binomial_labelled_q2_ok(binomial_structured_term, sd_phylo_entries, link)) &&
     length(mu_re$terms) == 0L &&
     length(sd_mu_entries) == 0L &&
     is.null(binomial_structured_term2) &&
@@ -9478,6 +9480,9 @@ drm_build_binomial_spec <- function(
     allow_phylo_q2_base = allow_binomial_phylo_q2_base,
     allow_spatial_q2_base = allow_binomial_spatial_q2_base,
     allow_animal_q2_base = allow_binomial_animal_q2_sd,
+    allow_labelled_q2 = drm_binomial_labelled_q2_ok(
+      binomial_structured_term, sd_phylo_entries, link
+    ),
     allow_spatial_slope = allow_binomial_spatial_slope,
     allow_phylo_interaction = allow_binomial_phylo_interaction,
     allow_phylo_interaction_slope = allow_binomial_phylo_interaction_slope
@@ -10287,7 +10292,8 @@ drm_build_poisson_spec <- function(
     structured_mu_type(mu_structured_term) %in%
       c("animal", "relmat", "phylo", "spatial") &&
     (is.null(mu_structured_term$covariance_label) ||
-       structured_mu_type(mu_structured_term) %in% "relmat") &&
+       structured_mu_type(mu_structured_term) %in%
+         c("relmat", "animal", "spatial")) &&
     length(mu_structured_term$coef_names) == 2L &&
     identical(mu_structured_term$coef_names[[1L]], "(Intercept)") &&
     length(sd_phylo_entries) > 0L
@@ -10354,6 +10360,7 @@ drm_build_poisson_spec <- function(
   poisson_structured_include_ok <- poisson_structured_include_ok ||
     (allow_poisson_structured_q2_sd &&
        identical(structured_mu_type(mu_structured_term), "animal") &&
+       is.null(mu_structured_term$covariance_label) &&
        length(sd_phylo_entries) == 2L &&
        length(sd_mu_entries) == 0L && is.null(zi_entry))
   if (length(sd_phylo_entries) > 0L &&
@@ -11147,9 +11154,9 @@ drm_build_nbinom2_spec <- function(
   # Animal intercept plus one slope (q2): one SD formula per coefficient.
   allow_nb2_structured_q2_sd <- length(sd_phylo_entries) > 0L &&
     !is.null(mu_structured_term) &&
-    (structured_mu_type(mu_structured_term) %in% c("animal", "relmat") ||
-       (structured_mu_type(mu_structured_term) %in%
-          c("phylo", "spatial") &&
+    (structured_mu_type(mu_structured_term) %in%
+       c("animal", "relmat", "phylo") ||
+       (identical(structured_mu_type(mu_structured_term), "spatial") &&
           is.null(mu_structured_term$covariance_label))) &&
     length(mu_structured_term$coef_names) == 2L &&
     identical(mu_structured_term$coef_names[[1L]], "(Intercept)")
@@ -14707,7 +14714,11 @@ validate_positive_continuous_mu_structured_term <- function(
       identical(marker, "phylo") &&
       (structured_term_is_intercept_one_slope(term) ||
         structured_term_is_slope_only(term))) {
-    if (!is.null(term$covariance_label)) {
+    # b32: one labelled intercept plus one slope is admitted (SD formulas
+    # are required later, in the Gamma spec builder).
+    if (!is.null(term$covariance_label) &&
+        !(structured_term_is_intercept_one_slope(term) &&
+          identical(term$coef_names[[1L]], "(Intercept)"))) {
       cli::cli_abort(c(
         "Gamma phylogenetic mu effects support only unlabelled independent coefficients.",
         "i" = "Remove the covariance label from {.code phylo(1 + x | id, tree = tree)}."
@@ -14837,7 +14848,9 @@ validate_gamma_relmat_mu_structured_term <- function(term) {
       "i" = "Keep {.fn phylo}, {.fn spatial}, {.fn animal}, structured slopes, scale routes, q2/q4, REML, and AI-REML deferred until row-specific recovery evidence exists."
     ))
   }
-  if (!is.null(term$covariance_label)) {
+  if (!is.null(term$covariance_label) &&
+      !(structured_term_is_intercept_one_slope(term) &&
+        identical(term$coef_names[[1L]], "(Intercept)"))) {
     cli::cli_abort(c(
       "{.fn Gamma} {.fn relmat} {.code mu} effects currently support only unlabelled q=1 intercepts.",
       "x" = "Requested labelled structured term: {.code {term$label}}.",
@@ -14954,6 +14967,7 @@ validate_binomial_structured_mu_term <- function(
   allow_phylo_q2_base = FALSE,
   allow_spatial_q2_base = FALSE,
   allow_animal_q2_base = FALSE,
+  allow_labelled_q2 = FALSE,
   allow_spatial_slope = FALSE,
   allow_phylo_interaction = FALSE,
   allow_phylo_interaction_slope = FALSE
@@ -14971,7 +14985,7 @@ validate_binomial_structured_mu_term <- function(
   } else {
     "phylo(1 | id, tree = tree)"
   }
-  if (!is.null(term$covariance_label)) {
+  if (!is.null(term$covariance_label) && !isTRUE(allow_labelled_q2)) {
     cli::cli_abort(c(
       "Binomial {.fn {marker}} {.code mu} effects currently support only an unlabelled q1 intercept.",
       "x" = "Requested labelled structured term: {.code {term$label}}.",
@@ -23917,6 +23931,8 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
       has_phylo_mu_q2_covariance = as.integer(
         (
           spec$model_type %in% c("nbinom2", "poisson") ||
+            (identical(spec$model_type, "binomial") &&
+              spec$random_scale$phylo$n_models > 0L) ||
             (identical(spec$model_type, "gaussian") &&
               spec$random_scale$phylo$n_models > 0L) ||
             (identical(spec$model_type, "gamma") &&
@@ -25808,7 +25824,8 @@ make_tmb_data <- function(spec) {
                      identical(phylo_mu$structure, "coords")))) ||
               (identical(phylo_mu$type, "animal") &&
                  phylo_mu$structure %in% c("A", "Ainv", "pedigree")))) &&
-          is.null(phylo_mu$covariance_label))) &&
+          (is.null(phylo_mu$covariance_label) ||
+             phylo_mu_has_labelled_mu_intercept_slope_q2(phylo_mu)))) &&
       is.list(phylo_mu) && isTRUE(phylo_mu$has) &&
       phylo_mu$type %in% c("animal", "relmat", "phylo", "spatial") &&
       identical(phylo_mu$q, 2L) &&
@@ -26519,6 +26536,8 @@ split_tmb_sdpars <- function(par, spec) {
 split_tmb_corpars <- function(par, spec) {
   count_phylo_q2 <- (
     spec$model_type %in% c("nbinom2", "poisson") ||
+      (identical(spec$model_type, "binomial") &&
+        spec$random_scale$phylo$n_models > 0L) ||
       (identical(spec$model_type, "gaussian") &&
         spec$random_scale$phylo$n_models > 0L) ||
       (identical(spec$model_type, "gamma") &&

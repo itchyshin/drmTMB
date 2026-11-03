@@ -222,11 +222,12 @@ test_that("neighbouring Poisson structured q2 SD routes stay refused", {
     "requires\\s+one\\s+SD\\s+formula\\s+for\\s+each\\s+coefficient"
   )
 
-  # Labelled covariance block with SD formulas.
+  # Labelled covariance block with both SD formulas is admitted (see
+  # test-poisson-labelled-q2-sd-b32.R); with one SD formula it stays refused.
   expect_error(
-    drmTMB(bf(y ~ x + animal(1 + x | p | id, A = A), sd_int, sd_x),
+    drmTMB(bf(y ~ x + animal(1 + x | p | id, A = A), sd_int),
            family = pois, data = d),
-    "require\\s+one\\s+structured\\s+coefficient"
+    "requires\\s+one\\s+SD\\s+formula\\s+for\\s+each\\s+coefficient"
   )
 
   # Ordinary sd() beside a structured q2 block.

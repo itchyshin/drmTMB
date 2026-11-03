@@ -88,6 +88,8 @@ test-binomial-gamma-sd-missing-include.R	suggests-package	environment	runs	4
 test-binomial-iid-phylo-crossed-sd-oracle-b29b.R	cran-lane	environment	runs	3
 test-binomial-iid-phylo-crossed-sd-oracle-b29b.R	suggests-package	environment	runs	2
 test-binomial-iid-structured-sd-oracle-b29b.R	cran-lane	environment	runs	2
+test-binomial-labelled-q2-sd-b32.R	cran-lane	environment	runs	6
+test-binomial-labelled-q2-sd-b32.R	suggests-package	environment	runs	5
 test-binomial-links.R	cran-lane	environment	runs	1
 test-binomial-mesh-oracle-b31nb.R	cran-lane	environment	runs	2
 test-binomial-mesh-oracle-b31nb.R	suggests-package	environment	runs	4
@@ -226,6 +228,8 @@ test-gamma-iid-structured-both-sd-sensitivity-b26.R	cran-lane	environment	runs	2
 test-gamma-iid-structured-both-sd-sensitivity-b26.R	suggests-package	environment	runs	1
 test-gamma-iid-structured-sd-regression.R	cran-lane	environment	runs	4
 test-gamma-iid-structured-sd-regression.R	suggests-package	environment	runs	1
+test-gamma-labelled-q2-sd-b32.R	cran-lane	environment	runs	8
+test-gamma-labelled-q2-sd-b32.R	suggests-package	environment	runs	7
 test-gamma-mu-sigma-joint-sd.R	cran-lane	environment	runs	4
 test-gamma-ordinary-sd-beside-structured.R	cran-lane	environment	runs	4
 test-gamma-ordinary-sd-beside-structured.R	suggests-package	environment	runs	1
@@ -620,6 +624,8 @@ test-nbinom2-gamma-same-group-sd-regression.R	cran-lane	environment	runs	2
 test-nbinom2-iid-phylo-interaction-oracle-b31no.R	cran-lane	environment	runs	5
 test-nbinom2-iid-structured-sensitivity-b26.R	cran-lane	environment	runs	3
 test-nbinom2-iid-structured-sensitivity-b26.R	suggests-package	environment	runs	1
+test-nbinom2-labelled-q2-sd-b32.R	cran-lane	environment	runs	7
+test-nbinom2-labelled-q2-sd-b32.R	suggests-package	environment	runs	7
 test-nbinom2-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-nbinom2-phylo-interaction-sd.R	cran-lane	environment	runs	3
 test-nbinom2-phylo-relmat-slope-sd-regression.R	cran-lane	environment	runs	2
@@ -711,6 +717,7 @@ test-poisson-iid-structured-sd-regression.R	cran-lane	environment	runs	4
 test-poisson-iid-structured-sd-regression.R	suggests-package	environment	runs	1
 test-poisson-iid-structured-sensitivity-b26.R	cran-lane	environment	runs	3
 test-poisson-iid-structured-sensitivity-b26.R	suggests-package	environment	runs	1
+test-poisson-labelled-q2-sd-b32.R	cran-lane	environment	runs	6
 test-poisson-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-poisson-phylo-relmat-slope-sd-regression.R	cran-lane	environment	runs	2
 test-poisson-phylo-relmat-slope-sd-regression.R	suggests-package	environment	runs	1

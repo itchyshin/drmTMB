@@ -430,7 +430,7 @@ test_that("q2 include fences stay refused with message patterns", {
   expect_error(
     drmTMB(bf(y ~ x + animal(1 + x | p | id, A = A), a0, a1),
            family = stats::poisson(), data = d, missing = inc),
-    "one\\s+structured\\s+coefficient"
+    "complete\\s+responses"
   )
 
   # NB2: relmat q2 and zero-inflated animal q2.

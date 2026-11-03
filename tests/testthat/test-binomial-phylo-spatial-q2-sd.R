@@ -255,8 +255,12 @@ test_that("Binomial phylo q2 and spatial q2 keep neighbouring routes closed", {
       expect_error(build(mu, s0, s1, link = link), "intercept-only q1")
     }
     dat$p <- "block"
-    expect_error(build(paste("y ~ x +", layer(label = "p")), s0, s1,
-                       data = dat), "unlabelled q1")
+    # Labelled phylo q2 (logit) is admitted since b32 (see
+    # test-binomial-labelled-q2-sd-b32.R); labelled spatial q2 stays refused.
+    if (identical(provider, "spatial")) {
+      expect_error(build(paste("y ~ x +", layer(label = "p")), s0, s1,
+                         data = dat), "unlabelled q1")
+    }
     expect_error(build(paste("y ~ x +", layer("1 + x + z0")), s0, s1,
                        data = dat), "only intercept and one-slope")
     expect_error(build(paste("y ~ x + (1 | id) +", layer()), s0, s1,

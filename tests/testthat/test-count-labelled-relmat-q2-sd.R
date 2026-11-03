@@ -358,10 +358,6 @@ test_that("neighbouring labelled count q2 routes stay refused with designed erro
            family = stats::poisson(), data = d),
     "require\\s+one\\s+structured\\s+coefficient"
   )
-  expect_error(
-    drmTMB(bf(y ~ x + phylo(1 + x | p | id, tree = tree), sigma ~ 1,
-              sd_phy0, sd_phy1),
-           family = nbinom2(), data = fx_nb$data),
-    "NB2\\s+structured\\s+SD\\s+regression\\s+currently\\s+supports"
-  )
+  # b32: NB2 labelled phylo q2 with two SD formulas is now admitted; see
+  # test-nbinom2-labelled-q2-sd-b32.R. Spatial stays outside this slice.
 })

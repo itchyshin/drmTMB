@@ -1,5 +1,31 @@
 # drmTMB (development)
 
+* Native Binomial `animal(1 + x | p | id, A = A)` (logit, probit and cloglog links) and
+  `phylo(1 + x | p | id, tree = tree)` (logit) now fit the labelled intercept-plus-slope
+  block with one `sd(id, level = ..., coef = ...)` formula per coefficient and one
+  estimated intercept-slope correlation (2026-11-02), as the NB2 and Gamma labelled
+  blocks do. Before, the labelled form was refused for these two providers; the
+  unlabelled form, which fixes the correlation at 0, is unchanged. The correlation
+  appears in `fit$corpars`, `predict(fit, dpar = ...)` returns the fitted SD curves, and
+  `simulate(fit)` draws the fields with the fitted correlation. On fixed-seed fixtures
+  (Henderson `A` from an inbred pedigree, `cov2cor(ape::vcv(tree))`, kernel rows in a
+  different order from the data levels) the log-likelihood matches a dense base-R
+  Laplace oracle evaluated at the fitted correlation to within 1e-4; this checks the
+  likelihood assembly and alignment only, not calibration or coverage. Binomial
+  labelled `relmat()` and `spatial()` blocks, non-logit labelled `phylo()`, and labelled
+  blocks without two SD formulas stay refused.
+
+* Native Poisson `animal(1 + x | p | id, A = A)` and `spatial(1 + x | p | id, coords = coords)`
+  now fit with one `sd(id, level = ..., coef = ...)` formula per coefficient (2026-11-02). The label
+  adds one estimated correlation between the intercept and slope fields, reported in `corpars`,
+  so the latent prior is R kron K with `rho = 0.999999 tanh(eta)`. The gate was the only change;
+  the template already carried this prior for Poisson. Checked at fixed fixtures against a dense
+  Laplace likelihood computed in base R at the fitted parameters including the fitted correlation
+  (an inbred-pedigree Henderson A and an irregular-coordinate kernel, agreement within 3e-10 on the
+  log-likelihood); fitted SDs, `predict(dpar = ...)` and marginal `simulate()` agree with it. This
+  is a likelihood-evaluation check, not a recovery, calibration or parity claim. Missing-response
+  integration and zero inflation stay refused for the labelled block.
+
 * The Julia coupled location-scale `(1 | tag | relmat(g))` engine (Beta,
   beta-binomial, NB2, Gamma) now uses `relmat()` and `animal()` matrices as
   supplied, as native does (DRM.jl `2c32dd535`, 2026-11-02), and the Julia Beta
@@ -14,6 +40,19 @@
   `40da69c72`; `test-julia-b20-gaussian-slope-binomial-relmat-bridge.R`, one
   live fixture per route against native TMB, tolerances 1e-3 on coefficients and
   1e-2 on the log-likelihood fixed beforehand; not calibrated, no coverage claim).
+
+* Native NB2 now fits the labelled `phylo(1 + x | p | id, tree)` intercept-plus-slope
+  block, and native Gamma (log link) now fits the labelled
+  `relmat(1 + x | p | id, K)` and `phylo(1 + x | p | id, tree)` blocks, each with one
+  `sd()` formula per coefficient (2026-11-02). The label adds one estimated
+  cross-coefficient correlation (the latent prior is `R kron K`, with `K` as supplied for
+  `relmat()` and `cov2cor(ape::vcv(tree))` for `phylo()`), reported in `corpars` and used
+  by `predict(dpar = ...)` and by `simulate(re.form = NA)` as for the labelled animal and
+  Poisson/NB2 relmat routes. The C++ templates already carried this prior; only the R
+  gates changed. Checked against an independent dense Laplace likelihood at the fitted
+  parameters including the fitted correlation, on fixed fixtures; this is not a
+  calibration or parity claim. Labelled blocks without `sd()` formulas, slope-only
+  labelled blocks, labelled Gamma spatial and the Julia engine are unchanged.
 
 * The Julia engine now also uses a `relmat()` kernel `K` and an `animal()` matrix `A`
   exactly as supplied for `beta_family()` and `zero_one_beta()` intercepts and for the
