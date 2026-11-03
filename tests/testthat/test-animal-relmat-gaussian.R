@@ -548,7 +548,7 @@ manual_biv_known_response_loglik <- function(fit) {
 }
 
 manual_biv_known_q2_prior_loglik <- function(fit) {
-  par <- fit$obj$env$parList(fit$opt$par)
+  par <- fit$obj$env$parList(fit$opt$par, par = fit$tmb_state$last.par.best)
   n_known <- nrow(fit$model$tmb_data$Q_phylo)
   u1 <- par$u_phylo[seq_len(n_known)]
   u2 <- par$u_phylo[n_known + seq_len(n_known)]
@@ -1838,7 +1838,7 @@ test_that("bivariate animal and relmat q2 response masks have exact conditional 
   )
 
   for (fit in fits) {
-    full_parameters <- fit$obj$env$parList(fit$opt$par)
+    full_parameters <- fit$obj$env$parList(fit$opt$par, par = fit$tmb_state$last.par.best)
     joint <- TMB::MakeADFun(
       data = fit$model$tmb_data, parameters = full_parameters,
       map = fit$model$map, DLL = "drmTMB", silent = TRUE
@@ -1959,7 +1959,7 @@ test_that("bivariate animal and relmat q2 slope masks recover independent DGPs",
         control = list(eval.max = 1500, iter.max = 1500)
       )
     }
-    full_parameters <- fit$obj$env$parList(fit$opt$par)
+    full_parameters <- fit$obj$env$parList(fit$opt$par, par = fit$tmb_state$last.par.best)
     joint <- TMB::MakeADFun(
       data = fit$model$tmb_data, parameters = full_parameters,
       map = fit$model$map, DLL = "drmTMB", silent = TRUE
