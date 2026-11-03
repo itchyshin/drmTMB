@@ -51,5 +51,10 @@
     "broad parity beyond one fixture per route"
   ],
   "tolerances": "as fixed in the test file; none loosened",
-  "review_status": "unreviewed"
+  "review_status": "unreviewed",
+  "rows_unlinked_by_review": [
+    "[\"native\", \"zero_one_beta\", \"univariate\", \"mu\", \"mu\", \"mu:I\", \"I\", \"logit\", \"animal_intercept\", \"S1/P-temporal\", \"animal\", \"structured random intercept\", \"Ainv_precision\", \"single additive-genetic field\", \"q=1\", \"q=1\", \"1\", \"independent\"]",
+    "[\"native\", \"zero_one_beta\", \"univariate\", \"mu\", \"mu\", \"mu:I\", \"I\", \"logit\", \"relmat_intercept\", \"S1/P-temporal\", \"relmat\", \"structured random intercept\", \"K_covariance\", \"single known-relatedness field\", \"q=1\", \"q=1\", \"1\", \"independent\"]"
+  ],
+  "unlink_reason_batch32": "Triage (batch 32): the test fits no zero_one_beta sd() regression, and native refuses structured SD for zero_one_beta, so these two native rows were mislinked and are dropped, not relinked."
 }

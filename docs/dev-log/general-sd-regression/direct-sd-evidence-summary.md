@@ -1,6 +1,6 @@
 # Direct-SD implementation evidence reconciliation
 
-Frozen candidate rows: 21246. Evidence receipt records: 765. Distinct candidate rows with at least one hash-verified receipt: 354. Candidate rows without linked receipts: 20892.
+Frozen candidate rows: 21246. Evidence receipt records: 763. Distinct candidate rows with at least one hash-verified receipt: 352. Candidate rows without linked receipts: 20894.
 
 This is an evidence-only join. A receipt does not establish general support, identifiability, admission, or calibrated interval coverage; no candidate row is promoted by this report.
 
@@ -11,7 +11,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | Value | Receipted rows | Candidate rows |
 |---|---:|---:|
 | Julia | 99 | 10695 |
-| native | 255 | 10551 |
+| native | 253 | 10551 |
 
 ## family_route
 
@@ -34,7 +34,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | student | 0 | 592 |
 | truncated_nbinom2 | 1 | 324 |
 | tweedie | 2 | 592 |
-| zero_one_beta | 4 | 1076 |
+| zero_one_beta | 2 | 1076 |
 | zi_nbinom2 | 0 | 592 |
 | zi_poisson | 4 | 338 |
 
@@ -43,7 +43,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | Value | Receipted rows | Candidate rows |
 |---|---:|---:|
 | animal_correlated_block | 28 | 672 |
-| animal_intercept | 24 | 336 |
+| animal_intercept | 23 | 336 |
 | animal_labelled_block | 0 | 4584 |
 | animal_numeric_slope | 25 | 336 |
 | iid_additive_terms | 7 | 224 |
@@ -59,7 +59,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | phylo_labelled_block | 0 | 1528 |
 | phylo_numeric_slope | 7 | 112 |
 | relmat_correlated_block | 12 | 448 |
-| relmat_intercept | 17 | 224 |
+| relmat_intercept | 16 | 224 |
 | relmat_labelled_block | 0 | 3056 |
 | relmat_numeric_slope | 12 | 224 |
 | simultaneous_iid_structured | 40 | 672 |
@@ -78,7 +78,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 
 | Value | Receipted rows | Candidate rows |
 |---|---:|---:|
-| animal | 77 | 5928 |
+| animal | 76 | 5928 |
 | animal:A_covariance+relmat:K_covariance | 3 | 112 |
 | animal:A_covariance+relmat:Q_precision | 3 | 112 |
 | animal:A_covariance+spatial:coordinates | 3 | 112 |
@@ -104,7 +104,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | phylo:tree+relmat:Q_precision | 3 | 112 |
 | phylo:tree+spatial:coordinates | 3 | 112 |
 | phylo_interaction | 14 | 224 |
-| relmat | 41 | 3952 |
+| relmat | 40 | 3952 |
 | spatial | 27 | 3840 |
 | temporal | 0 | 336 |
 
@@ -127,7 +127,7 @@ Evidence counts by exact row dimensions (rows with receipts / candidate rows):
 | structured intercept plus one independent numeric slope | 53 | 896 |
 | structured mesh field | 3 | 112 |
 | structured mesh random slope | 3 | 112 |
-| structured random intercept | 57 | 1008 |
+| structured random intercept | 55 | 1008 |
 | within-endpoint correlated intercept and one numeric slope | 52 | 1568 |
 
 Rows with multiple receipts are counted once. Candidate rows remain obligations until separately reviewed against the implementation contract and the complete required scope.

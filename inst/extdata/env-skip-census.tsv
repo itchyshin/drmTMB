@@ -254,6 +254,7 @@ test-gaussian-phylo-interaction-slope-sd.R	suggests-package	environment	runs	3
 test-gaussian-q3-all-coef-sd-oracle-b29b.R	cran-lane	environment	runs	1
 test-gaussian-q3-per-coef-sd-all-coefs-b29.R	cran-lane	environment	runs	1
 test-gaussian-q3-per-coef-sd.R	cran-lane	environment	runs	3
+test-gaussian-q3-q4-marginal-simulate-b32.R	cran-lane	environment	runs	2
 test-gaussian-sigma-endpoint-mixes-oracle-b26.R	cran-lane	environment	runs	1
 test-gaussian-sigma-endpoint-mixes-sd.R	cran-lane	environment	runs	7
 test-gaussian-sigma-structured-sd.R	cran-lane	environment	runs	3
