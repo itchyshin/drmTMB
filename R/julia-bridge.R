@@ -5504,7 +5504,8 @@ drm_julia_nbinom2_relmat_sd_slope_route_admitted <- function(formula) {
 # slope-only SD regression with `sd(g, spatial) ~ z`. As for Gamma, the bridge
 # sends the native fixed kernel as a relmat K (raw), so the Julia side is the
 # already-admitted NB2 relmat slope route. Shape-only gates; the payload checks
-# the family. The NB2 spatial intercept is not admitted.
+# the family. The NB2 spatial intercept has its own gate
+# (`drm_julia_spatial_sd_intercept_route_admitted`, batch 32).
 drm_julia_nbinom2_spatial_sd_slope_route_admitted <- function(formula) {
   drm_julia_gaussian_spatial_sd_slope_route_admitted(formula)
 }
@@ -5610,6 +5611,18 @@ drm_julia_binomial_spatial_sd_route_admitted <- function(formula) {
   (intercept || slope_only) &&
     length(entries[[mu_idx]]$structured) == 1L &&
     length(extract_random_mu_terms(entries[[mu_idx]]$rhs, "mu")$terms) == 0L
+}
+
+# Batch 32: coordinate `spatial(1 | g, coords = coords)` intercept with its
+# matching `sd(g, level = "spatial") ~ z`, re-expressed as a raw relmat K (the
+# native fixed kernel) for Gaussian, Poisson, NB2 and Gamma. Same shape as the
+# Binomial spatial gate restricted to the intercept; the payload rechecks the
+# family. The Julia routes behind it are the relmat intercept SD fitters, so no
+# spatial-specific Julia code is involved.
+drm_julia_spatial_sd_intercept_route_admitted <- function(formula) {
+  if (!drm_julia_binomial_spatial_sd_route_admitted(formula)) return(FALSE)
+  terms <- drm_julia_collect_structured_terms(formula)
+  length(terms) == 1L && identical(terms[[1L]]$coef_names, "(Intercept)")
 }
 
 # Re-express one Binomial phylogenetic-interaction intercept or slope as a
@@ -9972,6 +9985,11 @@ deviance.drmTMB_julia <- function(object, ...) {
 # predict.drmTMB_julia() uses), through the shared native helpers. Every other
 # route keeps the bridge slot. A fit whose dpars cannot be rebuilt R-side (a
 # random effect without a retained payload, or an offset) also keeps the slot.
+# The relmat(), animal() and spatial() routes are in that group: the slot is the
+# population-level value (inverse link of X beta, modes at zero, rows in data
+# order), not the conditional mean ?fitted.drmTMB returns, so fitted() and
+# residuals() differ from engine = "tmb" on those routes (measured 2026-11-02,
+# batch 32 audit; coefficients and logLik are unaffected).
 # Returns NULL when the bridge slot is already the documented value.
 drm_julia_fitted_recomputed <- function(object) {
   model_type <- drm_julia_predict_model_object(object)$model$model_type
@@ -11550,6 +11568,9 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
     !identical(term$coef_names, "(Intercept)")
   tweedie_relmat_sd <- identical(family_type, "tweedie") &&
     drm_julia_tweedie_relmat_sd_route_admitted(formula)
+  spatial_intercept_sd <- family_type %in% c(
+    "gaussian", "poisson", "nbinom2", "gamma"
+  ) && drm_julia_spatial_sd_intercept_route_admitted(formula)
   supported_coefficient <- identical(term$coef_names, "(Intercept)") ||
     ((binomial_relmat_slope || binomial_spatial_slope || binomial_animal_slope ||
       binomial_animal_iid_slope ||
@@ -11571,7 +11592,7 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
         gaussian_relmat_slope || gamma_relmat_slope || nbinom2_relmat_slope) &&
          !identical(term$type, "relmat")) ||
       ((binomial_spatial_sd || gaussian_spatial_slope || gamma_spatial_slope ||
-        nbinom2_spatial_slope) &&
+        nbinom2_spatial_slope || spatial_intercept_sd) &&
          !identical(term$type, "spatial"))) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} supports structured {.code mu} intercepts and explicitly admitted animal-, relmat-, or fixed-coordinate spatial-slope SD routes.",
@@ -11618,7 +11639,8 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
     term = term,
     family_type = family_type,
     env = env,
-    data = data
+    data = data,
+    spatial_sd_admitted = spatial_intercept_sd
   )
   if (identical(resolved$kwarg, "Ainv")) {
     poisson_intercept <- identical(family_type, "poisson") &&
@@ -11651,7 +11673,8 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
   matrix_labels <- resolved$labels
   if (identical(term$type, "spatial") &&
       (identical(family_type, "gaussian") || binomial_spatial_sd ||
-         gamma_spatial_slope || nbinom2_spatial_slope)) {
+         gamma_spatial_slope || nbinom2_spatial_slope ||
+         spatial_intercept_sd)) {
     matrix_labels <- NULL
     native_spatial <- drm_spatial_coords_precision(
       matrix,
@@ -11667,7 +11690,7 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
       fixed = TRUE
     )
     if (binomial_spatial_sd || gaussian_spatial_slope || gamma_spatial_slope ||
-        nbinom2_spatial_slope) {
+        nbinom2_spatial_slope || spatial_intercept_sd) {
       spatial_sd_key <- paste0("sd_spatial(", term$group, ")")
       spatial_sd_idx <- match(spatial_sd_key, names(formula_spec))
       if (is.na(spatial_sd_idx)) {
@@ -11724,7 +11747,9 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
 # mesh forms are rejected with a pointer to `engine="tmb"`. Pedigrees are
 # converted to additive relationship covariance and subset to observed groups.
 # Animal `Ainv` is separately gated to the family-specific routes that consume it.
-drm_julia_structured_matrix <- function(term, family_type, env, data) {
+drm_julia_structured_matrix <- function(
+  term, family_type, env, data, spatial_sd_admitted = FALSE
+) {
   type <- term$type
   slot <- term$structure
   obj_name <- term$object
@@ -11747,8 +11772,13 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
     # precomputed spatial covariance through `relmat(1 | g, K = K)` instead.
     gamma_spatial_slope_term <- family_type %in% c("gamma", "nbinom2") &&
       !identical(term$coef_names, "(Intercept)")
+    # Batch 32: Poisson, NB2 and Gamma coordinate spatial INTERCEPT with its
+    # matching direct-SD formula (decided by the payload's admission gate).
+    count_spatial_intercept_term <- isTRUE(spatial_sd_admitted) &&
+      family_type %in% c("poisson", "nbinom2", "gamma") &&
+      identical(term$coef_names, "(Intercept)")
     if (!family_type %in% c("gaussian", "biv_gaussian", "binomial") &&
-        !gamma_spatial_slope_term) {
+        !gamma_spatial_slope_term && !count_spatial_intercept_term) {
       cli::cli_abort(c(
         "{.code engine = \"julia\"} routes {.fn spatial} only for Gaussian or explicitly admitted Binomial coordinate models.",
         i = "For a {.val {family_type}} spatial model, pass a precomputed covariance as {.code relmat(1 | {term$group}, K = K)}, or use {.code engine = \"tmb\"}."

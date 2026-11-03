@@ -111,12 +111,10 @@ test_that("Gamma and NB2 slope-only SD gates admit only their shapes", {
     "random slope"
   )
   expect_false(drm_julia_gamma_spatial_sd_slope_route_admitted(spatial_intercept))
-  expect_error(
-    drm_julia_structured_payload(
-      spatial_intercept, "gamma", s$data, environment()
-    ),
-    "spatial"
-  )
+  # The Gamma spatial intercept is admitted by its own gate in batch 32 (see
+  # test-julia-b32-count-gamma-spatial-intercept-bridge.R); only the slope-only
+  # gate stays false for it.
+  expect_true(drm_julia_spatial_sd_intercept_route_admitted(spatial_intercept))
   # NB2 spatial slope is admitted in batch 26 (see test-julia-b26-*).
   tr <- ape::rtree(4L, tip.label = levels(s$data$id))
   phylo <- bf(

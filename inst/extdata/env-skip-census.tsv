@@ -291,6 +291,12 @@ test-julia-b28-relmat-raw-k-bridge.R	suggests-package	environment	runs	1
 test-julia-b29-beta-zob-raw-k-bridge.R	cran-lane	environment	runs	1
 test-julia-b29-beta-zob-raw-k-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-b29-beta-zob-raw-k-bridge.R	suggests-package	environment	runs	1
+test-julia-b32-count-gamma-spatial-intercept-bridge.R	cran-lane	environment	runs	1
+test-julia-b32-count-gamma-spatial-intercept-bridge.R	engine-drm-jl	environment	skips	2
+test-julia-b32-count-gamma-spatial-intercept-bridge.R	suggests-package	environment	runs	1
+test-julia-b32-gaussian-structured-intercept-bridge.R	cran-lane	environment	runs	1
+test-julia-b32-gaussian-structured-intercept-bridge.R	engine-drm-jl	environment	skips	2
+test-julia-b32-gaussian-structured-intercept-bridge.R	suggests-package	environment	runs	1
 test-julia-beta-binomial-sd-parity.R	engine-drm-jl	environment	skips	4
 test-julia-beta-binomial-sd-parity.R	suggests-package	environment	runs	2
 test-julia-beta-binomial-sigma-sd-bridge.R	engine-drm-jl	environment	skips	4

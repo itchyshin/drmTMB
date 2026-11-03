@@ -23,6 +23,20 @@ per axis and sits 0.009 to 0.082 below the 15-node value. Evidence for these
 routes is scoped to likelihood assembly and selector alignment at the tested
 fixtures; the ZeroOneBeta iid rows and the zero-inflated Poisson iid slope row
 are not linked. Native TMB uses the Laplace approximation and is unaffected.
+Update (2026-11-02, DRModels.jl `ab8b67127`): the ZeroOneBeta intercept route and plain
+`(1 | g)` route are now adaptive, and the default adaptive node count is 41 for the
+Beta, Gamma, beta-binomial, NB2, hurdle and truncated routes and 81 for the
+zero-inflated Poisson slope. A new Julia test compares each family with an exact
+per-group integral on several seeds, including the draws that failed before, at 1e-4.
+The unlinked ledger rows can be relinked after a fresh review.
+
+`fitted()` and `residuals()` on `engine = "julia"` fits with a structured
+`relmat()`, `animal()` or `spatial()` term return the population-level value (random
+effects at zero), not the conditional mean native `fitted()` returns (2026-11-02,
+batch 32). Coefficients and the log-likelihood agree with native; fitted values
+differ by up to 47 on the response scale in the measured fixtures. A fix needs
+DRModels.jl to export the conditional modes for these routes and the R bridge to
+rebuild the conditional mean from them.
 
 Read this ledger together with
 `docs/design/168-r-julia-finish-capability-matrix.md`; when a status boundary

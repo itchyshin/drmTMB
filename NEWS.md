@@ -1,5 +1,43 @@
 # drmTMB (development)
 
+* The development Julia bridge (`engine = "julia"`) now admits Gaussian structured
+  intercept SD regression (2026-11-02, batch 32; needs DRModels.jl `ab8b67127`):
+  `relmat(1 | id, K = K)`, `animal(1 | id, A = A)` and coordinate
+  `spatial(1 | id, coords = coords)` with the matching `sd(id, level = ...) ~ z`,
+  exact maximum likelihood, `K` and `A` entering as supplied and a fixed
+  `sigma ~ 1`. The coordinate route sends the native fixed kernel
+  `exp(-d / median positive distance) + 1e-6 I` as a relmat `K`. On one fixed
+  fixture per route (non-unit-diagonal `K`, shuffled rows, named coordinates), the
+  tests assert agreement with native TMB within 1e-3 on coefficients and 1e-2 on
+  the log-likelihood; measured maxima on one run were within 1e-11 and 2e-11. The
+  same DRModels.jl change fixes the NB2 relmat, animal and spatial SD fitters,
+  which could stop on a flat part of the dispersion likelihood and report
+  convergence far below the interior optimum (33 log-likelihood units on the live
+  relmat parity fixture before the fix); the fit now restarts once from a
+  mid-range dispersion and keeps the better optimum (two stalling seeds are pinned
+  in the Julia tests). Not covered: standard errors, interval coverage,
+  calibration, `simulate()` and stored conditional `predict()` (both still
+  refused), REML, `sigma` regression, `Ainv` and `Q` input.
+
+* The development Julia bridge also admits coordinate `spatial(1 | id, coords =
+  coords)` with `sd(id, level = "spatial") ~ z` for Poisson, NB2 and Gamma
+  (2026-11-02, batch 32; needs DRModels.jl `ab8b67127`, because the NB2 relmat route
+  it uses needs the dispersion restart). The bridge sends the native fixed kernel as
+  a raw relmat `K` into the relmat intercept SD route these families already had,
+  and `relmat(1 | id, K = K)` with `sd(id, level = "relmat") ~ z` gets a live
+  parity block in the same change. On one fixed fixture per route the tests assert
+  1e-3 on coefficients and 1e-2 on the log-likelihood; measured maxima on one run
+  were 7e-8 and 7e-6. Not covered: standard errors, interval coverage, calibration,
+  `simulate()` and stored conditional `predict()`, a modelled `sigma`, Poisson
+  `spatial(0 + x | id)` and NB2 phylogenetic SD.
+
+* `fitted()` and `residuals()` on `engine = "julia"` fits with a structured
+  `relmat()`, `animal()` or `spatial()` term return the population-level value
+  (inverse link of the fixed-effect linear predictor, random-effect modes at zero),
+  while native `fitted()` returns the conditional mean, so they differ from
+  `engine = "tmb"` (measured gaps from 0.2 to 47 on the response scale). Coefficients
+  and the log-likelihood are not affected. This is documented, not yet changed.
+
 * Native Binomial `animal(1 + x | p | id, A = A)` (logit, probit and cloglog links) and
   `phylo(1 + x | p | id, tree = tree)` (logit) now fit the labelled intercept-plus-slope
   block with one `sd(id, level = ..., coef = ...)` formula per coefficient and one
