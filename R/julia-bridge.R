@@ -7531,7 +7531,8 @@ new_drmTMB_julia <- function(
   )
   sd_regression_offsets <- drm_julia_sd_regression_offsets(
     formula = formula,
-    structured_sd_scales = structured_sd_scales
+    structured_sd_scales = structured_sd_scales,
+    family_type = family_type
   )
   if (length(sd_regression_offsets) > 0L) {
     coefficient_names <- names(coefficients)
@@ -8277,11 +8278,21 @@ drm_julia_structured_parameters <- function(
 # scales continue through the provider-specific route above.
 drm_julia_sd_regression_offsets <- function(
   formula,
-  structured_sd_scales = NULL
+  structured_sd_scales = NULL,
+  family_type = NULL
 ) {
   out <- numeric()
   entries <- formula$entries
   if (!is.list(entries) || length(entries) == 0L) {
+    return(out)
+  }
+  # DRM.jl's Gaussian phylogenetic SD-regression route already returns the SD
+  # coefficients on the correlation scale native drmTMB uses, so shifting the
+  # intercept by log(sqrt(tree height)) would count the tree scale twice
+  # (measured 2026-11-02 on a height-2 tree: bridge minus native was 0.3466 for
+  # Gaussian and 0 for Gamma, Binomial and Poisson). The non-Gaussian routes
+  # report the raw branch-length scale and keep the shift.
+  if (identical(family_type, "gaussian")) {
     return(out)
   }
   terms <- unlist(lapply(formula$entries, function(entry) {

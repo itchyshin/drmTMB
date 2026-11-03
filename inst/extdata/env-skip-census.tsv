@@ -533,6 +533,8 @@ test-julia-phylo-nongaussian.R	suggests-package	environment	runs	8
 test-julia-phylo-polytomy.R	suggests-package	environment	runs	2
 test-julia-phylo-q4-corpairs.R	engine-drm-jl	environment	skips	4
 test-julia-phylo-q4-corpairs.R	suggests-package	environment	runs	8
+test-julia-phylo-sd-regression-tree-height.R	engine-drm-jl	environment	skips	2
+test-julia-phylo-sd-regression-tree-height.R	suggests-package	environment	runs	2
 test-julia-poisson-animal-ainv-sd-parity.R	cran-lane	environment	runs	1
 test-julia-poisson-animal-ainv-sd-parity.R	engine-drm-jl	environment	skips	2
 test-julia-poisson-animal-ainv-sd-parity.R	suggests-package	environment	runs	1

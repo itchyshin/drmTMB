@@ -92,6 +92,14 @@
   calibration or parity claim. Labelled blocks without `sd()` formulas, slope-only
   labelled blocks, labelled Gamma spatial and the Julia engine are unchanged.
 
+* `engine = "julia"` Gaussian phylogenetic SD regression (`sd(g, level =
+  "phylogenetic") ~ z`) reported its SD intercept shifted by log(sqrt(tree
+  height)) on trees whose height is not 1 (2026-11-02). DRModels.jl already
+  returns these coefficients on the correlation scale that native drmTMB uses,
+  and the bridge applied the tree-scale shift a second time. Gamma, Binomial
+  and Poisson were correct. A live test on a height-2 tree now checks all four
+  against native.
+
 * The Julia engine now also uses a `relmat()` kernel `K` and an `animal()` matrix `A`
   exactly as supplied for `beta_family()` and `zero_one_beta()` intercepts and for the
   Beta `sd(id, level = "animal")` route (2026-11-02, DRM.jl commit `d5e3e6b11`), as
