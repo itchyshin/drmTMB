@@ -33,5 +33,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "All four grant conditions hold for all 11 linked rows. (1) The oracle is independent of the package. It is a base-R dense Laplace marginal (sb26_laplace, with a hand Newton solve and determinant). Henderson tabular A comes from an inbred pedigree with diag(A) up to 1.67. Ainv is solve(A). The relmat K is hand-built with a non-constant diagonal. The helpers call no drmTMB internals. (2) Emulated bugs are asserted at more than 0.1: reversed per-level SD, K read by position, K x 2, cov2cor(K), and a dropped slope design. Minimum gaps in the console log are 0.33 to 2.2 against agreement of 1e-11 to 1e-13. (3) Each row is fitted by the route it names. animal(1|g) is fitted with A and with Ainv. animal(0+x|g) is fitted with A and with Ainv. relmat(1|g, K) is fitted for the three links. The SD formula is sd(g, level) ~ z in every case. The two provider references agree to within 1e-6. The animal_numeric_slope rows (mu:x1..xp) are exercised through a slope-only field, 0 + x, which is the slope-coefficient SD the row targets; the fit has no structured intercept field. The animal_intercept cloglog and probit rows linked here are single q1 fields, and the test covers both A and Ainv for each link. (4) The manifest sha256 values for the test, four helpers, R/drmTMB.R, R/methods.R, R/random-effect-targets.R and src/drmTMB.cpp match the current files. The receipt, manifest and test sha256 values in the fragment also match. The console log shows COUNTS 162 expectations, 0 failed, 0 skipped, 0 errors. My own rerun on Totoro, in the clean export with the new files synced, gave 162/0/0/0. This does NOT establish: calibration, coverage or recovery (one seed per route, fitted at the optimum without refitting the oracle); a structured intercept field combined with a slope field in one fit; any Julia or native-vs-Julia parity; routes other than the linked links and providers. Lane rule (review-20261102.md, slope-only fits): the slope rows are linked as the slope member only; the verifier or reviewer objected that no structured intercept field is fitted in the same model, which is recorded here.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-animal-relmat-single-oracle-b31nb.R",
+    "test_sha256": "3367f2efa1f2031bd22c9627621a04db06ea0e1a5fd333bcfa21a72e42724872",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:34Z",
+    "ended_utc": "2026-11-03T01:06:44Z",
+    "expectations_passed": 162,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-relmat-single-oracle-b31nb-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "cec2de7cdf8cba3aca5fd00183bef546e22f78d977eeb2d64fd25f26385d446d",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

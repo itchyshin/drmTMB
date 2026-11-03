@@ -1,0 +1,18 @@
+poisson-labelled-q2-sd-b32: ...........[b32 poisson animal] oracle gap = 6.139e-12, rho = 0.9638
+......[b32 poisson animal] smallest bug gap = 0.565 (cov2cor_kernel)
+.......[b32 poisson spatial] oracle gap = 2.289e-10, rho = 0.9110
+.....[b32 poisson spatial] smallest bug gap = 4.625 (rho_dropped)
+......[b32 poisson animal] rho_hat: 0.670 (true +0.6) vs -0.805 (true -0.6)
+...........[b32 poisson spatial] rho_hat: 0.834 (true +0.6) vs -0.244 (true -0.6)
+.............`simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+..[b32 poisson animal] marginal mean z2: fitted rho 1.20, rho=0 23.37
+.......[b32 poisson spatial] marginal mean z2: fitted rho 0.89, rho=0 34.69
+......
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=74 failed=0 errors=0 skipped=0

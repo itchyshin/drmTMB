@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-sigma-slope-sd-oracle-b29b.R",
   "test_sha256": "f11ca7cd042c52f8a7d2ba34cb57486f94e2077885821be96aeeed83d3043c58",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/sigma-slope-sd-oracle-b29b-20261102d/source-manifest.json",
-  "source_manifest_sha256": "f101069def00b1364186ee303713d8a541e3f5e0818df529fe73c21036e1d4ea",
+  "source_manifest_sha256": "d34a0b049db18fac0aa9e989f510642218212b1c41fce48e0bda5d5750b9f5e6",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-gaussian-sigma-iid-slope-20261025-m26",
@@ -53,5 +53,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read line by line. Oracle is independent: hand-written theta=log sigma log-likelihood, first and second derivatives for Gaussian, lognormal (Gaussian on log y minus sum log y) and NB2 (size=exp(-2 theta)), self-checked against central finite differences in the test, then base-R dense Laplace (sb26_laplace) with SD = exp(a0+a1*w); logLik agreement at 1e-4. Emulated bugs (reversed per-group SD, flipped SD slope, SD ignoring the predictor, shuffled predictor, shuffled z) each asserted >0.1 away from the oracle. The fit is sigma ~ 1 + (0 + z | id) with sd(id, dpar='sigma', coef='z') ~ w, a slope-only independent field, so the linked sigma:x1..xp rows (slope member) are genuinely fitted for all three families; no sigma intercept random effect and no correlated sigma block is fitted, and the note does not extend to them. Hashes match; console log 36 passed, 0 failed, 0 skipped over 3 blocks. Minor gap: helper-sb26-oracle.R (sb26_laplace, sb26_Z) is not in the manifest (tracked, identical on Totoro). Does NOT establish: calibration, coverage, recovery, Julia parity (not run), sigma intercept random effects, correlated sigma blocks, structured providers, other sigma links, or more than one seed per family; oracle is evaluated at fitted parameters.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-sigma-slope-sd-oracle-b29b.R",
+    "test_sha256": "f11ca7cd042c52f8a7d2ba34cb57486f94e2077885821be96aeeed83d3043c58",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:11:26Z",
+    "ended_utc": "2026-11-03T01:11:59Z",
+    "expectations_passed": 36,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/sigma-slope-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "c28d360a6cb5482c4230b0cc1604cefe44370f19c9060250b3c1b8deed8ba437",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

@@ -21,7 +21,7 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-spatial-q2-sd-20261102r-m26-9a1c40/source-manifest.json",
-  "source_manifest_sha256": "47d6eaca83206d46f8a528edddb41bc86a4f714e8c263d3656177f15bf7d6b20",
+  "source_manifest_sha256": "313f944ff054ba63b42e56ad2e2b4231f0162c0ee3a20c0eab7337d298e26efc",
   "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "interval calibration",
@@ -32,5 +32,19 @@
   ],
   "review_note": "Oracle is the exact Gaussian marginal in base R with a spatial kernel built in the test from irregular coordinates (exponential, median-distance range, 1e-6 jitter), sharing no code with the package, plus an independent L-BFGS-B optimum; fit and oracle agree to 3.9e-11 against a 1.8e-4 tolerance. Both rows (mu intercept and mu slope SD of the labelled correlated spatial block (1 + x | p | id)) are fitted. Sensitivity is asserted in the test (8 emulated bugs, each moves the NLL by more than 1e-3); my Totoro scratch run quantified it: wrong_range 0.094, positional_K 2.58, swap_sd_formulas 7.33, shared_sd 8.88, drop_rho 6.44, cross_sign 30.8, gaussian_kernel 13.5, no_slope_loading 58.4 (wrong_range has the thinnest margin, about 500 times the tolerance). Manifest: all 5 entries rehash to current files; receipt 52/0/0/0 and my Totoro rerun 52/0/0/0, 0 skips. Does NOT establish: the independent two-field spatial slope, other providers, Julia parity, calibration or coverage, non-Gaussian families.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-spatial-q2-sd.R",
+    "test_sha256": "2c287989acd98d5b399d08b3fb869e59cda426003fe225d361696b7ea7d00818",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:04Z",
+    "ended_utc": "2026-11-03T01:10:34Z",
+    "expectations_passed": 52,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-spatial-q2-sd-20261102r-m26-9a1c40/test-console-rerun-81553915d.log",
+    "console_log_sha256": "a5660e2cd20064b5ff0b8e523e733217953f782f74a90c5f867dbe3fbe21ea68",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

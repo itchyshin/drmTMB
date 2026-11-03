@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-gamma-relmat-q2-sd-regression.R",
   "test_sha256": "542cdd0419099134fa1a2609349b422099d5b023302924ee271347637dd98e21",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-gamma-relmat-q2-sd-refresh-20261101e/source-manifest.json",
-  "source_manifest_sha256": "83c215b5376571b0813403514eee34f168401d0f1d3a7d2929129fbfad80dc93",
+  "source_manifest_sha256": "4c5160e64121e3f0305e3ff310f15e738225968093e8bb6e5a5837f42830de6c",
   "evidence_grade": "focused_test",
   "not_covered": [
     "Julia parity",
@@ -33,16 +33,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-gamma-relmat-q2-sd-regression.R",
     "test_sha256": "542cdd0419099134fa1a2609349b422099d5b023302924ee271347637dd98e21",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:14:26Z",
-    "ended_utc": "2026-11-02T18:16:25Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:00Z",
+    "ended_utc": "2026-11-03T01:10:19Z",
     "expectations_passed": 42,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-relmat-q2-sd-refresh-20261101e/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "c0105e4e2e30c6fbab8b2b849fe3833f773b2d16e9bfed82acc3a0547830c7e8",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-relmat-q2-sd-refresh-20261101e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "ebef53b54176f019e659d506c4a5474c3af7ee71b7a12f675f41e4ff3f6f70de",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-count-correlated-q2-sd-oracle-b29b.R",
   "test_sha256": "7dabd304d97bd68f1bd63c99c1c77727799b81f819b75a69b8cdbfe29749cf51",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/count-correlated-q2-sd-oracle-b29b-20261102d/source-manifest.json",
-  "source_manifest_sha256": "13fe27eaf38385363503ff5f6398d13206431ffc9cd0b08634ec4c1afc0d8810",
+  "source_manifest_sha256": "cdb41ca1804853ad40f3cf93db143908f02309bf429d3cf76e9d353cbe01ccea",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-poisson-correlated-q2-sd-20261027-m26",
@@ -55,5 +55,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read line by line. Oracle is independent: base-R dense per-group Laplace with hand-written Poisson and NB2 derivatives (sb26 helper), SD vectors computed by hand as exp(intercept+slope*selector), rho taken from fitted corpars, logLik agreement at 1e-6. Intercept and slope SDs use distinct selectors (continuous w0, two-valued w1), and a by-hand SD is compared with predict(). Emulated bugs (swapped coefficient sets, swapped SD vectors, reversed sd0, reversed sd1, flipped rho, rho=0) each asserted >0.1 away, with |rho|>0.15 required so the rho bugs are live. Fit is one correlated (1+x|id) q=2 block with an sd() formula on both coefficients, so mu:I and mu:x1 are both fitted for Poisson and NB2. Hashes match; console log 28 passed, 0 failed, 0 skipped over 2 blocks. Minor gap: helper-sb26-oracle.R not in manifest (tracked, identical on Totoro). Does NOT establish: calibration, coverage, recovery, Julia parity (not run), NB2 with a modelled sigma (sigma fixed at ~1 in the NB2 fit, so no NB2 sigma rows), q>=3, structured providers, or more than one seed per family; the oracle is evaluated at fitted parameters.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-count-correlated-q2-sd-oracle-b29b.R",
+    "test_sha256": "7dabd304d97bd68f1bd63c99c1c77727799b81f819b75a69b8cdbfe29749cf51",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:07:22Z",
+    "ended_utc": "2026-11-03T01:07:45Z",
+    "expectations_passed": 28,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/count-correlated-q2-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "94fc3ea730f73a05e772d4e66387a5a06caef8593abc8e52c2b27df3d00224ce",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

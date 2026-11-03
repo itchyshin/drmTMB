@@ -21,7 +21,7 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/q2-sd-missing-include-20261102r-m26-20b2da/source-manifest.json",
-  "source_manifest_sha256": "e675ded175dbfdc9b28192580867743ccf008d545d539e4e9423d7e2d2d3f538",
+  "source_manifest_sha256": "bd00ead0064e677f95ef281c29de18bcac192f3f5c5ff064b8cb8a74ff254676",
   "review_status": "unreviewed",
   "not_covered": [
     "interval calibration",
@@ -31,5 +31,19 @@
     "animal_labelled_block cross mu/sigma rows (labelled form here is within mu only)",
     "Poisson labelled animal q2 with SDs: refused, not linked",
     "relmat q2 refusals under include: not linked"
-  ]
+  ],
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-q2-sd-missing-include.R",
+    "test_sha256": "0c7a879c7b574e9aa583a4f811277f7b363cdf7bb0e9b2cac63d151e6e362248",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:11:19Z",
+    "ended_utc": "2026-11-03T01:12:02Z",
+    "expectations_passed": 158,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/q2-sd-missing-include-20261102r-m26-20b2da/test-console-rerun-81553915d.log",
+    "console_log_sha256": "7db194ad208513ed7d8a9d52ee469dde42d7e9ae74cc9c4dd44e72651be0ad7c",
+    "reason": "test file edited (refusal-pin or companion update) and source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

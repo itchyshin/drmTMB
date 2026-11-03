@@ -21,7 +21,7 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/structured-sd-asymmetric-alignment-20261101b-m26-62fdb5/source-manifest.json",
-  "source_manifest_sha256": "dc6d8b8ba907d53c24541bb829fc9ac9843f47a3e4a6873b6595b3a0fba7bde8",
+  "source_manifest_sha256": "47e41a63834aa826404d338daa86e0bf1a7f134ad2ab5707d192cf033bbe8712",
   "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "slope-only fields",
@@ -37,5 +37,19 @@
   ],
   "review_note": "All five linked rows (Poisson spatial, NB2 relmat, NB2 spatial, Gaussian relmat, Gaussian spatial intercept SD) are fitted. Kernels are hand-built in the test (irregular non-symmetric coordinates with dist()/median(); K = D R D with non-unit unequal diagonal) and never taken from the package helper; oracles are the exact Gaussian marginal and a base-R dense Laplace for count families, matching fitted logLik to 1e-6 relative. Emulated-bug sensitivity: with data levels, supplied kernel and rows each in different shuffled orders, reading the supplied kernel by position moves the oracle by more than 0.5 log-likelihood units and 1000x tolerance on every route. Manifest 9/9 hashes match current files (shasum); rerun at e9c72ab3e: 52 pass, 0 fail, 0 skip. Intercept-only fields; the spatial kernel formula is the documented one, mirrored. Does NOT establish: slope fields, Toeplitz/phylo/animal providers, Q or Ainv inputs, se=TRUE inference, selector-swap sensitivity, calibration or coverage, Julia parity.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-structured-sd-asymmetric-alignment.R",
+    "test_sha256": "5b52133a560dec428e319a784f3c79ef214ced1d8fca9eb5583a11ee4afe3bc4",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:11:26Z",
+    "ended_utc": "2026-11-03T01:11:41Z",
+    "expectations_passed": 52,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/structured-sd-asymmetric-alignment-20261101b-m26-62fdb5/test-console-rerun-81553915d.log",
+    "console_log_sha256": "2b8d74b54093fc70fe9656d9db0972a0000b247a8a783682d83024f755c8d802",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

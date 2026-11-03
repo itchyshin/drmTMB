@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-iid-correlated-oracle-b31ja.R",
   "test_sha256": "6fdd7ba076859fe4bf5aabc81dcec69b84a1d0a41b9c5d60c30e729056531cca",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-correlated-oracle-b31ja-20261102e/source-manifest.json",
-  "source_manifest_sha256": "0fb1bef6a99af28ea1b24f01fb56c4d268454511ff2f14b97767a893797ab751",
+  "source_manifest_sha256": "2a30d848d61ee8564ad6caf133e1a978ef550cc644555ef34f3a0be0efb506e4",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "scope": "Live Julia Binomial ordinary (1 + x1 | id) correlated q2 block with sd() on each coefficient, logit, probit, cloglog. The Julia route uses per-group adaptive Gauss-Hermite quadrature with 5 nodes per axis (not Laplace), so the oracle is an independent base-R per-group adaptive Gauss-Hermite with 5 nodes (Golub-Welsch nodes, own mode and curvature), evaluated at the Julia estimates; random non-palindromic per-group selectors. A 15-node value is reported in the console (about 0.01 to 0.09 above the 5-node logLik) but not asserted.",
   "achieved_oracle_agreement_max_abs": "2.27e-13 (max over 3 fits)",
@@ -180,5 +180,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read test and helper. (b) The oracle is an independent base-R reimplementation of the 5-node adaptive Gauss-Hermite scheme (Golub-Welsch nodes from an eigen-decomposition, own mode and observed-information curvature, tensor grid), so criterion (1) is met for what it can show: Julia implements that quadrature scheme correctly (agreement 2.27e-13). I validated the oracle itself on Totoro against a 701 x 701 brute-force grid for one q=2 group: grid -18.03146, K=5 -18.03147, K=15 -18.03146, K=41 -18.03146 (logit); cloglog grid -13.52591, K=5 -13.52622, K=15 and K=41 -13.52591. So the 15-node value is effectively the exact marginal, and the 5-node (Julia) value sits 0.009 to 0.082 from it (logged: logit -1264.6033 vs -1264.5948; probit -1177.5697 vs -1177.5554; cloglog -1082.0848 vs -1082.0033). That gap is not misleading provided the claim is scoped to the 5-node scheme and is not called exact; it is small relative to the bug gaps (smallest 3.06, R = identity logit) but 80x larger than the stated 1e-3 tolerance for cloglog, so 'matches the exact marginal to 1e-3' would be false. The Julia fit ESTIMATES the correlation: cors are read from fit$corpars by coefficient name and used in R; flipping and R = identity each move the oracle by 3 to 34. Six row keys (logit, probit, cloglog x mu:I, mu:x1) match three fits, one (1 + x1 | id) block with sd formulas on both coefficients. Hashes match, HEAD matches, console log: 60 passed, 0 failed, 0 errors, 0 skips, live block ran. Totoro native skips; Mac log not rerun. Does NOT establish: agreement with the exact marginal likelihood or accuracy of 5-node quadrature (gap measured at one fixture each, up to 0.08); that the Julia estimates are the maximiser; calibration, coverage or SEs; other node counts; one fixture and seed per link.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-iid-correlated-oracle-b31ja.R",
+    "test_sha256": "6fdd7ba076859fe4bf5aabc81dcec69b84a1d0a41b9c5d60c30e729056531cca",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:52Z",
+    "ended_utc": "2026-11-03T01:10:45Z",
+    "expectations_passed": 60,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-correlated-oracle-b31ja-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "fc919b6c7d6ffa085ac5017920d9376af7d8007f483c09bf404bc92d5bf93dcb",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

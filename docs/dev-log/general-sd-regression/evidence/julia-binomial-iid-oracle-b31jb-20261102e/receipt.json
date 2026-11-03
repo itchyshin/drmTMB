@@ -17,7 +17,7 @@
   "test_path": "tests/testthat/test-julia-binomial-iid-oracle-b31jb.R",
   "test_sha256": "c427a27916a82f003664d48677d445ccfd45b52d2eb2e7bdb910ca2b3b3c022f",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-oracle-b31jb-20261102e/source-manifest.json",
-  "source_manifest_sha256": "f06398f07bdc502064eb907580c5b17514de80e171caa51774a3369439c31991",
+  "source_manifest_sha256": "e472d305a70cf5d920e3b2cdbf46efb7edeeefff177227f34421a691d2ce300b",
   "live_julia": "run; live R-to-Julia fits via drmTMB(..., engine = \"julia\")",
   "scope": "iid intercept and iid numeric-slope SD, exact marginal and hand 5-node adaptive Gauss-Hermite oracles. Oracle evaluated at the live Julia estimates; agreement asserted to 1e-3 absolute on logLik; every emulated bug must move the oracle by more than 20x that.",
   "rows_claimed": [
@@ -39,5 +39,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helper line by line. Hashes: receipt, manifest, test and every manifest file match current files. The Mac console log shows 102 passed, 0 failed, 0 skipped, and all six 'b31jb iid' lines are present, so the live block ran. Totoro native run only skips (0 live tests), as expected, so counts rest on the Mac log. Oracle: base-R hand link functions, a hand Golub-Welsch Gauss-Hermite rule and a hand per-group adaptive 5-node scheme, which agrees with Julia to 1e-12 or better. A separate exact fine-grid marginal integral is asserted within 0.05. Criterion (1) for iid: the tight oracle is an independent base-R reimplementation of Julia's documented scheme, so on its own it is parity-grade. The exact integral supplies the independent oracle. I reran both on Totoro at the fixture parameters: AGHQ minus exact is 0.001 to 0.011 across 6 link/kind cases, so the 0.05 bound has about 5x slack. I judge this meets (1) for the iid rows, on the strength of the exact integral. Bug sensitivity: the hand-AGHQ gaps are 0.41 to 87 against 1e-3 (min x406), and the min gap exceeds 20x tolerance. Against the exact oracle alone the smallest scrambled-predictor gap is 0.37 to 0.65 against 0.05 (about 7x to 13x), which is moderate rather than overwhelming. Row layout: iid intercept (logit, probit) is bf(y ~ x + (1|id), sd(id) ~ z) and iid numeric slope (cloglog, logit, probit) is (0 + x | id) with coef-specific SD. Both are single scalar independent fields, so all 5 linked rows are exercised by the route named. The optimum check (0.1 steps, tol 1e-3) confirms the Julia estimates are an oracle maximum. Does NOT establish: that Julia's 5-node AGHQ is accurate beyond the 0.05 bound at other data; iid intercept with cloglog (not a linked row here); any calibration, coverage or recovery; correctness at other seeds or sizes (one fixture per route); native-engine behaviour; or an iid slope fitted together with an intercept field.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-iid-oracle-b31jb.R",
+    "test_sha256": "c427a27916a82f003664d48677d445ccfd45b52d2eb2e7bdb910ca2b3b3c022f",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:16:39Z",
+    "ended_utc": "2026-11-03T01:17:18Z",
+    "expectations_passed": 102,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-oracle-b31jb-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "358a3b515bd31d2aa45e669c45f58c07235cc573e96294fd31aab2666e11f703",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

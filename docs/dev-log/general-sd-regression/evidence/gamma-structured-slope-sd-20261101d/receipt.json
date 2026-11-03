@@ -50,7 +50,7 @@
   "test_path": "tests/testthat/test-gamma-structured-slope-sd.R",
   "test_sha256": "99c9e72a95c26c2b412b321e2c76ff8a442459c05c13aed535ea7b26252e750c",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gamma-structured-slope-sd-20261101d/source-manifest.json",
-  "source_manifest_sha256": "4e0f6fd25c69ecf7a67610b101c5341e7296a4b7581717022dd556e3b9cd8c0a",
+  "source_manifest_sha256": "3e7828a6280fde4e16f605d2fcd17d647e7bea605b19c04709c98e5bc0ced2fa",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/gamma-structured-slope-sd-20261101d/test-console.log",
   "console_log_sha256": "2654f18ec51a1a47356a2b2ba0e7248ba72b881f86d7bd5ef60328a9c7990dbe",
   "result": {
@@ -81,16 +81,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-gamma-structured-slope-sd.R",
     "test_sha256": "99c9e72a95c26c2b412b321e2c76ff8a442459c05c13aed535ea7b26252e750c",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:15:18Z",
-    "ended_utc": "2026-11-02T18:16:58Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:17Z",
+    "ended_utc": "2026-11-03T01:10:59Z",
     "expectations_passed": 87,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-structured-slope-sd-20261101d/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "39466ca16c1efbabf2bfbb0fdf1512efcdd8b3a250be02d188a29ad2613faac1",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-structured-slope-sd-20261101d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "dc64f04330100df39987035bf237239fe51e74c51d985064d6256b912739a0c7",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

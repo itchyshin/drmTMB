@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-gaussian-correlated-q2-sensitivity-b26.R",
   "test_sha256": "8578f19a174760f7be6e2ac6f00c8f2d78db24a15ec857c4ba05767ad08208b8",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sensitivity-b26-20261102c/source-manifest.json",
-  "source_manifest_sha256": "9b40e6c82813e9a4cff343690dffc29631c203d350a02367057e8a415342bcc2",
+  "source_manifest_sha256": "1967490b83654847464ccb8b6107eb7e8f114b54309058ea9f14dd216475a956",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "gaussian-native-correlated-q2-sd-20261101-20261101d-20261102b-20261102c-m26"
@@ -45,5 +45,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Gaussian (1 + x | id) correlated block with sd(id, coef = (Intercept)) ~ w0 and sd(id, coef = x) ~ w1, a different predictor each; both linked rows (mu:I and mu:x1) are members of this one fitted block with an estimated rho. The oracle is an exact per-group multivariate-normal marginal in base R, built with SD vectors by hand from the coefficients, and logLik agrees to 1e-6 relative. Five bugs (swapped selector predictors, swapped SD vectors, each SD reversed, rho sign flipped) each move it by more than 0.1 and pass. Manifest 7/7 match, and the rerun shows 10 expectations, 0 failures, 0 skips. Does NOT establish: calibration or coverage, Julia parity, structured q2 providers, sigma-side blocks, or recovery of rho.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-correlated-q2-sensitivity-b26.R",
+    "test_sha256": "8578f19a174760f7be6e2ac6f00c8f2d78db24a15ec857c4ba05767ad08208b8",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:27Z",
+    "ended_utc": "2026-11-03T01:09:35Z",
+    "expectations_passed": 10,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sensitivity-b26-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "0c143cd552b31d2e6d9cfaa52a9bc91d57c34a56786e2c3cc643b96ec8151c44",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

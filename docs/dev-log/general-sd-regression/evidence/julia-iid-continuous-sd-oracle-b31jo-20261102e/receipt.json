@@ -22,7 +22,7 @@
   "test_path": "tests/testthat/test-julia-iid-continuous-sd-oracle-b31jo.R",
   "test_sha256": "f02c4e30482b4de978fba70f821d5991bb23dfc15efd6c4e22f8a473e2491cfb",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-iid-continuous-sd-oracle-b31jo-20261102e/source-manifest.json",
-  "source_manifest_sha256": "c1430f4d1cb1b074f6231509aafe341bdeec2a5a98dfae5657336fe7523362f9",
+  "source_manifest_sha256": "bcbc282cd18736e8c6fc62ed4ac3363f906ba0ed4f5d56320a0928948e72c727",
   "live_julia": "yes; engine=\"julia\" fits, logLik compared with the independent oracle at the Julia estimates",
   "scope": "Live engine=\"julia\" ordinary iid-group predictor-dependent SD, mean random intercept and independent mean random slope, for Beta, Gamma, Gaussian, lognormal and ZeroOneBeta. Independent oracle at the Julia estimates: exact Gaussian marginal (Gaussian) or exact per-group one-dimensional integral on a fine trapezoid grid, hand-written densities. Agreement asserted below 1e-3 (achieved 1.6e-12 to 5.5e-4); every emulated bug (swapped, sign-flipped, dropped selector coefficients, reversed non-palindromic per-level SD vector, SD times 2, slope SD on the intercept field) moves the oracle by at least 0.75.",
   "rows_claimed": [
@@ -51,5 +51,19 @@
   "rows_unlinked_by_review": [
     "[\"Julia\", \"zero_one_beta\", \"univariate\", \"mu\", \"mu\", \"mu:I\", \"I\", \"logit\", \"iid_intercept\", \"O1\", \"iid\", \"random intercept\", \"group_factor\", \"one scalar independent field\", \"q=1\", \"q=1\", \"1\", \"independent\"]",
     "[\"Julia\", \"zero_one_beta\", \"univariate\", \"mu\", \"mu\", \"mu:x1..xp\", \"x1..xp\", \"logit\", \"iid_numeric_slope\", \"O1\", \"iid\", \"independent random slope\", \"group_factor\", \"separate q1 field, optionally alongside intercept and other terms\", \"q=1\", \"q=1 per coefficient\", \"1\", \"independent\"]"
-  ]
+  ],
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-iid-continuous-sd-oracle-b31jo.R",
+    "test_sha256": "f02c4e30482b4de978fba70f821d5991bb23dfc15efd6c4e22f8a473e2491cfb",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:19:56Z",
+    "ended_utc": "2026-11-03T01:21:22Z",
+    "expectations_passed": 140,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-iid-continuous-sd-oracle-b31jo-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "97ae2e7e23073af867d855e57850c6f67852db358d9056a3865ed701c39702a7",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

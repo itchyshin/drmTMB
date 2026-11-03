@@ -27,5 +27,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "All four conditions hold for the 6 rows (spatial_mesh_intercept and spatial_mesh_slope, three links each). (1) The SPDE c0, g1 and g2 are hand-built by finite elements from the triangulation. Q = kappa^4 c0 + 2 kappa^2 g1 + g2. The barycentric projection is also hand-built. These are matched to the package objects (mesh$spde c0/g1/g2 at 1e-9, mesh$A_st at 1e-8), and those expectations are inside the 87 that passed. The likelihood is a base-R dense Laplace with the hand Sigma = solve(Q) and hand projection. The triangulation itself comes from the package mesh (fmesher), which is reasonable. (2) Bugs are asserted at more than 0.1: reversed site SD, precision x 2, kappa doubled, projection nodes reversed, and (for the slope) dropped slope design. Minimum gaps are 1.2 to 2.5, against agreement of 1e-12 to 1e-7. (3) The fits are spatial(1 | site, mesh) with sd(site, level='spatial') ~ z_site, and spatial(0 + x | site, mesh) with coef = 'x'. Kappa is fixed through make_mesh(kappa = 1/1000), and the oracle uses mesh$kappa, so the agreement is at the fixed-kappa precision. This matches mesh_precision_fixed_kappa. (4) The manifest and fragment hashes match. The console log shows 87 expectations, 0 failed, 0 skipped, 0 errors, and my rerun on Totoro gave 87/0/0/0. This does NOT establish: kappa estimation or kappa-dependent behaviour (kappa is fixed); calibration or recovery; a spatial q2 correlated block; any Julia parity; meshes other than this 32-site regular layout.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-mesh-oracle-b31nb.R",
+    "test_sha256": "cbd5fd5a1f50415fe38d73bbd83da3938c009d466e384ba3887e0720c25aaeef",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:06:44Z",
+    "ended_utc": "2026-11-03T01:07:22Z",
+    "expectations_passed": 87,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-mesh-oracle-b31nb-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "0f078e721d5d62a9dadb9b0987123884538c61ad811935ab029258b5a5ba6664",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

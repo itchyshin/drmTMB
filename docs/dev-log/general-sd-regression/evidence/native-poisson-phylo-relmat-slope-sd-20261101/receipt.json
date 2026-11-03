@@ -25,7 +25,7 @@
   "test_path": "tests/testthat/test-poisson-phylo-relmat-slope-sd-regression.R",
   "test_sha256": "f5d3a75a806fc27dc54a4eed264085da40efdc284d4aa080dfe83a910f9c7863",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-phylo-relmat-slope-sd-20261101/source-manifest.json",
-  "source_manifest_sha256": "757fab70c844ca15541e36efa36ba5b48e3563a87ee70b24599199c5f64c21ff",
+  "source_manifest_sha256": "dea16dcc497a6c609555c4b2c2fb2d2320290eb22532123bd5037fbf2980f904",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-phylo-relmat-slope-sd-20261101/test-console.log",
   "console_log_sha256": "d36440eac116d31bf3500fa6d794e7f82884fa5df848b4316e96de8a7f39bc4a",
   "result": {
@@ -56,16 +56,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-poisson-phylo-relmat-slope-sd-regression.R",
     "test_sha256": "f5d3a75a806fc27dc54a4eed264085da40efdc284d4aa080dfe83a910f9c7863",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:17:14Z",
-    "ended_utc": "2026-11-02T18:17:30Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:11:06Z",
+    "ended_utc": "2026-11-03T01:11:26Z",
     "expectations_passed": 38,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/native-poisson-phylo-relmat-slope-sd-20261101/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "07b5482d8c6eaf489b99b14a0bf3615e8ddb708af9654202ab809e805e88f3aa",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-poisson-phylo-relmat-slope-sd-20261101/test-console-rerun-81553915d.log",
+    "console_log_sha256": "9216ef0eba09234f30e7d8d8a423678d275a358b914b2e318ef6cb6445ca7f84",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

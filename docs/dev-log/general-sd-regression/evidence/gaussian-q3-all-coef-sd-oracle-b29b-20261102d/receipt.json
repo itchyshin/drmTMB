@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-gaussian-q3-all-coef-sd-oracle-b29b.R",
   "test_sha256": "2685f115eebc0d7cdfa06d20c56d2b71ca0a49c44c84854085d80983a0062d13",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-q3-all-coef-sd-oracle-b29b-20261102d/source-manifest.json",
-  "source_manifest_sha256": "b6f915e017e1199515ca0eb1965c438b6652b4ba472380df643a8bf87517bc32",
+  "source_manifest_sha256": "49f1a1b4f4f97897d49a9c17451f0a08f764a9e123b687a658b0f90f17358b13",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-gaussian-q3-per-coef-sd-20261102r-m26"
@@ -50,5 +50,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read line by line. Oracle is the exact Gaussian marginal in base R (chol of Z D R D Z' + sigma^2 I per group), fully independent of the TMB code and self-contained (no helper). SD vectors are built by hand from fitted coefficients; R is parsed by name from fit$corpars$re_cov; logLik agrees at 1e-6. sd() formulas on I, x and z each with a distinct selector, and the mu:x2 (z) SD is additionally checked against predict(). One correlated block with 3 correlations asserted, so mu:I, mu:x1 and mu:x2 are all fitted as one block. Emulated bugs (swapped coefficient sets, rotated SD columns, reversed SD for each coefficient, flipped I-x correlation) each asserted >0.1 away from the oracle. Hashes recompute with 0 mismatches; console log shows 19 passed, 0 failed, 0 skipped. This closes the mu:x2 sd() formula gap in the parent. Does NOT establish: calibration, coverage, recovery, Julia parity (not run), non-Gaussian families, structured providers, or more than one seed; oracle is at fitted parameters, with sigma ~ 1 only.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-q3-all-coef-sd-oracle-b29b.R",
+    "test_sha256": "2685f115eebc0d7cdfa06d20c56d2b71ca0a49c44c84854085d80983a0062d13",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:48Z",
+    "ended_utc": "2026-11-03T01:09:56Z",
+    "expectations_passed": 19,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-q3-all-coef-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "bd129f3e0ef0ebf810960c5b97bfaed5d41a22508b95da9bef25824a45c1fc44",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

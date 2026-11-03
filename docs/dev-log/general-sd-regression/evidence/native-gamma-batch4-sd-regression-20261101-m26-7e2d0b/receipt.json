@@ -21,7 +21,7 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-gamma-batch4-sd-regression-20261101-m26-7e2d0b/source-manifest.json",
-  "source_manifest_sha256": "6895462ed95a72cc545e8c962b42327ffc1e2ef883aef75b189ddc55bde9f69d",
+  "source_manifest_sha256": "528070964a32823dff76e12f1df8661ed5f4df51681fe6b9000cf7fc4f567e14",
   "review_status": "reviewed_narrow_claim",
   "checks": [
     "spec assembly and refused duplicate or unmatched sd() targets",
@@ -33,5 +33,19 @@
   ],
   "review_note": "Independent review of the single native Gamma(log) row: ordinary (1 | g) plus relmat(1 | p, K = K) with separate sd(g) ~ zg and sd(p, level = 'relmat') ~ zp, sigma ~ 1. The test builds its own AR(0.5) kernel K, stored in a shuffled level order, and a base-R dense Laplace oracle (Newton mode, observed-information Hessian, Sigma = blockdiag(diag(tau_g^2), D K D)) that uses no TMB or drmTMB likelihood, simulation or kernel helper. Oracle is evaluated at the fitted coefficients. A Totoro scratch run reproduced logLik -522.7251 against oracle -522.7251 (abs diff 1.6e-11; test tolerance 1e-5 relative is about 5e-3 absolute). The test already contains emulated-bug checks: reversing zg moves the oracle 1.81, reversing zp 0.26, positional rather than name-based K alignment 10.6 (each asserted > 0.1). My scratch run also showed a 1.3x kernel-scale error moves it 0.30. The one linked row is exercised by the K-input fit. All 8 manifest hashes match current files; rerun 30 pass, 0 failures, 0 skips. Does NOT establish: Q-precision input (Q fit is only compared with the K fit and no row links it), calibration or coverage, recovery beyond loose bands (0.6, one seed), other families or provider pairs, Julia parity.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gamma-batch4-sd-regression.R",
+    "test_sha256": "85319af1281be28b4656ca4c92259497a3450e7c7f909ab1beb85f798334f68f",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:08:14Z",
+    "ended_utc": "2026-11-03T01:09:27Z",
+    "expectations_passed": 30,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-batch4-sd-regression-20261101-m26-7e2d0b/test-console-rerun-81553915d.log",
+    "console_log_sha256": "a8b9dfad3875747e794c5c665a697425e2f5e5e105bd7379036491826722b59c",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

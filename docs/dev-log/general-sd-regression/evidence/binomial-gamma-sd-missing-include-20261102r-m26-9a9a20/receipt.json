@@ -21,7 +21,7 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-gamma-sd-missing-include-20261102r-m26-9a9a20/source-manifest.json",
-  "source_manifest_sha256": "49017be4f3acc5fe5ab4e92813e13a0998055e99a708528baedf18512f995989",
+  "source_manifest_sha256": "3fd3b97909c44bc91a5fbdc84ef5a3d42671afefe0cd2fd0b85bf7e8cc2ac2ed",
   "review_status": "reviewed_narrow_claim",
   "not_covered": [
     "interval calibration",
@@ -33,5 +33,19 @@
   ],
   "review_note": "Reviewer 1, 2026-11-02. All six linked rows are fitted under miss_control(response=include). Binomial logit (1|id) and (0 + x|id) with sd(id) ~ w, Bernoulli and trials, each against a base-R per-group scalar Laplace oracle. Gamma(log) relmat K, animal A, phylo and coordinate-spatial q1 intercepts with a structured SD formula, each against a base-R dense Newton and logdet(I + K W) oracle on the full kernel, including the empty-group layout. Kernels are independent of the package: hand Toeplitz K with diagonal 1.7, object order reversed and data level order shuffled; cov2cor(ape::vcv(tree)) for phylo; and a hand rebuild of the documented exp(-d/median) + 1e-6 I for spatial. Include fits equal complete-case fits to 1e-8, and the oracle agrees at 1e-4. Emulated bugs must move the oracle by more than 0.05: masked rows scored as placeholders, the SD slope silently dropped, and for relmat and animal K converted to a correlation. Rerun: 241 passed, 0 failed, 0 skipped. Test, console log, manifest and all 5 manifest entries hash-match current files. Does NOT establish: calibration or coverage; simulate or Julia parity; Gamma structured slope, q2 or Q routes (these stay refused under include); explicit perturbation tests that K alignment is by name for phylo and spatial (there only the oracle agreement and the SD-slope-dropped bug are tested); the spatial kernel convention beyond the documented formula; non-logit Binomial links.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-gamma-sd-missing-include.R",
+    "test_sha256": "0b13f3d09c21566b6d194b5da4cf39b58745c3dd0195d574506bc856a3e7791f",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:06:16Z",
+    "ended_utc": "2026-11-03T01:09:17Z",
+    "expectations_passed": 241,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-gamma-sd-missing-include-20261102r-m26-9a9a20/test-console-rerun-81553915d.log",
+    "console_log_sha256": "5a7384d677e472f91c585fde1914f4fbec3b92efec9910366db3025b4bae088d",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

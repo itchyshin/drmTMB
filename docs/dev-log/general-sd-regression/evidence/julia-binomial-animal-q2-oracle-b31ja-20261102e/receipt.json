@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-animal-q2-oracle-b31ja.R",
   "test_sha256": "80c8f6efc883598145df444e3a064c9f7613a175b64928c0602f73213d6e1f3a",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-q2-oracle-b31ja-20261102e/source-manifest.json",
-  "source_manifest_sha256": "23dbefd2850fa29b0bb344fbaa0cbd9f6ddcb989924f37ce470401ab225331dc",
+  "source_manifest_sha256": "2128d51f116eb48e9f7ed28b40e30cf650c9ed113475a7ed989bae5f11b24740",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "scope": "Live Julia (engine = 'julia') Binomial animal(1 + x | id) correlated q2 block with sd() on both coefficients, providers A (logit, probit, cloglog), Ainv (logit) and pedigree (logit, probit, cloglog); inbred pedigree (diag A 1.25 to 1.67), A row order differs from factor level order, random non-palindromic selectors. Independent base-R dense joint-Newton Laplace oracle with hand-built Henderson A evaluated at the Julia estimates; coefficient shifts of +-0.1 do not raise the oracle for the A logit fit.",
   "achieved_oracle_agreement_max_abs": "2.24e-06 (max over 7 fits)",
@@ -365,5 +365,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helper line by line. (1) Oracle is independent: Henderson tabular A built by hand from an inbred pedigree (I checked on Totoro that its offspring diag(A)-1 is 0.25/0.375/0.5/0.59375/0.671875, the full-sib inbreeding recursion, and that it is symmetric and positive definite); the 2m x 2m covariance (S_k S_l R_kl A) and the dense joint-Newton Laplace with hand-derived logit/probit/cloglog derivatives are base R, and the link terms are checked against dbinom and central differences. (a) The Julia fit ESTIMATES the shared correlation: the contract and the existing q2 test show rho = tanh(eta_rho) as a free parameter (atanh_rho); the test reads it from fit$corpars$mu 'cor((Intercept),x | id)' and the oracle uses that fitted rho. It is not fixed at 0: flipping its sign moves the oracle by 2.4 to 12.7 log-units, and a rho of 0 would have made that gap 0 and failed the test. Layout is one animal field, one correlated term, q=2, coefficient-specific scales (sd formulas on both (Intercept) and x), so the row mechanism is the one named. Both targets (mu:I, mu:x1) have their own selector and own reversed-SD bug. All three providers were fitted separately (A x3 links, Ainv logit, pedigree x3 links), which matches the 14 row keys exactly (6 + 2 + 6). (2) Bug sensitivity asserted at >20x tolerance; smallest measured gap 0.4486 (449x), and every one of 9 emulated bugs was asserted. (4) All sha256 values (receipt, manifest, test, helper, 6 source files, console log) match current files; HEAD 996eccf79 matches the receipt; console log shows 142 passed, 0 failed, 0 errors, 0 skips and 'Julia bridge: 1 live test ran'. Totoro native rerun of this file gives 0 passed, 1 skipped (no live Julia there), so counts rest on the Mac console log, which I did not rerun. Does NOT establish: that the Julia rho or SD estimates are the maximiser (the oracle is evaluated at the Julia estimates; only beta, a0, a1 are perturbed for one A-logit fit, rho is not); a Julia-versus-exact-marginal claim (Laplace vs Laplace, same approximation); one fixture and one seed per link; no calibration, coverage, SE or interval claim; no other family, q>2, or other pedigree.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-animal-q2-oracle-b31ja.R",
+    "test_sha256": "80c8f6efc883598145df444e3a064c9f7613a175b64928c0602f73213d6e1f3a",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:08:51Z",
+    "ended_utc": "2026-11-03T01:09:22Z",
+    "expectations_passed": 142,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-q2-oracle-b31ja-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "32ec14aeec2cbc94097e342e632d83b089ce03b4936acc342a964bc02725495b",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

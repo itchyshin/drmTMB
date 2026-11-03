@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-animal-iid-nonlogit-sensitivity-b29.R",
   "test_sha256": "9f419e80f88b0661ee046175a440b6c3ffe5660b169f3cb1a85d061c7c152692",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-nonlogit-sensitivity-b29-20261102d/source-manifest.json",
-  "source_manifest_sha256": "7706c05ceabf2d60452e7ab0604378c740a3dc6b22b593fe922a9b1531ebbdf8",
+  "source_manifest_sha256": "7e2a43dc504624fed26029379aa90fa8fd127228e5594432b7e5c1918330e427",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "strengthens_evidence_ids": [],
   "strengthens_note": "The test header names no ledger id; nothing is claimed as strengthened. Rows are linked directly.",
@@ -46,5 +46,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test line by line. The oracle is base R and independent: dense joint Newton Laplace with hand-derived probit and cloglog Bernoulli terms (first and second derivatives in eta). The first test block checks those terms against dbinom and central differences for both y values, so the oracle is not trusted on faith. Live Julia logLik agrees with the oracle to 1.46e-4 (probit) and 1.48e-4 (cloglog) against a 1e-3 tolerance. Emulated bugs (selector swap, two slope-sign flips, two reversed SD vectors, A x2, A x1.1, wrong decay kernel, wrong link) are each asserted above 20x the tolerance; the smallest is A x1.1 at 0.065 (probit) and 0.064 (cloglog), about 65x. The producer correctly replaced cov2cor(A) and dimnames reversal, which are no-ops for this unit-diagonal Toeplitz A, with a wrong-decay kernel. Both linked row_keys are fitted: animal(1|animal_id, A = A) plus (1|site), with sd(animal) ~ z and sd(site) ~ w, one fixture per link. Hashes: receipt, manifest, test and console log match the fragment, and all 7 manifest files check OK. Console shows 32 passed, 0 failed, 0 errors, 0 skipped, and the live Julia block ran (2 test blocks, one live). Empty strengthens_evidence_ids is right. Does NOT establish: Ainv_precision or pedigree routes for probit and cloglog; the logit link here; any native rows; calibration, coverage, SEs or recovery; more than one fixture per link; correlated or slope (1 + x | id) structures; and the Julia source state, since DRModels.jl was dirty at d5e3e6b11 and the manifest hashes only the drmTMB files.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-animal-iid-nonlogit-sensitivity-b29.R",
+    "test_sha256": "9f419e80f88b0661ee046175a440b6c3ffe5660b169f3cb1a85d061c7c152692",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:07:00Z",
+    "ended_utc": "2026-11-03T01:07:42Z",
+    "expectations_passed": 32,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-nonlogit-sensitivity-b29-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "b4738d8138caf0682f929795d1e03e781b1965179f8ee2dbb91ed594d91c8311",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

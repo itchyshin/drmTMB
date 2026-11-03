@@ -26,7 +26,7 @@
   "test_path": "tests/testthat/test-gamma-mu-sigma-joint-sd.R",
   "test_sha256": "3feb47c6ef16417488edceb6ef220de2335ef2bcf882b52b6c18066c95404a6e",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gamma-mu-sigma-joint-sd-20261101d/source-manifest.json",
-  "source_manifest_sha256": "eb50bc856c013cfccf3c87caf25cb8d136afab424fca1959e0f2b486a2a915f8",
+  "source_manifest_sha256": "21a4114103cbcbe79164143c79ca9fa867c44696625968514a899068c1cff836",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/gamma-mu-sigma-joint-sd-20261101d/test-console.log",
   "console_log_sha256": "31231751ddffca90d36fbbcc9ba3c23db1c054a3940f9540c010f7d1761d8325",
   "result": {
@@ -56,16 +56,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-gamma-mu-sigma-joint-sd.R",
     "test_sha256": "3feb47c6ef16417488edceb6ef220de2335ef2bcf882b52b6c18066c95404a6e",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:14:26Z",
-    "ended_utc": "2026-11-02T18:15:18Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:08:38Z",
+    "ended_utc": "2026-11-03T01:09:31Z",
     "expectations_passed": 26,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-mu-sigma-joint-sd-20261101d/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "b57d4f53490227c4c382a7339661ead0f5ab2a59a6af2dad7e8171ac3cd87d6a",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-mu-sigma-joint-sd-20261101d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "d4d5e864a617691bbaf779419b793cb2ea2663a0e66a8a289979a5d6ad501598",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

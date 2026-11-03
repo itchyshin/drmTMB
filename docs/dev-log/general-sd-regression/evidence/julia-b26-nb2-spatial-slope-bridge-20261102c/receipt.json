@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-b26-nb2-spatial-slope-bridge.R",
   "test_sha256": "827b87e57925671d4afca11f531072dfbc37d0f9d6c5a7d3098ba40dd1f630ef",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-b26-nb2-spatial-slope-bridge-20261102c/source-manifest.json",
-  "source_manifest_sha256": "3fac48b2d91898874c662efbf859f7675040026ce2d7cc3d6aa3d5da25c31209",
+  "source_manifest_sha256": "3181b80f064dd2cb5c3704e59572f04fb5c2cffd4a5f58d15f707cce0f233195",
   "live_julia": "run live: Julia 1.10.0 with DRM_JL_PATH at DRModels.jl 87a371a66 (src/ and test/ clean)",
   "strengthens_evidence_ids": [],
   "strengthens_note": "No parent evidence id; new Julia bridge admission (batch 25/26). These rows were not previously linked to a Julia bridge receipt.",
@@ -39,5 +39,19 @@
     "NB2 phylogenetic slope-only SD (no Julia route)"
   ],
   "tolerances": "as fixed in the test file header; none loosened",
-  "review_status": "unreviewed"
+  "review_status": "unreviewed",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-b26-nb2-spatial-slope-bridge.R",
+    "test_sha256": "2d9c1d7757887c41c2f40835850e48386441f1380e30bb70dd31b10c3e458267",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:06:29Z",
+    "ended_utc": "2026-11-03T01:07:00Z",
+    "expectations_passed": 29,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b26-nb2-spatial-slope-bridge-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "55978e811c60eae69d0cde9bfde63b582f5989d4d5500aa4a7327f225712a834",
+    "reason": "test file edited (refusal-pin or companion update) and source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

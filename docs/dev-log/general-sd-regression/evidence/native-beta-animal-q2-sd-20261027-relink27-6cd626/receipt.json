@@ -26,7 +26,7 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027-relink27-6cd626/source-manifest.json",
-  "source_manifest_sha256": "f39e1533fa9b0eb7cb79408a4e7bf6b8a4731fc007b5300e0953aab796fb3040",
+  "source_manifest_sha256": "83c0be6712377c30971d474a48f4e22bab7d14c401e27492af9df1919f66fc76",
   "review_status": "reviewed_narrow_claim",
   "does_not_establish": [
     "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
@@ -34,5 +34,19 @@
   ],
   "review_note": "Native Beta(logit) mu animal(1 + x | id) with independent intercept and slope fields, SD regressed on z0 and z1; two rows (A covariance, Ainv precision), both fitted. Oracle is independent of package code: hand-built non-unit-diagonal AR(1) A, permuted before use; base-R dense Laplace with analytic score/Hessian verified by finite differences and two initialisations; -logLik and eta agree at 1e-4. The Ainv row is a separate fit from solve(A) with permuted labels, tied to the A fit by logLik, coefficients, SD predictions and linear predictor at 1e-4 (so supported transitively at that tolerance). Manifest matches current files; log shows 58 passed, 0 failed, 0 skipped. Sensitivity from my scratch run (nll gap vs 1e-4): swap selectors 78.9; reverse z0 64.1; reverse z1 5.1; sign flip 188; cov2cor(A) 0.028 (eta 0.056); A x2 9.2; A rows reversed under old labels 0.82. Not asserted inside the test. Pedigree and Binomial animal q2 pins that flipped to admission in the live file are only spec-build checks, not fitted. Does NOT establish: calibration or coverage, anything about pedigree-built A or Binomial animal q2 fits, a correlated block (independent fields), recovery beyond one seed, or in-test protection against the perturbations, which only my scratch run shows.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-beta-animal-q2-sd-regression.R",
+    "test_sha256": "e3d8e079b63247be1fee4623a3acf45bf3fe6bfd5a54377e633d245eaac5280c",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:34Z",
+    "ended_utc": "2026-11-03T01:10:45Z",
+    "expectations_passed": 58,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027-relink27-6cd626/test-console-rerun-81553915d.log",
+    "console_log_sha256": "80e8db92848b4e7155fc6f424736c1b9c3f70625f83a3b76608ed66922ea3aca",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

@@ -46,7 +46,7 @@
   "test_path": "tests/testthat/test-gaussian-sigma-structured-sd.R",
   "test_sha256": "8b7d548a65063ac49682ad3a65d2e528519a4aca99165f472128efba4fb4c357",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-structured-sd-20261101d/source-manifest.json",
-  "source_manifest_sha256": "780279f623b672cf5f1f5628a1e4001bc473e0771d5324b2a19822d6b88046e1",
+  "source_manifest_sha256": "063d75d5852ab1afa7eec6c9e901ff0dbea76a2310776b8c80a177ec7bc57f59",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-structured-sd-20261101d/test-console.log",
   "console_log_sha256": "eb4f3545d6f2ee0713997fe8ad2472ec9caa976b1ac6e21f602ac98082558191",
   "result": {
@@ -73,16 +73,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-gaussian-sigma-structured-sd.R",
     "test_sha256": "8b7d548a65063ac49682ad3a65d2e528519a4aca99165f472128efba4fb4c357",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:16:25Z",
-    "ended_utc": "2026-11-02T18:17:13Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:02Z",
+    "ended_utc": "2026-11-03T01:10:49Z",
     "expectations_passed": 92,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-structured-sd-20261101d/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "10bda7ec4e82c1be339eeb251d6dc8b352598840677e59553fe795fc708375dc",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-structured-sd-20261101d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "cb660f660802fdcc848c5a963596bad5baf4bf8f6b0ec9d9361c090f8606f545",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

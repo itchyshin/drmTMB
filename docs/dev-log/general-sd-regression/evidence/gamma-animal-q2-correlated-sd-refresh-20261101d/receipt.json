@@ -23,7 +23,7 @@
   "test_path": "tests/testthat/test-gamma-animal-q2-correlated-sd.R",
   "test_sha256": "4ac71dfb9b6c3f18255333cc700b027944305916deb82ec7851ffd60cb28a05a",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-correlated-sd-refresh-20261101d/source-manifest.json",
-  "source_manifest_sha256": "26f7e1efb84624e680b5ab5de9ab997b824f9cab8a3f86ca5899b2e4c86a68d8",
+  "source_manifest_sha256": "ec2e69736c575af07f5fd7097fcc90821d9bca90dce5606394cd57ac8203073b",
   "evidence_grade": "recovery",
   "evidence_grade_basis": "inherited from replaced ledger rows (native-gamma-animal-q2-correlated-sd-20261101)",
   "scope": "Same row_keys as the replaced ledger lines for native-gamma-animal-q2-correlated-sd-20261101; see candidate_rows. Fresh run of the current test source.",
@@ -56,16 +56,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-gamma-animal-q2-correlated-sd.R",
     "test_sha256": "4ac71dfb9b6c3f18255333cc700b027944305916deb82ec7851ffd60cb28a05a",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:14:26Z",
-    "ended_utc": "2026-11-02T18:15:30Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:07:58Z",
+    "ended_utc": "2026-11-03T01:09:09Z",
     "expectations_passed": 56,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-correlated-sd-refresh-20261101d/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "820265cee1052c47df474e9a92f90f22661a6462f9cdb071929c775c03e71692",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-correlated-sd-refresh-20261101d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "6d6aba537e1140e654f0049990556d1d15518b3747f7cc40d9fb589b4c9f4ff2",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

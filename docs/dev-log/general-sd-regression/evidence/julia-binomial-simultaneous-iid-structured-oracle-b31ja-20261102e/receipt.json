@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-simultaneous-iid-structured-oracle-b31ja.R",
   "test_sha256": "4aa250d4c20c65fd4073a96a9628375361628f630ebcc5ad5f4c97526856e37d",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-simultaneous-iid-structured-oracle-b31ja-20261102e/source-manifest.json",
-  "source_manifest_sha256": "8cda61e1f43adad241cd62071dd8b15af1b3387472ec8aed0b5849b8cdc83ad6",
+  "source_manifest_sha256": "bd1fff49d7be853b4d08bd737a1874c55fef6ed7e29ba363a95705c9499819ba",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "scope": "Live Julia Binomial (1 | site) plus phylo(1 | species, tree) for logit, probit, cloglog and plus animal(1 | id, pedigree) for logit, each with its own sd() formula. Independent base-R dense Laplace oracle: K = cov2cor(ape::vcv(tree)) (tips shuffled) or hand-built inbred Henderson A; package tip covariance compared with cov2cor(ape::vcv) to 1e-8; random non-palindromic selectors.",
   "achieved_oracle_agreement_max_abs": "1.66e-05 (max over 4 fits)",
@@ -134,5 +134,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read test and helper. Oracle is independent: dense Laplace with eta = X b + S_iid u_site + S_str u_g, u_site ~ N(0, I), u_g ~ N(0, K); K = cov2cor(ape::vcv(tree)) with tip labels shuffled, or hand-built inbred Henderson A (pedigree row). The package tip covariance is also compared with cov2cor(ape::vcv(tree)) at 1e-8. (c) Tree heights: the console log shows Julia warnings for heights 11.694866, 2.750052 and 8.340066, none equal to 1, so these fits are on non-unit trees. The warning says Julia's sd_phylo is on the raw branch-length scale (factor sqrt(height)); the R bridge multiplies the log-SD by sd_scale = sqrt(mean depth) (julia-bridge.R, the univariate and sd paths), and the observed 6.6e-11 to 9.5e-11 agreement with the correlation-form K at the reported coefficients confirms the reported coefficients are on the correlation scale. The emulated bug 'raw ape::vcv instead of correlation form' moves the oracle by 2.25 to 6.93, so a scale slip would have failed. Hence the claim holds for the bridge-reported sd_phylo on these non-unit ultrametric trees, not for Julia's raw-scale sd and not for non-ultrametric trees. Four rows, four fits: (1|site) + phylo logit, probit, cloglog; (1|site) + animal pedigree logit; each with its own sd formula on both fields; q=1 per provider, additive independent fields, as the row key says. Nine and eight emulated bugs asserted above 20x tolerance; smallest gap 0.1933 (193x). Agreement 6.6e-11 to 1.66e-05. Hashes match (including R/phylo-utils.R), HEAD matches, console log: 78 passed, 0 failed, 0 errors, 0 skips, live block ran. Totoro native skips; Mac log not rerun. Does NOT establish: Julia's raw-scale sd_phylo or any unit-height-tree claim (not tested, no tree of height 1 used); non-ultrametric trees; animal pedigree with probit or cloglog; A or Ainv providers for the iid+structured pair; calibration, coverage or SEs; one fixture and seed per route.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-simultaneous-iid-structured-oracle-b31ja.R",
+    "test_sha256": "4aa250d4c20c65fd4073a96a9628375361628f630ebcc5ad5f4c97526856e37d",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:18:45Z",
+    "ended_utc": "2026-11-03T01:19:27Z",
+    "expectations_passed": 78,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-simultaneous-iid-structured-oracle-b31ja-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "bedd5d68f125b98dd9dd6fa3d429a966da9a2a654c9716d85dd3db864a891c49",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

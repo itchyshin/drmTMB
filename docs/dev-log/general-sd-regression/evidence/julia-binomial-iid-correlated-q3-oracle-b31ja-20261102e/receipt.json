@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-iid-correlated-q3-oracle-b31ja.R",
   "test_sha256": "cf7591d127fbb93449774b6ce3f873527cfd3e905fe172b203ab6d66f0357d08",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-correlated-q3-oracle-b31ja-20261102e/source-manifest.json",
-  "source_manifest_sha256": "bca37f4b5ce44c881ec1d63fe300e6258eb88e1e7dc35b0e18ecc8731ec2fd15",
+  "source_manifest_sha256": "1bea4d5e88c0cdab5baa008e79507b75016bfa00624ccb3e23fb17bea22bf7d0",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "scope": "Live Julia Binomial ordinary (1 + x1 + x2 | id) correlated q3 logit block with sd() on all three coefficients (100 groups x 24). Per-group adaptive Gauss-Hermite oracle with 5 nodes per axis (the route's quadrature) built in base R, evaluated at the Julia estimates; random non-palindromic per-group selectors. Run time about 7 minutes cold (6+ minutes of Julia compilation), exceeding the 2-minute target.",
   "achieved_oracle_agreement_max_abs": "0 (to printed precision; 2.3e-13 on the sibling q2 fits)",
@@ -112,5 +112,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read test and helper. Same independent 5-node adaptive Gauss-Hermite oracle as the q2 file (validated by me on Totoro against brute-force grid integration for q=2: 5-node error about 1e-5 to 3e-4 on the group, 15-node exact to 1e-5). For q3 no 15-node value was computed, so the distance between Julia's 5-node logLik and the exact marginal is unknown here (by analogy to q2 it is small but not measured, and may be larger with three axes). The Julia fit estimates three correlations: the test requires length 3 of fit$corpars$mu, parses each by coefficient name into R, and flipping the first correlation or R = identity moves the oracle by 15.3 and 6.8. Three row keys (mu:I, mu:x1, mu:x2; 'O-multi-within-q3-anchor') are covered by one fit with sd formulas on each of the three coefficients; reversing each coefficient's SD vector moves the oracle by 3.09, 0.484 and 2.886 (smallest 0.484, 484x tolerance, asserted >20x). Exact agreement of 0 is plausible but notable (both sides compute the same scheme); it is consistent with the q2 files, which agree to 2.3e-13. Hashes match, HEAD matches, console log: 37 passed, 0 failed, 0 errors, 0 skips, live block ran. I did NOT rerun the live q3 file (7 minutes, and Totoro has no live Julia; native rerun skips). Does NOT establish: agreement with the exact marginal (gap unmeasured for q3); estimates being the maximiser; any non-logit link at q3; calibration or coverage; one fixture and seed.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-iid-correlated-q3-oracle-b31ja.R",
+    "test_sha256": "cf7591d127fbb93449774b6ce3f873527cfd3e905fe172b203ab6d66f0357d08",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:45Z",
+    "ended_utc": "2026-11-03T01:16:39Z",
+    "expectations_passed": 37,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-correlated-q3-oracle-b31ja-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "80ec3b4e4429beda56ac21a4a401ee5b63aa3604ad0d19c606252d82cc4c1d47",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

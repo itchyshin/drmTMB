@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-nbinom2-iid-structured-sensitivity-b26.R",
   "test_sha256": "bf2c4b1c576323431b0345939ebb73d5d2477b28aeb3fce6651c5cd4c3e1efef",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-iid-structured-sensitivity-b26-20261102c/source-manifest.json",
-  "source_manifest_sha256": "60a41b4e3733a9c2c1c77b17839446cc2594a60cebb2e734b6f00c7d435d9266",
+  "source_manifest_sha256": "4749c99279c21f4cbefb892473b797757cd950c7d736d09a3189b8a6f2399100",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-nbinom2-batch5-sd-regression-r2-20261101-20261102b-m26"
@@ -55,5 +55,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "NB2 iid (site) plus one structured intercept (id) with a different SD predictor and coefficient set per field: relmat K, relmat Q, animal A, animal Ainv, phylo (5 provider-pair rows, all fitted). The oracle is a base-R dense Laplace using hand kernels (non-unit-diagonal relmat K, Henderson A with inbreeding, and cov2cor(ape::vcv) on a tree with height not 1). The package phylo tip covariance is compared with ape::vcv in-test, which closes the parent's phylo kernel gap. logLik tolerance 1e-4. Four bugs (reversed structured SD, reversed iid SD, swapped selector coefficients, wrong K scale) each move it by more than 0.1 and pass, which closes the parent's missing perturbation gap. Manifest 7/7 match, and the rerun shows 52 expectations, 0 failures, 0 skips. Does NOT establish: the parent's iid-additive-terms mu:I row (not fitted here), calibration or coverage, Julia parity, or NB2 sigma modelling beyond sigma ~ 1.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-nbinom2-iid-structured-sensitivity-b26.R",
+    "test_sha256": "bf2c4b1c576323431b0345939ebb73d5d2477b28aeb3fce6651c5cd4c3e1efef",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:31Z",
+    "ended_utc": "2026-11-03T01:10:48Z",
+    "expectations_passed": 52,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-iid-structured-sensitivity-b26-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "f9463558afb21fd9a27e687721873f5af7a20e901b64124b173ba649e221712c",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

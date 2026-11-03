@@ -5,7 +5,7 @@
   "files": [
     {
       "file": "R/drmTMB.R",
-      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
     },
     {
       "file": "R/formula-markers.R",
@@ -13,7 +13,7 @@
     },
     {
       "file": "R/methods.R",
-      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+      "sha256": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe"
     },
     {
       "file": "R/parse-formula.R",
@@ -37,7 +37,7 @@
     },
     {
       "file": "src/drmTMB.cpp",
-      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
     },
     {
       "file": "src/drm_count_kernels.h",
@@ -55,5 +55,6 @@
       "file": "tests/testthat/test-poisson-batch5-sd-regression.R",
       "sha256": "f6aa052a1ac95e7f757b9070d9b44db883c42ec83fd1d292c4f5262ae8ef9244"
     }
-  ]
+  ],
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'R/methods.R', 'src/drmTMB.cpp']"
 }

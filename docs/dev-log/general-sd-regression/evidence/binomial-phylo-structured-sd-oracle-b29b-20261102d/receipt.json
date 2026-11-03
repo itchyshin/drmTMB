@@ -20,7 +20,7 @@
   "test_path": "tests/testthat/test-binomial-phylo-structured-sd-oracle-b29b.R",
   "test_sha256": "f67055e98f33908a9eb9bf70fef7b565b65fdc80b675d2ca7c5fd833c636a4c8",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-phylo-structured-sd-oracle-b29b-20261102d/source-manifest.json",
-  "source_manifest_sha256": "2f8a1b6d3c716de75f6448149acf424f980350e0839903f054b3d7e835c2cb65",
+  "source_manifest_sha256": "5d5fbd0ba5293faaef0d90e7bfbbe3b2339ba4540eff2dd461b61154c8e454c1",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-binomial-phylo-relmat-k-cloglog-20261027-m26",
@@ -89,5 +89,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helpers. Independent base-R dense Laplace oracle with ape::vcv through cov2cor for the tree (package helper compared with it at 1e-8 on all three phylo fixtures), Henderson tabular A from an inbred pedigree, a hand relmat kernel (Ainv and Q by solve) and a hand spatial kernel. logLik agrees within 1e-4 for each fit, and provider oracle values agree within 1e-6 (A, Ainv and pedigree; K and Q). Each emulated bug (swap, reversed SD, raw vcv for phylo, cov2cor(K) and K x 2 for animal or relmat, kernel read by position) is asserted to move the oracle by more than 0.1. All 12 row_keys are fitted: logit phylo+animal for A, Ainv and pedigree; phylo+relmat K and Q for the three links; phylo+spatial for the three links. Each field is an intercept with sd ~ covariate on its own factor, so there is no slope-member issue. Hashes match, and the console shows 220 passed, 0 failed, 0 skipped, exit 0, with no Julia. Does NOT establish: probit or cloglog phylo+animal (not fitted here); slope, labelled or correlated blocks; calibration, coverage, SE or recovery; Julia parity; any seed beyond the fixed ones (one per block or link); kernel-scale sensitivity for the phylo and spatial fields beyond raw vcv and position reading; behaviour away from the fitted optimum.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-phylo-structured-sd-oracle-b29b.R",
+    "test_sha256": "f67055e98f33908a9eb9bf70fef7b565b65fdc80b675d2ca7c5fd833c636a4c8",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:06:51Z",
+    "ended_utc": "2026-11-03T01:07:41Z",
+    "expectations_passed": 220,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-phylo-structured-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "ce7264c806403f890e3e45007f9315bb2b07295c7710e2b03c762094d5c95087",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

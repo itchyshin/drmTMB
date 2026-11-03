@@ -9,7 +9,7 @@
   "test_path": "tests/testthat/test-nbinom2-mu-sigma-joint-sd.R",
   "test_sha256": "08f40179370fe34b7114cc44d64db8dc22380b335ce8502233c84bc363fcca55",
   "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-joint-sd-20261101d/source-manifest.json",
-  "source_manifest_sha256": "4bdf73a47eef60ad0720b863803e6345767f261c6446ceb8993a304ec93e629f",
+  "source_manifest_sha256": "59b4855f499930bf8979501ba1f085f6a4b72ed819fcd7e204a5b5aa997b85e1",
   "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-joint-sd-20261101d/test-console.log",
   "console_log_sha256": "026006b6b9ac2c5cafe2b3ae8cabbc5cc6d8dedbb9fc5a89f76ceb8657652bce",
   "result": {
@@ -56,16 +56,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-nbinom2-mu-sigma-joint-sd.R",
     "test_sha256": "08f40179370fe34b7114cc44d64db8dc22380b335ce8502233c84bc363fcca55",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:16:48Z",
-    "ended_utc": "2026-11-02T18:17:37Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:34Z",
+    "ended_utc": "2026-11-03T01:11:26Z",
     "expectations_passed": 29,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-joint-sd-20261101d/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "e43cb5f628c13b9730e1ddded108887ef55f5524a1deb7b5f44388e691145255",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-joint-sd-20261101d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "4f48f3fc4888146ba4eaf153e9284c830467dae13fd9445046fd38348b27a429",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

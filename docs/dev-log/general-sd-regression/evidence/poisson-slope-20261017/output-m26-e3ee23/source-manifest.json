@@ -69,7 +69,7 @@
     },
     {
       "file": "R/drmTMB.R",
-      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
     },
     {
       "file": "R/emmeans-preflight.R",
@@ -97,7 +97,7 @@
     },
     {
       "file": "R/julia-bridge.R",
-      "sha256": "12bbd1a92780418d8638b3f15f41ba3d44a4df89950a76018ca66d228b00b042"
+      "sha256": "71a3fa79a97764bbae390ad771d4300688d1d58783d49fb5bf93a6d7bfa82c0d"
     },
     {
       "file": "R/julia-coefficient-labels.R",
@@ -149,7 +149,7 @@
     },
     {
       "file": "R/methods.R",
-      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+      "sha256": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe"
     },
     {
       "file": "R/missing-data.R",
@@ -241,7 +241,7 @@
     },
     {
       "file": "inst/extdata/env-skip-census.tsv",
-      "sha256": "477923b79cea1423e3ca74986133df98ce6ebaebc0b601be1ab82532e202e7fd"
+      "sha256": "f6ef3677ebf9d0b17ea6db343c409da28fedeea54ddd2e723b603c82b97264d6"
     },
     {
       "file": "inst/extdata/julia-capabilities.tsv",
@@ -1317,7 +1317,7 @@
     },
     {
       "file": "src/drmTMB.cpp",
-      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
     },
     {
       "file": "src/drm_count_kernels.h",
@@ -1420,5 +1420,5 @@
       "sha256": "22ce26b72fc5bf01356c01d4d8a6a4d3ccb65241bab20457957ada9a8635a651"
     }
   ],
-  "re_recorded": "2026-11-02 at 9d229de68 after a test rerun at that commit; entries that differed from the first record: ['R/julia-bridge.R', 'inst/extdata/env-skip-census.tsv', 'inst/reader-contracts/vignette-manifest.csv']"
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'R/julia-bridge.R', 'R/methods.R', 'inst/extdata/env-skip-census.tsv', 'src/drmTMB.cpp']"
 }

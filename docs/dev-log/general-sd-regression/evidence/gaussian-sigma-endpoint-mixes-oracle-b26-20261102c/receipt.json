@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-gaussian-sigma-endpoint-mixes-oracle-b26.R",
   "test_sha256": "2b7b55eead3a5411088b9c0ef8e9acfe7cbc9795332c2914b2f0b5b055d8f60d",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-endpoint-mixes-oracle-b26-20261102c/source-manifest.json",
-  "source_manifest_sha256": "f82740e9444c1d915b25891b30c0bd3a4a7b4996675dfac2c13332ec4696eaca",
+  "source_manifest_sha256": "f62b939b7dc53e592474e2f110aa51a8baa95644d62cb010eda975b90b372e4f",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-gaussian-sigma-endpoint-mixes-sd-20261101d-m26"
@@ -45,5 +45,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Same-group mu (1 | id) and sigma (1 | id) with different SD predictors (w for mu, u for sigma, correlation under 0.5), so a selector swap is detectable; this closes the parent's same-predictor weakness. Both linked rows (mu:I, sigma:I) are exercised by that one fit. The oracle is a base-R joint dense Laplace with SD vectors built by hand, with tolerance 1e-4 and gradient and Hessian checks. Four bugs (selector swap, swapped coefficient sets, reversed mu SD, reversed sigma SD) each move it by more than 0.1 and pass. Manifest 7/7 match, and the rerun shows 12 expectations, 0 failures, 0 skips. Case (b) only. Does NOT establish: the parent's mu:x1 iid_correlated_block row, calibration or coverage, Julia parity, or structured sigma endpoints.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-sigma-endpoint-mixes-oracle-b26.R",
+    "test_sha256": "2b7b55eead3a5411088b9c0ef8e9acfe7cbc9795332c2914b2f0b5b055d8f60d",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:56Z",
+    "ended_utc": "2026-11-03T01:10:05Z",
+    "expectations_passed": 12,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-endpoint-mixes-oracle-b26-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "510c7e7ef1d477e78efb14ab6b1f03d08effd577d8196abc464f3e03ab473e06",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

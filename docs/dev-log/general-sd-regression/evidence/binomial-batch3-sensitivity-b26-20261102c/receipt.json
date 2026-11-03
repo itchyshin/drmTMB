@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-binomial-batch3-sensitivity-b26.R",
   "test_sha256": "a54af4900da73067c1e6c62e0c82569989f5789a50f43e70e86dae20899063c9",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-batch3-sensitivity-b26-20261102c/source-manifest.json",
-  "source_manifest_sha256": "2b77a6f409cde0edacf34ca1766aa02dd9376f2471bc21daf293b1a38bf19b15",
+  "source_manifest_sha256": "bd58bb2434759e14aad2fa258fb076cb5fb56255837d77cda508943563b988ee",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "binomial-batch3-sd-20261101-m26"
@@ -57,5 +57,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Probit and cloglog phylo(tree) plus animal(A, Ainv, pedigree), with a different SD predictor and coefficient set per field (6 rows, all fitted). The test compares drmTMB:::drm_phylo_tip_covariance with cov2cor(ape::vcv) (and the raw form) on a tree whose height is not 1. The oracle uses a Henderson A with inbreeding and ape-built K in a base-R dense Laplace, tolerance 1e-4. Five bugs (reversed animal SDs, reversed tree SDs, swapped selector coefficients, raw vcv as K, cov2cor(A)) each move the oracle by more than 0.1 and pass. This closes both gaps from the earlier unreviewed batch3 id (kernel independence, sensitivity). Manifest 7/7 match, and the rerun shows 58 expectations, 0 failures, 0 skips. The in-test check fx$A equals henderson(pedigree) is nearly tautological, but the fits are what carry the pedigree evidence. Does NOT establish: interval calibration or coverage, Julia parity, logit rows, recovery, or kernel conventions beyond the ape comparison.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 27"
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-batch3-sensitivity-b26.R",
+    "test_sha256": "a54af4900da73067c1e6c62e0c82569989f5789a50f43e70e86dae20899063c9",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:34Z",
+    "ended_utc": "2026-11-03T01:06:13Z",
+    "expectations_passed": 58,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-batch3-sensitivity-b26-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "fc2b89d51952ef9b3b893aea2dbdae35ab9d5020f5a8a9bf11a4c17f4abd08bf",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

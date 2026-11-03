@@ -20,7 +20,7 @@
   "test_path": "tests/testthat/test-binomial-iid-structured-sd-oracle-b29b.R",
   "test_sha256": "5776940fa5ed7a12076e7bea6790e194c61a01868b68e4549bd7ccb0499bb999",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-iid-structured-sd-oracle-b29b-20261102d/source-manifest.json",
-  "source_manifest_sha256": "55f5af73cef81da390977367d5209d6530a8a583388c056c014c119779e71a28",
+  "source_manifest_sha256": "ec1a73d5d7f0586d1d918804e75ab6d06b4237b4d6760d026a4c9b75878e1690",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-binomial-ordinary-animal-cloglog-A-20261027-m26",
@@ -98,5 +98,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helpers. Independent base-R dense Laplace oracle on hand-built kernels: Henderson tabular A from an inbred pedigree (Ainv by solve, and pedigree compared against the hand A), and a hand relmat kernel (Q by solve). The iid member has K = I. logLik is within 1e-4 of the oracle for every fit; oracle values agree across providers within 1e-6. Asserted emulated bugs, each moving the oracle by more than 0.1: swapped selector coefficients, reversed SD for each field, cov2cor(K), K x 2 and kernel read by position for the animal or relmat field. All 15 linked row_keys are fitted: iid+animal for A, Ainv and pedigree on logit, probit and cloglog (9), and iid+relmat for K and Q on the three links (6). The three logit iid+animal-A and logit iid+relmat-K/Q rows have no parent id, so they are fresh evidence only. Each field is an intercept with sd ~ covariate on its own factor. Hashes match, and the console shows 246 passed, 0 failed, 0 skipped, exit 0, with no Julia. Does NOT establish: iid+phylo or crossed layouts (other receipt); slope, labelled or correlated blocks; calibration, coverage, SE or recovery; Julia parity; any seed beyond the fixed per-link seeds; kernel-scale sensitivity for the iid member; behaviour away from the fitted optimum.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-iid-structured-sd-oracle-b29b.R",
+    "test_sha256": "5776940fa5ed7a12076e7bea6790e194c61a01868b68e4549bd7ccb0499bb999",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:06:29Z",
+    "ended_utc": "2026-11-03T01:07:28Z",
+    "expectations_passed": 246,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-iid-structured-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "658d92eab92a3ef4c0e2a90c541eaf78f26d44ee5cccb4cb085687f9cc3285d9",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

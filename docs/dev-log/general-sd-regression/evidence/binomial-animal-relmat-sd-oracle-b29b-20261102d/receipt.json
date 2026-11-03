@@ -20,7 +20,7 @@
   "test_path": "tests/testthat/test-binomial-animal-relmat-sd-oracle-b29b.R",
   "test_sha256": "f5dd53461c71224ced17156cf84763d907b7d02ccfd13ec9bd3830f94d856566",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-animal-relmat-sd-oracle-b29b-20261102d/source-manifest.json",
-  "source_manifest_sha256": "16683d716e8a6b7e8a197e0e5a32e8e37292322c80bc46494ec9c5554919c3f5",
+  "source_manifest_sha256": "aaf8c09003af35bcfdcab44266e4f9ad6cb6fe7478dafde22a74ac83f80fe1bf",
   "live_julia": "not run; native R engine only",
   "strengthens_evidence_ids": [
     "native-binomial-animal-relmat-k-cloglog-20261027-m26",
@@ -90,5 +90,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test and helpers. Independent base-R dense Laplace oracle with a hand Henderson A (inbred pedigree, diag(A) > 1.6), a hand relmat kernel and Ainv/Q by solve(). For probit and cloglog the oracle uses its own stable derivative code (sb26_deriv_binary), not the package's. All 12 row_keys are fitted: animal {A, Ainv, pedigree} x relmat {K, Q} for each of the two links, 6 fits per link on one fixture per link. In every fit logLik agrees with the oracle within 1e-4, and the six oracle values per link agree within 1e-6. Each emulated bug (swapped selector coefficients, reversed SD, cov2cor(K) for both fields, K x 2, kernel read by position) is asserted to move the oracle by more than 0.1. Fields are intercept-only on separate factors with sd ~ z, so there is no slope-member issue. Manifest and receipt/test sha256 values match the current files. Console shows 230 passed, 0 failed, 0 skipped, exit 0, and no Julia is involved. Does NOT establish: logit animal+relmat (covered by another receipt); calibration, coverage, SE or recovery (the true SDs are boosted per field only to give information); parity with Julia; any seed beyond the two fixed ones (one per link); behaviour away from the fitted optimum; slope or correlated random effects.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-animal-relmat-sd-oracle-b29b.R",
+    "test_sha256": "f5dd53461c71224ced17156cf84763d907b7d02ccfd13ec9bd3830f94d856566",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:34Z",
+    "ended_utc": "2026-11-03T01:06:29Z",
+    "expectations_passed": 230,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-relmat-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "26b952cdf1121c60b05810864a304dda07ffeaaed4e5f51003b7e31a8115e021",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

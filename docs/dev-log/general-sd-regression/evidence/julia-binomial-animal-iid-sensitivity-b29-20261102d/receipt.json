@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-animal-iid-sensitivity-b29.R",
   "test_sha256": "b3355ef279878efaf371e3c9a9bdb36d3f346f60ec4cf98efa42231ab88c82e8",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-sensitivity-b29-20261102d/source-manifest.json",
-  "source_manifest_sha256": "0375ad1ea6015f384bd24028db7b600e2c69f8b1d130ec014bca61e0d6e78bc8",
+  "source_manifest_sha256": "b5eb7bada7fc61e07c9508d26916bb590254e1b40f8692e6796f717f0691e215",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "strengthens_evidence_ids": [
     "binomial-animal-iid-julia-independent-laplace-20261024-m26"
@@ -47,5 +47,19 @@
   "review_status": "reviewed_narrow_claim",
   "review_note": "Read the test line by line. The oracle is base R and independent of drmTMB: hand-built A and design matrices, dense joint Newton mode, Laplace logLik. Julia (live, engine='julia') logLik agrees with the oracle at the Julia estimates to 3.48e-5 against a 1e-3 absolute tolerance, asserted for both the A fit and the Ainv fit (the Ainv fit is given solve(A) and checked against the oracle on A, so both linked rows are oracle-checked). Nine emulated bugs are each asserted to move the oracle by more than 20x the tolerance; the smallest, A x1.1, is 0.047 (47x). The logged gaps match: selector swap 61.0, site slope sign 87.4, A x2 2.34, cov2cor(A) 0.80, reversed dimnames 8.09. A shift of +-0.1 in any coefficient is asserted not to raise the oracle logLik. Both linked row_keys are fitted: (1|site) plus animal(1|animal_id, A or Ainv), with sd(animal) ~ z and sd(site) ~ w, so this is the two-field additive pair. Hashes: receipt, manifest, test and console log match the fragment, and all 7 manifest files check OK. Console shows 35 passed, 0 failed, 0 errors, 0 skipped, and 'Julia bridge: 1 live test ran'. Linking the Ainv_precision row is justified because that fit is itself checked against the oracle. The strengthens id binomial-animal-iid-julia-independent-laplace-20261024-m26 is the one named in the header; do not also strengthen julia-binomial-animal-iid-Ainv-bridge-20261029-relink27 without a separate reviewer decision. Does NOT establish: any native (TMB) row; pedigree or Q_precision routes; other links (probit and cloglog are covered by the companion file); calibration, coverage, SEs or recovery; more than one fixture (seed 20261024, 36 animals x 30 sites x 4 repeats); correlated or slope (1 + x | id) structures; and the Julia source state, since the DRModels.jl worktree was dirty at d5e3e6b11 and the manifest hashes only the drmTMB files.",
   "reviewed_at": "2026-11-02",
-  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier"
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-binomial-animal-iid-sensitivity-b29.R",
+    "test_sha256": "b3355ef279878efaf371e3c9a9bdb36d3f346f60ec4cf98efa42231ab88c82e8",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:07:42Z",
+    "ended_utc": "2026-11-03T01:08:20Z",
+    "expectations_passed": 35,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-sensitivity-b29-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "52e7c004d15bf8fed8e51ef3cbab43c4217fd44edb7545dd13ec399de2279a92",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

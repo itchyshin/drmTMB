@@ -21,7 +21,7 @@
     }
   ],
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027-m26-3e5a45/source-manifest.json",
-  "source_manifest_sha256": "4dbfef35e337d147993a070bceffd3d9d3d5426e5f675fd58135f07aedc27fc5",
+  "source_manifest_sha256": "e44ab263eae5e5f8584398e69d75a93942d99221c286c3b8d14c8594257144ad",
   "review_status": "reviewed_narrow_claim",
   "review_note": "Reviewer 2, 2026-11-02. Test builds a Henderson tabular A for the 96-animal pedigree by hand (no package builder), fits native Beta(logit) y ~ x + animal(1 + x | id, pedigree) with sd(id, coef = '(Intercept)') ~ z0 and sd(id, coef = 'x') ~ z1, and compares -logLik with an exact base-R Laplace oracle (two start points, analytic score and Hessian checked against finite differences at an off-mode probe, tol 1e-4) that integrates the unobserved ancestors; A-input and Ainv-input fits match the pedigree fit (1e-4). The linked row (animal numeric slope: intercept plus independent slope fields, pedigree) is exercised by the q2 fit with distinct SD formulas per coefficient. The test has no perturbation checks, so sensitivity was demonstrated in a scratch run on Totoro with the test's oracle function (no files edited): baseline nll difference 2e-8; swapped selector coefficient sets shift the oracle by 96.5; sign-flipped z0 by 65.7; reversed z1 by 25.9; A*2 by 9.2. Rerun 32/0/0 skips; manifest (70 files) has one mismatch, R/julia-bridge.R at HEAD (NB2 spatial slope only; not used by this native Beta fit). Does NOT establish: calibration or coverage; Julia parity; a pedigree with inbreeding (founders only here, so every diagonal of A is 1); a correlated intercept-slope block; the sensitivity checks live outside the test; any non-Beta family.",
   "reviewed_at": "2026-11-02",
@@ -36,16 +36,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-beta-animal-pedigree-q2-sd-regression.R",
     "test_sha256": "6e47849a707cba724c613081ccdf52104c9317ccc425fe766889e6a0a56e6569",
-    "rerun_at_commit": "9d229de68",
-    "started_utc": "2026-11-02T18:14:26Z",
-    "ended_utc": "2026-11-02T18:16:48Z",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:34Z",
+    "ended_utc": "2026-11-03T01:09:17Z",
     "expectations_passed": 32,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027-m26-3e5a45/test-console-rerun-9d229de68.log",
-    "console_log_sha256": "6e3bf24e5d62e20cbe99fd36b642e0fa189948b7f5aab63f2acb6e45ff07d0ff",
-    "where": "Totoro, clean git archive export of the commit",
-    "note": "Source manifest rehashed at this commit; entries that differed are listed in the manifest re_recorded field. The claim rests on this rerun; documentation files in the manifest were rehashed, not executed."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027-m26-3e5a45/test-console-rerun-81553915d.log",
+    "console_log_sha256": "7cb6ef781200d6feb3a49b53722721062bd6ee59365da34f44129c52f5cf0ae0",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }
