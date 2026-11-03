@@ -403,7 +403,7 @@ manual_biv_response_loglik <- function(fit) {
 }
 
 manual_biv_phylo_q2_prior_loglik <- function(fit) {
-  par <- fit$obj$env$parList(fit$opt$par)
+  par <- fit$obj$env$parList(fit$opt$par, par = fit$tmb_state$last.par.best)
   n_phylo <- nrow(fit$model$tmb_data$Q_phylo)
   u1 <- par$u_phylo[seq_len(n_phylo)]
   u2 <- par$u_phylo[n_phylo + seq_len(n_phylo)]
@@ -937,7 +937,7 @@ test_that("bivariate phylogenetic q2 response masks have an exact conditional or
     missing = miss_control(response = "include"),
     control = list(eval.max = 500, iter.max = 500)
   )
-  full_parameters <- fit$obj$env$parList(fit$opt$par)
+  full_parameters <- fit$obj$env$parList(fit$opt$par, par = fit$tmb_state$last.par.best)
   joint <- TMB::MakeADFun(
     data = fit$model$tmb_data, parameters = full_parameters,
     map = fit$model$map, DLL = "drmTMB", silent = TRUE
@@ -1014,7 +1014,7 @@ test_that("bivariate phylogenetic q2 slope masks recover at the 128-tip rung", {
     missing = miss_control(response = "include"),
     control = list(eval.max = 1500, iter.max = 1500)
   )
-  full_parameters <- fit$obj$env$parList(fit$opt$par)
+  full_parameters <- fit$obj$env$parList(fit$opt$par, par = fit$tmb_state$last.par.best)
   joint <- TMB::MakeADFun(
     data = fit$model$tmb_data, parameters = full_parameters,
     map = fit$model$map, DLL = "drmTMB", silent = TRUE
