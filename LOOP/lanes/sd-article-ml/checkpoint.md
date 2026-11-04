@@ -1,9 +1,13 @@
-# Resume checkpoint
+# Recovery checkpoint: ML-first SD article and repair wave
 
-Platform Codex. Goal active. READ FIRST: LOOP/lanes/sd-article-ml/GOAL.md, ultra-plan.md, arcs.md and this file.
+Snapshot: 2026-11-04 14:22 America/Edmonton. Goal ACTIVE. Approved plan: /Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/PLAN.md. Execution logs and exact-source receipts are under its execution/ directory.
 
-Native managed worktree created from R main 9e2c03f6f; branch codex/sd-article-ml. Existing source clones and all foreign dirty files preserved. Canonical goal launcher wrapper had a symlink-relative tool path failure; canonical brain lane_launch.sh dry-run succeeded. Desktop native worktree tool created isolation; lane kit follows existing per-lane convention and no permission files were written.
+R checkout: /Users/z3437171/.codex/worktrees/sd-article-ml/drmTMB, branch codex/sd-article-ml. Julia checkout: /Users/z3437171/.codex/worktrees/sd-article-ml-julia/DRM.jl, same branch, HEAD c037268c76d29234a2174354ae4319b4d98e7c29. Julia PR https://github.com/itchyshin/DRModels.jl/pull/1254 is draft. No R PR yet at this snapshot.
 
-STATUS: goal active. The scoped acceptance ledger parses with ten unmet gates (seven parent, three S1). The S1 writer has the leaf-s1 path claim and is running as explicit Terra high via the tiered CLI. Its session handle is 27660; dispatch artifacts and result path are /Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/s1-audit.* and S1-RESULT.md. Do not restart it because of an observation timeout.
+Focused implementation, numerical packet, articles and independent completion panel passed. See arcs.md and completion-{mechanical,reader,science}.md in external execution/. The accepted frozen-verification-final receipt binds five successful jobs to unchanged source and native DLL. Canonical LSS receipt now refreshed against Julia c037268c7; current checker passes. Four immutable synthetic-data URLs are published and byte checked. Full Julia Documenter/VitePress build passed twice; direct Julia core is unchanged.
 
-NEXT: collect the audit writer, inspect its five owned files and every verification script, independently run the S1 tests/checker, then source-adjudicate article/repair cells. Do not call the route audit scientifically complete from a row-preserving view alone. The parent owns the lane kit; the writer may not commit. No fit or campaign launched yet. Use /Users/z3437171/miniconda3/bin/node for unlazy because this shell does not resolve bare node. G5 and D-342 remain deferred.
+Owned remote process: Totoro ~/codex-runs/sd-article-ml-20261104-check2 PID174675, started 19:24:07Z. Build passed; full R CMD check is running testthat.R. Estimate 60–120 minutes, stop/re-estimate beyond 21:24Z. Attach only existing /Users/z3437171/.ssh/cm-snakagaw@totoro.biology.ualberta.ca:22 socket. Do not restart or orphan it. Local final input archive execution/r-package-source/final-drmTMB_0.7.1.tar.gz SHA256 274e0fba02a3d5d4a8b40c2f508bd70ddc595606ddb6a427e445e9c446b1625e.
+
+Next: finish evidence/report manifest refresh, regenerate/check route view if doc pins changed, explicitly stage owned R files and create its PR. Monitor Julia PR checks and full R check. Merge only through merge-when-green after all required exact-head checks settle; verify each merged main and deployed article. No release authority. Do not touch foreign branches or protected stash 8f3daba95e22e9c0eb79b0d68edb94e8d76ec1f1.
+
+G5 and D-342 remain deferred. The broad general-SD programme remains open. Source-admission grants are not runtime or calibration grants; unresolved NB2/ZeroOneBeta concerns are not fixed by the prediction repair.

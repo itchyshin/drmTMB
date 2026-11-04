@@ -209,6 +209,23 @@ b34_compare <- function(julia, native, tol = 1e-4) {
   # emulated bug: the old population-level value is far above the tolerance
   expect_gt(gap_population, 100 * tol, label = "population-level gap")
   expect_false(is.null(julia$conditional_structured))
+  # Public stored predictions use the same validated field, in observation order.
+  eta_fixed <- as.numeric(model.matrix(~ x, julia$data) %*% coef(julia)$mu)
+  eta <- eta_fixed + julia$conditional_structured$eta_re
+  expect_equal(as.numeric(predict(julia, dpar = "mu", type = "link")),
+               eta, tolerance = 1e-8)
+  expect_equal(as.numeric(predict(julia, dpar = "mu")), fj, tolerance = 1e-8)
+  expect_equal(as.numeric(predict(julia, newdata = julia$data, dpar = "mu",
+                                 type = "link")), eta_fixed, tolerance = 1e-8)
+  linkinv <- if (identical(julia$model$model_type, "binomial")) {
+    stats::make.link(julia$family$link)$linkinv
+  } else if (identical(julia$model$model_type, "gaussian")) identity else exp
+  expect_equal(as.numeric(predict(julia, newdata = julia$data, dpar = "mu")),
+               as.numeric(linkinv(eta_fixed)), tolerance = 1e-8)
+  expect_gt(max(abs(eta - eta_fixed)), 1e-2)
+  restored <- unserialize(serialize(julia, NULL))
+  expect_equal(predict(restored, dpar = "mu"), predict(julia, dpar = "mu"),
+               tolerance = 1e-12)
   message(
     "B34 gaps: fitted ", signif(gap_fitted, 3), "; residuals ", signif(gap_resid, 3),
     "; population-level vs native ", signif(gap_population, 3)

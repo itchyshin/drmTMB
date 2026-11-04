@@ -15,10 +15,12 @@ if (!"package:drmTMB" %in% search()) {
 ```
 
 This guide shows how to ask whether groups differ in their typical spread, and
-whether that spread changes with a group-level predictor. It uses synthetic
-Bernoulli and Poisson data so the data-generating values are known. The fitted
-models estimate a random-intercept standard deviation; they do not estimate a
-separate residual `sigma` for either response.
+whether that spread changes with a group-level predictor. It starts with
+synthetic Bernoulli and Poisson data, then uses a Gamma model for positive
+responses from related groups. The data-generating values are known. The
+Bernoulli and Poisson models estimate a random-intercept standard deviation;
+they do not estimate a separate residual `sigma`. The Gamma example separates
+its conditional response spread from the scale of its latent group effects.
 
 ## The model
 
@@ -152,10 +154,16 @@ The fixed seed gives these particular estimates. The table keeps their
 departure from the known ratio visible; it is not a parameter-recovery or
 calibration result.
 
-| Response | True high/low SD ratio | Estimated ratio in this draw |
-|:--|--:|--:|
-| Bernoulli | `exp(0.45) = 1.568` | 1.607 |
-| Poisson | `exp(0.45) = 1.568` | 2.443 |
+```{r introductory-ratios, echo = FALSE}
+knitr::kable(data.frame(
+  Response = c("Bernoulli", "Poisson"),
+  `True high/low SD ratio` = rep(exp(0.45), 2L),
+  `Estimated ratio in this draw` = c(
+    exp(coef(fit_bernoulli, "sd(group)")[["w"]]),
+    exp(coef(fit_poisson, "sd(group)")[["w"]])
+  ), check.names = FALSE
+), digits = 3)
+```
 
 ## Predict the group-level standard deviations
 
@@ -190,6 +198,224 @@ summarises their systematic change; the group-level values also reflect the
 observed design matrix and should not be read as one estimate of the realised
 random effect in each group.
 
+## Three kinds of spread
+
+For a Gaussian response, residual `sigma` is an observation-level standard
+deviation around the conditional mean. A model for `sigma` answers a different
+question from a model for the SD of a latent group effect. See the
+[location-scale tutorial](location-scale.html) for a Gaussian example that
+models residual spread.
+
+For a Gamma response, `sigma` is a conditional coefficient of variation: the
+conditional response SD is `mu * sigma`. A random intercept in the log-mean
+predictor describes variation among group-specific log means. Its SD is on
+the log-mean scale, rather than the original response scale.
+
+## Related groups: multiplier and marginal SD
+
+A supplied matrix `K` lets latent group effects covary. Write
+
+\[
+u \sim \operatorname{Normal}(0,K), \qquad b=D_su, \qquad
+D_s=\operatorname{diag}(s_1,\ldots,s_G), \qquad
+\log s_g=\alpha_0+\alpha_1z_g.
+\]
+
+Then `Cov(b) = D_s K D_s`, and the marginal SD of the group effect is
+
+\[
+\operatorname{SD}(b_g)=s_g\sqrt{K_{gg}}.
+\]
+
+Here, marginal means averaging over the latent field, rather than conditioning
+on its fitted value. The predicted `s_g` is an SD multiplier. It equals the
+marginal SD when the corresponding diagonal entry of `K` is one. Keep the
+supplied matrix scale visible when interpreting predictions.
+
+A one-unit increase in `z` multiplies `s_g` by `exp(alpha_1)` and its squared
+multiplier by `exp(2 * alpha_1)`. Comparing groups with different diagonal
+entries also puts `sqrt(K_hh / K_ll)` into their marginal SD ratio. Neither
+ratio describes a change in the response mean.
+
+## A continuous predictor for related groups
+
+Suppose repeated positive measurements, such as plant growth, come from
+related populations. This synthetic Gamma model asks whether the spread of
+population effects changes along a continuous environmental predictor `z`.
+The observation-level predictor `x` changes the conditional mean.
+
+\[
+Y_{ig}\mid b_g\sim\operatorname{Gamma}\left(
+\text{shape}=1/\sigma^2,\ \text{rate}=1/(\sigma^2\mu_{ig})\right),
+\quad \log\mu_{ig}=0.4+0.3x_{ig}+b_g,
+\quad \log s_g=\log(0.55)+0.4z_g.
+\]
+
+The matrix has a non-unit diagonal. Its row names identify groups, while the
+observations are shuffled so that matrix order and observation order differ.
+
+```{r gamma-related-data}
+set.seed(20261104)
+G <- 40L
+ids <- paste0("g", seq_len(G))
+z <- setNames(seq(-1, 1, length.out = G), ids)
+k_scale <- setNames(seq(0.7, 1.6, length.out = G), ids)
+R <- outer(seq_len(G), seq_len(G), function(i, j) 0.35^abs(i - j))
+K <- outer(k_scale, k_scale) * R
+dimnames(K) <- list(ids, ids)
+s <- exp(log(0.55) + 0.4 * z)
+b <- setNames(s * as.vector(t(chol(K)) %*% rnorm(G)), ids)
+index <- sample(rep(seq_len(G), each = 12L))
+gamma_data <- data.frame(
+  id = factor(ids[index], levels = ids),
+  z = unname(z[index]), x = rnorm(length(index))
+)
+mu <- exp(0.4 + 0.3 * gamma_data$x + b[as.character(gamma_data$id)])
+gamma_data$y <- rgamma(nrow(gamma_data), shape = 4, rate = 4 / mu)
+```
+
+Fit maximum likelihood with the native TMB engine's Laplace approximation.
+The residual coefficient of variation is constant, while the latent SD
+multiplier depends on `z`. This example requests point estimates only.
+
+```{r gamma-related-fit}
+gamma_formula <- bf(
+  y ~ x + relmat(1 | id, K = K), sigma ~ 1,
+  sd(id, level = "relmat") ~ z
+)
+fit_gamma <- drmTMB(
+  gamma_formula, family = stats::Gamma(link = "log"), data = gamma_data,
+  engine = "tmb", REML = FALSE, control = drm_control(se = FALSE)
+)
+gamma_alpha <- coef(fit_gamma, dpar = "sd_relmat(id)")
+knitr::kable(data.frame(
+  Quantity = "SD multiplier ratio for a one-unit increase in z",
+  Truth = exp(0.4), Estimate = exp(gamma_alpha[["z"]])
+), digits = 3)
+```
+
+The estimate in this draw is much closer to one than the generating ratio,
+despite the repeated observations within each group. One successful fit does
+not establish parameter recovery across other draws or designs.
+
+The group predictions let us keep the matrix contribution separate:
+
+```{r gamma-related-scales}
+gamma_s_hat <- predict(fit_gamma, dpar = "sd_relmat(id)")
+gamma_scales <- data.frame(
+  id = names(gamma_s_hat),
+  z = unname(z[names(gamma_s_hat)]),
+  multiplier = unname(gamma_s_hat),
+  marginal_sd = unname(gamma_s_hat * sqrt(diag(K)[names(gamma_s_hat)])),
+  true_multiplier = unname(s[names(gamma_s_hat)]),
+  true_marginal_sd = unname(s[names(gamma_s_hat)] *
+                            sqrt(diag(K)[names(gamma_s_hat)]))
+)
+gamma_scales <- gamma_scales[order(gamma_scales$z), ]
+head(gamma_scales)
+```
+
+```{r gamma-related-figure, fig.width = 8, fig.height = 4, fig.cap = "Latent group-effect scales in one synthetic Gamma data set. Circles mark model-implied values for the 40 fitted groups. Solid blue lines connect fitted values; dashed orange lines show the generating values. The left panel shows the SD multiplier, and the right includes the diagonal of K. Both are on the log-mean scale. No uncertainty bands are shown."}
+local({
+  old_par <- graphics::par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+  on.exit(graphics::par(old_par))
+  limits <- range(gamma_scales[c(
+    "multiplier", "marginal_sd", "true_multiplier", "true_marginal_sd"
+  )])
+  for (quantity in c("multiplier", "marginal_sd")) {
+    label <- if (quantity == "multiplier") "SD multiplier" else "Marginal group-effect SD"
+    graphics::plot(gamma_scales$z, gamma_scales[[quantity]],
+      type = "b", pch = 21, bg = "white", col = "#0072B2", cex = 0.65,
+      xlab = "Group predictor z", ylab = "Scale on the log-mean predictor",
+      main = label, ylim = limits
+    )
+    graphics::lines(gamma_scales$z, gamma_scales[[paste0("true_", quantity)]],
+      col = "#D55E00", lty = 2, lwd = 2)
+    graphics::legend("topleft", legend = c("Fitted", "Generating"),
+      col = c("#0072B2", "#D55E00"), lty = c(1, 2), bty = "n", cex = 0.8)
+  }
+})
+```
+
+The points are predicted group scales, not observed response SDs or realised
+random intercepts. The right panel rises partly because this synthetic `K`
+has larger diagonal entries at larger `z`. Reading that panel alone would
+mix the fitted SD trend with the matrix scale.
+
+## The optional Julia interface and prediction quantities
+
+The matched Gamma call uses the same formula, data and raw matrix. It uses
+maximum likelihood with a structured Laplace approximation. It needs a
+working [Julia engine setup](julia-engine.html); this optional chunk is not
+run when building the article. Structured Julia fits currently require the
+default `control`, so the native `se = FALSE` setting is not copied across.
+
+```{r gamma-julia-optional, eval = FALSE}
+fit_gamma_julia <- drmTMB(
+  gamma_formula, family = stats::Gamma(link = "log"), data = gamma_data,
+  engine = "julia", REML = FALSE
+)
+coef(fit_gamma_julia, dpar = "sd_relmat(id)")
+predict(fit_gamma_julia, dpar = "sd_relmat(id)")
+```
+
+The native and Julia Gamma fits have been checked against an independent
+Laplace objective on this data set. That comparison concerns this model and
+these point estimates. For ordinary Bernoulli and Poisson random intercepts,
+the Julia SD routes instead use adaptive Gauss-Hermite quadrature. A shared
+maximum-likelihood target does not make different integration approximations
+identical, so do not assume that all engine coefficients or log likelihoods
+will match.
+
+In the R bridge, stored-row mean predictions on this Gamma route include the
+fitted group effects. Supplying `newdata` requests the fixed-effect prediction
+with random effects set to zero, including when the supplied rows happen to
+be the training data.
+
+```{r gamma-julia-predictions, eval = FALSE}
+conditional_log_mean <- predict(fit_gamma_julia, dpar = "mu", type = "link")
+conditional_mean <- predict(fit_gamma_julia, dpar = "mu")
+fixed_effect_mean <- predict(
+  fit_gamma_julia, newdata = gamma_data, dpar = "mu"
+)
+all.equal(conditional_mean, fitted(fit_gamma_julia))
+```
+
+| Quantity | Interpretation |
+|:--|:--|
+| `sd_relmat(id)` response prediction | The latent SD multiplier `s_g`; multiply by `sqrt(K_gg)` for marginal group-effect SD. |
+| Stored R bridge `mu` link prediction | The fixed linear predictor plus the fitted group contribution. |
+| Stored R bridge `mu` response prediction | The conditional mean, obtained by applying the inverse link to that predictor. |
+| R bridge `mu` prediction with explicit `newdata` | The fixed-effect mean with random effects set to zero. |
+| Direct Julia `fitted()` | The direct interface's population-level fitted value, which differs from the R bridge's conditional output. |
+
+Setting random effects to zero does not integrate over their distribution.
+Under a log link, the average of `exp(eta + b)` generally differs from
+`exp(eta)`. State which quantity a prediction plot shows.
+
+## Which source routes do these examples use?
+
+The table below records narrowly admitted source routes for complete observed
+responses and fixed, finite, group-constant SD predictors. Source admission
+means that the interface accepts the specified model; it does not establish
+runtime accuracy, prediction support or calibrated uncertainty for every
+model with that description. The executed examples and their checks provide
+separate evidence.
+
+<!-- BEGIN GENERATED SOURCE ROUTES -->
+<!-- Generated from article-route-adjudications.json SHA-256 f9ce582edf8eca6ebbcae2d6ea770a914af84e5bcf25b404e5112863894c104e; source states only. -->
+```{r article-source-routes, echo = FALSE}
+article_routes <- data.frame(
+  `Response` = c("Bernoulli, logit", "Poisson, log", "Gamma, log"),
+  `Mean effect` = c("One ordinary random intercept", "One ordinary random intercept", "One relmat random intercept; raw K"),
+  `Native source` = c("Admitted within recorded scope; ML; TMB random-effect Laplace", "Admitted within recorded scope; ML; TMB random-effect Laplace", "Admitted within recorded scope; ML; TMB random-effect Laplace"),
+  `Julia source` = c("Admitted within recorded scope; ML; adaptive Gauss-Hermite quadrature, default 5 nodes", "Admitted within recorded scope; ML; adaptive Gauss-Hermite quadrature, default 41 nodes", "Admitted within recorded scope; ML; structured Laplace"),
+  check.names = FALSE
+)
+knitr::kable(article_routes)
+```
+<!-- END GENERATED SOURCE ROUTES -->
+
 ## Check the fit before interpreting it
 
 The compact tables above show every check name and status without printing
@@ -209,14 +435,18 @@ point estimates and group-level predictions only. It makes no calibrated
 interval claim for these examples, so do not report nominal confidence
 interval coverage as established by running this vignette.
 
-## Scope of this example
+## Scope of these examples
 
-The demonstrated non-Gaussian slice is limited to native TMB Bernoulli/binomial
-and ordinary Poisson models with one unlabelled random intercept and a
-group-constant predictor in `sd(group)`. It does not establish support for
-other distributions, random slopes, structured covariance providers, or the
-Julia engine. Native Bernoulli/binomial also has a narrow explicit selector
-form when a scalar intercept must be named:
+The executed native examples cover Bernoulli and Poisson models with one
+ordinary random intercept, and a Gamma model with one related-matrix random
+intercept. Each models the latent SD multiplier using a group-constant
+predictor. The optional Julia calls concern those same selected source
+routes, with their own fitting approximations and output contracts. These
+examples do not qualify other distributions, random slopes, crossed effects,
+missing responses or every structured provider.
+
+Native Bernoulli/binomial also has an explicit selector form when a scalar
+intercept must be named:
 
 ```r
 bf(
@@ -225,7 +455,8 @@ bf(
 )
 ```
 
-That selector names one ordinary mean intercept; it does not extend the
-example to random slopes or structured effects. For current family-by-family
-limits and new evidence, see [What can I fit today?](capability-and-limits.html)
-and [the formula grammar](formula-grammar.html).
+That selector names one ordinary mean intercept. For other required models,
+check [What can I fit today?](capability-and-limits.html) and
+[the formula grammar](formula-grammar.html) before fitting. This guide shows
+ML point estimates; it establishes neither calibrated interval coverage nor
+a REML result for these examples.
