@@ -55,4 +55,14 @@ assert dispatch['check2']['testthat_counts'] == {'PASS': 41881, 'FAIL': 1, 'WARN
 for mode in ('source', 'installed'):
     log = (prefix / 'integration-dispatch-repair' / ('dispatch-' + mode + '-green.log')).read_text()
     assert '[ FAIL 0 | WARN 0 | SKIP 0 | PASS 3 ]' in log
+lss_latest = json.loads((prefix / 'lss-1cd-current.json').read_text())
+guard_latest = json.loads((prefix / 'lss-1cd-refresh-guard.json').read_text())
+assert lss_latest['status'] == 'PASS' and lss_latest['source_unchanged']
+assert lss_latest['source_before'] == lss_latest['source_after']
+assert guard_latest['status'] == 'PASS' and guard_latest['exit_code'] == 0
+assert guard_latest['source_unchanged'] and guard_latest['before'] == guard_latest['after']
+assert guard_latest['heads']['julia'] == '1cd856f63fa8a2a62a2e181e00790a0d812fb8af'
+for version in ('110', '113'):
+    log = (prefix / 'integration-julia-namespace-repair' / ('julia-namespace-green-' + version + '.log')).read_text()
+    assert 'NAMESPACE_ONLY_PASS' in log and 'full quadrature fit assertions not run' in log
 print('ML_FIRST_ARTIFACT_INTEGRITY_PASS')

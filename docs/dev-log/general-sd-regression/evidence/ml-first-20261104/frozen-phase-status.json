@@ -14,7 +14,7 @@
   },
   "julia_documentation_ref": "e8a666769fc436e73c7121a4c49b1d9c92866776",
   "julia_core_relation": "Existing probe coref4fa3aed4 unchanged; final documentation ref changes docs/data only. Snapshot hashes in accepted receipt qualify executed code.",
-  "canonical_lss_receipt": "PASS: canonical public-001.json refreshed against Julia c037268c76d29234a2174354ae4319b4d98e7c29; current-source checker PASS per parent verification",
+  "canonical_lss_receipt": "PASS: canonical public-001 refreshed against Julia1cd856f63fa8a2a62a2e181e00790a0d812fb8af; authoritativecurrentcheckerPASS12labels72rows8checks tol4e-6; priorc037artifactpreserved",
   "package_check_snapshot": {
     "status": "check2 FAILED exit1 sole installed-test harness path error; check3 RUNNING after parent launch update",
     "target": "Totoro ~/codex-runs/sd-article-ml-20261104-check2",
@@ -28,14 +28,15 @@
     "http_status": "pending push/readback"
   },
   "canonical_lss_refresh": {
-    "julia_ref": "c037268c76d29234a2174354ae4319b4d98e7c29",
-    "artifact": "lss-c037-current.json",
-    "elapsed_seconds": 61.941,
+    "julia_ref": "1cd856f63fa8a2a62a2e181e00790a0d812fb8af",
+    "artifact": "lss-1cd-current.json",
+    "guard": "lss-1cd-refresh-guard.json",
     "runner_status": "PASS",
-    "source_unchanged": true,
-    "current_checker": "PASS per parent finalization",
-    "historical_receipt": "lss-tip-identity-before-refresh.json",
-    "scope": "One shuffled-row labeled-polytomy Gaussian LSS workflow; no broad parity/calibration claim"
+    "runner_elapsed_seconds": 59.17,
+    "guard_wall_seconds": 59.838980500004254,
+    "source_and_dll_unchanged": true,
+    "current_checker": "PASS per parent verification:12labels72rows8checks tolerance4e-6",
+    "previous_current": "lss-c037-current.json unchanged"
   },
   "completion_panel": {
     "mechanical": "no blockers in reviewed artifact/source-binding scope",
@@ -55,5 +56,12 @@
       120
     ],
     "stop_reestimate_utc": "2026-11-04T22:50:09Z"
+  },
+  "julia_test_namespace_disposition": "integration-julia-namespace-repair/receipt.json; no fullquadraturequalification",
+  "ci_latest_snapshot": {
+    "julia_ci_run": "41917279603 RUNNING",
+    "julia_docs_run": "41917279899 RUNNING",
+    "r_source_head": "6a1b35ea7afd97b96c64b0a68994b4b66b5d61ce",
+    "r_ci_run": "41910728363 RUNNING"
   }
 }

@@ -1,3 +1,13 @@
+# 2026-11-04: Julia namespace-only CI repair and current-ref LSS refresh
+
+Julia test-only repair `1cd856f63fa8a2a62a2e181e00790a0d812fb8af` removes the conflicting `const D = Distributions` alias and qualifies its 29 uses in `test_iid_sd_quadrature_accuracy.jl`. The real Julia 1.10 red log reproduces `invalid redefinition of constant Main.D`. Namespace smokes pass 3/3 on both Julia 1.10 and 1.13; the AST comparison passes 3/3 and rejects a deliberate tolerance change. Independent review finds no blocker in this bounded repair. Julia `src/` and `Project.toml`, fixtures and tolerance expressions are unchanged; the foreign-owned Binomial fixture is untouched.
+
+The smokes use the pre-existing isolated exploratory guard. They do not run or qualify the full quadrature grid. An earlier stable PR's shard3 pass is historical evidence and is not attributed to this repair. New Julia CI run `41917279603` and docs run `41917279899` remain RUNNING at this snapshot.
+
+The canonical LSS public workflow was refreshed against Julia `1cd856f6`. Runner status is PASS, elapsed 59.17 seconds; the enclosing refresh guard took 59.8389805 seconds and confirms source plus native DLL bytes unchanged. The authoritative current-source checker passes 12 labels, 72 rows and 8 checks at tolerance `4e-6`. Prior c037 receipt artifacts remain unchanged. New current-ref receipt/guard/script and namespace review logs are sealed in `general-sd-regression/evidence/ml-first-20261104/`.
+
+Full R check3 remains RUNNING on Totoro, PID237407, start20:50:09 UTC, stop/re-estimate22:50:09 UTC, archive `49a69b322add471e7fd250685becd2da88051f00882aa64526db069dca79674e`. R source head `6a1b35ea7afd97b96c64b0a68994b4b66b5d61ce` has CI run `41910728363` RUNNING. The next R documentation/receipt/view commit does not change its model source. Full-package, CI, merge, main and public-URL acceptance remain pending; no calibration or broader SD scope changes.
+
 # 2026-11-04 20:47 UTC: installed-check dispatch harness repair, full recheck preparing
 
 Full R package check2 finished at `2026-11-04T20:47:07Z` with exit 1. Testthat retained 41,881 passes, 1 failure, 117 warnings and 696 skips. The sole failure was `test-fixef-imported-generic-dispatch.R`: its child process assumed a source root while running from the installed check tree. The failure source matched `origin/main`; documentation, examples and vignettes passed. This result does not invalidate the accepted focused numerical checks, but it blocks a full-package pass.

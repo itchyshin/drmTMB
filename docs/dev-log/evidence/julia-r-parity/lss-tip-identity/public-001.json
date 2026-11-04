@@ -715,10 +715,10 @@
     "runtime": {
       "R": "R version 4.6.0 (2026-04-24)",
       "drmTMB": "0.7.1",
-      "drmjl_ref": "c037268c76d29234a2174354ae4319b4d98e7c29",
+      "drmjl_ref": "1cd856f63fa8a2a62a2e181e00790a0d812fb8af",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpY5J6oR/pkgloadf31537391bd/drmTMB.so",
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpU6ZBQj/pkgload3d1e5a650ad6/drmTMB.so",
           "sha256": "29dcf6d30daed35200951533fabbaad6bed5e715c383b9fe15f6d5ce6a5567de"
         }
       }
@@ -922,6 +922,6 @@
     "/Users/z3437171/.codex/worktrees/sd-article-ml-julia/DRM.jl/src/zeroonebeta.jl": "a44cb10d90af1189b835f49dc28f4de653bb3be1e892b1f55d5e3fa18a20d5ba"
   },
   "source_unchanged": true,
-  "elapsed": 61.940999999999995,
+  "elapsed": 59.170000000000002,
   "status": "PASS"
 }

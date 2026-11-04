@@ -1,16 +1,16 @@
 {
-  "schema_version": 4,
-  "scope": "focused+LSSaccepted evidence and retainedcheck2 failure/targeted harnessrepair; check3/CI/integration pending",
+  "schema_version": 5,
+  "scope": "acceptedfocused+current1cdLSS receipts and boundedharness/namespace evidence; fullcheck/CI/integration pending",
   "files": [
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/README.assessment.json",
-      "bytes": 3158,
-      "sha256": "738815c62dd302e0d23634743c7cd155037cf8221540e677be0599170e1cb9cd"
+      "bytes": 3398,
+      "sha256": "04920125a055ffb5732bf8ecc410ba5ba595e5b5c01c13086d4bb60757943c74"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/README.md",
-      "bytes": 13009,
-      "sha256": "139f89dff4468e10b4277c89b9cf3cd9be1fb043b10874d009d7127613e0ebae"
+      "bytes": 15207,
+      "sha256": "d4722932ddedf2b01946527c6c6c5daf076c9a17f4f4e3453503bcc1ec288db2"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/article-gamma-control-refused-results.tsv",
@@ -54,8 +54,8 @@
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/check_artifacts.py",
-      "bytes": 3460,
-      "sha256": "3b3ebd21ea03efe33b2d8cd49eb1f3822169c92acd527159dfabf4d76a8e38a2"
+      "bytes": 4240,
+      "sha256": "73e3402b775986f5433ec69c678e9ca627fa455db4bf72e377e74387cf570b98"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/completion-mechanical.md",
@@ -79,8 +79,8 @@
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/frozen-phase-status.json",
-      "bytes": 3133,
-      "sha256": "1e1fe0c0159bdd5acbe82b04ebd53db7c99af91b98dea2f52f2ce12113837ea2"
+      "bytes": 3531,
+      "sha256": "0a738ccebbf28d8d658fe8b2e75b51823312e25f2887beb8f2aa98e8ed55425f"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/frozen-verification/gamma-article/results.tsv",
@@ -256,6 +256,31 @@
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/gamma-sd-data.tsv",
       "bytes": 27278,
       "sha256": "c1822b46d8410aff5c796326d6c9f97ce852d0ada23231e920aac37a428a6867"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-before-1cd-refresh/README.assessment.json",
+      "bytes": 3158,
+      "sha256": "738815c62dd302e0d23634743c7cd155037cf8221540e677be0599170e1cb9cd"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-before-1cd-refresh/README.md",
+      "bytes": 13009,
+      "sha256": "139f89dff4468e10b4277c89b9cf3cd9be1fb043b10874d009d7127613e0ebae"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-before-1cd-refresh/artifact-manifest.json",
+      "bytes": 30303,
+      "sha256": "dbad797c7c2e42b8e37661e98c35f51d23b738679bb9246e0313824becb797cf"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-before-1cd-refresh/check_artifacts.py",
+      "bytes": 3460,
+      "sha256": "3b3ebd21ea03efe33b2d8cd49eb1f3822169c92acd527159dfabf4d76a8e38a2"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-before-1cd-refresh/frozen-phase-status.json",
+      "bytes": 3133,
+      "sha256": "1e1fe0c0159bdd5acbe82b04ebd53db7c99af91b98dea2f52f2ce12113837ea2"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-before-check2-harness-repair/README.assessment.json",
@@ -528,6 +553,51 @@
       "sha256": "9ee5cf24c2ec612ebe988ca47b3e0aeb000d22f2ffe2a3d355a41ed40ffcc8b4"
     },
     {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-julia-namespace-repair/julia-namespace-ast-check.log",
+      "bytes": 146,
+      "sha256": "6823938a1bde0806f4f8d20ddf54e583687dea16d25b7b6c91130f9b92f17286"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-julia-namespace-repair/julia-namespace-green-110.log",
+      "bytes": 222,
+      "sha256": "4554118ea2e577db01574068b1d1fd3403cc26c33d315a08d59eb1a45a5a145a"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-julia-namespace-repair/julia-namespace-green-113.log",
+      "bytes": 4293,
+      "sha256": "f4522c9ad7050e0b50cbaf379a27651c7c4596cc418bb63a9255e1382f62ed34"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-julia-namespace-repair/julia-namespace-red-110-final.log",
+      "bytes": 610,
+      "sha256": "eb84e6bc44f735cae2a76d61274f6e10e8fb9ca1700a755ed72dd5975d1a3e55"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-julia-namespace-repair/julia-namespace-repair-review.md",
+      "bytes": 4217,
+      "sha256": "061c11bb700b3668fc5f6e6fb04b5c89f5d3438b0e48596fac548db19bc8dfda"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-julia-namespace-repair/receipt.json",
+      "bytes": 1981,
+      "sha256": "6712931ae2c8414ff3a37b1288518ceeb9d656bac6dcf38d5f1575dd73105e0d"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/lss-1cd-current.json",
+      "bytes": 67790,
+      "sha256": "4c310d365902d6977f51a168b715f699fd5b222e37784d7980e6c05c2a9cfded"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/lss-1cd-current.log",
+      "bytes": 704,
+      "sha256": "de2d4ae8c46e50e30ebf63f8675034315cf075db0135b6119fe5a34faf23ec6f"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/lss-1cd-refresh-guard.json",
+      "bytes": 268582,
+      "sha256": "efe532bf472edeaed7f9cfee1ef3b7779efa68257ac1c9a09f206adee632ea7a"
+    },
+    {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/lss-c037-current.json",
       "bytes": 67789,
       "sha256": "76279d3b7712f389be5a4bf7f18d8a8f8218025927b18ac9cf7b910b8a62cae3"
@@ -541,6 +611,11 @@
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/lss-tip-identity-before-refresh.json",
       "bytes": 83819,
       "sha256": "b395e7330e3a381c109be28548f46719a042becc3b519d57d6cbc193bff1443e"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/refresh-lss-1cd.py",
+      "bytes": 2340,
+      "sha256": "75bdf8a1d3e63a99d63ac0a067760c713dd6558dcf18c21eea7b340823887f7f"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/reused-native-dll.json",
