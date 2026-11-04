@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "scope": "Integration-only test harness root discovery; no production likelihood/API repair",
+  "check2": {
+    "status": "FAILED",
+    "finished_utc": "2026-11-04T20:47:07Z",
+    "exit_code": 1,
+    "testthat_counts": {
+      "PASS": 41881,
+      "FAIL": 1,
+      "WARN": 117,
+      "SKIP": 696
+    },
+    "sole_failure": "test-fixef-imported-generic-dispatch.R could not find source DESCRIPTION from installed check tree",
+    "docs_examples_vignettes": "OK",
+    "archive_sha256": "274e0fba02a3d5d4a8b40c2f508bd70ddc595606ddb6a427e445e9c446b1625e",
+    "full_failure_external": {
+      "path": "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/totoro-check2-testthat.Rout.fail",
+      "bytes": 215370,
+      "sha256": "8925df561dbeb776c1e2fbb0f24fc54fe992fea4e6bc755a1330890b5c9efb0c"
+    }
+  },
+  "repair": {
+    "path": "tests/testthat/test-fixef-imported-generic-dispatch.R",
+    "origin_main_ref": "9e2c03f6fdcb9091418cb629f2ca7f30da695e3d",
+    "origin_main_test_sha256": "f14e182ebed2943b7c8ff4fb3eb2841751f745d8e4997ef1cb7e3399c792a667",
+    "working_head": "3e80994e40c9b36d063c4764f586f7f860df48d5",
+    "repaired_test_sha256": "05181716df584b7c05d9ec33a3a352f562f524daddccba0cea7cb28ae1a09bc2",
+    "diff_sha256": "9ae8d835a11dfb86154d589d05354ed77e41e9395007fb477e80071c7c01a834",
+    "behavior": "Use loaded namespace path and development flag; child load_all for development, loadNamespace with exact library for installed package; assertions unchanged",
+    "source_green": "3/3 PASS, 0FAIL/0WARN/0SKIP",
+    "installed_green": "3/3 PASS, 0FAIL/0WARN/0SKIP",
+    "review": "No assertion weakening, skip path, or class-coverage loss"
+  },
+  "next_check": {
+    "status": "RUNNING at parent launch update",
+    "estimated_minutes": "80\u2013120",
+    "estimate_basis": "Prior full check about83min",
+    "pid": 237407,
+    "started_utc": "2026-11-04T20:50:09Z",
+    "target": "Totoro ~/codex-runs/sd-article-ml-20261104-check3",
+    "archive_sha256": "49a69b322add471e7fd250685becd2da88051f00882aa64526db069dca79674e",
+    "stop_reestimate_utc": "2026-11-04T22:50:09Z",
+    "source_identity": "check3-source-identity.json; seven source/test/doc members match current bytes"
+  },
+  "ci_snapshot": {
+    "r_new_head": "PENDING",
+    "julia_docs": "PASS",
+    "julia_preview": "PASS",
+    "julia_test_shards": "PENDING"
+  },
+  "limits": "Fullcheck3/CI/merge/main/publicURLs remain open; no calibration or broad parity grant"
+}

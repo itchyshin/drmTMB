@@ -1,16 +1,16 @@
 {
-  "schema_version": 3,
-  "scope": "accepted focused-source and canonicalLSSrefresh artifacts with bounded completion reviews; fullpackage/CI/integration pending",
+  "schema_version": 4,
+  "scope": "focused+LSSaccepted evidence and retainedcheck2 failure/targeted harnessrepair; check3/CI/integration pending",
   "files": [
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/README.assessment.json",
-      "bytes": 3078,
-      "sha256": "e5864f486ee6e79a3f46768bde147cc72adbeb9481a76f9236ecc91c366bb5f1"
+      "bytes": 3158,
+      "sha256": "738815c62dd302e0d23634743c7cd155037cf8221540e677be0599170e1cb9cd"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/README.md",
-      "bytes": 11307,
-      "sha256": "525eb2b42cb59d68584cbc18090f8f04255c2ff556ab26b3bd46e0acaa41b6ff"
+      "bytes": 13009,
+      "sha256": "139f89dff4468e10b4277c89b9cf3cd9be1fb043b10874d009d7127613e0ebae"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/article-gamma-control-refused-results.tsv",
@@ -54,8 +54,8 @@
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/check_artifacts.py",
-      "bytes": 3030,
-      "sha256": "fc450f0b0bfa45ebde0b54b595d509153f65b059d379af30fc52e606ea5e71a5"
+      "bytes": 3460,
+      "sha256": "3b3ebd21ea03efe33b2d8cd49eb1f3822169c92acd527159dfabf4d76a8e38a2"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/completion-mechanical.md",
@@ -79,8 +79,8 @@
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/frozen-phase-status.json",
-      "bytes": 2636,
-      "sha256": "2d7059f74cb0f1f6845098e6fe21b92c9f53e2c4a38cde683d12bb463ed1ec9b"
+      "bytes": 3133,
+      "sha256": "1e1fe0c0159bdd5acbe82b04ebd53db7c99af91b98dea2f52f2ce12113837ea2"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/frozen-verification/gamma-article/results.tsv",
@@ -256,6 +256,31 @@
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/gamma-sd-data.tsv",
       "bytes": 27278,
       "sha256": "c1822b46d8410aff5c796326d6c9f97ce852d0ada23231e920aac37a428a6867"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-before-check2-harness-repair/README.assessment.json",
+      "bytes": 3078,
+      "sha256": "e5864f486ee6e79a3f46768bde147cc72adbeb9481a76f9236ecc91c366bb5f1"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-before-check2-harness-repair/README.md",
+      "bytes": 11307,
+      "sha256": "525eb2b42cb59d68584cbc18090f8f04255c2ff556ab26b3bd46e0acaa41b6ff"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-before-check2-harness-repair/artifact-manifest.json",
+      "bytes": 27303,
+      "sha256": "5d15ef8f555a17dba4c0b585da898c22a0796e6b56b9781fc3e6e3cb4c162438"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-before-check2-harness-repair/check_artifacts.py",
+      "bytes": 3030,
+      "sha256": "fc450f0b0bfa45ebde0b54b595d509153f65b059d379af30fc52e606ea5e71a5"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-before-check2-harness-repair/frozen-phase-status.json",
+      "bytes": 2636,
+      "sha256": "2d7059f74cb0f1f6845098e6fe21b92c9f53e2c4a38cde683d12bb463ed1ec9b"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-focused-before-c037/README.assessment.json",
@@ -466,6 +491,41 @@
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/source-snapshot.json",
       "bytes": 31850,
       "sha256": "217b077b3f5528c32c39acfec0e7e4297ae153be387d8594a2beb6a5c7d6bfb5"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-dispatch-repair/check3-source-identity.json",
+      "bytes": 703,
+      "sha256": "2f970161e531ad9275f8e77c4985dbb0d2d777771176fd7879f2bc20da1ea5e9"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-dispatch-repair/dispatch-installed-green.log",
+      "bytes": 305,
+      "sha256": "da11ed955301f18c54238651414a8a4ce12a7cebd7764e98ab52ea4351366dda"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-dispatch-repair/dispatch-source-green.log",
+      "bytes": 515,
+      "sha256": "c9f0edf8916defe0b27aeda2a2767d0d7e08586386e316f9178b8c1cf5a1fc13"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-dispatch-repair/dispatch-test-repair-review.md",
+      "bytes": 2149,
+      "sha256": "cec2162de277137370328b15a6b6b0cb9137dab3d32c0dc6605ebde2588bd9ac"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-dispatch-repair/receipt.json",
+      "bytes": 2486,
+      "sha256": "564d072f125d74950a8b7e2251d3a04b7cca5f7b24ac7e7a38594814982e2f71"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-dispatch-repair/test-repair.diff",
+      "bytes": 1409,
+      "sha256": "9ae8d835a11dfb86154d589d05354ed77e41e9395007fb477e80071c7c01a834"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/integration-dispatch-repair/totoro-check2-check.log",
+      "bytes": 57733,
+      "sha256": "9ee5cf24c2ec612ebe988ca47b3e0aeb000d22f2ffe2a3d355a41ed40ffcc8b4"
     },
     {
       "path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/lss-c037-current.json",

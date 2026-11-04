@@ -16,7 +16,7 @@
   "julia_core_relation": "Existing probe coref4fa3aed4 unchanged; final documentation ref changes docs/data only. Snapshot hashes in accepted receipt qualify executed code.",
   "canonical_lss_receipt": "PASS: canonical public-001.json refreshed against Julia c037268c76d29234a2174354ae4319b4d98e7c29; current-source checker PASS per parent verification",
   "package_check_snapshot": {
-    "status": "RUNNING at parent handoff; not freshly queried by receipt writer",
+    "status": "check2 FAILED exit1 sole installed-test harness path error; check3 RUNNING after parent launch update",
     "target": "Totoro ~/codex-runs/sd-article-ml-20261104-check2",
     "pid": 174675,
     "archive_sha256": "274e0fba02a3d5d4a8b40c2f508bd70ddc595606ddb6a427e445e9c446b1625e",
@@ -42,5 +42,18 @@
     "reader": "no blocking reader confusion",
     "science": "no blocking source/math finding",
     "limits": "review only; no full-package, CI, merge, main or deployed-URL completion grant"
+  },
+  "integration_harness_repair": "integration-dispatch-repair/receipt.json",
+  "package_check3_snapshot": {
+    "status": "RUNNING",
+    "pid": 237407,
+    "started_utc": "2026-11-04T20:50:09Z",
+    "target": "Totoro ~/codex-runs/sd-article-ml-20261104-check3",
+    "archive_sha256": "49a69b322add471e7fd250685becd2da88051f00882aa64526db069dca79674e",
+    "estimated_minutes": [
+      80,
+      120
+    ],
+    "stop_reestimate_utc": "2026-11-04T22:50:09Z"
   }
 }

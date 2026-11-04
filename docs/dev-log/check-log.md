@@ -1,3 +1,15 @@
+# 2026-11-04 20:47 UTC: installed-check dispatch harness repair, full recheck preparing
+
+Full R package check2 finished at `2026-11-04T20:47:07Z` with exit 1. Testthat retained 41,881 passes, 1 failure, 117 warnings and 696 skips. The sole failure was `test-fixef-imported-generic-dispatch.R`: its child process assumed a source root while running from the installed check tree. The failure source matched `origin/main`; documentation, examples and vignettes passed. This result does not invalidate the accepted focused numerical checks, but it blocks a full-package pass.
+
+The parent repaired only that test's package-root selection. It now uses the loaded namespace path and development-package flag; the child uses `load_all()` for a source package and `loadNamespace()` from the exact parent library for an installed package. The behavioral assertions remain unchanged. Source and actual installed-library runs each passed 3/3 assertions with no failures, warnings or skips. Independent review found no assertion weakening, skip path or class-coverage loss.
+
+The bounded repair receipt, both green logs, review, exact test diff and failed check log are retained under `general-sd-regression/evidence/ml-first-20261104/integration-dispatch-repair/`. The full failed test output remains external with a byte count and SHA-256 pointer. Earlier receipts and denominators are preserved.
+
+Full check3 is PREPARING at this snapshot, estimated 80–120 minutes from check2's roughly 83 minutes; no PID is recorded yet. R new-head CI is pending. Julia documentation and preview checks passed, while its test shards remain pending. Full package, CI, merge, main and public-URL completion are still open. No likelihood, public API, SD scope, tolerance or calibration policy changed.
+
+Check3 launched at `2026-11-04T20:50:09Z` and is RUNNING on Totoro under `~/codex-runs/sd-article-ml-20261104-check3`, PID `237407`, for archive SHA-256 `49a69b322add471e7fd250685becd2da88051f00882aa64526db069dca79674e`. Its source-identity record binds seven source/test/doc members to current bytes. The 80–120 minute estimate is retained, with stop/re-estimate at `22:50:09Z`; no outcome is claimed yet.
+
 # 2026-11-04: ML-first SD article and structured stored prediction, integration pending
 
 The R bridge now reconstructs stored `mu` predictions from its validated structured conditional field for the selected Gaussian, Poisson, NB2, Gamma and Binomial routes. Explicit `newdata` still sets random effects to zero; Binomial response conversion honors the fitted link. Ordinary Gaussian prediction follows its existing path. Conditional structured fitted values now use retained link predictors to avoid loss from rounded probabilities or overflowing population means; qualified response residuals use the retained observed response to avoid cancellation. No likelihood, grammar, estimator-policy or direct-Julia fitted-output change is claimed.

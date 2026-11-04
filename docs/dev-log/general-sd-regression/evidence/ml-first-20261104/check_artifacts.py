@@ -49,4 +49,10 @@ lss = json.loads((prefix / 'lss-c037-current.json').read_text())
 assert lss['status'] == 'PASS' and lss['source_unchanged']
 assert lss['source_before'] == lss['source_after']
 assert all((prefix / ('completion-' + role + '.md')).is_file() for role in ('mechanical', 'reader', 'science'))
+dispatch = json.loads((prefix / 'integration-dispatch-repair/receipt.json').read_text())
+assert dispatch['check2']['exit_code'] == 1
+assert dispatch['check2']['testthat_counts'] == {'PASS': 41881, 'FAIL': 1, 'WARN': 117, 'SKIP': 696}
+for mode in ('source', 'installed'):
+    log = (prefix / 'integration-dispatch-repair' / ('dispatch-' + mode + '-green.log')).read_text()
+    assert '[ FAIL 0 | WARN 0 | SKIP 0 | PASS 3 ]' in log
 print('ML_FIRST_ARTIFACT_INTEGRITY_PASS')

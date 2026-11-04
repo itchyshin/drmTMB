@@ -29,3 +29,13 @@ G5 calibration and D-342 REML policy stay deferred. Structured stored conditiona
 ## Next action
 
 Finish the full package check and CI, then verify gated merges plus main and public URLs before changing this record to complete. The canonical LSS refresh and three bounded completion reviews have passed their stated scopes. The accepted frozen batch and predecessor are retained separately in the evidence prefix; the numerical ledger retains all six ZeroOneBeta attempts.
+
+## Integration update: 4 November 2026, after check2
+
+Check2 finished at 20:47:07 UTC with exit 1, retaining 41,881 passes, 1 failure, 117 warnings and 696 skips. Its documentation, examples and vignettes passed. The sole failure was an unchanged-from-main imported-generic dispatch test assuming a source root from the installed check tree.
+
+This added one bounded integration repair beyond the article/output work: choose the child package-loading path from the actual parent namespace and development flag. The assertions are unchanged. Source and installed-mode tests each pass 3/3, and independent review finds no weakening or lost class coverage. The failed full-check record remains retained rather than relabelled successful. This adjustment changes the test harness only, without changing the statistical scope.
+
+Check3 is PREPARING at this snapshot, estimated 80–120 minutes using check2's roughly 83-minute run; no PID is recorded. R new-head CI and Julia test shards remain pending, while Julia docs and preview checks passed. Full package and integration/main gates remain open. The artifact receipt is `general-sd-regression/evidence/ml-first-20261104/integration-dispatch-repair/receipt.json`; its full-failure pointer preserves the original accounting.
+
+Check3 launched at `2026-11-04T20:50:09Z` and is RUNNING on Totoro under `~/codex-runs/sd-article-ml-20261104-check3`, PID `237407`, for archive SHA-256 `49a69b322add471e7fd250685becd2da88051f00882aa64526db069dca79674e`. Its source-identity record binds seven source/test/doc members to current bytes. The 80–120 minute estimate is retained, with stop/re-estimate at `22:50:09Z`; no outcome is claimed yet.

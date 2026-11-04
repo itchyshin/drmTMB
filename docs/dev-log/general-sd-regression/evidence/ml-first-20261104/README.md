@@ -71,3 +71,13 @@ python3 docs/dev-log/general-sd-regression/evidence/ml-first-20261104/check_arti
 ```
 
 This receipt makes no calibrated-interval, REML, broad-family or whole-programme completion claim.
+
+## Integration-only dispatch harness repair, after check2
+
+The earlier running-check snapshot is retained above. Check2 finished on 4 November 2026 at 20:47:07 UTC with exit 1. It retained 41,881 passes, 1 failure, 117 warnings and 696 skips; documentation, examples and vignettes passed. The sole failure was the imported-generic dispatch test looking for a source `DESCRIPTION` from the installed check tree.
+
+`integration-dispatch-repair/` retains the failed check log, three-assertion green runs in source and installed modes, independent review, exact source diff and receipt. The raw full failed test output remains external with a size/hash pointer. The parent repair selects the child loading path from the actual namespace and development flag; behavioral assertions and class coverage remain unchanged. No production R source or statistical model changed in this repair.
+
+The independent review found no assertion weakening or skip path. Check3 is PREPARING, estimated 80–120 minutes from about 83 minutes for check2, with no PID at this snapshot. R new-head CI and Julia test shards remain pending; Julia docs and preview passed. The targeted repair tests do not constitute a full-package, CI, merge or main pass. All historical attempts and their denominators remain retained.
+
+Check3 launched at `2026-11-04T20:50:09Z` and is RUNNING on Totoro under `~/codex-runs/sd-article-ml-20261104-check3`, PID `237407`, for archive SHA-256 `49a69b322add471e7fd250685becd2da88051f00882aa64526db069dca79674e`. Its source-identity record binds seven source/test/doc members to current bytes. The 80–120 minute estimate is retained, with stop/re-estimate at `22:50:09Z`; no outcome is claimed yet.
