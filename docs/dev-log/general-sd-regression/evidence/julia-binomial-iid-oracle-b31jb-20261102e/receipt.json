@@ -17,7 +17,7 @@
   "test_path": "tests/testthat/test-julia-binomial-iid-oracle-b31jb.R",
   "test_sha256": "c427a27916a82f003664d48677d445ccfd45b52d2eb2e7bdb910ca2b3b3c022f",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-oracle-b31jb-20261102e/source-manifest.json",
-  "source_manifest_sha256": "e472d305a70cf5d920e3b2cdbf46efb7edeeefff177227f34421a691d2ce300b",
+  "source_manifest_sha256": "2d2be6c5f534c902e43a8ccc6fddd21d22575991d067434285a8602adb8c04c3",
   "live_julia": "run; live R-to-Julia fits via drmTMB(..., engine = \"julia\")",
   "scope": "iid intercept and iid numeric-slope SD, exact marginal and hand 5-node adaptive Gauss-Hermite oracles. Oracle evaluated at the live Julia estimates; agreement asserted to 1e-3 absolute on logLik; every emulated bug must move the oracle by more than 20x that.",
   "rows_claimed": [
@@ -43,15 +43,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-julia-binomial-iid-oracle-b31jb.R",
     "test_sha256": "c427a27916a82f003664d48677d445ccfd45b52d2eb2e7bdb910ca2b3b3c022f",
-    "rerun_at_commit": "81553915d",
-    "started_utc": "2026-11-03T01:16:39Z",
-    "ended_utc": "2026-11-03T01:17:18Z",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T04:04:18Z",
+    "ended_utc": "2026-11-03T04:04:56Z",
     "expectations_passed": 102,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-oracle-b31jb-20261102e/test-console-rerun-81553915d.log",
-    "console_log_sha256": "358a3b515bd31d2aa45e669c45f58c07235cc573e96294fd31aab2666e11f703",
-    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-oracle-b31jb-20261102e/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "3280f63468d57195b1e81a0505e124b9b9523e04512ba2816172ae638fac9bf0",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

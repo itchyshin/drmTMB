@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-b32-count-gamma-spatial-intercept-bridge.R",
   "test_sha256": "9f4de6bfc7f4b57c933db14d09b9ba40835645908cb561fca310569ded351f41",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-b32-count-gamma-spatial-intercept-bridge-20261103a/source-manifest.json",
-  "source_manifest_sha256": "82774a7cd627ef3bd67cb31560829926884552ac56da7a1ff7d2bd8e88a7c637",
+  "source_manifest_sha256": "a0b96c09d62c6d272312532edaf9e60f39f3aacefd0c559988d605d0a4a6b172",
   "live_julia": "run live on the Mac; the live blocks ran (skips 0)",
   "strengthens_evidence_ids": [],
   "strengthens_note": "The test file header names no parent evidence id, so none is claimed; this is a new first receipt for the linked rows.",
@@ -56,5 +56,19 @@
     "an independent oracle for the log-likelihood (native TMB is the comparator; the Julia-side oracle test lives in the DRModels.jl repository)"
   ],
   "tolerances": "coefficients 1e-3 absolute, logLik 1e-2 absolute, as fixed in the test file header; none loosened",
-  "review_status": "unreviewed"
+  "review_status": "unreviewed",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-b32-count-gamma-spatial-intercept-bridge.R",
+    "test_sha256": "4411519a21106908f7a7973ae81c648810ce4ef161d306ac1623835cd2715bef",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T03:50:12Z",
+    "ended_utc": "2026-11-03T03:51:05Z",
+    "expectations_passed": 98,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b32-count-gamma-spatial-intercept-bridge-20261103a/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "9dd35d347cd0de3f8f13702b7a015a1a2524ccb151a40f07b7ee1f9b4a1bc61b",
+    "reason": "test file edited (refusal-pin or companion update) and R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
 }

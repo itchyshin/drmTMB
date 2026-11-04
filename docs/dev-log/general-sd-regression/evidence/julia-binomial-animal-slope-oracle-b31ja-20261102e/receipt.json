@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-animal-slope-oracle-b31ja.R",
   "test_sha256": "f768111eff2a6d5b0e2d06d690b1a39cec8f3a8911140550b3624a41802adc42",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-slope-oracle-b31ja-20261102e/source-manifest.json",
-  "source_manifest_sha256": "6ee574d751345f5083505af8e8b50a883b20251e12a7707ee8e0b77233285124",
+  "source_manifest_sha256": "735d604e8cf2efe67ea7ccce37a2b0b38ccbd06ab8d8f8b20b4bdc29683f0149",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "scope": "Live Julia Binomial animal(0 + x | id) structured numeric slope with sd(id, level = 'animal') ~ z; A (probit, cloglog) and Ainv (logit, probit, cloglog). Independent base-R dense Laplace oracle, hand-built inbred Henderson A, random non-palindromic selector, A row order different from factor level order.",
   "achieved_oracle_agreement_max_abs": "5.19e-06 (max over 5 fits)",
@@ -171,15 +171,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-julia-binomial-animal-slope-oracle-b31ja.R",
     "test_sha256": "f768111eff2a6d5b0e2d06d690b1a39cec8f3a8911140550b3624a41802adc42",
-    "rerun_at_commit": "81553915d",
-    "started_utc": "2026-11-03T01:09:22Z",
-    "ended_utc": "2026-11-03T01:09:52Z",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T03:57:09Z",
+    "ended_utc": "2026-11-03T03:57:39Z",
     "expectations_passed": 91,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-slope-oracle-b31ja-20261102e/test-console-rerun-81553915d.log",
-    "console_log_sha256": "a4f304b5c355d0622bf93165d3bba2e95803dd284ee68a11159b6a8cd055cce5",
-    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-slope-oracle-b31ja-20261102e/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "5728c7c5ff855fad2d1ad21d8e2189c85b77bb5db8fbb25afaae9a4f3cba9018",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

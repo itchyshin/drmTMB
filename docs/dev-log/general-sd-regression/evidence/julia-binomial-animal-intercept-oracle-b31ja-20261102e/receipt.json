@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-animal-intercept-oracle-b31ja.R",
   "test_sha256": "abbd4c024a13ea8e1c15da83c099ecafd772f1e06fb446ad70e9a16cfefe0fef",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-intercept-oracle-b31ja-20261102e/source-manifest.json",
-  "source_manifest_sha256": "09d1d9f9193d6a7bd6806c647c2ee13e2920a6e2ab96b726f075c39df079883e",
+  "source_manifest_sha256": "be7ff4098fefdbc5e0f71c80e845a5c9a3e5626f797c38b5ebba311fccf8671a",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "scope": "Live Julia Binomial animal(1 | id) structured intercept with sd(id, level = 'animal') ~ z, providers A and Ainv, links logit, probit, cloglog. Independent base-R dense Laplace oracle with hand-built inbred Henderson A, random non-palindromic selector, A row order different from factor level order; coefficient shifts of +-0.1 do not raise the oracle for the A logit fit.",
   "achieved_oracle_agreement_max_abs": "4.60e-06 (max over 6 fits)",
@@ -184,15 +184,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-julia-binomial-animal-intercept-oracle-b31ja.R",
     "test_sha256": "abbd4c024a13ea8e1c15da83c099ecafd772f1e06fb446ad70e9a16cfefe0fef",
-    "rerun_at_commit": "81553915d",
-    "started_utc": "2026-11-03T01:08:20Z",
-    "ended_utc": "2026-11-03T01:08:51Z",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T03:56:07Z",
+    "ended_utc": "2026-11-03T03:56:38Z",
     "expectations_passed": 104,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-intercept-oracle-b31ja-20261102e/test-console-rerun-81553915d.log",
-    "console_log_sha256": "e6549293d7edbbef7f791a74e4d0243b14178b201d24ee4326b17dac065d5285",
-    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-intercept-oracle-b31ja-20261102e/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "2eb2123cbc9e59e6fbdc9c9132f4e028a35065c9992313993f821a7972d93afa",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

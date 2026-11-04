@@ -7681,6 +7681,9 @@ new_drmTMB_julia <- function(
     missing_rows = drm_julia_missing_rows_slot(data),
     fitted = drm_julia_plain(result[["fitted"]]),
     conditional_re = drm_julia_conditional_re_plain(result[["conditional_re"]]),
+    conditional_structured = drm_julia_conditional_structured_plain(
+      result[["conditional_structured"]]
+    ),
     residuals = drm_julia_plain(result[["residuals"]]),
     sigma = drm_julia_plain(result[["sigma"]]),
     corpairs = drm_julia_plain(result[["corpairs"]]),
@@ -8651,6 +8654,30 @@ drm_julia_conditional_re_plain <- function(x) {
     levels = as.character(unlist(x$levels, use.names = FALSE)),
     gidx = as.numeric(unlist(x$gidx, use.names = FALSE)),
     blup = as.numeric(unlist(x$blup, use.names = FALSE))
+  )
+}
+
+# Structured-field conditional payload (b34). DRModels.jl exports, for a
+# structured relmat() / animal() / spatial() mean field on the routes listed in
+# NEWS.md, the per-row link-scale contribution of the field at its conditional
+# (inner Laplace) mode, `eta_re` in data row order, and the mode vector of each
+# field component in first-seen group order (the row order of the K / A matrix
+# the bridge sends). Absent for every other route.
+drm_julia_conditional_structured_plain <- function(x) {
+  if (is.null(x)) {
+    return(NULL)
+  }
+  x <- as.list(x)
+  kind <- as.character(x$kind)[[1L]]
+  if (identical(kind, "structured_eta_re_v1_failed")) {
+    return(list(kind = kind))
+  }
+  list(
+    kind = kind,
+    eta_re = as.numeric(unlist(x$eta_re, use.names = FALSE)),
+    modes = lapply(as.list(x$modes), function(m) {
+      as.numeric(unlist(m, use.names = FALSE))
+    })
   )
 }
 
@@ -9983,6 +10010,64 @@ deviance.drmTMB_julia <- function(object, ...) {
   -2 * as.numeric(stats::logLik(object))
 }
 
+# b34: a structured relmat() / animal() / spatial() mean field on a route that
+# exports its conditional mode (Gaussian, Binomial, Poisson, NB2, Gamma; see
+# NEWS.md) now returns the conditional mean like native fitted(): the inverse
+# link of the bridge's population-level linear predictor plus the field's
+# link-scale contribution at its mode. Routes that do not export the payload
+# keep the population-level bridge slot.
+drm_julia_conditional_structured_fitted <- function(object, model_type) {
+  payload <- object$conditional_structured
+  if (is.list(payload) && identical(payload$kind, "structured_eta_re_v1_failed")) {
+    cli::cli_warn(c(
+      "The Julia engine could not compute the conditional mode of the structured field for this fit.",
+      i = "{.fn fitted} and {.fn residuals} return the population-level value (random effects at zero), which differs from {.code engine = \"tmb\"}."
+    ))
+    return(NULL)
+  }
+  if (!is.list(payload) || !identical(payload$kind, "structured_eta_re_v1")) {
+    return(NULL)
+  }
+  link <- switch(
+    model_type,
+    gaussian = "identity",
+    poisson = ,
+    nbinom2 = ,
+    gamma = "log",
+    binomial = {
+      binom_link <- object$family$link
+      if (is.null(binom_link)) "logit" else binom_link
+    },
+    NULL
+  )
+  population <- object$fitted
+  eta_re <- payload$eta_re
+  if (is.null(link) || length(eta_re) != length(population) || anyNA(eta_re) ||
+      !all(is.finite(eta_re))) {
+    cli::cli_abort(c(
+      "The Julia bridge returned a structured conditional payload that does not match this fit.",
+      i = "Expected {length(population)} finite per-row values for model type {.val {model_type}}; got {length(eta_re)}."
+    ))
+  }
+  eta <- switch(
+    link,
+    identity = population,
+    log = log(population),
+    logit = stats::qlogis(population),
+    probit = stats::qnorm(population),
+    cloglog = log(-log1p(-population))
+  ) + eta_re
+  switch(
+    link,
+    identity = eta,
+    log = exp(eta),
+    logit = stats::plogis(eta),
+    probit = stats::pnorm(eta),
+    cloglog = -expm1(-exp(eta))
+  )
+}
+
+
 # fitted() and residuals() on the bridge follow ?fitted.drmTMB, not DRModels.jl
 # (#1566). The bridge slot carries the DRModels.jl fitted definition, which
 # differs from the drmTMB one for three routes on the same converged model:
@@ -9996,14 +10081,20 @@ deviance.drmTMB_julia <- function(object, ...) {
 # predict.drmTMB_julia() uses), through the shared native helpers. Every other
 # route keeps the bridge slot. A fit whose dpars cannot be rebuilt R-side (a
 # random effect without a retained payload, or an offset) also keeps the slot.
-# The relmat(), animal() and spatial() routes are in that group: the slot is the
+# The relmat(), animal() and spatial() routes whose Julia fitter exports the
+# conditional field (drm_julia_conditional_structured_fitted(), above this
+# comment) return the conditional mean like native fitted(). Any
+# structured route that does not export it keeps the bridge slot, the
 # population-level value (inverse link of X beta, modes at zero, rows in data
-# order), not the conditional mean ?fitted.drmTMB returns, so fitted() and
-# residuals() differ from engine = "tmb" on those routes (measured 2026-11-02,
-# batch 32 audit; coefficients and logLik are unaffected).
+# order), so fitted() and residuals() still differ from engine = "tmb" there
+# (measured 2026-11-02, batch 32 audit; coefficients and logLik are unaffected).
 # Returns NULL when the bridge slot is already the documented value.
 drm_julia_fitted_recomputed <- function(object) {
   model_type <- drm_julia_predict_model_object(object)$model$model_type
+  structured <- drm_julia_conditional_structured_fitted(object, model_type)
+  if (!is.null(structured)) {
+    return(structured)
+  }
   if (model_type %in% c("lognormal", "truncated_nbinom2")) {
     for (entry in object$formula$entries) {
       if (

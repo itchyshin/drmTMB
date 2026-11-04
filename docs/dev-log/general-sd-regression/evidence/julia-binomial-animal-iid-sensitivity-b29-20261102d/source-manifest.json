@@ -27,8 +27,8 @@
     },
     {
       "file": "R/julia-bridge.R",
-      "sha256": "71a3fa79a97764bbae390ad771d4300688d1d58783d49fb5bf93a6d7bfa82c0d"
+      "sha256": "0803f791a8c237df11d9d6cc6a20183137ada7cb7bea15053bfa950a2101eac3"
     }
   ],
-  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'R/methods.R', 'src/drmTMB.cpp', 'R/julia-bridge.R']"
+  "re_recorded": "2026-11-03 on 91a56224f plus uncommitted batch 34 changes, after a test rerun at 91a56224f-b34; entries that differed: ['R/julia-bridge.R']"
 }

@@ -19,7 +19,7 @@
   "test_path": "tests/testthat/test-julia-binomial-iid-correlated-oracle-b31ja.R",
   "test_sha256": "6fdd7ba076859fe4bf5aabc81dcec69b84a1d0a41b9c5d60c30e729056531cca",
   "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-correlated-oracle-b31ja-20261102e/source-manifest.json",
-  "source_manifest_sha256": "2a30d848d61ee8564ad6caf133e1a978ef550cc644555ef34f3a0be0efb506e4",
+  "source_manifest_sha256": "5a6a2400c6bc30c2aff2d09e8a95e619382ecbb9a6a247bece5ae241658694b6",
   "live_julia": "run live on the Mac (DRM_JL_PATH worktree, Julia 1.10.0)",
   "scope": "Live Julia Binomial ordinary (1 + x1 | id) correlated q2 block with sd() on each coefficient, logit, probit, cloglog. The Julia route uses per-group adaptive Gauss-Hermite quadrature with 5 nodes per axis (not Laplace), so the oracle is an independent base-R per-group adaptive Gauss-Hermite with 5 nodes (Golub-Welsch nodes, own mode and curvature), evaluated at the Julia estimates; random non-palindromic per-group selectors. A 15-node value is reported in the console (about 0.01 to 0.09 above the 5-node logLik) but not asserted.",
   "achieved_oracle_agreement_max_abs": "2.27e-13 (max over 3 fits)",
@@ -184,15 +184,15 @@
   "rerun_after_first_record": {
     "test_path": "tests/testthat/test-julia-binomial-iid-correlated-oracle-b31ja.R",
     "test_sha256": "6fdd7ba076859fe4bf5aabc81dcec69b84a1d0a41b9c5d60c30e729056531cca",
-    "rerun_at_commit": "81553915d",
-    "started_utc": "2026-11-03T01:09:52Z",
-    "ended_utc": "2026-11-03T01:10:45Z",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T03:57:39Z",
+    "ended_utc": "2026-11-03T03:58:33Z",
     "expectations_passed": 60,
     "failures": 0,
     "errors": 0,
     "skips": 0,
-    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-correlated-oracle-b31ja-20261102e/test-console-rerun-81553915d.log",
-    "console_log_sha256": "fc919b6c7d6ffa085ac5017920d9376af7d8007f483c09bf404bc92d5bf93dcb",
-    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-iid-correlated-oracle-b31ja-20261102e/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "3642fc9d7abae5334396976733d9002bf13dfb0eb364d633c1236ed859348379",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
   }
 }

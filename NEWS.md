@@ -31,12 +31,29 @@
   `simulate()` and stored conditional `predict()`, a modelled `sigma`, Poisson
   `spatial(0 + x | id)` and NB2 phylogenetic SD.
 
-* `fitted()` and `residuals()` on `engine = "julia"` fits with a structured
-  `relmat()`, `animal()` or `spatial()` term return the population-level value
-  (inverse link of the fixed-effect linear predictor, random-effect modes at zero),
-  while native `fitted()` returns the conditional mean, so they differ from
-  `engine = "tmb"` (measured gaps from 0.2 to 47 on the response scale). Coefficients
-  and the log-likelihood are not affected. This is documented, not yet changed.
+* `fitted()` and `residuals()` on `engine = "julia"` fits on the routes listed below
+  now return the conditional mean, as native `fitted()` does, instead of the
+  population-level value (inverse link of the fixed-effect linear predictor,
+  random-effect modes at zero). DRModels.jl exports the structured field's
+  conditional (inner Laplace) mode and the R side rebuilds the mean from it.
+  Routes changed: the `sd(id, level = ...)` regression routes with a `relmat()`,
+  `animal()` (`A`; also `Ainv` for Poisson and Binomial) or coordinate `spatial()`
+  mean intercept, or slope where the bridge admits it, for Gaussian, Poisson, NB2,
+  Gamma and Binomial (logit, probit and cloglog); the Binomial animal q2
+  intercept-and-slope block. Each route is checked on one shuffled-row fixture
+  against native `engine = "tmb"` (relative tolerance 1e-4; the old
+  population-level value was 0.4 to 1.1 away). The Binomial animal q2 route is
+  checked against a dense base-R conditional-mode solve at the Julia estimates
+  instead, because native reaches a different optimum on that fixture. If the
+  conditional mode cannot be computed for a fit, `fitted()` warns and returns the
+  population-level value. Not changed: other structured fields fitted without an
+  `sd(id, level = ...)` formula (for example a plain `relmat(1 | id, K = K)` mean
+  term), phylogenetic fields, the Gamma animal intercept-plus-slope route, Binomial
+  routes that combine a structured field with an ordinary `(1 | g)` effect, `mesh`
+  and crossed routes, and `predict()` on stored rows, which keeps the
+  population-level value, so `fitted()` and `predict()` can differ on the changed
+  routes. Coefficients and the log-likelihood are not affected. No standard-error,
+  coverage or calibration claim.
 
 * Native Binomial `animal(1 + x | p | id, A = A)` (logit, probit and cloglog links) and
   `phylo(1 + x | p | id, tree = tree)` (logit) now fit the labelled intercept-plus-slope

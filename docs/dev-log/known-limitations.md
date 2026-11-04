@@ -31,12 +31,28 @@ per-group integral on several seeds, including the draws that failed before, at 
 The unlinked ledger rows can be relinked after a fresh review.
 
 `fitted()` and `residuals()` on `engine = "julia"` fits with a structured
-`relmat()`, `animal()` or `spatial()` term return the population-level value (random
-effects at zero), not the conditional mean native `fitted()` returns (2026-11-02,
-batch 32). Coefficients and the log-likelihood agree with native; fitted values
-differ by up to 47 on the response scale in the measured fixtures. A fix needs
-DRModels.jl to export the conditional modes for these routes and the R bridge to
-rebuild the conditional mean from them.
+`relmat()`, `animal()` or `spatial()` term returned the population-level value
+(random effects at zero), not the conditional mean native `fitted()` returns
+(2026-11-02, batch 32; fitted values differed by up to 47 on the response scale).
+Fixed in batch 34 (2026-11-03) for the Gaussian, Poisson, NB2, Gamma and Binomial
+`sd(id, level = ...)` routes with `relmat()`, `animal()` (`A`; `Ainv` for Poisson and
+Binomial) and coordinate `spatial()`, intercept, and slope where admitted, and for the Binomial animal
+q2 block: DRModels.jl exports the field's conditional mode and the R bridge rebuilds
+the conditional mean. If the conditional mode cannot be computed for a fit, `fitted()`
+warns and keeps the population-level value. Still the population-level value, so still
+different from `engine = "tmb"`: other structured fields fitted without an `sd(id, level = ...)` formula (measured
+2026-11-03 on Gaussian and Poisson `relmat(1 | id, K = K)` and Poisson `animal(1 | id, A = A)`,
+relative gaps 0.84 to 0.89), phylogenetic fields, Binomial routes with a structured field plus an
+ordinary `(1 | g)` effect, `mesh` and crossed routes, the Gamma animal
+intercept-plus-slope route, and `predict()` on stored rows for every Julia fit (which
+therefore no longer equals `fitted()` on the changed routes). Coefficients and the
+log-likelihood were never affected.
+
+Julia ZeroOneBeta iid slope SD fits (`(0 + x | id)` with `sd(id, coef = "x") ~ z`) on
+boundary-heavy data can stop in the standard-error step with "matrix contains Infs or
+NaNs" when an interior response is extremely close to 0 or 1 (about 1e-56 on two
+measured seeds, 2026-11-03, batch 34). The point estimates converge; the standard
+errors are not returned.
 
 Read this ledger together with
 `docs/design/168-r-julia-finish-capability-matrix.md`; when a status boundary
