@@ -1,0 +1,8 @@
+  PASS GATES:G1: R constructor and numerical oracle suite passes on the compiled candidate
+       exit=0; EXPECT=matched; output=PRIORS_R_RECEIPT_PASS negative_controls=6
+  PASS GATES:G2: Julia constructor and numerical oracle suite passes on the candidate
+       exit=0; EXPECT=matched; output=PRIORS_JULIA_RECEIPT_PASS
+  PASS GATES:G3: matched R-Julia target fixtures agree within declared tolerances
+       exit=0; EXPECT=matched; output=PRIORS_PAIR_RECEIPT_PASS negative_controls=2
+GATES.md: 6 gates
+ALL MET (6 met, reran: 3, previously met reverified: 3)

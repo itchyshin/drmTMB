@@ -16,8 +16,8 @@ drmTMB(
   REML = FALSE,
   penalty = NULL,
   estimator = c("ml", "mspl"),
-  priors = NULL,
-  ...
+  ...,
+  priors = NULL
 )
 }
 \arguments{

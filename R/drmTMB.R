@@ -334,8 +334,8 @@ drmTMB <- function(
   REML = FALSE,
   penalty = NULL,
   estimator = c("ml", "mspl"),
-  priors = NULL,
-  ...
+  ...,
+  priors = NULL
 ) {
   fit_call <- match.call()
   family <- drm_eval_family_arg(substitute(family), parent.frame())

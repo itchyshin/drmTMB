@@ -28,12 +28,15 @@ def check_pairs(rows):
 
 stage = sys.argv[1]
 if stage == 'r':
-    expected = json.loads((evidence / 'r-final-source-manifest.json').read_text())
+    expected = json.loads((evidence / 'r-closeout-source-manifest.json').read_text())
     actual = json.loads(subprocess.check_output(
         [sys.executable, str(here / 'source-manifest.py'), str(root)], text=True))
     assert expected == actual, 'R implementation/test source changed after validation'
-    assert 'R_PRIOR_ORACLES_PASS' in (evidence / 'r-final-focused.log').read_text()
-    print('PRIORS_R_RECEIPT_PASS')
+    assert 'R_PRIOR_ORACLES_PASS' in (evidence / 'r-closeout-focused.log').read_text()
+    controls = list(csv.DictReader((evidence / 'r-prior-negative-controls.csv').open()))
+    assert len(controls) == 6 and all(r['rejected'] == 'TRUE' for r in controls)
+    assert 'PRIOR_NEGATIVE_CONTROLS_PASS 6/6' in (evidence / 'r-prior-negative-controls.log').read_text()
+    print('PRIORS_R_RECEIPT_PASS negative_controls=6')
 elif stage == 'julia':
     manifest = (evidence / 'julia-source.sha256').read_bytes()
     assert hashlib.sha256(manifest).hexdigest() == 'a30e347285f925af2e128ed6350fafe4d6b9035668444606bfa2fcea13e26653'
@@ -53,7 +56,7 @@ elif stage == 'julia':
     assert 'ERROR:' not in log
     print('PRIORS_JULIA_RECEIPT_PASS')
 elif stage == 'pair':
-    rows = list(csv.DictReader((evidence / 'live-pair-final.csv').open()))
+    rows = list(csv.DictReader((evidence / 'live-pair-closeout.csv').open()))
     check_pairs(rows)
     bad = [dict(r) for r in rows]
     bad[0]['coef_max_abs'] = '0.01'
@@ -64,7 +67,7 @@ elif stage == 'pair':
             pass
         else:
             raise AssertionError('Pair receipt verifier accepted a broken control')
-    assert 'LIVE_PRIOR_PAIR_PASS' in (evidence / 'live-pair-final.log').read_text()
+    assert 'LIVE_PRIOR_PAIR_PASS' in (evidence / 'live-pair-closeout.log').read_text()
     print('PRIORS_PAIR_RECEIPT_PASS negative_controls=2')
 else:
     raise SystemExit('Use r, julia or pair')

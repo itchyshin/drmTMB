@@ -98083,4 +98083,4 @@ it is not a public interface, recovery, interval, calibration, or campaign claim
 
 ## 2026-11-05: first fixed-effect prior slice
 
-Normal priors and ridge penalties for ordinary Gaussian mu/sigma and binomial-logit fixed effects are implemented in an isolated lane. Independent numerical and affected-regression checks pass; final broad checks are still running. Detailed source pins, failures and limits are in [the per-file evidence log](check-log.d/2026-11-05-fixed-effect-priors.md). No merge, release or general parity/calibration claim is authorized.
+Normal priors and ridge penalties for ordinary Gaussian mu/sigma and binomial-logit fixed effects are implemented in an isolated lane. Independent numerical and affected-regression checks pass; broad R residuals reproduce on baseline and the full Julia suite is incomplete at its 90-minute limit. Detailed source pins, failures and limits are in [the per-file evidence log](check-log.d/2026-11-05-fixed-effect-priors.md). No merge, release or general parity/calibration claim is authorized.

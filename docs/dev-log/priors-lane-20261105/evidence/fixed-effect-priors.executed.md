@@ -24,7 +24,7 @@ drm_resolve_priors(bf(mu=y~x), binomial(), d, p)
 #> 2   mu           x             2    0  2 0.2500000 exact column normal
 f <- drmTMB(bf(mu=y~x), binomial(), data=d, priors=p)
 coef(f, dpar="mu")
-#>   (Intercept)             x 
+#>   (Intercept)             x
 #> -1.531075e-09  1.758742e+00
 ```
 
@@ -48,11 +48,11 @@ drm_resolve_priors(bf(mu=y~x, sigma=~x), gaussian(), g, gp)
 gf <- drmTMB(bf(mu=y~x, sigma=~x), data=g, priors=gp)
 coef(gf)
 #> $mu
-#> (Intercept)           x 
-#>   0.2589885   1.1318094 
-#> 
+#> (Intercept)           x
+#>   0.2589885   1.1318094
+#>
 #> $sigma
-#> (Intercept)           x 
+#> (Intercept)           x
 #>  -0.3813179   0.2009149
 ```
 

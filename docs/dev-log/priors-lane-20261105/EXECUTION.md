@@ -27,3 +27,20 @@ Live bridge result: launch-only LD_PRELOAD of Julia 1.10.10's bundled libunwind 
 Julia final source aggregate d8fad19a2bbf7cac678ac2a0c7a28376f850e8efecd7a88e91c0cf55da6cbfdd; focused 78/78 reported pass. Full Julia suite still on older efd2 snapshot; retain this distinction. Independent reviewers found and prompted fixes for weights, summary/other inference escapes, zero-ridge separation metadata, and explicit update-to-ML. R resolver preview now also checks rank of unselected blocks, matching fit admission. R zero ridge now preserves ordinary default likelihood controls rather than disabling the default clamp. Those final R fixes require reinstall and focused/regression rerun.
 
 Full R suite: remote PID 1393278, process group 1393277, 90-minute cap, installed earlier candidate. Results/log under evidence/r-full*; registered sim_meter label drm-priors-r-full-20261105. Baseline tracked docs/tools/vignettes support archive was supplemented without overwriting existing candidate files. No source R edits during that run; final source will use a separate install path. Final source checks must name the snapshot actually exercised.
+
+
+## Final-source checkpoint
+
+The earlier paragraphs record chronology, not the current candidate. Local implementation checkpoints are R `5aea077bf` and Julia `07b25dc4f2ecb3a1f01ea322ffb0eb64c6584338`. Final aggregate source hashes are R `c53a03570e8263f8c75e2c95929d03f069b3c97d0694fed8cab5e7113cfbc28f` and Julia `a30e347285f925af2e128ed6350fafe4d6b9035668444606bfa2fcea13e26653`. Both final focused and affected suites pass. Five final live bridge fixtures pass. The final R package check has zero errors and two intentionally unbuilt-vignette warnings. Final full R and Julia suites remain running under their 90-minute caps. The R full run recorded one source-audit failure from initially absent Git metadata; exact-baseline metadata was restored without source edits, and the whole affected audit module passed separately. Keep the raw full-run verdict distinct from this corrected rerun. No push, merge or release.
+
+
+## R closeout corrections and evidence
+
+Closeout aggregate R source SHA-256 is `6495656050f6f5a958c0151bad8730c124dbff55aea6fa39e5d133f01596da5c`; local and remote manifests match. The only R implementation change after c53a0357 is placing `priors` after `...`, so it is named-only and preserves the old unnamed-argument guard. The optimized shared library is unchanged. The closeout 78-check focused and 10-file affected suites, five live bridge fixtures, unused-argument and documentation integration tests pass. The raw phylo fixture was extended with five empty prior vectors; all 22 tests pass. The cheatsheet passes locally including assets; remote skipped its absent printable assets. All six observation-level negative controls are rejected. The refreshed R package check has zero errors and two unbuilt-vignette warnings.
+
+The c53a0357 full run finished in 3,433 seconds with 18 failures, classified in `evidence/r-broad-classification.json`. Own omissions are corrected and retested; the Git-metadata staging audit passes on rerun. Three remaining failures reproduce exactly on isolated optimized baseline 9fea303. No tolerance changed and no full-suite pass is claimed. Remote full-R process group 1478947 is gone and its meter retired. Julia full source a30e3472 remains under its 90-minute cap. Final closure still needs its actual verdict and report/evidence commit.
+
+
+## Final bounded disposition
+
+Julia full source a30e3472 reached the declared 90-minute cap and exited 124. Process group 1473203 has no remaining members. The full run is incomplete; its partial passing summaries do not establish the unrun remainder. Raw log SHA-256: `47122a57595bc6aa70f8e70b87b9e532cbd8978696851bb2ef75b91a435851d5`. No further full run is authorized in this slice. Bounded prior acceptance checks and scoped reviews are complete. Final reports retain the broader limitations. No push, merge or release.
