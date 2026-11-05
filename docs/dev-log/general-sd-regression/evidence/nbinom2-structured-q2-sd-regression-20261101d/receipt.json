@@ -1,0 +1,69 @@
+{
+  "evidence_id": "native-nbinom2-structured-q2-sd-regression-20261101d",
+  "evidence_grade": "focused_test",
+  "claim": "NB2 native animal q2: labelled animal(1 + x | p | id, A = A) with cross-coefficient correlation plus unlabelled independent fields, coefficient SDs, dense Laplace/joint oracle (1e-3 bug-sensitivity), recovery on three fixed seeds",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-nbinom2-structured-q2-sd-regression.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "tree_state": "dirty shared candidate",
+  "test_path": "tests/testthat/test-nbinom2-structured-q2-sd-regression.R",
+  "test_sha256": "7cd313625dec692133817b12b81f3478279155b2243011a6b3efe605e3bf1326",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-structured-q2-sd-regression-20261101d/source-manifest.json",
+  "source_manifest_sha256": "fd7a12d87101d35f2e6dd97e0f4f380a1f7b674cb0d487d5a935bedec963c92a",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-structured-q2-sd-regression-20261101d/test-console.log",
+  "console_log_sha256": "75e6e35e7034c037a429bc47bd5a8ccbe1cfae84fa8450a1be9ca145b6f16f89",
+  "result": {
+    "exit_code": 0,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": false,
+    "note": "summary reporter: no failure or skip section; Julia bridge reported 0 live tests"
+  },
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved",
+      "mechanism_id": "animal_correlated_block",
+      "provider_input": "A_covariance",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"log\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "log",
+      "ledger_status": "unresolved",
+      "mechanism_id": "animal_correlated_block",
+      "provider_input": "A_covariance",
+      "target_member": "mu:x1"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "animal_intercept",
+      "provider_input": "A_covariance",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"A_covariance\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "animal_numeric_slope",
+      "provider_input": "A_covariance",
+      "target_member": "mu:x1..xp"
+    }
+  ],
+  "not_covered": [
+    "Ainv_precision and pedigree animal inputs (Ainv appears only inside the oracle)",
+    "sigma endpoint",
+    "labelled animal row S-uni-LS-I (mu/sigma cross-parameter) not tested",
+    "calibration, Julia parity",
+    "recovery is a fixed-seed band, not coverage"
+  ],
+  "limits": [
+    "unreviewed",
+    "no calibration or coverage claim",
+    "native R/TMB only; no Julia parity claim",
+    "direct_sd_claim stays none; receipt is a staleness seal, not a promotion"
+  ]
+}

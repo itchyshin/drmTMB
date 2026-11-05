@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "file": "tests/testthat/test-binomial-labelled-q2-sd-b32.R",
+      "sha256": "ba9fd33ca025b9a314fae1773ba6749c7aeee6d20af61249e05d137fde29b653"
+    },
+    {
+      "file": "tests/testthat/helper-b26sa-oracles.R",
+      "sha256": "86297736404a5f49f9e8c498b1513919bc9ddf9b3adf143a76625fe0e16fde5b"
+    },
+    {
+      "file": "tests/testthat/helper-b29b-binomial-oracle.R",
+      "sha256": "db29ac36b5b401a01af13e29a7c2cc7527a534f7bf1afc1d892a565c5962516c"
+    },
+    {
+      "file": "tests/testthat/helper-b31nb-oracle.R",
+      "sha256": "41a1d09099d3279e75e4a9cde0e915b97b5375c0bf649365d8dbb3999fa9b3a6"
+    },
+    {
+      "file": "tests/testthat/helper-sb26-oracle.R",
+      "sha256": "ebfce0c5517493513d984bd1279ed1f952e7a292830614ad5ecc9578d5c192c5"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
+    },
+    {
+      "file": "R/binomial-q2-sd.R",
+      "sha256": "0bc8e57aa3555687b13cd59618ff88a2c7190af4c82db6996922324a3b62429c"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+Test Summary:                                  | Pass  Total     Time
+CumulativeLogit random-intercept SD regression |   14     14  1m36.7s
+Test Summary:                              | Pass  Total   Time
+CumulativeLogit random-slope SD regression |   25     25  22.0s
+DRM_RUN start=2026-11-02T14:00:55Z end=2026-11-02T14:02:56Z rc=0 core=242

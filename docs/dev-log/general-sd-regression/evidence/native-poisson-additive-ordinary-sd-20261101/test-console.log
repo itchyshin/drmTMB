@@ -1,0 +1,22 @@
+TEST_SHA256_BEFORE 8076491e6b2ab12adce322fc84785daeb018bcd66491dbc28a85098b0d9e19eb  tests/testthat/test-poisson-additive-ordinary-sd-regression.R
+START 2026-11-01T17:00:51Z
+ℹ Testing drmTMB
+poisson-additive-ordinary-sd-regression: .................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+
+COUNTS expectations=33 failed=0 skipped=0 errors=0 warnings=0 tests=4
+                                                                          test
+1 Poisson same-group intercept and slope assemble separate coefficient SD rows
+2            Poisson same-group SD without coefficient selectors stays refused
+3             Poisson same-group intercept and slope take separate SD formulas
+4    Poisson crossed intercepts take separate SD formulas with an exact oracle
+  nb failed skipped error warning
+1  8      0   FALSE FALSE       0
+2  1      0   FALSE FALSE       0
+3 11      0   FALSE FALSE       0
+4 13      0   FALSE FALSE       0
+EXIT_STATUS 0
+END 2026-11-01T17:01:01Z
+TEST_SHA256_AFTER 8076491e6b2ab12adce322fc84785daeb018bcd66491dbc28a85098b0d9e19eb  tests/testthat/test-poisson-additive-ordinary-sd-regression.R

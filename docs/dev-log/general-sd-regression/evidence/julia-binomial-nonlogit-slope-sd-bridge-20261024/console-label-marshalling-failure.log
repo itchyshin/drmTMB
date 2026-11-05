@@ -1,0 +1,44 @@
+ℹ Testing drmTMB
+julia-binomial-nonlogit-slope-sd-bridge: .....i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+1
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-julia-binomial-nonlogit-slope-sd-bridge.R:45:5'): Julia Binom
+Error: Error happens in Julia.
+drm_bridge: coef_labels supplies names for unknown dpar "sd"; the model has dpars: mu, sdtarget_69647c6969647c6d757c787c6e6f6e65
+Stacktrace:
+ [1] error(s::String)
+   @ Base ./error.jl:35
+ [2] _bridge_echo_coef_labels(coef_labels::OrderedCollections.OrderedDict{Symbol, Any}, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String})
+   @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl:1914
+ [3] _bridge_coef_vector(fit::DRModels.DrmFit{DRModels.Binomial}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any})
+   @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl:1818
+ [4] _bridge_coef_vector
+   @ ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl:1789 [inlined]
+ [5] _bridge_flatten(fit::DRModels.DrmFit{DRModels.Binomial}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any})
+   @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl:1645
+ [6] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, Ainv::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+   @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl:65
+ [7] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+   @ Main ./none:1
+ [8] docall(call1::Ptr{Nothing})
+   @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-julia-binomial-nonlogit-slope-sd-bridge.R:45:5
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::drm_julia_call_bridge(...) at general-sd-regression/R/julia-bridge.R:812:5
+ 4.       └─JuliaCall::julia_call(...) at general-sd-regression/R/julia-bridge.R:4637:3
+ 5.         └─julia$do.call(func_name, list(...), need_return, show_value)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Don't worry, you'll get it.
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`

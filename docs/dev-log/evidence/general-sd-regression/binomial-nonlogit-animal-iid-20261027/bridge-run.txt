@@ -1,0 +1,24 @@
+Matched R/TMB to Julia bridge checks
+Date: 2026-10-27
+Julia: 1.10.0
+Thread limits: JULIA_NUM_THREADS=4, OPENBLAS_NUM_THREADS=1, OMP_NUM_THREADS=1
+
+Intercept plus IID route:
+  Filter: julia-binomial-animal-iid-nonlogit-sd-bridge
+  Result: 25 passed, 0 failed, 0 warnings, 0 skipped; 88.6 seconds.
+  Fixture covers probit and cloglog on the same simulated data in native
+  R/TMB and Julia, including fitted coefficients and SD predictions.
+
+Animal slope plus IID route:
+  Filter: julia-binomial-animal-slope-iid-sd-bridge
+  Result: 39 passed, 0 failed, 0 warnings, 0 skipped; 100.6 seconds.
+  Fixture covers logit, probit, and cloglog on the same simulated data in
+  native R/TMB and Julia, including fitted coefficients and SD predictions.
+
+The JuliaCall bridge initially failed to locate Julia because the Juliaup
+binary directory was absent from the login-shell PATH. The rerun set
+DRM_JL_JULIA_HOME and PATH explicitly and completed both filters.
+
+These checks establish same-data bridge comparisons only for the listed
+Bernoulli animal-plus-IID layouts and links. They do not establish interval
+coverage, other effect structures, or general family parity.

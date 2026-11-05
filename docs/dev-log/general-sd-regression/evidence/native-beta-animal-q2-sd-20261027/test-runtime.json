@@ -1,0 +1,10 @@
+{
+  "returncode": 0,
+  "timed_out": false,
+  "elapsed_seconds": 136.679453083,
+  "deadline_seconds": 180,
+  "command": [
+    "/Library/Frameworks/R.framework/Resources/bin/Rscript",
+    "/tmp/general-sd-beta-animal-regression.R"
+  ]
+}

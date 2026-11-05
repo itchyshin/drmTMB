@@ -1,0 +1,21 @@
+{
+  "evidence_id": "native-binomial-crossed-nonlogit-sd-20261027",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"binomial-crossed-nonlogit-sd\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "exit_code": 0,
+  "expectations_passed": 18,
+  "links": [
+    "probit",
+    "cloglog"
+  ],
+  "checks": [
+    "fit convergence",
+    "signed broad recovery bounds for both SD slopes",
+    "named group SD predictions",
+    "binary marginal simulation"
+  ],
+  "limitations": [
+    "One fixed-seed synthetic design per link.",
+    "Native R/TMB only.",
+    "No interval-coverage validation."
+  ]
+}

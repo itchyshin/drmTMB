@@ -1,0 +1,24 @@
+{
+  "scope": "Source identity for native-sd-crossed-and-site-quickwins-20261101d, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/sd-crossed-and-site-quickwins-20261101d/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
+    },
+    {
+      "file": "tests/testthat/test-sd-crossed-and-site-quickwins.R",
+      "sha256": "be0ff68371710d0475c68a6f2a4d5410c95bc704d157e1ccc7d694695bd6d6d6"
+    }
+  ],
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'src/drmTMB.cpp']"
+}

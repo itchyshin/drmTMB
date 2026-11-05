@@ -548,8 +548,16 @@ test_that("beta rejects boundary and unsupported inputs", {
     "sigma.*random effects"
   )
   expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, sd(id, dpar = "sigma") ~ z),
+      family = beta_family(),
+      data = dat
+    ),
+    "[Oo]rdinary.*sigma.*random-effect SD"
+  )
+  expect_error(
     drmTMB(bf(y ~ x, sigma ~ 1, sd(id) ~ 1), family = beta_family(), data = dat),
-    "Random-effect scale"
+    "No ordinary random-effect term matches"
   )
   expect_error(
     drmTMB(
@@ -585,11 +593,11 @@ test_that("beta phylogenetic mu admission keeps unsupported neighbours closed", 
 
   expect_error(
     drmTMB(
-      bf(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ x),
+      bf(y ~ x + phylo(0 + x | species, tree = tree), sigma ~ x),
       family = beta_family(),
       data = sim$data
     ),
-    "intercept-only q1"
+    "intercept.*numeric slope"
   )
   expect_error(
     drmTMB(
@@ -597,7 +605,7 @@ test_that("beta phylogenetic mu admission keeps unsupported neighbours closed", 
       family = beta_family(),
       data = sim$data
     ),
-    "unlabelled q1"
+    "unlabelled"
   )
   expect_error(
     drmTMB(

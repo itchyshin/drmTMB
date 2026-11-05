@@ -1,0 +1,17 @@
+{
+  "scope": "native Binomial probit and cloglog q1 phylogenetic tree plus relmat Q precision, compared with equivalent K covariance",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "4d1b7b52bc2ef9b7cf16060342116df7dacb79c3e76a5a6f30484f24cefbac12"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-phylo-relmat-q-nonlogit-sd.R",
+      "sha256": "48bc80a66b423629b9592ac04d941fd6b54a5de6c641b38ada83f31f93af5fec"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "0303008e5fe7b87f104da009492a82ca85c9fe0ddbff9bab74671fe3ba576f44",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Read the complete saved report against the writing-naturalness protocol, cross-checked its statistical and factual claims against the helper, tests, exact campaign output, and review receipts, and ran slop_check.py.",
+  "genre": "Internal software-validation after-task report",
+  "coverage": "Whole report, all sections",
+  "score": 2,
+  "style_status": "assessed",
+  "score_reason": "The report uses concrete files, commands, results, and limits. Its structured headings are required by the repository report format.",
+  "confidence": "medium",
+  "confidence_reason": "The report is short enough to review in full and its technical claims have local evidence; the style score remains a subjective editorial judgment.",
+  "examples": [
+    {
+      "location": "Implemented, paragraph 1",
+      "cue": "Concrete implementation boundary",
+      "impact": "Names the qualifying criteria and retains the diagnostic denominator, so readers can see exactly what acceptance means.",
+      "repair": "no change needed",
+      "line": 9,
+      "quote": "`native_sd_staged_decision()` now bases staged acceptance on planned-denominator interval coverage, null planned-denominator false-positive rate, and interval validity. It continues to report both bias intervals with their finite-estimate denominators, but they have no gate state. The summarizers label bias as diagnostic-only and omit the old bias-threshold flags."
+    },
+    {
+      "location": "Checks Run, campaign result bullet",
+      "cue": "Measured result with claim boundary",
+      "impact": "Gives the run size, runtime, and a clear limit on what the simulation supports.",
+      "repair": "no change needed",
+      "line": 45,
+      "quote": "The new test first failed against the old decision rule, then passed after the bias rows were removed from `gates`. It checks both the decision and the retained bias metric. The self-test also confirms the CSV summary carries `bias_diagnostics_only=TRUE` and no longer emits bias-threshold flags. The campaign-OC test checks reproducibility, outcome partitions, and the staged stopping rule."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report distinguishes the exact-binomial interval gates from unvalidated finite-estimate t diagnostics and does not claim fitted-model calibration.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Test outcomes, runtime, seed, and campaign counts were checked against current command output and source receipts.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report cites local code and retained evidence only; it makes no external literature claim.",
+  "date": "2026-10-19",
+  "calibration_status": "No style calibration controls were viewed for this assessment.",
+  "interpretation": "perceived_style_not_authorship"
+}

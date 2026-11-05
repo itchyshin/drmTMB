@@ -1,0 +1,22 @@
+{
+  "claim": "Focused Julia cumulative-logit intercept predictor-dependent random-effect SD regression test.",
+  "command": "JULIA_DEPOT_PATH=/tmp/drmTMB-julia-depot:/Users/z3437171/.julia JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 julia --project test/test_cumlogit_sd_regression.jl",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-cumlogit-sd-20261023/test-console.log",
+  "evidence_id": "julia-cumlogit-sd-20261023-intercept",
+  "julia_version": "julia version 1.10.0",
+  "result": "39/39 assertions passed: 14 intercept and 25 slope assertions.",
+  "review_status": "unreviewed",
+  "row_key": "[\"Julia\",\"cumulative_logit\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_source_path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_cumlogit_sd_regression.jl",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/julia-cumlogit-sd-20261023/test_cumlogit_sd_regression.jl",
+  "test_file_sha256": "9a1700c0ec204d0dbdaede1571158b1741a9654b5793180d3c3d16c9d11ac15a",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-cumlogit-sd-20261023/source-manifest.json",
+  "scope_limits": [
+    "Julia only",
+    "Cumulative-logit mean endpoint; ordinary q1 intercept and independent numeric slope only",
+    "No R/TMB parity or broad family/provider support claim",
+    "No interval-coverage calibration claim"
+  ]
+}

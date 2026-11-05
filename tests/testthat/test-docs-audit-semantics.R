@@ -37,7 +37,10 @@ test_that("refusal hints retain the existing structured route boundaries", {
     expect_s3_class(condition, "error")
     gsub("[[:space:]]+", " ", conditionMessage(condition))
   }
-  binomial <- message_for(drmTMB:::validate_binomial_mu_random_terms(bad))
+  # Binomial now admits a labelled scalar intercept, so the refusal is pinned
+  # on a labelled slope, which is still refused.
+  bad_binomial <- list(list(type = "slope", covariance_label = "p", label = "x | p | id"))
+  binomial <- message_for(drmTMB:::validate_binomial_mu_random_terms(bad_binomial))
   expect_match(binomial, "phylo", fixed = TRUE)
   expect_match(binomial, "relmat", fixed = TRUE)
   expect_match(binomial, "remain unsupported", fixed = TRUE)

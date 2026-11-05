@@ -1,0 +1,91 @@
+{
+  "evidence_id": "count-missing-include-hand-kernel-b29-20261102d",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c 222-227 Rscript -e 'pkgload::load_all(\".\", quiet=TRUE); r <- as.data.frame(testthat::test_file(\"tests/testthat/test-count-missing-include-hand-kernel-b29.R\", reporter=\"summary\")); cat(sprintf(\"DRM_RECEIPT_COUNTS passed=%d failed=%d errors=%d skipped=%d\\n\", sum(r$passed), sum(r$failed), sum(r$error), sum(r$skipped)))'",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/exp-9d229de68 of HEAD 9d229de68 (R/, src/, tests/ identical to the worktree; test and helper sha256 compared), cores 222-227",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "9d229de6836cfc876bf3fcf12f982a3eae38a8fa",
+  "tree_state": "HEAD 9d229de68; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T18:15:40Z",
+  "run_ended_utc": "2026-11-02T18:16:10Z",
+  "exit_code": 0,
+  "expectations_passed": 164,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 14,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/count-missing-include-hand-kernel-b29-20261102d/test-console.log",
+  "console_log_sha256": "e3c8e0d7f4e24ad1a395c71599f9025b79130d1d4df767a4294283e443673016",
+  "test_path": "tests/testthat/test-count-missing-include-hand-kernel-b29.R",
+  "test_sha256": "99ee4c9ddbcb5fe37918585479cd99178e7e33d7baba0474985e58eb3e1aace2",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/count-missing-include-hand-kernel-b29-20261102d/source-manifest.json",
+  "source_manifest_sha256": "4fb79e6528381085616272771c106c9344d6fbd8ed9a94582bc54ad4fd373730",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [
+    "native-count-structured-sd-missing-include-20261102r",
+    "native-count-iid-slope-sd-missing-include-20261102r"
+  ],
+  "strengthens_note": "Companion to the parent id(s); closes reviewer-listed gaps (independent oracle and/or emulated-bug sensitivity) for the linked rows. The parent receipts are recorded in the ledger with the -m26 suffix; the base ids are the ones named in the test header.",
+  "scope": "Poisson and NB2 (log link) with missing = miss_control(response = \"include\"): phylo(1 | id, tree) and spatial(1 | id, coords) structured intercepts (with and without all-NA groups), phylo(0 + x | id, tree) and spatial(0 + x | id, coords) slope-only, and phylo(1 | id) plus (1 | site), each with a predictor-dependent sd(); phylo kernel cov2cor(ape::vcv(tree)) and spatial kernel exp(-d/median) + 1e-6 I rebuilt by hand and compared with the package helpers; dense Laplace oracle in base R (1e-5 on logLik) on observed rows; NA-as-zero, reversed-SD, kernel-by-position, wrong-kernel-scale and (iid) swapped-SD sensitivity above a floor of 0.5. Slope claims are slope-member SD only.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"phylo_intercept\",\"S1/P-temporal\",\"phylo\",\"structured random intercept\",\"tree\",\"single phylogenetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+phylo:tree\",\"additive independent latent fields\",\"iid:group_factor+phylo:tree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"phylo_intercept\",\"S1/P-temporal\",\"phylo\",\"structured random intercept\",\"tree\",\"single phylogenetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+phylo:tree\",\"additive independent latent fields\",\"iid:group_factor+phylo:tree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery or estimator-accuracy claims",
+    "relmat, animal (A, Ainv, pedigree) or Q-precision rows, which this file does not fit",
+    "iid plus spatial or iid plus relmat/animal provider pairs",
+    "a structured intercept-plus-slope pair (slope rows are slope-only)",
+    "any family, link, provider or endpoint not listed in candidate_rows"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Reviewed line by line. (1) Oracle: dense Laplace marginal in base R (sb26_laplace, sb26_deriv_poisson/nb2) on observed rows only, with kernels built by hand: cov2cor(ape::vcv(tree)) on a height-3 tree, and exp(-d/median)+1e-6 I from shuffled coordinates. The package helpers are compared with independent constructions (b26sa_check_phylo_cov against ape::vcv, tolerance 1e-8; solve(drm_spatial_coords_precision) against the hand kernel, 1e-8). logLik agreement is 1e-5, and the fits agreed to well below that. (2) Bug sensitivity asserted above a floor of 0.5. My Totoro rerun with B29_PRINT showed gaps for NA-as-observed-zero 101-616, reversed SD 20-226, kernel-by-position 12-53, reversed site SD 16-46 and wrong kernel scale 0.75-14, so the smallest gap (0.75) is about 7e4 times the 1e-5 tolerance. (3) Rows fitted: Poisson and NB2 phylo_intercept, spatial_coordinate_intercept, phylo_numeric_slope and spatial_coordinate_slope, each with missing='include' and a predictor-dependent sd(). The simultaneous_iid_structured pair is phylo(1|id) + (1|site) with sd(id, level='phylogenetic') ~ z and sd(site) ~ z_site, a crossed design that matches the existing b26sa pair convention. The slope rows are slope-only phylo(0 + x | id) and spatial(0 + x | id), so they support the slope-member SD only, not an intercept-plus-slope structured pair. All 10 linked row_keys exist in the ledger. (4) All 8 manifest sha256 values, plus the log, manifest and test hashes, match current files. The console log shows 164 passed, 0 failed, 0 errors, 0 skipped; ape was installed and the tests ran. Totoro run only, with the engine not exercised for Julia, which is correct for native rows. Does NOT establish: calibration, coverage, Julia parity, recovery or estimator accuracy; relmat, animal (A, Ainv, pedigree) or Q-precision rows; iid+animal, iid+relmat or any iid+spatial pair; an intercept-plus-slope structured pair; NB2 sigma-dpar SD rows; or anything beyond likelihood agreement at the fitted parameters.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-count-missing-include-hand-kernel-b29.R",
+    "test_sha256": "99ee4c9ddbcb5fe37918585479cd99178e7e33d7baba0474985e58eb3e1aace2",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:07:28Z",
+    "ended_utc": "2026-11-03T01:07:58Z",
+    "expectations_passed": 164,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/count-missing-include-hand-kernel-b29-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "982532b7811218418cc1e4d7d06e138ec54561af8706ce608d3bf88c126540c6",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "2b7a787353b9d8d5f575424c1b6f480b688cbeed0978f32ae3557b7e22ed0cca",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex root",
+  "method": "Separate post-draft read after native scope/evidence reconciliation; manual style judgment.",
+  "genre": "technical checkpoint report",
+  "coverage": "whole saved report",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "Concrete files, failures and scope limits dominate. Repeated gate and scope scaffolding makes the report somewhat formulaic.",
+  "confidence": "medium",
+  "confidence_reason": "Self-review is not an independent human style assessment.",
+  "examples": [
+    {
+      "location": "line 4",
+      "line": 4,
+      "quote": "Bernoulli/binomial ordinary-intercept SD slice. The approved programme remains",
+      "cue": "scope precision",
+      "impact": "Makes the limited checkpoint clear.",
+      "repair": "no change needed"
+    },
+    {
+      "location": "line 80",
+      "line": 80,
+      "quote": "System Git is an Xcode licence stub; the CLT Git executable is used explicitly.",
+      "cue": "concrete mechanism",
+      "impact": "Explains the tool substitution with a verifiable cause.",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Checked model equation, Bernoulli scale distinction, all-attempt accounting and absence of calibration claims against the retained tests and pilot records.",
+  "facts_gate": "unknown",
+  "facts_gate_reason": "Native test counts, pilot outcomes and named tool failures checked against retained logs; the full cross-repository inventory and every historical tool/environment statement have not been reverified in this prose assessment.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external literature citations in this checkpoint; local source/evidence paths reviewed separately.",
+  "date": "2026-10-17",
+  "calibration_status": "Protocol provisional examples were read; no held-out calibration undertaken.",
+  "interpretation": "perceived_style_not_authorship"
+}

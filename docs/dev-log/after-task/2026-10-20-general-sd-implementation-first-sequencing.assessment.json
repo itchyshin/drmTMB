@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "0baf6752d7410f144bf8068112f918f192cf0702fdb9e724cc768e8cdb991e18",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Post-draft self-review against writing-naturalness.md and repository evidence",
+  "genre": "After-task report",
+  "coverage": "Whole draft",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report uses direct headings and records concrete evidence and limitations. The required closeout structure is somewhat formulaic but easy to scan.",
+  "confidence": "medium",
+  "confidence_reason": "The report was compared with current plan, lease, and vignette evidence; it remains a self-review.",
+  "examples": [
+    {
+      "location": "Decisions and Rejected Alternatives",
+      "cue": "States that coverage remains in the full completion requirement.",
+      "impact": "Keeps the revised phase order from being read as a reduced final scope.",
+      "repair": "no change needed",
+      "line": 20,
+      "quote": "later. Calibration now follows the implementation waves and remains part of"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "It distinguishes smoke recovery checks from repeated-sample interval calibration and reports no new model result.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The changed plan, existing vignette caveat, unlazy lease, task title, and issue search were checked against current sources.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external citations are used.",
+  "date": "2026-10-20",
+  "calibration_status": "Not a calibrated style benchmark; related scope and methods records were reviewed.",
+  "interpretation": "perceived_style_not_authorship"
+}

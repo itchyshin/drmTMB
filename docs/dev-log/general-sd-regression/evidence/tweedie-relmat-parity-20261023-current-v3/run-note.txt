@@ -1,0 +1,7 @@
+Current-source Tweedie related-matrix bridge recheck
+Observed date: 2026-10-23
+Exit status: 0
+Command: PATH='/Users/z3437171/.juliaup/bin':"$PATH" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 DRMTMB_JULIA_TESTS=true NOT_CRAN=true DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = "julia-tweedie-relmat-sd", reporter = "summary", stop_on_failure = TRUE)'
+
+Observed testthat output: one live Julia bridge test ran; 24 expectations passed; one setup-only check was skipped by the configured live-Julia gate. Julia 1.10.0 loaded from Juliaup, the paired DRM.jl worktree was activated, and the final output reported: “Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.”
+The prior receipt was not reused as current proof because its Julia src/tweedie.jl digest differed from the current file. The fresh manifest below binds 199 files across both candidate worktrees. Runner output was streamed by the Codex terminal session rather than redirected to a raw log file.

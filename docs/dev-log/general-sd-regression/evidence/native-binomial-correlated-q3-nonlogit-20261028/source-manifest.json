@@ -1,0 +1,37 @@
+{
+  "scope": "Native Binomial q=3 correlated random intercept and two numeric slopes with a separate predictor-dependent SD formula for each coefficient, under probit and cloglog links.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "7d1f4ca356413a07214673a7ba8b6aa79af673c5d4c078d528bf60b08e95c39a"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "c56533272cf2b6e2085de0994ea132011e5cec51ac9cf4f8c5270cbd89f755dc"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "0dba5cc7830b088a96b8dae3914b6cb4a7fbf73b235282f407848c50402881f5"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "646bb79de06de281a9e522182465c1eb96f9b08489386abb1ed10ceb87b41014"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "7732e623b6ae2a7f4b2f7e3663b66683f832265b55a1c881a4a3a49f310eac1b"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-correlated-q3-nonlogit-sd.R",
+      "sha256": "402e4f8fdd465e95c79d84403a85f375a30d16dceda65a747892aa05096ae575"
+    }
+  ]
+}

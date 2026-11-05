@@ -68,6 +68,8 @@ navbar:
           href: articles/location-scale.html
         - text: When variance carries signal, Part 2
           href: articles/location-scale-scale.html
+        - text: When group variation changes with a predictor
+          href: articles/predictor-dependent-random-sd.html
         - text: Robust continuous responses
           href: articles/robust-student.html
         - text: Count abundance and extra zeros
@@ -278,6 +280,7 @@ articles:
     contents:
       - location-scale
       - location-scale-scale
+      - predictor-dependent-random-sd
   - title: How are two responses associated?
     desc: >
       Model residual correlation between two outcomes and distinguish a joint

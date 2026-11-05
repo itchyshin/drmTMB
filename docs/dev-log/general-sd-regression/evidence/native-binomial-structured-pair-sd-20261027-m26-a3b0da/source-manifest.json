@@ -1,0 +1,19 @@
+{
+  "scope": "Source identity for native-binomial-animal-ainv-spatial-logit-20261027, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-structured-pair-sd-20261027/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-binomial-phylo-spatial-sd.R",
+      "sha256": "d7367136eb51f77bba0ff65751e4d5277bc560555597d2c51d5b0fe6bfad6c39"
+    }
+  ]
+}

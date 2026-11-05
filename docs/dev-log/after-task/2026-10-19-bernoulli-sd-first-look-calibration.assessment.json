@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "b0e3642192f39d50a545f07f07875adb51d21d1e18e6d117022196ad2cf6954a",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Manual whole-report read, source check of the replay claims against the retained Totoro summary and receipt, plus the prose pattern checker.",
+  "genre": "Internal technical after-task report",
+  "coverage": "Whole report. New replay claims were checked against the remote staged summary and receipt; earlier campaign claims retain their linked source receipts.",
+  "score": 2,
+  "style_status": "pass",
+  "score_reason": "The report is specific, numerically grounded, and careful about the boundary between replay evidence and independent calibration. Dense technical sentences remain, but the revised wording is direct and the checker reports no patterns.",
+  "confidence": "medium",
+  "confidence_reason": "The prose and local pattern check are directly inspectable. The numerical score is an informal editorial judgment, not a calibrated measure.",
+  "examples": [
+    {
+      "location": "Section 13",
+      "cue": "The sentence labels the evidential scope precisely.",
+      "impact": "Readers can distinguish source-bound reproducibility from fresh calibration evidence.",
+      "repair": "no change needed",
+      "line": 80,
+      "quote": "so it provides provenance and reproducibility evidence for the source-bound build only."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The replay is described as one repeated-seed native audit, with its unresolved staged decision and limits stated. No distribution-wide or Julia inference claim is made.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Replay counts, decision, manifest, and DLL hashes were checked against the remote postprocessed summary, supervisor receipt, and source-bound installation record. Earlier campaign claims retain their cited local evidence paths.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report cites no literature. NotebookLM's latest response returned empty reference metadata and is not used as evidence.",
+  "date": "2026-10-20",
+  "calibration_status": "Uncalibrated editorial judgment; no authorship inference.",
+  "interpretation": "perceived_style_not_authorship"
+}

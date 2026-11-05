@@ -1,0 +1,6 @@
+Test Summary:                                        | Pass  Total  Time
+Hurdle NB2 SD design rank uses positive-count groups |    2      2  8.5s
+Test Summary:                             | Pass  Total   Time
+Hurdle NB2 random-intercept SD regression |   17     17  36.2s
+Test Summary:                                     | Pass  Total   Time
+Hurdle NB2 independent random-slope SD regression |   22     22  25.0s

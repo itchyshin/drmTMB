@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-sd-marginal-simulation-focused-20261020-m26",
+  "rerecord_of_evidence_id": "native-binomial-sd-marginal-simulation-focused-20261020",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/bernoulli-native-tests-20261020/native-test-receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"Rscript -e 'devtools::load_all(); testthat::test_file(\"\"tests/testthat/test-binomial-sd-simulation.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-sd-simulation.R",
+      "test_sha256": "2a927714c97eccf5f2aea6bc611d64833402d30e74baac5652f5df717ac855fe",
+      "started_utc": "2026-11-02T13:17:31Z",
+      "ended_utc": "2026-11-02T13:17:38Z",
+      "exit_code": 0,
+      "expectations_passed": 15,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/bernoulli-native-tests-20261020-m26-449ff1/test-console-test-binomial-sd-simulation.log",
+      "console_log_sha256": "d253b0f41c49b7c3677f408eee25d6443aea49e5ffbda68e72566b942307e62b"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/bernoulli-native-tests-20261020-m26-449ff1/source-manifest.json",
+  "source_manifest_sha256": "2329df1765145cca19aa3637a8bca8ad32927cae35a0ec494a618a9ff846a7dd",
+  "review_status": "unreviewed"
+}

@@ -1,0 +1,41 @@
+{
+  "evidence_id": "julia-gamma-animal-q2-slope-20261023-relink27",
+  "relink_of_evidence_id": "julia-gamma-animal-q2-slope-20261023",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-julia-20261023/receipt.json",
+  "prior_test_path": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-julia-20261023/test_gamma_animal_intercept_slope_sd.jl",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "drmodels_jl_commit": "87a371a667e8823e8f5aca75ed1344145982c532",
+  "drmodels_jl_tree_state": "src/, test/, ext/, Project.toml, Manifest.toml clean at that commit (only docs modified)",
+  "host": "Totoro",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 taskset -c 240 julia +1.10.12 --startup-file=no --project=. test/test_gamma_animal_intercept_slope_sd.jl (Totoro, cwd = copy of DRModels.jl at 87a371a667e8823e8f5aca75ed1344145982c532, src/test/ext/Project/Manifest hashes identical to the Mac worktree)",
+  "live_test_path": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-julia-20261023-relink27-22f390/test-snapshot/test/test_gamma_animal_intercept_slope_sd.jl",
+  "live_test_origin": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_gamma_animal_intercept_slope_sd.jl",
+  "row_key_support": "live test differs from the frozen snapshot: live fixture now builds a raw non-unit-diagonal A (scaled R) and passes it everywhere fixture.R was passed; the q2 intercept and slope SD fits and oracles are otherwise unchanged",
+  "runs": [
+    {
+      "test_path": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-julia-20261023-relink27-22f390/test-snapshot/test/test_gamma_animal_intercept_slope_sd.jl",
+      "test_sha256": "9d8d0c642281825184719cc5f6b876cda587065a8b5a9d7bdec9498333476fc9",
+      "started_utc": "2026-11-02T14:01:27Z",
+      "ended_utc": "2026-11-02T14:03:04Z",
+      "exit_code": 0,
+      "expectations_passed": 35,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-julia-20261023-relink27-22f390/test-console.log",
+      "console_log_sha256": "bbf38bdaf86eefef287a5ff17838d33db7df179c702943cc250b160fa98999c5"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-julia-20261023-relink27-22f390/source-manifest.json",
+  "source_manifest_sha256": "4194fbccecef88b233d01775212ae1ae738bf14c133b5250382b5575d2c74c09",
+  "review_status": "reviewed_narrow_claim",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ],
+  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared).",
+  "review_note": "Granted narrowly. Live Julia test test_gamma_animal_intercept_slope_sd.jl: 35 expectations, 0 failures, 0 skips; the 108 manifest entries (DRModels.jl at 87a371a66, checked against a git archive of that commit) and the console-log sha256 match. Oracle: a base-R/Optim dense Laplace objective (_gamma_animal_intercept_slope_dense_laplace) with a hand-built non-unit-diagonal A (scaled AR-type R), a hand-built per-group SD vector exp(Z*alpha) for each of the two independent animal fields, a Gamma log-pdf from Distributions, and a Laplace logdet; it does not use the package likelihood. It is compared with fit.nll(theta) at the true parameters (atol 5e-3). Both members (animal intercept, with SD ~ z0, and animal slope, with SD ~ z1) are fitted jointly as independent fields (coef(intercept) and coef(x) selectors). My Totoro scratch run (Julia 1.10.12, DRModels.jl 87a371a66, taskset core 163) found fit.nll(theta) minus the oracle of 1.5e-12, and oracle gaps for emulated bugs of: swapped selectors z0/z1 31.3, reversed intercept SD 21.5, reversed slope SD 6.6, swapped alpha blocks 10.9, cov2cor(A) 4.9, 2A 9.4. All are at least about 1000 times the 5e-3 tolerance. The perturbations live in my scratch run, not in the test, so a later edit to the test could remove the protection without failing it. Row support is the slope member (q=1 per coefficient) of the intercept-plus-independent-slope animal fit, and the intercept is fitted jointly. The bridge (drm_bridge) comparison is only parity. Recovery in the test is loose (within 0.6). Does NOT establish: that the optimiser lands at the oracle optimum (the oracle is evaluated at the true theta, not at the fitted theta), recovery accuracy beyond one seed, a correlated intercept-slope block (the fields are independent), Ainv or pedigree input, native parity, or interval coverage.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
+}

@@ -1,0 +1,9 @@
+julia-cumulative-logit-sd-intercept-parity: ....S
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. cumulative-logit random-intercept SD has same-data Julia bridge parity ('test-julia-cumulative-logit-sd-intercept-parity.R:47:3') - Reason: Julia bridge tests are opt-in
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=4 failed=0 errors=0 skipped=1
+DRM_RUN start=2026-11-02T13:22:34Z end=2026-11-02T13:22:42Z rc=0

@@ -533,7 +533,13 @@ test_that("Arc 3a new routes reject slopes, labels, and extra variance layers", 
     }
     family <- arc3a_family(case$family)
 
-    for (lhs in c("0 + x", "1 + x", "1 + x + site")) {
+    rejected_lhs <- c("0 + x", "1 + x", "1 + x + site")
+    if (identical(case$family, "gamma") && identical(case$provider, "phylo")) {
+      # Gamma phylo admits `1 + x` and the slope-only `0 + x` (batch 9); the
+      # two-slope slope-only block stays refused.
+      rejected_lhs <- c(setdiff(rejected_lhs, c("1 + x", "0 + x")), "0 + x + site")
+    }
+    for (lhs in rejected_lhs) {
       expect_error(
         drmTMB(
           arc3a_formula_from_text(sprintf("y ~ x + %s", sprintf(marker, lhs))),
@@ -584,7 +590,16 @@ test_that("Arc 3a new routes reject slopes, labels, and extra variance layers", 
     expect_error(
       drmTMB(
         arc3a_formula_from_text(
-          sprintf("y ~ x + (1 | site) + %s", sprintf(marker, "1"))
+          # Gamma now admits one ordinary intercept beside a phylo intercept
+          # (see test-gamma-iid-structured-sd-regression.R); two ordinary
+          # intercepts beside the structured term stay refused.
+          if (identical(case$family, "gamma") &&
+              identical(case$provider, "phylo")) {
+            sprintf("y ~ x + (1 | site) + (1 | species) + %s",
+                    sprintf(marker, "1"))
+          } else {
+            sprintf("y ~ x + (1 | site) + %s", sprintf(marker, "1"))
+          }
         ),
         family = family,
         data = sim$data
@@ -623,7 +638,8 @@ test_that("Arc 3a new routes reject multiple and deferred structured providers",
   plant_tree <- tree
   pollinator_tree <- tree
 
-  for (family in list(lognormal(), stats::Gamma(link = "log"))) {
+  for (family_name in c("lognormal", "gamma")) {
+    family <- arc3a_family(family_name)
     expect_error(
       drmTMB(
         arc3a_formula_from_text(
@@ -644,22 +660,24 @@ test_that("Arc 3a new routes reject multiple and deferred structured providers",
       ),
       "one.*phylo|one structured"
     )
-    expect_error(
-      drmTMB(
-        arc3a_formula_from_text("y ~ x + spatial(1 | id, coords = coords)"),
-        family = family,
-        data = sim$data
-      ),
-      "spatial|phylo|relmat|structured"
-    )
-    expect_error(
-      drmTMB(
-        arc3a_formula_from_text("y ~ x + animal(1 | id, pedigree = pedigree)"),
-        family = family,
-        data = sim$data
-      ),
-      "Use an unlabelled intercept with.*remove the\\s+structured term"
-    )
+    if (identical(family_name, "lognormal")) {
+      expect_error(
+        drmTMB(
+          arc3a_formula_from_text("y ~ x + spatial(1 | id, coords = coords)"),
+          family = family,
+          data = sim$data
+        ),
+        "spatial|phylo|relmat|structured"
+      )
+      expect_error(
+        drmTMB(
+          arc3a_formula_from_text("y ~ x + animal(1 | id, pedigree = pedigree)"),
+          family = family,
+          data = sim$data
+        ),
+        "Use an unlabelled intercept with.*remove the\\s+structured term"
+      )
+    }
     expect_error(
       drmTMB(
         arc3a_formula_from_text(paste(

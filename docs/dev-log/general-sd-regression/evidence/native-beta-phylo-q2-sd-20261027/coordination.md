@@ -1,0 +1,3 @@
+# Native Beta phylo q2 coordination
+
+Parent native SD lane delegated the scoped R builder/validator and test/example/evidence changes while retaining canonical parent ownership. Independent scout supplied source mapping and read-only review. No Julia or public capability-map path changed. The separate Julia parity and documentation lanes remain responsible for those surfaces; the parent coordinator sends final scope notifications. Existing Gamma, Beta animal, pedigree and relatedness work remains preserved. The neighboring location-scale lease extension covers only the obsolete phylo refusal assertions; earlier dirty changes in that file remain intact.

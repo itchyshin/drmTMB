@@ -11,7 +11,9 @@
 #   spatial(1 | g, coords) -> native fixed-range K -> drm(...; K = K)
 #
 # Supported families are DRM.jl's general-covariance set: Gaussian, Poisson, NB2,
-# Gamma. (Beta / Binomial fit only `phylo()` in DRM.jl and are rejected here.)
+# Gamma. Binomial has a separate exact exception for one relmat intercept with
+# its matching direct SD regression; it is tested in
+# `test-julia-binomial-relmat-sd-parity.R`. Beta remains phylo-only here.
 # Precision / inverse marker forms (relmat `Q`, animal `Ainv`), pedigrees, meshes,
 # and non-Gaussian `spatial()` have no bridge route and are rejected with a
 # pointer to `engine = "tmb"` or to `relmat(1 | g, K = K)`.
@@ -33,11 +35,11 @@ test_that("structured family set is Gaussian/Poisson/NB2/Gamma, gated as such", 
   for (fam in c("gaussian", "poisson", "nbinom2", "gamma")) {
     expect_equal(drmTMB:::drm_julia_structured_family_tag(fam), fam)
   }
-  # Beta / Binomial fit phylo() but have no relmat/animal/spatial drm() route.
+  # Without its exact direct-SD formula, Binomial and Beta remain refused.
   for (fam in c("beta", "binomial", "student")) {
     expect_error(
       drmTMB:::drm_julia_structured_family_tag(fam),
-      "relmat.*animal.*spatial"
+      "general-covariance"
     )
   }
 })
@@ -171,14 +173,18 @@ test_that("unsupported structured forms are rejected with a tmb pointer", {
     ),
     "relmat.*K"
   )
+  # `drm_julia_structured_matrix()` now marshals an animal `Ainv` (the gate moved
+  # to `drm_julia_structured_payload()` in b87566680 so that the Poisson and
+  # Binomial animal SD routes can consume it), so the Gaussian refusal is
+  # asserted at the payload, which still refuses it.
   expect_error(
-    drmTMB:::drm_julia_structured_matrix(
-      term(bf(y ~ x + animal(1 | id, Ainv = Ainv))),
+    drmTMB:::drm_julia_structured_payload(
+      bf(y ~ x + animal(1 | id, Ainv = Ainv)),
       "gaussian",
-      env,
-      dat
+      dat,
+      env
     ),
-    "animal.*A"
+    "animal.*Ainv.*Poisson or Binomial"
   )
   # spatial() is coordinate-based and Gaussian-only; a count spatial fit must use
   # relmat(1 | g, K = K) instead.
@@ -241,7 +247,7 @@ test_that("structured payload requires intercept-only mu and sigma ~ 1", {
       dat,
       env
     ),
-    "1 \\| group"
+    "explicitly admitted animal-, relmat-, or fixed-coordinate spatial-slope SD routes"
   )
 })
 

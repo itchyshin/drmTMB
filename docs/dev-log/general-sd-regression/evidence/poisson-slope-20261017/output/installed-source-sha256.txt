@@ -1,0 +1,5 @@
+d1081aeae5b5cedce7f60c7267e6ff11c93578e8c73b4aa968861919bcb37f3b  library/drmTMB/libs/drmTMB.so
+81c17c49c86b0b2568a173d38abbea6c0795b023a71e4b5ae801cee8eaba112d  source/drmTMB/R/drmTMB.R
+366a0b8895ac474b90b915ef9ca058461ba2bfc89d50ffe3b877d378b1543418  source/drmTMB/R/random-effect-targets.R
+b46f05dea0b44f94be76db03851ae49b41a7cdef125aa13f3864ac7219d83846  source/drmTMB/src/drmTMB.cpp
+4954063fad5261482c1392cc30641f62cf59a8e1368dcce0f9ee2292697d693e  test-poisson-slope-sd-integration-corrected.R

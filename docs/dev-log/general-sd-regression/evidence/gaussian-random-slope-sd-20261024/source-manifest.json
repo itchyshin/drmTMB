@@ -1,0 +1,37 @@
+{
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "native_worktree_dirty": true,
+  "julia_worktree_dirty": true,
+  "scope": "candidate source pins; hashes bind the focused files used by these tests",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "b47b4e438c030f6c7d8f17c3508497a8708089e8baa2fee5312a642fa67d6735"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "10f5d282a2e6616bda5126f5caa36a8f0d4377dc562741d74fe306df1b62ab54"
+    },
+    {
+      "file": "R/julia-family-registry.R",
+      "sha256": "f5b9377b6de34a85be25927b3096816eb96205213f658289ec8f7181aef8da09"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "601194d716c3816b787e4360f438a060bae3dd11292a90002d338da7bbb7a2a6"
+    },
+    {
+      "file": "tests/testthat/test-gaussian-sd-slope-regression.R",
+      "sha256": "5de3f75befc4f977c2a0aa1a97cc1c2fe7b9dbcd6ef6b8b2d181043ff818e414"
+    },
+    {
+      "file": "tests/testthat/test-julia-gaussian-sd-parity.R",
+      "sha256": "1987789bb6949f38ebb702b8195b39fc13a5a150285d84508021c3a35b8a03ee"
+    },
+    {
+      "file": "../general-sd-julia/src/gaussian_lss.jl",
+      "sha256": "2554a900a2765451dda04efc3d3859a806eae2bf2644cb943c9e371493763907"
+    }
+  ]
+}

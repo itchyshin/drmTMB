@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "5f0b4d21858d3958285774ab6d12b2af9ea429e67a4d8309c8e2a3b0979d11f2",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Separate post-draft assessment under writing-naturalness.md and the drmTMB prose-style-review checklist; report claims checked against source and captured test outputs.",
+  "genre": "Software after-task report",
+  "coverage": "Whole after-task report, all 12 required sections.",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report uses the required structure and names the exact model, tests, results, and residual scope.",
+  "confidence": "medium",
+  "confidence_reason": "Model and check claims were compared with current source and outputs; the style score is an editorial judgment without calibrated human controls.",
+  "examples": [
+    {
+      "location": "Section 5, Checks Run",
+      "cue": "The focused test outcome appears before the documentation checks.",
+      "impact": "Readers can distinguish implementation evidence from documentation verification.",
+      "repair": "No change needed.",
+      "line": 43,
+      "quote": "The focused slope test includes synthetic"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The equation, slope loading, and independent scalar Laplace check align with the implemented route.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Support boundaries and all reported test/documentation outcomes were checked against current source and captured output.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external literature claims.",
+  "date": "2026-10-21",
+  "calibration_status": "No human-labelled calibration control was reviewed; this is an informal self-assessment.",
+  "interpretation": "perceived_style_not_authorship"
+}

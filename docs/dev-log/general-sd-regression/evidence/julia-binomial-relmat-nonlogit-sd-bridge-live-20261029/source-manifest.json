@@ -1,0 +1,41 @@
+{
+  "scope": "Native TMB and R-to-Julia Binomial relmat q1 intercept SD regression under probit and cloglog; one fixed-seed same-data point comparison per link.",
+  "drmTMB_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "drmTMB_worktree": "dirty candidate; listed hashes identify tested bytes",
+  "DRMjl_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "DRMjl_worktree": "dirty candidate; listed hashes identify tested bytes",
+  "files": [
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "05c0289e22ff99b5db6ab0373509b31a531c23a63b444db93d7b5a104c760f4d"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "d81ef23c0409922816e09c41e00e031e9d09624d0f8c0211f11d4d9eef5c401c"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "54f635fd488b0887ea6d2e1f619cdcd80d196587b8d770214b5b4594c5ddeb77"
+    },
+    {
+      "file": "tests/testthat/test-julia-binomial-relmat-nonlogit-sd-bridge.R",
+      "sha256": "31c583b0d463ecfa7eb4d3a816fd64a2c66f7382a0c641e692bf1adbd8ec5804"
+    },
+    {
+      "file": "tests/testthat/helper-julia-bridge-path.R",
+      "sha256": "be788198cabc6624e6ce8e37d6d45db9bae963cc5adb1ce244e80edc5f29e093"
+    },
+    {
+      "file": "../general-sd-julia/src/binomial_sd_regression.jl",
+      "sha256": "70f03e0651e6994151a80b6db76579ab478d143ee2ebf6665af97ebb78a557c0"
+    },
+    {
+      "file": "../general-sd-julia/src/bridge.jl",
+      "sha256": "427c1144596cba2dea4faf29a5ea80e71b8ad6b8e8a6d9b89efb0027c5e43f73"
+    },
+    {
+      "file": "../general-sd-julia/src/sparse_laplace_glmm.jl",
+      "sha256": "71c23b8db4f70fe6a58da8a064cd001a279c1f2413925fb98fe01e3a0ce2712c"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+julia-binomial-animal-q2-oracle-b31ja: ..................i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+............................b31ja A logit: ll=-705.454289 oracle=-705.454287 agreement=1.10e-06; min gap=0.4486 (A_scale_1.3); gaps: swapped_coef_sets=-2.636, reversed_sd_vector_intercept=-8.618, reversed_sd_vector_x=-11.449, A_scale_2=-3.129, A_scale_1.3=-0.449, cov2cor_A=-0.979, A_read_by_position=-26.632, A_dimnames_reversed=-36.345, flipped_rho=-2.396
+................b31ja Ainv logit: ll=-705.454289 oracle=-705.454287 agreement=1.10e-06; min gap=0.4486 (A_scale_1.3); gaps: swapped_coef_sets=-2.636, reversed_sd_vector_intercept=-8.618, reversed_sd_vector_x=-11.449, A_scale_2=-3.129, A_scale_1.3=-0.449, cov2cor_A=-0.979, A_read_by_position=-26.632, A_dimnames_reversed=-36.345, flipped_rho=-2.396
+................b31ja pedigree logit: ll=-705.454289 oracle=-705.454287 agreement=1.10e-06; min gap=0.4486 (A_scale_1.3); gaps: swapped_coef_sets=-2.636, reversed_sd_vector_intercept=-8.618, reversed_sd_vector_x=-11.449, A_scale_2=-3.129, A_scale_1.3=-0.449, cov2cor_A=-0.979, A_read_by_position=-26.632, A_dimnames_reversed=-36.345, flipped_rho=-2.396
+................b31ja A probit: ll=-514.668456 oracle=-514.668454 agreement=2.12e-06; min gap=0.5601 (A_scale_1.3); gaps: swapped_coef_sets=-8.760, reversed_sd_vector_intercept=-17.147, reversed_sd_vector_x=-14.590, A_scale_2=-3.804, A_scale_1.3=-0.560, cov2cor_A=-1.342, A_read_by_position=-56.482, A_dimnames_reversed=-61.471, flipped_rho=-12.740
+................b31ja pedigree probit: ll=-514.668456 oracle=-514.668454 agreement=2.12e-06; min gap=0.5601 (A_scale_1.3); gaps: swapped_coef_sets=-8.760, reversed_sd_vector_intercept=-17.147, reversed_sd_vector_x=-14.590, A_scale_2=-3.804, A_scale_1.3=-0.560, cov2cor_A=-1.342, A_read_by_position=-56.482, A_dimnames_reversed=-61.471, flipped_rho=-12.740
+................b31ja A cloglog: ll=-663.436924 oracle=-663.436922 agreement=2.24e-06; min gap=0.5115 (A_scale_1.3); gaps: swapped_coef_sets=-3.772, reversed_sd_vector_intercept=-7.076, reversed_sd_vector_x=-19.751, A_scale_2=-3.575, A_scale_1.3=-0.511, cov2cor_A=-1.662, A_read_by_position=-35.156, A_dimnames_reversed=-37.369, flipped_rho=-7.704
+................b31ja pedigree cloglog: ll=-663.436924 oracle=-663.436922 agreement=2.24e-06; min gap=0.5115 (A_scale_1.3); gaps: swapped_coef_sets=-3.772, reversed_sd_vector_intercept=-7.076, reversed_sd_vector_x=-19.751, A_scale_2=-3.575, A_scale_1.3=-0.511, cov2cor_A=-1.662, A_read_by_position=-35.156, A_dimnames_reversed=-37.369, flipped_rho=-7.704
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=142 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T03:56:38Z end=2026-11-03T03:57:09Z rc=0

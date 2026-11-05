@@ -1,0 +1,26 @@
+{
+  "evidence_id": "poisson-animal-intercept-current-candidate-tmb-julia-parity-20261023-m26",
+  "rerecord_of_evidence_id": "poisson-animal-intercept-current-candidate-tmb-julia-parity-20261023",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/poisson-animal-intercept-parity-20261023/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "DRM_JL_PATH and DRMODELS_JL_PATH point to paired Julia worktree; DRM_JULIA_TESTS=true NOT_CRAN=true; scratch Julia depot; Rscript --vanilla -e devtools::load_all(); testthat::test_file(test-julia-poisson-animal-sd-parity.R)",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-poisson-animal-sd-parity.R",
+      "test_sha256": "6cc2972137a4727763ca0791d44d5802d578130a49729000ee819aa9958bdf44",
+      "started_utc": "2026-11-02T13:24:44Z",
+      "ended_utc": "2026-11-02T13:25:22Z",
+      "exit_code": 0,
+      "expectations_passed": 20,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-animal-intercept-parity-20261023-m26-c0d4c7/test-console-test-julia-poisson-animal-sd-parity.log",
+      "console_log_sha256": "758a8a918e26a75cb497c0bd36a31c2b961e4e10d1cd26a1be9ff6dfc0c1101f"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-animal-intercept-parity-20261023-m26-c0d4c7/source-manifest.json",
+  "source_manifest_sha256": "b6578a6856a9307d9d147699ad86c42e0cd60258b35493f734d6a166bd4ea8f9",
+  "review_status": "unreviewed"
+}

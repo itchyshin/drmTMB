@@ -1,0 +1,19 @@
+{
+  "scope": "Source identity for native-gamma-animal-q2-intercept-20261023, relinked to the live test at drmTMB 7fd8acec3",
+  "commit": "7fd8acec3",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-native-20261023/ledger-source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-gamma-animal-pedigree-sd-regression.R",
+      "sha256": "39667eca4dfe8b2745d5c89b7e3073f8cf60269f8debf33a4a76308980e15cca"
+    }
+  ]
+}

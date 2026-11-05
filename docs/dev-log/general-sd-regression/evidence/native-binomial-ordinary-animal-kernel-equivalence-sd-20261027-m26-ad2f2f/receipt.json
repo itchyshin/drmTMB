@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-ordinary-animal-ainv-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-ordinary-animal-ainv-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-animal-kernel-equivalence-sd-20261027/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e devtools::test(filter = \"\"binomial-ordinary-animal-kernel-equivalence-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-ordinary-animal-kernel-equivalence-sd.R",
+      "test_sha256": "5b6b2e169e89423485c8c4418fd52d221f51f75a895df99a41c6ec3ed3a7aed2",
+      "started_utc": "2026-11-02T13:16:12Z",
+      "ended_utc": "2026-11-02T13:17:35Z",
+      "exit_code": 0,
+      "expectations_passed": 11,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-animal-kernel-equivalence-sd-20261027-m26-ad2f2f/test-console-test-binomial-ordinary-animal-kernel-equivalence-sd.log",
+      "console_log_sha256": "0a53b3bf147836dd469d4877562741025ced4239c7250ea340126863cf06288a"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-animal-kernel-equivalence-sd-20261027-m26-ad2f2f/source-manifest.json",
+  "source_manifest_sha256": "195975c36a02de50b50457821ee8c7a64a84abaf95692ad9fa352ede8ecdf109",
+  "review_status": "unreviewed"
+}

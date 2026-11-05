@@ -1,0 +1,137 @@
+{
+  "evidence_id": "structured-sd-nonunit-k-and-missing-20261101b",
+  "evidence_grade": "focused_test",
+  "command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'res <- devtools::test(filter = \"^structured-sd-nonunit-k-and-missing$\", reporter = \"summary\", stop_on_failure = TRUE)' > docs/dev-log/general-sd-regression/evidence/structured-sd-nonunit-k-and-missing-20261101b/test-console.log 2>&1",
+  "command_note": "The R expression actually run additionally converted the test result to a data frame, printed a final DRM_RECEIPT_COUNTS line, and set a nonzero exit status on any failure, error or skip; the devtools::test(...) call itself is as above.",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "7309d3cd813f9c0f42da9974470c23d87da5bcf4",
+  "branch": "codex/general-sd-regression",
+  "tree_state": "dirty and shared; uncommitted edits present; unreviewed",
+  "run_started_utc": "2026-11-01T22:05:50Z",
+  "run_ended_utc": "2026-11-01T22:06:09Z",
+  "exit_code": 0,
+  "test_blocks": 6,
+  "expectations_passed": 53,
+  "failures": 0,
+  "skips": 0,
+  "errors": 0,
+  "warnings": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/structured-sd-nonunit-k-and-missing-20261101b/test-console.log",
+  "console_log_sha256": "f5661fe1ed809f00b073bb6b8ecac1e5c02b0e279cda7a1709aea64c5b8a0dad",
+  "test_path": "tests/testthat/test-structured-sd-nonunit-k-and-missing.R",
+  "test_sha256": "e2c91f479e39fb5292c324d409ec210bb1f6c5edaa73a5583fa6a206333b1ef0",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/structured-sd-nonunit-k-and-missing-20261101b/source-manifest.json",
+  "source_manifest_sha256": "31fd8b64beffe0ed8efad817dbc38dbd463a3a6c4d92a87a0a04069a2c29a768",
+  "scope": "Non-unit-diagonal K (1.7 Toeplitz, or pedigree with inbreeding) used as given: NB2 relmat K and Q, Gaussian relmat K and Q, Binomial(logit) animal A, Ainv and pedigree, each with sd(., level = ...) ~ z. Also pins missing-response refusals and drop-policy equality for Poisson and NB2 slope-only structured SD (not linked).",
+  "oracle": "Dense drmTMB-independent oracle from the unconverted K (Gaussian exact; NB2 and Binomial Laplace); the cov2cor(K) oracle must differ by more than 0.05. The pedigree matrix for the oracle uses drmTMB:::drm_pedigree_additive_relationship (helper under test, disclosed).",
+  "checks": [
+    "logLik matches oracle from K as given",
+    "K versus Q and A versus Ainv agree",
+    "cov2cor sensitivity",
+    "pedigree inbreeding diagonal above one",
+    "missing-response refusals and drop-policy equals manual complete-case (not linked to rows)"
+  ],
+  "tolerances_source": "test_header_comment (verbatim header comment of the test file)",
+  "test_header_comment": [
+    "Two review gaps in the predictor-dependent random-effect SD lane.",
+    "",
+    "(1) Missing responses with slope-only structured SD for Poisson and NB2.",
+    "Probe result (this file records it): every route below is REFUSED under",
+    "miss_control(response = \"include\"), with a family-specific message, so",
+    "there is nothing to match against a complete-case fit. The tests pin the",
+    "refusals, and pin that the supported route (the default drop policy)",
+    "gives the same fit as removing the missing rows by hand.",
+    "(2) Non-unit-diagonal K. Fixtures with diag(K) = 1 cannot tell a fit that",
+    "uses K as given from one that silently converts K to a correlation",
+    "matrix. Here diag(K) is 1.7 (Toeplitz) or >= 1.25 (pedigree with",
+    "inbreeding), and each fit is compared with a dense, drmTMB-independent",
+    "oracle built from the unconverted K. As a sensitivity check, the same",
+    "oracle built from cov2cor(K) must give a clearly different value.",
+    "",
+    "Tolerances, fixed before the first run:",
+    "* Laplace oracle (NB2, Binomial): 1e-4 absolute on the log-likelihood;",
+    "* Gaussian exact marginal oracle: 1e-6 absolute on the log-likelihood;",
+    "* K vs Q and A vs Ainv log-likelihood: 1e-4 relative;",
+    "* correlation-conversion sensitivity: oracle values differ by more than",
+    "0.05 absolute;",
+    "* drop policy vs manual complete-case: 1e-8 relative on the log-likelihood.",
+    "No recovery, coverage, calibration or Julia parity claim is made here. The",
+    "oracles are evaluated at the fitted parameters, so they check the likelihood",
+    "surface, not the optimiser's maximum. The pedigree relationship matrix for",
+    "the oracle comes from drmTMB:::drm_pedigree_additive_relationship (the helper",
+    "under test for that route); its inbreeding diagonal is pinned by hand below."
+  ],
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "target_member": "mu:I",
+      "link": "log",
+      "mechanism_id": "relmat_intercept",
+      "provider_input": "K_covariance",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"Q_precision\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "target_member": "mu:I",
+      "link": "log",
+      "mechanism_id": "relmat_intercept",
+      "provider_input": "Q_precision",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "target_member": "mu:I",
+      "link": "identity",
+      "mechanism_id": "relmat_intercept",
+      "provider_input": "K_covariance",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"Q_precision\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "target_member": "mu:I",
+      "link": "identity",
+      "mechanism_id": "relmat_intercept",
+      "provider_input": "Q_precision",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "target_member": "mu:I",
+      "link": "logit",
+      "mechanism_id": "animal_intercept",
+      "provider_input": "A_covariance",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"Ainv_precision\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "target_member": "mu:I",
+      "link": "logit",
+      "mechanism_id": "animal_intercept",
+      "provider_input": "Ainv_precision",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"pedigree\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "target_member": "mu:I",
+      "link": "logit",
+      "mechanism_id": "animal_intercept",
+      "provider_input": "pedigree",
+      "ledger_status": "required"
+    }
+  ],
+  "candidate_rows_note": "Rows linked only where the test fits that exact route.",
+  "not_covered": [
+    "relmat and animal slope-only rows (missing-data checks are not linked to rows)",
+    "Poisson intercept rows",
+    "se = TRUE inference",
+    "Julia parity"
+  ],
+  "limits": [
+    "native engine only",
+    "fixed-seed synthetic fixtures",
+    "no calibration, interval-coverage or broad parity claim",
+    "no Julia parity claim",
+    "a receipt does not promote a row; direct_sd_claim stays none",
+    "review_status unreviewed"
+  ]
+}

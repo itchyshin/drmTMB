@@ -1,0 +1,166 @@
+{
+  "evidence_id": "native-count-structured-q2-more-providers-sd-20261101d",
+  "evidence_grade": "focused_test",
+  "claim": "Poisson and NB2 q2 independent-field intercept-plus-slope with per-coefficient SD formulas for relmat (K and Q), phylo (tree) and spatial (coordinates); dense Laplace oracle 1e-4, constant-SD equivalence 1e-5",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-count-structured-q2-more-providers-sd.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "tree_state": "dirty shared candidate",
+  "test_path": "tests/testthat/test-count-structured-q2-more-providers-sd.R",
+  "test_sha256": "ea9f9c473202b48c0b78d0984bc11dfa01f253a5d1f53e6fcaa1c71524b54d93",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/count-structured-q2-more-providers-sd-20261101d/source-manifest.json",
+  "source_manifest_sha256": "ce1ae2cafe84046880449ef402850328ca866079683f125cdccf9957698b9773",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/count-structured-q2-more-providers-sd-20261101d/test-console.log",
+  "console_log_sha256": "873c38f1d75af845b6575783e6c6f0820b15df7f0d9ee913a958d3c377bea799",
+  "result": {
+    "exit_code": 0,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": false,
+    "note": "summary reporter: no failure or skip section; Julia bridge reported 0 live tests"
+  },
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "relmat_intercept",
+      "provider_input": "K_covariance",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"Q_precision\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "relmat_intercept",
+      "provider_input": "Q_precision",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"K_covariance\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "relmat_numeric_slope",
+      "provider_input": "K_covariance",
+      "target_member": "mu:x1..xp"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"Q_precision\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "relmat_numeric_slope",
+      "provider_input": "Q_precision",
+      "target_member": "mu:x1..xp"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"phylo_intercept\",\"S1/P-temporal\",\"phylo\",\"structured random intercept\",\"tree\",\"single phylogenetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "phylo_intercept",
+      "provider_input": "tree",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "phylo_numeric_slope",
+      "provider_input": "tree",
+      "target_member": "mu:x1..xp"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "spatial_coordinate_intercept",
+      "provider_input": "coordinates",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "spatial_coordinate_slope",
+      "provider_input": "coordinates",
+      "target_member": "mu:x1..xp"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "relmat_intercept",
+      "provider_input": "K_covariance",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"Q_precision\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "relmat_intercept",
+      "provider_input": "Q_precision",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"K_covariance\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "relmat_numeric_slope",
+      "provider_input": "K_covariance",
+      "target_member": "mu:x1..xp"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"Q_precision\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "relmat_numeric_slope",
+      "provider_input": "Q_precision",
+      "target_member": "mu:x1..xp"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"phylo_intercept\",\"S1/P-temporal\",\"phylo\",\"structured random intercept\",\"tree\",\"single phylogenetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "phylo_intercept",
+      "provider_input": "tree",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "phylo_numeric_slope",
+      "provider_input": "tree",
+      "target_member": "mu:x1..xp"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "spatial_coordinate_intercept",
+      "provider_input": "coordinates",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "spatial_coordinate_slope",
+      "provider_input": "coordinates",
+      "target_member": "mu:x1..xp"
+    }
+  ],
+  "not_covered": [
+    "relmat Q is checked only by logLik equality (1e-4) with the K fit, not by its own oracle",
+    "labelled/correlated q2 for these providers (refused)",
+    "mesh_precision spatial input",
+    "phylo matrix inputs",
+    "sigma endpoint",
+    "recovery, calibration, Julia parity"
+  ],
+  "limits": [
+    "unreviewed",
+    "no calibration or coverage claim",
+    "native R/TMB only; no Julia parity claim",
+    "direct_sd_claim stays none; receipt is a staleness seal, not a promotion"
+  ]
+}

@@ -1,0 +1,5 @@
+aeab8af79bf9faa0f50b1fb461ef744743d12e8d6f6023b17b4cd6cc59fd4399  R/drmTMB.R
+f031582036e262332591de39b46f654d07c6bdf64954e09f1b47a3cbd26ed62f  R/random-effect-targets.R
+62898da2777008c0470919916a2fdb7dea9e6fef7fbdc6f469429827fb3c1e9e  R/random-effect-scale-formulas.R
+601194d716c3816b787e4360f438a060bae3dd11292a90002d338da7bbb7a2a6  src/drmTMB.cpp
+4ecbde2994d5e9c6e53997797408249dcc0a30b75280059aebf9c46dda8b62a8  tests/testthat/test-lognormal-sigma-sd-regression.R

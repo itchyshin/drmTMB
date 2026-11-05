@@ -1,0 +1,27 @@
+{
+  "scope": "Source identity for julia-binomial-phylo-cloglog-sd-bridge-live-20261029, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-sd-bridge-live-20261029/source-manifest.sha256",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "472d9de4db223c925df61a683bfd06448e8b9891f32ae2bc386191c6f6098be5"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-julia-binomial-phylo-sd.R",
+      "sha256": "69177fed96998939c56c825b3a567074cc11104b2e51cb5699f87c0162462b6c"
+    }
+  ]
+}
