@@ -1,0 +1,27 @@
+{
+  "evidence_id": "native-poisson-animal-slope-ainv-pedigree-sd-20261101-m26",
+  "rerecord_of_evidence_id": "native-poisson-animal-slope-ainv-pedigree-sd-20261101",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-animal-slope-ainv-pedigree-sd-r2-20261101/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e devtools::test(filter = '^poisson-animal-slope-ainv-pedigree-sd-regression$', reporter = 'summary', stop_on_failure = FALSE) [wrapper run_one.sh in the evidence directory adds counts and exit status]",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-poisson-animal-slope-ainv-pedigree-sd-regression.R",
+      "test_sha256": "1c382a76c3e3555a2552df96f095b3d0891c6bda853b69553af1c4167fee9657",
+      "started_utc": "2026-11-02T13:18:26Z",
+      "ended_utc": "2026-11-02T13:18:34Z",
+      "exit_code": 0,
+      "expectations_passed": 26,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-poisson-animal-slope-ainv-pedigree-sd-r2-20261101-m26-67f968/test-console-test-poisson-animal-slope-ainv-pedigree-sd-regression.log",
+      "console_log_sha256": "947fec246520b4cd4d67a97951ff60b0d8dd8e71de6f9c253f0374547e2b1d88"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-poisson-animal-slope-ainv-pedigree-sd-r2-20261101-m26-67f968/source-manifest.json",
+  "source_manifest_sha256": "c0101de9926365d17c23fea6ffb6e9f71851c7867723c2feff2b7e35f4ede170",
+  "review_status": "unreviewed",
+  "oracle": "Dense Laplace marginal likelihood written in the test file (prs_dense_laplace_loglik), computed from the fixture's own K matrix and group predictor looked up by level name, not from predict(). Independent of the package likelihood code for the Ainv fit (K = hand-built 1.7*0.35^|i-j|). Only partly independent for the pedigree fit: K there comes from drmTMB:::drm_pedigree_additive_relationship (helper under test). The A-covariance fit is a comparator, not linked."
+}

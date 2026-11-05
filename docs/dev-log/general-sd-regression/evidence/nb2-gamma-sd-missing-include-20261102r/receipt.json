@@ -1,0 +1,54 @@
+{
+  "evidence_id": "native-nb2-gamma-sd-missing-include-20261102r",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); r<-as.data.frame(testthat::test_file(\"tests/testthat/test-nb2-gamma-sd-missing-include.R\", reporter=\"silent\")); print(colSums(r[c(\"passed\",\"failed\",\"error\",\"skipped\")]))'",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "427a9a40198d588409a350843ef7fe8c788454a9",
+  "tree_state": "dirty shared candidate (uncommitted edits present); unreviewed",
+  "run_started_utc": "2026-11-02T11:23:54Z",
+  "run_ended_utc": "2026-11-02T11:24:54Z",
+  "exit_code": 0,
+  "expectations_passed": 114,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/nb2-gamma-sd-missing-include-20261102r/test-console.log",
+  "console_log_sha256": "880bba062da2b52c89815e46f4bbfa38c15fc67236661e7f2fe56c9d83bbedf9",
+  "test_path": "tests/testthat/test-nb2-gamma-sd-missing-include.R",
+  "test_sha256": "674d1c2f78dc2effd2a7b5a850838617ba22d113fa61e43eb7ae9f2cafa178bd",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/nb2-gamma-sd-missing-include-20261102r/source-manifest.json",
+  "source_manifest_sha256": "de8fffb785510934815d03c8f090639de462e15283f95b49973242afc37fe674",
+  "live_julia": "not run; native R engine only",
+  "scope": "NB2 and Gamma (log) ordinary intercept and slope SD regression under miss_control(response='include'): include equals complete-case (1e-8) and a per-group Laplace oracle (1e-4).",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    }
+  ],
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "structured providers under include: refused in this file, not linked"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "unreviewed"
+}

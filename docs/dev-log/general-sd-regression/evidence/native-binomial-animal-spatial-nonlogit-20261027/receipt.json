@@ -1,0 +1,24 @@
+{
+  "evidence_id": "native-binomial-animal-spatial-nonlogit-pair-20261027",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"binomial-animal-spatial-nonlogit-pair-sd\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "exit_code": 0,
+  "expectations_passed": 16,
+  "links": [
+    "probit",
+    "cloglog"
+  ],
+  "checks": [
+    "optimizer convergence",
+    "positive direction and broad fixed-seed recovery bound for both SD slopes",
+    "named animal and spatial SD predictions",
+    "simulated outcomes are binary"
+  ],
+  "limitations": [
+    "One synthetic design and seed per link.",
+    "Native R/TMB only.",
+    "No interval-coverage validation.",
+    "No independent likelihood oracle."
+  ],
+  "test_log": "focused-tests.log",
+  "source_manifest": "source-manifest.json"
+}

@@ -1,0 +1,24 @@
+diff --git a/src/DRModels.jl b/src/DRModels.jl
+--- a/src/DRModels.jl
++++ b/src/DRModels.jl
+@@ -100,5 +100,6 @@ include("betabinomial.jl")
+ include("separation.jl")
+ include("binomial.jl")
++include("binomial_sd_regression.jl")
+ include("gamma.jl")
+ include("lognormal.jl")
+ include("bivariate_student.jl")  # drmTMB `biv_student()`: exact bivariate-t density,
+diff --git a/src/binomial.jl b/src/binomial.jl
+--- a/src/binomial.jl
++++ b/src/binomial.jl
+@@ -150,5 +150,10 @@ function drm(f::DrmFormula, fam::Binomial; data, tree = nothing, K = nothing,
+              se::Bool = true, marginal::Symbol = :LA, method = nothing)
+     _reject_method_as_marginal(fam, method)
++    if !isempty(_sd_parts(f))
++        return _drm_binomial_sd_regression(f, fam; data = data, tree = tree,
++            K = K, A = A, coords = coords, g_tol = g_tol, se = se,
++            marginal = marginal, method = method)
++    end
+     _scalar_laplace_requested(marginal) &&     # Arc 2: TMB-convention Laplace, ordinary (1 | g)
+         return _drm_ordinary_laplace(f, fam; data = data, tree = tree, K = K, A = A,
+                                      coords = coords, g_tol = g_tol, se = se, method = method)

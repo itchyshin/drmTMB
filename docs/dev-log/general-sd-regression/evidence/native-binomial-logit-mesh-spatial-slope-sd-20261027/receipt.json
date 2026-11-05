@@ -1,0 +1,9 @@
+{
+  "result": "passed",
+  "binomial_mesh_test_file": "32 assertions",
+  "gaussian_mesh_contract_test_file": "48 assertions",
+  "warnings": 0,
+  "skips": 0,
+  "coverage_calibration": false,
+  "julia_bridge_live": false
+}

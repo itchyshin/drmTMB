@@ -1,0 +1,10 @@
+nbinom2-iid-phylo-interaction-oracle-b31no: .............................GAP nb2 iid additive intercept | ll-ref -2.84e-11 | min gap 10.697 (reversed_sd_g2_intercept)
+.............GAP nb2 iid additive slope | ll-ref -1.33e-10 | min gap 0.210 (reversed_sd_g2_slope)
+.............GAP nb2 phylo_interaction intercept | ll-ref 1.14e-13 | min gap 0.820 (K_x2_pair)
+.............GAP nb2 phylo_interaction slope | ll-ref -4.43e-12 | min gap 1.728 (K_x2_pair)
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+🥳
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+COUNTS tests=5 expectations=68 failed=0 errors=0 skipped=0 warnings=0

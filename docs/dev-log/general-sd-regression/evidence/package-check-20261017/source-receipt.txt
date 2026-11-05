@@ -1,0 +1,6 @@
+Source commit: 47262cd4501d2fd16b5af8252e4f30ad370436d6
+Git archive: /private/tmp/drmTMB-47262cd45-source.tar.gz
+Git archive SHA-256: d4fe77e70e56e91a898efc900cd41e577c1b1f00d267c83c9e3e5bd364eb6d4b
+Build command: R CMD build --no-build-vignettes --no-manual /private/tmp/drmTMB-package-check-47262cd45/source/drmTMB
+Build host: local Mac Studio
+Build result: drmTMB_0.7.1.tar.gz, built from the extracted exact commit archive

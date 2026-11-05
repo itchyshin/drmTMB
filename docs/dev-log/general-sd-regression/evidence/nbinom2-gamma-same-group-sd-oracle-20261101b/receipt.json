@@ -1,0 +1,77 @@
+{
+  "evidence_id": "nbinom2-gamma-same-group-sd-oracle-20261101b",
+  "evidence_grade": "focused_test",
+  "command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'res <- devtools::test(filter = \"^nbinom2-gamma-same-group-sd-oracle$\", reporter = \"summary\", stop_on_failure = TRUE)' > docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-oracle-20261101b/test-console.log 2>&1",
+  "command_note": "The R expression actually run additionally converted the test result to a data frame, printed a final DRM_RECEIPT_COUNTS line, and set a nonzero exit status on any failure, error or skip; the devtools::test(...) call itself is as above.",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "7309d3cd813f9c0f42da9974470c23d87da5bcf4",
+  "branch": "codex/general-sd-regression",
+  "tree_state": "dirty and shared; uncommitted edits present; unreviewed",
+  "run_started_utc": "2026-11-01T22:05:28Z",
+  "run_ended_utc": "2026-11-01T22:05:40Z",
+  "exit_code": 0,
+  "test_blocks": 2,
+  "expectations_passed": 10,
+  "failures": 0,
+  "skips": 0,
+  "errors": 0,
+  "warnings": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-oracle-20261101b/test-console.log",
+  "console_log_sha256": "07602b00b0483f35e69d6376d47e429c04bba483374a191b34f61c6a4eab8f23",
+  "test_path": "tests/testthat/test-nbinom2-gamma-same-group-sd-oracle.R",
+  "test_sha256": "c5270713731353a0cfd79c4b36d69cb36951145a52cb3f416bfee16454086e26",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-oracle-20261101b/source-manifest.json",
+  "source_manifest_sha256": "85b05e26979bffde81a9ccf1b764cdf2a66267f13ca3f4fb82d3ef158d6e600d",
+  "scope": "Native NB2(log) and Gamma(log) mu with same-group independent intercept and slope, y ~ x + (1 | id) + (0 + x | id), sd(id, coef = '(Intercept)') ~ w1 and sd(id, coef = 'x') ~ w2.",
+  "oracle": "Independent per-group Laplace marginal written in the test without drmTMB internals; swapped-SD, swapped-predictor and misaligned oracles must each differ by more than 1 log-likelihood unit.",
+  "checks": [
+    "fit converges",
+    "logLik equals the Laplace oracle to 1e-4 absolute",
+    "three emulated bugs are detected"
+  ],
+  "tolerances_source": "test_header_comment (verbatim header comment of the test file)",
+  "test_header_comment": [
+    "Independent dense-Laplace oracle for the same-group independent intercept +",
+    "slope model with separate SD regressions:",
+    "sd(id, coef = \"(Intercept)\") ~ w1,  sd(id, coef = \"x\") ~ w2.",
+    "Written without drmTMB internals. Per group, b = (b0, b1), q = 2, independent",
+    "N(0, tau0^2), N(0, tau1^2); marginal = Laplace at the conditional mode.",
+    "Tolerance fixed before the first run: |logLik(fit) - oracle| < 1e-4 (absolute).",
+    "Each emulated bug (swapped SD formulas, swapped predictors, level",
+    "misalignment) must move the oracle by more than 1 log-likelihood unit, which",
+    "is 1e4 times the tolerance. Different predictors and clearly different true",
+    "coefficients are used so that a swap is detectable."
+  ],
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "target_member": "mu:x1..xp",
+      "link": "log",
+      "mechanism_id": "iid_numeric_slope",
+      "provider_input": "group_factor",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "target_member": "mu:x1..xp",
+      "link": "log",
+      "mechanism_id": "iid_numeric_slope",
+      "provider_input": "group_factor",
+      "ledger_status": "required"
+    }
+  ],
+  "candidate_rows_note": "Rows linked only where the test fits that exact route.",
+  "not_covered": [
+    "iid_additive_terms (crossed and nested)",
+    "recovery or coverage",
+    "Julia parity"
+  ],
+  "limits": [
+    "native engine only",
+    "fixed-seed synthetic fixtures",
+    "no calibration, interval-coverage or broad parity claim",
+    "no Julia parity claim",
+    "a receipt does not promote a row; direct_sd_claim stays none",
+    "review_status unreviewed"
+  ]
+}

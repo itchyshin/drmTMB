@@ -1,0 +1,24 @@
+"file","context","test","nb","failed","skipped","error","warning","user","system","real","passed"
+"test-binomial-sd-target-selectors.R","binomial-sd-target-selectors","binomial scalar SD selectors resolve the same real intercept axis",7,0,FALSE,FALSE,0,0.672,0.031,0.722,7
+"test-binomial-sd-target-selectors.R","binomial-sd-target-selectors","a unique labelled binomial intercept has stable selected identity",5,0,FALSE,FALSE,0,0.024,0.006,0.0390000000000001,5
+"test-binomial-sd-target-selectors.R","binomial-sd-target-selectors","two independent q1 groups keep distinct latent row and coefficient maps",6,0,FALSE,FALSE,0,0.0179999999999998,0.00800000000000001,0.0350000000000001,6
+"test-binomial-sd-target-selectors.R","binomial-sd-target-selectors","binomial scalar selectors fail closed on ambiguity, mismatch and duplicates",6,0,FALSE,FALSE,0,0.114,0.003,0.119,6
+"test-poisson-sd-assembly.R","poisson-sd-assembly","Poisson ordinary scalar SD uses group rows and no free sigma",10,0,FALSE,FALSE,0,0.0289999999999999,0.012,0.0589999999999997,10
+"test-poisson-sd-assembly.R","poisson-sd-assembly","Poisson scalar selectors and two independent groups retain identity",4,0,FALSE,FALSE,0,0.159,0.00700000000000001,0.171,4
+"test-poisson-sd-assembly.R","poisson-sd-assembly","Poisson parameter split retains selected SD coefficient slices",5,0,FALSE,FALSE,0,0.0150000000000001,0.006,0.0260000000000002,5
+"test-poisson-sd-assembly.R","poisson-sd-assembly","Poisson SD keeps zi, slopes, structure, and mi fences",6,0,FALSE,FALSE,0,0.093,0.003,0.1,6
+"test-poisson-sd-assembly.R","poisson-sd-assembly","independent Poisson scalar integral preserves probability and mean",3,0,FALSE,FALSE,0,0.0379999999999998,0.004,0.0509999999999997,3
+"test-random-effect-targets.R","random-effect-targets","ordinary target members keep coefficient, latent and group maps separate",10,0,FALSE,FALSE,0,0.0189999999999997,0.013,0.0440000000000005,10
+"test-random-effect-targets.R","random-effect-targets","unique simple targets include a labelled intercept or slope",2,0,FALSE,FALSE,0,0.00599999999999978,0.003,0.0119999999999996,2
+"test-random-effect-targets.R","random-effect-targets","ambiguous and missing targets list actionable ordinary candidates",8,0,FALSE,FALSE,0,0.128,0.005,0.137,8
+"test-random-effect-targets.R","random-effect-targets","dpar filtering and term ordering do not use the printed label as an index",6,0,FALSE,FALSE,0,0.0140000000000002,0.00899999999999995,0.0360000000000005,6
+"test-random-effect-targets.R","random-effect-targets","ordinary resolver excludes structured metadata and respects response aliases",4,0,FALSE,FALSE,0,0.052,0.003,0.0579999999999998,4
+"test-random-effect-targets.R","random-effect-targets","real bivariate registry keeps mixed endpoints and global latent positions",8,0,FALSE,FALSE,0,0.0169999999999999,0.01,0.0369999999999999,8
+"test-random-effect-targets.R","random-effect-targets","distinct labelled same-group blocks need explicit selectors",5,0,FALSE,FALSE,0,0.119,0.005,0.128,5
+"test-random-effect-targets.R","random-effect-targets","correlated pair metadata respects member and group order",5,0,FALSE,FALSE,0,0.0189999999999997,0.006,0.032,5
+"test-random-effect-targets.R","random-effect-targets","empty term inventory fails closed against nonempty registry",2,0,FALSE,FALSE,0,0.0129999999999999,0.003,0.0179999999999998,2
+"test-random-effect-targets.R","random-effect-targets","pair validation rejects equal-level axes with incompatible metadata",6,0,FALSE,FALSE,0,0.04,0.003,0.0440000000000005,6
+"test-random-scale-prediction-labels.R","random-scale-prediction-labels","random-scale prediction labels use each registered group's levels",3,0,FALSE,FALSE,0,0.0139999999999998,0.004,0.0289999999999999,3
+"test-random-scale-prediction-labels.R","random-scale-prediction-labels","ordinary and newdata row labels retain their existing contract",3,0,FALSE,FALSE,0,0.00600000000000023,0.004,0.0150000000000006,3
+"test-random-scale-prediction-labels.R","random-scale-prediction-labels","registered random-scale labels must match prediction length",1,0,FALSE,FALSE,0,0.0180000000000002,0.002,0.0200000000000005,1
+"test-random-scale-prediction-labels.R","random-scale-prediction-labels","the public parameter table retains different observation and group grains",4,0,FALSE,FALSE,0,0.0329999999999999,0.006,0.0419999999999998,4

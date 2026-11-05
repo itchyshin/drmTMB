@@ -1,0 +1,31 @@
+{
+  "evidence_id": "structured-sd-nonunit-k-and-missing-20261101b-20261102b-m26",
+  "rerecord_of_evidence_id": "structured-sd-nonunit-k-and-missing-20261101b-20261102b",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/structured-sd-nonunit-k-and-missing-refresh-20261102b/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); testthat::test_file(\"\"tests/testthat/test-structured-sd-nonunit-k-and-missing.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-structured-sd-nonunit-k-and-missing.R",
+      "test_sha256": "a5c641c2987df94dbf18278c70f9ab694f844763a752cc0c206e3f87c6770b14",
+      "started_utc": "2026-11-02T13:18:42Z",
+      "ended_utc": "2026-11-02T13:18:53Z",
+      "exit_code": 0,
+      "expectations_passed": 67,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/structured-sd-nonunit-k-and-missing-refresh-20261102b-m26-5238f8/test-console-test-structured-sd-nonunit-k-and-missing.log",
+      "console_log_sha256": "54123563a5caeb187583f280118eea35004f08f0d0931dffee4ba3824bec93b1"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/structured-sd-nonunit-k-and-missing-refresh-20261102b-m26-5238f8/source-manifest.json",
+  "source_manifest_sha256": "595c730bbb858ab82246c52e76d48b14e59acda5bae078d3952ba4f2767280a8",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity unless stated"
+  ]
+}

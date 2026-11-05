@@ -1,0 +1,19 @@
+julia-b34-count-gamma-structured-oracle: .i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+........b34 poisson relmat: ll=-850.14909665 oracle=-850.14909582 agreement=8.27e-07 min_gap=3.2747 (x327469 of tol 1e-05); gaps: selector_swap=-131.124, reversed_sd_vector=-16.632, cov2cor_K=-3.275, kernel_by_position=-27.498, sd_intercept_plus_log2=-4.751
+................b34 poisson spatial: ll=-672.37725574 oracle=-672.37725524 agreement=5.06e-07 min_gap=0.1399 (x13993 of tol 1e-05); gaps: selector_swap=-114.415, reversed_sd_vector=-13.658, range_mean_not_median=-0.140, kernel_by_position=-23.481, sd_intercept_plus_log2=-7.487
+.................b34 nbinom2 relmat: ll=-518.30382752 oracle=-518.30382713 agreement=3.96e-07 min_gap=1.0852 (x108520 of tol 1e-05); gaps: selector_swap=-71.096, reversed_sd_vector=-20.279, cov2cor_K=1.085, kernel_by_position=-15.559, sd_intercept_plus_log2=-3.293
+................b34 nbinom2 spatial: ll=-694.67726284 oracle=-694.67726236 agreement=4.81e-07 min_gap=0.0016 (x158 of tol 1e-05); gaps: selector_swap=-64.598, reversed_sd_vector=-15.013, range_mean_not_median=0.002, kernel_by_position=-19.593, sd_intercept_plus_log2=-5.178
+.................b34 gamma relmat: ll=-309.62791317 oracle=-309.62791208 agreement=1.08e-06 min_gap=2.4661 (x246608 of tol 1e-05); gaps: selector_swap=-573.330, reversed_sd_vector=-30.727, cov2cor_K=-2.466, kernel_by_position=-106.427, sd_intercept_plus_log2=-10.183
+................b34 gamma spatial: ll=-8.99882114 oracle=-8.99881794 agreement=3.20e-06 min_gap=0.0650 (x6496 of tol 1e-05); gaps: selector_swap=-388.883, reversed_sd_vector=-134.086, range_mean_not_median=0.065, kernel_by_position=-37.904, sd_intercept_plus_log2=-10.506
+........
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 6 live tests ran; bridge glue was exercised in this configuration.
+COUNTS passed 99 failed 0 errors 0 skipped 0 warnings 0 blocks 6 
+Julia exit.
+  Activating project at `/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/b34-julia-oracles/jl`

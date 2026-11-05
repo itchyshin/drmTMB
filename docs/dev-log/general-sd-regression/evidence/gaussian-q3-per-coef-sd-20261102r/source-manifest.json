@@ -1,0 +1,29 @@
+{
+  "scope": "Source identity for tests/testthat/test-gaussian-q3-per-coef-sd.R, receipt 20261102r (dirty shared tree; hashes identify test-time files)",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-gaussian-q3-per-coef-sd.R",
+      "sha256": "036a0ffbd91d9ea54ed93240cb31b33926f6a6193e95ff5c936b0965c3a49fcb"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gaussian-q3-per-coef-sd-20261102r/test-console.log",
+      "sha256": "62310a9cc81a02bc72edd0c04f6681733b23030119bc047c9c1073416a21f421"
+    }
+  ]
+}

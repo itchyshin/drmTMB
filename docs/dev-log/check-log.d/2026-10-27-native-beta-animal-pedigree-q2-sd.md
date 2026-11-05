@@ -1,0 +1,3 @@
+# Native Beta pedigree coefficient SD regression
+
+Two R gates admit one independent animal intercept and numeric slope with separate SD formulas via pedigree. The independent offspring-only dense Beta oracle integrates unobserved ancestors; supplied full A/Ainv equivalence and raw/NA-scaled ancestor extraction are tested. Focused checks: 32 passed, 31.088 seconds. Example: convergence 0, slopes 0.4421660/-0.3842006 (truth .5/-.5), 8.683 seconds. Six-file neighboring regression: 194 passed, zero failures/errors/warnings/skips, 166.220 seconds. Exact source hashes are in the receipt. No coverage or Julia parity claim. Dirty candidate only; no commit/push/release.

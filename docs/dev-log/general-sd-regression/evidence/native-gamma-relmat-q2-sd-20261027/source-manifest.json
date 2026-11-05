@@ -1,0 +1,51 @@
+{
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "scope": "Dirty candidate files; only the bounded Gamma patch, test correction and new artifacts are owned by this slice.",
+  "files": [
+    {
+      "path": "R/drmTMB.R",
+      "sha256": "fc92173edbed2cb89bbb4149da23a2693e11012a3bd1ba8d27a725affa1db062",
+      "bytes": 889958
+    },
+    {
+      "path": "R/methods.R",
+      "sha256": "7732e623b6ae2a7f4b2f7e3663b66683f832265b55a1c881a4a3a49f310eac1b",
+      "bytes": 266393
+    },
+    {
+      "path": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70",
+      "bytes": 252487
+    },
+    {
+      "path": "tests/testthat/test-gamma-relmat-q2-sd-regression.R",
+      "sha256": "dc3732ccdfb6c16539852ee6b24edf364fe862ca94ebbc48c493602421381ac5",
+      "bytes": 9974
+    },
+    {
+      "path": "tests/testthat/test-gamma-animal-slope-sd-regression.R",
+      "sha256": "841e81c19f9382fb52b291887fbc8074e7627be6caf476854f1f028ba2dfbfa1",
+      "bytes": 4330
+    },
+    {
+      "path": "inst/examples/gamma-relmat-q2-sd.R",
+      "sha256": "c94e82648dbdf6e474d96b949140a70e74065ae5c7ff44a0b0e3f76d36282f3b",
+      "bytes": 1977
+    },
+    {
+      "path": "docs/dev-log/after-task/2026-10-27-native-gamma-relmat-q2-sd.md",
+      "sha256": "57fb075e161ca07d5c759acdd4fd11a0ff7dee8fe407d1f77eaac98268ce6153",
+      "bytes": 8654
+    },
+    {
+      "path": "docs/dev-log/check-log.d/2026-10-27-native-gamma-relmat-q2-sd.md",
+      "sha256": "081d6ba7a18f2f5f8e311424e89f468415bf9f10e15e51f73ab0670d790766cd",
+      "bytes": 1679
+    },
+    {
+      "path": "src/drmTMB.so",
+      "sha256": "512ffc7d491e2e15cfd22cf745dfe9fc61c4343f23a248447c895490726c906f",
+      "bytes": 29650520
+    }
+  ]
+}

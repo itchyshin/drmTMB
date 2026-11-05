@@ -1,0 +1,40 @@
+{
+  "drmTMB_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "DRM_jl_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "files": [
+    {
+      "repository": "drmTMB",
+      "path": "R/julia-bridge.R",
+      "sha256": "4ab3d974974bd6dd7a677b9ba68459a786a30be109f5e9388464eee35765dad6"
+    },
+    {
+      "repository": "drmTMB",
+      "path": "R/julia-simulate.R",
+      "sha256": "caedeeec46c4b70b64341a6911accd89c2067085986150c2f22c16f513ce705e"
+    },
+    {
+      "repository": "drmTMB",
+      "path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-iid-sd-bridge-20261029/test-snapshot/test-julia-binomial-phylo-iid-sd-bridge.R",
+      "sha256": "91949d616c0af19d6e6a54c0a7debace7e3c4ea407515e9169add8dacdc28f91"
+    },
+    {
+      "repository": "DRM.jl",
+      "path": "../general-sd-julia/src/binomial_sd_regression.jl",
+      "sha256": "70f03e0651e6994151a80b6db76579ab478d143ee2ebf6665af97ebb78a557c0"
+    },
+    {
+      "repository": "DRM.jl",
+      "path": "../general-sd-julia/src/bridge.jl",
+      "sha256": "427c1144596cba2dea4faf29a5ea80e71b8ad6b8e8a6d9b89efb0027c5e43f73"
+    },
+    {
+      "repository": "DRM.jl",
+      "path": "../general-sd-julia/src/sparse_laplace_glmm.jl",
+      "sha256": "71c23b8db4f70fe6a58da8a064cd001a279c1f2413925fb98fe01e3a0ce2712c"
+    }
+  ],
+  "run_output": {
+    "path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-iid-sd-bridge-20261029/console.log",
+    "sha256": "10127466df446cf7e64bcaeaa9f726d9f5f018f290dbf67e53278acf3331a740"
+  }
+}

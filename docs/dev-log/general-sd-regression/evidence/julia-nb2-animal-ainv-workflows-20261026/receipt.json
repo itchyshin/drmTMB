@@ -1,0 +1,17 @@
+{
+  "evidence_id": "julia-nb2-animal-ainv-simulator-bootstrap-profile-20261026",
+  "candidate_row": "Julia NB2 univariate mu animal_intercept, q=1, supplied Ainv precision",
+  "candidate_row_key": "[\"Julia\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"Ainv_precision\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "test_command": "JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /Users/z3437171/.juliaup/bin/julia --project=. test/test_nb2_animal_sd_bootstrap.jl",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_source_path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_nb2_animal_sd_bootstrap.jl",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-workflows-20261026/test-snapshot/test_nb2_animal_sd_bootstrap.jl",
+  "test_file_sha256": "073058dedaedd4a8b7102e035b8856b6ff19cfb1e337cb7c4a50bde05467c7f8",
+  "source_manifest_sha256": "230fd57c3ae9c319c7133884ea6319bf342a7a6973343146479f2387ee77f3f8",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-workflows-20261026/test.log",
+  "console_log_sha256": "8a6b23219d24fc6017c17e73224ebbd6ddbb29c210b03634b735a549ad316702",
+  "test_result": "12/12 assertions passed in 16.6 seconds on Julia 1.10.0; relevant source and test hashes matched before and after.",
+  "scope": "For one Julia NB2 animal mean-intercept SD fit supplied with Ainv: sparse marginal response simulation, one successful parametric-bootstrap refit, and one selected SD-slope profile with finite 80% endpoints.",
+  "limits": "Workflow evidence for one fixture only. The fit emitted a non-positive-definite Hessian warning and withheld Wald standard errors. No native TMB parity, broad animal-provider coverage, interval calibration, or general family support claim. Evidence remains unreviewed."
+}

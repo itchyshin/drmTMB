@@ -1,0 +1,27 @@
+{
+  "scope": "Source identity for julia-binomial-probit-iid_numeric_slope-20261024, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-slope-sd-bridge-20261024/sources.sha256",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "472d9de4db223c925df61a683bfd06448e8b9891f32ae2bc386191c6f6098be5"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-julia-binomial-nonlogit-slope-sd-bridge.R",
+      "sha256": "f7f180eda9c0ce9ed5de8241b47ca5103c06955d399874c704d7543c6405498b"
+    },
+    {
+      "file": "tests/testthat/test-julia-binomial-sd-links-bridge.R",
+      "sha256": "83574c6bdfc7f2f70d53b1267e940da1128005907ad7359bf2a37899aab08a9d"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "88f6950f627bdf8774f63a50468a08f0f037335842afce4f6798e03b8e5b699b",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "writing-naturalness protocol and drmTMB prose-style-review checklist",
+  "genre": "technical after-task report",
+  "coverage": "entire saved report",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report states the test scope, exact checks, and unresolved boundaries directly.",
+  "confidence": "medium",
+  "confidence_reason": "The focused test result, source manifest, evidence reconciliation, pkgdown check, and report structure check were verified in this worktree.",
+  "examples": [
+    {
+      "location": "Known Residuals",
+      "cue": "The scope is stated with concrete exclusions.",
+      "impact": "Readers can distinguish this point-fit receipt from interval qualification.",
+      "repair": "no change needed",
+      "line": 45,
+      "quote": "This is one synthetic logit fixture and one animal slope-only layout. It does not establish coverage, interval calibration, pedigree bridge parity, or broad Julia parity."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The receipt describes a fixed-seed point-fit comparison and states the coverage boundary.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The test, receipt hashes, reconciler, pkgdown check, and structure check were verified.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no literature claims.",
+  "date": "2026-10-29",
+  "calibration_status": "No human calibration controls consulted.",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,21 @@
+{
+  "scope": "Native complete-data non-zero-inflated Poisson(log) q2 ordinary unlabelled correlated intercept and numeric slope, with a separate group-level SD regression for each coefficient.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "db9b8d2e2e512c17579dbd9bf339eb279112cb50680b4e724e23ae20f0794d2d"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-poisson-correlated-q2-sd.R",
+      "sha256": "6b795be92dd051386ba76e8f0e9a94387a7fbb970b0f703a09cd257283701786"
+    }
+  ]
+}

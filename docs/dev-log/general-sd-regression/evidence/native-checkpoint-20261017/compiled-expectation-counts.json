@@ -1,0 +1,32 @@
+{
+  "method": "Count testthat summary passing-expectation dots for the six named new suites only. Later legacy-runner failure remains in the same preserved log.",
+  "log": "drmtmb-general-sd-native-reverified.log",
+  "log_sha256": "6fbb8fc92b79c1dd6d0e4f806649f353940bae5aabb0c7613e5adc443a8edf65",
+  "suites": [
+    {
+      "suite": "binomial-random-effect-scale",
+      "passing_expectations": 21
+    },
+    {
+      "suite": "binomial-sd-integration",
+      "passing_expectations": 18
+    },
+    {
+      "suite": "binomial-sd-links",
+      "passing_expectations": 15
+    },
+    {
+      "suite": "binomial-sd-profile",
+      "passing_expectations": 16
+    },
+    {
+      "suite": "binomial-sd-simulation",
+      "passing_expectations": 15
+    },
+    {
+      "suite": "binomial-sd-clamp",
+      "passing_expectations": 32
+    }
+  ],
+  "total_passing_expectations": 117
+}

@@ -1,0 +1,21 @@
+julia-structured-slope-sd-oracle-b31jo: ......i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+...............b31jo struct gamma phylo tree: ll=-185.005420 oracle=-185.005420 agreement=2.44e-08; min gap=0.863 (K_times_2)
+.................b31jo struct poisson animal A: ll=-739.825273 oracle=-739.825274 agreement=1.12e-06; min gap=0.402 (cov2cor_K)
+.................b31jo struct poisson animal Ainv: ll=-739.825273 oracle=-739.825274 agreement=1.12e-06; min gap=0.402 (cov2cor_K)
+.................b31jo struct gamma relmat K: ll=-341.671284 oracle=-341.671286 agreement=1.99e-06; min gap=4.471 (cov2cor_K)
+...............b31jo struct gamma spatial coords: ll=-337.371634 oracle=-337.371634 agreement=7.35e-07; min gap=3.705 (K_times_2)
+.................b31jo struct nbinom2 relmat K: ll=-689.786632 oracle=-689.786632 agreement=6.36e-07; min gap=1.086 (cov2cor_K)
+...............b31jo struct nbinom2 spatial coords: ll=-647.645771 oracle=-647.645771 agreement=5.40e-07; min gap=1.668 (K_times_2)
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 7 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=119 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T04:11:04Z end=2026-11-03T04:11:44Z rc=0

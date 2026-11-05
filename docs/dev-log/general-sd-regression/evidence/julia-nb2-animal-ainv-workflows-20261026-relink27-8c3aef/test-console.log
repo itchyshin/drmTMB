@@ -1,0 +1,13 @@
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/relink27/julia/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace NB2 animal SD regression"
+│   flat_coordinates = Int64[]
+│   rcond = 4.49576265607994e-9
+└ @ DRModels ~/hsq_work/relink27/julia/src/vcov_guard.jl:101
+Test Summary:                                          | Pass  Total   Time
+NB2 animal SD bootstrap accepts sparse precision input |   12     12  51.4s
+DRM_RUN start=2026-11-02T14:03:04Z end=2026-11-02T14:03:57Z rc=0 core=240

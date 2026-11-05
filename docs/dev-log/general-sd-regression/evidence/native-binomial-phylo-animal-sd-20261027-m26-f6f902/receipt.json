@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-phylo-animal-logit-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-phylo-animal-logit-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-animal-sd-20261027/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"binomial-phylo-animal-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-phylo-animal-sd.R",
+      "test_sha256": "e95360dfda8c7a639fbcbd4e27d1cd3788e0dcf8d8807fd416c78236840b4f09",
+      "started_utc": "2026-11-02T13:16:58Z",
+      "ended_utc": "2026-11-02T13:18:10Z",
+      "exit_code": 0,
+      "expectations_passed": 22,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-animal-sd-20261027-m26-f6f902/test-console-test-binomial-phylo-animal-sd.log",
+      "console_log_sha256": "fa80cc7ed229dd4f007bbba406bf18de13fe65414fd5a81758e7385ae8e4801e"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-animal-sd-20261027-m26-f6f902/source-manifest.json",
+  "source_manifest_sha256": "85eb150d8fd3cbcfd74b507edc530aff47d6c03711bc0f040bfffe3aa028abff",
+  "review_status": "unreviewed"
+}

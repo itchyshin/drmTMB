@@ -1,0 +1,3 @@
+d1081aeae5b5cedce7f60c7267e6ff11c93578e8c73b4aa968861919bcb37f3b  library/drmTMB/libs/drmTMB.so
+d88ff6046bffa9f57aa258c0e19e1adf4ee46c7c8e05cfcf297420a27d7efe46  source/drmTMB/R/drmTMB.R
+b46f05dea0b44f94be76db03851ae49b41a7cdef125aa13f3864ac7219d83846  source/drmTMB/src/drmTMB.cpp

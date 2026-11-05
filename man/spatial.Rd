@@ -13,7 +13,8 @@ spatial(term, coords = NULL, mesh = NULL)
 coordinates.}
 
 \item{mesh}{A fixed-kappa mesh object from \code{\link[=make_mesh]{make_mesh()}}. Fitted only for the
-univariate Gaussian \code{mu} intercept with \code{sigma ~ 1}; see Description.}
+univariate Gaussian \code{mu} intercept with \code{sigma ~ 1} and the native Binomial
+\code{mu} spatial intercept or slope routes; see Description.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -37,14 +38,23 @@ and the NB2 \code{sigma} q=1 one-slope, all at recovery grade: trust the point
 estimate, not the interval.
 }
 \details{
-A precomputed mesh from \code{\link[=make_mesh]{make_mesh()}} is fitted for one route only: a
-univariate Gaussian, unlabelled \code{mu} intercept with constant residual scale,
-\code{bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)}, with kappa fixed at
-the value given to \code{\link[=make_mesh]{make_mesh()}}. Its point estimates have recovery evidence
-for the tested designs; intervals, coverage, and the spatial range are not
-claimed. Any other mesh use, including \code{sigma ~ z}, a mesh slope, a labelled
-or bivariate mesh term, or a non-Gaussian family, is rejected; use
-\code{coords = coords} for those models where a coordinate route exists.
+A precomputed mesh from \code{\link[=make_mesh]{make_mesh()}} is fitted for two routes only, with
+kappa fixed at the value given to \code{\link[=make_mesh]{make_mesh()}}. The first is a univariate
+Gaussian, unlabelled \code{mu} intercept with constant residual scale,
+\code{bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)}; its point estimates
+have recovery evidence for the tested designs, and intervals, coverage, and
+the spatial range are not claimed. The second is the native Binomial \code{mu}
+spatial intercept across logit, probit, and complementary log-log links.
+Native Binomial mesh slopes also support coefficient-specific
+predictor-dependent SD formulas for logit, probit, and complementary log-log
+links, for example \code{spatial(0 + x | site, mesh = mesh)} with
+\code{sd(site, level = "spatial", coef = "x") ~ z}. All three links have focused
+point-recovery checks; the logit route also has output-workflow checks. No
+interval-coverage or Julia parity claim is made. Any other mesh use,
+including \code{sigma ~ z} with a Gaussian mesh term, a Gaussian mesh slope, a
+labelled or bivariate mesh term, or another non-Gaussian family, is
+rejected; use \code{coords = coords} for those models where a coordinate route
+exists.
 Multiple structured slopes, residual-scale structured slopes beyond the
 supported NB2 slope, slope correlations, and predictor-dependent spatial
 \code{corpair()} regression are not supported.
@@ -72,4 +82,9 @@ bf(
 )
 # Fixed-kappa mesh intercept (mesh from make_mesh()); requires sigma ~ 1:
 bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)
+# Native Binomial logit mesh slope with a predictor-dependent SD:
+bf(
+  y ~ x + spatial(0 + x | site, mesh = mesh),
+  sd(site, level = "spatial", coef = "x") ~ z
+)
 }
