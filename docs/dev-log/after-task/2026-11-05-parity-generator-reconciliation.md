@@ -58,3 +58,14 @@ at-pin generator failure and source-pair evidence are documented in the
 separate cleanup handoff. Before integration, review the explicit pending list,
 regenerate from the final exact source, run the required package checks, and
 refresh the broader crosswalk against current package sources.
+
+## Package-check follow-up
+
+The Totoro package check for commit `da46bf821` reported two failures because
+the generated skip census did not include the new parity test's skip sites.
+The check reported 41,883 passes, 117 warnings and 697 skips; it did not run
+the live Julia bridge. The log also reported a parallel-worker shutdown error.
+The census was regenerated with `Rscript tools/write-env-skip-census.R`; only
+the two expected parity-matrix rows changed. The focused source test passed
+five assertions using `devtools::test(filter = "^env-skip-census$")`.
+The corrected candidate still needs a fresh package check.

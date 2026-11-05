@@ -673,7 +673,8 @@ test-optimizer-tolerance.R	suggests-package	environment	runs	1
 test-parity-fenced-boundaries.R	build-premise	build	skips	2
 test-parity-honesty.R	build-premise	build	skips	13
 test-parity-matrix.R	build-premise	build	skips	3
-test-parity-matrix.R	engine-drm-jl	environment	skips	2
+test-parity-matrix.R	engine-drm-jl	environment	skips	3
+test-parity-matrix.R	runtime-conditional	runtime	depends	1
 test-parity-pin.R	build-premise	build	skips	2
 test-parity-pin.R	external-tool	environment	runs	1
 test-parity-scoreboard.R	build-premise	build	skips	13
