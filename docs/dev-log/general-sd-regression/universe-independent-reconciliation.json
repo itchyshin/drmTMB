@@ -1,0 +1,11 @@
+{
+  "required_rows": 19118,
+  "retained_42_engine_admitted_link_reconstruction_rows": 18996,
+  "new_Julia_binomial_probit_cloglog_rows": 122,
+  "new_status_counts": {
+    "blocked_base_plumbing": 104,
+    "structural_inapplicable": 18
+  },
+  "check": "Root independently rebuilt with42admitted links and verified every original row key retained in44-link required universe. Existing source/base classification remains unverified where marked unresolved.",
+  "scope_gate": "G0_OPEN"
+}

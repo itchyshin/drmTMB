@@ -1,0 +1,19 @@
+{
+  "operational_qualification": "PASS",
+  "attempts": 3,
+  "case_wall_seconds": [
+    9.424174308776855,
+    9.12277340888977,
+    11.3768892288208
+  ],
+  "total_worker_supervision_seconds": 11.379772663116455,
+  "all_healthy_valid_profile_intervals": true,
+  "independent_laplace_errors": [
+    2.5525878299959e-08,
+    -2.46216131927213e-08,
+    -3.95425558963325e-09
+  ],
+  "summary_workflow": "PASS; ineligible for inference qualification as required",
+  "source_registry_sha256": "f9ca91ea3218c80e8f2278b093722f81339b86dec558a54005096d5493d836ff",
+  "calibration_claim": false
+}

@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "d3e61b773c6f6cd8f03d0563ef968b779a9d773f2fbf2157cf49f65d84049063",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Read the complete after-task report and compare its claims with the test source, focused test output, and check-log entry.",
+  "genre": "Software after-task report",
+  "coverage": "Complete report, 400 words",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report uses concrete model names, commands, outcomes, and limitations, with little generic framing.",
+  "confidence": "medium",
+  "confidence_reason": "The report is short and its main technical claims are tied to the source and executed test output.",
+  "examples": [
+    {
+      "location": "Checks Run, paragraph 1",
+      "cue": "The focused `julia-binomial-phylo-sd` test passed 48 expectations in 42.4 seconds.",
+      "impact": "Gives the reader a specific check and outcome.",
+      "repair": "no change needed",
+      "line": 28,
+      "quote": "The focused `julia-binomial-phylo-sd` test passed 48 expectations in 42.4"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The equation and kernel-scale statement match the documented model semantics, and the report limits its claim to prediction ordering.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The file list, test count, run duration, Julia version, and setup issue were checked against the current diff and executed output.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external references.",
+  "date": "2026-10-25",
+  "calibration_status": "Previously seen examples; no held-out calibration claim.",
+  "interpretation": "perceived_style_not_authorship"
+}

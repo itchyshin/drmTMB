@@ -1,0 +1,15 @@
+25a1b4bf188c1c0d453599bdceccd91714d19f890342521be6c8cff6537513c5  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/drmTMB.R
+8330af9e9e53833ecb65f730fe83a859e3a937d55b1248e940a418c2fcfba324  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/julia-bridge.R
+f5b9377b6de34a85be25927b3096816eb96205213f658289ec8f7181aef8da09  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/julia-family-registry.R
+9b7a6fc9c1f9ee84e2fc3b42ec9bcd21ac66688c7bf90d90ae89341d1ea8c370  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/parse-formula.R
+f031582036e262332591de39b46f654d07c6bdf64954e09f1b47a3cbd26ed62f  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/random-effect-targets.R
+123d5d1827befdead9e1b94962393dea5f8574e869080a9f2071ea7f8202b0cc  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/random-effect-scale-formulas.R
+3b15399090b3c65edd1771696fce5314def99a009537a8357f202fd1e78ae771  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/methods.R
+263d0a2f004b3f6e96f2093f4cfaa16642db623a20b40dd08a9ed9e55a42b5db  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/predict-parameters.R
+3e2f5f7a970f13e2241db38259166b130b71f751b09cfc5a92b15014f537c821  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/src/drmTMB.cpp
+32df2531ad9f64f177d2b81ebc1e64d2277cae0118396a8d78681ab2cfbc2cb2  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/NAMESPACE
+be788198cabc6624e6ce8e37d6d45db9bae963cc5adb1ce244e80edc5f29e093  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/tests/testthat/helper-julia-bridge-path.R
+9ba8fc2e93ba130a595d5e938c22b75f8f94899d4deba58fb300918b71e76814  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/tests/testthat/test-julia-zero-one-beta-sd.R
+13c03d7620ea05593c524fd32fd1681b32523aac54d26918276814cae401d07b  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/zeroonebeta.jl
+3b471ff63365c3fc37f6c0f3ff8b25b06c725543adf58de6a72de04cb358b217  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_zeroonebeta_sd_regression.jl
+cda7272bd567ac31c1642da1dde5d36a3a264a9954de04258f1d53aaf652777a  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_zeroonebeta_sd_slope.jl

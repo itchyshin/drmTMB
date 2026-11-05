@@ -1,0 +1,19 @@
+{
+  "scope": "Source identity for native-binomial-ordinary-animal-pedigree-20261027, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-animal-kernel-equivalence-sd-20261027/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-binomial-ordinary-animal-kernel-equivalence-sd.R",
+      "sha256": "5b6b2e169e89423485c8c4418fd52d221f51f75a895df99a41c6ec3ed3a7aed2"
+    }
+  ]
+}

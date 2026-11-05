@@ -1,0 +1,20 @@
+{
+  "evidence_id": "tweedie-relmat-tmb-julia-current-source-parity-20261024-v4",
+  "row_key": "[\"Julia\",\"tweedie\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "claim": "One synthetic Tweedie q1 related-matrix mean-intercept SD fit compared through the public R bridge against native TMB on identical data, including a non-unit kernel diagonal and permuted matrix labels.",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "source_manifest": "source-manifest.json",
+  "source_manifest_sha256": "a15e7331c4d66041e533117b50e9119112e4f85c2f665f6ebb299f9d9244e7ca",
+  "source_file_count": 199,
+  "current_julia_tweedie_sha256": "ae283206bdace657bf60369f400ab6847ffa36f00b09acc4cc8ce6fe9302ed71",
+  "test_path": "docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261024-current-v4/test-snapshot/tests/testthat/test-julia-tweedie-relmat-sd.R",
+  "test_sha256": "69be7b24caaa56457cbf7217151207397d5e78a351dd3486784c59e7c27a237c",
+  "test_command": "DRM_JL_PATH=\"$(pwd | sed 's/general-sd-regression/general-sd-julia/')\" DRM_JL_JULIA_HOME=\"/Users/z3437171/.juliaup/bin\" Rscript -e 'devtools::test(filter = \"julia-tweedie-relmat-sd\")'",
+  "result": "Exit 0; 24 expectations passed, 0 failed, 0 warnings, and 0 skips. Julia fit 544.9 seconds; TMB fit 2.6 seconds; total 548.2 seconds.",
+  "run_note": "run-note.txt",
+  "run_note_sha256": "a2c7112f341089d7c2fa34de5a6c3342d2f94f3d15b03329c28ab46b7c7a0ffd",
+  "scope": "One complete-response Tweedie related-matrix q1 location-intercept comparison: SD coefficients, group-level SD predictions, public parameter outputs, and log likelihood. No broad family/provider parity or interval calibration claim.",
+  "review_status": "unreviewed",
+  "historical_note": "The per-engine timing wrapper used in the run is preserved byte-for-byte under test-snapshot; the live test file was restored to its previous hash so the earlier receipt remains valid."
+}

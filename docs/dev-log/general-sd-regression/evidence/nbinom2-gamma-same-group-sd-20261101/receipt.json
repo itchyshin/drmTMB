@@ -1,0 +1,37 @@
+{
+  "evidence_id": "nbinom2-gamma-same-group-sd-20261101",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    }
+  ],
+  "test_command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"devtools::test(filter = 'nbinom2-gamma-same-group-sd-regression', reporter = 'summary', stop_on_failure = FALSE)\" (wrapper also prints expectation counts and exits non-zero on any failure, error or skip)",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "test_source_path": "tests/testthat/test-nbinom2-gamma-same-group-sd-regression.R",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-20261101/test-snapshot/test-nbinom2-gamma-same-group-sd-regression.R",
+  "test_file_sha256": "9bdde93740bac69e324781959cec42d98f94c2d99369bdd95f05a9178c43a37a",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "9ecde57d82368106c5692e7e1c0272cbb8f98df1458829e9695bbe7095b33485",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-20261101/test-console.log",
+  "console_log_sha256": "8362d7e588c37e93091634fe41310c6258f4d3cef091106792381f6406e16068",
+  "test_result": "Fresh run exit 0: 2 test_that blocks, 34 expectations, 0 failed, 0 skipped, 0 errors, 0 warnings. No exact oracle; equivalence and wiring checks only.",
+  "exit_status": 0,
+  "expectation_counts": {
+    "tests": 2,
+    "expectations": 34,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "scope": "Native NB2 and Gamma(log) mu (1 | id) + (0 + x | id) with separate sd(id, dpar = 'mu', coef = '(Intercept)') ~ w0 and sd(id, dpar = 'mu', coef = 'x') ~ w1. No oracle: internal consistency only (constant-SD model equals plain two-term fit at logLik 1e-4, mu and sigma coefficients 5e-3; prediction identity 1e-8; larger model nests constant-SD model) plus a loose wiring bound (1) on the two SD slopes. One fixture per family (50 groups, 12 per group).",
+  "limits": "native engine only, one fixture per cell, loose recovery bands, no interval calibration, no Julia parity, dirty shared tree, unreviewed. Evidence grade focused_test: oracle or equivalence checks with loose SD-recovery bounds, not a calibration study. Provider inputs or layouts not named in scope were not tested (not tested, not fenced)."
+}

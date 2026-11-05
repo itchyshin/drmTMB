@@ -1,0 +1,17 @@
+julia-b29-beta-zob-raw-k-bridge: .......i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+....B29 Beta relmat intercept: max coef diff 1e-08; logLik diff 8.8e-11; logLik native 161.28364
+....B29 ZeroOneBeta relmat intercept: max coef diff 2.35e-11; logLik diff 1.83e-12; logLik native -52.797976
+....B29 Beta animal intercept: max coef diff 1e-08; logLik diff 8.8e-11; logLik native 161.28364
+....B29 ZeroOneBeta animal intercept: max coef diff 2.35e-11; logLik diff 1.9e-12; logLik native -52.797976
+....B29 Beta animal SD ~ z: max coef diff 4.99e-08; logLik diff 3.58e-10; logLik native 220.8182
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 5 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=27 failed=0 errors=0 skipped=0
+DRM_BLOCKS 6
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`

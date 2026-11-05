@@ -597,7 +597,18 @@ drm_parity_fit_route_a <- function() {
         species = sample(species),
         x = seq(-1, 1, length.out = n)
       )
-      phy <- stats::setNames(stats::rnorm(n, 0, 0.45), species)
+      # The species effect must carry the phylogenetic covariance. It used to
+      # be iid N(0, 0.45^2), which with one observation per tip is
+      # indistinguishable from residual noise: the fitted phylogenetic SD
+      # collapsed to ~1e-5 in BOTH engines, so the fit sat on the SD boundary
+      # and is_converged() (converged-only since 4deb47493) was FALSE for all
+      # three fits. Drawing from MVN(0, 0.45^2 * cor(tree)) gives an interior
+      # optimum (sd_phylo about 0.24, convergence_status "converged").
+      cmat <- ape::vcv(tree, corr = TRUE)
+      phy <- stats::setNames(
+        as.numeric(t(chol(cmat)) %*% stats::rnorm(n, 0, 0.45)),
+        rownames(cmat)
+      )
       dat$y <- 0.4 + 0.7 * dat$x + phy[dat$species] + stats::rnorm(n, 0, 0.35)
       form <- drmTMB::bf(
         y ~ x + phylo(1 | species, tree = tree),

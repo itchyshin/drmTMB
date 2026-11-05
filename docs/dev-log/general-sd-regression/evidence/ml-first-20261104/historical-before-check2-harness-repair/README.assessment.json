@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "525eb2b42cb59d68584cbc18090f8f04255c2ff556ab26b3bd46e0acaa41b6ff",
+  "draft_version": "canonical-c037-v3",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex numerical_packet",
+  "method": "Separate post-update comparison of copied canonical runner artifact, canonical byte identity, parent current-check PASS and three independent completion reports; prose lint.",
+  "genre": "Maintainer WIP evidence/report",
+  "coverage": "whole current evidence narrative",
+  "score": 4,
+  "style_status": "assessed",
+  "score_reason": "Concrete checked identifiers and explicit open integration gates; procedural language matches the reporting purpose.",
+  "confidence": "medium",
+  "confidence_reason": "Self-review of artifacts; current-source checker PASS is parent-verified and package/CI/main remain separately pending.",
+  "examples": [
+    {
+      "location": "line3",
+      "cue": "Concrete completion boundary",
+      "impact": "Separates the passed receipt/review scope from remaining integration gates.",
+      "repair": "no change needed",
+      "line": 3,
+      "quote": "This receipt retains the bounded prediction checks, numerical probes and Gamma article candidate measured on 4 November 2026, including the accepted final focused frozen-source batch. It does not close the wider SD programme, interval calibration or the deferred REML policy."
+    },
+    {
+      "location": "line7",
+      "cue": "Concrete completion boundary",
+      "impact": "Separates the passed receipt/review scope from remaining integration gates.",
+      "repair": "no change needed",
+      "line": 7,
+      "quote": "`source-snapshot.json` records R base `094706b5f93d9f08bcf34b76e0328eb2293fdee5` and Julia source `f4fa3aed451636b6ffa442ce2632515513d23b1f`, source-file SHA-256 values and the reused native DLL hash. The R base has uncommitted bridge, test and documentation changes. The snapshot was captured during receipt assembly. It identifies current bytes, rather than proving that every earlier log exercised the final source. That original snapshot remains historical. The later accepted batch below provides its own executed before/after binding."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "LSS result remains one bounded workflow; completion reviews do not promote broad parity or calibration. No numerical or denominator changes.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Canonical copied artifact reports PASS/sourceunchanged/61.941s and is byte-identical to canonical public001;3copied reviews state no blockers within reviewed scope. Package/CI/merge/main/publicURLs remain pending.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external paper citations. Source identifiers and internal artifacts are verified as described.",
+  "date": "2026-11-04",
+  "calibration_status": "No calibration controls viewed; perceived style is not authorship evidence.",
+  "interpretation": "perceived_style_not_authorship"
+}

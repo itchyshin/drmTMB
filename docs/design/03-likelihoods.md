@@ -234,24 +234,24 @@ is the current routing contract:
 |---:|---|---|---|
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_V(V = V)` with deprecated `meta_known_V(V = V)` as a compatibility alias, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, one q=1 `phylo_interaction()` pair field in `mu`, the first opt-in fixed-effect Gaussian aggregation path, the MD1 observed-response mask for missing Gaussian responses with complete predictors, MD3a/MD3b/MD4 `mi()` missing-predictor routes with fixed-effect, grouped, or explicit intercept-only structured Gaussian covariate models, the MD6a fixed-effect Bernoulli/logit route for one binary missing predictor, the MD6b fixed-effect cumulative-logit route for one ordered categorical missing predictor, the MD6c fixed-effect baseline-category softmax route for one unordered categorical missing predictor, the MD7a fixed-effect beta/quadrature route for one strict proportion missing predictor, the MD7b fixed-effect Poisson finite-sum route for one count missing predictor, the MD7c fixed-effect NB2 finite-sum route for one overdispersed count missing predictor, the MD7d fixed-effect zero-one beta route for one boundary-proportion missing predictor, the MD7e fixed-effect zero-truncated NB2 route for one positive-count missing predictor, the MD7f fixed-effect beta-binomial finite-sum route for one denominator-aware proportion missing predictor, the MD8a fixed-effect lognormal quadrature route for one positive continuous missing predictor, the MD8b fixed-effect Gamma quadrature route for one positive continuous missing predictor, and the MD8c fixed-effect Tweedie route for one non-negative semi-continuous missing predictor with exact zeros in a Gaussian location model. |
 | `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, independent-observation partial-response masks without dense known `V`, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, matching slope-only ordinary `mu1`/`mu2` covariance blocks, matching slope-only `sigma1`/`sigma2` scale covariance blocks, matching q=4 and q=6 `mu1`/`mu2` location covariance blocks with smoke artifact routing, one same-response `mu`/`sigma` random-intercept or matching slope-only covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, ordinary q=8 location-scale endpoint covariance blocks with diagnostic smoke, recovery, and staged-start artifact routing, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. The q=8 route is fitted and diagnostic-artifact-ready only; q8 recovery accuracy, intervals, coverage, power, speed, bridge parity, and release claims remain separate evidence gates. |
-| `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, `nu = 2 + exp(eta_nu)`, ordinary `mu` random intercepts or independent numeric slopes, one recovery-grade `mu ~ spatial(1 + x | ...)` route, and exact diagnostic-grade intercept-only `mu ~ spatial(1 | ...)` and `nu ~ phylo(1 | id, tree = tree)` gates. |
+| `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, `nu = 2 + exp(eta_nu)`, ordinary `mu` random intercepts or independent numeric slopes, complete-data ordinary-intercept `sd(group) ~ ...`, one recovery-grade `mu ~ spatial(1 + x | ...)` route, and exact diagnostic-grade intercept-only `mu ~ spatial(1 | ...)` and `nu ~ phylo(1 | id, tree = tree)` gates. |
 | `19` | `family = biv_lognormal()` | `drm_build_biv_lognormal_spec()` | Exact complete-pair bivariate lognormal models with fixed-effect log locations and intercept-only log-scale residual SDs and log-scale `rho12`; direct interval coverage measured only on the 2026-07-24 fixed-effect n/rho ladder, where profile is primary. |
 | `20` | `family = biv_student()` | `drm_build_biv_student_spec()` | Exact complete-pair bivariate Student-t models with fixed-effect locations, intercept-only Student-t scales, one intercept-only shared `nu = 2 + exp(eta_nu)`, and intercept-only scatter/residual `rho12`; source-tested only. |
-| `17` | `family = skew_normal()` | `drm_build_skew_normal_ls_spec()` | Univariate skew-normal location-scale-shape models with public `mu = E[y]`, public `sigma = SD[y]`, fixed-effect residual slant `nu`, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16; `sigma`/`nu` random effects, correlated/labelled `mu` slopes, known covariance, structured terms, bivariate responses, `rho12`, and latent `skew(id)` syntax are rejected. |
-| `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale, ordinary `mu` random intercepts or independent numeric slopes, and one Arc 3a q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`. |
-| `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, ordinary `mu` random intercepts or independent numeric slopes, the existing `relmat()` intercept/one-slope route, and one Arc 3a q1 `phylo()` intercept in `mu`. |
-| `16` | `family = tweedie()` | `drm_build_tweedie_ls_spec()` | Univariate Tweedie mean-scale-power models for non-negative semicontinuous responses, with exact zeros allowed, `mu` as the response mean, public `sigma = sqrt(phi)`, intercept-only `nu = 1 + plogis(eta_nu)`, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16. |
+| `17` | `family = skew_normal()` | `drm_build_skew_normal_ls_spec()` | Univariate skew-normal location-scale-shape models with public `mu = E[y]`, public `sigma = SD[y]`, fixed-effect residual slant `nu`, ordinary `mu` random intercepts or independent numeric slopes, and a complete-data ordinary-intercept `sd(group) ~ ...` route; the exact Arc 4c slope cell remains inference-ready with caveats for true SD 0.50 and M>=16. Predictor-dependent SDs for random slopes, `sigma`/`nu` random effects, correlated/labelled `mu` slopes, known covariance, structured terms, bivariate responses, `rho12`, and latent `skew(id)` syntax are not included. |
+| `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale, ordinary `mu` random intercepts or independent numeric slopes, and one Arc 3a q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`; complete-data models also admit coefficient-specific predictor-dependent SDs for the intercept and slope in one unlabelled ordinary `(1 + x | id)` block. The complete-data direct-SD extension also admits one independent `sigma` random intercept with `sd(group, dpar = "sigma") ~ predictors` and fixed-effect `mu`; this models heterogeneity in latent `log(sigma)`. Seeded recovery, finite coefficient covariance, group prediction, and constant-SD equivalence pass. Interval calibration and Julia parity remain open. |
+| `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, ordinary `mu` random intercepts or independent numeric slopes, a complete-data ordinary-intercept `sd(group) ~ ...` route, the existing `relmat()` intercept/one-slope route, one Arc 3a q1 `phylo()` intercept in `mu`, and a q1 `animal()` intercept with predictor-dependent `sd(group, level = "animal") ~ ...`. The animal-scale route has one synthetic recovery fit with pedigree input and matching likelihood checks for covariance and precision input; interval calibration and Julia parity remain open. The complete-data direct-SD extension also admits one ordinary `sigma` random intercept with `sd(group, dpar = "sigma") ~ predictors` and fixed-effect `mu`, targeting the latent log-CV effect. Native seeded recovery, group-SD prediction, conditional sigma output, save/reload, within-group validation, and constant-SD equivalence checks pass; interval coverage and Julia parity remain unverified. |
+| `16` | `family = tweedie()` | `drm_build_tweedie_ls_spec()` | Univariate Tweedie mean-scale-power models for non-negative semicontinuous responses, with exact zeros allowed, `mu` as the response mean, public `sigma = sqrt(phi)`, intercept-only `nu = 1 + plogis(eta_nu)`, ordinary `mu` random intercepts or independent numeric slopes, and a complete-data direct-SD route for one ordinary `mu` intercept or one independent numeric slope (selected with `sd(group, coef = "x") ~ ...`) with fixed-effect `sigma` and `nu`. One synthetic recovery fit and constant-SD equivalence checks pass for each target type; interval calibration remains open. The exact Arc 4c slope cell is inference-ready with caveats for true SD 0.50 and M>=16. |
 | `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts, independent numeric slopes, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, one unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()`, and the MD9a first non-Gaussian response missing-predictor route for one fixed-effect binary `mi()` predictor. |
-| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, the first ordinary `sigma` random intercept, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, and one unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()` on the log-mean predictor. |
+| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, the first ordinary `sigma` random intercept, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, and one unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()` on the log-mean predictor. A separate complete-data direct-SD route admits one q1 phylogenetic `mu` intercept with fixed `sigma` and no other random or zero-inflation terms. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
-| `10` | `family = beta_family()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts or independent numeric slopes on the logit-mean predictor. The narrow q1 phylogenetic successor route additionally fits `a ~ Normal(0, D_tau A D_tau)` in `mu`, with `log(tau_s) = W_s alpha`; `tau` is the latent location-field SD and is not family `sigma`, precision `phi`, or a conditional response SD. |
-| `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, `coi` as the conditional probability of an exact one among boundary observations, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16 and a strictly-interior-generator caveat. The point-fit-only `zoi` q1 routes admit either one unlabelled intercept `(1 | id)` or one slope-only effect when the fixed and random terms use the same raw symbol, such as `zoi ~ x + (0 + x | id)`; `coi` random effects remain unsupported. |
-| `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component and ordinary `mu` random intercepts or independent numeric slopes. |
-| `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate hurdle negative-binomial 2 models, with fixed-effect `mu`, `sigma`, and `hu`, plus the exact diagnostic-only q1 `hu ~ relmat(1 | id, K/Q = ...)` intercept; nonzero counts follow the zero-truncated NB2 component. Other hurdle-side and count-side random effects remain blocked. |
-| `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate cumulative-logit ordinal location models, with ordered cutpoints, a latent logistic scale fixed at 1 or modelled by an intercept-free fixed-effect `disc ~ z` discrimination formula (#966; rides `X_sigma`/`beta_sigma`), ordinary recovery-grade `mu` random intercepts and independent numeric slopes, plus the exact local-fit q1 `mu ~ phylo(1 | id, tree = tree)` intercept. |
-| `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate beta-binomial models for counted successes out of known trials, with `mu` as success probability, `sigma` as extra-binomial variation, and ordinary `mu` random intercepts or independent numeric slopes on the logit success-probability predictor. |
-| `18` | `family = stats::binomial(link = "logit")` | `drm_build_binomial_spec()` | Univariate Bernoulli/binomial logit models for 0/1 responses or two-column `cbind(successes, failures)` responses, with `mu` as event probability and no public `sigma`, including an ordinary `mu` random intercept `(1 | group)` (Arc 2a; not combinable with missing-predictor `mi()` yet). |
+| `10` | `family = beta_family()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts or independent numeric slopes on the logit-mean predictor. The exact q1 phylogenetic direct-SD route additionally fits `a ~ Normal(0, D_tau A D_tau)` in `mu`, with `log(tau_s) = W_s alpha`; `tau` is the latent location-field SD and is not family `sigma`, precision `phi`, or a conditional response SD. Ratified cell `mc-0017` supports inference-ready-with-caveats claims only for its tested `g = 1024, m = 4` profile-coverage arms, with mild anti-conservatism in the worst arm; other species counts and nominal-coverage claims are not established. |
+| `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component and `zoi`/`coi` describing exact-boundary probabilities. Ordinary `mu` random intercepts and independent numeric slopes have separate admitted routes; the exact Arc 4c slope cell is inference-ready with caveats for true SD 0.50 and M>=16 and a strictly-interior-generator caveat. One additional complete-response direct-SD route admits `sd(group) ~ predictors` for a single ordinary `mu` intercept while `sigma`, `zoi`, and `coi` have fixed effects only; its recovery and independent marginal quadrature checks are not interval calibration. The point-fit-only `zoi` q1 routes admit either one unlabelled intercept `(1 | id)` or one slope-only effect when the fixed and random terms use the same raw symbol, such as `zoi ~ x + (0 + x | id)`; `coi` random effects remain unsupported. |
+| `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component and ordinary `mu` random intercepts or independent numeric slopes. A separate complete-response direct-SD slice admits one ordinary `mu` intercept with `sd(group) ~ predictors`; hurdle models, other random effects, and interval-calibration claims are excluded. The group-specific effect enters both the NB2 count likelihood and its zero-truncation normalizer. |
+| `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate hurdle negative-binomial 2 models, with fixed-effect `sigma` and `hu`, plus the exact diagnostic-only q1 `hu ~ relmat(1 | id, K/Q = ...)` intercept; nonzero counts follow the zero-truncated NB2 component. Complete-response count-side `mu` direct-SD routes admit one ordinary intercept or one independent numeric slope with a matching `sd()` formula in native TMB and the development Julia bridge. Correlated or structured count-side blocks, random `sigma` or `hu`, and interval-calibration claims remain unsupported or unverified. |
+| `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate cumulative-logit ordinal location models, with ordered cutpoints, a latent logistic scale fixed at 1 or modelled by an intercept-free fixed-effect `disc ~ z` discrimination formula (#966; rides `X_sigma`/`beta_sigma`), ordinary recovery-grade `mu` random intercepts and independent numeric slopes, plus the exact local-fit q1 `mu ~ phylo(1 | id, tree = tree)` intercept. A separate complete-response direct-SD slice admits one ordinary `mu` intercept or one independent numeric slope selected by `sd(group, coef = "x") ~ predictors`; it does not combine with other random or structured effects. A seeded high-information fit recovers the SD slope and predicts increasing group SDs, but public interval calibration remains open. |
+| `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate beta-binomial models for counted successes out of known trials, with `mu` as success probability, `sigma` as extra-binomial variation, and ordinary `mu` random intercepts or independent numeric slopes on the logit success-probability predictor. Its complete-response direct-SD routes include one ordinary `mu` intercept or one selected independent numeric slope, plus one q1 animal-pedigree intercept with `sd(id, level = "animal") ~ z` and fixed `sigma`. The animal route has synthetic recovery, prediction-name and founder checks, constant-SD equivalence, and marginal-simulation checks for pedigree input. Covariance `A` and precision `Ainv` inputs also pass recovery and group-prediction checks and match the pedigree likelihood under a joint matrix-label permutation. Julia parity and interval calibration remain open. |
+| `18` | `family = stats::binomial(link = "logit")` | `drm_build_binomial_spec()` | Univariate Bernoulli/binomial logit models for 0/1 responses or two-column `cbind(successes, failures)` responses, with `mu` as event probability and no public `sigma`, including ordinary random effects and supported q1 structured effects. Native TMB also admits a complete-response q1 `phylo_interaction()` location field with `sd(pair_id, level = "phylogenetic_interaction") ~ predictors`; pair IDs must map one-to-one to observed partner pairs and predictors must be pair-constant. Julia and R-to-Julia parity for this route remain open. Missing-predictor `mi()` cannot yet be combined with random effects. |
 | `93` | no public route | direct test construction only | Hidden q=4 phylogenetic precision-prior parity branch using `theta_phylo` and `log_sd_phylo`. |
 | `94` | no public route | direct test construction only | Hidden q=4 correlated phylogenetic precision-prior parity branch used to test the matrix-normal sparse augmented A-inverse objective in isolation. |
 | `95` | no public route | direct test construction only | Hidden q=4 bivariate Gaussian likelihood probe for labelled covariance-block contributions. |
@@ -298,7 +298,7 @@ drmTMB(bf(y01 ~ x), family = stats::binomial(), data = dat)
 drmTMB(bf(cbind(successes, failures) ~ x), family = stats::binomial(), data = dat)
 ```
 
-The first TMB branch is a fixed-effect `mu` model only:
+The initial fixed-effect TMB branch uses:
 
 ```text
 Y_i ~ Binomial(n_i, mu_i)
@@ -320,13 +320,209 @@ using stable log-probability calculations near 0 and 1. Including the constant
 keeps `logLik()`, AIC, and BIC aligned with `stats::glm()` for overlapping
 fixed-effect logit fits.
 
-The first slice deliberately has no public `sigma`, no `rho12`, no random
-effects, no structured effects, no bivariate route, no mixed-response route,
-no non-logit link, and no `engine = "julia"` claim. Proportions plus
+The first fixed-effect slice deliberately has no public `sigma`, no `rho12`,
+no random effects, no structured effects, no bivariate route, no mixed-response
+route, and no non-logit link. The current shared/released Julia companion does
+not provide this binomial route. A separate development-only Bernoulli SD
+candidate is described below; its Julia bridge tests require a matching local
+candidate DRM.jl checkout and do not establish release support or cross-engine
+parity. Proportions plus
 `weights`, `weights = trials`, and `successes / trials` are rejected because
 top-level `weights` remain likelihood weights, not denominators. Extra-binomial
 variation remains the job of `beta_binomial()`, while continuous proportions
 belong to `beta_family()` or `zero_one_beta()`.
+
+### Predictor-dependent Poisson random-effect SD
+
+The native non-zero-inflated Poisson route accepts ordinary scalar location
+intercepts, including one labelled `(1 | p | id)` term per group and explicit
+`dpar`, `coef` and `block` selectors. A scalar label adds no correlation
+parameter. It uses
+`log(s_g) = W_g alpha`, `u_g ~ Normal(0, 1)`,
+`eta_i = X_mu[i, ] beta_mu + s_g u_g`, and
+`Y_i | u_g ~ Poisson(exp(eta_i))`. This SD is on the log-mean scale and is
+separate from response dispersion. TMB integrates the latent effects by
+Laplace approximation. Focused checks cover an independent scalar Laplace
+calculation, a reversed-group-predictor negative control, constant-SD
+equivalence, target extraction, prediction, storage, marginal simulation and
+two bootstrap refits. These checks do not establish calibrated intervals.
+A separate checked slope-only route uses
+`bf(y ~ x + (0 + x | id), sd(id, coef = "x") ~ w)`. Here the random contribution
+is `x_i s_g u_g`, so its latent-predictor variance is `x_i^2 s_g^2`.
+The SD output describes the slope coefficient per unit of `x`; it does not
+include the random-regression value `x_i`. The independent numerical reference
+uses this coefficient-weighted likelihood and checks its reduction to the
+intercept reference when `x_i = 1`. One synthetic fitted check, profile and
+bootstrap refits establish implementation and workflow behavior only.
+Mixed or crossed slope layouts, labelled slopes, correlated-block SD targets,
+structured effects, zero inflation and missing-data combinations remain
+outside these checked Poisson slices, except for the native 2026-11-01 additions
+below. Each is native TMB only, with no Julia parity and no interval
+calibration. Same-group `(1 | g) + (0 + x | g)` pairs and crossed
+`(1 | g) + (1 | h)` intercepts take one selected SD formula per term and match
+an exact Laplace oracle at the fitted values. Slope-only `phylo()` and `relmat()`
+coefficients, and one ordinary intercept plus one q1 `relmat()`, `animal()` or
+`phylo()` intercept (complete response, no `zi`), each take a separate SD
+design and match a dense Laplace oracle; the slope-only phylo/relmat shapes and
+the ordinary-plus-structured shape also fit without `sd()`. Coordinate
+`spatial()` intercept and slope-only SDs have no dense reference likelihood; the
+evidence is constant-SD equivalence, nesting, and prediction identity.
+`animal(0 + x | id)` with `Ainv` or `pedigree` input reproduces the `A =` fit
+and the constant-SD fit; it has no independent likelihood oracle yet, so a
+positional error that preserves those identities would not be caught.
+Slope-only `phylo_interaction(0 + x | ...)` and the `phylo_interaction()`
+intercept take a pair-level SD formula
+(`sd(pair, level = "phylogenetic_interaction") ~ z`) and match a dense Laplace
+oracle over the Kronecker pair field `K = A2 (x) A1`, with
+`eta = X beta + J f`, `J = diag(sd_pair * value)[pair, ]` and `value = 1`
+(intercept) or `x` (slope-only); the test
+(`test-poisson-batch5-sd-regression.R`) also checks constant-SD equivalence and
+row-order invariance.
+
+### Predictor-dependent SD routes added late on 2026-11-01
+
+Native TMB only. Each form below was checked against a likelihood written
+independently of drmTMB, evaluated at the fitted parameters; the files and
+tolerances are in `docs/design/18-random-effect-scale-models.md`. In all of them
+the SD predictor is constant within its group, `s_g = exp(W_g alpha)`, and each
+latent field is a unit-scale draw multiplied by its SD. No calibration or Julia
+parity claim is made.
+
+- Structured q2 (Poisson, NB2, Gaussian, Binomial). With an intercept field `u0`
+  and a slope field `u1`, the linear predictor adds `s0_g u0_g + x_i s1_g u1_g`.
+  Unlabelled terms draw `u0` and `u1` independently from `N(0, K)`. Labelled
+  terms (NB2 animal, Gaussian) draw `(u0, u1)` from `N(0, R kron K)` with one
+  estimated correlation. The Gaussian likelihood is exact:
+  `y ~ N(X beta, sigma^2 I + sum_{a,b} R_ab l_a l_b' (elementwise) K_obs)`, with
+  loadings `l_0 = s0` and `l_1 = x s1`. The count and Binomial likelihoods use a
+  Laplace approximation, with the exact count information
+  (`size mu (size + y) / (size + mu)^2` for NB2). `K` is the supplied
+  covariance, or the inverse of the supplied precision, kept raw and aligned by
+  level name; trees enter as correlation matrices.
+- Gamma slope-only structured: `eta_i = X beta + x_i s_g u_g`, `u ~ N(0, K)`,
+  with the exact Gamma log-link score and curvature in the Laplace check.
+- `phylo_interaction()` for Gaussian (slope-only) and NB2: `eta = X beta + J f`,
+  `f ~ N(0, A2 kron A1)`, `J = diag(s_pair * value)[pair, ]`, `value = 1` for the
+  intercept and `x` for the slope-only field. Both trees are standardised to
+  correlation matrices, so the effective kernel has unit diagonal. Gaussian is
+  exact; NB2 uses the Laplace check.
+- Gaussian structured `sigma` intercept: `log sigma_i = Z_i gamma + s_g u_g`,
+  `u ~ N(0, K)`. The residual SD depends on `u`, so the marginal is not Gaussian
+  and the check is a Laplace oracle over the structured `sigma` effects.
+- Joint ordinary `mu` and `sigma` intercepts (NB2, Gamma):
+  `eta_mu = X beta + s_id u_id`, `log sigma = Z gamma + t_g v_g`, with all `u` and
+  `v` independent unit-scale effects, including the same-factor case. The check is
+  a Laplace oracle over the joint vector of all `id` and `g` effects. For NB2,
+  `size = 1 / sigma^2`.
+
+Gaussian coordinate `spatial(1 + x | id)` and labelled `spatial(1 + x | p | id)`
+use the same Gaussian marginal as the other structured q2 routes, with the
+spatial precision (exponential kernel, diagonal `1 + 1e-6`) in place of the
+animal, relmat or phylo kernel; the check is the exact marginal on irregular
+coordinates. Poisson and NB2 labelled `relmat(1 + x | p | id)` use the prior
+`R kron K` with `R = [1 rho; rho 1]` and a dense Laplace oracle that includes the
+fitted `rho`; the unlabelled block keeps two independent fields.
+For Poisson, NB2 and Gamma ordinary `mu` SD regression,
+`miss_control(response = "include")` is admitted: a row with a missing response
+contributes no response density (the observed-response mask already in the C++
+branches), keeps its model-matrix row, and the log-likelihood equals the
+complete-case fit. Marginal `simulate(re.form = NA)` of labelled q2 structured
+fields draws `rho f0 + sqrt(1 - rho^2) f1` with the fitted `rho` before the
+per-coefficient SD scaling. All of this is native TMB only, on fixed fixtures.
+
+Refused neighbours include labelled q2 for Poisson animal and for the labelled
+phylo and spatial providers of Poisson and NB2, ordinary q3 with `sd()`, a sigma
+structured slope, `include` with structured, sigma-target, correlated-block or
+zero-inflated SD shapes, and the formula-free joint `mu`/`sigma` model.
+
+### Predictor-dependent Bernoulli/binomial random-intercept SD
+
+The native ordinary-intercept slice additionally accepts
+`bf(y ~ x + (1 | id), sd(id) ~ w)` with `binomial()` and the corresponding
+count response. For latent group SD `s_g`, its non-centred construction is
+
+```text
+log(s_g) = W_g alpha
+u_g ~ Normal(0, 1)
+eta_i = X_mu[i, ] beta_mu + s_g u_g
+Y_i | u_g ~ Binomial(n_i, inverse_link(eta_i))
+```
+
+The SD design uses ordinary fixed-effect model-matrix coding and must be
+constant within each retained group. Group-specific scales replace the
+matching constant-SD parameter; unrelated random effects retain their own
+scales. The scalar latent effects are integrated by TMB's Laplace
+approximation. Logit, probit and complementary log-log response links pass
+constant-SD equivalence and prediction checks; the SD link is always log.
+No free Bernoulli residual `sigma` is introduced.
+
+An independent scalar Laplace calculation checks the native objective.
+This verifies its implementation, not the accuracy of Laplace integration
+against the exact marginal likelihood. Development-only Julia candidate tests
+cover ordinary intercepts, independent slopes, and one correlated
+intercept-slope block. The live R-to-Julia bridge tests explicitly use matching
+local candidate source checkouts; they are candidate-to-candidate workflow
+checks, not evidence that the current shared/released DRM.jl companion supports
+the route. The slope test compares one seeded fit with synthetic truth and
+native TMB, but this does not establish general cross-engine parity. The
+correlated-block tests exercise target extraction, prediction, save/reload,
+profile routing, and three bootstrap refits. A correlated-block fit emitted a
+near-singular-Hessian warning, and these small workflow checks do not establish
+calibrated intervals or reliable Wald uncertainty. Structured SD targets and
+repeated-sampling interval coverage remain programme work.
+Native scalar-intercept targets accept `dpar = "mu"`, `coef = "(Intercept)"`
+and a matching `block` label; their full canonical identity is retained in
+coefficients, prediction, save/reload, profiles and bootstrap refits. A unique
+labelled `(1 | p | id)` intercept has the same likelihood as its unlabelled
+counterpart. Labels do not admit duplicate intercepts with the same group. See `docs/dev-log/general-sd-regression/native-bernoulli-status.md`
+for the current evidence boundary.
+
+#### Correlated Bernoulli intercept-slope SDs
+
+The logit Bernoulli route also admits one ordinary correlated block
+`(1 + x | id)` with coefficient-specific marginal SD regressions. Its contract
+is
+
+```text
+log(tau[g, 0]) = W[g, 0] alpha[0]
+log(tau[g, 1]) = W[g, 1] alpha[1]
+rho = tanh(eta_rho)
+b[g] ~ Normal(0, D[g] R D[g])
+D[g] = diag(tau[g, 0], tau[g, 1])
+R = [[1, rho], [rho, 1]]
+logit(P(y[i] = 1)) = X_mu[i, ] beta_mu + b[g, 0] + x[i] b[g, 1]
+```
+
+The R formula selects the two members explicitly:
+
+```r
+bf(
+  y ~ x + (1 + x | id),
+  sd(id, dpar = "mu", coef = "(Intercept)") ~ habitat,
+  sd(id, dpar = "mu", coef = "x") ~ climate
+)
+```
+
+Either member may have an SD formula alone; the other then retains a constant
+SD parameter. The corresponding lower factor uses `tau[g, 1] * rho` and
+`tau[g, 1] * sech(eta_rho)` for the slope row, so `tau[g, 1]` remains the
+marginal slope-coefficient SD. The correlation is shared across groups and is
+not itself a regression target. Both SD predictors must be constant within
+their retained group. Native TMB tests and development-only Julia candidate
+tests include independent likelihood or covariance checks, partial-target
+fitting, simulation, and bootstrap-refit checks. The live R-to-Julia test
+explicitly uses matching local candidate source checkouts; it fits two SD
+regressions on one synthetic dataset, checks their recovery, and exercises
+profile and three bootstrap refits. These candidate-to-candidate checks are
+not release support or same-data engine parity. Separate checks cover target
+extraction, group-SD prediction, and coefficient/prediction preservation after
+RDS reload. The correlated fit emitted a near-singular-Hessian warning, so its
+Wald uncertainty is not reliable; the profile and bootstrap checks verify
+workflow only, not coverage. Same-data numerical parity with TMB has not been
+established for this correlated block. The Julia likelihood at `eta_rho = 20` remains
+numerically unresolved. Labels,
+multiple or higher-dimensional correlated blocks, structured providers, other
+response families, and correlation regression remain outside this route.
 
 ## Gaussian Aggregation Branch
 
@@ -1388,6 +1584,39 @@ mu_i = eta_mu_i
 sigma_i = exp(eta_sigma_i)
 ```
 
+### Predictor-dependent SD for a Gaussian `sigma` random intercept
+
+In the current native TMB slice, one ordinary random intercept may enter
+`eta_sigma`. Its SD can depend on fixed predictors that are constant within
+each group:
+
+```text
+eta_sigma_i = X_sigma[i, ] beta_sigma + b_sigma,g(i)
+b_sigma,g ~ Normal(0, s_g^2)
+log(s_g) = W_g' alpha_sigma
+```
+
+The corresponding formula is
+`sigma ~ 1 + (1 | id), sd(id, dpar = "sigma") ~ habitat`. This models
+group-level variation in the latent `log(sigma)` intercept, not residual
+`sigma` as a direct response. The route currently requires complete,
+unaggregated data and no structured term. It was first checked with a
+fixed-effect `mu` formula; one ordinary `mu` random intercept with its own
+`sd(id) ~ ...` formula may now accompany it, so the latent `mu` and `log(sigma)`
+effects each carry a predictor-dependent SD. A dense Laplace oracle at the fitted
+values checks this joint route for a `mu` intercept with a `sigma` slope and with
+a `sigma` intercept. Julia parity and interval calibration remain open.
+
+Native Gaussian `mu` SD regression also admits, on complete data, (i) an
+unlabelled correlated `(1 + x | id)` block with a separate selected SD formula
+per coefficient (or one on the slope alone with a constant intercept SD), checked
+against a per-group multivariate-normal likelihood; (ii) an independent
+same-group pair `(1 | id) + (0 + x | id)` with one selected SD formula each,
+checked against an exact marginal likelihood; and (iii) `relmat()` and
+coordinate `spatial()` intercepts with `sd(..., level = "relmat" or "spatial")`,
+checked against a dense oracle. A q3 correlated block stays refused. These are
+native TMB point-fit checks; Julia parity and interval calibration remain open.
+
 ### Numerical guard on the scale linear predictor
 
 The Gaussian density applies a smooth soft-clamp to the per-observation
@@ -1984,9 +2213,12 @@ Ordinary unlabelled `mu` random intercepts and independent numeric slopes add
 grouped latent effects to `eta_mu_i`, with the same location-scale-shape
 likelihood. One unlabelled `spatial()` intercept or one-slope route on `mu` is
 recovery-grade, and the exact `nu ~ phylo(1 | id, tree = tree)` structured
-intercept is diagnostic-grade. Correlated or labelled `mu` slopes, `sigma`
-random effects, other `nu` random effects, other structured providers, and
-known sampling covariance remain planned. The separate exact
+intercept is diagnostic-grade. A complete-data ordinary location intercept can
+also use a predictor-dependent latent SD, with `log(tau_g) = W_g alpha`; this
+is separate from residual `sigma`. Current Student-t evidence is a synthetic
+fit smoke check only. Correlated or labelled `mu` slopes, `sigma` random
+effects, other `nu` random effects, other structured providers, and known
+sampling covariance remain planned. The separate exact
 `biv_student()` source slice has one shared intercept-only `nu` and does not
 inherit this univariate recovery evidence.
 
@@ -2019,8 +2251,8 @@ log f(y_i) = log(2) - log(omega_i) + log phi(z_i) + log Phi(nu_i z_i)
 ```
 
 Here `phi()` and `Phi()` are the standard normal density and distribution
-function. The TMB branch evaluates the last term as
-`log(Phi(nu_i z_i) + 1e-300)` to avoid `log(0)` in extreme tails. The sign
+function. The TMB branch evaluates the last term with its tail-safe
+`drm_log_pnorm(nu_i * z_i)` routine. The sign
 convention is part of the public contract: `nu_i = 0` gives the Gaussian
 location-scale likelihood, `nu_i > 0` gives right-skewed residuals, and
 `nu_i < 0` gives left-skewed residuals. Source tests check this orientation
@@ -2046,8 +2278,13 @@ drmTMB(
 
 The implementation is univariate and admits one ordinary unlabelled random
 intercept or one independent numeric slope in `mu`, in addition to fixed
-effects. Correlated or labelled `mu` slopes, random effects in `sigma` or `nu`,
-`sd(group)` scale models, bivariate responses, `rho12`, `meta_V(V = V)`,
+effects. Complete-data models also admit a predictor-dependent SD for an
+ordinary location random intercept, `log(tau_g) = W_g alpha`. This adds a
+group-level SD regression while leaving the skew-normal moment transformation
+and residual slant unchanged. The current route has one synthetic recovery fit;
+an independent likelihood oracle and interval calibration remain open.
+Correlated or labelled `mu` slopes, predictor-dependent SDs for random slopes,
+random effects in `sigma` or `nu`, bivariate responses, `rho12`, `meta_V(V = V)`,
 deprecated `meta_known_V(V = V)`, `phylo()`, `spatial()`, `animal()`, and
 `relmat()` structured terms, aliases such as `skew ~ x`, and latent `skew(id)`
 syntax remain unsupported. The Arc 4c campaign supports
@@ -2133,6 +2370,53 @@ alternatively, `K` is a named positive-definite relatedness matrix. Supply its
 named precision as `Q = Q` instead of `K = K` when that representation is
 available.
 
+The native ordinary-intercept SD extension uses
+`bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w)`. Here
+`log(tau_g) = W_g alpha`, and the log-response covariance within group is
+`diag(sigma_g^2) + tau_g^2 11'`. The response-scale marginal log likelihood
+includes `-sum(log(y))`. Both `tau_g` and residual `sigma_i` describe variation
+on the log-response scale; they are separate parameters. The first slice uses
+complete data, unlabelled independent location intercepts and fixed sigma
+regression. Its independent Cholesky reference supplies an exact numerical oracle.
+Other combinations remain required programme work. Current build/check evidence
+is retained in `docs/dev-log/general-sd-regression/evidence/lognormal-20261017/`.
+
+A second complete-data slice models the SD of a random effect in the `sigma`
+formula:
+
+```r
+drmTMB(
+  bf(y ~ 1, sigma ~ 1 + (1 | id), sd(id, dpar = "sigma") ~ w),
+  family = lognormal(),
+  data = dat
+)
+```
+
+For this model, `log(sigma_gi) = Z_gi gamma + tau_g u_g`, with
+`u_g ~ Normal(0, 1)` and `log(tau_g) = W_g alpha`. The SD formula therefore
+models the group SD of a latent effect on `log(sigma)`, not residual `sigma`
+itself. The first route requires fixed-effect `mu`, one independent `sigma`
+random intercept, and `w` constant within `id`. Fitting, point recovery,
+coefficient covariance, group-SD prediction, and reduction to the existing
+constant-SD model are checked. These are implementation checks, not interval
+coverage evidence or Julia parity.
+
+A separate complete-data `mu` route admits two coefficient-specific SD
+formulas for one unlabelled ordinary correlated intercept-slope block:
+
+```r
+bf(
+  y ~ x + (1 + x | id), sigma ~ 1,
+  sd(id, dpar = "mu", coef = "(Intercept)") ~ w0,
+  sd(id, dpar = "mu", coef = "x") ~ w1
+)
+```
+
+The block correlation is constant across groups; `w0` and `w1` are each
+constant within `id`. A synthetic test checks both SD slopes, group-level SD
+predictions, and equivalence to the existing constant-SD q2 fit. Labelled or
+larger blocks, interval calibration, and Julia parity remain open.
+
 For lognormal fits, `predict(fit, dpar = "mu")` returns the log-scale
 location parameter, `sigma(fit)` returns the log-scale standard deviation, and
 `fitted(fit)` returns `E[y_i]` on the original response scale. The response
@@ -2198,13 +2482,183 @@ slopes enter the log-mean predictor. The existing `relmat()` intercept and
 independent one-slope route remains fitted. Arc 3a additionally admits exactly
 one unlabelled q1 `phylo()` intercept in `mu`, using
 `eta_mu_i = X_mu[i, ] beta_mu + b_species[i]` and the same scaled structured
-Gaussian prior `b ~ Normal(0, s_mu^2 K_phylo)`. The new phylogenetic route does
-not admit slopes, labels, `sigma` structure, another random-effect layer,
-simultaneous structured providers, spatial/animal structure, REML, or
-bivariate/mixed Gamma. `s_mu` is the phylogenetic covariance multiplier, so
+Gaussian prior `b ~ Normal(0, s_mu^2 K_phylo)`. For this phylogenetic route,
+slopes, labels, `sigma` structure, another random-effect layer, simultaneous
+structured providers, spatial effects, REML, and bivariate/mixed Gamma are
+not admitted. Animal pedigrees have the separate q1 direct-SD route below.
+`s_mu` is the phylogenetic covariance multiplier, so
 species `g` has marginal SD `s_mu * sqrt(K_phylo[g, g])`.
 The exact Arc 3a cell has point-fit recovery evidence; intervals and coverage
 remain untested.
+
+The Gamma animal-scale route uses the same mean-CV likelihood, with a
+predictor-dependent multiplier on the existing animal covariance:
+
+```text
+log(tau_g) = W_g gamma
+b ~ Normal(0, D A D)
+D = diag(tau_1, ..., tau_G)
+```
+
+For example, `animal(1 | id, pedigree = pedigree)`,
+`animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Q)` in the `mu` formula
+can be paired with `sd(id, level = "animal") ~ z`. The SD predictor must be constant
+within each animal after missing-row filtering. The supplied pedigree scaling
+is preserved, so the marginal SD is `tau_g * sqrt(A[g, g])`; the route does not
+silently standardize the relationship matrix. This exact q1 route has a
+synthetic point-recovery, constant-SD equivalence, and equivalent-likelihood
+tests across these input forms. It does not establish interval coverage, Julia
+parity, or support for other structured providers, slopes, labels, or
+additional random-effect layers.
+
+One complete-data native Gamma route also admits an unlabelled animal
+intercept plus one numeric slope with two independent latent fields. Its
+coefficient-specific scales are
+
+```text
+u0, u1 independently ~ Normal(0, A)
+eta_mu_i = X_mu[i, ] beta_mu + tau0_g u0_g + x_i tau1_g u1_g
+log(tau0_g) = W0_g alpha0
+log(tau1_g) = W1_g alpha1
+Cov(eta_mu_i, eta_mu_j) = A[g_i, g_j] * (
+  tau0_gi tau0_gj + x_i x_j tau1_gi tau1_gj
+)
+```
+
+The public formula selects each latent field separately with
+`sd(id, level = "animal", dpar = "mu", coef = "(Intercept)") ~ z0` and
+`sd(id, level = "animal", dpar = "mu", coef = "x") ~ z1`. It preserves the
+existing independent-fields meaning of `animal(1 + x | id)` and does not
+introduce intercept-slope correlation. The focused unit-diagonal pedigree
+fixture checks point recovery, coefficient-specific predictions, simulation,
+save/reload, and constant-SD equivalence. It refuses a zero slope loading and
+the exact confounding case where `x` is globally constant and both SD designs
+are the same constant. It does not establish the separate Gamma q1 slope-only
+`A`/`Ainv` provider rows, Julia parity, or interval coverage; G3 breadth and G5
+uncertainty gates remain open.
+
+The labelled form `animal(1 + x | p | id, A = A)`, with the same two `coef`
+selected SD formulas, instead fits a correlated block. The stored latent fields
+stay unit scale and the per-row SDs multiply them, so the linear predictor adds
+`s0_i u0_g + x_i s1_i u1_g` and the unit-scale prior is
+
+```text
+(u0, u1) ~ N(0, R (x) A),   R = [[1, rho], [rho, 1]]
+rho = 0.999999 * tanh(eta_cor_phylo)
+```
+
+With `Q = A^-1`, `n` the number of animals and `q_ab = u_a' Q u_b`, the prior
+contributes to the negative log likelihood
+
+```text
+0.5 * ( 2 n log(2 pi) + n log(1 - rho^2) - 2 log det Q
+        + (q11 - 2 rho q12 + q22) / (1 - rho^2) )
+```
+
+The SDs do not appear in this term, because they enter only through the
+per-row multipliers in the linear predictor. The correlation is reported as
+`cor(mu:(Intercept),mu:x | p | id)`. A labelled term without `sd()` formulas is
+refused. `tests/testthat/test-gamma-animal-q2-correlated-sd.R` checks the joint
+objective (data plus latent prior, random effects as parameters) against an
+independent dense-`A` R computation to 1e-6 on three fixed seeds, with five
+emulated bugs that each move it by more than 1e-3, and a second case with a
+raw non-unit-diagonal `A` in shuffled order that a correlation-normalised `A`
+would fail. Recovery of `rho` uses a loose 0.4 band on three seeds, so the
+fixtures are wiring and likelihood-assembly checks, not calibration. Native TMB
+only: Julia Gamma remains independent, and interval coverage is open.
+
+Limits of this route, stated because the G1 contract review asked for them
+(`docs/dev-log/general-sd-regression/g1-joint-contract-review-20261101.md`,
+section 5):
+
+- The structured-field correlation is bounded at `0.999999`
+  (`src/drmTMB.cpp`), whereas ordinary correlated random-effect blocks use
+  `0.99999999`. The difference is deliberate (the phylogenetic and pair
+  association guard was left unchanged), so the reported `rho` and its Wald or
+  profile behaviour near the boundary differ between the two kinds of block.
+- There is no base nesting fit. A labelled term without `sd()` formulas is
+  refused, so "the base correlated fit is recovered when the SD slopes are
+  zero" cannot be shown. The oracle and the independent unlabelled fit
+  (`rho = 0`) stand in for it.
+- There is no simulate-then-refit identity. Marginal simulation (`re.form = NA`)
+  is admitted for native structured q2 fits with one SD formula per
+  coefficient (Binomial, Poisson, NB2, Gaussian and Gamma; relmat, animal, phylo
+  and spatial), including the labelled correlated block: each replicate draws
+  unit-scale fields from `R (x) K` with the fitted `rho` and scales each
+  coefficient's field by its fitted group SD. This is checked by moment
+  comparisons in `tests/testthat/test-q2-sd-marginal-simulate.R` (exact
+  Gaussian marginal covariance; sampled latent covariance against
+  `D R (x) K D` for the other families), not by a simulate-then-refit recovery
+  study. The route is still evidenced by the likelihood oracle and fixed-seed
+  recovery. A fitted correlation other than the single structured
+  cross-coefficient one, and families outside that list (for example Beta),
+  stay refused.
+- The identifiability fence refuses an identically zero slope loading and the
+  case of a constant slope loading with identical constant SD designs. It does
+  not refuse a constant slope loading `c` with the same non-constant SD design
+  `w` on both coefficients. There the marginal contribution is
+  `tau0(w) u0 + c tau1(w) u1`, identified only through the variation of `w`,
+  and with few groups it is close to unidentified. Only the generic Hessian
+  diagnostic reports this; full-rank SD designs are necessary, not sufficient.
+- The constant `log_sd_phylo` is mapped off whenever SD formulas are present
+  (`R/drmTMB.R`, random-effect map), and the coefficient-model gate now
+  requires every observation to map to both selected SD rows, as the Binomial
+  gate does. The test file asserts that `log_sd_phylo` is not a free parameter.
+
+Native Gamma `mu` SD regression also admits crossed ordinary intercepts
+`(1 | g) + (1 | h)` on distinct groups and an ordinary plus `relmat()` intercept
+pair, each matched
+to a dense Laplace oracle with the Gamma observed information, and an
+independent same-group intercept and slope checked only by constant-SD
+equivalence and prediction identity (its recovery is weak at 50 groups, so none
+is claimed). The ordinary guard admits only those two shapes (crossed
+intercepts on distinct groups, or one same-group intercept plus slope pair):
+crossed slopes, a slope on a second group and chains of three or more terms are
+refused. Julia parity and interval calibration remain open.
+
+Native Gamma `mu` SD regression also admits one unlabelled ordinary intercept
+`(1 | g)` beside one unlabelled q1 `animal()`, `phylo()` or `spatial()`
+intercept, each with its own SD formula, with fixed `sigma` and complete
+responses. The two latent effects enter the same log-mean predictor, with the
+structured field's covariance scaled by its per-row SD. For each provider the
+fitted log-likelihood matches a dense independent Laplace oracle at the fitted
+values (tolerance 1e-5 absolute, non-unit-diagonal `K` stored in shuffled order),
+and the constant-SD limit reproduces the additive fit
+(`tests/testthat/test-gamma-iid-structured-sd-regression.R`). The ordinary
+same-group intercept and slope pair, with a different SD predictor for each
+coefficient, is also checked against a dense Laplace oracle at the fitted point
+(`tests/testthat/test-nbinom2-gamma-same-group-sd-oracle.R`). This checks the
+likelihood assembly only, not the optimiser or standard errors. Two ordinary
+intercepts, an ordinary correlated block, an ordinary `sigma` random effect,
+missing responses, and a structured slope beside an ordinary intercept stay
+refused. Native TMB only: Julia parity is not claimed and no interval
+calibration, coverage or simulation campaign exists.
+
+For complete univariate data, a separate ordinary `sigma` random-intercept
+route allows the SD of its latent log-CV effect to depend on group-level fixed
+predictors:
+
+```r
+drmTMB(
+  bf(
+    biomass ~ habitat,
+    sigma ~ 1 + (1 | site),
+    sd(site, dpar = "sigma") ~ disturbance
+  ),
+  family = Gamma(link = "log"),
+  data = dat
+)
+```
+
+Here `sigma` is the Gamma coefficient of variation, and
+`sd(site, dpar = "sigma")` models the SD of the random intercept added to
+`log(sigma)`. This first cell requires fixed-effect `mu`, one independent
+`sigma` intercept, complete responses, and predictors constant within site.
+It does not add a free residual scale or change the Gamma mean-CV
+parameterization. Synthetic recovery, finite coefficient covariance,
+conditional output, save/reload, within-group validation, and constant-SD
+equivalence checks pass for the native TMB route. Interval coverage and Julia
+parity remain unverified.
 
 ## Implemented Tweedie Mean-Scale-Shape
 
@@ -2311,6 +2765,28 @@ drmTMB(
   data = dat
 )
 ```
+
+Native TMB also supports a predictor-dependent SD for one ordinary Beta
+location intercept when responses are complete and `sigma` has fixed effects
+only:
+
+```r
+drmTMB(
+  bf(
+    prop ~ habitat + (1 | plot),
+    sigma ~ treatment,
+    sd(plot) ~ site_covariate
+  ),
+  family = beta_family(),
+  data = dat
+)
+```
+
+The SD formula models the standard deviation of the latent logit-location
+intercept. Its predictor must be constant within `plot`. One higher-information
+synthetic recovery fit and a constant-SD equivalence check pass; interval
+calibration remains open. This ordinary-group route cannot yet be combined
+with Beta's separate phylogenetic direct-SD formula.
 
 For beta fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the mean
 proportion. `sigma(fit)` returns the public scale parameter, not beta
@@ -2429,8 +2905,11 @@ Beta-binomial models keep the denominator in the likelihood:
 y_i | n_i, p_i ~ Binomial(n_i, p_i)
 p_i | mu_i, sigma_i ~ Beta(alpha_i, beta_i)
 eta_mu_i = X_mu[i, ] beta_mu + Z_mu[i, j] b_j
-b_j = sd_mu u_j
+log(tau_j) = W_j alpha
+tau_j = exp(W_j alpha)
+b_j = tau_j u_j
 u_j ~ Normal(0, 1)
+# q1 animal-pedigree exception: u ~ Normal(0, A), b_g = exp(W_g alpha) u_g
 eta_sigma_i = X_sigma[i, ] beta_sigma
 mu_i = logit^{-1}(eta_mu_i)
 sigma_i = exp(eta_sigma_i)
@@ -2459,7 +2938,7 @@ Matching R syntax:
 ```r
 drmTMB(
   bf(cbind(successes, failures) ~ habitat + (1 | tray),
-     sigma ~ treatment),
+     sigma ~ treatment, sd(tray) ~ temperature),
   family = beta_binomial(),
   data = dat
 )
@@ -2467,6 +2946,15 @@ drmTMB(
 drmTMB(
   bf(cbind(successes, failures) ~ habitat + (0 + habitat_score | tray),
      sigma ~ treatment),
+  family = beta_binomial(),
+  data = dat
+)
+
+drmTMB(
+  bf(cbind(successes, failures) ~ habitat +
+       animal(1 | id, pedigree = pedigree),
+     sigma ~ 1,
+     sd(id, level = "animal") ~ z),
   family = beta_binomial(),
   data = dat
 )
@@ -2478,10 +2966,34 @@ variation scale; internally `phi_i = 1 / sigma_i^2`. The response counts must
 be finite non-negative integers with positive row totals after missing-row
 filtering. Ordinary unlabelled `mu` random intercepts such as `(1 | tray)` and
 independent numeric slopes such as `(0 + habitat_score | tray)` enter the logit
-success-probability predictor. Correlated slopes, labelled covariance blocks,
-`sigma` random effects, known sampling covariance, structured terms, bivariate
+success-probability predictor. Native TMB also fits one complete-data ordinary
+random intercept on `sigma` when `mu` is fixed; a matching
+`sd(id, dpar = "sigma") ~ z` formula makes that intercept's SD depend on a
+group-level predictor. A live `engine = "julia"` bridge fit passes synthetic
+recovery and target-prediction smoke checks; same-data numerical parity and
+interval calibration remain unverified. Correlated slopes, labelled
+covariance blocks, known sampling covariance, other structured terms, bivariate
 or mixed beta-binomial models, and a possible successes/trials response alias
-are later phases.
+are later phases. The structured animal exception described below is limited
+to one q1 `mu` intercept with pedigree input; it does not establish other
+structured providers or simultaneous random-effect types.
+
+For the complete-data native TMB direct-SD slice, `temperature` must be
+constant within `tray`. The `sd(tray)` formula changes the latent intercept SD
+on the logit success-probability scale; it does not replace beta-binomial
+`sigma`, which controls extra-binomial variation within an observation. One
+synthetic recovery fit, independent one-dimensional marginal-likelihood
+quadrature, constant-SD equivalence, and profile/bootstrap routing checks pass.
+They do not establish interval calibration. Other random effects on `sigma`,
+SD formulas targeting slopes, structured effects, and missing-data combinations
+remain outside the ordinary direct-SD slice. The separate animal-pedigree
+route is complete-data, q1, native TMB, and fixed-`sigma`; use
+`sd(id, level = "animal") ~ z` with `animal(1 | id, pedigree = pedigree)`,
+`animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)`. Synthetic tests
+check pedigree recovery, constant-SD equivalence, predictions, founder
+mapping, and marginal simulation. Supplied-matrix fits check recovery,
+group-SD predictions, and likelihood agreement with pedigree under a joint
+matrix-label permutation. Julia parity and interval calibration remain open.
 
 ## Implemented Cumulative-Logit Ordinal Location
 
@@ -2638,8 +3150,10 @@ a1 ~ Normal(0, sd_structured_slope^2 A_structured)
 where `A_structured` is the tree, pair-of-trees Kronecker field, coordinate,
 animal-model, or user-supplied relatedness covariance implied by `phylo()`,
 `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`. The
-`phylo_interaction()` count route remains intercept-only; the one-slope count
-route is currently for `phylo()`, `spatial()`, `animal()`, and `relmat()`. The TMB template
+`phylo_interaction()` count route is intercept-only in the plain route, except
+for the slope-only Poisson and NB2 pair-level SD routes (see the predictor-dependent SD
+sections); the one-slope count route is currently for `phylo()`, `spatial()`,
+`animal()`, and `relmat()`. The TMB template
 still uses the sparse precision `Q_phylo`, the latent vector `u_phylo`, and the
 direct SD target `log_sd_phylo` for this shared
 q=1 count route. This route is implemented for ordinary non-zero-inflated
@@ -2726,6 +3240,24 @@ mean, `predict(fit, dpar = "zi")` returns the zero-inflation probability, and
 `fitted(fit)` returns the unconditional response mean `(1 - zi) * mu`.
 `sigma(fit)` returns a fixed unit dispersion vector because no residual scale
 parameter is fitted.
+
+For complete data, the native TMB route also admits one ordinary `mu`
+random intercept, optionally with a predictor-dependent latent SD:
+
+```r
+drmTMB(
+  drm_formula(count ~ treatment + (1 | site), zi ~ treatment,
+              sd(site) ~ habitat),
+  family = poisson(),
+  data = dat
+)
+```
+
+The random intercept is added to `eta_mu` before the conditional Poisson mean
+and zero-inflated mixture are evaluated. `sd(site) ~ habitat` models its SD
+on that latent log-mean scale; `zi` remains fixed-effect only. This slice
+admits one ordinary `mu` intercept and complete responses. Other random
+effects, structured terms, and interval-calibration claims are not included.
 
 ## Implemented Negative Binomial 2 Mean-Dispersion
 
@@ -2843,6 +3375,33 @@ simultaneous structured types beyond the exact crossed gate, binary incidence,
 known sampling covariance, and bivariate or mixed negative-binomial models are
 later phases.
 
+For the separate predictor-dependent SD slice, one q1 phylogenetic `mu`
+intercept may use `sd(species, level = "phylogenetic") ~ z` with complete
+responses, fixed-effect `sigma`, and no other random or structured terms. The
+synthetic check covers SD-slope recovery, group-level SD prediction, and
+constant-SD equivalence; interval calibration and Julia parity remain open.
+
+Native NB2 `mu` SD regression also admits, on complete data and native TMB only,
+`relmat()` and coordinate `spatial()` intercepts, and slope-only `phylo()` and
+`relmat()` coefficients, each matched to a dense Laplace oracle with the NB2
+observed information (the slope-only phylo/relmat shapes also fit without
+`sd()`). One ordinary intercept plus one `relmat()` (`K` or `Q`), `animal()`
+(`A` or `Ainv`) or `phylo()` intercept, each with its own SD formula, matches a
+dense Laplace oracle for the joint latent field `f = (f_ord, f_struct)` with
+`eta = X beta + J f`, `J_b[i, l] = sd_b[l] 1(level(i) = l)` and NB2 observed
+information `size mu (size + y) / (size + mu)^2`
+(`test-nbinom2-batch5-sd-regression.R`, 150 expectations); crossed ordinary
+intercepts, already admitted, are checked against the same oracle there. An
+independent same-group intercept and slope with one `coef`-selected SD
+formula each matches a dense Laplace oracle at the fitted point
+(`test-nbinom2-gamma-same-group-sd-oracle.R`); the unselected form is checked only by
+constant-SD equivalence and prediction identity.
+NB2 `sigma`-side phylogenetic SD is not admitted. Marginal simulation
+(`re.form = NA`) for NB2 structured slope SDs was admitted on 2026-11-01
+(`test-nbinom2-structured-slope-marginal-simulate.R`), and for NB2 structured
+q2 blocks in `test-q2-sd-marginal-simulate.R`. Julia parity and interval
+calibration remain open.
+
 ## Implemented Zero-Truncated Negative Binomial 2
 
 The positive-count NB2 path is fixed-effect zero-truncated regression:
@@ -2890,12 +3449,13 @@ scale, and `fitted(fit)` returns the observed positive-count mean
 `mu / (1 - Pr_NB2(0))`. The response must contain positive integer counts
 after missing-row filtering unless a hurdle formula is supplied. Ordinary
 unlabelled `mu` random intercepts and independent numeric slopes enter the
-log-mean predictor for non-hurdle zero-truncated NB2 models. The exact
-`hu ~ relmat(1 | id, K/Q = ...)` q1 intercept is diagnostic-only when the hurdle
-route is active; ordinary count-side `mu` random effects are then blocked.
-Correlated slopes, labelled covariance blocks, other hurdle-side random
-effects, `sigma` random effects, other structured terms, and bivariate count
-models are later phases.
+log-mean predictor for zero-truncated NB2 models. Hurdle NB2 also admits one
+ordinary unlabelled `mu` random intercept. Its contribution changes the
+positive-count NB2 mean and truncation normalizer; it does not enter the hurdle
+probability. The exact `hu ~ relmat(1 | id, K/Q = ...)` q1 intercept remains
+diagnostic-only. Correlated slopes, labelled covariance blocks, random effects
+on `hu` or `sigma`, other structured combinations, and bivariate count models
+remain outside this slice.
 
 ## Implemented Hurdle Negative Binomial 2
 
@@ -2939,6 +3499,26 @@ drmTMB(
 )
 ```
 
+The hurdle route also supports one ordinary positive-count location intercept,
+with an optional group-level SD regression:
+
+```r
+drmTMB(
+  bf(count ~ habitat + (1 | site), sigma ~ treatment, hu ~ survey_method,
+     sd(site) ~ elevation),
+  family = truncated_nbinom2(),
+  data = dat
+)
+```
+
+For group `g`, this adds `tau_g u_g` to `eta_mu`, where `u_g ~ Normal(0, 1)`
+and `log(tau_g) = W_g alpha`; the SD predictors must be constant within each
+site. The random intercept affects the positive-count density and its
+zero-truncation normalizer. The zero probability remains `hu`, with no random
+effect on that predictor. Omitting `sd(site)` retains a constant random-effect
+SD. This slice requires complete responses, fixed-effect `sigma`, and no
+structured location or hurdle effects.
+
 Here `mu` and `sigma` continue to describe the untruncated NB2 component.
 `predict(fit, dpar = "hu")` returns the hurdle-zero probability. `fitted(fit)`
 returns the unconditional response mean `(1 - hu) * mu / (1 - Pr_NB2(0))`.
@@ -2969,6 +3549,20 @@ Pr(y_i = y > 0) = (1 - zi_i) NB2(y | mu_i, size_i)
 E[y_i] = (1 - zi_i) mu_i
 Var[y_i] = (1 - zi_i) (mu_i + sigma_i^2 mu_i^2) + zi_i (1 - zi_i) mu_i^2
 ```
+
+For the complete-response ordinary-intercept SD-regression slice,
+`sd(group) ~ predictors` supplies `W_g` and `beta_sd_mu`. The latent SD
+multiplies the conditional NB2 log-mean intercept before the zero-inflation
+mixture. `sigma` and `zi` remain fixed-effect intercepts in this slice. Its
+synthetic recovery, independent groupwise Laplace check, constant-SD
+equivalence, wrong-group control, and fit-workflow tests do not establish
+interval calibration. Random slopes, structured effects, other random-effect
+targets, and missing responses remain unsupported here.
+
+For that slice, the conditional mean is
+`eta_mu_i = X_mu[i, ] beta_mu + b_{g(i)}`, where
+`log(tau_g) = W_g beta_sd_mu` and `b_g = tau_g u_g` for
+`u_g ~ Normal(0, 1)`.
 
 Matching R syntax:
 

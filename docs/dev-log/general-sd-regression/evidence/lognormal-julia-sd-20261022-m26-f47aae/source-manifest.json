@@ -1,0 +1,35 @@
+{
+  "scope": "Source identity for julia-lognormal-iid-intercept-20261022-v1, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/lognormal-julia-sd-20261022/sources-before.sha256",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "472d9de4db223c925df61a683bfd06448e8b9891f32ae2bc386191c6f6098be5"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-julia-lognormal-sd-gate.R",
+      "sha256": "987868523c2be09e4e88e2001cdfedcae449915c86ed312f5b79ad7f30315ae6"
+    },
+    {
+      "file": "tests/testthat/test-julia-lognormal-sd-parity.R",
+      "sha256": "2e21465785b84694f03072abf22a1a6bc27e4749c509195dc60d4875272264e9"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+gamma-spatial-q2-sd-regression: .............................................`simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+..
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=47 failed=0 errors=0 skipped=0
+DRM_RUN start=2026-11-02T14:06:13Z end=2026-11-02T14:07:00Z rc=0 core=242

@@ -1,0 +1,44 @@
+{
+  "evidence_id": "julia-binomial-probit-correlated-q2-mu-x1-recovery-20261026",
+  "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"probit\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+  "claim": "Direct Julia seeded point-recovery evidence for the probit correlated Binomial q=2 mu:x1 target.",
+  "engine": "DRModels.jl",
+  "source_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-recovery-20261026/test-snapshot/test/test_binomial_nonlogit_correlated_sd_regression.jl",
+  "test_sha256": "89188908e09890dff234d785c80933928cb5dbf9bff718cfaf0be4006b91a7b0",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-recovery-20261026/source-manifest-linked.json",
+  "source_manifest_sha256": "bd5a5eb4bf8529baebb145c293d0fbc1cf5afd556740bb78f077611c5bfe0b9b",
+  "test_log_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-recovery-20261026/final-check.log",
+  "test_log_sha256": "25093d58bd38441b04bcfd0ba3d4817d2dc13f94b335cd74d426295fad528b0e",
+  "test_exit_code": 0,
+  "assertions_passed": 28,
+  "assertions_failed": 0,
+  "elapsed_seconds": 30.6,
+  "environment": {
+    "host": "Totoro",
+    "julia": "1.10.12",
+    "JULIA_NUM_THREADS": 1,
+    "OPENBLAS_NUM_THREADS": 1
+  },
+  "design": {
+    "groups": 160,
+    "observations_per_group": 32,
+    "link": "probit",
+    "seed": 202610251,
+    "true_sd_slopes": [
+      0.55,
+      0.6
+    ],
+    "true_intercept_slope_correlation": 0.4,
+    "absolute_sd_slope_error_bound": 0.35,
+    "absolute_correlation_error_bound": 0.25
+  },
+  "result": "The focused direct-Julia test passed all 28 checks. The saved test checks both SD slopes, correlation, fitted SD outputs, link predictions, and binary simulation output.",
+  "limitations": [
+    "one fixed-seed design per link",
+    "no interval coverage calibration",
+    "no independent likelihood oracle for these two links",
+    "no native TMB or R-bridge parity claim",
+    "review_status is unreviewed"
+  ]
+}

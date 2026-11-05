@@ -1,0 +1,41 @@
+✔ | F W  S  OK | Context
+
+⠏ |          0 | binomial-relmat-q2-sd                                          
+⠋ |          1 | binomial-relmat-q2-sd                                          
+⠇ |          9 | binomial-relmat-q2-sd                                          
+⠹ |         23 | binomial-relmat-q2-sd                                          
+⠹ |         33 | binomial-relmat-q2-sd                                          
+⠇ |         39 | binomial-relmat-q2-sd                                          
+⠙ |      1  41 | binomial-relmat-q2-sd                                          
+⠧ |      1  57 | binomial-relmat-q2-sd                                          
+✖ | 1 1  1  61 | binomial-relmat-q2-sd [6.9s]
+────────────────────────────────────────────────────────────────────────────────
+Warning ('test-binomial-relmat-q2-sd.R:319:3'): Binomial relmat q2 agrees across K, Q, SD order and constant scales
+number of items to replace is not a multiple of replacement length
+Backtrace:
+    ▆
+ 1. └─base$obj$env$parList(base$tmb_state$last.par.best) at test-binomial-relmat-q2-sd.R:319:3
+
+Failure ('test-binomial-relmat-q2-sd.R:323:3'): Binomial relmat q2 agrees across K, Q, SD order and constant scales
+Expected `max(abs(unname(constant_sd) - unname(exp(base_log_sd))))` <= 0.001.
+Actual comparison: 1.373 > 0.001
+Difference: 1.372 > 0
+────────────────────────────────────────────────────────────────────────────────
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 6.9 s
+
+── Skipped tests (1) ───────────────────────────────────────────────────────────
+• identical(Sys.getenv("DRMTMB_Q2_SKIP_MAIN"), "1") is TRUE (1):
+  'test-binomial-relmat-q2-sd.R:217:3'
+
+── Failed tests ────────────────────────────────────────────────────────────────
+Failure ('test-binomial-relmat-q2-sd.R:323:3'): Binomial relmat q2 agrees across K, Q, SD order and constant scales
+Expected `max(abs(unname(constant_sd) - unname(exp(base_log_sd))))` <= 0.001.
+Actual comparison: 1.373 > 0.001
+Difference: 1.372 > 0
+
+[ FAIL 1 | WARN 1 | SKIP 1 | PASS 61 ]
+
+No one is perfect!
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

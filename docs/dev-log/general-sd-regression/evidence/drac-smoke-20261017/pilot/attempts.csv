@@ -1,0 +1,2 @@
+"a","pilot","seed","manifest_row","estimate","se","convergence","pdHess","max_abs_gradient","clamp_at_optimum","lower","upper","interval_status","profile_boundary","profile_message","laplace_oracle_error","valid_interval","warnings","error","elapsed","attempt_state"
+-0.5,1,1746912062,1,-0.603679758165521,0.164050600035869,0,TRUE,6.30456220562792e-09,"ok",-0.945107793628003,-0.294078228774739,"profile",FALSE,"ok",7.50424078432843e-09,TRUE,"","",13.715,"completed"

@@ -116,6 +116,21 @@ reports that same clamped scale, on both \code{type = "link"} and
 evaluated. When \code{check_drm()} reports the clamp active, this makes the
 fit's own diagnostics honest, not correct: the estimate itself is still
 unreliable near the clamp (see the rescaling advice there).
+
+For predictor-dependent random-effect SD parameters (for example
+\code{dpar = "sd(id)"} or \code{"sd_animal(id)"}), the value is the SD multiplier
+\code{exp(W beta)} on the latent effect, not a marginal SD. When the effect is
+structured (\code{animal()}, \code{relmat()}, \code{phylo()}, \code{spatial()}), the multiplier
+applies to the supplied kernel as given, so the marginal SD of group \code{g} is
+\code{multiplier * sqrt(C_gg)}; \code{predict()} never returns that product. For a
+unit-diagonal kernel the two agree. \code{type = "link"} is the log SD after the
+same soft clamp the likelihood applies (the identity inside \verb{[-12, 12]},
+saturating towards \verb{[-15, 15]}), not the raw \code{W beta}; \code{type = "response"}
+is its exponential. With \code{newdata = NULL} the result has one value per fitted
+group, named by group level. With \code{newdata}, each row is one group-level row
+(not an observation row): the result has one value per row, named by
+\code{rownames(newdata)}, and a structured SD for such a row is a population
+multiplier with no kernel node and no \code{sqrt(C_gg)} factor.
 }
 \examples{
 dat <- data.frame(

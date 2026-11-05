@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "426649e6110a6583d7ca3d2547cc28e9be2e8233e3e4b627d5301c8389a28dbc",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Post-draft self-review against writing-naturalness.md and repository evidence",
+  "genre": "Technical check-log entry",
+  "coverage": "Whole draft",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The entry is compact and specific to the phase decision. Its procedural tone is appropriate to a check log.",
+  "confidence": "medium",
+  "confidence_reason": "The facts were compared with the updated plan and local vignette; the forecast is explicitly provisional.",
+  "examples": [
+    {
+      "location": "First paragraph",
+      "cue": "Names both the new phase order and the continuing full finish requirement.",
+      "impact": "Makes the deferral clear without implying that calibration has been removed.",
+      "repair": "no change needed",
+      "line": 8,
+      "quote": "outputs, and documentation. Coverage validation is P8, after implementation"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "It makes no new likelihood claim and states that interval coverage is not validated.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The listed phase order, disclaimer, estimates, and live G2 lease were checked against current local files and tool output.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external references are used.",
+  "date": "2026-10-20",
+  "calibration_status": "Not a calibrated style benchmark; related scope and documentation were reviewed.",
+  "interpretation": "perceived_style_not_authorship"
+}

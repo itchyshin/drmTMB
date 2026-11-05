@@ -1,4 +1,4 @@
-# 226 — One canonical reader learning path across 40 vignettes
+# 226 — One canonical reader learning path across 41 vignettes
 
 ## 1. The problem
 
@@ -35,11 +35,12 @@ links from any other vignette (`adding-families`, `convergence`,
 so they are reachable only by guessing a URL or scrolling the reference
 index.
 
-The synchronized placement table below now contains 40 vignettes after the
+The synchronized placement table below now contains 41 vignettes after the
 location-scale tutorial was split into two shorter parts, the first-week
 interval and bivariate non-Gaussian routes were added, the comparator
 article was placed under stage 5, and the temporal random-effect tutorial
-and its development-only phylogenetic OU companion were added to stage 4.
+and its development-only phylogenetic OU companion were added to stage 4,
+and the predictor-dependent group-SD tutorial was added to stage 3.
 
 ## 2. The canonical sequence
 
@@ -87,7 +88,7 @@ that document the package's own internals rather than how to use it.
 
 ## 3. The full placement table
 
-40 rows. Role legend: **tutorial** = worked biological example with fitted
+41 rows. Role legend: **tutorial** = worked biological example with fitted
 output and interpretation; **guide** = orientation/reference, no full worked
 analysis; **route-chooser** = helps the reader pick a family or syntax
 before fitting; **specialist** = correct placement is deliberately outside
@@ -105,6 +106,7 @@ path.
 | 5 | `model-map` | 2. Choose your family | route-chooser | "What can I fit today?" status map; the reader consults it while deciding which family/syntax combination is actually implemented. |
 | 6 | `location-scale` | 3. Interpretation tutorials | tutorial | Part 1 of the Gaussian variance sequence: `mu` and residual `sigma` interpretation with a biological example. |
 | 6a | `location-scale-scale` | 3. Interpretation tutorials | tutorial | Part 2 of the Gaussian variance sequence: personality and sex-specific repeatability from `sigma` plus `sd(individual)`, followed by a short phylogenetic `sd(group, level = "phylogenetic")` extension. |
+| 6b | `predictor-dependent-random-sd` | 3. Interpretation tutorials | tutorial | Part 3 of the variance sequence: lets the group-level SD itself depend on a predictor with `sd(group) ~ x`, and separates it from residual `sigma`; read after `location-scale-scale`. Point estimates only, no interval calibration. |
 | 7 | `robust-student` | 3. Interpretation tutorials | tutorial | Student-t shape-parameter (`nu`) worked tutorial for robust continuous responses. |
 | 8 | `count-nbinom2` | 3. Interpretation tutorials | tutorial | NB2 count worked tutorial, including zero-inflation (`zi`). |
 | 9 | `proportion-beta-binomial` | 3. Interpretation tutorials | tutorial | Beta, beta-binomial, and zero-one-beta worked tutorial for bounded/proportion responses. |

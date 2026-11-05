@@ -1,0 +1,10 @@
+{
+  "source_capsule_sha256": "ede274abff60b948a296a9d09f259249535a8172aaec738f700eeafb5096190e",
+  "job_id": "65660299",
+  "account": "def-snakagaw_cpu",
+  "node": "fc30468",
+  "elapsed": "00:02:00",
+  "max_rss_kib": 2778456,
+  "job_directory": "/home/snakagaw/hsq_work/drmtmb-general-sd-native-20261017-01",
+  "scope": "one predeclared original feasibility seed; not calibration"
+}

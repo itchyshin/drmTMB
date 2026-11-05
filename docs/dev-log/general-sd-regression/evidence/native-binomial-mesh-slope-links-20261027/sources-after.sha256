@@ -1,0 +1,6 @@
+574508bba6f6ea80264b05725deb600aa0573ed7a9519692010dc5802a455a84  R/drmTMB.R
+788a13e598f5fac762159ae6b7e380040b52e24853bb5e4d9b62ca01d34dcaf4  src/drmTMB.cpp
+17c2a811fdc0079a7b95e4e3541b818e8085051900e3405b11f14d31e6b3d684  R/methods.R
+0dba5cc7830b088a96b8dae3914b6cb4a7fbf73b235282f407848c50402881f5  R/random-effect-scale-formulas.R
+f84297b7fabe505dde7aacaff0e66b02a8d5be44d9c3ca76769d122df8774240  R/formula-markers.R
+5e2e941eb0bf1e2905cb0ae3fb836a6e970754bdc2c1dea4b7e3f281c470bbd6  tests/testthat/test-binomial-mesh-sd-regression.R
