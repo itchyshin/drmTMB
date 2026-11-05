@@ -1,0 +1,122 @@
+┌ Info: stored-loglik gap
+│   label = "relmat intercept"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "relmat intercept"
+└   gap_unpinned = -1.1368683772161603e-13
+┌ Info: dense Laplace vs fitter nll at theta_hat
+│   dense = 414.396781555707
+│   nll = 414.3967815557066
+└   diff = 3.979039320256561e-13
+┌ Info: stored-loglik gap
+│   label = "relmat intercept, se = true"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "relmat intercept, se = true"
+└   gap_unpinned = 1.1368683772161603e-13
+┌ Info: stored-loglik gap
+│   label = "relmat slope"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "relmat slope"
+└   gap_unpinned = 0.0
+┌ Warning: drm: `A` has no labels, so its rows and columns are taken to be the levels of `g` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+└ @ DRModels ~/.codex/worktrees/sd-article-ml-julia/DRM.jl/src/input_validation.jl:396
+┌ Info: stored-loglik gap
+│   label = "animal intercept (A)"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "animal intercept (A)"
+└   gap_unpinned = -1.1368683772161603e-13
+┌ Info: stored-loglik gap
+│   label = "animal intercept (Ainv)"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "animal intercept (Ainv)"
+└   gap_unpinned = -1.1368683772161603e-13
+┌ Info: stored-loglik gap
+│   label = "animal slope"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "animal slope"
+└   gap_unpinned = 0.0
+┌ Warning: drm: `coords` has no labels, so its rows are taken to be the levels of `g` in order of first appearance in the data. Pass `ids = …` (the site label of each row of `coords`), or `coords` as a Dict keyed by site label, to match `coords` by label instead.
+└ @ DRModels ~/.codex/worktrees/sd-article-ml-julia/DRM.jl/src/input_validation.jl:438
+┌ Info: stored-loglik gap
+│   label = "spatial slope"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "spatial slope"
+└   gap_unpinned = -2.3419488570652902e-11
+┌ Info: stored-loglik gap
+│   label = "Poisson animal SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Poisson animal SD"
+└   gap_unpinned = 0.0
+┌ Info: stored-loglik gap
+│   label = "Gamma animal SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Gamma animal SD"
+└   gap_unpinned = -1.5148771126405336e-11
+┌ Info: stored-loglik gap
+│   label = "Gamma animal intercept+slope SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Gamma animal intercept+slope SD"
+└   gap_unpinned = -3.0127011996228248e-12
+┌ Info: stored-loglik gap
+│   label = "Binomial animal SD (related)"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial animal SD (related)"
+└   gap_unpinned = 5.684341886080802e-14
+┌ Info: stored-loglik gap
+│   label = "Binomial animal q2"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial animal q2"
+└   gap_unpinned = -2.849503744073445e-9
+┌ Info: stored-loglik gap
+│   label = "Binomial animal + IID SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial animal + IID SD"
+└   gap_unpinned = 2.2737367544323206e-12
+┌ Info: stored-loglik gap
+│   label = "Binomial relmat + IID SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial relmat + IID SD"
+└   gap_unpinned = 4.058620106661692e-11
+┌ Warning: drm (Binomial SD regression): a scale parameter ended at a clamp inside the likelihood. Past the clamp the objective is flat, so the reported value is the clamp, not an estimate, and its standard error is not meaningful (DRModels.jl #959). g random-effect log SD at its lower clamp -12.0 (fitted range -15.78 to -0.6945). Consider rescaling the response, a simpler scale model, or `marginal = :Laplace` (unclamped) where available.
+└ @ DRModels ~/.codex/worktrees/sd-article-ml-julia/DRM.jl/src/boundary_diagnostics.jl:175
+┌ Info: stored-loglik gap
+│   label = "Binomial crossed SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial crossed SD"
+└   gap_unpinned = 2.8421709430404007e-12
+┌ Warning: drm: this tree's maximum tip height is 2.5, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.581139 = sqrt(2.5) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/2.5 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/.codex/worktrees/sd-article-ml-julia/DRM.jl/src/sparse_phy.jl:751
+┌ Info: stored-loglik gap
+│   label = "Binomial phylo SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial phylo SD"
+└   gap_unpinned = 0.0
+┌ Info: stored-loglik gap
+│   label = "Binomial phylo-interaction SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial phylo-interaction SD"
+└   gap_unpinned = 5.684341886080802e-14
+┌ Info: stored-loglik gap
+│   label = "Binomial mesh SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial mesh SD"
+└   gap_unpinned = 5.684341886080802e-14
+Test Summary:                               | Pass  Total     Time
+stored loglik is the objective at theta_hat |   38     38  1m14.9s

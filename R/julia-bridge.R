@@ -10049,14 +10049,20 @@ drm_julia_conditional_structured_fitted <- function(object, model_type) {
       i = "Expected {length(population)} finite per-row values for model type {.val {model_type}}; got {length(eta_re)}."
     ))
   }
-  eta <- switch(
-    link,
-    identity = population,
-    log = log(population),
-    logit = stats::qlogis(population),
-    probit = stats::qnorm(population),
-    cloglog = log(-log1p(-population))
-  ) + eta_re
+  # Population probabilities may round to a boundary (or log-link means
+  # overflow). Retained coefficients preserve the fixed link predictor.
+  eta0 <- if (is.data.frame(object$data) && !is.null(object$coefficients$mu)) {
+    drm_julia_predict_fixed_eta(object, "mu", object$data, "stored")$eta
+  } else {
+    switch(link,
+      identity = population, log = log(population),
+      logit = stats::qlogis(population), probit = stats::qnorm(population),
+      cloglog = log(-log1p(-population)))
+  }
+  if (length(eta0) != length(eta_re)) {
+    cli::cli_abort("The structured conditional payload does not match the stored prediction rows.")
+  }
+  eta <- eta0 + eta_re
   switch(
     link,
     identity = eta,
@@ -10131,6 +10137,47 @@ fitted.drmTMB_julia <- function(object, ...) {
   out
 }
 
+# Use the retained response for qualified structured fits. Recovering it as
+# residual + population mean loses small responses when that mean is huge.
+# Older payload-only objects keep their existing residual-rebasing fallback.
+drm_julia_structured_retained_response <- function(object) {
+  if (!is.list(object$conditional_structured) ||
+      !identical(object$conditional_structured$kind, "structured_eta_re_v1") ||
+      !is.data.frame(object$data) || !is.list(object$formula$entries)) {
+    return(NULL)
+  }
+  entry <- drm_julia_predict_entry(object, "mu")
+  response <- entry$response
+  if (!is.character(response) || length(response) != 1L ||
+      is.na(response) || !nzchar(response)) {
+    return(NULL)
+  }
+  columns <- drm_julia_expand_response_columns(response)
+  if (!(length(columns) %in% 1:2) ||
+      !all(columns %in% names(object$data))) {
+    return(NULL)
+  }
+  y <- if (length(columns) == 2L) {
+    cbind(object$data[[columns[[1L]]]], object$data[[columns[[2L]]]])
+  } else {
+    object$data[[columns[[1L]]]]
+  }
+  # Missing-response and legacy response encodings retain their previous path.
+  if (anyNA(y)) return(NULL)
+  model_type <- drm_julia_predict_model_object(object)$model$model_type
+  if (identical(model_type, "binomial")) {
+    prepared <- prepare_binomial_response(y, response)
+    y <- prepared$successes / prepared$trials
+  } else if (!is.numeric(y) || !is.null(dim(y))) {
+    return(NULL)
+  }
+  if (length(y) != length(object$fitted)) {
+    cli::cli_abort("The retained response does not match the structured prediction rows.")
+  }
+  names(y) <- names(object$residuals)
+  y
+}
+
 #' @export
 residuals.drmTMB_julia <- function(object, type = c("response"), ...) {
   match.arg(type)
@@ -10138,9 +10185,11 @@ residuals.drmTMB_julia <- function(object, type = c("response"), ...) {
   if (is.null(out)) {
     return(object$residuals)
   }
-  # The bridge response residual is y - fitted_bridge, so y is recovered
-  # without a stored response and the residual is re-based on the documented
-  # fitted value.
+  response <- drm_julia_structured_retained_response(object)
+  if (!is.null(response)) {
+    return(response - out)
+  }
+  # Older payload-only objects recover y from their bridge residual and mean.
   object$residuals + object$fitted - out
 }
 
@@ -10574,9 +10623,13 @@ drm_strip_structured_terms <- function(rhs) {
 }
 
 # Apply the canonical R inverse link to a bridge linear predictor.  The native
-# link table, rather than `family$linkinv`, is required because `sigma`, atom,
-# shape, and correlation dpars need not share the response family's mean link.
+# link table handles scale, shape, atom and correlation parameters separately
+# from the response mean. Binomial mu retains its fitted response link.
 drm_julia_predict_response <- function(object, dpar, eta) {
+  if (identical(dpar, "mu") &&
+      identical(object$model$model_type, "binomial")) {
+    return(stats::make.link(object$family$link %||% "logit")$linkinv(eta))
+  }
   if (dpar %in% c("mu1", "mu2") && !is.null(object$families)) {
     tag <- object$families[[if (identical(dpar, "mu1")) 1L else 2L]]
     return(drm_julia_tag_linkinv(tag)(eta))
@@ -10965,11 +11018,14 @@ drm_julia_reconstruct_trials <- function(object, newdata) {
 #' are available; it does not make a general engine-parity claim.
 #'
 #' With `newdata = NULL`, `predict()` reconstructs a fixed-effect stored-data
-#' prediction, except for a validated Gaussian ordinary mean payload. The earned
-#' conditional routes are one scalar intercept or slope, one correlated
+#' prediction, except for validated ordinary Gaussian or structured mean
+#' payloads. Structured payloads cover Gaussian, Poisson, NB2, Gamma, and
+#' Binomial fits whose Julia fitter exports a per-row conditional field.
+#' Ordinary Gaussian conditional routes are one scalar intercept or slope, one correlated
 #' intercept-and-slope component, or scalar components with distinct grouping
 #' variables. It refuses repeated groups, multiple correlated components, wider
-#' slopes, scale random effects, and structured routes. With
+#' slopes, and scale random effects. Structured fits without a valid retained
+#' conditional field are also refused. With
 #' `newdata` supplied, it returns a **population-level
 #' fixed-effect** prediction (`RE = 0`) from `X %*% beta`, using the training
 #' data to preserve factor contrasts and column order. `type = "link"` returns
@@ -11101,6 +11157,22 @@ predict.drmTMB_julia <- function(
   }
 
   entry <- drm_julia_predict_entry(object, dpar)
+  payload <- object$conditional_structured
+  if (identical(dpar, "mu") && length(entry$structured) > 0L &&
+      is.list(payload) && identical(payload$kind, "structured_eta_re_v1")) {
+    # Validate the same exported per-row field used by fitted(), then build
+    # the link predictor directly to avoid inverting rounded probabilities.
+    drm_julia_conditional_structured_fitted(object, object$model$model_type)
+    fixed <- drm_julia_predict_fixed_eta(object, dpar, object$data, "stored")
+    if (length(payload$eta_re) != length(fixed$eta)) {
+      cli::cli_abort("The structured conditional payload does not match the stored prediction rows.")
+    }
+    eta <- fixed$eta + payload$eta_re
+    if (identical(type, "link")) {
+      return(eta)
+    }
+    return(drm_julia_predict_response(object, dpar, eta))
+  }
   component_spec <- drm_julia_conditional_gaussian_components_spec(
     object$formula, object$model$model_type
   )

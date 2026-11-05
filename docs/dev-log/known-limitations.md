@@ -43,16 +43,45 @@ warns and keeps the population-level value. Still the population-level value, so
 different from `engine = "tmb"`: other structured fields fitted without an `sd(id, level = ...)` formula (measured
 2026-11-03 on Gaussian and Poisson `relmat(1 | id, K = K)` and Poisson `animal(1 | id, A = A)`,
 relative gaps 0.84 to 0.89), phylogenetic fields, Binomial routes with a structured field plus an
-ordinary `(1 | g)` effect, `mesh` and crossed routes, the Gamma animal
-intercept-plus-slope route, and `predict()` on stored rows for every Julia fit (which
-therefore no longer equals `fitted()` on the changed routes). Coefficients and the
-log-likelihood were never affected.
+ordinary `(1 | g)` effect, `mesh` and crossed routes, and the Gamma animal
+intercept-plus-slope route. Coefficients and the log-likelihood were never affected.
+
+Update (2026-11-04, ML-first article lane, pending integration): stored-row
+`predict(dpar = "mu")` now uses validated exported structured fields on the
+Gaussian, Poisson, NB2, Gamma and Binomial routes above. Link predictions include
+the fitted field contribution; response predictions apply the fitted family link.
+Ordinary Gaussian conditional prediction was already available and retains its
+separate validated payload path. A random-effect route without a valid retained
+conditional payload is refused by stored `predict()`, rather than presented as a
+conditional result. Explicit `newdata` remains fixed-effect prediction with random
+effects set to zero, including for training rows passed explicitly. Binomial
+`mu` response predictions now honor the fitted logit, probit or cloglog link on
+both stored structured and explicit-newdata paths. Conditional `fitted()` now
+rebuilds its fixed link predictor from retained coefficients when available, so
+rounded Binomial population probabilities or an overflowing population mean do
+not erase a cancelling structured contribution. Qualified structured response
+residuals use the retained observed response, avoiding cancellation when rebasing
+from a very large population mean. Older payload-only objects keep their prior
+fallback. This does not add conditional newdata extrapolation, conditional
+standard errors or direct-Julia fitted output.
 
 Julia ZeroOneBeta iid slope SD fits (`(0 + x | id)` with `sd(id, coef = "x") ~ z`) on
 boundary-heavy data can stop in the standard-error step with "matrix contains Infs or
 NaNs" when an interior response is extremely close to 0 or 1 (about 1e-56 on two
 measured seeds, 2026-11-03, batch 34). The point estimates converge; the standard
 errors are not returned.
+
+Update (2026-11-04): current-source probes of those two unchanged boundary-heavy
+fixtures had mixed outcomes. Seed 20261409, minimum interior response about
+`2.58e-56`, returned coefficients and convergence code zero; its standard-error
+quality and gradient were not independently verified. Seed 20261412, minimum
+interior response about `1.55e-311`, threw in the standard-error Hessian. No current
+point-convergence claim follows from that failed public call. These probes neither
+clip the responses nor establish a general repair. The preceding both-seed failure
+and point-convergence account describes the historical 3 November measurement.
+The predecessor and accepted frozen-source reruns each repeated the same mixed
+outcomes; all six attempts across the three batches are retained. See
+`general-sd-regression/gap-reproduction-20261104.tsv` for the complete accounting.
 
 Read this ledger together with
 `docs/design/168-r-julia-finish-capability-matrix.md`; when a status boundary

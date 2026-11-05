@@ -1,7 +1,12 @@
 test_that("nlme extractor methods dispatch in a fresh R process", {
-  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
-  result <- callr::r(function(pkg) {
-    suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+  pkg <- getNamespaceInfo(asNamespace("drmTMB"), "path")
+  dev <- pkgload::is_dev_package("drmTMB")
+  result <- callr::r(function(pkg, dev) {
+    if (dev) {
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+    } else {
+      loadNamespace("drmTMB", lib.loc = dirname(pkg))
+    }
     coefficients <- list(mu = c(`(Intercept)` = 0.25, slope = -0.4))
     fits <- list(
       structure(list(coefficients = coefficients), class = "drmTMB"),
@@ -18,7 +23,7 @@ test_that("nlme extractor methods dispatch in a fresh R process", {
         structure(list(random_effects = random_effects), class = "drmTMB")
       )
     )
-  }, args = list(pkg = pkg), error = "error")
+  }, args = list(pkg = pkg, dev = dev), error = "error")
 
   expected_coef <- list(mu = c(`(Intercept)` = 0.25, slope = -0.4))
   expected_re <- list(mu = list(values = c(group_a = 0.1)))
