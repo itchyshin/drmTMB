@@ -66,6 +66,8 @@ navbar:
           href: articles/drmTMB.html
         - text: When variance carries signal, Part 1
           href: articles/location-scale.html
+        - text: Regularize selected fixed effects
+          href: articles/fixed-effect-priors.html
         - text: When variance carries signal, Part 2
           href: articles/location-scale-scale.html
         - text: When group variation changes with a predictor
@@ -181,6 +183,8 @@ reference:
       - drm_validate_complete_predictors
       - drm_phylo_penalty
       - drm_phylo_penalty_sweep
+      - drm_priors
+      - drm_resolve_priors
       - native_reader_contracts
       - check_drm
       - convergence_status
@@ -316,6 +320,7 @@ articles:
       - articles/model-workflow
       - articles/distributional-outputs-and-adequacy
       - convergence
+      - articles/fixed-effect-priors
       - large-data
       - articles/figure-gallery
   - title: How should I represent related individuals, species, or sites?

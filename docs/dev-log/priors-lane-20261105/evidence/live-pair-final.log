@@ -1,0 +1,19 @@
+ℹ `engine = "julia"` is experimental: it fits only the families and routes
+  listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a
+  drop-in replacement for the default `engine = "tmb"`.
+ℹ This notice is shown once per R session.
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.10.10 at location /home/snakagaw/hsq_work/julia-1.10.10/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+gaussian-mu-sigma  COEF_MAX_ABS  1.225686e-13  LOGLIK_ABS  4.440892e-16  PRIOR_ABS  3.996803e-15  ESTIMATORS  MAP MAP 
+binomial-partial  COEF_MAX_ABS  1.334211e-13  LOGLIK_ABS  1.776357e-15  PRIOR_ABS  2.88658e-15  ESTIMATORS  MAP MAP 
+gaussian-zero-ridge  COEF_MAX_ABS  2.027811e-11  LOGLIK_ABS  6.661338e-16  PRIOR_ABS  0  ESTIMATORS  ML ML 
+gaussian-factor-interaction  COEF_MAX_ABS  4.298095e-11  LOGLIK_ABS  7.105427e-15  PRIOR_ABS  0  ESTIMATORS  MAP MAP 
+gaussian-no-intercept-factor  COEF_MAX_ABS  1.833267e-11  LOGLIK_ABS  1.064038e-12  PRIOR_ABS  1.067368e-12  ESTIMATORS  MAP MAP 
+LIVE_PRIOR_PAIR_PASS
+Julia exit.
+  Activating project at `~/hsq_work/drm-priors-20261105-01a1ad0b/julia-src`
+┌ Warning: Binomial prior leaves some coefficients unpenalized; a finite optimum requires every separating direction to be regularized. Check convergence and sensitivity.
+└ @ DRModels ~/hsq_work/drm-priors-20261105-01a1ad0b/julia-src/src/binomial.jl:385

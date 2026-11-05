@@ -36,6 +36,10 @@ print.drmTMB <- function(x, ...) {
   if (!is.null(x$estimator)) {
     cli::cli_text("  estimator: {x$estimator}")
   }
+  if (drm_has_fixed_priors(x)) {
+    cli::cli_text("  fixed-effect priors: penalized/MAP; logLik is the data likelihood")
+    cli::cli_text("  covariance: local penalized-Hessian curvature; confidence intervals are not implemented")
+  }
   if (!is.null(x$penalty)) {
     cli::cli_text(
       "  penalty: phylogenetic PC-prior (MAP); logLik shown is unpenalized"
@@ -2731,6 +2735,9 @@ drm_ic_guarded_fit <- function(o) {
 drm_warn_information_criterion <- function(fits, what) {
   fits <- fits[vapply(fits, drm_ic_guarded_fit, logical(1L))]
   drm_fits <- fits
+  if (any(vapply(fits, drm_has_fixed_priors, logical(1)))) {
+    cli::cli_abort("{what} is not implemented for fixed-effect prior fits; effective degrees of freedom are not defined.")
+  }
   estimators <- vapply(
     fits,
     function(o) if (is.null(o$estimator)) "ML" else o$estimator,
@@ -4596,6 +4603,7 @@ summary.drmTMB <- function(
   validate_summary_conf_int(conf.int)
   if (isTRUE(conf.int)) {
     drm_abort_mspl_inference(object, "summary(conf.int = TRUE)")
+    drm_abort_fixed_prior_inference(object, "summary confidence intervals")
   }
   if (
     conf.int &&
@@ -4746,6 +4754,7 @@ summary.drmTMB <- function(
     confint = ci
   )
   out$temporal_parameters_point_only <- drm_has_temporal_mu(object)
+  if (drm_has_fixed_priors(object)) out$covariance_interpretation <- object$covariance_interpretation
   class(out) <- "summary.drmTMB"
   out
 }
@@ -4753,6 +4762,9 @@ summary.drmTMB <- function(
 #' @export
 print.summary.drmTMB <- function(x, ...) {
   cli::cli_text("<summary.drmTMB>")
+  if (!is.null(x$covariance_interpretation)) {
+    cli::cli_text("covariance: local penalized-Hessian curvature; confidence intervals are not implemented")
+  }
   if (!is.null(x$estimator)) {
     estimator_detail <- if (identical(x$estimator, "REML") &&
         !is.null(x$estimator_exact) && !is.na(x$estimator_exact)) {

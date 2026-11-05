@@ -98080,3 +98080,7 @@ it is not a public interface, recovery, interval, calibration, or campaign claim
 | 2026-10-19 | man/*.Rd vs roxygen sync (#1571) | `document()` rewrote 39 Rd files before, 0 after; `test-man-roxygen-sync.R` fails pre-fix, passes post-fix | PASS | Claude |
 
 | 2026-10-22 | Direct Gaussian aggregation helper tests (#1598) | `devtools::test(filter = "gaussian-aggregation")`: PASS 136, FAIL 0, WARN 0, SKIP 0; PR test source SHA-256 unchanged | Focused tests PASS; full package and Julia engine checks not run | Codex |
+
+## 2026-11-05: first fixed-effect prior slice
+
+Normal priors and ridge penalties for ordinary Gaussian mu/sigma and binomial-logit fixed effects are implemented in an isolated lane. Independent numerical and affected-regression checks pass; final broad checks are still running. Detailed source pins, failures and limits are in [the per-file evidence log](check-log.d/2026-11-05-fixed-effect-priors.md). No merge, release or general parity/calibration claim is authorized.
