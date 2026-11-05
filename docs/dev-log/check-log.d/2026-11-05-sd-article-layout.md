@@ -1,0 +1,1 @@
+| 2026-11-05 | SD article layout | Rebuilt the article with current source; inspected Chromium renders at 390, 768, 1050, 1365 and 1920 CSS pixels; checked compact navigation at 992 through 1920 pixels | Local build only; published-page verification follows deployment | Codex |
