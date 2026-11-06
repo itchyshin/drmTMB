@@ -7,3 +7,5 @@ The Mac reference host reproduced all three stored summaries exactly at toleranc
 Integration with the newer Gamma change on main, final-head CI, merging and release remain pending. This bundle does not establish calibration, general package equivalence or complete-suite success at the candidate source.
 
 `SHA256SUMS` covers the files in this directory. The receipt itself is in the dated implementation-recovery directory recorded by the capability ledger.
+
+Final integrated-source evidence is recorded in [final-source/README.md](final-source/README.md).
