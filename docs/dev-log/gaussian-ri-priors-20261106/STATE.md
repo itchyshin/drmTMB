@@ -29,3 +29,5 @@ Both branches are pushed. Draft PRs are open: [drmTMB #1681](https://github.com/
 The four pre-existing dirty configuration files retain their recorded hashes and remain outside commits. PR1651 remains open at `1bf51e2d61bd1ce0a2fb3fad914a9888544af491`. R main advanced independently; no reconciliation merge was performed. No version bump, merge, release or deployment occurred.
 
 Next: collect full-suite terminal results, investigate any failures, obtain receipt-level completion review, reconcile reports and check-log entries, commit only owned evidence/documents, and finish PR checks. G5 and G6 remain open.
+
+Final R qualification: package check exit0 with one report-only spelling NOTE;42125 test expectations passed with0 failures,117 warnings and696 skips. Source manifest passed, and source-tree tests passed26516 expectations with0 failures,14 warnings and6 skips. Raw receipts are in guarded-R-full/. The current capability receipt was recertified exactly on its Mac reference host; see c17-recertification/. Julia shard8 and CI qualification remain pending.
