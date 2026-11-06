@@ -27,21 +27,23 @@ its conditional response spread from the scale of its latent group effects.
 For a binary response, the group effect shifts the log odds:
 
 \[
-Y_{ig} \mid b_g \sim \operatorname{Bernoulli}\!\left[
-  \operatorname{logit}^{-1}(\beta_0 + \beta_1 x_{ig} + b_g)
-\right], \qquad
-b_g \sim \operatorname{Normal}(0, s_g^2), \qquad
-\log(s_g) = \alpha_0 + \alpha_1 w_g.
+\begin{aligned}
+Y_{ig} \mid b_g &\sim \operatorname{Bernoulli}(p_{ig}), \\
+\operatorname{logit}(p_{ig}) &= \beta_0 + \beta_1 x_{ig} + b_g, \\
+b_g &\sim \operatorname{Normal}(0, s_g^2), \\
+\log(s_g) &= \alpha_0 + \alpha_1 w_g.
+\end{aligned}
 \]
 
 For counts, the same random effect shifts the log expected count:
 
 \[
-Y_{ig} \mid b_g \sim \operatorname{Poisson}\!\left[
-  \exp(\beta_0 + \beta_1 x_{ig} + b_g)
-\right], \qquad
-b_g \sim \operatorname{Normal}(0, s_g^2), \qquad
-\log(s_g) = \alpha_0 + \alpha_1 w_g.
+\begin{aligned}
+Y_{ig} \mid b_g &\sim \operatorname{Poisson}(\mu_{ig}), \\
+\log(\mu_{ig}) &= \beta_0 + \beta_1 x_{ig} + b_g, \\
+b_g &\sim \operatorname{Normal}(0, s_g^2), \\
+\log(s_g) &= \alpha_0 + \alpha_1 w_g.
+\end{aligned}
 \]
 
 Here, `x` varies among observations and `w` is constant within each group.
@@ -216,9 +218,12 @@ the log-mean scale, rather than the original response scale.
 A supplied matrix `K` lets latent group effects covary. Write
 
 \[
-u \sim \operatorname{Normal}(0,K), \qquad b=D_su, \qquad
-D_s=\operatorname{diag}(s_1,\ldots,s_G), \qquad
-\log s_g=\alpha_0+\alpha_1z_g.
+\begin{aligned}
+u &\sim \operatorname{Normal}(0,K), \\
+b &= D_su, \\
+D_s &= \operatorname{diag}(s_1,\ldots,s_G), \\
+\log s_g &= \alpha_0+\alpha_1z_g.
+\end{aligned}
 \]
 
 Then `Cov(b) = D_s K D_s`, and the marginal SD of the group effect is
@@ -245,10 +250,13 @@ population effects changes along a continuous environmental predictor `z`.
 The observation-level predictor `x` changes the conditional mean.
 
 \[
-Y_{ig}\mid b_g\sim\operatorname{Gamma}\left(
-\text{shape}=1/\sigma^2,\ \text{rate}=1/(\sigma^2\mu_{ig})\right),
-\quad \log\mu_{ig}=0.4+0.3x_{ig}+b_g,
-\quad \log s_g=\log(0.55)+0.4z_g.
+\begin{aligned}
+Y_{ig}\mid b_g &\sim \operatorname{Gamma}(\text{shape},\text{rate}), \\
+\text{shape} &= 1/\sigma^2, \\
+\text{rate} &= 1/(\sigma^2\mu_{ig}), \\
+\log\mu_{ig} &= 0.4+0.3x_{ig}+b_g, \\
+\log s_g &= \log(0.55)+0.4z_g.
+\end{aligned}
 \]
 
 The matrix has a non-unit diagonal. Its row names identify groups, while the
