@@ -1,0 +1,3 @@
+## 2026-11-05: first fixed-effect prior slice
+
+Normal priors and ridge penalties for ordinary Gaussian mu/sigma and binomial-logit fixed effects are implemented in an isolated lane. Independent numerical and affected-regression checks pass; broad R residuals reproduce on baseline. The original Julia run stopped at 90 minutes; its unchanged-source follow-up passed all eight default-suite shards and 554 selected files. Detailed source pins, failures and limits are in [the per-file evidence log](check-log.d/2026-11-05-fixed-effect-priors.md). No merge, release or general parity/calibration claim is authorized.

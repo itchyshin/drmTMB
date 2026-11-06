@@ -1,5 +1,13 @@
 # After task: first fixed-effect prior slice
 
+> Follow-up on 5 November 2026: the same Julia source a30e3472 passed the
+> complete default Julia 1.10.10 suite in eight native shards, 554/554 selected
+> files, in 2h11m31s. The original 90-minute run remains incomplete. See
+> DRModels.jl `docs/dev-log/after-task/2026-11-05-prior-timeout-validation.md`
+> and the receipt in `priors-lane-20261105/julia-full-validation-followup/`.
+> R implementation and tests are unchanged by this documentation update.
+
+
 ## 1. Goal
 
 Help applied users regularize separation and unstable fixed coefficients in drmTMB and DRModels.jl, with explicit distributional-parameter, coefficient and intercept selection. Shinichi approved implementation and isolated overlap on 5 November 2026. Merge, release and publication remain unauthorized.
@@ -30,7 +38,7 @@ Five live bridge fixtures pass coefficient, data-likelihood, prior, total-object
 
 The full R run on predecessor source `c53a03570e8263f8c75e2c95929d03f069b3c97d0694fed8cab5e7113cfbc28f` finished in 3,433 seconds with failures. It exposed the API and fixture omissions described below. Those checks pass after correction. The registry-path mismatch and both parallel bootstrap endpoint differences reproduce exactly on baseline `9fea3036791e9bd836e080d9297cd04b1b29c2f8` with the same optimized compiler and installed-test configuration. The differences are about 2e-13; existing identical-value assertions were retained.
 
-The final full Julia run reached its 90-minute limit and exited 124. It is incomplete, not a pass. Its source remains a30e3472 and the process group has no remaining members. The retained output contains passing partial summaries but cannot establish the unrun remainder. No full-suite success is claimed.
+The original full Julia run reached its 90-minute limit and exited 124. That run is incomplete. The later eight-shard default-suite pass is recorded in the follow-up note above. Its source remains a30e3472 and the process group has no remaining members. The retained output contains passing partial summaries but cannot establish the unrun remainder. No full-suite success is claimed for that original run.
 
 ## 6. Tests of the Tests
 
@@ -74,7 +82,7 @@ Bounded open-issue searches found no matching general fixed-coefficient-prior is
 
 This is a bounded fixed-effect slice. It does not admit other families, random effects, missing-data models, nonunit weights, REML/MSPL combinations, SD priors or posterior sampling. Partial priors do not guarantee a finite optimum in every unpenalized separating direction. The local Hessian is not a calibration study. The live bridge requires the documented host workaround in the tested environment. The full-site Julia docs failure is an existing example/environment limitation.
 
-Current state: the approved fixed-effect slice is implemented and its bounded acceptance checks are complete. The full Julia suite remains incomplete at its declared limit; no full-suite success is claimed. Local implementation checkpoints are R `5aea077bf` and Julia `07b25dc4f2ecb3a1f01ea322ffb0eb64c6584338`; a separate evidence commit records this closeout. No push, merge or release occurred. Read `docs/dev-log/priors-lane-20261105/EXECUTION.md` before resuming after a context boundary.
+Current state: the approved fixed-effect slice is implemented and its bounded acceptance checks are complete. The original 90-minute Julia run remains incomplete. The later unchanged-source default suite passed in eight shards, as recorded in the follow-up note above. Local implementation checkpoints are R `5aea077bf` and Julia `07b25dc4f2ecb3a1f01ea322ffb0eb64c6584338`; a separate evidence commit records this closeout. No push, merge or release occurred. Read `docs/dev-log/priors-lane-20261105/EXECUTION.md` before resuming after a context boundary.
 
 
 ## 12. Cross-Product Coverage

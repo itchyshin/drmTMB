@@ -1,6 +1,6 @@
 # Fixed-effect normal priors and ridge penalties
 
-Status: implementation and bounded validation complete; bounded slice complete; broad R failures classified and Julia full run incomplete. No push, merge, release or submission.
+Status: first fixed-effect prior slice complete. R broad residuals reproduce on baseline; the Julia default-suite follow-up passed all eight shards. No push, merge, release or submission.
 
 R isolated branch: `codex/fixed-effect-priors-20261105`, base `9fea3036791e9bd836e080d9297cd04b1b29c2f8`. Aggregate SHA-256 of R/native source and the two prior test files: `6495656050f6f5a958c0151bad8730c124dbff55aea6fa39e5d133f01596da5c` (76 files, manifest in `docs/dev-log/priors-lane-20261105/evidence/`). Julia base: `24ac6ca925a5c0f870b345b18804c9e592d0d275`; final aggregate source SHA-256 `a30e347285f925af2e128ed6350fafe4d6b9035668444606bfa2fcea13e26653`. Aggregate hashes are not Git commit IDs.
 
@@ -12,6 +12,6 @@ The R tutorial executes on the candidate and renders to HTML. `pkgdown::check_pk
 
 The full R run on predecessor hash c53a0357 finished in 3,433 seconds with failures. It exposed the new argument-position, raw TMB fixture and documentation omissions; corrected targeted modules pass. The remaining registry-path and two parallel endpoint failures reproduce exactly on the isolated optimized baseline. The refreshed R package check has zero errors and two unbuilt-vignette warnings.
 
-The final full Julia run reached its 90-minute limit and exited 124; its process group is gone. It is incomplete, not a pass. No full-suite pass is claimed.
+The original full Julia run reached its 90-minute limit and exited 124; that run remains incomplete. The later unchanged-source default suite passed all eight shards and 554 selected files; see [the follow-up](2026-11-05-julia-prior-full-validation.md).
 
 Noether and the independent integration reviewer returned scoped READY after fixes. Pat returned scoped READY with a final prose/code alignment suggestion, now incorporated. See `docs/dev-log/after-task/2026-11-05-fixed-effect-priors.md` for failures, test mutations and source-specific limits. The main log contains only a pointer to this record; existing cleanup and PR #1651 receipt entries are unchanged.
