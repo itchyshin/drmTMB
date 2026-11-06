@@ -973,6 +973,9 @@ parity or calibrated intervals.
   compare each input across Julia and native TMB and compare `A` with `Ainv`.
   Profile/bootstrap refitting for this route and interval calibration remain
   unverified. The existing Poisson animal-intercept `Ainv` route is unchanged.
+* `vcov()` no longer tells you to refit with `drm_control(se = TRUE)` when
+  `se = TRUE` was already set and the Hessian is not positive definite; it now
+  points to a boundary or aliased/collinear column and `check_drm()` (#1470).
 
 ## New features
 

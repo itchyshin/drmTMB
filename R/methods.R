@@ -2451,22 +2451,34 @@ vcov.drmTMB <- function(object, ..., type = "model", robust = FALSE) {
   out
 }
 
+# Next-step bullet for an unavailable sdreport covariance. Only suggest
+# `se = TRUE` when it was actually skipped; a non-PD Hessian under `se = TRUE`
+# usually means a boundary or aliased/collinear column (#1470).
+drm_sdreport_unavailable_bullets <- function(object) {
+  msg <- drm_sdreport_unavailable_message(object)
+  if (!is.null(object$sdr) && !isTRUE(object$sdr$pdHess) &&
+      !identical(drm_uncertainty_status(object), "skipped")) {
+    return(c(
+      msg,
+      "i" = "{.code se = TRUE} was already set; the Hessian is not positive definite, which usually means a boundary or an aliased/collinear column. See {.fn check_drm}."
+    ))
+  }
+  c(
+    msg,
+    "i" = "Refit with {.code control = drm_control(se = TRUE)} for {.fn vcov}, Wald standard errors, or Wald confidence intervals."
+  )
+}
+
 drm_sdreport_cov_fixed <- function(object) {
   if (!drm_has_sdreport_covariance(object)) {
-    cli::cli_abort(c(
-      drm_sdreport_unavailable_message(object),
-      "i" = "Refit with {.code control = drm_control(se = TRUE)} for {.fn vcov}, Wald standard errors, or Wald confidence intervals."
-    ))
+    cli::cli_abort(drm_sdreport_unavailable_bullets(object))
   }
   object$sdr$cov.fixed
 }
 
 drm_sdreport_cov_coefficients <- function(object) {
   if (!drm_has_sdreport_covariance(object)) {
-    cli::cli_abort(c(
-      drm_sdreport_unavailable_message(object),
-      "i" = "Refit with {.code control = drm_control(se = TRUE)} for {.fn vcov}, Wald standard errors, or Wald confidence intervals."
-    ))
+    cli::cli_abort(drm_sdreport_unavailable_bullets(object))
   }
   if (isTRUE(object$REML)) {
     if (!is.matrix(object$sdr$cov)) {
