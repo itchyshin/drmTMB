@@ -16,7 +16,8 @@ drmTMB(
   REML = FALSE,
   penalty = NULL,
   estimator = c("ml", "mspl"),
-  ...
+  ...,
+  priors = NULL
 )
 }
 \arguments{
@@ -255,6 +256,16 @@ has not admitted one. When the
 information matrix is not positive definite the standard errors are \code{NA}
 with a \code{drmTMB_mspl_wald_unavailable} warning rather than a fabricated
 number.}
+
+\item{priors}{Optional fixed-effect normal priors or ridge penalties created
+by \code{\link[=drm_priors]{drm_priors()}}. This initial slice supports fixed-effect Gaussian
+identity and binomial logit models with complete data and unit weights.
+Select distributional parameters and coefficient columns explicitly;
+\code{\link[=drm_resolve_priors]{drm_resolve_priors()}} previews those selections. Active priors produce
+penalized/MAP point estimates. Covariance is local penalized-Hessian
+curvature, not calibrated sampling covariance. Confidence intervals and
+likelihood comparisons are not implemented. Cannot be combined with
+\code{REML}, \code{estimator = "mspl"}, or \code{penalty}.}
 
 \item{...}{Reserved for future model options.}
 }

@@ -1,0 +1,212 @@
+loaded package: /home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b/r-exact-baseline-9fea303/lib/drmTMB
+phase18-structured-workflow-registry: ........1................................................................................................................................................................................................................................................................................................................................................
+profile-parallel: ...................23...........S
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. multicore is refused on Windows with a pointer to cluster ('test-profile-parallel.R:234:3') - Reason: .Platform$OS.type == "windows" is not TRUE
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-phase18-structured-workflow-registry.R:126:3'): Phase 18 st
+Expected `normalizePath(path, winslash = "/", mustWork = TRUE)` to equal `expected`.
+Differences:
+actual vs expected
+- "/home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b/r-exact-baseline-9fea303/lib/drmTMB/sim/registry/phase18_structured_workflow_registry.csv"
++ "/home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b/r-exact-baseline-9fea303/src/inst/sim/registry/phase18_structured_workflow_registry.csv"
+
+
+── 2. Failure ('test-profile-parallel.R:179:3'): bootstrap cluster refits match
+Expected `cluster$lower` to be identical to `serial$lower`.
+Differences:
+  `actual`: 0.35586586260097
+`expected`: 0.35586586260117
+
+
+── 3. Failure ('test-profile-parallel.R:180:3'): bootstrap cluster refits match
+Expected `cluster$upper` to be identical to `serial$upper`.
+Differences:
+  `actual`: 0.40602424221729
+`expected`: 0.40602424221710
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+I believe in you!
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+                                          file
+1  test-phase18-structured-workflow-registry.R
+2  test-phase18-structured-workflow-registry.R
+3  test-phase18-structured-workflow-registry.R
+4  test-phase18-structured-workflow-registry.R
+5  test-phase18-structured-workflow-registry.R
+6  test-phase18-structured-workflow-registry.R
+7  test-phase18-structured-workflow-registry.R
+8  test-phase18-structured-workflow-registry.R
+9  test-phase18-structured-workflow-registry.R
+10 test-phase18-structured-workflow-registry.R
+11 test-phase18-structured-workflow-registry.R
+12 test-phase18-structured-workflow-registry.R
+13 test-phase18-structured-workflow-registry.R
+14 test-phase18-structured-workflow-registry.R
+15 test-phase18-structured-workflow-registry.R
+16 test-phase18-structured-workflow-registry.R
+17 test-phase18-structured-workflow-registry.R
+18 test-phase18-structured-workflow-registry.R
+19 test-phase18-structured-workflow-registry.R
+20 test-phase18-structured-workflow-registry.R
+21 test-phase18-structured-workflow-registry.R
+22 test-phase18-structured-workflow-registry.R
+23 test-phase18-structured-workflow-registry.R
+24 test-phase18-structured-workflow-registry.R
+25 test-phase18-structured-workflow-registry.R
+26 test-phase18-structured-workflow-registry.R
+27 test-phase18-structured-workflow-registry.R
+28 test-phase18-structured-workflow-registry.R
+29 test-phase18-structured-workflow-registry.R
+30 test-phase18-structured-workflow-registry.R
+31 test-phase18-structured-workflow-registry.R
+32 test-phase18-structured-workflow-registry.R
+33 test-phase18-structured-workflow-registry.R
+34 test-phase18-structured-workflow-registry.R
+35 test-phase18-structured-workflow-registry.R
+36 test-phase18-structured-workflow-registry.R
+37 test-phase18-structured-workflow-registry.R
+38 test-phase18-structured-workflow-registry.R
+39 test-phase18-structured-workflow-registry.R
+40 test-phase18-structured-workflow-registry.R
+41 test-phase18-structured-workflow-registry.R
+42 test-phase18-structured-workflow-registry.R
+43 test-phase18-structured-workflow-registry.R
+44 test-phase18-structured-workflow-registry.R
+45 test-phase18-structured-workflow-registry.R
+46 test-phase18-structured-workflow-registry.R
+47                     test-profile-parallel.R
+48                     test-profile-parallel.R
+49                     test-profile-parallel.R
+50                     test-profile-parallel.R
+51                     test-profile-parallel.R
+52                     test-profile-parallel.R
+53                     test-profile-parallel.R
+54                     test-profile-parallel.R
+55                     test-profile-parallel.R
+56                     test-profile-parallel.R
+57                     test-profile-parallel.R
+58                     test-profile-parallel.R
+                                                                            test
+1                   Phase 18 structured workflow registry validates current rows
+2              Phase 18 structured workflow registry path prefers checkout files
+3             Phase 18 structured workflow registry summarizes and filters lanes
+4              Phase 18 structured workflow registry rejects duplicated lane IDs
+5           Phase 18 structured workflow registry rejects blocked task promotion
+6            Phase 18 structured workflow registry rejects unknown Actions tasks
+7                 Phase 18 structured workflow registry uses runner task choices
+8                      Phase 18 random-slope workflow plan returns admitted rows
+9        Phase 18 random-slope workflow plan dispatches the bivariate slope task
+10           Phase 18 random-slope workflow plan dispatches the q4 location task
+11           Phase 18 random-slope workflow plan dispatches the q6 location task
+12              Phase 18 random-slope workflow plan no longer has needed targets
+13               Phase 18 random-slope wrapper target plan is empty after wiring
+14                     Phase 18 random-slope workflow plan excludes blocked rows
+15       Phase 18 random-slope operating-characteristic plan is a planning table
+16 Phase 18 random-slope operating-characteristic plan can omit source-test rows
+17                   Phase 18 random-slope registry preflight reports gated rows
+18       Phase 18 q8 endpoint gate is artifact-ready but diagnostic before power
+19                         Phase 18 random-slope registry preflight fails closed
+20               Phase 18 random-slope registry preflight formats dry-run output
+21               Phase 18 structured-dependence workflow plan returns audit rows
+22           Phase 18 structured-dependence plan separates wrapper and task rows
+23                        Phase 18 structured-dependence plan can omit held rows
+24                     Phase 18 structured-dependence plan excludes blocked rows
+25            Phase 18 correlation-block workflow plan separates interval states
+26             Phase 18 correlation-block plan protects residual and q4 policies
+27                    Phase 18 correlation-block plan routes q2 status artifacts
+28                  Phase 18 correlation-block plan dispatches the q2 scale task
+29           Phase 18 correlation-block plan dispatches the q2 scale-slope tasks
+30                      Phase 18 correlation-block plan can omit diagnostic rows
+31                         Phase 18 correlation-block plan excludes blocked rows
+32                   Phase 18 correlation-block wrapper target plan is read-only
+33               Phase 18 correlation-block wrapper target plan labels q2 and q4
+34           Phase 18 correlation-block wrapper target plan can omit diagnostics
+35            Phase 18 correlation-block wrapper target plan is empty when wired
+36              Phase 18 family-surface workflow plan keeps blocked rows visible
+37            Phase 18 family-surface plan separates admitted and blocked states
+38                            Phase 18 family-surface plan marks smoke-only rows
+39                            Phase 18 family-surface plan can omit blocked rows
+40             Phase 18 family-surface status tables summarize registry statuses
+41                   Phase 18 family-surface status tables can omit blocked rows
+42                        Phase 18 family-surface status tables are empty-shaped
+43                   Phase 18 structured workflow bundle returns all plan tables
+44                    Phase 18 structured workflow bundle counts dispatch states
+45                    Phase 18 structured workflow dry-run formats bundle status
+46                       Phase 18 structured workflow dry-run prints plan status
+47                 profile() multicore curves are identical to the serial curves
+48                                    profile() validates its parallel arguments
+49            a dead forked worker is a classed error, not a dropped profile row
+50                       a dead forked mclapply child is a classed profile error
+51              a dead bootstrap worker is a recorded failure, not a dropped row
+52                            multicore worker errors abort like the serial path
+53              profile() and confint() cluster results match the serial results
+54                              bootstrap cluster refits match the serial refits
+55                    drm_control() validates the multi-start parallel arguments
+56                   parallel multi-start reproduces the serial fixed-effect fit
+57         parallel multi-start matches the serial random-effect fit numerically
+58                     multicore is refused on Windows with a pointer to cluster
+   failed error warning skipped passed
+1       0 FALSE       0   FALSE      6
+2       1 FALSE       0   FALSE      2
+3       0 FALSE       0   FALSE      6
+4       0 FALSE       0   FALSE      3
+5       0 FALSE       0   FALSE      3
+6       0 FALSE       0   FALSE      3
+7       0 FALSE       0   FALSE      3
+8       0 FALSE       0   FALSE      7
+9       0 FALSE       0   FALSE     14
+10      0 FALSE       0   FALSE      7
+11      0 FALSE       0   FALSE      7
+12      0 FALSE       0   FALSE     16
+13      0 FALSE       0   FALSE      4
+14      0 FALSE       0   FALSE      4
+15      0 FALSE       0   FALSE     11
+16      0 FALSE       0   FALSE      5
+17      0 FALSE       0   FALSE     18
+18      0 FALSE       0   FALSE     18
+19      0 FALSE       0   FALSE      3
+20      0 FALSE       0   FALSE     10
+21      0 FALSE       0   FALSE      9
+22      0 FALSE       0   FALSE     12
+23      0 FALSE       0   FALSE      4
+24      0 FALSE       0   FALSE      4
+25      0 FALSE       0   FALSE      8
+26      0 FALSE       0   FALSE      9
+27      0 FALSE       0   FALSE      6
+28      0 FALSE       0   FALSE      8
+29      0 FALSE       0   FALSE      9
+30      0 FALSE       0   FALSE      5
+31      0 FALSE       0   FALSE      4
+32      0 FALSE       0   FALSE      8
+33      0 FALSE       0   FALSE      5
+34      0 FALSE       0   FALSE      5
+35      0 FALSE       0   FALSE      5
+36      0 FALSE       0   FALSE      8
+37      0 FALSE       0   FALSE     10
+38      0 FALSE       0   FALSE      5
+39      0 FALSE       0   FALSE      4
+40      0 FALSE       0   FALSE     17
+41      0 FALSE       0   FALSE      6
+42      0 FALSE       0   FALSE      8
+43      0 FALSE       0   FALSE      9
+44      0 FALSE       0   FALSE     14
+45      0 FALSE       0   FALSE      7
+46      0 FALSE       0   FALSE      5
+47      0 FALSE       0   FALSE      1
+48      0 FALSE       0   FALSE      2
+49      0 FALSE       0   FALSE      2
+50      0 FALSE       0   FALSE      1
+51      0 FALSE       0   FALSE      8
+52      0 FALSE       0   FALSE      2
+53      0 FALSE       0   FALSE      3
+54      2 FALSE       0   FALSE      1
+55      0 FALSE       0   FALSE      5
+56      0 FALSE       0   FALSE      2
+57      0 FALSE       0   FALSE      3
+58      0 FALSE       0    TRUE      0
+Error: sum(s$failed) == 0L is not TRUE
+Execution halted

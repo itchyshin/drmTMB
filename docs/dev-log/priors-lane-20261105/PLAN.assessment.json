@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "f213631ed66119d3be883d11e372345993494bc90a0e3417f2a01b6ffe6deb20",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex parent",
+  "method": "Separate post-draft read against inspected immutable source spans and primary documentation; scientific implementation untested.",
+  "genre": "Technical design proposal",
+  "coverage": "Whole PLAN.md",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "Specific equations and bounded source claims; the long gate table and repeated guard language retain procedural stiffness.",
+  "confidence": "medium",
+  "confidence_reason": "Self-review, without a human reader assessment.",
+  "examples": [
+    {
+      "location": "Outcome and outside judge",
+      "cue": "States the user outcome first",
+      "impact": "Connects selectors to the practical purpose",
+      "repair": "no change needed",
+      "line": 16,
+      "quote": "Users should be able to stabilize separation and weakly estimated coefficients while seeing exactly which coefficients receive a penalty. The expert check starts from the data likelihood and final design matrices, not optimizer convergence alone. Exact Gaussian ridge solutions, direct binomial likelihood calculations, finite-difference derivatives and matched glmmTMB examples provide external numerical checks. R and Julia agreeing with each other is an additional check, never the only oracle."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "unknown",
+  "science_gate_reason": "Algebra checked by inspection; independent numerical validation and target-measure review remain open.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Repository/status assertions compared with recorded git outputs and exact source reads; no implemented capability claimed.",
+  "references_gate": "pass",
+  "references_gate_reason": "Official glmmTMB and tmbstan documentation checked for stated comparator and sampling semantics.",
+  "date": "2026-11-05",
+  "calibration_status": "No held-out calibration examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,49 @@
+{
+  "r_source": "8998056d75b9e1fe9d66264cb4ae35e025535e21",
+  "julia_source": "727ac08590749aef2165337e1e6391b0894f6d6c",
+  "host": "Totoro",
+  "r_git_bundle_sha256": "8419c8b7829b993f2308786209a4f47711cda858543f60901eed7dca366e879d",
+  "r_source_test_blobs_verified": 999,
+  "julia_source_test_blobs_verified": 950,
+  "julia_manifest_sha256": "629b83c48a3d8041652d25959bfbde0c9f7e67e86a713382069b05a4a71551fa",
+  "r_targeted": {
+    "tests": 96,
+    "passing_expectations": 517,
+    "failures": 0,
+    "errors": 0,
+    "warnings": 1,
+    "skips": 1,
+    "warning": "Wald interval near a variance-component or correlation boundary.",
+    "skip": "Development-attachment beta() case skipped; installed attachment is covered by test_check()."
+  },
+  "r_negative_controls": "6/6 rejected",
+  "julia_prior_tests": "82/82 passed",
+  "live_pair": {
+    "fixtures": 5,
+    "observed_maxima": {
+      "coef_max_abs": 4.29809521307334e-11,
+      "loglik_abs": 1.06403774680075e-12,
+      "prior_abs": 1.06736841587463e-12,
+      "objective_abs": 7.105427357601e-15,
+      "prior_gradient_abs": 1.08013598065781e-12
+    },
+    "unchanged_limits": {
+      "coef_max_abs": 1e-06,
+      "loglik_abs": 1e-08,
+      "prior_abs": 1e-08,
+      "objective_abs": 1e-08,
+      "prior_gradient_abs": 1e-06
+    },
+    "pair_verifier_negative_controls": "2/2 rejected"
+  },
+  "juliacall_startup": {
+    "unconfigured_attempts": [
+      139,
+      139
+    ],
+    "qualified_launch_environment": "LD_PRELOAD=/home/snakagaw/hsq_work/julia-1.10.10/lib/julia/libunwind.so.8.0.1",
+    "repeat_exit": 0,
+    "scope": "R process launch only"
+  },
+  "scope": "These five fixtures and targeted checks do not establish full-suite success, calibration, or a release decision."
+}

@@ -1,0 +1,48 @@
+{
+  "broad_source": "c53a03570e8263f8c75e2c95929d03f069b3c97d0694fed8cab5e7113cfbc28f",
+  "closeout_source": "6495656050f6f5a958c0151bad8730c124dbff55aea6fa39e5d133f01596da5c",
+  "broad_exit": 1,
+  "broad_elapsed_seconds": 3433,
+  "failures": [
+    {
+      "module": "071-four-fixture-summary",
+      "count": 1,
+      "classification": "staging Git metadata missing; exact-baseline metadata restored, entire module rerun passed"
+    },
+    {
+      "module": "drmTMB-unused-dots",
+      "count": 1,
+      "classification": "introduced API-position omission; named-only priors restores old unnamed-dot behavior; rerun passed"
+    },
+    {
+      "module": "function-map-cheatsheet",
+      "count": 4,
+      "classification": "introduced export-catalog omission; added four exports; all checks including printable assets passed locally"
+    },
+    {
+      "module": "phase18-structured-workflow-registry",
+      "count": 1,
+      "classification": "reproduced exactly on isolated baseline 9fea303 under installed-test mode; assertion unchanged"
+    },
+    {
+      "module": "phylo-utils",
+      "count": 6,
+      "classification": "raw TMB fixtures omitted new mandatory empty prior vectors; updated fixture, entire 22-test module passed"
+    },
+    {
+      "module": "profile-parallel",
+      "count": 2,
+      "classification": "both endpoint identity failures reproduced exactly on isolated optimized baseline; approximately 2e-13; tolerance unchanged"
+    },
+    {
+      "module": "reader-vignette-contracts",
+      "count": 3,
+      "classification": "introduced article inventory omission; manifest row and counts corrected; rerun passed"
+    }
+  ],
+  "limitations": [
+    "No full-suite pass claimed.",
+    "138 live Julia skips in broad R run; five explicit new prior bridge fixtures exercised separately.",
+    "Final signature-only R change rechecked with focused, affected, relevant integration tests and package check; whole full suite was not repeated."
+  ]
+}

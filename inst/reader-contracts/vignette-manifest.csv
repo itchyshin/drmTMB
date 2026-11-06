@@ -40,3 +40,4 @@ structural-dependence.Rmd,reader,,
 temporal-random-effects.Rmd,reader,,
 testing-likelihoods.Rmd,contributor,model,"Contributor likelihood checks reconstruct values from stored model matrices and response data."
 which-scale.Rmd,reader,,
+fixed-effect-priors.Rmd,reader,,

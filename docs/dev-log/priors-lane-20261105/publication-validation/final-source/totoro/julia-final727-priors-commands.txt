@@ -1,0 +1,2 @@
+Julia source 727ac08590749aef2165337e1e6391b0894f6d6c
+julia --project=. test/test_fixed_priors.jl

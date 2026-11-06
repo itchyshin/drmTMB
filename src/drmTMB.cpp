@@ -744,6 +744,11 @@ Type objective_function<Type>::operator()()
   // Retained as R-side validated mesh metadata. The normalized density below
   // obtains the log determinant from Q directly.
   DATA_SCALAR(log_det_Q_mesh_spatial);
+  DATA_IVECTOR(prior_beta_block);
+  DATA_IVECTOR(prior_beta_index);
+  DATA_VECTOR(prior_beta_mean);
+  DATA_VECTOR(prior_beta_sd);
+  DATA_IVECTOR(prior_beta_normalized);
   DATA_INTEGER(penalize_phylo);
   DATA_VECTOR(phylo_sd_penalty_rate);
   DATA_VECTOR(phylo_cor_penalty_sd);
@@ -7198,5 +7203,18 @@ Type objective_function<Type>::operator()()
   }
   nll = CppAD::CondExpGt(
     sd_logscale_overflow_guard_hit, Type(0.0), Type(R_PosInf), nll);
+  Type fixed_prior_penalty = Type(0.0);
+  for (int i = 0; i < prior_beta_index.size(); ++i) {
+    Type beta = prior_beta_block(i) == 0 ? beta_mu(prior_beta_index(i)) :
+      beta_sigma(prior_beta_index(i));
+    if (prior_beta_normalized(i) == 1) {
+      fixed_prior_penalty -= dnorm(beta, prior_beta_mean(i), prior_beta_sd(i), true);
+    } else {
+      Type z = (beta - prior_beta_mean(i)) / prior_beta_sd(i);
+      fixed_prior_penalty += Type(0.5) * z * z;
+    }
+  }
+  nll += fixed_prior_penalty;
+  REPORT(fixed_prior_penalty);
   return nll;
 }
