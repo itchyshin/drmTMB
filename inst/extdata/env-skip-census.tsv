@@ -583,8 +583,8 @@ test-julia-slope-nongaussian.R	engine-drm-jl	environment	skips	1
 test-julia-slope-nongaussian.R	suggests-package	environment	runs	3
 test-julia-structured-inference.R	suggests-package	environment	runs	1
 test-julia-structured-slope-sd-oracle-b31jo.R	suggests-package	environment	runs	1
-test-julia-structured.R	engine-drm-jl	environment	skips	2
-test-julia-structured.R	suggests-package	environment	runs	3
+test-julia-structured.R	engine-drm-jl	environment	skips	4
+test-julia-structured.R	suggests-package	environment	runs	6
 test-julia-student-sd.R	engine-drm-jl	environment	skips	4
 test-julia-student-sd.R	suggests-package	environment	runs	2
 test-julia-tmb-parity.R	engine-drm-jl	environment	skips	10
@@ -673,7 +673,8 @@ test-optimizer-tolerance.R	suggests-package	environment	runs	1
 test-parity-fenced-boundaries.R	build-premise	build	skips	2
 test-parity-honesty.R	build-premise	build	skips	13
 test-parity-matrix.R	build-premise	build	skips	3
-test-parity-matrix.R	engine-drm-jl	environment	skips	2
+test-parity-matrix.R	engine-drm-jl	environment	skips	3
+test-parity-matrix.R	runtime-conditional	runtime	depends	1
 test-parity-pin.R	build-premise	build	skips	2
 test-parity-pin.R	external-tool	environment	runs	1
 test-parity-scoreboard.R	build-premise	build	skips	13

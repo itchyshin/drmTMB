@@ -1101,6 +1101,12 @@ parity or calibrated intervals.
 
 ## Bug fixes
 
+* `engine = "julia"` Gaussian `spatial(1 | site, coords = coords)` now matches
+  per-site `coords` rows to sites by row name, as `engine = "tmb"` does. The
+  bridge used to drop the row names, so labelled coordinates in any order other
+  than first appearance in `data` were paired with the wrong sites. A live
+  regression test now checks that a labelled `relmat()` K in sorted or
+  shuffled order gives the native logLik through the bridge (#1512).
 * Fit warnings and `check_drm()` now report active direct latent-SD clamps
   separately from residual-scale clamps. Start checks include direct SD
   regression coefficients. Residual-scale accessors keep their existing scope.
