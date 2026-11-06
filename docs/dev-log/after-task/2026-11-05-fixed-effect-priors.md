@@ -1,5 +1,12 @@
 # After task: first fixed-effect prior slice
 
+> Publication follow-up: Shinichi subsequently authorized branch pushes, PRs,
+> merging and GitHub 0.8.0 releases for both packages. PR #1674 closes #1675
+> after its required checks pass. CRAN submission and Julia General registration
+> remain outside this task. The earlier authorization and publication-state
+> statements below describe the historical checkpoint. Current integration
+> evidence is in `docs/dev-log/priors-lane-20261105/publication-validation/`.
+
 > Follow-up on 5 November 2026: the same Julia source a30e3472 passed the
 > complete default Julia 1.10.10 suite in eight native shards, 554/554 selected
 > files, in 2h11m31s. The original 90-minute run remains incomplete. See
