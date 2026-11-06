@@ -138,19 +138,24 @@ test_that("level = on an already sd_phylo* spelling aborts as redundant", {
   )
 })
 
-test_that("reserved levels abort as not-yet-implemented, not as unsupported values", {
-  expect_error(
-    bf(sd(id, level = "spatial") ~ x),
-    "planned but not implemented"
+test_that("spatial level parses to a distinct structured SD target", {
+  formula <- bf(sd(id, level = "spatial") ~ x)
+  expect_identical(formula$entries[[1L]]$dpar, "sd_spatial(id)")
+  expect_identical(
+    drmTMB:::parse_sd_lhs(formula$entries[[1L]]$lhs)$level,
+    "spatial"
   )
-  expect_error(
-    bf(sd(id, level = "animal") ~ x),
-    "planned but not implemented"
+})
+
+test_that("animal level parses to a distinct structured SD target", {
+  formula <- bf(sd(id, level = "animal") ~ z)
+  expect_identical(formula$entries[[1L]]$dpar, "sd_animal(id)")
+  expect_identical(
+    drmTMB:::parse_sd_lhs(formula$entries[[1L]]$lhs)$level,
+    "animal"
   )
-  expect_error(
-    bf(sd(id, level = "relmat") ~ x),
-    "planned but not implemented"
-  )
+  relmat <- bf(sd(id, level = "relmat") ~ z)
+  expect_identical(relmat$entries[[1L]]$dpar, "sd_relmat(id)")
 })
 
 # --- Deprecation --------------------------------------------------------------
@@ -182,7 +187,7 @@ test_that("sd(species, level = 'phylogenetic') fits identically to sd_phylo(spec
 
   fit_new <- drmTMB(
     bf(
-      y ~ x + phylo(1 | species, tree = tree),
+      y ~ x + phylo(1 | p | species, tree = tree),
       sigma ~ 1,
       sd(species, level = "phylogenetic") ~ z_species
     ),
@@ -192,7 +197,7 @@ test_that("sd(species, level = 'phylogenetic') fits identically to sd_phylo(spec
   )
   fit_old <- suppressWarnings(drmTMB(
     bf(
-      y ~ x + phylo(1 | species, tree = tree),
+      y ~ x + phylo(1 | p | species, tree = tree),
       sigma ~ 1,
       sd_phylo(species) ~ z_species
     ),
@@ -200,9 +205,68 @@ test_that("sd(species, level = 'phylogenetic') fits identically to sd_phylo(spec
     data = dat,
     control = list(eval.max = 1000, iter.max = 1000)
   ))
+  fit_selected <- drmTMB(
+    bf(
+      y ~ x + phylo(1 | p | species, tree = tree),
+      sigma ~ 1,
+      sd(
+        species,
+        level = "phylogenetic",
+        dpar = "mu",
+        coef = "(Intercept)",
+        block = "p"
+      ) ~ z_species
+    ),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 1000, iter.max = 1000)
+  )
 
   expect_equal(fit_new$opt$convergence, 0)
   expect_equal(fit_old$opt$convergence, 0)
+  expect_equal(fit_selected$opt$convergence, 0)
+  expect_equal(
+    as.numeric(logLik(fit_selected)),
+    as.numeric(logLik(fit_new)),
+    tolerance = 1e-7
+  )
+  expect_equal(coef(fit_selected, "sd_phylo(species)"),
+               coef(fit_new, "sd_phylo(species)"),
+               tolerance = 1e-7)
+
+  expect_error(
+    drmTMB(
+      bf(
+        y ~ x + phylo(1 | p | species, tree = tree),
+        sigma ~ 1,
+        sd(species, level = "phylogenetic", dpar = "sigma") ~ z_species
+      ),
+      family = gaussian(), data = dat
+    ),
+    "own endpoint of the structured term only"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        y ~ x + phylo(1 | p | species, tree = tree),
+        sigma ~ 1,
+        sd(species, level = "phylogenetic", coef = "x") ~ z_species
+      ),
+      family = gaussian(), data = dat
+    ),
+    "does not match the available coefficient"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        y ~ x + phylo(1 | p | species, tree = tree),
+        sigma ~ 1,
+        sd(species, level = "phylogenetic", block = "wrong") ~ z_species
+      ),
+      family = gaussian(), data = dat
+    ),
+    "does not match the available block"
+  )
 
   s_new <- summary(fit_new)
   s_old <- summary(fit_old)

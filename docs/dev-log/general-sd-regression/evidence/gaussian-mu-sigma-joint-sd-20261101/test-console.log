@@ -1,0 +1,24 @@
+ℹ Testing drmTMB
+gaussian-mu-sigma-joint-sd: .............................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+
+=== COUNTS ===
+test_blocks: 4 
+expectations_passed: 29 
+failed: 0 
+errors: 0 
+skipped_blocks: 0 
+warnings: 0 
+                                                                     test nb
+1           Gaussian mu intercept and sigma slope each take an SD formula 16
+2       Gaussian mu intercept and sigma intercept each take an SD formula  6
+3 constant joint mu and sigma SD formulas match the existing two-term fit  5
+4    joint mu and sigma SD predictors must still be constant within group  2
+  passed failed skipped error warning
+1     16      0   FALSE FALSE       0
+2      6      0   FALSE FALSE       0
+3      5      0   FALSE FALSE       0
+4      2      0   FALSE FALSE       0
+EXIT_STATUS: 0 

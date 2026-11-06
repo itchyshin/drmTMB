@@ -1,0 +1,3 @@
+# 2026-10-24: Gaussian ordinary SD parity
+
+The candidate TMB and Julia engines passed a focused same-data ordinary Gaussian mean-intercept SD check. The R bridge test passed 14 assertions with one live Julia fit in 32.1 seconds. It checks signed recovery, coefficient and likelihood agreement, group-SD outputs, and reordered-row prediction. Two source-bound receipts now link the exact native and Julia candidate rows; evidence reconciliation passes with 43 receipt records linked to 34 of 19,118 candidate rows. This is one point/workflow cell and closes no programme gate. Full output coverage, slope and structured parity, and uncertainty calibration remain open. Report: `docs/dev-log/after-task/2026-10-24-gaussian-ordinary-sd-parity.md`.

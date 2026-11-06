@@ -1,0 +1,36 @@
+{
+  "purpose": "15-process contention timing; five repeats of the same three seeds",
+  "independent_replicates": false,
+  "registry_sha256": "ad8ab89bf433f010f24e42e1662c0b221708556aaacd522225706973308f6265",
+  "outer_cap_seconds": 120,
+  "elapsed_seconds": 13.222827506950125,
+  "interrupted": null,
+  "supervisors": [
+    {
+      "supervisor_pid": 2918229,
+      "returncode": 0,
+      "subset": "/home/snakagaw/hsq_work/drmtmb-general-sd-calibration-20261017-03/contention/repeat-01"
+    },
+    {
+      "supervisor_pid": 2918230,
+      "returncode": 0,
+      "subset": "/home/snakagaw/hsq_work/drmtmb-general-sd-calibration-20261017-03/contention/repeat-02"
+    },
+    {
+      "supervisor_pid": 2918231,
+      "returncode": 0,
+      "subset": "/home/snakagaw/hsq_work/drmtmb-general-sd-calibration-20261017-03/contention/repeat-03"
+    },
+    {
+      "supervisor_pid": 2918232,
+      "returncode": 0,
+      "subset": "/home/snakagaw/hsq_work/drmtmb-general-sd-calibration-20261017-03/contention/repeat-04"
+    },
+    {
+      "supervisor_pid": 2918233,
+      "returncode": 0,
+      "subset": "/home/snakagaw/hsq_work/drmtmb-general-sd-calibration-20261017-03/contention/repeat-05"
+    }
+  ],
+  "orchestrator_sha256": "725cd5efdc7ccf888536eb215f33524161a4604e38e4bf6cee73ed14e75a5f41"
+}

@@ -1,0 +1,60 @@
+--- /tmp/gamma-phylo-R-before.R	2026-10-27 23:58:55
++++ R/drmTMB.R	2026-10-27 23:59:50
+@@ -6091,8 +6091,13 @@
+     mu_structured_term,
+     family_label = "Gamma",
+     preserve_gamma_relmat_slope = TRUE,
+-    allow_gamma_animal_slope_only = TRUE
++    allow_gamma_animal_slope_only = TRUE,
++    allow_gamma_phylo_slope = TRUE
+   )
++  if (include_missing_response && !is.null(mu_phylo$term) &&
++      structured_term_is_intercept_one_slope(mu_phylo$term)) {
++    cli::cli_abort("Gamma phylogenetic intercept-slope regression requires complete responses.")
++  }
+   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+   mu_entry$rhs <- mu_re$rhs
+   validate_positive_continuous_mu_random_terms(mu_re$terms, "{.fn Gamma}")
+@@ -6310,7 +6315,7 @@
+   sd_mu <- build_sd_mu_structure(sd_mu_entries, sd_mu_targets, re_mu, data_model)
+   allow_gamma_structured_q2_sd <-
+     !is.null(mu_structured_term) &&
+-    structured_mu_type(mu_structured_term) %in% c("animal", "relmat") &&
++    structured_mu_type(mu_structured_term) %in% c("animal", "relmat", "phylo") &&
+     length(mu_structured_term$coef_names) == 2L &&
+     identical(mu_structured_term$coef_names[[1L]], "(Intercept)") &&
+     length(sd_phylo_entries) > 0L
+@@ -13540,12 +13545,23 @@
+   term,
+   family_label,
+   preserve_gamma_relmat_slope = FALSE,
+-  allow_gamma_animal_slope_only = FALSE
++  allow_gamma_animal_slope_only = FALSE,
++  allow_gamma_phylo_slope = FALSE
+ ) {
+   if (is.null(term)) {
+     return(invisible(NULL))
+   }
+   marker <- structured_mu_type(term)
++  if (isTRUE(allow_gamma_phylo_slope) && identical(family_label, "Gamma") &&
++      identical(marker, "phylo") && structured_term_is_intercept_one_slope(term)) {
++    if (!is.null(term$covariance_label)) {
++      cli::cli_abort(c(
++        "Gamma phylogenetic mu effects support only unlabelled independent coefficients.",
++        "i" = "Remove the covariance label from {.code phylo(1 + x | id, tree = tree)}."
++      ))
++    }
++    return(invisible(NULL))
++  }
+   if (
+     isTRUE(preserve_gamma_relmat_slope) &&
+       identical(family_label, "Gamma") &&
+@@ -24358,7 +24374,7 @@
+   sd_phylo <- spec$random_scale$phylo
+   if (
+     ((identical(spec$model_type, "gamma") &&
+-        phylo_mu$type %in% c("animal", "relmat")) ||
++        phylo_mu$type %in% c("animal", "relmat", "phylo")) ||
+        (identical(spec$model_type, "beta") &&
+           (identical(phylo_mu$type, "phylo") ||
+            (phylo_mu$type %in% c("animal", "relmat") &&

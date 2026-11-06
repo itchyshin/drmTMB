@@ -1,0 +1,9 @@
+# Production launcher operational review
+
+**Verdict: GO for the bounded launcher ownership contract.** Review is against `tools/general-sd-regression/launch-native-calibration.py`, SHA-256 `43cb61b59777bc7d9b6c6e527e6dd17577b3fbd5ca70fc723239510d7130f6a9`, including the 120-second summary timeout. The earlier `90eb1a…` hash is stale after that timeout was added; refresh any separate launcher-hash receipt before use.
+
+A pure fake-job check passed both normal completion and direct SIGTERM. The successful case produced a zero-return supervisor receipt and reached the summary command. In the signal case, the launcher recorded `InterruptedError: signal 15`, returned failure, and reaped the fake supervisor. The receipt's launcher hash matched the reviewed source. No real calibration job or R fit was started.
+
+The launcher refuses an existing PID file and opens run and summary logs exclusively, so it cannot silently retry or overwrite a prior launch. It starts the campaign supervisor in a new session and handles SIGINT, SIGTERM, and SIGHUP. On interruption it terminates and waits for that supervisor; if the supervisor does not exit within five seconds, its fallback kills only recorded worker process groups whose parent PID matches that supervisor and whose process-group leader is the worker PID, then kills and waits for the supervisor itself. The underlying `run.py` likewise starts each worker in its own session and its signal cleanup kills and waits for owned worker groups. The campaign is capped at 3,600 seconds; the post-campaign summary has a 120-second timeout.
+
+The wrapper's fallback escalation path was inspected but was not forced by the fake SIGTERM check. The separate contention self-test exercises supervisor-owned worker cleanup. This review establishes wrapper ownership and bounded shutdown behavior only; it does not certify production calibration, campaign inputs, or authority to launch.

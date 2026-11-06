@@ -1,0 +1,13 @@
+APPROVAL REQUIRED binomial-selectors:S1
+    CHECK: OPENBLAS_NUM_THREADS=1 DRMTMB_SOURCE_ASSEMBLY=1 Rscript tools/general-sd-regression/run-source-tests.R tests/testthat/test-binomial-sd-target-selectors.R
+    EXPECT: SOURCE_ASSEMBLY_PASS
+    CWD: /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression
+    SHELL: /bin/sh
+    PATH: /Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/z3437171/.codex/tmp/arg0/codex-arg0emta88:/Users/z3437171/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/z3437171/.antigravity-ide/antigravity-ide/bin:/Users/z3437171/.antigravity/antigravity/bin:/Users/z3437171/miniconda3/bin:/Users/z3437171/miniconda3/condabin:/Users/z3437171/.pyenv/shims:/Users/z3437171/.juliaup/bin:/opt/local/bin:/opt/local/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/Library/Frameworks/Python.framework/Versions/3.13/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd...
+    APPROVED: /private/tmp/drmtmb-general-sd-approvals/46e8cb4b92245393e50aa3426e1f99f614372d355be21c21ace0590190e968b8.json
+  RUN  binomial-selectors:S1 shell=/bin/sh cwd=/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression PATH=/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/z3437171/.codex/tmp/arg0/codex-arg0emta88:/Users/z3437171/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/z3437171/.antigravity-ide/antigravity-ide/bin:/Users/z3437171/.antigravity/antigravity/bin:/Users/z3437171/miniconda3/bin:/Users/z3437171/miniconda3/condabin:/Users/z3437171/.pyenv/shims:/Users/z3437171/.juliaup/bin:/opt/local/bin:/opt/local/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/Library/Frameworks/Python.framework/Versions/3.13/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd...
+  PASS binomial-selectors:S1: Selectors resolve real scalar target identity and fail closed on ambiguity
+       exit=0; EXPECT=matched; output=SOURCE_ASSEMBLY_PASS | Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+binomial-selectors.md: 3 gates
+UNMET: 2 (met: 1, reran: 1, previously met reverified: 0)
+  binomial-selectors:S2, binomial-selectors:S3

@@ -1,0 +1,46 @@
+ℹ Testing drmTMB
+julia-gamma-sd: ....i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+.......................................1
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-julia-gamma-sd.R:297:3'): live Julia Gamma animal slope SD es
+Error: Error happens in Julia.
+drm_bridge: typed schema labels do not match fitted raw columns for `mu`
+Stacktrace:
+ [1] error(s::String)
+   @ Base ./error.jl:35
+ [2] _bridge_rendered_regression_blocks(fit::DRModels.DrmFit{DRModels.Gamma}, labels::DRModels._BridgeFormulaLabels)
+   @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl:2003
+ [3] _bridge_check_coef_labels_fidelity(fit::DRModels.DrmFit{DRModels.Gamma}, labels::DRModels._BridgeFormulaLabels, block_ranges::Vector{Pair{Symbol, UnitRange{Int64}}}, raw_names::Vector{String}, echoed::Vector{String})
+   @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl:2030
+ [4] _bridge_coef_vector(fit::DRModels.DrmFit{DRModels.Gamma}; labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any})
+   @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl:1818
+ [5] _bridge_coef_vector
+   @ ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl:1781 [inlined]
+ [6] _bridge_flatten(fit::DRModels.DrmFit{DRModels.Gamma}; family::String, newdata::Nothing, labels::DRModels._BridgeFormulaLabels, coef_labels::OrderedCollections.OrderedDict{Symbol, Any})
+   @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl:1637
+ [7] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Matrix{Float64}, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+   @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl:61
+ [8] drmTMB_drm_bridge_structured(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, K::Nothing, A::Matrix{Float64}, coords::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})
+   @ Main ./none:1
+ [9] docall(call1::Ptr{Nothing})
+   @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-julia-gamma-sd.R:297:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::drmTMB_julia_structured_bridge(...) at general-sd-regression/R/julia-bridge.R:685:5
+ 4.       └─drmTMB:::drm_julia_call_structured(...) at general-sd-regression/R/julia-bridge.R:8772:3
+ 5.         └─JuliaCall::julia_call(...) at general-sd-regression/R/julia-bridge.R:9065:3
+ 6.           └─julia$do.call(func_name, list(...), need_return, show_value)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 5 live tests ran; bridge glue was exercised in this configuration.
+Execution halted
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`

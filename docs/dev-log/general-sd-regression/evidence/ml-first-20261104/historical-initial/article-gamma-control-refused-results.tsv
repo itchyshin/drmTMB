@@ -1,0 +1,7 @@
+"engine"	"status"	"convergence"	"logLik"	"own_laplace"	"oracle_gap"	"alpha_intercept"	"alpha_z"	"sigma"	"true_one_unit_ratio"	"estimated_one_unit_ratio"	"elapsed_seconds"	"error"
+"tmb"	"pass"	"0"	-572.328865533066	-572.328865533046	-2.02362571144477e-11	-0.513535945742547	0.0704308471118106	0.49751129754218	1.49182469764127	1.07297036786524	2.17152214050293	""
+"julia"	"error"	NA	NA	NA	NA	NA	NA	NA	1.49182469764127	NA	0.186918020248413	"`engine = \"julia\"` structured models currently accept only default
+`control`.
+✖ Non-default `control` setting: \"se\".
+ℹ Use the native `engine = \"tmb\"` path for TMB optimizer, storage, sparse, or
+  aggregation controls."

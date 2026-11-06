@@ -1,0 +1,50 @@
+{
+  "evidence_id": "native-beta-animal-pedigree-q2-sd-20261027-m26",
+  "rerecord_of_evidence_id": "native-beta-animal-pedigree-q2-sd-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/receipt.json",
+  "git_head": "b718863e7319af143896614e823d44e488be0653",
+  "tree_state": "R/, src/ and the test file committed and unmodified at b718863e7; receipt re-recorded after the first record at e9c72ab3e",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"beta-animal-pedigree-q2-sd-regression\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-beta-animal-pedigree-q2-sd-regression.R",
+      "test_sha256": "6e47849a707cba724c613081ccdf52104c9317ccc425fe766889e6a0a56e6569",
+      "started_utc": "2026-11-02T15:23:42Z",
+      "ended_utc": "2026-11-02T15:25:43Z",
+      "exit_code": 0,
+      "expectations_passed": 32,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027-m26-3e5a45/test-console-rerun-b718863e7.log",
+      "console_log_sha256": "c4b744d488af95dcba7ff04351a1b5c463fe8c46920a972bc376c25bafe094c0"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027-m26-3e5a45/source-manifest.json",
+  "source_manifest_sha256": "195806f0d49ae0e221c93d31fb126d5a2e015a3d369a7cba8404c4020e5c857b",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Reviewer 2, 2026-11-02. Test builds a Henderson tabular A for the 96-animal pedigree by hand (no package builder), fits native Beta(logit) y ~ x + animal(1 + x | id, pedigree) with sd(id, coef = '(Intercept)') ~ z0 and sd(id, coef = 'x') ~ z1, and compares -logLik with an exact base-R Laplace oracle (two start points, analytic score and Hessian checked against finite differences at an off-mode probe, tol 1e-4) that integrates the unobserved ancestors; A-input and Ainv-input fits match the pedigree fit (1e-4). The linked row (animal numeric slope: intercept plus independent slope fields, pedigree) is exercised by the q2 fit with distinct SD formulas per coefficient. The test has no perturbation checks, so sensitivity was demonstrated in a scratch run on Totoro with the test's oracle function (no files edited): baseline nll difference 2e-8; swapped selector coefficient sets shift the oracle by 96.5; sign-flipped z0 by 65.7; reversed z1 by 25.9; A*2 by 9.2. Rerun 32/0/0 skips; manifest (70 files) has one mismatch, R/julia-bridge.R at HEAD (NB2 spatial slope only; not used by this native Beta fit). Does NOT establish: calibration or coverage; Julia parity; a pedigree with inbreeding (founders only here, so every diagonal of A is 1); a correlated intercept-slope block; the sensitivity checks live outside the test; any non-Beta family.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27",
+  "re_recorded": {
+    "at": "2026-11-02",
+    "reason": "source manifest listed R/julia-bridge.R (and for one id the env-skip census), which changed after the first record; test is native-only. Rerun at the new HEAD, manifest rehashed.",
+    "manifest_entries_that_differed": [
+      "R/julia-bridge.R"
+    ]
+  },
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-beta-animal-pedigree-q2-sd-regression.R",
+    "test_sha256": "6e47849a707cba724c613081ccdf52104c9317ccc425fe766889e6a0a56e6569",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T03:46:18Z",
+    "ended_utc": "2026-11-03T03:48:06Z",
+    "expectations_passed": 32,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027-m26-3e5a45/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "ddea611dc6b52af55f99f855c6347e17ca1e7220a7ae280e361eab84424de491",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

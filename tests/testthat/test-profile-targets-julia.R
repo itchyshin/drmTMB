@@ -239,8 +239,9 @@ drm_profile_targets_julia_lss_fixture <- function() {
     fitted = seq_len(6), residuals = rep(0.1, 6), sigma = rep(0.8, 6),
     corpairs = list()
   )
+  # `z` drives sd(species) ~ z, so it must be constant within each species.
   dat <- data.frame(
-    y = seq_len(6), x = seq_len(6), z = c(0.1, -0.2, 0.3, -0.4, 0.5, -0.6),
+    y = seq_len(6), x = seq_len(6), z = c(0.1, 0.1, -0.2, 0.3, 0.3, -0.4),
     species = paste0("sp_", c(1, 1, 2, 3, 3, 4))
   )
   form <- bf(

@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "fe5ed7457e6f362d47fb2c5edaee0e83ce02df932f37eeafbb2510d34aae2612",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Post-draft review against the exact test output, test source, and inspected open issue.",
+  "genre": "Technical after-task report",
+  "coverage": "Whole report, all sections.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report is concrete and scoped, with some necessary checklist-like structure.",
+  "confidence": "medium",
+  "confidence_reason": "The test output and test source were available for direct comparison; this is a brief internal report rather than a broad scientific narrative.",
+  "examples": [
+    {
+      "location": "Section 5, sentence 1",
+      "line": 23,
+      "quote": "3 live Julia bridge tests, 5 model fits.",
+      "cue": "Specific check result and denominator.",
+      "impact": "Lets a maintainer judge the scope of the smoke evidence quickly.",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The reported log-SD and tree-scale interpretations match the test construction and explicit scaling assertions; no new likelihood claim is made.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Test counts, failure cause, corrected oracle, warning, and issue state were checked against the live test output, source, and GitHub issue.",
+  "references_gate": "pass",
+  "references_gate_reason": "The only external reference is the directly inspected drmTMB issue #1551, and the report accurately limits what this test says about it.",
+  "date": "2026-10-20",
+  "calibration_status": "No style controls or reference examples were consulted for this task.",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,48 @@
+{
+  "evidence_id": "native-poisson-iid-structured-sd-20261101",
+  "note": "dirty shared candidate; hashes identify files as read at manifest-write time, after the fresh run (impl files shared with other agents; mtimes checked earlier than run start)",
+  "git_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "branch": "codex/general-sd-regression",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "949036ae0f57a78b1c9e57175539550b844222b504db73891c4efe2ebc3cb776"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "c56533272cf2b6e2085de0994ea132011e5cec51ac9cf4f8c5270cbd89f755dc"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "646bb79de06de281a9e522182465c1eb96f9b08489386abb1ed10ceb87b41014"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "2eb971378841edebc1bb3f217d3436bee47d0fe2a23727de7ceca236e9580600"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "8d42bc8c6e3a6140293f39e1abd85d6c777ee1856a937807e0e66657310f3cac"
+    },
+    {
+      "file": "tests/testthat/test-poisson-iid-structured-sd-regression.R",
+      "sha256": "bea50df7d03d66a4201245e88c5224bdbe8c38cbbe921b71abb52e218828eb91"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/native-poisson-iid-structured-sd-20261101/test-console.log",
+      "sha256": "93624d3836c3ab0d51ddc32f712469333a9fa05325e331252decde49e87e450c"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/native-poisson-iid-structured-sd-20261101/run_one.sh",
+      "sha256": "3568b4a7cc5e481d7a571d8f802693a6844a9e61abd55d8b687674f64a1d06bb"
+    }
+  ]
+}

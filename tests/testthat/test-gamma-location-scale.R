@@ -371,7 +371,7 @@ test_that("Gamma models reject unsupported or invalid inputs", {
       family = stats::Gamma(link = "log"),
       data = dat
     ),
-    "Random-effect scale formulae"
+    "Add an ordinary.*term to.*mu"
   )
   expect_error(
     drmTMB(

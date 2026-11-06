@@ -1,0 +1,26 @@
+{
+  "evidence_id": "julia-binomial-phylo-slope-sd-bridge-20261027-m26",
+  "rerecord_of_evidence_id": "julia-binomial-phylo-slope-sd-bridge-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"PATH=\"\"/Users/z3437171/.juliaup/bin:$PATH\"\" DRMODELS_JL_PATH=\"\"$PWD/../general-sd-julia\"\" DRM_JL_PATH=\"\"$PWD/../general-sd-julia\"\" DRMTMB_JULIA_TESTS=true NOT_CRAN=true JULIA_HOME=\"\"/Users/z3437171/.juliaup/bin\"\" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = \"\"julia-binomial-phylo-slope-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-phylo-slope-sd.R",
+      "test_sha256": "73517c3e23126ef2c1c3fc9c60a2051c2fcf17e2a02dd6cea3f857ff20d29e15",
+      "started_utc": "2026-11-02T13:20:22Z",
+      "ended_utc": "2026-11-02T13:21:35Z",
+      "exit_code": 0,
+      "expectations_passed": 30,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027-m26-6422ad/test-console-test-julia-binomial-phylo-slope-sd.log",
+      "console_log_sha256": "dd032edbfb58a800a0db0d50d8c21c8c4b57fb486845bb28c758b60c119a4a7a"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027-m26-6422ad/source-manifest.json",
+  "source_manifest_sha256": "e974e9b513a50c65fec4918f60238845be894f469b65393f9aae6625e7b35aa4",
+  "review_status": "unreviewed"
+}

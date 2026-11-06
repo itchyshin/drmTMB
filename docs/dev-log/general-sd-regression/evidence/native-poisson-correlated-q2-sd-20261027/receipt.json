@@ -1,0 +1,39 @@
+{
+  "evidence_id": "native-poisson-correlated-q2-sd-20261027",
+  "branch": "codex/general-sd-regression",
+  "head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "command": "Rscript -e 'devtools::test(filter = \"poisson-correlated-q2-sd\")'",
+  "exit_code": 0,
+  "expectations_passed": 13,
+  "seed": 20261027,
+  "design": {
+    "groups": 160,
+    "observations_per_group": 32,
+    "total_observations": 5120
+  },
+  "truth": {
+    "intercept_log_sd_slope": 0.4,
+    "slope_log_sd_slope": -0.35,
+    "correlation": 0.4
+  },
+  "pilot_estimates": {
+    "intercept_log_sd_slope": 0.5036,
+    "slope_log_sd_slope": -0.4135,
+    "correlation": 0.2188
+  },
+  "checks": [
+    "fit convergence",
+    "both coefficient-specific group SD outputs are present, finite, and named by their SD formulas",
+    "both log-SD slope estimates and the constant correlation recover within the test bounds",
+    "independent 20 by 20 two-dimensional Gauss-Hermite likelihood oracle agrees within 0.5 log-likelihood units",
+    "constant-SD formulas agree with the ordinary correlated Poisson likelihood within 1e-6",
+    "a correlated q3 ordinary Poisson request is refused before fitting"
+  ],
+  "limitations": [
+    "One fixed-seed synthetic recovery design; not interval-coverage validation.",
+    "Native R/TMB only; no Julia public-integration or parity claim.",
+    "Only one unlabelled ordinary q2 intercept-slope block is admitted; q3+, labelled, mixed, structured, and zero-inflated shapes remain outside this slice.",
+    "The overall family-by-random-effect programme remains incomplete."
+  ],
+  "test_log": "docs/dev-log/general-sd-regression/evidence/native-poisson-correlated-q2-sd-20261027/focused-test.log"
+}

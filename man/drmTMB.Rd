@@ -22,12 +22,12 @@ drmTMB(
 \arguments{
 \item{formula}{A \code{drm_formula} object created by \code{\link[=drm_formula]{drm_formula()}} or \code{\link[=bf]{bf()}}.}
 
-\item{family}{A response family, such as \code{\link[stats:family]{stats::gaussian()}}, \code{\link[=student]{student()}},
-\code{\link[=skew_normal]{skew_normal()}}, \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:family]{stats::Gamma()}} with \code{link = "log"},
+\item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
+\code{\link[=skew_normal]{skew_normal()}}, \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"},
 \code{\link[=tweedie]{tweedie()}}, \code{\link[=beta_family]{beta_family()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
-\code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[stats:family]{stats::binomial()}} with \code{link = "logit"}, \code{"probit"},
+\code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[stats:binomial]{stats::binomial()}} with \code{link = "logit"}, \code{"probit"},
 or \code{"cloglog"},
-\code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:family]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
+\code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
 \code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
 \code{zi ~ predictors} to a Poisson or \code{nbinom2()} model fits the corresponding
 zero-inflated count model. Adding \code{hu ~ predictors} to a
@@ -88,9 +88,15 @@ fixed-effect binary \code{mi()} predictor modelled by \code{family = binomial()}
 
 \item{missing}{Missing-data policy created by \code{\link[=miss_control]{miss_control()}}. The default
 keeps the existing complete-case behaviour. Among currently supported models,
-\code{missing = miss_control(response = "include")} is implemented only for
-univariate Gaussian response masks and bivariate Gaussian partial-response
-rows without dense known covariance. \code{missing = miss_control(predictor = "model")} is implemented for one \code{mi()}
+\code{missing = miss_control(response = "include")} is implemented for
+univariate Gaussian response masks, bivariate Gaussian partial-response
+rows without dense known covariance, and the documented count and
+positive-continuous routes (including Poisson, NB2, Gamma and Binomial
+ordinary \code{mu} random effects with \code{sd()} formulas, and Poisson, NB2 and
+Gamma with one structured animal, relmat, phylo or spatial intercept that
+has its own \code{sd(group, level = ...)} formula, or with one animal
+intercept-plus-slope block that has one \code{sd()} formula per coefficient).
+\code{missing = miss_control(predictor = "model")} is implemented for one \code{mi()}
 missing predictor in the documented family-specific routes. A univariate
 Gaussian response also supports two independent \code{mi()} predictors with
 fixed-effect models: two Gaussian models or one Gaussian plus one binary
@@ -308,14 +314,21 @@ location formulas, Gaussian \code{mu} animal-model and user-supplied relatedness
 random intercepts and one numeric random slope, matching
 bivariate Gaussian \code{mu1}/\code{mu2} location formulas, and matching labelled
 bivariate Gaussian \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} phylogenetic
-location-scale blocks, coordinate-based spatial random intercepts and one
-numeric coordinate-spatial slope in univariate Gaussian \code{mu},
+location-scale blocks, and coordinate-based spatial random intercepts and
+one numeric coordinate-spatial slope in univariate Gaussian \code{mu},
 fixed-effect bivariate Gaussian distributional models, and matched labelled
 bivariate Gaussian \code{mu1}/\code{mu2}, \code{sigma1}/\code{sigma2}, and same-response
 \code{mu}/\code{sigma} random-intercept covariance blocks, including the first
 matching slope-only \code{mu1}/\code{mu2} covariance block, the first all-four q=4
 ordinary random-intercept covariance blocks, and
 predictor-dependent q=2 ordinary or phylogenetic \code{corpair()} regressions.
+The development branch also includes complete-response Bernoulli spatial
+location intercepts or slope-only effects with a matching formula such as
+\code{sd(site, level = "spatial") ~ z}, for logit, probit,
+or complementary-log-log links. For a slope, the random-effect predictor
+must vary within sites; the SD-formula predictors must be constant within
+sites. These Bernoulli spatial SD routes have focused recovery and output
+checks, but their interval coverage and R-to-Julia parity are not established.
 Bivariate Gaussian location formulas may be written explicitly as
 \code{mu1 = y1 ~ ...}, \code{mu2 = y2 ~ ...}, or with \code{mvbind(y1, y2) ~ ...} shorthand
 when both responses share the same location predictors.

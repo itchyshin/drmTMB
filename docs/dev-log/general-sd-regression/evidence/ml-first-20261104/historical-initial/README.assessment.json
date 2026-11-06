@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "3b8cae28f53bc19be645a07a41ad2280ab093891ec98637f46d7ea4773cd4a93",
+  "draft_version": "receipt-v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex numerical_packet",
+  "method": "Post-draft checks against exact copied probe result TSV/JSON/logs, source snapshot and parent correction of mixed ZeroOneBeta outcomes; prose lint.",
+  "genre": "Developer evidence receipt",
+  "coverage": "Entire README, source identity limitations and reproduction templates",
+  "score": 4,
+  "style_status": "assessed",
+  "score_reason": "Concrete provenance and test limits, but repeated boundary contrasts make the receipt formal and procedural.",
+  "confidence": "medium",
+  "confidence_reason": "Self-review of retained artifacts; no fresh fits or independent runtime validation.",
+  "examples": [
+    {
+      "location": "line21",
+      "cue": "corrected premise",
+      "impact": "Preserves the actual returned/error split rather than repeating historical both-failed status.",
+      "repair": "no change needed",
+      "line": 21,
+      "quote": "The ZeroOneBeta outcomes are mixed. Seed 20261409, minimum interior response about `2.58e-56`, returned coefficients, convergence code zero and a stored log likelihood. Its standard-error quality and gradient were not independently verified. Seed 20261412, minimum interior response about `1.55e-311`, threw `matrix contains Infs or NaNs` in the standard-error Hessian. No current point-convergence claim is made for that failed public call. Both draws retain their unchanged responses; neither was clipped. The older report that both seeds failed is historical evidence and does not replace these current outcomes."
+    },
+    {
+      "location": "line7",
+      "cue": "scope of source identity",
+      "impact": "Prevents current hashes from being read as proof for every historical runtime log.",
+      "repair": "no change needed",
+      "line": 7,
+      "quote": "`source-snapshot.json` records R base `094706b5f93d9f08bcf34b76e0328eb2293fdee5` and Julia source `f4fa3aed451636b6ffa442ce2632515513d23b1f`, source-file SHA-256 values and the reused native DLL hash. The R base has uncommitted bridge, test and documentation changes. The snapshot was captured during receipt assembly. It identifies current bytes, rather than proving that every earlier log exercised the final source. Final source-freeze revalidation and its receipt remain separate."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Retained denominator and all outcomes, distinguished optimization nonconvergence from false-positive flag, mixed ZeroOneBeta outcomes, and candidate single-draw evidence from recovery/calibration.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Compared numbers, statuses and warnings with copied result TSV/JSON/logs. Source snapshot is explicitly current-assembly provenance rather than historical exact-source execution proof.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external paper citations. Existing PR1223 is an overlap-review pointer supplied by parent, not evidence of repair.",
+  "date": "2026-11-04",
+  "calibration_status": "No calibration controls viewed; perceived style is not authorship evidence.",
+  "interpretation": "perceived_style_not_authorship"
+}

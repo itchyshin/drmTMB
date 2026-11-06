@@ -1,0 +1,12 @@
+(Intercept)          z0 
+ -0.8628828   0.5332939 
+(Intercept)          z1 
+ -0.8858478  -0.3947029 
+`simulate()` now follows the lme4 `re.form` convention.
+• `re.form = NA` (the default) or `~0` draws fresh random effects.
+• `re.form = NULL` holds the fitted random effects fixed.
+ℹ Earlier drmTMB versions gave the explicit values the reverse meaning; check
+  code written for them.
+This message is displayed once per session.
+[1] 0
+EXAMPLE_SECONDS 12.841 

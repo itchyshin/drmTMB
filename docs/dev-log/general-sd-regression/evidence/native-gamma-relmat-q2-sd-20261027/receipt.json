@@ -1,0 +1,42 @@
+{
+  "evidence_id": "native-gamma-relmat-q2-sd-20261027",
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "scope": "Native complete-data Gamma, one unlabelled relatedness intercept plus independent numeric slope with separate coefficient-selected group SDs; unit-weight synthetic point-fit checks.",
+  "implementation": "Both Gamma admission/data gates accept animal and relmat q2; provider-specific labels retained; conditional extraction scales each latent coefficient with its own SD rows.",
+  "status": "bounded_candidate_implemented_and_reviewed; broader goal open; public-map integration pending",
+  "tests": {
+    "passed": 108,
+    "failed": 0,
+    "errors": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "elapsed_seconds": 44.864,
+    "new_file_checks": 42,
+    "files": [
+      "test-gamma-relmat-q2-sd-regression.R",
+      "test-gamma-relmat-sd-regression.R",
+      "test-gamma-animal-slope-sd-regression.R",
+      "test-gamma-sd-regression.R",
+      "test-gamma-sigma-sd-regression.R"
+    ]
+  },
+  "numerical_oracle": "Independent dense Gamma joint density, analytic latent Hessian, independently optimized latent mode and Laplace determinant; non-unit K with permuted labels; K/Q and SD-formula-order checks.",
+  "neighbor_fix": "Existing Gamma animal q2 conditional link predictor: pre-fix max error 1.341697; final selected-optimum equality test passes.",
+  "review": "Independent GPT-6.1 Terra high read-only review found no remaining P0/P1 issue in the bounded patch; reviewer did not run fits or verify counts independently.",
+  "example": "inst/examples/gamma-relmat-q2-sd.R ran from identical /tmp draft bytes and converged with code 0.",
+  "limitations": [
+    "No Julia parity",
+    "No interval coverage or general recovery guarantee",
+    "No marginal q2 simulation; explicit refusal tested",
+    "No weighted/missing-response/additional-layer validation",
+    "Identifiability guard catches only named degeneracies",
+    "Earlier saved fits require refitting for corrected extraction",
+    "Public status maps pending separate audit lane",
+    "No evidence-row promotion or shared duplicate-ID ledger append",
+    "Uncommitted mixed worktree; no push or merge"
+  ],
+  "test_log_path": "docs/dev-log/general-sd-regression/evidence/native-gamma-relmat-q2-sd-20261027/test-summary.log",
+  "test_log_sha256": "10afa7d04dd0cb27f1a3419b2216fadcc78aa7c54ab43226671cb4f2a590fca1",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-gamma-relmat-q2-sd-20261027/source-manifest.json",
+  "source_manifest_sha256": "5cb50b2e4e67850e65f188a6d49a86325df5f205114f9307b686d9185badd756"
+}

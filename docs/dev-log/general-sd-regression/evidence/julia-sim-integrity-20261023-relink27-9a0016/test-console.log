@@ -1,0 +1,3 @@
+Test Summary:                                           | Pass  Total     Time
+Tweedie predictor-dependent SD simulation and bootstrap |   10     10  1m01.8s
+DRM_RUN start=2026-11-02T14:03:57Z end=2026-11-02T14:05:01Z rc=0 core=240

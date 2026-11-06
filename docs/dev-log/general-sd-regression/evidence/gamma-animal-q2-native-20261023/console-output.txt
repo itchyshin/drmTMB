@@ -1,0 +1,30 @@
+Command:
+Rscript -e 'devtools::test(filter = "gamma-animal-pedigree-sd-regression", reporter = "progress")'
+
+Captured console output (streamed across two output chunks):
+ℹ Testing drmTMB
+✔ | F W  S  OK | Context
+
+⠏ |          0 | gamma-animal-pedigree-sd-regression
+⠋ |          1 | gamma-animal-pedigree-sd-regression
+⠹ |          3 | gamma-animal-pedigree-sd-regression
+⠧ |          8 | gamma-animal-pedigree-sd-regression
+⠋ |         11 | gamma-animal-pedigree-sd-regression
+⠴ |         16 | gamma-animal-pedigree-sd-regression `simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+⠼ |         25 | gamma-animal-pedigree-sd-regression
+⠦ |         27 | gamma-animal-pedigree-sd-regression
+⠋ |         31 | gamma-animal-pedigree-sd-regression
+⠴ |         36 | gamma-animal-pedigree-sd-regression
+✔ |         37 | gamma-animal-pedigree-sd-regression [28.6s]
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 28.6 s
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 37 ]
+
+🎯 Your tests hit the mark 🎯
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

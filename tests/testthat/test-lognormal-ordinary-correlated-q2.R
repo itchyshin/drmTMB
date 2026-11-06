@@ -161,3 +161,92 @@ test_that("Lognormal q2 rejection matrix stays closed", {
     fixed = TRUE
   )
 })
+
+lognormal_q2_predictor_sd_data <- function(
+  n_group = 100L,
+  n_each = 16L,
+  seed = 20261028L
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_group), each = n_each))
+  x <- rep(seq(-1.5, 1.5, length.out = n_each), times = n_group)
+  w0_group <- seq(-1, 1, length.out = n_group)
+  w1_group <- sample(rep(c(-1, 1), length.out = n_group))
+  rho <- 0.4
+  z0 <- stats::rnorm(n_group)
+  z1 <- stats::rnorm(n_group)
+  sd0 <- exp(-0.25 + 0.4 * w0_group)
+  sd1 <- exp(-0.75 - 0.3 * w1_group)
+  b0 <- sd0 * z0
+  b1 <- sd1 * (rho * z0 + sqrt(1 - rho^2) * z1)
+  log_y <- 0.2 + 0.55 * x + b0[as.integer(id)] +
+    b1[as.integer(id)] * x + stats::rnorm(length(id), sd = 0.38)
+  list(
+    data = data.frame(
+      y = exp(log_y), x = x, id = id,
+      w0 = w0_group[as.integer(id)],
+      w1 = w1_group[as.integer(id)]
+    ),
+    w0_group = w0_group,
+    w1_group = w1_group,
+    truth = c(intercept_sd_slope = 0.4, random_slope_sd_slope = -0.3)
+  )
+}
+
+test_that("Lognormal correlated q2 admits coefficient-specific SD regression", {
+  sim <- lognormal_q2_predictor_sd_data()
+  dat <- sim$data
+  target0 <- 'sd(id, dpar = "mu", coef = "(Intercept)")'
+  target1 <- 'sd(id, dpar = "mu", coef = "x")'
+  fit <- drmTMB(
+    bf(
+      y ~ x + (1 + x | id), sigma ~ 1,
+      sd(id, dpar = "mu", coef = "(Intercept)") ~ w0,
+      sd(id, dpar = "mu", coef = "x") ~ w1
+    ),
+    family = lognormal(), data = dat,
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(fit$opt$convergence, 0L)
+  expect_identical(fit$model$random$mu$n_terms, 2L)
+  expect_identical(fit$model$random$mu$n_cors, 1L)
+  expect_named(fit$sdpars, c(target0, target1))
+  expect_lt(abs(coef(fit, target0)[["w0"]] -
+                  sim$truth[["intercept_sd_slope"]]), 0.35)
+  expect_lt(abs(coef(fit, target1)[["w1"]] -
+                  sim$truth[["random_slope_sd_slope"]]), 0.35)
+  expect_true(is.finite(unname(fit$corpars$mu[[1L]])))
+  expect_lt(abs(unname(fit$corpars$mu[[1L]])), 1)
+
+  pred0 <- predict(fit, dpar = target0, newdata = data.frame(w0 = sim$w0_group))
+  pred1 <- predict(fit, dpar = target1, newdata = data.frame(w1 = sim$w1_group))
+  expect_named(pred0, levels(dat$id))
+  expect_named(pred1, levels(dat$id))
+  expect_equal(length(pred0), nlevels(dat$id))
+  expect_equal(length(pred1), nlevels(dat$id))
+  expect_true(all(is.finite(c(pred0, pred1))))
+  expected0 <- exp(coef(fit, target0)[["(Intercept)"]] +
+                     coef(fit, target0)[["w0"]] * sim$w0_group)
+  expected1 <- exp(coef(fit, target1)[["(Intercept)"]] +
+                     coef(fit, target1)[["w1"]] * sim$w1_group)
+  expect_equal(unname(pred0), unname(expected0), tolerance = 1e-10)
+  expect_equal(unname(pred1), unname(expected1), tolerance = 1e-10)
+
+  constant <- drmTMB(
+    bf(
+      y ~ x + (1 + x | id), sigma ~ 1,
+      sd(id, dpar = "mu", coef = "(Intercept)") ~ 1,
+      sd(id, dpar = "mu", coef = "x") ~ 1
+    ),
+    family = lognormal(), data = dat,
+    control = drm_control(se = FALSE)
+  )
+  ordinary <- drmTMB(
+    bf(y ~ x + (1 + x | id), sigma ~ 1),
+    family = lognormal(), data = dat,
+    control = drm_control(se = FALSE)
+  )
+  expect_equal(as.numeric(logLik(constant)), as.numeric(logLik(ordinary)),
+               tolerance = 1e-6)
+})

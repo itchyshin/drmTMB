@@ -60,7 +60,7 @@ drm_cumulative_logit_julia_formula <- function() {
 # Collapse every run of whitespace to one space before matching.
 drm_flat_msg <- function(x) gsub("[[:space:]]+", " ", x)
 
-test_that("cumulative_logit has exactly one registry row: fixed-effect, dispersionless", {
+test_that("cumulative_logit has one dispersionless registry row", {
   reg <- drmTMB:::drm_julia_family_registry()
   fam <- vapply(reg, `[[`, character(1L), "family")
   expect_identical(sum(fam == "cumulative_logit"), 1L)
@@ -70,7 +70,8 @@ test_that("cumulative_logit has exactly one registry row: fixed-effect, dispersi
   # to invent, and a user-written `sigma ~` formula is refused (see below).
   expect_true(isTRUE(row$dispersionless))
   expect_identical(row$drmjl_tag, "cumulative_logit")
-  # NOT widened: every other route column stays FALSE (a later row's job)
+  # The exact ordinary intercept/slope SD exceptions are guarded in the bridge
+  # rather than by widening these family-level registry columns.
   for (col in c("phylo_only", "locscale_phylo", "slope_phylo", "structured")) {
     expect_false(isTRUE(row[[col]]), info = col)
   }
@@ -179,6 +180,47 @@ test_that("cumulative_logit refuses a sigma formula and an unordered factor befo
     ),
     "Ordinal models require an ordered response"
   )
+})
+
+test_that("cumulative_logit bridge admits only a matched numeric random-slope SD", {
+  dat <- drm_cumulative_logit_julia_fixture()
+  dat$id <- factor(rep(seq_len(30L), each = 30L))
+  dat$w <- rep(seq(-1, 1, length.out = 30L), each = 30L)
+  slope_formula <- drmTMB::bf(
+    score ~ x + (0 + x | id),
+    sd(id, coef = "x") ~ w
+  )
+
+  expect_true(drmTMB:::drm_julia_cumulative_logit_slope_sd_route_admitted(
+    slope_formula, data = dat
+  ))
+  expect_invisible(drmTMB:::drm_julia_refuse_fe_only_random_effects(
+    slope_formula, "cumulative_logit", data = dat
+  ))
+
+  intercept_formula <- drmTMB::bf(score ~ x + (1 | id), sd(id) ~ w)
+  expect_false(drmTMB:::drm_julia_cumulative_logit_slope_sd_route_admitted(
+    intercept_formula, data = dat
+  ))
+  expect_true(drmTMB:::drm_julia_cumulative_logit_intercept_sd_route_admitted(
+    intercept_formula
+  ))
+  expect_invisible(drmTMB:::drm_julia_refuse_fe_only_random_effects(
+    intercept_formula, "cumulative_logit", data = dat
+  ))
+
+  mismatched_formula <- drmTMB::bf(
+    score ~ x + (0 + x | id),
+    sd(id, coef = "other") ~ w
+  )
+  expect_false(drmTMB:::drm_julia_cumulative_logit_slope_sd_route_admitted(
+    mismatched_formula, data = dat
+  ))
+
+  dat$x <- factor(ifelse(dat$x > 0, "high", "low"))
+  expect_false(drmTMB:::drm_julia_cumulative_logit_slope_sd_route_admitted(
+    slope_formula, data = dat
+  ))
 })
 
 test_that("the ordinal-slot helper fails closed on a cutpoint label echo out of step", {

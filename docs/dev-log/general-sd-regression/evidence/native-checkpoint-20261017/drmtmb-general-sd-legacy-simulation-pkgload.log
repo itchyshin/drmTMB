@@ -1,0 +1,32 @@
+simulate-re-form: `simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+...........WWWWWWWW...........
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NULL succeeds ('test-simulate-re-form.R:183:3') - NA/NaN function evaluation
+
+2. confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NULL succeeds ('test-simulate-re-form.R:183:3') - NA/NaN function evaluation
+
+3. confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NULL succeeds ('test-simulate-re-form.R:183:3') - NA/NaN function evaluation
+
+4. confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NULL succeeds ('test-simulate-re-form.R:183:3') - `drmTMB()`: optimizer reported non-convergence (code 1: singular convergence (7)).
+i Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit.
+
+5. confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NULL succeeds ('test-simulate-re-form.R:183:3') - `drmTMB()`: optimizer reported non-convergence (code 1: singular convergence (7)).
+i Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit.
+
+6. confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NULL succeeds ('test-simulate-re-form.R:183:3') - `drmTMB()`: optimizer reported non-convergence (code 1: singular convergence (7)).
+i Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit.
+
+7. confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NULL succeeds ('test-simulate-re-form.R:183:3') - `drmTMB()`: optimizer reported non-convergence (code 1: singular convergence (7)).
+i Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit.
+
+8. confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NULL succeeds ('test-simulate-re-form.R:183:3') - `drmTMB()` escalated `stats::nlminb()` to the "careful" optimizer preset to reach convergence.
+i An earlier preset errored or did not converge; inspect `fit$optimizer_attempts`.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+LEGACY_SIMULATION_PKGLOAD_PASS

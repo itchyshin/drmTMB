@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-sd-profile-focused-20261020-m26",
+  "rerecord_of_evidence_id": "native-binomial-sd-profile-focused-20261020",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/bernoulli-native-tests-20261020/native-test-receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"Rscript -e 'devtools::load_all(); testthat::test_file(\"\"tests/testthat/test-binomial-sd-profile.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-sd-profile.R",
+      "test_sha256": "3eec2f4fbb583f865ec2b925d684215bc53fd7c4eb5f603fc254030138c337cc",
+      "started_utc": "2026-11-02T13:17:30Z",
+      "ended_utc": "2026-11-02T13:18:55Z",
+      "exit_code": 0,
+      "expectations_passed": 20,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/bernoulli-native-tests-20261020-m26-c55c33/test-console-test-binomial-sd-profile.log",
+      "console_log_sha256": "a9d1c7488bc7e87ab0ed10610b0c493850185f838c30cf7e2d2edce6671d3c50"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/bernoulli-native-tests-20261020-m26-c55c33/source-manifest.json",
+  "source_manifest_sha256": "7634fd9f535b2242264c8dab1566c013d7fe77af785ca5c840df1d168a734703",
+  "review_status": "unreviewed"
+}

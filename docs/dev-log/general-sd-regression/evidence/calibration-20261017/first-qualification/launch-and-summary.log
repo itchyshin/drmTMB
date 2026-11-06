@@ -1,0 +1,3 @@
+{"attempted": 3, "launch_errors": 0, "planned_subset": 3, "statuses": {"completed": 3}}
+Error: Prepared manifest is not pinned
+Execution halted

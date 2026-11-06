@@ -1,0 +1,25 @@
+--- /tmp/beta-pedigree-q2-R-before.R	2026-10-27 23:24:18
++++ R/drmTMB.R	2026-10-27 23:24:29
+@@ -6950,10 +6950,10 @@
+     identical(structured_mu_type(beta_mu_structured_term), "animal") &&
+     structured_term_is_intercept_one_slope(beta_mu_structured_term)
+   if (allow_beta_animal_q2_sd &&
+-      !beta_mu_structured_term$structure %in% c("A", "Ainv")) {
++      !beta_mu_structured_term$structure %in% c("A", "Ainv", "pedigree")) {
+     cli::cli_abort(c(
+-      "Beta animal intercept-slope SD regression currently requires a supplied A or Ainv matrix.",
+-      "i" = "Use {.code animal(1 + x | id, A = A)} or {.code Ainv = Ainv}; pedigree SD routes for two fields remain unimplemented."
++      "Beta animal intercept-slope SD regression requires A, Ainv, or pedigree input.",
++      "i" = "Use {.code animal(1 + x | id, A = A)}, {.code Ainv = Ainv}, or {.code pedigree = pedigree}."
+     ))
+   }
+   sd_phylo_targets <- parse_sd_phylo_entries(
+@@ -24336,7 +24336,7 @@
+     (identical(spec$model_type, "gamma") ||
+        (identical(spec$model_type, "beta") &&
+           identical(phylo_mu$type, "animal") &&
+-          phylo_mu$structure %in% c("A", "Ainv"))) &&
++          phylo_mu$structure %in% c("A", "Ainv", "pedigree"))) &&
+       is.list(phylo_mu) && isTRUE(phylo_mu$has) &&
+       phylo_mu$type %in% c("animal", "relmat") &&
+       identical(phylo_mu$q, 2L) &&

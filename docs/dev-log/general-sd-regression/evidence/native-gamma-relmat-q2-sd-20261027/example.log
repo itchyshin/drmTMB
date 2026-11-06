@@ -1,0 +1,7 @@
+`simulate()` now follows the lme4 `re.form` convention.
+• `re.form = NA` (the default) or `~0` draws fresh random effects.
+• `re.form = NULL` holds the fitted random effects fixed.
+ℹ Earlier drmTMB versions gave the explicit values the reverse meaning; check
+  code written for them.
+This message is displayed once per session.
+EXAMPLE_CONVERGENCE 0 

@@ -135,7 +135,7 @@ print.drmTMB <- function(x, ...) {
 #' names(coef(fit))
 #' identical(coef(fit), fixef(fit))
 #' @rdname fixef
-#' @export
+#' @exportS3Method nlme::fixef
 fixef.drmTMB <- function(object, dpar = NULL, ...) {
   coef.drmTMB(object, dpar = dpar, ...)
 }
@@ -203,6 +203,7 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
 #'   `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)`
 #' * `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)`
 #' * `phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)`
+#' * Binomial only: `phylo_interaction(0 + x | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)`
 #'
 #' Some Gaussian routes also fit matching location-scale, bivariate, or
 #' one-slope structured blocks. Those routes still return one row per parsed
@@ -522,7 +523,7 @@ structured_effects_input_scale <- function(structured_mu, marker) {
     spatial = if (identical(structured_mu$structure, "coords")) {
       "coordinates_to_fixed_range_covariance"
     } else {
-      "mesh_precision_planned"
+      "fixed_kappa_mesh_precision"
     },
     animal = switch(
       structured_mu$structure,
@@ -1832,7 +1833,9 @@ covariance_registry_member_by_id <- function(registry, block_id0, member_id0) {
 covariance_registry_member_sd <- function(object, member) {
   sd_key <- covariance_registry_member_sd_key(member)
   sd_values <- object$sdpars[[sd_key]]
-  if (is.null(sd_values)) {
+  if (is.null(sd_values) || !member$label[[1L]] %in% names(sd_values)) {
+    # A member with an sd() formula has group-specific SDs (reported under its
+    # own sd() key), so there is no single SD to summarise.
     return(NA_real_)
   }
   value <- sd_values[[member$label[[1L]]]]
@@ -2990,6 +2993,21 @@ deviance.drmTMB <- function(object, ...) {
 #' evaluated. When `check_drm()` reports the clamp active, this makes the
 #' fit's own diagnostics honest, not correct: the estimate itself is still
 #' unreliable near the clamp (see the rescaling advice there).
+#'
+#' For predictor-dependent random-effect SD parameters (for example
+#' `dpar = "sd(id)"` or `"sd_animal(id)"`), the value is the SD multiplier
+#' `exp(W beta)` on the latent effect, not a marginal SD. When the effect is
+#' structured (`animal()`, `relmat()`, `phylo()`, `spatial()`), the multiplier
+#' applies to the supplied kernel as given, so the marginal SD of group `g` is
+#' `multiplier * sqrt(C_gg)`; `predict()` never returns that product. For a
+#' unit-diagonal kernel the two agree. `type = "link"` is the log SD after the
+#' same soft clamp the likelihood applies (the identity inside `[-12, 12]`,
+#' saturating towards `[-15, 15]`), not the raw `W beta`; `type = "response"`
+#' is its exponential. With `newdata = NULL` the result has one value per fitted
+#' group, named by group level. With `newdata`, each row is one group-level row
+#' (not an observation row): the result has one value per row, named by
+#' `rownames(newdata)`, and a structured SD for such a row is a population
+#' multiplier with no kernel node and no `sqrt(C_gg)` factor.
 #' @seealso [fitted.drmTMB()], [rho12()], [stats::sigma()], [fitted_distribution()],
 #'   [exceedance()]
 #'
@@ -3031,7 +3049,18 @@ predict.drmTMB <- function(
   if (is.null(dpar)) {
     dpar <- object$model$dpars[[1L]]
   }
-  dpar <- match.arg(dpar, names(object$coefficients))
+  # Exact match only: SD keys such as `sd(id, coef = "x")` share prefixes, so
+  # partial matching could silently resolve to a different SD formula.
+  if (
+    !is.character(dpar) ||
+      length(dpar) != 1L ||
+      !dpar %in% names(object$coefficients)
+  ) {
+    cli::cli_abort(c(
+      "{.arg dpar} must exactly match one fitted parameter name.",
+      "i" = "Available names: {.val {names(object$coefficients)}}."
+    ))
+  }
   if (drm_has_temporal_mu(object) && !is.null(newdata)) {
     temporal_structure <- toupper(object$model$structured$temporal_mu$structure)
     cli::cli_abort(c(
@@ -3165,18 +3194,44 @@ predict.drmTMB <- function(
 #' between-group and the residual sources of variance. Pass `re.form = NULL`
 #' to simulate conditionally on the fitted random effects instead (holding
 #' every random effect fixed at its conditional-mode estimate). Marginal
-#' simulation also redraws a single-endpoint
+#' simulation for ordinary location random effects with an admitted
+#' predictor-dependent SD uses the fitted group-specific SD for each fresh
+#' link-scale draw. For native Bernoulli phylogenetic and relatedness-matrix
+#' (`relmat`) intercepts, it applies each tip or group's fitted SD to the fresh
+#' structured draw. Julia Gamma animal models also support marginal simulation
+#' for a complete-data animal intercept or an animal intercept plus one numeric
+#' slope, with separate coefficient-specific SD formulas. The Julia fitter uses
+#' the supplied relationship matrix at its raw scale, as native TMB does, and
+#' simulation follows that same convention. These Gamma routes use location
+#' SDs and fixed `sigma ~ 1`; conditional simulation with `re.form = NULL` is
+#' unavailable for Julia Laplace fits.
+#' A native Bernoulli `relmat()` model with one intercept, one numeric slope,
+#' and a separate predictor-dependent SD formula for each coefficient also
+#' supports marginal simulation; the two fields are drawn independently with
+#' their fitted group-specific covariance scales. Native structured
+#' intercept-plus-slope (`q = 2`) fits with one SD formula per coefficient also
+#' support marginal simulation for the Binomial, Poisson, NB2, Gaussian and
+#' Gamma families and the `relmat`, `animal`, `phylo` and `spatial` providers.
+#' Each replicate draws the two unit-scale fields from `R (x) K`, where `R`
+#' holds the fitted cross-coefficient correlation of a labelled
+#' `(1 + x | p | id)` block (zero for an unlabelled block), and scales each
+#' coefficient's field by its fitted group-specific SD. Any other fitted
+#' correlation alongside the structured block is refused.
+#'
+#' It also redraws a single-endpoint
 #' (`q == 1`) phylogenetic, spatial, relatedness-matrix (`relmat`),
 #' animal-model, or `phylo_interaction` structured `mu` random effect from its
-#' fitted covariance `sd^2 * Q^-1`. It does not yet support a structured mu
+#' fitted covariance `sd^2 * Q^-1`. Other modelled structured-effect scales
+#' are not yet supported outside the explicitly listed Bernoulli and Julia
+#' Gamma routes. It does not yet support a structured mu
 #' random effect correlated across more than one trait or distributional
 #' parameter (`q > 1`, including a multi-endpoint `phylo_interaction` term),
 #' correlated covariance-block random effects, predictor-dependent
-#' random-effect correlation (`corpair`) regression, or a modelled
-#' (heteroscedastic) random-effect scale; `simulate()` throws an informative
-#' error naming the unsupported structure for those models and directs the
-#' user to `re.form = NULL`. Models without random effects are unaffected by
-#' `re.form`.
+#' random-effect correlation (`corpair`) regression, or other modelled
+#' structured (heteroscedastic) random-effect scales; `simulate()` throws an
+#' informative error naming the unsupported structure for those models and
+#' directs the user to `re.form = NULL`. Models without random effects are
+#' unaffected by `re.form`.
 #'
 #' Earlier versions of drmTMB gave the explicit values the reverse meaning
 #' (`NULL` drew fresh random effects and `NA` held them fixed; #1487). The default output is
@@ -3478,7 +3533,6 @@ simulate.drmTMB <- function(
   }
 
   if (identical(object$model$model_type, "beta_binomial")) {
-    sigma <- predict(object, dpar = "sigma")
     # SAME conversion drm_family_dpq_beta_binomial() (R/family-dpq.R) uses --
     # closed in DO-T3 batch B (Emmy's dedup; batch A left this inline).
     trials <- object$model$trials
@@ -3486,6 +3540,7 @@ simulate.drmTMB <- function(
       sims <- replicate(nsim, {
         re_draws <- drm_ordinary_random_effect_draws(object)
         mu <- drm_marginal_predict(object, "mu", re_draws)
+        sigma <- drm_marginal_predict(object, "sigma", re_draws)
         native <- drm_beta_shapes(mu, sigma)
         p <- stats::rbeta(
           length(mu),
@@ -3496,6 +3551,7 @@ simulate.drmTMB <- function(
       })
     } else {
       mu <- predict(object, dpar = "mu")
+      sigma <- predict(object, dpar = "sigma")
       native <- drm_beta_shapes(mu, sigma)
       sims <- replicate(nsim, {
         p <- stats::rbeta(
@@ -6763,6 +6819,9 @@ drm_dpar_link <- function(object, dpar) {
   # constructor metadata and the runtime table stay consistent. Documented, not
   # refactored: unifying the two would require every model_type to carry a
   # drm_family object and is deferred to avoid destabilizing link resolution.
+  if (is_random_scale_dpar(object, dpar)) {
+    return("log")
+  }
   if (startsWith(dpar, "corpair(")) {
     # A modelled phylogenetic correlation keeps TMB's 0.999999 guard (rho_node);
     # a modelled group correlation uses the random-effect guard (#1190).
@@ -6888,10 +6947,11 @@ has_spatial_mu_effect <- function(object) {
 has_structured_mu_effect <- function(object) {
   object$model$model_type %in%
     c(
-      "gaussian", "biv_gaussian", "poisson", "nbinom2", "lognormal",
+      "gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2", "lognormal",
       "gamma", "beta", "zero_one_beta"
     ) &&
-    isTRUE(object$model$structured$phylo_mu$has)
+    (isTRUE(object$model$structured$phylo_mu$has) ||
+      isTRUE(object$model$structured$phylo_mu2$has))
 }
 
 n_mu_random_effect_terms <- function(object) {
@@ -6910,7 +6970,7 @@ n_mu_random_effect_terms <- function(object) {
 
 has_sigma_random_effects <- function(object) {
   object$model$model_type %in%
-    c("gaussian", "biv_gaussian", "nbinom2", "zi_nbinom2", "lognormal", "gamma") &&
+    c("gaussian", "biv_gaussian", "nbinom2", "zi_nbinom2", "lognormal", "gamma", "beta_binomial") &&
     (length(object$random_effects$sigma$values) > 0L ||
       (isTRUE(object$model$structured$phylo_mu$has) &&
         any(sub("[0-9]+$", "", phylo_mu_endpoint_dpars(
@@ -6967,18 +7027,30 @@ mu_random_effect_dpars <- function(object) {
 }
 
 is_random_scale_dpar <- function(object, dpar) {
-  if (!object$model$model_type %in% c("gaussian", "biv_gaussian", "beta")) {
-    return(FALSE)
-  }
+  # The fitted target registry, rather than the response family, determines
+  # whether this is a latent-SD submodel. Family builders own admission.
+  ordinary <- object$model$random_scale$mu
   if (
-    object$model$random_scale$mu$n_models > 0L &&
-      dpar %in% object$model$random_scale$mu$dpars
+    is.list(ordinary) && isTRUE(ordinary$n_models > 0L) &&
+      dpar %in% ordinary$dpars
   ) {
     return(TRUE)
   }
-  is.list(object$model$random_scale$phylo) &&
-    object$model$random_scale$phylo$n_models > 0L &&
-    dpar %in% object$model$random_scale$phylo$dpars
+  sigma <- object$model$random_scale$sigma
+  if (
+    is.list(sigma) && isTRUE(sigma$n_models > 0L) &&
+      dpar %in% sigma$dpars
+  ) {
+    return(TRUE)
+  }
+  structured <- object$model$random_scale$phylo
+  if (is.list(structured) && isTRUE(structured$n_models > 0L) &&
+      dpar %in% structured$dpars) {
+    return(TRUE)
+  }
+  structured2 <- object$model$random_scale$phylo2
+  is.list(structured2) && isTRUE(structured2$n_models > 0L) &&
+    dpar %in% structured2$dpars
 }
 
 predict_random_scale_dpar <- function(
@@ -6991,10 +7063,20 @@ predict_random_scale_dpar <- function(
   sd_target <- if (dpar %in% object$model$random_scale$mu$dpars) {
     object$model$random_scale$mu
   } else if (
+    is.list(object$model$random_scale$sigma) &&
+      dpar %in% object$model$random_scale$sigma$dpars
+  ) {
+    object$model$random_scale$sigma
+  } else if (
     is.list(object$model$random_scale$phylo) &&
       dpar %in% object$model$random_scale$phylo$dpars
   ) {
     object$model$random_scale$phylo
+  } else if (
+    is.list(object$model$random_scale$phylo2) &&
+      dpar %in% object$model$random_scale$phylo2$dpars
+  ) {
+    object$model$random_scale$phylo2
   } else {
     NULL
   }
@@ -7015,10 +7097,13 @@ predict_random_scale_dpar <- function(
   }
   eta <- as.vector(X %*% object$coefficients[[dpar]])
   # The kernel soft-clamps this same log(sd) predictor before exponentiating
-  # it (src/drmTMB.cpp ~2482-2485, drm_softclamp_log_sd), and the fit's own
-  # summary agrees: sd_mu_group_values()/sd_phylo_group_values()
-  # (R/drmTMB.R:23062-23092) apply drm_softclamp_log_sd() then
-  # drm_exp_sd_logscale_guarded() to the identical eta. Without the same
+  # it (drm_softclamp_log_sd() in src/drmTMB.cpp, called where each SD block
+  # forms sd_*_group), and the fit's own summary agrees: sd_mu_group_values(),
+  # sd_phylo_group_values() and the sigma and second-field siblings in
+  # R/drmTMB.R apply drm_softclamp_log_sd() then
+  # drm_exp_sd_logscale_guarded() to the identical eta. The kernel REPORTs the
+  # raw eta as log_sd_*_group in every block, so link-scale prediction is the
+  # clamped value while the reported log_sd_*_group is not. Without the same
   # clamp here, predict(dpar = "sd(...)") reported the raw, unclamped
   # predictor and disagreed with fit$sdpars by up to ~25x on a fixture where
   # the clamp band binds (Dinnage audit M2 review, item 2).
@@ -7045,6 +7130,33 @@ mu_random_effect_contribution <- function(object, dpar = NULL) {
 mu_random_intercept_contribution <- mu_random_effect_contribution
 
 phylo_mu_contribution <- function(object, dpar = NULL) {
+  contribution <- phylo_mu_primary_contribution(object, dpar = dpar)
+  phylo_mu2 <- object$model$structured$phylo_mu2
+  if (
+    identical(object$model$model_type, "binomial") &&
+      isTRUE(phylo_mu2$has) && (is.null(dpar) || "mu" %in% dpar)
+  ) {
+    contribution <- contribution + phylo_mu2_contribution(object)
+  }
+  contribution
+}
+
+phylo_mu2_contribution <- function(object) {
+  phylo_mu2 <- object$model$structured$phylo_mu2
+  if (!is.list(phylo_mu2) || !isTRUE(phylo_mu2$has)) {
+    return(rep(0, object$nobs))
+  }
+  key <- structured_mu_random_effect_key(
+    phylo_mu2,
+    object$model$model_type
+  )
+  values <- object$random_effects[[key]]$values
+  index <- phylo_mu2$observation_node_index
+  design_value <- as.numeric(phylo_mu2$value[, 1L])
+  unname(values[index] * design_value)
+}
+
+phylo_mu_primary_contribution <- function(object, dpar = NULL) {
   phylo_mu <- object$model$structured$phylo_mu
   key <- structured_mu_random_effect_key(phylo_mu, object$model$model_type)
   values <- object$random_effects[[key]]$values
@@ -7085,7 +7197,16 @@ phylo_mu_contribution <- function(object, dpar = NULL) {
         phylo_mu$value[, endpoint, drop = FALSE]
     )))
   }
-  unname(values[index])
+  design_value <- phylo_mu$value
+  if (is.matrix(design_value)) {
+    design_value <- design_value[, 1L]
+  }
+  if (length(design_value) != length(index)) {
+    cli::cli_abort(
+      "Internal error: structured-effect design values do not align with observation nodes."
+    )
+  }
+  unname(values[index] * design_value)
 }
 
 sigma_random_effect_contribution <- function(object, dpar = NULL) {
@@ -7177,7 +7298,10 @@ drm_simulate_marginal_unsupported <- function(object) {
   if (!is.null(structured_reason)) {
     return(structured_reason)
   }
-  if (has_covariance_block_random_effects(object)) {
+  if (
+    has_covariance_block_random_effects(object) &&
+      !drm_gaussian_q34_block_sd_marginal_ok(object)
+  ) {
     return("correlated covariance-block random effects")
   }
   if (
@@ -7190,13 +7314,38 @@ drm_simulate_marginal_unsupported <- function(object) {
     return("predictor-dependent random-effect correlation (corpair) regression")
   }
   if (
-    isTRUE(object$model$random_scale$mu$n_models > 0L) ||
-      (
-        is.list(object$model$random_scale$phylo) &&
-          isTRUE(object$model$random_scale$phylo$n_models > 0L)
-      )
+    is.list(object$model$random_scale$phylo) &&
+      isTRUE(object$model$random_scale$phylo$n_models > 0L)
   ) {
-    return("modelled (heteroscedastic) random-effect scale")
+    phylo_mu <- object$model$structured$phylo_mu
+    mesh_mu <- object$model$structured$mesh_spatial_mu
+    mesh_sd <- object$model$random_scale$phylo
+    mesh_sd_dpars <- mesh_sd$dpars
+    supported_mesh_sd <- identical(object$model$model_type, "binomial") &&
+      isTRUE(mesh_mu$has) && isTRUE(mesh_sd$n_models == 1L) &&
+      length(mesh_sd_dpars) == 1L &&
+      identical(
+        unname(mesh_sd$target_dpar[[mesh_sd_dpars[[1L]]]]),
+        "mu"
+      )
+    supported_q1_structured_sd <-
+      object$model$model_type %in% c(
+        "gaussian", "binomial", "poisson", "beta_binomial", "nbinom2"
+      ) &&
+      isTRUE(phylo_mu$has) &&
+      structured_mu_type(phylo_mu) %in% c(
+        "phylo", "spatial", "relmat", "animal", "phylo_interaction"
+      ) &&
+      structured_mu_q(phylo_mu) == 1L
+    supported_q2_structured_sd <- !is.null(
+      drm_binomial_q2_structured_sd_by_node(object, phylo_mu)
+    )
+    if (
+      !supported_q1_structured_sd && !supported_q2_structured_sd &&
+        !supported_mesh_sd
+    ) {
+      return("modelled (heteroscedastic) random-effect scale")
+    }
   }
   NULL
 }
@@ -7209,6 +7358,8 @@ drm_simulate_marginal_unsupported <- function(object) {
 # `cross_re` carry a fresh mu latent draw plus `object$corpars$mu_sigma` and
 # `object$model$random$mu_sigma` into the sigma draw, for labelled
 # `(1 | p | id)` mu/sigma cross-correlated random effects.
+# `sd_by_effect_override` supplies fitted group-specific scales for explicitly
+# supported direct-SD routes.
 drm_fresh_ordinary_random_effect_values <- function(
   re,
   sd_lookup,
@@ -7216,7 +7367,8 @@ drm_fresh_ordinary_random_effect_values <- function(
   eta_lookup = NULL,
   cross_latent = NULL,
   cross_rho_lookup = NULL,
-  cross_re = NULL
+  cross_re = NULL,
+  sd_by_effect_override = NULL
 ) {
   if (re$n_re == 0L) {
     return(list(latent = numeric(0), values = numeric(0)))
@@ -7226,7 +7378,22 @@ drm_fresh_ordinary_random_effect_values <- function(
   } else {
     unname(sd_lookup[re$labels])
   }
-  if (anyNA(sd_by_term)) {
+  sd_by_effect <- sd_by_term[re$term_id0 + 1L]
+  if (!is.null(sd_by_effect_override)) {
+    if (
+      !is.numeric(sd_by_effect_override) ||
+        length(sd_by_effect_override) != re$n_re ||
+        any(!is.na(sd_by_effect_override) &
+          (!is.finite(sd_by_effect_override) | sd_by_effect_override <= 0))
+    ) {
+      cli::cli_abort(
+        "Internal error: marginal random-effect SD overrides must be positive and match the random-effect vector."
+      )
+    }
+    has_override <- !is.na(sd_by_effect_override)
+    sd_by_effect[has_override] <- sd_by_effect_override[has_override]
+  }
+  if (anyNA(sd_by_effect)) {
     cli::cli_abort(c(
       "Marginal simulation could not find a fitted random-effect SD for every {.field {re$labels}} term.",
       "i" = "This usually means the random-effect scale is itself modelled (heteroscedastic).",
@@ -7251,7 +7418,41 @@ drm_fresh_ordinary_random_effect_values <- function(
     cor_id <- re$re_cor_id0[[idx]] + 1L
     is_cor_slope <- cor_id > 0L && re$re_pos0[[idx]] == 1L
     u <- latent[[idx]]
-    if (is_cor_slope) {
+    is_cor_q3 <- cor_id > 0L &&
+      max(re$re_pos0[re$re_cor_id0 == cor_id - 1L]) == 2L
+    if (is_cor_q3) {
+      position <- re$re_pos0[[idx]]
+      pair <- re$re_pair_index0[[idx]] + 1L
+      group_size <- length(re$groups[[term]])
+      eta <- if (is.null(eta_lookup)) rep(NA_real_, re$n_cors) else eta_lookup
+      partial21 <- if (is.finite(eta[[cor_id]])) {
+        tanh(eta[[cor_id]])
+      } else {
+        rho[[cor_id]]
+      }
+      partial31 <- if (is.finite(eta[[cor_id + 1L]])) {
+        tanh(eta[[cor_id + 1L]])
+      } else {
+        rho[[cor_id + 1L]]
+      }
+      partial32 <- if (is.finite(eta[[cor_id + 2L]])) {
+        tanh(eta[[cor_id + 2L]])
+      } else {
+        (rho[[cor_id + 2L]] - partial21 * partial31) /
+          (sqrt(max(0, 1 - partial21^2)) *
+             sqrt(max(0, 1 - partial31^2)))
+      }
+      s21 <- sqrt(max(0, 1 - partial21^2))
+      s31 <- sqrt(max(0, 1 - partial31^2))
+      s32 <- sqrt(max(0, 1 - partial32^2))
+      if (position == 1L) {
+        u <- partial21 * latent[[pair]] + s21 * latent[[idx]]
+      } else if (position == 2L) {
+        u <- partial31 * latent[[pair]] +
+          s31 * partial32 * latent[[pair + group_size]] +
+          s31 * s32 * latent[[idx]]
+      }
+    } else if (is_cor_slope) {
       pair <- re$re_pair_index0[[idx]] + 1L
       rho_i <- rho[[cor_id]]
       eta_i <- if (is.null(eta_lookup)) NA_real_ else eta_lookup[[cor_id]]
@@ -7281,10 +7482,61 @@ drm_fresh_ordinary_random_effect_values <- function(
         u <- rho_i * cross_latent[[mu_idx]] + sqrt(1 - rho_i^2) * u
       }
     }
-    values[[idx]] <- sd_by_term[[term]] * u
+    values[[idx]] <- sd_by_effect[[idx]] * u
   }
   list(latent = latent, values = values)
 }
+
+# Returns a per-coefficient SD override for fitted ordinary location SD models.
+# The stored registry's zero-based row map aligns each random coefficient with
+# the group-level scale prediction; NA entries leave unrelated terms unchanged.
+drm_ordinary_sd_effect_override <- function(
+  object,
+  re,
+  endpoint = c("mu", "sigma")
+) {
+  endpoint <- match.arg(endpoint)
+  sd_model <- object$model$random_scale[[endpoint]]
+  if (!is.list(sd_model) || !isTRUE(sd_model$n_models > 0L)) {
+    return(NULL)
+  }
+  row_map <- sd_model$re_sd_row0
+  if (length(row_map) != re$n_re) {
+    cli::cli_abort(
+      "Internal error: ordinary SD rows do not align with random effects."
+    )
+  }
+  target <- which(row_map >= 0L)
+  if (length(target) == 0L) {
+    return(NULL)
+  }
+  group_sd <- rep(NA_real_, nrow(sd_model$X))
+  for (dpar in sd_model$dpars) {
+    rows <- sd_model$row_index[[dpar]]
+    values <- predict_random_scale_dpar(object, dpar, type = "response")
+    if (length(rows) != length(values)) {
+      cli::cli_abort(
+        "Internal error: ordinary SD predictions do not align with scale rows."
+      )
+    }
+    group_sd[rows] <- unname(values)
+  }
+  group_row <- row_map[target] + 1L
+  if (
+    anyNA(group_row) || any(group_row < 1L | group_row > length(group_sd)) ||
+      anyNA(group_sd[group_row])
+  ) {
+    cli::cli_abort(
+      "Internal error: ordinary SD target map points to an unavailable group scale."
+    )
+  }
+  out <- rep(NA_real_, re$n_re)
+  out[target] <- group_sd[group_row]
+  out
+}
+
+# Retain the tested internal spelling for existing binomial callers.
+drm_binomial_sd_effect_override <- drm_ordinary_sd_effect_override
 
 # Reduces a flat vector of fresh random-effect values (in the same layout as
 # `re$index`/`re$value`) to a per-observation contribution for one dpar,
@@ -7300,17 +7552,11 @@ drm_random_effect_contribution_from_values <- function(values, re, dpar) {
 }
 
 # Returns a reason string when marginal simulation cannot yet redraw this
-# object's structured (phylo/spatial/relatedness-matrix/animal-model/phylo-
-# interaction) mu random effect, or NULL when it can. Supported: a single
-# structured mu term with exactly one trait/distributional-parameter endpoint
-# (`structured_mu_q() == 1`) of type phylo, spatial, relmat, animal, or
-# phylo_interaction -- the covariance is then a plain `sd^2 * Q^-1` (for
-# phylo_interaction, `Q` is the already-assembled Kronecker precision at
-# `phylo_mu$precision$precision`, the same slot the q == 1 draw below reads
-# for every other type) and the fitted SD is a single scalar. Left
-# unsupported: any term with `q > 1` (a trait/dpar correlation this slice did
-# not reconstruct), including a `phylo_interaction` term with more than one
-# endpoint.
+# object's structured mu random effect, or NULL when it can. The existing
+# q1 routes use a single fitted SD with covariance `sd^2 * Q^-1`. A separate
+# native Bernoulli relmat q2 route draws its two independent coefficient
+# fields with their own group-specific SD predictions. Other q2 terms remain
+# unsupported because their cross-field covariance is not reconstructed.
 drm_structured_mu_marginal_unsupported <- function(object) {
   phylo_mu <- object$model$structured$phylo_mu
   if (!isTRUE(phylo_mu$has)) {
@@ -7320,7 +7566,8 @@ drm_structured_mu_marginal_unsupported <- function(object) {
   if (!type %in% c("phylo", "spatial", "relmat", "animal", "phylo_interaction")) {
     return("phylogenetic-interaction structured mu random effects")
   }
-  if (structured_mu_q(phylo_mu) > 1L) {
+  q2_scale <- drm_binomial_q2_structured_sd_by_node(object, phylo_mu)
+  if (structured_mu_q(phylo_mu) > 1L && is.null(q2_scale)) {
     return(
       "structured mu random effects correlated across more than one trait or distributional parameter"
     )
@@ -7328,13 +7575,136 @@ drm_structured_mu_marginal_unsupported <- function(object) {
   NULL
 }
 
-# Draws a fresh realization of one structured (phylo/spatial/relatedness-
-# matrix/animal-model) mu random-effect term, given its fitted precision `Q`
-# and fitted SD `sd`: `u ~ N(0, sd^2 * Q^-1)`. Uses a dense Cholesky factor `R`
-# of `Q` (`t(R) %*% R == Q`) and a triangular solve rather than an explicit
-# inverse: if `z ~ N(0, I)` and `R %*% u = z`, then `u = R^-1 %*% z` has
-# covariance `R^-1 %*% t(R^-1) == (t(R) %*% R)^-1 == Q^-1`.
+drm_binomial_q2_structured_sd_by_node <- function(object, phylo_mu) {
+  provider <- structured_mu_type(phylo_mu)
+  expected_sd_fun <- switch(
+    provider,
+    relmat = "sd_relmat",
+    animal = "sd_animal",
+    spatial = "sd_spatial",
+    phylo = "sd_phylo",
+    NULL
+  )
+  if (
+    !object$model$model_type %in% c(
+      "binomial", "poisson", "nbinom2", "gaussian", "gamma"
+    ) ||
+      is.null(expected_sd_fun) ||
+      structured_mu_q(phylo_mu) != 2L
+  ) {
+    return(NULL)
+  }
+  # One labelled `(1 + x | p | id)` block stores a single cross-coefficient
+  # correlation under the provider's own key. Any other fitted correlation
+  # (for example an ordinary correlated block) is not reconstructed here.
+  cor_key <- structured_mu_correlation_key(phylo_mu)
+  rho <- 0
+  if (length(object$corpars) > 0L) {
+    fitted_rho <- object$corpars[[cor_key]]
+    if (
+      !identical(names(object$corpars), cor_key) ||
+        length(fitted_rho) != 1L || !is.finite(fitted_rho) ||
+        abs(fitted_rho) > 1
+    ) {
+      return(NULL)
+    }
+    rho <- unname(as.numeric(fitted_rho))
+  }
+  sd_registry <- object$model$random_scale$phylo
+  if (
+    !is.list(sd_registry) || !identical(sd_registry$n_models, 2L) ||
+      length(sd_registry$dpars) != 2L ||
+      length(phylo_mu$coef_names) != 2L
+  ) {
+    return(NULL)
+  }
+  target_coef <- vapply(sd_registry$dpars, function(dpar) {
+    target_call <- tryCatch(str2lang(dpar), error = function(e) NULL)
+    if (!is.call(target_call) || !identical(
+      as.character(target_call[[1L]]), expected_sd_fun
+    )) {
+      return(NA_character_)
+    }
+    args <- as.list(target_call)[-1L]
+    coef <- args$coef
+    if (!is.character(coef) || length(coef) != 1L || is.na(coef)) {
+      return(NA_character_)
+    }
+    coef
+  }, character(1L))
+  coefficient <- match(target_coef, phylo_mu$coef_names)
+  if (anyNA(coefficient) || anyDuplicated(coefficient)) {
+    return(NULL)
+  }
+  node_labels <- phylo_mu$precision$node_labels
+  if (is.null(node_labels)) node_labels <- phylo_mu$node_labels
+  if (length(node_labels) != phylo_mu$n_re || anyNA(node_labels)) {
+    return(NULL)
+  }
+  sd_by_node <- matrix(
+    NA_real_, nrow = phylo_mu$n_re, ncol = 2L,
+    dimnames = list(node_labels, phylo_mu$coef_names)
+  )
+  for (i in seq_along(sd_registry$dpars)) {
+    scale_dpar <- sd_registry$dpars[[i]]
+    scale_by_group <- predict_random_scale_dpar(object, scale_dpar)
+    node_index <- match(node_labels, names(scale_by_group))
+    if (anyNA(node_index)) {
+      # A phylogenetic latent vector also holds internal nodes. They carry no
+      # observation, so their scale never reaches a row; 1 keeps the draw
+      # covariance equal to the fitted tree covariance (as the q1 route does).
+      if (
+        !identical(provider, "phylo") ||
+          !all(names(scale_by_group) %in% node_labels)
+      ) {
+        return(NULL)
+      }
+    }
+    column <- unname(scale_by_group[node_index])
+    if (identical(provider, "phylo")) column[is.na(column)] <- 1
+    sd_by_node[, coefficient[[i]]] <- column
+  }
+  if (any(!is.finite(sd_by_node)) || any(sd_by_node <= 0)) {
+    cli::cli_abort(
+      "Internal error: predictor-dependent q2 structured SDs do not align with the latent fields."
+    )
+  }
+  attr(sd_by_node, "rho") <- rho
+  sd_by_node
+}
+
+# Draws fresh structured mu effects using the fitted precision `Q` and SDs.
+# For one field, `sd` is scalar or node-specific. For independent q2 fields,
+# it is a node-by-coefficient matrix and each column gets an independent draw
+# with covariance `D_j Q^-1 D_j`. A dense Cholesky factor `R` of `Q`
+# (`t(R) %*% R == Q`) and triangular solve avoid an explicit inverse: if
+# `z ~ N(0, I)` and `R %*% u = z`, then `u = R^-1 %*% z` has covariance
+# `R^-1 %*% t(R^-1) == (t(R) %*% R)^-1 == Q^-1`.
 drm_fresh_structured_mu_values <- function(phylo_mu, sd) {
+  if (is.matrix(sd)) {
+    expected <- c(phylo_mu$n_re, structured_mu_q(phylo_mu))
+    if (!identical(dim(sd), expected)) {
+      cli::cli_abort(
+        "Internal error: structured-effect SD matrix dimensions must match the latent-effect dimensions."
+      )
+    }
+    root <- chol(as.matrix(phylo_mu$precision$precision))
+    z <- matrix(stats::rnorm(length(sd)), nrow = phylo_mu$n_re)
+    fields <- backsolve(root, z)
+    # Unit-scale fields (f0, f1) ~ N(0, R kron Q^-1) with R = [[1, rho],
+    # [rho, 1]]: mix the second independent draw with the first. rho is 0 for
+    # an unlabelled (independent-coefficient) block.
+    rho <- attr(sd, "rho")
+    if (!is.null(rho) && rho != 0) {
+      fields[, 2L] <- rho * fields[, 1L] + sqrt(1 - rho^2) * fields[, 2L]
+    }
+    return(as.vector(fields * sd))
+  }
+  if (length(sd) != 1L && length(sd) != phylo_mu$n_re) {
+    cli::cli_abort(
+      "Internal error: structured-effect SDs ({length(sd)}) must be scalar or match the latent-effect dimension ({phylo_mu$n_re})."
+    )
+  }
   root <- chol(as.matrix(phylo_mu$precision$precision))
   z <- stats::rnorm(phylo_mu$n_re)
   backsolve(root, z) * sd
@@ -7351,6 +7721,10 @@ drm_fresh_structured_mu_values <- function(phylo_mu, sd) {
 # term (callers must use `drm_structured_mu_marginal_unsupported()` first to
 # rule out unsupported structured terms).
 drm_structured_mu_random_effect_draws <- function(object) {
+  mesh_mu <- object$model$structured$mesh_spatial_mu
+  if (is.list(mesh_mu) && isTRUE(mesh_mu$has)) {
+    return(drm_mesh_spatial_mu_random_effect_draws(object))
+  }
   phylo_mu <- object$model$structured$phylo_mu
   if (!isTRUE(phylo_mu$has)) {
     return(list())
@@ -7359,13 +7733,58 @@ drm_structured_mu_random_effect_draws <- function(object) {
   dpar <- unique(phylo_mu_endpoint_dpars(phylo_mu))
   sd_key <- if (identical(model_type, "biv_gaussian")) "mu" else dpar
   label <- phylo_mu_sd_labels(phylo_mu, model_type)
-  sd_val <- unname(object$sdpars[[sd_key]][label])
-  if (anyNA(sd_val)) {
-    cli::cli_abort(c(
-      "Marginal simulation could not find a fitted structured-effect SD for {.field {label}}.",
-      "i" = "This usually means the structured random-effect scale is itself modelled (heteroscedastic).",
-      "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
-    ))
+  sd_matrix <- drm_binomial_q2_structured_sd_by_node(object, phylo_mu)
+  # The SD registry, not the presence of a `sdpars` entry, decides whether this
+  # endpoint's SD is modelled (G1 C7). `split_tmb_sdpars()` stores modelled SDs
+  # under the SD-formula key, so a constant entry filed under `sd_key` and
+  # `label` for another endpoint must never shadow a modelled per-node SD.
+  sd_registry <- object$model$random_scale$phylo
+  modeled_scale_dpars <- if (
+    is.list(sd_registry) && isTRUE(sd_registry$n_models > 0L)
+  ) {
+    Filter(function(scale_dpar) {
+      target <- sd_registry$target_dpar[[scale_dpar]]
+      if (is.null(target) || is.na(target)) target <- "mu"
+      target %in% dpar
+    }, sd_registry$dpars)
+  } else {
+    character()
+  }
+  sd_val <- if (!is.null(sd_matrix)) {
+    sd_matrix
+  } else if (length(modeled_scale_dpars) > 0L) {
+    if (length(modeled_scale_dpars) != 1L) {
+      cli::cli_abort(c(
+        "Marginal simulation could not find a unique fitted structured-effect SD for {.field {label}}.",
+        "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
+      ))
+    }
+    scale_dpar <- modeled_scale_dpars[[1L]]
+    scale_by_level <- predict_random_scale_dpar(object, scale_dpar)
+    node_sd_row0 <- sd_registry$node_sd_row0[seq_len(phylo_mu$n_re)]
+    modeled_rows <- sd_registry$row_index[[scale_dpar]]
+    node_sd <- rep(1, phylo_mu$n_re)
+    direct <- node_sd_row0 >= 0L
+    local_row <- match(node_sd_row0[direct] + 1L, modeled_rows)
+    node_sd[direct] <- unname(scale_by_level[local_row])
+    if (
+      length(node_sd) != phylo_mu$n_re || anyNA(node_sd) ||
+        any(!is.finite(node_sd)) || any(node_sd <= 0)
+    ) {
+      cli::cli_abort(
+        "Internal error: modeled structured-effect SDs do not align with the latent-effect nodes."
+      )
+    }
+    node_sd
+  } else {
+    constant_sd <- unname(object$sdpars[[sd_key]][label])
+    if (length(constant_sd) == 0L || anyNA(constant_sd)) {
+      cli::cli_abort(c(
+        "Marginal simulation could not find a unique fitted structured-effect SD for {.field {label}}.",
+        "i" = "Pass {.code re.form = NULL} to simulate conditionally on the fitted random effects instead."
+      ))
+    }
+    constant_sd
   }
   key <- structured_mu_random_effect_key(phylo_mu, model_type)
   draw_object <- object
@@ -7373,10 +7792,84 @@ drm_structured_mu_random_effect_draws <- function(object) {
     phylo_mu,
     sd_val
   )
-  stats::setNames(
-    lapply(dpar, function(d) phylo_mu_contribution(draw_object, dpar = d)),
+  out <- stats::setNames(
+    lapply(dpar, function(d) {
+      phylo_mu_primary_contribution(draw_object, dpar = d)
+    }),
     dpar
   )
+  phylo_mu2 <- object$model$structured$phylo_mu2
+  if (identical(model_type, "binomial") && isTRUE(phylo_mu2$has)) {
+    sd2 <- object$model$random_scale$phylo2
+    if (!is.list(sd2) || sd2$n_models != 1L) {
+      cli::cli_abort(
+        "Marginal simulation requires one predictor-dependent SD formula for the second structured Binomial field."
+      )
+    }
+    sd_dpar <- sd2$dpars[[1L]]
+    group_sd <- unname(predict_random_scale_dpar(object, sd_dpar))
+    node_row <- sd2$node_sd_row0
+    node_sd <- rep(NA_real_, phylo_mu2$n_re)
+    observed <- node_row >= 0L
+    node_sd[observed] <- group_sd[node_row[observed] + 1L]
+    if (anyNA(node_sd) || any(!is.finite(node_sd)) || any(node_sd <= 0)) {
+      cli::cli_abort(
+        "Internal error: second structured-effect SDs do not align with the latent nodes."
+      )
+    }
+    draw_object2 <- object
+    key2 <- structured_mu_random_effect_key(phylo_mu2, model_type)
+    draw_object2$random_effects[[key2]]$values <-
+      drm_fresh_structured_mu_values(phylo_mu2, node_sd)
+    out$mu <- out$mu + phylo_mu2_contribution(draw_object2)
+  }
+  out
+}
+
+# Draw one fixed-kappa mesh field from its sparse precision and scale each
+# projected observation by the fitted SD formula for its latent group.
+drm_mesh_spatial_mu_random_effect_draws <- function(object) {
+  mesh <- object$model$structured$mesh_spatial_mu
+  if (!is.list(mesh) || !isTRUE(mesh$has)) return(list())
+  sd_registry <- object$model$random_scale$phylo
+  if (
+    !is.list(sd_registry) || !isTRUE(sd_registry$n_models == 1L) ||
+      length(sd_registry$dpars) != 1L
+  ) {
+    cli::cli_abort(
+      "Internal error: mesh marginal simulation requires one fitted spatial location SD model."
+    )
+  }
+  sd_dpar <- sd_registry$dpars[[1L]]
+  if (!identical(unname(sd_registry$target_dpar[[sd_dpar]]), "mu")) {
+    cli::cli_abort(
+      "Internal error: mesh marginal simulation currently requires a location SD target."
+    )
+  }
+  scale_by_group <- unname(predict_random_scale_dpar(object, sd_dpar))
+  sd_row0 <- sd_registry$observation_sd_row0
+  if (
+    length(sd_row0) != nrow(mesh$projection) || anyNA(sd_row0) ||
+      any(sd_row0 < 0L) || any(sd_row0 >= length(scale_by_group))
+  ) {
+    cli::cli_abort(
+      "Internal error: mesh observations do not align with their fitted spatial SD rows."
+    )
+  }
+  factor <- mesh$precision$cholesky
+  if (is.null(factor) || is.null(factor$L) || is.null(factor$P)) {
+    factor <- Matrix::expand(Matrix::Cholesky(
+      mesh$precision$precision,
+      LDL = FALSE,
+      perm = TRUE
+    ))
+  }
+  z <- stats::rnorm(mesh$n_re)
+  permuted <- as.numeric(Matrix::solve(Matrix::t(factor$L), z))
+  latent <- as.numeric(Matrix::t(factor$P) %*% permuted)
+  projected <- as.numeric(mesh$projection %*% latent)
+  contribution <- mesh$value * projected * scale_by_group[sd_row0 + 1L]
+  stats::setNames(list(contribution), "mu")
 }
 
 # Draws ONE fresh realization of every ordinary mu/sigma random effect this
@@ -7392,9 +7885,13 @@ drm_ordinary_random_effect_draws <- function(object) {
   out <- list()
   has_mu <- has_ordinary_mu_random_effects(object)
   has_sig <- has_sigma_random_effects(object)
-  has_structured <- isTRUE(object$model$structured$phylo_mu$has)
+  has_structured <- isTRUE(object$model$structured$phylo_mu$has) ||
+    isTRUE(object$model$structured$phylo_mu2$has) ||
+    isTRUE(object$model$structured$mesh_spatial_mu$has)
   has_temporal <- drm_has_temporal_mu(object)
-  if (!has_mu && !has_sig && !has_structured && !has_temporal) {
+  has_q34_block <- drm_gaussian_q34_block_sd_marginal_ok(object)
+  if (!has_mu && !has_sig && !has_structured && !has_temporal &&
+      !has_q34_block) {
     return(out)
   }
   mu_latent <- NULL
@@ -7417,7 +7914,8 @@ drm_ordinary_random_effect_draws <- function(object) {
       re_mu,
       object$sdpars$mu,
       object$corpars$mu,
-      eta_lookup = eta_mu
+      eta_lookup = eta_mu,
+      sd_by_effect_override = drm_ordinary_sd_effect_override(object, re_mu)
     )
     mu_latent <- draw$latent
     for (dpar in unique(re_mu$dpars)) {
@@ -7437,7 +7935,10 @@ drm_ordinary_random_effect_draws <- function(object) {
       eta_lookup = NULL,
       cross_latent = mu_latent,
       cross_rho_lookup = object$corpars$mu_sigma,
-      cross_re = object$model$random$mu_sigma
+      cross_re = object$model$random$mu_sigma,
+      sd_by_effect_override = drm_ordinary_sd_effect_override(
+        object, re_sigma, endpoint = "sigma"
+      )
     )
     for (dpar in unique(re_sigma$dpars)) {
       contrib <- drm_random_effect_contribution_from_values(
@@ -7466,7 +7967,56 @@ drm_ordinary_random_effect_draws <- function(object) {
     temporal_draw <- drm_fresh_temporal_mu_values(object)
     out$mu <- if (is.null(out$mu)) temporal_draw else out$mu + temporal_draw
   }
+  if (has_q34_block) {
+    block_draw <- drm_fresh_gaussian_q34_block_contribution(object)
+    out$mu <- if (is.null(out$mu)) block_draw else out$mu + block_draw
+  }
   out
+}
+
+# Marginal simulation for a Gaussian ordinary unlabelled correlated block of
+# three or four coefficients with one `sd()` formula per (or some) coefficient.
+# The block lives in the `re_cov` registry, not in the ordinary `random$mu`
+# registry. It is admitted only when it is the single covariance block, all its
+# members sit on `mu`, and the fit carries the per-coefficient SD row map
+# (`random_scale$mu$re_cov_sd_row0`). Plain q3/q4 blocks without `sd()`
+# formulas and every other covariance-block shape keep their refusal.
+drm_gaussian_q34_block_sd_marginal_ok <- function(object) {
+  registry <- object$model$random$covariance_blocks
+  sd_mu <- object$model$random_scale$mu
+  if (
+    !identical(object$model$model_type, "gaussian") ||
+      !is.list(registry) || !is.list(sd_mu) ||
+      !is.matrix(sd_mu$re_cov_sd_row0) ||
+      !has_covariance_block_random_effects(object)
+  ) {
+    return(FALSE)
+  }
+  blocks <- qgt2_covariance_blocks(registry)
+  members <- qgt2_covariance_members(registry)
+  nrow(blocks) == 1L && blocks$n_members[[1L]] %in% 3:4 &&
+    nrow(members) == blocks$n_members[[1L]] &&
+    all(members$dpar == "mu")
+}
+
+# Fresh draw for that block: standard-normal latent z per group, then the
+# fitted transform (unstructured R from the modified-Cholesky parameters
+# applied first, then the group-specific SD vector), so group g has covariance
+# D_g R D_g. Returns the per-observation contribution to the mean.
+drm_fresh_gaussian_q34_block_contribution <- function(object) {
+  registry <- object$model$random$covariance_blocks
+  par <- object$obj$env$parList(
+    object$opt$par,
+    par = object$tmb_state$last.par.best
+  )
+  par$u_re_cov <- stats::rnorm(length(par$u_re_cov))
+  drawn <- transform_covariance_block_random_effects(
+    par,
+    registry,
+    sd_mu = object$model$random_scale$mu,
+    tmb_data = object$model$tmb_data
+  )
+  unname(rowSums(drawn$contribution))
 }
 
 # Response- or link-scale prediction for one dpar under marginal simulation:
