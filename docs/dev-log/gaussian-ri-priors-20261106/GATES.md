@@ -16,19 +16,21 @@ Scope: independent oracle first, both native engines and bridge validated on the
   CWD: /Users/z3437171/.codex/worktrees/drm-priors-design-20261105/drmTMB/tools/gaussian-ri-prior-validation
   EVIDENCE: exit=0; shell=/bin/sh; cwd=/Users/z3437171/.codex/worktrees/drm-priors-design-20261105/drmTMB/tools/gaussian-ri-prior-validation; path=e47cbc5e6903/39 entries; output=fit-reference-totoro.json: OK | fit-provenance.md: OK
 
-- [ ] G2: R native engine passes independent fixed-point, derivative, conditional ridge and fitted-objective checks at the frozen thresholds.
-  EVIDENCE: R engine 251d103b; configured native R multi_start=5 with recorded RNG policy passed all twelve unchanged oracle checks; default ri_10 failure retained. Root independently reran all36 comparisons with exit0. See final-numerical-evidence/SUMMARY.json and R-MULTISTART-POLICY.md.
+- [x] G2: R native engine passes independent fixed-point, derivative, conditional ridge and fitted-objective checks at the frozen thresholds.
+  EVIDENCE: R engine 5d0f1596; configured native R multi_start=5 with recorded RNG policy passed all twelve unchanged oracle checks; default ri_10 failure retained. Root independently reran all36 comparisons with exit0. See guarded-numerical-evidence/SUMMARY.json and R-MULTISTART-POLICY.md.
 
-- [ ] G3: Julia native engine passes the same independent checks without GPL source copying.
-  EVIDENCE: Julia f60eb88e passed all twelve unchanged oracle checks; root independently reran the downloaded results with exit0. Implementation uses native Julia objective and standalone generated data; source review found no imported R implementation. See final-source-review.md and final-numerical-evidence/.
+- [x] G3: Julia native engine passes the same independent checks without GPL source copying.
+  EVIDENCE: Julia ff10a2f9 passed all twelve unchanged oracle checks; root independently reran the downloaded results with exit0. Implementation uses native Julia objective and standalone generated data; source review found no imported R implementation. See completion-julia-review.md and guarded-numerical-evidence/.
 
-- [ ] G4: R-to-Julia bridge passes all twelve fixtures and selector/refusal controls against the oracle, independently of native pair agreement.
-  EVIDENCE: bridge passed all twelve unchanged oracle fitted checks; final-source live focused test passed63 expectations in35.05s, including selector mismatch, inference refusal and zero-ridge controls; exactsource/DLLreceipts in final-focused-live/. Numeric indicator transport preserves exact design; raw-factor frontend remains refused. Arbitrary-point bridge derivatives remain unavailable. See final-numerical-evidence/ and final-source-review.md.
+- [x] G4: R-to-Julia bridge passes all twelve fixtures and selector/refusal controls against the oracle, independently of native pair agreement.
+  EVIDENCE: bridge passed all twelve unchanged oracle fitted checks; guarded-source live focused tests passed87 expectations in47.25s, including selector mismatch, inference refusal and zero-ridge controls; exactsource/DLLreceipts in guarded-focused-live/. Numeric indicator transport preserves exact design; raw-factor frontend remains refused. Arbitrary-point bridge derivatives remain unavailable. See guarded-numerical-evidence/ and completion-inference-review.md.
 
 - [ ] G5: No-prior/zero-ridge regression, inference fences, update/reporting, focused affected tests and measured full suites pass or have explicitly adjudicated baseline failures.
-  EVIDENCE: pending exact-source tests, bounded review and full-suite receipts
+  EVIDENCE: Guarded focused tests and three bounded source reviews passed. Seven Julia full-suite shards exited0; shard8 and the full R check remain live. Full-suite receipts are pending.
 
 - [ ] G6: Documentation, examples, check-log and after-task reports match observed supported scope; independent reviewer signs off; PR1651 and dirty cleanup are preserved; no merge/release occurred.
   EVIDENCE: pending independent completion review and final protected-state checks
 
-Requalification note: earlier numerical checks passed under recorded configurations. Fresh source-pinned checks are required after the derived-ratio interval guard repair. Frozen references and limits remain unchanged.
+Requalification note: earlier numerical checks passed under recorded configurations. Fresh source-pinned numerical checks passed after the derived-ratio interval guard repair; full-suite qualification is still running. Frozen references and limits remain unchanged.
+
+Repaired-source numerical receipts: R5d0f1596 and Juliaff10a2f9 passed all36 checks against unchanged frozen references. Root independently reran the comparator on downloaded outputs with exit0. See guarded-numerical-evidence/SUMMARY.json. Guarded live tests passed87 expectations including one actual bridge test; exact source/DLL receipts are in guarded-focused-live/. G5/G6 remain pending.

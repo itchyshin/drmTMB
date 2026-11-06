@@ -51,3 +51,9 @@ Focused native R tests cover active coefficient priors, selectors, Gaussian mean
 The later persistent live test file passed 63 expectations on Totoro, including zero-ridge bridge equivalence to unpenalized ML. This supplements the earlier 55-expectation live run. The frozen grid subsequently passed under the recorded configurations; full suites remain pending.
 
 A later independent post-fit inventory found that native variance-ratio accessors could still return Wald intervals for active fixed priors. The earlier inference audit missed this shared path. The shared guard now refuses those interval requests before dispatch, with six failing-first public cases and 24 passing focused expectations; 62 existing heritability expectations passed. Point-only summary rows and other MAP-penalty behavior remain available. Fresh final-source qualification is pending; earlier numerical results are not promoted to the repaired source.
+
+## Repaired-source qualification checkpoint
+
+The unchanged frozen oracle passed all36 route comparisons on R5d0f1596 and Juliaff10a2f9. The root independently reran all downloaded comparisons with exit0. Native R used the recorded uniform multi_start=5 policy; its earlier default local-minimum failure remains retained. Guarded live R tests passed87 expectations, including one actual bridge test. Three fresh completion reviews passed the bounded source gate. These results supersede the earlier candidate pins for numerical and inference-guard qualification.
+
+The final full R check and Julia shard8 remain live. Seven final Julia shards exited0 and each reported that DRModels tests passed. Full-suite completion, final report reconciliation and PR preparation remain pending. No merge or release occurred.

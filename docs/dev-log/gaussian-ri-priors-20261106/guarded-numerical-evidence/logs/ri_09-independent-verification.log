@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "ri_09",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 1.704305718613477e-16,
+        "point_prior": 7.178525707927814e-16,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 4.126793708141778e-15,
+        "fit_data_nll": 1.884653357115708e-15,
+        "fit_prior": 7.933519318086332e-17,
+        "fit_optimum_objective": 1.9491461312023848e-11,
+        "fit_coefficients": 1.2077390222013873e-09
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 5.212869997190653e-07
+      }
+    },
+    {
+      "id": "ri_09",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 1.704305718613477e-16,
+        "point_prior": 1.0441491938804093e-15,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 1.0536494573773639e-15,
+        "fit_data_nll": 4.3492000530723157e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 3.512164857924545e-16,
+        "fit_coefficients": 1.0547681344358452e-09
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 7.954829096298523e-10
+      }
+    },
+    {
+      "id": "ri_09",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 1.0536494573773639e-15,
+        "fit_data_nll": 4.3492000530723157e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 3.512164857924545e-16,
+        "fit_coefficients": 1.0547681344358452e-09
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 7.954829096298523e-10
+      }
+    }
+  ]
+}
+INDEPENDENT_COMPARISON_PASS
