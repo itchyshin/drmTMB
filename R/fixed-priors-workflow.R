@@ -43,12 +43,27 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
     cli::cli_abort("Fixed-effect priors do not support this distributional-parameter formula yet.")
   }
   calls <- unique(unlist(lapply(formula$calls, all.names), use.names = FALSE))
-  excluded <- c("|", "||", "phylo", "spatial", "animal", "relmat", "corpair",
+  excluded <- c("||", "phylo", "spatial", "animal", "relmat", "corpair",
                 "mi", "meta_V", "meta_known_V", "sd", "sd1", "sd2", "sd_phylo",
                 "ar1", "ou", "homtoep")
-  if (any(calls %in% excluded) || !is.null(impute) ||
+  random_ok <- TRUE
+  if ("|" %in% calls) {
+    random_ok <- FALSE
+    mu_idx <- which(vapply(formula$entries, function(e)
+      identical(e$dpar, "mu"), logical(1)))
+    if (identical(ft, "gaussian") && length(mu_idx) == 1L) {
+      mu <- formula$entries[[mu_idx]]
+      random <- extract_random_mu_terms(mu$rhs, "mu")
+      bars <- unlist(lapply(formula$calls, all.names), use.names = FALSE)
+      random_ok <- sum(bars == "|") == 1L && length(random$terms) == 1L &&
+        identical(random$terms[[1L]]$type, "intercept") &&
+        is.null(random$terms[[1L]]$covariance_label) &&
+        !"|" %in% all.names(random$rhs)
+    }
+  }
+  if (!random_ok || any(calls %in% excluded) || !is.null(impute) ||
       any(vapply(formula$entries, function(e) length(e$structured) > 0L, logical(1)))) {
-    cli::cli_abort("Fixed-effect priors currently require fixed-effect-only formulas without structured or missing-predictor terms.")
+    cli::cli_abort("Fixed-effect priors support fixed-effect-only models or one Gaussian mean random intercept, without structured or missing-predictor terms.")
   }
   variables <- intersect(unique(unlist(lapply(formula$calls, all.vars))), names(data))
   if (anyNA(data[variables])) {
@@ -68,8 +83,11 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
 #' Preview fixed-effect prior selections without fitting
 #'
 #' Resolve selectors against the same Gaussian or binomial design builders used
-#' by [drmTMB()]. This first slice uses complete data, unit weights and ordinary
-#' fixed effects. No automatic centring or scaling is performed.
+#' by [drmTMB()]. Models require complete data and unit weights. Gaussian
+#' identity models can include one independent mean random intercept; other
+#' random effects and random-effect SD formulas are not supported with priors.
+#' The Julia bridge does not yet accept factor predictors in this mixed model.
+#' No automatic centring or scaling is performed.
 #' @param formula A [drm_formula()] or [bf()] specification.
 #' @param family Gaussian identity or binomial logit family.
 #' @param data A data frame with complete model variables.
@@ -81,6 +99,8 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
 #' d <- data.frame(y = c(1, 2, 1, 3), x = c(0, 1, 2, 3))
 #' p <- drm_priors(drm_prior_normal("mu", "x", sd = 2))
 #' drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, p)
+#' d$group <- factor(c(1, 1, 2, 2))
+#' drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, p)
 drm_resolve_priors <- function(formula, family = stats::gaussian(), data, priors) {
   family <- drm_eval_family_arg(substitute(family), parent.frame())
   if (!inherits(formula, "drm_formula") || !is.data.frame(data)) {
