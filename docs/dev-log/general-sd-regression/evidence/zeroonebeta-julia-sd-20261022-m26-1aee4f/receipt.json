@@ -1,0 +1,26 @@
+{
+  "evidence_id": "julia-zeroonebeta-iid-numeric-slope-20261022-v1-m26",
+  "rerecord_of_evidence_id": "julia-zeroonebeta-iid-numeric-slope-20261022-v1",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/zeroonebeta-julia-sd-20261022/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"DRMTMB_JULIA_TESTS=true NOT_CRAN=true DRM_JL_PATH=<paired DRM.jl candidate> DRM_JL_JULIA_HOME=/Users/z3437171/.juliaup/bin JULIA_DEPOT_PATH=/private/tmp/julia-depot:/Users/z3437171/.julia OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = \"\"^julia-zero-one-beta-sd$\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-zero-one-beta-sd.R",
+      "test_sha256": "9ba8fc2e93ba130a595d5e938c22b75f8f94899d4deba58fb300918b71e76814",
+      "started_utc": "2026-11-02T13:26:05Z",
+      "ended_utc": "2026-11-02T13:28:02Z",
+      "exit_code": 0,
+      "expectations_passed": 35,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/zeroonebeta-julia-sd-20261022-m26-1aee4f/test-console-test-julia-zero-one-beta-sd.log",
+      "console_log_sha256": "d67174aa386e8271234d2a8a9d81294710588ca2864ff66c054d2cdacfc3b44a"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/zeroonebeta-julia-sd-20261022-m26-1aee4f/source-manifest.json",
+  "source_manifest_sha256": "ff51f9c270ad1e7f047a40c029642e7e6451e4752cb5f3a6c67c594f2c32c461",
+  "review_status": "unreviewed"
+}

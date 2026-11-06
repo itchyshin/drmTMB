@@ -1,0 +1,14 @@
+julia-binomial-correlated-q3-sd-bridge: ...................1
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-julia-binomial-correlated-q3-sd-bridge.R:122:3'): Julia bridg
+Error in `eval(code, test_env)`: object 'link' not found
+Backtrace:
+    ▆
+ 1. └─base::identical(link, "logit") at test-julia-binomial-correlated-q3-sd-bridge.R:122:3
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+Execution halted

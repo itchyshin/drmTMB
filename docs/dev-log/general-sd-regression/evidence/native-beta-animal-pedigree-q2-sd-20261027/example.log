@@ -1,0 +1,12 @@
+[1] 0
+[[1]]
+(Intercept)          z0 
+ -0.6226751   0.4421660 
+
+[[2]]
+(Intercept)          z1 
+ -0.7629180  -0.3842006 
+
+offspring001 offspring002 offspring003 offspring004 offspring005 offspring006 
+   0.6847391    0.6847391    0.6847391    0.6847391    0.6847391    0.6847391 
+EXAMPLE_SECONDS 8.683 

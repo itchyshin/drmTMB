@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "e4186cb308af68d0fbb10eae80850942400576fe8cf3f67101847204ffbfa9b2",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Separate post-draft assessment under writing-naturalness.md and the drmTMB prose-style-review checklist; claims checked against current source, test output, rendered article, and build/check logs.",
+  "genre": "Software after-task report",
+  "coverage": "Whole after-task report, all 12 sections.",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report uses concrete file names, formula syntax, test counts, and estimates. The required section structure creates some regularity, but the prose is specific to this implementation and does not rely on generic claims.",
+  "confidence": "medium",
+  "confidence_reason": "The report is short enough for a full read and its numerical and scope claims were checked against local evidence. The score is an editorial judgment without calibrated human controls.",
+  "examples": [
+    {
+      "location": "Section 2, paragraph 2",
+      "cue": "The 256-group by 30-observation synthetic fit estimated the log-SD coefficient as 0.5625 for a generating value of 0.5.",
+      "impact": "Connects the recovery claim to its design and truth value.",
+      "repair": "No change needed.",
+      "line": 11,
+      "quote": "The 256-group by 30-observation synthetic fit estimated the log-SD coefficient as 0.5625 for a generating value of 0.5."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report distinguishes the generating log-SD coefficient, the observed point estimate, the small-group pilot outcomes, and deferred coverage claims.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Implementation scope and reported test/render/build results were compared with the current source, terminal outputs, and generated article.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external references.",
+  "date": "2026-10-20",
+  "calibration_status": "Prior project prose examples were seen; no human-labelled calibration control was used for this score.",
+  "interpretation": "perceived_style_not_authorship"
+}

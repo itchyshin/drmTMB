@@ -1,3 +1,462 @@
+# 2026-11-04: Julia namespace-only CI repair and current-ref LSS refresh
+
+Julia test-only repair `1cd856f63fa8a2a62a2e181e00790a0d812fb8af` removes the conflicting `const D = Distributions` alias and qualifies its 29 uses in `test_iid_sd_quadrature_accuracy.jl`. The real Julia 1.10 red log reproduces `invalid redefinition of constant Main.D`. Namespace smokes pass 3/3 on both Julia 1.10 and 1.13; the AST comparison passes 3/3 and rejects a deliberate tolerance change. Independent review finds no blocker in this bounded repair. Julia `src/` and `Project.toml`, fixtures and tolerance expressions are unchanged; the foreign-owned Binomial fixture is untouched.
+
+The smokes use the pre-existing isolated exploratory guard. They do not run or qualify the full quadrature grid. An earlier stable PR's shard3 pass is historical evidence and is not attributed to this repair. New Julia CI run `41917279603` and docs run `41917279899` remain RUNNING at this snapshot.
+
+The canonical LSS public workflow was refreshed against Julia `1cd856f6`. Runner status is PASS, elapsed 59.17 seconds; the enclosing refresh guard took 59.8389805 seconds and confirms source plus native DLL bytes unchanged. The authoritative current-source checker passes 12 labels, 72 rows and 8 checks at tolerance `4e-6`. Prior c037 receipt artifacts remain unchanged. New current-ref receipt/guard/script and namespace review logs are sealed in `general-sd-regression/evidence/ml-first-20261104/`.
+
+Full R check3 remains RUNNING on Totoro, PID237407, start20:50:09 UTC, stop/re-estimate22:50:09 UTC, archive `49a69b322add471e7fd250685becd2da88051f00882aa64526db069dca79674e`. R source head `6a1b35ea7afd97b96c64b0a68994b4b66b5d61ce` has CI run `41910728363` RUNNING. The next R documentation/receipt/view commit does not change its model source. Full-package, CI, merge, main and public-URL acceptance remain pending; no calibration or broader SD scope changes.
+
+# 2026-11-04 20:47 UTC: installed-check dispatch harness repair, full recheck preparing
+
+Full R package check2 finished at `2026-11-04T20:47:07Z` with exit 1. Testthat retained 41,881 passes, 1 failure, 117 warnings and 696 skips. The sole failure was `test-fixef-imported-generic-dispatch.R`: its child process assumed a source root while running from the installed check tree. The failure source matched `origin/main`; documentation, examples and vignettes passed. This result does not invalidate the accepted focused numerical checks, but it blocks a full-package pass.
+
+The parent repaired only that test's package-root selection. It now uses the loaded namespace path and development-package flag; the child uses `load_all()` for a source package and `loadNamespace()` from the exact parent library for an installed package. The behavioral assertions remain unchanged. Source and actual installed-library runs each passed 3/3 assertions with no failures, warnings or skips. Independent review found no assertion weakening, skip path or class-coverage loss.
+
+The bounded repair receipt, both green logs, review, exact test diff and failed check log are retained under `general-sd-regression/evidence/ml-first-20261104/integration-dispatch-repair/`. The full failed test output remains external with a byte count and SHA-256 pointer. Earlier receipts and denominators are preserved.
+
+Full check3 is PREPARING at this snapshot, estimated 80–120 minutes from check2's roughly 83 minutes; no PID is recorded yet. R new-head CI is pending. Julia documentation and preview checks passed, while its test shards remain pending. Full package, CI, merge, main and public-URL completion are still open. No likelihood, public API, SD scope, tolerance or calibration policy changed.
+
+Check3 launched at `2026-11-04T20:50:09Z` and is RUNNING on Totoro under `~/codex-runs/sd-article-ml-20261104-check3`, PID `237407`, for archive SHA-256 `49a69b322add471e7fd250685becd2da88051f00882aa64526db069dca79674e`. Its source-identity record binds seven source/test/doc members to current bytes. The 80–120 minute estimate is retained, with stop/re-estimate at `22:50:09Z`; no outcome is claimed yet.
+
+# 2026-11-04: ML-first SD article and structured stored prediction, integration pending
+
+The R bridge now reconstructs stored `mu` predictions from its validated structured conditional field for the selected Gaussian, Poisson, NB2, Gamma and Binomial routes. Explicit `newdata` still sets random effects to zero; Binomial response conversion honors the fitted link. Ordinary Gaussian prediction follows its existing path. Conditional structured fitted values now use retained link predictors to avoid loss from rounded probabilities or overflowing population means; qualified response residuals use the retained observed response to avoid cancellation. No likelihood, grammar, estimator-policy or direct-Julia fitted-output change is claimed.
+
+The current route-audit Python suite passed 20 tests. The final structured payload suite passed 66 expectations, neighbouring ordinary conditional suites passed 20 and 27 expectations, and the final structured bridge file executed 26 live blocks. That live file retained one Gamma slope `NA/NaN function evaluation` warning and an unlabeled-A warning. The independent reader rendered the exact R article in a fresh process in 8.81 seconds and answered the five interpretation questions. The two engines' Gamma candidate each matched an independent Laplace objective within the predeclared absolute tolerance `1e-5`; its estimated SD ratio about 1.073 versus truth 1.492 remains visible.
+
+The source table grants six narrow engine/route rows across three article scopes, separately from runtime and output evidence. The broader 21,246-row universe is preserved. Numerical probes retain all four NB2 seeds: two plain fits reported nonconvergence at worse objectives, while their explicit constant-SD counterparts converged. ZeroOneBeta seed 20261409 returned and 20261412 failed in the SE Hessian; the old both-failed report is historical. The Binomial -26.9 report remains unresolved because its original seed/testset/log is absent.
+
+Evidence: `general-sd-regression/evidence/ml-first-20261104/`; the byte-integrity checker passes. The audit suite was rerun during report assembly as `python3 tools/general-sd-regression/tests/test_current_route_status.py` (20/20). Exact logs and source qualification boundaries are recorded in the evidence receipt and `after-task/2026-11-04-sd-article-ml.md`.
+
+Accepted frozen verification: five jobs exited zero with source and native DLL hashes unchanged; receipt status is `EXECUTIONS_COMPLETED_SOURCE_UNCHANGED`. Bridge SHA-256 is `4d5c188f10fc73f75ddf0a602fa5d97bb1880f5f65b3469752e9d469f6159ab7`; native DLL SHA-256 is `29dcf6d30daed35200951533fabbaad6bed5e715c383b9fe15f6d5ce6a5567de`. The accepted jobs cover focused/live prediction, Gamma objective checks, two extreme ZeroOneBeta attempts, the LSS receipt's current-source checker and the existing stored-loglik regression (38/38). Its predecessor's functional jobs also exited zero; the guard stopped because the authoritative LSS runner rebuilt the DLL while source code stayed unchanged.
+
+The package check is RUNNING on Totoro under `~/codex-runs/sd-article-ml-20261104-check2`, PID 174675, for archive SHA-256 `274e0fba02a3d5d4a8b40c2f508bd70ddc595606ddb6a427e445e9c446b1625e` (snapshot at report update). Attempt 1 failed on missing Pandoc before tests; task-local Pandoc 3.13 was installed from its verified archive. Julia documentation built twice and math/layout were inspected in the browser. The immutable data URL uses documentation ref `e8a666769fc436e73c7121a4c49b1d9c92866776`; HTTP readback awaits push.
+
+Canonical LSS refresh PASS: `public-001.json` now matches Julia documentation ref `c037268c76d29234a2174354ae4319b4d98e7c29`; the public runner passed in 61.941 seconds with source bytes unchanged, and the current-source checker passed. Its prior receipt is retained. The mechanical, reader and source/math completion reviews found no blocker in their inspected first-delivery scope. These reviews do not certify the package, CI or integration gates.
+
+PENDING: completed package check, final site/link checks, CI, PR merge and main verification. All six ZeroOneBeta attempts remain in the expanded ledger with the same mixed outcomes. Calibration G5 and REML policy D-342 remain deferred. The after-task report remains a work-in-progress record.
+
+# 2026-10-29: Julia Binomial animal-pedigree SD intercept bridge
+
+- The live focused R bridge test passed on Julia 1.10.0 for logit, probit, and cloglog animal-intercept SD models from independent synthetic pedigrees. Native TMB and Julia passed the fixed-seed SD-slope recovery bounds and likelihood comparison; fitted group SD prediction and marginal binary simulation also passed.
+- The bridge constructs the additive relationship matrix from the pedigree and subsets it to observed animals in first-seen order. Unobserved ancestors remain integrated out through the observed covariance submatrix.
+- The formula-grammar vignette and design table now record the exact pedigree-input route. Rendering the vignette passed with the existing Pandoc `--mathjax` deprecation warning.
+- The standalone test confirmed probit/cloglog admission and exact numeric covariance ordering. It does not establish interval calibration or coverage. Full report: `docs/dev-log/after-task/2026-10-29-julia-binomial-animal-pedigree-sd-bridge.md`.
+
+# 2026-10-29: Julia Binomial relmat SD bridge under probit and cloglog
+
+- The live focused bridge test passed on Julia 1.10.0 for fixed-seed probit and cloglog relmat q1 intercept models, comparing native TMB and Julia on matching data. It checked slope recovery, log likelihood, and group SD predictions.
+- Four exact native and Julia rows were linked. Reconciliation passed with 20,350 candidates, 199 linked, 20,151 unlinked, and 222 evidence records. The rows remain unreviewed.
+- `pkgdown::check_pkgdown()` found no problems; existing Pandoc `--mathml` deprecation warnings remain.
+- No interval calibration, coverage, or broad Julia parity claim. Full report: `docs/dev-log/after-task/2026-10-29-julia-binomial-relmat-nonlogit-sd-bridge.md`.
+
+# 2026-10-29: Stronger Binomial phylo/relmat recovery checks
+
+- The focused fixed-seed R/TMB test passed after tightening the expected direction and magnitude of both SD slopes under logit, probit, and cloglog. Covariance and precision representations remain compared on matched data.
+- The current model_type 18 likelihood scales the q1 phylogenetic field by the group SD formula and reports fitted group SDs. No likelihood change was needed.
+- This is focused point-recovery evidence only. It does not establish interval calibration, coverage, Julia parity, or broad support.
+- Full report: `docs/dev-log/after-task/2026-10-29-binomial-phylo-relmat-recovery-assertions.md`.
+
+# 2026-10-29: Julia Binomial animal-slope Ainv under logit
+
+- The focused live R bridge test passed on macOS with Julia 1.10.0, comparing native TMB and Julia on one fixed-seed animal numeric-slope fixture.
+- It checks coefficient recovery, log likelihood, and fitted group-SD agreement for supplied `Ainv`; exact source hashes and the test log are recorded in the receipt.
+- Two exact native and Julia rows were linked. Reconciliation passed with 20,350 candidate rows, 195 linked, 20,155 unlinked, and 218 evidence records. Rows remain unreviewed; no coverage claim or support promotion.
+- Detailed report: `docs/dev-log/after-task/2026-10-29-julia-binomial-animal-slope-Ainv-logit-bridge.md`.
+
+# 2026-10-29: Julia Binomial animal-slope Ainv under probit and cloglog
+
+- The focused R bridge admission and payload checks passed; the live file passed three bridge test cases on Julia 1.10.0, including native TMB and Julia animal-slope fits under probit and cloglog.
+- The bridge now admits the existing animal-slope-only `Ainv` route at both non-logit and structured-payload gates. Recovery, fitted group SDs, and log likelihood were checked against the same synthetic data; interval coverage is not claimed.
+- Four exact required rows were linked. Reconciliation passed with 20,350 candidates, 194 linked rows, 20,156 unlinked rows, and 216 evidence records. The rows remain unreviewed.
+- `pkgdown::check_pkgdown()` reported no problems with the existing Pandoc `--mathml` deprecation warnings. No matching open GitHub issue was found.
+- Receipt and source manifest: `docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-slope-Ainv-nonlogit-bridge-live-20261029/`. Full report: `docs/dev-log/after-task/2026-10-29-julia-binomial-animal-slope-Ainv-nonlogit-bridge.md`.
+
+# 2026-10-29: Animal q2 universe correction and Binomial evidence join
+
+- `python3 -m py_compile tools/general-sd-regression/universe.py tools/general-sd-regression/tests/test_universe.py` passed; the focused generator suite passed 22/22 tests.
+- `python3 tools/general-sd-regression/universe.py` regenerated 20,350 rows: 28 mechanisms and 150 engine/mechanism rule rows, including 672 within-endpoint animal q2 obligations.
+- `python3 tools/general-sd-regression/reconcile_evidence.py` passed with 20,350 candidate rows, 173 rows linked, and 193 hash-verified evidence records. Twelve supplied-A Binomial animal q2 rows are linked across two SD targets, three links, and both engines; the records remain unreviewed and do not claim interval coverage.
+- Scoped `git diff --check` passed. The updated independent-review note states that the Oct 17 review predates this denominator correction; G0 remains open.
+- `python3 ~/shinichi-brain/tools/slop_check.py <absolute report path>` found 0 hits; `python3 ~/shinichi-brain/tools/closeout.py check <absolute report path>` passed all report and evidence gates.
+- The new generator regression failed before the correction because the animal within-endpoint q2 rows were absent. It now checks the within-endpoint q2 layout separately from the single-endpoint cross-endpoint exclusion.
+- `gh issue list --state open --search 'animal q2 SD universe' --limit 10` returned no match. No issue was changed. Full report: `docs/dev-log/after-task/2026-10-29-animal-q2-universe-correction.md`.
+
+# 2026-10-29: Julia Binomial animal q2 predictor-dependent SD bridge
+
+- Direct Julia test logs report 33/33 existing logit q2 checks and 20/20 new probit/cloglog q2 checks passed.
+- `JULIA_HOME="/Users/z3437171/.juliaup/bin" DRM_JL_PATH="/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia" DRMTMB_JULIA_TESTS=true JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "julia-binomial-animal-q2-sd", reporter = "summary", stop_on_failure = TRUE)'` passed with two live bridge tests on Julia 1.10.0.
+- `Rscript -e 'tools::checkRd("man/simulate.drmTMB.Rd")'` exited 0. The formula grammar vignette rendered to a temporary HTML file; only the existing Pandoc `--mathjax` deprecation warning appeared. `pkgdown::check_pkgdown()` reported no problems with existing `--mathml` deprecation warnings.
+- Scoped `git diff --check` passed. The after-task section validator passed; the checker reported 13 acceptance ledgers as NOT RUNNABLE because Node/gate-check was unavailable, so their gate state is UNKNOWN and none is claimed satisfied. Inventory pattern: `rg -n -i 'animal.{0,70}(q2|intercept.plus.slope)|Bernoulli.{0,50}animal|Binomial.{0,50}animal' README.md docs/dev-log/internal-roadmap.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml`. Current pages now name the supplied-`A` Binomial animal q2 route and retain interval-calibration limits.
+- The open-issue search found no route-specific issue; broader Phase 18 tracking was left unchanged. Interval calibration, `Ainv`/pedigree bridge parity, mixed effects, and broad structured parity remain open. Full report: `docs/dev-log/after-task/2026-10-29-julia-binomial-animal-q2-bridge-nonlogit.md`.
+
+# 2026-10-29: Julia Binomial animal q2 supplied-Ainv bridge regression
+
+- The focused `julia-binomial-animal-q2-sd` test filter passed; three live Julia bridge tests ran on candidates drmTMB `425bee81572c625a634b2b083050c5c57c1dc1f1` and DRM.jl `70dbf564eb670144c63c08f61ea099084d95add2`.
+- The added synthetic test verifies exact `Ainv` payload forwarding, native-versus-Julia q2 fit and group-SD agreement, and seeded marginal simulation against the equivalent covariance-based draw. Existing bridge code required no change.
+- Evidence reconciliation passed with 20,350 candidate rows, 198 evidence records, 178 linked rows, and 20,172 unlinked rows. The two Julia logit animal q2 `Ainv_precision` coefficient rows remain unresolved; no capability status or coverage claim was promoted.
+- Source hashes, run log, and receipt: `docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-q2-ainv-bridge-live-20261029/`. Full report: `docs/dev-log/after-task/2026-10-29-julia-binomial-animal-q2-ainv-bridge.md`.
+
+# 2026-10-29: Julia Binomial animal-intercept Ainv under probit and cloglog
+
+- The focused live test passed on candidates drmTMB `425bee81572c625a634b2b083050c5c57c1dc1f1` and DRM.jl `70dbf564eb670144c63c08f61ea099084d95add2`; one live Julia bridge test covered both links.
+- The synthetic fixture now seeds its group-level SD-predictor assignment. Both links check convergence, log-SD slope recovery, cross-engine likelihood and slope agreement, and predicted SD agreement for the supplied non-unit-diagonal `Ainv`.
+- Evidence reconciliation passed with 20,350 candidate rows, 202 evidence records, 182 linked rows, and 20,168 unlinked rows. Four native and Julia animal-intercept rows for probit and cloglog are linked; capability statuses remain unchanged and no interval-coverage claim is made.
+- Receipt and hashes: `docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-ainv-nonlogit-bridge-live-20261029/`. Full report: `docs/dev-log/after-task/2026-10-29-julia-binomial-animal-ainv-nonlogit-bridge.md`.
+
+# 2026-10-29: Julia Binomial logit animal-intercept with A and Ainv
+
+- The focused `julia-binomial-animal-sd-regression` filter passed with two live Julia bridge tests on drmTMB `425bee81572c625a634b2b083050c5c57c1dc1f1` and DRM.jl `70dbf564eb670144c63c08f61ea099084d95add2`.
+- Existing synthetic tests fit the same logit animal-intercept SD model with supplied `A` and `Ainv`; native and Julia coefficients, likelihoods, and group SD predictions agree within fixed tolerances.
+- Evidence reconciliation passed with 20,350 candidate rows, 204 records, 184 linked rows, and 20,166 unlinked rows. The two Julia logit q1 `A_covariance` and `Ainv_precision` rows remain unresolved and unreviewed; no coverage claim was made.
+- Receipt and hashes: `docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-logit-bridge-live-20261029/`. Full report: `docs/dev-log/after-task/2026-10-29-julia-binomial-animal-logit-bridge.md`.
+
+# 2026-10-27: Native lognormal correlated q2 predictor-dependent SD
+
+- Focused command `Rscript -e 'devtools::test(filter = "lognormal-ordinary-correlated-q2", reporter = "summary", stop_on_failure = TRUE)'`: 40 expectations passed, 0 failures, 0 warnings, 0 skips. The live Julia engine was not exercised.
+- The synthetic fixture checks recovery of both coefficient-specific log-SD slopes, finite within-block correlation, group-keyed predictions matched to the fitted SD formulas, and constant-SD likelihood equivalence to the existing lognormal q2 fit. Before the resolver admission, the test failed at the lognormal random-effect-shape guard. Independent review found and prompted fixes for prediction-value checks and the `sigma ~ 1` wording; the focused test passed again after those changes.
+- Source-bound renders of `vignettes/predictor-dependent-random-sd.Rmd` and `vignettes/formula-grammar.Rmd` completed successfully with existing Pandoc `--mathjax` deprecation warnings. The final predictor-dependent SD render includes the corrected `sigma ~ 1` explanation. `pkgdown::check_pkgdown()` reported no problems with existing Pandoc `--mathml` warnings.
+- `pkgdown::build_site()` was stopped after 6 minutes 46 seconds when it exceeded the 3-minute estimate; it had reached unrelated article rendering. This is an incomplete check, not a site-build pass.
+- Source manifest and receipt: `docs/dev-log/general-sd-regression/evidence/native-lognormal-correlated-q2-sd-20261027/`. Two target-specific links were added for the intercept and slope members. Evidence reconciliation passed with 19,678 candidate rows, 161 linked rows, 19,517 unlinked rows, and 181 evidence records. The two required rows remain unresolved pending candidate-universe and gate reconciliation.
+- Open issue search found only unrelated issue #1463, “Test sweep 3 Oct 2026: what passed”; no issue action was needed. No coverage calibration, Julia parity, full package suite, or `R CMD check` was run. Full report: `docs/dev-log/after-task/2026-10-27-native-lognormal-correlated-q2-sd.md`.
+
+# 2026-10-27: NB2 phylogenetic-intercept predictor-dependent SD
+
+- Focused command `Rscript -e 'devtools::test(filter = "nbinom2-phylo-sd-regression", reporter = "summary")'`: passed all expectations; synthetic checks cover the q1 phylogenetic SD-slope fit, group-SD output, and constant-SD equivalence.
+- Adjacent command `Rscript -e 'devtools::test(filter = "phase18-nbinom2-phylo-q1", reporter = "summary")'`: passed all expectations.
+- This adds one complete-data NB2 q1 phylogenetic `mu` intercept with fixed `sigma`; no other random or structured terms and no zero-inflation formula. Coverage and Julia parity remain open.
+
+# 2026-10-27: Native NB2 correlated q2 predictor-dependent SD
+
+- Focused command `Rscript -e 'devtools::test(filter = "nbinom2-correlated-q2-sd")'`: 12 passed, 0 failed, 0 warnings, 0 skipped (48.0 seconds).
+- Adjacent command `Rscript -e 'devtools::test(filter = "nbinom2-(ordinary-correlated-q2|correlated-q2-sd)")'`: 37 passed, 0 failed, 0 warnings, 0 skipped (51.1 seconds).
+- The test checks both coefficient-specific log-SD slopes, target-keyed group predictions, and constant-SD equivalence to the ordinary NB2 q2 fit. Correlation recovery remains covered by the pre-existing q2 test; this SD slice does not claim an independent NB2 likelihood oracle or interval coverage.
+- `pkgdown::check_pkgdown()` found no problems with existing Pandoc `--mathml` deprecation warnings. The source-bound predictor-dependent SD vignette render completed and contains the new NB2 q2 example.
+- Full `pkgdown::build_site()` completed successfully, including the formula grammar and predictor-dependent SD articles; only existing Pandoc deprecation warnings were emitted.
+- Evidence receipt and source hashes are under `docs/dev-log/general-sd-regression/evidence/native-nbinom2-correlated-q2-sd-20261027/`; the exact target links are in `direct-sd-evidence.tsv`. The frozen required rows remain unresolved.
+- The closeout compiler passes; after-task prose and the check-log entry have zero slop-check findings. Full `git diff --check` reports one unrelated trailing blank line at EOF in `tests/testthat/test-binomial-sd-integration.R`; this slice left that dirty file unchanged. Recovery checkpoint: `docs/dev-log/recovery-checkpoints/2026-10-27-210844-codex-checkpoint.md`.
+- Inventory search: `rg -n -i 'NB2.*(correlated|q2|direct-SD|predictor-dependent SD)|((correlated|q2|direct-SD|predictor-dependent SD).*NB2)' README.md docs/dev-log/internal-roadmap.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md docs/design/59-structural-slope-and-non-gaussian-map.md vignettes/formula-grammar.Rmd vignettes/predictor-dependent-random-sd.Rmd _pkgdown.yml`. Current wording now distinguishes ordinary NB2 q2 SD regression from the still-open structured, broader-family, Julia, and interval work; dated historical notes remain intact.
+
+# 2026-10-27: Native Poisson correlated q2 predictor-dependent SD
+
+- Focused command `Rscript -e 'devtools::test(filter = "poisson-correlated-q2-sd")'`: 13 passed, 0 failed, 0 warnings, 0 skipped. It checks both coefficient-specific SD slopes, constant correlation, formula-keyed group SD outputs, an independent 20 by 20 Gauss-Hermite likelihood oracle, constant-SD equivalence, and q3 refusal.
+- Adjacent command `Rscript -e 'devtools::test(filter = "poisson-(mean|ordinary-correlated-q2|correlated-q2-sd)")'`: 174 passed, 0 failed, 0 warnings, 0 skipped across the new SD route, Poisson mean tests, and ordinary correlated q2 tests.
+- One fixed-seed 160-group by 32-observation Poisson design recovered log-SD slopes 0.504 and -0.413 (truth 0.4 and -0.35), and correlation 0.219 (truth 0.4). This is point-recovery evidence, not interval calibration.
+- `pkgdown::check_pkgdown()` passed with only existing Pandoc math deprecation warnings. The predictor-dependent SD vignette and formula grammar article rendered to `/tmp/predictor-dependent-random-sd-poisson-q2.html` and `/tmp/formula-grammar-poisson-q2.html`; the new example and updated family row are present in the HTML.
+- Open issue query `gh issue list --state open --search '"correlated Poisson" "SD"' --limit 20` returned no match. Exact status-inventory search output: `docs/dev-log/general-sd-regression/evidence/native-poisson-correlated-q2-sd-20261027/status-inventory-search.log`.
+- Source manifest, receipt, test transcript, and two target-specific evidence links are stored in `docs/dev-log/general-sd-regression/evidence/native-poisson-correlated-q2-sd-20261027/`. The candidate universe is frozen; its rows remain unresolved and no Julia parity or coverage claim is made.
+
+# 2026-10-27: Bernoulli phylogenetic-interaction Julia status reconciliation
+
+- The live bridge receipt in `docs/dev-log/after-task/2026-10-27-binomial-phylo-interaction-sd-julia-bridge.md` supersedes older formula-guide and limitation text saying Julia parity was open for this route. It covers the q1 pair-intercept SD route for logit, probit, and cloglog in the local DRM.jl development checkout; it does not establish released DRM.jl support or broader interaction parity.
+- Updated the formula grammar, formula vignette, and known-limitations entry to state that boundary. Added the evidence receipt to the programme gate ledger. No model code or test was changed in this documentation reconciliation.
+- `git diff --check` on the edited documentation is the local check for this reconciliation. The previous live focused bridge result is cited above; no test rerun is claimed here.
+
+# 2026-10-27: Native Binomial phylogenetic-interaction SD
+
+- Command: `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "^(binomial-phylo-interaction-sd|binomial-phylo-sd-regression|sd-level-grammar)$")'`.
+- Result: 74 expectations passed, 0 failed, 1 existing `sd_phylo()` deprecation warning. The new pair-scale recovery, prediction, pair-ID validation, and within-pair predictor validation checks passed; the neighboring Binomial phylogenetic SD regression test passed 25 expectations.
+- `devtools::document()` regenerated `man/random_effect_scale_formulas.Rd` for the new `level = "phylogenetic_interaction"` selector.
+- `pkgdown::check_pkgdown()` passed. `pkgdown::build_site()` completed successfully and rendered the updated formula guide. Both Pandoc commands emitted existing `--mathml` and `--mathjax` deprecation warnings.
+- Broader adjacent filter including all `phylo-interaction` tests reached one unrelated failure at `test-phylo-interaction.R:841`: an existing ZINB2 refusal assertion expects stale error text. No ZINB2 code or assertion was changed.
+- This is native TMB candidate evidence only. Julia fitting, bridge parity, and interval calibration remain open.
+
+# 2026-10-26: Current-source R-to-Julia probit phylogenetic SD profile bridge
+
+- Command: `JULIA_HOME='/Users/z3437171/.juliaup/bin' DRMTMB_JULIA_TESTS=true DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 R_PROFILE_USER=/dev/null /usr/local/bin/Rscript -e 'devtools::test(filter = "julia-binomial-phylo-sd", reporter = "summary", stop_on_failure = TRUE)'`.
+- Result: exit 0; three live Julia tests executed. The probit fit warns that two Hessian coordinates are nearly singular and withholds Wald SEs. Profile endpoint workflow passed; coverage is unvalidated.
+- Exact hashes: `R/julia-bridge.R` `896215ca04358b4b42c6d2c91f66c8ee8a5d882facd8b7237341ee1db65d5a95`; focused test `bb6c0be230a2f64489f1d5227c07d7cb25b8e549ccfeaa19978448d7a2acf6e4`; transcript `fd55988d3aa3de25da540b51c74441c4ea81d3accd2412b75b2e66157d4b4886`.
+- Log: `docs/dev-log/general-sd-regression/evidence/julia-binomial-probit-phylo-bridge-20261026/live-bridge-profile-retry-current.log`. This is one bridge smoke, not calibrated uncertainty or programme-gate completion.
+
+# 2026-10-26: Current-source Julia probit phylogenetic SD profile workflow
+
+- Command, from the paired Julia candidate: `JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /Users/z3437171/.juliaup/bin/julia --project=. test/test_binomial_phylo_sd_regression.jl`.
+- Result: 55 assertions passed (joint fit/oracle 27/27, phylogenetic intercept 23/23, profile endpoints 5/5). Runtime was about 54 seconds; Julia emitted a non-positive-definite Hessian warning and withheld Wald SEs.
+- Exact Julia source/test hashes: `src/inference.jl` `fe7243ffd52c33e047ae4fd01d1fe9992d78a48e84955188e0e094b72a726621`; `test/test_binomial_phylo_sd_regression.jl` `a94debee744dba611daa1c88ad64fa529af3b7a93753f8cc31dae8d326276e72`.
+- Transcript SHA-256: `ce1a1896b487a7e727a19d966dc639fbc4d9953d8070c1470cdf7c3c9dae99ba`; log: `docs/dev-log/general-sd-regression/evidence/julia-binomial-probit-phylo-workflows-20261026/direct-phylo-sd-test-20261026-profile-retry-current.log`.
+- This confirms one profile-workflow fixture only. It does not calibrate intervals or close a programme gate.
+
+# 2026-10-26: high-information Bernoulli q3 cloglog Julia bridge
+
+- Source: drmTMB candidate `425bee81572c625a634b2b083050c5c57c1dc1f1`; paired DRM.jl candidate `70dbf564eb670144c63c08f61ea099084d95add2`.
+- Live focused test: Julia 1.10.0, 160 groups × 32 observations; 19 assertions passed without warnings. Both engines converged. Coefficients, correlations, group-SD predictions, and binary marginal simulation passed.
+- The one-seed log-SD slope recovery uses 0.40 relative tolerance after the first exact run missed that truth-only threshold; cross-engine coefficient and prediction tolerances remain 0.20. Lower-information q3 cloglog fixtures remain unstable.
+- Receipt and exact hashes: `docs/dev-log/general-sd-regression/evidence/julia-binomial-correlated-q3-sd-bridge-final-20261026/q3-cloglog-receipt.md`.
+- One point/output fixture only; no interval calibration or programme gate closes.
+
+# 2026-10-26: high-information Bernoulli q3 logit Julia bridge
+
+- Source: drmTMB candidate `425bee81572c625a634b2b083050c5c57c1dc1f1`; paired DRM.jl candidate `70dbf564eb670144c63c08f61ea099084d95add2`.
+- Live focused test: Julia 1.10.0, 160 groups × 32 observations; 19 assertions passed without warnings. Both engines converged. Coefficients, correlations, group-SD predictions, and binary marginal simulation passed; all three generated SD trends were recovered within the test tolerance.
+- Low-information q3 logit fixtures remain unstable. The R bridge admits this q3 logit route on the evidence above; q3 cloglog was later admitted after its own high-information test, documented in the newer entry at the top.
+- Receipt and exact source/test/log hashes: `docs/dev-log/general-sd-regression/evidence/julia-binomial-correlated-q3-sd-bridge-final-20261026/q3-logit-receipt.md`.
+- One point/output fixture only; no interval calibration or programme gate closes.
+
+# 2026-10-26: Bernoulli correlated q3 Julia bridge boundary (superseded by the two high-information link checks above)
+
+- Source: drmTMB candidate `425bee81572c625a634b2b083050c5c57c1dc1f1`; paired DRM.jl candidate `70dbf564eb670144c63c08f61ea099084d95add2`.
+- Final q3 probit live test: Julia 1.10.0, 80 groups × 12 observations, one live test passed without warnings. It checks convergence, same-data TMB/Julia coefficient and correlation outputs, group-SD predictions, and marginal simulation.
+- q3 logit remains refused after convergence/parity and singular or non-positive-definite Hessian failures. q3 cloglog remains refused after nonconverged candidate fits with a singular Hessian.
+- Fit-free rerun: 20 assertions passed; the opt-in live test skipped because `DRMTMB_JULIA_TESTS` was not enabled for this verification command.
+- Exact evidence, diagnostics and source hashes: `docs/dev-log/general-sd-regression/evidence/julia-binomial-correlated-q3-sd-bridge-final-20261026/`.
+- This is one point/output cell only. Interval coverage remains deferred, G3 remains open, and the broader programme is not complete.
+
+## 2026-10-25: Probit/cloglog independent intercept-plus-slope SD bridge
+
+The development Julia bridge now admits complete-data probit and
+complementary-log-log Binomial models with one ordinary random intercept and
+one independent numeric slope on the same group, each paired with its own
+coefficient-selected SD formula. The new formula controls failed before the
+gate change and passed afterward. Same-data TMB/Julia fits passed for both
+links, with signed recovery of both SD-predictor slopes and group-SD prediction
+checks. Adjacent single-slope bridge tests and both affected vignette renders
+passed. This remains development-candidate point-recovery evidence; correlated
+blocks, shared/released Julia support, and interval calibration remain open.
+The focused pair test now also confirms both SD coefficient targets appear in
+`profile_targets()` and that a two-refit Julia bootstrap smoke retains the
+selected slope target with at least one finite refit. This checks workflow
+routing and result shape; interval quality and coverage remain unmeasured.
+Full report and commands: `docs/dev-log/after-task/2026-10-25-julia-binomial-nonlogit-intercept-slope-bridge.md` and `docs/dev-log/check-log.d/2026-10-25-julia-binomial-nonlogit-intercept-slope-bridge.md`.
+
+## 2026-10-25: ZI-NB2 sigma SD Julia bridge admission boundary
+
+The bridge predicate now admits optional `zi` only when its formula is
+intercept-only. Before the change, `zi ~ w` and `zi ~ 1 + (1 | id)` both passed
+the predicate. The focused formula-boundary checks and existing ordinary NB2
+intercept/slope admission checks pass. The existing live ZI-NB2 sigma-SD test
+also passed with one R-to-Julia fit after explicitly setting `DRM_JL_PATH`.
+The ordinary NB2 sigma intercept/slope bridge test passed with one live Julia
+test as well. The native SD coefficient is profile-ready and two bootstrap
+refits retained its target with diagnostics. A full profile CI attempt ran
+beyond four minutes without output and was interrupted, so that workflow
+remains unverified for this cell. This closes one bridge-admission mismatch;
+it does not add varying-`zi` support or interval calibration. Details and
+commands:
+`docs/dev-log/after-task/2026-10-25-julia-zi-nbinom2-sigma-sd-bridge.md` and
+`docs/dev-log/check-log.d/2026-10-25-julia-zi-nbinom2-sigma-sd-bridge.md`.
+
+## 2026-10-25: Native ZI-NB2 sigma random-intercept SD regression
+
+Model type 9 now uses `X_sd_sigma` and `beta_sd_sigma` to compute each group's
+sigma-random-intercept SD before adding that latent effect to `log(sigma)`. The
+builder admits the matched complete-data target with fixed-effect `mu` and `zi`;
+no `mu` or other random-effect target is combined with it. The focused test
+checks formula assembly, coefficient recovery, Hessian and covariance
+availability, group-SD prediction, the conditional `sigma` link, RDS
+save/reload, simulation, constant-SD likelihood equivalence, and refusal of a
+within-group-varying SD predictor. It passed after the likelihood patch.
+
+The same focused test failed before the patch: `pdHess` was false, covariance
+extraction was unavailable, and the constant-SD log likelihood differed by
+0.96. The green test is scoped point-fit evidence; it does not establish
+interval coverage or Julia parity. Exact-current source hashes are recorded in
+the corresponding after-task report. The status inventory and SD-regression
+vignettes now describe the route and its limits. No open GitHub issue matched
+this specific ZI-NB2 sigma SD slice.
+
+## 2026-10-25: Gamma sigma SD regression through Julia bridge
+
+The paired Julia candidate now fits one Gamma `sigma` random intercept with a
+predictor-dependent SD through the R bridge. The live synthetic test passed
+with one Julia fit, canonical `sd` labels, target prediction, and same-data
+coefficient comparison to native TMB within a smoke tolerance. Three negative
+admission cases cover a wrong group, a sigma random slope, and a random effect
+on `mu`. Direct Julia's scalar integration-oracle test passed 14 assertions;
+`pkgdown::check_pkgdown()` found no problems. This is one point-estimate cell,
+not broad parity or interval calibration.
+Details: `docs/dev-log/after-task/2026-10-25-julia-gamma-sigma-sd-bridge.md`.
+
+## 2026-10-25: Native LogNormal sigma random-slope SD
+
+The native LogNormal builder now admits one independent numeric slope on the
+`sigma` predictor when a matching `sd(group, dpar = "sigma", coef = "x") ~ w`
+formula is supplied. The complete-data route requires fixed-effect `mu` and a
+group-constant SD predictor; an unpaired slope remains refused. Test-first
+evidence reproduced the old intercept-only validation error, then the focused
+file passed 49 expectations with stable source hashes. `devtools::document()`,
+`pkgdown::check_pkgdown()`, the rendered predictor-dependent-SD vignette,
+scoped `git diff --check`, and the evidence reconciler passed. The reconciliation
+now reports 82 receipt records linked to 63 candidate rows of 19,118; these are
+evidence-linkage counts, not completion. Coverage remains deferred, and Julia
+parity remains untested. Full report:
+`docs/dev-log/after-task/2026-10-25-lognormal-sigma-slope-sd.md`.
+The after-task structure check passed; the unlazy ledger check returned UNKNOWN
+because its gate checker was not runnable, so no programme gate was advanced.
+
+## 2026-10-24: Cumulative-logit Julia bridge SD intercept
+
+The R bridge now admits one complete-response cumulative-logit ordinary location random intercept with a matching predictor-dependent SD. The same-data TMB/Julia fixture passed 20 focused expectations, including 16 live bridge checks; both fits converged, recovered the positive SD-predictor trend within the test tolerance, and returned increasing group-SD predictions that agreed across engines. The admission control also rejects an SD target for a different group. Runtime was 65.87 seconds. The archived earlier slope receipt remains hash-valid after the registry comment and adjacent gate test were updated. The evidence reconciler passes with 54 receipt records linked to 43 of 19,118 candidate rows. This adds one point-recovery bridge cell only; correlated and structured routes and interval calibration remain open. Report and log: `docs/dev-log/after-task/2026-10-24-julia-cumulative-logit-sd-intercept-bridge.md` and `docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-intercept-bridge-20261024/`.
+
+## 2026-10-24: Cumulative-logit Julia bridge SD slope
+
+The R bridge now admits one complete-response cumulative-logit numeric location slope with a matching predictor-dependent `sd()` formula. The synthetic same-data R/TMB and Julia test passed 16 expectations in 59.7 seconds; point recovery and group-SD prediction passed. The R-side focused tests passed 95 expectations. `pkgdown::check_pkgdown()` found no problems, and the source-bound evidence reconciler passed with 53 receipt records linked to 43 of 19,118 candidate rows. This is one point-fit bridge cell, not interval calibration or programme completion. One temporary-library collision occurred during a log-capture retry; the isolated-temp rerun passed. Full report and logs: `docs/dev-log/after-task/2026-10-24-julia-cumulative-logit-sd-bridge-parity.md` and `docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-bridge-20261024/`.
+
+## 2026-10-24: Gaussian ordinary random-slope SD regression
+
+The Gaussian location builder now admits one ordinary independent numeric slope as a predictor-dependent SD target. Test-first evidence: the new synthetic fit initially failed with the intended intercept-only guard; after the adapter change, the native recovery/output/simulation/constant-SD filter passed 12 expectations. The live Julia bridge filter passed two same-data tests and 22 expectations for intercept and slope coefficient, log-likelihood, and group-SD parity. NEWS, the random-scale design guide, the family adapter map, known limitations, and the runnable vignette now state the narrow boundary. Correlated or structured slopes, broader Gaussian combinations, and interval-coverage calibration remain open. Full report: `docs/dev-log/after-task/2026-10-24-gaussian-random-slope-sd.md`. The ordinary-intercept parity records now bind to the preserved test snapshot, and the hash-checked evidence table reconciles 52 receipt records to 43 candidate rows; the table reports linked evidence rows; broader implementation and interval coverage remain unverified.
+
+## 2026-10-24: Julia Binomial animal plus IID marginal simulation
+
+The focused same-data R/TMB and Julia fixture now admits public marginal simulation for one complete-data animal random intercept plus one ordinary IID random intercept. It covers supplied covariance A and precision Ainv; the live Julia bridge test passed 35 expectations with no failures or skips. Covariance order is restored to first-seen fitted groups after bridge serialization drops dimnames. Source/test parsing and scoped whitespace checks pass. This is one narrow candidate output cell; G3/G4 remain open and coverage calibration is deferred. Full report: docs/dev-log/after-task/2026-10-24-julia-binomial-animal-iid-sd-marginal-simulation.md.
+
+## 2026-10-24: Ignore inactive SD designs in rank diagnostics
+
+Both fixed-effect rank checks now use a shared `drm_twin_rank_tol` constant and omit an SD design only when its endpoint has zero fitted random-scale models. The focused regression test passed six expectations, retaining a negative control for an active rank-deficient SD design. This fixes one diagnostic false positive; it adds no family capability and closes no programme gate. Details and current source hashes: `docs/dev-log/after-task/2026-10-24-inactive-sigma-sd-rank-check.md`.
+
+## 2026-10-24: Poisson ZIP SD cross-engine receipt
+
+A current-source same-data TMB/Julia bridge test passed with one live Julia fit; source hashes were stable across 169 files. Two exact ordinary ZIP mean-intercept rows now link to the receipt. The rows remain unreviewed, no programme gate closes, and user-facing ZIP SD documentation is still pending its docs-lane handoff. Detail: `docs/dev-log/check-log.d/2026-10-24-poisson-zi-sd-cross-engine-evidence.md`.
+
+## 2026-10-24: Bernoulli source-bound evidence receipt refresh
+
+The current Julia bridge filter passed five live tests with stable before/after hashes for 167 source files. Three existing Bernoulli evidence rows now link to the current receipt; all remain unreviewed. The reconciler passes with 43 records linked to 34 of 19,118 candidate rows. This closes no programme gate and establishes no coverage calibration. Details: `docs/dev-log/check-log.d/2026-10-24-bernoulli-ledger-receipt-refresh.md`.
+
+## 2026-10-24: Supersede Gamma animal normalization with raw-`A` parity
+
+The user selected raw supplied `A` for Julia Gamma animal models, matching native TMB. The earlier check-log entry and after-task report recommending normalized `A` remain as history and are superseded. The Julia fit and marginal simulator now use raw `A`; the R bridge simulator no longer normalizes it. Current user-facing family and animal-model docs state that marginal group SD is the fitted multiplier times `sqrt(A[g,g])`, and explain that this changes earlier Julia Gamma fits with non-unit-diagonal `A`.
+
+Checks already run against the current candidate source: the focused Julia Gamma animal intercept, slope-only, and intercept-plus-slope tests passed (66 assertions total); the focused R bridge simulation and same-data parity tests passed (2 live Julia bridge tests). The parity fixture checks fitted SD coefficients, log likelihood, and named group SDs for one non-unit-diagonal `A`. This is not broad engine parity or interval calibration. Exact source pins, changed-file hashes, and command details are in `after-task/2026-10-24-gamma-animal-raw-kernel-parity.md` and its evidence directory.
+
+## 2026-10-24: Correct Julia Gamma animal simulation covariance
+
+The corrected non-unit-kernel test first failed against the prior simulator:
+the simulator drew from raw `A`, while DRM.jl's Gamma animal fitter normalizes
+`A` to unit-diagonal correlation. `R/julia-simulate.R` now applies the same
+normalization before drawing. The combined focused `gamma-animal-q2` filter
+passed with three live Julia bridge tests, including cross-engine fit parity
+and the corrected seeded marginal simulator. R parsing and the scoped
+whitespace check passed. The earlier raw-`A` simulation report is retained as
+history; the current inventory and correction report supersede its covariance
+claim. No open matching issue was found. This remains one Julia Gamma animal
+route and closes no programme gate. Full report and exact hashes:
+`docs/dev-log/after-task/2026-10-24-gamma-animal-kernel-simulation-correction.md`
+and `docs/dev-log/evidence/gamma-animal-kernel-simulation-correction-20261024/`.
+
+## 2026-10-24: General SD coverage calibration deferred
+
+Shinichi moved interval-coverage calibration to a separate follow-up after
+implementation breadth. The active implementation finish line and ledger now
+require broad fitting, recovery checks, functioning uncertainty workflows,
+consistent outputs, docs, regression checks, and independent closeout; coverage
+remains explicitly unvalidated. The required family/effect/provider/layout/
+endpoint/backend universe is unchanged. No programme gate was closed. Details:
+`docs/dev-log/after-task/2026-10-24-general-sd-coverage-deferral.md`.
+
+## 2026-10-23: Julia Binomial animal-intercept SD with A and Ainv
+
+The R bridge now admits one complete-data Binomial animal-intercept SD route
+with labeled covariance `A` or precision `Ainv`. A focused test first failed because the
+Binomial animal-intercept admission helper did not exist. After adding the
+narrow helper and precision-route guard, the focused bridge test passed with
+two live Julia tests against the paired DRM.jl candidate. Same-data native TMB
+and Julia fits used a non-unit-diagonal synthetic relationship covariance. The
+test compares both inputs across engines and checks covariance/precision
+equivalence within each engine for the SD coefficient, log likelihood, and
+group-SD predictions. The negative test still refuses the Binomial structured
+route without its matching SD formula.
+
+`pkgdown::check_pkgdown()` found no problems. Rendering
+`vignettes/structural-dependence.Rmd` succeeded with only the existing Pandoc
+`--mathjax` deprecation warning. The changed-file whitespace check passed; the
+whole-worktree `git diff --check` still reports a pre-existing extra blank line
+at EOF in `tests/testthat/test-binomial-sd-integration.R`. This is one
+complete-data Binomial animal-intercept precision-input point-parity slice; it
+does not establish other Binomial links or effect types, broad Julia parity,
+profile/bootstrap refits, interval calibration, or programme-wide completion.
+The required after-task structure check passed. Its acceptance-ledger check
+reported `UNKNOWN` because the ledger node or gate-check command was not
+runnable; no programme gate was advanced.
+Full report: `docs/dev-log/after-task/2026-10-23-julia-binomial-animal-ainv-sd-parity.md`.
+
+## 2026-10-23: Native Gamma animal intercept-and-slope SD regression
+
+Native Gamma now admits an unlabelled animal intercept plus one numeric slope
+as two independent fields, each with its own `coef`-selected SD formula. The
+focused synthetic pedigree test passed 37 assertions after the zero-loading
+and exact constant-loading/constant-SD-design guards were added. Before those
+guards, the two new assertions failed because both models fitted without the
+required identifiability refusal. The full predictor-dependent-SD vignette
+rendered from the candidate source; the first render attempt loaded an older
+installed worktree and failed, then an explicit `devtools::load_all('.')`
+render succeeded with only the existing `--mathjax` deprecation warning.
+`pkgdown::check_pkgdown()` reported no problems, with only existing Pandoc
+`--mathml` deprecation warnings.
+The final focused rerun was against current live hashes: `R/drmTMB.R`
+`c42afd967853eeaaa7147c7bbdc93b6b870ca37c`, `src/drmTMB.cpp`
+`6d2566288a9837a481cc71814c143b1e0fd76497`, and the focused test
+`98a100552186416ad3ed07687d46c65503c2f0ac`; it passed 37/37 in 28.6 seconds.
+The R and C++ hashes identify composite live files with concurrent broader
+general-SD edits, not q2-only diffs. Earlier q2-only snapshot hashes are recorded
+in the after-task report. The source edits were preserved during this final
+verification.
+This is one unit-diagonal pedigree q2 recovery/workflow slice, not Julia
+parity, interval calibration, G3 breadth, or G5 uncertainty completion. The
+separate Gamma q1 animal slope-only `A`/`Ainv` provider rows remain
+unverified. Details: `docs/dev-log/after-task/2026-10-23-gamma-animal-q2-sd.md`.
+
+## 2026-10-23: Tweedie related-matrix SD TMB/Julia parity
+
+The focused Julia bridge filter passed 19 assertions, including a same-data
+native TMB fit with a permuted, non-unit-diagonal kernel. Both optimizers
+converged; SD coefficients and group-level multipliers agreed within 0.15,
+and log likelihoods agreed within 1.0. JuliaCall emitted a dependency-extension
+precompile warning during setup, but the live fit and checks completed. This
+adds one structured Tweedie point-parity row, not broad support or interval
+calibration. Details: `docs/dev-log/after-task/2026-10-23-julia-tweedie-relmat-sd-parity.md`.
+
+## 2026-10-23: Julia NB2 animal Ainv evidence receipt
+
+The paired Julia candidate's focused NB2 animal-intercept `Ainv` test passed
+19/19 assertions in 15.6 seconds. A source-bound receipt now links the exact
+q1 `mu` animal-intercept row and remains explicitly unreviewed. The evidence
+reconciler passed with 19,118 candidate rows, 20 receipt records, 19 linked
+rows, and 19,099 unlinked rows. The focused reconciler suite passed 11/11.
+This is route-equivalence and input-validation evidence, not independent
+likelihood validation, native parity, or interval calibration. Details:
+`docs/dev-log/check-log.d/2026-10-23-julia-nb2-animal-ainv-evidence.md`.
+
+## 2026-10-22: Julia ZeroOneBeta ordinary direct-SD rows
+
+The complete-response Julia bridge test passed 35 assertions with two live fits for the ordinary `mu` intercept and selected independent numeric slope, keeping `sigma`, `zoi`, and `coi` fixed. Same-data fixtures check point recovery, target-specific group SD outputs, Julia prediction, and intercept save/reload. The hash-bound overlay now links both exact rows; the route remains paired-development-candidate evidence without interval calibration. The Julia family table and family inventory now reflect the narrow boundary. Receipt: `docs/dev-log/general-sd-regression/evidence/zeroonebeta-julia-sd-20261022/receipt.md`.
+
+## 2026-10-22: fresh-process `fixef()` dispatch
+
+A clean child process could not dispatch the exported `nlme::fixef` generic to drmTMB's existing Julia method. Qualified roxygen S3 registration now covers native, Julia, and legacy cross-family fit classes. The new child-process test failed before the change and passes after it. The adjacent missing-data/structured Julia filter now exits 0 with five live Julia tests; it has three documented skips and one existing TMB NaN warning. `pkgdown::check_pkgdown()` found no problems; Pandoc emitted only its existing `--mathml` deprecation warnings. Details: `docs/dev-log/after-task/2026-10-22-fixef-julia-s3-registration.md`.
+
+## 2026-10-22: Julia LogNormal ordinary direct-SD bridge
+
+The paired development candidates pass same-data point checks for one ordinary `mu` intercept and one independent numeric `mu` slope with fixed `sigma ~ 1`. Source hashes were reverified against the stored manifest. The evidence overlay now links both exact rows, bringing it to 16 of 19,118 candidate rows; both records remain unreviewed. This does not establish interval calibration, shared/released DRM.jl support, structured effects, or broad LogNormal parity. Report: `docs/dev-log/after-task/2026-10-22-julia-lognormal-sd-bridge-evidence.md`.
+
+## 2026-10-22: Tweedie Julia SD-regression bridge
+
+The Julia bridge admits one complete-data Tweedie `mu` random intercept or
+one independent numeric slope with a matching SD formula, fixed `sigma`, and
+intercept-only `nu`. The focused Julia bridge filter passed both live
+same-data comparisons against native TMB; the native Tweedie SD integration
+filter passed 27 expectations. Structured/correlated effects and interval
+calibration remain outside this slice. Details:
+`docs/dev-log/check-log.d/2026-10-22-tweedie-julia-sd-bridge.md`.
+
+## 2026-10-22: Reject unsupported Student-t SD endpoints
+
+The Student-t builder now rejects unsupported `sd()` endpoint selectors such
+as `dpar = "nu"` instead of silently ignoring them. The focused test-first
+assertion failed before the guard, then the focused and broad Student filters
+passed. With explicit Julia paths, two live Student bridge tests passed. This
+is an input-validation correction; the supported Student-t SD endpoint remains
+`mu`. Details: `docs/dev-log/check-log.d/2026-10-22-student-sd-target-guard.md`.
+
+## 2026-10-22: Gamma animal SD R-to-Julia bridge parity
+
+The focused Gamma bridge filter passed with four live tests, including one
+same-data point comparison using a unit-diagonal supplied covariance. The
+neighbouring structured bridge filter passed with one live test. This remains
+one candidate fixture, not broad parity or interval calibration. GitHub issue
+lookup could not reach the API. Details:
+`docs/dev-log/check-log.d/2026-10-22-julia-gamma-animal-sd-bridge-parity.md`.
+
 # 2026-10-25: `@param engine` cites Julia same-target receipts (#1569)
 
 `R/drmTMB.R` `@param engine` (and `man/drmTMB.Rd`) now names NEWS and
@@ -65,6 +524,547 @@ a bar still reach Julia setup. Gate id `gaussian_ordinary_re_factor_fe`
 added. Both `julia-gates.tsv` copies regenerated to 17 rows. Focused
 tests: fence file 11/11; gate-vs-engine 146 pass, 1 skip (`ape` missing).
 No lineage or C17 files changed.
+
+# 2026-10-21: Native Gamma sigma-endpoint SD regression
+
+The complete-data Gamma route now supports `sd(group, dpar = "sigma") ~ z`
+for one ordinary random intercept in `sigma` with fixed-effect `mu`. The
+focused seeded recovery/output test and adjacent Gamma/LogNormal filter passed.
+They check SD-coefficient recovery, finite covariance, group-level SDs,
+conditional sigma prediction, save/reload, constant-SD equivalence, and
+rejection of within-group-varying SD predictors. The predictor-dependent-SD
+vignette rendered from current source. Gamma `sigma` is the coefficient of
+variation, and this SD formula targets the latent intercept on `log(sigma)`.
+Julia parity and interval coverage remain unverified; this is one native cell,
+not programme completion. Details: `docs/dev-log/check-log.d/2026-10-21-gamma-sigma-sd-regression.md`.
+
+## 2026-10-22: Native LogNormal sigma-endpoint SD verification
+
+The focused `lognormal-sigma-sd-regression` test and adjacent LogNormal
+location-scale, SD-assembly, and SD-integration filters passed. The test checks
+seeded recovery, coefficient covariance, group-SD prediction, marginal
+simulation, save/reload, constant-SD equivalence, and rejection of an SD
+predictor that varies within group. A profile-interval call on the 400-group
+recovery fit exceeded the light-check time budget and was interrupted; it is
+not a pass. A subsequent two-fit profile smoke returned finite intervals, but
+the 36-group interval missed truth and the 120-group interval contained it.
+The focused and neighboring LogNormal test filters now include the seeded
+120-group profile smoke and pass. This verifies profile execution only, not
+coverage. A later focused rerun also checked fitted-data conditional `sigma`
+prediction against the fixed predictor plus the fitted group effect and
+checked `sigma(fit)` against the exponentiated link prediction. Julia parity
+and interval coverage remain unverified. Details:
+`docs/dev-log/check-log.d/2026-10-22-lognormal-sigma-sd-validation.md`.
+
+## 2026-10-21: Julia Binomial relmat SD bridge parity
+
+Details and exact commands: `docs/dev-log/check-log.d/2026-10-21-julia-binomial-relmat-sd-parity.md`.
+
+# 2026-10-21: Native Binomial relmat precision SD regression
+
+The new fixed-seed test compares the existing direct-SD Binomial `relmat()`
+route with covariance input `K` and a label-permuted precision input
+`Q = solve(K)`. The combined K/Q filters passed 31 assertions with no failures,
+warnings, or skips in 31.5 seconds. Log likelihoods and SD coefficients agree,
+and group-SD predictions agree after aligning by group name. The existing K
+test now checks name-aligned outputs because the returned order follows matrix
+nodes. This is one native precision-input check; it adds no Julia parity or
+interval-calibration evidence. Details:
+`docs/dev-log/after-task/2026-10-21-binomial-relmat-precision-sd.md`.
+
+## 2026-10-21: Native Bernoulli animal slope SD regression
+
+One unlabelled q1 animal location slope now fits with a group-level
+predictor-dependent SD, using `animal(0 + x | id, A = A)` and
+`sd(id, level = "animal") ~ z`. The focused animal-intercept and animal-slope
+tests passed 28 assertions with no failures, warnings, or skips in 48.6
+seconds. The slope test checks seeded point recovery, named group-SD
+predictions, profile-target identity, simulation, save/reload, constant-SD
+equivalence, and within-animal predictor validation. This is one native
+point-recovery cell, not interval calibration or Julia parity. The source
+change shares `R/drmTMB.R` with the active ZIP-slope lane and still needs
+owner reconciliation. Details: `docs/dev-log/check-log.d/2026-10-21-binomial-animal-slope-sd.md`.
+
+## 2026-10-21: Native zero-truncated NB2 independent-slope SD regression
+
+The native complete-response non-hurdle zero-truncated NB2 route now supports a
+predictor-dependent SD for one selected independent numeric `mu` slope with
+fixed-effect `sigma`. The assembly/guard test passed 20 assertions and the
+integration test passed 16, with no failures, warnings, or skips; the latter
+took 81.0 seconds. The synthetic fit checks point recovery, group-level SD
+prediction, constant-SD equivalence, and a groupwise quadrature sanity check
+with an index-sensitivity control. Julia was not exercised. This is not
+interval calibration. Formula grammar, the validation-debt register, the
+non-Gaussian capability map, NEWS, and the formula-grammar vignette now state
+the exact boundary. Details: `docs/dev-log/check-log.d/2026-10-21-truncated-nbinom2-slope-sd.md`.
+
+## 2026-10-21: Native lognormal independent-slope SD regression
+
+The native Lognormal builder now admits a predictor-dependent SD for one
+selected independent numeric `mu` slope with complete responses and fixed-effect
+`sigma`. The focused test passed 17 expectations with no failures, warnings, or
+skips in 6.2 seconds. The synthetic fit recovered the log-SD trend, matched an
+independent marginal-likelihood calculation, predicted group SDs, simulated
+positive responses, and matched the ordinary constant-SD fit after both
+comparison fits converged with positive-definite Hessians. The updated
+predictor-dependent-SD vignette rendered from current source; `pkgdown::check_pkgdown()`
+found no problems. Interval calibration and Julia parity remain open. Details:
+`docs/dev-log/check-log.d/2026-10-21-lognormal-sd-slope.md`.
+
+## 2026-10-21: Native zero-one beta location-slope SD regression
+
+The native TMB zero-one beta direct-SD route now admits one ordinary `mu`
+intercept or one selected independent numeric `mu` slope. The seeded slope
+test passed 17 expectations, and the existing intercept SD tests passed 14;
+both focused filters had no failures, warnings, or skips. The predictor-SD
+vignette rendered from the current source. The broader zero-one beta filter
+was interrupted during a quadrature test and is not counted as a pass. Julia
+slope support and interval calibration remain open. The adapter map, formula
+grammar, formula-grammar vignette, and release note were updated. Details:
+`docs/dev-log/after-task/2026-10-21-zero-one-beta-sd-slope.md`.
+
+## 2026-10-20: structured phylogenetic SD clamp reports
+
+Four structured TMB branches now report the same soft-clamped group log SD
+that they exponentiate for the likelihood. Perturbed-coefficient checks for
+Gamma, Gaussian, Beta, and bivariate Gaussian passed 30 expectations and
+compare the TMB report, response SD, and public link-scale prediction. A
+temporary raw-report replay failed as expected in all four routes. The restored
+source rebuilt with 15 warnings, including existing Eigen header and
+unused-variable warnings. The exact source search `rg -n '= eta_sd;'
+src/drmTMB.cpp` found no raw group-SD report assignments. The focused after-task report is
+`docs/dev-log/after-task/2026-10-20-structured-sd-clamp-report.md`. This is
+partial branch-level report-consistency evidence, not full structured-family
+parity or interval calibration. The report structure check passed; the
+programme acceptance check correctly remains open on outstanding capability
+gates.
+
+## 2026-10-20: Beta animal SD with supplied A and Ainv
+
+The focused native Beta animal-intercept SD test passed for pedigree, supplied
+covariance `A`, and matching precision `Ainv`, including joint permutation of
+the supplied matrix order, point recovery, observed-animal predictions,
+constant-SD equivalence, and likelihood agreement with the pedigree fit. The
+predictor-dependent-SD vignette rendered from the current worktree, and
+`pkgdown::check_pkgdown()` passed with existing Pandoc MathML warnings. No
+matching open GitHub issue was found. This is one point-recovery cell, not
+interval calibration or Julia parity. Details:
+`docs/dev-log/after-task/2026-10-20-beta-animal-matrix-sd.md`.
+
+## 2026-10-20: native Poisson animal SD from pedigree
+
+A seeded q1 animal-pedigree test passed for the native Poisson route. It draws
+the latent effect from the dense additive relationship matrix and fits through
+the sparse pedigree precision path. Ten assertions cover SD-slope recovery,
+group prediction matched by animal name, and constant-SD likelihood
+equivalence. This is native point-recovery evidence only, not Julia parity or
+interval calibration. Details:
+`docs/dev-log/check-log.d/2026-10-20-poisson-animal-pedigree-sd.md`.
+
+## 2026-10-20: native Poisson animal SD with Ainv precision input
+
+An independent seeded test passed for the existing native Poisson animal q1
+route with `animal(1 | id, Ainv = Q)` and `sd(id, level = "animal") ~ z`.
+The test verifies non-identity matrix ordering, SD-slope recovery, group-SD
+prediction, and constant-SD likelihood equivalence. All 10 assertions passed;
+static review passed the DGP and precision alignment. This is one native
+point-recovery cell, not pedigree-built input, Julia parity, or interval
+calibration evidence. Details:
+`docs/dev-log/check-log.d/2026-10-20-poisson-animal-ainv-sd.md`.
+
+## 2026-10-20: native Poisson animal-model SD regression
+
+The Poisson formula builder now admits one complete-data, non-inflated q1
+`animal(1 | id, A = A)` location intercept with
+`sd(id, level = "animal") ~ z`. Its fixed-seed test passes 11 assertions for
+SD-slope recovery, shuffled matrix dimnames, group-SD prediction, simulation,
+save/reload, and constant-SD equivalence. The combined Poisson-animal,
+Bernoulli-animal, Poisson-relmat, and SD-level grammar filter passes 74
+assertions with one existing `sd_phylo()` deprecation-throttle warning. The
+current-source tutorial render and `pkgdown::check_pkgdown()` pass. A full site
+build did not finish because CRAN DNS resolution failed and the user-level
+Sass cache was not writable. This is one native point-recovery cell, not Julia
+parity or interval calibration. Details:
+`docs/dev-log/check-log.d/2026-10-20-poisson-animal-sd-regression.md`.
+
+## 2026-10-20: native Bernoulli relatedness-matrix SD verification
+
+The existing `binomial-relmat-sd` test passed 22 checks in 18.5 seconds with
+zero failures, warnings, or skips. A source-loaded tutorial render also passed
+after adding an independent synthetic Bernoulli `relmat()` intercept example.
+The paired DRM.jl audit found no matching route; its active source tree is
+dirty, so no Julia files were changed pending ownership handoff. This is one
+native fit/recovery/output cell, not Julia parity or interval calibration.
+Details: `docs/dev-log/after-task/2026-10-20-binomial-relmat-sd-verification.md`.
+
+## 2026-10-20: native Poisson relatedness-matrix SD regression
+
+The Poisson formula builder now admits one complete-data, non-inflated q=1
+`relmat()` location intercept with `sd(id, level = "relmat") ~ z`; marginal
+simulation uses the fitted group-specific SDs. The focused test passed 18
+expectations. Neighboring Poisson-phylo and Bernoulli-relmat tests passed 46
+expectations total. The source-loaded predictor-dependent SD tutorial rendered,
+and `pkgdown::check_pkgdown()` found no problems. The full site build could not
+resolve `cloud.r-project.org` in this network-restricted environment. This is
+one native recovery/output cell, not Julia parity or interval calibration.
+Details and exact commands: `docs/dev-log/check-log.d/2026-10-20-poisson-relmat-sd-regression.md`.
+
+## 2026-10-20: native beta-binomial random-slope SD regression
+
+A complete-response beta-binomial route now admits one independent numeric `mu` slope with `sd(group, coef = "x") ~ w` and fixed `sigma`. The focused synthetic test passed 12 assertions covering assembly, a point-fit smoke check, group-SD prediction, response simulation, and save/reload prediction. `pkgdown::check_pkgdown()` reported no problems, with existing Pandoc `--mathml` deprecation warnings. An independent per-group quadrature likelihood comparison and wrong-group control also pass for one seeded case. This does not establish Julia parity or interval calibration. Details: `docs/dev-log/check-log.d/2026-10-20-beta-binomial-sd-slope.md`.
+
+## 2026-10-20: native cumulative-logit random-slope SD regression
+
+The complete-response cumulative-logit builder now admits one independent numeric `mu` slope with a coefficient-selected predictor-dependent SD. A seeded 256-group by 30-observation fit estimated the log-SD slope as 0.5625 for truth 0.5; 64- and 128-group pilots were unstable and remain documented. The focused test passed 10 assertions, the current-source article render passed, `pkgdown::check_pkgdown()` found no problems, and the full site build finished successfully with existing Pandoc mathml/mathjax deprecation warnings. This is native point-fit evidence only, not interval calibration or Julia parity. Details: `docs/dev-log/check-log.d/2026-10-20-cumulative-logit-sd-slope.md`.
+
+## 2026-10-19: Bernoulli phylogenetic SD candidate verification
+
+On the current general-SD candidate, the native Bernoulli phylogenetic fit
+test passed 12 assertions with zero failures, warnings, or skips after setting
+`NOT_CRAN=true`. It checks a varying SD regression, prediction, and reduction
+to the existing constant-SD scalar model. The R-side Julia bridge test passed
+six synthetic extraction/prediction assertions; its live Julia fit was skipped
+because no engine path was configured. This is one native recovery fixture and
+synthetic bridge-output evidence, not calibrated uncertainty or live Julia
+parity. Details: `docs/dev-log/after-task/2026-10-19-bernoulli-phylo-sd-verification.md`.
+
+## 2026-10-19: v4 Bernoulli source-tarball local smoke
+
+The exact v4 `drmTMB_0.7.1.tar.gz` archive installed into an isolated macOS
+library. Its embedded `src/drmTMB.cpp` hash matches the v4 source bundle. A
+synthetic Bernoulli model with `sd(id) ~ w` converged with a positive-definite
+Hessian, gradient below `1e-11`, clamp status `ok`, independent scalar-cluster
+Laplace objective discrepancy `-1.19e-08` (tolerance `1e-06`), and finite 95%
+profile interval `[0.1387127, 1.943111]`; it loaded the DLL from that isolated
+library. The enhanced smoke initially caught a fixture omission: the oracle
+requires the Bernoulli failure-count column. After adding `failure = 1 - y`,
+the independent comparison passed. This remains one local smoke fit, not
+recovery or calibration evidence. The command, fit output, install log,
+installed-artifact hashes, and exact-draft assessment are recorded in
+`docs/dev-log/general-sd-regression/evidence/calibration-20261019/v4-source-tarball-local-smoke/`
+and `docs/dev-log/after-task/2026-10-19-v4-source-tarball-local-smoke.md`.
+The missing column also revealed that the independent oracle silently formed
+zero trials. A regression test first failed, then passed after adding an
+explicit input guard. The broader Bernoulli integration test was interrupted
+during its random-slope fit after 21 assertions; it is not counted as a suite
+pass.
+
+## 2026-10-19: bias intervals are diagnostic only
+
+The staged Bernoulli decision helper no longer uses approximate t intervals for
+mean log-SD or relative `exp(a)` bias as acceptance gates. It still reports
+both diagnostics with finite-estimate denominators. Qualification is limited
+to planned-denominator coverage, null false-positive rate, and interval
+availability; it does not establish point-estimator recovery. The current
+1,000-campaign synthetic operating-characteristic run completed in 157.18
+seconds with seed `20261022`. Its receipts are under
+`docs/dev-log/general-sd-regression/evidence/campaign-oc-bias-diagnostics-20261019/`.
+The simulation checks the decision rule under chosen scenarios, not fitted
+Bernoulli profile-interval calibration.
+
+`Rscript --vanilla -e 'testthat::test_file("tools/general-sd-regression/native-calibration/test-staged-decision.R")'`,
+`OPENBLAS_NUM_THREADS=1 Rscript --vanilla tools/general-sd-regression/test-campaign-oc.R`,
+`OPENBLAS_NUM_THREADS=1 python3 tools/general-sd-regression/native-calibration/self-test.py`,
+the stage-two first-look registry test, the legacy combiner rejection test, and
+the stage-two rules test all pass. The Python self-test needed a 120-second
+summarizer timeout because its 3,000-file fixture exceeded the previous
+30-second cap. The first `testthat::test_file()` attempt for campaign OC ran
+from the wrong directory and was rerun with the repository-root command.
+
+The current calibration contract, proposal, and campaign-OC design note now
+state that bias intervals are diagnostics and that acceptance is limited to
+interval behavior and availability. Historical results remain intact, and
+earlier after-task reports label the superseded bias gates as the rule used at
+the time. The older look-two seed manifest is marked historical, not current.
+No fitted-model calibration, Julia validation, or package-wide test was run.
+
+Consistency searches used:
+
+```sh
+rg -n -i --glob '!evidence/**' --glob '!*.csv' --glob '!*.json' 'bias.{0,45}(gate|accept)|((gate|accept).{0,45}bias)' docs/dev-log/general-sd-regression docs/dev-log/after-task tools/general-sd-regression/native-calibration
+rg -n -i 'sd\(.*\)|Bernoulli|calibrat|bias' README.md docs/dev-log/internal-roadmap.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml
+```
+
+The project status inventory continues to say broad family coverage and fitted
+interval calibration are open. Formula grammar and user-facing package
+behavior did not change. `gh issue list --repo itchyshin/drmTMB --state open
+--search 'Bernoulli SD calibration' --json number,title,url --limit 20` returned
+no matches, so no issue was created or edited. The implementation-specific
+recovery and profile-interval campaign remain outstanding.
+
+## 2026-10-19: conditional look-two OC reporting
+
+The campaign-level synthetic OC harness now reports look-two outcome
+probabilities both unconditionally across all simulated campaigns and
+conditionally among campaigns that reached the second look. Exact 95% binomial
+intervals use the matching denominator; conditional estimates are NA when no
+campaign reaches look two. The design note now states that truth strata are
+independent and identifies the within-attempt dependence represented by the
+simulator.
+
+`Rscript tools/general-sd-regression/test-campaign-oc.R` passes all focused
+tests. Tests failed before the summary helper and malformed-label guard were
+implemented. An independent review prompted assertions for the zero-continuation
+unconditional interval, which remains zero with a positive upper exact limit.
+The final-source 100-campaign-per-scenario no-fit smoke completed in 16.160
+seconds under R 4.6.0 with seed 20261023. Output and exact source/helper hashes
+are retained in `evidence/campaign-oc-conditional-final-20261019/`; the earlier
+pre-guard receipt remains preserved. This is decision-rule smoke evidence only;
+no fitted calibration was run.
+The after-task structural check passed, `slop_check.py` found zero review
+findings, and the exact-draft assessment record passed its completion check
+(style 2/10, medium confidence; science/facts pass; references not applicable).
+
+Independent review confirmed that the active contract uses 95% fitted profile
+intervals and 97.5% Monte Carlo intervals. Review also recommended the
+conditional look-two summaries, now implemented. No matching open GitHub issue
+surfaced in focused searches for Bernoulli random-effect SD calibration,
+predictor-dependent random-effect scale, or `sd(group)` random effects; no
+issue was changed. The full Bernoulli recovery and uncertainty campaign and the
+broader R/Julia capability programme remain open.
+
+Report: `after-task/2026-10-19-campaign-oc-conditional-reporting.md`.
+
+## 2026-10-19: historical Bernoulli 97.5% fitted-profile first look
+
+**Correction (2026-10-19):** this completed run is historical exploratory
+evidence, not the approved calibration target. The approved two-look protocol
+uses 95% fitted profile intervals and 97.5% exact Monte Carlo confidence
+intervals. The completed worker used 97.5% fitted profiles; its `look2_required`
+decision cannot authorize another look. A fresh 95% first look must be run and
+replayed on the current pinned source. See
+`general-sd-regression/staged-calibration-contract.md` and
+`after-task/2026-10-19-bernoulli-calibration-contract-reconciliation.md`.
+
+The historical native Totoro run completed all 3,000 planned fits at
+`profile_level = 0.975`: 3,000 healthy fits, 3,000 valid intervals, 3,000
+passing independent Laplace-oracle checks, and no worker errors, launch errors,
+timeouts, or interruptions. The staged helper returned `look2_required` and
+`overall_qualified = FALSE`. Coverage was 965/1,000, 980/1,000, and 979/1,000
+at log-SD slopes -0.5, 0, and 0.5. Null false positives were 20/1,000.
+
+The run used 97.5% fitted profiles, while the frozen coverage band [0.925,
+0.975] and null false-positive band [0.025, 0.075] target nominal 95% coverage
+and a 5% null false-positive rate. Under those bands, the helper classified
+four uncertainty gates as ambiguous. This historical result does not establish
+calibration for the approved 95% fitted-profile target. The bands were not
+changed and no second-look fits were launched. The summarizer also was not registered in the
+campaign source hash file; its separate digest and all key campaign hashes are
+retained with the copied evidence. Full copied evidence:
+`general-sd-regression/evidence/calibration-20261017/first-look-postfix-20261019-v2/`.
+
+The versioned supervisor now validates the source registry, design, worker
+script, and required test-library configuration before creating a subset output
+directory. Tests cover invalid seeds and missing library configuration. All
+nine Python tests pass.
+Report: `after-task/2026-10-19-bernoulli-corrected-first-look.md`.
+
+## 2026-10-19: Bernoulli profile-range repair and historical 97.5% timing run
+
+The pre-fix current-source Totoro timing capsule completed all 45 timing-only fits but
+returned 0 valid 97.5% intervals. Its retained one-seed profile stopped at a
+2.029 negative-log-likelihood rise, below the 2.512 cutoff. TMB 1.9.25's
+default `ytol = 2` caused the truncation. The R/TMB profile path now sets the
+`ytol` to `max(2, cutoff + 0.5)` when it is omitted, for both
+`confint()` and `profile()`. This gives the search more room to reach the
+cutoff; optimizer or iteration failures can still prevent endpoint finding.
+Explicit controls remain in force. The focused Bernoulli interval, explicit-
+`ytol`, and full-curve tests pass, as do 1,034 profile-target expectations. A post-fix Totoro smoke on the same frozen seed returned a finite
+interval and reached the 5.024 deviance cutoff. This is interval-computation
+evidence, not recovery or calibration evidence; G2/G5 and D-93 remain open.
+These 97.5%-profile timing and smoke results are historical exploratory evidence.
+The approved target is 95% fitted profiles with 97.5% Monte Carlo intervals.
+Exact receipts, the one-seed smoke, and the post-fix timing-only capsule are under
+`general-sd-regression/evidence/calibration-20261017/profile-range-debug-0975-current-source-v2/`.
+The preceding timing note's 98 to 127 minute projection came from a different
+95% worker/source and is not a runtime basis for this historical 97.5% route.
+The post-fix 45-row capsule completed 45/45 valid profiles with no profile
+failures, boundaries, warnings, or launch errors. Its source registry and
+fail-closed worker verify the pinned overlay was activated before each fit.
+At 16 workers, supervisor wall time was 31.357 seconds, giving a preliminary
+34.8-minute projection for 3,000 comparable fits. This is timing evidence,
+not recovery or calibration evidence. G2/G5 and D-93 remain open.
+
+Report: `after-task/2026-10-19-bernoulli-profile-range-0975.md`.
+
+## 2026-10-19: current-source Bernoulli timing and stage-two source audit
+
+The post-fix timing-only Totoro capsule completed 45/45 Bernoulli SD-profile
+fits with valid intervals. Mean fit time was 7.664 seconds and median was
+7.730 seconds; this is a runtime pre-run, not recovery or calibration evidence.
+The 45-row attempt records and current package source capsule are under
+`general-sd-regression/evidence/calibration-20261019/timing-current-source-v1/`.
+
+Stage-two source audit v4 binds all 17 current adapter sources and tests,
+including corrected `test-combine-stage-two.R`. The no-fit combiner regression
+exited 0 with the expected legacy-replay rejection marker, and an independent
+readback verified the source hashes and receipt chain. Audit v4 is source
+snapshot evidence only; it does not qualify an adapter run or authorize fits.
+The stale 97.5%-fitted-profile claim in the adjacent historical adapter entry
+was corrected; the approved contract is 95% fitted profiles and 97.5% Monte
+Carlo intervals.
+Report: `after-task/2026-10-19-current-source-timing-pre-run.md`.
+
+## 2026-10-19: historical 97.5%-profile guard path (superseded)
+
+This versioned path was built after an incorrect reading of the interval
+contract. The approved two-look design uses 95% fitted profiles and 97.5%
+Monte Carlo confidence intervals. The original calibration harness remains
+unchanged. The separate historical 97.5%-profile path includes
+`worker-0975.R`, `prepare-0975.R`, `run-0975.py`, and `summarize-0975.R`. The
+versioned worker verifies the level returned by `confint()`. The first-look
+replay, summarizer, second-look runner, and qualification validator reject
+missing or wrong levels. The no-fit stage-two regression rejects the historical
+fixture before decision output. Focused adapter rules pass, the Python adapter
+suite passes31 tests, the versioned-harness integrity test passes4 tests, and
+the legacy-fixture subprocess reports `STAGE_TWO_LEGACY_PROFILE_REJECT_PASS`.
+These checks validate protocol handling only. The 97.5%-profile run is
+historical and does not satisfy the approved 95% fitted-profile target. No new
+fit was run for this adapter check, and G2 remains open.
+
+The old 95% first-look rows have the approved nominal interval level, but they
+lack explicit `profile_level` metadata and their package source hashes differ
+from the current candidate. They therefore remain ineligible for current-source
+replay. Refit the same 3,000 look-one seeds at 0.95 on current pinned source and
+recompute the decision before preparing any second-look manifest. The later
+post-fix timing-only pre-run completed 45 fits with 45 valid intervals and is
+runtime evidence only. A post-fix one-seed smoke passes. No issue matched this
+internal calibration-harness integrity repair; no issue was opened or changed.
+
+Report: `after-task/2026-10-19-bernoulli-profile-level-guard.md`.
+
+## 2026-10-17: native Poisson independent-slope SD checkpoint
+
+A unique ordinary numeric slope now admits `sd(id, coef = "x") ~ w` in complete-data
+Poisson models. Source checks pass18 new slope,39 Poisson,24 binomial-selector and56
+target-descriptor expectations. The independent scalar reference passes24. Fresh
+Totoro capsule6adcfc2451dc79367c60d3383fea673617480b5a88c6147ae0dc90d2a1376794
+built successfully; corrected integration/regression tests pass235 expectations,
+including24 pure reference expectations. Two later test-only edits are reconciled
+against identical R/C++ hashes. Initial failed assertion and older rejection fence
+are preserved. Independent review and exact-draft assessed report are retained in
+`general-sd-regression/evidence/poisson-slope-20261017/` and
+`after-task/2026-10-17-general-sd-poisson-slope-checkpoint.md`.
+This supports the declared native slope-only workflows, with no calibration claim.
+The separate3000-attempt Bernoulli calibration remains running on Totoro; all
+programme gates G0-G8 remain open. No push, merge, release or external message.
+
+## 2026-10-17: scalar Poisson labels and executed synthetic guide
+
+Corrected capsule6ad295b3... passed154 compiled expectations in60s onTotoro:
+Poisson43, binomialselectors22, Gaussian89. Final source39 expectations pass and
+the leaf ledger reverified all3 gates. The independent negative control proves
+the two new combination guards fail against the earlier label admission. Exact
+source/binary hashes, old failure and repaired logs are retained under
+`general-sd-regression/evidence/poisson-label-20261017/`.
+
+The new Bernoulli/Poisson synthetic guide executed both fits and group predictions
+under a60s cap, rendered locally, and passed visual inspection of equations,
+compact diagnostics and fixed-seed SD-ratio comparisons. Exact-draft assessments
+are retained. The Beta q1 wording audit corrects stale blanket deferrals against
+ratifiedmc-0017evidence with its exact regime, seedreuse and coverage caveats.
+No new Beta fit, broad interval claim, fullsitecheck or external action occurred.
+Report: after-task/2026-10-17-general-sd-label-and-guide-checkpoint.md.
+
+## 2026-10-17: general SD universe and calibration launch checkpoint
+
+The finite required universe now contains19,118 rows. Independent reconciliation
+preserves all earlier row keys and adds the missing Julia probit/cloglog union
+obligations. The ordinary base-route source audit classifies224 rows: native52
+admitted/60blocked, Julia16admitted/96blocked. These are base-source classifications,
+not direct-SD support. Provider and methods reviews leave G0/G1open. The current
+inventory/universe suite passed19 tests in48.331s.
+
+The final sealed calibration harness passed pure controls and15-process qualification
+timing, with15healthy profiles and five valid non-inferential summaries. First-look
+production started onTotoro under registryd2e1080d...,16workers,120s case cap and3600s
+campaign cap, estimate45-60min. All3000 attempts must be retained. No production
+inference result exists at this checkpoint. Native source/library matches the
+original Bernoulli capsule; current Poisson code is a separate build. The staged
+decision rule, seed separation, failure evidence and external seals are retained.
+
+One intentionally retained blank line at EOF in frozen staged-decision.R is flagged
+by diff whitespace checking; changing it would alter the sealed harness. It is not
+an executable-code error. The exact47262cd45 limited package check passed exit0with
+two explicit omitted-vignette warnings; tests/examples/vignettes/manual were skipped.
+This is not fullG7. No push, merge, release or external message.
+
+## 2026-10-17: native discrete SD selectors and Poisson checkpoint
+
+Fresh source capsule `eaf3198f9a703c4d88e21b106dc0c9dbe16fa8adef1235be83da33aa7167c417`
+was compiled into a new Totoro library. All 305 assertions passed: Poisson28,
+prediction labels11, selector workflows12, selector integration22, original
+Bernoulli117, Gaussian89 and clamp26; one deliberate clamp warning remains.
+The final source-only suite passes120 assertions across23 tests. The initial
+Poisson coefficient-extraction failure and obsolete Gaussian test expectation
+are retained with repaired-run logs. Public group labels now follow registered
+SD targets; direct prediction and parameter-table values agree for a fitted model.
+
+Rd validation, HTML conversion and pkgdown configuration checks pass. Exact
+bounded evidence is under `general-sd-regression/evidence/poisson-20261017/`.
+DRAC job65660299 passed its one-seed feasibility check in two minutes, with
+fit/profile13.715s and Laplace-oracle difference7.5e-9. This is not calibration.
+The separate three-case qualification completed all workers but exposed a
+subset-manifest summary bug; the repair passed pure review, and newly sealed live qualification is pending. Production is unlaunched.
+All programme G0-G8 gates remain open. No full R/Julia check or external action.
+
+Status-inventory query: `rg -n 'Poisson.*SD|SD.*Poisson|Bernoulli.*SD|binomial.*SD'
+R/random-effect-scale-formulas.R docs/design/01-formula-grammar.md
+ docs/design/03-likelihoods.md NEWS.md docs/dev-log/known-limitations.md
+ docs/dev-log/internal-roadmap.md vignettes/formula-grammar.Rmd`.
+The narrower Beta phylogenetic evidence remains separate. No navigation change
+was needed. Report: `after-task/2026-10-17-general-sd-discrete-checkpoint.md`.
+
+## 2026-10-17: internal ordinary SD member resolver
+
+`R/random-effect-targets.R` constructs ordinary latent-member descriptors from
+actual univariate and bivariate registries, including endpoint, coefficient,
+block and global latent/group-index identity. The source-only suite passes
+56 assertions. Corrupted equal-level pairs fail on group, block and correlation
+metadata. Independent review passes this internal role. The two leaf gates
+pass, with the runnable check re-executed and receipt retained beside native
+checkpoint evidence. No builder calls this module yet; fitting admission and
+all programme breadth/calibration gates remain open.
+
+## 2026-10-17: general SD regression, first native checkpoint
+
+Isolated branch `codex/general-sd-regression` from native main
+`d89db50975d96d9c2bcb13046453ae34c7fcf49b`. Native Bernoulli/binomial
+ordinary-intercept SD regression passes 117 compiled assertions plus existing
+binomial, Gaussian SD and clamp regression checks. Legacy simulation tests pass
+under pkgload, with the failed standalone mock context retained. Rd validation,
+HTML conversion and `pkgdown::check_pkgdown()` pass. No full R/Julia check ran.
+
+The six-seed feasibility pilot retained seven attempts, including one original
+300-second interruption and its successful 78.54-second retry. Six completed
+fits have valid recorded profile intervals and scalar Laplace-oracle differences
+below 1e-6. These are not coverage results. Evidence and exact source/binary
+hashes: `docs/dev-log/general-sd-regression/evidence/native-checkpoint-20261017/`.
+B1/B2/B3 pass; independent documentation review B4 passes. All programme G0-G8 gates remain open.
+See `docs/dev-log/after-task/2026-10-17-general-sd-native-checkpoint.md`.
+
+## 2026-10-17: lognormal ordinary-intercept marginal simulation
+
+Fresh compiled Totoro installation passed the lognormal integration test
+(24 expectations) and the Bernoulli simulation regression (15 expectations).
+The lognormal test checks coefficient recovery, an independent marginal
+likelihood oracle, a wrong-group-design negative control, profile and
+save/reload behavior, group-specific marginal draws, fresh-effect variance
+scaling, bootstrap refits, and reduction to a constant SD. Exact logs and
+source hash are in `general-sd-regression/evidence/lognormal-20261017/`.
+This is native ordinary-intercept evidence only. Bernoulli calibration,
+Julia parity, structured effects, and the remaining family map are open.
+The after-task checkpoint is
+`docs/dev-log/after-task/2026-10-17-general-sd-lognormal-marginal-sim-checkpoint.md`.
+
+Consistency scan patterns run for this checkpoint:
+
+```sh
+rg "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]|meta_known_V\\(V = V\\).*(current|preferred|stable|default)" .
+rg "rho12|sigma1|sigma2|sd\\(" README.md docs/dev-log/internal-roadmap.md docs vignettes R tests
+rg "simple.*mu random|sigma.*Later|currently.*only.*mu|optional simple.*location|log_sd_mu|Current TMB-side objects" README.md docs/dev-log/internal-roadmap.md docs vignettes R tests
+rg -n 'lognormal.*SD|Bernoulli.*SD|binomial.*SD|structured scale|marginal.*simulation' NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md docs/dev-log/internal-roadmap.md vignettes/formula-grammar.Rmd
+```
 
 # 2026-10-18 — rebase #1525 onto main `d89db5097`
 
@@ -463,12 +1463,14 @@ The two engines agree to ≤ 2e-11 in logLik and ≤ 4e-10 in estimates on all 1
 Filed: drmTMB#1558; DRModels.jl#1114; comments on DRModels.jl#969, #1050 and #1059, and on drmTMB#1554 (the sd(g) boundary label depends on the units of y). No package code changed; `.Rbuildignore` gains `^sweep-oct16$`.
 
 Receipt: `sweep-oct16/t2/RECEIPT_t2.md`. Report: `docs/dev-log/after-task/2026-10-16-sweep-oct16-t2-gaussian-ls-recovery.md`.
+
 # 2026-10-18 — rebase #1530 onto main `d89db5097`
 
 Rebased `cursor/dead-forked-worker-7717` onto current main. Conflict was
 check-log only. `R/drmTMB.R` and `R/methods.R` were not touched, so C17
 was not recertified. Full `testthat::test_dir()` on `a59a66be8`:
 passed=44952 failed=81 error=213 skipped=241 warning=20.
+
 # 2026-10-18: FX3b pairing, Julia-engine status reads the bridge (#1564 with DRModels.jl #1129)
 
 **Lane:** Claude Code · branch `cursor/fx3-silent-mle-b05e` (PR #1564), paired with DRModels.jl `cursor/fx3-drm` (PR #1129).
@@ -95616,14 +96618,1242 @@ checker, and `git diff --check` all re-run clean. Report addendum:
 | 2026-09-09 | Temporal profile interface review repairs | Focused temporal OU suite passed after independent mathematical and reader review; G7, G10, G11, and G12 reverified; `R CMD check --no-manual` Status: OK | Generic `profile()` and `profile_targets()` now enforce the same mean-`mu` boundary as `confint()`, including combined ordinary-intercept-plus-temporal fits. An irregular fitted Hessian warns at both public entry points; finite profile endpoints still carry no coverage claim. The retained profile pilot was stopped after exceeding its 5–10 minute estimate before it wrote artifacts. | Codex / Noether / Pat |
 | 2026-09-09 | Temporal OU fixed-effect profile pilot | G16 PASS: 15 finite selected fits, 30 retained starts, 15/15 three-coefficient profile interval sets, all positive-definite fitted Hessians; 759.24 s wall and 664 MB maximum resident memory | This measured timing and output-completeness pilot is not coverage evidence and does not authorize a campaign. G14/G15 remain open. | Codex |
 | 2026-09-09 | Temporal OU campaign-worker Totoro smoke | Archived source `0e3c792c` task 1 passed with two retained starts and a valid source/runner provenance record under one BLAS thread and a 10-minute timeout | Validates staging and fail-closed worker inputs only. Fir remains the retained 3,000-task campaign target; no coverage denominator was claimed. | Codex |
-
 | 2026-09-09 | Temporal OU campaign verifier and exact-source check | G8, G9, G10, G16 PASS; native/provider gates G2--G7 passed in one continuous run; `R CMD check --no-manual` returned `Status: OK` at `4d1fcc10055ea3f619afc36169e4d91dd28fac32` | G15 now re-verifies immutable 3,000-task campaign shards without running fits. It remains pending until retained Fir outputs exist. | Codex |
 | 2026-09-09 | Temporal OU endpoint-artifact worker smoke | Totoro archived-source task 1 passed at `e6387ce9`; two starts and three finite retained profile endpoint rows carry matching source and worker fingerprints | Confirms the Fir worker artifact contract. This one-task smoke is not a calibration denominator; G15 remains pending retained Fir outputs. | Codex |
 | 2026-09-09 | Temporal OU campaign provenance verifier | Parser PASS; fail-closed missing-shard test PASS; each reverify now requires all shards to share a commit and an MD5 that matches the worker extracted from that commit | G15 cannot accept agreeing but fabricated provenance. It remains read-only and awaits retained Fir outputs. | Codex |
 | 2026-09-09 | Temporal OU campaign calibration assessment | Focused assessment test PASS: one qualified reference row and four distinct criterion failures; campaign summarizer parser PASS | The immutable campaign summary now records availability, MCSE-bounded coverage, bias, and profile-width SE-analogue qualification for every cell-coefficient. G15 remains an integrity gate; failed calibration stays retained and requires an explicit decision. | Codex |
 | 2026-09-09 | Temporal OU storage-consolidating shard route | `bash -n` passed for source stager and 60-shard Fir template; G15 shard-reader parsed; temporary source archive contained `DESCRIPTION` and the campaign worker | Keeps raw CSV/RDS evidence inside immutable tarballs. It reduces inode use but changes array granularity and remains pending revised G14 authorization plus freed project inodes. | Codex |
 | 2026-09-09 | Temporal OU 50-task shard contract | Synthetic node-local worker completed 50 task calls, wrote one immutable `shard-001.tar.gz`, and retained the status ledger plus worker log; `TEMPORAL_OU_SHARD_CONTRACT_PASS` | Validates batch staging and atomic publication only; it does not fit a model or revise G14 authority. | Codex |
+| 2026-10-17 | Predictor-dependent random-effect SD research recheck | NotebookLM follow-up challenged; Joe (2008) publisher abstract and Stringer (2024) arXiv preprint checked directly; research note slop check 0 findings and `git diff --check` clean | PASS for scoped source synthesis; identifiability and interval calibration for SD-regression coefficients remain open | Codex |
+| 2026-10-17 | Predictor-dependent random-effect SD NotebookLM session recheck | Authenticated connector query against the existing 13-source notebook; excluded fetch-block pages; Joe (2008), Stringer (2024), and Lee & Noh (2012) claims bounded against primary pages/abstract | Synthesis recorded; no general identifiability or SD-slope calibration evidence established; CLI token fetch remains unverified | Codex |
+| 2026-10-17 | Julia Bernoulli random-effect SD bridge and inference routing | `test-julia-binomial-sd.R`: adapter checks and live synthetic Julia fit PASS for coefficient alias, one 300-group seeded SD-coefficient recovery example, group SD extraction, stored/fresh prediction, empty Bernoulli `sigma()`, RDS round-trip, an SD-slope profile interval, and a three-refit bootstrap smoke check | One higher-information recovery example and canonical interval/refit target routing verified; a 120-group diagnostic had a 0.30 slope error (2.2 SE), so it is retained as evidence of finite-sample variability. Interval calibration and broader family/effect support remain open | Codex |
+| 2026-10-17 | Bernoulli SD first-look evidence integrity repair | Python stage-two tests 19/19; R stage-two rules and copied-manifest registry tests PASS; Totoro v2 reconstruction and 3,000-row R replay PASS; seal `67bcd657…` binds five source files, the independent archive digest, and all raw results | PASS for reconstructed first-look provenance only; adapter qualification, second-look runtime/preparation, broader family/effect/backend support, and inference calibration remain open | Codex |
+| 2026-10-17 | Bernoulli stage-two adapter review and healthy hash-map repair | Fresh review found stale v2 source pins and a JSON-list name-loss defect; fixed comparison through shared R validator. Current source tests: Python 21/21, `STAGE_TWO_R_RULES_PASS`, `PRIOR_SEED_STREAM_NEGATIVES_PASS streams=3`, external registry test PASS. Current `stage-two-rules.R` SHA-256 `89abcdc512301f34078857feec9e30f70582594455278ee162b81d1c1c371f26`; `combine-stage-two.R` SHA-256 `1d3fd683a5e3d84a1a2bc869fae11868d92cd7c1264d6773020f86e9d60dbb0d` | Local code tests pass; fresh source-bound reconstruction and replay, independent re-review, adapter qualification, and all fits remain unrun | Codex |
+| 2026-10-17 | Bernoulli adapter probe attempt preservation | Three Totoro probes completed (convergence 0; `pdHess=TRUE`; valid non-boundary profile intervals; independent oracle passed). Probe span 36.3356 s; whole-run elapsed was not retained, so qualification remains `INCOMPLETE / NOT_QUALIFIED` and no calibration or 9,000-fit claim is made. Numeric truth normalization and offline no-fit recorder pass Python 23/23; independent review GO for recording only. Receipt SHA-256 `bded4083d200c21f402e6f31938f07484e98f17bbfacb94d5fad145131b5c8da`; recorder SHA-256 `2aa23943303e606c02c7fabfc01fe1091c98eaf7f3c9fc01db05b9b1a7ef259f` | Completed-attempt evidence preserved; whole-run timing and adapter qualification remain open | Codex |
+| 2026-10-18 | Bernoulli second-look adapter qualification v7 | Totoro run completed 3/3 selected rows in 60.2931 s; all converged, had valid profile intervals, and passed the independent Laplace oracle. Python tests 28/28, R stage-two rules and prior-seed negatives PASS. Prep receipt SHA-256 `148667c74bdfddd5d7260b4c15656deb89f4550003f3394b2caaed0012685598`; qualification receipt SHA-256 `5f7ace0329835c5db4f4ce46bce1d3046e37285a4f4f08e2d5a549ca892aed20`; independent byte readback PASS | Adapter operation PASS only; first-look decision remains `look2_required`; timing source relevance, GO/capsule, 9,000-fit stage two, calibration, Julia parity, and broader family/effect gates remain open | Codex |
+| 2026-10-18 | Bernoulli second-look v8 interrupted run | Totoro supervisor planned 3,000 in batch 1: 366 completed, 16 interrupted, 2,618 not started; batches 2 and 3 did not launch. Run stopped at 531.969 s. All completed cases are truth `a=-0.5`; their fit diagnostics passed, but this selected partial subset is not calibration evidence. The earlier 7,956-s estimate is contradicted by rough projections of 11,500 to 13,081 s. Updated the execution design and adapter README to show current status. | Full look-two decision, uncertainty calibration, and renewed runtime design remain open | Codex |
+| 2026-10-18 | Bernoulli SD Julia checks | DRM.jl Bernoulli SD regression and public tests pass 55/55; R bridge test passes with `DRMTMB_JULIA_TESTS=true` and records one live Julia test. Includes one synthetic recovery case and inference-output plumbing, not coverage calibration. JuliaCall startup emits a non-fatal LogExpFunctions extension precompile error (`loglogistic`) that remains to triage. | Bernoulli Julia fit and bridge path exercised; clean environment, calibrated uncertainty, remaining families/effect types, and completed native second look remain open | Codex |
+| 2026-10-18 | Gamma independent random-slope SD, Julia bridge | DRM.jl focused Gamma SD test 32/32; R bridge intercept/slope tests 24/24; public convergence diagnostic and rowwise SD output passed. LogExpFunctions emitted a non-fatal `loglogistic` extension warning. | Julia route and R-facing slope workflow verified; native TMB slope route, calibrated uncertainty, and full programme remain open | Codex |
+| 2026-10-18 | Native beta-binomial predictor-dependent SD focused verification | `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "beta-binomial-sd")'`: 24 passed, 0 failed, 0 warnings, 0 skips in 135.0 s; integration 15/15 and regression 9/9. | Native beta-binomial ordinary-intercept workflow and independent integration oracle pass; calibration and broader parity remain open | Codex |
+| 2026-10-18 | Effective log-SD report consistency under the soft clamp | Added a ZIP test that failed before the fix (TMB reported raw log SD 4.00 while effective prediction was 3.75). Stored the clamped log SD in each of the five affected TMB branches and reused it for exponentiation. `devtools::test(filter = "zi-poisson-sd")`: 32 passed, 0 failed, 0 warnings, 0 skips in 58.1 s; `git diff --check` clean; no raw `log_sd_mu_group(g) = eta_sd` assignments remain. | Clamp-active report, response-scale SD, and public link prediction agree on the ZIP route; related branches updated, programme calibration and family-wide checks remain open | Codex |
+| 2026-10-18 | Bernoulli predictor-dependent SD integration and Julia public route | `Rscript -e 'devtools::test(filter = "binomial-sd-integration")'`: 52/52 (37 Bernoulli + 15 beta-binomial), 0 failures/warnings/skips, 252.8 s. `DRM_JL_PATH="$PWD/../general-sd-julia" DRMTMB_JULIA_TESTS=true JULIA_DEPOT_PATH="/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia" Rscript -e 'devtools::test(filter = "julia-binomial-sd")'`: 55/55, 0 failures/warnings/skips, two live Julia fits, 91.1 s. | Native Bernoulli SD integration and live Julia public recovery/bootstrap plumbing pass. The temporary depot is needed because the sandbox blocks writes to the user's Julia depot. This is not calibrated uncertainty evidence; the Bernoulli calibration and broader programme gates remain open | Codex |
+| 2026-10-18 | Bernoulli SD marginal simulation plumbing | `Rscript -e 'devtools::test(filter = "binomial-sd-simulation")'`: 15/15, 0 failures/warnings/skips, 3.5 s; covers marginal simulation and per-coefficient effect scales, not a parameter-recovery campaign | Marginal simulation plumbing passes on the native route; fitted SD recovery and uncertainty calibration remain open | Codex |
+| 2026-10-18 | Independent audit of interrupted Bernoulli look-two capsule | Read-only audit of the frozen contract, stage-two runner/combiner, and local v8 receipts. Exact partition: 366 completed, 16 interrupted, 2,618 not started; untouched indices 383:3000. Interrupted manifest and receipt hashes recorded in `stage-two-execution-design.md`. | No-go for a look-two decision under the frozen protocol. Preserve v8 unchanged; any use requires a reviewed, explicitly approved protocol amendment, or a clean independent calibration campaign. No fits launched | Codex |
+| 2026-10-18 | Bernoulli coefficient-specific SDs for separate terms on one group | The new test first failed at the same-group resolver fence; after enabling the native-binomial-only admission, selector tests pass 55/55 and `binomial-sd-integration` passes 381/381 (267.8 s), including recovery and an independent 2D Laplace oracle. `location-scale-scale.Rmd` rendered; `git diff --check` passed. | Native TMB supports the tested independent q=1 intercept/slope pair with separate SD formulas; Julia still supports only one term per SD fit. Calibration, correlated-block SDs, and broader family/effect/backend parity remain open | Codex |
+| 2026-10-18 | Bernoulli SD docs and site checks | Both affected vignettes rendered; formula-grammar rendering used `eval = FALSE`. `pkgdown::check_pkgdown()` found no problems. `pkgdown::build_site()` with a temporary destination and cache stopped before article rendering because DNS could not resolve `cdnjs.cloudflare.com` for Headroom; no generated site was produced. | Source-level docs checks pass; full site rendering remains unverified in this network-restricted environment | Codex |
+| 2026-10-18 | Bernoulli random-slope cross-engine comparison | `devtools::test(filter = "julia-binomial-sd")` with the paired Julia worktree live: 58 assertions passed in 51.1 s, including two live bridge tests, same-data Julia/TMB coefficient and group-SD comparisons, and the existing quadrature oracle; 0 failures, warnings, or skips | One synthetic independent Bernoulli slope comparison only; no interval calibration, same-group multi-coefficient Julia support, structured effects, or family-wide parity claim | Codex |
+| 2026-10-18 | Bernoulli random-intercept paired-engine check | `devtools::test(filter = "julia-binomial-sd")` ran three live Julia tests and passed; same 300-group, seed-1701 DGP fit with native TMB and Julia. SD-coefficient absolute differences were 0.0188 and 0.0053; both engines reported convergence. One Julia Hessian-conditioning warning was emitted. | One paired intercept cell only; no interval calibration or broader parity claim. Details and source hashes: `docs/dev-log/after-task/2026-10-18-bernoulli-intercept-cross-engine-check.md` | Codex |
+| 2026-10-18 | Bernoulli stage-two combiner refuses nonqualifying completion states | Added a tested status contract: only `accept`, `fail`, and `inconclusive` return the completion marker with status 0; `incomplete`, `integrity_failure`, and unknown states emit a nonqualifying marker and exit nonzero. R stage-two rules PASS; Python no-fit suite 29/29; `git diff --check` clean. | Adapter source gate only; no fits or calibration runs; fresh preparation, replay-gate adversarial tests, supervisor/cleanup tests, and calibration remain open | Codex |
+| 2026-10-18 | Stage-two combiner subprocess boundary test | The real combiner ran on sealed no-fit synthetic inputs with an explicitly test-only analyzer stub; it emitted the nonqualifying `integrity_failure` marker, exited nonzero, and retained the receipt. R rules test passed and Python suite passed 29/29. | Defensive subprocess behavior only; injected state is not statistical evidence and no fit or calibration campaign ran | Codex |
 
+The 2026-10-18 Julia selected-SD bridge slice is recorded in
+`docs/dev-log/check-log.d/2026-10-18-julia-selected-sd-bridge.md`; its closeout is
+`docs/dev-log/after-task/2026-10-18-julia-selected-sd-bridge.md`.
+
+A fresh 2026-10-18 live recheck of the same-group Bernoulli intercept/slope
+SD bridge passed 70 assertions across three Julia tests; see
+`docs/dev-log/check-log.d/2026-10-18-julia-bernoulli-two-target-bridge.md`.
+
+The native Student random-effect SD evidence was rechecked on 2026-10-18: 34
+focused integration and regression assertions passed, including its independent
+fixed-parameter Laplace oracle and profile/bootstrap target routing. See
+`docs/dev-log/check-log.d/2026-10-18-student-sd-oracle-reverification.md`.
+
+The native Student-t independent-slope SD slice passed 25 assembly expectations
+and 30 focused compiled integration expectations against a fresh installed
+package. The integration test includes a separate slope-loading Laplace oracle,
+wrong-group control, constant-SD equivalence, prediction, simulation,
+save/reload, and profile/bootstrap target routing. Knitting executed the
+location-scale vignette chunks; pkgdown's structural check passed. This is not
+interval calibration or Julia bridge parity. Details:
+`docs/dev-log/check-log.d/2026-10-18-native-student-slope-sd.md`.
+
+The Student-t ordinary-intercept and independent-slope SD routes now pass
+through the live Julia bridge at fixed `sigma ~ 1` and `nu ~ 1`. The focused
+same-data suite passed 32 assertions across two live comparisons in 74.1 s,
+with no failures, warnings, or skips; source admission tests and the existing
+Julia bridge filter also passed. `pkgdown::check_pkgdown()` found no problems.
+This is point-recovery/output parity, not interval calibration. Details:
+`docs/dev-log/check-log.d/2026-10-18-student-slope-julia-bridge.md`.
+
+The compiled native-test runner now reports the selected test files and emits
+`NATIVE_BINOMIAL_SD_PASS` only when a binomial test file actually ran. Its
+focused regression passed four cases, including beta-binomial and mixed test
+selections. Runner parsing and `git diff --check` passed; no model fits ran.
+The historical lognormal Totoro receipt remains unchanged and its exact archive
+is unavailable for independent member verification, so lognormal L4 stays open.
+Details: `docs/dev-log/check-log.d/2026-10-18-lognormal-runner-marker-correction.md`.
+
+The current Bernoulli stage-two source snapshot passed an independent 17-file
+hash readback and all no-fit adapter integrity checks, including the synthetic
+nonqualifying combiner subprocess. This closes source review only. The v8
+partial run remains incomplete and invalidates the earlier runtime projection;
+qualification, fresh runtime assessment, and interval calibration remain open.
+Details: `docs/dev-log/check-log.d/2026-10-19-stage-two-current-source-review.md`.
+
+The reviewed Totoro timing pre-run passed 45/45 selected fits in 38.101 seconds.
+The 9,000-fit projections are 98.28 minutes by service time plus measured setup
+and 127.00 minutes by observed batch wall time. Maximum single-child RSS was
+265,256 KiB; aggregate concurrent RSS was not measured. The timing runner
+repeated prior v8 indices 1–15, so those are excluded from new attempt counts.
+The 30 other selected global indices were new relative to v8. All 241 copied
+outputs match the remote checksum manifest. This is throughput evidence only.
+Details: `docs/dev-log/check-log.d/2026-10-19-bernoulli-timing-pre-run.md`.
+
+The 9,000-row attempt reconciliation confirms 412 unique seeds have been
+started and 8,588 remain eligible: 383–3,000, 3,016–6,000, and 6,016–9,000.
+This count treats the v8 index 382 as consumed despite its missing result and
+excludes the 15 duplicate timing fits. No continuation fits have started.
+
+The native Bernoulli correlated-block test now checks intercept-only and
+slope-only predictor-dependent SD fits against separate independent 2D
+Gauss-Hermite marginal-likelihood calculations. The focused test passed 60
+assertions with no failures, warnings, or skips in 35.2 seconds. This closes a
+likelihood-oracle coverage gap only; it is not calibration evidence. See
+`docs/dev-log/after-task/2026-10-19-bernoulli-partial-target-oracle.md`.
+
+The Julia Bernoulli correlated-block test was rechecked in the live Julia
+worktree: all 105 assertions passed, including the existing slope-only
+bootstrap-refit path (one attempted, one used, zero failed). This confirms
+workflow plumbing only, not calibration. See
+`docs/dev-log/after-task/2026-10-19-julia-bernoulli-slope-only-bootstrap-verification.md`.
+
+The focused local Bernoulli regression follow-up passed 562 assertions in
+`binomial-sd`, 60 in `binomial-correlated-sd`, and 23 R-side assertions in
+`julia-binomial-sd`, with zero failures or warnings. Nine live-Julia tests were
+skipped because the Julia engine path was not configured in this worktree. This
+does not exercise Julia or qualify interval calibration; see the checks section
+of `docs/dev-log/after-task/2026-10-19-bernoulli-corrected-first-look.md`.
+
+The candidate Bernoulli calibration gates were reviewed with exact binomial
+count enumeration for one component at a time. `Rscript
+tools/general-sd-regression/calibration-binomial-oc.R` passed its state-contiguity
+and probability-mass checks. The results show that the proposed one-sided
+margins can accept arbitrarily conservative rates and that boundary cases are
+often inconclusive. Two independent reviewers found the component calculation
+correct but insufficient to freeze the full two-look, multi-gate rule because
+the campaign continues when any gate is ambiguous and the metrics share fitted
+attempts. The proposal remains provisional; no confirmatory fits were started.
+See `docs/dev-log/general-sd-regression/calibration-binomial-oc.md` and
+`docs/dev-log/after-task/2026-10-19-bernoulli-calibration-contract-review.md`.
+
+A scope audit against the approved plan found that the corrected first-look
+worker requested 97.5% fitted profile intervals, while the approved calibration
+target is 95%; the 97.5% level applies to Monte Carlo uncertainty intervals at
+the repeated looks. The first-look run remains exploratory and the proposal now
+restores the approved 95% target without changing historical evidence. The
+component OC script was aligned to planned coverage [0.925, 0.975] and null FPR
+[0.025, 0.075] with 97.5% exact Monte Carlo intervals. Its first rerun exposed
+that two-sided failure counts form two disjoint tails; the enumeration now
+sums both ranges and checks they remain distinct. The corrected deterministic
+run completed all scenarios and probability-mass checks in about 9 seconds.
+The staged helper test also verifies that, at zero truth, planned coverage plus
+planned FPR equals the valid fraction, including endpoint equality and invalid
+attempts. Its focused test file passed. This remains component-level design
+evidence; the complete dependent campaign OC is still outstanding. See
+`docs/dev-log/general-sd-regression/calibration-binomial-oc.md` and
+`docs/dev-log/after-task/2026-10-19-bernoulli-calibration-contract-reconciliation.md`.
+
+## 2026-10-19: synthetic campaign-level OC harness
+
+Added a seeded synthetic simulator that calls the frozen Bernoulli staged
+decision helper over dependent attempt rows, including first-look failures,
+second-look continuation, final acceptance, and inconclusive outcomes. Four
+focused tests pass. A 100-campaign-per-scenario local pilot across six
+illustrative scenarios completed in 7.52 seconds on R 4.6.0. Under the
+nominal synthetic scenario, 78 campaigns accepted, none failed, and 22 were
+inconclusive; 97 required the second look. These figures describe the synthetic
+decision-rule stress test only, not fitted-model calibration. Exact stdout and
+source hashes are retained under
+`docs/dev-log/general-sd-regression/evidence/campaign-oc-20261019/`.
+The design note and after-task report preserve assumptions and limits. No
+Totoro, DRAC, Julia, feature fit, or external action occurred. G2/G5 remain
+open.
+
+## 2026-10-19: native Bernoulli SD slice and guide alignment
+
+The focused native suite `devtools::test(filter = "binomial-(sd|correlated)")`
+completed with `DONE` and no reported failures. It exercised ordinary
+Bernoulli intercepts and slopes, correlated q=2 targets, profiles, simulation,
+selectors, and target workflows. Five live Julia-dependent tests were skipped
+because no `DRM_JL_PATH` or `DRMODELS_JL_PATH` was configured. The
+predictor-dependent random-SD vignette now distinguishes those tested native
+routes from structured-provider support, Julia parity, and calibration, which
+remain open. Development-package rendering of the vignette passed. The
+NotebookLM methods review remains pending: passive token fetch failed, the
+notebook list reported a signed-out page, and credential refresh hit DNS
+resolution failure. Totoro remains occupied by the paired DRM.jl campaign.
+Report: `docs/dev-log/after-task/2026-10-19-native-bernoulli-sd-slice.md`.
+
+## 2026-10-19: Stage-two profile-level contract correction
+
+The calibration contract now distinguishes 95% fitted profile intervals from
+97.5% Monte Carlo confidence intervals across the two planned looks. Added and
+pinned a 95% first-look chain (`prepare-095.R`, `worker-095.R`,
+`summarize-095.R`, and `run-095.py`); stage-two rules and adapter
+qualification require the recorded 0.95 level. The previous 97.5%-profile run remains historical and
+cannot authorize a later look. The synthetic 95% timing-summary test, R rule
+test, and all 31 Python stage-two tests pass. The large no-fit combiner test was started twice but stopped before a
+result; it remains unverified. No calibration fits or remote compute ran.
+See `docs/dev-log/after-task/2026-10-19-stage-two-profile-level-correction.md`.
+
+## 2026-10-19: Native Bernoulli SD first-look calibration
+
+The clean-current 95% profile-interval campaign completed 3,000/3,000 attempts on Totoro. All fits converged with valid intervals, but the staged decision is look2_required: coverage at log-SD slopes -0.5 and 0 and the null false-positive rate remain ambiguous under the frozen Monte Carlo bands. The +0.5 coverage gate passes. Overall qualification remains false; no second-look run is authorized by this result. Exact manifest matching was fixed in both launcher and worker and regression-tested. This supersedes the earlier entry saying no calibration fits or remote compute ran. Full results and hashes: docs/dev-log/after-task/2026-10-19-bernoulli-sd-first-look-calibration.md.
+
+## 2026-10-19: Live Julia Bernoulli SD bridge
+
+The dedicated R bridge suite ran against the matched dirty candidates: drmTMB HEAD 425bee81572c625a634b2b083050c5c57c1dc1f1 and DRM.jl HEAD 70dbf564eb670144c63c08f61ea099084d95add2. Command: DRMTMB_JULIA_TESTS=true NOT_CRAN=true with DRM_JL_PATH and DRMODELS_JL_PATH pointing to the paired Julia worktree, a task-specific writable JULIA_DEPOT_PATH, Julia 1.10.0, Julia threads capped at 4, and BLAS/OpenMP/MKL threads capped at 1; Rscript -e 'devtools::test(filter = "julia-binomial-sd")'. Result: 95 assertions, four live Julia tests, zero failures/warnings/skips. Julia printed two singular-Hessian diagnostics for q2-related fits; q2 uncertainty remains limited. The broader julia-bridge filter's 218 assertions are excluded because its two live fits were sigma-side. The Julia bridge remains candidate-only; no general parity or calibration claim. See docs/dev-log/after-task/2026-10-19-bernoulli-sd-julia-bridge.md.
+
+The focused `julia-binomial-phylo-sd` suite now includes one live R-to-Julia Bernoulli fit and a matched native-TMB fit on independent synthetic data. On height-one trees, both engines converged and agreed on the SD coefficients and log likelihood; `predict()` and stored `sdpars` matched the fitted design. The slope estimate was within the existing 0.5 recovery tolerance, while the intercept remained imprecise. The direct DRM.jl test also passed 21/21 assertions against its dense Laplace oracle. This is a single-seed candidate check, not interval calibration or released-engine parity. Full evidence: `docs/dev-log/after-task/2026-10-19-julia-binomial-phylo-sd-live-bridge.md`.
+# 2026-10-19: Staged calibration status reconciliation
+
+Updated the opening status in `staged-calibration-contract.md` to match the
+clean-current first-look record: the integrated statistical rule returned
+`look2_required`, while operational launch gates remain open. The earlier
+instruction to rerun the first look is marked superseded by the completed
+clean-current 95% run. This correction does not change thresholds, model
+behavior, or authorize look two. Cross-checked against
+`calibration-final-review.md` and
+`after-task/2026-10-19-bernoulli-sd-first-look-calibration.md`.
+`git diff --check` and the required after-task structure/negative-space check
+passed. The focused open-issue query returned no matches. No package tests or
+site build were needed for this internal status-only correction. See
+`docs/dev-log/after-task/2026-10-19-staged-calibration-status-reconciliation.md`.
+
+## 2026-10-19: Bernoulli phylogenetic SD marginal simulation
+
+Native Bernoulli phylogenetic-intercept marginal simulation now scales each
+fresh tip effect with its fitted predictor-dependent SD, using the existing
+zero-based node-to-scale-row mapping. The new test first reproduced the old
+unsupported-scale error, then passed with deterministic node-mapping and
+binary-output assertions. The combined `binomial-phylo|simulate-re-form-phylo-interaction`
+test filter passed. `man/simulate.drmTMB.Rd` and the development NEWS entry
+were synchronized. The predictor-dependent-SD vignette still contains older
+bridge and simulation limitations; that file has a live lease owned by another
+lane and remains a documentation handoff. See
+`docs/dev-log/after-task/2026-10-19-bernoulli-phylo-sd-simulation.md`.
+
+## 2026-10-19: Clean-current Bernoulli look-two preflight
+
+Added a frozen-source converter for the 9,000 clean-current look-two rows and
+three deterministic 3,000-row batches. The 95% runner and worker now validate
+the batch, master seed, row mapping, profile level, and exact column schema
+before fitting; the combiner checks profile-level metadata on retained
+attempts. A negative control caught and fixed a worker-side schema omission
+that accepted a missing `look` column. No-fit tests pass: Python stage-two
+suite 36/36, R stage-two rules, combiner legacy-replay rejection, registry
+verification, clean-current runner route, and deterministic manifest checks.
+No look-two fits were launched. The source-bound first-look
+replay seal, current preparation, independent three-fit qualification, and
+end-to-end combination remain open. NotebookLM identifies
+`itchyshin@gmail.com`, but passive live token validation still fails with a DNS
+lookup error. See
+`docs/dev-log/after-task/2026-10-19-clean-current-look2-preflight.md`.
+
+## 2026-10-19: Poisson phylogenetic SD coefficient extraction
+
+`Rscript -e 'devtools::test(filter = "poisson-sd-assembly", reporter = "summary")'` passed after adding extraction of the Poisson phylogenetic SD coefficient slice in `split_tmb_parameters()` and a direct assertion of target/coefficient names and values. This run exercised R assembly/extraction only; the Julia bridge reported zero live engine tests. It does not establish cross-engine parity, recovery, calibrated uncertainty, or complete Poisson phylogenetic SD support. See `docs/dev-log/after-task/2026-10-19-poisson-phylo-sd-extraction.md`.
+
+## 2026-10-20: Bernoulli phylogenetic SD interval plumbing smoke
+
+`NOT_CRAN=true OPENBLAS_NUM_THREADS=1 R_PROFILE_USER=/dev/null Rscript --vanilla tools/general-sd-regression/probes/bernoulli-phylo-interval-smoke.R` exited 0. On its seeded 16-tip fixture, the phylogenetic SD-slope target resolved and the two-refit bootstrap returned finite endpoints with 2/2 successful refits. The profile interval was `clamp_limited` with the boundary flag set, so its endpoints remained unavailable. This is dispatch evidence only, not interval calibration. The NotebookLM methods query authenticated as `itchyshin@gmail.com` and did not identify direct literature calibration for predictor-dependent latent-SD slopes. Full receipt: `docs/dev-log/after-task/2026-10-20-bernoulli-phylo-sd-interval-smoke.md`.
+
+The follow-up higher-information synthetic fit used 60 tips and 100 observations per tip. The estimated SD slope was 0.480 (truth 0.45), and the 95% profile interval `[0.319, 0.652]` was finite, non-boundary, and contained the truth. This supports weak information as an explanation for the earlier clamp, but the seed and tree size differ, so this is not a controlled comparison or a coverage result. The exact command and seeded data generator are in `tools/general-sd-regression/probes/bernoulli-phylo-high-info-profile.R`.
+
+Two nested diagnostic comparisons refine that result. At 16 tips, increasing replication from 12 to 100 per tip still yielded a clamp-limited profile for one seed. On a separate 60-tip DGP with 100 observations per tip, the same response data fit on the first 16 tips produced a wider but valid interval `[0.157, 0.814]`; all 60 tips produced `[0.319, 0.652]`. The pruned phylogenetic covariance matched the corresponding full covariance block to `2.22e-16`. These single-seed results show that added groups narrowed this interval and that within-tip replication alone did not ensure a valid profile in the other realization. They do not establish calibrated coverage or a minimum group count. Exact commands and data generation are in the two `bernoulli-phylo-profile-*-pair.R` probes.
+
+Read open issue #59, which tracks the package-wide simulation and reporting framework. This local profile diagnostic is relevant evidence for that work but does not change its scope or status; no GitHub comment was posted.
+
+## 2026-10-19: Bernoulli phylogenetic SD timing and recovery pilot
+
+The ADEMP design and DGP self-test now cover four nested tip-count and
+within-tip-replication cells. The final v4 Totoro run completed 12/12 fits;
+profile outcomes were 8 finite non-boundary intervals, 3 clamp-limited
+intervals, and 1 profile failure. Seven of eight returned intervals contained
+the true slope, which is a pilot diagnostic and not a coverage estimate. The
+maximum pruned-covariance difference was `2.22e-16`. The source tarball,
+installed binary, runner, environment, seeds, and all v1-v4 ledgers are
+retained under
+`docs/dev-log/general-sd-regression/evidence/phylo-calibration-pilot-20261020/`.
+See `docs/dev-log/after-task/2026-10-19-bernoulli-phylo-calibration-pilot.md`.
+
+## 2026-10-20: Bernoulli phylogenetic SD pilot recovery summary
+
+The deterministic summary script reran from all 12 retained v4 attempts and produced per-cell slope bias 0.134, 0.374, -0.005, and -0.043, with RMSE 0.994, 0.539, 0.210, and 0.049. Each cell has only three replicates; these are descriptive pilot metrics, not recovery acceptance or interval-calibration evidence. Script and output hashes are in the evidence README and the check-log shard.
+# 2026-10-20: DHGLM Bernoulli random-effect variance-regression prior-art review
+
+Authenticated NotebookLM review now has non-empty references for the official
+CRAN `dhglm` manual. Direct verification against that manual confirmed
+`RespDist = "binomial"`, fixed predictors in `LinPredRandVariance`, and a log
+link for random-effect variance. Since `lambda = tau^2`, its log-variance
+coefficient is twice the equivalent log-SD coefficient. The manual documents
+h-likelihood/first-order Laplace and adjusted-profile methods, not calibration
+for this package's target. Updated the cited source ledger and bounded family
+wave plan. No model fits, simulations, package tests, or engine changes were
+performed. Full synthesis: `docs/dev-log/general-sd-regression/research.md`.
+
+## 2026-10-20: Native Bernoulli relmat SD regression
+
+The native Bernoulli q1 relatedness-matrix intercept now accepts
+`relmat(1 | id, K = K)` with `sd(id, level = "relmat") ~ z`. A new assertion
+first failed because `ranef()` exposed the unscaled latent field; the shared
+q1 structured extraction path now applies the fitted group SD before
+conditional prediction. The focused test passes 22 expectations, including
+seeded coefficient and group-SD recovery with reversed kernel labels, constant-
+SD equivalence, scaled random-effect output, an exact fresh-draw contribution
+check, public SD prediction, and marginal Bernoulli simulation. A follow-up
+Poisson q1 phylogenetic extraction smoke passes 4 expectations without making
+a coefficient-recovery claim. `devtools::document()`, both targeted vignette renders,
+and `pkgdown::check_pkgdown()` passed; the site check reported no problems.
+Julia relmat parity and interval calibration remain open. Full receipt:
+`docs/dev-log/after-task/2026-10-20-bernoulli-relmat-sd.md`.
+
+## 2026-10-20: Native Bernoulli animal-model SD regression
+
+One native Bernoulli q1 `animal(1 | id, A = A)` location intercept now accepts
+`sd(id, level = "animal") ~ z` and exposes `sd_animal(id)`. Twelve focused
+assertions cover fitting, public SD outputs, profile-target metadata,
+save/reload, prediction, simulation, point recovery, constant-SD equivalence,
+and within-group predictor validation. The synthetic predictor-dependent SD
+vignette renders, documentation generation completes, and
+`pkgdown::check_pkgdown()` reports no problems. Julia parity, other animal
+providers or effect shapes, and interval calibration remain open. Full receipt:
+`docs/dev-log/after-task/2026-10-20-binomial-animal-sd-regression.md`.
+
+\n
+
+## 2026-10-20: Native Poisson animal pedigree SD regression
+
+The Poisson q1 animal-model test now exercises pedigree input with internally
+constructed sparse precision. It checks sparse precision against the reordered
+dense covariance inverse, point recovery, name-keyed group SD prediction, and
+constant-SD equivalence. The focused test passed 11 assertions. The combined
+animal, relatedness-matrix, and grammar regression set passed 95 assertions,
+with one existing `sd_phylo()` deprecation warning and no failures or skips.
+No live Julia engine test ran. This is one native point-recovery slice, not
+interval calibration or broad animal-provider parity. Full receipt:
+`docs/dev-log/after-task/2026-10-20-poisson-animal-pedigree-sd-evidence.md`.
+
+## 2026-10-20: Native binomial animal pedigree SD regression
+
+A seeded binary-response test passed for one native animal intercept with
+pedigree input and a predictor-dependent latent SD. Ten focused assertions
+check the sparse precision against the reordered dense covariance inverse,
+point recovery, name-keyed group SD predictions, and constant-SD likelihood
+equivalence. The test passed with no warnings, failures, or skips. This adds
+one native family-provider cell. The combined animal, relatedness-matrix, and
+grammar regression set passed 105 assertions with one existing sd_phylo()
+deprecation warning, no failures, and no skips. It ran no live Julia test and
+does not establish cross-engine parity or interval calibration. Full receipt:
+docs/dev-log/after-task/2026-10-20-binomial-animal-pedigree-sd.md.
+
+## 2026-10-20: Gamma animal-pedigree SD regression
+
+Added one native Gamma q1 animal-intercept route with a predictor-dependent
+latent SD for pedigree, covariance, and precision inputs. The synthetic test verifies the sparse
+pedigree precision against the dense additive relationship inverse, recovers
+the seeded SD slope within the declared point-check tolerance, checks group-SD
+prediction by name, and confirms constant-SD likelihood equivalence.
+
+- `Rscript -e 'devtools::test(filter = "gamma-animal-pedigree-sd-regression")'`:
+  14 passed, no failures, warnings, or skips.
+- `Rscript -e 'devtools::test(filter = "gamma-sd|gamma-animal-pedigree|lognormal.*sd")'`:
+  110 passed, 0 failures, 0 warnings, 2 skips in 89.2 seconds. The skips are
+  live Julia tests; no Julia engine was configured.
+- `rmarkdown::render("vignettes/predictor-dependent-random-sd.Rmd", ...)`:
+  succeeded after replacing an internal helper call with a small explicit
+  synthetic relationship matrix. Pandoc emitted its deprecated `--mathjax`
+  option warning.
+- `pkgdown::check_pkgdown()`: no problems found; only deprecated
+  `--mathml` option warnings. The scoped Gamma `git diff --check` passed.
+- `graft build`: 29,646 nodes and 58,179 edges refreshed.
+
+This adds one native point-recovery cell across three animal covariance input
+forms. It does not validate interval coverage, Julia parity, Gamma animal
+slopes, or other structured combinations. Full receipt:
+`docs/dev-log/after-task/2026-10-20-gamma-animal-pedigree-sd-regression.md`.
+
+
+## 2026-10-20: Gamma phylogenetic direct-SD test and example
+
+The current native Gamma builder already fits one q1 phylogenetic location
+intercept with a species-level direct-SD formula. A new seeded synthetic test
+passed 11 assertions for trend direction, tip-named SD predictions, and
+constant-SD likelihood equivalence. The predictor-dependent random-SD vignette
+rendered from the explicitly loaded worktree package. `pkgdown::check_pkgdown()`
+found no problems. These are point-fit and documentation checks only, not
+interval calibration or Julia parity. Details: `docs/dev-log/after-task/2026-10-20-gamma-phylo-sd-evidence.md`.
+
+## 2026-10-20: Gamma relatedness-matrix direct-SD point-fit row
+
+The native Gamma builder already fits one q1 `relmat()` location intercept with
+`sd(id, level = "relmat") ~ z`. The new synthetic test passed 11 assertions
+for positive log-SD slope recovery, group-named SD predictions, and equivalence
+of the explicit constant-SD formula with the existing scalar-SD fit. The
+relatedness kernel labels were deliberately reversed relative to group order.
+The guide and capability notes now record this as one native point-fit row.
+This does not establish interval calibration, Julia parity, or wider Gamma
+structured-SD support. Details: `docs/dev-log/after-task/2026-10-20-gamma-relmat-sd-regression.md`.
+
+
+## 2026-10-20: Gamma coordinate-spatial direct-SD regression
+
+One native Gamma q1 coordinate-spatial location intercept now accepts
+`sd(site, level = "spatial") ~ z`. Its synthetic test checks SD-slope trend,
+site-named SD predictions, and equivalence with the existing constant-SD
+spatial fit. The predictor-dependent SD vignette and capability maps record
+this exact route. This does not establish interval calibration, Julia parity,
+or mesh/SPDE support. Details: `docs/dev-log/after-task/2026-10-20-gamma-spatial-sd-regression.md`.
+
+## 2026-10-20: Native skew-normal independent-slope SD regression
+
+The native skew-normal builder now accepts one independent numeric `mu` slope
+as an SD target through `sd(id, coef = "x") ~ w`. Focused assembly and fit tests
+passed, including a seeded log-SD trend check, increasing group SD predictions,
+simulation, save/reload, and constant-SD likelihood equivalence. The ordinary
+fit regression also verifies that the inactive `sd_mu` placeholder does not
+trigger a false rank-deficiency diagnostic. The predictor-dependent SD vignette
+rendered, and `pkgdown::check_pkgdown()` found no problems. One platform-sensitive
+conditioning test skipped; the suite emitted existing deprecation and numeric
+conditioning warnings. This slice does not establish interval calibration or
+Julia parity. Full receipt: `docs/dev-log/after-task/2026-10-20-skew-normal-slope-sd.md`.
+
+## 2026-10-20 Beta-binomial animal-pedigree marginal simulation
+
+The native Beta-binomial q1 animal-pedigree predictor-dependent-SD test now
+checks marginal simulation output dimensions and trial-count bounds. It failed
+before the guard update with the intended heteroscedastic-scale error and
+passed after admitting this family to the existing q1 structured-count
+simulation route. The focused file passes; the current-source tutorial render
+and pkgdown check pass. This is not Julia parity or interval calibration.
+Status-inventory scan: `rg -n -i -C 2 'Beta-binomial.*animal|animal.*Beta-binomial|beta.binomial.*animal|modelled.*random.effect scale' README.md docs/dev-log/internal-roadmap.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/18-random-effect-scale-models.md docs/dev-log/general-sd-regression/native-family-sd-adapter-map.md docs/dev-log/general-sd-regression/inventory.md vignettes/formula-grammar.Rmd vignettes/predictor-dependent-random-sd.Rmd`.
+`pkgdown::build_site()` was also attempted and stopped while building the home page because the sandbox could not resolve `cloud.r-project.org`; a Sass cache write also reported a permission warning. `pkgdown::check_pkgdown()` and the current-source tutorial render pass independently.
+
+## 2026-10-20 Beta-binomial animal covariance and precision inputs
+
+The focused Beta-binomial animal-pedigree SD test now also fits supplied
+covariance `A` and precision `Ainv` inputs. The input matrices are jointly
+permuted relative to factor order; both routes pass recovery, group-SD
+prediction, and likelihood agreement with the pedigree fit. No production code
+change was needed. This extends one native family/effect across three animal
+matrix providers and does not establish Julia parity or interval calibration.
+The focused test file passed. A broader Beta-binomial test filter exceeded its
+two-minute estimate and was interrupted during an existing ordinary-intercept
+recovery test; no full-filter result is claimed. The updated random-SD tutorial
+render and `pkgdown::check_pkgdown()` passed. Report:
+`docs/dev-log/after-task/2026-10-20-beta-binomial-animal-matrix-sd.md`.
+
+## 2026-10-20 Gaussian animal-model direct-SD slice
+
+Native Gaussian now admits one q1 animal location intercept with
+`sd(id, level = "animal") ~ z` using supplied covariance `A`, precision
+`Ainv`, or pedigree input. The focused test now passes 25 expectations for
+point recovery, name-keyed group-SD prediction, marginal simulation,
+save/reload prediction, constant-SD likelihood equivalence, rejection of
+within-animal predictor variation, and matching likelihoods, coefficients, and
+name-aligned predictions for equivalent covariance `A` and precision `Ainv`
+inputs. Its pedigree case leaves sires and dams unobserved and checks recovery,
+offspring-named SD prediction, marginal simulation, and constant-SD equivalence.
+The named Gaussian animal tutorial chunk fit from current source, and the full
+tutorial rendered to
+`/private/tmp/gaussian-animal-vignette-worktree/predictor-dependent-random-sd.html`.
+`pkgdown::check_pkgdown()` found no problems; Pandoc emitted only existing
+`--mathml` deprecation notices. Julia parity, profile/bootstrap refit routing,
+and interval calibration remain unverified for this row. The G3, G4, and G6
+ledger evidence was updated without marking those programme-wide gates passed.
+Report: `docs/dev-log/after-task/2026-10-20-gaussian-animal-sd-regression.md`.
+The same route also accepts a supplied pedigree. A focused test with unobserved
+founders checks recovery, offspring-named predictions, marginal simulation,
+and constant-SD equivalence; this verifies an existing route and required no
+production-code change. Report: `docs/dev-log/after-task/2026-10-20-gaussian-animal-pedigree-sd.md`.
+## 2026-10-21: NB2 animal-model predictor-dependent SD
+
+Native NB2 now fits one complete-data q1 animal location intercept with
+`sd(id, level = "animal") ~ z`. The new synthetic test passes nine
+expectations for convergence, SD-slope recovery, animal-level predictions,
+constant-SD likelihood equivalence, and rejection of a predictor that varies
+within animal. The focused test failed before the builder accepted
+`sd_animal(id)`, then passed after the R/TMB wiring was completed. The updated
+predictor-dependent-SD vignette rendered from this worktree after explicitly
+loading its source package, and `pkgdown::check_pkgdown()` found no problems
+apart from existing Pandoc MathML deprecation warnings.
+
+The broader `devtools::test(filter =
+"nbinom2|student-location-scale|animal-sd-regression")` run completed with
+eight failures in NB2 structured-recovery thresholds, Poisson animal
+prediction-order checks, and Student-t start handling. These remain unresolved
+and prevent a broad regression-pass claim. See
+`docs/dev-log/after-task/2026-10-21-nbinom2-animal-sd.md`.
+
+## 2026-10-21: closeout of three focused regression failures
+
+The earlier eight failures were reproduced and resolved in the focused
+follow-up. The NB2 structured-sigma test now draws its synthetic phylogenetic
+effect with a Cholesky factor and uses the previously reviewed seed and
+model-comparison gap. The Poisson animal test keys expected SD predictions to
+the supplied covariance matrix's group order. `student_ls_start()` no longer
+passes structured-start arguments to `gaussian_ls_start()`; it retains the
+separate phylogenetic-start calculation. Exact check:
+
+```sh
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "poisson-animal-sd-regression|nbinom2-sigma-structured-recovery|^student-location-scale$", reporter = "summary")'
+```
+
+Result: all three files passed (NB2 6 expectations, Poisson animal 11, Student
+location-scale 47). The Julia bridge reported that no live Julia engine tests
+ran. This closes those eight targeted failures only; it is not a full package
+or Julia parity pass. See
+`docs/dev-log/after-task/2026-10-21-focused-regression-repairs.md`.
+
+The broader filter `nbinom2|student-location-scale|animal-sd-regression` was
+then run with one thread. It reached the Phase 18 truncated-NB2 random-
+intercept grid-writer test and was interrupted after exceeding the estimated
+10-minute bound. No failure had been reported before interruption, but the
+filter did not finish and cannot be called passing.
+
+## 2026-10-21: NB2 animal slope-only SD regression
+
+Native NB2 now admits one q1 animal location slope-only coefficient with a
+group-level predictor-dependent SD and fixed `sigma`. The seeded test passed
+9 assertions for recovery, name-keyed predictions, constant-SD likelihood
+equivalence, and rejection of predictors that vary within animal. The test
+first failed on the NB2 structured-slope admission, then on a parser guard
+that incorrectly required an intercept; both failures preceded the fix.
+
+Exact checks:
+
+```sh
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "nbinom2-animal-slope-sd-regression", reporter = "summary")'
+Rscript -e 'devtools::document()'
+Rscript -e 'pkgdown::check_pkgdown()'
+```
+
+The focused test and documentation generation passed. `pkgdown::check_pkgdown()`
+reported no problems, with existing Pandoc `--mathml` deprecation warnings.
+After review, the recovery tolerance was tightened from 0.4 to 0.25 and the
+defensive C++ message was updated to describe one animal coefficient. The
+focused test passed again at the tighter tolerance. Adjacent NB2 animal
+intercept, Beta animal-pedigree, and Poisson animal regression tests also
+passed (NB2 9, Beta 12, Poisson 13 expectations); no live Julia tests ran.
+An independent read-only review then confirmed the tightened recovery
+threshold, defensive error wording, and matching limits in the formula grammar,
+active inventory, and native adapter map. No further discrepancy was found.
+`pkgdown::build_site()` was attempted twice: the first attempt could not write
+the protected macOS Sass cache; after redirecting that cache to `/private/tmp`,
+the build stopped when the environment could not resolve cdnjs for
+`headroom.min.js`. Thus the full site render remains unverified. The live Julia
+engine was not run, and no interval-coverage campaign was run. The active
+programme still requires calibrated uncertainty before overall completion.
+
+See `docs/dev-log/after-task/2026-10-21-nbinom2-animal-slope-sd.md`.
+
+## 2026-10-21: Gamma animal slope-only SD regression
+
+Native complete-data Gamma now supports one q1 animal location slope-only
+coefficient with a predictor-dependent SD and fixed `sigma`. The focused test
+passed 10 expectations for recovery, name-keyed prediction, constant-SD
+equivalence, within-animal predictor rejection, and multi-coefficient block
+rejection. The adjacent Gamma animal-intercept test passed 14 expectations.
+The new test first failed at the Gamma intercept-only validator, confirming
+that it exercised the missing route.
+
+```sh
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "gamma-animal-slope-sd-regression|gamma-animal-pedigree-sd-regression", reporter = "summary")'
+Rscript -e 'devtools::document()'
+Rscript -e 'pkgdown::check_pkgdown()'
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/predictor-dependent-random-sd.Rmd", output_dir = "/private/tmp/general-sd-regression-render", quiet = TRUE)'
+```
+
+All four checks passed. The first vignette render loaded an older installed
+checkout and failed before reaching the Gamma example; loading the current
+worktree resolved the mismatch. The structural-slope map now records the
+Gamma and NB2 animal slope-only exceptions. Julia parity and interval
+calibration remain open; this row is point-recovery evidence only.
+
+The Gamma slope-only test now also checks conditional simulation dimensions and
+finite draws, plus SD coefficient and prediction preservation after
+`saveRDS()`/`readRDS()`. The focused rerun passed 15 expectations in 10.1
+seconds. No Julia test or interval-coverage run was added.
+
+See `docs/dev-log/after-task/2026-10-21-gamma-animal-slope-sd.md`.
+
+## 2026-10-21: Beta ordinary SD small-group recovery smoke
+
+The focused Beta ordinary SD regression file passed 26 expectations with
+`NOT_CRAN=true`, including new independent 36-group intercept and 40-group
+independent-slope recovery fits. Existing intercept and slope integration
+files also passed, including public predictions, save/reload, constant-SD
+equivalence, independent slope quadrature, and the reversed-map control. The
+native adapter map now describes Beta's ordinary intercept and independent
+numeric-slope support consistently. This is point-recovery evidence only;
+Julia parity and interval calibration remain open. Exact commands and details
+are in `docs/dev-log/check-log.d/2026-10-21-beta-ordinary-sd-recovery.md`.
+
+## 2026-10-21: Hurdle NB2 ordinary location-intercept SD regression
+
+The hurdle NB2 likelihood now admits one ordinary `mu` random intercept, with
+an optional group-level predictor model for its SD. The latent intercept enters
+the positive-count NB2 mean and truncation normalizer; the hurdle probability
+remains a separate fixed-effect predictor. The focused recovery file passed 31
+expectations, including synthetic SD-slope recovery, constant-SD equivalence,
+group SD prediction, conditional and marginal simulation, save/reload, and
+rejection of within-group-varying SD predictors. The combined hurdle suites
+passed 90 expectations. These are point-recovery and workflow checks; interval
+coverage and Julia parity remain open.
+
+```sh
+Rscript -e 'devtools::test(filter = "hurdle-nbinom2-sd-regression")'
+Rscript -e 'devtools::test(filter = "hurdle-nbinom2")'
+```
+
+See `docs/design/03-likelihoods.md` and `vignettes/count-nbinom2.Rmd` for the
+current model scope and formula.
+
+The formula-grammar and implementation-map vignettes also render from the
+current worktree. Status scans used
+`rg -n -i 'hurdle.*(random|sd)|random.*hurdle' README.md docs/dev-log/internal-roadmap.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/18-random-effect-scale-models.md vignettes/formula-grammar.Rmd vignettes/implementation-map.Rmd`;
+the current roadmap, known-limitations entry, formula grammar, and examples now
+distinguish this one fitted native `mu` intercept from unsupported broader
+hurdle random-effect routes. `gh issue list --repo itchyshin/drmTMB --state
+open --search hurdle --json number,title` could not connect to GitHub, so no
+issue action was taken.
+
+The after-task structure check passed and the prose checker reported zero
+findings. An independent read-only reviewer found no blocking code issues. The
+full close-out compiler stopped at acceptance re-verification because the
+general-SD programme remains open; that broader gate was not bypassed.
+`pkgdown::check_pkgdown()` reported no problems, with existing Pandoc MathML
+deprecation warnings. The repository lane goal defers interval coverage, while
+the active Codex app goal still lists calibrated uncertainty; the exposed goal
+tool does not permit editing an active objective, and the goal remains active.
+
+## 2026-10-21: Julia bridge for ZeroOneBeta selected-slope SD regression
+
+The R-to-Julia bridge now admits one complete-response `zero_one_beta()` mean
+intercept or a matching selected independent mean slope with fixed `sigma`,
+`zoi`, and `coi`. The focused test passed 35 assertions with no failures,
+warnings, or skips; its two live Julia fits used matched local development
+checkouts and a same-data synthetic slope. Both engines recovered the
+SD-predictor direction and exposed group SDs for the same target; Julia
+prediction and save/reload checks passed. This remains one candidate-source
+slice, not general engine parity or released Julia support. Structured effects
+and interval calibration remain open. Details:
+`docs/dev-log/check-log.d/2026-10-21-julia-zeroonebeta-sd-slope-bridge.md`.
+The edited formula-grammar vignette also rendered successfully to `/private/tmp`;
+Pandoc emitted its existing deprecated `--mathjax` option warning.
+## 2026-10-22: Julia ZeroOneBeta SD marginal simulation integrity
+
+The paired Julia candidate's marginal simulator now uses the freshly sampled random effect when calculating the ZeroOneBeta Beta-component mean. The focused synthetic test passed 10/10 checks, including an independent seeded draw oracle and one successful bootstrap refit. The neighboring ZeroOneBeta recovery, intercept-SD, and slope-SD tests passed 29/29 additional checks. This is one candidate workflow fix, not broad ZeroOneBeta parity or interval calibration. Details and exact commands: `docs/dev-log/check-log.d/2026-10-22-zeroonebeta-sd-marginal-simulation.md`.
+## 2026-10-22: Native Poisson animal slope-only SD regression
+
+The Poisson structured-effect gate now admits one q1 animal slope-only
+coefficient with a predictor-dependent SD and supplied covariance `A`.
+The focused test passed 13 assertions for fixed-seed SD-slope recovery,
+group-named SD prediction, simulation, save/reload, constant-SD equivalence,
+and rejection of a predictor that varies within animal. The adjacent Poisson
+animal-intercept and new slope-only tests passed 24 assertions together.
+`devtools::document()` regenerated the public reference page. This evidence
+covers complete, non-inflated native TMB data and supplied `A` only; Julia
+parity, `Ainv`/pedigree slope inputs, and interval calibration remain open.
+Details: `docs/dev-log/after-task/2026-10-22-poisson-animal-slope-sd.md`.
+
+## 2026-10-22: NB2 animal supplied-covariance SD comparison
+
+The focused NB2 animal SD regression file passed 16 assertions. A synthetic
+q1 animal-intercept fit using supplied covariance `A` matched its equivalent
+pedigree fit in convergence, SD coefficients, log likelihood, and group-name-
+keyed SD predictions. This is one provider-equivalence fixture, not Julia
+parity or interval calibration. Details:
+`docs/dev-log/check-log.d/2026-10-22-nbinom2-animal-A-direct-sd.md`.
+
+## 2026-10-22: LogNormal sigma-SD bootstrap workflow
+
+The focused LogNormal sigma-SD profile test now also runs three fixed-seed
+serial bootstrap refits. All three refits converged, retained the SD slope
+target, and contributed draws; the test passed 20 assertions. This checks
+workflow integrity only and does not estimate interval coverage. Details:
+`docs/dev-log/check-log.d/2026-10-22-lognormal-sigma-bootstrap-workflow.md`.
+## 2026-10-22: Poisson animal-slope SD Julia bridge parity
+
+The live R/Julia parity test passed 17 checks in 29.1 seconds with no warnings
+or skips. The adjacent native animal-intercept/slope plus live-bridge filter
+passed 41 checks. On its fixed fixture, the maximum SD-coefficient difference
+was `4.98e-8`, maximum group-SD difference `7.43e-8`, and Julia-minus-TMB log
+likelihood difference `-2.64e-5`; assertions now use limits `1e-4`, `1e-4`, and
+`1e-3`, respectively, and require the fitted slope within `0.1` of truth. The
+test compares SD coefficient, log likelihood, and group-named SD
+predictions for one complete-data Poisson animal slope-only model using a
+unit-diagonal supplied covariance. Three nearby unsupported formula shapes
+are rejected by the bridge admission test. JuliaCall first failed to initialize
+when sandbox permissions blocked its compiled-module pidfile; the unchanged
+test passed after the required cache access was granted. This remains one
+candidate fixture, not broad provider parity or interval calibration. Details:
+`docs/dev-log/after-task/2026-10-22-poisson-animal-slope-julia-bridge-parity.md`.
+
+## 2026-10-22: direct-SD evidence receipt count clarity
+
+The reconciliation summary now reports receipt-record count separately from
+the number of distinct candidate rows with hash-verified receipts. The current
+table has 19 records linked to 18 candidate rows because two records cover the
+same native Binomial intercept row. `python3
+tools/general-sd-regression/tests/test_reconcile_evidence.py` passed 11 tests;
+`python3 tools/general-sd-regression/reconcile_evidence.py` reported 19,118
+candidate rows, 19 receipt records, 18 linked rows, and 19,100 unlinked rows.
+The broader candidate Binomial filter passed 827 assertions with 8 live-Julia
+skips in 640.7 seconds; this dirty-worktree run is not a source-bound receipt.
+Details: `docs/dev-log/after-task/2026-10-22-sd-evidence-count-clarity.md`.
+## 2026-10-22: Reject reused look-two adapter qualification seeds
+
+The clean-current adapter's three fitted probes used calibration rows 1, 4001, and 8001, then required successful health/oracle checks. Added a fail-closed guard in source resolution and qualification-receipt validation, with tests that failed before the guard and now reject this route. Updated the staged-calibration contract, adapter README, and G5 ledger. The timing manifest has a separate seed stream, but no replacement qualification has been run or approved. The Python stage-two suite passed 58/58 tests in 112.561 seconds; the R stage-two rules passed. The no-fit 12,000-row combine case passed alone and in the final suite after an earlier deadline failure. Details: `docs/dev-log/after-task/2026-10-22-stage-two-adapter-seed-independence.md`.
+
+
+## 2026-10-23: Julia Tweedie related-matrix SD evidence receipt
+
+The paired Julia candidate's focused Tweedie related-matrix mean-intercept test passed 36/36 assertions in 2m40.8s. Added an unreviewed, hash-bound focused-test receipt for the exact Julia Tweedie q1 `K_covariance` row. Evidence reconciliation now reports 21 records linked to 20 distinct candidate rows, leaving 19,098 of 19,118 rows without a linked receipt. This is an evidence join only; it does not promote support, establish R/TMB parity, or validate interval coverage. The receipt and copied test snapshot are in `docs/dev-log/general-sd-regression/evidence/julia-tweedie-relmat-sd-20261023/`. The reconciler self-test passed 11/11.
+
+## 2026-10-23: Bernoulli crossed ordinary SD targets on the Julia bridge
+
+The matched candidate pair now fits two independent Bernoulli random
+intercepts with separate SD predictors on crossed grouping factors. The live
+test passed 25 assertions for target-specific coefficient blocks, coefficients,
+likelihood, group-level `predict()` values, and `predict_parameters()` labels
+and estimates. Public stored-group `predict()` names now match native TMB;
+`fit$sdpars` keeps target-qualified names. JuliaCall emitted a nonfatal
+`LogExpFunctionsInverseFunctionsExt` warning; both fits and all assertions
+completed. The single fixture is point-parity evidence only, not broad recovery,
+provider parity, or interval calibration. Details:
+`docs/dev-log/after-task/2026-10-23-bernoulli-crossed-julia-sd-output-parity.md`.
+
+## 2026-10-23: Julia Bernoulli crossed-SD simulation and reload
+
+Added an S3 `simulate()` method for Julia-engine Binomial models with
+predictor-dependent SDs on distinct ordinary random intercepts. Marginal draws
+use the fitted group SDs; conditional simulation is refused because this
+non-Gaussian DRM.jl route does not retain conditional modes. The crossed
+synthetic test passed 30 assertions for native/Julia coefficient and
+prediction parity, RDS preservation, and a seeded independent simulation
+oracle. One nonfatal JuliaCall `LogExpFunctionsInverseFunctionsExt`
+precompile warning occurred. The method currently excludes random slopes,
+correlated or structured effects, other response families, and constant-SD
+random-effect fits. This is one workflow cell, not broad output parity or
+interval calibration. Details:
+`docs/dev-log/after-task/2026-10-23-bernoulli-crossed-julia-sd-output-parity.md`.
+## 2026-10-23: General-SD evidence count refresh
+
+`python3 tools/general-sd-regression/reconcile_evidence.py` passed and
+regenerated the summary from the exact required-row and receipt tables:
+19,118 candidate rows, 32 hash-verified receipt records, 26 linked row keys,
+and 19,092 unlinked rows. The inventory had lagging 27/24 counts; it now gives
+the current values and states that evidence linkage is not capability
+completion. Status counts of linked rows were checked directly against the
+frozen TSV: 25 required, 1 unresolved, and none in the two other initial
+statuses. No model code changed. Details:
+`docs/dev-log/after-task/2026-10-23-general-sd-evidence-count-refresh.md`.
+## 2026-10-23: Verify native Gamma animal SD likelihood branches
+
+The focused Gamma animal-intercept/pedigree test passed 14 assertions and the
+Gamma animal-slope-only test passed 15 assertions on the current candidate.
+Reading the exact TMB `model_type == 5` branch showed that structured group
+SDs use the predictor design and scale the latent field while retaining the
+`Q_phylo` Gaussian penalty; the prior static claim that these hooks were
+ignored was incorrect. The tests cover separate
+q1 intercept and slope-only models. They do not cover a combined animal
+intercept-plus-slope model, which remains an open required capability row.
+Julia 1.10 was unavailable locally and the Totoro ControlMaster socket was
+blocked by the sandbox, so no Julia rerun was completed. Details:
+`docs/dev-log/after-task/2026-10-23-gamma-animal-sd-likelihood-runtime-check.md`.
+
+## 2026-10-23: Verify native Gamma animal q2 SD regression
+
+The focused Gamma animal pedigree SD test passed 37 assertions with no
+failures, warnings, or skips when run with a task-specific temporary directory.
+It exercises separate intercept and independent-slope SD predictors, recovery,
+named predictions, simulation, save/reload, constant-SD equivalence, selector
+errors, and slope-scale identifiability refusals. The paired Julia source and
+test hashes match its 35/35 focused receipt, but this does not establish a live
+bridge comparison or non-unit-diagonal covariance-scale parity. The native
+candidate is 6 commits ahead and 245 behind the local `origin/main`; the result
+is candidate-only and closes no programme gate. Details:
+`docs/dev-log/after-task/2026-10-23-native-gamma-animal-q2-sd-verification.md`.
+
+## 2026-10-23: Reverify Gamma phylogenetic SD parity on current sources
+
+The existing non-unit-height Gamma phylogenetic SD bridge test passed 6
+assertions, including one live Julia bridge test, with exit code 0 on the
+current R and Julia candidates. Julia reported that the tree with height
+6.404475 retains raw branch-length scaling. This rerun was needed because the
+earlier receipt's implementation hashes did not match the current candidates.
+The new source manifest and console are in
+`docs/dev-log/evidence/gamma-phylo-nonunit-current-source-20261023/`. This is
+one same-data parity fixture and closes no general-SD programme gate.
+
+## 2026-10-24: NB2 sigma random-effect SD regression
+
+The native NB2 sigma-endpoint SD slice passed its focused recovery, output,
+constant-SD equivalence, and group-predictor validation tests. Neighboring NB2,
+hurdle, and zero-inflated SD files passed; the broader filtered run also
+retained one separate truncated-NB2 `hu` expectation failure. `pkgdown::check_pkgdown()`
+passed; the full site render was stopped after a no-space warning. Exact
+commands and limitations: `docs/dev-log/check-log.d/2026-10-24-nbinom2-sigma-sd-regression.md`.
+
+## 2026-10-24: Document Julia Gamma animal marginal simulation routes
+
+`devtools::document()` regenerated `man/simulate.drmTMB.Rd`. The Julia guide
+now describes complete-data Gamma animal intercept and intercept-plus-numeric-
+slope SD simulations, their separate coefficient-specific SD formulas, the
+fixed `sigma ~ 1` constraint, unavailable conditional simulation, and the
+unit-diagonal correlation convention. The four focused live Julia tests passed
+for combined-target fit/parity, non-unit-kernel fit parity, corrected
+non-unit-kernel q2 simulation, and q1 intercept simulation. The latter two use
+independent seeded oracles. This is bounded workflow evidence only; no
+programme gate closes. Console and source hashes:
+`docs/dev-log/evidence/gamma-animal-marginal-simulation-docs-20261024/`.
+An independent covariance readback found a remaining contract conflict: native
+TMB preserves non-unit `A`, while the Julia Gamma animal fitter normalizes it.
+The simulator follows the Julia fit, but that does not establish cross-engine
+parity under the approved raw-kernel multiplier contract. Changing only the
+new SD route would also conflict with Julia constant-SD equivalence. No engine
+source was changed for this issue; resolve the contract before claiming
+non-unit-kernel parity.
+
+## 2026-10-24: Reverify Beta-binomial ordinary SD bridge
+
+The exact candidate-pinned test filter `julia-beta-binomial-sd-parity|julia-family-beta_binomial` passed 70 assertions with zero failures, warnings, or skips in 57.3 seconds; three live Julia bridge fits ran. The two new same-data tests cover ordinary mean intercept and independent numeric-slope SD formulas with fixed `sigma ~ 1`, point recovery, group-SD outputs, and public `predict_parameters()` row alignment. `python3 tools/general-sd-regression/reconcile_evidence.py` passed and reconciled 41 hash-verified receipt records to 32 distinct rows out of 19,118 candidates. This is narrow candidate evidence and does not close a gate or establish interval calibration. Details: `docs/dev-log/after-task/2026-10-24-julia-beta-binomial-ordinary-sd-parity.md`.
+
+## 2026-10-24: Binomial animal plus IID SD recovery fixture
+
+`devtools::test(filter = "binomial-animal-iid-sd-regression", reporter = "summary", stop_on_failure = TRUE)` passed on the native TMB candidate. The recovery fixture now balances and randomizes site assignment independently of the AR(1) animal covariance ordering; its fixed-seed DGP recovers both log-SD slopes. The earlier smaller fixture's failed IID-slope assertion is retained in the after-task report as evidence of a weak design, not overwritten by a looser tolerance. This is one native candidate point-recovery/output cell. Julia parity for the combined structure, an independent objective oracle, interval workflows, and coverage calibration remain open. Console and source hashes: `docs/dev-log/evidence/binomial-animal-iid-sd-recovery-20261024/`.
+
+## 2026-10-24: Julia Binomial probit/cloglog ordinary-intercept SD bridge
+
+The focused opt-in R bridge test passed 26 expectations, including synthetic
+TMB/Julia point recovery and group-SD prediction checks for probit and
+complementary log-log Binomial links. The paired DRM.jl family-tag test passed
+4/4. Admission remains limited to one ordinary mean random intercept with a
+matching SD formula; other non-logit bridge shapes and interval calibration are
+not established. `pkgdown::check_pkgdown()`, R parsing, and scoped diff checks
+passed. The generic test footer undercounts live Julia checks for this filter;
+the console preserves the startup and post-startup assertion output. Details:
+`docs/dev-log/after-task/2026-10-24-julia-binomial-nonlogit-sd-bridge.md`.
+
+## 2026-10-24: Julia Binomial probit/cloglog random-slope SD bridge
+
+The bridge now admits one ordinary numeric Binomial mean slope with a matching
+coefficient-specific SD formula for probit and complementary log-log. The
+focused opt-in test passed 27 expectations, including four synthetic TMB/Julia
+fits, coefficient-label fidelity, SD-slope recovery, and group-SD predictions.
+The first live attempt exposed a selected-target label mismatch; the R payload
+now sends the hashed SD target key expected by DRM.jl. R parsing, scoped diff
+checks, and the package documentation check passed. Other non-logit shapes and
+interval coverage remain open. Details:
+`docs/dev-log/after-task/2026-10-24-julia-binomial-nonlogit-slope-sd-bridge.md`.
+
+
+## 2026-10-24: Julia Binomial non-logit SD ledger linkage
+
+Registered four hash-bound focused recovery receipts for ordinary probit and
+complementary log-log intercept/slope SD cells. The evidence-only reconciler
+links 58 receipt records to 47 candidate rows (19,071 unlinked). All four
+required rows remain `blocked_base_plumbing` and `direct_sd_claim=none`: only
+the narrow direct-SD exceptions have focused evidence, while general Julia
+Binomial non-logit support remains unadmitted. No programme gate closes.
+
+## 2026-10-24: Binomial animal plus IID independent Laplace oracle
+
+The existing same-data TMB/Julia bridge test now evaluates both fitted
+likelihoods with an independently coded dense joint-Laplace oracle in R. The
+non-unit-diagonal animal covariance and separate IID site intercept each have
+their own fixed SD predictor. The focused filter passed 37 expectations with
+one live Julia bridge test; covariance `A` and equivalent precision `Ainv`
+fits also agree. Exact stdout and before/after source hashes are in
+`docs/dev-log/general-sd-regression/evidence/binomial-animal-iid-independent-oracle-20261024/`.
+The evidence overlay now links 60 receipt records to 49 candidate rows; 19,069
+remain unlinked. This adds no interval-calibration or broad provider claim.
+
+## 2026-10-24: Beta ordinary selected-target bridge label repair
+
+The live Beta intercept/slope bridge filter first reproduced a label-marshalling
+failure: the R bridge sent a hashed `sdtarget_*` label while the Julia Beta
+fitter exposes its sole SD block as `sd`. The bridge now uses that canonical
+label for Beta, and the focused opt-in filter passed 26 expectations across
+two live Julia fits. It checks selected intercept and slope labels, positive
+point recovery, TMB/Julia estimate agreement, group SD output, new-data
+prediction, and save/reload. The failed first run and matching before/after
+source manifests are retained at
+`docs/dev-log/general-sd-regression/evidence/beta-ordinary-sd-bridge-20261024/`.
+The evidence overlay now links 64 receipts to 53 candidate rows, with 19,065
+unlinked. All four Beta intercept/slope rows remain unreviewed; this fix does
+not establish interval calibration or promote a capability row.
+
+## 2026-10-25: Cumulative-logit selected SD target bridge label repair
+
+The R bridge now sends the canonical Julia `sd` block label for selected
+cumulative-logit intercept and numeric-slope SD formulas. The focused test first
+reproduced the selected slope-label mismatch; after the fix, the pure selector
+regression passed 6 assertions and the restored source-bound live filter passed
+36 expectations across native TMB and Julia, including four fits. The historical
+live test sources were restored byte-for-byte after discovering that their
+hash-bound evidence receipts require the original source. Their before/after
+source manifests match. The legacy test wrapper's final summary says zero live
+tests because these tests use a manual opt-in guard; the console shows Julia
+startup and the live fit assertions. The evidence overlay now links 68 receipts
+to 55 candidate rows (19,063 unlinked). The four cumulative-logit receipts are
+unreviewed candidate evidence and do not establish interval calibration or
+close a programme gate. Details: `docs/dev-log/after-task/2026-10-25-cumulative-logit-selected-sd-target-bridge-fix.md`.
+
+## 2026-10-25: Reconcile Gaussian SD-slope inventory wording
+
+The inventory had said the same-data Julia bridge evidence covered only a Gaussian ordinary intercept, despite a source-matched 2026-10-24 receipt for the ordinary independent numeric slope. The row now reflects the native recovery and R/TMB-to-Julia point-parity receipts already documented in `docs/dev-log/after-task/2026-10-24-gaussian-random-slope-sd.md`. No new model fit was run for this wording correction; the exact test-source hash matches the registered slope receipt. This does not add coverage evidence or close a programme gate.
+
+## 2026-10-25: Hurdle NB2 ordinary slope SD Julia bridge
+
+The development Julia bridge now admits the exact complete-response hurdle NB2
+route with one ordinary location intercept or one independent numeric location
+slope and a matching predictor-dependent `sd()` formula. Both require fixed
+`sigma` and fixed-effect `hu`. The direct Julia Hurdle NB2 fitter delegates
+the hurdle route to the existing NB2 SD machinery. The focused test first
+reproduced Julia's explicit refusal of the hurdle `hu` formula; after the
+delegation and bridge-label fix, the live paired test passed 36 expectations
+across two TMB and two Julia fits. It checks positive SD-trend recovery in each
+engine and positive group-SD output from each engine; the loose coefficient
+comparison and output checks do not establish numerical parity of group-level
+SD predictions. Exact stdout and stable before/after
+hashes for the R bridge, test, and Julia fitter are in
+`docs/dev-log/general-sd-regression/evidence/hurdle-nbinom2-sd-bridge-20261025/higher-information-design/`.
+The native and Julia intercept and slope candidate rows are linked as
+unreviewed recovery receipts. The before/after manifest hashes 150 relevant R,
+native C++, Julia source, and test files. This is not interval-calibration or
+broad hurdle parity evidence.
+
+## 2026-10-25: Hurdle NB2 direct-SD identifiability review repair
+
+Independent review found that all-zero groups inform the hurdle probability `hu`, but cannot identify the count-side random-effect SD regression. Native TMB and the paired Julia Hurdle NB2 route now check that the SD design is full rank among groups with positive counts. The native refusal regression passed; the Julia identifiability test passed 2/2; and the direct Julia Hurdle NB2 SD test passed 17/17, including an independent scalar quadrature likelihood check. The source-pinned R-to-Julia bridge rerun passed its live test. Its group-SD outputs are checked separately within each engine and are not claimed to be numerically equal across engines. The distribution-family and model-map vignettes rendered successfully, with a Pandoc MathJax deprecation warning. Exact console outputs and the identical 152-file before/after manifest are in `docs/dev-log/general-sd-regression/evidence/hurdle-nbinom2-sd-bridge-20261025/review-repair/`. Reconciliation passes with 76 evidence records linked to 59 distinct candidate rows. This remains narrow point-recovery evidence, not interval calibration or broad hurdle parity.
+
+## 2026-10-25: SkewNormal independent-slope SD Julia bridge
+
+The development R-to-Julia bridge now admits one complete-response SkewNormal
+`mu` intercept or independent numeric slope with a matching `sd()` formula and
+fixed `sigma ~ 1`, `nu ~ 1`. The first live fit exposed a coefficient-label
+mismatch: Julia returns this route under its ordinary `sd` block. The payload
+now labels that exact route accordingly. The same-data test checks convergence,
+positive SD-trend recovery, public target names, group SD predictions, and
+rowwise prediction mapping. The final focused run passed 36 expectations,
+including the native SkewNormal SD regression test, and exercised one live
+Julia bridge test against the paired development checkout using Julia 1.10.
+This is one seed and a point-recovery/output check, not interval calibration,
+general cross-engine parity, or a broad SkewNormal support claim. Full output
+and limitations are recorded in
+`docs/dev-log/after-task/2026-10-25-julia-skewnormal-sd-bridge.md`.
+
+## 2026-10-25: zero-truncated NB2 selected-slope SD Julia bridge
+
+The R bridge now admits one matching complete-positive-count zero-truncated NB2 `mu` random intercept or independent numeric slope with predictor-dependent SD and fixed `sigma`; the separate Hurdle route still requires `hu`. The selected-slope test matches its fixed intercept to the DGP and refuses offsets, wrong SD groups, and factor slopes. The source-bound live R/TMB and Julia bridge test passed 22 expectations with one live Julia fit. `pkgdown::check_pkgdown()` found no problems, with existing Pandoc `--mathml` deprecation warnings. The evidence-only join now has 77 receipts linked to 60 of 19,118 required candidate rows; this row remains `required`, `direct_sd_claim=none`, and unreviewed. A broader native quadrature filter exceeded its 60-second estimate and was interrupted; it is not recorded as passing. No coverage or broad parity claim is made. Full receipt: `docs/dev-log/after-task/2026-10-25-julia-truncated-nbinom2-sd-bridge.md`.
+
+
+## 2026-10-25: Gaussian sigma random-slope SD regression
+
+The native Gaussian builder now admits one independent numeric random slope on
+the residual `sigma` endpoint with a group-constant fixed-predictor SD formula,
+alongside the existing sigma random-intercept route. The focused filter covering
+the sigma intercept and slope tests passed with exit code 0. It checks point
+recovery, target and prediction mapping, constant-SD equivalence, and rejection
+of unsupported target/design combinations. The six-file source manifest is
+stable before and after the run. The predictor-dependent SD vignette rendered
+and `pkgdown::check_pkgdown()` passed with existing Pandoc deprecation warnings.
+The direct-SD receipt is unreviewed and does not promote its required candidate
+row. This is native Gaussian sigma evidence only; Julia parity and interval
+calibration remain open. Details: `docs/dev-log/after-task/2026-10-25-gaussian-sigma-slope-sd.md`.
+
+
+## 2026-10-25: Native NB2 sigma random-slope SD regression
+
+Native complete-data, non-inflated NB2 now admits one independent numeric
+random slope on `sigma` with a matching group-constant `sd()` predictor and
+fixed-effect `mu`. The baseline constant-SD sigma-slope model is admitted under
+the same narrow fixed-mean conditions for likelihood equivalence. The exact
+intercept-plus-slope test filter passed with exit code 0, including point
+recovery, group-SD prediction, constant-SD equivalence, and predictor-variation
+refusal. The six-file source manifest is stable. The predictor-dependent SD
+vignette rendered and `pkgdown::check_pkgdown()` found no problems; both emitted
+existing Pandoc deprecation warnings. The recovery receipt is unreviewed and
+adds no Julia parity or interval-calibration evidence. Details:
+`docs/dev-log/after-task/2026-10-25-nbinom2-sigma-slope-sd.md`.
+
+
+## 2026-10-25: Native Gamma sigma random-slope SD regression
+
+Gamma now admits one ordinary independent numeric random slope on `sigma`
+when its coefficient has a matching fixed-predictor SD formula. The focused
+test passed 22 assertions, covering the test-first rejection, coefficient
+recovery, group-SD prediction, fitted `sigma` output identity, save/reload, and
+refusal without the matching SD formula. The slice requires complete responses
+and fixed-effect `mu`; it does not establish Julia parity or interval coverage.
+The support map and limitations are recorded in the formula and SD design
+pages, roadmap, and NEWS. Details: `docs/dev-log/after-task/2026-10-25-gamma-sigma-slope-sd.md`.
+The focused test was rerun after the formula-vignette update and passed 22
+expectations; `pkgdown::check_pkgdown()` found no problems, with existing
+Pandoc `--mathml` deprecation warnings.
+
+
+## 2026-10-25: Gamma sigma-slope covariance output check
+
+The focused `gamma-sigma-sd-regression` test passed after adding an assertion
+that the fitted covariance matrix for the predictor-dependent sigma-slope SD
+coefficients is finite. This confirms the model returns a usable Wald
+covariance on this fixture; interval coverage remains uncalibrated. Command:
+`Rscript -e 'devtools::test(filter = "gamma-sigma-sd-regression", reporter = "summary", stop_on_failure = TRUE)'`.
+
+## 2026-10-25: Live Student SD Julia bridge verification
+
+The focused `julia-student-sd` filter passed 34 expectations after setting
+`DRM_JL_PATH` to the paired Julia candidate. Both previously skipped live
+bridge cases ran: one Student `mu` random intercept and one independent numeric
+slope. The checks cover coefficient recovery, canonical `sd` target labels,
+group-SD prediction, and slope save/reload. JuliaCall used Julia 1.10.0. The
+first attempt was blocked by a local Julia depot lock-file `ENOSPC`; a fresh R
+process using the existing home depot passed. This is focused point-recovery
+and output evidence, not interval calibration or broad parity.
+
+## 2026-10-25: Beta-binomial sigma random-slope SD bridge
+
+Native focused test passed 37 expectations, including recovery, grouped SD prediction, simulation/refit outputs, and constant-SD equivalence. The live Julia bridge filter passed 35 expectations and reports two live Julia fits; JuliaCall used Julia 1.10.0. Source hashes remained stable during both runs. The predictor-dependent SD vignette rendered from the candidate-loaded package. Evidence logs and hashes: `docs/dev-log/general-sd-regression/evidence/beta-binomial-sigma-slope-20261025/`. This is focused point-recovery evidence, not interval calibration or blanket parity. See `docs/dev-log/after-task/2026-10-25-beta-binomial-sigma-slope-cross-engine.md`.
+
+## 2026-10-25: Native Binomial probit phylogenetic SD recovery
+
+Added a deterministic 80-tip probit phylogenetic SD test. The focused test passed, including an absolute SD-slope recovery tolerance of 0.25, formula-aligned tip-SD predictions, and constant-SD likelihood equivalence. The original 24-tip fixture failed recovery, so it was replaced by the better-informed 80-tip design rather than loosening the tolerance. The candidate Student Julia SD bridge label test also passed with two live fits after explicitly setting `DRM_JL_JULIA_HOME` and `DRM_JL_PATH`. This is point-recovery and output evidence only; it does not establish interval coverage or Julia probit phylogenetic support. Details: `docs/dev-log/after-task/2026-10-25-native-binomial-probit-phylo-sd-check.md`.
+
+## 2026-10-26: Binomial probit and cloglog animal-intercept SD bridge
+
+The focused opt-in bridge test passed three live Julia bridge test blocks on JuliaCall 1.10.0, covering probit/cloglog animal slopes, animal intercepts, and relmat intercepts against native TMB. The new animal-intercept cases check convergence, SD-slope point recovery, formula-aligned group-SD predictions, and cross-engine likelihood agreement. The fit-free focused test also passed with live cases skipped as expected. This is bounded point evidence; interval calibration and broader structured/family parity remain open. Details: `docs/dev-log/after-task/2026-10-26-binomial-nonlogit-animal-intercept-bridge.md`.
+
+## 2026-10-26: Current-source Binomial probit/cloglog intercept bridge rerun
+
+The focused opt-in bridge test passed 27 expectations and reported one live
+bridge test block, covering ordinary mean random-intercept SD regression for
+probit and complementary log-log links. A stable 177-file source manifest and
+current test snapshot are retained with the run log. The evidence reconciler
+passed, but its linked/unlinked row counts are evidence bookkeeping only; no
+capability rows were promoted. This rerun does not establish structured
+non-logit bridge support or interval calibration. Details:
+`docs/dev-log/after-task/2026-10-26-julia-binomial-nonlogit-sd-bridge-rerun.md`.
+
+## 2026-10-26: Julia probit phylogenetic Bernoulli SD bridge rerun
+
+The focused `julia-binomial-phylo-sd` filter passed with exit code 0 and two
+live Julia bridge test blocks, including the probit phylogenetic Bernoulli
+random-intercept SD route. The test checks TMB/Julia convergence, coefficient
+and log-likelihood agreement, and formula-aligned tip SDs. Julia reported the
+supplied tree's raw branch-length scale; both engines use that same covariance
+in the test. Ten source/configuration files had identical before/after hashes.
+This is one seeded point-recovery and cross-engine check, not interval
+calibration or broad Binomial support. Details:
+`docs/dev-log/after-task/2026-10-26-julia-binomial-probit-phylo-bridge.md`.
+
+## 2026-10-26: Julia probit phylogenetic Bernoulli SD bridge recheck
+
+The focused live bridge filter was rerun against the same source hashes as the
+earlier green receipt. Both Julia bridge blocks executed: the logit phylogenetic
+case passed, while the probit `confint()` call failed because both profile
+endpoints returned `not_converged` from finite-difference LBFGS without fallback.
+The same failure occurred with one and four Julia threads. Treat the earlier
+green run as historical evidence that was not reproduced, not as current proof
+that probit phylogenetic profile intervals work. A separate direct-Julia probe
+with an in-memory finite-difference continuation passed its profile assertions,
+but that override has not been applied to source or verified through R.
+Transcript: `docs/dev-log/general-sd-regression/evidence/julia-binomial-probit-phylo-workflows-20261026/rerun-single-thread.log`.
+
+
+## 2026-10-26: Test-only retry resolves Julia probit phylogenetic profile smoke
+
+A test-only Julia overlay retries finite-difference LBFGS profile endpoints from the last finite candidate with bounded BackTracking (up to 3,000 iterations). The focused opt-in `julia-binomial-phylo-sd` R-to-Julia bridge filter then completed both live cases, including finite probit SD-slope profile and bootstrap endpoints. The assertions still require converged optimizer results. This isolates a candidate numerical repair; no production source changed, and no interval-coverage claim is made. The run also reported a numerically singular Hessian and withheld Wald standard errors, so this is a workflow smoke only. Logs and overlay: `docs/dev-log/general-sd-regression/evidence/julia-binomial-probit-phylo-workflows-20261026/bridge-backtracking-3000.log` and `profile-retry-overlay.jl` and `profile-retry-candidate.patch`. The current `DRModels.jl` `origin/main` source check also confirms the finite-difference retry gap (SHA `64ccb2d8d87b329e5a43b2358fd5cb4a36cd9716`); no fix is present upstream. Source evidence: `docs/dev-log/general-sd-regression/evidence/julia-binomial-probit-phylo-workflows-20261026/source-state.md`. The inference source remains under the active documentation-lane lease.
+
+## 2026-10-26: Direct Julia probit phylogenetic SD profile regression rerun
+
+On Julia 1.10.0, `test_binomial_phylo_sd_regression.jl` completed in 68.25 s
+with one Julia and BLAS thread. The joint ordinary-plus-phylogenetic test
+passed 27/27 and the phylogenetic intercept test passed 23/23. The probit
+phylogenetic SD-slope profile test failed 2/5 because the upper finite-
+difference LBFGS nuisance fit returned `:not_converged`; the lower endpoint
+was accepted. A non-positive-definite finite-difference Hessian warning caused
+Wald standard errors to be withheld. Four before/after source hashes matched.
+This confirms the production profile-workflow failure without the test-only
+overlay. It is not interval calibration. Transcript and hashes:
+`docs/dev-log/general-sd-regression/evidence/julia-binomial-probit-phylo-workflows-20261026/direct-phylo-sd-test-20261026-0715.log`.
+
+
+## 2026-10-26: isolated production patch probe for probit phylogenetic profile
+
+The prepared finite-difference LBFGS BackTracking continuation patch was applied only to an isolated copy of the current Julia candidate. Julia 1.10.0 exited 0: joint fit/oracle 27/27, phylogenetic intercept 23/23, and probit phylogenetic SD-slope profile 5/5. The finite-difference Hessian warning remains and Wald SEs are withheld. This supports profile workflow functionality only; it is not an uncertainty-calibration result. Raw log, hashes and scope are recorded in `docs/dev-log/general-sd-regression/evidence/julia-binomial-probit-phylo-workflows-20261026/source-state.md`. The authoritative source file was not changed because the active docs-audit lease still covers `src/inference.jl`.
+
+## 2026-10-27: Bernoulli coordinate-spatial SD slope
+
+The focused native R/TMB test `Rscript -e 'devtools::test(filter = "binomial-spatial-sd-regression", stop_on_failure = TRUE)'` passed 42/42 in 19.0 seconds. The test covers logit, probit, and cloglog spatial intercept and slope-only SD regression, recovery, SD prediction, and basic simulator output validity. `Rscript -e 'devtools::document()'` regenerated `man/drmTMB.Rd`.
+
+The direct Julia test `JULIA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 julia --project=. test/test_binomial_spatial_sd_regression.jl` passed 21/21 intercept checks and 22/22 slope checks on Julia 1.10.0. Its slope simulator check compares seeded draws against an independent spatial-field oracle with the observation-level random-slope loading. No interval coverage or bridge-parity claim follows. Native and Julia spatial covariance range/jitter conventions remain different.
+
+## 2026-10-27: Binomial phylogenetic slope-only SD Julia bridge
+
+The bridge marshalling test checks the serialized `phylo(0 + x | species)`
+term and matching `sd_phylo(species) ~ z` target. The fit-free focused filter
+passed 40 expectations with three live-engine blocks skipped. The opt-in live
+test now fits the slope-only SD regression through Julia and native TMB for
+logit, probit, and cloglog links. With an 80-tip, 40-observation-per-tip
+fixture, all 18 checks passed in 45.8 seconds on JuliaCall 1.10.0. Checks cover
+convergence, recovery, cross-engine coefficient and log-likelihood agreement,
+and formula-aligned tip-SD predictions. The run exposed a missing
+`allow_phylo_slope_only` flag in DRM.jl bridge label reconstruction; that
+parser now follows the existing Binomial phylogenetic-SD admission gate. A
+48-tip fixture did not recover the probit/cloglog SD slope adequately and was
+replaced by the higher-information design. An earlier broad filter was
+interrupted at 111.5 seconds during an unrelated probit profile test and is
+not a passing receipt. This is focused point-recovery evidence, not interval
+calibration or broad family/effect parity.
+
+## 2026-10-27: Binomial related-matrix slope-only SD Julia bridge
+
+The R-to-Julia bridge now admits a single `relmat(0 + x | id, K = K)` Binomial
+mean term with `sd(id, level = "relmat") ~ z`; DRM.jl bridge label parsing
+enables its existing related-matrix slope parser under the matching Binomial
+SD target. The focused live bridge test passed 31 assertions on JuliaCall
+1.10.0 for logit, probit, and cloglog, including recovery, cross-engine
+coefficients and log likelihoods, group SD prediction, and seeded Julia
+simulation reproducibility. An initial assertion comparing R and Julia random
+draws was invalid because their random-number generators differ; it was
+replaced with a same-engine reproducibility check. This is point evidence for
+one structured Bernoulli route, not interval calibration or broad parity.
+Details: `docs/dev-log/after-task/2026-10-27-binomial-relmat-slope-sd-bridge.md`.
+
+## 2026-10-27: Binomial spatial slope SD Julia bridge
+
+The R-to-Julia bridge admits one coordinate-spatial Binomial field with an
+intercept or slope-only loading and a matching `sd(group, level = "spatial")`
+formula. Its covariance payload reuses the native coordinate helper and Julia
+related-matrix route; public coefficient and prediction labels remain spatial.
+The focused live test completed for logit, probit, and cloglog on JuliaCall
+1.10.0, checking convergence, SD-slope recovery, coefficient/log-likelihood
+agreement, group SD predictions, and seeded simulation reproducibility and
+validity. This is scoped point/parity evidence, not interval calibration or
+broad structured-effect parity. Details:
+`docs/dev-log/after-task/2026-10-27-binomial-spatial-sd-julia-bridge.md`.
+
+## 2026-10-27: Binomial phylogenetic-interaction SD Julia bridge
+
+- Fit-free command: `Rscript -e 'devtools::test(filter="julia-binomial-phylo-interaction-sd-bridge", reporter="summary", stop_on_failure=TRUE)'` passed; the live test was skipped because this invocation did not set `DRM_JL_PATH`.
+- Live command: `PATH="$HOME/.juliaup/bin:$PATH" DRM_JL_PATH="$PWD/../general-sd-julia" OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter="julia-binomial-phylo-interaction-sd-bridge", reporter="summary", stop_on_failure=TRUE)'` exited 0 with one live test block covering logit, probit, and cloglog. It checks same-data convergence, SD coefficient and log-likelihood agreement, pair-identity-aligned SD predictions, and seeded simulation reproducibility.
+- The live run emitted one TMB `NA/NaN function evaluation` warning; fits converged and all assertions passed. This is not interval calibration or broad parity. The native tree interaction route is converted to the observed pair covariance and a related-matrix SD route in the Julia bridge.
+- `git diff --check` on implementation, test, documentation, and checkpoint files passed. `R CMD check` was not run.
+- `pkgdown::check_pkgdown()` passed. Two `pkgdown::build_site()` attempts were stopped after exceeding estimates: the first after 2.5 minutes, the retry after 5 minutes while reading `man/make_mesh.Rd`. The site build is incomplete.
+- Status searches: `rg -n "phylo_interaction|phylogenetic_interaction|Julia.*Binomial|Binomial.*structured" README.md docs/dev-log/internal-roadmap.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml vignettes/bipartite-phylogenetic-interactions.Rmd`. README and current formula documentation are unchanged; NEWS and known limitations now state the narrow bridge support.
+- Issue search: `gh issue list --state open --search 'phylo_interaction Binomial SD Julia' --limit 10` returned no matching open issue; no issue was changed.
+- Details: `docs/dev-log/after-task/2026-10-27-binomial-phylo-interaction-sd-julia-bridge.md`.
+
+## 2026-10-27: Binomial phylogenetic-interaction slope SD regression
+
+## 2026-10-27: Binomial phylogenetic-interaction slope SD regression
+
+The native and development Julia routes now fit one q1 Binomial slope-only
+`phylo_interaction(0 + x | ...)` term with a predictor-dependent SD selected
+by the matching slope coefficient. Pair IDs must map one-to-one to observed
+partner pairs, and the SD predictor must be constant within pair. The bridge
+represents the observed pair covariance as a related-matrix model while
+retaining the public phylogenetic-interaction target.
+
+The focused live command
+`PATH="/Users/z3437171/.juliaup/bin:$PATH" DRMODELS_JL_PATH="/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = "binomial-phylo-interaction-slope-sd", reporter = "summary", stop_on_failure = TRUE)'`
+passed. The native fixture passed nine checks, and one live Julia bridge test
+ran for the slope route. Same-data bridge checks cover logit, probit, and
+cloglog. Recovery, target-named predictions, and seeded marginal simulation
+were exercised. The direct Julia fixture previously passed 13/13 checks.
+`Rscript -e 'pkgdown::check_pkgdown()'` reported no problems; it emitted only
+existing MathML-option deprecation warnings. Scoped `git diff --check` passed.
+
+The status audit used
+`rg -n "phylo_interaction|phylogenetic_interaction|Binomial.*interaction|binary/Bernoulli.*interaction" README.md docs/dev-log/internal-roadmap.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml`.
+Current scope pages now describe the route as slope-only. Older NEWS at line
+3821 remains historical. `gh issue list --state open --search 'phylo_interaction Binomial SD slope' --limit 10` returned no matching issue. Full tests, `R CMD check`, interval calibration, and rendered site build were not run. Details: `docs/dev-log/after-task/2026-10-27-binomial-phylo-interaction-slope-sd.md`.
+
+## 2026-10-27: Binomial animal-slope SD bridge and gate consistency
+
+## 2026-10-27: Binomial animal-slope SD bridge and gate consistency
+
+The Julia Binomial structured-SD builder now resolves an omitted coefficient
+selector when its admitted route has one animal slope. The native admission
+gate preserves animal-intercept plus IID support and the existing animal-slope
+plus IID route when the ordinary IID effect has its own matching SD formula.
+The same animal-slope formula without the IID SD formula remains refused.
+
+The combined command
+`PATH="/Users/z3437171/.juliaup/bin:$PATH" DRMODELS_JL_PATH="/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = "binomial-animal-slope-sd-regression|binomial-animal-iid-sd-regression|julia-binomial-animal-sd-regression", reporter = "summary", stop_on_failure = TRUE)'`
+passed. Both native regression files passed, and two live Julia bridge tests
+ran on Julia 1.10.0. The animal-slope bridge test checks native/Julia recovery,
+public target naming, group-SD prediction, and seeded marginal simulation.
+Pkgdown check reported no problems; existing MathML deprecation warnings were
+emitted. Scoped whitespace checks passed in both worktrees.
+
+Status inventory search:
+`rg -n "phylo_interaction|phylogenetic_interaction|Binomial.*animal|animal.*Binomial|Bernoulli.*animal|animal.*Bernoulli" README.md docs/dev-log/internal-roadmap.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml`.
+Current pages distinguish the native mixed animal/IID route from the Julia
+animal-slope-only bridge route. The bounded GitHub search returned no specific
+matching issue; two unrelated issues were not changed. Full package checks,
+interval calibration, and Julia animal-slope parity beyond supplied `A` remain
+open. Details: `docs/dev-log/after-task/2026-10-27-binomial-animal-slope-sd-bridge.md`.
+
+## 2026-10-27: Julia Binomial phylogenetic slope SD bridge closeout
+
+- Live R-to-Julia test, with paired local DRM.jl and Julia 1.10.0:
+  `PATH="/Users/z3437171/.juliaup/bin:$PATH" DRMODELS_JL_PATH="$PWD/../general-sd-julia" DRM_JL_PATH="$PWD/../general-sd-julia" DRMTMB_JULIA_TESTS=true NOT_CRAN=true JULIA_HOME="/Users/z3437171/.juliaup/bin" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = "julia-binomial-phylo-slope-sd", reporter = "summary", stop_on_failure = TRUE)'`
+  passed with exit 0: 30 expectations and one live Julia bridge test. It checked logit, probit, and cloglog fits against native TMB, tip-level SD predictions, plus logit save/reload and marginal simulation.
+- `python3 tools/general-sd-regression/universe.py` regenerated 19,118 rows. The exact Julia probit/cloglog phylogenetic numeric-slope tree rows are admitted; other non-logit Julia Binomial rows remain blocked.
+- `python3 -m unittest discover -s tools/general-sd-regression/tests`: 33 passed in 39.622 seconds.
+- `python3 tools/general-sd-regression/reconcile_evidence.py`: PASS, 19,118 candidate rows, 75 linked, 19,043 unlinked, 95 evidence records.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: exit 0, no problems found; existing Pandoc `--mathml` deprecation warnings.
+- Combined pkgdown site build did not complete after more than seven minutes idle and was stopped. No full site-render claim.
+- Scoped `git diff --check`: PASS. No full R suite, `R CMD check`, or interval calibration run.
+- Evidence receipt: `docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027/receipt.json`. No capability row promoted.
+
+
+## 2026-10-27: Native Binomial mesh slope SD regression
+
+- Test-first check failed before the admission change at the Binomial mesh intercept-only guard, as intended.
+- `OPENBLAS_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "binomial-mesh-sd-regression|mesh-contract", reporter = "summary")'` passed: 32 Binomial mesh expectations and 48 Gaussian mesh contract expectations, with no warnings or skips.
+- `python3 -m unittest discover -s tools/general-sd-regression/tests`: 36 passed in 34.662 seconds. The universe generator now emits 19,342 rows, including native Binomial mesh-slope rows and explicit Julia mesh blockers.
+- `python3 tools/general-sd-regression/reconcile_evidence.py`: PASS, 19,342 candidates, 88 linked, 19,254 unlinked, 108 evidence records. Earlier intercept evidence now points to an immutable copy of its original test bytes. New slope evidence: `docs/dev-log/general-sd-regression/evidence/native-binomial-logit-mesh-spatial-slope-sd-20261027/`.
+- `OPENBLAS_NUM_THREADS=1 Rscript -e 'devtools::document()'` completed. `pkgdown::check_pkgdown()` found no problems; Pandoc reported existing `--mathml` deprecation warnings. Rendered `formula-grammar.Rmd`, `spatial-models.Rmd`, and `structural-dependence.Rmd` to temporary HTML successfully; Pandoc reported existing `--mathjax` deprecation warnings.
+- Scoped `git diff --check`: PASS. The after-task structure check passed; the acceptance-ledger warning says gate state is UNKNOWN because no runnable node or gate-check command is available. `slop_check.py` found 0 issues for the report.
+- No full package suite, `R CMD check`, live Julia bridge, interval calibration, or coverage campaign was run. No issue matched this bounded implementation slice; broader Phase 18 issue #59 was left unchanged. Full report: `docs/dev-log/after-task/2026-10-27-native-binomial-mesh-slope-sd.md`.
+
+## 2026-10-27: Native Binomial mesh-slope SD recovery across links
+
+The focused mesh-slope fixture now tests logit, probit, and cloglog. The current source-pinned run passed 40 expectations with zero failures or warnings. Probit and cloglog cases check convergence, point recovery of the log-SD slope, site SD predictions against a model-matrix oracle, and binary marginal simulation. `devtools::document()` regenerated `man/spatial.Rd`; scoped `git diff --check` passed. Evidence reconciliation passed with 19,342 candidate rows, 90 linked rows, 19,252 unlinked rows, and 110 evidence records. Interval coverage and Julia mesh parity remain unverified. Full report: `docs/dev-log/after-task/2026-10-27-native-binomial-mesh-slope-links.md`.
+
+
+## 2026-10-28: Native Bernoulli relmat q2 marginal simulation and bootstrap refit
+
+- The focused recovery/workflow block passed 31/31 assertions in 49.6 seconds. The complete `test-binomial-relmat-q2-sd.R` and neighboring `test-binomial-sd-target-workflows.R` files passed after `devtools::load_all()`.
+- `simulate()` now draws fresh native Bernoulli relmat q2 intercept and numeric-slope fields with their separate fitted group SDs. Bootstrap refits omit the fitted object's all-one internal weight vector; the q2 smoke passed two refits with the requested SD target retained. Non-unit weights still pass through.
+- `tools::checkRd("man/simulate.drmTMB.Rd")` passed; `pkgdown::check_pkgdown()` found no problems, with existing Pandoc `--mathml` deprecation warnings. Scoped `git diff --check` passed. The exact 15-member source capsule passed manifest-to-archive SHA-256 verification.
+- Profile interval execution remains unverified. The 64-group diagnostic returned unavailable endpoints; profiling the frozen recovery fixture exceeded the three-minute stop rule and was stopped. No coverage or calibration claim. Julia q2 parity remains separate and open.
+- Detailed evidence: `docs/dev-log/general-sd-regression/bernoulli-relmat-q2-report.md`; after-task report: `docs/dev-log/after-task/2026-10-28-native-bernoulli-relmat-q2-marginal-bootstrap.md`.
+# 2026-10-29: Julia Binomial animal-intercept covariance A under probit and cloglog
+
+- The focused live R-to-Julia test passed for supplied covariance `A` under probit and cloglog. Both links fit through native TMB and Julia, with convergence, SD-slope recovery, likelihood agreement, and fitted SD agreement between engines.
+- Evidence reconciliation passed: 20,350 candidate rows, 188 linked rows, 20,162 unlinked rows, and 208 receipt records. Four exact q1 animal-intercept rows were linked; none were promoted.
+- The nine source hashes and scoped whitespace check passed. After-task structure, closeout, and slop checks passed; closeout still reports 13 acceptance ledgers as not runnable, so their state is UNKNOWN. No matching open issue was found. No interval calibration or coverage claim.
+- Detailed report: `docs/dev-log/after-task/2026-10-29-julia-binomial-animal-A-nonlogit-bridge.md`.
+# 2026-10-29: Julia Binomial animal-slope covariance A under probit and cloglog
+
+- The focused R-to-Julia test passed for an animal slope using supplied covariance `A` under probit and cloglog. Both engines converged and agreed on the log-SD slope, likelihood, and fitted group SDs within the recorded tolerances.
+- Evidence reconciliation passed: 20,350 candidate rows, 192 linked rows, 20,158 unlinked rows, and 212 receipt records. Four exact native and Julia rows were linked; none were promoted.
+- Source hashes, report structure, closeout, and slop checks passed. The closeout tool reports 13 acceptance ledgers as not runnable, so their state remains UNKNOWN. No interval calibration or coverage claim.
+- Detailed report: `docs/dev-log/after-task/2026-10-29-julia-binomial-animal-slope-A-nonlogit-bridge.md`.
+# 2026-10-29: Julia Binomial relmat plus IID predictor-dependent SD
+
+- Added a Julia sparse-Laplace route and R bridge admission for one relmat intercept plus one ordinary IID intercept, each with its own SD regression. The supplied relatedness covariance is used on its raw scale.
+- Totoro Julia 1.10.12 direct synthetic test passed 9/9 checks. The live R bridge test passed on Julia 1.10.0 for logit, probit, and cloglog, comparing likelihoods, target-specific coefficients, group SD predictions, and marginal binary simulation against native TMB.
+- The formula-grammar vignette rendered, `pkgdown::check_pkgdown()` reported no problems, and scoped `git diff --check` passed. Only existing Pandoc math deprecation warnings appeared.
+- The after-task structure check passed. Thirteen acceptance ledgers were not runnable because Node or `gate-check` was unavailable; their state remains UNKNOWN.
+- This is a candidate-only point/output slice. Coverage calibration, broader structured-provider parity, other families, slopes, and release support remain open. Full report: `docs/dev-log/after-task/2026-10-29-julia-binomial-relmat-iid-sd.md`.
 
 ## 2026-09-09: Temporal OU Fir sealed-shard smoke and node-local build
 
@@ -95850,3 +98080,7 @@ it is not a public interface, recovery, interval, calibration, or campaign claim
 | 2026-10-19 | man/*.Rd vs roxygen sync (#1571) | `document()` rewrote 39 Rd files before, 0 after; `test-man-roxygen-sync.R` fails pre-fix, passes post-fix | PASS | Claude |
 
 | 2026-10-22 | Direct Gaussian aggregation helper tests (#1598) | `devtools::test(filter = "gaussian-aggregation")`: PASS 136, FAIL 0, WARN 0, SKIP 0; PR test source SHA-256 unchanged | Focused tests PASS; full package and Julia engine checks not run | Codex |
+
+## 2026-11-05: first fixed-effect prior slice
+
+Normal priors and ridge penalties for ordinary Gaussian mu/sigma and binomial-logit fixed effects are implemented in an isolated lane. Independent numerical and affected-regression checks pass; broad R residuals reproduce on baseline. The original Julia run stopped at 90 minutes; its unchanged-source follow-up passed all eight default-suite shards and 554 selected files. Detailed source pins, failures and limits are in [the per-file evidence log](check-log.d/2026-11-05-fixed-effect-priors.md). No merge, release or general parity/calibration claim is authorized.

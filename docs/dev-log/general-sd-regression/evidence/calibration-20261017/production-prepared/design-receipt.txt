@@ -1,0 +1,13 @@
+design_id=native-bernoulli-sd-ordinary-q1-v1
+design_mode=production
+master_seed=2026101703
+pilot_master_seed=2026101702
+production_master_seed=2026101703
+qualification_master_seed=2026101704
+planned_attempts=3000
+workers=16
+per_case_timeout_seconds=120
+campaign_timeout_seconds=3600
+stage_two_manifest_sha256=8fd627ccb8a7f8689c56e629a5ff12e53405be1a508167216632bcf445652e96
+stage_two_status=frozen_not_authorized
+status=prepared_not_launched

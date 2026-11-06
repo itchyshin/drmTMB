@@ -1,0 +1,20 @@
+julia-binomial-iid-oracle-b31jb: i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+.........b31jb iid intercept logit: ll=-662.782545 oracle=-662.782545 agreement=1.14e-13 min_gap=5.4878 (x5488); gaps: selector_swap=-80.946, sd_slope_sign=-23.166, reversed_sd_vector=-19.227, sd_intercept_plus_log2=-5.488, wrong_predictor_scrambled=-5.503
+.................b31jb iid intercept probit: ll=-616.341192 oracle=-616.341192 agreement=1.14e-13 min_gap=7.1296 (x7130); gaps: selector_swap=-63.190, sd_slope_sign=-28.188, reversed_sd_vector=-27.621, sd_intercept_plus_log2=-9.949, wrong_predictor_scrambled=-7.130
+.................b31jb iid intercept cloglog: ll=-583.768499 oracle=-583.768499 agreement=4.55e-13 min_gap=6.5833 (x6583); gaps: selector_swap=-87.013, sd_slope_sign=-32.170, reversed_sd_vector=-32.686, sd_intercept_plus_log2=-8.342, wrong_predictor_scrambled=-6.583
+.................b31jb iid slope logit: ll=-657.254398 oracle=-657.254398 agreement=2.27e-13 min_gap=0.9103 (x910); gaps: selector_swap=-21.877, sd_slope_sign=-15.855, reversed_sd_vector=-12.566, sd_intercept_plus_log2=-5.971, wrong_predictor_scrambled=-0.910
+.................b31jb iid slope probit: ll=-628.914602 oracle=-628.914602 agreement=0.00e+00 min_gap=0.4056 (x406); gaps: selector_swap=-32.491, sd_slope_sign=-13.400, reversed_sd_vector=-12.253, sd_intercept_plus_log2=-9.714, wrong_predictor_scrambled=-0.406
+.................b31jb iid slope cloglog: ll=-626.924531 oracle=-626.924531 agreement=2.84e-12 min_gap=3.2272 (x3227); gaps: selector_swap=-33.520, sd_slope_sign=-22.586, reversed_sd_vector=-20.678, sd_intercept_plus_log2=-8.559, wrong_predictor_scrambled=-3.227
+........
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 2 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=102 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T04:04:18Z end=2026-11-03T04:04:56Z rc=0

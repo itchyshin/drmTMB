@@ -1,0 +1,3 @@
+| Date | Check | Command | Result | Host |
+|---|---|---|---|---|
+| 2026-10-20 | Live Julia/TMB Bernoulli phylogenetic SD same-data fixture | `DRMODELS_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRMTMB_JULIA_TESTS=true JULIA_PROJECT='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' JULIA_DEPOT_PATH='/private/tmp/codex-drmtmb-julia-depot:/Users/z3437171/.julia' JULIA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "julia-binomial-phylo-sd", reporter = "summary")'` | Exit 0; bridge summary confirms 1 live Julia test, with native and Julia fits converged. One synthetic fixture only; no recovery grid or uncertainty calibration. | Codex |

@@ -1,0 +1,41 @@
+{
+  "evidence_id": "native-sd-crossed-and-site-quickwins-20261101d",
+  "evidence_grade": "focused_test",
+  "slice": "sd-crossed-and-site-quickwins",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"iid_additive_terms\",\"O1\",\"iid\",\"multiple independent intercept/slope fields\",\"group_factors\",\"crossed\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "identity",
+      "ledger_status": "required",
+      "mechanism_id": "iid_additive_terms",
+      "provider_input": "group_factors",
+      "target_member": "mu:I",
+      "endpoint": "mu"
+    }
+  ],
+  "test_command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-sd-crossed-and-site-quickwins.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "test_path": "tests/testthat/test-sd-crossed-and-site-quickwins.R",
+  "test_sha256": "be0ff68371710d0475c68a6f2a4d5410c95bc704d157e1ccc7d694695bd6d6d6",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/sd-crossed-and-site-quickwins-20261101d/source-manifest.json",
+  "source_manifest_sha256": "164a7a37c609a2b735bff78ef00cd22849e2aebb80c439a2d8aea88324f96379",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/sd-crossed-and-site-quickwins-20261101d/test-console.log",
+  "console_log_sha256": "83c7b181596bed028b632fd940a10e9911bc498321c19327b9b4381efb724f2f",
+  "result": {
+    "exit_code": 0,
+    "summary_dots_passed": 36,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": "not run; Julia bridge reported 0 live tests, native TMB engine only"
+  },
+  "result_summary": "Gaussian crossed ordinary intercepts (1|g)+(1|h) with sd(g) ~ w and sd(h) ~ v match the exact dense MVN oracle (1e-6 relative); independent dense optimiser (1e-5); constant-SD equivalence; term/sd() order invariance; predict by level name; emulated-bug sensitivity > 1e-2; SD-slope sign recovery within 0.8 (single seed, not calibration).",
+  "not_covered": [
+    "iid_additive_terms nested row (not tested)",
+    "sigma iid_additive_terms rows (not tested)",
+    "NB2 site quickwins deliberately not retested here (per file header)",
+    "no se=TRUE inference, coverage or calibration; no Julia"
+  ],
+  "limits": "dirty shared candidate tree; no calibration; no Julia parity; unreviewed; tolerances as written in the test file header, not loosened; receipt links rows and does not promote direct_sd_claim",
+  "review_status": "unreviewed"
+}

@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "a88fe6180338d4902aafd67d3005cc72fb06363862cee3d466bd38b89874789e",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Separate post-draft assessment under writing-naturalness.md and the drmTMB prose-style-review checklist; implementation and checks compared with the current worktree and command outputs.",
+  "genre": "Software after-task report",
+  "coverage": "Whole after-task report, all 12 sections.",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report names the exact formula, family boundary, tests, and remaining evidence. The required report structure is regular, but the details are specific to this slice.",
+  "confidence": "medium",
+  "confidence_reason": "The report is concise and its implementation scope and check results were compared with current files and test output. The score is an editorial judgment without calibrated human controls.",
+  "examples": [
+    {
+      "location": "Section 10",
+      "cue": "The slope quadrature comparison is one seeded numerical check, not broad likelihood validation.",
+      "impact": "Keeps the independent oracle claim bounded to its single tested slope design.",
+      "repair": "No change needed.",
+      "line": 11,
+      "quote": "The route requires complete responses and fixed `sigma`. The slope quadrature comparison is one seeded numerical check, not broad likelihood validation. Calibrated intervals, other random-effect structures, and Julia support remain open."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report separates point-fit workflow checks from independent likelihood validation and interval calibration.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The route, test count, documentation check, and remaining scope were checked against the worktree and command outputs.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external references.",
+  "date": "2026-10-20",
+  "calibration_status": "Prior project prose examples were seen; no human-labelled calibration control was used for this score.",
+  "interpretation": "perceived_style_not_authorship"
+}

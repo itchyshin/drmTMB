@@ -1,0 +1,74 @@
+{
+  "evidence_id": "julia-b32-count-gamma-spatial-intercept-bridge-20261103a",
+  "evidence_grade": "focused_test",
+  "command": "NOT_CRAN=true JULIA_HOME=$HOME/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin DRM_JL_PATH=<general-sd-julia worktree, HEAD ab8b67127 plus uncommitted edits> OPENBLAS_NUM_THREADS=1 Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-julia-b32-count-gamma-spatial-intercept-bridge.R', reporter='summary'))\"",
+  "execution_host": "Mac Studio, live Julia 1.10.0, one R process at a time, worktree at HEAD",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "81553915db8b422982b277a0d50c1521f3596ab4",
+  "tree_state": "HEAD 81553915d; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; DRM_JL_PATH worktree has uncommitted edits (Julia patch); unreviewed",
+  "run_started_utc": "2026-11-03T01:07:21Z",
+  "run_ended_utc": "2026-11-03T01:08:11Z",
+  "exit_code": 0,
+  "expectations_passed": 92,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 10,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b32-count-gamma-spatial-intercept-bridge-20261103a/test-console.log",
+  "console_log_sha256": "da7a59c57c1fd1d8114c789f058cab14eefcfa3de33c59fd7aae20044c4f4c3f",
+  "test_path": "tests/testthat/test-julia-b32-count-gamma-spatial-intercept-bridge.R",
+  "test_sha256": "9f4de6bfc7f4b57c933db14d09b9ba40835645908cb561fca310569ded351f41",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-b32-count-gamma-spatial-intercept-bridge-20261103a/source-manifest.json",
+  "source_manifest_sha256": "a0b96c09d62c6d272312532edaf9e60f39f3aacefd0c559988d605d0a4a6b172",
+  "live_julia": "run live on the Mac; the live blocks ran (skips 0)",
+  "strengthens_evidence_ids": [],
+  "strengthens_note": "The test file header names no parent evidence id, so none is claimed; this is a new first receipt for the linked rows.",
+  "scope": "Live native-TMB versus Julia parity on one fixture per route for Poisson, NB2 and Gamma (log link) intercept SD regression: coordinate spatial(1|id,coords)+sd(id,level='spatial')~z (native fixed kernel sent as raw relmat K; shuffled rows) and relmat(1|id,K=K)+sd(id,level='relmat')~z (non-unit K). Coefficients (mu, sd block, sigma for NB2/Gamma) within 1e-3 (observed max 7.4e-8) and logLik within 1e-2 (observed max 6.3e-6) of native TMB (se=FALSE). Also non-live gate, payload, refusal and first-appearance-order pins and a fitted() equals exp(X beta) pin.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"Julia\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "standard-error or Hessian parity",
+    "recovery or estimator-accuracy claims (parity with native TMB only)",
+    "parity of fitted() or residuals(): the Julia slot is the population-level X beta, not the conditional mean",
+    "pedigree, Ainv_precision or Q_precision provider inputs",
+    "Julia slope, correlated-block or phylogenetic routes",
+    "any family, link, provider or endpoint not listed in candidate_rows",
+    "an independent oracle for the log-likelihood (native TMB is the comparator; the Julia-side oracle test lives in the DRModels.jl repository)"
+  ],
+  "tolerances": "coefficients 1e-3 absolute, logLik 1e-2 absolute, as fixed in the test file header; none loosened",
+  "review_status": "unreviewed",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-b32-count-gamma-spatial-intercept-bridge.R",
+    "test_sha256": "4411519a21106908f7a7973ae81c648810ce4ef161d306ac1623835cd2715bef",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T03:50:12Z",
+    "ended_utc": "2026-11-03T03:51:05Z",
+    "expectations_passed": 98,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b32-count-gamma-spatial-intercept-bridge-20261103a/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "9dd35d347cd0de3f8f13702b7a015a1a2524ccb151a40f07b7ee1f9b4a1bc61b",
+    "reason": "test file edited (refusal-pin or companion update) and R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "accepted_status": "EXECUTIONS_COMPLETED_SOURCE_UNCHANGED",
+  "accepted_receipt_sha256": "d32fc4e068a36adac30392590d1aa7038739147ce81d162681b7d4b3d865f8c6",
+  "accepted_bridge_sha256": "4d5c188f10fc73f75ddf0a602fa5d97bb1880f5f65b3469752e9d469f6159ab7",
+  "accepted_native_dll_sha256": "29dcf6d30daed35200951533fabbaad6bed5e715c383b9fe15f6d5ce6a5567de",
+  "source_and_binary_unchanged": true,
+  "predecessor_status": "ABORTED_ON_NATIVE_DLL_REBUILD",
+  "predecessor_functional_jobs": "all exit0; guard rejected binary identity change, not a functional failure",
+  "predecessor_changed_fields": {
+    "r/src/drmTMB.so": {
+      "before": "99f6531f527c6de09b2fe001560eb840a91ca63ec73d665f120d56394cf3167c",
+      "after": "29dcf6d30daed35200951533fabbaad6bed5e715c383b9fe15f6d5ce6a5567de"
+    }
+  },
+  "julia_documentation_ref": "e8a666769fc436e73c7121a4c49b1d9c92866776",
+  "julia_core_relation": "Existing probe coref4fa3aed4 unchanged; final documentation ref changes docs/data only. Snapshot hashes in accepted receipt qualify executed code.",
+  "canonical_lss_receipt": "PASS: canonical public-001.json refreshed against Julia c037268c76d29234a2174354ae4319b4d98e7c29; current-source checker PASS per parent verification",
+  "package_check_snapshot": {
+    "status": "RUNNING at parent handoff; not freshly queried by receipt writer",
+    "target": "Totoro ~/codex-runs/sd-article-ml-20261104-check2",
+    "pid": 174675,
+    "archive_sha256": "274e0fba02a3d5d4a8b40c2f508bd70ddc595606ddb6a427e445e9c446b1625e",
+    "predecessor": "First attempt failed missing Pandoc before tests; task-local Pandoc3.13 archive hash verified, see pandoc-dependency.json"
+  },
+  "julia_docs": {
+    "status": "Two complete builds passed; math/layout inspected in browser per parent",
+    "raw_data_url_ref": "e8a666769fc436e73c7121a4c49b1d9c92866776",
+    "http_status": "pending push/readback"
+  },
+  "canonical_lss_refresh": {
+    "julia_ref": "c037268c76d29234a2174354ae4319b4d98e7c29",
+    "artifact": "lss-c037-current.json",
+    "elapsed_seconds": 61.941,
+    "runner_status": "PASS",
+    "source_unchanged": true,
+    "current_checker": "PASS per parent finalization",
+    "historical_receipt": "lss-tip-identity-before-refresh.json",
+    "scope": "One shuffled-row labeled-polytomy Gaussian LSS workflow; no broad parity/calibration claim"
+  },
+  "completion_panel": {
+    "mechanical": "no blockers in reviewed artifact/source-binding scope",
+    "reader": "no blocking reader confusion",
+    "science": "no blocking source/math finding",
+    "limits": "review only; no full-package, CI, merge, main or deployed-URL completion grant"
+  }
+}

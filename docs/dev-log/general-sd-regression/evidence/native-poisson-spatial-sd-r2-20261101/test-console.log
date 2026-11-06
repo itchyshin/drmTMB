@@ -1,0 +1,7 @@
+poisson-spatial-sd-regression: ..........................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+
+[observed by receipt writer] exit_status=0 expectations=42 failures=0 skipped=0 errors=0 warnings=0 test_blocks=2 start=2026-11-01T18:06:40Z end=2026-11-01T18:06:51Z
+[expectation count cross-checked by a second silent run via as.data.frame(test_file()) -> sum(nb)=42; that run is not saved]

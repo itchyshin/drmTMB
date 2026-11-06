@@ -1,0 +1,38 @@
+{
+  "receipt_scope": "Native test run for test-nbinom2-relmat-spatial-intercept-sd-regression.R",
+  "drmTMB": {
+    "candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+    "branch": "codex/general-sd-regression",
+    "worktree_state": "dirty shared candidate; hashes below identify test-time files"
+  },
+  "files": [
+    {
+      "file": "tests/testthat/test-nbinom2-relmat-spatial-intercept-sd-regression.R",
+      "sha256": "c960027692e8692ef86360c04d8ac9daeb8450caca7a0aeaf0e96c41b49de60f"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "949036ae0f57a78b1c9e57175539550b844222b504db73891c4efe2ebc3cb776"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "646bb79de06de281a9e522182465c1eb96f9b08489386abb1ed10ceb87b41014"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "8d42bc8c6e3a6140293f39e1abd85d6c777ee1856a937807e0e66657310f3cac"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-20261101/test-console.log",
+      "sha256": "6f6d367f7c060910ca49fabe8d79fcbfbe9bb00429cf3694803e0277713b9e7f"
+    }
+  ]
+}

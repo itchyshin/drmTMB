@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-lognormal-sigma-iid-slope-20261025-m26",
+  "rerecord_of_evidence_id": "native-lognormal-sigma-iid-slope-20261025",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/lognormal-sigma-slope-20261025/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"lognormal-sigma-sd-regression\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-lognormal-sigma-sd-regression.R",
+      "test_sha256": "4ecbde2994d5e9c6e53997797408249dcc0a30b75280059aebf9c46dda8b62a8",
+      "started_utc": "2026-11-02T13:18:07Z",
+      "ended_utc": "2026-11-02T13:18:51Z",
+      "exit_code": 0,
+      "expectations_passed": 49,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/lognormal-sigma-slope-20261025-m26-b7054c/test-console-test-lognormal-sigma-sd-regression.log",
+      "console_log_sha256": "6c55f4f96f99b069d3019d11153650c5a8a91c952cb1c49db62b6707fe13ca67"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/lognormal-sigma-slope-20261025-m26-b7054c/source-manifest.json",
+  "source_manifest_sha256": "c7125eb43073a095e696549adbb9812a195f85ffbe53c8b28b89b8817e5fbe7f",
+  "review_status": "unreviewed"
+}

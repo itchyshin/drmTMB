@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "a5de32e5a5e44795d15eb6c0479ec7a2321dc4d110689ddba4fc0201d0b67548",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Read the complete report against the test outputs, source changes, and retained Totoro timing report; apply a short passage-level editorial review.",
+  "genre": "technical after-task report",
+  "coverage": "Entire report, 12 sections, 2026-10-19.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report names specific files, test outcomes, and limits; most prose is direct, though the section template makes its rhythm somewhat uniform.",
+  "confidence": "medium",
+  "confidence_reason": "The draft is short and source-specific, but this is a self-review and no human or independent style rating was available.",
+  "examples": [
+    {
+      "location": "Section 2, paragraph 1",
+      "cue": "The supervisor rejects subsets, pins the timing seed, profile level, and worker limits",
+      "impact": "Specific implementation details let the next maintainer understand the guardrails without reconstructing the code.",
+      "repair": "no change needed",
+      "line": 9,
+      "quote": "`prepare-0975.R` now accepts only the exact clean 45-row timing manifest in timing mode. The Python supervisor rejects subsets, pins the timing seed, profile level, and worker limits, and writes `calibration_claim=false` in its receipt. The worker verifies the full manifest and planned index set. The summary script retains every planned attempt and reports runtime and fit-health counts only. The model contract remains `y ~ x + (1 | id)` with `sd(id) ~ w`; `w` predicts the log standard deviation of the latent intercept. This adds no estimator or inferential claim. Timing results are not recovery, bias, false-positive-rate, or interval-coverage evidence."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "not_applicable",
+  "science_gate_reason": "The report documents test tooling and timing boundaries; it makes no scientific result claim.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "File names and outcomes were checked against the changed source, executed test output, and retained timing report.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external citations.",
+  "date": "2026-10-19",
+  "calibration_status": "No external style controls were consulted; score is a self-review, not a calibrated detector.",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,19 @@
+{
+  "claim": "Focused Julia Tweedie related-matrix mean-intercept predictor-dependent SD route, plus rejection of unused structured-covariance keywords on ordinary Tweedie models.",
+  "command": "JULIA_DEPOT_PATH=/tmp/drmTMB-julia-depot:/Users/z3437171/.julia JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 julia --project test/test_tweedie_relmat_sd_regression.jl",
+  "console_log": "test-console.log",
+  "evidence_id": "julia-tweedie-relmat-sd-20261023",
+  "julia_version": "julia version 1.10.0",
+  "result": "36/36 assertions passed: 7 mode-polish, 25 related-matrix SD route, and 4 unused-keyword refusal assertions.",
+  "review_status": "unreviewed",
+  "row_key": "[\"Julia\",\"tweedie\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "scope_limits": [
+    "Julia only",
+    "Tweedie mean intercept with q=1 related-matrix covariance K",
+    "focused tests only",
+    "no interval-coverage calibration",
+    "no R/TMB parity",
+    "precision calculation densifies and limits large-group scalability"
+  ],
+  "test_sha256": "b9d1a1e4b80b2859f3df0e3144e0048bc2f1d9dcafea5c11a4b7735a17be95d3"
+}

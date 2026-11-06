@@ -541,8 +541,10 @@ drm_standard_errors_pathological <- function(object) {
   !is.null(row) && grepl("n_inflated=[1-9]", row$value, perl = TRUE)
 }
 
+drm_twin_rank_tol <- 1e-8
+
 drm_fixed_effect_rank_deficient <- function(object) {
-  X <- object$model$X
+  X <- drm_fixed_effect_design_matrices(object)
   if (is.null(X) || length(X) == 0L) {
     return(FALSE)
   }
@@ -563,6 +565,31 @@ drm_fixed_effect_rank_deficient <- function(object) {
     }
   }
   FALSE
+}
+
+drm_fixed_effect_design_matrices <- function(object) {
+  X <- object$model$X
+  if (is.null(X) || length(X) == 0L || is.null(names(X))) {
+    return(X)
+  }
+  random_scale <- object$model$random_scale
+  if (!is.list(random_scale)) {
+    return(X)
+  }
+  for (dpar in c("mu", "sigma")) {
+    design_name <- paste0("sd_", dpar)
+    sd_model <- random_scale[[dpar]]
+    if (
+      design_name %in% names(X) &&
+        is.list(sd_model) &&
+        length(sd_model$n_models) == 1L &&
+        !is.na(sd_model$n_models) &&
+        sd_model$n_models == 0L
+    ) {
+      X[[design_name]] <- NULL
+    }
+  }
+  X
 }
 
 drm_inference_at_boundary <- function(object) {
@@ -783,6 +810,10 @@ check_scale_phylo_identifiability <- function(object) {
 }
 
 check_penalized_fit <- function(object) {
+  if (drm_has_fixed_priors(object)) {
+    return(check_row("penalized_map", "note", "fixed-effect normal/ridge priors",
+      "Point estimates use the penalized objective. Covariance is local penalized-Hessian curvature; confidence intervals and likelihood comparisons are not implemented."))
+  }
   if (is.null(object$penalty)) {
     return(NULL)
   }
@@ -958,12 +989,13 @@ check_finite_objective <- function(object) {
 # converged artificially on the flat saturated tail.
 check_logsigma_clamp_active <- function(object) {
   spec <- object$model
-  if (!isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
+  fields <- drm_active_logsigma_clamp_fields(spec)
+  if (length(fields) == 0L) {
     return(check_row(
       "logsigma_clamp_active",
       "ok",
       NA,
-      "The log(sigma) clamp does not apply to this family."
+      "The log-scale clamp does not apply to this model."
     ))
   }
   # This runs post-hoc on a stored fit, whose `obj$env$last.par` was left a
@@ -986,13 +1018,35 @@ check_logsigma_clamp_active <- function(object) {
       "Cannot check the log(sigma) clamp without the TMB object (keep_tmb_object = FALSE)."
     ))
   }
-  info <- drm_logsigma_clamp_active(report, spec$tmb_data)
+  info <- drm_logsigma_clamp_active(report, spec$tmb_data, fields = fields)
   if (is.null(info)) {
     return(check_row(
       "logsigma_clamp_active",
       "ok",
       NA,
-      "The log(sigma) clamp is not active at the optimum."
+      "The log-scale clamp is not active at the optimum."
+    ))
+  }
+  if (identical(info$kind, "latent random-effect SD")) {
+    if (identical(info$arm, "lower")) {
+      return(check_row(
+        "logsigma_clamp_active",
+        "note",
+        format_check_number(info$value),
+        sprintf(
+          "The fitted latent random-effect SD log predictor reached %.2f, below the clamp band lower bound %g; the SD may be near zero or weakly identified. Inspect the group-level design, replication, and SD profile before interpreting the scale contrast.",
+          info$value, info$lo
+        )
+      ))
+    }
+    return(check_row(
+      "logsigma_clamp_active",
+      "warning",
+      format_check_number(info$value),
+      sprintf(
+        "The fitted latent random-effect SD log predictor reached %.2f, above the clamp band upper bound %g; the scale fit may have converged artificially and estimates and SEs near the clamp are unreliable.",
+        info$value, info$hi
+      )
     ))
   }
   # Both clamp arms are reported (Dinnage audit C1). The upper arm keeps
@@ -1804,7 +1858,7 @@ check_fixed_effect_design_collinearity <- function(
 }
 
 check_fixed_effect_rank_deficiency <- function(object) {
-  X <- object$model$X
+  X <- drm_fixed_effect_design_matrices(object)
   if (is.null(X) || length(X) == 0L) {
     return(NULL)
   }

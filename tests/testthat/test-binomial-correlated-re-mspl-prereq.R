@@ -77,15 +77,16 @@ test_that("binomial q2 parser admits only one unlabelled intercept-slope block",
       bf(cbind(success, failure) ~ x + (1 + x | p | id)),
       family = binomial(), data = sim$data
     ),
-    "unlabelled intercept-slope block"
+    "support one unlabelled block of size q >= 2 with an intercept",
+    fixed = TRUE
   )
-  expect_error(
-    drmTMB(
-      bf(cbind(success, failure) ~ x + (1 + x + z | id)),
-      family = binomial(), data = transform(sim$data, z = x^2)
-    ),
-    "unlabelled intercept-slope block"
+  # q > 2 unlabelled blocks with an intercept are now admitted (see
+  # validate_binomial_mu_random_terms: q >= 2), so this is no longer a refusal.
+  fit_q3 <- drmTMB(
+    bf(cbind(success, failure) ~ x + (1 + x + z | id)),
+    family = binomial(), data = transform(sim$data, z = x^2)
   )
+  expect_equal(fit_q3$model$random$mu$n_terms, 3L)
 })
 
 test_that("binomial q2 likelihood, fitted effects, and gradients use the same map", {
@@ -205,7 +206,8 @@ test_that("binomial q2 rejection matrix stays closed", {
       family = binomial(),
       data = sim$data
     ),
-    "unlabelled intercept-slope block"
+    "support one unlabelled block of size q >= 2 with an intercept",
+    fixed = TRUE
   )
 
   expect_error(
@@ -214,7 +216,8 @@ test_that("binomial q2 rejection matrix stays closed", {
       family = binomial(),
       data = sim$data
     ),
-    "unlabelled intercept-slope block"
+    "support one unlabelled block of size q >= 2 with an intercept",
+    fixed = TRUE
   )
 
   # Wave 3 admits ordinary lognormal `(1 + x | g)` as mc-0720. Gamma stays

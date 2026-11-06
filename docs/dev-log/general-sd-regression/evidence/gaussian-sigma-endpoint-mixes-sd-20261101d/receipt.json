@@ -1,0 +1,59 @@
+{
+  "evidence_id": "native-gaussian-sigma-endpoint-mixes-sd-20261101d",
+  "evidence_grade": "focused_test",
+  "slice": "gaussian-sigma-endpoint-mixes-sd",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "identity",
+      "ledger_status": "required",
+      "mechanism_id": "iid_intercept",
+      "provider_input": "group_factor",
+      "target_member": "mu:I",
+      "endpoint": "mu"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"sigma\",\"sigma\",\"sigma:I\",\"I\",\"identity\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "identity",
+      "ledger_status": "required",
+      "mechanism_id": "iid_intercept",
+      "provider_input": "group_factor",
+      "target_member": "sigma:I",
+      "endpoint": "sigma"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"identity\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "identity",
+      "ledger_status": "unresolved",
+      "mechanism_id": "iid_correlated_block",
+      "provider_input": "group_factor",
+      "target_member": "mu:x1",
+      "endpoint": "mu"
+    }
+  ],
+  "test_command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gaussian-sigma-endpoint-mixes-sd.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "test_path": "tests/testthat/test-gaussian-sigma-endpoint-mixes-sd.R",
+  "test_sha256": "058ffba20cd6f0dcf4abce6b9da432fe0be560ad56827d5f093147b29bc62f87",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-endpoint-mixes-sd-20261101d/source-manifest.json",
+  "source_manifest_sha256": "91713d9511ff4c1136a0741d47f11085b6123ac0adf74f3a016d41397a37ab44",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-endpoint-mixes-sd-20261101d/test-console.log",
+  "console_log_sha256": "ed569dc67fbf265c6f309b6ee78deee97d0a90896385526c3ffab92999dc274c",
+  "result": {
+    "exit_code": 0,
+    "summary_dots_passed": 30,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": "not run; Julia bridge reported 0 live tests, native TMB engine only"
+  },
+  "result_summary": "Gaussian joint mu and sigma ordinary-intercept SD mixes (same-group, different groups, with meta_V; mu correlated q2 block with sd(id, coef=x) plus sigma (1|g) SD) match a dense joint Laplace oracle (abs logLik 1e-4, mode gradient < 1e-8); constant-SD limit 1e-5; meta_V changes likelihood.",
+  "not_covered": [
+    "mu:I member of the iid_correlated_block q2 row (test (a) gives only sd(id, coef=\"x\") ~ w; the intercept SD is constant, so not claimed)",
+    "sigma-endpoint iid_correlated_block rows (no sigma q2 block tested)",
+    "iid_additive_terms sigma crossed/nested rows (not tested)",
+    "no recovery/coverage/calibration; no Julia"
+  ],
+  "limits": "dirty shared candidate tree; no calibration; no Julia parity; unreviewed; tolerances as written in the test file header, not loosened; receipt links rows and does not promote direct_sd_claim",
+  "review_status": "unreviewed"
+}

@@ -1,0 +1,7 @@
+               dropped_sigma excluded_intercept_penalized
+                        TRUE                         TRUE
+         wrong_lambda_factor           missing_derivative
+                        TRUE                         TRUE
+          duplicated_penalty     dropped_rebuild_metadata
+                        TRUE                         TRUE
+PRIOR_NEGATIVE_CONTROLS_PASS 6/6; unchanged compiled target accepted

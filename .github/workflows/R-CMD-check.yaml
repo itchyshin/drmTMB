@@ -58,15 +58,16 @@ jobs:
     needs: os-matrix
     # Keep public check names stable while selecting the known passing Linux image.
     runs-on: ${{ matrix.config.os == 'ubuntu-latest' && 'ubuntu-24.04' || matrix.config.os }}
-    # Measured, not guessed. Six completed ubuntu jobs on 2026-08-04 ran
-    # 43m35s / 43m51s / 44m34s / 44m36s / 45m49s / 46m34s -- a ~44-47 min suite.
-    # The former 45 was INSIDE that band, so runs were a coin flip: main itself was
-    # killed at 45.1 min (run 30847977891 at 95b8ea34e) and GitHub logged it as
-    # "cancelled", the same string as a concurrency cancel, which is why it was
-    # misread as concurrency for days. 75 leaves ~28 min over the observed maximum
-    # -- room for runner variance and suite growth -- while still killing a genuinely
-    # hung job in half the time the interim 120 allowed.
-    timeout-minutes: 75
+    # Six Ubuntu runs in August 2026 took 43m35s to 46m34s; a prior
+    # 45-minute limit cancelled main run 30847977891.
+    # The four PR shards keep their 75-minute limit. The full unsharded
+    # dispatch/tag matrix gets 180 minutes: run 42191037809 cancelled all
+    # three OS jobs about 75 minutes after they started, while R CMD check
+    # was active (Windows 72m38s, macOS 72m14s, Ubuntu 64m46s in that
+    # step). This timing is consistent with the old job limit; GitHub's
+    # logs do not identify the cancellation initiator. Keep the complete
+    # test suite and report another timeout rather than treating it as green.
+    timeout-minutes: ${{ matrix.shard == 0 && 180 || 75 }}
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.shard != 0 && format(' shard {0}/4', matrix.shard) || '' }}
 

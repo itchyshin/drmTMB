@@ -1,0 +1,10 @@
+ERROR: LoadError: invalid redefinition of constant Main.D
+Stacktrace:
+ [1] top-level scope
+   @ ~/.codex/worktrees/sd-article-ml-julia/DRM.jl/test/test_iid_sd_quadrature_accuracy.jl:23
+ [2] include(fname::String)
+   @ Base.MainInclude ./client.jl:487
+ [3] top-level scope
+   @ ~/Documents/Codex/2026-11-04-sd-article-plan/execution/julia-namespace-repro.jl:4
+in expression starting at /Users/z3437171/.codex/worktrees/sd-article-ml-julia/DRM.jl/test/test_iid_sd_quadrature_accuracy.jl:23
+in expression starting at /Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/julia-namespace-repro.jl:4

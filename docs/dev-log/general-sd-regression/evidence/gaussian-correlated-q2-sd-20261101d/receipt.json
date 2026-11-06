@@ -1,0 +1,49 @@
+{
+  "evidence_id": "native-gaussian-correlated-q2-sd-20261101d",
+  "evidence_grade": "recovery",
+  "slice": "gaussian-correlated-q2-sd",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"identity\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "identity",
+      "ledger_status": "unresolved",
+      "mechanism_id": "iid_correlated_block",
+      "provider_input": "group_factor",
+      "target_member": "mu:I",
+      "endpoint": "mu"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"identity\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "identity",
+      "ledger_status": "unresolved",
+      "mechanism_id": "iid_correlated_block",
+      "provider_input": "group_factor",
+      "target_member": "mu:x1",
+      "endpoint": "mu"
+    }
+  ],
+  "test_command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gaussian-correlated-q2-sd.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "test_path": "tests/testthat/test-gaussian-correlated-q2-sd.R",
+  "test_sha256": "fa7120ec5874748504a053f307e8cfdc7aaf48b1b74c3e9428bd4a5b187493af",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-20261101d/source-manifest.json",
+  "source_manifest_sha256": "9331c76d589a6b5aca4dabc0fc1f9fcb645345c0b1c0220dbc5bc0462787e704",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-20261101d/test-console.log",
+  "console_log_sha256": "73a0eb8c580e514bae9b03a8725181119391d20234f14efd248277f561acd91b",
+  "result": {
+    "exit_code": 0,
+    "summary_dots_passed": 17,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": "not run; Julia bridge reported 0 live tests, native TMB engine only"
+  },
+  "result_summary": "Gaussian correlated q2 (1 + x | id) with coefficient-specific sd() recovers both coefficient SD scales; q3 asserted closed; slope-only SD formula keeps constant intercept SD. (The pre-existing ledger rows for this route point at an older test hash; this is a fresh receipt on the current test bytes.)",
+  "not_covered": [
+    "q3 rows (asserted refused)",
+    "sigma iid_correlated_block rows",
+    "no calibration/coverage; no Julia"
+  ],
+  "limits": "dirty shared candidate tree; no calibration; no Julia parity; unreviewed; tolerances as written in the test file header, not loosened; receipt links rows and does not promote direct_sd_claim",
+  "review_status": "unreviewed"
+}

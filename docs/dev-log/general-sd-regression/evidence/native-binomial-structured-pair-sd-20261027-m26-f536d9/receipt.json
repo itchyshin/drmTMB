@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-phylo-spatial-probit-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-phylo-spatial-probit-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-structured-pair-sd-20261027/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"binomial-phylo-spatial-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-phylo-spatial-sd.R",
+      "test_sha256": "d7367136eb51f77bba0ff65751e4d5277bc560555597d2c51d5b0fe6bfad6c39",
+      "started_utc": "2026-11-02T13:17:21Z",
+      "ended_utc": "2026-11-02T13:20:35Z",
+      "exit_code": 0,
+      "expectations_passed": 60,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-structured-pair-sd-20261027-m26-f536d9/test-console-test-binomial-phylo-spatial-sd.log",
+      "console_log_sha256": "c6d4d1dedf0a877f0bfbc28c3b4f40674e9f7fef370745045b8bdda500cb4e32"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-structured-pair-sd-20261027-m26-f536d9/source-manifest.json",
+  "source_manifest_sha256": "3a6a9d39aa2c3c4bf270f27fcac50eb5cef78b699657e2e1de929da850700ef2",
+  "review_status": "unreviewed"
+}

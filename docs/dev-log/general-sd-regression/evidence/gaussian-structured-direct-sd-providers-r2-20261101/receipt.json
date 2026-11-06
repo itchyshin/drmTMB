@@ -1,0 +1,68 @@
+{
+  "evidence_id": "gaussian-native-structured-direct-sd-providers-r2-20261101",
+  "date": "2026-11-01",
+  "status": "unreviewed",
+  "refresh_of_evidence_ids": [
+    "gaussian-native-structured-direct-sd-providers-20261101"
+  ],
+  "evidence_ids": [
+    "gaussian-native-structured-direct-sd-providers-20261101"
+  ],
+  "candidate_rows_existing_ledger": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "mechanism_id": "relmat_intercept",
+      "provider_input": "K_covariance",
+      "link_variant": "identity",
+      "family_route": "gaussian",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "mechanism_id": "spatial_coordinate_intercept",
+      "provider_input": "coordinates",
+      "link_variant": "identity",
+      "family_route": "gaussian",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"identity\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"A_covariance\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "mechanism_id": "animal_numeric_slope",
+      "provider_input": "A_covariance",
+      "link_variant": "identity",
+      "family_route": "gaussian",
+      "ledger_status": "required"
+    }
+  ],
+  "test_command": "cd <worktree>; NOT_CRAN=true OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'suppressMessages(devtools::load_all(\".\", quiet=TRUE)); res <- testthat::test_file(\"tests/testthat/test-gaussian-structured-direct-sd-providers.R\", reporter=\"summary\"); ...' > docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-r2-20261101/test-console.log",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "b87566680778831c2bae38d66399c3ca667e29fc",
+  "git_branch": "codex/general-sd-regression",
+  "test_path": "tests/testthat/test-gaussian-structured-direct-sd-providers.R",
+  "test_sha256": "3fb1d82b66aefdf833d22185b0c85631573c1f8e6e8a1bf33b11398225162444",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-r2-20261101/source-manifest.json",
+  "source_manifest_sha256": "90d6318d7ec4a6429851e3f1c15fe8d41e0102727c6b486c2d90d524023e4d2a",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-r2-20261101/test-console.log",
+  "console_log_sha256": "1ba165d3345f4b4173c39fe60c779ff7575f2ed4ded1e2bd05939fc0b34375b1",
+  "result": {
+    "exit_status": 0,
+    "test_blocks": 3,
+    "expectations": 60,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "warnings": 0,
+    "note": "Expectation count is the observed testthat count from this fresh run; earlier ledger text quoted a different count for an earlier version of the test file."
+  },
+  "oracle": "Dense exact Gaussian marginal likelihood (MVN with Zs diag(tau) K diag(tau) Zs' + sigma^2 I) and an independent L-BFGS-B optimum, both computed in the test. Independence: partly independent. The relmat (Toeplitz) and animal (geometric) kernels are analytic and independent of the code under test; the spatial oracle and data-generating covariance use drmTMB:::drm_spatial_coords_precision (the helper under test), whose name alignment is checked only against a kernel rebuilt with the same formula (mirrored, not independent).",
+  "tolerances_copied_from_test": "dense oracle logLik 1e-6 (relative); independent L-BFGS-B optimum 1e-5 (relative); SD prediction identity 1e-10 / saved-model prediction 1e-12; constant-SD vs base logLik 2e-5; kernel rebuild 1e-8; positional kernel/precision must differ by >0.2 (relmat, animal) or >0.5 (spatial precision); positional oracle logLik must differ by >1000 x (1e-6 x |logLik|); smoke recovery |z-0.4|<0.4",
+  "scope": "Native Gaussian mu with relmat(1 | id, K = K) and sd(id, level='relmat') ~ z; spatial(1 | site, coords = coords) and sd(site, level='spatial') ~ z; animal(0 + x | id, A = A) slope-only with sd(id, level='animal', coef='x') ~ z. Not covered: Q/Ainv/pedigree inputs, slope SDs for relmat and spatial, multi-coefficient blocks, sigma regression, se=TRUE inference, profile targets, non-Gaussian families (not tested, not fenced).",
+  "limits": [
+    "native engine only",
+    "fixed-seed fixtures with loose recovery bands where applicable",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ]
+}

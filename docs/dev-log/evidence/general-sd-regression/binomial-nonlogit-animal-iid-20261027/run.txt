@@ -1,0 +1,23 @@
+Command:
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "binomial-nonlogit-animal-iid-sd-regression")'
+
+Result:
+  Focused testthat file passed: 46 assertions, 0 failures, 0 warnings, 0 skips.
+  Probit and cloglog fits converged for both animal-intercept and animal-slope layouts
+  combined with an IID intercept. Final run time was 63.3 seconds.
+
+Each DGP has 192 animals, 96 sites and 24 observations per animal. The test checks
+animal and IID SD-slope signs and broad recovery errors, group-level SD prediction
+lengths and positivity for both targets, and the existing intercept-route agreement
+between predictions and fitted SD columns. The DGP uses an animal covariance matrix
+with reversed dimname order to exercise matrix-label alignment.
+
+Earlier attempts stopped before or after a fit because the fixture did not bind `A`,
+used an unsupported testthat `info` argument, or called the wrong public prediction
+accessor. A later 48-site animal-slope pilot missed the IID-slope tolerance by 0.017;
+the final design increased the independent site count to 96 and passed without
+changing the tolerance. These were fixture and recovery-strength issues, not a
+likelihood error diagnosis.
+
+Scope: native R/TMB point recovery and group-SD output only. No interval coverage,
+Julia bridge comparison, or full package suite was run.
