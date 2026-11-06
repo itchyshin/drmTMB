@@ -98088,3 +98088,7 @@ Normal priors and ridge penalties for ordinary Gaussian mu/sigma and binomial-lo
 # 2026-11-06: parity scoreboard comment correction
 
 The scoreboard generator introduction now describes the 22 explicit pending R-only rows and the guard against unexpected names. A focused regeneration on R candidate `99cca41194d89bfe5f7dca9e8800ab1122156632` and Julia status pin `da8b3f8711beb5ef3186b890544c2e7850c7f194` matched the unmodified generator byte-for-byte. This checks the comment-only proposal, not model parity or interval coverage. Evidence: `docs/dev-log/after-task/2026-11-06-parity-scoreboard-comment.md`.
+
+### 2026-11-06: parity generator after main integration
+
+On merge candidate `958fc7c53dccaae16cfc3a1fe971f019171be4dd`, regenerated the parity matrix and scoreboard using the recorded Julia documentation pin `da8b3f8711beb5ef3186b890544c2e7850c7f194`. Focused `test-parity-matrix.R` and `test-parity-scoreboard.R` passed locally, with one `beta()` deprecation warning. This check did not exercise a live Julia bridge or certify broad parity. The source checkpoint identifies the merge before this generated-document update.
