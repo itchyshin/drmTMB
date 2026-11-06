@@ -1,0 +1,52 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "3c13a385676bf79c277490ad45d07f0df6c8b18e806ab9f2f8915aba62731594",
+  "draft_version": "final-v2",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex parent",
+  "method": "Separate whole-draft self-review against inspected source, source-pinned test logs and rendered tutorial; independent reviewers supplied the recorded specific corrections.",
+  "genre": "Validation claim ledger",
+  "coverage": "Whole docs/dev-log/priors-lane-20261105/VALIDATION_LEDGER.md",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "Concrete evidence and scope; required audit structure and source identifiers add density. The execution record deliberately preserves historical pending states under dated checkpoints.",
+  "confidence": "medium",
+  "confidence_reason": "Self-assessment with independent scoped code/reader reviews; no human style assessment.",
+  "examples": [
+    {
+      "location": "Line 3",
+      "line": 3,
+      "quote": "Reader: developers deciding what this first slice can claim. The goal is numerical correctness and usable coefficient selection. This ledger does not establish interval calibration, general R-Julia parity or full-posterior sampling.",
+      "cue": "Concrete authority, evidence or limitation",
+      "impact": "Lets a reviewer distinguish validated scope from broader incomplete checks",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Line 15",
+      "line": 15,
+      "quote": "The cited Julia identifiers are aggregate source SHA-256 values, not Git commit IDs. Final receipts must name the source and compiler actually exercised. Earlier full-suite runs cannot be attributed to later guard or cache fixes.",
+      "cue": "Concrete authority, evidence or limitation",
+      "impact": "Lets a reviewer distinguish validated scope from broader incomplete checks",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Line 17",
+      "line": 17,
+      "quote": "Broad regression disposition: the R c53a0357 full run failed; introduced omissions were fixed and the affected modules passed on closeout source 64956560. Three remaining assertions reproduce exactly on optimized baseline 9fea303. The final Julia a30e3472 full run timed out after 90 minutes (exit 124), so full-suite success is not admitted. These broader results do not replace the source-pinned numerical, focused, affected and five paired checks above.",
+      "cue": "Concrete authority, evidence or limitation",
+      "impact": "Lets a reviewer distinguish validated scope from broader incomplete checks",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Equations and coefficient interpretations match the implemented targets; calibration and posterior-sampling claims are explicitly withheld.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Checked against final source manifests, focused and affected logs, five live fixtures, exact-baseline residual receipts and the actual Julia exit124 timeout. No full-suite pass is claimed.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external reference claim requiring verification in this artifact.",
+  "date": "2026-11-05",
+  "calibration_status": "No held-out calibration examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

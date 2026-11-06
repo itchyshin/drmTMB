@@ -1,4 +1,6 @@
-# drmTMB (development)
+# drmTMB 0.8.0
+
+* Add explicit fixed-effect normal priors and ridge penalties for ordinary Gaussian location-scale and binomial-logit models. Select each distributional parameter and coefficient, with explicit intercept handling for whole-block selectors. Fits report penalized/MAP estimates and local curvature; confidence intervals and likelihood comparisons remain unavailable. Random-effect SD priors and tmbstan are outside this slice.
 
 * The development Julia bridge (`engine = "julia"`) now admits Gaussian structured
   intercept SD regression (2026-11-02, batch 32; needs DRModels.jl `ab8b67127`):

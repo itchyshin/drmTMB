@@ -178,6 +178,12 @@ phylo_prior_tmb_data <- function(precision) {
       A_mesh_spatial = dummy_sparse,
       Q_mesh_spatial = dummy_sparse,
       log_det_Q_mesh_spatial = 0,
+      # Global fixed-effect prior inputs are empty for these phylogeny probes.
+      prior_beta_block = integer(0),
+      prior_beta_index = integer(0),
+      prior_beta_mean = numeric(0),
+      prior_beta_sd = numeric(0),
+      prior_beta_normalized = integer(0),
       penalize_phylo = 0L,
       phylo_sd_penalty_rate = numeric(0),
       phylo_cor_penalty_sd = numeric(0),

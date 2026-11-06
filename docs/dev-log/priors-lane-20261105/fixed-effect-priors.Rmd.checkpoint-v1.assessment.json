@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "1b3c79b33516fe2af02a074b9b96d6e7b86d974c65894b28c2fae92d94a1634a",
+  "draft_version": "checkpoint-v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex parent",
+  "method": "Separate whole-draft self-review against inspected source, source-pinned test logs and rendered tutorial; independent reviewers supplied the recorded specific corrections.",
+  "genre": "Applied package tutorial",
+  "coverage": "Whole vignettes/articles/fixed-effect-priors.Rmd",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "A concrete survival question and computed coefficient interpretations guide the reader; code limits remain explicit.",
+  "confidence": "medium",
+  "confidence_reason": "Self-assessment with independent scoped code/reader reviews; no human style assessment.",
+  "examples": [
+    {
+      "location": "First substantive paragraph",
+      "cue": "Concrete purpose or source statement",
+      "impact": "Gives the reader an explicit scope",
+      "repair": "no change needed",
+      "line": 11,
+      "quote": "library(drmTMB)"
+    },
+    {
+      "location": "Paragraph beginning If your analysis needs weights",
+      "cue": "Specific evidence and scope",
+      "impact": "Connects behavior, evidence and its limit",
+      "repair": "no change needed",
+      "line": 59,
+      "quote": "This first slice accepts complete, unit-weight, fixed-effect Gaussian and binomial-logit models. Fits with active priors use an unclamped log-scale predictor; when passing `drm_control()`, set `logsigma_clamp=NULL` explicitly. REML, MSPL, structured effects, existing phylogenetic penalties and other response families refuse. If your analysis needs weights or random effects, fit that supported model without `priors`, or use another method whose regularization has been validated for that structure. Random-effect SD priors and tmbstan require separate validation. A wider prior or a different coding can change the result; use the resolved table and compare several scientifically plausible scales."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Equations and coefficient interpretations match the implemented targets; calibration and posterior-sampling claims are explicitly withheld.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Implementation and numerical claims checked against source and logs; pending broad checks are labelled pending.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external reference claim requiring verification in this artifact.",
+  "date": "2026-11-05",
+  "calibration_status": "No held-out calibration examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

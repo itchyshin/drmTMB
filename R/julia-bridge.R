@@ -637,7 +637,8 @@ drmTMB_julia_bridge <- function(
   impute,
   missing,
   REML = FALSE,
-  call
+  call,
+  priors = NULL
 ) {
   REML <- drm_control_flag(REML, "REML")
   drm_julia_refuse_binomial_nonlogit_sd(formula, family)
@@ -835,6 +836,12 @@ drmTMB_julia_bridge <- function(
     method = if (isTRUE(REML) && reml_supported) "REML" else "ML",
     control_overrides = control_overrides
   )
+  resolved_priors <- NULL
+  if (!is.null(priors)) {
+    resolved_priors <- drm_resolve_priors(formula, family, data, priors)
+    prior_options <- drm_fixed_prior_bridge_options(priors, resolved_priors)
+    bridge_payload$options <- utils::modifyList(bridge_payload$options, prior_options)
+  }
 
   conditional_components <- drm_julia_conditional_gaussian_components_spec(
     formula, family_type
@@ -862,7 +869,16 @@ drmTMB_julia_bridge <- function(
     )
   }
   result <- drm_julia_restore_row_order(result, bridge_payload$row_order)
-  new_drmTMB_julia(
+  if (!is.null(priors)) {
+    if (!identical(as.character(result[["fixed_prior_contract"]]), "fixed_effect_priors_v1")) {
+      cli::cli_abort("The Julia backend did not confirm the fixed-effect prior target; use a DRModels.jl build supporting fixed_effect_priors_v1.")
+    }
+    expected_method <- if (any(resolved_priors$precision > 0)) "MAP" else "ML"
+    if (!identical(toupper(as.character(result[["estim_method"]])), expected_method)) {
+      cli::cli_abort("The Julia backend reported an estimator inconsistent with the resolved fixed-effect priors.")
+    }
+  }
+  out <- new_drmTMB_julia(
     result = result,
     call = call,
     formula = formula,
@@ -874,6 +890,18 @@ drmTMB_julia_bridge <- function(
     requested_REML = isTRUE(REML),
     effective_REML = isTRUE(REML) && isTRUE(reml_supported)
   )
+  if (!is.null(priors)) {
+    out$priors <- priors
+    out$resolved_priors <- resolved_priors
+    out$fixed_prior_penalty <- as.numeric(result[["fixed_prior_penalty"]])
+    out$penalized_objective <- as.numeric(result[["penalized_objective"]])
+    out$prior_gradient <- as.numeric(result[["prior_gradient"]])
+    out$likelihood_gradient <- as.numeric(result[["likelihood_gradient"]])
+    out$penalized_gradient <- as.numeric(result[["penalized_gradient"]])
+    out$covariance_interpretation <- if (any(resolved_priors$precision > 0))
+      "local_penalized_hessian_curvature; not calibrated sampling covariance" else NULL
+  }
+  out
 }
 
 ## The conditional payload is admitted only for Gaussian mean components whose
@@ -7646,7 +7674,8 @@ new_drmTMB_julia <- function(
     # engine restricted where we expected ML: trust the engine's own report
     effective_REML <- engine_reml
   }
-  estimator <- if (isTRUE(effective_REML)) "REML" else "ML"
+  estimator <- if (identical(toupper(as.character(engine_method)), "MAP")) "MAP" else
+    if (isTRUE(effective_REML)) "REML" else "ML"
   out <- list(
     call = call,
     formula = formula,
@@ -8684,6 +8713,9 @@ drm_julia_conditional_structured_plain <- function(x) {
 #' @export
 print.drmTMB_julia <- function(x, ...) {
   cli::cli_text("<drmTMB Julia-engine fit>")
+  if (drm_has_fixed_priors(x)) {
+    cli::cli_text("  covariance: local penalized-Hessian curvature; confidence intervals are not implemented")
+  }
   cli::cli_text("  observations: {x$nobs}")
   if (!is.null(x$estimator)) {
     cli::cli_text("  estimator: {x$estimator}")
@@ -8789,6 +8821,7 @@ confint.drmTMB_julia <- function(
   threads = FALSE,
   ...
 ) {
+  drm_abort_fixed_prior_inference(object, "confint")
   # biv_student defers ALL interval claims natively (R/profile.R
   # `confint.drmTMB` aborts for this model type, and R/family.R documents
   # "interval inference are deferred"). Measured 2026-09-05 on this branch
@@ -9809,6 +9842,7 @@ summary.drmTMB_julia <- function(
   method = c("wald", "profile"),
   ...
 ) {
+  if (isTRUE(conf.int)) drm_abort_fixed_prior_inference(object, "summary confidence intervals")
   dots <- list(...)
   if (length(dots) > 0L) {
     cli::cli_abort(
@@ -9857,6 +9891,10 @@ summary.drmTMB_julia <- function(
     converged = identical(convergence_status(object), "converged"),
     uncertainty = object$uncertainty
   )
+  if (drm_has_fixed_priors(object)) {
+    out$covariance_interpretation <- object$covariance_interpretation
+    out$estimator <- object$estimator
+  }
   class(out) <- "summary.drmTMB_julia"
   out
 }
@@ -9888,6 +9926,10 @@ drm_julia_summary_coefficients <- function(object) {
   estimate <- unname(beta)
   statistic <- estimate / se
   p.value <- 2 * stats::pnorm(-abs(statistic))
+  if (drm_has_fixed_priors(object)) {
+    statistic[] <- NA_real_
+    p.value[] <- NA_real_
+  }
   data.frame(
     dpar = drm_julia_split_coef_name(nm)$dpar,
     term = drm_julia_split_coef_name(nm)$term,
@@ -9956,6 +9998,10 @@ drm_julia_summary_random <- function(object) {
 #' @export
 print.summary.drmTMB_julia <- function(x, ...) {
   cli::cli_text("<drmTMB Julia-engine fit summary>")
+  if (!is.null(x$covariance_interpretation)) {
+    cli::cli_text("  estimator: {x$estimator}")
+    cli::cli_text("  covariance: local penalized-Hessian curvature; confidence intervals are not implemented")
+  }
   cli::cli_text("  observations: {x$nobs}")
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
   if (!is.null(x$convergence_status)) {

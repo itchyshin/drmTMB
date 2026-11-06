@@ -135,6 +135,7 @@ predict_parameters.drmTMB <- function(
   validate_predict_parameters_newdata(newdata)
   validate_predict_parameters_include_newdata(include_newdata)
   validate_predict_parameters_conf_int(conf.int)
+  if (conf.int) drm_abort_fixed_prior_inference(object, "predict_parameters confidence intervals")
   if (
     conf.int &&
       object$model$model_type %in% c("biv_lognormal", "biv_student")
@@ -206,6 +207,7 @@ predict_parameters.drmTMB_julia <- function(
   conf.level = 0.95,
   ...
 ) {
+  if (isTRUE(conf.int)) drm_abort_fixed_prior_inference(object, "predict_parameters confidence intervals")
   dots <- list(...)
   if (length(dots) > 0L) {
     cli::cli_abort("{.arg ...} is reserved for future options.")
