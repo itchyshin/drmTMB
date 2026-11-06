@@ -32,13 +32,20 @@ pr <- lapply(seq_len(if (is.data.frame(f$priors)) nrow(f$priors) else 0L), funct
   else drm_prior_ridge(block, col, lambda = p$lam)
 })
 priors <- if (length(pr)) do.call(drm_priors, pr) else NULL
-fit <- drmTMB(fm, data = d, priors = priors, control = drm_control(se = FALSE, logsigma_clamp = NULL))
+RNGkind("Mersenne-Twister", "Inversion", "Rejection")
+set.seed(777)
+fit <- drmTMB(fm, data = d, priors = priors,
+              control = drm_control(se = FALSE, logsigma_clamp = NULL, multi_start = 5))
 par <- fit$opt$par
 idx <- c(which(names(par) == "beta_mu"), which(names(par) == "beta_sigma"), which(names(par) == "log_sd_mu"))
 if (length(idx) != ncol(x) + ncol(w) + 1L || length(idx) != length(par)) stop(paste("unexpected parameters", paste(names(par), collapse = ",")))
 dll <- getLoadedDLLs()[["drmTMB"]][["path"]]
 result <- list(schema_version = 1, id = f$id, engine = "R/TMB",
   dll = dll, dll_sha256 = strsplit(system2("shasum", c("-a", "256", shQuote(dll)), stdout = TRUE), "[[:space:]]+")[[1]][1],
+  solver_configuration = list(multi_start = 5L, caller_seed = 777L,
+    internal_perturbation_seed = 20260616L,
+    individual_attempt_diagnostics = "unavailable_from_ordinary_route",
+    rng_kind = I(RNGkind()), seed_reset = "before_each_fixture_fit"),
   r_version = R.version.string, tmb_version = as.character(packageVersion("TMB")),
   git_head = Sys.getenv("DRM_PRIOR_SOURCE_HEAD", unset = "unrecorded"),
   X_columns = I(colnames(x)), W_columns = I(colnames(w)),

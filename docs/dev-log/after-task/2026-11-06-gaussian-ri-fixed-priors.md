@@ -18,7 +18,7 @@ R/fixed-priors-workflow.R, R/fixed-effect-priors.R, R/drmTMB.R, R/profile.R, R/m
 
 ## 5. Checks Run
 
-Local focused tests: 49 and 44 expectations passed; article render and Rd example passed. The new file passed 55 expectations including one live Julia bridge test on Totoro with an isolated library and recorded Julia-bundled libunwind preload. Root independently reports all four preflight fixtures passed against the oracle for native R, native Julia and the bridge, with six verifier mutations rejected. Two bridge fixtures used exactly matched numeric indicator transport; their raw factor formulas remain refused. Full package suite and final 12-fixture grid are pending. R CMD check and pkgdown have not been completed for this source.
+Local focused tests: 49 and 44 expectations passed; article render and Rd example passed. The new file passed 55 expectations including one live Julia bridge test on Totoro with an isolated library and recorded Julia-bundled libunwind preload. Root independently reports all four preflight fixtures passed against the oracle for native R, native Julia and the bridge, with six verifier mutations rejected. Two bridge fixtures used exactly matched numeric indicator transport; their raw factor formulas remain refused. The final configured 12-fixture grid passed all 36 route checks against the frozen independent oracle. Native R used the existing public multi_start=5 setting, with caller seed 777 and internal perturbation seed 20260616; see ../gaussian-ri-priors-20261106/R-MULTISTART-POLICY.md. Native Julia and the bridge retained their original configurations. The default run passed 35/36 checks and failed native R ri_10 at an inferior local boundary minimum; that result remains in the evidence. Full R build passed; R CMD check and source-tree tests remain pending. The independent final source review passed at R251d103b and Juliaf60eb88e. pkgdown has not been completed for this source.
 
 ## 6. Tests of the Tests
 
@@ -34,11 +34,11 @@ Prior constructors and selectors remain unchanged. Data log likelihood and prior
 
 ## 9. What Did Not Go Smoothly
 
-Mac JuliaCall started using a disposable project but the selected Julia environment lacked ForwardDiff; bridge preflight moved to Totoro without modifying the global environment. One frozen fixture's R factor-indicator formula was corrected and reverified independently before candidate comparisons.
+Mac JuliaCall started using a disposable project but the selected Julia environment lacked ForwardDiff; bridge preflight moved to Totoro without modifying the global environment. Factor-indicator formula metadata was corrected and reverified independently before candidate comparisons. The final grid also exposed a genuine inferior local minimum in native R. Independent variance-direction and free-Hessian checks confirmed that branch; the existing multiple-start control reached the lower optimum without oracle-derived starts. Every fixture was then rerun under the same recorded configuration, preserving the default failure.
 
 ## 10. Known Residuals
 
-All 12 fixtures across native R, native Julia and bridge, full suites, source-pinned independent review and final documentation checks remain pending. The bridge has no arbitrary-point Hessian interface; native engine pointwise Hessians do not establish a bridge Hessian test. No interval coverage or sampling calibration is established.
+Full suites remain pending. The final revised R article rendered successfully, including its worked examples. Numerical qualification passed under the recorded configurations, and independent source review passed. Single-start fitting remains susceptible to local minima. The bridge has no arbitrary-point Hessian interface; native engine pointwise Hessians do not establish a bridge Hessian test. No interval coverage or sampling calibration is established.
 
 ## 11. Team Learning
 
@@ -46,6 +46,6 @@ A log-SD parameterization cannot represent the exact zero boundary; evaluate the
 
 ## 12. Cross-Product Coverage
 
-Focused native R tests cover active coefficient priors, selectors, Gaussian mean random intercept, prior updates, zero-ridge ML and existing inference guards. This does NOT cover random slopes, multiple groups, random-effect SD priors, structured effects, non-Gaussian mixed models, REML, sampling or interval coverage. Bridge and Julia have bounded four-fixture preflight evidence; the full grid remains pending. No release or merge occurred.
+Focused native R tests cover active coefficient priors, selectors, Gaussian mean random intercept, prior updates, zero-ridge ML and existing inference guards. This does NOT cover random slopes, multiple groups, random-effect SD priors, structured effects, non-Gaussian mixed models, REML, sampling or interval coverage. The configured full grid covers all twelve fixtures on native R, native Julia and the bridge. It does not establish global optimization reliability or raw-factor bridge support. No release or merge occurred.
 
-The later persistent live test file passed 63 expectations on Totoro, including zero-ridge bridge equivalence to unpenalized ML. This supplements the earlier 55-expectation live run. The final frozen 12-fixture grid and full suites remain pending.
+The later persistent live test file passed 63 expectations on Totoro, including zero-ridge bridge equivalence to unpenalized ML. This supplements the earlier 55-expectation live run. The frozen grid subsequently passed under the recorded configurations; full suites remain pending.

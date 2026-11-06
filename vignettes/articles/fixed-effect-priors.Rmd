@@ -65,6 +65,8 @@ The fit integrates over the group intercepts and adds the coefficient prior
 once to the marginal negative log-likelihood. `logLik(rf)` is the data
 log-likelihood at the resulting penalized estimates, without the prior term.
 
+With a varying residual SD, the marginal objective can have several local minima. A convergence flag does not show that the lowest minimum was found. Compare fits from multiple starts, for example with `control = drm_control(se = FALSE, logsigma_clamp = NULL, multi_start = 5)`. In the independent validation grid, the default start reached an inferior boundary minimum in one fixture; this multiple-start configuration passed all twelve fixtures. Multiple starts do not guarantee a global optimum.
+
 To penalize a whole coefficient block, choose the intercept policy explicitly. The ridge constructor adds `0.5 * lambda * sum(beta^2)` to the negative data log-likelihood. For positive lambda, it has the same optimum and curvature as a mean-zero normal prior with SD `1/sqrt(lambda)`; the ridge objective omits the normal density constant.
 
 ```{r ridge}
