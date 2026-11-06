@@ -1,3 +1,5 @@
+> Qualification update: the earlier review below missed derived variance-ratio interval accessors. Its inference-fence signoff is superseded by derived-ratio-guard-review.md. The numerical results remain evidence for their recorded sources; repaired-source qualification is pending.
+
 # Final source review: Gaussian random-intercept fixed-effect priors
 
 Reviewer: Noether. Date: 2026-11-06. Scope: independent read-only review of the approved one-iid-mean-random-intercept extension, including its bridge and inference guards. No engine, oracle, test, protected cleanup or PR #1651 files were edited. No package fits or full suites were rerun for this review; other processes were validating the pinned trees.

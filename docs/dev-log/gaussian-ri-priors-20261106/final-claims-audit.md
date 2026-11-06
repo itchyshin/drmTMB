@@ -1,3 +1,5 @@
+> Qualification update: the earlier review below missed derived variance-ratio interval accessors. Its inference-fence signoff is superseded by derived-ratio-guard-review.md. The numerical results remain evidence for their recorded sources; repaired-source qualification is pending.
+
 # Claim-versus-evidence audit: Gaussian random-intercept coefficient priors
 
 Reviewer: Noether applying the Rose claim-versus-evidence lens, 2026-11-06. Read-only audit of the archived numerical results, policy, after-task reports, article and gate ledger. No fits, full suites, source edits, merge or release. Source pins remain R `251d103b310cde7df68d0db439888f8c16177fbb` and Julia `f60eb88eebdaebc3b1ac1babb81aeb942f7dc8e8`; the candidate-source review is separate in `final-source-review.md`.
