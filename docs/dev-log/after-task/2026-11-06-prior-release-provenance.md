@@ -83,6 +83,18 @@ calibration. When `DRM_JL_PATH` is unset, CI cannot independently rehash the
 Julia sources. Review the selector and evidence, then verify CI on the proposed
 commit before closing issue #1676.
 
+## Full operating-system check timeout
+
+Post-merge run 42191037809 cancelled all three unsharded operating-system jobs
+about 75 minutes after they started. The R CMD check step had run for 72m38s
+on Windows, 72m14s on macOS, and 64m46s on Ubuntu. The logs say the operations
+were canceled, but do not name the initiator; their timing is consistent with
+the configured 75-minute job limit. These cancelled checks are not passes.
+
+The unsharded dispatch and tag jobs now have a 180-minute limit; PR shards keep
+their 75-minute limit. The workflow retains the same test suite and thresholds.
+A fresh full three-platform run must still complete successfully before release.
+
 ## Prose review
 
 Self-review, 2026-11-06: perceived AI-like style 2/10 with moderate confidence
