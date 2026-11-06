@@ -25,12 +25,11 @@
 # second, independent implementation of it would be a second chance to be
 # confidently wrong. One matcher, two readers.
 #
-# CONSEQUENCE OF THAT REUSE (stated, not hidden): `pm_build_matrix()` aborts
-# when a drmTMB capability name is absent from DRM.jl's capability-status.md,
-# so this file can never report a drmTMB-only row. That case is the subject of
-# `tools/write-capability-status-join.R` /
-# `docs/design/capability-status-join.md`, which is generated independently and
-# does not abort.
+# CONSEQUENCE OF THAT REUSE: `pm_build_matrix()` emits explicitly named
+# pending drmTMB-only capabilities as unreconciled rows with uncited Julia
+# cells. It aborts on other unexpected drmTMB-only names. The independently
+# generated `docs/design/capability-status-join.md` also compares names across
+# the two capability-status documents.
 #
 # THE BRIDGE AXIS, PRECISELY. A receipt is a row in one of DRM.jl's evidence
 # tables at the read ref, reached by `capability_id`. Two tiers, reported
