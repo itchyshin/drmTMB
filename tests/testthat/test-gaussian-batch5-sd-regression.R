@@ -80,6 +80,61 @@ gb5_expect_oracle <- function(fit, dat, blocks_fun, reps = 0L) {
   invisible(nll_at_fit)
 }
 
+# `factr = 1e3` is the existing stopping rule. A tighter factr = 10 can
+# exhaust line search precision as BLAS rounding changes. The likelihood
+# comparison below keeps its independent 1e-5 tolerance.
+# Retry a non-converged dense comparator with the same objective and bounds.
+# Both optimizers must return finite, in-bounds points and a successful result
+# must still pass the independent likelihood comparison below.
+gb5_dense_optim <- function(objective, start, lower, upper,
+                            primary_control = list(maxit = 500L, factr = 1e3),
+                            retry_control = list(iter.max = 500L, eval.max = 1500L)) {
+  valid_point <- function(par, value) {
+    length(par) == length(lower) && all(is.finite(par)) &&
+      length(value) == 1L && is.finite(value) &&
+      all(par >= lower & par <= upper)
+  }
+  if (!valid_point(start, objective(start))) {
+    stop("Dense comparator start must be finite and within bounds.")
+  }
+  primary <- stats::optim(start, objective, method = "L-BFGS-B",
+                          lower = lower, upper = upper, control = primary_control)
+  if (!valid_point(primary$par, primary$value)) {
+    stop("Dense comparator returned a nonfinite or out-of-bounds primary result.")
+  }
+  retry <- NULL
+  if (primary$convergence != 0L) {
+    retry <- stats::nlminb(primary$par, objective, lower = lower, upper = upper,
+                           control = retry_control)
+    if (!valid_point(retry$par, retry$objective)) {
+      stop("Dense comparator returned a nonfinite or out-of-bounds retry result.")
+    }
+  }
+  chosen <- if (is.null(retry)) primary else retry
+  list(par = chosen$par, value = if (is.null(retry)) chosen$value else chosen$objective,
+       convergence = chosen$convergence, primary = primary, retry = retry,
+       objective = objective, lower = lower, upper = upper)
+}
+
+gb5_expect_dense_converged <- function(result) {
+  diagnostic <- NULL
+  if (result$convergence != 0L) {
+    gradient <- tryCatch(numDeriv::grad(result$objective, result$par),
+                         error = function(e) paste("unavailable:", conditionMessage(e)))
+    retry <- result$retry
+    diagnostic <- paste0(
+      "primary code=", result$primary$convergence, ", message=", result$primary$message,
+      ", objective=", format(result$primary$value, digits = 17),
+      "; retry code=", retry$convergence, ", message=", retry$message,
+      ", objective=", format(retry$objective, digits = 17),
+      "; gradient=", paste(gradient, collapse = ","),
+      "; lower distances=", paste(result$par - result$lower, collapse = ","),
+      "; upper distances=", paste(result$upper - result$par, collapse = ",")
+    )
+  }
+  expect_equal(result$convergence, 0L, info = diagnostic)
+}
+
 # Independent dense optimiser. `make_blocks(tau_list)` returns the blocks for
 # given per-block SD vectors; `z_list` holds the group-level SD predictors, one
 # per block, aligned to the rows of each K.
@@ -94,21 +149,36 @@ gb5_expect_dense_max <- function(fit, dat, make_blocks, z_list) {
   }
   start <- c(unname(stats::coef(stats::lm(y ~ x, dat))), log(0.4),
              rep(c(log(0.4), 0), nb))
-  opt <- stats::optim(
-    start, obj, method = "L-BFGS-B",
+  opt <- gb5_dense_optim(
+    obj, start,
     lower = c(-Inf, -Inf, -5, rep(c(-5, -3), nb)),
-    upper = c(Inf, Inf, 2, rep(c(2, 3), nb)),
-    # factr = 10 asks for a relative reduction of 2e-15, below what the dense
-    # objective resolves once BLAS threading changes the rounding order; L-BFGS-B
-    # then stops with code 52 (abnormal line search) at the same optimum.
-    # factr = 1e3 (2e-13) is the optimiser stopping rule only: the comparison
-    # with the fitted logLik below keeps its 1e-5 tolerance.
-    control = list(maxit = 500L, factr = 1e3)
+    upper = c(Inf, Inf, 2, rep(c(2, 3), nb))
   )
-  expect_equal(opt$convergence, 0L)
+  gb5_expect_dense_converged(opt)
   expect_equal(as.numeric(stats::logLik(fit)), -opt$value, tolerance = 1e-5)
   invisible(opt)
 }
+
+test_that("dense comparator retries only failed optimizations within bounds", {
+  objective <- function(x) sum((x - c(1, -0.5))^2)
+  lower <- c(-2, -2)
+  upper <- c(2, 2)
+  no_retry <- gb5_dense_optim(function(x) x[[1L]], 0, -2, 2)
+  expect_null(no_retry$retry)
+  expect_error(gb5_dense_optim(function(x) Inf, c(0, 0), lower, upper), "finite")
+  result <- gb5_dense_optim(objective, c(-1.5, 1.5), lower, upper,
+                            primary_control = list(maxit = 1L, factr = 1e3))
+  expect_false(result$primary$convergence == 0L)
+  expect_false(is.null(result$retry))
+  expect_equal(result$convergence, 0L)
+  expect_lt(result$value, 1e-8)
+  expect_true(all(result$par >= lower & result$par <= upper))
+
+  failed <- gb5_dense_optim(objective, c(-1.5, 1.5), lower, upper,
+                            primary_control = list(maxit = 1L, factr = 1e3),
+                            retry_control = list(iter.max = 0L, eval.max = 1L))
+  expect_failure(gb5_expect_dense_converged(failed), "convergence")
+})
 
 # ---- covariance fixtures -----------------------------------------------------
 
