@@ -1,0 +1,5 @@
+source 1143258e952450000389756268f40936bdb8325d
+R_MAKEVARS_USER=/home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b/Makevars.priors
+R CMD INSTALL --preclean --no-multiarch --with-keep.source --library=r-publish-lib r-publish-src
+python3 tools/recertify-c17.py --label priors-publish
+Rscript r-publish-targeted.R
