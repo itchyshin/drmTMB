@@ -21,11 +21,16 @@ parameter, matrix column, prior mean, SD, precision and selection reason.
 }
 \description{
 Resolve selectors against the same Gaussian or binomial design builders used
-by \code{\link[=drmTMB]{drmTMB()}}. This first slice uses complete data, unit weights and ordinary
-fixed effects. No automatic centring or scaling is performed.
+by \code{\link[=drmTMB]{drmTMB()}}. Models require complete data and unit weights. Gaussian
+identity models can include one independent mean random intercept; other
+random effects and random-effect SD formulas are not supported with priors.
+The Julia bridge does not yet accept factor predictors in this mixed model.
+No automatic centring or scaling is performed.
 }
 \examples{
 d <- data.frame(y = c(1, 2, 1, 3), x = c(0, 1, 2, 3))
 p <- drm_priors(drm_prior_normal("mu", "x", sd = 2))
 drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, p)
+d$group <- factor(c(1, 1, 2, 2))
+drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, p)
 }

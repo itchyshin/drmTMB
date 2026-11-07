@@ -5,6 +5,17 @@
 #' meaning depends on contrasts and predictor units. No automatic scaling is
 #' applied. For `coef = "all"`, state whether the intercept is included.
 #'
+#' Gaussian identity models may include one independent random intercept in
+#' the mean. The prior targets fixed coefficients; the group standard deviation
+#' is estimated without a prior. The objective is the marginal data negative
+#' log-likelihood plus the prior or penalty. A normal prior includes its density
+#' constant, whereas a ridge penalty has no normalizing constant. `logLik()`
+#' reports the data likelihood at the penalized estimates. Confidence intervals
+#' and information criteria are not provided for active prior fits; local
+#' penalized-Hessian curvature is not a calibrated confidence interval.
+#' The Julia bridge currently refuses factor predictors in Gaussian mean
+#' formulas with ordinary random effects; the native TMB route supports them.
+#'
 #' @param ... Prior specifications returned by `drm_prior_normal()` or
 #'   `drm_prior_ridge()`.
 #' @param dpar Distributional parameter, `"mu"` or `"sigma"`.
@@ -19,6 +30,15 @@
 #' @export
 #' @examples
 #' drm_priors(drm_prior_normal("mu", "x", sd = 2))
+#' \donttest{
+#' d <- data.frame(x = rep(c(-1, 0, 1), 6), group = factor(rep(1:6, each = 3)))
+#' d$y <- 0.5 + 0.6 * d$x + rep(c(-0.5, 0.2, 0.7, -0.3, 0.4, -0.4), each = 3) +
+#'   rep(c(0.1, -0.2, 0.1), 6)
+#' p <- drm_priors(drm_prior_normal("mu", "x", mean = 0.2, sd = 0.8))
+#' fit <- drmTMB(bf(y ~ x + (1 | group), sigma ~ 1), data = d, priors = p)
+#' coef(fit, dpar = "mu")
+#' logLik(fit)  # data likelihood at the penalized estimates
+#' }
 drm_priors <- function(...) {
   entries <- list(...)
   if (!length(entries) || !all(vapply(entries, inherits, logical(1), "drm_fixed_prior"))) {

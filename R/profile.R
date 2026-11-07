@@ -822,6 +822,10 @@ profile_targets <- function(object, ready_only = FALSE) {
   }
 
   targets <- drm_profile_targets(object)
+  if (drm_has_fixed_priors(object)) {
+    targets$profile_ready[] <- FALSE
+    targets$profile_note[] <- "fixed_prior_inference_unavailable"
+  }
   if (ready_only) {
     targets <- targets[targets$profile_ready, , drop = FALSE]
   }

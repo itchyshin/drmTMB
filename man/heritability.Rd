@@ -127,6 +127,9 @@ working (log-SD) scale: a numeric gradient of the ratio in the log-SD
 parameters, combined with the fixed-parameter covariance
 (\code{object$sdr$cov.fixed}) via the quadratic form, then a Wald interval at
 \code{level}, clamped to \verb{[0, 1]}. This is a delta-method approximation; not a coverage claim.
+For fits with active fixed-effect priors, these interval-returning
+accessors are unavailable. Point-only variance shares remain available in
+\code{summary()$derived}.
 
 \code{method = "profile"} is accepted but is \strong{not implemented}; it aborts
 naming \code{method = "delta"} as

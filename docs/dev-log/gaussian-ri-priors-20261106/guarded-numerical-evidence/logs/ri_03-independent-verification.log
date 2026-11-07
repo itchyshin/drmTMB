@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "ri_03",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 1.3613345918580616e-16,
+        "point_prior": 6.45619973456123e-17,
+        "point_decomposition": 0.0,
+        "point_gradient": 9.88847834626613e-16,
+        "point_hessian": 2.1420482811411865e-10,
+        "fit_objective_at_returned_point": 2.656953144363986e-16,
+        "fit_data_nll": 2.574930969309542e-16,
+        "fit_prior": 5.716331886714492e-17,
+        "fit_optimum_objective": 2.2502356134845926e-11,
+        "fit_coefficients": 6.207115951923616e-09
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 7.097505958284858e-07
+      }
+    },
+    {
+      "id": "ri_03",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 2.580363993298703e-16,
+        "point_data_nll": 1.3613345918580618e-16,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 3.7838415220504406e-16,
+        "point_hessian": 4.78319349163624e-16,
+        "fit_objective_at_returned_point": 7.085208384811198e-16,
+        "fit_data_nll": 5.149861938529267e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 1.1513463625318192e-15,
+        "fit_coefficients": 6.091378834559614e-09
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 1.3634461246533202e-10
+      }
+    },
+    {
+      "id": "ri_03",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 7.085208384811198e-16,
+        "fit_data_nll": 5.149861938529267e-16,
+        "fit_prior": 5.716331886703476e-17,
+        "fit_optimum_objective": 1.1513463625318192e-15,
+        "fit_coefficients": 6.091378834559614e-09
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 1.3634461246533202e-10
+      }
+    }
+  ]
+}
+INDEPENDENT_COMPARISON_PASS

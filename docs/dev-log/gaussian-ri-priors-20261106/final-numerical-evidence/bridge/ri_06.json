@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "ri_06",
+  "engine": "R/Julia-bridge",
+  "namespace_path": "/home/snakagaw/hsq_work/drmtmb-ri-priors-final-lib-20261106/drmTMB",
+  "dll": "/home/snakagaw/hsq_work/drmtmb-ri-priors-final-lib-20261106/drmTMB/libs/drmTMB.so",
+  "dll_sha256": "3aead1ed4a821e1e400cc56f78b7c6f37e8ccbf3828134086025c13a7bd81126",
+  "X_columns": ["(Intercept)", "x"],
+  "W_columns": ["(Intercept)", "scale_x"],
+  "source_formula": "y ~ 1 + x",
+  "transport_formula": "y ~ 1 + x",
+  "column_mapping": {
+    "(Intercept)": "(Intercept)",
+    "x": "x"
+  },
+  "raw_factor_control": "not_applicable",
+  "coordinate_order": ["beta:(Intercept)", "beta:x", "gamma:(Intercept)", "gamma:scale_x", "tau"],
+  "negative_control": "not_requested",
+  "selectors": [
+    {
+      "dpar": "mu",
+      "coefficient": "x",
+      "matrix_column": 2,
+      "mean": 0,
+      "sd": 1.4907119849998598,
+      "precision": 0.45000000000000001,
+      "reason": "exact column",
+      "kind": "ridge"
+    },
+    {
+      "dpar": "sigma",
+      "coefficient": "(Intercept)",
+      "matrix_column": 1,
+      "mean": -0.22,
+      "sd": 1.3,
+      "precision": 0.59171597633136086,
+      "reason": "exact column",
+      "kind": "normal"
+    }
+  ],
+  "point": {
+    "status": "arbitrary_point_unavailable"
+  },
+  "fit": {
+    "converged": true,
+    "theta": [0.75380721116242755, 0.66434463091926466, -1.6549666111400676, 0.37548567438393116, 4.535302654198203e-10],
+    "sd_name": "group",
+    "objective": -0.65898181738536099,
+    "data_nll": -2.5487990326139975,
+    "prior": 1.8898172152286365,
+    "gradient_availability": "reported_native_order_unverified",
+    "gradient_native": [-4.5823744798667576e-10, -2.0590859017843854e-09, -6.9227634735824495e-09, -1.931611506454974e-09, 3.3981286523166017e-17],
+    "hessian_availability": "unavailable",
+    "bridge_diagnostics": {
+      "converged": true,
+      "2": {},
+      "3": {},
+      "estim_method": "MAP"
+    }
+  }
+}

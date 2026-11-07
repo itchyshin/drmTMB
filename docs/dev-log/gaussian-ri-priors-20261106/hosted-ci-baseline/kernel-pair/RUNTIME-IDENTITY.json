@@ -1,0 +1,26 @@
+{
+  "sha256": {
+    "/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/julia-1.13.3/bin/julia": "6cbeea7d1416fb31952325b75f88c83173d939263767adc43e7b43c6de48ab03",
+    "/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/julia-1.13.3/lib/julia/libopenblas64_.so": "4ee5ad9dcc4082b918d3e5bfc434b5a74fb43025f102447eb16a7f04ba21a12b",
+    "/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/run.jl": "c74673c94d4d80cf6da4f1b3d654b918fa24a59e378bc63ef09f332762f04fbd",
+    "/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/fit_diagnostics.jl": "1b0e7c6e9ace64d085b60e5d4ceecf1377b78bc29433ed2119491f0ed0cbb468",
+    "/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/kernel-pair/run_kernel_pair.py": "c6dac77367cc4289ecfe18207df1138052a6db8a2fce8c346311ae1464213b08",
+    "/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/kernel-pair/kernel_probe.jl": "6cb371778218fe83a3dc4de5ec5f38d5338b9e8b370a5bba315ca692a2eee38b",
+    "/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/baseline-env/Project.toml": "f9ad800bc3234ab9ddb9ff7d58122b3f5ad31a0fc75658ba990d27bf16c046b0",
+    "/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/baseline-env/Manifest.toml": "fc6fbcf09d31a8e5d4949b86194eccdb90bc1b42d6b54ca949b82272a29ef6cd",
+    "/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/candidate-env/Project.toml": "feaf01808fd1e43fcf7497df928f24917b4c9330c52a87ceb16dd5ede5c71448",
+    "/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/candidate-env/Manifest.toml": "f2b7d67e53944452676a2c953d7b1a77803c4fc23a4bfe1bb55a999ea6f312c9"
+  },
+  "sources": {
+    "baseline": {
+      "head": "86ee1c2a38cd79c55dbbd71afd7374a3095aad3c",
+      "original_victim_sha256": "57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5",
+      "production_diff_empty": true
+    },
+    "candidate": {
+      "head": "ff10a2f9adb23c0e315d50e8c2094d6d27ed1d82",
+      "original_victim_sha256": "57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5",
+      "production_diff_empty": true
+    }
+  }
+}

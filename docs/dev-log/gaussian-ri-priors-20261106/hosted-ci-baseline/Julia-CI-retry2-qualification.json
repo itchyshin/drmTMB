@@ -1,0 +1,31 @@
+{
+  "recorded_at": "2026-11-07T02:47:24.755419+00:00",
+  "run": 42311551066,
+  "attempt": 2,
+  "job": 128272640509,
+  "source": "385fde27d369270afb2353ddf1fbd9f301f2b4ce",
+  "conclusion": "failure",
+  "test": "test_binomial_sd_public.jl:92 slope_fit.converged",
+  "counts": {
+    "pass": 43,
+    "fail": 1,
+    "total": 44
+  },
+  "rcond": 5.752216336949239e-17,
+  "baseline_same_testset": {
+    "pass": 44,
+    "fail": 0,
+    "rcond": 6.827653639066237e-17
+  },
+  "listed_package_versions": {
+    "baseline": 118,
+    "candidate": 118,
+    "differences": 0
+  },
+  "classification": "Repeated hosted candidate failure; baseline passes. Cause unresolved. No further blind retry. Next diagnostic: baseline and candidate on a single hosted runner, recording machine and optimizer evidence.",
+  "hashes": {
+    "Julia-CI-shard3-retry2-385fde27.log": "74f40f61df94c2062257c26c19c3f2ee93ff9a9f4479f6ffea67854ffd15b280",
+    "Julia-CI-retry2-final-385fde27.json": "cdf2961d43b97e1e0a8e7a236cfed8a0b947f435a8bc0fcbede1b2a900398174",
+    "Julia-hosted-dependency-log-comparison.json": "0081bf725d0193c4239591b80ba63dc413705ec8686a83500e70aa56df004c22"
+  }
+}

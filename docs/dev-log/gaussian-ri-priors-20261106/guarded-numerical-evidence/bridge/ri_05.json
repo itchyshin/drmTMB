@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "ri_05",
+  "engine": "R/Julia-bridge",
+  "namespace_path": "/home/snakagaw/hsq_work/drmtmb-ri-priors-guard-final-lib-5d0f-20261106/drmTMB",
+  "dll": "/home/snakagaw/hsq_work/drmtmb-ri-priors-guard-final-lib-5d0f-20261106/drmTMB/libs/drmTMB.so",
+  "dll_sha256": "cb9c54af096bbe03e5994006125e9112cc13d4ec15aff6ae0e79e371301db413",
+  "X_columns": ["(Intercept)", "x"],
+  "W_columns": ["(Intercept)", "scale_x"],
+  "source_formula": "y ~ 1 + x",
+  "transport_formula": "y ~ 1 + x",
+  "column_mapping": {
+    "(Intercept)": "(Intercept)",
+    "x": "x"
+  },
+  "raw_factor_control": "not_applicable",
+  "coordinate_order": ["beta:(Intercept)", "beta:x", "gamma:(Intercept)", "gamma:scale_x", "tau"],
+  "negative_control": "not_requested",
+  "selectors": [
+    {
+      "dpar": "sigma",
+      "coefficient": "(Intercept)",
+      "matrix_column": 1,
+      "mean": 0,
+      "sd": 1.1952286093343936,
+      "precision": 0.69999999999999996,
+      "reason": "exact column",
+      "kind": "ridge"
+    }
+  ],
+  "point": {
+    "status": "arbitrary_point_unavailable"
+  },
+  "fit": {
+    "converged": true,
+    "theta": [0.83039159738793178, 0.80333469574343797, -1.685781889561738, 0.36348652858958336, 0.036093355340812254],
+    "sd_name": "group",
+    "objective": -1.5809746757275269,
+    "data_nll": -2.5756258784385473,
+    "prior": 0.99465120271102037,
+    "gradient_availability": "reported_native_order_unverified",
+    "gradient_native": [-3.73528363795117e-09, 1.6367778243875364e-09, -1.3691556777217784e-09, -1.3721274810807316e-10, -5.1309623216866385e-11],
+    "hessian_availability": "unavailable",
+    "bridge_diagnostics": {
+      "converged": true,
+      "2": {},
+      "3": {},
+      "estim_method": "MAP"
+    }
+  }
+}

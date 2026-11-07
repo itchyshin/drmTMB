@@ -5500,6 +5500,10 @@ drm_summary_direct_parameters <- function(object) {
     targets$profile_ready <- FALSE
     targets$profile_note <- "family_interval_deferred"
   }
+  if (drm_has_fixed_priors(object)) {
+    targets$profile_ready[] <- FALSE
+    targets$profile_note[] <- "fixed_prior_inference_unavailable"
+  }
   out <- data.frame(
     component = targets$target_class,
     dpar = targets$dpar,

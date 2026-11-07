@@ -258,8 +258,10 @@
 #'   labeled `MAP` and `logLik()` returns the unpenalized data log-likelihood.
 #'   Native `engine = "tmb"` only.
 #' @param priors Optional fixed-effect normal priors or ridge penalties created
-#'   by [drm_priors()]. This initial slice supports fixed-effect Gaussian
-#'   identity and binomial logit models with complete data and unit weights.
+#'   by [drm_priors()]. Supports Gaussian identity and binomial logit models
+#'   with complete data and unit weights; Gaussian models may also include one
+#'   independent mean random intercept. The Julia bridge currently refuses
+#'   factor predictors in Gaussian mean random-intercept formulas.
 #'   Select distributional parameters and coefficient columns explicitly;
 #'   [drm_resolve_priors()] previews those selections. Active priors produce
 #'   penalized/MAP point estimates. Covariance is local penalized-Hessian

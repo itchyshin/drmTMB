@@ -4,7 +4,7 @@ test_that("fixed-prior request guards reject unsupported routes before fitting",
   expect_error(drm_validate_fixed_prior_request(p, bf(y ~ x), poisson(), data.frame(y=1:4,x=1:4)), "Gaussian|binomial")
   expect_error(drm_validate_fixed_prior_request(p, bf(y ~ x), gaussian(), data.frame(y=1:4,x=1:4), REML=TRUE), "REML")
   expect_error(drm_validate_fixed_prior_request(p, bf(y ~ x), gaussian(), data.frame(y=1:4,x=1:4), estimator="mspl"), "MSPL|ml")
-  expect_error(drm_validate_fixed_prior_request(p, bf(y ~ x + (1|g)), gaussian(), data.frame(y=1:4,x=1:4,g=1:4)), "fixed.effect")
+  expect_error(drm_validate_fixed_prior_request(p, bf(y ~ x + (1+x|g)), gaussian(), data.frame(y=1:4,x=1:4,g=1:4)), "fixed.effect")
 })
 
 test_that("fixed-prior inference has explicit limits", {
