@@ -1,0 +1,9 @@
+9bb4cb48d3a07dd3fa598888628f7b84c98b992cea87b2f5128b7ac953906b34  R/julia-bridge.R
+d81ef23c0409922816e09c41e00e031e9d09624d0f8c0211f11d4d9eef5c401c  R/drmTMB.R
+8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3  R/random-effect-scale-formulas.R
+54f635fd488b0887ea6d2e1f619cdcd80d196587b8d770214b5b4594c5ddeb77  src/drmTMB.cpp
+37159ffd1943a704e67f3deadd3cca2b9a607b1cb87498b5863bb2199e8cb7b5  tests/testthat/test-julia-binomial-animal-ainv-nonlogit-sd-bridge.R
+70f03e0651e6994151a80b6db76579ab478d143ee2ebf6665af97ebb78a557c0  ../general-sd-julia/src/binomial_sd_regression.jl
+427c1144596cba2dea4faf29a5ea80e71b8ad6b8e8a6d9b89efb0027c5e43f73  ../general-sd-julia/src/bridge.jl
+c595db76da3397ae4d068d5c6bc6cbe7636babfc722cd8becc261781ed15278a  ../general-sd-julia/src/binomial.jl
+e2f2cca93608c90b8fd6707270c762081e4bcadd8f13b885f0eb373553863174  docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-ainv-nonlogit-bridge-live-20261029/test-console.log

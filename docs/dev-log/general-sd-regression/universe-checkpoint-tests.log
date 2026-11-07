@@ -1,0 +1,24 @@
+test_default_revisions_are_immutable_paired_baselines (test_inventory.JuliaRegistryTests.test_default_revisions_are_immutable_paired_baselines) ... ok
+test_duplicate_registry_rows_fail_closed (test_inventory.JuliaRegistryTests.test_duplicate_registry_rows_fail_closed) ... ok
+test_negative_control_keeps_family_missing_from_registry_visible (test_inventory.JuliaRegistryTests.test_negative_control_keeps_family_missing_from_registry_visible) ... ok
+test_registry_rows_preserve_wildcards_enumerations_and_flags (test_inventory.JuliaRegistryTests.test_registry_rows_preserve_wildcards_enumerations_and_flags) ... ok
+test_marginal_axes_do_not_invent_crossproduct_rows (test_inventory.LedgerSummaryTests.test_marginal_axes_do_not_invent_crossproduct_rows) ... ok
+test_block_rule_provenance_is_mandatory (test_universe.RequiredUniverseTests.test_block_rule_provenance_is_mandatory) ... ok
+test_block_rules_materialize_member_and_q_dimensions (test_universe.RequiredUniverseTests.test_block_rules_materialize_member_and_q_dimensions) ... ok
+test_candidate_cross_endpoint_sets_cover_actual_family_subsets (test_universe.RequiredUniverseTests.test_candidate_cross_endpoint_sets_cover_actual_family_subsets) ... ok
+test_cross_engine_tagged_q4_partitions_are_mirrored_as_blocked_native_rows (test_universe.RequiredUniverseTests.test_cross_engine_tagged_q4_partitions_are_mirrored_as_blocked_native_rows) ... ok
+test_duplicate_keys_and_support_promotion_fail_closed (test_universe.RequiredUniverseTests.test_duplicate_keys_and_support_promotion_fail_closed) ... ok
+test_each_endpoint_mechanism_is_retained_for_both_engines (test_universe.RequiredUniverseTests.test_each_endpoint_mechanism_is_retained_for_both_engines) ... ok
+test_expansion_is_deterministic_and_has_unique_keys (test_universe.RequiredUniverseTests.test_expansion_is_deterministic_and_has_unique_keys) ... ok
+test_link_variants_are_not_lost (test_universe.RequiredUniverseTests.test_link_variants_are_not_lost) ... ok
+test_mesh_q1_limit_is_not_a_structural_exclusion (test_universe.RequiredUniverseTests.test_mesh_q1_limit_is_not_a_structural_exclusion) ... ok
+test_missing_block_dimension_rule_fails_closed (test_universe.RequiredUniverseTests.test_missing_block_dimension_rule_fails_closed) ... ok
+test_missing_endpoint_or_engine_rows_fail_coverage (test_universe.RequiredUniverseTests.test_missing_endpoint_or_engine_rows_fail_coverage) ... ok
+test_missing_or_duplicate_endpoint_source_fails_closed (test_universe.RequiredUniverseTests.test_missing_or_duplicate_endpoint_source_fails_closed) ... ok
+test_provider_inputs_layouts_and_phylo_matrix_omission_are_visible (test_universe.RequiredUniverseTests.test_provider_inputs_layouts_and_phylo_matrix_omission_are_visible) ... ok
+test_single_endpoint_never_becomes_a_one_member_block (test_universe.RequiredUniverseTests.test_single_endpoint_never_becomes_a_one_member_block) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 48.331s
+
+OK

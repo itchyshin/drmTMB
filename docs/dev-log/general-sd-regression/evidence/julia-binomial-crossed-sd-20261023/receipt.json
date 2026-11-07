@@ -1,0 +1,28 @@
+{
+  "evidence_id": "julia-binomial-crossed-sd-20261023",
+  "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"iid_additive_terms\",\"O1\",\"iid\",\"multiple independent intercept/slope fields\",\"group_factors\",\"crossed\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "claim": "Focused crossed Bernoulli SD regression with two independent random-intercept fields, each having its own fixed predictor-dependent group SD formula.",
+  "source_branch": "codex/general-sd-regression",
+  "source_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "source_manifest": "source-manifest.json",
+  "source_manifest_sha256": "bfa85384df2a9d22d8e716b2ffa7d380c0b2e9862d697f3f5425eb8397cca8e1",
+  "test_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-sd-20261023/test_binomial_crossed_sd_regression.jl",
+  "executed_test_path": "test/test_binomial_crossed_sd_regression.jl in the paired Julia worktree",
+  "test_sha256": "d924f2fd764a0686e5cb1358d3a912b8dbb97129d941226c5b51e38f8aeebb5f",
+  "test_command": "JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=2 julia --project=. -e 'using Test; include(\"test/test_binomial_crossed_sd_regression.jl\")'",
+  "julia_version": "1.10.0",
+  "result": "20/20 assertions passed in 22.4 seconds.",
+  "console_log": "test-console.log",
+  "scientific_scope": "One synthetic 40-by-40 crossed Bernoulli intercept fixture. Checks separate signed SD-coefficient recovery for both grouping factors, group-specific row prediction, high and low soft-clamp prediction and finite delta SE, one bootstrap refit, and an independent dense fixed-parameter Laplace likelihood oracle.",
+  "public_outputs": [
+    "coef() target-specific SD blocks",
+    "predict_parameters() response-scale SD by row",
+    "bootstrap_result() attempted/used/failed accounting"
+  ],
+  "does_not_establish": [
+    "95% interval coverage or calibrated uncertainty",
+    "R/TMB parity for crossed layouts",
+    "correlated crossed blocks, crossed slopes, missing responses, structured providers, or other families"
+  ],
+  "review_status": "unreviewed"
+}

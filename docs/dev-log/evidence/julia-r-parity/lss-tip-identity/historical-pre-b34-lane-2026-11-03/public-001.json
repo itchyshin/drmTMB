@@ -1,0 +1,925 @@
+{
+  "source_before": {
+    "R/adequacy-plots.R": "7cc880509221b4c7859a583ab0c5f5dc71d4cae16a48de29db4b6c553e55ab94",
+    "R/adequacy.R": "b9ab7b82aa8d5ca5bf5a23f30826ad32d306668b6801dfbdd8b120896e955d57",
+    "R/aghq-coxreid.R": "d7f20896bd1f2701c353084f4f7c908d644447300eadd222c07b71511c9bd200",
+    "R/associate-pairs-sandwich-bernoulli-bernoulli.R": "d6ccc65580d7e0700ab2aed7c49c8369e21f3a441eb6ee8b25c8543d411fd8b3",
+    "R/associate-pairs-sandwich-gaussian-bernoulli.R": "2129bbe7278b0912ba436aa71d9fc80cb5cbdf4822af20fb618ce4baefbc8860",
+    "R/associate-pairs-sandwich-gaussian-nbinom2.R": "578751c099044dc943cbadc144deaa403ff5340eaefba49aaa1f3e21de5e43fd",
+    "R/associate-pairs-sandwich-nbinom2-nbinom2.R": "bbbf3d78813b32fe8a61e4589bd9ecf1f7fdf6d8841995f52fd3ff5dbb5b0a43",
+    "R/associate-pairs-sandwich.R": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c",
+    "R/associate-pairs.R": "424b524e481e3831954c15f3fb91fe30e746628bd99cf2142b2dc2762127640a",
+    "R/bf.R": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd",
+    "R/binomial-q2-sd.R": "0bc8e57aa3555687b13cd59618ff88a2c7190af4c82db6996922324a3b62429c",
+    "R/bootstrap-shards.R": "4df1c49ff6f99ae70e773c1e4c929c13807762535ece09eef1716ac30a75adca",
+    "R/check.R": "340325bbf9957fcc83e061a9edeb34460bbe899ff0107af14f5c3a55d19788de",
+    "R/coevolution-accessors.R": "3f47f2f9388d6b51fcc9fcee25fece85d5b7ec7c98821d0ec0159ec798280666",
+    "R/control.R": "1b86ad506f7fcd56f009f2f2b25ba91d13aacdece42af515ceb6c67231217cd9",
+    "R/distributional-outputs.R": "94540da0f07768fd159b8178b5312dfe505e5cbb9bfdac26983c7abf12c1cf08",
+    "R/drmTMB-package.R": "dec0b5fba6754268176dbdc8d3dfb4ed56b26485c146a39ed6ab0df86ad8395c",
+    "R/drmTMB.R": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c",
+    "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
+    "R/family-dpq.R": "10f689a8737e4cf7893f37a5c322c7926c675b9a66099201439aad561da5241e",
+    "R/family.R": "8869dbb68756133e7cdee017332dbfdd707053ab099716eb0e8705abb7616784",
+    "R/formula-markers.R": "a724d3e9238ab0d6318bbb8ea337b69c88807311c6939ee20bb8609ae4d136b3",
+    "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
+    "R/heritability.R": "64fd77a2ad6bd3998c1c93e3cd1b5a3f859ad4a6e2f2bd7df5c48f83a4b3d5ce",
+    "R/julia-bridge.R": "71a3fa79a97764bbae390ad771d4300688d1d58783d49fb5bf93a6d7bfa82c0d",
+    "R/julia-coefficient-labels.R": "1c2814a197c8d296c2b120646d3576c8e95213ea4ca2848dad1279c2b29832ad",
+    "R/julia-diagnostics.R": "7f60faae8fd3460ca143917ee2ff20067e0db5a8c08927b50f83eb5a0d30bc06",
+    "R/julia-family-cumulative_logit.R": "c9c164d3abcf6878d5424c500120d63558e6bf4b05d49f7747f36ad1721663d7",
+    "R/julia-family-registry.R": "de0dc16fbe870b0450a4925b7960ff55efa4a5cacfce8da8347a74e49a4619b9",
+    "R/julia-fit-methods-docs.R": "f94311f98cf21e4433c1a898547541bf2c9cbf0cdf43d70b6d50e42ed0e59814",
+    "R/julia-joint-call.R": "fcdaa6f048b18b4660ee6674bfd62d6f7a7100f20c3b0a83975bbc551483c2d2",
+    "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
+    "R/julia-joint-methods.R": "6d5898a8bd21aaf8c71ac20f3b73e71dcdad364d4f31b7b680f961d29ec9dcc8",
+    "R/julia-joint-missing.R": "03a95e1e120588961cb6e22639741ef6c6ab3ac756118529f3f1e83a8da81569",
+    "R/julia-simulate.R": "17ff8f0abe08abb539f50a31c91a0b9d8a4c128623fcab2c19628bf83ee474cb",
+    "R/lrt-boundary.R": "bddf0f4cb35a44904ba3d78bc922c418669c51429d69f996504e929ef5877a9a",
+    "R/marginal-parameters.R": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea",
+    "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
+    "R/meta-vcov.R": "a433c378acd76a880bbb302192d21151c2a4e4f808122925c2f27cbda280a5cf",
+    "R/methods.R": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe",
+    "R/mi-weights.R": "763247341c06488d8f373187afe97d885aee18042ef68453e5bea76265468689",
+    "R/missing-data.R": "909e0da5023a5bdae074e05b8211e918599ae7964b34c93ba961a9e3a13d4171",
+    "R/mle-existence.R": "d53bff1b7795c7c5291ceeb14495ffc742fc55b5833fc4da516bbdb63bafd972",
+    "R/model-comparison.R": "e610916641f3b3b28fc99bcd807b02d81544fb9d6dd7fc70aa44c29adbed03db",
+    "R/mspl-estimator.R": "4213ecd424c5cd02bd886d799b5e3ad0746711ab6c8d8d4b7d95848e632c74d1",
+    "R/mspl.R": "6f394409ab1cff8e72f73c2a01626de8177d75794c03cb5d489bf4502a33719e",
+    "R/objective-at.R": "a1311ffe4f121316f4c730dcc74ffa419df12ef9c17f9d6710ff53013c6b7ea1",
+    "R/parallel-docs.R": "82e84fe0843ef7230b6823ad870601c138aebc46612e262ce6dcb055df7764ce",
+    "R/parse-formula.R": "aa0aedad162c3018790ead4350dbb2e68efc8203037f8ad923db4cdd0f4c61f5",
+    "R/penalty.R": "ebab55d1bf9257ea973d5c9eded45d8988f6a1ba22b162800e64bf442b6bda83",
+    "R/phylo-utils.R": "512195e7c8eab314a876ead4e5a2537b511e2c4acbd5f86900cea5d46b20a0c4",
+    "R/plot-corpairs.R": "23fd048ab1c152ee325ba203210f67d5c96b88c516cff4ec7c887448a805137c",
+    "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
+    "R/predict-parameters.R": "ef79299d4dd607be50067752c643027af55e9814d1e220a37dcdee94957dd8a9",
+    "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
+    "R/profile.R": "a1d4d5aa4f16e5870a250c8edeb4d73a06d7988e32b118aa78ca64394e8686a5",
+    "R/provenance.R": "3211cf0b8417c36b0bd8c3656ac255e77ca06f4a2998f3faa362f2885b3ba43d",
+    "R/random-effect-scale-formulas.R": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3",
+    "R/random-effect-targets.R": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858",
+    "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
+    "R/sparse-fixed.R": "eb38f9a4281aeb652f392eb4f4bb075fd733195b665aa666a96d2fc3c8364bfd",
+    "R/temporal.R": "71079c818d9d3955407fb3ddb08869559566858e45703c1f5fb1f4146c52ac93",
+    "R/utils.R": "cdbca619afd03085d98304220f6bb019e80085e1efdd521fc665de0862b7c156",
+    "R/zzz.R": "10521dcc0b9f5bea053bc2dd490b6efa4edd7e571228ec28cd0f34ba226daaa1",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/adaptive_ghq.jl": "54391c732eb738170ab9acbe3043522ee5a4d08fdaf4f593effc932d3d0cc795",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/aghq_1d.jl": "f45ca1aba61fb31a8f8bb007536244ed6b7ff11d2d18e1062a42215b4e7603d1",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/associate_pairs.jl": "e5c9c76592693bd9755e43ff123f0d2208935dd1211741c071588fdad494982d",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/beta.jl": "96fd362b9e991bed31a96fb03aff899a53ff657dd6f83ca4f17e2866979f8500",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/betabinomial.jl": "4577e00e9d889f95947f3ebb58716205c6cf54b4e1b1fa06ce2a0e0f0515d829",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/bias_correct.jl": "8eac4b3dade6c7784bfb47517d813bc073be4a5d5870af32f8c0cc2feea31db6",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/binomial.jl": "3effd2600ae7dc1514415ef41345a9590572dd03f6455b516656631be528b9ee",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/bivariate_lognormal.jl": "f0e9b02867cd39c756f09a7afe183bb3696fd187ba5436d5b82f75f3c1beb10b",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/bivariate_student.jl": "732b1949f233e6829cfa1a11875d671ca6f1977b029d97fd42a22c23dd0680c3",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/bootstrap_q4_phylo.jl": "9586741710cef88cb378826959dbefd0b406f758a0a3619d86887f5460292014",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/boundary_diagnostics.jl": "2ad7bbb0c46a302b5942996cf4df72453aa91fd5b3e3b622f4ab1f40f64ae561",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/bridge.jl": "2a0c743424aae84c5371f6bea3487290ce4c5e985c6937ed81899e4dc85cac2e",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/chibar.jl": "9c23e8e0082e7174b72972fdadd349c483704c1aa72aee088b0e344cb7cb37d0",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/ci_args.jl": "fe3169393b62e19d250dc700d1171c87aa01d13496a6248611e9972c70efeab7",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/coevo_accessors.jl": "9edb84589ef8499b80decabe1d12fbff1fad2802a4a3fc57d5487eedff99f65c",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/coevolution_q.jl": "c39dae9c8c5bc674b6ef7b6e3461fbb339a3ad4553cb0754fbb6ffcb850e6a0f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/comparison.jl": "a73a300d69db10da63708c75e56c861483cea038ae62830bf823b005b4c503a2",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/control.jl": "a1bc3740f40852a0cc691ea44c2783254e267db54d48b7f623761d4092307ebf",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/convergence_status.jl": "c694fa12482a53f0d80027a20c88994ba9ceb66ce1cda530d32a4aab4d7512d6",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/cumulative_predict.jl": "b8b748d0307b20e44f4241174431153efc018bc1ddcaf36d44f23a9478cdd7bf",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/cumulative.jl": "82ae34f0f6afcffb9d0b1eebbfb918db7c593d35c9a4b4cdc42b45ed0a85f72f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/design_rank.jl": "fd15e31782e8109e179e1ce21dfd54cdaddd3068618704535eacc85d98d0ebfe",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/DRModels.jl": "c60e53ae9af5017a4cf00f8dad0c64362e89368e2b3ca77e46af6fd347804b26",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/em_squarem_fit.jl": "27dd32a19ca624dad007c63968f76974e790c29b09acb6767cef3f695f5d51c9",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/estep_armijoguard.jl": "19e8eb019a3184db1b13c1cde8ee882ef66b174882de15a96ba02840380cfd13",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/estep_initprior.jl": "64231307ede8f6ec71ac7e5eef07bedb0c440e7f52dad5485c9637dadaf59436",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/estep_lm.jl": "2550ab9b7edd3c0a21a6f9f0d26c3eddef046c303058569d71dcba7c678140c5",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/estep_trustregion.jl": "c4a62576c388238f16a4fb14b812c2074d9bc7999882a8cbd3e8112a6893e9f6",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_em_closed.jl": "e21460eb4a5cff018eb826f6b2ec3a638e2a9059eb0db568eea602537d9814cf",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_em_natgrad.jl": "5bd1212a764ad8f3025bf8297745ed3c92b8a2f3cc9bd2e2235d1cc453ec518e",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_ml_q4.jl": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_ml_warm.jl": "6091d3ff479f9bc3805b3faffd530bf4e675f735628435d7b11a226ad3fbfc2c",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_q4_p100_tmb.jl": "269759ce21c31ac167897df3d67f12d53cdb023b0cc3890e24b25610cbb0ee07",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_q4_tmbgrad.jl": "188582efc569ba54d141f4b9ac58b8f474e33ddc154ae0a9f8a6cda239eec5a6",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_sparse_direct.jl": "f03753b30d303febb3fac1ef89e347234f44878684cf62875d967ca35e2e322a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/location_only.jl": "39eac765202c2c7a4ed6bf990ea2214d17845cad4bbc3697a6f26651afd59646",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/q4_em_dense.jl": "f4c64d74d8d975881a9398192976402d688e8ce494b021bc01fb6816fded3bc7",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/finite_inputs.jl": "41d2e95bb937af0f3c15dc4d29a4ace8a759d65dbd8e0eebc0eeb3e2effc5314",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/fisherz_q4.jl": "4ca0e4db63eefe507c32325033fabc79ee2fd5b15bfc08102fdb0b86ec081d08",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/fit_derivatives.jl": "4abcbf719fc1e038e45f967236b8b080183f2229216d50de3083898417df73df",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/fit_ml_q4.jl": "18a1b114a6e97aec907ce3535531f45635b774bc70ed0cfc57152af4ae4d4115",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/fit_q4_sparse_tmb.jl": "fe3839fc3469ebfa725c9aab98239ec216a560aa5d65fd73eb27bce386d90734",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gamma.jl": "6602b5356a13703b2298fc91284473807a8a3c3f0c3f8406cdffdff73f320ec4",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_bivariate.jl": "6805ef3b881b560b49c3b5e11e427a8d9a8b579e716c86515e79bcd5f0dcbef6",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_core.jl": "8aefaa5c958956b92c0de1e8e7d1ce941ced6ce599146a229817e32e4af67f26",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_locscale_phylo.jl": "b6383c831e5a1ce7b72eb1eafd665fd35ade22b9c340266db9755507fd08f4b1",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_lss.jl": "dfb03f8cdbced6d8122d9fd33231f5e16f1e3623658883561e6274dd55dd3f0b",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_meta.jl": "2b7929b89d36269035fb7f21fefb1b60f2d24c91a48c06c597cb068d40243044",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_multi_re_sparse.jl": "c539e31aca65c551c234c8483046102ed5bdcf5157b2f2d2bd46cd0d98111f02",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_ranef.jl": "5f74a97d8d77acf52974d18a45061d40d40cee3a2b14a359cd1e018b5fe1c9ad",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_rs_sigma_ranef.jl": "f16a74129d7fb0cf7de96d178fb52e00dcfc48883fb9d63aa19e54b7e26b855f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_sparse_lss.jl": "e40e1e18d4e26fb5b86537cf2cfab54335af29cfc0d4ae2d286693c611156215",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_structured.jl": "315e1729a9628e5958eb2a903e0f00421e63e0f1ed7a58344db93b643052b03f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/heritability.jl": "7bcba74655fc24b491126144f4c7cf9c25e3d3ed2eac7dc89d1f5488b3f7c240",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/indep_slopes_laplace.jl": "7431c4b322c2602027a90f971597bd54fd279c3775ab6d59328e8c2f0f366a95",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/inference.jl": "76db40fdf454516104c47012f9a2f1fbf64c26b55031a4184e4cbb084c94a673",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/input_validation.jl": "07608915662335374424b9ede59654a8a74f9b7d0070482112bbd3042846eab1",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/introspection.jl": "847d370d900087d6817a851a87fcadc7275ee4817d61682959326765bbc8a177",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_bridge.jl": "ffb6feec68b08cb137200ccd1f493df9b40bb67ad46c5edc0d019f59946dd553",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_finite_bridge.jl": "5536cf92cbc04e1d080b1ae5bb693e3f35d02ebf5142b009699470922f72058a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_finite.jl": "4f5a7a9399b2acf7a586aa48852424246bb1209dfbe436235e53ba814b7f2405",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_frontend.jl": "f17f58c7bfcb9cb5d68ed98c587bd0020aadc49c5f19c8bac266838bfee9dd83",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_predictor.jl": "8c4f4e9c1da5c919aea428c9b29ffb41cf516fc77dee3503f71d047eaf592808",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_two_predictor.jl": "f39c17f2af6dc25667a7fb35686a148e95abf4939afd4adb79e921a10cf795eb",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_uncertainty.jl": "2da147052c184cda46e9569290fa4c5e7b722021849c45652845882aa4097e96",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/lc_metric.jl": "f096872d4af733271d9f746735fd38c0cb2a59b9f9c61ea90150cc8beae43d1f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/link_residual.jl": "ef69948c94a6a08e3c95f0ffb393f1b3859e1319dec869df92a5350be7b760e2",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/location_only.jl": "e81f536310f00b87fca9856c99ef03c5c5f207276f6b27dcde0b11816288e02a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_corr.jl": "5cbd6756ffde3991c407eaa8095fa54b697ad9e3adcf358219f5c5b1990dd452",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_fit.jl": "3e226e9536150e1742d59c9acb8aefd8cd69b722f71f2bc5b34a85dafa5dc92b",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_frontend.jl": "ee47aad85763a3c720a464ac0a7037151a829469b2da1d3892d14336c2de7d3f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_grad.jl": "823af6134a9cc49a0aa230ff02d24a36b4e8bb3d75312de43592670b3613fb5a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_infer.jl": "bbac33c832882e9e73a3a43b0b2f2757e29663ba32bc1cb2ea3d11cecd0d1b9f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_inner.jl": "4868acd8193f86ded324403bca634adb381d42e15ffec8beb800e0e638638c03",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_kernels.jl": "b9b64012a776029a44656bf7451ebeca4193d6de815affda60baa6c8d304bd60",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_marginal.jl": "58f345ca2a8ae1d15645f1ca8a3ec614f05953aae336e11e872393842d424f5d",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_profile.jl": "4aa45695229b529652a171942d0769e09cd3ad30cd5c4db4ea90776b49a26833",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_sigma.jl": "21a4c8adc0514aea5dc68ef372d83d33f28d9be6e66c43c8c368e34c11587d1b",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_simulate.jl": "3fecf608b5c10dc6ca7706e2b279013ed0c5eaadfe9806b7f49253eb9b2a289d",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_whitened.jl": "d921dcda90ee57ba0301c5431eccbda0a2b670fbfab0accdd494afb5306eb8fc",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/lognormal.jl": "d5e4e2ce9fba4357fb3f482b83c215f6fcacc6a695150282a1660f2b85f31b15",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/meta_vcov_bivariate.jl": "6540ee951038d0e5daf6eb05fa58aa78fe66fcb385a727ced46df485e618e297",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/missing_data.jl": "0c93dbda1ac1cfa7f084b53f5dc389b50c867ca12f82290440188e123fd5298a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/mixed_family_postfit.jl": "d41ae4907b97a3e15db143bcce8116294f9ff49aea4604cb58daaecdfb774d84",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/mixed_family.jl": "ae0482c5e2e0c87b6274d050af441e6c722cad624c185caa53c7f502c8b1e514",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/negbinomial.jl": "0bb71eab8452a8212c4ecbe3d4e94669f6cf67cc5aaa4a9338ec2484c4a4c87f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/optim_minimum_guard.jl": "958f611952a757d5c5d67561fd2f9bb066e8fe1743262b83e8f072492ce9470c",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/ordinary_laplace.jl": "0546e6221c227b6500bf95d283b36c0ebfe1f407274a4a9271926703a6e1d3d2",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/phylo_interaction.jl": "7c50e3f2311c161b22b5ede22f8a9dc0e24d793eafc6d4b7de61de22db697cea",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/phylo_penalty.jl": "381b82b96f3a360cc7bb64ae5fe4b06a6280457e6b2cde1eaaf4235105d895dc",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/plotting_ext.jl": "f526f5e8d2007da20c0f05435d58ad9ad951c1c8a74d90dcbec8b96d6bc53e01",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/poisson.jl": "01ec10acddbc1802cd722d451759d6e6b140e2e8b6dc398c9dc3d1c41a7a112f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/profile_q4_phylo.jl": "feff013c238718e932cbd4538f190d3cd541f1ebefaf4419b709134ef22f9f16",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/quantile_residuals.jl": "b49971a14cd3b346b48ac4af310744defc426ae33d2622f40ca79a809d762347",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/r2.jl": "c27c8c7728f431b578f3d6f860003faf58ae7124d3e24b9e3d30a15c70098784",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/reml_q2.jl": "6f70498c445c7b08bd99b457aad765a1ae57249bb463e5eb144ec86f8c1c02ea",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/reml_q4.jl": "d132207bd34dd46082ca96bd7ff11065c958e351d6127e31f9c1617adb560383",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/separation.jl": "1f1d54ea050c14b6184552ae05b456e6aed161dac43794197948fefeb5e391fa",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/skewnormal.jl": "5904e804d7a5ab34e73d6ea1f037f48d7c2e884076830854d3781352ca902f54",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/sparse_aug_plsm.jl": "096ea2d7dac0af2412f8c8c0b0119ed6d3d5c69945cebe30e69e6bad5e203cbf",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/sparse_em_fit.jl": "774219f9c6fef12fdcc2fff88b247c590ede57e3060346024d84eb1ed6a84453",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/sparse_laplace_glmm.jl": "242211c5e6056b72121669bd28b58425ee2cc7f5f6d7dab401014d7deda9105a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/sparse_phy.jl": "acbe6167698223e1acab0281cd231dadea91317496dd739fdaf9039a0bce8dc9",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/student.jl": "20f84f40bd00d9174db17575422929cf916bdda2ea9d579aef44003fcf0d5331",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/summary.jl": "901adee520ce9143ff2f80c60bbf91d6e202ae88d27e71e351bde2ce339d30d4",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/takahashi_selinv.jl": "36fd6b6722c317d58c1d716104b6fc5717b7fe3aa2e74b7c5557799ae2303eab",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/temporal.jl": "01cabb94772cf44f69ef89f6e2f4e3df4b3a63a5992759b006a2cbe8dcf79613",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/truncated_poisson.jl": "8416bcb552aee6d5a0e9a1191b4dcdcebcb2e36be24f40534d4a6beadacf2932",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/tweedie.jl": "706c1fa72317037c85605321406b241e5c718a9a7daafbba189a48eb66ab5c5d",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/variational.jl": "de8aec303c087075dd40f17cb71b7023027afd94f5ad9e568e31286a13d434e7",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/vcov_guard.jl": "cd94a98d41e55748433f5c9eb12e231082db166e2ac937f99e2c5f93b70fd7ee",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/visualization.jl": "afdbfa2bca286386cb7b5d251f453bd9e716e97dcfcf97d513d297f30c1822d2",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/zeroonebeta.jl": "7262cee0e592a9c516ea9343ebe9d256072e72be3caec48f01ee1b9458bb9bc1"
+  },
+  "runner_sha256": "94d80772e4cf1d551489cfe1d050b3507a146f675309e0567128d36804093709",
+  "scope": "One shuffled-row labeled-polytomy Gaussian LSS workflow; direct order: tree",
+  "result": {
+    "status": "PASS",
+    "checks": {
+      "names": true,
+      "covariance": true,
+      "likelihood": true,
+      "native_parity": true,
+      "bridge_parity": true,
+      "rows": true,
+      "converged": true,
+      "source": true
+    },
+    "labels": ["A B", "AB", "A_B", "O'Brien", "comma,tip", "colon:tip", "semi;tip", "(tip)[x]", "日本 tree", "  edge  ", "tab\ttip", "line\nbreak"],
+    "payload": {
+      "newick": "(('A B':1,AB:1,A_B:1):1,('O''Brien':1,'comma,tip':1,'colon:tip':1):1,('semi;tip':1,'(tip)[x]':1,'日本 tree':1):1,('  edge  ':1,'tab\ttip':1,'line\nbreak':1):1);",
+      "tip_order": ["A B", "AB", "A_B", "O'Brien", "comma,tip", "colon:tip", "semi;tip", "(tip)[x]", "日本 tree", "  edge  ", "tab\ttip", "line\nbreak"]
+    },
+    "data": [
+      {
+        "y": 0.16082310192204177,
+        "x": 0.79759060274054872,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 0.29455219709960206,
+        "x": -1.8292989255880958,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": 0.41856563193777474,
+        "x": 0.084626309437567618,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": -0.26914139192780179,
+        "x": 0.10002729893514582,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": 1.50966160318733,
+        "x": 0.91730012369325631,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": -0.96725408881941377,
+        "x": -1.6488143350594475,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": 0.18560374173822075,
+        "x": -0.56643842392223465,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": -0.07368600559891611,
+        "x": 0.75574155021038414,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": -0.038718284729606395,
+        "x": 0.32577347938951695,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 1.1038899283172303,
+        "x": -0.45494792778793103,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      },
+      {
+        "y": 0.22544885979816359,
+        "x": 0.020544650308023094,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 1.0525179353653678,
+        "x": 0.70221762051880954,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": 1.1692289774555502,
+        "x": 1.9542735365703976,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": -0.35123594014859899,
+        "x": 0.67791836338092082,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 0.45754915061080281,
+        "x": -0.40702349376073704,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": 0.21743434030545994,
+        "x": 0.46069240062038902,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": 1.5156862070386716,
+        "x": -0.04373047017998935,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": -0.69131483648702008,
+        "x": 0.954173170173792,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": -0.68186426294432656,
+        "x": 0.18652887962025821,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": 0.83134683838523915,
+        "x": 1.2789663280227399,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": -0.52932805244881787,
+        "x": -0.13599067670468321,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": 0.51925853741665329,
+        "x": -0.63847746957511098,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": 0.60538027438847997,
+        "x": 1.0199479197533667,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": -0.51626369459799615,
+        "x": -1.0308319607945604,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": 0.8493711962726499,
+        "x": -0.06208304242399143,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": -0.42092408136565823,
+        "x": 1.0210448782937049,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": -0.1071536312115336,
+        "x": -1.7052255222532786,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": -0.26423778334227327,
+        "x": 0.76064115123798748,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": -0.70804309240624608,
+        "x": -1.0819630152866637,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": 0.40242720190193004,
+        "x": -0.17392436771125752,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": -0.24840245184116169,
+        "x": 2.2907351132626674,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": 0.24601026749383115,
+        "x": 0.31542859404277152,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": 0.1503874240569277,
+        "x": -0.18826012589597335,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": 0.40528686226513705,
+        "x": -0.06754649379951122,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": 0.79780405517949771,
+        "x": 0.38665143232796995,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": 1.5449674468047756,
+        "x": -0.53883651631302742,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      },
+      {
+        "y": 0.47143926862661617,
+        "x": 0.47368955600230223,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": 0.21295103731935985,
+        "x": -1.0284881712767113,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": 0.42883475203647303,
+        "x": -0.78046638056557216,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": -0.20882994498220298,
+        "x": 1.6315314170559201,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": 0.29769372055744725,
+        "x": 0.59863721933696079,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": -0.044084552583589676,
+        "x": 0.58992773559476241,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": -0.078347979408248669,
+        "x": 0.44288694518709376,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": -0.060621402693245785,
+        "x": 1.3164715942535536,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": 1.2508628557927033,
+        "x": 0.066870095140100005,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": 0.63072619166485,
+        "x": 0.50033137416791273,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": -0.87794597236064509,
+        "x": -1.1621759967144554,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": 0.46108226608728936,
+        "x": -0.44071329811027599,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": 0.20612112283264822,
+        "x": -0.54012656577505314,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": -0.34663566596133732,
+        "x": -1.1677445297329432,
+        "z": 0.12287344640487792,
+        "species": "AB"
+      },
+      {
+        "y": -0.097018605651553291,
+        "x": -0.31657429781502194,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": 0.67708285851262673,
+        "x": -0.17415941691003667,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": 0.45890354528181532,
+        "x": -0.3737165432696008,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      },
+      {
+        "y": 1.4448450965346773,
+        "x": 0.92096853726792771,
+        "z": 0.90076728674473261,
+        "species": "comma,tip"
+      },
+      {
+        "y": -0.80436021698902815,
+        "x": -0.78135139508383,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": 0.19104846772964648,
+        "x": -0.30887677036019867,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": 1.1863563203319603,
+        "x": 1.1521763674846925,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      },
+      {
+        "y": -0.41818731874669596,
+        "x": 0.89910540948527629,
+        "z": -1.3226229685819297,
+        "species": "  edge  "
+      },
+      {
+        "y": 0.40381949547170626,
+        "x": 0.12871259138456201,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": 0.2486370415091177,
+        "x": -1.1731826582027178,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": 1.2686637177855298,
+        "x": 0.8935267700366657,
+        "z": 0.69019373867894462,
+        "species": "(tip)[x]"
+      },
+      {
+        "y": 0.67992452309490192,
+        "x": 0.70798879673429127,
+        "z": 0.61567209382039667,
+        "species": "日本 tree"
+      },
+      {
+        "y": 0.19844080314956966,
+        "x": -0.24324272687361947,
+        "z": -0.61418776126467012,
+        "species": "semi;tip"
+      },
+      {
+        "y": 0.98079510370021517,
+        "x": 1.087098943714508,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      },
+      {
+        "y": -0.41439229640707592,
+        "x": 0.63939801904915505,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": -0.46550745117207948,
+        "x": 0.62556106242450527,
+        "z": -0.37816253337019046,
+        "species": "A_B"
+      },
+      {
+        "y": 0.89229420133241033,
+        "x": 0.059948701794277283,
+        "z": -0.52394324389667823,
+        "species": "tab\ttip"
+      },
+      {
+        "y": -0.11679765303244943,
+        "x": -0.68986796697337249,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 0.033012010998806796,
+        "x": -0.81261007168330857,
+        "z": 1.6949214411761331,
+        "species": "A B"
+      },
+      {
+        "y": 0.097879434291818182,
+        "x": 1.0611494548705669,
+        "z": -0.26392993588398173,
+        "species": "O'Brien"
+      },
+      {
+        "y": -0.060840398833762133,
+        "x": -0.21225502810313365,
+        "z": -1.5348636078498197,
+        "species": "line\nbreak"
+      },
+      {
+        "y": 1.0846669923921812,
+        "x": -0.052495305947474827,
+        "z": -1.0436247263343466,
+        "species": "colon:tip"
+      }
+    ],
+    "permutation": [1, 9, 11, 14, 68, 69, 2, 19, 34, 39, 41, 50, 26, 28, 29, 31, 42, 66, 6, 24, 32, 44, 65, 70, 5, 12, 15, 20, 47, 54, 10, 36, 53, 57, 64, 72, 25, 33, 40, 56, 59, 63, 13, 16, 38, 43, 51, 61, 23, 27, 37, 49, 52, 62, 4, 8, 18, 21, 55, 58, 17, 22, 35, 45, 48, 67, 3, 7, 30, 46, 60, 71],
+    "direct_order": "tree",
+    "outputs": {
+      "native": {
+        "mu": [0.27501793136182756, 0.22373803708579493],
+        "sigma": [-0.93889050281293362, -0.0059595983003247624],
+        "sd_phylo": [-0.76855461703277295, -0.5056328468089315],
+        "loglik": -47.951068142352348,
+        "converged": true
+      },
+      "bridge": {
+        "mu": [0.27501793136136016, 0.22373803708575798],
+        "sigma": [-0.93889050281273989, -0.0059595982980807519],
+        "sd_phylo": [-0.76855461703284822, -0.5056328468166672],
+        "loglik": -47.951068142352277,
+        "converged": true
+      },
+      "direct": {
+        "sd_phylo": [-0.76855461703284822, -0.5056328468166672],
+        "source": "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/DRModels.jl",
+        "sigma": [-0.93889050281273989, -0.0059595982980807519],
+        "loglik": -47.951068142352277,
+        "mu": [0.27501793136136016, 0.22373803708575798],
+        "covariance": [
+          [2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 2, 1, 1, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 1, 1, 2, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 2, 1, 1, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2]
+        ],
+        "fitted": [0.45346928721657709, 0.34790585017456832, 0.27961455109389055, 0.426694055288597, 0.12066822658239527, 0.093206149006819616, -0.13426581949280647, 0.31675153674740236, 0.2599052114266322, 0.10039791536219286, 0.4089558477422881, 0.013749062461279897, 0.50346450820726041, 0.44520228946599866, 0.032941650121734056, 0.78754250908617085, 0.40700720494577836, 0.41497973554550027, -0.09388455148369991, 0.044381611887922182, 0.34559130583321029, 0.56956270173880863, 0.41807558905994019, 0.51243742744872289, 0.48025286045501231, 0.4321307233832703, 0.18395129381954559, 0.5611713470919476, 0.014994955108283591, 0.48107362410742804, 0.1732287750218553, 0.15445970689135538, 0.19140332554374492, 0.53280361019898426, 0.51824331514604505, 0.26327273465245582, 0.26112759331310448, 0.23289698033187742, 0.64005356805719693, 0.20591044905958086, 0.30381583390596328, 0.22059528111526938, 0.71226325636226318, 0.37809234477649162, 0.044906006753987905, 0.3741085871284282, 0.20418821937642498, 0.47493385697294122, 0.50321907685668066, -0.10650587977612493, 0.3810003028093395, 0.15417107375697822, 0.2360518452819084, 0.43342195502139819, 0.29739784288010002, 0.44410606234957933, 0.4885027634959393, 0.24459164429349042, 0.10019990395108547, 0.4761820108127825, 0.26523376180245206, 0.13216623559514307, 0.36152656386681692, 0.289979315187744, 0.17641360312457652, 0.28843073622665122, 0.29395205572073352, 0.14828411026304891, 0.23610443472826181, 0.38696109091010888, 0.012532346272032341, 0.22752840801198262],
+        "threads": 1,
+        "converged": true,
+        "julia": "1.13.0",
+        "labels": ["A B", "AB", "A_B", "O'Brien", "comma,tip", "colon:tip", "semi;tip", "(tip)[x]", "日本 tree", "  edge  ", "tab\ttip", "line\nbreak"],
+        "blas": 1
+      }
+    },
+    "bridge_fitted": [0.45346928721657709, -0.13426581949280647, 0.29395205572073352, 0.29739784288010002, 0.48025286045501231, -0.09388455148369991, 0.14828411026304891, 0.44410606234957933, 0.34790585017456832, 0.1732287750218553, 0.27961455109389055, 0.4321307233832703, 0.71226325636226318, 0.426694055288597, 0.18395129381954559, 0.37809234477649162, 0.26523376180245206, 0.4885027634959393, 0.31675153674740236, 0.5611713470919476, 0.24459164429349042, 0.13216623559514307, 0.50321907685668066, 0.044381611887922182, 0.26112759331310448, 0.50346450820726041, -0.10650587977612493, 0.44520228946599866, 0.032941650121734056, 0.23610443472826181, 0.78754250908617085, 0.34559130583321029, 0.23289698033187742, 0.2599052114266322, 0.36152656386681692, 0.15445970689135538, 0.3810003028093395, 0.044906006753987905, 0.10039791536219286, 0.64005356805719693, 0.4089558477422881, 0.40700720494577836, 0.3741085871284282, 0.56956270173880863, 0.289979315187744, 0.38696109091010888, 0.014994955108283591, 0.17641360312457652, 0.15417107375697822, 0.013749062461279897, 0.20418821937642498, 0.2360518452819084, 0.19140332554374492, 0.48107362410742804, 0.10019990395108547, 0.20591044905958086, 0.53280361019898426, 0.4761820108127825, 0.30381583390596328, 0.012532346272032341, 0.47493385697294122, 0.43342195502139819, 0.22059528111526938, 0.51824331514604505, 0.41807558905994019, 0.41497973554550027, 0.28843073622665122, 0.12066822658239527, 0.093206149006819616, 0.51243742744872289, 0.22752840801198262, 0.26327273465245582],
+    "native_correlation": [
+      [1, 0.50000000000000011, 0.50000000000000011, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0.50000000000000011, 1, 0.50000000000000011, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0.50000000000000011, 0.50000000000000011, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 1, 0.50000000000000011, 0.50000000000000011, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0.50000000000000011, 1, 0.50000000000000011, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0.50000000000000011, 0.50000000000000011, 1, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 1, 0.50000000000000011, 0.50000000000000011, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0.50000000000000011, 1, 0.50000000000000011, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0.50000000000000011, 0.50000000000000011, 1, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0.50000000000000011, 0.50000000000000011],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.50000000000000011, 1, 0.50000000000000011],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.50000000000000011, 0.50000000000000011, 1]
+    ],
+    "group_covariate": [1.6949214411761331, 0.12287344640487792, -0.37816253337019046, -0.26392993588398173, 0.90076728674473261, -1.0436247263343466, -0.61418776126467012, 0.69019373867894462, 0.61567209382039667, -1.3226229685819297, -0.52394324389667823, -1.5348636078498197],
+    "tree_edge": [
+      [13, 14],
+      [14, 1],
+      [14, 2],
+      [14, 3],
+      [13, 15],
+      [15, 4],
+      [15, 5],
+      [15, 6],
+      [13, 16],
+      [16, 7],
+      [16, 8],
+      [16, 9],
+      [13, 17],
+      [17, 10],
+      [17, 11],
+      [17, 12]
+    ],
+    "tree_edge_length": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "runtime": {
+      "R": "R version 4.6.0 (2026-04-24)",
+      "drmTMB": "0.7.1",
+      "drmjl_ref": "973bbb675dc6a10b436acf86175e089e38ec467e",
+      "native_dll": {
+        "drmTMB": {
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpNfQR7s/pkgloadd835f5dc26b/drmTMB.so",
+          "sha256": "99f6531f527c6de09b2fe001560eb840a91ca63ec73d665f120d56394cf3167c"
+        }
+      }
+    },
+    "oracle_errors": {
+      "native": 7.815970093361102e-14,
+      "bridge": 0,
+      "direct": 0
+    },
+    "native_differences": {
+      "mu": 4.674038933671909e-13,
+      "sigma": 2.244010532947982e-12,
+      "sd_phylo": 7.7357009686807032e-12,
+      "loglik": 7.1054273576010019e-14
+    },
+    "bridge_differences": {
+      "mu": 0,
+      "sigma": 0,
+      "sd_phylo": 0,
+      "loglik": 0
+    }
+  },
+  "source_after": {
+    "R/adequacy-plots.R": "7cc880509221b4c7859a583ab0c5f5dc71d4cae16a48de29db4b6c553e55ab94",
+    "R/adequacy.R": "b9ab7b82aa8d5ca5bf5a23f30826ad32d306668b6801dfbdd8b120896e955d57",
+    "R/aghq-coxreid.R": "d7f20896bd1f2701c353084f4f7c908d644447300eadd222c07b71511c9bd200",
+    "R/associate-pairs-sandwich-bernoulli-bernoulli.R": "d6ccc65580d7e0700ab2aed7c49c8369e21f3a441eb6ee8b25c8543d411fd8b3",
+    "R/associate-pairs-sandwich-gaussian-bernoulli.R": "2129bbe7278b0912ba436aa71d9fc80cb5cbdf4822af20fb618ce4baefbc8860",
+    "R/associate-pairs-sandwich-gaussian-nbinom2.R": "578751c099044dc943cbadc144deaa403ff5340eaefba49aaa1f3e21de5e43fd",
+    "R/associate-pairs-sandwich-nbinom2-nbinom2.R": "bbbf3d78813b32fe8a61e4589bd9ecf1f7fdf6d8841995f52fd3ff5dbb5b0a43",
+    "R/associate-pairs-sandwich.R": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c",
+    "R/associate-pairs.R": "424b524e481e3831954c15f3fb91fe30e746628bd99cf2142b2dc2762127640a",
+    "R/bf.R": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd",
+    "R/binomial-q2-sd.R": "0bc8e57aa3555687b13cd59618ff88a2c7190af4c82db6996922324a3b62429c",
+    "R/bootstrap-shards.R": "4df1c49ff6f99ae70e773c1e4c929c13807762535ece09eef1716ac30a75adca",
+    "R/check.R": "340325bbf9957fcc83e061a9edeb34460bbe899ff0107af14f5c3a55d19788de",
+    "R/coevolution-accessors.R": "3f47f2f9388d6b51fcc9fcee25fece85d5b7ec7c98821d0ec0159ec798280666",
+    "R/control.R": "1b86ad506f7fcd56f009f2f2b25ba91d13aacdece42af515ceb6c67231217cd9",
+    "R/distributional-outputs.R": "94540da0f07768fd159b8178b5312dfe505e5cbb9bfdac26983c7abf12c1cf08",
+    "R/drmTMB-package.R": "dec0b5fba6754268176dbdc8d3dfb4ed56b26485c146a39ed6ab0df86ad8395c",
+    "R/drmTMB.R": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c",
+    "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
+    "R/family-dpq.R": "10f689a8737e4cf7893f37a5c322c7926c675b9a66099201439aad561da5241e",
+    "R/family.R": "8869dbb68756133e7cdee017332dbfdd707053ab099716eb0e8705abb7616784",
+    "R/formula-markers.R": "a724d3e9238ab0d6318bbb8ea337b69c88807311c6939ee20bb8609ae4d136b3",
+    "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
+    "R/heritability.R": "64fd77a2ad6bd3998c1c93e3cd1b5a3f859ad4a6e2f2bd7df5c48f83a4b3d5ce",
+    "R/julia-bridge.R": "71a3fa79a97764bbae390ad771d4300688d1d58783d49fb5bf93a6d7bfa82c0d",
+    "R/julia-coefficient-labels.R": "1c2814a197c8d296c2b120646d3576c8e95213ea4ca2848dad1279c2b29832ad",
+    "R/julia-diagnostics.R": "7f60faae8fd3460ca143917ee2ff20067e0db5a8c08927b50f83eb5a0d30bc06",
+    "R/julia-family-cumulative_logit.R": "c9c164d3abcf6878d5424c500120d63558e6bf4b05d49f7747f36ad1721663d7",
+    "R/julia-family-registry.R": "de0dc16fbe870b0450a4925b7960ff55efa4a5cacfce8da8347a74e49a4619b9",
+    "R/julia-fit-methods-docs.R": "f94311f98cf21e4433c1a898547541bf2c9cbf0cdf43d70b6d50e42ed0e59814",
+    "R/julia-joint-call.R": "fcdaa6f048b18b4660ee6674bfd62d6f7a7100f20c3b0a83975bbc551483c2d2",
+    "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
+    "R/julia-joint-methods.R": "6d5898a8bd21aaf8c71ac20f3b73e71dcdad364d4f31b7b680f961d29ec9dcc8",
+    "R/julia-joint-missing.R": "03a95e1e120588961cb6e22639741ef6c6ab3ac756118529f3f1e83a8da81569",
+    "R/julia-simulate.R": "17ff8f0abe08abb539f50a31c91a0b9d8a4c128623fcab2c19628bf83ee474cb",
+    "R/lrt-boundary.R": "bddf0f4cb35a44904ba3d78bc922c418669c51429d69f996504e929ef5877a9a",
+    "R/marginal-parameters.R": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea",
+    "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
+    "R/meta-vcov.R": "a433c378acd76a880bbb302192d21151c2a4e4f808122925c2f27cbda280a5cf",
+    "R/methods.R": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe",
+    "R/mi-weights.R": "763247341c06488d8f373187afe97d885aee18042ef68453e5bea76265468689",
+    "R/missing-data.R": "909e0da5023a5bdae074e05b8211e918599ae7964b34c93ba961a9e3a13d4171",
+    "R/mle-existence.R": "d53bff1b7795c7c5291ceeb14495ffc742fc55b5833fc4da516bbdb63bafd972",
+    "R/model-comparison.R": "e610916641f3b3b28fc99bcd807b02d81544fb9d6dd7fc70aa44c29adbed03db",
+    "R/mspl-estimator.R": "4213ecd424c5cd02bd886d799b5e3ad0746711ab6c8d8d4b7d95848e632c74d1",
+    "R/mspl.R": "6f394409ab1cff8e72f73c2a01626de8177d75794c03cb5d489bf4502a33719e",
+    "R/objective-at.R": "a1311ffe4f121316f4c730dcc74ffa419df12ef9c17f9d6710ff53013c6b7ea1",
+    "R/parallel-docs.R": "82e84fe0843ef7230b6823ad870601c138aebc46612e262ce6dcb055df7764ce",
+    "R/parse-formula.R": "aa0aedad162c3018790ead4350dbb2e68efc8203037f8ad923db4cdd0f4c61f5",
+    "R/penalty.R": "ebab55d1bf9257ea973d5c9eded45d8988f6a1ba22b162800e64bf442b6bda83",
+    "R/phylo-utils.R": "512195e7c8eab314a876ead4e5a2537b511e2c4acbd5f86900cea5d46b20a0c4",
+    "R/plot-corpairs.R": "23fd048ab1c152ee325ba203210f67d5c96b88c516cff4ec7c887448a805137c",
+    "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
+    "R/predict-parameters.R": "ef79299d4dd607be50067752c643027af55e9814d1e220a37dcdee94957dd8a9",
+    "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
+    "R/profile.R": "a1d4d5aa4f16e5870a250c8edeb4d73a06d7988e32b118aa78ca64394e8686a5",
+    "R/provenance.R": "3211cf0b8417c36b0bd8c3656ac255e77ca06f4a2998f3faa362f2885b3ba43d",
+    "R/random-effect-scale-formulas.R": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3",
+    "R/random-effect-targets.R": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858",
+    "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
+    "R/sparse-fixed.R": "eb38f9a4281aeb652f392eb4f4bb075fd733195b665aa666a96d2fc3c8364bfd",
+    "R/temporal.R": "71079c818d9d3955407fb3ddb08869559566858e45703c1f5fb1f4146c52ac93",
+    "R/utils.R": "cdbca619afd03085d98304220f6bb019e80085e1efdd521fc665de0862b7c156",
+    "R/zzz.R": "10521dcc0b9f5bea053bc2dd490b6efa4edd7e571228ec28cd0f34ba226daaa1",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/adaptive_ghq.jl": "54391c732eb738170ab9acbe3043522ee5a4d08fdaf4f593effc932d3d0cc795",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/aghq_1d.jl": "f45ca1aba61fb31a8f8bb007536244ed6b7ff11d2d18e1062a42215b4e7603d1",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/associate_pairs.jl": "e5c9c76592693bd9755e43ff123f0d2208935dd1211741c071588fdad494982d",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/beta.jl": "96fd362b9e991bed31a96fb03aff899a53ff657dd6f83ca4f17e2866979f8500",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/betabinomial.jl": "4577e00e9d889f95947f3ebb58716205c6cf54b4e1b1fa06ce2a0e0f0515d829",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/bias_correct.jl": "8eac4b3dade6c7784bfb47517d813bc073be4a5d5870af32f8c0cc2feea31db6",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/binomial.jl": "3effd2600ae7dc1514415ef41345a9590572dd03f6455b516656631be528b9ee",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/bivariate_lognormal.jl": "f0e9b02867cd39c756f09a7afe183bb3696fd187ba5436d5b82f75f3c1beb10b",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/bivariate_student.jl": "732b1949f233e6829cfa1a11875d671ca6f1977b029d97fd42a22c23dd0680c3",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/bootstrap_q4_phylo.jl": "9586741710cef88cb378826959dbefd0b406f758a0a3619d86887f5460292014",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/boundary_diagnostics.jl": "2ad7bbb0c46a302b5942996cf4df72453aa91fd5b3e3b622f4ab1f40f64ae561",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/bridge.jl": "2a0c743424aae84c5371f6bea3487290ce4c5e985c6937ed81899e4dc85cac2e",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/chibar.jl": "9c23e8e0082e7174b72972fdadd349c483704c1aa72aee088b0e344cb7cb37d0",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/ci_args.jl": "fe3169393b62e19d250dc700d1171c87aa01d13496a6248611e9972c70efeab7",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/coevo_accessors.jl": "9edb84589ef8499b80decabe1d12fbff1fad2802a4a3fc57d5487eedff99f65c",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/coevolution_q.jl": "c39dae9c8c5bc674b6ef7b6e3461fbb339a3ad4553cb0754fbb6ffcb850e6a0f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/comparison.jl": "a73a300d69db10da63708c75e56c861483cea038ae62830bf823b005b4c503a2",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/control.jl": "a1bc3740f40852a0cc691ea44c2783254e267db54d48b7f623761d4092307ebf",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/convergence_status.jl": "c694fa12482a53f0d80027a20c88994ba9ceb66ce1cda530d32a4aab4d7512d6",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/cumulative_predict.jl": "b8b748d0307b20e44f4241174431153efc018bc1ddcaf36d44f23a9478cdd7bf",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/cumulative.jl": "82ae34f0f6afcffb9d0b1eebbfb918db7c593d35c9a4b4cdc42b45ed0a85f72f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/design_rank.jl": "fd15e31782e8109e179e1ce21dfd54cdaddd3068618704535eacc85d98d0ebfe",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/DRModels.jl": "c60e53ae9af5017a4cf00f8dad0c64362e89368e2b3ca77e46af6fd347804b26",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/em_squarem_fit.jl": "27dd32a19ca624dad007c63968f76974e790c29b09acb6767cef3f695f5d51c9",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/estep_armijoguard.jl": "19e8eb019a3184db1b13c1cde8ee882ef66b174882de15a96ba02840380cfd13",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/estep_initprior.jl": "64231307ede8f6ec71ac7e5eef07bedb0c440e7f52dad5485c9637dadaf59436",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/estep_lm.jl": "2550ab9b7edd3c0a21a6f9f0d26c3eddef046c303058569d71dcba7c678140c5",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/estep_trustregion.jl": "c4a62576c388238f16a4fb14b812c2074d9bc7999882a8cbd3e8112a6893e9f6",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_em_closed.jl": "e21460eb4a5cff018eb826f6b2ec3a638e2a9059eb0db568eea602537d9814cf",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_em_natgrad.jl": "5bd1212a764ad8f3025bf8297745ed3c92b8a2f3cc9bd2e2235d1cc453ec518e",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_ml_q4.jl": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_ml_warm.jl": "6091d3ff479f9bc3805b3faffd530bf4e675f735628435d7b11a226ad3fbfc2c",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_q4_p100_tmb.jl": "269759ce21c31ac167897df3d67f12d53cdb023b0cc3890e24b25610cbb0ee07",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_q4_tmbgrad.jl": "188582efc569ba54d141f4b9ac58b8f474e33ddc154ae0a9f8a6cda239eec5a6",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/fit_sparse_direct.jl": "f03753b30d303febb3fac1ef89e347234f44878684cf62875d967ca35e2e322a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/location_only.jl": "39eac765202c2c7a4ed6bf990ea2214d17845cad4bbc3697a6f26651afd59646",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/experimental/q4_em_dense.jl": "f4c64d74d8d975881a9398192976402d688e8ce494b021bc01fb6816fded3bc7",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/finite_inputs.jl": "41d2e95bb937af0f3c15dc4d29a4ace8a759d65dbd8e0eebc0eeb3e2effc5314",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/fisherz_q4.jl": "4ca0e4db63eefe507c32325033fabc79ee2fd5b15bfc08102fdb0b86ec081d08",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/fit_derivatives.jl": "4abcbf719fc1e038e45f967236b8b080183f2229216d50de3083898417df73df",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/fit_ml_q4.jl": "18a1b114a6e97aec907ce3535531f45635b774bc70ed0cfc57152af4ae4d4115",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/fit_q4_sparse_tmb.jl": "fe3839fc3469ebfa725c9aab98239ec216a560aa5d65fd73eb27bce386d90734",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gamma.jl": "6602b5356a13703b2298fc91284473807a8a3c3f0c3f8406cdffdff73f320ec4",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_bivariate.jl": "6805ef3b881b560b49c3b5e11e427a8d9a8b579e716c86515e79bcd5f0dcbef6",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_core.jl": "8aefaa5c958956b92c0de1e8e7d1ce941ced6ce599146a229817e32e4af67f26",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_locscale_phylo.jl": "b6383c831e5a1ce7b72eb1eafd665fd35ade22b9c340266db9755507fd08f4b1",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_lss.jl": "dfb03f8cdbced6d8122d9fd33231f5e16f1e3623658883561e6274dd55dd3f0b",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_meta.jl": "2b7929b89d36269035fb7f21fefb1b60f2d24c91a48c06c597cb068d40243044",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_multi_re_sparse.jl": "c539e31aca65c551c234c8483046102ed5bdcf5157b2f2d2bd46cd0d98111f02",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_ranef.jl": "5f74a97d8d77acf52974d18a45061d40d40cee3a2b14a359cd1e018b5fe1c9ad",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_rs_sigma_ranef.jl": "f16a74129d7fb0cf7de96d178fb52e00dcfc48883fb9d63aa19e54b7e26b855f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_sparse_lss.jl": "e40e1e18d4e26fb5b86537cf2cfab54335af29cfc0d4ae2d286693c611156215",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/gaussian_structured.jl": "315e1729a9628e5958eb2a903e0f00421e63e0f1ed7a58344db93b643052b03f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/heritability.jl": "7bcba74655fc24b491126144f4c7cf9c25e3d3ed2eac7dc89d1f5488b3f7c240",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/indep_slopes_laplace.jl": "7431c4b322c2602027a90f971597bd54fd279c3775ab6d59328e8c2f0f366a95",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/inference.jl": "76db40fdf454516104c47012f9a2f1fbf64c26b55031a4184e4cbb084c94a673",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/input_validation.jl": "07608915662335374424b9ede59654a8a74f9b7d0070482112bbd3042846eab1",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/introspection.jl": "847d370d900087d6817a851a87fcadc7275ee4817d61682959326765bbc8a177",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_bridge.jl": "ffb6feec68b08cb137200ccd1f493df9b40bb67ad46c5edc0d019f59946dd553",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_finite_bridge.jl": "5536cf92cbc04e1d080b1ae5bb693e3f35d02ebf5142b009699470922f72058a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_finite.jl": "4f5a7a9399b2acf7a586aa48852424246bb1209dfbe436235e53ba814b7f2405",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_frontend.jl": "f17f58c7bfcb9cb5d68ed98c587bd0020aadc49c5f19c8bac266838bfee9dd83",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_predictor.jl": "8c4f4e9c1da5c919aea428c9b29ffb41cf516fc77dee3503f71d047eaf592808",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_two_predictor.jl": "f39c17f2af6dc25667a7fb35686a148e95abf4939afd4adb79e921a10cf795eb",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/joint_missing_uncertainty.jl": "2da147052c184cda46e9569290fa4c5e7b722021849c45652845882aa4097e96",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/lc_metric.jl": "f096872d4af733271d9f746735fd38c0cb2a59b9f9c61ea90150cc8beae43d1f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/link_residual.jl": "ef69948c94a6a08e3c95f0ffb393f1b3859e1319dec869df92a5350be7b760e2",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/location_only.jl": "e81f536310f00b87fca9856c99ef03c5c5f207276f6b27dcde0b11816288e02a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_corr.jl": "5cbd6756ffde3991c407eaa8095fa54b697ad9e3adcf358219f5c5b1990dd452",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_fit.jl": "3e226e9536150e1742d59c9acb8aefd8cd69b722f71f2bc5b34a85dafa5dc92b",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_frontend.jl": "ee47aad85763a3c720a464ac0a7037151a829469b2da1d3892d14336c2de7d3f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_grad.jl": "823af6134a9cc49a0aa230ff02d24a36b4e8bb3d75312de43592670b3613fb5a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_infer.jl": "bbac33c832882e9e73a3a43b0b2f2757e29663ba32bc1cb2ea3d11cecd0d1b9f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_inner.jl": "4868acd8193f86ded324403bca634adb381d42e15ffec8beb800e0e638638c03",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_kernels.jl": "b9b64012a776029a44656bf7451ebeca4193d6de815affda60baa6c8d304bd60",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_marginal.jl": "58f345ca2a8ae1d15645f1ca8a3ec614f05953aae336e11e872393842d424f5d",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_profile.jl": "4aa45695229b529652a171942d0769e09cd3ad30cd5c4db4ea90776b49a26833",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_sigma.jl": "21a4c8adc0514aea5dc68ef372d83d33f28d9be6e66c43c8c368e34c11587d1b",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_simulate.jl": "3fecf608b5c10dc6ca7706e2b279013ed0c5eaadfe9806b7f49253eb9b2a289d",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/locscale_whitened.jl": "d921dcda90ee57ba0301c5431eccbda0a2b670fbfab0accdd494afb5306eb8fc",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/lognormal.jl": "d5e4e2ce9fba4357fb3f482b83c215f6fcacc6a695150282a1660f2b85f31b15",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/meta_vcov_bivariate.jl": "6540ee951038d0e5daf6eb05fa58aa78fe66fcb385a727ced46df485e618e297",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/missing_data.jl": "0c93dbda1ac1cfa7f084b53f5dc389b50c867ca12f82290440188e123fd5298a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/mixed_family_postfit.jl": "d41ae4907b97a3e15db143bcce8116294f9ff49aea4604cb58daaecdfb774d84",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/mixed_family.jl": "ae0482c5e2e0c87b6274d050af441e6c722cad624c185caa53c7f502c8b1e514",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/negbinomial.jl": "0bb71eab8452a8212c4ecbe3d4e94669f6cf67cc5aaa4a9338ec2484c4a4c87f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/optim_minimum_guard.jl": "958f611952a757d5c5d67561fd2f9bb066e8fe1743262b83e8f072492ce9470c",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/ordinary_laplace.jl": "0546e6221c227b6500bf95d283b36c0ebfe1f407274a4a9271926703a6e1d3d2",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/phylo_interaction.jl": "7c50e3f2311c161b22b5ede22f8a9dc0e24d793eafc6d4b7de61de22db697cea",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/phylo_penalty.jl": "381b82b96f3a360cc7bb64ae5fe4b06a6280457e6b2cde1eaaf4235105d895dc",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/plotting_ext.jl": "f526f5e8d2007da20c0f05435d58ad9ad951c1c8a74d90dcbec8b96d6bc53e01",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/poisson.jl": "01ec10acddbc1802cd722d451759d6e6b140e2e8b6dc398c9dc3d1c41a7a112f",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/profile_q4_phylo.jl": "feff013c238718e932cbd4538f190d3cd541f1ebefaf4419b709134ef22f9f16",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/quantile_residuals.jl": "b49971a14cd3b346b48ac4af310744defc426ae33d2622f40ca79a809d762347",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/r2.jl": "c27c8c7728f431b578f3d6f860003faf58ae7124d3e24b9e3d30a15c70098784",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/reml_q2.jl": "6f70498c445c7b08bd99b457aad765a1ae57249bb463e5eb144ec86f8c1c02ea",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/reml_q4.jl": "d132207bd34dd46082ca96bd7ff11065c958e351d6127e31f9c1617adb560383",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/separation.jl": "1f1d54ea050c14b6184552ae05b456e6aed161dac43794197948fefeb5e391fa",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/skewnormal.jl": "5904e804d7a5ab34e73d6ea1f037f48d7c2e884076830854d3781352ca902f54",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/sparse_aug_plsm.jl": "096ea2d7dac0af2412f8c8c0b0119ed6d3d5c69945cebe30e69e6bad5e203cbf",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/sparse_em_fit.jl": "774219f9c6fef12fdcc2fff88b247c590ede57e3060346024d84eb1ed6a84453",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/sparse_laplace_glmm.jl": "242211c5e6056b72121669bd28b58425ee2cc7f5f6d7dab401014d7deda9105a",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/sparse_phy.jl": "acbe6167698223e1acab0281cd231dadea91317496dd739fdaf9039a0bce8dc9",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/student.jl": "20f84f40bd00d9174db17575422929cf916bdda2ea9d579aef44003fcf0d5331",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/summary.jl": "901adee520ce9143ff2f80c60bbf91d6e202ae88d27e71e351bde2ce339d30d4",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/takahashi_selinv.jl": "36fd6b6722c317d58c1d716104b6fc5717b7fe3aa2e74b7c5557799ae2303eab",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/temporal.jl": "01cabb94772cf44f69ef89f6e2f4e3df4b3a63a5992759b006a2cbe8dcf79613",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/truncated_poisson.jl": "8416bcb552aee6d5a0e9a1191b4dcdcebcb2e36be24f40534d4a6beadacf2932",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/tweedie.jl": "706c1fa72317037c85605321406b241e5c718a9a7daafbba189a48eb66ab5c5d",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/variational.jl": "de8aec303c087075dd40f17cb71b7023027afd94f5ad9e568e31286a13d434e7",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/vcov_guard.jl": "cd94a98d41e55748433f5c9eb12e231082db166e2ac937f99e2c5f93b70fd7ee",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/visualization.jl": "afdbfa2bca286386cb7b5d251f453bd9e716e97dcfcf97d513d297f30c1822d2",
+    "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main/src/zeroonebeta.jl": "7262cee0e592a9c516ea9343ebe9d256072e72be3caec48f01ee1b9458bb9bc1"
+  },
+  "source_unchanged": true,
+  "elapsed": 89.530000000000001,
+  "status": "PASS"
+}

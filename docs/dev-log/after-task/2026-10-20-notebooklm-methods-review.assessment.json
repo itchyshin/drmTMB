@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "2bac83c8354546623a153f59402fce1fcce0ea1712b0fbd7bacd4ed7c6c66899",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Read the complete report, checked its claims against cited source pages, and applied the naturalness protocol.",
+  "genre": "Technical after-task report",
+  "coverage": "Full report, exact saved draft version v1.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report states concrete model conditions, source limits, and next steps with little repeated scaffolding.",
+  "confidence": "medium",
+  "confidence_reason": "The report is short and the style cues are clear, but this is an editorial self-judgment.",
+  "examples": [
+    {
+      "location": "Section 2, first sentence",
+      "line": 9,
+      "quote": "Completed a bounded, source-checked research synthesis. Feature implementation and calibration remain open.",
+      "cue": "Completed a bounded, source-checked research synthesis.",
+      "impact": "The opening states the actual research deliverable and limits its scope.",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The model claims are limited to the reviewed sources, and the one-group-observation logit confounding claim is identified as a design-specific derivation.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Notebook source count, saved-note state, and the factual claims used in the report were checked against current CLI output and linked source pages.",
+  "references_gate": "pass",
+  "references_gate_reason": "Linked source identities and the claims attributed to their visible abstracts or documentation were checked; Joe's full text is explicitly identified as unavailable.",
+  "date": "2026-10-20",
+  "calibration_status": "Prior NotebookLM summaries were seen; no held-out style controls were used.",
+  "interpretation": "perceived_style_not_authorship"
+}

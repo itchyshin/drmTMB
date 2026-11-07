@@ -1,0 +1,11 @@
+binomial-mesh-oracle-b31nb: ..............B31NB mesh intercept logit | agree 6.25e-12 | min gap 1.422 (precision_times_2) | n gaps 4
+..............B31NB mesh intercept probit | agree 1.06e-07 | min gap 2.213 (precision_times_2) | n gaps 4
+..............B31NB mesh intercept cloglog | agree 1.06e-07 | min gap 2.050 (precision_times_2) | n gaps 4
+...............B31NB mesh slope logit | agree 1.07e-08 | min gap 1.231 (precision_times_2) | n gaps 5
+...............B31NB mesh slope probit | agree 7.74e-09 | min gap 2.503 (precision_times_2) | n gaps 5
+...............B31NB mesh slope cloglog | agree 1.14e-08 | min gap 1.535 (precision_times_2) | n gaps 5
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+COUNTS expectations=87 failed=0 skipped=0 errors=0 warnings=0 secs=30.1

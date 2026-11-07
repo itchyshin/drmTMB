@@ -1,0 +1,49 @@
+{
+  "candidate_source": "1143258e952450000389756268f40936bdb8325d",
+  "receipt_baseline_source": "218431f1890746b8f352b376dbcd4e8fbfe6d3f7",
+  "host": "Totoro",
+  "compiler": "GCC 13.3.0, -O2",
+  "openblas_threads": 1,
+  "targeted_tests": {
+    "tests": 96,
+    "passing_expectations": 517,
+    "failures": 0,
+    "errors": 0,
+    "warnings": 1,
+    "skips": 1,
+    "warning": "Wald interval near a variance-component or correlation boundary (test-dinnage-audit-wave4b1.R:164).",
+    "skip": "Development-attachment beta() check explicitly skipped; test states installed attachment is covered by test_check() (test-dinnage-audit-wave4c.R:9).",
+    "evidence": "r-publish-targeted.log"
+  },
+  "c17": {
+    "tolerance": 0,
+    "gate": "FAIL",
+    "attempts": 12,
+    "individual_attempts_passed": 12,
+    "candidate_vs_stored_mean_tau_relative_error_abs_drift": {
+      "mc-0568": 3.22952e-11,
+      "mc-0569": 4.2e-12,
+      "mc-0576": 1.59796e-11
+    },
+    "gate_log": "r-publish-opt-c17.log",
+    "ledger_rewired": false
+  },
+  "same_host_comparison": {
+    "baseline_and_candidate_summary_rows_identical": true,
+    "raw_attempt_rows_equal_except_source_sha": 12,
+    "common_point_fixtures": 3,
+    "objective_and_gradient_difference_max": 0,
+    "claim": "These fixed fixtures support a host or toolchain explanation for the stored-receipt drift; they do not pass the exact recertification gate or establish equivalence outside these checks."
+  },
+  "interrupted_run": "The earlier O0 C17 run was interrupted after exceeding a preliminary time estimate; it was not an assertion failure. The optimized run above completed and failed the exact drift gate.",
+  "mac_reference_host": {
+    "candidate_source": "1143258e952450000389756268f40936bdb8325d",
+    "tolerance": 0,
+    "summary_change_max": 0,
+    "numerical_gate": "PASS",
+    "wrapper_exit": 1,
+    "wrapper_failure": "Reader inventory had 41 vignettes after fixed-prior guide raised count to 42; corrected inventory, then 92 capability-ledger unit tests passed.",
+    "receipt_equivalence_after_repair": "PASS",
+    "final_main_integration": "PENDING"
+  }
+}

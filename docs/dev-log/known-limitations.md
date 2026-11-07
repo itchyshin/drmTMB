@@ -1,5 +1,88 @@
 # Known Limitations
 
+# Native discrete-family SD regression
+
+Native ordinary scalar location-intercept SD formulas are point-checked for
+Bernoulli/binomial and non-zero-inflated Poisson, with selector-aware outputs
+and refitting checks. Native Poisson also has focused checks for one independent
+unlabelled numeric slope SD, whose output is per unit of its covariate. Same-group
+intercept-plus-slope pairs and crossed ordinary intercepts are admitted for the routes in
+`docs/design/18-random-effect-scale-models.md`; other mixed or crossed slope layouts remain
+required. Interval calibration, Julia public dispatch and the
+remaining family/effect/provider combinations are still required by the active
+general SD-regression programme. See `general-sd-regression/` for exact evidence.
+
+
+Julia scalar iid SD-regression routes integrate each group with a fixed or
+adaptive Gauss-Hermite rule, not an exact marginal (2026-11-02, batch 31
+review). Against an exact per-group integral the Julia log-likelihood is off by
+1e-3 to 1e-2 for most families, by up to 3.07 for ZeroOneBeta on a draw with
+responses near the boundary, and by up to 0.12 for the zero-inflated Poisson
+slope route. The Binomial iid correlated q2 route uses a 5-node adaptive rule
+per axis and sits 0.009 to 0.082 below the 15-node value. Evidence for these
+routes is scoped to likelihood assembly and selector alignment at the tested
+fixtures; the ZeroOneBeta iid rows and the zero-inflated Poisson iid slope row
+are not linked. Native TMB uses the Laplace approximation and is unaffected.
+Update (2026-11-02, DRModels.jl `ab8b67127`): the ZeroOneBeta intercept route and plain
+`(1 | g)` route are now adaptive, and the default adaptive node count is 41 for the
+Beta, Gamma, beta-binomial, NB2, hurdle and truncated routes and 81 for the
+zero-inflated Poisson slope. A new Julia test compares each family with an exact
+per-group integral on several seeds, including the draws that failed before, at 1e-4.
+The unlinked ledger rows can be relinked after a fresh review.
+
+`fitted()` and `residuals()` on `engine = "julia"` fits with a structured
+`relmat()`, `animal()` or `spatial()` term returned the population-level value
+(random effects at zero), not the conditional mean native `fitted()` returns
+(2026-11-02, batch 32; fitted values differed by up to 47 on the response scale).
+Fixed in batch 34 (2026-11-03) for the Gaussian, Poisson, NB2, Gamma and Binomial
+`sd(id, level = ...)` routes with `relmat()`, `animal()` (`A`; `Ainv` for Poisson and
+Binomial) and coordinate `spatial()`, intercept, and slope where admitted, and for the Binomial animal
+q2 block: DRModels.jl exports the field's conditional mode and the R bridge rebuilds
+the conditional mean. If the conditional mode cannot be computed for a fit, `fitted()`
+warns and keeps the population-level value. Still the population-level value, so still
+different from `engine = "tmb"`: other structured fields fitted without an `sd(id, level = ...)` formula (measured
+2026-11-03 on Gaussian and Poisson `relmat(1 | id, K = K)` and Poisson `animal(1 | id, A = A)`,
+relative gaps 0.84 to 0.89), phylogenetic fields, Binomial routes with a structured field plus an
+ordinary `(1 | g)` effect, `mesh` and crossed routes, and the Gamma animal
+intercept-plus-slope route. Coefficients and the log-likelihood were never affected.
+
+Update (2026-11-04, ML-first article lane, pending integration): stored-row
+`predict(dpar = "mu")` now uses validated exported structured fields on the
+Gaussian, Poisson, NB2, Gamma and Binomial routes above. Link predictions include
+the fitted field contribution; response predictions apply the fitted family link.
+Ordinary Gaussian conditional prediction was already available and retains its
+separate validated payload path. A random-effect route without a valid retained
+conditional payload is refused by stored `predict()`, rather than presented as a
+conditional result. Explicit `newdata` remains fixed-effect prediction with random
+effects set to zero, including for training rows passed explicitly. Binomial
+`mu` response predictions now honor the fitted logit, probit or cloglog link on
+both stored structured and explicit-newdata paths. Conditional `fitted()` now
+rebuilds its fixed link predictor from retained coefficients when available, so
+rounded Binomial population probabilities or an overflowing population mean do
+not erase a cancelling structured contribution. Qualified structured response
+residuals use the retained observed response, avoiding cancellation when rebasing
+from a very large population mean. Older payload-only objects keep their prior
+fallback. This does not add conditional newdata extrapolation, conditional
+standard errors or direct-Julia fitted output.
+
+Julia ZeroOneBeta iid slope SD fits (`(0 + x | id)` with `sd(id, coef = "x") ~ z`) on
+boundary-heavy data can stop in the standard-error step with "matrix contains Infs or
+NaNs" when an interior response is extremely close to 0 or 1 (about 1e-56 on two
+measured seeds, 2026-11-03, batch 34). The point estimates converge; the standard
+errors are not returned.
+
+Update (2026-11-04): current-source probes of those two unchanged boundary-heavy
+fixtures had mixed outcomes. Seed 20261409, minimum interior response about
+`2.58e-56`, returned coefficients and convergence code zero; its standard-error
+quality and gradient were not independently verified. Seed 20261412, minimum
+interior response about `1.55e-311`, threw in the standard-error Hessian. No current
+point-convergence claim follows from that failed public call. These probes neither
+clip the responses nor establish a general repair. The preceding both-seed failure
+and point-convergence account describes the historical 3 November measurement.
+The predecessor and accepted frozen-source reruns each repeated the same mixed
+outcomes; all six attempts across the three batches are retained. See
+`general-sd-regression/gap-reproduction-20261104.tsv` for the complete accounting.
+
 Read this ledger together with
 `docs/design/168-r-julia-finish-capability-matrix.md`; when a status boundary
 differs, the stricter fitted, planned, or unsupported row governs public claims.
@@ -110,6 +193,13 @@ revisit condition.
   `sd(site) ~ site_type`, and for bivariate Gaussian location random
   intercepts as `sd1(id) ~ x_group` and `sd2(id) ~ x_group`; predictors must be
   constant within the named grouping variable after missing-row filtering.
+  The native ordinary Bernoulli/binomial intercept route also admits
+  `sd(group) ~ predictors`, with independent point-recovery, constant-SD,
+  prediction and workflow checks. Explicit `dpar = "mu"`,
+  `coef = "(Intercept)"`, and matching `block` selectors work for unique
+  ordinary scalar targets, including a labelled `(1 | p | id)`. Slopes and
+  duplicate same-group intercepts remain outside this slice. Its interval calibration and Julia
+  integration remain open under the general SD-regression programme.
   These direct-SD formulae target location random effects only. Names such as
   `sd_sigma1()` and `sd_sigma2()` are rejected because residual scale should be
   modelled through `sigma1` / `sigma2` formulas or through Family A scale
@@ -122,14 +212,16 @@ revisit condition.
   but rejected by `drmTMB()` until random-slope SD regression has a covariance
   model and tests.
 - The narrow Beta q1 phylogenetic direct-SD route is an explicit exception to
-  the Gaussian-only generalization above: `sd(spp_id, level =
+  the ordinary-group routes above: `sd(spp_id, level =
   "phylogenetic") ~ x_tau` models the latent phylogenetic location SD `tau` in
   `y ~ x_mu + phylo(1 | spp_id, tree = tree)`, not family `sigma` or Beta
-  precision `phi = sigma^-2`. Its recovery evidence is restricted to the
-  prospectively frozen interior-output DGP and the two `g = 1024, m = 4` arms.
-  Hierarchical/random RHS effects in `sd()`, family-`sigma` phylogeny, q>1,
-  labels/slopes, REML, missing routes, intervals, and coverage remain outside
-  this route.
+  precision `phi = sigma^-2`. Ratified cell `mc-0017` has profile-interval
+  coverage evidence under the prospectively frozen interior-output DGP for
+  the two `g = 1024, m = 4` arms, with mild anti-conservatism in the worst arm.
+  This does not establish nominal coverage or extend to other designs.
+  Hierarchical/random RHS effects in `sd()`, family-`sigma` phylogeny,
+  phylogenetic random-effect slopes (q>1), labels, REML, and missing routes
+  remain outside this route.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
   implemented. Full-matrix `meta_V(V = V)` currently stores the retained
   covariance as a dense R matrix, with deprecated `meta_known_V(V = V)` retained
@@ -195,12 +287,13 @@ revisit condition.
   `integrate()` reference the per-row logLik error is under `1e-4` for
   Gaussian responses at CV 0.05 to 2 (worst `2.5e-5`, near the mode at
   CV 2) and for Poisson responses at CV 0.2 to 2 with `y` = 0, 1, 4, 30.
-  Still open (refs #1477): CV `>= 3` (12% of an 80-row random `(mu, y)`
-  scan exceed `1e-4`, worst `1.47`; the same classed warning fires at
-  fitted CV `>= 3`),
-  and a Poisson response whose mean at the prior mean is far above `y`
-  (`exp(eta)` at `x = mu` of about `1e3` or more), where five Newton steps
-  stop short of the mode; twelve steps recover the moderate cases. Poisson, binomial, NB2, and beta response models separately
+  Refs #1532: the rule now takes twelve Newton steps and 81 nodes on
+  `t` in `[-7, 4]`, and meets `1e-4` per row at CV 3 and 5 (Gaussian
+  response, prior mean 1 to 30, `y` from the pole to the tail) and for a
+  Poisson response with `exp(eta)` about `8e3` at the prior mean (CV 0.5 and
+  1.5). The classed warning still fires at fitted CV `>= 3`; its threshold
+  was set from the earlier five-step, 51-node measurements and has not been
+  re-derived. Poisson, binomial, NB2, and beta response models separately
   support one fixed-effect binary `mi()` predictor when the response is
   complete. Beta-binomial masking requires a complete success/failure pair per
   observed row; cumulative-logit masking requires an ordered factor and every
@@ -498,10 +591,16 @@ revisit condition.
   combining them is rejected.
   The existing `relmat()` intercept/one-slope route remains recovery grade.
   Arc 3a also fits one recovery-grade unlabelled q1 `phylo()` intercept in `mu`.
+  Native TMB also admits one unlabelled ordinary intercept `(1 | g)` beside one
+  unlabelled q1 `animal()`, `phylo()` or `spatial()` intercept, with or without
+  `sd()` formulas, for complete responses and fixed `sigma`; the evidence is a
+  dense Laplace oracle on one fixture seed per provider, with no calibration and
+  no Julia parity
+  (`tests/testthat/test-gamma-iid-structured-sd-regression.R`).
   Non-log Gamma links, new-route slopes,
-  labels, `sigma` structure, joint `mu`/`sigma`, simultaneous structured providers,
-  spatial/animal, REML, intervals/coverage, and bivariate or mixed Gamma remain
-  rejected.
+  labels, `sigma` structure, joint `mu`/`sigma`, other simultaneous structured
+  providers and other spatial/animal shapes, REML, intervals/coverage, and
+  bivariate or mixed Gamma remain rejected.
 - Fixed-effect univariate Poisson mean models are implemented for
   non-negative integer counts with `family = poisson(link = "log")`.
   The `mu` formula supports standard R exposure offsets such as
@@ -699,8 +798,11 @@ revisit condition.
   now error in non-Gaussian models with a structured non-Gaussian boundary.
   The Beta exception is not a universal `g >= 1024` threshold: `g = 256` and
   `g = 512` recovery gates held, family `sigma` stays fixed-effect-only, and
-  Beta phylogenetic slopes, labels/q2+, direct latent-`sd()` regression,
-  intervals, and coverage remain deferred.
+  Beta phylogenetic random-effect slopes, labels/q2+, direct latent-`sd()` regression beyond
+  the exact q1 phylogenetic location-SD route, and other untested Beta SD forms
+  remain deferred. The q1 exception has profile-interval coverage evidence at
+  `g = 1024, m = 4` with mild anti-conservatism in the worst arm; it does not
+  establish nominal coverage or generalize to other designs.
   The exact Poisson labelled-scalar spatial count route
   `mu ~ spatial(1 | p | site, coords = coords)` also fits locally, but it is
   not q2/q4 covariance support. Beyond the exact exceptions above, pure,
@@ -923,3 +1025,96 @@ revisit condition.
   are Julia `g_tol` / pseudo-inverse SEs versus R `nlminb` / Hessian
   screens (`docs/dev-log/evidence/2026-10-16-fx3b-t4-rescore.md`;
   #1554).
+
+# NB2 animal kernel scaling differs between engines (resolved 2026-11-02)
+
+Resolved: the NB2 animal SD routine already passed `normalize = false`, so Julia uses the
+supplied raw `A`; the rescaling statement below came from a stale comment (design 18, "Parity
+rows resolved 2026-11-02 (batch 28)"). The text below is the historical record.
+
+For an NB2 `animal()` SD model with a non-unit-diagonal `A`, native TMB keeps
+the supplied raw `A`, while `engine = "julia"` rescales `A` to a correlation
+matrix before applying the SD multipliers
+(`../general-sd-julia/src/negbinomial.jl:81-84`). The same formula therefore
+has a different latent covariance in the two engines, and SD coefficients shift
+by about `log sqrt(A_gg)` per node. Julia Gamma and Poisson animal routes use
+raw `A`. This is an open parity row, not a convention; it is recorded in
+`docs/design/18-random-effect-scale-models.md` (section "Kernel scaling by
+provider and engine"). The existing native-versus-Julia Gamma q2 comparison
+uses relative tolerance 0.25 and is a smoke check, not a tight scaling check.
+
+# Poisson relmat kernel scaling differs between engines (resolved 2026-11-02)
+
+Resolved: DRM.jl now uses a supplied `K` as given for Poisson, NB2 and Gamma relmat routes, and the
+R bridge no longer refuses a non-unit-diagonal `K` (design 18, "Parity rows resolved 2026-11-02
+(batch 28)"; `tests/testthat/test-julia-b28-relmat-raw-k-bridge.R`, one fixture per route, no
+coverage claim). The text below is the historical record.
+
+For a Poisson `relmat(0 + x | g)` slope-only SD model with a non-unit-diagonal
+`K`, native TMB uses the supplied `K`, while DRM.jl rescales `K` to a
+correlation matrix. On one fixture (`K = outer(s, s) * corr`) the logLik gap was
+2.81 (native -2268.343, Julia -2271.155) and the SD intercept differed by 0.14.
+The group SD regression does not absorb group-specific kernel scaling, so these
+are different models. The R bridge refuses the route for a non-unit-diagonal `K`
+and admits it for a unit-diagonal `K` (0.4^|i-j|, logLik gap 1.5e-5, one fixture).
+The Binomial relmat slope bridge probably has the same mismatch and is unchecked.
+NB2 relmat is reported correlation-normalised on the Julia side and is not
+admitted. Recorded in `docs/design/18-random-effect-scale-models.md`.
+
+# Native SD regression: state at the evening of 2026-11-01
+
+Admitted natively on 2026-11-01 (each with an independent oracle at the fitted
+point; full table in `docs/design/18-random-effect-scale-models.md`): structured q2
+with coefficient SDs for Poisson and NB2 (animal, relmat, phylo, spatial),
+Gaussian (animal, relmat, phylo, unlabelled and labelled) and Binomial (phylo,
+spatial); NB2 labelled animal q2; Gamma slope-only phylo, spatial and relmat;
+Gaussian and NB2 `phylo_interaction()` pair-level SDs; a Gaussian structured
+`sigma` intercept; and joint ordinary `mu` plus `sigma` intercepts for NB2 and
+Gamma. Test files are `test-gaussian-structured-q2-sd.R`,
+`test-count-structured-q2-more-providers-sd.R`,
+`test-poisson-structured-q2-sd-regression.R`,
+`test-nbinom2-structured-q2-sd-regression.R`,
+`test-binomial-phylo-spatial-q2-sd.R`, `test-gamma-structured-slope-sd.R`,
+`test-gaussian-phylo-interaction-slope-sd.R`, `test-nbinom2-phylo-interaction-sd.R`,
+`test-gaussian-sigma-structured-sd.R`, `test-gamma-mu-sigma-joint-sd.R`,
+`test-nbinom2-mu-sigma-joint-sd.R` and `test-nbinom2-mu-sigma-same-group-sd.R`.
+These are fixed-fixture likelihood-agreement checks, not calibration, coverage or
+parity evidence.
+
+Still limited or open:
+
+- Most routes above have no Julia counterpart; the exceptions are the slope-only Julia bridge
+  routes named below. The Julia bridge exempts
+  ordinary mean bars that carry an `sd()` formula from the #1551 fence for Poisson,
+  NB2, Gamma, Beta and Binomial (`test-julia-ordinary-sd-fence-exemption.R`, static
+  tests only). The selected-coefficient label check was fixed for a sole `sd(id,
+  coef = ...)` target (`test-julia-selected-sd-coef-label.R`); the live Poisson file
+  `test-julia-poisson-sd.R` passed 30 and 0 on the Mac when this entry was written; live Julia
+  blocks for other families have run since (see the evidence ledger).
+- NB2 `sigma`-side phylogenetic SD stays held for a decision, because it opens the
+  public base route `sigma ~ phylo(1 | sp)`.
+- Update, later on 2026-11-01: labelled relmat q2 for Poisson and NB2, Gaussian spatial
+  q2 (unlabelled and labelled), and `miss_control(response = "include")` for Poisson, NB2 and
+  Gamma ordinary `mu` SD routes are now admitted natively (design 18 table); marginal
+  `simulate()` of labelled q2 blocks was added. The Julia bridge also admits Poisson relmat
+  slope-only SD (`K` used as supplied) and NB2 animal slope-only SD.
+- Marginal `simulate(re.form = NA)` for Gamma q1 structured SD fits is refused by the
+  family gate in `R/methods.R` (Gaussian, Binomial, Poisson, beta-binomial and NB2 only);
+  no test pins this refusal yet.
+- Still refused: labelled structured q2 for the phylo provider of Poisson, the spatial
+  provider of NB2 and Gamma, and the relmat and spatial providers of Binomial (labelled
+  Poisson animal and spatial, NB2 phylo, Gamma relmat and phylo, and Binomial animal and
+  phylo were admitted in batch 32, design 18); Poisson and NB2 ordinary q3 with
+  `sd()` (refusal pins, `test-ordinary-q3-sd.R`; Gaussian q3 and q4 now take one SD per coefficient); a sigma structured slope; a
+  structured Gamma slope beside an ordinary intercept; zero inflation and
+  `miss_control(response = "include")` for the structured q2 and slope shapes, sigma-target
+  SD and zero-inflated SD routes.
+- Marginal `simulate(re.form = NA)` of structured q2 SD fits was admitted later on
+  2026-11-01 for Gaussian, Poisson, NB2, Gamma and Binomial, labelled blocks included
+  (`test-q2-sd-marginal-simulate.R`); the earlier refusals for the labelled Gaussian block
+  and Binomial phylo q2 no longer apply. Beta q2 stays refused.
+- Kernel scaling is raw `A` natively and raw `A` or `K` on the Julia Poisson, NB2, Gamma, Beta and
+  zero-one-beta routes (design 18, kernel scaling section). Still rescaled in Julia: Gaussian
+  location-scale structured routes and the precomputed spatial kernel.
+- The phylo and tree-based q2 oracles have unit-diagonal kernels, because trees enter
+  as correlation matrices; non-unit-diagonal q2 is exercised for relmat and animal.

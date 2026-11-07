@@ -1,0 +1,16 @@
+Compiled package: /home/snakagaw/hsq_work/drmtmb-general-sd-poisson-slope-20261017-01/library/drmTMB
+poisson-slope-sd-integration: ............1.....
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-poisson-slope-sd-integration.R:30:3'): Poisson slope SD match
+Error in `is.finite(interval)`: default method not implemented for type 'list'
+Backtrace:
+    ▆
+ 1. └─testthat::expect_true(all(is.finite(interval))) at test-poisson-slope-sd-integration.R:30:3
+ 2.   └─testthat::quasi_label(enquo(object), label)
+ 3.     └─rlang::eval_bare(expr, quo_get_env(quo))
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Execution halted

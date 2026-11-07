@@ -1,0 +1,23 @@
+Run: synthetic staged-decision operating-characteristic simulation
+Date: 2026-10-19
+Command: OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript --vanilla tools/general-sd-regression/campaign-oc.R 1000 20261020
+Host: local macOS (Darwin)
+R: R version 4.6.0 (2026-04-24)
+Campaigns: 1,000 per each of 11 fixed scenarios; 11,000 simulated campaigns total
+Model fits: none
+Output: output.txt
+
+Source SHA-256
+campaign-oc.R: b68b4e1533ddc20b15ae6c488f27ce49fd5cffe458a5e939fe1d02908f80c35a
+staged-decision.R: c4aeff17732529febbf6a00ca8ba963c188a1b5e935c6be76cecb49c680ba3c9
+output.txt: 0eb55bd623631d81dc279d6dfc6a8bf3a66f40768355d6d33b3bfbbbfc930e6c
+
+Selected outcomes
+- Nominal: 850 accepted, 0 failed, 150 inconclusive; mean planned attempts 11,712.
+- Joint lower boundary: 108 failed, 892 inconclusive, 0 accepted.
+- Joint upper boundary: 64 failed, 936 inconclusive, 0 accepted.
+- Relative-bias boundary: 58 failed, 942 inconclusive, 0 accepted.
+- No acceptance occurred in any of the 1,000 campaigns for each boundary/alternative stress scenario shown in output.txt.
+
+Interpretation boundary
+This run binds the synthetic OC output to the current campaign and decision-helper source hashes. It is evidence only for the listed stylized scenario distributions. It does not test profile interval coverage, rare-tail bias-interval coverage, informative missing estimates, or fitted Bernoulli behavior; it does not authorize look two or support a calibrated-uncertainty claim. The bias t-interval concern and the need for skew/tail/missingness checks are recorded in staged-calibration-contract.md.

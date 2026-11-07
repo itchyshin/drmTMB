@@ -1,0 +1,31 @@
+{
+  "schema": "gamma-animal-q2-julia-source-manifest-v1",
+  "created_utc": "2026-10-24T00:00:00Z",
+  "scope": "Exact source and focused test snapshot for the Julia Gamma animal independent intercept+slope SD q2 slice; coverage calibration is not claimed.",
+  "source_archive": {
+    "path": "candidate-v8.tar.gz",
+    "sha256": "2fd6765a663c59948572aa95b2b6383186eff03c6952a2431b82d427b167bf74",
+    "role": "Full candidate source snapshot; covers source, tests, docs, and package metadata used by the run."
+  },
+  "focused_test_source": {
+    "path": "test_gamma_animal_intercept_slope_sd.jl",
+    "upstream_path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_gamma_animal_intercept_slope_sd.jl",
+    "sha256": "1f7bd590b37dd46b79b9426a5f8dd9931731b480df8c913bc4e5c92b94b5b12b"
+  },
+  "source_file_hashes_recorded_in_v8_run_log": {
+    "Project.toml": "36b9455e8fcb093e848fe1286432b0ce1c6b9e4e4cafc64e5f460b3818ce1ef9",
+    "Manifest.toml": "14bc7d62038319d8567a9768cb295cca24b230ad0edbecc4f9d0ef5392c9fd20",
+    "src/gaussian_core.jl": "56578564ead901429f5033f42645369e0a373a995a192fb0220a79394536071d",
+    "src/gaussian_ranef.jl": "fca1c3c49b12a6090a23fbf8209865ff3989a2701ad33d9a610ee9ceb58efb11",
+    "src/gamma.jl": "a3065b51bdaae48cd6862274145052c3700829cd1c4ae208dde91b95f88ace19",
+    "src/inference.jl": "34b0cb20358214c4346c8a44cae3e2f08abfe3f5445ee4e2085d61db0ee4490e",
+    "src/bridge.jl": "7478193def06713970cdf76580196bb7f7233b7909a738042533ccb05038cb45",
+    "test/test_gamma_animal_intercept_slope_sd.jl": "1f7bd590b37dd46b79b9426a5f8dd9931731b480df8c913bc4e5c92b94b5b12b"
+  },
+  "verification": {
+    "archive_sha256_recomputed": true,
+    "focused_test_sha256_recomputed": true,
+    "run_log_sha256_recomputed": true,
+    "run_log_path": "totoro-v8.log"
+  }
+}

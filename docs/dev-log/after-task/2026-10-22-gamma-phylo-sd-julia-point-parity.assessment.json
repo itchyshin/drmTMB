@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "b66cc00d162f47f4243ddeeb235799926304056afd678c8e9f9121d0e1906222",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Separate review against the exact focused test output, test source, inventory edit, and report",
+  "genre": "Technical after-task report",
+  "coverage": "Entire report (511 words per prose checker)",
+  "score": 2,
+  "style_status": "assessed",
+  "score_reason": "The report names the exact model, check, result, and remaining limitations without making a programme-wide claim.",
+  "confidence": "medium",
+  "confidence_reason": "The live test and source were inspected; this is a self-assessment.",
+  "examples": [
+    {
+      "location": "Implemented, paragraph 1",
+      "cue": "Added one live Julia bridge test",
+      "impact": "States the delivered behavior and comparison scope directly.",
+      "repair": "No change needed.",
+      "line": 10,
+      "quote": "Added one live Julia bridge test that fits identical data through native TMB and"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report equation matches the tested phylogenetic model and the point comparison is explicitly limited to a unit-height tree.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The live test output, source, whitespace checks, prose check, and failed GitHub API lookup are recorded accurately.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external citations are used.",
+  "date": "2026-10-22",
+  "calibration_status": "No reference controls reviewed",
+  "interpretation": "perceived_style_not_authorship"
+}

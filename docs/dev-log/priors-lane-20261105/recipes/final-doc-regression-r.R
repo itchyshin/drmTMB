@@ -1,0 +1,13 @@
+base <- "/home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b"
+.libPaths(c(file.path(base, "r-final-lib"), .libPaths()))
+Sys.setenv(R_LIBS_USER = paste(.libPaths(), collapse = .Platform$path.sep))
+library(drmTMB)
+root <- file.path(base, "r-final-src")
+setwd(root)
+cat("FINAL_DOC_REGRESSION_START\n")
+r <- testthat::test_local(root, load_package = "installed", filter = "^(function-map-cheatsheet|reader-vignette-contracts|phase18-structured-workflow-registry|profile-parallel)$", reporter = "summary", stop_on_failure = FALSE)
+saveRDS(r, file.path(base, "evidence/r-final-doc-regression.rds"))
+s <- as.data.frame(r)
+print(s[, intersect(c("file", "test", "failed", "error", "warning", "skipped", "passed"), names(s))])
+stopifnot(sum(s$failed) == 0L, !any(s$error))
+cat("FINAL_DOC_REGRESSION_PASS\n")

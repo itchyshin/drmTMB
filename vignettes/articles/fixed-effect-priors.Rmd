@@ -1,0 +1,85 @@
+---
+title: "Regularize selected coefficients with normal priors"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Regularize selected coefficients with normal priors}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(drmTMB)
+knitr::opts_chunk$set(collapse=TRUE, comment="#>")
+```
+
+Does survival vary with temperature anomaly? The six deliberately separated observations below illustrate an estimation problem: all survivors have positive anomalies and all failures have negative anomalies. They are invented teaching data, not biological evidence. A binomial coefficient can run toward infinity under this separation. Independent normal priors can keep selected coefficients finite. Choose their scales in the units of your predictors and the link-scale effect you consider plausible. The fit is a penalized or maximum-a-posteriori (MAP) point estimate; this workflow does not sample a full posterior.
+
+```{r separation}
+d <- data.frame(x=c(-3,-2,-1,1,2,3), y=c(0,0,0,1,1,1))
+p <- drm_priors(
+  drm_prior_normal("mu", "(Intercept)", mean=0, sd=3),
+  drm_prior_normal("mu", "x", mean=0, sd=2)
+)
+drm_resolve_priors(bf(mu=y~x), binomial(), d, p)
+f <- drmTMB(bf(mu=y~x), binomial(), data=d, priors=p)
+coef(f, dpar="mu")
+```
+
+Let `x` be temperature anomaly in degrees Celsius and `y` survival (0 or 1). In this example, a one-degree warmer anomaly multiplies fitted survival odds by `r round(exp(coef(f, dpar="mu")[["x"]]), 2)`, from a slope of `r round(coef(f, dpar="mu")[["x"]], 2)` log-odds units. These values depend on the chosen priors. Here `mu` is the event-probability parameter and its predictor uses the logit link. The priors act on the intercept and slope of that predictor. A proper prior on only one coefficient cannot guarantee a finite estimate for every unpenalized direction. Both directions receive priors in this example.
+
+For a simulated growth-rate response, suppose temperature anomaly predicts both mean growth and variation among observations. For Gaussian data, `mu` describes location and `sigma` residual scale. The `mu` predictor is on the response scale, while the `sigma` predictor is on log SD. The two blocks can receive different priors even when both contain a column named `x`.
+
+```{r gaussian}
+set.seed(5105)
+g <- data.frame(x=rnorm(120))
+g$y <- 0.4 + 1.2*g$x + rnorm(120, sd=exp(-0.3 + 0.2*g$x))
+gp <- drm_priors(
+  drm_prior_normal("mu", "x", sd=2),
+  drm_prior_normal("sigma", "x", sd=0.5)
+)
+drm_resolve_priors(bf(mu=y~x, sigma=~x), gaussian(), g, gp)
+gf <- drmTMB(bf(mu=y~x, sigma=~x), data=g, priors=gp)
+coef(gf)
+```
+
+In this simulated example, the fitted mean changes by `r round(coef(gf, dpar="mu")[["x"]], 2)` response units per degree. The residual SD is multiplied by `r round(exp(coef(gf, dpar="sigma")[["x"]]), 2)` per degree, from a log-SD slope of `r round(coef(gf, dpar="sigma")[["x"]], 2)`. These fitted associations describe the teaching data.
+
+## Repeated observations within groups
+
+If observations share a group, a Gaussian model can include one independent
+random intercept in the mean. These invented growth observations have three
+measurements per group. The prior still acts on the fixed temperature slope;
+the group SD is estimated without a prior.
+
+```{r gaussian-group}
+re <- data.frame(x=rep(c(-1, 0, 1), 6), group=factor(rep(1:6, each=3)))
+re$y <- 0.5 + 0.6*re$x + rep(c(-0.5, 0.2, 0.7, -0.3, 0.4, -0.4), each=3) +
+  rep(c(0.1, -0.2, 0.1), 6)
+rp <- drm_priors(drm_prior_normal("mu", "x", mean=0.2, sd=0.8))
+rf <- drmTMB(bf(mu=y~x + (1 | group), sigma=~1), data=re, priors=rp)
+coef(rf, dpar="mu")
+logLik(rf)
+```
+
+The fit integrates over the group intercepts and adds the coefficient prior
+once to the marginal negative log-likelihood. `logLik(rf)` is the data
+log-likelihood at the resulting penalized estimates, without the prior term.
+
+With a varying residual SD, the marginal objective can have several local minima. A convergence flag does not show that the lowest minimum was found. Compare fits from multiple starts, for example with `control = drm_control(se = FALSE, logsigma_clamp = NULL, multi_start = 5)`. In the independent validation grid, the default start reached an inferior boundary minimum in one fixture; this multiple-start configuration passed all twelve fixtures. Multiple starts do not guarantee a global optimum.
+
+To penalize a whole coefficient block, choose the intercept policy explicitly. The ridge constructor adds `0.5 * lambda * sum(beta^2)` to the negative data log-likelihood. For positive lambda, it has the same optimum and curvature as a mean-zero normal prior with SD `1/sqrt(lambda)`; the ridge objective omits the normal density constant.
+
+```{r ridge}
+r <- drm_priors(drm_prior_ridge("mu", "all", lambda=0.25,
+                               intercept="exclude"))
+drm_resolve_priors(bf(mu=y~x), gaussian(), g, r)
+```
+
+Exact coefficient names refer to the final design matrix, including factor contrasts and interactions. `coef="all"` includes or excludes the conventional intercept using design metadata. Level columns in a no-intercept factor formula remain ordinary coefficients. No automatic centring or scaling occurs. To discover factor and interaction names before selecting a column, inspect `colnames(model.matrix(~ f*x, data))`, using the predictor formula for that distributional parameter; then check `drm_resolve_priors()` on the complete-case data you will fit. Unknown names, empty or overlapping selections and rank-deficient designs fail before fitting. Zero lambda adds nothing but still validates the requested selection and design.
+
+`logLik(f)` returns the data log-likelihood at the penalized estimate. `f$fixed_prior_penalty` records the separate prior contribution. `summary()` and `vcov()` describe local penalized-Hessian curvature. Confidence intervals and ordinary AIC, BIC, likelihood-ratio and profile comparisons are unavailable for active fixed priors. Point predictions and simulations use the fitted parameter values, without drawing coefficient uncertainty.
+
+This route accepts complete, unit-weight Gaussian and binomial-logit models with dense, unaggregated fixed-effect designs. Gaussian mean formulas may include one independent random intercept. Random slopes, multiple grouping factors, scale random effects and structured effects are not supported with priors. Fits with active priors use an unclamped log-scale predictor; when passing `drm_control()`, set `logsigma_clamp=NULL` explicitly. REML, MSPL, existing phylogenetic penalties and other response families refuse. If your analysis needs weights or another random-effect structure, fit that supported model without `priors`, or use another method whose regularization has been validated for that structure. Random-effect SD priors and tmbstan require separate validation. A wider prior or a different coding can change the result; use the resolved table and compare several scientifically plausible scales.
+
+With `engine = "julia"`, Gaussian mean formulas with ordinary random effects
+currently refuse factor predictors; the native TMB route supports them.

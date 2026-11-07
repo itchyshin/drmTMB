@@ -1,0 +1,120 @@
+{
+  "note": "Review copies trim trailing horizontal whitespace and empty lines at EOF only. Raw originals remain on Totoro; excerpt receipts identify separately retained complete compiler logs.",
+  "files": [
+    {
+      "file": "r-final-knit.log",
+      "raw_sha256": "6453d686f7e9e6a1ea86134e54d16163c18e564fbb78d27f2afa126e36cfaf2d",
+      "review_copy_sha256": "6453d686f7e9e6a1ea86134e54d16163c18e564fbb78d27f2afa126e36cfaf2d"
+    },
+    {
+      "file": "r-audit-one-git.log",
+      "raw_sha256": "ca3d7f390ca0e1704b9a4ecd7eeab3db266b8c99ecd15f46f3c938c9a62affa2",
+      "review_copy_sha256": "ca3d7f390ca0e1704b9a4ecd7eeab3db266b8c99ecd15f46f3c938c9a62affa2"
+    },
+    {
+      "file": "r-final-focused.log",
+      "raw_sha256": "988b1704708354c8254a86f442a78a81774df7826ecf27b2a95d2d83d1ddb96f",
+      "review_copy_sha256": "3a4df7eb3c959b5e3897451b5758d2cc4854ad4048f95d028dccbb71894b4d43"
+    },
+    {
+      "file": "r-package-check.log",
+      "raw_sha256": "36591dc48168ba57562ba6d3c85726392e70e238939a70b5e74a7d824bc8b8b0",
+      "review_copy_sha256": "36591dc48168ba57562ba6d3c85726392e70e238939a70b5e74a7d824bc8b8b0"
+    },
+    {
+      "file": "live-pair-final.log",
+      "raw_sha256": "a83aa0212afa21f024deff857b266a9890eaa4f5cbd0696c7607f523a0a0d243",
+      "review_copy_sha256": "5dd41e0549a60415546bf7d431fa234ab39629ef430539cf3494c9254685c21a"
+    },
+    {
+      "file": "julia-focused-final.log",
+      "raw_sha256": "4f43e39c516676fb58b26f62b4e61c887e726fe1e483e620944bddd99b5f6231",
+      "review_copy_sha256": "4f43e39c516676fb58b26f62b4e61c887e726fe1e483e620944bddd99b5f6231"
+    },
+    {
+      "file": "julia-affected-final.log",
+      "raw_sha256": "5ce4289fff1cf0ff35ef6fca2e0f8f95765e3f7228231546115e3cb8ae064c89",
+      "review_copy_sha256": "5ce4289fff1cf0ff35ef6fca2e0f8f95765e3f7228231546115e3cb8ae064c89"
+    },
+    {
+      "file": "fixed-effect-priors.executed.md",
+      "raw_sha256": "f75f9046824b1d2fd907d91ada5ee9d59049d3712e0b17b588a89813e211b189",
+      "review_copy_sha256": "0a5a883c5ed02283275c66239b4093655fa73bef4b4284ac0f7358d6295b68ab"
+    },
+    {
+      "file": "r-closeout-focused.log",
+      "raw_sha256": "988b1704708354c8254a86f442a78a81774df7826ecf27b2a95d2d83d1ddb96f",
+      "review_copy_sha256": "3a4df7eb3c959b5e3897451b5758d2cc4854ad4048f95d028dccbb71894b4d43"
+    },
+    {
+      "file": "r-closeout-install.log",
+      "raw_sha256": "0af0ac0fe7e4ed6c323cf9b349b1fa1beebbf6cc569a97a98e3c23c3314888ea",
+      "review_copy_sha256": "0af0ac0fe7e4ed6c323cf9b349b1fa1beebbf6cc569a97a98e3c23c3314888ea"
+    },
+    {
+      "file": "r-closeout-affected.log",
+      "raw_sha256": "f4b9b940167a37fd5ce217d52e30bacddcdaec973ce67c7f35fd23c382d36941",
+      "review_copy_sha256": "b1b006224300cc5dfd8ac5d2a2e68ccf3d59fb8c95750186d28f38bea6ae641f"
+    },
+    {
+      "file": "r-full-precloseout.log",
+      "raw_sha256": "28e5e73ab12e6d4aa0e011a387027877222e0a174e0d7ea6ad387443dd91686f",
+      "review_copy_sha256": "920f82a743edc765e5825cefc7fe24be4c99706dbfd29e8a3c8e182aac614ebe"
+    },
+    {
+      "file": "r-doc-regression-first.log",
+      "raw_sha256": "5a17b91271944eab926e2ca3a1298cf51941430c70db8fa72a5467cb208eb493",
+      "review_copy_sha256": "d092a8a9f2a32bd2e2f5c509242f4bec3d9b0a68c88bf59b6ec2c83b1b4632d9"
+    },
+    {
+      "file": "r-closeout-integration.log",
+      "raw_sha256": "2cfd6a671103aa5596eae7e81ea73f254f536c9906924fa7e7ee72e86554c731",
+      "review_copy_sha256": "2cfd6a671103aa5596eae7e81ea73f254f536c9906924fa7e7ee72e86554c731"
+    },
+    {
+      "file": "live-pair-closeout.log",
+      "raw_sha256": "a83aa0212afa21f024deff857b266a9890eaa4f5cbd0696c7607f523a0a0d243",
+      "review_copy_sha256": "5dd41e0549a60415546bf7d431fa234ab39629ef430539cf3494c9254685c21a"
+    },
+    {
+      "file": "r-phylo-fixture-test.log",
+      "raw_sha256": "e6091ada8ad71a784ccef78e12080a060f638e32aa707e81686c51d4c74b3746",
+      "review_copy_sha256": "04278cbd68f16c2c8d18a4a21e4bd0b1d61f2021a976daec7e9ec101993fe22f"
+    },
+    {
+      "file": "r-closeout-build.log",
+      "raw_sha256": "f1cfa171bf69cee53973e2681c8ba9342bf4a2b4b1034a56cdd3863cbed95086",
+      "review_copy_sha256": "52af3085ad629a792f733166924209295f5458dd1746246248861c28f6b30c4e"
+    },
+    {
+      "file": "r-prior-negative-controls.log",
+      "raw_sha256": "6c80d2ba2e6325465978689f9ed561fc6627181ce11a8b8e89ccd46bb926d568",
+      "review_copy_sha256": "b4808dd7535c417353b6b1d7483ba0ce999c7991f197748e1f43c13e1569e0f5"
+    },
+    {
+      "file": "r-closeout-package-check.log",
+      "raw_sha256": "d1bf06249b29b6071f0b57a7f5aa4713943f16354305bab8827dc68f2863f97c",
+      "review_copy_sha256": "62ddc5b2119d32352caa170f7961d26d6a39f8a8c5be5e0ea775a07fd95500f1"
+    },
+    {
+      "file": "r-exact-baseline-9fea303/tests.log",
+      "raw_sha256": "680caa625a75a51576ce25d3d55542ba51810b55944497b442474cf4d537d480",
+      "review_copy_sha256": "67f434c93c0082c4fa961e47a43522c1015b1e941d4e3287983b8290b4c0986b"
+    },
+    {
+      "file": "r-exact-baseline-9fea303/install.log",
+      "raw_sha256": "475eb7ba9db122eae0023ba0529372963bbd91816b444b29a967e9a341e0a1f0",
+      "review_copy_sha256": "475eb7ba9db122eae0023ba0529372963bbd91816b444b29a967e9a341e0a1f0"
+    },
+    {
+      "file": "r-closeout-check-install-excerpt.log",
+      "raw_sha256": "e52c7fa863d1d50d9bec9183efa13407cc3de070b129e1ab9ba4b2dd644b703e",
+      "review_copy_sha256": "e52c7fa863d1d50d9bec9183efa13407cc3de070b129e1ab9ba4b2dd644b703e"
+    },
+    {
+      "file": "julia-full-bounded.log",
+      "raw_sha256": "47122a57595bc6aa70f8e70b87b9e532cbd8978696851bb2ef75b91a435851d5",
+      "review_copy_sha256": "47122a57595bc6aa70f8e70b87b9e532cbd8978696851bb2ef75b91a435851d5"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+ℹ `engine = "julia"` is experimental: it fits only the families and routes
+  listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a
+  drop-in replacement for the default `engine = "tmb"`.
+ℹ This notice is shown once per R session.
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.10.12 at location /home/snakagaw/.julia/juliaup/julia-1.10.12+0.x64.linux.gnu/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+Julia exit.
+  Activating project at `~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106`

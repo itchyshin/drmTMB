@@ -1,0 +1,32 @@
+     a pilot       seed   estimate        se convergence pdHess
+1 -0.5     1 1746912062 -0.6036798 0.1640506           0   TRUE
+  max_abs_gradient clamp_at_optimum      lower      upper interval_status
+1     6.304624e-09               ok -0.9451078 -0.2940782         profile
+  profile_boundary profile_message laplace_oracle_error valid_interval warnings
+1            FALSE              ok         -3.01975e-09           TRUE         
+  error elapsed
+1        52.675
+  a pilot       seed   estimate        se convergence pdHess max_abs_gradient
+2 0     1 1475354618 -0.1545062 0.1619991           0   TRUE     3.113114e-10
+  clamp_at_optimum      lower     upper interval_status profile_boundary
+2               ok -0.4792937 0.1615925         profile            FALSE
+  profile_message laplace_oracle_error valid_interval warnings error elapsed
+2              ok        -4.724143e-09           TRUE                 52.975
+    a pilot       seed estimate        se convergence pdHess max_abs_gradient
+3 0.5     1 1120801948 0.398301 0.1678434           0   TRUE     5.189086e-09
+  clamp_at_optimum      lower     upper interval_status profile_boundary
+3               ok 0.07731377 0.7430931         profile            FALSE
+  profile_message laplace_oracle_error valid_interval warnings error elapsed
+3              ok        -2.521369e-08           TRUE                 63.064
+     a pilot      seed   estimate        se convergence pdHess max_abs_gradient
+4 -0.5     2 131856170 -0.3119342 0.1654912           0   TRUE     5.622725e-11
+  clamp_at_optimum      lower       upper interval_status profile_boundary
+4               ok -0.6525197 0.005735755         profile            FALSE
+  profile_message laplace_oracle_error valid_interval warnings error elapsed
+4              ok         -2.33681e-08           TRUE                 59.901
+  a pilot      seed   estimate        se convergence pdHess max_abs_gradient
+5 0     2 883057618 -0.1297443 0.1489867           0   TRUE     7.182015e-10
+  clamp_at_optimum      lower     upper interval_status profile_boundary
+5               ok -0.4263764 0.1615771         profile            FALSE
+  profile_message laplace_oracle_error valid_interval warnings error elapsed
+5              ok         2.344177e-08           TRUE                   49.7

@@ -1,0 +1,215 @@
+{
+  "scope": "All35initialmanifest-boundfilespreservedbyte-for-byte; initialledger18rowsretained",
+  "files": [
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/README.assessment.json",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/README.assessment.json",
+      "sha256": "409f2d22746cbdec84467b871615d784eca82b4de74a390061baab56adb734e6",
+      "bytes": 3378
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/README.md",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/README.md",
+      "sha256": "3b8cae28f53bc19be645a07a41ad2280ab093891ec98637f46d7ea4773cd4a93",
+      "bytes": 7114
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/article-gamma-control-refused-results.tsv",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/article-gamma-control-refused-results.tsv",
+      "sha256": "0ef9fce9cf70be19d9e71b493116ffa3624990e56d81cfc530f04d8577963828",
+      "bytes": 669
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/article-gamma-default-julia.log",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/article-gamma-default-julia.log",
+      "sha256": "d38d700a96857803f1ad78ecc945a0baa7ca96ec214cf2113456f4022ac25546",
+      "bytes": 1527
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/article-gamma-results.tsv",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/article-gamma-results.tsv",
+      "sha256": "23a2f41b8e39298c949fe0148ec1fb851cbfb10600952c456ffc1c5df8254071",
+      "bytes": 530
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/article-gamma-v1-control-refused.R",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/article-gamma-v1-control-refused.R",
+      "sha256": "7ee658af3521509b0ee3cf9516d7885ed4647bd62d8298c2a12f5129624ef348",
+      "bytes": 6136
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/article-gamma.R",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/article-gamma.R",
+      "sha256": "94c6ff1b49e97b7af875768a99af42dbd562099b2db542d4795a5ff66e38cfc7",
+      "bytes": 6300
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/article-gamma.log",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/article-gamma.log",
+      "sha256": "4e8c4060669a3f79bbe35e38f33524f8d41e48054cf3459b24675f75fad665ea",
+      "bytes": 1541
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/article-table-provenance.json",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/article-table-provenance.json",
+      "sha256": "356543fda27e7341e623e559ba16f54787d501d8416dc71772ef0671db64bd83",
+      "bytes": 218
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/check_artifacts.py",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/check_artifacts.py",
+      "sha256": "1aff2fb31c264d97d80c42645b0207fde1437074d8c23feaf341116c38994bd6",
+      "bytes": 1339
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/external-attempts.json",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/external-attempts.json",
+      "sha256": "2c12a3a6a4b2900bc097a8ba59c4efcf7cae11d91ad82852cdecf6a5acf7da5e",
+      "bytes": 2142
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/gamma-sd-K-labels.txt",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/gamma-sd-K-labels.txt",
+      "sha256": "bb087ca94e4e9c77bbc18d4ab8f9ab0652589e73f2e8d02040f1e6eb3a913c03",
+      "bytes": 151
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/gamma-sd-K.tsv",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/gamma-sd-K.tsv",
+      "sha256": "19ac707095d9e3b7d7f1b134418ba79b8fd0f038a5909be8daf102a8e3544185",
+      "bytes": 32139
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/gamma-sd-data.tsv",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/gamma-sd-data.tsv",
+      "sha256": "c1822b46d8410aff5c796326d6c9f97ce852d0ada23231e920aac37a428a6867",
+      "bytes": 27278
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/reused-native-dll.json",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/reused-native-dll.json",
+      "sha256": "a9971ce30bc8dd3070b04eeb2f5b9020b002962241b18845d252a282e07f82b9",
+      "bytes": 383
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s2-b34-final-live.log",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s2-b34-final-live.log",
+      "sha256": "0b3b8267d6610c61e54ae963c44f352fad95dc0e9b26216594cf8ccba7bd3453",
+      "bytes": 4212
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s2-live.R",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s2-live.R",
+      "sha256": "aca3f88fb2df0e7f7d8aa8df7b025fabfb4b0e73fd697546ea09ff35c778c756",
+      "bytes": 1029
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s2-live.log",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s2-live.log",
+      "sha256": "b7d35f3a4aae8194eb8c138f2e6cf71138204294ba542bcacfc44990e1164e29",
+      "bytes": 1108
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s2-newdata-link-green.log",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s2-newdata-link-green.log",
+      "sha256": "19031ebd258af35f27120ba9dabaf87d8bb322cb325a1f9e91e2d99e456cf9a3",
+      "bytes": 1510
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s2-newdata-link-red.log",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s2-newdata-link-red.log",
+      "sha256": "fdfe996035aecc7f43f664f717eaaabd0cd6d37418819781d7c5edd5c7069317",
+      "bytes": 1283
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s2-pure.log",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s2-pure.log",
+      "sha256": "1b25b2d7b7d959f486e6ef820f7af0e7a6d1e296e2051e0281228d5bfc1925b9",
+      "bytes": 1499
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s2-red.log",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s2-red.log",
+      "sha256": "ca80611f368209129358a3d753c941a0ef1eaa0a1d2410638350ca88185fdb2f",
+      "bytes": 6754
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s3-binomial-locator.jl",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s3-binomial-locator.jl",
+      "sha256": "3d04f2ecf74eefbe06eba4df52e051c442971c4d11706db27b5a3de074451af2",
+      "bytes": 2867
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s3-binomial-locator.stderr",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s3-binomial-locator.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s3-binomial-locator.tsv",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s3-binomial-locator.tsv",
+      "sha256": "5b165b2b6ad4847f5fec57c936456dba6de0b046ac15212fe8d6a9daeb8273dd",
+      "bytes": 445
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s3-nb2-binomial.jl",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s3-nb2-binomial.jl",
+      "sha256": "f899a00b01a223647179a2c4964952130040c8b9dfe045fae7a9cf08dfcd5efd",
+      "bytes": 3407
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s3-nb2-prerun-cached-dep.stderr",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s3-nb2-prerun-cached-dep.stderr",
+      "sha256": "7d3faed1e8ccca2f1dafb399fbd4e0b9f28aa6197d60cc615c95335651602a27",
+      "bytes": 1053
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s3-nb2-prerun-cached-dep.tsv",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s3-nb2-prerun-cached-dep.tsv",
+      "sha256": "6c43b7df6609adc949bf0ae4431aec4e0e8fc41cead624f0cba34cc8f46d1e7d",
+      "bytes": 560
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s3-nb2-remaining.stderr",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s3-nb2-remaining.stderr",
+      "sha256": "eb7c29b8509fb5e2146b165fb538b0fbcc9bb0f770f69a685e468a0cbd6717d7",
+      "bytes": 1053
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s3-nb2-remaining.tsv",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s3-nb2-remaining.tsv",
+      "sha256": "0776e0af23b530a6bfb457dc5729aa1f4cdec727d01c7a17482408d9419d4028",
+      "bytes": 1408
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s3-zeroonebeta-results.json",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s3-zeroonebeta-results.json",
+      "sha256": "09db68195cba65da233b2b06078aa882f0272e2231e0b576d4a4c0a92bcb8b88",
+      "bytes": 10274
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s3-zeroonebeta.R",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s3-zeroonebeta.R",
+      "sha256": "6a0ef73067ba50e19be2c154bf8ab284f3659fc23139c3eb6661ba865d9b249f",
+      "bytes": 1111
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/s3-zeroonebeta.log",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/s3-zeroonebeta.log",
+      "sha256": "75d04e69ceb3b0446a1e281a48456d5d204670657905a0145e6ac7b871cacfd6",
+      "bytes": 11164
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/source-snapshot.json",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/source-snapshot.json",
+      "sha256": "217b077b3f5528c32c39acfec0e7e4297ae153be387d8594a2beb6a5c7d6bfb5",
+      "bytes": 31850
+    },
+    {
+      "original_path": "docs/dev-log/general-sd-regression/gap-reproduction-20261104.tsv",
+      "retained_path": "docs/dev-log/general-sd-regression/evidence/ml-first-20261104/historical-initial/gap-reproduction-20261104.tsv",
+      "sha256": "28d1193eba95868573e610b19dc682ac177143eaa9e4c7bde52a548f6c029cba",
+      "bytes": 12253
+    }
+  ]
+}

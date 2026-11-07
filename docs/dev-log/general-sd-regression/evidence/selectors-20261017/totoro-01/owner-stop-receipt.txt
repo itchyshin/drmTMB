@@ -1,0 +1,1 @@
+Stopped by owner before receipt generation: relative path would escape job directory.

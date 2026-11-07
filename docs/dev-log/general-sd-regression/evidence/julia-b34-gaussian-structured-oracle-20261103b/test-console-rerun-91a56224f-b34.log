@@ -1,0 +1,17 @@
+julia-b34-gaussian-structured-oracle: ......i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+........b34 gaussian relmat: ll=-380.44418611 oracle=-380.44418611 agreement=2.84e-13 min_gap=1.0036 (x100356889 of tol 1e-08); gaps: selector_swap=-94.993, reversed_sd_vector=-4.657, cov2cor_K=-1.004, kernel_by_position=-82.975, sd_intercept_plus_log2=-9.549
+..................b34 gaussian animal: ll=-371.93093158 oracle=-371.93093158 agreement=5.68e-14 min_gap=0.2515 (x25154749 of tol 1e-08); gaps: selector_swap=-380.167, reversed_sd_vector=-29.788, cov2cor_K=-0.252, kernel_by_position=-10.254, sd_intercept_plus_log2=-8.961
+................b34 gaussian spatial: ll=-365.22296292 oracle=-365.22296292 agreement=5.68e-14 min_gap=0.0465 (x4653123 of tol 1e-08); gaps: selector_swap=-119.262, reversed_sd_vector=-12.674, range_mean_not_median=-0.047, kernel_by_position=-9.959, sd_intercept_plus_log2=-9.521
+........
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 3 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=56 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T03:52:30Z end=2026-11-03T03:53:06Z rc=0

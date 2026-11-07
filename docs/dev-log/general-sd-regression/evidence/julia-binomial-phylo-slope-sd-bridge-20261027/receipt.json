@@ -1,0 +1,47 @@
+{
+  "evidence_id": "julia-binomial-phylo-slope-sd-bridge-20261027",
+  "candidate_rows": [
+    {
+      "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"cloglog\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "cloglog",
+      "ledger_status": "blocked_base_plumbing"
+    },
+    {
+      "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "logit",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"probit\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "probit",
+      "ledger_status": "blocked_base_plumbing"
+    }
+  ],
+  "test_command": "PATH=\"/Users/z3437171/.juliaup/bin:$PATH\" DRMODELS_JL_PATH=\"$PWD/../general-sd-julia\" DRM_JL_PATH=\"$PWD/../general-sd-julia\" DRMTMB_JULIA_TESTS=true NOT_CRAN=true JULIA_HOME=\"/Users/z3437171/.juliaup/bin\" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = \"julia-binomial-phylo-slope-sd\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "paired_candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_source_path": "tests/testthat/test-julia-binomial-phylo-slope-sd.R",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027/test-snapshot/test-julia-binomial-phylo-slope-sd.R",
+  "test_file_sha256": "73517c3e23126ef2c1c3fc9c60a2051c2fcf17e2a02dd6cea3f857ff20d29e15",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027/source-manifest.json",
+  "source_manifest_sha256": "b5e6714ee0625fa7d8f755fa600fee6649770489bd94f9c0abee67fb1b247b56",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027/test-console.log",
+  "console_log_sha256": "d94845da898a5d045478d160f7da0866935fa497d861291a213fbc3ff4630b9b",
+  "test_result": "Focused test exited 0 with 30 expectations passed and one live Julia bridge test run. Same-data logit, probit, and cloglog fits checked convergence, SD coefficients, log likelihoods, and tip-level SD predictions. The logit case also checked save/reload coefficient and prediction retention plus seeded marginal simulation.",
+  "scope": "One Binomial phylogenetic slope-only mu term phylo(0 + x | species) with sd(species, level = \"phylogenetic\") ~ z. Development candidate bridge smoke only.",
+  "limits": "Point-fit and public-output evidence only. The logit save/reload and simulation checks do not establish interval calibration. No intercept-plus-slope phylogenetic block, other provider, broader family parity, package-wide validation, or release claim.",
+  "universe_check": {
+    "command": "python3 -m unittest discover -s tools/general-sd-regression/tests",
+    "result": "33 tests passed in 39.622 seconds",
+    "console_log_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027/universe-tests.log",
+    "console_log_sha256": "f3e3703b3fdbe7a587ecd0e0bf7891474f8552cbf6fa8196f740c569a7222744"
+  },
+  "documentation_check": {
+    "command": "Rscript -e 'pkgdown::check_pkgdown()'",
+    "result": "exit 0; no problems found; existing Pandoc MathML option deprecation warnings",
+    "console_log_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027/pkgdown-check.log",
+    "console_log_sha256": "4be8c25f78659373d62b2409e52b9055d8efeacae7b151618f5f6ddee356cf60",
+    "site_build": "Started in the same earlier command as check_pkgdown, remained idle for more than seven minutes, then was stopped. No completed site-render claim."
+  }
+}

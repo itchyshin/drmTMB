@@ -1,0 +1,27 @@
+{
+  "evidence_id": "julia-truncated-nbinom2-mu-iid-numeric-slope-bridge-20261025-m26",
+  "rerecord_of_evidence_id": "julia-truncated-nbinom2-mu-iid-numeric-slope-bridge-20261025",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/truncated-nbinom2-sd-julia-bridge-20261025/test-receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"env TMPDIR=/private/tmp DRMTMB_JULIA_TESTS=true NOT_CRAN=true DRM_JL_PATH=\"\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia\"\" DRM_JL_JULIA_HOME=\"\"/Users/z3437171/.juliaup/bin\"\" JULIA_DEPOT_PATH=\"\"/private/tmp/julia-depot:/Users/z3437171/.julia\"\" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = \"\"julia-truncated-nbinom2-sd-bridge\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)' 2>&1 | tee docs/dev-log/general-sd-regression/evidence/truncated-nbinom2-sd-julia-bridge-20261025/test-console.log\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-truncated-nbinom2-sd-bridge.R",
+      "test_sha256": "02324406b4c3d0a5e57163163d87960a984872ecbb48dfb72c43a5479e32ff34",
+      "started_utc": "2026-11-02T13:25:16Z",
+      "ended_utc": "2026-11-02T13:26:18Z",
+      "exit_code": 0,
+      "expectations_passed": 22,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/truncated-nbinom2-sd-julia-bridge-20261025-m26-1dbd0b/test-console-test-julia-truncated-nbinom2-sd-bridge.log",
+      "console_log_sha256": "e2f7517345a3a2c42f908a4e5cf4a38cfdd6818b4e5a4861e79681f20c7fd2d2"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/truncated-nbinom2-sd-julia-bridge-20261025-m26-1dbd0b/source-manifest.json",
+  "source_manifest_sha256": "6a911dd0f1c3100a454e1ff6311935c83e7a57f91388b3f20ca51860f0ee9562",
+  "review_status": "unreviewed",
+  "claim": "One fixed-seed same-data point-recovery/output check for a complete-positive-count zero-truncated NB2 independent numeric mu slope with matching SD regression and fixed sigma. It checks convergence, positive fitted SD trends within fixture-specific bounds, target labels, and finite positive group SD outputs from each engine."
+}

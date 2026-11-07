@@ -1,0 +1,51 @@
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is not positive definite at the optimum. Wald standard errors are withheld.
+│ A negative eigenvalue means this point is not a minimum, so inv(H) is not a covariance.
+│   context = "joint sparse-Laplace Binomial ordinary and phylogenetic SD regression"
+│   negative_eigenvalue_indices =
+│    1-element Vector{Int64}:
+│     1
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/vcov_guard.jl:90
+┌ Warning: drm: this tree's maximum tip height is 2.5, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.581139 = sqrt(2.5) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/2.5 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/sparse_phy.jl:713
+┌ Info: probit phylogenetic SD profile endpoint diagnostics
+│   stats =
+│    1-element Vector{@NamedTuple{param::Symbol, coef::String, evaluations::Int64, gradient_evaluations::Int64, bracket_expansions::Int64, root_iterations::Int64, lower_unbounded::Bool, upper_unbounded::Bool, nonmonotone::Bool, lower_endpoint_failed::Bool, upper_endpoint_failed::Bool, lower_nuisance_method::Symbol, upper_nuisance_method::Symbol, lower_nuisance_fallback::Bool, upper_nuisance_fallback::Bool, lower_nuisance_reason::Symbol, upper_nuisance_reason::Symbol}}:
+└     (param = :sd_phylo, coef = "z", evaluations = 26, gradient_evaluations = 0, bracket_expansions = 1, root_iterations = 23, lower_unbounded = 0, upper_unbounded = 0, nonmonotone = 0, lower_endpoint_failed = 0, upper_endpoint_failed = 1, lower_nuisance_method = :lbfgs_finite, upper_nuisance_method = :lbfgs_finite, lower_nuisance_fallback = 0, upper_nuisance_fallback = 0, lower_nuisance_reason = :accepted, upper_nuisance_reason = :not_converged)
+ERROR: LoadError: Some tests did not pass: 3 passed, 2 failed, 0 errored, 0 broken.
+in expression starting at /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_binomial_phylo_sd_regression.jl:296
+Test Summary:                                             | Pass  Total   Time
+Binomial ordinary and phylogenetic SD regressions jointly |   27     27  18.9s
+Test Summary:                                 | Pass  Total  Time
+Binomial phylogenetic intercept SD regression |   23     23  5.2s
+Binomial probit phylogenetic SD slope has finite profile endpoints: Test Failed at /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_binomial_phylo_sd_regression.jl:329
+  Expression: profile.failed == 0
+   Evaluated: 1 == 0
+
+Stacktrace:
+ [1] macro expansion
+   @ ~/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/share/julia/stdlib/v1.10/Test/src/Test.jl:672 [inlined]
+ [2] macro expansion
+   @ ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_binomial_phylo_sd_regression.jl:329 [inlined]
+ [3] macro expansion
+   @ ~/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/share/julia/stdlib/v1.10/Test/src/Test.jl:1577 [inlined]
+ [4] top-level scope
+   @ ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_binomial_phylo_sd_regression.jl:297
+Binomial probit phylogenetic SD slope has finite profile endpoints: Test Failed at /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_binomial_phylo_sd_regression.jl:332
+  Expression: isfinite(row.upper)
+
+Stacktrace:
+ [1] macro expansion
+   @ ~/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/share/julia/stdlib/v1.10/Test/src/Test.jl:672 [inlined]
+ [2] macro expansion
+   @ ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_binomial_phylo_sd_regression.jl:332 [inlined]
+ [3] macro expansion
+   @ ~/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/share/julia/stdlib/v1.10/Test/src/Test.jl:1577 [inlined]
+ [4] top-level scope
+   @ ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_binomial_phylo_sd_regression.jl:297
+Test Summary:                                                      | Pass  Fail  Total   Time
+Binomial probit phylogenetic SD slope has finite profile endpoints |    3     2      5  19.8s
+real 68.25
+user 53.89
+sys 3.04

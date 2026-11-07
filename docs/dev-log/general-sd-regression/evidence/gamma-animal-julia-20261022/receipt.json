@@ -1,0 +1,12 @@
+{
+  "evidence_id": "julia-gamma-animal-intercept-sd-20261022-current",
+  "candidate_row": "Julia Gamma univariate mu animal_intercept, q=1, supplied A covariance",
+  "candidate_row_key": "[\"Julia\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "test_command": "JULIA_DEPOT_PATH='/private/tmp/general-sd-julia-depot:/Users/z3437171/.julia' OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=2 julia --project=. test/test_gamma_animal_sd_regression.jl",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_file_sha256": "a8190d580ca8ad7e50b142dbdbed2de13cdaa0ffe6fc253c2d8b136864d3ba59",
+  "test_result": "13/13 assertions passed in 23.9 seconds on Julia 1.10.0.",
+  "coverage": "Synthetic fit and signed SD-slope recovery; group and row prediction; finite prediction standard errors; independent dense Laplace objective; constant-SD likelihood equivalence; seeded marginal simulation against the normalized-covariance oracle; serialization and one bootstrap refit.",
+  "limits": "One complete-data Julia q1 Gamma animal mean-intercept cell with fixed sigma and supplied non-unit-diagonal A, normalized to unit-diagonal R. Native parity for raw A scaling, other Gamma providers or coefficient shapes, and interval coverage are not established. Receipt is unreviewed."
+}

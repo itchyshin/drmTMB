@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "12832bcfd8a8739f246db2251de9db27a6fc2795d1dcc3a152c52d6a202df47e",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Manual review using protocols/writing-naturalness.md",
+  "genre": "technical after-task report",
+  "coverage": "Entire 987-word report, including equations, test outputs, scope, and handoff boundaries",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report uses concrete formulas, test counts, and limitations. Its repeated headings follow the required report schema and make the partial state easy to scan.",
+  "confidence": "medium",
+  "confidence_reason": "I checked the exact test outputs and the relevant model-builder and TMB code, but I did not independently review every neighbouring project document.",
+  "examples": [
+    {
+      "location": "Checks Run, recovery design paragraph",
+      "cue": "The point-recovery test used 240 groups, 32 observations per group, and a",
+      "impact": "The numbers make the tested design concrete for the next reader.",
+      "repair": "no change needed",
+      "line": 64,
+      "quote": "The point-recovery test used 240 groups, 32 observations per group, and a"
+    },
+    {
+      "location": "Consistency Audit, shared-source boundary",
+      "cue": "validator change and the ZIP builder change occupy separate regions",
+      "impact": "This names the overlap risk and prevents the report from implying integration is complete.",
+      "repair": "no change needed",
+      "line": 94,
+      "quote": "validator change and the ZIP builder change occupy separate regions, and the"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report states the D A D covariance and link-scale predictor, matching the current structured TMB branch and the exact formula tested. It limits the inference claim to one fixed-seed recovery result.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The test totals and elapsed times match the captured test outputs. The report explicitly records the failed acceptance re-verification and unresolved source-owner handoff.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external literature or citation claim; it identifies local source and test evidence.",
+  "date": "2026-10-21",
+  "calibration_status": "No formal style calibration or interval-coverage validation; one fixed-seed recovery test only.",
+  "interpretation": "perceived_style_not_authorship"
+}

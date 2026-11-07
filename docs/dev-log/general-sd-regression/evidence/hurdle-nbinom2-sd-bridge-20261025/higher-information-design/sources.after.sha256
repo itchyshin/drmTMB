@@ -1,0 +1,3 @@
+30b1f8c2cc3b1c4ea9429f36f1fe17f41e66b3209b0d04172be6f5e95d34febd  R/julia-bridge.R
+66d0129ee44949fc07e07242d1c9d8ef132fc98063a3cde65599b630b99779f7  tests/testthat/test-julia-hurdle-nbinom2-sd-bridge.R
+07eb21de91b7a58627ea0dd036561d502a3d114a3d37c064f244442159f2f714  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/negbinomial.jl

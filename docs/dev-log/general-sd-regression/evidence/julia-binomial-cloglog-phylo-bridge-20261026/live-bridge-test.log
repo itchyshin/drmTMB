@@ -1,0 +1,51 @@
+ℹ Testing drmTMB
+✔ | F W  S  OK | Context
+
+⠏ |          0 | julia-binomial-phylo-sd
+⠹ |          3 | julia-binomial-phylo-sd
+⠇ |          9 | julia-binomial-phylo-sd
+⠹ |         13 | julia-binomial-phylo-sd
+⠇ |         19 | julia-binomial-phylo-sd
+⠏ |         20 | julia-binomial-phylo-sd
+⠴ |         26 | julia-binomial-phylo-sd
+⠇ |         29 | julia-binomial-phylo-sd                                        i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+┌ Warning: drm: this tree's maximum tip height is 2.5, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.581139 = sqrt(2.5) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/2.5 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/sparse_phy.jl:713
+
+⠋ |         31 | julia-binomial-phylo-sd
+⠇ |         39 | julia-binomial-phylo-sd
+⠙ |         42 | julia-binomial-phylo-sd                                        `simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+
+⠼ |         45 | julia-binomial-phylo-sd                                        i Julia has 4 threads available, but refits are running SERIALLY because `threads` defaults to `FALSE`.
+i `JULIA_NUM_THREADS` alone does not parallelise refits -- pass `threads = TRUE` as well, e.g. `confint(fit, method = "profile", threads = TRUE)`.
+
+⠸ |         54 | julia-binomial-phylo-sd                                        ┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Binomial phylogenetic SD regression"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     3
+│     4
+│   rcond = 4.6681524208092426e-11
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/vcov_guard.jl:101
+
+⠧ |         58 | julia-binomial-phylo-sd
+⠼ |         65 | julia-binomial-phylo-sd
+✔ |         71 | julia-binomial-phylo-sd [119.0s]
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 119.0 s
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 71 ]
+Julia bridge: 3 live tests ran; bridge glue was exercised in this configuration.
+Julia exit.

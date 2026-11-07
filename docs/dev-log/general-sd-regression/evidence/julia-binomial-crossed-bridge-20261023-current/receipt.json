@@ -1,0 +1,30 @@
+{
+  "evidence_id": "julia-binomial-crossed-bridge-20261023-current",
+  "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"iid_additive_terms\",\"O1\",\"iid\",\"multiple independent intercept/slope fields\",\"group_factors\",\"crossed\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "evidence_grade": "workflow",
+  "claim": "One crossed Bernoulli fixture with two independent random-intercept SD targets passes current-source R/TMB-to-Julia output and marginal-simulation checks, with paired Julia implementation tests.",
+  "test_path": "tests/testthat/test-julia-binomial-crossed-sd.R",
+  "test_sha256": "c1e14ef006dc7f8ada4fdbd2de43228b2280623ba32204194a0d6ed98cb0eb07",
+  "test_command": "PATH=\"$HOME/.juliaup/bin:$PATH\" DRM_JL_PATH=\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia\" DRMTMB_JULIA_TESTS=true JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 /usr/local/bin/Rscript -e 'devtools::test(filter = \"julia-binomial-crossed-sd\", reporter = \"summary\", stop_on_failure = TRUE)'; exit=0; one live Julia bridge test; no failed assertions or skips; one non-fatal LogExpFunctionsInverseFunctionsExt precompile warning.",
+  "paired_julia_test": {
+    "test_path": "DRM.jl/test/test_binomial_crossed_sd_regression.jl",
+    "command": "PATH=\"$HOME/.juliaup/bin:$PATH\" JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=2 julia --project=. -e 'using Test; include(\"test/test_binomial_crossed_sd_regression.jl\")'",
+    "result": "20/20 assertions passed in 20.2 seconds under Julia 1.10.0."
+  },
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-bridge-20261023-current/source-manifest.json",
+  "source_manifest_sha256": "67ade4b7fbdddfc3024ab6244964b64bdcbd5339af8e0102d42eb3f0bc889ee1",
+  "source_heads": {
+    "drmTMB": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+    "DRM.jl": "70dbf564eb670144c63c08f61ea099084d95add2"
+  },
+  "limitations": [
+    "one crossed synthetic fixture only",
+    "no interval-coverage claim",
+    "does not establish correlated or structured effects, random slopes, other families, or package-wide parity"
+  ],
+  "review_status": "unreviewed",
+  "console_logs": [
+    "r-bridge-console.log",
+    "julia-console.log"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "be646a2df805b189f8e19fa19d6a584eba2feea776279c58072ff35e0dc94af2",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Read the complete saved report against the test source, focused test output, issue-search result, and after-task validator; then ran the local prose checker.",
+  "genre": "after-task technical report",
+  "coverage": "Whole report, version v1.",
+  "score": 2,
+  "style_status": "assessed",
+  "score_reason": "The report uses concrete test values and direct language. Its required headings create some repeated structure, but that suits a technical after-task record.",
+  "confidence": "medium",
+  "confidence_reason": "The short report and exact source/output checks support a useful local style judgment, but this is a self-review without calibrated human ratings.",
+  "examples": [
+    {
+      "location": "Section 6, Tests of the Tests, line 31",
+      "cue": "Separate latent draws would make the true correlation zero, so sharing `z0` is necessary for this test to check its stated model.",
+      "impact": "Connects the fixture repair to the model property the test claims to check.",
+      "repair": "No change needed.",
+      "line": 31,
+      "quote": "The test first failed on the testthat assertion API, then failed on the weak-information fixture. The final test checks nonzero signed SD trends and a positive correlation near the generating value. It retains the independent quadrature likelihood comparison. Separate latent draws would make the true correlation zero, so sharing `z0` is necessary for this test to check its stated model."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The displayed D_g R D_g equation and shared-draw construction match the test generator and fitted q2 covariance; the claim is limited to fixed-seed point recovery.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The reported recovery estimates, test outcome, elapsed time, and issue search were checked against current command outputs and source files.",
+  "references_gate": "pass",
+  "references_gate_reason": "GitHub issue numbers were checked with the connected search tool; no literature citations are used.",
+  "date": "2026-10-25",
+  "calibration_status": "No external style-calibration examples were used.",
+  "interpretation": "perceived_style_not_authorship"
+}

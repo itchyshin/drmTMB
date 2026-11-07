@@ -362,7 +362,7 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
       ),
       family = beta_family(), data = dat
     ),
-    "No phylogenetic location random-effect term matches"
+    "No structured location random-effect term matches"
   )
   expect_error(
     drmTMB(
@@ -429,7 +429,7 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
       ),
       family = beta_family(), data = dat
     ),
-    "Random-effect scale"
+    "No ordinary random-effect term matches"
   )
   expect_error(
     drmTMB(

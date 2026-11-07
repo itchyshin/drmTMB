@@ -1,0 +1,41 @@
+{
+  "evidence_id": "julia-poisson-animal-intercept-sd-20261022-relink27",
+  "relink_of_evidence_id": "julia-poisson-animal-intercept-sd-20261022",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/poisson-animal-julia-20261022/receipt.json",
+  "prior_test_path": "docs/dev-log/general-sd-regression/evidence/poisson-animal-julia-20261022/test_poisson_animal_sd_regression.jl",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "drmodels_jl_commit": "87a371a667e8823e8f5aca75ed1344145982c532",
+  "drmodels_jl_tree_state": "src/, test/, ext/, Project.toml, Manifest.toml clean at that commit (only docs modified)",
+  "host": "Totoro",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 taskset -c 241 julia +1.10.12 --startup-file=no --project=. test/test_poisson_animal_sd_regression.jl (Totoro, cwd = copy of DRModels.jl at 87a371a667e8823e8f5aca75ed1344145982c532, src/test/ext/Project/Manifest hashes identical to the Mac worktree)",
+  "live_test_path": "docs/dev-log/general-sd-regression/evidence/poisson-animal-julia-20261022-relink27-ae84d7/test-snapshot/test/test_poisson_animal_sd_regression.jl",
+  "live_test_origin": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_poisson_animal_sd_regression.jl",
+  "row_key_support": "live test differs from the frozen snapshot: live test keeps the Poisson animal intercept SD fit (kernel renamed R to A) and adds Ainv precision, reordered-Ainv, constant-SD precision, argument-error pins and a raw-A scale testset",
+  "runs": [
+    {
+      "test_path": "docs/dev-log/general-sd-regression/evidence/poisson-animal-julia-20261022-relink27-ae84d7/test-snapshot/test/test_poisson_animal_sd_regression.jl",
+      "test_sha256": "0ac1ed6a62ea890ddb288e6c7993d90857d71e834a534b94a91a6e59a39854bf",
+      "started_utc": "2026-11-02T14:03:30Z",
+      "ended_utc": "2026-11-02T14:04:32Z",
+      "exit_code": 0,
+      "expectations_passed": 38,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-animal-julia-20261022-relink27-ae84d7/test-console.log",
+      "console_log_sha256": "647e505d8a1533b2cdf086caaa6b399c27be7c38a82485866c4e087f6fee1094"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-animal-julia-20261022-relink27-ae84d7/source-manifest.json",
+  "source_manifest_sha256": "235e0035ce28c994010d3e446df2b0a8f1909438f6376d0066dcec27b5e77f12",
+  "review_status": "reviewed_narrow_claim",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ],
+  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared).",
+  "review_note": "Granted narrowly. Live Julia test test_poisson_animal_sd_regression.jl: 38 expectations, 0 failures, 0 skips; the 108 manifest entries (checked against a git archive of DRModels.jl at 87a371a66) and the console-log hash match. Oracle: a base-R/Optim dense Laplace objective (_poisson_animal_sd_dense_laplace) with a hand-built A (scaled AR(1) correlation) and a hand-built SD vector exp(alpha0 + alpha1*z) per animal. It is compared with fit.nll(theta) at the true parameters (atol 3e-4), once for the fixture and once for a raw-scale A in a second testset. My Totoro scratch run (Julia 1.10.12, taskset core 164) found fit.nll(theta) minus the oracle of -1.6e-11 against tolerance 3e-4, and oracle gaps of: reversed SD vector 2.9, 1-z flip 4.5, sign-flipped slope 7.1, cov2cor(A) 2.6, 2A 3.7. All are at least about 8,000 times the tolerance. These perturbations are from my scratch run, not asserted in the test. Row support is animal_intercept with A as covariance (the test also checks Ainv equals A, which is only internal parity and is not claimed here). Recovery is sign plus within 0.55 only. Does NOT establish: that the optimiser lands at the oracle optimum (the oracle is evaluated at the true theta), Ainv-precision correctness beyond A-versus-Ainv self-agreement, recovery accuracy beyond one seed, native parity, a slope SD, or interval coverage.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier"
+}

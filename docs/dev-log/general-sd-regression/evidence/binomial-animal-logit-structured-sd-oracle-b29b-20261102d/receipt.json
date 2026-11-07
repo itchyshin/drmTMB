@@ -1,0 +1,100 @@
+{
+  "evidence_id": "binomial-animal-logit-structured-sd-oracle-b29b-20261102d",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c <1 core of 210-214> Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-binomial-animal-logit-structured-sd-oracle-b29b.R', reporter='summary')); cat(sprintf('DRM_RECEIPT_COUNTS passed=%d failed=%d errors=%d skipped=%d\\n', sum(r$passed), sum(r$failed), sum(r$error), sum(r$skipped)))\"",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/exp-9d229de68 (R/, src/ and tests/ verified identical to the worktree by checksum), 1 pinned core; five b29b files ran in parallel on cores 210-214",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "9d229de6836cfc876bf3fcf12f982a3eae38a8fa",
+  "tree_state": "HEAD 9d229de68; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T18:15:41Z",
+  "run_ended_utc": "2026-11-02T18:16:22Z",
+  "exit_code": 0,
+  "expectations_passed": 160,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 3,
+  "test_blocks_note": "count of top-level test_that() calls in the test file",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-logit-structured-sd-oracle-b29b-20261102d/test-console.log",
+  "console_log_sha256": "fcb7e7563b25438b69f15798ceddcc5e37cee32468be9d1ec63427dc71a8ff84",
+  "test_path": "tests/testthat/test-binomial-animal-logit-structured-sd-oracle-b29b.R",
+  "test_sha256": "30b9ea55f129c05cdda99988b6bdd129231f33ab855f6a595212cc0677be8102",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-animal-logit-structured-sd-oracle-b29b-20261102d/source-manifest.json",
+  "source_manifest_sha256": "db117f5ad6a2bee0ec5c38d84036b70876c3c8f75564106e414192be4d162a63",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [
+    "native-binomial-animal-relmat-logit-20261027-m26",
+    "native-binomial-animal-relmat-q-logit-20261027-m26",
+    "native-binomial-animal-spatial-logit-20261027-m26",
+    "native-binomial-animal-ainv-relmat-k-logit-20261027-m26",
+    "native-binomial-animal-ainv-spatial-logit-20261027-m26",
+    "native-binomial-animal-pedigree-relmat-k-logit-20261027-m26",
+    "native-binomial-animal-pedigree-spatial-logit-20261027-m26",
+    "native-binomial-animal-intercept-a-logit-20261027-m26",
+    "native-binomial-animal-intercept-ainv-logit-20261027-m26",
+    "native-binomial-animal-intercept-pedigree-logit-20261027-m26"
+  ],
+  "strengthens_note": "Companion to the parent id(s); closes reviewer-listed gaps (independent oracle and emulated-bug sensitivity) for the linked rows. Only parent ids whose row is exactly fitted by this file are listed. The base ids carry the -m26 suffix as recorded in the ledger.",
+  "scope": "Binomial logit, single-field animal intercept (A, Ainv, pedigree) and two predictor-dependent-SD random-intercept fields: animal (A, Ainv, pedigree) + relmat (K for all three, Q for A) and animal (A, Ainv, pedigree) + coordinate spatial. Base-R dense Laplace oracle (1e-4 on logLik), Henderson A from an inbred pedigree, hand relmat and spatial kernels; swapped-selector, reversed-SD, cov2cor(K), K x 2 and by-position sensitivity (each moves the oracle by more than 0.1); provider inputs agree to 1e-6.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:A_covariance+relmat:K_covariance\",\"additive independent latent fields\",\"animal:A_covariance+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:A_covariance+relmat:Q_precision\",\"additive independent latent fields\",\"animal:A_covariance+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:Ainv_precision+relmat:K_covariance\",\"additive independent latent fields\",\"animal:Ainv_precision+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:pedigree+relmat:K_covariance\",\"additive independent latent fields\",\"animal:pedigree+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:A_covariance+spatial:coordinates\",\"additive independent latent fields\",\"animal:A_covariance+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:Ainv_precision+spatial:coordinates\",\"additive independent latent fields\",\"animal:Ainv_precision+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:pedigree+spatial:coordinates\",\"additive independent latent fields\",\"animal:pedigree+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"Ainv_precision\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"pedigree\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery or estimator-accuracy claims",
+    "any family, link, provider or provider combination not listed in candidate_rows",
+    "phylo + spatial rows (not fitted here)",
+    "probit and cloglog animal + relmat / animal + spatial",
+    "animal Ainv/pedigree + relmat Q (only A + Q was fitted)"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Read the test and helpers line by line. Oracle is independent of drmTMB: base-R dense Laplace (sb26_laplace, own Newton loop and log-det) on hand-built kernels (Henderson tabular A from a 3-family full-sib pedigree with diag(A) > 1.6, hand relmat kernel at scale 1.6, hand exponential spatial kernel; Ainv and Q are solve() of those). The pedigree provider is checked against the hand A, not against package code. Each fit's logLik matches the oracle at the fitted parameters within 1e-4, and the oracle values agree across providers within 1e-6. Emulated bugs (swapped selector coefficient sets, reversed per-level SD, cov2cor(K), K x 2, kernel read by position) are each asserted to move the oracle by more than 0.1, which is 1000x the tolerance, in every b29b_check call; the file passed these. Every linked row_key is fitted: logit animal+relmat for A+K, A+Q, Ainv+K and pedigree+K; animal+spatial for A, Ainv and pedigree; animal-only A, Ainv and pedigree. Each field is an intercept-only term on its own grouping factor with sd(.) ~ z, so there is no unlabelled (1 + x | id) concern. All 9 sha256 values in the manifest and the receipt, manifest and test hashes in the fragment match the current files. Console shows 160 passed, 0 failed, 0 skipped, exit 0, and no live-Julia claim. Does NOT establish: animal Ainv+Q or pedigree+Q for logit (only A+Q is fitted); anything for probit or cloglog; slope, labelled or correlated blocks; calibration, coverage, SE, recovery or Julia parity; any seed other than the fixed ones (one seed per block); behaviour away from the fitted parameters, since the check is likelihood assembly and selector alignment at the optimum.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-animal-logit-structured-sd-oracle-b29b.R",
+    "test_sha256": "30b9ea55f129c05cdda99988b6bdd129231f33ab855f6a595212cc0677be8102",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:34Z",
+    "ended_utc": "2026-11-03T01:06:22Z",
+    "expectations_passed": 160,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-logit-structured-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "4f531cd3e63379c52fe3f30005f4745d513f52f337e00227ec2ae621cb2a6f50",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

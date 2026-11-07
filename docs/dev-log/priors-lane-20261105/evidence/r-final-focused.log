@@ -1,0 +1,11 @@
+TEST_FILE  test-fixed-effect-priors.R
+fixed-effect-priors: ..................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+TEST_FILE  test-fixed-priors-workflow.R
+fixed-priors-workflow: ............................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+R_PRIOR_ORACLES_PASS

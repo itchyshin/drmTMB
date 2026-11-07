@@ -1,0 +1,17 @@
+julia-binomial-phylo-interaction-oracle-b31jb: ..i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+............b31jb phylo_interaction logit: ll=-766.766195 oracle=-766.766194 agreement=1.81e-06 min_gap=0.1933 (x193); gaps: selector_swap=-78.812, sd_slope_sign=-17.174, reversed_sd_vector=-13.553, sd_intercept_plus_log2=-2.454, K_scale_2=-0.603, raw_vcv_not_correlation=-4.697, pollinator_tree_ignored=-2.664, host_tree_ignored=-6.348, K_by_position=0.193
+......................b31jb phylo_interaction probit: ll=-671.769181 oracle=-671.769177 agreement=3.41e-06 min_gap=1.0417 (x1042); gaps: selector_swap=-164.284, sd_slope_sign=-39.915, reversed_sd_vector=-31.178, sd_intercept_plus_log2=-4.075, K_scale_2=-1.042, raw_vcv_not_correlation=-7.492, pollinator_tree_ignored=-5.297, host_tree_ignored=-11.360, K_by_position=-4.850
+......................b31jb phylo_interaction cloglog: ll=-570.015291 oracle=-570.015288 agreement=2.64e-06 min_gap=0.9403 (x940); gaps: selector_swap=-117.007, sd_slope_sign=-27.666, reversed_sd_vector=-20.710, sd_intercept_plus_log2=-3.818, K_scale_2=-0.940, raw_vcv_not_correlation=-7.157, pollinator_tree_ignored=-5.971, host_tree_ignored=-9.084, K_by_position=-5.011
+........
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=66 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T04:04:56Z end=2026-11-03T04:05:25Z rc=0

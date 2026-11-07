@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-animal-relmat-q-probit-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-animal-relmat-q-probit-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-animal-relmat-q-nonlogit-20261027/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e devtools::test(filter = \"\"binomial-animal-relmat-q-nonlogit-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-animal-relmat-q-nonlogit-sd.R",
+      "test_sha256": "a9ebfe23f96cad8a0bdfa28af8f7ad708096c173e2a86cfdfe2be3fb4b1f923d",
+      "started_utc": "2026-11-02T13:15:21Z",
+      "ended_utc": "2026-11-02T13:16:58Z",
+      "exit_code": 0,
+      "expectations_passed": 16,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-animal-relmat-q-nonlogit-20261027-m26-6f919b/test-console-test-binomial-animal-relmat-q-nonlogit-sd.log",
+      "console_log_sha256": "4f6a6f03dff252b9806dae1a07e94bdcca761fbd430de2cc924b8cf3132743ef"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-animal-relmat-q-nonlogit-20261027-m26-6f919b/source-manifest.json",
+  "source_manifest_sha256": "57e8652545ef510a6cdf98eafa5881408e1c88795fd439c57a0ad9d37a05bce0",
+  "review_status": "unreviewed"
+}
