@@ -1101,7 +1101,6 @@ parity or calibrated intervals.
 
 ## Bug fixes
 
-<<<<<<< HEAD
 * `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
   `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
   log-densities that the response kernels gained in #1547. The old inline
@@ -1110,7 +1109,6 @@ parity or calibrated intervals.
   quantiles, and the R density for beta-binomial `mi()` predictors, now use
   the same cancellation-free gamma-function ratio as the compiled kernel.
   Values at ordinary shape are unchanged to rounding (#1548).
-=======
 * `engine = "julia"` Gaussian `spatial(1 | site, coords = coords)` now matches
   per-site `coords` rows to sites by row name, as `engine = "tmb"` does. The
   bridge used to drop the row names, so labelled coordinates in any order other
@@ -1121,7 +1119,6 @@ parity or calibrated intervals.
   separately from residual-scale clamps. Start checks include direct SD
   regression coefficients. Residual-scale accessors keep their existing scope.
 
->>>>>>> origin/main
 * The first `engine = "julia"` call no longer prints the recovered
   `Error during loading of extension LogExpFunctionsInverseFunctionsExt` log
   with its `UndefVarError` stack trace (twice) that some Julia package
