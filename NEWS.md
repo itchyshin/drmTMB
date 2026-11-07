@@ -973,6 +973,9 @@ parity or calibrated intervals.
   compare each input across Julia and native TMB and compare `A` with `Ainv`.
   Profile/bootstrap refitting for this route and interval calibration remain
   unverified. The existing Poisson animal-intercept `Ainv` route is unchanged.
+* `vcov()` no longer tells you to refit with `drm_control(se = TRUE)` when
+  `se = TRUE` was already set and the Hessian is not positive definite; it now
+  points to a boundary or aliased/collinear column and `check_drm()` (#1470).
 
 ## New features
 
@@ -1098,6 +1101,12 @@ parity or calibrated intervals.
 
 ## Bug fixes
 
+* `engine = "julia"` Gaussian `spatial(1 | site, coords = coords)` now matches
+  per-site `coords` rows to sites by row name, as `engine = "tmb"` does. The
+  bridge used to drop the row names, so labelled coordinates in any order other
+  than first appearance in `data` were paired with the wrong sites. A live
+  regression test now checks that a labelled `relmat()` K in sorted or
+  shuffled order gives the native logLik through the bridge (#1512).
 * Fit warnings and `check_drm()` now report active direct latent-SD clamps
   separately from residual-scale clamps. Start checks include direct SD
   regression coefficients. Residual-scale accessors keep their existing scope.
