@@ -8,9 +8,15 @@ Shinichi wants drmTMB and DRModels.jl finished as reliable R and Julia distribut
 
 | Repository | Current work | Evidence and next direction |
 | --- | --- | --- |
-| drmTMB | Receipt branch `fix/phylo-bridge-receipt-20261107`, PR #1682 draft | One phylogenetic bridge fixture passed; exact-head CI passed; complete review and seek separate merge authorization. |
+| drmTMB | Receipt branch `fix/phylo-bridge-receipt-20261107`, PR #1682 draft | One phylogenetic bridge fixture passed; exact-head CI passed on an earlier base; reconcile the stale receipt and overlapping release lane before integration. |
 | DRModels.jl | Parity PR #1252 merged as `976c1ac3710c6f14cf4574dc17fdf56523d502d8` | Native shards and docs passed; R parity tests were skipped. Continue route-specific evidence. |
 | Both | Priors PRs R #1681 and Julia #1258 belong to a separate lane | Preserve their work and review their own current status before overlap. |
+
+## Update: receipt source moved after CI
+
+On 2026-11-07 Shinichi authorized merging #1682. Its exact-head CI passed, but it remained a draft and was not merged: GitHub main advanced to `361fd1c801981e2830a1c2617c36706050dfa959`, and the receipt at #1682 head `1e334f1ca47e16c5aa80ba33070f36f21feb116c` differs from that main in seven recorded R sources: `R/drmTMB.R`, `R/fixed-effect-priors.R`, `R/fixed-priors-workflow.R`, `R/heritability.R`, `R/julia-bridge.R`, `R/methods.R` and `R/profile.R`. Therefore its green checks do not establish receipt freshness on the new main.
+
+Active release draft #1683 changes the same receipt, README and checksum manifest. Its description reports a newer reproduction against R `4d3917385` and Julia `b20ccf2df` and explicitly calls for reconciling the two receipts before either overlapping change is merged. Preserve both histories and coordinate with the release lane. Independently check the exact current main and the newer receipt before selecting the integration path; do not merge the stale receipt merely to satisfy the earlier instruction. The user authorization for #1682 does not authorize a release, a different PR or bypassing the source-freshness gate.
 
 ## Critical context
 
@@ -32,7 +38,7 @@ The handoff gate flagged two modified settings files in this worktree and 1,047 
 
 | Artifact | State | Reason and resume |
 | --- | --- | --- |
-| R `fix/phylo-bridge-receipt-20261107` at `1e334f1ca47e16c5aa80ba33070f36f21feb116c` | CARRIED-OVER: committed, pushed, draft PR #1682 | Review and a separate merge decision remain. Run `gh run view 42366509228 -R itchyshin/drmTMB` and `gh pr view 1682 -R itchyshin/drmTMB`. |
+| R `fix/phylo-bridge-receipt-20261107` at `1e334f1ca47e16c5aa80ba33070f36f21feb116c` | CARRIED-OVER: committed, pushed, draft PR #1682 | CI passed on the earlier base; source reconciliation and review remain. Run `gh run view 42366509228 -R itchyshin/drmTMB` and `gh pr view 1682 -R itchyshin/drmTMB`. |
 | `.claude/settings.json`, `.cursor/hooks.json` in this checkout | PROTECTED, uncommitted | Unrelated. Inspect `git status --short`; do not stage or restore. |
 | Other local unpushed branches and dirty worktrees | PROTECTED / CARRIED-OVER | Ownership is not established. Run `~/shinichi-brain/tools/lane_preflight.sh "$PWD"` and `~/shinichi-brain/tools/handoff_gate.sh "$PWD"`; do not alter them. |
 | This handover | CARRIED-OVER on pushed `handover/drm-to-claude-20261107` | Read on its named branch; verify its final commit and PR state. |
@@ -47,7 +53,7 @@ The branch changes `docs/dev-log/check-log.md`; `docs/dev-log/after-task/2026-11
 
 1. Run lane preflight, inspect `git status`, current GitHub refs, the coordination board and this handoff. Classify each item `OWED`, `DONE`, `RETRACTED` or `PROTECTED`.
 2. Inspect exact-head CI run 42366509228 and retain failure details or all results. Review receipt provenance and the manifest without changing its historical evidence. If checks fail, reproduce and attribute the failure before editing.
-3. Once review and checks are complete, present the exact PR state to Shinichi for the separate merge decision. Check post-merge main CI if a merge is authorized and completed.
+3. Reconcile the seven changed R sources and overlapping #1683 receipt first. Shinichi authorized merging #1682, but the earlier-source receipt cannot establish freshness on current main. Present the reconciled exact-source path and check post-merge main CI if integration proceeds.
 4. Return to the dated parity crosswalk and open PR/ownership inventory. The 22 unreconciled capability names need route-specific evidence, not automatic promotion. Consult the existing handoff and live source before selecting a small owner-safe slice. Keep the prior lane and separate CJS work protected.
 
 ## Gotchas and environment
