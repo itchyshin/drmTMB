@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "source": "ff10a2f9adb23c0e315d50e8c2094d6d27ed1d82",
+  "files": 561,
+  "shard_counts": [
+    71,
+    70,
+    70,
+    70,
+    70,
+    70,
+    70,
+    70
+  ],
+  "scope": "original harness exact disjoint full selection; JET/parity separately reported"
+}

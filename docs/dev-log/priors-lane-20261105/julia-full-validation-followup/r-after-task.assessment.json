@@ -1,0 +1,52 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "c8f9a34ab4d59c476e944e8934039cfa39c6e66ef8c8d78aa3c84efd78ece16a",
+  "draft_version": "validation-final-v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex parent",
+  "method": "Whole-draft self-review against source-pinned receipts; an independent integration reviewer verified the result and corrected stale report wording.",
+  "genre": "Technical validation report, check log or recovery record",
+  "coverage": "Whole /Users/z3437171/.codex/worktrees/drm-priors-design-20261105/drmTMB/docs/dev-log/after-task/2026-11-05-fixed-effect-priors.md",
+  "score": 4,
+  "style_status": "assessed",
+  "score_reason": "Concrete measurements and limitations; audit structure and source identifiers add necessary density.",
+  "confidence": "medium",
+  "confidence_reason": "Self-assessment with independent fact review; no held-out prose calibration or human authorship assessment.",
+  "examples": [
+    {
+      "location": "Line 3",
+      "line": 3,
+      "quote": "> Follow-up on 5 November 2026: the same Julia source a30e3472 passed the",
+      "cue": "Concrete purpose, measurement or scope statement",
+      "impact": "Separates validated results from broader untested claims",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Line 13",
+      "line": 13,
+      "quote": "Help applied users regularize separation and unstable fixed coefficients in drmTMB and DRModels.jl, with explicit distributional-parameter, coefficient and intercept selection. Shinichi approved implementation and isolated overlap on 5 November 2026. Merge, release and publication remain unauthorized.",
+      "cue": "Concrete purpose, measurement or scope statement",
+      "impact": "Separates validated results from broader untested claims",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Line 17",
+      "line": 17,
+      "quote": "The R package now has normal/ridge constructors, a preview resolver, compiled objective contributions, separate likelihood/prior reporting, local-curvature labels and guards against unsupported inference. Gaussian mu/sigma and binomial-logit mu are the first admitted fixed-effect blocks. The Julia twin has independently written constructors, resolver and native fitting support, plus bridge metadata and corresponding guards. No random-effect SD prior or sampler was added.",
+      "cue": "Concrete purpose, measurement or scope statement",
+      "impact": "Separates validated results from broader untested claims",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "No new estimator or calibration claim; default-suite checks are distinguished from parity, intervals and release readiness.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "All eight exits,554ordered file completions,raw/transcript hashes and source/runtime checks pass; old90minute run remains historical and incomplete.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No literature claim; primary operational run evidence was verified separately.",
+  "date": "2026-11-05",
+  "calibration_status": "No held-out calibration examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

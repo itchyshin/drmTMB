@@ -48,13 +48,16 @@ test_that("non-Gaussian sigma random effects have a specific boundary", {
     drmTMB(bf(y_prop ~ x, sigma ~ x + (1 | id)), family = beta_family(), data = dat),
     boundary
   )
-  expect_error(
-    drmTMB(
+  # beta-binomial sigma random intercepts are now deliberately admitted by the
+  # general-sd-regression lane (fitted in test-beta-binomial-sigma-sd-regression.R).
+  # This tiny data set only checks assembly and fit, so optimizer warnings are muted.
+  expect_s3_class(
+    suppressWarnings(drmTMB(
       bf(cbind(success, failure) ~ x, sigma ~ x + (1 | id)),
       family = beta_binomial(),
       data = dat
-    ),
-    boundary
+    )),
+    "drmTMB"
   )
   expect_error(
     drmTMB(

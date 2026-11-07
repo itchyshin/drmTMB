@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "b69eeb34d7ab8e0350cec31b5f86954a4d12afc1fef4a2f427b5aa0aef4dfe9c",
+  "draft_version": "v2",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Read the full verification report and check-log, compared R and Julia test counts and runtimes with captured command output, and applied the naturalness protocol.",
+  "genre": "Technical after-task report",
+  "coverage": "Complete report, exact saved draft version v2.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report uses specific test names, counts, runtimes, and explicit evidence limits.",
+  "confidence": "medium",
+  "confidence_reason": "The report is short and test results are concrete, but this is an editorial self-judgment.",
+  "examples": [
+    {
+      "location": "Section 2, first sentence",
+      "line": 9,
+      "quote": "Completed a verification checkpoint on the current dirty `codex/general-sd-regression` worktree. No implementation files were changed in this checkpoint.",
+      "cue": "The opening states the verification scope and source-change boundary.",
+      "impact": "Readers can distinguish test evidence from implementation completion.",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report limits claims to the named targeted tests and explicitly excludes coverage calibration and broader capability claims.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Assertion counts, runtimes, warnings, and test coverage descriptions were checked against the run outputs and inspected tests.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "This test record contains no literature or external-source claims.",
+  "date": "2026-10-20",
+  "calibration_status": "No held-out style controls were used; exact run outputs were checked.",
+  "interpretation": "perceived_style_not_authorship"
+}

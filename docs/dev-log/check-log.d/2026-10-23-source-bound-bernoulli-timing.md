@@ -1,0 +1,3 @@
+## 2026-10-23: current-source Bernoulli timing pre-run
+
+The current native candidate completed all 45 source-bound timing fits on Totoro in 29.5 seconds. All 45 produced valid 95% profile intervals and passed the independent Laplace oracle; there were no boundaries, warnings, or errors. Every timing row records `calibration_claim=false`. The maximum fit time is 10.236 seconds, giving a conservative 105.2-minute projection for 9,000 fits, or 126.3 minutes with the existing 20% allowance. This is runtime evidence only and does not establish coverage. The complete capsule and hashes are in `docs/dev-log/general-sd-regression/evidence/calibration-20261023/timing-current-source-v1/`.

@@ -241,11 +241,12 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   #
   # #1476 / #1477 drop the two IS s_floor CondExps and add Newton clamps
   # in drm_gamma_mi_adaptive_quadrature (mu floor, Hessian floor, two
-  # step clamps, and -H floor). Five steps, no data-dependent stop.
+  # step clamps, and -H floor). Twelve steps (five before #1532), no
+  # data-dependent stop.
   # Weight 0 stays a data-level `if (asDouble(weights(i)) > 0)`.
   #
   # #1477 (round 5) replaces the Gauss-Hermite node rule with a sinh-mapped
-  # trapezoid and makes each of the five Newton steps a safeguarded choice
+  # trapezoid and makes each of the Newton steps a safeguarded choice
   # between the clamped log-x step and a Newton step on G(x) = g / x. That
   # adds ten CondExp sites to drm_gamma_mi_adaptive_quadrature: the (H - g)
   # floor, the ratio floor, two log-step clamps, two validity selects, two
@@ -288,7 +289,7 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
 # ---------------------------------------------------------------------------
 # Site: drm_gamma_mi_adaptive_quadrature Newton clamps.
 # Class: C0 floor. Tiny CV would send the posterior Hessian toward 0.
-# Five Newton steps stay on the tape; CondExp clamps the step and -H.
+# The Newton steps stay on the tape; CondExp clamps the step and -H.
 # ---------------------------------------------------------------------------
 test_that("Gamma adaptive GH Newton clamps keep nodes finite at tiny CV", {
   z <- 0

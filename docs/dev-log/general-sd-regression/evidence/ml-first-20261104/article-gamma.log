@@ -1,0 +1,20 @@
+START tmb 2026-11-04 12:13:43 
+  engine status convergence    logLik own_laplace    oracle_gap alpha_intercept
+1    tmb   pass           0 -572.3289   -572.3289 -2.023626e-11      -0.5135359
+     alpha_z     sigma true_one_unit_ratio estimated_one_unit_ratio
+1 0.07043085 0.4975113            1.491825                  1.07297
+  elapsed_seconds error
+1        2.171522      
+START julia 2026-11-04 12:13:46 
+ℹ `engine = "julia"` is experimental: it fits only the families and routes
+  listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a
+  drop-in replacement for the default `engine = "tmb"`.
+ℹ This notice is shown once per R session.
+  engine status convergence logLik own_laplace oracle_gap alpha_intercept
+1  julia  error        <NA>     NA          NA         NA              NA
+  alpha_z sigma true_one_unit_ratio estimated_one_unit_ratio elapsed_seconds
+1      NA    NA            1.491825                       NA        0.186918
+                                                                                                                                                                                                                           error
+1 `engine = "julia"` structured models currently accept only default\n`control`.\n✖ Non-default `control` setting: "se".\nℹ Use the native `engine = "tmb"` path for TMB optimizer, storage, sparse, or\n  aggregation controls.
+Error: ARTICLE_GAMMA_NOT_ADMITTED: retained candidate failures; inspect results.tsv and article-gamma.rds
+Execution halted

@@ -1,0 +1,22 @@
+START gaussian 2026-11-04 12:01:53 
+ℹ `engine = "julia"` is experimental: it fits only the families and routes
+  listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a
+  drop-in replacement for the default `engine = "tmb"`.
+ℹ This notice is shown once per R session.
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.13.0 at location /Users/z3437171/.julia/juliaup/julia-1.13.0+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+PASS gaussian 2026-11-04 12:03:32 
+START poisson 2026-11-04 12:03:32 
+PASS poisson 2026-11-04 12:03:40 
+START nbinom2 2026-11-04 12:03:40 
+PASS nbinom2 2026-11-04 12:03:46 
+START gamma 2026-11-04 12:03:46 
+PASS gamma 2026-11-04 12:03:52 
+START binomial 2026-11-04 12:03:52 
+PASS binomial 2026-11-04 12:04:02 
+S2_LIVE_PASS
+Julia exit.
+  Activating project at `/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/drmodels-main`

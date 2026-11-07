@@ -1,0 +1,42 @@
+$seed
+[1] 1120801948
+
+$groups
+[1] 160
+
+$repeats
+[1] 16
+
+$alpha
+[1] -0.2231436  0.5000000
+
+$evaluations
+[1] 110
+
+$convergence
+[1] 0
+
+$boundary
+[1] FALSE
+
+$max_abs_gradient
+[1] 7.919084e-05
+
+$adaptive_nll
+[1] 1583.139
+
+$elapsed
+[1] 75.932
+
+$numerical_bounds
+$numerical_bounds$lower
+[1] -5 -5 -4 -2
+
+$numerical_bounds$upper
+[1] 5 5 2 2
+
+
+$calibration_claim
+[1] FALSE
+
+ADAPTIVE_REFERENCE_PILOT_PASS

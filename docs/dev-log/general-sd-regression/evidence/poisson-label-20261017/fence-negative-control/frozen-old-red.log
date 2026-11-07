@@ -1,0 +1,12 @@
+poisson-sd-assembly: ...........................12.........
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-poisson-sd-assembly.R:93:3'): Poisson scalar block labels s
+Expected `drm_build_poisson_spec(...)` to throw a error.
+
+── 2. Failure ('test-poisson-sd-assembly.R:96:3'): Poisson scalar block labels s
+Expected `drm_build_poisson_spec(bf(y ~ x + (1 | p | id)), dat, missing = miss_control(response = "include"))` to throw a error.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+No one gets it right on their first try
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

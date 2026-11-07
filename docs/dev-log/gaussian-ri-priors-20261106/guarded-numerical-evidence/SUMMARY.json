@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "fixtures": 12,
+  "routes": [
+    "r-native",
+    "julia-native",
+    "bridge"
+  ],
+  "package_fits": 36,
+  "scope": "native fixed-point checks and native/bridge fitted checks; no bridge arbitrary-point Hessian",
+  "R_source": "5d0f159644991f49dd767b8baf8cb61f537b3720",
+  "Julia_source": "ff10a2f9adb23c0e315d50e8c2094d6d27ed1d82",
+  "max_normalized_errors": {
+    "point_objective": 4.3502907647672623e-16,
+    "point_data_nll": 4.825262515821181e-16,
+    "point_prior": 1.0441491938804093e-15,
+    "point_decomposition": 0,
+    "fit_objective_at_returned_point": 3.9888850475789104e-14,
+    "fit_data_nll": 4.581359340293417e-14,
+    "fit_prior": 1.94962033979783e-16,
+    "fit_optimum_objective": 5.370993806476651e-11,
+    "fit_coefficients": 5.3415850718545274e-08,
+    "fit_interior_group_sd": 3.570738465962321e-09,
+    "point_gradient": 9.88847834626613e-16,
+    "point_hessian": 6.971688304180681e-10
+  },
+  "R_solver": "multi_start=5; caller777 reset per fixture; internal20260616; RNGkind Mersenne-Twister/Inversion/Rejection",
+  "original_default_failure": "R ri10 retained under earlier-candidate evidence; optimizer code unchanged"
+}

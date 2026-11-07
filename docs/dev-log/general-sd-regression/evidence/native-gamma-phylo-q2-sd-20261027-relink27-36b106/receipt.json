@@ -1,0 +1,52 @@
+{
+  "evidence_id": "native-gamma-phylo-q2-sd-20261027-relink27",
+  "relink_of_evidence_id": "native-gamma-phylo-q2-sd-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/receipt.json",
+  "prior_test_path": "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/test-snapshot/tests/testthat/test-gamma-phylo-q2-sd-regression.R",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "host": "Totoro",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 NOT_CRAN=true taskset -c 241 Rscript -e 'pkgload::load_all(\".\", quiet = TRUE); testthat::test_file(\"tests/testthat/test-gamma-phylo-q2-sd-regression.R\", reporter = \"summary\")' (Totoro, package copy rsynced from this worktree at 7fd8acec3, cwd = package root)",
+  "live_test_path": "tests/testthat/test-gamma-phylo-q2-sd-regression.R",
+  "live_test_origin": "tests/testthat/test-gamma-phylo-q2-sd-regression.R",
+  "row_key_support": "live test differs from the frozen snapshot: live differs from the snapshot in two refusal pins (a spec-builder refusal fixture changed to phylo(0+x+z0|id); marginal simulation now admitted and the refusal re-pinned on an altered corpars); the fits and oracles are unchanged",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-gamma-phylo-q2-sd-regression.R",
+      "test_sha256": "f00e7c33076dbba2d99019982dff69150c967b20bc3d4a461bcecb05d9f4eace",
+      "started_utc": "2026-11-02T14:06:13Z",
+      "ended_utc": "2026-11-02T14:07:22Z",
+      "exit_code": 0,
+      "expectations_passed": 48,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027-relink27-36b106/test-console.log",
+      "console_log_sha256": "e84326b0c4b05bc9c53c2b0cf44716bcd2c0fe3e0c9142784e01446b29b7655f"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027-relink27-36b106/source-manifest.json",
+  "source_manifest_sha256": "232986e9c090b6f44be498790f3871524a2e27cf8c0ec0ba68c60f5ad4527f4d",
+  "review_status": "reviewed_narrow_claim",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ],
+  "review_note": "Native Gamma(log) mu phylo(1 + x | id) with an SD formula on each coefficient (unlabelled, so two independent fields; the slope row is the slope member with SD ~ z1, and the intercept member also has SD ~ z0). Oracle is independent: the tip kernel K is hand-built from binary-split tree mismatches (not ape, not the package helper) and compared with the package augmented-precision tip covariance at 1e-10; the test then evaluates a base-R dense Laplace NLL (own gradient/Hessian checked by finite differences, two starts) and requires agreement with -logLik and the linear predictor at 1e-4. Manifest (R/drmTMB.R, src/drmTMB.cpp, test) matches current files; receipt log shows 48 passed, 0 failed, 0 skipped. Sensitivity was shown by my scratch run (Totoro cores 168-173, not asserted in the test), nll gap against a 1e-4 tolerance: swap selectors z0<->z1 65.2; swap the two coefficient SD sets 143; reverse z0 over tips 29.9; reverse z1 91.1; sign flip 120.9; K x1.5 4.05; K off-diagonals halved 0.83; random K label permutation 1.5-3.7. Blind spot: the balanced tree kernel is invariant to exactly reversing labels (gap 1e-9), so reversal-based alignment bugs are not caught; random permutations are. Does NOT establish: calibration or coverage, recovery beyond one seed (SD slopes only within 0.4 of truth), a correlated intercept-slope block (fields are independent), non-balanced or non-ultrametric trees, or that the in-test file would still fail if its checks were weakened, since the perturbations live in my scratch run, not the test.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gamma-phylo-q2-sd-regression.R",
+    "test_sha256": "b705662e3aaff82deb331d6f8e3f2951e059fa4ef677c0234ae9ce652f2b46a9",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:08:54Z",
+    "ended_utc": "2026-11-03T01:10:04Z",
+    "expectations_passed": 48,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027-relink27-36b106/test-console-rerun-81553915d.log",
+    "console_log_sha256": "258856a6f802b4f6f9d38e3c46a57b8c5e53d0a9a0ef6bb459912207823fbc83",
+    "reason": "test file edited (refusal-pin or companion update) and source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

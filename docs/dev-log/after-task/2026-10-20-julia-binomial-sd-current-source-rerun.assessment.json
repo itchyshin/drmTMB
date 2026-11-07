@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "8aa03e6f3027569673c5daa781ca21e7537a028c38e9c08b417d5ef9befff5c2",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Manual post-draft review against the test output, current candidate identifiers, and adjacent issue records; no model or network call.",
+  "genre": "Technical after-task report",
+  "coverage": "Whole 59-line report",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report is brief and specific to one test run, with limited repeated scaffolding and no unsupported completion claim.",
+  "confidence": "medium",
+  "confidence_reason": "The draft is short and technical, so factual fit is easy to check; the style score remains a subjective editorial judgment.",
+  "examples": [
+    {
+      "location": "Checks Run, line 27",
+      "cue": "Five live Julia tests ran; no tests failed or skipped.",
+      "impact": "States the observed outcome and scope directly.",
+      "repair": "no change needed",
+      "line": 27,
+      "quote": "exited 0. Five live Julia tests ran; no tests failed or skipped. The run emitted two singular-Hessian warnings: `rcond=9.23265335367337e-10` with coordinate 7 flagged, and `rcond=3.879150990279055e-17` with no flat coordinate identified. Julia also reported that refits ran serially because its `threads` option defaults to false."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report limits this run to fit/output plumbing and explicitly excludes recovery and interval-calibration claims; it preserves the singular-Hessian caveat.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Checked the command result, five-live-test marker, warning values, candidate HEADs, source hashes, and issue titles against tool output.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external references or literature claims.",
+  "date": "2026-10-20",
+  "calibration_status": "No held-out style controls were assessed; familiar project report conventions have been seen.",
+  "interpretation": "perceived_style_not_authorship"
+}

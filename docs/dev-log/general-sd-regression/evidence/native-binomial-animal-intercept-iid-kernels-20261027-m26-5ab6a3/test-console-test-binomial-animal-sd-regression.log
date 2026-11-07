@@ -1,0 +1,7 @@
+binomial-animal-sd-regression: ............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Woot!
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=12 failed=0 errors=0 skipped=0
+DRM_RUN start=2026-11-02T13:15:21Z end=2026-11-02T13:15:47Z rc=0

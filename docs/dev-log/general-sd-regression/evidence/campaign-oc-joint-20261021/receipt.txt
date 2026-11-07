@@ -1,0 +1,16 @@
+date=2026-10-19
+campaign_role=campaign-level operating-characteristic run; no model fits
+command=Rscript tools/general-sd-regression/campaign-oc.R 1000 20261021
+elapsed_seconds=142.290
+R_version=Rscript (R) version 4.6.0 (2026-04-24)
+campaigns_per_scenario=1000
+scenario_count=11
+seed=20261021
+OPENBLAS_NUM_THREADS=1
+OMP_NUM_THREADS=1
+MKL_NUM_THREADS=1
+campaign_script_sha256=d8eb6eaeaabc0153bf02f675976ac176f9e1978f286ab9551310b903a4f1ab66
+decision_helper_sha256=c4aeff17732529febbf6a00ca8ba963c188a1b5e935c6be76cecb49c680ba3c9
+stdout_sha256=e26652dc32aeef395fcd83b8f310d617df1a868350dd6f825993d1ac3c87f8f0
+status=superseded_for_bias_boundary_scenario_misspecification
+superseded_by=evidence/campaign-oc-joint-corrected-20261019/

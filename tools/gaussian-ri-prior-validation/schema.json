@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "fixture": {
+    "id": "string, unique",
+    "preflight": "boolean",
+    "description": "string",
+    "y": "finite numeric array length n",
+    "X": "n by p finite numeric matrix, columns in beta order",
+    "W": "n by q finite numeric matrix, columns in gamma order",
+    "group": "integer array length n, same label means same iid intercept",
+    "point": {
+      "beta": "numeric array length p",
+      "gamma": "numeric array length q",
+      "tau": "nonnegative numeric scalar"
+    },
+    "priors": [
+      {
+        "block": "beta or gamma",
+        "index": "zero-based integer",
+        "mean": "numeric",
+        "sd": "positive numeric for normal",
+        "lam": "nonnegative numeric for ridge",
+        "kind": "normal or ridge"
+      }
+    ],
+    "expected": {
+      "nll": "numeric scalar",
+      "gradient": "numeric array length p+q+1",
+      "hessian": "square numeric matrix size p+q+1"
+    },
+    "raw_data": {
+      "y": "numeric array",
+      "x": "numeric predictor",
+      "f": "categorical A or B",
+      "scale_x": "numeric predictor",
+      "group": "group labels"
+    },
+    "formula": {
+      "mean": "R-style fixed mean formula",
+      "scale": "R-style scale formula",
+      "random_intercept": "mean random intercept term",
+      "mean_columns": "semantic column order",
+      "scale_columns": "column order"
+    }
+  },
+  "derivative_order": [
+    "beta",
+    "gamma",
+    "tau"
+  ],
+  "normalized_error": "abs(a-b)/(1+max(abs(a),abs(b)))",
+  "limits": {
+    "value": 1e-09,
+    "gradient": 1e-06,
+    "hessian": 1e-05,
+    "fit_objective": 1e-07,
+    "identified_coefficient": 1e-05
+  }
+}

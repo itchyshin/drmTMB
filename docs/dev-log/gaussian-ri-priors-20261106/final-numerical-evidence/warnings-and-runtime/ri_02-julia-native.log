@@ -1,0 +1,12 @@
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian (1 | g) location-scale"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 1.6743152929417293e-20
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-final-f60eb88e-20261106/src/vcov_guard.jl:122
+┌ Warning: Structured SD at its lower boundary for group: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-final-f60eb88e-20261106/src/boundary_diagnostics.jl:220

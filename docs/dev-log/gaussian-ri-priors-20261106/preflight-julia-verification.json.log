@@ -1,0 +1,88 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "ri_01",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 1.1489068523991317e-16,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 9.370080378081241e-16,
+        "fit_data_nll": 1.1142885704309416e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 8.433072340273119e-16,
+        "fit_coefficients": 3.4095874454852164e-10,
+        "fit_interior_group_sd": 8.077121294421225e-10
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ]
+    },
+    {
+      "id": "ri_02",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 1.394210315402096e-16,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.6041413305521675e-16,
+        "point_hessian": 3.477922768248364e-16,
+        "fit_objective_at_returned_point": 3.3574532420449737e-16,
+        "fit_data_nll": 2.338859911961374e-16,
+        "fit_prior": 7.892282850611326e-17,
+        "fit_optimum_objective": 2.238302161363316e-16,
+        "fit_coefficients": 3.464689487830918e-11
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 9.705632216863742e-11
+      }
+    },
+    {
+      "id": "ri_03",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 2.580363993298703e-16,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 3.7838415220504406e-16,
+        "point_hessian": 4.78319349163624e-16,
+        "fit_objective_at_returned_point": 6.199557336709798e-16,
+        "fit_data_nll": 5.149861938529267e-16,
+        "fit_prior": 1.143266377340695e-16,
+        "fit_optimum_objective": 1.1513463625318192e-15,
+        "fit_coefficients": 6.091378834559614e-09
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 1.3634461246533202e-10
+      }
+    },
+    {
+      "id": "ri_04",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 4.477034442874362e-16,
+        "point_hessian": 2.8910170829299803e-16,
+        "fit_objective_at_returned_point": 5.695000438846923e-16,
+        "fit_data_nll": 5.738689124837239e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 7.593333918462564e-16,
+        "fit_coefficients": 9.361382771209176e-11,
+        "fit_interior_group_sd": 6.8406758823366654e-12
+      },
+      "unavailable": []
+    }
+  ]
+}
+INDEPENDENT_COMPARISON_PASS

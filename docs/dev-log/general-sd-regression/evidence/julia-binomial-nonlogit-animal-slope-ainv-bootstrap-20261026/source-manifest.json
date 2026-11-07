@@ -1,0 +1,36 @@
+{
+  "repository": "DRModels.jl paired candidate",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "branch": "codex/general-sd-regression",
+  "worktree_state": "dirty shared candidate; six relevant source/test hashes matched before and after the focused run; executed test snapshot retained byte-for-byte",
+  "files": [
+    {
+      "path": "src/DRModels.jl",
+      "sha256": "0cbdfd45584d60ed6489accef52481acb8a350685946bd7e4ed71f8e9d54d0f0"
+    },
+    {
+      "path": "src/inference.jl",
+      "sha256": "e5409d657249f74836d433a80f85d94e29d049b064211c9d5afdde02ebc275fa"
+    },
+    {
+      "path": "src/binomial.jl",
+      "sha256": "41bf229ad8ae1e56477b589e104ea60fc7cc861942bd30c5a9f5cb5bdd312a9d"
+    },
+    {
+      "path": "src/binomial_sd_regression.jl",
+      "sha256": "d5cfff92f46610a539d89fc9cc932c3788098895aba3553c42f34d666821d500"
+    },
+    {
+      "path": "src/sparse_laplace_glmm.jl",
+      "sha256": "ee3b7618403436f6c32bedc22049e95455e5637bac5357141b1ea301da8b47ac"
+    },
+    {
+      "path": "test/test_binomial_nonlogit_animal_slope_sd_regression.jl",
+      "sha256": "48124f1b44070369b4aeb2f715452f967b19f4ffbcfd72892fd789501f1ebec4"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-animal-slope-ainv-bootstrap-20261026/test-snapshot/test_binomial_nonlogit_animal_slope_sd_regression.jl",
+      "sha256": "48124f1b44070369b4aeb2f715452f967b19f4ffbcfd72892fd789501f1ebec4"
+    }
+  ]
+}

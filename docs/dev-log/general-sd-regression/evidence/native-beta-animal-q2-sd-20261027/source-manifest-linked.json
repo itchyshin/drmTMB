@@ -1,0 +1,12 @@
+{
+  "note": "Derived binding file. Lists the receipted test bytes recovered from source-capsule.tar.gz in this directory; the digest equals the digest in source-manifest.json. The tests/testthat copy has since changed.",
+  "original_manifest": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/source-manifest.json",
+  "original_manifest_sha256": "8e1ed8cb1e099ca2873cce2fdb7a348fc1f2c76d629e80274f4b8d225393ff5d",
+  "files": [
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/test-snapshot/tests/testthat/test-beta-animal-q2-sd-regression.R",
+      "sha256": "6966e054833dde0ee3934664fbd2d1ebf554d6b424150de72a5784f4fa8293e8",
+      "bytes": 13467
+    }
+  ]
+}

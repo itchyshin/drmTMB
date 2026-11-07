@@ -1,0 +1,26 @@
+{
+  "evidence_id": "julia-binomial-correlated-q2-intercept-smoke-20261024-rerun-m26",
+  "rerecord_of_evidence_id": "julia-binomial-correlated-q2-intercept-smoke-20261024-rerun",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-bridge-source-bound-20261024-rerun/test-console.log",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRMODELS_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRMTMB_JULIA_TESTS=true NOT_CRAN=true JULIA_HOME='/Users/z3437171/.juliaup/bin' PATH='/Users/z3437171/.juliaup/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"julia-binomial-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-sd.R",
+      "test_sha256": "721658fe990bd3147fd030572320fc7d60bbe78bed4c87f21b928f8d6e60d23f",
+      "started_utc": "2026-11-02T13:22:25Z",
+      "ended_utc": "2026-11-02T13:25:16Z",
+      "exit_code": 0,
+      "expectations_passed": 155,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-bridge-source-bound-20261024-rerun-m26-075395/test-console-test-julia-binomial-sd.log",
+      "console_log_sha256": "ee3eacfa8115878e91aa91f549b6cda802849aac0cc6b0e22d0c264fb437af35"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-bridge-source-bound-20261024-rerun-m26-075395/source-manifest.json",
+  "source_manifest_sha256": "a346c9c6364d3003475fa5bf23e5c76c9a90d8acf34d8be71adf68d49e0f068d",
+  "review_status": "unreviewed"
+}

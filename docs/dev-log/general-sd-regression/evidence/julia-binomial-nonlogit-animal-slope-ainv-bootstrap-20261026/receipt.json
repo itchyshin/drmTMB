@@ -1,0 +1,20 @@
+{
+  "evidence_id": "julia-binomial-nonlogit-animal-slope-ainv-bootstrap-20261026",
+  "candidate_row": "Julia Binomial probit and cloglog univariate mu animal_numeric_slope, supplied Ainv precision",
+  "candidate_row_keys": [
+    "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"cloglog\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"probit\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "test_command": "JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /Users/z3437171/.juliaup/bin/julia --project=. test/test_binomial_nonlogit_animal_slope_sd_regression.jl",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_source_path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_binomial_nonlogit_animal_slope_sd_regression.jl",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-animal-slope-ainv-bootstrap-20261026/test-snapshot/test_binomial_nonlogit_animal_slope_sd_regression.jl",
+  "test_file_sha256": "48124f1b44070369b4aeb2f715452f967b19f4ffbcfd72892fd789501f1ebec4",
+  "source_manifest_sha256": "a230ea1ef7efcc424bb9d1023844536d4182f6eb2832e6d5a3abef2526d5b941",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-animal-slope-ainv-bootstrap-20261026/test.log",
+  "console_log_sha256": "46b9d8c95af304e938164510a335b6e5fcde25e7ea444415a0a8af1a36ad9554",
+  "test_result": "40/40 assertions passed in 18.6 seconds on Julia 1.10.0; probit and cloglog Ainv fits each completed one bootstrap refit; relevant source and test hashes matched before and after.",
+  "scope": "Julia Binomial probit and complementary log-log animal numeric-slope SD fits supplied with Ainv; existing recovery, A/Ainv agreement, prediction and seeded simulation checks plus one bootstrap refit per link.",
+  "limits": "Candidate workflow evidence for two links only. One refit per link does not assess bootstrap reliability or interval coverage. Native TMB parity, animal pedigree, other Binomial random-effect types, and broad family support remain open. Evidence remains unreviewed."
+}

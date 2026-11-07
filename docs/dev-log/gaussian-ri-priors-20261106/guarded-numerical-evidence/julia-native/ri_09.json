@@ -1,0 +1,65 @@
+{
+  "mean_names": [
+    "(Intercept)",
+    "x"
+  ],
+  "boundary": true,
+  "coordinate_order": [
+    "(Intercept)",
+    "x",
+    "(Intercept)",
+    "scale_x",
+    "log_group_sd"
+  ],
+  "id": "ri_09",
+  "point_tau": 0.0,
+  "scale_names": [
+    "(Intercept)",
+    "scale_x"
+  ],
+  "matrix_verified": true,
+  "point": {
+    "data_nll": 9.422759367640861,
+    "prior": 0.7012481068904624,
+    "objective": 10.124007474531323,
+    "theta_fixed": [
+      0.4,
+      -0.3,
+      -0.1,
+      0.25
+    ],
+    "boundary_derivatives": "unavailable_in_log_sd_parameterization",
+    "status": "boundary_evaluated"
+  },
+  "fit": {
+    "data_nll": -2.0632475243557984,
+    "theta": [
+      0.8555359949164332,
+      0.7143961787296722,
+      -1.6065575806149728,
+      -0.2526969147692284,
+      7.954829096298523e-10
+    ],
+    "objective": -0.2644315623398428,
+    "gradient": [
+      -5.522617696485099e-09,
+      6.769944604911871e-10,
+      -1.6283687731544205e-08,
+      2.3641771348637637e-10,
+      1.1480205925386236e-16
+    ],
+    "converged": true,
+    "tau": 7.954829096298523e-10,
+    "theta_native": [
+      0.8555359949164332,
+      0.7143961787296722,
+      -1.6065575806149728,
+      -0.2526969147692284,
+      -20.952071752190598
+    ],
+    "prior": 1.7988159620159556
+  },
+  "schema_version": 1,
+  "engine": "Julia/native",
+  "coordinate_scale": "log_tau"
+}

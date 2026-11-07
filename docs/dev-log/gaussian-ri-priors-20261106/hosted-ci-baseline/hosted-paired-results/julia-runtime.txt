@@ -1,0 +1,46 @@
+Julia Version 1.13.3
+Commit 67ac47b9cd8 (2026-10-25 15:28 UTC)
+Build Info:
+  Official https://julialang.org release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+      Ubuntu 26.04.1 LTS
+  uname: Linux 7.0.0-1019-azure #20-Ubuntu SMP PREEMPT Mon Oct 19 22:41:16 UTC 2026 x86_64 unknown
+  CPU: INTEL(R) XEON(R) PLATINUM 8573C: 
+              speed         user         nice          sys         idle          irq
+       #1  2970 MHz          6 s          0 s          3 s         17 s          0 s  
+       #2  2999 MHz          5 s          0 s          2 s         20 s          0 s  
+       #3  3029 MHz          5 s          0 s          3 s         18 s          0 s  
+       #4  2887 MHz          5 s          0 s          2 s         19 s          0 s  
+  Memory: 15.607479095458984 GB (14357.58984375 MB free)
+  Uptime: 30.0 sec
+  Load Avg:  0.72  0.18  0.06
+  WORD_SIZE: 64
+  LLVM: libLLVM-20.1.8 (ORCJIT, emeraldrapids)
+  GC: Built with stock GC
+Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_PKG_PRECOMPILE_AUTO = 0
+  JULIA_NUM_THREADS = 1
+  SELENIUM_JAR_PATH = /usr/share/java/selenium-server.jar
+  JAVA_HOME_11_X64 = /usr/lib/jvm/temurin-11-jdk-amd64
+  JAVA_HOME_25_X64 = /usr/lib/jvm/temurin-25-jdk-amd64
+  GITHUB_PATH = /home/runner/work/_temp/_runner_file_commands/add_path_14ffd00f-3b8b-4f37-8dfb-9b006f3cd4ea
+  JAVA_HOME = /usr/lib/jvm/temurin-25-jdk-amd64
+  GRADLE_HOME = /usr/share/gradle-9.8.2
+  XDG_CONFIG_HOME = /home/runner/.config
+  ANT_HOME = /usr/share/ant
+  HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS = 3650
+  ANDROID_NDK_LATEST_HOME = /usr/local/lib/android/sdk/ndk/30.0.16248370
+  HOME = /home/runner
+  JAVA_HOME_21_X64 = /usr/lib/jvm/temurin-21-jdk-amd64
+  GITHUB_EVENT_PATH = /home/runner/work/_temp/_github_workflow/event.json
+  JAVA_HOME_17_X64 = /usr/lib/jvm/temurin-17-jdk-amd64
+  ANDROID_NDK_HOME = /usr/local/lib/android/sdk/ndk/27.3.13750724
+  HOMEBREW_NO_AUTO_UPDATE = 1
+  ANDROID_HOME = /usr/local/lib/android/sdk
+  PSModulePath = /root/.local/share/powershell/Modules:/usr/local/share/powershell/Modules:/opt/microsoft/powershell/7/Modules:/usr/share/az_15.6.1
+  PIPX_HOME = /opt/pipx
+  PATH = /opt/hostedtoolcache/julia/1.13.3/x64/bin:/snap/bin:/home/runner/.local/bin:/opt/pipx_bin:/home/runner/.cargo/bin:/home/runner/.config/composer/vendor/bin:/usr/local/.ghcup/bin:/home/runner/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+  SWIFT_PATH = /usr/share/swift/usr/bin
+LBTConfig([ILP64] libopenblas64_.so)

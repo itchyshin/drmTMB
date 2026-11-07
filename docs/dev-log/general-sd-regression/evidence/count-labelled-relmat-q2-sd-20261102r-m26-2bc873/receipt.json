@@ -1,0 +1,50 @@
+{
+  "evidence_id": "native-count-labelled-relmat-q2-sd-20261102r-m26",
+  "rerecord_of_evidence_id": "native-count-labelled-relmat-q2-sd-20261102r",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/count-labelled-relmat-q2-sd-20261102r/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); r<-as.data.frame(testthat::test_file(\"\"tests/testthat/test-count-labelled-relmat-q2-sd.R\"\", reporter=\"\"silent\"\")); print(colSums(r[c(\"\"passed\"\",\"\"failed\"\",\"\"error\"\",\"\"skipped\"\")]))'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-count-labelled-relmat-q2-sd.R",
+      "test_sha256": "cba04a6233881a514a7aa5938d04964d470ac69bdaa63428ba795bcd8c60e733",
+      "started_utc": "2026-11-02T13:17:35Z",
+      "ended_utc": "2026-11-02T13:18:00Z",
+      "exit_code": 0,
+      "expectations_passed": 104,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/count-labelled-relmat-q2-sd-20261102r-m26-2bc873/test-console-test-count-labelled-relmat-q2-sd.log",
+      "console_log_sha256": "affcded12ef1c6e9d4f62b8b08272a76baf31039e7bf94d0b0d1fec28f5f4976"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/count-labelled-relmat-q2-sd-20261102r-m26-2bc873/source-manifest.json",
+  "source_manifest_sha256": "8cb944129def71a611accb1fd24252dbe49160a5711b2a2b3b093502d855f153",
+  "review_status": "reviewed_narrow_claim",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "relmat_labelled_block (cross mu/sigma labelled) rows: the label here is within mu only"
+  ],
+  "review_note": "All eight rows (Poisson and NB2 x intercept and slope coefficient SD x K_covariance and Q_precision) are fitted with one sd formula per coefficient. The oracle is a base-R dense Laplace with prior R kron K (rho from the fit) using a non-unit-diagonal kernel built in the test, matching fitted logLik to 1e-4 absolute across 2 seeds x 2 families. Emulated-bug sensitivity is strong: swapped coefficient SDs, level-shifted SDs, unaligned (shuffled) K, one SD for both, dropped rho and flipped rho sign each move the oracle by more than 1 log-likelihood unit. Manifest 5/5 hashes match current files; rerun at e9c72ab3e: 104 pass, 0 fail, 0 skip. The Q_precision rows are supported by the Q fit matching the oracle-checked K fit in logLik (1e-4) only, not by a separate oracle or SD-coefficient comparison. Does NOT establish: an independent oracle for Q input, phylo/spatial labelled q2, zero-inflated or ordinary-beside-relmat variants (fenced), calibration or coverage, recovery of rho beyond a loose band.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-count-labelled-relmat-q2-sd.R",
+    "test_sha256": "fe470e12a0b90f12b07212ddb44884be4c6b596ed023c6f7e804faca6652daca",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:07:25Z",
+    "ended_utc": "2026-11-03T01:08:14Z",
+    "expectations_passed": 103,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/count-labelled-relmat-q2-sd-20261102r-m26-2bc873/test-console-rerun-81553915d.log",
+    "console_log_sha256": "090e82e17fafbd07be56cbbe4ea4a0971e21c09ada9b87ab636a99cd3f042451",
+    "reason": "test file edited (refusal-pin or companion update) and source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

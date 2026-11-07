@@ -1,0 +1,9 @@
+DGP_BOUNDARY_COUNT 0 MIN_SHAPE 0.546346 
+GAP: Structured random-effect scale formulas currently require one structured
+coefficient.
+✖ `sd_animal(id)` targets `animal(1 + x | id)`, which has multiple structured
+  coefficients.
+ℹ Use one intercept or slope coefficient per structured term;
+  predictor-dependent scales for multi-coefficient structured blocks remain
+  unsupported. 
+BASE q 2 STRUCTURE A 

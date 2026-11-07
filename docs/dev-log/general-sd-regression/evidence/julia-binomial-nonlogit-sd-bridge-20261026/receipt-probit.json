@@ -1,0 +1,42 @@
+{
+  "evidence_id": "julia-binomial-probit-iid-intercept-bridge-rerun-20261026",
+  "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"probit\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "claim": "Current-candidate R/TMB and Julia bridge point-recovery check for one ordinary Binomial mean random intercept with a fixed-predictor SD slope under the probit link.",
+  "test_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-sd-bridge-20261026/test-snapshot-instrumented/tests/testthat/test-julia-binomial-sd-links-bridge.R",
+  "test_sha256": "097db7cbe17a130e1ddd0dfaf65667a7069020bf1f957cdaf6cd5de2ab9ef7de",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-sd-bridge-20261026/source-manifest-instrumented.json",
+  "source_manifest_sha256": "484829166470523740fad949c540a2d6a05d2845547d6ffc874ba067bd218607",
+  "test_log_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-sd-bridge-20261026/test-run-instrumented.log",
+  "test_log_sha256": "0fb6695bb8e610106c5f11f03dc72cb6ffe24ddf85930c25bb01e3917ce73f5d",
+  "test_exit_code": 0,
+  "testthat_live_test_count": 1,
+  "expectations_passed": 27,
+  "expectations_failed": 0,
+  "environment": {
+    "host": "Mac Studio",
+    "R": "4.6.0",
+    "Julia": "1.10.0",
+    "DRMTMB_JULIA_TESTS": "true",
+    "JULIA_NUM_THREADS": 1,
+    "OPENBLAS_NUM_THREADS": 1,
+    "OMP_NUM_THREADS": 1,
+    "MKL_NUM_THREADS": 1
+  },
+  "design": {
+    "link": "probit",
+    "groups": 144,
+    "repeats_per_group": 25,
+    "seed": 202610241,
+    "true_log_sd_slope": 0.45,
+    "absolute_slope_error_bound": 0.3,
+    "tmb_julia_slope_difference_bound": 0.4
+  },
+  "result": "The focused test passed with one live Julia bridge test and 27 expectations. For both links it checked convergence, positive and recovered SD slopes, TMB/Julia slope agreement, ordered predicted group SDs, and predicted SD agreement.",
+  "limitations": [
+    "one fixed-seed design per link",
+    "ordinary random intercept only",
+    "no interval coverage calibration",
+    "no structured probit/cloglog bridge admission claim",
+    "review_status is unreviewed"
+  ]
+}
