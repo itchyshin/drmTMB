@@ -37,3 +37,15 @@ Julia branch `claude/gaussian-q3q4-sd-20261107`, commit `3f7d129d4` (unpushed), 
 | Max abs diff, correlation matrix | 2.5e-11 | 6.7e-11 |
 
 Julia's raw correlation parameters equal R's `theta_re_cov` directly, so both use the same unstructured-correlation map. One seed per q; not a calibration claim. Files in `more-routes/G-q3q4`.
+
+## Gaussian ordinary q2 with coefficient-specific SDs
+
+Julia branch `claude/gaussian-q3q4-sd-20261107`, commit `64644d6b0` (unpushed), versus native R `origin/main`. 150 groups x 10 rows, ML, rho 0.4, one dataset per variant.
+
+| | both SDs | slope-only SD |
+| --- | --- | --- |
+| Max abs diff, estimates (SE units) | 7.3e-12 | 1.3e-10 |
+| rho, Julia minus R | 2.5e-13 | 5.3e-12 |
+| Log-lik diff | 1.2e-10 | 7e-11 |
+
+R reports `eta_cor_mu` as atanh(rho) and Julia reports its unit-lower-triangular theta; both were converted to rho before comparing. Files in `more-routes/H-q2-ordinary`.
