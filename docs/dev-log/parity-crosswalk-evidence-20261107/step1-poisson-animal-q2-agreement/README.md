@@ -23,3 +23,17 @@ Julia integration commit `1aa1c304d` versus native R `origin/main`, raw kernels,
 | D: Gaussian `relmat(1 + x \| g)`, `K`, `sigma ~ 1` | 7 | 1.4e-10 | 6.8e-12 |
 
 C and D are identical because they use the same raw kernel. Not covered: other seeds, REML, interval coverage. Outputs sit in `more-routes/A` to `D`; paths in the scripts refer to this session's scratchpad.
+
+## Gaussian ordinary q3 and q4 with one SD formula per coefficient (step 5)
+
+Julia branch `claude/gaussian-q3q4-sd-20261107`, commit `3f7d129d4` (unpushed), versus native R `origin/main`. 150 groups x 10 rows, one dataset per q, ML.
+
+| | q3 | q4 |
+| --- | --- | --- |
+| Parameters compared | 13 | 18 |
+| Max abs diff, estimates | 2.9e-11 | 9.6e-11 |
+| Max abs diff in R-SE units | 3.1e-10 | 9.0e-10 |
+| Log-lik diff (Julia minus R) | 9.7e-11 | 1.0e-10 |
+| Max abs diff, correlation matrix | 2.5e-11 | 6.7e-11 |
+
+Julia's raw correlation parameters equal R's `theta_re_cov` directly, so both use the same unstructured-correlation map. One seed per q; not a calibration claim. Files in `more-routes/G-q3q4`.
