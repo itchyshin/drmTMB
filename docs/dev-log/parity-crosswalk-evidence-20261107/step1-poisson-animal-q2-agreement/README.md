@@ -49,3 +49,19 @@ Julia branch `claude/gaussian-q3q4-sd-20261107`, commit `64644d6b0` (unpushed), 
 | Log-lik diff | 1.2e-10 | 7e-11 |
 
 R reports `eta_cor_mu` as atanh(rho) and Julia reports its unit-lower-triangular theta; both were converted to rho before comparing. Files in `more-routes/H-q2-ordinary`.
+
+## Joint mu + sigma and structured sigma with SD formulas (step 6; Laplace)
+
+Julia branch `claude/joint-mu-sigma-sd-20261107`, commit `9db876a17` (unpushed), versus native R `origin/main`, ML on both sides. Both implement a TMB-style Laplace in the same latent parameterisation (latent vectors standardised, the SD formula scales them, K raw).
+
+| Case | Groups | Max abs diff (R-SE units) | Log-lik diff (Julia minus R) |
+| --- | --- | --- | --- |
+| 6a, sigma slope, mu and sigma on different groups | 50 x 80 | 1.2e-7 | 5e-11 |
+| 6a, sigma intercept | 30 x 40 | 1.6e-8 | 1e-9 |
+| 6a, sigma slope, larger | 200 x 200 | 1.1e-10 | 7e-11 |
+| 6b, animal sigma intercept | 48 | 1.3e-11 | -3e-13 |
+| 6b, relmat sigma intercept | 48 | 1.2e-11 | 5e-11 |
+
+**A stress case fails in both languages and is not an agreement.** 6a with `sigma ~ 1 + (1 | site)`, 200 x 200, n = 2400, seed 20261110: Julia returns `converged = false` with infinite SEs and a not-positive-definite vcov warning; R returns false convergence (code 1, three attempts) with a gradient near 3e8 at its reported optimum, so R's higher log-likelihood (-2137.95 versus Julia's -2157.34) is not trustworthy. The cause is undiagnosed. A weakly identified crossed sigma-intercept problem is a guess. The smaller intercept case agrees, and Julia flags its failure rather than returning silently. Treat the sigma-intercept shape at large crossed designs as unreliable in both packages until diagnosed.
+
+One dataset per case; Laplace evidence is likelihood agreement only, not coverage or bias. Files in `more-routes/I-sigma-laplace`.
