@@ -1,0 +1,23 @@
+{
+  "recorded_before_terminal_result": "2026-11-07T03:15:05.669867+00:00",
+  "run": 42331688804,
+  "requirements": [
+    "Verify loaded source paths and frozen dependency equality",
+    "Retain all four attempts, exits, timeouts and setup errors",
+    "Compare original victim hashes and data hashes before comparing fit results"
+  ],
+  "decision_rules": {
+    "baseline_and_candidate_fail": "If the unchanged assertion fails on both exact sources under the same runner and mode, classify the demonstrated baseline failure with its measured numerical context. Do not infer every candidate failure has the same cause without parameter and objective comparison.",
+    "baseline_passes_candidate_fails": "Treat as a potential source regression. Isolate the responsible change before repairing the fixture or considering qualification complete.",
+    "both_pass": "The earlier hosted failure remains unreproduced in this environment. Do not classify it as random or a baseline defect solely from these passes. Compare fit diagnostics and runtime evidence before deciding the next experiment.",
+    "setup_or_diagnostic_error": "Retain the error and distinguish it from an original assertion failure. It does not establish a fit pass or fail.",
+    "timeout": "Retain the timeout in the denominator and preserve the original fixture. Do not declare qualification complete."
+  },
+  "invariants": [
+    "No weakened convergence assertions",
+    "No prior added to conceal an unpenalized binomial failure",
+    "No further blind retry",
+    "Prior PR source branches remain separate from diagnostic workflow",
+    "No merge or release"
+  ]
+}

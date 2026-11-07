@@ -2,7 +2,7 @@
 
 ## 1. Goal
 
-Extend existing normal and ridge fixed-coefficient priors to Gaussian ML with one independent mean random intercept. Closes #1680 after outstanding hosted CI adjudication and final review gates. No merge or release is authorized.
+Extend existing normal/ridge fixed-coefficient priors to Gaussian ML with one independent mean random intercept, keeping the group SD unpenalized. Draft PR #1681 carries Closes #1680; issue closure remains a merge action. No merge or release is included.
 
 ## 2. Implemented
 
@@ -18,7 +18,7 @@ R/fixed-priors-workflow.R, R/fixed-effect-priors.R, R/drmTMB.R, R/julia-bridge.R
 
 ## 5. Checks Run
 
-The independent oracle was frozen before package fits. Repaired code pins R5d0f1596 and Juliaff10a2f9 passed all36 comparisons at the original limits; the root independently reran their raw results. Native derivatives cover nine positive-SD points per engine, with values only at three exact-zero points. Bridge arbitrary-point derivatives are unavailable. Guarded R focused tests passed87 expectations, including one actual bridge test. The new variance-ratio guard passed24 expectations and62 existing heritability checks.
+The independent oracle was frozen before package fits. Repaired code pins R 5d0f1596 and Julia ff10a2f9 passed all 36 comparisons at the original limits; the root independently reran their raw results. Native derivatives cover nine positive-SD points per engine, with values only at three exact-zero points. Bridge arbitrary-point derivatives are unavailable. Guarded R focused tests passed87 expectations, including one actual bridge test. The new variance-ratio guard passed24 expectations and62 existing heritability checks.
 
 Final R build passed in225seconds. R CMD check exited0 in3813seconds with42125 passing expectations,0 failures,117 warnings,696 skips and one report-only spelling-output NOTE. The source manifest passed; source-tree tests passed26516 expectations with0 failures,14 warnings and6 skips in126seconds. The raw test log retains a parallel shutdown message; that message is separate from the spelling NOTE. Full-suite configuration exercised no live Julia bridge; the separate guarded live receipt supplies that evidence.
 
@@ -30,7 +30,7 @@ Admission and profile-readiness tests failed before their corresponding fixes. A
 
 ## 7a. Issue Ledger
 
-The isolated branch is codex/gaussian-ri-priors-20261106. Draft PR #1681 links companion DRModels.jl PR #1258. Both remain unmerged. Hosted checks and final evidence reconciliation remain open, so this report does not close the issue or claim overall completion.
+The isolated codex/gaussian-ri-priors-20261106 branch is pushed. Draft PR #1681 links DRModels.jl #1258. Both remain drafts and unmerged. Mathematical and runtime qualification includes the explicit baseline-kernel exception below. Final owned report and PR reconciliation records preserve the original failed attempts.
 
 ## 8. Consistency Audit
 
@@ -42,7 +42,16 @@ The initial full package check failed two skip-census assertions for one newly a
 
 ## 10. Known Residuals
 
-Hosted CI remains under investigation. Julia1.13.3 shard3 failed an existing unpenalized binomial SD convergence assertion. Baseline and candidate each passed the unchanged test locally under three diagnostic configurations, including its preceding shard/JET prefix; those passes do not establish a hosted baseline defect. A hosted baseline comparison is running. Current-head R cross-platform checks are also running. No interval coverage, sampling calibration, global optimization guarantee or general engine parity is established.
+Original candidate Julia 1.13.3 CI retains two failed attempts at the unchanged unpenalized binomial slope convergence assertion. Controlled source/kernel comparisons independently establish a bounded baseline exception:
+
+| OpenBLAS core | Pre-slice baseline | Prior candidate | Maximum gradient |
+| --- | --- | --- | ---: |
+| Cooperlake | 44/44 pass | 44/44 pass | 6.37e-9 |
+| Haswell | 43/44, convergence flag false | 43/44, convergence flag false | 3.11e-7 |
+
+Within each kernel, parameter bitstrings, objective, gradient, iterations and condition diagnostics match exactly between sources. Haswell reproduces the assertion and reciprocal condition 5.752216336949239e-17 seen in both original CI failures. The historical CI kernel was not recorded, so its hardware attribution is not proven. No assertion or convergence threshold changed, and no prior was added to this binomial fixture. The independent gate review accepts this existing baseline-exception path for prior-only draft qualification; it does not turn the failed CI attempts green. See the twin R evidence directory hosted-ci-baseline/kernel-pair/ and kernel-pair-outcome-review.md.
+
+Both controlled 27-file prefixes passed, including all 44 target assertions and JET 2/2. The earlier dependency-wide coverage experiment retains two prefix timeouts; the corrected experiment used source-restricted coverage matching CI scope. The pre-slice hosted baseline passed all eight test jobs. R hosted qualification passed all three platforms. No calibrated interval coverage, posterior sampling, global optimization guarantee or general family parity is claimed.
 
 ## 11. Team Learning
 
@@ -50,4 +59,4 @@ An SD boundary requires a separate likelihood limit and honest diagnostics. Prio
 
 ## 12. Cross-Product Coverage
 
-Covers complete-data, unit-weight, dense-design Gaussian ML with one independent mean random intercept and priors on selected mu/log-residual-SD coefficients. Slopes, multiple groups, structured effects, random-effect SD/correlation priors, REML, other mixed families and calibrated interval inference remain deferred. The revised R article example rendered on the earlier candidate; its code did not change in the later inference-guard repair. Final package examples and vignette rebuilding passed. Julia's current PR documentation built and its PR preview was published; production-site deployment was skipped. No merge, version bump or release occurred.
+Covers complete-data, unit-weight, dense-design Gaussian ML with one independent mean random intercept and priors on selected mu/log-residual-SD coefficients. Slopes, multiple groups, structured effects, random-effect SD/correlation priors, REML, other mixed families and calibrated interval inference remain deferred. The revised R article example rendered on the earlier candidate; its code did not change in the later inference-guard repair. Final package examples and vignette rebuilding passed. Julia's Documenter build at385fde27 passed and published its PR preview; production-site deployment was skipped. No merge, version bump or release occurred.
