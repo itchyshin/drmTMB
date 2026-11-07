@@ -391,3 +391,188 @@ test_that("beta-binomial gradient and Hessian are correct at the drm_lgamma_rati
   }
 })
 
+
+# ---- mi() Beta, zero-one Beta and Gamma priors (#1548) ----------------------
+#
+# The mi() imputation priors evaluate the same densities as the response
+# kernels above, so they reuse the same pinned references. Each fit has the
+# eight case values as observed predictor rows plus one row whose predictor
+# and response are both missing (it adds nothing to the objective). With the
+# mi() slope at 0 the response rows reduce to dnorm(y, 0.5, 1), so
+# -fn - sum(dnorm) is the sum of the eight prior log-densities.
+
+mi_prior_sum <- function(family, x, ..., y_last = NA_real_) {
+  dat <- data.frame(
+    y = c(rep(c(0.2, 0.9), length.out = length(x)), y_last),
+    x = c(x, NA_real_)
+  )
+  fit <- suppressWarnings(drmTMB(
+    bf(y ~ mi(x), sigma ~ 1),
+    data = dat,
+    impute = list(x = impute_model(x ~ 1, family = family)),
+    missing = miss_control(response = "include", predictor = "model"),
+    control = drm_control(se = FALSE)
+  ))
+  par <- fit$obj$par
+  par[names(par) == "beta_mu"] <- c(0.5, 0)
+  par[names(par) == "beta_sigma"] <- 0
+  upd <- list(...)
+  for (nm in names(upd)) par[names(par) == nm] <- upd[[nm]]
+  y_obs <- dat$y[!is.na(dat$y)]
+  -fit$obj$fn(par) - sum(stats::dnorm(y_obs, 0.5, 1, log = TRUE))
+}
+
+test_that("gamma mi() prior matches the exact density at shape 1e4, 1e6, 1e8", {
+  for (cs in gamma_cases) {
+    got <- mi_prior_sum(
+      stats::Gamma(link = "log"), cs$y,
+      beta_mi = cs$eta, log_sigma_mi = cs$ls
+    )
+    # eight rows, each held to the response kernel's bar above
+    bar <- 8 * if (cs$s >= 1e8) 1.5e-12 else 1e-12
+    expect_lt(abs(got - sum(cs$ref)), bar, label = paste("gamma mi shape =", cs$s))
+  }
+})
+
+test_that("gamma mi() quadrature integrand is exact for a missing predictor at shape 1e4, 1e6, 1e8", {
+  # The last row has the predictor missing and the response observed. At slope
+  # 0 its marginal is dnorm(y) times the integral of the prior, which is 1.
+  for (cs in gamma_cases) {
+    got <- mi_prior_sum(
+      stats::Gamma(link = "log"), cs$y,
+      beta_mi = cs$eta, log_sigma_mi = cs$ls, y_last = 0.4
+    )
+    bar <- 8 * 1.5e-12 + 1e-11
+    expect_lt(abs(got - sum(cs$ref)), bar, label = paste("gamma mi integrand shape =", cs$s))
+  }
+})
+
+test_that("beta mi() prior matches the exact density at phi 1e4, 1e6, 1e8", {
+  for (cs in beta_cases) {
+    got <- mi_prior_sum(
+      beta_family(), cs$y,
+      beta_mi = cs$eta, log_sigma_mi = cs$ls
+    )
+    # same per-row bar as the response kernel, including the mu-rounding floor
+    floor <- 3 * eps * cs$phi * max(abs(cs$y - cs$m))
+    bar <- 8 * (1e-12 + floor)
+    expect_lt(abs(got - sum(cs$ref)), bar, label = paste("beta mi phi =", cs$phi, "mu =", cs$m))
+  }
+})
+
+test_that("zero-one beta mi() prior matches the exact density at phi 1e4, 1e6, 1e8", {
+  eta_zoi <- stats::qlogis(0.1)
+  log_one_minus_zoi <- -log1p(exp(eta_zoi))
+  for (cs in beta_cases) {
+    got <- mi_prior_sum(
+      zero_one_beta(), cs$y,
+      beta_mi = cs$eta, log_sigma_mi = cs$ls, beta_zoi = eta_zoi
+    )
+    floor <- 3 * eps * cs$phi * max(abs(cs$y - cs$m))
+    bar <- 8 * (1e-12 + floor)
+    ref <- sum(cs$ref) + 8 * log_one_minus_zoi
+    expect_lt(abs(got - ref), bar, label = paste("zero-one beta mi phi =", cs$phi, "mu =", cs$m))
+  }
+})
+
+test_that("beta and gamma mi() priors are unchanged at ordinary shape", {
+  # Ordinary shapes must agree with stats::dbeta() and stats::dgamma(), which
+  # are accurate there, to rounding.
+  x_beta <- c(0.12, 0.3, 0.47, 0.81)
+  for (phi in c(0.8, 5, 40)) {
+    got <- mi_prior_sum(
+      beta_family(), x_beta,
+      beta_mi = stats::qlogis(0.4), log_sigma_mi = -0.5 * log(phi)
+    )
+    mm <- 1e-12 + (1 - 2e-12) * 0.4
+    ref <- sum(stats::dbeta(x_beta, mm * phi, (1 - mm) * phi, log = TRUE))
+    expect_lt(abs(got - ref), 1e-12, label = paste("beta mi phi =", phi))
+  }
+  x_gamma <- c(0.4, 1.3, 2.2, 5.9)
+  for (s in c(0.7, 4, 25)) {
+    got <- mi_prior_sum(
+      stats::Gamma(link = "log"), x_gamma,
+      beta_mi = log(2), log_sigma_mi = -0.5 * log(s)
+    )
+    ref <- sum(stats::dgamma(x_gamma, shape = s, scale = 2 / s, log = TRUE))
+    expect_lt(abs(got - ref), 1e-12, label = paste("gamma mi shape =", s))
+  }
+})
+
+# ---- R-side beta-binomial densities (#1548) ---------------------------------
+#
+# The R pmf behind the beta_binomial d/p/q closure and the R log-density used
+# for beta-binomial mi() predictors carried the same lgamma sum as the old
+# compiled kernel.
+
+test_that("R beta-binomial densities match the exact density at phi 1e4 to 1e12", {
+  n <- 20L
+  ks <- c(0L, 1L, 4L, 6L, 10L, 15L, 20L)
+  for (phi in c(1e4, 1e6, 1e8, 1e10, 1e12)) {
+    for (m in c(0.3, 0.5)) {
+      a <- m * phi
+      b <- (1 - m) * phi
+      ref <- vapply(ks, function(k) bb_exact(k, n, a, b), numeric(1))
+      sigma <- 1 / sqrt(phi)
+      got_mi <- drm_beta_binomial_missing_predictor_log_density(
+        ks, n, mu = m, sigma = sigma
+      )
+      # the mi() helper rebuilds phi from sigma: phi * eps relative rounding
+      ref_mi <- vapply(ks, function(k) {
+        p <- 1 / sigma^2
+        bb_exact(k, n, m * p, (1 - m) * p)
+      }, numeric(1))
+      expect_lt(max(abs(got_mi - ref_mi)), 1e-12,
+        label = paste("mi() helper phi =", phi, "mu =", m))
+      native <- drm_beta_shapes(m, sigma)
+      ref_d <- vapply(ks, function(k) {
+        bb_exact(k, n, native$shape1, native$shape2)
+      }, numeric(1))
+      got_d <- log(drm_beta_binomial_dpmf(
+        ks, list(mu = m, sigma = sigma, trials = rep(n, length(ks)))
+      ))
+      expect_lt(max(abs(got_d - ref_d)), 1e-12,
+        label = paste("dpmf phi =", phi, "mu =", m))
+    }
+  }
+})
+
+test_that("R lgamma ratio agrees with lgamma() below the switch and is continuous at it", {
+  for (m in c(0, 1, 3, 20, 500)) {
+    x <- c(0.5, 7, 99.999)
+    expect_equal(drm_lgamma_ratio(x, m), lgamma(x + m) - lgamma(x), tolerance = 1e-14)
+    # either side of x = 100 the two branches agree to rounding
+    lo <- drm_lgamma_ratio(100 * (1 - 1e-12), m)
+    hi <- drm_lgamma_ratio(100, m)
+    expect_lt(abs(hi - lo), 1e-11 * max(1, m))
+  }
+})
+
+test_that("beta and gamma mi() prior gradients are correct at the Stirling switch", {
+  mi_fit <- function(family, x) {
+    suppressWarnings(drmTMB(
+      bf(y ~ mi(x), sigma ~ 1),
+      data = data.frame(y = c(0.2, 0.9, 0.4, 0.6), x = c(x, NA_real_)),
+      impute = list(x = impute_model(x ~ 1, family = family)),
+      missing = miss_control(predictor = "model"),
+      control = drm_control(se = FALSE)
+    ))
+  }
+  # The last row has the predictor missing and the response observed, so the
+  # quadrature copies are on the tape too.
+  fb <- mi_fit(beta_family(), c(0.31, 0.5, 0.64))
+  fg <- mi_fit(stats::Gamma(link = "log"), c(2.1, 2.7, 3.9))
+  for (d in c(-1e-8, 0, 1e-8)) {
+    # phi = alpha + beta = 30, and alpha = 0.3 * 100 = 30
+    for (phi in c(30, 100)) {
+      grad_check(fb, set_par(fb,
+        beta_mu = c(0.5, 0.4), beta_sigma = 0,
+        beta_mi = stats::qlogis(0.3), log_sigma_mi = -0.5 * log(phi * (1 + d))
+      ))
+    }
+    grad_check(fg, set_par(fg,
+      beta_mu = c(0.5, 0.1), beta_sigma = 0,
+      beta_mi = log(2.5), log_sigma_mi = -0.5 * log(30 * (1 + d))
+    ))
+  }
+})

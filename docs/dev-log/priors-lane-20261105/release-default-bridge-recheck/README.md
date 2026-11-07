@@ -21,6 +21,11 @@ checks the R hashes and runner when `DRM_JL_PATH` is unset; in that mode it
 reports Julia source entries as unverified. A separate local audit with a Julia
 checkout matched all 115 Julia source entries.
 
+The November 7 refresh replaced `current.json`. The previous receipt and this
+original README are preserved as `current-before-20261107.json` and
+`README-before-20261107.md`. See `docs/dev-log/priors-receipt-refresh-20261107/`
+for the new source pins and checks.
+
 ## 0.8.1 candidate refresh
 
 On Totoro, the unchanged fixture passed all eight checks using R source `4d3917385` and Julia source `b20ccf2df`. The independent checker rejected all twelve mutated receipts. Labels, data, ordering, tree and group covariate matched the previous receipt. The first attempt stopped because the Julia manifest was absent; the failed receipt and log are retained alongside the successful retry. This remains evidence for one fixture.

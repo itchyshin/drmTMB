@@ -1,5 +1,14 @@
 # drmTMB 0.8.1
 
+* `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
+  `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
+  log-densities that the response kernels gained in #1547. The old inline
+  `lgamma()` forms lost up to 6e-7 per observed predictor at phi or shape
+  1e8. The R-side beta-binomial pmf behind `beta_binomial()` residuals and
+  quantiles, and the R density for beta-binomial `mi()` predictors, now use
+  the same cancellation-free gamma-function ratio as the compiled kernel.
+  Values at ordinary shape are unchanged to rounding (#1548).
+
 * Fixed-effect normal priors and ridge penalties now support Gaussian mean formulas with one independent random intercept. Priors can target mean and residual log-SD coefficients; the group SD remains estimated without a prior. The admitted route remains ML with complete data, unit weights and dense full-rank fixed designs.
 
 * Heritability, ICC and repeatability confidence intervals refuse active fixed-prior MAP fits. Existing interval and likelihood-comparison restrictions remain.
