@@ -8,7 +8,7 @@ Shinichi wants drmTMB and DRModels.jl finished as reliable R and Julia distribut
 
 | Repository | Current work | Evidence and next direction |
 | --- | --- | --- |
-| drmTMB | Receipt branch `fix/phylo-bridge-receipt-20261107`, PR #1682 draft | One phylogenetic bridge fixture passed; finish exact-head CI, review, and seek separate merge authorization. |
+| drmTMB | Receipt branch `fix/phylo-bridge-receipt-20261107`, PR #1682 draft | One phylogenetic bridge fixture passed; exact-head CI passed; complete review and seek separate merge authorization. |
 | DRModels.jl | Parity PR #1252 merged as `976c1ac3710c6f14cf4574dc17fdf56523d502d8` | Native shards and docs passed; R parity tests were skipped. Continue route-specific evidence. |
 | Both | Priors PRs R #1681 and Julia #1258 belong to a separate lane | Preserve their work and review their own current status before overlap. |
 
@@ -24,7 +24,7 @@ R parity PR #1657 merged as `623eed27b37d53dab4af56564f1e87624929d40e`. Julia PR
 
 The receipt was reproduced on Totoro using R `623eed27b37d53dab4af56564f1e87624929d40e` and Julia `f940fc4042ee2832c3343f7d334e830a96942f1b`. All eight fixture checks passed, 12 mutated receipts were rejected, and the local CI-equivalent check passed on the receipt branch. It verified 66 R files and the runner; 115 Julia entries were not verified locally, while the Totoro checker used the pinned Julia checkout. The prior receipt and README are preserved byte-for-byte with their historical checksum manifest. This supports one fixture, not interval calibration or general parity.
 
-At this snapshot, draft PR #1682 head `1e334f1ca47e16c5aa80ba33070f36f21feb116c` has an active R-CMD-check run 42366509228. The source-tree job, matrix setup and shard 4 passed; shards 1–3 were still running. Poll that exact run; never start a duplicate merely because a poll times out. Recheck the PR head, branch protection and main before review or merge. A merge requires separate authorization.
+At this snapshot, draft PR #1682 head `1e334f1ca47e16c5aa80ba33070f36f21feb116c` has a successful R-CMD-check run 42366509228: the source-tree job, matrix setup and all four package-check shards passed. GitHub recorded no review decision. Inspect the exact run and current PR state before taking further action. Recheck the PR head, branch protection and main before review or merge. A merge requires separate authorization.
 
 ## Landing state and gate
 
@@ -32,10 +32,10 @@ The handoff gate flagged two modified settings files in this worktree and 1,047 
 
 | Artifact | State | Reason and resume |
 | --- | --- | --- |
-| R `fix/phylo-bridge-receipt-20261107` at `1e334f1ca47e16c5aa80ba33070f36f21feb116c` | CARRIED-OVER: committed, pushed, draft PR #1682 | CI and review remain. Run `gh run view 42366509228 -R itchyshin/drmTMB` and `gh pr view 1682 -R itchyshin/drmTMB`. |
+| R `fix/phylo-bridge-receipt-20261107` at `1e334f1ca47e16c5aa80ba33070f36f21feb116c` | CARRIED-OVER: committed, pushed, draft PR #1682 | Review and a separate merge decision remain. Run `gh run view 42366509228 -R itchyshin/drmTMB` and `gh pr view 1682 -R itchyshin/drmTMB`. |
 | `.claude/settings.json`, `.cursor/hooks.json` in this checkout | PROTECTED, uncommitted | Unrelated. Inspect `git status --short`; do not stage or restore. |
 | Other local unpushed branches and dirty worktrees | PROTECTED / CARRIED-OVER | Ownership is not established. Run `~/shinichi-brain/tools/lane_preflight.sh "$PWD"` and `~/shinichi-brain/tools/handoff_gate.sh "$PWD"`; do not alter them. |
-| This handover | CARRIED-OVER until committed and pushed | Read on its named branch; verify its final commit and PR state. |
+| This handover | CARRIED-OVER on pushed `handover/drm-to-claude-20261107` | Read on its named branch; verify its final commit and PR state. |
 
 FINDINGS-OF-RECORD: none. The receipt result is a source-bound CI reproduction, not a new method finding.
 
