@@ -1,61 +1,53 @@
-# Gaussian random-intercept coefficient priors: interim report
+# Gaussian random-intercept fixed-coefficient priors
 
 ## 1. Goal
 
-Closes #1680 when the outstanding validation and review gates are met. Extend existing coefficient priors to the approved single Gaussian mean random-intercept model.
+Extend existing normal and ridge fixed-coefficient priors to Gaussian ML with one independent mean random intercept. Closes #1680 after outstanding hosted CI adjudication and final review gates. No merge or release is authorized.
 
 ## 2. Implemented
 
-Admitted the narrow Gaussian route, retained the existing latent-independent TMB prior contribution and likelihood accounting, corrected public profile readiness for active-prior fits, and added focused tests, help and an article example. No C++ likelihood was copied or changed.
+The admitted route keeps the existing prior contribution in the joint TMB objective exactly once, outside random-effect integration. Data likelihood, prior contribution and penalized objective remain separate. Updated route admission, selectors, bridge coordinates, reporting, updates and active-prior inference refusals together. The group SD remains unpenalized. No C++ likelihood changed.
 
 ## 3a. Decisions and Rejected Alternatives
 
-Prior terms already in the joint objective factor outside the random-effect integral; adding another marginal penalty would double count. The tau-zero likelihood uses a separate fixed-only Gaussian evaluation because log(tau) cannot represent zero. Assumptions: none beyond the approved plan.
+Use the exact marginal Gaussian contract, including the separate zero-group-variance boundary evaluation. Adding another marginal prior term would double count. Native R numerical qualification uses the existing public multi_start=5 uniformly across all twelve fixtures, with caller seed777 and internal perturbation seed20260616. Production optimizer defaults were unchanged. The retained single-start ri_10 result is a genuine inferior local boundary minimum, independently diagnosed; it is excluded from configured-pass claims, without changing references or thresholds.
 
 ## 4. Files Touched
 
-R/fixed-priors-workflow.R, R/fixed-effect-priors.R, R/drmTMB.R, R/profile.R, R/methods.R; tests/testthat/test-fixed-priors-gaussian-ranef.R and test-fixed-priors-workflow.R; man/drmTMB.Rd, man/drm_priors.Rd, man/drm_resolve_priors.Rd; vignettes/articles/fixed-effect-priors.Rmd; news/gaussian-ri-fixed-priors.md; tools/gaussian-ri-prior-adapters/r-native.R and r-bridge.R; this report and check-log entry. Oracle files are owned and recorded separately.
+R/fixed-priors-workflow.R, R/fixed-effect-priors.R, R/drmTMB.R, R/julia-bridge.R, R/profile.R, R/methods.R and R/heritability.R; focused tests; generated help; the prior article; NEWS and check-log fragments; native/bridge adapters; independent-oracle and receipt directories. Current capability receipt metadata and a new reference-host receipt were added to clear source staleness. Historical raw receipt files were preserved.
 
 ## 5. Checks Run
 
-Local focused tests: 49 and 44 expectations passed; article render and Rd example passed. The new file passed 55 expectations including one live Julia bridge test on Totoro with an isolated library and recorded Julia-bundled libunwind preload. Root independently reports all four preflight fixtures passed against the oracle for native R, native Julia and the bridge, with six verifier mutations rejected. Two bridge fixtures used exactly matched numeric indicator transport; their raw factor formulas remain refused. The final configured 12-fixture grid passed all 36 route checks against the frozen independent oracle. Native R used the existing public multi_start=5 setting, with caller seed 777 and internal perturbation seed 20260616; see ../gaussian-ri-priors-20261106/R-MULTISTART-POLICY.md. Native Julia and the bridge retained their original configurations. The default run passed 35/36 checks and failed native R ri_10 at an inferior local boundary minimum; that result remains in the evidence. Full R build passed; R CMD check and source-tree tests remain pending. The independent final source review passed at R251d103b and Juliaf60eb88e. pkgdown has not been completed for this source.
+The independent oracle was frozen before package fits. Repaired code pins R5d0f1596 and Juliaff10a2f9 passed all36 comparisons at the original limits; the root independently reran their raw results. Native derivatives cover nine positive-SD points per engine, with values only at three exact-zero points. Bridge arbitrary-point derivatives are unavailable. Guarded R focused tests passed87 expectations, including one actual bridge test. The new variance-ratio guard passed24 expectations and62 existing heritability checks.
+
+Final R build passed in225seconds. R CMD check exited0 in3813seconds with42125 passing expectations,0 failures,117 warnings,696 skips and one report-only spelling-output NOTE. The source manifest passed; source-tree tests passed26516 expectations with0 failures,14 warnings and6 skips in126seconds. The raw test log retains a parallel shutdown message; that message is separate from the spelling NOTE. Full-suite configuration exercised no live Julia bridge; the separate guarded live receipt supplies that evidence.
+
+Julia1.10.12 completed all eight original shards on repaired source, covering561 ordinary files exactly once, with each JET gate2/2. The slowest shard took8367seconds. Three fresh source reviews and an independent runtime reviewer qualified the bounded local evidence. See ../gaussian-ri-priors-20261106/guarded-numerical-evidence/, guarded-focused-live/, guarded-R-full/ and guarded-julia-full/.
 
 ## 6. Tests of the Tests
 
-The intended admission test failed before the route change; eight readiness expectations failed before the readiness correction. The independent oracle includes omitted, doubled, misindexed and altered-normal-constant controls; see its separate evidence.
+Admission and profile-readiness tests failed before their corresponding fixes. A later independent inventory exposed variance-ratio intervals escaping the inference guard; six public R cases failed before the shared repair. Oracle mutation controls reject omitted, duplicated, misindexed and altered-constant priors. Exact-zero variance is evaluated directly rather than through log(0).
 
 ## 7a. Issue Ledger
 
-Closes #1680 after pending gates; this interim entry is not a completion or merge claim.
+The isolated branch is codex/gaussian-ri-priors-20261106. Draft PR #1681 links companion DRModels.jl PR #1258. Both remain unmerged. Hosted checks and final evidence reconciliation remain open, so this report does not close the issue or claim overall completion.
 
 ## 8. Consistency Audit
 
-Prior constructors and selectors remain unchanged. Data log likelihood and prior contribution are separate. Active-prior profile readiness is false; no-prior and zero-ridge readiness agree in focused tests. Conditional latent modes and covariances, when available, are plug-in conditional quantities, not a full posterior. Existing local penalized-Hessian curvature is not calibrated inference.
+No-prior and zero-ridge identities, selector mappings, separate data likelihood, prior retention under update and inference refusals passed. Conditional latent modes/covariances and penalized curvature retain their limited interpretation. Current-source capability recertification reproduced all three stored summaries exactly on their Mac reference host, with12/12 attempts passing. Ledger/equivalence checks and97 tests passed; prior historical raw hashes were preserved. The current pointer file also appears in PR1651, whose branch and protected head remain separate.
 
 ## 9. What Did Not Go Smoothly
 
-Mac JuliaCall started using a disposable project but the selected Julia environment lacked ForwardDiff; bridge preflight moved to Totoro without modifying the global environment. Factor-indicator formula metadata was corrected and reverified independently before candidate comparisons. The final grid also exposed a genuine inferior local minimum in native R. Independent variance-direction and free-Hessian checks confirmed that branch; the existing multiple-start control reached the lower optimum without oracle-derived starts. Every fixture was then rerun under the same recorded configuration, preserving the default failure.
+The initial full package check failed two skip-census assertions for one newly added live-bridge skip site. Regenerating its single missing census row fixed those assertions; no skip condition or test gate was relaxed. Initial Mac JuliaCall setup lacked ForwardDiff, so live bridge qualification used an isolated Totoro environment. Raw-factor bridge formulas remain refused; explicitly numeric indicator transport was validated with exact design matching. Native R single-start optimization reached an inferior minimum in one fixture. The initial inference audit missed shared variance-ratio accessors; its superseding review and repair are retained. Totoro capability recertification differed from the Mac reference by at most3.23e-11 and was correctly rejected at tolerance zero; that attempt is preserved, and the Mac run reproduced the reference exactly.
 
 ## 10. Known Residuals
 
-Full suites remain pending. The final revised R article rendered successfully, including its worked examples. Numerical qualification passed under the recorded configurations, and independent source review passed. Single-start fitting remains susceptible to local minima. The bridge has no arbitrary-point Hessian interface; native engine pointwise Hessians do not establish a bridge Hessian test. No interval coverage or sampling calibration is established.
+Hosted CI remains under investigation. Julia1.13.3 shard3 failed an existing unpenalized binomial SD convergence assertion. Baseline and candidate each passed the unchanged test locally under three diagnostic configurations, including its preceding shard/JET prefix; those passes do not establish a hosted baseline defect. A hosted baseline comparison is running. Current-head R cross-platform checks are also running. No interval coverage, sampling calibration, global optimization guarantee or general engine parity is established.
 
 ## 11. Team Learning
 
-A log-SD parameterization cannot represent the exact zero boundary; evaluate the zero-variance limit separately and report the distinction. Memory receipt: drmTMB LOAD-FIRST and compute routing were consulted. Golden Set was not run; source checks and independent oracle are the task-specific evidence.
+An SD boundary requires a separate likelihood limit and honest diagnostics. Prior metadata alone does not prove objective wiring, and source audits must trace shared derived-inference dispatch. Exact receipt reproduction can depend on the recorded reference host. Memory receipt: the approved plan, canonical contract and compute routing governed the slice. No Golden Set or hub guard changed.
 
 ## 12. Cross-Product Coverage
 
-Focused native R tests cover active coefficient priors, selectors, Gaussian mean random intercept, prior updates, zero-ridge ML and existing inference guards. This does NOT cover random slopes, multiple groups, random-effect SD priors, structured effects, non-Gaussian mixed models, REML, sampling or interval coverage. The configured full grid covers all twelve fixtures on native R, native Julia and the bridge. It does not establish global optimization reliability or raw-factor bridge support. No release or merge occurred.
-
-The later persistent live test file passed 63 expectations on Totoro, including zero-ridge bridge equivalence to unpenalized ML. This supplements the earlier 55-expectation live run. The frozen grid subsequently passed under the recorded configurations; full suites remain pending.
-
-A later independent post-fit inventory found that native variance-ratio accessors could still return Wald intervals for active fixed priors. The earlier inference audit missed this shared path. The shared guard now refuses those interval requests before dispatch, with six failing-first public cases and 24 passing focused expectations; 62 existing heritability expectations passed. Point-only summary rows and other MAP-penalty behavior remain available. Fresh final-source qualification is pending; earlier numerical results are not promoted to the repaired source.
-
-## Repaired-source qualification checkpoint
-
-The unchanged frozen oracle passed all36 route comparisons on R5d0f1596 and Juliaff10a2f9. The root independently reran all downloaded comparisons with exit0. Native R used the recorded uniform multi_start=5 policy; its earlier default local-minimum failure remains retained. Guarded live R tests passed87 expectations, including one actual bridge test. Three fresh completion reviews passed the bounded source gate. These results supersede the earlier candidate pins for numerical and inference-guard qualification.
-
-The final full R check and Julia shard8 remain live. Seven final Julia shards exited0 and each reported that DRModels tests passed. Full-suite completion, final report reconciliation and PR preparation remain pending. No merge or release occurred.
-
-Final R qualification: package check exit0 with one report-only spelling NOTE;42125 test expectations passed with0 failures,117 warnings and696 skips. Source manifest passed, and source-tree tests passed26516 expectations with0 failures,14 warnings and6 skips. Raw receipts are in guarded-R-full/. The current capability receipt was recertified exactly on its Mac reference host; see c17-recertification/. Julia shard8 and CI qualification remain pending.
+Covers complete-data, unit-weight, dense-design Gaussian ML with one independent mean random intercept and priors on selected mu/log-residual-SD coefficients. Slopes, multiple groups, structured effects, random-effect SD/correlation priors, REML, other mixed families and calibrated interval inference remain deferred. The revised R article example rendered on the earlier candidate; its code did not change in the later inference-guard repair. Final package examples and vignette rebuilding passed. Julia's current PR documentation built and its PR preview was published; production-site deployment was skipped. No merge, version bump or release occurred.

@@ -1,6 +1,6 @@
 # Gaussian random-intercept coefficient priors: current state
 
-The implementation and bounded source reviews passed. Full-suite qualification and final closeout remain pending. No merge or release is authorized for this slice.
+The implementation, independent numerical checks, bounded source reviews and repaired-source local full suites passed. Hosted CI adjudication and final closeout remain pending. No merge or release is authorized for this slice.
 
 ## Scope and source
 
@@ -15,19 +15,19 @@ Validated engine commits: drmTMB `5d0f159644991f49dd767b8baf8cb61f537b3720`; DRM
 - `guarded-focused-live/`:87 expectations passed, including one actual Julia bridge test. Native factor selectors were separately tested; numeric indicator bridge transport does not establish raw-factor bridge support.
 - The derived-ratio guard repair refuses active fixed-prior variance-ratio confidence intervals. R guard24 and existing62 checks passed; Julia guard23 and existing43 passed. See `derived-ratio-guard-review.md`.
 - `completion-r-review.md`, `completion-julia-review.md` and `completion-inference-review.md`: fresh bounded source gates passed. Final runtime closure is pending.
-- The final Julia partition covers561 files exactly once. Seven shards exited0 and reported package tests passed; shard8 remains live. The original numerical sparse baseline passed at logLik -256.5059. Historical R constants printed by that script do not provide a new paired benchmark.
-- Full repaired-source R build passed. Its full package check and subsequent source-tree checks remain pending.
+- The final Julia partition covers561 files exactly once. All eight shards exited0 and reported package tests passed, with every JET gate2/2. The longest shard took8367seconds. Raw complete receipts are in guarded-julia-full/. The original numerical sparse baseline passed at logLik -256.5059. Historical R constants printed by that script do not provide a new paired benchmark.
+- Full repaired-source R build and package check passed with exit0, one report-only spelling NOTE and42125 test expectations passed with0 failures. Source manifest passed; source-tree tests passed26516 expectations with0 failures. See guarded-R-full/.
 
 Earlier candidate numerical, focused and full-suite results retain their original source pins. They do not substitute for repaired-source full-suite qualification.
 
 ## Reviewable branches
 
-Both branches are pushed. Draft PRs are open: [drmTMB #1681](https://github.com/itchyshin/drmTMB/pull/1681) and [DRModels.jl #1258](https://github.com/itchyshin/DRModels.jl/pull/1258). Their bodies explicitly record pending qualification. CI is queued or running. Final reports and raw receipt additions remain local until reconciled.
+Both branches are pushed. Draft PRs are open: [drmTMB #1681](https://github.com/itchyshin/drmTMB/pull/1681) and [DRModels.jl #1258](https://github.com/itchyshin/DRModels.jl/pull/1258). Their bodies explicitly record pending qualification. CI remains active. Hosted Julia1.13.3 shard3 failed an existing unpenalized binomial SD convergence assertion; the cause remains unclassified. Baseline and candidate each passed that test locally under three diagnostic configurations. Hosted baseline run42318931694 is comparing the pre-slice source. R current-head workflow42315004155 is running. Final reports and raw receipt additions remain local until reconciled.
 
 ## Protection and remaining work
 
-The four pre-existing dirty configuration files retain their recorded hashes and remain outside commits. PR1651 remains open at `1bf51e2d61bd1ce0a2fb3fad914a9888544af491`. R main advanced independently; no reconciliation merge was performed. No version bump, merge, release or deployment occurred.
+The four pre-existing dirty configuration files retain their recorded hashes and remain outside commits. PR1651 remains open at `1bf51e2d61bd1ce0a2fb3fad914a9888544af491`. R main advanced independently; no reconciliation merge was performed. No version bump, merge, release or production-site deployment occurred. Documenter built and published the Julia PR preview; its production deployment job was skipped.
 
-Next: collect full-suite terminal results, investigate any failures, obtain receipt-level completion review, reconcile reports and check-log entries, commit only owned evidence/documents, and finish PR checks. G5 and G6 remain open.
+Next: adjudicate hosted CI outcomes, finish the independent receipt review, reconcile reports and check-log entries, commit only owned evidence/documents, and finish PR checks. G5 and G6 remain open.
 
-Final R qualification: package check exit0 with one report-only spelling NOTE;42125 test expectations passed with0 failures,117 warnings and696 skips. Source manifest passed, and source-tree tests passed26516 expectations with0 failures,14 warnings and6 skips. Raw receipts are in guarded-R-full/. The current capability receipt was recertified exactly on its Mac reference host; see c17-recertification/. Julia shard8 and CI qualification remain pending.
+Final R qualification: package check exit0 with one report-only spelling NOTE;42125 test expectations passed with0 failures,117 warnings and696 skips. Source manifest passed, and source-tree tests passed26516 expectations with0 failures,14 warnings and6 skips. Raw receipts are in guarded-R-full/. The current capability receipt was recertified exactly on its Mac reference host; see c17-recertification/. Local Julia qualification also passed all eight shards; hosted CI qualification remains pending.
