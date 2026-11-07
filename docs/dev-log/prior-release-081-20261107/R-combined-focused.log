@@ -1,0 +1,39 @@
+✔ | F W  S  OK | Context
+
+⠏ |          0 | fixed-priors-gaussian-ranef                                    
+⠙ |          2 | fixed-priors-gaussian-ranef                                    
+⠧ |          8 | fixed-priors-gaussian-ranef                                    
+⠴ |         16 | fixed-priors-gaussian-ranef                                    
+⠦ |         17 | fixed-priors-gaussian-ranef                                    
+⠼ |         25 | fixed-priors-gaussian-ranef                                    
+⠙ |         32 | fixed-priors-gaussian-ranef                                    
+⠇ |         39 | fixed-priors-gaussian-ranef                                    
+⠙ |         42 | fixed-priors-gaussian-ranef                                    
+⠦ |         47 | fixed-priors-gaussian-ranef                                    
+⠇ |         49 | fixed-priors-gaussian-ranef                                    
+✔ |      1  49 | fixed-priors-gaussian-ranef [3.9s]
+
+⠏ |          0 | fixed-priors-variance-ratio-guards                             
+⠋ |          1 | fixed-priors-variance-ratio-guards                             
+⠇ |          9 | fixed-priors-variance-ratio-guards                             
+⠙ |         22 | fixed-priors-variance-ratio-guards                             
+✔ |         24 | fixed-priors-variance-ratio-guards
+
+⠏ |          0 | large-argument-kernels                                         
+✔ |      1   0 | large-argument-kernels
+
+⠏ |          0 | release-identity                                               
+✔ |         20 | release-identity
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 4.3 s
+
+── Skipped tests (2) ───────────────────────────────────────────────────────────
+• DRModels.jl / DRM.jl engine not available (set DRMODELS_JL_PATH or
+  DRM_JL_PATH) (1): 'test-fixed-priors-gaussian-ranef.R:114:3'
+• On CRAN (1): 'test-large-argument-kernels.R:15:1'
+
+[ FAIL 0 | WARN 0 | SKIP 2 | PASS 93 ]
+
+Your tests are riveting!
+Julia bridge: 0 live tests ran, 1 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
