@@ -76,8 +76,73 @@ structure providers across the other families.
 | Gaussian relmat random intercept (mean) | implemented |
 | Non-Gaussian phylogenetic random intercept (mean) | scope-limited |
 | Non-Gaussian phylogenetic location-scale (μ + log σ) | scope-limited |
+| Poisson animal slope-only coefficient with predictor-dependent SD | point-fit-recovery |
+| Gaussian ordinary correlated q3 and q4 blocks with one SD formula per coefficient (native only) | point-fit-recovery |
+| Gaussian correlated q2, same-group, relmat/spatial, and mu + sigma joint predictor-dependent SDs (native only) | point-fit-recovery |
+| Poisson phylo/relmat slope-only, same-group/crossed, and ordinary + structured intercept predictor-dependent SDs (native only) | point-fit-recovery |
+| NB2 relmat/spatial intercept, phylo/relmat slope-only, and ordinary + structured intercept predictor-dependent SDs (native only) | point-fit-recovery |
+| Poisson phylo_interaction intercept and slope-only pair-level predictor-dependent SDs (native only) | point-fit-recovery |
+| Gamma crossed (distinct groups) and ordinary + relmat intercept predictor-dependent SDs (native only) | point-fit-recovery |
+| Gamma animal correlated q2 (intercept + slope) with coefficient-specific SDs (native only) | point-fit-recovery |
+| Gamma ordinary + animal/phylo/spatial intercept predictor-dependent SDs (native only) | point-fit-recovery |
+| Gamma and NB2 same-group intercept + slope with `coef`-selected SDs (native only) | point-fit-recovery |
+| Zero-inflated Poisson plain independent slope without `sd()` (native only) | point-fit-recovery |
+| Gaussian structured q2 (animal, relmat, phylo; unlabelled and labelled) with coefficient-specific SDs (native only) | point-fit-recovery |
+| Gaussian structured `sigma` intercept (phylo, animal, relmat, spatial) with predictor-dependent SD (native only) | point-fit-recovery |
+| Gaussian and NB2 phylo_interaction pair-level predictor-dependent SDs (Gaussian slope-only; NB2 intercept and slope-only) (native only) | point-fit-recovery |
+| Poisson and NB2 structured q2 (animal, relmat, phylo, spatial) with coefficient-specific SDs; NB2 labelled animal q2 (native only) | point-fit-recovery |
+| Gamma slope-only phylo, spatial and relmat predictor-dependent SDs (native only) | point-fit-recovery |
+| Binomial phylo and spatial q2 with coefficient-specific SDs (native only) | point-fit-recovery |
+| NB2 and Gamma joint ordinary `mu` plus `sigma` intercepts, each with an SD formula (native only) | point-fit-recovery |
+| Gaussian spatial q2 (unlabelled and labelled) with coefficient-specific SDs (native only) | point-fit-recovery |
+| Poisson and NB2 labelled relmat q2 with coefficient-specific SDs (native only) | point-fit-recovery |
+| Poisson, NB2 and Gamma ordinary `mu` SD regression with `miss_control(response = "include")` (native only) | point-fit-recovery |
+| Julia bridge: Poisson, NB2 and Gamma `relmat` slope-only SD, NB2 and Gamma coordinate `spatial` slope-only SD, and NB2 animal slope-only SD (supplied `A`); `K` used as supplied | point-fit-recovery |
 | Tweedie random intercept (mean) | implemented |
 | Gaussian phylogenetic random intercept + slope, two SDs (mean) | implemented |
+
+The native-only SD rows above were added on 2026-11-01. They come from
+focused tests and evidence receipts (reviewed or not, per the ledger), not from `cells.tsv`, so under
+this file's rule the ledger wins if it disagrees. `point-fit-recovery` here means
+the route fits and matches a likelihood oracle or recovers a simulated value on
+fixed fixtures; it is not an interval, coverage, Julia-parity or
+inference-ready claim. The three rows added after batch 6 cite
+`tests/testthat/test-gamma-iid-structured-sd-regression.R` (dense Laplace
+oracle, one fixture seed per provider),
+`tests/testthat/test-nbinom2-gamma-same-group-sd-oracle.R` (dense Laplace
+oracle at the fitted point, one fixture per family) and
+`tests/testthat/test-zi-poisson-plain-slope.R` (per-cluster quadrature oracle,
+one synthetic dataset). Not listed because their only evidence is constant-SD
+equivalence and prediction identity: nothing remains in that category for Poisson coordinate-spatial SD, which has a later hand-kernel dense Laplace oracle
+(`test-poisson-spatial-sd-sensitivity-b26.R`). The Gamma correlated q2
+row above has a joint-objective oracle at 1e-6 (including a raw non-unit-diagonal
+`A` case) and a loose 0.4 recovery band, with no calibration; the Poisson animal
+slope row's `pedigree` form has an independent oracle
+(`test-poisson-animal-pedigree-sensitivity-b26.R`), while its supplied-`Ainv`
+form is checked only against the `A =` fit. The seven rows added in batches 9 to 15 cite
+`tests/testthat/test-gaussian-structured-q2-sd.R`,
+`tests/testthat/test-gaussian-sigma-structured-sd.R`,
+`tests/testthat/test-gaussian-phylo-interaction-slope-sd.R`,
+`tests/testthat/test-nbinom2-phylo-interaction-sd.R`,
+`tests/testthat/test-poisson-structured-q2-sd-regression.R`,
+`tests/testthat/test-nbinom2-structured-q2-sd-regression.R`,
+`tests/testthat/test-count-structured-q2-more-providers-sd.R`,
+`tests/testthat/test-gamma-structured-slope-sd.R`,
+`tests/testthat/test-binomial-phylo-spatial-q2-sd.R`,
+`tests/testthat/test-gamma-mu-sigma-joint-sd.R`,
+`tests/testthat/test-nbinom2-mu-sigma-joint-sd.R` and
+`tests/testthat/test-nbinom2-mu-sigma-same-group-sd.R`; each fits a dense or exact
+oracle at the fitted point on one fixture per provider. No
+Julia counterpart exists for these rows, apart from the Julia bridge row above.
+The four rows added on 2026-11-02 cite `tests/testthat/test-gaussian-spatial-q2-sd.R`
+(exact marginal oracle), `tests/testthat/test-count-labelled-relmat-q2-sd.R`
+(dense Laplace oracle), `tests/testthat/test-poisson-sd-missing-include.R` and
+`tests/testthat/test-nb2-gamma-sd-missing-include.R` (complete-case equality and
+dense Laplace oracles), and `tests/testthat/test-julia-b18-relmat-nb2-slope-sd-bridge.R`
+(one live fixture per route against native TMB; the live blocks need a Julia
+install). The Julia bridge row is `point-fit-recovery` on the bridge axis for one
+fixture only. The non-unit-diagonal `K` refusal was removed on 2026-11-02 because Julia now
+uses `K` as supplied (design 18, "Parity rows resolved 2026-11-02 (batch 28)"); no broader parity is claimed.
 
 `Tweedie random intercept (mean)` is `implemented`:
 `validate_tweedie_mu_random_terms()` (`R/drmTMB.R:11640-11662`) admits an

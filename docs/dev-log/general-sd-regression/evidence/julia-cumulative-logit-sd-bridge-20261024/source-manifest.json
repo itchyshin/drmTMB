@@ -1,0 +1,40 @@
+{
+  "created": "2026-10-24",
+  "drmTMB_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "DRMjl_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "files": [
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-bridge-20261024/source-snapshot/R-julia-bridge-after-slope.R",
+      "sha256": "eebe1e1a3a7ce78b628ccb61f51f59e98e86ea2a916e9dbd816cacdfd4931921"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-bridge-20261024/source-snapshot/julia-family-registry-after-slope.R",
+      "sha256": "e05cee6a7edab26f77e707184a3894e72095a8e503e11926d1199622d773469c"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-bridge-20261024/source-snapshot/test-julia-family-cumulative_logit-after-slope.R",
+      "sha256": "5c5d8ed5bebdea270e7d46df1a94bb1f4d0b7e7f0592350606348bac36dad4a0"
+    },
+    {
+      "file": "tests/testthat/test-julia-cumulative-logit-sd-slope-parity.R",
+      "sha256": "7290adee483903aa85ed764aad3f5b46fcdfbc12c0d92c16936a9ab9da88d290"
+    },
+    {
+      "file": "../general-sd-julia/src/cumulative.jl",
+      "sha256": "b9b1181d13cc2ceeed68db25a4f59493fbe8a21a1339c81e31880e4cfeaf375c"
+    },
+    {
+      "file": "../general-sd-julia/test/test_cumlogit_sd_regression.jl",
+      "sha256": "9a1700c0ec204d0dbdaede1571158b1741a9654b5793180d3c3d16c9d11ac15a"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-bridge-20261024/test-run.log",
+      "sha256": "389ef06cc8b39c563263497a734fd7424cea96bba9bdd076a80ccc8f74f1538a"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-bridge-20261024/test-run-isolated.log",
+      "sha256": "26e149a31bbb7242777edaf11cccbd7ae66048924ebaff76d8c17905845ae11a"
+    }
+  ],
+  "note": "The R bridge source is preserved as an exact snapshot from the passing 2026-10-24 slope-only receipt; later bridge changes do not alter this evidence."
+}

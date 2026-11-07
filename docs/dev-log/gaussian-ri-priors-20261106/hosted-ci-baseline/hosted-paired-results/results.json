@@ -1,0 +1,94 @@
+[
+  {
+    "label": "baseline",
+    "mode": "standalone",
+    "source": "86ee1c2a38cd79c55dbbd71afd7374a3095aad3c",
+    "command": [
+      "julia",
+      "--startup-file=no",
+      "--threads=1",
+      "--check-bounds=yes",
+      "--depwarn=yes",
+      "--compiled-modules=yes",
+      "--code-coverage=user",
+      "--color=no",
+      "--project=/home/runner/work/DRModels.jl/DRModels.jl/baseline-env",
+      "/home/runner/work/DRModels.jl/DRModels.jl/diagnostic/tools/ci-prior-hosted-diagnostic/run.jl",
+      "/home/runner/work/DRModels.jl/DRModels.jl",
+      "baseline",
+      "standalone"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 246.55373001098633,
+    "log_sha256": "04d1f3852e55ba164ec7af26f192379c9c32bd68c6e2dc9f618c990f6bd1f4bf"
+  },
+  {
+    "label": "candidate",
+    "mode": "standalone",
+    "source": "385fde27d369270afb2353ddf1fbd9f301f2b4ce",
+    "command": [
+      "julia",
+      "--startup-file=no",
+      "--threads=1",
+      "--check-bounds=yes",
+      "--depwarn=yes",
+      "--compiled-modules=yes",
+      "--code-coverage=user",
+      "--color=no",
+      "--project=/home/runner/work/DRModels.jl/DRModels.jl/candidate-env",
+      "/home/runner/work/DRModels.jl/DRModels.jl/diagnostic/tools/ci-prior-hosted-diagnostic/run.jl",
+      "/home/runner/work/DRModels.jl/DRModels.jl",
+      "candidate",
+      "standalone"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 217.3743817806244,
+    "log_sha256": "f3d44119e242411748d39f06280f492cc904e8e181ae01392258e8a69443a4cc"
+  },
+  {
+    "label": "baseline",
+    "mode": "prefix",
+    "source": "86ee1c2a38cd79c55dbbd71afd7374a3095aad3c",
+    "command": [
+      "julia",
+      "--startup-file=no",
+      "--threads=1",
+      "--check-bounds=yes",
+      "--depwarn=yes",
+      "--compiled-modules=yes",
+      "--code-coverage=user",
+      "--color=no",
+      "--project=/home/runner/work/DRModels.jl/DRModels.jl/baseline-env",
+      "/home/runner/work/DRModels.jl/DRModels.jl/diagnostic/tools/ci-prior-hosted-diagnostic/run.jl",
+      "/home/runner/work/DRModels.jl/DRModels.jl",
+      "baseline",
+      "prefix"
+    ],
+    "exit_code": 124,
+    "elapsed_seconds": 1200.0892186164856,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "candidate",
+    "mode": "prefix",
+    "source": "385fde27d369270afb2353ddf1fbd9f301f2b4ce",
+    "command": [
+      "julia",
+      "--startup-file=no",
+      "--threads=1",
+      "--check-bounds=yes",
+      "--depwarn=yes",
+      "--compiled-modules=yes",
+      "--code-coverage=user",
+      "--color=no",
+      "--project=/home/runner/work/DRModels.jl/DRModels.jl/candidate-env",
+      "/home/runner/work/DRModels.jl/DRModels.jl/diagnostic/tools/ci-prior-hosted-diagnostic/run.jl",
+      "/home/runner/work/DRModels.jl/DRModels.jl",
+      "candidate",
+      "prefix"
+    ],
+    "exit_code": 124,
+    "elapsed_seconds": 1200.100917339325,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

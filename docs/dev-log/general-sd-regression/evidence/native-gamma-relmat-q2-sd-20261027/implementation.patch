@@ -1,0 +1,112 @@
+--- R/drmTMB.R	2026-10-27 21:30:23
++++ /tmp/general-sd-gamma-relmat-drmTMB.R	2026-10-27 22:13:55
+@@ -6308,27 +6308,27 @@
+     allow_slopes = TRUE
+   )
+   sd_mu <- build_sd_mu_structure(sd_mu_entries, sd_mu_targets, re_mu, data_model)
+-  allow_gamma_animal_q2_sd <-
++  allow_gamma_structured_q2_sd <-
+     !is.null(mu_structured_term) &&
+-    identical(structured_mu_type(mu_structured_term), "animal") &&
++    structured_mu_type(mu_structured_term) %in% c("animal", "relmat") &&
+     length(mu_structured_term$coef_names) == 2L &&
+     identical(mu_structured_term$coef_names[[1L]], "(Intercept)") &&
+     length(sd_phylo_entries) > 0L
+   sd_phylo_targets <- parse_sd_phylo_entries(
+     sd_phylo_entries,
+     mu_structured_term,
+-    allow_multiple_coefficients = allow_gamma_animal_q2_sd
++    allow_multiple_coefficients = allow_gamma_structured_q2_sd
+   )
+-  if (allow_gamma_animal_q2_sd) {
++  if (allow_gamma_structured_q2_sd) {
+     selected_coefficients <- vapply(
+       sd_phylo_targets, `[[`, integer(1L), "target_coef"
+     )
+     if (anyDuplicated(selected_coefficients) ||
+         !setequal(selected_coefficients, seq_along(mu_structured_term$coef_names))) {
+       cli::cli_abort(c(
+-        "Gamma animal intercept-slope SD regression requires one SD formula for each coefficient.",
++        "Gamma {structured_mu_type(mu_structured_term)} intercept-slope SD regression requires one SD formula for each coefficient.",
+         "x" = "Select exactly {.val {mu_structured_term$coef_names}} with separate {.code coef} selectors.",
+-        "i" = "Each latent animal field has its own independent SD regression."
++        "i" = "Each latent structured field has its own independent SD regression."
+       ))
+     }
+     if (anyDuplicated(vapply(sd_phylo_entries, `[[`, character(1L), "dpar"))) {
+@@ -6337,7 +6337,8 @@
+           sd_phylo_targets[[i]]$target_coef
+         ]]
+         sd_phylo_entries[[i]]$dpar <- format_sd_lhs_dpar(
+-          "sd_animal", sd_phylo_targets[[i]]$group, "mu", coef_name,
++          paste0("sd_", structured_mu_type(mu_structured_term)),
++          sd_phylo_targets[[i]]$group, "mu", coef_name,
+           NA_character_
+         )
+         sd_phylo_targets[[i]]$dpar <- sd_phylo_entries[[i]]$dpar
+@@ -6350,7 +6351,7 @@
+     phylo_mu,
+     data_model
+   )
+-  if (allow_gamma_animal_q2_sd) {
++  if (allow_gamma_structured_q2_sd) {
+     validate_gamma_animal_q2_sd_identifiability(phylo_mu, sd_phylo)
+   }
+   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
+@@ -14866,9 +14867,9 @@
+   loading <- structured$value[, slope_coef]
+   if (all(loading == 0)) {
+     cli::cli_abort(c(
+-      "Gamma animal intercept-slope SD regression has an unidentified slope scale.",
++      "Gamma {structured_mu_type(structured)} intercept-slope SD regression has an unidentified slope scale.",
+       "x" = "The slope loading is identically zero, so its SD formula does not enter the likelihood.",
+-      "i" = "Use a nonzero numeric slope predictor or remove the animal slope and its SD formula."
++      "i" = "Use a nonzero numeric slope predictor or remove the structured slope and its SD formula."
+     ))
+   }
+ 
+@@ -14885,7 +14886,7 @@
+     length(unique(X0[, 1L])) == 1L
+   if (same_constant_sd_design) {
+     cli::cli_abort(c(
+-      "Gamma animal intercept-slope SD scales are not separately identifiable.",
++      "Gamma {structured_mu_type(structured)} intercept-slope SD scales are not separately identifiable.",
+       "x" = "With a globally constant slope loading and identical constant SD designs, only the combined variance is identified.",
+       "i" = "Vary the slope loading across observations or use a predictor that separates the two SD surfaces."
+     ))
+@@ -24284,7 +24285,8 @@
+   if (
+     identical(spec$model_type, "gamma") &&
+       is.list(phylo_mu) && isTRUE(phylo_mu$has) &&
+-      identical(phylo_mu$type, "animal") && identical(phylo_mu$q, 2L) &&
++      phylo_mu$type %in% c("animal", "relmat") &&
++      identical(phylo_mu$q, 2L) &&
+       is.list(sd_phylo) && sd_phylo$n_models == 2L &&
+       ncol(sd_phylo$observation_sd_row0_by_coef) == 2L &&
+       all(colSums(sd_phylo$observation_sd_row0_by_coef >= 0L) > 0L)
+@@ -25382,6 +25384,25 @@
+         has_sd <- node_row >= 0L
+         sd_node[has_sd] <- sd_group[node_row[has_sd] + 1L]
+         values <- latent * sd_node
++      }
++      if (q == 2L && identical(spec$tmb_data$has_sd_phylo_coef_model, 1L)) {
++        # Each coefficient has a separate SD surface; the endpoint-only node map
++        # is shared by both mu fields and cannot identify their two scales.
++        sd_group <- sd_phylo_group_values(par, spec)
++        first_observation <- match(
++          seq_len(n_phylo),
++          spec$structured$phylo_mu$observation_node_index
++        )
++        for (k in seq_len(q)) {
++          node_row <- spec$random_scale$phylo$observation_sd_row0_by_coef[
++            first_observation, k
++          ]
++          sd_node <- rep(NA_real_, n_phylo)
++          has_sd <- !is.na(node_row) & node_row >= 0L
++          sd_node[has_sd] <- sd_group[node_row[has_sd] + 1L]
++          idx <- (k - 1L) * n_phylo + seq_len(n_phylo)
++          values[idx] <- latent[idx] * sd_node
++        }
+       }
+       names(values) <- names(latent)
+       terms <- lapply(seq_len(q), function(i) {

@@ -1,0 +1,86 @@
+{
+  "slice": "native Beta phylogenetic independent intercept and numeric-slope SD tree",
+  "date": "2026-10-27",
+  "worktree": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/source-manifest.json",
+  "source_manifest_sha256": "2da9056bf4df48449ab9d41b12b78c3f83775c2ea9cf9df5bf35e15ac1e6e03b",
+  "implementation": "R-only base phylo q2 validator plus coefficient SD provider/data gates; existing q1 preserved; no CPP/DLL rebuild",
+  "tests": {
+    "focused_passed": 46,
+    "focused_seconds": 35.359,
+    "neighbor_passed": 349,
+    "neighbor_seconds": 256.755,
+    "neighbor_estimate_seconds": 300,
+    "location_scale_passed": 108,
+    "location_scale_seconds": 16.07,
+    "location_scale_estimate_seconds": 90,
+    "failures": 0,
+    "errors": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "red_errors": 2,
+    "red_seconds": 4.919
+  },
+  "example": {
+    "convergence": 0,
+    "seconds": 8.586,
+    "sd_slopes": [
+      0.6587271,
+      -0.4297496
+    ],
+    "truth": [
+      0.5,
+      -0.5
+    ],
+    "qualification": "one fixed-seed point-fit smoke; no general recovery guarantee"
+  },
+  "numerical_acceptance": {
+    "tree_height": 2,
+    "augmented_inverse_tip_covariance_error": "<1e-10 passed",
+    "laplace_absolute_nll_error": "<1e-4 passed",
+    "eta_max_absolute_error": "<1e-4 passed",
+    "constant_base_loglik_error": "<1e-4 passed",
+    "reordered_tree_and_formula_errors": "<1e-4 passed",
+    "unused_tip": "assembly/extraction only; no reduced-observation likelihood fit"
+  },
+  "candidate_row_keys": [
+    "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "row_scope": "native mu only; independent intercept and one numeric slope; one tree; no whole-domain admission",
+  "shared_ledger_modified": false,
+  "interval_coverage": "deferred",
+  "julia_parity": "not run; static early refusal audited",
+  "limitations": [
+    "unit weights/complete responses only",
+    "no reduced-tip likelihood fit",
+    "no profile/bootstrap/new-data workflow validation",
+    "no fresh marginal two-field draws",
+    "no full checks/release/public map promotion"
+  ],
+  "review": "Independent read-only scout and coordinator found no P0/P1; reviewers ran no fits; coordinator verifies logs/hashes separately",
+  "supporting_artifacts": {
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/R-implementation.patch": "931cde85d0c064ab04422269178ef73d5ce59d5cdfcb8aea13e73303d7bc6397",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/candidate-rows.tsv": "744b0c051d95bd13fec964ef587d7f17f99c8177d121c7e8a264c305e4583bdc",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/coordination.md": "d9432ca600b19f51b87f1b7f5e293205027df9d4b1523c333fe25235fcceeaf7",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/environment.log": "a5fbf4b028dce698c30567f80a966c37b00140c08ec052b1539ab696f01e05a1",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/example.log": "89dafedf9b8b501c76ad5c6cdf9f86705806c0e806cec259e5c66579f07fbfa4",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/file-preflight.log": "0f9e3051d4e404f36549bd7b6ac9b1ada345e6b944bc228bc615cba6ec747d9d",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/focused.log": "af8b7cfb262076696c9fa9273ffb30b7be02c85b1c465e8c8a46110d8032081c",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/independent-review.md": "05ba5e8f5c595256fe47778c18f6a5c105ce85fc865ff518a853905ccce63f31",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/lease-extension.log": "d057fc3a17ff80fa7ded1981be5fd9309668ad7e67a4b0efb6136a453b834411",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/lease.log": "ce2ad96a476a0487c3d0e69311a78e84e8c228b2410c91adf828f833cbfa3625",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/location-scale-runner.R": "c8eea5b4ffe130e6c82e06535c21c62ababc93c5a73e041003740a4816a7e709",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/location-scale.log": "64840e33fc9fa293efc7aa644393eb835c42bf05b9f356d10fe653bceda16fe1",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/neighbor-implementation.patch": "120aca5e9ea481c05376e20834a8caf481dc228baf059f68fb0dfb7bb297cfb6",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/neighbor-preflight.log": "d3fa477bbcbeeaae93fab45d2259d665eda9ac86a5083fad57998ca854c12bb9",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/pre-fit-alignment.md": "242cc6e57c3ec034a62ccc55876de344f1c07654d85f0c1397cc6a9d5d90cff3",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/red-runner.R": "47ecd710858f1ddfe2f620c47eb3b879bb6d255b3d66bf2579a3e7f78be95139",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/red.log": "da1010b5687fc3551c05e64d58ad10470771ec5c61efd6ab5183cd9998aefeac",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/regression.log": "9aeaf015a983f892abab0bd482de7a614345a85780d53cd93012bb38273fdad1",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/report-prose-assessment.json": "efacc3b90a6c86f650141c1ae7eb488a9d46f71e85cd13daa295f66d9d6f182c",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/source-capsule.tar.gz": "1629a002801a3af27f9f43ab772950cecd82a094bd766a552b40e5fbbfe965d3",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/source-manifest.json": "2da9056bf4df48449ab9d41b12b78c3f83775c2ea9cf9df5bf35e15ac1e6e03b",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-phylo-q2-sd-20261027/test-runner.R": "adadaf21c7f60616a3530a33c3f972d947292681e65d3baabf83bd220c4d34b2"
+  }
+}

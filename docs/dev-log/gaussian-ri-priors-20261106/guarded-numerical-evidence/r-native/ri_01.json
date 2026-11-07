@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "ri_01",
+  "engine": "R/TMB",
+  "dll": "/home/snakagaw/hsq_work/drmtmb-ri-priors-guard-final-lib-5d0f-20261106/drmTMB/libs/drmTMB.so",
+  "dll_sha256": "cb9c54af096bbe03e5994006125e9112cc13d4ec15aff6ae0e79e371301db413",
+  "solver_configuration": {
+    "multi_start": 5,
+    "caller_seed": 777,
+    "internal_perturbation_seed": 20260616,
+    "individual_attempt_diagnostics": "unavailable_from_ordinary_route",
+    "rng_kind": ["Mersenne-Twister", "Inversion", "Rejection"],
+    "seed_reset": "before_each_fixture_fit"
+  },
+  "r_version": "R version 4.6.1 (2026-06-24)",
+  "tmb_version": "1.9.25",
+  "git_head": "5d0f159644991f49dd767b8baf8cb61f537b3720",
+  "X_columns": ["x", "I(as.numeric(f == \"B\"))"],
+  "W_columns": ["(Intercept)"],
+  "coordinate_order": ["beta:x", "beta:I(as.numeric(f == \"B\"))", "gamma:(Intercept)", "tau"],
+  "native_order": ["beta_mu", "beta_mu", "beta_sigma", "log_sd_mu"],
+  "tau": 0,
+  "fit": {
+    "objective": 3.7394386379959839,
+    "theta_native": [0.076971624759034574, 0.48535019716429911, -2.2514364982059409, -0.19070152324603351],
+    "theta": [0.076971624759034574, 0.48535019716429911, -2.2514364982059409, 0.8263792063275166],
+    "convergence": 0,
+    "message": "converged (Newton polish; max |gradient| = 2.37e-14)",
+    "data_nll": 2.9854057704127697,
+    "prior": 0.75403286758321408
+  },
+  "point": {
+    "status": "boundary_fixed_only_value",
+    "theta": [0.40000000000000002, -0.29999999999999999, -0.10000000000000001, 0],
+    "data_nll": 14.461278133130522,
+    "prior": 0.69774810689046296,
+    "objective": 15.159026240020985,
+    "derivative_status": "unavailable_at_log_tau_boundary"
+  }
+}

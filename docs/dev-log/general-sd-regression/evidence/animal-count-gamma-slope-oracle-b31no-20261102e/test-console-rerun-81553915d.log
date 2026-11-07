@@ -1,0 +1,11 @@
+animal-count-gamma-slope-oracle-b31no: .W........................................................................................W.................................
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. Poisson animal slope shape, A provider: dense Laplace oracle and bug sensitivity ('test-animal-count-gamma-slope-oracle-b31no.R:91:3') - NA/NaN function evaluation
+
+2. Gamma animal intercept, pedigree provider: dense Laplace oracle and bug sensitivity ('test-animal-count-gamma-slope-oracle-b31no.R:107:3') - NA/NaN function evaluation
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=122 failed=0 errors=0 skipped=0
+DRM_RUN start=2026-11-03T01:05:34Z end=2026-11-03T01:06:16Z rc=0

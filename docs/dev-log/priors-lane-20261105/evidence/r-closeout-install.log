@@ -1,0 +1,21 @@
+* installing *source* package ‘drmTMB’ ...
+** this is package ‘drmTMB’ version ‘0.7.1’
+** using staged installation
+** libs
+using C compiler: ‘x86_64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0’
+using C++ compiler: ‘x86_64-linux-gnu-g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0’
+make: Nothing to be done for 'all'.
+installing to /home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b/r-final-lib/00LOCK-r-final-src/00new/drmTMB/libs
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+*** copying figures
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** checking absolute paths in shared objects and dynamic libraries
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (drmTMB)

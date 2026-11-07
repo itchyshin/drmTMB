@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "f15a2f61b25dd81b5f093a77c27cd164c49630b46550bc6cc1eca9091d2e26ee",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Read the complete report and compare its implementation, test, warning, and scope statements with the saved focused test output, source hashes, reconciled receipt, rendered tutorial, and current documentation.",
+  "genre": "software after-task report",
+  "coverage": "Complete report, all 12 sections.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report is specific and scoped; the required audit headings give it some checklist rhythm.",
+  "confidence": "medium",
+  "confidence_reason": "The report is evidence-linked and short, but the style rating is an editorial judgment and the checklist format limits confidence.",
+  "examples": [
+    {
+      "location": "Section 1, paragraph 1",
+      "cue": "This is one implementation slice in the broader predictor-dependent random-effect SD programme; interval-coverage calibration remains deferred.",
+      "impact": "This states the boundary and prevents the small slice from sounding like programme completion.",
+      "repair": "no change needed",
+      "line": 5,
+      "quote": "Add a narrow native LogNormal route where a fixed predictor changes the SD of one independent random slope on the residual `sigma` predictor. This is one implementation slice in the broader predictor-dependent random-effect SD programme; interval-coverage calibration remains deferred."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The equation and interpretation were checked against the LogNormal builder, random-effect scale design, and the fixed-seed data-generating test. No interval calibration claim is made.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Test outcome, source-hash stability, render, documentation check, evidence reconciliation, and remaining scope were checked against the saved logs and files.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external citations.",
+  "date": "2026-10-25",
+  "calibration_status": "Previously seen examples; this is a self-review, not a held-out evaluation.",
+  "interpretation": "perceived_style_not_authorship"
+}

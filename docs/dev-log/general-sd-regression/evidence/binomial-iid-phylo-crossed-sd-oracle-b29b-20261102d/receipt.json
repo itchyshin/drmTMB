@@ -1,0 +1,79 @@
+{
+  "evidence_id": "binomial-iid-phylo-crossed-sd-oracle-b29b-20261102d",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c <1 core of 210-214> Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-binomial-iid-phylo-crossed-sd-oracle-b29b.R', reporter='summary')); cat(sprintf('DRM_RECEIPT_COUNTS passed=%d failed=%d errors=%d skipped=%d\\n', sum(r$passed), sum(r$failed), sum(r$error), sum(r$skipped)))\"",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/exp-9d229de68 (R/, src/ and tests/ verified identical to the worktree by checksum), 1 pinned core; five b29b files ran in parallel on cores 210-214",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "9d229de6836cfc876bf3fcf12f982a3eae38a8fa",
+  "tree_state": "HEAD 9d229de68; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T18:15:41Z",
+  "run_ended_utc": "2026-11-02T18:16:19Z",
+  "exit_code": 0,
+  "expectations_passed": 73,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 3,
+  "test_blocks_note": "count of top-level test_that() calls in the test file",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-iid-phylo-crossed-sd-oracle-b29b-20261102d/test-console.log",
+  "console_log_sha256": "118ac85cf8ea1a981bbcf5cb2bdb34f2933879ba69386837d34dabcefe328706",
+  "test_path": "tests/testthat/test-binomial-iid-phylo-crossed-sd-oracle-b29b.R",
+  "test_sha256": "31bdc52cbd79038cf0f2c4d6e07539b7e363b4e740a46d4a98d552f9cecba6ff",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-iid-phylo-crossed-sd-oracle-b29b-20261102d/source-manifest.json",
+  "source_manifest_sha256": "55187d5956c9149d998448937a45cadd4ef37f5b4377188f64fe51bfa6032ab6",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [
+    "native-binomial-iid-phylo-cloglog-20261027-m26",
+    "native-binomial-iid-phylo-logit-20261027-m26",
+    "native-binomial-iid-phylo-probit-20261027-m26",
+    "native-binomial-crossed-nonlogit-sd-20261027-m26"
+  ],
+  "strengthens_note": "Companion to the parent id(s); closes reviewer-listed gaps (independent oracle and emulated-bug sensitivity) for the linked rows. Only parent ids whose row is exactly fitted by this file are listed. The base ids carry the -m26 suffix as recorded in the ledger.",
+  "scope": "Binomial ordinary (1 | g) + phylo(tree) for logit, probit and cloglog, and crossed (1 | g) + (1 | h) for probit and cloglog, each with predictor-dependent SDs. Dense Laplace oracle (1e-4 on logLik) with cov2cor(ape::vcv) tree kernel; package tip-covariance helper compared with ape::vcv; swapped-selector, reversed-SD, raw-vcv, by-position sensitivity (>0.1).",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"logit\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+phylo:tree\",\"additive independent latent fields\",\"iid:group_factor+phylo:tree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+phylo:tree\",\"additive independent latent fields\",\"iid:group_factor+phylo:tree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+phylo:tree\",\"additive independent latent fields\",\"iid:group_factor+phylo:tree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"probit\",\"iid_additive_terms\",\"O1\",\"iid\",\"multiple independent intercept/slope fields\",\"group_factors\",\"crossed\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"cloglog\",\"iid_additive_terms\",\"O1\",\"iid\",\"multiple independent intercept/slope fields\",\"group_factors\",\"crossed\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery or estimator-accuracy claims",
+    "any family, link, provider or provider combination not listed in candidate_rows",
+    "nested layout of iid_additive_terms",
+    "logit crossed (test covers probit and cloglog only)",
+    "slope terms"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Read the test and helpers. Independent oracle: base-R dense Laplace with a kernel from ape::vcv through cov2cor on a shuffled-label tree of height 3, and the package tip-covariance helper is compared with ape::vcv at 1e-8 (both cov2cor and raw forms). Fitted logLik matches the oracle within 1e-4 for every fit. Sensitivity assertions, each above 0.1, cover swapped selector coefficients, reversed SD for each field, raw vcv in place of cov2cor, and phylo kernel read by position. Linked row_keys are all fitted: iid+phylo for logit, probit and cloglog; (1 | g) + (1 | h) crossed for probit and cloglog, where the two factors are sampled independently so the layout is crossed. Each field is an intercept with sd ~ covariate, so no slope-member issue. Hashes match, and the console shows 73 passed, 0 failed, 0 skipped, exit 0, with no Julia. Does NOT establish: nested layout (the fixtures are crossed only); logit crossed (not fitted); sensitivity of K scale for the iid or iid2 members, since K = I has no scale or kernel emulation and only the reversed-SD and swap emulations apply to them; calibration, coverage, SE, recovery or parity; any seed other than the fixed ones; slope or correlated terms; behaviour away from the fitted optimum.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-iid-phylo-crossed-sd-oracle-b29b.R",
+    "test_sha256": "31bdc52cbd79038cf0f2c4d6e07539b7e363b4e740a46d4a98d552f9cecba6ff",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:06:22Z",
+    "ended_utc": "2026-11-03T01:06:47Z",
+    "expectations_passed": 73,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-iid-phylo-crossed-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "7868b4698d294ad19842caf010901c0e4cd4822248453c4850838814c4559a4d",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "evidence_id": "native-poisson-animal-slope-ainv-pedigree-sd-20261101",
+  "engine": "native R/TMB",
+  "family": "poisson (log)",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "description": "animal_numeric_slope / Ainv_precision [animal; structured intercept plus one independent numeric slope; status required] animal(0 + x | id, Ainv = Q), sd(id, level='animal') ~ z"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"pedigree\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "description": "animal_numeric_slope / pedigree [animal; structured intercept plus one independent numeric slope; status required] animal(0 + x | id, pedigree = pedigree), sd(id, level='animal') ~ z"
+    }
+  ],
+  "rows_not_linked": [
+    "animal_numeric_slope / A_covariance (A = fit is only a comparator inside this test)"
+  ],
+  "command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e devtools::test(filter = '^poisson-animal-slope-ainv-pedigree-sd-regression$', reporter = 'summary', stop_on_failure = FALSE) [wrapper run_one.sh in the evidence directory adds counts and exit status]",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "branch": "codex/general-sd-regression",
+  "dirty_shared_tree_entries": 1289,
+  "test_path": "tests/testthat/test-poisson-animal-slope-ainv-pedigree-sd-regression.R",
+  "test_sha256": "351bdddc76858286552101e0930459b919c0f287d12d2e151f3d78e09dd3db1a",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-animal-slope-ainv-pedigree-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "dc19744d875bbf2a4f9b2d0bc8df59f8f636d49ee8e1b2a08a345a53a33f6d34",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-animal-slope-ainv-pedigree-sd-20261101/test-console.log",
+  "console_log_sha256": "18efc5d068dc468d38f03e74a551eb5eca0290b1587826d62c9f201362b40ee1",
+  "result": {
+    "exit_code": 0,
+    "expectations": 17,
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0,
+    "test_blocks": 2
+  },
+  "tolerances_copied_from_test": "convergence==0; |z slope - 0.35| < 0.4; predict()==exp(X alpha) tol 1e-8; logLik(Ainv or pedigree fit) vs logLik(A fit) tol 1e-4 (relative, expect_equal); constant-SD vs scalar logLik tol 2e-5 (relative)",
+  "oracle": "no independent oracle; likelihood equality with the A-covariance comparator fit (not linked) and constant-SD equivalence",
+  "evidence_grade": "focused_test",
+  "review_status": "unreviewed",
+  "limits": [
+    "native engine only",
+    "one fixture per cell",
+    "loose recovery bands",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ]
+}

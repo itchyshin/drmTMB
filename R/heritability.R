@@ -54,6 +54,9 @@
 #' parameters, combined with the fixed-parameter covariance
 #' (`object$sdr$cov.fixed`) via the quadratic form, then a Wald interval at
 #' `level`, clamped to `[0, 1]`. This is a delta-method approximation; not a coverage claim.
+#' For fits with active fixed-effect priors, these interval-returning
+#' accessors are unavailable. Point-only variance shares remain available in
+#' `summary()$derived`.
 #'
 #' `method = "profile"` is accepted but is **not implemented**; it aborts
 #' naming `method = "delta"` as
@@ -285,6 +288,7 @@ drm_variance_ratio <- function(
   level,
   method
 ) {
+  drm_abort_fixed_prior_inference(object, paste0(quantity, " confidence intervals"))
   if (method == "profile") {
     cli::cli_abort(
       "{.arg method} = {.val profile} is not implemented for {.fn {quantity}}; use {.code method = \"delta\"}."

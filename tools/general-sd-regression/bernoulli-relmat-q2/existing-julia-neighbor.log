@@ -1,0 +1,16 @@
+Selected source: tests/testthat/test-binomial-relmat-sd.R 
+Selected title: Binomial relmat SD regression supports probit and cloglog links 
+Julia source: /Users/z3437171/Documents/Codex/2026-10-28/drm-bernoulli-q1.59eBZj/pkg 
+                                                                           src/drmTMB.so 
+                                                      "c143967e78a108133fa9977a561dbe05" 
+/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//Rtmpv6OTiM/pkgloadb436971336/drmTMB.so 
+                                                      "c143967e78a108133fa9977a561dbe05" 
+selected-existing-julia-neighbor: ........i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.12 at location /Users/z3437171/.julia/juliaup/julia-1.10.12+0.aarch64.apple.darwin14/Julia-1.10.app/Contents/Resources/julia/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+..................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia exit.
+  Activating project at `~/Documents/Codex/2026-10-28/drm-bernoulli-q1.59eBZj/pkg`

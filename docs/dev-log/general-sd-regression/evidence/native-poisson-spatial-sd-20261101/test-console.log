@@ -1,0 +1,18 @@
+TEST_SHA256_BEFORE 01b4857bd86608e681ffb97e15a08d952238d3bcbc5740625dd2db7f40ed09bf  tests/testthat/test-poisson-spatial-sd-regression.R
+START 2026-11-01T17:00:29Z
+ℹ Testing drmTMB
+poisson-spatial-sd-regression: ................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+
+COUNTS expectations=32 failed=0 skipped=0 errors=0 warnings=0 tests=2
+                                                         test nb failed skipped
+1  Poisson spatial intercept SD regression maps sites by name 16      0   FALSE
+2 Poisson spatial slope-only SD regression maps sites by name 16      0   FALSE
+  error warning
+1 FALSE       0
+2 FALSE       0
+EXIT_STATUS 0
+END 2026-11-01T17:00:39Z
+TEST_SHA256_AFTER 01b4857bd86608e681ffb97e15a08d952238d3bcbc5740625dd2db7f40ed09bf  tests/testthat/test-poisson-spatial-sd-regression.R

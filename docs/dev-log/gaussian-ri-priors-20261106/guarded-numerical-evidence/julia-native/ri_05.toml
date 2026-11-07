@@ -1,0 +1,22 @@
+mean_names = ["(Intercept)", "x"]
+boundary = true
+coordinate_order = ["(Intercept)", "x", "(Intercept)", "scale_x", "log_group_sd"]
+id = "ri_05"
+point_tau = 0.0
+scale_names = ["(Intercept)", "scale_x"]
+matrix_verified = true
+
+[point]
+data_nll = 9.766704452970915
+prior = 0.0035000000000007248
+objective = 9.770204452970916
+theta_fixed = [0.4, -0.3, -0.1, 0.25]
+boundary_derivatives = "unavailable_in_log_sd_parameterization"
+
+[fit]
+data_nll = -2.5756258784385473
+theta = [0.8303915973879318, 0.803334695743438, -1.685781889561738, 0.36348652858958336, -3.3216464931662757]
+objective = -1.580974675727527
+gradient = [-3.73528363795117e-9, 1.6367778243875364e-9, -1.3691556777217784e-9, -1.3721274810807316e-10, -5.1309623216866385e-11]
+converged = true
+tau = 0.036093355340812254

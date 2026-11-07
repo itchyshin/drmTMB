@@ -1,0 +1,61 @@
+Compiled package: /home/snakagaw/hsq_work/drmtmb-general-sd-selectors-20261017-02/library/drmTMB
+binomial-sd-target-selectors-integration: ......................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-random-effect-scale: .....................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-integration: ..................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-links: ...............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Way to go!
+binomial-sd-profile: ................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-simulation: ...............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-clamp: ................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+gaussian-random-effect-scale: .........................................................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+clamp-active-guard: ................1.2..34
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-clamp-active-guard.R:74:3'): a fit with the clamp active at t
+Error in `allow_nonconvergence(drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat, control = drm_control(logsigma_clamp = c(-3, -0.8))))`: could not find function "allow_nonconvergence"
+Backtrace:
+    ▆
+ 1. └─testthat::expect_warning(...) at test-clamp-active-guard.R:74:3
+ 2.   └─testthat:::expect_condition_matching_(...)
+ 3.     └─testthat:::quasi_capture(...)
+ 4.       ├─testthat (local) .capture(...)
+ 5.       │ └─base::withCallingHandlers(...)
+ 6.       └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+
+── 2. Error ('test-clamp-active-guard.R:107:3'): the clamp-active warning now co
+Error in `allow_nonconvergence(drmTMB(bf(y ~ x, sigma ~ 1), family = stats::Gamma(link = "log"), data = dat, control = drm_control(logsigma_clamp = c(-3, -0.8))))`: could not find function "allow_nonconvergence"
+Backtrace:
+    ▆
+ 1. └─testthat::expect_warning(...) at test-clamp-active-guard.R:107:3
+ 2.   └─testthat:::expect_condition_matching_(...)
+ 3.     └─testthat:::quasi_capture(...)
+ 4.       ├─testthat (local) .capture(...)
+ 5.       │ └─base::withCallingHandlers(...)
+ 6.       └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+
+── 3. Error ('test-clamp-active-guard.R:132:3'): check_drm() reports a clamp-act
+Error in `allow_nonconvergence(drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat, control = drm_control(logsigma_clamp = c(-3, -0.8))))`: could not find function "allow_nonconvergence"
+
+── 4. Error ('test-clamp-active-guard.R:154:3'): check_drm() reports the LOWER c
+Error in `allow_nonconvergence(drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat, control = drm_control(logsigma_clamp = c(0.5, 3))))`: could not find function "allow_nonconvergence"
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Execution halted

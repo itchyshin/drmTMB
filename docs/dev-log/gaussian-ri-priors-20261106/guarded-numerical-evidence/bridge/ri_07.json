@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "ri_07",
+  "engine": "R/Julia-bridge",
+  "namespace_path": "/home/snakagaw/hsq_work/drmtmb-ri-priors-guard-final-lib-5d0f-20261106/drmTMB",
+  "dll": "/home/snakagaw/hsq_work/drmtmb-ri-priors-guard-final-lib-5d0f-20261106/drmTMB/libs/drmTMB.so",
+  "dll_sha256": "cb9c54af096bbe03e5994006125e9112cc13d4ec15aff6ae0e79e371301db413",
+  "X_columns": ["x", "fB"],
+  "W_columns": ["(Intercept)", "scale_x"],
+  "source_formula": "y ~ 0 + x + I(as.numeric(f == \"B\"))",
+  "transport_formula": "y ~ 0 + x + fB",
+  "column_mapping": {
+    "x": "x",
+    "I(as.numeric(f == \"B\"))": "fB"
+  },
+  "raw_factor_control": "raw_factor_formula_refused",
+  "coordinate_order": ["beta:x", "beta:fB", "gamma:(Intercept)", "gamma:scale_x", "tau"],
+  "negative_control": "not_requested",
+  "selectors": [
+    {
+      "dpar": "mu",
+      "coefficient": "x",
+      "matrix_column": 1,
+      "mean": 0.34999999999999998,
+      "sd": 0.80000000000000004,
+      "precision": 1.5624999999999998,
+      "reason": "exact column",
+      "kind": "normal"
+    }
+  ],
+  "point": {
+    "status": "arbitrary_point_unavailable"
+  },
+  "fit": {
+    "converged": true,
+    "theta": [0.22313979651651497, 0.38416371315832631, -2.4692995899249621, -3.7558421654724059, 0.99570517417515791],
+    "sd_name": "group",
+    "objective": 4.4775178687800601,
+    "data_nll": 3.7691498312428227,
+    "prior": 0.70836803753723732,
+    "gradient_availability": "reported_native_order_unverified",
+    "gradient_native": [-4.457159086257434e-10, -3.4662708259247665e-09, 8.3579365650621185e-11, -8.4590834337205933e-11, -1.4341390297545331e-09],
+    "hessian_availability": "unavailable",
+    "bridge_diagnostics": {
+      "converged": true,
+      "2": {},
+      "3": {},
+      "estim_method": "MAP"
+    }
+  }
+}

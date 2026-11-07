@@ -1,0 +1,70 @@
+{
+  "evidence_id": "native-poisson-phylo-relmat-slope-sd-20261101",
+  "engine": "native R/TMB",
+  "family": "poisson (log)",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"K_covariance\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "description": "relmat_numeric_slope / K_covariance [relmat; structured intercept plus one independent numeric slope; status required] relmat(0 + x | id, K = K), sd(id, level='relmat') ~ z"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"Q_precision\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "description": "relmat_numeric_slope / Q_precision [relmat; structured intercept plus one independent numeric slope; status required] relmat(0 + x | id, Q = Q), sd(id, level='relmat') ~ z"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "description": "phylo_numeric_slope / tree [phylo; structured intercept plus one independent numeric slope; status required] phylo(0 + x | species, tree = tree), sd(species, level='phylogenetic') ~ z"
+    }
+  ],
+  "rows_not_linked": [],
+  "command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e devtools::test(filter = '^poisson-phylo-relmat-slope-sd-regression$', reporter = 'summary', stop_on_failure = FALSE) [wrapper run_one.sh in the evidence directory adds counts and exit status]",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "branch": "codex/general-sd-regression",
+  "dirty_shared_tree_entries": 1289,
+  "test_path": "tests/testthat/test-poisson-phylo-relmat-slope-sd-regression.R",
+  "test_sha256": "f5d3a75a806fc27dc54a4eed264085da40efdc284d4aa080dfe83a910f9c7863",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-phylo-relmat-slope-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "dea16dcc497a6c609555c4b2c2fb2d2320290eb22532123bd5037fbf2980f904",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-phylo-relmat-slope-sd-20261101/test-console.log",
+  "console_log_sha256": "d36440eac116d31bf3500fa6d794e7f82884fa5df848b4316e96de8a7f39bc4a",
+  "result": {
+    "exit_code": 0,
+    "expectations": 38,
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0,
+    "test_blocks": 2
+  },
+  "tolerances_copied_from_test": "convergence==0; |z slope - 0.4| < 0.5; predict()==exp(X alpha) tol 1e-8; |logLik - dense Laplace oracle| < 1e-4 absolute; K vs Q logLik tol 1e-4 (relative); constant-SD vs base logLik tol 2e-5 (relative); saved-fit predict tol 1e-12",
+  "oracle": "dense independent Laplace marginal likelihood at the fitted coefficients",
+  "evidence_grade": "focused_test",
+  "review_status": "reviewed_narrow_claim",
+  "limits": [
+    "native engine only",
+    "one fixture per cell",
+    "loose recovery bands",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ],
+  "review_note": "Independent review confirmed a drmTMB-independent dense Laplace oracle for a slope-only structured field (eta = b0 + b1 x + sd_i x u_i, u ~ N(0,K), W = sum mu (sd x)^2, log|I+KW|, line-searched Newton mode). It supports the 3 linked rows: native Poisson log, relmat(0+x|id) with K, relmat(0+x|id) with Q, and phylo(0+x|species, tree), each with sd(id, level=...) ~ z. Oracle agreement is 1e-4. The relmat test uses a non-unit-diagonal K in a permuted level order. Q is checked against its own oracle and against the K fit. The phylo K comes from the package helper; I verified it equals ape::vcv(corr=TRUE) to 3e-16, so it is independent in substance. The test has no emulated-bug block. A scratch check (no files edited) on the relmat fit gave oracle gaps of 0.98 for reversed SD levels or a flipped slope sign and 0.24 for constant SD, against 1e-4 tolerance. Focused test rerun on the current worktree: 38 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 6 of 10 entries differ (R/drmTMB.R, R/random-effect-targets.R, R/parse-formula.R, R/predict-parameters.R, R/methods.R, src/drmTMB.cpp). They were changed by later lane commits, so the old states could not be reproduced. The current-file rerun is the evidence. Limits: the ledger template label reads 'structured intercept plus slope', but the test fits the slope field alone (0 + x), so the claim is the slope-member SD only. Does not establish a companion structured intercept field, calibration, coverage or Julia parity. Recovery band 0.5. The receipt manifest needs a refresh. Scope note (2026-11-02, after verifier): every linked fit is slope-only; the claim covers the slope-member SD of the unlabelled structured field only. Per mechanism-templates.tsv the unlabelled intercept and slope are independent fields (blockdiag(K, K)), so no companion structured intercept is exercised or claimed.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-poisson-phylo-relmat-slope-sd-regression.R",
+    "test_sha256": "f5d3a75a806fc27dc54a4eed264085da40efdc284d4aa080dfe83a910f9c7863",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:11:06Z",
+    "ended_utc": "2026-11-03T01:11:26Z",
+    "expectations_passed": 38,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-poisson-phylo-relmat-slope-sd-20261101/test-console-rerun-81553915d.log",
+    "console_log_sha256": "9216ef0eba09234f30e7d8d8a423678d275a358b914b2e318ef6cb6445ca7f84",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

@@ -1,0 +1,117 @@
+✖ control.R:137: @param Could not resolve link to topic "drmTMB-parallel" in
+  the dependencies or base packages..
+ℹ If you haven't documented "drmTMB-parallel" yet, or just changed its name,
+  this is normal. Once "drmTMB-parallel" is documented, this warning goes away.
+ℹ Make sure that the name of the topic is spelled correctly.
+ℹ Always list the linked package as a dependency.
+ℹ Alternatively, you can fully qualify the link with a package name.
+✖ profile.R:98: @param Could not resolve link to topic "drmTMB-parallel" in the
+  dependencies or base packages..
+ℹ If you haven't documented "drmTMB-parallel" yet, or just changed its name,
+  this is normal. Once "drmTMB-parallel" is documented, this warning goes away.
+ℹ Make sure that the name of the topic is spelled correctly.
+ℹ Always list the linked package as a dependency.
+ℹ Alternatively, you can fully qualify the link with a package name.
+✖ profile.R:103: @param Could not resolve link to topic "drmTMB-parallel" in
+  the dependencies or base packages..
+ℹ If you haven't documented "drmTMB-parallel" yet, or just changed its name,
+  this is normal. Once "drmTMB-parallel" is documented, this warning goes away.
+ℹ Make sure that the name of the topic is spelled correctly.
+ℹ Always list the linked package as a dependency.
+ℹ Alternatively, you can fully qualify the link with a package name.
+✖ profile.R:770: @param Could not resolve link to topic "drmTMB-parallel" in
+  the dependencies or base packages..
+ℹ If you haven't documented "drmTMB-parallel" yet, or just changed its name,
+  this is normal. Once "drmTMB-parallel" is documented, this warning goes away.
+ℹ Make sure that the name of the topic is spelled correctly.
+ℹ Always list the linked package as a dependency.
+ℹ Alternatively, you can fully qualify the link with a package name.
+✖ model-comparison.R:94: Block must have a @name.
+ℹ Either document an existing object or manually specify with @name
+✖ model-comparison.R:459: Block must have a @name.
+ℹ Either document an existing object or manually specify with @name
+✖ model-comparison.R:466: Block must have a @name.
+ℹ Either document an existing object or manually specify with @name
+Writing 'worm_plot.Rd'
+Writing 'qq_plot.Rd'
+Writing 'drm_quantile_residuals.Rd'
+Writing 'associate_pairs.Rd'
+Writing 'biv_associate.Rd'
+Writing 'is_converged.Rd'
+Writing 'coevolution-accessors.Rd'
+Writing 'drm_control.Rd'
+Writing 'exceedance.Rd'
+Writing 'drmTMB-package.Rd'
+Writing 'drmTMB.Rd'
+Writing 'drm_family_dpq.Rd'
+Writing 'fitted_distribution.Rd'
+Writing 'biv_student.Rd'
+Writing 'student.Rd'
+Writing 'lognormal.Rd'
+Writing 'zero_one_beta.Rd'
+Writing 'beta_binomial.Rd'
+Writing 'cumulative_logit.Rd'
+Writing 'nbinom2.Rd'
+Writing 'truncated_nbinom2.Rd'
+Writing 'animal.Rd'
+Writing 'phylo_interaction.Rd'
+Writing 'spatial.Rd'
+Writing 'relmat.Rd'
+Writing 'corpair.Rd'
+Writing 'heritability.Rd'
+Writing 'predict.drmTMB_julia.Rd'
+Writing 'summary.drmTMB_julia_xfam.Rd'
+Writing 'rho_latent.Rd'
+Writing 'predict.drmTMB.Rd'
+Writing 'simulate.drmTMB.Rd'
+Writing 'residuals.drmTMB.Rd'
+Writing 'summary.drmTMB.Rd'
+Writing 'miss_control.Rd'
+Writing 'categorical.Rd'
+Writing 'model-comparison.Rd'
+Writing 'drmTMB-parallel.Rd'
+Writing 'confint.drmTMB.Rd'
+Writing 'profile.drmTMB.Rd'
+Writing 'drm_provenance.Rd'
+Writing 'random_effect_scale_formulas.Rd'
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+[WARNING] Deprecated: --mathml. Use --math-method=mathml instead.
+✔ No problems found.

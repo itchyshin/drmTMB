@@ -1,0 +1,52 @@
+Compiled package: /home/snakagaw/hsq_work/drmtmb-general-sd-poisson-20261017-02/library/drmTMB
+poisson-sd-integration: ..........................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-target-workflows: ............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-target-selectors-integration: ......................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-random-effect-scale: .....................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-integration: ..................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-links: ...............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Way to go!
+binomial-sd-profile: ................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-simulation: ...............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-clamp: ................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+gaussian-random-effect-scale: ........................................................................................1
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-gaussian-random-effect-scale.R:441:3'): Gaussian sd(id) rejec
+Error in `drm_build_poisson_spec(formula, data, env = formula_env, weights = weights_full, impute = impute, missing = missing_control)`: Poisson models require non-negative integer count response values.
+x The response "y" contains negative, non-integer, or non-finite values after missing-row filtering.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-gaussian-random-effect-scale.R:441:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. └─drmTMB::drmTMB(...)
+  8.   └─drmTMB:::drm_build_poisson_spec(...)
+  9.     └─cli::cli_abort(...)
+ 10.       └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Execution halted

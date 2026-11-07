@@ -1,0 +1,33 @@
+poisson-slope-sd-assembly: 12
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-poisson-slope-sd-assembly.R:4:3'): a unique Poisson slope get
+Error in `drm_poisson_sd_mu_targets(sd_mu_entries, mu_re$terms, re_mu)`: Poisson ordinary `sd()` regression is currently limited to scalar random intercepts; random slopes and correlated blocks need separate validation.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_poisson_spec(...) at test-poisson-slope-sd-assembly.R:4:3
+ 2.   └─drmTMB (local) drm_poisson_sd_mu_targets(sd_mu_entries, mu_re$terms, re_mu)
+ 3.     └─cli::cli_abort("Poisson ordinary {.code sd()} regression is currently limited to scalar random intercepts; random slopes and correlated blocks need separate validation.")
+ 4.       └─rlang::abort(...)
+
+── 2. Error ('test-poisson-slope-sd-assembly.R:23:3'): Poisson slope SD keeps se
+Error in `drm_poisson_sd_mu_targets(sd_mu_entries, mu_re$terms, re_mu)`: Poisson ordinary `sd()` regression is currently limited to scalar random intercepts; random slopes and correlated blocks need separate validation.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-poisson-slope-sd-assembly.R:23:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. └─drmTMB:::drm_build_poisson_spec(...)
+  8.   └─drmTMB (local) drm_poisson_sd_mu_targets(sd_mu_entries, mu_re$terms, re_mu)
+  9.     └─cli::cli_abort("Poisson ordinary {.code sd()} regression is currently limited to scalar random intercepts; random slopes and correlated blocks need separate validation.")
+ 10.       └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Keep trying!
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

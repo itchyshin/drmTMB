@@ -118,6 +118,8 @@ test_that("non-count structured mu one-slope cells fit and expose intercept + sl
       family = stats::Gamma(link = "log"),
       data = dat_gamma
     ),
-    "unlabelled q=1"
+    # Labelled Gamma relmat blocks are admitted with one SD formula per
+    # coefficient (batch 32); without SD formulas they stay refused.
+    "requires predictor-dependent SD"
   )
 })

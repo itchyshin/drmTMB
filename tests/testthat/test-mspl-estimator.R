@@ -687,7 +687,7 @@ test_that("MSPL rejects every unvalidated estimator and structure combination", 
       bf(y ~ x + (1 + x | p | group)), binomial(), dat,
       estimator = "mspl"
     ),
-    "unlabelled intercept-slope block"
+    "one\\s+unlabelled\\s+block\\s+of\\s+size"
   )
   dat$group2 <- factor(rep(seq_len(6), each = 8L))
   expect_error(

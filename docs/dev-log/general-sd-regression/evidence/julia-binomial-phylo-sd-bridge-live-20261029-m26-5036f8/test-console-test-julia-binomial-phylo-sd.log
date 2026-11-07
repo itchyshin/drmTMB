@@ -1,0 +1,23 @@
+julia-binomial-phylo-sd: .........................................i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+..............`simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+...........i Julia has 4 threads available, but refits are running SERIALLY because `threads` defaults to `FALSE`.
+i `JULIA_NUM_THREADS` alone does not parallelise refits -- pass `threads = TRUE` as well, e.g. `confint(fit, method = "profile", threads = TRUE)`.
+..................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 3 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=84 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+┌ Warning: drm: this tree's maximum tip height is 2.5, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.581139 = sqrt(2.5) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/2.5 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/sparse_phy.jl:713
+DRM_RUN start=2026-11-02T13:19:30Z end=2026-11-02T13:21:42Z rc=0

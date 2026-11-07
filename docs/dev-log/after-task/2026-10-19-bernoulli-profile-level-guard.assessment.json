@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "12aaaded8692f80eef9885703d6cc5c3131efaf715a90d29843f97d852590eea",
+  "draft_version": "correction-v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Manual post-draft review under protocols/writing-naturalness.md; changed claims checked against staged-calibration-contract.md, stage-two-execution-design.md, worker-095.R, stage-two validators, and the independent contract reconciliation.",
+  "genre": "Technical after-task report",
+  "coverage": "All revised correction statements and the affected interpretation, consistency, and residual sections; historical campaign facts were read against the retained report and cited evidence locations.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The correction uses explicit interval levels and states how the historical run is bounded. The required report structure is repetitive but clear.",
+  "confidence": "medium",
+  "confidence_reason": "The protocol correction is supported by the controlling design and current worker/validator; the style rating remains subjective.",
+  "examples": [
+    {
+      "location": "## 1. Goal",
+      "cue": "The revised text explicitly separates the historical fitted-profile run from the approved contract.",
+      "impact": "Readers can distinguish what the old run measured from what is needed for the current gate.",
+      "repair": "no change needed",
+      "line": 7,
+      "quote": "Preserve the original harness and build a separately pinned 97.5%-profile route after the interval contract was misread. This report now marks that route as historical; the approved current-source first look uses 95% fitted profiles and 97.5% Monte Carlo confidence intervals."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The revised statements use the reconciled 95% fitted-profile and 97.5% Monte Carlo levels and do not treat the 97.5%-profile run as current calibration.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The specific contract claim was compared with the controlling design documents, current worker/validator behavior, and independent read-only reconciliation.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external bibliographic claims were added; file paths identify internal project records.",
+  "date": "2026-10-19",
+  "calibration_status": "Related interval-contract reports and the current source were already seen; no held-out style controls were used.",
+  "interpretation": "perceived_style_not_authorship"
+}
