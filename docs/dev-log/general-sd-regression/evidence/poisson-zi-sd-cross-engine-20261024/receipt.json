@@ -1,0 +1,16 @@
+{
+  "observed_at_utc": "2026-10-24T19:22:35.732080+00:00",
+  "result": "PASS",
+  "test_file": "tests/testthat/test-julia-poisson-zi-sd-regression.R",
+  "test_sha256": "77e8dfc340c308cb2027b26fc76b4beab4f5144dc165fa1a24dd00c7e478d0d3",
+  "test_command": "PATH='/Users/z3437171/.juliaup/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin' DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRMTMB_JULIA_TESTS=true NOT_CRAN=true JULIA_HOME='/Users/z3437171/.juliaup/bin' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"julia-poisson-zi-sd-regression\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "test_exit_code": 0,
+  "live_julia_bridge_tests": 1,
+  "failures": 0,
+  "skips": 0,
+  "source_count": 169,
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-zi-sd-cross-engine-20261024/sources-before.sha256",
+  "source_manifest_sha256": "16ae3a1365219153a580d8213e9538111dffd18479e3f359b9a1d51e9816bda7",
+  "source_manifest_stable_before_after": true,
+  "scope": "Same-data synthetic cross-engine fit for one zero-inflated Poisson ordinary mu random intercept with a fixed-effect-only zi formula. Checks convergence, positive and cross-engine SD coefficient estimates, group/row SD predictions, bridge target names, and absence of residual sigma. Does not cover ZIP slopes, offsets, structured effects, hu, or calibration."
+}

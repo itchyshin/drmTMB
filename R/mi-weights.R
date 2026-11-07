@@ -304,7 +304,7 @@ drm_warn_mi_quadrature_inaccurate <- function(spec, par_list) {
     c(
       "The {.fn mi} quadrature marginal is inaccurate at the fitted prior.",
       extra,
-      i = "The fit is returned. Missing-x rows used the frozen 15-node Gauss-Legendre rule (Beta / zero-one-Beta) or the 51-node log-x rule (Gamma). Move the Beta prior mean away from 0 and 1, or bring Gamma CV below 3, if you need the documented 1e-4 logLik accuracy (refs #1476 / #1477 / #1531)."
+      i = "The fit is returned. Missing-x rows used the frozen 15-node Gauss-Legendre rule (Beta / zero-one-Beta) or the 81-node log-x rule (Gamma). Move the Beta prior mean away from 0 and 1, or bring Gamma CV below 3, if you need the documented 1e-4 logLik accuracy (refs #1476 / #1477 / #1531)."
     ),
     class = "drmTMB_mi_quadrature_inaccurate"
   )

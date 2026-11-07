@@ -1,6 +1,6 @@
 Package: drmTMB
 Title: Distributional Regression Models Using Template Model Builder
-Version: 0.7.1
+Version: 0.8.0
 Authors@R: c(
     person("Shinichi", "Nakagawa", email = "itchyshin@gmail.com",
            role = c("aut", "cre", "cph"),
@@ -64,5 +64,4 @@ Suggests:
     xml2
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-Config/roxygen2/version: 7.3.2
-RoxygenNote: 7.3.2
+Config/roxygen2/version: 8.0.0

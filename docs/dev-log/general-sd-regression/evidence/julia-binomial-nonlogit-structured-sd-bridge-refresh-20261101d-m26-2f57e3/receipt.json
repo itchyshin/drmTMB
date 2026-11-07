@@ -1,0 +1,33 @@
+{
+  "evidence_id": "julia-binomial-animal-slope-ainv-nonlogit-20261029-20261101d-m26",
+  "rerecord_of_evidence_id": "julia-binomial-animal-slope-ainv-nonlogit-20261029-20261101d",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-structured-sd-bridge-refresh-20261101d/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"DRMTMB_JULIA_TESTS=true DRM_JL_PATH=\"\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia\"\" JULIA_HOME=$HOME/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin JULIA_NUM_THREADS=2 cd \"\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\"\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); testthat::test_file(\"\"tests/testthat/test-julia-binomial-nonlogit-structured-sd-bridge.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-nonlogit-structured-sd-bridge.R",
+      "test_sha256": "9c7e1d4949fabe218607ebcc3af8b5ff9c1e62dc80acc5869a262874176ec4fc",
+      "started_utc": "2026-11-02T13:18:35Z",
+      "ended_utc": "2026-11-02T13:18:40Z",
+      "exit_code": 0,
+      "expectations_passed": 10,
+      "failures": 0,
+      "errors": 0,
+      "skips": 3,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-structured-sd-bridge-refresh-20261101d-m26-2f57e3/test-console-test-julia-binomial-nonlogit-structured-sd-bridge.log",
+      "console_log_sha256": "c6108bd854c31e651203b90187a18b1034f519e197431cbd4d49cdcfd05bb2d4"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-structured-sd-bridge-refresh-20261101d-m26-2f57e3/source-manifest.json",
+  "source_manifest_sha256": "7d996e3eec5751fe3a49f221ddfc12884f75abc07c1990322aa3f50006bb9e47",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "rows the test only uses as comparators",
+    "interval calibration or coverage",
+    "provider inputs the test does not fit (not tested; not asserted to be fenced)",
+    "live Julia parity beyond the three live bridge test cases",
+    "pedigree input, correlated animal blocks, missing data"
+  ]
+}

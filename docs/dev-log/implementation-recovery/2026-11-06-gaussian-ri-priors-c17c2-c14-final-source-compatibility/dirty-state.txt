@@ -1,0 +1,2 @@
+M .claude/settings.json
+M .cursor/hooks.json

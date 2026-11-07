@@ -1,0 +1,52 @@
+{
+  "test_name": "Current-source Julia Gamma SD bridge test suite; includes animal slope log-likelihood parity",
+  "test_path": "tests/testthat/test-julia-gamma-sd.R",
+  "test_sha256": "e491ba81e5a89f0e7f868cdf543cbad288e4345a06d55aff16597c3262622b02",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-animal-slope-parity-20261023/test-console-whole-file-loglik-20261023.log",
+  "console_log_sha256": "5a0f60f08dcbee68b02d8d88820eb851872f0bc5a9b95b6b0423b2fb88fdd250",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "files": [
+    {
+      "backend": "native",
+      "path": "R/drmTMB.R",
+      "sha256": "cd6e1acf38f081c8869f897d24c4a19f06fd4567cc29e0bc8707d9b6a47ac46a"
+    },
+    {
+      "backend": "native",
+      "path": "R/julia-bridge.R",
+      "sha256": "00cc734af9e843cf57e4ac79bd95ec1f89e6aeeddde70bdfa312fa114e87d7c2"
+    },
+    {
+      "backend": "native",
+      "path": "R/julia-family-registry.R",
+      "sha256": "f5b9377b6de34a85be25927b3096816eb96205213f658289ec8f7181aef8da09"
+    },
+    {
+      "backend": "native",
+      "path": "R/random-effect-targets.R",
+      "sha256": "f031582036e262332591de39b46f654d07c6bdf64954e09f1b47a3cbd26ed62f"
+    },
+    {
+      "backend": "native",
+      "path": "src/drmTMB.cpp",
+      "sha256": "e42e51c3050bf3c11e000df7966da9ca0db630e5f193ae35f20bc0b40edd8c79"
+    },
+    {
+      "backend": "julia",
+      "path": "src/bridge.jl",
+      "sha256": "717c5debc0ae3e6dd96d2a84dd7f122f5786625ad278613094b105db4c0b09f4"
+    },
+    {
+      "backend": "julia",
+      "path": "src/gamma.jl",
+      "sha256": "8860be04dae83eea2922d247834ec8fe115f2e0a6c855eb286b7a3169b4c9fd2"
+    },
+    {
+      "backend": "native",
+      "path": "tests/testthat/test-julia-gamma-sd.R",
+      "sha256": "e491ba81e5a89f0e7f868cdf543cbad288e4345a06d55aff16597c3262622b02"
+    }
+  ],
+  "scope_note": "Focused current-candidate evidence only; not a capability-universe completion or interval-calibration claim."
+}

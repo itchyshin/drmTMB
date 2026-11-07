@@ -1,0 +1,69 @@
+{
+  "recorded_at": "2026-11-07T04:35:35.554991+00:00",
+  "scope": "Controlled source x OpenBLAS kernel comparison of unchanged unpenalized binomial fixture",
+  "outcome": "Both sources pass44/44 under Cooperlake and fail43/44 at slope_fit.converged underHaswell; eight recorded fit fields andrcond are identical between sources within eachkernel",
+  "cells": {
+    "Cooperlake baseline": {
+      "converged=": "converged=true iterations=53",
+      "theta=": "theta=[0.1943639418189246, 0.45234106476909414, -35.316914102114715, 34.17616262509883]",
+      "theta_bits=": "theta_bits=[\"0011111111001000111000001110101011101010110100010010010010001101\", \"0011111111011100111100110010011111101111111101001000110010000111\", \"1100000001000001101010001001000010100100001011000001110010101001\", \"0100000001000001000101101000110001111111001101001100100111011011\"]",
+      "loglik=": "loglik=-532.9732053643258 control=nothing",
+      "data_sha256=": "data_sha256=50282830f7316c3426fd9bb10870ce37dbb7985a99d64aba2b19a691c3ef4ebe",
+      "objective=": "objective=532.9732053643258",
+      "gradient=": "gradient=[3.238247003878314e-9, -6.368950922208683e-9, -8.58932369673937e-10, -8.58932369673937e-10] maxabs=6.368950922208683e-9",
+      "ORIGINAL_VICTIM_SHA256=": "ORIGINAL_VICTIM_SHA256=57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5",
+      "rcond": "6.827653639066237e-17"
+    },
+    "Cooperlake candidate": {
+      "converged=": "converged=true iterations=53",
+      "theta=": "theta=[0.1943639418189246, 0.45234106476909414, -35.316914102114715, 34.17616262509883]",
+      "theta_bits=": "theta_bits=[\"0011111111001000111000001110101011101010110100010010010010001101\", \"0011111111011100111100110010011111101111111101001000110010000111\", \"1100000001000001101010001001000010100100001011000001110010101001\", \"0100000001000001000101101000110001111111001101001100100111011011\"]",
+      "loglik=": "loglik=-532.9732053643258 control=nothing",
+      "data_sha256=": "data_sha256=50282830f7316c3426fd9bb10870ce37dbb7985a99d64aba2b19a691c3ef4ebe",
+      "objective=": "objective=532.9732053643258",
+      "gradient=": "gradient=[3.238247003878314e-9, -6.368950922208683e-9, -8.58932369673937e-10, -8.58932369673937e-10] maxabs=6.368950922208683e-9",
+      "ORIGINAL_VICTIM_SHA256=": "ORIGINAL_VICTIM_SHA256=57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5",
+      "rcond": "6.827653639066237e-17"
+    },
+    "Haswell baseline": {
+      "converged=": "converged=false iterations=52",
+      "theta=": "theta=[0.19436394214556638, 0.45234106540217855, -26.806367091966067, 25.66561561137909]",
+      "theta_bits=": "theta_bits=[\"0011111111001000111000001110101011101011100001001011011101001011\", \"0011111111011100111100110010011111110000101000101001000111100010\", \"1100000000111010110011100110111000010010111000001001000010011100\", \"0100000000111001101010100110010111001000111000101001010010001010\"]",
+      "loglik=": "loglik=-532.973205364326 control=nothing",
+      "data_sha256=": "data_sha256=50282830f7316c3426fd9bb10870ce37dbb7985a99d64aba2b19a691c3ef4ebe",
+      "objective=": "objective=532.973205364326",
+      "gradient=": "gradient=[2.4990353963971756e-7, 3.112200773758289e-7, -5.023533933279367e-8, -5.023534022097209e-8] maxabs=3.112200773758289e-7",
+      "ORIGINAL_VICTIM_SHA256=": "ORIGINAL_VICTIM_SHA256=57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5",
+      "rcond": "5.752216336949239e-17"
+    },
+    "Haswell candidate": {
+      "converged=": "converged=false iterations=52",
+      "theta=": "theta=[0.19436394214556638, 0.45234106540217855, -26.806367091966067, 25.66561561137909]",
+      "theta_bits=": "theta_bits=[\"0011111111001000111000001110101011101011100001001011011101001011\", \"0011111111011100111100110010011111110000101000101001000111100010\", \"1100000000111010110011100110111000010010111000001001000010011100\", \"0100000000111001101010100110010111001000111000101001010010001010\"]",
+      "loglik=": "loglik=-532.973205364326 control=nothing",
+      "data_sha256=": "data_sha256=50282830f7316c3426fd9bb10870ce37dbb7985a99d64aba2b19a691c3ef4ebe",
+      "objective=": "objective=532.973205364326",
+      "gradient=": "gradient=[2.4990353963971756e-7, 3.112200773758289e-7, -5.023533933279367e-8, -5.023534022097209e-8] maxabs=3.112200773758289e-7",
+      "ORIGINAL_VICTIM_SHA256=": "ORIGINAL_VICTIM_SHA256=57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5",
+      "rcond": "5.752216336949239e-17"
+    }
+  },
+  "original_CI_comparison": "Same assertion and rcond5.752216336949239e-17 reproduced on pre-slice baseline and candidate underHaswell. Historical CI kernel was not recorded; exact hardware attribution is not proven.",
+  "invariants": "Original assertions, fixture, source, frozenenvironment and thresholds preserved; allfour outcomes retained",
+  "hashes": {
+    "PLAN.json": "3fde3d00a66641cc74372569c2dcc2fcab17aaa7ee443c3b7f3b02674b9cf004",
+    "POSTRUN-SOURCE.json": "940f5d9029417432659e6263e0dbfbad8bc2ea19fdf4dec79789070db18fb51d",
+    "RUNTIME-IDENTITY.json": "765db300329fcd49946b501c95a942f56219b84980a58229b0c1f052df097618",
+    "kernel_probe.jl": "6cb371778218fe83a3dc4de5ec5f38d5338b9e8b370a5bba315ca692a2eee38b",
+    "results/Cooperlake-baseline-standalone.log": "b678ad3379a99669550b426441c139eb412646bf169efd620078f1ad7980a6d8",
+    "results/Cooperlake-candidate-standalone.log": "4726f76b170e972087c5ff025853672a75a1b8a70eb1083057f92f9b1aa4d7e8",
+    "results/Haswell-baseline-standalone.log": "8ac95016d15e30c22861d1d020fcbe7670f737c09b90bfa6b95b5ad9a0852b5b",
+    "results/Haswell-candidate-standalone.log": "9c8fdb39a2b70e94169d95350d35b53be4fe4ad071ced30e7e04e4a1220ebe6e",
+    "results/baseline-Manifest.toml": "fc6fbcf09d31a8e5d4949b86194eccdb90bc1b42d6b54ca949b82272a29ef6cd",
+    "results/baseline-Project.toml": "f9ad800bc3234ab9ddb9ff7d58122b3f5ad31a0fc75658ba990d27bf16c046b0",
+    "results/candidate-Manifest.toml": "f2b7d67e53944452676a2c953d7b1a77803c4fc23a4bfe1bb55a999ea6f312c9",
+    "results/candidate-Project.toml": "feaf01808fd1e43fcf7497df928f24917b4c9330c52a87ceb16dd5ede5c71448",
+    "results/results.json": "20762dab0788090742c453431286754b8061fc74a302960f03a869791c2c6331",
+    "run_kernel_pair.py": "c6dac77367cc4289ecfe18207df1138052a6db8a2fce8c346311ae1464213b08"
+  }
+}

@@ -25,12 +25,11 @@
 # second, independent implementation of it would be a second chance to be
 # confidently wrong. One matcher, two readers.
 #
-# CONSEQUENCE OF THAT REUSE (stated, not hidden): `pm_build_matrix()` aborts
-# when a drmTMB capability name is absent from DRM.jl's capability-status.md,
-# so this file can never report a drmTMB-only row. That case is the subject of
-# `tools/write-capability-status-join.R` /
-# `docs/design/capability-status-join.md`, which is generated independently and
-# does not abort.
+# CONSEQUENCE OF THAT REUSE: `pm_build_matrix()` emits explicitly named
+# pending drmTMB-only capabilities as unreconciled rows with uncited Julia
+# cells. It aborts on other unexpected drmTMB-only names. The independently
+# generated `docs/design/capability-status-join.md` also compares names across
+# the two capability-status documents.
 #
 # THE BRIDGE AXIS, PRECISELY. A receipt is a row in one of DRM.jl's evidence
 # tables at the read ref, reached by `capability_id`. Two tiers, reported
@@ -588,15 +587,16 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     sprintf("| drmTMB (this repo, HEAD at generation) | `%s` |", drmtmb_sha),
     sprintf("| DRM.jl (read with `git show`, never the working tree) | `%s` |", ctx$pin),
     "",
-    "Both numbers below and every citation in the table are functions of those",
-    "two commits and nothing else. Quote the shas whenever you quote the counts.",
+    "Julia inputs are read from the pinned commit. R inputs are read from the",
+    "working tree, which may differ from its HEAD; preserve their source hashes",
+    "alongside these SHAs when quoting counts or citations.",
     "",
     "## THE DENOMINATOR",
     "",
     sprintf("**%d** drmTMB-native capabilities -- every `| Capability | Status |` row of", n),
-    sprintf("`%s` (%d rows), each matched byte-for-byte to a row of DRM.jl's file",
-            ctx$files$r_status, nrow(ctx$r_status)),
-    sprintf("(%d rows).", nrow(ctx$j_status)),
+    sprintf("`%s` (%d rows). Of these, %d names match a row of DRM.jl's file",
+            ctx$files$r_status, nrow(ctx$r_status), length(intersect(ctx$r_status$capability, ctx$j_status$capability))),
+    sprintf("(%d rows); unmatched names remain UNCITED on the Julia axis.", nrow(ctx$j_status)),
     "",
     sprintf("**UNCITED cells: %d of %d** (%d capabilities x 3 axes). %d of the %d capabilities",
             n_uncited_cells, 3L * n, n, n_rows_any_uncited, n),
@@ -720,9 +720,9 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     "  `INTERVAL_PASS`/`INTERVAL_OVERLAP_ONLY` count as passing evidence here; `INTERVAL_MISMATCH`",
     "  does not -- every bootstrap cell at this pin reads `INTERVAL_MISMATCH` BY DESIGN (independent",
     "  resamples), not as a failure; see \"Parametric bootstrap CIs\" in `docs/design/parity-matrix.md`.",
-    "- A drmTMB capability with no row of that name in DRM.jl's file cannot appear",
-    "  here at all: the shared join aborts on it. `docs/design/capability-status-join.md`",
-    "  is the artefact that reports those."
+    "- Explicitly listed pending R capabilities may lack a matching name in the",
+    "  pinned Julia status file. They appear as UNCITED until their routes and",
+    "  evidence are reconciled; missing documentation is not proof of missing code."
   )
 }
 

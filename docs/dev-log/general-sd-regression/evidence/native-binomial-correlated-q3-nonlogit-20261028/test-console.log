@@ -1,0 +1,7 @@
+$ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "binomial-correlated-q3-nonlogit-sd", reporter = "summary", stop_on_failure = TRUE)'
+ℹ Testing drmTMB
+binomial-correlated-q3-nonlogit-sd: ..................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration.
+exit_code=0

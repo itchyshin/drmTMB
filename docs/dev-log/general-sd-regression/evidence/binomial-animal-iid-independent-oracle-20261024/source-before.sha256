@@ -1,0 +1,9 @@
+a016a371f1b3c3d33b6101491a60fcdf320bd10a0671d53b86ad7d5f10e387e9  tests/testthat/test-julia-binomial-animal-iid-sd-parity.R
+69a22c5a056b40e8f57f5512f376841c8667b6e01dc533ac4129c95b2c705ca4  R/julia-bridge.R
+cfa4b4ccd71fbf8b9cfe1bf3a314fe0ee617072356a0a8276e641e3d92632864  R/julia-simulate.R
+b47b4e438c030f6c7d8f17c3508497a8708089e8baa2fee5312a642fa67d6735  R/drmTMB.R
+601194d716c3816b787e4360f438a060bae3dd11292a90002d338da7bbb7a2a6  src/drmTMB.cpp
+5dce57b711cabd3b21b836f74d1affa247f2ed8d40b4320b5966491051a9ef60  ../general-sd-julia/src/bridge.jl
+58143273323023f48496adcf556bb148a91325ec4364171e0740c20e03254c7f  ../general-sd-julia/src/binomial_sd_regression.jl
+95668dff99500e1d8ed649f9ead87395389d72bdc00db8ec2912203c01fdd937  ../general-sd-julia/src/inference.jl
+f00ee9f3dd7b9a2589f8e1f5e1e75878c34ff1e37019008e4e6b1f8abac45275  ../general-sd-julia/test/test_binomial_animal_iid_sd_regression.jl

@@ -1,0 +1,12 @@
+{
+  "input_script_sha256": {},
+  "name": "structured-prediction",
+  "command": [
+    "Rscript",
+    "-e",
+    "pkgload::load_all(compile=FALSE,quiet=TRUE); testthat::test_file(\"tests/testthat/test-julia-structured-stored-prediction.R\",reporter=\"summary\",stop_on_failure=TRUE); testthat::test_file(\"tests/testthat/test-julia-conditional-prediction.R\",reporter=\"summary\",stop_on_failure=TRUE); testthat::test_file(\"tests/testthat/test-julia-conditional-components.R\",reporter=\"summary\",stop_on_failure=TRUE); testthat::test_file(\"tests/testthat/test-julia-b34-structured-fitted-bridge.R\",reporter=\"summary\",stop_on_failure=TRUE)"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 138.16601705551147,
+  "log_sha256": "8651ce7c75fd4cf29261acc4d9f0b2c4f26f28dfc9e72061a019dfb3c6d21e77"
+}

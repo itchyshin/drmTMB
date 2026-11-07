@@ -1,0 +1,49 @@
+{
+  "evidence_id": "native-poisson-additive-ordinary-sd-20261101",
+  "note": "dirty shared candidate; hashes identify files as read at manifest-write time, after the fresh run (impl files shared with other agents; mtimes checked earlier than run start)",
+  "git_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "branch": "codex/general-sd-regression",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "aa0aedad162c3018790ead4350dbb2e68efc8203037f8ad923db4cdd0f4c61f5"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "ef79299d4dd607be50067752c643027af55e9814d1e220a37dcdee94957dd8a9"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
+    },
+    {
+      "file": "tests/testthat/test-poisson-additive-ordinary-sd-regression.R",
+      "sha256": "8076491e6b2ab12adce322fc84785daeb018bcd66491dbc28a85098b0d9e19eb"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/native-poisson-additive-ordinary-sd-20261101/test-console.log",
+      "sha256": "d6aeb3152b9c908ba761396bb7e350d68a4ad0cc528fabb8c2fd46bb7321d296"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/native-poisson-additive-ordinary-sd-20261101/run_one.sh",
+      "sha256": "3568b4a7cc5e481d7a571d8f802693a6844a9e61abd55d8b687674f64a1d06bb"
+    }
+  ],
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'R/methods.R', 'src/drmTMB.cpp']"
+}

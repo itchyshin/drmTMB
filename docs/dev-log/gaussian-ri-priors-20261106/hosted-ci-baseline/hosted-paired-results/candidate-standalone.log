@@ -1,0 +1,78 @@
+LOADED_PACKAGE_PATH=/home/runner/work/DRModels.jl/DRModels.jl/candidate/src/DRModels.jl
+Julia Version 1.13.3
+Commit 67ac47b9cd8 (2026-10-25 15:28 UTC)
+Build Info:
+  Official https://julialang.org release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+      Ubuntu 26.04.1 LTS
+  uname: Linux 7.0.0-1019-azure #20-Ubuntu SMP PREEMPT Mon Oct 19 22:41:16 UTC 2026 x86_64 unknown
+  CPU: INTEL(R) XEON(R) PLATINUM 8573C: 
+              speed         user         nice          sys         idle          irq
+       #1  2966 MHz         31 s          0 s          7 s        245 s          0 s  
+       #2  2999 MHz         49 s          0 s          7 s        231 s          0 s  
+       #3  3003 MHz        136 s          0 s          9 s        145 s          0 s  
+       #4  3009 MHz        106 s          0 s          7 s        175 s          0 s  
+  Memory: 15.607479095458984 GB (14739.57421875 MB free)
+  Uptime: 295.17 sec
+  Load Avg:  1.32  0.98  0.46
+  WORD_SIZE: 64
+  LLVM: libLLVM-20.1.8 (ORCJIT, emeraldrapids)
+  GC: Built with stock GC
+Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_PKG_PRECOMPILE_AUTO = 0
+  JULIA_NUM_THREADS = 1
+  SELENIUM_JAR_PATH = /usr/share/java/selenium-server.jar
+  JAVA_HOME_11_X64 = /usr/lib/jvm/temurin-11-jdk-amd64
+  JAVA_HOME_25_X64 = /usr/lib/jvm/temurin-25-jdk-amd64
+  GITHUB_PATH = /home/runner/work/_temp/_runner_file_commands/add_path_f1f9da75-39c6-4368-9ddb-a5966c12d903
+  JAVA_HOME = /usr/lib/jvm/temurin-25-jdk-amd64
+  GRADLE_HOME = /usr/share/gradle-9.8.2
+  XDG_CONFIG_HOME = /home/runner/.config
+  ANT_HOME = /usr/share/ant
+  HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS = 3650
+  ANDROID_NDK_LATEST_HOME = /usr/local/lib/android/sdk/ndk/30.0.16248370
+  HOME = /home/runner
+  JAVA_HOME_21_X64 = /usr/lib/jvm/temurin-21-jdk-amd64
+  GITHUB_EVENT_PATH = /home/runner/work/_temp/_github_workflow/event.json
+  JAVA_HOME_17_X64 = /usr/lib/jvm/temurin-17-jdk-amd64
+  ANDROID_NDK_HOME = /usr/local/lib/android/sdk/ndk/27.3.13750724
+  HOMEBREW_NO_AUTO_UPDATE = 1
+  ANDROID_HOME = /usr/local/lib/android/sdk
+  PSModulePath = /root/.local/share/powershell/Modules:/usr/local/share/powershell/Modules:/opt/microsoft/powershell/7/Modules:/usr/share/az_15.6.1
+  PIPX_HOME = /opt/pipx
+  PATH = /opt/hostedtoolcache/julia/1.13.3/x64/bin:/snap/bin:/home/runner/.local/bin:/opt/pipx_bin:/home/runner/.cargo/bin:/home/runner/.config/composer/vendor/bin:/usr/local/.ghcup/bin:/home/runner/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+  SWIFT_PATH = /usr/share/swift/usr/bin
+CPU_NAME=emeraldrapids
+BLAS_CONFIG=LBTConfig([ILP64] libopenblas64_.so) threads=1
+JULIA_THREADS=1
+ORIGINAL_VICTIM_SHA256=57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5
+DIAGNOSTIC_FIT_BEGIN
+converged=true iterations=53
+theta=[0.1943639418189246, 0.45234106476909414, -35.316914102114715, 34.17616262509883]
+theta_bits=["0011111111001000111000001110101011101010110100010010010010001101", "0011111111011100111100110010011111101111111101001000110010000111", "1100000001000001101010001001000010100100001011000001110010101001", "0100000001000001000101101000110001111111001101001100100111011011"]
+loglik=-532.9732053643258 control=nothing
+data_sha256=50282830f7316c3426fd9bb10870ce37dbb7985a99d64aba2b19a691c3ef4ebe
+objective=532.9732053643258
+gradient=[3.238247003878314e-9, -6.368950922208683e-9, -8.58932369673937e-10, -8.58932369673937e-10] maxabs=6.368950922208683e-9
+DIAGNOSTIC_FIT_END
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates = Int64[]
+│   rcond = 6.827653639066237e-17
+└ @ DRModels ~/work/DRModels.jl/DRModels.jl/candidate/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates = Int64[]
+│   rcond = 6.827653639066237e-17
+└ @ DRModels ~/work/DRModels.jl/DRModels.jl/candidate/src/vcov_guard.jl:122
+Test Summary:                                            | Pass  Total     Time
+public Bernoulli/binomial random-intercept SD regression |   44     44  3m21.7s
+DIAGNOSTIC_STANDALONE_COMPLETE

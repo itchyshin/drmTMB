@@ -1,0 +1,43 @@
+Compiled package: /home/snakagaw/hsq_work/drmtmb-general-sd-poisson-20261017-03/library/drmTMB
+random-scale-prediction-labels: ...........
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+poisson-sd-integration: ............................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-target-workflows: ............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-target-selectors-integration: ......................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-random-effect-scale: .....................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-integration: ..................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-links: ...............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Way to go!
+binomial-sd-profile: ................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-simulation: ...............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-sd-clamp: ................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+gaussian-random-effect-scale: .........................................................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+clamp-active-guard: .....................W.....
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. check_drm() reports a clamp-active row (warning when active, ok when not) ('test-clamp-active-guard.R:132:3') - `drmTMB()`: the `log(sigma)` clamp is active at the optimum (the fitted `log(sigma)` reached -0.6, above the band upper bound -0.8).
+i The scale ran to the upper clamp, so the fit may have converged artificially: estimates and standard errors near the clamp are unreliable. Rescale the response, widen the band with `drm_control(logsigma_clamp = )`, add within-group replication, or use a penalized/MAP fit; `check_drm()` reports the fit state.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+NATIVE_BINOMIAL_SD_PASS

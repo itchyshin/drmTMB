@@ -1,0 +1,21 @@
+{
+  "evidence_ids": [
+    "gaussian-native-independent-slope-sd-20261024",
+    "gaussian-native-independent-slope-sd-current-20261025"
+  ],
+  "purpose": "Refresh the seals on the two Gaussian native independent-slope records after test-gaussian-sd-slope-regression.R changed its correlated-q2 assertion on 2026-11-01. The old assertion expected a refusal; the unlabelled correlated q2 block is now admitted, so the test now asserts that it fits and keeps the slope SD target.",
+  "test_command": "cd worktree; NOT_CRAN=true OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'devtools::load_all(); testthat::test_file(\"tests/testthat/test-gaussian-sd-slope-regression.R\", reporter=\"summary\")'",
+  "git_head": "425bee81572c625a634b2b083050c5c57c1dc1f1 (dirty shared worktree)",
+  "test_path": "tests/testthat/test-gaussian-sd-slope-regression.R",
+  "test_sha256": "a4a6f0d08c6cff902aa23cdadff35c47229b3eecbdb15e9c29a015ac9e1626b8",
+  "manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-refresh-20261101/source-manifest.json",
+  "manifest_sha256": "a4f29b889fc77e81719b2991e68ddc3e047ab83607b770cccd2aed0ba1129c1e",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-refresh-20261101/test-console.log",
+  "console_log_sha256": "3788e47d4d8d8c6481afe7a8c3f2f3f29648285892803f4d3a0b96d568f0a064",
+  "result": "exit 0; 13 expectations passed, 0 failed",
+  "limits": [
+    "Native engine only; no Julia run in this refresh.",
+    "Single fixture; no interval calibration; unreviewed.",
+    "Old evidence directories gaussian-random-slope-sd-20261024 and gaussian-sd-slope-current-20261025 are kept untouched; their recorded test hash no longer matches the edited test, so the ledger rows now point at this refresh."
+  ]
+}

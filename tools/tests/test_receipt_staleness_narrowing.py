@@ -21,7 +21,7 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-RECEIPT = "docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json"
+RECEIPT = "docs/dev-log/priors-lane-20261105/release-default-bridge-recheck/current.json"
 
 FILES = {
     "tools/run-julia-phylo-labels-public.R": "fit <- drmTMB(1)\n",

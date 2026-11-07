@@ -1,0 +1,13 @@
+    a pilot      seed manifest_row  estimate        se convergence pdHess
+6 0.5     2 661797416            6 0.5299635 0.1892514           0   TRUE
+  max_abs_gradient clamp_at_optimum    lower     upper interval_status
+6     2.125491e-10               ok 0.179564 0.9376721         profile
+  profile_boundary profile_message laplace_oracle_error valid_interval warnings
+6            FALSE              ok        -1.386275e-08           TRUE         
+  error elapsed attempt_state
+6         76.69     completed
+      a attempts fit_results healthy_fits valid_intervals boundary_or_clamp
+0.5 0.5        1           1            1               1                 0
+    profile_failures errors max_seconds
+0.5                0      0       76.69
+BERNOULLI_PILOT_RECORDED

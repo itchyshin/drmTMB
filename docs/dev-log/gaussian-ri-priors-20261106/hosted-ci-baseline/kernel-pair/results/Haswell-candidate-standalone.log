@@ -1,0 +1,78 @@
+EXPECTED_OPENBLAS_CORE=Haswell
+ACTUAL_OPENBLAS_CORE=Haswell
+OPENBLAS_LIBRARY=/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+DIAGNOSTIC_PROCESS_START ["/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation", "candidate", "standalone"]
+DIAGNOSTIC_PACKAGES_LOADED
+LOADED_PACKAGE_PATH=/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/candidate/src/DRModels.jl
+Julia Version 1.13.3
+Commit 67ac47b9cd8 (2026-10-25 15:28 UTC)
+Build Info:
+  Official https://julialang.org release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+      Ubuntu 24.04.5 LTS
+  uname: Linux 6.8.0-142-generic #142-Ubuntu SMP PREEMPT_DYNAMIC Wed Sep  2 14:24:27 UTC 2026 x86_64 x86_64
+  CPU: AMD EPYC 9655 96-Core Processor: 
+                  speed         user         nice          sys         idle          irq
+       #1-384  3800 MHz  106366839 s   24035371 s    2071109 s  1141150008 s          0 s  
+  Memory: 1007.2740783691406 GB (279564.0078125 MB free)
+  Uptime: 3.31978593e6 sec
+  Load Avg:  67.91  51.31  57.65
+  WORD_SIZE: 64
+  LLVM: libLLVM-20.1.8 (ORCJIT, znver5)
+  GC: Built with stock GC
+Threads: 1 default, 0 interactive, 1 GC (on 384 virtual cores)
+Environment:
+  JULIA_NUM_THREADS = 1
+  JULIA_PKG_PRECOMPILE_AUTO = 0
+  JULIA_NUM_PRECOMPILE_TASKS = 2
+  HOME = /home/snakagaw
+  PATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+CPU_NAME=znver5
+BLAS_CONFIG=LBTConfig([ILP64] libopenblas64_.so) threads=1
+JULIA_THREADS=1
+ORIGINAL_VICTIM_SHA256=57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5
+DIAGNOSTIC_FIT_BEGIN
+converged=false iterations=52
+theta=[0.19436394214556638, 0.45234106540217855, -26.806367091966067, 25.66561561137909]
+theta_bits=["0011111111001000111000001110101011101011100001001011011101001011", "0011111111011100111100110010011111110000101000101001000111100010", "1100000000111010110011100110111000010010111000001001000010011100", "0100000000111001101010100110010111001000111000101001010010001010"]
+loglik=-532.973205364326 control=nothing
+data_sha256=50282830f7316c3426fd9bb10870ce37dbb7985a99d64aba2b19a691c3ef4ebe
+objective=532.973205364326
+gradient=[2.4990353963971756e-7, 3.112200773758289e-7, -5.023533933279367e-8, -5.023534022097209e-8] maxabs=3.112200773758289e-7
+DIAGNOSTIC_FIT_END
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mHessian is numerically singular at the optimum — using a pseudo-inverse.
+[33m[1m│ [22m[39mThe fit is at a variance/dispersion boundary, so standard errors for the
+[33m[1m│ [22m[39mflagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+[33m[1m│ [22m[39mor the bootstrap entry points for those targets.
+[33m[1m│ [22m[39m  context = ""
+[33m[1m│ [22m[39m  flat_coordinates = Int64[]
+[33m[1m│ [22m[39m  rcond = 5.752216336949239e-17
+[33m[1m└ [22m[39m[90m@ DRModels ~/hsq_work/ri-prior-julia1133-baseline-audit-20261106/candidate/src/vcov_guard.jl:122[39m
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mHessian is numerically singular at the optimum — using a pseudo-inverse.
+[33m[1m│ [22m[39mThe fit is at a variance/dispersion boundary, so standard errors for the
+[33m[1m│ [22m[39mflagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+[33m[1m│ [22m[39mor the bootstrap entry points for those targets.
+[33m[1m│ [22m[39m  context = ""
+[33m[1m│ [22m[39m  flat_coordinates = Int64[]
+[33m[1m│ [22m[39m  rcond = 5.752216336949239e-17
+[33m[1m└ [22m[39m[90m@ DRModels ~/hsq_work/ri-prior-julia1133-baseline-audit-20261106/candidate/src/vcov_guard.jl:122[39m
+[91m[1mERROR: [22m[39mLoadError: [91mSome tests did not pass: 43 passed, 1 failed, 0 errored, 0 broken.[39m
+in expression starting at /home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/candidate/test/test_binomial_sd_public.jl:4
+in expression starting at /home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/run.jl:23
+in expression starting at /home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/kernel-pair/kernel_probe.jl:17
+
+public Bernoulli/binomial random-intercept SD regression: [91m[1mTest Failed[22m[39m at [39m[1m/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/candidate/test/test_binomial_sd_public.jl:110[22m
+  Expression: slope_fit.converged
+  Stacktrace:
+   [1] top-level scope
+   [90m  @[39m [90m~/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/candidate/test/[39m[90m[4mtest_binomial_sd_public.jl:5[24m[39m
+   [2] [0m[1mmacro expansion[22m
+   [90m  @[39m [90m~/hsq_work/ri-prior-julia1133-baseline-audit-20261106/julia-1.13.3/share/julia/stdlib/v1.13/Test/src/[39m[90m[4mTest.jl:1967[24m[39m[90m [inlined][39m
+   [3] [0m[1mmacro expansion[22m
+   [90m  @[39m [90m~/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/candidate/test/[39m[90m[4mtest_binomial_sd_public.jl:110[24m[39m[90m [inlined][39m
+   [4] [0m[1mmacro expansion[22m
+   [90m  @[39m [90m~/hsq_work/ri-prior-julia1133-baseline-audit-20261106/julia-1.13.3/share/julia/stdlib/v1.13/Test/src/[39m[90m[4mTest.jl:758[24m[39m[90m [inlined][39m
+[0m[1mTest Summary:                                            | [22m[32m[1mPass  [22m[39m[91m[1mFail  [22m[39m[36m[1mTotal  [22m[39m[0m[1m   Time[22m
+public Bernoulli/binomial random-intercept SD regression | [32m  43  [39m[91m   1  [39m[36m   44  [39m[0m1m45.1s
+RNG of the outermost testset: Xoshiro(0x6dd9bc8adbe54c0c, 0xc07f58f020c6f9e7, 0xe6738c9867121394, 0x8d24bbd3bc26c9eb, 0x0b9aa91f66a42112)

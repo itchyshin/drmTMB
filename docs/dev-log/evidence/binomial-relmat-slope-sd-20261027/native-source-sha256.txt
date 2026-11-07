@@ -1,0 +1,2 @@
+740edc7dca17006f236646e608451d36d1f00432da52e95d2c4840189fb90f12  R/drmTMB.R
+dd4adb36a13b2a61058928aceb982eace5919d850101131e7029bdf9cae16939  tests/testthat/test-binomial-relmat-slope-sd.R

@@ -1,0 +1,26 @@
+{
+  "evidence_id": "binomial-batch4-sd-20261101-m26",
+  "rerecord_of_evidence_id": "binomial-batch4-sd-20261101",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/binomial-batch4-sd-20261101/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"\"devtools::test(filter = 'binomial-batch4-sd-regression', reporter = 'summary', stop_on_failure = FALSE)\"\" (wrapper also prints expectation counts and exits non-zero on any failure, error or skip)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-batch4-sd-regression.R",
+      "test_sha256": "f4214f3e28f3e1b0c9dd5aed4620e1b9c6802463572efead482bfdeafc1ca7c6",
+      "started_utc": "2026-11-02T13:15:38Z",
+      "ended_utc": "2026-11-02T13:18:02Z",
+      "exit_code": 0,
+      "expectations_passed": 88,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-batch4-sd-20261101-m26-bd8d80/test-console-test-binomial-batch4-sd-regression.log",
+      "console_log_sha256": "eede3c72f676ac0936675accafd3eaba342e6a332282ab3d75690cc41db634f5"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-batch4-sd-20261101-m26-bd8d80/source-manifest.json",
+  "source_manifest_sha256": "f37e5daae00eec7369cc1ad4f0f3306317a3d16479c391e4c28a7b29c137ff73",
+  "review_status": "unreviewed"
+}

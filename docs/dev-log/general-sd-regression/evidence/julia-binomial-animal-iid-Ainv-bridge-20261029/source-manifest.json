@@ -1,0 +1,27 @@
+{
+  "drmTMB_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "drmTMB_worktree": "codex/general-sd-regression",
+  "DRM.jl_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "files": [
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-iid-Ainv-bridge-20261029/test-snapshot/test-julia-binomial-animal-iid-sd-parity.R",
+      "sha256": "a016a371f1b3c3d33b6101491a60fcdf320bd10a0671d53b86ad7d5f10e387e9"
+    },
+    {
+      "path": "R/julia-bridge.R",
+      "sha256": "5c8945f016257acfa85436b531a2b20a7cfd0918b4e0bfbeba9046c3aacbb17a"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl",
+      "sha256": "427c1144596cba2dea4faf29a5ea80e71b8ad6b8e8a6d9b89efb0027c5e43f73"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/binomial_sd_regression.jl",
+      "sha256": "713f54870e3a7784c3cf17c3119b4ff96d88cdbab96aeea3ea782f4f1a3114bd"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/sparse_laplace_glmm.jl",
+      "sha256": "71c23b8db4f70fe6a58da8a064cd001a279c1f2413925fb98fe01e3a0ce2712c"
+    }
+  ]
+}

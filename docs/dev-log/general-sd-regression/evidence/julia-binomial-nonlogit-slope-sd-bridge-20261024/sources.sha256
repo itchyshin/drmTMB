@@ -1,0 +1,5 @@
+69a22c5a056b40e8f57f5512f376841c8667b6e01dc533ac4129c95b2c705ca4  R/julia-bridge.R
+7c859e9c6696f2db25ae1a625e6fc1374ae8d53c51f87e5e6c4ea4b430fd6650  tests/testthat/test-julia-binomial-sd-links-bridge.R
+f7f180eda9c0ce9ed5de8241b47ca5103c06955d399874c704d7543c6405498b  tests/testthat/test-julia-binomial-nonlogit-slope-sd-bridge.R
+5dce57b711cabd3b21b836f74d1affa247f2ed8d40b4320b5966491051a9ef60  ../general-sd-julia/src/bridge.jl
+1a44a8dabc743e75a712ea41eba696798b3b0da439d9ffd44f13e44db57dfea2  ../general-sd-julia/test/test_binomial_bridge_links.jl

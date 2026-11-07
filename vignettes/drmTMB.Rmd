@@ -44,7 +44,7 @@ effect size with known sampling variance or covariance, begin with
 [Mean effects and residual heterogeneity](meta-analysis.html). The broader
 map, including other response types, is [What can I fit today?](model-map.html).
 
-This vignette describes `drmTMB` 0.7.1, the current development version;
+This vignette describes `drmTMB` 0.8.0, the current development version;
 0.7.0 is on CRAN. Installation instructions, including the compiler toolchain
 TMB needs, are on the [package home page](https://itchyshin.github.io/drmTMB/).
 

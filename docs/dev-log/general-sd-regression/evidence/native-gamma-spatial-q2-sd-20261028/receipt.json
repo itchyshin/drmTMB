@@ -1,0 +1,86 @@
+{
+  "slice": "native Gamma coordinate-spatial independent intercept and numeric-slope SD",
+  "date": "2026-10-28",
+  "worktree": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/source-manifest.json",
+  "source_manifest_sha256": "16944dd9ae57d5649c2463a913d836b7bf5cda9dcac859a2d4a2c27ae2c6a48c",
+  "implementation": "R-only Gamma coords-specific opt-in and coefficient SD maps; no C++ or DLL change",
+  "test": {
+    "passed": 229,
+    "failed": 0,
+    "errors": 0,
+    "warnings": 0,
+    "skipped": 1,
+    "seconds": 73.126,
+    "estimate_seconds": 180,
+    "new_file_checks": 47,
+    "skipped_reason": "Existing live Julia spatial comparator: engine path unavailable",
+    "initial_red_errors": 2,
+    "initial_red_seconds": 2.994,
+    "initial_focus_passed": 41,
+    "initial_focus_errors": 1,
+    "initial_focus_seconds": 17.343,
+    "initial_error": "New lognormal refusal matcher expected intercept-only, existing earlier provider surface correctly refused; matcher corrected without model change"
+  },
+  "example": {
+    "convergence": 0,
+    "seconds": 2.95,
+    "sd_slopes": [
+      0.4861302,
+      -0.3155446
+    ],
+    "truth": [
+      0.5,
+      -0.5
+    ],
+    "qualification": "One fixed-seed point-fit smoke only"
+  },
+  "numerical_acceptance": {
+    "kernel": "Independent Euclidean median-positive-distance exponential kernel plus 1e-6 I; raw diagonal retained",
+    "laplace_nll_absolute_error": "<1e-4 passed",
+    "eta_max_absolute_error": "<1e-4 passed",
+    "reorder_constant_base_error": "<1e-4 passed",
+    "derivatives": "Analytic score/Hessian with finite differences passed"
+  },
+  "candidate_row_keys": [
+    "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "row_scope": "native Gamma mu coordinates only; one independent intercept plus numeric slope; no whole-domain admission",
+  "shared_ledger_modified": false,
+  "interval_coverage": "deferred",
+  "julia_parity": "Not run or established; existing live comparator skipped",
+  "aggregate_acceptance_gate": "UNKNOWN: existing runner unavailable",
+  "review": "Parent coordinator and independent read-only scout found no P0/P1 in scoped code/math; shared validator unchanged after removing intended additions",
+  "limitations": [
+    "Fixed range, not estimated spatial range",
+    "No duplicate-coordinate fallback-jitter validation",
+    "No unseen-site, mesh, weighted or missing-data fits",
+    "No label/correlation/multiple-slope or extra random layers",
+    "No new-data SD prediction/profile/bootstrap validation",
+    "No fresh two-field marginal simulation",
+    "No coverage, live Julia parity, full package or release checks"
+  ],
+  "supporting_artifacts": {
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/R-implementation.patch": "5f90e91b013fb28f4f2b74658aec8d247df35c2a97d13f267a525296370019b5",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/assessment-check.log": "d6395d2e64d7104e44818aea776d32e07863dce9e5ac7684d18a602cd12d43ed",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/candidate-rows.tsv": "50fcd40faf6a9cffd50f78aed884be02b0e57440a07f10175b0f29489aa08d05",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/coordination.md": "18236009cc76cbcc4f7903fc14b6d80060ba0322a455add9c966adaf9b19c14f",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/environment.log": "921c93894b0fcd0dec0161eae46a0dd9a0570b0a42aeb408a69f2006637c1a7e",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/example-runner.R": "0d7baced9006372faa97a484efda44c548acecd36290ce8117ca886eed253198",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/example.log": "5fd32a6201f04142f615e9a41e634ca337cf604923aaacd4d0cb19f4253eaf8e",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/finalize-evidence.py": "bdb3b30fbeb182184567819198d25801ecd28f7db3c4e7b956087a0bc5504a1c",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/focused.log": "6257ba952cba4649260315a513461986f41e68f9c3ecdfe12537e0af6b3853d7",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/independent-review.md": "4dc42f7d319f6bd57c112e087e0dedaf7760f918c26725584d11cc9bf9178e71",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/pre-fit-alignment.md": "7e4c6f20d5cc7826d5d4e65741df0e4fad6c7df340b9b55a43031de7cae497c3",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/prose-check.log": "d0a4383cf73f4d0888043075ae7f22cb0390fcfd6932a11ca36ab75682d37551",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/red-runner.R": "ac063367cd5d24d7b280338c42bbcb29a5251a485b2a27f8333baa9f912d90dd",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/red.log": "ec98ddabd576683c37d61040eac3b2121e4ded62184346927a09b778ca9bda5c",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/regression.log": "75921dc5c31a20115c53f3941717806be60af172dee14cab83cd3967a074540c",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/report-check.log": "5a2841c38ef6a0560766820c2f14d5c526e11811767e70c0dbed121a8ab6034c",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/report-prose-assessment.json": "3263bcdb67767ca446358af0209ca8533e6b4d9031c5beb8ee69493f081587a0",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/source-capsule.tar.gz": "ac0099cb93ac19318085d38f1439e39891d532e5cddf592eb3b33b4820974508",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/source-manifest.json": "16944dd9ae57d5649c2463a913d836b7bf5cda9dcac859a2d4a2c27ae2c6a48c",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-spatial-q2-sd-20261028/test-runner.R": "a82c0408276ec777ae4c1d55052cb2ce6edcd5154257ad3141f33fa8fd169134"
+  }
+}

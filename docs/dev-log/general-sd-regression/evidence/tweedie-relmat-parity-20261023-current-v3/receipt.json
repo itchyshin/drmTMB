@@ -1,0 +1,19 @@
+{
+  "evidence_id": "tweedie-relmat-tmb-julia-current-source-parity-20261023-v3",
+  "row_key": "[\"Julia\",\"tweedie\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "claim": "One synthetic Tweedie q1 related-matrix mean-intercept SD fit compared through the public R-to-Julia bridge against native TMB on identical data, including a non-unit kernel diagonal and permuted matrix labels.",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "source_manifest": "source-manifest.json",
+  "source_manifest_sha256": "650bdd7437f6cb397f3b6492b9f5d3095a50fc1dfe332615bef6a934dc069617",
+  "source_file_count": 199,
+  "current_julia_tweedie_sha256": "8f83de17f26784928197593f5c6a602e075e5dc3640f4679ee7d4da55d33462a",
+  "test_path": "tests/testthat/test-julia-tweedie-relmat-sd.R",
+  "test_sha256": "e870bc909c4ea7fd4a05385fcb8948751a33503c12fbf86430aae5b9c161c36a",
+  "test_command": "PATH='/Users/z3437171/.juliaup/bin':\"$PATH\" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 DRMTMB_JULIA_TESTS=true NOT_CRAN=true DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = \"julia-tweedie-relmat-sd\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "result": "Exit 0; 24 expectations passed; one setup-only live-Julia-gate skip; one live Julia bridge test ran. No JuliaCall warning was emitted in the streamed output.",
+  "run_note": "run-note.txt",
+  "run_note_sha256": "483d88aaf3ca86067827769bca4db015804287927f4e2a4fa62cf9e166ae6f2e",
+  "scope": "One complete-response Tweedie related-matrix q1 location-intercept comparison: SD coefficients, group-level SD predictions, public parameter outputs, and log likelihood. No broad family/provider parity or interval calibration claim.",
+  "review_status": "unreviewed"
+}

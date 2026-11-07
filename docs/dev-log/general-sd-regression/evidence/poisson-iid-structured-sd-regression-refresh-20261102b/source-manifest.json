@@ -1,0 +1,25 @@
+{
+  "scope": "Source identity for tests/testthat/test-poisson-iid-structured-sd-regression.R, stale-row refresh 20261102b",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "883f4f2335b1257c8c1acbfaad049bb037082c930f357fe55f37ea820fa50415"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-poisson-iid-structured-sd-regression.R",
+      "sha256": "75cc60ed878522b3c5e180b6852c28014697e220ef129d1fff0dbd2a2a8900db"
+    }
+  ]
+}

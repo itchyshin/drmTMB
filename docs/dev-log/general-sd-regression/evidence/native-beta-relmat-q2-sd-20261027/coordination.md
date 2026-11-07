@@ -1,0 +1,3 @@
+# Ownership and source reconciliation
+
+Platform Codex; branch codex/general-sd-regression; bounded native Beta related-matrix two-field SD slice. Parent canonical owner delegated R/drmTMB.R with no concurrent parent writes. Scoped lease codex-general-sd-beta-relmat-q2-20261027 granted for R plus new test/example/report/check fragment/evidence. Preflight reports145 divergent R refs and31 live lanes. Actual newest docs ref changes and the relevant foreign Beta q1 relmat extraction/validator diff were reviewed before edits. Current candidate q1 work was absent; this bounded extension explicitly refuses q1 instead of importing another branch wholesale. No foreign edits reverted. No C++ edits, native rebuild, global ledger promotion, commit/push/merge/publication.

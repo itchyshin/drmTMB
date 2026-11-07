@@ -1,0 +1,17 @@
+mux_client_request_session: session request failed: Session open refused by peer
+ControlSocket /Users/z3437171/.ssh/cm-snakagaw@totoro.biology.ualberta.ca:22 already exists, disabling multiplexing
+iid-sd-noncanonical-families-oracle-b31no: .......GAP beta I | ll-ref -3.60e-09 | min gap 46.450 (reversed_sd_intercept)
+.......GAP beta x | ll-ref -5.71e-09 | min gap 1.371 (flipped_selector_slope)
+.......GAP beta_binomial I | ll-ref -2.10e-09 | min gap 47.959 (reversed_sd_intercept)
+.......GAP beta_binomial x | ll-ref -2.11e-09 | min gap 2.267 (reversed_sd_slope)
+........GAP cumulative_logit I | ll-ref -3.03e-10 | min gap 45.284 (reversed_sd_intercept)
+........GAP cumulative_logit x | ll-ref -2.84e-10 | min gap 13.738 (reversed_sd_slope)
+.......GAP hurdle_nbinom2 I | ll-ref 5.98e-11 | min gap 14.566 (reversed_sd_intercept)
+.......GAP hurdle_nbinom2 x | ll-ref 8.67e-11 | min gap 16.471 (reversed_sd_slope)
+.......GAP zi_poisson I | ll-ref -4.93e-11 | min gap 149.545 (reversed_sd_intercept)
+.......GAP zi_poisson x | ll-ref 1.41e-08 | min gap 36.897 (reversed_sd_slope)
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+COUNTS tests=10 expectations=72 failed=0 errors=0 skipped=0 warnings=0

@@ -1,0 +1,51 @@
+{
+  "evidence_id": "native-gaussian-structured-q2-sd-20261101d",
+  "evidence_grade": "focused_test",
+  "slice": "gaussian-structured-q2-sd",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"identity\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "identity",
+      "ledger_status": "unresolved",
+      "mechanism_id": "animal_correlated_block",
+      "provider_input": "A_covariance",
+      "target_member": "mu:I",
+      "endpoint": "mu"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"identity\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "identity",
+      "ledger_status": "unresolved",
+      "mechanism_id": "animal_correlated_block",
+      "provider_input": "A_covariance",
+      "target_member": "mu:x1",
+      "endpoint": "mu"
+    }
+  ],
+  "test_command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gaussian-structured-q2-sd.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "test_path": "tests/testthat/test-gaussian-structured-q2-sd.R",
+  "test_sha256": "2fa1ed04d5a10d5befcd004a24c125a2f3ef16a39635689cf9ea5b12fe110096",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-q2-sd-20261101d/source-manifest.json",
+  "source_manifest_sha256": "00e66cd9501101b880ad781d2dbefbadd634b34499562e98eb3cf30d24537fec",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-q2-sd-20261101d/test-console.log",
+  "console_log_sha256": "87977fb7eda754224096a12eba5c273769ed96463f97e5d3026822d616847bf3",
+  "result": {
+    "exit_code": 0,
+    "summary_dots_passed": 64,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": "not run; Julia bridge reported 0 live tests, native TMB engine only"
+  },
+  "result_summary": "Gaussian animal(1 + x | p | id, A = K) correlated q2 block with coefficient-specific sd() on both members matches the exact dense marginal oracle (1e-6 relative); independent dense optimiser reaches same maximum (1e-5); emulated-bug sensitivity > 1e-3; constant-SD equivalence with independent structured fit 1e-5; refusals are designed errors.",
+  "not_covered": [
+    "animal Ainv_precision and pedigree q2 rows (test supplies A = K only)",
+    "relmat q2 and phylo q2 oracle tests in this file have NO matching required row (no relmat/phylo correlated_block mechanism in required-rows.tsv)",
+    "labelled cross-parameter animal_labelled_block rows (cross mu/sigma; not tested)",
+    "q3 (asserted refused)",
+    "no recovery/coverage/calibration; no Julia"
+  ],
+  "limits": "dirty shared candidate tree; no calibration; no Julia parity; unreviewed; tolerances as written in the test file header, not loosened; receipt links rows and does not promote direct_sd_claim",
+  "review_status": "unreviewed"
+}

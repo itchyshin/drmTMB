@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "d5fcfe125cc81c587ea70ca4adf6812ad12e6b7337888c5eef8bec2c24e4f5b2",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex root post-draft review",
+  "method": "Manual full-draft review after retained build/test/guide evidence readback and mechanical prose lint.",
+  "genre": "Development checkpoint report",
+  "coverage": "Entire Poisson slope checkpoint report; no production calibration result.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "Concrete equation, failed assertion and bounded evidence make the report specific; required audit headings add formality.",
+  "confidence": "medium",
+  "confidence_reason": "Full-draft self-review against exact manifests/logs; no independent style rating.",
+  "examples": [
+    {
+      "location": "Team Learning",
+      "cue": "Changing a coefficient's SD does not require changing its random-regression design.",
+      "impact": "States the concrete coefficient/design distinction checked by independent invariance tests.",
+      "repair": "no change needed",
+      "line": 82,
+      "quote": "Changing a coefficient's SD does not require changing its random-regression design."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Slope coefficient scale and x-weighted latent contribution are distinct; independent likelihood and exact reductions support implementation only.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Source18/39/24/56 and combined235 counts, initial failure, unchanged runtime hashes and copied corrected test checked against retained logs/manifests.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external literature claim; numerical/source claims point to local receipts.",
+  "date": "2026-10-17",
+  "calibration_status": "Self-review, not a held-out style assessment.",
+  "interpretation": "perceived_style_not_authorship"
+}

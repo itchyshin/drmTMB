@@ -1,0 +1,20 @@
+{
+  "repository": "DRModels.jl paired candidate",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "branch": "codex/general-sd-regression",
+  "worktree_state": "dirty shared candidate; source hashes identify test-time files",
+  "files": [
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/poisson.jl",
+      "sha256": "3bc89b7d6b2f884cb9d7b3332d1728238be2ea03b526fbb57abc32eb79296ad8"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/inference.jl",
+      "sha256": "bc435919231e5b84b406dbb219831d47585fcd238cfe0ecb9c8f3a1e65f5ee9a"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/poisson-animal-julia-20261022/test_poisson_animal_sd_regression.jl",
+      "sha256": "2ae6022da27d06d88e56dc2c739265be2439db029960219c74693d5a4c638fb4"
+    }
+  ]
+}

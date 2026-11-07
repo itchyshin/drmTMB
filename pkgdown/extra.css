@@ -18,14 +18,15 @@
 .drmtmb-version-note {
   border: 1px solid rgba(15, 120, 135, 0.25);
   border-radius: 999px;
-  color: #37515a;
+  color: #ffffff;
   display: inline-flex;
+  flex: 0 0 auto;
   font-size: 0.76rem;
   line-height: 1.1;
   margin-right: 0.85rem;
   max-width: 18rem;
   padding: 0.16rem 0.48rem;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 /* One compact route from the honest status material to a reportable result. */
@@ -61,7 +62,7 @@
   font-size: 0.92rem;
 }
 
-@media (min-width: 992px) and (max-width: 1359.98px) {
+@media (min-width: 992px) and (max-width: 1799.98px) {
   /* The ordinary package version already remains visible beside the brand. */
   .drmtmb-version-note {
     display: none;
@@ -73,7 +74,7 @@
   }
 }
 
-@media (min-width: 992px) and (max-width: 1099.98px) {
+@media (min-width: 992px) and (max-width: 1799.98px) {
   .navbar .navbar-nav.me-auto {
     font-size: 0.78rem;
   }

@@ -1,0 +1,80 @@
+{
+  "evidence_id": "binomial-labelled-q2-sd-b32-20261103a",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c 356-357 Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-binomial-labelled-q2-sd-b32.R', reporter='summary')); cat(sprintf('DRM_RECEIPT_COUNTS ...', sum(r$passed), sum(r$failed), sum(r$error), sum(r$skipped)))\"",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/rr33/pkg of HEAD 81553915d (R/, src/, tests/ identical to the worktree; sha256 of the test file and R/drmTMB.R verified equal), 2 pinned cores",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "81553915db8b422982b277a0d50c1521f3596ab4",
+  "tree_state": "HEAD 81553915d; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-03T01:06:33Z",
+  "run_ended_utc": "2026-11-03T01:09:33Z",
+  "exit_code": 0,
+  "expectations_passed": 166,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-labelled-q2-sd-b32-20261103a/test-console.log",
+  "console_log_sha256": "c9bdc493c284f5aa3f7609176334e868649a8baca3defcb237b4c5588d365df1",
+  "test_path": "tests/testthat/test-binomial-labelled-q2-sd-b32.R",
+  "test_sha256": "ba9fd33ca025b9a314fae1773ba6749c7aeee6d20af61249e05d137fde29b653",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-labelled-q2-sd-b32-20261103a/source-manifest.json",
+  "source_manifest_sha256": "85cb6b08e1f63dc40079b3755bc4b658abbd54a3c7ac61ead00b2c7ce45966dc",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [],
+  "strengthens_note": "The test file header names no parent evidence id, so none is claimed; this is a first receipt for the linked rows.",
+  "scope": "Native Binomial labelled animal(1 + x | p | g, A = A) (logit, probit, cloglog) and phylo(1 + x | p | g, tree) (logit) intercept-plus-slope q=2 with one SD formula per coefficient; dense base-R Laplace oracle at the fitted rho (1e-4 on logLik, hand inbred-pedigree A / cov2cor(ape::vcv)), emulated-bug sensitivity (>0.1), estimated rho moves with data, Ainv and pedigree inputs reproduce the A fit (logit, 1e-6), marginal/conditional simulation, designed refusals. Likelihood-evaluation check at fixed seeds only.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"cloglog\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"logit\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"logit\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"Ainv_precision\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"logit\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"pedigree\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"logit\",\"phylo_correlated_block\",\"P2-phylo-within\",\"phylo\",\"within-endpoint correlated intercept and one numeric slope\",\"tree\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"probit\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"cloglog\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"logit\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"logit\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"Ainv_precision\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"logit\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"pedigree\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"logit\",\"phylo_correlated_block\",\"P2-phylo-within\",\"phylo\",\"within-endpoint correlated intercept and one numeric slope\",\"tree\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"probit\",\"animal_correlated_block\",\"A2-animal-within\",\"animal\",\"within-endpoint correlated intercept and one numeric slope\",\"A_covariance\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "recovery or estimator-accuracy claims",
+    "Julia parity",
+    "Binomial relmat, spatial or iid labelled q2",
+    "probit or cloglog labelled phylo (refused by design)",
+    "labelled block without SD formulas",
+    "Ainv and pedigree inputs against an independent oracle (only equality with the A fit, logit)",
+    "any family, link, provider or endpoint not listed in candidate_rows"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Reviewed by reading tests/testthat/test-binomial-labelled-q2-sd-b32.R and the helpers it uses. (1) The oracle is independent: sb26_laplace in helper-sb26-oracle.R is base-R dense Laplace and calls no drmTMB code. The kernels are hand-built, namely a Henderson tabular A from an inbred pedigree (max diag >1.6) and cov2cor(ape::vcv(tree)). The oracle uses the fitted rho, with kernel rows reversed against the level order, and the phylo tip helper is compared against the hand kernel. Agreement is required at 1e-4 on logLik. (2) Sensitivity is asserted at >0.1 for nine bugs: swapped selector coefficients, reversed SD intercept and slope, swapped intercept/slope SD, K read by position, K times 2, rho 0, rho flipped, and cov2cor(K) or raw vcv. The test also checks that the fitted |rho| exceeds 0.3, so those bugs are real changes. The simulation test adds variance-ratio bands that rho 0, a flipped rho and the cov2cor diagonal each leave by more than 0.10. (3) The linked rows are fitted. animal/A_covariance is fitted for logit, probit and cloglog (mu:I and mu:x1), and phylo/tree for logit, all with the labelled block and both SD formulas. The Ainv_precision and pedigree rows are fitted for logit only, on seed 32431. Those two routes rest on logLik equality with the A fit at 1e-6 and rho equality at 1e-4, so they are oracle-backed only through the A fit, which has the oracle on that same seed and link. They have no oracle of their own. (4) I recomputed all manifest sha256 values, including R/binomial-q2-sd.R and the four helpers, and they match the current files. The receipt, manifest and console-log hashes match as well. The console log shows passed=166 failed=0 errors=0 skipped=0, EXIT=0, and the test did not skip on the ape check. The Julia line (0 live tests) is expected for a native-only claim. DOES NOT ESTABLISH: coverage, calibration, recovery or estimator accuracy (likelihood evaluation at fixed seeds, one seed per link); Julia parity; direct independent-oracle validation of Ainv and pedigree inputs (equality with the A fit, logit only); probit or cloglog for Ainv, pedigree or phylo (phylo probit and cloglog are refused by design); Binomial relmat, spatial or iid labelled q2 (relmat and spatial are refused); and labelled blocks without SD formulas. The rho-moves check shows the estimate follows the sign of the data (phylo +0.703 vs -0.837), not that it is unbiased.",
+  "reviewed_at": "2026-11-03",
+  "reviewer": "independent reviewer, batch 33, confirmed by a skeptical verifier"
+}

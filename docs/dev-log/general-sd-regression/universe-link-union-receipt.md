@@ -1,0 +1,9 @@
+# Link-union denominator correction
+
+The required universe now uses the union of location-link routes admitted at the pinned native and Julia sources. The native pin is `d89db50975d96d9c2bcb13046453ae34c7fcf49b`; the Julia pin is `b1832c7a686decf4e3d7a06ad8382bf164b9d8d4`. In the binomial route, native admits logit, probit, and complementary log-log, while Julia admits only logit (`family-links.tsv`, with the pinned source spans recorded per row).
+
+The link table therefore contains 44 rows: 42 engine-admitted link routes and two Julia union obligations for probit and complementary log-log. The two added links each expand over the exact provider/input rows in the frozen mechanism templates. This adds 122 rows to the candidate denominator: 18 retain the existing single-endpoint cross-endpoint structural exclusion, and 104 are `blocked_base_plumbing` because the Julia base link is not admitted. No row is promoted to direct SD support. The generated universe contains 19,118 rows: Julia 9,631 and native 9,487; initial statuses are unresolved 11,198, required 4,399, blocked base plumbing 3,431, and structural inapplicable 90.
+
+The ordinary intercept/slope base screen adds four Julia binomial probit/cloglog rows, marked `base_blocked` with evidence pointing to the link-admission table. It does not infer ordinary-effect admission for routes whose link is missing. The screen now has 224 rows (112 per engine).
+
+The generator and tests require both union links for Julia, preserve their missing-base status, reject incorrect admission metadata, and reject support promotion. `python3 -m unittest tools/general-sd-regression/tests/test_universe.py -v` passed all 14 tests. G0 remains open: this link correction fixes denominator accounting but does not classify every family × endpoint × provider/input × layout base route or resolve mathematical and identifiability review.

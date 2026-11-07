@@ -1,4 +1,6 @@
-# 226 — One canonical reader learning path across 40 vignettes
+# 226: One canonical reader learning path across 42 vignettes
+
+<!-- slop-ok: Historical review prose is preserved. The prior slice updates only the vignette count and placement inventory; new inventory wording was reviewed separately. -->
 
 ## 1. The problem
 
@@ -35,11 +37,13 @@ links from any other vignette (`adding-families`, `convergence`,
 so they are reachable only by guessing a URL or scrolling the reference
 index.
 
-The synchronized placement table below now contains 40 vignettes after the
+The synchronized placement table below now contains 42 vignettes after the
 location-scale tutorial was split into two shorter parts, the first-week
 interval and bivariate non-Gaussian routes were added, the comparator
 article was placed under stage 5, and the temporal random-effect tutorial
-and its development-only phylogenetic OU companion were added to stage 4.
+and its development-only phylogenetic OU companion were added to stage 4,
+and the predictor-dependent group-SD tutorial was added to stage 3. The
+fixed-effect prior guide joins the specialist branch for optional penalized fits.
 
 ## 2. The canonical sequence
 
@@ -87,7 +91,7 @@ that document the package's own internals rather than how to use it.
 
 ## 3. The full placement table
 
-40 rows. Role legend: **tutorial** = worked biological example with fitted
+42 rows. Role legend: **tutorial** = worked biological example with fitted
 output and interpretation; **guide** = orientation/reference, no full worked
 analysis; **route-chooser** = helps the reader pick a family or syntax
 before fitting; **specialist** = correct placement is deliberately outside
@@ -105,6 +109,7 @@ path.
 | 5 | `model-map` | 2. Choose your family | route-chooser | "What can I fit today?" status map; the reader consults it while deciding which family/syntax combination is actually implemented. |
 | 6 | `location-scale` | 3. Interpretation tutorials | tutorial | Part 1 of the Gaussian variance sequence: `mu` and residual `sigma` interpretation with a biological example. |
 | 6a | `location-scale-scale` | 3. Interpretation tutorials | tutorial | Part 2 of the Gaussian variance sequence: personality and sex-specific repeatability from `sigma` plus `sd(individual)`, followed by a short phylogenetic `sd(group, level = "phylogenetic")` extension. |
+| 6b | `predictor-dependent-random-sd` | 3. Interpretation tutorials | tutorial | Part 3 of the variance sequence: lets the group-level SD itself depend on a predictor with `sd(group) ~ x`, and separates it from residual `sigma`; read after `location-scale-scale`. Point estimates only, no interval calibration. |
 | 7 | `robust-student` | 3. Interpretation tutorials | tutorial | Student-t shape-parameter (`nu`) worked tutorial for robust continuous responses. |
 | 8 | `count-nbinom2` | 3. Interpretation tutorials | tutorial | NB2 count worked tutorial, including zero-inflation (`zi`). |
 | 9 | `proportion-beta-binomial` | 3. Interpretation tutorials | tutorial | Beta, beta-binomial, and zero-one-beta worked tutorial for bounded/proportion responses. |
@@ -112,6 +117,7 @@ path.
 | 10a | `bivariate-nongaussian` | 3. Interpretation tutorials | route-chooser | Distinguishes the implemented joint and staged routes for non-Gaussian response pairs before readers interpret an association as if every family combination used the same model. |
 | 11 | `missing-data` | 3. Interpretation tutorials | guide | Documents `miss_control()` response/predictor routes; a reader needs this while writing the formula for their chosen family, not after fitting, so it sits with the family/formula-writing stage rather than stage 5. |
 | 12 | `meta-analysis` | Specialist branch | specialist | Per P2: known sampling variances with no raw data is categorically unlike choosing a family for raw observations. Kept `family = gaussian()` plus `meta_V(V = V)`, clearly labelled as a specialist route, not folded into "Choose your family." |
+| 12a | `fixed-effect-priors` | Specialist branch | guide | Optional normal priors and ridge penalties for selected fixed effects in Gaussian location-scale and binomial-logit models, with explicit intercept selection and restricted inference. |
 | 13 | `structural-dependence` | 4. Random & structured effects | route-chooser | Overview and router across `animal()`, `phylo()`, `spatial()`, `relmat()` before the reader picks a specific structured-effect tutorial. |
 | 14 | `animal-models` | 4. Random & structured effects | tutorial | Worked `animal()` / additive-relatedness tutorial. |
 | 14a | `temporal-random-effects` | 4. Random & structured effects | tutorial | Worked `temporal()` tutorial separating stable series differences, temporal persistence, and residual noise in repeated Gaussian measurements. |

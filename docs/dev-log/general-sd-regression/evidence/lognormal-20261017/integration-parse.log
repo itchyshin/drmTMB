@@ -1,0 +1,87 @@
+expression(lognormal_sd_recovery_fixture <- function(groups = 60L, 
+    repeats = 12L, seed = 2026101711L) {
+    set.seed(seed)
+    group_index <- rep(seq_len(groups), each = repeats)
+    group_names <- paste0("g", seq_len(groups))
+    id <- factor(group_names[group_index], levels = group_names)
+    w_group <- seq(-1, 1, length.out = groups)
+    x <- stats::rnorm(length(group_index))
+    z <- stats::rnorm(length(group_index))
+    truth <- list(beta = c(`(Intercept)` = 0.2, x = 0.45), alpha = c(`(Intercept)` = log(0.55), 
+        w = 0.45), gamma = c(`(Intercept)` = log(0.4), z = 0.18))
+    dat <- data.frame(x = x, z = z, w = w_group[group_index], 
+        id = id)
+    latent_u <- stats::setNames(stats::rnorm(groups), group_names)
+    y <- lognormal_sd_reference_dgp(dat, truth, latent_u, stats::rnorm(nrow(dat)))
+    dat$y <- y
+    list(data = dat, truth = truth)
+}, lognormal_sd_fit_parameters <- function(fit) {
+    list(beta = coef(fit, "mu"), alpha = coef(fit, "sd(id)"), 
+        gamma = coef(fit, "sigma"))
+}, test_that("lognormal direct SD fit matches the exact marginal reference", 
+    {
+        sim <- lognormal_sd_recovery_fixture()
+        dat <- sim$data
+        fit <- drmTMB::drmTMB(bf(y ~ x + (1 | id), sigma ~ z, 
+            sd(id) ~ w), family = lognormal(), data = dat)
+        expect_equal(fit$opt$convergence, 0L)
+        expect_true(isTRUE(fit$sdr$pdHess))
+        alpha_hat <- coef(fit, "sd(id)")
+        expect_lt(abs(alpha_hat[["(Intercept)"]] - sim$truth$alpha[[1L]]), 
+            0.2)
+        expect_lt(abs(alpha_hat[["w"]] - sim$truth$alpha[[2L]]), 
+            0.2)
+        expect_identical(fit$model$random_scale$mu$dpars, "sd(id)")
+        expect_identical(fit$model$random_scale$mu$target_identity[["sd(id)"]]$group, 
+            "id")
+        sd_prediction <- predict(fit, dpar = "sd(id)")
+        expect_named(sd_prediction, levels(dat$id))
+        expect_length(sd_prediction, nlevels(dat$id))
+        oracle <- lognormal_sd_exact_marginal_loglik(dat, lognormal_sd_fit_parameters(fit))
+        expect_equal(as.numeric(logLik(fit)), oracle, tolerance = 1e-05)
+        wrong_group <- dat
+        wrong_group_w <- stats::setNames(rev(seq(-1, 1, length.out = nlevels(dat$id))), 
+            levels(dat$id))
+        wrong_group$w <- unname(wrong_group_w[as.character(wrong_group$id)])
+        wrong_oracle <- lognormal_sd_exact_marginal_loglik(wrong_group, 
+            lognormal_sd_fit_parameters(fit))
+        expect_gt(abs(wrong_oracle - oracle), 0.1)
+        target <- "fixef:sd(id):w"
+        profile_ci <- suppressMessages(confint(fit, parm = target, 
+            method = "profile", level = 0.95))
+        expect_identical(profile_ci$parm, target)
+        expect_true(all(is.finite(c(profile_ci$lower, profile_ci$upper))))
+        save_path <- tempfile(fileext = ".rds")
+        on.exit(unlink(save_path), add = TRUE)
+        saveRDS(fit, save_path)
+        restored <- readRDS(save_path)
+        expect_equal(coef(restored, "sd(id)"), alpha_hat)
+        expect_equal(predict(restored, dpar = "sd(id)"), sd_prediction)
+        simulated <- stats::simulate(fit, nsim = 2L, seed = 2026101712L)
+        expect_equal(dim(simulated), c(nrow(dat), 2L))
+        expect_true(all(is.finite(as.matrix(simulated)) & as.matrix(simulated) > 
+            0))
+        boot_ci <- suppressMessages(confint(fit, parm = target, 
+            method = "bootstrap", R = 2L, seed = 2026101713L))
+        expect_true(all(is.finite(as.matrix(boot_ci))))
+        boot_diagnostics <- attr(boot_ci, "bootstrap.diagnostics", 
+            exact = TRUE)
+        expect_equal(nrow(boot_diagnostics), 2L)
+        expect_true(any(boot_diagnostics$refit_status == "ok"))
+    }), test_that("constant lognormal SD regression reduces to ordinary random intercept", 
+    {
+        sim <- lognormal_sd_recovery_fixture(groups = 36L, repeats = 10L, 
+            seed = 2026101714L)
+        dat <- sim$data
+        fit_sd_constant <- drmTMB::drmTMB(bf(y ~ x + (1 | id), 
+            sigma ~ z, sd(id) ~ 1), family = lognormal(), data = dat)
+        fit_ordinary <- drmTMB::drmTMB(bf(y ~ x + (1 | id), sigma ~ 
+            z), family = lognormal(), data = dat)
+        expect_equal(fit_sd_constant$opt$convergence, 0L)
+        expect_equal(fit_ordinary$opt$convergence, 0L)
+        expect_equal(as.numeric(logLik(fit_sd_constant)), as.numeric(logLik(fit_ordinary)), 
+            tolerance = 1e-05)
+        expect_equal(unname(predict(fit_sd_constant, dpar = "sd(id)")), 
+            rep(unname(coef(fit_ordinary, "sd(id)")[[1L]]), nlevels(dat$id)), 
+            tolerance = 1e-05)
+    }))

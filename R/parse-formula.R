@@ -595,6 +595,7 @@ parse_corpair_string_arg <- function(args, arg_names, name) {
 parse_sd_lhs <- function(lhs) {
   lhs <- strip_parens(lhs)
   fun <- random_scale_lhs_function(lhs)
+  input_fun <- fun
   if (
     fun %in%
       c(
@@ -604,8 +605,8 @@ parse_sd_lhs <- function(lhs) {
       )
   ) {
     cli::cli_abort(c(
-      "{.fn {fun}} random-effect SD models are planned but not implemented yet.",
-      "i" = "This implementation currently supports {.code sd(group)} for univariate Gaussian location random effects, {.code sd1(group)} / {.code sd2(group)} for bivariate Gaussian location random effects, {.code sd_phylo(species)} for univariate phylogenetic location random effects, and {.code sd_phylo1(species)} / {.code sd_phylo2(species)} for bivariate phylogenetic location random effects."
+      "{.fn {fun}} random-effect SD models are not supported yet.",
+      "i" = "See {.code ?random_effect_scale_formulas} for supported random-effect SD targets."
     ))
   }
   if (fun %in% c("sd_sigma1", "sd_sigma2")) {
@@ -628,7 +629,7 @@ parse_sd_lhs <- function(lhs) {
     cli::cli_abort(c(
       "Random-effect scale formulas require exactly one grouping variable.",
       "x" = "Use syntax like {.code sd(id) ~ x_group} or {.code sd1(id) ~ x_group}.",
-      "i" = "Explicit targets such as {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\")} are planned for a later phase."
+      "i" = "For an ambiguous target, select its parameter and coefficient, for example {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\") ~ x_group}."
     ))
   }
   if (!is.symbol(args[[target_pos]])) {
@@ -663,7 +664,10 @@ parse_sd_lhs <- function(lhs) {
   level <- canon$level
 
   explicit <- any(!is.na(c(target_dpar, target_coef, target_block)))
-  if (explicit && !identical(fun, "sd")) {
+  # Explicit selectors belong to the generic sd() grammar. Keep compatibility
+  # aliases and sd1()/sd2() shorthand unchanged, but retain selectors when the
+  # generic spelling canonicalizes to a structured target such as sd_phylo().
+  if (explicit && !identical(input_fun, "sd")) {
     hint <- if (fun %in% c("sd1", "sd2")) {
       "Use {.code sd1(id) ~ x_group} or {.code sd2(id) ~ x_group} for implemented bivariate location random-effect SD models."
     } else if (identical(fun, "sd_phylo")) {
@@ -676,26 +680,25 @@ parse_sd_lhs <- function(lhs) {
       "i" = hint
     ))
   }
-  if (!is.na(target_dpar) && !identical(target_dpar, "mu")) {
-    cli::cli_abort(c(
-      "{.arg dpar} in explicit {.fn sd} targets is reserved for location random effects.",
-      "x" = "The supported planned value is {.val mu}, not {.val {target_dpar}}.",
-      "i" = "Use residual-scale formulas such as {.code sigma ~ ...} for residual variation."
-    ))
-  }
-
   group <- as.character(args[[target_pos]])
+  dpar <- format_sd_lhs_dpar(
+    fun,
+    group,
+    target_dpar,
+    target_coef,
+    target_block
+  )
+  # Structured routes currently have one selected term per group/provider.
+  # Keep selectors as parsed metadata, but preserve the established public
+  # parameter key so adding a selector does not rename fitted coefficients.
+  if (fun %in% c("sd_phylo", "sd_animal", "sd_relmat", "sd_spatial")) {
+    dpar <- format_sd_lhs_dpar(fun, group, NA_character_, NA_character_, NA_character_)
+  }
   list(
     group = group,
     fun = fun,
     level = level,
-    dpar = format_sd_lhs_dpar(
-      fun,
-      group,
-      target_dpar,
-      target_coef,
-      target_block
-    ),
+    dpar = dpar,
     target_dpar = target_dpar,
     target_coef = target_coef,
     target_block = target_block,
@@ -712,11 +715,19 @@ parse_sd_lhs <- function(lhs) {
 # `startsWith(dpars, "sd_phylo(")`-style check keeps working unchanged.
 canonicalize_sd_lhs_fun <- function(fun, level) {
   legacy_phylo_funs <- c("sd_phylo", "sd_phylo1", "sd_phylo2")
-  generic_to_phylo <- c(sd = "sd_phylo", sd1 = "sd_phylo1", sd2 = "sd_phylo2")
+  generic_to_level <- list(
+    phylogenetic = c(sd = "sd_phylo", sd1 = "sd_phylo1", sd2 = "sd_phylo2"),
+    phylogenetic_interaction = c(sd = "sd_phylo"),
+    spatial = c(sd = "sd_spatial"),
+    animal = c(sd = "sd_animal"),
+    relmat = c(sd = "sd_relmat")
+  )
 
   if (fun %in% legacy_phylo_funs) {
     if (!is.na(level)) {
-      generic_fun <- names(generic_to_phylo)[generic_to_phylo == fun]
+      generic_fun <- names(generic_to_level$phylogenetic)[
+        generic_to_level$phylogenetic == fun
+      ]
       cli::cli_abort(c(
         "{.arg level} cannot be combined with {.fn {fun}}.",
         "x" = "{.fn {fun}} already names the phylogenetic dependence level.",
@@ -731,21 +742,30 @@ canonicalize_sd_lhs_fun <- function(fun, level) {
     return(list(fun = fun, level = NA_character_))
   }
 
-  allowed_levels <- c("phylogenetic", "spatial", "animal", "relmat")
+  allowed_levels <- c(
+    "phylogenetic", "phylogenetic_interaction", "spatial", "animal", "relmat"
+  )
   if (!level %in% allowed_levels) {
     cli::cli_abort(c(
       "{.arg level} must name a supported random-effect scale dependence level.",
       "x" = "Supported values are {.val {allowed_levels}}."
     ))
   }
-  if (!identical(level, "phylogenetic")) {
+  if (!level %in% names(generic_to_level)) {
     cli::cli_abort(c(
       "{.code {fun}(group, level = \"{level}\")} random-effect SD models are planned but not implemented yet.",
-      "i" = "This implementation currently supports {.code {fun}(group, level = \"phylogenetic\")} (equivalently {.fn {generic_to_phylo[[fun]]}})."
+      "i" = "Implemented levels are {.val {names(generic_to_level)}}."
     ))
   }
 
-  list(fun = unname(generic_to_phylo[[fun]]), level = level)
+  level_map <- generic_to_level[[level]]
+  if (!fun %in% names(level_map)) {
+    cli::cli_abort(c(
+      "{.code {fun}(group, level = \"{level}\")} is not an implemented random-effect SD target.",
+      "i" = "Use {.code sd(group, level = \"{level}\")} for the supported univariate target."
+    ))
+  }
+  list(fun = unname(level_map[[fun]]), level = level)
 }
 
 parse_sd_string_arg <- function(args, arg_names, name) {
@@ -1204,13 +1224,6 @@ parse_phylo_interaction_bar_term <- function(expr, marker) {
 
   lhs <- strip_parens(expr[[2L]])
   group <- strip_parens(expr[[3L]])
-  if (!is_intercept_one(lhs)) {
-    cli::cli_abort(c(
-      "{.fn {marker}} currently supports only an intercept-only pair effect.",
-      "x" = "Use {.code phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)}.",
-      "i" = "Structured pair slopes need separate syntax, simulations, and extractor checks before fitting."
-    ))
-  }
   if (!is.call(group) || !identical(group[[1L]], as.name(":"))) {
     cli::cli_abort(c(
       "{.fn {marker}} grouping terms must be a pair of simple variables joined by {.code :}.",
@@ -1235,20 +1248,23 @@ parse_phylo_interaction_bar_term <- function(expr, marker) {
   }
 
   group_name <- paste0(partner1, ":", partner2)
-  list(
-    group = group_name,
-    group1 = partner1,
-    group2 = partner2,
-    variables = NA_character_,
-    coef_names = "(Intercept)",
-    label = format_structured_label(
-      marker,
-      "1",
-      group_name,
-      covariance_label = NULL
-    ),
+  parsed_lhs <- parse_structured_bar_term(
+    as.call(list(as.name("|"), lhs, as.name(group_name))), marker
+  )
+  parsed_lhs$group <- group_name
+  parsed_lhs$group1 <- partner1
+  parsed_lhs$group2 <- partner2
+  parsed_lhs$label <- format_structured_label(
+    marker,
+    if (identical(parsed_lhs$coef_names, "(Intercept)")) {
+      "1"
+    } else {
+      paste0("0 + ", parsed_lhs$coef_names)
+    },
+    group_name,
     covariance_label = NULL
   )
+  parsed_lhs
 }
 
 format_structured_label <- function(

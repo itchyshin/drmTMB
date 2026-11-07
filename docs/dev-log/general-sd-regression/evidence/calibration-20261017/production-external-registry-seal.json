@@ -1,0 +1,15 @@
+{
+  "registry_sha256": "d2e1080d7cadb5679fc711a76cacd4e64a6b5326b5f6689c0492587bdd628a91",
+  "manifest_rows": 3000,
+  "master_seed": 2026101703,
+  "harness_archive_sha256": "d36bd0dac4c7bb8a8d7ce7a82e70299c95dcc5774e4a0071ea8bf2692e7aea60",
+  "stage_two_manifest_sha256": "8fd627ccb8a7f8689c56e629a5ff12e53405be1a508167216632bcf445652e96",
+  "qualification_and_stage_two_seeds_disjoint": true,
+  "status": "prepared_not_launched",
+  "launcher_sha256": "43cb61b59777bc7d9b6c6e527e6dd17577b3fbd5ca70fc723239510d7130f6a9",
+  "timing_receipt": "contention/timing-receipt.json",
+  "estimated_minutes": "45-60",
+  "campaign_cap_seconds": 3600,
+  "per_case_cap_seconds": 120,
+  "workers": 16
+}
