@@ -1,0 +1,696 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "ri_01",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 2.198593916508107e-16,
+        "point_data_nll": 3.446720557197394e-16,
+        "point_prior": 2.6157544104905e-16,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 4.685040189040619e-16,
+        "fit_data_nll": 5.5714428521549e-16,
+        "fit_prior": 6.329545159292665e-17,
+        "fit_optimum_objective": 0.0,
+        "fit_coefficients": 3.406557704131547e-10,
+        "fit_interior_group_sd": 8.077009444135338e-10
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ]
+    },
+    {
+      "id": "ri_02",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 1.394210315402096e-16,
+        "point_data_nll": 0.0,
+        "point_prior": 2.0319211975233398e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 7.16777597954715e-16,
+        "point_hessian": 3.693486095155118e-10,
+        "fit_objective_at_returned_point": 1.4548964049513455e-15,
+        "fit_data_nll": 7.016579735912049e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 4.4807339902143475e-11,
+        "fit_coefficients": 6.6640648662590526e-12
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 8.77215111076157e-07
+      }
+    },
+    {
+      "id": "ri_03",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 2.722669183716123e-16,
+        "point_prior": 6.45619973456123e-17,
+        "point_decomposition": 0.0,
+        "point_gradient": 9.88847834626613e-16,
+        "point_hessian": 2.1420482811411865e-10,
+        "fit_objective_at_returned_point": 0.0,
+        "fit_data_nll": 0.0,
+        "fit_prior": 5.716331886714492e-17,
+        "fit_optimum_objective": 2.2502356134845926e-11,
+        "fit_coefficients": 6.207115951923616e-09
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 7.097505958284858e-07
+      }
+    },
+    {
+      "id": "ri_04",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 0.0,
+        "point_prior": 7.515293078968372e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 2.762700028110037e-16,
+        "point_hessian": 4.247940973686038e-10,
+        "fit_objective_at_returned_point": 1.7085001316540755e-15,
+        "fit_data_nll": 1.7216067374485171e-15,
+        "fit_prior": 1.3400473834420427e-16,
+        "fit_optimum_objective": 1.1390000877693845e-15,
+        "fit_coefficients": 6.85945484795479e-11,
+        "fit_interior_group_sd": 2.8508596982170656e-11
+      },
+      "unavailable": []
+    },
+    {
+      "id": "ri_05",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 1.64932508677702e-16,
+        "point_data_nll": 1.6498612432052879e-16,
+        "point_prior": 7.212888593436195e-16,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 1.8926885855529373e-15,
+        "fit_data_nll": 1.4903881724004153e-15,
+        "fit_prior": 1.113200165621554e-16,
+        "fit_optimum_objective": 1.3765007894930453e-15,
+        "fit_coefficients": 1.2873892722970116e-09,
+        "fit_interior_group_sd": 2.6506735995342645e-10
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ]
+    },
+    {
+      "id": "ri_06",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 4.3502907647672623e-16,
+        "point_data_nll": 4.825262515821181e-16,
+        "point_prior": 5.033168939378748e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.12884718078538e-16,
+        "point_hessian": 3.2962316535057096e-10,
+        "fit_objective_at_returned_point": 1.873814671430656e-15,
+        "fit_data_nll": 1.0011030905054836e-15,
+        "fit_prior": 7.683690296264731e-17,
+        "fit_optimum_objective": 3.311726512614825e-11,
+        "fit_coefficients": 6.924871707488393e-10
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 8.155817155443377e-07
+      }
+    },
+    {
+      "id": "ri_07",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 1.9956521215058294e-16,
+        "point_prior": 7.847263231471501e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 4.978353708454487e-16,
+        "point_hessian": 2.879122770702961e-10,
+        "fit_objective_at_returned_point": 1.783647785502764e-15,
+        "fit_data_nll": 2.141692374534865e-15,
+        "fit_prior": 1.94962033979783e-16,
+        "fit_optimum_objective": 2.6268267386495254e-14,
+        "fit_coefficients": 5.33531111412014e-08,
+        "fit_interior_group_sd": 3.570738465962321e-09
+      },
+      "unavailable": []
+    },
+    {
+      "id": "ri_08",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 3.7471320033321e-16,
+        "point_data_nll": 2.738106752312854e-16,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.6378400009818443e-16,
+        "point_hessian": 6.971688304180681e-10,
+        "fit_objective_at_returned_point": 3.571238896599986e-15,
+        "fit_data_nll": 2.5191537548550334e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 5.370993806476651e-11,
+        "fit_coefficients": 2.6314315742000004e-12
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 1.0503958512081196e-06
+      }
+    },
+    {
+      "id": "ri_09",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 0.0,
+        "point_prior": 7.178525707927814e-16,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 4.302401951041428e-15,
+        "fit_data_nll": 1.884653357115708e-15,
+        "fit_prior": 7.933519318086332e-17,
+        "fit_optimum_objective": 1.9491461312023848e-11,
+        "fit_coefficients": 1.2077390222013873e-09
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 5.212869997190653e-07
+      }
+    },
+    {
+      "id": "ri_10",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 2.1598053752265948e-16,
+        "point_data_nll": 2.1624675038008226e-16,
+        "point_prior": 7.515293078968372e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.098682104257393e-16,
+        "point_hessian": 2.1925031490821335e-10,
+        "fit_objective_at_returned_point": 3.085310242385751e-15,
+        "fit_data_nll": 3.0955091633190737e-15,
+        "fit_prior": 1.6738339212203056e-16,
+        "fit_optimum_objective": 2.2438619944623714e-15,
+        "fit_coefficients": 2.550464987812166e-09,
+        "fit_interior_group_sd": 3.1446858897952013e-10
+      },
+      "unavailable": []
+    },
+    {
+      "id": "ri_11",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 4.034819326184172e-16,
+        "point_data_nll": 2.694342001252557e-16,
+        "point_prior": 3.497032768696976e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.6361068680608783e-16,
+        "point_hessian": 2.379518626235015e-10,
+        "fit_objective_at_returned_point": 1.7680229842047265e-16,
+        "fit_data_nll": 1.7545219647108697e-16,
+        "fit_prior": 1.0020967523356529e-16,
+        "fit_optimum_objective": 7.072091936818906e-16,
+        "fit_coefficients": 2.176346571884485e-09,
+        "fit_interior_group_sd": 1.2580931541229631e-10
+      },
+      "unavailable": []
+    },
+    {
+      "id": "ri_12",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 3.6818044250676854e-16,
+        "point_data_nll": 4.034984449996727e-16,
+        "point_prior": 2.9385130121538507e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.7562642377994675e-16,
+        "point_hessian": 5.569953982180869e-10,
+        "fit_objective_at_returned_point": 3.1427132279883837e-15,
+        "fit_data_nll": 2.2474362176342397e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 1.994598101941104e-11,
+        "fit_coefficients": 9.002235414901e-10
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 7.234681502584778e-07
+      }
+    },
+    {
+      "id": "ri_01",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 1.1489068523991317e-16,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 9.370080378081241e-16,
+        "fit_data_nll": 1.1142885704309416e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 8.433072340273119e-16,
+        "fit_coefficients": 3.4095874454852164e-10,
+        "fit_interior_group_sd": 8.077121294421225e-10
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ]
+    },
+    {
+      "id": "ri_02",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 1.394210315402096e-16,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.6041413305521675e-16,
+        "point_hessian": 3.477922768248364e-16,
+        "fit_objective_at_returned_point": 3.3574532420449737e-16,
+        "fit_data_nll": 2.338859911961374e-16,
+        "fit_prior": 7.892282850611326e-17,
+        "fit_optimum_objective": 2.238302161363316e-16,
+        "fit_coefficients": 3.464689487830918e-11
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 9.705632216863742e-11
+      }
+    },
+    {
+      "id": "ri_03",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 2.580363993298703e-16,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 3.7838415220504406e-16,
+        "point_hessian": 4.78319349163624e-16,
+        "fit_objective_at_returned_point": 6.199557336709798e-16,
+        "fit_data_nll": 5.149861938529267e-16,
+        "fit_prior": 1.143266377340695e-16,
+        "fit_optimum_objective": 1.1513463625318192e-15,
+        "fit_coefficients": 6.091378834559614e-09
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 1.3634461246533202e-10
+      }
+    },
+    {
+      "id": "ri_04",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 4.477034442874362e-16,
+        "point_hessian": 2.8910170829299803e-16,
+        "fit_objective_at_returned_point": 5.695000438846923e-16,
+        "fit_data_nll": 5.738689124837239e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 7.593333918462564e-16,
+        "fit_coefficients": 9.361382771209176e-11,
+        "fit_interior_group_sd": 6.8406758823366654e-12
+      },
+      "unavailable": []
+    },
+    {
+      "id": "ri_05",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 2.5809389802994626e-16,
+        "fit_data_nll": 2.4839802873559773e-16,
+        "fit_prior": 1.113200165639188e-16,
+        "fit_optimum_objective": 4.301564967165771e-16,
+        "fit_coefficients": 8.676006801622813e-10,
+        "fit_interior_group_sd": 1.5756042702192687e-10
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ]
+    },
+    {
+      "id": "ri_06",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 1.4500969215890874e-16,
+        "point_data_nll": 1.6084208386070604e-16,
+        "point_prior": 8.053070303005998e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.6950624070614672e-16,
+        "point_hessian": 2.941206152960282e-16,
+        "fit_objective_at_returned_point": 8.030634305865436e-16,
+        "fit_data_nll": 5.00551545205931e-16,
+        "fit_prior": 1.5367380591056764e-16,
+        "fit_optimum_objective": 1.606126861173086e-15,
+        "fit_coefficients": 2.075735704846715e-09
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 4.535302654198203e-10
+      }
+    },
+    {
+      "id": "ri_07",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 1.920383950230117e-16,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 6.637804944605986e-16,
+        "point_hessian": 4.240938936465068e-16,
+        "fit_objective_at_returned_point": 3.9888850475789104e-14,
+        "fit_data_nll": 4.581359340293417e-14,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 2.5943967789131125e-14,
+        "fit_coefficients": 5.3415850718545274e-08,
+        "fit_interior_group_sd": 3.498697601047105e-09
+      },
+      "unavailable": []
+    },
+    {
+      "id": "ri_08",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 1.3690533761564269e-16,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.2666917400991906e-16,
+        "point_hessian": 1.4652761053573728e-16,
+        "fit_objective_at_returned_point": 1.661041347166593e-15,
+        "fit_data_nll": 1.1450698885427928e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 8.305206735832965e-17,
+        "fit_coefficients": 2.796075045982135e-10
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 2.830251456671974e-10
+      }
+    },
+    {
+      "id": "ri_09",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 0.0,
+        "point_prior": 1.0441491938804093e-15,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 1.4048659431698187e-15,
+        "fit_data_nll": 5.798933404096421e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 3.512164857924545e-16,
+        "fit_coefficients": 1.0547681344358452e-09
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 7.954829096298523e-10
+      }
+    },
+    {
+      "id": "ri_10",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.532587909071835e-16,
+        "point_hessian": 5.564139695414869e-16,
+        "fit_objective_at_returned_point": 3.739769990770618e-16,
+        "fit_data_nll": 3.7521323191746206e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 2.524344743770167e-15,
+        "fit_coefficients": 2.5492686258785847e-09,
+        "fit_interior_group_sd": 3.1273346823225166e-10
+      },
+      "unavailable": []
+    },
+    {
+      "id": "ri_11",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 1.3471710006262782e-16,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 9.131894131107241e-17,
+        "point_hessian": 3.090866405108695e-16,
+        "fit_objective_at_returned_point": 3.5360459684094574e-16,
+        "fit_data_nll": 3.509043929421894e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 8.840114921023639e-16,
+        "fit_coefficients": 2.1770456615598084e-09,
+        "fit_interior_group_sd": 1.258166818592586e-10
+      },
+      "unavailable": []
+    },
+    {
+      "id": "ri_12",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 1.2272681416892284e-16,
+        "point_data_nll": 1.3449948166655754e-16,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 9.657005590368023e-17,
+        "point_hessian": 1.3471046019796629e-16,
+        "fit_objective_at_returned_point": 1.093117644495896e-15,
+        "fit_data_nll": 7.817169452528515e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 5.465588222479477e-16,
+        "fit_coefficients": 8.995662515331467e-10
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 6.829466769502941e-10
+      }
+    },
+    {
+      "id": "ri_01",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 9.370080378081241e-16,
+        "fit_data_nll": 1.1142885704309416e-15,
+        "fit_prior": 6.329545159293168e-17,
+        "fit_optimum_objective": 8.433072340273119e-16,
+        "fit_coefficients": 3.4095874454852164e-10,
+        "fit_interior_group_sd": 8.077121294421225e-10
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ]
+    },
+    {
+      "id": "ri_02",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 3.3574532420449737e-16,
+        "fit_data_nll": 2.338859911961374e-16,
+        "fit_prior": 7.892282850611326e-17,
+        "fit_optimum_objective": 2.238302161363316e-16,
+        "fit_coefficients": 3.464689487830918e-11
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 9.705632216863742e-11
+      }
+    },
+    {
+      "id": "ri_03",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 6.199557336709798e-16,
+        "fit_data_nll": 5.149861938529267e-16,
+        "fit_prior": 5.716331886703475e-17,
+        "fit_optimum_objective": 1.1513463625318192e-15,
+        "fit_coefficients": 6.091378834559614e-09
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 1.3634461246533202e-10
+      }
+    },
+    {
+      "id": "ri_04",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 5.695000438846923e-16,
+        "fit_data_nll": 5.738689124837239e-16,
+        "fit_prior": 1.5410544909477007e-16,
+        "fit_optimum_objective": 7.593333918462564e-16,
+        "fit_coefficients": 9.361382771209176e-11,
+        "fit_interior_group_sd": 6.8406758823366654e-12
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ]
+    },
+    {
+      "id": "ri_05",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 2.5809389802994626e-16,
+        "fit_data_nll": 2.4839802873559773e-16,
+        "fit_prior": 1.113200165639188e-16,
+        "fit_optimum_objective": 4.301564967165771e-16,
+        "fit_coefficients": 8.676006801622813e-10,
+        "fit_interior_group_sd": 1.5756042702192687e-10
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ]
+    },
+    {
+      "id": "ri_06",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 8.030634305865436e-16,
+        "fit_data_nll": 5.00551545205931e-16,
+        "fit_prior": 1.5367380591056764e-16,
+        "fit_optimum_objective": 1.606126861173086e-15,
+        "fit_coefficients": 2.075735704846715e-09
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 4.535302654198203e-10
+      }
+    },
+    {
+      "id": "ri_07",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 3.9888850475789104e-14,
+        "fit_data_nll": 4.581359340293417e-14,
+        "fit_prior": 6.498734466055924e-17,
+        "fit_optimum_objective": 2.5943967789131125e-14,
+        "fit_coefficients": 5.3415850718545274e-08,
+        "fit_interior_group_sd": 3.498697601047105e-09
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ]
+    },
+    {
+      "id": "ri_08",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 1.661041347166593e-15,
+        "fit_data_nll": 1.1450698885427928e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 8.305206735832965e-17,
+        "fit_coefficients": 2.796075045982135e-10
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 2.830251456671974e-10
+      }
+    },
+    {
+      "id": "ri_09",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 1.4048659431698187e-15,
+        "fit_data_nll": 5.798933404096421e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 3.512164857924545e-16,
+        "fit_coefficients": 1.0547681344358452e-09
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 7.954829096298523e-10
+      }
+    },
+    {
+      "id": "ri_10",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 3.739769990770618e-16,
+        "fit_data_nll": 3.7521323191746206e-16,
+        "fit_prior": 5.123981391490888e-17,
+        "fit_optimum_objective": 2.524344743770167e-15,
+        "fit_coefficients": 2.5492686258785847e-09,
+        "fit_interior_group_sd": 3.1273346823225166e-10
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ]
+    },
+    {
+      "id": "ri_11",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 3.5360459684094574e-16,
+        "fit_data_nll": 3.509043929421894e-16,
+        "fit_prior": 1.3361290031144824e-16,
+        "fit_optimum_objective": 8.840114921023639e-16,
+        "fit_coefficients": 2.1770456615598084e-09,
+        "fit_interior_group_sd": 1.258166818592586e-10
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ]
+    },
+    {
+      "id": "ri_12",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 1.093117644495896e-15,
+        "fit_data_nll": 7.817169452528515e-16,
+        "fit_prior": 9.67648382578805e-17,
+        "fit_optimum_objective": 5.465588222479477e-16,
+        "fit_coefficients": 8.995662515331467e-10
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 6.829466769502941e-10
+      }
+    }
+  ]
+}
+INDEPENDENT_COMPARISON_PASS

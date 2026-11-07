@@ -1,0 +1,21 @@
+Host: Totoro, Julia 1.10.12, JULIA_NUM_THREADS=1, BLAS/OpenMP threads=1.
+
+Command:
+
+```sh
+cd /tmp/drmtmb-general-sd-q3-20261027
+JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+  ~/.juliaup/bin/julia +1.10.12 --project=. \
+  test/test_binomial_nonlogit_correlated_sd_regression.jl
+```
+
+Result:
+
+```text
+Test Summary:                        | Pass  Total     Time
+Binomial correlated q3 SD regression |   16     16  1m02.9s
+Test Summary:                                     | Pass  Total   Time
+Binomial non-logit correlated-block SD regression |   28     28  19.6s
+```
+
+The q3 test covers the existing logit recovery fixture. The non-logit block covers q2 probit and complementary log-log recovery. The independent q3 non-logit test is recorded in `run.txt`.

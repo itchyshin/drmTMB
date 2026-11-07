@@ -1,0 +1,15 @@
+{
+  "recorded_at": "2026-11-07T03:54:38.838303+00:00",
+  "run": 42336054937,
+  "job": 128293128629,
+  "diagnostic_source": "0007de42beeb1509d578c975a0afb7c2dadc7d07",
+  "status_at_recording": "in_progress",
+  "purpose": "Two prefix-only attempts with source-restricted coverage matching original CI scope, warmup receipts, flushed telemetry and process-group timeout cleanup",
+  "scope": "diagnostic only; no prior PR source change",
+  "pre_dispatch_review": "APPROVE bounded dispatch only",
+  "caps": {
+    "per_attempt_seconds": 1185,
+    "run_step_minutes": 42,
+    "job_minutes": 70
+  }
+}

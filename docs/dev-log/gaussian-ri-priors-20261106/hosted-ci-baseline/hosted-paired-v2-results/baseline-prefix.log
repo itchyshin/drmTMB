@@ -1,0 +1,333 @@
+DIAGNOSTIC_PROCESS_START ["/home/runner/work/DRModels.jl/DRModels.jl", "baseline", "prefix"]
+DIAGNOSTIC_PACKAGES_LOADED
+LOADED_PACKAGE_PATH=/home/runner/work/DRModels.jl/DRModels.jl/baseline/src/DRModels.jl
+Julia Version 1.13.3
+Commit 67ac47b9cd8 (2026-10-25 15:28 UTC)
+Build Info:
+  Official https://julialang.org release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+      Ubuntu 26.04.1 LTS
+  uname: Linux 7.0.0-1019-azure #20-Ubuntu SMP PREEMPT Mon Oct 19 22:41:16 UTC 2026 x86_64 unknown
+  CPU: Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz: 
+              speed         user         nice          sys         idle          irq
+       #1  3488 MHz         73 s          0 s          8 s        245 s          0 s  
+       #2  3491 MHz         89 s          0 s         10 s        227 s          0 s  
+       #3  3516 MHz         65 s          0 s          7 s        253 s          0 s  
+       #4  3510 MHz         55 s          0 s          9 s        263 s          0 s  
+  Memory: 15.607475280761719 GB (14763.3203125 MB free)
+  Uptime: 329.77 sec
+  Load Avg:  1.56  0.9  0.37
+  WORD_SIZE: 64
+  LLVM: libLLVM-20.1.8 (ORCJIT, icelake-server)
+  GC: Built with stock GC
+Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)
+Environment:
+  JULIA_NUM_PRECOMPILE_TASKS = 2
+  JULIA_PKG_PRECOMPILE_AUTO = 0
+  JULIA_NUM_THREADS = 1
+  SELENIUM_JAR_PATH = /usr/share/java/selenium-server.jar
+  JAVA_HOME_11_X64 = /usr/lib/jvm/temurin-11-jdk-amd64
+  JAVA_HOME_25_X64 = /usr/lib/jvm/temurin-25-jdk-amd64
+  GITHUB_PATH = /home/runner/work/_temp/_runner_file_commands/add_path_4bd64e43-24aa-495f-9636-53b0fc53664f
+  JAVA_HOME = /usr/lib/jvm/temurin-25-jdk-amd64
+  GRADLE_HOME = /usr/share/gradle-9.8.2
+  XDG_CONFIG_HOME = /home/runner/.config
+  ANT_HOME = /usr/share/ant
+  HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS = 3650
+  ANDROID_NDK_LATEST_HOME = /usr/local/lib/android/sdk/ndk/30.0.16248370
+  HOME = /home/runner
+  JAVA_HOME_21_X64 = /usr/lib/jvm/temurin-21-jdk-amd64
+  GITHUB_EVENT_PATH = /home/runner/work/_temp/_github_workflow/event.json
+  JAVA_HOME_17_X64 = /usr/lib/jvm/temurin-17-jdk-amd64
+  ANDROID_NDK_HOME = /usr/local/lib/android/sdk/ndk/27.3.13750724
+  HOMEBREW_NO_AUTO_UPDATE = 1
+  ANDROID_HOME = /usr/local/lib/android/sdk
+  PSModulePath = /root/.local/share/powershell/Modules:/usr/local/share/powershell/Modules:/opt/microsoft/powershell/7/Modules:/usr/share/az_15.6.1
+  PIPX_HOME = /opt/pipx
+  PATH = /opt/hostedtoolcache/julia/1.13.3/x64/bin:/snap/bin:/home/runner/.local/bin:/opt/pipx_bin:/home/runner/.cargo/bin:/home/runner/.config/composer/vendor/bin:/usr/local/.ghcup/bin:/home/runner/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+  SWIFT_PATH = /usr/share/swift/usr/bin
+CPU_NAME=icelake-server
+BLAS_CONFIG=LBTConfig([ILP64] libopenblas64_.so) threads=1
+JULIA_THREADS=1
+ORIGINAL_VICTIM_SHA256=57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5
+ORIGINAL_RUNNER_SHA256=03079f0370b02d6e25faca249160c8d36a5fe8a3cf210302f260eb8b5b42f813
+DIAGNOSTIC_FILE_START test_load_contract.jl
+DIAGNOSTIC_FILE_END test_load_contract.jl
+DIAGNOSTIC_FILE_START test_1051_mixed_family_boot_status.jl
+DIAGNOSTIC_FILE_END test_1051_mixed_family_boot_status.jl
+DIAGNOSTIC_FILE_START test_1092_simulate_marginal_default.jl
+DIAGNOSTIC_FILE_END test_1092_simulate_marginal_default.jl
+DIAGNOSTIC_FILE_START test_1110_aliased_design.jl
+[36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+[36m[1m│ [22m[39m  convergence_status = :degenerate
+[36m[1m│ [22m[39m  converged = false
+[36m[1m│ [22m[39m  max_abs_grad = 1.4796608382994236e-10
+[36m[1m│ [22m[39m  grad_source = :forward
+[36m[1m│ [22m[39m  vcov_complete = false
+[36m[1m│ [22m[39m  vcov_posdef = false
+[36m[1m│ [22m[39m  min_eigval = NaN
+[36m[1m│ [22m[39m  cond = Inf
+[36m[1m│ [22m[39m  penalized_map = false
+[36m[1m└ [22m[39m  ok = false
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mcheck_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `sigma` block: z (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+[33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/baseline/src/inference.jl:4457[39m
+[36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+[36m[1m│ [22m[39m  convergence_status = :degenerate
+[36m[1m│ [22m[39m  converged = false
+[36m[1m│ [22m[39m  max_abs_grad = 1.191269305422793e-13
+[36m[1m│ [22m[39m  grad_source = :forward
+[36m[1m│ [22m[39m  vcov_complete = false
+[36m[1m│ [22m[39m  vcov_posdef = false
+[36m[1m│ [22m[39m  min_eigval = NaN
+[36m[1m│ [22m[39m  cond = Inf
+[36m[1m│ [22m[39m  penalized_map = false
+[36m[1m└ [22m[39m  ok = false
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mcheck_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `mu` block: x2 (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+[33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/baseline/src/inference.jl:4457[39m
+[36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+[36m[1m│ [22m[39m  convergence_status = :converged
+[36m[1m│ [22m[39m  converged = true
+[36m[1m│ [22m[39m  max_abs_grad = 1.5672130260213635e-11
+[36m[1m│ [22m[39m  grad_source = :forward
+[36m[1m│ [22m[39m  vcov_complete = true
+[36m[1m│ [22m[39m  vcov_posdef = true
+[36m[1m│ [22m[39m  min_eigval = 0.0016829861906817874
+[36m[1m│ [22m[39m  cond = 2.358969968463276
+[36m[1m│ [22m[39m  penalized_map = false
+[36m[1m└ [22m[39m  ok = true
+[36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+[36m[1m│ [22m[39m  convergence_status = :converged
+[36m[1m│ [22m[39m  converged = true
+[36m[1m│ [22m[39m  max_abs_grad = 1.6071588504473766e-11
+[36m[1m│ [22m[39m  grad_source = :forward
+[36m[1m│ [22m[39m  vcov_complete = true
+[36m[1m│ [22m[39m  vcov_posdef = true
+[36m[1m│ [22m[39m  min_eigval = 0.001218920657610683
+[36m[1m│ [22m[39m  cond = 3.5248330254399497e6
+[36m[1m│ [22m[39m  penalized_map = false
+[36m[1m└ [22m[39m  ok = true
+DIAGNOSTIC_FILE_END test_1110_aliased_design.jl
+DIAGNOSTIC_FILE_START test_1142_crossed_failed_fit_warning.jl
+DIAGNOSTIC_FILE_END test_1142_crossed_failed_fit_warning.jl
+DIAGNOSTIC_FILE_START test_1220_betabinomial_separation_error.jl
+DIAGNOSTIC_FILE_END test_1220_betabinomial_separation_error.jl
+DIAGNOSTIC_FILE_START test_575_exact_reml_gradient.jl
+[36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mexact-vs-FD REML gradient
+[36m[1m│ [22m[39m  point = "ML-scale start"
+[36m[1m│ [22m[39m  max_abs_err = 1.7922443973361624e-8
+[36m[1m└ [22m[39m  rel = 1.5321937594041345e-9
+[36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mexact-vs-FD REML gradient
+[36m[1m│ [22m[39m  point = "DRModels.jl optimum"
+[36m[1m│ [22m[39m  max_abs_err = 2.3686866914077176e-8
+[36m[1m└ [22m[39m  rel = 2.3686866914077176e-8
+[36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mexact-vs-FD REML gradient
+[36m[1m│ [22m[39m  point = "TMB fitted point"
+[36m[1m│ [22m[39m  max_abs_err = 2.2758656291997637e-8
+[36m[1m└ [22m[39m  rel = 2.2758656291997637e-8
+DIAGNOSTIC_FILE_END test_575_exact_reml_gradient.jl
+DIAGNOSTIC_FILE_START test_949_is_converged_surfaces.jl
+[36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+[36m[1m│ [22m[39m  convergence_status = :degenerate
+[36m[1m│ [22m[39m  converged = false
+[36m[1m│ [22m[39m  max_abs_grad = 1.4796608382994236e-10
+[36m[1m│ [22m[39m  grad_source = :forward
+[36m[1m│ [22m[39m  vcov_complete = false
+[36m[1m│ [22m[39m  vcov_posdef = false
+[36m[1m│ [22m[39m  min_eigval = NaN
+[36m[1m│ [22m[39m  cond = Inf
+[36m[1m│ [22m[39m  penalized_map = false
+[36m[1m└ [22m[39m  ok = false
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mcheck_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `sigma` block: z (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+[33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/baseline/src/inference.jl:4457[39m
+[36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+[36m[1m│ [22m[39m  convergence_status = :degenerate
+[36m[1m│ [22m[39m  converged = false
+[36m[1m│ [22m[39m  max_abs_grad = 1.4796608382994236e-10
+[36m[1m│ [22m[39m  grad_source = :forward
+[36m[1m│ [22m[39m  vcov_complete = false
+[36m[1m│ [22m[39m  vcov_posdef = false
+[36m[1m│ [22m[39m  min_eigval = NaN
+[36m[1m│ [22m[39m  cond = Inf
+[36m[1m│ [22m[39m  penalized_map = false
+[36m[1m└ [22m[39m  ok = false
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mcheck_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `sigma` block: z (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+[33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/baseline/src/inference.jl:4457[39m
+DIAGNOSTIC_FILE_END test_949_is_converged_surfaces.jl
+DIAGNOSTIC_FILE_START test_979_sparse_sigma1_sd_phylo_scale.jl
+DIAGNOSTIC_FILE_END test_979_sparse_sigma1_sd_phylo_scale.jl
+DIAGNOSTIC_FILE_START test_995_tip_variance_linear.jl
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mdrm: this tree's maximum tip height is 7.05, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 2.655184 = sqrt(7.05) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/7.05 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+[33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/baseline/src/sparse_phy.jl:751[39m
+DIAGNOSTIC_FILE_END test_995_tip_variance_linear.jl
+DIAGNOSTIC_FILE_START test_aghq_1d.jl
+[36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mAGHQ k=5 vs GHQ-32 nll agreement
+[36m[1m│ [22m[39m  nll_aghq5 = 83.2693783207749
+[36m[1m│ [22m[39m  nll_ghq32 = 83.27318230501388
+[36m[1m└ [22m[39m  absdiff = 0.00380398423897077
+[36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mAGHQ vs LA fitted loglik
+[36m[1m│ [22m[39m  ll_aghq = -105.643773771554
+[36m[1m│ [22m[39m  ll_la = -105.64377377155401
+[36m[1m└ [22m[39m  absdiff = 1.4210854715202004e-14
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mdrm (sparse Laplace): a scale parameter ended at a clamp inside the likelihood. Past the clamp the objective is flat, so the reported value is the clamp, not an estimate, and its standard error is not meaningful (DRModels.jl #959). random-effect log SD at its lower clamp -8.0 (fitted range -8.338 to -0.2126). Consider rescaling the response, a simpler scale model, or `marginal = :Laplace` (unclamped) where available.
+[33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/baseline/src/boundary_diagnostics.jl:175[39m
+DIAGNOSTIC_FILE_END test_aghq_1d.jl
+DIAGNOSTIC_FILE_START test_api_stability.jl
+DIAGNOSTIC_FILE_END test_api_stability.jl
+DIAGNOSTIC_FILE_START test_beta_animal_sd_regression.jl
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mdrm: `A` has no labels, so its rows and columns are taken to be the levels of `group` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+[33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/baseline/src/input_validation.jl:396[39m
+DIAGNOSTIC_FILE_END test_beta_animal_sd_regression.jl
+DIAGNOSTIC_FILE_START test_beta_slope_re.jl
+DIAGNOSTIC_FILE_END test_beta_slope_re.jl
+DIAGNOSTIC_FILE_START test_betabinomial_phylo_laplace.jl
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mdrm: this tree's maximum tip height is 0.75, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 0.866025 = sqrt(0.75) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/0.75 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+[33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/baseline/src/sparse_phy.jl:751[39m
+DIAGNOSTIC_FILE_END test_betabinomial_phylo_laplace.jl
+DIAGNOSTIC_FILE_START test_betabinomial_sigma_sd_regression.jl
+DIAGNOSTIC_FILE_END test_betabinomial_sigma_sd_regression.jl
+DIAGNOSTIC_FILE_START test_bf_grammar.jl
+DIAGNOSTIC_FILE_END test_bf_grammar.jl
+DIAGNOSTIC_FILE_START test_binomial_animal_ainv_sd_regression.jl
+DIAGNOSTIC_FILE_END test_binomial_animal_ainv_sd_regression.jl
+DIAGNOSTIC_FILE_START test_binomial_animal_slope_iid_sd_regression.jl
+DIAGNOSTIC_FILE_END test_binomial_animal_slope_iid_sd_regression.jl
+DIAGNOSTIC_FILE_START test_binomial_contract.jl
+DIAGNOSTIC_FILE_END test_binomial_contract.jl
+DIAGNOSTIC_FILE_START test_binomial_default_nodes.jl
+DIAGNOSTIC_FILE_END test_binomial_default_nodes.jl
+DIAGNOSTIC_FILE_START test_binomial_nonlogit_animal_slope_sd_regression.jl
+DIAGNOSTIC_FILE_END test_binomial_nonlogit_animal_slope_sd_regression.jl
+DIAGNOSTIC_FILE_START test_binomial_nonlogit_nested_sd_regression.jl
+DIAGNOSTIC_FILE_END test_binomial_nonlogit_nested_sd_regression.jl
+DIAGNOSTIC_FILE_START test_binomial_phylo_laplace.jl
+DIAGNOSTIC_FILE_END test_binomial_phylo_laplace.jl
+DIAGNOSTIC_FILE_START test_binomial_probit_phylo_sd_regression.jl
+DIAGNOSTIC_FILE_END test_binomial_probit_phylo_sd_regression.jl
+DIAGNOSTIC_FILE_START test_binomial_relmat_sd_regression.jl
+DIAGNOSTIC_FILE_END test_binomial_relmat_sd_regression.jl
+DIAGNOSTIC_FILE_START test_binomial_sd_public.jl
+DRModels tests: shard 3/4 - 140 of 559 files
+[0m[1mTest Summary:                                 | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+DRModels.jl — engine loads + phylo foundation | [32m  15  [39m[36m   15  [39m[0m3.8s
+[0m[1mTest Summary:                                     | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+canonical import is quiet and keeps the DRM alias | [32m   2  [39m[36m    2  [39m[0m1.2s
+[0m[1mTest Summary:                                  | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+Q-gate: JET type-stability (lc_to_Λ / Λ_to_lc) | [32m   2  [39m[36m    2  [39m[0m9.0s
+[0m[1mTest Summary:                           | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+#1051 fit_mixed_family bootstrap status | [32m  10  [39m[36m   10  [39m[0m18.7s
+[0m[1mTest Summary:                                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m   Time[22m
+#1092 simulate draws fresh random effects by default | [32m  16  [39m[36m   16  [39m[0m1m00.8s
+[0m[1mTest Summary:                     | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+#1110 aliased fixed-effect design | [32m  28  [39m[36m   28  [39m[0m8.8s
+[0m[1mTest Summary:                                                                  | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+#1142: crossed Beta fit ending on the 1e18 sentinel warns and is not converged | [32m   7  [39m[36m    7  [39m[0m8.6s
+[0m[1mTest Summary:                                                                  | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+#1142: the committed Julia 1.10 seed-3 Beta draws end on the sentinel and warn | [32m   8  [39m[36m    8  [39m[0m9.8s
+[0m[1mTest Summary:                                                          | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+#1142: a healthy crossed Beta fit does not emit the failed-fit warning | [32m   2  [39m[36m    2  [39m[0m0.4s
+[0m[1mTest Summary:                                       | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+#1220 non-finite Hessian gives an informative error | [32m  10  [39m[36m   10  [39m[0m9.2s
+[0m[1mTest Summary:                                                         | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m   Time[22m
+issue #575: exact q4 REML gradient matches a tight central difference | [32m  12  [39m[36m   12  [39m[0m1m07.4s
+[0m[1mTest Summary:                                   | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+#949 converged surfaces agree with is_converged | [32m  12  [39m[36m   12  [39m[0m3.8s
+[0m[1mTest Summary:                                                          | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+#979: sparse sigma ~ 1 route reports sd_phylo on the correlation scale | [32m  16  [39m[36m   16  [39m[0m31.6s
+[0m[1mTest Summary:                                                                 | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+#979: the EM and REML variants of the sparse route follow the same convention | [32m   3  [39m[36m    3  [39m[0m0.7s
+[0m[1mTest Summary:                                                    | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+#979: a non-ultrametric tree keeps the raw scale and its warning | [32m   4  [39m[36m    4  [39m[0m0.0s
+[0m[1mTest Summary:                         | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+#995 tip variance C_ii: exact per row | [32m   4  [39m[36m    4  [39m[0m0.5s
+[0m[1mTest Summary:                                                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+#995 tip variance C_ii: linear, not quadratic, in the number of tips | [32m   2  [39m[36m    2  [39m[0m0.2s
+[0m[1mTest Summary:                                  | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+#995 phylo PIT on a tree with tip-varying C_ii | [32m   4  [39m[36m    4  [39m[0m3.2s
+[0m[1mTest Summary:                     | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+1-D Liu–Pierce AGHQ kernel (#448) | [32m   9  [39m[36m    9  [39m[0m0.8s
+[0m[1mTest Summary:                            | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+Poisson (1|g) public AGHQ surface (#448) | [32m  37  [39m[36m   37  [39m[0m44.8s
+[0m[1mTest Summary:               | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+API freeze gate (v0.7 line) | [32m 204  [39m[36m  204  [39m[0m0.2s
+[0m[1mTest Summary:                                                | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+Beta animal-intercept predictor-dependent SD with supplied A | [32m   2  [39m[36m    2  [39m[0m8.7s
+[0m[1mTest Summary:                                         | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+Beta animal SD objective varies with the SD predictor | [32m   2  [39m[36m    2  [39m[0m0.4s
+[0m[1mTest Summary:                                                   | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+Beta animal SD rejects invalid covariance and design dimensions | [32m   4  [39m[36m    4  [39m[0m0.9s
+[0m[1mTest Summary:                                             | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+Public Beta animal SD fit, predictions, and serialization | [32m  23  [39m[36m   23  [39m[0m37.8s
+[0m[1mTest Summary:                                                  | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+Concentrated Beta data start animal SD fit within sigma bounds | [32m   4  [39m[36m    4  [39m[0m4.4s
+[0m[1mTest Summary:                                   | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+Beta correlated random slope (1+x|g) — recovery | [32m   4  [39m[36m    4  [39m[0m24.4s
+[0m[1mTest Summary:                                              | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+BetaBinomial phylo random intercept - sparse Laplace route | [32m   8  [39m[36m    8  [39m[0m10.7s
+[0m[1mTest Summary:                              | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+BetaBinomial phylo sparse Laplace gradient | [32m   1  [39m[36m    1  [39m[0m0.1s
+[0m[1mTest Summary:                                     | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+BetaBinomial sigma random-intercept SD regression | [32m  21  [39m[36m   21  [39m[0m30.7s
+[0m[1mTest Summary:                         | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+bf() grammar: valid forms still build | [32m   8  [39m[36m    8  [39m[0m0.2s
+[0m[1mTest Summary:                            | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+bf() grammar: reserved-syntax rejections | [32m   7  [39m[36m    7  [39m[0m0.0s
+[0m[1mTest Summary:                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+bf() grammar: bivariate keyword form | [32m   7  [39m[36m    7  [39m[0m0.2s
+[0m[1mTest Summary:                               | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+bf() grammar: error messages are actionable | [32m   3  [39m[36m    3  [39m[0m0.0s
+[0m[1mTest Summary:                                          | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+Binomial animal SD regression accepts direct precision | [32m  17  [39m[36m   17  [39m[0m26.0s
+[0m[1mTest Summary:                                | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+Binomial animal-slope and IID SD regressions | [32m  19  [39m[36m   19  [39m[0m30.0s
+[0m[1mTest Summary:     | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+Binomial contract | [32m  84  [39m[36m   84  [39m[0m22.1s
+[0m[1mTest Summary:                           | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+Binomial (1|g) default nodes = 5 (#908) | [32m  11  [39m[36m   11  [39m[0m16.9s
+[0m[1mTest Summary:                                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+Binomial probit and cloglog animal-slope SD recovery | [32m  40  [39m[36m   40  [39m[0m10.9s
+[0m[1mTest Summary:                                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+Binomial non-logit nested independent SD regressions | [32m  40  [39m[36m   40  [39m[0m10.0s
+[0m[1mTest Summary:                                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+Binomial phylo cbind response - sparse Laplace route | [32m   6  [39m[36m    6  [39m[0m9.0s
+[0m[1mTest Summary:                                            | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+Binomial phylo Bernoulli response - sparse Laplace route | [32m   5  [39m[36m    5  [39m[0m3.7s
+[0m[1mTest Summary:                          | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+Binomial phylo sparse Laplace gradient | [32m   1  [39m[36m    1  [39m[0m0.0s
+[0m[1mTest Summary:                              | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+Binomial probit phylogenetic SD regression | [32m  12  [39m[36m   12  [39m[0m9.8s
+[0m[1mTest Summary:                      | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+Binomial probit latent derivatives | [32m  30  [39m[36m   30  [39m[0m0.1s
+[0m[1mTest Summary:                         | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+Binomial related-matrix SD regression | [32m  20  [39m[36m   20  [39m[0m16.5s
+[0m[1mTest Summary:                                            | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+Binomial probit and cloglog related-matrix SD regression | [32m  14  [39m[36m   14  [39m[0m11.2s
+DIAGNOSTIC_FIT_BEGIN
+converged=true iterations=53
+theta=[0.1943639418189246, 0.45234106476909414, -35.316914102114715, 34.17616262509883]
+theta_bits=["0011111111001000111000001110101011101010110100010010010010001101", "0011111111011100111100110010011111101111111101001000110010000111", "1100000001000001101010001001000010100100001011000001110010101001", "0100000001000001000101101000110001111111001101001100100111011011"]
+loglik=-532.9732053643258 control=nothing
+data_sha256=50282830f7316c3426fd9bb10870ce37dbb7985a99d64aba2b19a691c3ef4ebe
+objective=532.9732053643258
+gradient=[3.238247003878314e-9, -6.368950922208683e-9, -8.58932369673937e-10, -8.58932369673937e-10] maxabs=6.368950922208683e-9
+DIAGNOSTIC_FIT_END
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mHessian is numerically singular at the optimum — using a pseudo-inverse.
+[33m[1m│ [22m[39mThe fit is at a variance/dispersion boundary, so standard errors for the
+[33m[1m│ [22m[39mflagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+[33m[1m│ [22m[39mor the bootstrap entry points for those targets.
+[33m[1m│ [22m[39m  context = ""
+[33m[1m│ [22m[39m  flat_coordinates = Int64[]
+[33m[1m│ [22m[39m  rcond = 6.827653639066237e-17
+[33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/baseline/src/vcov_guard.jl:122[39m
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mHessian is numerically singular at the optimum — using a pseudo-inverse.
+[33m[1m│ [22m[39mThe fit is at a variance/dispersion boundary, so standard errors for the
+[33m[1m│ [22m[39mflagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+[33m[1m│ [22m[39mor the bootstrap entry points for those targets.
+[33m[1m│ [22m[39m  context = ""
+[33m[1m│ [22m[39m  flat_coordinates = Int64[]
+[33m[1m│ [22m[39m  rcond = 6.827653639066237e-17
+[33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/baseline/src/vcov_guard.jl:122[39m
+DIAGNOSTIC_FILE_END test_binomial_sd_public.jl
+[0m[1mTest Summary:                                            | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m   Time[22m
+public Bernoulli/binomial random-intercept SD regression | [32m  44  [39m[36m   44  [39m[0m1m55.4s
+DIAGNOSTIC_PREFIX_COMPLETE

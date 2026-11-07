@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-probit-mesh-slope-sd-20261027-rerun-m26",
+  "rerecord_of_evidence_id": "native-binomial-probit-mesh-slope-sd-20261027-rerun",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-mesh-slope-links-20261027/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e devtools::test(filter = binomial-mesh-sd-regression, reporter = summary, stop_on_failure = TRUE)",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-mesh-sd-regression.R",
+      "test_sha256": "5e2e941eb0bf1e2905cb0ae3fb836a6e970754bdc2c1dea4b7e3f281c470bbd6",
+      "started_utc": "2026-11-02T13:35:08Z",
+      "ended_utc": "2026-11-02T13:35:40Z",
+      "exit_code": 0,
+      "expectations_passed": 40,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-mesh-slope-links-20261027-m26-045c24/test-console-test-binomial-mesh-sd-regression.log",
+      "console_log_sha256": "8b8d625938c032f4ccce74c2a58a0ad2a43ef2e0a994a12825f1e1eff59de1ca"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-mesh-slope-links-20261027-m26-045c24/source-manifest.json",
+  "source_manifest_sha256": "ed9ce058a132ef3f3d1158d5b02e1397ec3f450432a7405da23b73c2f6db00a4",
+  "review_status": "unreviewed"
+}

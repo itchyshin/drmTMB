@@ -1,0 +1,57 @@
+{
+  "evidence_id": "julia-b26-nb2-spatial-slope-bridge-20261102c",
+  "evidence_grade": "focused_test",
+  "command": "cd <worktree>; NOT_CRAN=true JULIA_HOME=$HOME/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin DRM_JL_PATH=<general-sd-julia worktree> OPENBLAS_NUM_THREADS=1 Rscript -e \"pkgload::load_all('.'); r<-as.data.frame(testthat::test_file('tests/testthat/test-julia-b26-nb2-spatial-slope-bridge.R', reporter='silent')); print(colSums(r[c('passed','failed','error','skipped')])); print(nrow(r))\"",
+  "execution_host": "Mac Studio (live Julia 1.10.0, DRModels.jl 87a371a66, JuliaCall)",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "7fd8acec38a3466cab97a543abdf13f8a634a9d9",
+  "tree_state": "HEAD 7fd8acec3; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T13:59:12Z",
+  "run_ended_utc": "2026-11-02T13:59:52Z",
+  "exit_code": 0,
+  "expectations_passed": 29,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 4,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b26-nb2-spatial-slope-bridge-20261102c/test-console.log",
+  "console_log_sha256": "640f53b9649dbeb4d3464698095277252e7b4d9fdf9aaa52f4759639eaa9dcb0",
+  "test_path": "tests/testthat/test-julia-b26-nb2-spatial-slope-bridge.R",
+  "test_sha256": "827b87e57925671d4afca11f531072dfbc37d0f9d6c5a7d3098ba40dd1f630ef",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-b26-nb2-spatial-slope-bridge-20261102c/source-manifest.json",
+  "source_manifest_sha256": "3181b80f064dd2cb5c3704e59572f04fb5c2cffd4a5f58d15f707cce0f233195",
+  "live_julia": "run live: Julia 1.10.0 with DRM_JL_PATH at DRModels.jl 87a371a66 (src/ and test/ clean)",
+  "strengthens_evidence_ids": [],
+  "strengthens_note": "No parent evidence id; new Julia bridge admission (batch 25/26). These rows were not previously linked to a Julia bridge receipt.",
+  "scope": "Live native (TMB, se = FALSE) versus Julia (DRM.jl 87a371a66) parity for NB2 coordinate spatial(0 + x | id, coords) slope-only SD on one shuffled-row named-coords fixture; coefficients within 1e-3, logLik within 1e-2 (observed max 1.9e-6); plus non-live gate/payload/refusal pins. Slope-member SD only.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"Julia\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "SE agreement",
+    "broad cross-engine parity beyond the stated fixtures",
+    "accuracy of either engine against a truth (parity is not an oracle)",
+    "Julia sigma-endpoint or Q-precision relmat rows",
+    "NB2 phylogenetic slope-only SD (no Julia route)"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "unreviewed",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-b26-nb2-spatial-slope-bridge.R",
+    "test_sha256": "2d9c1d7757887c41c2f40835850e48386441f1380e30bb70dd31b10c3e458267",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:06:29Z",
+    "ended_utc": "2026-11-03T01:07:00Z",
+    "expectations_passed": 29,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b26-nb2-spatial-slope-bridge-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "55978e811c60eae69d0cde9bfde63b582f5989d4d5500aa4a7327f225712a834",
+    "reason": "test file edited (refusal-pin or companion update) and source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "scope": "Source identity for julia-binomial-phylo-slope-sd-bridge-20261027, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "472d9de4db223c925df61a683bfd06448e8b9891f32ae2bc386191c6f6098be5"
+    },
+    {
+      "file": "R/julia-simulate.R",
+      "sha256": "17ff8f0abe08abb539f50a31c91a0b9d8a4c128623fcab2c19628bf83ee474cb"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-julia-binomial-phylo-slope-sd.R",
+      "sha256": "73517c3e23126ef2c1c3fc9c60a2051c2fcf17e2a02dd6cea3f857ff20d29e15"
+    }
+  ]
+}

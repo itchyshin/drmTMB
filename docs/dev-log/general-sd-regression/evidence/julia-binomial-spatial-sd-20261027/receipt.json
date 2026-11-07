@@ -1,0 +1,25 @@
+{
+  "evidence_id": "julia-binomial-spatial-sd-20261027",
+  "evidence_grade": "focused_test",
+  "review_status": "unreviewed",
+  "receipt_scope": "Direct Julia coordinate-spatial Binomial random intercept and one independent numeric slope, for logit, probit, and cloglog.",
+  "test_snapshot_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-spatial-sd-20261027/test-snapshot/test_binomial_spatial_sd_regression.jl",
+  "test_snapshot_sha256": "770663defb8ef176c9c6057b15db41e3883d1f90ad979271488ea17d1a35f25a",
+  "test_log_path": "../general-sd-julia/docs/dev-log/evidence/binomial-spatial-sd-20261027/test.log",
+  "test_log_sha256": "d83f2405221dba951d85feda22d4fb1cd5d1ce95ddd7dde06496a9fdc02e3c1a",
+  "red_test_log_path": "../general-sd-julia/docs/dev-log/evidence/binomial-spatial-sd-20261027/test-red.log",
+  "red_test_log_sha256": "33fb136771386661bde148c9d62d013bdd0078a0847858f739a88231de3b999c",
+  "adjacent_partial_log_path": "../general-sd-julia/docs/dev-log/evidence/binomial-spatial-sd-20261027/adjacent-partial.log",
+  "adjacent_partial_log_sha256": "aabeb0a3d91d78d3dbd9da9f47f9edeff15abe6f3e61f8917ba0b7158caec497",
+  "docs_example_log_path": "../general-sd-julia/docs/dev-log/evidence/binomial-spatial-sd-20261027/docs-example.log",
+  "docs_example_log_sha256": "cb57b80db28ed7384fa37f25658ad6b4a5e32a749e72ee0fe7e81f131f8c2ede",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-spatial-sd-20261027/source-manifest.json",
+  "source_manifest_sha256": "50f3edc457a3b4be0470561e495a0b1132b6e688e8ec2a4cbaca85fcdbf266a2",
+  "result_summary": "Focused direct Julia suite passed 44 assertions. It covers three links for intercept and independent-slope fits, coefficient recovery direction, group SD prediction, seeded marginal simulation, and the shared smooth SD transformation. One documented synthetic slope example ran successfully.",
+  "limitations": [
+    "Focused implementation evidence only; no interval coverage calibration.",
+    "No R bridge or native TMB parity.",
+    "Full Julia suite and full docs build not run.",
+    "Adjacent Binomial SD suite is partial; 172 assertions passed before an unrelated later phylogenetic fit was interrupted."
+  ]
+}

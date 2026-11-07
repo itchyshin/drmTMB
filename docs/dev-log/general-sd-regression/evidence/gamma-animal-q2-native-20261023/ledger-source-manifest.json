@@ -1,0 +1,12 @@
+{
+  "schema": "general-sd-ledger-source-binding-v1",
+  "engine": "native",
+  "receipt_source_manifest": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-native-20261023/source-manifest.json",
+  "receipt_source_manifest_sha256": "33946ed8c4655cc309a0f16276c82d6ce52784e5aea8d08ade6613296d9e130f",
+  "source_archive_sha256": null,
+  "focused_test": {
+    "file": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-native-20261023/test-gamma-animal-pedigree-sd-regression.R",
+    "sha256": "39667eca4dfe8b2745d5c89b7e3073f8cf60269f8debf33a4a76308980e15cca"
+  },
+  "scope": "Gamma animal q2 intercept-plus-independent-slope focused test; component-level evidence only."
+}

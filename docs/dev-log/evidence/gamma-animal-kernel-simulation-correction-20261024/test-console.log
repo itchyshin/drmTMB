@@ -1,0 +1,18 @@
+ℹ Testing drmTMB
+gamma-animal-q2-cross-engine-sd: i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+........................`simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+.
+gamma-animal-q2-nonunit-kernel-parity: ................
+gamma-animal-q2-nonunit-kernel-simulation: ........
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 3 live tests ran; bridge glue was exercised in this configuration.
+Julia exit.

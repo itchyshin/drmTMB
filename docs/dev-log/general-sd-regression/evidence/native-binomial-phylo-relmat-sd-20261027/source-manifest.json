@@ -1,0 +1,17 @@
+{
+  "scope": "native Binomial q1 phylogenetic tree plus relmat K covariance and equivalent Q precision under logit; probit and cloglog with K covariance, separate predictor-dependent SD regressions",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "d81ef23c0409922816e09c41e00e031e9d09624d0f8c0211f11d4d9eef5c401c"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "54f635fd488b0887ea6d2e1f619cdcd80d196587b8d770214b5b4594c5ddeb77"
+    },
+    {
+      "file": "tests/testthat/test-binomial-phylo-relmat-sd.R",
+      "sha256": "894f5f81448b7d97dc9d39ab22b28ed0d273d0c9a199ebdfc19ee571d29833df"
+    }
+  ]
+}

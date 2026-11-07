@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "620f7c2137ad15764232cf54650dc09b39fc7a9d493deb82759509bce85ee1a5",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Read the entire report and checked its model and test claims against the current source and focused console output, then reviewed style.",
+  "genre": "Internal engineering after-task report",
+  "coverage": "Entire report",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "Short and concrete technical prose with specific covariance and test evidence; the score is an informal editorial judgment, not a calibrated measure.",
+  "confidence": "medium",
+  "confidence_reason": "Claims are source- and test-backed, while perceived-style scoring remains subjective.",
+  "examples": [
+    {
+      "location": "Section 2, line 9",
+      "cue": "The sentence names the exact covariance transformation and when it is used.",
+      "impact": "A maintainer can see the behavior change and its purpose immediately.",
+      "repair": "no change needed",
+      "line": 9,
+      "quote": "The Gamma animal simulator now converts the saved relationship matrix to the unit-diagonal correlation used by DRM.jl's fitter before drawing latent effects."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The stated covariance is checked against DRM.jl's normalization source and the corrected seeded bridge test.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The implementation and three-test run are recorded with exact current candidate source hashes.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external references appear; the report cites local implementation and test evidence.",
+  "date": "2026-10-24",
+  "calibration_status": "Informal uncalibrated self-assessment",
+  "interpretation": "perceived_style_not_authorship"
+}

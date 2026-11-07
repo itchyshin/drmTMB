@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "813917173ca1223d37ccea997de83df0ed153d62313fa65abcbeb6300b431d15",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Separate post-draft factual and style review using protocols/writing-naturalness.md",
+  "genre": "technical after-task report",
+  "coverage": "Whole report, all 12 required sections",
+  "score": 2,
+  "style_status": "judged",
+  "score_reason": "Specific implementation details and bounded claims keep the report direct; the style score is an informal editorial judgment, not a calibrated measurement.",
+  "confidence": "moderate",
+  "confidence_reason": "The report is short and technical, and its factual claims were checked against the edited source, test outputs, issue search, and current ledger.",
+  "examples": [
+    {
+      "location": "Section 1, paragraph 1",
+      "cue": "Make a fresh ZeroOneBeta marginal simulation draw use the newly sampled random effect for its Beta-component mean.",
+      "impact": "Names the defect and intended behavior before implementation detail.",
+      "repair": "no change needed",
+      "line": 5,
+      "quote": "Make a fresh ZeroOneBeta marginal simulation draw use the newly sampled random effect for its Beta-component mean."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The link-scale random effect, Beta-component mean, precision transform, and preserved mixture probabilities match the implementation and independent seeded oracle.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Test counts and issue-search result were compared with the exact command outputs; scope statements were checked against the current candidate diff and ledger.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external citations.",
+  "date": "2026-10-22",
+  "calibration_status": "Other after-task reports were seen; no human-labelled or held-out style control was assessed.",
+  "interpretation": "perceived_style_not_authorship"
+}

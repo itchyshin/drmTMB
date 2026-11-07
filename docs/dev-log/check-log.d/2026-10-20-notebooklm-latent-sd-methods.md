@@ -1,0 +1,8 @@
+# NotebookLM methods review for latent SD regression
+
+- Read the project after-task protocol, after-task-audit skill, prose-style-review skill, and writing-naturalness protocol.
+- Authenticated NotebookLM with `notebooklm auth check --test --json`: `status=ok`, `account=itchyshin@gmail.com`, `checks.token_fetch=true`.
+- Read notebook `ba2c9230-8be5-48fe-bd50-823c68e27da6`, listed its 15 sources, and asked for a methods synthesis plus a source-by-source claim map. Both structured responses returned an empty `references` array; the memo therefore records source identities and limits rather than attributing unsupported claims to NotebookLM citations.
+- Cross-checked primary material with `web__run`: Joe (2008) search-result abstract (direct ScienceDirect page returned 403), CRAN `dhglm` manual, `glmmTMB` covariance vignette, TMB paper, `lme4` paper page, and Stringer (2023, revised 2024) full text. Confirmed the specific `glmmTMB` overparameterization example at lines 159-177, the `dhglm` fixed variance-predictor interface at lines 102-107, and Stringer's Bernoulli random-intercept/slope simulation and paper-specific AGHQ coverage. Its approximately 17-node applied-data result is not a transferable threshold.
+- Inspected drmTMB issue #932. Left it unchanged because it is a separately approved Laplace-only VA/EVA gate; this literature memo does not satisfy or supersede that experiment.
+- No R or Julia tests were added or run; this task changes research and development records only. A targeted Python check confirmed final newlines and no trailing whitespace in all three Markdown files. `slop_check.py` reported zero findings for the memo and after-task report. Exact-draft `assessment-check` passed for both after companion records were written.

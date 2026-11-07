@@ -1,0 +1,20 @@
+julia-b32-count-gamma-spatial-intercept-bridge: .....................................i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+.......B32C diffs: mu 2.06e-08; sd_spatial(id) 3.31e-08; logLik diff 2.29e-06
+..........B32C diffs: mu 9.13e-10; sd_relmat(id) 1.31e-08; logLik diff 1.81e-06
+..........B32C diffs: mu 8.16e-09; sd_spatial(id) 1.95e-08; sigma 7.41e-08; logLik diff 2.12e-06
+............B32C diffs: mu 2.73e-09; sd_relmat(id) 2.72e-08; sigma 5.46e-08; logLik diff 1.84e-06
+..........B32C diffs: mu 3.83e-08; sd_spatial(id) 6.72e-08; sigma 5.18e-08; logLik diff 6.29e-06
+............B32C diffs: mu 5.54e-08; sd_relmat(id) 1.56e-08; sigma 4.9e-08; logLik diff 2.66e-06
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 6 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=98 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T03:50:12Z end=2026-11-03T03:51:05Z rc=0

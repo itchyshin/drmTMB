@@ -18,7 +18,7 @@ less predictable in one habitat; or, after accounting for their averages and
 variability, do two responses still vary together? The worked examples come
 from ecology, evolution, and environmental science.
 
-`drmTMB` 0.7.1 is the development version; 0.7.0 is on CRAN. The package is
+`drmTMB` 0.8.0 is the development version; 0.7.0 is on CRAN. The package is
 experimental: start with a documented example, check the fitted model, and
 read [Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html)
 before reporting a result.
@@ -177,7 +177,7 @@ to find the relevant guide.
 
 ## What can I fit today?
 
-The table summarises what is fitted in 0.7.1. The
+The table summarises what is fitted in 0.8.0. The
 [model map](https://itchyshin.github.io/drmTMB/articles/model-map.html) gives
 the exact forms and the guide for each row, and
 [Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html)
@@ -188,7 +188,7 @@ says which estimates and intervals are ready to report.
 | One response, fixed effects | One formula per family parameter for Gaussian, Student-t, skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta, beta-binomial, binomial, Poisson, NB2, zero-inflated Poisson and NB2, truncated NB2, hurdle NB2, and cumulative-logit ordinal responses; ordinal `disc ~ z` fixed-effect discrimination | Ordinal random-effect discrimination and cutpoint-specific predictors, ordered beta, predictor-dependent Tweedie power |
 | Gaussian random effects | `mu` and `sigma` random intercepts, independent slopes, and correlated intercept-slope blocks | Covariance between `mu` and `sigma` slopes across formulas |
 | Non-Gaussian random effects | `mu` random intercepts and independent numeric slopes for Student-t, skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta, beta-binomial, binomial, Poisson, NB2, truncated NB2, and cumulative-logit responses | Correlated non-Gaussian slopes |
-| Random-effect SD models | `sd(group) ~ x_group` for Gaussian `mu` random intercepts | Slope-specific `sd()` formulas |
+| Random-effect SD models | `sd(group) ~ x_group` for Gaussian `mu` random intercepts; in this development branch, available for Gaussian models and selected non-Gaussian native-TMB examples, including Bernoulli, Gamma, NB2, Beta, Tweedie, and Poisson ordinary, relatedness-matrix, and animal-model routes; one supplied-A Binomial animal intercept-plus-slope SD route with logit, probit, and cloglog bridge checks, plus one Binomial animal-slope-only SD route via supplied `A` under logit, probit, and cloglog and via supplied `Ainv` under logit, probit, and cloglog, and one Binomial slope-only phylogenetic SD route have native-TMB and development Julia bridge checks; the development Julia bridge also has one mixed Binomial relmat-plus-IID intercept SD route checked against TMB under logit, probit, and cloglog; one Binomial phylogenetic-interaction slope-only SD route is also checked; NB2 and Gamma have focused `sigma`-endpoint SD regressions; NB2 also has one complete-data q1 phylogenetic location-intercept SD route; lognormal has separate SD trends in one ordinary correlated q2 block; Gamma has a focused animal intercept-plus-independent-slope SD example | Independent-slope and structured-SD routes are family-specific; Gamma animal and other structured-provider combinations are admitted route by route (see the design note), not as a general family capability. Julia implementations remain development candidates requiring matching local drmTMB and DRModels.jl source checkouts. Gamma `sigma` intercept and independent-slope routes each have one same-data TMB/Julia point-estimate check. Broad family/effect coverage and interval calibration remain open; slope-specific `sd()` formulas outside the routes listed here and in `docs/design/18-random-effect-scale-models.md` (which lists the further native routes admitted in this development branch) are not supported |
 | Meta-analysis | Gaussian `meta_V(V = V)` with diagonal, dense, or bivariate known sampling covariance | Non-Gaussian or sparse known covariance |
 | Two responses | Bivariate Gaussian `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent `rho12`; matching random intercepts across the two responses | Random effects in `rho12`, mixed-family pairs |
 | Phylogenetic, spatial, pedigree, and known-matrix effects | Gaussian `mu` and `sigma` intercepts and one numeric `mu` slope; Poisson and NB2 `mu` intercept plus one slope | Multiple or labelled structured slopes, structured `rho12`, simultaneous phylogenetic and spatial terms |

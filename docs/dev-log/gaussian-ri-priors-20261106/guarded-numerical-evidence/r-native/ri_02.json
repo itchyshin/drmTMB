@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "ri_02",
+  "engine": "R/TMB",
+  "dll": "/home/snakagaw/hsq_work/drmtmb-ri-priors-guard-final-lib-5d0f-20261106/drmTMB/libs/drmTMB.so",
+  "dll_sha256": "cb9c54af096bbe03e5994006125e9112cc13d4ec15aff6ae0e79e371301db413",
+  "solver_configuration": {
+    "multi_start": 5,
+    "caller_seed": 777,
+    "internal_perturbation_seed": 20260616,
+    "individual_attempt_diagnostics": "unavailable_from_ordinary_route",
+    "rng_kind": ["Mersenne-Twister", "Inversion", "Rejection"],
+    "seed_reset": "before_each_fixture_fit"
+  },
+  "r_version": "R version 4.6.1 (2026-06-24)",
+  "tmb_version": "1.9.25",
+  "git_head": "5d0f159644991f49dd767b8baf8cb61f537b3720",
+  "X_columns": ["(Intercept)", "x"],
+  "W_columns": ["(Intercept)"],
+  "coordinate_order": ["beta:(Intercept)", "beta:x", "gamma:(Intercept)", "tau"],
+  "native_order": ["beta_mu", "beta_mu", "beta_sigma", "log_sd_mu"],
+  "tau": 0.025000000000000001,
+  "fit": {
+    "objective": -0.98404494931853215,
+    "theta_native": [0.81393239982138199, 0.65209040832434295, -1.6817188954256046, -13.946513594062045],
+    "theta": [0.81393239982138199, 0.65209040832434295, -1.6817188954256046, 8.7721511107615696e-07],
+    "convergence": 0,
+    "message": "relative convergence (4)",
+    "data_nll": -2.797484471619172,
+    "prior": 1.8134395223006401
+  },
+  "point": {
+    "status": "evaluated",
+    "theta": [0.40000000000000002, -0.29999999999999999, -0.10000000000000001, 0.025000000000000001],
+    "data_nll": 10.555390057703537,
+    "prior": 1.1855631527017496,
+    "objective": 11.740953210405287,
+    "gradient": [-4.5367840899305438, -4.3495946422297846, 2.7173807701349437, -0.37597661286289119],
+    "hessian": [
+      [10.965655774018293, -0.0025507806846996029, 9.0468110205781347, 1.0702863832501279],
+      [-0.00255078074282934, 4.5696830160413375, 8.6768003605551076, 0.89555692138841814],
+      [9.0468110202841476, 8.6768003614774738, 13.234112824195389, 2.0458550543203438],
+      [1.0702863828236422, 0.89555692164756062, 2.0458550553533397, -14.785697125776945]
+    ]
+  }
+}

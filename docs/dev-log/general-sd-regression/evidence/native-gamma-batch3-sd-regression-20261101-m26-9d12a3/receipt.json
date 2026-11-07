@@ -1,0 +1,51 @@
+{
+  "evidence_id": "native-gamma-batch3-sd-regression-20261101-m26",
+  "rerecord_of_evidence_id": "native-gamma-batch3-sd-regression-20261101",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-gamma-batch3-sd-regression-20261101/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"gamma-batch3-sd-regression\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-gamma-batch3-sd-regression.R",
+      "test_sha256": "cea7eeaa6f89c2842704d4300e82cbc6c20a4e2d67b4b57612378405b8b81b21",
+      "started_utc": "2026-11-02T13:17:36Z",
+      "ended_utc": "2026-11-02T13:18:12Z",
+      "exit_code": 0,
+      "expectations_passed": 21,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-batch3-sd-regression-20261101-m26-9d12a3/test-console-test-gamma-batch3-sd-regression.log",
+      "console_log_sha256": "a83d2bc903e14698fc0470ecef940268e9b62cda47d3df6f4c3403e3c84da6d3"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-gamma-batch3-sd-regression-20261101-m26-9d12a3/source-manifest.json",
+  "source_manifest_sha256": "73f54d38ec8c2aa184dc7e6a797b03c7a49ea45bdb7c9103fad1df3b01ce59af",
+  "review_status": "reviewed_narrow_claim",
+  "checks": [
+    "spec assembly: model_type gamma, two SD design blocks sd(g), sd(h), re_sd_row0 0..21",
+    "duplicate or unmatched sd() targets refused",
+    "fit convergence 0, signed SD slopes within 0.6 of truth (loose recovery band, one seed)",
+    "predict(dpar = sd(g)/sd(h)) equals exp(linear predictor) at 1e-7",
+    "exact dense Laplace oracle: logLik equals oracle at relative 1e-6; swapped-level sensitivity > 0.1",
+    "constant-SD limit equals plain crossed Gamma fit: logLik 1e-4, mu and sigma coefs 1e-3"
+  ],
+  "review_note": "Reviewer 2, 2026-11-02. Test checks native Gamma(log) y ~ x + (1|g) + (1|h), sigma ~ 1, sd(g) ~ w, sd(h) ~ v against an exact base-R Laplace marginal (Newton mode, observed information, group indicators built with model.matrix, no drmTMB kernel code) at relative tolerance 1e-6 at the fitted parameters; the oracle is independent. Emulated bug: attaching the SDs to reversed predictor vectors (rev(zg), rev(zh)) must move the oracle by more than 0.1 (400x the tolerance); the SD predictors differ in length so the two levels cannot be silently swapped. The single linked row (gamma, log, iid crossed additive terms) is exercised by the fit. Also constant-SD limit versus the plain crossed fit (1e-4). Rerun 21/0/0 skips; all 8 manifest files match current files. Does NOT establish: structured providers; calibration or coverage; Julia parity; that a swap of the coefficient sets between sd(g) and sd(h) is detected (only the predictor reversal is tested); non-Gamma families; sigma-side SDs.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gamma-batch3-sd-regression.R",
+    "test_sha256": "cea7eeaa6f89c2842704d4300e82cbc6c20a4e2d67b4b57612378405b8b81b21",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:08:09Z",
+    "ended_utc": "2026-11-03T01:09:28Z",
+    "expectations_passed": 21,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-batch3-sd-regression-20261101-m26-9d12a3/test-console-rerun-81553915d.log",
+    "console_log_sha256": "e8ee02a49aaee2e2bf5574dcc757b82b519dc4b87edf31f861b5db6786df644f",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

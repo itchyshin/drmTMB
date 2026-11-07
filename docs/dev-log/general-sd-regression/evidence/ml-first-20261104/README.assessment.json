@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "d4722932ddedf2b01946527c6c6c5daf076c9a17f4f4e3453503bcc1ec288db2",
+  "draft_version": "namespace-1cd-v5",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex numerical_packet",
+  "method": "Post-draft comparison with namespace red/green/AST logs and independent review, LSSrunner/guard exact values and unchanged maps, canonical byte identity and parent CI/check3 running snapshot; prose lint.",
+  "genre": "Maintainer WIP integration evidence/report",
+  "coverage": "whole receipt narrative with current1cd evidence",
+  "score": 4,
+  "style_status": "assessed",
+  "score_reason": "Dated factual updates preserve earlier attempts and distinguish namespace qualification from full numerical CI; formal repeated boundary statements match the audit purpose.",
+  "confidence": "medium",
+  "confidence_reason": "Self-review of retained artifacts; parent-authoritative current checker and runningCI statuses remain scoped snapshots.",
+  "examples": [
+    {
+      "location": "line89",
+      "cue": "Exact quantity and qualification boundary",
+      "impact": "Labels actual elapsed quantities and prevents a namespace smoke from being read as numerical grid validation.",
+      "repair": "no change needed",
+      "line": 89,
+      "quote": "These isolated namespace smokes use an existing exploratory guard and do not qualify the full quadrature grid. The prior stable PR shard3 pass remains historical evidence, without attributing it to this change. `integration-julia-namespace-repair/` retains the bounded receipt, red/green/AST logs and review; generated verification-script hashes point to external copies rather than copying the full Julia test source into this R repository."
+    },
+    {
+      "location": "line91",
+      "cue": "Exact quantity and qualification boundary",
+      "impact": "Labels actual elapsed quantities and prevents a namespace smoke from being read as numerical grid validation.",
+      "repair": "no change needed",
+      "line": 91,
+      "quote": "The canonical LSS public workflow now uses Julia `1cd856f6`. Its runner reports PASS in 59.17 seconds; the refresh guard reports 59.8389805 seconds with source and DLL maps unchanged before and after. The authoritative current-source checker passes 12 labels, 72 rows and 8 checks at tolerance `4e-6`. `lss-1cd-current.json` matches canonical `public-001.json` byte for byte. The new log, guard and refresh script are retained, while c037 and earlier receipts remain unchanged."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "No quadrature-grid or cause-of-prior-shardpass inference from namespace smoke. No numerical assertions/tolerances/modelscope/calibration changes reported.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Compared actual1cdrunnerelapsed59.17 andguardwall59.8389805;mapsunchanged,canonicalcopyidentical. RedMain.D and both3/3namespacegreens/AST3 support boundedrepair only. Runningfullcheck/CI not promoted to pass.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external paper citations; copied review/logs and local identifiers supply factual support.",
+  "date": "2026-11-04",
+  "calibration_status": "No calibration controls viewed; perceived style is not authorship evidence.",
+  "interpretation": "perceived_style_not_authorship"
+}

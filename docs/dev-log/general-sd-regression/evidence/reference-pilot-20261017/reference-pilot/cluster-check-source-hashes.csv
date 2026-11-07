@@ -1,0 +1,7 @@
+"file","sha256"
+"tools/general-sd-regression/check-reference-pilot.R","a74aa38f35600fe60734076aef901e30136f1986eed4aa8f067160a152f656fb"
+"tools/general-sd-regression/scalar-binomial-reference.R","ef44b04d619d55440949b523aca90ef7238e2d6ce1c370272fd56c3fb1feaf11"
+"tests/testthat/helper-binomial-sd-regression.R","f50a6a5849697de80869aa292040c8b841c04ca1904f775e61e3dea929e8868f"
+"/home/snakagaw/hsq_work/drmtmb-general-sd-20261017-01/reference-pilot/cluster-reference-checks.csv","fa5d3d18af07e581c25c0021642caa6784914ac0e05107fe07dc1a6fb9de0f99"
+"/home/snakagaw/hsq_work/drmtmb-general-sd-20261017-01/reference-pilot/native-point.rds","8b6b15d707ba85460478e82bc8f4ca2489ca879c8f5b98293847a2228fdb2bba"
+"/home/snakagaw/hsq_work/drmtmb-general-sd-20261017-01/reference-pilot/parameter-comparison.csv","70b4c88083a44cd14be2a6d85b88116b0f2998a84a4219bab263d07e4d33701b"

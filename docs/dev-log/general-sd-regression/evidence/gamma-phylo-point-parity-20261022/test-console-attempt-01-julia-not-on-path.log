@@ -1,0 +1,82 @@
+ℹ Testing drmTMB
+julia-gamma-sd: ....i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Wsh: NA: command not found
+1..i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Wsh: NA: command not found
+2i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Wsh: NA: command not found
+3...i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Wsh: NA: command not found
+4i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Wsh: NA: command not found
+5
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. public Julia Gamma SD outputs retain the fitted group target ('test-julia-gamma-sd.R:33:3') - running command ''bash' -l -c 'which julia'' had status 1
+
+2. Julia bridge fits a Gamma independent random-slope SD formula ('test-julia-gamma-sd.R:96:3') - running command ''bash' -l -c 'which julia'' had status 1
+
+3. live Julia Gamma phylogenetic SD estimates agree with native TMB ('test-julia-gamma-sd.R:164:3') - running command ''bash' -l -c 'which julia'' had status 1
+
+4. live Julia Gamma animal SD estimates agree with native TMB ('test-julia-gamma-sd.R:244:3') - running command ''bash' -l -c 'which julia'' had status 1
+
+5. live Julia Gamma animal slope SD estimates agree with native TMB ('test-julia-gamma-sd.R:297:3') - running command ''bash' -l -c 'which julia'' had status 1
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-julia-gamma-sd.R:33:3'): public Julia Gamma SD outputs retain
+Error in `JuliaCall::julia_setup(installJulia = FALSE, install = TRUE)`: Julia is not found.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-julia-gamma-sd.R:33:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::drm_julia_call_bridge(...) at general-sd-regression/R/julia-bridge.R:798:5
+ 4.       └─drmTMB:::drm_julia_setup() at general-sd-regression/R/julia-bridge.R:3890:3
+ 5.         └─JuliaCall::julia_setup(installJulia = FALSE, install = TRUE) at general-sd-regression/R/julia-bridge.R:4914:5
+
+── 2. Error ('test-julia-gamma-sd.R:96:3'): Julia bridge fits a Gamma independen
+Error in `JuliaCall::julia_setup(installJulia = FALSE, install = TRUE)`: Julia is not found.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-julia-gamma-sd.R:96:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::drm_julia_call_bridge(...) at general-sd-regression/R/julia-bridge.R:798:5
+ 4.       └─drmTMB:::drm_julia_setup() at general-sd-regression/R/julia-bridge.R:3890:3
+ 5.         └─JuliaCall::julia_setup(installJulia = FALSE, install = TRUE) at general-sd-regression/R/julia-bridge.R:4914:5
+
+── 3. Error ('test-julia-gamma-sd.R:164:3'): live Julia Gamma phylogenetic SD es
+Error in `JuliaCall::julia_setup(installJulia = FALSE, install = TRUE)`: Julia is not found.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-julia-gamma-sd.R:164:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::drm_julia_call_bridge(...) at general-sd-regression/R/julia-bridge.R:798:5
+ 4.       └─drmTMB:::drm_julia_setup() at general-sd-regression/R/julia-bridge.R:3890:3
+ 5.         └─JuliaCall::julia_setup(installJulia = FALSE, install = TRUE) at general-sd-regression/R/julia-bridge.R:4914:5
+
+── 4. Error ('test-julia-gamma-sd.R:244:3'): live Julia Gamma animal SD estimate
+Error in `JuliaCall::julia_setup(installJulia = FALSE, install = TRUE)`: Julia is not found.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-julia-gamma-sd.R:244:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::drmTMB_julia_structured_bridge(...) at general-sd-regression/R/julia-bridge.R:685:5
+ 4.       └─drmTMB:::drm_julia_call_structured(...) at general-sd-regression/R/julia-bridge.R:8772:3
+ 5.         └─drmTMB:::drm_julia_setup() at general-sd-regression/R/julia-bridge.R:9061:3
+ 6.           └─JuliaCall::julia_setup(installJulia = FALSE, install = TRUE) at general-sd-regression/R/julia-bridge.R:4914:5
+
+── 5. Error ('test-julia-gamma-sd.R:297:3'): live Julia Gamma animal slope SD es
+Error in `JuliaCall::julia_setup(installJulia = FALSE, install = TRUE)`: Julia is not found.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-julia-gamma-sd.R:297:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::drmTMB_julia_structured_bridge(...) at general-sd-regression/R/julia-bridge.R:685:5
+ 4.       └─drmTMB:::drm_julia_call_structured(...) at general-sd-regression/R/julia-bridge.R:8772:3
+ 5.         └─drmTMB:::drm_julia_setup() at general-sd-regression/R/julia-bridge.R:9061:3
+ 6.           └─JuliaCall::julia_setup(installJulia = FALSE, install = TRUE) at general-sd-regression/R/julia-bridge.R:4914:5
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 5 live tests ran; bridge glue was exercised in this configuration.
+Execution halted

@@ -1,0 +1,63 @@
+{
+  "receipt_scope": "R-to-Julia bridge fit/output check for the Binomial phylogenetic slope-only SD route",
+  "drmTMB": {
+    "candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+    "branch": "codex/general-sd-regression",
+    "worktree_state": "dirty shared candidate; hashes below identify test-time files"
+  },
+  "DRModels.jl": {
+    "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+    "branch": "codex/general-sd-regression",
+    "worktree_state": "dirty paired candidate; files below are hashed at test time"
+  },
+  "files": [
+    {
+      "path": "R/julia-bridge.R",
+      "sha256": "9ef90a0c40419f14125b174cfc31ab3a7df0ec49247f331e834cff1a95141018"
+    },
+    {
+      "path": "R/julia-simulate.R",
+      "sha256": "9d18702f4cf7a9284abddcf7f6a9470fdecc85428dd9a92ee1cba119ef64f8e5"
+    },
+    {
+      "path": "tests/testthat/test-julia-binomial-phylo-slope-sd.R",
+      "sha256": "73517c3e23126ef2c1c3fc9c60a2051c2fcf17e2a02dd6cea3f857ff20d29e15"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl",
+      "sha256": "fc3dfd2c414782fdd884616cdc516cb54343240a0c21123b3e89e221b53dc161"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/binomial_sd_regression.jl",
+      "sha256": "adf91be48c423946bfe9618bd3e65184ad192975ceb1b427f364f6dad559f5f2"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/sparse_laplace_glmm.jl",
+      "sha256": "4bcabfe84d5e17f3b6f9af0d963a6d5bb08ec60f543e950f0afb111c8aee3fbe"
+    },
+    {
+      "path": "tools/general-sd-regression/universe.py",
+      "sha256": "30fc993b9d71b0c93523e156a1b4646aa54af1849e1222bb8d091622fd3a963d"
+    },
+    {
+      "path": "tools/general-sd-regression/tests/test_universe.py",
+      "sha256": "88dab6bc80b8185a36b987c8332a46a3a4123dfdd610d4d32fc5b550fa891aaa"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/required-rows.tsv",
+      "sha256": "16e4b56d61e2326b99fb0f8af67d89f57f88aa5f83df2299488afb33e8722086"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/required-universe.md",
+      "sha256": "167c206dee8acd74b409ef57644b98d23e819aaf13553a1451e7fcd55cdbd55c"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/universe-contract.md",
+      "sha256": "27380afec153bffa16441d189bb4d0216a4ab71ccc96e9bd80244818a3bec81e"
+    }
+  ],
+  "test_snapshot": {
+    "path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027/test-snapshot/test-julia-binomial-phylo-slope-sd.R",
+    "sha256": "73517c3e23126ef2c1c3fc9c60a2051c2fcf17e2a02dd6cea3f857ff20d29e15"
+  }
+}

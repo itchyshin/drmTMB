@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "d81e22a7b404c9df82db223421ab0d642c8ec127f41e36e570be7a76befc14e4",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex Bernoulli q1 evidence agent",
+  "method": "Exact saved handoff self-read against receipt, source capsule and live log",
+  "genre": "Technical carry-over handoff",
+  "coverage": "Whole handoff, lines 1-15",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "Direct state, outcome and resume commands; little generic wording.",
+  "confidence": "medium",
+  "confidence_reason": "Short technical handoff self-assessed without an independent human reader.",
+  "examples": [
+    {
+      "location": "Landing state, line 3",
+      "cue": "Names carried-over state and exact branch",
+      "impact": "The parent can distinguish a green test from a landed change.",
+      "repair": "No change needed.",
+      "line": 3,
+      "quote": "landing and aggregate acceptance remain inconclusive"
+    },
+    {
+      "location": "Result, line 5",
+      "cue": "Claims one measured case and its limits",
+      "impact": "Prevents a one-fixture result from becoming a broad or calibration claim.",
+      "repair": "No change needed.",
+      "line": 5,
+      "quote": "successful bootstrap refit count and coverage calibration were not established"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The one-case scope, approximation-specific checks and interval limitations match the raw receipt.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Branch, elapsed time, expectation count, source capsule and log hashes match saved local evidence.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external source or bibliographic claim is used.",
+  "date": "2026-10-28",
+  "calibration_status": "No benchmark controls were used; score is an editorial self-judgment only.",
+  "interpretation": "perceived_style_not_authorship"
+}

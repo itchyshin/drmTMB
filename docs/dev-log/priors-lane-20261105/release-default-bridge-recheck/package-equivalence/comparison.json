@@ -1,0 +1,12 @@
+{
+  "baseline_commit": "b86709e16b477c4d232eaec16e9567ec12e136fa",
+  "candidate": "baseline archive plus selected audit, test, report, check-log and receipt changes",
+  "result": "PASS",
+  "entries": 1482,
+  "normalization": "DESCRIPTION Packaged timestamp only; packager retained",
+  "md5": "not present in either R CMD build tarball",
+  "normalized_manifest_sha256": "74c0597cb10a60f8613f0199ae4ba069d27e248bfa7a32bbc755c542af94528a",
+  "baseline_tar_sha256": "0122753ce1688a758a15f4ece1563d85564f75cccac9505ea2f52ba68e331061",
+  "candidate_tar_sha256": "538d63c6a723bb81c8a1c7de0451088125237ea4f3f6b861e6483a54b8bd43ea",
+  "comparison": "all entry paths, types, modes, link targets, and regular-file bytes"
+}

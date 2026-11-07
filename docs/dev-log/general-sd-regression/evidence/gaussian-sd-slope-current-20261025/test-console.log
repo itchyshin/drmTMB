@@ -1,0 +1,18 @@
+ℹ Testing drmTMB
+gaussian-sd-slope-regression: ............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+🧿 Your tests look perfect 🧿
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+ℹ Testing drmTMB
+julia-gaussian-sd-parity: i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+......................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+🧿 Your tests look perfect 🧿
+Julia bridge: 2 live tests ran; bridge glue was exercised in this configuration.
+Julia exit.

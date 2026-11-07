@@ -1,0 +1,10 @@
+ℹ Testing drmTMB
+binomial-phylo-interaction-slope-sd: .......................
+julia-binomial-phylo-interaction-slope-sd-bridge: ......S
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. Binomial phylogenetic-interaction slope SD matches across engines ('test-julia-binomial-phylo-interaction-slope-sd-bridge.R:93:3') - Reason: DRModels.jl / DRM.jl engine not available (set DRMODELS_JL_PATH or DRM_JL_PATH)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Way to go!
+Julia bridge: 0 live tests ran, 1 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

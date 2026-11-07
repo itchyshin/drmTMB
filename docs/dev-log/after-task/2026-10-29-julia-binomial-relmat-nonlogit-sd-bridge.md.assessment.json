@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "af6d157d58ccff0ca4f9ce63419248d6bf836ba43574d132254683d80f28ec19",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "writing-naturalness protocol and drmTMB prose-style-review checklist",
+  "genre": "technical after-task report",
+  "coverage": "entire saved report",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The note gives the tested route, outputs, and boundaries in concrete terms.",
+  "confidence": "medium",
+  "confidence_reason": "The exact focused log, source manifest, evidence reconciliation, pkgdown check, and report validators were checked in this worktree.",
+  "examples": [
+    {
+      "location": "Known Residuals",
+      "cue": "The limitation identifies the specific route and remaining qualification.",
+      "impact": "Readers can distinguish the paired development result from a broad support claim.",
+      "repair": "no change needed",
+      "line": 45,
+      "quote": "This is one synthetic fixture per link."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report describes fixed-seed point fits and does not claim calibrated uncertainty.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The live log, tested source hashes, reconciliation, and pkgdown result were verified.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no literature claims.",
+  "date": "2026-10-29",
+  "calibration_status": "No human calibration controls consulted.",
+  "interpretation": "perceived_style_not_authorship"
+}

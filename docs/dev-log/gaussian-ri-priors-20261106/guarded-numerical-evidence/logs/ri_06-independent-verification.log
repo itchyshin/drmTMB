@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "ri_06",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 4.3502907647672623e-16,
+        "point_data_nll": 4.825262515821181e-16,
+        "point_prior": 5.033168939378748e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.12884718078538e-16,
+        "point_hessian": 3.2962316535057096e-10,
+        "fit_objective_at_returned_point": 2.4091902918394145e-15,
+        "fit_data_nll": 1.2513788631318546e-15,
+        "fit_prior": 7.683690296264731e-17,
+        "fit_optimum_objective": 3.311726512614825e-11,
+        "fit_coefficients": 6.924871707488393e-10
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 8.155817155443377e-07
+      }
+    },
+    {
+      "id": "ri_06",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 1.4500969215890874e-16,
+        "point_data_nll": 1.6084208386070604e-16,
+        "point_prior": 8.053070303005998e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.6950624070614672e-16,
+        "point_hessian": 2.941206152960282e-16,
+        "fit_objective_at_returned_point": 8.030634305865436e-16,
+        "fit_data_nll": 5.00551545205931e-16,
+        "fit_prior": 1.5367380591056764e-16,
+        "fit_optimum_objective": 1.606126861173086e-15,
+        "fit_coefficients": 2.075735704846715e-09
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 4.535302654198203e-10
+      }
+    },
+    {
+      "id": "ri_06",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 8.030634305865436e-16,
+        "fit_data_nll": 5.00551545205931e-16,
+        "fit_prior": 1.5367380591056764e-16,
+        "fit_optimum_objective": 1.606126861173086e-15,
+        "fit_coefficients": 2.075735704846715e-09
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 4.535302654198203e-10
+      }
+    }
+  ]
+}
+INDEPENDENT_COMPARISON_PASS

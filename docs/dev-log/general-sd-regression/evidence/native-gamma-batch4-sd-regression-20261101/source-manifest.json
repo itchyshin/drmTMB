@@ -1,0 +1,42 @@
+{
+  "scope": "Native Gamma(log) ordinary (1 | g) plus relmat(1 | p, K = K) mu intercepts with separate predictor-dependent SDs sd(g) ~ zg and sd(p, level = relmat) ~ zp, sigma ~ 1; K stored in shuffled level order.",
+  "note": "Dirty shared candidate tree (branch codex/general-sd-regression, HEAD 425bee81572c625a634b2b083050c5c57c1dc1f1 plus uncommitted edits); hashes identify test-time files.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "949036ae0f57a78b1c9e57175539550b844222b504db73891c4efe2ebc3cb776"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "c56533272cf2b6e2085de0994ea132011e5cec51ac9cf4f8c5270cbd89f755dc"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "646bb79de06de281a9e522182465c1eb96f9b08489386abb1ed10ceb87b41014"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "2eb971378841edebc1bb3f217d3436bee47d0fe2a23727de7ceca236e9580600"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "8d42bc8c6e3a6140293f39e1abd85d6c777ee1856a937807e0e66657310f3cac"
+    },
+    {
+      "file": "tests/testthat/test-gamma-batch4-sd-regression.R",
+      "sha256": "85319af1281be28b4656ca4c92259497a3450e7c7f909ab1beb85f798334f68f"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/native-gamma-batch4-sd-regression-20261101/test-console.log",
+      "sha256": "6b21bd919393a009e5f00858abd47f5710de362b55d30c3171f5959e25585e5b"
+    }
+  ]
+}

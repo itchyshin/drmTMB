@@ -1,0 +1,17 @@
+{
+  "scope": "native Binomial probit and cloglog animal A covariance plus relmat K covariance SD regression; captured rerun 2026-10-27",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "4d1b7b52bc2ef9b7cf16060342116df7dacb79c3e76a5a6f30484f24cefbac12"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-animal-relmat-nonlogit-sd.R",
+      "sha256": "8b70267ac5dfaeb3fe520b4119650e28fd1f7b072dab78daf27ac8e74005ef61"
+    }
+  ]
+}

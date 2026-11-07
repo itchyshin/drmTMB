@@ -1,0 +1,21 @@
+{
+  "head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "files": [
+    {
+      "path": "tests/testthat/test-binomial-cloglog-phylo-sd-regression.R",
+      "sha256": "f62b61b3d4663d24ea447e487f9d140e9f2d5f07aa98390156ef8abd576ab470"
+    },
+    {
+      "path": "R/drmTMB.R",
+      "sha256": "b6fba800bbb7f41ee4f3ab6ec44e8dc0cfe7bd51ebbac78b4afa2f2ea1299db1"
+    },
+    {
+      "path": "src/drmTMB.cpp",
+      "sha256": "71ed10ab4f632d5e03afee3226fc2a322c7965c204023fdc0f381de29cea9ed3"
+    },
+    {
+      "path": "DESCRIPTION",
+      "sha256": "9273d37e6dd2850004051fbdb46945cb2bc6c61835050ff52033c45a2541e72c"
+    }
+  ]
+}

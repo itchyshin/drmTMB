@@ -1,0 +1,18 @@
+{
+  "evidence_id": "betabinomial-slope_native-ordinary-sd-parity-20261024-v1",
+  "row_key": "[\"native\",\"beta_binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+  "evidence_grade": "recovery",
+  "claim": "One complete-response Beta-binomial q1 independent numeric mean slope SD fit through native TMB in the same-data TMB/Julia bridge fixture.",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "native_worktree_dirty": true,
+  "julia_worktree_dirty": true,
+  "source_manifest": "source-manifest.json",
+  "source_manifest_sha256": "e27c61297e47ce97dbad7b8af6497dbd6e543aee6c25bf1ebf7d6131fb4dafe0",
+  "test_path": "docs/dev-log/general-sd-regression/evidence/betabinomial-ordinary-sd-parity-20261024-v1/test-snapshot/tests/testthat/test-julia-beta-binomial-sd-parity.R",
+  "test_sha256": "ba6107fdd42972b7844991d800b24bc7f6eabf760498145ec4c5191f786cbb96",
+  "test_command": "DRM_JL_PATH=\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia\" DRM_JL_JULIA_HOME=\"/Users/z3437171/.juliaup/bin\" OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=4 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"julia-beta-binomial-sd-parity|julia-family-beta_binomial\")'",
+  "result": "Exit 0; focused filters passed 70 expectations, with 0 failures, 0 warnings, 0 skips, and three live Julia bridge fits; duration 58.2 seconds.",
+  "scope": "One ordinary q1 Beta-binomial independent numeric mean slope only, complete responses, fixed sigma ~ 1; point recovery and output checks, no interval-coverage claim.",
+  "review_status": "unreviewed"
+}

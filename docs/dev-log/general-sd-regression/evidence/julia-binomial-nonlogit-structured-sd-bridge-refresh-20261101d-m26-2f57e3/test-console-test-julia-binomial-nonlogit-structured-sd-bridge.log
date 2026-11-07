@@ -1,0 +1,17 @@
+julia-binomial-nonlogit-structured-sd-bridge: ........W..SSS
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. probit and cloglog animal-slope SD regression runs through the Julia bridge ('test-julia-binomial-nonlogit-structured-sd-bridge.R:61:3') - Reason: Julia bridge tests are opt-in
+
+2. probit and cloglog animal-intercept SD regression runs through the Julia bridge ('test-julia-binomial-nonlogit-structured-sd-bridge.R:152:3') - Reason: Julia bridge tests are opt-in
+
+3. probit and cloglog relmat-intercept SD regression runs through the Julia bridge ('test-julia-binomial-nonlogit-structured-sd-bridge.R:235:3') - Reason: Julia bridge tests are opt-in
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. non-logit Binomial guard defers only supported structured SD routes ('test-julia-binomial-nonlogit-structured-sd-bridge.R:53:3') - `engine = "julia"` cannot check the order of the unlabelled `animal()` `Ainv` matrix.
+i Rows are paired with the grouping levels in order of first appearance in `data`. Give `Ainv` row and column names to match by name.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=10 failed=0 errors=0 skipped=3
+DRM_RUN start=2026-11-02T13:18:35Z end=2026-11-02T13:18:40Z rc=0

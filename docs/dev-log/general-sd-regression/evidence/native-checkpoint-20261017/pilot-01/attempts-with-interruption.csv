@@ -1,0 +1,7 @@
+a,pilot,seed,estimate,se,convergence,pdHess,max_abs_gradient,clamp_at_optimum,lower,upper,interval_status,profile_boundary,profile_message,laplace_oracle_error,valid_interval,warnings,error,elapsed,attempt_state,record_provenance
+-0.5,1,1746912062,-0.603679758165521,0.164050600035885,0,TRUE,6.3046243781173e-09,ok,-0.94510779362799,-0.294078228774495,profile,FALSE,ok,-3.01974978356156e-09,TRUE,,,52.675,completed,R runner result
+0,1,1475354618,-0.154506209119062,0.161999054705143,0,TRUE,3.11311421086202e-10,ok,-0.47929369107422,0.16159254754936,profile,FALSE,ok,-4.72414285468403e-09,TRUE,,,52.975,completed,R runner result
+0.5,1,1120801948,0.398301049265332,0.167843353171739,0,TRUE,5.18908560565023e-09,ok,0.0773137675753429,0.7430931451962,profile,FALSE,ok,-2.52136942435754e-08,TRUE,,,63.064,completed,R runner result
+-0.5,2,131856170,-0.311934230927057,0.165491228361178,0,TRUE,5.6227245082141e-11,ok,-0.652519683435994,0.00573575458181969,profile,FALSE,ok,-2.33681021200027e-08,TRUE,,,59.901,completed,R runner result
+0,2,883057618,-0.129744349570544,0.148986704721341,0,TRUE,7.18201498273174e-10,ok,-0.426376449446571,0.161577109898582,profile,FALSE,ok,2.34417711908463e-08,TRUE,,,49.7,completed,R runner result
+0.5,2,661797416,,,,,,,,,administrative_timeout,,,,FALSE,,Supervisor stopped at the predeclared 300-second cap; this attempt has a health record but no completed interval/result row.,,interrupted_before_result_write,"Root receipt: sequential runner, manifest seed, health-06.rds and supervisor exit 124"

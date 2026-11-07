@@ -1,0 +1,59 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "ri_01",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 2.198593916508107e-16,
+        "point_data_nll": 2.297813704798263e-16,
+        "point_prior": 2.6157544104905e-16,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 0.0,
+        "fit_data_nll": 1.1142885704309805e-16,
+        "fit_prior": 1.8988635477877994e-16,
+        "fit_optimum_objective": 0.0,
+        "fit_coefficients": 3.406557704131547e-10,
+        "fit_interior_group_sd": 8.077009444135338e-10
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ]
+    },
+    {
+      "id": "ri_01",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 6.559056264656871e-16,
+        "fit_data_nll": 7.800019993016593e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 8.433072340273119e-16,
+        "fit_coefficients": 3.4095874454852164e-10,
+        "fit_interior_group_sd": 8.077121294421225e-10
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ]
+    },
+    {
+      "id": "ri_01",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 6.559056264656871e-16,
+        "fit_data_nll": 7.800019993016593e-16,
+        "fit_prior": 6.329545159293168e-17,
+        "fit_optimum_objective": 8.433072340273119e-16,
+        "fit_coefficients": 3.4095874454852164e-10,
+        "fit_interior_group_sd": 8.077121294421225e-10
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ]
+    }
+  ]
+}
+INDEPENDENT_COMPARISON_PASS

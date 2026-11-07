@@ -1,0 +1,34 @@
+{
+  "source": "8998056d75b9e1fe9d66264cb4ae35e025535e21",
+  "host": "Mac reference host",
+  "tolerance": 0,
+  "maximum_summary_change": 0,
+  "wrapper_exit": 0,
+  "ledger_unit_tests_passed": 92,
+  "cells": [
+    {
+      "cell_id": "mc-0568",
+      "attempts": "4",
+      "passed": "4",
+      "mean_tau_relative_error": "0.0990031773680984",
+      "decision": "PASS_CURRENT_SOURCE_COMPATIBILITY"
+    },
+    {
+      "cell_id": "mc-0569",
+      "attempts": "4",
+      "passed": "4",
+      "mean_tau_relative_error": "0.166077467305878",
+      "decision": "PASS_CURRENT_SOURCE_COMPATIBILITY"
+    },
+    {
+      "cell_id": "mc-0576",
+      "attempts": "4",
+      "passed": "4",
+      "mean_tau_relative_error": "0.0613049351741076",
+      "decision": "PASS_CURRENT_SOURCE_COMPATIBILITY"
+    }
+  ],
+  "receipt_directory": "docs/dev-log/implementation-recovery/2026-11-06-priors-publish-c17c2-c14-final-source-compatibility",
+  "scope": "Three fixed model-15 source-compatibility cells; this does not admit fixed priors to those anchors or establish calibration.",
+  "combined_python_guard_tests_passed": 157
+}

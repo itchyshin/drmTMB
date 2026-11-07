@@ -1,0 +1,58 @@
+{
+  "evidence_id": "native-poisson-batch5-sd-regression-r2-20261101-m26",
+  "rerecord_of_evidence_id": "native-poisson-batch5-sd-regression-r2-20261101",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/poisson-batch5-sd-regression-r2-20261101/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"NOT_CRAN=true OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'suppressMessages(devtools::load_all(\"\".\"\", quiet=TRUE)); testthat::test_file(\"\"tests/testthat/test-poisson-batch5-sd-regression.R\"\", reporter=\"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-poisson-batch5-sd-regression.R",
+      "test_sha256": "f6aa052a1ac95e7f757b9070d9b44db883c42ec83fd1d292c4f5262ae8ef9244",
+      "started_utc": "2026-11-02T13:18:29Z",
+      "ended_utc": "2026-11-02T13:18:37Z",
+      "exit_code": 0,
+      "expectations_passed": 45,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-batch5-sd-regression-r2-20261101-m26-fe7041/test-console-test-poisson-batch5-sd-regression.log",
+      "console_log_sha256": "87b64c4d9be4cdba1e8268602ccd264c21f68b242fe2aee13fe64e77931ae904"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-batch5-sd-regression-r2-20261101-m26-fe7041/source-manifest.json",
+  "source_manifest_sha256": "ccf649d6239867a8448561dee29f5057b194261a4e902ce0e0f02093946e0e13",
+  "review_status": "reviewed_narrow_claim",
+  "oracle": "Dense R Laplace marginal likelihood over the pair latent f~N(0,K), K=kronecker(A2,A1), eta=X beta+J f, J=diag(sd_pair*value)[pair,], y~Poisson(exp(eta)), evaluated at fitted parameters. Written in the test file with stats::dpois and base linear algebra, no drmTMB objective, so independent of the likelihood code under test. Not fully independent in fixtures: A1 and A2 come from drmTMB:::drm_phylo_tip_covariance, and predict()/coef() supply SDs and mu coefficients. Checks likelihood assembly at fitted parameters, not the optimiser.",
+  "checks": [
+    "convergence 0 and finite logLik",
+    "coefficient names",
+    "z_pair recovery within 0.5 (wiring check)",
+    "name-aligned SD predictions equal exp(X alpha) to 1e-8",
+    "logLik within 1e-4 of dense Laplace oracle",
+    "constant-SD equivalence 2e-5 relative",
+    "nested model bound 1e-3",
+    "row-order invariance 1e-5",
+    "within-pair varying SD input refused",
+    "simulate() count draws reproducible",
+    "save/reload predict identity",
+    "closed-gate refusals"
+  ],
+  "review_note": "Reviewer 2, 2026-11-02. The test fits native Poisson phylo_interaction(1 | plant:pollinator) (intercept) and phylo_interaction(0 + x | plant:pollinator) (slope-only) with sd(pair, level = phylogenetic_interaction) ~ z_pair and compares logLik to a base-R dense Laplace over the pair field (tol 1e-4). Two review conditions were demonstrated by a scratch run on Totoro (test helper functions, nothing edited): (a) the K = kronecker(A2, A1) built via drmTMB:::drm_phylo_tip_covariance equals cov2cor(ape::vcv) per tree and the Kronecker product with max abs difference 0, and the oracle with the independently built K agrees with logLik to 2e-13 (intercept) and 2e-10 (slope); (b) sensitivity, with tolerance 1e-4: reversed SD vector shifts the oracle by 19.6 (intercept) / 69.1 (slope); kernel x2 by 3.2 / 3.5; flat (intercept-only) SD by 15.7 / 31.7; misaligned pair index by 427 / 287. The slope row is SLOPE MEMBER ONLY: the slope-only fit supports the phylo_interaction numeric-slope SD row, not a companion structured intercept. The intercept row is supported by the intercept-only fit. Rerun 45/0/0 skips; all 13 manifest files match. Does NOT establish: calibration or coverage; Julia parity; that swapping tree1 and tree2 is detected (both fixture trees are identical balanced topologies, so the kernel order change shifted the oracle by 0.0000); a correlated intercept+slope pair field; other families. The kernel independence and the sensitivity are reviewer-demonstrated, not asserted inside the test.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-poisson-batch5-sd-regression.R",
+    "test_sha256": "f6aa052a1ac95e7f757b9070d9b44db883c42ec83fd1d292c4f5262ae8ef9244",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:59Z",
+    "ended_utc": "2026-11-03T01:11:19Z",
+    "expectations_passed": 45,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-batch5-sd-regression-r2-20261101-m26-fe7041/test-console-rerun-81553915d.log",
+    "console_log_sha256": "426c60273d2df292f0fd88fac352f02d17fcbaae83c66278e1659cf397224529",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

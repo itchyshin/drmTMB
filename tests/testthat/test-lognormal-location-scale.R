@@ -288,7 +288,7 @@ test_that("lognormal models reject unsupported or invalid inputs", {
       family = lognormal(),
       data = dat
     ),
-    "Random-effect scale formulae"
+    "No random-effect term matches"
   )
   expect_error(
     drmTMB(bf(mvbind(y, x) ~ x, sigma ~ 1), family = lognormal(), data = dat),

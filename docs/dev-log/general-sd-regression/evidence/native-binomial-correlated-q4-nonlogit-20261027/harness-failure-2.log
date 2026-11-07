@@ -1,0 +1,12 @@
+ℹ Testing drmTMB
+binomial-correlated-q4-nonlogit-sd: .1
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-binomial-correlated-q4-nonlogit-sd.R:81:5'): Bernoulli correl
+Error in `expect_type(fit$sdr$pdHess, "logical", info = link)`: unused argument (info = link)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted
