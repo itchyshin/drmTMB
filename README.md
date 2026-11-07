@@ -18,7 +18,7 @@ less predictable in one habitat; or, after accounting for their averages and
 variability, do two responses still vary together? The worked examples come
 from ecology, evolution, and environmental science.
 
-`drmTMB` 0.8.0 is the development version; 0.7.0 is on CRAN. The package is
+`drmTMB` 0.8.1 is the development version; 0.7.0 is on CRAN. The package is
 experimental: start with a documented example, check the fitted model, and
 read [Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html)
 before reporting a result.
@@ -177,7 +177,7 @@ to find the relevant guide.
 
 ## What can I fit today?
 
-The table summarises what is fitted in 0.8.0. The
+The table summarises what is fitted in 0.8.1. The
 [model map](https://itchyshin.github.io/drmTMB/articles/model-map.html) gives
 the exact forms and the guide for each row, and
 [Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html)
