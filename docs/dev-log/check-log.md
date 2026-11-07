@@ -98089,3 +98089,15 @@ it is not a public interface, recovery, interval, calibration, or campaign claim
 | 2026-10-19 | man/*.Rd vs roxygen sync (#1571) | `document()` rewrote 39 Rd files before, 0 after; `test-man-roxygen-sync.R` fails pre-fix, passes post-fix | PASS | Claude |
 
 | 2026-10-22 | Direct Gaussian aggregation helper tests (#1598) | `devtools::test(filter = "gaussian-aggregation")`: PASS 136, FAIL 0, WARN 0, SKIP 0; PR test source SHA-256 unchanged | Focused tests PASS; full package and Julia engine checks not run | Codex |
+
+## 2026-11-05: first fixed-effect prior slice
+
+Normal priors and ridge penalties for ordinary Gaussian mu/sigma and binomial-logit fixed effects are implemented in an isolated lane. Independent numerical and affected-regression checks pass; broad R residuals reproduce on baseline. The original Julia run stopped at 90 minutes; its unchanged-source follow-up passed all eight default-suite shards and 554 selected files. Detailed source pins, failures and limits are in [the per-file evidence log](check-log.d/2026-11-05-fixed-effect-priors.md). No merge, release or general parity/calibration claim is authorized.
+
+# 2026-11-06: parity scoreboard comment correction
+
+The scoreboard generator introduction now describes the 22 explicit pending R-only rows and the guard against unexpected names. A focused regeneration on R candidate `99cca41194d89bfe5f7dca9e8800ab1122156632` and Julia status pin `da8b3f8711beb5ef3186b890544c2e7850c7f194` matched the unmodified generator byte-for-byte. This checks the comment-only proposal, not model parity or interval coverage. Evidence: `docs/dev-log/after-task/2026-11-06-parity-scoreboard-comment.md`.
+
+### 2026-11-06: parity generator after main integration
+
+On merge candidate `958fc7c53dccaae16cfc3a1fe971f019171be4dd`, regenerated the parity matrix and scoreboard using the recorded Julia documentation pin `da8b3f8711beb5ef3186b890544c2e7850c7f194`. Focused `test-parity-matrix.R` and `test-parity-scoreboard.R` passed locally, with one `beta()` deprecation warning. This check did not exercise a live Julia bridge or certify broad parity. The source checkpoint identifies the merge before this generated-document update.

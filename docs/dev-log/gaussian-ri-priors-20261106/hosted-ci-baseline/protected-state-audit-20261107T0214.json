@@ -1,0 +1,57 @@
+{
+  "recorded_at": "2026-11-07T02:14:05.714204+00:00",
+  "oracle_manifest": {
+    "entries": 19,
+    "result": "all matched"
+  },
+  "protected_configs": {
+    "R/.claude/settings.json": "5eecaf99e832df8065e2c61a2b5ff23bc184c744ca7f79f5c5253247f8019a06",
+    "R/.cursor/hooks.json": "8fe08e11f192099c2c38f9a23a86d9de9fa0d71303368fbb4a17e0a4ce5cb43e",
+    "Julia/.claude/settings.json": "c00296b956278cda5e6944a7af11467ab9f65f94b4d5cd31b639e9686820f069",
+    "Julia/.cursor/hooks.json": "c74f0f5324ce5cb9d7cf305a795be55d492f0770ad0e083a163cca98bc49bd63"
+  },
+  "pull_requests": {
+    "drmTMB#1651": {
+      "headRefOid": "1bf51e2d61bd1ce0a2fb3fad914a9888544af491",
+      "isDraft": true,
+      "mergedAt": null,
+      "state": "OPEN"
+    },
+    "drmTMB#1681": {
+      "headRefOid": "21061cd74ef41b748d1b659db55a8c4b248b8a1a",
+      "isDraft": true,
+      "mergedAt": null,
+      "state": "OPEN"
+    },
+    "DRModels.jl#1258": {
+      "headRefOid": "385fde27d369270afb2353ddf1fbd9f301f2b4ce",
+      "isDraft": true,
+      "mergedAt": null,
+      "state": "OPEN"
+    }
+  },
+  "production_diff": {
+    "R": {
+      "production_pin": "5d0f159644991f49dd767b8baf8cb61f537b3720",
+      "current_head": "21061cd74ef41b748d1b659db55a8c4b248b8a1a",
+      "paths": [
+        "R",
+        "src",
+        "tests",
+        "NAMESPACE",
+        "DESCRIPTION"
+      ],
+      "diff_empty": true
+    },
+    "Julia": {
+      "production_pin": "ff10a2f9adb23c0e315d50e8c2094d6d27ed1d82",
+      "current_head": "385fde27d369270afb2353ddf1fbd9f301f2b4ce",
+      "paths": [
+        "src",
+        "test",
+        "Project.toml"
+      ],
+      "diff_empty": true
+    }
+  }
+}

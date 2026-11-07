@@ -257,6 +257,17 @@
 #'   regularises a weakly-identified phylogenetic standard deviation; the fit is
 #'   labeled `MAP` and `logLik()` returns the unpenalized data log-likelihood.
 #'   Native `engine = "tmb"` only.
+#' @param priors Optional fixed-effect normal priors or ridge penalties created
+#'   by [drm_priors()]. Supports Gaussian identity and binomial logit models
+#'   with complete data and unit weights; Gaussian models may also include one
+#'   independent mean random intercept. The Julia bridge currently refuses
+#'   factor predictors in Gaussian mean random-intercept formulas.
+#'   Select distributional parameters and coefficient columns explicitly;
+#'   [drm_resolve_priors()] previews those selections. Active priors produce
+#'   penalized/MAP point estimates. Covariance is local penalized-Hessian
+#'   curvature, not calibrated sampling covariance. Confidence intervals and
+#'   likelihood comparisons are not implemented. Cannot be combined with
+#'   `REML`, `estimator = "mspl"`, or `penalty`.
 #' @param estimator Estimator for the native TMB route. The default `"ml"`
 #'   preserves ordinary maximum likelihood. Experimental `"mspl"` implements
 #'   the clean-room maximum softly-penalized likelihood criterion for one
@@ -325,7 +336,8 @@ drmTMB <- function(
   REML = FALSE,
   penalty = NULL,
   estimator = c("ml", "mspl"),
-  ...
+  ...,
+  priors = NULL
 ) {
   fit_call <- match.call()
   family <- drm_eval_family_arg(substitute(family), parent.frame())
@@ -361,6 +373,9 @@ drmTMB <- function(
   data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
+  drm_validate_fixed_prior_request(priors, formula, family, data,
+    REML = REML, estimator = estimator, penalty = penalty, impute = impute,
+    control = control)
   # `biv_student()` used to abort here for `engine = "julia"` ("the Julia route
   # is deferred"), a family-specific gate that fired BEFORE the Julia family
   # registry was ever consulted. It is retired (A4, 2026-09-05): the registry
@@ -400,10 +415,11 @@ drmTMB <- function(
       impute = impute,
       missing = missing,
       REML = drm_control_flag(REML, "REML"),
+      priors = priors,
       call = match.call()
     ))
   }
-  control <- drm_parse_control(control)
+  control <- if (drm_fixed_priors_active(priors)) drm_prior_control(control) else drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
   # A-2 (#1332, #1484): fail on NA predictors only when the caller supplies
   # `missing =` with a control built as `miss_control()` or
@@ -425,6 +441,9 @@ drmTMB <- function(
     data = data,
     env = parent.frame()
   )
+  drm_validate_fixed_prior_request(priors, formula, family, data,
+    REML = REML, estimator = estimator, penalty = penalty, impute = impute,
+    weights = weights_full, control = control)
   drm_abort_mi_zero_weight_missing_in_data(data, weights_full, impute)
 
   family_type <- drm_family_type(family)
@@ -708,6 +727,7 @@ drmTMB <- function(
     REML = REML,
     penalty = penalty,
     estimator = estimator,
+    priors = priors,
     fit_call = fit_call
   )
 }
@@ -720,8 +740,10 @@ drm_fit_spec <- function(
   REML = FALSE,
   penalty = NULL,
   estimator = "ml",
-  fit_call = NULL
+  fit_call = NULL,
+  priors = NULL
 ) {
+  if (is.null(priors) && !is.null(spec$priors)) priors <- spec$priors
   if (is.null(fit_call)) {
     fit_call <- match.call()
   }
@@ -747,6 +769,14 @@ drm_fit_spec <- function(
     estimator = estimator
   )
   spec <- drm_apply_phylo_penalty_spec(spec, penalty)
+  if (!is.null(priors)) {
+    drm_validate_fixed_prior_request(priors, formula, family, spec$data,
+      REML = REML, estimator = estimator, penalty = penalty, control = control)
+    drm_validate_fixed_prior_designs(spec)
+    spec <- drm_apply_fixed_priors_spec(spec, priors)
+    spec$priors <- priors
+    if (any(spec$resolved_priors$precision > 0)) spec$estimator <- "MAP"
+  }
   if (is.null(control$logsigma_clamp)) {
     spec$tmb_data$use_logsigma_clamp <- 0L
     spec$tmb_data$logsigma_clamp <- c(-12, 12, 3)
@@ -929,6 +959,20 @@ drm_fit_spec <- function(
   } else {
     as.numeric(phylo_penalty_report)
   }
+  fixed_prior_value <- if (is.null(objective_report$fixed_prior_penalty)) 0 else
+    as.numeric(objective_report$fixed_prior_penalty)
+  prior_gradient <- likelihood_gradient <- NULL
+  if (!is.null(priors)) {
+    prior_gradient <- rep(0, length(opt$par))
+    resolved <- spec$resolved_priors
+    for (i in which(resolved$precision > 0)) {
+      positions <- which(names(opt$par) == paste0("beta_", resolved$dpar[[i]]))
+      pos <- positions[[resolved$matrix_column[[i]]]]
+      prior_gradient[[pos]] <-
+        (opt$par[[pos]] - resolved$mean[[i]]) * resolved$precision[[i]]
+    }
+    likelihood_gradient <- fit_gradient$gradient - prior_gradient
+  }
 
   mspl <- if (identical(spec$estimator, "MSPL")) {
     drm_finalize_mspl_fit(spec, obj, opt, objective_report)
@@ -938,7 +982,7 @@ drm_fit_spec <- function(
   stored_loglik <- if (identical(spec$estimator, "MSPL")) {
     NA_real_
   } else {
-    -opt$objective + phylo_penalty_value
+    -opt$objective + phylo_penalty_value + fixed_prior_value
   }
 
   fit <- list(
@@ -968,6 +1012,14 @@ drm_fit_spec <- function(
     estimator_exact = drm_estimator_exact(spec),
     penalty = spec$penalty,
     phylo_penalty = phylo_penalty_value,
+    priors = spec$priors,
+    resolved_priors = spec$resolved_priors,
+    fixed_prior_penalty = fixed_prior_value,
+    prior_gradient = prior_gradient,
+    likelihood_gradient = likelihood_gradient,
+    penalized_objective = if (!is.null(priors)) opt$objective else NULL,
+    covariance_interpretation = if (!is.null(priors) && any(spec$resolved_priors$precision > 0))
+      "local_penalized_hessian_curvature; not calibrated sampling covariance" else NULL,
     mspl = mspl,
     REML = isTRUE(REML),
     optimizer_used = optimizer$selected,
@@ -25783,6 +25835,11 @@ make_tmb_data <- function(spec) {
   # data contract must carry them. This also protects tracked low-level tools
   # that intentionally call MakeADFun() without passing through drm_fit_spec().
   out <- add_mesh_spatial_tmb_data(make_tmb_data_core(spec), spec)
+  out$prior_beta_block <- integer(0)
+  out$prior_beta_index <- integer(0)
+  out$prior_beta_mean <- numeric(0)
+  out$prior_beta_sd <- numeric(0)
+  out$prior_beta_normalized <- integer(0)
   out$phylo_mu_sd_row_coef <- matrix(-1L, nrow = 1L, ncol = 1L)
   out$has_sd_phylo_coef_model <- 0L
   phylo_mu <- spec$structured$phylo_mu

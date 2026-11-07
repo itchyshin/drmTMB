@@ -1,0 +1,19 @@
+┌ Warning: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `mu` block: z (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+│   aliased_blocks =
+│    1-element Vector{NamedTuple}:
+│     (param = :mu, rank = 2, ncol = 3, aliased = ["z"])
+└ @ DRModels ~/hsq_work/drm-priors-20261105-01a1ad0b/julia-final727-src/src/design_rank.jl:91
+Test Summary:                              | Pass  Total  Time
+fixed-effect priors: selection and density |    8      8  1.3s
+Test Summary:                 | Pass  Total   Time
+real design column resolution |   10     10  19.2s
+Test Summary:                           | Pass  Total   Time
+two dpars and binomial bridge agreement |   11     11  12.8s
+Test Summary:                               | Pass  Total  Time
+independent ridge oracle and matched bridge |    9      9  0.6s
+Test Summary:                            | Pass  Total  Time
+bridge checks resolved prior coordinates |    5      5  0.0s
+Test Summary:                           | Pass  Total  Time
+binomial logit prior and route refusals |   13     13  2.9s
+Test Summary:                              | Pass  Total  Time
+Gaussian prior enters the fitted objective |   26     26  3.9s

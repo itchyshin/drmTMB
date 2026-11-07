@@ -212,6 +212,7 @@ test-family-dpq-batchB.R	suggests-package	environment	runs	2
 test-family-dpq-batchC.R	suggests-package	environment	runs	2
 test-family-dpq-batchD.R	cran-lane	environment	runs	2
 test-family-dpq-batchD.R	suggests-package	environment	runs	3
+test-fixed-priors-gaussian-ranef.R	engine-drm-jl	environment	skips	1
 test-formula-double-bar.R	cran-lane	environment	runs	2
 test-formula-grouping-guard.R	cran-lane	environment	runs	1
 test-formula-smooth-terms.R	cran-lane	environment	runs	1
@@ -583,8 +584,8 @@ test-julia-slope-nongaussian.R	engine-drm-jl	environment	skips	1
 test-julia-slope-nongaussian.R	suggests-package	environment	runs	3
 test-julia-structured-inference.R	suggests-package	environment	runs	1
 test-julia-structured-slope-sd-oracle-b31jo.R	suggests-package	environment	runs	1
-test-julia-structured.R	engine-drm-jl	environment	skips	2
-test-julia-structured.R	suggests-package	environment	runs	3
+test-julia-structured.R	engine-drm-jl	environment	skips	4
+test-julia-structured.R	suggests-package	environment	runs	6
 test-julia-student-sd.R	engine-drm-jl	environment	skips	4
 test-julia-student-sd.R	suggests-package	environment	runs	2
 test-julia-tmb-parity.R	engine-drm-jl	environment	skips	10
@@ -619,7 +620,7 @@ test-mesh-helpers.R	suggests-package	environment	runs	5
 test-mesh-recovery-v3-contract.R	build-premise	build	skips	1
 test-meta-v-lss-comparator.R	suggests-package	environment	runs	1
 test-mi-quadrature-1476-1477.R	cran-lane	environment	runs	9
-test-mi-quadrature-1476-1477.R	runtime-conditional	runtime	depends	2
+test-mi-quadrature-1476-1477.R	runtime-conditional	runtime	depends	1
 test-mi-weights-1459.R	cran-lane	environment	runs	2
 test-missing-predictor-beta-binomial.R	cran-lane	environment	runs	3
 test-missing-predictor-prediction.R	build-premise	build	skips	1
@@ -673,7 +674,8 @@ test-optimizer-tolerance.R	suggests-package	environment	runs	1
 test-parity-fenced-boundaries.R	build-premise	build	skips	2
 test-parity-honesty.R	build-premise	build	skips	13
 test-parity-matrix.R	build-premise	build	skips	3
-test-parity-matrix.R	engine-drm-jl	environment	skips	2
+test-parity-matrix.R	engine-drm-jl	environment	skips	3
+test-parity-matrix.R	runtime-conditional	runtime	depends	1
 test-parity-pin.R	build-premise	build	skips	2
 test-parity-pin.R	external-tool	environment	runs	1
 test-parity-scoreboard.R	build-premise	build	skips	13

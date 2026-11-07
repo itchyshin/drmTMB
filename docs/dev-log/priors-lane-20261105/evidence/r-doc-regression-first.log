@@ -1,0 +1,273 @@
+FINAL_DOC_REGRESSION_START
+function-map-cheatsheet: ..............................................................................S
+phase18-structured-workflow-registry: ........1................................................................................................................................................................................................................................................................................................................................................
+profile-parallel: ...................23...........S
+reader-vignette-contracts: ....................................
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. article restores the audited map and original printable downloads ('test-function-map-cheatsheet.R:67:3') - Reason: printable function-map downloads NOT CHECKED -- missing drmTMB-function-map.pdf, drmTMB-function-cheatsheet.pdf, pkgdown/. pkgdown/ is stripped by .Rbuildignore, so a tarball check cannot see this gate; run it from a git checkout to verify the shipped PDFs.
+
+2. multicore is refused on Windows with a pointer to cluster ('test-profile-parallel.R:234:3') - Reason: .Platform$OS.type == "windows" is not TRUE
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-phase18-structured-workflow-registry.R:126:3'): Phase 18 st
+Expected `normalizePath(path, winslash = "/", mustWork = TRUE)` to equal `expected`.
+Differences:
+actual vs expected
+- "/home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b/r-final-lib/drmTMB/sim/registry/phase18_structured_workflow_registry.csv"
++ "/home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b/r-final-src/inst/sim/registry/phase18_structured_workflow_registry.csv"
+
+
+── 2. Failure ('test-profile-parallel.R:179:3'): bootstrap cluster refits match
+Expected `cluster$lower` to be identical to `serial$lower`.
+Differences:
+  `actual`: 0.35586586260097
+`expected`: 0.35586586260117
+
+
+── 3. Failure ('test-profile-parallel.R:180:3'): bootstrap cluster refits match
+Expected `cluster$upper` to be identical to `serial$upper`.
+Differences:
+  `actual`: 0.40602424221729
+`expected`: 0.40602424221710
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+I believe in you!
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+                                          file
+1               test-function-map-cheatsheet.R
+2               test-function-map-cheatsheet.R
+3  test-phase18-structured-workflow-registry.R
+4  test-phase18-structured-workflow-registry.R
+5  test-phase18-structured-workflow-registry.R
+6  test-phase18-structured-workflow-registry.R
+7  test-phase18-structured-workflow-registry.R
+8  test-phase18-structured-workflow-registry.R
+9  test-phase18-structured-workflow-registry.R
+10 test-phase18-structured-workflow-registry.R
+11 test-phase18-structured-workflow-registry.R
+12 test-phase18-structured-workflow-registry.R
+13 test-phase18-structured-workflow-registry.R
+14 test-phase18-structured-workflow-registry.R
+15 test-phase18-structured-workflow-registry.R
+16 test-phase18-structured-workflow-registry.R
+17 test-phase18-structured-workflow-registry.R
+18 test-phase18-structured-workflow-registry.R
+19 test-phase18-structured-workflow-registry.R
+20 test-phase18-structured-workflow-registry.R
+21 test-phase18-structured-workflow-registry.R
+22 test-phase18-structured-workflow-registry.R
+23 test-phase18-structured-workflow-registry.R
+24 test-phase18-structured-workflow-registry.R
+25 test-phase18-structured-workflow-registry.R
+26 test-phase18-structured-workflow-registry.R
+27 test-phase18-structured-workflow-registry.R
+28 test-phase18-structured-workflow-registry.R
+29 test-phase18-structured-workflow-registry.R
+30 test-phase18-structured-workflow-registry.R
+31 test-phase18-structured-workflow-registry.R
+32 test-phase18-structured-workflow-registry.R
+33 test-phase18-structured-workflow-registry.R
+34 test-phase18-structured-workflow-registry.R
+35 test-phase18-structured-workflow-registry.R
+36 test-phase18-structured-workflow-registry.R
+37 test-phase18-structured-workflow-registry.R
+38 test-phase18-structured-workflow-registry.R
+39 test-phase18-structured-workflow-registry.R
+40 test-phase18-structured-workflow-registry.R
+41 test-phase18-structured-workflow-registry.R
+42 test-phase18-structured-workflow-registry.R
+43 test-phase18-structured-workflow-registry.R
+44 test-phase18-structured-workflow-registry.R
+45 test-phase18-structured-workflow-registry.R
+46 test-phase18-structured-workflow-registry.R
+47 test-phase18-structured-workflow-registry.R
+48 test-phase18-structured-workflow-registry.R
+49                     test-profile-parallel.R
+50                     test-profile-parallel.R
+51                     test-profile-parallel.R
+52                     test-profile-parallel.R
+53                     test-profile-parallel.R
+54                     test-profile-parallel.R
+55                     test-profile-parallel.R
+56                     test-profile-parallel.R
+57                     test-profile-parallel.R
+58                     test-profile-parallel.R
+59                     test-profile-parallel.R
+60                     test-profile-parallel.R
+61            test-reader-vignette-contracts.R
+62            test-reader-vignette-contracts.R
+63            test-reader-vignette-contracts.R
+64            test-reader-vignette-contracts.R
+65            test-reader-vignette-contracts.R
+66            test-reader-vignette-contracts.R
+67            test-reader-vignette-contracts.R
+68            test-reader-vignette-contracts.R
+69            test-reader-vignette-contracts.R
+70            test-reader-vignette-contracts.R
+71            test-reader-vignette-contracts.R
+72            test-reader-vignette-contracts.R
+73            test-reader-vignette-contracts.R
+74            test-reader-vignette-contracts.R
+75            test-reader-vignette-contracts.R
+76            test-reader-vignette-contracts.R
+77            test-reader-vignette-contracts.R
+                                                                            test
+1                     original function-map sources cover the current public API
+2              article restores the audited map and original printable downloads
+3                   Phase 18 structured workflow registry validates current rows
+4              Phase 18 structured workflow registry path prefers checkout files
+5             Phase 18 structured workflow registry summarizes and filters lanes
+6              Phase 18 structured workflow registry rejects duplicated lane IDs
+7           Phase 18 structured workflow registry rejects blocked task promotion
+8            Phase 18 structured workflow registry rejects unknown Actions tasks
+9                 Phase 18 structured workflow registry uses runner task choices
+10                     Phase 18 random-slope workflow plan returns admitted rows
+11       Phase 18 random-slope workflow plan dispatches the bivariate slope task
+12           Phase 18 random-slope workflow plan dispatches the q4 location task
+13           Phase 18 random-slope workflow plan dispatches the q6 location task
+14              Phase 18 random-slope workflow plan no longer has needed targets
+15               Phase 18 random-slope wrapper target plan is empty after wiring
+16                     Phase 18 random-slope workflow plan excludes blocked rows
+17       Phase 18 random-slope operating-characteristic plan is a planning table
+18 Phase 18 random-slope operating-characteristic plan can omit source-test rows
+19                   Phase 18 random-slope registry preflight reports gated rows
+20       Phase 18 q8 endpoint gate is artifact-ready but diagnostic before power
+21                         Phase 18 random-slope registry preflight fails closed
+22               Phase 18 random-slope registry preflight formats dry-run output
+23               Phase 18 structured-dependence workflow plan returns audit rows
+24           Phase 18 structured-dependence plan separates wrapper and task rows
+25                        Phase 18 structured-dependence plan can omit held rows
+26                     Phase 18 structured-dependence plan excludes blocked rows
+27            Phase 18 correlation-block workflow plan separates interval states
+28             Phase 18 correlation-block plan protects residual and q4 policies
+29                    Phase 18 correlation-block plan routes q2 status artifacts
+30                  Phase 18 correlation-block plan dispatches the q2 scale task
+31           Phase 18 correlation-block plan dispatches the q2 scale-slope tasks
+32                      Phase 18 correlation-block plan can omit diagnostic rows
+33                         Phase 18 correlation-block plan excludes blocked rows
+34                   Phase 18 correlation-block wrapper target plan is read-only
+35               Phase 18 correlation-block wrapper target plan labels q2 and q4
+36           Phase 18 correlation-block wrapper target plan can omit diagnostics
+37            Phase 18 correlation-block wrapper target plan is empty when wired
+38              Phase 18 family-surface workflow plan keeps blocked rows visible
+39            Phase 18 family-surface plan separates admitted and blocked states
+40                            Phase 18 family-surface plan marks smoke-only rows
+41                            Phase 18 family-surface plan can omit blocked rows
+42             Phase 18 family-surface status tables summarize registry statuses
+43                   Phase 18 family-surface status tables can omit blocked rows
+44                        Phase 18 family-surface status tables are empty-shaped
+45                   Phase 18 structured workflow bundle returns all plan tables
+46                    Phase 18 structured workflow bundle counts dispatch states
+47                    Phase 18 structured workflow dry-run formats bundle status
+48                       Phase 18 structured workflow dry-run prints plan status
+49                 profile() multicore curves are identical to the serial curves
+50                                    profile() validates its parallel arguments
+51            a dead forked worker is a classed error, not a dropped profile row
+52                       a dead forked mclapply child is a classed profile error
+53              a dead bootstrap worker is a recorded failure, not a dropped row
+54                            multicore worker errors abort like the serial path
+55              profile() and confint() cluster results match the serial results
+56                              bootstrap cluster refits match the serial refits
+57                    drm_control() validates the multi-start parallel arguments
+58                   parallel multi-start reproduces the serial fixed-effect fit
+59         parallel multi-start matches the serial random-effect fit numerically
+60                     multicore is refused on Windows with a pointer to cluster
+61                   the scanner catches private slots regardless of object name
+62                        the OU decay slot is policed like the correlation slot
+63           the scanner catches bracket private slots regardless of object name
+64                 the scanner catches bare and backticked private output routes
+65            reader-facing sources reject unambiguous internal process language
+66      source-only process lint allows scientific uses and ignores built output
+67                            route scanning keeps contributor permissions exact
+68                                  public summary and ranef fields are accepted
+69                                    contributor permissions are field-specific
+70                    contributor permissions cannot be broadened even when used
+71           the manifest is complete and has no duplicate or stale article rows
+72                 pkgdown-only articles are discovered and policed, not skipped
+73                      a vignette basename used in two directories fails closed
+74                  reader exceptions are clause-bound and stale exceptions fail
+75                              invalid declared private vocabulary fails closed
+76                exception records are immutable, unique, and cannot be widened
+77                           the live corpus has the complete immutable manifest
+   failed error warning skipped passed
+1       0 FALSE       0   FALSE     78
+2       0 FALSE       0    TRUE      0
+3       0 FALSE       0   FALSE      6
+4       1 FALSE       0   FALSE      2
+5       0 FALSE       0   FALSE      6
+6       0 FALSE       0   FALSE      3
+7       0 FALSE       0   FALSE      3
+8       0 FALSE       0   FALSE      3
+9       0 FALSE       0   FALSE      3
+10      0 FALSE       0   FALSE      7
+11      0 FALSE       0   FALSE     14
+12      0 FALSE       0   FALSE      7
+13      0 FALSE       0   FALSE      7
+14      0 FALSE       0   FALSE     16
+15      0 FALSE       0   FALSE      4
+16      0 FALSE       0   FALSE      4
+17      0 FALSE       0   FALSE     11
+18      0 FALSE       0   FALSE      5
+19      0 FALSE       0   FALSE     18
+20      0 FALSE       0   FALSE     18
+21      0 FALSE       0   FALSE      3
+22      0 FALSE       0   FALSE     10
+23      0 FALSE       0   FALSE      9
+24      0 FALSE       0   FALSE     12
+25      0 FALSE       0   FALSE      4
+26      0 FALSE       0   FALSE      4
+27      0 FALSE       0   FALSE      8
+28      0 FALSE       0   FALSE      9
+29      0 FALSE       0   FALSE      6
+30      0 FALSE       0   FALSE      8
+31      0 FALSE       0   FALSE      9
+32      0 FALSE       0   FALSE      5
+33      0 FALSE       0   FALSE      4
+34      0 FALSE       0   FALSE      8
+35      0 FALSE       0   FALSE      5
+36      0 FALSE       0   FALSE      5
+37      0 FALSE       0   FALSE      5
+38      0 FALSE       0   FALSE      8
+39      0 FALSE       0   FALSE     10
+40      0 FALSE       0   FALSE      5
+41      0 FALSE       0   FALSE      4
+42      0 FALSE       0   FALSE     17
+43      0 FALSE       0   FALSE      6
+44      0 FALSE       0   FALSE      8
+45      0 FALSE       0   FALSE      9
+46      0 FALSE       0   FALSE     14
+47      0 FALSE       0   FALSE      7
+48      0 FALSE       0   FALSE      5
+49      0 FALSE       0   FALSE      1
+50      0 FALSE       0   FALSE      2
+51      0 FALSE       0   FALSE      2
+52      0 FALSE       0   FALSE      1
+53      0 FALSE       0   FALSE      8
+54      0 FALSE       0   FALSE      2
+55      0 FALSE       0   FALSE      3
+56      2 FALSE       0   FALSE      1
+57      0 FALSE       0   FALSE      5
+58      0 FALSE       0   FALSE      2
+59      0 FALSE       0   FALSE      3
+60      0 FALSE       0    TRUE      0
+61      0 FALSE       0   FALSE      1
+62      0 FALSE       0   FALSE      1
+63      0 FALSE       0   FALSE      1
+64      0 FALSE       0   FALSE      3
+65      0 FALSE       0   FALSE      9
+66      0 FALSE       0   FALSE      1
+67      0 FALSE       0   FALSE      1
+68      0 FALSE       0   FALSE      1
+69      0 FALSE       0   FALSE      1
+70      0 FALSE       0   FALSE      1
+71      0 FALSE       0   FALSE      3
+72      0 FALSE       0   FALSE      2
+73      0 FALSE       0   FALSE      1
+74      0 FALSE       0   FALSE      2
+75      0 FALSE       0   FALSE      1
+76      0 FALSE       0   FALSE      2
+77      0 FALSE       0   FALSE      5
+Error: sum(s$failed) == 0L is not TRUE
+Execution halted

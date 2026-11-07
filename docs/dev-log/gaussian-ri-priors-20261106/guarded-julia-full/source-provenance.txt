@@ -1,0 +1,4 @@
+ff10a2f9adb23c0e315d50e8c2094d6d27ed1d82
+9a7b99540194dbea9db87f34b88f6582f1c5bd4c31849e9adaa788c0fd9df4a2  Project.toml
+ee9d6c75b02f980e6c7104faf2cb3d8c50baaa3a94c8ef85145611ea66ac0b0d  Manifest.toml
+1c7ea3ba2e49e6c4a96ca8b80e34f984f65c1dbcdc1423f33a63f2bc14a69a5b  /home/snakagaw/.julia/juliaup/julia-1.10.12+0.x64.linux.gnu/bin/julia

@@ -462,6 +462,7 @@ confint.drmTMB <- function(
   ...
 ) {
   drm_abort_mspl_inference(object, "confint")
+  drm_abort_fixed_prior_inference(object, "confint")
   if (identical(object$model$model_type, "biv_student")) {
     cli::cli_abort(
       "{.fn confint} is not implemented for model type {.val {object$model$model_type}}; interval and profile claims are deferred."
@@ -821,6 +822,10 @@ profile_targets <- function(object, ready_only = FALSE) {
   }
 
   targets <- drm_profile_targets(object)
+  if (drm_has_fixed_priors(object)) {
+    targets$profile_ready[] <- FALSE
+    targets$profile_note[] <- "fixed_prior_inference_unavailable"
+  }
   if (ready_only) {
     targets <- targets[targets$profile_ready, , drop = FALSE]
   }
@@ -919,6 +924,7 @@ profile.drmTMB <- function(
     missing_arg = missing(parallel)
   )
   drm_abort_mspl_inference(fitted, "profile")
+  drm_abort_fixed_prior_inference(fitted, "profile")
   if (identical(fitted$model$model_type, "biv_student")) {
     cli::cli_abort(
       "{.fn profile} is not implemented for model type {.val {fitted$model$model_type}}; interval and profile claims are deferred."

@@ -32,7 +32,7 @@
 #' without refitting. This is a diagnostic: it selects nothing, reports no
 #' uncertainty, and does not change any fitted quantity or mutate the fitted
 #' object. For penalized (MAP) fits the returned value is on the same
-#' *unpenalized* convention as [logLik()] (any phylogenetic penalty is
+#' *unpenalized* convention as [logLik()] (any phylogenetic or fixed-effect penalty is
 #' subtracted back out, re-evaluated at the queried point), so
 #' `objective_at(fit, <fit's own optimum>) == -logLik(fit)` holds for every
 #' fit type; it is therefore not literally what the optimizer minimised at
@@ -97,6 +97,8 @@ objective_at.drmTMB <- function(object, at, ...) {
   # so a bare `report()` now reads back the matching state.
   penalty_report <- object$obj$report()$phylo_penalty
   penalty <- if (is.null(penalty_report)) 0 else as.numeric(penalty_report)
+  fixed_prior <- object$obj$report()$fixed_prior_penalty
+  if (!is.null(fixed_prior)) penalty <- penalty + as.numeric(fixed_prior)
   value <- raw - penalty
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
   value

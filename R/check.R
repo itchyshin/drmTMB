@@ -810,6 +810,10 @@ check_scale_phylo_identifiability <- function(object) {
 }
 
 check_penalized_fit <- function(object) {
+  if (drm_has_fixed_priors(object)) {
+    return(check_row("penalized_map", "note", "fixed-effect normal/ridge priors",
+      "Point estimates use the penalized objective. Covariance is local penalized-Hessian curvature; confidence intervals and likelihood comparisons are not implemented."))
+  }
   if (is.null(object$penalty)) {
     return(NULL)
   }

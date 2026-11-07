@@ -1,0 +1,150 @@
+# First-slice admission stays outside the engine so unsupported requests fail
+# before Julia setup, missing-data integration, or optimizer construction.
+drm_fixed_priors_active <- function(priors) {
+  if (is.null(priors)) return(FALSE)
+  any(vapply(priors, function(p) identical(p$kind, "normal") ||
+    isTRUE(p$precision > 0), logical(1)))
+}
+
+drm_prior_control <- function(control) {
+  parsed <- drm_parse_control(control)
+  if (!inherits(control, "drm_control")) parsed["logsigma_clamp"] <- list(NULL)
+  parsed
+}
+
+drm_validate_fixed_prior_designs <- function(spec) {
+  for (X in spec$X) {
+    if (qr(as.matrix(X))$rank < ncol(X)) {
+      cli::cli_abort("Fixed-effect prior designs must have full column rank; remove aliased columns.")
+    }
+  }
+  invisible(NULL)
+}
+
+drm_validate_fixed_prior_request <- function(priors, formula, family, data,
+                                             REML = FALSE, estimator = "ml",
+                                             penalty = NULL, impute = NULL,
+                                             weights = NULL, control = list()) {
+  if (is.null(priors)) return(invisible(NULL))
+  if (!inherits(priors, "drm_priors")) {
+    cli::cli_abort("{.arg priors} must be created with {.fn drm_priors}.")
+  }
+  if (isTRUE(REML) || !identical(estimator, "ml") || !is.null(penalty)) {
+    cli::cli_abort("Fixed-effect priors require ML mode (REML = FALSE), without MSPL or {.arg penalty}.")
+  }
+  ft <- drm_family_type(family)
+  if (!ft %in% c("gaussian", "binomial") ||
+      (ft == "gaussian" && !identical(family$link, "identity")) ||
+      (ft == "binomial" && !identical(family$link, "logit"))) {
+    cli::cli_abort("Fixed-effect priors currently support univariate Gaussian identity and binomial logit models only.")
+  }
+  allowed <- if (ft == "gaussian") c("mu", "sigma") else "mu"
+  if (any(!vapply(formula$entries, function(e) e$dpar %in% allowed, logical(1)))) {
+    cli::cli_abort("Fixed-effect priors do not support this distributional-parameter formula yet.")
+  }
+  calls <- unique(unlist(lapply(formula$calls, all.names), use.names = FALSE))
+  excluded <- c("||", "phylo", "spatial", "animal", "relmat", "corpair",
+                "mi", "meta_V", "meta_known_V", "sd", "sd1", "sd2", "sd_phylo",
+                "ar1", "ou", "homtoep")
+  random_ok <- TRUE
+  if ("|" %in% calls) {
+    random_ok <- FALSE
+    mu_idx <- which(vapply(formula$entries, function(e)
+      identical(e$dpar, "mu"), logical(1)))
+    if (identical(ft, "gaussian") && length(mu_idx) == 1L) {
+      mu <- formula$entries[[mu_idx]]
+      random <- extract_random_mu_terms(mu$rhs, "mu")
+      bars <- unlist(lapply(formula$calls, all.names), use.names = FALSE)
+      random_ok <- sum(bars == "|") == 1L && length(random$terms) == 1L &&
+        identical(random$terms[[1L]]$type, "intercept") &&
+        is.null(random$terms[[1L]]$covariance_label) &&
+        !"|" %in% all.names(random$rhs)
+    }
+  }
+  if (!random_ok || any(calls %in% excluded) || !is.null(impute) ||
+      any(vapply(formula$entries, function(e) length(e$structured) > 0L, logical(1)))) {
+    cli::cli_abort("Fixed-effect priors support fixed-effect-only models or one Gaussian mean random intercept, without structured or missing-predictor terms.")
+  }
+  variables <- intersect(unique(unlist(lapply(formula$calls, all.vars))), names(data))
+  if (anyNA(data[variables])) {
+    cli::cli_abort("Fixed-effect priors currently require complete model variables; remove incomplete rows explicitly.")
+  }
+  if ((!is.null(weights) && any(!is.finite(weights) | weights != 1)) ||
+      isTRUE(control$sparse_fixed) || isTRUE(control$aggregate_gaussian) ||
+      (drm_fixed_priors_active(priors) && !is.null(control$logsigma_clamp))) {
+    cli::cli_abort(c(
+      "Fixed-effect priors currently require unit weights, dense unaggregated designs, and no logsigma clamp.",
+      i = "Use complete fixed-effect data and {.code control = drm_control(logsigma_clamp = NULL)}."
+    ))
+  }
+  invisible(NULL)
+}
+
+#' Preview fixed-effect prior selections without fitting
+#'
+#' Resolve selectors against the same Gaussian or binomial design builders used
+#' by [drmTMB()]. Models require complete data and unit weights. Gaussian
+#' identity models can include one independent mean random intercept; other
+#' random effects and random-effect SD formulas are not supported with priors.
+#' The Julia bridge does not yet accept factor predictors in this mixed model.
+#' No automatic centring or scaling is performed.
+#' @param formula A [drm_formula()] or [bf()] specification.
+#' @param family Gaussian identity or binomial logit family.
+#' @param data A data frame with complete model variables.
+#' @param priors A collection created by [drm_priors()].
+#' @return A data frame identifying each selected coefficient, distributional
+#'   parameter, matrix column, prior mean, SD, precision and selection reason.
+#' @export
+#' @examples
+#' d <- data.frame(y = c(1, 2, 1, 3), x = c(0, 1, 2, 3))
+#' p <- drm_priors(drm_prior_normal("mu", "x", sd = 2))
+#' drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, p)
+#' d$group <- factor(c(1, 1, 2, 2))
+#' drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, p)
+drm_resolve_priors <- function(formula, family = stats::gaussian(), data, priors) {
+  family <- drm_eval_family_arg(substitute(family), parent.frame())
+  if (!inherits(formula, "drm_formula") || !is.data.frame(data)) {
+    cli::cli_abort("Supply a {.fn bf} formula and a data frame.")
+  }
+  data <- drm_droplevels_fixed_predictors(data, formula)
+  drm_validate_fixed_prior_request(priors, formula, family, data)
+  env <- drm_formula_env(formula, parent.frame())
+  spec <- if (identical(drm_family_type(family), "gaussian")) {
+    drm_build_gaussian_ls_spec(formula, data, env = env,
+      control = drm_parse_control(drm_prior_control(list())), missing = drm_parse_missing_control(miss_control()))
+  } else {
+    drm_build_binomial_spec(formula, data, env = env,
+      missing = drm_parse_missing_control(miss_control()), link = family$link)
+  }
+  drm_validate_fixed_prior_designs(spec)
+  drm_apply_fixed_priors_spec(spec, priors)$resolved_priors
+}
+
+drm_has_fixed_priors <- function(object) {
+  p <- object$resolved_priors
+  is.data.frame(p) && nrow(p) > 0L && any(p$precision > 0)
+}
+
+drm_abort_fixed_prior_inference <- function(object, method) {
+  if (drm_has_fixed_priors(object)) {
+    cli::cli_abort(c(
+      "{method} is not implemented for fixed-effect prior fits.",
+      i = "Inspect point estimates and local penalized-Hessian curvature with summary() and vcov(); these are not calibrated confidence intervals."
+    ))
+  }
+  invisible(NULL)
+}
+
+drm_fixed_prior_bridge_options <- function(priors, resolved) {
+  rows <- lapply(priors, function(p) {
+    row <- list(kind = p$kind, dpar = p$dpar, coef = p$coef)
+    if (!is.null(p$intercept)) row$intercept <- p$intercept
+    if (identical(p$kind, "normal")) {
+      row$mean <- p$mean
+      row$sd <- p$sd
+    } else row$lambda <- p$precision
+    row
+  })
+  list(priors = rows, prior_expected = lapply(seq_len(nrow(resolved)), function(i)
+    list(dpar = resolved$dpar[[i]], coef = resolved$coefficient[[i]])))
+}
