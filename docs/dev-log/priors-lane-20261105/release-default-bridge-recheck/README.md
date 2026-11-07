@@ -20,3 +20,7 @@ Julia's bundled libunwind as a launch-only preload. The CI-equivalent audit
 checks the R hashes and runner when `DRM_JL_PATH` is unset; in that mode it
 reports Julia source entries as unverified. A separate local audit with a Julia
 checkout matched all 115 Julia source entries.
+
+## 0.8.1 candidate refresh
+
+On Totoro, the unchanged fixture passed all eight checks using R source `4d3917385` and Julia source `b20ccf2df`. The independent checker rejected all twelve mutated receipts. Labels, data, ordering, tree and group covariate matched the previous receipt. The first attempt stopped because the Julia manifest was absent; the failed receipt and log are retained alongside the successful retry. This remains evidence for one fixture.
