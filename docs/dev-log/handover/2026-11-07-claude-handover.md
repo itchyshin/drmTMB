@@ -12,6 +12,12 @@ Shinichi wants drmTMB and DRModels.jl finished as reliable R and Julia distribut
 | DRModels.jl | Parity PR #1252 merged as `976c1ac3710c6f14cf4574dc17fdf56523d502d8` | Native shards and docs passed; R parity tests were skipped. Continue route-specific evidence. |
 | Both | Priors PRs R #1681 and Julia #1258 belong to a separate lane | Preserve their work and review their own current status before overlap. |
 
+## Update: release-lane reconciliation
+
+Shinichi requested receipt reconciliation and a merge of #1682 only if still needed and safe. A direct comparison found that the receipt in R draft #1683 head `c645831ebfb51c8da26a977cd9d6948da07fa828` matches all 66 recorded R source hashes and the runner on R main `361fd1c801981e2830a1c2617c36706050dfa959`. Its retained runner and checker logs report eight fixture checks and 12 negative controls passed. Its Julia source pin `b20ccf2df3c48bf3c1be003deaecd458238a11ad` is the head of open Julia PR #1258; current Julia main was `976c1ac3710c6f14cf4574dc17fdf56523d502d8` at this comparison. Do not treat the Julia PR head as merged main.
+
+The release lane was contacted with both source pairs and the exact overlap. Its visible response says it will preserve #1682's evidence and leave both branches unchanged while Julia CI runs; an explicit final integration decision was not yet observed. #1682 was not merged: its receipt is stale against seven R files on current main, and #1683 carries a newer source-matching candidate. Preserve both sets of evidence, verify current refs and checks, then coordinate the integration path. No release or PR closure is authorized by this handoff.
+
 ## Update: receipt source moved after CI
 
 On 2026-11-07 Shinichi authorized merging #1682. Its exact-head CI passed, but it remained a draft and was not merged: GitHub main advanced to `361fd1c801981e2830a1c2617c36706050dfa959`, and the receipt at #1682 head `1e334f1ca47e16c5aa80ba33070f36f21feb116c` differs from that main in seven recorded R sources: `R/drmTMB.R`, `R/fixed-effect-priors.R`, `R/fixed-priors-workflow.R`, `R/heritability.R`, `R/julia-bridge.R`, `R/methods.R` and `R/profile.R`. Therefore its green checks do not establish receipt freshness on the new main.
