@@ -20,3 +20,8 @@ Julia's bundled libunwind as a launch-only preload. The CI-equivalent audit
 checks the R hashes and runner when `DRM_JL_PATH` is unset; in that mode it
 reports Julia source entries as unverified. A separate local audit with a Julia
 checkout matched all 115 Julia source entries.
+
+The November 7 refresh replaced `current.json`. The previous receipt and this
+original README are preserved as `current-before-20261107.json` and
+`README-before-20261107.md`. See `docs/dev-log/priors-receipt-refresh-20261107/`
+for the new source pins and checks.

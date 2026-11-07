@@ -41,7 +41,7 @@
     "R/marginal-parameters.R": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea",
     "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
     "R/meta-vcov.R": "a433c378acd76a880bbb302192d21151c2a4e4f808122925c2f27cbda280a5cf",
-    "R/methods.R": "8e0e61b8a402e724c4801bbc968e91b0a17958a7b4ecf05bc0bf407bad7e5c64",
+    "R/methods.R": "86b0d941ccaeeed211f5d0ccf501fa4048dfc7367b528788831af82bcfa6f652",
     "R/mi-weights.R": "2cd39ca9e89a2d910fe0d4b43c3dca45aeaf25c7e46c96c20edc9be147484128",
     "R/missing-data.R": "91a6c1536ffee5a2648b5e05a683bb7176a2121c77ff8de9649577358d3be919",
     "R/mle-existence.R": "d53bff1b7795c7c5291ceeb14495ffc742fc55b5833fc4da516bbdb63bafd972",
@@ -721,8 +721,8 @@
       "drmjl_ref": "f940fc4042ee2832c3343f7d334e830a96942f1b",
       "native_dll": {
         "drmTMB": {
-          "path": "/tmp/RtmpSRMbEn/pkgload20e9c35cbc3d2f/drmTMB.so",
-          "sha256": "307fd3155d5a61f1b322766679c0e702d743b0918b87801f8d5ab58199ab6fdc"
+          "path": "/tmp/RtmpG56xLS/pkgload325ccc4ead9bb0/drmTMB.so",
+          "sha256": "dabe88b0d00da39f877b83dc74b29f85d812c2047d385085dde85cdf0c3332ff"
         }
       }
     },
@@ -786,7 +786,7 @@
     "R/marginal-parameters.R": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea",
     "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
     "R/meta-vcov.R": "a433c378acd76a880bbb302192d21151c2a4e4f808122925c2f27cbda280a5cf",
-    "R/methods.R": "8e0e61b8a402e724c4801bbc968e91b0a17958a7b4ecf05bc0bf407bad7e5c64",
+    "R/methods.R": "86b0d941ccaeeed211f5d0ccf501fa4048dfc7367b528788831af82bcfa6f652",
     "R/mi-weights.R": "2cd39ca9e89a2d910fe0d4b43c3dca45aeaf25c7e46c96c20edc9be147484128",
     "R/missing-data.R": "91a6c1536ffee5a2648b5e05a683bb7176a2121c77ff8de9649577358d3be919",
     "R/mle-existence.R": "d53bff1b7795c7c5291ceeb14495ffc742fc55b5833fc4da516bbdb63bafd972",
@@ -928,6 +928,6 @@
     "/home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b/j-bridge-f940-clean/src/zeroonebeta.jl": "a44cb10d90af1189b835f49dc28f4de653bb3be1e892b1f55d5e3fa18a20d5ba"
   },
   "source_unchanged": true,
-  "elapsed": 72.183000000000007,
+  "elapsed": 41.390999999999998,
   "status": "PASS"
 }

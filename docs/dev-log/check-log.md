@@ -98092,3 +98092,7 @@ The scoreboard generator introduction now describes the 22 explicit pending R-on
 ### 2026-11-06: parity generator after main integration
 
 On merge candidate `958fc7c53dccaae16cfc3a1fe971f019171be4dd`, regenerated the parity matrix and scoreboard using the recorded Julia documentation pin `da8b3f8711beb5ef3186b890544c2e7850c7f194`. Focused `test-parity-matrix.R` and `test-parity-scoreboard.R` passed locally, with one `beta()` deprecation warning. This check did not exercise a live Julia bridge or certify broad parity. The source checkpoint identifies the merge before this generated-document update.
+
+## 2026-11-07: phylogenetic bridge receipt refresh
+
+Totoro reran the existing phylogenetic fixture at R `623eed27` and Julia `f940fc40`: eight checks passed and the receipt self-test rejected 12 altered receipts. The local CI-equivalent staleness check passed for the R source and runner, with Julia entries unverified locally. The original receipt and its checksum remain preserved. See `docs/dev-log/priors-receipt-refresh-20261107/` and `docs/dev-log/after-task/2026-11-07-priors-bridge-receipt-refresh.md`.
