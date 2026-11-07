@@ -86,3 +86,19 @@ Verdict count: COVERED 1, NOT_COVERED 13, PARTIAL 3.
 | NOT_COVERED | Poisson phylo_interaction intercept and slope-only pair-level predictor-dependent SDs (native only) | Both sub-shapes missing: Poisson phylo_interaction intercept with pair-level SD, and Poisson phylo_interaction slope-only with pair-level SD. The only passing phylo_interaction SD tests are Binomial. |
 
 NOT_COVERED means no PASSING test in this run has that exact shape. It does not mean the route is unimplemented, and it does not say native R lacks it. Several rows have refusal tests on the Julia side (for example Poisson and NB2 `phylo` slope-only and q2), which are documented NOs, not gaps in testing. The one COVERED row is Julia-native evidence only: the row name has no `(native only)` tag, so a bridge fit is still needed before it can count as R-Julia parity.
+
+## Batch 4: can the cheapest NOT_COVERED rows be closed with new tests?
+
+No. Seven shapes were tried on `ba502d9d7` (probe scripts and logs `b4-*`). Every one is a documented, deliberate Julia refusal, so a passing test cannot be written without first implementing the feature in DRModels.jl:
+
+| Shape tried | Julia result |
+| --- | --- |
+| Poisson `animal(1 + x \| g)` with two coefficient SDs | `ArgumentError`: requires exactly one SD formula |
+| NB2 `animal(1 + x \| g)` with two coefficient SDs | `ArgumentError`: requires exactly one `sd(group)` formula |
+| Gaussian `animal(1 + x \| g)` with coefficient SDs | `ArgumentError`: only intercept form generally available |
+| Gaussian `relmat(1 + x \| g)` with coefficient SDs | `ArgumentError`: only intercept form admitted |
+| Gaussian ordinary `(1 + x \| g)` with coefficient SDs | `ArgumentError`: sd() supports random intercepts only |
+| Gaussian `sigma ~ animal(1 \| g)` with SD formula | `ArgumentError`: sigma-side structured effect unsupported with sd() |
+| Gaussian `(1 \| g)` on mu and sigma with SD formulas | `ArgumentError`: sd() cannot combine with a sigma random effect |
+
+Consequence: the remaining NOT_COVERED rows are feature gaps, not test gaps. Closing them is Julia implementation work (separate repository, own review), and until then the honest parity verdict for these rows is "Julia refuses", not "agrees".
