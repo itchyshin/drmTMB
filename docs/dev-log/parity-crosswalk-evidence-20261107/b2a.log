@@ -1,0 +1,16 @@
+=== gamma_sigma_sd_regression
+Test Summary:                              | Pass  Total   Time
+Gamma sigma random-intercept SD regression |   13     13  28.3s
+Test Summary:                                               | Pass  Total  Time
+Gamma sigma SD regression refuses ignored covariance inputs |    1      1  0.4s
+Test Summary:                          | Pass  Total  Time
+Gamma sigma random-slope SD regression |    9      9  6.8s
+=== negbinomial2_sigma_sd_regression
+Test Summary:                            | Pass  Total   Time
+NB2 sigma random-intercept SD regression |   12     12  29.2s
+Test Summary:                        | Pass  Total  Time
+NB2 sigma random-slope SD regression |   10     10  2.3s
+=== nb2_relmat_sd_regression
+Test Summary:                               | Pass  Total   Time
+NB2 relmat location-intercept SD regression |   26     26  22.8s
+DONE

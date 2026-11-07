@@ -33,3 +33,28 @@ refusal comes from one fixture and `nAGQ = 9`. A row flips only by editing the
 hard-coded list in `tools/write-parity-matrix.R` and `test-parity-matrix.R` and
 regenerating; I did not do that, because the generator Julia pin (`da8b3f87`) is
 older than `ba502d9d7` and the release drafts #1683 and #1259 are open.
+
+## Batch 2 (same source pair, three parallel one-thread shards)
+
+All 11 Julia test files below pass (logs `b2a.log`, `b2b.log`, `b2c.log`).
+
+| Test file | Fits | Pass | Supports row |
+| --- | --- | --- | --- |
+| `test_nb2_relmat_sd_regression.jl` | NB2 relmat location intercept, `sd ~ z` | 26 | NB2 relmat intercept SD (part of the NB2 relmat/spatial/phylo/relmat row) |
+| `test_nb2_relmat_slope_sd_regression.jl` | NB2 relmat slope-only | 10 | NB2 relmat slope-only |
+| `test_nb2_spatial_slope_sd_regression.jl` | NB2 coordinate spatial slope-only | 15 | NB2 spatial slope-only |
+| `test_nb2_animal_slope_sd_regression.jl` | NB2 animal slope-only | 8 + 7 | NB2 animal slope-only |
+| `test_poisson_relmat_slope_sd_regression.jl` | Poisson relmat slope | 28 | Poisson relmat slope-only |
+| `test_poisson_animal_slope_sd_regression.jl` | Poisson animal slope | 25 | Poisson animal slope-only |
+| `test_poisson_relmat_sd_regression.jl` | Poisson relmat intercept | 17 | Poisson relmat intercept |
+| `test_gamma_sigma_sd_regression.jl` | Gamma `sigma` random intercept and slope | 9 (+ intercept and refusal sets) | sigma-side SD only |
+| `test_negbinomial2_sigma_sd_regression.jl` | NB2 `sigma` random intercept and slope | 12 + 10 | sigma-side SD only |
+
+Two cautions on what these do NOT cover:
+
+- The row "NB2 and Gamma joint ordinary `mu` plus `sigma` intercepts, each with an
+  SD formula" is NOT evidenced here. The Gamma and NB2 sigma tests put the random
+  effect on `sigma` only (`y ~ 1 + x`, `sigma ~ 1 + (1 | group)`). No test in this
+  batch has a random effect on both `mu` and `sigma`.
+- Not run: NB2 and Poisson phylo slope-only, ordinary + structured intercept
+  tests, and all q2 rows. Those names stay unreconciled.
