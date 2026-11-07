@@ -128,7 +128,7 @@ plus \code{truncated_nbinom2()}, \code{zero_one_beta()}, \code{tweedie()},
 \code{biv_student()}, and \code{biv_lognormal()} on the fixed-effect route only.
 Same-target live tests use coefficients and log-likelihood within
 1e-4 and Wald SEs within 1e-3 relative against \code{engine = "tmb"}.
-Measured gaps at DRM.jl pin 430ef64cc for \code{skew_normal()},
+Measured gaps at DRModels.jl source pin 19e5e2fe for \code{skew_normal()},
 \code{cumulative_logit()}, \code{biv_student()}, and \code{biv_lognormal()} sit
 inside those bars; see NEWS and
 \code{tests/testthat/test-julia-family-skew_normal.R},
