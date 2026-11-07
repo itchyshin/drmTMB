@@ -114,21 +114,30 @@ test_that("engine = \"julia\" REML matches engine = \"tmb\" on the two univariat
   expect_identical(sort(names(ct2)), sort(names(cj2)))
   expect_lt(max(abs(ct2[names(cj2)] - cj2)), 1e-6)
 
-  # SEs. Cell 2 agrees; cell 1's MEAN block does not, and the split is the
-  # finding, not noise -- see the receipt's CONTROL A. Both bars are set from
-  # the measured values with headroom, so either side moving fails loudly.
+  # SEs. Owner decision 2026-10-11 (#1201, option a): the mean-block REML SE
+  # is engine-dependent BY CONSTRUCTION (TMB sdreport-inflated, DRM.jl canonical
+  # GLS), so it is labelled per engine and EXCLUDED from this cross-engine
+  # parity gate. Only the non-mean blocks (scale, random-effect SD) are
+  # compared; they agree on both cells.
   s2t <- drm_reml_named_se(t2)
   s2j <- drm_reml_named_se(j2)
-  expect_lt(max(abs(s2t[names(s2j)] - s2j) / abs(s2t[names(s2j)])), 1e-5)
+  keep2 <- !grepl("^mu_", names(s2j))
+  expect_true(any(keep2))
+  expect_lt(
+    max(abs(s2t[names(s2j)][keep2] - s2j[keep2]) / abs(s2t[names(s2j)][keep2])),
+    1e-5
+  )
 
   s1t <- drm_reml_named_se(t1)
   s1j <- drm_reml_named_se(j1)
   rel1 <- abs(s1t[names(s1j)] - s1j) / abs(s1t[names(s1j)])
   mean_block <- grepl("^mu_", names(rel1))
   expect_true(any(mean_block))
-  expect_gt(max(rel1[mean_block]), 1e-3)   # documented, NOT fixed
-  expect_lt(max(rel1[mean_block]), 5e-3)   # and it must not grow
   expect_lt(max(rel1[!mean_block]), 1e-5)  # the scale block DOES agree
+
+  # Each engine labels its own mean-block convention.
+  expect_identical(summary(t1)$se_convention, "sdreport-inflated")
+  expect_identical(summary(j1)$se_convention, "canonical GLS")
 })
 
 test_that("engine = \"julia\" answers the DENSE q4 model for a BLOCK-DIAGONAL q4 call", {

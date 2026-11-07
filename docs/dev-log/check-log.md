@@ -1,3 +1,12 @@
+# 2026-10-30: merge origin/main into #1642 and recertify C17
+
+Merged `origin/main` into `claude/issue-1201-reml-se-convention` (no
+force-push). Kept the #1201 NEWS bullet and main's #1539 scale-spread
+warning. `python3 tools/recertify-c17.py --label pr1642-merge-main
+--tolerance 1e-10` reproduced all three cells (`|change| 0.000e+00`).
+Receipt
+`docs/dev-log/implementation-recovery/2026-10-30-pr1642-merge-main-c17c2-c14-final-source-compatibility`.
+
 # 2026-11-04: Julia namespace-only CI repair and current-ref LSS refresh
 
 Julia test-only repair `1cd856f63fa8a2a62a2e181e00790a0d812fb8af` removes the conflicting `const D = Distributions` alias and qualifies its 29 uses in `test_iid_sd_quadrature_accuracy.jl`. The real Julia 1.10 red log reproduces `invalid redefinition of constant Main.D`. Namespace smokes pass 3/3 on both Julia 1.10 and 1.13; the AST comparison passes 3/3 and rejects a deliberate tolerance change. Independent review finds no blocker in this bounded repair. Julia `src/` and `Project.toml`, fixtures and tolerance expressions are unchanged; the foreign-owned Binomial fixture is untouched.
