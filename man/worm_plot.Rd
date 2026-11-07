@@ -40,9 +40,11 @@ per-rank range across the \code{nsim} Dunn-Smyth realizations, so a single
 randomized draw is not over-read; the first realization's points and
 fitted trend are drawn on top.
 
-This is fixed-effect adequacy only -- see \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}. A
-flat worm plot is "no detectable departure" evidence about the fixed-effect
-distributional form, never a general validity or calibration claim.
+This is conditional-model adequacy only -- see \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}.
+For a random-effect fit the residuals are conditional on the random-effect
+modes. A flat worm plot is "no detectable departure" evidence about the
+conditional distributional form, never a general validity or calibration
+claim.
 
 \strong{What this detects -- and does not.} A worm plot bends when the
 underlying quantile residuals depart from N(0,1); see

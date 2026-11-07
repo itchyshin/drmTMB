@@ -38,9 +38,10 @@ per-rank range across the \code{nsim} Dunn-Smyth realizations, so a single
 randomized draw is not over-read; the first realization's points are drawn
 on top.
 
-This is fixed-effect adequacy only -- see \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}. See
-\code{\link[=worm_plot]{worm_plot()}} for the detrended variant that makes systematic bends easier
-to read.
+This is conditional-model adequacy only -- see \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}};
+for a random-effect fit the residuals are conditional on the random-effect
+modes. See \code{\link[=worm_plot]{worm_plot()}} for the detrended variant that makes systematic
+bends easier to read.
 
 \strong{What this detects -- and does not.} Same scope as \code{\link[=worm_plot]{worm_plot()}} --
 shape/atom mis-specification a family cannot reabsorb through its own
