@@ -1101,6 +1101,14 @@ parity or calibrated intervals.
 
 ## Bug fixes
 
+* `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
+  `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
+  log-densities that the response kernels gained in #1547. The old inline
+  `lgamma()` forms lost up to 6e-7 per observed predictor at phi or shape
+  1e8. The R-side beta-binomial pmf behind `beta_binomial()` residuals and
+  quantiles, and the R density for beta-binomial `mi()` predictors, now use
+  the same cancellation-free gamma-function ratio as the compiled kernel.
+  Values at ordinary shape are unchanged to rounding (#1548).
 * `engine = "julia"` Gaussian `spatial(1 | site, coords = coords)` now matches
   per-site `coords` rows to sites by row name, as `engine = "tmb"` does. The
   bridge used to drop the row names, so labelled coordinates in any order other
