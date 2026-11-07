@@ -1,0 +1,11 @@
+.libPaths(c("/private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/agree-poisson-q2/lib", .libPaths())); library(drmTMB)
+d <- read.csv("/private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/agree-poisson-q2/data.csv"); A <- as.matrix(read.csv("/private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/agree-poisson-q2/A.csv", header=FALSE))
+ids <- read.csv("/private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/agree-poisson-q2/A_ids.csv")$id; dimnames(A) <- list(ids, ids)
+d$id <- factor(d$g, levels = ids)
+f <- y ~ x + animal(1 + x | id, A = A); environment(f) <- environment()
+fm <- bf(f, sd(id, level = "animal", dpar = "mu", coef = "(Intercept)") ~ z0,
+            sd(id, level = "animal", dpar = "mu", coef = "x") ~ z1)
+t0 <- Sys.time()
+fit <- drmTMB(fm, family = stats::poisson(), data = d)
+print(Sys.time() - t0); print(logLik(fit)); print(summary(fit))
+saveRDS(fit, "/private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/agree-poisson-q2/r_fit.rds")
