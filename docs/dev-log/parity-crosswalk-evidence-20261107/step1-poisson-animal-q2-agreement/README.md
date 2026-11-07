@@ -65,3 +65,15 @@ Julia branch `claude/joint-mu-sigma-sd-20261107`, commit `9db876a17` (unpushed),
 **A stress case fails in both languages and is not an agreement.** 6a with `sigma ~ 1 + (1 | site)`, 200 x 200, n = 2400, seed 20261110: Julia returns `converged = false` with infinite SEs and a not-positive-definite vcov warning; R returns false convergence (code 1, three attempts) with a gradient near 3e8 at its reported optimum, so R's higher log-likelihood (-2137.95 versus Julia's -2157.34) is not trustworthy. The cause is undiagnosed. A weakly identified crossed sigma-intercept problem is a guess. The smaller intercept case agrees, and Julia flags its failure rather than returning silently. Treat the sigma-intercept shape at large crossed designs as unreliable in both packages until diagnosed.
 
 One dataset per case; Laplace evidence is likelihood agreement only, not coverage or bias. Files in `more-routes/I-sigma-laplace`.
+
+## NB2 relmat q2 with two coefficient SDs
+
+Julia final integration branch `claude/q2-final-20261107` (unpushed) versus native R `origin/main`. G = 48, 24 rows per group, K raw, ML, one dataset.
+
+| Quantity | Result |
+| --- | --- |
+| Fixed effects, log sigma, two SD blocks (7 coefficients) | max abs diff 9.7e-8 (6.7e-7 SE) |
+| SE relative difference | at most 3.3e-6 |
+| Log-lik (Julia, R) | -1625.3454621185, -1625.34546212 (diff 1.6e-10) |
+
+The log-likelihood equals the NB2 animal case (route B) because that fixture uses the same data and kernel. Files in `more-routes/J-nb2-relmat`.
