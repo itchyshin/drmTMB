@@ -1,0 +1,8 @@
+spatial 6: R default ll -616.87308865 | R objective at Julia estimate (fix3) ll -616.25974206 | R grad max at Julia est 3.733e-04
+   R polish from Julia estimate: ll -616.25974206, max par move 1.791e-05, conv 0
+spatial 10: R default ll -690.94230010 | R objective at Julia estimate (fix3) ll -690.46114883 | R grad max at Julia est 6.813e-04
+   R polish from Julia estimate: ll -690.46114876, max par move 1.363e-04, conv 0
+spatial 32: R default ll -489.62079388 | R objective at Julia estimate (fix3) ll -487.19863005 | R grad max at Julia est 2.232e-04
+   R polish from Julia estimate: ll -487.19863005, max par move 0.000e+00, conv 0
+spatial 29: R default ll -676.08672478 | R objective at Julia estimate (fix3) ll -674.81857356 | R grad max at Julia est 1.612e-04
+   R polish from Julia estimate: ll -674.81857356, max par move 0.000e+00, conv 0
