@@ -17,7 +17,7 @@
     "R/control.R": "1b86ad506f7fcd56f009f2f2b25ba91d13aacdece42af515ceb6c67231217cd9",
     "R/distributional-outputs.R": "94540da0f07768fd159b8178b5312dfe505e5cbb9bfdac26983c7abf12c1cf08",
     "R/drmTMB-package.R": "dec0b5fba6754268176dbdc8d3dfb4ed56b26485c146a39ed6ab0df86ad8395c",
-    "R/drmTMB.R": "5ef73f58d5710e896f2b5e09b42d66ae432a0f351684ea90cd8b85c1f7d464e9",
+    "R/drmTMB.R": "8ae8f24e70c984b7c46c2fc843b7633c1399b48c69dabc684e3edac1838a61c4",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "82336d891b83cf1305688e7d4b56de51da76cb37143a6712a41f6c97fb41a399",
     "R/family.R": "8869dbb68756133e7cdee017332dbfdd707053ab099716eb0e8705abb7616784",
@@ -721,8 +721,8 @@
       "drmjl_ref": "0460f25ffd23c7b60c0fc09e9e6820a2881714c9",
       "native_dll": {
         "drmTMB": {
-          "path": "/tmp/RtmpVNdJu1/pkgload3509e7494a58a0/drmTMB.so",
-          "sha256": "116976834f27650d07e91c5137c07bc75eb1d70261fdb20bc09eb4af1343398e"
+          "path": "/tmp/Rtmp1fwRX8/pkgloadd95b84e9936ef/drmTMB.so",
+          "sha256": "3bbe77af431dc6ad63bb8537495e40e18375458ec0e9e853cc5816ebc0239bda"
         }
       }
     },
@@ -762,7 +762,7 @@
     "R/control.R": "1b86ad506f7fcd56f009f2f2b25ba91d13aacdece42af515ceb6c67231217cd9",
     "R/distributional-outputs.R": "94540da0f07768fd159b8178b5312dfe505e5cbb9bfdac26983c7abf12c1cf08",
     "R/drmTMB-package.R": "dec0b5fba6754268176dbdc8d3dfb4ed56b26485c146a39ed6ab0df86ad8395c",
-    "R/drmTMB.R": "5ef73f58d5710e896f2b5e09b42d66ae432a0f351684ea90cd8b85c1f7d464e9",
+    "R/drmTMB.R": "8ae8f24e70c984b7c46c2fc843b7633c1399b48c69dabc684e3edac1838a61c4",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "82336d891b83cf1305688e7d4b56de51da76cb37143a6712a41f6c97fb41a399",
     "R/family.R": "8869dbb68756133e7cdee017332dbfdd707053ab099716eb0e8705abb7616784",
@@ -928,6 +928,6 @@
     "/home/snakagaw/hsq_work/prior-release-081-20261107/j-combined-source/src/zeroonebeta.jl": "a44cb10d90af1189b835f49dc28f4de653bb3be1e892b1f55d5e3fa18a20d5ba"
   },
   "source_unchanged": true,
-  "elapsed": 45.686,
+  "elapsed": 57.183,
   "status": "PASS"
 }
