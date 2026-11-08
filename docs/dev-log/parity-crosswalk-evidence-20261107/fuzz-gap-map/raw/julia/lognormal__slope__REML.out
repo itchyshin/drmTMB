@@ -1,0 +1,6 @@
+S	1	lognormal|slope|lab0|q1|sd-none|cm0|REML
+R	1	lognormal|slope|lab0|q1|sd-none|cm0|REML	ERROR	MethodError	MethodError: no method matching keyword call drm with keywords (:data, :method)	MethodError: no method matching keyword call drm with keywords (:data, :method)			at=control.jl:537	0.75	
+S	2	lognormal|slope|lab0|q1|sd-one|cm0|REML
+R	2	lognormal|slope|lab0|q1|sd-one|cm0|REML	ERROR	MethodError	MethodError: no method matching keyword call drm with keywords (:data, :method)	MethodError: no method matching keyword call drm with keywords (:data, :method)			at=control.jl:537	0.18	
+S	3	lognormal|slope|lab0|q1|sd-z|cm0|REML
+R	3	lognormal|slope|lab0|q1|sd-z|cm0|REML	ERROR	MethodError	MethodError: no method matching keyword call drm with keywords (:data, :method)	MethodError: no method matching keyword call drm with keywords (:data, :method)			at=control.jl:537	0.01	

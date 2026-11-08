@@ -1,0 +1,6 @@
+S	1	student|slope|lab0|q1|sd-none|cm0|REML
+R	1	student|slope|lab0|q1|sd-none|cm0|REML	ERROR	MethodError	MethodError: no method matching keyword call _drm_student_fit with keywords (:se, :data, :method)	MethodError: no method matching keyword call _drm_student_fit with keywords (:se, :data, :method)			at=student.jl:116	3.49	
+S	2	student|slope|lab0|q1|sd-one|cm0|REML
+R	2	student|slope|lab0|q1|sd-one|cm0|REML	ERROR	MethodError	MethodError: no method matching keyword call _drm_student_fit with keywords (:se, :data, :method)	MethodError: no method matching keyword call _drm_student_fit with keywords (:se, :data, :method)			at=student.jl:116	0.17	
+S	3	student|slope|lab0|q1|sd-z|cm0|REML
+R	3	student|slope|lab0|q1|sd-z|cm0|REML	ERROR	MethodError	MethodError: no method matching keyword call _drm_student_fit with keywords (:se, :data, :method)	MethodError: no method matching keyword call _drm_student_fit with keywords (:se, :data, :method)			at=student.jl:116	0.01	

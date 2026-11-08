@@ -1,0 +1,22 @@
+S	1	gaussian|indep|lab0|q2|sd-none|cm0|ML
+R	1	gaussian|indep|lab0|q2|sd-none|cm0|ML	FITS				-469.0881880643	true	se_finite=true;npar=7	24.40	
+S	2	gaussian|indep|lab0|q2|sd-one|cm0|ML
+R	2	gaussian|indep|lab0|q2|sd-one|cm0|ML	ERROR	ArgumentError	ArgumentError: drm: sd() supports random INTERCEPT terms only.	ArgumentError: drm: sd() supports random INTERCEPT terms only.				3.26	
+S	3	gaussian|indep|lab0|q2|sd-z|cm0|ML
+R	3	gaussian|indep|lab0|q2|sd-z|cm0|ML	ERROR	ArgumentError	ArgumentError: drm: sd() supports random INTERCEPT terms only.	ArgumentError: drm: sd() supports random INTERCEPT terms only.				0.02	
+S	4	gaussian|indep|lab0|q2|sd-first|cm0|ML
+R	4	gaussian|indep|lab0|q2|sd-first|cm0|ML	ERROR	ArgumentError	ArgumentError: drm: sd() supports random INTERCEPT terms only.	ArgumentError: drm: sd() supports random INTERCEPT terms only.				0.00	
+S	5	gaussian|indep|lab0|q2|sd-last|cm0|ML
+R	5	gaussian|indep|lab0|q2|sd-last|cm0|ML	ERROR	ArgumentError	ArgumentError: drm: sd() supports random INTERCEPT terms only.	ArgumentError: drm: sd() supports random INTERCEPT terms only.				0.00	
+S	6	gaussian|indep|lab0|q3|sd-none|cm0|ML
+R	6	gaussian|indep|lab0|q3|sd-none|cm0|ML	FITS				-448.0771148308	true	se_finite=true;npar=8	7.17	
+S	7	gaussian|indep|lab0|q3|sd-z|cm0|ML
+R	7	gaussian|indep|lab0|q3|sd-z|cm0|ML	ERROR	ArgumentError	ArgumentError: drm: sd() supports random INTERCEPT terms only.	ArgumentError: drm: sd() supports random INTERCEPT terms only.				0.06	
+S	8	gaussian|indep|lab0|q3|sd-first|cm0|ML
+R	8	gaussian|indep|lab0|q3|sd-first|cm0|ML	ERROR	ArgumentError	ArgumentError: drm: sd() supports random INTERCEPT terms only.	ArgumentError: drm: sd() supports random INTERCEPT terms only.				0.00	
+S	9	gaussian|indep|lab0|q4|sd-none|cm0|ML
+R	9	gaussian|indep|lab0|q4|sd-none|cm0|ML	FITS				-425.4527164756	true	se_finite=true;npar=9	9.35	
+S	10	gaussian|indep|lab0|q4|sd-z|cm0|ML
+R	10	gaussian|indep|lab0|q4|sd-z|cm0|ML	ERROR	ArgumentError	ArgumentError: drm: sd() supports random INTERCEPT terms only.	ArgumentError: drm: sd() supports random INTERCEPT terms only.				0.06	
+S	11	gaussian|indep|lab0|q4|sd-first|cm0|ML
+R	11	gaussian|indep|lab0|q4|sd-first|cm0|ML	ERROR	ArgumentError	ArgumentError: drm: sd() supports random INTERCEPT terms only.	ArgumentError: drm: sd() supports random INTERCEPT terms only.				0.00	

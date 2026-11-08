@@ -1,0 +1,50 @@
+S	1	lognormal|relmat|lab0|q1|sd-none|cm0|ML
+R	1	lognormal|relmat|lab0|q1|sd-none|cm0|ML	FITS				-499.8498345115	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.16	
+S	2	lognormal|relmat|lab0|q1|sd-one|cm0|ML
+R	2	lognormal|relmat|lab0|q1|sd-one|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.04	
+S	3	lognormal|relmat|lab0|q1|sd-z|cm0|ML
+R	3	lognormal|relmat|lab0|q1|sd-z|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.03	
+S	4	lognormal|relmat|lab0|q2|sd-none|cm0|ML
+R	4	lognormal|relmat|lab0|q2|sd-none|cm0|ML	ERROR	abort:rlang_error	lognormal `relmat()` `mu` effects are intercept-only in this q=1 route.	lognormal `relmat()` `mu` effects are intercept-only in this q=1 route. ✖ Requested structured coefficients: "(Intercept)" and "x1". ℹ Use `relmat(1 | g, K = K)`; structured slopes remain deferred.				0.02	
+S	5	lognormal|relmat|lab1|q2|sd-none|cm0|ML
+R	5	lognormal|relmat|lab1|q2|sd-none|cm0|ML	ERROR	abort:rlang_error	lognormal `relmat()` `mu` effects support only an unlabelled q=1	lognormal `relmat()` `mu` effects support only an unlabelled q=1 intercept. ✖ Requested labelled structured term: `relmat(1 + x1 | p | g)`. ℹ Remove the covariance label and use an unlabelled `1 | g` term.				0.02	
+S	6	lognormal|relmat|lab0|q2|sd-one|cm0|ML
+R	6	lognormal|relmat|lab0|q2|sd-one|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	7	lognormal|relmat|lab1|q2|sd-one|cm0|ML
+R	7	lognormal|relmat|lab1|q2|sd-one|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.02	
+S	8	lognormal|relmat|lab0|q2|sd-z|cm0|ML
+R	8	lognormal|relmat|lab0|q2|sd-z|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	9	lognormal|relmat|lab1|q2|sd-z|cm0|ML
+R	9	lognormal|relmat|lab1|q2|sd-z|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	10	lognormal|relmat|lab0|q2|sd-first|cm0|ML
+R	10	lognormal|relmat|lab0|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	11	lognormal|relmat|lab1|q2|sd-first|cm0|ML
+R	11	lognormal|relmat|lab1|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	12	lognormal|relmat|lab0|q2|sd-last|cm0|ML
+R	12	lognormal|relmat|lab0|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.02	
+S	13	lognormal|relmat|lab1|q2|sd-last|cm0|ML
+R	13	lognormal|relmat|lab1|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	14	lognormal|relmat|lab0|q3|sd-none|cm0|ML
+R	14	lognormal|relmat|lab0|q3|sd-none|cm0|ML	ERROR	abort:rlang_error	`relmat()` currently reserves only intercept and one-slope structured	`relmat()` currently reserves only intercept and one-slope structured terms. ✖ Use `relmat(1 | group, ...)` or `relmat(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.06	
+S	15	lognormal|relmat|lab1|q3|sd-none|cm0|ML
+R	15	lognormal|relmat|lab1|q3|sd-none|cm0|ML	ERROR	abort:rlang_error	lognormal `relmat()` `mu` effects support only an unlabelled q=1	lognormal `relmat()` `mu` effects support only an unlabelled q=1 intercept. ✖ Requested labelled structured term: `relmat(1 + x1 + x2 | p | g)`. ℹ Remove the covariance label and use an unlabelled `1 | g` term.				0.02	
+S	16	lognormal|relmat|lab0|q3|sd-z|cm0|ML
+R	16	lognormal|relmat|lab0|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	`relmat()` currently reserves only intercept and one-slope structured	`relmat()` currently reserves only intercept and one-slope structured terms. ✖ Use `relmat(1 | group, ...)` or `relmat(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	17	lognormal|relmat|lab1|q3|sd-z|cm0|ML
+R	17	lognormal|relmat|lab1|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.02	
+S	18	lognormal|relmat|lab0|q3|sd-first|cm0|ML
+R	18	lognormal|relmat|lab0|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	`relmat()` currently reserves only intercept and one-slope structured	`relmat()` currently reserves only intercept and one-slope structured terms. ✖ Use `relmat(1 | group, ...)` or `relmat(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	19	lognormal|relmat|lab1|q3|sd-first|cm0|ML
+R	19	lognormal|relmat|lab1|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	20	lognormal|relmat|lab0|q4|sd-none|cm0|ML
+R	20	lognormal|relmat|lab0|q4|sd-none|cm0|ML	ERROR	abort:rlang_error	`relmat()` currently reserves only intercept and one-slope structured	`relmat()` currently reserves only intercept and one-slope structured terms. ✖ Use `relmat(1 | group, ...)` or `relmat(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	21	lognormal|relmat|lab1|q4|sd-none|cm0|ML
+R	21	lognormal|relmat|lab1|q4|sd-none|cm0|ML	ERROR	abort:rlang_error	lognormal `relmat()` `mu` effects support only an unlabelled q=1	lognormal `relmat()` `mu` effects support only an unlabelled q=1 intercept. ✖ Requested labelled structured term: `relmat(1 + x1 + x2 + x3 | p | g)`. ℹ Remove the covariance label and use an unlabelled `1 | g` term.				0.01	
+S	22	lognormal|relmat|lab0|q4|sd-z|cm0|ML
+R	22	lognormal|relmat|lab0|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	`relmat()` currently reserves only intercept and one-slope structured	`relmat()` currently reserves only intercept and one-slope structured terms. ✖ Use `relmat(1 | group, ...)` or `relmat(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	23	lognormal|relmat|lab1|q4|sd-z|cm0|ML
+R	23	lognormal|relmat|lab1|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.02	
+S	24	lognormal|relmat|lab0|q4|sd-first|cm0|ML
+R	24	lognormal|relmat|lab0|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	`relmat()` currently reserves only intercept and one-slope structured	`relmat()` currently reserves only intercept and one-slope structured terms. ✖ Use `relmat(1 | group, ...)` or `relmat(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.02	
+S	25	lognormal|relmat|lab1|q4|sd-first|cm0|ML
+R	25	lognormal|relmat|lab1|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_relmat(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
