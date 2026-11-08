@@ -1,0 +1,18 @@
+[Sun Nov  8 04:43:37 AM CST 2026] stage1 data
+[Sun Nov  8 04:43:37 AM CST 2026] stage2 julia
+[Sun Nov  8 04:44:08 AM CST 2026] stage3 R
+[Sun Nov  8 04:44:18 AM CST 2026] stage4 compare
+             route seeds both_converged r_pdHess compared max_coef_diff_r_se_med max_coef_diff_r_se_p99 max_coef_diff_r_se_max n_beyond_1e3_rse n_ll_beyond_1e6
+1   poisson_animal    10             10       10       10               1.03e-07               2.04e-07               2.05e-07                0               0
+2       nb2_relmat    10             10       10       10               7.78e-07               1.23e-06               1.25e-06                0               0
+3        gauss_ord    10             10       10       10               1.17e-10               6.30e-10               6.77e-10                0               0
+4     gauss_animal    10             10       10       10               1.88e-10               1.14e-09               1.18e-09                0               0
+5    poisson_phylo    10             10       10       10               5.59e-07               1.31e-06               1.31e-06                0               0
+6  poisson_spatial    10             10       10       10               5.45e-07               3.82e-04               4.20e-04                0               0
+7 poisson_labelled    10             10       10       10               2.24e-07               8.07e-07               8.32e-07                0               0
+8     lord_poisson    10             10       10       10               3.05e-06               5.73e-06               5.78e-06                0               0
+9         lord_nb2    10             10       10       10               3.24e-06               5.62e-06               5.68e-06                0               0
+
+Flagged seeds: 0 
+< table of extent 0 >
+[Sun Nov  8 04:44:19 AM CST 2026] done, wall 42 s
