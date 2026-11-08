@@ -1,0 +1,14 @@
+    family   kind n_par max_abs_diff max_abs_diff_se  rho_R rho_julia_minus_R
+1  poisson animal     7    3.129e-08       2.287e-07 0.6071        -1.024e-08
+2  poisson relmat     7    3.129e-08       2.287e-07 0.6071        -1.024e-08
+3      nb2 animal     8    1.068e-07       6.806e-07 0.6124        -3.089e-10
+4      nb2 relmat     8    1.068e-07       6.806e-07 0.6124        -3.089e-10
+5 gaussian animal     8    8.804e-12       1.921e-10 0.6592         5.973e-14
+6 gaussian relmat     8    8.804e-12       1.921e-10 0.6592         5.973e-14
+  se_ratio_min se_ratio_max    ll_R ll_julia_minus_R     converged
+1            1            1 -1501.0       -4.179e-10 R:TRUE J:true
+2            1            1 -1501.0       -4.179e-10 R:TRUE J:true
+3            1            1 -1544.3       -3.154e-09 R:TRUE J:true
+4            1            1 -1544.3       -3.154e-09 R:TRUE J:true
+5            1            1  -963.8        8.799e-11 R:TRUE J:true
+6            1            1  -963.8        8.799e-11 R:TRUE J:true
