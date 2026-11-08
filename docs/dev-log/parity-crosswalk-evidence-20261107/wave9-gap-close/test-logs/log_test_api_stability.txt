@@ -1,0 +1,2 @@
+Test Summary:               | Pass  Total  Time
+API freeze gate (v0.7 line) |  204    204  0.1s

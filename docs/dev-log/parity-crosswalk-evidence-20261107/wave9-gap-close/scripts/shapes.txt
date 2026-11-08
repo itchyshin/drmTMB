@@ -1,0 +1,11 @@
+A1	gaussian|relmat|lab0|q2|sd-none|cm0|ML
+A2	poisson|spatial|lab0|q2|sd-none|cm0|ML
+A3	nb2|relmat|lab0|q2|sd-none|cm0|ML
+A4	poisson|phylo|lab1|q2|sd-none|cm0|ML
+A5	gamma|animal|lab0|q2|sd-none|cm0|ML
+A6	binomial|phylo|lab0|q2|sd-none|cm0|ML
+B1	gamma|phylo|lab0|q2|sd-one|cm0|ML
+B2	gamma|phylo|lab0|q2|sd-z|cm0|ML
+B3	gamma|phylo|lab1|q2|sd-one|cm0|ML
+B4	gamma|spatial|lab0|q2|sd-one|cm0|ML
+B5	gamma|spatial|lab0|q2|sd-z|cm0|ML

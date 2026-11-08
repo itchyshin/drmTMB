@@ -1,0 +1,3 @@
+test_nb2_animal_intercept_slope_sd exit=0 secs=43
+test_nb2_gamma_structured_sigma exit=0 secs=74
+test_phylo_slope_two_sd exit=1 secs=43

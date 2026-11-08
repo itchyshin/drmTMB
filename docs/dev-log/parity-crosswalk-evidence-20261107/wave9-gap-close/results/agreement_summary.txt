@@ -1,0 +1,31 @@
+shape	cell	n	max|dLL|	max|dmu|	max dmu/SE_R	max|dSD|	nonfinSE(J/R)	flagged	seed0_dLL
+A1	gaussian|relmat|lab0|q2|sd-none|cm0|ML	11	1.00e-10	0.00e+00	0.00e+00	0.00e+00	0/0	0	0.0e+00
+A2	poisson|spatial|lab0|q2|sd-none|cm0|ML	11	1.50e-09	1.77e-07	7.37e-07	3.00e-07	0/0	0	0.0e+00
+A3	nb2|relmat|lab0|q2|sd-none|cm0|ML	11	3.00e-10	2.00e-08	3.18e-07	3.00e-07	0/0	0	0.0e+00
+A4	poisson|phylo|lab1|q2|sd-none|cm0|ML	11	8.92e-07	4.17e-05	1.38e-04	2.79e+00	7/0	2	0.0e+00
+A5	gamma|animal|lab0|q2|sd-none|cm0|ML	11	2.30e-09	1.70e-07	4.67e-06	2.00e-07	0/0	0	9.0e-10
+A6	binomial|phylo|lab0|q2|sd-none|cm0|ML	11	1.35e-08	5.67e-05	1.28e-04	1.96e+01	6/1	9	1.5e-09
+B1	gamma|phylo|lab0|q2|sd-one|cm0|ML	11	2.60e-09	5.00e-08	8.27e-07	4.00e-07	0/0	0	1.0e-10
+B2	gamma|phylo|lab0|q2|sd-z|cm0|ML	11	4.57e-01	3.68e-01	9.84e-01	5.63e-01	0/0	1	2.0e-10
+B3	gamma|phylo|lab1|q2|sd-one|cm0|ML	11	2.80e-09	1.50e-07	8.26e-07	1.60e-06	0/0	0	4.0e-10
+B4	gamma|spatial|lab0|q2|sd-one|cm0|ML	11	1.60e-09	7.00e-08	8.32e-07	5.00e-07	0/0	0	9.0e-10
+B5	gamma|spatial|lab0|q2|sd-z|cm0|ML	11	1.41e+00	6.81e-01	3.22e+00	1.12e+00	0/0	3	-4.2e-08
+
+FLAGGED fits:
+A4 poisson|phylo|lab1|q2|sd-none|cm0|ML seed 1 ['T3', 'T4', 'T5'] dLL=-8.43e-07 mu=4.17e-05 sd=2.79e+00 J_|rho|>4;R_|rho|>4 J_unconverged nonfin J/R 7 0
+A4 poisson|phylo|lab1|q2|sd-none|cm0|ML seed 4 ['T3', 'T5'] dLL=-8.92e-07 mu=6.43e-06 sd=2.47e+00 J_|rho|>4;R_|rho|>4  nonfin J/R 0 0
+A6 binomial|phylo|lab0|q2|sd-none|cm0|ML seed 0 ['T3', 'T5'] dLL=1.50e-09 mu=1.00e-08 sd=6.84e+00 J_logsd<-6;R_logsd<-6 R_is_converged=FALSE nonfin J/R 0 0
+A6 binomial|phylo|lab0|q2|sd-none|cm0|ML seed 1 ['T3', 'T4', 'T5'] dLL=4.30e-09 mu=3.11e-06 sd=2.36e+00 J_logsd<-6;R_logsd<-6 R_is_converged=FALSE nonfin J/R 1 0
+A6 binomial|phylo|lab0|q2|sd-none|cm0|ML seed 3 ['T3', 'T5'] dLL=4.00e-09 mu=1.00e-08 sd=7.92e+00 J_logsd<-6;R_logsd<-6 R_is_converged=FALSE nonfin J/R 0 0
+A6 binomial|phylo|lab0|q2|sd-none|cm0|ML seed 4 ['T3', 'T4', 'T5'] dLL=1.40e-09 mu=2.30e-08 sd=8.87e+00 J_logsd<-6;R_logsd<-6 R_is_converged=FALSE nonfin J/R 1 0
+A6 binomial|phylo|lab0|q2|sd-none|cm0|ML seed 5 ['T3', 'T4', 'T5'] dLL=-5.10e-09 mu=1.20e-05 sd=1.76e+00 J_logsd<-6;R_logsd<-6 R_is_converged=FALSE nonfin J/R 1 0
+A6 binomial|phylo|lab0|q2|sd-none|cm0|ML seed 6 ['T3', 'T4', 'T5'] dLL=7.00e-09 mu=1.13e-06 sd=2.88e+00 J_logsd<-6;R_logsd<-6 R_is_converged=FALSE nonfin J/R 1 0
+A6 binomial|phylo|lab0|q2|sd-none|cm0|ML seed 8 ['T3', 'T4', 'T5'] dLL=1.80e-09 mu=1.00e-08 sd=1.96e+01 J_logsd<-6;R_logsd<-6 R_pdHess=FALSE;R_is_converged=FALSE nonfin J/R 0 1
+A6 binomial|phylo|lab0|q2|sd-none|cm0|ML seed 9 ['T3', 'T4', 'T5'] dLL=-1.90e-09 mu=1.39e-06 sd=2.25e+00 J_logsd<-6;R_logsd<-6 R_is_converged=FALSE nonfin J/R 1 0
+A6 binomial|phylo|lab0|q2|sd-none|cm0|ML seed 10 ['T3', 'T4', 'T5'] dLL=-1.03e-08 mu=2.70e-06 sd=2.51e+00 J_logsd<-6;R_logsd<-6 R_is_converged=FALSE nonfin J/R 1 0
+B2 gamma|phylo|lab0|q2|sd-z|cm0|ML seed 2 ['T1', 'T2', 'T3'] dLL=4.57e-01 mu=3.68e-01 sd=5.63e-01   nonfin J/R 0 0
+B5 gamma|spatial|lab0|q2|sd-z|cm0|ML seed 0 ['T5'] dLL=-4.18e-08 mu=2.20e-08 sd=2.30e-06 J_logsd<-6 R_is_converged=FALSE nonfin J/R 0 0
+B5 gamma|spatial|lab0|q2|sd-z|cm0|ML seed 9 ['T1', 'T2', 'T3'] dLL=-4.58e-01 mu=2.18e-01 sd=1.12e+00   nonfin J/R 0 0
+B5 gamma|spatial|lab0|q2|sd-z|cm0|ML seed 10 ['T1', 'T2', 'T3'] dLL=-1.41e+00 mu=6.81e-01 sd=6.21e-01   nonfin J/R 0 0
+
+SE-ratio informational flags (T6): 2 of 121

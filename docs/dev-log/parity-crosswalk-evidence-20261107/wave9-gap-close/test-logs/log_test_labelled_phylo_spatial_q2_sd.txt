@@ -1,0 +1,2 @@
+Test Summary:             | Pass  Total     Time
+labelled phylo/spatial q2 |   78     78  1m29.6s

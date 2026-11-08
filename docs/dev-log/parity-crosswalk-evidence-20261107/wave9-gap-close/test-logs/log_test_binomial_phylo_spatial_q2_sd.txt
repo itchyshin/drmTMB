@@ -1,0 +1,2 @@
+Test Summary:                                                      | Pass  Total   Time
+Binomial phylo/spatial (1 + x | g) q2 with coefficient SD formulas |   50     50  34.7s

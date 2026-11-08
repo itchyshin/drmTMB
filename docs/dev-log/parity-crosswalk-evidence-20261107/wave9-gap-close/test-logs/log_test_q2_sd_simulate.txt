@@ -1,0 +1,46 @@
+┌ Warning: drm: `A` has no labels, so its rows and columns are taken to be the levels of `g` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/input_validation.jl:457
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Poisson animal intercept-and-slope SD regression"
+│   flat_coordinates = Int64[]
+│   rcond = 1.0969100574008335e-8
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Poisson animal intercept-and-slope SD regression"
+│   flat_coordinates = Int64[]
+│   rcond = 2.7328555595732357e-9
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Poisson animal intercept-and-slope SD regression"
+│   flat_coordinates = Int64[]
+│   rcond = 1.0969100574008335e-8
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Poisson animal intercept-and-slope SD regression"
+│   flat_coordinates = Int64[]
+│   rcond = 2.7328555595732357e-9
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/vcov_guard.jl:122
+Test Summary:                            | Pass  Total   Time
+q2 SD marginal simulator: Poisson animal |   13     13  18.6s
+Test Summary:                            | Pass  Total  Time
+q2 SD marginal simulator: Poisson relmat |   13     13  1.7s
+Test Summary:                                 | Pass  Total  Time
+q2 SD marginal simulator: NegBinomial2 animal |   13     13  8.5s
+Test Summary:                                 | Pass  Total  Time
+q2 SD marginal simulator: NegBinomial2 relmat |   13     13  2.4s
+Test Summary:                             | Pass  Total   Time
+q2 SD marginal simulator: Gaussian animal |   13     13  26.8s
+Test Summary:                             | Pass  Total  Time
+q2 SD marginal simulator: Gaussian relmat |   13     13  5.1s

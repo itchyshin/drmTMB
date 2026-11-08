@@ -1,0 +1,10 @@
+test_poisson_relmat_intercept_slope_sd exit=0 secs=35
+test_nb2_relmat_intercept_slope_sd exit=0 secs=40
+test_gaussian_structured_q2_sd exit=1 secs=61
+test_labelled_phylo_spatial_q2_sd exit=0 secs=91
+test_q2_sd_simulate exit=0 secs=65
+test_relmat_counts exit=0 secs=19
+test_gamma_animal_intercept_slope_sd exit=0 secs=44
+test_poisson_animal_intercept_slope_sd exit=0 secs=35
+test_bridge_q2_direct_export exit=0 secs=27
+test_api_stability exit=0 secs=1
