@@ -102,3 +102,14 @@ No. Seven shapes were tried on `ba502d9d7` (probe scripts and logs `b4-*`). Ever
 | Gaussian `(1 \| g)` on mu and sigma with SD formulas | `ArgumentError`: sd() cannot combine with a sigma random effect |
 
 Consequence: the remaining NOT_COVERED rows are feature gaps, not test gaps. Closing them is Julia implementation work (separate repository, own review), and until then the honest parity verdict for these rows is "Julia refuses", not "agrees".
+
+## Wave 2
+
+Four further evidence folders sit in this directory. Each has its own README with the numbers; none changes a verdict. Conditional proposals that use them are in `PROPOSED-verdict-flips.md` (nothing applied).
+
+- `wave2-labelled-rho/`: labelled (correlated) animal/relmat q2 with two coefficient SD formulas, Poisson, NB2 and Gaussian.
+- `wave2-phylo-spatial-q2/`: phylo and coordinate-kernel spatial `(1 + x | g)` q2, Gaussian, Poisson and NB2.
+- `wave2-gamma-nb2-ordinary/`: Gamma and NB2 two-field SD routes (crossed, ordinary + relmat/animal, independent and labelled q2).
+- `wave2-joint-sigma/`: joint mean + sigma random effects, structured Gaussian sigma (phylo, spatial), the Gamma crossed disagreement, and stress case 6a.
+
+Julia branch for all of it: `claude/q2-wave2-merge-20261107` (itchyshin/DRModels.jl, not yet a PR). Single seed per case, ML only, agreement at the optimum only.
