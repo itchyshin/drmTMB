@@ -4,7 +4,7 @@ Reader: whoever decides parity-matrix rows 3, 13 and 18 (see
 `../PROPOSED-verdict-flips.md`). This folder is evidence only; no verdict or
 matrix script is edited here.
 
-Julia: DRModels.jl branch  (tip 81a937ea8)`claude/joint-sigma-wave2-20261107` (from
+Julia: DRModels.jl branch `claude/joint-sigma-wave2-20261107`, tip 81a937ea8 (from
 `claude/q2-final-20261107`; pushed, not merged). R: native drmTMB 0.8.1 installed
 from `origin/main` (`agree-poisson-q2/lib`). ML, one dataset per shape. Laplace
 evidence is likelihood agreement at the optimum only: no coverage, bias, REML,
