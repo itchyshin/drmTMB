@@ -1,0 +1,319 @@
+diff --git a/news/red-team-20261108-input-validation.md b/news/red-team-20261108-input-validation.md
+new file mode 100644
+index 000000000..eaec08a43
+--- /dev/null
++++ b/news/red-team-20261108-input-validation.md
+@@ -0,0 +1 @@
++- **Input-validation fixes from the adversarial-data red team.** `sd(g) ~ …` with a grouping variable that has fewer than two levels is now refused up front for every family (the Gaussian ordinary route used to fit it, returning boundary SD estimates). The Binomial structured SD routes accept `ids = …` for `A` and `coords`, and the Binomial `spatial(1 | g)` SD route accepts a label => coordinate `Dict` (both ended in an unsupported-keyword `MethodError` or a "neither" `ErrorException`). The Binomial `(1 + x | g)` slope check refuses only when the slope predictor is constant in every group, as drmTMB does; one singleton group among varying ones was refused. Two refusal messages now say what to try: a tree with tips that have no data rows (prune the tree), and a singular relatedness matrix (merge duplicated individuals); the Poisson animal route no longer calls its matrix `relmat`.
+diff --git a/src/binomial.jl b/src/binomial.jl
+index 99b70f4ae..e4915a59e 100644
+--- a/src/binomial.jl
++++ b/src/binomial.jl
+@@ -79,7 +79,7 @@ the sparse-Laplace engine. A phylogenetic random intercept on the mean,
+ intercept + slope `(1 + x | g)` is fit by the same per-group adaptive
+ quadrature helper, `nq` nodes per axis (the same scheme as
+ [`BetaBinomial`](@ref)); it needs within-group variation in `x` — a slope
+-predictor that is constant within any level of `g` leaves the slope SD and
++predictor that is constant within every level of `g` leaves the slope SD and
+ group-level correlation unidentified, and is refused with an informative
+ error (mirrors drmTMB's `drm_validate_q2_slope_variation`). An independent
+ random slope `(0 + x | g)` and `marginal = :VA` on `(1 + x | g)` remain out of
+@@ -228,6 +228,32 @@ end
+     return _withuncertainty(_drm_binomial_fit(f, fam; se = se, kwargs...), se)
+ end
+ 
++# `ids = …` labels the rows of `A` (animal term) or of `coords` (spatial term), as on
++# the Gaussian, Poisson, NegBinomial2 and Gamma routes. The Binomial fitter used to have
++# no `ids` keyword, so the advice in the unlabelled-`A` warning ended in a MethodError.
++# `A` is reordered to the first-seen group order the routes read; `coords` becomes a
++# label => coordinate Dict, which the spatial routes already resolve.
++function _binomial_label_inputs(f::DrmFormula, data, A, Ainv, coords, ids)
++    ids === nothing && return A, coords
++    Ainv === nothing || throw(ArgumentError("drm: `ids = …` labels the rows of `A`; the rows of " *
++        "`Ainv` follow the order of first appearance of the group in the data, so pass " *
++        "`A` with `ids`, or `Ainv` without `ids`."))
++    if _animal_group(f) !== nothing
++        return _resolve_relatedness_labels(f, data, A, ids; coords = coords), coords
++    end
++    A === nothing && coords === nothing && throw(ArgumentError(
++        "drm: `ids = …` labels the rows of the relatedness matrix `A` or of the site " *
++        "coordinates `coords`, but neither was supplied."))
++    if coords !== nothing && !(coords isa AbstractDict)
++        n = coords isa AbstractVector ? length(coords) : size(coords, 1)
++        n == length(ids) || throw(ArgumentError("drm: `coords` has $n row(s) but `ids` has " *
++            "$(length(ids)) label(s); give one label per row."))
++        coords = Dict(string(l) => (coords isa AbstractVector ? [Float64(coords[i])] :
++                                    Float64.(coords[i, :])) for (i, l) in enumerate(ids))
++    end
++    return A, coords
++end
++
+ # Outside SD-regression routes, Binomial admits `phylo` alone among the
+ # structured markers. `relmat` is currently supported for the structured SD
+ # regression route below, not for a general Binomial random-effect fit. Without
+@@ -241,8 +267,9 @@ function _drm_binomial_fit(f::DrmFormula, fam::Binomial; data, tree = nothing,
+              A = nothing, Ainv = nothing, coords = nothing, mesh = nothing,
+              g_tol::Real = 1e-8,
+              se::Bool = true, marginal::Symbol = :LA, method = nothing,
+-             nq::Int = _BINOMIAL_RANEF_AGHQ_K, priors = nothing)
++             nq::Int = _BINOMIAL_RANEF_AGHQ_K, priors = nothing, ids = nothing)
+     _drm_entry_guard(f, fam, data; tree = tree, K = K, A = A, Ainv = Ainv, coords = coords)   # #1027 #1022 #1010
++    A, coords = _binomial_label_inputs(f, data, A, Ainv, coords, ids)   # red team: `ids = …` as on the other families
+     if priors !== nothing
+         fam.link === :logit && marginal === :LA && method === nothing || throw(ArgumentError("fixed-effect priors require ordinary binomial logit ML"))
+         isempty(_sd_parts(f)) && isempty(_sdphylo_parts(f)) || throw(ArgumentError("fixed-effect priors do not support SD formulas"))
+@@ -468,17 +495,20 @@ end
+ 
+ # Identifiability guard for the correlated random slope (1 + x | g) (#753): the
+ # slope RE variance and the group-level (intercept, slope) correlation are
+-# unidentified when `xs` is constant within any level of `grp` — mirrors
++# unidentified when `xs` is constant within EVERY level of `grp` — mirrors
+ # drmTMB's `drm_validate_q2_slope_variation` (R/mspl-estimator.R), reimplemented
+-# here (never vendored: drmTMB is GPL, DRModels.jl is MIT).
++# here (never vendored: drmTMB is GPL, DRModels.jl is MIT). One level with a single
++# observation (or a constant slope predictor) among others with variation is fine: the
++# other levels identify the slope SD and correlation. The check used to refuse the
++# data when ANY level was constant, which drmTMB fits (red team, 2026-11-08).
+ function _binomial_check_slope_identifiable(xs, gidx, G, grp)
+     seen = [Set{Float64}() for _ in 1:G]
+     for i in eachindex(xs)
+         push!(seen[gidx[i]], xs[i])
+     end
+-    all(length(s) ≥ 2 for s in seen) ||
++    any(length(s) ≥ 2 for s in seen) ||
+         error("Binomial() correlated random slope `(1 + x | g)` needs within-group variation in the " *
+-              "slope predictor — it is constant within at least one level of `$grp`, so the slope SD " *
++              "slope predictor — it is constant within every level of `$grp`, so the slope SD " *
+               "and the group-level intercept–slope correlation are unidentified. " *
+               "Use a predictor that varies within `$grp`.")
+ end
+diff --git a/src/binomial_sd_regression.jl b/src/binomial_sd_regression.jl
+index d76ff865e..2b79bb20f 100644
+--- a/src/binomial_sd_regression.jl
++++ b/src/binomial_sd_regression.jl
+@@ -1155,6 +1155,7 @@ function _drm_binomial_related_sd_regression(f::DrmFormula, fam::Binomial;
+     labels = getproperty(data, descriptor.group)
+     gidx, G = _group_index(labels)
+     C = if level === :spatial
++        coords isa AbstractDict && (coords = _resolve_coords_labels(f, data, coords, nothing))   # red team: label => coordinate Dict, as on the other families
+         _spatial_covariance_from_coords(descriptor.group, G, coords, nothing)
+     else
+         covariance === nothing ? nothing : Matrix{Float64}(covariance)
+diff --git a/src/gaussian_lss.jl b/src/gaussian_lss.jl
+index 7d27fb569..b611184d4 100644
+--- a/src/gaussian_lss.jl
++++ b/src/gaussian_lss.jl
+@@ -398,7 +398,9 @@ function _lss_phylo_group_index(tree, labels, grp::Symbol)
+     present[gidx] .= true
+     if !all(present)
+         absent = join(phy.leaf_names[findall(.!present)], ", ")
+-        throw(ArgumentError("drm: phylo LSS full input for `$grp` must contain all tree tips; absent: $absent"))
++        throw(ArgumentError("drm: phylo LSS full input for `$grp` must contain all tree tips; absent: $absent. " *
++            "The tree has tips with no row in the data; prune the tree to the species in the data " *
++            "(for example `ape::keep.tip(tree, observed_species)` in R) before fitting."))
+     end
+     return phy, gidx, p
+ end
+diff --git a/src/input_validation.jl b/src/input_validation.jl
+index a4933f718..63edde790 100644
+--- a/src/input_validation.jl
++++ b/src/input_validation.jl
+@@ -271,10 +271,33 @@ function _drm_entry_guard(f::DrmFormula, fam, data; tree = nothing, K = nothing,
+     _require_family_dpars(f, fam)
+     _require_offset_supported(f, fam)
+     _require_formula_column_lengths(f, data)
++    _require_sd_group_levels(f, data)
+     _require_structured_keywords_used(f, fam; tree = tree, K = K, A = A, Ainv = Ainv, coords = coords)
+     return nothing
+ end
+ 
++# ── red team (2026-11-08): `sd(g) ~ …` needs at least two groups ──────────────
++#
++# One group gives no between-group variation, so a random-effect SD cannot be
++# estimated. The Gaussian ordinary route used to fit this anyway (boundary
++# estimates +-8 on the log-SD scale, a singular-Hessian warning only) while
++# drmTMB refuses it, and the other families failed later with "group-level design
++# is rank deficient", which does not name the cause.
++function _require_sd_group_levels(f::DrmFormula, data)
++    for item in _sd_target_parts(f)
++        grp = item.target.group
++        col = _maybe_table_column(data, grp)
++        col isa AbstractVector || continue
++        nlev = length(unique(skipmissing(col)))
++        nlev >= 2 && continue
++        throw(ArgumentError("drm: `sd($grp) ~ …` models the SD of the random effects over the levels of " *
++            "`$grp`, but `$grp` has $(nlev == 0 ? "no observed level" : "only one level") in the data. " *
++            "At least two groups are needed to estimate a random-effect SD; check the grouping column, " *
++            "or drop the `sd()` formula and the random effect."))
++    end
++    return nothing
++end
++
+ # ── #1026: phylo labels are matched by name, never by position ───────────────
+ #
+ # Called by the tip matchers once neither every label is a tip name nor every
+diff --git a/src/poisson.jl b/src/poisson.jl
+index f8dcfa52d..1deb5a228 100644
+--- a/src/poisson.jl
++++ b/src/poisson.jl
+@@ -895,7 +895,9 @@ function _fit_poisson_covariance_sd_laplace(fam, y, Xmu, Zobs, Zg, gidx, Q,
+                                             context::String)
+     qchol = cholesky(Symmetric(Q); check = false)
+     issuccess(qchol) || throw(ArgumentError(
+-        "relmat(1 | $grp) covariance must be positive definite"))
++        "$context: the covariance matrix for `$grp` is not positive definite (identical " *
++        "rows and columns, e.g. duplicated individuals, make it singular). Merge or remove " *
++        "the duplicated individuals, or supply a positive-definite matrix."))
+     return _fit_poisson_structured_sd_laplace(
+         fam, y, Xmu, Zobs, gidx, Q, logdet(qchol), nmmu, nmsd, grp, g_tol;
+         se, maxiter, sd_block = :sd, scale_key = :sd,
+diff --git a/src/sparse_laplace_glmm.jl b/src/sparse_laplace_glmm.jl
+index cfdb0049c..85575f084 100644
+--- a/src/sparse_laplace_glmm.jl
++++ b/src/sparse_laplace_glmm.jl
+@@ -778,7 +778,9 @@ function _general_cov_setup(C::AbstractMatrix, labels; normalize::Bool = true)
+     all(>(0), d) || error("covariance matrix must have a strictly positive diagonal")
+     covariance = normalize ? Symmetric(Cf ./ (d * d')) : Symmetric(Cf)
+     Rchol = cholesky(covariance; check = false)
+-    issuccess(Rchol) || error("covariance matrix is not positive definite")
++    issuccess(Rchol) || error("covariance matrix is not positive definite (identical rows and columns, " *
++        "e.g. duplicated individuals, make it singular); merge or remove the duplicated individuals, " *
++        "or supply a positive-definite matrix")
+     Q = sparse(Symmetric(inv(Rchol)))                   # dense precision, sparse-wrapped
+     return Q, gidx
+ end
+diff --git a/test/test_red_team_inputs.jl b/test/test_red_team_inputs.jl
+new file mode 100644
+index 000000000..a06046130
+--- /dev/null
++++ b/test/test_red_team_inputs.jl
+@@ -0,0 +1,129 @@
++# Input-validation fixes from the 2026-11-08 adversarial-data red team
++# (docs/dev-log/parity-crosswalk-evidence-20261107/red-team/README.md). One testset per fix:
++#   1. `sd(g) ~ …` with fewer than two groups is refused up front, naming the cause.
++#   2. Binomial structured SD routes accept `ids = …` (it was an unsupported-keyword MethodError).
++#   3. Binomial q1 spatial SD accepts a label => coordinate Dict (it was an ErrorException).
++#   4. Two refusal messages now say what to try (extra tree tips, singular relatedness matrix).
++#   5. Binomial `(1 + x | g)` is refused only when the slope predictor is constant in EVERY group
++#      (drmTMB's rule); one singleton group among varying ones used to be refused.
++# Data are generated with StableRNG(20261108); no committed fixture is needed.
++using DRModels, Test, LinearAlgebra, StableRNGs
++import Distributions
++
++function _rt_data(; G = 16, m = 10, seed = 20261108, kind = :binomial)
++    rng = StableRNG(seed)
++    ids = ["s$(lpad(i, 2, '0'))" for i in 1:G]
++    g = repeat(ids, inner = m)
++    x = randn(rng, G * m)
++    z = repeat(repeat([-1.0, 1.0], G ÷ 2), inner = m)
++    # shared structured random effect (AR(1) kernel) so the animal / spatial fits are well posed
++    R0 = 0.5 .^ abs.(reshape(1:G, :, 1) .- reshape(1:G, 1, :))
++    D = Diagonal(collect(range(0.7, 1.4; length = G)))      # non-Toeplitz: a reversed matrix is a different model
++    R = Matrix(D * R0 * D)
++    u = cholesky(Symmetric(R)).L * randn(rng, G)
++    sdg = exp.(-0.3 .+ 0.3 .* repeat([-1.0, 1.0], G ÷ 2))
++    eta = 0.2 .+ 0.4 .* x .+ repeat(sdg .* u, inner = m)
++    y = kind === :binomial ?
++        Float64.(rand(rng, G * m) .< 1 ./ (1 .+ exp.(-eta))) :
++        Float64[rand(rng, Distributions.Poisson(exp(v))) for v in eta]
++    return (; data = (; y, x, z, g), ids, R)
++end
++
++function _rt_throws_arg(f, needle)
++    err = try f(); nothing catch e; e end
++    err isa ArgumentError || return false
++    return occursin(needle, err.msg)
++end
++
++@testset "red team: sd() with fewer than two groups is refused up front" begin
++    fx = _rt_data(kind = :poisson)
++    one = merge(fx.data, (; g = fill("s01", length(fx.data.y)), z = fill(1.0, length(fx.data.y))))
++    f = bf(@formula(y ~ x + (1 | g)), @formula(sd(g) ~ z))
++    for fam in (Gaussian(), Poisson(), Binomial())
++        d = fam isa Binomial ? merge(one, (; y = Float64.(one.y .> 0))) : one
++        @test _rt_throws_arg(() -> drm(f, fam; data = d), "At least two groups are needed")
++    end
++    # the same guard covers a structured route and names the grouping variable
++    fa = bf(@formula(y ~ x + animal(1 | g)), @formula(sd(g, animal) ~ z))
++    @test _rt_throws_arg(() -> drm(fa, Gaussian(); data = one, A = ones(1, 1)), "`g` has only one level")
++    # negative control: two groups pass the guard (the fit itself may or may not be sensible)
++    two = (; y = fx.data.y[1:20], x = fx.data.x[1:20], z = fx.data.z[1:20], g = fx.data.g[1:20])
++    err = try drm(bf(@formula(y ~ x + (1 | g)), @formula(sd(g) ~ z)), Gaussian(); data = two); nothing catch e; e end
++    @test !(err isa ArgumentError && occursin("At least two groups are needed", err.msg))
++end
++
++@testset "red team: Binomial animal SD route accepts ids = …" begin
++    fx = _rt_data()
++    f = bf(@formula(y ~ x + animal(1 | g)), @formula(sd(g, animal) ~ z))
++    base = drm(f, Binomial(); data = fx.data, A = fx.R, se = false)
++    p = reverse(1:length(fx.ids))                      # a permuted, labelled matrix
++    labelled = drm(f, Binomial(); data = fx.data, A = fx.R[p, p], ids = fx.ids[p], se = false)
++    @test labelled.converged
++    @test loglikelihood(labelled) ≈ loglikelihood(base) rtol = 1e-8
++    # without `ids` the permuted matrix is read by position: a different (wrong) model
++    @test !isapprox(loglikelihood(drm(f, Binomial(); data = fx.data, A = fx.R[p, p], se = false)),
++                    loglikelihood(base); rtol = 1e-6)
++    @test _rt_throws_arg(() -> drm(f, Binomial(); data = fx.data, Ainv = inv(fx.R), ids = fx.ids, se = false),
++                         "labels the rows of `A`")
++    plain = bf(@formula(y ~ x + (1 | g)), @formula(sd(g) ~ z))
++    @test _rt_throws_arg(() -> drm(plain, Binomial(); data = fx.data, ids = fx.ids, se = false),
++                         "neither was supplied")
++end
++
++@testset "red team: Binomial q1 spatial SD route accepts a label => coordinate Dict" begin
++    fx = _rt_data()
++    G = length(fx.ids)
++    xy = [(Float64(i % 4), Float64(i ÷ 4)) for i in 0:G-1]
++    mat = reduce(vcat, [[a b] for (a, b) in xy])
++    f = bf(@formula(y ~ x + spatial(1 | g)), @formula(sd(g, spatial) ~ z))
++    base = drm(f, Binomial(); data = fx.data, coords = mat, se = false)       # first-seen order = ids order
++    p = reverse(1:G)
++    dict = Dict(fx.ids[i] => [xy[i][1], xy[i][2]] for i in p)                # insertion order scrambled
++    byid = drm(f, Binomial(); data = fx.data, coords = dict, se = false)
++    @test byid.converged
++    @test loglikelihood(byid) ≈ loglikelihood(base) rtol = 1e-8
++    viaids = drm(f, Binomial(); data = fx.data, coords = mat[p, :], ids = fx.ids[p], se = false)
++    @test loglikelihood(viaids) ≈ loglikelihood(base) rtol = 1e-8
++    missing_site = Dict(k => v for (k, v) in dict if k != "s03")
++    @test _rt_throws_arg(() -> drm(f, Binomial(); data = fx.data, coords = missing_site, se = false),
++                         "no row in `coords`")
++end
++
++@testset "red team: refusal messages say what to try" begin
++    fx = _rt_data(kind = :poisson)
++    G = length(fx.ids)
++    # (a) a tree with tips that have no data rows (R accepts a larger tree)
++    all_ids = vcat(fx.ids, ["s17", "s18"])
++    nw(ix) = length(ix) == 1 ? "$(all_ids[ix[1]]):1.0" :
++        "(" * nw(ix[1:end÷2]) * "," * nw(ix[end÷2+1:end]) * "):0.5"
++    tree = nw(collect(1:length(all_ids))) * ";"
++    fp = bf(@formula(y ~ x + phylo(1 | g)), @formula(sd(g, phylogenetic) ~ z))
++    @test _rt_throws_arg(() -> drm(fp, Gaussian(); data = fx.data, tree), "ape::keep.tip")
++    # (b) exactly duplicated relatives make A singular; the Poisson animal SD route used to call it `relmat`
++    A = Matrix(fx.R); A[2, :] = A[1, :]; A[:, 2] = A[:, 1]; A[2, 2] = A[1, 1]
++    fa = bf(@formula(y ~ x + animal(1 | g)), @formula(sd(g, animal) ~ z))
++    err = try drm(fa, Poisson(); data = fx.data, A, ids = fx.ids, se = false); nothing catch e; e end
++    msg = err === nothing ? "" : sprint(showerror, err)
++    # which of the two checks fires depends on how close to singular the rounded factor is; both must explain
++    @test err isa Union{ArgumentError,ErrorException}
++    @test occursin("not positive definite", msg) && occursin("duplicated", msg) && !occursin("relmat(1 | g)", msg)
++end
++
++@testset "red team: Binomial (1 + x | g) slope check refuses only when x is constant in every group" begin
++    rng = StableRNG(20261108)
++    G, m = 12, 8
++    g = repeat(["s$(lpad(i, 2, '0'))" for i in 1:G], inner = m)
++    x = randn(rng, G * m)
++    z = repeat(repeat([-1.0, 1.0], G ÷ 2), inner = m)
++    u = randn(rng, G)
++    y = Float64.(rand(rng, G * m) .< 1 ./ (1 .+ exp.(-(0.2 .+ 0.5 .* x .+ 0.7 .* repeat(u, inner = m)))))
++    f = bf(@formula(y ~ x + (1 + x | g)),
++           @formula(sd(g, coef(intercept)) ~ z), @formula(sd(g, coef(x)) ~ z))
++    keep = trues(G * m); keep[(m + 2):(2m)] .= false                 # group s02 keeps one row: x trivially constant there
++    one_singleton = (; y = y[keep], x = x[keep], z = z[keep], g = g[keep])
++    fit = drm(f, Binomial(); data = one_singleton, se = false)
++    @test isfinite(loglikelihood(fit))
++    const_x = (; y, x = repeat(randn(rng, G), inner = m), z, g)       # x constant in every group
++    err = try drm(f, Binomial(); data = const_x, se = false); nothing catch e; e end
++    @test err isa ErrorException && occursin("constant within every level", err.msg)
++end

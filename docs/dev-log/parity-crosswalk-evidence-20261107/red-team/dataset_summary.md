@@ -1,0 +1,32 @@
+| dataset | cells | both fit, logLik agrees or shows only the baseline method gap | LL disagree (J higher / R higher) | Julia refuses, R fits | Julia fits, R refuses | both refuse | Julia fit not converged | Julia non-ArgumentError |
+|---|---|---|---|---|---|---|---|---|
+| d00_baseline | 25 | 21 | 0 (0/0) | 3 | 0 | 1 | 1 | 0 |
+| d01a_one_singleton_group | 16 | 13 | 1 (1/0) | 1 | 0 | 1 | 0 | 0 |
+| d01b_all_singletons | 16 | 5 | 0 (0/0) | 1 | 8 | 1 | 2 | 1 |
+| d02_identical_y_in_group | 16 | 14 | 0 (0/0) | 1 | 0 | 1 | 0 | 0 |
+| d03_single_level_group | 16 | 0 | 0 (0/0) | 0 | 0 | 16 | 0 | 0 |
+| d04_separated_bernoulli | 5 | 4 | 1 (1/0) | 0 | 0 | 0 | 1 | 0 |
+| d05_zero_counts_in_group | 15 | 11 | 1 (1/0) | 3 | 0 | 0 | 0 | 0 |
+| d06a_duplicate_coords | 5 | 1 | 2 (0/2) | 2 | 0 | 0 | 2 | 0 |
+| d06b_all_coords_identical | 2 | 0 | 0 (0/0) | 0 | 0 | 2 | 0 | 0 |
+| d07a_tree_zero_internal_branches | 5 | 0 | 0 (0/0) | 0 | 0 | 5 | 0 | 0 |
+| d07b_tree_zero_terminal_branches | 5 | 0 | 0 (0/0) | 0 | 0 | 5 | 0 | 0 |
+| d08a_A_near_singular_1e-9 | 5 | 2 | 3 (0/3) | 0 | 0 | 0 | 4 | 0 |
+| d08b_A_exactly_singular | 5 | 0 | 0 (0/0) | 1 | 2 | 2 | 1 | 0 |
+| d09_x_constant_within_group | 16 | 10 | 2 (1/1) | 1 | 1 | 1 | 0 | 1 |
+| d10_x_huge_1e6 | 16 | 8 | 6 (2/4) | 1 | 0 | 1 | 4 | 0 |
+| d11_x_tiny_1e-6 | 16 | 4 | 10 (8/2) | 1 | 0 | 1 | 3 | 0 |
+| d12_sdpred_huge_1e6 | 16 | 10 | 4 (0/4) | 1 | 0 | 1 | 6 | 0 |
+| d13_sdpred_tiny_1e-6 | 16 | 0 | 14 (14/0) | 1 | 0 | 1 | 0 | 0 |
+| d14_extreme_outliers | 14 | 7 | 5 (4/1) | 1 | 0 | 1 | 1 | 0 |
+| d15a_missing_y_scattered | 16 | 2 | 0 (0/0) | 13 | 0 | 1 | 0 | 0 |
+| d15b_missing_y_whole_group | 16 | 2 | 0 (0/0) | 11 | 0 | 3 | 0 | 0 |
+| d16a_missing_sdpred_whole_group | 16 | 2 | 0 (0/0) | 11 | 0 | 3 | 0 | 0 |
+| d16b_missing_sdpred_one_row | 16 | 5 | 0 (0/0) | 10 | 0 | 1 | 0 | 0 |
+| d17_unused_level_extra_kernel_members | 16 | 11 | 0 (0/0) | 2 | 1 | 2 | 1 | 0 |
+| d18_groups_missing_from_kernel | 6 | 0 | 0 (0/0) | 0 | 0 | 6 | 0 | 0 |
+| d19_A_rownames_unsorted | 2 | 2 | 0 (0/0) | 0 | 0 | 0 | 0 | 0 |
+| d20_sdpred_varies_within_group | 16 | 0 | 0 (0/0) | 0 | 0 | 16 | 0 | 0 |
+| d21_A_unsorted_bare_matrix_positional | 2 | 0 | 2 (0/2) | 0 | 0 | 0 | 0 | 0 |
+| d07c_tree_not_ultrametric | 2 | 0 | 0 (0/0) | 0 | 0 | 2 | 0 | 0 |
+| d07d_tree_not_ultrametric_positive | 2 | 0 | 0 (0/0) | 0 | 2 | 0 | 0 | 0 |
