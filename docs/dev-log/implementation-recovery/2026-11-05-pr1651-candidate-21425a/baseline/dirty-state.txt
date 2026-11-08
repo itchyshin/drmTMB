@@ -1,0 +1,10 @@
+?? docs/dev-log/implementation-recovery/2026-11-05-pr1651-candidate-21425a/dirty-state.txt
+?? docs/dev-log/implementation-recovery/2026-11-05-pr1651-candidate-21425a/provenance.tsv
+?? docs/dev-log/implementation-recovery/2026-11-05-pr1651-candidate-21425a/raw-attempts.tsv
+?? docs/dev-log/implementation-recovery/2026-11-05-pr1651-candidate-21425a/summary.tsv
+?? paired-run.log
+?? run.log
+?? src/drmTMB.o
+?? src/drmTMB.so
+?? src/init.o
+?? src/meuwissen_luo.o
