@@ -1,0 +1,318 @@
+##### gauss_q3 julia
+gauss_q3_s01 ll=-1371.68094628 converged=true t=28.4s
+gauss_q3_s02 ll=-1359.62200315 converged=true t=0.1s
+gauss_q3_s03 ll=-1323.74020481 converged=true t=0.1s
+gauss_q3_s04 ll=-1338.35509943 converged=true t=0.1s
+gauss_q3_s05 ll=-1314.73422103 converged=true t=0.1s
+gauss_q3_s06 ll=-1353.11953224 converged=true t=0.1s
+gauss_q3_s07 ll=-1338.18737711 converged=true t=0.0s
+gauss_q3_s08 ll=-1314.61963124 converged=true t=0.1s
+gauss_q3_s09 ll=-1329.64613838 converged=true t=0.1s
+gauss_q3_s10 ll=-1303.90086779 converged=true t=0.1s
+##### gauss_q3 R
+drmTMB 0.8.1 
+gauss_q3_s01 ll=-1371.68094628 conv=0 pdHess=TRUE t=1.1s
+gauss_q3_s02 ll=-1359.62200315 conv=0 pdHess=TRUE t=0.7s
+gauss_q3_s03 ll=-1323.74020481 conv=0 pdHess=TRUE t=1.1s
+gauss_q3_s04 ll=-1338.35509943 conv=0 pdHess=TRUE t=1.0s
+gauss_q3_s05 ll=-1314.73422103 conv=0 pdHess=TRUE t=0.8s
+gauss_q3_s06 ll=-1353.11953224 conv=0 pdHess=TRUE t=0.8s
+gauss_q3_s07 ll=-1338.18737711 conv=0 pdHess=TRUE t=0.8s
+gauss_q3_s08 ll=-1314.61963124 conv=0 pdHess=TRUE t=0.8s
+gauss_q3_s09 ll=-1329.64613838 conv=0 pdHess=TRUE t=1.1s
+gauss_q3_s10 ll=-1303.90086779 conv=0 pdHess=TRUE t=1.1s
+##### gauss_q4 julia
+gauss_q4_s01 ll=-1516.47642403 converged=true t=34.2s
+gauss_q4_s02 ll=-1535.45140948 converged=true t=0.2s
+gauss_q4_s03 ll=-1544.13970592 converged=true t=0.2s
+gauss_q4_s04 ll=-1543.64166434 converged=true t=0.2s
+gauss_q4_s05 ll=-1523.37685023 converged=true t=0.2s
+gauss_q4_s06 ll=-1510.17165720 converged=true t=0.2s
+gauss_q4_s07 ll=-1507.25193392 converged=true t=0.2s
+gauss_q4_s08 ll=-1537.37204321 converged=true t=0.2s
+gauss_q4_s09 ll=-1510.96391192 converged=true t=0.2s
+gauss_q4_s10 ll=-1526.64920383 converged=true t=0.2s
+##### gauss_q4 R
+drmTMB 0.8.1 
+gauss_q4_s01 ll=-1516.47642403 conv=0 pdHess=TRUE t=1.6s
+gauss_q4_s02 ll=-1535.45140948 conv=0 pdHess=TRUE t=1.5s
+gauss_q4_s03 ll=-1544.13970592 conv=0 pdHess=TRUE t=1.6s
+gauss_q4_s04 ll=-1543.64166434 conv=0 pdHess=TRUE t=1.7s
+gauss_q4_s05 ll=-1523.37685023 conv=0 pdHess=TRUE t=1.7s
+gauss_q4_s06 ll=-1510.17165720 conv=0 pdHess=TRUE t=1.2s
+gauss_q4_s07 ll=-1507.25193392 conv=0 pdHess=TRUE t=1.7s
+gauss_q4_s08 ll=-1537.37204321 conv=0 pdHess=TRUE t=1.3s
+gauss_q4_s09 ll=-1510.96391192 conv=0 pdHess=TRUE t=1.7s
+gauss_q4_s10 ll=-1526.64920383 conv=0 pdHess=TRUE t=1.6s
+##### gamma_same julia
+gamma_same_s01 ll=-469.64880909 converged=true t=16.1s
+gamma_same_s02 ll=-476.32721517 converged=true t=0.3s
+gamma_same_s03 ll=-484.58164442 converged=true t=0.2s
+gamma_same_s04 ll=-426.35080794 converged=true t=0.2s
+gamma_same_s05 ll=-459.43048165 converged=true t=0.2s
+gamma_same_s06 ll=-564.49741784 converged=true t=0.3s
+gamma_same_s07 ll=-506.55183521 converged=true t=0.2s
+gamma_same_s08 ll=-385.66948092 converged=true t=0.2s
+gamma_same_s09 ll=-476.44469214 converged=true t=0.2s
+gamma_same_s10 ll=-485.33111321 converged=true t=0.2s
+##### gamma_same R
+drmTMB 0.8.1 
+gamma_same_s01 ll=-469.64880909 conv=0 pdHess=TRUE t=1.0s
+gamma_same_s02 ll=-476.32721517 conv=0 pdHess=TRUE t=1.0s
+gamma_same_s03 ll=-484.58164442 conv=0 pdHess=TRUE t=1.0s
+gamma_same_s04 ll=-426.35080794 conv=0 pdHess=TRUE t=0.9s
+gamma_same_s05 ll=-459.43048165 conv=0 pdHess=TRUE t=0.8s
+gamma_same_s06 ll=-564.49741784 conv=0 pdHess=TRUE t=0.9s
+gamma_same_s07 ll=-506.55183521 conv=0 pdHess=TRUE t=1.0s
+gamma_same_s08 ll=-385.66948092 conv=0 pdHess=TRUE t=0.7s
+gamma_same_s09 ll=-476.44469214 conv=0 pdHess=TRUE t=0.9s
+gamma_same_s10 ll=-485.33111321 conv=0 pdHess=TRUE t=0.8s
+##### nb2_same julia
+nb2_same_s01 ll=-699.16156386 converged=true t=16.0s
+nb2_same_s02 ll=-664.61155705 converged=true t=0.3s
+nb2_same_s03 ll=-700.55200323 converged=true t=0.3s
+nb2_same_s04 ll=-674.33530821 converged=true t=0.2s
+nb2_same_s05 ll=-683.51302009 converged=true t=0.2s
+nb2_same_s06 ll=-763.25329332 converged=true t=0.3s
+nb2_same_s07 ll=-698.52691465 converged=true t=0.3s
+nb2_same_s08 ll=-646.41231178 converged=true t=0.2s
+nb2_same_s09 ll=-692.09939942 converged=true t=0.1s
+nb2_same_s10 ll=-701.44031859 converged=true t=0.2s
+##### nb2_same R
+drmTMB 0.8.1 
+nb2_same_s01 ll=-699.16156386 conv=0 pdHess=TRUE t=0.4s
+nb2_same_s02 ll=-664.61155705 conv=0 pdHess=TRUE t=0.5s
+nb2_same_s03 ll=-700.55200323 conv=0 pdHess=TRUE t=0.4s
+nb2_same_s04 ll=-674.33530821 conv=0 pdHess=TRUE t=0.4s
+nb2_same_s05 ll=-683.51302009 conv=0 pdHess=TRUE t=0.3s
+nb2_same_s06 ll=-763.25329332 conv=0 pdHess=TRUE t=0.4s
+nb2_same_s07 ll=-698.52691465 conv=0 pdHess=TRUE t=0.4s
+nb2_same_s08 ll=-646.41231178 conv=0 pdHess=TRUE t=0.4s
+nb2_same_s09 ll=-692.09939942 conv=0 pdHess=TRUE t=0.4s
+nb2_same_s10 ll=-701.44031859 conv=0 pdHess=TRUE t=0.4s
+##### nb2_corr julia
+nb2_corr_s01 ll=-1088.77948359 converged=true t=15.2s
+nb2_corr_s02 ll=-962.23393687 converged=true t=0.4s
+nb2_corr_s03 ll=-996.12273917 converged=true t=0.4s
+nb2_corr_s04 ll=-924.46830256 converged=true t=0.3s
+nb2_corr_s05 ll=-910.95717233 converged=true t=0.4s
+nb2_corr_s06 ll=-942.16375064 converged=true t=0.4s
+nb2_corr_s07 ll=-982.73797562 converged=true t=0.3s
+nb2_corr_s08 ll=-982.78394878 converged=true t=0.4s
+nb2_corr_s09 ll=-999.88874993 converged=true t=0.3s
+nb2_corr_s10 ll=-963.95007755 converged=true t=0.3s
+##### nb2_corr R
+drmTMB 0.8.1 
+nb2_corr_s01 ll=-1088.77948359 conv=0 pdHess=TRUE t=0.7s
+nb2_corr_s02 ll=-962.23393687 conv=0 pdHess=TRUE t=0.6s
+nb2_corr_s03 ll=-996.12273917 conv=0 pdHess=TRUE t=0.6s
+nb2_corr_s04 ll=-924.46830256 conv=0 pdHess=TRUE t=0.7s
+nb2_corr_s05 ll=-910.95717233 conv=0 pdHess=TRUE t=0.6s
+nb2_corr_s06 ll=-942.16375064 conv=0 pdHess=TRUE t=0.6s
+nb2_corr_s07 ll=-982.73797562 conv=0 pdHess=TRUE t=0.7s
+nb2_corr_s08 ll=-982.78394878 conv=0 pdHess=TRUE t=0.6s
+nb2_corr_s09 ll=-999.88874993 conv=0 pdHess=TRUE t=0.6s
+nb2_corr_s10 ll=-963.95007755 conv=0 pdHess=TRUE t=0.6s
+##### gamma_corr julia
+gamma_corr_s01 ERROR ArgumentError: Gamma random-effect SD regression requires exactly one SD target.
+gamma_corr_s02 ERROR ArgumentError: Gamma random-effect SD regression requires exactly one SD target.
+gamma_corr_s03 ERROR ArgumentError: Gamma random-effect SD regression requires exactly one SD target.
+gamma_corr_s04 ERROR ArgumentError: Gamma random-effect SD regression requires exactly one SD target.
+gamma_corr_s05 ERROR ArgumentError: Gamma random-effect SD regression requires exactly one SD target.
+gamma_corr_s06 ERROR ArgumentError: Gamma random-effect SD regression requires exactly one SD target.
+gamma_corr_s07 ERROR ArgumentError: Gamma random-effect SD regression requires exactly one SD target.
+gamma_corr_s08 ERROR ArgumentError: Gamma random-effect SD regression requires exactly one SD target.
+gamma_corr_s09 ERROR ArgumentError: Gamma random-effect SD regression requires exactly one SD target.
+gamma_corr_s10 ERROR ArgumentError: Gamma random-effect SD regression requires exactly one SD target.
+##### gamma_corr R
+drmTMB 0.8.1 
+gamma_corr_s01 R ERROR: Only independent {.fn Gamma} `mu` random intercepts and slopes are implemented in this slice. ✖ Unsupported random-effect term: `(1 + x | g)`. ℹ Use syntax like `bf(y ~ x + (1 | id) + (0 + x | id)  sigma ~ z)`. ℹ Ordinary `lognormal()` also admits one complete-data unlabelled `(1 + x |   id)` block; Gamma and labelled covariance blocks remain rejected. 
+gamma_corr_s02 R ERROR: Only independent {.fn Gamma} `mu` random intercepts and slopes are implemented in this slice. ✖ Unsupported random-effect term: `(1 + x | g)`. ℹ Use syntax like `bf(y ~ x + (1 | id) + (0 + x | id)  sigma ~ z)`. ℹ Ordinary `lognormal()` also admits one complete-data unlabelled `(1 + x |   id)` block; Gamma and labelled covariance blocks remain rejected. 
+gamma_corr_s03 R ERROR: Only independent {.fn Gamma} `mu` random intercepts and slopes are implemented in this slice. ✖ Unsupported random-effect term: `(1 + x | g)`. ℹ Use syntax like `bf(y ~ x + (1 | id) + (0 + x | id)  sigma ~ z)`. ℹ Ordinary `lognormal()` also admits one complete-data unlabelled `(1 + x |   id)` block; Gamma and labelled covariance blocks remain rejected. 
+gamma_corr_s04 R ERROR: Only independent {.fn Gamma} `mu` random intercepts and slopes are implemented in this slice. ✖ Unsupported random-effect term: `(1 + x | g)`. ℹ Use syntax like `bf(y ~ x + (1 | id) + (0 + x | id)  sigma ~ z)`. ℹ Ordinary `lognormal()` also admits one complete-data unlabelled `(1 + x |   id)` block; Gamma and labelled covariance blocks remain rejected. 
+gamma_corr_s05 R ERROR: Only independent {.fn Gamma} `mu` random intercepts and slopes are implemented in this slice. ✖ Unsupported random-effect term: `(1 + x | g)`. ℹ Use syntax like `bf(y ~ x + (1 | id) + (0 + x | id)  sigma ~ z)`. ℹ Ordinary `lognormal()` also admits one complete-data unlabelled `(1 + x |   id)` block; Gamma and labelled covariance blocks remain rejected. 
+gamma_corr_s06 R ERROR: Only independent {.fn Gamma} `mu` random intercepts and slopes are implemented in this slice. ✖ Unsupported random-effect term: `(1 + x | g)`. ℹ Use syntax like `bf(y ~ x + (1 | id) + (0 + x | id)  sigma ~ z)`. ℹ Ordinary `lognormal()` also admits one complete-data unlabelled `(1 + x |   id)` block; Gamma and labelled covariance blocks remain rejected. 
+gamma_corr_s07 R ERROR: Only independent {.fn Gamma} `mu` random intercepts and slopes are implemented in this slice. ✖ Unsupported random-effect term: `(1 + x | g)`. ℹ Use syntax like `bf(y ~ x + (1 | id) + (0 + x | id)  sigma ~ z)`. ℹ Ordinary `lognormal()` also admits one complete-data unlabelled `(1 + x |   id)` block; Gamma and labelled covariance blocks remain rejected. 
+gamma_corr_s08 R ERROR: Only independent {.fn Gamma} `mu` random intercepts and slopes are implemented in this slice. ✖ Unsupported random-effect term: `(1 + x | g)`. ℹ Use syntax like `bf(y ~ x + (1 | id) + (0 + x | id)  sigma ~ z)`. ℹ Ordinary `lognormal()` also admits one complete-data unlabelled `(1 + x |   id)` block; Gamma and labelled covariance blocks remain rejected. 
+gamma_corr_s09 R ERROR: Only independent {.fn Gamma} `mu` random intercepts and slopes are implemented in this slice. ✖ Unsupported random-effect term: `(1 + x | g)`. ℹ Use syntax like `bf(y ~ x + (1 | id) + (0 + x | id)  sigma ~ z)`. ℹ Ordinary `lognormal()` also admits one complete-data unlabelled `(1 + x |   id)` block; Gamma and labelled covariance blocks remain rejected. 
+gamma_corr_s10 R ERROR: Only independent {.fn Gamma} `mu` random intercepts and slopes are implemented in this slice. ✖ Unsupported random-effect term: `(1 + x | g)`. ℹ Use syntax like `bf(y ~ x + (1 | id) + (0 + x | id)  sigma ~ z)`. ℹ Ordinary `lognormal()` also admits one complete-data unlabelled `(1 + x |   id)` block; Gamma and labelled covariance blocks remain rejected. 
+##### gauss_phylo julia
+gauss_phylo_s01 ll=-856.69463239 converged=true t=47.2s
+gauss_phylo_s02 ll=-865.15823162 converged=true t=27.2s
+gauss_phylo_s03 ll=-881.71717443 converged=true t=26.7s
+gauss_phylo_s04 ll=-898.48490843 converged=true t=26.5s
+gauss_phylo_s05 ll=-889.58654649 converged=true t=24.7s
+gauss_phylo_s06 ll=-881.03295456 converged=true t=27.4s
+gauss_phylo_s07 ll=-908.80256988 converged=true t=28.1s
+gauss_phylo_s08 ll=-901.68675071 converged=true t=26.2s
+gauss_phylo_s09 ll=-874.75396901 converged=true t=27.8s
+gauss_phylo_s10 ll=-904.45494212 converged=true t=28.9s
+##### gauss_phylo R
+drmTMB 0.8.1 
+gauss_phylo_s01 ll=-856.69463239 conv=0 pdHess=TRUE t=0.3s
+gauss_phylo_s02 ll=-865.15823162 conv=0 pdHess=TRUE t=0.2s
+gauss_phylo_s03 ll=-881.71717443 conv=0 pdHess=TRUE t=0.2s
+gauss_phylo_s04 ll=-898.48490843 conv=0 pdHess=TRUE t=0.3s
+gauss_phylo_s05 ll=-889.58654649 conv=0 pdHess=TRUE t=0.3s
+gauss_phylo_s06 ll=-881.03295456 conv=0 pdHess=TRUE t=0.3s
+gauss_phylo_s07 ll=-908.80256988 conv=0 pdHess=TRUE t=0.3s
+gauss_phylo_s08 ll=-901.68675071 conv=0 pdHess=TRUE t=0.2s
+gauss_phylo_s09 ll=-874.75396901 conv=0 pdHess=TRUE t=0.3s
+gauss_phylo_s10 ll=-904.45494212 conv=0 pdHess=TRUE t=0.3s
+##### gauss_spatial julia
+gauss_spatial_s01 ll=-790.73668696 converged=true t=47.4s
+gauss_spatial_s02 ll=-818.77457117 converged=true t=34.1s
+gauss_spatial_s03 ll=-810.30846474 converged=true t=35.0s
+gauss_spatial_s04 ll=-823.91008320 converged=true t=33.2s
+gauss_spatial_s05 ll=-830.60104019 converged=true t=33.2s
+gauss_spatial_s06 ll=-801.11470372 converged=true t=32.8s
+gauss_spatial_s07 ll=-842.94896331 converged=true t=34.9s
+gauss_spatial_s08 ll=-865.26658405 converged=true t=31.3s
+gauss_spatial_s09 ll=-810.30807703 converged=true t=38.1s
+gauss_spatial_s10 ll=-853.93852136 converged=true t=32.4s
+##### gauss_spatial R
+drmTMB 0.8.1 
+gauss_spatial_s01 ll=-790.73668696 conv=0 pdHess=TRUE t=0.5s
+gauss_spatial_s02 ll=-818.77457117 conv=0 pdHess=TRUE t=0.4s
+gauss_spatial_s03 ll=-810.30846474 conv=0 pdHess=TRUE t=0.4s
+gauss_spatial_s04 ll=-823.91008320 conv=0 pdHess=TRUE t=0.3s
+gauss_spatial_s05 ll=-830.60104019 conv=0 pdHess=TRUE t=0.4s
+gauss_spatial_s06 ll=-801.11470372 conv=0 pdHess=TRUE t=0.4s
+gauss_spatial_s07 ll=-842.94896331 conv=0 pdHess=TRUE t=0.4s
+gauss_spatial_s08 ll=-865.26658405 conv=0 pdHess=TRUE t=0.4s
+gauss_spatial_s09 ll=-810.30807703 conv=0 pdHess=TRUE t=0.4s
+gauss_spatial_s10 ll=-853.93852136 conv=0 pdHess=TRUE t=0.4s
+##### gauss_lphylo julia
+gauss_lphylo_s01 ll=-854.95766164 converged=true t=56.8s
+gauss_lphylo_s02 ll=-862.38108923 converged=true t=32.8s
+gauss_lphylo_s03 ll=-892.99523422 converged=true t=37.5s
+gauss_lphylo_s04 ll=-908.82351442 converged=true t=36.3s
+gauss_lphylo_s05 ll=-902.05876649 converged=true t=35.5s
+gauss_lphylo_s06 ll=-950.01642490 converged=true t=33.1s
+gauss_lphylo_s07 ll=-875.42327198 converged=true t=33.8s
+gauss_lphylo_s08 ll=-893.08768398 converged=true t=35.2s
+gauss_lphylo_s09 ll=-866.27237310 converged=true t=37.6s
+gauss_lphylo_s10 ll=-903.63577151 converged=true t=37.1s
+##### gauss_lphylo R
+drmTMB 0.8.1 
+gauss_lphylo_s01 ll=-854.95766164 conv=0 pdHess=TRUE t=0.4s
+gauss_lphylo_s02 ll=-862.38108923 conv=0 pdHess=TRUE t=0.3s
+gauss_lphylo_s03 ll=-892.99523422 conv=0 pdHess=TRUE t=0.5s
+gauss_lphylo_s04 ll=-908.82351442 conv=0 pdHess=TRUE t=0.3s
+gauss_lphylo_s05 ll=-902.05876649 conv=0 pdHess=TRUE t=0.3s
+gauss_lphylo_s06 ll=-950.01642490 conv=0 pdHess=TRUE t=0.3s
+gauss_lphylo_s07 ll=-875.42327198 conv=0 pdHess=TRUE t=0.3s
+gauss_lphylo_s08 ll=-893.08768398 conv=0 pdHess=TRUE t=0.3s
+gauss_lphylo_s09 ll=-866.27237310 conv=0 pdHess=TRUE t=0.3s
+gauss_lphylo_s10 ll=-903.63577151 conv=0 pdHess=TRUE t=0.3s
+##### gauss_lspatial julia
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     8
+│   rcond = 0.0
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/ms2-jl/src/vcov_guard.jl:122
+gauss_lspatial_s01 ll=-806.51315173 converged=true t=58.5s
+gauss_lspatial_s02 ll=-824.68573675 converged=true t=117.0s
+gauss_lspatial_s03 ll=-825.83874244 converged=true t=36.3s
+gauss_lspatial_s04 ll=-818.93566838 converged=true t=36.9s
+gauss_lspatial_s05 ll=-804.25971051 converged=true t=39.0s
+gauss_lspatial_s06 ll=-803.17809689 converged=true t=40.9s
+gauss_lspatial_s07 ll=-844.71409611 converged=true t=41.5s
+gauss_lspatial_s08 ll=-800.62766830 converged=true t=44.4s
+gauss_lspatial_s09 ll=-860.76649880 converged=true t=39.3s
+gauss_lspatial_s10 ll=-833.97896536 converged=true t=38.4s
+##### gauss_lspatial R
+drmTMB 0.8.1 
+gauss_lspatial_s01 ll=-806.51315173 conv=0 pdHess=TRUE t=0.5s
+gauss_lspatial_s02 ll=-824.68573676 conv=0 pdHess=TRUE t=0.6s
+gauss_lspatial_s03 ll=-825.83874244 conv=0 pdHess=TRUE t=0.5s
+gauss_lspatial_s04 ll=-818.93566838 conv=0 pdHess=TRUE t=0.4s
+gauss_lspatial_s05 ll=-804.25971051 conv=0 pdHess=TRUE t=0.5s
+gauss_lspatial_s06 ll=-803.17809689 conv=0 pdHess=TRUE t=0.5s
+gauss_lspatial_s07 ll=-844.71409611 conv=0 pdHess=TRUE t=0.4s
+gauss_lspatial_s08 ll=-800.62766830 conv=0 pdHess=TRUE t=0.4s
+gauss_lspatial_s09 ll=-860.76649880 conv=0 pdHess=TRUE t=0.4s
+gauss_lspatial_s10 ll=-833.97896536 conv=0 pdHess=TRUE t=0.4s
+##### gauss_joint julia
+gauss_joint_s01 ll=-575.03222113 converged=true t=17.7s
+gauss_joint_s02 ll=-550.19420350 converged=true t=0.1s
+gauss_joint_s03 ll=-452.13467735 converged=true t=0.0s
+gauss_joint_s04 ll=-564.60542240 converged=true t=0.1s
+gauss_joint_s05 ll=-506.44765235 converged=true t=0.0s
+gauss_joint_s06 ll=-466.00103222 converged=true t=0.0s
+gauss_joint_s07 ll=-553.61462786 converged=true t=0.0s
+gauss_joint_s08 ll=-537.47275060 converged=true t=0.0s
+gauss_joint_s09 ll=-497.82811838 converged=true t=0.0s
+gauss_joint_s10 ll=-408.02069329 converged=true t=0.1s
+##### gauss_joint R
+drmTMB 0.8.1 
+gauss_joint_s01 ll=-575.03222113 conv=0 pdHess=TRUE t=0.4s
+gauss_joint_s02 ll=-550.19420350 conv=0 pdHess=TRUE t=0.3s
+gauss_joint_s03 ll=-452.13467735 conv=0 pdHess=TRUE t=0.3s
+gauss_joint_s04 ll=-564.60542240 conv=0 pdHess=TRUE t=0.3s
+gauss_joint_s05 ll=-506.44765235 conv=0 pdHess=TRUE t=0.3s
+gauss_joint_s06 ll=-466.00103222 conv=0 pdHess=TRUE t=0.3s
+gauss_joint_s07 ll=-553.61462786 conv=0 pdHess=TRUE t=0.3s
+gauss_joint_s08 ll=-537.47275060 conv=0 pdHess=TRUE t=0.3s
+gauss_joint_s09 ll=-497.82811838 conv=0 pdHess=TRUE t=0.3s
+gauss_joint_s10 ll=-408.02069329 conv=0 pdHess=TRUE t=0.4s
+##### nb2_joint julia
+nb2_joint_s01 ll=-1188.43569375 converged=true t=16.0s
+nb2_joint_s02 ll=-1156.33271769 converged=true t=0.1s
+nb2_joint_s03 ll=-1195.06072536 converged=true t=0.2s
+nb2_joint_s04 ll=-1191.62385247 converged=true t=0.1s
+nb2_joint_s05 ll=-1149.02925296 converged=true t=0.1s
+nb2_joint_s06 ll=-1217.52977211 converged=true t=0.1s
+nb2_joint_s07 ll=-1162.15218294 converged=true t=0.2s
+nb2_joint_s08 ll=-1170.53379533 converged=true t=0.1s
+nb2_joint_s09 ll=-1182.41331230 converged=true t=0.1s
+nb2_joint_s10 ll=-1194.84112520 converged=true t=0.1s
+##### nb2_joint R
+drmTMB 0.8.1 
+nb2_joint_s01 ll=-1188.43569375 conv=0 pdHess=TRUE t=1.0s
+nb2_joint_s02 ll=-1156.33271769 conv=0 pdHess=TRUE t=0.8s
+nb2_joint_s03 ll=-1195.06072536 conv=0 pdHess=TRUE t=0.8s
+nb2_joint_s04 ll=-1191.62385247 conv=0 pdHess=TRUE t=0.8s
+nb2_joint_s05 ll=-1149.02925296 conv=0 pdHess=TRUE t=0.8s
+nb2_joint_s06 ll=-1217.52977211 conv=0 pdHess=TRUE t=0.9s
+nb2_joint_s07 ll=-1162.15218294 conv=0 pdHess=TRUE t=0.8s
+nb2_joint_s08 ll=-1170.53379533 conv=0 pdHess=TRUE t=0.9s
+nb2_joint_s09 ll=-1182.41331230 conv=0 pdHess=TRUE t=0.8s
+nb2_joint_s10 ll=-1194.84112520 conv=0 pdHess=TRUE t=0.9s
+##### nb2_jcross julia
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates = Int64[]
+│   rcond = 5.473809789527545e-9
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/ms2-jl/src/vcov_guard.jl:122
+nb2_jcross_s01 ll=-1184.67201769 converged=true t=16.4s
+nb2_jcross_s02 ll=-1226.37084170 converged=true t=0.1s
+nb2_jcross_s03 ll=-1185.90003233 converged=true t=0.2s
+nb2_jcross_s04 ll=-1241.11600931 converged=true t=0.1s
+nb2_jcross_s05 ll=-1159.93272882 converged=true t=0.7s
+nb2_jcross_s06 ll=-1180.58885596 converged=true t=0.1s
+nb2_jcross_s07 ll=-1091.67563244 converged=true t=0.1s
+nb2_jcross_s08 ll=-1157.17410423 converged=true t=0.2s
+nb2_jcross_s09 ll=-1265.63720102 converged=true t=0.1s
+nb2_jcross_s10 ll=-1159.99388539 converged=true t=0.1s
+##### nb2_jcross R
+drmTMB 0.8.1 
+nb2_jcross_s01 ll=-1184.67201769 conv=0 pdHess=TRUE t=0.9s
+nb2_jcross_s02 ll=-1226.37084170 conv=0 pdHess=TRUE t=0.9s
+nb2_jcross_s03 ll=-1185.90003233 conv=0 pdHess=TRUE t=0.8s
+nb2_jcross_s04 ll=-1241.11600931 conv=0 pdHess=TRUE t=0.9s
+nb2_jcross_s05 ll=-1159.93272882 conv=0 pdHess=TRUE t=1.0s
+nb2_jcross_s06 ll=-1180.58885596 conv=0 pdHess=TRUE t=0.9s
+nb2_jcross_s07 ll=-1091.67563244 conv=0 pdHess=TRUE t=0.9s
+nb2_jcross_s08 ll=-1157.17410423 conv=0 pdHess=TRUE t=0.9s
+nb2_jcross_s09 ll=-1265.63720102 conv=0 pdHess=TRUE t=1.0s
+nb2_jcross_s10 ll=-1159.99388539 conv=0 pdHess=TRUE t=0.8s
+ALLDONE
