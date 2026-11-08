@@ -31,3 +31,7 @@ for the new source pins and checks.
 On Totoro, the unchanged fixture passed all eight checks using R source `4d3917385` and Julia source `b20ccf2df`. The independent checker rejected all twelve mutated receipts. Labels, data, ordering, tree and group covariate matched the previous receipt. The first attempt stopped because the Julia manifest was absent; the failed receipt and log are retained alongside the successful retry. This remains evidence for one fixture.
 
 After current main incorporated #1658, the same fixture was rerun on R source `a0043e420` and Julia source `0460f25ff`. All eight checks and twelve negative controls passed; the six stored fixture components matched the preceding candidate. Raw evidence is in `docs/dev-log/prior-release-081-20261107/`. This remains one fixture.
+
+## Post-#1651 refresh
+
+The same fixture was rerun on R source `51f94e61a3b1f652fcedfc891d6da7e7281c7799` after #1651 changed a documentation source pin in `R/drmTMB.R`. It used Julia source `0460f25ffd23c7b60c0fc09e9e6820a2881714c9`; all eight checks passed, and the checker rejected all twelve negative controls. Labels, data, order, tree and group covariate matched the prior fixture. The previous receipt and the runner/checker logs are preserved in `docs/dev-log/post1651-receipt-refresh/`. This remains evidence for one fixture, not broad parity.
