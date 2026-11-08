@@ -1,0 +1,154 @@
+
+===== gauss phylo sigma(1) sd~zc 
+'log Lik.' -345.2683 (df=5)
+
+===== gauss animal sigma(1) sd~zc 
+'log Lik.' -345.2683 (df=5)
+
+===== nb2 phylo sigma 1+x|id no sd 
+'log Lik.' -962.4663 (df=5)
+
+===== nb2 phylo sigma 1+x|id sd int~zc 
+REFUSAL: NB2 structured SD regression currently supports one animal,
+phylogenetic, related-matrix or spatial location coefficient, or an `animal(1 +
+x | id)` intercept plus one slope with one SD formula per coefficient.
+ℹ Use one q1 `animal()` or `phylo()` location term with a matching structured
+  `sd(group, level = ...)` formula; remove other random, structured, sigma, or
+  zero-inflation terms. 
+
+===== nb2 phylo sigma 1|id sd~zc 
+REFUSAL: NB2 structured `sigma` effects currently support only unlabelled
+intercept-plus-one-slope structured terms.
+✖ Requested structured coefficient: "(Intercept)".
+ℹ Use `phylo(1 + x | species, tree = tree)` for this count structured-scale
+  gate; multiple slopes, labelled covariance, q2/q4, and structured count
+  location-scale blocks remain planned. 
+
+===== nb2 animal sigma 1+x|id no sd 
+'log Lik.' -962.4663 (df=5)
+
+===== nb2 animal sigma 1+x|id sd int~zc 
+REFUSAL: NB2 structured SD regression currently supports one animal,
+phylogenetic, related-matrix or spatial location coefficient, or an `animal(1 +
+x | id)` intercept plus one slope with one SD formula per coefficient.
+ℹ Use one q1 `animal()` or `phylo()` location term with a matching structured
+  `sd(group, level = ...)` formula; remove other random, structured, sigma, or
+  zero-inflation terms. 
+
+===== nb2 animal sigma 1|id sd~zc 
+REFUSAL: NB2 structured `sigma` effects currently support only unlabelled
+intercept-plus-one-slope structured terms.
+✖ Requested structured coefficient: "(Intercept)".
+ℹ Use `animal(1 + x | id, Ainv = Ainv)` for this count structured-scale gate;
+  multiple slopes, labelled covariance, q2/q4, and structured count
+  location-scale blocks remain planned. 
+
+===== nb2 relmat sigma 1+x|id no sd 
+'log Lik.' -962.4663 (df=5)
+
+===== nb2 relmat sigma 1+x|id sd int~zc 
+REFUSAL: NB2 structured SD regression currently supports one animal,
+phylogenetic, related-matrix or spatial location coefficient, or an `animal(1 +
+x | id)` intercept plus one slope with one SD formula per coefficient.
+ℹ Use one q1 `animal()` or `phylo()` location term with a matching structured
+  `sd(group, level = ...)` formula; remove other random, structured, sigma, or
+  zero-inflation terms. 
+
+===== nb2 relmat sigma 1|id sd~zc 
+REFUSAL: NB2 structured `sigma` effects currently support only unlabelled
+intercept-plus-one-slope structured terms.
+✖ Requested structured coefficient: "(Intercept)".
+ℹ Use `relmat(1 + x | id, Q = Q)` for this count structured-scale gate;
+  multiple slopes, labelled covariance, q2/q4, and structured count
+  location-scale blocks remain planned. 
+
+===== nb2 spatial sigma 1+x|id no sd 
+'log Lik.' -967.3584 (df=5)
+
+===== nb2 spatial sigma 1+x|id sd int~zc 
+REFUSAL: NB2 structured SD regression currently supports one animal,
+phylogenetic, related-matrix or spatial location coefficient, or an `animal(1 +
+x | id)` intercept plus one slope with one SD formula per coefficient.
+ℹ Use one q1 `animal()` or `phylo()` location term with a matching structured
+  `sd(group, level = ...)` formula; remove other random, structured, sigma, or
+  zero-inflation terms. 
+
+===== nb2 spatial sigma 1|id sd~zc 
+REFUSAL: NB2 structured `sigma` effects currently support only unlabelled
+intercept-plus-one-slope structured terms.
+✖ Requested structured coefficient: "(Intercept)".
+ℹ Use `spatial(1 + x | site, coords = coords)` for this count structured-scale
+  gate; multiple slopes, labelled covariance, q2/q4, and structured count
+  location-scale blocks remain planned. 
+
+===== gamma phylo sigma 1+x|id no sd 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "phylo".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
+
+===== gamma phylo sigma 1+x|id sd int~zc 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "phylo".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
+
+===== gamma phylo sigma 1|id sd~zc 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "phylo".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
+
+===== gamma animal sigma 1+x|id no sd 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "animal".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
+
+===== gamma animal sigma 1+x|id sd int~zc 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "animal".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
+
+===== gamma animal sigma 1|id sd~zc 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "animal".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
+
+===== gamma relmat sigma 1+x|id no sd 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "relmat".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
+
+===== gamma relmat sigma 1+x|id sd int~zc 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "relmat".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
+
+===== gamma relmat sigma 1|id sd~zc 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "relmat".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
+
+===== gamma spatial sigma 1+x|id no sd 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "spatial".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
+
+===== gamma spatial sigma 1+x|id sd int~zc 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "spatial".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
+
+===== gamma spatial sigma 1|id sd~zc 
+REFUSAL: Gamma structured effects are admitted only in `mu` in this route.
+✖ The `sigma` formula contains structured provider: "spatial".
+ℹ Keep `sigma` fixed-effect and move one unlabelled q=1 `phylo()` or `relmat()`
+  intercept to `mu`. 
