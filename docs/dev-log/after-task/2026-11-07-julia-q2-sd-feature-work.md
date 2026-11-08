@@ -93,3 +93,11 @@ None.
 - Plain `sigma ~ 1 + animal(1|id)` without an SD formula is still gap #963.
 - Next: draft PR on DRModels.jl, then a separate reviewed drmTMB PR for verdict flips
   (only Gaussian ordinary q3/q4 flips outright), conditional on Julia landing and the pin moving.
+
+## Wave 2 addendum (2026-11-08)
+
+Julia side: draft PR itchyshin/DRModels.jl#1263, stacked on #1261, branch `claude/q2-wave2-merge-20261107`. It adds labelled correlated slopes with a free rho, phylogenetic and spatial q2, Gamma and NB2 two-field SD routes, joint mu+sigma SD Laplace for Gamma and NB2, and post-fit methods. Evidence folders `wave2-*` are under `docs/dev-log/parity-crosswalk-evidence-20261107/`.
+
+Suite result on the merge tip: four shards. Seven files fail identically on origin/main. One extra failure, `test_skewnormal.jl`, was a test-isolation defect: two new test files used a bare `using Distributions`, which made `SkewNormal` ambiguous for later files in the same process. Fixed by importing only the needed names; the three files re-ran clean together. The whole suite was not re-run after that test-only change.
+
+Not agreeing: Gamma crossed joint mu+sigma (different local maxima, 0.016 log-likelihood gap). Open: Poisson phylo slope-SD SE gap of 3e-3 relative; labelled phylo/spatial; mesh/SPDE; REML; NB2/Gamma structured sigma; multi-seed evidence. No parity verdict was changed; flips remain proposals in `PROPOSED-verdict-flips.md`.
