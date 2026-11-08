@@ -1,0 +1,49 @@
+drmTMB 0.8.1 
+=== REML = FALSE 
+FITS   ordinary q2 coefSD ll= -317.8672 conv= 0 estimator= ML 
+FITS   ordinary q3 coefSD ll= -314.8154 conv= 0 estimator= ML 
+FITS   ordinary q4 coefSD ll= -314.0162 conv= 0 estimator= ML 
+FITS   ordinary iid sd(id) ~ z0 ll= -431.1607 conv= 0 estimator= ML 
+FITS   animal q2 coefSD ll= -324.126 conv= 0 estimator= ML 
+FITS   relmat q2 coefSD ll= -324.126 conv= 0 estimator= ML 
+FITS   phylo q2 coefSD ll= -357.0167 conv= 0 estimator= ML 
+FITS   spatial q2 coefSD ll= -367.6206 conv= 0 estimator= ML 
+FITS   joint mu+sigma ordinary ll= -407.8805 conv= 0 estimator= ML 
+=== REML = TRUE 
+REFUSE ordinary q2 coefSD : `REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`. 
+REFUSE ordinary q3 coefSD : `REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`. 
+REFUSE ordinary q4 coefSD : `REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`. 
+REFUSE ordinary iid sd(id) ~ z0 : `REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`. 
+FITS   animal q2 coefSD ll= -327.3384 conv= 0 estimator= REML 
+FITS   relmat q2 coefSD ll= -327.3384 conv= 0 estimator= REML 
+FITS   phylo q2 coefSD ll= -357.5862 conv= 0 estimator= REML 
+FITS   spatial q2 coefSD ll= -368.5118 conv= 0 estimator= REML 
+REFUSE joint mu+sigma ordinary : `REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`. 
+== REML FALSE 
+FITS   sigma animal intercept sdformula ll= -493.4919 conv= 0 estimator= ML 
+FITS   sigma animal intercept fixed SD ll= -494.6913 conv= 0 estimator= ML 
+FITS   sigma animal(1+x) fixed SD ll= -494.6913 conv= 0 estimator= ML 
+FITS   sigma phylo intercept sd_phylo ll= -512.893 conv= 0 estimator= ML 
+FITS   mu+sigma animal matched ll= -494.1176 conv= 0 estimator= ML 
+== REML TRUE 
+FITS   sigma animal intercept sdformula ll= -500.4378 conv= 0 estimator= REML 
+FITS   sigma animal intercept fixed SD ll= -501.5263 conv= 0 estimator= REML 
+FITS   sigma animal(1+x) fixed SD ll= -501.5263 conv= 0 estimator= REML 
+FITS   sigma phylo intercept sd_phylo ll= -517.2368 conv= 0 estimator= REML 
+REFUSE mu+sigma animal matched : `REML` supports phylogenetic (`phylo()`) structured effects, scale-side `spatial()`/`animal()`/`relmat()` effects, and pure mean-side unlabelled intercept or intercept-plus-one-slope effects for those three providers. ℹ These mean-side routes require a constant residual scale (`sigma ~ 1`, with no sigma random effect); slope-only, labelled, multiple-slope, heteroscedastic-sigma, and matched mean-scale non-phylogenetic structured effects remain unvalidated. Use an admitted shape or set `REML = FALSE`. 
+REFUSE animal labelled q2 coefSD REML : `REML` supports phylogenetic (`phylo()`) structured effects, scale-side `spatial()`/`animal()`/`relmat()` effects, and pure mean-side unlabelled intercept or intercept-plus-one-slope effects for those three providers. ℹ These mean-side routes require a constant residual scale (`sigma ~ 1`, with no sigma random effect); slope-only, labelled, multiple-slope, heteroscedastic-sigma, and matched mean-scale non-phylogenetic structured effects remain unvalidated. Use an admitted shape or set `REML = FALSE`. 
+FITS   animal labelled q2 coefSD ML ll= -419.6072 conv= 0 
+REFUSE animal q2 coefSD, sigma ~ x REML : `REML` supports phylogenetic (`phylo()`) structured effects, scale-side `spatial()`/`animal()`/`relmat()` effects, and pure mean-side unlabelled intercept or intercept-plus-one-slope effects for those three providers. ℹ These mean-side routes require a constant residual scale (`sigma ~ 1`, with no sigma random effect); slope-only, labelled, multiple-slope, heteroscedastic-sigma, and matched mean-scale non-phylogenetic structured effects remain unvalidated. Use an admitted shape or set `REML = FALSE`. 
+FITS   animal q2 coefSD, sigma ~ x ML ll= -419.4734 conv= 0 
+REFUSE relmat labelled q2 coefSD REML : `REML` supports phylogenetic (`phylo()`) structured effects, scale-side `spatial()`/`animal()`/`relmat()` effects, and pure mean-side unlabelled intercept or intercept-plus-one-slope effects for those three providers. ℹ These mean-side routes require a constant residual scale (`sigma ~ 1`, with no sigma random effect); slope-only, labelled, multiple-slope, heteroscedastic-sigma, and matched mean-scale non-phylogenetic structured effects remain unvalidated. Use an admitted shape or set `REML = FALSE`. 
+FITS   relmat labelled q2 coefSD ML ll= -419.6072 conv= 0 
+REFUSE relmat q2 coefSD, sigma ~ x REML : `REML` supports phylogenetic (`phylo()`) structured effects, scale-side `spatial()`/`animal()`/`relmat()` effects, and pure mean-side unlabelled intercept or intercept-plus-one-slope effects for those three providers. ℹ These mean-side routes require a constant residual scale (`sigma ~ 1`, with no sigma random effect); slope-only, labelled, multiple-slope, heteroscedastic-sigma, and matched mean-scale non-phylogenetic structured effects remain unvalidated. Use an admitted shape or set `REML = FALSE`. 
+FITS   relmat q2 coefSD, sigma ~ x ML ll= -419.4734 conv= 0 
+FITS   phylo labelled q2 coefSD REML ll= -463.1162 conv= 0 
+FITS   phylo labelled q2 coefSD ML ll= -461.8641 conv= 0 
+FITS   phylo q2 coefSD, sigma ~ x REML ll= -460.6895 conv= 0 
+FITS   phylo q2 coefSD, sigma ~ x ML ll= -462.7019 conv= 0 
+REFUSE spatial labelled q2 coefSD REML : `REML` supports phylogenetic (`phylo()`) structured effects, scale-side `spatial()`/`animal()`/`relmat()` effects, and pure mean-side unlabelled intercept or intercept-plus-one-slope effects for those three providers. ℹ These mean-side routes require a constant residual scale (`sigma ~ 1`, with no sigma random effect); slope-only, labelled, multiple-slope, heteroscedastic-sigma, and matched mean-scale non-phylogenetic structured effects remain unvalidated. Use an admitted shape or set `REML = FALSE`. 
+FITS   spatial labelled q2 coefSD ML ll= -436.9584 conv= 0 
+REFUSE spatial q2 coefSD, sigma ~ x REML : `REML` supports phylogenetic (`phylo()`) structured effects, scale-side `spatial()`/`animal()`/`relmat()` effects, and pure mean-side unlabelled intercept or intercept-plus-one-slope effects for those three providers. ℹ These mean-side routes require a constant residual scale (`sigma ~ 1`, with no sigma random effect); slope-only, labelled, multiple-slope, heteroscedastic-sigma, and matched mean-scale non-phylogenetic structured effects remain unvalidated. Use an admitted shape or set `REML = FALSE`. 
+FITS   spatial q2 coefSD, sigma ~ x ML ll= -436.8565 conv= 0 
