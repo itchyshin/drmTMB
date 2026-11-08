@@ -1,0 +1,93 @@
+Layout check (seed 1 of each route): Julia block names decoded (sdtarget_<hex> -> group|[kind|]dpar|coef|level) against R parameter names, per index.
+Every seed of every route was also asserted against the template (R names, Julia within-block index, decoded SD target group/level/coefficient, block order);
+a seed that failed would carry a 'LAYOUT:' note and be flagged. Seeds with a layout note: 0 of 1200.
+
+--- gauss_q3 
+ idx                        julia_block julia_k       r_name asserted_r_name asserted_julia_block
+   1                                 mu       1      beta_mu         beta_mu                   mu
+   2                                 mu       2      beta_mu         beta_mu                   mu
+   3                                 mu       3      beta_mu         beta_mu                   mu
+   4                              sigma       1   beta_sigma      beta_sigma                sigma
+   5 sdtarget[id|iid|mu|intercept|none]       1   beta_sd_mu      beta_sd_mu           sdtarget#1
+   6 sdtarget[id|iid|mu|intercept|none]       2   beta_sd_mu      beta_sd_mu           sdtarget#1
+   7         sdtarget[id|iid|mu|x|none]       1   beta_sd_mu      beta_sd_mu           sdtarget#2
+   8         sdtarget[id|iid|mu|x|none]       2   beta_sd_mu      beta_sd_mu           sdtarget#2
+   9         sdtarget[id|iid|mu|z|none]       1   beta_sd_mu      beta_sd_mu           sdtarget#3
+  10         sdtarget[id|iid|mu|z|none]       2   beta_sd_mu      beta_sd_mu           sdtarget#3
+  11                              recov       1 theta_re_cov    theta_re_cov                recov
+  12                              recov       2 theta_re_cov    theta_re_cov                recov
+  13                              recov       3 theta_re_cov    theta_re_cov                recov
+--- gauss_q4 
+ idx                        julia_block julia_k       r_name asserted_r_name asserted_julia_block
+   1                                 mu       1      beta_mu         beta_mu                   mu
+   2                                 mu       2      beta_mu         beta_mu                   mu
+   3                                 mu       3      beta_mu         beta_mu                   mu
+   4                              sigma       1   beta_sigma      beta_sigma                sigma
+   5 sdtarget[id|iid|mu|intercept|none]       1   beta_sd_mu      beta_sd_mu           sdtarget#1
+   6 sdtarget[id|iid|mu|intercept|none]       2   beta_sd_mu      beta_sd_mu           sdtarget#1
+   7         sdtarget[id|iid|mu|x|none]       1   beta_sd_mu      beta_sd_mu           sdtarget#2
+   8         sdtarget[id|iid|mu|x|none]       2   beta_sd_mu      beta_sd_mu           sdtarget#2
+   9         sdtarget[id|iid|mu|z|none]       1   beta_sd_mu      beta_sd_mu           sdtarget#3
+  10         sdtarget[id|iid|mu|z|none]       2   beta_sd_mu      beta_sd_mu           sdtarget#3
+  11         sdtarget[id|iid|mu|u|none]       1   beta_sd_mu      beta_sd_mu           sdtarget#4
+  12         sdtarget[id|iid|mu|u|none]       2   beta_sd_mu      beta_sd_mu           sdtarget#4
+  13                              recov       1 theta_re_cov    theta_re_cov                recov
+  14                              recov       2 theta_re_cov    theta_re_cov                recov
+  15                              recov       3 theta_re_cov    theta_re_cov                recov
+  16                              recov       4 theta_re_cov    theta_re_cov                recov
+  17                              recov       5 theta_re_cov    theta_re_cov                recov
+  18                              recov       6 theta_re_cov    theta_re_cov                recov
+--- gauss_ord 
+ idx                       julia_block julia_k     r_name asserted_r_name asserted_julia_block
+   1                                mu       1    beta_mu         beta_mu                   mu
+   2                                mu       2    beta_mu         beta_mu                   mu
+   3                             sigma       1 beta_sigma      beta_sigma                sigma
+   4 sdtarget[g|iid|mu|intercept|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#1
+   5 sdtarget[g|iid|mu|intercept|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#1
+   6         sdtarget[g|iid|mu|x|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#2
+   7         sdtarget[g|iid|mu|x|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#2
+   8                             recov       1 eta_cor_mu      eta_cor_mu                recov
+--- nb2_relmat 
+ idx                          julia_block julia_k     r_name asserted_r_name asserted_julia_block
+   1                                   mu       1    beta_mu         beta_mu                   mu
+   2                                   mu       2    beta_mu         beta_mu                   mu
+   3                                sigma       1 beta_sigma      beta_sigma                sigma
+   4 sdtarget[g|relmat|mu|intercept|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#1
+   5 sdtarget[g|relmat|mu|intercept|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#1
+   6         sdtarget[g|relmat|mu|x|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#2
+   7         sdtarget[g|relmat|mu|x|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#2
+--- poisson_relmat 
+ idx                          julia_block julia_k     r_name asserted_r_name asserted_julia_block
+   1                                   mu       1    beta_mu         beta_mu                   mu
+   2                                   mu       2    beta_mu         beta_mu                   mu
+   3 sdtarget[g|relmat|mu|intercept|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#1
+   4 sdtarget[g|relmat|mu|intercept|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#1
+   5         sdtarget[g|relmat|mu|x|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#2
+   6         sdtarget[g|relmat|mu|x|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#2
+--- nb2_animal 
+ idx                          julia_block julia_k     r_name asserted_r_name asserted_julia_block
+   1                                   mu       1    beta_mu         beta_mu                   mu
+   2                                   mu       2    beta_mu         beta_mu                   mu
+   3                                sigma       1 beta_sigma      beta_sigma                sigma
+   4 sdtarget[g|animal|mu|intercept|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#1
+   5 sdtarget[g|animal|mu|intercept|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#1
+   6         sdtarget[g|animal|mu|x|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#2
+   7         sdtarget[g|animal|mu|x|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#2
+--- nb2_phylo 
+ idx                                julia_block julia_k     r_name asserted_r_name asserted_julia_block
+   1                                         mu       1    beta_mu         beta_mu                   mu
+   2                                         mu       2    beta_mu         beta_mu                   mu
+   3                                      sigma       1 beta_sigma      beta_sigma                sigma
+   4 sdtarget[g|phylogenetic|mu|intercept|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#1
+   5 sdtarget[g|phylogenetic|mu|intercept|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#1
+   6         sdtarget[g|phylogenetic|mu|x|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#2
+   7         sdtarget[g|phylogenetic|mu|x|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#2
+--- gauss_relmat 
+ idx                          julia_block julia_k     r_name asserted_r_name asserted_julia_block
+   1                                   mu       1    beta_mu         beta_mu                   mu
+   2                                   mu       2    beta_mu         beta_mu                   mu
+   3                                sigma       1 beta_sigma      beta_sigma                sigma
+   4 sdtarget[g|relmat|mu|intercept|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#1
+   5 sdtarget[g|relmat|mu|intercept|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#1
+   6         sdtarget[g|relmat|mu|x|none]       1 beta_sd_mu      beta_sd_mu           sdtarget#2
+   7         sdtarget[g|relmat|mu|x|none]       2 beta_sd_mu      beta_sd_mu           sdtarget#2
