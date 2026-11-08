@@ -4,7 +4,7 @@ Reader: whoever decides parity-matrix rows 3, 13 and 18 (see
 `../PROPOSED-verdict-flips.md`). This folder is evidence only; no verdict or
 matrix script is edited here.
 
-Julia: DRModels.jl branch `claude/joint-sigma-wave2-20261107` (from
+Julia: DRModels.jl branch  (tip 81a937ea8)`claude/joint-sigma-wave2-20261107` (from
 `claude/q2-final-20261107`; pushed, not merged). R: native drmTMB 0.8.1 installed
 from `origin/main` (`agree-poisson-q2/lib`). ML, one dataset per shape. Laplace
 evidence is likelihood agreement at the optimum only: no coverage, bias, REML,
@@ -27,6 +27,12 @@ level name is `"phylogenetic"`, not `"phylo"`.
 
 ## Agreement at the optimum (Julia vs native R, same data)
 
+Each Julia shape also has a test against an independent dense Laplace oracle at
+the fitted parameters (|logLik - oracle| < 1e-5): `test/test_joint_sigma_wave2.jl`
+(NB2, Gamma, Gaussian same group, Gaussian correlated, kernels vs ForwardDiff,
+refusals) and `test/test_gaussian_sigma_phylo_spatial_sd.jl` (phylo, spatial,
+constant-SD limit, refusals).
+
 Files: `julia_fit.jl`, `r_fit_compare.R` -> `comparison.csv`;
 `julia_fit_structured.jl`, `r_fit_compare_structured.R` -> `comparison_structured.csv`.
 
@@ -39,6 +45,11 @@ Files: `julia_fit.jl`, `r_fit_compare.R` -> `comparison.csv`;
 | Gaussian same group, both SD formulas | 7 | 1.5e-10 | 3.6e-10 | 1.9e-6 | -522.5933117099 | -522.5933117099 | 3.8e-11 |
 | Gaussian phylo sigma + SD (48 tips) | 5 | 8.1e-9 | 2.6e-7 | 5.1e-6 | -937.4036633479 | -937.4036633464 | 1.5e-9 |
 | Gaussian spatial sigma + SD (48 sites) | 5 | 4.6e-11 | 4.3e-10 | 3.5e-6 | -555.4360217410 | -555.4360217410 | 5.5e-11 |
+| Gaussian correlated `(1 \| p \| id)` mu + sigma, no SD (40 groups, n 800) | 6 | 1.2e-8 | 6.1e-8 | 3.7e-6 | -701.2339661907 | -701.2339661907 | 8.3e-12 |
+
+The correlated case reports rho = 0.6684865 in both (Julia `tanh(eta)`, R
+`corpars$mu_sigma`); files `julia_fit_corr.jl`, `r_fit_compare_corr.R`,
+`comparison_corr.csv`.
 
 **Gamma crossed is a different local maximum, not a different likelihood.**
 `gamma_crossed_probe.R`: R's own Laplace objective at Julia's estimate is
@@ -95,9 +106,6 @@ unreliable in both packages. The failure is detectable in Julia; it is not fixed
 
 ## Not covered
 
-* Gaussian correlated same-group `(1 | p | id)` mu + sigma (no SD formula): R
-  fits it, Julia refuses the labelled term (`unsupported random-effect term`).
-  Not implemented in this wave.
 * Other seeds, REML, intervals, conditional modes (BLUPs), prediction, the R
   bridge, labelled structured forms.
 * NB2/Gamma structured sigma, NB2/Gamma sigma slopes (R refuses those slopes

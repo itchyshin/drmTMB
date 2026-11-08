@@ -1,0 +1,8 @@
+         beta_mu          beta_mu       beta_sigma        log_sd_mu 
+       0.2914459        0.5143967       -0.6767594       -0.6557203 
+eta_cor_mu_sigma     log_sd_sigma 
+       0.8080019       -1.0126787 
+               case n_par r_conv max_abs_diff max_diff_in_se max_se_rel_diff
+ gaussian_corr_same     6      0  1.21905e-08   6.097869e-08    3.740692e-06
+        r_loglik        j_loglik loglik_diff     r_rho     j_rho
+ -701.2339661907 -701.2339661907     8.3e-12 0.6684865 0.6684865

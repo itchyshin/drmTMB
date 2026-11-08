@@ -1,0 +1,2 @@
+"case","n_par","r_conv","max_abs_diff","max_diff_in_se","max_se_rel_diff","r_loglik","j_loglik","loglik_diff","r_rho","j_rho"
+"gaussian_corr_same",6,0,1.21904951688734e-08,6.09786925413732e-08,3.74069215065261e-06,"-701.2339661907","-701.2339661907",8.3e-12,0.668486523583528,0.668486523525516
