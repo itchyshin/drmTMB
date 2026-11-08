@@ -163,3 +163,44 @@ Labelled ordinary Poisson and NB2 (R refuses the labelled form; the evidence com
 - Row proposals were tightened (row 2 conditional on the wave-5 fix merging plus a q3/q4 campaign; rows 12, 13 and 15 held at PARTIAL; row 20 Poisson via `animal()` only; the new labelled-ordinary row reads "Julia-only syntax; matches R's unlabelled equivalent"), and the claim text is `agreement-at-optimum (native Julia vs native R, ML)`, not "covered". See the Revision section of `PROPOSED-verdict-flips.md`.
 - Gamma crossed: log-lik gap 0.016 (2 x gap = 0.03); sd(id) slope differs 1.9 SE; R lands on the lower optimum in 25 of 30 random starts. The earlier wording "statistically indistinguishable" was too strong.
 - Comparison scripts: `multiseed2/compare2.R` now checks the Julia block labels against R's names (all 120 fits pass); `wave4-reml/compare.R` no longer claims a name check (Julia files carry no names) and `compare.out` now prints log-lik differences and convergence columns.
+
+## Waves 6 to 9 and adversarial checks addendum (2026-11-08)
+
+Reader: whoever reviews PR #1684 or writes the later verdict PR. This lane edited only the two write-ups (this file and `parity-crosswalk-evidence-20261107/PROPOSED-verdict-flips.md`) and `docs/dev-log/check-log.md`. No `R/`, `src/`, `NAMESPACE`, parity matrix, verdict file or test was changed. All numbers were copied from the named folder's README or result file; I re-ran no R or Julia fit.
+
+### Julia side
+
+DRModels.jl draft PR #1268, head `claude/wave6-rtfix-20261108`, stacked on #1266 (base `claude/wave4-merge-20261108`). Draft, not merged by us. Its description reports the full suite on Totoro (Julia 1.10.12 and 1.12.7) with no failure introduced by the stack after the merge fixes, four 1.12 files failing as on `origin/main`, and the last test-only commit checked on its own files only. That is the PR's statement, not something I verified.
+
+### Evidence folders added (under `parity-crosswalk-evidence-20261107/`)
+
+- `wave6-binomial-phylo-spatial/`: Binomial phylo and spatial coefficient-SD q2, 22 datasets, max abs log-lik difference 8.1e-07 (phylo) and 5.3e-07 (spatial), no flags. A first run with the default finite-difference step had Julia SEs up to 9.4% (phylo) and 19.2% (spatial) below R's on 3 spatial datasets; fixed by a step of 3e-3 on this route.
+- `wave7-weak-optimum/`: three weak-optimum cases and a restart fix (NB2 phylo seed 55 gap 1.09e-3 to 2.0e-11; rebuilt Binomial weak-probe family 2 of 80 datasets below R before, 0 after; Binomial animal q2 fixture `converged` false to true). Julia 1.10.12 only.
+- `wave8-binomial-labelled-phylo/`: labelled Binomial `phylo(1 + x | p | g)`, 10 seeds, log-lik difference at most 8.3e-07 in absolute value, SE ratio 1.0000 to 1.0002.
+- `wave9-gap-close/`: bare structured `(1 + x | g)` and Gamma phylo/spatial with SD formulas; 121 paired fits, 106 unflagged (max abs log-lik difference 1.4e-08), 15 flagged and classified; regression fuzz of 492 cells, 0 regressions, 27 refusals turned into fits.
+- `fuzz-gap-map/`: 3008 cells; R fits 427, Julia 254; both fit 231 (175 agree within 1e-4, 56 disagree); Julia behind 196 cells in 51 refusal signatures; 729 Julia `MethodError` crashes from one keyword mechanism, none in R.
+- `metamorphic/`: 511 Julia-internal invariance cells over 35 routes, 0 FAIL (402 pass, 79 NA, 28 expected, 1 refused, 1 weak).
+- `red-team/`: 30 datasets, 340 cells, no hangs or crashes, five input-validation defects fixed on the Julia branch.
+
+### What did not go smoothly
+
+- Wave 7: the original Binomial weak-probe dataset was overwritten, so case (b) was checked on a rebuilt family that reproduces the failure signature, not the numbers. The new regression test file has no test for (b).
+- Wave 9: 15 of 121 fits were flagged. Nine are Binomial phylo boundary fits, two Poisson labelled phylo boundary fits, one Gamma spatial boundary fit, and three are different local maxima of the same objective (Gamma phylo sd-z seed 2; spatial sd-z seeds 9 and 10). The last group is not closed.
+- Metamorphic: the zero FAIL is not a clean pre-registered pass; tolerances for sim-refit, fixtures and seeds were changed after seeing results (the README lists each change).
+
+### Honest gaps (the earlier list stands; these are added)
+
+1. Restarts cost 7 to 10 times more on collapsed-slope-SD fits (#1268 description). Wave 7 measured +14% on 500 NB2 fits on Totoro and about 3x on the 80-dataset Binomial weak-probe family.
+2. The Binomial inner-solve noise-floor change moves some coefficients, up to 0.28. That figure came from the task brief; I did not find it in a folder README. Wave 7 says 4 of 80 weak-probe datasets moved by more than 4e-7 in log-lik and that no SEs were compared after the change.
+3. REML still refuses on every new route (wave 9 section 7; #1268 description).
+4. A permuted bare `A` without `ids` gave a converged wrong fit in the red-team run (log-lik 7.7 below R for Gaussian, 3.0 for Poisson). #1268 says the warning is now per call; the red-team grid was run before that and was not repeated.
+5. Gamma coordinate-SD (`sd-z`) phylo and spatial sits at a different local maximum from R in 3 of 22 seeds; Julia is the lower fit in two of them. No multi-start was added.
+6. Boundary fits: non-finite Julia SEs in 6 of 11 Binomial phylo seeds and 7 parameters in one Poisson labelled phylo seed; SD coordinates not comparable there.
+7. Tweedie log-lik differs from R by 0.03 to 0.08 (Laplace vs adaptive Gauss-Hermite); cross-engine AIC is invalid for it.
+8. Julia 1.12 was not run for the wave 7 restart work, and the metamorphic and red-team runs used Julia 1.10 only. No bridge path was exercised in waves 6 to 9.
+
+### Known limitations and next actions
+
+- Verdict flips remain PROPOSED, conditional on the #1268 stack landing in DRModels.jl main and the pin moving; no row proposal changed in this lane.
+- The verdict-PR author must map Binomial phylo/spatial q2, labelled Binomial phylo, bare structured q2 and Gamma phylo/spatial (sd-one only) to matrix rows, and add the capability-status rows first.
+- Source for the "7 to 10 times" and "0.28" figures should be added to the folders or removed.
