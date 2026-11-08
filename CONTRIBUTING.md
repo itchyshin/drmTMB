@@ -44,7 +44,19 @@ Long simulation studies should live outside CRAN-time tests.
 
 Line coverage is measured with covr on GitHub Actions (`test-coverage`), using
 the same `DRMTMB_TEST_SHARD="k/4"` partition as repository CI so each test file
-is counted once, on Ubuntu and R-release only. Codecov upload uses GitHub OIDC
-from a separate main-only workflow (`codecov-upload`). Pull requests generate
-coverage reports but do not receive upload credentials. Do not add a coverage
-badge until a main-branch Codecov report exists for a tested commit.
+is counted once, on Ubuntu and R-release only. The producer plants the Unix
+Rcheck layout `00_pkg_src/drmTMB` at the covr library root so existing
+source-path guards (`drm_src_path`, `drm_pkg_path`) still see `src/`, `R/`,
+and `man/` under `tools::testInstalledPackage`. Do not skip those guards on
+covr.
+
+On `pull_request` events GitHub checks out the merge commit (`GITHUB_SHA`),
+not the branch head. Coverage identity records `checkout_sha` /
+`coverage_commit` (what tests ran), `github_sha`, and `branch_head`
+(`github.event.pull_request.head.sha`). Codecov upload uses GitHub OIDC from
+a separate main-only workflow (`codecov-upload`). Pull requests generate
+coverage reports but cannot upload before an owner-authorized merge: the
+uploader is not on the default branch and never receives credentials on a
+PR. Do not add a coverage badge until a main-branch Codecov report exists
+for a tested commit. Do not request a Codecov token or App grant unless a
+main-branch uploader actually fails to authenticate.

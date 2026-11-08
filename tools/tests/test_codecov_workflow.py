@@ -9,12 +9,15 @@ appears only in a comment.
 from __future__ import annotations
 
 import re
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PRODUCER = ROOT / ".github" / "workflows" / "test-coverage.yaml"
 UPLOADER = ROOT / ".github" / "workflows" / "codecov-upload.yaml"
+LAYOUT = ROOT / "tools" / "covr-source-tree-layout.sh"
 
 CODECOV_ACTION = (
     "codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac"
@@ -141,6 +144,57 @@ class CodecovWorkflowTest(unittest.TestCase):
             "github.event.workflow_run.event == 'push' &&",
             mutated,
         )
+
+    def test_producer_plants_rcheck_layout_and_records_shas(self) -> None:
+        self.assertIn("timeout-minutes: 120", self.producer)
+        self.assertNotIn("timeout-minutes: 90", self.producer)
+        self.assertIn("tools/covr-source-tree-layout.sh", self.producer)
+        self.assertIn("00_pkg_src", self.producer)
+        self.assertIn("checkout_sha=", self.producer)
+        self.assertIn("coverage_commit=", self.producer)
+        self.assertIn("branch_head=", self.producer)
+        self.assertIn(
+            "github.event.pull_request.head.sha || github.sha",
+            self.producer,
+        )
+        self.assertIn("sha_note=pull_request_merge_sha_is_not_branch_head", self.producer)
+        self.assertNotIn("skip_on_covr", self.producer)
+
+    def test_layout_script_plants_locator_walkup(self) -> None:
+        self.assertTrue(LAYOUT.is_file(), f"missing {LAYOUT}")
+        with tempfile.TemporaryDirectory() as tmp:
+            subprocess.check_call(
+                ["bash", str(LAYOUT), tmp, str(ROOT)],
+                cwd=str(ROOT),
+            )
+            planted = Path(tmp) / "00_pkg_src" / "drmTMB"
+            for rel in (
+                "DESCRIPTION",
+                "R/drmTMB.R",
+                "man/is_converged.Rd",
+                "src/drmTMB.cpp",
+            ):
+                self.assertTrue(
+                    (planted / rel).exists(),
+                    f"missing planted {rel}",
+                )
+            # covr testInstalledPackage cwd:
+            # <lib>/drmTMB/drmTMB-tests/testthat. Walk-up parent 3 is <lib>.
+            fake_testthat = (
+                Path(tmp) / "drmTMB" / "drmTMB-tests" / "testthat"
+            )
+            fake_testthat.mkdir(parents=True)
+            lib_root = fake_testthat.parents[2]
+            self.assertEqual(lib_root, Path(tmp).resolve())
+            self.assertTrue(
+                (lib_root / "00_pkg_src" / "drmTMB" / "src" / "drmTMB.cpp").is_file()
+            )
+            self.assertTrue(
+                (lib_root / "00_pkg_src" / "drmTMB" / "man" / "is_converged.Rd").is_file()
+            )
+            self.assertTrue(
+                (lib_root / "00_pkg_src" / "drmTMB" / "R" / "drmTMB.R").is_file()
+            )
 
 
 if __name__ == "__main__":
