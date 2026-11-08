@@ -30,7 +30,7 @@ One balanced 64-tip ultrametric tree (tip edges 1.5, internal 0.1, height 2) and
 
 All fits converged in both languages. Per-parameter rows are in `cmp_<case>.csv`; `summary.csv` holds the table.
 
-**SE caveat, Poisson phylo.** The 3.0e-3 relative SE gap is on the weakly identified slope-SD block (SEs 0.62 and 1.02). It comes from the finite-difference Hessian step (h = 1e-4) of the shared Poisson q2 Laplace helper, not from the model: with h = 3e-3 the Julia SEs are 0.6198146 and 1.022228 against R's 0.6198470 and 1.0222670 (3e-5 relative; `se_probe.jl`). The shared helper was not changed in this lane because the animal and relmat routes also use it.
+**SE caveat, Poisson phylo.** The 3.0e-3 relative SE gap is on the weakly identified slope-SD block (SEs 0.62 and 1.02). It comes from the finite-difference Hessian step (h = 1e-4) of the shared Poisson q2 Laplace helper, not from the model: with h = 3e-3 the Julia SEs are 0.6198146 and 1.022228 against R's 0.6198470 and 1.0222670 (about 4e-5 to 5e-5 relative: 5.2e-5 and 3.8e-5; `se_probe.jl`). The shared helper was not changed in this lane because the animal and relmat routes also use it.
 
 ## Julia tests
 

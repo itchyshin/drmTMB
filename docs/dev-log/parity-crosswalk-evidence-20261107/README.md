@@ -112,4 +112,4 @@ Four further evidence folders sit in this directory. Each has its own README wit
 - `wave2-gamma-nb2-ordinary/`: Gamma and NB2 two-field SD routes (crossed, ordinary + relmat/animal, independent and labelled q2).
 - `wave2-joint-sigma/`: joint mean + sigma random effects, structured Gaussian sigma (phylo, spatial), the Gamma crossed disagreement, and stress case 6a.
 
-Julia branch for all of it: `claude/q2-wave2-merge-20261107` (itchyshin/DRModels.jl, not yet a PR). Single seed per case, ML only, agreement at the optimum only.
+Julia branch for all of it: `claude/q2-wave2-merge-20261107` (itchyshin/DRModels.jl, PR #1263, stacked on #1261). Single seed per case, ML only, agreement at the optimum only.

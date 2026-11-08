@@ -2,6 +2,10 @@
 # julia_run.jl and r_run.R). Writes raw_per_seed.csv, raw_per_parameter.csv, summary_distribution.csv,
 # coverage_informational.csv, flagged_seeds.csv.
 # usage: SC_OUT=<out> Rscript compare.R [n_seeds]     (SC_OUT default ".")
+# Then run aggregate_from_csv.R: it adds the absolute-difference flags, non-finite SE counts and the classification,
+# and rewrites flagged_seeds.csv with extra columns. Notes: "converged" here is the Julia converged flag and R
+# opt$convergence == 0 (R pdHess is kept separately); q() below drops Inf/NaN values, so SE-ratio summaries
+# say nothing about the seeds whose Julia or R SE is non-finite (counted in aggregate_from_csv.R).
 args <- commandArgs(TRUE); nseed <- if (length(args)) as.integer(args[1]) else 300L
 O <- Sys.getenv("SC_OUT", ".")
 routes <- c("poisson_animal", "nb2_relmat", "gauss_ord", "gauss_animal", "poisson_phylo", "poisson_spatial",
@@ -85,8 +89,9 @@ cvr <- do.call(rbind, lapply(split(pp, list(pp$route, pp$pgroup), drop = TRUE), 
    n_julia = sum(!is.na(z$julia_covers)), julia_coverage = mean(z$julia_covers, na.rm = TRUE),
    n_R = sum(!is.na(z$r_covers)), R_coverage = mean(z$r_covers, na.rm = TRUE))))
 write.csv(cvr, file.path(O, "coverage_informational.csv"), row.names = FALSE)
-# Triage flags only; no tolerance is applied to any verdict.
-flag <- raw[!(raw$julia_converged %in% TRUE & raw$r_converged %in% TRUE) | is.na(raw$ll_diff) | abs(raw$max_coef_diff_r_se) > 1e-3 | abs(raw$ll_diff) > 1e-6 | raw$note != "", ]
+# Triage flags only; no tolerance is applied to any verdict. (The R-SE flag is blind at boundaries, hence the absolute flag.)
+flag <- raw[!(raw$julia_converged %in% TRUE & raw$r_converged %in% TRUE) | is.na(raw$ll_diff) | abs(raw$max_coef_diff_r_se) > 1e-3 | abs(raw$ll_diff) > 1e-6 |
+  raw$max_abs_coef_diff > 1e-3 | raw$note != "", ]   # max_abs_coef_diff added 2026-11-08: the R-SE flag is blind where R's SE is 5e3 to 5e4
 write.csv(flag, file.path(O, "flagged_seeds.csv"), row.names = FALSE)
 options(width = 200); print(summ[, c("route", "seeds", "both_converged", "r_pdHess", "compared", "max_coef_diff_r_se_med", "max_coef_diff_r_se_p99", "max_coef_diff_r_se_max", "n_beyond_1e3_rse", "n_ll_beyond_1e6")], digits = 3)
 cat("\nFlagged seeds:", nrow(flag), "\n"); print(table(flag$route))

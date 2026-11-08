@@ -1,6 +1,8 @@
 # Julia minus R at the optimum, per route and seed. Writes raw_per_seed.csv, raw_per_parameter.csv, summary.csv.
 # usage: Rscript compare2.R   (run from this directory)
-# Parameters are compared by position (Julia block order = R parameter order; checked in check_layout below).
+# Parameters are compared by position. check_layout (inside the seed loop) decodes each Julia block label and stops unless
+# it matches R's parameter name at the same index (mu/sigma/recov, SD-target dpar) and the SD target's group matches spec.
+# It cannot check which coefficient (intercept or slope) an SD pair belongs to: R's names carry no coefficient label.
 # Spec per route: SD-coefficient blocks (first index, group column, predictor column) and the correlation type.
 sdb <- function(...) list(...)
 spec <- list(
@@ -38,6 +40,14 @@ for (route in routes) for (s in 1:10) {
   base$ll_julia <- as.numeric(jl$ll); base$ll_R <- as.numeric(rl$ll); base$ll_diff <- base$ll_julia - base$ll_R
   j <- read.csv(file.path("julia", paste0(tag, ".csv"))); r <- read.csv(file.path("r", paste0(tag, ".csv")))
   stopifnot(nrow(j) == nrow(r))
+  hexdec <- function(h) rawToChar(as.raw(strtoi(substring(h, seq(1, nchar(h), 2), seq(2, nchar(h), 2)), 16L)))
+  check_layout <- vapply(seq_len(nrow(j)), function(i) { bl <- j$block[i]
+    if (bl == "mu") r$name[i] == "beta_mu" else if (bl == "sigma") r$name[i] == "beta_sigma"
+    else if (bl == "recov") grepl("^(theta_re_cov|eta_cor)", r$name[i])
+    else { f <- strsplit(hexdec(sub("^sdtarget_", "", bl)), "|", fixed = TRUE)[[1]]
+      k <- Filter(function(z) as.integer(z[1]) == i || as.integer(z[1]) + 1L == i, sp$sd)
+      r$name[i] == paste0("beta_sd_", f[3]) && length(k) == 1 && f[1] == k[[1]][2] } }, TRUE)
+  if (!all(check_layout)) stop("layout mismatch in ", tag, " at index ", paste(which(!check_layout), collapse = ","))
   dif <- j$est - r$est
   base$max_abs_coef_diff <- max(abs(dif)); base$max_coef_diff_r_se <- max(abs(dif / r$se))
   w <- which.max(abs(dif / r$se)); base$worst_param <- paste0(r$name[w], "#", w)

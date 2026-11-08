@@ -1,6 +1,6 @@
 # Wave 4: Gamma crossed joint mu+sigma SD, R-vs-Julia 0.016 loglik gap
 
-Reader: whoever decides parity-matrix row 3 (joint mu + sigma SD regression, Gamma crossed).
+Reader: whoever decides the parity-matrix row for joint mu + sigma SD regression, Gamma crossed (row 18 in `../PROPOSED-verdict-flips.md`; this folder's earlier name for it was "row 3").
 Evidence only. Data: `../wave2-joint-sigma/data_gamma_crossed.csv` (30 id x 24 g, n 600), model
 `bf(y ~ x + (1|id), sigma ~ 1 + (1|g), sd(id) ~ w, sd(g, sigma) ~ z)`, Gamma log link, ML Laplace.
 Julia: DRModels at 04581709d (no source change). R: native drmTMB 0.8.1. Parameter layout identical in both
@@ -39,8 +39,8 @@ dataset and one start distribution; it does not show that R is generally worse.
 estimates the oracle logLik dips by about 0.7 (to -833.21 at t about 0.62) and recovers, inner mode unique throughout, so there
 is a real (small) barrier in the outer surface. The weakly identified block is the SD regressions: sd(g) intercept and `z` slope SEs
 are 0.81 and 1.06 (24 sigma groups), sd(id) slope 0.19; the two optima differ mostly in sd(id) (-1.46, 1.16 vs -1.16, 0.79) and the
-sd(g) slope (-1.76 vs -1.94). The 0.016 gap is far below any test-statistic scale (about 0.03 on a 2 x loglik), so the two fits are
-statistically indistinguishable; The mean and sigma fixed effects differ by at most 0.003 (mu) and 0.002 (sigma); the differences are in the SD parameters (up to 0.37).
+sd(g) slope (-1.76 vs -1.94). Size of the difference: log-lik gap 0.016 (2 x gap = 0.03); the sd(id) slope differs by 1.9 SE (0.37 on an SE of 0.19), so the fits are not shown to be
+distinguishable by likelihood, but the SD estimates are not the same; R lands on the lower optimum in 25 of 30 random starts. The mean and sigma fixed effects differ by at most 0.003 (mu) and 0.002 (sigma); the differences are in the SD parameters (up to 0.37).
 
 ## What changed
 
@@ -51,7 +51,7 @@ for no demonstrated defect. A temporary internal `start` keyword was used for th
 
 ## Suggested matrix wording
 
-Row 3 Gamma crossed: "agrees at the shared stationary point (R's objective at Julia's estimate equals Julia's to 3e-9);
+Gamma crossed joint mu+sigma (row 18): "agrees at the shared stationary point (R's objective at Julia's estimate equals Julia's to 3e-9);
 the default fits land on different local maxima of a bimodal outer surface (two optima, 0.016 apart, barrier about 0.7);
 Julia's is the higher". Do not record this as an engine disagreement.
 

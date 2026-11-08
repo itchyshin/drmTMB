@@ -18,10 +18,10 @@ the comparison is Julia labelled `(1 + x | p | g)` vs R unlabelled `(1 + x | g)`
 Parameter order is identical (beta_mu, [beta_sigma], intercept-SD coefficients,
 slope-SD coefficients, eta_cor). All 20 fits converge in R (code 0) and Julia.
 
-| family  | max abs param diff | max diff / R se | max abs rho diff | log-lik Julia - R | se ratio |
+| family  | max abs param diff | max diff / R se | max abs rho diff | log-lik Julia - R | se ratio (Julia / R), range over seeds |
 |---------|--------------------|-----------------|------------------|-------------------|----------|
-| poisson | 1.4e-06            | 5.1e-06         | 6.7e-07          | -1.6e-09 to 8.7e-10 | 1.000   |
-| nb2     | 5.2e-06            | 5.7e-06         | 1.0e-06          | -2.6e-10 to 1.1e-09 | 1.000   |
+| poisson | 1.4e-06            | 5.1e-06         | 6.7e-07          | -1.6e-09 to 8.7e-10 | 0.99999733 to 1.0000025 |
+| nb2     | 5.2e-06            | 5.7e-06         | 1.0e-06          | -2.6e-10 to 1.1e-09 | 0.99999872 to 1.0004733 (largest: seed 2026110802, 1.0005) |
 
 Fitted rho (R) ranges 0.24-0.75 (Poisson) and 0.29-0.90 (NB2); true rho = 0.5.
 This is agreement of two implementations of one likelihood, not a calibration or

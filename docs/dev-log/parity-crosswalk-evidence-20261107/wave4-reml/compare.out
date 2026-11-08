@@ -1,64 +1,64 @@
-      case seed n_par max_abs_coef_diff max_abs_sd_diff abs_rho_diff max_se_rel_diff max_se_rel_diff_mean_block   ll_r r_conv
-    animal    1     7         1.978e-10       7.649e-11           NA       7.905e-07                  1.382e-07 -439.5      0
-    relmat    1     7         1.109e-11       4.486e-12           NA       1.010e-05                  4.108e-06 -401.3      0
-     phylo    1     7         4.054e-11       1.088e-13           NA       2.731e-06                  6.970e-07 -376.5      0
-   spatial    1     7         1.003e-12       3.580e-14           NA       1.240e-06                  2.355e-07 -406.2      0
- phylo_lab    1     8         3.520e-12       7.214e-13    5.598e-13       4.531e-07                  1.061e-07 -412.5      0
-  phylo_sx    1     8         5.843e-11       1.552e-11           NA       1.337e-06                  7.182e-08 -354.5      0
-    animal    2     7         3.428e-09       4.202e-14           NA       4.104e-07                  1.248e-08 -427.6      0
-    relmat    2     7         9.649e-12       4.326e-12           NA       9.546e-06                  2.770e-06 -410.6      0
-     phylo    2     7         1.038e-11       6.870e-13           NA       7.643e-07                  1.916e-07 -394.1      0
-   spatial    2     7         4.494e-09       4.385e-14           NA       2.426e-06                  1.999e-07 -430.6      0
- phylo_lab    2     8         2.028e-11       7.633e-12    1.541e-12       1.413e-06                  5.477e-07 -384.0      0
-  phylo_sx    2     8         3.984e-11       1.668e-11           NA       9.012e-06                  1.103e-06 -376.8      0
-    animal    3     7         3.710e-13       1.425e-13           NA       3.325e-07                  1.326e-10 -426.7      0
-    relmat    3     7         2.000e-08       2.990e-13           NA       1.813e-05                  3.724e-06 -402.5      0
-     phylo    3     7         4.052e-11       2.214e-11           NA       1.403e-05                  2.632e-06 -381.0      0
-   spatial    3     7         2.321e-12       5.107e-14           NA       6.560e-06                  1.293e-06 -395.5      0
- phylo_lab    3     8         2.885e-11       1.150e-11    6.258e-12       9.017e-07                  1.479e-07 -369.8      0
-  phylo_sx    3     8         1.194e-10       2.615e-11           NA       2.864e-06                  2.196e-07 -391.5      0
-    animal    4     7         3.175e-11       9.230e-12           NA       3.308e-07                  2.186e-09 -416.7      0
-    relmat    4     7         4.603e-11       1.270e-12           NA       4.075e-06                  3.389e-06 -410.8      0
-     phylo    4     7         4.292e-11       7.078e-12           NA       1.951e-05                  1.027e-05 -384.1      0
-   spatial    4     7         1.049e-11       5.099e-12           NA       2.715e-06                  3.800e-07 -414.1      0
- phylo_lab    4     8         9.256e-08       3.729e-11    2.787e-11       9.245e-07                  6.045e-08 -396.1      0
-  phylo_sx    4     8         5.017e-11       3.267e-11           NA       1.965e-05                  1.047e-05 -416.5      0
-    animal    5     7         1.494e-11       5.274e-12           NA       3.308e-07                  1.191e-09 -438.2      0
-    relmat    5     7         9.016e-12       1.070e-12           NA       1.322e-06                  9.221e-07 -396.2      0
-     phylo    5     7         1.827e-09       9.357e-12           NA       3.331e-07                  6.370e-08 -363.9      0
-   spatial    5     7         5.270e-11       3.830e-12           NA       2.457e-06                  1.015e-06 -405.9      0
- phylo_lab    5     8         1.910e-11       2.854e-12    4.187e-12       6.620e-06                  4.062e-08 -392.1      0
-  phylo_sx    5     8         6.161e-11       1.302e-11           NA       1.222e-05                  4.289e-06 -357.4      0
+      case seed n_par max_abs_coef_diff max_abs_sd_diff abs_rho_diff max_se_rel_diff max_se_rel_diff_mean_block    ll_diff r_conv r_pdHess julia_converged
+    animal    1     7         1.978e-10       7.649e-11           NA       7.905e-07                  1.382e-07 -1.023e-12      0     TRUE            true
+    relmat    1     7         1.109e-11       4.486e-12           NA       1.010e-05                  4.108e-06  1.023e-12      0     TRUE            true
+     phylo    1     7         4.054e-11       1.088e-13           NA       2.731e-06                  6.970e-07 -5.298e-11      0     TRUE            true
+   spatial    1     7         1.003e-12       3.580e-14           NA       1.240e-06                  2.355e-07 -1.603e-11      0     TRUE            true
+ phylo_lab    1     8         3.520e-12       7.214e-13    5.598e-13       4.531e-07                  1.061e-07  1.501e-11      0     TRUE            true
+  phylo_sx    1     8         5.843e-11       1.552e-11           NA       1.337e-06                  7.182e-08  1.430e-10      0     TRUE            true
+    animal    2     7         3.428e-09       4.202e-14           NA       4.104e-07                  1.248e-08 -8.015e-12      0     TRUE            true
+    relmat    2     7         9.649e-12       4.326e-12           NA       9.546e-06                  2.770e-06  8.015e-12      0     TRUE            true
+     phylo    2     7         1.038e-11       6.870e-13           NA       7.643e-07                  1.916e-07 -4.480e-10      0     TRUE            true
+   spatial    2     7         4.494e-09       4.385e-14           NA       2.426e-06                  1.999e-07  4.036e-12      0     TRUE            true
+ phylo_lab    2     8         2.028e-11       7.633e-12    1.541e-12       1.413e-06                  5.477e-07 -2.380e-10      0     TRUE            true
+  phylo_sx    2     8         3.984e-11       1.668e-11           NA       9.012e-06                  1.103e-06 -8.100e-10      0     TRUE            true
+    animal    3     7         3.710e-13       1.425e-13           NA       3.325e-07                  1.326e-10  3.979e-12      0     TRUE            true
+    relmat    3     7         2.000e-08       2.990e-13           NA       1.813e-05                  3.724e-06  2.046e-12      0     TRUE            true
+     phylo    3     7         4.052e-11       2.214e-11           NA       1.403e-05                  2.632e-06 -3.370e-10      0     TRUE            true
+   spatial    3     7         2.321e-12       5.107e-14           NA       6.560e-06                  1.293e-06 -1.103e-11      0     TRUE            true
+ phylo_lab    3     8         2.885e-11       1.150e-11    6.258e-12       9.017e-07                  1.479e-07 -2.060e-10      0     TRUE            true
+  phylo_sx    3     8         1.194e-10       2.615e-11           NA       2.864e-06                  2.196e-07 -4.320e-10      0     TRUE            true
+    animal    4     7         3.175e-11       9.230e-12           NA       3.308e-07                  2.186e-09 -3.013e-12      0     TRUE            true
+    relmat    4     7         4.603e-11       1.270e-12           NA       4.075e-06                  3.389e-06 -6.992e-12      0     TRUE            true
+     phylo    4     7         4.292e-11       7.078e-12           NA       1.951e-05                  1.027e-05 -8.998e-11      0     TRUE            true
+   spatial    4     7         1.049e-11       5.099e-12           NA       2.715e-06                  3.800e-07  0.000e+00      0     TRUE            true
+ phylo_lab    4     8         9.256e-08       3.729e-11    2.787e-11       9.245e-07                  6.045e-08 -5.497e-11      0     TRUE            true
+  phylo_sx    4     8         5.017e-11       3.267e-11           NA       1.965e-05                  1.047e-05  2.790e-10      0     TRUE            true
+    animal    5     7         1.494e-11       5.274e-12           NA       3.308e-07                  1.191e-09 -5.969e-12      0     TRUE            true
+    relmat    5     7         9.016e-12       1.070e-12           NA       1.322e-06                  9.221e-07  3.013e-12      0     TRUE            true
+     phylo    5     7         1.827e-09       9.357e-12           NA       3.331e-07                  6.370e-08 -3.200e-11      0     TRUE            true
+   spatial    5     7         5.270e-11       3.830e-12           NA       2.457e-06                  1.015e-06  6.025e-12      0     TRUE            true
+ phylo_lab    5     8         1.910e-11       2.854e-12    4.187e-12       6.620e-06                  4.062e-08 -3.303e-11      0     TRUE            true
+  phylo_sx    5     8         6.161e-11       1.302e-11           NA       1.222e-05                  4.289e-06  2.495e-11      0     TRUE            true
 
 ML (reference, not the goal):
-      case seed n_par max_abs_coef_diff max_abs_sd_diff abs_rho_diff max_se_rel_diff max_se_rel_diff_mean_block r_conv
-    animal    1     7         3.780e-12       1.432e-12           NA       3.388e-07                  1.152e-07      0
-    relmat    1     7         1.349e+00       5.521e-02           NA       2.494e-01                  2.219e-01      0
-     phylo    1     7         7.439e-11       1.333e-11           NA       1.785e-06                  1.782e-07      0
-   spatial    1     7         6.083e-11       4.876e-12           NA       9.577e-07                  3.300e-07      0
- phylo_lab    1     8         5.576e-11       8.015e-12    1.265e-11       5.067e-07                  5.067e-07      0
-  phylo_sx    1     8         4.488e-11       9.900e-12           NA       1.248e-06                  3.067e-07      0
-    animal    2     7         5.620e-13       1.849e-14           NA       3.342e-07                  4.642e-08      0
-    relmat    2     7         2.396e-10       3.495e-12           NA       2.028e-06                  1.859e-06      0
-     phylo    2     7         1.576e-11       3.598e-12           NA       5.757e-07                  3.317e-07      0
-   spatial    2     7         1.216e-10       2.224e-11           NA       4.349e-07                  4.349e-07      0
- phylo_lab    2     8         2.219e-11       7.595e-12    3.861e-12       8.841e-07                  6.645e-07      0
-  phylo_sx    2     8         6.893e-11       1.903e-11           NA       3.752e-06                  1.729e-06      0
-    animal    3     7         7.870e-13       2.962e-13           NA       3.325e-07                  2.834e-09      0
-    relmat    3     7         1.411e-11       3.741e-12           NA       2.617e-06                  2.617e-06      0
-     phylo    3     7         4.346e-11       2.335e-11           NA       2.506e-06                  2.506e-06      0
-   spatial    3     7         5.695e-12       2.466e-13           NA       4.001e-07                  3.016e-07      0
- phylo_lab    3     8         4.524e-11       1.755e-11    4.091e-11       5.115e-07                  1.032e-07      0
-  phylo_sx    3     8         2.948e-11       1.087e-11           NA       5.701e-07                  2.409e-07      0
-    animal    4     7         4.033e-11       2.188e-13           NA       3.307e-07                  1.014e-08      0
-    relmat    4     7         1.218e-11       4.361e-12           NA       4.851e-06                  4.841e-06      0
-     phylo    4     7         1.633e-10       3.273e-11           NA       2.610e-06                  2.610e-06      0
-   spatial    4     7         1.871e-10       3.250e-12           NA       1.322e-06                  4.792e-07      0
- phylo_lab    4     8         1.585e-11       3.741e-12    1.168e-11       4.360e-07                  3.033e-07      0
-  phylo_sx    4     8         2.148e-11       9.271e-12           NA       2.158e-06                  2.144e-06      0
-    animal    5     7         3.222e-11       1.116e-11           NA       3.304e-07                  1.133e-08      0
-    relmat    5     7         7.107e-12       1.168e-13           NA       2.290e-06                  2.277e-06      0
-     phylo    5     7         1.532e-11       6.055e-12           NA       3.729e-07                  3.319e-07      0
-   spatial    5     7         8.700e-13       1.624e-13           NA       8.787e-07                  8.787e-07      0
- phylo_lab    5     8         1.990e-11       2.680e-12    3.112e-12       2.770e-06                  1.482e-08      0
-  phylo_sx    5     8         1.545e-10       9.722e-13           NA       1.146e-06                  1.146e-06      0
+      case seed n_par max_abs_coef_diff max_abs_sd_diff abs_rho_diff max_se_rel_diff max_se_rel_diff_mean_block    ll_diff r_conv r_pdHess julia_converged
+    animal    1     7         3.780e-12       1.432e-12           NA       3.388e-07                  1.152e-07 -3.013e-12      0     TRUE            true
+    relmat    1     7         1.349e+00       5.521e-02           NA       2.494e-01                  2.219e-01  3.571e+00      0     TRUE            true
+     phylo    1     7         7.439e-11       1.333e-11           NA       1.785e-06                  1.782e-07 -3.502e-11      0     TRUE            true
+   spatial    1     7         6.083e-11       4.876e-12           NA       9.577e-07                  3.300e-07  8.015e-12      0     TRUE            true
+ phylo_lab    1     8         5.576e-11       8.015e-12    1.265e-11       5.067e-07                  5.067e-07  1.700e-11      0     TRUE            true
+  phylo_sx    1     8         4.488e-11       9.900e-12           NA       1.248e-06                  3.067e-07  1.470e-10      0     TRUE            true
+    animal    2     7         5.620e-13       1.849e-14           NA       3.342e-07                  4.642e-08 -2.046e-12      0     TRUE            true
+    relmat    2     7         2.396e-10       3.495e-12           NA       2.028e-06                  1.859e-06 -1.990e-12      0     TRUE            true
+     phylo    2     7         1.576e-11       3.598e-12           NA       5.757e-07                  3.317e-07 -4.480e-10      0     TRUE            true
+   spatial    2     7         1.216e-10       2.224e-11           NA       4.349e-07                  4.349e-07 -8.015e-12      0     TRUE            true
+ phylo_lab    2     8         2.219e-11       7.595e-12    3.861e-12       8.841e-07                  6.645e-07 -2.440e-10      0     TRUE            true
+  phylo_sx    2     8         6.893e-11       1.903e-11           NA       3.752e-06                  1.729e-06 -7.000e-10      0     TRUE            true
+    animal    3     7         7.870e-13       2.962e-13           NA       3.325e-07                  2.834e-09 -1.023e-12      0     TRUE            true
+    relmat    3     7         1.411e-11       3.741e-12           NA       2.617e-06                  2.617e-06  3.013e-12      0     TRUE            true
+     phylo    3     7         4.346e-11       2.335e-11           NA       2.506e-06                  2.506e-06 -3.830e-10      0     TRUE            true
+   spatial    3     7         5.695e-12       2.466e-13           NA       4.001e-07                  3.016e-07 -1.199e-11      0     TRUE            true
+ phylo_lab    3     8         4.524e-11       1.755e-11    4.091e-11       5.115e-07                  1.032e-07 -2.100e-10      0     TRUE            true
+  phylo_sx    3     8         2.948e-11       1.087e-11           NA       5.701e-07                  2.409e-07 -4.520e-10      0     TRUE            true
+    animal    4     7         4.033e-11       2.188e-13           NA       3.307e-07                  1.014e-08 -8.981e-12      0     TRUE            true
+    relmat    4     7         1.218e-11       4.361e-12           NA       4.851e-06                  4.841e-06  8.015e-12      0     TRUE            true
+     phylo    4     7         1.633e-10       3.273e-11           NA       2.610e-06                  2.610e-06 -8.902e-11      0     TRUE            true
+   spatial    4     7         1.871e-10       3.250e-12           NA       1.322e-06                  4.792e-07 -9.038e-12      0     TRUE            true
+ phylo_lab    4     8         1.585e-11       3.741e-12    1.168e-11       4.360e-07                  3.033e-07 -6.702e-11      0     TRUE            true
+  phylo_sx    4     8         2.148e-11       9.271e-12           NA       2.158e-06                  2.144e-06  1.550e-10      0     TRUE            true
+    animal    5     7         3.222e-11       1.116e-11           NA       3.304e-07                  1.133e-08 -6.025e-12      0     TRUE            true
+    relmat    5     7         7.107e-12       1.168e-13           NA       2.290e-06                  2.277e-06 -1.000e-11      0     TRUE            true
+     phylo    5     7         1.532e-11       6.055e-12           NA       3.729e-07                  3.319e-07 -2.899e-11      0     TRUE            true
+   spatial    5     7         8.700e-13       1.624e-13           NA       8.787e-07                  8.787e-07  8.015e-12      0     TRUE            true
+ phylo_lab    5     8         1.990e-11       2.680e-12    3.112e-12       2.770e-06                  1.482e-08 -3.104e-11      0     TRUE            true
+  phylo_sx    5     8         1.545e-10       9.722e-13           NA       1.146e-06                  1.146e-06  1.597e-11      0     TRUE            true

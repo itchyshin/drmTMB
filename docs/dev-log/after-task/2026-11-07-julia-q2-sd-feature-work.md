@@ -30,17 +30,24 @@ drmTMB side (this PR): evidence under
 - Per-route Julia tests pass (Poisson animal 8/8, NB2 relmat 11/11, q3/q4 30, ordinary q2 22,
   sigma 35+36, simulate 78).
 - R-versus-Julia agreement, one dataset per route, ML, at the optimum: coefficients and SDs
-  agree to at most 1.2e-7 in SE units and log-likelihood to at most 1e-9, across all
-  routes. Tables and scripts are in the evidence directory.
+  agree to at most about 1.2e-7 R-SE units for the 6a sigma-slope case (the tightest), about
+  2e-6 R-SE units across the wave 1 routes and wave 2 routes, and about 6e-6 for the wave 3
+  labelled-ordinary routes; log-likelihood to at most 1e-9 on the wave 1 routes. Tables and
+  scripts are in the evidence directory.
 - Full Julia suite on the integration tip, four shards: see "Suite result" below.
 
 ## Suite result
 
-Final tip `f4b30ee26`, four shards. Seven files fail; each fails identically on
+Final tip `f4b30ee26`, four shards. Seven files failed; each failed identically on
 origin/main: `test_binomial_animal_slope_iid_sd_regression`, `test_analytic_grad`,
 `test_stored_loglik_at_optimum`, `test_lane_j4_predict_numerics`, `test_qgate_jet`,
 `test_sentinel_mixed_family`, `test_q4_laplace` (the last needs `fit_q4_julia.jl`, absent
-on main). No new failures. Draft PR: itchyshin/DRModels.jl#1261 (not merged).
+on main). No new failures. Draft PR: itchyshin/DRModels.jl#1261 (not merged). Later triage
+(2026-11-08): `test_analytic_grad` and `test_qgate_jet` are excluded by CI's `_TEST_EXCLUDE`
+(driver artefacts, not failures); `test_lane_j4_predict_numerics` had a real cumulative-model
+bug, fixed in #1267; `test_stored_loglik_at_optimum` relaxes for a non-converged Binomial animal
+q2 fit on Julia 1.10 (log-lik -263.18 against -243.95 on 1.12), an existing optimiser weakness
+outside the parity PRs. The other three files have no new information.
 
 ## Consistency audit
 
@@ -109,7 +116,7 @@ Reader: the reviewer of evidence PR #1684 and whoever writes the verdict PR. Per
 ### Julia side
 
 - Wave 3: itchyshin/DRModels.jl PR #1264, tip `04581709d`. Labelled (correlated) phylo and spatial q2 with one SD formula per coefficient; labelled ordinary `(1 + x | p | g)` for Poisson and NB2.
-- Waves 4 and 5: integration branch `claude/wave4-merge-20261108`, not yet a PR, full Julia suite still running. Components: Gaussian structured q2 REML (`claude/gaussian-sd-reml-20261108`), NB2 structured sigma and Julia-only NB2/Gamma structured sigma with SD formula (`claude/nb2-gamma-structured-sigma-20261108`), conditional quantile residuals and `Ainv` for Gamma and Gaussian (`claude/postfit-cond-residuals-20261108`), the Gaussian ordinary line-search guard and the Poisson spatial second start (`claude/ordinary-robust-linesearch-20261108`, `346968b2b`). The Gamma crossed diagnosis branch has no commits: no source change was needed.
+- Waves 4 and 5: PR itchyshin/DRModels.jl#1266 (tip `e5ae24539`, includes the wave-5 optimiser fix and review fixes; branch `claude/wave4-merge-20261108`). PR #1263 is wave 2 (stacked on #1261), #1264 is wave 3 (stacked), #1267 is a small cumulative fix on main. The full suite on the final tip is being run on Totoro (Julia 1.10 and 1.12): result pending. Components: Gaussian structured q2 REML (`claude/gaussian-sd-reml-20261108`), NB2 structured sigma and Julia-only NB2/Gamma structured sigma with SD formula (`claude/nb2-gamma-structured-sigma-20261108`), conditional quantile residuals and `Ainv` for Gamma and Gaussian (`claude/postfit-cond-residuals-20261108`), the Gaussian ordinary line-search guard and the Poisson spatial second start (`claude/ordinary-robust-linesearch-20261108`, `346968b2b`). The Gamma crossed diagnosis branch has no commits: no source change was needed.
 
 ### Evidence folders added (drmTMB side, under `parity-crosswalk-evidence-20261107/`)
 
@@ -130,7 +137,7 @@ Reader: the reviewer of evidence PR #1684 and whoever writes the verdict PR. Per
 - Julia's first Gaussian REML carried `beta_mu` as a free coordinate and stopped 5.13 log-lik units below R's optimum on relmat seed 4. The objective was right and the optimiser was not; profiling `beta_mu` by GLS fixed it. A multi-start was tried first and did not help.
 - The requested multi-seed route "labelled-rho Poisson ordinary" did not exist in Julia at the time; `multiseed` substituted the structured labelled Poisson route and says so.
 - The Gaussian ordinary failure was reproducible only by seed and platform; the failing set changes with Julia version and BLAS, so a fixed seed list is not a regression test. The Julia regression test uses a toy objective that reproduces the failure mode plus two campaign datasets.
-- Julia 1.12.6 on the Mac: `test_binomial_animal_q2_sd.jl`, `test_phylo_spatial_q2_sd.jl` and `test_labelled_phylo_spatial_q2_sd.jl` fail with identical numbers on the unfixed source. They predate this work and need triage; the last two sit on routes the wave-3 rows depend on.
+- Julia 1.12.6 on the Mac: `test_binomial_animal_q2_sd.jl`, `test_phylo_spatial_q2_sd.jl` and `test_labelled_phylo_spatial_q2_sd.jl` failed with identical numbers on the unfixed source. Triage showed they were not simply pre-existing: the two new files failed because their fixtures used `MersenneTwister` streams that differ between Julia 1.10 and 1.12 (datasets differ; verified by swapping datasets), plus one real latent bug (`scales[:cond_failed] = 1.0` into a `Dict{Symbol,Vector{Float64}}` threw `MethodError`). Both are fixed on the wave-4 branch (#1266) with version-independent committed fixtures (`test/fixtures/q2_stable`). `test_binomial_animal_q2_sd.jl` fails on 1.12 on origin/main too (main has the file). The wave-3 rows depend on the suite result, which is pending.
 - Gaussian relmat seed 1 under ML: Julia is higher by 3.57 log-lik (REML on the same data agrees to 1e-10). Same bimodality kind as Gamma crossed; not diagnosed.
 
 ### What R cannot check (oracle-only, not "agrees with R")
@@ -145,6 +152,14 @@ Labelled ordinary Poisson and NB2 (R refuses the labelled form; the evidence com
 
 ### Known limitations and next actions
 
-- Julia side: open a PR for `claude/wave4-merge-20261108` after its full suite finishes; triage the three failing test files above; decide whether to give NB2 spatial and the other structured routes the same second-start check as Poisson spatial.
+- Julia side: PR #1266 is open; its full-suite result on Julia 1.10 and 1.12 (Totoro) is pending. The three failing test files were triaged (see above). Decide whether to give NB2 spatial and the other structured routes the same second-start check as Poisson spatial.
 - Matrix side (separate reviewed PR): add capability-status rows for labelled ordinary Poisson/NB2 and NB2 structured sigma before recording them; apply the row proposals only after the Julia pin moves.
 - Still not shown: mesh/SPDE spatial, structured-sigma REML, bridge parity for any wave 3 to 5 route, coverage or recovery, offsets for NB2, Julia-side multistart on Poisson spatial beyond the one probe.
+
+### Corrections of 2026-11-08 (after an independent audit; no verdict changed)
+
+- Labelled-ordinary counts: 15 fits have a log-lik gap above 1e-6 (14 `lord_nb2`, 12 of them with both fits converged, plus 1 `lord_poisson`, seed 41), and 22 of 600 fits have R rho at or above 0.99999 (20 NB2, 2 Poisson). Earlier text said 13 plus 1 and 15 of 600.
+- The R-SE-unit flag missed 25 seeds whose absolute coefficient difference exceeds 1e-3 (boundary signature, log-lik gap below 1e-6, not diagnosed); `scale300/aggregate_from_csv.R` now flags them. 50 Julia SEs are `Inf` and 3 R SEs are `NA`; SE agreement is not established for those seeds.
+- Row proposals were tightened (row 2 conditional on the wave-5 fix merging plus a q3/q4 campaign; rows 12, 13 and 15 held at PARTIAL; row 20 Poisson via `animal()` only; the new labelled-ordinary row reads "Julia-only syntax; matches R's unlabelled equivalent"), and the claim text is `agreement-at-optimum (native Julia vs native R, ML)`, not "covered". See the Revision section of `PROPOSED-verdict-flips.md`.
+- Gamma crossed: log-lik gap 0.016 (2 x gap = 0.03); sd(id) slope differs 1.9 SE; R lands on the lower optimum in 25 of 30 random starts. The earlier wording "statistically indistinguishable" was too strong.
+- Comparison scripts: `multiseed2/compare2.R` now checks the Julia block labels against R's names (all 120 fits pass); `wave4-reml/compare.R` no longer claims a name check (Julia files carry no names) and `compare.out` now prints log-lik differences and convergence columns.

@@ -1,6 +1,6 @@
 # Wave 5: Gaussian ordinary q2 line-search failure, and Poisson spatial seed 147
 
-Reader: whoever decides whether the Gaussian ordinary SD-regression route can claim agreement with native drmTMB on every simulated dataset. Julia branch `claude/ordinary-robust-linesearch-20261108` (commit `346968b2b`, on top of `04581709d`), pushed. This is agreement of two implementations at the maximum-likelihood optimum, not a coverage claim.
+Reader: whoever decides whether the Gaussian ordinary SD-regression route can claim agreement with native drmTMB on every simulated dataset. Julia branch `claude/ordinary-robust-linesearch-20261108` (commit `346968b2b`, on top of `04581709d`), pushed (later folded into PR #1266, tip `e5ae24539`). This is agreement of two implementations at the maximum-likelihood optimum, not a coverage claim.
 
 ## Root cause (36/300 seeds failing with `isfinite(phi_c) && isfinite(dphi_c)`)
 
@@ -47,7 +47,7 @@ Sibling check: Gaussian animal (`gauss_animal`, 300 seeds, Julia 1.10.12 and 1.1
 
 Passed on 1.12.6: `test_gaussian_ordinary_q2_sd`, `q3_q4_sd`, `test_gaussian_structured_q2_sd`, `test_q2_sd_simulate`, `test_q2_structured_vcov`, `test_betabinomial_sd_regression`, `test_poisson_animal_intercept_slope_sd`, `test_poisson_relmat_intercept_slope_sd`, `test_labelled_ordinary_q2_sd`, `test_labelled_rho_q2_sd`, `test_nb2_spatial_slope_sd_regression`, `test_spatial_coord_poisson`, `test_lss_group`, both new tests, and `test_skewnormal.jl` in the same process afterwards (each batch ends with it). On 1.10.12: the Gaussian files, `test_q2_sd_simulate`, `test_q2_structured_vcov`, both new tests and `test_skewnormal.jl`.
 
-Failures that are **not** caused by this change (identical numbers on the unfixed source, same Julia 1.12.6 Mac; not touched): `test_binomial_animal_q2_sd.jl` (2 failures, 1 error: slope-SD recovery 0.587 and 0.584 against 0.45; bootstrap refit), `test_phylo_spatial_q2_sd.jl` ("phylo nb2" stderror not finite), `test_labelled_phylo_spatial_q2_sd.jl` (three failures: NB2 phylo rho, labelled spatial Poisson log-likelihood 600.956 against oracle 604.101 and rho). These are separate pre-existing items to triage.
+Failures that are **not** caused by this change (identical numbers on the unfixed source, same Julia 1.12.6 Mac; not touched): `test_binomial_animal_q2_sd.jl` (2 failures, 1 error: slope-SD recovery 0.587 and 0.584 against 0.45; bootstrap refit), `test_phylo_spatial_q2_sd.jl` ("phylo nb2" stderror not finite), `test_labelled_phylo_spatial_q2_sd.jl` (three failures: NB2 phylo rho, labelled spatial Poisson log-likelihood 600.956 against oracle 604.101 and rho). **Correction (2026-11-08, after triage):** these were not all pre-existing. `test_phylo_spatial_q2_sd` and `test_labelled_phylo_spatial_q2_sd` failed on Julia 1.12 only because their fixtures used `MersenneTwister` streams that differ between Julia 1.10 and 1.12 (datasets differ; verified by swapping datasets), plus one real latent bug (`scales[:cond_failed] = 1.0` into a `Dict{Symbol,Vector{Float64}}` threw `MethodError`); both are fixed on the wave-4 branch (#1266) with version-independent committed fixtures (`test/fixtures/q2_stable`). `test_binomial_animal_q2_sd.jl` fails on 1.12 on origin/main too (main has the file). The reconciled list is item 8 of `../PROPOSED-verdict-flips.md`.
 
 ## 4. Poisson spatial q2 seed 147
 
