@@ -101,3 +101,50 @@ Julia side: draft PR itchyshin/DRModels.jl#1263, stacked on #1261, branch `claud
 Suite result on the merge tip: four shards. Seven files fail identically on origin/main. One extra failure, `test_skewnormal.jl`, was a test-isolation defect: two new test files used a bare `using Distributions`, which made `SkewNormal` ambiguous for later files in the same process. Fixed by importing only the needed names; the three files re-ran clean together. The whole suite was not re-run after that test-only change.
 
 Not agreeing: Gamma crossed joint mu+sigma (different local maxima, 0.016 log-likelihood gap). Open: Poisson phylo slope-SD SE gap of 3e-3 relative; labelled phylo/spatial; mesh/SPDE; REML; NB2/Gamma structured sigma; multi-seed evidence. No parity verdict was changed; flips remain proposals in `PROPOSED-verdict-flips.md`.
+
+## Waves 3 to 5 addendum (2026-11-08)
+
+Reader: the reviewer of evidence PR #1684 and whoever writes the verdict PR. Per-row proposals, with numbers, are in `parity-crosswalk-evidence-20261107/PROPOSED-verdict-flips.md` (section "Waves 3 to 5"). This addendum records what was done and what went wrong. No parity verdict, `tools/write-parity-matrix.R` or test file was changed; nothing here is a claim of validated coverage.
+
+### Julia side
+
+- Wave 3: itchyshin/DRModels.jl PR #1264, tip `04581709d`. Labelled (correlated) phylo and spatial q2 with one SD formula per coefficient; labelled ordinary `(1 + x | p | g)` for Poisson and NB2.
+- Waves 4 and 5: integration branch `claude/wave4-merge-20261108`, not yet a PR, full Julia suite still running. Components: Gaussian structured q2 REML (`claude/gaussian-sd-reml-20261108`), NB2 structured sigma and Julia-only NB2/Gamma structured sigma with SD formula (`claude/nb2-gamma-structured-sigma-20261108`), conditional quantile residuals and `Ainv` for Gamma and Gaussian (`claude/postfit-cond-residuals-20261108`), the Gaussian ordinary line-search guard and the Poisson spatial second start (`claude/ordinary-robust-linesearch-20261108`, `346968b2b`). The Gamma crossed diagnosis branch has no commits: no source change was needed.
+
+### Evidence folders added (drmTMB side, under `parity-crosswalk-evidence-20261107/`)
+
+`multiseed` (7 routes x 10 seeds), `multiseed2` (12 routes x 10 seeds plus 10 refusal checks), `scale300` (9 routes x 300 seeds, 2,700 pairs, Totoro, 119 s wall against a 5 minute estimate), `wave3-labelled-phylo-spatial`, `wave3-labelled-ordinary`, `wave4-gamma-crossed-diagnosis`, `wave4-structured-sigma`, `wave4-reml`, `wave4-postfit`, `wave5-ordinary-robust`. Raw per-seed fits (about 130 MB) stay on Totoro and were not committed.
+
+### Results in one place
+
+- Where both fits are at an interior optimum, the two packages agree to optimiser tolerance: median differences 1e-10 to 4e-6 R-SE units over 300 seeds per route.
+- Gamma crossed joint mu+sigma is outer bimodality: two optima 0.016 apart with a barrier of about 0.7; Julia's default start lands on the higher one (16 of 30 random Julia starts reach it, 5 of 30 R starts). Oracle value at Julia's estimate -832.50851620, at R's -832.52452715. Not an engine defect; no Julia change.
+- Gaussian ordinary q2 line-search failure: 36 of 300 seeds (Julia 1.10.12) and 26 of 300 (1.12.7) before the fix; 0 of 1,200 after, agreeing with R to 9.8e-10 R-SE units. Fits that already worked are bit-identical.
+- Poisson spatial q2 is the weakest route: of 300 seeds, 7 are beyond 1e-3 R-SE. Five are R stopping at a lower maximum, one (seed 147) is Julia stopping 1.02 lower (fixed by a second start; 299 of 300 datasets unchanged), one is boundary non-identification. The `multiseed` seed 9 slope-SD boundary is a flat direction, not a different maximum.
+- Labelled spatial Gaussian seed 2 is at the rho = 0.999999 bound in both packages; a dense oracle gives the same likelihood at both estimates.
+- REML (30 fits, six shapes native R accepts): coefficients within 9.3e-8, REML log-lik within 8.1e-10.
+- Conditional quantile residuals now match what native R does for fitted rows (conditional on the Laplace modes): conditional mean 2.2e-7 relative, PIT bounds 8.2e-8, all count rows inside R's PIT interval.
+
+### What did not go smoothly
+
+- Julia's first Gaussian REML carried `beta_mu` as a free coordinate and stopped 5.13 log-lik units below R's optimum on relmat seed 4. The objective was right and the optimiser was not; profiling `beta_mu` by GLS fixed it. A multi-start was tried first and did not help.
+- The requested multi-seed route "labelled-rho Poisson ordinary" did not exist in Julia at the time; `multiseed` substituted the structured labelled Poisson route and says so.
+- The Gaussian ordinary failure was reproducible only by seed and platform; the failing set changes with Julia version and BLAS, so a fixed seed list is not a regression test. The Julia regression test uses a toy objective that reproduces the failure mode plus two campaign datasets.
+- Julia 1.12.6 on the Mac: `test_binomial_animal_q2_sd.jl`, `test_phylo_spatial_q2_sd.jl` and `test_labelled_phylo_spatial_q2_sd.jl` fail with identical numbers on the unfixed source. They predate this work and need triage; the last two sit on routes the wave-3 rows depend on.
+- Gaussian relmat seed 1 under ML: Julia is higher by 3.57 log-lik (REML on the same data agrees to 1e-10). Same bimodality kind as Gamma crossed; not diagnosed.
+
+### What R cannot check (oracle-only, not "agrees with R")
+
+Labelled ordinary Poisson and NB2 (R refuses the labelled form; the evidence compares with R's unlabelled fit of the same model), labelled spatial NB2, SD formulas on labelled phylo (Poisson), every structured sigma term with an SD formula, and every Gamma structured sigma term. Gamma ordinary correlated is refused by both. REML is compared only on shapes R accepts; ordinary q2/q3/q4 and joint mu+sigma `sd()` REML are refused by both. Structured-sigma REML is not implemented in Julia although R fits it.
+
+### Consistency audit
+
+- R was not edited. One R documentation discrepancy was found: the header of `R/adequacy.R` and the `newdata` paragraph of `fitted_distribution()` say residuals are population-level, but for fitted rows they are conditional on the modes. Follow-up for a docs lane.
+- The labelled relmat multi-seed evidence runs through `animal(..., A)`; animal and relmat share the raw matrix, so the relmat path is not separately exercised by seeds.
+- Wald coverage in `scale300` is informational only (0.84 to 0.99); the Poisson spatial row may reflect generator-kernel mismatch.
+
+### Known limitations and next actions
+
+- Julia side: open a PR for `claude/wave4-merge-20261108` after its full suite finishes; triage the three failing test files above; decide whether to give NB2 spatial and the other structured routes the same second-start check as Poisson spatial.
+- Matrix side (separate reviewed PR): add capability-status rows for labelled ordinary Poisson/NB2 and NB2 structured sigma before recording them; apply the row proposals only after the Julia pin moves.
+- Still not shown: mesh/SPDE spatial, structured-sigma REML, bridge parity for any wave 3 to 5 route, coverage or recovery, offsets for NB2, Julia-side multistart on Poisson spatial beyond the one probe.
