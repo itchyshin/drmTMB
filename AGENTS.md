@@ -50,7 +50,9 @@ regression using Template Model Builder.
    `docs/design/03-likelihoods.md`.
 5. Do not add random effects before fixed-effect likelihoods are tested.
 6. Keep pull requests small and focused.
-7. Every meaningful change should update `docs/dev-log/check-log.md`.
+7. Every meaningful change should add a shard under
+   `docs/dev-log/check-log.d/` (`YYYY-MM-DD-<slice>.md`). Do not append
+   new slices to the frozen `docs/dev-log/check-log.md` (#1113).
 8. Every completed task or phase should create an after-task or after-phase
    report following `docs/design/10-after-task-protocol.md`.
 9. If code is ported from `gllvmTMB` or another package, document provenance in
@@ -128,7 +130,7 @@ must follow the same project rules:
 - prefer small, reviewable commits or pull requests.
 
 When an agent hands work to another agent, leave enough context in
-`docs/dev-log/check-log.md` or the relevant issue/PR for the next agent to
+`docs/dev-log/check-log.d/` or the relevant issue/PR for the next agent to
 continue without rediscovering the whole problem.
 
 Claude Code should read this file first. It should not introduce a parallel

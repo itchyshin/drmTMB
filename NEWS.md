@@ -1,3 +1,29 @@
+# drmTMB 0.8.1
+
+* `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
+  `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
+  log-densities that the response kernels gained in #1547. The old inline
+  `lgamma()` forms lost up to 6e-7 per observed predictor at phi or shape
+  1e8. The R-side beta-binomial pmf behind `beta_binomial()` residuals and
+  quantiles, and the R density for beta-binomial `mi()` predictors, now use
+  the same cancellation-free gamma-function ratio as the compiled kernel.
+  Values at ordinary shape are unchanged to rounding (#1548).
+
+* Fixed-effect normal priors and ridge penalties now support Gaussian mean formulas with one independent random intercept. Priors can target mean and residual log-SD coefficients; the group SD remains estimated without a prior. The admitted route remains ML with complete data, unit weights and dense full-rank fixed designs.
+
+* Heritability, ICC and repeatability confidence intervals refuse active fixed-prior MAP fits. Existing interval and likelihood-comparison restrictions remain.
+
+* `vcov()` no longer tells you to refit with `drm_control(se = TRUE)` when
+  `se = TRUE` was already set and the Hessian is not positive definite; it now
+  points to a boundary or aliased/collinear column and `check_drm()` (#1470).
+
+* `engine = "julia"` Gaussian `spatial(1 | site, coords = coords)` now matches
+  per-site `coords` rows to sites by row name, as `engine = "tmb"` does. The
+  bridge used to drop the row names, so labelled coordinates in any order other
+  than first appearance in `data` were paired with the wrong sites. A live
+  regression test now checks that a labelled `relmat()` K in sorted or
+  shuffled order gives the native logLik through the bridge (#1512).
+
 # drmTMB 0.8.0
 
 * Add explicit fixed-effect normal priors and ridge penalties for ordinary Gaussian location-scale and binomial-logit models. Select each distributional parameter and coefficient, with explicit intercept handling for whole-block selectors. Fits report penalized/MAP estimates and local curvature; confidence intervals and likelihood comparisons remain unavailable. Random-effect SD priors and tmbstan are outside this slice.
@@ -973,9 +999,6 @@ parity or calibrated intervals.
   compare each input across Julia and native TMB and compare `A` with `Ainv`.
   Profile/bootstrap refitting for this route and interval calibration remain
   unverified. The existing Poisson animal-intercept `Ainv` route is unchanged.
-* `vcov()` no longer tells you to refit with `drm_control(se = TRUE)` when
-  `se = TRUE` was already set and the Hessian is not positive definite; it now
-  points to a boundary or aliased/collinear column and `check_drm()` (#1470).
 
 ## New features
 
@@ -1101,12 +1124,6 @@ parity or calibrated intervals.
 
 ## Bug fixes
 
-* `engine = "julia"` Gaussian `spatial(1 | site, coords = coords)` now matches
-  per-site `coords` rows to sites by row name, as `engine = "tmb"` does. The
-  bridge used to drop the row names, so labelled coordinates in any order other
-  than first appearance in `data` were paired with the wrong sites. A live
-  regression test now checks that a labelled `relmat()` K in sorted or
-  shuffled order gives the native logLik through the bridge (#1512).
 * Fit warnings and `check_drm()` now report active direct latent-SD clamps
   separately from residual-scale clamps. Start checks include direct SD
   regression coefficients. Residual-scale accessors keep their existing scope.
