@@ -4,6 +4,7 @@
 ^\.unlazy$
 ^\.git$
 ^\.github$
+^codecov\.yml$
 ^scratchpad$
 ^bench$
 ^data-raw$

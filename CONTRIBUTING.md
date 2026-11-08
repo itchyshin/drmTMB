@@ -39,3 +39,12 @@ install 7.3.2 (for example `remotes::install_version("roxygen2", "7.3.2")`)
 before running `devtools::document()`.
 
 Long simulation studies should live outside CRAN-time tests.
+
+## Test coverage
+
+Line coverage is measured with covr on GitHub Actions (`test-coverage`), using
+the same `DRMTMB_TEST_SHARD="k/4"` partition as repository CI so each test file
+is counted once, on Ubuntu and R-release only. Codecov upload uses GitHub OIDC
+from a separate main-only workflow (`codecov-upload`). Pull requests generate
+coverage reports but do not receive upload credentials. Do not add a coverage
+badge until a main-branch Codecov report exists for a tested commit.
