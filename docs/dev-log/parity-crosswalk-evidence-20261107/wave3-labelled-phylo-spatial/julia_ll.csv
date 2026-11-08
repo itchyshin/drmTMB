@@ -1,0 +1,8 @@
+family,kind,const_sd,ll,converged
+poisson,phylo,false,-1840.1863949690517,true
+poisson,phylo,true,-1842.3413724558764,true
+nb2,phylo,false,-1927.1049292111788,true
+gaussian,phylo,false,-901.3717606039668,true
+poisson,spatial,false,-1759.1769161838122,true
+nb2,spatial,false,-1913.4567011520494,true
+gaussian,spatial,false,-825.7116948655562,true
