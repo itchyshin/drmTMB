@@ -5,6 +5,8 @@ All flips are CONDITIONAL on the Julia work landing in DRModels.jl main and the 
 **Update of 2026-11-08 (later):** waves 6 to 9, `fuzz-gap-map/`, `metamorphic/`, `red-team/` and DRModels.jl draft PR #1268 (head `claude/wave6-rtfix-20261108`, stacked on #1266) are summarised in the last section, "Waves 6 to 9 and the adversarial checks". That section adds new honest gaps; the older sections are unchanged.
 
 
+**Update of 2026-11-09:** the wave-8 gap map, the classification of the 54 log-likelihood disagreements and DRModels.jl draft PR #1271 (wave 9, stacked on #1270) are summarised in the last section, "Waves 8 and 9: gap map, disagreement classes and PR #1271". Every flip stays PROPOSED.
+
 ## Revision of 2026-11-08: corrections after an independent audit
 
 Reader: whoever writes the reviewed verdict PR. This section corrects the proposal text below where an audit found it wrong or too strong, and it **takes precedence** over any row below that disagrees with it. Each number was re-checked against the source CSV or README. No verdict file, `tools/write-parity-matrix.R` or test was edited.
@@ -309,3 +311,71 @@ Does not support:
 3. The q=4 residual after the kernel change is unexplained in the audit (Julia's log-likelihood sits 2e-5 to 9e-4 below R's, consistent with R stopping short, but not shown). The later `q4_f_reltol` run is the PR's evidence that Julia's default stops short; it is the PR's number only.
 4. The Gamma restart cost (about 6.4x per fit) is separate from the 7 to 10 times restart cost in #1268 noted above.
 5. The BLUP NaN path and the failed-fit bridge fields are tested on helpers or on the Julia side only.
+
+## Waves 8 and 9: gap map, disagreement classes and PR #1271 (added 2026-11-09)
+
+Reader: whoever writes the reviewed verdict PR. Nothing below is a verdict change. Every flip is still PROPOSED and CONDITIONAL on the Julia stack landing in DRModels.jl main and on the Julia pin (`tools/parity-pin.R`) moving past it; flips happen only in a separate reviewed drmTMB PR after that. No parity matrix row, verdict file, `R/`, `src/` or test was edited here. I re-ran no R or Julia fit; every number is copied from the file named beside it.
+
+### Julia stack (all DRAFT, all unmerged, state read from GitHub on 2026-11-09)
+
+DRModels.jl PRs #1261, #1263, #1264, #1266, #1267, #1268, #1270 (waves 1 to 8, described in the sections above) and **#1271** (wave 9, head `claude/wave9-integration-20261109`, tip `f6417475b`, stacked on #1270). #1271 adds Gaussian REML on slope-only, independent multi-term (crossed up to 200 columns), one `relmat` or `animal(1 | g)`, and `phylo(1 + x | g)` with two SDs; Gaussian SD-gap shapes (dense correlated block plus intercept, independent slopes with `sd()`, q3/q4 and labelled blocks without `sd()`); and the classification note for the 54 disagreements. Its stated suite result on the exact tip (604 files, Totoro): Julia 1.10.12 passes all files; Julia 1.12.7 fails only five known files that also fail on `origin/main` and #1270 (`test_stored_loglik_at_optimum`, `test_binomial_spatial_sd_regression`, `test_locscale_raw_k_regression`, `test_relmat_raw_k_regression`, `test_reml_q4_missing_response`). That is the PR's statement, not something I verified. A wave-10 PR (Binomial independent sd-z restarts, stacked on #1271) is in preparation; it has no number and no evidence yet.
+
+### Wave-8 gap map (new evidence, cited, not merged)
+
+Branch `origin/claude/gap-map-wave8-20261108` on drmTMB (tip `6a7c37c0f`, 1457 files in the tree), folder `docs/dev-log/parity-crosswalk-evidence-20261107/fuzz-gap-map-wave8/`. The branch is not merged into this PR; this file cites its README and `maps/w8/summary.json`. It reruns the 3008-cell refusal fuzz of `fuzz-gap-map/` on the wave-8 Julia tip (`479bbf963`, #1270) against R drmTMB 0.8.1, Julia 1.10.12, one dataset and one seed per cell.
+
+| Class (3008 cells) | Original map | Wave 8 |
+| --- | --- | --- |
+| Both fit, log-likelihoods agree within 1e-4 | 175 | 228 |
+| Both fit, log-likelihoods disagree | 56 | 54 |
+| Julia refuses, R fits ("Julia behind") | 181 | 139 |
+| Julia fits, R refuses ("R behind") | 23 | 23 |
+| Both refuse | 1838 | 2558 |
+| Crash (uncaught error) | 729 (Julia) | 0 |
+| Non-converged | 4 | 5 |
+| Timeout | 2 | 1 |
+
+Julia behind, counting refusals, non-converged and timeout cells together, is 145 on wave 8 (139 + 5 + 1), down from 164 on the old base and 196 in the original map, in 44 refusal signatures. R fits 427 cells; Julia fits 305 (original map 254). Between the old base and wave 8, 19 cells flipped from refusing to a fit that agrees with R (all Beta and Tweedie structured routes) and 0 got worse. Largest remaining Julia-behind groups: Gaussian REML routes 15, Gaussian `sd()` on `indep`/`crossed` 12, Gaussian labelled `(.. | p | g)` 10, Gaussian q = 3, 4 on `crossed`/`ordinary` 8. Not re-measured at wave 9 (see the gap statement below).
+
+### The 54 log-likelihood disagreements (classified)
+
+Source: DRModels.jl branch `claude/disagreements-wave8-20261109`, file `docs/dev-log/2026-11-09-wave8-disagreements.md` (carried into #1271). It classifies the 54 both-fit cells of the wave-8 map, Julia 1.10.12 on Totoro, one dataset and seed per cell.
+
+| Class | Cells | Meaning |
+| --- | --- | --- |
+| b, integrator | 47 | R's Laplace approximation against Julia's adaptive Gauss-Hermite quadrature. Exact quadrature says Julia's value is the accurate one (Julia within 2e-3 of exact in the 36 one-dimensional cells). R's Laplace value is below exact in 36 cells and above it in 10 (Poisson and Gamma slope-only, Tweedie). |
+| b, model | 3 | Different model on purpose: Julia estimates a spatial range (1 cell) or an intercept-slope correlation in an `animal()` block (2 cells) that R's fit does not have. |
+| c, optimum | 4 | 2 binomial spatial cells where R stops 1.5 to 1.8 nats below a point its own objective scores higher (R reports `is_converged() = FALSE`); 2 binomial independent-slope cells where Julia stops 1.3 to 2.0 nats below a point its own objective scores higher (single start on a ridge). |
+| d, Julia likelihood defect | 0 | |
+| a, constant or convention offset | 0 | |
+
+Reading for any row text:
+
+- **Cross-engine log-likelihood and AIC are not comparable on ordinary routes.** The two engines integrate differently, and the gap runs from 0.03 to 0.62 in the integrator cells (largest 1.8 overall, in a class c cell). The estimates are close: R's own objective at Julia's estimate is within 0.015 of R's optimum in all 36 one-dimensional cells.
+- **Tweedie.** Ordinary and slope-only Tweedie cells (6) are class b: the same density (identical fixed-effect fits, logLik -790.0291), R Laplace 0.03 to 0.08 above Julia's exact marginal. This resolves, for ordinary routes, the open item in "Honest findings added by waves 7 and 8" item 1 of the previous section. For the **structured** Tweedie routes (phylo, relmat) the earlier branch note says both engines use Laplace, so cross-engine log-likelihood is valid there only at the optimum estimates; I did not re-check that claim against the new note, which covers ordinary routes only.
+- **Julia's own two integrators.** Plain correlated blocks use Gauss-Hermite and the same model written with `sd()` formulas uses Laplace (agrees with R to 1e-10). In G9, the Poisson q=2 model differs 0.03 between the two Julia routes and NB2 0.24.
+- **Not fully resolved by the note:** cells 2 and 5 (Julia lower; the better point is an extreme-slope ridge, not shown to be a maximum, Julia refuses `start =` on mixed models so there is no supported restart); cell 9 (binomial independent q=4 sd-z, class from cross-evaluation only); cells 11, 19, 53 (parameter vectors do not line up). Julia 1.12 not run.
+
+### Proposed new evidence rows (all PROPOSED)
+
+| Row | Evidence | Proposed wording if a flip is ever written | Condition |
+| --- | --- | --- | --- |
+| Wave-8 gap map, whole-grid status | `fuzz-gap-map-wave8/` (branch above) | Not a verdict. Cite the 228 agreeing, 54 disagreeing, 145 Julia-behind counts as the wave-8 state of the refusal grid. | Branch merged or its README cited by commit. |
+| Disagreement classification, 54 cells | `2026-11-09-wave8-disagreements.md` | Log-likelihood differences between engines on ordinary routes are integrator differences (47), deliberate model differences (3) or an optimum difference (4); no Julia likelihood defect found. | #1271 landing; text must say log-likelihood and AIC are not comparable across engines on ordinary routes. |
+| Gaussian REML, new routes (#1271) | PR description: agree with drmTMB `REML = TRUE` on small committed datasets, one per route | agreement-at-optimum (native Julia vs native R, REML) for slope-only, independent multi-term, one `relmat`/`animal(1 \| g)`, `phylo(1 + x \| g)` with two SDs. | #1271 landing and the pin moving; each shape needs a capability-status row first. I did not read the datasets or tolerances. |
+| Gaussian SD-gap shapes (#1271) | PR description; pre-registered thresholds are in the Julia `docs/dev-log/` (not read) | Only as agreement-at-optimum, per shape, after reading the thresholds. | Same; Group F of the SD gaps is still refused. |
+
+### Honest gaps (waves 8 and 9)
+
+1. **Julia-behind cells remaining.** The wave-8 count is 145 (139 refusals, 5 non-converged, 1 timeout). Wave 9 closed some of them (Gaussian REML routes and SD-gap shapes); I did not re-measure the grid on the #1271 tip, so I do not give a new count. The Gaussian REML group alone was 15 cells at wave 8, and Group F of the SD gaps stays refused.
+2. **Censored routes cannot be compared.** drmTMB has no censored likelihood (issue 1455); no Julia censored route was added.
+3. **Bivariate q=4 default tolerance** stops about 1e-3 short of the optimum on flat ridges; agreement to 1e-4 needs `q4_f_reltol = 1e-12` (PR #1270 statement; see the previous section).
+4. **Binomial q=1 spatial** is left on the old mean-distance kernel (PR #1270 and the audit). drmTMB has no Binomial spatial route.
+5. **Class c cells.** Two binomial independent-slope cells (2, 5) leave Julia at a lower optimum with no supported restart; a wave-10 PR (Binomial independent sd-z restarts) is in preparation. Until it lands and is checked, no Binomial independent sd-z flip.
+6. **Wave-9 REML agreement** is small committed datasets, one per route, with no bootstrap or profile intervals (PR #1271).
+7. **Single seed and single Julia version.** The gap map and the classification use one dataset per cell and Julia 1.10.12; Julia 1.12 was not run for either.
+8. **Wave 9 evidence in this folder (`wave9-gap-close/`) predates #1271** and covers a different set of shapes (structured q2 default SDs, Gamma phylo/spatial); it is described in the previous sections.
+
+### Updated tally (waves 8 and 9)
+
+No verdict row changed. Proposed new evidence rows: 4 (above). Rows that gain support only after #1271 lands: Gaussian REML new routes, Gaussian SD-gap shapes. Rows explicitly not supported: any Binomial independent sd-z agreement, Gamma sd-z, q=4 at default tolerance, failed-fit bridge handling, censored shapes.

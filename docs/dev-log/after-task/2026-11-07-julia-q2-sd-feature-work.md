@@ -241,3 +241,34 @@ DRModels.jl draft PR #1270, head `claude/wave8-integration-20261108` (tip `479bb
 
 - Verdict flips remain PROPOSED, conditional on #1270 and its stack landing and the pin moving. The evidence supports agreement-at-optimum wording for Beta structured SD, Tweedie phylo/relmat (not phylo sd-z), Gaussian structured-sigma REML, the Gamma spatial q=1 kernel and bivariate q=2. It does not support q=4 at default settings, Gamma sd-z, failed-fit handling through the bridge or any censored shape. Details in `PROPOSED-verdict-flips.md`, section "Waves 7 and 8".
 - Next: a separate drmTMB PR for the R-side failed-fit fields; resolve the Tweedie integrator wording; decide whether to repeat the Beta check against 0.8.1 and on Julia 1.12.
+
+## Waves 8 and 9 addendum: gap map, 54 disagreements, DRModels.jl #1271 (2026-11-09)
+
+Reader: whoever reviews PR #1684 or writes the later verdict PR. This lane edited only this file, `parity-crosswalk-evidence-20261107/PROPOSED-verdict-flips.md` and a new `check-log.d` file. No `R/`, `src/`, `NAMESPACE`, parity matrix, verdict file or test was changed, and no verdict flipped. I re-ran no R or Julia fit; numbers are copied from the files named below.
+
+### Julia side
+
+All DRAFT and unmerged (state read from GitHub 2026-11-09): DRModels.jl #1261, #1263, #1264, #1266, #1267, #1268, #1270 (waves 1 to 8) and #1271 (wave 9: Gaussian REML routes, Gaussian SD-gap shapes, classification of the 54 disagreements; head `claude/wave9-integration-20261109`, tip `f6417475b`, stacked on #1270). #1271 states: full suite on the exact tip, Julia 1.10.12 clean, Julia 1.12.7 only the five known failing files. That is the PR's statement, not verified here. A wave-10 PR (Binomial independent sd-z restarts, stacked on #1271) is in preparation.
+
+### Results
+
+- Wave-8 gap map (drmTMB branch `origin/claude/gap-map-wave8-20261108`, tip `6a7c37c0f`, not merged; cited from its README and `maps/w8/summary.json`), 3008 cells: 228 agree within 1e-4, 54 fit in both with log-likelihoods that disagree, 139 Julia refuses while R fits (145 Julia-behind with 5 non-converged and 1 timeout), 23 R refuses while Julia fits, 2558 both refuse, 0 crashes. R fits 427 cells and Julia 305. 19 cells moved from refusal to agreement between the old base and wave 8; none got worse.
+- The 54 disagreements (DRModels.jl `docs/dev-log/2026-11-09-wave8-disagreements.md`): 47 integrator (R Laplace against Julia adaptive Gauss-Hermite), 3 model (deliberate), 4 optimum (2 with R lower, 2 with Julia lower), 0 Julia likelihood defects, 0 constant offsets. Cross-engine log-likelihood and AIC are therefore not comparable on ordinary routes. Structured Tweedie routes use Laplace in both engines per the earlier branch note, so cross-engine log-likelihood is valid there only at the optimum estimates.
+
+### Honest gaps
+
+- Julia-behind: the wave-8 count is 145; wave 9 closed some of them and I did not re-measure on the #1271 tip.
+- Censored routes cannot be compared: drmTMB has no censored likelihood (issue 1455).
+- Bivariate q=4 default tolerance stops about 1e-3 short (agreement to 1e-4 needs `q4_f_reltol = 1e-12`).
+- Binomial q=1 spatial stays on the old mean-distance kernel.
+- Two binomial independent-slope cells leave Julia at a lower optimum with no supported restart; wave 10 is meant to address this.
+- Wave-9 REML agreement is one small dataset per route, no bootstrap or profile intervals; Julia 1.10.12 only for the map and the classification. Class assignment for cell 9 and cells 11, 19, 53 rests on weaker evidence (see the classification note).
+
+### What did not go smoothly
+
+The classification note's Tweedie statement (R Laplace against Julia exact quadrature) covers ordinary routes only. The earlier structured-route note says both engines use Laplace. I kept both statements and did not reconcile them for the structured routes.
+
+### Known limitations and next actions
+
+Verdict flips remain PROPOSED (see the section "Waves 8 and 9" in `PROPOSED-verdict-flips.md`) and happen only in a separate reviewed drmTMB PR after the Julia stack lands and the pin moves. Next: merge or pin-cite the gap-map branch, re-measure the grid on #1271, then on the wave-10 PR.
+
