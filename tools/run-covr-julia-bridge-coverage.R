@@ -30,11 +30,31 @@ layout_rc <- system2(
 )
 if (!identical(layout_rc, 0L)) fail("failed to plant 00_pkg_src for covr tests")
 
-plant_rc <- system2(
-  "bash",
-  c("tools/covr-plant-julia-bridge-testthat.sh", install_path, pkg_root)
+# CI-only: swap the sharded tests/testthat.R for the Julia allowlist driver
+# before covr installs. covr copies tests/ from the source tree; we restore on
+# exit so the workspace checkout is unchanged for later steps.
+driver <- file.path(pkg_root, "tools", "covr-julia-bridge-testthat.R")
+main_testthat <- file.path(pkg_root, "tests", "testthat.R")
+bak_testthat <- file.path(pkg_root, "tests", ".testthat.R.covr-julia-bak")
+if (!file.exists(driver)) fail("missing Julia covr driver: %s", driver)
+if (!file.exists(main_testthat)) fail("missing %s", main_testthat)
+if (!file.exists(bak_testthat)) {
+  if (!file.copy(main_testthat, bak_testthat)) {
+    fail("could not back up %s", main_testthat)
+  }
+}
+if (!file.copy(driver, main_testthat, overwrite = TRUE)) {
+  fail("could not plant Julia covr driver over %s", main_testthat)
+}
+on.exit(
+  {
+    if (file.exists(bak_testthat)) {
+      file.copy(bak_testthat, main_testthat, overwrite = TRUE)
+      unlink(bak_testthat)
+    }
+  },
+  add = TRUE
 )
-if (!identical(plant_rc, 0L)) fail("failed to plant Julia-bridge testthat driver")
 
 cov <- covr::package_coverage(
   quiet = FALSE,
