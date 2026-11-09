@@ -82,12 +82,12 @@ beta3         6.478771        8.881784e-16 8.401938e-14                      NA
 beta4         6.179116        8.881784e-16 6.196104e-13            2.753353e-14
 beta5         8.217738        1.776357e-15 3.275023e-14                      NA
          beta0     beta1     alpha    gamma        eta warnings
-beta  1.686235 0.7988730 -1.214268 1.325805 -1.5798970         
-beta1 1.680384 0.8001896 -1.224063 1.345141 -1.7479452         
-beta2 1.476238 0.7497272 -1.158873 1.209916 -0.8232533         
-beta3 1.682193 0.7953929 -1.215932 1.320318 -1.3885253         
-beta4 1.676357 0.7969578 -1.225988 1.338451 -1.5462470         
-beta5 1.484118 0.7585108 -1.167689 1.224762 -0.6477318         
+beta  1.686235 0.7988730 -1.214268 1.325805 -1.5798970
+beta1 1.680384 0.8001896 -1.224063 1.345141 -1.7479452
+beta2 1.476238 0.7497272 -1.158873 1.209916 -0.8232533
+beta3 1.682193 0.7953929 -1.215932 1.320318 -1.3885253
+beta4 1.676357 0.7969578 -1.225988 1.338451 -1.5462470
+beta5 1.484118 0.7585108 -1.167689 1.224762 -0.6477318
 
 Provenance
 R version 4.6.0 (2026-04-24)
@@ -95,7 +95,7 @@ Platform: aarch64-apple-darwin23
 Running under: macOS Tahoe 26.7.2
 
 Matrix products: default
-BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
 LAPACK: /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
 
 locale:
@@ -105,20 +105,20 @@ time zone: America/Edmonton
 tzcode source: internal
 
 attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
+[1] stats     graphics  grDevices utils     datasets  methods   base
 
 other attached packages:
-[1] numDeriv_2016.8-1.1 jsonlite_2.0.0      glmmTMB_1.1.14     
+[1] numDeriv_2016.8-1.1 jsonlite_2.0.0      glmmTMB_1.1.14
 
 loaded via a namespace (and not attached):
- [1] nlme_3.1-169       cli_3.6.6          rlang_1.2.0        TH.data_1.1-5     
- [5] estimability_2.0.0 reformulas_0.4.4   xtable_1.8-8       minqa_1.2.8       
- [9] zoo_1.8-15         TMB_1.9.21         lme4_2.0-1         grid_4.6.0        
-[13] MASS_7.3-65        mvtnorm_1.4-1      compiler_4.6.0     multcomp_1.4-31   
-[17] codetools_0.2-20   sandwich_3.1-1     emmeans_2.0.3      coda_0.19-4.1     
-[21] Rcpp_1.1.1-1.1     mgcv_1.9-4         lattice_0.22-9     nloptr_2.2.1      
-[25] Rdpack_2.6.6       splines_4.6.0      rbibutils_2.4.1    Matrix_1.7-5      
-[29] tools_4.6.0        boot_1.3-32        survival_3.8-6    
+ [1] nlme_3.1-169       cli_3.6.6          rlang_1.2.0        TH.data_1.1-5
+ [5] estimability_2.0.0 reformulas_0.4.4   xtable_1.8-8       minqa_1.2.8
+ [9] zoo_1.8-15         TMB_1.9.21         lme4_2.0-1         grid_4.6.0
+[13] MASS_7.3-65        mvtnorm_1.4-1      compiler_4.6.0     multcomp_1.4-31
+[17] codetools_0.2-20   sandwich_3.1-1     emmeans_2.0.3      coda_0.19-4.1
+[21] Rcpp_1.1.1-1.1     mgcv_1.9-4         lattice_0.22-9     nloptr_2.2.1
+[25] Rdpack_2.6.6       splines_4.6.0      rbibutils_2.4.1    Matrix_1.7-5
+[29] tools_4.6.0        boot_1.3-32        survival_3.8-6
 GLMMTMB_ORACLE_COMPARISON_PASS
 real 1.45
 user 1.22

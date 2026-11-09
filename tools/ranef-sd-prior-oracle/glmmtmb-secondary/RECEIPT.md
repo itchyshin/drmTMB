@@ -17,6 +17,6 @@ Command from this directory: `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 /usr/bin/
 
 ## Provenance
 
-`compare.log` records R 4.6.0, macOS aarch64, glmmTMB 1.1.14, TMB 1.9.21, numDeriv 2016.8-1.1 and other loaded versions. The glmmTMB binary SHA-256 was `8efd2fb4ccec944c66541a44c1ce95d78ce9e1dfde2175b01761f0e633f35955`; its installed DESCRIPTION SHA-256 was `919b899db9f41dc8c954430779ff0d8ea2d0f4fd89726e11b704d24f6d98d38f`. This identifies the installed binary and metadata, not its complete source history.
+`compare.log` is the captured rerun with trailing whitespace removed; the unmodified output is retained in the external evidence directory. It records R 4.6.0, macOS aarch64, glmmTMB 1.1.14, TMB 1.9.21, numDeriv 2016.8-1.1 and other loaded versions. The glmmTMB binary SHA-256 was `8efd2fb4ccec944c66541a44c1ce95d78ce9e1dfde2175b01761f0e633f35955`; its installed DESCRIPTION SHA-256 was `919b899db9f41dc8c954430779ff0d8ea2d0f4fd89726e11b704d24f6d98d38f`. This identifies the installed binary and metadata, not its complete source history.
 
 Frozen oracle SHA-256: `fixture.json` `01b27cca962c4cda5c8b0f4edb39a91204c6b979a002d34df8934997136dba13`; `expected.json` `3103ae0cb20c9afad79ea5f25cf144d3c5410decca47b32c4abd6d53848d7a30`; `expected_noninteger.json` `b40f23b97a16f14959dd068549a6b211ad847eb463d99b8e1789bd1dda02c824`; `fitted_optima.json` `c7536c9d37090cd022a6275d27de277bc6b33af50c336d459b2a3b8fa2a24bbc`. The comparison script SHA-256 is `9fe65e41447d3e26a8388f0e7b68cf1bc046912587d652f997c4bfbd51862c60`.
