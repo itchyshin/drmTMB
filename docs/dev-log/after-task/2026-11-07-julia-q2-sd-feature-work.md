@@ -204,3 +204,40 @@ DRModels.jl draft PR #1268, head `claude/wave6-rtfix-20261108`, stacked on #1266
 - Verdict flips remain PROPOSED, conditional on the #1268 stack landing in DRModels.jl main and the pin moving; no row proposal changed in this lane.
 - The verdict-PR author must map Binomial phylo/spatial q2, labelled Binomial phylo, bare structured q2 and Gamma phylo/spatial (sd-one only) to matrix rows, and add the capability-status rows first.
 - Source for the "7 to 10 times" and "0.28" figures should be added to the folders or removed.
+
+
+## Waves 7 and 8 addendum: DRModels.jl draft PR #1270 (2026-11-08, later)
+
+Reader: whoever reviews PR #1684 or writes the later verdict PR. This lane edited only this file, `parity-crosswalk-evidence-20261107/PROPOSED-verdict-flips.md` and a new `check-log.d` file. No `R/`, `src/`, `NAMESPACE` or parity matrix was changed. All numbers come from the #1270 description and four files on its branch (the spatial-kernel audit, the Tweedie structured-SD note, the structured-sigma REML design doc and `docs/src/capabilities.md`). I re-ran no fit and did not check out the branch.
+
+### Julia side
+
+DRModels.jl draft PR #1270, head `claude/wave8-integration-20261108` (tip `479bbf963`), stacked on #1268 (`claude/wave6-rtfix-20261108`). Full suite on Totoro with the shard driver (602 files): Julia 1.10.12 all pass; Julia 1.12.7 fails only the five files that also fail on `origin/main` and #1268 (baselines rerun on the previous tip, not this one). This is the PR's statement, not something I verified.
+
+### What landed
+
+- Beta structured SD, 7 shapes: log-likelihood within 2e-6 on 7 datasets, coefficients within 2.2e-7 on 6 non-boundary datasets. Reference drmTMB 0.8.0, not 0.8.1; 16 groups; Julia 1.10 only; no bootstrap or profile check.
+- Tweedie phylo and relmat intercepts: 9 of 10 fits agree to about 1e-7. The tenth (phylo, SD covariate) is R at a stationary point 2.7 nats worse than Julia's. No cross-engine log-likelihood or AIC. The PR says Laplace versus Gauss-Hermite; the branch note says both engines use Laplace on these structured routes. The two disagree and I did not resolve it.
+- Gaussian structured-sigma REML: 5 datasets, 61 of 61 checks; max log-likelihood difference 2.7e-12 (design doc).
+- Gamma spatial q=1 native kernel: maximum difference from R 2.1e-2 (0.17 R-SE units) to 7e-8.
+- Bivariate q=2 and q=4 native kernel: q=2 agrees (7e-7 to 1.6e-5 absolute in the audit). q=4 misses the audit's 1e-3 absolute bound on all three datasets; with the new `q4_f_reltol = 1e-12` the PR reports 1e-4 agreement in log-likelihood, and says the default stops up to about 1e-3 short.
+- Failed-fit NaN bridge (Julia side), NB2 `B > A` crash fix, guarded `cholesky` calls, Gamma sd-z alternative starts (2 of 3 known lower-mode seeds fixed, about 6.4x per fit). Censored routes not added (drmTMB has no censored likelihood, issue 1455).
+
+### What did not go smoothly
+
+- The R side of the failed-fit bridge is not done. `R/julia-bridge.R` near `new_drmTMB_julia` needs a change in a separate drmTMB PR.
+- The Tweedie phylo sd-z fit failed its pre-registered thresholds (reported, not dropped); the note also left open whether the non-finite R SEs on sd-none fits are R's reporting or its own extraction.
+- The audit's q=4 datasets missed the pre-registered bound; its own test uses a looser 1e-2 absolute bound and says so.
+
+### Honest gaps added
+
+1. Beta checked against 0.8.0 only; Julia 1.10 only; small datasets.
+2. q=4 default tolerance stops up to about 1e-3 short; `bootstrap_q4_phylo.jl` does not forward `q4_f_reltol`.
+3. Gamma sd-z: single-field `sd(g, phylo/spatial) ~ z` and NB2 two-field were not changed or tested; B2 seed 2 is Julia higher, R lower.
+4. Binomial q=1 spatial still uses the old mean-distance kernel; the Julia 1.12 probit failure is seed luck per the audit.
+5. The BLUP NaN path is unit-tested on the helper only. Older Gamma coordinate-spatial results shift (log SD up to about 0.02). REML still refuses on the other new routes.
+
+### Known limitations and next actions
+
+- Verdict flips remain PROPOSED, conditional on #1270 and its stack landing and the pin moving. The evidence supports agreement-at-optimum wording for Beta structured SD, Tweedie phylo/relmat (not phylo sd-z), Gaussian structured-sigma REML, the Gamma spatial q=1 kernel and bivariate q=2. It does not support q=4 at default settings, Gamma sd-z, failed-fit handling through the bridge or any censored shape. Details in `PROPOSED-verdict-flips.md`, section "Waves 7 and 8".
+- Next: a separate drmTMB PR for the R-side failed-fit fields; resolve the Tweedie integrator wording; decide whether to repeat the Beta check against 0.8.1 and on Julia 1.12.
