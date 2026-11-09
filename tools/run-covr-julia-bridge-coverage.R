@@ -56,11 +56,17 @@ on.exit(
   add = TRUE
 )
 
-cov <- covr::package_coverage(
-  quiet = FALSE,
-  clean = FALSE,
-  type = "tests",
-  install_path = install_path
+cov <- tryCatch(
+  covr::package_coverage(
+    quiet = FALSE,
+    clean = FALSE,
+    type = "tests",
+    install_path = install_path
+  ),
+  error = function(e) {
+    cat(sprintf("covr_package_coverage_error=%s\n", conditionMessage(e)))
+    NULL
+  }
 )
 
 routs <- list.files(
@@ -108,6 +114,8 @@ if (total > 0L && counts[["SKIP"]] / total > skip_frac_max) {
     total
   )
 }
+
+if (is.null(cov)) fail("covr::package_coverage did not return a coverage object")
 
 print(cov)
 pct <- covr::percent_coverage(cov)
