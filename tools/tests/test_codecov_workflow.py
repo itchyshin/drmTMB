@@ -18,6 +18,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PRODUCER = ROOT / ".github" / "workflows" / "test-coverage.yaml"
 UPLOADER = ROOT / ".github" / "workflows" / "codecov-upload.yaml"
 LAYOUT = ROOT / "tools" / "covr-source-tree-layout.sh"
+JULIA_TESTTHAT = ROOT / "tools" / "covr-julia-bridge-testthat.R"
+JULIA_PLANT = ROOT / "tools" / "covr-plant-julia-bridge-testthat.sh"
 
 CODECOV_ACTION = (
     "codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac"
@@ -124,14 +126,36 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertNotIn("token: ${{ secrets", self.uploader)
 
     def test_uploader_pins_all_four_shard_reports(self) -> None:
-        files_line = next(
-            line for line in _active_lines(UPLOADER) if "files:" in line
-        )
+        shard_files = [
+            line
+            for line in _active_lines(UPLOADER)
+            if "files:" in line and "main-coverage-shard-" in line
+        ]
+        self.assertEqual(len(shard_files), 1)
+        files_line = shard_files[0]
         for shard in (1, 2, 3, 4):
             self.assertIn(
                 f"main-coverage-shard-{shard}/cobertura.xml",
                 files_line,
             )
+
+    def test_uploader_pins_julia_bridge_report_with_flag(self) -> None:
+        julia_lines = [
+            line
+            for line in _active_lines(UPLOADER)
+            if "main-coverage-julia-bridge/cobertura.xml" in line
+        ]
+        self.assertEqual(len(julia_lines), 1)
+        self.assertIn("flags: julia-bridge", self.uploader)
+
+    def test_producer_has_separate_julia_bridge_job(self) -> None:
+        self.assertIn("julia-bridge-coverage:", self.producer)
+        self.assertIn("DRMTMB_JULIA_TESTS: true", self.producer)
+        self.assertIn("DRMODELS_JL_PATH:", self.producer)
+        self.assertIn("julia-actions/setup-julia@v3", self.producer)
+        self.assertIn("main-coverage-julia-bridge", self.producer)
+        self.assertIn("tools/covr-plant-julia-bridge-testthat.sh", self.producer)
+        self.assertIn("DRMTMB_COVERAGE_JULIA_FILTER", self.producer)
 
     def test_comment_cannot_satisfy_oidc_gate(self) -> None:
         mutated = re.sub(
@@ -160,6 +184,13 @@ class CodecovWorkflowTest(unittest.TestCase):
         )
         self.assertIn("sha_note=pull_request_merge_sha_is_not_branch_head", self.producer)
         self.assertNotIn("skip_on_covr", self.producer)
+
+    def test_julia_bridge_plant_script_and_driver_exist(self) -> None:
+        self.assertTrue(JULIA_TESTTHAT.is_file(), f"missing {JULIA_TESTTHAT}")
+        self.assertTrue(JULIA_PLANT.is_file(), f"missing {JULIA_PLANT}")
+        driver = JULIA_TESTTHAT.read_text(encoding="utf-8")
+        self.assertIn("DRMTMB_JULIA_TESTS", driver)
+        self.assertIn('filter = julia_filter', driver)
 
     def test_layout_script_plants_locator_walkup(self) -> None:
         self.assertTrue(LAYOUT.is_file(), f"missing {LAYOUT}")

@@ -40,12 +40,25 @@ jobs:
           merge-multiple: false
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
-      - name: Upload coverage to Codecov
+      - name: Upload R shard coverage to Codecov
         uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5
         with:
           use_oidc: true
           fail_ci_if_error: true
           files: ${{ runner.temp }}/coverage/main-coverage-shard-1/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-2/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-3/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-4/cobertura.xml
+          disable_search: true
+          plugins: noop
+          version: v11.3.2
+          override_branch: main
+          override_commit: ${{ github.event.workflow_run.head_sha }}
+          override_build_url: ${{ github.event.workflow_run.html_url }}
+      - name: Upload Julia bridge coverage to Codecov
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5
+        with:
+          use_oidc: true
+          fail_ci_if_error: true
+          files: ${{ runner.temp }}/coverage/main-coverage-julia-bridge/cobertura.xml
+          flags: julia-bridge
           disable_search: true
           plugins: noop
           version: v11.3.2
