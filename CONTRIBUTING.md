@@ -48,7 +48,11 @@ is counted once, on Ubuntu and R-release only. The producer plants the Unix
 Rcheck layout `00_pkg_src/drmTMB` at the covr library root so existing
 source-path guards (`drm_src_path`, `drm_pkg_path`) still see `src/`, `R/`,
 and `man/` under `tools::testInstalledPackage`. Do not skip those guards on
-covr.
+covr. covr runs the tests from `<lib>/drmTMB/drmTMB-tests/testthat`, so
+`../../DESCRIPTION` is the installed package; `drm_pkg_path()` therefore
+ignores any candidate root containing `Meta/package.rds`, which keeps
+`test-newton-polish-guard.R` loading the source tree with
+`pkgload::load_all()`.
 
 On `pull_request` events GitHub checks out the merge commit (`GITHUB_SHA`),
 not the branch head. Coverage identity records `checkout_sha` /

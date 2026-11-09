@@ -30,6 +30,10 @@
 # (drm_src_path / drm_pkg_path) already resolve the Unix Rcheck layout
 # 00_pkg_src/drmTMB. The producer plants that layout at the covr library
 # root so those assertions still run. Do not skip_on_covr or rewrite them.
+# From that cwd ../../DESCRIPTION is the installed package itself;
+# drm_pkg_path rejects roots with Meta/package.rds so callers that
+# pkgload::load_all() the result get the planted source tree (run
+# 42526163025, shard 1, test-newton-polish-guard.R DLLInfo error).
 
 on:
   push:
