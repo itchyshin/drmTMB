@@ -569,6 +569,10 @@ test-julia-predict-newdata.R	engine-drm-jl	environment	skips	2
 test-julia-predict-newdata.R	suggests-package	environment	runs	1
 test-julia-predict-quantile.R	engine-drm-jl	environment	skips	1
 test-julia-predict-quantile.R	suggests-package	environment	runs	3
+test-julia-prior-v2-contract.R	env-var-optin	environment	skips	6
+test-julia-prior-v2-contract.R	runtime-conditional	runtime	depends	2
+test-julia-prior-v2-duplicate.R	env-var-optin	environment	skips	1
+test-julia-prior-v2-duplicate.R	suggests-package	environment	runs	1
 test-julia-q2-phylo-point-export.R	engine-drm-jl	environment	skips	2
 test-julia-q2-phylo-point-export.R	suggests-package	environment	runs	4
 test-julia-reml-biv-residual.R	engine-drm-jl	environment	skips	1
@@ -765,6 +769,7 @@ test-provenance.R	runtime-conditional	runtime	depends	1
 test-q2-sd-marginal-simulate.R	cran-lane	environment	runs	5
 test-q2-sd-marginal-simulate.R	suggests-package	environment	runs	2
 test-q2-sd-missing-include.R	cran-lane	environment	runs	4
+test-ranef-sd-priors.R	suggests-package	environment	runs	3
 test-reader-journeys.R	build-premise	build	skips	2
 test-reader-journeys.R	suggests-package	environment	runs	1
 test-reader-vignette-contracts.R	build-premise	build	skips	1
