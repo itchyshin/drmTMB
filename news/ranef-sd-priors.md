@@ -1,0 +1,1 @@
+* The native Gaussian mean random-intercept route accepts an optional Gamma prior on one named group SD, with explicit shape and rate on the SD scale. Active-prior fits report the data likelihood separately from the penalized objective.

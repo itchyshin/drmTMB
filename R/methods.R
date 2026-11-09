@@ -37,7 +37,7 @@ print.drmTMB <- function(x, ...) {
     cli::cli_text("  estimator: {x$estimator}")
   }
   if (drm_has_fixed_priors(x)) {
-    cli::cli_text("  fixed-effect priors: penalized/MAP; logLik is the data likelihood")
+    cli::cli_text("  priors: penalized/MAP; logLik is the data likelihood")
     cli::cli_text("  covariance: local penalized-Hessian curvature; confidence intervals are not implemented")
   }
   if (!is.null(x$penalty)) {
@@ -2748,7 +2748,7 @@ drm_warn_information_criterion <- function(fits, what) {
   fits <- fits[vapply(fits, drm_ic_guarded_fit, logical(1L))]
   drm_fits <- fits
   if (any(vapply(fits, drm_has_fixed_priors, logical(1)))) {
-    cli::cli_abort("{what} is not implemented for fixed-effect prior fits; effective degrees of freedom are not defined.")
+    cli::cli_abort("{what} is not implemented for fixed-effect or SD prior fits; effective degrees of freedom are not defined.")
   }
   estimators <- vapply(
     fits,

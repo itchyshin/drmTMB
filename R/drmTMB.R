@@ -257,13 +257,17 @@
 #'   regularises a weakly-identified phylogenetic standard deviation; the fit is
 #'   labeled `MAP` and `logLik()` returns the unpenalized data log-likelihood.
 #'   Native `engine = "tmb"` only.
-#' @param priors Optional fixed-effect normal priors or ridge penalties created
-#'   by [drm_priors()]. Supports Gaussian identity and binomial logit models
+#' @param priors Optional fixed-effect normal priors, ridge penalties, or a
+#'   Gamma prior on a random-intercept SD, created by [drm_priors()].
+#'   Fixed-effect priors support Gaussian identity and binomial logit models
 #'   with complete data and unit weights; Gaussian models may also include one
-#'   independent mean random intercept. The Julia bridge currently refuses
-#'   factor predictors in Gaussian mean random-intercept formulas.
-#'   Select distributional parameters and coefficient columns explicitly;
-#'   [drm_resolve_priors()] previews those selections. Active priors produce
+#'   independent mean random intercept. The SD prior supports a complete-data,
+#'   unit-weight Gaussian ML model with exactly one unlabelled independent mean
+#'   random intercept, selected by group and `(Intercept)`. It acts on the
+#'   natural SD scale and can be combined with fixed-effect priors. The Julia
+#'   bridge currently refuses factor predictors in Gaussian mean
+#'   random-intercept formulas. [drm_resolve_priors()] previews selections.
+#'   Active priors produce
 #'   penalized/MAP point estimates. Covariance is local penalized-Hessian
 #'   curvature, not calibrated sampling covariance. Confidence intervals and
 #'   likelihood comparisons are not implemented. Cannot be combined with
@@ -405,6 +409,16 @@ drmTMB <- function(
       )
     }
     drm_julia_experimental_notice()
+    has_sd_prior <- !is.null(priors) && any(vapply(priors, inherits, logical(1), "drm_sd_prior"))
+    if (has_sd_prior && !base::missing(weights)) {
+      bridge_weights <- drm_julia_sd_prior_weights(substitute(weights), data, parent.frame())
+      return(drmTMB_julia_bridge(
+        formula = formula, family = family, data = data, env = formula_env,
+        weights_missing = FALSE, weights = bridge_weights, control = control,
+        impute = impute, missing = missing, REML = drm_control_flag(REML, "REML"),
+        priors = priors, call = fit_call
+      ))
+    }
     return(drmTMB_julia_bridge(
       formula = formula,
       family = family,
@@ -775,7 +789,7 @@ drm_fit_spec <- function(
     drm_validate_fixed_prior_designs(spec)
     spec <- drm_apply_fixed_priors_spec(spec, priors)
     spec$priors <- priors
-    if (any(spec$resolved_priors$precision > 0)) spec$estimator <- "MAP"
+    if (drm_fixed_priors_active(priors)) spec$estimator <- "MAP"
   }
   if (is.null(control$logsigma_clamp)) {
     spec$tmb_data$use_logsigma_clamp <- 0L
@@ -922,6 +936,18 @@ drm_fit_spec <- function(
   # sees below, per the selected-optimum invariant (docs/design/35).
   fit_gradient <- drm_fit_gradient(obj, opt)
   drm_pin_tmb_object_to_optimum(obj, opt, tmb_state)
+  if (!is.null(spec$resolved_sd_prior)) {
+    checked <- drm_sd_prior_check_score(opt, fit_gradient$gradient)
+    if (!identical(checked$convergence, opt$convergence)) {
+      opt <- checked
+      optimizer$selected$convergence <- opt$convergence
+      optimizer$selected$message <- opt$message
+      selected_attempt <- which(optimizer$attempts$selected)
+      optimizer$attempts$convergence[selected_attempt] <- opt$convergence
+      optimizer$attempts$message[selected_attempt] <- opt$message
+      drm_warn_if_not_converged(opt)
+    }
+  }
 
   uncertainty <- drm_compute_uncertainty(
     obj,
@@ -961,15 +987,22 @@ drm_fit_spec <- function(
   }
   fixed_prior_value <- if (is.null(objective_report$fixed_prior_penalty)) 0 else
     as.numeric(objective_report$fixed_prior_penalty)
+  sd_prior_value <- if (is.null(objective_report$sd_prior_penalty)) 0 else
+    as.numeric(objective_report$sd_prior_penalty)
   prior_gradient <- likelihood_gradient <- NULL
   if (!is.null(priors)) {
     prior_gradient <- rep(0, length(opt$par))
     resolved <- spec$resolved_priors
-    for (i in which(resolved$precision > 0)) {
+    for (i in if (is.null(resolved)) integer() else which(resolved$precision > 0)) {
       positions <- which(names(opt$par) == paste0("beta_", resolved$dpar[[i]]))
       pos <- positions[[resolved$matrix_column[[i]]]]
       prior_gradient[[pos]] <-
         (opt$par[[pos]] - resolved$mean[[i]]) * resolved$precision[[i]]
+    }
+    if (!is.null(spec$resolved_sd_prior)) {
+      pos <- which(names(opt$par) == "log_sd_mu")[[1L]]
+      prior_gradient[[pos]] <- spec$resolved_sd_prior$rate * exp(opt$par[[pos]]) -
+        (spec$resolved_sd_prior$shape - 1)
     }
     likelihood_gradient <- fit_gradient$gradient - prior_gradient
   }
@@ -982,7 +1015,7 @@ drm_fit_spec <- function(
   stored_loglik <- if (identical(spec$estimator, "MSPL")) {
     NA_real_
   } else {
-    -opt$objective + phylo_penalty_value + fixed_prior_value
+    -opt$objective + phylo_penalty_value + fixed_prior_value + sd_prior_value
   }
 
   fit <- list(
@@ -1014,11 +1047,13 @@ drm_fit_spec <- function(
     phylo_penalty = phylo_penalty_value,
     priors = spec$priors,
     resolved_priors = spec$resolved_priors,
+    resolved_sd_prior = spec$resolved_sd_prior,
     fixed_prior_penalty = fixed_prior_value,
+    sd_prior_penalty = sd_prior_value,
     prior_gradient = prior_gradient,
     likelihood_gradient = likelihood_gradient,
     penalized_objective = if (!is.null(priors)) opt$objective else NULL,
-    covariance_interpretation = if (!is.null(priors) && any(spec$resolved_priors$precision > 0))
+    covariance_interpretation = if (drm_fixed_priors_active(priors))
       "local_penalized_hessian_curvature; not calibrated sampling covariance" else NULL,
     mspl = mspl,
     REML = isTRUE(REML),
@@ -4030,6 +4065,22 @@ drm_pin_tmb_object_to_optimum <- function(obj, opt, state = NULL) {
 # `fixed_gradient_component_label()` (also `R/check.R`) for the worst-component
 # label, so a stored value and the live `check_drm()` row always agree -- one
 # label rule, not two copies that can drift apart.
+drm_sd_prior_check_score <- function(opt, gradient) {
+  eta <- unname(opt$par[which(names(opt$par) == "log_sd_mu")])
+  if (identical(as.integer(opt$convergence), 0L) &&
+      (length(eta) != 1L || !is.finite(eta) || !is.finite(exp(2 * eta)) || exp(2 * eta) == 0)) {
+    opt$convergence <- 1L
+    opt$message <- "SD prior fit has a nonfinite or underflowed random-effect variance; convergence not established"
+    return(opt)
+  }
+  if (identical(as.integer(opt$convergence), 0L) &&
+      (!length(gradient) || any(!is.finite(gradient)) || max(abs(gradient)) > 1e-6)) {
+    opt$convergence <- 1L
+    opt$message <- "SD prior fit has a nonzero or nonfinite full score; convergence not established"
+  }
+  opt
+}
+
 drm_fit_gradient <- function(obj, opt) {
   gradient <- tryCatch(
     as.numeric(obj$gr(opt$par)),
@@ -21072,6 +21123,13 @@ subset_known_v <- function(V_known, keep, validate = TRUE) {
   new_known_v(out, type = V_known$type)
 }
 
+drm_julia_sd_prior_weights <- function(weights_expr, data, env) {
+  value <- evaluate_likelihood_weights_arg(weights_expr, data, env)
+  if (is.null(value) || any(!is.finite(value) | value != 1))
+    cli::cli_abort("SD priors through Julia require finite unit weights for every row.")
+  value
+}
+
 evaluate_likelihood_weights_arg <- function(weights_expr, data, env) {
   if (is.null(weights_expr)) {
     return(NULL)
@@ -25840,6 +25898,10 @@ make_tmb_data <- function(spec) {
   out$prior_beta_mean <- numeric(0)
   out$prior_beta_sd <- numeric(0)
   out$prior_beta_normalized <- integer(0)
+  out$prior_sd_index <- integer(0)
+  out$prior_sd_shape <- numeric(0)
+  out$prior_sd_rate <- numeric(0)
+  out$prior_sd_lgamma <- numeric(0)
   out$phylo_mu_sd_row_coef <- matrix(-1L, nrow = 1L, ncol = 1L)
   out$has_sd_phylo_coef_model <- 0L
   phylo_mu <- spec$structured$phylo_mu
