@@ -6,7 +6,7 @@ Add a Gamma prior for one named Gaussian mean random-intercept SD, with an indep
 
 ## 2. Implemented
 
-The native route resolves an exact group and intercept, applies the normalized Gamma penalty once on the natural SD scale, and records the data likelihood, prior contributions and penalized objective separately. Fixed-effect priors can be supplied alongside the SD prior. The bridge has a separate mixed-prior contract; its final validation is still in progress.
+The native route resolves an exact group and intercept, applies the normalized Gamma penalty once on the natural SD scale, and records the data likelihood, prior contributions and penalized objective separately. Fixed-effect priors can be supplied alongside the SD prior. The bridge has a separate mixed-prior contract. Its validator checks the fixed and SD penalty components and their gradients independently; exact-head repository CI remains open.
 
 ## 3a. Decisions and Rejected Alternatives
 
@@ -20,7 +20,9 @@ The R prior constructors, target resolver, fit workflow, TMB objective, result m
 
 The focused native run in `../r-native-boundary-verified-20261109.log` passed 30 frozen objective, gradient and Hessian comparisons across three datasets, five points and two Gamma parameter sets. Six fitted objectives and scores were compared; parameter comparisons required both oracle refinement success and numerical eligibility. Three refinements reported precision loss and were compared only on objective and score. The focused run skipped a live Julia test.
 
-The committed-fixture test in `../r-packaged-oracle-test.log` passed with `DRM_SD_ORACLE` unset. The example in `../r-packaged-sd-prior-example.log` previewed and fitted the SD prior. All 11 original oracle manifest entries and the fixture-copy manifest passed; the oracle self-test passed. An intermediate source archive contained the test fixtures, but it is not a final-source package check.
+The committed-fixture test in the task evidence `r-packaged-oracle-test.log` passed with `DRM_SD_ORACLE` unset. The example in `r-packaged-sd-prior-example.log` previewed and fitted the SD prior. All 11 original oracle manifest entries and the fixture-copy manifest passed; the oracle self-test passed. A secondary comparison with glmmTMB 1.1.14 matched 30 oracle point evaluations and six fitted objectives; three successful, eligible oracle fits also supported parameter comparisons. Its reproduction and provenance are under `tools/ranef-sd-prior-oracle/glmmtmb-secondary/`.
+
+R commit `95c621349b8ed91ae4afec0a07722346b6ed5a62` passed `R CMD check` on Totoro with an isolated TeX tree and the Times manual font. The test stage used the bounded CRAN allowlist: 3,521 passes, 18 warnings and 32 skips, including two live Julia skips. The full repository suite runs separately in CI. A paired rerun at that R commit and local Julia commit `0692e82e8e8b0dd6a930fa04f57cf4611b691f8a` passed seven live bridge tests on Julia 1.10.0. The task evidence files `r-check-95c621349.log` and `PAIRED-LIVE-FINAL.md` record the commands and limits; selected bridge and test hashes matched before and after the paired run.
 
 ## 6. Tests of the Tests
 
@@ -28,7 +30,7 @@ The independent oracle includes deliberately incorrect Jacobian, normalizer, sha
 
 ## 7a. Issue Ledger
 
-The work remains in an isolated branch based on `bfa7acf5bb85e298fe675c5713c34fa208abd860`. Draft PR preparation, source reconciliation and final review remain open. No merge or release is authorized by this task.
+The work remains in an isolated branch based on `bfa7acf5bb85e298fe675c5713c34fa208abd860`. Draft PR #1689 is open; repository CI, source reconciliation and final review remain open. No merge or release is authorized by this task.
 
 ## 8. Consistency Audit
 
@@ -40,7 +42,7 @@ Roxygen regeneration changed four unrelated help files. The attempted restoratio
 
 ## 10. Known Residuals
 
-Full R package checks, final-source bridge validation and independent bridge and inference review are outstanding. A small score alone does not establish a well-conditioned interior optimum. No calibrated confidence intervals or posterior sampling are claimed.
+The R package check used a bounded test allowlist, and full repository CI remains outstanding. The live bridge rerun covers selected cases rather than every formula shape. Julia's native formula parser collapses repeated identical random terms before target resolution, whereas R rejects the written duplicate. A pinned fixed-only bridge comparison matched the numeric and other compared fields in four cases, but its strict comparison failed on compiler-generated `diagnostics.route` strings. The full Julia suite remains open, and a run expected to exceed three hours requires separate approval. A small score alone does not establish a well-conditioned interior optimum. No calibrated confidence intervals or posterior sampling are claimed.
 
 ## 11. Team Learning
 
