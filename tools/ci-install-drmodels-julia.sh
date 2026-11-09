@@ -18,8 +18,4 @@ fi
 
 julia --startup-file=no --project="$drmodels" -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 
-# JuliaCall's setup.jl imports Suppressor into a disposable project; ensure it
-# is in the default depot before live bridge tests run (see BLOCKER-main-ci-red-julia.md).
-julia --startup-file=no -e 'using Pkg; Pkg.add(["Suppressor", "RCall"]); using Suppressor; using RCall'
-
 echo "drmodels_jl_path=$(cd "$drmodels" && pwd)"

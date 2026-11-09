@@ -291,6 +291,12 @@ jobs:
           extra-packages: any::covr, any::xml2, any::JuliaCall
           needs: coverage
 
+      - name: Preinstall JuliaCall bootstrap packages
+        shell: bash
+        run: |
+          export R_HOME="$(R RHOME)"
+          julia --startup-file=no -e 'using Pkg; Pkg.add(["Suppressor", "RCall"]); Pkg.build("RCall"); using Suppressor; using RCall'
+
       - name: Record tested commit
         run: |
           checkout_sha=$(git rev-parse HEAD)
