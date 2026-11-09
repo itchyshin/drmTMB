@@ -1,5 +1,10 @@
 # drmTMB 0.8.1
 
+* `simulate()` now validates `nsim`: it must be one positive whole number.
+  Invalid values such as `0`, negative numbers, `NA`, non-integers, vectors of
+  length other than one, or non-numeric inputs are refused with a clear error
+  instead of leaking base-R errors or silently truncating (#1696).
+
 * `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
   `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
   log-densities that the response kernels gained in #1547. The old inline
