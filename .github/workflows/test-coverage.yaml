@@ -53,6 +53,7 @@ on:
       - "tools/ci-install-drmodels-julia.sh"
       - "tools/covr-julia-bridge-include.txt"
       - "tools/run-covr-julia-bridge-coverage.R"
+      - "tools/ci-bootstrap-juliacall-for-coverage.R"
   pull_request:
     branches: [main, master]
     paths:
@@ -290,6 +291,18 @@ jobs:
       - name: Preinstall Suppressor for JuliaCall setup.jl
         shell: bash
         run: julia --startup-file=no -e 'using Pkg; Pkg.add("Suppressor"); using Suppressor'
+
+      - name: Build RCall for JuliaCall (R available)
+        shell: bash
+        run: |
+          export R_HOME="$(R RHOME)"
+          julia --startup-file=no -e 'using Pkg; Pkg.add("RCall"); Pkg.build("RCall")'
+
+      - name: Warm up JuliaCall before covr
+        env:
+          DRMODELS_JL_PATH: ${{ github.workspace }}/DRModels.jl
+          DRM_JL_PATH: ${{ github.workspace }}/DRModels.jl
+        run: Rscript tools/ci-bootstrap-juliacall-for-coverage.R
 
       - name: Record tested commit
         run: |
