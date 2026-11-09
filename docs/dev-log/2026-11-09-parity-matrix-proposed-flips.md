@@ -43,9 +43,13 @@ This note extends, and does not replace, `docs/dev-log/parity-crosswalk-evidence
 - The 43 cells that Julia fits and R refuses (wave 10, `maps/julia_only_cells.tsv`). These have no R reference, so they are Julia-only scope, not agreement.
 - Cells from Julia pull requests with no gap-map or R reference in the pull request body.
 
+## Final integrated numbers (from the coordinator, not recomputed)
+
+On the integrated Julia tip (DRModels.jl #1294), 3008 cells against the wave-10 base: both fit and agree 260 to 357, R-only 107 to 17, Julia-only 43 to 83, both fit but disagree 54 to 55, non-converged 5 to 4, no regression. These supersede the "do not add" caution only for the totals; the per-row counts above still come from each pull request body. About 70 of the 427 R-fit cells can never read "agree" (46 Laplace against adaptive quadrature, REML by definition, R not converged, others), so a verdict file must not treat the gap to 427 as open work. Agreement means log-likelihood and point estimates at the optimum; standard errors were compared only in some pull requests. Julia-only cells (83) have no R reference. #1293 (44 of 54 integrator cells agree under `marginal = :Laplace`), #1299, #1298 and #1290 are not in #1294.
+
 ## Not verified
 
 - Rows 5 to 16 rest on pull-request bodies, not on committed files in this repository. I read the bodies on 2026-11-09; they may change before merge.
-- No combined-tip gap map exists, so I do not offer a total for the final Julia-behind count. Wave 10 on the #1272 tip gives 113 remaining out of the 145 at wave 8.
+- The combined-tip gap map is reported by the coordinator, not committed here. Wave 10 on the #1272 tip, committed here, gives 113 remaining out of the 145 at wave 8.
 - The bridge (R calling Julia) was not exercised for any row.
 - Row 13's log-likelihood and row 8's breakdown are quoted from truncated reads of the pull-request bodies; confirm against the body before writing a verdict.

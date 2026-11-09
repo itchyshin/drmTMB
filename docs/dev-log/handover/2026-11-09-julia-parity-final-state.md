@@ -1,6 +1,6 @@
 # R-Julia parity: final state of the Julia pull request stack, 2026-11-09
 
-Reader: Shinichi, or the next session that continues the parity lane. Written at the first integration of the documentation branches; it will be updated once the coordinator sends the final pull request list and gap-map numbers.
+Reader: Shinichi, or the next session that continues the parity lane. First written at the integration of the documentation branches; updated with the coordinator's final pull request list and gap-map numbers.
 
 This note does not repeat the waves 7 to 10 handover in draft PR #1684 (`docs/dev-log/handover/2026-11-09-julia-parity-waves7-10-decisions.md` on branch `claude/parity-evidence-zip-gamma-20261107`). That note covers the first nine Julia pull requests and eight decisions. This note adds everything after it and puts the whole stack in one review order.
 
@@ -46,7 +46,13 @@ Fixes based on main, independent of the chain:
 22. #1285: q4 REML stall on uncertified inner modes, and two Julia 1.12 tests made version independent.
 23. #1287: cross-family profile confidence interval no longer drops a resolvable arm when the far point stalls.
 
-Later lane pull requests: none listed yet. The coordinator will send them; they go below this line when they arrive.
+Later lane pull requests (coordinator's list at about 15:55, not read from the pull requests by me):
+
+- #1294 (draft, tip `d78214757`): integration pull request that folds #1273 to #1280, #1282 to #1287, #1289, #1291 and #1292. Shinichi is merging the stack himself, bottom-up. Full suites on its source tip `bf566192c`: 619 files, 0 failing files on Julia 1.10.12 and 1.12.7.
+- Not in the integrated tip, separate drafts: #1293 (Laplace objective option), #1299 (spatial parity), #1298 (review fixes, docs and tests), #1290 (the failures did not reproduce).
+- Julia 1.13: CI uses 1.13.3. Five test files failed on 1.13.2 because they depend on the random stream; fixed by #1296, #1300, #1301 and #1302. All 16 shards pass with them applied, on 1.13.2, not 1.13.3.
+
+The review order above still describes the individual pull requests; with #1294 the integrated tip is the thing to review and merge.
 
 On the drmTMB side:
 
@@ -66,6 +72,24 @@ Verified, each on the exact tip of its own pull request (not on one combined tip
 - Gap-map wave 10, at the #1272 tip: 3008 cells, 32 of the 145 Julia-behind cells now fit and agree, 113 remain, no regression. See the wave-10 note.
 - Gap map v2, at the #1272 tip: 492 cells, 216 agree on log-likelihood and fitted values, 22 Julia crash cells.
 - The 54 wave-8 log-likelihood disagreements: 0 Julia defects. Class counts are in the disagreements note.
+
+Final gap-map numbers from the coordinator (3008 cells, integrated tip against the wave-10 base; I did not recompute them and the files are not in this branch):
+
+| Class | Wave-10 base | Integrated |
+|---|---|---|
+| Both fit and agree | 260 | 357 |
+| R-only (Julia behind) | 107 | 17 |
+| Julia-only | 43 | 83 |
+| Both fit but disagree | 54 | 55 |
+| Non-converged | 5 | 4 |
+
+No cell regressed. #1293 reports 44 of the 54 integrator cells agreeing under `marginal = :Laplace`; its full suite was not rerun after the last fixes.
+
+Caveats that go with these numbers:
+
+- Parity claims are for log-likelihood and point estimates at the optimum. Standard errors were compared only in some pull requests.
+- About 70 of the 427 R-fit cells can never read "agree": 46 are Laplace against adaptive quadrature, some are REML by definition, some are cases where R does not converge, and others.
+- Verdict flips stay PROPOSED until Julia lands and the pin moves.
 
 Not verified:
 
@@ -94,6 +118,22 @@ The first eight are in the #1684 handover and still stand. Added since:
 - `fitted()` and `predict()` convention: gap map v2 found 104 cells with equal log-likelihood but a different fitted quantity (lognormal, zero-truncated and hurdle NB2, zero-inflated Poisson and NB2). #1282 changes Julia's default to R's meaning. #1282 itself notes that `predict(newdata)` still fails without every factor level; that is the separate #1277 fix.
 - Crash cells: 22 Julia crashes in gap map v2; #1279 converts 12. The rest include `poly()` in the mean formula and the double-bar `||` syntax.
 - R fixes in this stack: #1687 (failed-fit message) and #1688 (cross-family convergence status). The R-side non-Gaussian REML label "Laplace/Cox-Reid adjusted profile" is wrong for the Binomial route according to the REML memo (section 1, `R/methods.R:4494`). It was reported, not fixed.
+
+## Default changes users will see
+
+- `fitted()` and `predict()` now return the response mean E[Y], as drmTMB does (#1282).
+- New Gaussian REML routes (#1276, #1286).
+- Binomial `animal(1 + x | g)` unlabelled now means independent intercept and slope fields; the labelled form `(1 + x | p | g)` is the correlated model. Shinichi approved this (#1286).
+- Independent-term fits on the non-Gaussian routes are tagged `marginal = :Laplace` (#1278).
+
+## Laplace or adaptive quadrature: which number to trust
+
+drmTMB integrates out random effects with a Laplace approximation. Julia's default is adaptive Gauss-Hermite quadrature, which is more accurate when a group has few observations or the random-effect SD is large. For the same model and the same estimates, the two log-likelihoods can therefore differ by a small amount, usually under 0.1 and in the Binomial q3 and q4 cases about 0.6.
+
+- To compare Julia with R, ask Julia for the Laplace objective where available (`marginal = :Laplace`, or the #1293 option once merged). Then the numbers should match.
+- To report a log-likelihood, AIC or likelihood-ratio test, do not mix engines. Compare models fitted by one engine with one integrator.
+- Where exact quadrature was computed for the 36 one-dimensional wave-8 cells, Julia's value was the accurate one and R's Laplace value was below it in 36 and above it in 10 of the 46 integrator cells (disagreements note). Accuracy is not the same as agreement with R: a gap here is not a Julia defect.
+- Parameter estimates agree much more closely than the log-likelihood does. In the integrator cells R's objective at Julia's estimate was within 0.015 of R's own optimum in all 36 one-dimensional cells.
 
 ## Cleanup left for you on Totoro
 
