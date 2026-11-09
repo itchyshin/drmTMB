@@ -271,10 +271,6 @@ jobs:
       - name: Instantiate DRModels.jl
         run: bash tools/ci-install-drmodels-julia.sh "${{ github.workspace }}/DRModels.jl"
 
-      - name: Export JULIA_HOME for JuliaCall
-        shell: bash
-        run: echo "JULIA_HOME=$(julia -e 'print(Sys.BINDIR)')" >> "$GITHUB_ENV"
-
       - name: Record resolved DRModels.jl commit
         run: |
           drmodels_sha=$(git -C DRModels.jl rev-parse HEAD)
@@ -291,11 +287,9 @@ jobs:
           extra-packages: any::covr, any::xml2, any::JuliaCall
           needs: coverage
 
-      - name: Preinstall JuliaCall bootstrap packages
+      - name: Preinstall Suppressor for JuliaCall setup.jl
         shell: bash
-        run: |
-          export R_HOME="$(R RHOME)"
-          julia --startup-file=no -e 'using Pkg; Pkg.add(["Suppressor", "RCall"]); Pkg.build("RCall"); using Suppressor; using RCall'
+        run: julia --startup-file=no -e 'using Pkg; Pkg.add("Suppressor"); using Suppressor'
 
       - name: Record tested commit
         run: |
