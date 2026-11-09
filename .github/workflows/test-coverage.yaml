@@ -51,6 +51,8 @@ on:
       - "tools/covr-julia-bridge-testthat.R"
       - "tools/covr-plant-julia-bridge-testthat.sh"
       - "tools/ci-install-drmodels-julia.sh"
+      - "tools/covr-julia-bridge-include.txt"
+      - "tools/run-covr-julia-bridge-coverage.R"
   pull_request:
     branches: [main, master]
     paths:
@@ -66,6 +68,8 @@ on:
       - "tools/covr-julia-bridge-testthat.R"
       - "tools/covr-plant-julia-bridge-testthat.sh"
       - "tools/ci-install-drmodels-julia.sh"
+      - "tools/covr-julia-bridge-include.txt"
+      - "tools/run-covr-julia-bridge-coverage.R"
   workflow_dispatch:
 
 name: test-coverage
@@ -238,7 +242,8 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
       NOT_CRAN: true
       DRMTMB_JULIA_TESTS: true
-      DRMTMB_COVERAGE_JULIA_FILTER: "^julia"
+      DRMTMB_COVERAGE_JULIA_INCLUDE: ${{ github.workspace }}/tools/covr-julia-bridge-include.txt
+      DRMTMB_COVERAGE_SKIP_FRAC_MAX: "0.10"
       DRMODELS_JL_PATH: ${{ github.workspace }}/DRModels.jl
       DRM_JL_PATH: ${{ github.workspace }}/DRModels.jl
       OPENBLAS_NUM_THREADS: 1
@@ -266,6 +271,12 @@ jobs:
       - name: Instantiate DRModels.jl
         run: bash tools/ci-install-drmodels-julia.sh "${{ github.workspace }}/DRModels.jl"
 
+      - name: Record resolved DRModels.jl commit
+        run: |
+          drmodels_sha=$(git -C DRModels.jl rev-parse HEAD)
+          echo "drmodels_jl_sha=${drmodels_sha}"
+          echo "DRMODELS_JL_SHA=${drmodels_sha}" >> "$GITHUB_ENV"
+
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: release
@@ -273,13 +284,14 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::covr, any::xml2
+          extra-packages: any::covr, any::xml2, any::JuliaCall
           needs: coverage
 
       - name: Record tested commit
         run: |
           checkout_sha=$(git rev-parse HEAD)
           branch_head='${{ github.event.pull_request.head.sha || github.sha }}'
+          drmodels_sha=$(git -C DRModels.jl rev-parse HEAD)
           {
             echo "checkout_sha=${checkout_sha}"
             echo "coverage_commit=${checkout_sha}"
@@ -287,6 +299,7 @@ jobs:
             echo "branch_head=${branch_head}"
             echo "pr_head=${{ github.event.pull_request.head.sha }}"
             echo "lane=julia-bridge"
+            echo "drmodels_jl_sha=${drmodels_sha}"
             echo "drmodels_jl_path=${DRMODELS_JL_PATH}"
             echo "event=${{ github.event_name }}"
             echo "ref=${{ github.ref }}"
@@ -298,54 +311,8 @@ jobs:
       - name: Plant Rcheck 00_pkg_src for covr tests
         run: bash tools/covr-source-tree-layout.sh "${{ runner.temp }}/package" "${{ github.workspace }}"
 
-      - name: Plant Julia-bridge testthat driver
-        run: bash tools/covr-plant-julia-bridge-testthat.sh "${{ runner.temp }}/package" "${{ github.workspace }}"
-
       - name: Test coverage (Julia bridge)
-        run: |
-          install_path <- file.path(
-            normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"),
-            "package"
-          )
-          pkg_root <- normalizePath(".", winslash = "/", mustWork = TRUE)
-          checkout_sha <- system("git rev-parse HEAD", intern = TRUE)
-          cat(sprintf("coverage_commit=%s\n", checkout_sha))
-          cat(sprintf("lane=julia-bridge\n"))
-          layout_rc <- system2(
-            "bash",
-            c("tools/covr-source-tree-layout.sh", install_path, pkg_root)
-          )
-          if (!identical(layout_rc, 0L)) {
-            stop("failed to plant 00_pkg_src for covr tests")
-          }
-          plant_rc <- system2(
-            "bash",
-            c("tools/covr-plant-julia-bridge-testthat.sh", install_path, pkg_root)
-          )
-          if (!identical(plant_rc, 0L)) {
-            stop("failed to plant Julia-bridge testthat driver")
-          }
-          cov <- covr::package_coverage(
-            quiet = FALSE,
-            clean = FALSE,
-            type = "tests",
-            install_path = install_path
-          )
-          print(cov)
-          pct <- covr::percent_coverage(cov)
-          cat(sprintf(
-            paste0(
-              "julia_bridge_percent_coverage=%.4f ",
-              "(julia-bridge lane only; Codecov flag julia-bridge)\n"
-            ),
-            pct
-          ))
-          writeLines(
-            sprintf("julia_bridge_percent_coverage=%.4f", pct),
-            "coverage-percent.txt"
-          )
-          covr::to_cobertura(cov, filename = "cobertura.xml")
-        shell: Rscript {0}
+        run: Rscript tools/run-covr-julia-bridge-coverage.R
 
       - name: Save pull-request coverage report
         if: github.event_name == 'pull_request'
@@ -356,6 +323,7 @@ jobs:
             cobertura.xml
             coverage-identity.txt
             coverage-percent.txt
+            coverage-tests.txt
           if-no-files-found: error
           retention-days: 7
 

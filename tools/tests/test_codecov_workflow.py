@@ -20,6 +20,9 @@ UPLOADER = ROOT / ".github" / "workflows" / "codecov-upload.yaml"
 LAYOUT = ROOT / "tools" / "covr-source-tree-layout.sh"
 JULIA_TESTTHAT = ROOT / "tools" / "covr-julia-bridge-testthat.R"
 JULIA_PLANT = ROOT / "tools" / "covr-plant-julia-bridge-testthat.sh"
+JULIA_INCLUDE = ROOT / "tools" / "covr-julia-bridge-include.txt"
+JULIA_RUNNER = ROOT / "tools" / "run-covr-julia-bridge-coverage.R"
+CODECOV_YML = ROOT / "codecov.yml"
 
 CODECOV_ACTION = (
     "codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac"
@@ -155,7 +158,10 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertIn("julia-actions/setup-julia@v3", self.producer)
         self.assertIn("main-coverage-julia-bridge", self.producer)
         self.assertIn("tools/covr-plant-julia-bridge-testthat.sh", self.producer)
-        self.assertIn("DRMTMB_COVERAGE_JULIA_FILTER", self.producer)
+        self.assertIn("DRMTMB_COVERAGE_JULIA_INCLUDE", self.producer)
+        self.assertIn("any::JuliaCall", self.producer)
+        self.assertIn("run-covr-julia-bridge-coverage.R", self.producer)
+        self.assertIn("DRMODELS_JL_SHA", self.producer)
 
     def test_comment_cannot_satisfy_oidc_gate(self) -> None:
         mutated = re.sub(
@@ -188,9 +194,27 @@ class CodecovWorkflowTest(unittest.TestCase):
     def test_julia_bridge_plant_script_and_driver_exist(self) -> None:
         self.assertTrue(JULIA_TESTTHAT.is_file(), f"missing {JULIA_TESTTHAT}")
         self.assertTrue(JULIA_PLANT.is_file(), f"missing {JULIA_PLANT}")
+        self.assertTrue(JULIA_INCLUDE.is_file(), f"missing {JULIA_INCLUDE}")
+        self.assertTrue(JULIA_RUNNER.is_file(), f"missing {JULIA_RUNNER}")
         driver = JULIA_TESTTHAT.read_text(encoding="utf-8")
         self.assertIn("DRMTMB_JULIA_TESTS", driver)
-        self.assertIn('filter = julia_filter', driver)
+        self.assertIn("covr-julia-bridge-include.txt", driver)
+        self.assertIn("filter = julia_filter", driver)
+        runner = JULIA_RUNNER.read_text(encoding="utf-8")
+        self.assertIn("DRMODELS_JL_SHA", runner)
+        self.assertIn("counts[[\"FAIL\"]]", runner)
+        include_lines = [
+            line.strip()
+            for line in JULIA_INCLUDE.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.strip().startswith("#")
+        ]
+        self.assertGreater(len(include_lines), 10)
+
+    def test_julia_bridge_flag_has_no_carryforward(self) -> None:
+        self.assertTrue(CODECOV_YML.is_file(), f"missing {CODECOV_YML}")
+        text = CODECOV_YML.read_text(encoding="utf-8")
+        self.assertIn("name: julia-bridge", text)
+        self.assertIn("carryforward: false", text)
 
     def test_layout_script_plants_locator_walkup(self) -> None:
         self.assertTrue(LAYOUT.is_file(), f"missing {LAYOUT}")

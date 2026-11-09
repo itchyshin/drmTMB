@@ -17,7 +17,7 @@ flag_management:
     carryforward: true
   individual_flags:
     - name: julia-bridge
-      carryforward: true
+      carryforward: false
 
 ignore:
   - "tests/**/*"
