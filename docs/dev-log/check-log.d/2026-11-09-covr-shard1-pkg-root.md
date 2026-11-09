@@ -57,3 +57,16 @@ install_path = install_path)`.
 - `devtools::test(filter = "guard-branch-continuity|newton-polish-guard")`
   in a source checkout: pass.
 - `python3 -m unittest tools/tests/test_codecov_workflow.py`: 8 tests OK.
+
+## Follow-up: source-tree manifest (head b45e93c2)
+
+`source-tree tests (blind spot)` failed at its manifest step, not on a test:
+`NOT IN MANIFEST ... test-guard-branch-continuity.R`. The scanner in
+`tools/run-source-tree-tests.R` flags any double-quoted literal whose path
+prefix matches `.Rbuildignore`; case D's
+`file.path(lib_d, "drmTMB", "Meta", "package.rds")` matches `^Meta$`. The
+premise is a tempdir fixture, so the file still runs under R CMD check; the
+scanner's sanctioned remedy (`--update`) adds it to the source-tree lane as
+well. No test was hidden from the scanner or changed. Full lane locally
+(scratch git copy, `Rscript --no-init-file tools/run-source-tree-tests.R`):
+manifest agrees, 51 files, `[ FAIL 0 | WARN 14 | SKIP 7 | PASS 26618 ]`.
