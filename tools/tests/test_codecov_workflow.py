@@ -115,7 +115,7 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertIn(CODECOV_ACTION, self.uploader)
         self.assertIn(CHECKOUT_ACTION, self.uploader)
         self.assertIn(DOWNLOAD_ACTION, self.uploader)
-        self.assertIn("pattern: main-coverage-shard-*", self.uploader)
+        self.assertIn("pattern: main-coverage-*", self.uploader)
         self.assertIn(
             "override_commit: ${{ github.event.workflow_run.head_sha }}",
             self.uploader,
