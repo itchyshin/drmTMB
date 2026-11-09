@@ -1,0 +1,22 @@
+S	1	binomial|indep|lab0|q2|sd-none|cm0|ML
+R	1	binomial|indep|lab0|q2|sd-none|cm0|ML	FITS				-255.7796098379	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.19	
+S	2	binomial|indep|lab0|q2|sd-one|cm0|ML
+R	2	binomial|indep|lab0|q2|sd-one|cm0|ML	FITS				-255.7796098379	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.15	
+S	3	binomial|indep|lab0|q2|sd-z|cm0|ML
+R	3	binomial|indep|lab0|q2|sd-z|cm0|ML	FITS				-253.5291167629	0	pdHess=TRUE;is_converged=FALSE;npar=8	0.23	
+S	4	binomial|indep|lab0|q2|sd-first|cm0|ML
+R	4	binomial|indep|lab0|q2|sd-first|cm0|ML	FITS				-253.5513092660	0	pdHess=TRUE;is_converged=FALSE;npar=7	0.22	
+S	5	binomial|indep|lab0|q2|sd-last|cm0|ML
+R	5	binomial|indep|lab0|q2|sd-last|cm0|ML	FITS				-255.7779574849	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.15	
+S	6	binomial|indep|lab0|q3|sd-none|cm0|ML
+R	6	binomial|indep|lab0|q3|sd-none|cm0|ML	FITS				-255.7332245115	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.19	
+S	7	binomial|indep|lab0|q3|sd-z|cm0|ML
+R	7	binomial|indep|lab0|q3|sd-z|cm0|ML	FITS				-253.5291171865	0	pdHess=FALSE;is_converged=FALSE;npar=10	0.41	NaNs produced
+S	8	binomial|indep|lab0|q3|sd-first|cm0|ML
+R	8	binomial|indep|lab0|q3|sd-first|cm0|ML	FITS				-255.4486027728	0	pdHess=TRUE;is_converged=TRUE;npar=8	0.19	
+S	9	binomial|indep|lab0|q4|sd-none|cm0|ML
+R	9	binomial|indep|lab0|q4|sd-none|cm0|ML	FITS				-255.7332245129	0	pdHess=TRUE;is_converged=FALSE;npar=8	0.35	
+S	10	binomial|indep|lab0|q4|sd-z|cm0|ML
+R	10	binomial|indep|lab0|q4|sd-z|cm0|ML	FITS				-250.1383149095	0	pdHess=TRUE;is_converged=FALSE;npar=12	0.65	
+S	11	binomial|indep|lab0|q4|sd-first|cm0|ML
+R	11	binomial|indep|lab0|q4|sd-first|cm0|ML	FITS				-253.5425410182	0	pdHess=TRUE;is_converged=FALSE;npar=9	0.42	

@@ -1,6 +1,0 @@
-S	1	tweedie|slope|lab0|q1|sd-none|cm0|ML
-R	1	tweedie|slope|lab0|q1|sd-none|cm0|ML	FITS				-780.8964446563	0	pdHess=TRUE;is_converged=TRUE;npar=7	1.01	
-S	2	tweedie|slope|lab0|q1|sd-one|cm0|ML
-R	2	tweedie|slope|lab0|q1|sd-one|cm0|ML	FITS				-780.8964446563	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.97	
-S	3	tweedie|slope|lab0|q1|sd-z|cm0|ML
-R	3	tweedie|slope|lab0|q1|sd-z|cm0|ML	FITS				-777.0720784234	0	pdHess=TRUE;is_converged=TRUE;npar=8	0.92	

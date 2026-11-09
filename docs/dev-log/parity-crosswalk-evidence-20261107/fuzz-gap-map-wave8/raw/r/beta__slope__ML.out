@@ -1,0 +1,6 @@
+S	1	beta|slope|lab0|q1|sd-none|cm0|ML
+R	1	beta|slope|lab0|q1|sd-none|cm0|ML	FITS				79.9158798245	0	pdHess=TRUE;is_converged=TRUE;npar=6	1.71	
+S	2	beta|slope|lab0|q1|sd-one|cm0|ML
+R	2	beta|slope|lab0|q1|sd-one|cm0|ML	FITS				79.9158798245	0	pdHess=TRUE;is_converged=TRUE;npar=6	1.67	
+S	3	beta|slope|lab0|q1|sd-z|cm0|ML
+R	3	beta|slope|lab0|q1|sd-z|cm0|ML	FITS				80.8030930068	0	pdHess=TRUE;is_converged=TRUE;npar=7	1.80	

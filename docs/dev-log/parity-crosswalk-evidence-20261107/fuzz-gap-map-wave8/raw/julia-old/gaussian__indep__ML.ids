@@ -1,0 +1,11 @@
+gaussian|indep|lab0|q2|sd-none|cm0|ML
+gaussian|indep|lab0|q2|sd-one|cm0|ML
+gaussian|indep|lab0|q2|sd-z|cm0|ML
+gaussian|indep|lab0|q2|sd-first|cm0|ML
+gaussian|indep|lab0|q2|sd-last|cm0|ML
+gaussian|indep|lab0|q3|sd-none|cm0|ML
+gaussian|indep|lab0|q3|sd-z|cm0|ML
+gaussian|indep|lab0|q3|sd-first|cm0|ML
+gaussian|indep|lab0|q4|sd-none|cm0|ML
+gaussian|indep|lab0|q4|sd-z|cm0|ML
+gaussian|indep|lab0|q4|sd-first|cm0|ML

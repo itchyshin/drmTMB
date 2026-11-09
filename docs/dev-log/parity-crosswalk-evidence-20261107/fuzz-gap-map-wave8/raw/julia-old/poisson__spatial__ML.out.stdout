@@ -1,0 +1,2 @@
+┌ Warning: drm: loglik(fit) is NaN because the fit failed (the stored value is -1.0e18, the optimiser's failed-objective sentinel or a runaway value, and converged = false). The estimates are not an optimum, so no log-likelihood, AIC or BIC is reported. Rescale the data, simplify the model, or check `convergence_status(fit)`. The raw stored value is `fit.loglik`.
+└ @ DRModels ~/gapmap_w8_20261108/old/src/gaussian_core.jl:3515

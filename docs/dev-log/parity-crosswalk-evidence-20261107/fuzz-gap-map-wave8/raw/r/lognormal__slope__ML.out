@@ -1,0 +1,6 @@
+S	1	lognormal|slope|lab0|q1|sd-none|cm0|ML
+R	1	lognormal|slope|lab0|q1|sd-none|cm0|ML	FITS				-639.0723755389	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.12	
+S	2	lognormal|slope|lab0|q1|sd-one|cm0|ML
+R	2	lognormal|slope|lab0|q1|sd-one|cm0|ML	FITS				-639.0723755389	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.09	
+S	3	lognormal|slope|lab0|q1|sd-z|cm0|ML
+R	3	lognormal|slope|lab0|q1|sd-z|cm0|ML	FITS				-637.5339039063	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.09	

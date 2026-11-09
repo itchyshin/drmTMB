@@ -1,0 +1,54 @@
+{
+ "n_cells": 3008,
+ "class_counts": {
+  "both-fit": 263,
+  "R-only": 157,
+  "both-refuse": 2558,
+  "Julia-only": 23,
+  "nonconverged": 5,
+  "inconclusive": 2
+ },
+ "r_outcomes": {
+  "FITS": 427,
+  "REFUSES": 2581
+ },
+ "j_outcomes": {
+  "FITS": 286,
+  "REFUSES": 2715,
+  "NONCONVERGED": 5,
+  "TIMEOUT": 2
+ },
+ "crash_sides": {
+  "none": 3008
+ },
+ "julia_behind": {
+  "refuses": 157,
+  "nonconverged": 5,
+  "timeout": 2
+ },
+ "r_behind": {
+  "refuses": 23
+ },
+ "j_sub": {
+  "REFUSES/ErrorException": 249,
+  "REFUSES/ArgumentError": 2466
+ },
+ "r_sub": {
+  "REFUSES/cli_abort": 2581
+ },
+ "n_both_fit": 263,
+ "n_ll_disagree": 57,
+ "ll_diffs_sorted": [
+  0.5495,
+  0.5804,
+  0.6226,
+  0.9045,
+  0.9409,
+  1.03,
+  1.444,
+  1.539,
+  1.695,
+  1.8
+ ],
+ "crash_groups": []
+}

@@ -1,6 +1,0 @@
-S	1	gaussian|slope|lab0|q1|sd-none|cm0|ML
-R	1	gaussian|slope|lab0|q1|sd-none|cm0|ML	FITS				-514.1536925237	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.13	
-S	2	gaussian|slope|lab0|q1|sd-one|cm0|ML
-R	2	gaussian|slope|lab0|q1|sd-one|cm0|ML	FITS				-514.1536925237	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.09	
-S	3	gaussian|slope|lab0|q1|sd-z|cm0|ML
-R	3	gaussian|slope|lab0|q1|sd-z|cm0|ML	FITS				-513.0864950054	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.10	

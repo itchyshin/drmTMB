@@ -1,0 +1,50 @@
+S	1	beta|animal|lab0|q1|sd-none|cm0|ML
+R	1	beta|animal|lab0|q1|sd-none|cm0|ML	FITS				139.1880164847	0	pdHess=TRUE;is_converged=TRUE;npar=6	1.61	
+S	2	beta|animal|lab0|q1|sd-one|cm0|ML
+R	2	beta|animal|lab0|q1|sd-one|cm0|ML	FITS				139.1880164847	0	pdHess=TRUE;is_converged=TRUE;npar=6	1.75	
+S	3	beta|animal|lab0|q1|sd-z|cm0|ML
+R	3	beta|animal|lab0|q1|sd-z|cm0|ML	FITS				142.4423535235	0	pdHess=TRUE;is_converged=TRUE;npar=7	1.93	
+S	4	beta|animal|lab0|q2|sd-none|cm0|ML
+R	4	beta|animal|lab0|q2|sd-none|cm0|ML	FITS				143.0657524500	0	pdHess=TRUE;is_converged=TRUE;npar=7	2.21	
+S	5	beta|animal|lab1|q2|sd-none|cm0|ML
+R	5	beta|animal|lab1|q2|sd-none|cm0|ML	ERROR	abort:rlang_error	`beta()` `animal()` `mu` effects currently support only unlabelled q=1	`beta()` `animal()` `mu` effects currently support only unlabelled q=1 intercepts. ✖ Requested labelled structured term: `animal(1 + x1 | p | g)`. ℹ Use `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` for the v1.0 recovery gate.				0.04	
+S	6	beta|animal|lab0|q2|sd-one|cm0|ML
+R	6	beta|animal|lab0|q2|sd-one|cm0|ML	FITS				143.0657524500	0	pdHess=TRUE;is_converged=TRUE;npar=7	2.36	
+S	7	beta|animal|lab1|q2|sd-one|cm0|ML
+R	7	beta|animal|lab1|q2|sd-one|cm0|ML	ERROR	abort:rlang_error	`beta()` `animal()` `mu` effects currently support only unlabelled q=1	`beta()` `animal()` `mu` effects currently support only unlabelled q=1 intercepts. ✖ Requested labelled structured term: `animal(1 + x1 | p | g)`. ℹ Use `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` for the v1.0 recovery gate.				0.02	
+S	8	beta|animal|lab0|q2|sd-z|cm0|ML
+R	8	beta|animal|lab0|q2|sd-z|cm0|ML	FITS				147.4257509131	0	pdHess=TRUE;is_converged=TRUE;npar=9	2.93	
+S	9	beta|animal|lab1|q2|sd-z|cm0|ML
+R	9	beta|animal|lab1|q2|sd-z|cm0|ML	ERROR	abort:rlang_error	`beta()` `animal()` `mu` effects currently support only unlabelled q=1	`beta()` `animal()` `mu` effects currently support only unlabelled q=1 intercepts. ✖ Requested labelled structured term: `animal(1 + x1 | p | g)`. ℹ Use `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` for the v1.0 recovery gate.				0.01	
+S	10	beta|animal|lab0|q2|sd-first|cm0|ML
+R	10	beta|animal|lab0|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	Beta animal intercept-slope SD regression requires one SD formula for	Beta animal intercept-slope SD regression requires one SD formula for each coefficient. ✖ Select exactly "(Intercept)" and "x1" with separate `coef` selectors.				0.02	
+S	11	beta|animal|lab1|q2|sd-first|cm0|ML
+R	11	beta|animal|lab1|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	`beta()` `animal()` `mu` effects currently support only unlabelled q=1	`beta()` `animal()` `mu` effects currently support only unlabelled q=1 intercepts. ✖ Requested labelled structured term: `animal(1 + x1 | p | g)`. ℹ Use `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` for the v1.0 recovery gate.				0.01	
+S	12	beta|animal|lab0|q2|sd-last|cm0|ML
+R	12	beta|animal|lab0|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	Beta animal intercept-slope SD regression requires one SD formula for	Beta animal intercept-slope SD regression requires one SD formula for each coefficient. ✖ Select exactly "(Intercept)" and "x1" with separate `coef` selectors.				0.02	
+S	13	beta|animal|lab1|q2|sd-last|cm0|ML
+R	13	beta|animal|lab1|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	`beta()` `animal()` `mu` effects currently support only unlabelled q=1	`beta()` `animal()` `mu` effects currently support only unlabelled q=1 intercepts. ✖ Requested labelled structured term: `animal(1 + x1 | p | g)`. ℹ Use `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` for the v1.0 recovery gate.				0.01	
+S	14	beta|animal|lab0|q3|sd-none|cm0|ML
+R	14	beta|animal|lab0|q3|sd-none|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.05	
+S	15	beta|animal|lab1|q3|sd-none|cm0|ML
+R	15	beta|animal|lab1|q3|sd-none|cm0|ML	ERROR	abort:rlang_error	`beta()` `animal()` `mu` effects currently support only unlabelled q=1	`beta()` `animal()` `mu` effects currently support only unlabelled q=1 intercepts. ✖ Requested labelled structured term: `animal(1 + x1 + x2 | p | g)`. ℹ Use `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` for the v1.0 recovery gate.				0.02	
+S	16	beta|animal|lab0|q3|sd-z|cm0|ML
+R	16	beta|animal|lab0|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	17	beta|animal|lab1|q3|sd-z|cm0|ML
+R	17	beta|animal|lab1|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	`beta()` `animal()` `mu` effects currently support only unlabelled q=1	`beta()` `animal()` `mu` effects currently support only unlabelled q=1 intercepts. ✖ Requested labelled structured term: `animal(1 + x1 + x2 | p | g)`. ℹ Use `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` for the v1.0 recovery gate.				0.02	
+S	18	beta|animal|lab0|q3|sd-first|cm0|ML
+R	18	beta|animal|lab0|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	19	beta|animal|lab1|q3|sd-first|cm0|ML
+R	19	beta|animal|lab1|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	`beta()` `animal()` `mu` effects currently support only unlabelled q=1	`beta()` `animal()` `mu` effects currently support only unlabelled q=1 intercepts. ✖ Requested labelled structured term: `animal(1 + x1 + x2 | p | g)`. ℹ Use `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` for the v1.0 recovery gate.				0.02	
+S	20	beta|animal|lab0|q4|sd-none|cm0|ML
+R	20	beta|animal|lab0|q4|sd-none|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	21	beta|animal|lab1|q4|sd-none|cm0|ML
+R	21	beta|animal|lab1|q4|sd-none|cm0|ML	ERROR	abort:rlang_error	`beta()` `animal()` `mu` effects currently support only unlabelled q=1	`beta()` `animal()` `mu` effects currently support only unlabelled q=1 intercepts. ✖ Requested labelled structured term: `animal(1 + x1 + x2 + x3 | p | g)`. ℹ Use `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` for the v1.0 recovery gate.				0.02	
+S	22	beta|animal|lab0|q4|sd-z|cm0|ML
+R	22	beta|animal|lab0|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	23	beta|animal|lab1|q4|sd-z|cm0|ML
+R	23	beta|animal|lab1|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	`beta()` `animal()` `mu` effects currently support only unlabelled q=1	`beta()` `animal()` `mu` effects currently support only unlabelled q=1 intercepts. ✖ Requested labelled structured term: `animal(1 + x1 + x2 + x3 | p | g)`. ℹ Use `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` for the v1.0 recovery gate.				0.01	
+S	24	beta|animal|lab0|q4|sd-first|cm0|ML
+R	24	beta|animal|lab0|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	25	beta|animal|lab1|q4|sd-first|cm0|ML
+R	25	beta|animal|lab1|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	`beta()` `animal()` `mu` effects currently support only unlabelled q=1	`beta()` `animal()` `mu` effects currently support only unlabelled q=1 intercepts. ✖ Requested labelled structured term: `animal(1 + x1 + x2 + x3 | p | g)`. ℹ Use `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` for the v1.0 recovery gate.				0.01	

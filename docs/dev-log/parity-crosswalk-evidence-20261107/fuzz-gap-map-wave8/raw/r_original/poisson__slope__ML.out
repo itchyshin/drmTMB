@@ -1,6 +1,0 @@
-S	1	poisson|slope|lab0|q1|sd-none|cm0|ML
-R	1	poisson|slope|lab0|q1|sd-none|cm0|ML	FITS				-757.0855510932	0	pdHess=TRUE;is_converged=TRUE;npar=5	0.10	
-S	2	poisson|slope|lab0|q1|sd-one|cm0|ML
-R	2	poisson|slope|lab0|q1|sd-one|cm0|ML	FITS				-757.0855510932	0	pdHess=TRUE;is_converged=TRUE;npar=5	0.07	
-S	3	poisson|slope|lab0|q1|sd-z|cm0|ML
-R	3	poisson|slope|lab0|q1|sd-z|cm0|ML	FITS				-755.9330462277	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.08	

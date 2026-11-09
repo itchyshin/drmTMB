@@ -1,0 +1,6 @@
+j_outcome	j_sub	j_etype	old	wave8
+FITS			286	305
+NONCONVERGED			5	5
+REFUSES	ArgumentError	ArgumentError	2466	2448
+REFUSES	ErrorException	ErrorException	249	249
+TIMEOUT			2	1

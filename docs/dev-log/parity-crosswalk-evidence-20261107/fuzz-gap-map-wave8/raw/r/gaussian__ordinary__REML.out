@@ -1,0 +1,58 @@
+S	1	gaussian|ordinary|lab0|q1|sd-none|cm0|REML
+R	1	gaussian|ordinary|lab0|q1|sd-none|cm0|REML	FITS				-491.0673072838	0	pdHess=TRUE;is_converged=TRUE;npar=2	0.10	
+S	2	gaussian|ordinary|lab0|q1|sd-one|cm0|REML
+R	2	gaussian|ordinary|lab0|q1|sd-one|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.03	
+S	3	gaussian|ordinary|lab0|q1|sd-z|cm0|REML
+R	3	gaussian|ordinary|lab0|q1|sd-z|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	4	gaussian|ordinary|lab0|q2|sd-none|cm0|REML
+R	4	gaussian|ordinary|lab0|q2|sd-none|cm0|REML	FITS				-476.3237699620	0	pdHess=TRUE;is_converged=TRUE;npar=4	0.07	
+S	5	gaussian|ordinary|lab1|q2|sd-none|cm0|REML
+R	5	gaussian|ordinary|lab1|q2|sd-none|cm0|REML	FITS				-476.3237699620	0	pdHess=TRUE;is_converged=TRUE;npar=4	0.07	
+S	6	gaussian|ordinary|lab0|q2|sd-one|cm0|REML
+R	6	gaussian|ordinary|lab0|q2|sd-one|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	7	gaussian|ordinary|lab1|q2|sd-one|cm0|REML
+R	7	gaussian|ordinary|lab1|q2|sd-one|cm0|REML	ERROR	abort:rlang_error	Gaussian random-effect SD regression does not support the selected	Gaussian random-effect SD regression does not support the selected random-effect shape. ✖ Selected `sd(g, coef = "(Intercept)")` targets coefficient "(Intercept)". ℹ Use a scalar intercept or independent slope, or an unlabelled correlated block where the family admits one.				0.01	
+S	8	gaussian|ordinary|lab0|q2|sd-z|cm0|REML
+R	8	gaussian|ordinary|lab0|q2|sd-z|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	9	gaussian|ordinary|lab1|q2|sd-z|cm0|REML
+R	9	gaussian|ordinary|lab1|q2|sd-z|cm0|REML	ERROR	abort:rlang_error	Gaussian random-effect SD regression does not support the selected	Gaussian random-effect SD regression does not support the selected random-effect shape. ✖ Selected `sd(g, coef = "(Intercept)")` targets coefficient "(Intercept)". ℹ Use a scalar intercept or independent slope, or an unlabelled correlated block where the family admits one.				0.02	
+S	10	gaussian|ordinary|lab0|q2|sd-first|cm0|REML
+R	10	gaussian|ordinary|lab0|q2|sd-first|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	11	gaussian|ordinary|lab1|q2|sd-first|cm0|REML
+R	11	gaussian|ordinary|lab1|q2|sd-first|cm0|REML	ERROR	abort:rlang_error	Gaussian random-effect SD regression does not support the selected	Gaussian random-effect SD regression does not support the selected random-effect shape. ✖ Selected `sd(g, coef = "(Intercept)")` targets coefficient "(Intercept)". ℹ Use a scalar intercept or independent slope, or an unlabelled correlated block where the family admits one.				0.01	
+S	12	gaussian|ordinary|lab0|q2|sd-last|cm0|REML
+R	12	gaussian|ordinary|lab0|q2|sd-last|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	13	gaussian|ordinary|lab1|q2|sd-last|cm0|REML
+R	13	gaussian|ordinary|lab1|q2|sd-last|cm0|REML	ERROR	abort:rlang_error	Gaussian random-effect SD regression does not support the selected	Gaussian random-effect SD regression does not support the selected random-effect shape. ✖ Selected `sd(g, coef = "x1")` targets coefficient "x1". ℹ Use a scalar intercept or independent slope, or an unlabelled correlated block where the family admits one.				0.01	
+S	14	gaussian|ordinary|lab0|q3|sd-none|cm0|REML
+R	14	gaussian|ordinary|lab0|q3|sd-none|cm0|REML	FITS				-451.0539987541	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.12	
+S	15	gaussian|ordinary|lab1|q3|sd-none|cm0|REML
+R	15	gaussian|ordinary|lab1|q3|sd-none|cm0|REML	FITS				-451.0539987541	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.13	
+S	16	gaussian|ordinary|lab0|q3|sd-z|cm0|REML
+R	16	gaussian|ordinary|lab0|q3|sd-z|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.06	
+S	17	gaussian|ordinary|lab1|q3|sd-z|cm0|REML
+R	17	gaussian|ordinary|lab1|q3|sd-z|cm0|REML	ERROR	abort:rlang_error	Gaussian ordinary `sd()` regression cannot be combined with a correlated	Gaussian ordinary `sd()` regression cannot be combined with a correlated random-effect block of five or more coefficients, a labelled block, or more than one such block. ℹ Use independent terms, an unlabelled `(1 + x | group)` block of two coefficients, or one unlabelled block of three or four coefficients with `sd()` formulas.				0.01	
+S	18	gaussian|ordinary|lab0|q3|sd-first|cm0|REML
+R	18	gaussian|ordinary|lab0|q3|sd-first|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	19	gaussian|ordinary|lab1|q3|sd-first|cm0|REML
+R	19	gaussian|ordinary|lab1|q3|sd-first|cm0|REML	ERROR	abort:rlang_error	Gaussian ordinary `sd()` regression cannot be combined with a correlated	Gaussian ordinary `sd()` regression cannot be combined with a correlated random-effect block of five or more coefficients, a labelled block, or more than one such block. ℹ Use independent terms, an unlabelled `(1 + x | group)` block of two coefficients, or one unlabelled block of three or four coefficients with `sd()` formulas.				0.01	
+S	20	gaussian|ordinary|lab0|q4|sd-none|cm0|REML
+R	20	gaussian|ordinary|lab0|q4|sd-none|cm0|REML	FITS				-424.1982162830	0	pdHess=TRUE;is_converged=TRUE;npar=11	0.18	
+S	21	gaussian|ordinary|lab1|q4|sd-none|cm0|REML
+R	21	gaussian|ordinary|lab1|q4|sd-none|cm0|REML	FITS				-424.1982162830	0	pdHess=TRUE;is_converged=TRUE;npar=11	0.20	
+S	22	gaussian|ordinary|lab0|q4|sd-z|cm0|REML
+R	22	gaussian|ordinary|lab0|q4|sd-z|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	23	gaussian|ordinary|lab1|q4|sd-z|cm0|REML
+R	23	gaussian|ordinary|lab1|q4|sd-z|cm0|REML	ERROR	abort:rlang_error	Gaussian ordinary `sd()` regression cannot be combined with a correlated	Gaussian ordinary `sd()` regression cannot be combined with a correlated random-effect block of five or more coefficients, a labelled block, or more than one such block. ℹ Use independent terms, an unlabelled `(1 + x | group)` block of two coefficients, or one unlabelled block of three or four coefficients with `sd()` formulas.				0.01	
+S	24	gaussian|ordinary|lab0|q4|sd-first|cm0|REML
+R	24	gaussian|ordinary|lab0|q4|sd-first|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	25	gaussian|ordinary|lab1|q4|sd-first|cm0|REML
+R	25	gaussian|ordinary|lab1|q4|sd-first|cm0|REML	ERROR	abort:rlang_error	Gaussian ordinary `sd()` regression cannot be combined with a correlated	Gaussian ordinary `sd()` regression cannot be combined with a correlated random-effect block of five or more coefficients, a labelled block, or more than one such block. ℹ Use independent terms, an unlabelled `(1 + x | group)` block of two coefficients, or one unlabelled block of three or four coefficients with `sd()` formulas.				0.01	
+S	26	gaussian|ordinary|lab0|q1|sd-none|cm1|REML
+R	26	gaussian|ordinary|lab0|q1|sd-none|cm1|REML	FITS				-489.7542968591	0	pdHess=TRUE;is_converged=TRUE;npar=3	0.14	
+S	27	gaussian|ordinary|lab0|q1|sd-z|cm1|REML
+R	27	gaussian|ordinary|lab0|q1|sd-z|cm1|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	28	gaussian|ordinary|lab0|q2|sd-none|cm1|REML
+R	28	gaussian|ordinary|lab0|q2|sd-none|cm1|REML	ERROR	abort:rlang_error	Larger labelled `mu`/`sigma` covariance blocks are not implemented yet.	Larger labelled `mu`/`sigma` covariance blocks are not implemented yet. ✖ Block `p` on group g matched `mu` coefficients: "(Intercept)" and "x1". ℹ Use one matching coefficient, such as `(1 | p | id)` or `(0 + x | p | id)`, in one same-response `mu`/`sigma` pair.				0.03	
+S	29	gaussian|ordinary|lab0|q2|sd-z|cm1|REML
+R	29	gaussian|ordinary|lab0|q2|sd-z|cm1|REML	ERROR	abort:rlang_error	Gaussian random-effect SD regression does not support the selected	Gaussian random-effect SD regression does not support the selected random-effect shape. ✖ Selected `sd(g, coef = "(Intercept)")` targets coefficient "(Intercept)". ℹ Use a scalar intercept or independent slope, or an unlabelled correlated block where the family admits one.				0.01	

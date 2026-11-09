@@ -1,0 +1,22 @@
+S	1	gaussian|indep|lab0|q2|sd-none|cm0|REML
+R	1	gaussian|indep|lab0|q2|sd-none|cm0|REML	FITS				-477.1134169885	0	pdHess=TRUE;is_converged=TRUE;npar=3	0.11	
+S	2	gaussian|indep|lab0|q2|sd-one|cm0|REML
+R	2	gaussian|indep|lab0|q2|sd-one|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.04	
+S	3	gaussian|indep|lab0|q2|sd-z|cm0|REML
+R	3	gaussian|indep|lab0|q2|sd-z|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	4	gaussian|indep|lab0|q2|sd-first|cm0|REML
+R	4	gaussian|indep|lab0|q2|sd-first|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	5	gaussian|indep|lab0|q2|sd-last|cm0|REML
+R	5	gaussian|indep|lab0|q2|sd-last|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	6	gaussian|indep|lab0|q3|sd-none|cm0|REML
+R	6	gaussian|indep|lab0|q3|sd-none|cm0|REML	FITS				-455.7102696472	0	pdHess=TRUE;is_converged=TRUE;npar=4	0.08	
+S	7	gaussian|indep|lab0|q3|sd-z|cm0|REML
+R	7	gaussian|indep|lab0|q3|sd-z|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	8	gaussian|indep|lab0|q3|sd-first|cm0|REML
+R	8	gaussian|indep|lab0|q3|sd-first|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	9	gaussian|indep|lab0|q4|sd-none|cm0|REML
+R	9	gaussian|indep|lab0|q4|sd-none|cm0|REML	FITS				-432.5183035433	0	pdHess=TRUE;is_converged=TRUE;npar=5	0.10	
+S	10	gaussian|indep|lab0|q4|sd-z|cm0|REML
+R	10	gaussian|indep|lab0|q4|sd-z|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	
+S	11	gaussian|indep|lab0|q4|sd-first|cm0|REML
+R	11	gaussian|indep|lab0|q4|sd-first|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	

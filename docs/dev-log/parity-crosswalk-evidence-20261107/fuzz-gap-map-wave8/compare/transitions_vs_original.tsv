@@ -1,0 +1,16 @@
+original_class	wave8_class	cells
+both-refuse	both-refuse	1838
+crash-Julia	both-refuse	720
+both-fit-agree	both-fit-agree	174
+R-only	R-only	134
+both-fit-disagree	both-fit-disagree	52
+R-only	both-fit-agree	47
+Julia-only	Julia-only	23
+crash-Julia	R-only	5
+nonconverged	nonconverged	4
+both-fit-disagree	both-fit-agree	4
+crash-Julia	both-fit-agree	2
+crash-Julia	both-fit-disagree	2
+both-fit-agree	nonconverged	1
+inconclusive	inconclusive	1
+inconclusive	both-fit-agree	1

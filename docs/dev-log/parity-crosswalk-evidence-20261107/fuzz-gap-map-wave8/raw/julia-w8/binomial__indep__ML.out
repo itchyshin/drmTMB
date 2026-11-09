@@ -1,0 +1,22 @@
+S	1	binomial|indep|lab0|q2|sd-none|cm0|ML
+R	1	binomial|indep|lab0|q2|sd-none|cm0|ML	ERROR	ErrorException	Binomial() supports multiple random effects only as crossed/nested intercepts, e.g. `(1 | g) + (1 | h)`	Binomial() supports multiple random effects only as crossed/nested intercepts, e.g. `(1 | g) + (1 | h)`			at=binomial.jl:355	10.94	
+S	2	binomial|indep|lab0|q2|sd-one|cm0|ML
+R	2	binomial|indep|lab0|q2|sd-one|cm0|ML	FITS				-255.4849823856	true	se_finite=true;npar=6	19.85	
+S	3	binomial|indep|lab0|q2|sd-z|cm0|ML
+R	3	binomial|indep|lab0|q2|sd-z|cm0|ML	FITS				-255.2241433763	true	se_finite=true;npar=8	32.03	
+S	4	binomial|indep|lab0|q2|sd-first|cm0|ML
+R	4	binomial|indep|lab0|q2|sd-first|cm0|ML	ERROR	ArgumentError	ArgumentError: Binomial SD regression requires one SD formula for each independent random-effect coefficient.	ArgumentError: Binomial SD regression requires one SD formula for each independent random-effect coefficient.				0.00	
+S	5	binomial|indep|lab0|q2|sd-last|cm0|ML
+R	5	binomial|indep|lab0|q2|sd-last|cm0|ML	ERROR	ArgumentError	ArgumentError: Binomial SD regression requires one SD formula for each independent random-effect coefficient.	ArgumentError: Binomial SD regression requires one SD formula for each independent random-effect coefficient.				0.00	
+S	6	binomial|indep|lab0|q3|sd-none|cm0|ML
+R	6	binomial|indep|lab0|q3|sd-none|cm0|ML	ERROR	ErrorException	Binomial() supports multiple random effects only as crossed/nested intercepts, e.g. `(1 | g) + (1 | h)`	Binomial() supports multiple random effects only as crossed/nested intercepts, e.g. `(1 | g) + (1 | h)`			at=binomial.jl:355	0.23	
+S	7	binomial|indep|lab0|q3|sd-z|cm0|ML
+R	7	binomial|indep|lab0|q3|sd-z|cm0|ML	FITS				-254.5595964059	true	se_finite=true;npar=10	59.00	
+S	8	binomial|indep|lab0|q3|sd-first|cm0|ML
+R	8	binomial|indep|lab0|q3|sd-first|cm0|ML	ERROR	ArgumentError	ArgumentError: Binomial SD regression requires one SD formula for each independent random-effect coefficient.	ArgumentError: Binomial SD regression requires one SD formula for each independent random-effect coefficient.				0.00	
+S	9	binomial|indep|lab0|q4|sd-none|cm0|ML
+R	9	binomial|indep|lab0|q4|sd-none|cm0|ML	ERROR	ErrorException	Binomial() supports multiple random effects only as crossed/nested intercepts, e.g. `(1 | g) + (1 | h)`	Binomial() supports multiple random effects only as crossed/nested intercepts, e.g. `(1 | g) + (1 | h)`			at=binomial.jl:355	0.17	
+S	10	binomial|indep|lab0|q4|sd-z|cm0|ML
+R	10	binomial|indep|lab0|q4|sd-z|cm0|ML	FITS				-249.5579625795	true	se_finite=true;npar=12	96.65	Hessian is numerically singular at the optimum — using a pseudo-inverse.
+S	11	binomial|indep|lab0|q4|sd-first|cm0|ML
+R	11	binomial|indep|lab0|q4|sd-first|cm0|ML	ERROR	ArgumentError	ArgumentError: Binomial SD regression requires one SD formula for each independent random-effect coefficient.	ArgumentError: Binomial SD regression requires one SD formula for each independent random-effect coefficient.				0.00	
