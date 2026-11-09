@@ -7,7 +7,9 @@
 # producer. Pull requests never obtain upload credentials.
 #
 # Shards reuse DRMTMB_TEST_SHARD="k/4" so the four jobs partition the suite
-# exactly once (tests/testthat/helper-shard-util.R). One OS, one R version:
+# exactly once (tests/testthat/helper-shard-util.R). A fifth job,
+# julia-bridge-coverage, runs test-julia-* with live Julia + DRModels.jl and
+# uploads its own cobertura (batch D7). One OS, one R version:
 # repeating Ubuntu/macOS/Windows or attaching coverage to R-CMD-check would
 # double-count. Existing R-CMD-check shards are unchanged and do not upload
 # coverage.
@@ -216,4 +218,220 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-test-failures-shard-${{ matrix.shard }}
+          path: ${{ runner.temp }}/package
+
+  # Batch D7 (coverage campaign, 2026-11-09): live Julia + DRModels.jl so
+  # test-julia-* exercises R/julia-bridge.R instead of drm_skip_live_julia().
+  # Own cobertura artifact; does not extend the four 180-minute shards.
+  julia-bridge-coverage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    name: ubuntu-24.04 (release) julia-bridge coverage
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      NOT_CRAN: true
+      DRMTMB_JULIA_TESTS: true
+      JULIA_NUM_THREADS: 1
+      OPENBLAS_NUM_THREADS: 1
+      OMP_NUM_THREADS: 1
+      MKL_NUM_THREADS: 1
+      JULIA_PKG_PRECOMPILE_AUTO: 0
+      JULIA_NUM_PRECOMPILE_TASKS: 2
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Read programme DRModels.jl pin
+        id: drmodels_pin
+        run: |
+          pin=$(python3 - <<'PY'
+          import json
+          with open("docs/dev-log/loop/parity-joint-20260905/source-pins.json", encoding="utf-8") as f:
+              pins = json.load(f)
+          repins = pins.get("repins") or []
+          if not repins:
+              raise SystemExit("source-pins.json has no repins[] entry")
+          pin = repins[-1]["drmjl_base"]
+          if len(pin) != 40 or any(c not in "0123456789abcdef" for c in pin):
+              raise SystemExit(f"bad drmjl_base pin: {pin!r}")
+          print(pin)
+          PY
+          )
+          echo "pin=${pin}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v6.0.2
+        with:
+          repository: itchyshin/DRModels.jl
+          ref: ${{ steps.drmodels_pin.outputs.pin }}
+          path: DRModels.jl
+          persist-credentials: false
+
+      - name: Verify DRModels.jl checkout matches programme pin
+        run: |
+          pin='${{ steps.drmodels_pin.outputs.pin }}'
+          head=$(git -C DRModels.jl rev-parse HEAD)
+          if [ "$head" != "$pin" ]; then
+            echo "DRModels.jl HEAD $head != programme pin $pin" >&2
+            exit 1
+          fi
+          echo "DRModels.jl checkout ${head}"
+
+      - uses: julia-actions/setup-julia@da908477b5db94c10ffce8cfea9f2b3b9d5db687 # v3
+        with:
+          version: 1.13
+          show-versioninfo: true
+
+      - uses: julia-actions/cache@v2
+        with:
+          cache-registries: true
+          cache-packages: true
+
+      - name: Instantiate DRModels.jl for JuliaCall
+        working-directory: DRModels.jl
+        run: |
+          julia --startup-file=no --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::covr, any::xml2, any::JuliaCall
+          needs: coverage
+
+      - name: Export JuliaCall paths
+        run: |
+          {
+            echo "DRMODELS_JL_PATH=${GITHUB_WORKSPACE}/DRModels.jl"
+            echo "DRM_JL_PATH=${GITHUB_WORKSPACE}/DRModels.jl"
+            echo "JULIA_HOME=$(julia -e 'print(Sys.BINDIR)')"
+          } >> "$GITHUB_ENV"
+
+      - name: Record tested commit
+        run: |
+          checkout_sha=$(git rev-parse HEAD)
+          branch_head='${{ github.event.pull_request.head.sha || github.sha }}'
+          {
+            echo "checkout_sha=${checkout_sha}"
+            echo "coverage_commit=${checkout_sha}"
+            echo "github_sha=${GITHUB_SHA}"
+            echo "branch_head=${branch_head}"
+            echo "pr_head=${{ github.event.pull_request.head.sha }}"
+            echo "drmodels_pin=${{ steps.drmodels_pin.outputs.pin }}"
+            echo "lane=julia-bridge"
+            echo "event=${{ github.event_name }}"
+            echo "ref=${{ github.ref }}"
+            if [ -n "${branch_head}" ] && [ "${checkout_sha}" != "${branch_head}" ]; then
+              echo "sha_note=pull_request_merge_sha_is_not_branch_head"
+            fi
+          } | tee coverage-identity.txt
+
+      - name: Plant Rcheck 00_pkg_src for covr tests
+        run: bash tools/covr-source-tree-layout.sh "${{ runner.temp }}/package" "${{ github.workspace }}"
+
+      - name: Patch testthat.R for Julia-only coverage (CI ephemeral)
+        shell: Rscript {0}
+        run: |
+          path <- "tests/testthat.R"
+          text <- paste(readLines(path, warn = FALSE), collapse = "\n")
+          old <- paste(
+            "if (not_cran) {",
+            "  if (is.null(drm_shard)) {",
+            '    test_check("drmTMB")',
+            "  } else {",
+            '    test_check("drmTMB", filter = drm_shard)',
+            "  }",
+            "}",
+            sep = "\n"
+          )
+          new <- paste(
+            "if (not_cran) {",
+            '  test_check("drmTMB", filter = "^julia")',
+            "}",
+            sep = "\n"
+          )
+          if (!grepl(old, text, fixed = TRUE)) {
+            stop("tests/testthat.R changed; update julia-bridge-coverage patch")
+          }
+          writeLines(sub(old, new, text, fixed = TRUE), path)
+
+      - name: Smoke-test JuliaCall against DRModels.jl
+        run: |
+          Rscript -e '
+            stopifnot(dir.exists(Sys.getenv("DRMODELS_JL_PATH")))
+            JuliaCall::julia_setup(quiet = TRUE)
+            JuliaCall::julia_command("using DRModels")
+            cat("JuliaCall + DRModels.jl OK\n")
+          '
+
+      - name: Test coverage (Julia bridge tests only)
+        run: |
+          install_path <- file.path(
+            normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"),
+            "package"
+          )
+          pkg_root <- normalizePath(".", winslash = "/", mustWork = TRUE)
+          checkout_sha <- system("git rev-parse HEAD", intern = TRUE)
+          cat(sprintf("coverage_commit=%s\n", checkout_sha))
+          cat(sprintf("lane=julia-bridge\n"))
+          layout_rc <- system2(
+            "bash",
+            c("tools/covr-source-tree-layout.sh", install_path, pkg_root)
+          )
+          if (!identical(layout_rc, 0L)) {
+            stop("failed to plant 00_pkg_src for covr tests")
+          }
+          cov <- covr::package_coverage(
+            quiet = FALSE,
+            clean = FALSE,
+            type = "tests",
+            install_path = install_path
+          )
+          print(cov)
+          pct <- covr::percent_coverage(cov)
+          cat(sprintf("julia_bridge_percent_coverage=%.4f\n", pct))
+          writeLines(
+            sprintf("julia_bridge_percent_coverage=%.4f", pct),
+            "coverage-percent.txt"
+          )
+          covr::to_cobertura(cov, filename = "cobertura.xml")
+        env:
+          DRMTMB_BRANCH_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: Rscript {0}
+
+      - name: Save pull-request coverage report
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: pr-coverage-julia-bridge
+          path: |
+            cobertura.xml
+            coverage-identity.txt
+            coverage-percent.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Save coverage report for trusted upload
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: main-coverage-julia-bridge
+          path: cobertura.xml
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Show testthat output
+        if: always()
+        run: |
+          find '${{ runner.temp }}/package' -name 'testthat.Rout*' -exec cat '{}' \; || true
+        shell: bash
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-test-failures-julia-bridge
           path: ${{ runner.temp }}/package
