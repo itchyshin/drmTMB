@@ -8614,7 +8614,7 @@ drm_julia_warn_fit_failed <- function(result) {
   detail <- detail[!is.na(detail)]
   detail <- if (length(detail) >= 1L) detail[[1L]] else ""
   cli::cli_warn(c(
-    "The Julia fit failed, so {.fn logLik} is {.val NaN} and the estimates should not be used.",
+    "The Julia fit failed, so {.fn logLik} is {.code NaN} and the estimates should not be used.",
     "i" = if (nzchar(detail)) {
       "Julia reported: {detail}"
     },
@@ -10066,11 +10066,19 @@ print.summary.drmTMB_julia <- function(x, ...) {
     cli::cli_text("  uncertainty: {x$uncertainty$status}")
   }
   cli::cli_text("")
-  cli::cli_text("Fixed effects (link scale):")
+  if (isTRUE(x$fit_failed)) {
+    cli::cli_text("Fixed effects (link scale) -- NOT VALID, the fit failed:")
+  } else {
+    cli::cli_text("Fixed effects (link scale):")
+  }
   print(x$coefficients, row.names = FALSE)
   if (!is.null(x$random) && nrow(x$random) > 0L) {
     cli::cli_text("")
-    cli::cli_text("Random effects (SD, response scale):")
+    if (isTRUE(x$fit_failed)) {
+      cli::cli_text("Random effects (SD, response scale) -- NOT VALID, the fit failed:")
+    } else {
+      cli::cli_text("Random effects (SD, response scale):")
+    }
     print(x$random, row.names = FALSE)
   }
   invisible(x)

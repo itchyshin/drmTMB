@@ -42,6 +42,31 @@ test_that("a failed Julia fit warns with the Julia message and next steps", {
   )
 })
 
+test_that("the failed-fit warning shows NaN as code, not a quoted string", {
+  w <- tryCatch(
+    failed_fit_gaussian(loglik = NaN, fit_failed = TRUE),
+    warning = function(w) conditionMessage(w)
+  )
+  expect_match(w, "is `NaN`", fixed = TRUE)
+  expect_false(grepl("\"NaN\"", w, fixed = TRUE))
+})
+
+test_that("summary() marks the coefficient table of a failed fit as not valid", {
+  suppressWarnings(fit <- failed_fit_gaussian(
+    loglik = NaN, converged = FALSE, fit_failed = TRUE,
+    coefficients = c(-6.5e198, Inf)
+  ))
+  out <- paste(testthat::capture_messages(print(summary(fit))), collapse = "\n")
+  expect_match(out, "FAILED FIT")
+  expect_match(out, "Fixed effects (link scale) -- NOT VALID", fixed = TRUE)
+  # Object contents used by other methods are untouched.
+  expect_equal(unname(unlist(stats::coef(fit))), c(-6.5e198, Inf))
+  good <- failed_fit_gaussian()
+  gout <- paste(testthat::capture_messages(print(summary(good))), collapse = "\n")
+  expect_match(gout, "Fixed effects (link scale):", fixed = TRUE)
+  expect_false(grepl("NOT VALID", gout))
+})
+
 test_that("a good Julia fit is silent and not marked failed", {
   expect_no_warning(fit <- failed_fit_gaussian(fit_failed = FALSE, fit_failed_message = ""))
   expect_false(fit$fit_failed)

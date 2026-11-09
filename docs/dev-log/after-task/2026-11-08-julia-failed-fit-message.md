@@ -13,3 +13,7 @@ New tests in `test-julia-failed-fit-message.R` cover a failed fit (warns, `NaN` 
 ## Limits
 
 Only hand-built bridge results were tested. The real payload from DRModels.jl #1270 was not exercised end to end. An older Julia package sends no `fit_failed` key and behaves as before. No exports or Rd files changed.
+
+## Follow-up: two cosmetic fixes from a live bridge test
+
+A live failed fit showed two defects. The warning printed `"NaN"` in quotes, so it now uses code formatting (`logLik()` is `NaN`). `summary()` printed the coefficient table of a failed fit with no marking, so the table header now reads "NOT VALID, the fit failed" (the random-effects header likewise). The values themselves are unchanged and other methods still read them; successful-fit output is identical.
