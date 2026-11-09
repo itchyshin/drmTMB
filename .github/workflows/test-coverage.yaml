@@ -84,7 +84,12 @@ jobs:
     # slowest shard is unknown: shards 1/4 had not finished tests at 88
     # minutes of that step. This is not a timeout-only fix; the 00_pkg_src
     # plant is the shard 2/3 path repair.
-    timeout-minutes: 120
+    # 120 was not enough: run 42624436768 (head c3b5c07d8) cancelled shard
+    # 4/4 at the 120-minute timeout still in tests (13:24Z-15:20Z), after
+    # 106.8 min for the same shard in run 42526163025. The same shard spread
+    # is 65 vs 109 min for shard 2/4 across those runs, so runner speed, not
+    # a hang, sets the tail. 180 matches R-CMD-check's unsharded job.
+    timeout-minutes: 180
     name: ubuntu-24.04 (release) coverage shard ${{ matrix.shard }}/4
     strategy:
       fail-fast: false

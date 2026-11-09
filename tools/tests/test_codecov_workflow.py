@@ -146,8 +146,9 @@ class CodecovWorkflowTest(unittest.TestCase):
         )
 
     def test_producer_plants_rcheck_layout_and_records_shas(self) -> None:
-        self.assertIn("timeout-minutes: 120", self.producer)
+        self.assertIn("timeout-minutes: 180", self.producer)
         self.assertNotIn("timeout-minutes: 90", self.producer)
+        self.assertNotIn("timeout-minutes: 120", self.producer)
         self.assertIn("tools/covr-source-tree-layout.sh", self.producer)
         self.assertIn("00_pkg_src", self.producer)
         self.assertIn("checkout_sha=", self.producer)

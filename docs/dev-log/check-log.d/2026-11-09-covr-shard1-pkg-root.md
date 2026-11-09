@@ -70,3 +70,16 @@ scanner's sanctioned remedy (`--update`) adds it to the source-tree lane as
 well. No test was hidden from the scanner or changed. Full lane locally
 (scratch git copy, `Rscript --no-init-file tools/run-source-tree-tests.R`):
 manifest agrees, 51 files, `[ FAIL 0 | WARN 14 | SKIP 7 | PASS 26618 ]`.
+
+## Live result on c3b5c07d8 and shard 4 timeout
+
+[test-coverage 42624436768](https://github.com/itchyshin/drmTMB/actions/runs/42624436768)
+(tested merge `196d0e80f`): shard 1/4 `[ FAIL 0 | WARN 44 | SKIP 158 | PASS
+11205 ]`, 63.3837%; shard 2/4 `PASS 10190`, 66.4887%; shard 3/4 `PASS
+10813`, 63.7692%. Shard 4/4 was cancelled at the 120-minute job timeout while
+still in tests (13:24Z to 15:20Z); on run 42526163025 the same shard finished
+in 106.8 minutes, and shard 2/4 ranged 65 to 109 minutes between the two runs.
+Job `timeout-minutes` is raised to 180, matching R-CMD-check's unsharded
+job. No test or test-level timeout changed.
+[R-CMD-check 42624436767](https://github.com/itchyshin/drmTMB/actions/runs/42624436767)
+passed, including `source-tree tests (blind spot)`.

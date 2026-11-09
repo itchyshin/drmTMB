@@ -71,4 +71,7 @@ None. Work stays on PR #1686.
 
 ## Known limitations and next actions
 
-Shard wall time (about 60 to 107 minutes of 120) is unchanged by this fix.
+Shard wall time is unchanged by this fix (65 to over 116 minutes across
+runs). Shard 4/4 exceeded the 120-minute job timeout on c3b5c07d8, so the job
+timeout is now 180 minutes. More shards would cut wall time if 180 proves
+tight.
