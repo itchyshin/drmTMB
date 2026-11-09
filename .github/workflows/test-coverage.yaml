@@ -271,6 +271,10 @@ jobs:
       - name: Instantiate DRModels.jl
         run: bash tools/ci-install-drmodels-julia.sh "${{ github.workspace }}/DRModels.jl"
 
+      - name: Export JULIA_HOME for JuliaCall
+        shell: bash
+        run: echo "JULIA_HOME=$(julia -e 'print(Sys.BINDIR)')" >> "$GITHUB_ENV"
+
       - name: Record resolved DRModels.jl commit
         run: |
           drmodels_sha=$(git -C DRModels.jl rev-parse HEAD)

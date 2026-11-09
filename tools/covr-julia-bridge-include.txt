@@ -68,11 +68,9 @@ julia-predict-newdata
 julia-prediction-scales
 julia-q2-phylo-point-export
 julia-registry-vs-comparison
-julia-reml-phylo-mean
 julia-rho12-corpair-link
 julia-rhs-intercept-only
 julia-selected-sd-coef-label
-julia-sigma-phylo-reml
 julia-slope-nongaussian
 julia-structured-dimnames
 julia-structured-inference
