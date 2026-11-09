@@ -1,4 +1,3 @@
-M R/drmTMB.R
 D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/dirty-state.txt
 D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/provenance.tsv
 D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/raw-attempts.tsv
@@ -11,4 +10,3 @@ D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compa
 ?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.rejected-fix-1482-256a/provenance.tsv
 ?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.rejected-fix-1482-256a/raw-attempts.tsv
 ?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.rejected-fix-1482-256a/summary.tsv
-?? tests/testthat/test-fix-1482.R
