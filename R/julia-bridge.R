@@ -7165,7 +7165,16 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
   }
   actual <- result$resolved_priors_v2
   if (!is.list(expected) || !is.list(actual) || length(expected) == 0L || length(actual) != length(expected)) fail("prior record count")
-  if (!identical(lapply(actual, normalize_record), lapply(expected, normalize_record))) fail("prior records differ")
+  expected <- lapply(expected, normalize_record)
+  if (!identical(lapply(actual, normalize_record), expected)) fail("prior records differ")
+  sd_records <- Filter(function(x) identical(x$kind, "ranef_sd_gamma"), expected)
+  if (length(sd_records) != 1L) fail("SD prior record count")
+  sd_record <- sd_records[[1L]]
+  if (!identical(sd_record$class, "ranef_sd") || !identical(sd_record$dpar, "mu") ||
+      !identical(sd_record$coef, "(Intercept)") || !identical(sd_record$block_kind, "iid_random_intercept") ||
+      !identical(sd_record$measure, "natural_sd") || sd_record$shape <= 1 || sd_record$rate <= 0 ||
+      sd_record$spec_index < 1 || sd_record$spec_index != floor(sd_record$spec_index))
+    fail("SD prior target or parameters")
   coords <- result$working_coordinates
   if (!is.character(coords) || !length(coords) || anyNA(coords) || any(!nzchar(coords)) || anyDuplicated(coords)) fail("working coordinates")
   if (!is.null(expected_coordinates) && !identical(coords, expected_coordinates)) fail("working coordinate identities")
@@ -7182,6 +7191,52 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
   gradients <- c("data_gradient", "fixed_prior_gradient", "sd_prior_gradient", "penalized_gradient")
   for (k in gradients) vec(result[[k]], n, k)
   close <- function(a, b) all(abs(a - b) <= 1e-10 * pmax(1, abs(a), abs(b)))
+  sd_coordinate <- paste0("eta_sd[mu|", sd_record$group, "|(Intercept)]")
+  sd_index <- which(coords == sd_coordinate)
+  if (length(sd_index) != 1L) fail("SD prior coordinate identity")
+  eta <- working[[sd_index]]
+  tau <- exp(eta)
+  variance <- tau^2
+  if (!is.finite(tau) || tau <= 0 || !is.finite(variance) || variance <= 0)
+    fail("SD prior coordinate outside numeric range")
+  sd_penalty <- sd_record$rate * tau - (sd_record$shape - 1) * eta -
+    sd_record$shape * log(sd_record$rate) + lgamma(sd_record$shape)
+  sd_gradient <- numeric(n)
+  sd_gradient[[sd_index]] <- sd_record$rate * tau - (sd_record$shape - 1)
+  if (!is.finite(sd_penalty) || any(!is.finite(sd_gradient))) fail("SD prior coordinate outside numeric range")
+  if (!close(result$sd_prior_penalty, sd_penalty)) fail("SD prior penalty")
+  if (!close(result$sd_prior_gradient, sd_gradient)) fail("SD prior gradient")
+  fixed_penalty <- 0
+  fixed_gradient <- numeric(n)
+  fixed_indices <- integer()
+  fixed_records <- Filter(function(x) x$kind %in% c("fixed_normal", "fixed_ridge"), expected)
+  for (record in fixed_records) {
+    if (!identical(record$class, "fixed") || !record$dpar %in% c("mu", "sigma") ||
+        record$spec_index < 1 || record$spec_index != floor(record$spec_index))
+      fail("fixed prior target or parameters")
+    index <- which(coords == paste0(record$dpar, "_", record$coef))
+    if (length(index) != 1L || index == sd_index) fail("fixed prior coordinate identity")
+    if (index %in% fixed_indices) fail("fixed prior target duplicated")
+    fixed_indices <- c(fixed_indices, index)
+    beta <- working[[index]]
+    if (identical(record$kind, "fixed_normal")) {
+      precision <- 1 / record$sd^2
+      if (record$sd <= 0 || !is.finite(precision) || precision <= 0) fail("fixed prior parameters")
+      z <- (beta - record$mean) / record$sd
+      contribution <- 0.5 * z^2 + log(record$sd) + 0.5 * log(2 * pi)
+      derivative <- (beta - record$mean) * precision
+    } else {
+      if (record$lambda < 0) fail("fixed prior parameters")
+      derivative <- record$lambda * beta
+      contribution <- 0.5 * beta * derivative
+    }
+    if (!is.finite(contribution) || !is.finite(derivative)) fail("fixed prior coordinate outside numeric range")
+    fixed_penalty <- fixed_penalty + contribution
+    fixed_gradient[[index]] <- derivative
+  }
+  if (!is.finite(fixed_penalty)) fail("fixed prior penalty outside numeric range")
+  if (!close(result$fixed_prior_penalty, fixed_penalty)) fail("fixed prior penalty")
+  if (!close(result$fixed_prior_gradient, fixed_gradient)) fail("fixed prior gradient")
   if (!close(result$data_logLik, -result$data_nll) || !close(result$loglik, result$data_logLik)) fail("data likelihood")
   if (!close(result$penalized_objective, result$data_nll + result$fixed_prior_penalty + result$sd_prior_penalty)) fail("objective decomposition")
   if (!close(result$penalized_gradient, result$data_gradient + result$fixed_prior_gradient + result$sd_prior_gradient)) fail("gradient decomposition")

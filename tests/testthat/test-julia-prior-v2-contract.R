@@ -8,8 +8,8 @@ test_that("v2 response validation rejects a changed objective", {
     response <- list(prior_contract = "parameter_priors_v2", resolved_priors_v2 = expected,
       working_coordinates = c("mu_(Intercept)", "sigma_(Intercept)", "eta_sd[mu|site|(Intercept)]"),
       working_values = c(0, 0, log(0.8)), coefficients = c(0, 0, log(0.8)), data_nll = 4, data_logLik = -4, loglik = -4,
-      fixed_prior_penalty = 0, sd_prior_penalty = 0.425918974,
-      penalized_objective = 4.425918974, data_gradient = c(0, 0, 1),
+      fixed_prior_penalty = 0, sd_prior_penalty = -dgamma(.8, shape=2, rate=3, log=TRUE),
+      penalized_objective = 4 - dgamma(.8, shape=2, rate=3, log=TRUE), data_gradient = c(0, 0, 1),
       fixed_prior_gradient = c(0, 0, 0), sd_prior_gradient = c(0, 0, 1.4),
       penalized_gradient = c(0, 0, 2.4), estim_method = "MAP", infocrit_basis = "unavailable")
     expect_silent(validate(response, expected))
@@ -25,8 +25,8 @@ test_that("v2 response rejects altered records, coordinates and diagnostics", {
   coords <- c("mu_(Intercept)", "sigma_(Intercept)", "eta_sd[mu|site|(Intercept)]")
   good <- list(prior_contract = "parameter_priors_v2", resolved_priors_v2 = expected,
     working_coordinates = coords, working_values = c(0, 0, log(.8)), coefficients = c(0, 0, log(.8)), data_nll = 4,
-    data_logLik = -4, loglik = -4, fixed_prior_penalty = 0, sd_prior_penalty = .425918974,
-    penalized_objective = 4.425918974, data_gradient = c(0, 0, 1),
+    data_logLik = -4, loglik = -4, fixed_prior_penalty = 0, sd_prior_penalty = -dgamma(.8, shape=2, rate=3, log=TRUE),
+    penalized_objective = 4 - dgamma(.8, shape=2, rate=3, log=TRUE), data_gradient = c(0, 0, 1),
     fixed_prior_gradient = c(0, 0, 0), sd_prior_gradient = c(0, 0, 1.4),
     penalized_gradient = c(0, 0, 2.4), estim_method = "MAP", infocrit_basis = "unavailable")
   bad <- good; bad$resolved_priors_v2[[1]]$rate <- 4
@@ -49,6 +49,61 @@ test_that("v2 response rejects altered records, coordinates and diagnostics", {
   expect_error(drm_julia_validate_prior_v2_result(bad, expected, coords), "estimator")
   bad <- good; bad$sd_prior_gradient <- NULL
   expect_error(drm_julia_validate_prior_v2_result(bad, expected, coords), "missing")
+  # Compensating changes preserve the decomposition but falsify the SD prior.
+  bad <- good; bad$sd_prior_penalty <- bad$sd_prior_penalty + 1
+  bad$data_nll <- bad$data_nll - 1; bad$data_logLik <- -bad$data_nll; bad$loglik <- bad$data_logLik
+  expect_error(drm_julia_validate_prior_v2_result(bad, expected, coords), "SD prior penalty")
+  bad <- good; bad$sd_prior_gradient[[3]] <- bad$sd_prior_gradient[[3]] + 1
+  bad$data_gradient[[3]] <- bad$data_gradient[[3]] - 1
+  expect_error(drm_julia_validate_prior_v2_result(bad, expected, coords), "SD prior gradient")
+  bad <- good; bad$sd_prior_gradient[[1]] <- 1; bad$data_gradient[[1]] <- -1
+  expect_error(drm_julia_validate_prior_v2_result(bad, expected, coords), "SD prior gradient")
+  bad <- good; bad$working_coordinates[[3]] <- "eta_sd[mu|other|(Intercept)]"
+  expect_error(drm_julia_validate_prior_v2_result(bad, expected), "SD prior coordinate")
+  bad <- good; bad$working_values[[3]] <- -1000; bad$coefficients[[3]] <- -1000
+  expect_error(drm_julia_validate_prior_v2_result(bad, expected, coords), "SD prior coordinate")
+  bad <- good; bad$working_values[[3]] <- -400; bad$coefficients[[3]] <- -400
+  expect_error(drm_julia_validate_prior_v2_result(bad, expected, coords), "SD prior coordinate")
+  bad <- good; bad$working_values[[3]] <- 400; bad$coefficients[[3]] <- 400
+  expect_error(drm_julia_validate_prior_v2_result(bad, expected, coords), "SD prior coordinate")
+})
+
+test_that("v2 response independently checks mixed fixed-prior contributions", {
+  expected <- list(
+    list(spec_index=1L, kind="fixed_normal", class="fixed", dpar="mu", coef="(Intercept)", mean=0, sd=1),
+    list(spec_index=2L, kind="fixed_ridge", class="fixed", dpar="sigma", coef="(Intercept)", lambda=2),
+    list(spec_index=3L, kind="ranef_sd_gamma", class="ranef_sd", dpar="mu", group="site", coef="(Intercept)",
+      block_kind="iid_random_intercept", shape=2, rate=3, measure="natural_sd"))
+  coords <- c("mu_(Intercept)", "sigma_(Intercept)", "eta_sd[mu|site|(Intercept)]")
+  fixed <- -dnorm(.7, mean=0, sd=1, log=TRUE) + .5 * 2 * (-.2)^2
+  sd <- -dgamma(.8, shape=2, rate=3, log=TRUE)
+  good <- list(prior_contract="parameter_priors_v2", resolved_priors_v2=expected,
+    working_coordinates=coords, working_values=c(.7,-.2,log(.8)), coefficients=c(.7,-.2,log(.8)),
+    data_nll=4, data_logLik=-4, loglik=-4, fixed_prior_penalty=fixed, sd_prior_penalty=sd,
+    penalized_objective=4+fixed+sd, data_gradient=c(0,0,1), fixed_prior_gradient=c(.7,-.4,0),
+    sd_prior_gradient=c(0,0,1.4), penalized_gradient=c(.7,-.4,2.4),
+    estim_method="MAP", infocrit_basis="unavailable")
+  expect_silent(drm_julia_validate_prior_v2_result(good, expected, coords))
+  bad <- good; bad$fixed_prior_penalty <- bad$fixed_prior_penalty + 1
+  bad$data_nll <- bad$data_nll - 1; bad$data_logLik <- -bad$data_nll; bad$loglik <- bad$data_logLik
+  expect_error(drm_julia_validate_prior_v2_result(bad, expected, coords), "fixed prior penalty")
+  bad <- good; bad$fixed_prior_gradient[[1]] <- bad$fixed_prior_gradient[[1]] + 1
+  bad$data_gradient[[1]] <- bad$data_gradient[[1]] - 1
+  expect_error(drm_julia_validate_prior_v2_result(bad, expected, coords), "fixed prior gradient")
+  bad <- good; bad$fixed_prior_gradient[[3]] <- 1; bad$data_gradient[[3]] <- 0
+  expect_error(drm_julia_validate_prior_v2_result(bad, expected, coords), "fixed prior gradient")
+  bad <- good; bad$working_coordinates[[1]] <- "mu_wrong"
+  expect_error(drm_julia_validate_prior_v2_result(bad, expected), "fixed prior coordinate")
+  duplicate <- c(expected, list(expected[[1L]])); duplicate[[4L]]$spec_index <- 4L
+  bad <- good; bad$resolved_priors_v2 <- duplicate
+  expect_error(drm_julia_validate_prior_v2_result(bad, duplicate, coords), "fixed prior target")
+  zero <- good; zero_records <- expected; zero_records[[2L]]$lambda <- 0
+  zero$resolved_priors_v2 <- zero_records
+  zero$fixed_prior_penalty <- -dnorm(.7, mean=0, sd=1, log=TRUE)
+  zero$fixed_prior_gradient <- c(.7,0,0)
+  zero$penalized_objective <- 4 + zero$fixed_prior_penalty + sd
+  zero$penalized_gradient <- c(.7,0,2.4)
+  expect_silent(drm_julia_validate_prior_v2_result(zero, zero_records, coords))
 })
 
 test_that("conditional bridge invokes the shared v2 validator", {
