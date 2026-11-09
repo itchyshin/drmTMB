@@ -147,7 +147,7 @@ Short reading of the ranking:
 ## What this does not show
 
 - Same limits as the original map: it maps what fits, and the only correctness check is logLik on both-fit cells. Estimates, SEs and intervals were not compared. One data set per family and shape, 400 rows, one seed; `FITS` means the optimiser reported convergence.
-- Structured inputs are passed one way each (`coords` as a Dict, `A` with `ids`, `K`, `tree` as Newick). The original map found the matrix form of `coords` flipped 2 binomial spatial cells; I did not rerun that variant, so a few `spatial` refusals may be input-form artefacts. The Beta spatial flips here already use the Dict form.
+- Structured inputs are passed one way each (`coords` as a Dict, `A` with `ids`, `K`, `tree` as Newick). I reran all 450 spatial cells on wave 8 with `coords` as a G x 2 matrix (`raw/julia-w8-matcoords/`): 36 fit, 1 did not converge, and **none** of them is a cell the Dict form refused, and no fitted logLik changed by more than 1e-6. So at wave 8 the coords format does not explain any spatial refusal. Other input forms (`A` without `ids`, `K` row order, tree objects) were not tried.
 - The Laplace re-run for the integrator disagreements was not repeated.
 - I did not check which commit built the Totoro R library (same library as the original map; same outcomes in every cell).
 - The wave-8 refusal groups are normalised messages; the ranking was not re-checked against the matrix.
