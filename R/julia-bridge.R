@@ -7548,6 +7548,7 @@ new_drmTMB_julia <- function(
   effective_REML = NULL
 ) {
   result <- as.list(result)
+  drm_julia_warn_fit_failed(result)
   public_coef_labels <- drm_julia_bridge_coef_labels(result)
   coef_names <- as.character(result[["coef_names"]])
   if (!is.null(public_coef_labels)) {
@@ -7715,6 +7716,7 @@ new_drmTMB_julia <- function(
     corpars = structured_parameters$corpars,
     vcov = V,
     logLik = as.numeric(result[["loglik"]]),
+    fit_failed = drm_julia_fit_failed(result),
     aic = as.numeric(result[["aic"]]),
     bic = as.numeric(result[["bic"]]),
     df = as.integer(result[["df"]]),
@@ -8597,13 +8599,43 @@ drm_julia_vcov <- function(x, coef_names) {
 # route does not record it" -- NOT zero. There is no Optim.jl message string on
 # the wire, so `message` is composed here from the two facts that did cross, and
 # says so; it is never presented as a verbatim optimiser message.
+# `fit_failed` / `fit_failed_message` are sent by newer DRModels.jl bridges
+# (DRModels.jl #1270) when the fit failed; loglik is then NaN. An older Julia
+# package sends neither key, and NULL means "not failed".
+drm_julia_fit_failed <- function(result) {
+  isTRUE(result[["fit_failed"]])
+}
+
+drm_julia_warn_fit_failed <- function(result) {
+  if (!drm_julia_fit_failed(result)) {
+    return(invisible(FALSE))
+  }
+  detail <- as.character(result[["fit_failed_message"]] %||% "")
+  detail <- detail[!is.na(detail)]
+  detail <- if (length(detail) >= 1L) detail[[1L]] else ""
+  cli::cli_warn(c(
+    "The Julia fit failed, so {.fn logLik} is {.val NaN} and the estimates should not be used.",
+    "i" = if (nzchar(detail)) {
+      "Julia reported: {detail}"
+    },
+    ">" = paste(
+      "Refit with {.code engine = \"tmb\"}, or check the data scaling",
+      "(for example centre and scale continuous predictors) and try again."
+    )
+  ))
+  invisible(TRUE)
+}
+
 drm_julia_opt_slot <- function(result) {
-  converged <- isTRUE(result[["converged"]])
+  fit_failed <- drm_julia_fit_failed(result)
+  converged <- isTRUE(result[["converged"]]) && !fit_failed
   iterations <- suppressWarnings(as.integer(result[["iterations"]] %||% NA_integer_))
   if (length(iterations) != 1L || is.na(iterations) || iterations < 0L) {
     iterations <- NA_integer_
   }
-  message <- if (converged) {
+  message <- if (fit_failed) {
+    "DRM.jl reported a failed fit; the log-likelihood is NaN and this fit should not be used."
+  } else if (converged) {
     "DRM.jl reported a converged, non-degenerate optimum."
   } else {
     paste(
@@ -8620,7 +8652,8 @@ drm_julia_opt_slot <- function(result) {
   list(
     convergence = if (converged) 0L else 1L,
     iterations = iterations,
-    message = message
+    message = message,
+    fit_failed = fit_failed
   )
 }
 
@@ -8733,6 +8766,9 @@ print.drmTMB_julia <- function(x, ...) {
     cli::cli_text("  estimator: {x$estimator}")
   }
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
+  if (isTRUE(x$fit_failed)) {
+    cli::cli_text("  FAILED FIT: the Julia fit failed; logLik is NaN. Refit with engine = \"tmb\".")
+  }
   cli::cli_text("  convergence_status: {convergence_status(x)}")
   cli::cli_text("  convergence: {x$opt$convergence}")
   invisible(x)
@@ -9895,6 +9931,7 @@ summary.drmTMB_julia <- function(
     random = drm_julia_summary_random(object),
     sigma = object$sigma,
     logLik = object$logLik,
+    fit_failed = isTRUE(object$fit_failed),
     aic = object$aic,
     bic = object$bic,
     df = object$df,
@@ -10016,6 +10053,9 @@ print.summary.drmTMB_julia <- function(x, ...) {
   }
   cli::cli_text("  observations: {x$nobs}")
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
+  if (isTRUE(x$fit_failed)) {
+    cli::cli_text("  FAILED FIT: the Julia fit failed; logLik is NaN. Refit with engine = \"tmb\".")
+  }
   if (!is.null(x$convergence_status)) {
     cli::cli_text("  convergence_status: {x$convergence_status}")
   }
@@ -13073,6 +13113,7 @@ new_drmTMB_julia_xfam <- function(
   requested_REML = FALSE
 ) {
   result <- as.list(result)
+  drm_julia_warn_fit_failed(result)
   scalar <- function(x) as.numeric(x)[[1L]]
   rho_latent <- scalar(result[["rho_latent"]])
   rho_ci_wald <- c(
@@ -13206,6 +13247,7 @@ new_drmTMB_julia_xfam <- function(
     rho_ci_wald = rho_ci_wald,
     rho_ci_profile = rho_ci_profile,
     logLik = logLik,
+    fit_failed = drm_julia_fit_failed(result),
     aic = aic,
     bic = bic,
     df = df,
@@ -13237,6 +13279,9 @@ print.drmTMB_julia_xfam <- function(x, ...) {
   )
   cli::cli_text("  observations: {x$nobs}")
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
+  if (isTRUE(x$fit_failed)) {
+    cli::cli_text("  FAILED FIT: the Julia fit failed; logLik is NaN. Refit with engine = \"tmb\".")
+  }
   cli::cli_text(
     "  latent rho: {format(x$rho_latent, digits = 4)}"
   )
@@ -13347,6 +13392,7 @@ summary.drmTMB_julia_xfam <- function(object, conf.int = FALSE, ...) {
     ),
     sigma = object$sigma,
     logLik = object$logLik,
+    fit_failed = isTRUE(object$fit_failed),
     aic = object$aic,
     bic = object$bic,
     df = object$df,
