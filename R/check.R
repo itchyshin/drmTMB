@@ -314,6 +314,13 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' `"converged"`. Numeric predicates are identical in DRModels.jl
 #' (`docs/design/278-twin-convergence-status.md`).
 #'
+#' Cross-family Julia fits (`drmTMB_julia_xfam`) are point-estimate only and
+#' carry no covariance matrix, so the standard-error rules do not apply to
+#' them. Their status is `"converged"` when the optimizer code is `0` and the
+#' log-likelihood is finite, and `"degenerate"` otherwise. It never means
+#' that standard errors or intervals exist; `is_converged(include_hessian =
+#' TRUE)` stays `FALSE` for these fits.
+#'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future options.
 #'
@@ -384,6 +391,31 @@ convergence_status.drmTMB_julia <- function(object, ...) {
       error = function(e) numeric()
     )
   )
+}
+
+#' @rdname convergence_status
+#' @export
+convergence_status.drmTMB_julia_xfam <- function(object, ...) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort(
+      "{.arg ...} is reserved for future {.fn convergence_status} options."
+    )
+  }
+  # Cross-family fits are point-estimate only: the bridge returns no
+  # coefficient covariance, so the twin rules (which read "no standard errors"
+  # as degenerate) cannot apply. Report the optimizer flag, a finite and
+  # non-sentinel log-likelihood, and any Julia geometry flag. The status never
+  # certifies uncertainty; `is_converged(include_hessian = TRUE)` stays FALSE.
+  loglik <- object$logLik
+  if (
+    !drm_julia_optimizer_ok(object) ||
+      !isTRUE(loglik > drm_twin_sentinel_loglik) ||
+      drm_julia_bridge_degenerate(object)
+  ) {
+    return("degenerate")
+  }
+  "converged"
 }
 
 # Twin-contract numeric predicates. Keep bitwise identical to
