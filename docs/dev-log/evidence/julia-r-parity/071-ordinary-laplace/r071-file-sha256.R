@@ -2,17 +2,34 @@
 # Prefer drmTMB::sha256_file_portable when the package is available; otherwise
 # load the same implementation from the repository R/ tree.
 
+r071_helper_script <- function(frame, name) {
+  value <- tryCatch(get(name, envir = frame, inherits = FALSE), error = function(e) NULL)
+  if (is.character(value) && length(value) == 1L && !is.na(value) && nzchar(value)) {
+    return(chartr("\\", "/", value))
+  }
+  NULL
+}
+
+# source() stores the path in ofile. sys.source() stores it in file.
+# Fall back to DRMTMB_ROOT, then to a cwd-relative path.
 r071_helper_dir <- function() {
   n <- sys.nframe()
-  for (fr in rev(seq_len(n))) {
-    ofile <- tryCatch(sys.frames()[[fr]]$ofile, error = function(e) NULL)
-    if (!is.null(ofile) && grepl("r071-file-sha256\\.R$", ofile)) {
-      return(dirname(normalizePath(ofile, mustWork = TRUE)))
+  if (n > 0L) {
+    for (fr in rev(seq_len(n))) {
+      frame <- sys.frames()[[fr]]
+      for (name in c("ofile", "file")) {
+        path <- r071_helper_script(frame, name)
+        if (is.null(path) || !grepl("r071-file-sha256\\.R$", path)) next
+        hit <- tryCatch(dirname(normalizePath(path, mustWork = TRUE)), error = function(e) NULL)
+        if (!is.null(hit)) return(hit)
+      }
     }
   }
-  candidate <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/r071-file-sha256.R"
-  if (file.exists(candidate)) {
-    return(dirname(normalizePath(candidate, mustWork = TRUE)))
+  rel <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/r071-file-sha256.R"
+  root <- Sys.getenv("DRMTMB_ROOT", unset = "")
+  candidates <- if (nzchar(root)) c(file.path(root, rel), rel) else rel
+  for (candidate in candidates) {
+    if (file.exists(candidate)) return(dirname(normalizePath(candidate, mustWork = TRUE)))
   }
   stop("cannot locate the 071 SHA-256 helper directory", call. = FALSE)
 }

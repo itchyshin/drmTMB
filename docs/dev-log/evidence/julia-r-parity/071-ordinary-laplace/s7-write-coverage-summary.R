@@ -108,19 +108,35 @@ r071_s7_file_sha256 <- function(path) {
   }
   laplace_dir <- NULL
   n <- sys.nframe()
-  for (fr in rev(seq_len(n))) {
-    ofile <- tryCatch(sys.frames()[[fr]]$ofile, error = function(e) NULL)
-    if (!is.null(ofile) && grepl("071-ordinary-laplace/", ofile)) {
-      laplace_dir <- dirname(normalizePath(ofile, mustWork = TRUE))
-      break
+  if (n > 0L) {
+    for (fr in rev(seq_len(n))) {
+      frame <- sys.frames()[[fr]]
+      for (name in c("ofile", "file")) {
+        script <- tryCatch(get(name, envir = frame, inherits = FALSE), error = function(e) NULL)
+        if (!(is.character(script) && length(script) == 1L && !is.na(script) && nzchar(script))) next
+        script <- chartr("\\", "/", script)
+        if (!grepl("071-ordinary-laplace/[^/]+$", script)) next
+        hit <- tryCatch(dirname(normalizePath(script, mustWork = TRUE)), error = function(e) NULL)
+        if (!is.null(hit)) {
+          laplace_dir <- hit
+          break
+        }
+      }
+      if (!is.null(laplace_dir)) break
+    }
+  }
+  rel <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace"
+  if (is.null(laplace_dir)) {
+    root <- Sys.getenv("DRMTMB_ROOT", unset = "")
+    if (nzchar(root) && dir.exists(file.path(root, rel))) {
+      laplace_dir <- normalizePath(file.path(root, rel), mustWork = TRUE)
     }
   }
   if (is.null(laplace_dir)) {
-    laplace_dir <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace"
-    if (!dir.exists(laplace_dir)) {
+    if (!dir.exists(rel)) {
       stop("cannot locate 071 ordinary-Laplace evidence directory", call. = FALSE)
     }
-    laplace_dir <- normalizePath(laplace_dir, mustWork = TRUE)
+    laplace_dir <- normalizePath(rel, mustWork = TRUE)
   }
   helper <- file.path(laplace_dir, "r071-file-sha256.R")
   if (file.exists(helper)) {
