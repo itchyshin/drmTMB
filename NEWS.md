@@ -6,6 +6,13 @@
   Missing (`NA`) and not-a-number (`NaN`) responses are still dropped by the
   existing missingness rules (#1697).
 
+* Cross-family Julia fits (`drmTMB_julia_xfam`) now report
+  `convergence_status()` `"converged"` and `is_converged()` `TRUE` when the
+  optimizer succeeds and the log-likelihood is finite. They were always
+  reported `"degenerate"` because the route is point-estimate only and has no
+  covariance matrix. The status does not imply that standard errors exist, and
+  `is_converged(include_hessian = TRUE)` stays `FALSE`.
+
 * `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
   `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
   log-densities that the response kernels gained in #1547. The old inline

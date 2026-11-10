@@ -195,6 +195,41 @@ make_xfam_mock_fit <- function(
   )
 }
 
+test_that("cross-family status is converged without a covariance (point-estimate route)", {
+  # Regression: xfam fits carry vcov = NULL by design. The shared twin rules
+  # read "no standard errors" as degenerate, so every xfam fit reported
+  # "degenerate" and is_converged() FALSE even with optimizer code 0.
+  fit <- make_xfam_mock_fit()$fit
+  expect_null(fit$vcov)
+  expect_identical(as.integer(fit$opt$convergence), 0L)
+  expect_identical(convergence_status(fit), "converged")
+  expect_true(is_converged(fit))
+  expect_true(converged(fit))
+  # No covariance exists, so Hessian-level readiness stays FALSE.
+  expect_false(is_converged(fit, include_hessian = TRUE))
+  expect_match(
+    paste(cli::cli_fmt(print(fit)), collapse = "\n"),
+    "convergence_status: converged"
+  )
+  expect_identical(summary(fit)$convergence_status, "converged")
+
+  # The status still flags a failed optimizer, a non-finite or sentinel
+  # log-likelihood, and a Julia geometry "degenerate" flag.
+  bad_opt <- fit
+  bad_opt$opt$convergence <- 1L
+  expect_identical(convergence_status(bad_opt), "degenerate")
+  expect_false(is_converged(bad_opt))
+  for (ll in list(NA_real_, -Inf, -1e15)) {
+    bad_ll <- fit
+    bad_ll$logLik <- ll
+    expect_identical(convergence_status(bad_ll), "degenerate")
+  }
+  flagged <- fit
+  flagged$bridge[["convergence_status"]] <- "degenerate"
+  expect_identical(convergence_status(flagged), "degenerate")
+  expect_error(convergence_status(fit, extra = 1), "reserved")
+})
+
 test_that("legacy cross-family extractors are typed or fail loudly", {
   mock <- make_xfam_mock_fit()
   fit <- mock$fit
@@ -308,6 +343,7 @@ test_that("Gaussian x Poisson cross-family fit returns latent rho + profile CI",
   expect_gt(ci$upper, ci$lower)
 
   expect_true(is_converged(fit))
+  expect_identical(convergence_status(fit), "converged")
   expect_equal(names(coef(fit)), c("mu1", "mu2"))
 })
 
