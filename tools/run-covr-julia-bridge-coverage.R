@@ -69,27 +69,37 @@ cov <- tryCatch(
   }
 )
 
-routs <- list.files(
-  install_path,
-  pattern = "^testthat\\.Rout",
-  recursive = TRUE,
-  full.names = TRUE
+rout_dirs <- c(
+  file.path(install_path, "drmTMB", "drmTMB-tests"),
+  install_path
 )
+routs <- character()
+for (d in rout_dirs) {
+  if (!dir.exists(d)) next
+  found <- list.files(
+    d,
+    pattern = "^testthat\\.Rout",
+    recursive = (d == install_path),
+    full.names = TRUE
+  )
+  routs <- c(routs, found)
+}
+routs <- unique(routs)
 if (length(routs) == 0L) fail("no testthat.Rout* under %s", install_path)
+fail_routs <- routs[grepl("testthat\\.Rout\\.fail$", routs)]
+rout_tally <- if (length(fail_routs)) sort(fail_routs)[1L] else sort(routs)[length(routs)]
 
 summary_re <- "^\\[ FAIL ([0-9]+) \\| WARN ([0-9]+) \\| SKIP ([0-9]+) \\| PASS ([0-9]+) \\]$"
-counts <- c(FAIL = 0L, WARN = 0L, SKIP = 0L, PASS = 0L)
-for (rout in sort(routs)) {
-  lines <- readLines(rout, warn = FALSE)
-  hit_idx <- grep(summary_re, lines)
-  if (length(hit_idx) == 0L) next
-  line <- lines[max(hit_idx)]
-  m <- regexec(summary_re, line)[[1L]]
-  if (length(m) != 5L) next
-  part <- as.integer(regmatches(line, list(m))[[1L]])[-1L]
-  names(part) <- c("FAIL", "WARN", "SKIP", "PASS")
-  counts <- counts + part
+lines <- readLines(rout_tally, warn = FALSE)
+hit_idx <- grep(summary_re, lines)
+if (length(hit_idx) == 0L) {
+  fail("no testthat summary in %s", rout_tally)
 }
+line <- lines[max(hit_idx)]
+m <- regexec(summary_re, line)[[1L]]
+if (length(m) != 5L) fail("could not parse testthat summary in %s", rout_tally)
+counts <- as.integer(regmatches(line, list(m))[[1L]])[-1L]
+names(counts) <- c("FAIL", "WARN", "SKIP", "PASS")
 total <- sum(counts)
 cat(sprintf(
   "julia_bridge_test_summary=FAIL %d | WARN %d | SKIP %d | PASS %d (total %d)\n",

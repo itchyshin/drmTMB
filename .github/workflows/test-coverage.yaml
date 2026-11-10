@@ -248,7 +248,7 @@ jobs:
       DRMTMB_JULIA_TESTS: true
       DRMTMB_COVERAGE_JULIA_INCLUDE: ${{ github.workspace }}/tools/covr-julia-bridge-include.txt
       DRMTMB_COVERAGE_SKIP_FRAC_MAX: "0.10"
-      DRMODELS_JL_PATH: ${{ github.workspace }}/DRModels.jl
+      # Legacy env only: some fence tests unset DRM_JL_PATH (not DRMODELS_JL_PATH).
       DRM_JL_PATH: ${{ github.workspace }}/DRModels.jl
       OPENBLAS_NUM_THREADS: 1
       OMP_NUM_THREADS: 1
@@ -327,7 +327,6 @@ jobs:
 
       - name: Verify disposable-project JuliaCall bootstrap
         env:
-          DRMODELS_JL_PATH: ${{ github.workspace }}/DRModels.jl
           DRM_JL_PATH: ${{ github.workspace }}/DRModels.jl
         run: Rscript tools/ci-warm-juliacall-disposable-bootstrap.R
 
@@ -344,7 +343,7 @@ jobs:
             echo "pr_head=${{ github.event.pull_request.head.sha }}"
             echo "lane=julia-bridge"
             echo "drmodels_jl_sha=${drmodels_sha}"
-            echo "drmodels_jl_path=${DRMODELS_JL_PATH}"
+            echo "drmodels_jl_path=${DRM_JL_PATH}"
             echo "event=${{ github.event_name }}"
             echo "ref=${{ github.ref }}"
             if [ -n "${branch_head}" ] && [ "${checkout_sha}" != "${branch_head}" ]; then

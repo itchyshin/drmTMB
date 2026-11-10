@@ -14,6 +14,16 @@ if (!identical(Sys.getenv("DRMTMB_JULIA_TESTS"), "true")) {
   stop("Julia bridge coverage requires DRMTMB_JULIA_TESTS=true", call. = FALSE)
 }
 
+# covr runs from the installed package; callr tests use test_path("..", ".."),
+# which would resolve to the instrumented install without R/src/. Point subprocess
+# loaders at the planted 00_pkg_src tree (check-log 2026-11-09-covr-shard1-pkg-root).
+if (!exists("drm_pkg_path", mode = "function")) {
+  source(file.path(testthat::test_path(), "helper-drm-pkg-path.R"))
+}
+covr_pkg_root <- dirname(drm_pkg_path("DESCRIPTION"))
+Sys.setenv(DRMTMB_COVR_PKG_ROOT = covr_pkg_root)
+cat(sprintf("drmtmb_covr_pkg_root=%s\n", covr_pkg_root))
+
 include_path <- Sys.getenv(
   "DRMTMB_COVERAGE_JULIA_INCLUDE",
   "tools/covr-julia-bridge-include.txt"
