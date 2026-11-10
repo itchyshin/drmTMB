@@ -81,14 +81,14 @@ summary_re <- "^\\[ FAIL ([0-9]+) \\| WARN ([0-9]+) \\| SKIP ([0-9]+) \\| PASS (
 counts <- c(FAIL = 0L, WARN = 0L, SKIP = 0L, PASS = 0L)
 for (rout in sort(routs)) {
   lines <- readLines(rout, warn = FALSE)
-  hits <- grep(summary_re, lines, value = TRUE)
-  for (line in hits) {
-    m <- regexec(summary_re, line)[[1L]]
-    if (length(m) != 5L) next
-    part <- as.integer(regmatches(line, list(m))[[1L]])[-1L]
-    names(part) <- c("FAIL", "WARN", "SKIP", "PASS")
-    counts <- counts + part
-  }
+  hit_idx <- grep(summary_re, lines)
+  if (length(hit_idx) == 0L) next
+  line <- lines[max(hit_idx)]
+  m <- regexec(summary_re, line)[[1L]]
+  if (length(m) != 5L) next
+  part <- as.integer(regmatches(line, list(m))[[1L]])[-1L]
+  names(part) <- c("FAIL", "WARN", "SKIP", "PASS")
+  counts <- counts + part
 }
 total <- sum(counts)
 cat(sprintf(
