@@ -106,13 +106,35 @@ r071_s7_file_sha256 <- function(path) {
       exists("sha256_file_portable", asNamespace("drmTMB"), inherits = FALSE)) {
     return(drmTMB:::sha256_file_portable(path))
   }
-  helper <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/r071-file-sha256.R"
+  laplace_dir <- NULL
+  n <- sys.nframe()
+  for (fr in rev(seq_len(n))) {
+    ofile <- tryCatch(sys.frames()[[fr]]$ofile, error = function(e) NULL)
+    if (!is.null(ofile) && grepl("071-ordinary-laplace/", ofile)) {
+      laplace_dir <- dirname(normalizePath(ofile, mustWork = TRUE))
+      break
+    }
+  }
+  if (is.null(laplace_dir)) {
+    laplace_dir <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace"
+    if (!dir.exists(laplace_dir)) {
+      stop("cannot locate 071 ordinary-Laplace evidence directory", call. = FALSE)
+    }
+    laplace_dir <- normalizePath(laplace_dir, mustWork = TRUE)
+  }
+  helper <- file.path(laplace_dir, "r071-file-sha256.R")
   if (file.exists(helper)) {
+    load_env <- environment()
     if (requireNamespace("drmTMB", quietly = TRUE)) {
-      sys.source(helper, envir = globalenv(), keep.source = FALSE)
+      sys.source(helper, envir = load_env, keep.source = FALSE)
     } else {
-      Sys.setenv(DRMTMB_ROOT = normalizePath("."))
-      sys.source(helper, envir = globalenv(), keep.source = FALSE)
+      if (!nzchar(Sys.getenv("DRMTMB_ROOT", unset = ""))) {
+        Sys.setenv(DRMTMB_ROOT = normalizePath(
+          file.path(laplace_dir, "..", "..", "..", "..", ".."),
+          mustWork = TRUE
+        ))
+      }
+      sys.source(helper, envir = load_env, keep.source = FALSE)
     }
     return(r071_file_sha256(path))
   }

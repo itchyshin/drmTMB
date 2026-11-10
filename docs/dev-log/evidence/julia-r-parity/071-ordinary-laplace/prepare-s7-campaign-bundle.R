@@ -3,16 +3,34 @@
 # This deliberately stays pure: it neither loads drmTMB nor invokes Julia or
 # Slurm.  The compute preflight adds runtime and source-bundle provenance.
 
+r071_ordinary_laplace_dir <- function() {
+  n <- sys.nframe()
+  for (fr in rev(seq_len(n))) {
+    ofile <- tryCatch(sys.frames()[[fr]]$ofile, error = function(e) NULL)
+    if (!is.null(ofile) && grepl("071-ordinary-laplace/", ofile)) {
+      return(dirname(normalizePath(ofile, mustWork = TRUE)))
+    }
+  }
+  stop("cannot locate 071 ordinary-Laplace evidence directory", call. = FALSE)
+}
+
 if (!exists("r071_s7_sha256", mode = "function", inherits = TRUE)) {
-  helper <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/r071-file-sha256.R"
+  laplace_dir <- r071_ordinary_laplace_dir()
+  helper <- file.path(laplace_dir, "r071-file-sha256.R")
   if (!file.exists(helper)) {
     stop("missing 071 SHA-256 helper: ", helper, call. = FALSE)
   }
+  load_env <- environment()
   if (requireNamespace("drmTMB", quietly = TRUE)) {
-    sys.source(helper, envir = globalenv(), keep.source = FALSE)
+    sys.source(helper, envir = load_env, keep.source = FALSE)
   } else {
-    Sys.setenv(DRMTMB_ROOT = normalizePath("."))
-    sys.source(helper, envir = globalenv(), keep.source = FALSE)
+  if (!nzchar(Sys.getenv("DRMTMB_ROOT", unset = ""))) {
+      Sys.setenv(DRMTMB_ROOT = normalizePath(
+        file.path(laplace_dir, "..", "..", "..", "..", ".."),
+        mustWork = TRUE
+      ))
+    }
+    sys.source(helper, envir = load_env, keep.source = FALSE)
   }
 }
 
