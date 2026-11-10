@@ -46,6 +46,17 @@ if (!file.exists(bak_testthat)) {
 if (!file.copy(driver, main_testthat, overwrite = TRUE)) {
   fail("could not plant Julia covr driver over %s", main_testthat)
 }
+
+# callr::r tests pkgload::load_all(test_path("..", "..")); covr leaves the
+# compiled .so on the installed copy. Pre-compile the workspace tree so
+# subprocesses can load the package DLL (check-log 2026-11-09-covr-shard1).
+pkg_root <- normalizePath(Sys.getenv("GITHUB_WORKSPACE", "."), winslash = "/", mustWork = TRUE)
+Sys.setenv(DRMTMB_COVR_PKG_ROOT = pkg_root)
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  suppressMessages(pkgload::load_all(pkg_root, compile = TRUE, quiet = TRUE))
+  cat(sprintf("drmtmb_covr_pkg_precompiled=%s\n", pkg_root))
+}
+
 on.exit(
   {
     if (file.exists(bak_testthat)) {
