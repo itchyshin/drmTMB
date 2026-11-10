@@ -18,3 +18,6 @@ Pre-fix (main): failure on `nsim = 0` with base-R `'names' attribute` error;
 
 Post-fix: file passes; invalid `nsim` raises `rlang_error` with
 `one positive whole number`; `nsim = 1` and `nsim = 3` unchanged.
+
+Review follow-up: `is.na(nsim)` → `!is.finite(nsim)` (rejects `Inf`); regression
+covers `Inf`, `TRUE`, `numeric(0)`, and accepts `nsim = 2.0`.

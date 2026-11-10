@@ -11,7 +11,7 @@ new_simulate_nsim_fit <- function() {
 
 test_that("test-fix-1696", {
   fit <- new_simulate_nsim_fit()
-  bad_nsim <- list(0, -1, NA, 1.5, c(1, 2), "a")
+  bad_nsim <- list(0, -1, NA, Inf, 1.5, c(1, 2), numeric(0), TRUE, "a")
   for (bad in bad_nsim) {
     expect_error(
       simulate(fit, nsim = bad, seed = 1),
@@ -19,6 +19,9 @@ test_that("test-fix-1696", {
       class = "rlang_error"
     )
   }
+  two <- simulate(fit, nsim = 2.0, seed = 1)
+  expect_equal(ncol(two), 2L)
+  expect_equal(nrow(two), 4L)
   one <- simulate(fit, nsim = 1, seed = 1)
   expect_equal(ncol(one), 1L)
   expect_equal(nrow(one), 4L)

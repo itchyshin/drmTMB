@@ -3333,7 +3333,7 @@ simulate.drmTMB <- function(
   if (
     !is.numeric(nsim) ||
       length(nsim) != 1L ||
-      is.na(nsim) ||
+      !is.finite(nsim) ||
       nsim < 1L ||
       nsim != as.integer(nsim)
   ) {
