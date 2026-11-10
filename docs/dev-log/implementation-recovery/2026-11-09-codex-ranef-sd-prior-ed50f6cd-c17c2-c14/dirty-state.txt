@@ -1,0 +1,5 @@
+M man/drmTMB.Rd
+M man/predict.drmTMB.Rd
+M man/predict_parameters.Rd
+M man/simulate.drmTMB.Rd
+M tools/function-cheatsheet-source.Rmd

@@ -2,7 +2,7 @@
 % Please edit documentation in R/fixed-priors-workflow.R
 \name{drm_resolve_priors}
 \alias{drm_resolve_priors}
-\title{Preview fixed-effect prior selections without fitting}
+\title{Preview prior selections without fitting}
 \usage{
 drm_resolve_priors(formula, family = stats::gaussian(), data, priors)
 }
@@ -16,14 +16,21 @@ drm_resolve_priors(formula, family = stats::gaussian(), data, priors)
 \item{priors}{A collection created by \code{\link[=drm_priors]{drm_priors()}}.}
 }
 \value{
-A data frame identifying each selected coefficient, distributional
-parameter, matrix column, prior mean, SD, precision and selection reason.
+A data frame identifying the resolved targets. Fixed-effect rows
+report the distributional parameter, coefficient, matrix column, prior
+mean, SD, precision and selection reason. An SD-prior row reports the
+distributional parameter, group, random-effect block, coefficient,
+SD scale, shape and rate. Mixed results combine these fields, with
+unavailable fields recorded as \code{NA}.
 }
 \description{
 Resolve selectors against the same Gaussian or binomial design builders used
 by \code{\link[=drmTMB]{drmTMB()}}. Models require complete data and unit weights. Gaussian
 identity models can include one independent mean random intercept; other
 random effects and random-effect SD formulas are not supported with priors.
+A Gamma SD prior identifies the exact group and intercept and reports shape
+and rate on the natural SD scale. The native and Julia engines support this
+prior for the Gaussian mean random-intercept model described above.
 The Julia bridge does not yet accept factor predictors in this mixed model.
 No automatic centring or scaling is performed.
 }
