@@ -18,7 +18,7 @@ if (!identical(Sys.getenv("DRMTMB_JULIA_TESTS"), "true")) {
 # which would resolve to the instrumented install without R/src/. Point subprocess
 # loaders at the planted 00_pkg_src tree (check-log 2026-11-09-covr-shard1-pkg-root).
 covr_pkg_root <- normalizePath(
-  file.path(getwd(), "..", "..", "..", "00_pkg_src", "drmTMB"),
+  file.path(getwd(), "..", "..", "00_pkg_src", "drmTMB"),
   winslash = "/",
   mustWork = TRUE
 )
