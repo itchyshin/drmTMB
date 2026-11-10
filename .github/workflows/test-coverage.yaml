@@ -70,7 +70,6 @@ on:
       - "tools/ci-install-drmodels-julia.sh"
       - "tools/covr-julia-bridge-include.txt"
       - "tools/run-covr-julia-bridge-coverage.R"
-      - "tools/ci-bootstrap-juliacall-for-coverage.R"
   workflow_dispatch:
 
 name: test-coverage

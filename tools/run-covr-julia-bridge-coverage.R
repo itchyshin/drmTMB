@@ -85,7 +85,7 @@ for (rout in sort(routs)) {
   for (line in hits) {
     m <- regexec(summary_re, line)[[1L]]
     if (length(m) != 5L) next
-    part <- as.integer(regmatches(line, m))[-1L]
+    part <- as.integer(regmatches(line, list(m))[[1L]])[-1L]
     names(part) <- c("FAIL", "WARN", "SKIP", "PASS")
     counts <- counts + part
   }
