@@ -3,18 +3,17 @@
 # This deliberately stays pure: it neither loads drmTMB nor invokes Julia or
 # Slurm.  The compute preflight adds runtime and source-bundle provenance.
 
-r071_s7_sha256 <- function(path) {
-  path <- normalizePath(path, mustWork = TRUE)
-  tool <- Sys.which("shasum")
-  if (!nzchar(tool)) {
-    stop("S7 bundle requires shasum for SHA-256 provenance", call. = FALSE)
+if (!exists("r071_s7_sha256", mode = "function", inherits = TRUE)) {
+  helper <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/r071-file-sha256.R"
+  if (!file.exists(helper)) {
+    stop("missing 071 SHA-256 helper: ", helper, call. = FALSE)
   }
-  output <- suppressWarnings(system2(tool, c("-a", "256", path), stdout = TRUE, stderr = TRUE))
-  if (!identical(attr(output, "status"), NULL) || length(output) != 1L ||
-      !grepl("^[0-9a-fA-F]{64}[[:space:]]", output[[1L]])) {
-    stop("could not compute S7 SHA-256 for ", path, call. = FALSE)
+  if (requireNamespace("drmTMB", quietly = TRUE)) {
+    sys.source(helper, envir = globalenv(), keep.source = FALSE)
+  } else {
+    Sys.setenv(DRMTMB_ROOT = normalizePath("."))
+    sys.source(helper, envir = globalenv(), keep.source = FALSE)
   }
-  tolower(sub("[[:space:]].*$", "", output[[1L]]))
 }
 
 r071_s7_atomic_write <- function(path, write_fun) {

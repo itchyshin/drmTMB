@@ -96,8 +96,31 @@ r071_s7_read_source_pins <- function(path) {
 
 r071_s7_file_sha256 <- function(path) {
   if (!file.exists(path)) stop("S7 coverage writer cannot hash absent file: ", path, call. = FALSE)
-  if (exists("r071_s7_sha256", mode = "function", inherits = TRUE)) return(r071_s7_sha256(path))
-  unname(tools::sha256sum(path)[[1L]])
+  if (exists("r071_s7_sha256", mode = "function", inherits = TRUE)) {
+    return(r071_s7_sha256(path))
+  }
+  if (exists("r071_file_sha256", mode = "function", inherits = TRUE)) {
+    return(r071_file_sha256(path))
+  }
+  if (requireNamespace("drmTMB", quietly = TRUE) &&
+      exists("sha256_file_portable", asNamespace("drmTMB"), inherits = FALSE)) {
+    return(drmTMB:::sha256_file_portable(path))
+  }
+  helper <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/r071-file-sha256.R"
+  if (file.exists(helper)) {
+    if (requireNamespace("drmTMB", quietly = TRUE)) {
+      sys.source(helper, envir = globalenv(), keep.source = FALSE)
+    } else {
+      Sys.setenv(DRMTMB_ROOT = normalizePath("."))
+      sys.source(helper, envir = globalenv(), keep.source = FALSE)
+    }
+    return(r071_file_sha256(path))
+  }
+  stop(
+    "S7 coverage writer needs r071_s7_sha256, drmTMB::sha256_file_portable, ",
+    "or the 071 SHA-256 helper script.",
+    call. = FALSE
+  )
 }
 
 r071_s7_read_source_tree_check <- function(path, source_root, drmjl_source_root,
