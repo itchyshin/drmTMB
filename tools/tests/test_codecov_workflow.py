@@ -162,6 +162,9 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertIn("any::JuliaCall", self.producer)
         self.assertIn("run-covr-julia-bridge-coverage.R", self.producer)
         self.assertIn("DRMODELS_JL_SHA", self.producer)
+        self.assertIn("libunwind.so.8", self.producer)
+        self.assertIn("ci-warm-juliacall-disposable-bootstrap.R", self.producer)
+        self.assertIn("ci-juliacall-coverage.Rprofile", self.producer)
 
     def test_comment_cannot_satisfy_oidc_gate(self) -> None:
         mutated = re.sub(

@@ -53,6 +53,8 @@ on:
       - "tools/ci-install-drmodels-julia.sh"
       - "tools/covr-julia-bridge-include.txt"
       - "tools/run-covr-julia-bridge-coverage.R"
+      - "tools/ci-warm-juliacall-disposable-bootstrap.R"
+      - "tools/ci-juliacall-coverage.Rprofile"
   pull_request:
     branches: [main, master]
     paths:
@@ -70,6 +72,8 @@ on:
       - "tools/ci-install-drmodels-julia.sh"
       - "tools/covr-julia-bridge-include.txt"
       - "tools/run-covr-julia-bridge-coverage.R"
+      - "tools/ci-warm-juliacall-disposable-bootstrap.R"
+      - "tools/ci-juliacall-coverage.Rprofile"
   workflow_dispatch:
 
 name: test-coverage
@@ -251,6 +255,7 @@ jobs:
       MKL_NUM_THREADS: 1
       JULIA_NUM_THREADS: 1
       JULIA_PKG_PRECOMPILE_AUTO: "0"
+      R_PROFILE_USER: ${{ github.workspace }}/tools/ci-juliacall-coverage.Rprofile
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -267,6 +272,16 @@ jobs:
           version: "1.13"
 
       - uses: julia-actions/cache@v2
+
+      - name: Preload Julia libunwind (Ubuntu 24.04 JuliaCall)
+        run: |
+          julia_home=$(julia -e 'print(Sys.BINDIR)')
+          libunwind="${julia_home}/../lib/julia/libunwind.so.8"
+          if [[ -f "${libunwind}" ]]; then
+            echo "LD_PRELOAD=${libunwind}" >> "${GITHUB_ENV}"
+          else
+            echo "libunwind preload not found at ${libunwind}; continuing without LD_PRELOAD"
+          fi
 
       - name: Instantiate DRModels.jl
         run: bash tools/ci-install-drmodels-julia.sh "${{ github.workspace }}/DRModels.jl"
@@ -290,6 +305,31 @@ jobs:
       - name: Preinstall Suppressor for JuliaCall setup.jl
         shell: bash
         run: julia --startup-file=no -e 'using Pkg; Pkg.add("Suppressor"); using Suppressor'
+
+      - name: Build RCall for the active R (Julia depot)
+        shell: bash
+        run: |
+          export R_HOME="$(R RHOME)"
+          julia --startup-file=no -e 'using Pkg; Pkg.add("RCall"); Pkg.build("RCall")'
+
+      - name: Warm JuliaCall before covr (default Julia project)
+        env:
+          JULIA_PKG_PRECOMPILE_AUTO: "0"
+        run: |
+          Rscript -e '
+            suppressPackageStartupMessages({
+              library(JuliaCall)
+              JuliaCall::julia_setup(installJulia = FALSE, install = FALSE, verbose = FALSE)
+              JuliaCall::julia_command("using RCall")
+              JuliaCall::julia_command("using Suppressor")
+            })
+          '
+
+      - name: Verify disposable-project JuliaCall bootstrap
+        env:
+          DRMODELS_JL_PATH: ${{ github.workspace }}/DRModels.jl
+          DRM_JL_PATH: ${{ github.workspace }}/DRModels.jl
+        run: Rscript tools/ci-warm-juliacall-disposable-bootstrap.R
 
       - name: Record tested commit
         run: |
