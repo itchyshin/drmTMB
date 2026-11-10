@@ -130,13 +130,13 @@ unreliable near the clamp (see the rescaling advice there).
 
 For predictor-dependent random-effect SD parameters (for example
 \code{dpar = "sd(id)"} or \code{"sd_animal(id)"}), the value is the SD multiplier
-\code{exp(W beta)} on the latent effect, not a marginal SD. When the effect is
+\verb{exp(W beta)} on the latent effect, not a marginal SD. When the effect is
 structured (\code{animal()}, \code{relmat()}, \code{phylo()}, \code{spatial()}), the multiplier
 applies to the supplied kernel as given, so the marginal SD of group \code{g} is
 \code{multiplier * sqrt(C_gg)}; \code{predict()} never returns that product. For a
 unit-diagonal kernel the two agree. \code{type = "link"} is the log SD after the
 same soft clamp the likelihood applies (the identity inside \verb{[-12, 12]},
-saturating towards \verb{[-15, 15]}), not the raw \code{W beta}; \code{type = "response"}
+saturating towards \verb{[-15, 15]}), not the raw \verb{W beta}; \code{type = "response"}
 is its exponential. With \code{newdata = NULL} the result has one value per fitted
 group, named by group level. With \code{newdata}, each row is one group-level row
 (not an observation row): the result has one value per row, named by
@@ -144,9 +144,13 @@ group, named by group level. With \code{newdata}, each row is one group-level ro
 multiplier with no kernel node and no \code{sqrt(C_gg)} factor.
 }
 \examples{
+set.seed(20261110)
+n <- 120
+x <- seq(-1.5, 1.5, length.out = n)
+sigma <- exp(-0.35 + 0.2 * x)
 dat <- data.frame(
-  y = c(0.2, 0.5, 1.1, 1.4, 1.8, 2.2),
-  x = c(-1, -0.5, 0, 0.5, 1, 1.5)
+  y = 0.4 + 0.7 * x + stats::rnorm(n, sd = sigma),
+  x = x
 )
 fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
 predict(fit, dpar = "mu")
