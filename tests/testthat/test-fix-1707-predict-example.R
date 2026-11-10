@@ -1,28 +1,55 @@
-# Regression guard for #1707: ?predict.drmTMB must not document a pathological
-# n = 6 heteroscedastic Gaussian fit (scale runoff, is_converged() FALSE).
+# Regression guard for #1707: help examples extracted with tools::Rd2ex() must
+# fit convergent location-scale models (not the old six-row predict() demo).
 
-test_that("predict.drmTMB() Rd example converges and predict(sigma) stays finite", {
-  set.seed(20261110)
-  n <- 120
-  x <- seq(-1.5, 1.5, length.out = n)
-  sigma <- exp(-0.35 + 0.2 * x)
-  dat <- data.frame(
-    y = 0.4 + 0.7 * x + stats::rnorm(n, sd = sigma),
-    x = x
+source_or_installed_man_rd <- function(rd_file) {
+  source_path <- testthat::test_path("..", "..", "man", rd_file)
+  installed_path <- system.file("help", rd_file, package = "drmTMB")
+  candidates <- c(source_path, installed_path)
+  matches <- candidates[nzchar(candidates) & file.exists(candidates)]
+  testthat::skip_if_not(
+    length(matches) > 0L,
+    paste("Rd file is not available:", rd_file)
   )
+  matches[[1L]]
+}
 
-  fit <- expect_no_warning(
-    drmTMB(bf(y ~ x, sigma ~ x), data = dat)
+run_rd_examples <- function(rd_path) {
+  ex <- tempfile(fileext = ".R")
+  tools::Rd2ex(rd_path, out = ex)
+  code <- readLines(ex, warn = FALSE)
+  code <- code[!grepl("^###", code)]
+  env <- new.env(parent = globalenv())
+  state <- list(warnings = character())
+  withCallingHandlers(
+    eval(
+      parse(text = paste(code, collapse = "\n")),
+      envir = env
+    ),
+    warning = function(w) {
+      state$warnings <- c(state$warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
   )
-  expect_true(is_converged(fit))
+  list(fit = env$fit, warnings = state$warnings)
+}
 
-  sig <- predict(fit, dpar = "sigma")
-  expect_length(sig, n)
-  expect_true(all(is.finite(sig)))
-  expect_true(all(sig > 0))
-  expect_lt(max(sig) / min(sig), 1e3)
+assert_rd_example_converges <- function(rd_file) {
+  result <- run_rd_examples(source_or_installed_man_rd(rd_file))
+  testthat::expect_s3_class(result$fit, "drmTMB")
+  testthat::expect_length(result$warnings, 0)
+  testthat::expect_true(is_converged(result$fit))
 
-  mu <- predict(fit, dpar = "mu")
-  expect_length(mu, n)
-  expect_true(all(is.finite(mu)))
+  sig <- as.numeric(predict(result$fit, dpar = "sigma"))
+  testthat::expect_true(all(is.finite(sig)))
+  testthat::expect_true(all(sig > 0))
+  testthat::expect_lt(max(sig) / min(sig), 1e3)
+  invisible(result)
+}
+
+test_that("predict.drmTMB() Rd example (Rd2ex) converges with sane sigma", {
+  assert_rd_example_converges("predict.drmTMB.Rd")
+})
+
+test_that("sigma.drmTMB() Rd example (Rd2ex) converges with sane sigma", {
+  assert_rd_example_converges("sigma.drmTMB.Rd")
 })

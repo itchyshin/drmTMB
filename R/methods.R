@@ -4450,7 +4450,14 @@ residuals.drmTMB <- function(
 #'   bivariate Student-t models.
 #'
 #' @examples
-#' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+#' set.seed(20261110)
+#' n <- 120
+#' x <- seq(-1.5, 1.5, length.out = n)
+#' sigma_true <- exp(-0.35 + 0.2 * x)
+#' dat <- data.frame(
+#'   y = 0.4 + 0.7 * x + stats::rnorm(n, sd = sigma_true),
+#'   x = x
+#' )
 #' fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
 #' sigma(fit)
 #' @export

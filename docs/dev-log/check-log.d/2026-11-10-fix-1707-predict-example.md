@@ -7,14 +7,23 @@ simulated Gaussian location-scale fit that converges without warnings.
 
 ## Changes
 
-- `R/methods.R`: `set.seed(20261110)`, `n = 120`, heteroscedastic DGP, same
-  `predict()` calls.
-- `tests/testthat/test-fix-1707-predict-example.R`: convergence and finite `sigma`
-  guard.
+- `R/methods.R`: well-posed `predict.drmTMB` and `sigma.drmTMB` examples
+  (`set.seed(20261110)`, `n = 120`, heteroscedastic DGP).
+- `man/predict.drmTMB.Rd`: example swap only; reverted unrelated `\code`/`\verb`
+  Details churn from roxygen 8.1.1.
+- `tests/testthat/test-fix-1707-predict-example.R`: extract and run examples via
+  `tools::Rd2ex()` (no duplicated DGP).
 
-## Verification (local)
+## Rd2ex regression matrix (local, `Rscript /tmp/rd1707-negative-control.R`)
 
-- `devtools::document()` — updated `man/predict.drmTMB.Rd` only (reverted unrelated
-  roxygen 8.1.1 churn in `NAMESPACE`/other `.Rd` files).
-- `devtools::test(filter = "fix-1707-predict-example")` — PASS 8, WARN 0.
-- `R CMD INSTALL` + `example(predict.drmTMB)` — 0 warnings; `sigma` in `[0.44, 1.17]`.
+| Rd source | `is_converged` | `sigma` max/min |
+| --- | --- | --- |
+| `origin/main` `predict.drmTMB.Rd` | FALSE | 2.668e+09 |
+| branch `predict.drmTMB.Rd` | TRUE | 2.665 |
+| `origin/main` `sigma.drmTMB.Rd` | TRUE (4-row) | 1 |
+| branch `sigma.drmTMB.Rd` | TRUE | 2.665 |
+
+Branch guard: `devtools::test(filter = "fix-1707-predict-example")` — PASS 12, WARN 0.
+Main `predict` example fails the guard on `is_converged` and `sigma` ratio; rerunning
+`tools::Rd2ex` on `origin/main` also emits the scale-runoff `drmTMB()` warning in
+interactive runs.
