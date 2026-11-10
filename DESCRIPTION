@@ -41,6 +41,7 @@ Suggests:
     fmesher,
     glmmTMB,
     ggplot2,
+    jsonlite,
     JuliaCall,
     knitr,
     lme4,

@@ -37,7 +37,7 @@ print.drmTMB <- function(x, ...) {
     cli::cli_text("  estimator: {x$estimator}")
   }
   if (drm_has_fixed_priors(x)) {
-    cli::cli_text("  fixed-effect priors: penalized/MAP; logLik is the data likelihood")
+    cli::cli_text("  priors: penalized/MAP; logLik is the data likelihood")
     cli::cli_text("  covariance: local penalized-Hessian curvature; confidence intervals are not implemented")
   }
   if (!is.null(x$penalty)) {
@@ -2748,7 +2748,7 @@ drm_warn_information_criterion <- function(fits, what) {
   fits <- fits[vapply(fits, drm_ic_guarded_fit, logical(1L))]
   drm_fits <- fits
   if (any(vapply(fits, drm_has_fixed_priors, logical(1)))) {
-    cli::cli_abort("{what} is not implemented for fixed-effect prior fits; effective degrees of freedom are not defined.")
+    cli::cli_abort("{what} is not implemented for fixed-effect or SD prior fits; effective degrees of freedom are not defined.")
   }
   estimators <- vapply(
     fits,
@@ -6570,6 +6570,18 @@ drm_validate_prediction_matrix_finite <- function(X, dpar) {
     "New prediction data produces non-finite design-matrix value{?s} for {.code dpar = \"{dpar}\"}.",
     i = "Affected model column{?s}: {.val {terms}}.",
     i = "Check transformed predictors such as {.code log(x)} or {.code sqrt(x)} before prediction or post-fit grid helpers."
+  ))
+}
+
+drm_abort_if_nonfinite_fit_design <- function(X, dpar) {
+  terms <- drm_nonfinite_prediction_matrix_terms(X)
+  if (length(terms) == 0L) {
+    return(invisible(X))
+  }
+  cli::cli_abort(c(
+    "Gaussian models require finite fixed-effect design values.",
+    "x" = "Affected model column{?s}: {.val {terms}}.",
+    "i" = "Non-finite values appeared in the fixed-effect design for {.code dpar = \"{dpar}\"}."
   ))
 }
 

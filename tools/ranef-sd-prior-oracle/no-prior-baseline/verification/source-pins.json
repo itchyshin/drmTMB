@@ -1,0 +1,12 @@
+{
+  "base": {
+    "commit": "bfa7acf5bb85e298fe675c5713c34fa208abd860",
+    "input_blobs_verified": 74,
+    "tree": "629e7b54e7b45bdda2a96b9a4d7ac3066de465c5"
+  },
+  "candidate": {
+    "commit": "bcb6755861494aa8bfdc692067b8c861e97c06ce",
+    "input_blobs_verified": 74,
+    "tree": "99b4dce2cd370b3848d9bee1654bc2fb7097ceb3"
+  }
+}
