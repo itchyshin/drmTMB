@@ -54,6 +54,7 @@ drm_cran_test_contexts <- function() {
     "reader-oldfit-compat",
     "boundary-surfacing",
     "foreign-s3-dispatch",
+    "fix-1700-model-frame",
     "profile-shape-boundary"
   )
 }

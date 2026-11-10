@@ -2906,6 +2906,142 @@ nobs.drmTMB <- function(object, ...) {
   object$nobs
 }
 
+#' Rows used for the location formula
+#'
+#' `model.frame()` returns the rows used to fit the location (`mu`) formula,
+#' with a `terms` attribute for that formula. Location is the mean of the
+#' response. This is the same role `model.frame()` plays for an `lm` or `glm`
+#' fit.
+#'
+#' `fit$model` stays the internal TMB specification: design matrices, starting
+#' values, and missing-data metadata. This method reads the stored location
+#' frame from that specification and does not rename or rebuild it.
+#'
+#' Scale (`sigma`), shape (`nu`), and the other distributional formulas keep
+#' their own frames in `fit$model$model_frame`. Their columns are not bound
+#' into the returned data frame. A bivariate fit has two location formulas,
+#' `mu1` and `mu2`, and no single `mu` frame, so `model.frame()` stops rather
+#' than choosing a row alignment and one `terms` attribute. The stored frames
+#' remain at `fit$model$model_frame$mu1` and `fit$model$model_frame$mu2`.
+#'
+#' `terms()` returns that location `terms` object. `model.matrix()` rebuilds
+#' the dense location design from the same frame, including for a fit whose
+#' stored `mu` design is sparse. A fit made with
+#' `drm_control(keep_model_frame = FALSE)` has dropped the frame; refit with
+#' `keep_model_frame = TRUE`.
+#'
+#' When missing responses are retained in the likelihood, the stored frame
+#' includes those rows. `nobs()` still counts observed likelihood rows, so
+#' `nrow(model.frame(fit))` can exceed `nobs(fit)` on that path. Under the
+#' default complete-case policy the two counts match.
+#'
+#' An `engine = "julia"` fit has class `drmTMB_julia`, not `drmTMB`. The
+#' bridge stores the training data and the fitted formula, not the location
+#' model frame. Rebuilding that frame would have to repeat the bridge's
+#' missing-row and structured-row rules, which this method does not do.
+#' `model.frame()` stops instead of returning the bridge metadata in
+#' `fit$model`. Fit with `engine = "tmb"` to obtain the frame.
+#'
+#' @param formula A `drmTMB` or `drmTMB_julia` fit. The argument name matches
+#'   [stats::model.frame()].
+#' @param x A `drmTMB` fit, for `terms()`.
+#' @param object A `drmTMB` fit, for `model.matrix()`.
+#' @param ... For `model.matrix()`, passed to [stats::model.matrix()] with
+#'   the location frame. The other methods accept `...` for S3 compatibility
+#'   and ignore it.
+#'
+#' @return `model.frame()` returns a data frame of the location rows, with a
+#'   `terms` attribute. `terms()` returns that `terms` object.
+#'   `model.matrix()` returns the location design matrix.
+#'
+#' @examples
+#' set.seed(1)
+#' dat <- data.frame(y = rnorm(20), x = rnorm(20))
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+#' mf <- model.frame(fit)
+#' nrow(mf)
+#' terms(fit)
+#'
+#' @seealso [stats::model.frame()], [nobs()]
+#' @export
+model.frame.drmTMB <- function(formula, ...) {
+  drm_location_model_frame(formula)
+}
+
+#' @rdname model.frame.drmTMB
+#' @export
+terms.drmTMB <- function(x, ...) {
+  stats::terms(drm_location_model_frame(x))
+}
+
+#' @rdname model.frame.drmTMB
+#' @export
+model.matrix.drmTMB <- function(object, ...) {
+  mf <- drm_location_model_frame(object)
+  stats::model.matrix(stats::terms(mf), data = mf, ...)
+}
+
+#' @rdname model.frame.drmTMB
+#' @export
+model.frame.drmTMB_julia <- function(formula, ...) {
+  cli::cli_abort(
+    c(
+      "{.fn model.frame} is not available for an {.code engine = \"julia\"} fit.",
+      i = "The bridge does not store the location model frame, so {.fn model.frame} will not return {.code fit$model}.",
+      i = "Fit with {.code engine = \"tmb\"} to use {.fn model.frame}, {.fn terms}, and {.fn model.matrix}."
+    ),
+    class = "drmTMB_model_frame_julia"
+  )
+}
+
+# Location (`mu`) model frame stored at fit time. Returning this data frame
+# leaves `fit$model` unchanged. Bivariate location is `mu1`/`mu2`, which is
+# not collapsed into one frame here.
+drm_location_model_frame <- function(fit) {
+  frames <- fit$model$model_frame
+  mu <- if (is.list(frames)) frames[["mu"]] else NULL
+  if (is.data.frame(mu)) {
+    if (!inherits(attr(mu, "terms"), "terms")) {
+      cli::cli_abort(
+        c(
+          "The stored location model frame has no {.cls terms} attribute.",
+          i = "Refit with {.code control = drm_control(keep_model_frame = TRUE)}."
+        ),
+        class = "drmTMB_model_frame_missing"
+      )
+    }
+    return(mu)
+  }
+  if (drm_model_frame_has_split_location(fit)) {
+    cli::cli_abort(
+      c(
+        "{.fn model.frame} returns one location ({.code mu}) frame, and this fit has separate {.code mu1} and {.code mu2} frames.",
+        i = "A combined bivariate frame would need a row alignment and one {.code terms} attribute; that choice is not defined.",
+        i = "The stored frames are {.code fit$model$model_frame$mu1} and {.code fit$model$model_frame$mu2}."
+      ),
+      class = "drmTMB_model_frame_bivariate"
+    )
+  }
+  cli::cli_abort(
+    c(
+      "{.fn model.frame} needs the stored location ({.code mu}) model frame.",
+      i = "Refit with {.code control = drm_control(keep_model_frame = TRUE)}."
+    ),
+    class = "drmTMB_model_frame_missing"
+  )
+}
+
+drm_model_frame_has_split_location <- function(fit) {
+  dpars <- fit$model$dpars
+  if (is.character(dpars) && any(c("mu1", "mu2") %in% dpars)) {
+    return(TRUE)
+  }
+  frames <- fit$model$model_frame
+  is.list(frames) && (
+    is.data.frame(frames[["mu1"]]) || is.data.frame(frames[["mu2"]])
+  )
+}
+
 #' @rdname model-fit-extractors
 #' @export
 df.residual.drmTMB <- function(object, ...) {
