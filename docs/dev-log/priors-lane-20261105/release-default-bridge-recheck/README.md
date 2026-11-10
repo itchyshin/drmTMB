@@ -42,3 +42,10 @@ The same fixture was rerun on R source `51f94e61a3b1f652fcedfc891d6da7e7281c7799
 `docs/dev-log/priors-receipt-refresh-20261110/README.md`. The other 23 entries
 listed in `SHA256SUMS` retain the earlier bundle's evidence; their logs and
 source manifests describe that earlier run.
+
+## Later 2026-11-10 Julia main refresh
+
+The preceding paired-source section describes the earlier `83c4ea84` Julia
+run. The current receipt now records the later `ed90ae2e` run described in
+`docs/dev-log/priors-receipt-refresh-20261110/ed90.md`. The other bundle logs
+and source manifests retain their historical provenance.
