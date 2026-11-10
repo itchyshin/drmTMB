@@ -355,6 +355,72 @@ drm_abort_base_beta_as_family <- function() {
   )
 }
 
+#' @keywords internal
+drm_foreign_stats_family_constructors <- function() {
+  c(
+    nbinom2 = "nbinom2",
+    truncated_nbinom2 = "truncated_nbinom2",
+    tweedie = "tweedie",
+    beta = "beta_family",
+    lognormal = "lognormal"
+  )
+}
+
+#' @keywords internal
+drm_stats_family_source_package <- function(family) {
+  fns <- list(family$variance, family$dev.resids)
+  fns <- Filter(is.function, fns)
+  for (fn in fns) {
+    env <- environment(fn)
+    depth <- 0L
+    while (!is.null(env) && depth < 20L) {
+      nm <- environmentName(env)
+      if (startsWith(nm, "namespace:")) {
+        return(sub("^namespace:", "", nm))
+      }
+      if (
+        nzchar(nm) &&
+          !nm %in% c("base", "stats", "utils", ".GlobalEnv", "R_GlobalEnv") &&
+          !startsWith(nm, "imports:")
+      ) {
+        return(nm)
+      }
+      env <- parent.env(env)
+      depth <- depth + 1L
+    }
+  }
+  NULL
+}
+
+#' @keywords internal
+drm_maybe_abort_foreign_stats_family <- function(family) {
+  if (!inherits(family, "family") || inherits(family, "drm_family")) {
+    return(invisible(NULL))
+  }
+  fname <- family$family
+  if (!is.character(fname) || length(fname) != 1L || is.na(fname)) {
+    return(invisible(NULL))
+  }
+  constructors <- drm_foreign_stats_family_constructors()
+  if (!fname %in% names(constructors)) {
+    return(invisible(NULL))
+  }
+  drm_fun <- constructors[[fname]]
+  src <- drm_stats_family_source_package(family)
+  received <- if (!is.null(src)) {
+    cli::format_inline("{.fn {src}::{drm_fun}}")
+  } else {
+    cli::format_inline(
+      "a stats {.code family} object with {.code family = \"{fname}\"}"
+    )
+  }
+  cli::cli_abort(c(
+    "Received {received}, which is not a {.pkg drmTMB} family.",
+    "x" = "{.pkg drmTMB} requires its own {.code drm_family} constructors, not stats {.code family} objects from other packages.",
+    "i" = "Use {.code drmTMB::{drm_fun}()} instead."
+  ))
+}
+
 drm_eval_family_arg <- function(expr, env) {
   if (drm_is_bare_euler_beta_call(expr)) {
     drm_abort_base_beta_as_family()
