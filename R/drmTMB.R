@@ -5104,6 +5104,11 @@ drm_build_gaussian_ls_spec <- function(
       "At least one observed Gaussian response is required for fitting."
     )
   }
+  if (!all(is.finite(y_raw[observed_y]))) {
+    cli::cli_abort(
+      "Gaussian models require finite observed response values."
+    )
+  }
   response_sentinel <- if (include_missing_response) {
     drm_missing_response_sentinel()
   } else {
@@ -5218,6 +5223,8 @@ drm_build_gaussian_ls_spec <- function(
     }
   }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma")
   if (sparse_mu) {
     validate_sparse_fixed_gaussian_design(X_sigma)
   }
