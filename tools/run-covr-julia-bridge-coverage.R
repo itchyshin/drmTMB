@@ -52,6 +52,9 @@ if (!file.copy(driver, main_testthat, overwrite = TRUE)) {
 # subprocesses can load the package DLL (check-log 2026-11-09-covr-shard1).
 pkg_root <- normalizePath(Sys.getenv("GITHUB_WORKSPACE", "."), winslash = "/", mustWork = TRUE)
 Sys.setenv(DRMTMB_COVR_PKG_ROOT = pkg_root)
+Sys.setenv(
+  DRMTMB_COVR_INSTALL_LIB = file.path(install_path, "drmTMB")
+)
 if (requireNamespace("pkgload", quietly = TRUE)) {
   suppressMessages(pkgload::load_all(pkg_root, compile = TRUE, quiet = TRUE))
   cat(sprintf("drmtmb_covr_pkg_precompiled=%s\n", pkg_root))
