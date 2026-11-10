@@ -8,7 +8,7 @@
 
 * Added internal `sha256_file_portable()` so parity-evidence scripts and tests can
   compute file SHA-256 digests on every R version in `Depends`, using
-  `tools::sha256sum()` when exported (R 4.5+) and otherwise optional
+  `tools::sha256sum()` when exported (R 4.5+) and otherwise Suggested
   `openssl`/`digest` or the `sha256sum`/`shasum` system utilities (#1702).
 
 * `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
