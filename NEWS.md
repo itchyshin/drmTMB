@@ -1,5 +1,11 @@
 # drmTMB 0.8.1
 
+* Gaussian location-scale models now abort before TMB when an observed
+  response or fixed-effect design value is non-finite (`Inf` in `y` or in a
+  predictor no longer reaches TMB's `NA/NaN/Inf in 'y'` / `'x'` errors).
+  Missing (`NA`) and not-a-number (`NaN`) responses are still dropped by the
+  existing missingness rules (#1697).
+
 * `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
   `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
   log-densities that the response kernels gained in #1547. The old inline

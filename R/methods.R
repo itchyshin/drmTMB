@@ -6446,6 +6446,18 @@ drm_validate_prediction_matrix_finite <- function(X, dpar) {
   ))
 }
 
+drm_abort_if_nonfinite_fit_design <- function(X, dpar) {
+  terms <- drm_nonfinite_prediction_matrix_terms(X)
+  if (length(terms) == 0L) {
+    return(invisible(X))
+  }
+  cli::cli_abort(c(
+    "Gaussian models require finite fixed-effect design values.",
+    "x" = "Affected model column{?s}: {.val {terms}}.",
+    "i" = "Non-finite values appeared in the fixed-effect design for {.code dpar = \"{dpar}\"}."
+  ))
+}
+
 drm_nonfinite_prediction_matrix_terms <- function(X) {
   if (inherits(X, "sparseMatrix")) {
     bad <- !is.finite(X@x)
