@@ -1,5 +1,7 @@
 # drmTMB 0.8.1
 
+* `nobs()` and the `nobs` attribute of `logLik()` now count modelled rows with a positive likelihood weight, after complete-case filtering. A zero-weight row stays in `fitted()`, `residuals()`, and `weights()` and does not change the log-likelihood or `AIC()`, but it no longer inflates `BIC()`. `df.residual()` and `aicc()` use the same count. The rule matches `nobs(glm(...))`, which is `sum(weights > 0)`. `engine = "julia"` still refuses `weights`, so its `nobs` methods are unchanged (#1699).
+
 * `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
   `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
   log-densities that the response kernels gained in #1547. The old inline
