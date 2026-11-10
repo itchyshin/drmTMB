@@ -213,6 +213,9 @@ test-family-dpq-batchB.R	suggests-package	environment	runs	2
 test-family-dpq-batchC.R	suggests-package	environment	runs	2
 test-family-dpq-batchD.R	cran-lane	environment	runs	2
 test-family-dpq-batchD.R	suggests-package	environment	runs	3
+test-fix-1702-sha256-portable.R	external-tool	environment	runs	3
+test-fix-1702-sha256-portable.R	runtime-conditional	runtime	depends	3
+test-fix-1702-sha256-portable.R	suggests-package	environment	runs	2
 test-fixed-priors-gaussian-ranef.R	engine-drm-jl	environment	skips	1
 test-formula-double-bar.R	cran-lane	environment	runs	2
 test-formula-grouping-guard.R	cran-lane	environment	runs	1
