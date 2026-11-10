@@ -1,5 +1,11 @@
 # drmTMB 0.8.1
 
+* Gaussian location-scale models now abort before TMB when an observed
+  response or fixed-effect design value is non-finite (`Inf` in `y` or in a
+  predictor no longer reaches TMB's `NA/NaN/Inf in 'y'` / `'x'` errors).
+  Missing (`NA`) and not-a-number (`NaN`) responses are still dropped by the
+  existing missingness rules (#1697).
+
 * A failed `engine = "julia"` fit now warns, is flagged `fit_failed`, and prints
   a FAILED FIT line. The warning shows `logLik()` is `NaN`, and `summary()`
   marks the coefficient table of a failed fit as not valid. Successful fits
