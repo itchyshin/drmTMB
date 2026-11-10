@@ -6,6 +6,11 @@
   Missing (`NA`) and not-a-number (`NaN`) responses are still dropped by the
   existing missingness rules (#1697).
 
+* A failed `engine = "julia"` fit now warns, is flagged `fit_failed`, and prints
+  a FAILED FIT line. The warning shows `logLik()` is `NaN`, and `summary()`
+  marks the coefficient table of a failed fit as not valid. Successful fits
+  print as before.
+
 * `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
   `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
   log-densities that the response kernels gained in #1547. The old inline
