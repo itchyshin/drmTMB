@@ -11,8 +11,9 @@ simulated Gaussian location-scale fit that converges without warnings.
   (`set.seed(20261110)`, `n = 120`, heteroscedastic DGP).
 - `man/predict.drmTMB.Rd`: example swap only; reverted unrelated `\code`/`\verb`
   Details churn from roxygen 8.1.1.
-- `tests/testthat/test-fix-1707-predict-example.R`: extract and run examples via
-  `tools::Rd2ex()` (no duplicated DGP).
+- `tests/testthat/test-fix-1707-predict-example.R`: `tools::Rd_db("drmTMB")` +
+  `Rd2ex()`, `expect_no_warning()` around example eval (no duplicated DGP;
+  `parse_Rd(man/)` only when `Rd_db` is empty under `load_all()` dev sessions).
 
 ## Rd2ex regression matrix (local, `Rscript /tmp/rd1707-negative-control.R`)
 
