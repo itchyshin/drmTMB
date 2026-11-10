@@ -2930,10 +2930,12 @@ nobs.drmTMB <- function(object, ...) {
 #' `drm_control(keep_model_frame = FALSE)` has dropped the frame; refit with
 #' `keep_model_frame = TRUE`.
 #'
+#' `nrow(model.frame(fit))` equals `nobs(fit)` under the default complete-case
+#' policy for an unweighted fit, or a fit whose weights are all positive.
+#' A zero-weight row stays in the frame and is not counted by `nobs()`.
 #' When missing responses are retained in the likelihood, the stored frame
-#' includes those rows. `nobs()` still counts observed likelihood rows, so
-#' `nrow(model.frame(fit))` can exceed `nobs(fit)` on that path. Under the
-#' default complete-case policy the two counts match.
+#' includes those rows and `nobs()` still counts observed likelihood rows, so
+#' `nrow(model.frame(fit))` can exceed `nobs(fit)` on that path as well.
 #'
 #' An `engine = "julia"` fit has class `drmTMB_julia`, not `drmTMB`. The
 #' bridge stores the training data and the fitted formula, not the location

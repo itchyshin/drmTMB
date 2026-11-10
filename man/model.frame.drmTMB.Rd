@@ -56,10 +56,12 @@ stored \code{mu} design is sparse. A fit made with
 \code{drm_control(keep_model_frame = FALSE)} has dropped the frame; refit with
 \code{keep_model_frame = TRUE}.
 
+\code{nrow(model.frame(fit))} equals \code{nobs(fit)} under the default complete-case
+policy for an unweighted fit, or a fit whose weights are all positive.
+A zero-weight row stays in the frame and is not counted by \code{nobs()}.
 When missing responses are retained in the likelihood, the stored frame
-includes those rows. \code{nobs()} still counts observed likelihood rows, so
-\code{nrow(model.frame(fit))} can exceed \code{nobs(fit)} on that path. Under the
-default complete-case policy the two counts match.
+includes those rows and \code{nobs()} still counts observed likelihood rows, so
+\code{nrow(model.frame(fit))} can exceed \code{nobs(fit)} on that path as well.
 
 An \code{engine = "julia"} fit has class \code{drmTMB_julia}, not \code{drmTMB}. The
 bridge stores the training data and the fitted formula, not the location
