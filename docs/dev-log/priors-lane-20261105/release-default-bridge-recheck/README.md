@@ -35,3 +35,17 @@ After current main incorporated #1658, the same fixture was rerun on R source `a
 ## Post-#1651 refresh
 
 The same fixture was rerun on R source `51f94e61a3b1f652fcedfc891d6da7e7281c7799` after #1651 changed a documentation source pin in `R/drmTMB.R`. It used Julia source `0460f25ffd23c7b60c0fc09e9e6820a2881714c9`; all eight checks passed, and the checker rejected all twelve negative controls. Labels, data, order, tree and group covariate matched the prior fixture. The previous receipt and the runner/checker logs are preserved in `docs/dev-log/post1651-receipt-refresh/`. This remains evidence for one fixture, not broad parity.
+
+## 2026-11-10 paired-source refresh
+
+`current.json` now records the paired-source run described in
+`docs/dev-log/priors-receipt-refresh-20261110/README.md`. The other 23 entries
+listed in `SHA256SUMS` retain the earlier bundle's evidence; their logs and
+source manifests describe that earlier run.
+
+## Later 2026-11-10 Julia main refresh
+
+The preceding paired-source section describes the earlier `83c4ea84` Julia
+run. The current receipt now records the later `ed90ae2e` run described in
+`docs/dev-log/priors-receipt-refresh-20261110/ed90.md`. The other bundle logs
+and source manifests retain their historical provenance.

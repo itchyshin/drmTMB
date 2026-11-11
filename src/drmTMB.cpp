@@ -752,6 +752,10 @@ Type objective_function<Type>::operator()()
   DATA_VECTOR(prior_beta_mean);
   DATA_VECTOR(prior_beta_sd);
   DATA_IVECTOR(prior_beta_normalized);
+  DATA_IVECTOR(prior_sd_index);
+  DATA_VECTOR(prior_sd_shape);
+  DATA_VECTOR(prior_sd_rate);
+  DATA_VECTOR(prior_sd_lgamma);
   DATA_INTEGER(penalize_phylo);
   DATA_VECTOR(phylo_sd_penalty_rate);
   DATA_VECTOR(phylo_cor_penalty_sd);
@@ -7195,5 +7199,13 @@ Type objective_function<Type>::operator()()
   }
   nll += fixed_prior_penalty;
   REPORT(fixed_prior_penalty);
+  Type sd_prior_penalty = Type(0.0);
+  for (int i = 0; i < prior_sd_index.size(); ++i) {
+    Type eta = log_sd_mu(prior_sd_index(i));
+    sd_prior_penalty += prior_sd_rate(i) * exp(eta) - (prior_sd_shape(i) - Type(1)) * eta -
+      prior_sd_shape(i) * log(prior_sd_rate(i)) + prior_sd_lgamma(i);
+  }
+  nll += sd_prior_penalty;
+  REPORT(sd_prior_penalty);
   return nll;
 }

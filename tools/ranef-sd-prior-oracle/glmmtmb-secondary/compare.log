@@ -1,0 +1,125 @@
+   case shape rate point objective objective_reference objective_relative_error
+1     0   2.0  3.0     0 11.655498           11.655498             4.572152e-16
+2     0   2.0  3.0     1  8.897280            8.897280             3.993033e-16
+3     0   2.0  3.0     2 13.809837           13.809837             2.572596e-16
+4     0   2.0  3.0     3 14.314570           14.314570             8.686603e-16
+5     0   2.0  3.0     4 10.305608           10.305608             5.171040e-16
+6     1   2.0  3.0     0 11.623001           11.623001             4.584935e-16
+7     1   2.0  3.0     1  8.838195            8.838195             1.004932e-15
+8     1   2.0  3.0     2 13.781622           13.781622             7.733590e-16
+9     1   2.0  3.0     3 14.306591           14.306591             8.691447e-16
+10    1   2.0  3.0     4 10.221215           10.221215             5.213735e-16
+11    2   2.0  3.0     0 11.917786           11.917786             1.192407e-15
+12    2   2.0  3.0     1 10.492441           10.492441             8.464936e-16
+13    2   2.0  3.0     2 14.404192           14.404192             0.000000e+00
+14    2   2.0  3.0     3 14.530591           14.530591             3.667484e-16
+15    2   2.0  3.0     4 11.876097           11.876097             7.478706e-16
+16    0   2.5  1.7     0 12.069740           12.069740             7.358720e-16
+17    0   2.5  1.7     1 10.261064           10.261064             5.193487e-16
+18    0   2.5  1.7     2 14.669613           14.669613             3.632727e-16
+19    0   2.5  1.7     3 13.675673           13.675673             7.793504e-16
+20    0   2.5  1.7     4 12.285009           12.285009             5.783820e-16
+21    1   2.5  1.7     0 12.037243           12.037243             1.033002e-15
+22    1   2.5  1.7     1 10.201979           10.201979             3.482377e-16
+23    1   2.5  1.7     2 14.641398           14.641398             7.279456e-16
+24    1   2.5  1.7     3 13.667695           13.667695             5.198702e-16
+25    1   2.5  1.7     4 12.200616           12.200616             7.279784e-16
+26    2   2.5  1.7     0 12.332028           12.332028             1.440442e-15
+27    2   2.5  1.7     1 11.856225           11.856225             5.992993e-16
+28    2   2.5  1.7     2 15.263968           15.263968             4.655033e-16
+29    2   2.5  1.7     3 13.891694           13.891694             2.557437e-16
+30    2   2.5  1.7     4 13.855498           13.855498             3.846177e-16
+   gradient_max_abs_error hessian_max_scaled_error
+1            1.776357e-15             2.614388e-10
+2            2.220446e-15             2.068401e-10
+3            3.108624e-15             3.484334e-10
+4            6.217249e-15             2.767845e-10
+5            4.440892e-15             6.348939e-10
+6            2.664535e-15             2.173854e-10
+7            1.776357e-15             2.809925e-10
+8            3.108624e-15             1.788023e-10
+9            3.552714e-15             4.097390e-10
+10           1.776357e-15             7.297145e-10
+11           2.220446e-15             2.106417e-10
+12           2.664535e-15             2.220593e-10
+13           2.664535e-15             2.681059e-10
+14           2.664535e-15             3.950060e-10
+15           1.776357e-15             4.084271e-10
+16           1.776357e-15             3.780401e-10
+17           8.881784e-16             2.140780e-10
+18           3.108624e-15             2.265251e-10
+19           3.108624e-15             4.657958e-10
+20           4.440892e-15             1.150825e-09
+21           2.664535e-15             1.660089e-10
+22           1.776357e-15             1.718079e-10
+23           3.108624e-15             1.483688e-10
+24           1.776357e-15             1.800595e-10
+25           1.776357e-15             7.070328e-10
+26           2.220446e-15             1.370741e-10
+27           1.776357e-15             1.069756e-10
+28           2.220446e-15             1.407265e-10
+29           3.552714e-15             2.399961e-10
+30           1.332268e-15             3.434778e-10
+      case shape rate glmm_initial_convergence     glmm_initial_message
+beta     0   2.0  3.0                        0 relative convergence (4)
+beta1    1   2.0  3.0                        0 relative convergence (4)
+beta2    2   2.0  3.0                        0 relative convergence (4)
+beta3    0   2.5  1.7                        0 relative convergence (4)
+beta4    1   2.5  1.7                        0 relative convergence (4)
+beta5    2   2.5  1.7                        0 relative convergence (4)
+      refinement_optim_convergence oracle_success oracle_eligible objective
+beta                             0           TRUE            TRUE  4.872430
+beta1                            0           TRUE            TRUE  4.447459
+beta2                            0          FALSE            TRUE  7.311800
+beta3                            0          FALSE            TRUE  6.478771
+beta4                            0           TRUE            TRUE  6.179116
+beta5                            0          FALSE            TRUE  8.217738
+      oracle_objective objective_abs_error    score_inf parameter_max_abs_error
+beta          4.872430        1.776357e-15 4.737208e-15            2.220446e-15
+beta1         4.447459        0.000000e+00 4.162506e-14            2.220446e-15
+beta2         7.311800        7.105427e-15 2.374109e-15                      NA
+beta3         6.478771        8.881784e-16 8.401938e-14                      NA
+beta4         6.179116        8.881784e-16 6.196104e-13            2.753353e-14
+beta5         8.217738        1.776357e-15 3.275023e-14                      NA
+         beta0     beta1     alpha    gamma        eta warnings
+beta  1.686235 0.7988730 -1.214268 1.325805 -1.5798970
+beta1 1.680384 0.8001896 -1.224063 1.345141 -1.7479452
+beta2 1.476238 0.7497272 -1.158873 1.209916 -0.8232533
+beta3 1.682193 0.7953929 -1.215932 1.320318 -1.3885253
+beta4 1.676357 0.7969578 -1.225988 1.338451 -1.5462470
+beta5 1.484118 0.7585108 -1.167689 1.224762 -0.6477318
+
+Provenance
+R version 4.6.0 (2026-04-24)
+Platform: aarch64-apple-darwin23
+Running under: macOS Tahoe 26.7.2
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+
+locale:
+[1] C.UTF-8/C.UTF-8/C.UTF-8/C/C.UTF-8/C.UTF-8
+
+time zone: America/Edmonton
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base
+
+other attached packages:
+[1] numDeriv_2016.8-1.1 jsonlite_2.0.0      glmmTMB_1.1.14
+
+loaded via a namespace (and not attached):
+ [1] nlme_3.1-169       cli_3.6.6          rlang_1.2.0        TH.data_1.1-5
+ [5] estimability_2.0.0 reformulas_0.4.4   xtable_1.8-8       minqa_1.2.8
+ [9] zoo_1.8-15         TMB_1.9.21         lme4_2.0-1         grid_4.6.0
+[13] MASS_7.3-65        mvtnorm_1.4-1      compiler_4.6.0     multcomp_1.4-31
+[17] codetools_0.2-20   sandwich_3.1-1     emmeans_2.0.3      coda_0.19-4.1
+[21] Rcpp_1.1.1-1.1     mgcv_1.9-4         lattice_0.22-9     nloptr_2.2.1
+[25] Rdpack_2.6.6       splines_4.6.0      rbibutils_2.4.1    Matrix_1.7-5
+[29] tools_4.6.0        boot_1.3-32        survival_3.8-6
+GLMMTMB_ORACLE_COMPARISON_PASS
+real 1.45
+user 1.22
+sys 0.09
