@@ -29,3 +29,6 @@ coverage-validated. It estimates group-level \code{sd0}, \code{sd1}, and \code{r
 \examples{
 lognormal()
 }
+\seealso{
+\link{foreign-inflation-families}
+}

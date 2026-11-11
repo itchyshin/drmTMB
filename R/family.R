@@ -208,6 +208,7 @@ skew_normal <- function() {
 #' (never residual `rho12`).
 #'
 #' @return A `drm_family` object.
+#' @seealso [foreign-inflation-families]
 #' @export
 #'
 #' @examples
@@ -275,6 +276,7 @@ tweedie <- function() {
 #' remains fixed-effect in this first slice.
 #'
 #' @return A `drm_family` object.
+#' @seealso [foreign-inflation-families]
 #' @export
 #'
 #' @examples
@@ -355,6 +357,378 @@ drm_abort_base_beta_as_family <- function() {
   )
 }
 
+#' Foreign zero-inflated, hurdle, and truncated families
+#'
+#' `drmTMB()` refuses stats `family` objects from other packages that encode
+#' zero inflation, a hurdle, or truncation in the family itself. The usual
+#' example is `glmmTMB::ziGamma()`, whose `family` component is `"Gamma"`:
+#' without this guard, classification would route that object to a plain
+#' `Gamma(link = "log")` mean-CV model and silently drop the zero-inflation
+#' the caller asked for.
+#'
+#' Zero-inflated counts use a supported count family plus a `zi ~ ...`
+#' formula. Hurdle counts use [truncated_nbinom2()] plus `hu ~ ...`. There
+#' is no zero-inflated or hurdle Gamma family; for a plain Gamma mean-CV
+#' model use `Gamma(link = "log")`.
+#'
+#' Foreign constructors that look similar to drmTMB families are also
+#' refused rather than coerced. Use [beta_family()] instead of
+#' `glmmTMB::beta_family()`, and [lognormal()] instead of
+#' `glmmTMB::lognormal()`. String names and uncalled drmTMB constructors
+#' such as `truncated_nbinom2` and `lognormal` abort with class
+#' `drmTMB_family_constructor_call` and tell you to call
+#' `drmTMB::<name>()`; they are not treated as foreign inflation families.
+#'
+#' @name foreign-inflation-families
+#' @seealso [truncated_nbinom2()], [nbinom2()], [beta_family()], [lognormal()]
+NULL
+
+#' @keywords internal
+drm_function_source_package <- function(fn) {
+  if (!is.function(fn)) {
+    return(NULL)
+  }
+  env <- environment(fn)
+  if (is.null(env)) {
+    return(NULL)
+  }
+  nm <- environmentName(topenv(env))
+  nm <- sub("^namespace:", "", nm)
+  nm <- sub("^package:", "", nm)
+  if (!nzchar(nm) || nm %in% c("base", "stats", "R_GlobalEnv")) {
+    return(NULL)
+  }
+  nm
+}
+
+#' @keywords internal
+drm_stats_family_source_package <- function(family) {
+  fns <- list(family$variance, family$dev.resids, family$initialize)
+  fns <- Filter(is.function, fns)
+  for (fn in fns) {
+    src <- drm_function_source_package(fn)
+    if (!is.null(src)) {
+      return(src)
+    }
+  }
+  NULL
+}
+
+#' @keywords internal
+drm_family_expr_name <- function(expr) {
+  if (is.null(expr)) {
+    return(NULL)
+  }
+  if (is.character(expr) && length(expr) == 1L && !is.na(expr)) {
+    return(expr)
+  }
+  if (is.symbol(expr)) {
+    return(as.character(expr))
+  }
+  if (!is.call(expr)) {
+    return(NULL)
+  }
+  head <- expr[[1L]]
+  if (identical(head, quote(`::`)) || identical(head, quote(`:::`))) {
+    return(as.character(expr[[3L]]))
+  }
+  if (
+    is.call(head) &&
+      (identical(head[[1L]], quote(`::`)) || identical(head[[1L]], quote(`:::`)))
+  ) {
+    return(as.character(head[[3L]]))
+  }
+  if (is.symbol(head)) {
+    return(as.character(head))
+  }
+  NULL
+}
+
+#' @keywords internal
+drm_family_expr_parts <- function(expr) {
+  if (is.null(expr) || !is.call(expr)) {
+    return(NULL)
+  }
+  head <- expr[[1L]]
+  if (identical(head, quote(`::`)) || identical(head, quote(`:::`))) {
+    return(drm_family_call_parts(expr))
+  }
+  drm_family_call_parts(head)
+}
+
+#' @keywords internal
+drm_drmtmb_constructor_names <- function() {
+  c("truncated_nbinom2", "lognormal")
+}
+
+#' @keywords internal
+drm_drmtmb_constructor_name_for_function <- function(fn) {
+  if (!is.function(fn)) {
+    return(NULL)
+  }
+  if (identical(fn, truncated_nbinom2)) {
+    return("truncated_nbinom2")
+  }
+  if (identical(fn, lognormal)) {
+    return("lognormal")
+  }
+  NULL
+}
+
+#' @keywords internal
+drm_abort_drmtmb_constructor_call <- function(name) {
+  hint <- paste0("drmTMB::", name)
+  cli::cli_abort(
+    c(
+      "Received {.code {name}}, which is a {.pkg drmTMB} family constructor, not a family object.",
+      "x" = "{.pkg drmTMB} requires a called constructor, not a string name or an uncalled function.",
+      "i" = "Call {.fn {hint}}."
+    ),
+    class = "drmTMB_family_constructor_call"
+  )
+}
+
+#' @keywords internal
+drm_foreign_family_arg_components <- function(family) {
+  if (
+    !is.list(family) ||
+      inherits(family, "family") ||
+      inherits(family, "drm_family") ||
+      inherits(family, "drm_impute_family")
+  ) {
+    return(NULL)
+  }
+  if (
+    length(family) > 0L &&
+      all(vapply(
+        family,
+        function(elt) {
+          inherits(elt, "family") || inherits(elt, "drm_family")
+        },
+        logical(1)
+      ))
+  ) {
+    return(family)
+  }
+  drm_composed_families(family)
+}
+
+#' @keywords internal
+drm_initialize_references_ziformula <- function(family) {
+  init <- family$initialize
+  if (is.null(init)) {
+    return(FALSE)
+  }
+  init_chr <- paste(deparse(init), collapse = " ")
+  grepl("ziformula", init_chr, fixed = TRUE)
+}
+
+#' @keywords internal
+drm_foreign_zi_family_name <- function(fname) {
+  grepl("^zi([A-Z_])", fname) ||
+    grepl("^zi(pois|nb|bin|gamma)", fname, ignore.case = TRUE)
+}
+
+#' @keywords internal
+drm_foreign_inflation_family_kind <- function(fname) {
+  if (!is.character(fname) || length(fname) != 1L || is.na(fname)) {
+    return(NULL)
+  }
+  if (drm_foreign_zi_family_name(fname)) {
+    return("zero-inflated")
+  }
+  if (grepl("^truncated_", fname)) {
+    return("truncated")
+  }
+  if (grepl("^hurdle", fname, ignore.case = TRUE)) {
+    return("hurdle")
+  }
+  if (fname %in% c(
+    "betabinomial", "compois", "genpois", "nbinom1",
+    "ordbeta", "beta", "lognormal"
+  )) {
+    return("unsupported foreign")
+  }
+  NULL
+}
+
+#' @keywords internal
+drm_foreign_family_constructor <- function(fname, src, kind) {
+  if (identical(fname, "beta")) {
+    return("beta_family")
+  }
+  if (
+    identical(src, "glmmTMB") &&
+      identical(fname, "Gamma") &&
+      identical(kind, "zero-inflated")
+  ) {
+    return("ziGamma")
+  }
+  fname
+}
+
+#' @keywords internal
+drm_foreign_inflation_family_label <- function(family, fname, kind, src) {
+  if (fname == "Gamma" && drm_initialize_references_ziformula(family)) {
+    if (identical(src, "glmmTMB")) {
+      # Closures on the real object live in stats; do not use {.fn}, which
+      # would imply a glmmTMB function identity the family object does not have.
+      return(cli::format_inline("{.code glmmTMB::ziGamma}"))
+    }
+    return(cli::format_inline(
+      "a stats {.code family} object with {.code family = \"Gamma\"} and zero-inflation hooks"
+    ))
+  }
+  ctor <- drm_foreign_family_constructor(fname, src, kind)
+  if (!is.null(src) && drm_foreign_zi_family_name(fname)) {
+    return(cli::format_inline("{.fn {src}::{ctor}}"))
+  }
+  if (!is.null(src) && !is.null(kind)) {
+    return(cli::format_inline("{.fn {src}::{ctor}}"))
+  }
+  cli::format_inline(
+    "a stats {.code family} object with {.code family = \"{fname}\"}"
+  )
+}
+
+#' @keywords internal
+drm_foreign_inflation_drm_hints <- function(fname, kind) {
+  if (fname == "ziGamma" ||
+      (fname == "Gamma" && identical(kind, "zero-inflated"))) {
+    return(c(
+      "i" = "{.pkg drmTMB} has no zero-inflated or hurdle Gamma family.",
+      "i" = "Use {.code Gamma(link = \"log\")} for a plain Gamma mean-CV model without zero inflation."
+    ))
+  }
+  if (fname %in% c("beta", "beta_family")) {
+    return(c(
+      "i" = "Use {.fn drmTMB::beta_family} for continuous proportions in (0, 1)."
+    ))
+  }
+  if (identical(fname, "lognormal")) {
+    return(c(
+      "i" = "Use {.fn drmTMB::lognormal} for a lognormal mean-scale model."
+    ))
+  }
+  if (fname %in% c("ziPoisson", "ziNB", "zi_nbinom2")) {
+    return(c(
+      "i" = "For zero-inflated counts use the base count family plus a {.code zi ~ ...} formula (for example {.code poisson(link = \"log\")} or {.fn nbinom2})."
+    ))
+  }
+  if (kind %in% c("truncated", "hurdle") ||
+      grepl("^truncated_", fname) || grepl("^hurdle", fname, ignore.case = TRUE)) {
+    return(c(
+      "i" = "For hurdle counts use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula.",
+      "i" = "For zero-truncated NB2 without hurdle zeroes use {.fn truncated_nbinom2} on its own."
+    ))
+  }
+  if (identical(kind, "zero-inflated")) {
+    return(c(
+      "i" = "Zero-inflated count models in {.pkg drmTMB} use the base count family plus a {.code zi ~ ...} formula, not a foreign {.code family} constructor."
+    ))
+  }
+  c(
+    "i" = "Use a {.pkg drmTMB} {.code drm_family} constructor or a supported stats {.code family} with the documented links."
+  )
+}
+
+#' @keywords internal
+drm_abort_foreign_inflation_family <- function(received, kind, hint_fname) {
+  hints <- drm_foreign_inflation_drm_hints(hint_fname, kind)
+  x_msg <- if (identical(kind, "unsupported foreign")) {
+    "{.pkg drmTMB} does not accept this foreign stats {.code family} object -- use a {.pkg drmTMB} constructor or a supported stats {.code family}."
+  } else {
+    "{.pkg drmTMB} does not accept foreign zero-inflated, hurdle, or truncated stats {.code family} objects -- they must never be silently coerced to a plain non-inflation family."
+  }
+  cli::cli_abort(
+    c(
+      "Received {received}, which is not supported in {.pkg drmTMB}.",
+      "x" = x_msg,
+      hints
+    ),
+    class = "drmTMB_foreign_inflation_family"
+  )
+}
+
+#' @keywords internal
+drm_maybe_abort_foreign_inflation_family <- function(family, expr = NULL) {
+  components <- drm_foreign_family_arg_components(family)
+  if (!is.null(components)) {
+    lapply(components, function(elt) {
+      drm_maybe_abort_foreign_inflation_family(elt, expr = expr)
+    })
+    return(invisible(NULL))
+  }
+  if (is.character(family) && length(family) == 1L && !is.na(family)) {
+    if (family %in% drm_drmtmb_constructor_names()) {
+      drm_abort_drmtmb_constructor_call(family)
+    }
+    kind <- drm_foreign_inflation_family_kind(family)
+    if (is.null(kind)) {
+      return(invisible(NULL))
+    }
+    received <- cli::format_inline("{.code {family}}")
+    drm_abort_foreign_inflation_family(received, kind, family)
+  }
+  if (is.function(family)) {
+    ctor_name <- drm_drmtmb_constructor_name_for_function(family)
+    if (!is.null(ctor_name)) {
+      drm_abort_drmtmb_constructor_call(ctor_name)
+    }
+    fname <- drm_family_expr_name(expr)
+    kind <- drm_foreign_inflation_family_kind(fname)
+    if (is.null(kind)) {
+      return(invisible(NULL))
+    }
+    src <- drm_function_source_package(family)
+    if (!is.null(src)) {
+      received <- cli::format_inline("{.fn {src}::{fname}}")
+    } else {
+      received <- cli::format_inline("{.fn {fname}}")
+    }
+    drm_abort_foreign_inflation_family(received, kind, fname)
+  }
+  if (!inherits(family, "family") || inherits(family, "drm_family")) {
+    return(invisible(NULL))
+  }
+  fname <- family$family
+  kind <- drm_foreign_inflation_family_kind(fname)
+  # glmmTMB::ziGamma() keeps family = "Gamma" and only the initialize()
+  # expression names ziformula. Do not treat beta_family() or lognormal()
+  # the same way: those families mention ziformula as a data-range hook,
+  # not as a zero-inflated family identity.
+  masquerade <- identical(fname, "Gamma") &&
+    drm_initialize_references_ziformula(family)
+  if (is.null(kind) && !masquerade) {
+    return(invisible(NULL))
+  }
+  if (is.null(kind) && masquerade) {
+    kind <- "zero-inflated"
+  }
+  src <- drm_stats_family_source_package(family)
+  # Closures on a real glmmTMB::ziGamma() family live in stats, so source
+  # detection from variance/initialize is NULL. Recover the package from a
+  # namespaced call such as glmmTMB::ziGamma(link = "log").
+  if (is.null(src)) {
+    parts <- drm_family_expr_parts(expr)
+    pkg <- parts$pkg
+    if (!is.null(pkg) && !pkg %in% c("base", "stats", "drmTMB")) {
+      src <- pkg
+    }
+  }
+  hint_fname <- fname
+  if (identical(src, "glmmTMB") && fname == "Gamma" && masquerade) {
+    hint_fname <- "ziGamma"
+  }
+  received <- drm_foreign_inflation_family_label(family, fname, kind, src)
+  drm_abort_foreign_inflation_family(received, kind, hint_fname)
+}
+
+# Family admission chokepoint (#1716). Every user-facing family argument is
+# evaluated here: drmTMB(), impute_model(), and drm_resolve_priors().
+# Downstream helpers (biv_associate(), drm_phylo_penalty_sweep()) pass
+# family into drmTMB() and therefore through this function. Do not wrap
+# drm_family_type(); R/drmTMB.R is on the C17 capability-ledger watchlist.
 drm_eval_family_arg <- function(expr, env) {
   if (drm_is_bare_euler_beta_call(expr)) {
     drm_abort_base_beta_as_family()
@@ -373,6 +747,7 @@ drm_eval_family_arg <- function(expr, env) {
   if (is.function(family) && identical(family, base::beta)) {
     drm_abort_base_beta_as_family()
   }
+  drm_maybe_abort_foreign_inflation_family(family, expr = expr)
   family
 }
 
@@ -594,6 +969,7 @@ cumulative_logit <- function() {
 #' `glmmTMB::genpois()` (generalised Poisson).
 #'
 #' @return A `drm_family` object.
+#' @seealso [foreign-inflation-families]
 #' @export
 #'
 #' @examples
@@ -634,6 +1010,7 @@ nbinom2 <- function() {
 #' overdispersion-side random effects are not supported.
 #'
 #' @return A `drm_family` object.
+#' @seealso [foreign-inflation-families]
 #' @export
 #'
 #' @examples
