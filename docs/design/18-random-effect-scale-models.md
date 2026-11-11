@@ -844,12 +844,11 @@ but every admitted ordinary route requires an unlabelled block, and the labelled
 Gamma q2 route selects by `coef`. A `block` selector therefore has no admitted
 live use and currently only improves error messages.
 
-Prediction. `predict(fit, dpar = key)` matches `key` exactly against
-`names(fit$coefficients)`. Partial matching was removed because SD keys share
-long prefixes and a typo could resolve to a different SD formula. A prefix, a
-vector, `NA` or a non-string aborts with the available names.
-`coef.drmTMB()` and `fixef()` still use `match.arg()` and so still partial-match;
-this is recorded as a known limit and is not part of C2.
+Prediction. `predict(fit, dpar = key)`, `coef(fit, dpar = key)`, and
+`fixef(fit, dpar = key)` match `key` exactly against `names(fit$coefficients)`.
+Partial matching was removed because SD keys share long prefixes and a typo could
+resolve to a different SD formula. A prefix, a vector, `NA` or a non-string
+aborts with the available names and a closest-name suggestion.
 
 ## Multiple Random-Effect Scale Components
 
