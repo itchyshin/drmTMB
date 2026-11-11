@@ -355,6 +355,150 @@ drm_abort_base_beta_as_family <- function() {
   )
 }
 
+#' @keywords internal
+drm_stats_family_source_package <- function(family) {
+  fns <- list(family$variance, family$dev.resids, family$initialize)
+  fns <- Filter(is.function, fns)
+  for (fn in fns) {
+    env <- environment(fn)
+    depth <- 0L
+    while (!is.null(env) && depth < 20L) {
+      nm <- environmentName(env)
+      if (startsWith(nm, "namespace:")) {
+        return(sub("^namespace:", "", nm))
+      }
+      if (startsWith(nm, "package:")) {
+        return(sub("^package:", "", nm))
+      }
+      if (
+        nzchar(nm) &&
+          !nm %in% c("base", "stats", "utils", ".GlobalEnv", "R_GlobalEnv") &&
+          !startsWith(nm, "imports:")
+      ) {
+        return(nm)
+      }
+      env <- parent.env(env)
+      depth <- depth + 1L
+    }
+  }
+  NULL
+}
+
+#' @keywords internal
+drm_initialize_references_ziformula <- function(family) {
+  init <- family$initialize
+  if (is.null(init)) {
+    return(FALSE)
+  }
+  init_chr <- paste(deparse(init), collapse = " ")
+  grepl("ziformula", init_chr, fixed = TRUE)
+}
+
+#' @keywords internal
+drm_foreign_inflation_family_kind <- function(fname) {
+  if (!is.character(fname) || length(fname) != 1L || is.na(fname)) {
+    return(NULL)
+  }
+  if (grepl("^zi", fname)) {
+    return("zero-inflated")
+  }
+  if (grepl("^truncated_", fname)) {
+    return("truncated")
+  }
+  if (grepl("^hurdle", fname, ignore.case = TRUE)) {
+    return("hurdle")
+  }
+  if (fname %in% c(
+    "betabinomial", "compois", "genpois", "nbinom1",
+    "truncated_nbinom1", "ordbeta", "t_family"
+  )) {
+    return("unsupported foreign")
+  }
+  NULL
+}
+
+#' @keywords internal
+drm_foreign_inflation_family_label <- function(family, fname, kind, src) {
+  if (fname == "Gamma" && drm_initialize_references_ziformula(family)) {
+    if (identical(src, "glmmTMB")) {
+      return(cli::format_inline("{.fn glmmTMB::ziGamma}"))
+    }
+    return(cli::format_inline(
+      "a stats {.code family} object with {.code family = \"Gamma\"} and zero-inflation hooks"
+    ))
+  }
+  if (!is.null(src) && grepl("^zi", fname)) {
+    return(cli::format_inline("{.fn {src}::{fname}}"))
+  }
+  if (!is.null(src) && !is.null(kind)) {
+    return(cli::format_inline("{.fn {src}::{fname}}"))
+  }
+  cli::format_inline(
+    "a stats {.code family} object with {.code family = \"{fname}\"}"
+  )
+}
+
+#' @keywords internal
+drm_foreign_inflation_drm_hints <- function(fname, kind) {
+  if (fname == "ziGamma" ||
+      (fname == "Gamma" && identical(kind, "zero-inflated"))) {
+    return(c(
+      "i" = "{.pkg drmTMB} has no zero-inflated or hurdle Gamma family.",
+      "i" = "Use {.code Gamma(link = \"log\")} for a plain Gamma mean-CV model without zero inflation."
+    ))
+  }
+  if (fname %in% c("ziPoisson", "ziNB", "zi_nbinom2")) {
+    return(c(
+      "i" = "For zero-inflated counts use the base count family plus a {.code zi ~ ...} formula (for example {.code poisson(link = \"log\")} or {.fn nbinom2})."
+    ))
+  }
+  if (kind %in% c("truncated", "hurdle") ||
+      grepl("^truncated_", fname) || grepl("^hurdle", fname, ignore.case = TRUE)) {
+    return(c(
+      "i" = "For hurdle counts use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula.",
+      "i" = "For zero-truncated NB2 without hurdle zeroes use {.fn truncated_nbinom2} on its own."
+    ))
+  }
+  if (identical(kind, "zero-inflated")) {
+    return(c(
+      "i" = "Zero-inflated count models in {.pkg drmTMB} use the base count family plus a {.code zi ~ ...} formula, not a foreign {.code family} constructor."
+    ))
+  }
+  c(
+    "i" = "Use a {.pkg drmTMB} {.code drm_family} constructor or a supported stats {.code family} with the documented links."
+  )
+}
+
+#' @keywords internal
+drm_maybe_abort_foreign_inflation_family <- function(family) {
+  if (!inherits(family, "family") || inherits(family, "drm_family")) {
+    return(invisible(NULL))
+  }
+  fname <- family$family
+  kind <- drm_foreign_inflation_family_kind(fname)
+  zi_init <- drm_initialize_references_ziformula(family)
+  masquerade <- zi_init &&
+    fname %in% c("Gamma", "lognormal", "beta", "poisson", "binomial", "gaussian")
+  if (is.null(kind) && !masquerade) {
+    return(invisible(NULL))
+  }
+  if (is.null(kind) && masquerade) {
+    kind <- "zero-inflated"
+  }
+  src <- drm_stats_family_source_package(family)
+  hint_fname <- fname
+  if (identical(src, "glmmTMB") && fname == "Gamma" && masquerade) {
+    hint_fname <- "ziGamma"
+  }
+  received <- drm_foreign_inflation_family_label(family, fname, kind, src)
+  hints <- drm_foreign_inflation_drm_hints(hint_fname, kind)
+  cli::cli_abort(c(
+    "Received {received}, which is not supported in {.pkg drmTMB}.",
+    "x" = "{.pkg drmTMB} does not accept foreign zero-inflated, hurdle, or truncated stats {.code family} objects -- they must never be silently coerced to a plain non-inflation family.",
+    hints
+  ))
+}
+
 drm_eval_family_arg <- function(expr, env) {
   if (drm_is_bare_euler_beta_call(expr)) {
     drm_abort_base_beta_as_family()

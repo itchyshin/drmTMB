@@ -1,5 +1,10 @@
 # drmTMB 0.8.1
 
+* Foreign zero-inflated, hurdle, and truncated stats `family` objects (for
+  example `glmmTMB::ziGamma(link = "log")`) are now refused in `drm_family_type()`
+  with an informative error instead of being silently coerced to a plain
+  non-inflation family such as `Gamma(link = "log")` (#1716).
+
 * Gaussian location-scale models now abort before TMB when an observed
   response or fixed-effect design value is non-finite (`Inf` in `y` or in a
   predictor no longer reaches TMB's `NA/NaN/Inf in 'y'` / `'x'` errors).

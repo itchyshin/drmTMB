@@ -82,7 +82,10 @@
 #'   `zi ~ predictors` to a Poisson or `nbinom2()` model fits the corresponding
 #'   zero-inflated count model. Adding `hu ~ predictors` to a
 #'   `truncated_nbinom2()` model fits a hurdle count model whose nonzero counts
-#'   use the zero-truncated NB2 component. The current
+#'   use the zero-truncated NB2 component. Foreign zero-inflated, hurdle, or
+#'   truncated stats `family` objects (for example `glmmTMB::ziGamma()`) are
+#'   refused with an error: they are never coerced to a plain `Gamma(link =
+#'   "log")`, Poisson, or other non-inflation family. The current
 #'   bivariate Gaussian engine also accepts
 #'   `family = c(gaussian(), gaussian())` and
 #'   `family = list(gaussian(), gaussian())`.
@@ -4420,6 +4423,7 @@ drm_family_type <- function(family) {
   if (is.function(family) && identical(family, base::beta)) {
     drm_abort_base_beta_as_family()
   }
+  drm_maybe_abort_foreign_inflation_family(family)
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
     return("gaussian")
   }

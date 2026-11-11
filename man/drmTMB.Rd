@@ -33,7 +33,9 @@ or \code{"cloglog"},
 \code{zi ~ predictors} to a Poisson or \code{nbinom2()} model fits the corresponding
 zero-inflated count model. Adding \code{hu ~ predictors} to a
 \code{truncated_nbinom2()} model fits a hurdle count model whose nonzero counts
-use the zero-truncated NB2 component. The current
+use the zero-truncated NB2 component. Foreign zero-inflated, hurdle, or
+truncated stats \code{family} objects (for example \code{glmmTMB::ziGamma()}) are
+refused with an error: they are never coerced to a plain \code{Gamma(link = "log")}, Poisson, or other non-inflation family. The current
 bivariate Gaussian engine also accepts
 \code{family = c(gaussian(), gaussian())} and
 \code{family = list(gaussian(), gaussian())}.}
