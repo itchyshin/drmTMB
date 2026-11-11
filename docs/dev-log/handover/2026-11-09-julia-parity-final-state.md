@@ -1,18 +1,112 @@
-# R-Julia parity: final state of the Julia pull request stack, 2026-11-09
+# R-Julia parity: final state of the Julia pull request stack (written 2026-11-09, updated 2026-11-10)
 
-Reader: Shinichi, or the next session that continues the parity lane. First written at the integration of the documentation branches; updated with the coordinator's final pull request list and gap-map numbers.
+Reader: Shinichi, or the next session that continues the parity lane. First written on 9 November at the integration of the documentation branches. Updated on 10 November at about 19:40 CST, after the Julia stack landed on DRModels.jl main. The first section below is the current state. Everything after it was written on 9 November and is kept as the record of the review order; where it says "draft" or "unmerged", the first section overrides it.
+
+## State on 10 November 2026, about 19:40 CST
+
+All facts in this section were read from GitHub with `gh pr view` on 10 November 2026, unless a source is named. DRModels.jl main was `e7d5ddee1b5d` when read.
+
+### On DRModels.jl main now
+
+| PR | What it is | Merge commit on main |
+|---|---|---|
+| https://github.com/itchyshin/DRModels.jl/pull/1261 | q2, q3, q4 SD-regression shapes (wave 1) | 3e2a4bf23 |
+| https://github.com/itchyshin/DRModels.jl/pull/1263 | wave 2 | ded2f6f49 |
+| https://github.com/itchyshin/DRModels.jl/pull/1264 | wave 3 | 4316f4f3d |
+| https://github.com/itchyshin/DRModels.jl/pull/1266 | wave 4 | fc312372d |
+| https://github.com/itchyshin/DRModels.jl/pull/1267 | CumulativeLogit warm start | 61ea02859 |
+| https://github.com/itchyshin/DRModels.jl/pull/1268 | Binomial phylo and spatial q2, robustness | f600e090e |
+| https://github.com/itchyshin/DRModels.jl/pull/1270 | waves 7 and 8 | 9ef4672b5 |
+| https://github.com/itchyshin/DRModels.jl/pull/1271 | wave 9 | b84ee2897 |
+| https://github.com/itchyshin/DRModels.jl/pull/1272 | wave 10 (main was ed90ae2ea after it) | ed90ae2ea |
+| https://github.com/itchyshin/DRModels.jl/pull/1294 | integration PR (see below) | e7d5ddee1 |
+
+- The wave stack (#1261 to #1272) is on main. The lane's STATUS file records seven of these merges (#1263 to #1272, by GitHub auto-merge) between 10:59 and 11:08 CST on 10 November; I did not read the merge time of #1261 and #1267. The same STATUS file of the lane (kept outside this repository) records that #1263, #1264 and #1266 went in inside #1268, and #1270 and #1271 inside #1272. The per-PR merge commits above are what GitHub reports for each.
+- https://github.com/itchyshin/DRModels.jl/pull/1294 merged into main at 19:27 CST as `e7d5ddee1` (head `713b77957`). On that head the four Julia test shards, `ci-ok` and `docs` were all green (lane STATUS file, 19:33 CST check). Two test-only fixes were added on the way: a shard-2 name clash (`lrtest`, defined by both DRModels and StatsModels) and a shard-4 start-value difference between two spellings of one Binomial model (no tolerance, default or optimiser change).
+- #1294 folded in these earlier lane PRs (from its own description): #1273, #1280, #1275, #1274, #1276, #1278, #1283, #1286, #1277, #1279, #1282, #1284, #1285, #1287, #1289, #1291, #1292. GitHub still lists #1273 to #1283, #1291 and #1292 as OPEN because they were folded in by merge, not merged one by one. Their content is on main through #1294.
+- Also merged earlier: #1284, #1285, #1287 and #1289 (each into main), and #1296, #1298, #1300, #1301, #1302 (each into an integration branch, whose content came to main through #1294).
+- https://github.com/itchyshin/DRModels.jl/pull/1290 was closed as agreed (P3). Two test-only commits for Julia 1.12 are not on main; the branch is kept.
+- https://github.com/itchyshin/DRModels.jl/pull/1299 is still OPEN on GitHub, but its head `b34b250df` is already inside main through #1294. Nothing is left to merge. Closing it waits on owner question P18.
+
+### Still draft (none of this is on main)
+
+All are open drafts, read on 10 November. "Question" names the open owner question in the lane's `DECISIONS-PENDING.md` (the file is outside this repository). P4 (the drmTMB verdict flips) is open for all of them and is not repeated.
+
+Drafts opened by the lane that target `claude/integration-final-20261109`, not main, so GitHub CI does not run on them (P18b):
+
+| PR | What it does | Question |
+|---|---|---|
+| https://github.com/itchyshin/DRModels.jl/pull/1305 | NB2 `spatial(1 \| g)` with coordinates, on drmTMB's fixed-range kernel | P18b; related to P6c (range default) |
+| https://github.com/itchyshin/DRModels.jl/pull/1306 | REML for the Gaussian labelled `(1 \| p \| g)` pair on mean and sigma | P14a (test-only slack in a reference solver) |
+| https://github.com/itchyshin/DRModels.jl/pull/1307 | Student `spatial(1 \| g)` and `spatial(1 + x \| g)` with coordinates | P14a (test text accepts either refusal wording) |
+| https://github.com/itchyshin/DRModels.jl/pull/1308 | independent-term Laplace guard no longer blocks an SD at zero (guard value 30 raised to 300) | P7a, P7b |
+| https://github.com/itchyshin/DRModels.jl/pull/1309 | a second structured term on a non-Gaussian model is refused instead of silently dropped | none of its own. Note: some fits that returned a wrong answer become errors |
+| https://github.com/itchyshin/DRModels.jl/pull/1311 | finite standard errors for Tweedie with crossed random intercepts | P8 (SE policy at a boundary) |
+| https://github.com/itchyshin/DRModels.jl/pull/1312 | several `offset()` terms, zero-inflated Poisson offset, `meta_V` offset | none recorded |
+| https://github.com/itchyshin/DRModels.jl/pull/1313 | `meta_V` under REML | P9f |
+| https://github.com/itchyshin/DRModels.jl/pull/1314 | prior weights with random effects, `meta_V` and bivariate Gaussian | P9g (`update()` on a weighted fit now errors unless `weights =` is given) |
+| https://github.com/itchyshin/DRModels.jl/pull/1316 | sigma random effects beyond a single Gaussian intercept | P9i (an older engine's `simulate` may still include random effects set to zero) |
+| https://github.com/itchyshin/DRModels.jl/pull/1317 | zero-inflated, hurdle, truncated NB2 and SkewNormal with a random intercept, and two more shapes | P11 |
+| https://github.com/itchyshin/DRModels.jl/pull/1318 | `predict`: ignores a text response column on ordinal fits; missing-predictor `predict` pinned to drmTMB | P9j (Julia has no `predict(fit)` without new data) |
+| https://github.com/itchyshin/DRModels.jl/pull/1319 | `simulate` and bootstrap: fresh random-effect draws for several random intercepts | P12, answered: keep the refusal without `data =` but print the call to use; accept the new bootstrap draw |
+| https://github.com/itchyshin/DRModels.jl/pull/1320 | bivariate Gaussian with `(1 \| p \| g)`, pinned to drmTMB | P15, answered: rename the `:phylocov` block on this route only; the new name is not chosen |
+| https://github.com/itchyshin/DRModels.jl/pull/1321 | `meta_V` under REML with prior weights (stacked on #1313 and #1314) | P14b, answered: add it as a draft |
+
+Other drafts:
+
+| PR | What it does | State | Question |
+|---|---|---|---|
+| https://github.com/itchyshin/DRModels.jl/pull/1293 | opt-in `marginal = :Laplace` on quadrature routes (reproduces drmTMB's integrator) | draft, base main, head `42241a7a3`; CI started about 19:45 CST; at the 19:38 CST read the `docs` check had failed and the four test shards were pending (cause not read) | P10 if the boundary cell is red on GitHub; P6a |
+| https://github.com/itchyshin/DRModels.jl/pull/1310 | merge of #1293 onto the integration tip, with measured effect | draft; its content is inside #1293; open only because #1315 is stacked on it | P10, P18c |
+| https://github.com/itchyshin/DRModels.jl/pull/1315 | option for P10: keep the Binomial correlated block out of the rounding-noise region | draft, left out of every combined run on purpose | P10 (options A, B, C) |
+
+### Gap-map numbers, and which tree each one is from
+
+No gap map was run on main at `e7d5ddee1`. The numbers below come from two other trees. Do not read either as "main".
+
+Tree A: the #1294 branch before main was merged into it (`78b571496`), re-measured on 10 November (lane STATUS, item G5; Julia 1.10.12, R 4.6.1, drmTMB 0.8.1, pre-registered rule |log-likelihood difference| at most 1e-4):
+
+- Map 1 (3008 cells; 427 are cells that R fits): 358 both fit and agree, 54 both fit but disagree, 10 R-only, 83 Julia-only, 5 not converged, 1 timeout.
+- Map 2 (492 cells): 272 agree, 37 R-only, 10 Julia crashes.
+- Main at `e7d5ddee1` is tree A plus main's own commits and the two test-only fixes named above, so main should give similar counts. That is an inference. I did not measure it.
+
+Tree B: all lane drafts merged together onto the #1294 head `2a2eec788` (#1305 to #1314 and #1316; #1315 left out), from `combined-wave12-report.md` of the lane. This tree is NOT on main. Two test-only fixes were needed on it (#1307 and #1306 branches). The full suite was not re-run after them.
+
+- Map 1: 363 agree (358 before), 54 disagree, 6 R-only (10 before), 83 Julia-only, 3 not converged, 2 timeouts caused by load. 7 cells changed class; no agreeing cell got worse. One new disagreement appeared that no draft claimed: `binomial|indep|lab0|q4|sd-first` (Julia -253.5513, R -253.5425).
+- Map 2: 283 agree (272 before), 57 agree on log-likelihood but differ in fitted values (51 before), 28 disagree (27 before), 19 R-only (37 before), 10 Julia crashes. 18 cells changed class, all from R-only. No cell got worse.
+- The drafts #1317 to #1321 were not in tree B.
+
+An older figure in the table further down (357 agree, 17 R-only, "integrated tip") came from the coordinator on 9 November and is not on file. The original #1294 description gives 10 R-only for the same tree. I did not reconcile 17 against 10. Use the tree A figures above.
+
+Fitted-value check (lane report `fitted-diff-report.md`): of 57 cells where log-likelihood agrees but fitted values differ, none is a numerical difference. 36 are a harness artefact, 17 are R `fitted()` including random-effect modes while Julia is population level, 4 are row counts with missing responses. This is owner question P17.
+
+### Parity-matrix verdicts
+
+Nothing is flipped. Every flip in `docs/dev-log/2026-11-09-parity-matrix-proposed-flips.md` stays PROPOSED until Shinichi answers P4, a separate reviewed drmTMB pull request applies it, and the Julia pin moves.
+
+### What is not verified
+
+- The full suite on Julia 1.10.12 was not run at the final head of several drafts. For example, tree B ran it before its two test-only fixes, and #1317 to #1321 were not in tree B.
+- GitHub CI has not run on the lane drafts #1305 to #1321, because they target the integration branch (P18b). Their evidence is full suites on Totoro, a shared 384-core machine. Lane reports said GitHub CPU types can behave differently from Totoro (shard 4 of #1294 failed on GitHub and passed on Totoro until the CPU types were emulated).
+- The P10 boundary cell (`binomial|corr|lab0|q2|sd-last`) is off by 1.8e-4 from R on Julia 1.13.3 and passes on 1.10.12. If it is red on GitHub for #1293, that PR waits for P10.
+- Julia 1.12.7: tree B was not run on it. On the #1294 tip of 9 November the full suite was clean on 1.12.7; on the later head `1c9c41a7a` three assertions failed there (P1c, still pending).
+- Gap maps ran on Julia 1.10.12 only, under heavy shared load for tree B.
+- Standard errors, `vcov` and fitted values were not compared on the newly agreeing cells of tree B.
+- The R bridge (R calling Julia) was not exercised for any of the new Julia routes.
+- `meta_V` plus `(1 | g)` with weights under REML was not measured in R or Julia.
+- I did not read the `docs` failure on #1293, and I did not check any Totoro folder.
 
 This note does not repeat the waves 7 to 10 handover in draft PR #1684 (`docs/dev-log/handover/2026-11-09-julia-parity-waves7-10-decisions.md` on branch `claude/parity-evidence-zip-gamma-20261107`). That note covers the first nine Julia pull requests and eight decisions. This note adds everything after it and puts the whole stack in one review order.
 
 ## What this lane did and did not do
 
-- Julia work lives in `itchyshin/DRModels.jl` as draft pull requests. None was merged by us. An integration lane is merging them.
+- Julia work lives in `itchyshin/DRModels.jl`. On 9 November these were draft pull requests and none was merged by us. On 10 November the stack and the integration PR #1294 were merged (see the first section).
 - No parity-matrix verdict was flipped. Flips need a separate reviewed drmTMB pull request after Julia lands and the pin moves. Proposed flips are listed in `docs/dev-log/2026-11-09-parity-matrix-proposed-flips.md`, marked PROPOSED.
 - The four documentation branches named in the task (gap map wave 10, gap map v2, wave-8 disagreements, non-Gaussian REML memo) are branches of DRModels.jl, not of drmTMB. Their tip commits are docs only. Their files are copied here unchanged under `docs/dev-log/`. See "Where the evidence files are".
 
 ## Review order for the Julia stack
 
-Review in this order. Each line says what the pull request does. All are open and draft at the time of writing, with the base shown by `gh pr view`.
+Historical, written on 9 November. See the first section for the state on 10 November: all of these are now on main, either directly or through #1294. Each line says what the pull request does. All were open and draft at the time of the first writing.
 
 Stacked chain, oldest first:
 
@@ -48,22 +142,22 @@ Fixes based on main, independent of the chain:
 
 Later lane pull requests (coordinator's list at about 15:55, not read from the pull requests by me):
 
-- #1294 (draft, tip `d78214757`): integration pull request that folds #1273 to #1280, #1282 to #1287, #1289, #1291 and #1292. Shinichi is merging the stack himself, bottom-up. Full suites on its source tip `bf566192c`: 619 files, 0 failing files on Julia 1.10.12 and 1.12.7.
-- Not in the integrated tip, separate drafts: #1293 (Laplace objective option), #1299 (spatial parity), #1298 (review fixes, docs and tests), #1290 (the failures did not reproduce).
+- #1294 (draft on 9 November, tip `d78214757`; merged on 10 November as `e7d5ddee1`): integration pull request that folds #1273 to #1280, #1282 to #1287, #1289, #1291 and #1292. Full suites on its source tip `bf566192c`: 619 files, 0 failing files on Julia 1.10.12 and 1.12.7.
+- Not in the integrated tip on 9 November, separate drafts: #1293 (Laplace objective option), #1299 (spatial parity), #1298 (review fixes, docs and tests), #1290 (the failures did not reproduce). On 10 November #1298 and #1299 were found to be inside #1294, #1290 was closed, and #1293 is still a draft.
 - Julia 1.13: CI uses 1.13.3. Five test files failed on 1.13.2 because they depend on the random stream; fixed by #1296, #1300, #1301 and #1302. All 16 shards pass with them applied, on 1.13.2, not 1.13.3.
 
-The review order above still describes the individual pull requests; with #1294 the integrated tip is the thing to review and merge.
+The review order above still describes the individual pull requests; #1294 has since been merged as the integrated tip.
 
 On the drmTMB side:
 
-- #1684 (draft): evidence, proposed flips and the waves 7 to 10 handover. Review first among the drmTMB pull requests, because the proposed-flips file is the base for the new note.
-- #1687 (draft): R warns and prints FAILED FIT when the Julia bridge reports a failed fit. Needs Julia #1270, which sends `fit_failed`. Harmless without it. Tested only with hand-built bridge results.
-- #1688 (draft): fixes `convergence_status()` for cross-family Julia fits, which said "degenerate" although the optimiser succeeded. R code in `R/check.R`. Its body reports 499 passing offline tests in the filtered run, 0 failed, and says the full suite was not run. Three NB2 by Gaussian profile interval assertions still fail live; its body calls that a separate Julia-side issue.
+- #1684 (draft, still open on 10 November): evidence, proposed flips and the waves 7 to 10 handover. Review first among the drmTMB pull requests, because the proposed-flips file is the base for the new note.
+- #1687 (draft, still open): R warns and prints FAILED FIT when the Julia bridge reports a failed fit. Needs Julia #1270, which sends `fit_failed` (now on main). Harmless without it. Tested only with hand-built bridge results.
+- #1688 (draft, still open): fixes `convergence_status()` for cross-family Julia fits, which said "degenerate" although the optimiser succeeded. R code in `R/check.R`. Its body reports 499 passing offline tests in the filtered run, 0 failed, and says the full suite was not run. Three NB2 by Gaussian profile interval assertions still fail live; its body calls that a separate Julia-side issue.
 - This pull request: documentation only.
 
 ## What is verified and what is not
 
-Verified, each on the exact tip of its own pull request (not on one combined tip):
+Verified on 9 November, each on the exact tip of its own pull request (not on one combined tip):
 
 - #1273, #1274, #1275, #1276, #1278, #1279, #1280, #1282, #1283, #1286 and #1287 each report a full Totoro suite on Julia 1.10.12 with no failure other than cases named in their own body (#1276 and #1286 each updated one stale refusal test and reran it; #1287 skipped one file, see below). For Julia 1.12 (1.12.6 or 1.12.7, as each body states) #1273, #1274, #1275, #1276, #1280, #1282, #1283 and #1287 report only the five files that already fail on main.
 - #1284 reports its own tip clean on 1.10.12 except one shard where `test_crossed_tweedie.jl` timed out, and on 1.12.7 failing `test_reml_q4_missing_response`, `test_binomial_spatial_sd_regression` and `test_binomial_animal_q2_sd.jl:47`.
@@ -73,7 +167,7 @@ Verified, each on the exact tip of its own pull request (not on one combined tip
 - Gap map v2, at the #1272 tip: 492 cells, 216 agree on log-likelihood and fitted values, 22 Julia crash cells.
 - The 54 wave-8 log-likelihood disagreements: 0 Julia defects. Class counts are in the disagreements note.
 
-Final gap-map numbers from the coordinator (3008 cells, integrated tip against the wave-10 base; I did not recompute them and the files are not in this branch):
+Final gap-map numbers from the coordinator on 9 November (3008 cells, integrated tip against the wave-10 base; I did not recompute them and the files are not in this branch; superseded by the tree A and tree B numbers in the first section):
 
 | Class | Wave-10 base | Integrated |
 |---|---|---|
@@ -91,7 +185,7 @@ Caveats that go with these numbers:
 - About 70 of the 427 R-fit cells can never read "agree": 46 are Laplace against adaptive quadrature, some are REML by definition, some are cases where R does not converge, and others.
 - Verdict flips stay PROPOSED until Julia lands and the pin moves.
 
-Not verified:
+Not verified on 9 November (see "What is not verified" in the first section for 10 November):
 
 - There is no gap-map rerun on one combined tip that includes #1273 to #1287. Each pull request reports its own cell counts: #1278 says 49 flips to agreement, #1276 says 19 flips among 85 Gaussian REML cells, #1274 says 12 cells. These overlap in ways I could not check, so they must not be added.
 - #1277 says its full-suite result was to follow in a comment; I did not read the comment.
@@ -130,7 +224,7 @@ The first eight are in the #1684 handover and still stand. Added since:
 
 drmTMB integrates out random effects with a Laplace approximation. Julia's default is adaptive Gauss-Hermite quadrature, which is more accurate when a group has few observations or the random-effect SD is large. For the same model and the same estimates, the two log-likelihoods can therefore differ by a small amount, usually under 0.1 and in the Binomial q3 and q4 cases about 0.6.
 
-- To compare Julia with R, ask Julia for the Laplace objective where available (`marginal = :Laplace`, or the #1293 option once merged). Then the numbers should match.
+- To compare Julia with R, ask Julia for the Laplace objective where available (`marginal = :Laplace`; the general option is #1293, still a draft on 10 November). Then the numbers should match.
 - To report a log-likelihood, AIC or likelihood-ratio test, do not mix engines. Compare models fitted by one engine with one integrator.
 - Where exact quadrature was computed for the 36 one-dimensional wave-8 cells, Julia's value was the accurate one and R's Laplace value was below it in 36 and above it in 10 of the 46 integrator cells (disagreements note). Accuracy is not the same as agreement with R: a gap here is not a Julia defect.
 - Parameter estimates agree much more closely than the log-likelihood does. In the integrator cells R's objective at Julia's estimate was within 0.015 of R's own optimum in all 36 one-dimensional cells.
@@ -171,4 +265,4 @@ One uncapped R job, `rms.R` with pid 2318499 in `~/drm_pn2_20261109`, is not our
 
 The BLUP NaN test branch (`claude/blup-nan-e2e-20261109`) was not brought in, because it holds a test, fixtures and a shard line rather than docs.
 
-Next action for the reader: review #1684 first, then this pull request, then the Julia stack in the order above.
+Next action for the reader: answer the owner questions named in the first section (P4 first, because it gates the verdict flips), then review the lane drafts. The Julia stack itself needs no further review order.

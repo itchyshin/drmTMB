@@ -43,13 +43,21 @@ This note extends, and does not replace, `docs/dev-log/parity-crosswalk-evidence
 - The 43 cells that Julia fits and R refuses (wave 10, `maps/julia_only_cells.tsv`). These have no R reference, so they are Julia-only scope, not agreement.
 - Cells from Julia pull requests with no gap-map or R reference in the pull request body.
 
-## Final integrated numbers (from the coordinator, not recomputed)
+## Final numbers and the tree each is from
 
-On the integrated Julia tip (DRModels.jl #1294), 3008 cells against the wave-10 base: both fit and agree 260 to 357, R-only 107 to 17, Julia-only 43 to 83, both fit but disagree 54 to 55, non-converged 5 to 4, no regression. These supersede the "do not add" caution only for the totals; the per-row counts above still come from each pull request body. About 70 of the 427 R-fit cells can never read "agree" (46 Laplace against adaptive quadrature, REML by definition, R not converged, others), so a verdict file must not treat the gap to 427 as open work. Agreement means log-likelihood and point estimates at the optimum; standard errors were compared only in some pull requests. Julia-only cells (83) have no R reference. #1293 (44 of 54 integrator cells agree under `marginal = :Laplace`), #1299, #1298 and #1290 are not in #1294.
+Update, 10 November 2026: DRModels.jl #1294 merged into main as `e7d5ddee1` at 19:27 CST, together with the wave stack #1261 to #1272 earlier the same day. The Julia pull requests named in rows 1 to 17 below are therefore on main, directly or through #1294 (GitHub still shows some of them as open because they were folded in by merge). The R pin has not moved and owner question P4 (approve, approve a subset, or hold the flips) is still open, so every flip below is still PROPOSED. Nothing was flipped.
+
+Numbers, with the tree each one is from (details in `docs/dev-log/handover/2026-11-09-julia-parity-final-state.md`). No gap map was run on main at `e7d5ddee1`.
+
+- Tree A, the #1294 branch before main was merged into it (`78b571496`), 3008 cells, re-measured on 10 November: 358 both fit and agree, 54 both fit but disagree, 10 R-only, 83 Julia-only, 5 not converged. Second map (492 cells): 272 agree, 37 R-only.
+- Tree B, all lane drafts #1305 to #1314 and #1316 merged together on the #1294 head (not on main): 363 agree, 54 disagree, 6 R-only; second map 283 agree, 19 R-only. Rows that depend on those drafts (offsets, `meta_V` REML, weights, sigma random effects, NB2 and Student spatial, Gaussian REML `(1 | p | g)`) must not be flipped from main numbers. They stay open until the drafts merge.
+- The coordinator's 9 November figures for the integrated tip (260 to 357 agree, R-only 107 to 17) are superseded. The original #1294 description gave 10 R-only for the same tree, and I did not reconcile 17 against 10.
+
+About 70 of the 427 R-fit cells can never read "agree" (46 Laplace against adaptive quadrature, REML by definition, R not converged, others), so a verdict file must not treat the gap to 427 as open work. Agreement means log-likelihood and point estimates at the optimum; standard errors were compared only in some pull requests. Julia-only cells (83) have no R reference. #1293 (opt-in `marginal = :Laplace`, 44 of 54 integrator cells agree) is a draft and not on main. #1299 and #1298 are inside #1294. #1290 was closed.
 
 ## Not verified
 
 - Rows 5 to 16 rest on pull-request bodies, not on committed files in this repository. I read the bodies on 2026-11-09; they may change before merge.
-- The combined-tip gap map is reported by the coordinator, not committed here. Wave 10 on the #1272 tip, committed here, gives 113 remaining out of the 145 at wave 8.
+- The gap-map counts for trees A and B in the section above are read from the lane's reports, which are not committed here. The older combined-tip figure is from the coordinator. Wave 10 on the #1272 tip, committed here, gives 113 remaining out of the 145 at wave 8.
 - The bridge (R calling Julia) was not exercised for any row.
 - Row 13's log-likelihood and row 8's breakdown are quoted from truncated reads of the pull-request bodies; confirm against the body before writing a verdict.
