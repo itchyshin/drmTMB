@@ -1749,9 +1749,15 @@ test_that("bivariate Gaussian known-matrix one-slope location blocks expose part
   expect_known_partial(fit_animal, "animal", "animal")
   expect_known_partial(fit_relmat_K, "relmat", "relmat")
   expect_known_partial(fit_relmat_Q, "relmat", "relmat")
+  # #1703: maximised logLik can differ by ~0.003 when nlminb and the BFGS
+  # fallback stop at different points on a flat unstructured-correlation ridge.
+  # relmat(K) and relmat(Q = solve(K)) are the same likelihood, so compare the
+  # objective at one shared parameter vector. Tolerance is unchanged.
+  fixed_par <- fit_relmat_K$opt$par
+  expect_identical(names(fixed_par), names(fit_relmat_Q$opt$par))
   expect_equal(
-    as.numeric(stats::logLik(fit_relmat_K)),
-    as.numeric(stats::logLik(fit_relmat_Q)),
+    as.numeric(fit_relmat_Q$obj$fn(fixed_par)),
+    as.numeric(fit_relmat_K$obj$fn(fixed_par)),
     tolerance = 1e-5
   )
   expect_equal(
