@@ -1,5 +1,12 @@
 # drmTMB 0.8.1
 
+* Bivariate Gaussian `relmat(K = K)` and `relmat(Q = solve(K))` are the same
+  known-relatedness likelihood. On the q = 4 location-slope block, maximised
+  log-likelihoods can differ by about 0.003 when `nlminb` and the BFGS
+  fallback stop at different points on a flat unstructured-correlation ridge.
+  The equivalence check is the TMB objective at one shared parameter vector,
+  which matches well inside the existing 1e-5 tolerance (#1703).
+
 * Gaussian location-scale models now abort before TMB when an observed
   response or fixed-effect design value is non-finite (`Inf` in `y` or in a
   predictor no longer reaches TMB's `NA/NaN/Inf in 'y'` / `'x'` errors).
