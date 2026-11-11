@@ -381,32 +381,89 @@ drm_abort_base_beta_as_family <- function() {
 NULL
 
 #' @keywords internal
+drm_function_source_package <- function(fn) {
+  if (!is.function(fn)) {
+    return(NULL)
+  }
+  env <- environment(fn)
+  if (is.null(env)) {
+    return(NULL)
+  }
+  nm <- environmentName(topenv(env))
+  nm <- sub("^namespace:", "", nm)
+  nm <- sub("^package:", "", nm)
+  if (!nzchar(nm) || nm %in% c("base", "stats", "R_GlobalEnv")) {
+    return(NULL)
+  }
+  nm
+}
+
+#' @keywords internal
 drm_stats_family_source_package <- function(family) {
   fns <- list(family$variance, family$dev.resids, family$initialize)
   fns <- Filter(is.function, fns)
   for (fn in fns) {
-    env <- environment(fn)
-    depth <- 0L
-    while (!is.null(env) && depth < 20L) {
-      nm <- environmentName(env)
-      if (startsWith(nm, "namespace:")) {
-        return(sub("^namespace:", "", nm))
-      }
-      if (startsWith(nm, "package:")) {
-        return(sub("^package:", "", nm))
-      }
-      if (
-        nzchar(nm) &&
-          !nm %in% c("base", "stats", "utils", ".GlobalEnv", "R_GlobalEnv") &&
-          !startsWith(nm, "imports:")
-      ) {
-        return(nm)
-      }
-      env <- parent.env(env)
-      depth <- depth + 1L
+    src <- drm_function_source_package(fn)
+    if (!is.null(src)) {
+      return(src)
     }
   }
   NULL
+}
+
+#' @keywords internal
+drm_family_expr_name <- function(expr) {
+  if (is.null(expr)) {
+    return(NULL)
+  }
+  if (is.character(expr) && length(expr) == 1L && !is.na(expr)) {
+    return(expr)
+  }
+  if (is.symbol(expr)) {
+    return(as.character(expr))
+  }
+  if (!is.call(expr)) {
+    return(NULL)
+  }
+  head <- expr[[1L]]
+  if (identical(head, quote(`::`)) || identical(head, quote(`:::`))) {
+    return(as.character(expr[[3L]]))
+  }
+  if (
+    is.call(head) &&
+      (identical(head[[1L]], quote(`::`)) || identical(head[[1L]], quote(`:::`)))
+  ) {
+    return(as.character(head[[3L]]))
+  }
+  if (is.symbol(head)) {
+    return(as.character(head))
+  }
+  NULL
+}
+
+#' @keywords internal
+drm_foreign_family_arg_components <- function(family) {
+  if (
+    !is.list(family) ||
+      inherits(family, "family") ||
+      inherits(family, "drm_family") ||
+      inherits(family, "drm_impute_family")
+  ) {
+    return(NULL)
+  }
+  if (
+    length(family) > 0L &&
+      all(vapply(
+        family,
+        function(elt) {
+          inherits(elt, "family") || inherits(elt, "drm_family")
+        },
+        logical(1)
+      ))
+  ) {
+    return(family)
+  }
+  drm_composed_families(family)
 }
 
 #' @keywords internal
@@ -527,7 +584,52 @@ drm_foreign_inflation_drm_hints <- function(fname, kind) {
 }
 
 #' @keywords internal
-drm_maybe_abort_foreign_inflation_family <- function(family) {
+drm_abort_foreign_inflation_family <- function(received, kind, hint_fname) {
+  hints <- drm_foreign_inflation_drm_hints(hint_fname, kind)
+  x_msg <- if (identical(kind, "unsupported foreign")) {
+    "{.pkg drmTMB} does not accept this foreign stats {.code family} object -- use a {.pkg drmTMB} constructor or a supported stats {.code family}."
+  } else {
+    "{.pkg drmTMB} does not accept foreign zero-inflated, hurdle, or truncated stats {.code family} objects -- they must never be silently coerced to a plain non-inflation family."
+  }
+  cli::cli_abort(
+    c(
+      "Received {received}, which is not supported in {.pkg drmTMB}.",
+      "x" = x_msg,
+      hints
+    ),
+    class = "drmTMB_foreign_inflation_family"
+  )
+}
+
+#' @keywords internal
+drm_maybe_abort_foreign_inflation_family <- function(family, expr = NULL) {
+  components <- drm_foreign_family_arg_components(family)
+  if (!is.null(components)) {
+    lapply(components, drm_maybe_abort_foreign_inflation_family)
+    return(invisible(NULL))
+  }
+  if (is.character(family) && length(family) == 1L && !is.na(family)) {
+    kind <- drm_foreign_inflation_family_kind(family)
+    if (is.null(kind)) {
+      return(invisible(NULL))
+    }
+    received <- cli::format_inline("{.code {family}}")
+    drm_abort_foreign_inflation_family(received, kind, family)
+  }
+  if (is.function(family)) {
+    fname <- drm_family_expr_name(expr)
+    kind <- drm_foreign_inflation_family_kind(fname)
+    if (is.null(kind)) {
+      return(invisible(NULL))
+    }
+    src <- drm_function_source_package(family)
+    if (!is.null(src)) {
+      received <- cli::format_inline("{.fn {src}::{fname}}")
+    } else {
+      received <- cli::format_inline("{.fn {fname}}")
+    }
+    drm_abort_foreign_inflation_family(received, kind, fname)
+  }
   if (!inherits(family, "family") || inherits(family, "drm_family")) {
     return(invisible(NULL))
   }
@@ -551,39 +653,14 @@ drm_maybe_abort_foreign_inflation_family <- function(family) {
     hint_fname <- "ziGamma"
   }
   received <- drm_foreign_inflation_family_label(family, fname, kind, src)
-  hints <- drm_foreign_inflation_drm_hints(hint_fname, kind)
-  x_msg <- if (identical(kind, "unsupported foreign")) {
-    "{.pkg drmTMB} does not accept this foreign stats {.code family} object -- use a {.pkg drmTMB} constructor or a supported stats {.code family}."
-  } else {
-    "{.pkg drmTMB} does not accept foreign zero-inflated, hurdle, or truncated stats {.code family} objects -- they must never be silently coerced to a plain non-inflation family."
-  }
-  cli::cli_abort(
-    c(
-      "Received {received}, which is not supported in {.pkg drmTMB}.",
-      "x" = x_msg,
-      hints
-    ),
-    class = "drmTMB_foreign_inflation_family"
-  )
+  drm_abort_foreign_inflation_family(received, kind, hint_fname)
 }
 
-# R sources files in ASCII order when DESCRIPTION has no Collate field, so
-# R/drmTMB.R defines drm_family_type() before this wrap. The guard must live
-# here: R/drmTMB.R is on the C17 capability-ledger watchlist.
-if (!exists("drm_family_type", mode = "function", inherits = TRUE)) {
-  stop(
-    "drm_family_type() must exist before R/family.R wraps it for #1716.",
-    call. = FALSE
-  )
-}
-drm_family_type <- local({
-  inner <- drm_family_type
-  function(family) {
-    drm_maybe_abort_foreign_inflation_family(family)
-    inner(family)
-  }
-})
-
+# Family admission chokepoint (#1716). Every user-facing family argument is
+# evaluated here: drmTMB(), impute_model(), and drm_resolve_priors().
+# Downstream helpers (biv_associate(), drm_phylo_penalty_sweep()) pass
+# family into drmTMB() and therefore through this function. Do not wrap
+# drm_family_type(); R/drmTMB.R is on the C17 capability-ledger watchlist.
 drm_eval_family_arg <- function(expr, env) {
   if (drm_is_bare_euler_beta_call(expr)) {
     drm_abort_base_beta_as_family()
@@ -602,6 +679,7 @@ drm_eval_family_arg <- function(expr, env) {
   if (is.function(family) && identical(family, base::beta)) {
     drm_abort_base_beta_as_family()
   }
+  drm_maybe_abort_foreign_inflation_family(family, expr = expr)
   family
 }
 
