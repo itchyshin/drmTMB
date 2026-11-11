@@ -1,5 +1,12 @@
 # drmTMB 0.8.1
 
+* `coef()` and `fixef()` now require an exact fitted distributional-parameter
+  name, matching `predict()`, for native `drmTMB` fits only. Abbreviations such
+  as `dpar = "s"` no longer silently partial-match `sigma`. Invalid names abort
+  with the available names and, when a prefix match or a close case-insensitive
+  match exists, a "Did you mean" suggestion (#1698). Julia-bridge methods still
+  partial-match and are out of scope.
+
 * Gaussian location-scale models now abort before TMB when an observed
   response or fixed-effect design value is non-finite (`Inf` in `y` or in a
   predictor no longer reaches TMB's `NA/NaN/Inf in 'y'` / `'x'` errors).
