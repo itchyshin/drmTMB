@@ -1,5 +1,18 @@
 # Known Limitations
 
+# `model.frame()`
+
+`model.frame()` on a `drmTMB` fit returns the rows used for the location
+(`mu`) formula, with that formula's `terms` attribute (#1700). It does not
+bind scale, shape, or other distributional frames into that data frame.
+A bivariate fit has separate `mu1` and `mu2` location formulas, and one
+combined frame is not defined; the stored frames stay at
+`fit$model$model_frame$mu1` and `fit$model$model_frame$mu2`. An
+`engine = "julia"` fit does not store a location model frame, so
+`model.frame()` stops instead of returning bridge metadata. Refit with
+`engine = "tmb"` for the frame, and with
+`drm_control(keep_model_frame = TRUE)` if a native fit dropped it.
+
 # Native discrete-family SD regression
 
 Native ordinary scalar location-intercept SD formulas are point-checked for
