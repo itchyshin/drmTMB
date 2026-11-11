@@ -8,7 +8,10 @@
   Gamma model, or a count family plus `zi ~ ...` / `truncated_nbinom2()` plus
   `hu ~ ...` for inflation and hurdle counts. Foreign `glmmTMB::beta_family()`
   and `glmmTMB::lognormal()` are refused as unsupported constructors and point
-  to `drmTMB::beta_family()` and `drmTMB::lognormal()` (#1716).
+  to `drmTMB::beta_family()` and `drmTMB::lognormal()`. String names and
+  uncalled forms of drmTMB's own `truncated_nbinom2` and `lognormal`
+  constructors hint to call `drmTMB::<name>()` instead of treating them as
+  foreign inflation families (#1716).
 
 * Bivariate Gaussian `relmat(K = K)` and `relmat(Q = solve(K))` are the same
   known-relatedness likelihood. On the q = 4 location-slope block, maximised

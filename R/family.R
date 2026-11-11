@@ -374,7 +374,10 @@ drm_abort_base_beta_as_family <- function() {
 #' Foreign constructors that look similar to drmTMB families are also
 #' refused rather than coerced. Use [beta_family()] instead of
 #' `glmmTMB::beta_family()`, and [lognormal()] instead of
-#' `glmmTMB::lognormal()`.
+#' `glmmTMB::lognormal()`. String names and uncalled drmTMB constructors
+#' such as `truncated_nbinom2` and `lognormal` abort with class
+#' `drmTMB_family_constructor_call` and tell you to call
+#' `drmTMB::<name>()`; they are not treated as foreign inflation families.
 #'
 #' @name foreign-inflation-families
 #' @seealso [truncated_nbinom2()], [nbinom2()], [beta_family()], [lognormal()]
@@ -439,6 +442,50 @@ drm_family_expr_name <- function(expr) {
     return(as.character(head))
   }
   NULL
+}
+
+#' @keywords internal
+drm_family_expr_parts <- function(expr) {
+  if (is.null(expr) || !is.call(expr)) {
+    return(NULL)
+  }
+  head <- expr[[1L]]
+  if (identical(head, quote(`::`)) || identical(head, quote(`:::`))) {
+    return(drm_family_call_parts(expr))
+  }
+  drm_family_call_parts(head)
+}
+
+#' @keywords internal
+drm_drmtmb_constructor_names <- function() {
+  c("truncated_nbinom2", "lognormal")
+}
+
+#' @keywords internal
+drm_drmtmb_constructor_name_for_function <- function(fn) {
+  if (!is.function(fn)) {
+    return(NULL)
+  }
+  if (identical(fn, truncated_nbinom2)) {
+    return("truncated_nbinom2")
+  }
+  if (identical(fn, lognormal)) {
+    return("lognormal")
+  }
+  NULL
+}
+
+#' @keywords internal
+drm_abort_drmtmb_constructor_call <- function(name) {
+  hint <- paste0("drmTMB::", name)
+  cli::cli_abort(
+    c(
+      "Received {.code {name}}, which is a {.pkg drmTMB} family constructor, not a family object.",
+      "x" = "{.pkg drmTMB} requires a called constructor, not a string name or an uncalled function.",
+      "i" = "Call {.fn {hint}}."
+    ),
+    class = "drmTMB_family_constructor_call"
+  )
 }
 
 #' @keywords internal
@@ -524,7 +571,9 @@ drm_foreign_family_constructor <- function(fname, src, kind) {
 drm_foreign_inflation_family_label <- function(family, fname, kind, src) {
   if (fname == "Gamma" && drm_initialize_references_ziformula(family)) {
     if (identical(src, "glmmTMB")) {
-      return(cli::format_inline("{.fn glmmTMB::ziGamma}"))
+      # Closures on the real object live in stats; do not use {.fn}, which
+      # would imply a glmmTMB function identity the family object does not have.
+      return(cli::format_inline("{.code glmmTMB::ziGamma}"))
     }
     return(cli::format_inline(
       "a stats {.code family} object with {.code family = \"Gamma\"} and zero-inflation hooks"
@@ -605,10 +654,15 @@ drm_abort_foreign_inflation_family <- function(received, kind, hint_fname) {
 drm_maybe_abort_foreign_inflation_family <- function(family, expr = NULL) {
   components <- drm_foreign_family_arg_components(family)
   if (!is.null(components)) {
-    lapply(components, drm_maybe_abort_foreign_inflation_family)
+    lapply(components, function(elt) {
+      drm_maybe_abort_foreign_inflation_family(elt, expr = expr)
+    })
     return(invisible(NULL))
   }
   if (is.character(family) && length(family) == 1L && !is.na(family)) {
+    if (family %in% drm_drmtmb_constructor_names()) {
+      drm_abort_drmtmb_constructor_call(family)
+    }
     kind <- drm_foreign_inflation_family_kind(family)
     if (is.null(kind)) {
       return(invisible(NULL))
@@ -617,6 +671,10 @@ drm_maybe_abort_foreign_inflation_family <- function(family, expr = NULL) {
     drm_abort_foreign_inflation_family(received, kind, family)
   }
   if (is.function(family)) {
+    ctor_name <- drm_drmtmb_constructor_name_for_function(family)
+    if (!is.null(ctor_name)) {
+      drm_abort_drmtmb_constructor_call(ctor_name)
+    }
     fname <- drm_family_expr_name(expr)
     kind <- drm_foreign_inflation_family_kind(fname)
     if (is.null(kind)) {
@@ -648,6 +706,16 @@ drm_maybe_abort_foreign_inflation_family <- function(family, expr = NULL) {
     kind <- "zero-inflated"
   }
   src <- drm_stats_family_source_package(family)
+  # Closures on a real glmmTMB::ziGamma() family live in stats, so source
+  # detection from variance/initialize is NULL. Recover the package from a
+  # namespaced call such as glmmTMB::ziGamma(link = "log").
+  if (is.null(src)) {
+    parts <- drm_family_expr_parts(expr)
+    pkg <- parts$pkg
+    if (!is.null(pkg) && !pkg %in% c("base", "stats", "drmTMB")) {
+      src <- pkg
+    }
+  }
   hint_fname <- fname
   if (identical(src, "glmmTMB") && fname == "Gamma" && masquerade) {
     hint_fname <- "ziGamma"

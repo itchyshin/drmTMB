@@ -20,7 +20,10 @@ model use \code{Gamma(link = "log")}.
 Foreign constructors that look similar to drmTMB families are also
 refused rather than coerced. Use \code{\link[=beta_family]{beta_family()}} instead of
 \code{glmmTMB::beta_family()}, and \code{\link[=lognormal]{lognormal()}} instead of
-\code{glmmTMB::lognormal()}.
+\code{glmmTMB::lognormal()}. String names and uncalled drmTMB constructors
+such as \code{truncated_nbinom2} and \code{lognormal} abort with class
+\code{drmTMB_family_constructor_call} and tell you to call
+\code{drmTMB::<name>()}; they are not treated as foreign inflation families.
 }
 \seealso{
 \code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, \code{\link[=nbinom2]{nbinom2()}}, \code{\link[=beta_family]{beta_family()}}, \code{\link[=lognormal]{lognormal()}}

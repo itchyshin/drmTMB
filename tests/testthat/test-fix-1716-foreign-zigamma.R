@@ -78,10 +78,11 @@ test_that("glmmTMB::ziGamma(link = 'log') is refused, not fitted as plain Gamma 
     ),
     class = "drmTMB_foreign_inflation_family"
   )
-  expect_error(
+  err <- expect_error(
     eval_family(glmmTMB::ziGamma(link = "log")),
     class = "drmTMB_foreign_inflation_family"
   )
+  expect_match(conditionMessage(err), "glmmTMB::ziGamma", fixed = TRUE)
 })
 
 test_that("zipf is not treated as a zero-inflated family name (#1716)", {
@@ -165,10 +166,10 @@ test_that("string family names cannot silently become Gamma (#1716)", {
   )
   # drmTMB never coerces a family *name* to stats::Gamma(), so "Gamma"
   # cannot take the silent-misfit branch that a family *object* can.
+  # There is no supported-families condition class in R/family.R (the
+  # later abort lives in drm_family_type() without a class), so this
+  # test only asserts the entry point does not treat "Gamma" as foreign.
   expect_identical(eval_family("Gamma"), "Gamma")
-  expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1), family = "Gamma", data = d)
-  )
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ 1), family = "ziGamma", data = d),
     class = "drmTMB_foreign_inflation_family"
@@ -188,10 +189,9 @@ test_that("uncalled family functions cannot silently become Gamma (#1716)", {
   )
   # Unlike glm(), drmTMB does not call family constructors. stats::Gamma
   # therefore never becomes Gamma(link = "log") and cannot silently fit.
+  # No supported-families condition class exists in R/family.R, so this
+  # test only asserts the entry point leaves the uncalled function intact.
   expect_true(is.function(eval_family(stats::Gamma)))
-  expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1), family = stats::Gamma, data = d)
-  )
 })
 
 test_that("list and composed family routes refuse a foreign inflation family (#1716)", {
@@ -221,6 +221,54 @@ test_that("list and composed family routes refuse a foreign inflation family (#1
       data = d
     ),
     class = "drmTMB_foreign_inflation_family"
+  )
+})
+
+test_that("string and uncalled truncated_nbinom2 hint to call drmTMB::truncated_nbinom2 (#1716)", {
+  d <- fix_1716_data()
+  err <- expect_error(
+    eval_family("truncated_nbinom2"),
+    class = "drmTMB_family_constructor_call"
+  )
+  expect_match(conditionMessage(err), "drmTMB::truncated_nbinom2", fixed = TRUE)
+  expect_false(inherits(err, "drmTMB_foreign_inflation_family"))
+  err_fn <- expect_error(
+    eval_family(truncated_nbinom2),
+    class = "drmTMB_family_constructor_call"
+  )
+  expect_match(conditionMessage(err_fn), "drmTMB::truncated_nbinom2", fixed = TRUE)
+  expect_false(inherits(err_fn, "drmTMB_foreign_inflation_family"))
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1), family = "truncated_nbinom2", data = d),
+    class = "drmTMB_family_constructor_call"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1), family = truncated_nbinom2, data = d),
+    class = "drmTMB_family_constructor_call"
+  )
+})
+
+test_that("string and uncalled lognormal hint to call drmTMB::lognormal (#1716)", {
+  d <- fix_1716_data()
+  err <- expect_error(
+    eval_family("lognormal"),
+    class = "drmTMB_family_constructor_call"
+  )
+  expect_match(conditionMessage(err), "drmTMB::lognormal", fixed = TRUE)
+  expect_false(inherits(err, "drmTMB_foreign_inflation_family"))
+  err_fn <- expect_error(
+    eval_family(lognormal),
+    class = "drmTMB_family_constructor_call"
+  )
+  expect_match(conditionMessage(err_fn), "drmTMB::lognormal", fixed = TRUE)
+  expect_false(inherits(err_fn, "drmTMB_foreign_inflation_family"))
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1), family = "lognormal", data = d),
+    class = "drmTMB_family_constructor_call"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1), family = lognormal, data = d),
+    class = "drmTMB_family_constructor_call"
   )
 })
 

@@ -603,7 +603,9 @@ revisit condition.
   bivariate or mixed Gamma remain rejected.
   Foreign zero-inflated, hurdle, or truncated stats `family` objects such as
   `glmmTMB::ziGamma()` are refused rather than silently fitted as
-  `Gamma(link = "log")` (#1716).
+  `Gamma(link = "log")`. String names and uncalled drmTMB constructors
+  `truncated_nbinom2` and `lognormal` abort with a request to call
+  `drmTMB::<name>()` rather than the foreign-inflation error (#1716).
 - Fixed-effect univariate Poisson mean models are implemented for
   non-negative integer counts with `family = poisson(link = "log")`.
   The `mu` formula supports standard R exposure offsets such as
