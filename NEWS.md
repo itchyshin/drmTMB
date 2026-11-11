@@ -6,6 +6,11 @@
   Missing (`NA`) and not-a-number (`NaN`) responses are still dropped by the
   existing missingness rules (#1697).
 
+* Added internal `sha256_file_portable()` so parity-evidence scripts and tests can
+  compute file SHA-256 digests on every R version in `Depends`, using
+  `tools::sha256sum()` when exported (R 4.5+) and otherwise Suggested
+  `openssl`/`digest` or the `sha256sum`/`shasum` system utilities (#1702).
+
 * `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
   `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
   log-densities that the response kernels gained in #1547. The old inline
