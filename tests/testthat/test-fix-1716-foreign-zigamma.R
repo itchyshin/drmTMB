@@ -5,34 +5,70 @@
 test_that("hand-built ziGamma stats family is refused with a clear error (#1716)", {
   foreign <- stats::Gamma(link = "log")
   foreign$family <- "ziGamma"
-  err <- tryCatch(
+  expect_error(
     drmTMB:::drm_family_type(foreign),
-    error = function(cnd) conditionMessage(cnd)
+    class = "drmTMB_foreign_inflation_family"
   )
-  expect_match(err, "ziGamma")
-  expect_match(err, "zero-inflat|not supported")
-  expect_match(err, "Gamma\\(link = \"log\"\\)")
-  expect_false(grepl("Currently supported families", err, fixed = TRUE))
+})
+
+test_that("hand-built Gamma family with ziformula initialize is refused (#1716)", {
+  foreign <- stats::Gamma(link = "log")
+  foreign$initialize <- expression({
+    if (exists("ziformula") && !identical(ziformula, ~0)) NULL
+  })
+  expect_error(
+    drmTMB:::drm_family_type(foreign),
+    class = "drmTMB_foreign_inflation_family"
+  )
+})
+
+test_that("plain Gamma(link = 'log') and drmTMB constructors are unchanged (#1716)", {
+  expect_identical(drmTMB:::drm_family_type(stats::Gamma(link = "log")), "gamma")
+  expect_identical(drmTMB:::drm_family_type(beta_family()), "beta")
+  expect_identical(drmTMB:::drm_family_type(lognormal()), "lognormal")
 })
 
 test_that("glmmTMB::ziGamma(link = 'log') is refused, not fitted as plain Gamma (#1716)", {
   skip_if_not_installed("glmmTMB")
-  suppressPackageStartupMessages(library(glmmTMB))
   set.seed(1716)
   d <- data.frame(y = stats::rgamma(40, shape = 2, scale = 1), x = stats::rnorm(40))
   expect_error(
-  drmTMB(
-    bf(y ~ x, sigma ~ 1),
-    family = glmmTMB::ziGamma(link = "log"),
-    data = d
-  ),
-  regexp = "ziGamma|zero-inflat",
-  class = "rlang_error"
+    drmTMB(
+      bf(y ~ x, sigma ~ 1),
+      family = glmmTMB::ziGamma(link = "log"),
+      data = d
+    ),
+    class = "drmTMB_foreign_inflation_family"
   )
-  err <- tryCatch(
+  expect_error(
     drmTMB:::drm_family_type(glmmTMB::ziGamma(link = "log")),
-    error = function(cnd) conditionMessage(cnd)
+    class = "drmTMB_foreign_inflation_family"
   )
-  expect_match(err, "ziGamma|zero-inflation hooks")
-  expect_match(err, "Gamma\\(link = \"log\"\\)")
+})
+
+test_that("zipf is not treated as a zero-inflated family name (#1716)", {
+  expect_null(drmTMB:::drm_foreign_inflation_family_kind("zipf"))
+  expect_identical(drmTMB:::drm_foreign_inflation_family_kind("ziGamma"), "zero-inflated")
+})
+
+test_that("glmmTMB beta_family and lognormal are refused without a zero-inflated label (#1716)", {
+  skip_if_not_installed("glmmTMB")
+  err <- expect_error(
+    drmTMB:::drm_family_type(glmmTMB::beta_family()),
+    class = "drmTMB_foreign_inflation_family"
+  )
+  msg <- conditionMessage(err)
+  expect_false(grepl("zero-inflat", msg, ignore.case = TRUE))
+  expect_match(msg, "beta_family")
+  expect_false(grepl("glmmTMB::beta\\(\\)", msg))
+  expect_match(msg, "drmTMB::beta_family")
+
+  err2 <- expect_error(
+    drmTMB:::drm_family_type(glmmTMB::lognormal()),
+    class = "drmTMB_foreign_inflation_family"
+  )
+  msg2 <- conditionMessage(err2)
+  expect_false(grepl("zero-inflat", msg2, ignore.case = TRUE))
+  expect_match(msg2, "lognormal")
+  expect_match(msg2, "drmTMB::lognormal")
 })

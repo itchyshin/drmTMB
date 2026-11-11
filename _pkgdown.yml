@@ -150,6 +150,7 @@ reference:
       - tweedie
       - nbinom2
       - truncated_nbinom2
+      - foreign-inflation-families
       - biv_gaussian
       - biv_lognormal
       - biv_student
