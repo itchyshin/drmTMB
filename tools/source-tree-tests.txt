@@ -22,6 +22,7 @@ test-check-log-d-adoption.R
 test-dinnage-audit-wave1.R
 test-docs-audit-semantics.R
 test-estimator-surface-conformance.R
+test-fix-1702-sha256-portable.R
 test-function-map-cheatsheet.R
 test-guard-branch-continuity.R
 test-julia-admission-census.R
