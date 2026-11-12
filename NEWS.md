@@ -1,5 +1,12 @@
 # drmTMB 0.8.1
 
+* A formula transform that is not a number, such as `log(x)` or `sqrt(x)` on a
+  non-positive predictor, drops those rows from the response and the design.
+  The same rows are now dropped from the weights, the known sampling
+  covariance, and the data used to build random effects. Distributional
+  formulas that would keep different rows abort with class
+  `drmTMB_model_frame_rows` instead of fitting (#1725).
+
 * Bivariate Gaussian `relmat(K = K)` and `relmat(Q = solve(K))` are the same
   known-relatedness likelihood. On the q = 4 location-slope block, maximised
   log-likelihoods can differ by about 0.003 when `nlminb` and the BFGS
