@@ -82,7 +82,18 @@ test_that("a random intercept follows rows dropped by log()", {
   keep <- d$x > 0
   expect_identical(nobs(fit), sum(keep))
   expect_identical(length(fit$model$weights), nobs(fit))
-  expect_s3_class(fit, "drmTMB")
+  refit <- suppressWarnings(drmTMB(
+    bf(y ~ log(x) + (1 | g), sigma ~ log(x)),
+    data = d[keep, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  ))
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(refit)),
+    tolerance = 1e-6
+  )
+  expect_equal(coef(fit, "mu"), coef(refit, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit, "sigma"), coef(refit, "sigma"), tolerance = 1e-6)
 })
 
 test_that("gaussian meta_V follows rows dropped by log()", {
@@ -128,4 +139,137 @@ test_that("log() of strictly positive x still weights every row", {
   ref <- sum(w * stats::dpois(d$count, exp(eta), log = TRUE))
   expect_identical(nobs(fit), nrow(d))
   expect_equal(as.numeric(stats::logLik(fit)), ref, tolerance = 1e-6)
+})
+
+new_biv_log_rows_data <- function(n = 80L, seed = 20261112) {
+  set.seed(seed)
+  x <- stats::rnorm(n)
+  x[c(3L, 11L, 12L, 27L, 55L)] <- c(-0.7, -1.1, -0.2, -0.4, -0.9)
+  y1 <- 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.5)
+  y2 <- -0.1 - 0.3 * x + 0.4 * (y1 - 0.2 - 0.5 * x) + stats::rnorm(n, sd = 0.5)
+  data.frame(x = x, y1 = y1, y2 = y2)
+}
+
+test_that("bivariate Gaussian weights follow rows dropped by log()", {
+  d <- new_biv_log_rows_data()
+  w <- stats::runif(nrow(d), 0.5, 2)
+  keep <- d$x > 0
+  expect_lt(sum(keep), nrow(d))
+  f <- bf(
+    mu1 = y1 ~ log(x),
+    mu2 = y2 ~ log(x),
+    sigma1 = ~ log(x),
+    sigma2 = ~ log(x),
+    rho12 = ~ log(x)
+  )
+  fit <- suppressWarnings(drmTMB(
+    f,
+    family = biv_gaussian(),
+    data = d,
+    weights = w,
+    control = drm_control(se = FALSE)
+  ))
+  refit <- suppressWarnings(drmTMB(
+    f,
+    family = biv_gaussian(),
+    data = d[keep, , drop = FALSE],
+    weights = w[keep],
+    control = drm_control(se = FALSE)
+  ))
+  expect_identical(nobs(fit), sum(keep))
+  expect_equal(as.numeric(stats::weights(fit)), w[keep])
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(refit)),
+    tolerance = 1e-6
+  )
+  for (dpar in c("mu1", "mu2", "sigma1", "sigma2", "rho12")) {
+    expect_equal(coef(fit, dpar), coef(refit, dpar), tolerance = 1e-6)
+  }
+})
+
+test_that("bivariate Gaussian meta_V follows rows dropped by log()", {
+  d <- new_biv_log_rows_data(seed = 20261113)
+  n <- nrow(d)
+  keep <- d$x > 0
+  expect_lt(sum(keep), n)
+  V <- meta_vcov_bivariate(
+    v1 = seq(0.02, 0.05, length.out = n),
+    v2 = seq(0.05, 0.02, length.out = n),
+    cor12 = rep(c(0.6, 0.3), length.out = n)
+  )
+  pair_keep <- as.vector(rbind(keep, keep))
+  V_keep <- V[pair_keep, pair_keep, drop = FALSE]
+  fit <- suppressWarnings(drmTMB(
+    bf(
+      mu1 = y1 ~ log(x) + meta_V(V = V),
+      mu2 = y2 ~ log(x),
+      sigma1 = ~ log(x),
+      sigma2 = ~ log(x),
+      rho12 = ~ log(x)
+    ),
+    family = biv_gaussian(),
+    data = d,
+    control = drm_control(se = FALSE)
+  ))
+  refit <- suppressWarnings(drmTMB(
+    bf(
+      mu1 = y1 ~ log(x) + meta_V(V = V_keep),
+      mu2 = y2 ~ log(x),
+      sigma1 = ~ log(x),
+      sigma2 = ~ log(x),
+      rho12 = ~ log(x)
+    ),
+    family = biv_gaussian(),
+    data = d[keep, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  ))
+  expect_identical(nobs(fit), sum(keep))
+  expect_equal(unname(fit$model$V_known), unname(V_keep))
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(refit)),
+    tolerance = 1e-6
+  )
+  for (dpar in c("mu1", "mu2", "sigma1", "sigma2", "rho12")) {
+    expect_equal(coef(fit, dpar), coef(refit, dpar), tolerance = 1e-6)
+  }
+})
+
+test_that("nbinom2 sd_sigma frames follow rows dropped by log()", {
+  set.seed(20261114)
+  n_id <- 24L
+  n <- 5L * n_id
+  g_level <- stats::runif(n_id, 0.5, 2)
+  g_level[c(5L, 14L)] <- c(-0.5, -1)
+  d <- data.frame(
+    id = factor(rep(seq_len(n_id), each = 5L)),
+    x = stats::rnorm(n)
+  )
+  d$g <- g_level[d$id]
+  keep <- d$g > 0
+  expect_lt(sum(keep), n)
+  eta <- 0.8 + 0.3 * stats::rnorm(n_id)[d$id]
+  d$count <- stats::rnbinom(n, size = 3, mu = exp(eta + 0.2 * d$x))
+  f <- bf(
+    count ~ x + log(g),
+    sigma ~ 1 + log(g) + (1 | id),
+    sd(id, dpar = "sigma") ~ log(g)
+  )
+  ctrl <- drm_control(se = FALSE)
+  fit <- suppressWarnings(drmTMB(f, family = nbinom2(), data = d, control = ctrl))
+  refit <- suppressWarnings(drmTMB(
+    f,
+    family = nbinom2(),
+    data = d[keep, , drop = FALSE],
+    control = ctrl
+  ))
+  expect_identical(nobs(fit), sum(keep))
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(refit)),
+    tolerance = 1e-6
+  )
+  expect_equal(coef(fit, "mu"), coef(refit, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit, "sigma"), coef(refit, "sigma"), tolerance = 1e-5)
 })

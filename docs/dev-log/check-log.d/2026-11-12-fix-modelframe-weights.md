@@ -61,3 +61,14 @@ Nearby files, 0 failures and 0 errors:
 - `test-offset-families.R` with `NOT_CRAN=true` (9 tests, 29 expectations, 0 skipped)
 
 No C++ rebuild. No exported function, default, or formula token changed.
+
+## Review follow-up: test gaps (refs #1725)
+
+Added tests to `test-fix-modelframe-weight-rows.R`: bivariate Gaussian with
+`weights` and with matrix `meta_V` (the two are mutually exclusive in `biv`)
+through `subset_biv_known_v`, an `nbinom2` fit with an `sd(id, dpar = "sigma")`
+frame (list-valued frame in `drm_collect_model_frames`), and a refit comparison
+in the random-intercept test. Each compares `logLik` and coefficients with a
+refit on `d[keep, ]`. No `R/` change. File: 9 tests, 43 expectations, 0 failures
+on this branch; the new and strengthened tests fail or error on `main`'s
+`R/drmTMB.R`.
