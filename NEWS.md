@@ -1,5 +1,11 @@
 # drmTMB 0.8.1
 
+* Unknown `stats::nlminb()` settings in `control` or `drm_control(optimizer =
+  ...)` now trigger a classed `drmTMB_unknown_optimizer_control` warning that
+  names the element and suggests the closest valid control name; the typo is
+  dropped before optimization so the generic `nlminb` warning does not repeat
+  (#1734).
+
 * Bivariate Gaussian `relmat(K = K)` and `relmat(Q = solve(K))` are the same
   known-relatedness likelihood. On the q = 4 location-slope block, maximised
   log-likelihoods can differ by about 0.003 when `nlminb` and the BFGS
