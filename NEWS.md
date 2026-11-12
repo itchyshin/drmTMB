@@ -1,5 +1,12 @@
 # drmTMB 0.8.1
 
+* Student-t and skew-normal models now abort before starting-value or
+  optimizer code when a fixed-effect design value is non-finite (`Inf` in a
+  `mu`, `sigma`, or `nu` predictor). The abort names the family, the
+  distributional parameter, and the design column. `NA` predictors are still
+  dropped by the existing complete-case rule. The Gaussian wording is
+  unchanged (#1710).
+
 * Bivariate Gaussian `relmat(K = K)` and `relmat(Q = solve(K))` are the same
   known-relatedness likelihood. On the q = 4 location-slope block, maximised
   log-likelihoods can differ by about 0.003 when `nlminb` and the BFGS
