@@ -1,5 +1,12 @@
 # drmTMB 0.8.1
 
+* Bivariate Gaussian models now abort before starting-value or optimizer
+  code when an observed response or a fixed-effect design value is
+  non-finite. `Inf` in `y1` or `y2` names that response. `Inf` in a `mu1`,
+  `mu2`, `sigma1`, `sigma2`, or `rho12` design names the column. `NA` and
+  `NaN` responses are still dropped by the existing missingness rules
+  (#1709).
+
 * Bivariate Gaussian `relmat(K = K)` and `relmat(Q = solve(K))` are the same
   known-relatedness likelihood. On the q = 4 location-slope block, maximised
   log-likelihoods can differ by about 0.003 when `nlminb` and the BFGS
