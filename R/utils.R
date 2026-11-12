@@ -31,9 +31,10 @@ drm_suggest_closest_name <- function(x, choices, cutoff = 2L) {
 }
 
 # Documented `stats::nlminb()` control element names (stable across R versions).
+# Keep in sync with `names(stats:::port_cpos)`; `maxiter` is an alias for `iter.max`.
 drm_nlminb_control_names <- function() {
   c(
-    "eval.max", "iter.max", "trace", "abs.tol", "rel.tol", "x.tol",
-    "step.min", "step.max", "sing.tol", "scale.init", "diff.g"
+    "eval.max", "iter.max", "trace", "maxiter", "abs.tol", "rel.tol", "x.tol",
+    "xf.tol", "step.min", "step.max", "sing.tol", "scale.init", "diff.g"
   )
 }

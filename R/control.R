@@ -539,11 +539,12 @@ drm_sanitize_nlminb_controls <- function(optimizer) {
     return(optimizer)
   }
   valid <- drm_nlminb_control_names()
-  unknown <- setdiff(names(optimizer), valid)
-  if (length(unknown) == 0L) {
+  nms <- names(optimizer)
+  unknown <- is.na(pmatch(nms, valid))
+  if (!any(unknown)) {
     return(optimizer)
   }
-  for (nm in unknown) {
+  for (nm in nms[unknown]) {
     suggestion <- drm_suggest_closest_name(nm, valid)
     bullets <- c(
       "Unknown {.fn stats::nlminb} control element {.val {nm}} will be ignored.",
@@ -554,5 +555,5 @@ drm_sanitize_nlminb_controls <- function(optimizer) {
     }
     cli::cli_warn(bullets, class = "drmTMB_unknown_optimizer_control")
   }
-  optimizer[setdiff(names(optimizer), unknown)]
+  optimizer[!unknown]
 }
