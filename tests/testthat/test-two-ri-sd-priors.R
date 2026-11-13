@@ -36,7 +36,11 @@ test_that("two RI objective and derivatives match dense Gaussian oracle", {
                     site = factor(unlist(x$site)), observer = factor(unlist(x$observer)))
     prior <- switch(case, none = NULL, site = drm_priors(ps), observer = drm_priors(po),
                     both = drm_priors(ps, po), mixed = drm_priors(ps, po, pf1, pf2))
-    f <- suppressWarnings(drmTMB(bf(mu = y ~ x + (1 | site) + (1 | observer), sigma = ~ x), data = d, priors = prior))
+    fit_warnings <- character()
+    f <- withCallingHandlers(
+      drmTMB(bf(mu = y ~ x + (1 | site) + (1 | observer), sigma = ~ x), data = d, priors = prior),
+      warning = function(w) { fit_warnings <<- c(fit_warnings, conditionMessage(w)); invokeRestart("muffleWarning") }
+    )
     positions <- c(which(names(f$obj$par) == "beta_mu"), which(names(f$obj$par) == "beta_sigma"), which(names(f$obj$par) == "log_sd_mu"))
     expect_length(positions, 6L)
     target_indices <- switch(case, none = integer(), site = 1L, observer = 2L, both = 1:2, mixed = 1:2)
@@ -47,6 +51,8 @@ test_that("two RI objective and derivatives match dense Gaussian oracle", {
     refits <- Filter(function(z) identical(z$dataset, dataset) && identical(z$case, case), fits)
     if (length(refits)) {
       refit <- refits[[1L]]
+      expect_identical(as.integer(f$opt$convergence), 0L)
+      expect_length(fit_warnings, 0L)
       score <- max(abs(f$obj$gr(f$opt$par)))
       expect_lte(score, 1e-6)
       expect_lte(abs(f$opt$objective - refit$objective), 1e-7 * max(1, abs(refit$objective)))
