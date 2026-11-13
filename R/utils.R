@@ -38,3 +38,9 @@ drm_nlminb_control_names <- function() {
     "xf.tol", "step.min", "step.max", "sing.tol", "scale.init", "diff.g"
   )
 }
+
+# `drm_control(optimizer = ...)` keys that cross to DRM.jl, not `stats::nlminb()`.
+# These must survive `drm_sanitize_nlminb_controls()` for `drm_julia_translate_control()`.
+drm_optimizer_julia_bridge_names <- function() {
+  c("g_tol", "algorithm", "q4_vcov")
+}

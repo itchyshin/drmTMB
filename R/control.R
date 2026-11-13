@@ -539,8 +539,9 @@ drm_sanitize_nlminb_controls <- function(optimizer) {
     return(optimizer)
   }
   valid <- drm_nlminb_control_names()
+  julia_bridge <- drm_optimizer_julia_bridge_names()
   nms <- names(optimizer)
-  unknown <- is.na(pmatch(nms, valid))
+  unknown <- is.na(pmatch(nms, valid)) & !(nms %in% julia_bridge)
   if (!any(unknown)) {
     return(optimizer)
   }

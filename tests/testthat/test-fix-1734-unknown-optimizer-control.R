@@ -95,3 +95,19 @@ test_that("drm_nlminb_control_names matches stats port_cpos", {
     names(stats:::port_cpos)
   )
 })
+
+test_that("Julia bridge optimizer keys are not stripped by nlminb sanitization", {
+  expect_no_warning(
+    ctrl <- drm_control(optimizer = list(q4_vcov = TRUE))
+  )
+  expect_equal(ctrl$optimizer$q4_vcov, TRUE)
+  expect_no_warning(
+    ctrl_ga <- drm_control(
+      optimizer = list(g_tol = 1e-9, algorithm = "gls", q4_vcov = FALSE)
+    )
+  )
+  expect_equal(
+    ctrl_ga$optimizer[c("g_tol", "algorithm", "q4_vcov")],
+    list(g_tol = 1e-9, algorithm = "gls", q4_vcov = FALSE)
+  )
+})
