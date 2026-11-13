@@ -826,5 +826,7 @@ test-temporal-homtoep-map.R	build-premise	build	skips	1
 test-temporal-homtoep-parser.R	build-premise	build	skips	1
 test-temporal-ou-profile-campaign-assessment.R	build-premise	build	skips	1
 test-tweedie-location-scale.R	suggests-package	environment	runs	1
+test-two-ri-sd-priors.R	env-var-optin	environment	skips	1
+test-two-ri-sd-priors.R	suggests-package	environment	runs	7
 test-xfam-bridge.R	engine-drm-jl	environment	skips	8
 test-xfam-bridge.R	suggests-package	environment	runs	14

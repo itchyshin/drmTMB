@@ -16,13 +16,17 @@ test_that("SD Gamma prior rejects invalid scalar parameters and selectors", {
 test_that("SD prior admission refuses unsupported models before fitting", {
   d <- data.frame(y = rep(c(0, 1), 6), x = rep(c(-1, 0, 1), 4),
                   g = factor(rep(1:4, each = 3)))
-  d$h <- d$g # Equal values do not make the grouping variable the same target.
+  d$h <- d$g # Different names with identical partitions remain unidentifiable.
   p <- drm_priors(drm_prior_sd_gamma(group = "g", shape = 2, rate = 3))
   validate <- drmTMB:::drm_validate_fixed_prior_request
   simple <- bf(y ~ x + (1 | g), sigma ~ 1)
   expect_no_error(validate(p, simple, gaussian(), d))
+  two_groups <- bf(y ~ x + (1 | g) + (1 | h))
+  expect_error(validate(p, two_groups, gaussian(), d), "distinct partitions")
+  distinct <- d
+  distinct$h <- factor(rep(1:3, 4))
+  expect_no_error(validate(p, two_groups, gaussian(), distinct))
   for (f in list(bf(y ~ x + (1 + x | g)),
-                 bf(y ~ x + (1 | g) + (1 | h)),
                  bf(y ~ x + (1 | g) + (1 | g)),
                  bf(y ~ x + (1 | block | g)),
                  bf(y ~ x + (1 || g)),
