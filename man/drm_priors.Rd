@@ -51,8 +51,9 @@ meaning depends on contrasts and predictor units. No automatic scaling is
 applied. For \code{coef = "all"}, state whether the intercept is included.
 }
 \details{
-Gaussian identity models may include one independent random intercept in
-the mean. \code{drm_prior_sd_gamma()} targets its named group standard deviation
+Gaussian identity models may include one or two independent random intercepts in
+the mean, with distinct grouping partitions. \code{drm_prior_sd_gamma()} targets
+the named group standard deviation
 on the natural SD scale, with density relative to SD and no log-scale
 Jacobian. Shape must exceed one and rate must be positive. It may be combined
 with fixed-effect priors. The objective is the marginal data negative
@@ -80,5 +81,11 @@ formula <- bf(mu = y ~ x + (1 | group), sigma = ~ 1)
 drm_resolve_priors(formula, gaussian(), d, sd_prior)  # inspect the target
 sd_fit <- drmTMB(formula, data = d, priors = sd_prior)
 logLik(sd_fit)  # data likelihood at the penalized estimates
+d$observer <- rep(c("a", "b"), 9)
+two_groups <- bf(mu = y ~ x + (1 | group) + (1 | observer), sigma = ~ 1)
+two_priors <- drm_priors(drm_prior_sd_gamma(group = "group", shape = 2, rate = 3),
+                         drm_prior_sd_gamma(group = "observer", shape = 3, rate = 2))
+drm_resolve_priors(two_groups, gaussian(), d, two_priors)
+two_fit <- drmTMB(two_groups, data = d, priors = two_priors)
 }
 }

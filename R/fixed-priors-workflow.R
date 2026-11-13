@@ -58,15 +58,27 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
       mu <- formula$entries[[mu_idx]]
       random <- extract_random_mu_terms(mu$rhs, "mu")
       bars <- unlist(lapply(formula$calls, all.names), use.names = FALSE)
-      random_ok <- sum(bars == "|") == 1L && length(random$terms) == 1L &&
-        identical(random$terms[[1L]]$type, "intercept") &&
-        is.null(random$terms[[1L]]$covariance_label) &&
+      random_ok <- length(random$terms) %in% 1:2 &&
+        sum(bars == "|") == length(random$terms) &&
+        all(vapply(random$terms, function(term)
+          identical(term$type, "intercept") && is.null(term$covariance_label), logical(1))) &&
+        !anyDuplicated(vapply(random$terms, `[[`, character(1), "group")) &&
         !"|" %in% all.names(random$rhs)
+      if (random_ok && length(random$terms) == 2L) {
+        groups <- vapply(random$terms, `[[`, character(1), "group")
+        if (all(groups %in% names(data)) && !anyNA(data[groups])) {
+          first <- data[[groups[[1L]]]]
+          second <- data[[groups[[2L]]]]
+          paired <- unique(data.frame(first = first, second = second))
+          if (nrow(paired) == length(unique(first)) && nrow(paired) == length(unique(second)))
+            cli::cli_abort("Prior-enabled random-intercept groups must define distinct partitions; identical partitions do not identify separate SDs.")
+        }
+      }
     }
   }
   if (!random_ok || any(calls %in% excluded) || !is.null(impute) ||
       any(vapply(formula$entries, function(e) length(e$structured) > 0L, logical(1)))) {
-    cli::cli_abort("Fixed-effect priors support fixed-effect-only models or one Gaussian mean random intercept, without structured or missing-predictor terms.")
+    cli::cli_abort("Fixed-effect priors support fixed-effect-only models or one or two distinct Gaussian mean random intercepts, without structured or missing-predictor terms.")
   }
   if (has_sd && !"|" %in% calls)
     cli::cli_abort("SD priors require one Gaussian mean random intercept.")
@@ -89,7 +101,7 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
 #'
 #' Resolve selectors against the same Gaussian or binomial design builders used
 #' by [drmTMB()]. Models require complete data and unit weights. Gaussian
-#' identity models can include one independent mean random intercept; other
+#' identity models can include one or two independent mean random intercepts with distinct grouping partitions; other
 #' random effects and random-effect SD formulas are not supported with priors.
 #' A Gamma SD prior identifies the exact group and intercept and reports shape
 #' and rate on the natural SD scale. The native and Julia engines support this

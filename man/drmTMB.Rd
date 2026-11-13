@@ -260,10 +260,11 @@ number.}
 \item{priors}{Optional fixed-effect normal priors, ridge penalties, or a
 Gamma prior on a random-intercept SD, created by \code{\link[=drm_priors]{drm_priors()}}.
 Fixed-effect priors support Gaussian identity and binomial logit models
-with complete data and unit weights; Gaussian models may also include one
-independent mean random intercept. The SD prior supports a complete-data,
-unit-weight Gaussian ML model with exactly one unlabelled independent mean
-random intercept, selected by group and \code{(Intercept)}. It acts on the
+with complete data and unit weights; Gaussian models may also include one or
+two independent mean random intercepts with distinct grouping partitions. The SD prior
+supports a complete-data, unit-weight Gaussian ML model with one or two
+unlabelled independent mean random intercepts, selected by group and
+\code{(Intercept)}. It acts on the
 natural SD scale and can be combined with fixed-effect priors. The Julia
 bridge currently refuses factor predictors in Gaussian mean
 random-intercept formulas. \code{\link[=drm_resolve_priors]{drm_resolve_priors()}} previews selections.

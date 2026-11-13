@@ -26,7 +26,7 @@ unavailable fields recorded as \code{NA}.
 \description{
 Resolve selectors against the same Gaussian or binomial design builders used
 by \code{\link[=drmTMB]{drmTMB()}}. Models require complete data and unit weights. Gaussian
-identity models can include one independent mean random intercept; other
+identity models can include one or two independent mean random intercepts with distinct grouping partitions; other
 random effects and random-effect SD formulas are not supported with priors.
 A Gamma SD prior identifies the exact group and intercept and reports shape
 and rate on the natural SD scale. The native and Julia engines support this

@@ -845,9 +845,23 @@ drmTMB_julia_bridge <- function(
     control_overrides = control_overrides
   )
   resolved_priors <- NULL
+  sd_groups <- character()
+  prior_version <- NULL
   if (!is.null(priors)) {
     resolved_priors <- drm_resolve_priors(formula, family, data, priors)
-    prior_options <- if (has_sd_prior) drm_julia_prior_v2_options(priors, resolved_priors) else drm_fixed_prior_bridge_options(priors, resolved_priors)
+    if (has_sd_prior) {
+      mu <- formula$entries[[which(vapply(formula$entries, function(e) identical(e$dpar, "mu"), logical(1)))]]
+      terms <- extract_random_mu_terms(mu$rhs, "mu")$terms
+      sd_groups <- vapply(terms, `[[`, character(1), "group")
+      prior_version <- if (length(sd_groups) == 2L) "v3" else "v2"
+      prior_options <- drm_julia_prior_v2_options(priors, resolved_priors)
+      if (identical(prior_version, "v3")) {
+        prior_options$prior_contract <- "parameter_priors_v3"
+        prior_options$priors_v3 <- prior_options$priors_v2
+        prior_options$prior_expected_v3 <- prior_options$prior_expected_v2
+        prior_options$priors_v2 <- prior_options$prior_expected_v2 <- NULL
+      }
+    } else prior_options <- drm_fixed_prior_bridge_options(priors, resolved_priors)
     bridge_payload$options <- utils::modifyList(bridge_payload$options, prior_options)
   }
 
@@ -878,11 +892,11 @@ drmTMB_julia_bridge <- function(
   }
   result <- drm_julia_restore_row_order(result, bridge_payload$row_order)
   if (has_sd_prior) {
-    sd_record <- Filter(function(x) identical(x$class, "ranef_sd"), prior_options$prior_expected_v2)[[1L]]
+    expected_prior <- prior_options[[paste0("prior_expected_", prior_version)]]
     expected_coordinates <- c(paste0("mu_", bridge_payload$coef_labels$mu),
       paste0("sigma_", bridge_payload$coef_labels$sigma),
-      paste0("eta_sd[mu|", sd_record$group, "|(Intercept)]"))
-    drm_julia_validate_prior_v2_result(result, prior_options$prior_expected_v2, expected_coordinates)
+      paste0("eta_sd[mu|", sd_groups, "|(Intercept)]"))
+    drm_julia_validate_prior_v2_result(result, expected_prior, expected_coordinates, version = prior_version)
   } else if (!is.null(priors)) {
     if (!identical(as.character(result[["fixed_prior_contract"]]), "fixed_effect_priors_v1")) {
       cli::cli_abort("The Julia backend did not confirm the fixed-effect prior target; use a DRModels.jl build supporting fixed_effect_priors_v1.")
@@ -910,6 +924,10 @@ drmTMB_julia_bridge <- function(
     out$resolved_sd_prior <- resolved_priors[resolved_priors$class == "sd_gamma", , drop = FALSE]
     out$fixed_prior_penalty <- as.numeric(result[["fixed_prior_penalty"]])
     out$sd_prior_penalty <- as.numeric(result[["sd_prior_penalty"]])
+    if (identical(prior_version, "v3")) {
+      out$sd_prior_penalties <- vapply(result$sd_prior_contributions, `[[`, numeric(1), "penalty")
+      names(out$sd_prior_penalties) <- vapply(result$sd_prior_contributions, `[[`, character(1), "group")
+    }
     out$penalized_objective <- as.numeric(result[["penalized_objective"]])
     out$prior_gradient <- as.numeric(result[["fixed_prior_gradient"]]) + as.numeric(result[["sd_prior_gradient"]])
     out$likelihood_gradient <- as.numeric(result[["data_gradient"]])
@@ -7135,15 +7153,16 @@ drm_julia_prior_v2_options <- function(priors, resolved) {
 }
 
 # Validate the v2 handshake before accepting any backend result.
-drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordinates = NULL) {
-  fail <- function(what) stop(paste("Invalid Julia v2 prior result:", what), call. = FALSE)
+drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordinates = NULL, version = "v2") {
+  fail <- function(what) stop(paste("Invalid Julia", version, "prior result:", what), call. = FALSE)
   if (!is.list(result) || is.null(names(result)) || anyDuplicated(names(result))) fail("duplicate or missing result fields")
   required <- c("prior_contract", "resolved_priors_v2", "working_coordinates", "working_values", "coefficients",
     "data_nll", "data_logLik", "loglik", "fixed_prior_penalty", "sd_prior_penalty", "penalized_objective",
     "data_gradient", "fixed_prior_gradient", "sd_prior_gradient", "penalized_gradient",
     "estim_method", "infocrit_basis")
+  if (identical(version, "v3")) required <- c(setdiff(required, "resolved_priors_v2"), "resolved_priors_v3", "sd_prior_contributions")
   if (!all(required %in% names(result)) || any(vapply(result[required], is.null, logical(1)))) fail("missing result fields")
-  if (!identical(result$prior_contract, "parameter_priors_v2")) fail("contract")
+  if (!identical(result$prior_contract, paste0("parameter_priors_", version))) fail("contract")
   if (!identical(result$estim_method, "MAP") || !identical(result$infocrit_basis, "unavailable")) fail("estimator status")
   normalize_record <- function(x) {
     if (!is.list(x) || is.null(names(x)) || anyDuplicated(names(x)) || !is.character(x$kind) || length(x$kind) != 1L) fail("invalid prior record")
@@ -7163,18 +7182,21 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
     }
     x
   }
-  actual <- result$resolved_priors_v2
+  actual <- result[[paste0("resolved_priors_", version)]]
   if (!is.list(expected) || !is.list(actual) || length(expected) == 0L || length(actual) != length(expected)) fail("prior record count")
   expected <- lapply(expected, normalize_record)
   if (!identical(lapply(actual, normalize_record), expected)) fail("prior records differ")
   sd_records <- Filter(function(x) identical(x$kind, "ranef_sd_gamma"), expected)
-  if (length(sd_records) != 1L) fail("SD prior record count")
-  sd_record <- sd_records[[1L]]
-  if (!identical(sd_record$class, "ranef_sd") || !identical(sd_record$dpar, "mu") ||
-      !identical(sd_record$coef, "(Intercept)") || !identical(sd_record$block_kind, "iid_random_intercept") ||
-      !identical(sd_record$measure, "natural_sd") || sd_record$shape <= 1 || sd_record$rate <= 0 ||
-      sd_record$spec_index < 1 || sd_record$spec_index != floor(sd_record$spec_index))
-    fail("SD prior target or parameters")
+  if ((identical(version, "v2") && length(sd_records) != 1L) ||
+      (identical(version, "v3") && !length(sd_records) %in% 1:2)) fail("SD prior record count")
+  groups <- vapply(sd_records, `[[`, character(1), "group")
+  if (anyDuplicated(groups)) fail("SD prior targets duplicated")
+  for (record in sd_records) {
+    if (!identical(record$class, "ranef_sd") || !identical(record$dpar, "mu") ||
+        !identical(record$coef, "(Intercept)") || !identical(record$block_kind, "iid_random_intercept") ||
+        !identical(record$measure, "natural_sd") || record$shape <= 1 || record$rate <= 0 ||
+        record$spec_index < 1 || record$spec_index != floor(record$spec_index)) fail("SD prior target or parameters")
+  }
   coords <- result$working_coordinates
   if (!is.character(coords) || !length(coords) || anyNA(coords) || any(!nzchar(coords)) || anyDuplicated(coords)) fail("working coordinates")
   if (!is.null(expected_coordinates) && !identical(coords, expected_coordinates)) fail("working coordinate identities")
@@ -7191,19 +7213,37 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
   gradients <- c("data_gradient", "fixed_prior_gradient", "sd_prior_gradient", "penalized_gradient")
   for (k in gradients) vec(result[[k]], n, k)
   close <- function(a, b) all(abs(a - b) <= 1e-10 * pmax(1, abs(a), abs(b)))
-  sd_coordinate <- paste0("eta_sd[mu|", sd_record$group, "|(Intercept)]")
-  sd_index <- which(coords == sd_coordinate)
-  if (length(sd_index) != 1L) fail("SD prior coordinate identity")
-  eta <- working[[sd_index]]
-  tau <- exp(eta)
-  variance <- tau^2
-  if (!is.finite(tau) || tau <= 0 || !is.finite(variance) || variance <= 0)
-    fail("SD prior coordinate outside numeric range")
-  sd_penalty <- sd_record$rate * tau - (sd_record$shape - 1) * eta -
-    sd_record$shape * log(sd_record$rate) + lgamma(sd_record$shape)
   sd_gradient <- numeric(n)
-  sd_gradient[[sd_index]] <- sd_record$rate * tau - (sd_record$shape - 1)
-  if (!is.finite(sd_penalty) || any(!is.finite(sd_gradient))) fail("SD prior coordinate outside numeric range")
+  sd_penalty <- 0
+  sd_indices <- integer()
+  contributions <- result$sd_prior_contributions
+  if (identical(version, "v3") && (!is.list(contributions) || length(contributions) != length(sd_records))) fail("SD contribution count")
+  for (i in seq_along(sd_records)) {
+    record <- sd_records[[i]]
+    sd_coordinate <- paste0("eta_sd[mu|", record$group, "|(Intercept)]")
+    sd_index <- which(coords == sd_coordinate)
+    if (length(sd_index) != 1L || sd_index %in% sd_indices) fail("SD prior coordinate identity")
+    sd_indices <- c(sd_indices, sd_index)
+    eta <- working[[sd_index]]
+    if (identical(version, "v3") && abs(eta) >= 30) fail("SD prior coordinate reached optimizer clamp")
+    tau <- exp(eta)
+    variance <- tau^2
+    if (!is.finite(tau) || tau <= 0 || !is.finite(variance) || variance <= 0) fail("SD prior coordinate outside numeric range")
+    penalty <- record$rate * tau - (record$shape - 1) * eta - record$shape * log(record$rate) + lgamma(record$shape)
+    sd_gradient[[sd_index]] <- record$rate * tau - (record$shape - 1)
+    if (!is.finite(penalty) || !is.finite(sd_gradient[[sd_index]])) fail("SD prior coordinate outside numeric range")
+    if (identical(version, "v3")) {
+      contribution <- contributions[[i]]
+      keys <- c("dpar", "group", "coef", "penalty")
+      if (!is.list(contribution) || is.null(names(contribution)) || anyDuplicated(names(contribution)) ||
+          length(contribution) != length(keys) || !setequal(names(contribution), keys)) fail("SD contribution fields")
+      if (!identical(contribution$dpar, record$dpar) || !identical(contribution$group, record$group) ||
+          !identical(contribution$coef, record$coef)) fail("SD contribution identity")
+      vec(contribution$penalty, 1L, "SD contribution penalty")
+      if (!close(contribution$penalty, penalty)) fail("SD contribution penalty")
+    }
+    sd_penalty <- sd_penalty + penalty
+  }
   if (!close(result$sd_prior_penalty, sd_penalty)) fail("SD prior penalty")
   if (!close(result$sd_prior_gradient, sd_gradient)) fail("SD prior gradient")
   fixed_penalty <- 0
@@ -7215,7 +7255,7 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
         record$spec_index < 1 || record$spec_index != floor(record$spec_index))
       fail("fixed prior target or parameters")
     index <- which(coords == paste0(record$dpar, "_", record$coef))
-    if (length(index) != 1L || index == sd_index) fail("fixed prior coordinate identity")
+    if (length(index) != 1L || index %in% sd_indices) fail("fixed prior coordinate identity")
     if (index %in% fixed_indices) fail("fixed prior target duplicated")
     fixed_indices <- c(fixed_indices, index)
     beta <- working[[index]]
@@ -7250,11 +7290,14 @@ drm_julia_conditional_gaussian_components_source <- function() {
     "function drmTMB_drm_bridge_conditional_gaussian_components(formula, family, data, tree, options)",
     "    dat = drmTMB_backend._bridge_data(data)",
     "    opts = drmTMB_backend._bridge_options(options)",
-    "    is_v2 = any(k -> haskey(opts, k), (:prior_contract, :priors_v2, :prior_expected_v2))",
-    "    is_v2 && !isdefined(drmTMB_backend, :_bridge_prior_safe_options) && throw(ArgumentError(\"conditional bridge: backend lacks parameter_priors_v2\"))",
-    "    is_v2 && (opts = drmTMB_backend._bridge_prior_safe_options(options))",
-    "    is_v2 && drmTMB_backend._bridge_prior_contract(opts) !== :v2 && throw(ArgumentError(\"conditional bridge: invalid v2 prior request\"))",
-    "    prior_requested = is_v2 || haskey(opts, :priors) || haskey(opts, :prior_expected)",
+    "    versioned = any(k -> haskey(opts, k), (:prior_contract, :priors_v2, :prior_expected_v2, :priors_v3, :prior_expected_v3))",
+    "    versioned && !isdefined(drmTMB_backend, :_bridge_prior_safe_options) && throw(ArgumentError(get(opts, :prior_contract, nothing) == \"parameter_priors_v3\" ? \"conditional bridge: backend lacks parameter_priors_v3\" : \"conditional bridge: backend lacks parameter_priors_v2\"))",
+    "    versioned && (opts = drmTMB_backend._bridge_prior_safe_options(options))",
+    "    prior_mode = versioned ? drmTMB_backend._bridge_prior_contract(opts) : nothing",
+    "    versioned && !(prior_mode in (:v2, :v3)) && throw(ArgumentError(\"conditional bridge: invalid versioned prior request\"))",
+    "    is_v2 = prior_mode === :v2",
+    "    is_v3 = prior_mode === :v3",
+    "    prior_requested = versioned || haskey(opts, :priors) || haskey(opts, :prior_expected)",
     "    bridge_labels = nothing",
     "    if prior_requested",
     "        bundle, dat, bridge_labels = drmTMB_backend._bridge_formula(formula, family, dat; labels = true)",
@@ -7264,8 +7307,11 @@ drm_julia_conditional_gaussian_components_source <- function() {
     "    fam = drmTMB_backend._bridge_family(family)",
     "    fam isa drmTMB_backend.Gaussian || throw(ArgumentError(\"conditional bridge requires Gaussian family\"))",
     "    v2_records = nothing",
+    "    v3_records = nothing",
     "    if is_v2",
     "        v2_records = drmTMB_backend._bridge_enable_priors_v2!(opts, bundle, fam, dat, bridge_labels)",
+    "    elseif is_v3",
+    "        v3_records = drmTMB_backend._bridge_enable_priors_v3!(opts, bundle, fam, dat, bridge_labels)",
     "    elseif haskey(opts, :priors)",
     "        haskey(opts, :prior_expected) || throw(ArgumentError(\"conditional bridge: priors require prior_expected\"))",
     "        opts[:priors] = drmTMB_backend._bridge_prepare_fixed_priors(bundle, fam, bridge_labels, opts[:priors], opts[:prior_expected])",
@@ -7330,6 +7376,7 @@ drm_julia_conditional_gaussian_components_source <- function() {
     "    end",
     "    out = prior_requested ? drmTMB_backend._bridge_flatten(fit; family = String(family), labels = bridge_labels) : drmTMB_backend._bridge_flatten(fit; family = String(family))",
     "    is_v2 && drmTMB_backend._bridge_attach_priors_v2!(out, fit, v2_records, bridge_labels)",
+    "    is_v3 && drmTMB_backend._bridge_attach_priors_v3!(out, fit, v3_records, bridge_labels)",
     "    out[\"conditional_re\"] = Dict(\"kind\" => \"gaussian_mu_ordinary_components_v2\", \"components\" => components, \"sigma_clamp_active\" => sigma_clamp_active)",
     "    return out",
     "end",
