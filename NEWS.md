@@ -1,5 +1,11 @@
 # drmTMB 0.8.1
 
+* Unknown `stats::nlminb()` settings in `control` or `drm_control(optimizer =
+  ...)` now trigger a classed `drmTMB_unknown_optimizer_control` warning that
+  names the element and suggests the closest valid control name; the typo is
+  dropped before optimization so the generic `nlminb` warning does not repeat
+  (#1734).
+
 * Student-t and skew-normal models now abort before starting-value or
   optimizer code when a fixed-effect design value is non-finite (`Inf` in a
   `mu`, `sigma`, or `nu` predictor). The abort names the family, the
