@@ -265,3 +265,21 @@ test_that("live Julia v3 bridge returns both named SD contributions", {
   expect_equal(j1$sd_prior_penalty, r1$sd_prior_penalty, tolerance = 1e-5)
   expect_error(drmTMB(f, data = d, priors = drm_priors(drm_prior_sd_gamma(group = "missing", shape = 2, rate = 3)), engine = "julia"), "target")
 })
+
+test_that("Julia bridge rejects unsupported two-intercept prior shapes before fitting", {
+  d <- data.frame(y = seq_len(12), x = rep(-1:1, 4), site = rep(1:3, each = 4),
+                  observer = rep(c(1, 2, 3, 1), 3), third = rep(1:2, 6))
+  p <- drm_priors(drm_prior_sd_gamma(group = "site", shape = 2, rate = 3))
+  testthat::local_mocked_bindings(drmTMB_julia_bridge = function(...) stop("bridge unexpectedly entered"),
+                                  .package = "drmTMB")
+  model <- bf(mu = y ~ x + (1 | site) + (1 | observer), sigma = ~ 1)
+  third <- bf(mu = y ~ x + (1 | site) + (1 | observer) + (1 | third), sigma = ~ 1)
+  slope <- bf(mu = y ~ x + (1 + x | site) + (1 | observer), sigma = ~ 1)
+  repeated <- bf(mu = y ~ x + (1 | site) + (1 | site), sigma = ~ 1)
+  expect_error(drmTMB(third, data = d, priors = p, engine = "julia"), "prior|random|intercept")
+  expect_error(drmTMB(slope, data = d, priors = p, engine = "julia"), "prior|random|intercept")
+  expect_error(drmTMB(repeated, data = d, priors = p, engine = "julia"), "prior|random|intercept|duplicate")
+  d_missing <- d; d_missing$x[[1L]] <- NA_real_
+  expect_error(drmTMB(model, data = d_missing, priors = p, engine = "julia"), "complete")
+  expect_error(drmTMB(model, data = d, family = Gamma(link = "log"), priors = p, engine = "julia"), "Gaussian")
+})
