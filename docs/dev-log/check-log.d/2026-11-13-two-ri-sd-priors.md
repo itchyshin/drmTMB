@@ -24,4 +24,8 @@ An independent bridge reviewer also ran the v2 contract and duplicate suites wit
 
 ## Remaining gates
 
-Four full R repository shards are running on Totoro against `f90a7453232ea5620816809958d213a3995b601a`. The subsequent `2a84bc0b` commit adds refusal tests without changing R or TMB production files; those tests passed in the focused run above. The full Julia suite is pending separate approval for its expected runtime above three hours. Full checks on the final integrated source, CI, scope review and merge readiness remain open. No release is claimed.
+Four full R repository shards passed on Totoro against `c489e08cdf324073fe5bdbf5a8d07ffa13e8a6ef`, using R 4.6.1 and `NOT_CRAN=true`. Each exited zero with one spelling-output NOTE. Their respective warning counts were 17, 32, 25 and 43, and skip counts were 367, 129, 123 and 89. The full logs retain those warnings and skips; live Julia checks were run separately as described above. The earlier `f90a7453` full run had three failures; the `c489e08c` tests and skip census address them.
+
+Hosted R check shards on `f90a7453` stopped before package tests because the C17/C14 receipt pins an earlier `R/drmTMB.R` blob. Two isolated 12-fit reruns on `c489e08c` passed their fit checks and matched the historical summaries exactly. The protected receipt and manifest remain unchanged, so the hosted receipt gate is still unresolved. Coverage jobs were running at the last recorded check.
+
+The full Julia suite is pending separate approval for its expected runtime above three hours. Full checks on the final integrated source, CI, scope review and merge readiness remain open. No release is claimed.
