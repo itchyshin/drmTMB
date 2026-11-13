@@ -5934,6 +5934,9 @@ drm_build_student_ls_spec <- function(
   }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "Student-t")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "Student-t")
+  drm_abort_if_nonfinite_fit_design(X_nu, dpar = "nu", family = "Student-t")
 
   if (length(y) == 0L) {
     cli::cli_abort(
@@ -6276,6 +6279,9 @@ drm_build_skew_normal_ls_spec <- function(
   )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "skew-normal")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "skew-normal")
+  drm_abort_if_nonfinite_fit_design(X_nu, dpar = "nu", family = "skew-normal")
 
   if (!all(c(nrow(X_sigma), nrow(X_nu)) == length(y))) {
     cli::cli_abort("Internal model-frame mismatch in skew-normal model.")
