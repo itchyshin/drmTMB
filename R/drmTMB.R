@@ -5956,6 +5956,9 @@ drm_build_student_ls_spec <- function(
   }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "Student-t")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "Student-t")
+  drm_abort_if_nonfinite_fit_design(X_nu, dpar = "nu", family = "Student-t")
 
   if (length(y) == 0L) {
     cli::cli_abort(
@@ -6308,6 +6311,9 @@ drm_build_skew_normal_ls_spec <- function(
   )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "skew-normal")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "skew-normal")
+  drm_abort_if_nonfinite_fit_design(X_nu, dpar = "nu", family = "skew-normal")
 
   if (!all(c(nrow(X_sigma), nrow(X_nu)) == length(y))) {
     cli::cli_abort("Internal model-frame mismatch in skew-normal model.")
@@ -12863,6 +12869,18 @@ drm_build_biv_gaussian_spec <- function(
     y1[!observed_y1] <- response_sentinel
     y2[!observed_y2] <- response_sentinel
   }
+  if (!all(is.finite(y1[observed_y1]))) {
+    cli::cli_abort(c(
+      "Gaussian models require finite observed response values.",
+      "x" = "Non-finite values are in {.code y1}."
+    ))
+  }
+  if (!all(is.finite(y2[observed_y2]))) {
+    cli::cli_abort(c(
+      "Gaussian models require finite observed response values.",
+      "x" = "Non-finite values are in {.code y2}."
+    ))
+  }
   if (
     include_missing_response &&
       identical(V_known$type, "matrix") &&
@@ -12884,6 +12902,11 @@ drm_build_biv_gaussian_spec <- function(
   X_sigma1 <- stats::model.matrix(stats::terms(mf_sigma1), mf_sigma1)
   X_sigma2 <- stats::model.matrix(stats::terms(mf_sigma2), mf_sigma2)
   X_rho12 <- stats::model.matrix(stats::terms(mf_rho12), mf_rho12)
+  drm_abort_if_nonfinite_fit_design(X_mu1, dpar = "mu1")
+  drm_abort_if_nonfinite_fit_design(X_mu2, dpar = "mu2")
+  drm_abort_if_nonfinite_fit_design(X_sigma1, dpar = "sigma1")
+  drm_abort_if_nonfinite_fit_design(X_sigma2, dpar = "sigma2")
+  drm_abort_if_nonfinite_fit_design(X_rho12, dpar = "rho12")
   if (include_missing_response) {
     drm_warn_weak_biv_rho12_identifiability(
       complete_pairs = sum(observed_y1 & observed_y2),
