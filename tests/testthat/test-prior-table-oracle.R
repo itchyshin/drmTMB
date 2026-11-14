@@ -2,20 +2,22 @@ test_that('prior tables match the independent dense Gaussian oracle', {
   skip_if_not_installed('jsonlite')
   skip_if_not_installed('numDeriv')
   x <- jsonlite::fromJSON(testthat::test_path('fixtures','two-ri-sd-prior-oracle','frozen.json'), simplifyVector=FALSE)
+  asym <- jsonlite::fromJSON(testthat::test_path('fixtures','two-ri-sd-prior-oracle','asymmetric-frozen.json'), simplifyVector=FALSE)
+  datasets <- c(x$response,asym$datasets); records <- c(x$records,asym$points)
   site <- list(prior='gamma(0.6666666666666666,2)',class='ranef_sd',coef='site',dpar='mu')
   observer <- list(prior='gamma(2.0588235294117645,3.5)',class='ranef_sd',coef='observer',dpar='mu')
   meanprior <- list(prior='normal(0.25,1.4)',class='fixef',coef='(Intercept)',dpar='mu')
   scaleprior <- list(prior='normal(-0.1,0.7)',class='fixef',coef='x',dpar='sigma')
-  cases <- list(site=list(site),observer=list(observer),both=list(site,observer),mixed=list(meanprior,scaleprior,site,observer))
+  cases <- list(none=list(),site=list(site),observer=list(observer),both=list(site,observer),mixed=list(meanprior,scaleprior,site,observer))
   count <- 0L
-  for (dataset in names(x$response)) for (case in names(cases)) {
-    d <- data.frame(y=unlist(x$response[[dataset]]),x=unlist(x$x),site=factor(unlist(x$site)),observer=factor(unlist(x$observer)))
+  for (dataset in names(datasets)) for (case in names(cases)) {
+    d <- data.frame(y=unlist(datasets[[dataset]]),x=unlist(x$x),site=factor(unlist(x$site)),observer=factor(unlist(x$observer)))
     form <- bf(mu=y~x+(1|site)+(1|observer),sigma=~x)
-    table <- do.call(rbind,lapply(cases[[case]],as.data.frame,stringsAsFactors=FALSE))
+    table <- if (case == 'none') NULL else do.call(rbind,lapply(cases[[case]],as.data.frame,stringsAsFactors=FALSE))
     fit <- suppressWarnings(drmTMB(form,data=d,priors=table))
     pos <- c(which(names(fit$obj$par)=='beta_mu'),which(names(fit$obj$par)=='beta_sigma'),which(names(fit$obj$par)=='log_sd_mu'))
     expect_length(pos,6L)
-    pts <- Filter(function(r) identical(r$dataset,dataset) && identical(r$case,case),x$records)[1:5]
+    pts <- Filter(function(r) identical(r$dataset,dataset) && identical(r$case,case),records)
     for (r in pts) {
       q <- unlist(r$theta); base <- fit$obj$par
       fn <- function(v){z <- base; z[pos] <- v; fit$obj$fn(z)}
@@ -28,7 +30,7 @@ test_that('prior tables match the independent dense Gaussian oracle', {
       count <- count+1L
     }
   }
-  expect_identical(count,60L)
+  expect_identical(count,150L)
   d <- data.frame(y=unlist(x$response[['0.6']]),x=unlist(x$x),site=factor(unlist(x$site)),observer=factor(unlist(x$observer)))
   form <- bf(mu=y~x+(1|site)+(1|observer),sigma=~x)
   table <- do.call(rbind,lapply(cases[['mixed']],as.data.frame,stringsAsFactors=FALSE))
