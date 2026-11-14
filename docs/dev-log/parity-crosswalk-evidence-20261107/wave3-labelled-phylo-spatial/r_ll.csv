@@ -1,0 +1,7 @@
+"family","kind","ll","convergence"
+"poisson","phylo",NA,NA
+"nb2","phylo","-1927.104929211160",0
+"gaussian","phylo","-901.371760603964",0
+"poisson","spatial","-1759.176916183636",0
+"nb2","spatial",NA,NA
+"gaussian","spatial","-825.711694865562",0

@@ -1,0 +1,22 @@
+S	1	lognormal|indep|lab0|q2|sd-none|cm0|ML
+R	1	lognormal|indep|lab0|q2|sd-none|cm0|ML	FITS				-551.1525957100	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.14	
+S	2	lognormal|indep|lab0|q2|sd-one|cm0|ML
+R	2	lognormal|indep|lab0|q2|sd-one|cm0|ML	ERROR	abort:rlang_error	lognormal scalar SD regression cannot yet combine another random-effect	lognormal scalar SD regression cannot yet combine another random-effect coefficient on the same group. ✖ Selected `sd(g, coef = "(Intercept)")` but group g has more than one coefficient. ℹ Fit one q1 coefficient for this group until mixed or correlated SD targets have been checked.				0.04	
+S	3	lognormal|indep|lab0|q2|sd-z|cm0|ML
+R	3	lognormal|indep|lab0|q2|sd-z|cm0|ML	ERROR	abort:rlang_error	lognormal scalar SD regression cannot yet combine another random-effect	lognormal scalar SD regression cannot yet combine another random-effect coefficient on the same group. ✖ Selected `sd(g, coef = "(Intercept)")` but group g has more than one coefficient. ℹ Fit one q1 coefficient for this group until mixed or correlated SD targets have been checked.				0.02	
+S	4	lognormal|indep|lab0|q2|sd-first|cm0|ML
+R	4	lognormal|indep|lab0|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	lognormal scalar SD regression cannot yet combine another random-effect	lognormal scalar SD regression cannot yet combine another random-effect coefficient on the same group. ✖ Selected `sd(g, coef = "(Intercept)")` but group g has more than one coefficient. ℹ Fit one q1 coefficient for this group until mixed or correlated SD targets have been checked.				0.01	
+S	5	lognormal|indep|lab0|q2|sd-last|cm0|ML
+R	5	lognormal|indep|lab0|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	lognormal scalar SD regression cannot yet combine another random-effect	lognormal scalar SD regression cannot yet combine another random-effect coefficient on the same group. ✖ Selected `sd(g, coef = "x1")` but group g has more than one coefficient. ℹ Fit one q1 coefficient for this group until mixed or correlated SD targets have been checked.				0.01	
+S	6	lognormal|indep|lab0|q3|sd-none|cm0|ML
+R	6	lognormal|indep|lab0|q3|sd-none|cm0|ML	FITS				-508.0634826157	0	pdHess=TRUE;is_converged=TRUE;npar=8	0.11	
+S	7	lognormal|indep|lab0|q3|sd-z|cm0|ML
+R	7	lognormal|indep|lab0|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	lognormal scalar SD regression cannot yet combine another random-effect	lognormal scalar SD regression cannot yet combine another random-effect coefficient on the same group. ✖ Selected `sd(g, coef = "(Intercept)")` but group g has more than one coefficient. ℹ Fit one q1 coefficient for this group until mixed or correlated SD targets have been checked.				0.01	
+S	8	lognormal|indep|lab0|q3|sd-first|cm0|ML
+R	8	lognormal|indep|lab0|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	lognormal scalar SD regression cannot yet combine another random-effect	lognormal scalar SD regression cannot yet combine another random-effect coefficient on the same group. ✖ Selected `sd(g, coef = "(Intercept)")` but group g has more than one coefficient. ℹ Fit one q1 coefficient for this group until mixed or correlated SD targets have been checked.				0.01	
+S	9	lognormal|indep|lab0|q4|sd-none|cm0|ML
+R	9	lognormal|indep|lab0|q4|sd-none|cm0|ML	FITS				-475.7998807040	0	pdHess=TRUE;is_converged=TRUE;npar=9	0.10	
+S	10	lognormal|indep|lab0|q4|sd-z|cm0|ML
+R	10	lognormal|indep|lab0|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	lognormal scalar SD regression cannot yet combine another random-effect	lognormal scalar SD regression cannot yet combine another random-effect coefficient on the same group. ✖ Selected `sd(g, coef = "(Intercept)")` but group g has more than one coefficient. ℹ Fit one q1 coefficient for this group until mixed or correlated SD targets have been checked.				0.02	
+S	11	lognormal|indep|lab0|q4|sd-first|cm0|ML
+R	11	lognormal|indep|lab0|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	lognormal scalar SD regression cannot yet combine another random-effect	lognormal scalar SD regression cannot yet combine another random-effect coefficient on the same group. ✖ Selected `sd(g, coef = "(Intercept)")` but group g has more than one coefficient. ℹ Fit one q1 coefficient for this group until mixed or correlated SD targets have been checked.				0.01	

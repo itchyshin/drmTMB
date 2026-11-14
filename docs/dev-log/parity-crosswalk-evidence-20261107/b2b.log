@@ -1,0 +1,12 @@
+=== nb2_relmat_slope_sd_regression
+Test Summary:                                             | Pass  Total   Time
+NB2 relmat slope-only SD regression (raw K, dense oracle) |   10     10  21.0s
+=== nb2_spatial_slope_sd_regression
+Test Summary:                                                                 | Pass  Total   Time
+NB2 coordinate spatial slope-only SD regression (native kernel, dense oracle) |   15     15  22.9s
+=== nb2_animal_slope_sd_regression
+Test Summary:                         | Pass  Total   Time
+NB2 animal random-slope SD regression |    8      8  15.3s
+Test Summary:                                       | Pass  Total   Time
+NB2 animal slope SD oracle, raw A, Ainv equivalence |    7      7  10.8s
+DONE

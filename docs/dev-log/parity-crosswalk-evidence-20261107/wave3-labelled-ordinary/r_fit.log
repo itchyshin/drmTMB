@@ -1,0 +1,23 @@
+drmTMB 0.8.1 
+2026110801 poisson ll=-2115.3263025606 conv=0 t=0.3s npar=7
+  names: beta_mu, beta_mu, beta_sd_mu, beta_sd_mu, beta_sd_mu, beta_sd_mu, eta_cor_mu 
+2026110801 nb2 ll=-2203.3664440110 conv=0 t=1.1s npar=8
+  names: beta_mu, beta_mu, beta_sigma, beta_sd_mu, beta_sd_mu, beta_sd_mu, beta_sd_mu, eta_cor_mu 
+2026110802 poisson ll=-1942.6726000898 conv=0 t=0.3s npar=7
+2026110802 nb2 ll=-2131.9321503042 conv=0 t=1.1s npar=8
+2026110803 poisson ll=-1972.2307189245 conv=0 t=0.3s npar=7
+2026110803 nb2 ll=-2142.2416786628 conv=0 t=1.4s npar=8
+2026110804 poisson ll=-2077.5912307475 conv=0 t=0.2s npar=7
+2026110804 nb2 ll=-2158.2262749358 conv=0 t=1.3s npar=8
+2026110805 poisson ll=-2067.7484576928 conv=0 t=0.2s npar=7
+2026110805 nb2 ll=-2111.5127042451 conv=0 t=1.1s npar=8
+2026110806 poisson ll=-2018.5432971461 conv=0 t=0.2s npar=7
+2026110806 nb2 ll=-2204.2695618278 conv=0 t=1.2s npar=8
+2026110807 poisson ll=-1965.2339671966 conv=0 t=0.3s npar=7
+2026110807 nb2 ll=-2118.2558977040 conv=0 t=1.1s npar=8
+2026110808 poisson ll=-1981.7832414556 conv=0 t=0.3s npar=7
+2026110808 nb2 ll=-2123.1638377600 conv=0 t=1.2s npar=8
+2026110809 poisson ll=-2035.1111201446 conv=0 t=0.3s npar=7
+2026110809 nb2 ll=-2147.9212962809 conv=0 t=1.3s npar=8
+2026110810 poisson ll=-1850.8665528097 conv=0 t=0.2s npar=7
+2026110810 nb2 ll=-2014.5705274240 conv=0 t=1.1s npar=8

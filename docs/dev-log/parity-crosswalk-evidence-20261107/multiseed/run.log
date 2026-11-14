@@ -1,0 +1,156 @@
+== poisson_animal
+poisson_animal_s01 ll=-1753.48102196 converged=true t=12.0s
+poisson_animal_s02 ll=-1678.33019452 converged=true t=0.2s
+poisson_animal_s03 ll=-1750.71907259 converged=true t=0.2s
+poisson_animal_s04 ll=-1712.93405969 converged=true t=0.2s
+poisson_animal_s05 ll=-1696.76006280 converged=true t=0.2s
+poisson_animal_s06 ll=-1711.06800893 converged=true t=0.2s
+poisson_animal_s07 ll=-1683.08004965 converged=true t=0.2s
+poisson_animal_s08 ll=-1666.03003719 converged=true t=0.2s
+poisson_animal_s09 ll=-1730.12125595 converged=true t=0.2s
+poisson_animal_s10 ll=-1720.62358256 converged=true t=0.2s
+poisson_animal_s01 ll=-1753.48102196 conv=0 pdHess=TRUE t=0.3s
+poisson_animal_s02 ll=-1678.33019451 conv=0 pdHess=TRUE t=0.3s
+poisson_animal_s03 ll=-1750.71907259 conv=0 pdHess=TRUE t=0.3s
+poisson_animal_s04 ll=-1712.93405969 conv=0 pdHess=TRUE t=0.2s
+poisson_animal_s05 ll=-1696.76006281 conv=0 pdHess=TRUE t=0.3s
+poisson_animal_s06 ll=-1711.06800893 conv=0 pdHess=TRUE t=0.2s
+poisson_animal_s07 ll=-1683.08004965 conv=0 pdHess=TRUE t=0.3s
+poisson_animal_s08 ll=-1666.03003719 conv=0 pdHess=TRUE t=0.2s
+poisson_animal_s09 ll=-1730.12125595 conv=0 pdHess=TRUE t=0.2s
+poisson_animal_s10 ll=-1720.62358256 conv=0 pdHess=TRUE t=0.2s
+== nb2_relmat
+nb2_relmat_s01 ll=-1766.43735833 converged=true t=13.7s
+nb2_relmat_s02 ll=-1817.65158992 converged=true t=0.4s
+nb2_relmat_s03 ll=-1899.86142108 converged=true t=0.4s
+nb2_relmat_s04 ll=-1656.37996591 converged=true t=0.5s
+nb2_relmat_s05 ll=-1818.77105290 converged=true t=0.4s
+nb2_relmat_s06 ll=-1847.67715928 converged=true t=0.5s
+nb2_relmat_s07 ll=-1804.82887530 converged=true t=0.5s
+nb2_relmat_s08 ll=-1783.82080524 converged=true t=0.3s
+nb2_relmat_s09 ll=-1664.82791916 converged=true t=0.5s
+nb2_relmat_s10 ll=-1857.27227346 converged=true t=0.5s
+nb2_relmat_s01 ll=-1766.43735833 conv=0 pdHess=TRUE t=1.0s
+nb2_relmat_s02 ll=-1817.65158992 conv=0 pdHess=TRUE t=1.1s
+nb2_relmat_s03 ll=-1899.86142108 conv=0 pdHess=TRUE t=1.1s
+nb2_relmat_s04 ll=-1656.37996591 conv=0 pdHess=TRUE t=0.9s
+nb2_relmat_s05 ll=-1818.77105290 conv=0 pdHess=TRUE t=1.0s
+nb2_relmat_s06 ll=-1847.67715928 conv=0 pdHess=TRUE t=0.9s
+nb2_relmat_s07 ll=-1804.82887530 conv=0 pdHess=TRUE t=1.2s
+nb2_relmat_s08 ll=-1783.82080524 conv=0 pdHess=TRUE t=1.1s
+nb2_relmat_s09 ll=-1664.82791916 conv=0 pdHess=TRUE t=1.0s
+nb2_relmat_s10 ll=-1857.27227346 conv=0 pdHess=TRUE t=1.1s
+== gauss_ord
+gauss_ord_s01 ll=-1155.49850459 converged=true t=29.0s
+gauss_ord_s02 ll=-1143.17310524 converged=true t=0.0s
+gauss_ord_s03 ll=-1125.72765090 converged=true t=0.0s
+gauss_ord_s04 ll=-1151.18316090 converged=true t=0.0s
+gauss_ord_s05 ll=-1188.95380076 converged=true t=0.0s
+gauss_ord_s06 ll=-1146.98827107 converged=true t=0.0s
+gauss_ord_s07 ll=-1123.38816847 converged=true t=0.0s
+gauss_ord_s08 ll=-1195.78146874 converged=true t=0.0s
+gauss_ord_s09 ll=-1163.18969887 converged=true t=0.0s
+gauss_ord_s10 ll=-1164.63550474 converged=true t=0.0s
+gauss_ord_s01 ll=-1155.49850459 conv=0 pdHess=TRUE t=0.7s
+gauss_ord_s02 ll=-1143.17310524 conv=0 pdHess=TRUE t=0.5s
+gauss_ord_s03 ll=-1125.72765090 conv=0 pdHess=TRUE t=0.5s
+gauss_ord_s04 ll=-1151.18316090 conv=0 pdHess=TRUE t=0.6s
+gauss_ord_s05 ll=-1188.95380076 conv=0 pdHess=TRUE t=0.5s
+gauss_ord_s06 ll=-1146.98827107 conv=0 pdHess=TRUE t=0.5s
+gauss_ord_s07 ll=-1123.38816847 conv=0 pdHess=TRUE t=0.6s
+gauss_ord_s08 ll=-1195.78146874 conv=0 pdHess=TRUE t=0.5s
+gauss_ord_s09 ll=-1163.18969887 conv=0 pdHess=TRUE t=0.5s
+gauss_ord_s10 ll=-1164.63550474 conv=0 pdHess=TRUE t=0.6s
+== gauss_animal
+gauss_animal_s01 ll=-311.24756479 converged=true t=19.9s
+gauss_animal_s02 ll=-284.25784033 converged=true t=1.0s
+gauss_animal_s03 ll=-272.58630835 converged=true t=0.9s
+gauss_animal_s04 ll=-263.74887962 converged=true t=1.0s
+gauss_animal_s05 ll=-267.20626514 converged=true t=0.9s
+gauss_animal_s06 ll=-263.97081895 converged=true t=0.9s
+gauss_animal_s07 ll=-234.69804539 converged=true t=1.0s
+gauss_animal_s08 ll=-262.13198685 converged=true t=1.0s
+gauss_animal_s09 ll=-251.25442441 converged=true t=1.1s
+gauss_animal_s10 ll=-256.10561993 converged=true t=1.1s
+gauss_animal_s01 ll=-311.24756479 conv=0 pdHess=TRUE t=0.2s
+gauss_animal_s02 ll=-284.25784033 conv=0 pdHess=TRUE t=0.1s
+gauss_animal_s03 ll=-272.58630835 conv=0 pdHess=TRUE t=0.1s
+gauss_animal_s04 ll=-263.74887962 conv=0 pdHess=TRUE t=0.1s
+gauss_animal_s05 ll=-267.20626514 conv=0 pdHess=TRUE t=0.1s
+gauss_animal_s06 ll=-263.97081895 conv=0 pdHess=TRUE t=0.1s
+gauss_animal_s07 ll=-234.69804539 conv=0 pdHess=TRUE t=0.1s
+gauss_animal_s08 ll=-262.13198685 conv=0 pdHess=TRUE t=0.1s
+gauss_animal_s09 ll=-251.25442441 conv=0 pdHess=TRUE t=0.1s
+gauss_animal_s10 ll=-256.10561993 conv=0 pdHess=TRUE t=0.1s
+== poisson_phylo
+poisson_phylo_s01 ll=-1669.23488349 converged=true t=12.3s
+poisson_phylo_s02 ll=-1621.74899139 converged=true t=0.2s
+poisson_phylo_s03 ll=-1612.60160675 converged=true t=0.2s
+poisson_phylo_s04 ll=-1592.36745310 converged=true t=0.2s
+poisson_phylo_s05 ll=-1655.37475803 converged=true t=0.2s
+poisson_phylo_s06 ll=-1555.87927468 converged=true t=0.2s
+poisson_phylo_s07 ll=-1600.93941286 converged=true t=0.3s
+poisson_phylo_s08 ll=-1529.60474873 converged=true t=0.2s
+poisson_phylo_s09 ll=-1564.55292989 converged=true t=0.3s
+poisson_phylo_s10 ll=-1501.88603246 converged=true t=0.2s
+poisson_phylo_s01 ll=-1669.23488349 conv=0 pdHess=TRUE t=0.2s
+poisson_phylo_s02 ll=-1621.74899138 conv=0 pdHess=TRUE t=0.2s
+poisson_phylo_s03 ll=-1612.60160675 conv=0 pdHess=TRUE t=0.2s
+poisson_phylo_s04 ll=-1592.36745310 conv=0 pdHess=TRUE t=0.2s
+poisson_phylo_s05 ll=-1655.37475802 conv=0 pdHess=TRUE t=0.2s
+poisson_phylo_s06 ll=-1555.87927468 conv=0 pdHess=TRUE t=0.2s
+poisson_phylo_s07 ll=-1600.93941286 conv=0 pdHess=TRUE t=0.2s
+poisson_phylo_s08 ll=-1529.60474873 conv=0 pdHess=TRUE t=0.2s
+poisson_phylo_s09 ll=-1564.55292989 conv=0 pdHess=TRUE t=0.2s
+poisson_phylo_s10 ll=-1501.88603246 conv=0 pdHess=TRUE t=0.2s
+== poisson_spatial
+poisson_spatial_s01 ll=-1449.97275925 converged=true t=12.3s
+poisson_spatial_s02 ll=-1579.53210052 converged=true t=0.3s
+poisson_spatial_s03 ll=-1600.95091451 converged=true t=0.3s
+poisson_spatial_s04 ll=-1469.63720134 converged=true t=0.3s
+poisson_spatial_s05 ll=-1461.39493078 converged=true t=0.3s
+poisson_spatial_s06 ll=-1610.47660194 converged=true t=0.3s
+poisson_spatial_s07 ll=-1463.64914349 converged=true t=0.3s
+poisson_spatial_s08 ll=-1443.29518639 converged=true t=0.4s
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Poisson animal intercept-and-slope SD regression"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     5
+│     6
+│   rcond = 1.6436435164147022e-10
+poisson_spatial_s09 ll=-1627.03007953 converged=true t=1.1s
+poisson_spatial_s10 ll=-1403.67626985 converged=true t=0.3s
+poisson_spatial_s01 ll=-1449.97275925 conv=0 pdHess=TRUE t=0.3s
+poisson_spatial_s02 ll=-1579.53210052 conv=0 pdHess=TRUE t=0.3s
+poisson_spatial_s03 ll=-1600.95091452 conv=0 pdHess=TRUE t=0.3s
+poisson_spatial_s04 ll=-1469.63720134 conv=0 pdHess=TRUE t=0.3s
+poisson_spatial_s05 ll=-1461.39493078 conv=0 pdHess=TRUE t=0.3s
+poisson_spatial_s06 ll=-1610.47660194 conv=0 pdHess=TRUE t=0.3s
+poisson_spatial_s07 ll=-1463.64914349 conv=0 pdHess=TRUE t=0.3s
+poisson_spatial_s08 ll=-1443.29518639 conv=0 pdHess=TRUE t=0.3s
+poisson_spatial_s09 ll=-1627.03007954 conv=0 pdHess=TRUE t=0.5s
+poisson_spatial_s10 ll=-1403.67626985 conv=0 pdHess=TRUE t=0.3s
+== poisson_labelled
+poisson_labelled_s01 ll=-1604.23225761 converged=true t=12.1s
+poisson_labelled_s02 ll=-1639.90331576 converged=true t=0.4s
+poisson_labelled_s03 ll=-1781.12046656 converged=true t=0.3s
+poisson_labelled_s04 ll=-1671.48924654 converged=true t=0.3s
+poisson_labelled_s05 ll=-1584.55149925 converged=true t=0.4s
+poisson_labelled_s06 ll=-1732.67356318 converged=true t=0.3s
+poisson_labelled_s07 ll=-1670.53797772 converged=true t=0.3s
+poisson_labelled_s08 ll=-1811.28295077 converged=true t=0.3s
+poisson_labelled_s09 ll=-1846.80206593 converged=true t=0.3s
+poisson_labelled_s10 ll=-1804.65758988 converged=true t=0.3s
+poisson_labelled_s01 ll=-1604.23225761 conv=0 pdHess=TRUE t=0.3s
+poisson_labelled_s02 ll=-1639.90331576 conv=0 pdHess=TRUE t=0.3s
+poisson_labelled_s03 ll=-1781.12046656 conv=0 pdHess=TRUE t=0.3s
+poisson_labelled_s04 ll=-1671.48924654 conv=0 pdHess=TRUE t=0.3s
+poisson_labelled_s05 ll=-1584.55149925 conv=0 pdHess=TRUE t=0.3s
+poisson_labelled_s06 ll=-1732.67356318 conv=0 pdHess=TRUE t=0.3s
+poisson_labelled_s07 ll=-1670.53797772 conv=0 pdHess=TRUE t=0.3s
+poisson_labelled_s08 ll=-1811.28295077 conv=0 pdHess=TRUE t=0.3s
+poisson_labelled_s09 ll=-1846.80206593 conv=0 pdHess=TRUE t=0.3s
+poisson_labelled_s10 ll=-1804.65758988 conv=0 pdHess=TRUE t=0.3s

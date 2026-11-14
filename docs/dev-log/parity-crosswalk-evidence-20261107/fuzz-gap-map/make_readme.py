@@ -1,0 +1,208 @@
+#!/usr/bin/env python3
+"""Render README.md and julia_behind_ranked.md from the classify.py outputs (numbers are computed, not typed)."""
+import csv, collections, json, os, re
+here = os.path.dirname(os.path.abspath(__file__))
+rd = lambda f: list(csv.DictReader(open(os.path.join(here, f)), delimiter="\t"))
+rows = rd("gap_map.tsv"); S = json.load(open(os.path.join(here, "summary.json")))
+groups = rd("julia_behind_groups.tsv"); ranked = rd("julia_behind_ranked.tsv"); dis = rd("loglik_disagreements.tsv")
+claims = rd("matrix_crosscheck.tsv"); jonly = rd("julia_only_cells.tsv"); crash = rd("crash_cells.tsv")
+N = len(rows); cc = collections.Counter(r["class"] for r in rows)
+byid = {r["cell_id"]: r for r in rows}
+bf = [r for r in rows if r["class"] == "both-fit"]
+ok = [r for r in bf if r["ll_flag"] == "ok"]
+def pct(a, b): return "%.0f%%" % (100.0 * a / b)
+
+def cat(r):
+    if "R:" in r["quality_flag"]: return "B"
+    if r["family"] == "gaussian" and r["kind"] == "spatial": return "C"
+    if r["family"] == "tweedie" or (r["family"] == "gamma" and r["kind"] == "spatial"): return "D"
+    if r["kind"] in ("ordinary", "slope", "indep"):
+        return "A1" if r["explanation"].startswith("Julia marginal=:Laplace reproduces") else "A2"
+    return "D"
+dc = collections.Counter(cat(r) for r in dis)
+
+# crash mechanism table
+mech = collections.Counter(); mex = {}
+for r in rows:
+    if r["j_outcome"] == "ERRORS":
+        m = re.search(r"keyword call (\S+) with keywords \(([^)]*)\)", r["j_msg"])
+        kw = [k for k in m.group(2).replace(":", "").replace(" ", "").split(",") if k not in ("data", "se")] if m else []
+        key = (r["family"], ",".join(kw)); mech[key] += 1; mex.setdefault(key, r["cell_id"])
+crash_r_fits = [r for r in rows if r["j_outcome"] == "ERRORS" and r["r_outcome"] == "FITS"]
+shorten = lambda s, n=150: (s[:n] + "...") if len(s) > n else s
+
+L = []
+a = L.append
+a("# Refusal-gap map: native R drmTMB 0.8.1 vs native Julia DRModels, 2026-11-08")
+a("")
+a("Reader: whoever owns the Julia parity lane and the capability matrix. Purpose: replace hand-picked parity shapes with a")
+a("generated cross-product of the SD-regression grammar, run both engines on every cell, and show where Julia is behind,")
+a("where Julia fails with an uncaught error instead of a refusal, and where the two disagree on the log-likelihood.")
+a("Nothing here flips a verdict, edits the matrix, or touches `tools/write-parity-matrix.R`.")
+a("")
+a("## Bottom line")
+a("")
+a("- %d cells (9 families x 8 random-effect shapes x labelling x q x SD pattern x ML/REML, plus mu+sigma blocks). R drmTMB 0.8.1 fits %d of them, Julia fits %d."
+  % (N, S["r_outcomes"].get("FITS", 0), S["j_outcomes"].get("FITS", 0)))
+a("- Both fit: **%d** cells. Of these **%d agree on logLik within 1e-4** (largest gap among agreeing cells %.1e); **%d disagree**, listed below with the cause where I could establish one."
+  % (len(bf), len(ok), max(float(r["ll_diff"]) for r in ok), len(dis)))
+a("- **Julia behind (R fits, Julia does not): %d cells** (%d refusals, %d uncaught errors, %d non-converged, %d timeouts). They fall into %d distinct Julia refusal signatures, ranked in `julia_behind_groups.tsv`."
+  % (len(ranked), S["julia_behind"].get("refuses", 0), S["julia_behind"].get("crashes", 0), S["julia_behind"].get("nonconverged", 0), S["julia_behind"].get("timeout", 0), len(groups)))
+a("- **Julia ahead (Julia fits, R refuses): %d cells** (mostly Poisson/NB2 labelled q=2, Poisson REML, Gaussian REML with SD formulas)." % len(jonly))
+a("- **Crashes: R none, Julia %d.** All %d R failures are deliberate `cli_abort` refusals. All %d Julia errors are one mechanism, an uncaught `MethodError` when a keyword is passed to a family route that does not take it (`method = :REML` on LogNormal, Student and Tweedie; `tree`/`K`/`coords`/`A,ids` on routes without that structured provider). The same call without the keyword gives a readable refusal. Only %d of the %d crash cells are cells R fits."
+  % (S["crash_sides"].get("Julia", 0), S["r_outcomes"].get("REFUSES", 0), S["crash_sides"].get("Julia", 0), len(crash_r_fits), S["crash_sides"].get("Julia", 0)))
+a("- **Matrix cross-check:** the matrix file at the path given is a dirty working-tree draft 809 commits behind origin/main. Against that draft the map contradicts one sub-claim (unlabelled correlated q=2 blocks with a selected-slope SD formula for Beta, Gamma and Student-t are refused by R 0.8.1). Against origin/main's matrix the map shows the opposite error: it says binomial random effects are unavailable, and R 0.8.1 fits them. Details in the cross-check section.")
+a("- Two things worth acting on first: (1) the keyword `MethodError`s, which are cheap to turn into refusals; (2) the largest Julia-behind groups, which are mostly Beta/Gamma/NB2/Poisson slope or structured shapes that R fits.")
+a("")
+a("## What was run")
+a("")
+a("| Item | Value |")
+a("| --- | --- |")
+a("| R | drmTMB 0.8.1 (`DESCRIPTION` Version 0.8.1), Totoro library `~/drm_campaign_20261108/Rlib`. I did not verify which commit that library was built from. |")
+a("| Julia | DRModels 0.8.1 at `759e58e4f` (origin/claude/binomial-phylo-spatial-q2-20261108), Julia 1.10 on Totoro, 1.10.0 on the Mac. No Julia source was changed (branch `claude/fuzz-gap-map-20261108` exists locally with no commits). |")
+a("| Engines | Both native. R `engine = \"tmb\"`, Julia `drm()`. No `engine = \"julia\"`, no JuliaCall. Run as separate processes. |")
+a("| Data | One simulated data set per family x kind (54 files in `data/`), 40 groups x 10 rows (30 levels for the crossed second factor), `StableRNG` seeds in `gen_cells.jl`. Generation is deterministic: re-running it reproduced every data file byte for byte. |")
+a("| Compute | Totoro, 15 to 20 one-thread workers per engine, never more than 40 cores, `nice -n 10`. Main pass: R 26 s, Julia 12.6 min wall. Follow-up passes a few minutes each. Estimated up front at 30 to 60 min; it took about 25 min of wall time in total. No Totoro processes were left running. |")
+a("")
+a("### The grid")
+a("")
+a("| Axis | Levels |")
+a("| --- | --- |")
+a("| family | gaussian, poisson, nb2, gamma, binomial (logit, 0/1), beta, lognormal, student, tweedie (R `beta_family()`, `nbinom2()`, `Gamma(link = \"log\")`; Julia `Beta()`, `NegBinomial2()`, `Gamma()`) |")
+a("| random-effect shape (`kind`) | `ordinary` `(terms \\| g)`; `animal(A)`; `relmat(K)`; `phylo` (random tree); `spatial` (coordinates); `crossed` `(terms \\| g) + (1 \\| g2)`; `indep` `(1 \\| g) + (0 + x1 \\| g) + ...`; `slope` `(0 + x1 \\| g)` |")
+a("| q (coefficients in the block) | 1, 2, 3, 4 (`1 + x1 + x2 + x3`); `indep` q = 2..4; `slope` q = 1 |")
+a("| labelled | unlabelled `(.. \\| g)` or labelled `(.. \\| p \\| g)`, for q >= 2 |")
+a("| SD formula pattern | `none` (no `sd()`), `one` (`~ 1` on every coefficient), `z` (`~ z` on every coefficient), `first` (`~ z` on the intercept only), `last` (`~ z` on the last coefficient only; q = 2 only). q = 1: none, one, z. q = 3, 4: none, z, first. |")
+a("| correlated mu+sigma | `(1 \\| p \\| g)` in both `mu` and `sigma` (q = 1 or 2, ordinary, families with a `sigma`, patterns none and z) |")
+a("| estimator | ML, REML (R `REML = TRUE`, Julia `method = :REML`) |")
+a("")
+a("`indep` and `slope` were added in a second pass, after the first results showed that the matrix's \"independent-slope\" wording means these shapes and not `(1 + x | g)`. Cell counts: %s." % ", ".join("%s %d" % (k, v) for k, v in sorted(collections.Counter(r["kind"] for r in rows).items())))
+a("")
+a("### How an outcome is decided")
+a("")
+a("| Outcome | Rule |")
+a("| --- | --- |")
+a("| FITS | the call returned, the log-likelihood is finite, and R `opt$convergence == 0` or Julia `fit.converged == true`. Quality flags (R `pdHess = FALSE` or `is_converged() = FALSE`; Julia non-finite SEs or a -1e18 sentinel) are recorded in `quality_flag` and do not change the outcome. |")
+a("| REFUSES | R: a `cli_abort()` condition (class `rlang_error`; all 2581 R failures are this). Julia: `ArgumentError` or `ErrorException` raised on purpose with model-support text (%d `ArgumentError`, %d bare `error()` calls). A numeric-failure regex was applied to both and matched nothing. |" % (S["j_sub"].get("REFUSES/ArgumentError", 0), S["j_sub"].get("REFUSES/ErrorException", 0)))
+a("| ERRORS (crash) | anything else: a non-`rlang` R error, any Julia exception other than the two above, or a process that died. The watchdog also catches hangs (TIMEOUT) and segfaults (process died); neither occurred as a crash. |")
+a("| NONCONVERGED | returned, but the convergence flag is false. |")
+a("| TIMEOUT | no result for 180 s (R) or 300 s (Julia). Reported as inconclusive, never as a gap. |")
+a("")
+a("Cell classes: `both-fit`; `R-only` (R fits, Julia refuses); `Julia-only`; `both-refuse`; `crash-Julia` / `crash-R` (an uncaught error on that side, whatever the other side did); `nonconverged`; `inconclusive` (timeout). The \"Julia behind\" list is every cell where R fits and Julia does not fit, whatever the Julia failure mode.")
+a("")
+a("## Results")
+a("")
+a("| Class | Cells | Share |")
+a("| --- | --- | --- |")
+for k in ("both-fit", "R-only", "Julia-only", "both-refuse", "crash-Julia", "crash-R", "nonconverged", "inconclusive"):
+    a("| %s | %d | %s |" % (k, cc.get(k, 0), pct(cc.get(k, 0), N)))
+a("| total | %d | |" % N)
+a("")
+a("| Engine | FITS | REFUSES | ERRORS | NONCONVERGED | TIMEOUT |")
+a("| --- | --- | --- | --- | --- | --- |")
+a("| R drmTMB 0.8.1 | %d | %d | %d | %d | %d |" % tuple(S["r_outcomes"].get(k, 0) for k in ("FITS", "REFUSES", "ERRORS", "NONCONVERGED", "TIMEOUT")))
+a("| Julia DRModels | %d | %d | %d | %d | %d |" % tuple(S["j_outcomes"].get(k, 0) for k in ("FITS", "REFUSES", "ERRORS", "NONCONVERGED", "TIMEOUT")))
+a("")
+a("Per family and shape: `breakdown_family_kind.tsv`. Per refusal message: `signatures_r.tsv`, `signatures_julia.tsv`.")
+a("")
+a("## Crash cells (uncaught errors that are not refusals)")
+a("")
+a("R: **none**. Julia: **%d cells, all `MethodError`**, three mechanisms:" % len(crash))
+a("")
+a("| Family | Keyword that was passed | Cells | Example cell |")
+a("| --- | --- | --- | --- |")
+for (fam, kw), n in sorted(mech.items(), key=lambda kv: (kv[0][0], kv[0][1])):
+    a("| %s | `%s` | %d | `%s` |" % (fam, kw, n, mex[(fam, kw)]))
+a("")
+a("Probe `probe_kwargs.jl` (log `probe_kwargs.log`) shows the user-visible difference. `drm(LogNormal(); method = :REML)`, `Student()`, `Tweedie()` raise a bare `MethodError`, while Gamma, NB2, Beta and Binomial raise `ArgumentError: unknown method = :REML ... ML-only`. LogNormal/animal with `A, ids` is a `MethodError`; the same call without `A` is `LogNormal() supports phylo/relmat structured markers on the mean (got animal)`. So the fix is to make the keyword-accepting signature uniform (or catch `MethodError` on the entry point), not to add a model.")
+a("")
+a("The %d crash cells where R fits (Julia is behind and also unfriendly): %s." % (len(crash_r_fits), "; ".join("`%s`" % r["cell_id"] for r in crash_r_fits[:3]) + ", ... (binomial animal x7, student spatial x2; full list in `crash_cells.tsv`)"))
+a("")
+a("Other failure modes outside the crash class: one Julia route returns normally with a sentinel log-likelihood, `poisson|spatial|lab0|q1|sd-none` (`coords`-estimated range): `drm()` returns a fit with `loglikelihood = -1.0e18`, `converged = false` and a singular-Hessian warning (see `probe_spatial_coords.log`). It is recorded as NONCONVERGED. Beta and NB2 plain `spatial(1 | g)` with `coords = ...` raise an error whose text says `coords` is accepted; passing `K = <precomputed kernel>` fits (`probe_spatial_coords.jl`), so for those cells the gap is the `coords` route only.")
+a("")
+a("## Julia behind: the work list, ranked")
+a("")
+a("%d cells where R fits and Julia does not. They collapse into %d Julia failure signatures. Ranking is by cells in the signature group, which is what a single fix can unlock at most (fixing a refusal does not guarantee a converged, correct fit). `julia_behind_ranked.tsv` and `julia_behind_ranked.md` list every cell with `unlocks` (group size) and `behind_neighbours` (cells that differ in exactly one grid coordinate and are also behind)." % (len(ranked), len(groups)))
+a("")
+a("| Rank | Cells | Julia mode | Families (cells) | Shapes (cells) | Julia message (normalised) | Example |")
+a("| --- | --- | --- | --- | --- | --- | --- |")
+for g in groups:
+    a("| %s | %s | %s | %s | %s | %s | `%s` |" % (g["rank"], g["cells_unlocked"], g["julia_mode"], g["families"].replace(",", ", "), g["kinds"].replace(",", ", "), shorten(g["julia_signature"].replace("|", "\\|"), 130), g["example_cell"]))
+a("")
+a("`T` stands for a code term that was removed during normalisation. Rows with an empty message are non-converged or timed-out cells.")
+a("")
+a("## Julia ahead (R refuses, Julia fits): %d cells" % len(jonly))
+a("")
+a("`julia_only_cells.tsv`. Groups: Gaussian REML with an SD formula on ordinary and crossed intercepts; Poisson REML (Cox-Reid) for plain `(1 | g)`, animal, relmat, phylo; Poisson and NB2 labelled q=2 `(1 + x | p | g)` with SD formulas (and NB2 spatial labelled q=2); Gamma, Beta, Student plain unlabelled `(1 + x | g)` with no SD formula; NB2 and Gamma correlated mu+sigma intercept blocks.")
+a("")
+a("## Log-likelihood disagreements: %d of %d both-fit cells exceed 1e-4" % (len(dis), len(bf)))
+a("")
+a("The other %d agree: median |diff| %.1e, maximum %.1e. `loglik_disagreements.tsv` has every disagreeing cell, its sign and an `explanation` column." % (len(ok), sorted(float(r["ll_diff"]) for r in ok)[len(ok)//2], max(float(r["ll_diff"]) for r in ok)))
+a("")
+a("| Cause | Cells | Evidence |")
+a("| --- | --- | --- |")
+a("| Julia default integrator is adaptive Gauss-Hermite (`marginal = :LA`, 5 nodes); R uses Laplace. Julia higher by 0.03 to 0.30 (binomial q>=2 up to 0.33) | %d confirmed + %d presumed | Re-running the 6 plain `(1 \\| g)` cells with `marginal = :Laplace` reproduces R to <= 3e-9 (`raw/julia_laplace/`). The other %d cells are SD-regression or q>=2 routes where Julia accepts `:LA` only (its own error text says so), so I could not re-run them with Laplace; they are presumed, not shown. In every `sd-none` / `sd-one` pair the gap is the same, which fits the integrator explanation. |" % (dc["A1"], dc["A2"], dc["A2"]))
+a("| R fit flagged unconverged (`is_converged()` or `pdHess` false), Julia sometimes also flagged | %d | binomial `sd-z` cells on `indep`, `spatial` and `phylo` shapes. R's value is equal to its `sd-one` cell in the spatial case (the SD slope did not move); in the `phylo` cell R is higher and Julia's SEs are non-finite. Either engine can be the worse local optimum, differences are 0.6 to 1.7. These are not parity evidence either way. |" % dc["B"])
+a("| Different model: Julia estimates the spatial range when there is no SD formula | %d | `gaussian|spatial|lab0|q1|sd-none`: Julia has 7 parameters, R 6 (fixed-range kernel). With an SD formula both use the fixed kernel and agree to 1e-10. |" % dc["C"])
+a("| Unexplained | %d | Tweedie ordinary and slope-only, plain and SD formula (Julia lower than R by 0.03 to 0.08; `marginal` is not accepted on Tweedie, so no Laplace re-run) and Gamma spatial q=1 (Julia lower by 0.06 to 0.07). |" % dc["D"])
+a("")
+a("## Cross-check against `docs/design/168-r-julia-finish-capability-matrix.md`")
+a("")
+a("**Which file.** The file at `/Users/z3437171/Dropbox/Github Local/drmTMB/docs/design/168-...md` is modified but uncommitted on branch `cursor/sweep-blocked-20261004` (DESCRIPTION Version 0.7.1, 809 commits behind origin/main `6fc0910ed`, which is 0.8.1). The SD-regression sentences (header note, the long Non-Gaussian row, the Bernoulli row) exist only in that dirty copy; origin/main's matrix still says Bernoulli/binomial random effects and structured effects \"remain unavailable\" and the Non-Gaussian row says only \"Coefficient parity first\". The related test `tests/testthat/test-gamma-correlated-q2-direct-sd.R` is untracked in that tree. I therefore compared the map (R 0.8.1) with both texts. WT = working-tree draft, MAIN = origin/main.")
+a("")
+a("| Claim | Source | Text (shortened) | Cells | Cells as the claim expects | Verdict |")
+a("| --- | --- | --- | --- | --- | --- |")
+for c in claims:
+    txt = shorten(c["text"], 175).replace("|", "\\|")
+    ver = c["verdict"].replace("|", "\\|")
+    a("| %s | %s | %s | %s | %s | %s |" % (c["claim"], c["source"], txt, c["cells"], c["cells_matching"] if "Rnot" not in c["verdict"] else c["cells_matching"], ver))
+a("")
+a("Rows where the map contradicts the matrix:")
+a("")
+cA8 = [c for c in claims if c["claim"] == "A8"][0]
+cB1 = [c for c in claims if c["claim"] == "B1"][0]
+a("1. **A8 (working-tree draft).** \"selected slopes in unlabelled correlated q=2 blocks for ... Gamma, lognormal, and Student-t\" and Beta: R 0.8.1 refuses `(1 + x1 | g)` with an SD formula for **Beta, Gamma and Student-t** (6 cells: %s). Its message for Gamma: \"Only independent Gamma mu random intercepts and slopes are implemented in this slice ... Gamma and labelled covariance blocks remain rejected.\" Bernoulli, Poisson, NB2 and lognormal are consistent. The most likely reading is version skew (the claim describes unreleased work in that tree), which I could not confirm without building that tree." % cA8["example_contradicting_cells"].replace(";", ", "))
+a("2. **B1/B2 (origin/main).** The Bernoulli row says random effects and structured effects remain unavailable, and the claim guard says plain binomial is `mu` only. R 0.8.1 fits %s of the 164 binomial ML cells (ordinary, indep, slope, animal, relmat, phylo, spatial, crossed; examples in `matrix_crosscheck.tsv`). The matrix understates R here." % cB1["cells_contradicting"])
+a("3. **Julia wording (working-tree draft).** \"Direct-SD Julia and R-bridge parity remain unestablished.\" The map is direct Julia vs R, not the bridge, and is not a bridge claim. But in %d cells with an SD formula both engines fit, and %d of those agree within 1e-4 (the rest are the causes above). That is direct-API evidence the matrix does not mention." % (len([r for r in bf if r["pat"] != "none"]), len([r for r in ok if r["pat"] != "none"])))
+a("")
+a("Rows consistent with the map: A1 to A7, A9 (Bernoulli, Poisson, NB2, Gamma, Beta, lognormal, Student-t direct-SD intercept and selected independent-slope slices, and the Bernoulli animal q=2 route), and the Gaussian REML rows C1 to C4 (phylo mean-side and direct-SD admitted; ordinary random effects admitted; REML with direct ordinary `sd()` refused by R, as its own message says). Rows I could not compare: N1 and N2 use bivariate wording. For information, N1 (univariate Gaussian `animal(1 | g)` REML) fits in R and Julia refuses; N2 (univariate Gaussian labelled `(1 | p | g)` in `mu` and `sigma`, ML) fits in **both** engines and agrees to 1e-10, so the matrix line \"bivariate mu-sigma RE correlations still gated\" does not describe this univariate cell. The matrix text on structured-covariance rows is mostly about the bivariate and q4 targets, which this grid does not cover.")
+a("")
+a("## What this does not show")
+a("")
+a("- It is a map of what fits, not of whether the fits are right. The only correctness check is the log-likelihood comparison on cells both engines fit; estimates, standard errors and intervals were not compared.")
+a("- One data set per family x kind, tiny (400 rows), one seed. Many q = 3, 4 and structured fits sit near boundaries. `FITS` means the optimiser returned convergence 0, so %d R fits and %d Julia fits carry a quality flag (see `quality_flag`)." % (sum(1 for r in rows if r["r_outcome"] == "FITS" and "R:" in r["quality_flag"]), sum(1 for r in rows if r["j_outcome"] == "FITS" and "Julia:" in r["quality_flag"])))
+a("- \"Unlocks\" is an upper bound. A group of refused cells is not guaranteed to fit once its refusal is removed, and %d cells behind are non-converged or timed out and say nothing about refusals." % (S["julia_behind"].get("nonconverged", 0) + S["julia_behind"].get("timeout", 0)))
+a("- Julia refusals depend on how I pass structured inputs: `coords` as a `Dict` (a second pass with a G x 2 matrix flipped 2 binomial spatial cells to FITS; `raw/julia_matcoords/`), `A` with `ids`, `K` in first-appearance row order, `tree` as a Newick string. The Beta/NB2 spatial refusals persist with a matrix, but `K =` works there. Other keyword forms were not tried.")
+a("- Sigma-side shapes are out of scope: no `sigma` predictors, random effects on `sigma` except the correlated mu+sigma intercept block, no `nu` or `zi` formulas, no cumulative or beta-binomial families, no bivariate responses, no bridge (`engine = \"julia\"`).")
+a("- The dirty working-tree R code was not built or tested. Whether it fits the cells in contradiction row 1 is unknown.")
+a("- Numeric-failure classification is by message regex; none of the 5000 failures matched it, but a refusal whose text hides a numerical cause would be counted as a refusal.")
+a("")
+a("## Files")
+a("")
+a("| File | Content |")
+a("| --- | --- |")
+a("| `gap_map.tsv` | one row per cell: coordinates, class, per-engine outcome / logLik / convergence / seconds / first message line / normalised signature, quality flag |")
+a("| `julia_behind_groups.tsv`, `julia_behind_ranked.tsv`, `julia_behind_ranked.md` | work list, by refusal signature and by cell |")
+a("| `julia_only_cells.tsv`, `crash_cells.tsv`, `loglik_disagreements.tsv` | the three lists above |")
+a("| `matrix_crosscheck.tsv`, `breakdown_family_kind.tsv`, `julia_sd_fit_counts.tsv`, `signatures_*.tsv`, `summary.json` | derived tables |")
+a("| `cells.tsv`, `cells_indep.tsv`, `cells_slope.tsv`, `cells_all.tsv`, `data/` | the grid and its fixtures |")
+a("| `gen_cells.jl`, `run_r.R`, `run_julia.jl`, `driver.py`, `classify.py`, `make_readme.py`, `probe_*.jl` / `.log` | code |")
+a("| `raw/r`, `raw/julia`, `raw/julia_matcoords`, `raw/julia_laplace` | verbatim runner output (`S` and `R` lines) and driver logs |")
+a("")
+a("## Reproduce")
+a("")
+a("```sh")
+a("julia --project=<env with DRModels, StableRNGs, Distributions, DelimitedFiles> gen_cells.jl .          # cells*.tsv, data/")
+a("FUZZ_DATA=$PWD/data DRMTMB_LIB=<lib> python3 -I driver.py r 20 180 cells_all.tsv out_r")
+a("FUZZ_DATA=$PWD/data FUZZ_JULIA_PROJECT=<env> python3 -I driver.py julia 20 300 cells_all.tsv out_julia")
+a("python3 -I classify.py raw . && python3 -I make_readme.py")
+a("```")
+open(os.path.join(here, "README.md"), "w").write("\n".join(L) + "\n")
+
+# per-cell ranked markdown
+M = ["# Julia-behind cells, ranked", "", "Rows: R fits, Julia does not. `unlocks` = cells in the same Julia failure group; `nbrs` = Hamming-1 neighbours also behind. Generated from `julia_behind_ranked.tsv`.", "",
+     "| # | Cell | unlocks | nbrs | Julia mode | Julia message (normalised) |", "| --- | --- | --- | --- | --- | --- |"]
+for i, r in enumerate(ranked, 1):
+    M.append("| %d | `%s` | %s | %s | %s | %s |" % (i, r["cell_id"], r["unlocks"], r["behind_neighbours"], r["julia_behind"], shorten(r["j_sig"].replace("|", "\\|"), 120)))
+open(os.path.join(here, "julia_behind_ranked.md"), "w").write("\n".join(M) + "\n")
+print("README.md", len(L), "lines")

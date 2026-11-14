@@ -1,0 +1,58 @@
+S	1	gaussian|ordinary|lab0|q1|sd-none|cm0|ML
+R	1	gaussian|ordinary|lab0|q1|sd-none|cm0|ML	FITS				-482.6410992238	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.13	
+S	2	gaussian|ordinary|lab0|q1|sd-one|cm0|ML
+R	2	gaussian|ordinary|lab0|q1|sd-one|cm0|ML	FITS				-482.6410992238	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.09	
+S	3	gaussian|ordinary|lab0|q1|sd-z|cm0|ML
+R	3	gaussian|ordinary|lab0|q1|sd-z|cm0|ML	FITS				-478.3784687901	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.10	
+S	4	gaussian|ordinary|lab0|q2|sd-none|cm0|ML
+R	4	gaussian|ordinary|lab0|q2|sd-none|cm0|ML	FITS				-468.2769577077	0	pdHess=TRUE;is_converged=TRUE;npar=8	0.12	
+S	5	gaussian|ordinary|lab1|q2|sd-none|cm0|ML
+R	5	gaussian|ordinary|lab1|q2|sd-none|cm0|ML	FITS				-468.2769577077	0	pdHess=TRUE;is_converged=TRUE;npar=8	0.12	
+S	6	gaussian|ordinary|lab0|q2|sd-one|cm0|ML
+R	6	gaussian|ordinary|lab0|q2|sd-one|cm0|ML	FITS				-468.2769577077	0	pdHess=TRUE;is_converged=TRUE;npar=8	0.13	
+S	7	gaussian|ordinary|lab1|q2|sd-one|cm0|ML
+R	7	gaussian|ordinary|lab1|q2|sd-one|cm0|ML	ERROR	abort:rlang_error	Gaussian random-effect SD regression does not support the selected	Gaussian random-effect SD regression does not support the selected random-effect shape. ✖ Selected `sd(g, coef = "(Intercept)")` targets coefficient "(Intercept)". ℹ Use a scalar intercept or independent slope, or an unlabelled correlated block where the family admits one.				0.02	
+S	8	gaussian|ordinary|lab0|q2|sd-z|cm0|ML
+R	8	gaussian|ordinary|lab0|q2|sd-z|cm0|ML	FITS				-461.1345661249	0	pdHess=TRUE;is_converged=TRUE;npar=10	0.19	
+S	9	gaussian|ordinary|lab1|q2|sd-z|cm0|ML
+R	9	gaussian|ordinary|lab1|q2|sd-z|cm0|ML	ERROR	abort:rlang_error	Gaussian random-effect SD regression does not support the selected	Gaussian random-effect SD regression does not support the selected random-effect shape. ✖ Selected `sd(g, coef = "(Intercept)")` targets coefficient "(Intercept)". ℹ Use a scalar intercept or independent slope, or an unlabelled correlated block where the family admits one.				0.02	
+S	10	gaussian|ordinary|lab0|q2|sd-first|cm0|ML
+R	10	gaussian|ordinary|lab0|q2|sd-first|cm0|ML	FITS				-463.0666298818	0	pdHess=TRUE;is_converged=TRUE;npar=9	0.12	
+S	11	gaussian|ordinary|lab1|q2|sd-first|cm0|ML
+R	11	gaussian|ordinary|lab1|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	Gaussian random-effect SD regression does not support the selected	Gaussian random-effect SD regression does not support the selected random-effect shape. ✖ Selected `sd(g, coef = "(Intercept)")` targets coefficient "(Intercept)". ℹ Use a scalar intercept or independent slope, or an unlabelled correlated block where the family admits one.				0.01	
+S	12	gaussian|ordinary|lab0|q2|sd-last|cm0|ML
+R	12	gaussian|ordinary|lab0|q2|sd-last|cm0|ML	FITS				-466.4608011933	0	pdHess=TRUE;is_converged=TRUE;npar=9	0.12	
+S	13	gaussian|ordinary|lab1|q2|sd-last|cm0|ML
+R	13	gaussian|ordinary|lab1|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	Gaussian random-effect SD regression does not support the selected	Gaussian random-effect SD regression does not support the selected random-effect shape. ✖ Selected `sd(g, coef = "x1")` targets coefficient "x1". ℹ Use a scalar intercept or independent slope, or an unlabelled correlated block where the family admits one.				0.01	
+S	14	gaussian|ordinary|lab0|q3|sd-none|cm0|ML
+R	14	gaussian|ordinary|lab0|q3|sd-none|cm0|ML	FITS				-443.2823862453	0	pdHess=TRUE;is_converged=TRUE;npar=11	0.17	
+S	15	gaussian|ordinary|lab1|q3|sd-none|cm0|ML
+R	15	gaussian|ordinary|lab1|q3|sd-none|cm0|ML	FITS				-443.2823862453	0	pdHess=TRUE;is_converged=TRUE;npar=11	0.17	
+S	16	gaussian|ordinary|lab0|q3|sd-z|cm0|ML
+R	16	gaussian|ordinary|lab0|q3|sd-z|cm0|ML	FITS				-433.1112048764	0	pdHess=TRUE;is_converged=TRUE;npar=14	0.24	
+S	17	gaussian|ordinary|lab1|q3|sd-z|cm0|ML
+R	17	gaussian|ordinary|lab1|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	Gaussian ordinary `sd()` regression cannot be combined with a correlated	Gaussian ordinary `sd()` regression cannot be combined with a correlated random-effect block of five or more coefficients, a labelled block, or more than one such block. ℹ Use independent terms, an unlabelled `(1 + x | group)` block of two coefficients, or one unlabelled block of three or four coefficients with `sd()` formulas.				0.01	
+S	18	gaussian|ordinary|lab0|q3|sd-first|cm0|ML
+R	18	gaussian|ordinary|lab0|q3|sd-first|cm0|ML	FITS				-436.7370397449	0	pdHess=TRUE;is_converged=TRUE;npar=12	0.18	
+S	19	gaussian|ordinary|lab1|q3|sd-first|cm0|ML
+R	19	gaussian|ordinary|lab1|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	Gaussian ordinary `sd()` regression cannot be combined with a correlated	Gaussian ordinary `sd()` regression cannot be combined with a correlated random-effect block of five or more coefficients, a labelled block, or more than one such block. ℹ Use independent terms, an unlabelled `(1 + x | group)` block of two coefficients, or one unlabelled block of three or four coefficients with `sd()` formulas.				0.01	
+S	20	gaussian|ordinary|lab0|q4|sd-none|cm0|ML
+R	20	gaussian|ordinary|lab0|q4|sd-none|cm0|ML	FITS				-416.9158729985	0	pdHess=TRUE;is_converged=TRUE;npar=15	0.20	
+S	21	gaussian|ordinary|lab1|q4|sd-none|cm0|ML
+R	21	gaussian|ordinary|lab1|q4|sd-none|cm0|ML	FITS				-416.9158729985	0	pdHess=TRUE;is_converged=TRUE;npar=15	0.19	
+S	22	gaussian|ordinary|lab0|q4|sd-z|cm0|ML
+R	22	gaussian|ordinary|lab0|q4|sd-z|cm0|ML	FITS				-402.9379187578	0	pdHess=TRUE;is_converged=TRUE;npar=19	0.33	
+S	23	gaussian|ordinary|lab1|q4|sd-z|cm0|ML
+R	23	gaussian|ordinary|lab1|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	Gaussian ordinary `sd()` regression cannot be combined with a correlated	Gaussian ordinary `sd()` regression cannot be combined with a correlated random-effect block of five or more coefficients, a labelled block, or more than one such block. ℹ Use independent terms, an unlabelled `(1 + x | group)` block of two coefficients, or one unlabelled block of three or four coefficients with `sd()` formulas.				0.01	
+S	24	gaussian|ordinary|lab0|q4|sd-first|cm0|ML
+R	24	gaussian|ordinary|lab0|q4|sd-first|cm0|ML	FITS				-410.1195719253	0	pdHess=TRUE;is_converged=TRUE;npar=16	0.23	
+S	25	gaussian|ordinary|lab1|q4|sd-first|cm0|ML
+R	25	gaussian|ordinary|lab1|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	Gaussian ordinary `sd()` regression cannot be combined with a correlated	Gaussian ordinary `sd()` regression cannot be combined with a correlated random-effect block of five or more coefficients, a labelled block, or more than one such block. ℹ Use independent terms, an unlabelled `(1 + x | group)` block of two coefficients, or one unlabelled block of three or four coefficients with `sd()` formulas.				0.01	
+S	26	gaussian|ordinary|lab0|q1|sd-none|cm1|ML
+R	26	gaussian|ordinary|lab0|q1|sd-none|cm1|ML	FITS				-478.0276617058	0	pdHess=TRUE;is_converged=TRUE;npar=8	0.18	
+S	27	gaussian|ordinary|lab0|q1|sd-z|cm1|ML
+R	27	gaussian|ordinary|lab0|q1|sd-z|cm1|ML	FITS				-473.2152206679	0	pdHess=TRUE;is_converged=TRUE;npar=9	0.25	
+S	28	gaussian|ordinary|lab0|q2|sd-none|cm1|ML
+R	28	gaussian|ordinary|lab0|q2|sd-none|cm1|ML	ERROR	abort:rlang_error	Larger labelled `mu`/`sigma` covariance blocks are not implemented yet.	Larger labelled `mu`/`sigma` covariance blocks are not implemented yet. ✖ Block `p` on group g matched `mu` coefficients: "(Intercept)" and "x1". ℹ Use one matching coefficient, such as `(1 | p | id)` or `(0 + x | p | id)`, in one same-response `mu`/`sigma` pair.				0.03	
+S	29	gaussian|ordinary|lab0|q2|sd-z|cm1|ML
+R	29	gaussian|ordinary|lab0|q2|sd-z|cm1|ML	ERROR	abort:rlang_error	Gaussian random-effect SD regression does not support the selected	Gaussian random-effect SD regression does not support the selected random-effect shape. ✖ Selected `sd(g, coef = "(Intercept)")` targets coefficient "(Intercept)". ℹ Use a scalar intercept or independent slope, or an unlabelled correlated block where the family admits one.				0.01	

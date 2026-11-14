@@ -1,0 +1,98 @@
+phy 01 logit OK ll -641.183943 conv 0 time 0.7s
+                                                              estimate
+mu:(Intercept)                                               0.3399333
+mu:x                                                         0.7079764
+sd_phylo(id, dpar = "mu", coef = "(Intercept)"):(Intercept) -0.5261583
+sd_phylo(id, dpar = "mu", coef = "(Intercept)"):z0           0.4309119
+sd_phylo(id, dpar = "mu", coef = "x"):(Intercept)           -3.6433309
+sd_phylo(id, dpar = "mu", coef = "x"):z1                    -2.9904034
+                                                            std_error
+mu:(Intercept)                                              0.1393770
+mu:x                                                        0.0998577
+sd_phylo(id, dpar = "mu", coef = "(Intercept)"):(Intercept) 0.1753805
+sd_phylo(id, dpar = "mu", coef = "(Intercept)"):z0          0.1652152
+sd_phylo(id, dpar = "mu", coef = "x"):(Intercept)           4.4517116
+sd_phylo(id, dpar = "mu", coef = "x"):z1                    4.9319783
+phy 01 probit ERROR: Binomial `phylo()` `mu` effects currently support only an intercept-only
+q1 term.
+✖ Requested structured coefficients: "(Intercept)" and "x".
+ℹ Use `phylo(1 | id, tree = tree)`; a predictor-dependent phylogenetic slope
+  currently requires one unlabelled slope-only coefficient, one matching
+  phylogenetic SD formula, and no additional random effects. 
+phy 01 cloglog ERROR: Binomial `phylo()` `mu` effects currently support only an intercept-only
+q1 term.
+✖ Requested structured coefficients: "(Intercept)" and "x".
+ℹ Use `phylo(1 | id, tree = tree)`; a predictor-dependent phylogenetic slope
+  currently requires one unlabelled slope-only coefficient, one matching
+  phylogenetic SD formula, and no additional random effects. 
+phy 01 cauchit ERROR: drmTMB binomial models support `binomial(link = "logit")`,
+`binomial(link = "probit")`, and `binomial(link = "cloglog")`.
+✖ Received binomial link "cauchit".
+ℹ The binomial-response contract is `link(mu) = X_mu beta_mu`; use
+  `cbind(successes, failures)` for trial denominators. 
+phy cbind logit ERROR: Binomial structured intercept-slope SD regression requires unweighted
+0/1 Bernoulli responses. 
+phy cbind probit ERROR: Binomial `phylo()` `mu` effects currently support only an intercept-only
+q1 term.
+✖ Requested structured coefficients: "(Intercept)" and "x".
+ℹ Use `phylo(1 | id, tree = tree)`; a predictor-dependent phylogenetic slope
+  currently requires one unlabelled slope-only coefficient, one matching
+  phylogenetic SD formula, and no additional random effects. 
+phy cbind cloglog ERROR: Binomial `phylo()` `mu` effects currently support only an intercept-only
+q1 term.
+✖ Requested structured coefficients: "(Intercept)" and "x".
+ℹ Use `phylo(1 | id, tree = tree)`; a predictor-dependent phylogenetic slope
+  currently requires one unlabelled slope-only coefficient, one matching
+  phylogenetic SD formula, and no additional random effects. 
+phy cbind cauchit ERROR: drmTMB binomial models support `binomial(link = "logit")`,
+`binomial(link = "probit")`, and `binomial(link = "cloglog")`.
+✖ Received binomial link "cauchit".
+ℹ The binomial-response contract is `link(mu) = X_mu beta_mu`; use
+  `cbind(successes, failures)` for trial denominators. 
+sp 01 logit OK ll -686.316586 conv 0 time 0.6s
+                                                                estimate
+mu:(Intercept)                                                 0.0499019
+mu:x                                                           0.6531777
+sd_spatial(id, dpar = "mu", coef = "(Intercept)"):(Intercept) -0.5620991
+sd_spatial(id, dpar = "mu", coef = "(Intercept)"):z0           0.4037523
+sd_spatial(id, dpar = "mu", coef = "x"):(Intercept)           -0.5739931
+sd_spatial(id, dpar = "mu", coef = "x"):z1                    -0.5898166
+                                                              std_error
+mu:(Intercept)                                                0.1775019
+mu:x                                                          0.2824411
+sd_spatial(id, dpar = "mu", coef = "(Intercept)"):(Intercept) 0.2996034
+sd_spatial(id, dpar = "mu", coef = "(Intercept)"):z0          0.2156600
+sd_spatial(id, dpar = "mu", coef = "x"):(Intercept)           0.3746074
+sd_spatial(id, dpar = "mu", coef = "x"):z1                    0.3697226
+sp 01 probit ERROR: Binomial `spatial()` `mu` effects currently support only an
+intercept-only q1 term.
+✖ Requested structured coefficients: "(Intercept)" and "x".
+ℹ Use `phylo(1 | id, tree = tree)`; a coordinate-spatial slope requires one
+  matching predictor-dependent SD formula and no additional random effects. 
+sp 01 cloglog ERROR: Binomial `spatial()` `mu` effects currently support only an
+intercept-only q1 term.
+✖ Requested structured coefficients: "(Intercept)" and "x".
+ℹ Use `phylo(1 | id, tree = tree)`; a coordinate-spatial slope requires one
+  matching predictor-dependent SD formula and no additional random effects. 
+sp 01 cauchit ERROR: drmTMB binomial models support `binomial(link = "logit")`,
+`binomial(link = "probit")`, and `binomial(link = "cloglog")`.
+✖ Received binomial link "cauchit".
+ℹ The binomial-response contract is `link(mu) = X_mu beta_mu`; use
+  `cbind(successes, failures)` for trial denominators. 
+sp cbind logit ERROR: Binomial structured intercept-slope SD regression requires unweighted
+0/1 Bernoulli responses. 
+sp cbind probit ERROR: Binomial `spatial()` `mu` effects currently support only an
+intercept-only q1 term.
+✖ Requested structured coefficients: "(Intercept)" and "x".
+ℹ Use `phylo(1 | id, tree = tree)`; a coordinate-spatial slope requires one
+  matching predictor-dependent SD formula and no additional random effects. 
+sp cbind cloglog ERROR: Binomial `spatial()` `mu` effects currently support only an
+intercept-only q1 term.
+✖ Requested structured coefficients: "(Intercept)" and "x".
+ℹ Use `phylo(1 | id, tree = tree)`; a coordinate-spatial slope requires one
+  matching predictor-dependent SD formula and no additional random effects. 
+sp cbind cauchit ERROR: drmTMB binomial models support `binomial(link = "logit")`,
+`binomial(link = "probit")`, and `binomial(link = "cloglog")`.
+✖ Received binomial link "cauchit".
+ℹ The binomial-response contract is `link(mu) = X_mu beta_mu`; use
+  `cbind(successes, failures)` for trial denominators. 

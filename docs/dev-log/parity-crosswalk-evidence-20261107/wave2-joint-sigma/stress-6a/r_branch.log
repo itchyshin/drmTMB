@@ -1,0 +1,3 @@
+thetaR: R Laplace from zero start = 2138.858742 (ll -2138.858742)
+thetaJ: R Laplace from zero start = 2141.665677 (ll -2141.665677)
+grad at thetaR (zero-start branch): 1920000 1060000 -2380000 -1630000 954000 -9430000 -1e+07 

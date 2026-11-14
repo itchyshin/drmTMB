@@ -1,0 +1,48 @@
+
+===== nb2 phylo sigma 1+x sd x~zc 
+REFUSAL: NB2 structured SD regression currently supports one animal,
+phylogenetic, related-matrix or spatial location coefficient, or an `animal(1 +
+x | id)` intercept plus one slope with one SD formula per coefficient.
+ℹ Use one q1 `animal()` or `phylo()` location term with a matching structured
+  `sd(group, level = ...)` formula; remove other random, structured, sigma, or
+  zero-inflation terms. 
+
+===== nb2 phylo sigma 1+x sd ~zc (no coef) 
+REFUSAL: NB2 structured SD regression currently supports one animal,
+phylogenetic, related-matrix or spatial location coefficient, or an `animal(1 +
+x | id)` intercept plus one slope with one SD formula per coefficient.
+ℹ Use one q1 `animal()` or `phylo()` location term with a matching structured
+  `sd(group, level = ...)` formula; remove other random, structured, sigma, or
+  zero-inflation terms. 
+
+===== nb2 phylo sigma 1+x sd int ~1 
+REFUSAL: NB2 structured SD regression currently supports one animal,
+phylogenetic, related-matrix or spatial location coefficient, or an `animal(1 +
+x | id)` intercept plus one slope with one SD formula per coefficient.
+ℹ Use one q1 `animal()` or `phylo()` location term with a matching structured
+  `sd(group, level = ...)` formula; remove other random, structured, sigma, or
+  zero-inflation terms. 
+
+===== nb2 phylo sigma 0+x 
+REFUSAL: NB2 structured `sigma` effects currently support only unlabelled
+intercept-plus-one-slope structured terms.
+✖ Requested structured coefficient: "x".
+ℹ Use `phylo(1 + x | species, tree = tree)` for this count structured-scale
+  gate; multiple slopes, labelled covariance, q2/q4, and structured count
+  location-scale blocks remain planned. 
+
+===== nb2 phylo sigma 1 nosd 
+REFUSAL: NB2 structured `sigma` effects currently support only unlabelled
+intercept-plus-one-slope structured terms.
+✖ Requested structured coefficient: "(Intercept)".
+ℹ Use `phylo(1 + x | species, tree = tree)` for this count structured-scale
+  gate; multiple slopes, labelled covariance, q2/q4, and structured count
+  location-scale blocks remain planned. 
+
+===== nb2 mu phylo + sigma ordinary 
+REFUSAL: NB2 `sigma` random intercepts cannot be combined with `mu` random
+effects in this first gate.
+✖ The formula contains a `sigma` random effect plus an ordinary or structured
+  `mu` random effect.
+ℹ Fit the NB2 mean random-effect model or the NB2 overdispersion
+  random-intercept model separately until joint recovery tests exist. 

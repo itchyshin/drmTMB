@@ -1,0 +1,20 @@
+10:10:11 start engine=julia workers=10 cells=450 chunks=18
+10:10:17 chunk done lognormal__spatial__ML
+10:10:17 chunk done lognormal__spatial__REML
+10:10:21 chunk done beta__spatial__REML
+10:10:23 chunk done beta__spatial__ML
+10:10:23 chunk done binomial__spatial__REML
+10:10:23 chunk done gamma__spatial__REML
+10:10:23 chunk done nb2__spatial__REML
+10:10:29 chunk done student__spatial__ML
+10:10:29 chunk done tweedie__spatial__REML
+10:10:31 chunk done tweedie__spatial__ML
+10:10:31 chunk done student__spatial__REML
+10:10:31 chunk done poisson__spatial__REML
+10:10:33 chunk done binomial__spatial__ML
+10:10:35 chunk done gamma__spatial__ML
+10:10:35 chunk done nb2__spatial__ML
+10:10:45 chunk done poisson__spatial__ML
+10:11:15 chunk done gaussian__spatial__REML
+10:11:53 chunk done gaussian__spatial__ML
+10:11:53 all done

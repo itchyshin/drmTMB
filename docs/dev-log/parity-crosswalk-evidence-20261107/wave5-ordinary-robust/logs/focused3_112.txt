@@ -1,0 +1,7 @@
+ERROR: LoadError: Some tests did not pass: 75 passed, 3 failed, 0 errored, 0 broken.
+phylo NegBinomial2: Test Failed at /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/wt-robust/test/test_labelled_phylo_spatial_q2_sd.
+   Evaluated: 0.5322688973303137 < 0.45
+spatial Poisson: Test Failed at /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/wt-robust/test/test_labelled_phylo_spatial_q2_sd.jl:
+   Evaluated: 600.9560427969627 ≈ 604.1007032682984 (atol=0.0001)
+spatial Poisson: Test Failed at /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/wt-robust/test/test_labelled_phylo_spatial_q2_sd.jl:
+   Evaluated: 0.499998980596587 < 0.45

@@ -1,0 +1,17 @@
+θJ engine-from-0 ll=-2141.665677 ok=true | oracle-from-0 ll=-2141.665676
+θR engine-from-0 ll=NaN ok=false | oracle-from-0 ll=-2157.986584
+at θJ start=o_R  oracle ll=-2157.335259 (g 3.3e-06 eig 2.46e+00) engine ll=-2157.335258 ok=true
+at θJ start=e_R  oracle ll=-2141.665677 (g 4.9e-14 eig 1.57e+00) engine ll=-2141.665677 ok=true
+at θJ start=o_J  oracle ll=-2141.665676 (g 4.6e-07 eig 1.57e+00) engine ll=-2141.665677 ok=true
+at θJ start=e_J  oracle ll=-2141.665677 (g 4.9e-14 eig 1.57e+00) engine ll=-2141.665677 ok=true
+at θR start=o_R  oracle ll=-2157.986584 (g 1.2e-13 eig 2.66e+00) engine ll=-2157.986584 ok=true
+at θR start=e_R  oracle ll=-2157.986584 (g 1.2e-13 eig 2.66e+00) engine ll=-2157.986584 ok=true
+at θR start=o_J  oracle ll=-2157.986584 (g 1.2e-13 eig 2.66e+00) engine ll=-2157.986584 ok=false
+at θR start=e_J  oracle ll=-2157.986584 (g 1.2e-13 eig 2.66e+00) engine ll=-2157.986584 ok=false
+mode diff at θJ: max|Δa|=0.000 (n>0.1: 0)  max|Δb|=0.000 (n>0.1: 0)
+b range modeA [-1.878, 1.079]  modeB [-1.878, 1.079]
+  site 199: bA=-1.221 bB=-1.221  sd_b=0.502
+  site 3: bA=-0.019 bB=-0.019  sd_b=0.220
+  site 191: bA=-0.291 bB=-0.291  sd_b=0.485
+  site 198: bA=0.664 bB=0.664  sd_b=0.500
+  site 1: bA=-0.125 bB=-0.125  sd_b=0.218

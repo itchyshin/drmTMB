@@ -1,0 +1,25 @@
+phy labelled OK ll -640.1752 
+                                                              estimate
+mu:(Intercept)                                               0.4483831
+mu:x                                                         0.7387939
+sd_phylo(id, dpar = "mu", coef = "(Intercept)"):(Intercept) -0.4819422
+sd_phylo(id, dpar = "mu", coef = "(Intercept)"):z0           0.4074383
+sd_phylo(id, dpar = "mu", coef = "x"):(Intercept)           -3.3299692
+sd_phylo(id, dpar = "mu", coef = "x"):z1                     2.7492050
+                                                            std_error
+mu:(Intercept)                                              0.1582709
+mu:x                                                        0.1041726
+sd_phylo(id, dpar = "mu", coef = "(Intercept)"):(Intercept) 0.1724570
+sd_phylo(id, dpar = "mu", coef = "(Intercept)"):z0          0.1587496
+sd_phylo(id, dpar = "mu", coef = "x"):(Intercept)           2.0327537
+sd_phylo(id, dpar = "mu", coef = "x"):z1                    2.4772335
+phy cbind1 ERROR: Binomial structured intercept-slope SD regression requires unweighted
+0/1 Bernoulli responses. 
+phy q1 OK ll -641.2937 
+sp labelled ERROR: Binomial `spatial()` `mu` effects currently support only an unlabelled
+q1 intercept.
+✖ Requested labelled structured term: `spatial(1 + x | p | id)`.
+ℹ Use `phylo(1 | id, tree = tree)`; labelled covariance blocks remain deferred. 
+sp cbind1 ERROR: Binomial structured intercept-slope SD regression requires unweighted
+0/1 Bernoulli responses. 
+sp q1 OK ll -692.5609 

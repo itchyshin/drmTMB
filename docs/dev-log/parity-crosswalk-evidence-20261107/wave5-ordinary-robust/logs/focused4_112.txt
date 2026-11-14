@@ -1,0 +1,10 @@
+>>> test_poisson_animal_intercept_slope_sd.jl done in 67.3 s
+>>> test_poisson_relmat_intercept_slope_sd.jl done in 6.2 s
+>>> test_labelled_ordinary_q2_sd.jl done in 35.7 s
+>>> test_labelled_rho_q2_sd.jl done in 64.7 s
+>>> test_nb2_spatial_slope_sd_regression.jl done in 10.7 s
+>>> test_spatial_coord_poisson.jl done in 11.6 s
+>>> test_lss_group.jl done in 18.7 s
+>>> test_poisson_spatial_q2_second_start.jl done in 2.9 s
+>>> test_gaussian_ordinary_q2_linesearch.jl done in 13.0 s
+>>> test_skewnormal.jl done in 8.1 s

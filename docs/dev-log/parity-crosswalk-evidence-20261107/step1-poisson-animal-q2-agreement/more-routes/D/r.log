@@ -1,0 +1,586 @@
+R time 0.207006 secs 
+<summary.drmTMB>
+estimator: ML
+                                                                estimate
+mu:(Intercept)                                                0.05099079
+mu:x                                                          0.30908878
+sigma:(Intercept)                                            -0.91819476
+sd_relmat(id, dpar = "mu", coef = "(Intercept)"):(Intercept) -0.95860539
+sd_relmat(id, dpar = "mu", coef = "(Intercept)"):z0           0.51019025
+sd_relmat(id, dpar = "mu", coef = "x"):(Intercept)           -1.29144634
+sd_relmat(id, dpar = "mu", coef = "x"):z1                     0.40346389
+                                                              std_error
+mu:(Intercept)                                               0.08230541
+mu:x                                                         0.07841981
+sigma:(Intercept)                                            0.04084037
+sd_relmat(id, dpar = "mu", coef = "(Intercept)"):(Intercept) 0.16376010
+sd_relmat(id, dpar = "mu", coef = "(Intercept)"):z0          0.16594314
+sd_relmat(id, dpar = "mu", coef = "x"):(Intercept)           0.16784038
+sd_relmat(id, dpar = "mu", coef = "x"):z1                    0.30628958
+Distributional, random-effect, scale, and correlation parameters:
+                                                                                                                          component
+sigma                                                                                                          distributional-scale
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_26         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_11         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_10         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_13         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_30         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_25         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_29         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_12         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_23         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_7          random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_24         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_15         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_21         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_2          random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_27         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_18         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_5          random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_22         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_19         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_9          random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_3          random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_20         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_16         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_6          random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_8          random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_28         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_14         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_17         random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_1          random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_4          random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_26                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_11                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_10                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_13                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_30                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_25                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_29                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_12                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_23                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_7                              random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_24                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_15                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_21                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_2                              random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_27                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_18                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_5                              random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_22                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_19                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_9                              random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_3                              random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_20                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_16                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_6                              random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_8                              random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_28                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_14                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_17                             random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_1                              random-effect-sd
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_4                              random-effect-sd
+sd:mu:relmat(0 + x | id)                                                                                           random-effect-sd
+fitted:sd_relmat(id, dpar = "mu", coef = "(Intercept)")                                                    distributional-parameter
+fitted:sd_relmat(id, dpar = "mu", coef = "x")                                                              distributional-parameter
+                                                                                                                                                       dpar
+sigma                                                                                                                                                 sigma
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_26 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_11 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_10 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_13 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_30 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_25 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_29 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_12 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_23 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_7  sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_24 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_15 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_21 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_2  sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_27 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_18 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_5  sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_22 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_19 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_9  sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_3  sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_20 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_16 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_6  sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_8  sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_28 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_14 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_17 sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_1  sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_4  sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_26                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_11                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_10                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_13                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_30                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_25                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_29                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_12                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_23                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_7                                sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_24                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_15                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_21                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_2                                sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_27                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_18                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_5                                sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_22                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_19                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_9                                sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_3                                sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_20                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_16                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_6                                sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_8                                sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_28                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_14                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_17                               sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_1                                sd_relmat(id, dpar = "mu", coef = "x")
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_4                                sd_relmat(id, dpar = "mu", coef = "x")
+sd:mu:relmat(0 + x | id)                                                                                                                                 mu
+fitted:sd_relmat(id, dpar = "mu", coef = "(Intercept)")                                                    sd_relmat(id, dpar = "mu", coef = "(Intercept)")
+fitted:sd_relmat(id, dpar = "mu", coef = "x")                                                                        sd_relmat(id, dpar = "mu", coef = "x")
+                                                                                                                                                             term
+sigma                                                                                                                                                  (constant)
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_26 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_26
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_11 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_11
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_10 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_10
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_13 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_13
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_30 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_30
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_25 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_25
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_29 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_29
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_12 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_12
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_23 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_23
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_7   sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_7
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_24 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_24
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_15 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_15
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_21 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_21
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_2   sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_2
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_27 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_27
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_18 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_18
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_5   sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_5
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_22 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_22
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_19 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_19
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_9   sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_9
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_3   sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_3
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_20 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_20
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_16 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_16
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_6   sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_6
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_8   sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_8
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_28 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_28
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_14 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_14
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_17 sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_17
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_1   sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_1
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_4   sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_4
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_26                               sd_relmat(id, dpar = "mu", coef = "x"):id_26
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_11                               sd_relmat(id, dpar = "mu", coef = "x"):id_11
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_10                               sd_relmat(id, dpar = "mu", coef = "x"):id_10
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_13                               sd_relmat(id, dpar = "mu", coef = "x"):id_13
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_30                               sd_relmat(id, dpar = "mu", coef = "x"):id_30
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_25                               sd_relmat(id, dpar = "mu", coef = "x"):id_25
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_29                               sd_relmat(id, dpar = "mu", coef = "x"):id_29
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_12                               sd_relmat(id, dpar = "mu", coef = "x"):id_12
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_23                               sd_relmat(id, dpar = "mu", coef = "x"):id_23
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_7                                 sd_relmat(id, dpar = "mu", coef = "x"):id_7
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_24                               sd_relmat(id, dpar = "mu", coef = "x"):id_24
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_15                               sd_relmat(id, dpar = "mu", coef = "x"):id_15
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_21                               sd_relmat(id, dpar = "mu", coef = "x"):id_21
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_2                                 sd_relmat(id, dpar = "mu", coef = "x"):id_2
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_27                               sd_relmat(id, dpar = "mu", coef = "x"):id_27
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_18                               sd_relmat(id, dpar = "mu", coef = "x"):id_18
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_5                                 sd_relmat(id, dpar = "mu", coef = "x"):id_5
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_22                               sd_relmat(id, dpar = "mu", coef = "x"):id_22
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_19                               sd_relmat(id, dpar = "mu", coef = "x"):id_19
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_9                                 sd_relmat(id, dpar = "mu", coef = "x"):id_9
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_3                                 sd_relmat(id, dpar = "mu", coef = "x"):id_3
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_20                               sd_relmat(id, dpar = "mu", coef = "x"):id_20
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_16                               sd_relmat(id, dpar = "mu", coef = "x"):id_16
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_6                                 sd_relmat(id, dpar = "mu", coef = "x"):id_6
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_8                                 sd_relmat(id, dpar = "mu", coef = "x"):id_8
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_28                               sd_relmat(id, dpar = "mu", coef = "x"):id_28
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_14                               sd_relmat(id, dpar = "mu", coef = "x"):id_14
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_17                               sd_relmat(id, dpar = "mu", coef = "x"):id_17
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_1                                 sd_relmat(id, dpar = "mu", coef = "x"):id_1
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_4                                 sd_relmat(id, dpar = "mu", coef = "x"):id_4
+sd:mu:relmat(0 + x | id)                                                                                                                       relmat(0 + x | id)
+fitted:sd_relmat(id, dpar = "mu", coef = "(Intercept)")                                                                                              fitted range
+fitted:sd_relmat(id, dpar = "mu", coef = "x")                                                                                                        fitted range
+                                                                                                            estimate
+sigma                                                                                                      0.3992391
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_26 0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_11 0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_10 0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_13 0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_30 0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_25 0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_29 0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_12 0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_23 0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_7  0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_24 0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_15 0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_21 0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_2  0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_27 0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_18 0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_5  0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_22 0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_19 0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_9  0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_3  0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_20 0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_16 0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_6  0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_8  0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_28 0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_14 0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_17 0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_1  0.2302026
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_4  0.6386395
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_26                     0.1836157
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_11                     0.3681434
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_10                     0.3203285
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_13                     0.3029891
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_30                     0.2636365
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_25                     0.4001933
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_29                     0.2052329
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_12                     0.2293951
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_23                     0.3482157
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_7                      0.1941236
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_24                     0.2946746
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_15                     0.2865883
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_21                     0.2358677
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_2                      0.2564019
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_27                     0.3785308
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_18                     0.1887966
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_5                      0.2710752
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_22                     0.2110237
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_19                     0.1996010
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_9                      0.2493659
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_3                      0.2231001
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_20                     0.3580409
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_16                     0.3892114
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_6                      0.2169779
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_8                      0.3386602
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_28                     0.2787238
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_14                     0.2425229
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_17                     0.3293668
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_1                      0.3115382
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_4                      0.4114851
+sd:mu:relmat(0 + x | id)                                                                                   0.2078214
+fitted:sd_relmat(id, dpar = "mu", coef = "(Intercept)")                                                    0.4344210
+fitted:sd_relmat(id, dpar = "mu", coef = "x")                                                              0.2829142
+                                                                                                            std_error
+sigma                                                                                                      0.01630507
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_26         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_11         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_10         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_13         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_30         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_25         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_29         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_12         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_23         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_7          NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_24         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_15         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_21         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_2          NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_27         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_18         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_5          NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_22         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_19         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_9          NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_3          NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_20         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_16         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_6          NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_8          NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_28         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_14         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_17         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_1          NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_4          NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_26                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_11                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_10                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_13                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_30                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_25                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_29                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_12                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_23                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_7                              NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_24                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_15                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_21                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_2                              NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_27                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_18                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_5                              NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_22                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_19                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_9                              NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_3                              NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_20                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_16                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_6                              NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_8                              NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_28                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_14                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_17                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_1                              NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_4                              NA
+sd:mu:relmat(0 + x | id)                                                                                           NA
+fitted:sd_relmat(id, dpar = "mu", coef = "(Intercept)")                                                            NA
+fitted:sd_relmat(id, dpar = "mu", coef = "x")                                                                      NA
+                                                                                                             minimum
+sigma                                                                                                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_26        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_11        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_10        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_13        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_30        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_25        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_29        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_12        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_23        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_7         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_24        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_15        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_21        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_2         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_27        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_18        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_5         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_22        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_19        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_9         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_3         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_20        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_16        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_6         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_8         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_28        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_14        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_17        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_1         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_4         NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_26                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_11                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_10                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_13                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_30                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_25                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_29                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_12                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_23                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_7                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_24                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_15                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_21                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_2                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_27                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_18                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_5                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_22                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_19                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_9                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_3                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_20                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_16                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_6                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_8                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_28                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_14                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_17                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_1                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_4                             NA
+sd:mu:relmat(0 + x | id)                                                                                          NA
+fitted:sd_relmat(id, dpar = "mu", coef = "(Intercept)")                                                    0.2302026
+fitted:sd_relmat(id, dpar = "mu", coef = "x")                                                              0.1836157
+                                                                                                             maximum
+sigma                                                                                                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_26        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_11        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_10        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_13        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_30        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_25        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_29        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_12        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_23        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_7         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_24        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_15        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_21        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_2         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_27        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_18        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_5         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_22        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_19        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_9         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_3         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_20        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_16        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_6         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_8         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_28        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_14        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_17        NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_1         NA
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_4         NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_26                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_11                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_10                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_13                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_30                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_25                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_29                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_12                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_23                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_7                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_24                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_15                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_21                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_2                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_27                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_18                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_5                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_22                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_19                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_9                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_3                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_20                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_16                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_6                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_8                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_28                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_14                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_17                            NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_1                             NA
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_4                             NA
+sd:mu:relmat(0 + x | id)                                                                                          NA
+fitted:sd_relmat(id, dpar = "mu", coef = "(Intercept)")                                                    0.6386395
+fitted:sd_relmat(id, dpar = "mu", coef = "x")                                                              0.4114851
+                                                                                                              scale
+sigma                                                                                                      response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_26 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_11 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_10 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_13 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_30 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_25 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_29 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_12 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_23 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_7  response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_24 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_15 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_21 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_2  response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_27 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_18 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_5  response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_22 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_19 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_9  response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_3  response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_20 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_16 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_6  response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_8  response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_28 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_14 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_17 response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_1  response
+sd:sd_relmat(id, dpar = "mu", coef = "(Intercept)"):sd_relmat(id, dpar = "mu", coef = "(Intercept)"):id_4  response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_26                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_11                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_10                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_13                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_30                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_25                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_29                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_12                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_23                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_7                      response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_24                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_15                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_21                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_2                      response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_27                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_18                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_5                      response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_22                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_19                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_9                      response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_3                      response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_20                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_16                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_6                      response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_8                      response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_28                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_14                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_17                     response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_1                      response
+sd:sd_relmat(id, dpar = "mu", coef = "x"):sd_relmat(id, dpar = "mu", coef = "x"):id_4                      response
+sd:mu:relmat(0 + x | id)                                                                                   response
+fitted:sd_relmat(id, dpar = "mu", coef = "(Intercept)")                                                    response
+fitted:sd_relmat(id, dpar = "mu", coef = "x")                                                              response
+logLik: -246.6
+convergence_status: converged
+convergence: 0
+                                                                estimate
+mu:(Intercept)                                                0.05099079
+mu:x                                                          0.30908878
+sigma:(Intercept)                                            -0.91819476
+sd_relmat(id, dpar = "mu", coef = "(Intercept)"):(Intercept) -0.95860539
+sd_relmat(id, dpar = "mu", coef = "(Intercept)"):z0           0.51019025
+sd_relmat(id, dpar = "mu", coef = "x"):(Intercept)           -1.29144634
+sd_relmat(id, dpar = "mu", coef = "x"):z1                     0.40346389
+                                                              std_error
+mu:(Intercept)                                               0.08230541
+mu:x                                                         0.07841981
+sigma:(Intercept)                                            0.04084037
+sd_relmat(id, dpar = "mu", coef = "(Intercept)"):(Intercept) 0.16376010
+sd_relmat(id, dpar = "mu", coef = "(Intercept)"):z0          0.16594314
+sd_relmat(id, dpar = "mu", coef = "x"):(Intercept)           0.16784038
+sd_relmat(id, dpar = "mu", coef = "x"):z1                    0.30628958
+List of 4
+ $ mu                                              : Named num [1:2] 0.051 0.309
+  ..- attr(*, "names")= chr [1:2] "(Intercept)" "x"
+ $ sigma                                           : Named num -0.918
+  ..- attr(*, "names")= chr "(Intercept)"
+ $ sd_relmat(id, dpar = "mu", coef = "(Intercept)"): Named num [1:2] -0.959 0.51
+  ..- attr(*, "names")= chr [1:2] "(Intercept)" "z0"
+ $ sd_relmat(id, dpar = "mu", coef = "x")          : Named num [1:2] -1.291 0.403
+  ..- attr(*, "names")= chr [1:2] "(Intercept)" "z1"
+         block term        est        se      r_est      r_se         diff
+1           mu    1  0.0509908 0.0823054  0.0509908 0.0823054  2.45448e-11
+2           mu    2  0.3090888 0.0784198  0.3090888 0.0784198 -4.85284e-12
+3        sigma    1 -0.9181948 0.0408404 -0.9181948 0.0408404 -1.22162e-11
+4 sd_intercept    1 -0.9586054 0.1637601 -0.9586054 0.1637601 -3.61329e-11
+5 sd_intercept    2  0.5101903 0.1659431  0.5101903 0.1659431  1.10001e-12
+6         sd_x    1 -1.2914463 0.1678404 -1.2914463 0.1678404  2.44129e-11
+7         sd_x    2  0.4034639 0.3062895  0.4034639 0.3062896  1.38599e-10
+    diff_in_se se_ratio
+1  2.98216e-10        1
+2 -6.18828e-11        1
+3 -2.99121e-10        1
+4 -2.20645e-10        1
+5  6.62883e-12        1
+6  1.45453e-10        1
+7  4.52510e-10        1
+ROUTE D max|diff| est 1.386e-10 (SE units 4.525e-10); max |se ratio-1| 3.308e-07
+ll Julia -246.60448411003904 R -246.60448411 diff 6.82e-12; R conv: 0; Julia converged: true

@@ -1,0 +1,52 @@
+rank	cells_unlocked	julia_mode	families	kinds	q	est	julia_signature	example_cell
+1	16	refuses	poisson:4,gaussian:4,beta:2,gamma:2,binomial:2,nb2:2	spatial:8,relmat:8	2:16	ML:14,REML:2	drm: `T` is not implemented on the univariate routes; only the intercept form is admitted on this route	beta|spatial|lab0|q2|sd-none|cm0|ML
+2	15	refuses	gaussian:15	crossed:7,indep:3,animal:1,relmat:1,spatial:1,phylo:1,slope:1	1:5,2:4,3:3,4:3	REML:15	drm: method = :REML is not implemented for this model on the generic univariate Gaussian route (random slopes, a random effect on sigma, a structured mean marker — phylo/	gaussian|crossed|lab0|q2|sd-none|cm0|REML
+3	12	refuses	gaussian:12	indep:8,crossed:4	2:8,3:2,4:2	ML:12	drm: sd() supports random INTERCEPT terms only.	gaussian|indep|lab0|q2|sd-first|cm0|ML
+4	10	refuses	beta:10	relmat:4,spatial:4,phylo:2	1:4,2:6	ML:10	Beta `T` accepts no `T`, `T`, or `T` input on this route.	beta|phylo|lab0|q2|sd-one|cm0|ML
+5	10	refuses	gaussian:10	ordinary:7,crossed:3	1:1,2:3,3:3,4:3	ML:6,REML:4	unsupported random-effect term: `T`	gaussian|crossed|lab1|q2|sd-none|cm0|ML
+6	8	refuses	gaussian:6,binomial:2	ordinary:6,crossed:2	3:4,4:4	ML:6,REML:2	DRModels.jl supports `T`, `T`, `T`	gaussian|crossed|lab0|q3|sd-none|cm0|ML
+7	7	refuses	poisson:2,gaussian:2,beta:1,gamma:1,nb2:1	animal:7	2:7	ML:6,REML:1	drm: `T` is not implemented on the univariate routes; only the intercept form is generally available, and a slope-only or independent intercept-and-slope animal term is a	beta|animal|lab0|q2|sd-none|cm0|ML
+8	7	crashes	binomial:7	animal:7	1:3,2:4	ML:7	MethodError: no method matching keyword call _drm_binomial_fit with keywords (kw)	binomial|animal|lab0|q1|sd-none|cm0|ML
+9	6	refuses	poisson:6	indep:4,crossed:2	1:2,2:2,3:1,4:1	ML:6	Poisson random-effect SD regression requires exactly one SD target.	poisson|indep|lab0|q2|sd-z|cm0|ML
+10	6	refuses	gamma:6	phylo:4,spatial:2	2:6	ML:6	Gamma structured SD regression requires exactly one random-effect SD formula.	gamma|phylo|lab0|q2|sd-z|cm0|ML
+11	6	refuses	gaussian:6	animal:2,relmat:2,spatial:2	1:6	REML:6	drm: Gaussian structured intercept SD regression supports maximum likelihood only.	gaussian|animal|lab0|q1|sd-one|cm0|REML
+12	5	refuses	beta:1,gamma:1,nb2:1,poisson:1,binomial:1	phylo:5	2:5	ML:5	drm: `T` is not implemented on this route — only `T` (intercept) is here. The two-SD phylogenetic random intercept + slope `T` is implemented for the Gaussian mean only (	beta|phylo|lab0|q2|sd-none|cm0|ML
+13	4	nonconverged	gamma:2,poisson:1,binomial:1	indep:1,spatial:1,phylo:1,ordinary:1	1:2,2:1,3:1	ML:4		gamma|indep|lab0|q2|sd-none|cm0|ML
+14	4	refuses	poisson:4	indep:4	2:2,3:1,4:1	ML:4	Poisson `T` currently requires exactly one ordinary independent random effect.	poisson|indep|lab0|q2|sd-first|cm0|ML
+15	4	refuses	nb2:4	indep:4	2:2,3:1,4:1	ML:4	NegBinomialN `T` currently requires exactly one ordinary random intercept or one independent slope.	nb2|indep|lab0|q2|sd-first|cm0|ML
+16	4	refuses	binomial:4	indep:4	2:2,3:1,4:1	ML:4	Binomial SD regression requires one SD formula for each independent random-effect coefficient.	binomial|indep|lab0|q2|sd-first|cm0|ML
+17	4	refuses	tweedie:4	phylo:3,relmat:1	1:4	ML:4	Tweedie structured covariance inputs (`T`, `T`, `T`, `T`) are only used by supported structured SD routes; this formula has no random-effect SD target.	tweedie|phylo|lab0|q1|sd-z|cm0|ML
+18	4	refuses	lognormal:4	crossed:2,ordinary:2	1:2,2:2	ML:4	LogNormal SD regression currently requires one ordinary mean-effect `T` formula.	lognormal|crossed|lab0|q1|sd-one|cm0|ML
+19	3	refuses	poisson:3	indep:3	2:1,3:1,4:1	ML:3	Poisson() supports multiple random effects only as crossed/nested intercepts, e.g. `T`	poisson|indep|lab0|q2|sd-none|cm0|ML
+20	3	refuses	nb2:3	indep:3	2:1,3:1,4:1	ML:3	NegBinomialN() supports multiple random effects only as crossed/nested intercepts, e.g. `T`	nb2|indep|lab0|q2|sd-none|cm0|ML
+21	3	refuses	binomial:3	indep:3	2:1,3:1,4:1	ML:3	Binomial() supports multiple random effects only as crossed/nested intercepts, e.g. `T`	binomial|indep|lab0|q2|sd-none|cm0|ML
+22	3	refuses	beta:3	indep:3	2:1,3:1,4:1	ML:3	Beta() supports multiple random effects only as crossed/nested intercepts, e.g. `T`	beta|indep|lab0|q2|sd-none|cm0|ML
+23	3	refuses	lognormal:3	indep:3	2:1,3:1,4:1	ML:3	LogNormal() supports multiple random effects only as crossed/nested intercepts, e.g. `T`	lognormal|indep|lab0|q2|sd-none|cm0|ML
+24	3	refuses	tweedie:3	indep:3	2:1,3:1,4:1	ML:3	Tweedie() supports multiple random effects only as crossed/nested intercepts, e.g. `T`	tweedie|indep|lab0|q2|sd-none|cm0|ML
+25	2	refuses	beta:1,nb2:1	spatial:2	1:2	ML:2	spatial(N | g) for counts needs either a precomputed spatial covariance via `T`, or site `T` (a G×N coordinate matrix) for coordinate-based exponential-kernel covariance	beta|spatial|lab0|q1|sd-none|cm0|ML
+26	2	refuses	binomial:2	spatial:1,relmat:1	1:2	ML:2	Binomial() currently supports only phylo(N | group) among structured markers	binomial|spatial|lab0|q1|sd-none|cm0|ML
+27	2	refuses	beta:2	phylo:2	1:2	ML:2	drm: random-effect `T` formulas are currently supported for Gaussian LSS models and narrow ordinary IID routes in Binomial, Poisson, NegBinomialN, and Gamma (got Beta).	beta|phylo|lab0|q1|sd-z|cm0|ML
+28	2	crashes	student:2	spatial:2	1:1,2:1	ML:2	MethodError: no method matching keyword call _drm_student_fit with keywords (kw)	student|spatial|lab0|q2|sd-none|cm0|ML
+29	2	refuses	beta:2	animal:2	2:2	ML:2	Beta random-effect SD regression requires exactly one `T` formula.	beta|animal|lab0|q2|sd-one|cm0|ML
+30	2	refuses	gamma:2	indep:2	2:2	ML:2	Gamma `T` currently requires exactly one ordinary independent random effect.	gamma|indep|lab0|q2|sd-first|cm0|ML
+31	2	refuses	lognormal:2	ordinary:2	2:2	ML:2	LogNormal `T` supports `T` or one independent numeric `T` term; correlated blocks are not implemented on this route.	lognormal|ordinary|lab0|q2|sd-first|cm0|ML
+32	2	refuses	nb2:2	indep:2	3:1,4:1	ML:2	NegBinomialN random-effect SD regression requires exactly one `T` formula.	nb2|indep|lab0|q3|sd-z|cm0|ML
+33	2	refuses	nb2:2	phylo:2	1:2	ML:2	NegBinomialN `T` supports ordinary effects, an animal intercept with `T` or `T`, a relmat intercept with `T`, or a coordinate `T` slope with `T`; other structured covaria	nb2|phylo|lab0|q1|sd-z|cm0|ML
+34	2	refuses	nb2:2	spatial:2	1:2	ML:2	NegBinomialN spatial SD regression supports only the slope-only `T` term with `T`.	nb2|spatial|lab0|q1|sd-one|cm0|ML
+35	2	refuses	poisson:1,nb2:1	phylo:2	2:2	ML:2	drm: `T` is not implemented on the univariate routes — only `T` (intercept) is, plus the one-slope `T` on the Gaussian mean (#N); slope-only `T` and multi-slope forms are	poisson|phylo|lab1|q2|sd-none|cm0|ML
+36	2	refuses	poisson:2	spatial:2	1:2	ML:2	Poisson SD regression currently targets one ordinary mean random-effect coefficient.	poisson|spatial|lab0|q1|sd-one|cm0|ML
+37	2	refuses	binomial:2	relmat:2	2:2	ML:2	Binomial relmat SD regression currently requires exactly one `T` formula.	binomial|relmat|lab0|q2|sd-one|cm0|ML
+38	2	refuses	nb2:2	ordinary:2	2:2	ML:2	NegBinomialN `T` supports `T` or one independent numeric slope `T`; correlated blocks are not implemented on this route.	nb2|ordinary|lab0|q2|sd-first|cm0|ML
+39	2	refuses	poisson:2	ordinary:2	2:2	ML:2	Poisson `T` SD regression needs one SD formula for the intercept and one for the slope (`T` and `T`).	poisson|ordinary|lab0|q2|sd-first|cm0|ML
+40	2	refuses	binomial:2	phylo:2	2:2	ML:2	Binomial `T` SD regression: the labelled correlated form `T` is not supported (native drmTMB N does not fit it for Binomial either); use the unlabelled independent-field	binomial|phylo|lab1|q2|sd-one|cm0|ML
+41	2	refuses	binomial:2	slope:1,ordinary:1	1:2	REML:2	drm (Binomial): unknown `T`. Binomial is ML-only; for the integrator use `T` (the documented default integrator for this route), `T` (TMB-convention Laplace, ordinary `T`	binomial|slope|lab0|q1|sd-none|cm0|REML
+42	2	refuses	student:2	crossed:2	1:2	ML:2	Student random-effect SD regression currently requires exactly one `T` formula.	student|crossed|lab0|q1|sd-one|cm0|ML
+43	2	timeout	tweedie:1,binomial:1	relmat:1,ordinary:1	1:1,4:1	ML:2		tweedie|relmat|lab0|q1|sd-z|cm0|ML
+44	1	refuses	gaussian:1	crossed:1	2:1	ML:1	a correlated `T` block must be the only random-effect term	gaussian|crossed|lab0|q2|sd-none|cm0|ML
+45	1	refuses	binomial:1	slope:1	1:1	ML:1	Binomial() supports `T` or `T` on the mean	binomial|slope|lab0|q1|sd-none|cm0|ML
+46	1	refuses	beta:1	slope:1	1:1	ML:1	Beta() supports `T` or `T` on the mean, not `T`	beta|slope|lab0|q1|sd-none|cm0|ML
+47	1	refuses	nb2:1	slope:1	1:1	ML:1	NegBinomialN() supports (N|g) or (N+x|g) on the mean	nb2|slope|lab0|q1|sd-none|cm0|ML
+48	1	refuses	poisson:1	slope:1	1:1	ML:1	Poisson() supports `T` or `T` random effects on the mean	poisson|slope|lab0|q1|sd-none|cm0|ML
+49	1	refuses	student:1	slope:1	1:1	ML:1	Student() supports `T` or `T` random effects on the mean	student|slope|lab0|q1|sd-none|cm0|ML
+50	1	refuses	gamma:1	slope:1	1:1	ML:1	Gamma() supports `T` or `T` on the mean	gamma|slope|lab0|q1|sd-none|cm0|ML
+51	1	refuses	gaussian:1	ordinary:1	1:1	ML:1	drm: sd() submodels cannot be combined with a random effect on `T`.	gaussian|ordinary|lab0|q1|sd-z|cm1|ML

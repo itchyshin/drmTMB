@@ -1,0 +1,18 @@
+nb2_crossed: par beta_mu beta_mu beta_sigma beta_sd_mu beta_sd_mu beta_sd_sigma beta_sd_sigma
+nb2_same: par beta_mu beta_mu beta_sigma beta_sd_mu beta_sd_mu beta_sd_sigma beta_sd_sigma
+gamma_crossed: par beta_mu beta_mu beta_sigma beta_sd_mu beta_sd_mu beta_sd_sigma beta_sd_sigma
+gamma_same: par beta_mu beta_mu beta_sigma beta_sd_mu beta_sd_mu beta_sd_sigma beta_sd_sigma
+gaussian_same: par beta_mu beta_mu beta_sigma beta_sd_mu beta_sd_mu beta_sd_sigma beta_sd_sigma
+          case n_par r_conv max_abs_diff max_diff_in_se max_se_rel_diff
+   nb2_crossed     7      0 5.013826e-08   8.984577e-08    3.960379e-07
+      nb2_same     7      0 1.044876e-07   1.735916e-07    4.395332e-07
+ gamma_crossed     7      0 3.661450e-01   1.928905e+00    2.655972e-01
+    gamma_same     7      0 2.957856e-12   9.007383e-12    1.762944e-06
+ gaussian_same     7      0 1.480815e-10   3.558667e-10    1.896474e-06
+         r_loglik         j_loglik loglik_diff
+ -1110.7409394814 -1110.7409394814   -9.09e-13
+ -1245.6410793900 -1245.6410793900    7.50e-12
+  -832.5245271528  -832.5085162004    1.60e-02
+  -916.0598285969  -916.0598285968    1.31e-11
+  -522.5933117099  -522.5933117099    3.76e-11
+drmTMB 0.8.1 

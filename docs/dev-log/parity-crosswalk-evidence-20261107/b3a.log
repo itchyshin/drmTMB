@@ -1,0 +1,21 @@
+=== phylo_slope_two_sd
+Test Summary:                                                           | Pass  Total   Time
+Gaussian two-SD phylogenetic random slope phylo(1 + x | species) (#620) |   51     51  32.3s
+=== phylo_slope_refusal
+Test Summary:                                      | Pass  Total   Time
+structured markers refuse non-intercept lhs (#620) |   34     34  33.1s
+Test Summary:                                                | Pass  Total   Time
+regression: bivariate q4 phylo (different syntax) unaffected |    1      1  13.1s
+Test Summary:                                                           | Pass  Total  Time
+regression: (1 | tag | phylo(group)) location-scale coupling unaffected |    1      1  5.9s
+Test Summary:                                                          | Pass  Total  Time
+regression: bivariate lognormal spatial(1|group) delegation unaffected |    1      1  1.6s
+=== gamma_animal_intercept_slope_sd
+Test Summary:                                              | Pass  Total   Time
+Gamma animal independent intercept and slope SD regression |   35     35  39.9s
+=== nb2_animal_sd_regression
+Test Summary:                               | Pass  Total   Time
+NB2 animal location-intercept SD regression |   19     19  17.8s
+Test Summary:                                  | Pass  Total  Time
+NB2 animal SD regression uses the raw A kernel |    9      9  5.8s
+DONE

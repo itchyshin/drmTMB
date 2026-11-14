@@ -1,0 +1,9 @@
+test_phylo_slope_refusal exit=1 secs=53
+test_phylo_spatial_q2_sd exit=0 secs=72
+test_gamma_nb2_twofield_sd exit=0 secs=49
+test_red_team_inputs exit=0 secs=60
+test_binomial_phylo_spatial_q2_sd exit=0 secs=36
+test_gamma_relmat_sd_regression exit=0 secs=31
+test_gamma_phylo_sd_regression exit=0 secs=25
+test_gamma_spatial_sd_regression exit=0 secs=22
+test_phylo_slope_refusal exit=0 secs=78

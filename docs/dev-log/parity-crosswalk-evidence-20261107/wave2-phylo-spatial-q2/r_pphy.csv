@@ -1,0 +1,7 @@
+"","estimate","std_error"
+"mu:(Intercept)",0.287354194350079,0.0769507097606901
+"mu:x",0.383058272828705,0.0575848619525979
+"sd_phylo(id, dpar = ""mu"", coef = ""(Intercept)""):(Intercept)",-1.08681048451541,0.138824224829018
+"sd_phylo(id, dpar = ""mu"", coef = ""(Intercept)""):z0",0.314128557432439,0.135767093197414
+"sd_phylo(id, dpar = ""mu"", coef = ""x""):(Intercept)",-1.89273257611267,0.619846977317498
+"sd_phylo(id, dpar = ""mu"", coef = ""x""):z1",-0.40813352694354,1.0222670235693

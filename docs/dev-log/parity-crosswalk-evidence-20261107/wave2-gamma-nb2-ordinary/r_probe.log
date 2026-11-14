@@ -1,0 +1,16 @@
+nb2 samegroup indep -> OK conv=0 ll=-581.8453 
+nb2 samegroup corr (1+x|id) -> OK conv=0 ll=-581.8369 
+nb2 crossed -> OK conv=0 ll=-580.0608 
+nb2 ord+relmat -> OK conv=0 ll=-579.6889 
+nb2 ord+animal -> OK conv=0 ll=-579.6889 
+nb2 relmat q2 -> OK conv=0 ll=-584.4619 
+nb2 animal q2 labelled -> OK conv=0 ll=-584.4267 
+nb2 relmat q2 labelled -> OK conv=0 ll=-584.4267 
+gamma samegroup indep -> OK conv=0 ll=-395.5320 
+gamma samegroup corr (1+x|id) -> ERROR: Only independent {.fn Gamma} `mu` random intercepts and slopes are
+gamma crossed -> OK conv=0 ll=-363.2199 
+gamma ord+relmat -> OK conv=0 ll=-364.5984 
+gamma ord+animal -> OK conv=0 ll=-364.5984 
+gamma relmat q2 -> OK conv=0 ll=-397.0786 
+gamma animal q2 labelled -> OK conv=0 ll=-396.6609 
+gamma relmat q2 labelled -> OK conv=0 ll=-396.6609 

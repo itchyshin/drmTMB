@@ -1,0 +1,2 @@
+"ll","convergence","pdHess","seconds","msg"
+NA,"error",NA,0.0140459537506104,"Only independent {.fn Gamma} `mu` random intercepts and slopes are implemented in this slice. ✖ Unsupported random-effect term: `(1 + x | g)`. ℹ Use syntax like `bf(y ~ x + (1 | id) + (0 + x | id)  sigma ~ z)`. ℹ Ordinary `lognormal()` also admits one complete-data unlabelled `(1 + x |   id)` block;"

@@ -1,0 +1,5 @@
+nb2_crossed conv=true ll=-1110.7409394814 time=15.6s
+nb2_same conv=true ll=-1245.6410793900 time=0.2s
+gamma_crossed conv=true ll=-832.5085162004 time=5.0s
+gamma_same conv=true ll=-916.0598285968 time=0.1s
+gaussian_same conv=true ll=-522.5933117099 time=9.7s

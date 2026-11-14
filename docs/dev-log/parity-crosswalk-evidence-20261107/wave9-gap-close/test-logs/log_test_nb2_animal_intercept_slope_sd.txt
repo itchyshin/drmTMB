@@ -1,0 +1,6 @@
+┌ Warning: drm: `A` has no labels, so its rows and columns are taken to be the levels of `g` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/input_validation.jl:457
+Test Summary:                                                     | Pass  Total   Time
+NegBinomial2 animal independent intercept and slope SD regression |   11     11  31.8s
+Test Summary:                                                   | Pass  Total   Time
+NB2 animal q2: prediction, optimiser movement, refusals, bridge |   28     28  10.1s

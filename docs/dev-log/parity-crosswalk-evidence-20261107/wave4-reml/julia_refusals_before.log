@@ -1,0 +1,17 @@
+# DRModels.jl at 04581709d (before this change), j_probe_refusals.jl, ML vs REML. Verbatim first lines.
+OK     ML ordinary q2 conv=true ll=-366.9855
+REFUSE REML ordinary q2: ArgumentError: drm: Gaussian correlated-block SD regression supports maximum likelihood only.
+OK     ML ordinary q3 conv=false ll=-362.7919
+REFUSE REML ordinary q3: ArgumentError: drm: Gaussian correlated-block SD regression supports maximum likelihood only.
+OK     ML animal q2 conv=true ll=-367.7267
+REFUSE REML animal q2: ArgumentError: drm: Gaussian `animal(1 + x | g)` SD regression supports maximum likelihood only.
+OK     ML relmat q2 conv=true ll=-367.7267
+REFUSE REML relmat q2: ArgumentError: drm: Gaussian `relmat(1 + x | g)` SD regression supports maximum likelihood only.
+OK     ML joint mu+sigma ordinary conv=true ll=-429.439
+REFUSE REML joint mu+sigma ordinary: ArgumentError: drm: Gaussian `sd(g, sigma)` supports maximum likelihood only (the marginal is a Laplace approximation).
+OK     ML ordinary iid sd(g) conv=true ll=-434.5674
+OK     REML ordinary iid sd(g) conv=true ll=-438.9736
+OK     ML sigma animal intercept conv=true ll=-542.3585
+REFUSE REML sigma animal intercept: ArgumentError: drm: Gaussian `sd(g, sigma)` supports maximum likelihood only (the marginal is a Laplace approximation).
+# phylo / spatial q2 coef-SD refusals (same router; messages from src/gaussian_lss.jl:771 `_drm_gaussian_structured_q2_sd`):
+#   "drm: Gaussian `phylo(1 + x | g)` SD regression supports maximum likelihood only."  (and `spatial(...)`)

@@ -1,0 +1,50 @@
+S	1	lognormal|animal|lab0|q1|sd-none|cm0|ML
+R	1	lognormal|animal|lab0|q1|sd-none|cm0|ML	ERROR	abort:rlang_error	lognormal structured `mu` effects do not admit `animal()` in this route.	lognormal structured `mu` effects do not admit `animal()` in this route. ℹ Use an unlabelled intercept with an admitted structured provider, or remove the structured term.				0.05	
+S	2	lognormal|animal|lab0|q1|sd-one|cm0|ML
+R	2	lognormal|animal|lab0|q1|sd-one|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.02	
+S	3	lognormal|animal|lab0|q1|sd-z|cm0|ML
+R	3	lognormal|animal|lab0|q1|sd-z|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.02	
+S	4	lognormal|animal|lab0|q2|sd-none|cm0|ML
+R	4	lognormal|animal|lab0|q2|sd-none|cm0|ML	ERROR	abort:rlang_error	lognormal structured `mu` effects do not admit `animal()` in this route.	lognormal structured `mu` effects do not admit `animal()` in this route. ℹ Use an unlabelled intercept with an admitted structured provider, or remove the structured term.				0.01	
+S	5	lognormal|animal|lab1|q2|sd-none|cm0|ML
+R	5	lognormal|animal|lab1|q2|sd-none|cm0|ML	ERROR	abort:rlang_error	lognormal structured `mu` effects do not admit `animal()` in this route.	lognormal structured `mu` effects do not admit `animal()` in this route. ℹ Use an unlabelled intercept with an admitted structured provider, or remove the structured term.				0.01	
+S	6	lognormal|animal|lab0|q2|sd-one|cm0|ML
+R	6	lognormal|animal|lab0|q2|sd-one|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.02	
+S	7	lognormal|animal|lab1|q2|sd-one|cm0|ML
+R	7	lognormal|animal|lab1|q2|sd-one|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	8	lognormal|animal|lab0|q2|sd-z|cm0|ML
+R	8	lognormal|animal|lab0|q2|sd-z|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	9	lognormal|animal|lab1|q2|sd-z|cm0|ML
+R	9	lognormal|animal|lab1|q2|sd-z|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	10	lognormal|animal|lab0|q2|sd-first|cm0|ML
+R	10	lognormal|animal|lab0|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	11	lognormal|animal|lab1|q2|sd-first|cm0|ML
+R	11	lognormal|animal|lab1|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.02	
+S	12	lognormal|animal|lab0|q2|sd-last|cm0|ML
+R	12	lognormal|animal|lab0|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	13	lognormal|animal|lab1|q2|sd-last|cm0|ML
+R	13	lognormal|animal|lab1|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	14	lognormal|animal|lab0|q3|sd-none|cm0|ML
+R	14	lognormal|animal|lab0|q3|sd-none|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.06	
+S	15	lognormal|animal|lab1|q3|sd-none|cm0|ML
+R	15	lognormal|animal|lab1|q3|sd-none|cm0|ML	ERROR	abort:rlang_error	lognormal structured `mu` effects do not admit `animal()` in this route.	lognormal structured `mu` effects do not admit `animal()` in this route. ℹ Use an unlabelled intercept with an admitted structured provider, or remove the structured term.				0.02	
+S	16	lognormal|animal|lab0|q3|sd-z|cm0|ML
+R	16	lognormal|animal|lab0|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	17	lognormal|animal|lab1|q3|sd-z|cm0|ML
+R	17	lognormal|animal|lab1|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	18	lognormal|animal|lab0|q3|sd-first|cm0|ML
+R	18	lognormal|animal|lab0|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.02	
+S	19	lognormal|animal|lab1|q3|sd-first|cm0|ML
+R	19	lognormal|animal|lab1|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	
+S	20	lognormal|animal|lab0|q4|sd-none|cm0|ML
+R	20	lognormal|animal|lab0|q4|sd-none|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	21	lognormal|animal|lab1|q4|sd-none|cm0|ML
+R	21	lognormal|animal|lab1|q4|sd-none|cm0|ML	ERROR	abort:rlang_error	lognormal structured `mu` effects do not admit `animal()` in this route.	lognormal structured `mu` effects do not admit `animal()` in this route. ℹ Use an unlabelled intercept with an admitted structured provider, or remove the structured term.				0.01	
+S	22	lognormal|animal|lab0|q4|sd-z|cm0|ML
+R	22	lognormal|animal|lab0|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	23	lognormal|animal|lab1|q4|sd-z|cm0|ML
+R	23	lognormal|animal|lab1|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.02	
+S	24	lognormal|animal|lab0|q4|sd-first|cm0|ML
+R	24	lognormal|animal|lab0|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	25	lognormal|animal|lab1|q4|sd-first|cm0|ML
+R	25	lognormal|animal|lab1|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	Lognormal models only support `mu` and `sigma`.	Lognormal models only support `mu` and `sigma`. ✖ Unsupported parameter: "sd_animal(g)". ℹ Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.				0.01	

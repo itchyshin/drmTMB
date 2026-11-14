@@ -1,0 +1,11 @@
+nb2_phylo_s007 done
+nb2_phylo_s019 done
+nb2_phylo_s027 done
+nb2_phylo_s055 done
+nb2_phylo_s058 done
+Warning message:
+`drmTMB()`: optimizer reported non-convergence (code 1: singular convergence
+(7)).
+ℹ Treat the estimates and standard errors with caution. Inspect
+  `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider
+  rescaling the data, within-group replication, or a penalized/MAP fit. 

@@ -1,0 +1,36 @@
+animal_s01 ll=-995.73282668 converged=true t=18.2s
+animal_s02 ll=-950.35830453 converged=true t=0.1s
+animal_s03 ll=-980.01345983 converged=true t=0.1s
+animal_s04 ll=-1037.18040806 converged=true t=0.1s
+animal_s05 ll=-1016.00758995 converged=true t=0.1s
+relmat_s01 ll=-868.54150814 converged=true t=17.1s
+relmat_s02 ll=-1001.35284880 converged=true t=0.1s
+relmat_s03 ll=-990.70264577 converged=true t=0.1s
+relmat_s04 ll=-992.63414914 converged=true t=0.4s
+relmat_s05 ll=-997.78777905 converged=true t=0.1s
+phylo_s01 ll=-1031.32855902 converged=true t=16.4s
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 6.911203950558358e-15
+phylo_s02 ll=-977.24553430 converged=true t=0.7s
+phylo_s03 ll=-989.73664648 converged=true t=0.1s
+phylo_s04 ll=-1051.66556488 converged=true t=0.1s
+phylo_s05 ll=-983.84830263 converged=true t=0.1s
+spatial_s01 ll=-1056.86391031 converged=true t=16.9s
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 1.987920436657641e-15
+spatial_s02 ll=-1027.48379988 converged=true t=0.5s
+spatial_s03 ll=-1037.39175910 converged=true t=0.1s
+spatial_s04 ll=-1008.50045090 converged=true t=0.1s
+spatial_s05 ll=-1025.29128517 converged=true t=0.1s
