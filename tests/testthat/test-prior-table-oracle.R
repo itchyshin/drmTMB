@@ -76,3 +76,22 @@ test_that('prior-table fitted optima agree with the independent oracle', {
    if (r$hessian_min_eigenvalue>1e-4) expect_lt(delta,1e-5)
   }
 })
+
+
+test_that('reordered table and groups agree with the independent oracle', {
+  skip_if_not_installed('jsonlite')
+  skip_if_not_installed('numDeriv')
+  x <- jsonlite::fromJSON(testthat::test_path('fixtures','two-ri-sd-prior-oracle','frozen.json'),simplifyVector=FALSE)
+  r <- Filter(function(z) identical(z$dataset,'0.6') && identical(z$case,'mixed'),x$records)[[1L]]
+  d <- data.frame(y=unlist(x$response[['0.6']]),x=unlist(x$x),site=factor(unlist(x$site)),observer=factor(unlist(x$observer)))
+  f <- bf(mu=y~x+(1|observer)+(1|site),sigma=~x)
+  p <- data.frame(prior=c('gamma(2.0588235294117645,3.5)','gamma(0.6666666666666666,2)','normal(-0.1,0.7)','normal(0.25,1.4)'),class=c('ranef_sd','ranef_sd','fixef','fixef'),coef=c('observer','site','x','(Intercept)'),dpar=c('mu','mu','sigma','mu'))
+  fit <- suppressWarnings(drmTMB(f,data=d,priors=p))
+  pos <- c(which(names(fit$obj$par)=='beta_mu'),which(names(fit$obj$par)=='beta_sigma'),which(names(fit$obj$par)=='log_sd_mu'))
+  perm <- c(1,2,3,4,6,5); q <- unlist(r$theta)[perm]; reference <- do.call(rbind,lapply(r$hessian,function(v) as.numeric(unlist(v))))[perm,perm]
+  fn <- function(v){z <- fit$obj$par; z[pos] <- v; fit$obj$fn(z)}
+  gr <- function(v){z <- fit$obj$par; z[pos] <- v; fit$obj$gr(z)[pos]}
+  h <- numDeriv::jacobian(gr,q)
+  objerr <- abs(fn(q)-r$objective)/max(1,abs(r$objective)); graderr <- max(abs(gr(q)-unlist(r$gradient)[perm])); heserr <- max(abs(h-reference)/pmax(1,abs(reference)))
+  expect_lte(objerr,1e-8); expect_lte(graderr,1e-6); expect_lte(heserr,1e-5)
+})
