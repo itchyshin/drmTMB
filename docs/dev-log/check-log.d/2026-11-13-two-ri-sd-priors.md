@@ -20,7 +20,7 @@ Rscript --vanilla -e 'testthat::test_local(".", filter = "^two-ri-sd-priors$", r
 
 The run used `DRMTMB_JULIA_TESTS=true`, `DRM_TWO_RI_LIVE=1`, `DRMODELS_JL_PATH` set to the pinned Julia worktree, and `JULIA_HOME` set to the Julia 1.10.12 bin directory. It exited zero with one live bridge test and no skips. The live cases cover each SD target, both targets, mixed priors, reversed order, update replay, fixed-only v1 and one-intercept SD v2.
 
-An independent bridge reviewer also ran the v2 contract and duplicate suites with the live v2 flag and frozen one-intercept oracle; seven live tests passed without skips. Seven deliberately wrong oracle objectives were detected. These checks do not establish a separate bridge-level fixed-point Hessian comparison.
+An independent bridge reviewer also ran the v2 contract and duplicate suites with the live v2 flag and frozen one-intercept oracle; seven live tests passed without skips. Seven deliberately wrong oracle objectives were detected. A subsequent live mixed-prior fit compared the bridge-returned 6-by-6 inverse penalized curvature with the independent oracle at one fitted point on R `6b065b5a` and Julia `4ed1be27`; the maximum scaled error was 2.11e-15. An SD-axis swap produced scaled error 0.0608. The bridge does not expose arbitrary-point Hessian evaluation; this probe does not establish it or calibrated uncertainty.
 
 ## Remaining gates
 

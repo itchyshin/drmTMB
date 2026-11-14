@@ -12,7 +12,7 @@ The route admits two distinct unlabelled independent mean random intercepts for 
 
 ## Checks and tests of the tests
 
-The independent dense-Gaussian oracle and review cover 150 interior points, 20 fitted cases, exact zero-SD likelihood limits and seven deliberately incorrect objective variants. Fixed-point checks include all gradient and Hessian components. The frozen fixtures are committed with their provenance. An independent R review reran `testthat::test_local()` with the `^two-ri-sd-priors$` filter and live Julia enabled at the paired commits; it passed with one live bridge test and no skips. The paired v2 contract and duplicate suites passed seven live tests without skips. See `docs/dev-log/check-log.d/2026-11-13-two-ri-sd-priors.md` for the command and its scope.
+The independent dense-Gaussian oracle and review cover 150 interior points, 20 fitted cases, exact zero-SD likelihood limits and seven deliberately incorrect objective variants. Fixed-point checks include all gradient and Hessian components. The frozen fixtures are committed with their provenance. An independent R review reran `testthat::test_local()` with the `^two-ri-sd-priors$` filter and live Julia enabled at the paired commits; it passed with one live bridge test and no skips. The paired v2 contract and duplicate suites passed seven live tests without skips. See `docs/dev-log/check-log.d/2026-11-13-two-ri-sd-priors.md` for the command and its scope. A separate live mixed-prior fit compared the bridge-returned inverse penalized curvature with the independent oracle at one fitted point; it does not qualify arbitrary-point bridge Hessians or calibrated uncertainty.
 
 ## Consistency, documentation and issues
 
