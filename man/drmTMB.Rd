@@ -257,8 +257,11 @@ information matrix is not positive definite the standard errors are \code{NA}
 with a \code{drmTMB_mspl_wald_unavailable} warning rather than a fabricated
 number.}
 
+\item{...}{Reserved for future model options.}
+
 \item{priors}{Optional fixed-effect normal priors, ridge penalties, or a
-Gamma prior on a random-intercept SD, created by \code{\link[=drm_priors]{drm_priors()}}.
+Gamma prior on a random-intercept SD, created by \code{\link[=drm_priors]{drm_priors()}} or
+specified in a prior table; see \code{\link[=drm_resolve_priors]{drm_resolve_priors()}} for table syntax.
 Fixed-effect priors support Gaussian identity and binomial logit models
 with complete data and unit weights; Gaussian models may also include one or
 two independent mean random intercepts with distinct grouping partitions. The SD prior
@@ -273,8 +276,6 @@ penalized/MAP point estimates. Covariance is local penalized-Hessian
 curvature, not calibrated sampling covariance. Confidence intervals and
 likelihood comparisons are not implemented. Cannot be combined with
 \code{REML}, \code{estimator = "mspl"}, or \code{penalty}.}
-
-\item{...}{Reserved for future model options.}
 }
 \value{
 A \code{drmTMB} fit object.

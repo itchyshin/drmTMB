@@ -1,0 +1,57 @@
+testthat::test_that('prior table previews fixed and named SD targets', {
+  d <- data.frame(y=c(.2,.8,.5,1.4,1,1.6,2,1.3,2.2,1.8,2.4,2.1),
+                  x=rep(c(-1,0,1),4), site=rep(letters[1:4],each=3), observer=rep(letters[5:7],4))
+  f <- drmTMB::bf(mu=y~x+(1|site)+(1|observer),sigma=~1)
+  table <- data.frame(prior=c('normal(0,2)','gamma(0.6666666666666666,2)'),class=c('fixef','ranef_sd'),coef=c('x','site'))
+  legacy <- drmTMB::drm_priors(drmTMB::drm_prior_normal('mu','x',sd=2),drmTMB::drm_prior_sd_gamma(group='site',shape=2,rate=3))
+  testthat::expect_equal(drmTMB::drm_resolve_priors(f, stats::gaussian(), d, table), drmTMB::drm_resolve_priors(f, stats::gaussian(), d, legacy))
+})
+testthat::test_that('a broad selector cannot select a literal all coefficient', {
+  d <- data.frame(y=c(.2,.8,.5,1.4,1,1.6),all=c(-1,0,1,-1,0,1))
+  f <- drmTMB::bf(mu=y~all,sigma=~1)
+  p <- data.frame(prior='normal(0,2)',class='fixef',coef='')
+  testthat::expect_error(drmTMB::drm_resolve_priors(f,stats::gaussian(),d,p),'all')
+})
+testthat::test_that('prior table fits match constructors and preserve the input', {
+  d <- data.frame(y=c(.2,.8,.5,1.4,1,1.6,2,1.3,2.2,1.8,2.4,2.1),x=rep(c(-1,0,1),4),site=rep(letters[1:4],each=3),observer=rep(letters[5:7],4))
+  f <- drmTMB::bf(mu=y~x+(1|site)+(1|observer),sigma=~1)
+  table <- data.frame(prior=c('normal(0,2)','gamma(0.6666666666666666,2)'),class=c('fixef','ranef_sd'),coef=c('x',''))
+  legacy <- drmTMB::drm_priors(drmTMB::drm_prior_normal('mu','x',sd=2),drmTMB::drm_prior_sd_gamma(group='site',shape=2,rate=3),drmTMB::drm_prior_sd_gamma(group='observer',shape=2,rate=3))
+  a <- drmTMB::drmTMB(f,data=d,priors=table)
+  b <- drmTMB::drmTMB(f,data=d,priors=legacy)
+  testthat::expect_equal(a$opt$objective,b$opt$objective,tolerance=1e-9)
+  testthat::expect_equal(a$obj$gr(a$opt$par),b$obj$gr(a$opt$par),tolerance=1e-8)
+  testthat::expect_identical(attr(a$priors,'input_table'),table)
+  testthat::expect_error(drmTMB::drmTMB(f,data=d,priors=table,weights=rep(2,nrow(d))), 'weight|unit')
+  bad <- table; bad$prior[1] <- 'normal(1+1,2)'
+  testthat::expect_error(drmTMB::drmTMB(f,data=d,priors=bad),'syntax')
+})
+testthat::test_that('update replays resolved prior targets', {
+  d <- data.frame(y=c(.2,.8,.5,1.4,1,1.6,2,1.3),x=rep(c(-1,0,1,0),2),z=c(0,1,0,1,1,0,1,0))
+  f <- drmTMB::bf(mu=y~x,sigma=~1)
+  table <- data.frame(prior='normal(0,2)',class='fixef',coef='')
+  fit <- drmTMB::drmTMB(f,data=d,priors=table)
+  table$prior[1] <- 'not a prior'
+  again <- update(fit,data=d)
+  testthat::expect_equal(again$resolved_priors$coefficient,'x')
+  testthat::expect_identical(attr(again$priors,'input_table')$prior,'normal(0,2)')
+  restored <- unserialize(serialize(fit,NULL))
+  restored_update <- update(restored,data=d)
+  testthat::expect_equal(restored_update$resolved_priors$coefficient,'x')
+  d$x <- factor(rep(c('a','b'),4))
+  table$prior[1] <- 'normal(0,2)'
+  factor_fit <- drmTMB::drmTMB(f,data=d,priors=table)
+  d2 <- d; d2$x <- factor(rep(c('a','b','c','a'),2))
+  changed <- update(factor_fit,data=d2)
+  testthat::expect_equal(changed$resolved_priors$coefficient,'xb')
+
+})
+testthat::test_that('replay preserves interleaved prior target order', {
+  d <- data.frame(y=c(.2,.8,.5,1.4,1,1.6,2,1.3,2.2,1.8,2.4,2.1),x=rep(c(-1,0,1),4),site=rep(letters[1:4],each=3),observer=rep(letters[5:7],4))
+  f <- drmTMB::bf(mu=y~x+(1|site)+(1|observer),sigma=~1)
+  p <- data.frame(prior=c('gamma(1,2)','normal(0,2)','gamma(1,3)'),class=c('ranef_sd','fixef','ranef_sd'),coef=c('site','x','observer'))
+  fit <- drmTMB::drmTMB(f,data=d,priors=p)
+  stored <- stats::getCall(fit)$priors
+  labels <- vapply(stored,function(x) if (inherits(x,'drm_sd_prior')) x$group else x$coef,character(1))
+  testthat::expect_identical(unname(labels),c('site','x','observer'))
+})

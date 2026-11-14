@@ -111,7 +111,19 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
 #' @param formula A [drm_formula()] or [bf()] specification.
 #' @param family Gaussian identity or binomial logit family.
 #' @param data A data frame with complete model variables.
-#' @param priors A collection created by [drm_priors()].
+#' @param priors A collection created by [drm_priors()], or a data frame with
+#'   `prior`, `class`, and `coef` columns. The table supports `normal(mean, sd)`
+#'   and `ridge(lambda)` for `class = "fixef"`, and `gamma(mean, shape)` for
+#'   `class = "ranef_sd"`. Optional `dpar` defaults to `"mu"` and optional
+#'   `group` names a grouping factor. A blank fixed-effect coefficient selects
+#'   non-intercept coefficients; a blank SD selector selects all supported
+#'   mean random-intercept SDs. Overlapping targets and a coefficient literally
+#'   named `"all"` are rejected. The Gamma table uses mean and shape, so
+#'   `rate = shape / mean`; the constructor uses shape and rate. The table
+#'   covers a subset of glmmTMB's prior classes and distributions. Random
+#'   slopes and correlation priors are not supported. Fitted objects retain
+#'   the original table in `attr(fit$priors, "input_table")`; `update()`
+#'   replays the resolved targets without expanding broad selectors again.
 #' @return A data frame identifying the resolved targets. Fixed-effect rows
 #'   report the distributional parameter, coefficient, matrix column, prior
 #'   mean, SD, precision and selection reason. An SD-prior row reports the
@@ -123,6 +135,8 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
 #' d <- data.frame(y = c(1, 2, 1, 3), x = c(0, 1, 2, 3))
 #' p <- drm_priors(drm_prior_normal("mu", "x", sd = 2))
 #' drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, p)
+#' table <- data.frame(prior = "normal(0,2)", class = "fixef", coef = "x")
+#' drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, table)
 #' d$group <- factor(c(1, 1, 2, 2))
 #' drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, p)
 drm_resolve_priors <- function(formula, family = stats::gaussian(), data, priors) {
@@ -131,6 +145,8 @@ drm_resolve_priors <- function(formula, family = stats::gaussian(), data, priors
     cli::cli_abort("Supply a {.fn bf} formula and a data frame.")
   }
   data <- drm_droplevels_fixed_predictors(data, formula)
+  table_input <- is.data.frame(priors)
+  if (table_input) priors <- drm_normalize_prior_table(priors, formula, family, data)
   drm_validate_fixed_prior_request(priors, formula, family, data)
   env <- drm_formula_env(formula, parent.frame())
   spec <- if (identical(drm_family_type(family), "gaussian")) {
@@ -142,6 +158,8 @@ drm_resolve_priors <- function(formula, family = stats::gaussian(), data, priors
   }
   drm_validate_fixed_prior_designs(spec)
   spec <- drm_apply_fixed_priors_spec(spec, priors)
+  if (table_input && !is.null(spec$resolved_priors) && any(spec$resolved_priors$coefficient == "all"))
+    cli::cli_abort("Prior tables cannot select a coefficient literally named {.val all}.")
   if (is.null(spec$resolved_sd_prior)) return(spec$resolved_priors)
   if (is.null(spec$resolved_priors)) return(spec$resolved_sd_prior)
   fixed <- spec$resolved_priors
