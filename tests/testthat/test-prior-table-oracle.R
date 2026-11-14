@@ -56,3 +56,23 @@ test_that('prior tables match the independent dense Gaussian oracle', {
              base+fixed+3*sitepen+3*obspen,value-q[5]-q[6])
   for (candidate in wrong) expect_gt(abs(candidate-row$objective),1e-6)
 })
+
+test_that('prior-table fitted optima agree with the independent oracle', {
+  skip_if_not_installed('jsonlite')
+  x <- jsonlite::fromJSON(testthat::test_path('fixtures','two-ri-sd-prior-oracle','frozen.json'), simplifyVector=FALSE)
+  rows <- data.frame(prior=c('normal(0.25,1.4)','normal(-0.1,0.7)','gamma(0.6666666666666666,2)','gamma(2.0588235294117645,3.5)'),class=c('fixef','fixef','ranef_sd','ranef_sd'),coef=c('(Intercept)','x','site','observer'),dpar=c('mu','sigma','mu','mu'))
+  choices <- list(site=3L,observer=4L,both=3:4,mixed=1:4)
+  expect_length(x$fits, 12L)
+  for (r in x$fits) {
+   expect_false(r$floor_contact)
+   d <- data.frame(y=unlist(x$response[[r$dataset]]),x=unlist(x$x),site=factor(unlist(x$site)),observer=factor(unlist(x$observer)))
+   f <- bf(mu=y~x+(1|site)+(1|observer),sigma=~x)
+   fit <- suppressWarnings(drmTMB(f,data=d,priors=rows[choices[[r$case]],,drop=FALSE]))
+   pos <- c(which(names(fit$obj$par)=='beta_mu'),which(names(fit$obj$par)=='beta_sigma'),which(names(fit$obj$par)=='log_sd_mu'))
+   q <- fit$opt$par[pos]; score <- max(abs(fit$obj$gr(fit$opt$par)[pos])); diff <- abs(fit$opt$objective-r$objective); delta <- max(abs(q-unlist(r$theta)))
+   selected <- switch(r$case,site=5L,observer=6L,both=5:6,mixed=5:6)
+   expect_true(all(is.finite(q[selected]) & q[selected] > -17.99))
+   expect_lt(diff,1e-6); expect_lt(score,1e-4)
+   if (r$hessian_min_eigenvalue>1e-4) expect_lt(delta,1e-5)
+  }
+})
