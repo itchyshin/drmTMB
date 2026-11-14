@@ -5,8 +5,9 @@
 #' meaning depends on contrasts and predictor units. No automatic scaling is
 #' applied. For `coef = "all"`, state whether the intercept is included.
 #'
-#' Gaussian identity models may include one independent random intercept in
-#' the mean. `drm_prior_sd_gamma()` targets its named group standard deviation
+#' Gaussian identity models may include one or two independent random intercepts in
+#' the mean, with distinct grouping partitions. `drm_prior_sd_gamma()` targets
+#' the named group standard deviation
 #' on the natural SD scale, with density relative to SD and no log-scale
 #' Jacobian. Shape must exceed one and rate must be positive. It may be combined
 #' with fixed-effect priors. The objective is the marginal data negative
@@ -48,6 +49,12 @@
 #' drm_resolve_priors(formula, gaussian(), d, sd_prior)  # inspect the target
 #' sd_fit <- drmTMB(formula, data = d, priors = sd_prior)
 #' logLik(sd_fit)  # data likelihood at the penalized estimates
+#' d$observer <- rep(c("a", "b"), 9)
+#' two_groups <- bf(mu = y ~ x + (1 | group) + (1 | observer), sigma = ~ 1)
+#' two_priors <- drm_priors(drm_prior_sd_gamma(group = "group", shape = 2, rate = 3),
+#'                          drm_prior_sd_gamma(group = "observer", shape = 3, rate = 2))
+#' drm_resolve_priors(two_groups, gaussian(), d, two_priors)
+#' two_fit <- drmTMB(two_groups, data = d, priors = two_priors)
 #' }
 drm_priors <- function(...) {
   entries <- list(...)
@@ -123,20 +130,26 @@ drm_apply_fixed_priors_spec <- function(spec, priors) {
   fixed <- Filter(function(p) inherits(p, "drm_fixed_prior"), priors)
   if (length(sd_priors) + length(fixed) != length(priors))
     cli::cli_abort("Invalid prior specification.")
-  if (length(sd_priors) > 1L) cli::cli_abort("Only one SD prior is supported; duplicate or multiple targets are not supported.")
+  if (length(sd_priors) > 2L) cli::cli_abort("At most two SD priors are supported.")
   if (length(sd_priors)) {
-    p <- sd_priors[[1L]]
-    p <- drm_prior_sd_gamma(p$dpar, p$group, p$coef, p$shape, p$rate)
+    sd_priors <- lapply(sd_priors, function(p)
+      drm_prior_sd_gamma(p$dpar, p$group, p$coef, p$shape, p$rate))
     re <- spec$random$mu
-    if (!identical(re$n_terms, 1L) || !identical(re$group_names, p$group) ||
-        !identical(re$coef_names, p$coef) || !is.na(re$covariance_labels[[1L]]))
-      cli::cli_abort("SD prior target must match the unique unlabelled iid mean random intercept group.")
-    spec$resolved_sd_prior <- data.frame(class = "sd_gamma", dpar = "mu", group = p$group,
-      block = re$labels[[1L]], coefficient = p$coef, scale = "SD", shape = p$shape, rate = p$rate)
-    spec$tmb_data$prior_sd_index <- 0L
-    spec$tmb_data$prior_sd_shape <- p$shape
-    spec$tmb_data$prior_sd_rate <- p$rate
-    spec$tmb_data$prior_sd_lgamma <- lgamma(p$shape)
+    groups <- vapply(sd_priors, `[[`, character(1), "group")
+    if (anyDuplicated(groups)) cli::cli_abort("Only one SD prior per target is allowed; duplicate SD prior target.")
+    if (!re$n_terms %in% 1:2 || anyDuplicated(re$group_names) ||
+        any(re$coef_names != "(Intercept)") || any(!is.na(re$covariance_labels)))
+      cli::cli_abort("SD prior target must match a unique unlabelled iid mean random intercept group.")
+    index <- match(groups, re$group_names)
+    if (anyNA(index)) cli::cli_abort("SD prior target must match a unique unlabelled iid mean random intercept group.")
+    shape <- vapply(sd_priors, `[[`, numeric(1), "shape")
+    rate <- vapply(sd_priors, `[[`, numeric(1), "rate")
+    spec$resolved_sd_prior <- data.frame(class = "sd_gamma", dpar = "mu", group = groups,
+      block = re$labels[index], coefficient = "(Intercept)", scale = "SD", shape = shape, rate = rate)
+    spec$tmb_data$prior_sd_index <- as.integer(index - 1L)
+    spec$tmb_data$prior_sd_shape <- shape
+    spec$tmb_data$prior_sd_rate <- rate
+    spec$tmb_data$prior_sd_lgamma <- lgamma(shape)
   }
   if (!length(fixed)) return(spec)
   rows <- list()

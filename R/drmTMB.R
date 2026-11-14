@@ -260,10 +260,11 @@
 #' @param priors Optional fixed-effect normal priors, ridge penalties, or a
 #'   Gamma prior on a random-intercept SD, created by [drm_priors()].
 #'   Fixed-effect priors support Gaussian identity and binomial logit models
-#'   with complete data and unit weights; Gaussian models may also include one
-#'   independent mean random intercept. The SD prior supports a complete-data,
-#'   unit-weight Gaussian ML model with exactly one unlabelled independent mean
-#'   random intercept, selected by group and `(Intercept)`. It acts on the
+#'   with complete data and unit weights; Gaussian models may also include one or
+#'   two independent mean random intercepts with distinct grouping partitions. The SD prior
+#'   supports a complete-data, unit-weight Gaussian ML model with one or two
+#'   unlabelled independent mean random intercepts, selected by group and
+#'   `(Intercept)`. It acts on the
 #'   natural SD scale and can be combined with fixed-effect priors. The Julia
 #'   bridge currently refuses factor predictors in Gaussian mean
 #'   random-intercept formulas. [drm_resolve_priors()] previews selections.
@@ -937,7 +938,7 @@ drm_fit_spec <- function(
   fit_gradient <- drm_fit_gradient(obj, opt)
   drm_pin_tmb_object_to_optimum(obj, opt, tmb_state)
   if (!is.null(spec$resolved_sd_prior)) {
-    checked <- drm_sd_prior_check_score(opt, fit_gradient$gradient)
+    checked <- drm_sd_prior_check_score(opt, fit_gradient$gradient, spec$tmb_data$prior_sd_index + 1L)
     if (!identical(checked$convergence, opt$convergence)) {
       opt <- checked
       optimizer$selected$convergence <- opt$convergence
@@ -989,6 +990,13 @@ drm_fit_spec <- function(
     as.numeric(objective_report$fixed_prior_penalty)
   sd_prior_value <- if (is.null(objective_report$sd_prior_penalty)) 0 else
     as.numeric(objective_report$sd_prior_penalty)
+  sd_prior_values <- numeric()
+  if (!is.null(spec$resolved_sd_prior)) {
+    sd_eta <- opt$par[which(names(opt$par) == "log_sd_mu")[spec$tmb_data$prior_sd_index + 1L]]
+    sd_prior_values <- -stats::dgamma(exp(sd_eta), shape = spec$resolved_sd_prior$shape,
+                                     rate = spec$resolved_sd_prior$rate, log = TRUE)
+    names(sd_prior_values) <- spec$resolved_sd_prior$group
+  }
   prior_gradient <- likelihood_gradient <- NULL
   if (!is.null(priors)) {
     prior_gradient <- rep(0, length(opt$par))
@@ -1000,8 +1008,8 @@ drm_fit_spec <- function(
         (opt$par[[pos]] - resolved$mean[[i]]) * resolved$precision[[i]]
     }
     if (!is.null(spec$resolved_sd_prior)) {
-      pos <- which(names(opt$par) == "log_sd_mu")[[1L]]
-      prior_gradient[[pos]] <- spec$resolved_sd_prior$rate * exp(opt$par[[pos]]) -
+      pos <- which(names(opt$par) == "log_sd_mu")[spec$tmb_data$prior_sd_index + 1L]
+      prior_gradient[pos] <- spec$resolved_sd_prior$rate * exp(opt$par[pos]) -
         (spec$resolved_sd_prior$shape - 1)
     }
     likelihood_gradient <- fit_gradient$gradient - prior_gradient
@@ -1064,6 +1072,9 @@ drm_fit_spec <- function(
     gradient_max_component = fit_gradient$max_component,
     provenance = drm_provenance()
   )
+  if (!is.null(spec$resolved_sd_prior) && identical(spec$random$mu$n_terms, 2L)) {
+    fit$sd_prior_penalties <- sd_prior_values
+  }
   if (is.null(temporal_starts)) {
     # Only temporal fits carry a start-attempt table.
     fit$temporal_start_attempts <- NULL
@@ -4065,10 +4076,11 @@ drm_pin_tmb_object_to_optimum <- function(obj, opt, state = NULL) {
 # `fixed_gradient_component_label()` (also `R/check.R`) for the worst-component
 # label, so a stored value and the live `check_drm()` row always agree -- one
 # label rule, not two copies that can drift apart.
-drm_sd_prior_check_score <- function(opt, gradient) {
+drm_sd_prior_check_score <- function(opt, gradient, target_index = NULL) {
   eta <- unname(opt$par[which(names(opt$par) == "log_sd_mu")])
+  if (!is.null(target_index)) eta <- eta[target_index]
   if (identical(as.integer(opt$convergence), 0L) &&
-      (length(eta) != 1L || !is.finite(eta) || !is.finite(exp(2 * eta)) || exp(2 * eta) == 0)) {
+      (!length(eta) || any(!is.finite(eta)) || any(!is.finite(exp(2 * eta))) || any(exp(2 * eta) == 0))) {
     opt$convergence <- 1L
     opt$message <- "SD prior fit has a nonfinite or underflowed random-effect variance; convergence not established"
     return(opt)
