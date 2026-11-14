@@ -1,5 +1,12 @@
 # drmTMB 0.8.1
 
+* A formula transform that is not a number, such as `log(x)` or `sqrt(x)` on a
+  non-positive predictor, drops those rows from the response and the design.
+  The same rows are now dropped from the weights, the known sampling
+  covariance, and the data used to build random effects. Distributional
+  formulas that would keep different rows abort with class
+  `drmTMB_model_frame_rows` instead of fitting (#1725).
+
 * Bivariate Gaussian models now abort before starting-value or optimizer
   code when an observed response or a fixed-effect design value is
   non-finite. `Inf` in `y1` or `y2` names that response. `Inf` in a `mu1`,
