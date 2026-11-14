@@ -258,7 +258,8 @@
 #'   labeled `MAP` and `logLik()` returns the unpenalized data log-likelihood.
 #'   Native `engine = "tmb"` only.
 #' @param priors Optional fixed-effect normal priors, ridge penalties, or a
-#'   Gamma prior on a random-intercept SD, created by [drm_priors()].
+#'   Gamma prior on a random-intercept SD, created by [drm_priors()] or
+#'   specified in a prior table; see [drm_resolve_priors()] for table syntax.
 #'   Fixed-effect priors support Gaussian identity and binomial logit models
 #'   with complete data and unit weights; Gaussian models may also include one or
 #'   two independent mean random intercepts with distinct grouping partitions. The SD prior
@@ -378,6 +379,13 @@ drmTMB <- function(
   data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
+  if (is.data.frame(priors)) {
+    priors <- drm_normalize_prior_table(priors, formula, family, data,
+      REML = REML, estimator = estimator, penalty = penalty, impute = impute, control = control)
+    # Save exact model-matrix targets so update cannot re-expand broad rules.
+    prior_preview <- drm_resolve_priors(formula, family, data, priors)
+    fit_call$priors <- drm_freeze_table_prior_specs(priors, prior_preview)
+  }
   drm_validate_fixed_prior_request(priors, formula, family, data,
     REML = REML, estimator = estimator, penalty = penalty, impute = impute,
     control = control)
@@ -431,7 +439,7 @@ drmTMB <- function(
       missing = missing,
       REML = drm_control_flag(REML, "REML"),
       priors = priors,
-      call = match.call()
+      call = fit_call
     ))
   }
   control <- if (drm_fixed_priors_active(priors)) drm_prior_control(control) else drm_parse_control(control)
