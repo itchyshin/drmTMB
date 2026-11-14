@@ -11,6 +11,7 @@ testthat::test_that('table priors agree across native and Julia bridge routes', 
     mixed=data.frame(prior=c('normal(0.25,1.4)','normal(-0.1,0.7)','gamma(0.6666666666666666,2)','gamma(2.0588235294117645,3.5)'),class=c('fixef','fixef','ranef_sd','ranef_sd'),coef=c('(Intercept)','x','site','observer'),dpar=c('mu','sigma','mu','mu')))
   for (p in cases) {
     j <- suppressWarnings(drmTMB::drmTMB(f,data=d,priors=p,engine='julia'))
+    if (identical(p,cases$mixed)) v3_options <- j$bridge_payload$options
     r <- suppressWarnings(drmTMB::drmTMB(f,data=d,priors=p,engine='tmb'))
     testthat::expect_equal(j$penalized_objective,r$penalized_objective,tolerance=1e-7)
     testthat::expect_equal(j$logLik,r$logLik,tolerance=1e-6)
@@ -31,6 +32,36 @@ testthat::test_that('table priors agree across native and Julia bridge routes', 
   testthat::expect_equal(j$penalized_objective,r$penalized_objective,tolerance=1e-7)
   testthat::expect_equal(j$resolved_sd_prior$group,'site')
   testthat::expect_equal(j$sd_prior_penalty,r$sd_prior_penalty,tolerance=1e-5)
+
+  # Zero ridge is an ML fit, but its v1 prior records still need verified replay
+  # when fixed-effect inference reconstructs the Julia fit.
+  z <- data.frame(x=rep(c(-1,0,1),6),g=factor(rep(1:6,each=3)))
+  z$y <- .5+.6*z$x+rep(c(-.5,.2,.7,-.3,.4,-.4),each=3)+rep(c(.1,-.2,.1),6)
+  zf <- bf(y~x+(1|g),sigma~1)
+  ztab <- data.frame(prior='ridge(0)',class='fixef',coef='x')
+  zcon <- drm_priors(drm_prior_ridge('mu','x',lambda=0))
+  zfits <- suppressWarnings(list(table=drmTMB(zf,data=z,priors=ztab,engine='julia'),
+                                 constructor=drmTMB(zf,data=z,priors=zcon,engine='julia'),
+                                 plain=drmTMB(zf,data=z,engine='julia')))
+  expect_identical(attr(zfits$table$priors,'input_table'),ztab)
+  expect_equal(zfits$table$resolved_priors,zfits$constructor$resolved_priors)
+  for (method in c('profile','bootstrap')) {
+    ci <- lapply(zfits,function(fit) suppressWarnings(confint(fit,parm='fixef:mu:x',method=method,R=3L,seed=17)))
+    comparable <- lapply(ci,function(x) x[,setdiff(names(x),'julia.elapsed'),drop=FALSE])
+    expect_equal(comparable$table,comparable$constructor,tolerance=1e-6,ignore_attr=TRUE)
+    expect_equal(comparable$table,comparable$plain,tolerance=1e-6,ignore_attr=TRUE)
+  }
+  missing <- zfits$table; missing$bridge_payload$options$prior_expected <- NULL
+  expect_error(confint(missing,parm='fixef:mu:x',method='profile'),'prior_expected')
+  wrong <- zfits$table; wrong$bridge_payload$options$prior_expected[[1]]$coef <- 'not_x'
+  expect_error(confint(wrong,parm='fixef:mu:x',method='profile'),'prior coordinates differ')
+  for (options in list(j$bridge_payload$options,v3_options)) {
+    unsupported <- zfits$table; unsupported$bridge_payload$options <- options
+    expect_error(confint(unsupported,parm='fixef:mu:x',method='profile'),'SD-prior inference is unsupported')
+  }
+  expect_error(confint(j,parm='fixef:mu:x',method='profile'),'not implemented for fixed-effect or SD prior fits')
+  active <- suppressWarnings(drmTMB(zf,data=z,priors=data.frame(prior='ridge(1)',class='fixef',coef='x'),engine='julia'))
+  expect_error(confint(active,parm='fixef:mu:x',method='profile'),'not implemented for fixed-effect prior fits')
 })
 
 test_that('table-derived bridge targets reject incorrect backend identities', {
