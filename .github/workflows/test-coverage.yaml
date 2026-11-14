@@ -48,6 +48,13 @@ on:
       - ".github/workflows/codecov-upload.yaml"
       - "codecov.yml"
       - "tools/covr-source-tree-layout.sh"
+      - "tools/covr-julia-bridge-testthat.R"
+      - "tools/covr-plant-julia-bridge-testthat.sh"
+      - "tools/ci-install-drmodels-julia.sh"
+      - "tools/covr-julia-bridge-include.txt"
+      - "tools/run-covr-julia-bridge-coverage.R"
+      - "tools/ci-warm-juliacall-disposable-bootstrap.R"
+      - "tools/ci-juliacall-coverage.Rprofile"
   pull_request:
     branches: [main, master]
     paths:
@@ -60,6 +67,13 @@ on:
       - ".github/workflows/codecov-upload.yaml"
       - "codecov.yml"
       - "tools/covr-source-tree-layout.sh"
+      - "tools/covr-julia-bridge-testthat.R"
+      - "tools/covr-plant-julia-bridge-testthat.sh"
+      - "tools/ci-install-drmodels-julia.sh"
+      - "tools/covr-julia-bridge-include.txt"
+      - "tools/run-covr-julia-bridge-coverage.R"
+      - "tools/ci-warm-juliacall-disposable-bootstrap.R"
+      - "tools/ci-juliacall-coverage.Rprofile"
   workflow_dispatch:
 
 name: test-coverage
@@ -216,4 +230,164 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-test-failures-shard-${{ matrix.shard }}
+          path: ${{ runner.temp }}/package
+
+  # Live Julia bridge coverage: separate from the four R shards so the slowest
+  # shard budget (~180 min) is not spent on JuliaCall + DRModels.jl setup.
+  # Exercises test-julia-*.R with DRMTMB_JULIA_TESTS=true; merges at Codecov
+  # under flag julia-bridge (codecov-upload.yaml).
+  julia-bridge-coverage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    name: ubuntu-24.04 (release) julia-bridge coverage
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      NOT_CRAN: true
+      DRMTMB_JULIA_TESTS: true
+      DRMTMB_COVERAGE_JULIA_INCLUDE: ${{ github.workspace }}/tools/covr-julia-bridge-include.txt
+      DRMTMB_COVERAGE_SKIP_FRAC_MAX: "0.10"
+      # Legacy env only: some fence tests unset DRM_JL_PATH (not DRMODELS_JL_PATH).
+      DRM_JL_PATH: ${{ github.workspace }}/DRModels.jl
+      OPENBLAS_NUM_THREADS: 1
+      OMP_NUM_THREADS: 1
+      MKL_NUM_THREADS: 1
+      JULIA_NUM_THREADS: 1
+      JULIA_PKG_PRECOMPILE_AUTO: "0"
+      R_PROFILE_USER: ${{ github.workspace }}/tools/ci-juliacall-coverage.Rprofile
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: actions/checkout@v6.0.2
+        with:
+          repository: itchyshin/DRModels.jl
+          path: DRModels.jl
+          ref: main
+          persist-credentials: false
+
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: "1.13"
+
+      - uses: julia-actions/cache@v2
+
+      - name: Preload Julia libunwind (Ubuntu 24.04 JuliaCall)
+        run: |
+          julia_home=$(julia -e 'print(Sys.BINDIR)')
+          libunwind="${julia_home}/../lib/julia/libunwind.so.8"
+          if [[ -f "${libunwind}" ]]; then
+            echo "LD_PRELOAD=${libunwind}" >> "${GITHUB_ENV}"
+          else
+            echo "libunwind preload not found at ${libunwind}; continuing without LD_PRELOAD"
+          fi
+
+      - name: Instantiate DRModels.jl
+        run: bash tools/ci-install-drmodels-julia.sh "${{ github.workspace }}/DRModels.jl"
+
+      - name: Record resolved DRModels.jl commit
+        run: |
+          drmodels_sha=$(git -C DRModels.jl rev-parse HEAD)
+          echo "drmodels_jl_sha=${drmodels_sha}"
+          echo "DRMODELS_JL_SHA=${drmodels_sha}" >> "$GITHUB_ENV"
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::covr, any::xml2, any::JuliaCall
+          needs: coverage
+
+      - name: Preinstall Suppressor for JuliaCall setup.jl
+        shell: bash
+        run: julia --startup-file=no -e 'using Pkg; Pkg.add("Suppressor"); using Suppressor'
+
+      - name: Build RCall for the active R (Julia depot)
+        shell: bash
+        run: |
+          export R_HOME="$(R RHOME)"
+          julia --startup-file=no -e 'using Pkg; Pkg.add("RCall"); Pkg.build("RCall")'
+
+      - name: Warm JuliaCall before covr (default Julia project)
+        env:
+          JULIA_PKG_PRECOMPILE_AUTO: "0"
+        run: |
+          Rscript -e '
+            suppressPackageStartupMessages({
+              library(JuliaCall)
+              JuliaCall::julia_setup(installJulia = FALSE, install = FALSE, verbose = FALSE)
+              JuliaCall::julia_command("using RCall")
+              JuliaCall::julia_command("using Suppressor")
+            })
+          '
+
+      - name: Verify disposable-project JuliaCall bootstrap
+        env:
+          DRM_JL_PATH: ${{ github.workspace }}/DRModels.jl
+        run: Rscript tools/ci-warm-juliacall-disposable-bootstrap.R
+
+      - name: Record tested commit
+        run: |
+          checkout_sha=$(git rev-parse HEAD)
+          branch_head='${{ github.event.pull_request.head.sha || github.sha }}'
+          drmodels_sha=$(git -C DRModels.jl rev-parse HEAD)
+          {
+            echo "checkout_sha=${checkout_sha}"
+            echo "coverage_commit=${checkout_sha}"
+            echo "github_sha=${GITHUB_SHA}"
+            echo "branch_head=${branch_head}"
+            echo "pr_head=${{ github.event.pull_request.head.sha }}"
+            echo "lane=julia-bridge"
+            echo "drmodels_jl_sha=${drmodels_sha}"
+            echo "drmodels_jl_path=${DRM_JL_PATH}"
+            echo "event=${{ github.event_name }}"
+            echo "ref=${{ github.ref }}"
+            if [ -n "${branch_head}" ] && [ "${checkout_sha}" != "${branch_head}" ]; then
+              echo "sha_note=pull_request_merge_sha_is_not_branch_head"
+            fi
+          } | tee coverage-identity.txt
+
+      - name: Plant Rcheck 00_pkg_src for covr tests
+        run: bash tools/covr-source-tree-layout.sh "${{ runner.temp }}/package" "${{ github.workspace }}"
+
+      - name: Test coverage (Julia bridge)
+        run: Rscript tools/run-covr-julia-bridge-coverage.R
+
+      - name: Save pull-request coverage report
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: pr-coverage-julia-bridge
+          path: |
+            cobertura.xml
+            coverage-identity.txt
+            coverage-percent.txt
+            coverage-tests.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Save coverage report for trusted upload
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: main-coverage-julia-bridge
+          path: cobertura.xml
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Show testthat output
+        if: always()
+        run: |
+          find '${{ runner.temp }}/package' -name 'testthat.Rout*' -exec cat '{}' \; || true
+        shell: bash
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-test-failures-julia-bridge
           path: ${{ runner.temp }}/package
