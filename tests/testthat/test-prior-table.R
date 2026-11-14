@@ -55,3 +55,12 @@ testthat::test_that('replay preserves interleaved prior target order', {
   labels <- vapply(stored,function(x) if (inherits(x,'drm_sd_prior')) x$group else x$coef,character(1))
   testthat::expect_identical(unname(labels),c('site','x','observer'))
 })
+testthat::test_that('broad fixed rule and explicit intercept are disjoint', {
+  d <- data.frame(y=c(.2,.8,.5,1.4,1,1.6),x=c(-1,0,1,-1,0,1))
+  f <- drmTMB::bf(mu=y~x,sigma=~1)
+  p <- data.frame(prior=c('normal(0,2)','normal(1,3)'),class=c('fixef','fixef'),coef=c('','(Intercept)'))
+  selected <- drmTMB::drm_resolve_priors(f,stats::gaussian(),d,p)
+  testthat::expect_identical(selected$coefficient,c('x','(Intercept)'))
+  fit <- drmTMB::drmTMB(f,data=d,priors=p)
+  testthat::expect_identical(update(fit,data=d)$resolved_priors$coefficient,c('x','(Intercept)'))
+})

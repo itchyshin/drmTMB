@@ -32,3 +32,28 @@ testthat::test_that('table priors agree across native and Julia bridge routes', 
   testthat::expect_equal(j$resolved_sd_prior$group,'site')
   testthat::expect_equal(j$sd_prior_penalty,r$sd_prior_penalty,tolerance=1e-5)
 })
+
+test_that('table-derived bridge targets reject incorrect backend identities', {
+  d <- data.frame(y=seq_len(12),site=rep(1:3,each=4),observer=rep(c(1,2,3),4))
+  f <- bf(mu=y~1+(1|site)+(1|observer),sigma=~1)
+  table <- data.frame(prior=c('gamma(2.0588235294117645,3.5)','gamma(0.6666666666666666,2)'),class=c('ranef_sd','ranef_sd'),coef=c('observer','site'))
+  specs <- drmTMB:::drm_normalize_prior_table(table,f,gaussian(),d)
+  resolved <- drm_resolve_priors(f,gaussian(),d,specs)
+  expected <- drmTMB:::drm_julia_prior_v2_options(specs,resolved)$prior_expected_v2
+  coords <- c('mu_(Intercept)','sigma_(Intercept)','eta_sd[mu|site|(Intercept)]','eta_sd[mu|observer|(Intercept)]')
+  p1 <- -dgamma(.8,2,rate=3,log=TRUE); p2 <- -dgamma(.4,3.5,rate=1.7,log=TRUE)
+  contribution <- function(group,p) list(dpar='mu',group=group,coef='(Intercept)',penalty=p)
+  good <- list(prior_contract='parameter_priors_v3',resolved_priors_v3=expected,
+    working_coordinates=coords,working_values=c(0,0,log(.8),log(.4)),coefficients=c(0,0,log(.8),log(.4)),
+    data_nll=4,data_logLik=-4,loglik=-4,fixed_prior_penalty=0,sd_prior_penalty=p1+p2,
+    sd_prior_contributions=list(contribution('observer',p2),contribution('site',p1)),
+    penalized_objective=4+p1+p2,data_gradient=c(0,0,1,2),fixed_prior_gradient=c(0,0,0,0),
+    sd_prior_gradient=c(0,0,1.4,1.7*.4-2.5),penalized_gradient=c(0,0,2.4,2+1.7*.4-2.5),
+    estim_method='MAP',infocrit_basis='unavailable')
+  validate <- function(result) drmTMB:::drm_julia_validate_prior_v2_result(result,expected,coords,version='v3')
+  expect_silent(validate(good))
+  wrong <- good; wrong$resolved_priors_v3[[1]]$group <- 'site'
+  expect_error(validate(wrong),'prior records')
+  missing <- good; missing$resolved_priors_v3 <- missing$resolved_priors_v3[-1L]
+  expect_error(validate(missing),'record count')
+})
