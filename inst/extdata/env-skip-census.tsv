@@ -754,6 +754,9 @@ test-poisson-spatial-sd-sensitivity-b26.R	cran-lane	environment	runs	2
 test-poisson-structured-q2-sd-regression.R	cran-lane	environment	runs	4
 test-positive-continuous-structured-mu.R	build-premise	build	skips	1
 test-positive-continuous-structured-mu.R	suggests-package	environment	runs	4
+test-prior-table-bridge.R	env-var-optin	environment	skips	1
+test-prior-table-bridge.R	suggests-package	environment	runs	1
+test-prior-table-oracle.R	suggests-package	environment	runs	5
 test-profile-parallel.R	build-premise	build	skips	1
 test-profile-parallel.R	cran-lane	environment	runs	2
 test-profile-parallel.R	os	environment	runs	5
