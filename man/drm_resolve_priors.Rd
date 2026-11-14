@@ -54,4 +54,7 @@ table <- data.frame(prior = "normal(0,2)", class = "fixef", coef = "x")
 drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, table)
 d$group <- factor(c(1, 1, 2, 2))
 drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, p)
+sd_table <- data.frame(prior = "gamma(0.6666666666666666,2)",
+                       class = "ranef_sd", coef = "group")
+drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, sd_table)
 }

@@ -139,6 +139,9 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
 #' drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, table)
 #' d$group <- factor(c(1, 1, 2, 2))
 #' drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, p)
+#' sd_table <- data.frame(prior = "gamma(0.6666666666666666,2)",
+#'                        class = "ranef_sd", coef = "group")
+#' drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, sd_table)
 drm_resolve_priors <- function(formula, family = stats::gaussian(), data, priors) {
   family <- drm_eval_family_arg(substitute(family), parent.frame())
   if (!inherits(formula, "drm_formula") || !is.data.frame(data)) {
