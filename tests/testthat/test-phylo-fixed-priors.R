@@ -128,4 +128,14 @@ test_that("live Julia bridge verifies phylogenetic prior targets", {
   expect_error(drmTMB:::drm_julia_call_conditional_gaussian_components(
     payload$formula, "gaussian", payload$data, payload$tree, payload$options),
     "resolved prior coordinates differ")
+  fq <- bf(y ~ x + I(x^2) + phylo(1 | sp, tree = tree),
+           sigma ~ x + I(x^2), sd(sp, level = "phylogenetic") ~ z + I(z^2))
+  qp <- data.frame(prior = c("normal(.1,.7)", "normal(-.2,.5)"),
+                   class = "fixef", coef = "I(x^2)", dpar = c("mu", "sigma"))
+  native_q <- drmTMB(fq, data = d, priors = qp,
+                     control = drm_control(se = FALSE, logsigma_clamp = NULL,
+                                           optimizer_preset = "robust"))
+  bridge_q <- drmTMB(fq, data = d, priors = qp, engine = "julia")
+  expect_identical(bridge_q$resolved_priors$coefficient, c("I(x^2)", "I(x^2)"))
+  expect_equal(bridge_q$penalized_objective, native_q$penalized_objective, tolerance = 1e-5)
 })
