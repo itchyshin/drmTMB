@@ -8,6 +8,7 @@ appears only in a comment.
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import tempfile
@@ -22,6 +23,7 @@ JULIA_TESTTHAT = ROOT / "tools" / "covr-julia-bridge-testthat.R"
 JULIA_PLANT = ROOT / "tools" / "covr-plant-julia-bridge-testthat.sh"
 JULIA_INCLUDE = ROOT / "tools" / "covr-julia-bridge-include.txt"
 JULIA_RUNNER = ROOT / "tools" / "run-covr-julia-bridge-coverage.R"
+JULIA_PROFILE = ROOT / "tools" / "ci-juliacall-coverage.Rprofile"
 CODECOV_YML = ROOT / "codecov.yml"
 
 CODECOV_ACTION = (
@@ -232,6 +234,81 @@ class CodecovWorkflowTest(unittest.TestCase):
             if line.strip() and not line.strip().startswith("#")
         ]
         self.assertGreater(len(include_lines), 10)
+
+    def test_julia_profile_does_not_abort_callr_child(self) -> None:
+        """callr sources tests/testthat/.Rprofile. A locked-namespace assign aborts R."""
+        self.assertTrue(JULIA_PROFILE.is_file(), f"missing {JULIA_PROFILE}")
+        if subprocess.call(["Rscript", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
+            self.skipTest("Rscript unavailable")
+        probe = subprocess.run(
+            [
+                "Rscript",
+                "-e",
+                "quit(status = if (requireNamespace('callr', quietly=TRUE) && requireNamespace('pkgload', quietly=TRUE) && requireNamespace('testthat', quietly=TRUE)) 0L else 1L)",
+            ],
+            check=False,
+        )
+        if probe.returncode != 0:
+            self.skipTest("callr, pkgload, or testthat unavailable")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            testthat = root / "tests" / "testthat"
+            testthat.mkdir(parents=True)
+            lib_pkg = root / "lib" / "drmTMB"
+            lib_pkg.mkdir(parents=True)
+            (lib_pkg / "DESCRIPTION").write_text("Package: drmTMB\n", encoding="utf-8")
+            pkg = root / "pkg"
+            pkg.mkdir()
+            (pkg / "DESCRIPTION").write_text("Package: placeholder\n", encoding="utf-8")
+            profile = JULIA_PROFILE.resolve().as_posix()
+            (testthat / ".Rprofile").write_text(
+                "\n".join(
+                    [
+                        "# planted like tools/run-covr-julia-bridge-coverage.R",
+                        f"sys.source({profile!r}, envir = globalenv())",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            script = r"""
+profile_wd <- commandArgs(trailingOnly = TRUE)[[1]]
+setwd(profile_wd)
+one <- callr::r(function() 1L)
+stopifnot(identical(one, 1L))
+got <- callr::r(function() testthat::test_path("..", ".."))
+root <- normalizePath(Sys.getenv("DRMTMB_COVR_PKG_ROOT"), winslash = "/", mustWork = TRUE)
+stopifnot(identical(got, root))
+err <- tryCatch(
+  callr::r(function(root) pkgload::load_all(root), args = list(root = root)),
+  error = function(e) conditionMessage(e)
+)
+stopifnot(grepl("there is no package called", err, fixed = TRUE))
+stopifnot(!grepl("could not start R", err, fixed = TRUE))
+stopifnot(!grepl("locked environment", err, fixed = TRUE))
+cat("callr_profile_ok\n")
+"""
+            env = dict(os.environ)
+            env.update(
+                {
+                    "DRMTMB_JULIA_TESTS": "true",
+                    "DRMTMB_COVR_PKG_ROOT": pkg.resolve().as_posix(),
+                    "DRMTMB_COVR_INSTALL_LIB": (root / "lib").resolve().as_posix(),
+                }
+            )
+            proc = subprocess.run(
+                ["Rscript", "-e", script, str(testthat)],
+                check=False,
+                env=env,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(
+                proc.returncode,
+                0,
+                msg=proc.stdout + "\n" + proc.stderr,
+            )
+            self.assertIn("callr_profile_ok", proc.stdout)
 
     def test_julia_bridge_flag_has_no_carryforward(self) -> None:
         self.assertTrue(CODECOV_YML.is_file(), f"missing {CODECOV_YML}")
