@@ -155,11 +155,21 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertIn("julia-bridge-coverage:", self.producer)
         self.assertIn("DRMTMB_JULIA_TESTS: true", self.producer)
         self.assertIn("DRM_JL_PATH:", self.producer)
-        # Fence tests unset DRM_JL_PATH. The canonical env bypasses that unset.
+        # Fence tests unset only DRM_JL_PATH. Leave the canonical env unset.
         self.assertNotIn("DRMODELS_JL_PATH:", self.producer)
         self.assertNotIn("ref: main", self.producer)
-        self.assertIn("source-pins.json", self.producer)
-        self.assertIn('repins[-1]["drmjl_base"]', self.producer)
+        self.assertNotIn("source-pins.json", self.producer)
+        self.assertNotIn("drmjl_base", self.producer)
+        self.assertIn("tools/ci-drmjl-ref", self.producer)
+        self.assertIn('"$head" != "$pin"', self.producer)
+        pin_lines = [
+            line.strip()
+            for line in (ROOT / "tools" / "ci-drmjl-ref").read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.strip().startswith("#")
+        ]
+        self.assertEqual(pin_lines, ["5b005e0ffbc017e427f3c050f7ef45b38ff990ce"])
+        pin_text = (ROOT / "tools" / "ci-drmjl-ref").read_text(encoding="utf-8")
+        self.assertIn("Bump this sha on purpose", pin_text)
         self.assertIn("/usr/local/bin/julia", self.producer)
         self.assertNotIn("JULIA_HOME=", self.producer)
         self.assertIn("julia-actions/setup-julia@v3", self.producer)

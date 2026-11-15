@@ -1,0 +1,4 @@
+# CI pin for the julia-bridge coverage lane.
+# This is not the parity-programme pin in source-pins.json.
+# Bump this sha on purpose when that lane should track a newer DRModels.jl commit.
+5b005e0ffbc017e427f3c050f7ef45b38ff990ce

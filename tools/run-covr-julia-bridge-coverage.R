@@ -49,7 +49,9 @@ if (!file.copy(driver, main_testthat, overwrite = TRUE)) {
 
 # callr::r() uses user_profile = "project", so it does not see R_PROFILE_USER.
 # Plant a project profile under tests/testthat (covr copies it into the
-# installed test tree) that sources the coverage shim. Restored on exit.
+# installed test tree) that sources the coverage shim. Restored when the
+# local() block below returns or stop()s. A top-level on.exit() does not
+# run under Rscript.
 profile_src <- normalizePath(
   file.path(pkg_root, "tools", "ci-juliacall-coverage.Rprofile"),
   winslash = "/",
@@ -71,6 +73,8 @@ writeLines(
   project_profile
 )
 Sys.setenv(DRMTMB_COVR_RPROFILE = profile_src)
+# local() is a function, so this on.exit runs. Top-level on.exit() does not.
+local({
 on.exit(
   {
     if (file.exists(bak_testthat)) {
@@ -180,3 +184,4 @@ cat(sprintf(
 writeLines(sprintf("julia_bridge_percent_coverage=%.4f", pct), "coverage-percent.txt")
 covr::to_cobertura(cov, filename = "cobertura.xml")
 if (!file.exists("cobertura.xml")) fail("cobertura.xml was not written")
+})
