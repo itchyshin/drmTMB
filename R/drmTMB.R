@@ -5091,6 +5091,18 @@ drm_build_gaussian_ls_spec <- function(
       stats::na.omit
     }
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "Gaussian",
+    V_known = V_known
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
+  V_known <- aligned$V_known
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
@@ -5875,6 +5887,16 @@ drm_build_student_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "Student-t"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
@@ -6233,6 +6255,16 @@ drm_build_skew_normal_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "skew-normal"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
@@ -6604,6 +6636,16 @@ drm_build_lognormal_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "lognormal"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
@@ -7118,6 +7160,16 @@ drm_build_gamma_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "Gamma"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
@@ -7544,6 +7596,16 @@ drm_build_tweedie_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "Tweedie"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
@@ -8072,6 +8134,16 @@ drm_build_beta_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "beta"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
@@ -8699,6 +8771,16 @@ drm_build_zero_one_beta_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, zoi = mf_zoi, coi = mf_coi),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "zero-one-inflated beta"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
@@ -9088,6 +9170,16 @@ drm_build_beta_binomial_spec <- function(
   )
   mf_sd_sigma <- lapply(f_sd_sigma, stats::model.frame,
                         data = data_model, na.action = stats::na.omit)
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, sd_sigma = mf_sd_sigma),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "beta-binomial"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   response_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   if (is.null(dim(response_raw)) || ncol(response_raw) != 2L) {
@@ -9758,6 +9850,16 @@ drm_build_binomial_spec <- function(
       stats::na.omit
     }
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "binomial"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   raw_response <- stats::model.response(mf_mu)
   if (length(raw_response) == 0L) {
     cli::cli_abort(
@@ -10170,6 +10272,16 @@ drm_build_cumulative_logit_spec <- function(
     data = data_model,
     na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "cumulative logit"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   if (length(y_raw) == 0L) {
@@ -10695,6 +10807,16 @@ drm_build_poisson_spec <- function(
   } else {
     NULL
   }
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, zi = mf_zi),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "Poisson"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
@@ -11474,6 +11596,21 @@ drm_build_nbinom2_spec <- function(
   } else {
     NULL
   }
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(
+      mu = mf_mu,
+      sigma = mf_sigma,
+      sd_sigma = mf_sd_sigma,
+      zi = mf_zi
+    ),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "nbinom2"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   if (length(y) == 0L) {
@@ -12030,6 +12167,16 @@ drm_build_truncated_nbinom2_spec <- function(
   } else {
     NULL
   }
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, hu = mf_hu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "truncated or hurdle nbinom2"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y <- stats::model.response(mf_mu)
 
   if (length(y) == 0L) {
@@ -12679,6 +12826,25 @@ drm_build_biv_gaussian_spec <- function(
     data = data_model,
     na.action = model_na_action
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(
+      mu1 = mf_mu1,
+      mu2 = mf_mu2,
+      sigma1 = mf_sigma1,
+      sigma2 = mf_sigma2,
+      rho12 = mf_rho12
+    ),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "bivariate Gaussian",
+    V_known = V_known,
+    biv = TRUE
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
+  V_known <- aligned$V_known
 
   y1_raw <- stats::model.response(mf_mu1)
   y2_raw <- stats::model.response(mf_mu2)
@@ -21124,6 +21290,172 @@ known_v_complete <- function(V_known) {
   } else {
     is.finite(V_known$diag) & !is.na(V_known$diag)
   }
+}
+
+# Rows a model frame kept from the data it was built on. `na.omit` records the
+# dropped positions in `na.action`; `na.pass` keeps every row, including ones
+# whose transformed predictors are NaN.
+drm_model_frame_kept_rows <- function(model_frame, n) {
+  if (is.null(model_frame)) {
+    return(seq_len(n))
+  }
+  dropped <- attr(model_frame, "na.action")
+  if (is.null(dropped) || length(dropped) == 0L) {
+    if (nrow(model_frame) != n) {
+      cli::cli_abort(
+        "Internal error: a model frame has {nrow(model_frame)} rows but the modelled data has {n}."
+      )
+    }
+    return(seq_len(n))
+  }
+  dropped <- as.integer(dropped)
+  if (any(dropped < 1L | dropped > n)) {
+    cli::cli_abort(
+      "Internal error: model-frame row omission is outside the modelled data."
+    )
+  }
+  seq_len(n)[-dropped]
+}
+
+drm_collect_model_frames <- function(frames) {
+  if (is.null(names(frames)) || any(!nzchar(names(frames)))) {
+    cli::cli_abort("Internal error: distributional model frames must be named.")
+  }
+  out <- list()
+  for (nm in names(frames)) {
+    item <- frames[[nm]]
+    if (is.null(item)) {
+      next
+    }
+    if (is.data.frame(item)) {
+      out[[nm]] <- item
+      next
+    }
+    if (!is.list(item)) {
+      cli::cli_abort("Internal error: model frame {.val {nm}} is not a data frame.")
+    }
+    for (i in seq_along(item)) {
+      if (is.null(item[[i]]) || !is.data.frame(item[[i]])) {
+        next
+      }
+      label <- names(item)[i]
+      if (is.null(label) || !nzchar(label)) {
+        label <- as.character(i)
+      }
+      out[[paste0(nm, "[", label, "]")]] <- item[[i]]
+    }
+  }
+  out
+}
+
+# `complete.cases()` only sees columns named in the formula. `log(x)` or
+# `sqrt(x)` can still drop rows inside `model.frame(..., na.action = na.omit)`.
+# Those rows have to leave the weights, known sampling covariance, and the
+# data used for random effects, or the likelihood uses the first `nobs`
+# weights. Formulas that do not keep the same rows abort instead of fitting.
+drm_sync_model_frame_rows <- function(
+  frames,
+  data_model,
+  weights_model,
+  keep,
+  family_label
+) {
+  frames <- drm_collect_model_frames(frames)
+  if (length(frames) == 0L) {
+    cli::cli_abort(
+      "Internal error: {.val {family_label}} has no model frames to align."
+    )
+  }
+  n <- nrow(data_model)
+  rows <- lapply(frames, drm_model_frame_kept_rows, n = n)
+  ref <- as.integer(rows[[1L]])
+  mismatch <- names(rows)[vapply(rows, function(r) {
+    !identical(as.integer(r), ref)
+  }, logical(1L))]
+  if (length(mismatch) > 0L) {
+    counts <- vapply(rows, length, integer(1L))
+    detail <- paste(
+      sprintf("%s kept %d rows", names(counts), counts),
+      collapse = "; "
+    )
+    cli::cli_abort(
+      c(
+        "{.val {family_label}} formulas kept different rows.",
+        "x" = "Row counts: {detail}.",
+        "i" = "A transformed predictor such as {.code log(x)} or {.code sqrt(x)} was non-finite on some rows of one formula only.",
+        "i" = "Drop those rows before fitting, or use a transformation that is finite for every modelled row."
+      ),
+      class = "drmTMB_model_frame_rows"
+    )
+  }
+  if (length(ref) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
+  }
+  changed <- !identical(ref, seq_len(n))
+  if (!changed) {
+    return(list(
+      data_model = data_model,
+      weights_model = weights_model,
+      keep = keep,
+      rows = ref,
+      changed = FALSE
+    ))
+  }
+  idx <- which(keep)
+  if (length(idx) != n) {
+    cli::cli_abort(
+      "Internal error: the complete-case index does not match the modelled data."
+    )
+  }
+  new_keep <- rep(FALSE, length(keep))
+  new_keep[idx[ref]] <- TRUE
+  list(
+    data_model = data_model[ref, , drop = FALSE],
+    weights_model = weights_model[ref],
+    keep = new_keep,
+    rows = ref,
+    changed = TRUE
+  )
+}
+
+drm_apply_model_frame_rows <- function(
+  frames,
+  data_model,
+  weights_model,
+  keep,
+  family_label,
+  V_known = NULL,
+  biv = FALSE
+) {
+  aligned <- drm_sync_model_frame_rows(
+    frames = frames,
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = family_label
+  )
+  aligned$V_known <- V_known
+  if (!isTRUE(aligned$changed) || is.null(V_known)) {
+    return(aligned)
+  }
+  if (isTRUE(biv)) {
+    logical_rows <- rep(FALSE, nrow(data_model))
+    logical_rows[aligned$rows] <- TRUE
+    aligned$V_known <- subset_biv_known_v(
+      V_known,
+      logical_rows,
+      validate = FALSE
+    )
+  } else {
+    aligned$V_known <- subset_known_v(
+      V_known,
+      aligned$rows,
+      validate = FALSE
+    )
+  }
+  aligned
 }
 
 subset_biv_known_v <- function(V_known, keep, validate = TRUE) {
