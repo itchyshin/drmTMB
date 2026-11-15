@@ -5,9 +5,12 @@ test_that("normal priors resolve for a phylogenetic SD-regression model", {
                   sp = factor(c('a','a','b','b','b','c','c','d','d','d','d','a')),
                   z = c(-1,-1,-.35,-.35,-.35,.4,.4,1,1,1,1,-1))
   f <- bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ x, sd(sp, level = "phylogenetic") ~ z)
+  legacy <- suppressWarnings(bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ x, sd_phylo(sp) ~ z))
   p <- drm_priors(drm_prior_normal('mu', 'x', mean = .1, sd = .7),
                   drm_prior_normal('sigma', 'x', mean = -.2, sd = .5))
   rows <- suppressWarnings(drm_resolve_priors(f, gaussian(), d, p))
+  legacy_rows <- suppressWarnings(drm_resolve_priors(legacy, gaussian(), d, p))
+  expect_equal(legacy_rows, rows)
   expect_equal(as.character(rows$dpar), c('mu', 'sigma'))
   expect_equal(as.character(rows$coefficient), c('x', 'x'))
   table <- data.frame(prior=c('normal(.1,.7)', 'normal(-.2,.5)'),
@@ -32,6 +35,10 @@ test_that("normal priors resolve for a phylogenetic SD-regression model", {
   points <- rbind(c(.8,.3,-.4,.15,-.3,.2), c(.4,.7,-.8,-.2,-.5,.35),
                   c(1,-.1,.1,.2,-.9,-.2), c(.6,.6,-.1,-.3,.2,.1),
                   c(1.2,.4,-.6,.4,-.1,-.4))
+  legacy_fit <- suppressWarnings(drmTMB(legacy, data = d, priors = p,
+    control = drm_control(se = FALSE, logsigma_clamp = NULL)))
+  expect_equal(as.numeric(legacy_fit$obj$fn(points[1, ])), as.numeric(fit$obj$fn(points[1, ])), tolerance = 1e-10)
+  expect_equal(unname(legacy_fit$obj$gr(points[1, ])), unname(fit$obj$gr(points[1, ])), tolerance = 1e-9)
   # Independently computed public-tree oracle; see development evidence.
   reference_obj <- c(11.3440779905637, 9.14530839622453, 15.6716932003145, 14.8468076770793, 11.215463299799)
   reference_grad <- rbind(c(-0.636593951095403, -1.034862477404889, 7.415567591797730, 1.926684071596260, 2.574044520824935, -0.151920121082818),
