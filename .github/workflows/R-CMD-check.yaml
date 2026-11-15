@@ -60,14 +60,19 @@ jobs:
     runs-on: ${{ matrix.config.os == 'ubuntu-latest' && 'ubuntu-24.04' || matrix.config.os }}
     # Six Ubuntu runs in August 2026 took 43m35s to 46m34s; a prior
     # 45-minute limit cancelled main run 30847977891.
-    # The four PR shards keep their 75-minute limit. The full unsharded
+    # PR shard 1 gets 150 minutes after release run 43731130544 was cancelled
+    # after about 75 minutes, matching its configured limit, while testthat.R
+    # was still running. A shard
+    # on a source-matched artifact completed on Totoro, but host timings are not
+    # comparable, so this is a bounded diagnostic allowance, not a measured
+    # GitHub completion time. Other PR shards retain 75 minutes. The full unsharded
     # dispatch/tag matrix gets 180 minutes: run 42191037809 cancelled all
     # three OS jobs about 75 minutes after they started, while R CMD check
     # was active (Windows 72m38s, macOS 72m14s, Ubuntu 64m46s in that
     # step). This timing is consistent with the old job limit; GitHub's
     # logs do not identify the cancellation initiator. Keep the complete
     # test suite and report another timeout rather than treating it as green.
-    timeout-minutes: ${{ matrix.shard == 0 && 180 || 75 }}
+    timeout-minutes: ${{ matrix.shard == 0 && 180 || matrix.shard == 1 && 150 || 75 }}
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.shard != 0 && format(' shard {0}/4', matrix.shard) || '' }}
 

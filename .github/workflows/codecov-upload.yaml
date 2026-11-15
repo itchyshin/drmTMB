@@ -40,12 +40,24 @@ jobs:
           merge-multiple: false
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
+      - name: Check all R coverage reports
+        run: |
+          set -euo pipefail
+          for shard in {1..8}; do
+            report="${COVERAGE_ROOT}/main-coverage-shard-${shard}/cobertura.xml"
+            if [[ ! -f "$report" || ! -s "$report" ]]; then
+              echo "::error::Missing or empty R coverage report: ${report}" >&2
+              exit 1
+            fi
+          done
+        env:
+          COVERAGE_ROOT: ${{ runner.temp }}/coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5
         with:
           use_oidc: true
           fail_ci_if_error: true
-          files: ${{ runner.temp }}/coverage/main-coverage-shard-1/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-2/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-3/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-4/cobertura.xml
+          files: ${{ runner.temp }}/coverage/main-coverage-shard-1/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-2/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-3/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-4/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-5/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-6/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-7/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-8/cobertura.xml
           disable_search: true
           plugins: noop
           version: v11.3.2
