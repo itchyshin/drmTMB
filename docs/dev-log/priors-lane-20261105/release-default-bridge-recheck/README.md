@@ -1,8 +1,12 @@
 # Current phylogenetic label receipt
 
+## Phylogenetic-prior branch refresh
+
+The current no-prior receipt uses R `7bf63a960169bb53bac4f73ac642f1cd83b1bb29` and Julia `ec420ac23918d57c877099851d45100e87aa51da`. All eight checks passed and the checker rejected 12 deliberate mutations. This is one no-prior Gaussian phylogenetic fixture; it does not validate priors or broad parity. See `docs/dev-log/priors-receipt-phylo-feature-20261115/README.md`.
+
 ## Current main refresh
 
-The current no-prior receipt uses R `def81464aec6dfbf7fbba3b00abd06d9616ac24e` and Julia `ec420ac23918d57c877099851d45100e87aa51da`. All eight checks passed, and the checker rejected 12 deliberate mutations. An independent audit matched the recorded 68 R and 127 Julia source hashes to those commits; the runner hash, source status and Julia environment hashes were also checked. This is one Gaussian phylogenetic fixture, not a prior or broad parity validation. Details are in `docs/dev-log/priors-receipt-jec420-20261115/README.md`.
+The preceding no-prior receipt used R `def81464aec6dfbf7fbba3b00abd06d9616ac24e` and Julia `ec420ac23918d57c877099851d45100e87aa51da`; it is retained as `pre-phylo-feature-20261115.json`. All eight checks passed, and the checker rejected 12 deliberate mutations. An independent audit matched the recorded 68 R and 127 Julia source hashes to those commits; the runner hash, source status and Julia environment hashes were also checked. This is one Gaussian phylogenetic fixture, not a prior or broad parity validation. Details are in `docs/dev-log/priors-receipt-jec420-20261115/README.md`.
 
 ## November 15 current-Julia refresh
 
