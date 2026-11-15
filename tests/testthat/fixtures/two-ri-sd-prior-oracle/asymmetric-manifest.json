@@ -1,0 +1,8 @@
+{
+  "schema": "two-ri-asymmetric-freeze-v1",
+  "sha256": {
+    "supplemental.py": "b11598b421f6f57360b38f6541e76a1614a9a52e7f04585566fb23942d038ec7",
+    "asymmetric-frozen.json": "91de5613071175a8789a349243230a2023ae6aadd70bb35f9d6acc48938a0b85",
+    "verify_asymmetric.py": "a2c62e2728c678db76b5bafb89f8098158e07f29c9f4bcfb636fbb3e4cd0cdb0"
+  }
+}
