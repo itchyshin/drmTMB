@@ -1,8 +1,12 @@
 # Current phylogenetic label receipt
 
+## Current main refresh
+
+The current no-prior receipt uses R `def81464aec6dfbf7fbba3b00abd06d9616ac24e` and Julia `ec420ac23918d57c877099851d45100e87aa51da`. All eight checks passed, and the checker rejected 12 deliberate mutations. An independent audit matched the recorded 68 R and 127 Julia source hashes to those commits; the runner hash, source status and Julia environment hashes were also checked. This is one Gaussian phylogenetic fixture, not a prior or broad parity validation. Details are in `docs/dev-log/priors-receipt-jec420-20261115/README.md`.
+
 ## November 15 current-Julia refresh
 
-The current receipt uses R source `def81464aec6dfbf7fbba3b00abd06d9616ac24e` and Julia source `5b005e0ffbc017e427f3c050f7ef45b38ff990ce`. It compares marginal fitted values on both sides after the Julia default changed to conditional fitted values. All eight checks passed and the checker rejected 12 mutated receipts. The preceding receipt is retained as `pre-julia-main-20261115.json`; the evidence and limitations are in `docs/dev-log/priors-receipt-current-julia-20261115/README.md`.
+The preceding receipt used R source `def81464aec6dfbf7fbba3b00abd06d9616ac24e` and Julia source `5b005e0ffbc017e427f3c050f7ef45b38ff990ce`; it is retained as `pre-julia-ec420-20261115.json`. It compares marginal fitted values on both sides after the Julia default changed to conditional fitted values. All eight checks passed and the checker rejected 12 mutated receipts. The preceding receipt is retained as `pre-julia-main-20261115.json`; the evidence and limitations are in `docs/dev-log/priors-receipt-current-julia-20261115/README.md`.
 
 This receipt refreshes the current-source evidence for one Gaussian phylogenetic
 location-scale-scale model. The 12 labels, 72 observations, tree-ordered direct
