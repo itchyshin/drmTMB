@@ -11,6 +11,8 @@ from __future__ import annotations
 import re
 import subprocess
 import tempfile
+import os
+import textwrap
 import unittest
 from pathlib import Path
 
@@ -63,10 +65,10 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertNotIn("CODECOV_TOKEN", self.producer)
         self.assertNotIn("pull_request_target", self.producer)
 
-    def test_producer_partitions_one_os_four_shards(self) -> None:
+    def test_producer_partitions_one_os_eight_shards(self) -> None:
         self.assertIn("runs-on: ubuntu-24.04", self.producer)
-        self.assertIn("shard: [1, 2, 3, 4]", self.producer)
-        self.assertIn('DRMTMB_TEST_SHARD: ${{ format(\'{0}/4\', matrix.shard) }}', self.producer)
+        self.assertIn("shard: [1, 2, 3, 4, 5, 6, 7, 8]", self.producer)
+        self.assertIn('DRMTMB_TEST_SHARD: ${{ format(\'{0}/8\', matrix.shard) }}', self.producer)
         self.assertIn("NOT_CRAN: true", self.producer)
         self.assertIn("type = \"tests\"", self.producer)
         self.assertIn("covr::package_coverage(", self.producer)
@@ -123,15 +125,42 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertNotIn("secrets.CODECOV_TOKEN", self.uploader)
         self.assertNotIn("token: ${{ secrets", self.uploader)
 
-    def test_uploader_pins_all_four_shard_reports(self) -> None:
+    def test_uploader_pins_all_eight_shard_reports(self) -> None:
         files_line = next(
             line for line in _active_lines(UPLOADER) if "files:" in line
         )
-        for shard in (1, 2, 3, 4):
+        for shard in range(1, 9):
             self.assertIn(
                 f"main-coverage-shard-{shard}/cobertura.xml",
                 files_line,
             )
+        report_ids = re.findall(r"main-coverage-shard-(\d+)/cobertura\.xml", files_line)
+        self.assertEqual(sorted(map(int, report_ids)), list(range(1, 9)))
+
+    def test_runtime_report_preflight_rejects_missing_and_empty(self) -> None:
+        text = UPLOADER.read_text(encoding="utf-8")
+        block = text.split("      - name: Check all R coverage reports\n", 1)[1]
+        block = block.split("      - name: Upload", 1)[0]
+        script = textwrap.dedent(block.split("        run: |\n", 1)[1].split("        env:\n", 1)[0])
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            paths = [root / f"main-coverage-shard-{i}" / "cobertura.xml" for i in range(1, 9)]
+            for report in paths:
+                report.parent.mkdir()
+                report.write_text("<coverage/>\n")
+            env = dict(os.environ, COVERAGE_ROOT=str(root))
+            run = lambda: subprocess.run(["bash", "-c", script], env=env, capture_output=True)
+            self.assertEqual(run().returncode, 0)
+            for report in paths:
+                report.unlink()
+                self.assertNotEqual(run().returncode, 0, f"accepted missing {report}")
+                report.write_text("")
+                self.assertNotEqual(run().returncode, 0, f"accepted empty {report}")
+                report.unlink()
+                report.mkdir()
+                self.assertNotEqual(run().returncode, 0, f"accepted directory {report}")
+                report.rmdir()
+                report.write_text("<coverage/>\n")
 
     def test_comment_cannot_satisfy_oidc_gate(self) -> None:
         mutated = re.sub(
