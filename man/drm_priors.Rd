@@ -2,23 +2,34 @@
 % Please edit documentation in R/fixed-effect-priors.R
 \name{drm_priors}
 \alias{drm_priors}
+\alias{drm_prior_sd_gamma}
 \alias{drm_prior_normal}
 \alias{drm_prior_ridge}
-\title{Fixed-effect prior specifications}
+\title{Prior specifications for fixed effects and random-effect SDs}
 \usage{
 drm_priors(...)
+
+drm_prior_sd_gamma(dpar = "mu", group, coef = "(Intercept)", shape, rate)
 
 drm_prior_normal(dpar, coef, mean = 0, sd, intercept = NULL)
 
 drm_prior_ridge(dpar, coef, lambda, intercept = NULL)
 }
 \arguments{
-\item{...}{Prior specifications returned by \code{drm_prior_normal()} or
-\code{drm_prior_ridge()}.}
+\item{...}{Prior specifications returned by \code{drm_prior_normal()},
+\code{drm_prior_ridge()}, or \code{drm_prior_sd_gamma()}.}
 
-\item{dpar}{Distributional parameter, \code{"mu"} or \code{"sigma"}.}
+\item{dpar}{For fixed-effect priors, \code{"mu"} or \code{"sigma"}. The SD prior
+currently supports \code{"mu"} only.}
 
-\item{coef}{One exact design-matrix column name or \code{"all"}.}
+\item{group}{Exact random-effect grouping variable name.}
+
+\item{coef}{For fixed-effect priors, one exact design-matrix column name or
+\code{"all"}. The SD prior currently supports \code{"(Intercept)"} only.}
+
+\item{shape}{Gamma shape, finite and greater than one.}
+
+\item{rate}{Gamma rate, positive and finite.}
 
 \item{mean}{Normal prior mean, a finite scalar.}
 
@@ -41,8 +52,10 @@ applied. For \code{coef = "all"}, state whether the intercept is included.
 }
 \details{
 Gaussian identity models may include one independent random intercept in
-the mean. The prior targets fixed coefficients; the group standard deviation
-is estimated without a prior. The objective is the marginal data negative
+the mean. \code{drm_prior_sd_gamma()} targets its named group standard deviation
+on the natural SD scale, with density relative to SD and no log-scale
+Jacobian. Shape must exceed one and rate must be positive. It may be combined
+with fixed-effect priors. The objective is the marginal data negative
 log-likelihood plus the prior or penalty. A normal prior includes its density
 constant, whereas a ridge penalty has no normalizing constant. \code{logLik()}
 reports the data likelihood at the penalized estimates. Confidence intervals
@@ -53,6 +66,7 @@ formulas with ordinary random effects; the native TMB route supports them.
 }
 \examples{
 drm_priors(drm_prior_normal("mu", "x", sd = 2))
+drm_priors(drm_prior_sd_gamma(group = "site", shape = 2, rate = 3))
 \donttest{
 d <- data.frame(x = rep(c(-1, 0, 1), 6), group = factor(rep(1:6, each = 3)))
 d$y <- 0.5 + 0.6 * d$x + rep(c(-0.5, 0.2, 0.7, -0.3, 0.4, -0.4), each = 3) +
@@ -61,5 +75,10 @@ p <- drm_priors(drm_prior_normal("mu", "x", mean = 0.2, sd = 0.8))
 fit <- drmTMB(bf(y ~ x + (1 | group), sigma ~ 1), data = d, priors = p)
 coef(fit, dpar = "mu")
 logLik(fit)  # data likelihood at the penalized estimates
+sd_prior <- drm_priors(drm_prior_sd_gamma(group = "group", shape = 2, rate = 3))
+formula <- bf(mu = y ~ x + (1 | group), sigma = ~ 1)
+drm_resolve_priors(formula, gaussian(), d, sd_prior)  # inspect the target
+sd_fit <- drmTMB(formula, data = d, priors = sd_prior)
+logLik(sd_fit)  # data likelihood at the penalized estimates
 }
 }

@@ -1,5 +1,50 @@
 # drmTMB 0.8.1
 
+* A formula transform that is not a number, such as `log(x)` or `sqrt(x)` on a
+  non-positive predictor, drops those rows from the response and the design.
+  The same rows are now dropped from the weights, the known sampling
+  covariance, and the data used to build random effects. Distributional
+  formulas that would keep different rows abort with class
+  `drmTMB_model_frame_rows` instead of fitting (#1725).
+
+* Bivariate Gaussian models now abort before starting-value or optimizer
+  code when an observed response or a fixed-effect design value is
+  non-finite. `Inf` in `y1` or `y2` names that response. `Inf` in a `mu1`,
+  `mu2`, `sigma1`, `sigma2`, or `rho12` design names the column. `NA` and
+  `NaN` responses are still dropped by the existing missingness rules
+  (#1709).
+
+* Unknown `stats::nlminb()` settings in `control` or `drm_control(optimizer =
+  ...)` now trigger a classed `drmTMB_unknown_optimizer_control` warning that
+  names the element and suggests the closest valid control name; the typo is
+  dropped before optimization so the generic `nlminb` warning does not repeat
+  (#1734).
+
+* Student-t and skew-normal models now abort before starting-value or
+  optimizer code when a fixed-effect design value is non-finite (`Inf` in a
+  `mu`, `sigma`, or `nu` predictor). The abort names the family, the
+  distributional parameter, and the design column. `NA` predictors are still
+  dropped by the existing complete-case rule. The Gaussian wording is
+  unchanged (#1710).
+
+* Bivariate Gaussian `relmat(K = K)` and `relmat(Q = solve(K))` are the same
+  known-relatedness likelihood. On the q = 4 location-slope block, maximised
+  log-likelihoods can differ by about 0.003 when `nlminb` and the BFGS
+  fallback stop at different points on a flat unstructured-correlation ridge.
+  The equivalence check is the TMB objective at one shared parameter vector,
+  which matches well inside the existing 1e-5 tolerance (#1703).
+
+* Gaussian location-scale models now abort before TMB when an observed
+  response or fixed-effect design value is non-finite (`Inf` in `y` or in a
+  predictor no longer reaches TMB's `NA/NaN/Inf in 'y'` / `'x'` errors).
+  Missing (`NA`) and not-a-number (`NaN`) responses are still dropped by the
+  existing missingness rules (#1697).
+
+* Added internal `sha256_file_portable()` so parity-evidence scripts and tests can
+  compute file SHA-256 digests on every R version in `Depends`, using
+  `tools::sha256sum()` when exported (R 4.5+) and otherwise Suggested
+  `openssl`/`digest` or the `sha256sum`/`shasum` system utilities (#1702).
+
 * `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
   `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
   log-densities that the response kernels gained in #1547. The old inline

@@ -2,7 +2,7 @@
 # before Julia setup, missing-data integration, or optimizer construction.
 drm_fixed_priors_active <- function(priors) {
   if (is.null(priors)) return(FALSE)
-  any(vapply(priors, function(p) identical(p$kind, "normal") ||
+  any(vapply(priors, function(p) inherits(p, "drm_sd_prior") || identical(p$kind, "normal") ||
     isTRUE(p$precision > 0), logical(1)))
 }
 
@@ -33,6 +33,9 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
     cli::cli_abort("Fixed-effect priors require ML mode (REML = FALSE), without MSPL or {.arg penalty}.")
   }
   ft <- drm_family_type(family)
+  has_sd <- any(vapply(priors, inherits, logical(1), "drm_sd_prior"))
+  if (has_sd && !identical(ft, "gaussian"))
+    cli::cli_abort("SD priors currently require a Gaussian mean random intercept.")
   if (!ft %in% c("gaussian", "binomial") ||
       (ft == "gaussian" && !identical(family$link, "identity")) ||
       (ft == "binomial" && !identical(family$link, "logit"))) {
@@ -65,6 +68,8 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
       any(vapply(formula$entries, function(e) length(e$structured) > 0L, logical(1)))) {
     cli::cli_abort("Fixed-effect priors support fixed-effect-only models or one Gaussian mean random intercept, without structured or missing-predictor terms.")
   }
+  if (has_sd && !"|" %in% calls)
+    cli::cli_abort("SD priors require one Gaussian mean random intercept.")
   variables <- intersect(unique(unlist(lapply(formula$calls, all.vars))), names(data))
   if (anyNA(data[variables])) {
     cli::cli_abort("Fixed-effect priors currently require complete model variables; remove incomplete rows explicitly.")
@@ -80,20 +85,27 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
   invisible(NULL)
 }
 
-#' Preview fixed-effect prior selections without fitting
+#' Preview prior selections without fitting
 #'
 #' Resolve selectors against the same Gaussian or binomial design builders used
 #' by [drmTMB()]. Models require complete data and unit weights. Gaussian
 #' identity models can include one independent mean random intercept; other
 #' random effects and random-effect SD formulas are not supported with priors.
+#' A Gamma SD prior identifies the exact group and intercept and reports shape
+#' and rate on the natural SD scale. The native and Julia engines support this
+#' prior for the Gaussian mean random-intercept model described above.
 #' The Julia bridge does not yet accept factor predictors in this mixed model.
 #' No automatic centring or scaling is performed.
 #' @param formula A [drm_formula()] or [bf()] specification.
 #' @param family Gaussian identity or binomial logit family.
 #' @param data A data frame with complete model variables.
 #' @param priors A collection created by [drm_priors()].
-#' @return A data frame identifying each selected coefficient, distributional
-#'   parameter, matrix column, prior mean, SD, precision and selection reason.
+#' @return A data frame identifying the resolved targets. Fixed-effect rows
+#'   report the distributional parameter, coefficient, matrix column, prior
+#'   mean, SD, precision and selection reason. An SD-prior row reports the
+#'   distributional parameter, group, random-effect block, coefficient,
+#'   SD scale, shape and rate. Mixed results combine these fields, with
+#'   unavailable fields recorded as `NA`.
 #' @export
 #' @examples
 #' d <- data.frame(y = c(1, 2, 1, 3), x = c(0, 1, 2, 3))
@@ -117,18 +129,29 @@ drm_resolve_priors <- function(formula, family = stats::gaussian(), data, priors
       missing = drm_parse_missing_control(miss_control()), link = family$link)
   }
   drm_validate_fixed_prior_designs(spec)
-  drm_apply_fixed_priors_spec(spec, priors)$resolved_priors
+  spec <- drm_apply_fixed_priors_spec(spec, priors)
+  if (is.null(spec$resolved_sd_prior)) return(spec$resolved_priors)
+  if (is.null(spec$resolved_priors)) return(spec$resolved_sd_prior)
+  fixed <- spec$resolved_priors
+  fixed$class <- "fixed"
+  fixed$group <- fixed$block <- fixed$scale <- NA_character_
+  fixed$shape <- fixed$rate <- NA_real_
+  sd <- spec$resolved_sd_prior
+  for (n in setdiff(names(fixed), names(sd))) sd[[n]] <- NA
+  rbind(fixed, sd[names(fixed)])
 }
 
 drm_has_fixed_priors <- function(object) {
   p <- object$resolved_priors
-  is.data.frame(p) && nrow(p) > 0L && any(p$precision > 0)
+  (is.data.frame(p) && nrow(p) > 0L && any(p$precision > 0)) ||
+    (is.data.frame(object$resolved_sd_prior) && nrow(object$resolved_sd_prior) > 0L)
 }
 
 drm_abort_fixed_prior_inference <- function(object, method) {
   if (drm_has_fixed_priors(object)) {
+    label <- if (is.null(object$resolved_sd_prior)) "fixed-effect prior" else "fixed-effect or SD prior"
     cli::cli_abort(c(
-      "{method} is not implemented for fixed-effect prior fits.",
+      "{method} is not implemented for {label} fits.",
       i = "Inspect point estimates and local penalized-Hessian curvature with summary() and vcov(); these are not calibrated confidence intervals."
     ))
   }

@@ -638,9 +638,17 @@ drmTMB_julia_bridge <- function(
   missing,
   REML = FALSE,
   call,
-  priors = NULL
+  priors = NULL,
+  weights = NULL
 ) {
   REML <- drm_control_flag(REML, "REML")
+  has_sd_prior <- !is.null(priors) && any(vapply(priors, inherits, logical(1), "drm_sd_prior"))
+  if (has_sd_prior) {
+    if (isTRUE(REML)) stop("SD priors through Julia require ML", call. = FALSE)
+    if (!isTRUE(weights_missing)) drm_julia_validate_sd_unit_weights(weights, nrow(data))
+    # Validate the full request before any alternate bridge can discard it.
+    drm_resolve_priors(formula, family, data, priors)
+  }
   drm_julia_refuse_binomial_nonlogit_sd(formula, family)
   # A cross-family pair has no single bridge family type; resolving it here
   # would abort on the mixed-response check before the xfam bridge is reached.
@@ -734,7 +742,7 @@ drmTMB_julia_bridge <- function(
       call = call
     ))
   }
-  if (!isTRUE(weights_missing)) {
+  if (!isTRUE(weights_missing) && !has_sd_prior) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} does not support {.arg weights} yet.",
       i = "Use native {.code engine = \"tmb\"} for weighted fits until the bridge has a weights payload."
@@ -839,7 +847,7 @@ drmTMB_julia_bridge <- function(
   resolved_priors <- NULL
   if (!is.null(priors)) {
     resolved_priors <- drm_resolve_priors(formula, family, data, priors)
-    prior_options <- drm_fixed_prior_bridge_options(priors, resolved_priors)
+    prior_options <- if (has_sd_prior) drm_julia_prior_v2_options(priors, resolved_priors) else drm_fixed_prior_bridge_options(priors, resolved_priors)
     bridge_payload$options <- utils::modifyList(bridge_payload$options, prior_options)
   }
 
@@ -869,7 +877,13 @@ drmTMB_julia_bridge <- function(
     )
   }
   result <- drm_julia_restore_row_order(result, bridge_payload$row_order)
-  if (!is.null(priors)) {
+  if (has_sd_prior) {
+    sd_record <- Filter(function(x) identical(x$class, "ranef_sd"), prior_options$prior_expected_v2)[[1L]]
+    expected_coordinates <- c(paste0("mu_", bridge_payload$coef_labels$mu),
+      paste0("sigma_", bridge_payload$coef_labels$sigma),
+      paste0("eta_sd[mu|", sd_record$group, "|(Intercept)]"))
+    drm_julia_validate_prior_v2_result(result, prior_options$prior_expected_v2, expected_coordinates)
+  } else if (!is.null(priors)) {
     if (!identical(as.character(result[["fixed_prior_contract"]]), "fixed_effect_priors_v1")) {
       cli::cli_abort("The Julia backend did not confirm the fixed-effect prior target; use a DRModels.jl build supporting fixed_effect_priors_v1.")
     }
@@ -890,7 +904,18 @@ drmTMB_julia_bridge <- function(
     requested_REML = isTRUE(REML),
     effective_REML = isTRUE(REML) && isTRUE(reml_supported)
   )
-  if (!is.null(priors)) {
+  if (has_sd_prior) {
+    out$priors <- priors
+    out$resolved_priors <- resolved_priors[resolved_priors$class == "fixed", , drop = FALSE]
+    out$resolved_sd_prior <- resolved_priors[resolved_priors$class == "sd_gamma", , drop = FALSE]
+    out$fixed_prior_penalty <- as.numeric(result[["fixed_prior_penalty"]])
+    out$sd_prior_penalty <- as.numeric(result[["sd_prior_penalty"]])
+    out$penalized_objective <- as.numeric(result[["penalized_objective"]])
+    out$prior_gradient <- as.numeric(result[["fixed_prior_gradient"]]) + as.numeric(result[["sd_prior_gradient"]])
+    out$likelihood_gradient <- as.numeric(result[["data_gradient"]])
+    out$penalized_gradient <- as.numeric(result[["penalized_gradient"]])
+    out$covariance_interpretation <- "local_penalized_hessian_curvature; not calibrated sampling covariance"
+  } else if (!is.null(priors)) {
     out$priors <- priors
     out$resolved_priors <- resolved_priors
     out$fixed_prior_penalty <- as.numeric(result[["fixed_prior_penalty"]])
@@ -7063,6 +7088,161 @@ drm_julia_serial_hint <- function(threads_requested, julia_threads) {
   invisible(NULL)
 }
 
+drm_julia_validate_sd_unit_weights <- function(weights, n) {
+  if (!is.numeric(weights) || length(weights) != n || any(!is.finite(weights)) || any(weights != 1))
+    stop("SD priors through Julia require finite unit weights for every observation", call. = FALSE)
+  invisible(NULL)
+}
+
+# Preserve user specification order when mapping expanded targets to v2 records.
+drm_julia_prior_v2_options <- function(priors, resolved) {
+  if (!is.list(priors) || !is.data.frame(resolved) || !nrow(resolved)) stop("Invalid v2 prior preview", call. = FALSE)
+  specs <- records <- list()
+  used <- logical(nrow(resolved))
+  for (i in seq_along(priors)) {
+    p <- priors[[i]]
+    if (inherits(p, "drm_sd_prior")) {
+      spec <- list(kind="ranef_sd_gamma", dpar=p$dpar, group=p$group, coef=p$coef,
+        block_kind="iid_random_intercept", shape=as.double(p$shape), rate=as.double(p$rate), measure="natural_sd")
+      at <- which(resolved$class == "sd_gamma" & resolved$dpar == p$dpar & resolved$group == p$group & !used)
+      if (length(at) != 1L) stop("SD prior preview target is not unique", call. = FALSE)
+      record <- c(list(spec_index=as.integer(i), kind=spec$kind, class="ranef_sd"), spec[c("dpar", "group", "coef", "block_kind", "shape", "rate", "measure")])
+      records <- c(records, list(record)); used[at] <- TRUE
+    } else if (inherits(p, "drm_fixed_prior")) {
+      kind <- if (identical(p$kind, "normal")) "fixed_normal" else if (identical(p$kind, "ridge")) "fixed_ridge" else stop("Unknown fixed prior kind", call. = FALSE)
+      spec <- list(kind=kind, dpar=p$dpar, coef=p$coef)
+      if (identical(p$coef, "all")) spec$intercept <- p$intercept
+      if (kind == "fixed_normal") { spec$mean <- as.double(p$mean); spec$sd <- as.double(p$sd) }
+      else spec$lambda <- as.double(p$precision)
+      mask <- resolved$class == "fixed" & resolved$dpar == p$dpar & !used
+      mask[is.na(mask)] <- FALSE
+      if (identical(p$coef, "all")) mask <- mask & !is.na(resolved$reason) & startsWith(resolved$reason, "all;")
+      else mask <- mask & resolved$coefficient == p$coef
+      at <- which(mask)
+      if (!length(at) || (!identical(p$coef, "all") && length(at) != 1L)) stop("Fixed prior preview target is not unique", call. = FALSE)
+      for (j in at) {
+        record <- list(spec_index=as.integer(i), kind=kind, class="fixed", dpar=p$dpar, coef=resolved$coefficient[[j]])
+        if (kind == "fixed_normal") { record$mean <- spec$mean; record$sd <- spec$sd }
+        else record$lambda <- spec$lambda
+        records <- c(records, list(record))
+      }
+      used[at] <- TRUE
+    } else stop("Unknown v2 prior class", call. = FALSE)
+    specs <- c(specs, list(spec))
+  }
+  if (!all(used)) stop("Unmatched v2 prior preview targets", call. = FALSE)
+  list(prior_contract="parameter_priors_v2", priors_v2=specs, prior_expected_v2=records)
+}
+
+# Validate the v2 handshake before accepting any backend result.
+drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordinates = NULL) {
+  fail <- function(what) stop(paste("Invalid Julia v2 prior result:", what), call. = FALSE)
+  if (!is.list(result) || is.null(names(result)) || anyDuplicated(names(result))) fail("duplicate or missing result fields")
+  required <- c("prior_contract", "resolved_priors_v2", "working_coordinates", "working_values", "coefficients",
+    "data_nll", "data_logLik", "loglik", "fixed_prior_penalty", "sd_prior_penalty", "penalized_objective",
+    "data_gradient", "fixed_prior_gradient", "sd_prior_gradient", "penalized_gradient",
+    "estim_method", "infocrit_basis")
+  if (!all(required %in% names(result)) || any(vapply(result[required], is.null, logical(1)))) fail("missing result fields")
+  if (!identical(result$prior_contract, "parameter_priors_v2")) fail("contract")
+  if (!identical(result$estim_method, "MAP") || !identical(result$infocrit_basis, "unavailable")) fail("estimator status")
+  normalize_record <- function(x) {
+    if (!is.list(x) || is.null(names(x)) || anyDuplicated(names(x)) || !is.character(x$kind) || length(x$kind) != 1L) fail("invalid prior record")
+    common <- c("spec_index", "kind", "class", "dpar", "coef")
+    extra <- switch(x$kind, fixed_normal = c("mean", "sd"), fixed_ridge = "lambda",
+      ranef_sd_gamma = c("group", "block_kind", "shape", "rate", "measure"), fail("prior kind"))
+    keys <- c(common, extra)
+    if (length(names(x)) != length(keys) || !setequal(names(x), keys)) fail("prior record fields")
+    x <- x[keys]
+    numeric_keys <- intersect(c("spec_index", "mean", "sd", "lambda", "shape", "rate"), keys)
+    for (k in numeric_keys) {
+      if (!is.numeric(x[[k]]) || length(x[[k]]) != 1L || !is.finite(x[[k]])) fail("prior record number")
+      x[[k]] <- as.double(x[[k]])
+    }
+    for (k in setdiff(keys, numeric_keys)) {
+      if (!is.character(x[[k]]) || length(x[[k]]) != 1L || is.na(x[[k]]) || !nzchar(x[[k]])) fail("prior record string")
+    }
+    x
+  }
+  actual <- result$resolved_priors_v2
+  if (!is.list(expected) || !is.list(actual) || length(expected) == 0L || length(actual) != length(expected)) fail("prior record count")
+  expected <- lapply(expected, normalize_record)
+  if (!identical(lapply(actual, normalize_record), expected)) fail("prior records differ")
+  sd_records <- Filter(function(x) identical(x$kind, "ranef_sd_gamma"), expected)
+  if (length(sd_records) != 1L) fail("SD prior record count")
+  sd_record <- sd_records[[1L]]
+  if (!identical(sd_record$class, "ranef_sd") || !identical(sd_record$dpar, "mu") ||
+      !identical(sd_record$coef, "(Intercept)") || !identical(sd_record$block_kind, "iid_random_intercept") ||
+      !identical(sd_record$measure, "natural_sd") || sd_record$shape <= 1 || sd_record$rate <= 0 ||
+      sd_record$spec_index < 1 || sd_record$spec_index != floor(sd_record$spec_index))
+    fail("SD prior target or parameters")
+  coords <- result$working_coordinates
+  if (!is.character(coords) || !length(coords) || anyNA(coords) || any(!nzchar(coords)) || anyDuplicated(coords)) fail("working coordinates")
+  if (!is.null(expected_coordinates) && !identical(coords, expected_coordinates)) fail("working coordinate identities")
+  vec <- function(x, n, name) {
+    if (!is.numeric(x) || length(x) != n || any(!is.finite(x))) fail(name)
+    as.double(x)
+  }
+  n <- length(coords)
+  working <- vec(result$working_values, n, "working values")
+  reported <- vec(result$coefficients, n, "reported coefficients")
+  if (!identical(working, reported)) fail("working values differ from reported coefficients")
+  scalars <- c("data_nll", "data_logLik", "loglik", "fixed_prior_penalty", "sd_prior_penalty", "penalized_objective")
+  for (k in scalars) vec(result[[k]], 1L, k)
+  gradients <- c("data_gradient", "fixed_prior_gradient", "sd_prior_gradient", "penalized_gradient")
+  for (k in gradients) vec(result[[k]], n, k)
+  close <- function(a, b) all(abs(a - b) <= 1e-10 * pmax(1, abs(a), abs(b)))
+  sd_coordinate <- paste0("eta_sd[mu|", sd_record$group, "|(Intercept)]")
+  sd_index <- which(coords == sd_coordinate)
+  if (length(sd_index) != 1L) fail("SD prior coordinate identity")
+  eta <- working[[sd_index]]
+  tau <- exp(eta)
+  variance <- tau^2
+  if (!is.finite(tau) || tau <= 0 || !is.finite(variance) || variance <= 0)
+    fail("SD prior coordinate outside numeric range")
+  sd_penalty <- sd_record$rate * tau - (sd_record$shape - 1) * eta -
+    sd_record$shape * log(sd_record$rate) + lgamma(sd_record$shape)
+  sd_gradient <- numeric(n)
+  sd_gradient[[sd_index]] <- sd_record$rate * tau - (sd_record$shape - 1)
+  if (!is.finite(sd_penalty) || any(!is.finite(sd_gradient))) fail("SD prior coordinate outside numeric range")
+  if (!close(result$sd_prior_penalty, sd_penalty)) fail("SD prior penalty")
+  if (!close(result$sd_prior_gradient, sd_gradient)) fail("SD prior gradient")
+  fixed_penalty <- 0
+  fixed_gradient <- numeric(n)
+  fixed_indices <- integer()
+  fixed_records <- Filter(function(x) x$kind %in% c("fixed_normal", "fixed_ridge"), expected)
+  for (record in fixed_records) {
+    if (!identical(record$class, "fixed") || !record$dpar %in% c("mu", "sigma") ||
+        record$spec_index < 1 || record$spec_index != floor(record$spec_index))
+      fail("fixed prior target or parameters")
+    index <- which(coords == paste0(record$dpar, "_", record$coef))
+    if (length(index) != 1L || index == sd_index) fail("fixed prior coordinate identity")
+    if (index %in% fixed_indices) fail("fixed prior target duplicated")
+    fixed_indices <- c(fixed_indices, index)
+    beta <- working[[index]]
+    if (identical(record$kind, "fixed_normal")) {
+      precision <- 1 / record$sd^2
+      if (record$sd <= 0 || !is.finite(precision) || precision <= 0) fail("fixed prior parameters")
+      z <- (beta - record$mean) / record$sd
+      contribution <- 0.5 * z^2 + log(record$sd) + 0.5 * log(2 * pi)
+      derivative <- (beta - record$mean) * precision
+    } else {
+      if (record$lambda < 0) fail("fixed prior parameters")
+      derivative <- record$lambda * beta
+      contribution <- 0.5 * beta * derivative
+    }
+    if (!is.finite(contribution) || !is.finite(derivative)) fail("fixed prior coordinate outside numeric range")
+    fixed_penalty <- fixed_penalty + contribution
+    fixed_gradient[[index]] <- derivative
+  }
+  if (!is.finite(fixed_penalty)) fail("fixed prior penalty outside numeric range")
+  if (!close(result$fixed_prior_penalty, fixed_penalty)) fail("fixed prior penalty")
+  if (!close(result$fixed_prior_gradient, fixed_gradient)) fail("fixed prior gradient")
+  if (!close(result$data_logLik, -result$data_nll) || !close(result$loglik, result$data_logLik)) fail("data likelihood")
+  if (!close(result$penalized_objective, result$data_nll + result$fixed_prior_penalty + result$sd_prior_penalty)) fail("objective decomposition")
+  if (!close(result$penalized_gradient, result$data_gradient + result$fixed_prior_gradient + result$sd_prior_gradient)) fail("gradient decomposition")
+  invisible(TRUE)
+}
+
 drm_julia_conditional_gaussian_components_source <- function() {
   paste(
     sep = "\n",
@@ -7070,7 +7250,11 @@ drm_julia_conditional_gaussian_components_source <- function() {
     "function drmTMB_drm_bridge_conditional_gaussian_components(formula, family, data, tree, options)",
     "    dat = drmTMB_backend._bridge_data(data)",
     "    opts = drmTMB_backend._bridge_options(options)",
-    "    prior_requested = haskey(opts, :priors) || haskey(opts, :prior_expected)",
+    "    is_v2 = any(k -> haskey(opts, k), (:prior_contract, :priors_v2, :prior_expected_v2))",
+    "    is_v2 && !isdefined(drmTMB_backend, :_bridge_prior_safe_options) && throw(ArgumentError(\"conditional bridge: backend lacks parameter_priors_v2\"))",
+    "    is_v2 && (opts = drmTMB_backend._bridge_prior_safe_options(options))",
+    "    is_v2 && drmTMB_backend._bridge_prior_contract(opts) !== :v2 && throw(ArgumentError(\"conditional bridge: invalid v2 prior request\"))",
+    "    prior_requested = is_v2 || haskey(opts, :priors) || haskey(opts, :prior_expected)",
     "    bridge_labels = nothing",
     "    if prior_requested",
     "        bundle, dat, bridge_labels = drmTMB_backend._bridge_formula(formula, family, dat; labels = true)",
@@ -7079,7 +7263,10 @@ drm_julia_conditional_gaussian_components_source <- function() {
     "    end",
     "    fam = drmTMB_backend._bridge_family(family)",
     "    fam isa drmTMB_backend.Gaussian || throw(ArgumentError(\"conditional bridge requires Gaussian family\"))",
-    "    if haskey(opts, :priors)",
+    "    v2_records = nothing",
+    "    if is_v2",
+    "        v2_records = drmTMB_backend._bridge_enable_priors_v2!(opts, bundle, fam, dat, bridge_labels)",
+    "    elseif haskey(opts, :priors)",
     "        haskey(opts, :prior_expected) || throw(ArgumentError(\"conditional bridge: priors require prior_expected\"))",
     "        opts[:priors] = drmTMB_backend._bridge_prepare_fixed_priors(bundle, fam, bridge_labels, opts[:priors], opts[:prior_expected])",
     "    elseif haskey(opts, :prior_expected)",
@@ -7142,6 +7329,7 @@ drm_julia_conditional_gaussian_components_source <- function() {
     "        sigma_clamp_active = any(abs.(eta_sigma) .>= 30.0)",
     "    end",
     "    out = prior_requested ? drmTMB_backend._bridge_flatten(fit; family = String(family), labels = bridge_labels) : drmTMB_backend._bridge_flatten(fit; family = String(family))",
+    "    is_v2 && drmTMB_backend._bridge_attach_priors_v2!(out, fit, v2_records, bridge_labels)",
     "    out[\"conditional_re\"] = Dict(\"kind\" => \"gaussian_mu_ordinary_components_v2\", \"components\" => components, \"sigma_clamp_active\" => sigma_clamp_active)",
     "    return out",
     "end",

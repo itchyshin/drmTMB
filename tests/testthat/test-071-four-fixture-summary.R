@@ -811,3 +811,34 @@ test_that("S7 campaign collector verifies every declared retained checksum", {
              file.path(task, "SHA256SUMS"))
   expect_error(env$r071_s7_verify_task_checksums(task), "checksum schema drift")
 })
+
+test_that("sys.source binds r071_s7_sha256 in the caller environment without leaking into globalenv", {
+  r071_skip_unless_source_tree()
+  base <- normalizePath(file.path(
+    testthat::test_path("..", ".."),
+    "docs", "dev-log", "evidence", "julia-r-parity", "071-ordinary-laplace"
+  ))
+  before <- ls(globalenv(), all.names = TRUE)
+  env <- new.env(parent = globalenv())
+  old_wd <- getwd()
+  old_root <- Sys.getenv("DRMTMB_ROOT", unset = NA_character_)
+  scratch <- tempfile("r071-locator-cwd-")
+  dir.create(scratch)
+  setwd(scratch)
+  Sys.unsetenv("DRMTMB_ROOT")
+  on.exit({
+    setwd(old_wd)
+    if (is.na(old_root)) Sys.unsetenv("DRMTMB_ROOT") else Sys.setenv(DRMTMB_ROOT = old_root)
+    unlink(scratch, recursive = TRUE)
+  }, add = TRUE)
+  sys.source(file.path(base, "prepare-s7-campaign-bundle.R"), envir = env)
+  expect_true(exists("r071_s7_sha256", envir = env, inherits = FALSE))
+  expect_true(is.function(env$r071_s7_sha256))
+  empty <- tempfile("r071-empty-sha-")
+  file.create(empty)
+  expect_identical(
+    env$r071_s7_sha256(empty),
+    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  )
+  expect_identical(setdiff(ls(globalenv(), all.names = TRUE), before), character())
+})
