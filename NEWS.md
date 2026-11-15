@@ -6,8 +6,9 @@
 
 * In complete-data, unit-weight Gaussian ML models with full-rank fixed designs and two distinct, unlabelled iid mean random intercepts, Gamma SD priors may target either or both named groups and may be combined with fixed-effect priors. Confidence intervals and information criteria remain unavailable for active-prior fits. The Julia bridge requires a DRModels.jl version containing the two-intercept prior-table support. Random slopes and correlation priors remain outside this slice.
 
-* A formula transform that is not a number, such as `log(x)` or `sqrt(x)` on a
-  non-positive predictor, drops those rows from the response and the design.
+* A formula transform that produces `NA` or `NaN`, such as `log(x)` or
+  `sqrt(x)` on a negative predictor, drops those rows from the response and the
+  design.
   The same rows are now dropped from the weights, the known sampling
   covariance, and the data used to build random effects. Distributional
   formulas that would keep different rows abort with class
