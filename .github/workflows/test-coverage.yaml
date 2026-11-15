@@ -53,8 +53,8 @@ on:
       - "tools/ci-install-drmodels-julia.sh"
       - "tools/covr-julia-bridge-include.txt"
       - "tools/run-covr-julia-bridge-coverage.R"
-      - "tools/ci-warm-juliacall-disposable-bootstrap.R"
       - "tools/ci-juliacall-coverage.Rprofile"
+      - "docs/dev-log/loop/parity-joint-20260905/source-pins.json"
   pull_request:
     branches: [main, master]
     paths:
@@ -72,8 +72,8 @@ on:
       - "tools/ci-install-drmodels-julia.sh"
       - "tools/covr-julia-bridge-include.txt"
       - "tools/run-covr-julia-bridge-coverage.R"
-      - "tools/ci-warm-juliacall-disposable-bootstrap.R"
       - "tools/ci-juliacall-coverage.Rprofile"
+      - "docs/dev-log/loop/parity-joint-20260905/source-pins.json"
   workflow_dispatch:
 
 name: test-coverage
@@ -248,8 +248,9 @@ jobs:
       DRMTMB_JULIA_TESTS: true
       DRMTMB_COVERAGE_JULIA_INCLUDE: ${{ github.workspace }}/tools/covr-julia-bridge-include.txt
       DRMTMB_COVERAGE_SKIP_FRAC_MAX: "0.10"
-      DRMODELS_JL_PATH: ${{ github.workspace }}/DRModels.jl
-      # Legacy env only: some fence tests unset DRM_JL_PATH (not DRMODELS_JL_PATH).
+      # Legacy env only. drm_julia_path() prefers DRMODELS_JL_PATH, and the
+      # fence tests unset DRM_JL_PATH (not DRMODELS_JL_PATH). Setting the
+      # canonical env lets those tests reach a live fit.
       DRM_JL_PATH: ${{ github.workspace }}/DRModels.jl
       OPENBLAS_NUM_THREADS: 1
       OMP_NUM_THREADS: 1
@@ -261,16 +262,62 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
 
+      - name: Read programme DRModels.jl pin
+        id: drmodels_pin
+        run: |
+          set -euo pipefail
+          pin=$(python3 - <<'PY'
+          import json
+          with open("docs/dev-log/loop/parity-joint-20260905/source-pins.json", encoding="utf-8") as f:
+              pins = json.load(f)
+          repins = pins.get("repins") or []
+          if not repins:
+              raise SystemExit("source-pins.json has no repins[] entry")
+          pin = repins[-1]["drmjl_base"]
+          if len(pin) != 40 or any(c not in "0123456789abcdef" for c in pin):
+              raise SystemExit(f"bad drmjl_base pin: {pin!r}")
+          print(pin)
+          PY
+          )
+          echo "pin=${pin}" >> "$GITHUB_OUTPUT"
+          echo "Programme DRModels.jl pin ${pin}"
+
       - uses: actions/checkout@v6.0.2
         with:
           repository: itchyshin/DRModels.jl
           path: DRModels.jl
-          ref: main
+          ref: ${{ steps.drmodels_pin.outputs.pin }}
           persist-credentials: false
+
+      - name: Verify DRModels.jl checkout matches programme pin
+        run: |
+          set -euo pipefail
+          pin='${{ steps.drmodels_pin.outputs.pin }}'
+          head=$(git -C DRModels.jl rev-parse HEAD)
+          if [ "$head" != "$pin" ]; then
+            echo "DRModels.jl HEAD ${head} != programme pin ${pin}" >&2
+            exit 1
+          fi
+          echo "DRModels.jl checkout ${head}"
 
       - uses: julia-actions/setup-julia@v3
         with:
           version: "1.13"
+
+      - name: Put the Julia binary on PATH for subprocesses
+        run: |
+          set -euo pipefail
+          bindir=$(julia -e 'print(Sys.BINDIR)')
+          test -n "${bindir}"
+          test -x "${bindir}/julia"
+          ln -sfn "${bindir}/julia" /usr/local/bin/julia
+          # Prepend BINDIR so later steps, including callr children, resolve
+          # julia to this binary. /usr/local/bin covers a PATH that does not
+          # include the setup-julia directory. Do not set JULIA_HOME.
+          echo "${bindir}" >> "${GITHUB_PATH}"
+          env -u JULIA_HOME PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+            julia -e 'print(Sys.BINDIR); println()'
+          echo "julia_bindir=${bindir}"
 
       - uses: julia-actions/cache@v2
 
@@ -312,24 +359,6 @@ jobs:
         run: |
           export R_HOME="$(R RHOME)"
           julia --startup-file=no -e 'using Pkg; Pkg.add("RCall"); Pkg.build("RCall")'
-
-      - name: Warm JuliaCall before covr (default Julia project)
-        env:
-          JULIA_PKG_PRECOMPILE_AUTO: "0"
-        run: |
-          Rscript -e '
-            suppressPackageStartupMessages({
-              library(JuliaCall)
-              JuliaCall::julia_setup(installJulia = FALSE, install = FALSE, verbose = FALSE)
-              JuliaCall::julia_command("using RCall")
-              JuliaCall::julia_command("using Suppressor")
-            })
-          '
-
-      - name: Verify disposable-project JuliaCall bootstrap
-        env:
-          DRM_JL_PATH: ${{ github.workspace }}/DRModels.jl
-        run: Rscript tools/ci-warm-juliacall-disposable-bootstrap.R
 
       - name: Record tested commit
         run: |

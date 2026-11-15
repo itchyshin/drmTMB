@@ -47,28 +47,57 @@ if (!file.copy(driver, main_testthat, overwrite = TRUE)) {
   fail("could not plant Julia covr driver over %s", main_testthat)
 }
 
-# callr::r tests pkgload::load_all(test_path("..", "..")); covr leaves the
-# compiled .so on the installed copy. Pre-compile the workspace tree so
-# subprocesses can load the package DLL (check-log 2026-11-09-covr-shard1).
-pkg_root <- normalizePath(Sys.getenv("GITHUB_WORKSPACE", "."), winslash = "/", mustWork = TRUE)
-Sys.setenv(DRMTMB_COVR_PKG_ROOT = pkg_root)
-Sys.setenv(
-  DRMTMB_COVR_INSTALL_LIB = file.path(install_path, "drmTMB")
+# callr::r() uses user_profile = "project", so it does not see R_PROFILE_USER.
+# Plant a project profile under tests/testthat (covr copies it into the
+# installed test tree) that sources the coverage shim. Restored on exit.
+profile_src <- normalizePath(
+  file.path(pkg_root, "tools", "ci-juliacall-coverage.Rprofile"),
+  winslash = "/",
+  mustWork = TRUE
 )
-if (requireNamespace("pkgload", quietly = TRUE)) {
-  suppressMessages(pkgload::load_all(pkg_root, compile = TRUE, quiet = TRUE))
-  cat(sprintf("drmtmb_covr_pkg_precompiled=%s\n", pkg_root))
+project_profile <- file.path(pkg_root, "tests", "testthat", ".Rprofile")
+bak_profile <- file.path(pkg_root, "tests", "testthat", ".Rprofile.covr-julia-bak")
+profile_existed <- file.exists(project_profile)
+if (profile_existed && !file.exists(bak_profile)) {
+  if (!file.copy(project_profile, bak_profile)) {
+    fail("could not back up %s", project_profile)
+  }
 }
-
+writeLines(
+  c(
+    "# Planted by tools/run-covr-julia-bridge-coverage.R. Not a package test.",
+    sprintf("sys.source(%s, envir = globalenv())", deparse(profile_src))
+  ),
+  project_profile
+)
+Sys.setenv(DRMTMB_COVR_RPROFILE = profile_src)
 on.exit(
   {
     if (file.exists(bak_testthat)) {
       file.copy(bak_testthat, main_testthat, overwrite = TRUE)
       unlink(bak_testthat)
     }
+    if (file.exists(bak_profile)) {
+      file.copy(bak_profile, project_profile, overwrite = TRUE)
+      unlink(bak_profile)
+    } else if (!profile_existed) {
+      unlink(project_profile)
+    }
   },
   add = TRUE
 )
+
+# callr::r tests pkgload::load_all(test_path("..", "..")); covr leaves the
+# compiled .so on the installed copy. Pre-compile the workspace tree so
+# subprocesses can load the package DLL (check-log 2026-11-09-covr-shard1).
+# DRMTMB_COVR_INSTALL_LIB is the library root passed to covr as install_path.
+pkg_root <- normalizePath(Sys.getenv("GITHUB_WORKSPACE", "."), winslash = "/", mustWork = TRUE)
+Sys.setenv(DRMTMB_COVR_PKG_ROOT = pkg_root)
+Sys.setenv(DRMTMB_COVR_INSTALL_LIB = install_path)
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  suppressMessages(pkgload::load_all(pkg_root, compile = TRUE, quiet = TRUE))
+  cat(sprintf("drmtmb_covr_pkg_precompiled=%s\n", pkg_root))
+}
 
 cov <- tryCatch(
   covr::package_coverage(

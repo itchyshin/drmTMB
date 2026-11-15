@@ -154,7 +154,14 @@ class CodecovWorkflowTest(unittest.TestCase):
     def test_producer_has_separate_julia_bridge_job(self) -> None:
         self.assertIn("julia-bridge-coverage:", self.producer)
         self.assertIn("DRMTMB_JULIA_TESTS: true", self.producer)
-        self.assertIn("DRMODELS_JL_PATH:", self.producer)
+        self.assertIn("DRM_JL_PATH:", self.producer)
+        # Fence tests unset DRM_JL_PATH. The canonical env bypasses that unset.
+        self.assertNotIn("DRMODELS_JL_PATH:", self.producer)
+        self.assertNotIn("ref: main", self.producer)
+        self.assertIn("source-pins.json", self.producer)
+        self.assertIn('repins[-1]["drmjl_base"]', self.producer)
+        self.assertIn("/usr/local/bin/julia", self.producer)
+        self.assertNotIn("JULIA_HOME=", self.producer)
         self.assertIn("julia-actions/setup-julia@v3", self.producer)
         self.assertIn("main-coverage-julia-bridge", self.producer)
         self.assertIn("tools/covr-plant-julia-bridge-testthat.sh", self.producer)
@@ -163,7 +170,8 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertIn("run-covr-julia-bridge-coverage.R", self.producer)
         self.assertIn("DRMODELS_JL_SHA", self.producer)
         self.assertIn("libunwind.so.8", self.producer)
-        self.assertIn("ci-warm-juliacall-disposable-bootstrap.R", self.producer)
+        self.assertNotIn("ci-warm-juliacall-disposable-bootstrap.R", self.producer)
+        self.assertNotIn("JuliaCall::julia_setup", self.producer)
         self.assertIn("ci-juliacall-coverage.Rprofile", self.producer)
 
     def test_comment_cannot_satisfy_oidc_gate(self) -> None:
@@ -206,6 +214,8 @@ class CodecovWorkflowTest(unittest.TestCase):
         runner = JULIA_RUNNER.read_text(encoding="utf-8")
         self.assertIn("DRMODELS_JL_SHA", runner)
         self.assertIn("counts[[\"FAIL\"]]", runner)
+        self.assertIn('file.path(pkg_root, "tests", "testthat", ".Rprofile")', runner)
+        self.assertIn("DRMTMB_COVR_INSTALL_LIB = install_path", runner)
         include_lines = [
             line.strip()
             for line in JULIA_INCLUDE.read_text(encoding="utf-8").splitlines()

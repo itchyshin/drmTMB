@@ -1,6 +1,9 @@
-# Sourced in every R process started during julia-bridge coverage (covr, callr).
-# Do not call JuliaCall::julia_setup() here — drm_julia_setup() must run first
-# with install = TRUE on its own disposable project (JuliaCall returns early when
+# Sourced during julia-bridge coverage. The workflow sets R_PROFILE_USER to this
+# file. callr::r() defaults to user_profile = "project", which ignores
+# R_PROFILE_USER and sources only tests/testthat/.Rprofile. The coverage driver
+# plants that file so it sys.source()s this one. Do not call
+# JuliaCall::julia_setup() here — drm_julia_setup() must run first with
+# install = TRUE on its own disposable project (JuliaCall returns early when
 # already initialized, which would skip RCall in that project).
 if (identical(Sys.getenv("DRMTMB_JULIA_TESTS"), "true")) {
   Sys.setenv(R_HOME = R.home())
@@ -21,7 +24,11 @@ if (identical(Sys.getenv("DRMTMB_JULIA_TESTS"), "true")) {
               ),
               error = function(e) FALSE
             )
-            if (isTRUE(same)) {
+            installed <- file.path(install_lib, "drmTMB", "DESCRIPTION")
+            # install_lib is the library root (covr install_path), not the
+            # package directory. Skip until package_coverage has installed it,
+            # so the driver's own load_all(compile = TRUE) still compiles.
+            if (isTRUE(same) && file.exists(installed)) {
               return(library(drmTMB, lib.loc = install_lib, quietly = TRUE))
             }
           }
