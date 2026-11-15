@@ -1,4 +1,10 @@
-# drmTMB 0.8.1
+# drmTMB 0.8.2
+
+* The native Gaussian mean random-intercept route accepts an optional Gamma prior on one named group SD, with explicit shape and rate on the SD scale. Active-prior fits report the data likelihood separately from the penalized objective.
+
+* Add an opt-in prior table for supported fixed effects and Gaussian random-intercept standard deviations.
+
+* In complete-data, unit-weight Gaussian ML models with full-rank fixed designs and two distinct, unlabelled iid mean random intercepts, Gamma SD priors may target either or both named groups and may be combined with fixed-effect priors. Confidence intervals and information criteria remain unavailable for active-prior fits. The Julia bridge requires a DRModels.jl version containing the two-intercept prior-table support. Random slopes and correlation priors remain outside this slice.
 
 * A formula transform that is not a number, such as `log(x)` or `sqrt(x)` on a
   non-positive predictor, drops those rows from the response and the design.
@@ -44,6 +50,8 @@
   compute file SHA-256 digests on every R version in `Depends`, using
   `tools::sha256sum()` when exported (R 4.5+) and otherwise Suggested
   `openssl`/`digest` or the `sha256sum`/`shasum` system utilities (#1702).
+
+# drmTMB 0.8.1
 
 * `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
   `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
