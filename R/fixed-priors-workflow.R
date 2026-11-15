@@ -23,26 +23,40 @@ drm_validate_fixed_prior_designs <- function(spec) {
 
 # Narrow phylogenetic scale-regression shape for normal coefficient priors.
 drm_fixed_prior_phylo_lss <- function(priors, formula, family_type) {
-  if (!identical(family_type, "gaussian") ||
-      !all(vapply(priors, function(p) identical(p$kind, "normal"), logical(1))))
+  normal <- vapply(priors, function(p) identical(p$kind, "normal"), logical(1))
+  if (!identical(family_type, "gaussian") || !all(normal)) {
     return(FALSE)
+  }
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
-  mu <- which(dpars == "mu"); sigma <- which(dpars == "sigma")
-  if (length(entries) != 3L || length(mu) != 1L || length(sigma) != 1L)
+  mu <- which(dpars == "mu")
+  sigma <- which(dpars == "sigma")
+  if (length(entries) != 3L || length(mu) != 1L || length(sigma) != 1L) {
     return(FALSE)
+  }
   structured <- entries[[mu]]$structured
-  if (length(structured) != 1L || !identical(structured[[1L]]$type, "phylo") ||
-      !identical(structured[[1L]]$coef_names, "(Intercept)") ||
-      !is.null(structured[[1L]]$covariance_label)) return(FALSE)
+  if (length(structured) != 1L ||
+        !identical(structured[[1L]]$type, "phylo") ||
+        !identical(structured[[1L]]$coef_names, "(Intercept)") ||
+        !is.null(structured[[1L]]$covariance_label)) {
+    return(FALSE)
+  }
   grp <- structured[[1L]]$group
-  if (!identical(sort(dpars), sort(c("mu", "sigma", paste0("sd_phylo(", grp, ")")))))
+  expected <- c("mu", "sigma", paste0("sd_phylo(", grp, ")"))
+  if (!identical(sort(dpars), sort(expected))) {
     return(FALSE)
-  if (any(vapply(entries[-mu], function(e) length(e$structured) > 0L, logical(1))))
+  }
+  other_structured <- vapply(entries[-mu], function(e) {
+    length(e$structured) > 0L
+  }, logical(1))
+  if (any(other_structured)) {
     return(FALSE)
+  }
   calls <- unlist(lapply(formula$calls, all.names), use.names = FALSE)
-  forbidden <- c("||", "spatial", "animal", "relmat", "corpair", "mi",
-                 "meta_V", "meta_known_V", "sd1", "sd2", "ar1", "ou", "homtoep")
+  forbidden <- c(
+    "||", "spatial", "animal", "relmat", "corpair", "mi",
+    "meta_V", "meta_known_V", "sd1", "sd2", "ar1", "ou", "homtoep"
+  )
   sum(calls == "|") == 1L && sum(calls == "phylo") == 1L &&
     !any(calls %in% forbidden)
 }
@@ -69,7 +83,9 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
   }
   phylo_lss <- drm_fixed_prior_phylo_lss(priors, formula, ft)
   allowed <- if (ft == "gaussian") c("mu", "sigma") else "mu"
-  if (phylo_lss) allowed <- c(allowed, vapply(formula$entries, `[[`, character(1), "dpar"))
+  if (phylo_lss) {
+    allowed <- c(allowed, vapply(formula$entries, `[[`, character(1), "dpar"))
+  }
   if (any(!vapply(formula$entries, function(e) e$dpar %in% allowed, logical(1)))) {
     cli::cli_abort("Fixed-effect priors do not support this distributional-parameter formula yet.")
   }
