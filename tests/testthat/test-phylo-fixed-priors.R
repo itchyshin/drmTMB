@@ -97,6 +97,11 @@ test_that("phylogenetic prior fit matches the independent interior optimum", {
   expect_equal(fit$opt$objective, 104.69371002665, tolerance = 1e-8)
   expect_lt(max(abs(fit$obj$gr(fit$opt$par))), 1e-5)
   expect_identical(fit$opt$convergence, 0L)
+  reordered <- drmTMB(f, data = d[nrow(d):1, ], priors = p,
+                      control = drm_control(se = FALSE, logsigma_clamp = NULL,
+                                            optimizer_preset = "robust"))
+  expect_equal(unname(reordered$opt$par), expected, tolerance = 1e-5)
+  expect_equal(reordered$opt$objective, fit$opt$objective, tolerance = 1e-8)
 })
 
 test_that("live Julia bridge verifies phylogenetic prior targets", {
