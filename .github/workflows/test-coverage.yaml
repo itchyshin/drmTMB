@@ -248,6 +248,7 @@ jobs:
       DRMTMB_JULIA_TESTS: true
       DRMTMB_COVERAGE_JULIA_INCLUDE: ${{ github.workspace }}/tools/covr-julia-bridge-include.txt
       DRMTMB_COVERAGE_SKIP_FRAC_MAX: "0.10"
+      DRMODELS_JL_PATH: ${{ github.workspace }}/DRModels.jl
       # Legacy env only: some fence tests unset DRM_JL_PATH (not DRMODELS_JL_PATH).
       DRM_JL_PATH: ${{ github.workspace }}/DRModels.jl
       OPENBLAS_NUM_THREADS: 1
