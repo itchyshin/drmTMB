@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -238,6 +239,8 @@ class CodecovWorkflowTest(unittest.TestCase):
     def test_julia_profile_does_not_abort_callr_child(self) -> None:
         """callr sources tests/testthat/.Rprofile. A locked-namespace assign aborts R."""
         self.assertTrue(JULIA_PROFILE.is_file(), f"missing {JULIA_PROFILE}")
+        if shutil.which("Rscript") is None:
+            self.skipTest("Rscript unavailable")
         if subprocess.call(["Rscript", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
             self.skipTest("Rscript unavailable")
         probe = subprocess.run(
