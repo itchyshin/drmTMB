@@ -1,8 +1,12 @@
 # Current phylogenetic label receipt
 
-## Current main refresh
+## Current release candidate refresh
 
-The current no-prior receipt uses R `def81464aec6dfbf7fbba3b00abd06d9616ac24e` and Julia `ec420ac23918d57c877099851d45100e87aa51da`. All eight checks passed, and the checker rejected 12 deliberate mutations. An independent audit matched the recorded 68 R and 127 Julia source hashes to those commits; the runner hash, source status and Julia environment hashes were also checked. This is one Gaussian phylogenetic fixture, not a prior or broad parity validation. Details are in `docs/dev-log/priors-receipt-jec420-20261115/README.md`.
+The current no-prior receipt uses R `def81464aec6dfbf7fbba3b00abd06d9616ac24e` and Julia `cf7477ab31aff77b6af53a00201b2411de749baa`. All eight checks passed, and the checker rejected 12 deliberate mutations. An independent audit matched all 68 recorded R and 127 Julia source hashes to those commits and checked the runner, status and environment records. The native binary hash is recorded but its build was not independently reproduced. This is one Gaussian phylogenetic fixture, not a prior or broad parity validation. Details are in `docs/dev-log/priors-receipt-jcf747-20261115/README.md`.
+
+## Previous current main refresh
+
+The preceding no-prior receipt uses R `def81464aec6dfbf7fbba3b00abd06d9616ac24e` and Julia `ec420ac23918d57c877099851d45100e87aa51da`; it is retained as `pre-julia-cf747-20261115.json`. All eight checks passed, and the checker rejected 12 deliberate mutations. An independent audit matched the recorded 68 R and 127 Julia source hashes to those commits; the runner hash, source status and Julia environment hashes were also checked. This is one Gaussian phylogenetic fixture, not a prior or broad parity validation. Details are in `docs/dev-log/priors-receipt-jec420-20261115/README.md`.
 
 ## November 15 current-Julia refresh
 
