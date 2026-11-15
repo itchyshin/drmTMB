@@ -237,6 +237,10 @@ jobs:
   # Exercises test-julia-*.R with DRMTMB_JULIA_TESTS=true; merges at Codecov
   # under flag julia-bridge (codecov-upload.yaml).
   julia-bridge-coverage:
+    # Temporary and informational per Shinichi 15 Nov 2026. Remove once
+    # itchyshin/drmTMB#1745, itchyshin/drmTMB#1746, itchyshin/DRModels.jl#1401
+    # and itchyshin/DRModels.jl#1402 are all closed.
+    continue-on-error: true
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     name: ubuntu-24.04 (release) julia-bridge coverage
