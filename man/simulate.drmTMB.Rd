@@ -42,7 +42,9 @@ simulation for independent ordinary random intercepts, coefficient-specific
 SDs in one correlated ordinary block, and selected structured effects.
 Gamma fits support complete-data animal intercept SDs
 and an animal intercept-plus-numeric-slope model with separate
-coefficient-specific SD formulas. Binomial animal intercept-plus-slope
+coefficient-specific SD formulas. Those simulations match group-level
+SD predictions named \code{dpar:group} to the fitted animal groups.
+Binomial animal intercept-plus-slope
 blocks with separate coefficient-specific SD formulas use the fitted animal
 covariance and coefficient correlation for marginal simulation. For both
 Gamma routes, simulation uses

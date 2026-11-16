@@ -6,7 +6,9 @@
 #' SDs in one correlated ordinary block, and selected structured effects.
 #' Gamma fits support complete-data animal intercept SDs
 #' and an animal intercept-plus-numeric-slope model with separate
-#' coefficient-specific SD formulas. Binomial animal intercept-plus-slope
+#' coefficient-specific SD formulas. Those simulations match group-level
+#' SD predictions named `dpar:group` to the fitted animal groups.
+#' Binomial animal intercept-plus-slope
 #' blocks with separate coefficient-specific SD formulas use the fitted animal
 #' covariance and coefficient correlation for marginal simulation. For both
 #' Gamma routes, simulation uses
@@ -436,8 +438,15 @@ drm_julia_simulate_gamma_animal_sd <- function(
       sd_value <- predict(object, dpar = dpar)
       expected_names <- paste0(dpar, ":", spec$groups)
       if (!identical(names(sd_value), expected_names)) {
+        coef_label <- component$target$target_coef
+        if (length(coef_label) != 1L || is.na(coef_label) ||
+            !nzchar(coef_label)) {
+          # An omitted `coef` is stored as NA. Name the public SD parameter
+          # instead of printing NA (#1745).
+          coef_label <- dpar
+        }
         cli::cli_abort(
-          "Julia Gamma SD predictions do not align with animal groups for {.field {component$target$target_coef}}."
+          "Julia Gamma SD predictions do not align with animal groups for {.field {coef_label}}."
         )
       }
       latent <- as.vector(

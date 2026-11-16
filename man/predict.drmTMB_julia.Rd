@@ -38,7 +38,9 @@ quantile to compute.}
 A numeric vector of predictions, length \code{nrow(newdata)} when
 \code{newdata} is supplied. For \code{type = "quantile"}, a numeric matrix with one
 row per observation and one column per \code{prob}, with
-\code{attr(., "calibrated") == FALSE}.
+\code{attr(., "calibrated") == FALSE}. Group-level Gamma animal SD
+predictions are named \code{dpar:group}. Other single-target group-level SD
+predictions are named by the group level.
 }
 \description{
 This optional bridge method reconstructs predictions from the retained R
