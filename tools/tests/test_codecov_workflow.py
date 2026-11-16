@@ -65,10 +65,12 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertNotIn("CODECOV_TOKEN", self.producer)
         self.assertNotIn("pull_request_target", self.producer)
 
-    def test_producer_partitions_one_os_eight_shards(self) -> None:
+    def test_producer_partitions_one_os_nine_shards(self) -> None:
         self.assertIn("runs-on: ubuntu-24.04", self.producer)
-        self.assertIn("shard: [1, 2, 3, 4, 5, 6, 7, 8]", self.producer)
-        self.assertIn('DRMTMB_TEST_SHARD: ${{ format(\'{0}/8\', matrix.shard) }}', self.producer)
+        pairs = re.findall(r'\{shard: (\d+), spec: "([^"]+)"\}', self.producer)
+        expected = [("1", "1/16")] + [(str(i), f"{i}/8") for i in range(2, 9)] + [("9", "9/16")]
+        self.assertEqual(pairs, expected)
+        self.assertIn("DRMTMB_TEST_SHARD: ${{ matrix.spec }}", self.producer)
         self.assertIn("NOT_CRAN: true", self.producer)
         self.assertIn("type = \"tests\"", self.producer)
         self.assertIn("covr::package_coverage(", self.producer)
@@ -81,8 +83,8 @@ class CodecovWorkflowTest(unittest.TestCase):
             "if: github.event_name == 'push' && github.ref == 'refs/heads/main'",
             self.producer,
         )
-        self.assertIn("name: main-coverage-shard-${{ matrix.shard }}", self.producer)
-        self.assertIn("path: cobertura.xml", self.producer)
+        self.assertIn("name: main-coverage-shard-${{ github.run_attempt }}-${{ matrix.shard }}", self.producer)
+        self.assertIn("            cobertura.xml\n            coverage-identity.txt", self.producer)
         self.assertIn(UPLOAD_ARTIFACT, self.producer)
         self.assertIn(
             "if: github.event_name == 'pull_request'",
@@ -115,7 +117,7 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertIn(CODECOV_ACTION, self.uploader)
         self.assertIn(CHECKOUT_ACTION, self.uploader)
         self.assertIn(DOWNLOAD_ACTION, self.uploader)
-        self.assertIn("pattern: main-coverage-shard-*", self.uploader)
+        self.assertIn("pattern: main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-*", self.uploader)
         self.assertIn(
             "override_commit: ${{ github.event.workflow_run.head_sha }}",
             self.uploader,
@@ -125,17 +127,17 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertNotIn("secrets.CODECOV_TOKEN", self.uploader)
         self.assertNotIn("token: ${{ secrets", self.uploader)
 
-    def test_uploader_pins_all_eight_shard_reports(self) -> None:
+    def test_uploader_pins_all_nine_shard_reports(self) -> None:
         files_line = next(
             line for line in _active_lines(UPLOADER) if "files:" in line
         )
-        for shard in range(1, 9):
+        for shard in range(1, 10):
             self.assertIn(
-                f"main-coverage-shard-{shard}/cobertura.xml",
+                f"main-coverage-shard-${{{{ github.event.workflow_run.run_attempt }}}}-{shard}/cobertura.xml",
                 files_line,
             )
-        report_ids = re.findall(r"main-coverage-shard-(\d+)/cobertura\.xml", files_line)
-        self.assertEqual(sorted(map(int, report_ids)), list(range(1, 9)))
+        report_ids = re.findall(r"main-coverage-shard-\$\{\{ github\.event\.workflow_run\.run_attempt \}\}-(\d+)/cobertura\.xml", files_line)
+        self.assertEqual(sorted(map(int, report_ids)), list(range(1, 10)))
 
     def test_runtime_report_preflight_rejects_missing_and_empty(self) -> None:
         text = UPLOADER.read_text(encoding="utf-8")
@@ -144,11 +146,15 @@ class CodecovWorkflowTest(unittest.TestCase):
         script = textwrap.dedent(block.split("        run: |\n", 1)[1].split("        env:\n", 1)[0])
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            paths = [root / f"main-coverage-shard-{i}" / "cobertura.xml" for i in range(1, 9)]
+            paths = [root / f"main-coverage-shard-2-{i}" / "cobertura.xml" for i in range(1, 10)]
             for report in paths:
                 report.parent.mkdir()
                 report.write_text("<coverage/>\n")
-            env = dict(os.environ, COVERAGE_ROOT=str(root))
+            identities = [p.parent / "coverage-identity.txt" for p in paths]
+            for shard, identity in enumerate(identities, 1):
+                spec = "1/16" if shard == 1 else "9/16" if shard == 9 else f"{shard}/8"
+                identity.write_text(f"coverage_id={shard}\nshard={spec}\ncheckout_sha=abc123\nrun_id=77\nrun_attempt=2\n")
+            env = dict(os.environ, COVERAGE_ROOT=str(root), EXPECTED_SHA="abc123", EXPECTED_RUN_ID="77", EXPECTED_ATTEMPT="2")
             run = lambda: subprocess.run(["bash", "-c", script], env=env, capture_output=True)
             self.assertEqual(run().returncode, 0)
             for report in paths:
@@ -160,7 +166,31 @@ class CodecovWorkflowTest(unittest.TestCase):
                 report.mkdir()
                 self.assertNotEqual(run().returncode, 0, f"accepted directory {report}")
                 report.rmdir()
+                report.write_text("<broken")
+                self.assertNotEqual(run().returncode, 0, f"accepted malformed XML {report}")
+                report.write_text("<other/>\n")
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong XML root {report}")
                 report.write_text("<coverage/>\n")
+            for identity in identities:
+                original = identity.read_text()
+                identity.unlink()
+                self.assertNotEqual(run().returncode, 0, f"accepted missing {identity}")
+                identity.write_text("")
+                self.assertNotEqual(run().returncode, 0, f"accepted empty {identity}")
+                identity.write_text(original.replace("checkout_sha=abc123", "checkout_sha=wrong"))
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong SHA {identity}")
+                current_spec = next(line for line in original.splitlines() if line.startswith("shard="))
+                identity.write_text(original.replace(current_spec, "shard=wrong"))
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong shard {identity}")
+                identity.write_text(original + "shard=wrong\n")
+                self.assertNotEqual(run().returncode, 0, f"accepted duplicate shard {identity}")
+                identity.write_text(original.replace("coverage_id=", "coverage_id=wrong"))
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong id {identity}")
+                identity.write_text(original.replace("run_id=77", "run_id=76"))
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong run {identity}")
+                identity.write_text(original.replace("run_attempt=2", "run_attempt=1"))
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong attempt {identity}")
+                identity.write_text(original)
 
     def test_comment_cannot_satisfy_oidc_gate(self) -> None:
         mutated = re.sub(
