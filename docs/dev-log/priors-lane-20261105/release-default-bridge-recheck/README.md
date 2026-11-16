@@ -2,6 +2,10 @@
 
 ## Current release candidate refresh
 
+The no-prior receipt uses R `f72f1347ca0f777e0818af7a3a41e5ccf7e2c1c0` and Julia `f80f6795d53f1e0af5044e49d1d491ef62e59f8e`. All eight checks passed and 12 deliberate mutations were rejected. The 68 R and 127 Julia source hashes and runner matched the release candidates. This one Gaussian phylogenetic fixture does not establish prior support, interval calibration or release readiness. See `docs/dev-log/priors-receipt-jf80-20261116/README.md`.
+
+## Previous Julia 6d3a refresh
+
 The current no-prior receipt uses R `e0d7d98d4894a7d1f6c9fd5d7af152ae903eb844` and Julia `6d3a828fdcbaaeb6f49373510a0bc1b38515a82a`. All eight checks passed and 12 deliberately mutated receipts were rejected. The 68 R and 127 Julia source hashes and the runner matched the local release candidates. This is one Gaussian phylogenetic fixture without priors; it does not establish prior support, interval calibration or release readiness. Details are in `docs/dev-log/priors-receipt-j6d3a-20261116/README.md`.
 
 ## Previous Julia cbd870 refresh
