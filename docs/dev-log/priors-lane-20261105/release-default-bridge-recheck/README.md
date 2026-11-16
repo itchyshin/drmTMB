@@ -2,7 +2,11 @@
 
 ## Current release candidate refresh
 
-The current no-prior receipt uses R `def81464aec6dfbf7fbba3b00abd06d9616ac24e` and Julia `cf7477ab31aff77b6af53a00201b2411de749baa`. All eight checks passed, and the checker rejected 12 deliberate mutations. An independent audit matched all 68 recorded R and 127 Julia source hashes to those commits and checked the runner, status and environment records. The native binary hash is recorded but its build was not independently reproduced. This is one Gaussian phylogenetic fixture, not a prior or broad parity validation. Details are in `docs/dev-log/priors-receipt-jcf747-20261115/README.md`.
+The current no-prior receipt uses R `def81464aec6dfbf7fbba3b00abd06d9616ac24e` and Julia `cbd870be5867285dcd90bfec53bccdbf787e8896`. Eight checks passed and 12 deliberately mutated receipts were rejected. The release agent matched the 68 R and 127 Julia source hashes and the runner to the release candidates. This is one Gaussian phylogenetic fixture, not a prior or broad parity validation. Details are in `docs/dev-log/priors-receipt-jcbd870-20261116/README.md`.
+
+## Previous Julia cf747 refresh
+
+The preceding no-prior receipt uses R `def81464aec6dfbf7fbba3b00abd06d9616ac24e` and Julia `cf7477ab31aff77b6af53a00201b2411de749baa`. All eight checks passed, and the checker rejected 12 deliberate mutations. An independent audit matched all 68 recorded R and 127 Julia source hashes to those commits and checked the runner, status and environment records. The native binary hash is recorded but its build was not independently reproduced. This is one Gaussian phylogenetic fixture, not a prior or broad parity validation. Details are in `docs/dev-log/priors-receipt-jcf747-20261115/README.md`.
 
 ## Previous current main refresh
 
