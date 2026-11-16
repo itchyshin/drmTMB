@@ -1,6 +1,11 @@
 library(testthat)
 library(drmTMB)
 
+# Diagnostic branch only: show each file as it starts during R CMD check.
+if (identical(Sys.getenv("DRMTMB_TIMED_REPORTER"), "true")) {
+  options(testthat.default_check_reporter = "progress")
+}
+
 # The complete suite is an evidence programme as well as a package test suite:
 # it includes simulation, recovery, coverage, numerical-oracle, comparator,
 # generated-contract, and reader-render audits. Keep all of it in repository CI,
