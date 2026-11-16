@@ -1,5 +1,13 @@
 # Current phylogenetic label receipt
 
+## Current combined feature-source receipt
+
+The no-prior receipt uses R `8e341fc97e092a5e554abe49d4b1ddd005f14f85` and Julia `6a1c5367bbb27441d4ddfef7a50e16db541a11c4`. All eight checks passed and 12 deliberate mutations were rejected. The 68 R and 127 Julia source hashes and the runner matched the feature candidates. This fixture does not establish prior support or interval calibration. See `docs/dev-log/priors-receipt-phylo-j6a-20261116/README.md`.
+
+## Release candidate receipt for Julia 6d3a
+
+The release receipt uses R `e0d7d98d4894a7d1f6c9fd5d7af152ae903eb844` and Julia `6d3a828fdcbaaeb6f49373510a0bc1b38515a82a`. Its eight checks passed and 12 mutations were rejected. It is retained as `release-julia-j6d3a-20261116.json`; see `docs/dev-log/priors-receipt-j6d3a-20261116/README.md`.
+
 ## Combined feature-source receipt
 
 The no-prior receipt uses R `7bf63a960169bb53bac4f73ac642f1cd83b1bb29` and synthetic Julia integration `2d355dfe97811fb82022b91d3ba4c0ad8b8bc476`. Its eight checks passed and 12 deliberate mutations were rejected. The release agent matched the recorded source manifests and runner. Independent review and the final merged-source check remain open. This fixture does not validate priors or uncertainty. See `docs/dev-log/priors-receipt-phylo-feature-j2d-20261116/README.md`.
