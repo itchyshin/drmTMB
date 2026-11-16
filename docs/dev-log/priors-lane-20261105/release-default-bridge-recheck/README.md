@@ -2,6 +2,14 @@
 
 ## Current combined feature-source receipt
 
+The no-prior receipt uses R `e25bb8dd0b7c81f3dbbb123a4b368f6a6d3f1b7d` and Julia `2285b7606ea7b4ae5813009b1d673708dbe3b037`. All eight checks passed and 12 deliberate mutations were rejected. The 68 R and 127 Julia source hashes and runner matched the feature candidates. This fixture does not establish prior support or interval calibration. See `docs/dev-log/priors-receipt-phylo-j2285-20261116/README.md`.
+
+## Release candidate receipt for Julia f80
+
+The release receipt uses R `f72f1347ca0f777e0818af7a3a41e5ccf7e2c1c0` and Julia `f80f6795d53f1e0af5044e49d1d491ef62e59f8e`. Its eight checks passed and 12 mutations were rejected. It is retained as `release-julia-jf80-20261116.json`; see `docs/dev-log/priors-receipt-jf80-20261116/README.md`.
+
+## Current combined feature-source receipt
+
 The no-prior receipt uses R `8e341fc97e092a5e554abe49d4b1ddd005f14f85` and Julia `6a1c5367bbb27441d4ddfef7a50e16db541a11c4`. All eight checks passed and 12 deliberate mutations were rejected. The 68 R and 127 Julia source hashes and the runner matched the feature candidates. This fixture does not establish prior support or interval calibration. See `docs/dev-log/priors-receipt-phylo-j6a-20261116/README.md`.
 
 ## Release candidate receipt for Julia 6d3a
