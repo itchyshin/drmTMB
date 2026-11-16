@@ -1,5 +1,9 @@
 # Current phylogenetic label receipt
 
+## Current feature receipt for Julia 5b5b
+
+The no-prior receipt uses R `03ef1f58fdd3fd0d2925fedef42a2c8320a9643f` and Julia `5b5b7e25ea228d3f1ed121045e493f656d99dba3`. Eight checks passed and 12 deliberate mutations were rejected. The 68 R and 127 Julia source hashes and runner matched. This fixture does not establish prior support or interval calibration. See `docs/dev-log/priors-receipt-phylo-j5b-20261116/README.md`.
+
 ## Current combined feature-source receipt
 
 The no-prior receipt uses R `e25bb8dd0b7c81f3dbbb123a4b368f6a6d3f1b7d` and Julia `2285b7606ea7b4ae5813009b1d673708dbe3b037`. All eight checks passed and 12 deliberate mutations were rejected. The 68 R and 127 Julia source hashes and runner matched the feature candidates. This fixture does not establish prior support or interval calibration. See `docs/dev-log/priors-receipt-phylo-j2285-20261116/README.md`.
