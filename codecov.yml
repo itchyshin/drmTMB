@@ -12,6 +12,13 @@ coverage:
       default:
         informational: true
 
+flag_management:
+  default_rules:
+    carryforward: true
+  individual_flags:
+    - name: julia-bridge
+      carryforward: false
+
 ignore:
   - "tests/**/*"
   - "vignettes/**/*"

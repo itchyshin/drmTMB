@@ -44,7 +44,10 @@ Long simulation studies should live outside CRAN-time tests.
 
 Line coverage is measured with covr on GitHub Actions (`test-coverage`), using
 the same `DRMTMB_TEST_SHARD="k/4"` partition as repository CI so each test file
-is counted once, on Ubuntu and R-release only. The producer plants the Unix
+is counted once, on Ubuntu and R-release only. A separate
+`julia-bridge-coverage` job runs live `test-julia-*.R` files with DRModels.jl
+and merges cobertura under Codecov flag `julia-bridge`; it does not change the
+four shard partition or wall time. The producer plants the Unix
 Rcheck layout `00_pkg_src/drmTMB` at the covr library root so existing
 source-path guards (`drm_src_path`, `drm_pkg_path`) still see `src/`, `R/`,
 and `man/` under `tools::testInstalledPackage`. Do not skip those guards on

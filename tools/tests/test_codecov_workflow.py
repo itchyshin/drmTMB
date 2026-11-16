@@ -8,7 +8,9 @@ appears only in a comment.
 
 from __future__ import annotations
 
+import os
 import re
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -18,6 +20,12 @@ ROOT = Path(__file__).resolve().parents[2]
 PRODUCER = ROOT / ".github" / "workflows" / "test-coverage.yaml"
 UPLOADER = ROOT / ".github" / "workflows" / "codecov-upload.yaml"
 LAYOUT = ROOT / "tools" / "covr-source-tree-layout.sh"
+JULIA_TESTTHAT = ROOT / "tools" / "covr-julia-bridge-testthat.R"
+JULIA_PLANT = ROOT / "tools" / "covr-plant-julia-bridge-testthat.sh"
+JULIA_INCLUDE = ROOT / "tools" / "covr-julia-bridge-include.txt"
+JULIA_RUNNER = ROOT / "tools" / "run-covr-julia-bridge-coverage.R"
+JULIA_PROFILE = ROOT / "tools" / "ci-juliacall-coverage.Rprofile"
+CODECOV_YML = ROOT / "codecov.yml"
 
 CODECOV_ACTION = (
     "codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac"
@@ -113,7 +121,7 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertIn(CODECOV_ACTION, self.uploader)
         self.assertIn(CHECKOUT_ACTION, self.uploader)
         self.assertIn(DOWNLOAD_ACTION, self.uploader)
-        self.assertIn("pattern: main-coverage-shard-*", self.uploader)
+        self.assertIn("pattern: main-coverage-*", self.uploader)
         self.assertIn(
             "override_commit: ${{ github.event.workflow_run.head_sha }}",
             self.uploader,
@@ -124,14 +132,60 @@ class CodecovWorkflowTest(unittest.TestCase):
         self.assertNotIn("token: ${{ secrets", self.uploader)
 
     def test_uploader_pins_all_four_shard_reports(self) -> None:
-        files_line = next(
-            line for line in _active_lines(UPLOADER) if "files:" in line
-        )
+        shard_files = [
+            line
+            for line in _active_lines(UPLOADER)
+            if "files:" in line and "main-coverage-shard-" in line
+        ]
+        self.assertEqual(len(shard_files), 1)
+        files_line = shard_files[0]
         for shard in (1, 2, 3, 4):
             self.assertIn(
                 f"main-coverage-shard-{shard}/cobertura.xml",
                 files_line,
             )
+
+    def test_uploader_pins_julia_bridge_report_with_flag(self) -> None:
+        julia_lines = [
+            line
+            for line in _active_lines(UPLOADER)
+            if "main-coverage-julia-bridge/cobertura.xml" in line
+        ]
+        self.assertEqual(len(julia_lines), 1)
+        self.assertIn("flags: julia-bridge", self.uploader)
+
+    def test_producer_has_separate_julia_bridge_job(self) -> None:
+        self.assertIn("julia-bridge-coverage:", self.producer)
+        self.assertIn("DRMTMB_JULIA_TESTS: true", self.producer)
+        self.assertIn("DRM_JL_PATH:", self.producer)
+        # Fence tests unset only DRM_JL_PATH. Leave the canonical env unset.
+        self.assertNotIn("DRMODELS_JL_PATH:", self.producer)
+        self.assertNotIn("ref: main", self.producer)
+        self.assertNotIn("source-pins.json", self.producer)
+        self.assertNotIn("drmjl_base", self.producer)
+        self.assertIn("tools/ci-drmjl-ref", self.producer)
+        self.assertIn('"$head" != "$pin"', self.producer)
+        pin_lines = [
+            line.strip()
+            for line in (ROOT / "tools" / "ci-drmjl-ref").read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.strip().startswith("#")
+        ]
+        self.assertEqual(pin_lines, ["5b005e0ffbc017e427f3c050f7ef45b38ff990ce"])
+        pin_text = (ROOT / "tools" / "ci-drmjl-ref").read_text(encoding="utf-8")
+        self.assertIn("Bump this sha on purpose", pin_text)
+        self.assertIn("/usr/local/bin/julia", self.producer)
+        self.assertNotIn("JULIA_HOME=", self.producer)
+        self.assertIn("julia-actions/setup-julia@v3", self.producer)
+        self.assertIn("main-coverage-julia-bridge", self.producer)
+        self.assertIn("tools/covr-plant-julia-bridge-testthat.sh", self.producer)
+        self.assertIn("DRMTMB_COVERAGE_JULIA_INCLUDE", self.producer)
+        self.assertIn("any::JuliaCall", self.producer)
+        self.assertIn("run-covr-julia-bridge-coverage.R", self.producer)
+        self.assertIn("DRMODELS_JL_SHA", self.producer)
+        self.assertIn("libunwind.so.8", self.producer)
+        self.assertNotIn("ci-warm-juliacall-disposable-bootstrap.R", self.producer)
+        self.assertNotIn("JuliaCall::julia_setup", self.producer)
+        self.assertIn("ci-juliacall-coverage.Rprofile", self.producer)
 
     def test_comment_cannot_satisfy_oidc_gate(self) -> None:
         mutated = re.sub(
@@ -160,6 +214,110 @@ class CodecovWorkflowTest(unittest.TestCase):
         )
         self.assertIn("sha_note=pull_request_merge_sha_is_not_branch_head", self.producer)
         self.assertNotIn("skip_on_covr", self.producer)
+
+    def test_julia_bridge_plant_script_and_driver_exist(self) -> None:
+        self.assertTrue(JULIA_TESTTHAT.is_file(), f"missing {JULIA_TESTTHAT}")
+        self.assertTrue(JULIA_PLANT.is_file(), f"missing {JULIA_PLANT}")
+        self.assertTrue(JULIA_INCLUDE.is_file(), f"missing {JULIA_INCLUDE}")
+        self.assertTrue(JULIA_RUNNER.is_file(), f"missing {JULIA_RUNNER}")
+        driver = JULIA_TESTTHAT.read_text(encoding="utf-8")
+        self.assertIn("DRMTMB_JULIA_TESTS", driver)
+        self.assertIn("covr-julia-bridge-include.txt", driver)
+        self.assertIn("filter = julia_filter", driver)
+        runner = JULIA_RUNNER.read_text(encoding="utf-8")
+        self.assertIn("DRMODELS_JL_SHA", runner)
+        self.assertIn("counts[[\"FAIL\"]]", runner)
+        self.assertIn('file.path(pkg_root, "tests", "testthat", ".Rprofile")', runner)
+        self.assertIn("DRMTMB_COVR_INSTALL_LIB = install_path", runner)
+        include_lines = [
+            line.strip()
+            for line in JULIA_INCLUDE.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.strip().startswith("#")
+        ]
+        self.assertGreater(len(include_lines), 10)
+
+    def test_julia_profile_does_not_abort_callr_child(self) -> None:
+        """callr sources tests/testthat/.Rprofile. A locked-namespace assign aborts R."""
+        self.assertTrue(JULIA_PROFILE.is_file(), f"missing {JULIA_PROFILE}")
+        if shutil.which("Rscript") is None:
+            self.skipTest("Rscript unavailable")
+        if subprocess.call(["Rscript", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
+            self.skipTest("Rscript unavailable")
+        probe = subprocess.run(
+            [
+                "Rscript",
+                "-e",
+                "quit(status = if (requireNamespace('callr', quietly=TRUE) && requireNamespace('pkgload', quietly=TRUE) && requireNamespace('testthat', quietly=TRUE)) 0L else 1L)",
+            ],
+            check=False,
+        )
+        if probe.returncode != 0:
+            self.skipTest("callr, pkgload, or testthat unavailable")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            testthat = root / "tests" / "testthat"
+            testthat.mkdir(parents=True)
+            lib_pkg = root / "lib" / "drmTMB"
+            lib_pkg.mkdir(parents=True)
+            (lib_pkg / "DESCRIPTION").write_text("Package: drmTMB\n", encoding="utf-8")
+            pkg = root / "pkg"
+            pkg.mkdir()
+            (pkg / "DESCRIPTION").write_text("Package: placeholder\n", encoding="utf-8")
+            profile = JULIA_PROFILE.resolve().as_posix()
+            (testthat / ".Rprofile").write_text(
+                "\n".join(
+                    [
+                        "# planted like tools/run-covr-julia-bridge-coverage.R",
+                        f"sys.source({profile!r}, envir = globalenv())",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            script = r"""
+profile_wd <- commandArgs(trailingOnly = TRUE)[[1]]
+setwd(profile_wd)
+one <- callr::r(function() 1L)
+stopifnot(identical(one, 1L))
+got <- callr::r(function() testthat::test_path("..", ".."))
+root <- normalizePath(Sys.getenv("DRMTMB_COVR_PKG_ROOT"), winslash = "/", mustWork = TRUE)
+stopifnot(identical(got, root))
+err <- tryCatch(
+  callr::r(function(root) pkgload::load_all(root), args = list(root = root)),
+  error = function(e) conditionMessage(e)
+)
+stopifnot(grepl("there is no package called", err, fixed = TRUE))
+stopifnot(!grepl("could not start R", err, fixed = TRUE))
+stopifnot(!grepl("locked environment", err, fixed = TRUE))
+cat("callr_profile_ok\n")
+"""
+            env = dict(os.environ)
+            env.update(
+                {
+                    "DRMTMB_JULIA_TESTS": "true",
+                    "DRMTMB_COVR_PKG_ROOT": pkg.resolve().as_posix(),
+                    "DRMTMB_COVR_INSTALL_LIB": (root / "lib").resolve().as_posix(),
+                }
+            )
+            proc = subprocess.run(
+                ["Rscript", "-e", script, str(testthat)],
+                check=False,
+                env=env,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(
+                proc.returncode,
+                0,
+                msg=proc.stdout + "\n" + proc.stderr,
+            )
+            self.assertIn("callr_profile_ok", proc.stdout)
+
+    def test_julia_bridge_flag_has_no_carryforward(self) -> None:
+        self.assertTrue(CODECOV_YML.is_file(), f"missing {CODECOV_YML}")
+        text = CODECOV_YML.read_text(encoding="utf-8")
+        self.assertIn("name: julia-bridge", text)
+        self.assertIn("carryforward: false", text)
 
     def test_layout_script_plants_locator_walkup(self) -> None:
         self.assertTrue(LAYOUT.is_file(), f"missing {LAYOUT}")
