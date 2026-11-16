@@ -11315,6 +11315,19 @@ drm_julia_reconstruct_trials <- function(object, newdata) {
   object
 }
 
+# Single-target group-level SD predictions drop the `dpar:` prefix so the
+# names are the group levels, matching native `predict.drmTMB()`. Gamma
+# animal SD predictions keep `dpar:group`. Marginal simulation matches those
+# prefixed names to the fitted animal groups (#1745).
+drm_julia_predict_keeps_sd_dpar_prefix <- function(object, entry) {
+  if (!identical(object$model$model_type, "gamma") ||
+      is.null(entry$lhs) || !is_random_scale_lhs(entry$lhs)) {
+    return(FALSE)
+  }
+  target <- parse_sd_lhs(entry$lhs)
+  identical(target$fun, "sd_animal") && identical(target$level, "animal")
+}
+
 #' Predict from a Julia-bridge `drmTMB` fit
 #'
 #' This optional bridge method reconstructs predictions from the retained R
@@ -11386,7 +11399,9 @@ drm_julia_reconstruct_trials <- function(object, newdata) {
 #' @return A numeric vector of predictions, length `nrow(newdata)` when
 #'   `newdata` is supplied. For `type = "quantile"`, a numeric matrix with one
 #'   row per observation and one column per `prob`, with
-#'   `attr(., "calibrated") == FALSE`.
+#'   `attr(., "calibrated") == FALSE`. Group-level Gamma animal SD
+#'   predictions are named `dpar:group`. Other single-target group-level SD
+#'   predictions are named by the group level.
 #' @export
 predict.drmTMB_julia <- function(
   object,
@@ -11431,7 +11446,10 @@ predict.drmTMB_julia <- function(
           drm_julia_sd_public_dpar(parse_sd_lhs(entry$lhs)), sd_target
         )
       }, sd_entries)
-      if (length(target_entry) == 1L) {
+      if (length(target_entry) == 1L &&
+          !drm_julia_predict_keeps_sd_dpar_prefix(
+            object, target_entry[[1L]]
+          )) {
         prefix <- paste0(sd_target, ":")
         output_names <- names(values)
         if (!is.null(output_names) && all(startsWith(output_names, prefix))) {

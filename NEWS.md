@@ -1,5 +1,11 @@
 # drmTMB 0.8.1
 
+* Julia Gamma animal SD predictions from `predict()` keep the
+  `dpar:group` names, for example `sd_animal(id):animal_01`. Marginal
+  `simulate()` matches those names to the fitted animal groups. When an
+  animal SD formula omits `coef`, an alignment error names that SD
+  parameter (#1745).
+
 * A formula transform that is not a number, such as `log(x)` or `sqrt(x)` on a
   non-positive predictor, drops those rows from the response and the design.
   The same rows are now dropped from the weights, the known sampling
