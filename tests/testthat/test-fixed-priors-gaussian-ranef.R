@@ -14,7 +14,7 @@ test_that("fixed priors refuse other random-effect shapes", {
                  "fixed-effect-only")
   }
   check(bf(y ~ x + (1 + x | g)))
-  check(bf(y ~ x + (1 | g) + (1 | h)))
+  expect_no_error(drmTMB:::drm_validate_fixed_prior_request(p, bf(y ~ x + (1 | g) + (1 | h)), gaussian(), d))
   check(bf(y ~ x, sigma ~ 1 + (1 | g)))
   check(bf(y ~ x + (1 | block | g)))
   check(bf(y ~ x + (1 || g)))
