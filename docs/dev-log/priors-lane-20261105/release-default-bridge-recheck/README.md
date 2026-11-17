@@ -1,5 +1,9 @@
 # Current phylogenetic label receipt
 
+## Current feature receipt after Windows wrapper correction
+
+The no-prior receipt uses R `0ec98933b228e4e37c2952d1950318e2f119bde6` and Julia `5b5b7e25ea228d3f1ed121045e493f656d99dba3`. Eight checks passed and 12 deliberate mutations were rejected. The 68 R and 127 Julia source hashes and runner matched. This fixture does not establish prior support or interval calibration. See `docs/dev-log/priors-receipt-phylo-j5b-perl-20261117/README.md`.
+
 ## Current feature receipt after checksum reconciliation
 
 The no-prior receipt uses R `fdd600d8a76aa1e350696c10336020cd35387165` and Julia `5b5b7e25ea228d3f1ed121045e493f656d99dba3`. Eight checks passed and 12 deliberate mutations were rejected. The 68 R and 127 Julia source hashes and runner matched. This fixture does not establish prior support or interval calibration. See `docs/dev-log/priors-receipt-phylo-j5b-sha-20261116/README.md`.
