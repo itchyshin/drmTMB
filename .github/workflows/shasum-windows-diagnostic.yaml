@@ -50,3 +50,10 @@ jobs:
             cat("candidate", name, "\n")
             dput(tryCatch(system2(item$command, item$args, stdout = TRUE, stderr = TRUE), error = conditionMessage))
           }
+          expected <- "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          for (backend in c("sha256sum", "shasum")) {
+            stopifnot(nzchar(Sys.which(backend)))
+            got <- sha256_file_portable(p, backend)
+            cat("verified", backend, got, "\n")
+            stopifnot(identical(got, expected))
+          }
