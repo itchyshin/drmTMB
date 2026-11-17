@@ -35,3 +35,18 @@ jobs:
           for (tool in c("sha256sum", "shasum")) {
             cat("function", tool, ":", tryCatch(sha256_file_portable(p, tool), error = conditionMessage), "\n")
           }
+          wrapper <- Sys.which("shasum")
+          perl <- Sys.which("perl")
+          cat("perl:", perl, "\nwrapper contents:\n")
+          cat(paste(readLines(wrapper, n = 35L, warn = FALSE), collapse = "\n"), "\n")
+          candidates <- list(
+            basename = list(command = "shasum", args = c("-a", "256", shQuote(p))),
+            perl_x = list(command = perl, args = c("-x", shQuote(wrapper), "-a", "256", shQuote(p))),
+            perl_s = list(command = perl, args = c("-S", "shasum", "-a", "256", shQuote(p))),
+            cmd_c = list(command = Sys.getenv("COMSPEC"), args = c("/c", shQuote(wrapper), "-a", "256", shQuote(p)))
+          )
+          for (name in names(candidates)) {
+            item <- candidates[[name]]
+            cat("candidate", name, "\n")
+            dput(tryCatch(system2(item$command, item$args, stdout = TRUE, stderr = TRUE), error = conditionMessage))
+          }
