@@ -12,7 +12,18 @@ bibentry(
   year = "2026",
   note = sprintf(
     "R package version %s",
-    if (exists("meta") && !is.null(meta$Version)) meta$Version else "0.1.4"
+    if (exists("meta") && !is.null(meta$Version)) {
+      meta$Version
+    } else {
+      ver <- suppressWarnings(
+        utils::packageDescription("drmTMB", fields = "Version")
+      )
+      if (is.null(ver) || !length(ver) || is.na(ver) || !nzchar(ver)) {
+        "unknown"
+      } else {
+        ver
+      }
+    }
   ),
   url = "https://github.com/itchyshin/drmTMB"
 )
