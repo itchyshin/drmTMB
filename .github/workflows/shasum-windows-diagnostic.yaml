@@ -1,0 +1,37 @@
+name: Windows shasum diagnostic
+on:
+  push:
+    branches: [codex/shasum-windows-diagnostic-20261117]
+jobs:
+  diagnose:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+      - name: Capture checksum tool behavior
+        shell: Rscript {0}
+        run: |
+          d <- file.path(tempdir(), "checksum diagnostic spaces")
+          dir.create(d, recursive = TRUE)
+          p <- file.path(d, "abc content.txt")
+          writeBin(charToRaw("abc"), p)
+          cat("R", R.version.string, "\n")
+          for (tool in c("sha256sum", "shasum")) {
+            executable <- Sys.which(tool)
+            cat("tool:", tool, "executable:", executable, "\n")
+            if (!nzchar(executable)) next
+            for (slash in c("\\", "/")) {
+              target <- normalizePath(p, winslash = slash, mustWork = TRUE)
+              args <- if (tool == "shasum") c("-a", "256", shQuote(target)) else shQuote(target)
+              cat("target:", target, "args:", paste(args, collapse = " | "), "\n")
+              out <- tryCatch(system2(executable, args, stdout = TRUE, stderr = TRUE), error = conditionMessage)
+              dput(out)
+            }
+          }
+          source("R/sha256-portable.R")
+          for (tool in c("sha256sum", "shasum")) {
+            cat("function", tool, ":", tryCatch(sha256_file_portable(p, tool), error = conditionMessage), "\n")
+          }
