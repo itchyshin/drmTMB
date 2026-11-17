@@ -12,7 +12,11 @@ bibentry(
   year = "2026",
   note = sprintf(
     "R package version %s",
-    if (exists("meta") && !is.null(meta$Version)) meta$Version else "0.1.4"
+    if (exists("meta") && !is.null(meta$Version)) {
+      meta$Version
+    } else {
+      utils::packageDescription("drmTMB", fields = "Version")
+    }
   ),
   url = "https://github.com/itchyshin/drmTMB"
 )
