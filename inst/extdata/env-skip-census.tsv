@@ -717,6 +717,7 @@ test-phase18-skew-normal-fixed-effect.R	os	environment	runs	1
 test-phase18-spatial-q2-grid-writer.R	cran-lane	environment	runs	1
 test-phase18-student-shape-runner.R	os	environment	runs	1
 test-phase18-task-seed-registry.R	build-premise	build	skips	2
+test-phylo-fixed-priors.R	engine-drm-jl	environment	skips	1
 test-phylo-gaussian.R	cran-lane	environment	runs	2
 test-phylo-interaction.R	cran-lane	environment	runs	4
 test-phylo-penalized-map.R	cran-lane	environment	runs	3
