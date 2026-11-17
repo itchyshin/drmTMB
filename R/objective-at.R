@@ -99,6 +99,8 @@ objective_at.drmTMB <- function(object, at, ...) {
   penalty <- if (is.null(penalty_report)) 0 else as.numeric(penalty_report)
   fixed_prior <- object$obj$report()$fixed_prior_penalty
   if (!is.null(fixed_prior)) penalty <- penalty + as.numeric(fixed_prior)
+  sd_prior <- object$obj$report()$sd_prior_penalty
+  if (!is.null(sd_prior)) penalty <- penalty + as.numeric(sd_prior)
   value <- raw - penalty
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
   value

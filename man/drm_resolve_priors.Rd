@@ -2,7 +2,7 @@
 % Please edit documentation in R/fixed-priors-workflow.R
 \name{drm_resolve_priors}
 \alias{drm_resolve_priors}
-\title{Preview fixed-effect prior selections without fitting}
+\title{Preview prior selections without fitting}
 \usage{
 drm_resolve_priors(formula, family = stats::gaussian(), data, priors)
 }
@@ -13,17 +13,36 @@ drm_resolve_priors(formula, family = stats::gaussian(), data, priors)
 
 \item{data}{A data frame with complete model variables.}
 
-\item{priors}{A collection created by \code{\link[=drm_priors]{drm_priors()}}.}
+\item{priors}{A collection created by \code{\link[=drm_priors]{drm_priors()}}, or a data frame with
+\code{prior}, \code{class}, and \code{coef} columns. The table supports \code{normal(mean, sd)}
+and \code{ridge(lambda)} for \code{class = "fixef"}, and \code{gamma(mean, shape)} for
+\code{class = "ranef_sd"}. Optional \code{dpar} defaults to \code{"mu"} and optional
+\code{group} names a grouping factor. A blank fixed-effect coefficient selects
+non-intercept coefficients; a blank SD selector selects all supported
+mean random-intercept SDs. Overlapping targets and a coefficient literally
+named \code{"all"} are rejected. The Gamma table uses mean and shape, so
+\code{rate = shape / mean}; the constructor uses shape and rate. The table
+covers a subset of glmmTMB's prior classes and distributions. Random
+slopes and correlation priors are not supported. Fitted objects retain
+the original table in \code{attr(fit$priors, "input_table")}; \code{update()}
+replays the resolved targets without expanding broad selectors again.}
 }
 \value{
-A data frame identifying each selected coefficient, distributional
-parameter, matrix column, prior mean, SD, precision and selection reason.
+A data frame identifying the resolved targets. Fixed-effect rows
+report the distributional parameter, coefficient, matrix column, prior
+mean, SD, precision and selection reason. An SD-prior row reports the
+distributional parameter, group, random-effect block, coefficient,
+SD scale, shape and rate. Mixed results combine these fields, with
+unavailable fields recorded as \code{NA}.
 }
 \description{
 Resolve selectors against the same Gaussian or binomial design builders used
 by \code{\link[=drmTMB]{drmTMB()}}. Models require complete data and unit weights. Gaussian
-identity models can include one independent mean random intercept; other
+identity models can include one or two independent mean random intercepts with distinct grouping partitions; other
 random effects and random-effect SD formulas are not supported with priors.
+A Gamma SD prior identifies the exact group and intercept and reports shape
+and rate on the natural SD scale. The native and Julia engines support this
+prior for the Gaussian mean random-intercept model described above.
 The Julia bridge does not yet accept factor predictors in this mixed model.
 No automatic centring or scaling is performed.
 }
@@ -31,6 +50,11 @@ No automatic centring or scaling is performed.
 d <- data.frame(y = c(1, 2, 1, 3), x = c(0, 1, 2, 3))
 p <- drm_priors(drm_prior_normal("mu", "x", sd = 2))
 drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, p)
+table <- data.frame(prior = "normal(0,2)", class = "fixef", coef = "x")
+drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, table)
 d$group <- factor(c(1, 1, 2, 2))
 drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, p)
+sd_table <- data.frame(prior = "gamma(0.6666666666666666,2)",
+                       class = "ranef_sd", coef = "group")
+drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, sd_table)
 }
