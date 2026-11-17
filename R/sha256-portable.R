@@ -55,7 +55,17 @@ sha256_file_portable <- function(
     if (!nzchar(shasum)) {
       stop("shasum is not on PATH", call. = FALSE)
     }
-    out <- suppressWarnings(system2(shasum, c("-a", "256", shQuote(path)), stdout = TRUE, stderr = TRUE))
+    command <- shasum
+    args <- c("-a", "256", shQuote(path))
+    if (.Platform$OS.type == "windows" && grepl("\\.bat$", shasum, ignore.case = TRUE)) {
+      wrapper <- tryCatch(readLines(shasum, n = 25L, warn = FALSE), error = function(e) character())
+      perl <- Sys.which("perl")
+      if (nzchar(perl) && any(grepl("^#!perl", wrapper))) {
+        command <- perl
+        args <- c("-x", shQuote(shasum), args)
+      }
+    }
+    out <- suppressWarnings(system2(command, args, stdout = TRUE, stderr = TRUE))
     # GNU checksum utilities prefix escaped filenames with a backslash.
     if (length(out) && startsWith(out[[1L]], "\\")) {
       out[[1L]] <- substring(out[[1L]], 2L)
