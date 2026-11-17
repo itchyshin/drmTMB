@@ -15,7 +15,14 @@ bibentry(
     if (exists("meta") && !is.null(meta$Version)) {
       meta$Version
     } else {
-      utils::packageDescription("drmTMB", fields = "Version")
+      ver <- suppressWarnings(
+        utils::packageDescription("drmTMB", fields = "Version")
+      )
+      if (is.null(ver) || !length(ver) || is.na(ver) || !nzchar(ver)) {
+        "unknown"
+      } else {
+        ver
+      }
     }
   ),
   url = "https://github.com/itchyshin/drmTMB"
