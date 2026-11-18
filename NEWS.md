@@ -1,5 +1,11 @@
 # drmTMB 0.8.2
 
+* A fixed-effect factor with fewer than two levels present in the data now
+  aborts with class `drmTMB_one_level_factor` and names the column, instead
+  of `model.matrix()`'s contrasts error. The same applies to a one-value
+  character predictor. Factors with two or more levels still drop unused
+  levels and fit (#1731).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
