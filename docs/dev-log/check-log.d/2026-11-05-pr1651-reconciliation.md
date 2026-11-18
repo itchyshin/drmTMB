@@ -1,0 +1,3 @@
+# PR 1651 reconciliation checks
+
+On 2026-11-05, the source-bound three-cell compatibility receipt passed 12 of 12 attempts and matched a same-host baseline summary. `python3 tools/capability_ledger.py --check-c14-receipt-equivalence` and `python3 tools/capability_ledger.py --check` passed on the reconciled files. The focused documentation test passed on Totoro. An earlier exported candidate package completed Linux R CMD check with one spelling NOTE, 0 test failures and no live Julia bridge tests; later evidence files are not part of that checked package. See the after-task report for provenance and limits.

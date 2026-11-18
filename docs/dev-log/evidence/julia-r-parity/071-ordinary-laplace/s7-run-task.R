@@ -86,6 +86,7 @@ r071_s7_task_main <- function(args = commandArgs(trailingOnly = TRUE)) {
   bundle_path <- normalizePath(a[["bundle"]], mustWork = TRUE)
   out <- normalizePath(a[["out"]], mustWork = FALSE)
   if (!dir.exists(out)) dir.create(out, recursive = TRUE, showWarnings = FALSE)
+  Sys.setenv(DRMTMB_ROOT = root)
   helper_dir <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity", "071-ordinary-laplace")
   for (file in c(
     "prepare-s7-campaign-manifest.R", "prepare-s7-campaign-bundle.R",
